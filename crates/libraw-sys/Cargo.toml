@@ -4,8 +4,7 @@ name = "libraw-sys"
 version.workspace = true
 
 [build-dependencies]
-vcpkg = {workspace=true}
-cxx-build =  {workspace=true}
-
+bindgen={workspace=true}
 [dependencies]
-cxx = {workspace=true}
+libc =  {workspace=true}
+

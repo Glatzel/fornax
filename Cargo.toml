@@ -7,10 +7,11 @@ edition = "2024"
 version = "0.21.0"
 
 [workspace.dependencies]
-cxx = "1.0"    
-vcpkg = "0.2" 
+libc = "0.2"
+cxx = "1.0"
+vcpkg = "0.2"
 cxx-build = "1.0"
-
+bindgen = "0.71"
 
 [profile.release]
 codegen-units = 1
