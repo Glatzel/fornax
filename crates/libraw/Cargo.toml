@@ -5,6 +5,6 @@ version.workspace = true
 
 [dependencies]
 libraw-sys = { path = "../libraw-sys" }
-
+libc= { workspace = true}
 [features]
 bindgen = ["libraw-sys/bindgen"] 

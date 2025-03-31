@@ -212,8 +212,13 @@ dependencies = [
 name = "libraw"
 version = "0.21.3"
 dependencies = [
+ "libc",
  "libraw-sys",
 ]
+
+[[package]]
+name = "libraw-py"
+version = "0.21.3"
 
 [[package]]
 name = "libraw-sys"
