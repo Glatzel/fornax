@@ -5,6 +5,9 @@ version.workspace = true
 
 [build-dependencies]
 bindgen = { workspace = true, option = true }
+clerk = { workspace = true, features = ["log"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
 
 [dependencies]
 libc = { workspace = true }

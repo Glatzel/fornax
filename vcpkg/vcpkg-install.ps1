@@ -7,7 +7,7 @@ $triplet = Resolve-Path ./triplet
 Write-Output "::group::static"
 &./vcpkg/vcpkg.exe install `
     --overlay-triplets=$triplet `
-    --triplet x64-windows-static-md `
+    --triplet x64-windows-static `
     --x-install-root ./installed `
     --vcpkg-root ./vcpkg
 Write-Output "::endgroup::"

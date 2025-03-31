@@ -9,6 +9,9 @@ version = "0.21.3"
 [workspace.dependencies]
 libc = "0.2"
 bindgen = "0.71"
+clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.5" }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 
 [profile.release]
 codegen-units = 1

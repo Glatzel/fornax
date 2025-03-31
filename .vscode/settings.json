@@ -1,0 +1,14 @@
+{
+    "rust-analyzer.cargo.extraEnv": {
+        "LIBRAW_ROOT": "${workspaceFolder}/vcpkg/installed/x64-windows-static"
+    },
+    "rust-analyzer.check.extraEnv": {
+        "LIBRAW_ROOT": "${workspaceFolder}/vcpkg/installed/x64-windows-static"
+    },
+    "rust-analyzer.runnables.extraEnv": {
+        "LIBRAW_ROOT": "${workspaceFolder}/vcpkg/installed/x64-windows-static"
+    },
+    "rust-analyzer.server.extraEnv": {
+        "LIBRAW_ROOT": "${workspaceFolder}/vcpkg/installed/x64-windows-static"
+    }
+}

@@ -7,4 +7,4 @@ version.workspace = true
 libraw-sys = { path = "../libraw-sys" }
 
 [features]
-bindgen = ["libraw-sys/bindgen"]
+bindgen = ["libraw-sys/bindgen"] 
