@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
 use tracing::level_filters::LevelFilter;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 fn main() {
     tracing_subscriber::registry()
         .with(clerk::terminal_layer(LevelFilter::DEBUG))
