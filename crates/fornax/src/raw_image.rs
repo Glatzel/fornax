@@ -1,13 +1,13 @@
-use crate::{Processor, Sizes};
+use crate::{Fornax, Sizes};
 use std::ops::Deref;
 use std::slice;
 
 pub struct RawImage {
-    processor: Processor,
+    processor: Fornax,
 }
 
 impl RawImage {
-    pub(crate) fn new(processor: Processor) -> Self {
+    pub(crate) fn new(processor: Fornax) -> Self {
         debug_assert!(!unsafe { (*processor.inner).rawdata.raw_alloc }.is_null());
 
         Self { processor }
