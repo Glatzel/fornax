@@ -1,4 +1,4 @@
-use crate::{Fornax, Sizes};
+use crate::{Fornax, sizes::Sizes};
 use std::ops::Deref;
 use std::slice;
 
@@ -8,13 +8,13 @@ pub struct RawImage {
 
 impl RawImage {
     pub(crate) fn new(processor: Fornax) -> Self {
-        debug_assert!(!unsafe { (*processor.inner).rawdata.raw_alloc }.is_null());
+        debug_assert!(!unsafe { (*processor.imgdata).rawdata.raw_alloc }.is_null());
 
         Self { processor }
     }
 
     pub fn sizes(&self) -> Sizes {
-        Sizes::new(unsafe { (*self.processor.inner).sizes })
+        Sizes::new(unsafe { (*self.processor.imgdata).sizes })
     }
 }
 
@@ -26,7 +26,7 @@ impl Deref for RawImage {
 
         unsafe {
             slice::from_raw_parts(
-                (*self.processor.inner).rawdata.raw_image,
+                (*self.processor.imgdata).rawdata.raw_image,
                 sizes.raw_width as usize * sizes.raw_height as usize,
             )
         }

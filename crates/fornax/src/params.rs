@@ -1,5 +1,7 @@
+use std::hint;
+
 ///Identifiers for demosaic algorithms.
-enum DEMOSAIC_ALGORITHM {
+pub enum DemosaicAlgorithm {
     LINEAR = 0,
     VNG = 1,
     PPG = 2,
@@ -15,40 +17,38 @@ enum DEMOSAIC_ALGORITHM {
     DHT = 11,
     AAHD = 12,
 }
+/// Color spaces.
+pub enum ColorSpace {
+    RAW = 0,
+    SRGB = 1,
+    ADOBE = 2,
+    WIDE = 3,
+    PROPHOTO = 4,
+    XYZ = 5,
+    ACES = 6,
+    P3D65 = 7,
+    REC2020 = 8,
+}
+/// Highlight modes.
+pub enum HighlightMode {
+    CLIP = 0,
+    IGNORE = 1,
+    BLEND = 2,
+    RECONSTRUCT3 = 3,
+    RECONSTRUCT4 = 4,
+    RECONSTRUCT5 = 5, //default
+    RECONSTRUCT6 = 6,
+    RECONSTRUCT7 = 7,
+    RECONSTRUCT8 = 8,
+    RECONSTRUCT9 = 9,
+}
 
-// class COLOR_SPACE(int, Enum):
-//     """Color spaces."""
-
-//     RAW = 0
-//     SRGB = 1
-//     ADOBE = 2
-//     WIDE = 3
-//     PROPHOTO = 4
-//     XYZ = 5
-//     ACES = 6
-//     P3D65 = 7
-//     REC2020 = 8
-
-// class HIGHLIGHT_MODE(int, Enum):
-//     """Highlight modes."""
-
-//     CLIP = 0
-//     IGNORE = 1
-//     BLEND = 2
-//     RECONSTRUCT3 = 3
-//     RECONSTRUCT4 = 4
-//     Reconstruct5Default = 5
-//     RECONSTRUCT6 = 6
-//     RECONSTRUCT7 = 7
-//     RECONSTRUCT8 = 8
-//     RECONSTRUCT9 = 9
-
-// class FBDD_NOISE_REDUCTION_MODE(int, Enum):
-//     """FBDD noise reduction modes."""
-
-//     OFF = 0
-//     LIGHT = 1
-//     FULL = 2
+/// FBDD noise reduction modes.
+pub enum FbddNoiseReductionMode {
+    OFF = 0,
+    LIGHT = 1,
+    FULL = 2,
+}
 
 // class RawpyParams(BaseModel):
 //     """
