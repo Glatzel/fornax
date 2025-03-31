@@ -1,0 +1,10 @@
+[package]
+edition.workspace = true
+name = "libraw"
+version.workspace = true
+
+[dependencies]
+libraw-sys = { path = "../libraw-sys" }
+
+[features]
+bindgen = ["libraw-sys/bindgen"]

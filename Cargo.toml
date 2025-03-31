@@ -4,15 +4,11 @@ resolver = "2"
 
 [workspace.package]
 edition = "2024"
-version = "0.21.0"
+version = "0.21.3"
 
 [workspace.dependencies]
 libc = "0.2"
-cxx = "1.0"
-vcpkg = "0.2"
-cxx-build = "1.0"
-bindgen = { version = "0.69", default-features = false, features = ["runtime"]}
-cc={ version = "1.0.42", features = ["parallel"] }
+bindgen = "0.71"
 
 [profile.release]
 codegen-units = 1
