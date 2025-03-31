@@ -1,0 +1,11 @@
+[package]
+edition.workspace = true
+name = "libraw-sys"
+version.workspace = true
+
+[build-dependencies]
+vcpkg = {workspace=true}
+cxx-build =  {workspace=true}
+
+[dependencies]
+cxx = {workspace=true}

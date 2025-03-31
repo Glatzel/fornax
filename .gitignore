@@ -1,0 +1,8 @@
+
+# pixi environments
+.pixi
+*.egg-info
+
+vcpkg/vcpkg
+vcpkg/installed
+target
