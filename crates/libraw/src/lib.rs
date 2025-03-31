@@ -1,4 +1,3 @@
-use std::mem;
 
 use libraw_sys as sys;
 
