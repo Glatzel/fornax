@@ -1,5 +1,3 @@
-use std::hint;
-
 ///Identifiers for demosaic algorithms.
 pub enum DemosaicAlgorithm {
     LINEAR = 0,

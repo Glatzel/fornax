@@ -10,5 +10,8 @@
     },
     "rust-analyzer.server.extraEnv": {
         "LIBRAW_ROOT": "${workspaceFolder}/vcpkg/installed/x64-windows-static"
-    }
+    } ,"python.analysis.exclude": [
+        "**/vcpkg",
+        "**/.pixi"
+    ],
 }

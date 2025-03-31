@@ -2,7 +2,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Annotated, Literal, Optional, Self
 
-import rawpy
+
 from pydantic import BaseModel, Field, StrictBool, field_serializer  # type: ignore
 
 
@@ -47,7 +47,7 @@ class HIGHLIGHT_MODE(int, Enum):
     BLEND = 2
     RECONSTRUCT3 = 3
     RECONSTRUCT4 = 4
-    Reconstruct5Default = 5
+    RECONSTRUCT5 = 5
     RECONSTRUCT6 = 6
     RECONSTRUCT7 = 7
     RECONSTRUCT8 = 8
