@@ -12,6 +12,7 @@ bindgen = "0.71"
 clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.5" }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+validator = { version = "0.20.0", features = ["derive"] }
 
 [profile.release]
 codegen-units = 1
