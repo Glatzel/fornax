@@ -18,5 +18,5 @@ fn main() {
         .compile("my-vcpkg-crate");
 
     // Link
-    println!("cargo:rustc-link-lib=static=libraw");
+    println!("cargo:rustc-link-lib=libraw");
 }
