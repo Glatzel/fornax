@@ -1,3 +1,0 @@
-[submodule "crates/libraw-sys/libraw"]
-	path = crates/libraw-sys/libraw
-	url = https://github.com/LibRaw/LibRaw.git
