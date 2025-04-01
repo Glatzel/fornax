@@ -204,6 +204,7 @@ version = "0.21.3"
 dependencies = [
  "libc",
  "libraw-sys",
+ "serde",
  "validator",
 ]
 

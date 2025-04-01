@@ -1,8 +1,7 @@
 use std::ops::Deref;
 use std::slice;
 
-use crate::Fornax;
-use crate::sizes::Sizes;
+use crate::{Fornax, ImageSizes};
 
 pub struct RawImage {
     processor: Fornax,
@@ -15,8 +14,8 @@ impl RawImage {
         Self { processor }
     }
 
-    pub fn sizes(&self) -> Sizes {
-        Sizes::new(unsafe { (*self.processor.imgdata).sizes })
+    pub fn sizes(&self) -> ImageSizes {
+        ImageSizes::new(unsafe { &(*self.processor.imgdata).sizes })
     }
 }
 

@@ -5,8 +5,10 @@ version.workspace = true
 
 [dependencies]
 libraw-sys = { path = "../libraw-sys" }
-libc= { workspace = true}
-validator = { workspace = true}
+libc = { workspace = true }
+validator = { workspace = true }
+serde = { workspace = true, optional = true }
 
 [features]
-bindgen = ["libraw-sys/bindgen"] 
+bindgen = ["libraw-sys/bindgen"]
+serde = ["dep:serde"]

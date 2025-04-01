@@ -13,6 +13,8 @@ clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.5" }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 validator = { version = "0.20.0", features = ["derive"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
 
 [profile.release]
 codegen-units = 1
@@ -20,6 +22,6 @@ debug = false
 lto = "fat"
 opt-level = 3
 strip = true
- 
+
 [profile.develop]
 inherits = "dev"

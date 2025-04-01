@@ -57,37 +57,38 @@ pub enum UserFlip {
     CCW90 = 5,
     CW90 = 6,
 }
-///Structure libraw_output_params_t (imgdata.params) is used for management of dcraw-compatible calls dcraw_process(), dcraw_ppm_tiff_writer(),
-/// and dcraw_thumb_writer().
+///Structure libraw_output_params_t (imgdata.params) is used for management of dcraw-compatible
+/// calls dcraw_process(), dcraw_ppm_tiff_writer(), and dcraw_thumb_writer().
 /// Fields of this structure correspond to command line keys of dcraw.
 pub struct OutputParams {
-    /// 4 numbers corresponding to the coordinates (in pixels) of the rectangle that is used to calculate the white balance.
-    /// X and Y are coordinates of the left-top rectangle corner; w and h are the rectangle's width and height, respectively.
-    greybox: (usize,),
-    demosaic_algorithm: DemosaicAlgorithm,
+    /// 4 numbers corresponding to the coordinates (in pixels) of the rectangle that is used to
+    /// calculate the white balance. X and Y are coordinates of the left-top rectangle corner;
+    /// w and h are the rectangle's width and height, respectively.
+    greybox: (usize, usize, usize, usize),
+    ///This field sets the image cropping rectangle. `Cropbox[0]` and` cropbox[1]` are the
+    /// rectangle's top-left corner coordinates, remaining two values are width and height
+    /// respectively. All coordinates are applied before any image rotation.
+    cropbox: (usize, usize, usize, usize),
+    /// Correction of chromatic aberrations; the only specified values are
+    /// `aber[0]`, the red multiplier
+    /// `aber[2]`, the blue multiplier. For some formats, it affects RAW data reading , since
+    /// correction of aberrations changes the output size.
+    aber: (f64, f64, f64, f64),
+    /// Sets user gamma-curve. Library user should set first two fields of gamm array:
+    ///gamm[0] - inverted gamma value)
+    ///gamm[1] - slope for linear part (so called toe slope). Set to zero for simple power curve.
+    ///Remaining 4 values are filled automatically.
+    ///By default settings for rec. BT.709 are used: power 2.222 (i.e. gamm[0]=1/2.222) and slope
+    /// 4.5. For sRGB curve use gamm[0]=1/2.4 and gamm[1]=12.92, for linear curve set
+    /// gamm[0]/gamm[1] to 1.0.
+    gamm: (f64, f64, f64, f64, f64, f64),
+    ///4 multipliers (r,g,b,g) of the user's white balance.
+    user_mul: (f32, f32, f32, f32),
+    ///Brightness (default 1.0).
+    bright: f32,
+    /// Parameter for noise reduction through wavelet denoising.
+    threshold: f32,
+    /// Outputs the image in 50% size. For some formats, it affects RAW data reading .
     half_size: bool,
     four_color_rgb: bool,
-    dcb_iterations: usize,
-    dcb_enhance: bool,
-    fbdd_noise_reduction: FbddNoiseReductionMode,
-    noise_thr: f64,
-    median_filter_passes: usize,
-    use_camera_wb: bool,
-    use_auto_wb: bool,
-    user_wb: (f64, f64, f64, f64),
-    output_color: ColorSpace,
-    output_bps: OutputBits,
-    user_flip: UserFlip,
-    user_black: u16,
-    no_auto_bright: bool,
-    auto_bright_thr: f64,
-    adjust_maximum_thr: f64,
-    bright: f64,
-    highlight_mode: HighlightMode,
-    exp_shift: f64,
-    exp_preserve_highlights: f64,
-    no_auto_scale: bool,
-    gamma: (f64, f64),
-    chromatic_aberration: (f64, f64),
-    bad_pixels_path: String,
 }
