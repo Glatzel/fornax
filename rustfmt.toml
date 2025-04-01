@@ -1,3 +1,4 @@
 group_imports = "StdExternalCrate"
 imports_granularity = "Module"
 reorder_imports = true
+comment_width = 100

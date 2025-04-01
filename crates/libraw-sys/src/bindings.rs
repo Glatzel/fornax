@@ -3785,7 +3785,7 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn strtok(_String: *mut libc::c_char, _Delimiter: *const libc::c_char)
-        -> *mut libc::c_char;
+    -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn _strupr_s(_String: *mut libc::c_char, _Size: usize) -> errno_t;

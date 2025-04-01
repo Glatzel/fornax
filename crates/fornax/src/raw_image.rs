@@ -1,6 +1,8 @@
-use crate::{Fornax, sizes::Sizes};
 use std::ops::Deref;
 use std::slice;
+
+use crate::Fornax;
+use crate::sizes::Sizes;
 
 pub struct RawImage {
     processor: Fornax,

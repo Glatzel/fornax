@@ -1,7 +1,10 @@
-use std::{ffi::CString, path::PathBuf};
+use std::ffi::CString;
+use std::path::PathBuf;
 
-use crate::{error::LibrawError, raw_image::RawImage};
 use libraw_sys as sys;
+
+use crate::error::LibrawError;
+use crate::raw_image::RawImage;
 pub type Result<T> = std::result::Result<T, LibrawError>;
 pub struct Fornax {
     pub(crate) imgdata: *mut sys::libraw_data_t,
