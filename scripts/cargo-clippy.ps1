@@ -3,10 +3,10 @@ Set-Location $PSScriptRoot/..
 & $PSScriptRoot/setup.ps1
 
 if ($env:CI) {
-    cargo +stable clippy --all-features
+    cargo +stable clippy --all-features -p fornax
 }
 else {
-    cargo clippy --fix --all-targets --all-features
+    cargo clippy --fix --all-features -p fornax
 }
 
 Set-Location $ROOT

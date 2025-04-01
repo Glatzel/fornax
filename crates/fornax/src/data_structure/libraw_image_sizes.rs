@@ -23,7 +23,7 @@ impl From<i32> for Flip {
 /// - https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
-pub struct ImageSizes {
+pub struct LibrawImageSizes {
     ///Full size of RAW image (including the frame) in pixels.
     pub raw_height: u16,
     /// Full size of RAW image (including the frame) in pixels.
@@ -46,13 +46,15 @@ pub struct ImageSizes {
     pub iwidth: u16,
     ///Full size of raw data row in bytes .
     pub raw_pitch: u32,
-    /// Pixel width/height ratio. If it is not unity, scaling of the image along one of the axes is required during output.
+    /// Pixel width/height ratio. If it is not unity, scaling of the image along one of the axes is
+    /// required during output.
     pub pixel_aspect: f64,
-    ///Image orientation (0 if does not require rotation; 3 if requires 180-deg rotation; 5 if 90 deg counterclockwise, 6 if 90 deg clockwise).
+    ///Image orientation (0 if does not require rotation; 3 if requires 180-deg rotation; 5 if 90
+    /// deg counterclockwise, 6 if 90 deg clockwise).
     pub flip: Flip,
 }
 
-impl ImageSizes {
+impl LibrawImageSizes {
     pub(crate) fn new(sizes: &sys::libraw_image_sizes_t) -> Self {
         Self {
             raw_height: sizes.raw_height,

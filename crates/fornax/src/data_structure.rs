@@ -1,7 +1,8 @@
-mod output_params;
-pub use output_params::{
-    ColorSpace, DemosaicAlgorithm, FbddNoiseReductionMode, HighlightMode, OutputBits, OutputParams,
-    UserFlip,
+mod libraw_output_params;
+pub use libraw_output_params::{
+    ColorSpace, DemosaicAlgorithm, FbddNoiseReductionMode, HighlightMode, LibrawOutputParams,
+    OutputBits, UserFlip,
 };
-mod image_sizes;
-pub use image_sizes::ImageSizes;
+mod libraw_image_sizes;
+pub use libraw_image_sizes::LibrawImageSizes;
+mod constants;

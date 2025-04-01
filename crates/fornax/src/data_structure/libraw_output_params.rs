@@ -60,7 +60,7 @@ pub enum UserFlip {
 ///Structure libraw_output_params_t (imgdata.params) is used for management of dcraw-compatible
 /// calls dcraw_process(), dcraw_ppm_tiff_writer(), and dcraw_thumb_writer().
 /// Fields of this structure correspond to command line keys of dcraw.
-pub struct OutputParams {
+pub struct LibrawOutputParams {
     /// 4 numbers corresponding to the coordinates (in pixels) of the rectangle that is used to
     /// calculate the white balance. X and Y are coordinates of the left-top rectangle corner;
     /// w and h are the rectangle's width and height, respectively.
