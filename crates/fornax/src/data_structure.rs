@@ -6,3 +6,4 @@ pub use libraw_output_params::{
 mod libraw_image_sizes;
 pub use libraw_image_sizes::LibrawImageSizes;
 mod constants;
+pub use constants::LibRawErrors;
