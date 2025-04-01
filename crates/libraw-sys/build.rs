@@ -48,8 +48,11 @@ fn main() {
             .generate_comments(true)
             .generate()
             .unwrap();
+        let out_file = PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("bindings.rs");
+
         bindings
-            .write_to_file(PathBuf::from("./src/bindings.rs"))
+            .write_to_file(&out_file)
             .expect("Couldn't write bindings!");
+        tracing::info!("Build bingings to: {}", out_file.to_str().unwrap());
     }
 }

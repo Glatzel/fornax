@@ -1,4 +1,3 @@
-use std::fmt::{self, Display, Formatter};
 ///All functions returning integer numbers must return either errno or one of the following error
 /// codes.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
