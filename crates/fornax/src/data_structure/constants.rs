@@ -25,20 +25,3 @@ pub enum LibRawErrors {
     TooBig = -100012,
     MempoolOverflow = -100013,
 }
-///Depending of capabilities of given data format, the buffer with RAW data may have different layouts.
-enum LibRawDecoderFlags {
-    DecoderHascurve = 16,
-    DECODER_SONYARW2 = 32,
-    DECODER_TRYRAWSPEED = 64,
-    DECODER_OWNALLOC = 128,
-    DECODER_FIXEDMAXC = 256,
-    DECODER_ADOBECOPYPIXEL = 512,
-    DECODER_LEGACY_WITH_MARGINS = 1024,
-    DECODER_3CHANNEL = 2048,
-    DECODER_SINAR4SHOT = 2048,
-    DECODER_FLATDATA = 4096,
-    DECODER_FLAT_BG2_SWAPPED = 8192,
-    DECODER_UNSUPPORTED_FORMAT = 16384,
-    DECODER_NOTSET = 32768,
-    DECODER_TRYRAWSPEED3 = 65536,
-}
