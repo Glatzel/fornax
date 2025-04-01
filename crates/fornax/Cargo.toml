@@ -10,5 +10,4 @@ validator = { workspace = true }
 serde = { workspace = true, optional = true }
 
 [features]
-bindgen = ["libraw-sys/bindgen"]
 serde = ["dep:serde"]
