@@ -62,7 +62,7 @@ impl Fornax {
             unsafe { sys::libraw_dcraw_make_mem_image(self.imgdata, &mut result) };
         Self::check_run(result)?;
 
-        let processed = LibrawProcessedImage::new(unsafe { &(*processed) })?;
+        let processed = LibrawProcessedImage::new(processed)?;
         Ok(processed)
     }
 }

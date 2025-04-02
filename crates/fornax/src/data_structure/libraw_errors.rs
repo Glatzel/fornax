@@ -1,6 +1,5 @@
 ///All functions returning integer numbers must return either errno or one of the following error
 /// codes.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub enum LibRawErrors {
     //Non-Fatal Errors

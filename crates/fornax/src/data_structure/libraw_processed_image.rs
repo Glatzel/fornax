@@ -2,6 +2,7 @@ pub enum ImageFormats {
     ImageBitmap = 1,
     LibrawImageJpeg = 2,
 }
+
 pub struct LibrawProcessedImage {
     pub ptr: *mut libraw_sys::libraw_processed_image_t,
 }

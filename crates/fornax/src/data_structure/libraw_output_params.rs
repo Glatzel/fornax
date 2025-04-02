@@ -1,5 +1,78 @@
 use std::path::PathBuf;
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Copy, Clone)]
+pub enum HighlightMode {
+    CLIP = 0,
+    IGNORE = 1,
+    BLEND = 2,
+    RECONSTRUCT3 = 3,
+    RECONSTRUCT4 = 4,
+    RECONSTRUCT5 = 5, //default
+    RECONSTRUCT6 = 6,
+    RECONSTRUCT7 = 7,
+    RECONSTRUCT8 = 8,
+    RECONSTRUCT9 = 9,
+}
+impl From<HighlightMode> for i32 {
+    fn from(value: HighlightMode) -> Self {
+        match value {
+            HighlightMode::CLIP => 0,
+            HighlightMode::IGNORE => 1,
+            HighlightMode::BLEND => 2,
+            HighlightMode::RECONSTRUCT3 => 3,
+            HighlightMode::RECONSTRUCT4 => 4,
+            HighlightMode::RECONSTRUCT5 => 5,
+            HighlightMode::RECONSTRUCT6 => 6,
+            HighlightMode::RECONSTRUCT7 => 7,
+            HighlightMode::RECONSTRUCT8 => 8,
+            HighlightMode::RECONSTRUCT9 => 9,
+        }
+    }
+}
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Copy, Clone)]
+pub enum UseCameraMatrix {
+    NotUse = 0,
+    EmbeddedProfile = 1,
+    EmbeddedData = 3,
+}
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Copy, Clone)]
+pub enum OutputColor {
+    RAW = 0,
+    SRGB = 1,
+    ADOBE = 2,
+    WIDE = 3,
+    PROPHOTO = 4,
+    XYZ = 5,
+    ACES = 6,
+    P3D65 = 7,
+    REC2020 = 8,
+}
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Copy, Clone)]
+pub enum OutputBps {
+    _8bit = 8,
+    _16bit = 16,
+}
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Copy, Clone)]
+pub enum OutputTiff {
+    None = -1,
+    PPM = 0,
+    TIFF = 1,
+}
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Copy, Clone)]
+pub enum UserFlip {
+    None = 0,
+    Rotate180 = 3,
+    CCW90 = 5,
+    CW90 = 6,
+}
 
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Copy, Clone)]
 pub enum UserQual {
     LINEAR = 0,
     VNG = 1,
@@ -16,78 +89,42 @@ pub enum UserQual {
     DHT = 11,
     AAHD = 12,
 }
-
-pub enum OutputColor {
-    RAW = 0,
-    SRGB = 1,
-    ADOBE = 2,
-    WIDE = 3,
-    PROPHOTO = 4,
-    XYZ = 5,
-    ACES = 6,
-    P3D65 = 7,
-    REC2020 = 8,
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Copy, Clone)]
+pub enum UseFujiRotate {
+    UseRotate = -1,
+    NotUse = 0,
 }
-
-pub enum HighlightMode {
-    CLIP = 0,
-    IGNORE = 1,
-    BLEND = 2,
-    RECONSTRUCT3 = 3,
-    RECONSTRUCT4 = 4,
-    RECONSTRUCT5 = 5, //default
-    RECONSTRUCT6 = 6,
-    RECONSTRUCT7 = 7,
-    RECONSTRUCT8 = 8,
-    RECONSTRUCT9 = 9,
-}
-
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Copy, Clone)]
 pub enum FbddNoiserd {
     OFF = 0,
     LIGHT = 1,
     FULL = 2,
 }
-pub enum OutputBps {
-    _8bit = 8,
-    _16bit = 16,
-}
-pub enum UserFlip {
-    None = 0,
-    Rotate180 = 3,
-    CCW90 = 5,
-    CW90 = 6,
-}
-pub enum UseCameraMatrix {
-    NotUse = 0,
-    EmbeddedProfile = 1,
-    EmbeddedData = 3,
-}
-pub enum OutputTiff {
-    None = -1,
-    PPM = 0,
-    TIFF = 1,
-}
+
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Copy, Clone)]
 pub enum UseDngSdk {
     NotUse = 0,
     Special = 1,
     All = 2,
 }
-pub enum UseFujiRotate {
-    UseRotate = -1,
-    NotUse = 0,
-}
+
 ///Structure libraw_output_params_t (imgdata.params) is used for management of dcraw-compatible
 /// calls dcraw_process(), dcraw_ppm_tiff_writer(), and dcraw_thumb_writer().
 /// Fields of this structure correspond to command line keys of dcraw.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone)]
 pub struct LibrawOutputParams {
     /// 4 numbers corresponding to the coordinates (in pixels) of the rectangle that is used to
     /// calculate the white balance. X and Y are coordinates of the left-top rectangle corner;
     /// w and h are the rectangle's width and height, respectively.
-    pub greybox: (u32, u32, u32, u32),
+    pub greybox: Option<[u32; 4]>,
     ///This field sets the image cropping rectangle. `Cropbox[0]` and` cropbox[1]` are the
     /// rectangle's top-left corner coordinates, remaining two values are width and height
     /// respectively. All coordinates are applied before any image rotation.
-    pub cropbox: (u32, u32, u32, u32),
+    pub cropbox: Option<[u32; 4]>,
     /// Correction of chromatic aberrations; the only specified values are
     ///
     /// - `aber[0]`, the red multiplier.
@@ -96,9 +133,9 @@ pub struct LibrawOutputParams {
     /// For some formats, it affects RAW data reading , since
     /// correction of aberrations changes the output size.
     ///
-    /// The `aber.0` will set `aber[0]`.
-    /// The `aber.2` will set `aber[0]`.
-    pub aber: (f64, f64),
+    /// The `aber[0]` will set `aber[0]`.
+    /// The `aber[1]` will set `aber[2]`.
+    pub aber: Option<[f64; 2]>,
     /// Sets user gamma-curve. Library user should set first two fields of gamm array:
     /// - `gamm[0]` - inverted gamma value)
     /// - `gamm[1]` - slope for linear part (so called toe slope). Set to zero for simple power
@@ -110,23 +147,23 @@ pub struct LibrawOutputParams {
     /// slope 4.5. For sRGB curve use `gamm[0]=1/2.4` and `gamm[1]=12.92`, for linear curve set
     /// gamm[0]/gamm[1] to 1.0.
     ///
-    /// The `gamm.0` will set `gamm[0]`.
-    /// The `gamm.1` will set `gamm[1]`.
-    pub gamm: (f64, f64),
+    /// The `gamm[0]` will set `gamm[0]`.
+    /// The `gamm[1]` will set `gamm[1]`.
+    pub gamm: Option<[f64; 2]>,
     /// 4 multipliers (r,g,b,g) of the user's white balance.
-    pub user_mul: (f32, f32, f32, f32),
+    pub user_mul: Option<[f32; 4]>,
     /// Brightness (default 1.0).
-    pub bright: f32,
+    pub bright: Option<f32>,
     /// Parameter for noise reduction through wavelet denoising.
-    pub threshold: f32,
+    pub threshold: Option<f32>,
     /// Outputs the image in 50% size. For some formats, it affects RAW data reading .
-    pub half_size: bool,
+    pub half_size: Option<bool>,
     /// Switches on separate interpolations for two green components.
-    pub four_color_rgb: bool,
+    pub four_color_rgb: Option<bool>,
     /// 0-9: Highlight mode (0=clip, 1=unclip, 2=blend, 3+=rebuild).
-    pub highlight: HighlightMode,
+    pub highlight: Option<HighlightMode>,
     /// Use automatic white balance obtained after averaging over the entire image.
-    pub use_auto_wb: bool,
+    pub use_auto_wb: Option<bool>,
     /// If possible, use the white balance from the camera.
     ///
     /// If camera-recorded WB is not available, dcraw_process() will fallback to:
@@ -135,7 +172,7 @@ pub struct LibrawOutputParams {
     /// params.raw_processing_options (or for the rare specific case: no valid WB index was parsed
     /// from CRW file)
     /// - Daylight-WB if abovementioned bit is not set.
-    pub use_camera_wb: bool,
+    pub use_camera_wb: Option<bool>,
     /// - 0: do not use embedded color profile
     /// - 1 (default): use embedded color profile (if present) for DNG files (always); for other
     ///   files only if use_camera_wb is set;
@@ -244,5 +281,44 @@ pub struct LibrawOutputParams {
     pub no_interpolation: bool,
 }
 impl LibrawOutputParams {
-    pub(crate) fn set_output_params(&self, imgdata: &crate::sys::libraw_data_t) {}
+    pub(crate) fn set_output_params(&self, imgdata: &mut crate::sys::libraw_data_t) {
+        if let Some(graybox) = self.greybox {
+            imgdata.params.greybox = graybox;
+        }
+        if let Some(cropbox) = self.cropbox {
+            imgdata.params.cropbox = cropbox;
+        }
+        if let Some(aber) = self.aber {
+            imgdata.params.aber[0] = aber[0];
+            imgdata.params.aber[2] = aber[1];
+        }
+        if let Some(gamm) = self.gamm {
+            imgdata.params.gamm[0] = gamm[0];
+            imgdata.params.gamm[2] = gamm[1];
+        }
+        if let Some(user_mul) = self.user_mul {
+            imgdata.params.user_mul = user_mul;
+        }
+        if let Some(bright) = self.bright {
+            imgdata.params.bright = bright;
+        }
+        if let Some(threshold) = self.threshold {
+            imgdata.params.threshold = threshold;
+        }
+        if let Some(half_size) = self.half_size {
+            imgdata.params.half_size = half_size as i32;
+        }
+        if let Some(four_color_rgb) = self.four_color_rgb {
+            imgdata.params.four_color_rgb = four_color_rgb as i32;
+        }
+        if let Some(highlight) = self.highlight {
+            imgdata.params.highlight = i32::from(highlight);
+        }
+        if let Some(use_auto_wb) = self.use_auto_wb {
+            imgdata.params.use_auto_wb = use_auto_wb as i32;
+        }
+        if let Some(use_camera_wb) = self.use_camera_wb {
+            imgdata.params.use_camera_wb = use_camera_wb as i32;
+        }
+    }
 }
