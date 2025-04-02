@@ -55,19 +55,19 @@ pub struct LibrawImageSizes {
 }
 
 impl LibrawImageSizes {
-    pub(crate) fn new(sizes: &sys::libraw_image_sizes_t) -> Self {
+    pub(crate) fn new(imgdata: &sys::libraw_data_t) -> Self {
         Self {
-            raw_height: sizes.raw_height,
-            raw_width: sizes.raw_width,
-            height: sizes.height,
-            width: sizes.width,
-            top_margin: sizes.top_margin,
-            left_margin: sizes.left_margin,
-            iheight: sizes.iheight,
-            iwidth: sizes.iwidth,
-            raw_pitch: sizes.raw_pitch,
-            pixel_aspect: sizes.pixel_aspect,
-            flip: Flip::from(sizes.flip),
+            raw_height: imgdata.sizes.raw_height,
+            raw_width: imgdata.sizes.raw_width,
+            height: imgdata.sizes.height,
+            width: imgdata.sizes.width,
+            top_margin: imgdata.sizes.top_margin,
+            left_margin: imgdata.sizes.left_margin,
+            iheight: imgdata.sizes.iheight,
+            iwidth: imgdata.sizes.iwidth,
+            raw_pitch: imgdata.sizes.raw_pitch,
+            pixel_aspect: imgdata.sizes.pixel_aspect,
+            flip: Flip::from(imgdata.sizes.flip),
         }
     }
 }

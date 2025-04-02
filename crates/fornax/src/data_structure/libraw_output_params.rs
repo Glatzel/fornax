@@ -198,7 +198,7 @@ pub struct LibrawOutputParams {
     /// green-blue highlights for indoor shots).
     pub adjust_maximum_thr: f32,
     /// Default -1 (use), 0 - don't use rotation for cameras on a Fuji sensor.
-    pub use_fuji_rotate: bool,
+    pub use_fuji_rotate: UseFujiRotate,
     ///Turns on fixing of green channels disbalance. dcraw keys: none
     ///
     /// Default: 0 (not use), 1 - turns on this postprocessing stage. green_matching requires
@@ -242,4 +242,7 @@ pub struct LibrawOutputParams {
     pub no_auto_scale: bool,
     ///Disables call to demosaic code in LibRaw::dcraw_process()
     pub no_interpolation: bool,
+}
+impl LibrawOutputParams {
+    pub(crate) fn set_output_params(&self, imgdata: &crate::sys::libraw_data_t) {}
 }

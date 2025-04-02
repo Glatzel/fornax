@@ -1,10 +1,10 @@
-mod data_structure;
+pub mod data_structure;
 #[cfg(feature = "preset")]
 mod preset;
 use std::ffi::CString;
 use std::path::PathBuf;
 
-pub use data_structure::*;
+use data_structure::*;
 use libraw_sys as sys;
 
 pub struct Fornax {
@@ -48,7 +48,21 @@ impl Fornax {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("")
         } else {
-            Ok(LibrawImageSizes::new(unsafe { &(*self.imgdata).sizes }))
+            Ok(LibrawImageSizes::new(unsafe { &(*self.imgdata) }))
         }
+    }
+    pub fn dcraw_process(
+        &self,
+        params: &LibrawOutputParams,
+    ) -> miette::Result<LibrawProcessedImage> {
+        params.set_output_params(unsafe { &(*self.imgdata) });
+
+        let mut result = 0i32;
+        let processed: *mut libraw_sys::libraw_processed_image_t =
+            unsafe { sys::libraw_dcraw_make_mem_image(self.imgdata, &mut result) };
+        Self::check_run(result)?;
+
+        let processed = LibrawProcessedImage::new(unsafe { &(*processed) })?;
+        Ok(processed)
     }
 }
