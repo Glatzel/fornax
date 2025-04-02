@@ -23,30 +23,31 @@ pub enum LibRawErrors {
     TooBig,
     MempoolOverflow,
 }
-impl From<i32> for LibRawErrors {
-    fn from(value: i32) -> Self {
+impl TryFrom<i32> for LibRawErrors {
+    type Error = miette::Report;
+    fn try_from(value: i32) -> miette::Result<Self> {
         match value {
             //Non-Fatal Errors
-            0 => Self::Success,
-            -1 => Self::UnspecifiedError,
-            -2 => Self::FileUnsupported,
-            -3 => Self::RequestForNonexistentImage,
-            -4 => Self::OutOfOrderCall,
-            -5 => Self::NoThumbnail,
-            -6 => Self::UnsupportedThumbnail,
-            -7 => Self::InputClosed,
-            -8 => Self::NotImplemented,
-            -9 => Self::RequestForNonexistentThumbnail,
+            0 => Ok(Self::Success),
+            -1 => Ok(Self::UnspecifiedError),
+            -2 => Ok(Self::FileUnsupported),
+            -3 => Ok(Self::RequestForNonexistentImage),
+            -4 => Ok(Self::OutOfOrderCall),
+            -5 => Ok(Self::NoThumbnail),
+            -6 => Ok(Self::UnsupportedThumbnail),
+            -7 => Ok(Self::InputClosed),
+            -8 => Ok(Self::NotImplemented),
+            -9 => Ok(Self::RequestForNonexistentThumbnail),
 
             //Fatal Errors
-            -100007 => Self::UnsufficientMemory,
-            -100008 => Self::DataError,
-            -100009 => Self::IoError,
-            -100010 => Self::CancelledByCallback,
-            -100011 => Self::BadCrop,
-            -100012 => Self::TooBig,
-            -100013 => Self::MempoolOverflow,
-            code => panic!("Unknow error code: {code}"),
+            -100007 => Ok(Self::UnsufficientMemory),
+            -100008 => Ok(Self::DataError),
+            -100009 => Ok(Self::IoError),
+            -100010 => Ok(Self::CancelledByCallback),
+            -100011 => Ok(Self::BadCrop),
+            -100012 => Ok(Self::TooBig),
+            -100013 => Ok(Self::MempoolOverflow),
+            code => miette::bail!("Unknow error code: {code}"),
         }
     }
 }

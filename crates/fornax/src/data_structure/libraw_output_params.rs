@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum HighlightMode {
@@ -12,6 +13,24 @@ pub enum HighlightMode {
     RECONSTRUCT7 = 7,
     RECONSTRUCT8 = 8,
     RECONSTRUCT9 = 9,
+}
+impl TryFrom<i32> for HighlightMode {
+    type Error = miette::Report;
+    fn try_from(value: i32) -> miette::Result<Self> {
+        match value {
+            0 => Ok(HighlightMode::CLIP),
+            1 => Ok(HighlightMode::IGNORE),
+            2 => Ok(HighlightMode::BLEND),
+            3 => Ok(HighlightMode::RECONSTRUCT3),
+            4 => Ok(HighlightMode::RECONSTRUCT4),
+            5 => Ok(HighlightMode::RECONSTRUCT5),
+            6 => Ok(HighlightMode::RECONSTRUCT6),
+            7 => Ok(HighlightMode::RECONSTRUCT7),
+            8 => Ok(HighlightMode::RECONSTRUCT8),
+            9 => Ok(HighlightMode::RECONSTRUCT9),
+            v => miette::bail!("Unknow highlight mode: {v}"),
+        }
+    }
 }
 impl From<HighlightMode> for i32 {
     fn from(value: HighlightMode) -> Self {
@@ -36,6 +55,26 @@ pub enum UseCameraMatrix {
     EmbeddedProfile = 1,
     EmbeddedData = 3,
 }
+impl TryFrom<i32> for UseCameraMatrix {
+    type Error = miette::Report;
+    fn try_from(value: i32) -> miette::Result<UseCameraMatrix> {
+        match value {
+            0 => Ok(UseCameraMatrix::NotUse),
+            1 => Ok(UseCameraMatrix::EmbeddedProfile),
+            3 => Ok(UseCameraMatrix::EmbeddedData),
+            v => miette::bail!("Unknow UseCameraMatrix: {v}"),
+        }
+    }
+}
+impl From<UseCameraMatrix> for i32 {
+    fn from(value: UseCameraMatrix) -> Self {
+        match value {
+            UseCameraMatrix::NotUse => 0,
+            UseCameraMatrix::EmbeddedProfile => 1,
+            UseCameraMatrix::EmbeddedData => 3,
+        }
+    }
+}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum OutputColor {
@@ -48,6 +87,38 @@ pub enum OutputColor {
     ACES = 6,
     P3D65 = 7,
     REC2020 = 8,
+}
+impl TryFrom<i32> for OutputColor {
+    type Error = miette::Report;
+    fn try_from(value: i32) -> miette::Result<OutputColor> {
+        match value {
+            0 => Ok(OutputColor::RAW),
+            1 => Ok(OutputColor::SRGB),
+            2 => Ok(OutputColor::ADOBE),
+            3 => Ok(OutputColor::WIDE),
+            4 => Ok(OutputColor::PROPHOTO),
+            5 => Ok(OutputColor::XYZ),
+            6 => Ok(OutputColor::ACES),
+            7 => Ok(OutputColor::P3D65),
+            8 => Ok(OutputColor::REC2020),
+            v => miette::bail!("Unknow `OutputColor`: {v}"),
+        }
+    }
+}
+impl From<OutputColor> for i32 {
+    fn from(value: OutputColor) -> Self {
+        match value {
+            OutputColor::RAW => 0,
+            OutputColor::SRGB => 1,
+            OutputColor::ADOBE => 2,
+            OutputColor::WIDE => 3,
+            OutputColor::PROPHOTO => 4,
+            OutputColor::XYZ => 5,
+            OutputColor::ACES => 6,
+            OutputColor::P3D65 => 7,
+            OutputColor::REC2020 => 8,
+        }
+    }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
@@ -177,9 +248,9 @@ pub struct LibrawOutputParams {
     /// - 1 (default): use embedded color profile (if present) for DNG files (always); for other
     ///   files only if use_camera_wb is set;
     /// - 3: use embedded color data (if present) regardless of white balance setting.
-    pub use_camera_matrix: UseCameraMatrix,
+    pub use_camera_matrix: Option<UseCameraMatrix>,
     ///[0-8] Output colorspace (raw, sRGB, Adobe, Wide, ProPhoto, XYZ, ACES, DCI-P3, Rec. 2020).
-    pub output_color: OutputColor,
+    pub output_color: Option<OutputColor>,
     ///Path to output profile ICC file (used only if LibRaw compiled with LCMS support)
     pub output_profile: PathBuf,
     ///Path to input (camera) profile ICC file (or 'embed' for embedded profile). Used only if
@@ -319,6 +390,12 @@ impl LibrawOutputParams {
         }
         if let Some(use_camera_wb) = self.use_camera_wb {
             imgdata.params.use_camera_wb = use_camera_wb as i32;
+        }
+        if let Some(use_camera_matrix) = self.use_camera_matrix {
+            imgdata.params.use_camera_matrix = i32::from(use_camera_matrix);
+        }
+        if let Some(output_color) = self.output_color {
+            imgdata.params.output_color = i32::from(output_color);
         }
     }
 }
