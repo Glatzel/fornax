@@ -126,6 +126,25 @@ pub enum OutputBps {
     _8bit = 8,
     _16bit = 16,
 }
+impl TryFrom<i32> for OutputBps {
+    type Error = miette::Report;
+
+    fn try_from(value: i32) -> miette::Result<OutputBps> {
+        match value {
+            8 => Ok(OutputBps::_8bit),
+            16 => Ok(OutputBps::_16bit),
+            v => miette::bail!("Unknow `OutputBps`: {v}"),
+        }
+    }
+}
+impl From<OutputBps> for i32 {
+    fn from(value: OutputBps) -> Self {
+        match value {
+            OutputBps::_8bit => 8,
+            OutputBps::_16bit => 16,
+        }
+    }
+}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum OutputTiff {
@@ -352,7 +371,10 @@ pub struct LibrawOutputParams {
     pub no_interpolation: bool,
 }
 impl LibrawOutputParams {
-    pub(crate) fn set_output_params(&self, imgdata: &mut crate::sys::libraw_data_t) {
+    pub(crate) fn set_output_params(
+        &self,
+        imgdata: &mut crate::sys::libraw_data_t,
+    ) -> miette::Result<()> {
         if let Some(graybox) = self.greybox {
             imgdata.params.greybox = graybox;
         }
@@ -397,5 +419,6 @@ impl LibrawOutputParams {
         if let Some(output_color) = self.output_color {
             imgdata.params.output_color = i32::from(output_color);
         }
+        Ok(())
     }
 }
