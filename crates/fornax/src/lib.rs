@@ -1,9 +1,10 @@
 mod data_structure;
 
-pub use data_structure::*;
-use libraw_sys as sys;
 use std::ffi::CString;
 use std::path::PathBuf;
+
+pub use data_structure::*;
+use libraw_sys as sys;
 
 pub struct Fornax {
     pub(crate) imgdata: *mut sys::libraw_data_t,

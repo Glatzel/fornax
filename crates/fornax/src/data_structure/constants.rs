@@ -80,6 +80,7 @@ impl From<&LibRawErrors> for i32 {
 impl std::fmt::Display for LibRawErrors {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let info= match self {
+             //Non-Fatal Errors
             LibRawErrors::Success => r##"
                 No error; function terminated successfully.
                 "##.trim_start(),
@@ -110,6 +111,7 @@ impl std::fmt::Display for LibRawErrors {
             LibRawErrors::RequestForNonexistentThumbnail => r##"
                 Attempt to retrieve a non-existent thumbnail by (invalid) index.
                 "##.trim_start(),
+
             //Fatal Errors
             LibRawErrors::UnsufficientMemory => r##"
                 Attempt to get memory from the system has failed.
@@ -136,7 +138,6 @@ impl std::fmt::Display for LibRawErrors {
             LibRawErrors::MempoolOverflow => r##"
                 MempoolOverflow
                 "##.trim_start(),
-           
         };
         let text = format!("Exit code: {}.\n{}", i32::from(self), info);
         write!(f, "{}", text)
@@ -147,25 +148,45 @@ impl LibRawErrors {
     pub(crate) fn report(&self) -> miette::Result<()> {
         match self {
             //Non-Fatal Errors
-            LibRawErrors::Success                        => {clerk::info!("{self}");},
-            LibRawErrors::UnspecifiedError               => {clerk::warn!("{self}");},
-            LibRawErrors::FileUnsupported                => {clerk::warn!("{self}");},
-            LibRawErrors::RequestForNonexistentImage     => {clerk::warn!("{self}");},
-            LibRawErrors::OutOfOrderCall                 => {clerk::warn!("{self}");},
-            LibRawErrors::NoThumbnail                    => {clerk::warn!("{self}");},
-            LibRawErrors::UnsupportedThumbnail           => {clerk::warn!("{self}");},
-            LibRawErrors::InputClosed                    => {clerk::warn!("{self}");},
-            LibRawErrors::NotImplemented                 => {clerk::warn!("{self}");},
-            LibRawErrors::RequestForNonexistentThumbnail => {clerk::warn!("{self}");},
+            LibRawErrors::Success => {
+                clerk::info!("{self}");
+            }
+            LibRawErrors::UnspecifiedError => {
+                clerk::warn!("{self}");
+            }
+            LibRawErrors::FileUnsupported => {
+                clerk::warn!("{self}");
+            }
+            LibRawErrors::RequestForNonexistentImage => {
+                clerk::warn!("{self}");
+            }
+            LibRawErrors::OutOfOrderCall => {
+                clerk::warn!("{self}");
+            }
+            LibRawErrors::NoThumbnail => {
+                clerk::warn!("{self}");
+            }
+            LibRawErrors::UnsupportedThumbnail => {
+                clerk::warn!("{self}");
+            }
+            LibRawErrors::InputClosed => {
+                clerk::warn!("{self}");
+            }
+            LibRawErrors::NotImplemented => {
+                clerk::warn!("{self}");
+            }
+            LibRawErrors::RequestForNonexistentThumbnail => {
+                clerk::warn!("{self}");
+            }
 
             //Fatal Errors
-            LibRawErrors::UnsufficientMemory  => miette::bail!("{self}"),
-            LibRawErrors::DataError           => miette::bail!("{self}"),
-            LibRawErrors::IoError             => miette::bail!("{self}"),
+            LibRawErrors::UnsufficientMemory => miette::bail!("{self}"),
+            LibRawErrors::DataError => miette::bail!("{self}"),
+            LibRawErrors::IoError => miette::bail!("{self}"),
             LibRawErrors::CancelledByCallback => miette::bail!("{self}"),
-            LibRawErrors::BadCrop             => miette::bail!("{self}"),
-            LibRawErrors::TooBig              => miette::bail!("{self}"),
-            LibRawErrors::MempoolOverflow     => miette::bail!("{self}"),
+            LibRawErrors::BadCrop => miette::bail!("{self}"),
+            LibRawErrors::TooBig => miette::bail!("{self}"),
+            LibRawErrors::MempoolOverflow => miette::bail!("{self}"),
         };
         Ok(())
     }
