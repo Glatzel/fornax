@@ -7,14 +7,16 @@ edition = "2024"
 version = "0.21.3"
 
 [workspace.dependencies]
-libc = "0.2"
 bindgen = "0.71"
 clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.5" }
+libc = "0.2"
+miette = "=7.5.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 validator = { version = "0.20.0", features = ["derive"] }
-serde = { version = "1.0.219", features = ["derive"] }
-serde_json = "1.0.140"
+thiserror = "2.0.12"
 
 [profile.release]
 codegen-units = 1

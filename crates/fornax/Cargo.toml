@@ -4,10 +4,14 @@ name = "fornax"
 version.workspace = true
 
 [dependencies]
-libraw-sys = { path = "../libraw-sys" }
+clerk = { workspace = true }
 libc = { workspace = true }
-validator = { workspace = true }
+libraw-sys = { path = "../libraw-sys" }
+miette = { workspace = true }
 serde = { workspace = true, optional = true }
+thiserror = { workspace = true }
+validator = { workspace = true }
 
 [features]
+log = ["clerk/log"]
 serde = ["dep:serde"]
