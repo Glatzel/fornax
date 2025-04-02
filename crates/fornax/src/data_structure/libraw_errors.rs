@@ -149,44 +149,44 @@ impl LibRawErrors {
         match self {
             //Non-Fatal Errors
             LibRawErrors::Success => {
-                clerk::info!("{self}");
+                clerk::info!(self.to_string());
             }
             LibRawErrors::UnspecifiedError => {
-                clerk::warn!("{self}");
+                clerk::warn!(self.to_string());
             }
             LibRawErrors::FileUnsupported => {
-                clerk::warn!("{self}");
+                clerk::warn!(self.to_string());
             }
             LibRawErrors::RequestForNonexistentImage => {
-                clerk::warn!("{self}");
+                clerk::warn!(self.to_string());
             }
             LibRawErrors::OutOfOrderCall => {
-                clerk::warn!("{self}");
+                clerk::warn!(self.to_string());
             }
             LibRawErrors::NoThumbnail => {
-                clerk::warn!("{self}");
+                clerk::warn!(self.to_string());
             }
             LibRawErrors::UnsupportedThumbnail => {
-                clerk::warn!("{self}");
+                clerk::warn!(self.to_string());
             }
             LibRawErrors::InputClosed => {
-                clerk::warn!("{self}");
+                clerk::warn!(self.to_string());
             }
             LibRawErrors::NotImplemented => {
-                clerk::warn!("{self}");
+                clerk::warn!(self.to_string());
             }
             LibRawErrors::RequestForNonexistentThumbnail => {
-                clerk::warn!("{self}");
+                clerk::warn!(self.to_string());
             }
 
             //Fatal Errors
-            LibRawErrors::UnsufficientMemory => miette::bail!("{self}"),
-            LibRawErrors::DataError => miette::bail!("{self}"),
-            LibRawErrors::IoError => miette::bail!("{self}"),
-            LibRawErrors::CancelledByCallback => miette::bail!("{self}"),
-            LibRawErrors::BadCrop => miette::bail!("{self}"),
-            LibRawErrors::TooBig => miette::bail!("{self}"),
-            LibRawErrors::MempoolOverflow => miette::bail!("{self}"),
+            LibRawErrors::UnsufficientMemory => miette::bail!(self.to_string()),
+            LibRawErrors::DataError => miette::bail!(self.to_string()),
+            LibRawErrors::IoError => miette::bail!(self.to_string()),
+            LibRawErrors::CancelledByCallback => miette::bail!(self.to_string()),
+            LibRawErrors::BadCrop => miette::bail!(self.to_string()),
+            LibRawErrors::TooBig => miette::bail!(self.to_string()),
+            LibRawErrors::MempoolOverflow => miette::bail!(self.to_string()),
         };
         Ok(())
     }
