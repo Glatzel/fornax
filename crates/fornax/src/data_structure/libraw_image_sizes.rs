@@ -38,9 +38,12 @@ pub struct LibrawImageSizes {
 }
 
 impl LibrawImageSizes {
-    pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> Self {
+    pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
+        if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
+            miette::bail!("")
+        }
         let imgdata = unsafe { *imgdata };
-        Self {
+        Ok(Self {
             raw_height: imgdata.sizes.raw_height,
             raw_width: imgdata.sizes.raw_width,
             height: imgdata.sizes.height,
@@ -52,7 +55,7 @@ impl LibrawImageSizes {
             raw_pitch: imgdata.sizes.raw_pitch,
             pixel_aspect: imgdata.sizes.pixel_aspect,
             flip: Flip::from(imgdata.sizes.flip),
-        }
+        })
     }
     ///Full size of RAW image (including the frame) in pixels.
     pub fn raw_height(&self) -> u16 {
