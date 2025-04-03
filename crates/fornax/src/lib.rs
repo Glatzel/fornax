@@ -2,7 +2,7 @@ pub mod data_structure;
 use std::ffi::CString;
 use std::path::PathBuf;
 
-use data_structure::*;
+pub use data_structure::*;
 use libraw_sys as sys;
 
 pub struct Fornax {
