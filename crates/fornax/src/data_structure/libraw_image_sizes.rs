@@ -38,7 +38,8 @@ pub struct LibrawImageSizes {
 }
 
 impl LibrawImageSizes {
-    pub(crate) fn new(imgdata: &sys::libraw_data_t) -> Self {
+    pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> Self {
+        let imgdata = unsafe { *imgdata };
         Self {
             raw_height: imgdata.sizes.raw_height,
             raw_width: imgdata.sizes.raw_width,

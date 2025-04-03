@@ -474,8 +474,9 @@ pub struct LibrawOutputParams {
 impl LibrawOutputParams {
     pub(crate) fn set_output_params(
         &self,
-        imgdata: &mut crate::sys::libraw_data_t,
+        imgdata: *mut crate::sys::libraw_data_t,
     ) -> miette::Result<()> {
+        let mut imgdata=unsafe { *imgdata };
         if let Some(graybox) = self.greybox {
             imgdata.params.greybox = graybox;
         }
