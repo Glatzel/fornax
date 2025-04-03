@@ -1,0 +1,3 @@
+[submodule "external/raw-images"]
+	path = external/raw-images
+	url = https://github.com/syoyo/raw-images.git
