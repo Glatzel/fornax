@@ -9,26 +9,26 @@ fn main() {
     let mut processor = Fornax::new();
     processor
         .open_file(PathBuf::from(
-            "./external/raw-images/images/colorchart-eos-7d.cr2",
+            "./external/raw-images/images/colorchart-5D2-6000K.dng",
         ))
         .unwrap();
-
+    processor.unpack().unwrap();
     let processed = processor.dcraw_process(None).unwrap();
-
-    let mut out = File::create("out_16bit.ppm").expect("create out");
-    let header = format!(
-        "P6 {} {} {}\n",
+    println!(
+        "{},{},{},{},{},{}",
         processed.width(),
         processed.height(),
-        255
+        processed.bits(),
+        processed.image_type().unwrap(),
+        processed.colors(),
+        processed.data_size()
     );
-    out.write_all(header.as_ref()).expect("header");
-    // PPM files must be in big endian
-    let mut out_vec = Vec::with_capacity(processed.data_size() as usize * 2);
-    for chunk in
-        unsafe { slice::from_raw_parts(processed.data(), processed.data_size() as usize).iter() }
-    {
-        out_vec.extend_from_slice(&chunk.to_be_bytes());
-    }
-    out.write_all(&out_vec).expect("pixels");
+
+    let img: image::ImageBuffer<image::Rgb<u8>, &[u8]> = image::ImageBuffer::from_raw(
+        processed.width() as u32,
+        processed.height() as u32,
+        unsafe { slice::from_raw_parts(processed.data(), processed.data_size() as usize) },
+    )
+    .unwrap();
+    img.save("test.tiff").unwrap();
 }

@@ -10,6 +10,7 @@ libraw-sys = { path = "../libraw-sys" }
 miette = { workspace = true }
 serde = { workspace = true, optional = true }
 validator = { workspace = true }
+image = { workspace = true }
 
 [features]
 log = ["clerk/log"]
