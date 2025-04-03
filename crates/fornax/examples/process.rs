@@ -1,6 +1,5 @@
 use core::slice;
-use std::fs::File;
-use std::io::Write;
+
 use std::path::PathBuf;
 
 use fornax::Fornax;
@@ -30,5 +29,5 @@ fn main() {
         unsafe { slice::from_raw_parts(processed.data(), processed.data_size() as usize) },
     )
     .unwrap();
-    img.save("test.tiff").unwrap();
+    img.save("temp/test.tiff").unwrap();
 }

@@ -6,3 +6,4 @@
 vcpkg/vcpkg
 vcpkg/installed
 target
+temp

@@ -1,9 +1,17 @@
-
+use std::fmt::Display;
+#[derive(Debug)]
 pub enum ImageFormats {
     ImageBitmap = 1,
     LibrawImageJpeg = 2,
 }
-
+impl Display for ImageFormats {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ImageFormats::ImageBitmap => write!(f, "ImageBitmap"),
+            ImageFormats::LibrawImageJpeg => write!(f, "LibrawImageJpeg"),
+        }
+    }
+}
 pub struct LibrawProcessedImage {
     pub ptr: *mut libraw_sys::libraw_processed_image_t,
 }
@@ -23,7 +31,7 @@ impl LibrawProcessedImage {
         }
     }
     pub fn height(&self) -> u16 {
-        unsafe { (*self.ptr).width }
+        unsafe { (*self.ptr).height }
     }
     pub fn width(&self) -> u16 {
         unsafe { (*self.ptr).width }
