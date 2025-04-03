@@ -1,3 +1,4 @@
+
 pub enum ImageFormats {
     ImageBitmap = 1,
     LibrawImageJpeg = 2,
@@ -35,5 +36,8 @@ impl LibrawProcessedImage {
     }
     pub fn data_size(&self) -> u32 {
         unsafe { (*self.ptr).data_size }
+    }
+    pub fn data(&self) -> *const u8 {
+        unsafe { (*self.ptr).data.as_ptr() }
     }
 }

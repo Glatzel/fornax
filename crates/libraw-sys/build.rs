@@ -34,9 +34,19 @@ fn main() {
         }
     };
     // Link
-    println!("cargo:rustc-link-search=native={libraw_root}/lib/manual-link");
-    println!("cargo:rustc-link-lib=raw");
-    tracing::info!("Link to `raw.lib`");
+    println!("cargo:rustc-link-search=native={libraw_root}/lib");
+    println!("cargo:rustc-link-lib=static=jasper");
+    tracing::info!("Link to `jasper.lib`");
+    println!("cargo:rustc-link-lib=static=jpeg");
+    tracing::info!("Link to `lcms2.lib`");
+    println!("cargo:rustc-link-lib=static=lcms2");
+    tracing::info!("Link to `turbojpeg.lib`");
+    println!("cargo:rustc-link-lib=static=turbojpeg");
+    tracing::info!("Link to `jpeg.lib`");
+    println!("cargo:rustc-link-lib=static=zlib");
+    tracing::info!("Link to `zlib.lib`");
+    println!("cargo:rustc-link-lib=static=raw_r");
+    tracing::info!("Link to `raw_r.lib`");
     #[cfg(feature = "bindgen")]
     {
         let bindings = bindgen::Builder::default()
