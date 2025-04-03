@@ -52,7 +52,7 @@ impl Fornax {
         if let Some(params) = params {
             params.set_output_params(self.imgdata)?
         };
-
+        Self::check_run(unsafe { sys::libraw_dcraw_process(self.imgdata) })?;
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
             unsafe { sys::libraw_dcraw_make_mem_image(self.imgdata, &mut result) };

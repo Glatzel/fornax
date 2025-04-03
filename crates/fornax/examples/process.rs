@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use fornax::Fornax;
 
-fn main() {
+fn main() ->miette::Result<()>{
     let mut processor = Fornax::new();
     processor
         .open_file(PathBuf::from(
@@ -30,4 +30,7 @@ fn main() {
     )
     .unwrap();
     img.save("temp/test.tiff").unwrap();
+    let sizes = processor.image_sizes()?;
+    println!("{:?}", sizes);
+    Ok(())
 }

@@ -40,7 +40,7 @@ pub struct LibrawImageSizes {
 impl LibrawImageSizes {
     pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
         if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
-            miette::bail!("")
+            miette::bail!("imgdata is null.")
         }
         let imgdata = unsafe { *imgdata };
         Ok(Self {
