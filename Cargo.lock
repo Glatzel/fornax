@@ -211,6 +211,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-preset"
+version = "0.21.3"
+dependencies = [
+ "fornax",
+]
+
+[[package]]
 name = "glob"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
