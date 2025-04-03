@@ -13,7 +13,7 @@ pub struct Fornax {
 impl Fornax {
     // util
     fn check_run(exit_code: i32) -> miette::Result<()> {
-        let result = LibRawErrors::from(exit_code);
+        let result = LibRawErrors::try_from(exit_code)?;
         result.report()?;
         Ok(())
     }
@@ -48,14 +48,14 @@ impl Fornax {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("")
         } else {
-            Ok(LibrawImageSizes::new(unsafe { &(*self.imgdata) }))
+            Ok(LibrawImageSizes::new(unsafe { *self.imgdata}))
         }
     }
     pub fn dcraw_process(
-        &self,
+        &mut self,
         params: &LibrawOutputParams,
     ) -> miette::Result<LibrawProcessedImage> {
-        params.set_output_params(unsafe { &(*self.imgdata) });
+        params.set_output_params(unsafe { &( self.imgdata) });
 
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =

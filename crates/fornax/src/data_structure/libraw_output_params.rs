@@ -1,4 +1,6 @@
-use std::path::PathBuf;
+use std::{ffi::CString, path::PathBuf};
+
+use miette::IntoDiagnostic;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
@@ -152,6 +154,27 @@ pub enum OutputTiff {
     PPM = 0,
     TIFF = 1,
 }
+impl TryFrom<i32> for OutputTiff {
+    type Error = miette::Report;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            -1 => Ok(Self::None),
+            0 => Ok(Self::PPM),
+            1 => Ok(Self::TIFF),
+            v => miette::bail!("Unknow `OutputTiff`: {v}"),
+        }
+    }
+}
+impl From<OutputTiff> for i32 {
+    fn from(value: OutputTiff) -> Self {
+        match value {
+            OutputTiff::None => -1,
+            OutputTiff::PPM => 0,
+            OutputTiff::TIFF => 1,
+        }
+    }
+}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum UserFlip {
@@ -160,7 +183,29 @@ pub enum UserFlip {
     CCW90 = 5,
     CW90 = 6,
 }
+impl TryFrom<i32> for UserFlip {
+    type Error = miette::Report;
 
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Self::None),
+            3 => Ok(Self::Rotate180),
+            5 => Ok(Self::CCW90),
+            6 => Ok(Self::CW90),
+            v => miette::bail!("Unknow `UserFlip`: {v}"),
+        }
+    }
+}
+impl From<UserFlip> for i32 {
+    fn from(value: UserFlip) -> Self {
+        match value {
+            UserFlip::None => 0,
+            UserFlip::Rotate180 => 3,
+            UserFlip::CCW90 => 5,
+            UserFlip::CW90 => 6,
+        }
+    }
+}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum UserQual {
@@ -179,11 +224,59 @@ pub enum UserQual {
     DHT = 11,
     AAHD = 12,
 }
+impl TryFrom<i32> for UserQual {
+    type Error = miette::Report;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Self::LINEAR),
+            1 => Ok(Self::VNG),
+            2 => Ok(Self::PPG),
+            3 => Ok(Self::AHD),
+            4 => Ok(Self::DCB),
+            11 => Ok(Self::DHT),
+            12 => Ok(Self::AAHD),
+            v => miette::bail!("Unknow `UserQual`: {v}"),
+        }
+    }
+}
+impl From<UserQual> for i32 {
+    fn from(value: UserQual) -> Self {
+        match value {
+            UserQual::LINEAR => 0,
+            UserQual::VNG => 1,
+            UserQual::PPG => 2,
+            UserQual::AHD => 3,
+            UserQual::DCB => 4,
+            UserQual::DHT => 11,
+            UserQual::AAHD => 12,
+        }
+    }
+}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum UseFujiRotate {
     UseRotate = -1,
     NotUse = 0,
+}
+impl TryFrom<i32> for UseFujiRotate {
+    type Error = miette::Report;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            -1 => Ok(Self::UseRotate),
+            3 => Ok(Self::NotUse),
+            v => miette::bail!("Unknow `UseFujiRotate`: {v}"),
+        }
+    }
+}
+impl From<UseFujiRotate> for i32 {
+    fn from(value: UseFujiRotate) -> Self {
+        match value {
+            UseFujiRotate::UseRotate => -1,
+            UseFujiRotate::NotUse => 0,
+        }
+    }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
@@ -192,13 +285,26 @@ pub enum FbddNoiserd {
     LIGHT = 1,
     FULL = 2,
 }
+impl TryFrom<i32> for FbddNoiserd {
+    type Error = miette::Report;
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
-pub enum UseDngSdk {
-    NotUse = 0,
-    Special = 1,
-    All = 2,
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            -1 => Ok(Self::OFF),
+            0 => Ok(Self::LIGHT),
+            1 => Ok(Self::FULL),
+            v => miette::bail!("Unknow `OutputTiff`: {v}"),
+        }
+    }
+}
+impl From<FbddNoiserd> for i32 {
+    fn from(value: FbddNoiserd) -> Self {
+        match value {
+            FbddNoiserd::OFF => 0,
+            FbddNoiserd::LIGHT => 1,
+            FbddNoiserd::FULL => 2,
+        }
+    }
 }
 
 ///Structure libraw_output_params_t (imgdata.params) is used for management of dcraw-compatible
@@ -271,25 +377,25 @@ pub struct LibrawOutputParams {
     ///[0-8] Output colorspace (raw, sRGB, Adobe, Wide, ProPhoto, XYZ, ACES, DCI-P3, Rec. 2020).
     pub output_color: Option<OutputColor>,
     ///Path to output profile ICC file (used only if LibRaw compiled with LCMS support)
-    pub output_profile: PathBuf,
+    pub output_profile: Option<PathBuf>,
     ///Path to input (camera) profile ICC file (or 'embed' for embedded profile). Used only if
     /// LCMS support compiled in.
-    pub camera_profile: PathBuf,
+    pub camera_profile: Option<PathBuf>,
     ///Path to file with bad pixels map (in dcraw format: "column row
     /// date-of-pixel-death-in-UNIX-format", one pixel per row).
-    pub bad_pixelse: PathBuf,
+    pub bad_pixels: Option<PathBuf>,
     /// Path to dark frame file (in 16-bit PGM format)
-    pub dark_frame: PathBuf,
+    pub dark_frame: Option<PathBuf>,
     ///8 bit (default)/16 bit (key -4).
-    pub output_bps: OutputBps,
+    pub output_bps: Option<OutputBps>,
     /// 0/1: output PPM/TIFF.
-    pub output_tiff: OutputTiff,
+    pub output_tiff: Option<OutputTiff>,
     /// Bitfield that allows to set output file options:
     /// LIBRAW_OUTPUT_FLAGS_PPMMETA - write additional metadata into PPM/PGM output files
-    pub output_flags: i32,
+    // pub output_flags: i32,
     /// [0-7] Flip image (0=none, 3=180, 5=90CCW, 6=90CW). Default -1, which means taking the
     /// corresponding value from RAW.
-    pub user_flip: UserFlip,
+    pub user_flip: Option<UserFlip>,
     /// 0-10: interpolation quality:
     /// 0 - linear interpolation
     /// 1 - VNG interpolation
@@ -298,21 +404,21 @@ pub struct LibrawOutputParams {
     /// 4 - DCB interpolation
     /// 11 - DHT interpolation
     /// 12 - Modified AHD interpolation (by Anton Petrusevich)
-    pub user_qual: UserQual,
+    pub user_qual: Option<UserQual>,
     /// User black level.
-    pub user_black: i32,
+    pub user_black: Option<i32>,
     /// Per-channel corrections to user_black.
-    pub user_cblack: (i32, i32, i32, i32),
+    pub user_cblack: Option<[i32; 4]>,
     ///Saturation adjustment.
-    pub user_sat: i32,
+    pub user_sat: Option<i32>,
     ///Number of median filter passes.
-    pub med_passes: i32,
+    pub med_passes: Option<i32>,
     ///Don't use automatic increase of brightness by histogram.
-    pub no_auto_bright: i32,
+    pub no_auto_bright: Option<bool>,
     ///  Portion of clipped pixels when auto brightness increase is used. Default value is 0.01
     /// (1%) for dcraw compatibility. Recommended value for modern low-noise multimegapixel cameras
     /// depends on shooting style. Values in 0.001-0.00003 range looks reasonable.
-    pub auto_bright_thr: f32,
+    pub auto_bright_thr: Option<f32>,
     ///This parameters controls auto-adjusting of maximum value based on channel_maximum[] data,
     /// calculated from real frame data. If calculated maximum is greater than
     /// adjust_maximum_thr*maximum, than maximum is set to calculated_maximum.
@@ -323,42 +429,37 @@ pub struct LibrawOutputParams {
     /// Adjusting maximum should not damage any picture (esp. if you use default value) and is very
     /// useful for correcting channel overflow problems (magenta clouds on landscape shots,
     /// green-blue highlights for indoor shots).
-    pub adjust_maximum_thr: f32,
+    pub adjust_maximum_thr: Option<f32>,
     /// Default -1 (use), 0 - don't use rotation for cameras on a Fuji sensor.
-    pub use_fuji_rotate: UseFujiRotate,
+    pub use_fuji_rotate: Option<UseFujiRotate>,
     ///Turns on fixing of green channels disbalance. dcraw keys: none
     ///
     /// Default: 0 (not use), 1 - turns on this postprocessing stage. green_matching requires
     /// additional memory for image data.
-    pub green_matching: bool,
+    pub green_matching: Option<bool>,
     ///Number of DCB correction passes. Default is -1 (no correction). Useful only for DCB
     /// interpolation.
-    pub dcb_iterations: i32,
+    pub dcb_iterations: Option<i32>,
     /// nonzero: DCB interpolation with enhance interpolated colors.
-    pub dcb_enhance_fl: i32,
+    pub dcb_enhance_fl: Option<i32>,
     ///Controls FBDD noise reduction before demosaic.
     /// - 0 - do not use FBDD noise reduction
     /// - 1 - light FBDD reduction
     /// - 2 (and more) - full FBDD reduction
-    pub fbdd_noiserd: FbddNoiserd,
+    pub fbdd_noiserd: Option<FbddNoiserd>,
     ///Exposure correction before demosaic.
     ///exp_correc: positive value turns the feature on (default: off).
-    pub exp_correc: i32,
+    pub exp_correc: Option<i32>,
     ///Exposure correction before demosaic.
     ///exp_shift: exposure shift in linear scale. Usable range from 0.25 (2-stop darken) to 8.0
     /// (3-stop lighter). Default: 1.0 (no exposure shift).
-    pub exp_shift: f32,
+    pub exp_shift: Option<f32>,
     ///Exposure correction before demosaic.
     ///exp_preser: preserve highlights when lighten the image. Usable range from 0.0 (no
     /// preservation) to 1.0 (full preservation). 0.0 is the default value.
-    pub exp_preser: f32,
+    pub exp_preser: Option<f32>,
     ///Turns on using RawSpeed library for data unpacking (only if RawSpeed support compiled in).
-    pub use_rawspeed: bool,
-    /// Turns on using Adobe DNG SDK (if compiled with it and dng host is set:
-    /// - 0 - do not use
-    /// - 1 - use for speciality formats (Float, Linear DNG, deflate compression, 8 bit)
-    /// - 2 - use for all DNG files
-    pub use_dng_sdk: UseDngSdk,
+    pub use_rawspeed: Option<bool>,
     ///Disables pixel values scaling (call to LibRaw::scale_colors()) in LibRaw::dcraw_process().
     ///
     ///This is special use value because white balance is performed in scale_colors(), so skipping
@@ -366,9 +467,9 @@ pub struct LibrawOutputParams {
     ///
     ///This setting is targeted to use with no_interpolation, or with own interpolation callback
     /// call.
-    pub no_auto_scale: bool,
+    pub no_auto_scale: Option<bool>,
     ///Disables call to demosaic code in LibRaw::dcraw_process()
-    pub no_interpolation: bool,
+    pub no_interpolation: Option<bool>,
 }
 impl LibrawOutputParams {
     pub(crate) fn set_output_params(
@@ -418,6 +519,92 @@ impl LibrawOutputParams {
         }
         if let Some(output_color) = self.output_color {
             imgdata.params.output_color = i32::from(output_color);
+        }
+        if let Some(output_profile) = &self.output_profile {
+            imgdata.params.output_profile = CString::new(output_profile.to_str().unwrap())
+                .into_diagnostic()?
+                .into_raw();
+        }
+        if let Some(camera_profile) = &self.camera_profile {
+            imgdata.params.camera_profile = CString::new(camera_profile.to_str().unwrap())
+                .into_diagnostic()?
+                .into_raw();
+        }
+        if let Some(bad_pixels) = &self.bad_pixels {
+            imgdata.params.bad_pixels = CString::new(bad_pixels.to_str().unwrap())
+                .into_diagnostic()?
+                .into_raw();
+        }
+        if let Some(dark_frame) = &self.dark_frame {
+            imgdata.params.dark_frame = CString::new(dark_frame.to_str().unwrap())
+                .into_diagnostic()?
+                .into_raw();
+        }
+        if let Some(output_bps) = self.output_bps {
+            imgdata.params.output_bps = i32::from(output_bps);
+        }
+        if let Some(output_tiff) = self.output_tiff {
+            imgdata.params.output_tiff = i32::from(output_tiff);
+        }
+        if let Some(user_flip) = self.user_flip {
+            imgdata.params.user_flip = i32::from(user_flip);
+        }
+        if let Some(user_qual) = self.user_qual {
+            imgdata.params.user_qual = i32::from(user_qual);
+        }
+        if let Some(user_black) = self.user_black {
+            imgdata.params.user_black = user_black;
+        }
+        if let Some(user_cblack) = self.user_cblack {
+            imgdata.params.user_cblack = user_cblack;
+        }
+        if let Some(user_black) = self.user_black {
+            imgdata.params.user_black = user_black;
+        }
+        if let Some(user_sat) = self.user_sat {
+            imgdata.params.user_sat = user_sat;
+        }
+        if let Some(med_passes) = self.med_passes {
+            imgdata.params.med_passes = med_passes;
+        }
+        if let Some(no_auto_bright) = self.no_auto_bright {
+            imgdata.params.no_auto_bright = no_auto_bright as i32;
+        }
+        if let Some(auto_bright_thr) = self.auto_bright_thr {
+            imgdata.params.auto_bright_thr = auto_bright_thr;
+        }
+        if let Some(adjust_maximum_thr) = self.adjust_maximum_thr {
+            imgdata.params.adjust_maximum_thr = adjust_maximum_thr;
+        }
+        if let Some(use_fuji_rotate) = self.use_fuji_rotate {
+            imgdata.params.use_fuji_rotate = use_fuji_rotate as i32;
+        }
+        if let Some(dcb_iterations) = self.dcb_iterations {
+            imgdata.params.dcb_iterations = dcb_iterations;
+        }
+        if let Some(dcb_enhance_fl) = self.dcb_enhance_fl {
+            imgdata.params.dcb_enhance_fl = dcb_enhance_fl;
+        }
+        if let Some(fbdd_noiserd) = self.fbdd_noiserd {
+            imgdata.params.fbdd_noiserd = i32::from(fbdd_noiserd);
+        }
+        if let Some(exp_correc) = self.exp_correc {
+            imgdata.params.exp_correc = exp_correc;
+        }
+        if let Some(exp_shift) = self.exp_shift {
+            imgdata.params.exp_shift = exp_shift;
+        }
+        if let Some(exp_correc) = self.exp_correc {
+            imgdata.params.exp_correc = exp_correc;
+        }
+        if let Some(exp_preser) = self.exp_preser {
+            imgdata.params.exp_preser = exp_preser;
+        }
+        if let Some(no_auto_scale) = self.no_auto_scale {
+            imgdata.params.no_auto_scale = no_auto_scale as i32;
+        }
+        if let Some(no_interpolation) = self.no_interpolation {
+            imgdata.params.no_interpolation = no_interpolation as i32;
         }
         Ok(())
     }
