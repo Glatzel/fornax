@@ -1,6 +1,6 @@
 use libraw_sys as sys;
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Flip {
     None = 0,
