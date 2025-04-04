@@ -7,4 +7,3 @@ $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 
 cargo build
-cargo run --package fornax --example "process"
