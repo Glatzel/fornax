@@ -14,5 +14,12 @@
     "python.analysis.exclude": [
         "**/vcpkg",
         "**/.pixi"
+    ],
+    "VSCodeCounter.exclude": [
+        "**/.gitignore",
+        "**/.vscode/**",
+        "**/node_modules/**",
+        "**/bindings.rs",
+        "**.lock"
     ]
 }

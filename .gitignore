@@ -11,3 +11,4 @@ temp
 .pixi
 *.egg-info
 dist
+.VSCodeCounter
