@@ -1,22 +1,25 @@
-use std::ffi::CString;
-use std::path::PathBuf;
 mod errors;
 mod image_sizes;
 mod imgother;
 mod iparams;
+mod libraw_version;
 mod output_params;
+#[cfg(feature = "presets")]
+mod presets;
 mod processed_image;
 mod utils;
+use std::ffi::CString;
+use std::path::PathBuf;
+
 pub use image_sizes::ImageSizes;
 pub use imgother::{GpsInfo, ImgOther};
 pub use iparams::IParams;
-
+pub use libraw_version::{LIBRAW_VERSION, LibrawVersion};
 pub use output_params::{
     FbddNoiserd, HighlightMode, OutputBps, OutputColor, OutputParams, UserFlip, UserQual,
 };
 pub use processed_image::{ImageFormats, ProcessedImage};
-mod libraw_version;
-pub use libraw_version::{LIBRAW_VERSION, LibrawVersion};
+
 pub struct Fornax {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
 }

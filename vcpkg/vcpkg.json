@@ -2,9 +2,11 @@
   "dependencies": [
     {
       "name": "libraw",
-      "default-features":false,
-      "features":["openmp"]
+      "default-features": false,
+      "features": [
+        "openmp"
+      ]
     }
   ],
-  "builtin-baseline": "acd5bba5aac8b6573b5f6f463dc0341ac0ee6fa4"
+  "builtin-baseline": "9b75e789ece3f942159b8500584e35aafe3979ff"
 }

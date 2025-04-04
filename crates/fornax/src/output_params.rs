@@ -342,7 +342,7 @@ pub struct OutputParams {
     ///
     /// By default settings for rec. BT.709 are used: power 2.222 (i.e. `gamm[0]=1/2.222`) and
     /// slope 4.5. For sRGB curve use `gamm[0]=1/2.4` and `gamm[1]=12.92`, for linear curve set
-    /// gamm[0]/gamm[1] to 1.0.
+    /// `gamm[0]/gamm[1]` to 1.0.
     ///
     /// The `gamm[0]` will set `gamm[0]`.
     /// The `gamm[1]` will set `gamm[1]`.

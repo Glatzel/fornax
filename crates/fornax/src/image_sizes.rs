@@ -20,7 +20,7 @@ impl From<i32> for Flip {
     }
 }
 /// # references
-/// - https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t
+/// - [libraw_image_sizes_t](https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t)
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Copy, Clone)]
 pub struct ImageSizes {

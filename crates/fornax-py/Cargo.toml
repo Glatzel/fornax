@@ -1,6 +1,14 @@
 [package]
 edition.workspace = true
-name = "libraw-py"
+name = "fornax-py"
 version.workspace = true
 
 [dependencies]
+fornax = { workspace = true }
+numpy = { workspace = true }
+pyo3 = { workspace = true }
+rayon = { workspace = true }
+
+[lib]
+crate-type = ["cdylib"]
+name = "fornax_py"
