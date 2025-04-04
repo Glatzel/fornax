@@ -441,6 +441,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-cli"
+version = "0.0.1"
+dependencies = [
+ "fornax",
+]
+
+[[package]]
 name = "fornax-preset"
 version = "0.0.1"
 dependencies = [
