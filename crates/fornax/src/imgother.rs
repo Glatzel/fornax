@@ -8,11 +8,11 @@ pub struct GpsInfo {
     longitude: [f32; 3usize],
     gpstimestamp: [f32; 3usize],
     altitude: f32,
-    altref: char,
-    latref: char,
-    longref: char,
-    gpsstatus: char,
-    gpsparsed: char,
+    altref: String,
+    latref: String,
+    longref: String,
+    gpsstatus: String,
+    gpsparsed: String,
 }
 impl GpsInfo {
     pub(crate) fn new(info: libraw_sys::libraw_gps_info_t) -> Self {
@@ -21,11 +21,15 @@ impl GpsInfo {
             longitude: info.longitude,
             gpstimestamp: info.gpstimestamp,
             altitude: info.altitude,
-            altref: char::from(info.altref as u8),
-            latref: char::from(info.latref as u8),
-            longref: char::from(info.longref as u8),
-            gpsstatus: char::from(info.gpsstatus as u8),
-            gpsparsed: char::from(info.gpsparsed as u8),
+            altref: char::from(info.altref as u8).to_string().replace('\0', ""),
+            latref: char::from(info.latref as u8).to_string().replace('\0', ""),
+            longref: char::from(info.longref as u8).to_string().replace('\0', ""),
+            gpsstatus: char::from(info.gpsstatus as u8)
+                .to_string()
+                .replace('\0', ""),
+            gpsparsed: char::from(info.gpsparsed as u8)
+                .to_string()
+                .replace('\0', ""),
         }
     }
     pub fn latitude(&self) -> [f32; 3usize] {
@@ -40,20 +44,20 @@ impl GpsInfo {
     pub fn altitude(&self) -> f32 {
         self.altitude
     }
-    pub fn altref(&self) -> char {
-        self.altref
+    pub fn altref(&self) -> String {
+        self.altref.clone()
     }
-    pub fn latref(&self) -> char {
-        self.latref
+    pub fn latref(&self) -> String {
+        self.latref.clone()
     }
-    pub fn longref(&self) -> char {
-        self.longref
+    pub fn longref(&self) -> String {
+        self.longref.clone()
     }
-    pub fn gpsstatus(&self) -> char {
-        self.gpsstatus
+    pub fn gpsstatus(&self) -> String {
+        self.gpsstatus.clone()
     }
-    pub fn gpsparsed(&self) -> char {
-        self.gpsparsed
+    pub fn gpsparsed(&self) -> String {
+        self.gpsparsed.clone()
     }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
