@@ -39,9 +39,6 @@ pub struct ImageSizes {
 
 impl ImageSizes {
     pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
-        if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
-            miette::bail!("imgdata is null.")
-        }
         let imgdata = unsafe { *imgdata };
         Ok(Self {
             raw_height: imgdata.sizes.raw_height,

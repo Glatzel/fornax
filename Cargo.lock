@@ -429,6 +429,7 @@ version = "0.0.1"
 dependencies = [
  "assert_cmd",
  "bytemuck",
+ "chrono",
  "clerk",
  "image",
  "libraw-sys",

@@ -5,6 +5,7 @@ version.workspace = true
 
 [dependencies]
 bytemuck = { workspace = true, optional = true }
+chrono = { workspace = true }
 clerk = { workspace = true }
 image = { workspace = true, optional = true }
 libraw-sys = { path = "../libraw-sys" }

@@ -2,11 +2,13 @@ use std::ffi::CString;
 use std::path::PathBuf;
 mod errors;
 mod image_sizes;
+mod imgother;
 mod iparams;
 mod output_params;
 mod processed_image;
 mod utils;
 pub use image_sizes::ImageSizes;
+pub use imgother::{GpsInfo, ImgOther};
 pub use iparams::IParams;
 pub use output_params::{
     FbddNoiserd, HighlightMode, OutputBps, OutputColor, OutputParams, UserFlip, UserQual,
@@ -49,6 +51,9 @@ impl Fornax {
     }
 
     // data structure
+    pub fn imgother(&self) -> miette::Result<ImgOther> {
+        ImgOther::new(self.imgdata)
+    }
     pub fn image_sizes(&self) -> miette::Result<ImageSizes> {
         ImageSizes::new(self.imgdata)
     }
