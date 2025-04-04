@@ -4,23 +4,23 @@ name = "fornax"
 version.workspace = true
 
 [dependencies]
+bytemuck = { workspace = true, optional = true }
 clerk = { workspace = true }
+image = { workspace = true, optional = true }
 libc = { workspace = true }
 libraw-sys = { path = "../libraw-sys" }
 miette = { workspace = true }
 serde = { workspace = true, optional = true }
 validator = { workspace = true }
-image = { workspace = true ,optional = true}
-bytemuck =  { workspace = true ,optional = true}
 
 [dev-dependencies]
+assert_cmd = "2.0"
 clerk = { workspace = true, features = ["log"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-assert_cmd = "2.0"
 
 [features]
-default=["image"]
+default = ["image"]
+image = ["dep:image", "dep:bytemuck"]
 log = ["clerk/log"]
 serde = ["dep:serde"]
-image=["dep:image","dep:bytemuck"]
