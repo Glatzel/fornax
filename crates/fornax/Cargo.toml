@@ -12,6 +12,7 @@ serde = { workspace = true, optional = true }
 validator = { workspace = true }
 image = { workspace = true ,optional = true}
 bytemuck =  { workspace = true ,optional = true}
+
 [dev-dependencies]
 clerk = { workspace = true, features = ["log"] }
 tracing = { workspace = true }
