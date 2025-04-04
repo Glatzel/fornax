@@ -16,19 +16,6 @@ fn main() -> miette::Result<()> {
         ))
         .unwrap();
     processor.unpack().unwrap();
-    let processed = processor.dcraw_process(None).unwrap();
-    println!(
-        "{},{},{},{},{},{}",
-        processed.width(),
-        processed.height(),
-        processed.bits(),
-        processed.image_type().unwrap(),
-        processed.colors(),
-        processed.data_size()
-    );
-
-    let img = processed.to_image()?;
-    img.save("temp/example-process.png").into_diagnostic()?;
 
     let sizes = processor.image_sizes()?;
     println!("{:?}", sizes);

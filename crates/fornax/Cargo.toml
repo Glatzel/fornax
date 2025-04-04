@@ -17,6 +17,7 @@ bytemuck =  { workspace = true ,optional = true}
 clerk = { workspace = true, features = ["log"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+assert_cmd = "2.0"
 
 [features]
 default=["image"]

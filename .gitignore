@@ -7,3 +7,6 @@ vcpkg/vcpkg
 vcpkg/installed
 target
 temp
+# pixi environments
+.pixi
+*.egg-info
