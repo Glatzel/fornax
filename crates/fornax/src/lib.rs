@@ -2,15 +2,16 @@ use std::ffi::CString;
 use std::path::PathBuf;
 mod errors;
 mod image_sizes;
+mod iparams;
 mod output_params;
 mod processed_image;
-
+mod utils;
 pub use image_sizes::ImageSizes;
+pub use iparams::IParams;
 pub use output_params::{
     FbddNoiserd, HighlightMode, OutputBps, OutputColor, OutputParams, UserFlip, UserQual,
 };
 pub use processed_image::{ImageFormats, ProcessedImage};
-
 pub struct Fornax {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
 }
@@ -66,6 +67,9 @@ impl Fornax {
 
         let processed = ProcessedImage::new(processed)?;
         Ok(processed)
+    }
+    pub fn iparams(&self) -> miette::Result<IParams> {
+        IParams::new(self.imgdata)
     }
 }
 impl Drop for Fornax {
