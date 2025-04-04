@@ -165,6 +165,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
+      - name: restore vcpkg
+        if: ${{ runner.os == 'Windows' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ./vcpkg/installed
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json') }}
       - name: cargo-fmt
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1

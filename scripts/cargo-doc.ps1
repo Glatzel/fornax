@@ -1,11 +1,7 @@
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
-if ($env:CI) {
-    cargo doc --no-deps --all-features --package pyxis
-}
-else {
-    cargo doc --no-deps --all-features --package pyxis
-}
+
+cargo doc --no-deps --all-features --package fornax
 
 Remove-Item ./dist/rust-doc.7z -Force -ErrorAction SilentlyContinue
 New-Item ./dist -ItemType Directory -ErrorAction SilentlyContinue
