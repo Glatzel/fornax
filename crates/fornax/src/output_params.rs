@@ -312,6 +312,7 @@ impl From<FbddNoiserd> for i32 {
 /// Fields of this structure correspond to command line keys of dcraw.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub struct OutputParams {
     /// 4 numbers corresponding to the coordinates (in pixels) of the rectangle that is used to
     /// calculate the white balance. X and Y are coordinates of the left-top rectangle corner;
@@ -608,51 +609,5 @@ impl OutputParams {
             imgdata.params.no_interpolation = no_interpolation as i32;
         }
         Ok(())
-    }
-}
-impl Default for OutputParams {
-    fn default() -> Self {
-        Self {
-            greybox: None,
-            cropbox: None,
-            aber: None,
-            gamm: None,
-            user_mul: None,
-            bright: None,
-            threshold: None,
-            half_size: None,
-            four_color_rgb: None,
-            highlight: None,
-            use_auto_wb: None,
-            use_camera_wb: None,
-            use_camera_matrix: None,
-            output_color: None,
-            output_profile: None,
-            camera_profile: None,
-            bad_pixels: None,
-            dark_frame: None,
-            output_bps: None,
-            output_tiff: None,
-            user_flip: None,
-            user_qual: None,
-            user_black: None,
-            user_cblack: None,
-            user_sat: None,
-            med_passes: None,
-            no_auto_bright: None,
-            auto_bright_thr: None,
-            adjust_maximum_thr: None,
-            use_fuji_rotate: None,
-            green_matching: None,
-            dcb_iterations: None,
-            dcb_enhance_fl: None,
-            fbdd_noiserd: None,
-            exp_correc: None,
-            exp_shift: None,
-            exp_preser: None,
-            use_rawspeed: None,
-            no_auto_scale: None,
-            no_interpolation: None,
-        }
     }
 }
