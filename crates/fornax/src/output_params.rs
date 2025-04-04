@@ -366,8 +366,8 @@ pub struct OutputParams {
     /// If camera-recorded WB is not available, dcraw_process() will fallback to:
     ///
     /// - Auto-WB if bit LIBRAW_PROCESSING_CAMERAWB_FALLBACK_TO_DAYLIGHT is not set in
-    /// params.raw_processing_options (or for the rare specific case: no valid WB index was parsed
-    ///  from CRW file).
+    ///     params.raw_processing_options (or for the rare specific case: no valid WB index was parsed
+    ///     from CRW file).
     /// - Daylight-WB if abovementioned bit is not set.
     pub use_camera_wb: Option<bool>,
     /// - 0: do not use embedded color profile
