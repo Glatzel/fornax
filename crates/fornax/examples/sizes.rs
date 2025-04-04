@@ -9,11 +9,9 @@ fn main() -> miette::Result<()> {
         .with(clerk::terminal_layer(LevelFilter::DEBUG))
         .init();
     let processor = Fornax::new();
-    processor
-        .open_file(PathBuf::from(
-            "./external/raw-images/images/colorchart-5D2-6000K.dng",
-        ))
-        .unwrap();
+    processor.open_file(PathBuf::from(
+        "./external/raw-images/images/colorchart-5D2-6000K.dng",
+    ))?;
     processor.unpack().unwrap();
 
     let sizes = processor.image_sizes()?;
