@@ -1,8 +1,6 @@
-use std::ffi::CString;
-
+use crate::utils;
 use libraw_sys as sys;
 
-use crate::utils;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Debug)]
 pub struct IParams {
@@ -21,7 +19,7 @@ pub struct IParams {
     xtrans_abs: [[i8; 6]; 6],
     cdesc: String,
     xmplen: u32,
-    // xmpdata: String,
+    xmpdata: String,
 }
 impl IParams {
     pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
@@ -45,11 +43,12 @@ impl IParams {
             xtrans_abs: imgdata.idata.xtrans_abs,
             cdesc: utils::mnt_to_string(&imgdata.idata.cdesc),
             xmplen: imgdata.idata.xmplen,
-            // xmpdata: unsafe {
-            //     CString::from_raw(imgdata.idata.xmpdata)
-            //         .to_string_lossy()
-            //         .to_string()
-            // },
+            xmpdata: unsafe {
+                std::ffi::CStr::from_ptr(imgdata.idata.xmpdata)
+                    .to_str()
+                    .unwrap_or_default()
+                    .to_string()
+            },
         })
     }
     pub fn make(&self) -> String {
@@ -97,7 +96,7 @@ impl IParams {
     pub fn xmplen(&self) -> u32 {
         self.xmplen
     }
-    // pub fn xmpdata(&self) -> String {
-    //     self.xmpdata.clone()
-    // }
+    pub fn xmpdata(&self) -> String {
+        self.xmpdata.clone()
+    }
 }
