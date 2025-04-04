@@ -1,7 +1,0 @@
-[package]
-edition.workspace = true
-name = "fornax-preset"
-version.workspace = true
-
-[dependencies]
-fornax = { workspace = true }
