@@ -1,4 +1,5 @@
-use std::{ffi::CString, path::PathBuf};
+use std::ffi::CString;
+use std::path::PathBuf;
 
 use miette::IntoDiagnostic;
 
@@ -311,8 +312,7 @@ impl From<FbddNoiserd> for i32 {
 /// calls dcraw_process(), dcraw_ppm_tiff_writer(), and dcraw_thumb_writer().
 /// Fields of this structure correspond to command line keys of dcraw.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct OutputParams {
     /// 4 numbers corresponding to the coordinates (in pixels) of the rectangle that is used to
     /// calculate the white balance. X and Y are coordinates of the left-top rectangle corner;
@@ -366,8 +366,8 @@ pub struct OutputParams {
     /// If camera-recorded WB is not available, dcraw_process() will fallback to:
     ///
     /// - Auto-WB if bit LIBRAW_PROCESSING_CAMERAWB_FALLBACK_TO_DAYLIGHT is not set in
-    ///     params.raw_processing_options (or for the rare specific case: no valid WB index was parsed
-    ///     from CRW file).
+    ///   params.raw_processing_options (or for the rare specific case: no valid WB index was
+    ///   parsed from CRW file).
     /// - Daylight-WB if abovementioned bit is not set.
     pub use_camera_wb: Option<bool>,
     /// - 0: do not use embedded color profile
