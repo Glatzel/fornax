@@ -7,11 +7,9 @@ version.workspace = true
 bytemuck = { workspace = true, optional = true }
 clerk = { workspace = true }
 image = { workspace = true, optional = true }
-libc = { workspace = true }
 libraw-sys = { path = "../libraw-sys" }
 miette = { workspace = true }
 serde = { workspace = true, optional = true }
-validator = { workspace = true }
 
 [dev-dependencies]
 assert_cmd = "2.0"
