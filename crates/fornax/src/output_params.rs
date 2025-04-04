@@ -312,7 +312,7 @@ impl From<FbddNoiserd> for i32 {
 /// Fields of this structure correspond to command line keys of dcraw.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
-pub struct LibrawOutputParams {
+pub struct OutputParams {
     /// 4 numbers corresponding to the coordinates (in pixels) of the rectangle that is used to
     /// calculate the white balance. X and Y are coordinates of the left-top rectangle corner;
     /// w and h are the rectangle's width and height, respectively.
@@ -471,10 +471,10 @@ pub struct LibrawOutputParams {
     ///Disables call to demosaic code in LibRaw::dcraw_process()
     pub no_interpolation: Option<bool>,
 }
-impl LibrawOutputParams {
+impl OutputParams {
     pub(crate) fn set_output_params(
         &self,
-        imgdata: *mut crate::sys::libraw_data_t,
+        imgdata: *mut libraw_sys::libraw_data_t,
     ) -> miette::Result<()> {
         let mut imgdata = unsafe { *imgdata };
         if let Some(graybox) = self.greybox {
@@ -610,7 +610,7 @@ impl LibrawOutputParams {
         Ok(())
     }
 }
-impl Default for LibrawOutputParams {
+impl Default for OutputParams {
     fn default() -> Self {
         Self {
             greybox: None,

@@ -10,8 +10,15 @@ libraw-sys = { path = "../libraw-sys" }
 miette = { workspace = true }
 serde = { workspace = true, optional = true }
 validator = { workspace = true }
-image = { workspace = true }
+image = { workspace = true ,optional = true}
+bytemuck =  { workspace = true ,optional = true}
+[dev-dependencies]
+clerk = { workspace = true, features = ["log"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
 
 [features]
+default=["image"]
 log = ["clerk/log"]
 serde = ["dep:serde"]
+image=["dep:image","dep:bytemuck"]

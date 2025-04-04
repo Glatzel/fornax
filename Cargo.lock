@@ -443,12 +443,15 @@ dependencies = [
 name = "fornax"
 version = "0.21.3"
 dependencies = [
+ "bytemuck",
  "clerk",
  "image",
  "libc",
  "libraw-sys",
  "miette",
  "serde",
+ "tracing",
+ "tracing-subscriber",
  "validator",
 ]
 

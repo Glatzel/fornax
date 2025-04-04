@@ -1,10 +1,14 @@
-use core::slice;
-
 use std::path::PathBuf;
 
 use fornax::Fornax;
-
-fn main() ->miette::Result<()>{
+use miette::IntoDiagnostic;
+use tracing::level_filters::LevelFilter;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
+fn main() -> miette::Result<()> {
+    tracing_subscriber::registry()
+        .with(clerk::terminal_layer(LevelFilter::DEBUG))
+        .init();
     let mut processor = Fornax::new();
     processor
         .open_file(PathBuf::from(
@@ -23,13 +27,9 @@ fn main() ->miette::Result<()>{
         processed.data_size()
     );
 
-    let img: image::ImageBuffer<image::Rgb<u8>, &[u8]> = image::ImageBuffer::from_raw(
-        processed.width() as u32,
-        processed.height() as u32,
-        unsafe { slice::from_raw_parts(processed.data(), processed.data_size() as usize) },
-    )
-    .unwrap();
-    img.save("temp/test.tiff").unwrap();
+    let img = processed.to_image()?;
+    img.save("temp/test.png").into_diagnostic()?;
+
     let sizes = processor.image_sizes()?;
     println!("{:?}", sizes);
     Ok(())

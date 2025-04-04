@@ -23,7 +23,7 @@ impl From<i32> for Flip {
 /// - https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
-pub struct LibrawImageSizes {
+pub struct ImageSizes {
     raw_height: u16,
     raw_width: u16,
     height: u16,
@@ -37,7 +37,7 @@ pub struct LibrawImageSizes {
     flip: Flip,
 }
 
-impl LibrawImageSizes {
+impl ImageSizes {
     pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
         if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")

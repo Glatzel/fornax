@@ -17,6 +17,7 @@ tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 validator = { version = "0.20.0", features = ["derive"] }
 image = "0.25.5"
+bytemuck = "1.22.0"
 
 [profile.release]
 codegen-units = 1

@@ -1,7 +1,7 @@
 pub trait PresetCg {
     fn preset_cg(&mut self) -> &mut Self;
 }
-impl PresetCg for fornax::LibrawOutputParams {
+impl PresetCg for fornax::OutputParams {
     fn preset_cg(&mut self) -> &mut Self {
         self.gamm = Some([1.0, 1.0]);
         self.output_color=Some(fornax::OutputColor::ACES);
