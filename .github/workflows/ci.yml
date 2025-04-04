@@ -197,7 +197,7 @@ jobs:
         with:
           path: ./vcpkg/installed
           key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json') }}
-      - name: cargo-clippy
+      - name: run examples
         run: |
           ${{env.RUST_ROOT}}/scripts/examples.ps1
         shell: pwsh
