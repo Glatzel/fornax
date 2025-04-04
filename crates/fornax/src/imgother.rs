@@ -87,7 +87,7 @@ impl ImgOther {
             timestamp: DateTime::from_timestamp(imgdata.other.timestamp, 0).unwrap(),
             shot_order: imgdata.other.shot_order,
             gpsdata: imgdata.other.gpsdata,
-            parsed_gps: parsed_gps,
+            parsed_gps,
             desc: utils::mnt_to_string(&imgdata.other.desc),
             artist: utils::mnt_to_string(&imgdata.other.artist),
         })
