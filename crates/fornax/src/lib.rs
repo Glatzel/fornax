@@ -10,7 +10,6 @@ mod utils;
 pub use image_sizes::ImageSizes;
 pub use imgother::{GpsInfo, ImgOther};
 pub use iparams::IParams;
-
 pub use output_params::{
     FbddNoiserd, HighlightMode, OutputBps, OutputColor, OutputParams, UserFlip, UserQual,
 };
