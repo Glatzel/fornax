@@ -22,4 +22,5 @@ tracing-subscriber = { workspace = true }
 default = ["image"]
 image = ["dep:image", "dep:bytemuck"]
 log = ["clerk/log"]
-serde = ["dep:serde","chrono/serde"]
+presets = []
+serde = ["dep:serde", "chrono/serde"]

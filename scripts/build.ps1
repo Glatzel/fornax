@@ -6,5 +6,4 @@ $ROOT = git rev-parse --show-toplevel
 &"$PSScriptRoot/setup.ps1"
 Set-Location $PSScriptRoot/..
 
-cargo build
-cargo run --package fornax --example "process"
+cargo build --profile $config
