@@ -4,4 +4,4 @@ name = "fornax-preset"
 version.workspace = true
 
 [dependencies]
-fornax = { path = "../fornax" }
+fornax = { workspace = true }
