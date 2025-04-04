@@ -10,3 +10,4 @@ temp
 # pixi environments
 .pixi
 *.egg-info
+dist
