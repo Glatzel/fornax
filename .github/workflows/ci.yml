@@ -75,7 +75,7 @@ jobs:
 
   # cargo-test:
   #   if: ${{!inputs.release}}
-  #   needs: cache-vcpkg 
+  #   needs: cache-vcpkg
   #   strategy:
   #     fail-fast: false
   #     matrix:
