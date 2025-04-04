@@ -1,0 +1,14 @@
+
+# pixi environments
+.pixi
+*.egg-info
+
+vcpkg/vcpkg
+vcpkg/installed
+target
+temp
+# pixi environments
+.pixi
+*.egg-info
+dist
+.VSCodeCounter

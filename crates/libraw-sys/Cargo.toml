@@ -1,0 +1,16 @@
+[package]
+edition.workspace = true
+name = "libraw-sys"
+version.workspace = true
+
+[build-dependencies]
+bindgen = { workspace = true, optional = true }
+clerk = { workspace = true, features = ["log"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dependencies]
+libc = { workspace = true }
+
+[features]
+bindgen = ["dep:bindgen"]
