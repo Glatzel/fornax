@@ -151,8 +151,8 @@ impl From<OutputBps> for i32 {
 #[derive(Debug, Copy, Clone)]
 pub enum OutputTiff {
     None = -1,
-    PPM = 0,
-    TIFF = 1,
+    Ppm = 0,
+    Tiff = 1,
 }
 impl TryFrom<i32> for OutputTiff {
     type Error = miette::Report;
