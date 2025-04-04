@@ -88,7 +88,7 @@ jobs:
   #       if: ${{ runner.os == 'Windows'}}
   #       uses: actions/cache/restore@v4
   #       with:
-  #         path: ./rust/vcpkg/installed
+  #         path: ./vcpkg/installed
   #         key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json') }}
 
   #     - uses: dtolnay/rust-toolchain@nightly
@@ -147,7 +147,7 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         uses: actions/cache/restore@v4
         with:
-          path: ./rust/vcpkg/installed
+          path: ./vcpkg/installed
           key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json') }}
       - name: cargo-clippy
         run: |
@@ -183,7 +183,7 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         uses: actions/cache/restore@v4
         with:
-          path: ./rust/vcpkg/installed
+          path: ./vcpkg/installed
           key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json') }}
       - name: cargo-clippy
         run: |
