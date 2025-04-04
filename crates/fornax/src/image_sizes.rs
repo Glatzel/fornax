@@ -1,6 +1,6 @@
 use libraw_sys as sys;
 
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Flip {
     None = 0,
@@ -21,7 +21,7 @@ impl From<i32> for Flip {
 }
 /// # references
 /// - https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Copy, Clone)]
 pub struct ImageSizes {
     raw_height: u16,
