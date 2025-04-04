@@ -6,4 +6,4 @@ $ROOT = git rev-parse --show-toplevel
 &"$PSScriptRoot/setup.ps1"
 Set-Location $PSScriptRoot/..
 
-cargo build
+cargo build --profile $config
