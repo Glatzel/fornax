@@ -1,3 +1,8 @@
 pub fn mnt_to_string(bytes: &[i8]) -> String {
-    unsafe { std::str::from_utf8_unchecked(std::mem::transmute::<&[i8], &[u8]>(bytes)) }.to_string()
+    let result: String = bytes
+        .iter()
+        .map(|c| char::from(*c as u8))
+        .collect::<String>();
+    let result = result.replace('\0', " ");
+    result.trim_end().to_string()
 }
