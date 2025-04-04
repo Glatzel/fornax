@@ -60,6 +60,7 @@ jobs:
 
   cargo-machete:
     if: ${{!inputs.release}}
+    needs: cache-vcpkg
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -114,6 +115,7 @@ jobs:
   #         token: ${{ secrets.CODECOV_TOKEN }}
 
   cargo-doc:
+    needs: cache-vcpkg
     runs-on: windows-latest
     env:
       RUSTFLAGS: "-Dwarnings"
@@ -154,6 +156,7 @@ jobs:
 
   cargo-fmt:
     if: ${{!inputs.release}}
+    needs: cache-vcpkg
     runs-on: windows-latest
     env:
       RUSTFLAGS: "-Dwarnings"
