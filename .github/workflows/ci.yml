@@ -169,7 +169,7 @@ jobs:
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
         shell: pwsh
-  
+
   examples:
     if: ${{!inputs.release}}
     needs: cache-vcpkg

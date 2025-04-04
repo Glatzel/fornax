@@ -2,7 +2,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Annotated, Literal, Optional, Self
 
-
 from pydantic import BaseModel, Field, StrictBool, field_serializer  # type: ignore
 
 
