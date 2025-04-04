@@ -42,7 +42,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{env.RUST_ROOT}}/vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json') }}
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
           lookup-only: true
 
       - name: setup vcpkg
@@ -73,7 +73,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json') }}
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
       - name: Machete
         uses: bnjbvr/cargo-machete@main
 
@@ -158,7 +158,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json') }}
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
       - name: cargo-clippy
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
@@ -180,7 +180,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json') }}
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
       - name: cargo-fmt
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
@@ -200,7 +200,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json') }}
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
       - name: run examples
         run: |
           ${{env.RUST_ROOT}}/scripts/examples.ps1
