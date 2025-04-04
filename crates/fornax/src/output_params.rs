@@ -160,8 +160,8 @@ impl TryFrom<i32> for OutputTiff {
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         match value {
             -1 => Ok(Self::None),
-            0 => Ok(Self::PPM),
-            1 => Ok(Self::TIFF),
+            0 => Ok(Self::Ppm),
+            1 => Ok(Self::Tiff),
             v => miette::bail!("Unknow `OutputTiff`: {v}"),
         }
     }
@@ -170,8 +170,8 @@ impl From<OutputTiff> for i32 {
     fn from(value: OutputTiff) -> Self {
         match value {
             OutputTiff::None => -1,
-            OutputTiff::PPM => 0,
-            OutputTiff::TIFF => 1,
+            OutputTiff::Ppm => 0,
+            OutputTiff::Tiff => 1,
         }
     }
 }
