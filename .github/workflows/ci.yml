@@ -1,4 +1,4 @@
-name: rust-CI
+name: CI
 
 on:
   workflow_dispatch:
@@ -132,74 +132,6 @@ jobs:
           path: rust/dist/*.7z
           if-no-files-found: error
 
-  rattler-pyxis-cli:
-    needs: cache-vcpkg
-    strategy:
-      fail-fast: false
-      matrix:
-        machine: [windows-latest, ubuntu-latest]
-        include:
-          - machine: windows-latest
-            os: win-64
-          - machine: ubuntu-latest
-            os: linux-64
-    runs-on: ${{matrix.machine}}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.3
-        with:
-          run-install: false
-
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./rust/vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./rust/vcpkg/vcpkg.json') }}
-      - run: choco install pkgconfiglite
-        if: ${{runner.os == 'Windows'}}
-
-      - name: build
-        run: ${{env.RUST_ROOT}}/rattler/ci-pyxis-cli.ps1 ${{ inputs.release && '-config  release' || null }}
-        shell: pwsh
-
-      - name: upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: pyxis-cli-${{matrix.machine}}
-          path: |
-            rust/rattler/output/${{matrix.os}}/*.conda
-            rust/dist/*.7z
-          if-no-files-found: error
-
-  build-rust-cuda:
-    if: ${{!inputs.release}}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - machine: windows-latest
-            sub-packages: '["nvcc","cudart"]'
-          - machine: ubuntu-latest
-            sub-packages: '["nvcc"]'
-    runs-on: ${{matrix.machine}}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Jimver/cuda-toolkit@v0.2.22
-        with:
-          cuda: "12.8.0"
-          sub-packages: ${{matrix.sub-packages}}
-          method: network
-      - name: clippy
-        run: ${{env.RUST_ROOT}}/scripts/cargo-clippy-cuda.ps1
-        shell: pwsh
-      - name: build cuda
-        run: ${{env.RUST_ROOT}}/scripts/build-rust-cuda.ps1 ${{ inputs.release && '-config release' || null }}
-        shell: pwsh
-
   cargo-clippy:
     if: ${{!inputs.release}}
     needs: cache-vcpkg
@@ -209,10 +141,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.3
-        with:
-          run-install: false
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows' }}
         uses: actions/cache/restore@v4
@@ -231,14 +159,30 @@ jobs:
       RUSTFLAGS: "-Dwarnings"
     steps:
       - uses: actions/checkout@v4
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.3
-        with:
-          run-install: false
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
       - name: cargo-fmt
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
+        shell: pwsh
+  
+  examples:
+    if: ${{!inputs.release}}
+    needs: cache-vcpkg
+    runs-on: windows-latest
+    env:
+      RUSTFLAGS: "-Dwarnings"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: restore vcpkg
+        if: ${{ runner.os == 'Windows' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ./rust/vcpkg/installed
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('./rust/vcpkg/vcpkg.json') }}
+      - name: cargo-clippy
+        run: |
+          ${{env.RUST_ROOT}}/scripts/examples.ps1
         shell: pwsh
