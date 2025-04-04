@@ -104,9 +104,9 @@ impl IParams {
     /// returns the number of the active color for a given pixel.
     ///
     ///Values less than 1000 are reserved as special cases:
-    ///- 1 - Leaf Catchlight with 16x16 bayer matrix;
-    ///- 9 - Fuji X-Trans (6x6 matrix)
-    ///- 3..8 and 10..999 - are unused.
+    /// - 1 - Leaf Catchlight with 16x16 bayer matrix;
+    /// - 9 - Fuji X-Trans (6x6 matrix)
+    /// - 3..8 and 10..999 - are unused.
     pub fn filters(&self) -> u32 {
         self.filters
     }

@@ -92,33 +92,43 @@ impl ImgOther {
             artist: utils::mnt_to_string(&imgdata.other.artist),
         })
     }
+    ///ISO sensitivity.
     pub fn iso_speed(&self) -> f32 {
         self.iso_speed
     }
+    ///Shutter speed.
     pub fn shutter(&self) -> f32 {
         self.shutter
     }
+    ///Aperture.
     pub fn aperture(&self) -> f32 {
         self.aperture
     }
+    ///Focal length.
     pub fn focal_len(&self) -> f32 {
         self.focal_len
     }
+    ///Date of shooting.
     pub fn timestamp(&self) -> DateTime<Utc> {
         self.timestamp
     }
+    ///Serial number of image.
     pub fn shot_order(&self) -> u32 {
         self.shot_order
     }
+    ///GPS data (unparsed block, to write to output as is).
     pub fn gpsdata(&self) -> [u32; 32] {
         self.gpsdata
     }
+    ///Parsed GPS-data: longitude/latitude/altitude and time stamp.
     pub fn parsed_gps(&self) -> GpsInfo {
         self.parsed_gps.clone()
     }
+    ///Image description.
     pub fn desc(&self) -> String {
         self.desc.clone()
     }
+    ///Author of image.
     pub fn artist(&self) -> String {
         self.artist.clone()
     }
