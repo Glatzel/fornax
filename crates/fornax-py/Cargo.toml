@@ -1,0 +1,6 @@
+[package]
+edition.workspace = true
+name = "libraw-py"
+version.workspace = true
+
+[dependencies]
