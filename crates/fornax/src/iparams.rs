@@ -1,7 +1,8 @@
 use std::ffi::CString;
 
-use crate::utils;
 use libraw_sys as sys;
+
+use crate::utils;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Debug)]
 pub struct IParams {
