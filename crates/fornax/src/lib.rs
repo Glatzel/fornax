@@ -8,6 +8,9 @@ mod output_params;
 mod presets;
 mod processed_image;
 mod utils;
+use std::ffi::CString;
+use std::path::PathBuf;
+
 pub use image_sizes::ImageSizes;
 pub use imgother::{GpsInfo, ImgOther};
 pub use iparams::IParams;
@@ -18,8 +21,6 @@ pub use output_params::{
 #[cfg(feature = "presets")]
 pub use presets::*;
 pub use processed_image::{ImageFormats, ProcessedImage};
-use std::ffi::CString;
-use std::path::PathBuf;
 
 pub struct Fornax {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
