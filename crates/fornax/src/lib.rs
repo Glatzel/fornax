@@ -18,8 +18,6 @@ pub use libraw_version::{LIBRAW_VERSION, LibrawVersion};
 pub use output_params::{
     FbddNoiserd, HighlightMode, OutputBps, OutputColor, OutputParams, UserFlip, UserQual,
 };
-#[cfg(feature = "presets")]
-pub use presets::*;
 pub use processed_image::{ImageFormats, ProcessedImage};
 
 pub struct Fornax {
