@@ -367,7 +367,7 @@ pub struct OutputParams {
     ///
     /// - Auto-WB if bit LIBRAW_PROCESSING_CAMERAWB_FALLBACK_TO_DAYLIGHT is not set in
     /// params.raw_processing_options (or for the rare specific case: no valid WB index was parsed
-    /// from CRW file)
+    /// from CRW file).
     /// - Daylight-WB if abovementioned bit is not set.
     pub use_camera_wb: Option<bool>,
     /// - 0: do not use embedded color profile
