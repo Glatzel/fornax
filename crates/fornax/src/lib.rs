@@ -10,10 +10,13 @@ mod utils;
 pub use image_sizes::ImageSizes;
 pub use imgother::{GpsInfo, ImgOther};
 pub use iparams::IParams;
+
 pub use output_params::{
     FbddNoiserd, HighlightMode, OutputBps, OutputColor, OutputParams, UserFlip, UserQual,
 };
 pub use processed_image::{ImageFormats, ProcessedImage};
+mod libraw_version;
+pub use libraw_version::{LIBRAW_VERSION, LibrawVersion};
 pub struct Fornax {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
 }
