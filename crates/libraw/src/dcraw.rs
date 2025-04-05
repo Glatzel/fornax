@@ -2,19 +2,20 @@ mod output_params;
 mod processed_image;
 use fornax_core::{FornaxProcessedImage, IDecoder, IPostProcessor};
 pub use output_params::{
-    FbddNoiserd, HighlightMode, OutputBps, OutputColor, Params, UserFlip, UserQual,
+    DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
+    DCRawUserFlip, DCRawUserQual,
 };
-pub use processed_image::{ImageFormats, ProcessedImage};
+pub use processed_image::{DCRawImageFormats, DCRawProcessedImage};
 
 pub trait IDCRaw {
     fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t>;
 }
 #[derive(Default)]
 pub struct DCRaw {
-    pub(crate) params: Option<Params>,
+    pub(crate) params: Option<DCRawParams>,
 }
 impl DCRaw {
-    pub fn new(params: Params) -> Self {
+    pub fn new(params: DCRawParams) -> Self {
         Self {
             params: Some(params),
         }
@@ -36,7 +37,7 @@ impl DCRaw {
     fn dcraw_process_unsafe(
         &self,
         imgdata: *mut libraw_sys::libraw_data_t,
-    ) -> miette::Result<ProcessedImage> {
+    ) -> miette::Result<DCRawProcessedImage> {
         self.set_output_params_unsafe(imgdata)?;
 
         crate::check_run(unsafe { libraw_sys::libraw_dcraw_process(imgdata) })?;
@@ -45,7 +46,7 @@ impl DCRaw {
             unsafe { libraw_sys::libraw_dcraw_make_mem_image(imgdata, &mut result) };
         crate::check_run(result)?;
 
-        let processed = ProcessedImage::new(processed)?;
+        let processed = DCRawProcessedImage::new(processed)?;
         Ok(processed)
     }
 }
@@ -56,7 +57,7 @@ impl DCRaw {
     pub fn dcraw_process(
         &self,
         imgdata: *mut libraw_sys::libraw_data_t,
-    ) -> miette::Result<ProcessedImage> {
+    ) -> miette::Result<DCRawProcessedImage> {
         self.dcraw_process_unsafe(imgdata)
     }
 }

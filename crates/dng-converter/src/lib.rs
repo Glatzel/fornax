@@ -7,7 +7,7 @@ use std::io::Read;
 use std::path::PathBuf;
 use std::sync::LazyLock;
 
-static DNG_CONVERTER_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
+static _DNG_CONVERTER_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let default_install_path =
         PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");
 
