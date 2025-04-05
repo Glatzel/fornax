@@ -4,7 +4,7 @@ use crate::utils;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Debug)]
-pub struct IParams {
+pub struct LibrawIParams {
     make: String,
     model: String,
     normalized_make: String,
@@ -22,7 +22,7 @@ pub struct IParams {
     xmplen: u32,
     xmpdata: String,
 }
-impl IParams {
+impl LibrawIParams {
     pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
         if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")

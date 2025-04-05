@@ -1,7 +1,7 @@
 ///All functions returning integer numbers must return either errno or one of the following error
 /// codes.
 #[derive(Debug, Clone)]
-pub enum FornaxErrors {
+pub enum LibrawErrors {
     //Non-Fatal Errors
     Success,
     UnspecifiedError,
@@ -23,7 +23,7 @@ pub enum FornaxErrors {
     TooBig,
     MempoolOverflow,
 }
-impl TryFrom<i32> for FornaxErrors {
+impl TryFrom<i32> for LibrawErrors {
     type Error = miette::Report;
     fn try_from(value: i32) -> miette::Result<Self> {
         match value {
@@ -51,75 +51,75 @@ impl TryFrom<i32> for FornaxErrors {
         }
     }
 }
-impl From<&FornaxErrors> for i32 {
-    fn from(enum_value: &FornaxErrors) -> Self {
+impl From<&LibrawErrors> for i32 {
+    fn from(enum_value: &LibrawErrors) -> Self {
         match enum_value {
             //Non-Fatal Errors
-            FornaxErrors::Success => 0,
-            FornaxErrors::UnspecifiedError => -1,
-            FornaxErrors::FileUnsupported => -2,
-            FornaxErrors::RequestForNonexistentImage => -3,
-            FornaxErrors::OutOfOrderCall => -4,
-            FornaxErrors::NoThumbnail => -5,
-            FornaxErrors::UnsupportedThumbnail => -6,
-            FornaxErrors::InputClosed => -7,
-            FornaxErrors::NotImplemented => -8,
-            FornaxErrors::RequestForNonexistentThumbnail => -9,
+            LibrawErrors::Success => 0,
+            LibrawErrors::UnspecifiedError => -1,
+            LibrawErrors::FileUnsupported => -2,
+            LibrawErrors::RequestForNonexistentImage => -3,
+            LibrawErrors::OutOfOrderCall => -4,
+            LibrawErrors::NoThumbnail => -5,
+            LibrawErrors::UnsupportedThumbnail => -6,
+            LibrawErrors::InputClosed => -7,
+            LibrawErrors::NotImplemented => -8,
+            LibrawErrors::RequestForNonexistentThumbnail => -9,
 
             //Fatal Errors
-            FornaxErrors::UnsufficientMemory => -100007,
-            FornaxErrors::DataError => -100008,
-            FornaxErrors::IoError => -100009,
-            FornaxErrors::CancelledByCallback => -100010,
-            FornaxErrors::BadCrop => -100011,
-            FornaxErrors::TooBig => -100012,
-            FornaxErrors::MempoolOverflow => -100013,
+            LibrawErrors::UnsufficientMemory => -100007,
+            LibrawErrors::DataError => -100008,
+            LibrawErrors::IoError => -100009,
+            LibrawErrors::CancelledByCallback => -100010,
+            LibrawErrors::BadCrop => -100011,
+            LibrawErrors::TooBig => -100012,
+            LibrawErrors::MempoolOverflow => -100013,
         }
     }
 }
-impl std::fmt::Display for FornaxErrors {
+impl std::fmt::Display for LibrawErrors {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let info= match self {
              //Non-Fatal Errors
-            FornaxErrors::Success => r##"
+            LibrawErrors::Success => r##"
                 No error; function terminated successfully."##.trim_start(),
-            FornaxErrors::UnspecifiedError => r##"
+            LibrawErrors::UnspecifiedError => r##"
                 An unknown error has been encountered. This code should never be generated."##.trim_start(),
-            FornaxErrors::FileUnsupported => r##"
+            LibrawErrors::FileUnsupported => r##"
                 Unsupported file format (attempt to open a RAW file with a format unknown to the program)."##.trim_start(),
-            FornaxErrors::RequestForNonexistentImage => r##"
+            LibrawErrors::RequestForNonexistentImage => r##"
                 Attempt to retrieve a RAW image with a number absent in the data file (only for formats supporting storage of several images in a file)."##.trim_start(),
-            FornaxErrors::OutOfOrderCall => r##"
+            LibrawErrors::OutOfOrderCall => r##"
                 API functions have been called in wrong order (e.g., unpack() before open_file() ) or the previous stage has ended with an error (e.g., unpack() is called after open_file() has returned an error)."##.trim_start(),
-            FornaxErrors::NoThumbnail => r##"
+            LibrawErrors::NoThumbnail => r##"
                 Returned upon an attempt to retrieve a thumbnail from a file containing no preview."##.trim_start(),
-            FornaxErrors::UnsupportedThumbnail => r##"
+            LibrawErrors::UnsupportedThumbnail => r##"
                 RAW file contains a preview of unsupported format."##.trim_start(),
-            FornaxErrors::InputClosed => r##"
+            LibrawErrors::InputClosed => r##"
                 Input stream is not available for reading."##.trim_start(),
-            FornaxErrors::NotImplemented =>r##"
+            LibrawErrors::NotImplemented =>r##"
                 Decoder for specific RAW storage/compression format is not implemented."##.trim_start(),
-            FornaxErrors::RequestForNonexistentThumbnail => r##"
+            LibrawErrors::RequestForNonexistentThumbnail => r##"
                 Attempt to retrieve a non-existent thumbnail by (invalid) index."##.trim_start(),
 
             //Fatal Errors
-            FornaxErrors::UnsufficientMemory => r##"
+            LibrawErrors::UnsufficientMemory => r##"
                 Attempt to get memory from the system has failed.
                 All allocated resources will be freed, recycle() will be called, and the LibRaw object will be brought to the state "right after creation.""##.trim_start(),
-            FornaxErrors::DataError => r##"
+            LibrawErrors::DataError => r##"
                 A fatal error emerged during data unpacking.
                 All allocated resources will be freed, recycle() will be called, and the LibRaw object will be brought to the state "right after creation.""##.trim_start(),
-            FornaxErrors::IoError => r##"
+            LibrawErrors::IoError => r##"
                 A fatal error emerged during file reading (premature end-of-file encountered or file is corrupt).
                 All allocated resources will be freed, recycle() will be called, and the LibRaw object will be brought to the state "right after creation.""##.trim_start(),
-            FornaxErrors::CancelledByCallback => r##"
+            LibrawErrors::CancelledByCallback => r##"
                 Processing cancelled due to calling application demand (by returning nonzero code from progress callback ).
                 All allocated resources will be freed, recycle() will be called, and the LibRaw object will be brought to the state "right after creation.""##.trim_start(),
-            FornaxErrors::BadCrop => r##"
+            LibrawErrors::BadCrop => r##"
                 The incorrect cropping coordinates are set via params.cropbox[]: the left-top corner of cropping rectangle is outside the image. The processing will be cancelled, all allocated resources will be freed"##.trim_start(),
-            FornaxErrors::TooBig => r##"
+            LibrawErrors::TooBig => r##"
                 Raw data size exceeds data limit."##.trim_start(),
-            FornaxErrors::MempoolOverflow => r##"
+            LibrawErrors::MempoolOverflow => r##"
                 MempoolOverflow"##.trim_start(),
         };
         let text = format!("Exit code: {}.\n{}", i32::from(self), info);
@@ -127,49 +127,49 @@ impl std::fmt::Display for FornaxErrors {
     }
 }
 
-impl FornaxErrors {
+impl LibrawErrors {
     pub(crate) fn report(&self) -> miette::Result<()> {
         match self {
             //Non-Fatal Errors
-            FornaxErrors::Success => {
+            LibrawErrors::Success => {
                 clerk::debug!("{}", self);
             }
-            FornaxErrors::UnspecifiedError => {
+            LibrawErrors::UnspecifiedError => {
                 clerk::warn!("{}", self);
             }
-            FornaxErrors::FileUnsupported => {
+            LibrawErrors::FileUnsupported => {
                 clerk::warn!("{}", self);
             }
-            FornaxErrors::RequestForNonexistentImage => {
+            LibrawErrors::RequestForNonexistentImage => {
                 clerk::warn!("{}", self);
             }
-            FornaxErrors::OutOfOrderCall => {
+            LibrawErrors::OutOfOrderCall => {
                 clerk::warn!("{}", self);
             }
-            FornaxErrors::NoThumbnail => {
+            LibrawErrors::NoThumbnail => {
                 clerk::warn!("{}", self);
             }
-            FornaxErrors::UnsupportedThumbnail => {
+            LibrawErrors::UnsupportedThumbnail => {
                 clerk::warn!("{}", self);
             }
-            FornaxErrors::InputClosed => {
+            LibrawErrors::InputClosed => {
                 clerk::warn!("{}", self);
             }
-            FornaxErrors::NotImplemented => {
+            LibrawErrors::NotImplemented => {
                 clerk::warn!("{}", self);
             }
-            FornaxErrors::RequestForNonexistentThumbnail => {
+            LibrawErrors::RequestForNonexistentThumbnail => {
                 clerk::warn!("{}", self);
             }
 
             //Fatal Errors
-            FornaxErrors::UnsufficientMemory => miette::bail!(self.to_string()),
-            FornaxErrors::DataError => miette::bail!(self.to_string()),
-            FornaxErrors::IoError => miette::bail!(self.to_string()),
-            FornaxErrors::CancelledByCallback => miette::bail!(self.to_string()),
-            FornaxErrors::BadCrop => miette::bail!(self.to_string()),
-            FornaxErrors::TooBig => miette::bail!(self.to_string()),
-            FornaxErrors::MempoolOverflow => miette::bail!(self.to_string()),
+            LibrawErrors::UnsufficientMemory => miette::bail!(self.to_string()),
+            LibrawErrors::DataError => miette::bail!(self.to_string()),
+            LibrawErrors::IoError => miette::bail!(self.to_string()),
+            LibrawErrors::CancelledByCallback => miette::bail!(self.to_string()),
+            LibrawErrors::BadCrop => miette::bail!(self.to_string()),
+            LibrawErrors::TooBig => miette::bail!(self.to_string()),
+            LibrawErrors::MempoolOverflow => miette::bail!(self.to_string()),
         };
         Ok(())
     }
