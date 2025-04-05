@@ -65,7 +65,7 @@ impl Libraw {
     pub fn image_sizes(&mut self) -> miette::Result<LibrawImageSizes> {
         LibrawImageSizes::new(self.imgdata)
     }
-    pub(crate) fn set_output_params(&self, params: &DCRawParams) -> miette::Result<()> {
+    pub fn set_output_params(&self, params: &DCRawParams) -> miette::Result<()> {
         if let Some(graybox) = params.greybox {
             unsafe { (*self.imgdata).params.greybox = graybox };
         }
