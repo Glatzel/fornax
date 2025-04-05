@@ -15,7 +15,7 @@ impl DngConverter {
         let hash = DngConverter::calculate_hash(&raw_file)?;
         Ok(Self {
             imgdata: None,
-            raw_file: raw_file.into(),
+            raw_file,
             hash,
         })
     }
