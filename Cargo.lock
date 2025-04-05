@@ -404,6 +404,7 @@ dependencies = [
 name = "dng-converter"
 version = "0.0.1"
 dependencies = [
+ "clerk",
  "fornax-core",
  "libraw",
  "libraw-sys",

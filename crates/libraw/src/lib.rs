@@ -1,7 +1,7 @@
 pub mod dcraw;
 mod errors;
 pub mod libraw;
-mod utils;
+pub mod utils;
 mod version;
 
 pub use dcraw::{DCRaw, IDCRaw};

@@ -72,7 +72,7 @@ pub struct DngConverterParams {
     pub compatibility: DngConverterCompatibility,
 }
 impl DngConverterParams {
-    pub fn to_cmd(&self) -> String {
+    pub fn to_cmd(&self) -> Vec<String> {
         let mut cmd: Vec<String> = Vec::new();
         if self.compressed {
             cmd.push("-c".to_string());
@@ -97,7 +97,7 @@ impl DngConverterParams {
             cmd.push(format!("-count {}", count));
         }
         cmd.push(self.compatibility.to_string());
-        cmd.join(" ")
+        cmd
     }
 }
 impl Default for DngConverterParams {
