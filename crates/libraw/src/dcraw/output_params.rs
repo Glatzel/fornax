@@ -631,8 +631,8 @@ impl DCRawParams {
     pub fn preset_cg() -> Self {
         Self {
             gamm: Some([1.0, 1.0]),
-            output_color: Some(crate::DCRawOutputColor::ACES),
-            output_bps: Some(crate::DCRawOutputBps::_16bit),
+            output_color: Some(DCRawOutputColor::ACES),
+            output_bps: Some(DCRawOutputBps::_16bit),
             ..Default::default()
         }
     }

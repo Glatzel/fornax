@@ -4,9 +4,12 @@ name = "dng-converter"
 version.workspace = true
 
 [dependencies]
+clerk = { workspace = true }
 fornax-core = { workspace = true }
 libraw = { workspace = true }
 libraw-sys = { workspace = true }
 miette = { workspace = true }
 sha2 = { workspace = true }
-# tempfile = { workspace = true }
+
+[features]
+log = ["clerk/log"]

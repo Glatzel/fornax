@@ -1,6 +1,6 @@
 use libraw_sys as sys;
 
-use crate::utils;
+use crate::utils::mnt_to_string;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Debug)]
@@ -29,12 +29,12 @@ impl LibrawIParams {
         }
         let imgdata = unsafe { *imgdata };
         Ok(Self {
-            make: utils::mnt_to_string(&imgdata.idata.make),
-            model: utils::mnt_to_string(&imgdata.idata.model),
-            normalized_make: utils::mnt_to_string(&imgdata.idata.normalized_make),
-            normalized_model: utils::mnt_to_string(&imgdata.idata.normalized_model),
+            make: mnt_to_string(&imgdata.idata.make),
+            model: mnt_to_string(&imgdata.idata.model),
+            normalized_make: mnt_to_string(&imgdata.idata.normalized_make),
+            normalized_model: mnt_to_string(&imgdata.idata.normalized_model),
             maker_index: imgdata.idata.maker_index,
-            software: utils::mnt_to_string(&imgdata.idata.software),
+            software: mnt_to_string(&imgdata.idata.software),
             raw_count: imgdata.idata.raw_count,
             is_foveon: imgdata.idata.is_foveon != 0,
             dng_version: imgdata.idata.dng_version,
@@ -42,7 +42,7 @@ impl LibrawIParams {
             filters: imgdata.idata.filters,
             xtrans: imgdata.idata.xtrans,
             xtrans_abs: imgdata.idata.xtrans_abs,
-            cdesc: utils::mnt_to_string(&imgdata.idata.cdesc),
+            cdesc: mnt_to_string(&imgdata.idata.cdesc),
             xmplen: imgdata.idata.xmplen,
             xmpdata: unsafe {
                 std::ffi::CStr::from_ptr(imgdata.idata.xmpdata)

@@ -1,12 +1,15 @@
 mod output_params;
 mod processed_image;
-use fornax_core::{IDecoder, IPostProcessor, ProcessedImage};
-use libraw::{ILibraw, Libraw};
+use fornax_core::{FornaxProcessedImage, IDecoder, IPostProcessor};
 pub use output_params::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
     DCRawUserFlip, DCRawUserQual,
 };
-pub use processed_image::{DcRawProcessedImage, ImageFormats};
+pub use processed_image::{DCRawImageFormats, DCRawProcessedImage};
+
+pub trait IDCRaw {
+    fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t>;
+}
 #[derive(Default)]
 pub struct DCRaw {
     pub(crate) params: Option<DCRawParams>,
@@ -34,16 +37,16 @@ impl DCRaw {
     fn dcraw_process_unsafe(
         &self,
         imgdata: *mut libraw_sys::libraw_data_t,
-    ) -> miette::Result<DcRawProcessedImage> {
+    ) -> miette::Result<DCRawProcessedImage> {
         self.set_output_params_unsafe(imgdata)?;
 
-        Libraw::check_run(unsafe { libraw_sys::libraw_dcraw_process(imgdata) })?;
+        crate::check_run(unsafe { libraw_sys::libraw_dcraw_process(imgdata) })?;
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
             unsafe { libraw_sys::libraw_dcraw_make_mem_image(imgdata, &mut result) };
-        Libraw::check_run(result)?;
+        crate::check_run(result)?;
 
-        let processed = DcRawProcessedImage::new(processed)?;
+        let processed = DCRawProcessedImage::new(processed)?;
         Ok(processed)
     }
 }
@@ -54,15 +57,15 @@ impl DCRaw {
     pub fn dcraw_process(
         &self,
         imgdata: *mut libraw_sys::libraw_data_t,
-    ) -> miette::Result<DcRawProcessedImage> {
+    ) -> miette::Result<DCRawProcessedImage> {
         self.dcraw_process_unsafe(imgdata)
     }
 }
-impl<T> IPostProcessor<T, ProcessedImage> for DCRaw
+impl<T> IPostProcessor<T, FornaxProcessedImage> for DCRaw
 where
-    T: ILibraw + IDecoder,
+    T: crate::IDCRaw + IDecoder,
 {
-    fn post_process(&self, libraw: &T) -> miette::Result<ProcessedImage> {
+    fn post_process(&self, libraw: &T) -> miette::Result<FornaxProcessedImage> {
         let imgdata = libraw.imgdata()?;
         let processed = self.dcraw_process_unsafe(imgdata)?.to_image()?;
         Ok(processed)

@@ -4,9 +4,11 @@ name = "libraw"
 version.workspace = true
 
 [dependencies]
+bytemuck = { workspace = true }
 chrono = { workspace = true }
 clerk = { workspace = true }
 fornax-core = { workspace = true }
+image = { workspace = true }
 libraw-sys = { path = "../libraw-sys" }
 miette = { workspace = true }
 serde = { workspace = true, optional = true }
