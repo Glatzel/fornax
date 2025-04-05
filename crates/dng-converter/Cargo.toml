@@ -1,0 +1,8 @@
+[package]
+edition.workspace = true
+name = "dng-converter"
+version.workspace = true
+
+[dependencies]
+fornax-core = { workspace = true }
+miette = { workspace = true }
