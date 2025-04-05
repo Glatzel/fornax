@@ -13,15 +13,15 @@ impl Display for ImageFormats {
         }
     }
 }
-pub struct ProcessedImage {
+pub struct LibrawProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }
-impl ProcessedImage {
+impl LibrawProcessedImage {
     pub(crate) fn new(
         ptr: *mut libraw_sys::libraw_processed_image_t,
-    ) -> miette::Result<ProcessedImage> {
+    ) -> miette::Result<LibrawProcessedImage> {
         clerk::debug!("Is processed image null: {}", ptr.is_null());
-        let img: ProcessedImage = Self {
+        let img: LibrawProcessedImage = Self {
             processed_image: ptr,
         };
         Ok(img)
@@ -69,15 +69,14 @@ impl ProcessedImage {
         unsafe { (*self.processed_image).data.as_ptr() }
     }
 }
-impl Drop for ProcessedImage {
+impl Drop for LibrawProcessedImage {
     fn drop(&mut self) {
         unsafe { libraw_sys::libraw_dcraw_clear_mem(self.processed_image) }
     }
 }
 
-#[cfg(feature = "image")]
-impl ProcessedImage {
-    pub fn to_image(&self) -> miette::Result<image::DynamicImage> {
+impl LibrawProcessedImage {
+    pub fn to_image(&self) -> miette::Result<fornax_traits::ProcessedImage> {
         match (self.colors(), self.bits()) {
             (1, 8) => {
                 let img: image::ImageBuffer<image::Luma<u8>, Vec<u8>> =
@@ -93,7 +92,7 @@ impl ProcessedImage {
                         },
                     )
                     .unwrap();
-                Ok(image::DynamicImage::from(img))
+                Ok(fornax_traits::ProcessedImage::Mono8(img))
             }
             (1, 16) => {
                 let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> =
@@ -110,7 +109,7 @@ impl ProcessedImage {
                     )
                     .unwrap();
 
-                Ok(image::DynamicImage::from(img))
+                Ok(fornax_traits::ProcessedImage::Mono16(img))
             }
             (3, 8) => {
                 let img: image::ImageBuffer<image::Rgb<u8>, Vec<u8>> =
@@ -126,7 +125,7 @@ impl ProcessedImage {
                         },
                     )
                     .unwrap();
-                Ok(image::DynamicImage::from(img))
+                Ok(fornax_traits::ProcessedImage::Rgb8(img))
             }
             (3, 16) => {
                 let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> =
@@ -142,7 +141,7 @@ impl ProcessedImage {
                         .to_vec(),
                     )
                     .unwrap();
-                Ok(image::DynamicImage::from(img))
+                Ok(fornax_traits::ProcessedImage::Rgb16(img))
             }
             (c, b) => {
                 miette::bail!("Unsupported color:{}, bits: {}.", c, b)
