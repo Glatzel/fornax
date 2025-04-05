@@ -1,4 +1,5 @@
-use std::{marker::PhantomData, path::PathBuf};
+use std::marker::PhantomData;
+use std::path::PathBuf;
 
 pub struct Fornax<D, M, P>
 where
