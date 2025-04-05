@@ -68,6 +68,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows' }}
         uses: actions/cache/restore@v4
@@ -132,6 +134,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows' }}
         uses: actions/cache/restore@v4
@@ -159,6 +163,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows' }}
         uses: actions/cache/restore@v4
@@ -181,6 +187,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows' }}
         uses: actions/cache/restore@v4
@@ -201,6 +209,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows' }}
         uses: actions/cache/restore@v4

@@ -1,16 +1,18 @@
 [package]
 edition.workspace = true
-name = "libraw"
+name = "dcraw"
 version.workspace = true
 
 [dependencies]
-chrono = { workspace = true }
+bytemuck = { workspace = true }
 clerk = { workspace = true }
 fornax-core = { workspace = true }
-libraw-sys = { path = "../libraw-sys" }
+image = { workspace = true }
+libraw = { workspace = true }
+libraw-sys = { workspace = true }
 miette = { workspace = true }
 serde = { workspace = true, optional = true }
 
 [features]
 log = ["clerk/log"]
-serde = ["dep:serde", "chrono/serde"]
+serde = ["dep:serde"]
