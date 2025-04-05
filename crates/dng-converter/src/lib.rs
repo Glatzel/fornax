@@ -81,10 +81,13 @@ impl DngConverter {
             args.push(format!("{}.dng", { hash }));
             args.push(raw_file.to_str().unwrap().to_string());
             let args = args.join(" ");
-            let output = std::process::Command::new(program)
-                .arg(&args)
-                .output()
-                .into_diagnostic()?;
+            let mut process = std::process::Command::new(program);
+            process.arg(&args);
+            let env_vars = std::env::vars();
+            for (key, value) in env_vars {
+                process.env(key, value);
+            }
+            let output = process.output().into_diagnostic()?;
             clerk::debug!("Command:\n{:?} {}", program, &args);
             clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
             clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
@@ -131,12 +134,17 @@ impl DngConverter {
         })?;
         Ok(())
     }
+    pub fn unpack(&mut self) -> miette::Result<()> {
+        libraw::utils::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
+        Ok(())
+    }
 }
 
 impl fornax_core::IDecoder for DngConverter {
     fn decode_file(&mut self, file: std::path::PathBuf) -> miette::Result<()> {
         let dng_file = self.convert_file(&file)?;
         self.open_dng_file(dng_file)?;
+        self.unpack()?;
         Ok(())
     }
 
