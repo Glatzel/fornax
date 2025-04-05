@@ -6,7 +6,8 @@ pub trait IDecoder<M> {
     fn decoded(&mut self) -> miette::Result<M>;
 }
 pub trait IPostProcessor<M, O> {
-    fn post_process(&mut self, decoded: M) -> miette::Result<O>;
+    fn from_decoded(decoded: M) -> Self;
+    fn post_process(&mut self) -> miette::Result<O>;
 }
 pub enum ProcessedImage {
     Mono8(image::ImageBuffer<image::Luma<u8>, Vec<u8>>),
@@ -22,5 +23,15 @@ impl ProcessedImage {
             ProcessedImage::Rgb8(image_buffer) => image::DynamicImage::from(image_buffer),
             ProcessedImage::Rgb16(image_buffer) => image::DynamicImage::from(image_buffer),
         }
+    }
+}
+pub struct NullPostProcessor {}
+impl<M, O> IPostProcessor<M, O> for NullPostProcessor {
+    fn from_decoded(_decoded: M) -> Self {
+        Self {}
+    }
+
+    fn post_process(&mut self) -> miette::Result<O> {
+        miette::bail!("None.")
     }
 }

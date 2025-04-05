@@ -8,18 +8,18 @@ where
 {
     _marker: PhantomData<M>,
     pub decoder: D,
-    pub post_processor: P,
+    pub post_processor: Option<P>,
 }
 impl<D, M, P> Fornax<D, M, P>
 where
     D: fornax_traits::IDecoder<M>,
     P: fornax_traits::IPostProcessor<M, fornax_traits::ProcessedImage>,
 {
-    pub fn new(decoder: D, post_processor: P) -> Self {
+    pub fn new(decoder: D) -> Self {
         Self {
             _marker: PhantomData::<M>,
             decoder,
-            post_processor,
+            post_processor: None,
         }
     }
     pub fn decode_file(&mut self, file: PathBuf) -> miette::Result<&mut Self> {
@@ -34,8 +34,9 @@ where
         self.decoder.decoded()
     }
     pub fn post_process(&mut self) -> miette::Result<fornax_traits::ProcessedImage> {
-        let decoded = self.decoder.decoded()?;
-        let processed_image = self.post_processor.post_process(decoded)?;
+        let decoded = self.decoded()?;
+        self.post_processor = Some(P::from_decoded(decoded));
+        let processed_image = (self.post_processor).as_mut().unwrap().post_process()?;
         Ok(processed_image)
     }
 }

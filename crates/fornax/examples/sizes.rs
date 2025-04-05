@@ -9,7 +9,7 @@ fn main() -> miette::Result<()> {
         .with(clerk::terminal_layer(LevelFilter::DEBUG))
         .init();
     let mut libraw = libraw::Libraw::new();
-    let mut manager = Fornax::new(&libraw, &libraw);
+    let mut manager = Fornax::<_, _, fornax_traits::NullPostProcessor>::new(&libraw);
     manager.decode_file(PathBuf::from(
         "./external/raw-images/images/colorchart-5D2-6000K.dng",
     ))?;

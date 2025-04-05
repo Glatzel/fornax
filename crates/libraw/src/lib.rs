@@ -34,6 +34,7 @@ impl Libraw {
         let imgdata = unsafe { libraw_sys::libraw_init(0) };
         Self { imgdata }
     }
+
     // io
     pub fn open_buffer(&mut self, buf: &[u8]) -> miette::Result<()> {
         Self::check_run(unsafe {
@@ -67,15 +68,12 @@ impl Libraw {
         params.set_output_params(self.imgdata)?;
         Ok(())
     }
-    pub fn dcraw_process(
-        &mut self,
-        decoded: *mut libraw_sys::libraw_data_t,
-    ) -> miette::Result<LibrawProcessedImage> {
-        unsafe { Libraw::check_run(libraw_sys::libraw_dcraw_process(decoded)) }?;
+    pub fn dcraw_process(&mut self) -> miette::Result<LibrawProcessedImage> {
+        Self::check_run(unsafe { libraw_sys::libraw_dcraw_process(self.imgdata) })?;
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
-            unsafe { libraw_sys::libraw_dcraw_make_mem_image(decoded, &mut result) };
-        Libraw::check_run(result)?;
+            unsafe { libraw_sys::libraw_dcraw_make_mem_image(self.imgdata, &mut result) };
+        Self::check_run(result)?;
 
         let processed = LibrawProcessedImage::new(processed)?;
         Ok(processed)
@@ -117,18 +115,12 @@ impl fornax_traits::IDecoder<*mut libraw_sys::libraw_data_t> for &Libraw {
         Ok(self.imgdata)
     }
 }
-impl IPostProcessor<*mut libraw_sys::libraw_data_t, fornax_traits::ProcessedImage> for &Libraw {
-    fn post_process(
-        &mut self,
-        decoded: *mut libraw_sys::libraw_data_t,
-    ) -> miette::Result<fornax_traits::ProcessedImage> {
-        unsafe { Libraw::check_run(libraw_sys::libraw_dcraw_process(decoded)) }?;
-        let mut result = 0i32;
-        let processed: *mut libraw_sys::libraw_processed_image_t =
-            unsafe { libraw_sys::libraw_dcraw_make_mem_image(decoded, &mut result) };
-        Libraw::check_run(result)?;
+impl IPostProcessor<*mut libraw_sys::libraw_data_t, fornax_traits::ProcessedImage> for Libraw {
+    fn post_process(&mut self) -> miette::Result<fornax_traits::ProcessedImage> {
+        self.dcraw_process()?.to_image()
+    }
 
-        let processed = LibrawProcessedImage::new(processed)?;
-        processed.to_image()
+    fn from_decoded(decoded: *mut libraw_sys::libraw_data_t) -> Self {
+        Libraw { imgdata: decoded }
     }
 }
