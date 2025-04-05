@@ -385,20 +385,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dcraw"
-version = "0.0.1"
-dependencies = [
- "bytemuck",
- "clerk",
- "fornax-core",
- "image",
- "libraw",
- "libraw-sys",
- "miette",
- "serde",
-]
-
-[[package]]
 name = "difflib"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -492,7 +478,6 @@ name = "fornax"
 version = "0.0.1"
 dependencies = [
  "clerk",
- "dcraw",
  "fornax-core",
  "libraw",
  "miette",
@@ -761,9 +746,11 @@ dependencies = [
 name = "libraw"
 version = "0.0.1"
 dependencies = [
+ "bytemuck",
  "chrono",
  "clerk",
  "fornax-core",
+ "image",
  "libraw-sys",
  "miette",
  "serde",

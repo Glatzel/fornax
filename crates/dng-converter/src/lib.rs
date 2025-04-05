@@ -1,7 +1,7 @@
 use std::io::Read;
 use std::path::PathBuf;
 
-use libraw::ILibraw;
+use libraw::IDCRaw;
 use miette::IntoDiagnostic;
 use sha2::{Digest, Sha256};
 
@@ -55,7 +55,7 @@ impl fornax_core::IDecoder for DngConverter {
         todo!()
     }
 }
-impl ILibraw for DngConverter {
+impl IDCRaw for DngConverter {
     fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t> {
         if let Some(imgdata) = self.imgdata {
             Ok(imgdata)

@@ -1,12 +1,15 @@
 mod output_params;
 mod processed_image;
 use fornax_core::{IDecoder, IPostProcessor, ProcessedImage};
-use libraw::{ILibraw, Libraw};
 pub use output_params::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
     DCRawUserFlip, DCRawUserQual,
 };
 pub use processed_image::{DcRawProcessedImage, ImageFormats};
+
+pub trait IDCRaw {
+    fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t>;
+}
 #[derive(Default)]
 pub struct DCRaw {
     pub(crate) params: Option<DCRawParams>,
@@ -37,11 +40,11 @@ impl DCRaw {
     ) -> miette::Result<DcRawProcessedImage> {
         self.set_output_params_unsafe(imgdata)?;
 
-        Libraw::check_run(unsafe { libraw_sys::libraw_dcraw_process(imgdata) })?;
+        crate::check_run(unsafe { libraw_sys::libraw_dcraw_process(imgdata) })?;
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
             unsafe { libraw_sys::libraw_dcraw_make_mem_image(imgdata, &mut result) };
-        Libraw::check_run(result)?;
+        crate::check_run(result)?;
 
         let processed = DcRawProcessedImage::new(processed)?;
         Ok(processed)
@@ -60,7 +63,7 @@ impl DCRaw {
 }
 impl<T> IPostProcessor<T, ProcessedImage> for DCRaw
 where
-    T: ILibraw + IDecoder,
+    T: crate::IDCRaw + IDecoder,
 {
     fn post_process(&self, libraw: &T) -> miette::Result<ProcessedImage> {
         let imgdata = libraw.imgdata()?;
