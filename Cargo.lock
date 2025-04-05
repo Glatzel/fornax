@@ -409,6 +409,8 @@ dependencies = [
  "libraw",
  "libraw-sys",
  "miette",
+ "path-slash",
+ "serde",
  "sha2",
 ]
 

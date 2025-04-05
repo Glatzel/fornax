@@ -1,26 +1,36 @@
 mod params;
-use libraw::IDCRaw;
-use miette::{Context, IntoDiagnostic};
-pub use params::DngConverterParams;
-use sha2::{Digest, Sha256};
 use std::ffi::CString;
 use std::io::Read;
 use std::path::PathBuf;
 use std::sync::LazyLock;
 
+use libraw::IDCRaw;
+use miette::{Context, IntoDiagnostic};
+pub use params::DngConverterParams;
+use path_slash::PathBufExt;
+use sha2::{Digest, Sha256};
+
 static DNG_CONVERTER_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let default_install_path =
         PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");
 
-    if default_install_path.exists() {
+    let exe = if default_install_path.exists() {
         default_install_path
     } else {
+        // Try to get executable from environment variable.
         let e = std::env::var("DNG_CONVERTER")
             .into_diagnostic()
             .wrap_err("DNG converter is not installed.")
             .unwrap();
-        PathBuf::from(e)
-    }
+        let exe = PathBuf::from(e);
+        if exe.exists() && exe.is_file() {
+            exe
+        } else {
+            panic!("DNG converter is not installed.");
+        }
+    };
+    clerk::debug!("Find dng converter: {}", exe.to_slash_lossy());
+    exe
 });
 
 pub struct DngConverter {
@@ -96,13 +106,6 @@ impl DngConverter {
             CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
         libraw::utils::check_run(unsafe {
             libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _)
-        })?;
-        Ok(())
-    }
-    // io
-    pub fn open_buffer(&mut self, buf: &[u8]) -> miette::Result<()> {
-        libraw::utils::check_run(unsafe {
-            libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
         })?;
         Ok(())
     }

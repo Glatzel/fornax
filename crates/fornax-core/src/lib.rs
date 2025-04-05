@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 pub trait IDecoder<T> {
     fn decode(&mut self, input: T) -> miette::Result<()>;
 }

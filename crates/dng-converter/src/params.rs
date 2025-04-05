@@ -1,10 +1,26 @@
 use std::fmt::Display;
+use std::path::PathBuf;
 
+use path_slash::PathBufExt;
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Debug, Copy, Clone)]
 pub enum DngConverterPreview {
     None,
     Medium,
     Full,
 }
+impl Display for DngConverterPreview {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let text = match self {
+            DngConverterPreview::None => "-p0",
+            DngConverterPreview::Medium => "-p1",
+            DngConverterPreview::Full => "-p2",
+        };
+        write!(f, "{}", text)
+    }
+}
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Debug, Copy, Clone)]
 pub enum DngConverterCompatibility {
     CR2_4,
     CR4_1,
@@ -53,6 +69,8 @@ impl Display for DngConverterCompatibility {
         write!(f, "{}", text)
     }
 }
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Debug, Clone)]
 pub struct DngConverterParams {
     ///Output lossless compressed DNG files
     pub compressed: bool,
@@ -70,33 +88,51 @@ pub struct DngConverterParams {
     pub count: Option<u32>,
     ///Limit pixel count to <num> pixels/image.
     pub compatibility: DngConverterCompatibility,
+    ///Output converted files to the specified directory.  
+    ///
+    ///Default is the same directory as the input file.
+    pub directory: Option<PathBuf>,
+    ///Specify the name of the output DNG file.  
+    ///
+    ///Default is the name of the input file with the extension  
+    ///changed to “.dng”.
+    pub filename: Option<String>,
 }
 impl DngConverterParams {
     pub fn to_cmd(&self) -> Vec<String> {
         let mut cmd: Vec<String> = Vec::new();
+
         if self.compressed {
             cmd.push("-c".to_string());
         } else {
             cmd.push("-u".to_string());
         }
+
         if self.linear {
             cmd.push("-l".to_string());
         }
-        match self.preview {
-            DngConverterPreview::None => cmd.push("-p0".to_string()),
-            DngConverterPreview::Medium => cmd.push("-p1".to_string()),
-            DngConverterPreview::Full => cmd.push("-p2".to_string()),
-        }
+
+        cmd.push(self.preview.to_string());
+
         if self.fast_load {
             cmd.push("-fl".to_string());
         }
+
         if let Some(side) = self.side {
             cmd.push(format!("-side {}", side));
         }
+
         if let Some(count) = self.count {
             cmd.push(format!("-count {}", count));
         }
         cmd.push(self.compatibility.to_string());
+
+        if let Some(directory) = &self.directory {
+            cmd.push(format!("-d {}", directory.to_slash_lossy()));
+        }
+        if let Some(filename) = &self.filename {
+            cmd.push(format!("-d {}", filename));
+        }
         cmd
     }
 }
@@ -111,6 +147,8 @@ impl Default for DngConverterParams {
             side: None,
             count: None,
             compatibility: DngConverterCompatibility::CR16_0,
+            directory: None,
+            filename: None,
         }
     }
 }
