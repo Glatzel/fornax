@@ -126,6 +126,6 @@ impl IPostProcessor<*mut libraw_sys::libraw_data_t, fornax_traits::ProcessedImag
         Libraw::check_run(result)?;
 
         let processed = LibrawProcessedImage::new(processed)?;
-        Ok(processed.to_image()?)
+        processed.to_image()
     }
 }
