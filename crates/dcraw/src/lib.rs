@@ -20,14 +20,20 @@ impl DCRaw {
 }
 
 impl DCRaw {
+    pub fn set_output_params(&self, imgdata: *mut libraw_sys::libraw_data_t) -> miette::Result<()> {
+        if let Some(params) = &self.params {
+            params.set_output_params(imgdata)?;
+        }
+        clerk::debug!("Set new params.");
+        clerk::debug!("{:?}", unsafe { (*imgdata).params });
+        Ok(())
+    }
     pub fn dcraw_process(
         &self,
         imgdata: *mut libraw_sys::libraw_data_t,
     ) -> miette::Result<DcRawProcessedImage> {
-        if let Some(params) = &self.params {
-            params.set_output_params(imgdata)?;
-        }
-        clerk::debug!("{:?}", unsafe { (*imgdata).params });
+        self.set_output_params(imgdata)?;
+
         Libraw::check_run(unsafe { libraw_sys::libraw_dcraw_process(imgdata) })?;
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
