@@ -473,7 +473,10 @@ pub struct DCRawParams {
     pub no_interpolation: Option<bool>,
 }
 impl DCRawParams {
-    pub(crate) fn set_output_params(&self, imgdata: *mut libraw_sys::libraw_data_t) -> miette::Result<()> {
+    pub(crate) fn set_output_params(
+        &self,
+        imgdata: *mut libraw_sys::libraw_data_t,
+    ) -> miette::Result<()> {
         if let Some(graybox) = self.greybox {
             unsafe { (*imgdata).params.greybox = graybox };
         }

@@ -1,7 +1,9 @@
+use std::io::Read;
+use std::path::PathBuf;
+
 use libraw::ILibraw;
 use miette::IntoDiagnostic;
 use sha2::{Digest, Sha256};
-use std::{io::Read, path::PathBuf};
 
 pub struct DngConverter {
     imgdata: Option<*mut libraw_sys::libraw_data_t>,

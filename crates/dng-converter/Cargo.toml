@@ -8,5 +8,5 @@ fornax-core = { workspace = true }
 libraw = { workspace = true }
 libraw-sys = { workspace = true }
 miette = { workspace = true }
-tempfile = { workspace = true }
 sha2 = { workspace = true }
+tempfile = { workspace = true }
