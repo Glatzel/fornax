@@ -1,6 +1,6 @@
 [package]
 edition.workspace = true
-name = "fornax-traits"
+name = "fornax-core"
 version.workspace = true
 
 [dependencies]

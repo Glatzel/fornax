@@ -4,8 +4,7 @@ name = "fornax"
 version.workspace = true
 
 [dependencies]
-fornax-traits = { workspace = true }
-image = { workspace = true }
+fornax-core = { workspace = true }
 miette = { workspace = true }
 
 [dev-dependencies]

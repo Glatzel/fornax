@@ -429,8 +429,7 @@ name = "fornax"
 version = "0.0.1"
 dependencies = [
  "clerk",
- "fornax-traits",
- "image",
+ "fornax-core",
  "libraw",
  "miette",
  "tracing",
@@ -438,11 +437,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "fornax-py"
-version = "0.0.1"
-
-[[package]]
-name = "fornax-traits"
+name = "fornax-core"
 version = "0.0.1"
 dependencies = [
  "assert_cmd",
@@ -453,6 +448,10 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
 ]
+
+[[package]]
+name = "fornax-py"
+version = "0.0.1"
 
 [[package]]
 name = "getrandom"
@@ -691,7 +690,7 @@ dependencies = [
  "bytemuck",
  "chrono",
  "clerk",
- "fornax-traits",
+ "fornax-core",
  "image",
  "libraw-sys",
  "miette",

@@ -7,7 +7,7 @@ edition = "2024"
 version = "0.0.1"
 
 [workspace.dependencies]
-fornax-traits = { path = "./crates/fornax-traits" }
+fornax-core = { path = "./crates/fornax-core" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
 
