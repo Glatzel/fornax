@@ -1,7 +1,7 @@
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 
-cargo doc --no-deps --all-features --package fornax
+cargo doc --no-deps --all-features --package fornax --package libraw
 
 Remove-Item ./dist/rust-doc.7z -Force -ErrorAction SilentlyContinue
 New-Item ./dist -ItemType Directory -ErrorAction SilentlyContinue
