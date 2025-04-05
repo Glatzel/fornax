@@ -28,7 +28,7 @@ impl DCRaw {
         clerk::debug!("{:?}", unsafe { (*imgdata).params });
         Ok(())
     }
-    pub fn dcraw_process(
+    fn dcraw_process(
         &self,
         imgdata: *mut libraw_sys::libraw_data_t,
     ) -> miette::Result<DcRawProcessedImage> {
