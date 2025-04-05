@@ -47,11 +47,11 @@ impl DngConverter {
     }
 }
 impl fornax_core::IDecoder for DngConverter {
-    fn decode_file(&mut self, file: std::path::PathBuf) -> miette::Result<()> {
+    fn decode_file(&mut self, _file: std::path::PathBuf) -> miette::Result<()> {
         todo!()
     }
 
-    fn decode_buffer(&mut self, buf: &[u8]) -> miette::Result<()> {
+    fn decode_buffer(&mut self, _buf: &[u8]) -> miette::Result<()> {
         todo!()
     }
 }
