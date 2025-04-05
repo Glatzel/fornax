@@ -18,7 +18,7 @@ pub use output_params::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
     DCRawUserFlip, DCRawUserQual,
 };
-pub use processed_image::{ImageFormats, DcRawProcessedImage};
+pub use processed_image::{DcRawProcessedImage, ImageFormats};
 
 pub struct Libraw {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
