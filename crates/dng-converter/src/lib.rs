@@ -2,7 +2,7 @@ use std::io::Read;
 use std::path::PathBuf;
 
 use libraw::IDCRaw;
-use miette::IntoDiagnostic;
+use miette::{Context, IntoDiagnostic};
 use sha2::{Digest, Sha256};
 
 pub struct DngConverter {
@@ -45,7 +45,21 @@ impl DngConverter {
     pub fn hash(&self) -> &str {
         &self.hash
     }
+    fn dng_converter_executable(&self) -> miette::Result<PathBuf> {
+        let default_install_path =
+            PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");
+
+        if default_install_path.exists() {
+            Ok(default_install_path)
+        } else {
+            let e = std::env::var("DNG_CONVERTER")
+                .into_diagnostic()
+                .wrap_err("DNG converter is not installed.")?;
+            Ok(PathBuf::from(e))
+        }
+    }
 }
+
 impl fornax_core::IDecoder for DngConverter {
     fn decode_file(&mut self, _file: std::path::PathBuf) -> miette::Result<()> {
         todo!()
