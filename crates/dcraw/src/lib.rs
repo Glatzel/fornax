@@ -20,7 +20,7 @@ impl DCRaw {
 }
 
 impl DCRaw {
-    pub fn set_output_params(&self, imgdata: *mut libraw_sys::libraw_data_t) -> miette::Result<()> {
+    fn set_output_params(&self, imgdata: *mut libraw_sys::libraw_data_t) -> miette::Result<()> {
         if let Some(params) = &self.params {
             params.set_output_params(imgdata)?;
         }
