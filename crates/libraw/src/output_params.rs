@@ -470,7 +470,7 @@ pub struct DCRawParams {
     pub no_interpolation: Option<bool>,
 }
 // presets
-impl crate::DCRawParams {
+impl DCRawParams {
     /// Match output to cg workflow.
     /// - `gamm` = `[1.0, 1.0]`
     /// - `output_color`: ACES
