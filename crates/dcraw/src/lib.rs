@@ -20,7 +20,10 @@ impl DCRaw {
 }
 
 impl DCRaw {
-    fn set_output_params(&self, imgdata: *mut libraw_sys::libraw_data_t) -> miette::Result<()> {
+    fn set_output_params_unsafe(
+        &self,
+        imgdata: *mut libraw_sys::libraw_data_t,
+    ) -> miette::Result<()> {
         if let Some(params) = &self.params {
             params.set_output_params(imgdata)?;
         }
@@ -28,11 +31,11 @@ impl DCRaw {
         clerk::debug!("{:?}", unsafe { (*imgdata).params });
         Ok(())
     }
-    fn dcraw_process(
+    fn dcraw_process_unsafe(
         &self,
         imgdata: *mut libraw_sys::libraw_data_t,
     ) -> miette::Result<DcRawProcessedImage> {
-        self.set_output_params(imgdata)?;
+        self.set_output_params_unsafe(imgdata)?;
 
         Libraw::check_run(unsafe { libraw_sys::libraw_dcraw_process(imgdata) })?;
         let mut result = 0i32;
@@ -44,13 +47,24 @@ impl DCRaw {
         Ok(processed)
     }
 }
+impl DCRaw {
+    pub fn set_output_params(&self, imgdata: *mut libraw_sys::libraw_data_t) -> miette::Result<()> {
+        self.set_output_params_unsafe(imgdata)
+    }
+    pub fn dcraw_process(
+        &self,
+        imgdata: *mut libraw_sys::libraw_data_t,
+    ) -> miette::Result<DcRawProcessedImage> {
+        self.dcraw_process_unsafe(imgdata)
+    }
+}
 impl<T> IPostProcessor<T, ProcessedImage> for DCRaw
 where
     T: ILibraw + IDecoder,
 {
     fn post_process(&self, libraw: &T) -> miette::Result<ProcessedImage> {
         let imgdata = libraw.imgdata()?;
-        let processed = self.dcraw_process(imgdata)?.to_image()?;
+        let processed = self.dcraw_process_unsafe(imgdata)?.to_image()?;
         Ok(processed)
     }
 }
