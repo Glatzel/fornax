@@ -1,4 +1,5 @@
-use std::{ffi::CString, path::PathBuf};
+use std::ffi::CString;
+use std::path::PathBuf;
 
 use miette::IntoDiagnostic;
 
