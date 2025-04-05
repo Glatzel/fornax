@@ -1,19 +1,19 @@
 use std::path::PathBuf;
 
-use fornax_traits::IPostProcessor;
-pub use fornax_traits::NullPostProcessor;
+use fornax_core::IPostProcessor;
+pub use fornax_core::NullPostProcessor;
 pub struct Fornax<D, P>
 where
-    D: fornax_traits::IDecoder,
-    P: IPostProcessor<D, fornax_traits::ProcessedImage>,
+    D: fornax_core::IDecoder,
+    P: IPostProcessor<D, fornax_core::ProcessedImage>,
 {
     pub decoder: D,
     pub post_processor: P,
 }
 impl<D, P> Fornax<D, P>
 where
-    D: fornax_traits::IDecoder,
-    P: IPostProcessor<D, fornax_traits::ProcessedImage>,
+    D: fornax_core::IDecoder,
+    P: IPostProcessor<D, fornax_core::ProcessedImage>,
 {
     pub fn new(decoder: D, post_processor: P) -> Self {
         Self {
@@ -29,7 +29,7 @@ where
         self.decoder.decode_buffer(buf)?;
         Ok(self)
     }
-    pub fn post_process(&mut self) -> miette::Result<fornax_traits::ProcessedImage> {
+    pub fn post_process(&mut self) -> miette::Result<fornax_core::ProcessedImage> {
         self.post_processor.post_process(&self.decoder)
     }
 }

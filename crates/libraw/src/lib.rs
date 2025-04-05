@@ -9,7 +9,7 @@ mod utils;
 use std::ffi::CString;
 use std::path::PathBuf;
 
-use fornax_traits::{IDecoder, IPostProcessor, ProcessedImage};
+use fornax_core::{IDecoder, IPostProcessor, ProcessedImage};
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::LibrawIParams;

@@ -76,7 +76,7 @@ impl Drop for DcRawProcessedImage {
 }
 
 impl DcRawProcessedImage {
-    pub fn to_image(&self) -> miette::Result<fornax_traits::ProcessedImage> {
+    pub fn to_image(&self) -> miette::Result<fornax_core::ProcessedImage> {
         match (self.colors(), self.bits()) {
             (1, 8) => {
                 let img: image::ImageBuffer<image::Luma<u8>, Vec<u8>> =
@@ -92,7 +92,7 @@ impl DcRawProcessedImage {
                         },
                     )
                     .unwrap();
-                Ok(fornax_traits::ProcessedImage::Mono8(img))
+                Ok(fornax_core::ProcessedImage::Mono8(img))
             }
             (1, 16) => {
                 let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> =
@@ -109,7 +109,7 @@ impl DcRawProcessedImage {
                     )
                     .unwrap();
 
-                Ok(fornax_traits::ProcessedImage::Mono16(img))
+                Ok(fornax_core::ProcessedImage::Mono16(img))
             }
             (3, 8) => {
                 let img: image::ImageBuffer<image::Rgb<u8>, Vec<u8>> =
@@ -125,7 +125,7 @@ impl DcRawProcessedImage {
                         },
                     )
                     .unwrap();
-                Ok(fornax_traits::ProcessedImage::Rgb8(img))
+                Ok(fornax_core::ProcessedImage::Rgb8(img))
             }
             (3, 16) => {
                 let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> =
@@ -141,7 +141,7 @@ impl DcRawProcessedImage {
                         .to_vec(),
                     )
                     .unwrap();
-                Ok(fornax_traits::ProcessedImage::Rgb16(img))
+                Ok(fornax_core::ProcessedImage::Rgb16(img))
             }
             (c, b) => {
                 miette::bail!("Unsupported color:{}, bits: {}.", c, b)
