@@ -115,7 +115,7 @@ impl fornax_traits::IDecoder<*mut libraw_sys::libraw_data_t> for &Libraw {
     }
 }
 impl IPostProcessor<*mut libraw_sys::libraw_data_t, fornax_traits::ProcessedImage> for &Libraw {
-    fn post_process(
+    unsafe fn post_process(
         &mut self,
         decoded: *mut libraw_sys::libraw_data_t,
     ) -> miette::Result<fornax_traits::ProcessedImage> {
