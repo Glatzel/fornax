@@ -14,7 +14,8 @@
 //     ))?;
 //     processor.unpack().unwrap();
 
-//     let other = processor.imgother()?;
-//     println!("{:?}", other);
+//     let sizes = processor.image_sizes()?;
+//     println!("{:?}", sizes);
 //     Ok(())
 // }
+fn main() {}

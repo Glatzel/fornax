@@ -428,10 +428,13 @@ dependencies = [
 name = "fornax"
 version = "0.0.1"
 dependencies = [
+ "clerk",
  "fornax-traits",
  "image",
  "libraw",
  "miette",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -442,8 +445,13 @@ version = "0.0.1"
 name = "fornax-traits"
 version = "0.0.1"
 dependencies = [
+ "assert_cmd",
+ "clerk",
  "image",
+ "libraw",
  "miette",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -680,7 +688,6 @@ dependencies = [
 name = "libraw"
 version = "0.0.1"
 dependencies = [
- "assert_cmd",
  "bytemuck",
  "chrono",
  "clerk",
@@ -689,8 +696,6 @@ dependencies = [
  "libraw-sys",
  "miette",
  "serde",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

@@ -91,16 +91,22 @@ impl Default for Libraw {
         Self::new()
     }
 }
-impl fornax_traits::IDecoder<*mut libraw_sys::libraw_data_t> for Libraw {
+impl fornax_traits::IDecoder<*mut libraw_sys::libraw_data_t> for &Libraw {
     fn decode_file(&mut self, file: PathBuf) -> miette::Result<()> {
-        self.open_file(file)?;
-        self.unpack()?;
+        let c_string =
+            CString::new(file.to_string_lossy().to_string()).expect("CString::new failed");
+        Libraw::check_run(unsafe {
+            libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _)
+        })?;
+        Libraw::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
 
     fn decode_buffer(&mut self, buf: &[u8]) -> miette::Result<()> {
-        self.open_buffer(buf)?;
-        self.unpack()?;
+        Libraw::check_run(unsafe {
+            libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
+        })?;
+        Libraw::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
 
@@ -108,16 +114,16 @@ impl fornax_traits::IDecoder<*mut libraw_sys::libraw_data_t> for Libraw {
         Ok(self.imgdata)
     }
 }
-impl IPostProcessor<*mut libraw_sys::libraw_data_t, fornax_traits::ProcessedImage> for Libraw {
+impl IPostProcessor<*mut libraw_sys::libraw_data_t, fornax_traits::ProcessedImage> for &Libraw {
     fn post_process(
         &mut self,
         decoded: *mut libraw_sys::libraw_data_t,
     ) -> miette::Result<fornax_traits::ProcessedImage> {
-        Self::check_run(unsafe { libraw_sys::libraw_dcraw_process(decoded) })?;
+        Libraw::check_run(unsafe { libraw_sys::libraw_dcraw_process(decoded) })?;
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
             unsafe { libraw_sys::libraw_dcraw_make_mem_image(decoded, &mut result) };
-        Self::check_run(result)?;
+        Libraw::check_run(result)?;
 
         let processed = LibrawProcessedImage::new(processed)?;
         Ok(processed.to_image()?)

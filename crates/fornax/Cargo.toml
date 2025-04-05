@@ -6,5 +6,10 @@ version.workspace = true
 [dependencies]
 fornax-traits = { workspace = true }
 image = { workspace = true }
-libraw = { workspace = true }
 miette = { workspace = true }
+
+[dev-dependencies]
+clerk = { workspace = true, features = ["log"] }
+libraw = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
