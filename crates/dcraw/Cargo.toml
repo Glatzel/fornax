@@ -1,0 +1,18 @@
+[package]
+edition.workspace = true
+name = "dcraw"
+version.workspace = true
+
+[dependencies]
+bytemuck = { workspace = true}
+chrono = { workspace = true }
+clerk = { workspace = true }
+fornax-traits = { workspace = true }
+image = { workspace = true }
+libraw-sys = { path = "../libraw-sys" }
+miette = { workspace = true }
+serde = { workspace = true, optional = true }
+libraw ={ workspace = true }
+[features]
+log = ["clerk/log"]
+serde = ["dep:serde", "chrono/serde"]

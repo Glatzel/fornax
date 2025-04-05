@@ -18,7 +18,7 @@ pub use output_params::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
     DCRawUserFlip, DCRawUserQual,
 };
-pub use processed_image::{ImageFormats, LibrawProcessedImage};
+pub use processed_image::{ImageFormats, DcRawProcessedImage};
 
 pub struct Libraw {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
@@ -68,14 +68,14 @@ impl Libraw {
         params.set_output_params(self.imgdata)?;
         Ok(())
     }
-    pub fn dcraw_process(&self) -> miette::Result<LibrawProcessedImage> {
+    pub fn dcraw_process(&self) -> miette::Result<DcRawProcessedImage> {
         Self::check_run(unsafe { libraw_sys::libraw_dcraw_process(self.imgdata) })?;
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
             unsafe { libraw_sys::libraw_dcraw_make_mem_image(self.imgdata, &mut result) };
         Self::check_run(result)?;
 
-        let processed = LibrawProcessedImage::new(processed)?;
+        let processed = DcRawProcessedImage::new(processed)?;
         Ok(processed)
     }
     pub fn iparams(&self) -> miette::Result<LibrawIParams> {
