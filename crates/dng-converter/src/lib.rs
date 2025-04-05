@@ -52,14 +52,7 @@ impl DngConverter {
         // Convert the result to a hexadecimal string
         Ok(format!("{:x}", result))
     }
-    fn calculate_buffer_hash(buf: &[u8]) -> miette::Result<String> {
-        let mut hasher = Sha256::new();
-        hasher.update(&buf);
-        // Finalize and get the hash result
-        let result = hasher.finalize();
-        // Convert the result to a hexadecimal string
-        Ok(format!("{:x}", result))
-    }
+
     pub fn params(&self) -> &DngConverterParams {
         &self.params
     }
@@ -97,28 +90,7 @@ impl DngConverter {
         }
         Ok(dng_file)
     }
-    pub fn convert_buffer(&self, buf: &[u8]) -> miette::Result<PathBuf> {
-        let hash = Self::calculate_buffer_hash(buf)?;
-        let file = self.dng_file(&hash)?;
-        let program = DNG_CONVERTER_EXECUTABLE.as_os_str();
-        let mut args = self.params.to_cmd();
-        args.push("-d".to_string());
-        args.push(file.parent().unwrap().to_str().unwrap().to_string());
-        args.push("-o".to_string());
-        args.push(file.parent().unwrap().to_str().unwrap().to_string());
-        let args = args.join(" ");
-        if !file.exists() {
-            let output = std::process::Command::new(program)
-                .arg(args)
-                .output()
-                .into_diagnostic()?;
-            clerk::debug!("Stdout:/n{}", String::from_utf8_lossy(&output.stdout));
-            clerk::debug!("Stderr:/n{}", String::from_utf8_lossy(&output.stderr));
-        } else {
-            clerk::info!("DNG file already exists: {}", file.to_str().unwrap())
-        }
-        Ok(file)
-    }
+
     fn open_dng_file(&mut self, fname: PathBuf) -> miette::Result<()> {
         let c_string =
             CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
@@ -140,17 +112,11 @@ impl DngConverter {
     }
 }
 
-impl fornax_core::IDecoder for DngConverter {
-    fn decode_file(&mut self, file: std::path::PathBuf) -> miette::Result<()> {
+impl fornax_core::IDecoder<PathBuf> for DngConverter {
+    fn decode(&mut self, file: std::path::PathBuf) -> miette::Result<()> {
         let dng_file = self.convert_file(&file)?;
         self.open_dng_file(dng_file)?;
         self.unpack()?;
-        Ok(())
-    }
-
-    fn decode_buffer(&mut self, buf: &[u8]) -> miette::Result<()> {
-        let dng_file = self.convert_buffer(buf)?;
-        self.open_dng_file(dng_file)?;
         Ok(())
     }
 }

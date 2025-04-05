@@ -13,7 +13,7 @@ fn main() -> miette::Result<()> {
         libraw::dcraw::DCRaw::default(),
     );
     let img = manager
-        .decode_file(dunce::canonicalize("./external/a7r5.ARW").unwrap())?
+        .decode(dunce::canonicalize("./external/a7r5.ARW").unwrap())?
         .post_process()?
         .to_dynamic();
     img.save("temp/dng-converter.tiff").into_diagnostic()?;

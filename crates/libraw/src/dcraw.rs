@@ -61,11 +61,11 @@ impl DCRaw {
         self.dcraw_process_unsafe(imgdata)
     }
 }
-impl<T> IPostProcessor<T, FornaxProcessedImage> for DCRaw
+impl<D, T> IPostProcessor<D, T, FornaxProcessedImage> for DCRaw
 where
-    T: crate::IDCRaw + IDecoder,
+    D: crate::IDCRaw + IDecoder<T>,
 {
-    fn post_process(&self, libraw: &T) -> miette::Result<FornaxProcessedImage> {
+    fn post_process(&self, libraw: &D) -> miette::Result<FornaxProcessedImage> {
         let imgdata = libraw.imgdata()?;
         let processed = self.dcraw_process_unsafe(imgdata)?.to_image()?;
         Ok(processed)

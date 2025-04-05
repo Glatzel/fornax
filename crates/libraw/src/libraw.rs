@@ -69,8 +69,8 @@ impl crate::IDCRaw for Libraw {
         Ok(self.imgdata)
     }
 }
-impl IDecoder for Libraw {
-    fn decode_file(&mut self, file: PathBuf) -> miette::Result<()> {
+impl IDecoder<PathBuf> for Libraw {
+    fn decode(&mut self, file: PathBuf) -> miette::Result<()> {
         let c_string =
             CString::new(file.to_string_lossy().to_string()).expect("CString::new failed");
         crate::check_run(unsafe {
@@ -79,8 +79,9 @@ impl IDecoder for Libraw {
         crate::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
-
-    fn decode_buffer(&mut self, buf: &[u8]) -> miette::Result<()> {
+}
+impl IDecoder<&[u8]> for Libraw {
+    fn decode(&mut self, buf: &[u8]) -> miette::Result<()> {
         crate::check_run(unsafe {
             libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
         })?;

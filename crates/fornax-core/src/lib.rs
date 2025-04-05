@@ -1,12 +1,11 @@
 use std::path::PathBuf;
 
-pub trait IDecoder {
-    fn decode_file(&mut self, file: PathBuf) -> miette::Result<()>;
-    fn decode_buffer(&mut self, buf: &[u8]) -> miette::Result<()>;
+pub trait IDecoder<T> {
+    fn decode(&mut self, input: T) -> miette::Result<()>;
 }
-pub trait IPostProcessor<D, O>
+pub trait IPostProcessor<D, T, O>
 where
-    D: IDecoder,
+    D: IDecoder<T>,
 {
     fn post_process(&self, decoder: &D) -> miette::Result<O>;
 }
@@ -27,9 +26,9 @@ impl FornaxProcessedImage {
     }
 }
 pub struct NullPostProcessor {}
-impl<D, O> IPostProcessor<D, O> for NullPostProcessor
+impl<D, T, O> IPostProcessor<D, T, O> for NullPostProcessor
 where
-    D: IDecoder,
+    D: IDecoder<T>,
 {
     fn post_process(&self, _decoded: &D) -> miette::Result<O> {
         miette::bail!("None.")
