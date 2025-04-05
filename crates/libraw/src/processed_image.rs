@@ -13,15 +13,18 @@ impl Display for ImageFormats {
         }
     }
 }
-pub struct ProcessedImage {
+pub struct DcRawProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }
-impl ProcessedImage {
+impl DcRawProcessedImage {
     pub(crate) fn new(
         ptr: *mut libraw_sys::libraw_processed_image_t,
-    ) -> miette::Result<ProcessedImage> {
-        clerk::debug!("Is processed image null: {}", ptr.is_null());
-        let img: ProcessedImage = Self {
+    ) -> miette::Result<DcRawProcessedImage> {
+        if ptr.is_null() {
+            miette::bail!("`libraw_processed_image_t` pointer is null.")
+        }
+        clerk::debug!("{:?}", unsafe { *(ptr) });
+        let img: DcRawProcessedImage = Self {
             processed_image: ptr,
         };
         Ok(img)
@@ -69,15 +72,15 @@ impl ProcessedImage {
         unsafe { (*self.processed_image).data.as_ptr() }
     }
 }
-impl Drop for ProcessedImage {
+impl Drop for DcRawProcessedImage {
     fn drop(&mut self) {
         unsafe { libraw_sys::libraw_dcraw_clear_mem(self.processed_image) }
     }
 }
 
-#[cfg(feature = "image")]
-impl ProcessedImage {
-    pub fn to_image(&self) -> miette::Result<image::DynamicImage> {
+impl DcRawProcessedImage {
+    pub fn to_image(&self) -> miette::Result<fornax_core::ProcessedImage> {
+        clerk::debug!("Start cast to image.");
         match (self.colors(), self.bits()) {
             (1, 8) => {
                 let img: image::ImageBuffer<image::Luma<u8>, Vec<u8>> =
@@ -93,7 +96,8 @@ impl ProcessedImage {
                         },
                     )
                     .unwrap();
-                Ok(image::DynamicImage::from(img))
+                clerk::debug!("Finish cast to image.");
+                Ok(fornax_core::ProcessedImage::Mono8(img))
             }
             (1, 16) => {
                 let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> =
@@ -109,8 +113,8 @@ impl ProcessedImage {
                         .to_vec(),
                     )
                     .unwrap();
-
-                Ok(image::DynamicImage::from(img))
+                clerk::debug!("Finish cast to image.");
+                Ok(fornax_core::ProcessedImage::Mono16(img))
             }
             (3, 8) => {
                 let img: image::ImageBuffer<image::Rgb<u8>, Vec<u8>> =
@@ -126,10 +130,11 @@ impl ProcessedImage {
                         },
                     )
                     .unwrap();
-                Ok(image::DynamicImage::from(img))
+                clerk::debug!("Finish cast to image.");
+                Ok(fornax_core::ProcessedImage::Rgb8(img))
             }
             (3, 16) => {
-                let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> =
+                let img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> =
                     image::ImageBuffer::from_vec(
                         self.width() as u32,
                         self.height() as u32,
@@ -142,7 +147,8 @@ impl ProcessedImage {
                         .to_vec(),
                     )
                     .unwrap();
-                Ok(image::DynamicImage::from(img))
+                clerk::debug!("Finish cast to image.");
+                Ok(fornax_core::ProcessedImage::Rgb16(img))
             }
             (c, b) => {
                 miette::bail!("Unsupported color:{}, bits: {}.", c, b)

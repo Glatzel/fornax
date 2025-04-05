@@ -2,19 +2,19 @@ use libraw_sys as sys;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Flip {
+pub enum LibrawFlip {
     None = 0,
     Rotate180 = 3,
     CCW90 = 6,
     CW90 = 9,
 }
-impl From<i32> for Flip {
+impl From<i32> for LibrawFlip {
     fn from(value: i32) -> Self {
         match value {
-            0 => Flip::None,
-            3 => Flip::Rotate180,
-            6 => Flip::CCW90,
-            9 => Flip::CW90,
+            0 => LibrawFlip::None,
+            3 => LibrawFlip::Rotate180,
+            6 => LibrawFlip::CCW90,
+            9 => LibrawFlip::CW90,
             _ => panic!("Invalid value for MyEnum"),
         }
     }
@@ -23,7 +23,7 @@ impl From<i32> for Flip {
 /// - [libraw_image_sizes_t](https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t)
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Copy, Clone)]
-pub struct ImageSizes {
+pub struct LibrawImageSizes {
     raw_height: u16,
     raw_width: u16,
     height: u16,
@@ -34,10 +34,10 @@ pub struct ImageSizes {
     iwidth: u16,
     raw_pitch: u32,
     pixel_aspect: f64,
-    flip: Flip,
+    flip: LibrawFlip,
 }
 
-impl ImageSizes {
+impl LibrawImageSizes {
     pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
         let imgdata = unsafe { *imgdata };
         Ok(Self {
@@ -51,7 +51,7 @@ impl ImageSizes {
             iwidth: imgdata.sizes.iwidth,
             raw_pitch: imgdata.sizes.raw_pitch,
             pixel_aspect: imgdata.sizes.pixel_aspect,
-            flip: Flip::from(imgdata.sizes.flip),
+            flip: LibrawFlip::from(imgdata.sizes.flip),
         })
     }
     ///Full size of RAW image (including the frame) in pixels.
@@ -101,7 +101,7 @@ impl ImageSizes {
     }
     ///Image orientation (0 if does not require rotation; 3 if requires 180-deg rotation; 5 if 90
     /// deg counterclockwise, 6 if 90 deg clockwise).
-    pub fn flip(&self) -> Flip {
+    pub fn flip(&self) -> LibrawFlip {
         self.flip
     }
 }

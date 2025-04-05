@@ -8,13 +8,12 @@ fn main() -> miette::Result<()> {
     tracing_subscriber::registry()
         .with(clerk::terminal_layer(LevelFilter::DEBUG))
         .init();
-    let processor = Fornax::new();
-    processor.open_file(PathBuf::from(
+    let mut manager = Fornax::new(libraw::Libraw::new(), fornax::NullPostProcessor {});
+    manager.decode_file(PathBuf::from(
         "./external/raw-images/images/colorchart-5D2-6000K.dng",
     ))?;
-    processor.unpack().unwrap();
 
-    let sizes = processor.image_sizes()?;
-    println!("{:?}", sizes);
+    let other = manager.decoder.imgother()?;
+    println!("{:?}", other);
     Ok(())
 }
