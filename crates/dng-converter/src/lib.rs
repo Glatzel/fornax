@@ -26,14 +26,16 @@ pub struct DngConverter {
     imgdata: Option<*mut libraw_sys::libraw_data_t>,
     raw_file: PathBuf,
     hash: String,
+    params: DngConverterParams,
 }
 impl DngConverter {
-    pub fn new(raw_file: PathBuf) -> miette::Result<Self> {
+    pub fn new(raw_file: PathBuf, params: DngConverterParams) -> miette::Result<Self> {
         let hash = DngConverter::calculate_hash(&raw_file)?;
         Ok(Self {
             imgdata: None,
             raw_file,
             hash,
+            params,
         })
     }
     fn calculate_hash(raw_file: &PathBuf) -> miette::Result<String> {
@@ -61,6 +63,9 @@ impl DngConverter {
     }
     pub fn hash(&self) -> &str {
         &self.hash
+    }
+    pub fn params(&self) -> &DngConverterParams {
+        &self.params
     }
 }
 
