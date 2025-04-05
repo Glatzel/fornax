@@ -257,22 +257,18 @@ impl IDecoder for Libraw {
     }
 }
 
-pub struct DcRaw {
+#[derive(Default)]
+pub struct DCRaw {
     pub(crate) params: Option<DCRawParams>,
 }
-impl DcRaw {
+impl DCRaw {
     pub fn new(params: DCRawParams) -> Self {
         Self {
             params: Some(params),
         }
     }
 }
-impl Default for DcRaw {
-    fn default() -> Self {
-        Self { params: None }
-    }
-}
-impl IPostProcessor<Libraw, ProcessedImage> for DcRaw {
+impl IPostProcessor<Libraw, ProcessedImage> for DCRaw {
     fn post_process(&self, libraw: &Libraw) -> miette::Result<ProcessedImage> {
         if let Some(params) = &self.params {
             libraw.set_output_params(params)?;

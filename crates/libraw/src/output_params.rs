@@ -309,7 +309,7 @@ impl From<DCRawFbddNoiserd> for i32 {
 /// calls dcraw_process(), dcraw_ppm_tiff_writer(), and dcraw_thumb_writer().
 /// Fields of this structure correspond to command line keys of dcraw.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct DCRawParams {
     /// 4 numbers corresponding to the coordinates (in pixels) of the rectangle that is used to
     /// calculate the white balance. X and Y are coordinates of the left-top rectangle corner;
@@ -469,7 +469,52 @@ pub struct DCRawParams {
     ///Disables call to demosaic code in LibRaw::dcraw_process()
     pub no_interpolation: Option<bool>,
 }
-
+impl Default for DCRawParams {
+    fn default() -> Self {
+        Self {
+            greybox: Default::default(),
+            cropbox: Default::default(),
+            aber: Default::default(),
+            gamm: Default::default(),
+            user_mul: Default::default(),
+            bright: Default::default(),
+            threshold: Default::default(),
+            half_size: Default::default(),
+            four_color_rgb: Default::default(),
+            highlight: Default::default(),
+            use_auto_wb: Default::default(),
+            use_camera_wb: Default::default(),
+            use_camera_matrix: Default::default(),
+            output_color: Default::default(),
+            output_profile: Default::default(),
+            camera_profile: Default::default(),
+            bad_pixels: Default::default(),
+            dark_frame: Default::default(),
+            output_bps: Default::default(),
+            output_tiff: Default::default(),
+            user_flip: Default::default(),
+            user_qual: Default::default(),
+            user_black: Default::default(),
+            user_cblack: Default::default(),
+            user_sat: Default::default(),
+            med_passes: Default::default(),
+            no_auto_bright: Default::default(),
+            auto_bright_thr: Default::default(),
+            adjust_maximum_thr: Default::default(),
+            use_fuji_rotate: Default::default(),
+            green_matching: Default::default(),
+            dcb_iterations: Default::default(),
+            dcb_enhance_fl: Default::default(),
+            fbdd_noiserd: Default::default(),
+            exp_correc: Default::default(),
+            exp_shift: Default::default(),
+            exp_preser: Default::default(),
+            use_rawspeed: Default::default(),
+            no_auto_scale: Default::default(),
+            no_interpolation: Default::default(),
+        }
+    }
+}
 // presets
 impl crate::DCRawParams {
     /// Match output to cg workflow.
