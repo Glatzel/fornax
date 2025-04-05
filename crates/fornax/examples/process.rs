@@ -18,5 +18,6 @@ fn main() -> miette::Result<()> {
         .post_process()?
         .to_dynamic();
     img.save("temp/example-process.png").into_diagnostic()?;
+    clerk::info!("save img to: temp/example-process.png");
     Ok(())
 }
