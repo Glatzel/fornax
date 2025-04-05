@@ -9,7 +9,7 @@ fn main() -> miette::Result<()> {
     tracing_subscriber::registry()
         .with(clerk::terminal_layer(LevelFilter::DEBUG))
         .init();
-    let params = libraw::dcraw::DCRawParams::preset_cg();
+    let params = libraw::dcraw::Params::preset_cg();
     let mut manager = Fornax::new(libraw::Libraw::new(), libraw::dcraw::DCRaw::new(params));
     let img = manager
         .decode_file(PathBuf::from(

@@ -1,9 +1,26 @@
-use std::io::Read;
-use std::path::PathBuf;
-
+mod params;
 use libraw::IDCRaw;
 use miette::{Context, IntoDiagnostic};
+pub use params::DngConverterParams;
 use sha2::{Digest, Sha256};
+use std::io::Read;
+use std::path::PathBuf;
+use std::sync::LazyLock;
+
+static DNG_CONVERTER_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
+    let default_install_path =
+        PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");
+
+    if default_install_path.exists() {
+        default_install_path
+    } else {
+        let e = std::env::var("DNG_CONVERTER")
+            .into_diagnostic()
+            .wrap_err("DNG converter is not installed.")
+            .unwrap();
+        PathBuf::from(e)
+    }
+});
 
 pub struct DngConverter {
     imgdata: Option<*mut libraw_sys::libraw_data_t>,
@@ -44,19 +61,6 @@ impl DngConverter {
     }
     pub fn hash(&self) -> &str {
         &self.hash
-    }
-    fn dng_converter_executable(&self) -> miette::Result<PathBuf> {
-        let default_install_path =
-            PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");
-
-        if default_install_path.exists() {
-            Ok(default_install_path)
-        } else {
-            let e = std::env::var("DNG_CONVERTER")
-                .into_diagnostic()
-                .wrap_err("DNG converter is not installed.")?;
-            Ok(PathBuf::from(e))
-        }
     }
 }
 

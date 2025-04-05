@@ -1,0 +1,36 @@
+pub enum Preview {
+    None,
+    Medium,
+    Full,
+}
+pub enum Compatibility {
+    CR2_4,
+    CR4_1,
+    CR4_6,
+    CR5_4,
+    CR6_6,
+    CR7_1,
+    CR11_2,
+    CR12_4,
+    CR13_2,
+    CR14_0,
+    CR15_3,
+    CR16_3,
+    DNG1_1,
+    DNG1_3,
+    DNG1_4,
+    DNG1_5,
+    DNG1_6,
+    DNG1_7,
+    DNG1_7_1,
+}
+pub struct DngConverterParams {
+    pub compressed: bool,
+    pub linear: bool,
+    pub embed: bool,
+    pub preview: Preview,
+    pub fast_load: bool,
+    pub side: u32,
+    pub count: u32,
+    pub compatibility: Compatibility,
+}

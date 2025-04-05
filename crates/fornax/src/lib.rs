@@ -5,7 +5,7 @@ pub use fornax_core::NullPostProcessor;
 pub struct Fornax<D, P>
 where
     D: fornax_core::IDecoder,
-    P: IPostProcessor<D, fornax_core::ProcessedImage>,
+    P: IPostProcessor<D, fornax_core::FornaxProcessedImage>,
 {
     pub decoder: D,
     pub post_processor: P,
@@ -13,7 +13,7 @@ where
 impl<D, P> Fornax<D, P>
 where
     D: fornax_core::IDecoder,
-    P: IPostProcessor<D, fornax_core::ProcessedImage>,
+    P: IPostProcessor<D, fornax_core::FornaxProcessedImage>,
 {
     pub fn new(decoder: D, post_processor: P) -> Self {
         Self {
@@ -29,7 +29,7 @@ where
         self.decoder.decode_buffer(buf)?;
         Ok(self)
     }
-    pub fn post_process(&mut self) -> miette::Result<fornax_core::ProcessedImage> {
+    pub fn post_process(&mut self) -> miette::Result<fornax_core::FornaxProcessedImage> {
         self.post_processor.post_process(&self.decoder)
     }
 }
