@@ -64,7 +64,7 @@ impl Libraw {
     pub fn image_sizes(&mut self) -> miette::Result<LibrawImageSizes> {
         LibrawImageSizes::new(self.imgdata)
     }
-    pub fn set_output_params(&mut self, params: DCRawParams) -> miette::Result<()> {
+    pub fn set_output_params(&self, params: &DCRawParams) -> miette::Result<()> {
         params.set_output_params(self.imgdata)?;
         Ok(())
     }
@@ -112,9 +112,26 @@ impl IDecoder for Libraw {
     }
 }
 
-pub struct DcRaw {}
+pub struct DcRaw {
+    pub(crate) params: Option<DCRawParams>,
+}
+impl DcRaw {
+    pub fn new(params: DCRawParams) -> Self {
+        Self {
+            params: Some(params),
+        }
+    }
+}
+impl Default for DcRaw {
+    fn default() -> Self {
+        Self { params: None }
+    }
+}
 impl IPostProcessor<Libraw, ProcessedImage> for DcRaw {
     fn post_process(&self, libraw: &Libraw) -> miette::Result<ProcessedImage> {
+        if let Some(params) = &self.params {
+            libraw.set_output_params(params)?;
+        }
         libraw.dcraw_process()?.to_image()
     }
 }
