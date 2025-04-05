@@ -8,6 +8,7 @@ version = "0.0.1"
 
 [workspace.dependencies]
 fornax-core = { path = "./crates/fornax-core" }
+dng-converter= { path = "./crates/dng-converter" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
 
@@ -27,6 +28,8 @@ serde_json = "1.0.140"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 sha2 = "0.10.8"
+dunce = "1.0.5"
+path-slash = "0.2.1"
 
 [profile.release]
 codegen-units = 1

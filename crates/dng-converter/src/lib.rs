@@ -71,33 +71,44 @@ impl DngConverter {
     }
     pub fn convert_file(&self, raw_file: &PathBuf) -> miette::Result<PathBuf> {
         let hash = Self::calculate_file_hash(raw_file)?;
-        let file = self.dng_file(&hash)?;
-        if !file.exists() {
-            let output =
-                std::process::Command::new(DNG_CONVERTER_EXECUTABLE.to_path_buf().as_os_str())
-                    .args(self.params.to_cmd())
-                    .args(["-d", file.parent().unwrap().to_str().unwrap()])
-                    .args(["-o", file.parent().unwrap().to_str().unwrap()])
-                    .output()
-                    .into_diagnostic()?;
-            clerk::debug!("Stdout:/n{}", String::from_utf8_lossy(&output.stdout));
-            clerk::debug!("Stderr:/n{}", String::from_utf8_lossy(&output.stderr));
+        let dng_file = self.dng_file(&hash)?;
+        if !dng_file.exists() {
+            let program = DNG_CONVERTER_EXECUTABLE.as_os_str();
+            let mut args = self.params.to_cmd();
+            args.push("-d".to_string());
+            args.push(dng_file.parent().unwrap().to_string_lossy().to_string());
+            args.push("-o".to_string());
+            args.push(format!("{}.dng", { hash }));
+            args.push(raw_file.to_str().unwrap().to_string());
+            let args = args.join(" ");
+            let output = std::process::Command::new(program)
+                .arg(&args)
+                .output()
+                .into_diagnostic()?;
+            clerk::debug!("Command:\n{:?} {}", program, &args);
+            clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
+            clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
+            clerk::debug!("Write dng to: {}", dng_file.to_str().unwrap())
         } else {
-            clerk::info!("DNG file already exists: {}", file.to_str().unwrap())
+            clerk::info!("DNG file already exists: {}", dng_file.to_str().unwrap())
         }
-        Ok(file)
+        Ok(dng_file)
     }
     pub fn convert_buffer(&self, buf: &[u8]) -> miette::Result<PathBuf> {
         let hash = Self::calculate_buffer_hash(buf)?;
         let file = self.dng_file(&hash)?;
+        let program = DNG_CONVERTER_EXECUTABLE.as_os_str();
+        let mut args = self.params.to_cmd();
+        args.push("-d".to_string());
+        args.push(file.parent().unwrap().to_str().unwrap().to_string());
+        args.push("-o".to_string());
+        args.push(file.parent().unwrap().to_str().unwrap().to_string());
+        let args = args.join(" ");
         if !file.exists() {
-            let output =
-                std::process::Command::new(DNG_CONVERTER_EXECUTABLE.to_path_buf().as_os_str())
-                    .args(self.params.to_cmd())
-                    .args(["-d", file.parent().unwrap().to_str().unwrap()])
-                    .args(["-o", file.parent().unwrap().to_str().unwrap()])
-                    .output()
-                    .into_diagnostic()?;
+            let output = std::process::Command::new(program)
+                .arg(args)
+                .output()
+                .into_diagnostic()?;
             clerk::debug!("Stdout:/n{}", String::from_utf8_lossy(&output.stdout));
             clerk::debug!("Stderr:/n{}", String::from_utf8_lossy(&output.stderr));
         } else {
@@ -142,5 +153,15 @@ impl IDCRaw for DngConverter {
         } else {
             miette::bail!("`imgdata` is null.")
         }
+    }
+}
+impl Default for DngConverter {
+    fn default() -> Self {
+        Self::new(DngConverterParams::default())
+    }
+}
+impl Drop for DngConverter {
+    fn drop(&mut self) {
+        unsafe { libraw_sys::libraw_close(self.imgdata) }
     }
 }
