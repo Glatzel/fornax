@@ -20,7 +20,10 @@ impl DcRawProcessedImage {
     pub(crate) fn new(
         ptr: *mut libraw_sys::libraw_processed_image_t,
     ) -> miette::Result<DcRawProcessedImage> {
-        clerk::debug!("Is processed image null: {}", ptr.is_null());
+        if ptr.is_null() {
+            miette::bail!("`libraw_processed_image_t` pointer is null.")
+        }
+        clerk::debug!("{:?}", unsafe { *(ptr) });
         let img: DcRawProcessedImage = Self {
             processed_image: ptr,
         };
@@ -77,6 +80,7 @@ impl Drop for DcRawProcessedImage {
 
 impl DcRawProcessedImage {
     pub fn to_image(&self) -> miette::Result<fornax_core::ProcessedImage> {
+        clerk::debug!("Start cast to image.");
         match (self.colors(), self.bits()) {
             (1, 8) => {
                 let img: image::ImageBuffer<image::Luma<u8>, Vec<u8>> =
@@ -92,6 +96,7 @@ impl DcRawProcessedImage {
                         },
                     )
                     .unwrap();
+                clerk::debug!("Finish cast to image.");
                 Ok(fornax_core::ProcessedImage::Mono8(img))
             }
             (1, 16) => {
@@ -108,7 +113,7 @@ impl DcRawProcessedImage {
                         .to_vec(),
                     )
                     .unwrap();
-
+                clerk::debug!("Finish cast to image.");
                 Ok(fornax_core::ProcessedImage::Mono16(img))
             }
             (3, 8) => {
@@ -125,10 +130,11 @@ impl DcRawProcessedImage {
                         },
                     )
                     .unwrap();
+                clerk::debug!("Finish cast to image.");
                 Ok(fornax_core::ProcessedImage::Rgb8(img))
             }
             (3, 16) => {
-                let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> =
+                let img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> =
                     image::ImageBuffer::from_vec(
                         self.width() as u32,
                         self.height() as u32,
@@ -141,6 +147,7 @@ impl DcRawProcessedImage {
                         .to_vec(),
                     )
                     .unwrap();
+                clerk::debug!("Finish cast to image.");
                 Ok(fornax_core::ProcessedImage::Rgb16(img))
             }
             (c, b) => {

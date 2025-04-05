@@ -9,14 +9,15 @@ fn main() -> miette::Result<()> {
     tracing_subscriber::registry()
         .with(clerk::terminal_layer(LevelFilter::DEBUG))
         .init();
-    let mut manager = Fornax::new(libraw::Libraw::new(), libraw::DcRaw::default());
+    let params = libraw::DCRawParams::preset_cg();
+    let mut manager = Fornax::new(libraw::Libraw::new(), libraw::DcRaw::new(params));
     let img = manager
         .decode_file(PathBuf::from(
             "./external/raw-images/images/colorchart-5D2-6000K.dng",
         ))?
         .post_process()?
         .to_dynamic();
-    img.save("temp/example-process.tiff").into_diagnostic()?;
+    img.save("temp/example-process-cg.tiff").into_diagnostic()?;
     clerk::info!("save img to: temp/example-process.tiff");
     Ok(())
 }
