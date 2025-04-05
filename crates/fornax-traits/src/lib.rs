@@ -1,13 +1,14 @@
 use std::path::PathBuf;
 
-pub trait IDecoder<M> {
+pub trait IDecoder {
     fn decode_file(&mut self, file: PathBuf) -> miette::Result<()>;
     fn decode_buffer(&mut self, buf: &[u8]) -> miette::Result<()>;
-    fn decoded(&mut self) -> miette::Result<M>;
 }
-pub trait IPostProcessor<M, O> {
-    fn from_decoded(decoded: M) -> Self;
-    fn post_process(&mut self) -> miette::Result<O>;
+pub trait IPostProcessor<D, O>
+where
+    D: IDecoder,
+{
+    fn post_process(&self, decoder: &D) -> miette::Result<O>;
 }
 pub enum ProcessedImage {
     Mono8(image::ImageBuffer<image::Luma<u8>, Vec<u8>>),
@@ -26,12 +27,11 @@ impl ProcessedImage {
     }
 }
 pub struct NullPostProcessor {}
-impl<M, O> IPostProcessor<M, O> for NullPostProcessor {
-    fn from_decoded(_decoded: M) -> Self {
-        Self {}
-    }
-
-    fn post_process(&mut self) -> miette::Result<O> {
+impl<D, O> IPostProcessor<D, O> for NullPostProcessor
+where
+    D: IDecoder,
+{
+    fn post_process(&self, _decoded: &D) -> miette::Result<O> {
         miette::bail!("None.")
     }
 }

@@ -1,25 +1,24 @@
-use std::marker::PhantomData;
 use std::path::PathBuf;
 
-pub struct Fornax<D, M, P>
+use fornax_traits::IPostProcessor;
+pub use fornax_traits::NullPostProcessor;
+pub struct Fornax<D, P>
 where
-    D: fornax_traits::IDecoder<M>,
-    P: fornax_traits::IPostProcessor<M, fornax_traits::ProcessedImage>,
+    D: fornax_traits::IDecoder,
+    P: IPostProcessor<D, fornax_traits::ProcessedImage>,
 {
-    _marker: PhantomData<M>,
     pub decoder: D,
-    pub post_processor: Option<P>,
+    pub post_processor: P,
 }
-impl<D, M, P> Fornax<D, M, P>
+impl<D, P> Fornax<D, P>
 where
-    D: fornax_traits::IDecoder<M>,
-    P: fornax_traits::IPostProcessor<M, fornax_traits::ProcessedImage>,
+    D: fornax_traits::IDecoder,
+    P: IPostProcessor<D, fornax_traits::ProcessedImage>,
 {
-    pub fn new(decoder: D) -> Self {
+    pub fn new(decoder: D, post_processor: P) -> Self {
         Self {
-            _marker: PhantomData::<M>,
             decoder,
-            post_processor: None,
+            post_processor,
         }
     }
     pub fn decode_file(&mut self, file: PathBuf) -> miette::Result<&mut Self> {
@@ -30,13 +29,7 @@ where
         self.decoder.decode_buffer(buf)?;
         Ok(self)
     }
-    pub fn decoded(&mut self) -> miette::Result<M> {
-        self.decoder.decoded()
-    }
     pub fn post_process(&mut self) -> miette::Result<fornax_traits::ProcessedImage> {
-        let decoded = self.decoded()?;
-        self.post_processor = Some(P::from_decoded(decoded));
-        let processed_image = (self.post_processor).as_mut().unwrap().post_process()?;
-        Ok(processed_image)
+        self.post_processor.post_process(&self.decoder)
     }
 }

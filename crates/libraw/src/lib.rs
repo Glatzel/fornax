@@ -9,7 +9,7 @@ mod utils;
 use std::ffi::CString;
 use std::path::PathBuf;
 
-use fornax_traits::IPostProcessor;
+use fornax_traits::{IDecoder, IPostProcessor, ProcessedImage};
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::LibrawIParams;
@@ -68,7 +68,7 @@ impl Libraw {
         params.set_output_params(self.imgdata)?;
         Ok(())
     }
-    pub fn dcraw_process(&mut self) -> miette::Result<LibrawProcessedImage> {
+    pub fn dcraw_process(&self) -> miette::Result<LibrawProcessedImage> {
         Self::check_run(unsafe { libraw_sys::libraw_dcraw_process(self.imgdata) })?;
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
@@ -92,7 +92,7 @@ impl Default for Libraw {
         Self::new()
     }
 }
-impl fornax_traits::IDecoder<*mut libraw_sys::libraw_data_t> for &Libraw {
+impl IDecoder for Libraw {
     fn decode_file(&mut self, file: PathBuf) -> miette::Result<()> {
         let c_string =
             CString::new(file.to_string_lossy().to_string()).expect("CString::new failed");
@@ -110,17 +110,11 @@ impl fornax_traits::IDecoder<*mut libraw_sys::libraw_data_t> for &Libraw {
         Libraw::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
-
-    fn decoded(&mut self) -> miette::Result<*mut libraw_sys::libraw_data_t> {
-        Ok(self.imgdata)
-    }
 }
-impl IPostProcessor<*mut libraw_sys::libraw_data_t, fornax_traits::ProcessedImage> for Libraw {
-    fn post_process(&mut self) -> miette::Result<fornax_traits::ProcessedImage> {
-        self.dcraw_process()?.to_image()
-    }
 
-    fn from_decoded(decoded: *mut libraw_sys::libraw_data_t) -> Self {
-        Libraw { imgdata: decoded }
+pub struct DcRaw {}
+impl IPostProcessor<Libraw, ProcessedImage> for DcRaw {
+    fn post_process(&self, libraw: &Libraw) -> miette::Result<ProcessedImage> {
+        libraw.dcraw_process()?.to_image()
     }
 }

@@ -9,8 +9,7 @@ fn main() -> miette::Result<()> {
     tracing_subscriber::registry()
         .with(clerk::terminal_layer(LevelFilter::DEBUG))
         .init();
-    let libraw = libraw::Libraw::new();
-    let mut manager = Fornax::<_, _, libraw::Libraw>::new(&libraw);
+    let mut manager = Fornax::new(libraw::Libraw::new(), libraw::DcRaw {});
     let img = manager
         .decode_file(PathBuf::from(
             "./external/raw-images/images/colorchart-5D2-6000K.dng",
