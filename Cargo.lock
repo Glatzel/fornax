@@ -381,6 +381,8 @@ name = "dng-converter"
 version = "0.0.1"
 dependencies = [
  "fornax-core",
+ "libraw",
+ "libraw-sys",
  "miette",
 ]
 

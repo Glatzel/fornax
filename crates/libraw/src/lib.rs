@@ -15,7 +15,7 @@ pub use iparams::LibrawIParams;
 pub use libraw_version::{LIBRAW_VERSION, LibrawVersion};
 
 pub trait ILibraw {
-    fn imgdata(&self) -> *mut libraw_sys::libraw_data_t;
+    fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t>;
 }
 #[derive(Debug)]
 pub struct Libraw {
@@ -78,8 +78,8 @@ impl Default for Libraw {
     }
 }
 impl ILibraw for Libraw {
-    fn imgdata(&self) -> *mut libraw_sys::libraw_data_t {
-        self.imgdata
+    fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t> {
+        Ok(self.imgdata)
     }
 }
 impl IDecoder for Libraw {

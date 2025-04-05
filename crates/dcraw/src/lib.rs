@@ -43,7 +43,7 @@ where
     T: ILibraw + IDecoder,
 {
     fn post_process(&self, libraw: &T) -> miette::Result<ProcessedImage> {
-        let imgdata = libraw.imgdata();
+        let imgdata = libraw.imgdata()?;
         let processed = self.dcraw_process(imgdata)?.to_image()?;
         Ok(processed)
     }
