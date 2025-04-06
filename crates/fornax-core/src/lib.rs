@@ -6,7 +6,7 @@
 /// # Methods
 /// - `decode`: Decode raw image file on an object of type `I`.
 pub trait IDecoder<I> {
-    fn decode(&mut self, input: I) -> miette::Result<()>;
+    fn decode(&self, input: I) -> miette::Result<()>;
 }
 /// A trait for performing decoding on object of a generic type `I`.
 ///
