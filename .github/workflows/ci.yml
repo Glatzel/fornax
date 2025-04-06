@@ -89,7 +89,7 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
-      - run: winget install --source winget --id Adobe.DNGConverter
+      - run: winget install --verbose-logs --source winget --id Adobe.DNGConverter
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows'}}
         uses: actions/cache/restore@v4
@@ -98,6 +98,8 @@ jobs:
           key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
 
       - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
 
       - name: Install nextest
         uses: taiki-e/install-action@nextest

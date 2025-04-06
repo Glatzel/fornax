@@ -77,7 +77,7 @@ impl Dnc {
         }
         if !dng_file.exists() {
             let program = DNC_EXECUTABLE.as_os_str();
-            let args = self.params.to_cmd(&raw_file);
+            let args = self.params.to_cmd(&raw_file)?;
             let output = std::process::Command::new(program)
                 .args(&args)
                 .output()

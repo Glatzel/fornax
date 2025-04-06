@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::path::PathBuf;
 
+use miette::IntoDiagnostic;
 use path_slash::PathBufExt;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Copy, Clone)]
@@ -102,7 +103,7 @@ pub struct DncParams {
     pub overwrite: bool,
 }
 impl DncParams {
-    pub fn to_cmd(&self, raw_file: &PathBuf) -> Vec<String> {
+    pub fn to_cmd(&self, raw_file: &PathBuf) -> miette::Result<Vec<String>> {
         let mut cmd: Vec<String> = Vec::new();
 
         if self.compressed {
@@ -132,6 +133,7 @@ impl DncParams {
 
         cmd.push("-d".to_string());
         if let Some(directory) = &self.directory {
+            std::fs::create_dir_all(&directory).into_diagnostic()?;
             cmd.push(
                 dunce::canonicalize(directory)
                     .unwrap()
@@ -154,7 +156,7 @@ impl DncParams {
             cmd.push(raw_file.file_stem().unwrap().to_string_lossy().to_string());
         }
         cmd.push(raw_file.to_slash_lossy().to_string());
-        cmd
+        Ok(cmd)
     }
 }
 impl Default for DncParams {
