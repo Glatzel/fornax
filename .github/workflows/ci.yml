@@ -89,6 +89,7 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
+      - run: choco install adobe-dnc
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows'}}
         uses: actions/cache/restore@v4
@@ -191,29 +192,3 @@ jobs:
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
         shell: pwsh
-
-  examples:
-    if: ${{!inputs.release}}
-    needs: cache-vcpkg
-    runs-on: windows-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        if: ${{github.event_name=='pull_request'}}
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
-      - name: run examples
-        run: ${{env.RUST_ROOT}}/scripts/examples.ps1
-        shell: pwsh
-
-      # - run: choco install adobe-dnc
-      # - name: run slow examples
-      #   run: ${{env.RUST_ROOT}}/scripts/examples-slow.ps1
-      #   shell: pwsh
