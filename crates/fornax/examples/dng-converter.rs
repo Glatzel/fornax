@@ -13,6 +13,7 @@ fn main() -> miette::Result<()> {
         dng_converter::DngConverter::new(dng_converter::DngConverterParams {
             directory: Some(PathBuf::from("./temp")),
             filename: Some("dng-converter.dng".to_string()),
+            overwrite: true,
             ..Default::default()
         }),
         libraw::dcraw::DCRaw::default(),

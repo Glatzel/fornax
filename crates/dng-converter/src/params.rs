@@ -97,6 +97,9 @@ pub struct DngConverterParams {
     ///Default is the name of the input file with the extension  
     ///changed to “.dng”.
     pub filename: Option<String>,
+
+    // extra option
+    pub overwrite: bool,
 }
 impl DngConverterParams {
     pub fn to_cmd(&self, raw_file: &PathBuf) -> Vec<String> {
@@ -167,6 +170,7 @@ impl Default for DngConverterParams {
             compatibility: DngConverterCompatibility::CR16_0,
             directory: None,
             filename: None,
+            overwrite: false,
         }
     }
 }

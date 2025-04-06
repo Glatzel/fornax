@@ -122,7 +122,7 @@ impl std::fmt::Display for LibrawErrors {
             LibrawErrors::MempoolOverflow => r##"
                 MempoolOverflow"##.trim_start(),
         };
-        let text = format!("Exit code: {}.\n{}", i32::from(self), info);
+        let text = format!("Libraw exit code: {}.\n{}", i32::from(self), info);
         write!(f, "{}", text)
     }
 }
@@ -171,6 +171,13 @@ impl LibrawErrors {
             LibrawErrors::TooBig => miette::bail!(self.to_string()),
             LibrawErrors::MempoolOverflow => miette::bail!(self.to_string()),
         };
+        Ok(())
+    }
+}
+pub trait ILibrawErrors {
+    fn check_run(exit_code: i32) -> miette::Result<()> {
+        let result = crate::errors::LibrawErrors::try_from(exit_code)?;
+        result.report()?;
         Ok(())
     }
 }

@@ -7,6 +7,8 @@ pub use output_params::{
 };
 pub use processed_image::{DCRawImageFormats, DCRawProcessedImage};
 
+use crate::{ILibrawErrors, errors::LibrawErrors};
+
 pub trait IDCRaw {
     fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t>;
 }
@@ -40,11 +42,11 @@ impl DCRaw {
     ) -> miette::Result<DCRawProcessedImage> {
         self.set_output_params_unsafe(imgdata)?;
 
-        crate::check_run(unsafe { libraw_sys::libraw_dcraw_process(imgdata) })?;
+        Self::check_run(unsafe { libraw_sys::libraw_dcraw_process(imgdata) })?;
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
             unsafe { libraw_sys::libraw_dcraw_make_mem_image(imgdata, &mut result) };
-        crate::check_run(result)?;
+        Self::check_run(result)?;
 
         let processed = DCRawProcessedImage::new(processed)?;
         Ok(processed)
@@ -71,3 +73,4 @@ where
         Ok(processed)
     }
 }
+impl ILibrawErrors for DCRaw {}

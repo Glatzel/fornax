@@ -5,6 +5,7 @@ mod iparams;
 use std::ffi::CString;
 use std::path::PathBuf;
 
+use crate::ILibrawErrors;
 use fornax_core::IDecoder;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
@@ -23,7 +24,7 @@ impl Libraw {
 
     // io
     pub fn open_buffer(&mut self, buf: &[u8]) -> miette::Result<()> {
-        crate::check_run(unsafe {
+        Self::check_run(unsafe {
             libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
         })?;
         Ok(())
@@ -32,14 +33,14 @@ impl Libraw {
     pub fn open_file(&mut self, fname: PathBuf) -> miette::Result<()> {
         let c_string =
             CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
-        crate::check_run(unsafe {
+        Self::check_run(unsafe {
             libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _)
         })?;
         Ok(())
     }
 
     pub fn unpack(&mut self) -> miette::Result<()> {
-        crate::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
+        Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
 
@@ -73,19 +74,20 @@ impl IDecoder<PathBuf> for Libraw {
     fn decode(&mut self, file: PathBuf) -> miette::Result<()> {
         let c_string =
             CString::new(file.to_string_lossy().to_string()).expect("CString::new failed");
-        crate::check_run(unsafe {
+        Self::check_run(unsafe {
             libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _)
         })?;
-        crate::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
+        Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
 }
 impl IDecoder<&[u8]> for Libraw {
     fn decode(&mut self, buf: &[u8]) -> miette::Result<()> {
-        crate::check_run(unsafe {
+        Self::check_run(unsafe {
             libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
         })?;
-        crate::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
+        Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
 }
+impl ILibrawErrors for Libraw {}

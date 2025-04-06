@@ -4,10 +4,10 @@ use std::sync::LazyLock;
 use std::{ffi::CString, path::Path};
 
 use libraw::IDCRaw;
+use libraw::ILibrawErrors;
 use miette::{Context, IntoDiagnostic};
 pub use params::DngConverterParams;
 use path_slash::PathBufExt;
-
 static DNG_CONVERTER_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let default_install_path =
         PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");
@@ -65,7 +65,18 @@ impl DngConverter {
     pub fn convert_file(&self, raw_file: &PathBuf) -> miette::Result<PathBuf> {
         let raw_file = dunce::canonicalize(raw_file).into_diagnostic()?;
 
-        let dng_file = self.dng_file(&raw_file)?;
+        let dng_file: PathBuf = self.dng_file(&raw_file)?;
+        if self.params.overwrite {
+            match std::fs::remove_file(&dng_file) {
+                Ok(_) => {
+                    clerk::info!(
+                        "Remove(overwrite) existing dng file: {}",
+                        self.dng_file(&raw_file)?.to_slash_lossy().to_string()
+                    )
+                }
+                Err(_) => (),
+            };
+        }
         if !dng_file.exists() {
             let program = DNG_CONVERTER_EXECUTABLE.as_os_str();
             let args = self.params.to_cmd(&raw_file);
@@ -76,12 +87,24 @@ impl DngConverter {
             clerk::debug!("Command:\n{:?} {}", program, &args.join(" "));
             clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
             clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
-            if !dng_file.exists() {
+            if !&dng_file.exists() {
                 miette::bail!("Dng conversion failed.");
             }
-            clerk::debug!("Write dng to: {}", dng_file.to_str().unwrap());
+            clerk::debug!(
+                "Write dng to: {}",
+                dunce::canonicalize(&dng_file)
+                    .into_diagnostic()?
+                    .to_slash_lossy()
+                    .to_string()
+            );
         } else {
-            clerk::info!("DNG file already exists: {}", dng_file.to_str().unwrap())
+            clerk::info!(
+                "DNG file already exists: {}",
+                dunce::canonicalize(&dng_file)
+                    .into_diagnostic()?
+                    .to_slash_lossy()
+                    .to_string()
+            )
         }
         Ok(dng_file)
     }
@@ -89,13 +112,13 @@ impl DngConverter {
     fn open_dng_file(&mut self, fname: &Path) -> miette::Result<()> {
         let c_string =
             CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
-        libraw::utils::check_run(unsafe {
+        Self::check_run(unsafe {
             libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _)
         })?;
         Ok(())
     }
     pub fn unpack(&mut self) -> miette::Result<()> {
-        libraw::utils::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
+        Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
 }
@@ -127,3 +150,4 @@ impl Drop for DngConverter {
         unsafe { libraw_sys::libraw_close(self.imgdata) }
     }
 }
+impl ILibrawErrors for DngConverter {}
