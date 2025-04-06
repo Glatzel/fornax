@@ -2,8 +2,8 @@ mod image_sizes;
 mod imgother;
 mod iparams;
 
-use std::path::PathBuf;
-use std::{ffi::CString, path::Path};
+use std::ffi::CString;
+use std::path::{Path, PathBuf};
 
 use fornax_core::IDecoder;
 pub use image_sizes::LibrawImageSizes;
