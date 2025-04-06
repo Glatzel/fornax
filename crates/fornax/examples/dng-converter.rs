@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use fornax::Fornax;
 use miette::IntoDiagnostic;
 use tracing::level_filters::LevelFilter;
@@ -12,7 +14,9 @@ fn main() -> miette::Result<()> {
         libraw::dcraw::DCRaw::default(),
     );
     let img = manager
-        .decode(dunce::canonicalize("./external/a7r5.ARW").unwrap())?
+        .decode(&PathBuf::from(
+            "./external/raw-images/images/colorchart-eos-7d.cr2",
+        ))?
         .post_process()?
         .to_dynamic();
     img.save("temp/dng-converter.tiff").into_diagnostic()?;
