@@ -8,3 +8,4 @@ class Decoder(Enum, str):
 
 class PostProcessor(Enum, str):
     dcraw = "dcraw"
+    null = "null"

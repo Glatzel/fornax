@@ -3,7 +3,7 @@ mod imgother;
 mod iparams;
 
 use std::ffi::CString;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use fornax_core::IDecoder;
 pub use image_sizes::LibrawImageSizes;
@@ -71,17 +71,16 @@ impl crate::IDCRaw for Libraw {
         Ok(self.imgdata)
     }
 }
-impl IDecoder<PathBuf> for Libraw {
-    fn decode(&self, file: PathBuf) -> miette::Result<()> {
+impl IDecoder for Libraw {
+    fn decode_file(&self, file: &Path) -> miette::Result<()> {
         self.open_file(&file)?;
         self.unpack()?;
         Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
-}
-impl IDecoder<&[u8]> for Libraw {
-    fn decode(&self, buf: &[u8]) -> miette::Result<()> {
-        self.open_buffer(buf)?;
+
+    fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<()> {
+        self.open_buffer(buffer)?;
         self.unpack()?;
         Ok(())
     }
