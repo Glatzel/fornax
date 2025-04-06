@@ -3,7 +3,7 @@ mod imgother;
 mod iparams;
 
 use std::ffi::CString;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use fornax_core::IDecoder;
 pub use image_sizes::LibrawImageSizes;
@@ -24,14 +24,14 @@ impl Libraw {
     }
 
     // io
-    pub fn open_buffer(&mut self, buf: &[u8]) -> miette::Result<()> {
+    pub fn open_buffer(&self, buf: &[u8]) -> miette::Result<()> {
         Self::check_run(unsafe {
             libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
         })?;
         Ok(())
     }
 
-    pub fn open_file(&mut self, fname: PathBuf) -> miette::Result<()> {
+    pub fn open_file(&self, fname: &Path) -> miette::Result<()> {
         let c_string =
             CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
         Self::check_run(unsafe {
@@ -40,16 +40,16 @@ impl Libraw {
         Ok(())
     }
 
-    pub fn unpack(&mut self) -> miette::Result<()> {
+    pub fn unpack(&self) -> miette::Result<()> {
         Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
 
     // data structure
-    pub fn imgother(&mut self) -> miette::Result<LibrawImgOther> {
+    pub fn imgother(&self) -> miette::Result<LibrawImgOther> {
         LibrawImgOther::new(self.imgdata)
     }
-    pub fn image_sizes(&mut self) -> miette::Result<LibrawImageSizes> {
+    pub fn image_sizes(&self) -> miette::Result<LibrawImageSizes> {
         LibrawImageSizes::new(self.imgdata)
     }
     pub fn iparams(&self) -> miette::Result<LibrawIParams> {
@@ -72,22 +72,17 @@ impl crate::IDCRaw for Libraw {
     }
 }
 impl IDecoder<PathBuf> for Libraw {
-    fn decode(&mut self, file: PathBuf) -> miette::Result<()> {
-        let c_string =
-            CString::new(file.to_string_lossy().to_string()).expect("CString::new failed");
-        Self::check_run(unsafe {
-            libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _)
-        })?;
+    fn decode(&self, file: PathBuf) -> miette::Result<()> {
+        self.open_file(&file)?;
+        self.unpack()?;
         Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
 }
 impl IDecoder<&[u8]> for Libraw {
-    fn decode(&mut self, buf: &[u8]) -> miette::Result<()> {
-        Self::check_run(unsafe {
-            libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
-        })?;
-        Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
+    fn decode(&self, buf: &[u8]) -> miette::Result<()> {
+        self.open_buffer(buf)?;
+        self.unpack()?;
         Ok(())
     }
 }

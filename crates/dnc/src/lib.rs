@@ -107,7 +107,7 @@ impl Dnc {
         Ok(dng_file)
     }
 
-    fn open_dng_file(&mut self, fname: &Path) -> miette::Result<()> {
+    fn open_dng_file(&self, fname: &Path) -> miette::Result<()> {
         let c_string =
             CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
         Self::check_run(unsafe {
@@ -115,14 +115,14 @@ impl Dnc {
         })?;
         Ok(())
     }
-    pub fn unpack(&mut self) -> miette::Result<()> {
+    pub fn unpack(&self) -> miette::Result<()> {
         Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
 }
 
 impl fornax_core::IDecoder<&PathBuf> for Dnc {
-    fn decode(&mut self, file: &PathBuf) -> miette::Result<()> {
+    fn decode(&self, file: &PathBuf) -> miette::Result<()> {
         let dng_file = self.convert_file(file)?;
         self.open_dng_file(&dng_file)?;
         self.unpack()?;
