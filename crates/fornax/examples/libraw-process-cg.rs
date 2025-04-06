@@ -13,7 +13,7 @@ fn main() -> miette::Result<()> {
     let mut manager = Fornax::new(libraw::Libraw::new(), libraw::dcraw::DCRaw::new(params));
     let img = manager
         .decode_file(&PathBuf::from(
-            "./external/raw-images/images/colorchart-5D2-6000K.dng",
+            "./external/raw-images/images/colorchart-eos-7d.cr2",
         ))?
         .post_process()?
         .to_dynamic();

@@ -75,7 +75,6 @@ impl IDecoder for Libraw {
     fn decode_file(&self, file: &Path) -> miette::Result<()> {
         self.open_file(file)?;
         self.unpack()?;
-        Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
         Ok(())
     }
 
