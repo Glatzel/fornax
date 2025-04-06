@@ -1,0 +1,29 @@
+package:
+  version: 0.0.17
+  name: pyxis-py
+build:
+  number: 0
+  string: ${{ "cpu" if cuda_variant == "numpy" else ( 'gpu' if cuda_variant=='cupy-core' else 'gpu_cudart')}}_${{ hash }}_${{ build_number }}
+  script:
+    - if: win
+      then:
+        - pwsh -f %RECIPE_DIR%/build-pyxis-py.ps1
+    - if: linux
+      then:
+        - pwsh -f $RECIPE_DIR/build-pyxis-py.ps1
+
+requirements:
+  host:
+    - python 3.11.*
+    - pip
+  run:
+    - python >= 3.11
+    - lazy-loader
+    - numpy
+    - scipy
+    - ${{ cuda_variant }}
+
+tests:
+  - python:
+      imports:
+        - pyxis

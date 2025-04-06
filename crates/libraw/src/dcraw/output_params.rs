@@ -6,31 +6,31 @@ use miette::IntoDiagnostic;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawHighlightMode {
-    CLIP = 0,
-    IGNORE = 1,
-    BLEND = 2,
-    RECONSTRUCT3 = 3,
-    RECONSTRUCT4 = 4,
-    RECONSTRUCT5 = 5, //default
-    RECONSTRUCT6 = 6,
-    RECONSTRUCT7 = 7,
-    RECONSTRUCT8 = 8,
-    RECONSTRUCT9 = 9,
+    Clip = 0,
+    Ignore = 1,
+    Blend = 2,
+    Reconstruct3 = 3,
+    Reconstruct4 = 4,
+    Reconstruct5 = 5, //default
+    Reconstruct6 = 6,
+    Reconstruct7 = 7,
+    Reconstruct8 = 8,
+    Reconstruct9 = 9,
 }
 impl TryFrom<i32> for DCRawHighlightMode {
     type Error = miette::Report;
     fn try_from(value: i32) -> miette::Result<Self> {
         match value {
-            0 => Ok(DCRawHighlightMode::CLIP),
-            1 => Ok(DCRawHighlightMode::IGNORE),
-            2 => Ok(DCRawHighlightMode::BLEND),
-            3 => Ok(DCRawHighlightMode::RECONSTRUCT3),
-            4 => Ok(DCRawHighlightMode::RECONSTRUCT4),
-            5 => Ok(DCRawHighlightMode::RECONSTRUCT5),
-            6 => Ok(DCRawHighlightMode::RECONSTRUCT6),
-            7 => Ok(DCRawHighlightMode::RECONSTRUCT7),
-            8 => Ok(DCRawHighlightMode::RECONSTRUCT8),
-            9 => Ok(DCRawHighlightMode::RECONSTRUCT9),
+            0 => Ok(DCRawHighlightMode::Clip),
+            1 => Ok(DCRawHighlightMode::Ignore),
+            2 => Ok(DCRawHighlightMode::Blend),
+            3 => Ok(DCRawHighlightMode::Reconstruct3),
+            4 => Ok(DCRawHighlightMode::Reconstruct4),
+            5 => Ok(DCRawHighlightMode::Reconstruct5),
+            6 => Ok(DCRawHighlightMode::Reconstruct6),
+            7 => Ok(DCRawHighlightMode::Reconstruct7),
+            8 => Ok(DCRawHighlightMode::Reconstruct8),
+            9 => Ok(DCRawHighlightMode::Reconstruct9),
             v => miette::bail!("Unknow highlight mode: {v}"),
         }
     }
@@ -38,16 +38,16 @@ impl TryFrom<i32> for DCRawHighlightMode {
 impl From<DCRawHighlightMode> for i32 {
     fn from(value: DCRawHighlightMode) -> Self {
         match value {
-            DCRawHighlightMode::CLIP => 0,
-            DCRawHighlightMode::IGNORE => 1,
-            DCRawHighlightMode::BLEND => 2,
-            DCRawHighlightMode::RECONSTRUCT3 => 3,
-            DCRawHighlightMode::RECONSTRUCT4 => 4,
-            DCRawHighlightMode::RECONSTRUCT5 => 5,
-            DCRawHighlightMode::RECONSTRUCT6 => 6,
-            DCRawHighlightMode::RECONSTRUCT7 => 7,
-            DCRawHighlightMode::RECONSTRUCT8 => 8,
-            DCRawHighlightMode::RECONSTRUCT9 => 9,
+            DCRawHighlightMode::Clip => 0,
+            DCRawHighlightMode::Ignore => 1,
+            DCRawHighlightMode::Blend => 2,
+            DCRawHighlightMode::Reconstruct3 => 3,
+            DCRawHighlightMode::Reconstruct4 => 4,
+            DCRawHighlightMode::Reconstruct5 => 5,
+            DCRawHighlightMode::Reconstruct6 => 6,
+            DCRawHighlightMode::Reconstruct7 => 7,
+            DCRawHighlightMode::Reconstruct8 => 8,
+            DCRawHighlightMode::Reconstruct9 => 9,
         }
     }
 }
@@ -318,7 +318,7 @@ pub struct DCRawParams {
     /// calculate the white balance. X and Y are coordinates of the left-top rectangle corner;
     /// w and h are the rectangle's width and height, respectively.
     pub greybox: Option<[u32; 4]>,
-    ///This field sets the image cropping rectangle. `Cropbox[0]` and` cropbox[1]` are the
+    /// This field sets the image cropping rectangle. `Cropbox[0]` and` cropbox[1]` are the
     /// rectangle's top-left corner coordinates, remaining two values are width and height
     /// respectively. All coordinates are applied before any image rotation.
     pub cropbox: Option<[u32; 4]>,

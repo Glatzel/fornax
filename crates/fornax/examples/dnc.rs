@@ -22,7 +22,7 @@ fn run() -> miette::Result<()> {
         libraw::dcraw::DCRaw::default(),
     );
     let img = manager
-        .decode(&PathBuf::from(
+        .decode_file(&PathBuf::from(
             "./external/raw-images/images/colorchart-eos-7d.cr2",
         ))?
         .post_process()?
