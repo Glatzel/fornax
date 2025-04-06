@@ -61,7 +61,7 @@ impl Dnc {
         clerk::debug!("Dng file: {}", file.to_slash_lossy());
         Ok(file)
     }
-    pub fn convert_file(&self, raw_file: &PathBuf) -> miette::Result<PathBuf> {
+    pub fn convert_file(&self, raw_file: &Path) -> miette::Result<PathBuf> {
         let raw_file = dunce::canonicalize(raw_file).into_diagnostic()?;
         if raw_file.extension().unwrap().eq_ignore_ascii_case("dng") {
             clerk::info!("The input file is dng.");
@@ -73,7 +73,7 @@ impl Dnc {
             clerk::info!(
                 "Remove(overwrite) existing dng file: {}",
                 self.dng_file(&raw_file)?.to_slash_lossy().to_string()
-            )
+            );
         }
         if !dng_file.exists() {
             let program = DNC_EXECUTABLE.as_os_str();
@@ -102,7 +102,7 @@ impl Dnc {
                     .into_diagnostic()?
                     .to_slash_lossy()
                     .to_string()
-            )
+            );
         }
         Ok(dng_file)
     }
@@ -121,12 +121,16 @@ impl Dnc {
     }
 }
 
-impl fornax_core::IDecoder<&PathBuf> for Dnc {
-    fn decode(&self, file: &PathBuf) -> miette::Result<()> {
+impl fornax_core::IDecoder for Dnc {
+    fn decode_file(&self, file: &Path) -> miette::Result<()> {
         let dng_file = self.convert_file(file)?;
         self.open_dng_file(&dng_file)?;
         self.unpack()?;
         Ok(())
+    }
+
+    fn decode_buffer(&self, _buffer: &[u8]) -> miette::Result<()> {
+        todo!()
     }
 }
 impl IDCRaw for Dnc {

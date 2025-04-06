@@ -1,30 +1,19 @@
-/// A trait for performing decoding on object of a generic type `I`.
-///
-/// # Type Parameters
-/// - `I`: The type of the item that the operation will be performed on.
-///
-/// # Methods
-/// - `decode`: Decode raw image file on an object of type `I`.
-pub trait IDecoder<I> {
-    fn decode(&self, input: I) -> miette::Result<()>;
+use std::path::Path;
+
+pub trait IDecoder {
+    fn decode_file(&self, file: &Path) -> miette::Result<()>;
+    fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<()>;
 }
-/// A trait for performing decoding on object of a generic type `I`.
-///
-/// # Type Parameters
-/// - `D`: The type of raw image decoder.
-/// - `I`: The type of raw image decoder input.
-/// - `O`: The type of post process output.
-///
-/// # Methods
-/// - `post_process`: Perform post process on a decoded raw image object of type `I`.
-pub trait IPostProcessor<D, I, O>
+
+pub trait IPostProcessor<D>
 where
-    D: IDecoder<I>,
+    D: IDecoder,
 {
-    fn post_process(&self, decoder: &D) -> miette::Result<O>;
+    fn post_process(&self, decoder: &D) -> miette::Result<FornaxProcessedImage>;
 }
 /// Basic raw image.
 pub enum FornaxProcessedImage {
+    None,
     Mono8(image::ImageBuffer<image::Luma<u8>, Vec<u8>>),
     Mono16(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),
     Rgb8(image::ImageBuffer<image::Rgb<u8>, Vec<u8>>),
@@ -33,6 +22,7 @@ pub enum FornaxProcessedImage {
 impl FornaxProcessedImage {
     pub fn to_dynamic(self) -> image::DynamicImage {
         match self {
+            FornaxProcessedImage::None => panic!(""),
             FornaxProcessedImage::Mono8(image_buffer) => image::DynamicImage::from(image_buffer),
             FornaxProcessedImage::Mono16(image_buffer) => image::DynamicImage::from(image_buffer),
             FornaxProcessedImage::Rgb8(image_buffer) => image::DynamicImage::from(image_buffer),
@@ -43,11 +33,11 @@ impl FornaxProcessedImage {
 
 /// A generic null post processor.
 pub struct NullPostProcessor {}
-impl<D, I> IPostProcessor<D, I, ()> for NullPostProcessor
+impl<D> IPostProcessor<D> for NullPostProcessor
 where
-    D: IDecoder<I>,
+    D: IDecoder,
 {
-    fn post_process(&self, _decoded: &D) -> miette::Result<()> {
-        miette::bail!("None processor.")
+    fn post_process(&self, _decoded: &D) -> miette::Result<FornaxProcessedImage> {
+        Ok(FornaxProcessedImage::None)
     }
 }
