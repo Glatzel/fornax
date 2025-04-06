@@ -1,7 +1,7 @@
 mod params;
-use std::ffi::CString;
 use std::path::PathBuf;
 use std::sync::LazyLock;
+use std::{ffi::CString, path::Path};
 
 use libraw::IDCRaw;
 use miette::{Context, IntoDiagnostic};
@@ -45,7 +45,7 @@ impl DngConverter {
         &self.params
     }
 
-    pub fn dng_file(&self, raw_file: &PathBuf) -> miette::Result<PathBuf> {
+    pub fn dng_file(&self, raw_file: &Path) -> miette::Result<PathBuf> {
         let mut file = if let Some(dir) = &self.params.directory {
             dir.clone()
         } else {
@@ -102,7 +102,7 @@ impl DngConverter {
 
 impl fornax_core::IDecoder<&PathBuf> for DngConverter {
     fn decode(&mut self, file: &PathBuf) -> miette::Result<()> {
-        let dng_file = self.convert_file(&file)?;
+        let dng_file = self.convert_file(file)?;
         self.open_dng_file(&dng_file)?;
         self.unpack()?;
         Ok(())
