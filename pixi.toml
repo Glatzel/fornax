@@ -1,0 +1,12 @@
+[workspace]
+authors = ["Glatzel <893016099@qq.com>"]
+channels = ["conda-forge"]
+name = "fornax"
+platforms = ["win-64"]
+version = "0.1.0"
+
+[dependencies]
+lazy-loader = "*"
+numpy = "*"
+pydantic = "*"
+python = "3.11.*"

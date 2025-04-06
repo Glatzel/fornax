@@ -13,3 +13,7 @@ temp
 dist
 .VSCodeCounter
 external
+
+# pixi environments
+.pixi
+*.egg-info
