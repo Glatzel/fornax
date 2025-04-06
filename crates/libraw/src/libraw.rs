@@ -2,8 +2,8 @@ mod image_sizes;
 mod imgother;
 mod iparams;
 
-use std::ffi::CString;
 use std::path::PathBuf;
+use std::{ffi::CString, path::Path};
 
 use fornax_core::IDecoder;
 pub use image_sizes::LibrawImageSizes;
@@ -31,7 +31,7 @@ impl Libraw {
         Ok(())
     }
 
-    pub fn open_file(&self, fname: &PathBuf) -> miette::Result<()> {
+    pub fn open_file(&self, fname: &Path) -> miette::Result<()> {
         let c_string =
             CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
         Self::check_run(unsafe {
