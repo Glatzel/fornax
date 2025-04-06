@@ -1,7 +1,7 @@
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 $env:RUSTFLAGS= "-Dwarnings"
-scripts/setup.ps1
+& $PSScriptRoot/setup.ps1
 cargo doc --no-deps --all-features `
     -p dnc `
     -p fornax `
