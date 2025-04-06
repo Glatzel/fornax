@@ -1,6 +1,7 @@
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
-scripts/cargo-clippy.ps1
+$env:RUSTFLAGS= "-Dwarnings"
+scripts/setup.ps1
 cargo doc --no-deps --all-features `
     -p dnc `
     -p fornax `
