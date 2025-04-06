@@ -128,7 +128,7 @@ impl fornax_core::IDecoder for Dnc {
         self.unpack()?;
         Ok(())
     }
-    
+
     fn decode_buffer(&self, _buffer: &[u8]) -> miette::Result<()> {
         todo!()
     }
