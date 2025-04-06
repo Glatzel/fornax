@@ -1,8 +1,8 @@
 from enum import Enum
 from pathlib import Path
-from typing import Annotated, Literal, Optional, Self
+from typing import Self
 
-from pydantic import BaseModel, Field, FilePath, PositiveInt, StrictBool, field_serializer
+from pydantic import BaseModel, FilePath, PositiveInt, StrictBool, field_serializer
 
 
 class DCRawHighlightMode(int, Enum):
