@@ -10,8 +10,9 @@ miette = { workspace = true }
 [dev-dependencies]
 clerk = { workspace = true, features = ["log"] }
 dnc = { workspace = true }
+dunce = { workspace = true }
 libraw = { workspace = true }
+path-slash = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-dunce = { workspace = true }
-path-slash = { workspace = true }
+assert_cmd= { workspace = true }
