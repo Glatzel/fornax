@@ -92,7 +92,7 @@ class DCRawFbddNoiserd(int, Enum):
 
 class DCRawParams(BaseModel):
     """
-    Create `rawpy.Params`.
+    Create DCRaw parameter.
 
     References
     ----------
