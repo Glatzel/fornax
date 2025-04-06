@@ -209,6 +209,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - run: choco install adobe-dnc
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
       - name: restore vcpkg
