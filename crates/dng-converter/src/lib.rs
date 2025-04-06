@@ -66,14 +66,11 @@ impl DngConverter {
 
         let dng_file: PathBuf = self.dng_file(&raw_file)?;
         if self.params.overwrite {
-            match std::fs::remove_file(&dng_file) {
-                Ok(_) => {
-                    clerk::info!(
-                        "Remove(overwrite) existing dng file: {}",
-                        self.dng_file(&raw_file)?.to_slash_lossy().to_string()
-                    )
-                }
-                Err(_) => (),
+            if std::fs::remove_file(&dng_file).is_ok() {
+                clerk::info!(
+                    "Remove(overwrite) existing dng file: {}",
+                    self.dng_file(&raw_file)?.to_slash_lossy().to_string()
+                )
             };
         }
         if !dng_file.exists() {
