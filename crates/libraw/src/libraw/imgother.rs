@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::utils;
+use crate::mnt_to_string;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Clone)]
 pub struct LibrawGpsInfo {
@@ -88,8 +88,8 @@ impl LibrawImgOther {
             shot_order: imgdata.other.shot_order,
             gpsdata: imgdata.other.gpsdata,
             parsed_gps,
-            desc: utils::mnt_to_string(&imgdata.other.desc),
-            artist: utils::mnt_to_string(&imgdata.other.artist),
+            desc: mnt_to_string(&imgdata.other.desc),
+            artist: mnt_to_string(&imgdata.other.artist),
         })
     }
     ///ISO sensitivity.
