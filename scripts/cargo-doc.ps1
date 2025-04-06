@@ -1,7 +1,12 @@
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
-scripts/cargo-clippy.ps1
-cargo doc --no-deps --all-features --package fornax --package libraw
+$env:RUSTFLAGS= "-Dwarnings"
+& $PSScriptRoot/setup.ps1
+cargo doc --no-deps --all-features `
+    -p dnc `
+    -p fornax `
+    -p fornax-core `
+    -p libraw
 
 Remove-Item ./dist/rust-doc.7z -Force -ErrorAction SilentlyContinue
 New-Item ./dist -ItemType Directory -ErrorAction SilentlyContinue
