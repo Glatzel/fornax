@@ -14,11 +14,6 @@ Write-Output "::endgroup::"
 # $code = $code + $LASTEXITCODE
 # Write-Output "::endgroup::"
 
-# Write-Output "::group::examples"
-# cargo +nightly llvm-cov --no-report --all-features --examples
-# $code = $code + $LASTEXITCODE
-# Write-Output "::endgroup::"
-
 Write-Output "::group::report"
 cargo +nightly llvm-cov report
 Write-Output "::endgroup::"
