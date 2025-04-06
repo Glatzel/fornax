@@ -88,13 +88,13 @@ pub struct DngConverterParams {
     pub count: Option<u32>,
     ///Limit pixel count to <num> pixels/image.
     pub compatibility: DngConverterCompatibility,
-    ///Output converted files to the specified directory.  
+    ///Output converted files to the specified directory.
     ///
     ///Default is the same directory as the input file.
     pub directory: Option<PathBuf>,
-    ///Specify the name of the output DNG file.  
+    ///Specify the name of the output DNG file.
     ///
-    ///Default is the name of the input file with the extension  
+    ///Default is the name of the input file with the extension
     ///changed to “.dng”.
     pub filename: Option<String>,
 
