@@ -7,6 +7,10 @@ version = "0.1.0"
 
 [dependencies]
 lazy-loader = "*"
+maturin = "*"
 numpy = "*"
+numpydoc = "*"
+pip = "*"
 pydantic = "*"
 python = "3.11.*"
+ruff = "*"
