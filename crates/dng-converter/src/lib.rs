@@ -68,19 +68,15 @@ impl DngConverter {
         let dng_file = self.dng_file(&raw_file)?;
         if !dng_file.exists() {
             let program = DNG_CONVERTER_EXECUTABLE.as_os_str();
-            let mut args = self.params.to_cmd();
-            args.push(raw_file.to_str().unwrap().to_string());
-            let mut process = std::process::Command::new(program);
-            process.args(&args);
-            let env_vars = std::env::vars();
-            for (key, value) in env_vars {
-                process.env(key, value);
-            }
-            let output = process.output().into_diagnostic()?;
+            let args = self.params.to_cmd(&raw_file);
+            let output = std::process::Command::new(program)
+                .args(&args)
+                .output()
+                .into_diagnostic()?;
             clerk::debug!("Command:\n{:?} {}", program, &args.join(" "));
             clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
             clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
-            if !output.status.success() {
+            if !dng_file.exists() {
                 miette::bail!("Dng conversion failed.");
             }
             clerk::debug!("Write dng to: {}", dng_file.to_str().unwrap());

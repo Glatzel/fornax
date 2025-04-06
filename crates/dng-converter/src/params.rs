@@ -99,7 +99,7 @@ pub struct DngConverterParams {
     pub filename: Option<String>,
 }
 impl DngConverterParams {
-    pub fn to_cmd(&self) -> Vec<String> {
+    pub fn to_cmd(&self, raw_file: &PathBuf) -> Vec<String> {
         let mut cmd: Vec<String> = Vec::new();
 
         if self.compressed {
@@ -127,12 +127,30 @@ impl DngConverterParams {
         }
         cmd.push(self.compatibility.to_string());
 
+        cmd.push("-d".to_string());
         if let Some(directory) = &self.directory {
-            cmd.push(format!("-d {}", directory.to_slash_lossy()));
+            cmd.push(
+                dunce::canonicalize(directory)
+                    .unwrap()
+                    .to_slash_lossy()
+                    .to_string(),
+            );
+        } else {
+            cmd.push(
+                dunce::canonicalize(raw_file.parent().unwrap())
+                    .unwrap()
+                    .to_slash_lossy()
+                    .to_string(),
+            );
         }
+
+        cmd.push("-o".to_string());
         if let Some(filename) = &self.filename {
-            cmd.push(format!("-d {}", filename));
+            cmd.push(filename.clone());
+        } else {
+            cmd.push(raw_file.file_stem().unwrap().to_string_lossy().to_string());
         }
+        cmd.push(raw_file.to_slash_lossy().to_string());
         cmd
     }
 }

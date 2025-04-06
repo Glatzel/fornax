@@ -10,7 +10,11 @@ fn main() -> miette::Result<()> {
         .with(clerk::terminal_layer(LevelFilter::DEBUG))
         .init();
     let mut manager = Fornax::new(
-        dng_converter::DngConverter::default(),
+        dng_converter::DngConverter::new(dng_converter::DngConverterParams {
+            directory: Some(PathBuf::from("./temp")),
+            filename: Some("dng-converter.dng".to_string()),
+            ..Default::default()
+        }),
         libraw::dcraw::DCRaw::default(),
     );
     let img = manager
