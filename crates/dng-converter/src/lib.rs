@@ -65,13 +65,11 @@ impl DngConverter {
         let raw_file = dunce::canonicalize(raw_file).into_diagnostic()?;
 
         let dng_file: PathBuf = self.dng_file(&raw_file)?;
-        if self.params.overwrite {
-            if std::fs::remove_file(&dng_file).is_ok() {
-                clerk::info!(
-                    "Remove(overwrite) existing dng file: {}",
-                    self.dng_file(&raw_file)?.to_slash_lossy().to_string()
-                )
-            };
+        if self.params.overwrite && std::fs::remove_file(&dng_file).is_ok() {
+            clerk::info!(
+                "Remove(overwrite) existing dng file: {}",
+                self.dng_file(&raw_file)?.to_slash_lossy().to_string()
+            )
         }
         if !dng_file.exists() {
             let program = DNG_CONVERTER_EXECUTABLE.as_os_str();
