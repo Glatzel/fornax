@@ -89,7 +89,6 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
-      - run: choco install adobe-dnc
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows'}}
         uses: actions/cache/restore@v4
