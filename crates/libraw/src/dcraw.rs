@@ -7,7 +7,8 @@ pub use output_params::{
 };
 pub use processed_image::{DCRawImageFormats, DCRawProcessedImage};
 
-use crate::{ILibrawErrors, errors::LibrawErrors};
+use crate::ILibrawErrors;
+use crate::errors::LibrawErrors;
 
 pub trait IDCRaw {
     fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t>;

@@ -5,11 +5,12 @@ mod iparams;
 use std::ffi::CString;
 use std::path::PathBuf;
 
-use crate::ILibrawErrors;
 use fornax_core::IDecoder;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::LibrawIParams;
+
+use crate::ILibrawErrors;
 
 #[derive(Debug)]
 pub struct Libraw {

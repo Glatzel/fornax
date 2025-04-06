@@ -1,10 +1,9 @@
 mod params;
-use std::path::PathBuf;
+use std::ffi::CString;
+use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
-use std::{ffi::CString, path::Path};
 
-use libraw::IDCRaw;
-use libraw::ILibrawErrors;
+use libraw::{IDCRaw, ILibrawErrors};
 use miette::{Context, IntoDiagnostic};
 pub use params::DngConverterParams;
 use path_slash::PathBufExt;
