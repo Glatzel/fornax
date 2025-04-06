@@ -5,9 +5,9 @@ use std::sync::LazyLock;
 
 use libraw::{IDCRaw, ILibrawErrors};
 use miette::{Context, IntoDiagnostic};
-pub use params::DngConverterParams;
+pub use params::DncParams;
 use path_slash::PathBufExt;
-static DNG_CONVERTER_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
+static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let default_install_path =
         PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");
 
@@ -30,17 +30,17 @@ static DNG_CONVERTER_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     exe
 });
 
-pub struct DngConverter {
+pub struct Dnc {
     imgdata: *mut libraw_sys::libraw_data_t,
-    params: DngConverterParams,
+    params: DncParams,
 }
-impl DngConverter {
-    pub fn new(params: DngConverterParams) -> Self {
+impl Dnc {
+    pub fn new(params: DncParams) -> Self {
         let imgdata = unsafe { libraw_sys::libraw_init(0) };
         Self { imgdata, params }
     }
 
-    pub fn params(&self) -> &DngConverterParams {
+    pub fn params(&self) -> &DncParams {
         &self.params
     }
 
@@ -72,7 +72,7 @@ impl DngConverter {
             )
         }
         if !dng_file.exists() {
-            let program = DNG_CONVERTER_EXECUTABLE.as_os_str();
+            let program = DNC_EXECUTABLE.as_os_str();
             let args = self.params.to_cmd(&raw_file);
             let output = std::process::Command::new(program)
                 .args(&args)
@@ -117,7 +117,7 @@ impl DngConverter {
     }
 }
 
-impl fornax_core::IDecoder<&PathBuf> for DngConverter {
+impl fornax_core::IDecoder<&PathBuf> for Dnc {
     fn decode(&mut self, file: &PathBuf) -> miette::Result<()> {
         let dng_file = self.convert_file(file)?;
         self.open_dng_file(&dng_file)?;
@@ -125,7 +125,7 @@ impl fornax_core::IDecoder<&PathBuf> for DngConverter {
         Ok(())
     }
 }
-impl IDCRaw for DngConverter {
+impl IDCRaw for Dnc {
     fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t> {
         if !self.imgdata.is_null() {
             Ok(self.imgdata)
@@ -134,14 +134,14 @@ impl IDCRaw for DngConverter {
         }
     }
 }
-impl Default for DngConverter {
+impl Default for Dnc {
     fn default() -> Self {
-        Self::new(DngConverterParams::default())
+        Self::new(DncParams::default())
     }
 }
-impl Drop for DngConverter {
+impl Drop for Dnc {
     fn drop(&mut self) {
         unsafe { libraw_sys::libraw_close(self.imgdata) }
     }
 }
-impl ILibrawErrors for DngConverter {}
+impl ILibrawErrors for Dnc {}

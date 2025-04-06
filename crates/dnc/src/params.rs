@@ -4,24 +4,24 @@ use std::path::PathBuf;
 use path_slash::PathBufExt;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Copy, Clone)]
-pub enum DngConverterPreview {
+pub enum DncPreview {
     None,
     Medium,
     Full,
 }
-impl Display for DngConverterPreview {
+impl Display for DncPreview {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = match self {
-            DngConverterPreview::None => "-p0",
-            DngConverterPreview::Medium => "-p1",
-            DngConverterPreview::Full => "-p2",
+            DncPreview::None => "-p0",
+            DncPreview::Medium => "-p1",
+            DncPreview::Full => "-p2",
         };
         write!(f, "{}", text)
     }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Copy, Clone)]
-pub enum DngConverterCompatibility {
+pub enum DncCompatibility {
     CR2_4,
     CR4_1,
     CR4_6,
@@ -43,35 +43,35 @@ pub enum DngConverterCompatibility {
     DNG1_7,
     DNG1_7_1,
 }
-impl Display for DngConverterCompatibility {
+impl Display for DncCompatibility {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = match self {
-            DngConverterCompatibility::CR2_4 => "-cr2.4",
-            DngConverterCompatibility::CR4_1 => "-cr4.1",
-            DngConverterCompatibility::CR4_6 => "-cr4.6",
-            DngConverterCompatibility::CR5_4 => "-cr5.4",
-            DngConverterCompatibility::CR6_6 => "-cr6.6",
-            DngConverterCompatibility::CR7_1 => "-cr7.1",
-            DngConverterCompatibility::CR11_2 => "-cr11.2",
-            DngConverterCompatibility::CR12_4 => "-cr12.4",
-            DngConverterCompatibility::CR13_2 => "-cr13.2",
-            DngConverterCompatibility::CR14_0 => "-cr14.0",
-            DngConverterCompatibility::CR15_3 => "-cr15.3",
-            DngConverterCompatibility::CR16_0 => "-cr16.0",
-            DngConverterCompatibility::DNG1_1 => "-dng1.1",
-            DngConverterCompatibility::DNG1_3 => "-dng1.3",
-            DngConverterCompatibility::DNG1_4 => "-dng1.4",
-            DngConverterCompatibility::DNG1_5 => "-dng1.5",
-            DngConverterCompatibility::DNG1_6 => "-dng1.6",
-            DngConverterCompatibility::DNG1_7 => "-dng1.7",
-            DngConverterCompatibility::DNG1_7_1 => "-dng1.7.1",
+            DncCompatibility::CR2_4 => "-cr2.4",
+            DncCompatibility::CR4_1 => "-cr4.1",
+            DncCompatibility::CR4_6 => "-cr4.6",
+            DncCompatibility::CR5_4 => "-cr5.4",
+            DncCompatibility::CR6_6 => "-cr6.6",
+            DncCompatibility::CR7_1 => "-cr7.1",
+            DncCompatibility::CR11_2 => "-cr11.2",
+            DncCompatibility::CR12_4 => "-cr12.4",
+            DncCompatibility::CR13_2 => "-cr13.2",
+            DncCompatibility::CR14_0 => "-cr14.0",
+            DncCompatibility::CR15_3 => "-cr15.3",
+            DncCompatibility::CR16_0 => "-cr16.0",
+            DncCompatibility::DNG1_1 => "-dng1.1",
+            DncCompatibility::DNG1_3 => "-dng1.3",
+            DncCompatibility::DNG1_4 => "-dng1.4",
+            DncCompatibility::DNG1_5 => "-dng1.5",
+            DncCompatibility::DNG1_6 => "-dng1.6",
+            DncCompatibility::DNG1_7 => "-dng1.7",
+            DncCompatibility::DNG1_7_1 => "-dng1.7.1",
         };
         write!(f, "{}", text)
     }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Clone)]
-pub struct DngConverterParams {
+pub struct DncParams {
     ///Output lossless compressed DNG files
     pub compressed: bool,
     /// Output linear DNG files.
@@ -79,7 +79,7 @@ pub struct DngConverterParams {
     ///Embed original raw file inside DNG files.
     pub embed: bool,
     ///Set JPEG preview size.
-    pub preview: DngConverterPreview,
+    pub preview: DncPreview,
     ///Embed fast load data inside DNG files.
     pub fast_load: bool,
     ///Limit size to <num> pixels/side.
@@ -87,7 +87,7 @@ pub struct DngConverterParams {
     ///Limit pixel count to <num> pixels/image.
     pub count: Option<u32>,
     ///Limit pixel count to <num> pixels/image.
-    pub compatibility: DngConverterCompatibility,
+    pub compatibility: DncCompatibility,
     ///Output converted files to the specified directory.
     ///
     ///Default is the same directory as the input file.
@@ -101,7 +101,7 @@ pub struct DngConverterParams {
     // extra option
     pub overwrite: bool,
 }
-impl DngConverterParams {
+impl DncParams {
     pub fn to_cmd(&self, raw_file: &PathBuf) -> Vec<String> {
         let mut cmd: Vec<String> = Vec::new();
 
@@ -157,17 +157,17 @@ impl DngConverterParams {
         cmd
     }
 }
-impl Default for DngConverterParams {
+impl Default for DncParams {
     fn default() -> Self {
         Self {
             compressed: true,
             linear: false,
             embed: false,
-            preview: DngConverterPreview::Medium,
+            preview: DncPreview::Medium,
             fast_load: false,
             side: None,
             count: None,
-            compatibility: DngConverterCompatibility::CR16_0,
+            compatibility: DncCompatibility::CR16_0,
             directory: None,
             filename: None,
             overwrite: false,

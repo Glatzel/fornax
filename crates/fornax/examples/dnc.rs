@@ -10,7 +10,7 @@ fn main() -> miette::Result<()> {
         .with(clerk::terminal_layer(LevelFilter::DEBUG))
         .init();
     let mut manager = Fornax::new(
-        dng_converter::DngConverter::new(dng_converter::DngConverterParams {
+        dnc::Dnc::new(dnc::DncParams {
             directory: Some(PathBuf::from("./temp")),
             filename: Some("dng-converter.dng".to_string()),
             overwrite: true,

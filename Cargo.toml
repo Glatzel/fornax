@@ -8,7 +8,7 @@ version = "0.0.1"
 
 [workspace.dependencies]
 fornax-core = { path = "./crates/fornax-core" }
-dng-converter= { path = "./crates/dng-converter" }
+dnc= { path = "./crates/dnc" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
 
