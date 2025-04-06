@@ -209,7 +209,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: choco install adobe-dnc
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
       - name: restore vcpkg
@@ -219,6 +218,10 @@ jobs:
           path: ./vcpkg/installed
           key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
       - name: run examples
-        run: |
-          ${{env.RUST_ROOT}}/scripts/examples.ps1
+        run: ${{env.RUST_ROOT}}/scripts/examples.ps1
         shell: pwsh
+
+      # - run: choco install adobe-dnc
+      # - name: run slow examples
+      #   run: ${{env.RUST_ROOT}}/scripts/examples-slow.ps1
+      #   shell: pwsh
