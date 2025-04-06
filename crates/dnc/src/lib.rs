@@ -63,7 +63,7 @@ impl Dnc {
     }
     pub fn convert_file(&self, raw_file: &PathBuf) -> miette::Result<PathBuf> {
         let raw_file = dunce::canonicalize(raw_file).into_diagnostic()?;
-        if raw_file.extension().unwrap().to_ascii_lowercase() == "dng" {
+        if raw_file.extension().unwrap().eq_ignore_ascii_case("dng") {
             clerk::info!("The input file is dng.");
             return Ok(raw_file.clone());
         }

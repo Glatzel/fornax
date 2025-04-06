@@ -2,7 +2,6 @@ $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 scripts/cargo-clippy.ps1
 cargo doc --no-deps --all-features `
-    -p dcraw `
     -p dnc `
     -p fornax `
     -p fornax-core `

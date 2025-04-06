@@ -82,11 +82,11 @@ pub struct DncParams {
     pub preview: DncPreview,
     ///Embed fast load data inside DNG files.
     pub fast_load: bool,
-    ///Limit size to <num> pixels/side.
+    ///Limit size to `num` pixels/side.
     pub side: Option<u32>,
-    ///Limit pixel count to <num> pixels/image.
+    ///Limit pixel count to `num` pixels/image.
     pub count: Option<u32>,
-    ///Limit pixel count to <num> pixels/image.
+    ///Limit pixel count to `num` pixels/image.
     pub compatibility: DncCompatibility,
     ///Output converted files to the specified directory.
     ///
