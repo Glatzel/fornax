@@ -86,7 +86,7 @@ impl DngConverter {
         Ok(dng_file)
     }
 
-    fn open_dng_file(&mut self, fname: &PathBuf) -> miette::Result<()> {
+    fn open_dng_file(&mut self, fname: &Path) -> miette::Result<()> {
         let c_string =
             CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
         libraw::utils::check_run(unsafe {
