@@ -89,7 +89,7 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
-      - run: winget install --verbose-logs --source winget --id Adobe.DNGConverter
+      - run: winget install --verbose --source winget --id Adobe.DNGConverter
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows'}}
         uses: actions/cache/restore@v4
