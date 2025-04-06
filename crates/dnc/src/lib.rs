@@ -63,6 +63,10 @@ impl Dnc {
     }
     pub fn convert_file(&self, raw_file: &PathBuf) -> miette::Result<PathBuf> {
         let raw_file = dunce::canonicalize(raw_file).into_diagnostic()?;
+        if raw_file.extension().unwrap().to_ascii_lowercase() == "dng" {
+            clerk::info!("The input file is dng.");
+            return Ok(raw_file.clone());
+        }
 
         let dng_file: PathBuf = self.dng_file(&raw_file)?;
         if self.params.overwrite && std::fs::remove_file(&dng_file).is_ok() {
