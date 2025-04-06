@@ -2,7 +2,11 @@ $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 $env:RUSTFLAGS= "-Dwarnings"
 & $PSScriptRoot/setup.ps1
-cargo doc --all-features -p fornax
+cargo doc --no-deps --all-features `
+    -p dnc `
+    -p fornax `
+    -p fornax-core `
+    -p libraw
 
 Remove-Item ./dist/rust-doc.7z -Force -ErrorAction SilentlyContinue
 New-Item ./dist -ItemType Directory -ErrorAction SilentlyContinue
