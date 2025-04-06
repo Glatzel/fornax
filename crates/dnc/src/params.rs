@@ -133,7 +133,7 @@ impl DncParams {
 
         cmd.push("-d".to_string());
         if let Some(directory) = &self.directory {
-            std::fs::create_dir_all(&directory).into_diagnostic()?;
+            std::fs::create_dir_all(directory).into_diagnostic()?;
             cmd.push(
                 dunce::canonicalize(directory)
                     .unwrap()
