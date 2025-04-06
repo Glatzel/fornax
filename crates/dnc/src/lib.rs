@@ -73,7 +73,7 @@ impl Dnc {
             clerk::info!(
                 "Remove(overwrite) existing dng file: {}",
                 self.dng_file(&raw_file)?.to_slash_lossy().to_string()
-            )
+            );
         }
         if !dng_file.exists() {
             let program = DNC_EXECUTABLE.as_os_str();
@@ -102,7 +102,7 @@ impl Dnc {
                     .into_diagnostic()?
                     .to_slash_lossy()
                     .to_string()
-            )
+            );
         }
         Ok(dng_file)
     }
