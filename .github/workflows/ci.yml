@@ -79,52 +79,47 @@ jobs:
       - name: Machete
         uses: bnjbvr/cargo-machete@main
 
-  # cargo-test:
-  #   if: ${{!inputs.release}}
-  #   needs: cache-vcpkg
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       machine: [windows-latest, ubuntu-latest]
-  #   runs-on: ${{matrix.machine}}
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - run: choco install pkgconfiglite
-  #       if: ${{runner.os == 'Windows'}}
-  #     - name: Set up pixi
-  #       uses: prefix-dev/setup-pixi@v0.8.3
-  #       with:
-  #         run-install: false
+  cargo-test:
+    if: ${{!inputs.release}}
+    needs: cache-vcpkg
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: [windows-2025]
+    runs-on: ${{matrix.machine}}
+    steps:
+      - uses: actions/checkout@v4
+      - run: winget install --verbose --source winget --id Adobe.DNGConverter
+      - name: restore vcpkg
+        if: ${{ runner.os == 'Windows'}}
+        uses: actions/cache/restore@v4
+        with:
+          path: ./vcpkg/installed
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
 
-  #     - name: restore vcpkg
-  #       if: ${{ runner.os == 'Windows'}}
-  #       uses: actions/cache/restore@v4
-  #       with:
-  #         path: ./vcpkg/installed
-  #         key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
 
-  #     - uses: dtolnay/rust-toolchain@nightly
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
 
-  #     - name: Install nextest
-  #       uses: taiki-e/install-action@nextest
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
 
-  #     - name: Install cargo-llvm-cov
-  #       uses: taiki-e/install-action@cargo-llvm-cov
+      - name: cargo-test
+        run: ${{env.RUST_ROOT}}/scripts/cargo-test.ps1
+        shell: pwsh
 
-  #     - name: cargo-test
-  #       run: ${{env.RUST_ROOT}}/scripts/cargo-test.ps1
-  #       shell: pwsh
+      - name: Upload results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
 
-  #     - name: Upload results to Codecov
-  #       if: ${{ !cancelled() }}
-  #       uses: codecov/codecov-action@v5
-
-  #     - name: Upload test results to Codecov
-  #       if: ${{ !cancelled() }}
-  #       uses: codecov/test-results-action@v1
-  #       with:
-  #         fail_ci_if_error: true
-  #         token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          fail_ci_if_error: true
 
   cargo-doc:
     needs: cache-vcpkg
@@ -199,29 +194,3 @@ jobs:
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
         shell: pwsh
-
-  examples:
-    if: ${{!inputs.release}}
-    needs: cache-vcpkg
-    runs-on: windows-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        if: ${{github.event_name=='pull_request'}}
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
-      - name: run examples
-        run: ${{env.RUST_ROOT}}/scripts/examples.ps1
-        shell: pwsh
-
-      # - run: choco install adobe-dnc
-      # - name: run slow examples
-      #   run: ${{env.RUST_ROOT}}/scripts/examples-slow.ps1
-      #   shell: pwsh

@@ -63,6 +63,10 @@ impl Dnc {
     }
     pub fn convert_file(&self, raw_file: &PathBuf) -> miette::Result<PathBuf> {
         let raw_file = dunce::canonicalize(raw_file).into_diagnostic()?;
+        if raw_file.extension().unwrap().eq_ignore_ascii_case("dng") {
+            clerk::info!("The input file is dng.");
+            return Ok(raw_file.clone());
+        }
 
         let dng_file: PathBuf = self.dng_file(&raw_file)?;
         if self.params.overwrite && std::fs::remove_file(&dng_file).is_ok() {
@@ -73,7 +77,7 @@ impl Dnc {
         }
         if !dng_file.exists() {
             let program = DNC_EXECUTABLE.as_os_str();
-            let args = self.params.to_cmd(&raw_file);
+            let args = self.params.to_cmd(&raw_file)?;
             let output = std::process::Command::new(program)
                 .args(&args)
                 .output()
