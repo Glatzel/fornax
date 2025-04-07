@@ -27,6 +27,7 @@ fn run() -> miette::Result<()> {
         ))?
         .post_process()?
         .to_dynamic();
+
     img.save("temp/dng-converter.tiff").into_diagnostic()?;
     clerk::info!("save img to: temp/dng-converter.tiff");
     Ok(())

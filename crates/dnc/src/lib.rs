@@ -1,12 +1,11 @@
 mod params;
-use std::ffi::CString;
-use std::path::{Path, PathBuf};
-use std::sync::LazyLock;
-
 use libraw::{IDCRaw, ILibrawErrors};
 use miette::{Context, IntoDiagnostic};
 pub use params::DncParams;
 use path_slash::PathBufExt;
+use std::ffi::CString;
+use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let default_install_path =
         PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");
@@ -130,7 +129,7 @@ impl fornax_core::IDecoder for Dnc {
     }
 
     fn decode_buffer(&self, _buffer: &[u8]) -> miette::Result<()> {
-        todo!()
+        unimplemented!("DNG converter can not read buffer.")
     }
 }
 impl IDCRaw for Dnc {
