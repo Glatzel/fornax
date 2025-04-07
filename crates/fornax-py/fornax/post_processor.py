@@ -5,6 +5,10 @@ from typing import Self
 from pydantic import BaseModel, FilePath, PositiveInt, StrictBool, field_serializer
 
 
+class PostProcessor(BaseModel): ...
+
+
+# region DCRaw
 class DCRawHighlightMode(int, Enum):
     """Highlight modes."""
 
@@ -90,9 +94,9 @@ class DCRawFbddNoiserd(int, Enum):
     FULL = 2
 
 
-class DCRawParams(BaseModel):
+class DCRawParams(PostProcessor):
     """
-    Create DCRaw parameter.
+    DCRaw parameter.
 
     References
     ----------
