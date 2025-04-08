@@ -6,12 +6,23 @@ platforms = ["win-64"]
 version = "0.1.0"
 
 [dependencies]
-lazy-loader = "*"
 maturin = "*"
-msgspec = "*"
-numpy = "*"
-numpydoc = "*"
 pip = "*"
-pydantic = "*"
 python = "3.11.*"
 ruff = "*"
+
+[feature.pydev.dependencies]
+imageio = "*"
+lazy-loader = "*"
+msgspec = "*"
+nomkl = "*"
+numpy = "*"
+numpydoc = "*"
+pydantic = "*"
+
+# test
+pytest = "*"
+pytest-cov = "*"
+
+[environments]
+pydev = ["pydev"]

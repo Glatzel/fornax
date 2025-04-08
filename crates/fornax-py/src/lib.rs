@@ -33,7 +33,7 @@ impl From<&str> for PyPostPorcessor {
     }
 }
 #[pyfunction]
-fn process<'a>(
+fn py_process<'a>(
     py: Python<'a>,
     file: PathBuf,
     decoder: &str,
@@ -71,6 +71,7 @@ fn process<'a>(
             (img.as_raw(), img.width(), img.height(), 1, 16).into_pyobject(py)
         }
         fornax::FornaxProcessedImage::Rgb8(img) => {
+            println!("{},{},{},{}", img.width(), img.height(), 3, 8);
             (img.as_raw(), img.width(), img.height(), 3, 8).into_pyobject(py)
         }
         fornax::FornaxProcessedImage::Rgb16(img) => {
@@ -83,7 +84,7 @@ fn process<'a>(
 
 #[pymodule]
 fn fornax_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_wrapped(wrap_pyfunction!(process))?;
+    m.add_wrapped(wrap_pyfunction!(py_process))?;
 
     Ok(())
 }

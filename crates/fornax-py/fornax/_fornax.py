@@ -27,5 +27,21 @@ class Fornax:
                 TypeError("Unknown post processor")
         self.post_processor_params = post_processor_params
 
-    def process(self) -> np.ndarray:  # type: ignore
-        buf = py_process(self.file, self.decoder, self.decoder_params, self.post_processor, self.post_processor_params)
+    def process(self):  # type: ignore
+        buf, width, height, channels, bits = py_process(
+            self.file,
+            self.decoder,
+            self.decoder_params.to_msgpack(),
+            self.post_processor,
+            self.post_processor_params.to_msgpack(),
+        )
+        match channels, bits:
+            case 1, 8:
+                img = np.frombuffer(buf, dtype=np.uint8).reshape(height, width)
+            case 1, 16:
+                img = np.frombuffer(buf, dtype=np.uint16).reshape(height, width)
+            case 3, 8:
+                img = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 3)
+            case 3, 16:
+                img = np.frombuffer(buf, dtype=np.uint16).reshape(height, width, 3)
+        return img

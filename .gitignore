@@ -5,6 +5,7 @@ target
 temp
 vcpkg/installed
 vcpkg/vcpkg
+draft
 
 # pixi environments
 .pixi
@@ -13,3 +14,5 @@ vcpkg/vcpkg
 #python
 __pycache__
 *.pyd
+tests_report
+.coverage

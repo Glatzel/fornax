@@ -1,3 +1,4 @@
-from . import encoder, post_processor
+from . import decoder, post_processor
+from ._fornax import Fornax
 
-__all__ = ["encoder", "post_processor"]
+__all__ = ["Fornax", "decoder", "post_processor"]
