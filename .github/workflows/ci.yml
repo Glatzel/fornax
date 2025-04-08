@@ -225,6 +225,13 @@ jobs:
         with:
           run-install: false
 
+      - name: restore vcpkg
+        if: ${{ runner.os == 'Windows' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ./vcpkg/installed
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
+
       - name: build
         run: ./crates/fornax-py/rattler/ci-fornax-py.ps1 ${{ inputs.release && '-config  release' || null }}
         shell: pwsh
