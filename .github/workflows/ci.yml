@@ -202,7 +202,9 @@ jobs:
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
         shell: pwsh
-  rattler-pyxis-py:
+
+  rattler-build:
+    needs: cache-vcpkg
     env:
       PYTEST_ADDOPTS: "--color=yes"
     strategy:
