@@ -34,7 +34,7 @@ class DncCompatibility(str, Enum):
     DNG1_7_1 = "-dng1.7.1"
 
 
-class Dnc(BaseDecoder):
+class DncParams(BaseDecoder):
     """
     DNG converter parameter.
 

@@ -158,37 +158,3 @@ class DCRawParams(BasePostProcessor):
     )
     def _serialize_special_field(self, v: Enum):
         return v.value
-
-    @classmethod
-    def read_json(cls, json_file: str | Path) -> Self:
-        """
-        Create a model from json file.
-
-        Parameters
-        ----------
-        json_file
-            Path of json file.
-
-        Returns
-        -------
-        DCRawParams
-        """
-        json_file = Path(json_file)
-        assert json_file.exists()
-        assert json_file.is_file()
-        assert json_file.suffix.endswith("json")
-        return cls.model_validate_json(json_data=json_file.read_text("utf-8"))
-
-    def write_json(self, json_file: str | Path):
-        """
-        Dump a model to json file.
-
-        Parameters
-        ----------
-        json_file
-            Path of json file.
-        """
-        json_file = Path(json_file)
-        assert json_file.suffix.endswith("json")
-        content = self.model_dump_json(indent=4)
-        json_file.write_text(content, "utf-8")
