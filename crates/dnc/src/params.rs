@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use miette::IntoDiagnostic;
 use path_slash::PathBufExt;
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DncPreview {
     None,
@@ -20,7 +20,7 @@ impl Display for DncPreview {
         write!(f, "{}", text)
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DncCompatibility {
     CR2_4,
@@ -70,7 +70,7 @@ impl Display for DncCompatibility {
         write!(f, "{}", text)
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub struct DncParams {
     ///Output lossless compressed DNG files

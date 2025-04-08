@@ -8,13 +8,13 @@ from .fornax_py import fornax  # type: ignore
 
 
 class Decoder(Enum, str):
-    libraw = "libraw"
-    dnc = "dnc"
+    Libraw = "libraw"
+    Dnc = "dnc"
 
 
 class PostProcessor(Enum, str):
-    dcraw = "dcraw"
-    null = "null"
+    DCRaw = "dcraw"
+    Null = "null"
 
 
 class Fornax:
@@ -24,4 +24,4 @@ class Fornax:
         self.post_processor = post_processor
 
     def process(self) -> np.ndarray:
-        return
+        return 

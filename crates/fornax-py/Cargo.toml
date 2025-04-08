@@ -4,8 +4,10 @@ name = "fornax-py"
 version.workspace = true
 
 [dependencies]
-fornax = { workspace = true }
+fornax = { workspace = true, features = ["serde"] }
 pyo3 = { workspace = true }
+rmp-serde = { workspace = true }
+serde = { workspace = true }
 
 [lib]
 crate-type = ["cdylib"]
