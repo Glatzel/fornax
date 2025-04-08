@@ -4,10 +4,8 @@ name = "fornax-py"
 version.workspace = true
 
 [dependencies]
-# fornax = { workspace = true }
-# numpy = { workspace = true }
-# pyo3 = { workspace = true }
-# rayon = { workspace = true }
+fornax = { workspace = true }
+pyo3 = { workspace = true }
 
 [lib]
 crate-type = ["cdylib"]

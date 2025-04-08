@@ -2,10 +2,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Self
 
-from pydantic import BaseModel, FilePath, PositiveInt, StrictBool, field_serializer
+from pydantic import FilePath, PositiveInt, StrictBool, field_serializer
 
-
-class PostProcessor(BaseModel): ...
+from ._base import BasePostProcessor
 
 
 # region DCRaw
@@ -94,7 +93,7 @@ class DCRawFbddNoiserd(int, Enum):
     FULL = 2
 
 
-class DCRawParams(PostProcessor):
+class DCRawParams(BasePostProcessor):
     """
     DCRaw parameter.
 

@@ -11,6 +11,7 @@ fornax-core = { path = "./crates/fornax-core" }
 dnc= { path = "./crates/dnc" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
+fornax= { path = "./crates/fornax" }
 
 assert_cmd = "2.0"
 bindgen = "0.71"
@@ -20,9 +21,7 @@ clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.5" }
 image = "0.25.5"
 libc = "0.2"
 miette = { version = "7.5.0", features = ["fancy"] }
-numpy = "0.23.0"
 pyo3 = { version = "0.23.4", features = ["extension-module", "abi3-py311"] }
-rayon = "1.10.0"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 tracing = "0.1.41"
