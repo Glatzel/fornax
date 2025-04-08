@@ -19,6 +19,7 @@ nomkl = "*"
 numpy = "*"
 numpydoc = "*"
 pydantic = "*"
+rattler-build = "*"
 
 # test
 pytest = "*"

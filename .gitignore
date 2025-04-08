@@ -16,3 +16,4 @@ __pycache__
 *.pyd
 tests_report
 .coverage
+output
