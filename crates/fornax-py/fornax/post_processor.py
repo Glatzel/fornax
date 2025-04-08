@@ -1,6 +1,4 @@
 from enum import Enum
-from pathlib import Path
-from typing import Self
 
 from pydantic import FilePath, PositiveInt, StrictBool, field_serializer
 
