@@ -1,19 +1,15 @@
-
-# pixi environments
-.pixi
-*.egg-info
-
-vcpkg/vcpkg
-vcpkg/installed
+.VSCodeCounter
+dist
+external
 target
 temp
-# pixi environments
-.pixi
-*.egg-info
-dist
-.VSCodeCounter
-external
+vcpkg/installed
+vcpkg/vcpkg
 
 # pixi environments
 .pixi
 *.egg-info
+
+#python
+__pycache__
+*.pyd
