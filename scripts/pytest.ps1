@@ -1,6 +1,7 @@
 $ROOT = git rev-parse --show-toplevel
 & $PSScriptRoot/setup.ps1
 Set-Location $PSScriptRoot/../crates/fornax-py
+git submodule update --init --recursive
 # run test
 pixi run -e pydev pytest `
     ./tests `
