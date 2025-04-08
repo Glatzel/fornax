@@ -4,9 +4,8 @@ use fornax::dnc::{Dnc, DncParams};
 use fornax::libraw::dcraw::{self, DCRawParams};
 use fornax::libraw::{self, DCRaw, Libraw};
 use pyo3::prelude::*;
-use pyo3::types::PyTuple;
+use pyo3::types::{PyBytes, PyTuple};
 use pyo3::{PyObject, Python, pyfunction};
-use pyo3::{prelude::*, types::PyBytes};
 use rmp_serde::{Deserializer, Serializer};
 use serde::{Deserialize, Serialize};
 enum PyDecoder {
