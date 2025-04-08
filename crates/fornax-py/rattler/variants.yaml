@@ -1,4 +1,0 @@
-cuda_variant:
-  - 'numpy'
-  - 'cupy'
-  - 'cupy-core'
