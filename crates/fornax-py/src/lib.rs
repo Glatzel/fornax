@@ -1,13 +1,13 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use fornax::dnc::{Dnc, DncParams};
-use fornax::libraw::dcraw::{self, DCRawParams};
-use fornax::libraw::{self, DCRaw, Libraw};
+use fornax::libraw::dcraw::DCRawParams;
+use fornax::libraw::{DCRaw, Libraw};
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyTuple};
-use pyo3::{PyObject, Python, pyfunction};
-use rmp_serde::{Deserializer, Serializer};
-use serde::{Deserialize, Serialize};
+use pyo3::types::PyTuple;
+use pyo3::{Python, pyfunction};
+use rmp_serde::Deserializer;
+use serde::Deserialize;
 enum PyDecoder {
     Libraw,
     Dnc,
