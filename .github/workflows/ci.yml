@@ -91,9 +91,7 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          winget source reset
-          winget install --verbose --source winget --id Adobe.DNGConverter
+      - run: winget install --verbose --source winget --id Adobe.DNGConverter
       - name: Set up pixi
         uses: prefix-dev/setup-pixi@v0.8.4
         with:
