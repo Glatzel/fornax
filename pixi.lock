@@ -13,7 +13,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/libsqlite-3.49.1-h67fdade_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/libzlib-1.3.1-h2466b09_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/maturin-1.8.3-py311h16f27fe_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/openssl-3.4.1-ha4e3fda_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/openssl-3.5.0-ha4e3fda_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pip-25.0.1-pyh8b19718_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/python-3.11.11-h3f84c4b_2_cpython.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/python_abi-3.11-6_cp311.conda
@@ -83,14 +83,14 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/numpy-2.2.4-py311h5e411d1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/numpydoc-1.8.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/openjpeg-2.5.3-h4d64b90_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/openssl-3.4.1-ha4e3fda_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/openssl-3.5.0-ha4e3fda_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/packaging-24.2-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/pillow-11.1.0-py311h43e43bb_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pip-25.0.1-pyh8b19718_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.5.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/pthread-stubs-0.4-h0e40799_1002.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyh29332c3_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.2-pyh3cfb1c2_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.3-pyh3cfb1c2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/pydantic-core-2.33.1-py311ha250665_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyh09c184e_7.conda
@@ -741,9 +741,9 @@ packages:
   license_family: BSD
   size: 240148
   timestamp: 1733817010335
-- conda: https://conda.anaconda.org/conda-forge/win-64/openssl-3.4.1-ha4e3fda_0.conda
-  sha256: 56dcc2b4430bfc1724e32661c34b71ae33a23a14149866fc5645361cfd3b3a6a
-  md5: 0730f8094f7088592594f9bf3ae62b3f
+- conda: https://conda.anaconda.org/conda-forge/win-64/openssl-3.5.0-ha4e3fda_0.conda
+  sha256: 43dd7f56da142ca83c614c8b0085589650ae9032b351a901c190e48eefc73675
+  md5: 4ea7db75035eb8c13fa680bb90171e08
   depends:
   - ca-certificates
   - ucrt >=10.0.20348.0
@@ -751,8 +751,8 @@ packages:
   - vc14_runtime >=14.29.30139
   license: Apache-2.0
   license_family: Apache
-  size: 8515197
-  timestamp: 1739304103653
+  size: 8999138
+  timestamp: 1744135594688
 - conda: https://conda.anaconda.org/conda-forge/noarch/packaging-24.2-pyhd8ed1ab_2.conda
   sha256: da157b19bcd398b9804c5c52fc000fcb8ab0525bdb9c70f95beaa0bb42f85af1
   md5: 3bfed7e6228ebf2f7b9eaa47f1b4e2aa
@@ -824,9 +824,9 @@ packages:
   license_family: BSD
   size: 110100
   timestamp: 1733195786147
-- conda: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.2-pyh3cfb1c2_0.conda
-  sha256: 848cf4ebb403e34d76575fbf59f1e96aed1761f5a295db2784b7ba0ddc36bf84
-  md5: b866355462b3acc820777fb7c0719a5c
+- conda: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.3-pyh3cfb1c2_0.conda
+  sha256: 89183785b09ebe9f9e65710057d7c41e9d21d4a9ad05e068850e18669655d5a8
+  md5: 3c6f7f8ae9b9c177ad91ccc187912756
   depends:
   - annotated-types >=0.6.0
   - pydantic-core 2.33.1
@@ -836,8 +836,8 @@ packages:
   - typing_extensions >=4.12.2
   license: MIT
   license_family: MIT
-  size: 306151
-  timestamp: 1743701214318
+  size: 306616
+  timestamp: 1744192311966
 - conda: https://conda.anaconda.org/conda-forge/win-64/pydantic-core-2.33.1-py311ha250665_0.conda
   sha256: bdbfb2e0a7e9f37071d1619dd9af33668bb47ba8f0117846742a5a7de3184bff
   md5: 549cc2f2754ba510f7616af5c5b8aff6
