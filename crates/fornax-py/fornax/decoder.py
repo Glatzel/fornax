@@ -65,6 +65,7 @@ class DncParams(BaseDecoderParams):
         Specify the name of the output DNG file.
         Default is the name of the input file with the extension changed to “.dng”.
     overwrite
+        Overwrite existing dng.
 
     References
     ----------
@@ -73,16 +74,41 @@ class DncParams(BaseDecoderParams):
     """
 
     compressed: StrictBool = True
+    """Output lossless compressed DNG files"""
+
     linear: StrictBool = False
+    """Output linear DNG files."""
+
     embed: StrictBool = False
+    """Embed original raw file inside DNG files."""
+
     preview: DncPreview = DncPreview.Medium
+    """Set JPEG preview size."""
+
     fast_load: StrictBool = False
+    """Embed fast load data inside DNG files."""
+
     side: PositiveInt | None = None
+    """Limit size to `num` pixels/side."""
+
     count: PositiveInt | None = None
+    """Output converted files to the specified directory.
+        Default is the same directory as the input file."""
+
     compatibility: DncCompatibility = DncCompatibility.CR16_0
+    """Set Camera Raw compatibility"""
+
     directory: str | Path | None = None
+    """Output converted files to the specified directory."""
+
     filename: str | None = None
+    """
+    Specify the name of the output DNG file.
+    Default is the name of the input file with the extension changed to “.dng”.
+    """
+
     overwrite: StrictBool = False
+    """Overwrite existing dng."""
 
     @field_validator("directory")
     def convert_path_to_string(cls, v):
