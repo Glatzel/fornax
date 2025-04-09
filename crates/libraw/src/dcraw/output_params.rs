@@ -374,6 +374,7 @@ pub struct DCRawParams {
     /// correction of aberrations changes the output size.
     ///
     /// The `aber[0]` will set `aber[0]`.
+    ///
     /// The `aber[1]` will set `aber[2]`.
     pub aber: Option<[f64; 2]>,
     /// Sets user gamma-curve. Library user should set first two fields of gamm array:
@@ -388,6 +389,7 @@ pub struct DCRawParams {
     /// `gamm[0]/gamm[1]` to 1.0.
     ///
     /// The `gamm[0]` will set `gamm[0]`.
+    ///
     /// The `gamm[1]` will set `gamm[1]`.
     pub gamm: Option<[f64; 2]>,
     /// 4 multipliers (r,g,b,g) of the user's white balance.
@@ -428,7 +430,7 @@ pub struct DCRawParams {
     ///Path to file with bad pixels map (in dcraw format: "column row
     /// date-of-pixel-death-in-UNIX-format", one pixel per row).
     pub bad_pixels: Option<PathBuf>,
-    /// Path to dark frame file (in 16-bit PGM format)
+    /// Path to dark frame file (in 16-bit PGM format).
     pub dark_frame: Option<PathBuf>,
     ///8 bit (default)/16 bit (key -4).
     pub output_bps: Option<DCRawOutputBps>,
@@ -492,17 +494,20 @@ pub struct DCRawParams {
     /// - 2 (and more) - full FBDD reduction
     pub fbdd_noiserd: Option<DCRawFbddNoiserd>,
     ///Exposure correction before demosaic.
+    ///
     ///exp_correc: positive value turns the feature on (default: off).
     pub exp_correc: Option<i32>,
     ///Exposure correction before demosaic.
+    ///
     ///exp_shift: exposure shift in linear scale. Usable range from 0.25 (2-stop darken) to 8.0
     /// (3-stop lighter). Default: 1.0 (no exposure shift).
     pub exp_shift: Option<f32>,
     ///Exposure correction before demosaic.
+    ///
     ///exp_preser: preserve highlights when lighten the image. Usable range from 0.0 (no
     /// preservation) to 1.0 (full preservation). 0.0 is the default value.
     pub exp_preser: Option<f32>,
-    ///Turns on using RawSpeed library for data unpacking (only if RawSpeed support compiled in).
+    /// Turns on using RawSpeed library for data unpacking (only if RawSpeed support compiled in).
     pub use_rawspeed: Option<bool>,
     ///Disables pixel values scaling (call to LibRaw::scale_colors()) in LibRaw::dcraw_process().
     ///
