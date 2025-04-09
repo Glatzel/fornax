@@ -95,10 +95,91 @@ class DCRawParams(BasePostProcessorParams):
     """
     DCRaw parameter.
 
+    Attributes
+    ----------
+    greybox
+        
+    cropbox
+        
+    aber
+        
+    gamm
+        
+    user_mul
+        
+    bright
+        
+    threshold
+        
+    half_size
+        
+    four_color_rgb
+        
+    highlight
+        
+    use_auto_wb
+        
+    use_camera_wb
+        
+    use_camera_matrix
+        
+    output_color
+        
+    output_profile
+        
+    camera_profile
+        
+    bad_pixels
+        
+    dark_frame
+        
+    output_bps
+        
+    output_tiff
+        
+    user_flip
+        
+    user_qual
+        
+    user_black
+        
+    user_cblack
+        
+    user_sat
+        
+    med_passes
+        
+    no_auto_bright
+        
+    auto_bright_thr
+        
+    adjust_maximum_thr
+        
+    use_fuji_rotate
+        
+    green_matching
+        
+    dcb_iterations
+        
+    dcb_enhance_fl
+        
+    fbdd_noiserd
+        
+    exp_correc
+        
+    exp_shift
+        
+    exp_preser
+        
+    use_rawspeed
+        
+    no_auto_scale
+        
+    no_interpolation
+
     References
     ----------
     - `Libraw libraw_output_params_t <https://www.libraw.org/docs/API-datastruct-eng.html#libraw_output_params_t>`_
-
     """
 
     greybox: tuple[PositiveInt, PositiveInt, PositiveInt, PositiveInt] | None = None

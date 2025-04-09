@@ -42,7 +42,7 @@ class DncParams(BaseDecoderParams):
     Attributes
     ----------
     compressed
-        Output lossless compressed DNG files
+        Output lossless compressed DNG files.
     linear
         Output linear DNG files.
     embed
@@ -54,15 +54,16 @@ class DncParams(BaseDecoderParams):
     side
         Limit size to `num` pixels/side.
     count
-        Output converted files to the specified directory.
-        Default is the same directory as the input file.
+        Limit pixel count to `num` pixels/image.
     compatibility
-        Set Camera Raw compatibility
+        Set Camera Raw compatibility.
     directory
         Output converted files to the specified directory.
+
         Default is the same directory as the input file.
     filename
         Specify the name of the output DNG file.
+
         Default is the name of the input file with the extension changed to “.dng”.
     overwrite
         Overwrite existing dng.
@@ -70,11 +71,10 @@ class DncParams(BaseDecoderParams):
     References
     ----------
     - `DNG Converter Command Line <https://community.adobe.com/havfw69955/attachments/havfw69955/camera-raw/23452/1/DNG%20Converter%20Command%20Line.pdf>`_
-
     """
 
     compressed: StrictBool = True
-    """Output lossless compressed DNG files"""
+    """Output lossless compressed DNG files."""
 
     linear: StrictBool = False
     """Output linear DNG files."""
@@ -92,18 +92,24 @@ class DncParams(BaseDecoderParams):
     """Limit size to `num` pixels/side."""
 
     count: PositiveInt | None = None
-    """Output converted files to the specified directory.
-        Default is the same directory as the input file."""
+    """
+    Limit pixel count to `num` pixels/image.
+    """
 
     compatibility: DncCompatibility = DncCompatibility.CR16_0
     """Set Camera Raw compatibility"""
 
     directory: str | Path | None = None
-    """Output converted files to the specified directory."""
+    """
+    Output converted files to the specified directory.
+
+    Default is the same directory as the input file.
+    """
 
     filename: str | None = None
     """
     Specify the name of the output DNG file.
+
     Default is the name of the input file with the extension changed to “.dng”.
     """
 
