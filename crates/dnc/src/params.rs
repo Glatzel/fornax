@@ -6,8 +6,11 @@ use path_slash::PathBufExt;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DncPreview {
+    #[cfg_attr(feature = "serde", serde(rename = "-p0"))]
     None,
+    #[cfg_attr(feature = "serde", serde(rename = "-p1"))]
     Medium,
+    #[cfg_attr(feature = "serde", serde(rename = "-p2"))]
     Full,
 }
 impl Display for DncPreview {
@@ -23,25 +26,44 @@ impl Display for DncPreview {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DncCompatibility {
+    #[cfg_attr(feature = "serde", serde(rename = "-cr2.4"))]
     CR2_4,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr4.1"))]
     CR4_1,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr4.6"))]
     CR4_6,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr5.4"))]
     CR5_4,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr6.6"))]
     CR6_6,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr7.1"))]
     CR7_1,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr11.2"))]
     CR11_2,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr12.4"))]
     CR12_4,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr13.2"))]
     CR13_2,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr14.0"))]
     CR14_0,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr15.3"))]
     CR15_3,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr16.0"))]
     CR16_0,
 
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.1"))]
     DNG1_1,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.3"))]
     DNG1_3,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.4"))]
     DNG1_4,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.5"))]
     DNG1_5,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.6"))]
     DNG1_6,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.7"))]
     DNG1_7,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.7.1"))]
     DNG1_7_1,
 }
 impl Display for DncCompatibility {
