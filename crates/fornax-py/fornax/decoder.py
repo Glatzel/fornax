@@ -2,7 +2,7 @@ from enum import Enum
 
 from pydantic import DirectoryPath, PositiveInt, StrictBool
 
-from ._base import BaseDecoder
+from ._base import BaseDecoderParams
 
 
 # region Dnc
@@ -34,7 +34,7 @@ class DncCompatibility(str, Enum):
     DNG1_7_1 = "-dng1.7.1"
 
 
-class DncParams(BaseDecoder):
+class DncParams(BaseDecoderParams):
     """
     DNG converter parameter.
 
@@ -85,4 +85,4 @@ class DncParams(BaseDecoder):
 
 
 # region libraw
-class Libraw(BaseDecoder): ...
+class Libraw(BaseDecoderParams): ...

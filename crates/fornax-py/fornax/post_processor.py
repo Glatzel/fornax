@@ -2,7 +2,7 @@ from enum import Enum
 
 from pydantic import FilePath, PositiveInt, StrictBool
 
-from ._base import BasePostProcessor
+from ._base import BasePostProcessorParams
 
 
 # region DCRaw
@@ -91,7 +91,7 @@ class DCRawFbddNoiserd(int, Enum):
     FULL = 2
 
 
-class DCRawParams(BasePostProcessor):
+class DCRawParams(BasePostProcessorParams):
     """
     DCRaw parameter.
 

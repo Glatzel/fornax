@@ -2,14 +2,19 @@ from pathlib import Path
 
 import numpy as np
 
-from ._base import BaseDecoder, BasePostProcessor
+from ._base import BaseDecoderParams, BasePostProcessorParams
 from .decoder import DncParams, Libraw
 from .fornax_py import py_process  # type: ignore
 from .post_processor import DCRawParams
 
 
 class Fornax:
-    def __init__(self, file: str | Path, decoder_params: BaseDecoder, post_processor_params: BasePostProcessor) -> None:
+    def __init__(
+        self,
+        file: str | Path,
+        decoder_params: BaseDecoderParams,
+        post_processor_params: BasePostProcessorParams,
+    ) -> None:
         self.file = Path(file).absolute()
         match decoder_params:
             case DncParams():
