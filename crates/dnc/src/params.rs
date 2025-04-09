@@ -3,11 +3,14 @@ use std::path::PathBuf;
 
 use miette::IntoDiagnostic;
 use path_slash::PathBufExt;
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DncPreview {
+    #[cfg_attr(feature = "serde", serde(rename = "-p0"))]
     None,
+    #[cfg_attr(feature = "serde", serde(rename = "-p1"))]
     Medium,
+    #[cfg_attr(feature = "serde", serde(rename = "-p2"))]
     Full,
 }
 impl Display for DncPreview {
@@ -20,28 +23,47 @@ impl Display for DncPreview {
         write!(f, "{}", text)
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DncCompatibility {
+    #[cfg_attr(feature = "serde", serde(rename = "-cr2.4"))]
     CR2_4,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr4.1"))]
     CR4_1,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr4.6"))]
     CR4_6,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr5.4"))]
     CR5_4,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr6.6"))]
     CR6_6,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr7.1"))]
     CR7_1,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr11.2"))]
     CR11_2,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr12.4"))]
     CR12_4,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr13.2"))]
     CR13_2,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr14.0"))]
     CR14_0,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr15.3"))]
     CR15_3,
+    #[cfg_attr(feature = "serde", serde(rename = "-cr16.0"))]
     CR16_0,
 
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.1"))]
     DNG1_1,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.3"))]
     DNG1_3,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.4"))]
     DNG1_4,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.5"))]
     DNG1_5,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.6"))]
     DNG1_6,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.7"))]
     DNG1_7,
+    #[cfg_attr(feature = "serde", serde(rename = "-dng1.7.1"))]
     DNG1_7_1,
 }
 impl Display for DncCompatibility {
@@ -70,36 +92,36 @@ impl Display for DncCompatibility {
         write!(f, "{}", text)
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub struct DncParams {
-    ///Output lossless compressed DNG files
+    /// Output lossless compressed DNG files
     pub compressed: bool,
     /// Output linear DNG files.
     pub linear: bool,
-    ///Embed original raw file inside DNG files.
+    /// Embed original raw file inside DNG files.
     pub embed: bool,
-    ///Set JPEG preview size.
+    /// Set JPEG preview size.
     pub preview: DncPreview,
-    ///Embed fast load data inside DNG files.
+    /// Embed fast load data inside DNG files.
     pub fast_load: bool,
-    ///Limit size to `num` pixels/side.
+    /// Limit size to `num` pixels/side.
     pub side: Option<u32>,
-    ///Limit pixel count to `num` pixels/image.
+    /// Limit pixel count to `num` pixels/image.
     pub count: Option<u32>,
-    ///Limit pixel count to `num` pixels/image.
+    /// Set Camera Raw compatibility.
     pub compatibility: DncCompatibility,
-    ///Output converted files to the specified directory.
+    /// Output converted files to the specified directory.
     ///
-    ///Default is the same directory as the input file.
+    /// Default is the same directory as the input file.
     pub directory: Option<PathBuf>,
-    ///Specify the name of the output DNG file.
+    /// Specify the name of the output DNG file.
     ///
-    ///Default is the name of the input file with the extension
-    ///changed to “.dng”.
+    /// Default is the name of the input file with the extension
+    /// changed to “.dng”.
     pub filename: Option<String>,
-
     // extra option
+    /// Overwrite existing dng file.
     pub overwrite: bool,
 }
 impl DncParams {

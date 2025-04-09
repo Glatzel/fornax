@@ -1,0 +1,58 @@
+name: update-dependency
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 16 1 * *
+
+jobs:
+  update-pixi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          run-install: false
+
+      - name: Update lockfiles
+        run: pixi update --no-install --json | pixi exec pixi-diff-to-markdown >> diff.md
+        shell: pwsh
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "build: Update pixi lockfile"
+          title: "build: update pixi lockfile"
+          body-path: ./diff.md
+          branch: update-pixi
+          base: main
+          labels: action
+          delete-branch: true
+          add-paths: pixi.lock
+          assignees: Glatzel
+          draft: true
+
+  update-vcpkg-baseline:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./vcpkg/vcpkg-update-baseline.ps1
+        shell: pwsh
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "build: update vcpkg baseline"
+          title: "build: update vcpkg baseline"
+          branch: update-vcpkg-baseline
+          base: main
+          labels: action
+          delete-branch: true
+          assignees: Glatzel
+          draft: true

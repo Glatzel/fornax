@@ -4,7 +4,7 @@ requires = ["maturin>=1.0,<2.0"]
 
 [project]
 authors = [{ name = "Glatzel", email = "893016099@qq.com" }]
-dependencies = ["lazy-loader", "numpy", "pydantic"]
+dependencies = ["lazy-loader", "numpy", "pydantic", "msgspec"]
 dynamic = ["version"]
 name = "fornax"
 requires-python = ">=3.11"

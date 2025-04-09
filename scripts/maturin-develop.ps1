@@ -1,11 +1,11 @@
 param (
-    [ValidateSet("develop","release")]
+    [ValidateSet("develop", "release")]
     $config = "develop"
 )
 $ROOT = git rev-parse --show-toplevel
-
-Set-Location $PSScriptRoot/..
-Remove-Item pyxis/pyxis.pyd -ErrorAction SilentlyContinue
+& $PSScriptRoot/setup.ps1
+Set-Location $PSScriptRoot/../crates/fornax-py
+Remove-Item ./fornax/pyxis.pyd -ErrorAction SilentlyContinue
 
 pixi run maturin develop --profile $config
 
