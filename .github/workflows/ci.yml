@@ -85,9 +85,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-latest]
+        machine: [windows-2025]
         include:
-          - machine: windows-latest
+          - machine: windows-2025
             os: win-64
     runs-on: ${{matrix.machine}}
     steps:
