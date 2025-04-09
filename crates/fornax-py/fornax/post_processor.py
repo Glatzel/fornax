@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import FilePath, PositiveInt, StrictBool, field_serializer
+from pydantic import FilePath, PositiveInt, StrictBool
 
 from ._base import BasePostProcessor
 
