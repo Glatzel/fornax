@@ -79,17 +79,33 @@ jobs:
       - name: Machete
         uses: bnjbvr/cargo-machete@main
 
-  cargo-test:
-    if: ${{!inputs.release}}
+  test-build:
     needs: cache-vcpkg
     strategy:
       fail-fast: false
       matrix:
         machine: [windows-2025]
+        include:
+          - machine: windows-2025
+            os: win-64
+    env:
+      dnc_version: 17_2
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
-      - run: winget install --verbose --source winget --id Adobe.DNGConverter
+
+      - name: restore dnc
+        if: ${{ runner.os == 'Windows'}}
+        uses: actions/cache@v4
+        with:
+          path: ./temp/dnc${{env.dnc_version}}.exe
+          key: dnc-${{ runner.os }}-${{env.dnc_version}}
+      - run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          run-install: false
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows'}}
         uses: actions/cache/restore@v4
@@ -110,6 +126,19 @@ jobs:
       - name: cargo-test
         run: ${{env.RUST_ROOT}}/scripts/cargo-test.ps1
         shell: pwsh
+
+      - name: rattler-build
+        run: ./crates/fornax-py/rattler/ci-fornax-py.ps1 ${{ inputs.release && '-config  release' || null }}
+        shell: pwsh
+
+      - name: upload-assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: pyxis-python-${{matrix.machine}}
+          path: |
+            ./crates/fornax-py/rattler/output/${{matrix.os}}/*.conda
+            ./crates/fornax-py/dist/*.whl
+          if-no-files-found: error
 
       - name: Upload results to Codecov
         if: ${{ !cancelled() }}
@@ -157,6 +186,10 @@ jobs:
       RUSTFLAGS: "-Dwarnings"
     steps:
       - uses: actions/checkout@v4
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          run-install: false
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
@@ -179,6 +212,10 @@ jobs:
       RUSTFLAGS: "-Dwarnings"
     steps:
       - uses: actions/checkout@v4
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          run-install: false
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt

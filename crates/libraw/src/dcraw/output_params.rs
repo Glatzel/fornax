@@ -3,8 +3,13 @@ use std::path::PathBuf;
 
 use miette::IntoDiagnostic;
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
+
 pub enum DCRawHighlightMode {
     Clip = 0,
     Ignore = 1,
@@ -51,6 +56,7 @@ impl From<DCRawHighlightMode> for i32 {
         }
     }
 }
+
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUseCameraMatrix {
@@ -78,32 +84,36 @@ impl From<DCRawUseCameraMatrix> for i32 {
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawOutputColor {
-    RAW = 0,
-    SRGB = 1,
-    ADOBE = 2,
-    WIDE = 3,
-    PROPHOTO = 4,
+    Raw = 0,
+    SRgb = 1,
+    Adobe = 2,
+    Wide = 3,
+    ProPhoto = 4,
     XYZ = 5,
     ACES = 6,
-    P3D65 = 7,
-    REC2020 = 8,
+    DciP3 = 7,
+    Rec2020 = 8,
 }
 impl TryFrom<i32> for DCRawOutputColor {
     type Error = miette::Report;
     fn try_from(value: i32) -> miette::Result<DCRawOutputColor> {
         match value {
-            0 => Ok(DCRawOutputColor::RAW),
-            1 => Ok(DCRawOutputColor::SRGB),
-            2 => Ok(DCRawOutputColor::ADOBE),
-            3 => Ok(DCRawOutputColor::WIDE),
-            4 => Ok(DCRawOutputColor::PROPHOTO),
+            0 => Ok(DCRawOutputColor::Raw),
+            1 => Ok(DCRawOutputColor::SRgb),
+            2 => Ok(DCRawOutputColor::Adobe),
+            3 => Ok(DCRawOutputColor::Wide),
+            4 => Ok(DCRawOutputColor::ProPhoto),
             5 => Ok(DCRawOutputColor::XYZ),
             6 => Ok(DCRawOutputColor::ACES),
-            7 => Ok(DCRawOutputColor::P3D65),
-            8 => Ok(DCRawOutputColor::REC2020),
+            7 => Ok(DCRawOutputColor::DciP3),
+            8 => Ok(DCRawOutputColor::Rec2020),
             v => miette::bail!("Unknow `OutputColor`: {v}"),
         }
     }
@@ -111,19 +121,23 @@ impl TryFrom<i32> for DCRawOutputColor {
 impl From<DCRawOutputColor> for i32 {
     fn from(value: DCRawOutputColor) -> Self {
         match value {
-            DCRawOutputColor::RAW => 0,
-            DCRawOutputColor::SRGB => 1,
-            DCRawOutputColor::ADOBE => 2,
-            DCRawOutputColor::WIDE => 3,
-            DCRawOutputColor::PROPHOTO => 4,
+            DCRawOutputColor::Raw => 0,
+            DCRawOutputColor::SRgb => 1,
+            DCRawOutputColor::Adobe => 2,
+            DCRawOutputColor::Wide => 3,
+            DCRawOutputColor::ProPhoto => 4,
             DCRawOutputColor::XYZ => 5,
             DCRawOutputColor::ACES => 6,
-            DCRawOutputColor::P3D65 => 7,
-            DCRawOutputColor::REC2020 => 8,
+            DCRawOutputColor::DciP3 => 7,
+            DCRawOutputColor::Rec2020 => 8,
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawOutputBps {
     _8bit = 8,
@@ -148,7 +162,11 @@ impl From<DCRawOutputBps> for i32 {
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawOutputTiff {
     None = -1,
@@ -176,7 +194,11 @@ impl From<DCRawOutputTiff> for i32 {
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUserFlip {
     None = 0,
@@ -207,36 +229,33 @@ impl From<DCRawUserFlip> for i32 {
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUserQual {
-    LINEAR = 0,
+    Linear = 0,
     VNG = 1,
     PPG = 2,
     AHD = 3,
     DCB = 4,
-    // comment GPL algorithm
-    // MODIFIED_AHD = 5
-    // AFD = 6
-    // VCD = 7
-    // VCD_MODIFIED_AHD = 8
-    // LMMSE = 9
-    // AMAZE = 10
     DHT = 11,
-    AAHD = 12,
+    ModifiedAHD = 12,
 }
 impl TryFrom<i32> for DCRawUserQual {
     type Error = miette::Report;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         match value {
-            0 => Ok(Self::LINEAR),
+            0 => Ok(Self::Linear),
             1 => Ok(Self::VNG),
             2 => Ok(Self::PPG),
             3 => Ok(Self::AHD),
             4 => Ok(Self::DCB),
             11 => Ok(Self::DHT),
-            12 => Ok(Self::AAHD),
+            12 => Ok(Self::ModifiedAHD),
             v => miette::bail!("Unknow `UserQual`: {v}"),
         }
     }
@@ -244,17 +263,21 @@ impl TryFrom<i32> for DCRawUserQual {
 impl From<DCRawUserQual> for i32 {
     fn from(value: DCRawUserQual) -> Self {
         match value {
-            DCRawUserQual::LINEAR => 0,
+            DCRawUserQual::Linear => 0,
             DCRawUserQual::VNG => 1,
             DCRawUserQual::PPG => 2,
             DCRawUserQual::AHD => 3,
             DCRawUserQual::DCB => 4,
             DCRawUserQual::DHT => 11,
-            DCRawUserQual::AAHD => 12,
+            DCRawUserQual::ModifiedAHD => 12,
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUseFujiRotate {
     UseRotate = -1,
@@ -279,21 +302,25 @@ impl From<DCRawUseFujiRotate> for i32 {
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawFbddNoiserd {
-    OFF = 0,
-    LIGHT = 1,
-    FULL = 2,
+    Off = 0,
+    Light = 1,
+    Full = 2,
 }
 impl TryFrom<i32> for DCRawFbddNoiserd {
     type Error = miette::Report;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         match value {
-            -1 => Ok(Self::OFF),
-            0 => Ok(Self::LIGHT),
-            1 => Ok(Self::FULL),
+            -1 => Ok(Self::Off),
+            0 => Ok(Self::Light),
+            1 => Ok(Self::Full),
             v => miette::bail!("Unknow `OutputTiff`: {v}"),
         }
     }
@@ -301,9 +328,9 @@ impl TryFrom<i32> for DCRawFbddNoiserd {
 impl From<DCRawFbddNoiserd> for i32 {
     fn from(value: DCRawFbddNoiserd) -> Self {
         match value {
-            DCRawFbddNoiserd::OFF => 0,
-            DCRawFbddNoiserd::LIGHT => 1,
-            DCRawFbddNoiserd::FULL => 2,
+            DCRawFbddNoiserd::Off => 0,
+            DCRawFbddNoiserd::Light => 1,
+            DCRawFbddNoiserd::Full => 2,
         }
     }
 }
@@ -331,6 +358,7 @@ pub struct DCRawParams {
     /// correction of aberrations changes the output size.
     ///
     /// The `aber[0]` will set `aber[0]`.
+    ///
     /// The `aber[1]` will set `aber[2]`.
     pub aber: Option<[f64; 2]>,
     /// Sets user gamma-curve. Library user should set first two fields of gamm array:
@@ -345,6 +373,7 @@ pub struct DCRawParams {
     /// `gamm[0]/gamm[1]` to 1.0.
     ///
     /// The `gamm[0]` will set `gamm[0]`.
+    ///
     /// The `gamm[1]` will set `gamm[1]`.
     pub gamm: Option<[f64; 2]>,
     /// 4 multipliers (r,g,b,g) of the user's white balance.
@@ -385,7 +414,7 @@ pub struct DCRawParams {
     ///Path to file with bad pixels map (in dcraw format: "column row
     /// date-of-pixel-death-in-UNIX-format", one pixel per row).
     pub bad_pixels: Option<PathBuf>,
-    /// Path to dark frame file (in 16-bit PGM format)
+    /// Path to dark frame file (in 16-bit PGM format).
     pub dark_frame: Option<PathBuf>,
     ///8 bit (default)/16 bit (key -4).
     pub output_bps: Option<DCRawOutputBps>,
@@ -449,17 +478,20 @@ pub struct DCRawParams {
     /// - 2 (and more) - full FBDD reduction
     pub fbdd_noiserd: Option<DCRawFbddNoiserd>,
     ///Exposure correction before demosaic.
+    ///
     ///exp_correc: positive value turns the feature on (default: off).
     pub exp_correc: Option<i32>,
     ///Exposure correction before demosaic.
+    ///
     ///exp_shift: exposure shift in linear scale. Usable range from 0.25 (2-stop darken) to 8.0
     /// (3-stop lighter). Default: 1.0 (no exposure shift).
     pub exp_shift: Option<f32>,
     ///Exposure correction before demosaic.
+    ///
     ///exp_preser: preserve highlights when lighten the image. Usable range from 0.0 (no
     /// preservation) to 1.0 (full preservation). 0.0 is the default value.
     pub exp_preser: Option<f32>,
-    ///Turns on using RawSpeed library for data unpacking (only if RawSpeed support compiled in).
+    /// Turns on using RawSpeed library for data unpacking (only if RawSpeed support compiled in).
     pub use_rawspeed: Option<bool>,
     ///Disables pixel values scaling (call to LibRaw::scale_colors()) in LibRaw::dcraw_process().
     ///

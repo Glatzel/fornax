@@ -1,6 +1,6 @@
 $ROOT = git rev-parse --show-toplevel
-Set-Location -Path "$PSScriptRoot"
-Set-Location -Path ".."
-$files = Get-ChildItem -Path "./pyxis/*.py" -Recurse
+& $PSScriptRoot/setup.ps1
+Set-Location $PSScriptRoot/../crates/fornax-py
+$files = Get-ChildItem -Path "./fornax/*.py" -Recurse
 pixi run numpydoc lint $files
 Set-Location $ROOT

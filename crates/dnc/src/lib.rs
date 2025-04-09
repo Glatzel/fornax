@@ -78,13 +78,13 @@ impl Dnc {
         if !dng_file.exists() {
             let program = DNC_EXECUTABLE.as_os_str();
             let args = self.params.to_cmd(&raw_file)?;
-            let output = std::process::Command::new(program)
+            let _output = std::process::Command::new(program)
                 .args(&args)
                 .output()
                 .into_diagnostic()?;
             clerk::debug!("Command:\n{:?} {}", program, &args.join(" "));
-            clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
-            clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
+            clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&_output.stdout));
+            clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&_output.stderr));
             if !&dng_file.exists() {
                 miette::bail!("Dng conversion failed.");
             }
@@ -130,7 +130,7 @@ impl fornax_core::IDecoder for Dnc {
     }
 
     fn decode_buffer(&self, _buffer: &[u8]) -> miette::Result<()> {
-        todo!()
+        unimplemented!("DNG converter can not read buffer.")
     }
 }
 impl IDCRaw for Dnc {

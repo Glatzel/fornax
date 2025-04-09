@@ -1,4 +1,4 @@
-from . import dcraw, dnc
-from ._fornax import Decoder, PostProcessor
+from . import decoder, post_processor
+from ._fornax import Fornax
 
-__all__ = ["Decoder", "PostProcessor", "dcraw", "dnc"]
+__all__ = ["Fornax", "decoder", "post_processor"]

@@ -2,14 +2,15 @@ param (
     [ValidateSet("develop","release")]
     $config = "develop"
 )
+$ErrorActionPreference = "Stop"
+$PSNativeCommandUseErrorActionPreference = $true
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot
 
-& "$PSScriptRoot/../scripts/build-cuda.ps1"
-& "$PSScriptRoot/../scripts/maturin-develop.ps1" -config $config
-& "$PSScriptRoot/../scripts/pytest.ps1"
-& "$PSScriptRoot/../scripts/build-python-whl.ps1" -config $config
+& "$ROOT/scripts/maturin-develop.ps1" -config $config
+& "$ROOT/scripts/pytest.ps1"
+& "$ROOT/scripts/build-python-whl.ps1" -config $config
 
 Set-Location $PSScriptRoot
-pixi run rattler-build build
+pixi run -e pydev rattler-build build
 Set-Location $ROOT
