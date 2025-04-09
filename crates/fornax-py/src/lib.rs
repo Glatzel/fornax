@@ -71,7 +71,6 @@ fn py_process<'a>(
             (img.as_raw(), img.width(), img.height(), 1, 16).into_pyobject(py)
         }
         fornax::FornaxProcessedImage::Rgb8(img) => {
-            println!("{},{},{},{}", img.width(), img.height(), 3, 8);
             (img.as_raw(), img.width(), img.height(), 3, 8).into_pyobject(py)
         }
         fornax::FornaxProcessedImage::Rgb16(img) => {
