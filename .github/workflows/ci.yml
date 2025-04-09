@@ -175,7 +175,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rust-doc
-          path: rust/dist/*.7z
+          path: ./dist/*.7z
           if-no-files-found: error
 
   cargo-clippy:
