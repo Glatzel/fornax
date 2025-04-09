@@ -11,4 +11,5 @@ if (-not (Test-Path "$ROOT/temp/dnc$version.exe")) {
 }
 Write-Output "::group::install dnc $version"
 Start-Process "./temp/dnc$version.exe" -ArgumentList "/silent" -Wait
+Write-Output "dnc installed"
 Write-Output "::endgroup::"
