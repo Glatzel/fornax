@@ -21,5 +21,8 @@
         "**/node_modules/**",
         "**/bindings.rs",
         "**.lock"
+    ],
+    "python.analysis.extraPaths": [
+        "./crates/fornax-py"
     ]
 }
