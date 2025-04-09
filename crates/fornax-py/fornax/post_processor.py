@@ -141,18 +141,3 @@ class DCRawParams(BasePostProcessor):
     use_rawspeed: StrictBool | None = None
     no_auto_scale: StrictBool | None = None
     no_interpolation: StrictBool | None = None
-
-    @field_serializer(
-        "highlight",
-        "use_camera_matrix",
-        "output_color",
-        "output_bps",
-        "output_tiff",
-        "user_flip",
-        "user_qual",
-        "use_fuji_rotate",
-        "fbdd_noiserd",
-        when_used="json",
-    )
-    def _serialize_special_field(self, v: Enum):
-        return v.value
