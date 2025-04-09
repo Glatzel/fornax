@@ -38,6 +38,33 @@ class DncParams(BaseDecoder):
     """
     DNG converter parameter.
 
+    Attributes
+    ----------
+    compressed
+        Output lossless compressed DNG files
+    linear
+        Output linear DNG files.
+    embed
+        Embed original raw file inside DNG files.
+    preview
+        Set JPEG preview size.
+    fast_load
+        Embed fast load data inside DNG files.
+    side
+        Limit size to `num` pixels/side.
+    count
+        Output converted files to the specified directory.
+        Default is the same directory as the input file.
+    compatibility
+        Set Camera Raw compatibility
+    directory
+        Output converted files to the specified directory.
+        Default is the same directory as the input file.
+    filename
+        Specify the name of the output DNG file.
+        Default is the name of the input file with the extension changed to “.dng”.
+    overwrite
+
     References
     ----------
     - `DNG Converter Command Line <https://community.adobe.com/havfw69955/attachments/havfw69955/camera-raw/23452/1/DNG%20Converter%20Command%20Line.pdf>`_

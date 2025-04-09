@@ -95,33 +95,33 @@ impl Display for DncCompatibility {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub struct DncParams {
-    ///Output lossless compressed DNG files
+    /// Output lossless compressed DNG files
     pub compressed: bool,
     /// Output linear DNG files.
     pub linear: bool,
-    ///Embed original raw file inside DNG files.
+    /// Embed original raw file inside DNG files.
     pub embed: bool,
-    ///Set JPEG preview size.
+    /// Set JPEG preview size.
     pub preview: DncPreview,
-    ///Embed fast load data inside DNG files.
+    /// Embed fast load data inside DNG files.
     pub fast_load: bool,
-    ///Limit size to `num` pixels/side.
+    /// Limit size to `num` pixels/side.
     pub side: Option<u32>,
-    ///Limit pixel count to `num` pixels/image.
+    /// Limit pixel count to `num` pixels/image.
     pub count: Option<u32>,
-    ///Limit pixel count to `num` pixels/image.
+    /// Set Camera Raw compatibility.
     pub compatibility: DncCompatibility,
-    ///Output converted files to the specified directory.
+    /// Output converted files to the specified directory.
     ///
-    ///Default is the same directory as the input file.
+    /// Default is the same directory as the input file.
     pub directory: Option<PathBuf>,
-    ///Specify the name of the output DNG file.
+    /// Specify the name of the output DNG file.
     ///
-    ///Default is the name of the input file with the extension
-    ///changed to “.dng”.
+    /// Default is the name of the input file with the extension
+    /// changed to “.dng”.
     pub filename: Option<String>,
-
     // extra option
+    /// Overwrite existing dng file.
     pub overwrite: bool,
 }
 impl DncParams {
