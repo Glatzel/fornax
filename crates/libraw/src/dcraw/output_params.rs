@@ -91,15 +91,15 @@ impl From<DCRawUseCameraMatrix> for i32 {
 )]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawOutputColor {
-    Raw      = 0,
-    SRgb     = 1,
-    Adobe    = 2,
-    Wide     = 3,
+    Raw = 0,
+    SRgb = 1,
+    Adobe = 2,
+    Wide = 3,
     ProPhoto = 4,
-    XYZ      = 5,
-    ACES     = 6,
-    DciP3    = 7,
-    Rec2020  = 8,
+    XYZ = 5,
+    ACES = 6,
+    DciP3 = 7,
+    Rec2020 = 8,
 }
 impl TryFrom<i32> for DCRawOutputColor {
     type Error = miette::Report;
