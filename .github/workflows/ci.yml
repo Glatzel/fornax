@@ -98,7 +98,7 @@ jobs:
         if: ${{ runner.os == 'Windows'}}
         uses: actions/cache
         with:
-          path: ./vcpkg/installed
+          path: ./temp/dnc${{env.dnc_version}}.exe
           key: dnc-${{ runner.os }}-${{env.dnc_version}}
       - run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
 
