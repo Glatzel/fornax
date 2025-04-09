@@ -11,11 +11,9 @@ from .post_processor import DCRawParams
 class Fornax:
     def __init__(
         self,
-        file: str | Path,
         decoder_params: BaseDecoderParams,
         post_processor_params: BasePostProcessorParams,
     ) -> None:
-        self.file = Path(file).absolute()
         match decoder_params:
             case DncParams():
                 self.decoder = "dnc"
@@ -32,9 +30,23 @@ class Fornax:
                 TypeError("Unknown post processor")
         self.post_processor_params = post_processor_params
 
-    def process(self):  # type: ignore
+    def process(self, file: str | Path) -> np.ndarray:
+        """
+        Decode and process raw image.
+
+        Parameters
+        ----------
+        file
+            Raw image file.
+
+        Returns
+        -------
+        np.ndarray
+            Processed image of shape `(height, width, channels)`.
+        """
+        file = Path(file).absolute()
         buf, width, height, channels, bits = py_process(
-            self.file,
+            file,
             self.decoder,
             self.decoder_params.to_msgpack(),
             self.post_processor,
@@ -42,9 +54,9 @@ class Fornax:
         )
         match channels, bits:
             case 1, 8:
-                img = np.frombuffer(buf, dtype=np.uint8).reshape(height, width)
+                img = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 1)
             case 1, 16:
-                img = np.frombuffer(buf, dtype=np.uint16).reshape(height, width)
+                img = np.frombuffer(buf, dtype=np.uint16).reshape(height, width, 1)
             case 3, 8:
                 img = np.frombuffer(buf, dtype=np.uint8).reshape(height, width, 3)
             case 3, 16:

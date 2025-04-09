@@ -11,7 +11,7 @@ img_dir = root / "external" / "raw-images" / "images"
 
 def test_dcraw():
     f = img_dir / "colorchart-5D2-6000K.dng"
-    img = fornax.Fornax(f, fornax.decoder.Libraw(), fornax.post_processor.DCRawParams()).process()
+    img = fornax.Fornax(fornax.decoder.Libraw(), fornax.post_processor.DCRawParams()).process(f)
     out_file = temp_dir / "libraw_dcraw.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()
@@ -32,7 +32,7 @@ def test_dnc():
         filename="test_dnc.dng",
         overwrite=True,
     )
-    img = fornax.Fornax(f, dnc, fornax.post_processor.DCRawParams()).process()
+    img = fornax.Fornax(dnc, fornax.post_processor.DCRawParams()).process(f)
     out_file = temp_dir / "dnc.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()

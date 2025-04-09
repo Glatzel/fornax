@@ -21,7 +21,7 @@ class BaseParams(BaseModel):
 
         Returns
         -------
-        DCRawParams
+        Params
         """
         json_file = Path(json_file)
         assert json_file.exists()
