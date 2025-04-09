@@ -1,16 +1,12 @@
 package:
-  version: 0.0.17
-  name: pyxis-py
+  version: 0.0.1
+  name: fornax-py
 build:
   number: 0
-  string: ${{ "cpu" if cuda_variant == "numpy" else ( 'gpu' if cuda_variant=='cupy-core' else 'gpu_cudart')}}_${{ hash }}_${{ build_number }}
   script:
     - if: win
       then:
         - pwsh -f %RECIPE_DIR%/build-fornax-py.ps1
-    - if: linux
-      then:
-        - pwsh -f $RECIPE_DIR/build-fornax-py.ps1
 
 requirements:
   host:
