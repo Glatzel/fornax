@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import FilePath, PositiveInt, StrictBool
 
@@ -6,89 +6,82 @@ from ._base import BasePostProcessorParams
 
 
 # region DCRaw
-class DCRawHighlightMode(int, Enum):
+class DCRawHighlightMode(StrEnum):
     """Highlight modes."""
 
-    Clip = 0
-    Ignore = 1
-    Blend = 2
-    Reconstruct3 = 3
-    Reconstruct4 = 4
-    Reconstruct5 = 5
-    Reconstruct6 = 6
-    Reconstruct7 = 7
-    Reconstruct8 = 8
-    Reconstruct9 = 9
+    Clip = "Clip"
+    Ignore = "Ignore"
+    Blend = "Blend"
+    Reconstruct3 = "Reconstruct3"
+    Reconstruct4 = "Reconstruct4"
+    Reconstruct5 = "Reconstruct5"
+    Reconstruct6 = "Reconstruct6"
+    Reconstruct7 = "Reconstruct7"
+    Reconstruct8 = "Reconstruct8"
+    Reconstruct9 = "Reconstruct9"
 
 
-class DCRawUseCameraMatrix(int, Enum):
-    NotUse = 0
-    EmbeddedProfile = 1
-    EmbeddedData = 3
+class DCRawUseCameraMatrix(StrEnum):
+    NotUse = "NotUse"
+    EmbeddedProfile = "EmbeddedProfile"
+    EmbeddedData = "EmbeddedData"
 
 
-class DCRawOutputBps(int, Enum):
-    _8bit = 8
-    _16bit = 6
-
-
-class DCRawOutputColor(int, Enum):
+class DCRawOutputColor(StrEnum):
     """Color spaces."""
 
-    RAW = 0
-    SRGB = 1
-    ADOBE = 2
-    WIDE = 3
-    PROPHOTO = 4
-    XYZ = 5
-    ACES = 6
-    P3D65 = 7
-    REC2020 = 8
+    Raw = "Raw"
+    SRgb = "SRgb"
+    Adobe = "Adobe"
+    Wide = "Wide"
+    ProPhoto = "ProPhoto"
+    XYZ = "XYZ"
+    ACES = "ACES"
+    DciP3 = "DciP3"
+    Rec2020 = "Rec2020"
 
 
-class DCRawOutputTiff(int, Enum):
-    _None = -1
-    Ppm = 0
-    Tiff = 1
+class DCRawOutputBps(StrEnum):
+    _8bit = "_8bit"
+    _16bit = "_16bit"
 
 
-class DCRawUserFlip(int, Enum):
-    _None = 0
-    Rotate180 = 3
-    CCW90 = 5
-    CW90 = 6
+class DCRawOutputTiff(StrEnum):
+    _None = "None"
+    Ppm = "Ppm"
+    Tiff = "Tiff"
 
 
-class DCRawUserQual(int, Enum):
+class DCRawUserFlip(StrEnum):
+    _None = "None"
+    Rotate180 = "Rotate180"
+    CCW90 = "CCW90"
+    CW90 = "CW90"
+
+
+class DCRawUserQual(StrEnum):
     """Identifiers for demosaic algorithms."""
 
-    LINEAR = 0
-    VNG = 1
-    PPG = 2
-    AHD = 3
-    DCB = 4
-    # comment GPL algorithm
-    # MODIFIED_AHD = 5
-    # AFD = 6
-    # VCD = 7
-    # VCD_MODIFIED_AHD = 8
-    # LMMSE = 9
-    # AMAZE = 10
-    DHT = 11
-    AAHD = 12
+    Linear = "Linear"
+    VNG = "VNG"
+    PPG = "PPG"
+    AHD = "AHD"
+    DCB = "DCB"
+    DHT = "DHT"
+    ModifiedAHD = "ModifiedAHD"
 
 
-class DCRawUseFujiRotate(int, Enum):
-    UseRotate = -1
-    NotUse = 0
+class DCRawUseFujiRotate(StrEnum):
+    UseRotate = "UseRotate"
+    NotUse = "NotUse"
 
 
-class DCRawFbddNoiserd(int, Enum):
+class DCRawFbddNoiserd(StrEnum):
     """FBDD noise reduction modes."""
 
-    OFF = 0
-    LIGHT = 1
-    FULL = 2
+    Off = "Off"
+    Light = "Light"
+    Full = "Full"
 
 
 class DCRawParams(BasePostProcessorParams):
@@ -158,12 +151,12 @@ class DCRawParams(BasePostProcessorParams):
     use_camera_matrix
         If camera-recorded WB is not available, dcraw_process() will fallback to:
     output_color
+        [0-8] Output colorspace (raw, sRGB, Adobe, Wide, ProPhoto, XYZ, ACES, DCI-P3, Rec. 2020).
+    output_profile
         - 0: do not use embedded color profile
         - 1 (default): use embedded color profile (if present) for DNG files (always); for other
           files only if use_camera_wb is set;
         - 3: use embedded color data (if present) regardless of white balance setting.
-    output_profile
-        [0-8] Output colorspace (raw, sRGB, Adobe, Wide, ProPhoto, XYZ, ACES, DCI-P3, Rec. 2020).
     camera_profile
         Path to output profile ICC file (used only if LibRaw compiled with LCMS support)
     bad_pixels
@@ -345,15 +338,15 @@ class DCRawParams(BasePostProcessorParams):
     """If camera-recorded WB is not available, dcraw_process() will fallback to:"""
 
     output_color: DCRawOutputColor | None = None
+    """[0-8] Output colorspace (raw, sRGB, Adobe, Wide, ProPhoto, XYZ, ACES, DCI-P3, Rec. 2020)."""
+
+    output_profile: FilePath | None = None
     """
     - 0: do not use embedded color profile
     - 1 (default): use embedded color profile (if present) for DNG files (always); for other
       files only if use_camera_wb is set;
     - 3: use embedded color data (if present) regardless of white balance setting.
     """
-
-    output_profile: FilePath | None = None
-    """[0-8] Output colorspace (raw, sRGB, Adobe, Wide, ProPhoto, XYZ, ACES, DCI-P3, Rec. 2020)."""
 
     camera_profile: FilePath | None = None
     """Path to output profile ICC file (used only if LibRaw compiled with LCMS support)"""

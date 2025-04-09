@@ -48,7 +48,7 @@ fn py_process<'a>(
         (PyDecoder::Libraw, PyPostPorcessor::DCRaw) => {
             let decoder = Libraw::new();
             let post_processor_params: DCRawParams =
-                Deserialize::deserialize(&mut Deserializer::new(decoder_params)).unwrap();
+                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let mut manager = fornax::Fornax::new(decoder, DCRaw::new(post_processor_params));
             manager.decode_file(&file).unwrap().post_process().unwrap()
         }

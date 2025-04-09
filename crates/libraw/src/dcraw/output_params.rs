@@ -3,28 +3,23 @@ use std::path::PathBuf;
 
 use miette::IntoDiagnostic;
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
+
 pub enum DCRawHighlightMode {
-    #[cfg_attr(feature = "serde", serde(rename = "0"))]
     Clip = 0,
-    #[cfg_attr(feature = "serde", serde(rename = "1"))]
     Ignore = 1,
-    #[cfg_attr(feature = "serde", serde(rename = "2"))]
     Blend = 2,
-    #[cfg_attr(feature = "serde", serde(rename = "3"))]
     Reconstruct3 = 3,
-    #[cfg_attr(feature = "serde", serde(rename = "4"))]
     Reconstruct4 = 4,
-    #[cfg_attr(feature = "serde", serde(rename = "5"))]
     Reconstruct5 = 5, //default
-    #[cfg_attr(feature = "serde", serde(rename = "6"))]
     Reconstruct6 = 6,
-    #[cfg_attr(feature = "serde", serde(rename = "7"))]
     Reconstruct7 = 7,
-    #[cfg_attr(feature = "serde", serde(rename = "8"))]
     Reconstruct8 = 8,
-    #[cfg_attr(feature = "serde", serde(rename = "9"))]
     Reconstruct9 = 9,
 }
 impl TryFrom<i32> for DCRawHighlightMode {
@@ -61,14 +56,12 @@ impl From<DCRawHighlightMode> for i32 {
         }
     }
 }
+
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUseCameraMatrix {
-    #[cfg_attr(feature = "serde", serde(rename = "0"))]
     NotUse = 0,
-    #[cfg_attr(feature = "serde", serde(rename = "1"))]
     EmbeddedProfile = 1,
-    #[cfg_attr(feature = "serde", serde(rename = "3"))]
     EmbeddedData = 3,
 }
 impl TryFrom<i32> for DCRawUseCameraMatrix {
@@ -91,41 +84,36 @@ impl From<DCRawUseCameraMatrix> for i32 {
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawOutputColor {
-    #[cfg_attr(feature = "serde", serde(rename = "0"))]
-    RAW = 0,
-    #[cfg_attr(feature = "serde", serde(rename = "1"))]
-    SRGB = 1,
-    #[cfg_attr(feature = "serde", serde(rename = "2"))]
-    ADOBE = 2,
-    #[cfg_attr(feature = "serde", serde(rename = "3"))]
-    WIDE = 3,
-    #[cfg_attr(feature = "serde", serde(rename = "4"))]
-    PROPHOTO = 4,
-    #[cfg_attr(feature = "serde", serde(rename = "5"))]
-    XYZ = 5,
-    #[cfg_attr(feature = "serde", serde(rename = "6"))]
-    ACES = 6,
-    #[cfg_attr(feature = "serde", serde(rename = "7"))]
-    P3D65 = 7,
-    #[cfg_attr(feature = "serde", serde(rename = "8"))]
-    REC2020 = 8,
+    Raw      = 0,
+    SRgb     = 1,
+    Adobe    = 2,
+    Wide     = 3,
+    ProPhoto = 4,
+    XYZ      = 5,
+    ACES     = 6,
+    DciP3    = 7,
+    Rec2020  = 8,
 }
 impl TryFrom<i32> for DCRawOutputColor {
     type Error = miette::Report;
     fn try_from(value: i32) -> miette::Result<DCRawOutputColor> {
         match value {
-            0 => Ok(DCRawOutputColor::RAW),
-            1 => Ok(DCRawOutputColor::SRGB),
-            2 => Ok(DCRawOutputColor::ADOBE),
-            3 => Ok(DCRawOutputColor::WIDE),
-            4 => Ok(DCRawOutputColor::PROPHOTO),
+            0 => Ok(DCRawOutputColor::Raw),
+            1 => Ok(DCRawOutputColor::SRgb),
+            2 => Ok(DCRawOutputColor::Adobe),
+            3 => Ok(DCRawOutputColor::Wide),
+            4 => Ok(DCRawOutputColor::ProPhoto),
             5 => Ok(DCRawOutputColor::XYZ),
             6 => Ok(DCRawOutputColor::ACES),
-            7 => Ok(DCRawOutputColor::P3D65),
-            8 => Ok(DCRawOutputColor::REC2020),
+            7 => Ok(DCRawOutputColor::DciP3),
+            8 => Ok(DCRawOutputColor::Rec2020),
             v => miette::bail!("Unknow `OutputColor`: {v}"),
         }
     }
@@ -133,24 +121,26 @@ impl TryFrom<i32> for DCRawOutputColor {
 impl From<DCRawOutputColor> for i32 {
     fn from(value: DCRawOutputColor) -> Self {
         match value {
-            DCRawOutputColor::RAW => 0,
-            DCRawOutputColor::SRGB => 1,
-            DCRawOutputColor::ADOBE => 2,
-            DCRawOutputColor::WIDE => 3,
-            DCRawOutputColor::PROPHOTO => 4,
+            DCRawOutputColor::Raw => 0,
+            DCRawOutputColor::SRgb => 1,
+            DCRawOutputColor::Adobe => 2,
+            DCRawOutputColor::Wide => 3,
+            DCRawOutputColor::ProPhoto => 4,
             DCRawOutputColor::XYZ => 5,
             DCRawOutputColor::ACES => 6,
-            DCRawOutputColor::P3D65 => 7,
-            DCRawOutputColor::REC2020 => 8,
+            DCRawOutputColor::DciP3 => 7,
+            DCRawOutputColor::Rec2020 => 8,
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawOutputBps {
-    #[cfg_attr(feature = "serde", serde(rename = "8"))]
     _8bit = 8,
-    #[cfg_attr(feature = "serde", serde(rename = "16"))]
     _16bit = 16,
 }
 impl TryFrom<i32> for DCRawOutputBps {
@@ -172,14 +162,15 @@ impl From<DCRawOutputBps> for i32 {
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawOutputTiff {
-    #[cfg_attr(feature = "serde", serde(rename = "-1"))]
     None = -1,
-    #[cfg_attr(feature = "serde", serde(rename = "0"))]
     Ppm = 0,
-    #[cfg_attr(feature = "serde", serde(rename = "1"))]
     Tiff = 1,
 }
 impl TryFrom<i32> for DCRawOutputTiff {
@@ -203,16 +194,16 @@ impl From<DCRawOutputTiff> for i32 {
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUserFlip {
-    #[cfg_attr(feature = "serde", serde(rename = "0"))]
     None = 0,
-    #[cfg_attr(feature = "serde", serde(rename = "3"))]
     Rotate180 = 3,
-    #[cfg_attr(feature = "serde", serde(rename = "5"))]
     CCW90 = 5,
-    #[cfg_attr(feature = "serde", serde(rename = "6"))]
     CW90 = 6,
 }
 impl TryFrom<i32> for DCRawUserFlip {
@@ -238,43 +229,33 @@ impl From<DCRawUserFlip> for i32 {
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUserQual {
-    #[cfg_attr(feature = "serde", serde(rename = "0"))]
-    LINEAR = 0,
-    #[cfg_attr(feature = "serde", serde(rename = "1"))]
+    Linear = 0,
     VNG = 1,
-    #[cfg_attr(feature = "serde", serde(rename = "2"))]
     PPG = 2,
-    #[cfg_attr(feature = "serde", serde(rename = "3"))]
     AHD = 3,
-    #[cfg_attr(feature = "serde", serde(rename = "4"))]
     DCB = 4,
-    // comment GPL algorithm
-    // MODIFIED_AHD = 5
-    // AFD = 6
-    // VCD = 7
-    // VCD_MODIFIED_AHD = 8
-    // LMMSE = 9
-    // AMAZE = 10
-    #[cfg_attr(feature = "serde", serde(rename = "11"))]
     DHT = 11,
-    #[cfg_attr(feature = "serde", serde(rename = "12"))]
-    AAHD = 12,
+    ModifiedAHD = 12,
 }
 impl TryFrom<i32> for DCRawUserQual {
     type Error = miette::Report;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         match value {
-            0 => Ok(Self::LINEAR),
+            0 => Ok(Self::Linear),
             1 => Ok(Self::VNG),
             2 => Ok(Self::PPG),
             3 => Ok(Self::AHD),
             4 => Ok(Self::DCB),
             11 => Ok(Self::DHT),
-            12 => Ok(Self::AAHD),
+            12 => Ok(Self::ModifiedAHD),
             v => miette::bail!("Unknow `UserQual`: {v}"),
         }
     }
@@ -282,22 +263,24 @@ impl TryFrom<i32> for DCRawUserQual {
 impl From<DCRawUserQual> for i32 {
     fn from(value: DCRawUserQual) -> Self {
         match value {
-            DCRawUserQual::LINEAR => 0,
+            DCRawUserQual::Linear => 0,
             DCRawUserQual::VNG => 1,
             DCRawUserQual::PPG => 2,
             DCRawUserQual::AHD => 3,
             DCRawUserQual::DCB => 4,
             DCRawUserQual::DHT => 11,
-            DCRawUserQual::AAHD => 12,
+            DCRawUserQual::ModifiedAHD => 12,
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUseFujiRotate {
-    #[cfg_attr(feature = "serde", serde(rename = "-1"))]
     UseRotate = -1,
-    #[cfg_attr(feature = "serde", serde(rename = "0"))]
     NotUse = 0,
 }
 impl TryFrom<i32> for DCRawUseFujiRotate {
@@ -319,24 +302,25 @@ impl From<DCRawUseFujiRotate> for i32 {
         }
     }
 }
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawFbddNoiserd {
-    #[cfg_attr(feature = "serde", serde(rename = "0"))]
-    OFF = 0,
-    #[cfg_attr(feature = "serde", serde(rename = "1"))]
-    LIGHT = 1,
-    #[cfg_attr(feature = "serde", serde(rename = "2"))]
-    FULL = 2,
+    Off = 0,
+    Light = 1,
+    Full = 2,
 }
 impl TryFrom<i32> for DCRawFbddNoiserd {
     type Error = miette::Report;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         match value {
-            -1 => Ok(Self::OFF),
-            0 => Ok(Self::LIGHT),
-            1 => Ok(Self::FULL),
+            -1 => Ok(Self::Off),
+            0 => Ok(Self::Light),
+            1 => Ok(Self::Full),
             v => miette::bail!("Unknow `OutputTiff`: {v}"),
         }
     }
@@ -344,9 +328,9 @@ impl TryFrom<i32> for DCRawFbddNoiserd {
 impl From<DCRawFbddNoiserd> for i32 {
     fn from(value: DCRawFbddNoiserd) -> Self {
         match value {
-            DCRawFbddNoiserd::OFF => 0,
-            DCRawFbddNoiserd::LIGHT => 1,
-            DCRawFbddNoiserd::FULL => 2,
+            DCRawFbddNoiserd::Off => 0,
+            DCRawFbddNoiserd::Light => 1,
+            DCRawFbddNoiserd::Full => 2,
         }
     }
 }
