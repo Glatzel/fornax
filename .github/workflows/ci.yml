@@ -96,7 +96,7 @@ jobs:
 
       - name: restore dnc
         if: ${{ runner.os == 'Windows'}}
-        uses: actions/cache
+        uses: actions/cache@v4
         with:
           path: ./temp/dnc${{env.dnc_version}}.exe
           key: dnc-${{ runner.os }}-${{env.dnc_version}}
