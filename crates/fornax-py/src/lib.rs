@@ -78,8 +78,6 @@ fn py_process<'a>(
             (img.as_raw(), img.width(), img.height(), 3, 16).into_pyobject(py)
         }
     }
-    // (, 1).into_pyobject(py)
-    // &[1u8].into_pyobject(py)
 }
 
 #[pymodule]

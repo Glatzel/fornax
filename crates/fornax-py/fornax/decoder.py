@@ -1,6 +1,7 @@
 from enum import Enum
+from pathlib import Path
 
-from pydantic import DirectoryPath, PositiveInt, StrictBool
+from pydantic import PositiveInt, StrictBool, field_validator
 
 from ._base import BaseDecoderParams
 
@@ -79,9 +80,16 @@ class DncParams(BaseDecoderParams):
     side: PositiveInt | None = None
     count: PositiveInt | None = None
     compatibility: DncCompatibility = DncCompatibility.CR16_0
-    directory: DirectoryPath | None = None
+    directory: str | Path | None = None
     filename: str | None = None
     overwrite: StrictBool = False
+
+    @field_validator("directory")
+    def convert_path_to_string(cls, v):
+        if v:
+            return str(Path(v).absolute())
+        else:
+            return None
 
 
 # region libraw

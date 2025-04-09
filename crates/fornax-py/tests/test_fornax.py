@@ -32,3 +32,4 @@ def test_dnc():
     )
     img = fornax.Fornax(f, dnc, fornax.post_processor.DCRawParams()).process()
     iio.imwrite(temp_dir / "dnc.tiff", img)
+    assert False
