@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use fornax::dnc::{Dnc, DncParams};
 use fornax::libraw::dcraw::DCRawParams;
 use fornax::libraw::{DCRaw, Libraw};
@@ -7,7 +9,6 @@ use pyo3::types::PyTuple;
 use pyo3::{Python, pyfunction};
 use rmp_serde::Deserializer;
 use serde::Deserialize;
-use std::path::PathBuf;
 enum PyDecoder {
     Libraw,
     Dnc,
