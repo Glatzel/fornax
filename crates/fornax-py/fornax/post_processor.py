@@ -463,7 +463,7 @@ class DCRawParams(BasePostProcessorParams):
     (3-stop lighter). Default: 1.0 (no exposure shift).
     """
 
-    exp_preser: StrictBool | None = None
+    exp_preser: float | None = None
     """
     Exposure correction before demosaic.
 
