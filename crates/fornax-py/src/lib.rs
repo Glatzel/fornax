@@ -1,13 +1,13 @@
-use std::path::PathBuf;
-
 use fornax::dnc::{Dnc, DncParams};
 use fornax::libraw::dcraw::DCRawParams;
 use fornax::libraw::{DCRaw, Libraw};
+use numpy::PyArray;
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3::{Python, pyfunction};
 use rmp_serde::Deserializer;
 use serde::Deserialize;
+use std::path::PathBuf;
 enum PyDecoder {
     Libraw,
     Dnc,
@@ -64,18 +64,38 @@ fn py_process<'a>(
     };
     match img {
         fornax::FornaxProcessedImage::None => panic!("Process failed."),
-        fornax::FornaxProcessedImage::Mono8(img) => {
-            (img.as_raw(), img.width(), img.height(), 1, 8).into_pyobject(py)
-        }
-        fornax::FornaxProcessedImage::Mono16(img) => {
-            (img.as_raw(), img.width(), img.height(), 1, 16).into_pyobject(py)
-        }
-        fornax::FornaxProcessedImage::Rgb8(img) => {
-            (img.as_raw(), img.width(), img.height(), 3, 8).into_pyobject(py)
-        }
-        fornax::FornaxProcessedImage::Rgb16(img) => {
-            (img.as_raw(), img.width(), img.height(), 3, 16).into_pyobject(py)
-        }
+        fornax::FornaxProcessedImage::Mono8(img) => (
+            PyArray::from_slice(py, img.as_ref()),
+            img.width(),
+            img.height(),
+            1,
+            8,
+        )
+            .into_pyobject(py),
+        fornax::FornaxProcessedImage::Mono16(img) => (
+            PyArray::from_slice(py, img.as_ref()),
+            img.width(),
+            img.height(),
+            1,
+            16,
+        )
+            .into_pyobject(py),
+        fornax::FornaxProcessedImage::Rgb8(img) => (
+            PyArray::from_slice(py, img.as_ref()),
+            img.width(),
+            img.height(),
+            3,
+            8,
+        )
+            .into_pyobject(py),
+        fornax::FornaxProcessedImage::Rgb16(img) => (
+            PyArray::from_slice(py, img.as_ref()),
+            img.width(),
+            img.height(),
+            3,
+            16,
+        )
+            .into_pyobject(py),
     }
 }
 
