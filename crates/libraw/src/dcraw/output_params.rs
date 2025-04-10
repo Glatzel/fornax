@@ -3,11 +3,7 @@ use std::path::PathBuf;
 
 use miette::IntoDiagnostic;
 
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "snake_case")
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 
 pub enum DCRawHighlightMode {
@@ -84,11 +80,7 @@ impl From<DCRawUseCameraMatrix> for i32 {
         }
     }
 }
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "snake_case")
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawOutputColor {
     Raw = 0,
@@ -133,11 +125,7 @@ impl From<DCRawOutputColor> for i32 {
         }
     }
 }
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "snake_case")
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawOutputBps {
     _8bit = 8,
@@ -162,11 +150,7 @@ impl From<DCRawOutputBps> for i32 {
         }
     }
 }
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "snake_case")
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawOutputTiff {
     None = -1,
@@ -194,11 +178,7 @@ impl From<DCRawOutputTiff> for i32 {
         }
     }
 }
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "snake_case")
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUserFlip {
     None = 0,
@@ -229,11 +209,7 @@ impl From<DCRawUserFlip> for i32 {
         }
     }
 }
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "snake_case")
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUserQual {
     Linear = 0,
@@ -273,11 +249,7 @@ impl From<DCRawUserQual> for i32 {
         }
     }
 }
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "snake_case")
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawUseFujiRotate {
     UseRotate = -1,
@@ -302,11 +274,7 @@ impl From<DCRawUseFujiRotate> for i32 {
         }
     }
 }
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(rename_all = "snake_case")
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
 pub enum DCRawFbddNoiserd {
     Off = 0,
