@@ -11,7 +11,7 @@ img_dir = root / "external" / "raw-images" / "images"
 
 def test_libraw():
     f = img_dir / "colorchart-eos-7d.cr2"
-    img = fornax.Fornax(fornax.decoder.Libraw(), fornax.post_processor.DCRawParams()).process(f)
+    img = fornax.Fornax(fornax.decoder.LibrawParams(), fornax.post_processor.DCRawParams()).process(f)
     out_file = temp_dir / "test_libraw.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()
@@ -83,7 +83,7 @@ def test_dcraw():
         no_interpolation=True,
     )
     print(params.model_dump_json())
-    img = fornax.Fornax(fornax.decoder.Libraw(), params).process(f)
+    img = fornax.Fornax(fornax.decoder.LibrawParams(), params).process(f)
     out_file = temp_dir / "test_dcraw.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()
