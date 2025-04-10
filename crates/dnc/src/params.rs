@@ -175,7 +175,7 @@ impl DncParams {
         if let Some(filename) = &self.filename {
             cmd.push(filename.clone());
         } else {
-            cmd.push(raw_file.with_extension("dng").to_string_lossy().to_string());
+            cmd.push(raw_file.with_extension("dng").file_name().unwrap().to_string_lossy().to_string());
         }
         cmd.push(raw_file.to_slash_lossy().to_string());
         Ok(cmd)
