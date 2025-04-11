@@ -34,12 +34,18 @@ fn main() {
     // generate bindings
     #[cfg(feature = "bindgen")]
     {
+        #[cfg(target_os = "linux")]
+        let header = &_pk_libraw.include_paths[0]
+            .join("libraw.h")
+            .to_string_lossy()
+            .to_string();
+        #[cfg(target_os = "windows")]
+        let header = &_pk_libraw.include_paths[0]
+            .join("libraw/libraw.h")
+            .to_string_lossy()
+            .to_string();
         let bindings = bindgen::Builder::default()
-            .header(
-                _pk_libraw.include_paths[0]
-                    .join("libraw/libraw.h")
-                    .to_string_lossy(),
-            )
+            .header(header)
             .use_core()
             .derive_eq(true)
             .ctypes_prefix("libc")

@@ -72,14 +72,83 @@ jobs:
       - name: Machete
         uses: bnjbvr/cargo-machete@main
 
+  cargo-doc:
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-Dwarnings"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          run-install: false
+      - name: cargo-doc
+        run: ${{env.RUST_ROOT}}/scripts/cargo-doc.ps1
+        shell: pwsh
+
+      - name: upload doc
+        if: ${{inputs.release}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-doc
+          path: ./dist/*.7z
+          if-no-files-found: error
+
+  cargo-clippy:
+    if: ${{!inputs.release}}
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-Dwarnings"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          run-install: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
+      - run: sudo apt-get install libraw-dev
+      - name: cargo-clippy
+        run: |
+          ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
+        shell: pwsh
+
+  cargo-fmt:
+    if: ${{!inputs.release}}
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-Dwarnings"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          run-install: false
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
+      - run: sudo apt-get install libraw-dev
+      - name: cargo-fmt
+        run: |
+          ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
+        shell: pwsh
+
   test-build:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-2025]
+        machine: [windows-2025,ubuntu-latest]
         include:
           - machine: windows-2025
             os: win-64
+          - machine: ubuntu-latest
+            os: linux-64
     env:
       dnc_version: 17_2
     runs-on: ${{matrix.machine}}
@@ -147,70 +216,3 @@ jobs:
         uses: codecov/test-results-action@v1
         with:
           fail_ci_if_error: true
-
-  cargo-doc:
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        if: ${{github.event_name=='pull_request'}}
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.4
-        with:
-          run-install: false
-      - name: cargo-doc
-        run: ${{env.RUST_ROOT}}/scripts/cargo-doc.ps1
-        shell: pwsh
-
-      - name: upload doc
-        if: ${{inputs.release}}
-        uses: actions/upload-artifact@v4
-        with:
-          name: rust-doc
-          path: ./dist/*.7z
-          if-no-files-found: error
-
-  cargo-clippy:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.4
-        with:
-          run-install: false
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        if: ${{github.event_name=='pull_request'}}
-      - run: sudo apt-get install libraw-dev
-      - name: cargo-clippy
-        run: |
-          ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
-        shell: pwsh
-
-  cargo-fmt:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.4
-        with:
-          run-install: false
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: rustfmt
-      - uses: Swatinem/rust-cache@v2
-        if: ${{github.event_name=='pull_request'}}
-      - run: sudo apt-get install libraw-dev
-      - name: cargo-fmt
-        run: |
-          ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
-        shell: pwsh
