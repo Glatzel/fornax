@@ -79,6 +79,8 @@ jobs:
       RUSTFLAGS: "-Dwarnings"
     steps:
       - uses: actions/checkout@v4
+      - run: choco install pkgconfiglite
+        if: ${{runner.os == 'Windows'}}
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows'}}
         uses: actions/cache/restore@v4
@@ -112,6 +114,8 @@ jobs:
       RUSTFLAGS: "-Dwarnings"
     steps:
       - uses: actions/checkout@v4
+      - run: choco install pkgconfiglite
+        if: ${{runner.os == 'Windows'}}
       - name: restore vcpkg
         if: ${{ runner.os == 'Windows'}}
         uses: actions/cache/restore@v4
