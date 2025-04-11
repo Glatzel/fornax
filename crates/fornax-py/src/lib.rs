@@ -106,15 +106,15 @@ fn py_process<'a>(
 }
 static RELOAD_HANDLE: std::sync::LazyLock<Handle<LevelFilter, Registry>> =
     std::sync::LazyLock::new(|| {
-        let filter = LevelFilter::OFF;
-        let (reload_layer, reload_handle) = reload::Layer::new(filter);
+        let (reload_layer, reload_handle) = reload::Layer::new(LevelFilter::OFF);
+
         tracing_subscriber::registry()
             .with(reload_layer)
-            .with(clerk::terminal_layer(false))
+            .with(clerk::terminal_layer(true))
             .init();
         reload_handle
     });
-    
+
 #[pyfunction]
 pub fn py_set_log_level(level: u8) {
     let level = match level {
