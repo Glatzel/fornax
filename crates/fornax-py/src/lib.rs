@@ -10,9 +10,7 @@ use pyo3::{Python, pyfunction};
 use rmp_serde::Deserializer;
 use serde::Deserialize;
 use tracing::level_filters::LevelFilter;
-use tracing_subscriber::Registry;
 use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::reload::{self, Handle};
 use tracing_subscriber::util::SubscriberInitExt;
 enum PyDecoder {
     Libraw,

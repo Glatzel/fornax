@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use fornax::Fornax;
 use miette::IntoDiagnostic;
 use tracing::level_filters::LevelFilter;
-use tracing_subscriber::EnvFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 fn main() -> miette::Result<()> {
