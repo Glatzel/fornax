@@ -300,8 +300,8 @@ dependencies = [
 
 [[package]]
 name = "clerk"
-version = "0.0.5"
-source = "git+https://github.com/Glatzel/clerk?tag=v0.0.5#78a0bc69e2ac55c5db08bfe34f9289ceacdc1e26"
+version = "0.0.7"
+source = "git+https://github.com/Glatzel/clerk?tag=v0.0.7#e3d26ca191ca858c5e374c74d232a2e5982feee9"
 dependencies = [
  "chrono",
  "owo-colors",
@@ -483,11 +483,14 @@ dependencies = [
 name = "fornax-py"
 version = "0.0.2"
 dependencies = [
+ "clerk",
  "fornax",
  "numpy",
  "pyo3",
  "rmp-serde",
  "serde",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

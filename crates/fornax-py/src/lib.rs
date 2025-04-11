@@ -9,6 +9,11 @@ use pyo3::types::PyTuple;
 use pyo3::{Python, pyfunction};
 use rmp_serde::Deserializer;
 use serde::Deserialize;
+use tracing::level_filters::LevelFilter;
+use tracing_subscriber::Registry;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::reload::{self, Handle};
+use tracing_subscriber::util::SubscriberInitExt;
 enum PyDecoder {
     Libraw,
     Dnc,
@@ -99,10 +104,32 @@ fn py_process<'a>(
             .into_pyobject(py),
     }
 }
+static RELOAD_HANDLE: std::sync::LazyLock<Handle<LevelFilter, Registry>> =
+    std::sync::LazyLock::new(|| {
+        let (reload_layer, reload_handle) = reload::Layer::new(LevelFilter::OFF);
 
+        tracing_subscriber::registry()
+            .with(reload_layer)
+            .with(clerk::terminal_layer(true))
+            .init();
+        reload_handle
+    });
+
+#[pyfunction]
+pub fn py_set_log_level(level: u8) {
+    let level = match level {
+        1 => LevelFilter::ERROR,
+        2 => LevelFilter::WARN,
+        3 => LevelFilter::INFO,
+        4 => LevelFilter::DEBUG,
+        5 => LevelFilter::TRACE,
+        _ => LevelFilter::OFF,
+    };
+    RELOAD_HANDLE.modify(|filter| *filter = level).unwrap();
+}
 #[pymodule]
 fn fornax_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(py_process))?;
-
+    m.add_wrapped(wrap_pyfunction!(py_set_log_level))?;
     Ok(())
 }
