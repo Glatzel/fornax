@@ -110,13 +110,17 @@ impl Dnc {
     fn open_dng_file(&self, fname: &Path) -> miette::Result<()> {
         let c_string =
             CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
-        Self::check_run(unsafe {
-            libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _)
-        })?;
+        Self::check_run(
+            unsafe { libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _) },
+            "libraw_open_file",
+        )?;
         Ok(())
     }
     pub fn unpack(&self) -> miette::Result<()> {
-        Self::check_run(unsafe { libraw_sys::libraw_unpack(self.imgdata) })?;
+        Self::check_run(
+            unsafe { libraw_sys::libraw_unpack(self.imgdata) },
+            "libraw_unpack",
+        )?;
         Ok(())
     }
 }

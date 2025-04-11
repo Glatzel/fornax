@@ -128,56 +128,38 @@ impl std::fmt::Display for LibrawErrors {
 }
 
 impl LibrawErrors {
-    pub(crate) fn report(&self) -> miette::Result<()> {
+    pub(crate) fn report(&self, task: &str) -> miette::Result<()> {
         match self {
             //Non-Fatal Errors
-            LibrawErrors::Success => {
-                clerk::debug!("{}", self);
-            }
-            LibrawErrors::UnspecifiedError => {
-                clerk::warn!("{}", self);
-            }
-            LibrawErrors::FileUnsupported => {
-                clerk::warn!("{}", self);
-            }
-            LibrawErrors::RequestForNonexistentImage => {
-                clerk::warn!("{}", self);
-            }
-            LibrawErrors::OutOfOrderCall => {
-                clerk::warn!("{}", self);
-            }
-            LibrawErrors::NoThumbnail => {
-                clerk::warn!("{}", self);
-            }
-            LibrawErrors::UnsupportedThumbnail => {
-                clerk::warn!("{}", self);
-            }
-            LibrawErrors::InputClosed => {
-                clerk::warn!("{}", self);
-            }
-            LibrawErrors::NotImplemented => {
-                clerk::warn!("{}", self);
-            }
-            LibrawErrors::RequestForNonexistentThumbnail => {
-                clerk::warn!("{}", self);
+            LibrawErrors::Success => clerk::debug!("Task: {}. {}", task, self),
+            LibrawErrors::UnspecifiedError
+            | LibrawErrors::FileUnsupported
+            | LibrawErrors::RequestForNonexistentImage
+            | LibrawErrors::OutOfOrderCall
+            | LibrawErrors::NoThumbnail
+            | LibrawErrors::UnsupportedThumbnail
+            | LibrawErrors::InputClosed
+            | LibrawErrors::NotImplemented
+            | LibrawErrors::RequestForNonexistentThumbnail => {
+                clerk::warn!("Task: {}. {}", task, self)
             }
 
             //Fatal Errors
-            LibrawErrors::UnsufficientMemory => miette::bail!(self.to_string()),
-            LibrawErrors::DataError => miette::bail!(self.to_string()),
-            LibrawErrors::IoError => miette::bail!(self.to_string()),
-            LibrawErrors::CancelledByCallback => miette::bail!(self.to_string()),
-            LibrawErrors::BadCrop => miette::bail!(self.to_string()),
-            LibrawErrors::TooBig => miette::bail!(self.to_string()),
-            LibrawErrors::MempoolOverflow => miette::bail!(self.to_string()),
+            LibrawErrors::UnsufficientMemory
+            | LibrawErrors::DataError
+            | LibrawErrors::IoError
+            | LibrawErrors::CancelledByCallback
+            | LibrawErrors::BadCrop
+            | LibrawErrors::TooBig
+            | LibrawErrors::MempoolOverflow => miette::bail!("Task: {}. {}", task, self),
         };
         Ok(())
     }
 }
 pub trait ILibrawErrors {
-    fn check_run(exit_code: i32) -> miette::Result<()> {
+    fn check_run(exit_code: i32, task: &str) -> miette::Result<()> {
         let result = crate::errors::LibrawErrors::try_from(exit_code)?;
-        result.report()?;
+        result.report(task)?;
         Ok(())
     }
 }

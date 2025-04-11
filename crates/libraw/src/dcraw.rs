@@ -42,11 +42,14 @@ impl DCRaw {
     ) -> miette::Result<DCRawProcessedImage> {
         self.set_output_params_unsafe(imgdata)?;
 
-        Self::check_run(unsafe { libraw_sys::libraw_dcraw_process(imgdata) })?;
+        Self::check_run(
+            unsafe { libraw_sys::libraw_dcraw_process(imgdata) },
+            "libraw_dcraw_process",
+        )?;
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
             unsafe { libraw_sys::libraw_dcraw_make_mem_image(imgdata, &mut result) };
-        Self::check_run(result)?;
+        Self::check_run(result, "libraw_dcraw_make_mem_image")?;
 
         let processed = DCRawProcessedImage::new(processed)?;
         Ok(processed)

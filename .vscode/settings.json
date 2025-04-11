@@ -13,7 +13,8 @@
     },
     "python.analysis.exclude": [
         "**/vcpkg",
-        "**/.pixi"
+        "**/.pixi",
+        "**/output"
     ],
     "VSCodeCounter.exclude": [
         "**/.gitignore",
