@@ -51,5 +51,4 @@ class Fornax:
             self.decoder_params.to_msgpack(),
             self.post_processor,
             self.post_processor_params.to_msgpack(),
-        )[1]
-
+        )[0]
