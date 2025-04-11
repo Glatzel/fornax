@@ -3,16 +3,14 @@ use std::path::PathBuf;
 use fornax::dnc::{Dnc, DncParams};
 use fornax::libraw::dcraw::DCRawParams;
 use fornax::libraw::{DCRaw, Libraw};
-use numpy::PyArray;
+use numpy::{PyArray, PyArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3::{Python, pyfunction};
 use rmp_serde::Deserializer;
 use serde::Deserialize;
 use tracing::level_filters::LevelFilter;
-use tracing_subscriber::Registry;
 use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::reload::{self, Handle};
 use tracing_subscriber::util::SubscriberInitExt;
 enum PyDecoder {
     Libraw,
@@ -70,53 +68,39 @@ fn py_process<'a>(
     };
     match img {
         fornax::FornaxProcessedImage::None => panic!("Process failed."),
-        fornax::FornaxProcessedImage::Mono8(img) => (
-            PyArray::from_slice(py, img.as_ref()),
-            img.width(),
-            img.height(),
-            1,
-            8,
-        )
-            .into_pyobject(py),
-        fornax::FornaxProcessedImage::Mono16(img) => (
-            PyArray::from_slice(py, img.as_ref()),
-            img.width(),
-            img.height(),
-            1,
-            16,
-        )
-            .into_pyobject(py),
-        fornax::FornaxProcessedImage::Rgb8(img) => (
-            PyArray::from_slice(py, img.as_ref()),
-            img.width(),
-            img.height(),
-            3,
-            8,
-        )
-            .into_pyobject(py),
-        fornax::FornaxProcessedImage::Rgb16(img) => (
-            PyArray::from_slice(py, img.as_ref()),
-            img.width(),
-            img.height(),
-            3,
-            16,
-        )
-            .into_pyobject(py),
+        fornax::FornaxProcessedImage::Mono8(img) => {
+            let img_array = PyArray::from_slice(py, img.as_ref());
+            let img_array = img_array
+                .reshape([img.height() as usize, img.width() as usize, 1])
+                .unwrap();
+            (img_array,).into_pyobject(py)
+        }
+        fornax::FornaxProcessedImage::Mono16(img) => {
+            let img_array = PyArray::from_slice(py, img.as_ref());
+            let img_array = img_array
+                .reshape([img.height() as usize, img.width() as usize, 1])
+                .unwrap();
+            (img_array,).into_pyobject(py)
+        }
+        fornax::FornaxProcessedImage::Rgb8(img) => {
+            let img_array = PyArray::from_slice(py, img.as_ref());
+            let img_array = img_array
+                .reshape([img.height() as usize, img.width() as usize, 3])
+                .unwrap();
+            (img_array,).into_pyobject(py)
+        }
+        fornax::FornaxProcessedImage::Rgb16(img) => {
+            let img_array = PyArray::from_slice(py, img.as_ref());
+            let img_array = img_array
+                .reshape([img.height() as usize, img.width() as usize, 3])
+                .unwrap();
+            (img_array,).into_pyobject(py)
+        }
     }
 }
-static RELOAD_HANDLE: std::sync::LazyLock<Handle<LevelFilter, Registry>> =
-    std::sync::LazyLock::new(|| {
-        let (reload_layer, reload_handle) = reload::Layer::new(LevelFilter::OFF);
-
-        tracing_subscriber::registry()
-            .with(reload_layer)
-            .with(clerk::terminal_layer(true))
-            .init();
-        reload_handle
-    });
 
 #[pyfunction]
-pub fn py_set_log_level(level: u8) {
+pub fn py_init_tracing(level: u8, color: bool) {
     let level = match level {
         1 => LevelFilter::ERROR,
         2 => LevelFilter::WARN,
@@ -125,11 +109,13 @@ pub fn py_set_log_level(level: u8) {
         5 => LevelFilter::TRACE,
         _ => LevelFilter::OFF,
     };
-    RELOAD_HANDLE.modify(|filter| *filter = level).unwrap();
+    tracing_subscriber::registry()
+        .with(clerk::terminal_layer(level, color))
+        .init();
 }
 #[pymodule]
 fn fornax_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(py_process))?;
-    m.add_wrapped(wrap_pyfunction!(py_set_log_level))?;
+    m.add_wrapped(wrap_pyfunction!(py_init_tracing))?;
     Ok(())
 }

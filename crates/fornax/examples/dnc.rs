@@ -3,17 +3,11 @@ use std::path::PathBuf;
 use fornax::Fornax;
 use miette::IntoDiagnostic;
 use tracing::level_filters::LevelFilter;
-use tracing_subscriber::EnvFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 fn main() -> miette::Result<()> {
     tracing_subscriber::registry()
-        .with(
-            EnvFilter::builder()
-                .with_default_directive(LevelFilter::DEBUG.into())
-                .from_env_lossy(),
-        )
-        .with(clerk::terminal_layer(true))
+        .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
         .init();
     default_path()?;
     custom_path()?;

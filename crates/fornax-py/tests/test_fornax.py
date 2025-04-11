@@ -8,13 +8,14 @@ temp_dir = root / "temp" / "py"
 temp_dir.mkdir(parents=True, exist_ok=True)
 img_dir = root / "external" / "raw-images" / "images"
 
-fornax.set_log_level(fornax.LogLevel.DEBUG)
+fornax.init_tracing(fornax.LogLevel.DEBUG, True)
 
 
 def test_libraw():
     f = img_dir / "colorchart-eos-7d.cr2"
     img = fornax.Fornax(fornax.decoder.LibrawParams(), fornax.post_processor.DCRawParams()).process(f)
     out_file = temp_dir / "test_libraw.tiff"
+    assert img.shape == (3464, 5202, 3)
     iio.imwrite(out_file, img)
     assert out_file.is_file()
 

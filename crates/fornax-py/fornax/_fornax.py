@@ -45,16 +45,10 @@ class Fornax:
             Processed image of shape `(height, width, channels)`.
         """
         file = Path(file).absolute()
-        buffer_array, width, height, channels, bits = py_process(
+        return py_process(
             file,
             self.decoder,
             self.decoder_params.to_msgpack(),
             self.post_processor,
             self.post_processor_params.to_msgpack(),
-        )
-        match channels:
-            case 1:
-                img = buffer_array.reshape(height, width, 1)
-            case 3:
-                img = buffer_array.reshape(height, width, 3)
-        return img
+        )[0]
