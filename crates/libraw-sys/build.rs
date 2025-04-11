@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use pkg_config;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -26,38 +27,23 @@ fn main() {
         }
     };
 
-    // check libraw installed path
-    let libraw_root = match std::env::var("LIBRAW_ROOT") {
-        Ok(path) => {
-            tracing::info!("Found `LIBRAW_ROOT`: {path}");
-            path
-        }
-        Err(_) => {
-            tracing::error!("`LIBRAW_ROOT` not found.");
-            panic!("`LIBRAW_ROOT` not found.");
-        }
-    };
-
     // Link
-    println!("cargo:rustc-link-search=native={libraw_root}/lib");
-    println!("cargo:rustc-link-lib=static=jasper");
-    tracing::info!("Link to `jasper.lib`");
-    println!("cargo:rustc-link-lib=static=jpeg");
-    tracing::info!("Link to `lcms2.lib`");
-    println!("cargo:rustc-link-lib=static=lcms2");
-    tracing::info!("Link to `turbojpeg.lib`");
-    println!("cargo:rustc-link-lib=static=turbojpeg");
-    tracing::info!("Link to `jpeg.lib`");
-    println!("cargo:rustc-link-lib=static=zlib");
-    tracing::info!("Link to `zlib.lib`");
-    println!("cargo:rustc-link-lib=static=raw_r");
-    tracing::info!("Link to `raw_r.lib`");
+    link_lib("jasper", "jasper");
+    link_lib("libjpeg", "jpeg");
+    link_lib("lcms2", "lcms2");
+    link_lib("libturbojpeg", "turbojpeg");
+    link_lib("zlib", "zlib");
+    let _pk_libraw = link_lib("libraw_r", "raw_r");
 
     // generate bindings
     #[cfg(feature = "bindgen")]
     {
         let bindings = bindgen::Builder::default()
-            .header(format!("{libraw_root}/include/libraw/libraw.h"))
+            .header(
+                _pk_libraw.include_paths[0]
+                    .join("libraw/libraw.h")
+                    .to_string_lossy(),
+            )
             .use_core()
             .derive_eq(true)
             .ctypes_prefix("libc")
@@ -65,11 +51,21 @@ fn main() {
             .generate_comments(true)
             .generate()
             .unwrap();
-        let out_file = PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("bindings.rs");
 
         bindings
-            .write_to_file(&out_file)
+            .write_to_file("src/bindings.rs")
             .expect("Couldn't write bindings!");
-        tracing::info!("Build bingings to: {}", out_file.to_str().unwrap());
+        clerk::info!("Build bingings to: src/bindings.rs");
     }
+}
+fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
+    let pklib = match pkg_config::Config::new().probe(name) {
+        Ok(pklib) => {
+            println!("cargo:rustc-link-lib=static={}", lib);
+            clerk::info!("Link to `{}`", lib);
+            pklib
+        }
+        Err(e) => panic!("cargo:warning=Pkg-config error: {:?}", e),
+    };
+    pklib
 }
