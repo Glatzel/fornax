@@ -1,6 +1,7 @@
-use miette::IntoDiagnostic;
 use std::ffi::CString;
 use std::path::PathBuf;
+
+use miette::IntoDiagnostic;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]

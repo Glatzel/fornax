@@ -1,13 +1,14 @@
 mod output_params;
 mod processed_image;
 
-use crate::ILibrawErrors;
 use fornax_core::{FornaxProcessedImage, IDecoder, IPostProcessor};
 pub use output_params::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
     DCRawUserFlip, DCRawUserQual,
 };
 pub use processed_image::{DCRawImageFormats, DCRawProcessedImage};
+
+use crate::ILibrawErrors;
 
 pub trait IDCRaw {
     fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t>;
