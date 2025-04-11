@@ -1,11 +1,13 @@
 from pathlib import Path
-
-import numpy as np
+from typing import TYPE_CHECKING
 
 from ._base import BaseDecoderParams, BasePostProcessorParams
 from .decoder import DncParams, LibrawParams
 from .fornax_py import py_process  # type: ignore
 from .post_processor import DCRawParams
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class Fornax:
@@ -30,7 +32,7 @@ class Fornax:
                 TypeError("Unknown post processor")
         self.post_processor_params = post_processor_params
 
-    def process(self, file: str | Path) -> np.ndarray:
+    def process(self, file: str | Path) -> "np.ndarray":
         """
         Decode and process raw image.
 
