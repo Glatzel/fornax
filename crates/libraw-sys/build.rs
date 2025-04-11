@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use pkg_config;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -59,13 +58,13 @@ fn main() {
     }
 }
 fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
-    let pklib = match pkg_config::Config::new().probe(name) {
+    
+    match pkg_config::Config::new().probe(name) {
         Ok(pklib) => {
             println!("cargo:rustc-link-lib=static={}", lib);
             clerk::info!("Link to `{}`", lib);
             pklib
         }
         Err(e) => panic!("cargo:warning=Pkg-config error: {:?}", e),
-    };
-    pklib
+    }
 }
