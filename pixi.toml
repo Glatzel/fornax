@@ -5,7 +5,7 @@ name = "fornax"
 platforms = ["win-64", "linux-64"]
 version = "0.1.0"
 
-[dependencies]
+[feature.pybase.dependencies]
 maturin = "*"
 pip = "*"
 python = "3.11.*"
@@ -27,7 +27,9 @@ pytest-cov = "*"
 
 [feature.libraw.dependencies]
 libraw = "==0.21.3"
+pkg-config= "*"
 
 [environments]
+pybase = ["pybase"]
 libraw = ["libraw"]
-pydev = ["pydev"]
+pydev = ["pybase","pydev"]
