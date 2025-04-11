@@ -89,4 +89,4 @@ def test_dcraw():
     out_file = temp_dir / "test_dcraw.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()
-    assert False
+    # assert False
