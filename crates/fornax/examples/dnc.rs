@@ -9,10 +9,13 @@ fn main() -> miette::Result<()> {
     tracing_subscriber::registry()
         .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
         .init();
+    #[cfg(target_os = "windows")]
     default_path()?;
+    #[cfg(target_os = "windows")]
     custom_path()?;
     Ok(())
 }
+#[cfg(target_os = "windows")]
 fn default_path() -> miette::Result<()> {
     let mut manager = Fornax::new(
         dnc::Dnc::new(dnc::DncParams {
@@ -32,6 +35,7 @@ fn default_path() -> miette::Result<()> {
     clerk::info!("save img to: temp/dng-converter.tiff");
     Ok(())
 }
+#[cfg(target_os = "windows")]
 fn custom_path() -> miette::Result<()> {
     let mut manager = Fornax::new(
         dnc::Dnc::new(dnc::DncParams {
