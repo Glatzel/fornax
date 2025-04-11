@@ -63,18 +63,12 @@ jobs:
 
   cargo-machete:
     if: ${{!inputs.release}}
-    needs: cache-vcpkg
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
+      - run: apt-get install libraw-dev
       - name: Machete
         uses: bnjbvr/cargo-machete@main
 
@@ -153,8 +147,7 @@ jobs:
           fail_ci_if_error: true
 
   cargo-doc:
-    needs: cache-vcpkg
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -162,12 +155,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
+      - run: apt-get install libraw-dev
       - name: cargo-doc
         run: ${{env.RUST_ROOT}}/scripts/cargo-doc.ps1
         shell: pwsh
@@ -182,8 +170,7 @@ jobs:
 
   cargo-clippy:
     if: ${{!inputs.release}}
-    needs: cache-vcpkg
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -195,12 +182,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
+      - run: apt-get install libraw-dev
       - name: cargo-clippy
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
@@ -208,8 +190,7 @@ jobs:
 
   cargo-fmt:
     if: ${{!inputs.release}}
-    needs: cache-vcpkg
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -223,12 +204,7 @@ jobs:
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
+      - run: apt-get install libraw-dev
       - name: cargo-fmt
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
