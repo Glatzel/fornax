@@ -29,7 +29,7 @@ fn main() {
     };
 
     // Link
-    let _pk_libraw = link_lib("libraw_r", "raw_r");
+    let _pk_libraw = link_lib("libraw", "raw_r");
 
     // generate bindings
     #[cfg(feature = "bindgen")]
