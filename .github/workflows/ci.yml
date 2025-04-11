@@ -140,6 +140,7 @@ jobs:
         shell: pwsh
 
   test-build:
+    needs: cache-vcpkg
     strategy:
       fail-fast: false
       matrix:
