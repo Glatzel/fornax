@@ -31,55 +31,18 @@ env:
   RUST_ROOT: .
 
 jobs:
-  cache-vcpkg:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: restore vcpkg
-        id: restore-vcpkg
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.RUST_ROOT}}/vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
-          lookup-only: true
-
-      - name: setup vcpkg
-        if: ${{steps.restore-vcpkg.outputs.cache-hit!='true'}}
-        run: ${{env.RUST_ROOT}}/vcpkg/vcpkg-setup.ps1
-        shell: pwsh
-
-      - name: install vcpkg dependencies
-        if: ${{steps.restore-vcpkg.outputs.cache-hit!='true'}}
-        run: ${{env.RUST_ROOT}}/vcpkg/vcpkg-install.ps1
-        shell: pwsh
-
-      - name: save vcpkg
-        if: ${{steps.restore-vcpkg.outputs.cache-hit!='true'}}
-        uses: actions/cache/save@v4
-        with:
-          path: ${{env.RUST_ROOT}}/vcpkg/installed
-          key: ${{steps.restore-vcpkg.outputs.cache-primary-key}}
-
   cargo-machete:
     if: ${{!inputs.release}}
-    needs: cache-vcpkg
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
+      - run: sudo apt-get install libraw-dev
       - name: Machete
         uses: bnjbvr/cargo-machete@main
 
   test-build:
-    needs: cache-vcpkg
     strategy:
       fail-fast: false
       matrix:
@@ -92,6 +55,9 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
+
+      - run: choco install pkgconfiglite
+        if: ${{runner.os == 'Windows'}}
 
       - name: restore dnc
         if: ${{ runner.os == 'Windows'}}
@@ -153,8 +119,7 @@ jobs:
           fail_ci_if_error: true
 
   cargo-doc:
-    needs: cache-vcpkg
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -162,12 +127,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
+      - run: sudo apt-get install libraw-dev
       - name: cargo-doc
         run: ${{env.RUST_ROOT}}/scripts/cargo-doc.ps1
         shell: pwsh
@@ -182,8 +142,7 @@ jobs:
 
   cargo-clippy:
     if: ${{!inputs.release}}
-    needs: cache-vcpkg
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -195,12 +154,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
+      - run: sudo apt-get install libraw-dev
       - name: cargo-clippy
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
@@ -208,8 +162,7 @@ jobs:
 
   cargo-fmt:
     if: ${{!inputs.release}}
-    needs: cache-vcpkg
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -223,12 +176,7 @@ jobs:
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - name: restore vcpkg
-        if: ${{ runner.os == 'Windows' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: ./vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
+      - run: sudo apt-get install libraw-dev
       - name: cargo-fmt
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1

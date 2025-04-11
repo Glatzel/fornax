@@ -1,5 +1,6 @@
 use core::slice;
 use std::fmt::Display;
+
 #[derive(Debug)]
 pub enum DCRawImageFormats {
     LibrawImageJpeg = 1,

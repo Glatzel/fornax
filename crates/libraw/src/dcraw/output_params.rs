@@ -5,7 +5,6 @@ use miette::IntoDiagnostic;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
-
 pub enum DCRawHighlightMode {
     Clip = 0,
     Ignore = 1,
