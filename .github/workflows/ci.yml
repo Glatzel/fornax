@@ -117,12 +117,15 @@ jobs:
         if: ${{github.event_name=='pull_request'}}
 
       - name: Install nextest
+        if: ${{!inputs.release}}
         uses: taiki-e/install-action@nextest
 
       - name: Install cargo-llvm-cov
+        if: ${{!inputs.release}}
         uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: cargo-test
+        if: ${{!inputs.release}}
         run: ${{env.RUST_ROOT}}/scripts/cargo-test.ps1
         shell: pwsh
 
@@ -140,11 +143,11 @@ jobs:
           if-no-files-found: error
 
       - name: Upload results to Codecov
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && !inputs.release}}
         uses: codecov/codecov-action@v5
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && !inputs.release}}
         uses: codecov/test-results-action@v1
         with:
           fail_ci_if_error: true
