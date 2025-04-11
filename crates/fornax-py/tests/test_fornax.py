@@ -8,6 +8,8 @@ temp_dir = root / "temp" / "py"
 temp_dir.mkdir(parents=True, exist_ok=True)
 img_dir = root / "external" / "raw-images" / "images"
 
+fornax.initialize_tracing(fornax.LogLevel.DEBUG)
+
 
 def test_libraw():
     f = img_dir / "colorchart-eos-7d.cr2"
@@ -87,4 +89,4 @@ def test_dcraw():
     out_file = temp_dir / "test_dcraw.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()
-    # assert False
+    assert False

@@ -483,11 +483,14 @@ dependencies = [
 name = "fornax-py"
 version = "0.0.2"
 dependencies = [
+ "clerk",
  "fornax",
  "numpy",
  "pyo3",
  "rmp-serde",
  "serde",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

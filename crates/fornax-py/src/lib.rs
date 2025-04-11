@@ -9,6 +9,9 @@ use pyo3::types::PyTuple;
 use pyo3::{Python, pyfunction};
 use rmp_serde::Deserializer;
 use serde::Deserialize;
+use tracing::level_filters::LevelFilter;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 enum PyDecoder {
     Libraw,
     Dnc,
@@ -100,9 +103,24 @@ fn py_process<'a>(
     }
 }
 
+#[pyfunction]
+pub fn py_initialize_tracing(level: u8) {
+    let level = match level {
+        1 => LevelFilter::ERROR,
+        2 => LevelFilter::WARN,
+        3 => LevelFilter::INFO,
+        4 => LevelFilter::DEBUG,
+        5 => LevelFilter::TRACE,
+        _ => LevelFilter::OFF,
+    };
+
+    tracing_subscriber::registry()
+        .with(clerk::terminal_layer(level))
+        .init();
+}
 #[pymodule]
 fn fornax_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(py_process))?;
-
+    m.add_wrapped(wrap_pyfunction!(py_initialize_tracing))?;
     Ok(())
 }
