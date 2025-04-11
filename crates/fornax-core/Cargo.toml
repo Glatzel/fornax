@@ -6,10 +6,3 @@ version.workspace = true
 [dependencies]
 image = { workspace = true }
 miette = { workspace = true }
-
-[dev-dependencies]
-assert_cmd = "2.0"
-clerk = { workspace = true, features = ["log"] }
-libraw = { workspace = true, features = ["log"] }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
