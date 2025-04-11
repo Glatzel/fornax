@@ -58,7 +58,6 @@ fn main() {
     }
 }
 fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
-    
     match pkg_config::Config::new().probe(name) {
         Ok(pklib) => {
             println!("cargo:rustc-link-lib=static={}", lib);
