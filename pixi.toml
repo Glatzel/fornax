@@ -29,6 +29,6 @@ pytest-cov = "*"
 libraw = "==0.21.3"
 
 [environments]
-pybase = ["pybase"]
 libraw = ["libraw"]
-pydev = ["pybase","pydev","libraw"]
+pybase = ["pybase"]
+pydev = ["pybase", "pydev"]
