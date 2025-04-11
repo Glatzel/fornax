@@ -9,6 +9,7 @@ fn main() {
         .init();
 
     // check LIBCLANG_PATH
+    #[cfg(target_os = "windows")]
     match std::env::var("LIBCLANG_PATH") {
         Ok(path) => tracing::info!("Found `LIBCLANG_PATH`: {path}"),
         Err(_) => {
