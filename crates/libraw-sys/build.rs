@@ -11,7 +11,7 @@ fn main() {
                 .with_default_directive(LevelFilter::DEBUG.into())
                 .from_env_lossy(),
         )
-        .with(clerk::terminal_layer())
+        .with(clerk::terminal_layer(true))
         .init();
     match std::env::var("LIBCLANG_PATH") {
         Ok(path) => tracing::info!("Found `LIBCLANG_PATH`: {path}"),

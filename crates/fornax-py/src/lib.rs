@@ -110,10 +110,11 @@ static RELOAD_HANDLE: std::sync::LazyLock<Handle<LevelFilter, Registry>> =
         let (reload_layer, reload_handle) = reload::Layer::new(filter);
         tracing_subscriber::registry()
             .with(reload_layer)
-            .with(clerk::terminal_layer())
+            .with(clerk::terminal_layer(false))
             .init();
         reload_handle
     });
+    
 #[pyfunction]
 pub fn py_set_log_level(level: u8) {
     let level = match level {

@@ -13,7 +13,7 @@ fn main() -> miette::Result<()> {
                 .with_default_directive(LevelFilter::DEBUG.into())
                 .from_env_lossy(),
         )
-        .with(clerk::terminal_layer())
+        .with(clerk::terminal_layer(true))
         .init();
     default_path()?;
     custom_path()?;
