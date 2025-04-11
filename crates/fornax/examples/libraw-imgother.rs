@@ -2,9 +2,9 @@ use std::path::PathBuf;
 
 use fornax::Fornax;
 use tracing::level_filters::LevelFilter;
+use tracing_subscriber::EnvFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use tracing_subscriber::EnvFilter;
 fn main() -> miette::Result<()> {
     tracing_subscriber::registry()
         .with(
