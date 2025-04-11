@@ -2,7 +2,7 @@ package:
   version: 0.0.2
   name: fornax-py
 build:
-  number: 6
+  number: 7
   script:
     - if: win
       then:
