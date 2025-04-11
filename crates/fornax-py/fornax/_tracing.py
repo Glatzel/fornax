@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-from .fornax_py import init_tracing  # type: ignore
+from .fornax_py import py_init_tracing  # type: ignore
 
 
 class LogLevel(IntEnum):
@@ -11,5 +11,11 @@ class LogLevel(IntEnum):
     TRACE = 5
 
 
-def set_log_level(level: LogLevel, color: bool):
-    init_tracing(level, color)
+class Inited:
+    flag = False
+
+
+def init_tracing(level: LogLevel, color: bool):
+    if not Inited.flag:
+        py_init_tracing(level, color)
+    Inited.flag = True
