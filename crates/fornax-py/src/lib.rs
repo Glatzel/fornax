@@ -71,28 +71,28 @@ fn py_process<'a>(
         fornax::FornaxProcessedImage::Mono8(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
-                .reshape([img.width() as usize, img.height() as usize, 1])
+                .reshape([img.height() as usize, img.width() as usize, 1])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
         fornax::FornaxProcessedImage::Mono16(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
-                .reshape([img.width() as usize, img.height() as usize, 1])
+                .reshape([img.height() as usize, img.width() as usize, 1])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
         fornax::FornaxProcessedImage::Rgb8(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
-                .reshape([img.width() as usize, img.height() as usize, 3])
+                .reshape([img.height() as usize, img.width() as usize, 3])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
         fornax::FornaxProcessedImage::Rgb16(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
-                .reshape([img.width() as usize, img.height() as usize, 3])
+                .reshape([img.height() as usize, img.width() as usize, 3])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
