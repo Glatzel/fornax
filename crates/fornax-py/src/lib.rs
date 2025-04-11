@@ -110,7 +110,7 @@ pub fn py_set_log_level(level: u8) {
         _ => LevelFilter::OFF,
     };
     tracing_subscriber::registry()
-        .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
+        .with(clerk::terminal_layer(level, true))
         .init();
 }
 #[pymodule]
