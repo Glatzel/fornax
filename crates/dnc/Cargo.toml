@@ -8,7 +8,7 @@ clerk = { workspace = true }
 dunce = { workspace = true }
 fornax-core = { workspace = true }
 libraw = { workspace = true }
-libraw-sys = { workspace = true, features = ["bindgen"] }
+libraw-sys = { workspace = true }
 miette = { workspace = true }
 path-slash = { workspace = true }
 serde = { workspace = true, optional = true }
