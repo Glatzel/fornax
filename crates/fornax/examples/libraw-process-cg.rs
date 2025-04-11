@@ -16,7 +16,7 @@ fn main() -> miette::Result<()> {
             "./external/raw-images/images/colorchart-eos-7d.cr2",
         ))?
         .post_process()?
-        .to_dynamic();
+        .to_dynamic_image();
     img.save("temp/example-process-cg.tiff").into_diagnostic()?;
     clerk::info!("save img to: temp/example-process.tiff");
     Ok(())

@@ -26,7 +26,7 @@ fn default_path() -> miette::Result<()> {
             "./external/raw-images/images/colorchart-eos-7d.cr2",
         ))?
         .post_process()?
-        .to_dynamic();
+        .to_dynamic_image();
 
     img.save("temp/dng-converter.tiff").into_diagnostic()?;
     clerk::info!("save img to: temp/dng-converter.tiff");
@@ -47,7 +47,7 @@ fn custom_path() -> miette::Result<()> {
             "./external/raw-images/images/colorchart-eos-7d.cr2",
         ))?
         .post_process()?
-        .to_dynamic();
+        .to_dynamic_image();
 
     img.save("temp/dng-converter.tiff").into_diagnostic()?;
     clerk::info!("save img to: temp/dng-converter.tiff");

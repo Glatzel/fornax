@@ -2,13 +2,12 @@ mod image_sizes;
 mod imgother;
 mod iparams;
 
-use std::ffi::CString;
-use std::path::Path;
-
 use fornax_core::IDecoder;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::LibrawIParams;
+use std::ffi::CString;
+use std::path::Path;
 
 use crate::ILibrawErrors;
 

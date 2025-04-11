@@ -7,6 +7,8 @@ fn main() {
     tracing_subscriber::registry()
         .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
         .init();
+
+    // check LIBCLANG_PATH
     match std::env::var("LIBCLANG_PATH") {
         Ok(path) => tracing::info!("Found `LIBCLANG_PATH`: {path}"),
         Err(_) => {
@@ -23,6 +25,8 @@ fn main() {
             }
         }
     };
+
+    // check libraw installed path
     let libraw_root = match std::env::var("LIBRAW_ROOT") {
         Ok(path) => {
             tracing::info!("Found `LIBRAW_ROOT`: {path}");
@@ -33,6 +37,7 @@ fn main() {
             panic!("`LIBRAW_ROOT` not found.");
         }
     };
+
     // Link
     println!("cargo:rustc-link-search=native={libraw_root}/lib");
     println!("cargo:rustc-link-lib=static=jasper");
@@ -47,6 +52,8 @@ fn main() {
     tracing::info!("Link to `zlib.lib`");
     println!("cargo:rustc-link-lib=static=raw_r");
     tracing::info!("Link to `raw_r.lib`");
+
+    // generate bindings
     #[cfg(feature = "bindgen")]
     {
         let bindings = bindgen::Builder::default()
