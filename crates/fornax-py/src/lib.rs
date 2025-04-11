@@ -100,7 +100,7 @@ fn py_process<'a>(
 }
 
 #[pyfunction]
-pub fn py_set_log_level(level: u8, color: bool) {
+pub fn init_tracing(level: u8, color: bool) {
     let level = match level {
         1 => LevelFilter::ERROR,
         2 => LevelFilter::WARN,
@@ -116,6 +116,6 @@ pub fn py_set_log_level(level: u8, color: bool) {
 #[pymodule]
 fn fornax_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(py_process))?;
-    m.add_wrapped(wrap_pyfunction!(py_set_log_level))?;
+    m.add_wrapped(wrap_pyfunction!(init_tracing))?;
     Ok(())
 }

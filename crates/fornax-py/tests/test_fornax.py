@@ -8,7 +8,7 @@ temp_dir = root / "temp" / "py"
 temp_dir.mkdir(parents=True, exist_ok=True)
 img_dir = root / "external" / "raw-images" / "images"
 
-fornax.set_log_level(fornax.LogLevel.DEBUG)
+fornax.set_log_level(fornax.LogLevel.DEBUG, True)
 
 
 def test_libraw():
