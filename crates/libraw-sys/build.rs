@@ -1,4 +1,4 @@
-#[cfg(target_os = "windows")]
+#[cfg(any(target_os = "windows", feature = "bindgen"))]
 use std::path::PathBuf;
 
 use tracing::level_filters::LevelFilter;
