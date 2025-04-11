@@ -63,7 +63,7 @@ jobs:
 
   cargo-machete:
     if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
@@ -73,7 +73,9 @@ jobs:
         uses: bnjbvr/cargo-machete@main
 
   cargo-doc:
-    runs-on: ubuntu-latest
+    needs: cache-vcpkg
+    if: ${{!inputs.release}}
+    runs-on: windows-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -98,8 +100,9 @@ jobs:
           if-no-files-found: error
 
   cargo-clippy:
+    needs: cache-vcpkg
     if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -118,8 +121,9 @@ jobs:
         shell: pwsh
 
   cargo-fmt:
+    needs: cache-vcpkg
     if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:

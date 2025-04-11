@@ -1,4 +1,3 @@
-#[cfg(any(target_os = "windows", feature = "bindgen"))]
 use std::path::PathBuf;
 
 use tracing::level_filters::LevelFilter;
@@ -10,7 +9,6 @@ fn main() {
         .init();
 
     // check LIBCLANG_PATH
-    #[cfg(target_os = "windows")]
     match std::env::var("LIBCLANG_PATH") {
         Ok(path) => tracing::info!("Found `LIBCLANG_PATH`: {path}"),
         Err(_) => {
@@ -34,12 +32,6 @@ fn main() {
     // generate bindings
     #[cfg(feature = "bindgen")]
     {
-        #[cfg(target_os = "linux")]
-        let header = &_pk_libraw.include_paths[0]
-            .join("libraw.h")
-            .to_string_lossy()
-            .to_string();
-        #[cfg(target_os = "windows")]
         let header = &_pk_libraw.include_paths[0]
             .join("libraw/libraw.h")
             .to_string_lossy()
