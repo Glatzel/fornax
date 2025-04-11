@@ -2,7 +2,7 @@
 authors = ["Glatzel <893016099@qq.com>"]
 channels = ["conda-forge"]
 name = "fornax"
-platforms = ["win-64"]
+platforms = ["win-64", "linux-64"]
 version = "0.1.0"
 
 [dependencies]
@@ -25,5 +25,9 @@ rattler-build = "*"
 pytest = "*"
 pytest-cov = "*"
 
+[feature.libraw.dependencies]
+libraw = "==0.21.3"
+
 [environments]
+libraw = ["libraw"]
 pydev = ["pydev"]

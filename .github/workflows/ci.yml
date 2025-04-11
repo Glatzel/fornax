@@ -31,36 +31,6 @@ env:
   RUST_ROOT: .
 
 jobs:
-  cache-vcpkg:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: restore vcpkg
-        id: restore-vcpkg
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{env.RUST_ROOT}}/vcpkg/installed
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
-          lookup-only: true
-
-      - name: setup vcpkg
-        if: ${{steps.restore-vcpkg.outputs.cache-hit!='true'}}
-        run: ${{env.RUST_ROOT}}/vcpkg/vcpkg-setup.ps1
-        shell: pwsh
-
-      - name: install vcpkg dependencies
-        if: ${{steps.restore-vcpkg.outputs.cache-hit!='true'}}
-        run: ${{env.RUST_ROOT}}/vcpkg/vcpkg-install.ps1
-        shell: pwsh
-
-      - name: save vcpkg
-        if: ${{steps.restore-vcpkg.outputs.cache-hit!='true'}}
-        uses: actions/cache/save@v4
-        with:
-          path: ${{env.RUST_ROOT}}/vcpkg/installed
-          key: ${{steps.restore-vcpkg.outputs.cache-primary-key}}
-
   cargo-machete:
     if: ${{!inputs.release}}
     runs-on: ubuntu-latest
@@ -73,7 +43,6 @@ jobs:
         uses: bnjbvr/cargo-machete@main
 
   test-build:
-    needs: cache-vcpkg
     strategy:
       fail-fast: false
       matrix:
