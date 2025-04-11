@@ -6,7 +6,7 @@
 
 Fornax is a extensive raw image processing library. The goal of the library is to provide a one-stop solusion for raw image image processing with both simple high-level apis and low level controls, and also allow users to extend their own raw image processing algorithms.
 
-It takes built-in or custom decoder and post-processor to generate `ImageBuffer` of `image` crate that can be used convert to other data type for further processing.
+It takes built-in or custom decoder and post-processor to generate `ImageBuffer` of `image` crate that can be converted to other data types for further processing.
 
 ## Components
 
