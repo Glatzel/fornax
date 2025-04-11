@@ -46,12 +46,10 @@ fn main() {
             .generate()
             .unwrap();
 
-        let out_file = PathBuf::from(std::env::var_os("OUT_DIR").unwrap()).join("bindings.rs");
-
         bindings
-            .write_to_file(&out_file)
+            .write_to_file("src/bindings.rs")
             .expect("Couldn't write bindings!");
-        tracing::info!("Build bingings to: {}", out_file.to_str().unwrap());
+        clerk::info!("Build bingings to: src/bindings.rs");
     }
 }
 fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
