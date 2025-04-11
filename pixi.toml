@@ -27,7 +27,6 @@ pytest-cov = "*"
 
 [feature.libraw.dependencies]
 libraw = "==0.21.3"
-pkg-config = "*"
 
 [environments]
 pybase = ["pybase"]
