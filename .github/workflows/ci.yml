@@ -68,7 +68,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - run: sudo apt-get install libraw-dev
       - name: Machete
         uses: bnjbvr/cargo-machete@main
 
@@ -114,7 +113,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - run: sudo apt-get install libraw-dev
       - name: cargo-clippy
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
@@ -137,7 +135,6 @@ jobs:
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
-      - run: sudo apt-get install libraw-dev
       - name: cargo-fmt
         run: |
           ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
@@ -148,12 +145,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-2025,ubuntu-latest]
+        machine: [windows-2025]
         include:
           - machine: windows-2025
             os: win-64
-          - machine: ubuntu-latest
-            os: linux-64
     env:
       dnc_version: 17_2
     runs-on: ${{matrix.machine}}
