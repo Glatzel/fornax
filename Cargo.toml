@@ -17,7 +17,7 @@ assert_cmd = "2.0"
 bindgen = "0.71"
 bytemuck = "1.22.0"
 chrono = "0.4.40"
-clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.7" }
+clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.8" }
 dunce = "1.0.5"
 image = "0.25.5"
 libc = "0.2"
