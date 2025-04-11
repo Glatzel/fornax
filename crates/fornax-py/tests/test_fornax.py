@@ -15,6 +15,7 @@ def test_libraw():
     f = img_dir / "colorchart-eos-7d.cr2"
     img = fornax.Fornax(fornax.decoder.LibrawParams(), fornax.post_processor.DCRawParams()).process(f)
     out_file = temp_dir / "test_libraw.tiff"
+    assert img.shape == (3464, 5202, 3)
     iio.imwrite(out_file, img)
     assert out_file.is_file()
 

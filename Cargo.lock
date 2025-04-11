@@ -370,7 +370,7 @@ checksum = "6184e33543162437515c2e2b48714794e37845ec9851711914eec9d308f6ebe8"
 
 [[package]]
 name = "dnc"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "clerk",
  "dunce",
@@ -452,7 +452,7 @@ dependencies = [
 
 [[package]]
 name = "fornax"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "assert_cmd",
  "clerk",
@@ -468,7 +468,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-core"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "assert_cmd",
  "clerk",
@@ -481,7 +481,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-py"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "clerk",
  "fornax",
@@ -731,7 +731,7 @@ dependencies = [
 
 [[package]]
 name = "libraw"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "bytemuck",
  "chrono",
@@ -745,7 +745,7 @@ dependencies = [
 
 [[package]]
 name = "libraw-sys"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "bindgen",
  "clerk",
