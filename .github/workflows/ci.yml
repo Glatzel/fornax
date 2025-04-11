@@ -87,6 +87,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - run: choco install pkgconfiglite
+        if: ${{runner.os == 'Windows'}}
+
       - name: restore dnc
         if: ${{ runner.os == 'Windows'}}
         uses: actions/cache@v4
