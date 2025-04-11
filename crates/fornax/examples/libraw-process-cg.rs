@@ -5,9 +5,15 @@ use miette::IntoDiagnostic;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::EnvFilter;
 fn main() -> miette::Result<()> {
     tracing_subscriber::registry()
-        .with(clerk::terminal_layer(LevelFilter::DEBUG))
+       .with(
+            EnvFilter::builder()
+                .with_default_directive(LevelFilter::DEBUG.into())
+                .from_env_lossy(),
+        )
+        .with(clerk::terminal_layer())
         .init();
     let params = libraw::dcraw::DCRawParams::preset_cg();
     let mut manager = Fornax::new(libraw::Libraw::new(), libraw::dcraw::DCRaw::new(params));

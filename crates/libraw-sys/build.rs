@@ -3,9 +3,15 @@ use std::path::PathBuf;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::EnvFilter;
 fn main() {
     tracing_subscriber::registry()
-        .with(clerk::terminal_layer(LevelFilter::DEBUG))
+        .with(
+            EnvFilter::builder()
+                .with_default_directive(LevelFilter::DEBUG.into())
+                .from_env_lossy(),
+        )
+        .with(clerk::terminal_layer())
         .init();
     match std::env::var("LIBCLANG_PATH") {
         Ok(path) => tracing::info!("Found `LIBCLANG_PATH`: {path}"),

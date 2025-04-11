@@ -300,8 +300,8 @@ dependencies = [
 
 [[package]]
 name = "clerk"
-version = "0.0.5"
-source = "git+https://github.com/Glatzel/clerk?tag=v0.0.5#78a0bc69e2ac55c5db08bfe34f9289ceacdc1e26"
+version = "0.0.6"
+source = "git+https://github.com/Glatzel/clerk?tag=v0.0.6#0a714fd49e1bdcd5157bdf6ab7d9341404dce78c"
 dependencies = [
  "chrono",
  "owo-colors",

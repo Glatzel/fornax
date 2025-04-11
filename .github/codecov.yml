@@ -8,5 +8,3 @@ coverage:
         informational: true
 comment:
   behavior: default
-ignore:
-  - "python/pyxis-py/src"
