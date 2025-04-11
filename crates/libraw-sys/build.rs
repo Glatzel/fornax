@@ -1,3 +1,4 @@
+#[cfg(target_os = "windows")]
 use std::path::PathBuf;
 
 use tracing::level_filters::LevelFilter;
