@@ -100,7 +100,7 @@ fn py_process<'a>(
 }
 
 #[pyfunction]
-pub fn py_set_log_level(level: u8) {
+pub fn py_set_log_level(level: u8, color: bool) {
     let level = match level {
         1 => LevelFilter::ERROR,
         2 => LevelFilter::WARN,
@@ -110,7 +110,7 @@ pub fn py_set_log_level(level: u8) {
         _ => LevelFilter::OFF,
     };
     tracing_subscriber::registry()
-        .with(clerk::terminal_layer(level, true))
+        .with(clerk::terminal_layer(level, color))
         .init();
 }
 #[pymodule]
