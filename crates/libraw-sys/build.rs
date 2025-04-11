@@ -29,9 +29,6 @@ fn main() {
     };
 
     // Link
-    link_lib("libjpeg", "jpeg");
-    link_lib("lcms2", "lcms2");
-    link_lib("zlib", "zlib");
     let _pk_libraw = link_lib("libraw_r", "raw_r");
 
     // generate bindings
