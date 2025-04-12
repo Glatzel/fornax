@@ -31,7 +31,28 @@ impl FornaxProcessedImage {
         }
     }
 }
-
+pub enum FornaxRawImage {
+    Null,
+    Mono16(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),
+    Rgb16(image::ImageBuffer<image::Rgb<u16>, Vec<u16>>),
+    Rgba16(image::ImageBuffer<image::Rgba<u16>, Vec<u16>>),
+    MonoF32(image::ImageBuffer<image::Luma<f32>, Vec<f32>>),
+    RgbF32(image::ImageBuffer<image::Rgb<f32>, Vec<f32>>),
+    RgbaF32(image::ImageBuffer<image::Rgba<f32>, Vec<f32>>),
+}
+impl FornaxRawImage {
+    pub fn to_dynamic_image(self) -> image::DynamicImage {
+        match self {
+            FornaxRawImage::Null => panic!("Raw image is null."),
+            FornaxRawImage::Mono16(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::Rgb16(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::Rgba16(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::MonoF32(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::RgbF32(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::RgbaF32(image_buffer) => image::DynamicImage::from(image_buffer),
+        }
+    }
+}
 /// A generic null post processor.
 pub struct NullPostProcessor {}
 impl<D> IPostProcessor<D> for NullPostProcessor
