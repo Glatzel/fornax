@@ -163,6 +163,7 @@ impl DncParams {
                     .to_string(),
             );
         } else {
+            // Default to raw file directory
             cmd.push(
                 dunce::canonicalize(raw_file.parent().unwrap())
                     .unwrap()
@@ -175,6 +176,7 @@ impl DncParams {
         if let Some(filename) = &self.filename {
             cmd.push(filename.clone());
         } else {
+            // Default to raw file name with dng extension
             cmd.push(
                 raw_file
                     .with_extension("dng")

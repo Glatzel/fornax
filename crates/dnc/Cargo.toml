@@ -5,13 +5,13 @@ version.workspace = true
 
 [dependencies]
 clerk = { workspace = true }
+dunce = { workspace = true }
 fornax-core = { workspace = true }
 libraw = { workspace = true }
 libraw-sys = { workspace = true }
 miette = { workspace = true }
 path-slash = { workspace = true }
 serde = { workspace = true, optional = true }
-dunce = { workspace = true }
 
 [features]
 log = ["clerk/log"]

@@ -8,6 +8,7 @@ bindgen = { workspace = true, optional = true }
 clerk = { workspace = true, features = ["log"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+pkg-config = "0.3.32"
 
 [dependencies]
 libc = { workspace = true }

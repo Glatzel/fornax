@@ -67,7 +67,7 @@ fn py_process<'a>(
         }
     };
     match img {
-        fornax::FornaxProcessedImage::None => panic!("Process failed."),
+        fornax::FornaxProcessedImage::Null => panic!("Process failed."),
         fornax::FornaxProcessedImage::Mono8(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array

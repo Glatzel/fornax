@@ -63,18 +63,24 @@ impl Dnc {
     }
     pub fn convert_file(&self, raw_file: &Path) -> miette::Result<PathBuf> {
         let raw_file = dunce::canonicalize(raw_file).into_diagnostic()?;
+
+        // Skip dng file
         if raw_file.extension().unwrap().eq_ignore_ascii_case("dng") {
             clerk::info!("The input file is dng.");
             return Ok(raw_file.clone());
         }
 
         let dng_file: PathBuf = self.dng_file(&raw_file)?;
+
+        // Remove dng file if overwrite set to true
         if self.params.overwrite && std::fs::remove_file(&dng_file).is_ok() {
             clerk::info!(
                 "Remove(overwrite) existing dng file: {}",
                 self.dng_file(&raw_file)?.to_slash_lossy().to_string()
             );
         }
+
+        // Execute dng converter to generate dng file.
         if !dng_file.exists() {
             let program = DNC_EXECUTABLE.as_os_str();
             let args = self.params.to_cmd(&raw_file)?;
@@ -96,6 +102,7 @@ impl Dnc {
                     .to_string()
             );
         } else {
+            // Skip if dng file exists
             clerk::info!(
                 "DNG file already exists: {}",
                 dunce::canonicalize(&dng_file)
@@ -108,8 +115,7 @@ impl Dnc {
     }
 
     fn open_dng_file(&self, fname: &Path) -> miette::Result<()> {
-        let c_string =
-            CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
+        let c_string = CString::new(fname.to_string_lossy().to_string()).into_diagnostic()?;
         Self::check_run(
             unsafe { libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _) },
             "libraw_open_file",
