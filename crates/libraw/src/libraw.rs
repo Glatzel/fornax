@@ -4,10 +4,8 @@ mod iparams;
 mod rawdata;
 use std::ffi::CString;
 use std::path::Path;
-use std::slice;
 
 use fornax_core::{FornaxRawImage, IDecoder};
-use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::LibrawIParams;

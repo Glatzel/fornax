@@ -27,8 +27,8 @@ impl LibrawRawdata {
             let img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> =
                 ImageBuffer::from_vec(width as u32, height as u32, unsafe {
                     slice::from_raw_parts((*imgdata).rawdata.color3_image, width * height)
-                        .to_vec()
-                        .into_iter()
+                        .iter()
+                        .copied()
                         .flat_map(|pixel| pixel.into_iter())
                         .collect::<Vec<u16>>()
                 })
@@ -39,8 +39,8 @@ impl LibrawRawdata {
             let img: image::ImageBuffer<image::Rgba<u16>, Vec<u16>> =
                 ImageBuffer::from_vec(width as u32, height as u32, unsafe {
                     slice::from_raw_parts((*imgdata).rawdata.color4_image, width * height)
-                        .to_vec()
-                        .into_iter()
+                        .iter()
+                        .copied()
                         .flat_map(|pixel| pixel.into_iter())
                         .collect::<Vec<u16>>()
                 })
@@ -60,8 +60,8 @@ impl LibrawRawdata {
             let img: image::ImageBuffer<image::Rgb<f32>, Vec<f32>> =
                 ImageBuffer::from_vec(width as u32, height as u32, unsafe {
                     slice::from_raw_parts((*imgdata).rawdata.float3_image, width * height)
-                        .to_vec()
-                        .into_iter()
+                        .iter()
+                        .copied()
                         .flat_map(|pixel| pixel.into_iter())
                         .collect::<Vec<f32>>()
                 })
@@ -72,8 +72,8 @@ impl LibrawRawdata {
             let img: image::ImageBuffer<image::Rgba<f32>, Vec<f32>> =
                 ImageBuffer::from_vec(width as u32, height as u32, unsafe {
                     slice::from_raw_parts((*imgdata).rawdata.float4_image, width * height)
-                        .to_vec()
-                        .into_iter()
+                        .iter()
+                        .copied()
                         .flat_map(|pixel| pixel.into_iter())
                         .collect::<Vec<f32>>()
                 })
