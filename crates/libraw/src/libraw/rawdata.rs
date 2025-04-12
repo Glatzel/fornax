@@ -7,7 +7,7 @@ pub struct LibrawRawdata {}
 impl LibrawRawdata {
     pub(crate) fn get_rawdata(
         imgdata: *mut libraw_sys::libraw_data_t,
-        width: usize, 
+        width: usize,
         height: usize,
     ) -> miette::Result<FornaxRawImage> {
         if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
