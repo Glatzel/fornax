@@ -2,16 +2,18 @@ mod image_sizes;
 mod imgother;
 mod iparams;
 mod rawdata;
+use std::ffi::CString;
 use std::path::Path;
-use std::{ffi::CString, slice};
+use std::slice;
 
-use crate::ILibrawErrors;
 use fornax_core::{FornaxRawImage, IDecoder};
 use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::LibrawIParams;
 pub use rawdata::LibrawRawdata;
+
+use crate::ILibrawErrors;
 #[derive(Debug)]
 pub struct Libraw {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
