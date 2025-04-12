@@ -33,23 +33,23 @@ impl FornaxProcessedImage {
 }
 pub enum FornaxRawImage {
     Null,
-    RawMonoImage(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),
-    RawRgbImage(image::ImageBuffer<image::Rgb<u16>, Vec<u16>>),
-    RawRgbaImage(image::ImageBuffer<image::Rgba<u16>, Vec<u16>>),
-    FloatMonoImage(image::ImageBuffer<image::Luma<f32>, Vec<f32>>),
-    Float3Image(image::ImageBuffer<image::Rgb<f32>, Vec<f32>>),
-    Float4Image(image::ImageBuffer<image::Rgba<f32>, Vec<f32>>),
+    Mono16(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),
+    Rgb16(image::ImageBuffer<image::Rgb<u16>, Vec<u16>>),
+    Rgba16(image::ImageBuffer<image::Rgba<u16>, Vec<u16>>),
+    MonoF32(image::ImageBuffer<image::Luma<f32>, Vec<f32>>),
+    RgbF32(image::ImageBuffer<image::Rgb<f32>, Vec<f32>>),
+    RgbaF32(image::ImageBuffer<image::Rgba<f32>, Vec<f32>>),
 }
 impl FornaxRawImage {
     pub fn to_dynamic_image(self) -> image::DynamicImage {
         match self {
             FornaxRawImage::Null => panic!("Raw image is null."),
-            FornaxRawImage::RawMonoImage(image_buffer) => image::DynamicImage::from(image_buffer),
-            FornaxRawImage::RawRgbImage(image_buffer) => image::DynamicImage::from(image_buffer),
-            FornaxRawImage::RawRgbaImage(image_buffer) => image::DynamicImage::from(image_buffer),
-            FornaxRawImage::FloatMonoImage(image_buffer) => image::DynamicImage::from(image_buffer),
-            FornaxRawImage::Float3Image(image_buffer) => image::DynamicImage::from(image_buffer),
-            FornaxRawImage::Float4Image(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::Mono16(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::Rgb16(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::Rgba16(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::MonoF32(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::RgbF32(image_buffer) => image::DynamicImage::from(image_buffer),
+            FornaxRawImage::RgbaF32(image_buffer) => image::DynamicImage::from(image_buffer),
         }
     }
 }

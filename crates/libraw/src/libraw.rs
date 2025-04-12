@@ -81,33 +81,37 @@ impl Libraw {
                     })
                     .unwrap()
                 };
-                Ok(FornaxRawImage::RawMonoImage(img))
+                Ok(FornaxRawImage::Mono16(img))
             }
             LibrawRawdata::Color3Image => {
-                let img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> = {
+                let img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> =
                     ImageBuffer::from_vec(width, height, unsafe {
                         slice::from_raw_parts(
                             (*self.imgdata).rawdata.color3_image,
-                            width as usize * height as usize * 3,
+                            width as usize * height as usize,
                         )
                         .to_vec()
+                        .into_iter()
+                        .flat_map(|pixel| pixel.into_iter())
+                        .collect::<Vec<u16>>()
                     })
-                    .unwrap()
-                };
-                Ok(FornaxRawImage::RawRgbImage(img))
+                    .unwrap();
+                Ok(FornaxRawImage::Rgb16(img))
             }
             LibrawRawdata::Color4Image => {
-                let img: image::ImageBuffer<image::Rgba<u16>, Vec<u16>> = {
+                let img: image::ImageBuffer<image::Rgba<u16>, Vec<u16>> =
                     ImageBuffer::from_vec(width, height, unsafe {
-                  
+                        slice::from_raw_parts(
                             (*self.imgdata).rawdata.color4_image,
-                  
-                
+                            width as usize * height as usize,
+                        )
                         .to_vec()
+                        .into_iter()
+                        .flat_map(|pixel| pixel.into_iter())
+                        .collect::<Vec<u16>>()
                     })
-                    .unwrap()
-                };
-                Ok(FornaxRawImage::RawRgbaImage(img))
+                    .unwrap();
+                Ok(FornaxRawImage::Rgba16(img))
             }
             LibrawRawdata::FloatImage => {
                 let img: image::ImageBuffer<image::Luma<f32>, Vec<f32>> = {
@@ -120,33 +124,37 @@ impl Libraw {
                     })
                     .unwrap()
                 };
-                Ok(FornaxRawImage::FloatMonoImage(img))
+                Ok(FornaxRawImage::MonoF32(img))
             }
             LibrawRawdata::Float3Image => {
-                let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> = {
+                let img: image::ImageBuffer<image::Rgb<f32>, Vec<f32>> =
                     ImageBuffer::from_vec(width, height, unsafe {
                         slice::from_raw_parts(
-                            (*self.imgdata).rawdata.raw_image,
+                            (*self.imgdata).rawdata.float3_image,
                             width as usize * height as usize,
                         )
                         .to_vec()
+                        .into_iter()
+                        .flat_map(|pixel| pixel.into_iter())
+                        .collect::<Vec<f32>>()
                     })
-                    .unwrap()
-                };
-                Ok(FornaxRawImage::RawMonoImage(img))
+                    .unwrap();
+                Ok(FornaxRawImage::RgbF32(img))
             }
             LibrawRawdata::Float4Image => {
-                let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> = {
+                let img: image::ImageBuffer<image::Rgba<f32>, Vec<f32>> =
                     ImageBuffer::from_vec(width, height, unsafe {
                         slice::from_raw_parts(
-                            (*self.imgdata).rawdata.raw_image,
+                            (*self.imgdata).rawdata.float4_image,
                             width as usize * height as usize,
                         )
                         .to_vec()
+                        .into_iter()
+                        .flat_map(|pixel| pixel.into_iter())
+                        .collect::<Vec<f32>>()
                     })
-                    .unwrap()
-                };
-                Ok(FornaxRawImage::RawMonoImage(img))
+                    .unwrap();
+                Ok(FornaxRawImage::RgbaF32(img))
             }
         }
     }
