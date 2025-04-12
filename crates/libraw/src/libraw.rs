@@ -1,17 +1,17 @@
 mod image_sizes;
 mod imgother;
 mod iparams;
-
-use std::ffi::CString;
+mod rawdata;
 use std::path::Path;
+use std::{ffi::CString, slice};
 
-use fornax_core::IDecoder;
+use crate::ILibrawErrors;
+use fornax_core::{FornaxRawImage, IDecoder};
+use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::LibrawIParams;
-
-use crate::ILibrawErrors;
-
+pub use rawdata::LibrawRawdata;
 #[derive(Debug)]
 pub struct Libraw {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
@@ -61,6 +61,94 @@ impl Libraw {
     }
     pub fn iparams(&self) -> miette::Result<LibrawIParams> {
         LibrawIParams::new(self.imgdata)
+    }
+    pub fn rawdata(&self, raw_image_type: &LibrawRawdata) -> miette::Result<FornaxRawImage> {
+        if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
+            miette::bail!("imgdata is null.")
+        }
+        let size = self.image_sizes()?;
+        let width: u32 = size.raw_width() as u32;
+        let height: u32 = size.raw_height() as u32;
+        match raw_image_type {
+            LibrawRawdata::RawImage => {
+                let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> = {
+                    ImageBuffer::from_vec(width, height, unsafe {
+                        slice::from_raw_parts(
+                            (*self.imgdata).rawdata.raw_image,
+                            width as usize * height as usize,
+                        )
+                        .to_vec()
+                    })
+                    .unwrap()
+                };
+                Ok(FornaxRawImage::RawMonoImage(img))
+            }
+            LibrawRawdata::Color3Image => {
+                let img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> = {
+                    ImageBuffer::from_vec(width, height, unsafe {
+                        slice::from_raw_parts(
+                            (*self.imgdata).rawdata.color3_image,
+                            width as usize * height as usize * 3,
+                        )
+                        .to_vec()
+                    })
+                    .unwrap()
+                };
+                Ok(FornaxRawImage::RawRgbImage(img))
+            }
+            LibrawRawdata::Color4Image => {
+                let img: image::ImageBuffer<image::Rgba<u16>, Vec<u16>> = {
+                    ImageBuffer::from_vec(width, height, unsafe {
+                  
+                            (*self.imgdata).rawdata.color4_image,
+                  
+                
+                        .to_vec()
+                    })
+                    .unwrap()
+                };
+                Ok(FornaxRawImage::RawRgbaImage(img))
+            }
+            LibrawRawdata::FloatImage => {
+                let img: image::ImageBuffer<image::Luma<f32>, Vec<f32>> = {
+                    ImageBuffer::from_vec(width, height, unsafe {
+                        slice::from_raw_parts(
+                            (*self.imgdata).rawdata.float_image,
+                            width as usize * height as usize,
+                        )
+                        .to_vec()
+                    })
+                    .unwrap()
+                };
+                Ok(FornaxRawImage::FloatMonoImage(img))
+            }
+            LibrawRawdata::Float3Image => {
+                let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> = {
+                    ImageBuffer::from_vec(width, height, unsafe {
+                        slice::from_raw_parts(
+                            (*self.imgdata).rawdata.raw_image,
+                            width as usize * height as usize,
+                        )
+                        .to_vec()
+                    })
+                    .unwrap()
+                };
+                Ok(FornaxRawImage::RawMonoImage(img))
+            }
+            LibrawRawdata::Float4Image => {
+                let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> = {
+                    ImageBuffer::from_vec(width, height, unsafe {
+                        slice::from_raw_parts(
+                            (*self.imgdata).rawdata.raw_image,
+                            width as usize * height as usize,
+                        )
+                        .to_vec()
+                    })
+                    .unwrap()
+                };
+                Ok(FornaxRawImage::RawMonoImage(img))
+            }
+        }
     }
 }
 impl Drop for Libraw {
