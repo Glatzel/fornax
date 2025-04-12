@@ -470,13 +470,8 @@ dependencies = [
 name = "fornax-core"
 version = "0.0.3"
 dependencies = [
- "assert_cmd",
- "clerk",
  "image",
- "libraw",
  "miette",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -750,6 +745,7 @@ dependencies = [
  "bindgen",
  "clerk",
  "libc",
+ "pkg-config",
  "tracing",
  "tracing-subscriber",
 ]

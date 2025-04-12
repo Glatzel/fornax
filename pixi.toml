@@ -26,4 +26,4 @@ pytest = "*"
 pytest-cov = "*"
 
 [environments]
-pydev = ["pydev"]
+pydev = [ "pydev"]
