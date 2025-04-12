@@ -1,17 +1,17 @@
 mod image_sizes;
 mod imgother;
 mod iparams;
-
+mod rawdata;
 use std::ffi::CString;
 use std::path::Path;
 
-use fornax_core::IDecoder;
+use fornax_core::{FornaxRawImage, IDecoder};
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::LibrawIParams;
+pub use rawdata::LibrawRawdata;
 
 use crate::ILibrawErrors;
-
 #[derive(Debug)]
 pub struct Libraw {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
@@ -62,7 +62,17 @@ impl Libraw {
     pub fn iparams(&self) -> miette::Result<LibrawIParams> {
         LibrawIParams::new(self.imgdata)
     }
+    pub fn rawdata(&self) -> miette::Result<FornaxRawImage> {
+        if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
+            miette::bail!("imgdata is null.")
+        }
+        let size = self.image_sizes()?;
+        let width: u32 = size.raw_width() as u32;
+        let height: u32 = size.raw_height() as u32;
+        rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
+    }
 }
+
 impl Drop for Libraw {
     fn drop(&mut self) {
         unsafe { libraw_sys::libraw_close(self.imgdata) }
