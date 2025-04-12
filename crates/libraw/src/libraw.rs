@@ -62,103 +62,17 @@ impl Libraw {
     pub fn iparams(&self) -> miette::Result<LibrawIParams> {
         LibrawIParams::new(self.imgdata)
     }
-    pub fn rawdata(&self, raw_image_type: &LibrawRawdata) -> miette::Result<FornaxRawImage> {
+    pub fn rawdata(&self) -> miette::Result<FornaxRawImage> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
         let size = self.image_sizes()?;
         let width: u32 = size.raw_width() as u32;
         let height: u32 = size.raw_height() as u32;
-        match raw_image_type {
-            LibrawRawdata::RawImage => {
-                let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> = {
-                    ImageBuffer::from_vec(width, height, unsafe {
-                        slice::from_raw_parts(
-                            (*self.imgdata).rawdata.raw_image,
-                            width as usize * height as usize,
-                        )
-                        .to_vec()
-                    })
-                    .unwrap()
-                };
-                Ok(FornaxRawImage::Mono16(img))
-            }
-            LibrawRawdata::Color3Image => {
-                let img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> =
-                    ImageBuffer::from_vec(width, height, unsafe {
-                        slice::from_raw_parts(
-                            (*self.imgdata).rawdata.color3_image,
-                            width as usize * height as usize,
-                        )
-                        .to_vec()
-                        .into_iter()
-                        .flat_map(|pixel| pixel.into_iter())
-                        .collect::<Vec<u16>>()
-                    })
-                    .unwrap();
-                Ok(FornaxRawImage::Rgb16(img))
-            }
-            LibrawRawdata::Color4Image => {
-                let img: image::ImageBuffer<image::Rgba<u16>, Vec<u16>> =
-                    ImageBuffer::from_vec(width, height, unsafe {
-                        slice::from_raw_parts(
-                            (*self.imgdata).rawdata.color4_image,
-                            width as usize * height as usize,
-                        )
-                        .to_vec()
-                        .into_iter()
-                        .flat_map(|pixel| pixel.into_iter())
-                        .collect::<Vec<u16>>()
-                    })
-                    .unwrap();
-                Ok(FornaxRawImage::Rgba16(img))
-            }
-            LibrawRawdata::FloatImage => {
-                let img: image::ImageBuffer<image::Luma<f32>, Vec<f32>> = {
-                    ImageBuffer::from_vec(width, height, unsafe {
-                        slice::from_raw_parts(
-                            (*self.imgdata).rawdata.float_image,
-                            width as usize * height as usize,
-                        )
-                        .to_vec()
-                    })
-                    .unwrap()
-                };
-                Ok(FornaxRawImage::MonoF32(img))
-            }
-            LibrawRawdata::Float3Image => {
-                let img: image::ImageBuffer<image::Rgb<f32>, Vec<f32>> =
-                    ImageBuffer::from_vec(width, height, unsafe {
-                        slice::from_raw_parts(
-                            (*self.imgdata).rawdata.float3_image,
-                            width as usize * height as usize,
-                        )
-                        .to_vec()
-                        .into_iter()
-                        .flat_map(|pixel| pixel.into_iter())
-                        .collect::<Vec<f32>>()
-                    })
-                    .unwrap();
-                Ok(FornaxRawImage::RgbF32(img))
-            }
-            LibrawRawdata::Float4Image => {
-                let img: image::ImageBuffer<image::Rgba<f32>, Vec<f32>> =
-                    ImageBuffer::from_vec(width, height, unsafe {
-                        slice::from_raw_parts(
-                            (*self.imgdata).rawdata.float4_image,
-                            width as usize * height as usize,
-                        )
-                        .to_vec()
-                        .into_iter()
-                        .flat_map(|pixel| pixel.into_iter())
-                        .collect::<Vec<f32>>()
-                    })
-                    .unwrap();
-                Ok(FornaxRawImage::RgbaF32(img))
-            }
-        }
+        rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
     }
 }
+
 impl Drop for Libraw {
     fn drop(&mut self) {
         unsafe { libraw_sys::libraw_close(self.imgdata) }

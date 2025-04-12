@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 use fornax::Fornax;
-use libraw::libraw::LibrawRawdata;
 use miette::IntoDiagnostic;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
@@ -17,37 +16,7 @@ fn main() -> miette::Result<()> {
 
     manager
         .decoder
-        .rawdata(&LibrawRawdata::RawImage)?
-        .to_dynamic_image()
-        .save("temp/raw_mono16.tiff")
-        .into_diagnostic()?;
-    manager
-        .decoder
-        .rawdata(&LibrawRawdata::Color3Image)?
-        .to_dynamic_image()
-        .save("temp/raw_rgb16.tiff")
-        .into_diagnostic()?;
-    manager
-        .decoder
-        .rawdata(&LibrawRawdata::Color4Image)?
-        .to_dynamic_image()
-        .save("temp/raw_rgba.tiff")
-        .into_diagnostic()?;
-    manager
-        .decoder
-        .rawdata(&LibrawRawdata::FloatImage)?
-        .to_dynamic_image()
-        .save("temp/raw_mono16.tiff")
-        .into_diagnostic()?;
-    manager
-        .decoder
-        .rawdata(&LibrawRawdata::Float3Image)?
-        .to_dynamic_image()
-        .save("temp/raw_mono16.tiff")
-        .into_diagnostic()?;
-    manager
-        .decoder
-        .rawdata(&LibrawRawdata::Float4Image)?
+        .rawdata()?
         .to_dynamic_image()
         .save("temp/raw_mono16.tiff")
         .into_diagnostic()?;
