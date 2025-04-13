@@ -11,6 +11,7 @@ fn main() -> miette::Result<()> {
         .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
         .init();
     let dcraw_params = DCRawParams {
+        user_qual: Some(libraw::dcraw::DCRawUserQual::Linear),
         ..Default::default()
     };
     let mut manager = Fornax::new(
