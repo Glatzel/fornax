@@ -16,6 +16,7 @@ It takes built-in or custom decoder and post-processor to generate `ImageBuffer`
 - **dnc**: A wrapper of Adobe dng converter.
 - **fornax**: Simple high-level raw processing manager.
 - **fornax-core**: Foundational traits and structs for decoder and post-processor.
+- **fornax-dalim**: Rust native raw image post processor.
 - **fornax-py**: Python package for raw processing manager with Rust backend.
 - **libraw**: Safe wrapper around the native libraw library.
 - **libraw-sys**: Libraw rust bindings.
