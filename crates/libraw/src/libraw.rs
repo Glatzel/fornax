@@ -91,15 +91,19 @@ impl Libraw {
         let height = size.iheight();
 
         clerk::debug!("Found rgba16 raw image.");
-        let img: image::ImageBuffer<image::Rgba<u16>, Vec<u16>> =
-            ImageBuffer::from_vec(width as u32, height as u32, unsafe {
-                slice::from_raw_parts((*self.imgdata).image, width as usize * height as usize)
-                    .iter()
-                    .copied()
-                    .flat_map(|pixel| pixel.into_iter())
-                    .collect::<Vec<u16>>()
-            })
-            .unwrap();
+        let img: FornaxRawImage = ImageBuffer::from_vec(width as u32, height as u32, unsafe {
+            slice::from_raw_parts(
+                (*self.imgdata).image as *const u16,
+                width as usize * height as usize * 4,
+            )
+            .to_vec()
+
+            // .iter()
+            // .copied()
+            // .flat_map(|pixel| pixel.into_iter())
+            // .collect::<Vec<u16>>()
+        })
+        .unwrap();
         Ok(img)
     }
 }

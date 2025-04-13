@@ -14,10 +14,10 @@ fn main() -> miette::Result<()> {
         "./external/raw-images/images/colorchart-eos-7d.cr2",
     ))?;
 
-    manager
-        .decoder
-        .rawdata()?
-        .save("temp/raw_data.tiff")
-        .into_diagnostic()?;
+    let img = manager.decoder.rawdata()?;
+    clerk::info!("Done building raw image.");
+
+    img.save("temp/raw_image.tiff").into_diagnostic()?;
+    clerk::info!("Done saving raw image.");
     Ok(())
 }
