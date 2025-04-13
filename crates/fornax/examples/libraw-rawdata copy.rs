@@ -16,8 +16,8 @@ fn main() -> miette::Result<()> {
 
     manager
         .decoder
-        .rawdata()?
-        .save("temp/raw_data.tiff")
+        .rawimage()?
+        .save("temp/raw_image.tiff")
         .into_diagnostic()?;
     Ok(())
 }

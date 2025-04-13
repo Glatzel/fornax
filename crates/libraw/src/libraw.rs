@@ -4,8 +4,10 @@ mod iparams;
 mod rawdata;
 use std::ffi::CString;
 use std::path::Path;
+use std::slice;
 
-use fornax_core::{FornaxRawImage, IDecoder};
+use fornax_core::{FornaxRawData, FornaxRawImage, IDecoder};
+use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::{ColorDesc, LibrawIParams};
@@ -62,7 +64,7 @@ impl Libraw {
     pub fn iparams(&self) -> miette::Result<LibrawIParams> {
         LibrawIParams::new(self.imgdata)
     }
-    pub fn rawdata(&self) -> miette::Result<FornaxRawImage> {
+    pub fn rawdata(&self) -> miette::Result<FornaxRawData> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
@@ -71,43 +73,32 @@ impl Libraw {
         let height: u32 = size.raw_height() as u32;
         rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
     }
-    // pub fn rawimage(&self) -> miette::Result<FornaxRawImage> {
-    //     if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
-    //         miette::bail!("imgdata is null.")
-    //     }
-    //     Self::check_run(
-    //         unsafe { libraw_sys::libraw_raw2image(self.imgdata) },
-    //         "libraw_raw2image",
-    //     );
-    //     Self::check_run(
-    //         unsafe { libraw_sys::libraw_subtract_black(self.imgdata) },
-    //         "libraw_subtract_black",
-    //     );
-    //     if !unsafe { (*imgdata).rawdata.raw_image }.is_null() {
-    //         clerk::debug!("Found mono16 raw image.");
-    //         let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> = {
-    //             ImageBuffer::from_vec(width as u32, height as u32, unsafe {
-    //                 slice::from_raw_parts((*imgdata).rawdata.raw_image, width * height).to_vec()
-    //             })
-    //             .unwrap()
-    //         };
-    //         Ok(FornaxRawImage::Mono16(img))
-    //     } else if !unsafe { (*self.imgdata) }.is_null() {
-    //         clerk::debug!("Found rgba16 raw image.");
-    //         let img: image::ImageBuffer<image::Rgba<u16>, Vec<u16>> =
-    //             ImageBuffer::from_vec(6216 as u32, 4168 as u32, unsafe {
-    //                 slice::from_raw_parts((*self.imgdata).image, 4168 * 6216)
-    //                     .iter()
-    //                     .copied()
-    //                     .flat_map(|pixel| pixel.into_iter())
-    //                     .collect::<Vec<u16>>()
-    //             })
-    //             .unwrap();
-    //         Ok(FornaxRawImage::Rgba16(img))
-    //     } else {
-    //         miette::bail!("raw image are all null.")
-    //     }
-    // }
+    pub fn rawimage(&self) -> miette::Result<FornaxRawImage> {
+        if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
+            miette::bail!("imgdata is null.")
+        }
+        Self::check_run(
+            unsafe { libraw_sys::libraw_raw2image(self.imgdata) },
+            "libraw_raw2image",
+        )?;
+
+        unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
+        if unsafe { (*self.imgdata).image }.is_null() {
+            miette::bail!("raw image is null.")
+        }
+
+        clerk::debug!("Found rgba16 raw image.");
+        let img: image::ImageBuffer<image::Rgba<u16>, Vec<u16>> =
+            ImageBuffer::from_vec(6216 as u32, 4168 as u32, unsafe {
+                slice::from_raw_parts((*self.imgdata).image, 4168 * 6216)
+                    .iter()
+                    .copied()
+                    .flat_map(|pixel| pixel.into_iter())
+                    .collect::<Vec<u16>>()
+            })
+            .unwrap();
+        Ok(img)
+    }
 }
 
 impl Drop for Libraw {
