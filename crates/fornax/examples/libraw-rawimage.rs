@@ -11,7 +11,7 @@ fn main() -> miette::Result<()> {
         .init();
     let mut manager = Fornax::new(libraw::Libraw::new(), fornax::NullPostProcessor {});
     manager.decode_file(&PathBuf::from(
-        "./external/raw-images/images/colorchart-eos-7d.cr2",
+        "./external/raw-images/images/colorchart-iphone7plus-cloudy.dng",
     ))?;
 
     manager

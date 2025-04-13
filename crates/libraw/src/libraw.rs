@@ -69,8 +69,8 @@ impl Libraw {
             miette::bail!("imgdata is null.")
         }
         let size = self.image_sizes()?;
-        let width: u32 = size.raw_width() as u32;
-        let height: u32 = size.raw_height() as u32;
+        let width = size.raw_width();
+        let height = size.raw_height();
         rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
     }
     pub fn rawimage(&self) -> miette::Result<FornaxRawImage> {
@@ -86,11 +86,14 @@ impl Libraw {
         if unsafe { (*self.imgdata).image }.is_null() {
             miette::bail!("raw image is null.")
         }
+        let size = self.image_sizes()?;
+        let width = size.iwidth();
+        let height = size.iheight();
 
         clerk::debug!("Found rgba16 raw image.");
         let img: image::ImageBuffer<image::Rgba<u16>, Vec<u16>> =
-            ImageBuffer::from_vec(6216 as u32, 4168 as u32, unsafe {
-                slice::from_raw_parts((*self.imgdata).image, 4168 * 6216)
+            ImageBuffer::from_vec(width as u32, height as u32, unsafe {
+                slice::from_raw_parts((*self.imgdata).image, width as usize * height as usize)
                     .iter()
                     .copied()
                     .flat_map(|pixel| pixel.into_iter())
