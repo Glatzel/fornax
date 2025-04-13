@@ -20,6 +20,5 @@ fn main() -> miette::Result<()> {
         .to_dynamic_image()
         .save("temp/raw_mono16.tiff")
         .into_diagnostic()?;
-
     Ok(())
 }
