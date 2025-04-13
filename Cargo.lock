@@ -478,12 +478,6 @@ dependencies = [
 [[package]]
 name = "fornax-dalim"
 version = "0.0.3"
-dependencies = [
- "clerk",
- "fornax-core",
- "miette",
- "serde",
-]
 
 [[package]]
 name = "fornax-py"

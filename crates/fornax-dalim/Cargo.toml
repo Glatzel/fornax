@@ -3,12 +3,12 @@ edition.workspace = true
 name = "fornax-dalim"
 version.workspace = true
 
-[dependencies]
-clerk = { workspace = true, optional = true }
-fornax-core = { workspace = true }
-miette = { workspace = true }
-serde = { workspace = true, optional = true }
+# [dependencies]
+# clerk = { workspace = true, optional = true }
+# fornax-core = { workspace = true }
+# miette = { workspace = true }
+# serde = { workspace = true, optional = true }
 
-[features]
-log = ["clerk/log"]
-serde = ["dep:serde"]
+# [features]
+# log = ["clerk/log"]
+# serde = ["dep:serde"]
