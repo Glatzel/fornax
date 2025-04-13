@@ -17,7 +17,7 @@ fn main() -> miette::Result<()> {
     let img = manager.decoder.rawdata()?;
     clerk::info!("Done building raw image.");
 
-    img.save("temp/raw_image.tiff").into_diagnostic()?;
+    img.save("temp/raw_data.tiff").into_diagnostic()?;
     clerk::info!("Done saving raw image.");
     Ok(())
 }

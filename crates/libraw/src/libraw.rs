@@ -89,6 +89,7 @@ impl Libraw {
         let size = self.image_sizes()?;
         let width = size.iwidth();
         let height = size.iheight();
+        clerk::debug!("Width: {width}, Height: {height}");
 
         clerk::debug!("Found rgba16 raw image.");
         let img: FornaxRawImage = ImageBuffer::from_vec(width as u32, height as u32, unsafe {

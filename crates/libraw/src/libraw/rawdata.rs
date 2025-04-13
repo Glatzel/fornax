@@ -13,6 +13,7 @@ impl LibrawRawdata {
         if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
+        clerk::debug!("Width: {width}, Height: {height}");
         if !unsafe { (*imgdata).rawdata.raw_image }.is_null() {
             clerk::debug!("Found mono16 raw image.");
             let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> = {
