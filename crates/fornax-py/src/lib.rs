@@ -66,6 +66,7 @@ fn py_process<'a>(
             manager.decode_file(&file).unwrap().post_process().unwrap()
         }
     };
+
     match img {
         fornax::FornaxProcessedImage::Null => panic!("Process failed."),
         fornax::FornaxProcessedImage::Mono8(img) => {
@@ -82,6 +83,13 @@ fn py_process<'a>(
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
+        fornax::FornaxProcessedImage::MonoF32(img) => {
+            let img_array = PyArray::from_slice(py, img.as_ref());
+            let img_array = img_array
+                .reshape([img.height() as usize, img.width() as usize, 1])
+                .unwrap();
+            (img_array,).into_pyobject(py)
+        }
         fornax::FornaxProcessedImage::Rgb8(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
@@ -90,6 +98,13 @@ fn py_process<'a>(
             (img_array,).into_pyobject(py)
         }
         fornax::FornaxProcessedImage::Rgb16(img) => {
+            let img_array = PyArray::from_slice(py, img.as_ref());
+            let img_array = img_array
+                .reshape([img.height() as usize, img.width() as usize, 3])
+                .unwrap();
+            (img_array,).into_pyobject(py)
+        }
+        fornax::FornaxProcessedImage::RgbF32(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
                 .reshape([img.height() as usize, img.width() as usize, 3])

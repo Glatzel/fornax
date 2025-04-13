@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use fornax_core::IPostProcessor;
-pub use fornax_core::{FornaxProcessedImage, NullPostProcessor};
+pub use fornax_core::{FornaxProcessedImage, FornaxRawImage, NullPostProcessor};
 pub use {dnc, libraw};
 
 pub struct Fornax<D, P>

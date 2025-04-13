@@ -1,18 +1,14 @@
 [package]
 edition.workspace = true
-name = "libraw"
+name = "fornax-dalim"
 version.workspace = true
 
 [dependencies]
-bytemuck = { workspace = true }
-chrono = { workspace = true }
-clerk = { workspace = true }
+clerk = { workspace = true, optional = true }
 fornax-core = { workspace = true }
-image = { workspace = true }
-libraw-sys = { workspace = true }
 miette = { workspace = true }
 serde = { workspace = true, optional = true }
 
 [features]
 log = ["clerk/log"]
-serde = ["dep:serde", "chrono/serde"]
+serde = ["dep:serde"]

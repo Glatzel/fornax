@@ -459,6 +459,7 @@ dependencies = [
  "dnc",
  "dunce",
  "fornax-core",
+ "fornax-dalim",
  "libraw",
  "miette",
  "path-slash",
@@ -472,6 +473,16 @@ version = "0.0.3"
 dependencies = [
  "image",
  "miette",
+]
+
+[[package]]
+name = "fornax-dalim"
+version = "0.0.3"
+dependencies = [
+ "clerk",
+ "fornax-core",
+ "miette",
+ "serde",
 ]
 
 [[package]]
