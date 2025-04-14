@@ -71,8 +71,8 @@
 // }
 // pub struct DemosaicLinear();
 // impl DemosaicLinear {
-//     fn demosaic(img: fornax_core::FornaxRawImage) -> image::ImageBuffer<image::Rgb<u16>, Vec<u16>> {
-//         let temp_img = img.clone();
+//     fn demosaic(img: fornax_core::FornaxRawImage) -> image::ImageBuffer<image::Rgb<u16>,
+// Vec<u16>> {         let temp_img = img.clone();
 //         let (width, height) = temp_img.dimensions();
 //         let mut img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> =
 //             image::ImageBuffer::new(width, height);
@@ -94,8 +94,8 @@
 //                 }
 //                 // green
 //                 else {
-//                     (pixel[0], pixel[2]) = get_neighbour_red_blue(&temp_img, *x, *y, width, height);
-//                     let center = temp_img.get_pixel(*x, *y);
+//                     (pixel[0], pixel[2]) = get_neighbour_red_blue(&temp_img, *x, *y, width,
+// height);                     let center = temp_img.get_pixel(*x, *y);
 //                     pixel[1] = center[1] + center[3];
 //                 }
 //             });
