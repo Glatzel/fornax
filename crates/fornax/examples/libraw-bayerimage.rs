@@ -2,7 +2,6 @@ use std::path::PathBuf;
 
 use fornax::Fornax;
 use fornax_core::BayerPattern;
-
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;

@@ -1,4 +1,5 @@
-use std::{fmt::Display, path::Path};
+use std::fmt::Display;
+use std::path::Path;
 #[derive(Debug, PartialEq)]
 pub enum BayerPattern {
     RGGB,
