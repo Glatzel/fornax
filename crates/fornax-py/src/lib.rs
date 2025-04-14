@@ -38,18 +38,20 @@ impl From<&str> for PyPostPorcessor {
 fn py_process<'a>(
     py: Python<'a>,
     file: PathBuf,
-    dnc_params: Option<&'a [u8]>,
     decoder: &str,
     _decoder_params: &'a [u8],
     post_processor: &str,
     post_processor_params: &'a [u8],
+    dnc_params: Option<&'a [u8]>,
 ) -> Result<pyo3::Bound<'a, PyTuple>, PyErr> {
+    // convert with dnc
     let file = if let Some(params) = dnc_params {
         let dnc = Dnc::new(Deserialize::deserialize(&mut Deserializer::new(params)).unwrap());
         dnc.convert(&file).unwrap()
     } else {
         file
     };
+
     let img = match (
         PyDecoder::from(decoder),
         PyPostPorcessor::from(post_processor),
