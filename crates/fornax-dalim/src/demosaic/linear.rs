@@ -44,37 +44,34 @@ impl super::IDemosaic for DemosaicLinear {
         let mut img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> =
             image::ImageBuffer::new(width, height);
         let bayer_mask = pattern.as_mask();
-        img.enumerate_pixels_mut()
-            .collect::<Vec<(u32, u32, &mut image::Rgb<u16>)>>()
-            .par_iter_mut()
-            .for_each(|(x, y, pixel)| {
-                if *x > 0 && *y > 0 && *x < width - 1 && *y < height - 1 {
-                    // `(*x & 1) + 2 * (*y & 1)` is the of the current pixel at image (x,y) index in
-                    // bayer pattern.
-                    match &bayer_mask[((*x & 1) + 2 * (*y & 1)) as usize] {
-                        BayerChannel::R => {
-                            pixel[0] = mosaic.get_pixel(*x, *y)[0];
-                            pixel[1] = get_neighbour_value(mosaic, *x, *y);
-                            pixel[2] = get_diagnal_value(mosaic, *x, *y);
-                        }
-                        BayerChannel::G => {
-                            pixel[0] = get_left_right_value(mosaic, *x, *y);
-                            pixel[1] = mosaic.get_pixel(*x, *y)[0];
-                            pixel[2] = get_top_down_value(mosaic, *x, *y);
-                        }
-                        BayerChannel::B => {
-                            pixel[0] = get_diagnal_value(mosaic, *x, *y);
-                            pixel[1] = get_neighbour_value(mosaic, *x, *y);
-                            pixel[2] = mosaic.get_pixel(*x, *y)[0];
-                        }
-                        BayerChannel::G2 => {
-                            pixel[0] = get_top_down_value(mosaic, *x, *y);
-                            pixel[1] = mosaic.get_pixel(*x, *y)[0];
-                            pixel[2] = get_left_right_value(mosaic, *x, *y);
-                        }
+        img.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
+            if x > 0 && y > 0 && x < width - 1 && y < height - 1 {
+                // `(*x & 1) + 2 * (*y & 1)` is the of the current pixel at image (x,y) index in
+                // bayer pattern.
+                match &bayer_mask[((x & 1) + 2 * (y & 1)) as usize] {
+                    BayerChannel::R => {
+                        pixel[0] = mosaic.get_pixel(x, y)[0];
+                        pixel[1] = get_neighbour_value(mosaic, x, y);
+                        pixel[2] = get_diagnal_value(mosaic, x, y);
+                    }
+                    BayerChannel::G => {
+                        pixel[0] = get_left_right_value(mosaic, x, y);
+                        pixel[1] = mosaic.get_pixel(x, y)[0];
+                        pixel[2] = get_top_down_value(mosaic, x, y);
+                    }
+                    BayerChannel::B => {
+                        pixel[0] = get_diagnal_value(mosaic, x, y);
+                        pixel[1] = get_neighbour_value(mosaic, x, y);
+                        pixel[2] = mosaic.get_pixel(x, y)[0];
+                    }
+                    BayerChannel::G2 => {
+                        pixel[0] = get_top_down_value(mosaic, x, y);
+                        pixel[1] = mosaic.get_pixel(x, y)[0];
+                        pixel[2] = get_left_right_value(mosaic, x, y);
                     }
                 }
-            });
+            }
+        });
         img
     }
 }
