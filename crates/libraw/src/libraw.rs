@@ -157,30 +157,19 @@ impl Libraw {
             (a, b, c, d) => miette::bail!("Unknown bayer pattern: {a}, {b}, {c}, {d}"),
         }
     }
-    fn get_bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
+    pub fn get_bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
         unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
 
         let pattern = self.bayer_pattern()?;
-        let size = self.image_sizes()?;
-        let img = if !unsafe { (*self.imgdata).rawdata.raw_image }.is_null() {
-            clerk::debug!("Found mono16 raw image.");
-            let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> = {
-                ImageBuffer::from_vec(size.raw_width() as u32, size.raw_width() as u32, unsafe {
-                    slice::from_raw_parts(
-                        (*self.imgdata).rawdata.raw_image,
-                        size.raw_width() as usize * size.raw_height() as usize,
-                    )
-                    .to_vec()
-                })
-                .unwrap()
-            };
-            img
-        } else {
-            miette::bail!("")
-        };
+        let raw_img = self.raw2image(true)?;
+        let img = ImageBuffer::from_par_fn(raw_img.width(), raw_img.height(), |x, y| {
+            let pixel = raw_img.get_pixel(x, y);
+            let value = pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3]);
+            image::Luma::<u16>([value])
+        });
         Ok(fornax_core::BayerImage::new(img, pattern))
     }
 }
