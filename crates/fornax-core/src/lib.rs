@@ -1,11 +1,49 @@
 use std::fmt::Display;
 use std::path::Path;
 #[derive(Debug, PartialEq)]
+pub enum BayerChannel {
+    R,
+    G,
+    B,
+    G2
+}
+
+#[derive(Debug, PartialEq)]
 pub enum BayerPattern {
     RGGB,
     BGGR,
     GRBG,
     GBRG,
+}
+impl BayerPattern {
+    pub fn as_mask(&self) -> &[BayerChannel; 4] {
+        match self {
+            BayerPattern::RGGB => &[
+                BayerChannel::R,
+                BayerChannel::G,
+                BayerChannel::G2,
+                BayerChannel::B,
+            ],
+            BayerPattern::BGGR => &[
+                BayerChannel::B,
+                BayerChannel::G2,
+                BayerChannel::G,
+                BayerChannel::R,
+            ],
+            BayerPattern::GRBG => &[
+                BayerChannel::G,
+                BayerChannel::R,
+                BayerChannel::B,
+                BayerChannel::G2,
+            ],
+            BayerPattern::GBRG => &[
+                BayerChannel::G2,
+                BayerChannel::B,
+                BayerChannel::R,
+                BayerChannel::G,
+            ],
+        }
+    }
 }
 impl Display for BayerPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -32,7 +70,7 @@ impl BayerImage {
             pattern,
         }
     }
-    pub fn bayer_image(&self) -> &image::ImageBuffer<image::Luma<u16>, Vec<u16>> {
+    pub fn mosaic(&self) -> &image::ImageBuffer<image::Luma<u16>, Vec<u16>> {
         &self.bayer_image
     }
     pub fn pattern(&self) -> &BayerPattern {
