@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-use fornax::dnc::{Dnc, DncParams};
+use fornax::dnc::Dnc;
+use fornax::libraw::Libraw;
 use fornax::libraw::dcraw::DCRawParams;
-use fornax::libraw::{DCRaw, Libraw};
 use numpy::{PyArray, PyArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
@@ -14,24 +14,22 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 enum PyDecoder {
     Libraw,
-    Dnc,
 }
 impl From<&str> for PyDecoder {
     fn from(value: &str) -> Self {
         match value.to_lowercase().as_str() {
             "libraw" => PyDecoder::Libraw,
-            "dnc" => PyDecoder::Dnc,
             _ => panic!("Unknow decoder."),
         }
     }
 }
 enum PyPostPorcessor {
-    DCRaw,
+    Libraw,
 }
 impl From<&str> for PyPostPorcessor {
     fn from(value: &str) -> Self {
         match value.to_lowercase().as_str() {
-            "dcraw" => PyPostPorcessor::DCRaw,
+            "libraw" => PyPostPorcessor::Libraw,
             _ => panic!("Unknow decoder."),
         }
     }
@@ -41,28 +39,29 @@ fn py_process<'a>(
     py: Python<'a>,
     file: PathBuf,
     decoder: &str,
-    decoder_params: &'a [u8],
+    _decoder_params: &'a [u8],
     post_processor: &str,
     post_processor_params: &'a [u8],
+    dnc_params: Option<&'a [u8]>,
 ) -> Result<pyo3::Bound<'a, PyTuple>, PyErr> {
+    // convert with dnc
+    let file = if let Some(params) = dnc_params {
+        let dnc = Dnc::new(Deserialize::deserialize(&mut Deserializer::new(params)).unwrap());
+        dnc.convert(&file).unwrap()
+    } else {
+        file
+    };
+
     let img = match (
         PyDecoder::from(decoder),
         PyPostPorcessor::from(post_processor),
     ) {
-        (PyDecoder::Libraw, PyPostPorcessor::DCRaw) => {
-            let decoder = Libraw::new();
+        (PyDecoder::Libraw, PyPostPorcessor::Libraw) => {
             let post_processor_params: DCRawParams =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
-            let mut manager = fornax::Fornax::new(decoder, DCRaw::new(post_processor_params));
-            manager.decode_file(&file).unwrap().post_process().unwrap()
-        }
-        (PyDecoder::Dnc, PyPostPorcessor::DCRaw) => {
-            let decoder_params: DncParams =
-                Deserialize::deserialize(&mut Deserializer::new(decoder_params)).unwrap();
-            let post_processor_params: DCRawParams =
-                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
-            let mut manager =
-                fornax::Fornax::new(Dnc::new(decoder_params), DCRaw::new(post_processor_params));
+            let libraw = Libraw::new(Some(post_processor_params));
+
+            let mut manager = fornax::Fornax::new(&libraw, &libraw);
             manager.decode_file(&file).unwrap().post_process().unwrap()
         }
     };

@@ -5,6 +5,6 @@ use assert_cmd::Command;
 fn test_libraw_iparams() {
     let root = PathBuf::from(std::env::var("CARGO_WORKSPACE_DIR").unwrap());
     let mut exe = root.clone();
-    exe.push("target/llvm-cov-target/debug/examples/libraw-rawimage.exe");
+    exe.push("target/llvm-cov-target/debug/examples/libraw-raw2image.exe");
     Command::new(exe).current_dir(root).assert().success();
 }

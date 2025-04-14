@@ -14,10 +14,8 @@ fn main() -> miette::Result<()> {
         user_qual: Some(libraw::dcraw::DCRawUserQual::Linear),
         ..Default::default()
     };
-    let mut manager = Fornax::new(
-        libraw::Libraw::new(),
-        libraw::dcraw::DCRaw::new(dcraw_params),
-    );
+    let libraw = libraw::Libraw::new(Some(dcraw_params));
+    let mut manager = Fornax::new(&libraw, &libraw);
     let img = manager
         .decode_file(&PathBuf::from(
             "./external/raw-images/images/colorchart-eos-7d.cr2",

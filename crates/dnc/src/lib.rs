@@ -1,9 +1,7 @@
 mod params;
-use std::ffi::CString;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
-use libraw::{IDCRaw, ILibrawErrors};
 use miette::{Context, IntoDiagnostic};
 pub use params::DncParams;
 use path_slash::PathBufExt;
@@ -31,20 +29,18 @@ static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
 });
 
 pub struct Dnc {
-    imgdata: *mut libraw_sys::libraw_data_t,
     params: DncParams,
 }
 impl Dnc {
     pub fn new(params: DncParams) -> Self {
-        let imgdata = unsafe { libraw_sys::libraw_init(0) };
-        Self { imgdata, params }
+        Self { params }
     }
 
     pub fn params(&self) -> &DncParams {
         &self.params
     }
 
-    pub fn dng_file(&self, raw_file: &Path) -> miette::Result<PathBuf> {
+    fn dng_file(&self, raw_file: &Path) -> miette::Result<PathBuf> {
         let mut file = if let Some(dir) = &self.params.directory {
             dir.clone()
         } else {
@@ -61,7 +57,7 @@ impl Dnc {
         clerk::debug!("Dng file: {}", file.to_slash_lossy());
         Ok(file)
     }
-    pub fn convert_file(&self, raw_file: &Path) -> miette::Result<PathBuf> {
+    pub fn convert(&self, raw_file: &Path) -> miette::Result<PathBuf> {
         let raw_file = dunce::canonicalize(raw_file).into_diagnostic()?;
 
         // Skip dng file
@@ -113,53 +109,10 @@ impl Dnc {
         }
         Ok(dng_file)
     }
-
-    fn open_dng_file(&self, fname: &Path) -> miette::Result<()> {
-        let c_string = CString::new(fname.to_string_lossy().to_string()).into_diagnostic()?;
-        Self::check_run(
-            unsafe { libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _) },
-            "libraw_open_file",
-        )?;
-        Ok(())
-    }
-    pub fn unpack(&self) -> miette::Result<()> {
-        Self::check_run(
-            unsafe { libraw_sys::libraw_unpack(self.imgdata) },
-            "libraw_unpack",
-        )?;
-        Ok(())
-    }
 }
 
-impl fornax_core::IDecoder for Dnc {
-    fn decode_file(&self, file: &Path) -> miette::Result<()> {
-        let dng_file = self.convert_file(file)?;
-        self.open_dng_file(&dng_file)?;
-        self.unpack()?;
-        Ok(())
-    }
-
-    fn decode_buffer(&self, _buffer: &[u8]) -> miette::Result<()> {
-        unimplemented!("DNG converter can not read buffer.")
-    }
-}
-impl IDCRaw for Dnc {
-    fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t> {
-        if !self.imgdata.is_null() {
-            Ok(self.imgdata)
-        } else {
-            miette::bail!("`imgdata` is null.")
-        }
-    }
-}
 impl Default for Dnc {
     fn default() -> Self {
         Self::new(DncParams::default())
     }
 }
-impl Drop for Dnc {
-    fn drop(&mut self) {
-        unsafe { libraw_sys::libraw_close(self.imgdata) }
-    }
-}
-impl ILibrawErrors for Dnc {}

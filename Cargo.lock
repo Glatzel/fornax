@@ -374,9 +374,6 @@ version = "0.0.3"
 dependencies = [
  "clerk",
  "dunce",
- "fornax-core",
- "libraw",
- "libraw-sys",
  "miette",
  "path-slash",
  "serde",
