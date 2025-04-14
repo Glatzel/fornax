@@ -24,10 +24,7 @@ pub struct Libraw {
 impl Libraw {
     pub fn new(params: Option<DCRawParams>) -> Self {
         let imgdata = unsafe { libraw_sys::libraw_init(0) };
-        Self {
-            imgdata,
-            params,
-        }
+        Self { imgdata, params }
     }
 
     // io
