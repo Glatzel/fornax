@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use fornax::Fornax;
+use miette::IntoDiagnostic;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -13,7 +14,10 @@ fn main() -> miette::Result<()> {
         "./external/raw-images/images/colorchart-eos-7d.cr2",
     ))?;
 
-    let sizes = manager.decoder.image_sizes()?;
-    println!("{:?}", sizes);
+    let img = manager.decoder.rawimage()?;
+    clerk::info!("Done building raw image.");
+
+    img.save("temp/raw_image.tiff").into_diagnostic()?;
+    clerk::info!("Done saving raw image.");
     Ok(())
 }

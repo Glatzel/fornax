@@ -4,11 +4,13 @@ mod iparams;
 mod rawdata;
 use std::ffi::CString;
 use std::path::Path;
+use std::slice;
 
-use fornax_core::{FornaxRawImage, IDecoder};
+use fornax_core::{FornaxRawData, FornaxRawImage, IDecoder};
+use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
-pub use iparams::LibrawIParams;
+pub use iparams::{ColorDesc, LibrawIParams};
 pub use rawdata::LibrawRawdata;
 
 use crate::ILibrawErrors;
@@ -62,14 +64,43 @@ impl Libraw {
     pub fn iparams(&self) -> miette::Result<LibrawIParams> {
         LibrawIParams::new(self.imgdata)
     }
-    pub fn rawdata(&self) -> miette::Result<FornaxRawImage> {
+    pub fn rawdata(&self) -> miette::Result<FornaxRawData> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
         let size = self.image_sizes()?;
-        let width: u32 = size.raw_width() as u32;
-        let height: u32 = size.raw_height() as u32;
+        let width = size.raw_width();
+        let height = size.raw_height();
         rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
+    }
+    pub fn rawimage(&self) -> miette::Result<FornaxRawImage> {
+        if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
+            miette::bail!("imgdata is null.")
+        }
+        Self::check_run(
+            unsafe { libraw_sys::libraw_raw2image(self.imgdata) },
+            "libraw_raw2image",
+        )?;
+
+        unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
+        if unsafe { (*self.imgdata).image }.is_null() {
+            miette::bail!("raw image is null.")
+        }
+        let size = self.image_sizes()?;
+        let width = size.iwidth();
+        let height = size.iheight();
+        clerk::debug!("Width: {width}, Height: {height}");
+
+        clerk::debug!("Found rgba16 raw image.");
+        let img: FornaxRawImage = ImageBuffer::from_vec(width as u32, height as u32, unsafe {
+            slice::from_raw_parts(
+                (*self.imgdata).image as *const u16,
+                width as usize * height as usize * 4,
+            )
+            .to_vec()
+        })
+        .unwrap();
+        Ok(img)
     }
 }
 

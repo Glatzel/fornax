@@ -10,6 +10,7 @@ version = "0.0.3"
 dnc = { path = "./crates/dnc" }
 fornax = { path = "./crates/fornax" }
 fornax-core = { path = "./crates/fornax-core" }
+fornax-dalim = { path = "./crates/fornax-dalim" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
 
@@ -30,6 +31,7 @@ rmp-serde = "1.3.0"
 serde = { version = "1.0.219", features = ["derive"] }
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+rayon = "1.10.0"
 
 [profile.release]
 codegen-units = 1

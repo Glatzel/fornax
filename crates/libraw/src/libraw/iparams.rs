@@ -1,7 +1,25 @@
 use libraw_sys as sys;
 
 use crate::utils::mnt_to_string;
-
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Clone, Copy, Debug)]
+pub enum ColorDesc {
+    RGBG,
+    RGBE,
+    GMCY,
+    GBTG,
+}
+impl From<&str> for ColorDesc {
+    fn from(value: &str) -> Self {
+        match value {
+            "RGBG" => ColorDesc::RGBG,
+            "RGBE" => ColorDesc::RGBE,
+            "GMCY" => ColorDesc::GMCY,
+            "GBTG" => ColorDesc::GBTG,
+            _ => panic!("Unknow color description."),
+        }
+    }
+}
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Debug)]
 pub struct LibrawIParams {
@@ -18,7 +36,7 @@ pub struct LibrawIParams {
     filters: u32,
     xtrans: [[i8; 6]; 6],
     xtrans_abs: [[i8; 6]; 6],
-    cdesc: String,
+    cdesc: ColorDesc,
     xmplen: u32,
     xmpdata: String,
 }
@@ -42,12 +60,12 @@ impl LibrawIParams {
             filters: imgdata.idata.filters,
             xtrans: imgdata.idata.xtrans,
             xtrans_abs: imgdata.idata.xtrans_abs,
-            cdesc: mnt_to_string(&imgdata.idata.cdesc),
+            cdesc: ColorDesc::from(mnt_to_string(&imgdata.idata.cdesc).as_str()),
             xmplen: imgdata.idata.xmplen,
             xmpdata: unsafe {
                 std::ffi::CStr::from_ptr(imgdata.idata.xmpdata)
                     .to_str()
-                    .unwrap_or_default()
+                    .unwrap()
                     .to_string()
             },
         })
@@ -121,8 +139,8 @@ impl LibrawIParams {
         self.xtrans_abs
     }
     ///Description of colors numbered from 0 to 3 (RGBG,RGBE,GMCY, or GBTG).
-    pub fn cdesc(&self) -> String {
-        self.cdesc.clone()
+    pub fn cdesc(&self) -> ColorDesc {
+        self.cdesc
     }
     ///XMP packed data length and pointer to extracted XMP packet.
     pub fn xmplen(&self) -> u32 {
