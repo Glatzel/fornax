@@ -20,7 +20,7 @@ impl From<&str> for PyDecoder {
     fn from(value: &str) -> Self {
         match value.to_lowercase().as_str() {
             "libraw" => PyDecoder::Libraw,
-            "dnc" => PyDecoder::Dnc,
+
             _ => panic!("Unknow decoder."),
         }
     }
@@ -54,15 +54,6 @@ fn py_process<'a>(
             let post_processor_params: DCRawParams =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let mut manager = fornax::Fornax::new(decoder, DCRaw::new(post_processor_params));
-            manager.decode_file(&file).unwrap().post_process().unwrap()
-        }
-        (PyDecoder::Dnc, PyPostPorcessor::DCRaw) => {
-            let decoder_params: DncParams =
-                Deserialize::deserialize(&mut Deserializer::new(decoder_params)).unwrap();
-            let post_processor_params: DCRawParams =
-                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
-            let mut manager =
-                fornax::Fornax::new(Dnc::new(decoder_params), DCRaw::new(post_processor_params));
             manager.decode_file(&file).unwrap().post_process().unwrap()
         }
     };

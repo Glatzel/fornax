@@ -4,7 +4,6 @@ pub mod libraw;
 pub mod utils;
 mod version;
 
-pub use dcraw::{DCRaw, IDCRaw};
 pub use errors::ILibrawErrors;
 pub use libraw::Libraw;
 use utils::mnt_to_string;

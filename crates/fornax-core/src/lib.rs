@@ -1,15 +1,17 @@
 use std::path::Path;
-
+pub enum BayerPattern {
+    RGGB,
+    BGGR,
+    GRBG,
+    GBRG,
+}
 pub trait IDecoder {
     fn decode_file(&self, file: &Path) -> miette::Result<()>;
     fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<()>;
 }
 
-pub trait IPostProcessor<D>
-where
-    D: IDecoder,
-{
-    fn post_process(&self, decoder: &D) -> miette::Result<FornaxProcessedImage>;
+pub trait IPostProcessor {
+    fn post_process(&self) -> miette::Result<FornaxProcessedImage>;
 }
 
 /// Basic raw image.
@@ -36,16 +38,12 @@ impl FornaxProcessedImage {
         }
     }
 }
-pub type FornaxRawData = image::ImageBuffer<image::Luma<u16>, Vec<u16>>;
-pub type FornaxRawImage = image::ImageBuffer<image::Rgba<u16>, Vec<u16>>;
+pub type FornaxBayerImage = image::ImageBuffer<image::Luma<u16>, Vec<u16>>;
 
 /// A generic null post processor.
 pub struct NullPostProcessor {}
-impl<D> IPostProcessor<D> for NullPostProcessor
-where
-    D: IDecoder,
-{
-    fn post_process(&self, _decoded: &D) -> miette::Result<FornaxProcessedImage> {
+impl IPostProcessor for NullPostProcessor {
+    fn post_process(&self) -> miette::Result<FornaxProcessedImage> {
         Ok(FornaxProcessedImage::Null)
     }
 }

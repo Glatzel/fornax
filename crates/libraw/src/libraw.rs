@@ -6,23 +6,30 @@ use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 
-use fornax_core::{FornaxRawData, FornaxRawImage, IDecoder};
+use fornax_core::{FornaxProcessedImage, IDecoder, IPostProcessor};
 use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::{ColorDesc, LibrawIParams};
 pub use rawdata::LibrawRawdata;
 
-use crate::ILibrawErrors;
+use crate::{
+    ILibrawErrors,
+    dcraw::{DCRawParams, DCRawProcessedImage},
+};
 #[derive(Debug)]
 pub struct Libraw {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
+    pub(crate) params: Option<DCRawParams>,
 }
 
 impl Libraw {
-    pub fn new() -> Self {
+    pub fn new(params: Option<DCRawParams>) -> Self {
         let imgdata = unsafe { libraw_sys::libraw_init(0) };
-        Self { imgdata }
+        Self {
+            imgdata,
+            params: params,
+        }
     }
 
     // io
@@ -64,7 +71,7 @@ impl Libraw {
     pub fn iparams(&self) -> miette::Result<LibrawIParams> {
         LibrawIParams::new(self.imgdata)
     }
-    pub fn rawdata(&self) -> miette::Result<FornaxRawData> {
+    pub fn rawdata(&self) -> miette::Result<Vec<LibrawRawdata>> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
@@ -73,7 +80,10 @@ impl Libraw {
         let height = size.raw_height();
         rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
     }
-    pub fn rawimage(&self) -> miette::Result<FornaxRawImage> {
+    pub fn raw2image(
+        &self,
+        subtract_black: bool,
+    ) -> miette::Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
@@ -81,8 +91,10 @@ impl Libraw {
             unsafe { libraw_sys::libraw_raw2image(self.imgdata) },
             "libraw_raw2image",
         )?;
+        if subtract_black {
+            unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
+        }
 
-        unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
         if unsafe { (*self.imgdata).image }.is_null() {
             miette::bail!("raw image is null.")
         }
@@ -92,15 +104,35 @@ impl Libraw {
         clerk::debug!("Width: {width}, Height: {height}");
 
         clerk::debug!("Found rgba16 raw image.");
-        let img: FornaxRawImage = ImageBuffer::from_vec(width as u32, height as u32, unsafe {
-            slice::from_raw_parts(
-                (*self.imgdata).image as *const u16,
-                width as usize * height as usize * 4,
-            )
-            .to_vec()
-        })
-        .unwrap();
+        let img: ImageBuffer<image::Rgba<u16>, Vec<u16>> =
+            ImageBuffer::from_vec(width as u32, height as u32, unsafe {
+                slice::from_raw_parts(
+                    (*self.imgdata).image as *const u16,
+                    width as usize * height as usize * 4,
+                )
+                .to_vec()
+            })
+            .unwrap();
         Ok(img)
+    }
+    fn dcraw_process(&self) -> miette::Result<DCRawProcessedImage> {
+        if let Some(params) = &self.params {
+            params.set_output_params(self.imgdata)?;
+        }
+        clerk::debug!("Set new params.");
+        clerk::debug!("{:?}", unsafe { (*self.imgdata).params });
+
+        Self::check_run(
+            unsafe { libraw_sys::libraw_dcraw_process(self.imgdata) },
+            "libraw_dcraw_process",
+        )?;
+        let mut result = 0i32;
+        let processed: *mut libraw_sys::libraw_processed_image_t =
+            unsafe { libraw_sys::libraw_dcraw_make_mem_image(self.imgdata, &mut result) };
+        Self::check_run(result, "libraw_dcraw_make_mem_image")?;
+
+        let processed = DCRawProcessedImage::new(processed)?;
+        Ok(processed)
     }
 }
 
@@ -111,14 +143,10 @@ impl Drop for Libraw {
 }
 impl Default for Libraw {
     fn default() -> Self {
-        Self::new()
+        Self::new(None)
     }
 }
-impl crate::IDCRaw for Libraw {
-    fn imgdata(&self) -> miette::Result<*mut libraw_sys::libraw_data_t> {
-        Ok(self.imgdata)
-    }
-}
+
 impl IDecoder for Libraw {
     fn decode_file(&self, file: &Path) -> miette::Result<()> {
         self.open_file(file)?;
@@ -130,6 +158,31 @@ impl IDecoder for Libraw {
         self.open_buffer(buffer)?;
         self.unpack()?;
         Ok(())
+    }
+}
+impl IDecoder for &Libraw {
+    fn decode_file(&self, file: &Path) -> miette::Result<()> {
+        self.open_file(file)?;
+        self.unpack()?;
+        Ok(())
+    }
+
+    fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<()> {
+        self.open_buffer(buffer)?;
+        self.unpack()?;
+        Ok(())
+    }
+}
+impl IPostProcessor for Libraw {
+    fn post_process(&self) -> miette::Result<FornaxProcessedImage> {
+        let processed = self.dcraw_process()?.to_image()?;
+        Ok(processed)
+    }
+}
+impl IPostProcessor for &Libraw {
+    fn post_process(&self) -> miette::Result<FornaxProcessedImage> {
+        let processed = self.dcraw_process()?.to_image()?;
+        Ok(processed)
     }
 }
 impl ILibrawErrors for Libraw {}

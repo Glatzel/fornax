@@ -9,12 +9,12 @@ fn main() -> miette::Result<()> {
     tracing_subscriber::registry()
         .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
         .init();
-    let mut manager = Fornax::new(libraw::Libraw::new(), fornax::NullPostProcessor {});
+    let mut manager = Fornax::new(libraw::Libraw::new(None), fornax::NullPostProcessor {});
     manager.decode_file(&PathBuf::from(
         "./external/raw-images/images/colorchart-eos-7d.cr2",
     ))?;
 
-    let img = manager.decoder.rawimage()?;
+    let img = manager.decoder.raw2image(true)?;
     clerk::info!("Done building raw image.");
 
     img.save("temp/raw_image.tiff").into_diagnostic()?;

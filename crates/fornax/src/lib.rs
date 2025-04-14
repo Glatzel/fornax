@@ -1,13 +1,12 @@
+pub use fornax_core::NullPostProcessor;
+use fornax_core::{IDecoder, IPostProcessor};
 use std::path::Path;
-
-use fornax_core::IPostProcessor;
-pub use fornax_core::{FornaxProcessedImage, FornaxRawImage, NullPostProcessor};
 pub use {dnc, libraw};
 
 pub struct Fornax<D, P>
 where
-    D: fornax_core::IDecoder,
-    P: IPostProcessor<D>,
+    D: IDecoder,
+    P: IPostProcessor,
 {
     pub decoder: D,
     pub post_processor: P,
@@ -15,8 +14,8 @@ where
 
 impl<D, P> Fornax<D, P>
 where
-    D: fornax_core::IDecoder,
-    P: IPostProcessor<D>,
+    D: IDecoder,
+    P: IPostProcessor,
 {
     pub fn new(decoder: D, post_processor: P) -> Self {
         Self {
@@ -33,6 +32,6 @@ where
         Ok(self)
     }
     pub fn post_process(&mut self) -> miette::Result<fornax_core::FornaxProcessedImage> {
-        self.post_processor.post_process(&self.decoder)
+        self.post_processor.post_process()
     }
 }
