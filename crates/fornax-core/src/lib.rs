@@ -5,7 +5,7 @@ pub enum BayerChannel {
     R,
     G,
     B,
-    G2
+    G2,
 }
 
 #[derive(Debug, PartialEq)]
