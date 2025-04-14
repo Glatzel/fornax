@@ -22,4 +22,4 @@ impl FornaxProcessedImage {
         }
     }
 }
-pub type FornaxBayerImage = image::ImageBuffer<image::Luma<u16>, Vec<u16>>;
+

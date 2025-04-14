@@ -1,4 +1,3 @@
-
 use std::fmt::Display;
 
 #[derive(Debug, PartialEq)]
@@ -78,3 +77,4 @@ impl BayerImage {
         &self.pattern
     }
 }
+pub type FornaxBayerImage = image::ImageBuffer<image::Luma<u16>, Vec<u16>>;
