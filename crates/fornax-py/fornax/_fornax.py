@@ -56,5 +56,5 @@ class Fornax:
             self.decoder_params.to_msgpack(),
             self.post_processor,
             self.post_processor_params.to_msgpack(),
-            self.dnc_params.to_msgpack(),
+            self.dnc_params.to_msgpack() if self.dnc_params.to_msgpack() else None,
         )[0]
