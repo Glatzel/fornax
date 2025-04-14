@@ -80,7 +80,7 @@ impl Libraw {
         subtract_black: bool,
     ) -> miette::Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
-            miette::bail!("imgdata is null.")
+            miette::bail!("rawdata is null.")
         }
         Self::check_run(
             unsafe { libraw_sys::libraw_raw2image(self.imgdata) },
@@ -129,6 +129,49 @@ impl Libraw {
         let processed = DCRawProcessedImage::new(processed)?;
         Ok(processed)
     }
+    pub fn bayer_pattern(&self) -> miette::Result<fornax_core::BayerPattern> {
+        if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
+            miette::bail!("rawdata is null.")
+        }
+        let pattern0 = Self::check_run(
+            unsafe { libraw_sys::libraw_COLOR(self.imgdata, 0, 0) },
+            "libraw_COLOR",
+        )?;
+        let pattern1 = Self::check_run(
+            unsafe { libraw_sys::libraw_COLOR(self.imgdata, 0, 1) },
+            "libraw_COLOR",
+        )?;
+        let pattern2 = Self::check_run(
+            unsafe { libraw_sys::libraw_COLOR(self.imgdata, 1, 0) },
+            "libraw_COLOR",
+        )?;
+        let pattern3 = Self::check_run(
+            unsafe { libraw_sys::libraw_COLOR(self.imgdata, 1, 1) },
+            "libraw_COLOR",
+        )?;
+        match (pattern0, pattern1, pattern2, pattern3) {
+            (0, 1 | 3, 1 | 3, 2) => Ok(fornax_core::BayerPattern::RGGB),
+            (2, 1 | 3, 1 | 3, 0) => Ok(fornax_core::BayerPattern::BGGR),
+            (1 | 3, 0, 2, 1 | 3) => Ok(fornax_core::BayerPattern::GRBG),
+            (1 | 3, 2, 0, 1 | 3) => Ok(fornax_core::BayerPattern::GBRG),
+            (a, b, c, d) => miette::bail!("Unknown bayer pattern: {a}, {b}, {c}, {d}"),
+        }
+    }
+    pub fn get_bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
+        if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
+            miette::bail!("imgdata is null.")
+        }
+        unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
+
+        let pattern = self.bayer_pattern()?;
+        let raw_img = self.raw2image(true)?;
+        let img = ImageBuffer::from_par_fn(raw_img.width(), raw_img.height(), |x, y| {
+            let pixel = raw_img.get_pixel(x, y);
+            let value = pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3]);
+            image::Luma::<u16>([value])
+        });
+        Ok(fornax_core::BayerImage::new(img, pattern))
+    }
 }
 
 impl Drop for Libraw {
@@ -154,6 +197,10 @@ impl IDecoder for Libraw {
         self.unpack()?;
         Ok(())
     }
+
+    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
+        self.get_bayer_image()
+    }
 }
 impl IDecoder for &Libraw {
     fn decode_file(&self, file: &Path) -> miette::Result<()> {
@@ -167,16 +214,20 @@ impl IDecoder for &Libraw {
         self.unpack()?;
         Ok(())
     }
+
+    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
+        self.get_bayer_image()
+    }
 }
-impl IPostProcessor for Libraw {
-    fn post_process(&self) -> miette::Result<FornaxProcessedImage> {
-        let processed = self.dcraw_process()?.to_image()?;
+impl IPostProcessor<Libraw> for Libraw {
+    fn post_process(&self, decoder: &Libraw) -> miette::Result<FornaxProcessedImage> {
+        let processed = decoder.dcraw_process()?.to_image()?;
         Ok(processed)
     }
 }
-impl IPostProcessor for &Libraw {
-    fn post_process(&self) -> miette::Result<FornaxProcessedImage> {
-        let processed = self.dcraw_process()?.to_image()?;
+impl IPostProcessor<&Libraw> for &Libraw {
+    fn post_process(&self, decoder: &&Libraw) -> miette::Result<FornaxProcessedImage> {
+        let processed = decoder.dcraw_process()?.to_image()?;
         Ok(processed)
     }
 }
