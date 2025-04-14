@@ -5,6 +5,27 @@ pub enum BayerPattern {
     GRBG,
     GBRG,
 }
+pub struct BayerImage {
+    bayer_image: image::ImageBuffer<image::Luma<u16>, Vec<u16>>,
+    pattern: BayerPattern,
+}
+impl BayerImage {
+    pub fn new(
+        bayer_image: image::ImageBuffer<image::Luma<u16>, Vec<u16>>,
+        pattern: BayerPattern,
+    ) -> Self {
+        Self {
+            bayer_image,
+            pattern,
+        }
+    }
+    pub fn bayer_image(&self) -> &image::ImageBuffer<image::Luma<u16>, Vec<u16>> {
+        &self.bayer_image
+    }
+    pub fn pattern(&self) -> &BayerPattern {
+        &self.pattern
+    }
+}
 pub trait IDecoder {
     fn decode_file(&self, file: &Path) -> miette::Result<()>;
     fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<()>;
