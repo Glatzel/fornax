@@ -150,10 +150,10 @@ impl Libraw {
             "libraw_COLOR",
         )?;
         match (pattern0, pattern1, pattern2, pattern3) {
-            (0, 1 | 3, 1 | 3, 2) => Ok(fornax_core::BayerPattern::RGGB),
-            (2, 1 | 3, 1 | 3, 0) => Ok(fornax_core::BayerPattern::BGGR),
-            (1 | 3, 0, 2, 1 | 3) => Ok(fornax_core::BayerPattern::GRBG),
-            (1 | 3, 2, 0, 1 | 3) => Ok(fornax_core::BayerPattern::GBRG),
+            (0, 1 | 3, 1 | 3, 2) => Ok(fornax_core::BayerPattern::RGgB),
+            (2, 1 | 3, 1 | 3, 0) => Ok(fornax_core::BayerPattern::BGgR),
+            (1 | 3, 0, 2, 1 | 3) => Ok(fornax_core::BayerPattern::GRBg),
+            (1 | 3, 2, 0, 1 | 3) => Ok(fornax_core::BayerPattern::gBRG),
             (a, b, c, d) => miette::bail!("Unknown bayer pattern: {a}, {b}, {c}, {d}"),
         }
     }

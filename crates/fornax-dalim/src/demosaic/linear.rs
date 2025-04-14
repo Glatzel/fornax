@@ -1,48 +1,38 @@
-use fornax_core::BayerChannel;
+use fornax_core::{BayerChannel, BayerImage};
+use image::ImageBuffer;
 use rayon::prelude::*;
-fn get_diagnal_value(img: &image::ImageBuffer<image::Luma<u16>, Vec<u16>>, x: u32, y: u32) -> u16 {
+fn get_diagnal_value(img: &ImageBuffer<image::Luma<u16>, Vec<u16>>, x: u32, y: u32) -> u16 {
     let top_left = img.get_pixel(x - 1, y - 1);
     let top_right = img.get_pixel(x + 1, y - 1);
     let bottom_left = img.get_pixel(x - 1, y + 1);
     let bottom_right = img.get_pixel(x + 1, y + 1);
     (top_left[0] + top_right[0] + bottom_left[0] + bottom_right[0]) / 4
 }
-fn get_neighbour_value(
-    img: &image::ImageBuffer<image::Luma<u16>, Vec<u16>>,
-    x: u32,
-    y: u32,
-) -> u16 {
+fn get_neighbour_value(img: &ImageBuffer<image::Luma<u16>, Vec<u16>>, x: u32, y: u32) -> u16 {
     let left = img.get_pixel(x - 1, y);
     let right = img.get_pixel(x + 1, y);
     let top = img.get_pixel(x, y - 1);
     let buttom = img.get_pixel(x, y + 1);
     (left[0] + right[0] + top[0] + buttom[0]) / 4
 }
-fn get_left_right_value(
-    img: &image::ImageBuffer<image::Luma<u16>, Vec<u16>>,
-    x: u32,
-    y: u32,
-) -> u16 {
+fn get_left_right_value(img: &ImageBuffer<image::Luma<u16>, Vec<u16>>, x: u32, y: u32) -> u16 {
     let left = img.get_pixel(x - 1, y);
     let right = img.get_pixel(x + 1, y);
 
     (left[0] + right[0]) / 2
 }
-fn get_top_down_value(img: &image::ImageBuffer<image::Luma<u16>, Vec<u16>>, x: u32, y: u32) -> u16 {
+fn get_top_down_value(img: &ImageBuffer<image::Luma<u16>, Vec<u16>>, x: u32, y: u32) -> u16 {
     let top = img.get_pixel(x, y - 1);
     let buttom = img.get_pixel(x, y + 1);
     (top[0] + buttom[0]) / 2
 }
 pub struct DemosaicLinear();
 impl super::IDemosaic for DemosaicLinear {
-    fn demosaic(
-        bayer_image: &fornax_core::BayerImage,
-    ) -> image::ImageBuffer<image::Rgb<u16>, Vec<u16>> {
+    fn demosaic(bayer_image: &BayerImage) -> ImageBuffer<image::Rgb<u16>, Vec<u16>> {
         let mosaic = bayer_image.mosaic();
         let pattern = bayer_image.pattern();
         let (width, height) = mosaic.dimensions();
-        let mut img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> =
-            image::ImageBuffer::new(width, height);
+        let mut img: ImageBuffer<image::Rgb<u16>, Vec<u16>> = ImageBuffer::new(width, height);
         let bayer_mask = pattern.as_mask();
         img.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             if x > 0 && y > 0 && x < width - 1 && y < height - 1 {
@@ -93,7 +83,7 @@ mod test {
             .to_luma16();
         let img = DemosaicLinear::demosaic(&fornax_core::BayerImage::new(
             bayer,
-            fornax_core::BayerPattern::GBRG,
+            fornax_core::BayerPattern::gBRG,
         ));
         image::DynamicImage::from(img).save("a.tiff").unwrap();
     }
