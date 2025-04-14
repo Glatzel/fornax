@@ -47,7 +47,7 @@ impl TryFrom<i32> for LibrawErrors {
             -100011 => Ok(Self::BadCrop),
             -100012 => Ok(Self::TooBig),
             -100013 => Ok(Self::MempoolOverflow),
-            code => miette::bail!("Unknow error code: {code}"),
+            _ => Ok(Self::Success),
         }
     }
 }
@@ -157,9 +157,9 @@ impl LibrawErrors {
     }
 }
 pub trait ILibrawErrors {
-    fn check_run(exit_code: i32, task: &str) -> miette::Result<()> {
+    fn check_run(exit_code: i32, task: &str) -> miette::Result<i32> {
         let result = crate::errors::LibrawErrors::try_from(exit_code)?;
         result.report(task)?;
-        Ok(())
+        Ok(exit_code)
     }
 }

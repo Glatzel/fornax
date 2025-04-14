@@ -7,7 +7,7 @@ pub use {dnc, libraw};
 pub struct Fornax<D, P>
 where
     D: IDecoder,
-    P: IPostProcessor,
+    P: IPostProcessor<D>,
 {
     pub decoder: D,
     pub post_processor: P,
@@ -16,7 +16,7 @@ where
 impl<D, P> Fornax<D, P>
 where
     D: IDecoder,
-    P: IPostProcessor,
+    P: IPostProcessor<D>,
 {
     pub fn new(decoder: D, post_processor: P) -> Self {
         Self {
@@ -33,6 +33,6 @@ where
         Ok(self)
     }
     pub fn post_process(&mut self) -> miette::Result<fornax_core::FornaxProcessedImage> {
-        self.post_processor.post_process()
+        self.post_processor.post_process(&self.decoder)
     }
 }
