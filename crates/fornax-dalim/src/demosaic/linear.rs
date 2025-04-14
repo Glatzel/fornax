@@ -1,27 +1,27 @@
-use fornax_core::{BayerChannel, BayerImage};
+use fornax_core::{BayerChannel, BayerImage, FornaxBayerImage};
 use image::ImageBuffer;
 use rayon::prelude::*;
-fn get_diagnal_value(img: &ImageBuffer<image::Luma<u16>, Vec<u16>>, x: u32, y: u32) -> u16 {
+fn get_diagnal_value(img: &FornaxBayerImage, x: u32, y: u32) -> u16 {
     let top_left = img.get_pixel(x - 1, y - 1);
     let top_right = img.get_pixel(x + 1, y - 1);
     let bottom_left = img.get_pixel(x - 1, y + 1);
     let bottom_right = img.get_pixel(x + 1, y + 1);
     (top_left[0] + top_right[0] + bottom_left[0] + bottom_right[0]) / 4
 }
-fn get_neighbour_value(img: &ImageBuffer<image::Luma<u16>, Vec<u16>>, x: u32, y: u32) -> u16 {
+fn get_neighbour_value(img: &FornaxBayerImage, x: u32, y: u32) -> u16 {
     let left = img.get_pixel(x - 1, y);
     let right = img.get_pixel(x + 1, y);
     let top = img.get_pixel(x, y - 1);
     let buttom = img.get_pixel(x, y + 1);
     (left[0] + right[0] + top[0] + buttom[0]) / 4
 }
-fn get_left_right_value(img: &ImageBuffer<image::Luma<u16>, Vec<u16>>, x: u32, y: u32) -> u16 {
+fn get_left_right_value(img: &FornaxBayerImage, x: u32, y: u32) -> u16 {
     let left = img.get_pixel(x - 1, y);
     let right = img.get_pixel(x + 1, y);
 
     (left[0] + right[0]) / 2
 }
-fn get_top_down_value(img: &ImageBuffer<image::Luma<u16>, Vec<u16>>, x: u32, y: u32) -> u16 {
+fn get_top_down_value(img: &FornaxBayerImage, x: u32, y: u32) -> u16 {
     let top = img.get_pixel(x, y - 1);
     let buttom = img.get_pixel(x, y + 1);
     (top[0] + buttom[0]) / 2

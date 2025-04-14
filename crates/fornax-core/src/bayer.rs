@@ -57,20 +57,17 @@ impl Display for BayerPattern {
     }
 }
 pub struct BayerImage {
-    bayer_image: image::ImageBuffer<image::Luma<u16>, Vec<u16>>,
+    bayer_image: FornaxBayerImage,
     pattern: BayerPattern,
 }
 impl BayerImage {
-    pub fn new(
-        bayer_image: image::ImageBuffer<image::Luma<u16>, Vec<u16>>,
-        pattern: BayerPattern,
-    ) -> Self {
+    pub fn new(bayer_image: FornaxBayerImage, pattern: BayerPattern) -> Self {
         Self {
             bayer_image,
             pattern,
         }
     }
-    pub fn mosaic(&self) -> &image::ImageBuffer<image::Luma<u16>, Vec<u16>> {
+    pub fn mosaic(&self) -> &FornaxBayerImage {
         &self.bayer_image
     }
     pub fn pattern(&self) -> &BayerPattern {
