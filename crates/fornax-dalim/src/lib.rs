@@ -1,1 +1,1 @@
-mod demosaic;
+pub mod demosaic;

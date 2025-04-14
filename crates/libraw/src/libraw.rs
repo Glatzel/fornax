@@ -98,11 +98,6 @@ impl Libraw {
                 width as usize * height as usize * 4,
             )
             .to_vec()
-
-            // .iter()
-            // .copied()
-            // .flat_map(|pixel| pixel.into_iter())
-            // .collect::<Vec<u16>>()
         })
         .unwrap();
         Ok(img)
