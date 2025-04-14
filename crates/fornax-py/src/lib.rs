@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use fornax::dnc::{Dnc, DncParams};
+use fornax::dnc::Dnc;
 use fornax::libraw::Libraw;
 use fornax::libraw::dcraw::DCRawParams;
 use numpy::{PyArray, PyArrayMethods};

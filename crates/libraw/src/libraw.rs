@@ -26,7 +26,7 @@ impl Libraw {
         let imgdata = unsafe { libraw_sys::libraw_init(0) };
         Self {
             imgdata,
-            params: params,
+            params,
         }
     }
 
