@@ -83,7 +83,7 @@ mod test {
             .to_luma16();
         let img = DemosaicLinear::demosaic(&fornax_core::BayerImage::new(
             bayer,
-            fornax_core::BayerPattern::gBRG,
+            fornax_core::BayerPattern::GBRG,
         ));
         image::DynamicImage::from(img).save("a.tiff").unwrap();
     }

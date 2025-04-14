@@ -10,33 +10,33 @@ pub enum BayerChannel {
 
 #[derive(Debug, PartialEq)]
 pub enum BayerPattern {
-    RGgB,
-    BGgR,
-    GRBg,
-    gBRG,
+    RGGB,
+    BGGR,
+    GRBG,
+    GBRG,
 }
 impl BayerPattern {
     pub fn as_mask(&self) -> &[BayerChannel; 4] {
         match self {
-            BayerPattern::RGgB => &[
+            BayerPattern::RGGB => &[
                 BayerChannel::R,
                 BayerChannel::G,
                 BayerChannel::G2,
                 BayerChannel::B,
             ],
-            BayerPattern::BGgR => &[
+            BayerPattern::BGGR => &[
                 BayerChannel::B,
                 BayerChannel::G2,
                 BayerChannel::G,
                 BayerChannel::R,
             ],
-            BayerPattern::GRBg => &[
+            BayerPattern::GRBG => &[
                 BayerChannel::G,
                 BayerChannel::R,
                 BayerChannel::B,
                 BayerChannel::G2,
             ],
-            BayerPattern::gBRG => &[
+            BayerPattern::GBRG => &[
                 BayerChannel::G2,
                 BayerChannel::B,
                 BayerChannel::R,
@@ -48,10 +48,10 @@ impl BayerPattern {
 impl Display for BayerPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = match self {
-            BayerPattern::RGgB => "RGGB",
-            BayerPattern::BGgR => "BGGR",
-            BayerPattern::GRBg => "GRBG",
-            BayerPattern::gBRG => "GBRG",
+            BayerPattern::RGGB => "RGGB",
+            BayerPattern::BGGR => "BGGR",
+            BayerPattern::GRBG => "GRBG",
+            BayerPattern::GBRG => "GBRG",
         };
         write!(f, "{}", text)
     }
