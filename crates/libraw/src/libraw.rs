@@ -13,10 +13,8 @@ pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::{ColorDesc, LibrawIParams};
 pub use rawdata::LibrawRawdata;
 
-use crate::{
-    ILibrawErrors,
-    dcraw::{DCRawParams, DCRawProcessedImage},
-};
+use crate::ILibrawErrors;
+use crate::dcraw::{DCRawParams, DCRawProcessedImage};
 #[derive(Debug)]
 pub struct Libraw {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
