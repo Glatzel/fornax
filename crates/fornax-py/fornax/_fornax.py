@@ -2,7 +2,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ._base import BaseDecoderParams, BasePostProcessorParams
-from .decoder import DncParams, LibrawParams
+from .decoder import LibrawParams
+from .dnc import DncParams
 from .fornax_py import py_process  # type: ignore
 from .post_processor import DCRawParams
 
@@ -13,12 +14,12 @@ if TYPE_CHECKING:
 class Fornax:
     def __init__(
         self,
+        *,
         decoder_params: BaseDecoderParams,
         post_processor_params: BasePostProcessorParams,
+        dnc_params: DncParams | None = None,
     ) -> None:
         match decoder_params:
-            case DncParams():
-                self.decoder = "dnc"
             case LibrawParams():
                 self.decoder = "libraw"
             case _:
@@ -27,10 +28,12 @@ class Fornax:
         self.decoder_params = decoder_params
         match post_processor_params:
             case DCRawParams():
-                self.post_processor = "dcraw"
+                self.post_processor = "libraw"
             case _:
                 TypeError("Unknown post processor")
         self.post_processor_params = post_processor_params
+
+        self.dnc_params = dnc_params
 
     def process(self, file: str | Path) -> "np.ndarray":
         """
@@ -53,4 +56,5 @@ class Fornax:
             self.decoder_params.to_msgpack(),
             self.post_processor,
             self.post_processor_params.to_msgpack(),
+            self.dnc_params.to_msgpack() if self.dnc_params else None,
         )[0]

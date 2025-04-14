@@ -13,7 +13,10 @@ fornax.init_tracing(fornax.LogLevel.DEBUG, True)
 
 def test_libraw():
     f = img_dir / "colorchart-eos-7d.cr2"
-    img = fornax.Fornax(fornax.decoder.LibrawParams(), fornax.post_processor.DCRawParams()).process(f)
+    img = fornax.Fornax(
+        decoder_params=fornax.decoder.LibrawParams(),
+        post_processor_params=fornax.post_processor.DCRawParams(),
+    ).process(f)
     out_file = temp_dir / "test_libraw.tiff"
     assert img.shape == (3464, 5202, 3)
     iio.imwrite(out_file, img)
@@ -22,20 +25,24 @@ def test_libraw():
 
 def test_dnc():
     f = img_dir / "colorchart-eos-7d.cr2"
-    dnc = fornax.decoder.DncParams(
+    dnc = fornax.dnc.DncParams(
         compressed=True,
         linear=False,
         embed=False,
-        preview=fornax.decoder.DncPreview._None,
+        preview=fornax.dnc.DncPreview._None,
         fast_load=False,
         side=1000,
         count=None,
-        compatibility=fornax.decoder.DncCompatibility.CR14_0,
+        compatibility=fornax.dnc.DncCompatibility.CR14_0,
         directory=temp_dir / "dnc",
         filename="test_dnc.dng",
         overwrite=True,
     )
-    img = fornax.Fornax(dnc, fornax.post_processor.DCRawParams()).process(f)
+    img = fornax.Fornax(
+        dnc_params=dnc,
+        decoder_params=fornax.decoder.LibrawParams(),
+        post_processor_params=fornax.post_processor.DCRawParams(),
+    ).process(f)
     out_file = temp_dir / "dnc.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()
@@ -86,7 +93,7 @@ def test_dcraw():
         no_interpolation=True,
     )
     print(params.model_dump_json())
-    img = fornax.Fornax(fornax.decoder.LibrawParams(), params).process(f)
+    img = fornax.Fornax(decoder_params=fornax.decoder.LibrawParams(), post_processor_params=params).process(f)
     out_file = temp_dir / "test_dcraw.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()

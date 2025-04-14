@@ -10,7 +10,8 @@ fn main() -> miette::Result<()> {
         .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
         .init();
     let params = libraw::dcraw::DCRawParams::preset_cg();
-    let mut manager = Fornax::new(libraw::Libraw::new(), libraw::dcraw::DCRaw::new(params));
+    let libraw = libraw::Libraw::new(Some(params));
+    let mut manager = Fornax::new(&libraw, &libraw);
     let img = manager
         .decode_file(&PathBuf::from(
             "./external/raw-images/images/colorchart-eos-7d.cr2",
