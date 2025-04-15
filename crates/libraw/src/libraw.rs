@@ -6,7 +6,7 @@ use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 
-use fornax_core::{BayerPrimitive, FornaxProcessedImage, IBayerImage, IDecoder, IPostProcessor};
+use fornax_core::{BayerPrimitive, FornaxProcessedImage, IDecoder, IPostProcessor};
 use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
