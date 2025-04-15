@@ -24,7 +24,6 @@ dunce = "1.0.5"
 image = { git = "https://github.com/Glatzel/image", branch = "expose-enlargeable-trait" }
 libc = "0.2"
 miette = { version = "7.5.0", features = ["fancy"] }
-num = "0.4.3"
 numpy = "0.24.0"
 path-slash = "0.2.1"
 pkg-config = "0.3.32"

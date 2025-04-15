@@ -12,7 +12,6 @@ image = { workspace = true }
 libraw-sys = { workspace = true }
 miette = { workspace = true }
 serde = { workspace = true, optional = true }
-num =  { workspace = true }
 
 [features]
 log = ["clerk/log"]
