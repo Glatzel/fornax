@@ -160,7 +160,7 @@ dependencies = [
  "bitflags 2.9.0",
  "cexpr",
  "clang-sys",
- "itertools 0.12.1",
+ "itertools",
  "log",
  "prettyplease",
  "proc-macro2",
@@ -475,10 +475,12 @@ dependencies = [
 name = "fornax-dalim"
 version = "0.0.3"
 dependencies = [
+ "clerk",
  "fornax-core",
  "image",
- "itertools 0.14.0",
  "rayon",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -663,15 +665,6 @@ name = "itertools"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
 dependencies = [
  "either",
 ]
@@ -1290,7 +1283,7 @@ dependencies = [
  "built",
  "cfg-if",
  "interpolate_name",
- "itertools 0.12.1",
+ "itertools",
  "libc",
  "libfuzzer-sys",
  "log",
