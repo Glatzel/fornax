@@ -10,6 +10,7 @@ fornax-core = { workspace = true }
 # serde = { workspace = true, optional = true }
 image = { workspace = true }
 rayon = { workspace = true }
+itertools={ workspace = true }
 # [features]
 # log = ["clerk/log"]
 # serde = ["dep:serde"]

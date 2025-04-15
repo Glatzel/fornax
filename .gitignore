@@ -17,3 +17,7 @@ __pycache__
 tests_report
 .coverage
 output
+
+#image
+*.tiff
+*.png
