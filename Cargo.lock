@@ -474,6 +474,14 @@ dependencies = [
 [[package]]
 name = "fornax-dalim"
 version = "0.0.3"
+dependencies = [
+ "clerk",
+ "fornax-core",
+ "image",
+ "rayon",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "fornax-py"
