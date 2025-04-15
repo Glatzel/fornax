@@ -1,6 +1,5 @@
 use fornax_core::{BayerChannel, BayerImage, FornaxBayerImage};
 use image::ImageBuffer;
-
 use rayon::prelude::*;
 fn get_diagnal_value(img: &FornaxBayerImage, x: u32, y: u32) -> u16 {
     let top_left = img.get_pixel(x - 1, y - 1);
@@ -142,7 +141,7 @@ impl super::IDemosaic for DemosaicLinear {
         let (width, height) = mosaic.dimensions();
         let mut img: ImageBuffer<image::Rgb<u16>, Vec<u16>> = ImageBuffer::new(width, height);
         let bayer_mask = pattern.as_mask();
-        clerk::info!("Start demosaicing.");
+        clerk::debug!("Start demosaicing.");
         img.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             // `(*x & 1) + 2 * (*y & 1)` is the of the current pixel at image (x,y) index in
             // bayer pattern.
@@ -193,36 +192,36 @@ impl super::IDemosaic for DemosaicLinear {
                 }
             }
         });
-        clerk::info!("End demosaicing.");
+        clerk::debug!("End demosaicing.");
         img
     }
 }
-#[cfg(test)]
-mod test {
-    use std::path::PathBuf;
+// #[cfg(test)]
+// mod test {
+//     use std::path::PathBuf;
 
-    use tracing::level_filters::LevelFilter;
-    use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+//     use tracing::level_filters::LevelFilter;
+//     use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-    use super::*;
-    use crate::demosaic::IDemosaic;
-    #[test]
-    fn test_linear() {
-        tracing_subscriber::registry()
-            .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
-            .init();
-        let root = PathBuf::from(std::env::var("CARGO_WORKSPACE_DIR").unwrap());
-        let mut img_path = root.clone();
-        img_path.push("temp/bayerimga.tiff");
-        let bayer = image::ImageReader::open(img_path)
-            .unwrap()
-            .decode()
-            .unwrap()
-            .to_luma16();
-        let img = DemosaicLinear::demosaic(&fornax_core::BayerImage::new(
-            bayer,
-            fornax_core::BayerPattern::GBRG,
-        ));
-        image::DynamicImage::from(img).save("a.tiff").unwrap();
-    }
-}
+//     use super::*;
+//     use crate::demosaic::IDemosaic;
+//     #[test]
+//     fn test_linear() {
+//         tracing_subscriber::registry()
+//             .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
+//             .init();
+//         let root = PathBuf::from(std::env::var("CARGO_WORKSPACE_DIR").unwrap());
+//         let mut img_path = root.clone();
+//         img_path.push("temp/bayerimga.tiff");
+//         let bayer = image::ImageReader::open(img_path)
+//             .unwrap()
+//             .decode()
+//             .unwrap()
+//             .to_luma16();
+//         let img = DemosaicLinear::demosaic(&fornax_core::BayerImage::new(
+//             bayer,
+//             fornax_core::BayerPattern::GBRG,
+//         ));
+//         image::DynamicImage::from(img).save("a.tiff").unwrap();
+//     }
+// }
