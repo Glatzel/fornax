@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 use image::Luma;
 
@@ -84,7 +84,7 @@ where
 }
 
 pub trait BayerPrimitive:
-    image::Primitive + image::Enlargeable + std::marker::Send + std::marker::Sync
+    image::Primitive + image::Enlargeable + std::marker::Send + std::marker::Sync + Debug + Display
 {
 }
 impl BayerPrimitive for usize {}
