@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use image::Luma;
+
 #[derive(Debug, PartialEq)]
 pub enum BayerChannel {
     R,
@@ -56,22 +58,21 @@ impl Display for BayerPattern {
         write!(f, "{}", text)
     }
 }
-pub struct BayerImage {
-    bayer_image: FornaxBayerImage,
+pub struct BayerImage<T> {
+    bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>,
     pattern: BayerPattern,
 }
-impl BayerImage {
-    pub fn new(bayer_image: FornaxBayerImage, pattern: BayerPattern) -> Self {
+impl BayerImage<T> {
+    pub fn new(bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>, pattern: BayerPattern) -> Self {
         Self {
             bayer_image,
             pattern,
         }
     }
-    pub fn mosaic(&self) -> &FornaxBayerImage {
+    pub fn mosaic(&self) -> &image::ImageBuffer<Luma<T>, Vec<T>> {
         &self.bayer_image
     }
     pub fn pattern(&self) -> &BayerPattern {
         &self.pattern
     }
 }
-pub type FornaxBayerImage = image::ImageBuffer<image::Luma<T>, Vec<T>>;
