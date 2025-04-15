@@ -240,7 +240,8 @@ mod test {
     use std::path::PathBuf;
 
     use tracing::level_filters::LevelFilter;
-    use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+    use tracing_subscriber::layer::SubscriberExt;
+    use tracing_subscriber::util::SubscriberInitExt;
 
     use super::*;
     use crate::demosaic::IDemosaic;
