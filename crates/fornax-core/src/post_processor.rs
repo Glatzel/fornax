@@ -1,15 +1,16 @@
-pub trait IPostProcessor<D>
+pub trait IPostProcessor<D, T>
 where
-    D: crate::IDecoder,
+    D: crate::IDecoder<T>,
+    T: crate::BayerPrimitive,
 {
     fn post_process(&self, decoder: &D) -> miette::Result<crate::FornaxProcessedImage>;
 }
 
 /// A generic null post processor.
 pub struct NullPostProcessor {}
-impl<D> IPostProcessor<D> for NullPostProcessor
+impl<D> IPostProcessor<D, u8> for NullPostProcessor
 where
-    D: crate::IDecoder,
+    D: crate::IDecoder<u8>,
 {
     fn post_process(&self, _decoded: &D) -> miette::Result<crate::FornaxProcessedImage> {
         Ok(crate::FornaxProcessedImage::Null)

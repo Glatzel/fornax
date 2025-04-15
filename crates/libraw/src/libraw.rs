@@ -188,7 +188,10 @@ impl Default for Libraw {
     }
 }
 
-impl IDecoder for Libraw {
+impl<T> IDecoder<T> for Libraw
+where
+    T: BayerPrimitive,
+{
     fn decode_file(&self, file: &Path) -> miette::Result<()> {
         self.open_file(file)?;
         self.unpack()?;
@@ -200,8 +203,14 @@ impl IDecoder for Libraw {
         self.unpack()?;
         Ok(())
     }
+    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> {
+        self.get_bayer_image()
+    }
 }
-impl IDecoder for &Libraw {
+impl<T> IDecoder<T> for &Libraw
+where
+    T: BayerPrimitive,
+{
     fn decode_file(&self, file: &Path) -> miette::Result<()> {
         self.open_file(file)?;
         self.unpack()?;
@@ -213,33 +222,21 @@ impl IDecoder for &Libraw {
         self.unpack()?;
         Ok(())
     }
+    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> {
+        self.get_bayer_image()
+    }
 }
-impl IPostProcessor<Libraw> for Libraw {
+impl IPostProcessor<Libraw, u8> for Libraw {
     fn post_process(&self, decoder: &Libraw) -> miette::Result<FornaxProcessedImage> {
         let processed = decoder.dcraw_process()?.to_image()?;
         Ok(processed)
     }
 }
-impl IPostProcessor<&Libraw> for &Libraw {
+impl IPostProcessor<&Libraw, u8> for &Libraw {
     fn post_process(&self, decoder: &&Libraw) -> miette::Result<FornaxProcessedImage> {
         let processed = decoder.dcraw_process()?.to_image()?;
         Ok(processed)
     }
 }
-impl<T> IBayerImage<T> for Libraw
-where
-    T: BayerPrimitive,
-{
-    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> {
-        self.get_bayer_image()
-    }
-}
-impl<T> IBayerImage<T> for &Libraw
-where
-    T: BayerPrimitive,
-{
-    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> {
-        self.get_bayer_image()
-    }
-}
+
 impl ILibrawErrors for Libraw {}

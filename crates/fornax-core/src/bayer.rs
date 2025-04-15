@@ -82,6 +82,7 @@ where
         &self.pattern
     }
 }
+
 pub trait BayerPrimitive: image::Primitive + std::marker::Send + std::marker::Sync {}
 impl BayerPrimitive for usize {}
 impl BayerPrimitive for u8 {}
@@ -100,5 +101,4 @@ pub trait IBayerImage<T>
 where
     T: BayerPrimitive,
 {
-    fn bayer_image(&self) -> miette::Result<BayerImage<T>>;
 }
