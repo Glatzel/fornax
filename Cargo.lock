@@ -592,8 +592,7 @@ dependencies = [
 [[package]]
 name = "image"
 version = "0.25.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db35664ce6b9810857a38a906215e75a9c879f0696556a39f59c62829710251a"
+source = "git+https://github.com/Glatzel/image?branch=expose-enlargeable-trait#a71cd9ae366694880005d7bb372bda0661c36edb"
 dependencies = [
  "bytemuck",
  "byteorder-lite",

@@ -83,7 +83,10 @@ where
     }
 }
 
-pub trait BayerPrimitive: image::Primitive + std::marker::Send + std::marker::Sync {}
+pub trait BayerPrimitive:
+    image::Primitive + image::Enlargeable + std::marker::Send + std::marker::Sync
+{
+}
 impl BayerPrimitive for usize {}
 impl BayerPrimitive for u8 {}
 impl BayerPrimitive for u16 {}

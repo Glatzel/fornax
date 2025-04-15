@@ -1,7 +1,11 @@
 mod linear;
+use fornax_core::BayerPrimitive;
 pub use linear::DemosaicLinear;
-pub trait IDemosaic {
+pub trait IDemosaic<T>
+where
+    T: BayerPrimitive,
+{
     fn demosaic(
-        bayer_image: &fornax_core::BayerImage,
-    ) -> image::ImageBuffer<image::Rgb<u16>, Vec<u16>>;
+        bayer_image: &fornax_core::BayerImage<T>,
+    ) -> image::ImageBuffer<image::Rgb<T>, Vec<T>>;
 }
