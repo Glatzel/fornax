@@ -58,11 +58,17 @@ impl Display for BayerPattern {
         write!(f, "{}", text)
     }
 }
-pub struct BayerImage<T> {
+pub struct BayerImage<T>
+where
+    T: image::Primitive,
+{
     bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>,
     pattern: BayerPattern,
 }
-impl BayerImage<T> {
+impl<T> BayerImage<T>
+where
+    T: image::Primitive,
+{
     pub fn new(bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>, pattern: BayerPattern) -> Self {
         Self {
             bayer_image,
@@ -75,4 +81,10 @@ impl BayerImage<T> {
     pub fn pattern(&self) -> &BayerPattern {
         &self.pattern
     }
+}
+pub trait IBayerImage<T>
+where
+    T: image::Primitive,
+{
+    fn bayer_image(&self) -> miette::Result<BayerImage<T>>;
 }

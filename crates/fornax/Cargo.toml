@@ -9,6 +9,7 @@ fornax-core = { workspace = true }
 # fornax-dalim = { workspace = true }
 libraw = { workspace = true }
 miette = { workspace = true }
+image= { workspace = true }
 
 [dev-dependencies]
 assert_cmd = { workspace = true }

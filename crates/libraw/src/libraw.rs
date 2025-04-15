@@ -197,10 +197,6 @@ impl IDecoder for Libraw {
         self.unpack()?;
         Ok(())
     }
-
-    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
-        self.get_bayer_image()
-    }
 }
 impl IDecoder for &Libraw {
     fn decode_file(&self, file: &Path) -> miette::Result<()> {
@@ -213,10 +209,6 @@ impl IDecoder for &Libraw {
         self.open_buffer(buffer)?;
         self.unpack()?;
         Ok(())
-    }
-
-    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
-        self.get_bayer_image()
     }
 }
 impl IPostProcessor<Libraw> for Libraw {
