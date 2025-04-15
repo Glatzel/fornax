@@ -60,14 +60,14 @@ impl Display for BayerPattern {
 }
 pub struct BayerImage<T>
 where
-    T: image::Primitive,
+    T: BayerPrimitive,
 {
     bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>,
     pattern: BayerPattern,
 }
 impl<T> BayerImage<T>
 where
-    T: image::Primitive,
+    T: BayerPrimitive,
 {
     pub fn new(bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>, pattern: BayerPattern) -> Self {
         Self {
@@ -82,9 +82,23 @@ where
         &self.pattern
     }
 }
+pub trait BayerPrimitive: image::Primitive + std::marker::Send + std::marker::Sync {}
+impl BayerPrimitive for usize {}
+impl BayerPrimitive for u8 {}
+impl BayerPrimitive for u16 {}
+impl BayerPrimitive for u32 {}
+impl BayerPrimitive for u64 {}
+
+impl BayerPrimitive for isize {}
+impl BayerPrimitive for i8 {}
+impl BayerPrimitive for i16 {}
+impl BayerPrimitive for i32 {}
+impl BayerPrimitive for i64 {}
+impl BayerPrimitive for f32 {}
+impl BayerPrimitive for f64 {}
 pub trait IBayerImage<T>
 where
-    T: image::Primitive,
+    T: BayerPrimitive,
 {
     fn bayer_image(&self) -> miette::Result<BayerImage<T>>;
 }

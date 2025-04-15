@@ -6,7 +6,7 @@ use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 
-use fornax_core::{FornaxProcessedImage, IDecoder, IPostProcessor};
+use fornax_core::{BayerPrimitive, FornaxProcessedImage, IBayerImage, IDecoder, IPostProcessor};
 use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
@@ -157,7 +157,10 @@ impl Libraw {
             (a, b, c, d) => miette::bail!("Unknown bayer pattern: {a}, {b}, {c}, {d}"),
         }
     }
-    pub fn get_bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
+    pub fn get_bayer_image<T>(&self) -> miette::Result<fornax_core::BayerImage<T>>
+    where
+        T: BayerPrimitive,
+    {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
@@ -167,8 +170,8 @@ impl Libraw {
         let raw_img = self.raw2image(true)?;
         let img = ImageBuffer::from_par_fn(raw_img.width(), raw_img.height(), |x, y| {
             let pixel = raw_img.get_pixel(x, y);
-            let value = pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3]);
-            image::Luma::<u16>([value])
+            let value = T::from(pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3])).unwrap();
+            image::Luma::<T>([value])
         });
         Ok(fornax_core::BayerImage::new(img, pattern))
     }
@@ -221,6 +224,22 @@ impl IPostProcessor<&Libraw> for &Libraw {
     fn post_process(&self, decoder: &&Libraw) -> miette::Result<FornaxProcessedImage> {
         let processed = decoder.dcraw_process()?.to_image()?;
         Ok(processed)
+    }
+}
+impl<T> IBayerImage<T> for Libraw
+where
+    T: BayerPrimitive,
+{
+    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> {
+        self.get_bayer_image()
+    }
+}
+impl<T> IBayerImage<T> for &Libraw
+where
+    T: BayerPrimitive,
+{
+    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> {
+        self.get_bayer_image()
     }
 }
 impl ILibrawErrors for Libraw {}

@@ -18,7 +18,7 @@ fn main() -> miette::Result<()> {
     let bayer_pattern = manager.decoder.bayer_pattern()?;
     clerk::info!("Bayer pattern: {}", bayer_pattern);
     assert_eq!(bayer_pattern, BayerPattern::GBRG);
-    let bayer_image = manager.decoder.get_bayer_image()?;
+    let bayer_image: fornax_core::BayerImage<u16> = manager.decoder.get_bayer_image()?;
     assert_eq!(bayer_image.mosaic().width(), 5202);
     assert_eq!(bayer_image.mosaic().height(), 3464);
     bayer_image
