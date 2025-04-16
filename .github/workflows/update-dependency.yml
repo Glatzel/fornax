@@ -43,7 +43,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./vcpkg/vcpkg-update-baseline.ps1
-        shell: pwsh
+      - run: ./vcpkg/vcpkg-install.ps1
+      - run: ./scripts/libraw-bindings.ps1
       - name: Create pull request
         uses: peter-evans/create-pull-request@v7
         with:
