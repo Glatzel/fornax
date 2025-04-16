@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 
 use fornax::Fornax;
 mod utils;

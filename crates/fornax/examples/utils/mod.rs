@@ -13,8 +13,8 @@ pub fn example_setup() {
 }
 
 pub fn root_dir() -> PathBuf {
-    let root = PathBuf::from(std::env::var("CARGO_WORKSPACE_DIR").unwrap());
-    root
+    
+    PathBuf::from(std::env::var("CARGO_WORKSPACE_DIR").unwrap())
 }
 pub fn output_dir() -> PathBuf {
     let outdir: PathBuf = root_dir().join("temp/fornax/example");
@@ -22,6 +22,6 @@ pub fn output_dir() -> PathBuf {
 }
 
 pub fn raw_file() -> PathBuf {
-    let raw_file = root_dir().join("/external/raw-images/images/colorchart-eos-7d.cr2");
-    raw_file
+    
+    root_dir().join("/external/raw-images/images/colorchart-eos-7d.cr2")
 }
