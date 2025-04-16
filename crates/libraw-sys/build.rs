@@ -54,7 +54,7 @@ fn main() {
             .write_to_file(PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("src/bindings.rs"))
             .expect("Couldn't write bindings!");
         clerk::info!(
-            "Build bingings to: {}",
+            "Build bingings to: {:?}",
             PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("src/bindings.rs")
         );
     }
