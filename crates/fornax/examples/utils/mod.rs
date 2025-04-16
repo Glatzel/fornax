@@ -13,7 +13,6 @@ pub fn example_setup() {
 }
 
 pub fn root_dir() -> PathBuf {
-    
     PathBuf::from(std::env::var("CARGO_WORKSPACE_DIR").unwrap())
 }
 pub fn output_dir() -> PathBuf {
@@ -22,6 +21,5 @@ pub fn output_dir() -> PathBuf {
 }
 
 pub fn raw_file() -> PathBuf {
-    
     root_dir().join("external/raw-images/images/colorchart-eos-7d.cr2")
 }

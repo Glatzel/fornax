@@ -1,4 +1,3 @@
-
 use fornax::Fornax;
 use libraw::dcraw::DCRawParams;
 use miette::IntoDiagnostic;
