@@ -35,7 +35,7 @@ fn custom_path() -> miette::Result<()> {
         overwrite: true,
         ..Default::default()
     });
-    let dng_file = dnc.convert(&utils::output_dir().join("dng-converter.dng"))?;
+    let dng_file = dnc.convert(&utils::raw_file())?;
     let libraw = libraw::Libraw::default();
     let mut manager = Fornax::new(&libraw, &libraw);
     let img = manager
