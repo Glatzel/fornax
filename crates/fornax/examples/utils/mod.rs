@@ -23,5 +23,5 @@ pub fn output_dir() -> PathBuf {
 
 pub fn raw_file() -> PathBuf {
     
-    root_dir().join("/external/raw-images/images/colorchart-eos-7d.cr2")
+    root_dir().join("external/raw-images/images/colorchart-eos-7d.cr2")
 }
