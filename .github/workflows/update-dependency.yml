@@ -42,6 +42,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - run: choco install pkgconfiglite
       - run: ./vcpkg/vcpkg-update-baseline.ps1
       - run: ./vcpkg/vcpkg-install.ps1
       - run: ./scripts/libraw-bindings.ps1
