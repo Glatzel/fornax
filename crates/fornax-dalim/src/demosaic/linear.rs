@@ -175,7 +175,7 @@ impl<T> super::IDemosaic<T> for DemosaicLinear
 where
     T: BayerPrimitive,
 {
-    fn demosaic(bayer_image: &BayerImage<T>) -> ImageBuffer<image::Rgb<T>, Vec<T>> {
+    fn demosaic(&self, bayer_image: &BayerImage<T>) -> ImageBuffer<image::Rgb<T>, Vec<T>> {
         let mosaic: &ImageBuffer<image::Luma<T>, Vec<T>> = bayer_image.mosaic();
         let pattern = bayer_image.pattern();
         let (width, height) = mosaic.dimensions();
@@ -258,7 +258,8 @@ mod test {
             .decode()
             .unwrap()
             .to_luma16();
-        let img: ImageBuffer<image::Rgb<u16>, Vec<u16>> = DemosaicLinear::demosaic(
+        let demosaicer = DemosaicLinear();
+        let img: ImageBuffer<image::Rgb<u16>, Vec<u16>> = demosaicer.demosaic(
             &fornax_core::BayerImage::new(bayer, fornax_core::BayerPattern::GBRG),
         );
         image::DynamicImage::from(img).save("a.tiff").unwrap();

@@ -80,7 +80,7 @@ impl Drop for DCRawProcessedImage {
 }
 
 impl DCRawProcessedImage {
-    pub fn to_image(&self) -> miette::Result<fornax_core::FornaxProcessedImage> {
+    pub fn to_image(&self) -> miette::Result<fornax_core::ProcessedImage> {
         clerk::debug!("Start cast to image.");
         match (self.colors(), self.bits()) {
             (1, 8) => {
@@ -98,7 +98,7 @@ impl DCRawProcessedImage {
                     )
                     .unwrap();
                 clerk::debug!("Finish cast to image.");
-                Ok(fornax_core::FornaxProcessedImage::Mono8(img))
+                Ok(fornax_core::ProcessedImage::Mono8(img))
             }
             (1, 16) => {
                 let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> =
@@ -115,7 +115,7 @@ impl DCRawProcessedImage {
                     )
                     .unwrap();
                 clerk::debug!("Finish cast to image.");
-                Ok(fornax_core::FornaxProcessedImage::Mono16(img))
+                Ok(fornax_core::ProcessedImage::Mono16(img))
             }
             (3, 8) => {
                 let img: image::ImageBuffer<image::Rgb<u8>, Vec<u8>> =
@@ -132,7 +132,7 @@ impl DCRawProcessedImage {
                     )
                     .unwrap();
                 clerk::debug!("Finish cast to image.");
-                Ok(fornax_core::FornaxProcessedImage::Rgb8(img))
+                Ok(fornax_core::ProcessedImage::Rgb8(img))
             }
             (3, 16) => {
                 let img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> =
@@ -149,7 +149,7 @@ impl DCRawProcessedImage {
                     )
                     .unwrap();
                 clerk::debug!("Finish cast to image.");
-                Ok(fornax_core::FornaxProcessedImage::Rgb16(img))
+                Ok(fornax_core::ProcessedImage::Rgb16(img))
             }
             (c, b) => {
                 miette::bail!("Unsupported color:{}, bits: {}.", c, b)

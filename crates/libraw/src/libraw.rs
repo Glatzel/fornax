@@ -6,7 +6,7 @@ use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 
-use fornax_core::{BayerPrimitive, FornaxProcessedImage, IDecoder, IPostProcessor};
+use fornax_core::{BayerPrimitive, IDecoder, IPostProcessor, ProcessedImage};
 use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
@@ -227,13 +227,13 @@ where
     }
 }
 impl IPostProcessor<Libraw, u8> for Libraw {
-    fn post_process(&self, decoder: &Libraw) -> miette::Result<FornaxProcessedImage> {
+    fn post_process(&self, decoder: &Libraw) -> miette::Result<ProcessedImage> {
         let processed = decoder.dcraw_process()?.to_image()?;
         Ok(processed)
     }
 }
 impl IPostProcessor<&Libraw, u8> for &Libraw {
-    fn post_process(&self, decoder: &&Libraw) -> miette::Result<FornaxProcessedImage> {
+    fn post_process(&self, decoder: &&Libraw) -> miette::Result<ProcessedImage> {
         let processed = decoder.dcraw_process()?.to_image()?;
         Ok(processed)
     }

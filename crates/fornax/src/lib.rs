@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use fornax_core::{BayerPrimitive, IDecoder, IPostProcessor};
-pub use fornax_core::{FornaxProcessedImage, NullPostProcessor};
+pub use fornax_core::{ProcessedImage, NullPostProcessor};
 pub use {dnc, libraw};
 
 pub struct Fornax<D, T, P>
@@ -36,7 +36,7 @@ where
         self.decoder.decode_buffer(buffer)?;
         Ok(self)
     }
-    pub fn post_process(&mut self) -> miette::Result<fornax_core::FornaxProcessedImage> {
+    pub fn post_process(&mut self) -> miette::Result<fornax_core::ProcessedImage> {
         self.post_processor.post_process(&self.decoder)
     }
 }

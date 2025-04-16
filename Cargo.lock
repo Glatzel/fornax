@@ -478,6 +478,7 @@ dependencies = [
  "clerk",
  "fornax-core",
  "image",
+ "miette",
  "rayon",
  "tracing",
  "tracing-subscriber",

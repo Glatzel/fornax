@@ -3,7 +3,7 @@ where
     D: crate::IDecoder<T>,
     T: crate::BayerPrimitive,
 {
-    fn post_process(&self, decoder: &D) -> miette::Result<crate::FornaxProcessedImage>;
+    fn post_process(&self, decoder: &D) -> miette::Result<crate::ProcessedImage>;
 }
 
 /// A generic null post processor.
@@ -12,7 +12,7 @@ impl<D> IPostProcessor<D, u8> for NullPostProcessor
 where
     D: crate::IDecoder<u8>,
 {
-    fn post_process(&self, _decoded: &D) -> miette::Result<crate::FornaxProcessedImage> {
-        Ok(crate::FornaxProcessedImage::Null)
+    fn post_process(&self, _decoded: &D) -> miette::Result<crate::ProcessedImage> {
+        Ok(crate::ProcessedImage::Null)
     }
 }

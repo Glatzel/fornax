@@ -6,6 +6,7 @@ where
     T: BayerPrimitive,
 {
     fn demosaic(
+        &self,
         bayer_image: &fornax_core::BayerImage<T>,
     ) -> image::ImageBuffer<image::Rgb<T>, Vec<T>>;
 }

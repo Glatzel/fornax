@@ -67,43 +67,43 @@ fn py_process<'a>(
     };
 
     match img {
-        fornax::FornaxProcessedImage::Null => panic!("Process failed."),
-        fornax::FornaxProcessedImage::Mono8(img) => {
+        fornax::ProcessedImage::Null => panic!("Process failed."),
+        fornax::ProcessedImage::Mono8(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
                 .reshape([img.height() as usize, img.width() as usize, 1])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
-        fornax::FornaxProcessedImage::Mono16(img) => {
+        fornax::ProcessedImage::Mono16(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
                 .reshape([img.height() as usize, img.width() as usize, 1])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
-        fornax::FornaxProcessedImage::MonoF32(img) => {
+        fornax::ProcessedImage::MonoF32(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
                 .reshape([img.height() as usize, img.width() as usize, 1])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
-        fornax::FornaxProcessedImage::Rgb8(img) => {
+        fornax::ProcessedImage::Rgb8(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
                 .reshape([img.height() as usize, img.width() as usize, 3])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
-        fornax::FornaxProcessedImage::Rgb16(img) => {
+        fornax::ProcessedImage::Rgb16(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
                 .reshape([img.height() as usize, img.width() as usize, 3])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
-        fornax::FornaxProcessedImage::RgbF32(img) => {
+        fornax::ProcessedImage::RgbF32(img) => {
             let img_array = PyArray::from_slice(py, img.as_ref());
             let img_array = img_array
                 .reshape([img.height() as usize, img.width() as usize, 3])
