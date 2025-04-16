@@ -1,7 +1,7 @@
 pub trait IPostProcessor<D, T>
 where
     D: crate::IDecoder<T>,
-    T: crate::BayerPrimitive,
+    T: crate::FornaxPrimitive,
 {
     fn post_process(&self, decoder: &D) -> miette::Result<crate::ProcessedImage>;
 }

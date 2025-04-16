@@ -1,9 +1,9 @@
-use fornax_core::{BayerChannel, BayerImage, BayerPrimitive};
+use fornax_core::{BayerChannel, BayerImage, FornaxPrimitive};
 use image::ImageBuffer;
 use rayon::prelude::*;
 fn get_diagnal_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     let top_left = img.get_pixel(x - 1, y - 1);
     let top_right = img.get_pixel(x + 1, y - 1);
@@ -14,7 +14,7 @@ where
 
 fn get_neighbour_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     let left = img.get_pixel(x - 1, y);
     let right = img.get_pixel(x + 1, y);
@@ -25,7 +25,7 @@ where
 
 fn get_left_right_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     let left = img.get_pixel(x - 1, y);
     let right = img.get_pixel(x + 1, y);
@@ -35,7 +35,7 @@ where
 
 fn get_top_down_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     let top = img.get_pixel(x, y - 1);
     let buttom = img.get_pixel(x, y + 1);
@@ -49,7 +49,7 @@ fn get_diagnal_value_check<T>(
     height: u32,
 ) -> T
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     let mut count = 0;
     let top_left = if x != 0 && y != 0 {
@@ -87,7 +87,7 @@ fn get_neighbour_value_check<T>(
     height: u32,
 ) -> T
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     let mut count = 0;
     let left = if x != 0 {
@@ -125,7 +125,7 @@ fn get_left_right_value_check<T>(
     width: u32,
 ) -> T
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     let mut count = 0;
     let left = if x != 0 {
@@ -151,7 +151,7 @@ fn get_top_down_value_check<T>(
     height: u32,
 ) -> T
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     let mut count = 0;
 
@@ -173,7 +173,7 @@ where
 pub struct DemosaicLinear();
 impl<T> super::IDemosaic<T> for DemosaicLinear
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     fn demosaic(&self, bayer_image: &BayerImage<T>) -> ImageBuffer<image::Rgb<T>, Vec<T>> {
         let mosaic: &ImageBuffer<image::Luma<T>, Vec<T>> = bayer_image.mosaic();

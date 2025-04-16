@@ -1,6 +1,5 @@
-use std::fmt::{Debug, Display};
-
 use image::Luma;
+use std::fmt::{Debug, Display};
 
 #[derive(Debug, PartialEq)]
 pub enum BayerChannel {
@@ -60,14 +59,14 @@ impl Display for BayerPattern {
 }
 pub struct BayerImage<T>
 where
-    T: BayerPrimitive,
+    T: crate::FornaxPrimitive,
 {
     bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>,
     pattern: BayerPattern,
 }
 impl<T> BayerImage<T>
 where
-    T: BayerPrimitive,
+    T: crate::FornaxPrimitive,
 {
     pub fn new(bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>, pattern: BayerPattern) -> Self {
         Self {
@@ -83,25 +82,8 @@ where
     }
 }
 
-pub trait BayerPrimitive:
-    image::Primitive + image::Enlargeable + std::marker::Send + std::marker::Sync + Debug + Display
-{
-}
-impl BayerPrimitive for usize {}
-impl BayerPrimitive for u8 {}
-impl BayerPrimitive for u16 {}
-impl BayerPrimitive for u32 {}
-impl BayerPrimitive for u64 {}
-
-impl BayerPrimitive for isize {}
-impl BayerPrimitive for i8 {}
-impl BayerPrimitive for i16 {}
-impl BayerPrimitive for i32 {}
-impl BayerPrimitive for i64 {}
-impl BayerPrimitive for f32 {}
-impl BayerPrimitive for f64 {}
 pub trait IBayerImage<T>
 where
-    T: BayerPrimitive,
+    T: crate::FornaxPrimitive,
 {
 }

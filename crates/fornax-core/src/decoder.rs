@@ -2,7 +2,7 @@ use std::path::Path;
 
 pub trait IDecoder<T>
 where
-    T: crate::BayerPrimitive,
+    T: crate::FornaxPrimitive,
 {
     fn decode_file(&self, file: &Path) -> miette::Result<()>;
     fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<()>;

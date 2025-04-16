@@ -1,9 +1,9 @@
 mod linear;
-use fornax_core::BayerPrimitive;
+use fornax_core::FornaxPrimitive;
 pub use linear::DemosaicLinear;
 pub trait IDemosaic<T>
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     fn demosaic(
         &self,

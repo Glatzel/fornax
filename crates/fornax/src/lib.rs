@@ -1,14 +1,14 @@
 use std::path::Path;
 
-use fornax_core::{BayerPrimitive, IDecoder, IPostProcessor};
-pub use fornax_core::{ProcessedImage, NullPostProcessor};
+use fornax_core::{FornaxPrimitive, IDecoder, IPostProcessor};
+pub use fornax_core::{NullPostProcessor, ProcessedImage};
 pub use {dnc, libraw};
 
 pub struct Fornax<D, T, P>
 where
     D: IDecoder<T>,
     P: IPostProcessor<D, T>,
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     _marker: std::marker::PhantomData<T>,
     pub decoder: D,
@@ -19,7 +19,7 @@ impl<D, T, P> Fornax<D, T, P>
 where
     D: IDecoder<T>,
     P: IPostProcessor<D, T>,
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     pub fn new(decoder: D, post_processor: P) -> Self {
         Self {

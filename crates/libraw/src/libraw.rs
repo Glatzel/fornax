@@ -6,7 +6,7 @@ use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 
-use fornax_core::{BayerImage, BayerPrimitive, IDecoder, IPostProcessor, ProcessedImage};
+use fornax_core::{BayerImage, FornaxPrimitive, IDecoder, IPostProcessor, ProcessedImage};
 use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
@@ -184,7 +184,7 @@ impl Libraw {
     }
     pub fn get_bayer_image<T>(&self) -> miette::Result<fornax_core::BayerImage<T>>
     where
-        T: BayerPrimitive,
+        T: FornaxPrimitive,
     {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
@@ -215,7 +215,7 @@ impl Default for Libraw {
 
 impl<T> IDecoder<T> for Libraw
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     fn decode_file(&self, file: &Path) -> miette::Result<()> {
         self.open_file(file)?;
@@ -234,7 +234,7 @@ where
 }
 impl<T> IDecoder<T> for &Libraw
 where
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     fn decode_file(&self, file: &Path) -> miette::Result<()> {
         self.open_file(file)?;
@@ -251,19 +251,33 @@ where
         self.get_bayer_image()
     }
 }
-impl IPostProcessor<Libraw, u8> for Libraw {
-    fn post_process(&self, decoder: &Libraw) -> miette::Result<ProcessedImage> {
-        let processed = decoder.dcraw_process()?.to_image()?;
-        Ok(processed)
-    }
-}
-impl IPostProcessor<&Libraw, u8> for &Libraw {
-    fn post_process(&self, decoder: &&Libraw) -> miette::Result<ProcessedImage> {
-        let processed = decoder.dcraw_process()?.to_image()?;
-        Ok(processed)
-    }
-}
+// deprecated
+// impl IPostProcessor<Libraw, u8> for Libraw {
+//     fn post_process(&self, decoder: &Libraw) -> miette::Result<ProcessedImage> {
+//         let processed = decoder.dcraw_process()?.to_image()?;
+//         Ok(processed)
+//     }
+// }
+// // deprecated
+// impl IPostProcessor<&Libraw, u8> for &Libraw {
+//     fn post_process(&self, decoder: &&Libraw) -> miette::Result<ProcessedImage> {
+//         let processed = decoder.dcraw_process()?.to_image()?;
+//         Ok(processed)
+//     }
+// }
 impl<D> IPostProcessor<D, u16> for Libraw
+where
+    D: IDecoder<u16>,
+{
+    fn post_process(&self, decoder: &D) -> miette::Result<ProcessedImage> {
+        let bayer = decoder.bayer_image()?;
+        self.open_bayer(bayer)?;
+        self.unpack()?;
+        let processed = self.dcraw_process()?.to_image()?;
+        Ok(processed)
+    }
+}
+impl<D> IPostProcessor<D, u16> for &Libraw
 where
     D: IDecoder<u16>,
 {

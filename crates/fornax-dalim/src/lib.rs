@@ -1,11 +1,11 @@
 use demosaic::IDemosaic;
-use fornax_core::{BayerPrimitive, IDecoder, IPostProcessor};
+use fornax_core::{FornaxPrimitive, IDecoder, IPostProcessor};
 use image::ImageBuffer;
 pub mod demosaic;
 pub struct Dalim<T, DM>
 where
     DM: IDemosaic<T>,
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     _marker: std::marker::PhantomData<T>,
     demosaicer: DM,
@@ -13,7 +13,7 @@ where
 impl<T, DM> Dalim<T, DM>
 where
     DM: IDemosaic<T>,
-    T: BayerPrimitive,
+    T: FornaxPrimitive,
 {
     pub fn new(demosaicer: DM) -> Self {
         Self {
