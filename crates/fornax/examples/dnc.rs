@@ -1,4 +1,4 @@
-use std::{path::PathBuf, str::Utf8Error};
+use std::path::PathBuf;
 
 use fornax::Fornax;
 use miette::IntoDiagnostic;

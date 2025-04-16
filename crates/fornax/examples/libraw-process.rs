@@ -6,7 +6,7 @@ use miette::IntoDiagnostic;
 mod utils;
 fn main() -> miette::Result<()> {
     utils::example_setup();
-    
+
     let dcraw_params = DCRawParams {
         user_qual: Some(libraw::dcraw::DCRawUserQual::Linear),
         ..Default::default()

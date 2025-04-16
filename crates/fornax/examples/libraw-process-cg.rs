@@ -5,7 +5,7 @@ use miette::IntoDiagnostic;
 mod utils;
 fn main() -> miette::Result<()> {
     utils::example_setup();
-    
+
     let params = libraw::dcraw::DCRawParams::preset_cg();
     let libraw = libraw::Libraw::new(Some(params));
     let mut manager = Fornax::new(&libraw, &libraw);
