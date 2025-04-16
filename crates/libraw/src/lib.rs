@@ -2,9 +2,7 @@ pub mod dcraw;
 mod errors;
 pub mod libraw;
 pub mod utils;
-mod version;
 
 pub use errors::ILibrawErrors;
 pub use libraw::Libraw;
 use utils::mnt_to_string;
-pub use version::{LIBRAW_VERSION, LibrawVersion};

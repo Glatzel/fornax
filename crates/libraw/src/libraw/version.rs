@@ -21,10 +21,4 @@ impl LibrawVersion {
         self.patch
     }
 }
-pub static LIBRAW_VERSION: std::sync::LazyLock<LibrawVersion> = std::sync::LazyLock::new(|| {
-    LibrawVersion::new(
-        libraw_sys::LIBRAW_MAJOR_VERSION,
-        libraw_sys::LIBRAW_MINOR_VERSION,
-        libraw_sys::LIBRAW_PATCH_VERSION,
-    )
-});
+

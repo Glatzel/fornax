@@ -5,13 +5,14 @@ mod rawdata;
 use std::ffi::CString;
 use std::path::Path;
 use std::slice;
-
+mod version;
 use fornax_core::{BayerImage, FornaxPrimitive, IDecoder, IPostProcessor, ProcessedImage};
 use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::{ColorDesc, LibrawIParams};
 pub use rawdata::LibrawRawdata;
+pub use version::LibrawVersion;
 
 use crate::ILibrawErrors;
 use crate::dcraw::{DCRawParams, DCRawProcessedImage};
@@ -26,8 +27,20 @@ impl Libraw {
         let imgdata = unsafe { libraw_sys::libraw_init(0) };
         Self { imgdata, params }
     }
+}
+// Methods Loading Data from a File
+// https://www.libraw.org/docs/API-CXX.html#dataload
+impl Libraw {
+    pub fn open_file(&self, fname: &Path) -> miette::Result<()> {
+        let c_string =
+            CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
+        Self::check_run(
+            unsafe { libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _) },
+            "libraw_open_file",
+        )?;
+        Ok(())
+    }
 
-    // io
     pub fn open_buffer(&self, buf: &[u8]) -> miette::Result<()> {
         Self::check_run(
             unsafe {
@@ -38,16 +51,6 @@ impl Libraw {
         Ok(())
     }
 
-    pub fn open_file(&self, fname: &Path) -> miette::Result<()> {
-        let c_string =
-            CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
-        Self::check_run(
-            unsafe { libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _) },
-            "libraw_open_file",
-        )?;
-        Ok(())
-    }
-    // io
     pub fn open_bayer(
         &self,
         _bayer: BayerImage<u16>,
@@ -80,7 +83,9 @@ impl Libraw {
         )?;
         Ok(())
     }
-
+}
+// Data Structure
+impl Libraw {
     // data structure
     pub fn imgother(&self) -> miette::Result<LibrawImgOther> {
         LibrawImgOther::new(self.imgdata)
@@ -100,6 +105,21 @@ impl Libraw {
         let height = size.raw_height();
         rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
     }
+}
+// Auxiliary Functions
+// https://www.libraw.org/docs/API-CXX.html#utility
+impl Libraw {
+    pub fn version() -> LibrawVersion {
+        LibrawVersion::new(
+            libraw_sys::LIBRAW_MAJOR_VERSION,
+            libraw_sys::LIBRAW_MINOR_VERSION,
+            libraw_sys::LIBRAW_PATCH_VERSION,
+        )
+    }
+}
+//Data Postprocessing: Emulation of dcraw Behavior
+//https://www.libraw.org/docs/API-CXX.html#dcrawemu
+impl Libraw {
     pub fn raw2image(
         &self,
         subtract_black: bool,
@@ -154,6 +174,9 @@ impl Libraw {
         let processed = DCRawProcessedImage::new(processed)?;
         Ok(processed)
     }
+}
+//other
+impl Libraw {
     pub fn bayer_pattern(&self) -> miette::Result<fornax_core::BayerPattern> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("rawdata is null.")
@@ -201,7 +224,6 @@ impl Libraw {
         Ok(fornax_core::BayerImage::new(img, pattern))
     }
 }
-
 impl Drop for Libraw {
     fn drop(&mut self) {
         unsafe { libraw_sys::libraw_close(self.imgdata) }
@@ -251,20 +273,7 @@ where
         self.get_bayer_image()
     }
 }
-// deprecated
-// impl IPostProcessor<Libraw, u8> for Libraw {
-//     fn post_process(&self, decoder: &Libraw) -> miette::Result<ProcessedImage> {
-//         let processed = decoder.dcraw_process()?.to_image()?;
-//         Ok(processed)
-//     }
-// }
-// // deprecated
-// impl IPostProcessor<&Libraw, u8> for &Libraw {
-//     fn post_process(&self, decoder: &&Libraw) -> miette::Result<ProcessedImage> {
-//         let processed = decoder.dcraw_process()?.to_image()?;
-//         Ok(processed)
-//     }
-// }
+
 impl<D> IPostProcessor<D, u16> for Libraw
 where
     D: IDecoder<u16>,
