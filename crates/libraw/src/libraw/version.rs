@@ -21,4 +21,3 @@ impl LibrawVersion {
         self.patch
     }
 }
-
