@@ -3,8 +3,8 @@ use fornax_core::BayerPattern;
 use miette::IntoDiagnostic;
 mod utils;
 fn main() -> miette::Result<()> {
-    utils::init_log();
-    utils::creat_output_dir();
+    utils::example_setup();
+
     let libraw = libraw::Libraw::new(None);
     let mut manager = Fornax::new(&libraw, &libraw);
     manager.decode_file(&utils::raw_file())?;

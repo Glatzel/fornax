@@ -4,8 +4,8 @@ use fornax::Fornax;
 use miette::IntoDiagnostic;
 mod utils;
 fn main() -> miette::Result<()> {
-    utils::init_log();
-    utils::creat_output_dir();
+    utils::example_setup();
+
     default_path()?;
     custom_path()?;
     Ok(())
@@ -44,7 +44,8 @@ fn custom_path() -> miette::Result<()> {
         .post_process()?
         .to_dynamic_image();
 
-    img.save(utils::output_dir().join("dnc.tiff")).into_diagnostic()?;
+    img.save(utils::output_dir().join("dnc.tiff"))
+        .into_diagnostic()?;
     clerk::info!("save img to: dnc.tiff");
     Ok(())
 }

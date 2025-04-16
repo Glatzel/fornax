@@ -4,8 +4,8 @@ use fornax::Fornax;
 use miette::IntoDiagnostic;
 mod utils;
 fn main() -> miette::Result<()> {
-    utils::init_log();
-    utils::creat_output_dir();
+    utils::example_setup();
+    
     let mut manager = Fornax::new(libraw::Libraw::new(None), fornax::NullPostProcessor {});
     manager.decode_file(&utils::raw_file())?;
 

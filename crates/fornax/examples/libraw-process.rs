@@ -5,8 +5,8 @@ use libraw::dcraw::DCRawParams;
 use miette::IntoDiagnostic;
 mod utils;
 fn main() -> miette::Result<()> {
-    utils::init_log();
-    utils::creat_output_dir();
+    utils::example_setup();
+    
     let dcraw_params = DCRawParams {
         user_qual: Some(libraw::dcraw::DCRawUserQual::Linear),
         ..Default::default()
