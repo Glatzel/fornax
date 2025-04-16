@@ -4,7 +4,7 @@ import fornax
 import imageio.v3 as iio  # type: ignore
 
 root = Path(__file__).parents[3]
-temp_dir = root / "temp" / "py"
+temp_dir = root / "temp" / "fornax-py"
 temp_dir.mkdir(parents=True, exist_ok=True)
 img_dir = root / "external" / "raw-images" / "images"
 
