@@ -33,3 +33,14 @@ where
         Ok(fornax_core::ProcessedImage::Rgb16(img))
     }
 }
+impl<D, DM> IPostProcessor<D, f32> for Dalim<f32, DM>
+where
+    D: IDecoder<f32>,
+    DM: IDemosaic<f32>,
+{
+    fn post_process(&self, decoder: &D) -> miette::Result<fornax_core::ProcessedImage> {
+        let bayer_image = decoder.bayer_image()?;
+        let img: ImageBuffer<image::Rgb<f32>, Vec<f32>> = self.demosaicer.demosaic(&bayer_image);
+        Ok(fornax_core::ProcessedImage::RgbF32(img))
+    }
+}
