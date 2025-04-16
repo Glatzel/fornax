@@ -6,7 +6,7 @@ use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 
-use fornax_core::{BayerPrimitive, IDecoder, IPostProcessor, ProcessedImage};
+use fornax_core::{BayerImage, BayerPrimitive, IDecoder, IPostProcessor, ProcessedImage};
 use image::ImageBuffer;
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
@@ -46,6 +46,31 @@ impl Libraw {
             "libraw_open_file",
         )?;
         Ok(())
+    }
+    // io
+    pub fn open_bayer(
+        &self,
+        _bayer: BayerImage<u16>,
+        // _raw_width: u16,
+        // _raw_height: u16,
+        // _left_margin: u16,
+        // _top_margin: u16,
+        // _right_margin: u16,
+        // _bottom_margin: u16,
+        // _procflags: u8,
+        // _bayer_battern: u8,
+        // _unused_bits: u32,
+        // _otherflags: u32,
+        // _black_level: u32,
+    ) -> miette::Result<()> {
+        todo!();
+        // Self::check_run(
+        //     unsafe {
+        //         libraw_sys::libraw_open_bayer(self.imgdata,)
+        //     },
+        //     "libraw_open_buffer",
+        // )?;
+        // Ok(())
     }
 
     pub fn unpack(&self) -> miette::Result<()> {
@@ -238,5 +263,16 @@ impl IPostProcessor<&Libraw, u8> for &Libraw {
         Ok(processed)
     }
 }
-
+impl<D> IPostProcessor<D, u16> for Libraw
+where
+    D: IDecoder<u16>,
+{
+    fn post_process(&self, decoder: &D) -> miette::Result<ProcessedImage> {
+        let bayer = decoder.bayer_image()?;
+        self.open_bayer(bayer)?;
+        self.unpack()?;
+        let processed = self.dcraw_process()?.to_image()?;
+        Ok(processed)
+    }
+}
 impl ILibrawErrors for Libraw {}
