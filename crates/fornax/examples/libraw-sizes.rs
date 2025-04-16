@@ -6,7 +6,7 @@ fn main() -> miette::Result<()> {
     let mut manager = Fornax::new(libraw::Libraw::new(None), fornax::NullPostProcessor {});
     manager.decode_file(&utils::raw_file())?;
 
-    let sizes = manager.decoder.image_sizes()?;
+    let sizes = manager.decoder.sizes()?;
     println!("{:?}", sizes);
     Ok(())
 }

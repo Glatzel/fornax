@@ -28,7 +28,7 @@ impl Libraw {
         Self { imgdata, params }
     }
 }
-// Methods Loading Data from a File
+// region:Methods Loading Data from a File
 // https://www.libraw.org/docs/API-CXX.html#dataload
 impl Libraw {
     pub fn open_file(&self, fname: &Path) -> miette::Result<()> {
@@ -84,29 +84,29 @@ impl Libraw {
         Ok(())
     }
 }
-// Data Structure
+// region:Data Structure
 impl Libraw {
-    // data structure
-    pub fn imgother(&self) -> miette::Result<LibrawImgOther> {
-        LibrawImgOther::new(self.imgdata)
-    }
-    pub fn image_sizes(&self) -> miette::Result<LibrawImageSizes> {
-        LibrawImageSizes::new(self.imgdata)
-    }
-    pub fn iparams(&self) -> miette::Result<LibrawIParams> {
+    pub fn idata(&self) -> miette::Result<LibrawIParams> {
         LibrawIParams::new(self.imgdata)
     }
+    pub fn other(&self) -> miette::Result<LibrawImgOther> {
+        LibrawImgOther::new(self.imgdata)
+    }
+    pub fn sizes(&self) -> miette::Result<LibrawImageSizes> {
+        LibrawImageSizes::new(self.imgdata)
+    }
+
     pub fn rawdata(&self) -> miette::Result<Vec<LibrawRawdata>> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
-        let size = self.image_sizes()?;
+        let size = self.sizes()?;
         let width = size.raw_width();
         let height = size.raw_height();
         rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
     }
 }
-// Auxiliary Functions
+// region:Auxiliary Functions
 // https://www.libraw.org/docs/API-CXX.html#utility
 impl Libraw {
     pub fn version() -> LibrawVersion {
@@ -117,7 +117,7 @@ impl Libraw {
         )
     }
 }
-//Data Postprocessing: Emulation of dcraw Behavior
+// region:Data Postprocessing: Emulation of dcraw Behavior
 //https://www.libraw.org/docs/API-CXX.html#dcrawemu
 impl Libraw {
     pub fn raw2image(
@@ -138,7 +138,7 @@ impl Libraw {
         if unsafe { (*self.imgdata).image }.is_null() {
             miette::bail!("raw image is null.")
         }
-        let size = self.image_sizes()?;
+        let size = self.sizes()?;
         let width = size.iwidth();
         let height = size.iheight();
         clerk::debug!("Width: {width}, Height: {height}");
@@ -175,7 +175,7 @@ impl Libraw {
         Ok(processed)
     }
 }
-//other
+// region:other
 impl Libraw {
     pub fn bayer_pattern(&self) -> miette::Result<fornax_core::BayerPattern> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
@@ -234,7 +234,7 @@ impl Default for Libraw {
         Self::new(None)
     }
 }
-
+// region:fornax
 impl<T> IDecoder<T> for Libraw
 where
     T: FornaxPrimitive,
