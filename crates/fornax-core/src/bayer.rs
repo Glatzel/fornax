@@ -1,5 +1,6 @@
-use image::Luma;
 use std::fmt::{Debug, Display};
+
+use image::Luma;
 
 #[derive(Debug, PartialEq)]
 pub enum BayerChannel {
