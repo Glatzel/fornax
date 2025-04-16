@@ -2,18 +2,13 @@ use std::path::PathBuf;
 
 use fornax::Fornax;
 use miette::IntoDiagnostic;
-use tracing::level_filters::LevelFilter;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
+mod utils;
 fn main() -> miette::Result<()> {
-    tracing_subscriber::registry()
-        .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
-        .init();
+    utils::init_log();
+    utils::creat_output_dir();
     let libraw = libraw::Libraw::new(None);
     let mut manager = Fornax::new(&libraw, &libraw);
-    manager.decode_file(&PathBuf::from(
-        "./external/raw-images/images/colorchart-eos-7d.cr2",
-    ))?;
+    manager.decode_file(&utils::raw_file())?;
 
     let rawdatas = manager.decoder.rawdata()?;
     clerk::info!("Done building raw image.");
@@ -21,9 +16,10 @@ fn main() -> miette::Result<()> {
         match img {
             libraw::libraw::LibrawRawdata::Mono16(image_buffer) => {
                 image_buffer
-                    .save("temp/rawdata_mono16.tiff")
+                    .save(utils::output_dir().join("rawdata_mono16.tiff"))
                     .into_diagnostic()?;
                 clerk::info!("Found mono16 rawdata.");
+                clerk::info!("Done saving raw image.");
             }
             libraw::libraw::LibrawRawdata::Rgb16(_) => {
                 clerk::info!("Found rgb16 rawdata.")

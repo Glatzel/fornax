@@ -1,17 +1,12 @@
 use std::path::PathBuf;
 
 use fornax::Fornax;
-use tracing::level_filters::LevelFilter;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
+mod utils;
 fn main() -> miette::Result<()> {
-    tracing_subscriber::registry()
-        .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
-        .init();
+    utils::init_log();
+    utils::creat_output_dir();
     let mut manager = Fornax::new(libraw::Libraw::new(None), fornax::NullPostProcessor {});
-    manager.decode_file(&PathBuf::from(
-        "./external/raw-images/images/colorchart-eos-7d.cr2",
-    ))?;
+    manager.decode_file(&utils::raw_file())?;
 
     let iparams = manager.decoder.iparams()?;
     println!("{:?}", iparams);

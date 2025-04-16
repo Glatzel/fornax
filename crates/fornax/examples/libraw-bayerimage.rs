@@ -1,20 +1,13 @@
-use std::path::PathBuf;
-
 use fornax::Fornax;
 use fornax_core::BayerPattern;
 use miette::IntoDiagnostic;
-use tracing::level_filters::LevelFilter;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
+mod utils;
 fn main() -> miette::Result<()> {
-    tracing_subscriber::registry()
-        .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
-        .init();
+    utils::init_log();
+    utils::creat_output_dir();
     let libraw = libraw::Libraw::new(None);
     let mut manager = Fornax::new(&libraw, &libraw);
-    manager.decode_file(&PathBuf::from(
-        "./external/raw-images/images/colorchart-eos-7d.cr2",
-    ))?;
+    manager.decode_file(&utils::raw_file())?;
     let bayer_pattern = manager.decoder.bayer_pattern()?;
     clerk::info!("Bayer pattern: {}", bayer_pattern);
     assert_eq!(bayer_pattern, BayerPattern::GBRG);
@@ -23,8 +16,8 @@ fn main() -> miette::Result<()> {
     assert_eq!(bayer_image.mosaic().height(), 3464);
     bayer_image
         .mosaic()
-        .save("temp/bayerimga.tiff")
+        .save(utils::output_dir().join("bayerimga.tiff"))
         .into_diagnostic()?;
-    clerk::info!("save img to: temp/bayerimga.tiff");
+    clerk::info!("Done saving raw image.");
     Ok(())
 }
