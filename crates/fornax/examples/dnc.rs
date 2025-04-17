@@ -6,6 +6,10 @@ fn main() -> miette::Result<()> {
 
     default_path()?;
     custom_path()?;
+    match std::fs::remove_file(utils::raw_file().with_extension("dng")) {
+        Ok(()) => println!("dng file removed successfully."),
+        Err(e) => eprintln!("Failed to remove file: {}", e),
+    }
     Ok(())
 }
 
@@ -26,10 +30,6 @@ fn default_path() -> miette::Result<()> {
         .into_diagnostic()?;
     clerk::info!("Done saving raw image.");
 
-    match std::fs::remove_file(dng_file) {
-        Ok(()) => println!("dng file removed successfully."),
-        Err(e) => eprintln!("Failed to remove file: {}", e),
-    }
     Ok(())
 }
 
