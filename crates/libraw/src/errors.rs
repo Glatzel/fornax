@@ -131,7 +131,9 @@ impl LibrawErrors {
     pub(crate) fn report(&self, task: &str) -> miette::Result<()> {
         match self {
             //Non-Fatal Errors
-            LibrawErrors::Success => clerk::debug!("Task: {}. {}", task, self),
+            LibrawErrors::Success => {
+                clerk::debug!("Task: {}. {}", task, self);
+            }
             LibrawErrors::UnspecifiedError
             | LibrawErrors::FileUnsupported
             | LibrawErrors::RequestForNonexistentImage
@@ -141,7 +143,7 @@ impl LibrawErrors {
             | LibrawErrors::InputClosed
             | LibrawErrors::NotImplemented
             | LibrawErrors::RequestForNonexistentThumbnail => {
-                clerk::warn!("Task: {}. {}", task, self)
+                clerk::warn!("Task: {}. {}", task, self);
             }
 
             //Fatal Errors
