@@ -348,23 +348,4 @@ where
         Ok(processed)
     }
 }
-
-// impl<D> IPostProcessor<D, u16> for Libraw
-// where
-//     D: IDecoder<u16>,
-// {
-//     const IS_DECODER: bool = true;
-//     fn post_process(&self, decoder: &Libraw) -> miette::Result<ProcessedImage> {
-//         let processed = decoder.dcraw_process()?.to_image()?;
-//         Ok(processed)
-//     }
-// }
-
-// impl IPostProcessor<&D, u16> for &Libraw {
-//     fn post_process(&self, decoder: &&Libraw) -> miette::Result<ProcessedImage> {
-//         let processed = decoder.dcraw_process()?.to_image()?;
-//         Ok(processed)
-//     }
-// }
-
 impl ILibrawErrors for Libraw {}
