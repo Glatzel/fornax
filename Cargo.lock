@@ -456,6 +456,7 @@ dependencies = [
  "dnc",
  "dunce",
  "fornax-core",
+ "fornax-dalim",
  "libraw",
  "miette",
  "path-slash",
@@ -478,6 +479,7 @@ dependencies = [
  "clerk",
  "fornax-core",
  "image",
+ "miette",
  "rayon",
  "tracing",
  "tracing-subscriber",
@@ -591,8 +593,7 @@ dependencies = [
 [[package]]
 name = "image"
 version = "0.25.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db35664ce6b9810857a38a906215e75a9c879f0696556a39f59c62829710251a"
+source = "git+https://github.com/fintelia/image?branch=primitive-ext#d3391b47a42b0d6b8d43c937c2d06a59355e2dba"
 dependencies = [
  "bytemuck",
  "byteorder-lite",
@@ -1306,9 +1307,9 @@ dependencies = [
 
 [[package]]
 name = "ravif"
-version = "0.11.11"
+version = "0.11.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2413fd96bd0ea5cdeeb37eaf446a22e6ed7b981d792828721e74ded1980a45c6"
+checksum = "d6a5f31fcf7500f9401fea858ea4ab5525c99f2322cfcee732c0e6c74208c0c6"
 dependencies = [
  "avif-serialize",
  "imgref",

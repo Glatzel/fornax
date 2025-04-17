@@ -1,17 +1,20 @@
 mod image_sizes;
 mod imgother;
 mod iparams;
+mod open_bayer_options;
 mod rawdata;
 use std::ffi::CString;
 use std::path::Path;
 use std::slice;
-
-use fornax_core::{FornaxProcessedImage, IDecoder, IPostProcessor};
-use image::ImageBuffer;
+mod version;
+use fornax_core::{BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor, ProcessedImage};
+use image::{EncodableLayout, ImageBuffer};
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::{ColorDesc, LibrawIParams};
+pub use open_bayer_options::ProcFlag;
 pub use rawdata::LibrawRawdata;
+pub use version::LibrawVersion;
 
 use crate::ILibrawErrors;
 use crate::dcraw::{DCRawParams, DCRawProcessedImage};
@@ -26,8 +29,20 @@ impl Libraw {
         let imgdata = unsafe { libraw_sys::libraw_init(0) };
         Self { imgdata, params }
     }
+}
+// region:Methods Loading Data from a File
+// https://www.libraw.org/docs/API-CXX.html#dataload
+impl Libraw {
+    pub fn open_file(&self, fname: &Path) -> miette::Result<()> {
+        let c_string =
+            CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
+        Self::check_run(
+            unsafe { libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _) },
+            "libraw_open_file",
+        )?;
+        Ok(())
+    }
 
-    // io
     pub fn open_buffer(&self, buf: &[u8]) -> miette::Result<()> {
         Self::check_run(
             unsafe {
@@ -38,12 +53,49 @@ impl Libraw {
         Ok(())
     }
 
-    pub fn open_file(&self, fname: &Path) -> miette::Result<()> {
-        let c_string =
-            CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
+    pub fn open_bayer(
+        &self,
+        data: &[u8],
+        raw_width: u16,
+        raw_height: u16,
+        left_margin: u16,
+        top_margin: u16,
+        right_margin: u16,
+        bottom_margin: u16,
+        procflags: ProcFlag,
+        bayer_pattern: &BayerPattern,
+        unused_bits: u32,
+        otherflags: u32,
+        black_level: u32,
+    ) -> miette::Result<()> {
+        let datalen = data.len();
+        let data = data.as_ptr() as *mut std::ffi::c_uchar;
+        let bayer_pattern = match bayer_pattern {
+            BayerPattern::RGGB => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_RGGB as u8,
+            BayerPattern::BGGR => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_BGGR as u8,
+            BayerPattern::GRBG => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_GRBG as u8,
+            BayerPattern::GBRG => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_GBRG as u8,
+        };
         Self::check_run(
-            unsafe { libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _) },
-            "libraw_open_file",
+            unsafe {
+                libraw_sys::libraw_open_bayer(
+                    self.imgdata,
+                    data,
+                    datalen as std::ffi::c_uint,
+                    raw_width,
+                    raw_height,
+                    left_margin,
+                    top_margin,
+                    right_margin,
+                    bottom_margin,
+                    u8::from(procflags),
+                    bayer_pattern,
+                    unused_bits,
+                    otherflags,
+                    black_level,
+                )
+            },
+            "libraw_open_buffer",
         )?;
         Ok(())
     }
@@ -55,26 +107,43 @@ impl Libraw {
         )?;
         Ok(())
     }
-
-    // data structure
-    pub fn imgother(&self) -> miette::Result<LibrawImgOther> {
-        LibrawImgOther::new(self.imgdata)
-    }
-    pub fn image_sizes(&self) -> miette::Result<LibrawImageSizes> {
-        LibrawImageSizes::new(self.imgdata)
-    }
-    pub fn iparams(&self) -> miette::Result<LibrawIParams> {
+}
+// region:Data Structure
+impl Libraw {
+    pub fn idata(&self) -> miette::Result<LibrawIParams> {
         LibrawIParams::new(self.imgdata)
     }
+    pub fn other(&self) -> miette::Result<LibrawImgOther> {
+        LibrawImgOther::new(self.imgdata)
+    }
+    pub fn sizes(&self) -> miette::Result<LibrawImageSizes> {
+        LibrawImageSizes::new(self.imgdata)
+    }
+
     pub fn rawdata(&self) -> miette::Result<Vec<LibrawRawdata>> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
-        let size = self.image_sizes()?;
+        let size = self.sizes()?;
         let width = size.raw_width();
         let height = size.raw_height();
         rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
     }
+}
+// region:Auxiliary Functions
+// https://www.libraw.org/docs/API-CXX.html#utility
+impl Libraw {
+    pub fn version() -> LibrawVersion {
+        LibrawVersion::new(
+            libraw_sys::LIBRAW_MAJOR_VERSION,
+            libraw_sys::LIBRAW_MINOR_VERSION,
+            libraw_sys::LIBRAW_PATCH_VERSION,
+        )
+    }
+}
+// region:Data Postprocessing: Emulation of dcraw Behavior
+//https://www.libraw.org/docs/API-CXX.html#dcrawemu
+impl Libraw {
     pub fn raw2image(
         &self,
         subtract_black: bool,
@@ -93,7 +162,7 @@ impl Libraw {
         if unsafe { (*self.imgdata).image }.is_null() {
             miette::bail!("raw image is null.")
         }
-        let size = self.image_sizes()?;
+        let size = self.sizes()?;
         let width = size.iwidth();
         let height = size.iheight();
         clerk::debug!("Width: {width}, Height: {height}");
@@ -129,6 +198,9 @@ impl Libraw {
         let processed = DCRawProcessedImage::new(processed)?;
         Ok(processed)
     }
+}
+// region:other
+impl Libraw {
     pub fn bayer_pattern(&self) -> miette::Result<fornax_core::BayerPattern> {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("rawdata is null.")
@@ -157,7 +229,10 @@ impl Libraw {
             (a, b, c, d) => miette::bail!("Unknown bayer pattern: {a}, {b}, {c}, {d}"),
         }
     }
-    pub fn get_bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
+    pub fn get_bayer_image<T>(&self) -> miette::Result<fornax_core::BayerImage<T>>
+    where
+        T: FornaxPrimitive,
+    {
         if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
@@ -167,13 +242,24 @@ impl Libraw {
         let raw_img = self.raw2image(true)?;
         let img = ImageBuffer::from_par_fn(raw_img.width(), raw_img.height(), |x, y| {
             let pixel = raw_img.get_pixel(x, y);
-            let value = pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3]);
-            image::Luma::<u16>([value])
+            let value = T::from(pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3])).unwrap();
+
+            let value = if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u8>() {
+                value / T::from(255).unwrap()
+            } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u16>() {
+                value
+            } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f32>()
+                || std::any::TypeId::of::<T>() == std::any::TypeId::of::<f64>()
+            {
+                value / T::from(65535).unwrap()
+            } else {
+                panic!()
+            };
+            image::Luma::<T>([value])
         });
         Ok(fornax_core::BayerImage::new(img, pattern))
     }
 }
-
 impl Drop for Libraw {
     fn drop(&mut self) {
         unsafe { libraw_sys::libraw_close(self.imgdata) }
@@ -184,8 +270,11 @@ impl Default for Libraw {
         Self::new(None)
     }
 }
-
-impl IDecoder for Libraw {
+// region:fornax
+impl<T> IDecoder<T> for Libraw
+where
+    T: FornaxPrimitive,
+{
     fn decode_file(&self, file: &Path) -> miette::Result<()> {
         self.open_file(file)?;
         self.unpack()?;
@@ -197,12 +286,14 @@ impl IDecoder for Libraw {
         self.unpack()?;
         Ok(())
     }
-
-    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
+    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> {
         self.get_bayer_image()
     }
 }
-impl IDecoder for &Libraw {
+impl<T> IDecoder<T> for &Libraw
+where
+    T: FornaxPrimitive,
+{
     fn decode_file(&self, file: &Path) -> miette::Result<()> {
         self.open_file(file)?;
         self.unpack()?;
@@ -214,20 +305,58 @@ impl IDecoder for &Libraw {
         self.unpack()?;
         Ok(())
     }
-
-    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage> {
+    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> {
         self.get_bayer_image()
     }
 }
-impl IPostProcessor<Libraw> for Libraw {
-    fn post_process(&self, decoder: &Libraw) -> miette::Result<FornaxProcessedImage> {
-        let processed = decoder.dcraw_process()?.to_image()?;
+
+impl<D> IPostProcessor<D, u16> for Libraw
+where
+    D: IDecoder<u16>,
+{
+    fn post_process(&self, decoder: &D) -> miette::Result<ProcessedImage> {
+        let bayer = decoder.bayer_image()?;
+        self.open_bayer(
+            bayer.mosaic().as_bytes(),
+            bayer.mosaic().width() as u16,
+            bayer.mosaic().height() as u16,
+            0,
+            0,
+            0,
+            0,
+            ProcFlag::BigEndianData,
+            bayer.pattern(),
+            0,
+            0,
+            0,
+        )?;
+        self.unpack()?;
+        let processed = self.dcraw_process()?.to_image()?;
         Ok(processed)
     }
 }
-impl IPostProcessor<&Libraw> for &Libraw {
-    fn post_process(&self, decoder: &&Libraw) -> miette::Result<FornaxProcessedImage> {
-        let processed = decoder.dcraw_process()?.to_image()?;
+impl<D> IPostProcessor<D, u16> for &Libraw
+where
+    D: IDecoder<u16>,
+{
+    fn post_process(&self, decoder: &D) -> miette::Result<ProcessedImage> {
+        let bayer = decoder.bayer_image()?;
+        self.open_bayer(
+            bayer.mosaic().as_bytes(),
+            bayer.mosaic().width() as u16,
+            bayer.mosaic().height() as u16,
+            0,
+            0,
+            0,
+            0,
+            ProcFlag::BigEndianData,
+            bayer.pattern(),
+            0,
+            0,
+            0,
+        )?;
+        self.unpack()?;
+        let processed = self.dcraw_process()?.to_image()?;
         Ok(processed)
     }
 }

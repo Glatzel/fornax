@@ -1,5 +1,5 @@
 /// Basic raw image.
-pub enum FornaxProcessedImage {
+pub enum ProcessedImage {
     Null,
     Mono8(image::ImageBuffer<image::Luma<u8>, Vec<u8>>),
     Mono16(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),
@@ -9,16 +9,16 @@ pub enum FornaxProcessedImage {
     RgbF32(image::ImageBuffer<image::Rgb<f32>, Vec<f32>>),
 }
 
-impl FornaxProcessedImage {
+impl ProcessedImage {
     pub fn to_dynamic_image(self) -> image::DynamicImage {
         match self {
-            FornaxProcessedImage::Null => panic!("Processed image is null."),
-            FornaxProcessedImage::Mono8(image_buffer) => image::DynamicImage::from(image_buffer),
-            FornaxProcessedImage::Mono16(image_buffer) => image::DynamicImage::from(image_buffer),
-            FornaxProcessedImage::MonoF32(image_buffer) => image::DynamicImage::from(image_buffer),
-            FornaxProcessedImage::Rgb8(image_buffer) => image::DynamicImage::from(image_buffer),
-            FornaxProcessedImage::Rgb16(image_buffer) => image::DynamicImage::from(image_buffer),
-            FornaxProcessedImage::RgbF32(image_buffer) => image::DynamicImage::from(image_buffer),
+            ProcessedImage::Null => panic!("Processed image is null."),
+            ProcessedImage::Mono8(image_buffer) => image::DynamicImage::from(image_buffer),
+            ProcessedImage::Mono16(image_buffer) => image::DynamicImage::from(image_buffer),
+            ProcessedImage::MonoF32(image_buffer) => image::DynamicImage::from(image_buffer),
+            ProcessedImage::Rgb8(image_buffer) => image::DynamicImage::from(image_buffer),
+            ProcessedImage::Rgb16(image_buffer) => image::DynamicImage::from(image_buffer),
+            ProcessedImage::RgbF32(image_buffer) => image::DynamicImage::from(image_buffer),
         }
     }
 }

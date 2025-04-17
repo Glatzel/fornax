@@ -1,25 +1,29 @@
 use std::path::Path;
 
-pub use fornax_core::{FornaxProcessedImage, NullPostProcessor};
-use fornax_core::{IDecoder, IPostProcessor};
+use fornax_core::{FornaxPrimitive, IDecoder, IPostProcessor};
+pub use fornax_core::{NullPostProcessor, ProcessedImage};
 pub use {dnc, libraw};
 
-pub struct Fornax<D, P>
+pub struct Fornax<D, T, P>
 where
-    D: IDecoder,
-    P: IPostProcessor<D>,
+    D: IDecoder<T>,
+    P: IPostProcessor<D, T>,
+    T: FornaxPrimitive,
 {
+    _marker: std::marker::PhantomData<T>,
     pub decoder: D,
     pub post_processor: P,
 }
 
-impl<D, P> Fornax<D, P>
+impl<D, T, P> Fornax<D, T, P>
 where
-    D: IDecoder,
-    P: IPostProcessor<D>,
+    D: IDecoder<T>,
+    P: IPostProcessor<D, T>,
+    T: FornaxPrimitive,
 {
     pub fn new(decoder: D, post_processor: P) -> Self {
         Self {
+            _marker: std::marker::PhantomData,
             decoder,
             post_processor,
         }
@@ -32,7 +36,7 @@ where
         self.decoder.decode_buffer(buffer)?;
         Ok(self)
     }
-    pub fn post_process(&mut self) -> miette::Result<fornax_core::FornaxProcessedImage> {
+    pub fn post_process(&mut self) -> miette::Result<fornax_core::ProcessedImage> {
         self.post_processor.post_process(&self.decoder)
     }
 }

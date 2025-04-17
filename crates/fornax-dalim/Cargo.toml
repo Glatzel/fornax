@@ -6,7 +6,7 @@ version.workspace = true
 [dependencies]
 clerk = { workspace = true }
 fornax-core = { workspace = true }
-# miette = { workspace = true }
+miette = { workspace = true }
 # serde = { workspace = true, optional = true }
 image = { workspace = true }
 rayon = { workspace = true }
