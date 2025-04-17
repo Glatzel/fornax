@@ -99,7 +99,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/python-3.11.12-h3f84c4b_0_cpython.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/python_abi-3.11-6_cp311.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/rattler-build-0.39.0-ha073cba_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/rattler-build-0.40.0-ha073cba_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.3-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/roman-numerals-py-3.1.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/ruff-0.11.5-py311h7bc0161_0.conda
@@ -944,9 +944,9 @@ packages:
   license_family: MIT
   size: 189015
   timestamp: 1742920947249
-- conda: https://conda.anaconda.org/conda-forge/win-64/rattler-build-0.39.0-ha073cba_1.conda
-  sha256: 3a1be5ce49c6440f07a1cfdf42feb91b0a38ce85e58101333b37dcfdb583d5d5
-  md5: 08702069f302f9badb491fe83229a37a
+- conda: https://conda.anaconda.org/conda-forge/win-64/rattler-build-0.40.0-ha073cba_0.conda
+  sha256: c8d61ee41d404c2f7774facb10379c691feced5cb8b798e985e8d9af3a599fe9
+  md5: ccaaca456adbb6d4debad3fa6fa47b65
   depends:
   - vc >=14.2,<15
   - vc14_runtime >=14.29.30139
@@ -956,8 +956,8 @@ packages:
   - ucrt >=10.0.20348.0
   license: BSD-3-Clause
   license_family: BSD
-  size: 10425026
-  timestamp: 1742108483405
+  size: 10667231
+  timestamp: 1744818263703
 - conda: https://conda.anaconda.org/conda-forge/noarch/requests-2.32.3-pyhd8ed1ab_1.conda
   sha256: d701ca1136197aa121bbbe0e8c18db6b5c94acbd041c2b43c70e5ae104e1d8ad
   md5: a9b9368f3701a417eac9edbcae7cb737
