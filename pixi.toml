@@ -7,19 +7,19 @@ version = "0.1.0"
 
 [dependencies]
 maturin = "==1.8.3"
-pip = "*"
+pip = "==25.0.1"
 python = "3.11.*"
 ruff = "==0.11.5"
 
 [feature.pydev.dependencies]
 imageio = "==2.37.0"
 lazy-loader = "==0.4"
-msgspec = "==0.19.0 "
+msgspec = "==0.19.0"
 nomkl = "==1.0"
 numpy = "==2.2.4"
 numpydoc = "==1.8.0"
 pydantic = "==2.11.3"
-rattler-build = "==0.39.0"
+rattler-build = "==0.40.0"
 
 # test
 pytest = "==8.3.5"
