@@ -243,6 +243,18 @@ impl Libraw {
         let img = ImageBuffer::from_par_fn(raw_img.width(), raw_img.height(), |x, y| {
             let pixel = raw_img.get_pixel(x, y);
             let value = T::from(pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3])).unwrap();
+
+            let value = if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u8>() {
+                value / T::from(255).unwrap()
+            } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u16>() {
+                value
+            } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f32>() {
+                value / T::from(65535).unwrap()
+            } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f64>() {
+                value / T::from(65535).unwrap()
+            } else {
+                panic!()
+            };
             image::Luma::<T>([value])
         });
         Ok(fornax_core::BayerImage::new(img, pattern))
