@@ -10,7 +10,7 @@ pub use post_processor::{IPostProcessor, NullPostProcessor};
 pub use processed_image::ProcessedImage;
 
 pub trait FornaxPrimitive:
-    image::Primitive + image::Enlargeable + std::marker::Send + std::marker::Sync + Debug + Display
+    image::PrimitiveExt + std::marker::Send + std::marker::Sync + Debug + Display
 {
 }
 impl FornaxPrimitive for usize {}
