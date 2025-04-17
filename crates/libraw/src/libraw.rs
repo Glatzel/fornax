@@ -1,16 +1,18 @@
 mod image_sizes;
 mod imgother;
 mod iparams;
+mod open_bayer_options;
 mod rawdata;
 use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 mod version;
-use fornax_core::{BayerImage, FornaxPrimitive, IDecoder, IPostProcessor, ProcessedImage};
-use image::ImageBuffer;
+use fornax_core::{BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor, ProcessedImage};
+use image::{EncodableLayout, ImageBuffer};
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::{ColorDesc, LibrawIParams};
+pub use open_bayer_options::ProcFlag;
 pub use rawdata::LibrawRawdata;
 pub use version::LibrawVersion;
 
@@ -53,27 +55,49 @@ impl Libraw {
 
     pub fn open_bayer(
         &self,
-        _bayer: BayerImage<u16>,
-        // _raw_width: u16,
-        // _raw_height: u16,
-        // _left_margin: u16,
-        // _top_margin: u16,
-        // _right_margin: u16,
-        // _bottom_margin: u16,
-        // _procflags: u8,
-        // _bayer_battern: u8,
-        // _unused_bits: u32,
-        // _otherflags: u32,
-        // _black_level: u32,
+        data: &[u8],
+        raw_width: u16,
+        raw_height: u16,
+        left_margin: u16,
+        top_margin: u16,
+        right_margin: u16,
+        bottom_margin: u16,
+        procflags: ProcFlag,
+        bayer_pattern: &BayerPattern,
+        unused_bits: u32,
+        otherflags: u32,
+        black_level: u32,
     ) -> miette::Result<()> {
-        todo!();
-        // Self::check_run(
-        //     unsafe {
-        //         libraw_sys::libraw_open_bayer(self.imgdata,)
-        //     },
-        //     "libraw_open_buffer",
-        // )?;
-        // Ok(())
+        let datalen = data.len();
+        let data = data.as_ptr() as *mut std::ffi::c_uchar;
+        let bayer_pattern = match bayer_pattern {
+            BayerPattern::RGGB => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_RGGB as u8,
+            BayerPattern::BGGR => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_BGGR as u8,
+            BayerPattern::GRBG => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_GRBG as u8,
+            BayerPattern::GBRG => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_GBRG as u8,
+        };
+        Self::check_run(
+            unsafe {
+                libraw_sys::libraw_open_bayer(
+                    self.imgdata,
+                    data,
+                    datalen as std::ffi::c_uint,
+                    raw_width,
+                    raw_height,
+                    left_margin,
+                    top_margin,
+                    right_margin,
+                    bottom_margin,
+                    u8::from(procflags),
+                    bayer_pattern,
+                    unused_bits,
+                    otherflags,
+                    black_level,
+                )
+            },
+            "libraw_open_buffer",
+        )?;
+        Ok(())
     }
 
     pub fn unpack(&self) -> miette::Result<()> {
@@ -280,7 +304,20 @@ where
 {
     fn post_process(&self, decoder: &D) -> miette::Result<ProcessedImage> {
         let bayer = decoder.bayer_image()?;
-        self.open_bayer(bayer)?;
+        self.open_bayer(
+            bayer.mosaic().as_bytes(),
+            bayer.mosaic().width() as u16,
+            bayer.mosaic().height() as u16,
+            0,
+            0,
+            0,
+            0,
+            ProcFlag::BigEndianData,
+            bayer.pattern(),
+            0,
+            0,
+            0,
+        )?;
         self.unpack()?;
         let processed = self.dcraw_process()?.to_image()?;
         Ok(processed)
@@ -292,7 +329,20 @@ where
 {
     fn post_process(&self, decoder: &D) -> miette::Result<ProcessedImage> {
         let bayer = decoder.bayer_image()?;
-        self.open_bayer(bayer)?;
+        self.open_bayer(
+            bayer.mosaic().as_bytes(),
+            bayer.mosaic().width() as u16,
+            bayer.mosaic().height() as u16,
+            0,
+            0,
+            0,
+            0,
+            ProcFlag::BigEndianData,
+            bayer.pattern(),
+            0,
+            0,
+            0,
+        )?;
         self.unpack()?;
         let processed = self.dcraw_process()?.to_image()?;
         Ok(processed)
