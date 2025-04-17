@@ -91,7 +91,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.4
+        uses: prefix-dev/setup-pixi@v0.8.8
         with:
           run-install: false
       - name: cargo-doc
@@ -123,7 +123,7 @@ jobs:
           path: ./vcpkg/installed
           key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.4
+        uses: prefix-dev/setup-pixi@v0.8.8
         with:
           run-install: false
       - uses: dtolnay/rust-toolchain@stable
@@ -149,7 +149,7 @@ jobs:
           path: ./vcpkg/installed
           key: vcpkg-${{ runner.os }}-${{ hashFiles('./vcpkg/vcpkg.json','./vcpkg/triplet/**') }}
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.4
+        uses: prefix-dev/setup-pixi@v0.8.8
         with:
           run-install: false
       - uses: dtolnay/rust-toolchain@nightly
@@ -190,7 +190,7 @@ jobs:
         if: ${{runner.os == 'Windows'}}
 
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.4
+        uses: prefix-dev/setup-pixi@v0.8.8
         with:
           run-install: false
       - name: restore vcpkg
