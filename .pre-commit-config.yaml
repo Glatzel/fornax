@@ -33,4 +33,3 @@ repos:
     rev: 39.248.1
     hooks:
       - id: renovate-config-validator
-
