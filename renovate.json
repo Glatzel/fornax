@@ -1,0 +1,32 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:recommended"],
+    "schedule": ["* 0-3 1 * *"],
+    "enabledManagers": ["github-actions", "pixi", "cargo"],
+    "commitMessagePrefix": "build:",
+    "packageRules": [
+      {
+        "groupName": "GitHub Actions",
+        "matchManagers": ["github-actions"]
+      },
+      {
+        "groupName": "Pixi",
+        "matchManagers": ["pixi"],
+        "registryUrls": [
+          "https://api.anaconda.org/package/conda-forge/",
+          "https://prefix.dev/conda-forge/",
+          "https://prefix.dev/glatzel/"
+        ]
+      },
+      {
+        "description":"Disable update python",
+        "matchManagers": ["pixi"],
+        "matchPackageNames": ["python"],
+        "enabled": false
+      },
+      {
+        "groupName": "Cargo",
+        "matchManagers": ["cargo"]
+      }
+    ]
+  }
