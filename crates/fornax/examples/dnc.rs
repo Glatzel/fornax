@@ -25,6 +25,11 @@ fn default_path() -> miette::Result<()> {
     img.save(utils::output_dir().join("dnc-default-path.tiff"))
         .into_diagnostic()?;
     clerk::info!("Done saving raw image.");
+
+    match std::fs::remove_file(dng_file) {
+        Ok(()) => println!("dng file removed successfully."),
+        Err(e) => eprintln!("Failed to remove file: {}", e),
+    }
     Ok(())
 }
 
