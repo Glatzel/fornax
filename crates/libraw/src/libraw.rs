@@ -248,9 +248,9 @@ impl Libraw {
                 value / T::from(255).unwrap()
             } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u16>() {
                 value
-            } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f32>() {
-                value / T::from(65535).unwrap()
-            } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f64>() {
+            } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f32>()
+                || std::any::TypeId::of::<T>() == std::any::TypeId::of::<f64>()
+            {
                 value / T::from(65535).unwrap()
             } else {
                 panic!()
