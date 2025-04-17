@@ -6,7 +6,7 @@ version.workspace = true
 [dependencies]
 dnc = { workspace = true }
 fornax-core = { workspace = true }
-# fornax-dalim = { workspace = true }
+fornax-dalim = { workspace = true }
 libraw = { workspace = true }
 miette = { workspace = true }
 

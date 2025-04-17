@@ -456,6 +456,7 @@ dependencies = [
  "dnc",
  "dunce",
  "fornax-core",
+ "fornax-dalim",
  "libraw",
  "miette",
  "path-slash",
