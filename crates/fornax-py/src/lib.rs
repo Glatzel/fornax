@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use fornax::dnc;
-use fornax::fornax_dalim::{Dalim, DalimParams};
+use fornax::fornax_dalim::Dalim;
 use fornax::libraw;
 use fornax::libraw::dcraw::DCRawParams;
 use image::{ImageBuffer, Rgb};
