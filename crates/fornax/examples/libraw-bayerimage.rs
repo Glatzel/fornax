@@ -6,8 +6,7 @@ fn main() -> miette::Result<()> {
     utils::example_setup();
 
     let libraw = libraw::Libraw::new(None);
-    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> =
-        Fornax::new(&libraw, &libraw);
+    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
     manager.decode_file(&utils::raw_file())?;
     let bayer_pattern = manager.decoder.bayer_pattern()?;
     clerk::info!("Bayer pattern: {}", bayer_pattern);

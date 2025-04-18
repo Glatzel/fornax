@@ -21,8 +21,7 @@ fn default_path() -> miette::Result<()> {
 
     let dng_file = dnc.convert(&utils::raw_file())?;
     let libraw = libraw::Libraw::default();
-    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> =
-        Fornax::new(&libraw, &libraw);
+    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
     let img = manager.decode_file(&dng_file)?.post_process()?;
     img.save(utils::output_dir().join("dnc-default-path.tiff"))
         .into_diagnostic()?;
@@ -40,8 +39,7 @@ fn custom_path() -> miette::Result<()> {
     });
     let dng_file = dnc.convert(&utils::raw_file())?;
     let libraw = libraw::Libraw::default();
-    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> =
-        Fornax::new(&libraw, &libraw);
+    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
     let img = manager.decode_file(&dng_file)?.post_process()?;
 
     img.save(utils::output_dir().join("dnc-custom-path.tiff"))

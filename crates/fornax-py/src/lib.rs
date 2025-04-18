@@ -1,9 +1,8 @@
 use std::path::PathBuf;
 
-use fornax::dnc;
 use fornax::fornax_dalim::Dalim;
-use fornax::libraw;
 use fornax::libraw::dcraw::DCRawParams;
+use fornax::{dnc, libraw};
 use image::{ImageBuffer, Rgb};
 use numpy::{PyArray, PyArrayMethods};
 use pyo3::prelude::*;
