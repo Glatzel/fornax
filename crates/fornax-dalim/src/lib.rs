@@ -1,57 +1,41 @@
 use demosaic::IDemosaic;
 use fornax_core::{FornaxPrimitive, IDecoder, IPostProcessor};
-use image::ImageBuffer;
-pub mod demosaic;
-pub struct Dalim<T, DM>
+use image::{ImageBuffer, Rgb};
+mod demosaic;
+pub use demosaic::Demosaicer;
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct DalimParams {
+    pub demosaicer: Demosaicer,
+}
+pub struct Dalim<T>
 where
-    DM: IDemosaic<T>,
     T: FornaxPrimitive,
 {
     _marker: std::marker::PhantomData<T>,
-    demosaicer: DM,
+    params: DalimParams,
 }
-impl<T, DM> Dalim<T, DM>
+impl<T> Dalim<T>
 where
-    DM: IDemosaic<T>,
     T: FornaxPrimitive,
 {
-    pub fn new(demosaicer: DM) -> Self {
+    pub fn new(params: DalimParams) -> Self {
         Self {
             _marker: std::marker::PhantomData,
-            demosaicer,
+            params,
         }
     }
 }
-impl<D, DM> IPostProcessor<D, u8> for Dalim<u8, DM>
+impl<D, T> IPostProcessor<D, T, T> for Dalim<T>
 where
-    D: IDecoder<u8>,
-    DM: IDemosaic<u8>,
+    D: IDecoder<T>,
+    T: FornaxPrimitive,
 {
-    fn post_process(&self, decoder: &D) -> miette::Result<fornax_core::ProcessedImage> {
+    fn post_process(&self, decoder: &D) -> miette::Result<ImageBuffer<Rgb<T>, Vec<T>>> {
         let bayer_image = decoder.bayer_image()?;
-        let img: ImageBuffer<image::Rgb<u8>, Vec<u8>> = self.demosaicer.demosaic(&bayer_image);
-        Ok(fornax_core::ProcessedImage::Rgb8(img))
-    }
-}
-impl<D, DM> IPostProcessor<D, u16> for Dalim<u16, DM>
-where
-    D: IDecoder<u16>,
-    DM: IDemosaic<u16>,
-{
-    fn post_process(&self, decoder: &D) -> miette::Result<fornax_core::ProcessedImage> {
-        let bayer_image = decoder.bayer_image()?;
-        let img: ImageBuffer<image::Rgb<u16>, Vec<u16>> = self.demosaicer.demosaic(&bayer_image);
-        Ok(fornax_core::ProcessedImage::Rgb16(img))
-    }
-}
-impl<D, DM> IPostProcessor<D, f32> for Dalim<f32, DM>
-where
-    D: IDecoder<f32>,
-    DM: IDemosaic<f32>,
-{
-    fn post_process(&self, decoder: &D) -> miette::Result<fornax_core::ProcessedImage> {
-        let bayer_image = decoder.bayer_image()?;
-        let img: ImageBuffer<image::Rgb<f32>, Vec<f32>> = self.demosaicer.demosaic(&bayer_image);
-        Ok(fornax_core::ProcessedImage::RgbF32(img))
+
+        let img = match &self.params.demosaicer {
+            Demosaicer::Linear => demosaic::DemosaicLinear().demosaic(&bayer_image),
+        };
+        Ok(img)
     }
 }

@@ -457,6 +457,7 @@ dependencies = [
  "dunce",
  "fornax-core",
  "fornax-dalim",
+ "image",
  "libraw",
  "miette",
  "path-slash",
@@ -481,6 +482,7 @@ dependencies = [
  "image",
  "miette",
  "rayon",
+ "serde",
  "tracing",
  "tracing-subscriber",
 ]
@@ -491,6 +493,7 @@ version = "0.0.3"
 dependencies = [
  "clerk",
  "fornax",
+ "image",
  "numpy",
  "pyo3",
  "rmp-serde",

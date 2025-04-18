@@ -1,15 +1,15 @@
 {
     "rust-analyzer.cargo.extraEnv": {
-        "PKG_CONFIG_PATH": "${workspaceFolder}/vcpkg/installed/x64-windows-static/lib/pkgconfig"
+        "PKG_CONFIG_PATH": "${workspaceFolder}/.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig"
     },
     "rust-analyzer.check.extraEnv": {
-        "PKG_CONFIG_PATH": "${workspaceFolder}/vcpkg/installed/x64-windows-static/lib/pkgconfig"
+        "PKG_CONFIG_PATH": "${workspaceFolder}/.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig"
     },
     "rust-analyzer.runnables.extraEnv": {
-        "PKG_CONFIG_PATH": "${workspaceFolder}/vcpkg/installed/x64-windows-static/lib/pkgconfig"
+        "PKG_CONFIG_PATH": "${workspaceFolder}/.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig"
     },
     "rust-analyzer.server.extraEnv": {
-        "PKG_CONFIG_PATH": "${workspaceFolder}/vcpkg/installed/x64-windows-static/lib/pkgconfig"
+        "PKG_CONFIG_PATH": "${workspaceFolder}/.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig"
     },
     "python.analysis.exclude": [
         "**/vcpkg",

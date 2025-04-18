@@ -21,11 +21,8 @@ fn default_path() -> miette::Result<()> {
 
     let dng_file = dnc.convert(&utils::raw_file())?;
     let libraw = libraw::Libraw::default();
-    let mut manager = Fornax::new(&libraw, &libraw);
-    let img = manager
-        .decode_file(&dng_file)?
-        .post_process()?
-        .to_dynamic_image();
+    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
+    let img = manager.decode_file(&dng_file)?.post_process()?;
     img.save(utils::output_dir().join("dnc-default-path.tiff"))
         .into_diagnostic()?;
     clerk::info!("Done saving raw image.");
@@ -42,11 +39,8 @@ fn custom_path() -> miette::Result<()> {
     });
     let dng_file = dnc.convert(&utils::raw_file())?;
     let libraw = libraw::Libraw::default();
-    let mut manager = Fornax::new(&libraw, &libraw);
-    let img = manager
-        .decode_file(&dng_file)?
-        .post_process()?
-        .to_dynamic_image();
+    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
+    let img = manager.decode_file(&dng_file)?.post_process()?;
 
     img.save(utils::output_dir().join("dnc-custom-path.tiff"))
         .into_diagnostic()?;

@@ -14,6 +14,7 @@ fornax.init_tracing(fornax.LogLevel.DEBUG, True)
 def test_libraw():
     f = img_dir / "colorchart-eos-7d.cr2"
     img = fornax.Fornax(
+        output_bits=fornax.FornaxOutputBits.u16,
         decoder_params=fornax.decoder.LibrawParams(),
         post_processor_params=fornax.post_processor.DCRawParams(),
     ).process(f)
@@ -39,6 +40,7 @@ def test_dnc():
         overwrite=True,
     )
     img = fornax.Fornax(
+        output_bits=fornax.FornaxOutputBits.u16,
         dnc_params=dnc,
         decoder_params=fornax.decoder.LibrawParams(),
         post_processor_params=fornax.post_processor.DCRawParams(),
@@ -93,7 +95,11 @@ def test_dcraw():
         no_interpolation=True,
     )
     print(params.model_dump_json())
-    img = fornax.Fornax(decoder_params=fornax.decoder.LibrawParams(), post_processor_params=params).process(f)
+    img = fornax.Fornax(
+        output_bits=fornax.FornaxOutputBits.u16,
+        decoder_params=fornax.decoder.LibrawParams(),
+        post_processor_params=params,
+    ).process(f)
     out_file = temp_dir / "test_dcraw.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()
