@@ -52,8 +52,10 @@ impl From<&str> for PyPostPorcessor {
     }
 }
 macro_rules! raw_workflow {
-    ($py:expr,$file:expr,$manager:expr) => {{
-        let img = $manager.decode_file($file).unwrap().post_process().unwrap();
+    ($py:expr,$file:expr,$decoder:expr,$post_processor:expr,$o:ty) => {{
+        let manager = fornax::Fornax::new($decoder, $post_processor);
+        let img: image::ImageBuffer<image::Rgb<$o>, Vec<$o>> =
+            manager.decode_file($file).unwrap().post_process().unwrap();
         let img_array = PyArray::from_slice($py, img.as_ref())
             .reshape([img.height() as usize, img.width() as usize, 3])
             .unwrap();
@@ -87,51 +89,39 @@ fn py_process<'a>(
             let dalim_params =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let dalim: Dalim<u8> = Dalim::new(dalim_params);
-            let manager = fornax::Fornax::new(libraw, dalim);
-            raw_workflow!(py, &file, manager)
+            raw_workflow!(py, &file, libraw, dalim, u8)
         }
         (PyDecoder::Libraw, PyPostPorcessor::Dalim, PyOutputBits::Unsigned16) => {
             let libraw = libraw::Libraw::new(None);
             let dalim_params =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let dalim: Dalim<u16> = Dalim::new(dalim_params);
-            let manager = fornax::Fornax::new(libraw, dalim);
-            raw_workflow!(py, &file, manager)
+            raw_workflow!(py, &file, libraw, dalim, u16)
         }
         (PyDecoder::Libraw, PyPostPorcessor::Dalim, PyOutputBits::Float32) => {
             let libraw = libraw::Libraw::new(None);
-            let dalim: Dalim<f32> = Dalim::new(
-                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap(),
-            );
-            let manager = fornax::Fornax::new(libraw, dalim);
-            raw_workflow!(py, &file, manager)
+            let dalim_params =
+                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
+            let dalim: Dalim<f32> = Dalim::new(dalim_params);
+            raw_workflow!(py, &file, libraw, dalim, f32)
         }
         (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Unsigned8) => {
             let post_processor_params: DCRawParams =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let libraw = libraw::Libraw::new(Some(post_processor_params));
-
-            let manager: fornax::Fornax<&libraw::Libraw, u16, &libraw::Libraw, u8> =
-                fornax::Fornax::new(&libraw, &libraw);
-            raw_workflow!(py, &file, manager)
+            raw_workflow!(py, &file, &libraw, &libraw, u8)
         }
         (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Unsigned16) => {
             let post_processor_params: DCRawParams =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let libraw = libraw::Libraw::new(Some(post_processor_params));
-
-            let manager: fornax::Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> =
-                fornax::Fornax::new(&libraw, &libraw);
-            raw_workflow!(py, &file, manager)
+            raw_workflow!(py, &file, &libraw, &libraw, u16)
         }
         (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Float32) => {
             let post_processor_params: DCRawParams =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let libraw = libraw::Libraw::new(Some(post_processor_params));
-
-            let manager: fornax::Fornax<&libraw::Libraw, u16, &libraw::Libraw, f32> =
-                fornax::Fornax::new(&libraw, &libraw);
-            raw_workflow!(py, &file, manager)
+            raw_workflow!(py, &file, &libraw, &libraw, f32)
         }
     }
 }
