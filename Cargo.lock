@@ -494,6 +494,7 @@ dependencies = [
  "clerk",
  "fornax",
  "fornax-core",
+ "image",
  "numpy",
  "pyo3",
  "rmp-serde",

@@ -1,8 +1,10 @@
 use std::path::PathBuf;
 
 use fornax::dnc;
-use fornax::fornax_dalim::Dalim;
+use fornax::fornax_dalim::{Dalim, DalimParams};
 use fornax::libraw;
+use fornax::libraw::dcraw::DCRawParams;
+use image::{ImageBuffer, Rgb};
 use numpy::{PyArray, PyArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
@@ -76,9 +78,9 @@ fn py_process<'a>(
     match (decoder, post_processor, output_bits) {
         (PyDecoder::Libraw, PyPostPorcessor::Dalim, PyOutputBits::Unsigned8) => {
             let libraw = libraw::Libraw::new(None);
-            let dalim: Dalim<u8> = Dalim::new(
-                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap(),
-            );
+            let dalim_params =
+                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
+            let dalim: Dalim<u16> = Dalim::new(dalim_params);
             let manager = fornax::Fornax::new(libraw, dalim);
             let img = manager.decode_file(&file).unwrap().post_process().unwrap();
             let img_array = PyArray::from_slice(py, img.as_ref())
@@ -88,9 +90,9 @@ fn py_process<'a>(
         }
         (PyDecoder::Libraw, PyPostPorcessor::Dalim, PyOutputBits::Unsigned16) => {
             let libraw = libraw::Libraw::new(None);
-            let dalim: Dalim<u16> = Dalim::new(
-                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap(),
-            );
+            let dalim_params =
+                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
+            let dalim: Dalim<u16> = Dalim::new(dalim_params);
             let manager = fornax::Fornax::new(libraw, dalim);
             let img = manager.decode_file(&file).unwrap().post_process().unwrap();
             let img_array = PyArray::from_slice(py, img.as_ref())
@@ -110,9 +112,45 @@ fn py_process<'a>(
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
-        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Unsigned8) => todo!(),
-        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Unsigned16) => todo!(),
-        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Float32) => todo!(),
+        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Unsigned8) => {
+            let post_processor_params: DCRawParams =
+                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
+            let libraw = libraw::Libraw::new(Some(post_processor_params));
+
+            let manager = fornax::Fornax::new(&libraw, &libraw);
+            let img: ImageBuffer<Rgb<u8>, Vec<u8>> =
+                manager.decode_file(&file).unwrap().post_process().unwrap();
+            let img_array = PyArray::from_slice(py, img.as_ref())
+                .reshape([img.height() as usize, img.width() as usize, 3])
+                .unwrap();
+            (img_array,).into_pyobject(py)
+        }
+        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Unsigned16) => {
+            let post_processor_params: DCRawParams =
+                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
+            let libraw = libraw::Libraw::new(Some(post_processor_params));
+
+            let manager = fornax::Fornax::new(&libraw, &libraw);
+            let img: ImageBuffer<Rgb<u16>, Vec<u16>> =
+                manager.decode_file(&file).unwrap().post_process().unwrap();
+            let img_array = PyArray::from_slice(py, img.as_ref())
+                .reshape([img.height() as usize, img.width() as usize, 3])
+                .unwrap();
+            (img_array,).into_pyobject(py)
+        }
+        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Float32) => {
+            let post_processor_params: DCRawParams =
+                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
+            let libraw = libraw::Libraw::new(Some(post_processor_params));
+
+            let manager = fornax::Fornax::new(&libraw, &libraw);
+            let img: ImageBuffer<Rgb<f32>, Vec<f32>> =
+                manager.decode_file(&file).unwrap().post_process().unwrap();
+            let img_array = PyArray::from_slice(py, img.as_ref())
+                .reshape([img.height() as usize, img.width() as usize, 3])
+                .unwrap();
+            (img_array,).into_pyobject(py)
+        }
     }
 }
 
