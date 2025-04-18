@@ -1,5 +1,3 @@
-use fornax::Fornax;
-use miette::IntoDiagnostic;
 mod utils;
 fn main() -> miette::Result<()> {
     utils::example_setup();
@@ -20,13 +18,7 @@ fn default_path() -> miette::Result<()> {
     });
 
     let dng_file = dnc.convert(&utils::raw_file())?;
-    let libraw = libraw::Libraw::default();
-    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
-    let img = manager.decode_file(&dng_file)?.post_process()?;
-    img.save(utils::output_dir().join("dnc-default-path.tiff"))
-        .into_diagnostic()?;
-    clerk::info!("Done saving raw image.");
-
+    assert!(dng_file.is_file());
     Ok(())
 }
 
@@ -38,12 +30,6 @@ fn custom_path() -> miette::Result<()> {
         ..Default::default()
     });
     let dng_file = dnc.convert(&utils::raw_file())?;
-    let libraw = libraw::Libraw::default();
-    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
-    let img = manager.decode_file(&dng_file)?.post_process()?;
-
-    img.save(utils::output_dir().join("dnc-custom-path.tiff"))
-        .into_diagnostic()?;
-    clerk::info!("Done saving raw image.");
+    assert!(dng_file.is_file());
     Ok(())
 }

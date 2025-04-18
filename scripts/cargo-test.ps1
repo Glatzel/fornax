@@ -5,7 +5,7 @@ git submodule update --init --recursive
 $code = 0
 
 Write-Output "::group::nextest"
-cargo +nightly llvm-cov --no-report --all-features -p fornax --branch nextest
+cargo +nightly llvm-cov --no-report --all-features --branch nextest -p fornax -p dnc -p libraw -p fornax-dalim
 $code = $code + $LASTEXITCODE
 Write-Output "::endgroup::"
 

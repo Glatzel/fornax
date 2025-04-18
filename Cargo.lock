@@ -372,11 +372,14 @@ checksum = "6184e33543162437515c2e2b48714794e37845ec9851711914eec9d308f6ebe8"
 name = "dnc"
 version = "0.0.3"
 dependencies = [
+ "assert_cmd",
  "clerk",
  "dunce",
  "miette",
  "path-slash",
  "serde",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
