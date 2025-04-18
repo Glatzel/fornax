@@ -493,7 +493,6 @@ version = "0.0.3"
 dependencies = [
  "clerk",
  "fornax",
- "fornax-core",
  "image",
  "numpy",
  "pyo3",
