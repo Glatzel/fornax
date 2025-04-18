@@ -6,7 +6,7 @@ from ._base import BasePostProcessorParams
 
 
 # region Dalim
-class DalimDemosaicer:
+class DalimDemosaicer(StrEnum):
     Linear = "Linear"
 
 

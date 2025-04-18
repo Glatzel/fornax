@@ -6,7 +6,7 @@ from ._base import BaseDecoderParams, BasePostProcessorParams
 from .decoder import LibrawParams
 from .dnc import DncParams
 from .fornax_py import py_process  # type: ignore
-from .post_processor import DCRawParams
+from .post_processor import DalimParams, DCRawParams
 
 if TYPE_CHECKING:
     import numpy as np
@@ -37,7 +37,7 @@ class Fornax:
         self.decoder_params = decoder_params
 
         match post_processor_params:
-            case DCRawParams():
+            case DalimParams():
                 self.post_processor = "dalim"
             case DCRawParams():
                 self.post_processor = "libraw"
