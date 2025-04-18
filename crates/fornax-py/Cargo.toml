@@ -12,6 +12,7 @@ serde = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 numpy = { workspace = true }
+fornax-core = { workspace = true }
 
 [lib]
 crate-type = ["cdylib"]

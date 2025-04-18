@@ -10,3 +10,7 @@ where
         bayer_image: &fornax_core::BayerImage<T>,
     ) -> image::ImageBuffer<image::Rgb<T>, Vec<T>>;
 }
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub enum Demosaicer {
+    Linear,
+}

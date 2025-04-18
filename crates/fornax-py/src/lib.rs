@@ -1,17 +1,35 @@
+use std::backtrace;
 use std::path::PathBuf;
 
-use fornax::dnc::Dnc;
-use fornax::libraw::Libraw;
-use fornax::libraw::dcraw::DCRawParams;
+use fornax::dnc;
+use fornax::fornax_dalim;
+use fornax::fornax_dalim::Dalim;
+use fornax::fornax_dalim::DalimParams;
+use fornax::libraw;
 use numpy::{PyArray, PyArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3::{Python, pyfunction};
-use rmp_serde::Deserializer;
+use rmp_serde::{Deserializer, decode};
 use serde::Deserialize;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+enum PyOutputBits {
+    Unsigned8,
+    Unsigned16,
+    Float32,
+}
+impl From<&str> for PyOutputBits {
+    fn from(value: &str) -> Self {
+        match value.to_lowercase().as_str() {
+            "u8" => Self::Unsigned8,
+            "u16" => Self::Unsigned16,
+            "f32" => Self::Float32,
+            bits => panic!("Unknow output bits: {bits}"),
+        }
+    }
+}
 enum PyDecoder {
     Libraw,
 }
@@ -24,20 +42,24 @@ impl From<&str> for PyDecoder {
     }
 }
 enum PyPostPorcessor {
+    Dalim,
     Libraw,
 }
 impl From<&str> for PyPostPorcessor {
     fn from(value: &str) -> Self {
         match value.to_lowercase().as_str() {
+            "dalim" => PyPostPorcessor::Dalim,
             "libraw" => PyPostPorcessor::Libraw,
             _ => panic!("Unknow decoder."),
         }
     }
 }
+
 #[pyfunction]
 fn py_process<'a>(
     py: Python<'a>,
     file: PathBuf,
+    output_bits: &str,
     decoder: &str,
     _decoder_params: &'a [u8],
     post_processor: &str,
@@ -46,70 +68,54 @@ fn py_process<'a>(
 ) -> Result<pyo3::Bound<'a, PyTuple>, PyErr> {
     // convert with dnc
     let file = if let Some(params) = dnc_params {
-        let dnc = Dnc::new(Deserialize::deserialize(&mut Deserializer::new(params)).unwrap());
+        let dnc = dnc::Dnc::new(Deserialize::deserialize(&mut Deserializer::new(params)).unwrap());
         dnc.convert(&file).unwrap()
     } else {
         file
     };
-
-    let img = match (
-        PyDecoder::from(decoder),
-        PyPostPorcessor::from(post_processor),
-    ) {
-        (PyDecoder::Libraw, PyPostPorcessor::Libraw) => {
-            let post_processor_params: DCRawParams =
-                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
-            let libraw = Libraw::new(Some(post_processor_params));
-
-            let mut manager = fornax::Fornax::new(&libraw, &libraw);
-            manager.decode_file(&file).unwrap().post_process().unwrap()
-        }
-    };
-
-    match img {
-        fornax::ProcessedImage::Null => panic!("Process failed."),
-        fornax::ProcessedImage::Mono8(img) => {
-            let img_array = PyArray::from_slice(py, img.as_ref());
-            let img_array = img_array
-                .reshape([img.height() as usize, img.width() as usize, 1])
-                .unwrap();
-            (img_array,).into_pyobject(py)
-        }
-        fornax::ProcessedImage::Mono16(img) => {
-            let img_array = PyArray::from_slice(py, img.as_ref());
-            let img_array = img_array
-                .reshape([img.height() as usize, img.width() as usize, 1])
-                .unwrap();
-            (img_array,).into_pyobject(py)
-        }
-        fornax::ProcessedImage::MonoF32(img) => {
-            let img_array = PyArray::from_slice(py, img.as_ref());
-            let img_array = img_array
-                .reshape([img.height() as usize, img.width() as usize, 1])
-                .unwrap();
-            (img_array,).into_pyobject(py)
-        }
-        fornax::ProcessedImage::Rgb8(img) => {
-            let img_array = PyArray::from_slice(py, img.as_ref());
-            let img_array = img_array
+    let output_bits = PyOutputBits::from(output_bits);
+    let decoder = PyDecoder::from(decoder);
+    let post_processor = PyPostPorcessor::from(post_processor);
+    match (decoder, post_processor, output_bits) {
+        (PyDecoder::Libraw, PyPostPorcessor::Dalim, PyOutputBits::Unsigned8) => {
+            let libraw = libraw::Libraw::new(None);
+            let dalim: Dalim<u8> = Dalim::new(
+                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap(),
+            );
+            let manager = fornax::Fornax::new(libraw, dalim);
+            let img = manager.decode_file(&file).unwrap().post_process().unwrap();
+            let img_array = PyArray::from_slice(py, img.as_ref())
                 .reshape([img.height() as usize, img.width() as usize, 3])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
-        fornax::ProcessedImage::Rgb16(img) => {
-            let img_array = PyArray::from_slice(py, img.as_ref());
-            let img_array = img_array
+        (PyDecoder::Libraw, PyPostPorcessor::Dalim, PyOutputBits::Unsigned16) => {
+            let libraw = libraw::Libraw::new(None);
+            let dalim: Dalim<u16> = Dalim::new(
+                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap(),
+            );
+            let manager = fornax::Fornax::new(libraw, dalim);
+            let img = manager.decode_file(&file).unwrap().post_process().unwrap();
+            let img_array = PyArray::from_slice(py, img.as_ref())
                 .reshape([img.height() as usize, img.width() as usize, 3])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
-        fornax::ProcessedImage::RgbF32(img) => {
-            let img_array = PyArray::from_slice(py, img.as_ref());
-            let img_array = img_array
+        (PyDecoder::Libraw, PyPostPorcessor::Dalim, PyOutputBits::Float32) => {
+            let libraw = libraw::Libraw::new(None);
+            let dalim: Dalim<f32> = Dalim::new(
+                Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap(),
+            );
+            let manager = fornax::Fornax::new(libraw, dalim);
+            let img = manager.decode_file(&file).unwrap().post_process().unwrap();
+            let img_array = PyArray::from_slice(py, img.as_ref())
                 .reshape([img.height() as usize, img.width() as usize, 3])
                 .unwrap();
             (img_array,).into_pyobject(py)
         }
+        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Unsigned8) => todo!(),
+        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Unsigned16) => todo!(),
+        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Float32) => todo!(),
     }
 }
 

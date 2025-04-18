@@ -482,6 +482,7 @@ dependencies = [
  "image",
  "miette",
  "rayon",
+ "serde",
  "tracing",
  "tracing-subscriber",
 ]
@@ -492,6 +493,7 @@ version = "0.0.3"
 dependencies = [
  "clerk",
  "fornax",
+ "fornax-core",
  "numpy",
  "pyo3",
  "rmp-serde",

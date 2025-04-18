@@ -5,6 +5,15 @@ from pydantic import FilePath, PositiveInt, StrictBool
 from ._base import BasePostProcessorParams
 
 
+# region Dalim
+class DalimDemosaicer:
+    Linear = "Linear"
+
+
+class DalimParams(BasePostProcessorParams):
+    demosaicer: DalimDemosaicer
+
+
 # region DCRaw
 class DCRawHighlightMode(StrEnum):
     """Highlight modes."""

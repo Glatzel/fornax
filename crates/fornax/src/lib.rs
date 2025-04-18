@@ -3,7 +3,7 @@ use std::path::Path;
 pub use fornax_core::NullPostProcessor;
 use fornax_core::{FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{ImageBuffer, Rgb};
-pub use {dnc, libraw};
+pub use {dnc, fornax_dalim, libraw};
 
 pub struct Fornax<D, T, P, O>
 where
@@ -33,15 +33,15 @@ where
             post_processor,
         }
     }
-    pub fn decode_file(&mut self, file: &Path) -> miette::Result<&mut Self> {
+    pub fn decode_file(&self, file: &Path) -> miette::Result<&Self> {
         self.decoder.decode_file(file)?;
         Ok(self)
     }
-    pub fn decode_buffer(&mut self, buffer: &[u8]) -> miette::Result<&mut Self> {
+    pub fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<&Self> {
         self.decoder.decode_buffer(buffer)?;
         Ok(self)
     }
-    pub fn post_process(&mut self) -> miette::Result<ImageBuffer<Rgb<O>, Vec<O>>> {
+    pub fn post_process(&self) -> miette::Result<ImageBuffer<Rgb<O>, Vec<O>>> {
         self.post_processor.post_process(&self.decoder)
     }
 }

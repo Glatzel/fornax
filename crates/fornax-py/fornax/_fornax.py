@@ -1,3 +1,4 @@
+from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -11,22 +12,33 @@ if TYPE_CHECKING:
     import numpy as np
 
 
+class FornaxOutputBits(StrEnum):
+    u8 = "u8"
+    u16 = "u16"
+    f32 = "f32"
+
+
 class Fornax:
     def __init__(
         self,
         *,
+        output_bits: FornaxOutputBits,
         decoder_params: BaseDecoderParams,
         post_processor_params: BasePostProcessorParams,
         dnc_params: DncParams | None = None,
     ) -> None:
+        self.output_bits = output_bits
+
         match decoder_params:
             case LibrawParams():
                 self.decoder = "libraw"
             case _:
                 TypeError("Unknown decoder")
-
         self.decoder_params = decoder_params
+
         match post_processor_params:
+            case DCRawParams():
+                self.post_processor = "dalim"
             case DCRawParams():
                 self.post_processor = "libraw"
             case _:
@@ -52,6 +64,7 @@ class Fornax:
         file = Path(file).absolute()
         return py_process(
             file,
+            self.output_bits,
             self.decoder,
             self.decoder_params.to_msgpack(),
             self.post_processor,

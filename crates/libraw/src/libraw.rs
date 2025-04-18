@@ -8,7 +8,7 @@ use std::path::Path;
 use std::slice;
 mod version;
 use fornax_core::{BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor};
-use image::{EncodableLayout, ImageBuffer, Luma, Pixel, Rgb};
+use image::{EncodableLayout, ImageBuffer, Rgb};
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::{ColorDesc, LibrawIParams};

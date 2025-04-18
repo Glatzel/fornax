@@ -7,7 +7,7 @@ version.workspace = true
 clerk = { workspace = true }
 fornax-core = { workspace = true }
 miette = { workspace = true }
-# serde = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
 image = { workspace = true }
 rayon = { workspace = true }
 
@@ -18,4 +18,4 @@ tracing-subscriber = { workspace = true }
 
 [features]
 log = ["clerk/log"]
-# serde = ["dep:serde"]
+serde = ["dep:serde"]

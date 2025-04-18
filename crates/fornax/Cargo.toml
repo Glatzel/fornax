@@ -21,4 +21,4 @@ tracing-subscriber = { workspace = true }
 
 [features]
 log = ["clerk/log"]
-serde = ["libraw/serde", "dnc/serde"]
+serde = ["libraw/serde", "dnc/serde","fornax-dalim/serde"]
