@@ -1,11 +1,12 @@
 [workspace]
 authors = ["Glatzel <893016099@qq.com>"]
-channels = ["conda-forge"]
+channels = ["conda-forge", "https://repo.prefix.dev/glatzel"]
 name = "fornax"
 platforms = ["win-64"]
 version = "0.1.0"
 
 [dependencies]
+libraw = { version = "==0.21.4", channel = "https://repo.prefix.dev/glatzel" }
 maturin = "==1.8.3"
 pip = "==25.0.1"
 python = "3.11.*"
