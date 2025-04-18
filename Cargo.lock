@@ -745,7 +745,6 @@ dependencies = [
  "chrono",
  "clerk",
  "fornax-core",
- "image",
  "libraw-sys",
  "miette",
  "serde",
