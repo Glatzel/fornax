@@ -22,7 +22,7 @@ where
         }
     }
 }
-impl<D, DM, T> IPostProcessor<D, T, Rgb<T>, T> for Dalim<T, DM>
+impl<D, DM, T> IPostProcessor<D, T, T> for Dalim<T, DM>
 where
     D: IDecoder<T>,
     DM: IDemosaic<T>,

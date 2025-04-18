@@ -7,6 +7,7 @@ version.workspace = true
 dnc = { workspace = true }
 fornax-core = { workspace = true }
 fornax-dalim = { workspace = true }
+image = { workspace = true }
 libraw = { workspace = true }
 miette = { workspace = true }
 

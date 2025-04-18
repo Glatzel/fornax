@@ -8,7 +8,7 @@ use std::path::Path;
 use std::slice;
 mod version;
 use fornax_core::{BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor};
-use image::{EncodableLayout, ImageBuffer};
+use image::{EncodableLayout, ImageBuffer, Luma, Pixel, Rgb};
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::{ColorDesc, LibrawIParams};
@@ -259,6 +259,47 @@ impl Libraw {
         });
         Ok(fornax_core::BayerImage::new(img, pattern))
     }
+    fn map_processed_image<O>(
+        &self,
+        processed: &DCRawProcessedImage,
+    ) -> miette::Result<image::ImageBuffer<Rgb<O>, Vec<O>>>
+    where
+        O: FornaxPrimitive,
+    {
+        match (processed.colors(), processed.bits()) {
+            (3, 8) => {
+                let img: image::ImageBuffer<image::Rgb<O>, Vec<O>> = image::ImageBuffer::from_vec(
+                    processed.width() as u32,
+                    processed.height() as u32,
+                    unsafe {
+                        slice::from_raw_parts(processed.data(), processed.data_size() as usize)
+                            .to_vec()
+                            .into_iter()
+                            .map(|v| O::from(v).unwrap())
+                            .collect()
+                    },
+                )
+                .unwrap();
+                Ok(img)
+            }
+            (3, 16) => {
+                let img: image::ImageBuffer<image::Rgb<O>, Vec<O>> = image::ImageBuffer::from_vec(
+                    processed.width() as u32,
+                    processed.height() as u32,
+                    bytemuck::cast_slice::<u8, u16>(unsafe {
+                        slice::from_raw_parts(processed.data(), processed.data_size() as usize)
+                    })
+                    .to_vec()
+                    .into_iter()
+                    .map(|v| O::from(v).unwrap())
+                    .collect(),
+                )
+                .unwrap();
+                Ok(img)
+            }
+            (c, b) => miette::bail!("Unsupported color:{}, bits: {}.", c, b),
+        }
+    }
 }
 impl Drop for Libraw {
     fn drop(&mut self) {
@@ -310,11 +351,12 @@ where
     }
 }
 
-impl<D> IPostProcessor<D, u16> for Libraw
+impl<D, O> IPostProcessor<D, u16, O> for Libraw
 where
     D: IDecoder<u16>,
+    O: FornaxPrimitive,
 {
-    fn post_process(&self, decoder: &D) -> miette::Result<ProcessedImage> {
+    fn post_process(&self, decoder: &D) -> miette::Result<image::ImageBuffer<Rgb<O>, Vec<O>>> {
         let bayer = decoder.bayer_image()?;
         self.open_bayer(
             bayer.mosaic().as_bytes(),
@@ -333,14 +375,16 @@ where
         self.unpack()?;
         let processed = self.dcraw_process()?;
 
-        Ok(processed)
+        self.map_processed_image(&processed)
     }
 }
-impl<D> IPostProcessor<D, u16> for &Libraw
+
+impl<D, O> IPostProcessor<D, u16, O> for &Libraw
 where
     D: IDecoder<u16>,
+    O: FornaxPrimitive,
 {
-    fn post_process(&self, decoder: &D) -> miette::Result<ProcessedImage> {
+    fn post_process(&self, decoder: &D) -> miette::Result<image::ImageBuffer<Rgb<O>, Vec<O>>> {
         let bayer = decoder.bayer_image()?;
         self.open_bayer(
             bayer.mosaic().as_bytes(),
@@ -358,7 +402,7 @@ where
         )?;
         self.unpack()?;
         let processed = self.dcraw_process()?;
-        Ok(processed)
+        self.map_processed_image(&processed)
     }
 }
 impl ILibrawErrors for Libraw {}

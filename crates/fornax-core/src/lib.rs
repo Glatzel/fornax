@@ -8,7 +8,7 @@ pub use decoder::IDecoder;
 pub use post_processor::{IPostProcessor, NullPostProcessor};
 
 pub trait FornaxPrimitive:
-    image::PrimitiveExt + std::marker::Send + std::marker::Sync + Debug + Display + 'static + Sized
+    image::PrimitiveExt + std::marker::Send + std::marker::Sync + Debug + Display + 'static
 {
 }
 // impl FornaxPrimitive for usize {}
