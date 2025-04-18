@@ -289,8 +289,8 @@ impl Libraw {
                     bytemuck::cast_slice::<u8, u16>(unsafe {
                         slice::from_raw_parts(processed.data(), processed.data_size() as usize)
                     })
-                    .to_vec()
-                    .into_iter()
+                    .iter()
+                    .copied()
                     .map(|v| O::from(v).unwrap())
                     .collect(),
                 )

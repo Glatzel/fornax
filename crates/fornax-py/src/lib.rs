@@ -1,16 +1,13 @@
-use std::backtrace;
 use std::path::PathBuf;
 
 use fornax::dnc;
-use fornax::fornax_dalim;
 use fornax::fornax_dalim::Dalim;
-use fornax::fornax_dalim::DalimParams;
 use fornax::libraw;
 use numpy::{PyArray, PyArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
 use pyo3::{Python, pyfunction};
-use rmp_serde::{Deserializer, decode};
+use rmp_serde::Deserializer;
 use serde::Deserialize;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
