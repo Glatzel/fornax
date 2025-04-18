@@ -1,4 +1,3 @@
-use fornax::Fornax;
 use fornax_core::BayerPattern;
 use miette::IntoDiagnostic;
 mod utils;

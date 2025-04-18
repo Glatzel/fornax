@@ -1,4 +1,3 @@
-use fornax::Fornax;
 use miette::IntoDiagnostic;
 mod utils;
 fn main() -> miette::Result<()> {

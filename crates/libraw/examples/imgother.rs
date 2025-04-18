@@ -1,4 +1,3 @@
-use fornax::Fornax;
 mod utils;
 fn main() -> miette::Result<()> {
     utils::example_setup();

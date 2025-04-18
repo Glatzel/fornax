@@ -744,14 +744,19 @@ dependencies = [
 name = "libraw"
 version = "0.0.3"
 dependencies = [
+ "assert_cmd",
  "bytemuck",
  "chrono",
  "clerk",
+ "dunce",
  "fornax-core",
  "image",
  "libraw-sys",
  "miette",
+ "path-slash",
  "serde",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
