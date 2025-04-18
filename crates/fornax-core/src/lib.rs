@@ -1,16 +1,14 @@
 mod bayer;
 mod decoder;
 mod post_processor;
-mod processed_image;
 use std::fmt::{Debug, Display};
 
 pub use bayer::{BayerChannel, BayerImage, BayerPattern, IBayerImage};
 pub use decoder::IDecoder;
 pub use post_processor::{IPostProcessor, NullPostProcessor};
-pub use processed_image::ProcessedImage;
 
 pub trait FornaxPrimitive:
-    image::PrimitiveExt + std::marker::Send + std::marker::Sync + Debug + Display + 'static
+    image::PrimitiveExt + std::marker::Send + std::marker::Sync + Debug + Display + 'static + Sized
 {
 }
 // impl FornaxPrimitive for usize {}

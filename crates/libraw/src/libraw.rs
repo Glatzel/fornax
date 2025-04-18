@@ -7,7 +7,7 @@ use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 mod version;
-use fornax_core::{BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor, ProcessedImage};
+use fornax_core::{BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{EncodableLayout, ImageBuffer};
 pub use image_sizes::LibrawImageSizes;
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
@@ -331,7 +331,8 @@ where
             0,
         )?;
         self.unpack()?;
-        let processed = self.dcraw_process()?.to_image()?;
+        let processed = self.dcraw_process()?;
+
         Ok(processed)
     }
 }
@@ -356,7 +357,7 @@ where
             0,
         )?;
         self.unpack()?;
-        let processed = self.dcraw_process()?.to_image()?;
+        let processed = self.dcraw_process()?;
         Ok(processed)
     }
 }
