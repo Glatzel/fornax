@@ -27,7 +27,10 @@ fn main() {
     };
 
     // Link
+    #[cfg(target_os = "windows")]
     let _pk_libraw = link_lib("libraw_r", "raw_r");
+    #[cfg(target_os = "linux")]
+    let _pk_libraw = link_lib("libraw_r", "libraw_r");
 
     // generate bindings
     #[cfg(feature = "bindgen")]
