@@ -11,6 +11,7 @@ dnc = { path = "./crates/dnc" }
 fornax = { path = "./crates/fornax" }
 fornax-core = { path = "./crates/fornax-core" }
 fornax-dalim = { path = "./crates/fornax-dalim" }
+fornax-devtool = { path = "./crates/fornax-devtool" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
 

@@ -1,9 +1,9 @@
 use fornax::Fornax;
 use fornax_dalim::{Dalim, DalimParams};
 use miette::IntoDiagnostic;
-mod utils;
+
 fn main() -> miette::Result<()> {
-    utils::example_setup();
+    fornax_devtool::example_setup();
     linear()?;
     Ok(())
 }
@@ -12,8 +12,10 @@ fn linear() -> miette::Result<()> {
         demosaicer: fornax_dalim::Demosaicer::Linear,
     });
     let manager = Fornax::new(libraw::Libraw::new(None), dalim);
-    let img = manager.decode_file(&utils::raw_file())?.post_process()?;
-    img.save(utils::output_dir().join("dalim-demosaic-linear.tiff"))
+    let img = manager
+        .decode_file(&fornax_devtool::raw_file())?
+        .post_process()?;
+    img.save(fornax_devtool::output_dir().join("dalim-demosaic-linear.tiff"))
         .into_diagnostic()?;
     clerk::info!("Done saving image.");
     Ok(())

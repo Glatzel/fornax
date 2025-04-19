@@ -10,6 +10,11 @@ miette = { workspace = true }
 path-slash = { workspace = true }
 serde = { workspace = true, optional = true }
 
+[dev-dependencies]
+assert_cmd = { workspace = true }
+clerk = { workspace = true, features = ["log"] }
+fornax-devtool = { workspace = true }
+
 [features]
 log = ["clerk/log"]
 serde = ["dep:serde"]

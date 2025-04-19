@@ -14,11 +14,7 @@ miette = { workspace = true }
 [dev-dependencies]
 assert_cmd = { workspace = true }
 clerk = { workspace = true, features = ["log"] }
-dunce = { workspace = true }
-path-slash = { workspace = true }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
+fornax-devtool = { workspace = true }
 
 [features]
-log = ["clerk/log"]
-serde = ["libraw/serde", "dnc/serde","fornax-dalim/serde"]
+serde = ["libraw/serde", "dnc/serde", "fornax-dalim/serde"]

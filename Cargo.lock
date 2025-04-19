@@ -372,8 +372,10 @@ checksum = "6184e33543162437515c2e2b48714794e37845ec9851711914eec9d308f6ebe8"
 name = "dnc"
 version = "0.0.3"
 dependencies = [
+ "assert_cmd",
  "clerk",
  "dunce",
+ "fornax-devtool",
  "miette",
  "path-slash",
  "serde",
@@ -454,15 +456,12 @@ dependencies = [
  "assert_cmd",
  "clerk",
  "dnc",
- "dunce",
  "fornax-core",
  "fornax-dalim",
+ "fornax-devtool",
  "image",
  "libraw",
  "miette",
- "path-slash",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -483,6 +482,15 @@ dependencies = [
  "miette",
  "rayon",
  "serde",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "fornax-devtool"
+version = "0.0.3"
+dependencies = [
+ "clerk",
  "tracing",
  "tracing-subscriber",
 ]
@@ -741,10 +749,12 @@ dependencies = [
 name = "libraw"
 version = "0.0.3"
 dependencies = [
+ "assert_cmd",
  "bytemuck",
  "chrono",
  "clerk",
  "fornax-core",
+ "fornax-devtool",
  "image",
  "libraw-sys",
  "miette",

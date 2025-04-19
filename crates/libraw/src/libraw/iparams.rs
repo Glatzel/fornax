@@ -1,6 +1,6 @@
 use libraw_sys as sys;
 
-use crate::utils::mnt_to_string;
+use crate::utils::c_char_to_string;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug)]
 pub enum ColorDesc {
@@ -42,17 +42,14 @@ pub struct LibrawIParams {
 }
 impl LibrawIParams {
     pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
-        if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
-            miette::bail!("imgdata is null.")
-        }
         let imgdata = unsafe { *imgdata };
         Ok(Self {
-            make: mnt_to_string(&imgdata.idata.make),
-            model: mnt_to_string(&imgdata.idata.model),
-            normalized_make: mnt_to_string(&imgdata.idata.normalized_make),
-            normalized_model: mnt_to_string(&imgdata.idata.normalized_model),
+            make: c_char_to_string(imgdata.idata.make.as_ptr()),
+            model: c_char_to_string(imgdata.idata.model.as_ptr()),
+            normalized_make: c_char_to_string(imgdata.idata.normalized_make.as_ptr()),
+            normalized_model: c_char_to_string(imgdata.idata.normalized_model.as_ptr()),
             maker_index: imgdata.idata.maker_index,
-            software: mnt_to_string(&imgdata.idata.software),
+            software: c_char_to_string(imgdata.idata.software.as_ptr()),
             raw_count: imgdata.idata.raw_count,
             is_foveon: imgdata.idata.is_foveon != 0,
             dng_version: imgdata.idata.dng_version,
@@ -60,7 +57,7 @@ impl LibrawIParams {
             filters: imgdata.idata.filters,
             xtrans: imgdata.idata.xtrans,
             xtrans_abs: imgdata.idata.xtrans_abs,
-            cdesc: ColorDesc::from(mnt_to_string(&imgdata.idata.cdesc).as_str()),
+            cdesc: ColorDesc::from(c_char_to_string(imgdata.idata.cdesc.as_ptr()).as_str()),
             xmplen: imgdata.idata.xmplen,
             xmpdata: unsafe {
                 std::ffi::CStr::from_ptr(imgdata.idata.xmpdata)
