@@ -16,7 +16,10 @@ pub use open_bayer_options::ProcFlag;
 pub use rawdata::LibrawRawdata;
 
 use crate::ILibrawErrors;
-use crate::dcraw::{DCRawParams, DCRawProcessedImage};
+use crate::dcraw::{
+    DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
+    DCRawProcessedImage,
+};
 use crate::utils::c_char_to_string;
 #[derive(Debug)]
 pub struct Libraw {
@@ -180,32 +183,41 @@ impl Libraw {
         unsafe { libraw_sys::libraw_set_user_mul(self.imgdata, index, val) };
         self
     }
-    fn _set_demosaic() {
-        unimplemented!()
+    pub fn set_demosaic(&self, value: i32) -> &Self {
+        unsafe { libraw_sys::libraw_set_demosaic(self.imgdata, value) };
+        self
     }
-    fn _set_adjust_maximum_thr() {
-        unimplemented!()
+    pub fn set_adjust_maximum_thr(&self, value: f32) -> &Self {
+        unsafe { libraw_sys::libraw_set_adjust_maximum_thr(self.imgdata, value) };
+        self
     }
-    fn _set_output_color() {
-        unimplemented!()
+    pub fn set_output_color(&self, value: DCRawOutputColor) -> &Self {
+        unsafe { libraw_sys::libraw_set_output_color(self.imgdata, i32::from(value)) };
+        self
     }
-    fn _set_output_bps() {
-        unimplemented!()
+    pub fn set_output_bps(&self, value: DCRawOutputBps) -> &Self {
+        unsafe { libraw_sys::libraw_set_output_bps(self.imgdata, i32::from(value)) };
+        self
     }
-    fn _set_gamma() {
-        unimplemented!()
+    pub fn set_gamma(&self, index: i32, value: f32) -> &Self {
+        unsafe { libraw_sys::libraw_set_gamma(self.imgdata, index, value) };
+        self
     }
-    fn _set_no_auto_bright() {
-        unimplemented!()
+    pub fn set_no_auto_bright(&self, value: f32) -> &Self {
+        unsafe { libraw_sys::libraw_set_no_auto_bright(self.imgdata, value as i32) };
+        self
     }
-    fn _set_bright() {
-        unimplemented!()
+    pub fn set_bright(&self, value: f32) -> &Self {
+        unsafe { libraw_sys::libraw_set_bright(self.imgdata, value) };
+        self
     }
-    fn _set_highlight() {
-        unimplemented!()
+    pub fn set_highlight(&self, value: DCRawHighlightMode) -> &Self {
+        unsafe { libraw_sys::libraw_set_highlight(self.imgdata, i32::from(value)) };
+        self
     }
-    fn _set_fbdd_noiserd() {
-        unimplemented!()
+    pub fn set_fbdd_noiserd(&self, value: DCRawFbddNoiserd) -> &Self {
+        unsafe { libraw_sys::libraw_set_fbdd_noiserd(self.imgdata, i32::from(value)) };
+        self
     }
 }
 // region:Auxiliary Functions
@@ -328,7 +340,7 @@ impl Libraw {
         rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
     }
 }
-// region:Safe API
+// region:Custom API
 impl Libraw {
     pub fn new(params: Option<DCRawParams>) -> Self {
         Self {
