@@ -3,10 +3,12 @@ mod decoder;
 mod post_processor;
 use std::fmt::{Debug, Display};
 
-pub use bayer::{BayerChannel, BayerImage, BayerPattern, IBayerImage};
+pub use bayer::{BayerChannel, BayerImage, BayerPattern};
 pub use decoder::IDecoder;
 pub use post_processor::{IPostProcessor, NullPostProcessor};
 
+/// The type of each channel in a pixel.
+/// Including `u8`, `u16`, `f32`, `f64`.
 pub trait FornaxPrimitive:
     image::PrimitiveExt + std::marker::Send + std::marker::Sync + Debug + Display + 'static
 {
