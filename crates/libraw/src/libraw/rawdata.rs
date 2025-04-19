@@ -87,7 +87,7 @@ impl LibrawRawdata {
                 })
                 .unwrap();
 
-            return Ok(Self::RgbaF32(img));
+            Ok(Self::RgbaF32(img))
         } else {
             miette::bail!("Raw data is not found.")
         }
