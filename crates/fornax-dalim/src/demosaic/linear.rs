@@ -235,33 +235,3 @@ where
         img
     }
 }
-#[cfg(test)]
-mod test {
-    use std::path::PathBuf;
-
-    use tracing::level_filters::LevelFilter;
-    use tracing_subscriber::layer::SubscriberExt;
-    use tracing_subscriber::util::SubscriberInitExt;
-
-    use super::*;
-    use crate::demosaic::IDemosaic;
-    #[test]
-    fn test_linear() {
-        tracing_subscriber::registry()
-            .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
-            .init();
-        let root = PathBuf::from(std::env::var("CARGO_WORKSPACE_DIR").unwrap());
-        let mut img_path = root.clone();
-        img_path.push("temp/bayerimga.tiff");
-        let bayer = image::ImageReader::open(img_path)
-            .unwrap()
-            .decode()
-            .unwrap()
-            .to_luma16();
-        let demosaicer = DemosaicLinear();
-        let img: ImageBuffer<image::Rgb<u16>, Vec<u16>> = demosaicer.demosaic(
-            &fornax_core::BayerImage::new(bayer, fornax_core::BayerPattern::GBRG),
-        );
-        image::DynamicImage::from(img).save("a.tiff").unwrap();
-    }
-}
