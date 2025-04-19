@@ -1,0 +1,14 @@
+[package]
+edition.workspace = true
+name = "fornax-devtool"
+version.workspace = true
+
+[dependencies]
+clerk = { workspace = true, features = ["log"] }
+dunce = { workspace = true }
+path-slash = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[features]
+log = ["clerk/log"]

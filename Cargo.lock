@@ -375,11 +375,10 @@ dependencies = [
  "assert_cmd",
  "clerk",
  "dunce",
+ "fornax-devtool",
  "miette",
  "path-slash",
  "serde",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -457,15 +456,12 @@ dependencies = [
  "assert_cmd",
  "clerk",
  "dnc",
- "dunce",
  "fornax-core",
  "fornax-dalim",
+ "fornax-devtool",
  "image",
  "libraw",
  "miette",
- "path-slash",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -486,6 +482,17 @@ dependencies = [
  "miette",
  "rayon",
  "serde",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "fornax-devtool"
+version = "0.0.3"
+dependencies = [
+ "clerk",
+ "dunce",
+ "path-slash",
  "tracing",
  "tracing-subscriber",
 ]
@@ -748,15 +755,12 @@ dependencies = [
  "bytemuck",
  "chrono",
  "clerk",
- "dunce",
  "fornax-core",
+ "fornax-devtool",
  "image",
  "libraw-sys",
  "miette",
- "path-slash",
  "serde",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

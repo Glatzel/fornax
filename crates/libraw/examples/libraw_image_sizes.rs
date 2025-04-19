@@ -1,9 +1,8 @@
-mod utils;
 fn main() -> miette::Result<()> {
-    utils::example_setup();
+    fornax_devtool::example_setup();
     let libraw = libraw::Libraw::new(None);
     let sizes = libraw
-        .open_file(&utils::raw_file())?
+        .open_file(&fornax_devtool::raw_file())?
         .unpack()?
         .get_image_sizes()?;
 

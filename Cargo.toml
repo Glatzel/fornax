@@ -10,6 +10,7 @@ version = "0.0.3"
 dnc = { path = "./crates/dnc" }
 fornax = { path = "./crates/fornax" }
 fornax-core = { path = "./crates/fornax-core" }
+fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dalim = { path = "./crates/fornax-dalim" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }

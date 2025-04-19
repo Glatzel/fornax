@@ -1,17 +1,17 @@
 use miette::IntoDiagnostic;
-mod utils;
+
 fn main() -> miette::Result<()> {
-    utils::example_setup();
+    fornax_devtool::example_setup();
     let libraw = libraw::Libraw::new(None);
     let img = libraw
-        .open_file(&utils::raw_file())?
+        .open_file(&fornax_devtool::raw_file())?
         .unpack()?
         .get_rawdata()?;
 
     match img {
         libraw::libraw::LibrawRawdata::Mono16(image_buffer) => {
             image_buffer
-                .save(utils::output_dir().join("rawdata_mono16.tiff"))
+                .save(fornax_devtool::output_dir().join("rawdata_mono16.tiff"))
                 .into_diagnostic()?;
             clerk::info!("Found mono16 rawdata.");
             clerk::info!("Done saving raw image.");
