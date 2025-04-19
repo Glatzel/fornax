@@ -5,21 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.4] - 2025-04-19
 
 ### Added
 
 - Initial Dalim post processor by @Glatzel in [#30](https://github.com/Glatzel/fornax/pull/30)
 - Add bayer image by @Glatzel in [#32](https://github.com/Glatzel/fornax/pull/32)
+- Initial renovate bot by @Glatzel in [#45](https://github.com/Glatzel/fornax/pull/45)
 
 ### Changed
 
 - Implement libraw rawdata by @Glatzel in [#29](https://github.com/Glatzel/fornax/pull/29)
 - Implement linear demosaicing by @Glatzel in [#33](https://github.com/Glatzel/fornax/pull/33)
+- Redesign the interface between decoder and post processor by @Glatzel in [#34](https://github.com/Glatzel/fornax/pull/34)
+- Unify output bits by @Glatzel in [#52](https://github.com/Glatzel/fornax/pull/52)
+- Use macro to simplify python module by @Glatzel in [#55](https://github.com/Glatzel/fornax/pull/55)
+- Impl some fn in libraw by @Glatzel in [#59](https://github.com/Glatzel/fornax/pull/59)
 
 ### Documentation
 
 - Add some comments by @Glatzel in [#28](https://github.com/Glatzel/fornax/pull/28)
+- Add some docs by ai by @Glatzel in [#58](https://github.com/Glatzel/fornax/pull/58)
 
 ### Refactor
 
@@ -70,7 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial test by @Glatzel in [#8](https://github.com/Glatzel/fornax/pull/8)
 
-[unreleased]: https://github.com/Glatzel/fornax/compare/v0.0.3..HEAD
+[0.0.4]: https://github.com/Glatzel/fornax/compare/v0.0.3..v0.0.4
 [0.0.3]: https://github.com/Glatzel/fornax/compare/v0.0.2..v0.0.3
 [0.0.2]: https://github.com/Glatzel/fornax/compare/v0.0.1..v0.0.2
 
