@@ -10,6 +10,7 @@ pub fn example_setup() {
         .init();
     let outdir = output_dir();
     std::fs::create_dir_all(&outdir).expect("output dir already exists.");
+    assert!(root.is_dir());
 }
 
 pub fn root_dir() -> PathBuf {
