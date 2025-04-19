@@ -1,5 +1,5 @@
 Set-Location $PSScriptRoot/..
-$version= "0.0.3"
+$version= "0.0.4"
 
 # Update the version in Cargo.toml
 $cargoTomlPath = "./Cargo.toml"
