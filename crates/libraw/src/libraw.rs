@@ -3,16 +3,17 @@ mod imgother;
 mod iparams;
 mod open_bayer_options;
 mod rawdata;
+use std::ffi::CString;
+use std::path::Path;
+use std::slice;
+
 use fornax_core::{BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{EncodableLayout, ImageBuffer, Rgb};
-pub use image_sizes::LibrawImageSizes;
+pub use image_sizes::{LibrawFlip, LibrawImageSizes};
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
 pub use iparams::{ColorDesc, LibrawIParams};
 pub use open_bayer_options::ProcFlag;
 pub use rawdata::LibrawRawdata;
-use std::ffi::CString;
-use std::path::Path;
-use std::slice;
 
 use crate::ILibrawErrors;
 use crate::dcraw::{DCRawParams, DCRawProcessedImage};
@@ -314,14 +315,14 @@ impl Libraw {
 }
 // region:Data Structure
 impl Libraw {
-    pub fn sizes(&self) -> miette::Result<LibrawImageSizes> {
+    pub fn get_image_sizes(&self) -> miette::Result<LibrawImageSizes> {
         Self::check_raw_alloc(self.imgdata)?;
         LibrawImageSizes::new(self.imgdata)
     }
 
     pub fn rawdata(&self) -> miette::Result<LibrawRawdata> {
         Self::check_raw_alloc(self.imgdata)?;
-        let size = self.sizes()?;
+        let size = self.get_image_sizes()?;
         let width = size.raw_width();
         let height = size.raw_height();
         rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
@@ -429,7 +430,7 @@ impl Libraw {
             self.raw2image()?;
         }
 
-        let size = self.sizes()?;
+        let size = self.get_image_sizes()?;
         let width = size.iwidth();
         let height = size.iheight();
         clerk::debug!("Width: {width}, Height: {height}");

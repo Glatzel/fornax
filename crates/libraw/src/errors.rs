@@ -82,7 +82,7 @@ impl From<&LibrawErrors> for i32 {
 impl std::fmt::Display for LibrawErrors {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let info = Libraw::strerror(i32::from(self));
-        let text = format!("Libraw exit code: {}.\n{}", i32::from(self), info);
+        let text = format!("Libraw exit code: {}. {}", i32::from(self), info);
         write!(f, "{}", text)
     }
 }
