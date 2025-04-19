@@ -20,6 +20,6 @@ fn main() -> miette::Result<()> {
     assert_eq!(sizes.raw_pitch(), 10720);
     assert_eq!(sizes.pixel_aspect(), 1.0);
     assert_eq!(sizes.flip(), libraw::libraw::LibrawFlip::None);
-    
+
     Ok(())
 }

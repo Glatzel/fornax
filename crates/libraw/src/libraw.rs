@@ -320,7 +320,7 @@ impl Libraw {
         LibrawImageSizes::new(self.imgdata)
     }
 
-    pub fn rawdata(&self) -> miette::Result<LibrawRawdata> {
+    pub fn get_rawdata(&self) -> miette::Result<LibrawRawdata> {
         Self::check_raw_alloc(self.imgdata)?;
         let size = self.get_image_sizes()?;
         let width = size.raw_width();
@@ -355,7 +355,7 @@ impl Libraw {
         T: FornaxPrimitive,
     {
         let pattern = self.bayer_pattern()?;
-        let raw_img = self.raw_image(true)?;
+        let raw_img = self.get_raw_image(true)?;
         let img = ImageBuffer::from_par_fn(raw_img.width(), raw_img.height(), |x, y| {
             let pixel = raw_img.get_pixel(x, y);
             let value = T::from(pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3])).unwrap();
@@ -417,7 +417,7 @@ impl Libraw {
             (c, b) => miette::bail!("Unsupported color:{}, bits: {}.", c, b),
         }
     }
-    pub fn raw_image(
+    pub fn get_raw_image(
         &self,
         subtract_black: bool,
     ) -> miette::Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>> {
