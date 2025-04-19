@@ -231,8 +231,8 @@ impl Libraw {
     fn _libraw_unpack_function_name() {
         unimplemented!()
     }
-    fn _libraw_color() {
-        unimplemented!()
+    pub fn libraw_color(&self, row: i32, col: i32) -> i32 {
+        unsafe { libraw_sys::libraw_COLOR(self.imgdata, row, col) }
     }
     pub fn libraw_subtract_black(&self) -> miette::Result<&Self> {
         Self::check_raw_alloc(self.imgdata)?;
@@ -327,7 +327,7 @@ impl Libraw {
         rawdata::LibrawRawdata::get_rawdata(self.imgdata, width as usize, height as usize)
     }
 }
-// region:High level API
+// region:Safe API
 impl Libraw {
     pub fn new(params: Option<DCRawParams>) -> Self {
         Self {
@@ -336,25 +336,11 @@ impl Libraw {
         }
     }
     pub fn bayer_pattern(&self) -> miette::Result<fornax_core::BayerPattern> {
-        if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
-            miette::bail!("rawdata is null.")
-        }
-        let pattern0 = Self::check_run(
-            unsafe { libraw_sys::libraw_COLOR(self.imgdata, 0, 0) },
-            "libraw_COLOR",
-        )?;
-        let pattern1 = Self::check_run(
-            unsafe { libraw_sys::libraw_COLOR(self.imgdata, 0, 1) },
-            "libraw_COLOR",
-        )?;
-        let pattern2 = Self::check_run(
-            unsafe { libraw_sys::libraw_COLOR(self.imgdata, 1, 0) },
-            "libraw_COLOR",
-        )?;
-        let pattern3 = Self::check_run(
-            unsafe { libraw_sys::libraw_COLOR(self.imgdata, 1, 1) },
-            "libraw_COLOR",
-        )?;
+        Self::check_raw_alloc(self.imgdata)?;
+        let pattern0 = self.libraw_color(0, 0);
+        let pattern1 = self.libraw_color(0, 1);
+        let pattern2 = self.libraw_color(1, 0);
+        let pattern3 = self.libraw_color(1, 1);
         match (pattern0, pattern1, pattern2, pattern3) {
             (0, 1, 3, 2) => Ok(fornax_core::BayerPattern::RGGB),
             (2, 3, 1, 0) => Ok(fornax_core::BayerPattern::BGGR),
@@ -367,11 +353,6 @@ impl Libraw {
     where
         T: FornaxPrimitive,
     {
-        if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
-            miette::bail!("imgdata is null.")
-        }
-        unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
-
         let pattern = self.bayer_pattern()?;
         let raw_img = self.raw_image(true)?;
         let img = ImageBuffer::from_par_fn(raw_img.width(), raw_img.height(), |x, y| {
@@ -438,15 +419,13 @@ impl Libraw {
         &self,
         subtract_black: bool,
     ) -> miette::Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>> {
-        if unsafe { (*self.imgdata).rawdata.raw_alloc }.is_null() {
-            miette::bail!("rawdata is null.")
-        }
+        self.raw2image()?;
         Self::check_run(
             unsafe { libraw_sys::libraw_raw2image(self.imgdata) },
             "libraw_raw2image",
         )?;
         if subtract_black {
-            unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
+            self.raw2image()?;
         }
 
         if unsafe { (*self.imgdata).image }.is_null() {
