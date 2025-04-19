@@ -15,11 +15,11 @@ impl LibrawRawdata {
         imgdata: *mut libraw_sys::libraw_data_t,
         width: usize,
         height: usize,
-    ) -> miette::Result<Vec<Self>> {
+    ) -> miette::Result<Self> {
         if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
-        let mut rawdatas: Vec<LibrawRawdata> = Vec::new();
+
         if !unsafe { (*imgdata).rawdata.raw_image }.is_null() {
             clerk::debug!("Found mono16 raw image.");
             let img: image::ImageBuffer<image::Luma<u16>, Vec<u16>> = {
@@ -28,7 +28,7 @@ impl LibrawRawdata {
                 })
                 .unwrap()
             };
-            rawdatas.push(Self::Mono16(img));
+            return Ok(Self::Mono16(img));
         } else if !unsafe { (*imgdata).rawdata.float_image }.is_null() {
             clerk::debug!("Found mono32 raw image.");
             let img: image::ImageBuffer<image::Luma<f32>, Vec<f32>> = {
@@ -37,7 +37,7 @@ impl LibrawRawdata {
                 })
                 .unwrap()
             };
-            rawdatas.push(Self::MonoF32(img));
+            return Ok(Self::MonoF32(img));
         } else if !unsafe { (*imgdata).rawdata.color3_image }.is_null() {
             clerk::debug!("Found rgb16 raw image.");
             let img: image::ImageBuffer<image::Rgb<u16>, Vec<u16>> =
@@ -49,7 +49,7 @@ impl LibrawRawdata {
                         .collect::<Vec<u16>>()
                 })
                 .unwrap();
-            rawdatas.push(Self::Rgb16(img));
+            return Ok(Self::Rgb16(img));
         } else if unsafe { (*imgdata).rawdata.color4_image }.is_null() {
             clerk::debug!("Found rgba16 raw image.");
             let img: image::ImageBuffer<image::Rgba<u16>, Vec<u16>> =
@@ -61,7 +61,7 @@ impl LibrawRawdata {
                         .collect::<Vec<u16>>()
                 })
                 .unwrap();
-            rawdatas.push(Self::Rgba16(img));
+            return Ok(Self::Rgba16(img));
         } else if !unsafe { (*imgdata).rawdata.float3_image }.is_null() {
             clerk::debug!("Found rgb32 raw image.");
             let img: image::ImageBuffer<image::Rgb<f32>, Vec<f32>> =
@@ -73,7 +73,7 @@ impl LibrawRawdata {
                         .collect::<Vec<f32>>()
                 })
                 .unwrap();
-            rawdatas.push(Self::RgbF32(img));
+            return Ok(Self::RgbF32(img));
         }
         if !unsafe { (*imgdata).rawdata.float4_image }.is_null() {
             clerk::debug!("Found rgba32 raw image.");
@@ -87,8 +87,9 @@ impl LibrawRawdata {
                 })
                 .unwrap();
 
-            rawdatas.push(Self::RgbaF32(img));
+            return Ok(Self::RgbaF32(img));
+        } else {
+            miette::bail!("Raw data is not found.")
         }
-        Ok(rawdatas)
     }
 }

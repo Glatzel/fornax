@@ -3,6 +3,6 @@ mod errors;
 pub mod libraw;
 pub mod utils;
 
-pub use errors::ILibrawErrors;
+use errors::ILibrawErrors;
 pub use libraw::Libraw;
-use utils::mnt_to_string;
+use utils::c_char_to_string;
