@@ -9,14 +9,18 @@ pub fn example_setup() {
         .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
         .init();
     let outdir = output_dir();
-    std::fs::create_dir_all(outdir).expect("output dir already exists.");
+    std::fs::create_dir_all(&outdir).expect("output dir already exists.");
+    assert!(outdir.is_dir());
 }
 
 pub fn root_dir() -> PathBuf {
-    PathBuf::from(std::env::var("CARGO_WORKSPACE_DIR").unwrap())
+    let root = PathBuf::from(std::env::var("CARGO_WORKSPACE_DIR").unwrap());
+    assert!(root.is_dir());
+    root
 }
 pub fn output_dir() -> PathBuf {
     let outdir: PathBuf = root_dir().join("temp/fornax/example");
+    assert!(outdir.is_dir());
     outdir
 }
 
