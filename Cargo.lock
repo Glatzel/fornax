@@ -491,8 +491,6 @@ name = "fornax-devtool"
 version = "0.0.3"
 dependencies = [
  "clerk",
- "dunce",
- "path-slash",
  "tracing",
  "tracing-subscriber",
 ]

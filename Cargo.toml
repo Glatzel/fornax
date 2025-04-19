@@ -20,13 +20,13 @@ bindgen = "0.71"
 bytemuck = "1.22.0"
 chrono = "0.4.40"
 clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.8" }
-dunce = "1.0.5"
+# dunce = "1.0.5"
 # image = "0.25.5"
 image = { git = "https://github.com/fintelia/image", branch = "primitive-ext" }
 libc = "0.2"
 miette = { version = "7.5.0", features = ["fancy"] }
 numpy = "0.24.0"
-path-slash = "0.2.1"
+# path-slash = "0.2.1"
 pkg-config = "0.3.32"
 pyo3 = { version = "0.24.1", features = ["extension-module", "abi3-py311"] }
 rayon = "1.10.0"
