@@ -370,6 +370,7 @@ impl Libraw {
             } else {
                 panic!()
             };
+
             image::Luma::<T>([value])
         });
         Ok(fornax_core::BayerImage::new(img, pattern))
@@ -428,9 +429,6 @@ impl Libraw {
             self.raw2image()?;
         }
 
-        if unsafe { (*self.imgdata).image }.is_null() {
-            miette::bail!("raw image is null.")
-        }
         let size = self.sizes()?;
         let width = size.iwidth();
         let height = size.iheight();
