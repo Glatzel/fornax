@@ -7,8 +7,8 @@ $PSNativeCommandUseErrorActionPreference = $true
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot
 
-& "$ROOT/scripts/maturin-develop.ps1" -config $config
 if ($config -ne 'release') {
+    & "$ROOT/scripts/maturin-develop.ps1" -config $config
     & "$ROOT/scripts/pytest.ps1"
 }
 & "$ROOT/scripts/build-python-whl.ps1" -config $config
