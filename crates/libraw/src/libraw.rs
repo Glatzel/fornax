@@ -420,11 +420,8 @@ impl Libraw {
                             .iter()
                             .copied()
                             .map(|v| {
-                                let value =
                                 // u8 -> u8
-                                if std::any::TypeId::of::<O>()
-                                    == std::any::TypeId::of::<u8>()
-                                {
+                                if std::any::TypeId::of::<O>() == std::any::TypeId::of::<u8>() {
                                     O::from(v).unwrap()
                                 }
                                 // u8 -> u16
@@ -441,8 +438,7 @@ impl Libraw {
                                     O::from(v).unwrap() / O::from(255).unwrap()
                                 } else {
                                     panic!()
-                                };
-                                value
+                                }
                             })
                             .collect()
                     },
@@ -460,7 +456,6 @@ impl Libraw {
                     .iter()
                     .copied()
                     .map(|v| {
-                        let value =
                         // u16 -> u8
                         if std::any::TypeId::of::<O>() == std::any::TypeId::of::<u8>() {
                             O::from(v).unwrap() / O::from(255).unwrap()
@@ -476,8 +471,7 @@ impl Libraw {
                             O::from(v).unwrap() / O::from(65536).unwrap()
                         } else {
                             panic!()
-                        };
-                        value
+                        }
                     })
                     .collect(),
                 )
