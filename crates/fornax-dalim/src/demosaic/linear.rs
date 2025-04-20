@@ -237,9 +237,8 @@ where
 }
 #[cfg(test)]
 mod tests {
-    use crate::demosaic::IDemosaic;
-
     use super::*;
+    use crate::demosaic::IDemosaic;
 
     #[test]
     fn test_linear_rggb() -> miette::Result<()> {
