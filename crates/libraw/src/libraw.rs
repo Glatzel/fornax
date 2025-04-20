@@ -583,7 +583,7 @@ where
     }
 }
 impl ILibrawErrors for Libraw {}
-
+// region:Test
 #[cfg(test)]
 mod tests {
     use std::io::Read;
