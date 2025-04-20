@@ -600,7 +600,7 @@ mod tests {
     }
     #[test]
     pub fn test_open_buffer() -> miette::Result<()> {
-        let mut file = std::fs::File::open(fornax_devtool::raw_file())?);
+        let mut file = std::fs::File::open(fornax_devtool::raw_file()).into_diagnostic()?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer).into_diagnostic()?;
         let libraw = Libraw::default();
@@ -613,6 +613,27 @@ mod tests {
         libraw
             .open_file(&fornax_devtool::raw_file())?
             .unpack_thumb()?;
+        Ok(())
+    }
+    // region:Parameters setters/getters
+    #[test]
+    fn test_get_raw_height() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        let value = libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .get_raw_height()?;
+        assert_eq!(3516, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_raw_width() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        let value = libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .get_raw_width()?;
+        assert_eq!(5360, value);
         Ok(())
     }
     // region:Auxiliary Functions
