@@ -253,7 +253,7 @@ impl Libraw {
     fn _libraw_unpack_function_name() {
         unimplemented!()
     }
-    pub fn libraw_color(&self, row: i32, col: i32) -> i32 {
+    pub fn color(&self, row: i32, col: i32) -> i32 {
         unsafe { libraw_sys::libraw_COLOR(self.imgdata, row, col) }
     }
     pub fn libraw_subtract_black(&self) -> miette::Result<&Self> {
@@ -359,10 +359,10 @@ impl Libraw {
     }
     pub fn bayer_pattern(&self) -> miette::Result<fornax_core::BayerPattern> {
         Self::check_raw_alloc(self.imgdata)?;
-        let pattern0 = self.libraw_color(0, 0);
-        let pattern1 = self.libraw_color(0, 1);
-        let pattern2 = self.libraw_color(1, 0);
-        let pattern3 = self.libraw_color(1, 1);
+        let pattern0 = self.color(0, 0);
+        let pattern1 = self.color(0, 1);
+        let pattern2 = self.color(1, 0);
+        let pattern3 = self.color(1, 1);
         match (pattern0, pattern1, pattern2, pattern3) {
             (0, 1, 3, 2) => Ok(fornax_core::BayerPattern::RGGB),
             (2, 3, 1, 0) => Ok(fornax_core::BayerPattern::BGGR),
@@ -448,7 +448,7 @@ impl Libraw {
             "libraw_raw2image",
         )?;
         if subtract_black {
-            self.raw2image()?;
+            self.libraw_subtract_black()?;
         }
 
         let size = self.get_image_sizes()?;
@@ -824,6 +824,11 @@ mod tests {
 
     // region:Auxiliary Functions
     #[test]
+    fn test_version() {
+        let version = Libraw::version();
+        assert_eq!(version, "0.21.4-Release".to_string());
+    }
+    #[test]
     fn test_camera_count() {
         let count = Libraw::camera_count();
         println!("camera_count: {}", count);
@@ -834,5 +839,13 @@ mod tests {
         let camera_list = Libraw::camera_list();
         println!("{:?}", camera_list);
         assert!(camera_list.len() > 0);
+    }
+    #[test]
+    fn test_color() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        let value = libraw.open_file(&fornax_devtool::raw_file())?.color(0, 0);
+
+        assert_eq!(value, 3);
+        Ok(())
     }
 }
