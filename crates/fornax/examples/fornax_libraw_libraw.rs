@@ -20,7 +20,7 @@ fn default_settings() -> miette::Result<()> {
         ..Default::default()
     };
     let libraw = libraw::Libraw::new(Some(dcraw_params));
-    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
+    let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u8> = Fornax::new(&libraw, &libraw);
     let img = manager
         .decode_file(&fornax_devtool::raw_file())?
         .post_process()?;
