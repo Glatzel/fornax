@@ -235,3 +235,186 @@ where
         img
     }
 }
+#[cfg(test)]
+mod tests {
+    use crate::demosaic::IDemosaic;
+
+    use super::*;
+
+    #[test]
+    fn test_linear_rggb() -> miette::Result<()> {
+        let test_vec: Vec<f32> = vec![
+            1.0, 2.0, 3.0, // Row 1
+            4.0, 5.0, 6.0, // Row 2
+            7.0, 8.0, 9.0, // Row 3
+        ];
+
+        let bayer_image = BayerImage::new(
+            ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
+            fornax_core::BayerPattern::RGGB,
+        );
+        let demosaicer = DemosaicLinear();
+        let output_img = demosaicer.demosaic(&bayer_image);
+        let out_vec: Vec<Vec<Vec<f32>>> = output_img
+            .as_raw()
+            .chunks(9)
+            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .collect();
+        println!("{:?}", out_vec[0]);
+        println!("{:?}", out_vec[1]);
+        println!("{:?}", out_vec[2]);
+        assert_eq!(
+            vec![
+                vec![
+                    vec![1.0, 3.0, 5.0],
+                    vec![2.0, 2.0, 5.0],
+                    vec![3.0, 4.0, 5.0]
+                ],
+                vec![
+                    vec![4.0, 4.0, 5.0],
+                    vec![5.0, 5.0, 5.0],
+                    vec![6.0, 6.0, 5.0]
+                ],
+                vec![
+                    vec![7.0, 6.0, 5.0],
+                    vec![8.0, 8.0, 5.0],
+                    vec![9.0, 7.0, 5.0]
+                ]
+            ],
+            out_vec
+        );
+        Ok(())
+    }
+    #[test]
+    fn test_linear_bggr() -> miette::Result<()> {
+        let test_vec: Vec<f32> = vec![
+            1.0, 2.0, 3.0, // Row 1
+            4.0, 5.0, 6.0, // Row 2
+            7.0, 8.0, 9.0, // Row 3
+        ];
+
+        let bayer_image = BayerImage::new(
+            ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
+            fornax_core::BayerPattern::BGGR,
+        );
+        let demosaicer = DemosaicLinear();
+        let output_img = demosaicer.demosaic(&bayer_image);
+        let out_vec: Vec<Vec<Vec<f32>>> = output_img
+            .as_raw()
+            .chunks(9)
+            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .collect();
+        println!("{:?}", out_vec[0]);
+        println!("{:?}", out_vec[1]);
+        println!("{:?}", out_vec[2]);
+        assert_eq!(
+            vec![
+                vec![
+                    vec![5.0, 3.0, 1.0],
+                    vec![5.0, 2.0, 2.0],
+                    vec![5.0, 4.0, 3.0]
+                ],
+                vec![
+                    vec![5.0, 4.0, 4.0],
+                    vec![5.0, 5.0, 5.0],
+                    vec![5.0, 6.0, 6.0]
+                ],
+                vec![
+                    vec![5.0, 6.0, 7.0],
+                    vec![5.0, 8.0, 8.0],
+                    vec![5.0, 7.0, 9.0]
+                ],
+            ],
+            out_vec
+        );
+        Ok(())
+    }
+    #[test]
+    fn test_linear_grbg() -> miette::Result<()> {
+        let test_vec: Vec<f32> = vec![
+            1.0, 2.0, 3.0, // Row 1
+            4.0, 5.0, 6.0, // Row 2
+            7.0, 8.0, 9.0, // Row 3
+        ];
+
+        let bayer_image = BayerImage::new(
+            ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
+            fornax_core::BayerPattern::GRBG,
+        );
+        let demosaicer = DemosaicLinear();
+        let output_img = demosaicer.demosaic(&bayer_image);
+        let out_vec: Vec<Vec<Vec<f32>>> = output_img
+            .as_raw()
+            .chunks(9)
+            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .collect();
+        println!("{:?}", out_vec[0]);
+        println!("{:?}", out_vec[1]);
+        println!("{:?}", out_vec[2]);
+        assert_eq!(
+            vec![
+                vec![
+                    vec![2.0, 1.0, 4.0],
+                    vec![2.0, 3.0, 5.0],
+                    vec![2.0, 3.0, 6.0]
+                ],
+                vec![
+                    vec![5.0, 4.3333335, 4.0],
+                    vec![5.0, 5.0, 5.0],
+                    vec![5.0, 5.6666665, 6.0]
+                ],
+                vec![
+                    vec![8.0, 7.0, 4.0],
+                    vec![8.0, 7.0, 5.0],
+                    vec![8.0, 9.0, 6.0]
+                ],
+            ],
+            out_vec
+        );
+        Ok(())
+    }
+    #[test]
+    fn test_linear_gbrg() -> miette::Result<()> {
+        let test_vec: Vec<f32> = vec![
+            1.0, 2.0, 3.0, // Row 1
+            4.0, 5.0, 6.0, // Row 2
+            7.0, 8.0, 9.0, // Row 3
+        ];
+
+        let bayer_image = BayerImage::new(
+            ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
+            fornax_core::BayerPattern::GBRG,
+        );
+        let demosaicer = DemosaicLinear();
+        let output_img = demosaicer.demosaic(&bayer_image);
+        let out_vec: Vec<Vec<Vec<f32>>> = output_img
+            .as_raw()
+            .chunks(9)
+            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .collect();
+        println!("{:?}", out_vec[0]);
+        println!("{:?}", out_vec[1]);
+        println!("{:?}", out_vec[2]);
+        assert_eq!(
+            vec![
+                vec![
+                    vec![4.0, 1.0, 2.0],
+                    vec![5.0, 3.0, 2.0],
+                    vec![6.0, 3.0, 2.0]
+                ],
+                vec![
+                    vec![4.0, 4.3333335, 5.0],
+                    vec![5.0, 5.0, 5.0],
+                    vec![6.0, 5.6666665, 5.0]
+                ],
+                vec![
+                    vec![4.0, 7.0, 8.0],
+                    vec![5.0, 7.0, 8.0],
+                    vec![6.0, 9.0, 8.0]
+                ],
+            ],
+            out_vec
+        );
+        Ok(())
+    }
+}
