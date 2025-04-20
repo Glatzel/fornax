@@ -7,7 +7,7 @@ use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 
-use fornax_core::{BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor};
+use fornax_core::{BayerChannel, BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{EncodableLayout, ImageBuffer, Rgb};
 pub use image_sizes::{LibrawFlip, LibrawImageSizes};
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
@@ -152,9 +152,9 @@ impl Libraw {
         Self::check_raw_alloc(self.imgdata)?;
         Ok(unsafe { libraw_sys::libraw_get_iwidth(self.imgdata) })
     }
-    pub fn get_cam_mul(&self, index: i32) -> miette::Result<f32> {
+    pub fn get_cam_mul(&self, index: BayerChannel) -> miette::Result<f32> {
         Self::check_raw_alloc(self.imgdata)?;
-        Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata, index) })
+        Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata, u8::from(index) as i32) })
     }
     pub fn get_pre_mul(&self, index: i32) -> miette::Result<f32> {
         Self::check_raw_alloc(self.imgdata)?;
@@ -654,6 +654,21 @@ mod tests {
             .unpack()?
             .get_iwidth()?;
         assert_eq!(5202, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_cam_mul() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
+
+        let value = libraw.get_cam_mul(BayerChannel::R)?;
+        assert_eq!(2127.0, value);
+        let value = libraw.get_cam_mul(BayerChannel::G)?;
+        assert_eq!(1024.0, value);
+        let value = libraw.get_cam_mul(BayerChannel::B)?;
+        assert_eq!(1584.0, value);
+        let value = libraw.get_cam_mul(BayerChannel::G2)?;
+        assert_eq!(1024.0, value);
         Ok(())
     }
     // region:Auxiliary Functions

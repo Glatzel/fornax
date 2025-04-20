@@ -15,7 +15,16 @@ pub enum BayerChannel {
     B,
     G2,
 }
-
+impl From<BayerChannel> for u8 {
+    fn from(value: BayerChannel) -> Self {
+        match value {
+            BayerChannel::R => 0,
+            BayerChannel::G => 1,
+            BayerChannel::B => 2,
+            BayerChannel::G2 => 3,
+        }
+    }
+}
 /// An enum representing common Bayer patterns used in image sensors.
 ///
 /// The `BayerPattern` enum defines the layout of color channels in a Bayer filter:
