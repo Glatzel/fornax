@@ -18,7 +18,7 @@ pub use rawdata::LibrawRawdata;
 use crate::ILibrawErrors;
 use crate::dcraw::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
-    DCRawProcessedImage,
+    DCRawProcessedImage, DCRawUserQual,
 };
 use crate::utils::c_char_to_string;
 #[derive(Debug)]
@@ -183,8 +183,8 @@ impl Libraw {
         unsafe { libraw_sys::libraw_set_user_mul(self.imgdata, index, val) };
         self
     }
-    pub fn set_demosaic(&self, value: i32) -> &Self {
-        unsafe { libraw_sys::libraw_set_demosaic(self.imgdata, value) };
+    pub fn set_demosaic(&self, value: DCRawUserQual) -> &Self {
+        unsafe { libraw_sys::libraw_set_demosaic(self.imgdata, i32::from(value)) };
         self
     }
     pub fn set_adjust_maximum_thr(&self, value: f32) -> &Self {
@@ -468,6 +468,9 @@ impl Libraw {
             .unwrap();
         Ok(img)
     }
+    pub fn get_params(&self) -> miette::Result<libraw_sys::libraw_output_params_t> {
+        Ok(unsafe { (*self.imgdata).params })
+    }
 }
 
 impl Drop for Libraw {
@@ -705,6 +708,126 @@ mod tests {
 
         Ok(())
     }
+    #[test]
+    fn test_set_user_mul() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_user_mul(1, 2.0);
+        assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
+
+        Ok(())
+    }
+    #[test]
+    fn test_set_demosaic() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_demosaic(DCRawUserQual::Linear);
+        assert_eq!(
+            i32::from(DCRawUserQual::Linear),
+            libraw.get_params()?.user_qual
+        );
+
+        Ok(())
+    }
+    #[test]
+    fn test_set_adjust_maximum_thr() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_adjust_maximum_thr(2.0);
+        assert_approx_eq!(f32, 2.0, libraw.get_params()?.adjust_maximum_thr);
+
+        Ok(())
+    }
+    #[test]
+    fn test_set_output_color() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_output_color(DCRawOutputColor::ACES);
+        assert_eq!(
+            i32::from(DCRawOutputColor::ACES),
+            libraw.get_params()?.output_color
+        );
+
+        Ok(())
+    }
+    #[test]
+    fn set_output_bps() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_output_bps(DCRawOutputBps::_16bit);
+        assert_eq!(
+            i32::from(DCRawOutputBps::_16bit),
+            libraw.get_params()?.output_bps
+        );
+
+        Ok(())
+    }
+    #[test]
+    fn test_set_gamma() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_gamma(1, 2.0);
+        assert_approx_eq!(f64, 2.0, libraw.get_params()?.gamm[1]);
+
+        Ok(())
+    }
+    // #[test]
+    // fn test_set_user_mul() -> miette::Result<()> {
+    //     let libraw = Libraw::default();
+    //     libraw
+    //         .open_file(&fornax_devtool::raw_file())?
+    //         .unpack()?
+    //         .set_user_mul(1, 2.0);
+    //     assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
+
+    //     Ok(())
+    // }
+    // #[test]
+    // fn test_set_user_mul() -> miette::Result<()> {
+    //     let libraw = Libraw::default();
+    //     libraw
+    //         .open_file(&fornax_devtool::raw_file())?
+    //         .unpack()?
+    //         .set_user_mul(1, 2.0);
+    //     assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
+
+    //     Ok(())
+    // }
+    // #[test]
+    // fn test_set_user_mul() -> miette::Result<()> {
+    //     let libraw = Libraw::default();
+    //     libraw
+    //         .open_file(&fornax_devtool::raw_file())?
+    //         .unpack()?
+    //         .set_user_mul(1, 2.0);
+    //     assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
+
+    //     Ok(())
+    // }
+    // #[test]
+    // fn test_set_user_mul() -> miette::Result<()> {
+    //     let libraw = Libraw::default();
+    //     libraw
+    //         .open_file(&fornax_devtool::raw_file())?
+    //         .unpack()?
+    //         .set_user_mul(1, 2.0);
+    //     assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
+
+    //     Ok(())
+    // }
+
     // region:Auxiliary Functions
     #[test]
     fn test_camera_count() {
