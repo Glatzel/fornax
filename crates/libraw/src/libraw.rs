@@ -381,11 +381,17 @@ impl Libraw {
             let pixel = raw_img.get_pixel(x, y);
             let value = T::from(pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3])).unwrap();
 
-            let value = if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u8>() {
+            let value = 
+            // u16 -> u8
+            if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u8>() {
                 value / T::from(255).unwrap()
-            } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u16>() {
+            } 
+             // u16 -> u16
+            else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u16>() {
                 value
-            } else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f32>()
+            } 
+            // u16 -> f32/f64
+            else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f32>()
                 || std::any::TypeId::of::<T>() == std::any::TypeId::of::<f64>()
             {
                 value / T::from(65535).unwrap()
@@ -413,7 +419,31 @@ impl Libraw {
                         slice::from_raw_parts(processed.data(), processed.data_size() as usize)
                             .iter()
                             .copied()
-                            .map(|v| O::from(v).unwrap())
+                            .map(|v| {
+                                let value = 
+                                // u8 -> u8
+                                if std::any::TypeId::of::<O>()
+                                    == std::any::TypeId::of::<u8>()
+                                {
+                                    O::from(v).unwrap()
+                                }
+                                // u8 -> u16
+                                else if std::any::TypeId::of::<O>()
+                                    == std::any::TypeId::of::<u16>()
+                                {
+                                    O::from(v).unwrap() * O::from(255).unwrap()
+                                } 
+                                // u8 -> f32/f64
+                                else if std::any::TypeId::of::<O>()
+                                    == std::any::TypeId::of::<f32>()
+                                    || std::any::TypeId::of::<O>() == std::any::TypeId::of::<f64>()
+                                {
+                                    O::from(v).unwrap() / O::from(255).unwrap()
+                                } else {
+                                    panic!()
+                                };
+                                value
+                            })
                             .collect()
                     },
                 )
@@ -429,7 +459,26 @@ impl Libraw {
                     })
                     .iter()
                     .copied()
-                    .map(|v| O::from(v).unwrap())
+                    .map(|v| {
+                        let value = 
+                        // u16 -> u8
+                        if std::any::TypeId::of::<O>() == std::any::TypeId::of::<u8>() {
+                            O::from(v).unwrap() / O::from(255).unwrap()
+                        }
+                        // u16 -> u16
+                        else if std::any::TypeId::of::<O>() == std::any::TypeId::of::<u16>() {
+                            O::from(v).unwrap()
+                        }
+                        // u16 -> f32/f64
+                        else if std::any::TypeId::of::<O>() == std::any::TypeId::of::<f32>()
+                            || std::any::TypeId::of::<O>() == std::any::TypeId::of::<f64>()
+                        {
+                            O::from(v).unwrap() / O::from(65536).unwrap()
+                        } else {
+                            panic!()
+                        };
+                        value
+                    })
                     .collect(),
                 )
                 .unwrap();
