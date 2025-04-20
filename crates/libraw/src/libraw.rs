@@ -636,6 +636,26 @@ mod tests {
         assert_eq!(5360, value);
         Ok(())
     }
+    #[test]
+    fn test_get_iheight() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        let value = libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .get_iheight()?;
+        assert_eq!(3464, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_iwidth() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        let value = libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .get_iwidth()?;
+        assert_eq!(5202, value);
+        Ok(())
+    }
     // region:Auxiliary Functions
     #[test]
     fn test_camera_count() {
