@@ -7,7 +7,7 @@ use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 
-use fornax_core::{BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor};
+use fornax_core::{BayerChannel, BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{EncodableLayout, ImageBuffer, Rgb};
 pub use image_sizes::{LibrawFlip, LibrawImageSizes};
 pub use imgother::{LibrawGpsInfo, LibrawImgOther};
@@ -18,7 +18,7 @@ pub use rawdata::LibrawRawdata;
 use crate::ILibrawErrors;
 use crate::dcraw::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
-    DCRawProcessedImage,
+    DCRawProcessedImage, DCRawUserQual,
 };
 use crate::utils::c_char_to_string;
 #[derive(Debug)]
@@ -49,10 +49,10 @@ impl Libraw {
         )?;
         Ok(self)
     }
-    pub fn _open_file_ex(&self) -> miette::Result<&Self> {
+    fn _open_file_ex(&self) -> miette::Result<&Self> {
         unimplemented!()
     }
-    pub fn open_wfile(&self) -> miette::Result<&Self> {
+    fn _open_wfile(&self) -> miette::Result<&Self> {
         unimplemented!()
     }
     fn _openwfile_ex(&self) -> miette::Result<&Self> {
@@ -152,13 +152,13 @@ impl Libraw {
         Self::check_raw_alloc(self.imgdata)?;
         Ok(unsafe { libraw_sys::libraw_get_iwidth(self.imgdata) })
     }
-    pub fn get_cam_mul(&self, index: i32) -> miette::Result<f32> {
+    pub fn get_cam_mul(&self, index: BayerChannel) -> miette::Result<f32> {
         Self::check_raw_alloc(self.imgdata)?;
-        Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata, index) })
+        Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata, u8::from(index) as i32) })
     }
-    pub fn get_pre_mul(&self, index: i32) -> miette::Result<f32> {
+    pub fn get_pre_mul(&self, index: BayerChannel) -> miette::Result<f32> {
         Self::check_raw_alloc(self.imgdata)?;
-        Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata, index) })
+        Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata, u8::from(index) as i32) })
     }
     pub fn get_rgb_cam(&self, index1: i32, index2: i32) -> miette::Result<f32> {
         Self::check_raw_alloc(self.imgdata)?;
@@ -183,8 +183,8 @@ impl Libraw {
         unsafe { libraw_sys::libraw_set_user_mul(self.imgdata, index, val) };
         self
     }
-    pub fn set_demosaic(&self, value: i32) -> &Self {
-        unsafe { libraw_sys::libraw_set_demosaic(self.imgdata, value) };
+    pub fn set_demosaic(&self, value: DCRawUserQual) -> &Self {
+        unsafe { libraw_sys::libraw_set_demosaic(self.imgdata, i32::from(value)) };
         self
     }
     pub fn set_adjust_maximum_thr(&self, value: f32) -> &Self {
@@ -203,7 +203,7 @@ impl Libraw {
         unsafe { libraw_sys::libraw_set_gamma(self.imgdata, index, value) };
         self
     }
-    pub fn set_no_auto_bright(&self, value: f32) -> &Self {
+    pub fn set_no_auto_bright(&self, value: bool) -> &Self {
         unsafe { libraw_sys::libraw_set_no_auto_bright(self.imgdata, value as i32) };
         self
     }
@@ -232,11 +232,20 @@ impl Libraw {
     fn _libraw_capabilities() {
         unimplemented!()
     }
-    fn _libraw_camera_count() {
-        unimplemented!()
+    pub fn camera_count() -> i32 {
+        unsafe { libraw_sys::libraw_cameraCount() }
     }
-    fn _libraw_camera_list() {
-        unimplemented!()
+    pub fn camera_list() -> Vec<String> {
+        let mut vec = Vec::new();
+        let ptr = unsafe { libraw_sys::libraw_cameraList() };
+        unsafe {
+            let mut current_ptr = ptr;
+            while !(*current_ptr).is_null() {
+                vec.push(c_char_to_string(*current_ptr));
+                current_ptr = current_ptr.add(1);
+            }
+        }
+        vec
     }
     fn _libraw_get_decoder_info() {
         unimplemented!()
@@ -244,7 +253,7 @@ impl Libraw {
     fn _libraw_unpack_function_name() {
         unimplemented!()
     }
-    pub fn libraw_color(&self, row: i32, col: i32) -> i32 {
+    pub fn color(&self, row: i32, col: i32) -> i32 {
         unsafe { libraw_sys::libraw_COLOR(self.imgdata, row, col) }
     }
     pub fn libraw_subtract_black(&self) -> miette::Result<&Self> {
@@ -350,10 +359,10 @@ impl Libraw {
     }
     pub fn bayer_pattern(&self) -> miette::Result<fornax_core::BayerPattern> {
         Self::check_raw_alloc(self.imgdata)?;
-        let pattern0 = self.libraw_color(0, 0);
-        let pattern1 = self.libraw_color(0, 1);
-        let pattern2 = self.libraw_color(1, 0);
-        let pattern3 = self.libraw_color(1, 1);
+        let pattern0 = self.color(0, 0);
+        let pattern1 = self.color(0, 1);
+        let pattern2 = self.color(1, 0);
+        let pattern3 = self.color(1, 1);
         match (pattern0, pattern1, pattern2, pattern3) {
             (0, 1, 3, 2) => Ok(fornax_core::BayerPattern::RGGB),
             (2, 3, 1, 0) => Ok(fornax_core::BayerPattern::BGGR),
@@ -439,7 +448,7 @@ impl Libraw {
             "libraw_raw2image",
         )?;
         if subtract_black {
-            self.raw2image()?;
+            self.libraw_subtract_black()?;
         }
 
         let size = self.get_image_sizes()?;
@@ -458,6 +467,9 @@ impl Libraw {
             })
             .unwrap();
         Ok(img)
+    }
+    pub fn get_params(&self) -> miette::Result<libraw_sys::libraw_output_params_t> {
+        Ok(unsafe { (*self.imgdata).params })
     }
 }
 
@@ -574,3 +586,266 @@ where
     }
 }
 impl ILibrawErrors for Libraw {}
+// region:Test
+#[cfg(test)]
+mod tests {
+    use std::io::Read;
+
+    use float_cmp::assert_approx_eq;
+    use miette::IntoDiagnostic;
+
+    use super::*;
+    // region:Methods Loading Data from a File
+    #[test]
+    fn test_open_file() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw.open_file(&fornax_devtool::raw_file())?;
+        Ok(())
+    }
+    #[test]
+    pub fn test_open_buffer() -> miette::Result<()> {
+        let mut file = std::fs::File::open(fornax_devtool::raw_file()).into_diagnostic()?;
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer).into_diagnostic()?;
+        let libraw = Libraw::default();
+        libraw.open_buffer(&buffer)?;
+        Ok(())
+    }
+    #[test]
+    fn test_unpack_thumb() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack_thumb()?;
+        Ok(())
+    }
+    // region:Parameters setters/getters
+    #[test]
+    fn test_get_raw_height() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        let value = libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .get_raw_height()?;
+        assert_eq!(3516, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_raw_width() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        let value = libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .get_raw_width()?;
+        assert_eq!(5360, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_iheight() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        let value = libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .get_iheight()?;
+        assert_eq!(3464, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_iwidth() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        let value = libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .get_iwidth()?;
+        assert_eq!(5202, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_cam_mul() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
+
+        let value = libraw.get_cam_mul(BayerChannel::R)?;
+        assert_eq!(2127.0, value);
+        let value = libraw.get_cam_mul(BayerChannel::G)?;
+        assert_eq!(1024.0, value);
+        let value = libraw.get_cam_mul(BayerChannel::B)?;
+        assert_eq!(1584.0, value);
+        let value = libraw.get_cam_mul(BayerChannel::G2)?;
+        assert_eq!(1024.0, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_pre_mul() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
+
+        let value = libraw.get_pre_mul(BayerChannel::R)?;
+        assert_approx_eq!(f32, 2.1848476, value);
+        let value = libraw.get_pre_mul(BayerChannel::G)?;
+        assert_approx_eq!(f32, 0.9358199, value);
+        let value = libraw.get_pre_mul(BayerChannel::B)?;
+        assert_approx_eq!(f32, 1.2567647, value);
+        let value = libraw.get_pre_mul(BayerChannel::G2)?;
+        assert_approx_eq!(f32, 0.0, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_rgb_cam() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
+        let value = libraw.get_rgb_cam(1, 2)?;
+        assert_approx_eq!(f32, -0.5123857, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_color_maximum() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
+        let value = libraw.get_color_maximum()?;
+        assert_eq!(13584, value);
+        Ok(())
+    }
+    #[test]
+    fn test_set_user_mul() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_user_mul(1, 2.0);
+        assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
+        Ok(())
+    }
+    #[test]
+    fn test_set_demosaic() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_demosaic(DCRawUserQual::Linear);
+        assert_eq!(
+            i32::from(DCRawUserQual::Linear),
+            libraw.get_params()?.user_qual
+        );
+        Ok(())
+    }
+    #[test]
+    fn test_set_adjust_maximum_thr() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_adjust_maximum_thr(2.0);
+        assert_approx_eq!(f32, 2.0, libraw.get_params()?.adjust_maximum_thr);
+        Ok(())
+    }
+    #[test]
+    fn test_set_output_color() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_output_color(DCRawOutputColor::ACES);
+        assert_eq!(
+            i32::from(DCRawOutputColor::ACES),
+            libraw.get_params()?.output_color
+        );
+        Ok(())
+    }
+    #[test]
+    fn set_output_bps() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_output_bps(DCRawOutputBps::_16bit);
+        assert_eq!(
+            i32::from(DCRawOutputBps::_16bit),
+            libraw.get_params()?.output_bps
+        );
+        Ok(())
+    }
+    #[test]
+    fn test_set_gamma() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_gamma(1, 2.0);
+        assert_approx_eq!(f64, 2.0, libraw.get_params()?.gamm[1]);
+        Ok(())
+    }
+    #[test]
+    fn test_set_no_auto_bright() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_no_auto_bright(true);
+        assert!(libraw.get_params()?.no_auto_bright != 0);
+        Ok(())
+    }
+    #[test]
+    fn test_set_bright() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_bright(2.0);
+        assert_approx_eq!(f32, 2.0, libraw.get_params()?.bright);
+        Ok(())
+    }
+    #[test]
+    fn test_set_highlight() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_highlight(DCRawHighlightMode::Reconstruct4);
+        assert_eq!(
+            i32::from(DCRawHighlightMode::Reconstruct4),
+            libraw.get_params()?.highlight
+        );
+        Ok(())
+    }
+    #[test]
+    fn set_fbdd_noiserd() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_fbdd_noiserd(DCRawFbddNoiserd::Off);
+        assert_eq!(
+            i32::from(DCRawFbddNoiserd::Off),
+            libraw.get_params()?.fbdd_noiserd
+        );
+        Ok(())
+    }
+
+    // region:Auxiliary Functions
+    #[test]
+    fn test_version() {
+        let version = Libraw::version();
+        assert_eq!(version, "0.21.4-Release".to_string());
+    }
+    #[test]
+    fn test_camera_count() {
+        let count = Libraw::camera_count();
+        println!("camera_count: {}", count);
+        assert!(count > 0);
+    }
+    #[test]
+    fn test_camera_list() {
+        let camera_list = Libraw::camera_list();
+        println!("{:?}", camera_list);
+        assert!(camera_list.len() > 0);
+    }
+    #[test]
+    fn test_color() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        let value = libraw.open_file(&fornax_devtool::raw_file())?.color(0, 0);
+
+        assert_eq!(value, 3);
+        Ok(())
+    }
+}

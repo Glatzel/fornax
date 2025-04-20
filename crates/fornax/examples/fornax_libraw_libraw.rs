@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use fornax::Fornax;
 use libraw::dcraw::DCRawParams;
 use miette::IntoDiagnostic;
@@ -24,12 +26,13 @@ fn default_settings() -> miette::Result<()> {
     Ok(())
 }
 fn cg() -> miette::Result<()> {
+    let mut file = std::fs::File::open(fornax_devtool::raw_file()).into_diagnostic()?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer).into_diagnostic()?;
     let params = libraw::dcraw::DCRawParams::preset_cg();
     let libraw = libraw::Libraw::new(Some(params));
     let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
-    let img = manager
-        .decode_file(&fornax_devtool::raw_file())?
-        .post_process()?;
+    let img = manager.decode_buffer(&buffer)?.post_process()?;
     img.save(fornax_devtool::output_dir().join("process-cg.tiff"))
         .into_diagnostic()?;
     clerk::info!("save img to: process-cg.tiff");

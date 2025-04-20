@@ -370,7 +370,7 @@ checksum = "6184e33543162437515c2e2b48714794e37845ec9851711914eec9d308f6ebe8"
 
 [[package]]
 name = "dnc"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "assert_cmd",
  "clerk",
@@ -450,8 +450,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "float-cmp"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b09cf3155332e944990140d967ff5eceb70df778b34f77d8075db46e4704e6d8"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "fornax"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "assert_cmd",
  "clerk",
@@ -466,7 +475,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-core"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "image",
  "miette",
@@ -474,7 +483,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-dalim"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "clerk",
  "fornax-core",
@@ -488,7 +497,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-devtool"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "clerk",
  "tracing",
@@ -497,7 +506,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-py"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "clerk",
  "fornax",
@@ -747,12 +756,13 @@ dependencies = [
 
 [[package]]
 name = "libraw"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "assert_cmd",
  "bytemuck",
  "chrono",
  "clerk",
+ "float-cmp",
  "fornax-core",
  "fornax-devtool",
  "image",
@@ -763,7 +773,7 @@ dependencies = [
 
 [[package]]
 name = "libraw-sys"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "bindgen",
  "clerk",
