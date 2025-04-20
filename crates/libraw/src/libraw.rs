@@ -838,7 +838,7 @@ mod tests {
     fn test_camera_list() {
         let camera_list = Libraw::camera_list();
         println!("{:?}", camera_list);
-        assert!(camera_list.len() > 0);
+        assert!(!camera_list.is_empty());
     }
     #[test]
     fn test_color() -> miette::Result<()> {

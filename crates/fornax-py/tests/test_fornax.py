@@ -11,19 +11,6 @@ img_dir = root / "external" / "raw-images" / "images"
 fornax.init_tracing(fornax.LogLevel.DEBUG, True)
 
 
-def test_libraw():
-    f = img_dir / "colorchart-eos-7d.cr2"
-    img = fornax.Fornax(
-        output_bits=fornax.FornaxOutputBits.u16,
-        decoder_params=fornax.decoder.LibrawParams(),
-        post_processor_params=fornax.post_processor.DCRawParams(),
-    ).process(f)
-    out_file = temp_dir / "test_libraw.tiff"
-    assert img.shape == (3464, 5202, 3)
-    iio.imwrite(out_file, img)
-    assert out_file.is_file()
-
-
 def test_dnc():
     f = img_dir / "colorchart-eos-7d.cr2"
     dnc = fornax.dnc.DncParams(
@@ -40,17 +27,30 @@ def test_dnc():
         overwrite=True,
     )
     img = fornax.Fornax(
-        output_bits=fornax.FornaxOutputBits.u16,
+        output_bits=fornax.FornaxOutputBits.u8,
         dnc_params=dnc,
         decoder_params=fornax.decoder.LibrawParams(),
         post_processor_params=fornax.post_processor.DCRawParams(),
     ).process(f)
-    out_file = temp_dir / "dnc.tiff"
+    out_file = temp_dir / "test_dnc.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()
 
 
-def test_dcraw():
+def test_libraw_libraw_default():
+    f = img_dir / "colorchart-eos-7d.cr2"
+    img = fornax.Fornax(
+        output_bits=fornax.FornaxOutputBits.u8,
+        decoder_params=fornax.decoder.LibrawParams(),
+        post_processor_params=fornax.post_processor.DCRawParams(),
+    ).process(f)
+    out_file = temp_dir / "test_libraw_libraw_default.tiff"
+    assert img.shape == (3464, 5202, 3)
+    iio.imwrite(out_file, img)
+    assert out_file.is_file()
+
+
+def test_libraw_libraw_custom():
     f = img_dir / "colorchart-eos-7d.cr2"
     params = fornax.post_processor.DCRawParams(
         greybox=None,
@@ -100,7 +100,22 @@ def test_dcraw():
         decoder_params=fornax.decoder.LibrawParams(),
         post_processor_params=params,
     ).process(f)
-    out_file = temp_dir / "test_dcraw.tiff"
+    out_file = temp_dir / "test_libraw_libraw_custom.tiff"
     iio.imwrite(out_file, img)
     assert out_file.is_file()
     # assert False
+
+
+def test_libraw_dalim():
+    f = img_dir / "colorchart-eos-7d.cr2"
+    img = fornax.Fornax(
+        output_bits=fornax.FornaxOutputBits.u16,
+        decoder_params=fornax.decoder.LibrawParams(),
+        post_processor_params=fornax.post_processor.DalimParams(
+            demosaicer=fornax.post_processor.DalimDemosaicer.Linear
+        ),
+    ).process(f)
+    out_file = temp_dir / "test_libraw_dalim.tiff"
+    assert img.shape == (3464, 5202, 3)
+    iio.imwrite(out_file, img)
+    assert out_file.is_file()
