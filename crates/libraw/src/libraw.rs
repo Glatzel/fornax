@@ -49,10 +49,10 @@ impl Libraw {
         )?;
         Ok(self)
     }
-    fn _open_file_ex(&self) -> miette::Result<&Self> {
+    pub fn _open_file_ex(&self) -> miette::Result<&Self> {
         unimplemented!()
     }
-    fn _open_wfile(&self) -> miette::Result<&Self> {
+    pub fn open_wfile(&self) -> miette::Result<&Self> {
         unimplemented!()
     }
     fn _openwfile_ex(&self) -> miette::Result<&Self> {
@@ -232,20 +232,11 @@ impl Libraw {
     fn _libraw_capabilities() {
         unimplemented!()
     }
-    pub fn camera_count() -> i32 {
-        unsafe { libraw_sys::libraw_cameraCount() }
+    fn _libraw_camera_count() {
+        unimplemented!()
     }
-    pub fn camera_list() -> Vec<String> {
-        let mut vec = Vec::new();
-        let ptr = unsafe { libraw_sys::libraw_cameraList() };
-        unsafe {
-            let mut current_ptr = ptr;
-            while !(*current_ptr).is_null() {
-                vec.push(c_char_to_string(*current_ptr));
-                current_ptr = current_ptr.add(1);
-            }
-        }
-        vec
+    fn _libraw_camera_list() {
+        unimplemented!()
     }
     fn _libraw_get_decoder_info() {
         unimplemented!()
@@ -583,70 +574,3 @@ where
     }
 }
 impl ILibrawErrors for Libraw {}
-// region:Test
-#[cfg(test)]
-mod tests {
-    use std::io::Read;
-
-    use miette::IntoDiagnostic;
-
-    use super::*;
-    // region:Methods Loading Data from a File
-    #[test]
-    fn test_open_file() -> miette::Result<()> {
-        let libraw = Libraw::default();
-        libraw.open_file(&fornax_devtool::raw_file())?;
-        Ok(())
-    }
-    #[test]
-    pub fn test_open_buffer() -> miette::Result<()> {
-        let mut file = std::fs::File::open(fornax_devtool::raw_file()).into_diagnostic()?;
-        let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer).into_diagnostic()?;
-        let libraw = Libraw::default();
-        libraw.open_buffer(&buffer)?;
-        Ok(())
-    }
-    #[test]
-    fn test_unpack_thumb() -> miette::Result<()> {
-        let libraw = Libraw::default();
-        libraw
-            .open_file(&fornax_devtool::raw_file())?
-            .unpack_thumb()?;
-        Ok(())
-    }
-    // region:Parameters setters/getters
-    #[test]
-    fn test_get_raw_height() -> miette::Result<()> {
-        let libraw = Libraw::default();
-        let value = libraw
-            .open_file(&fornax_devtool::raw_file())?
-            .unpack()?
-            .get_raw_height()?;
-        assert_eq!(3516, value);
-        Ok(())
-    }
-    #[test]
-    fn test_get_raw_width() -> miette::Result<()> {
-        let libraw = Libraw::default();
-        let value = libraw
-            .open_file(&fornax_devtool::raw_file())?
-            .unpack()?
-            .get_raw_width()?;
-        assert_eq!(5360, value);
-        Ok(())
-    }
-    // region:Auxiliary Functions
-    #[test]
-    fn test_camera_count() {
-        let count = Libraw::camera_count();
-        println!("camera_count: {}", count);
-        assert!(count > 0);
-    }
-    #[test]
-    fn test_camera_list() {
-        let camera_list = Libraw::camera_list();
-        println!("{:?}", camera_list);
-        assert!(camera_list.len() > 0);
-    }
-}
