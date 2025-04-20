@@ -381,15 +381,15 @@ impl Libraw {
             let pixel = raw_img.get_pixel(x, y);
             let value = T::from(pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3])).unwrap();
 
-            let value = 
+            let value =
             // u16 -> u8
             if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u8>() {
                 value / T::from(255).unwrap()
-            } 
+            }
              // u16 -> u16
             else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u16>() {
                 value
-            } 
+            }
             // u16 -> f32/f64
             else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f32>()
                 || std::any::TypeId::of::<T>() == std::any::TypeId::of::<f64>()
@@ -420,7 +420,7 @@ impl Libraw {
                             .iter()
                             .copied()
                             .map(|v| {
-                                let value = 
+                                let value =
                                 // u8 -> u8
                                 if std::any::TypeId::of::<O>()
                                     == std::any::TypeId::of::<u8>()
@@ -432,7 +432,7 @@ impl Libraw {
                                     == std::any::TypeId::of::<u16>()
                                 {
                                     O::from(v).unwrap() * O::from(255).unwrap()
-                                } 
+                                }
                                 // u8 -> f32/f64
                                 else if std::any::TypeId::of::<O>()
                                     == std::any::TypeId::of::<f32>()
@@ -460,7 +460,7 @@ impl Libraw {
                     .iter()
                     .copied()
                     .map(|v| {
-                        let value = 
+                        let value =
                         // u16 -> u8
                         if std::any::TypeId::of::<O>() == std::any::TypeId::of::<u8>() {
                             O::from(v).unwrap() / O::from(255).unwrap()
