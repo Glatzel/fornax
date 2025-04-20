@@ -156,9 +156,9 @@ impl Libraw {
         Self::check_raw_alloc(self.imgdata)?;
         Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata, u8::from(index) as i32) })
     }
-    pub fn get_pre_mul(&self, index: i32) -> miette::Result<f32> {
+    pub fn get_pre_mul(&self, index: BayerChannel) -> miette::Result<f32> {
         Self::check_raw_alloc(self.imgdata)?;
-        Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata, index) })
+        Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata, u8::from(index) as i32) })
     }
     pub fn get_rgb_cam(&self, index1: i32, index2: i32) -> miette::Result<f32> {
         Self::check_raw_alloc(self.imgdata)?;
@@ -588,6 +588,7 @@ impl ILibrawErrors for Libraw {}
 mod tests {
     use std::io::Read;
 
+    use float_cmp::assert_approx_eq;
     use miette::IntoDiagnostic;
 
     use super::*;
@@ -669,6 +670,39 @@ mod tests {
         assert_eq!(1584.0, value);
         let value = libraw.get_cam_mul(BayerChannel::G2)?;
         assert_eq!(1024.0, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_pre_mul() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
+
+        let value = libraw.get_pre_mul(BayerChannel::R)?;
+        assert_approx_eq!(f32, 2.1848476, value);
+        let value = libraw.get_pre_mul(BayerChannel::G)?;
+        assert_approx_eq!(f32, 0.9358199, value);
+        let value = libraw.get_pre_mul(BayerChannel::B)?;
+        assert_approx_eq!(f32, 1.2567647, value);
+        let value = libraw.get_pre_mul(BayerChannel::G2)?;
+        assert_approx_eq!(f32, 0.0, value);
+        Ok(())
+    }
+    #[test]
+    fn test_get_rgb_cam() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
+        let value = libraw.get_rgb_cam(1, 2)?;
+        assert_approx_eq!(f32, -0.5123857, value);
+
+        Ok(())
+    }
+    #[test]
+    fn test_get_color_maximum() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
+        let value = libraw.get_color_maximum()?;
+        assert_eq!(13584, value);
+
         Ok(())
     }
     // region:Auxiliary Functions
