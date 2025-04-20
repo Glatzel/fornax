@@ -203,7 +203,7 @@ impl Libraw {
         unsafe { libraw_sys::libraw_set_gamma(self.imgdata, index, value) };
         self
     }
-    pub fn set_no_auto_bright(&self, value: f32) -> &Self {
+    pub fn set_no_auto_bright(&self, value: bool) -> &Self {
         unsafe { libraw_sys::libraw_set_no_auto_bright(self.imgdata, value as i32) };
         self
     }
@@ -696,7 +696,6 @@ mod tests {
         libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
         let value = libraw.get_rgb_cam(1, 2)?;
         assert_approx_eq!(f32, -0.5123857, value);
-
         Ok(())
     }
     #[test]
@@ -705,7 +704,6 @@ mod tests {
         libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
         let value = libraw.get_color_maximum()?;
         assert_eq!(13584, value);
-
         Ok(())
     }
     #[test]
@@ -716,7 +714,6 @@ mod tests {
             .unpack()?
             .set_user_mul(1, 2.0);
         assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
-
         Ok(())
     }
     #[test]
@@ -730,7 +727,6 @@ mod tests {
             i32::from(DCRawUserQual::Linear),
             libraw.get_params()?.user_qual
         );
-
         Ok(())
     }
     #[test]
@@ -741,7 +737,6 @@ mod tests {
             .unpack()?
             .set_adjust_maximum_thr(2.0);
         assert_approx_eq!(f32, 2.0, libraw.get_params()?.adjust_maximum_thr);
-
         Ok(())
     }
     #[test]
@@ -755,7 +750,6 @@ mod tests {
             i32::from(DCRawOutputColor::ACES),
             libraw.get_params()?.output_color
         );
-
         Ok(())
     }
     #[test]
@@ -769,7 +763,6 @@ mod tests {
             i32::from(DCRawOutputBps::_16bit),
             libraw.get_params()?.output_bps
         );
-
         Ok(())
     }
     #[test]
@@ -780,53 +773,54 @@ mod tests {
             .unpack()?
             .set_gamma(1, 2.0);
         assert_approx_eq!(f64, 2.0, libraw.get_params()?.gamm[1]);
-
         Ok(())
     }
-    // #[test]
-    // fn test_set_user_mul() -> miette::Result<()> {
-    //     let libraw = Libraw::default();
-    //     libraw
-    //         .open_file(&fornax_devtool::raw_file())?
-    //         .unpack()?
-    //         .set_user_mul(1, 2.0);
-    //     assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
-
-    //     Ok(())
-    // }
-    // #[test]
-    // fn test_set_user_mul() -> miette::Result<()> {
-    //     let libraw = Libraw::default();
-    //     libraw
-    //         .open_file(&fornax_devtool::raw_file())?
-    //         .unpack()?
-    //         .set_user_mul(1, 2.0);
-    //     assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
-
-    //     Ok(())
-    // }
-    // #[test]
-    // fn test_set_user_mul() -> miette::Result<()> {
-    //     let libraw = Libraw::default();
-    //     libraw
-    //         .open_file(&fornax_devtool::raw_file())?
-    //         .unpack()?
-    //         .set_user_mul(1, 2.0);
-    //     assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
-
-    //     Ok(())
-    // }
-    // #[test]
-    // fn test_set_user_mul() -> miette::Result<()> {
-    //     let libraw = Libraw::default();
-    //     libraw
-    //         .open_file(&fornax_devtool::raw_file())?
-    //         .unpack()?
-    //         .set_user_mul(1, 2.0);
-    //     assert_approx_eq!(f32, 2.0, libraw.get_params()?.user_mul[1]);
-
-    //     Ok(())
-    // }
+    #[test]
+    fn test_set_no_auto_bright() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_no_auto_bright(true);
+        assert!(libraw.get_params()?.no_auto_bright != 0);
+        Ok(())
+    }
+    #[test]
+    fn test_set_bright() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_bright(2.0);
+        assert_approx_eq!(f32, 2.0, libraw.get_params()?.bright);
+        Ok(())
+    }
+    #[test]
+    fn test_set_highlight() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_highlight(DCRawHighlightMode::Reconstruct4);
+        assert_eq!(
+            i32::from(DCRawHighlightMode::Reconstruct4),
+            libraw.get_params()?.highlight
+        );
+        Ok(())
+    }
+    #[test]
+    fn set_fbdd_noiserd() -> miette::Result<()> {
+        let libraw = Libraw::default();
+        libraw
+            .open_file(&fornax_devtool::raw_file())?
+            .unpack()?
+            .set_fbdd_noiserd(DCRawFbddNoiserd::Off);
+        assert_eq!(
+            i32::from(DCRawFbddNoiserd::Off),
+            libraw.get_params()?.fbdd_noiserd
+        );
+        Ok(())
+    }
 
     // region:Auxiliary Functions
     #[test]
