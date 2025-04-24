@@ -1,7 +1,7 @@
 use crate::Libraw;
 
-///All functions returning integer numbers must return either errno or one of the following error
-/// codes.
+///All functions returning integer numbers must return either errno or one of
+/// the following error codes.
 #[derive(Debug, Clone)]
 pub enum LibrawErrors {
     //Non-Fatal Errors

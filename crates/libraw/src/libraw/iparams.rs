@@ -75,10 +75,11 @@ impl LibrawIParams {
     pub fn model(&self) -> String {
         self.model.clone()
     }
-    ///There is a huge number of identical cameras sold under different names, depending on the
-    /// market (e.g. multiple Panasonic or Canon models) and even some identical cameras sold under
-    /// different brands (Panasonic -> Leica, Sony -> Hasselblad). normalized_make contains primary
-    /// vendor name (e.g. Panasonic for Leica re-branded cameras).
+    ///There is a huge number of identical cameras sold under different names,
+    /// depending on the market (e.g. multiple Panasonic or Canon models)
+    /// and even some identical cameras sold under different brands
+    /// (Panasonic -> Leica, Sony -> Hasselblad). normalized_make contains
+    /// primary vendor name (e.g. Panasonic for Leica re-branded cameras).
     pub fn normalized_make(&self) -> String {
         self.normalized_make.clone()
     }
@@ -86,17 +87,18 @@ impl LibrawIParams {
     pub fn normalized_model(&self) -> String {
         self.normalized_model.clone()
     }
-    ///Primary vendor name in indexed form (enum LibRaw_cameramaker_index, LIBRAW_CAMERAMAKER_*
-    /// constant)
+    ///Primary vendor name in indexed form (enum LibRaw_cameramaker_index,
+    /// LIBRAW_CAMERAMAKER_* constant)
     pub fn maker_index(&self) -> u32 {
         self.maker_index
     }
-    ///Softwary name/version (mostly for DNG files, to distinguish in-camera DNGs from Adobe DNG
-    /// Converter produced ones).
+    ///Softwary name/version (mostly for DNG files, to distinguish in-camera
+    /// DNGs from Adobe DNG Converter produced ones).
     pub fn software(&self) -> String {
         self.software.clone()
     }
-    ///   Number of RAW images in file (0 means that the file has not been recognized).
+    ///   Number of RAW images in file (0 means that the file has not been
+    /// recognized).
     pub fn raw_count(&self) -> u32 {
         self.raw_count
     }
@@ -112,11 +114,13 @@ impl LibrawIParams {
     pub fn colors(&self) -> i32 {
         self.colors
     }
-    ///Bit mask describing the order of color pixels in the matrix (0 for full-color images). 32
-    /// bits of this field describe 16 pixels (8 rows with two pixels in each, from left to right
-    /// and from top to bottom). Each two bits have values 0 to 3, which correspond to four possible
-    /// colors. Convenient work with this field is ensured by the COLOR(row,column) function, which
-    /// returns the number of the active color for a given pixel.
+    ///Bit mask describing the order of color pixels in the matrix (0 for
+    /// full-color images). 32 bits of this field describe 16 pixels (8 rows
+    /// with two pixels in each, from left to right and from top to bottom).
+    /// Each two bits have values 0 to 3, which correspond to four possible
+    /// colors. Convenient work with this field is ensured by the
+    /// COLOR(row,column) function, which returns the number of the active
+    /// color for a given pixel.
     ///
     ///Values less than 1000 are reserved as special cases:
     /// - 1 - Leaf Catchlight with 16x16 bayer matrix;
@@ -125,13 +129,15 @@ impl LibrawIParams {
     pub fn filters(&self) -> u32 {
         self.filters
     }
-    ///These matrices contains Fuji X-Trans row/col to color mapping. First one is relative to
-    /// visible area, while second is positioned relative to sensor edges.
+    ///These matrices contains Fuji X-Trans row/col to color mapping. First one
+    /// is relative to visible area, while second is positioned relative to
+    /// sensor edges.
     pub fn xtrans(&self) -> [[i8; 6]; 6] {
         self.xtrans
     }
-    ///These matrices contains Fuji X-Trans row/col to color mapping. First one is relative to
-    /// visible area, while second is positioned relative to sensor edges.
+    ///These matrices contains Fuji X-Trans row/col to color mapping. First one
+    /// is relative to visible area, while second is positioned relative to
+    /// sensor edges.
     pub fn xtrans_abs(&self) -> [[i8; 6]; 6] {
         self.xtrans_abs
     }

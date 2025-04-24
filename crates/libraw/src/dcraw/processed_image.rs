@@ -29,11 +29,12 @@ impl DCRawProcessedImage {
         };
         Ok(img)
     }
-    /// This field records type of data, containing in remaining fields of structure.
-    /// - LIBRAW_IMAGE_BITMAP - structure contains RGB bitmap. All metadata fields (see below) are
-    ///   valid and describes image data.
-    /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file. Only type, data_size
-    ///   and data fields are valid (and nonzero);
+    /// This field records type of data, containing in remaining fields of
+    /// structure.
+    /// - LIBRAW_IMAGE_BITMAP - structure contains RGB bitmap. All metadata
+    ///   fields (see below) are valid and describes image data.
+    /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file.
+    ///   Only type, data_size and data fields are valid (and nonzero);
     pub fn image_type(&self) -> miette::Result<DCRawImageFormats> {
         match unsafe { (*self.processed_image).type_ } {
             1i32 => Ok(DCRawImageFormats::LibrawImageJpeg),
@@ -49,25 +50,25 @@ impl DCRawProcessedImage {
     pub fn width(&self) -> u16 {
         unsafe { (*self.processed_image).width }
     }
-    /// Number of colors components (1 or 3) and color depth in bits (8 or 16). These fields are
-    /// valid only if type==LIBRAW_IMAGE_BITMAP.
+    /// Number of colors components (1 or 3) and color depth in bits (8 or 16).
+    /// These fields are valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn colors(&self) -> u16 {
         unsafe { (*self.processed_image).colors }
     }
-    ///Is bitmap data gamma-corrected (always 1 for 8-bit data, may be 0 or 1 for 16-bit). Valid
-    /// only if type==LIBRAW_IMAGE_BITMAP.
+    ///Is bitmap data gamma-corrected (always 1 for 8-bit data, may be 0 or 1
+    /// for 16-bit). Valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn bits(&self) -> u16 {
         unsafe { (*self.processed_image).bits }
     }
-    ///Size of data field (in bytes). For bitmap image equal to (height*width*colors * (bits/8)).
-    /// For JPEG image - exact JPEG size (i.e. extracted thnumbnail size + JPEG header + EXIF
-    /// header).
+    ///Size of data field (in bytes). For bitmap image equal to
+    /// (height*width*colors * (bits/8)). For JPEG image - exact JPEG size
+    /// (i.e. extracted thnumbnail size + JPEG header + EXIF header).
     pub fn data_size(&self) -> u32 {
         unsafe { (*self.processed_image).data_size }
     }
-    ///Size of data field (in bytes). For bitmap image equal to (height*width*colors * (bits/8)).
-    /// For JPEG image - exact JPEG size (i.e. extracted thnumbnail size + JPEG header + EXIF
-    /// header).
+    ///Size of data field (in bytes). For bitmap image equal to
+    /// (height*width*colors * (bits/8)). For JPEG image - exact JPEG size
+    /// (i.e. extracted thnumbnail size + JPEG header + EXIF header).
     pub fn data(&self) -> *const u8 {
         unsafe { (*self.processed_image).data.as_ptr() }
     }
