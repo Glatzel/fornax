@@ -52,6 +52,7 @@ fn main() {
         bindings
             .write_to_file(PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bindings.rs"))
             .expect("Couldn't write bindings!");
+        #[cfg(feature = "update")]
         bindings
             .write_to_file("./src/bindings.rs")
             .expect("Couldn't write bindings!");
