@@ -8,6 +8,6 @@ if ($IsWindows) {
 }
 if ($IsLinux) {
     $pkg_config_exe = Resolve-Path $PSScriptRoot/../.pixi/envs/default/bin
-    $env:Path = "$pkg_config_exe;$env:Path"
+    $env:Path = "$pkg_config_exe" + ":" + "$env:Path"
     $env:PKG_CONFIG_PATH = Resolve-Path $PSScriptRoot/../.pixi/envs/default/libraw/x64-linux-release/lib/pkgconfig
 }
