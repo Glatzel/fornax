@@ -43,7 +43,7 @@ jobs:
 
   cargo-doc:
     if: ${{!inputs.release}}
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -69,7 +69,7 @@ jobs:
 
   cargo-clippy:
     if: ${{!inputs.release}}
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
@@ -88,7 +88,7 @@ jobs:
 
   cargo-fmt:
     if: ${{!inputs.release}}
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:

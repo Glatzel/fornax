@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+use std::fmt::Debug;
 use std::path::PathBuf;
 
 use tracing::level_filters::LevelFilter;
@@ -9,6 +11,7 @@ fn main() {
         .init();
 
     // check LIBCLANG_PATH
+    #[cfg(target_os = "windows")]
     match std::env::var("LIBCLANG_PATH") {
         Ok(path) => tracing::info!("Found `LIBCLANG_PATH`: {path}"),
         Err(_) => {
@@ -39,13 +42,28 @@ fn main() {
             .join("libraw/libraw.h")
             .to_string_lossy()
             .to_string();
+
+        let ignored_macros = IgnoreMacros(
+            vec![
+                "FP_INFINITE".into(),
+                "FP_NAN".into(),
+                "FP_NORMAL".into(),
+                "FP_SUBNORMAL".into(),
+                "FP_ZERO".into(),
+            ]
+            .into_iter()
+            .collect(),
+        );
+
         let bindings = bindgen::Builder::default()
             .header(header)
             .use_core()
             .derive_eq(true)
             .ctypes_prefix("libc")
             .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
+            .parse_callbacks(Box::new(ignored_macros))
             .generate_comments(true)
+            .formatter(bindgen::Formatter::Rustfmt)
             .generate()
             .unwrap();
 
@@ -70,5 +88,17 @@ fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
             pklib
         }
         Err(e) => panic!("cargo:warning=Pkg-config error: {:?}", e),
+    }
+}
+#[derive(Debug)]
+struct IgnoreMacros(HashSet<String>);
+
+impl bindgen::callbacks::ParseCallbacks for IgnoreMacros {
+    fn will_parse_macro(&self, name: &str) -> bindgen::callbacks::MacroParsingBehavior {
+        if self.0.contains(name) {
+            bindgen::callbacks::MacroParsingBehavior::Ignore
+        } else {
+            bindgen::callbacks::MacroParsingBehavior::Default
+        }
     }
 }

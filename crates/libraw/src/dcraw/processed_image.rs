@@ -37,8 +37,8 @@ impl DCRawProcessedImage {
     ///   Only type, data_size and data fields are valid (and nonzero);
     pub fn image_type(&self) -> miette::Result<DCRawImageFormats> {
         match unsafe { (*self.processed_image).type_ } {
-            1i32 => Ok(DCRawImageFormats::LibrawImageJpeg),
-            2i32 => Ok(DCRawImageFormats::ImageBitmap),
+            1 => Ok(DCRawImageFormats::LibrawImageJpeg),
+            2 => Ok(DCRawImageFormats::ImageBitmap),
             t => miette::bail!("Unknow image format: {t}"),
         }
     }
