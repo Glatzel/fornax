@@ -8,20 +8,20 @@ version = "0.1.0"
 [dependencies]
 libraw = { version = "==0.21.4", channel = "https://repo.prefix.dev/glatzel" }
 maturin = "==1.8.3"
-pip = "==25.0.1"
+pip = "==25.1"
 pkg-config = "==0.29.2"
 python = "3.11.*"
-ruff = "==0.11.5"
+ruff = "==0.11.7"
 
 [feature.pydev.dependencies]
 imageio = "==2.37.0"
 lazy-loader = "==0.4"
 msgspec = "==0.19.0"
 nomkl = "==1.0"
-numpy = "==2.2.4"
+numpy = "==2.2.5"
 numpydoc = "==1.8.0"
 pydantic = "==2.11.3"
-rattler-build = "==0.40.0"
+rattler-build = "==0.41.0"
 
 # test
 pytest = "==8.3.5"
