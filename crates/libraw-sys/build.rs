@@ -39,6 +39,18 @@ fn main() {
     // generate bindings
     #[cfg(feature = "bindgen")]
     {
+        let ignored_macros = IgnoreMacros(
+            vec![
+                "FP_INFINITE".into(),
+                "FP_NAN".into(),
+                "FP_NORMAL".into(),
+                "FP_SUBNORMAL".into(),
+                "FP_ZERO".into(),
+            ]
+            .into_iter()
+            .collect(),
+        );
+        
         let header = &_pk_libraw.include_paths[0]
             .join("libraw/libraw.h")
             .to_string_lossy()
