@@ -7,7 +7,7 @@ fn main() {
     // check LIBCLANG_PATH
     #[cfg(target_os = "windows")]
     match std::env::var("LIBCLANG_PATH") {
-        Ok(path) => tracing::info!("Found `LIBCLANG_PATH`: {path}"),
+        Ok(path) => println!("Found `LIBCLANG_PATH`: {path}"),
         Err(_) => {
             let path = "C:/Program Files/LLVM/bin";
 
