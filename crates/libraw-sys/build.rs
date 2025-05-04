@@ -1,5 +1,4 @@
-use std::collections::HashSet;
-use std::fmt::Debug;
+#[allow(unused_imports)]
 use std::path::PathBuf;
 
 use tracing::level_filters::LevelFilter;
