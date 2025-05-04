@@ -3,14 +3,7 @@ use std::collections::HashSet;
 #[allow(unused_imports)]
 use std::path::PathBuf;
 
-use tracing::level_filters::LevelFilter;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
 fn main() {
-    tracing_subscriber::registry()
-        .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
-        .init();
-
     // check LIBCLANG_PATH
     #[cfg(target_os = "windows")]
     match std::env::var("LIBCLANG_PATH") {
@@ -22,9 +15,8 @@ fn main() {
                 unsafe {
                     std::env::set_var("LIBCLANG_PATH", path);
                 }
-                tracing::info!("Set `LIBCLANG_PATH` to: {path}")
+                println!("Set `LIBCLANG_PATH` to: {path}")
             } else {
-                tracing::error!("`LIBCLANG_PATH` not found.");
                 panic!("`LIBCLANG_PATH` not found.");
             }
         }
@@ -50,7 +42,7 @@ fn main() {
             .into_iter()
             .collect(),
         );
-        
+
         let header = &_pk_libraw.include_paths[0]
             .join("libraw/libraw.h")
             .to_string_lossy()
@@ -69,7 +61,7 @@ fn main() {
         bindings
             .write_to_file("./src/bindings.rs")
             .expect("Couldn't write bindings!");
-        clerk::info!(
+        println!(
             "Build bingings to: {:?}",
             PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bindings.rs")
         );
@@ -79,7 +71,7 @@ fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
     match pkg_config::Config::new().probe(name) {
         Ok(pklib) => {
             println!("cargo:rustc-link-lib=static={}", lib);
-            clerk::info!("Link to `{}`", lib);
+            println!("Link to `{}`", lib);
             pklib
         }
         Err(e) => panic!("cargo:warning=Pkg-config error: {:?}", e),
