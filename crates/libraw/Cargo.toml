@@ -9,7 +9,7 @@ chrono = { workspace = true }
 clerk = { workspace = true }
 fornax-core = { workspace = true }
 image = { workspace = true }
-libraw-sys = { workspace = true, features = ["bindgen"] }
+libraw-sys = { workspace = true }
 miette = { workspace = true }
 serde = { workspace = true, optional = true }
 

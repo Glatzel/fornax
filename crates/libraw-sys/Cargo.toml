@@ -10,9 +10,6 @@ pkg-config = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
-[dependencies]
-libc = { workspace = true }
-
 [features]
 bindgen = ["dep:bindgen"]
 update = []

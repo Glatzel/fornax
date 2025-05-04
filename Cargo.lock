@@ -777,7 +777,6 @@ version = "0.0.6"
 dependencies = [
  "bindgen",
  "clerk",
- "libc",
  "pkg-config",
  "tracing",
  "tracing-subscriber",

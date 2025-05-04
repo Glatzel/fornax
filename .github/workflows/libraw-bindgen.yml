@@ -25,4 +25,3 @@ jobs:
               path: |
                 crates/libraw-sys/src/bindings.rs
               if-no-files-found: error
-

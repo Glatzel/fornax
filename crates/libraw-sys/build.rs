@@ -43,27 +43,8 @@ fn main() {
             .to_string_lossy()
             .to_string();
 
-        let ignored_macros = IgnoreMacros(
-            vec![
-                "FP_INFINITE".into(),
-                "FP_NAN".into(),
-                "FP_NORMAL".into(),
-                "FP_SUBNORMAL".into(),
-                "FP_ZERO".into(),
-            ]
-            .into_iter()
-            .collect(),
-        );
-
         let bindings = bindgen::Builder::default()
             .header(header)
-            .use_core()
-            .derive_eq(true)
-            .ctypes_prefix("libc")
-            .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
-            .parse_callbacks(Box::new(ignored_macros))
-            .generate_comments(true)
-            .formatter(bindgen::Formatter::Rustfmt)
             .generate()
             .unwrap();
 
