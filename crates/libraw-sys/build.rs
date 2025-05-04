@@ -50,6 +50,7 @@ fn main() {
 
         let bindings = bindgen::Builder::default()
             .header(header)
+            .size_t_is_usize(true)
             .parse_callbacks(Box::new(ignored_macros))
             .generate()
             .unwrap();

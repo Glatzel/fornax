@@ -1865,7 +1865,7 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn ldiv(_Numerator: ::std::os::raw::c_long, _Denominator: ::std::os::raw::c_long)
-    -> ldiv_t;
+        -> ldiv_t;
 }
 unsafe extern "C" {
     pub fn lldiv(
@@ -2721,22 +2721,22 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn _ldunscale(_Pex: *mut ::std::os::raw::c_short, _Px: *mut f64)
-    -> ::std::os::raw::c_short;
+        -> ::std::os::raw::c_short;
 }
 unsafe extern "C" {
     pub fn _fdunscale(_Pex: *mut ::std::os::raw::c_short, _Px: *mut f32)
-    -> ::std::os::raw::c_short;
+        -> ::std::os::raw::c_short;
 }
 unsafe extern "C" {
     pub fn _dexp(_Px: *mut f64, _Y: f64, _Eoff: ::std::os::raw::c_long) -> ::std::os::raw::c_short;
 }
 unsafe extern "C" {
     pub fn _ldexp(_Px: *mut f64, _Y: f64, _Eoff: ::std::os::raw::c_long)
-    -> ::std::os::raw::c_short;
+        -> ::std::os::raw::c_short;
 }
 unsafe extern "C" {
     pub fn _fdexp(_Px: *mut f32, _Y: f32, _Eoff: ::std::os::raw::c_long)
-    -> ::std::os::raw::c_short;
+        -> ::std::os::raw::c_short;
 }
 unsafe extern "C" {
     pub fn _dnorm(_Ps: *mut ::std::os::raw::c_ushort) -> ::std::os::raw::c_short;
