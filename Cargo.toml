@@ -16,7 +16,7 @@ libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
 
 assert_cmd = "2.0"
-bindgen = "0.71"
+bindgen = "0.71.1"
 bytemuck = "1.22.0"
 chrono = "0.4.40"
 clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.8" }

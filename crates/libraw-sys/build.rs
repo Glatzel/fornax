@@ -23,13 +23,9 @@ fn main() {
     };
 
     // Link
-    #[cfg(target_os = "windows")]
     let _pk_libraw = link_lib("libraw_r", "raw_r");
-    #[cfg(target_os = "linux")]
-    let _pk_libraw = link_lib("libraw_r", "raw_r");
-
     // generate bindings
-    #[cfg(feature = "bindgen")]
+    #[cfg(any(feature = "bindgen", feature = "update"))]
     {
         let ignored_macros = IgnoreMacros(
             vec![
