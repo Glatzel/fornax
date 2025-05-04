@@ -46,7 +46,8 @@ fn main() {
 
         let bindings = bindgen::Builder::default()
             .header(header)
-            .size_t_is_usize(true)
+            // .size_t_is_usize(true)
+            // .blocklist_type("max_align_t")
             .parse_callbacks(Box::new(ignored_macros))
             .generate()
             .unwrap();
