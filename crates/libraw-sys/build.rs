@@ -46,8 +46,7 @@ fn main() {
 
         let bindings = bindgen::Builder::default()
             .header(header)
-            // .size_t_is_usize(true)
-            // .blocklist_type("max_align_t")
+            .size_t_is_usize(true)
             .parse_callbacks(Box::new(ignored_macros))
             .generate()
             .unwrap();
@@ -55,9 +54,13 @@ fn main() {
         bindings
             .write_to_file(PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bindings.rs"))
             .expect("Couldn't write bindings!");
-        #[cfg(feature = "update")]
+        #[cfg(all(not(feature = "update"), target_os = "windows"))]
         bindings
-            .write_to_file("./src/bindings.rs")
+            .write_to_file("./src/bindings-win.rs")
+            .expect("Couldn't write bindings!");
+        #[cfg(all(not(feature = "update"), target_os = "linux"))]
+        bindings
+            .write_to_file("./src/bindings-linux.rs")
             .expect("Couldn't write bindings!");
         println!(
             "Build bingings to: {:?}",
