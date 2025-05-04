@@ -1,4 +1,6 @@
 #[allow(unused_imports)]
+use std::collections::HashSet;
+#[allow(unused_imports)]
 use std::path::PathBuf;
 
 use tracing::level_filters::LevelFilter;
@@ -44,6 +46,7 @@ fn main() {
 
         let bindings = bindgen::Builder::default()
             .header(header)
+            .parse_callbacks(Box::new(ignored_macros))
             .generate()
             .unwrap();
 
@@ -68,5 +71,18 @@ fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
             pklib
         }
         Err(e) => panic!("cargo:warning=Pkg-config error: {:?}", e),
+    }
+}
+#[cfg(feature = "bindgen")]
+#[derive(Debug)]
+struct IgnoreMacros(HashSet<String>);
+#[cfg(feature = "bindgen")]
+impl bindgen::callbacks::ParseCallbacks for IgnoreMacros {
+    fn will_parse_macro(&self, name: &str) -> bindgen::callbacks::MacroParsingBehavior {
+        if self.0.contains(name) {
+            bindgen::callbacks::MacroParsingBehavior::Ignore
+        } else {
+            bindgen::callbacks::MacroParsingBehavior::Default
+        }
     }
 }
