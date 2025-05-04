@@ -4,15 +4,6 @@ on:
 
 jobs:
     libraw-bindings:
-        strategy:
-          fail-fast: false
-          matrix:
-            machine: [windows-latest, ubuntu-latest]
-            include:
-              - machine: windows-latest
-                os: win
-              - machine: ubuntu-latest
-                os: linux
         runs-on: ubuntu-latest
         env:
           RUSTFLAGS: "-Dwarnings"
@@ -31,7 +22,7 @@ jobs:
           - name: upload
             uses: actions/upload-artifact@v4
             with:
-              name: libraw-bindings-${{matrix.os}}
+              name: libraw-bindings
               path: |
-                crates/libraw-sys/src/bindings-${{matrix.os}}.rs
+                crates/libraw-sys/src/bindings.rs
               if-no-files-found: error

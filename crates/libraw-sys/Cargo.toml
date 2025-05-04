@@ -3,6 +3,9 @@ edition.workspace = true
 name = "libraw-sys"
 version.workspace = true
 
+[dependencies]
+libc = { workspace = true }
+
 [build-dependencies]
 bindgen = { workspace = true, optional = true }
 pkg-config = { workspace = true }
