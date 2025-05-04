@@ -71,15 +71,3 @@ fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
         Err(e) => panic!("cargo:warning=Pkg-config error: {:?}", e),
     }
 }
-#[derive(Debug)]
-struct IgnoreMacros(HashSet<String>);
-
-impl bindgen::callbacks::ParseCallbacks for IgnoreMacros {
-    fn will_parse_macro(&self, name: &str) -> bindgen::callbacks::MacroParsingBehavior {
-        if self.0.contains(name) {
-            bindgen::callbacks::MacroParsingBehavior::Ignore
-        } else {
-            bindgen::callbacks::MacroParsingBehavior::Default
-        }
-    }
-}
