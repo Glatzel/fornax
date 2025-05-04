@@ -46,9 +46,9 @@ fn main() {
 
         let bindings = bindgen::Builder::default()
             .header(header)
-            // .size_t_is_usize(true)
+            .size_t_is_usize(true)
             .ctypes_prefix("libc")
-            .use_core()
+            // .use_core()
             .parse_callbacks(Box::new(ignored_macros))
             .generate()
             .unwrap();

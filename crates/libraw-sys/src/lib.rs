@@ -1,4 +1,3 @@
-#![no_std]
 #![allow(
     clippy::approx_constant,
     improper_ctypes,
