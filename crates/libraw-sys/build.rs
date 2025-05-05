@@ -48,6 +48,8 @@ fn main() {
             .header(header)
             .size_t_is_usize(true)
             .parse_callbacks(Box::new(ignored_macros))
+            .ctypes_prefix("libc")
+            .use_core()
             .generate()
             .unwrap();
 
