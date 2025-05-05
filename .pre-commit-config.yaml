@@ -18,7 +18,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.4
+    rev: v0.11.8
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes", "--exit-non-zero-on-fix"]
@@ -30,6 +30,6 @@ repos:
       - id: numpydoc-validation
 
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 39.248.1
+    rev: 40.3.4
     hooks:
       - id: renovate-config-validator
