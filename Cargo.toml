@@ -24,6 +24,7 @@ dunce = "1.0.5"
 # image = "0.25.5"
 float-cmp = "0.10.0"
 image = { git = "https://github.com/fintelia/image", branch = "primitive-ext" }
+libc = "0.2"
 miette = { version = "7.5.0", features = ["fancy"] }
 numpy = "0.24.0"
 path-slash = "0.2.1"
