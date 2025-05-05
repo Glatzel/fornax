@@ -56,11 +56,11 @@ fn main() {
         bindings
             .write_to_file(PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bindings.rs"))
             .expect("Couldn't write bindings!");
-        #[cfg(all((feature = "update"), target_os = "windows"))]
+        #[cfg(all(feature = "update", target_os = "windows"))]
         bindings
             .write_to_file("./src/bindings-win.rs")
             .expect("Couldn't write bindings!");
-        #[cfg(all((feature = "update"), target_os = "linux"))]
+        #[cfg(all(feature = "update", target_os = "linux"))]
         bindings
             .write_to_file("./src/bindings-linux.rs")
             .expect("Couldn't write bindings!");
