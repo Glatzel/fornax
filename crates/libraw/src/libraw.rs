@@ -28,13 +28,9 @@ pub struct Libraw {
 }
 // region:Initialization and denitialization
 impl Libraw {
-    fn libraw_init() -> *mut libraw_sys::libraw_data_t {
-        unsafe { libraw_sys::libraw_init(0) }
-    }
+    fn libraw_init() -> *mut libraw_sys::libraw_data_t { unsafe { libraw_sys::libraw_init(0) } }
 
-    fn close(&self) {
-        unsafe { libraw_sys::libraw_close(self.imgdata) }
-    }
+    fn close(&self) { unsafe { libraw_sys::libraw_close(self.imgdata) } }
 }
 
 // region:Methods Loading Data from a File
@@ -49,15 +45,9 @@ impl Libraw {
         )?;
         Ok(self)
     }
-    fn _open_file_ex(&self) -> miette::Result<&Self> {
-        unimplemented!()
-    }
-    fn _open_wfile(&self) -> miette::Result<&Self> {
-        unimplemented!()
-    }
-    fn _openwfile_ex(&self) -> miette::Result<&Self> {
-        unimplemented!()
-    }
+    fn _open_file_ex(&self) -> miette::Result<&Self> { unimplemented!() }
+    fn _open_wfile(&self) -> miette::Result<&Self> { unimplemented!() }
+    fn _openwfile_ex(&self) -> miette::Result<&Self> { unimplemented!() }
 
     pub fn open_buffer(&self, buf: &[u8]) -> miette::Result<&Self> {
         Self::check_run(
@@ -130,9 +120,7 @@ impl Libraw {
         )?;
         Ok(self)
     }
-    fn _unpack_thumb_ex(&self) -> miette::Result<&Self> {
-        unimplemented!()
-    }
+    fn _unpack_thumb_ex(&self) -> miette::Result<&Self> { unimplemented!() }
 }
 // region:Parameters setters/getters
 impl Libraw {
@@ -168,9 +156,7 @@ impl Libraw {
         Self::check_raw_alloc(self.imgdata)?;
         LibrawIParams::new(self.imgdata)
     }
-    pub fn get_lensinfo(&self) {
-        unimplemented!()
-    }
+    pub fn get_lensinfo(&self) { unimplemented!() }
     pub fn get_imgother(&self) -> miette::Result<LibrawImgOther> {
         Self::check_raw_alloc(self.imgdata)?;
         LibrawImgOther::new(self.imgdata)
@@ -223,18 +209,10 @@ impl Libraw {
 // region:Auxiliary Functions
 // https://www.libraw.org/docs/API-CXX.html#utility
 impl Libraw {
-    pub fn version() -> String {
-        c_char_to_string(unsafe { libraw_sys::libraw_version() })
-    }
-    fn _check_version() -> bool {
-        unimplemented!()
-    }
-    fn _libraw_capabilities() {
-        unimplemented!()
-    }
-    pub fn camera_count() -> i32 {
-        unsafe { libraw_sys::libraw_cameraCount() }
-    }
+    pub fn version() -> String { c_char_to_string(unsafe { libraw_sys::libraw_version() }) }
+    fn _check_version() -> bool { unimplemented!() }
+    fn _libraw_capabilities() { unimplemented!() }
+    pub fn camera_count() -> i32 { unsafe { libraw_sys::libraw_cameraCount() } }
     pub fn camera_list() -> Vec<String> {
         let mut vec = Vec::new();
         let ptr = unsafe { libraw_sys::libraw_cameraList() };
@@ -247,12 +225,8 @@ impl Libraw {
         }
         vec
     }
-    fn _libraw_get_decoder_info() {
-        unimplemented!()
-    }
-    fn _libraw_unpack_function_name() {
-        unimplemented!()
-    }
+    fn _libraw_get_decoder_info() { unimplemented!() }
+    fn _libraw_unpack_function_name() { unimplemented!() }
     pub fn color(&self, row: i32, col: i32) -> i32 {
         unsafe { libraw_sys::libraw_COLOR(self.imgdata, row, col) }
     }
@@ -261,24 +235,14 @@ impl Libraw {
         unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
         Ok(self)
     }
-    fn _libraw_recycle_datastream() {
-        unimplemented!()
-    }
-    fn _libraw_recycle() {
-        unimplemented!()
-    }
+    fn _libraw_recycle_datastream() { unimplemented!() }
+    fn _libraw_recycle() { unimplemented!() }
     pub fn strerror(errorcode: i32) -> String {
         c_char_to_string(unsafe { libraw_sys::libraw_strerror(errorcode) })
     }
-    fn _libraw_strprogress() {
-        unimplemented!()
-    }
-    fn _libraw_set_dataerror_handler() {
-        unimplemented!()
-    }
-    fn _libraw_set_progress_handler() {
-        unimplemented!()
-    }
+    fn _libraw_strprogress() { unimplemented!() }
+    fn _libraw_set_dataerror_handler() { unimplemented!() }
+    fn _libraw_set_progress_handler() { unimplemented!() }
 }
 // region:Data Postprocessing: Emulation of dcraw Behavior
 //https://www.libraw.org/docs/API-CXX.html#dcrawemu
@@ -291,12 +255,8 @@ impl Libraw {
         )?;
         Ok(self)
     }
-    fn _libraw_free_image() {
-        unimplemented!()
-    }
-    fn _libraw_adjust_sizes_info_only() {
-        unimplemented!()
-    }
+    fn _libraw_free_image() { unimplemented!() }
+    fn _libraw_adjust_sizes_info_only() { unimplemented!() }
     pub fn dcraw_process(&self) -> miette::Result<&Self> {
         Self::check_raw_alloc(self.imgdata)?;
         Self::check_run(
@@ -308,12 +268,8 @@ impl Libraw {
 }
 //region:Writing to Output Files
 impl Libraw {
-    fn _libraw_dcraw_ppm_tiff_writer() {
-        unimplemented!()
-    }
-    fn _libraw_dcraw_thumb_writer() {
-        unimplemented!()
-    }
+    fn _libraw_dcraw_ppm_tiff_writer() { unimplemented!() }
+    fn _libraw_dcraw_thumb_writer() { unimplemented!() }
 }
 //region:Writing processing results to memory buffer
 impl Libraw {
@@ -327,12 +283,8 @@ impl Libraw {
         let processed = DCRawProcessedImage::new(processed)?;
         Ok(processed)
     }
-    fn _libraw_dcraw_make_mem_thumb() {
-        unimplemented!()
-    }
-    fn _libraw_dcraw_clear_mem() {
-        unimplemented!()
-    }
+    fn _libraw_dcraw_make_mem_thumb() { unimplemented!() }
+    fn _libraw_dcraw_clear_mem() { unimplemented!() }
 }
 // region:Data Structure
 impl Libraw {
@@ -517,14 +469,10 @@ impl Libraw {
 }
 
 impl Drop for Libraw {
-    fn drop(&mut self) {
-        self.close();
-    }
+    fn drop(&mut self) { self.close(); }
 }
 impl Default for Libraw {
-    fn default() -> Self {
-        Self::new(None)
-    }
+    fn default() -> Self { Self::new(None) }
 }
 
 // region:fornax
@@ -543,9 +491,7 @@ where
         self.unpack()?;
         Ok(())
     }
-    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> {
-        self.get_bayer_image()
-    }
+    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> { self.get_bayer_image() }
 }
 impl<T> IDecoder<T> for &Libraw
 where
@@ -562,9 +508,7 @@ where
         self.unpack()?;
         Ok(())
     }
-    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> {
-        self.get_bayer_image()
-    }
+    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> { self.get_bayer_image() }
 }
 
 impl<D, O> IPostProcessor<D, u16, O> for Libraw
