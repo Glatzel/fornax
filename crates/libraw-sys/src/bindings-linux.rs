@@ -629,400 +629,334 @@ pub const LibRawBigEndian: u32 = 0;
 pub const LIBRAW_HISTOGRAM_SIZE: u32 = 8192;
 unsafe extern "C" {
     pub fn memcpy(
-        __dest: *mut ::std::os::raw::c_void,
-        __src: *const ::std::os::raw::c_void,
-        __n: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_void;
+        __dest: *mut libc::c_void,
+        __src: *const libc::c_void,
+        __n: libc::c_ulong,
+    ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn memmove(
-        __dest: *mut ::std::os::raw::c_void,
-        __src: *const ::std::os::raw::c_void,
-        __n: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_void;
+        __dest: *mut libc::c_void,
+        __src: *const libc::c_void,
+        __n: libc::c_ulong,
+    ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn memccpy(
-        __dest: *mut ::std::os::raw::c_void,
-        __src: *const ::std::os::raw::c_void,
-        __c: ::std::os::raw::c_int,
-        __n: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_void;
+        __dest: *mut libc::c_void,
+        __src: *const libc::c_void,
+        __c: libc::c_int,
+        __n: libc::c_ulong,
+    ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn memset(
-        __s: *mut ::std::os::raw::c_void,
-        __c: ::std::os::raw::c_int,
-        __n: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_void;
+        __s: *mut libc::c_void,
+        __c: libc::c_int,
+        __n: libc::c_ulong,
+    ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn memcmp(
-        __s1: *const ::std::os::raw::c_void,
-        __s2: *const ::std::os::raw::c_void,
-        __n: ::std::os::raw::c_ulong,
-    ) -> ::std::os::raw::c_int;
+        __s1: *const libc::c_void,
+        __s2: *const libc::c_void,
+        __n: libc::c_ulong,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn __memcmpeq(
-        __s1: *const ::std::os::raw::c_void,
-        __s2: *const ::std::os::raw::c_void,
+        __s1: *const libc::c_void,
+        __s2: *const libc::c_void,
         __n: usize,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn memchr(
-        __s: *const ::std::os::raw::c_void,
-        __c: ::std::os::raw::c_int,
-        __n: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_void;
+        __s: *const libc::c_void,
+        __c: libc::c_int,
+        __n: libc::c_ulong,
+    ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn strcpy(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn strcpy(__dest: *mut libc::c_char, __src: *const libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn strncpy(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
-        __n: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_char;
+        __dest: *mut libc::c_char,
+        __src: *const libc::c_char,
+        __n: libc::c_ulong,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn strcat(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn strcat(__dest: *mut libc::c_char, __src: *const libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn strncat(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
-        __n: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_char;
+        __dest: *mut libc::c_char,
+        __src: *const libc::c_char,
+        __n: libc::c_ulong,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn strcmp(
-        __s1: *const ::std::os::raw::c_char,
-        __s2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
+    pub fn strcmp(__s1: *const libc::c_char, __s2: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn strncmp(
-        __s1: *const ::std::os::raw::c_char,
-        __s2: *const ::std::os::raw::c_char,
-        __n: ::std::os::raw::c_ulong,
-    ) -> ::std::os::raw::c_int;
+        __s1: *const libc::c_char,
+        __s2: *const libc::c_char,
+        __n: libc::c_ulong,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn strcoll(
-        __s1: *const ::std::os::raw::c_char,
-        __s2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
+    pub fn strcoll(__s1: *const libc::c_char, __s2: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn strxfrm(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
-        __n: ::std::os::raw::c_ulong,
-    ) -> ::std::os::raw::c_ulong;
+        __dest: *mut libc::c_char,
+        __src: *const libc::c_char,
+        __n: libc::c_ulong,
+    ) -> libc::c_ulong;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __locale_struct {
     pub __locales: [*mut __locale_data; 13usize],
-    pub __ctype_b: *const ::std::os::raw::c_ushort,
-    pub __ctype_tolower: *const ::std::os::raw::c_int,
-    pub __ctype_toupper: *const ::std::os::raw::c_int,
-    pub __names: [*const ::std::os::raw::c_char; 13usize],
+    pub __ctype_b: *const libc::c_ushort,
+    pub __ctype_tolower: *const libc::c_int,
+    pub __ctype_toupper: *const libc::c_int,
+    pub __names: [*const libc::c_char; 13usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __locale_struct"][::std::mem::size_of::<__locale_struct>() - 232usize];
-    ["Alignment of __locale_struct"][::std::mem::align_of::<__locale_struct>() - 8usize];
+    ["Size of __locale_struct"][::core::mem::size_of::<__locale_struct>() - 232usize];
+    ["Alignment of __locale_struct"][::core::mem::align_of::<__locale_struct>() - 8usize];
     ["Offset of field: __locale_struct::__locales"]
-        [::std::mem::offset_of!(__locale_struct, __locales) - 0usize];
+        [::core::mem::offset_of!(__locale_struct, __locales) - 0usize];
     ["Offset of field: __locale_struct::__ctype_b"]
-        [::std::mem::offset_of!(__locale_struct, __ctype_b) - 104usize];
+        [::core::mem::offset_of!(__locale_struct, __ctype_b) - 104usize];
     ["Offset of field: __locale_struct::__ctype_tolower"]
-        [::std::mem::offset_of!(__locale_struct, __ctype_tolower) - 112usize];
+        [::core::mem::offset_of!(__locale_struct, __ctype_tolower) - 112usize];
     ["Offset of field: __locale_struct::__ctype_toupper"]
-        [::std::mem::offset_of!(__locale_struct, __ctype_toupper) - 120usize];
+        [::core::mem::offset_of!(__locale_struct, __ctype_toupper) - 120usize];
     ["Offset of field: __locale_struct::__names"]
-        [::std::mem::offset_of!(__locale_struct, __names) - 128usize];
+        [::core::mem::offset_of!(__locale_struct, __names) - 128usize];
 };
 pub type __locale_t = *mut __locale_struct;
 pub type locale_t = __locale_t;
 unsafe extern "C" {
     pub fn strcoll_l(
-        __s1: *const ::std::os::raw::c_char,
-        __s2: *const ::std::os::raw::c_char,
+        __s1: *const libc::c_char,
+        __s2: *const libc::c_char,
         __l: locale_t,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn strxfrm_l(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
+        __dest: *mut libc::c_char,
+        __src: *const libc::c_char,
         __n: usize,
         __l: locale_t,
     ) -> usize;
 }
 unsafe extern "C" {
-    pub fn strdup(__s: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn strdup(__s: *const libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn strndup(
-        __string: *const ::std::os::raw::c_char,
-        __n: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn strndup(__string: *const libc::c_char, __n: libc::c_ulong) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn strchr(
-        __s: *const ::std::os::raw::c_char,
-        __c: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn strchr(__s: *const libc::c_char, __c: libc::c_int) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn strrchr(
-        __s: *const ::std::os::raw::c_char,
-        __c: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn strrchr(__s: *const libc::c_char, __c: libc::c_int) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn strchrnul(
-        __s: *const ::std::os::raw::c_char,
-        __c: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn strchrnul(__s: *const libc::c_char, __c: libc::c_int) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn strcspn(
-        __s: *const ::std::os::raw::c_char,
-        __reject: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_ulong;
+    pub fn strcspn(__s: *const libc::c_char, __reject: *const libc::c_char) -> libc::c_ulong;
 }
 unsafe extern "C" {
-    pub fn strspn(
-        __s: *const ::std::os::raw::c_char,
-        __accept: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_ulong;
+    pub fn strspn(__s: *const libc::c_char, __accept: *const libc::c_char) -> libc::c_ulong;
 }
 unsafe extern "C" {
-    pub fn strpbrk(
-        __s: *const ::std::os::raw::c_char,
-        __accept: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn strpbrk(__s: *const libc::c_char, __accept: *const libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn strstr(
-        __haystack: *const ::std::os::raw::c_char,
-        __needle: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+        __haystack: *const libc::c_char,
+        __needle: *const libc::c_char,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn strtok(
-        __s: *mut ::std::os::raw::c_char,
-        __delim: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn strtok(__s: *mut libc::c_char, __delim: *const libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn __strtok_r(
-        __s: *mut ::std::os::raw::c_char,
-        __delim: *const ::std::os::raw::c_char,
-        __save_ptr: *mut *mut ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+        __s: *mut libc::c_char,
+        __delim: *const libc::c_char,
+        __save_ptr: *mut *mut libc::c_char,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn strtok_r(
-        __s: *mut ::std::os::raw::c_char,
-        __delim: *const ::std::os::raw::c_char,
-        __save_ptr: *mut *mut ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+        __s: *mut libc::c_char,
+        __delim: *const libc::c_char,
+        __save_ptr: *mut *mut libc::c_char,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn strcasestr(
-        __haystack: *const ::std::os::raw::c_char,
-        __needle: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+        __haystack: *const libc::c_char,
+        __needle: *const libc::c_char,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn memmem(
-        __haystack: *const ::std::os::raw::c_void,
+        __haystack: *const libc::c_void,
         __haystacklen: usize,
-        __needle: *const ::std::os::raw::c_void,
+        __needle: *const libc::c_void,
         __needlelen: usize,
-    ) -> *mut ::std::os::raw::c_void;
+    ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn __mempcpy(
-        __dest: *mut ::std::os::raw::c_void,
-        __src: *const ::std::os::raw::c_void,
+        __dest: *mut libc::c_void,
+        __src: *const libc::c_void,
         __n: usize,
-    ) -> *mut ::std::os::raw::c_void;
+    ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn mempcpy(
-        __dest: *mut ::std::os::raw::c_void,
-        __src: *const ::std::os::raw::c_void,
-        __n: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_void;
+        __dest: *mut libc::c_void,
+        __src: *const libc::c_void,
+        __n: libc::c_ulong,
+    ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn strlen(__s: *const ::std::os::raw::c_char) -> ::std::os::raw::c_ulong;
+    pub fn strlen(__s: *const libc::c_char) -> libc::c_ulong;
 }
 unsafe extern "C" {
-    pub fn strnlen(__string: *const ::std::os::raw::c_char, __maxlen: usize) -> usize;
+    pub fn strnlen(__string: *const libc::c_char, __maxlen: usize) -> usize;
 }
 unsafe extern "C" {
-    pub fn strerror(__errnum: ::std::os::raw::c_int) -> *mut ::std::os::raw::c_char;
+    pub fn strerror(__errnum: libc::c_int) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}__xpg_strerror_r"]
     pub fn strerror_r(
-        __errnum: ::std::os::raw::c_int,
-        __buf: *mut ::std::os::raw::c_char,
+        __errnum: libc::c_int,
+        __buf: *mut libc::c_char,
         __buflen: usize,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn strerror_l(
-        __errnum: ::std::os::raw::c_int,
-        __l: locale_t,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn strerror_l(__errnum: libc::c_int, __l: locale_t) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn bcmp(
-        __s1: *const ::std::os::raw::c_void,
-        __s2: *const ::std::os::raw::c_void,
-        __n: ::std::os::raw::c_ulong,
-    ) -> ::std::os::raw::c_int;
+        __s1: *const libc::c_void,
+        __s2: *const libc::c_void,
+        __n: libc::c_ulong,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn bcopy(
-        __src: *const ::std::os::raw::c_void,
-        __dest: *mut ::std::os::raw::c_void,
-        __n: ::std::os::raw::c_ulong,
-    );
+    pub fn bcopy(__src: *const libc::c_void, __dest: *mut libc::c_void, __n: libc::c_ulong);
 }
 unsafe extern "C" {
-    pub fn bzero(__s: *mut ::std::os::raw::c_void, __n: ::std::os::raw::c_ulong);
+    pub fn bzero(__s: *mut libc::c_void, __n: libc::c_ulong);
 }
 unsafe extern "C" {
-    pub fn index(
-        __s: *const ::std::os::raw::c_char,
-        __c: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn index(__s: *const libc::c_char, __c: libc::c_int) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn rindex(
-        __s: *const ::std::os::raw::c_char,
-        __c: ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn rindex(__s: *const libc::c_char, __c: libc::c_int) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn ffs(__i: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+    pub fn ffs(__i: libc::c_int) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn ffsl(__l: ::std::os::raw::c_long) -> ::std::os::raw::c_int;
+    pub fn ffsl(__l: libc::c_long) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn ffsll(__ll: ::std::os::raw::c_longlong) -> ::std::os::raw::c_int;
+    pub fn ffsll(__ll: libc::c_longlong) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn strcasecmp(
-        __s1: *const ::std::os::raw::c_char,
-        __s2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
+    pub fn strcasecmp(__s1: *const libc::c_char, __s2: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn strncasecmp(
-        __s1: *const ::std::os::raw::c_char,
-        __s2: *const ::std::os::raw::c_char,
-        __n: ::std::os::raw::c_ulong,
-    ) -> ::std::os::raw::c_int;
+        __s1: *const libc::c_char,
+        __s2: *const libc::c_char,
+        __n: libc::c_ulong,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn strcasecmp_l(
-        __s1: *const ::std::os::raw::c_char,
-        __s2: *const ::std::os::raw::c_char,
+        __s1: *const libc::c_char,
+        __s2: *const libc::c_char,
         __loc: locale_t,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn strncasecmp_l(
-        __s1: *const ::std::os::raw::c_char,
-        __s2: *const ::std::os::raw::c_char,
+        __s1: *const libc::c_char,
+        __s2: *const libc::c_char,
         __n: usize,
         __loc: locale_t,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn explicit_bzero(__s: *mut ::std::os::raw::c_void, __n: usize);
+    pub fn explicit_bzero(__s: *mut libc::c_void, __n: usize);
 }
 unsafe extern "C" {
     pub fn strsep(
-        __stringp: *mut *mut ::std::os::raw::c_char,
-        __delim: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+        __stringp: *mut *mut libc::c_char,
+        __delim: *const libc::c_char,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn strsignal(__sig: ::std::os::raw::c_int) -> *mut ::std::os::raw::c_char;
+    pub fn strsignal(__sig: libc::c_int) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn __stpcpy(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn __stpcpy(__dest: *mut libc::c_char, __src: *const libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn stpcpy(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn stpcpy(__dest: *mut libc::c_char, __src: *const libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn __stpncpy(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
+        __dest: *mut libc::c_char,
+        __src: *const libc::c_char,
         __n: usize,
-    ) -> *mut ::std::os::raw::c_char;
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn stpncpy(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
-        __n: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_char;
+        __dest: *mut libc::c_char,
+        __src: *const libc::c_char,
+        __n: libc::c_ulong,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn strlcpy(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
-        __n: usize,
-    ) -> usize;
+    pub fn strlcpy(__dest: *mut libc::c_char, __src: *const libc::c_char, __n: usize) -> usize;
 }
 unsafe extern "C" {
-    pub fn strlcat(
-        __dest: *mut ::std::os::raw::c_char,
-        __src: *const ::std::os::raw::c_char,
-        __n: usize,
-    ) -> usize;
+    pub fn strlcat(__dest: *mut libc::c_char, __src: *const libc::c_char, __n: usize) -> usize;
 }
 pub type __gnuc_va_list = __builtin_va_list;
-pub type __u_char = ::std::os::raw::c_uchar;
-pub type __u_short = ::std::os::raw::c_ushort;
-pub type __u_int = ::std::os::raw::c_uint;
-pub type __u_long = ::std::os::raw::c_ulong;
-pub type __int8_t = ::std::os::raw::c_schar;
-pub type __uint8_t = ::std::os::raw::c_uchar;
-pub type __int16_t = ::std::os::raw::c_short;
-pub type __uint16_t = ::std::os::raw::c_ushort;
-pub type __int32_t = ::std::os::raw::c_int;
-pub type __uint32_t = ::std::os::raw::c_uint;
-pub type __int64_t = ::std::os::raw::c_long;
-pub type __uint64_t = ::std::os::raw::c_ulong;
+pub type __u_char = libc::c_uchar;
+pub type __u_short = libc::c_ushort;
+pub type __u_int = libc::c_uint;
+pub type __u_long = libc::c_ulong;
+pub type __int8_t = libc::c_schar;
+pub type __uint8_t = libc::c_uchar;
+pub type __int16_t = libc::c_short;
+pub type __uint16_t = libc::c_ushort;
+pub type __int32_t = libc::c_int;
+pub type __uint32_t = libc::c_uint;
+pub type __int64_t = libc::c_long;
+pub type __uint64_t = libc::c_ulong;
 pub type __int_least8_t = __int8_t;
 pub type __uint_least8_t = __uint8_t;
 pub type __int_least16_t = __int16_t;
@@ -1031,90 +965,90 @@ pub type __int_least32_t = __int32_t;
 pub type __uint_least32_t = __uint32_t;
 pub type __int_least64_t = __int64_t;
 pub type __uint_least64_t = __uint64_t;
-pub type __quad_t = ::std::os::raw::c_long;
-pub type __u_quad_t = ::std::os::raw::c_ulong;
-pub type __intmax_t = ::std::os::raw::c_long;
-pub type __uintmax_t = ::std::os::raw::c_ulong;
-pub type __dev_t = ::std::os::raw::c_ulong;
-pub type __uid_t = ::std::os::raw::c_uint;
-pub type __gid_t = ::std::os::raw::c_uint;
-pub type __ino_t = ::std::os::raw::c_ulong;
-pub type __ino64_t = ::std::os::raw::c_ulong;
-pub type __mode_t = ::std::os::raw::c_uint;
-pub type __nlink_t = ::std::os::raw::c_ulong;
-pub type __off_t = ::std::os::raw::c_long;
-pub type __off64_t = ::std::os::raw::c_long;
-pub type __pid_t = ::std::os::raw::c_int;
+pub type __quad_t = libc::c_long;
+pub type __u_quad_t = libc::c_ulong;
+pub type __intmax_t = libc::c_long;
+pub type __uintmax_t = libc::c_ulong;
+pub type __dev_t = libc::c_ulong;
+pub type __uid_t = libc::c_uint;
+pub type __gid_t = libc::c_uint;
+pub type __ino_t = libc::c_ulong;
+pub type __ino64_t = libc::c_ulong;
+pub type __mode_t = libc::c_uint;
+pub type __nlink_t = libc::c_ulong;
+pub type __off_t = libc::c_long;
+pub type __off64_t = libc::c_long;
+pub type __pid_t = libc::c_int;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __fsid_t {
-    pub __val: [::std::os::raw::c_int; 2usize],
+    pub __val: [libc::c_int; 2usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __fsid_t"][::std::mem::size_of::<__fsid_t>() - 8usize];
-    ["Alignment of __fsid_t"][::std::mem::align_of::<__fsid_t>() - 4usize];
-    ["Offset of field: __fsid_t::__val"][::std::mem::offset_of!(__fsid_t, __val) - 0usize];
+    ["Size of __fsid_t"][::core::mem::size_of::<__fsid_t>() - 8usize];
+    ["Alignment of __fsid_t"][::core::mem::align_of::<__fsid_t>() - 4usize];
+    ["Offset of field: __fsid_t::__val"][::core::mem::offset_of!(__fsid_t, __val) - 0usize];
 };
-pub type __clock_t = ::std::os::raw::c_long;
-pub type __rlim_t = ::std::os::raw::c_ulong;
-pub type __rlim64_t = ::std::os::raw::c_ulong;
-pub type __id_t = ::std::os::raw::c_uint;
-pub type __time_t = ::std::os::raw::c_long;
-pub type __useconds_t = ::std::os::raw::c_uint;
-pub type __suseconds_t = ::std::os::raw::c_long;
-pub type __suseconds64_t = ::std::os::raw::c_long;
-pub type __daddr_t = ::std::os::raw::c_int;
-pub type __key_t = ::std::os::raw::c_int;
-pub type __clockid_t = ::std::os::raw::c_int;
-pub type __timer_t = *mut ::std::os::raw::c_void;
-pub type __blksize_t = ::std::os::raw::c_long;
-pub type __blkcnt_t = ::std::os::raw::c_long;
-pub type __blkcnt64_t = ::std::os::raw::c_long;
-pub type __fsblkcnt_t = ::std::os::raw::c_ulong;
-pub type __fsblkcnt64_t = ::std::os::raw::c_ulong;
-pub type __fsfilcnt_t = ::std::os::raw::c_ulong;
-pub type __fsfilcnt64_t = ::std::os::raw::c_ulong;
-pub type __fsword_t = ::std::os::raw::c_long;
-pub type __ssize_t = ::std::os::raw::c_long;
-pub type __syscall_slong_t = ::std::os::raw::c_long;
-pub type __syscall_ulong_t = ::std::os::raw::c_ulong;
+pub type __clock_t = libc::c_long;
+pub type __rlim_t = libc::c_ulong;
+pub type __rlim64_t = libc::c_ulong;
+pub type __id_t = libc::c_uint;
+pub type __time_t = libc::c_long;
+pub type __useconds_t = libc::c_uint;
+pub type __suseconds_t = libc::c_long;
+pub type __suseconds64_t = libc::c_long;
+pub type __daddr_t = libc::c_int;
+pub type __key_t = libc::c_int;
+pub type __clockid_t = libc::c_int;
+pub type __timer_t = *mut libc::c_void;
+pub type __blksize_t = libc::c_long;
+pub type __blkcnt_t = libc::c_long;
+pub type __blkcnt64_t = libc::c_long;
+pub type __fsblkcnt_t = libc::c_ulong;
+pub type __fsblkcnt64_t = libc::c_ulong;
+pub type __fsfilcnt_t = libc::c_ulong;
+pub type __fsfilcnt64_t = libc::c_ulong;
+pub type __fsword_t = libc::c_long;
+pub type __ssize_t = libc::c_long;
+pub type __syscall_slong_t = libc::c_long;
+pub type __syscall_ulong_t = libc::c_ulong;
 pub type __loff_t = __off64_t;
-pub type __caddr_t = *mut ::std::os::raw::c_char;
-pub type __intptr_t = ::std::os::raw::c_long;
-pub type __socklen_t = ::std::os::raw::c_uint;
-pub type __sig_atomic_t = ::std::os::raw::c_int;
+pub type __caddr_t = *mut libc::c_char;
+pub type __intptr_t = libc::c_long;
+pub type __socklen_t = libc::c_uint;
+pub type __sig_atomic_t = libc::c_int;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct __mbstate_t {
-    pub __count: ::std::os::raw::c_int,
+    pub __count: libc::c_int,
     pub __value: __mbstate_t__bindgen_ty_1,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union __mbstate_t__bindgen_ty_1 {
-    pub __wch: ::std::os::raw::c_uint,
-    pub __wchb: [::std::os::raw::c_char; 4usize],
+    pub __wch: libc::c_uint,
+    pub __wchb: [libc::c_char; 4usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of __mbstate_t__bindgen_ty_1"]
-        [::std::mem::size_of::<__mbstate_t__bindgen_ty_1>() - 4usize];
+        [::core::mem::size_of::<__mbstate_t__bindgen_ty_1>() - 4usize];
     ["Alignment of __mbstate_t__bindgen_ty_1"]
-        [::std::mem::align_of::<__mbstate_t__bindgen_ty_1>() - 4usize];
+        [::core::mem::align_of::<__mbstate_t__bindgen_ty_1>() - 4usize];
     ["Offset of field: __mbstate_t__bindgen_ty_1::__wch"]
-        [::std::mem::offset_of!(__mbstate_t__bindgen_ty_1, __wch) - 0usize];
+        [::core::mem::offset_of!(__mbstate_t__bindgen_ty_1, __wch) - 0usize];
     ["Offset of field: __mbstate_t__bindgen_ty_1::__wchb"]
-        [::std::mem::offset_of!(__mbstate_t__bindgen_ty_1, __wchb) - 0usize];
+        [::core::mem::offset_of!(__mbstate_t__bindgen_ty_1, __wchb) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __mbstate_t"][::std::mem::size_of::<__mbstate_t>() - 8usize];
-    ["Alignment of __mbstate_t"][::std::mem::align_of::<__mbstate_t>() - 4usize];
+    ["Size of __mbstate_t"][::core::mem::size_of::<__mbstate_t>() - 8usize];
+    ["Alignment of __mbstate_t"][::core::mem::align_of::<__mbstate_t>() - 4usize];
     ["Offset of field: __mbstate_t::__count"]
-        [::std::mem::offset_of!(__mbstate_t, __count) - 0usize];
+        [::core::mem::offset_of!(__mbstate_t, __count) - 0usize];
     ["Offset of field: __mbstate_t::__value"]
-        [::std::mem::offset_of!(__mbstate_t, __value) - 4usize];
+        [::core::mem::offset_of!(__mbstate_t, __value) - 4usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -1124,10 +1058,10 @@ pub struct _G_fpos_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of _G_fpos_t"][::std::mem::size_of::<_G_fpos_t>() - 16usize];
-    ["Alignment of _G_fpos_t"][::std::mem::align_of::<_G_fpos_t>() - 8usize];
-    ["Offset of field: _G_fpos_t::__pos"][::std::mem::offset_of!(_G_fpos_t, __pos) - 0usize];
-    ["Offset of field: _G_fpos_t::__state"][::std::mem::offset_of!(_G_fpos_t, __state) - 8usize];
+    ["Size of _G_fpos_t"][::core::mem::size_of::<_G_fpos_t>() - 16usize];
+    ["Alignment of _G_fpos_t"][::core::mem::align_of::<_G_fpos_t>() - 8usize];
+    ["Offset of field: _G_fpos_t::__pos"][::core::mem::offset_of!(_G_fpos_t, __pos) - 0usize];
+    ["Offset of field: _G_fpos_t::__state"][::core::mem::offset_of!(_G_fpos_t, __state) - 8usize];
 };
 pub type __fpos_t = _G_fpos_t;
 #[repr(C)]
@@ -1138,11 +1072,11 @@ pub struct _G_fpos64_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of _G_fpos64_t"][::std::mem::size_of::<_G_fpos64_t>() - 16usize];
-    ["Alignment of _G_fpos64_t"][::std::mem::align_of::<_G_fpos64_t>() - 8usize];
-    ["Offset of field: _G_fpos64_t::__pos"][::std::mem::offset_of!(_G_fpos64_t, __pos) - 0usize];
+    ["Size of _G_fpos64_t"][::core::mem::size_of::<_G_fpos64_t>() - 16usize];
+    ["Alignment of _G_fpos64_t"][::core::mem::align_of::<_G_fpos64_t>() - 8usize];
+    ["Offset of field: _G_fpos64_t::__pos"][::core::mem::offset_of!(_G_fpos64_t, __pos) - 0usize];
     ["Offset of field: _G_fpos64_t::__state"]
-        [::std::mem::offset_of!(_G_fpos64_t, __state) - 8usize];
+        [::core::mem::offset_of!(_G_fpos64_t, __state) - 8usize];
 };
 pub type __fpos64_t = _G_fpos64_t;
 pub type __FILE = _IO_FILE;
@@ -1162,116 +1096,115 @@ pub struct _IO_codecvt {
 pub struct _IO_wide_data {
     _unused: [u8; 0],
 }
-pub type _IO_lock_t = ::std::os::raw::c_void;
+pub type _IO_lock_t = libc::c_void;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _IO_FILE {
-    pub _flags: ::std::os::raw::c_int,
-    pub _IO_read_ptr: *mut ::std::os::raw::c_char,
-    pub _IO_read_end: *mut ::std::os::raw::c_char,
-    pub _IO_read_base: *mut ::std::os::raw::c_char,
-    pub _IO_write_base: *mut ::std::os::raw::c_char,
-    pub _IO_write_ptr: *mut ::std::os::raw::c_char,
-    pub _IO_write_end: *mut ::std::os::raw::c_char,
-    pub _IO_buf_base: *mut ::std::os::raw::c_char,
-    pub _IO_buf_end: *mut ::std::os::raw::c_char,
-    pub _IO_save_base: *mut ::std::os::raw::c_char,
-    pub _IO_backup_base: *mut ::std::os::raw::c_char,
-    pub _IO_save_end: *mut ::std::os::raw::c_char,
+    pub _flags: libc::c_int,
+    pub _IO_read_ptr: *mut libc::c_char,
+    pub _IO_read_end: *mut libc::c_char,
+    pub _IO_read_base: *mut libc::c_char,
+    pub _IO_write_base: *mut libc::c_char,
+    pub _IO_write_ptr: *mut libc::c_char,
+    pub _IO_write_end: *mut libc::c_char,
+    pub _IO_buf_base: *mut libc::c_char,
+    pub _IO_buf_end: *mut libc::c_char,
+    pub _IO_save_base: *mut libc::c_char,
+    pub _IO_backup_base: *mut libc::c_char,
+    pub _IO_save_end: *mut libc::c_char,
     pub _markers: *mut _IO_marker,
     pub _chain: *mut _IO_FILE,
-    pub _fileno: ::std::os::raw::c_int,
-    pub _flags2: ::std::os::raw::c_int,
+    pub _fileno: libc::c_int,
+    pub _flags2: libc::c_int,
     pub _old_offset: __off_t,
-    pub _cur_column: ::std::os::raw::c_ushort,
-    pub _vtable_offset: ::std::os::raw::c_schar,
-    pub _shortbuf: [::std::os::raw::c_char; 1usize],
+    pub _cur_column: libc::c_ushort,
+    pub _vtable_offset: libc::c_schar,
+    pub _shortbuf: [libc::c_char; 1usize],
     pub _lock: *mut _IO_lock_t,
     pub _offset: __off64_t,
     pub _codecvt: *mut _IO_codecvt,
     pub _wide_data: *mut _IO_wide_data,
     pub _freeres_list: *mut _IO_FILE,
-    pub _freeres_buf: *mut ::std::os::raw::c_void,
+    pub _freeres_buf: *mut libc::c_void,
     pub __pad5: usize,
-    pub _mode: ::std::os::raw::c_int,
-    pub _unused2: [::std::os::raw::c_char; 20usize],
+    pub _mode: libc::c_int,
+    pub _unused2: [libc::c_char; 20usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of _IO_FILE"][::std::mem::size_of::<_IO_FILE>() - 216usize];
-    ["Alignment of _IO_FILE"][::std::mem::align_of::<_IO_FILE>() - 8usize];
-    ["Offset of field: _IO_FILE::_flags"][::std::mem::offset_of!(_IO_FILE, _flags) - 0usize];
+    ["Size of _IO_FILE"][::core::mem::size_of::<_IO_FILE>() - 216usize];
+    ["Alignment of _IO_FILE"][::core::mem::align_of::<_IO_FILE>() - 8usize];
+    ["Offset of field: _IO_FILE::_flags"][::core::mem::offset_of!(_IO_FILE, _flags) - 0usize];
     ["Offset of field: _IO_FILE::_IO_read_ptr"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_read_ptr) - 8usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_read_ptr) - 8usize];
     ["Offset of field: _IO_FILE::_IO_read_end"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_read_end) - 16usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_read_end) - 16usize];
     ["Offset of field: _IO_FILE::_IO_read_base"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_read_base) - 24usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_read_base) - 24usize];
     ["Offset of field: _IO_FILE::_IO_write_base"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_write_base) - 32usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_write_base) - 32usize];
     ["Offset of field: _IO_FILE::_IO_write_ptr"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_write_ptr) - 40usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_write_ptr) - 40usize];
     ["Offset of field: _IO_FILE::_IO_write_end"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_write_end) - 48usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_write_end) - 48usize];
     ["Offset of field: _IO_FILE::_IO_buf_base"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_buf_base) - 56usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_buf_base) - 56usize];
     ["Offset of field: _IO_FILE::_IO_buf_end"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_buf_end) - 64usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_buf_end) - 64usize];
     ["Offset of field: _IO_FILE::_IO_save_base"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_save_base) - 72usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_save_base) - 72usize];
     ["Offset of field: _IO_FILE::_IO_backup_base"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_backup_base) - 80usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_backup_base) - 80usize];
     ["Offset of field: _IO_FILE::_IO_save_end"]
-        [::std::mem::offset_of!(_IO_FILE, _IO_save_end) - 88usize];
-    ["Offset of field: _IO_FILE::_markers"][::std::mem::offset_of!(_IO_FILE, _markers) - 96usize];
-    ["Offset of field: _IO_FILE::_chain"][::std::mem::offset_of!(_IO_FILE, _chain) - 104usize];
-    ["Offset of field: _IO_FILE::_fileno"][::std::mem::offset_of!(_IO_FILE, _fileno) - 112usize];
-    ["Offset of field: _IO_FILE::_flags2"][::std::mem::offset_of!(_IO_FILE, _flags2) - 116usize];
+        [::core::mem::offset_of!(_IO_FILE, _IO_save_end) - 88usize];
+    ["Offset of field: _IO_FILE::_markers"][::core::mem::offset_of!(_IO_FILE, _markers) - 96usize];
+    ["Offset of field: _IO_FILE::_chain"][::core::mem::offset_of!(_IO_FILE, _chain) - 104usize];
+    ["Offset of field: _IO_FILE::_fileno"][::core::mem::offset_of!(_IO_FILE, _fileno) - 112usize];
+    ["Offset of field: _IO_FILE::_flags2"][::core::mem::offset_of!(_IO_FILE, _flags2) - 116usize];
     ["Offset of field: _IO_FILE::_old_offset"]
-        [::std::mem::offset_of!(_IO_FILE, _old_offset) - 120usize];
+        [::core::mem::offset_of!(_IO_FILE, _old_offset) - 120usize];
     ["Offset of field: _IO_FILE::_cur_column"]
-        [::std::mem::offset_of!(_IO_FILE, _cur_column) - 128usize];
+        [::core::mem::offset_of!(_IO_FILE, _cur_column) - 128usize];
     ["Offset of field: _IO_FILE::_vtable_offset"]
-        [::std::mem::offset_of!(_IO_FILE, _vtable_offset) - 130usize];
+        [::core::mem::offset_of!(_IO_FILE, _vtable_offset) - 130usize];
     ["Offset of field: _IO_FILE::_shortbuf"]
-        [::std::mem::offset_of!(_IO_FILE, _shortbuf) - 131usize];
-    ["Offset of field: _IO_FILE::_lock"][::std::mem::offset_of!(_IO_FILE, _lock) - 136usize];
-    ["Offset of field: _IO_FILE::_offset"][::std::mem::offset_of!(_IO_FILE, _offset) - 144usize];
-    ["Offset of field: _IO_FILE::_codecvt"][::std::mem::offset_of!(_IO_FILE, _codecvt) - 152usize];
+        [::core::mem::offset_of!(_IO_FILE, _shortbuf) - 131usize];
+    ["Offset of field: _IO_FILE::_lock"][::core::mem::offset_of!(_IO_FILE, _lock) - 136usize];
+    ["Offset of field: _IO_FILE::_offset"][::core::mem::offset_of!(_IO_FILE, _offset) - 144usize];
+    ["Offset of field: _IO_FILE::_codecvt"][::core::mem::offset_of!(_IO_FILE, _codecvt) - 152usize];
     ["Offset of field: _IO_FILE::_wide_data"]
-        [::std::mem::offset_of!(_IO_FILE, _wide_data) - 160usize];
+        [::core::mem::offset_of!(_IO_FILE, _wide_data) - 160usize];
     ["Offset of field: _IO_FILE::_freeres_list"]
-        [::std::mem::offset_of!(_IO_FILE, _freeres_list) - 168usize];
+        [::core::mem::offset_of!(_IO_FILE, _freeres_list) - 168usize];
     ["Offset of field: _IO_FILE::_freeres_buf"]
-        [::std::mem::offset_of!(_IO_FILE, _freeres_buf) - 176usize];
-    ["Offset of field: _IO_FILE::__pad5"][::std::mem::offset_of!(_IO_FILE, __pad5) - 184usize];
-    ["Offset of field: _IO_FILE::_mode"][::std::mem::offset_of!(_IO_FILE, _mode) - 192usize];
-    ["Offset of field: _IO_FILE::_unused2"][::std::mem::offset_of!(_IO_FILE, _unused2) - 196usize];
+        [::core::mem::offset_of!(_IO_FILE, _freeres_buf) - 176usize];
+    ["Offset of field: _IO_FILE::__pad5"][::core::mem::offset_of!(_IO_FILE, __pad5) - 184usize];
+    ["Offset of field: _IO_FILE::_mode"][::core::mem::offset_of!(_IO_FILE, _mode) - 192usize];
+    ["Offset of field: _IO_FILE::_unused2"][::core::mem::offset_of!(_IO_FILE, _unused2) - 196usize];
 };
-pub type cookie_read_function_t = ::std::option::Option<
+pub type cookie_read_function_t = ::core::option::Option<
     unsafe extern "C" fn(
-        __cookie: *mut ::std::os::raw::c_void,
-        __buf: *mut ::std::os::raw::c_char,
+        __cookie: *mut libc::c_void,
+        __buf: *mut libc::c_char,
         __nbytes: usize,
     ) -> __ssize_t,
 >;
-pub type cookie_write_function_t = ::std::option::Option<
+pub type cookie_write_function_t = ::core::option::Option<
     unsafe extern "C" fn(
-        __cookie: *mut ::std::os::raw::c_void,
-        __buf: *const ::std::os::raw::c_char,
+        __cookie: *mut libc::c_void,
+        __buf: *const libc::c_char,
         __nbytes: usize,
     ) -> __ssize_t,
 >;
-pub type cookie_seek_function_t = ::std::option::Option<
+pub type cookie_seek_function_t = ::core::option::Option<
     unsafe extern "C" fn(
-        __cookie: *mut ::std::os::raw::c_void,
+        __cookie: *mut libc::c_void,
         __pos: *mut __off64_t,
-        __w: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int,
+        __w: libc::c_int,
+    ) -> libc::c_int,
 >;
-pub type cookie_close_function_t = ::std::option::Option<
-    unsafe extern "C" fn(__cookie: *mut ::std::os::raw::c_void) -> ::std::os::raw::c_int,
->;
+pub type cookie_close_function_t =
+    ::core::option::Option<unsafe extern "C" fn(__cookie: *mut libc::c_void) -> libc::c_int>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _IO_cookie_io_functions_t {
@@ -1283,17 +1216,17 @@ pub struct _IO_cookie_io_functions_t {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of _IO_cookie_io_functions_t"]
-        [::std::mem::size_of::<_IO_cookie_io_functions_t>() - 32usize];
+        [::core::mem::size_of::<_IO_cookie_io_functions_t>() - 32usize];
     ["Alignment of _IO_cookie_io_functions_t"]
-        [::std::mem::align_of::<_IO_cookie_io_functions_t>() - 8usize];
+        [::core::mem::align_of::<_IO_cookie_io_functions_t>() - 8usize];
     ["Offset of field: _IO_cookie_io_functions_t::read"]
-        [::std::mem::offset_of!(_IO_cookie_io_functions_t, read) - 0usize];
+        [::core::mem::offset_of!(_IO_cookie_io_functions_t, read) - 0usize];
     ["Offset of field: _IO_cookie_io_functions_t::write"]
-        [::std::mem::offset_of!(_IO_cookie_io_functions_t, write) - 8usize];
+        [::core::mem::offset_of!(_IO_cookie_io_functions_t, write) - 8usize];
     ["Offset of field: _IO_cookie_io_functions_t::seek"]
-        [::std::mem::offset_of!(_IO_cookie_io_functions_t, seek) - 16usize];
+        [::core::mem::offset_of!(_IO_cookie_io_functions_t, seek) - 16usize];
     ["Offset of field: _IO_cookie_io_functions_t::close"]
-        [::std::mem::offset_of!(_IO_cookie_io_functions_t, close) - 24usize];
+        [::core::mem::offset_of!(_IO_cookie_io_functions_t, close) - 24usize];
 };
 pub type cookie_io_functions_t = _IO_cookie_io_functions_t;
 pub type va_list = __gnuc_va_list;
@@ -1309,207 +1242,167 @@ unsafe extern "C" {
     pub static mut stderr: *mut FILE;
 }
 unsafe extern "C" {
-    pub fn remove(__filename: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn remove(__filename: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn rename(
-        __old: *const ::std::os::raw::c_char,
-        __new: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
+    pub fn rename(__old: *const libc::c_char, __new: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn renameat(
-        __oldfd: ::std::os::raw::c_int,
-        __old: *const ::std::os::raw::c_char,
-        __newfd: ::std::os::raw::c_int,
-        __new: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
+        __oldfd: libc::c_int,
+        __old: *const libc::c_char,
+        __newfd: libc::c_int,
+        __new: *const libc::c_char,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn fclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fclose(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}tmpfile64"]
     pub fn tmpfile() -> *mut FILE;
 }
 unsafe extern "C" {
-    pub fn tmpnam(arg1: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn tmpnam(arg1: *mut libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn tmpnam_r(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn tmpnam_r(__s: *mut libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn tempnam(
-        __dir: *const ::std::os::raw::c_char,
-        __pfx: *const ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn tempnam(__dir: *const libc::c_char, __pfx: *const libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn fflush(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fflush(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn fflush_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fflush_unlocked(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}fopen64"]
-    pub fn fopen(
-        __filename: *const ::std::os::raw::c_char,
-        __modes: *const ::std::os::raw::c_char,
-    ) -> *mut FILE;
+    pub fn fopen(__filename: *const libc::c_char, __modes: *const libc::c_char) -> *mut FILE;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}freopen64"]
     pub fn freopen(
-        __filename: *const ::std::os::raw::c_char,
-        __modes: *const ::std::os::raw::c_char,
+        __filename: *const libc::c_char,
+        __modes: *const libc::c_char,
         __stream: *mut FILE,
     ) -> *mut FILE;
 }
 unsafe extern "C" {
-    pub fn fdopen(__fd: ::std::os::raw::c_int, __modes: *const ::std::os::raw::c_char)
-        -> *mut FILE;
+    pub fn fdopen(__fd: libc::c_int, __modes: *const libc::c_char) -> *mut FILE;
 }
 unsafe extern "C" {
     pub fn fopencookie(
-        __magic_cookie: *mut ::std::os::raw::c_void,
-        __modes: *const ::std::os::raw::c_char,
+        __magic_cookie: *mut libc::c_void,
+        __modes: *const libc::c_char,
         __io_funcs: cookie_io_functions_t,
     ) -> *mut FILE;
 }
 unsafe extern "C" {
     pub fn fmemopen(
-        __s: *mut ::std::os::raw::c_void,
+        __s: *mut libc::c_void,
         __len: usize,
-        __modes: *const ::std::os::raw::c_char,
+        __modes: *const libc::c_char,
     ) -> *mut FILE;
 }
 unsafe extern "C" {
-    pub fn open_memstream(
-        __bufloc: *mut *mut ::std::os::raw::c_char,
-        __sizeloc: *mut usize,
-    ) -> *mut FILE;
+    pub fn open_memstream(__bufloc: *mut *mut libc::c_char, __sizeloc: *mut usize) -> *mut FILE;
 }
 unsafe extern "C" {
-    pub fn setbuf(__stream: *mut FILE, __buf: *mut ::std::os::raw::c_char);
+    pub fn setbuf(__stream: *mut FILE, __buf: *mut libc::c_char);
 }
 unsafe extern "C" {
     pub fn setvbuf(
         __stream: *mut FILE,
-        __buf: *mut ::std::os::raw::c_char,
-        __modes: ::std::os::raw::c_int,
+        __buf: *mut libc::c_char,
+        __modes: libc::c_int,
         __n: usize,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn setbuffer(__stream: *mut FILE, __buf: *mut ::std::os::raw::c_char, __size: usize);
+    pub fn setbuffer(__stream: *mut FILE, __buf: *mut libc::c_char, __size: usize);
 }
 unsafe extern "C" {
     pub fn setlinebuf(__stream: *mut FILE);
 }
 unsafe extern "C" {
-    pub fn fprintf(
-        __stream: *mut FILE,
-        __format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn fprintf(__stream: *mut FILE, __format: *const libc::c_char, ...) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn printf(__format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
+    pub fn printf(__format: *const libc::c_char, ...) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn sprintf(
-        __s: *mut ::std::os::raw::c_char,
-        __format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn sprintf(__s: *mut libc::c_char, __format: *const libc::c_char, ...) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn vfprintf(
         __s: *mut FILE,
-        __format: *const ::std::os::raw::c_char,
+        __format: *const libc::c_char,
         __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn vprintf(
-        __format: *const ::std::os::raw::c_char,
-        __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    pub fn vprintf(__format: *const libc::c_char, __arg: *mut __va_list_tag) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn vsprintf(
-        __s: *mut ::std::os::raw::c_char,
-        __format: *const ::std::os::raw::c_char,
+        __s: *mut libc::c_char,
+        __format: *const libc::c_char,
         __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn snprintf(
-        __s: *mut ::std::os::raw::c_char,
-        __maxlen: ::std::os::raw::c_ulong,
-        __format: *const ::std::os::raw::c_char,
+        __s: *mut libc::c_char,
+        __maxlen: libc::c_ulong,
+        __format: *const libc::c_char,
         ...
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn vsnprintf(
-        __s: *mut ::std::os::raw::c_char,
-        __maxlen: ::std::os::raw::c_ulong,
-        __format: *const ::std::os::raw::c_char,
+        __s: *mut libc::c_char,
+        __maxlen: libc::c_ulong,
+        __format: *const libc::c_char,
         __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn vasprintf(
-        __ptr: *mut *mut ::std::os::raw::c_char,
-        __f: *const ::std::os::raw::c_char,
+        __ptr: *mut *mut libc::c_char,
+        __f: *const libc::c_char,
         __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn __asprintf(
-        __ptr: *mut *mut ::std::os::raw::c_char,
-        __fmt: *const ::std::os::raw::c_char,
+        __ptr: *mut *mut libc::c_char,
+        __fmt: *const libc::c_char,
         ...
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn asprintf(
-        __ptr: *mut *mut ::std::os::raw::c_char,
-        __fmt: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn asprintf(__ptr: *mut *mut libc::c_char, __fmt: *const libc::c_char, ...) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn vdprintf(
-        __fd: ::std::os::raw::c_int,
-        __fmt: *const ::std::os::raw::c_char,
+        __fd: libc::c_int,
+        __fmt: *const libc::c_char,
         __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn dprintf(
-        __fd: ::std::os::raw::c_int,
-        __fmt: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn dprintf(__fd: libc::c_int, __fmt: *const libc::c_char, ...) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn fscanf(
-        __stream: *mut FILE,
-        __format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn fscanf(__stream: *mut FILE, __format: *const libc::c_char, ...) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn scanf(__format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
+    pub fn scanf(__format: *const libc::c_char, ...) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn sscanf(
-        __s: *const ::std::os::raw::c_char,
-        __format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn sscanf(__s: *const libc::c_char, __format: *const libc::c_char, ...) -> libc::c_int;
 }
 pub type _Float32 = f32;
 pub type _Float64 = f64;
@@ -1517,168 +1410,153 @@ pub type _Float32x = f64;
 pub type _Float64x = u128;
 unsafe extern "C" {
     #[link_name = "\u{1}__isoc99_fscanf"]
-    pub fn fscanf1(
-        __stream: *mut FILE,
-        __format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn fscanf1(__stream: *mut FILE, __format: *const libc::c_char, ...) -> libc::c_int;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}__isoc99_scanf"]
-    pub fn scanf1(__format: *const ::std::os::raw::c_char, ...) -> ::std::os::raw::c_int;
+    pub fn scanf1(__format: *const libc::c_char, ...) -> libc::c_int;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}__isoc99_sscanf"]
-    pub fn sscanf1(
-        __s: *const ::std::os::raw::c_char,
-        __format: *const ::std::os::raw::c_char,
-        ...
-    ) -> ::std::os::raw::c_int;
+    pub fn sscanf1(__s: *const libc::c_char, __format: *const libc::c_char, ...) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn vfscanf(
         __s: *mut FILE,
-        __format: *const ::std::os::raw::c_char,
+        __format: *const libc::c_char,
         __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn vscanf(
-        __format: *const ::std::os::raw::c_char,
-        __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    pub fn vscanf(__format: *const libc::c_char, __arg: *mut __va_list_tag) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn vsscanf(
-        __s: *const ::std::os::raw::c_char,
-        __format: *const ::std::os::raw::c_char,
+        __s: *const libc::c_char,
+        __format: *const libc::c_char,
         __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}__isoc99_vfscanf"]
     pub fn vfscanf1(
         __s: *mut FILE,
-        __format: *const ::std::os::raw::c_char,
+        __format: *const libc::c_char,
         __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}__isoc99_vscanf"]
-    pub fn vscanf1(
-        __format: *const ::std::os::raw::c_char,
-        __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    pub fn vscanf1(__format: *const libc::c_char, __arg: *mut __va_list_tag) -> libc::c_int;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}__isoc99_vsscanf"]
     pub fn vsscanf1(
-        __s: *const ::std::os::raw::c_char,
-        __format: *const ::std::os::raw::c_char,
+        __s: *const libc::c_char,
+        __format: *const libc::c_char,
         __arg: *mut __va_list_tag,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn fgetc(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fgetc(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn getc(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn getc(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn getchar() -> ::std::os::raw::c_int;
+    pub fn getchar() -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn getc_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn getc_unlocked(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn getchar_unlocked() -> ::std::os::raw::c_int;
+    pub fn getchar_unlocked() -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn fgetc_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fgetc_unlocked(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn fputc(__c: ::std::os::raw::c_int, __stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fputc(__c: libc::c_int, __stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn putc(__c: ::std::os::raw::c_int, __stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn putc(__c: libc::c_int, __stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn putchar(__c: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+    pub fn putchar(__c: libc::c_int) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn fputc_unlocked(__c: ::std::os::raw::c_int, __stream: *mut FILE)
-        -> ::std::os::raw::c_int;
+    pub fn fputc_unlocked(__c: libc::c_int, __stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn putc_unlocked(__c: ::std::os::raw::c_int, __stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn putc_unlocked(__c: libc::c_int, __stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn putchar_unlocked(__c: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+    pub fn putchar_unlocked(__c: libc::c_int) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn getw(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn getw(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn putw(__w: ::std::os::raw::c_int, __stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn putw(__w: libc::c_int, __stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn fgets(
-        __s: *mut ::std::os::raw::c_char,
-        __n: ::std::os::raw::c_int,
+        __s: *mut libc::c_char,
+        __n: libc::c_int,
         __stream: *mut FILE,
-    ) -> *mut ::std::os::raw::c_char;
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn __getdelim(
-        __lineptr: *mut *mut ::std::os::raw::c_char,
+        __lineptr: *mut *mut libc::c_char,
         __n: *mut usize,
-        __delimiter: ::std::os::raw::c_int,
+        __delimiter: libc::c_int,
         __stream: *mut FILE,
     ) -> __ssize_t;
 }
 unsafe extern "C" {
     pub fn getdelim(
-        __lineptr: *mut *mut ::std::os::raw::c_char,
+        __lineptr: *mut *mut libc::c_char,
         __n: *mut usize,
-        __delimiter: ::std::os::raw::c_int,
+        __delimiter: libc::c_int,
         __stream: *mut FILE,
     ) -> __ssize_t;
 }
 unsafe extern "C" {
     pub fn getline(
-        __lineptr: *mut *mut ::std::os::raw::c_char,
+        __lineptr: *mut *mut libc::c_char,
         __n: *mut usize,
         __stream: *mut FILE,
     ) -> __ssize_t;
 }
 unsafe extern "C" {
-    pub fn fputs(__s: *const ::std::os::raw::c_char, __stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fputs(__s: *const libc::c_char, __stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn puts(__s: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn puts(__s: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn ungetc(__c: ::std::os::raw::c_int, __stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn ungetc(__c: libc::c_int, __stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn fread(
-        __ptr: *mut ::std::os::raw::c_void,
-        __size: ::std::os::raw::c_ulong,
-        __n: ::std::os::raw::c_ulong,
+        __ptr: *mut libc::c_void,
+        __size: libc::c_ulong,
+        __n: libc::c_ulong,
         __stream: *mut FILE,
-    ) -> ::std::os::raw::c_ulong;
+    ) -> libc::c_ulong;
 }
 unsafe extern "C" {
     pub fn fwrite(
-        __ptr: *const ::std::os::raw::c_void,
-        __size: ::std::os::raw::c_ulong,
-        __n: ::std::os::raw::c_ulong,
+        __ptr: *const libc::c_void,
+        __size: libc::c_ulong,
+        __n: libc::c_ulong,
         __s: *mut FILE,
-    ) -> ::std::os::raw::c_ulong;
+    ) -> libc::c_ulong;
 }
 unsafe extern "C" {
     pub fn fread_unlocked(
-        __ptr: *mut ::std::os::raw::c_void,
+        __ptr: *mut libc::c_void,
         __size: usize,
         __n: usize,
         __stream: *mut FILE,
@@ -1686,32 +1564,24 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn fwrite_unlocked(
-        __ptr: *const ::std::os::raw::c_void,
+        __ptr: *const libc::c_void,
         __size: usize,
         __n: usize,
         __stream: *mut FILE,
     ) -> usize;
 }
 unsafe extern "C" {
-    pub fn fseek(
-        __stream: *mut FILE,
-        __off: ::std::os::raw::c_long,
-        __whence: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
+    pub fn fseek(__stream: *mut FILE, __off: libc::c_long, __whence: libc::c_int) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn ftell(__stream: *mut FILE) -> ::std::os::raw::c_long;
+    pub fn ftell(__stream: *mut FILE) -> libc::c_long;
 }
 unsafe extern "C" {
     pub fn rewind(__stream: *mut FILE);
 }
 unsafe extern "C" {
     #[link_name = "\u{1}fseeko64"]
-    pub fn fseeko(
-        __stream: *mut FILE,
-        __off: __off64_t,
-        __whence: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
+    pub fn fseeko(__stream: *mut FILE, __off: __off64_t, __whence: libc::c_int) -> libc::c_int;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}ftello64"]
@@ -1719,186 +1589,174 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     #[link_name = "\u{1}fgetpos64"]
-    pub fn fgetpos(__stream: *mut FILE, __pos: *mut fpos_t) -> ::std::os::raw::c_int;
+    pub fn fgetpos(__stream: *mut FILE, __pos: *mut fpos_t) -> libc::c_int;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}fsetpos64"]
-    pub fn fsetpos(__stream: *mut FILE, __pos: *const fpos_t) -> ::std::os::raw::c_int;
+    pub fn fsetpos(__stream: *mut FILE, __pos: *const fpos_t) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn clearerr(__stream: *mut FILE);
 }
 unsafe extern "C" {
-    pub fn feof(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn feof(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn ferror(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn ferror(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn clearerr_unlocked(__stream: *mut FILE);
 }
 unsafe extern "C" {
-    pub fn feof_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn feof_unlocked(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn ferror_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn ferror_unlocked(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn perror(__s: *const ::std::os::raw::c_char);
+    pub fn perror(__s: *const libc::c_char);
 }
 unsafe extern "C" {
-    pub fn fileno(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fileno(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn fileno_unlocked(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn fileno_unlocked(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn pclose(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn pclose(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn popen(
-        __command: *const ::std::os::raw::c_char,
-        __modes: *const ::std::os::raw::c_char,
-    ) -> *mut FILE;
+    pub fn popen(__command: *const libc::c_char, __modes: *const libc::c_char) -> *mut FILE;
 }
 unsafe extern "C" {
-    pub fn ctermid(__s: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn ctermid(__s: *mut libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn flockfile(__stream: *mut FILE);
 }
 unsafe extern "C" {
-    pub fn ftrylockfile(__stream: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn ftrylockfile(__stream: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn funlockfile(__stream: *mut FILE);
 }
 unsafe extern "C" {
-    pub fn __uflow(arg1: *mut FILE) -> ::std::os::raw::c_int;
+    pub fn __uflow(arg1: *mut FILE) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __overflow(arg1: *mut FILE, arg2: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+    pub fn __overflow(arg1: *mut FILE, arg2: libc::c_int) -> libc::c_int;
 }
-pub type wchar_t = ::std::os::raw::c_int;
+pub type wchar_t = libc::c_int;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct div_t {
-    pub quot: ::std::os::raw::c_int,
-    pub rem: ::std::os::raw::c_int,
+    pub quot: libc::c_int,
+    pub rem: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of div_t"][::std::mem::size_of::<div_t>() - 8usize];
-    ["Alignment of div_t"][::std::mem::align_of::<div_t>() - 4usize];
-    ["Offset of field: div_t::quot"][::std::mem::offset_of!(div_t, quot) - 0usize];
-    ["Offset of field: div_t::rem"][::std::mem::offset_of!(div_t, rem) - 4usize];
+    ["Size of div_t"][::core::mem::size_of::<div_t>() - 8usize];
+    ["Alignment of div_t"][::core::mem::align_of::<div_t>() - 4usize];
+    ["Offset of field: div_t::quot"][::core::mem::offset_of!(div_t, quot) - 0usize];
+    ["Offset of field: div_t::rem"][::core::mem::offset_of!(div_t, rem) - 4usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ldiv_t {
-    pub quot: ::std::os::raw::c_long,
-    pub rem: ::std::os::raw::c_long,
+    pub quot: libc::c_long,
+    pub rem: libc::c_long,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of ldiv_t"][::std::mem::size_of::<ldiv_t>() - 16usize];
-    ["Alignment of ldiv_t"][::std::mem::align_of::<ldiv_t>() - 8usize];
-    ["Offset of field: ldiv_t::quot"][::std::mem::offset_of!(ldiv_t, quot) - 0usize];
-    ["Offset of field: ldiv_t::rem"][::std::mem::offset_of!(ldiv_t, rem) - 8usize];
+    ["Size of ldiv_t"][::core::mem::size_of::<ldiv_t>() - 16usize];
+    ["Alignment of ldiv_t"][::core::mem::align_of::<ldiv_t>() - 8usize];
+    ["Offset of field: ldiv_t::quot"][::core::mem::offset_of!(ldiv_t, quot) - 0usize];
+    ["Offset of field: ldiv_t::rem"][::core::mem::offset_of!(ldiv_t, rem) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct lldiv_t {
-    pub quot: ::std::os::raw::c_longlong,
-    pub rem: ::std::os::raw::c_longlong,
+    pub quot: libc::c_longlong,
+    pub rem: libc::c_longlong,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of lldiv_t"][::std::mem::size_of::<lldiv_t>() - 16usize];
-    ["Alignment of lldiv_t"][::std::mem::align_of::<lldiv_t>() - 8usize];
-    ["Offset of field: lldiv_t::quot"][::std::mem::offset_of!(lldiv_t, quot) - 0usize];
-    ["Offset of field: lldiv_t::rem"][::std::mem::offset_of!(lldiv_t, rem) - 8usize];
+    ["Size of lldiv_t"][::core::mem::size_of::<lldiv_t>() - 16usize];
+    ["Alignment of lldiv_t"][::core::mem::align_of::<lldiv_t>() - 8usize];
+    ["Offset of field: lldiv_t::quot"][::core::mem::offset_of!(lldiv_t, quot) - 0usize];
+    ["Offset of field: lldiv_t::rem"][::core::mem::offset_of!(lldiv_t, rem) - 8usize];
 };
 unsafe extern "C" {
     pub fn __ctype_get_mb_cur_max() -> usize;
 }
 unsafe extern "C" {
-    pub fn atof(__nptr: *const ::std::os::raw::c_char) -> f64;
+    pub fn atof(__nptr: *const libc::c_char) -> f64;
 }
 unsafe extern "C" {
-    pub fn atoi(__nptr: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn atoi(__nptr: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn atol(__nptr: *const ::std::os::raw::c_char) -> ::std::os::raw::c_long;
+    pub fn atol(__nptr: *const libc::c_char) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn atoll(__nptr: *const ::std::os::raw::c_char) -> ::std::os::raw::c_longlong;
+    pub fn atoll(__nptr: *const libc::c_char) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn strtod(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-    ) -> f64;
+    pub fn strtod(__nptr: *const libc::c_char, __endptr: *mut *mut libc::c_char) -> f64;
 }
 unsafe extern "C" {
-    pub fn strtof(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-    ) -> f32;
+    pub fn strtof(__nptr: *const libc::c_char, __endptr: *mut *mut libc::c_char) -> f32;
 }
 unsafe extern "C" {
-    pub fn strtold(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-    ) -> u128;
+    pub fn strtold(__nptr: *const libc::c_char, __endptr: *mut *mut libc::c_char) -> u128;
 }
 unsafe extern "C" {
     pub fn strtol(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-        __base: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_long;
+        __nptr: *const libc::c_char,
+        __endptr: *mut *mut libc::c_char,
+        __base: libc::c_int,
+    ) -> libc::c_long;
 }
 unsafe extern "C" {
     pub fn strtoul(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-        __base: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_ulong;
+        __nptr: *const libc::c_char,
+        __endptr: *mut *mut libc::c_char,
+        __base: libc::c_int,
+    ) -> libc::c_ulong;
 }
 unsafe extern "C" {
     pub fn strtoq(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-        __base: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_longlong;
+        __nptr: *const libc::c_char,
+        __endptr: *mut *mut libc::c_char,
+        __base: libc::c_int,
+    ) -> libc::c_longlong;
 }
 unsafe extern "C" {
     pub fn strtouq(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-        __base: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_ulonglong;
+        __nptr: *const libc::c_char,
+        __endptr: *mut *mut libc::c_char,
+        __base: libc::c_int,
+    ) -> libc::c_ulonglong;
 }
 unsafe extern "C" {
     pub fn strtoll(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-        __base: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_longlong;
+        __nptr: *const libc::c_char,
+        __endptr: *mut *mut libc::c_char,
+        __base: libc::c_int,
+    ) -> libc::c_longlong;
 }
 unsafe extern "C" {
     pub fn strtoull(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-        __base: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_ulonglong;
+        __nptr: *const libc::c_char,
+        __endptr: *mut *mut libc::c_char,
+        __base: libc::c_int,
+    ) -> libc::c_ulonglong;
 }
 unsafe extern "C" {
-    pub fn l64a(__n: ::std::os::raw::c_long) -> *mut ::std::os::raw::c_char;
+    pub fn l64a(__n: libc::c_long) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn a64l(__s: *const ::std::os::raw::c_char) -> ::std::os::raw::c_long;
+    pub fn a64l(__s: *const libc::c_char) -> libc::c_long;
 }
 pub type u_char = __u_char;
 pub type u_short = __u_short;
@@ -1923,24 +1781,24 @@ pub type clock_t = __clock_t;
 pub type clockid_t = __clockid_t;
 pub type time_t = __time_t;
 pub type timer_t = __timer_t;
-pub type ulong = ::std::os::raw::c_ulong;
-pub type ushort = ::std::os::raw::c_ushort;
-pub type uint = ::std::os::raw::c_uint;
+pub type ulong = libc::c_ulong;
+pub type ushort = libc::c_ushort;
+pub type uint = libc::c_uint;
 pub type u_int8_t = __uint8_t;
 pub type u_int16_t = __uint16_t;
 pub type u_int32_t = __uint32_t;
 pub type u_int64_t = __uint64_t;
-pub type register_t = ::std::os::raw::c_long;
+pub type register_t = libc::c_long;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __sigset_t {
-    pub __val: [::std::os::raw::c_ulong; 16usize],
+    pub __val: [libc::c_ulong; 16usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __sigset_t"][::std::mem::size_of::<__sigset_t>() - 128usize];
-    ["Alignment of __sigset_t"][::std::mem::align_of::<__sigset_t>() - 8usize];
-    ["Offset of field: __sigset_t::__val"][::std::mem::offset_of!(__sigset_t, __val) - 0usize];
+    ["Size of __sigset_t"][::core::mem::size_of::<__sigset_t>() - 128usize];
+    ["Alignment of __sigset_t"][::core::mem::align_of::<__sigset_t>() - 8usize];
+    ["Offset of field: __sigset_t::__val"][::core::mem::offset_of!(__sigset_t, __val) - 0usize];
 };
 pub type sigset_t = __sigset_t;
 #[repr(C)]
@@ -1951,10 +1809,10 @@ pub struct timeval {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of timeval"][::std::mem::size_of::<timeval>() - 16usize];
-    ["Alignment of timeval"][::std::mem::align_of::<timeval>() - 8usize];
-    ["Offset of field: timeval::tv_sec"][::std::mem::offset_of!(timeval, tv_sec) - 0usize];
-    ["Offset of field: timeval::tv_usec"][::std::mem::offset_of!(timeval, tv_usec) - 8usize];
+    ["Size of timeval"][::core::mem::size_of::<timeval>() - 16usize];
+    ["Alignment of timeval"][::core::mem::align_of::<timeval>() - 8usize];
+    ["Offset of field: timeval::tv_sec"][::core::mem::offset_of!(timeval, tv_sec) - 0usize];
+    ["Offset of field: timeval::tv_usec"][::core::mem::offset_of!(timeval, tv_usec) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -1964,13 +1822,13 @@ pub struct timespec {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of timespec"][::std::mem::size_of::<timespec>() - 16usize];
-    ["Alignment of timespec"][::std::mem::align_of::<timespec>() - 8usize];
-    ["Offset of field: timespec::tv_sec"][::std::mem::offset_of!(timespec, tv_sec) - 0usize];
-    ["Offset of field: timespec::tv_nsec"][::std::mem::offset_of!(timespec, tv_nsec) - 8usize];
+    ["Size of timespec"][::core::mem::size_of::<timespec>() - 16usize];
+    ["Alignment of timespec"][::core::mem::align_of::<timespec>() - 8usize];
+    ["Offset of field: timespec::tv_sec"][::core::mem::offset_of!(timespec, tv_sec) - 0usize];
+    ["Offset of field: timespec::tv_nsec"][::core::mem::offset_of!(timespec, tv_nsec) - 8usize];
 };
 pub type suseconds_t = __suseconds_t;
-pub type __fd_mask = ::std::os::raw::c_long;
+pub type __fd_mask = libc::c_long;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct fd_set {
@@ -1978,29 +1836,29 @@ pub struct fd_set {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of fd_set"][::std::mem::size_of::<fd_set>() - 128usize];
-    ["Alignment of fd_set"][::std::mem::align_of::<fd_set>() - 8usize];
-    ["Offset of field: fd_set::__fds_bits"][::std::mem::offset_of!(fd_set, __fds_bits) - 0usize];
+    ["Size of fd_set"][::core::mem::size_of::<fd_set>() - 128usize];
+    ["Alignment of fd_set"][::core::mem::align_of::<fd_set>() - 8usize];
+    ["Offset of field: fd_set::__fds_bits"][::core::mem::offset_of!(fd_set, __fds_bits) - 0usize];
 };
 pub type fd_mask = __fd_mask;
 unsafe extern "C" {
     pub fn select(
-        __nfds: ::std::os::raw::c_int,
+        __nfds: libc::c_int,
         __readfds: *mut fd_set,
         __writefds: *mut fd_set,
         __exceptfds: *mut fd_set,
         __timeout: *mut timeval,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn pselect(
-        __nfds: ::std::os::raw::c_int,
+        __nfds: libc::c_int,
         __readfds: *mut fd_set,
         __writefds: *mut fd_set,
         __exceptfds: *mut fd_set,
         __timeout: *const timespec,
         __sigmask: *const __sigset_t,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 pub type blksize_t = __blksize_t;
 pub type blkcnt_t = __blkcnt64_t;
@@ -2009,35 +1867,35 @@ pub type fsfilcnt_t = __fsfilcnt64_t;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union __atomic_wide_counter {
-    pub __value64: ::std::os::raw::c_ulonglong,
+    pub __value64: libc::c_ulonglong,
     pub __value32: __atomic_wide_counter__bindgen_ty_1,
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __atomic_wide_counter__bindgen_ty_1 {
-    pub __low: ::std::os::raw::c_uint,
-    pub __high: ::std::os::raw::c_uint,
+    pub __low: libc::c_uint,
+    pub __high: libc::c_uint,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of __atomic_wide_counter__bindgen_ty_1"]
-        [::std::mem::size_of::<__atomic_wide_counter__bindgen_ty_1>() - 8usize];
+        [::core::mem::size_of::<__atomic_wide_counter__bindgen_ty_1>() - 8usize];
     ["Alignment of __atomic_wide_counter__bindgen_ty_1"]
-        [::std::mem::align_of::<__atomic_wide_counter__bindgen_ty_1>() - 4usize];
+        [::core::mem::align_of::<__atomic_wide_counter__bindgen_ty_1>() - 4usize];
     ["Offset of field: __atomic_wide_counter__bindgen_ty_1::__low"]
-        [::std::mem::offset_of!(__atomic_wide_counter__bindgen_ty_1, __low) - 0usize];
+        [::core::mem::offset_of!(__atomic_wide_counter__bindgen_ty_1, __low) - 0usize];
     ["Offset of field: __atomic_wide_counter__bindgen_ty_1::__high"]
-        [::std::mem::offset_of!(__atomic_wide_counter__bindgen_ty_1, __high) - 4usize];
+        [::core::mem::offset_of!(__atomic_wide_counter__bindgen_ty_1, __high) - 4usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __atomic_wide_counter"][::std::mem::size_of::<__atomic_wide_counter>() - 8usize];
+    ["Size of __atomic_wide_counter"][::core::mem::size_of::<__atomic_wide_counter>() - 8usize];
     ["Alignment of __atomic_wide_counter"]
-        [::std::mem::align_of::<__atomic_wide_counter>() - 8usize];
+        [::core::mem::align_of::<__atomic_wide_counter>() - 8usize];
     ["Offset of field: __atomic_wide_counter::__value64"]
-        [::std::mem::offset_of!(__atomic_wide_counter, __value64) - 0usize];
+        [::core::mem::offset_of!(__atomic_wide_counter, __value64) - 0usize];
     ["Offset of field: __atomic_wide_counter::__value32"]
-        [::std::mem::offset_of!(__atomic_wide_counter, __value32) - 0usize];
+        [::core::mem::offset_of!(__atomic_wide_counter, __value32) - 0usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -2047,13 +1905,14 @@ pub struct __pthread_internal_list {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __pthread_internal_list"][::std::mem::size_of::<__pthread_internal_list>() - 16usize];
+    ["Size of __pthread_internal_list"]
+        [::core::mem::size_of::<__pthread_internal_list>() - 16usize];
     ["Alignment of __pthread_internal_list"]
-        [::std::mem::align_of::<__pthread_internal_list>() - 8usize];
+        [::core::mem::align_of::<__pthread_internal_list>() - 8usize];
     ["Offset of field: __pthread_internal_list::__prev"]
-        [::std::mem::offset_of!(__pthread_internal_list, __prev) - 0usize];
+        [::core::mem::offset_of!(__pthread_internal_list, __prev) - 0usize];
     ["Offset of field: __pthread_internal_list::__next"]
-        [::std::mem::offset_of!(__pthread_internal_list, __next) - 8usize];
+        [::core::mem::offset_of!(__pthread_internal_list, __next) - 8usize];
 };
 pub type __pthread_list_t = __pthread_internal_list;
 #[repr(C)]
@@ -2064,299 +1923,300 @@ pub struct __pthread_internal_slist {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of __pthread_internal_slist"]
-        [::std::mem::size_of::<__pthread_internal_slist>() - 8usize];
+        [::core::mem::size_of::<__pthread_internal_slist>() - 8usize];
     ["Alignment of __pthread_internal_slist"]
-        [::std::mem::align_of::<__pthread_internal_slist>() - 8usize];
+        [::core::mem::align_of::<__pthread_internal_slist>() - 8usize];
     ["Offset of field: __pthread_internal_slist::__next"]
-        [::std::mem::offset_of!(__pthread_internal_slist, __next) - 0usize];
+        [::core::mem::offset_of!(__pthread_internal_slist, __next) - 0usize];
 };
 pub type __pthread_slist_t = __pthread_internal_slist;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __pthread_mutex_s {
-    pub __lock: ::std::os::raw::c_int,
-    pub __count: ::std::os::raw::c_uint,
-    pub __owner: ::std::os::raw::c_int,
-    pub __nusers: ::std::os::raw::c_uint,
-    pub __kind: ::std::os::raw::c_int,
-    pub __spins: ::std::os::raw::c_short,
-    pub __elision: ::std::os::raw::c_short,
+    pub __lock: libc::c_int,
+    pub __count: libc::c_uint,
+    pub __owner: libc::c_int,
+    pub __nusers: libc::c_uint,
+    pub __kind: libc::c_int,
+    pub __spins: libc::c_short,
+    pub __elision: libc::c_short,
     pub __list: __pthread_list_t,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __pthread_mutex_s"][::std::mem::size_of::<__pthread_mutex_s>() - 40usize];
-    ["Alignment of __pthread_mutex_s"][::std::mem::align_of::<__pthread_mutex_s>() - 8usize];
+    ["Size of __pthread_mutex_s"][::core::mem::size_of::<__pthread_mutex_s>() - 40usize];
+    ["Alignment of __pthread_mutex_s"][::core::mem::align_of::<__pthread_mutex_s>() - 8usize];
     ["Offset of field: __pthread_mutex_s::__lock"]
-        [::std::mem::offset_of!(__pthread_mutex_s, __lock) - 0usize];
+        [::core::mem::offset_of!(__pthread_mutex_s, __lock) - 0usize];
     ["Offset of field: __pthread_mutex_s::__count"]
-        [::std::mem::offset_of!(__pthread_mutex_s, __count) - 4usize];
+        [::core::mem::offset_of!(__pthread_mutex_s, __count) - 4usize];
     ["Offset of field: __pthread_mutex_s::__owner"]
-        [::std::mem::offset_of!(__pthread_mutex_s, __owner) - 8usize];
+        [::core::mem::offset_of!(__pthread_mutex_s, __owner) - 8usize];
     ["Offset of field: __pthread_mutex_s::__nusers"]
-        [::std::mem::offset_of!(__pthread_mutex_s, __nusers) - 12usize];
+        [::core::mem::offset_of!(__pthread_mutex_s, __nusers) - 12usize];
     ["Offset of field: __pthread_mutex_s::__kind"]
-        [::std::mem::offset_of!(__pthread_mutex_s, __kind) - 16usize];
+        [::core::mem::offset_of!(__pthread_mutex_s, __kind) - 16usize];
     ["Offset of field: __pthread_mutex_s::__spins"]
-        [::std::mem::offset_of!(__pthread_mutex_s, __spins) - 20usize];
+        [::core::mem::offset_of!(__pthread_mutex_s, __spins) - 20usize];
     ["Offset of field: __pthread_mutex_s::__elision"]
-        [::std::mem::offset_of!(__pthread_mutex_s, __elision) - 22usize];
+        [::core::mem::offset_of!(__pthread_mutex_s, __elision) - 22usize];
     ["Offset of field: __pthread_mutex_s::__list"]
-        [::std::mem::offset_of!(__pthread_mutex_s, __list) - 24usize];
+        [::core::mem::offset_of!(__pthread_mutex_s, __list) - 24usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __pthread_rwlock_arch_t {
-    pub __readers: ::std::os::raw::c_uint,
-    pub __writers: ::std::os::raw::c_uint,
-    pub __wrphase_futex: ::std::os::raw::c_uint,
-    pub __writers_futex: ::std::os::raw::c_uint,
-    pub __pad3: ::std::os::raw::c_uint,
-    pub __pad4: ::std::os::raw::c_uint,
-    pub __cur_writer: ::std::os::raw::c_int,
-    pub __shared: ::std::os::raw::c_int,
-    pub __rwelision: ::std::os::raw::c_schar,
-    pub __pad1: [::std::os::raw::c_uchar; 7usize],
-    pub __pad2: ::std::os::raw::c_ulong,
-    pub __flags: ::std::os::raw::c_uint,
+    pub __readers: libc::c_uint,
+    pub __writers: libc::c_uint,
+    pub __wrphase_futex: libc::c_uint,
+    pub __writers_futex: libc::c_uint,
+    pub __pad3: libc::c_uint,
+    pub __pad4: libc::c_uint,
+    pub __cur_writer: libc::c_int,
+    pub __shared: libc::c_int,
+    pub __rwelision: libc::c_schar,
+    pub __pad1: [libc::c_uchar; 7usize],
+    pub __pad2: libc::c_ulong,
+    pub __flags: libc::c_uint,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __pthread_rwlock_arch_t"][::std::mem::size_of::<__pthread_rwlock_arch_t>() - 56usize];
+    ["Size of __pthread_rwlock_arch_t"]
+        [::core::mem::size_of::<__pthread_rwlock_arch_t>() - 56usize];
     ["Alignment of __pthread_rwlock_arch_t"]
-        [::std::mem::align_of::<__pthread_rwlock_arch_t>() - 8usize];
+        [::core::mem::align_of::<__pthread_rwlock_arch_t>() - 8usize];
     ["Offset of field: __pthread_rwlock_arch_t::__readers"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __readers) - 0usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __readers) - 0usize];
     ["Offset of field: __pthread_rwlock_arch_t::__writers"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __writers) - 4usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __writers) - 4usize];
     ["Offset of field: __pthread_rwlock_arch_t::__wrphase_futex"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __wrphase_futex) - 8usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __wrphase_futex) - 8usize];
     ["Offset of field: __pthread_rwlock_arch_t::__writers_futex"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __writers_futex) - 12usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __writers_futex) - 12usize];
     ["Offset of field: __pthread_rwlock_arch_t::__pad3"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __pad3) - 16usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __pad3) - 16usize];
     ["Offset of field: __pthread_rwlock_arch_t::__pad4"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __pad4) - 20usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __pad4) - 20usize];
     ["Offset of field: __pthread_rwlock_arch_t::__cur_writer"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __cur_writer) - 24usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __cur_writer) - 24usize];
     ["Offset of field: __pthread_rwlock_arch_t::__shared"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __shared) - 28usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __shared) - 28usize];
     ["Offset of field: __pthread_rwlock_arch_t::__rwelision"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __rwelision) - 32usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __rwelision) - 32usize];
     ["Offset of field: __pthread_rwlock_arch_t::__pad1"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __pad1) - 33usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __pad1) - 33usize];
     ["Offset of field: __pthread_rwlock_arch_t::__pad2"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __pad2) - 40usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __pad2) - 40usize];
     ["Offset of field: __pthread_rwlock_arch_t::__flags"]
-        [::std::mem::offset_of!(__pthread_rwlock_arch_t, __flags) - 48usize];
+        [::core::mem::offset_of!(__pthread_rwlock_arch_t, __flags) - 48usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct __pthread_cond_s {
     pub __wseq: __atomic_wide_counter,
     pub __g1_start: __atomic_wide_counter,
-    pub __g_refs: [::std::os::raw::c_uint; 2usize],
-    pub __g_size: [::std::os::raw::c_uint; 2usize],
-    pub __g1_orig_size: ::std::os::raw::c_uint,
-    pub __wrefs: ::std::os::raw::c_uint,
-    pub __g_signals: [::std::os::raw::c_uint; 2usize],
+    pub __g_refs: [libc::c_uint; 2usize],
+    pub __g_size: [libc::c_uint; 2usize],
+    pub __g1_orig_size: libc::c_uint,
+    pub __wrefs: libc::c_uint,
+    pub __g_signals: [libc::c_uint; 2usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __pthread_cond_s"][::std::mem::size_of::<__pthread_cond_s>() - 48usize];
-    ["Alignment of __pthread_cond_s"][::std::mem::align_of::<__pthread_cond_s>() - 8usize];
+    ["Size of __pthread_cond_s"][::core::mem::size_of::<__pthread_cond_s>() - 48usize];
+    ["Alignment of __pthread_cond_s"][::core::mem::align_of::<__pthread_cond_s>() - 8usize];
     ["Offset of field: __pthread_cond_s::__wseq"]
-        [::std::mem::offset_of!(__pthread_cond_s, __wseq) - 0usize];
+        [::core::mem::offset_of!(__pthread_cond_s, __wseq) - 0usize];
     ["Offset of field: __pthread_cond_s::__g1_start"]
-        [::std::mem::offset_of!(__pthread_cond_s, __g1_start) - 8usize];
+        [::core::mem::offset_of!(__pthread_cond_s, __g1_start) - 8usize];
     ["Offset of field: __pthread_cond_s::__g_refs"]
-        [::std::mem::offset_of!(__pthread_cond_s, __g_refs) - 16usize];
+        [::core::mem::offset_of!(__pthread_cond_s, __g_refs) - 16usize];
     ["Offset of field: __pthread_cond_s::__g_size"]
-        [::std::mem::offset_of!(__pthread_cond_s, __g_size) - 24usize];
+        [::core::mem::offset_of!(__pthread_cond_s, __g_size) - 24usize];
     ["Offset of field: __pthread_cond_s::__g1_orig_size"]
-        [::std::mem::offset_of!(__pthread_cond_s, __g1_orig_size) - 32usize];
+        [::core::mem::offset_of!(__pthread_cond_s, __g1_orig_size) - 32usize];
     ["Offset of field: __pthread_cond_s::__wrefs"]
-        [::std::mem::offset_of!(__pthread_cond_s, __wrefs) - 36usize];
+        [::core::mem::offset_of!(__pthread_cond_s, __wrefs) - 36usize];
     ["Offset of field: __pthread_cond_s::__g_signals"]
-        [::std::mem::offset_of!(__pthread_cond_s, __g_signals) - 40usize];
+        [::core::mem::offset_of!(__pthread_cond_s, __g_signals) - 40usize];
 };
-pub type __tss_t = ::std::os::raw::c_uint;
-pub type __thrd_t = ::std::os::raw::c_ulong;
+pub type __tss_t = libc::c_uint;
+pub type __thrd_t = libc::c_ulong;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __once_flag {
-    pub __data: ::std::os::raw::c_int,
+    pub __data: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __once_flag"][::std::mem::size_of::<__once_flag>() - 4usize];
-    ["Alignment of __once_flag"][::std::mem::align_of::<__once_flag>() - 4usize];
-    ["Offset of field: __once_flag::__data"][::std::mem::offset_of!(__once_flag, __data) - 0usize];
+    ["Size of __once_flag"][::core::mem::size_of::<__once_flag>() - 4usize];
+    ["Alignment of __once_flag"][::core::mem::align_of::<__once_flag>() - 4usize];
+    ["Offset of field: __once_flag::__data"][::core::mem::offset_of!(__once_flag, __data) - 0usize];
 };
-pub type pthread_t = ::std::os::raw::c_ulong;
+pub type pthread_t = libc::c_ulong;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union pthread_mutexattr_t {
-    pub __size: [::std::os::raw::c_char; 4usize],
-    pub __align: ::std::os::raw::c_int,
+    pub __size: [libc::c_char; 4usize],
+    pub __align: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of pthread_mutexattr_t"][::std::mem::size_of::<pthread_mutexattr_t>() - 4usize];
-    ["Alignment of pthread_mutexattr_t"][::std::mem::align_of::<pthread_mutexattr_t>() - 4usize];
+    ["Size of pthread_mutexattr_t"][::core::mem::size_of::<pthread_mutexattr_t>() - 4usize];
+    ["Alignment of pthread_mutexattr_t"][::core::mem::align_of::<pthread_mutexattr_t>() - 4usize];
     ["Offset of field: pthread_mutexattr_t::__size"]
-        [::std::mem::offset_of!(pthread_mutexattr_t, __size) - 0usize];
+        [::core::mem::offset_of!(pthread_mutexattr_t, __size) - 0usize];
     ["Offset of field: pthread_mutexattr_t::__align"]
-        [::std::mem::offset_of!(pthread_mutexattr_t, __align) - 0usize];
+        [::core::mem::offset_of!(pthread_mutexattr_t, __align) - 0usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union pthread_condattr_t {
-    pub __size: [::std::os::raw::c_char; 4usize],
-    pub __align: ::std::os::raw::c_int,
+    pub __size: [libc::c_char; 4usize],
+    pub __align: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of pthread_condattr_t"][::std::mem::size_of::<pthread_condattr_t>() - 4usize];
-    ["Alignment of pthread_condattr_t"][::std::mem::align_of::<pthread_condattr_t>() - 4usize];
+    ["Size of pthread_condattr_t"][::core::mem::size_of::<pthread_condattr_t>() - 4usize];
+    ["Alignment of pthread_condattr_t"][::core::mem::align_of::<pthread_condattr_t>() - 4usize];
     ["Offset of field: pthread_condattr_t::__size"]
-        [::std::mem::offset_of!(pthread_condattr_t, __size) - 0usize];
+        [::core::mem::offset_of!(pthread_condattr_t, __size) - 0usize];
     ["Offset of field: pthread_condattr_t::__align"]
-        [::std::mem::offset_of!(pthread_condattr_t, __align) - 0usize];
+        [::core::mem::offset_of!(pthread_condattr_t, __align) - 0usize];
 };
-pub type pthread_key_t = ::std::os::raw::c_uint;
-pub type pthread_once_t = ::std::os::raw::c_int;
+pub type pthread_key_t = libc::c_uint;
+pub type pthread_once_t = libc::c_int;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union pthread_attr_t {
-    pub __size: [::std::os::raw::c_char; 56usize],
-    pub __align: ::std::os::raw::c_long,
+    pub __size: [libc::c_char; 56usize],
+    pub __align: libc::c_long,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of pthread_attr_t"][::std::mem::size_of::<pthread_attr_t>() - 56usize];
-    ["Alignment of pthread_attr_t"][::std::mem::align_of::<pthread_attr_t>() - 8usize];
+    ["Size of pthread_attr_t"][::core::mem::size_of::<pthread_attr_t>() - 56usize];
+    ["Alignment of pthread_attr_t"][::core::mem::align_of::<pthread_attr_t>() - 8usize];
     ["Offset of field: pthread_attr_t::__size"]
-        [::std::mem::offset_of!(pthread_attr_t, __size) - 0usize];
+        [::core::mem::offset_of!(pthread_attr_t, __size) - 0usize];
     ["Offset of field: pthread_attr_t::__align"]
-        [::std::mem::offset_of!(pthread_attr_t, __align) - 0usize];
+        [::core::mem::offset_of!(pthread_attr_t, __align) - 0usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union pthread_mutex_t {
     pub __data: __pthread_mutex_s,
-    pub __size: [::std::os::raw::c_char; 40usize],
-    pub __align: ::std::os::raw::c_long,
+    pub __size: [libc::c_char; 40usize],
+    pub __align: libc::c_long,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of pthread_mutex_t"][::std::mem::size_of::<pthread_mutex_t>() - 40usize];
-    ["Alignment of pthread_mutex_t"][::std::mem::align_of::<pthread_mutex_t>() - 8usize];
+    ["Size of pthread_mutex_t"][::core::mem::size_of::<pthread_mutex_t>() - 40usize];
+    ["Alignment of pthread_mutex_t"][::core::mem::align_of::<pthread_mutex_t>() - 8usize];
     ["Offset of field: pthread_mutex_t::__data"]
-        [::std::mem::offset_of!(pthread_mutex_t, __data) - 0usize];
+        [::core::mem::offset_of!(pthread_mutex_t, __data) - 0usize];
     ["Offset of field: pthread_mutex_t::__size"]
-        [::std::mem::offset_of!(pthread_mutex_t, __size) - 0usize];
+        [::core::mem::offset_of!(pthread_mutex_t, __size) - 0usize];
     ["Offset of field: pthread_mutex_t::__align"]
-        [::std::mem::offset_of!(pthread_mutex_t, __align) - 0usize];
+        [::core::mem::offset_of!(pthread_mutex_t, __align) - 0usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union pthread_cond_t {
     pub __data: __pthread_cond_s,
-    pub __size: [::std::os::raw::c_char; 48usize],
-    pub __align: ::std::os::raw::c_longlong,
+    pub __size: [libc::c_char; 48usize],
+    pub __align: libc::c_longlong,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of pthread_cond_t"][::std::mem::size_of::<pthread_cond_t>() - 48usize];
-    ["Alignment of pthread_cond_t"][::std::mem::align_of::<pthread_cond_t>() - 8usize];
+    ["Size of pthread_cond_t"][::core::mem::size_of::<pthread_cond_t>() - 48usize];
+    ["Alignment of pthread_cond_t"][::core::mem::align_of::<pthread_cond_t>() - 8usize];
     ["Offset of field: pthread_cond_t::__data"]
-        [::std::mem::offset_of!(pthread_cond_t, __data) - 0usize];
+        [::core::mem::offset_of!(pthread_cond_t, __data) - 0usize];
     ["Offset of field: pthread_cond_t::__size"]
-        [::std::mem::offset_of!(pthread_cond_t, __size) - 0usize];
+        [::core::mem::offset_of!(pthread_cond_t, __size) - 0usize];
     ["Offset of field: pthread_cond_t::__align"]
-        [::std::mem::offset_of!(pthread_cond_t, __align) - 0usize];
+        [::core::mem::offset_of!(pthread_cond_t, __align) - 0usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union pthread_rwlock_t {
     pub __data: __pthread_rwlock_arch_t,
-    pub __size: [::std::os::raw::c_char; 56usize],
-    pub __align: ::std::os::raw::c_long,
+    pub __size: [libc::c_char; 56usize],
+    pub __align: libc::c_long,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of pthread_rwlock_t"][::std::mem::size_of::<pthread_rwlock_t>() - 56usize];
-    ["Alignment of pthread_rwlock_t"][::std::mem::align_of::<pthread_rwlock_t>() - 8usize];
+    ["Size of pthread_rwlock_t"][::core::mem::size_of::<pthread_rwlock_t>() - 56usize];
+    ["Alignment of pthread_rwlock_t"][::core::mem::align_of::<pthread_rwlock_t>() - 8usize];
     ["Offset of field: pthread_rwlock_t::__data"]
-        [::std::mem::offset_of!(pthread_rwlock_t, __data) - 0usize];
+        [::core::mem::offset_of!(pthread_rwlock_t, __data) - 0usize];
     ["Offset of field: pthread_rwlock_t::__size"]
-        [::std::mem::offset_of!(pthread_rwlock_t, __size) - 0usize];
+        [::core::mem::offset_of!(pthread_rwlock_t, __size) - 0usize];
     ["Offset of field: pthread_rwlock_t::__align"]
-        [::std::mem::offset_of!(pthread_rwlock_t, __align) - 0usize];
+        [::core::mem::offset_of!(pthread_rwlock_t, __align) - 0usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union pthread_rwlockattr_t {
-    pub __size: [::std::os::raw::c_char; 8usize],
-    pub __align: ::std::os::raw::c_long,
+    pub __size: [libc::c_char; 8usize],
+    pub __align: libc::c_long,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of pthread_rwlockattr_t"][::std::mem::size_of::<pthread_rwlockattr_t>() - 8usize];
-    ["Alignment of pthread_rwlockattr_t"][::std::mem::align_of::<pthread_rwlockattr_t>() - 8usize];
+    ["Size of pthread_rwlockattr_t"][::core::mem::size_of::<pthread_rwlockattr_t>() - 8usize];
+    ["Alignment of pthread_rwlockattr_t"][::core::mem::align_of::<pthread_rwlockattr_t>() - 8usize];
     ["Offset of field: pthread_rwlockattr_t::__size"]
-        [::std::mem::offset_of!(pthread_rwlockattr_t, __size) - 0usize];
+        [::core::mem::offset_of!(pthread_rwlockattr_t, __size) - 0usize];
     ["Offset of field: pthread_rwlockattr_t::__align"]
-        [::std::mem::offset_of!(pthread_rwlockattr_t, __align) - 0usize];
+        [::core::mem::offset_of!(pthread_rwlockattr_t, __align) - 0usize];
 };
-pub type pthread_spinlock_t = ::std::os::raw::c_int;
+pub type pthread_spinlock_t = libc::c_int;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union pthread_barrier_t {
-    pub __size: [::std::os::raw::c_char; 32usize],
-    pub __align: ::std::os::raw::c_long,
+    pub __size: [libc::c_char; 32usize],
+    pub __align: libc::c_long,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of pthread_barrier_t"][::std::mem::size_of::<pthread_barrier_t>() - 32usize];
-    ["Alignment of pthread_barrier_t"][::std::mem::align_of::<pthread_barrier_t>() - 8usize];
+    ["Size of pthread_barrier_t"][::core::mem::size_of::<pthread_barrier_t>() - 32usize];
+    ["Alignment of pthread_barrier_t"][::core::mem::align_of::<pthread_barrier_t>() - 8usize];
     ["Offset of field: pthread_barrier_t::__size"]
-        [::std::mem::offset_of!(pthread_barrier_t, __size) - 0usize];
+        [::core::mem::offset_of!(pthread_barrier_t, __size) - 0usize];
     ["Offset of field: pthread_barrier_t::__align"]
-        [::std::mem::offset_of!(pthread_barrier_t, __align) - 0usize];
+        [::core::mem::offset_of!(pthread_barrier_t, __align) - 0usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union pthread_barrierattr_t {
-    pub __size: [::std::os::raw::c_char; 4usize],
-    pub __align: ::std::os::raw::c_int,
+    pub __size: [libc::c_char; 4usize],
+    pub __align: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of pthread_barrierattr_t"][::std::mem::size_of::<pthread_barrierattr_t>() - 4usize];
+    ["Size of pthread_barrierattr_t"][::core::mem::size_of::<pthread_barrierattr_t>() - 4usize];
     ["Alignment of pthread_barrierattr_t"]
-        [::std::mem::align_of::<pthread_barrierattr_t>() - 4usize];
+        [::core::mem::align_of::<pthread_barrierattr_t>() - 4usize];
     ["Offset of field: pthread_barrierattr_t::__size"]
-        [::std::mem::offset_of!(pthread_barrierattr_t, __size) - 0usize];
+        [::core::mem::offset_of!(pthread_barrierattr_t, __size) - 0usize];
     ["Offset of field: pthread_barrierattr_t::__align"]
-        [::std::mem::offset_of!(pthread_barrierattr_t, __align) - 0usize];
+        [::core::mem::offset_of!(pthread_barrierattr_t, __align) - 0usize];
 };
 unsafe extern "C" {
-    pub fn random() -> ::std::os::raw::c_long;
+    pub fn random() -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn srandom(__seed: ::std::os::raw::c_uint);
+    pub fn srandom(__seed: libc::c_uint);
 }
 unsafe extern "C" {
     pub fn initstate(
-        __seed: ::std::os::raw::c_uint,
-        __statebuf: *mut ::std::os::raw::c_char,
+        __seed: libc::c_uint,
+        __statebuf: *mut libc::c_char,
         __statelen: usize,
-    ) -> *mut ::std::os::raw::c_char;
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn setstate(__statebuf: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn setstate(__statebuf: *mut libc::c_char) -> *mut libc::c_char;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -2364,475 +2224,418 @@ pub struct random_data {
     pub fptr: *mut i32,
     pub rptr: *mut i32,
     pub state: *mut i32,
-    pub rand_type: ::std::os::raw::c_int,
-    pub rand_deg: ::std::os::raw::c_int,
-    pub rand_sep: ::std::os::raw::c_int,
+    pub rand_type: libc::c_int,
+    pub rand_deg: libc::c_int,
+    pub rand_sep: libc::c_int,
     pub end_ptr: *mut i32,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of random_data"][::std::mem::size_of::<random_data>() - 48usize];
-    ["Alignment of random_data"][::std::mem::align_of::<random_data>() - 8usize];
-    ["Offset of field: random_data::fptr"][::std::mem::offset_of!(random_data, fptr) - 0usize];
-    ["Offset of field: random_data::rptr"][::std::mem::offset_of!(random_data, rptr) - 8usize];
-    ["Offset of field: random_data::state"][::std::mem::offset_of!(random_data, state) - 16usize];
+    ["Size of random_data"][::core::mem::size_of::<random_data>() - 48usize];
+    ["Alignment of random_data"][::core::mem::align_of::<random_data>() - 8usize];
+    ["Offset of field: random_data::fptr"][::core::mem::offset_of!(random_data, fptr) - 0usize];
+    ["Offset of field: random_data::rptr"][::core::mem::offset_of!(random_data, rptr) - 8usize];
+    ["Offset of field: random_data::state"][::core::mem::offset_of!(random_data, state) - 16usize];
     ["Offset of field: random_data::rand_type"]
-        [::std::mem::offset_of!(random_data, rand_type) - 24usize];
+        [::core::mem::offset_of!(random_data, rand_type) - 24usize];
     ["Offset of field: random_data::rand_deg"]
-        [::std::mem::offset_of!(random_data, rand_deg) - 28usize];
+        [::core::mem::offset_of!(random_data, rand_deg) - 28usize];
     ["Offset of field: random_data::rand_sep"]
-        [::std::mem::offset_of!(random_data, rand_sep) - 32usize];
+        [::core::mem::offset_of!(random_data, rand_sep) - 32usize];
     ["Offset of field: random_data::end_ptr"]
-        [::std::mem::offset_of!(random_data, end_ptr) - 40usize];
+        [::core::mem::offset_of!(random_data, end_ptr) - 40usize];
 };
 unsafe extern "C" {
-    pub fn random_r(__buf: *mut random_data, __result: *mut i32) -> ::std::os::raw::c_int;
+    pub fn random_r(__buf: *mut random_data, __result: *mut i32) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn srandom_r(
-        __seed: ::std::os::raw::c_uint,
-        __buf: *mut random_data,
-    ) -> ::std::os::raw::c_int;
+    pub fn srandom_r(__seed: libc::c_uint, __buf: *mut random_data) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn initstate_r(
-        __seed: ::std::os::raw::c_uint,
-        __statebuf: *mut ::std::os::raw::c_char,
+        __seed: libc::c_uint,
+        __statebuf: *mut libc::c_char,
         __statelen: usize,
         __buf: *mut random_data,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn setstate_r(
-        __statebuf: *mut ::std::os::raw::c_char,
-        __buf: *mut random_data,
-    ) -> ::std::os::raw::c_int;
+    pub fn setstate_r(__statebuf: *mut libc::c_char, __buf: *mut random_data) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn rand() -> ::std::os::raw::c_int;
+    pub fn rand() -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn srand(__seed: ::std::os::raw::c_uint);
+    pub fn srand(__seed: libc::c_uint);
 }
 unsafe extern "C" {
-    pub fn rand_r(__seed: *mut ::std::os::raw::c_uint) -> ::std::os::raw::c_int;
+    pub fn rand_r(__seed: *mut libc::c_uint) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn drand48() -> f64;
 }
 unsafe extern "C" {
-    pub fn erand48(__xsubi: *mut ::std::os::raw::c_ushort) -> f64;
+    pub fn erand48(__xsubi: *mut libc::c_ushort) -> f64;
 }
 unsafe extern "C" {
-    pub fn lrand48() -> ::std::os::raw::c_long;
+    pub fn lrand48() -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn nrand48(__xsubi: *mut ::std::os::raw::c_ushort) -> ::std::os::raw::c_long;
+    pub fn nrand48(__xsubi: *mut libc::c_ushort) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn mrand48() -> ::std::os::raw::c_long;
+    pub fn mrand48() -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn jrand48(__xsubi: *mut ::std::os::raw::c_ushort) -> ::std::os::raw::c_long;
+    pub fn jrand48(__xsubi: *mut libc::c_ushort) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn srand48(__seedval: ::std::os::raw::c_long);
+    pub fn srand48(__seedval: libc::c_long);
 }
 unsafe extern "C" {
-    pub fn seed48(__seed16v: *mut ::std::os::raw::c_ushort) -> *mut ::std::os::raw::c_ushort;
+    pub fn seed48(__seed16v: *mut libc::c_ushort) -> *mut libc::c_ushort;
 }
 unsafe extern "C" {
-    pub fn lcong48(__param: *mut ::std::os::raw::c_ushort);
+    pub fn lcong48(__param: *mut libc::c_ushort);
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct drand48_data {
-    pub __x: [::std::os::raw::c_ushort; 3usize],
-    pub __old_x: [::std::os::raw::c_ushort; 3usize],
-    pub __c: ::std::os::raw::c_ushort,
-    pub __init: ::std::os::raw::c_ushort,
-    pub __a: ::std::os::raw::c_ulonglong,
+    pub __x: [libc::c_ushort; 3usize],
+    pub __old_x: [libc::c_ushort; 3usize],
+    pub __c: libc::c_ushort,
+    pub __init: libc::c_ushort,
+    pub __a: libc::c_ulonglong,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of drand48_data"][::std::mem::size_of::<drand48_data>() - 24usize];
-    ["Alignment of drand48_data"][::std::mem::align_of::<drand48_data>() - 8usize];
-    ["Offset of field: drand48_data::__x"][::std::mem::offset_of!(drand48_data, __x) - 0usize];
+    ["Size of drand48_data"][::core::mem::size_of::<drand48_data>() - 24usize];
+    ["Alignment of drand48_data"][::core::mem::align_of::<drand48_data>() - 8usize];
+    ["Offset of field: drand48_data::__x"][::core::mem::offset_of!(drand48_data, __x) - 0usize];
     ["Offset of field: drand48_data::__old_x"]
-        [::std::mem::offset_of!(drand48_data, __old_x) - 6usize];
-    ["Offset of field: drand48_data::__c"][::std::mem::offset_of!(drand48_data, __c) - 12usize];
+        [::core::mem::offset_of!(drand48_data, __old_x) - 6usize];
+    ["Offset of field: drand48_data::__c"][::core::mem::offset_of!(drand48_data, __c) - 12usize];
     ["Offset of field: drand48_data::__init"]
-        [::std::mem::offset_of!(drand48_data, __init) - 14usize];
-    ["Offset of field: drand48_data::__a"][::std::mem::offset_of!(drand48_data, __a) - 16usize];
+        [::core::mem::offset_of!(drand48_data, __init) - 14usize];
+    ["Offset of field: drand48_data::__a"][::core::mem::offset_of!(drand48_data, __a) - 16usize];
 };
 unsafe extern "C" {
-    pub fn drand48_r(__buffer: *mut drand48_data, __result: *mut f64) -> ::std::os::raw::c_int;
+    pub fn drand48_r(__buffer: *mut drand48_data, __result: *mut f64) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn erand48_r(
-        __xsubi: *mut ::std::os::raw::c_ushort,
+        __xsubi: *mut libc::c_ushort,
         __buffer: *mut drand48_data,
         __result: *mut f64,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn lrand48_r(
-        __buffer: *mut drand48_data,
-        __result: *mut ::std::os::raw::c_long,
-    ) -> ::std::os::raw::c_int;
+    pub fn lrand48_r(__buffer: *mut drand48_data, __result: *mut libc::c_long) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn nrand48_r(
-        __xsubi: *mut ::std::os::raw::c_ushort,
+        __xsubi: *mut libc::c_ushort,
         __buffer: *mut drand48_data,
-        __result: *mut ::std::os::raw::c_long,
-    ) -> ::std::os::raw::c_int;
+        __result: *mut libc::c_long,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn mrand48_r(
-        __buffer: *mut drand48_data,
-        __result: *mut ::std::os::raw::c_long,
-    ) -> ::std::os::raw::c_int;
+    pub fn mrand48_r(__buffer: *mut drand48_data, __result: *mut libc::c_long) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn jrand48_r(
-        __xsubi: *mut ::std::os::raw::c_ushort,
+        __xsubi: *mut libc::c_ushort,
         __buffer: *mut drand48_data,
-        __result: *mut ::std::os::raw::c_long,
-    ) -> ::std::os::raw::c_int;
+        __result: *mut libc::c_long,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn srand48_r(
-        __seedval: ::std::os::raw::c_long,
-        __buffer: *mut drand48_data,
-    ) -> ::std::os::raw::c_int;
+    pub fn srand48_r(__seedval: libc::c_long, __buffer: *mut drand48_data) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn seed48_r(
-        __seed16v: *mut ::std::os::raw::c_ushort,
-        __buffer: *mut drand48_data,
-    ) -> ::std::os::raw::c_int;
+    pub fn seed48_r(__seed16v: *mut libc::c_ushort, __buffer: *mut drand48_data) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn lcong48_r(
-        __param: *mut ::std::os::raw::c_ushort,
-        __buffer: *mut drand48_data,
-    ) -> ::std::os::raw::c_int;
+    pub fn lcong48_r(__param: *mut libc::c_ushort, __buffer: *mut drand48_data) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn arc4random() -> __uint32_t;
 }
 unsafe extern "C" {
-    pub fn arc4random_buf(__buf: *mut ::std::os::raw::c_void, __size: usize);
+    pub fn arc4random_buf(__buf: *mut libc::c_void, __size: usize);
 }
 unsafe extern "C" {
     pub fn arc4random_uniform(__upper_bound: __uint32_t) -> __uint32_t;
 }
 unsafe extern "C" {
-    pub fn malloc(__size: ::std::os::raw::c_ulong) -> *mut ::std::os::raw::c_void;
+    pub fn malloc(__size: libc::c_ulong) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn calloc(
-        __nmemb: ::std::os::raw::c_ulong,
-        __size: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_void;
+    pub fn calloc(__nmemb: libc::c_ulong, __size: libc::c_ulong) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn realloc(
-        __ptr: *mut ::std::os::raw::c_void,
-        __size: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_void;
+    pub fn realloc(__ptr: *mut libc::c_void, __size: libc::c_ulong) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn free(__ptr: *mut ::std::os::raw::c_void);
+    pub fn free(__ptr: *mut libc::c_void);
 }
 unsafe extern "C" {
     pub fn reallocarray(
-        __ptr: *mut ::std::os::raw::c_void,
+        __ptr: *mut libc::c_void,
         __nmemb: usize,
         __size: usize,
-    ) -> *mut ::std::os::raw::c_void;
+    ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn alloca(__size: ::std::os::raw::c_ulong) -> *mut ::std::os::raw::c_void;
+    pub fn alloca(__size: libc::c_ulong) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn valloc(__size: usize) -> *mut ::std::os::raw::c_void;
+    pub fn valloc(__size: usize) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn posix_memalign(
-        __memptr: *mut *mut ::std::os::raw::c_void,
+        __memptr: *mut *mut libc::c_void,
         __alignment: usize,
         __size: usize,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn aligned_alloc(
-        __alignment: ::std::os::raw::c_ulong,
-        __size: ::std::os::raw::c_ulong,
-    ) -> *mut ::std::os::raw::c_void;
+    pub fn aligned_alloc(__alignment: libc::c_ulong, __size: libc::c_ulong) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn abort() -> !;
 }
 unsafe extern "C" {
-    pub fn atexit(__func: ::std::option::Option<unsafe extern "C" fn()>) -> ::std::os::raw::c_int;
+    pub fn atexit(__func: ::core::option::Option<unsafe extern "C" fn()>) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn at_quick_exit(
-        __func: ::std::option::Option<unsafe extern "C" fn()>,
-    ) -> ::std::os::raw::c_int;
+    pub fn at_quick_exit(__func: ::core::option::Option<unsafe extern "C" fn()>) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn on_exit(
-        __func: ::std::option::Option<
-            unsafe extern "C" fn(
-                __status: ::std::os::raw::c_int,
-                __arg: *mut ::std::os::raw::c_void,
-            ),
+        __func: ::core::option::Option<
+            unsafe extern "C" fn(__status: libc::c_int, __arg: *mut libc::c_void),
         >,
-        __arg: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
+        __arg: *mut libc::c_void,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn exit(__status: ::std::os::raw::c_int) -> !;
+    pub fn exit(__status: libc::c_int) -> !;
 }
 unsafe extern "C" {
-    pub fn quick_exit(__status: ::std::os::raw::c_int) -> !;
+    pub fn quick_exit(__status: libc::c_int) -> !;
 }
 unsafe extern "C" {
-    pub fn _Exit(__status: ::std::os::raw::c_int) -> !;
+    pub fn _Exit(__status: libc::c_int) -> !;
 }
 unsafe extern "C" {
-    pub fn getenv(__name: *const ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn getenv(__name: *const libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn putenv(__string: *mut ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn putenv(__string: *mut libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn setenv(
-        __name: *const ::std::os::raw::c_char,
-        __value: *const ::std::os::raw::c_char,
-        __replace: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
+        __name: *const libc::c_char,
+        __value: *const libc::c_char,
+        __replace: libc::c_int,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn unsetenv(__name: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn unsetenv(__name: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn clearenv() -> ::std::os::raw::c_int;
+    pub fn clearenv() -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn mktemp(__template: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn mktemp(__template: *mut libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}mkstemp64"]
-    pub fn mkstemp(__template: *mut ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn mkstemp(__template: *mut libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
     #[link_name = "\u{1}mkstemps64"]
-    pub fn mkstemps(
-        __template: *mut ::std::os::raw::c_char,
-        __suffixlen: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
+    pub fn mkstemps(__template: *mut libc::c_char, __suffixlen: libc::c_int) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn mkdtemp(__template: *mut ::std::os::raw::c_char) -> *mut ::std::os::raw::c_char;
+    pub fn mkdtemp(__template: *mut libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn system(__command: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn system(__command: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn realpath(
-        __name: *const ::std::os::raw::c_char,
-        __resolved: *mut ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+        __name: *const libc::c_char,
+        __resolved: *mut libc::c_char,
+    ) -> *mut libc::c_char;
 }
-pub type __compar_fn_t = ::std::option::Option<
-    unsafe extern "C" fn(
-        arg1: *const ::std::os::raw::c_void,
-        arg2: *const ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int,
+pub type __compar_fn_t = ::core::option::Option<
+    unsafe extern "C" fn(arg1: *const libc::c_void, arg2: *const libc::c_void) -> libc::c_int,
 >;
 unsafe extern "C" {
     pub fn bsearch(
-        __key: *const ::std::os::raw::c_void,
-        __base: *const ::std::os::raw::c_void,
+        __key: *const libc::c_void,
+        __base: *const libc::c_void,
         __nmemb: usize,
         __size: usize,
         __compar: __compar_fn_t,
-    ) -> *mut ::std::os::raw::c_void;
+    ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn qsort(
-        __base: *mut ::std::os::raw::c_void,
-        __nmemb: usize,
-        __size: usize,
-        __compar: __compar_fn_t,
-    );
+    pub fn qsort(__base: *mut libc::c_void, __nmemb: usize, __size: usize, __compar: __compar_fn_t);
 }
 unsafe extern "C" {
-    pub fn abs(__x: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
+    pub fn abs(__x: libc::c_int) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn labs(__x: ::std::os::raw::c_long) -> ::std::os::raw::c_long;
+    pub fn labs(__x: libc::c_long) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn llabs(__x: ::std::os::raw::c_longlong) -> ::std::os::raw::c_longlong;
+    pub fn llabs(__x: libc::c_longlong) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn div(__numer: ::std::os::raw::c_int, __denom: ::std::os::raw::c_int) -> div_t;
+    pub fn div(__numer: libc::c_int, __denom: libc::c_int) -> div_t;
 }
 unsafe extern "C" {
-    pub fn ldiv(__numer: ::std::os::raw::c_long, __denom: ::std::os::raw::c_long) -> ldiv_t;
+    pub fn ldiv(__numer: libc::c_long, __denom: libc::c_long) -> ldiv_t;
 }
 unsafe extern "C" {
-    pub fn lldiv(
-        __numer: ::std::os::raw::c_longlong,
-        __denom: ::std::os::raw::c_longlong,
-    ) -> lldiv_t;
+    pub fn lldiv(__numer: libc::c_longlong, __denom: libc::c_longlong) -> lldiv_t;
 }
 unsafe extern "C" {
     pub fn ecvt(
         __value: f64,
-        __ndigit: ::std::os::raw::c_int,
-        __decpt: *mut ::std::os::raw::c_int,
-        __sign: *mut ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
+        __ndigit: libc::c_int,
+        __decpt: *mut libc::c_int,
+        __sign: *mut libc::c_int,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn fcvt(
         __value: f64,
-        __ndigit: ::std::os::raw::c_int,
-        __decpt: *mut ::std::os::raw::c_int,
-        __sign: *mut ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
+        __ndigit: libc::c_int,
+        __decpt: *mut libc::c_int,
+        __sign: *mut libc::c_int,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
-    pub fn gcvt(
-        __value: f64,
-        __ndigit: ::std::os::raw::c_int,
-        __buf: *mut ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+    pub fn gcvt(__value: f64, __ndigit: libc::c_int, __buf: *mut libc::c_char)
+        -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn qecvt(
         __value: u128,
-        __ndigit: ::std::os::raw::c_int,
-        __decpt: *mut ::std::os::raw::c_int,
-        __sign: *mut ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
+        __ndigit: libc::c_int,
+        __decpt: *mut libc::c_int,
+        __sign: *mut libc::c_int,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn qfcvt(
         __value: u128,
-        __ndigit: ::std::os::raw::c_int,
-        __decpt: *mut ::std::os::raw::c_int,
-        __sign: *mut ::std::os::raw::c_int,
-    ) -> *mut ::std::os::raw::c_char;
+        __ndigit: libc::c_int,
+        __decpt: *mut libc::c_int,
+        __sign: *mut libc::c_int,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn qgcvt(
         __value: u128,
-        __ndigit: ::std::os::raw::c_int,
-        __buf: *mut ::std::os::raw::c_char,
-    ) -> *mut ::std::os::raw::c_char;
+        __ndigit: libc::c_int,
+        __buf: *mut libc::c_char,
+    ) -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn ecvt_r(
         __value: f64,
-        __ndigit: ::std::os::raw::c_int,
-        __decpt: *mut ::std::os::raw::c_int,
-        __sign: *mut ::std::os::raw::c_int,
-        __buf: *mut ::std::os::raw::c_char,
+        __ndigit: libc::c_int,
+        __decpt: *mut libc::c_int,
+        __sign: *mut libc::c_int,
+        __buf: *mut libc::c_char,
         __len: usize,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn fcvt_r(
         __value: f64,
-        __ndigit: ::std::os::raw::c_int,
-        __decpt: *mut ::std::os::raw::c_int,
-        __sign: *mut ::std::os::raw::c_int,
-        __buf: *mut ::std::os::raw::c_char,
+        __ndigit: libc::c_int,
+        __decpt: *mut libc::c_int,
+        __sign: *mut libc::c_int,
+        __buf: *mut libc::c_char,
         __len: usize,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn qecvt_r(
         __value: u128,
-        __ndigit: ::std::os::raw::c_int,
-        __decpt: *mut ::std::os::raw::c_int,
-        __sign: *mut ::std::os::raw::c_int,
-        __buf: *mut ::std::os::raw::c_char,
+        __ndigit: libc::c_int,
+        __decpt: *mut libc::c_int,
+        __sign: *mut libc::c_int,
+        __buf: *mut libc::c_char,
         __len: usize,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn qfcvt_r(
         __value: u128,
-        __ndigit: ::std::os::raw::c_int,
-        __decpt: *mut ::std::os::raw::c_int,
-        __sign: *mut ::std::os::raw::c_int,
-        __buf: *mut ::std::os::raw::c_char,
+        __ndigit: libc::c_int,
+        __decpt: *mut libc::c_int,
+        __sign: *mut libc::c_int,
+        __buf: *mut libc::c_char,
         __len: usize,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn mblen(__s: *const ::std::os::raw::c_char, __n: usize) -> ::std::os::raw::c_int;
+    pub fn mblen(__s: *const libc::c_char, __n: usize) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn mbtowc(
-        __pwc: *mut wchar_t,
-        __s: *const ::std::os::raw::c_char,
-        __n: usize,
-    ) -> ::std::os::raw::c_int;
+    pub fn mbtowc(__pwc: *mut wchar_t, __s: *const libc::c_char, __n: usize) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn wctomb(__s: *mut ::std::os::raw::c_char, __wchar: wchar_t) -> ::std::os::raw::c_int;
+    pub fn wctomb(__s: *mut libc::c_char, __wchar: wchar_t) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn mbstowcs(__pwcs: *mut wchar_t, __s: *const ::std::os::raw::c_char, __n: usize) -> usize;
+    pub fn mbstowcs(__pwcs: *mut wchar_t, __s: *const libc::c_char, __n: usize) -> usize;
 }
 unsafe extern "C" {
-    pub fn wcstombs(__s: *mut ::std::os::raw::c_char, __pwcs: *const wchar_t, __n: usize) -> usize;
+    pub fn wcstombs(__s: *mut libc::c_char, __pwcs: *const wchar_t, __n: usize) -> usize;
 }
 unsafe extern "C" {
-    pub fn rpmatch(__response: *const ::std::os::raw::c_char) -> ::std::os::raw::c_int;
+    pub fn rpmatch(__response: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn getsubopt(
-        __optionp: *mut *mut ::std::os::raw::c_char,
-        __tokens: *const *mut ::std::os::raw::c_char,
-        __valuep: *mut *mut ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
+        __optionp: *mut *mut libc::c_char,
+        __tokens: *const *mut libc::c_char,
+        __valuep: *mut *mut libc::c_char,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn getloadavg(__loadavg: *mut f64, __nelem: ::std::os::raw::c_int)
-        -> ::std::os::raw::c_int;
+    pub fn getloadavg(__loadavg: *mut f64, __nelem: libc::c_int) -> libc::c_int;
 }
 pub type float_t = f32;
 pub type double_t = f64;
 unsafe extern "C" {
-    pub fn __fpclassify(__value: f64) -> ::std::os::raw::c_int;
+    pub fn __fpclassify(__value: f64) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __signbit(__value: f64) -> ::std::os::raw::c_int;
+    pub fn __signbit(__value: f64) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __isinf(__value: f64) -> ::std::os::raw::c_int;
+    pub fn __isinf(__value: f64) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __finite(__value: f64) -> ::std::os::raw::c_int;
+    pub fn __finite(__value: f64) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __isnan(__value: f64) -> ::std::os::raw::c_int;
+    pub fn __isnan(__value: f64) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __iseqsig(__x: f64, __y: f64) -> ::std::os::raw::c_int;
+    pub fn __iseqsig(__x: f64, __y: f64) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __issignaling(__value: f64) -> ::std::os::raw::c_int;
+    pub fn __issignaling(__value: f64) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn acos(__x: f64) -> f64;
@@ -2919,16 +2722,16 @@ unsafe extern "C" {
     pub fn __exp(__x: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn frexp(__x: f64, __exponent: *mut ::std::os::raw::c_int) -> f64;
+    pub fn frexp(__x: f64, __exponent: *mut libc::c_int) -> f64;
 }
 unsafe extern "C" {
-    pub fn __frexp(__x: f64, __exponent: *mut ::std::os::raw::c_int) -> f64;
+    pub fn __frexp(__x: f64, __exponent: *mut libc::c_int) -> f64;
 }
 unsafe extern "C" {
-    pub fn ldexp(__x: f64, __exponent: ::std::os::raw::c_int) -> f64;
+    pub fn ldexp(__x: f64, __exponent: libc::c_int) -> f64;
 }
 unsafe extern "C" {
-    pub fn __ldexp(__x: f64, __exponent: ::std::os::raw::c_int) -> f64;
+    pub fn __ldexp(__x: f64, __exponent: libc::c_int) -> f64;
 }
 unsafe extern "C" {
     pub fn log(__x: f64) -> f64;
@@ -3027,10 +2830,10 @@ unsafe extern "C" {
     pub fn __fmod(__x: f64, __y: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn isinf(__value: f64) -> ::std::os::raw::c_int;
+    pub fn isinf(__value: f64) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn finite(__value: f64) -> ::std::os::raw::c_int;
+    pub fn finite(__value: f64) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn drem(__x: f64, __y: f64) -> f64;
@@ -3051,13 +2854,13 @@ unsafe extern "C" {
     pub fn __copysign(__x: f64, __y: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn nan(__tagb: *const ::std::os::raw::c_char) -> f64;
+    pub fn nan(__tagb: *const libc::c_char) -> f64;
 }
 unsafe extern "C" {
-    pub fn __nan(__tagb: *const ::std::os::raw::c_char) -> f64;
+    pub fn __nan(__tagb: *const libc::c_char) -> f64;
 }
 unsafe extern "C" {
-    pub fn isnan(__value: f64) -> ::std::os::raw::c_int;
+    pub fn isnan(__value: f64) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn j0(arg1: f64) -> f64;
@@ -3072,10 +2875,10 @@ unsafe extern "C" {
     pub fn __j1(arg1: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn jn(arg1: ::std::os::raw::c_int, arg2: f64) -> f64;
+    pub fn jn(arg1: libc::c_int, arg2: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn __jn(arg1: ::std::os::raw::c_int, arg2: f64) -> f64;
+    pub fn __jn(arg1: libc::c_int, arg2: f64) -> f64;
 }
 unsafe extern "C" {
     pub fn y0(arg1: f64) -> f64;
@@ -3090,10 +2893,10 @@ unsafe extern "C" {
     pub fn __y1(arg1: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn yn(arg1: ::std::os::raw::c_int, arg2: f64) -> f64;
+    pub fn yn(arg1: libc::c_int, arg2: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn __yn(arg1: ::std::os::raw::c_int, arg2: f64) -> f64;
+    pub fn __yn(arg1: libc::c_int, arg2: f64) -> f64;
 }
 unsafe extern "C" {
     pub fn erf(arg1: f64) -> f64;
@@ -3126,10 +2929,10 @@ unsafe extern "C" {
     pub fn __gamma(arg1: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn lgamma_r(arg1: f64, __signgamp: *mut ::std::os::raw::c_int) -> f64;
+    pub fn lgamma_r(arg1: f64, __signgamp: *mut libc::c_int) -> f64;
 }
 unsafe extern "C" {
-    pub fn __lgamma_r(arg1: f64, __signgamp: *mut ::std::os::raw::c_int) -> f64;
+    pub fn __lgamma_r(arg1: f64, __signgamp: *mut libc::c_int) -> f64;
 }
 unsafe extern "C" {
     pub fn rint(__x: f64) -> f64;
@@ -3156,22 +2959,22 @@ unsafe extern "C" {
     pub fn __remainder(__x: f64, __y: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn scalbn(__x: f64, __n: ::std::os::raw::c_int) -> f64;
+    pub fn scalbn(__x: f64, __n: libc::c_int) -> f64;
 }
 unsafe extern "C" {
-    pub fn __scalbn(__x: f64, __n: ::std::os::raw::c_int) -> f64;
+    pub fn __scalbn(__x: f64, __n: libc::c_int) -> f64;
 }
 unsafe extern "C" {
-    pub fn ilogb(__x: f64) -> ::std::os::raw::c_int;
+    pub fn ilogb(__x: f64) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __ilogb(__x: f64) -> ::std::os::raw::c_int;
+    pub fn __ilogb(__x: f64) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn scalbln(__x: f64, __n: ::std::os::raw::c_long) -> f64;
+    pub fn scalbln(__x: f64, __n: libc::c_long) -> f64;
 }
 unsafe extern "C" {
-    pub fn __scalbln(__x: f64, __n: ::std::os::raw::c_long) -> f64;
+    pub fn __scalbln(__x: f64, __n: libc::c_long) -> f64;
 }
 unsafe extern "C" {
     pub fn nearbyint(__x: f64) -> f64;
@@ -3192,34 +2995,34 @@ unsafe extern "C" {
     pub fn __trunc(__x: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn remquo(__x: f64, __y: f64, __quo: *mut ::std::os::raw::c_int) -> f64;
+    pub fn remquo(__x: f64, __y: f64, __quo: *mut libc::c_int) -> f64;
 }
 unsafe extern "C" {
-    pub fn __remquo(__x: f64, __y: f64, __quo: *mut ::std::os::raw::c_int) -> f64;
+    pub fn __remquo(__x: f64, __y: f64, __quo: *mut libc::c_int) -> f64;
 }
 unsafe extern "C" {
-    pub fn lrint(__x: f64) -> ::std::os::raw::c_long;
+    pub fn lrint(__x: f64) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn __lrint(__x: f64) -> ::std::os::raw::c_long;
+    pub fn __lrint(__x: f64) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn llrint(__x: f64) -> ::std::os::raw::c_longlong;
+    pub fn llrint(__x: f64) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn __llrint(__x: f64) -> ::std::os::raw::c_longlong;
+    pub fn __llrint(__x: f64) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn lround(__x: f64) -> ::std::os::raw::c_long;
+    pub fn lround(__x: f64) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn __lround(__x: f64) -> ::std::os::raw::c_long;
+    pub fn __lround(__x: f64) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn llround(__x: f64) -> ::std::os::raw::c_longlong;
+    pub fn llround(__x: f64) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn __llround(__x: f64) -> ::std::os::raw::c_longlong;
+    pub fn __llround(__x: f64) -> libc::c_longlong;
 }
 unsafe extern "C" {
     pub fn fdim(__x: f64, __y: f64) -> f64;
@@ -3252,25 +3055,25 @@ unsafe extern "C" {
     pub fn __scalb(__x: f64, __n: f64) -> f64;
 }
 unsafe extern "C" {
-    pub fn __fpclassifyf(__value: f32) -> ::std::os::raw::c_int;
+    pub fn __fpclassifyf(__value: f32) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __signbitf(__value: f32) -> ::std::os::raw::c_int;
+    pub fn __signbitf(__value: f32) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __isinff(__value: f32) -> ::std::os::raw::c_int;
+    pub fn __isinff(__value: f32) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __finitef(__value: f32) -> ::std::os::raw::c_int;
+    pub fn __finitef(__value: f32) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __isnanf(__value: f32) -> ::std::os::raw::c_int;
+    pub fn __isnanf(__value: f32) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __iseqsigf(__x: f32, __y: f32) -> ::std::os::raw::c_int;
+    pub fn __iseqsigf(__x: f32, __y: f32) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __issignalingf(__value: f32) -> ::std::os::raw::c_int;
+    pub fn __issignalingf(__value: f32) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn acosf(__x: f32) -> f32;
@@ -3357,16 +3160,16 @@ unsafe extern "C" {
     pub fn __expf(__x: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn frexpf(__x: f32, __exponent: *mut ::std::os::raw::c_int) -> f32;
+    pub fn frexpf(__x: f32, __exponent: *mut libc::c_int) -> f32;
 }
 unsafe extern "C" {
-    pub fn __frexpf(__x: f32, __exponent: *mut ::std::os::raw::c_int) -> f32;
+    pub fn __frexpf(__x: f32, __exponent: *mut libc::c_int) -> f32;
 }
 unsafe extern "C" {
-    pub fn ldexpf(__x: f32, __exponent: ::std::os::raw::c_int) -> f32;
+    pub fn ldexpf(__x: f32, __exponent: libc::c_int) -> f32;
 }
 unsafe extern "C" {
-    pub fn __ldexpf(__x: f32, __exponent: ::std::os::raw::c_int) -> f32;
+    pub fn __ldexpf(__x: f32, __exponent: libc::c_int) -> f32;
 }
 unsafe extern "C" {
     pub fn logf(__x: f32) -> f32;
@@ -3465,10 +3268,10 @@ unsafe extern "C" {
     pub fn __fmodf(__x: f32, __y: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn isinff(__value: f32) -> ::std::os::raw::c_int;
+    pub fn isinff(__value: f32) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn finitef(__value: f32) -> ::std::os::raw::c_int;
+    pub fn finitef(__value: f32) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn dremf(__x: f32, __y: f32) -> f32;
@@ -3489,13 +3292,13 @@ unsafe extern "C" {
     pub fn __copysignf(__x: f32, __y: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn nanf(__tagb: *const ::std::os::raw::c_char) -> f32;
+    pub fn nanf(__tagb: *const libc::c_char) -> f32;
 }
 unsafe extern "C" {
-    pub fn __nanf(__tagb: *const ::std::os::raw::c_char) -> f32;
+    pub fn __nanf(__tagb: *const libc::c_char) -> f32;
 }
 unsafe extern "C" {
-    pub fn isnanf(__value: f32) -> ::std::os::raw::c_int;
+    pub fn isnanf(__value: f32) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn j0f(arg1: f32) -> f32;
@@ -3510,10 +3313,10 @@ unsafe extern "C" {
     pub fn __j1f(arg1: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn jnf(arg1: ::std::os::raw::c_int, arg2: f32) -> f32;
+    pub fn jnf(arg1: libc::c_int, arg2: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn __jnf(arg1: ::std::os::raw::c_int, arg2: f32) -> f32;
+    pub fn __jnf(arg1: libc::c_int, arg2: f32) -> f32;
 }
 unsafe extern "C" {
     pub fn y0f(arg1: f32) -> f32;
@@ -3528,10 +3331,10 @@ unsafe extern "C" {
     pub fn __y1f(arg1: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn ynf(arg1: ::std::os::raw::c_int, arg2: f32) -> f32;
+    pub fn ynf(arg1: libc::c_int, arg2: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn __ynf(arg1: ::std::os::raw::c_int, arg2: f32) -> f32;
+    pub fn __ynf(arg1: libc::c_int, arg2: f32) -> f32;
 }
 unsafe extern "C" {
     pub fn erff(arg1: f32) -> f32;
@@ -3564,10 +3367,10 @@ unsafe extern "C" {
     pub fn __gammaf(arg1: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn lgammaf_r(arg1: f32, __signgamp: *mut ::std::os::raw::c_int) -> f32;
+    pub fn lgammaf_r(arg1: f32, __signgamp: *mut libc::c_int) -> f32;
 }
 unsafe extern "C" {
-    pub fn __lgammaf_r(arg1: f32, __signgamp: *mut ::std::os::raw::c_int) -> f32;
+    pub fn __lgammaf_r(arg1: f32, __signgamp: *mut libc::c_int) -> f32;
 }
 unsafe extern "C" {
     pub fn rintf(__x: f32) -> f32;
@@ -3594,22 +3397,22 @@ unsafe extern "C" {
     pub fn __remainderf(__x: f32, __y: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn scalbnf(__x: f32, __n: ::std::os::raw::c_int) -> f32;
+    pub fn scalbnf(__x: f32, __n: libc::c_int) -> f32;
 }
 unsafe extern "C" {
-    pub fn __scalbnf(__x: f32, __n: ::std::os::raw::c_int) -> f32;
+    pub fn __scalbnf(__x: f32, __n: libc::c_int) -> f32;
 }
 unsafe extern "C" {
-    pub fn ilogbf(__x: f32) -> ::std::os::raw::c_int;
+    pub fn ilogbf(__x: f32) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __ilogbf(__x: f32) -> ::std::os::raw::c_int;
+    pub fn __ilogbf(__x: f32) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn scalblnf(__x: f32, __n: ::std::os::raw::c_long) -> f32;
+    pub fn scalblnf(__x: f32, __n: libc::c_long) -> f32;
 }
 unsafe extern "C" {
-    pub fn __scalblnf(__x: f32, __n: ::std::os::raw::c_long) -> f32;
+    pub fn __scalblnf(__x: f32, __n: libc::c_long) -> f32;
 }
 unsafe extern "C" {
     pub fn nearbyintf(__x: f32) -> f32;
@@ -3630,34 +3433,34 @@ unsafe extern "C" {
     pub fn __truncf(__x: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn remquof(__x: f32, __y: f32, __quo: *mut ::std::os::raw::c_int) -> f32;
+    pub fn remquof(__x: f32, __y: f32, __quo: *mut libc::c_int) -> f32;
 }
 unsafe extern "C" {
-    pub fn __remquof(__x: f32, __y: f32, __quo: *mut ::std::os::raw::c_int) -> f32;
+    pub fn __remquof(__x: f32, __y: f32, __quo: *mut libc::c_int) -> f32;
 }
 unsafe extern "C" {
-    pub fn lrintf(__x: f32) -> ::std::os::raw::c_long;
+    pub fn lrintf(__x: f32) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn __lrintf(__x: f32) -> ::std::os::raw::c_long;
+    pub fn __lrintf(__x: f32) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn llrintf(__x: f32) -> ::std::os::raw::c_longlong;
+    pub fn llrintf(__x: f32) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn __llrintf(__x: f32) -> ::std::os::raw::c_longlong;
+    pub fn __llrintf(__x: f32) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn lroundf(__x: f32) -> ::std::os::raw::c_long;
+    pub fn lroundf(__x: f32) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn __lroundf(__x: f32) -> ::std::os::raw::c_long;
+    pub fn __lroundf(__x: f32) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn llroundf(__x: f32) -> ::std::os::raw::c_longlong;
+    pub fn llroundf(__x: f32) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn __llroundf(__x: f32) -> ::std::os::raw::c_longlong;
+    pub fn __llroundf(__x: f32) -> libc::c_longlong;
 }
 unsafe extern "C" {
     pub fn fdimf(__x: f32, __y: f32) -> f32;
@@ -3690,25 +3493,25 @@ unsafe extern "C" {
     pub fn __scalbf(__x: f32, __n: f32) -> f32;
 }
 unsafe extern "C" {
-    pub fn __fpclassifyl(__value: u128) -> ::std::os::raw::c_int;
+    pub fn __fpclassifyl(__value: u128) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __signbitl(__value: u128) -> ::std::os::raw::c_int;
+    pub fn __signbitl(__value: u128) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __isinfl(__value: u128) -> ::std::os::raw::c_int;
+    pub fn __isinfl(__value: u128) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __finitel(__value: u128) -> ::std::os::raw::c_int;
+    pub fn __finitel(__value: u128) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __isnanl(__value: u128) -> ::std::os::raw::c_int;
+    pub fn __isnanl(__value: u128) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __iseqsigl(__x: u128, __y: u128) -> ::std::os::raw::c_int;
+    pub fn __iseqsigl(__x: u128, __y: u128) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __issignalingl(__value: u128) -> ::std::os::raw::c_int;
+    pub fn __issignalingl(__value: u128) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn acosl(__x: u128) -> u128;
@@ -3795,16 +3598,16 @@ unsafe extern "C" {
     pub fn __expl(__x: u128) -> u128;
 }
 unsafe extern "C" {
-    pub fn frexpl(__x: u128, __exponent: *mut ::std::os::raw::c_int) -> u128;
+    pub fn frexpl(__x: u128, __exponent: *mut libc::c_int) -> u128;
 }
 unsafe extern "C" {
-    pub fn __frexpl(__x: u128, __exponent: *mut ::std::os::raw::c_int) -> u128;
+    pub fn __frexpl(__x: u128, __exponent: *mut libc::c_int) -> u128;
 }
 unsafe extern "C" {
-    pub fn ldexpl(__x: u128, __exponent: ::std::os::raw::c_int) -> u128;
+    pub fn ldexpl(__x: u128, __exponent: libc::c_int) -> u128;
 }
 unsafe extern "C" {
-    pub fn __ldexpl(__x: u128, __exponent: ::std::os::raw::c_int) -> u128;
+    pub fn __ldexpl(__x: u128, __exponent: libc::c_int) -> u128;
 }
 unsafe extern "C" {
     pub fn logl(__x: u128) -> u128;
@@ -3903,10 +3706,10 @@ unsafe extern "C" {
     pub fn __fmodl(__x: u128, __y: u128) -> u128;
 }
 unsafe extern "C" {
-    pub fn isinfl(__value: u128) -> ::std::os::raw::c_int;
+    pub fn isinfl(__value: u128) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn finitel(__value: u128) -> ::std::os::raw::c_int;
+    pub fn finitel(__value: u128) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn dreml(__x: u128, __y: u128) -> u128;
@@ -3927,13 +3730,13 @@ unsafe extern "C" {
     pub fn __copysignl(__x: u128, __y: u128) -> u128;
 }
 unsafe extern "C" {
-    pub fn nanl(__tagb: *const ::std::os::raw::c_char) -> u128;
+    pub fn nanl(__tagb: *const libc::c_char) -> u128;
 }
 unsafe extern "C" {
-    pub fn __nanl(__tagb: *const ::std::os::raw::c_char) -> u128;
+    pub fn __nanl(__tagb: *const libc::c_char) -> u128;
 }
 unsafe extern "C" {
-    pub fn isnanl(__value: u128) -> ::std::os::raw::c_int;
+    pub fn isnanl(__value: u128) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn j0l(arg1: u128) -> u128;
@@ -3948,10 +3751,10 @@ unsafe extern "C" {
     pub fn __j1l(arg1: u128) -> u128;
 }
 unsafe extern "C" {
-    pub fn jnl(arg1: ::std::os::raw::c_int, arg2: u128) -> u128;
+    pub fn jnl(arg1: libc::c_int, arg2: u128) -> u128;
 }
 unsafe extern "C" {
-    pub fn __jnl(arg1: ::std::os::raw::c_int, arg2: u128) -> u128;
+    pub fn __jnl(arg1: libc::c_int, arg2: u128) -> u128;
 }
 unsafe extern "C" {
     pub fn y0l(arg1: u128) -> u128;
@@ -3966,10 +3769,10 @@ unsafe extern "C" {
     pub fn __y1l(arg1: u128) -> u128;
 }
 unsafe extern "C" {
-    pub fn ynl(arg1: ::std::os::raw::c_int, arg2: u128) -> u128;
+    pub fn ynl(arg1: libc::c_int, arg2: u128) -> u128;
 }
 unsafe extern "C" {
-    pub fn __ynl(arg1: ::std::os::raw::c_int, arg2: u128) -> u128;
+    pub fn __ynl(arg1: libc::c_int, arg2: u128) -> u128;
 }
 unsafe extern "C" {
     pub fn erfl(arg1: u128) -> u128;
@@ -4002,10 +3805,10 @@ unsafe extern "C" {
     pub fn __gammal(arg1: u128) -> u128;
 }
 unsafe extern "C" {
-    pub fn lgammal_r(arg1: u128, __signgamp: *mut ::std::os::raw::c_int) -> u128;
+    pub fn lgammal_r(arg1: u128, __signgamp: *mut libc::c_int) -> u128;
 }
 unsafe extern "C" {
-    pub fn __lgammal_r(arg1: u128, __signgamp: *mut ::std::os::raw::c_int) -> u128;
+    pub fn __lgammal_r(arg1: u128, __signgamp: *mut libc::c_int) -> u128;
 }
 unsafe extern "C" {
     pub fn rintl(__x: u128) -> u128;
@@ -4032,22 +3835,22 @@ unsafe extern "C" {
     pub fn __remainderl(__x: u128, __y: u128) -> u128;
 }
 unsafe extern "C" {
-    pub fn scalbnl(__x: u128, __n: ::std::os::raw::c_int) -> u128;
+    pub fn scalbnl(__x: u128, __n: libc::c_int) -> u128;
 }
 unsafe extern "C" {
-    pub fn __scalbnl(__x: u128, __n: ::std::os::raw::c_int) -> u128;
+    pub fn __scalbnl(__x: u128, __n: libc::c_int) -> u128;
 }
 unsafe extern "C" {
-    pub fn ilogbl(__x: u128) -> ::std::os::raw::c_int;
+    pub fn ilogbl(__x: u128) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __ilogbl(__x: u128) -> ::std::os::raw::c_int;
+    pub fn __ilogbl(__x: u128) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn scalblnl(__x: u128, __n: ::std::os::raw::c_long) -> u128;
+    pub fn scalblnl(__x: u128, __n: libc::c_long) -> u128;
 }
 unsafe extern "C" {
-    pub fn __scalblnl(__x: u128, __n: ::std::os::raw::c_long) -> u128;
+    pub fn __scalblnl(__x: u128, __n: libc::c_long) -> u128;
 }
 unsafe extern "C" {
     pub fn nearbyintl(__x: u128) -> u128;
@@ -4068,34 +3871,34 @@ unsafe extern "C" {
     pub fn __truncl(__x: u128) -> u128;
 }
 unsafe extern "C" {
-    pub fn remquol(__x: u128, __y: u128, __quo: *mut ::std::os::raw::c_int) -> u128;
+    pub fn remquol(__x: u128, __y: u128, __quo: *mut libc::c_int) -> u128;
 }
 unsafe extern "C" {
-    pub fn __remquol(__x: u128, __y: u128, __quo: *mut ::std::os::raw::c_int) -> u128;
+    pub fn __remquol(__x: u128, __y: u128, __quo: *mut libc::c_int) -> u128;
 }
 unsafe extern "C" {
-    pub fn lrintl(__x: u128) -> ::std::os::raw::c_long;
+    pub fn lrintl(__x: u128) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn __lrintl(__x: u128) -> ::std::os::raw::c_long;
+    pub fn __lrintl(__x: u128) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn llrintl(__x: u128) -> ::std::os::raw::c_longlong;
+    pub fn llrintl(__x: u128) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn __llrintl(__x: u128) -> ::std::os::raw::c_longlong;
+    pub fn __llrintl(__x: u128) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn lroundl(__x: u128) -> ::std::os::raw::c_long;
+    pub fn lroundl(__x: u128) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn __lroundl(__x: u128) -> ::std::os::raw::c_long;
+    pub fn __lroundl(__x: u128) -> libc::c_long;
 }
 unsafe extern "C" {
-    pub fn llroundl(__x: u128) -> ::std::os::raw::c_longlong;
+    pub fn llroundl(__x: u128) -> libc::c_longlong;
 }
 unsafe extern "C" {
-    pub fn __llroundl(__x: u128) -> ::std::os::raw::c_longlong;
+    pub fn __llroundl(__x: u128) -> libc::c_longlong;
 }
 unsafe extern "C" {
     pub fn fdiml(__x: u128, __y: u128) -> u128;
@@ -4128,48 +3931,45 @@ unsafe extern "C" {
     pub fn __scalbl(__x: u128, __n: u128) -> u128;
 }
 unsafe extern "C" {
-    pub static mut signgam: ::std::os::raw::c_int;
+    pub static mut signgam: libc::c_int;
 }
 pub const FP_NAN: _bindgen_ty_1 = 0;
 pub const FP_INFINITE: _bindgen_ty_1 = 1;
 pub const FP_ZERO: _bindgen_ty_1 = 2;
 pub const FP_SUBNORMAL: _bindgen_ty_1 = 3;
 pub const FP_NORMAL: _bindgen_ty_1 = 4;
-pub type _bindgen_ty_1 = ::std::os::raw::c_uint;
+pub type _bindgen_ty_1 = libc::c_uint;
 unsafe extern "C" {
-    pub fn __errno_location() -> *mut ::std::os::raw::c_int;
+    pub fn __errno_location() -> *mut libc::c_int;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct timezone {
-    pub tz_minuteswest: ::std::os::raw::c_int,
-    pub tz_dsttime: ::std::os::raw::c_int,
+    pub tz_minuteswest: libc::c_int,
+    pub tz_dsttime: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of timezone"][::std::mem::size_of::<timezone>() - 8usize];
-    ["Alignment of timezone"][::std::mem::align_of::<timezone>() - 4usize];
+    ["Size of timezone"][::core::mem::size_of::<timezone>() - 8usize];
+    ["Alignment of timezone"][::core::mem::align_of::<timezone>() - 4usize];
     ["Offset of field: timezone::tz_minuteswest"]
-        [::std::mem::offset_of!(timezone, tz_minuteswest) - 0usize];
+        [::core::mem::offset_of!(timezone, tz_minuteswest) - 0usize];
     ["Offset of field: timezone::tz_dsttime"]
-        [::std::mem::offset_of!(timezone, tz_dsttime) - 4usize];
+        [::core::mem::offset_of!(timezone, tz_dsttime) - 4usize];
 };
 unsafe extern "C" {
-    pub fn gettimeofday(
-        __tv: *mut timeval,
-        __tz: *mut ::std::os::raw::c_void,
-    ) -> ::std::os::raw::c_int;
+    pub fn gettimeofday(__tv: *mut timeval, __tz: *mut libc::c_void) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn settimeofday(__tv: *const timeval, __tz: *const timezone) -> ::std::os::raw::c_int;
+    pub fn settimeofday(__tv: *const timeval, __tz: *const timezone) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn adjtime(__delta: *const timeval, __olddelta: *mut timeval) -> ::std::os::raw::c_int;
+    pub fn adjtime(__delta: *const timeval, __olddelta: *mut timeval) -> libc::c_int;
 }
 pub const __itimer_which_ITIMER_REAL: __itimer_which = 0;
 pub const __itimer_which_ITIMER_VIRTUAL: __itimer_which = 1;
 pub const __itimer_which_ITIMER_PROF: __itimer_which = 2;
-pub type __itimer_which = ::std::os::raw::c_uint;
+pub type __itimer_which = libc::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct itimerval {
@@ -4178,37 +3978,32 @@ pub struct itimerval {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of itimerval"][::std::mem::size_of::<itimerval>() - 32usize];
-    ["Alignment of itimerval"][::std::mem::align_of::<itimerval>() - 8usize];
+    ["Size of itimerval"][::core::mem::size_of::<itimerval>() - 32usize];
+    ["Alignment of itimerval"][::core::mem::align_of::<itimerval>() - 8usize];
     ["Offset of field: itimerval::it_interval"]
-        [::std::mem::offset_of!(itimerval, it_interval) - 0usize];
-    ["Offset of field: itimerval::it_value"][::std::mem::offset_of!(itimerval, it_value) - 16usize];
+        [::core::mem::offset_of!(itimerval, it_interval) - 0usize];
+    ["Offset of field: itimerval::it_value"]
+        [::core::mem::offset_of!(itimerval, it_value) - 16usize];
 };
-pub type __itimer_which_t = ::std::os::raw::c_int;
+pub type __itimer_which_t = libc::c_int;
 unsafe extern "C" {
-    pub fn getitimer(__which: __itimer_which_t, __value: *mut itimerval) -> ::std::os::raw::c_int;
+    pub fn getitimer(__which: __itimer_which_t, __value: *mut itimerval) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn setitimer(
         __which: __itimer_which_t,
         __new: *const itimerval,
         __old: *mut itimerval,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn utimes(
-        __file: *const ::std::os::raw::c_char,
-        __tvp: *const timeval,
-    ) -> ::std::os::raw::c_int;
+    pub fn utimes(__file: *const libc::c_char, __tvp: *const timeval) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn lutimes(
-        __file: *const ::std::os::raw::c_char,
-        __tvp: *const timeval,
-    ) -> ::std::os::raw::c_int;
+    pub fn lutimes(__file: *const libc::c_char, __tvp: *const timeval) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn futimes(__fd: ::std::os::raw::c_int, __tvp: *const timeval) -> ::std::os::raw::c_int;
+    pub fn futimes(__fd: libc::c_int, __tvp: *const timeval) -> libc::c_int;
 }
 pub type int_least8_t = __int_least8_t;
 pub type int_least16_t = __int_least16_t;
@@ -4218,29 +4013,29 @@ pub type uint_least8_t = __uint_least8_t;
 pub type uint_least16_t = __uint_least16_t;
 pub type uint_least32_t = __uint_least32_t;
 pub type uint_least64_t = __uint_least64_t;
-pub type int_fast8_t = ::std::os::raw::c_schar;
-pub type int_fast16_t = ::std::os::raw::c_long;
-pub type int_fast32_t = ::std::os::raw::c_long;
-pub type int_fast64_t = ::std::os::raw::c_long;
-pub type uint_fast8_t = ::std::os::raw::c_uchar;
-pub type uint_fast16_t = ::std::os::raw::c_ulong;
-pub type uint_fast32_t = ::std::os::raw::c_ulong;
-pub type uint_fast64_t = ::std::os::raw::c_ulong;
+pub type int_fast8_t = libc::c_schar;
+pub type int_fast16_t = libc::c_long;
+pub type int_fast32_t = libc::c_long;
+pub type int_fast64_t = libc::c_long;
+pub type uint_fast8_t = libc::c_uchar;
+pub type uint_fast16_t = libc::c_ulong;
+pub type uint_fast32_t = libc::c_ulong;
+pub type uint_fast64_t = libc::c_ulong;
 pub type intmax_t = __intmax_t;
 pub type uintmax_t = __uintmax_t;
-pub type __gwchar_t = ::std::os::raw::c_int;
+pub type __gwchar_t = libc::c_int;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct imaxdiv_t {
-    pub quot: ::std::os::raw::c_long,
-    pub rem: ::std::os::raw::c_long,
+    pub quot: libc::c_long,
+    pub rem: libc::c_long,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of imaxdiv_t"][::std::mem::size_of::<imaxdiv_t>() - 16usize];
-    ["Alignment of imaxdiv_t"][::std::mem::align_of::<imaxdiv_t>() - 8usize];
-    ["Offset of field: imaxdiv_t::quot"][::std::mem::offset_of!(imaxdiv_t, quot) - 0usize];
-    ["Offset of field: imaxdiv_t::rem"][::std::mem::offset_of!(imaxdiv_t, rem) - 8usize];
+    ["Size of imaxdiv_t"][::core::mem::size_of::<imaxdiv_t>() - 16usize];
+    ["Alignment of imaxdiv_t"][::core::mem::align_of::<imaxdiv_t>() - 8usize];
+    ["Offset of field: imaxdiv_t::quot"][::core::mem::offset_of!(imaxdiv_t, quot) - 0usize];
+    ["Offset of field: imaxdiv_t::rem"][::core::mem::offset_of!(imaxdiv_t, rem) - 8usize];
 };
 unsafe extern "C" {
     pub fn imaxabs(__n: intmax_t) -> intmax_t;
@@ -4250,37 +4045,37 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn strtoimax(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-        __base: ::std::os::raw::c_int,
+        __nptr: *const libc::c_char,
+        __endptr: *mut *mut libc::c_char,
+        __base: libc::c_int,
     ) -> intmax_t;
 }
 unsafe extern "C" {
     pub fn strtoumax(
-        __nptr: *const ::std::os::raw::c_char,
-        __endptr: *mut *mut ::std::os::raw::c_char,
-        __base: ::std::os::raw::c_int,
+        __nptr: *const libc::c_char,
+        __endptr: *mut *mut libc::c_char,
+        __base: libc::c_int,
     ) -> uintmax_t;
 }
 unsafe extern "C" {
     pub fn wcstoimax(
         __nptr: *const __gwchar_t,
         __endptr: *mut *mut __gwchar_t,
-        __base: ::std::os::raw::c_int,
+        __base: libc::c_int,
     ) -> intmax_t;
 }
 unsafe extern "C" {
     pub fn wcstoumax(
         __nptr: *const __gwchar_t,
         __endptr: *mut *mut __gwchar_t,
-        __base: ::std::os::raw::c_int,
+        __base: libc::c_int,
     ) -> uintmax_t;
 }
 pub const LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_RGGB: LibRaw_openbayer_patterns = 148;
 pub const LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_BGGR: LibRaw_openbayer_patterns = 22;
 pub const LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_GRBG: LibRaw_openbayer_patterns = 97;
 pub const LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_GBRG: LibRaw_openbayer_patterns = 73;
-pub type LibRaw_openbayer_patterns = ::std::os::raw::c_uint;
+pub type LibRaw_openbayer_patterns = libc::c_uint;
 pub const LibRaw_dngfields_marks_LIBRAW_DNGFM_FORWARDMATRIX: LibRaw_dngfields_marks = 1;
 pub const LibRaw_dngfields_marks_LIBRAW_DNGFM_ILLUMINANT: LibRaw_dngfields_marks = 2;
 pub const LibRaw_dngfields_marks_LIBRAW_DNGFM_COLORMATRIX: LibRaw_dngfields_marks = 4;
@@ -4299,14 +4094,14 @@ pub const LibRaw_dngfields_marks_LIBRAW_DNGFM_LINEARRESPONSELIMIT: LibRaw_dngfie
 pub const LibRaw_dngfields_marks_LIBRAW_DNGFM_USERCROP: LibRaw_dngfields_marks = 32768;
 pub const LibRaw_dngfields_marks_LIBRAW_DNGFM_OPCODE1: LibRaw_dngfields_marks = 65536;
 pub const LibRaw_dngfields_marks_LIBRAW_DNGFM_OPCODE3: LibRaw_dngfields_marks = 131072;
-pub type LibRaw_dngfields_marks = ::std::os::raw::c_uint;
+pub type LibRaw_dngfields_marks = libc::c_uint;
 pub const LibRaw_As_Shot_WB_Applied_codes_LIBRAW_ASWB_APPLIED: LibRaw_As_Shot_WB_Applied_codes = 1;
 pub const LibRaw_As_Shot_WB_Applied_codes_LIBRAW_ASWB_CANON: LibRaw_As_Shot_WB_Applied_codes = 2;
 pub const LibRaw_As_Shot_WB_Applied_codes_LIBRAW_ASWB_NIKON: LibRaw_As_Shot_WB_Applied_codes = 4;
 pub const LibRaw_As_Shot_WB_Applied_codes_LIBRAW_ASWB_NIKON_SRAW: LibRaw_As_Shot_WB_Applied_codes =
     8;
 pub const LibRaw_As_Shot_WB_Applied_codes_LIBRAW_ASWB_PENTAX: LibRaw_As_Shot_WB_Applied_codes = 16;
-pub type LibRaw_As_Shot_WB_Applied_codes = ::std::os::raw::c_uint;
+pub type LibRaw_As_Shot_WB_Applied_codes = libc::c_uint;
 pub const LibRaw_ExifTagTypes_LIBRAW_EXIFTAG_TYPE_UNKNOWN: LibRaw_ExifTagTypes = 0;
 pub const LibRaw_ExifTagTypes_LIBRAW_EXIFTAG_TYPE_BYTE: LibRaw_ExifTagTypes = 1;
 pub const LibRaw_ExifTagTypes_LIBRAW_EXIFTAG_TYPE_ASCII: LibRaw_ExifTagTypes = 2;
@@ -4326,7 +4121,7 @@ pub const LibRaw_ExifTagTypes_LIBRAW_EXIFTAG_TYPE_COMPLEX: LibRaw_ExifTagTypes =
 pub const LibRaw_ExifTagTypes_LIBRAW_EXIFTAG_TYPE_LONG8: LibRaw_ExifTagTypes = 16;
 pub const LibRaw_ExifTagTypes_LIBRAW_EXIFTAG_TYPE_SLONG8: LibRaw_ExifTagTypes = 17;
 pub const LibRaw_ExifTagTypes_LIBRAW_EXIFTAG_TYPE_IFD8: LibRaw_ExifTagTypes = 18;
-pub type LibRaw_ExifTagTypes = ::std::os::raw::c_uint;
+pub type LibRaw_ExifTagTypes = libc::c_uint;
 pub const LibRaw_whitebalance_code_LIBRAW_WBI_Unknown: LibRaw_whitebalance_code = 0;
 pub const LibRaw_whitebalance_code_LIBRAW_WBI_Daylight: LibRaw_whitebalance_code = 1;
 pub const LibRaw_whitebalance_code_LIBRAW_WBI_Fluorescent: LibRaw_whitebalance_code = 2;
@@ -4375,12 +4170,12 @@ pub const LibRaw_whitebalance_code_LIBRAW_WBI_BW: LibRaw_whitebalance_code = 120
 pub const LibRaw_whitebalance_code_LIBRAW_WBI_Kelvin: LibRaw_whitebalance_code = 254;
 pub const LibRaw_whitebalance_code_LIBRAW_WBI_Other: LibRaw_whitebalance_code = 255;
 pub const LibRaw_whitebalance_code_LIBRAW_WBI_None: LibRaw_whitebalance_code = 65535;
-pub type LibRaw_whitebalance_code = ::std::os::raw::c_uint;
+pub type LibRaw_whitebalance_code = libc::c_uint;
 pub const LibRaw_MultiExposure_related_LIBRAW_ME_NONE: LibRaw_MultiExposure_related = 0;
 pub const LibRaw_MultiExposure_related_LIBRAW_ME_SIMPLE: LibRaw_MultiExposure_related = 1;
 pub const LibRaw_MultiExposure_related_LIBRAW_ME_OVERLAY: LibRaw_MultiExposure_related = 2;
 pub const LibRaw_MultiExposure_related_LIBRAW_ME_HDR: LibRaw_MultiExposure_related = 3;
-pub type LibRaw_MultiExposure_related = ::std::os::raw::c_uint;
+pub type LibRaw_MultiExposure_related = libc::c_uint;
 pub const LibRaw_dng_processing_LIBRAW_DNG_NONE: LibRaw_dng_processing = 0;
 pub const LibRaw_dng_processing_LIBRAW_DNG_FLOAT: LibRaw_dng_processing = 1;
 pub const LibRaw_dng_processing_LIBRAW_DNG_LINEAR: LibRaw_dng_processing = 2;
@@ -4390,10 +4185,10 @@ pub const LibRaw_dng_processing_LIBRAW_DNG_OTHER: LibRaw_dng_processing = 16;
 pub const LibRaw_dng_processing_LIBRAW_DNG_8BIT: LibRaw_dng_processing = 32;
 pub const LibRaw_dng_processing_LIBRAW_DNG_ALL: LibRaw_dng_processing = 63;
 pub const LibRaw_dng_processing_LIBRAW_DNG_DEFAULT: LibRaw_dng_processing = 39;
-pub type LibRaw_dng_processing = ::std::os::raw::c_uint;
+pub type LibRaw_dng_processing = libc::c_uint;
 pub const LibRaw_output_flags_LIBRAW_OUTPUT_FLAGS_NONE: LibRaw_output_flags = 0;
 pub const LibRaw_output_flags_LIBRAW_OUTPUT_FLAGS_PPMMETA: LibRaw_output_flags = 1;
-pub type LibRaw_output_flags = ::std::os::raw::c_uint;
+pub type LibRaw_output_flags = libc::c_uint;
 pub const LibRaw_runtime_capabilities_LIBRAW_CAPS_RAWSPEED: LibRaw_runtime_capabilities = 1;
 pub const LibRaw_runtime_capabilities_LIBRAW_CAPS_DNGSDK: LibRaw_runtime_capabilities = 2;
 pub const LibRaw_runtime_capabilities_LIBRAW_CAPS_GPRSDK: LibRaw_runtime_capabilities = 4;
@@ -4404,7 +4199,7 @@ pub const LibRaw_runtime_capabilities_LIBRAW_CAPS_ZLIB: LibRaw_runtime_capabilit
 pub const LibRaw_runtime_capabilities_LIBRAW_CAPS_JPEG: LibRaw_runtime_capabilities = 128;
 pub const LibRaw_runtime_capabilities_LIBRAW_CAPS_RAWSPEED3: LibRaw_runtime_capabilities = 256;
 pub const LibRaw_runtime_capabilities_LIBRAW_CAPS_RAWSPEED_BITS: LibRaw_runtime_capabilities = 512;
-pub type LibRaw_runtime_capabilities = ::std::os::raw::c_uint;
+pub type LibRaw_runtime_capabilities = libc::c_uint;
 pub const LibRaw_colorspace_LIBRAW_COLORSPACE_NotFound: LibRaw_colorspace = 0;
 pub const LibRaw_colorspace_LIBRAW_COLORSPACE_sRGB: LibRaw_colorspace = 1;
 pub const LibRaw_colorspace_LIBRAW_COLORSPACE_AdobeRGB: LibRaw_colorspace = 2;
@@ -4419,7 +4214,7 @@ pub const LibRaw_colorspace_LIBRAW_COLORSPACE_CameraGamma: LibRaw_colorspace = 1
 pub const LibRaw_colorspace_LIBRAW_COLORSPACE_MonochromeLinear: LibRaw_colorspace = 11;
 pub const LibRaw_colorspace_LIBRAW_COLORSPACE_MonochromeGamma: LibRaw_colorspace = 12;
 pub const LibRaw_colorspace_LIBRAW_COLORSPACE_Unknown: LibRaw_colorspace = 255;
-pub type LibRaw_colorspace = ::std::os::raw::c_uint;
+pub type LibRaw_colorspace = libc::c_uint;
 pub const LibRaw_cameramaker_index_LIBRAW_CAMERAMAKER_Unknown: LibRaw_cameramaker_index = 0;
 pub const LibRaw_cameramaker_index_LIBRAW_CAMERAMAKER_Agfa: LibRaw_cameramaker_index = 1;
 pub const LibRaw_cameramaker_index_LIBRAW_CAMERAMAKER_Alcatel: LibRaw_cameramaker_index = 2;
@@ -4500,7 +4295,7 @@ pub const LibRaw_cameramaker_index_LIBRAW_CAMERAMAKER_HUAWEI: LibRaw_cameramaker
 pub const LibRaw_cameramaker_index_LIBRAW_CAMERAMAKER_RaspberryPi: LibRaw_cameramaker_index = 77;
 pub const LibRaw_cameramaker_index_LIBRAW_CAMERAMAKER_OmDigital: LibRaw_cameramaker_index = 78;
 pub const LibRaw_cameramaker_index_LIBRAW_CAMERAMAKER_TheLastOne: LibRaw_cameramaker_index = 79;
-pub type LibRaw_cameramaker_index = ::std::os::raw::c_uint;
+pub type LibRaw_cameramaker_index = libc::c_uint;
 pub const LibRaw_camera_mounts_LIBRAW_MOUNT_Unknown: LibRaw_camera_mounts = 0;
 pub const LibRaw_camera_mounts_LIBRAW_MOUNT_Alpa: LibRaw_camera_mounts = 1;
 pub const LibRaw_camera_mounts_LIBRAW_MOUNT_C: LibRaw_camera_mounts = 2;
@@ -4547,7 +4342,7 @@ pub const LibRaw_camera_mounts_LIBRAW_MOUNT_DigitalBack: LibRaw_camera_mounts = 
 pub const LibRaw_camera_mounts_LIBRAW_MOUNT_FixedLens: LibRaw_camera_mounts = 43;
 pub const LibRaw_camera_mounts_LIBRAW_MOUNT_IL_UM: LibRaw_camera_mounts = 44;
 pub const LibRaw_camera_mounts_LIBRAW_MOUNT_TheLastOne: LibRaw_camera_mounts = 45;
-pub type LibRaw_camera_mounts = ::std::os::raw::c_uint;
+pub type LibRaw_camera_mounts = libc::c_uint;
 pub const LibRaw_camera_formats_LIBRAW_FORMAT_Unknown: LibRaw_camera_formats = 0;
 pub const LibRaw_camera_formats_LIBRAW_FORMAT_APSC: LibRaw_camera_formats = 1;
 pub const LibRaw_camera_formats_LIBRAW_FORMAT_FF: LibRaw_camera_formats = 2;
@@ -4571,7 +4366,7 @@ pub const LibRaw_camera_formats_LIBRAW_FORMAT_SigmaAPSH: LibRaw_camera_formats =
 pub const LibRaw_camera_formats_LIBRAW_FORMAT_3648: LibRaw_camera_formats = 20;
 pub const LibRaw_camera_formats_LIBRAW_FORMAT_68: LibRaw_camera_formats = 21;
 pub const LibRaw_camera_formats_LIBRAW_FORMAT_TheLastOne: LibRaw_camera_formats = 22;
-pub type LibRaw_camera_formats = ::std::os::raw::c_uint;
+pub type LibRaw_camera_formats = libc::c_uint;
 pub const LibRawImageAspects_LIBRAW_IMAGE_ASPECT_UNKNOWN: LibRawImageAspects = 0;
 pub const LibRawImageAspects_LIBRAW_IMAGE_ASPECT_OTHER: LibRawImageAspects = 1;
 pub const LibRawImageAspects_LIBRAW_IMAGE_ASPECT_MINIMAL_REAL_ASPECT_VALUE: LibRawImageAspects = 99;
@@ -4585,7 +4380,7 @@ pub const LibRawImageAspects_LIBRAW_IMAGE_ASPECT_5to4: LibRawImageAspects = 1250
 pub const LibRawImageAspects_LIBRAW_IMAGE_ASPECT_7to6: LibRawImageAspects = 1166;
 pub const LibRawImageAspects_LIBRAW_IMAGE_ASPECT_6to5: LibRawImageAspects = 1200;
 pub const LibRawImageAspects_LIBRAW_IMAGE_ASPECT_7to5: LibRawImageAspects = 1400;
-pub type LibRawImageAspects = ::std::os::raw::c_uint;
+pub type LibRawImageAspects = libc::c_uint;
 pub const LibRaw_lens_focal_types_LIBRAW_FT_UNDEFINED: LibRaw_lens_focal_types = 0;
 pub const LibRaw_lens_focal_types_LIBRAW_FT_PRIME_LENS: LibRaw_lens_focal_types = 1;
 pub const LibRaw_lens_focal_types_LIBRAW_FT_ZOOM_LENS: LibRaw_lens_focal_types = 2;
@@ -4593,7 +4388,7 @@ pub const LibRaw_lens_focal_types_LIBRAW_FT_ZOOM_LENS_CONSTANT_APERTURE: LibRaw_
     3;
 pub const LibRaw_lens_focal_types_LIBRAW_FT_ZOOM_LENS_VARIABLE_APERTURE: LibRaw_lens_focal_types =
     4;
-pub type LibRaw_lens_focal_types = ::std::os::raw::c_uint;
+pub type LibRaw_lens_focal_types = libc::c_uint;
 pub const LibRaw_Canon_RecordModes_LIBRAW_Canon_RecordMode_UNDEFINED: LibRaw_Canon_RecordModes = 0;
 pub const LibRaw_Canon_RecordModes_LIBRAW_Canon_RecordMode_JPEG: LibRaw_Canon_RecordModes = 1;
 pub const LibRaw_Canon_RecordModes_LIBRAW_Canon_RecordMode_CRW_THM: LibRaw_Canon_RecordModes = 2;
@@ -4612,13 +4407,13 @@ pub const LibRaw_Canon_RecordModes_LIBRAW_Canon_RecordMode_HEIF: LibRaw_Canon_Re
 pub const LibRaw_Canon_RecordModes_LIBRAW_Canon_RecordMode_CR3_HEIF: LibRaw_Canon_RecordModes = 15;
 pub const LibRaw_Canon_RecordModes_LIBRAW_Canon_RecordMode_TheLastOne: LibRaw_Canon_RecordModes =
     16;
-pub type LibRaw_Canon_RecordModes = ::std::os::raw::c_uint;
+pub type LibRaw_Canon_RecordModes = libc::c_uint;
 pub const LibRaw_minolta_storagemethods_LIBRAW_MINOLTA_UNPACKED: LibRaw_minolta_storagemethods = 82;
 pub const LibRaw_minolta_storagemethods_LIBRAW_MINOLTA_PACKED: LibRaw_minolta_storagemethods = 89;
-pub type LibRaw_minolta_storagemethods = ::std::os::raw::c_uint;
+pub type LibRaw_minolta_storagemethods = libc::c_uint;
 pub const LibRaw_minolta_bayerpatterns_LIBRAW_MINOLTA_RGGB: LibRaw_minolta_bayerpatterns = 1;
 pub const LibRaw_minolta_bayerpatterns_LIBRAW_MINOLTA_G2BRG1: LibRaw_minolta_bayerpatterns = 4;
-pub type LibRaw_minolta_bayerpatterns = ::std::os::raw::c_uint;
+pub type LibRaw_minolta_bayerpatterns = libc::c_uint;
 pub const LibRaw_sony_cameratypes_LIBRAW_SONY_DSC: LibRaw_sony_cameratypes = 1;
 pub const LibRaw_sony_cameratypes_LIBRAW_SONY_DSLR: LibRaw_sony_cameratypes = 2;
 pub const LibRaw_sony_cameratypes_LIBRAW_SONY_NEX: LibRaw_sony_cameratypes = 3;
@@ -4626,7 +4421,7 @@ pub const LibRaw_sony_cameratypes_LIBRAW_SONY_SLT: LibRaw_sony_cameratypes = 4;
 pub const LibRaw_sony_cameratypes_LIBRAW_SONY_ILCE: LibRaw_sony_cameratypes = 5;
 pub const LibRaw_sony_cameratypes_LIBRAW_SONY_ILCA: LibRaw_sony_cameratypes = 6;
 pub const LibRaw_sony_cameratypes_LIBRAW_SONY_CameraType_UNKNOWN: LibRaw_sony_cameratypes = 65535;
-pub type LibRaw_sony_cameratypes = ::std::os::raw::c_uint;
+pub type LibRaw_sony_cameratypes = libc::c_uint;
 pub const LibRaw_Sony_0x2010_Type_LIBRAW_SONY_Tag2010None: LibRaw_Sony_0x2010_Type = 0;
 pub const LibRaw_Sony_0x2010_Type_LIBRAW_SONY_Tag2010a: LibRaw_Sony_0x2010_Type = 1;
 pub const LibRaw_Sony_0x2010_Type_LIBRAW_SONY_Tag2010b: LibRaw_Sony_0x2010_Type = 2;
@@ -4637,12 +4432,12 @@ pub const LibRaw_Sony_0x2010_Type_LIBRAW_SONY_Tag2010f: LibRaw_Sony_0x2010_Type 
 pub const LibRaw_Sony_0x2010_Type_LIBRAW_SONY_Tag2010g: LibRaw_Sony_0x2010_Type = 7;
 pub const LibRaw_Sony_0x2010_Type_LIBRAW_SONY_Tag2010h: LibRaw_Sony_0x2010_Type = 8;
 pub const LibRaw_Sony_0x2010_Type_LIBRAW_SONY_Tag2010i: LibRaw_Sony_0x2010_Type = 9;
-pub type LibRaw_Sony_0x2010_Type = ::std::os::raw::c_uint;
+pub type LibRaw_Sony_0x2010_Type = libc::c_uint;
 pub const LibRaw_Sony_0x9050_Type_LIBRAW_SONY_Tag9050None: LibRaw_Sony_0x9050_Type = 0;
 pub const LibRaw_Sony_0x9050_Type_LIBRAW_SONY_Tag9050a: LibRaw_Sony_0x9050_Type = 1;
 pub const LibRaw_Sony_0x9050_Type_LIBRAW_SONY_Tag9050b: LibRaw_Sony_0x9050_Type = 2;
 pub const LibRaw_Sony_0x9050_Type_LIBRAW_SONY_Tag9050c: LibRaw_Sony_0x9050_Type = 3;
-pub type LibRaw_Sony_0x9050_Type = ::std::os::raw::c_uint;
+pub type LibRaw_Sony_0x9050_Type = libc::c_uint;
 pub const LIBRAW_SONY_FOCUSMODEmodes_LIBRAW_SONY_FOCUSMODE_MF: LIBRAW_SONY_FOCUSMODEmodes = 0;
 pub const LIBRAW_SONY_FOCUSMODEmodes_LIBRAW_SONY_FOCUSMODE_AF_S: LIBRAW_SONY_FOCUSMODEmodes = 2;
 pub const LIBRAW_SONY_FOCUSMODEmodes_LIBRAW_SONY_FOCUSMODE_AF_C: LIBRAW_SONY_FOCUSMODEmodes = 3;
@@ -4655,7 +4450,7 @@ pub const LIBRAW_SONY_FOCUSMODEmodes_LIBRAW_SONY_FOCUSMODE_PERMANENT_AF:
 pub const LIBRAW_SONY_FOCUSMODEmodes_LIBRAW_SONY_FOCUSMODE_SEMI_MF: LIBRAW_SONY_FOCUSMODEmodes =
     105;
 pub const LIBRAW_SONY_FOCUSMODEmodes_LIBRAW_SONY_FOCUSMODE_UNKNOWN: LIBRAW_SONY_FOCUSMODEmodes = -1;
-pub type LIBRAW_SONY_FOCUSMODEmodes = ::std::os::raw::c_int;
+pub type LIBRAW_SONY_FOCUSMODEmodes = libc::c_int;
 pub const LibRaw_KodakSensors_LIBRAW_Kodak_UnknownSensor: LibRaw_KodakSensors = 0;
 pub const LibRaw_KodakSensors_LIBRAW_Kodak_M1: LibRaw_KodakSensors = 1;
 pub const LibRaw_KodakSensors_LIBRAW_Kodak_M15: LibRaw_KodakSensors = 2;
@@ -4670,7 +4465,7 @@ pub const LibRaw_KodakSensors_LIBRAW_Kodak_M6: LibRaw_KodakSensors = 10;
 pub const LibRaw_KodakSensors_LIBRAW_Kodak_C14: LibRaw_KodakSensors = 11;
 pub const LibRaw_KodakSensors_LIBRAW_Kodak_X14: LibRaw_KodakSensors = 12;
 pub const LibRaw_KodakSensors_LIBRAW_Kodak_M11: LibRaw_KodakSensors = 13;
-pub type LibRaw_KodakSensors = ::std::os::raw::c_uint;
+pub type LibRaw_KodakSensors = libc::c_uint;
 pub const LibRaw_HasselbladFormatCodes_LIBRAW_HF_Unknown: LibRaw_HasselbladFormatCodes = 0;
 pub const LibRaw_HasselbladFormatCodes_LIBRAW_HF_3FR: LibRaw_HasselbladFormatCodes = 1;
 pub const LibRaw_HasselbladFormatCodes_LIBRAW_HF_FFF: LibRaw_HasselbladFormatCodes = 2;
@@ -4679,7 +4474,7 @@ pub const LibRaw_HasselbladFormatCodes_LIBRAW_HF_HasselbladDNG: LibRaw_Hasselbla
 pub const LibRaw_HasselbladFormatCodes_LIBRAW_HF_AdobeDNG: LibRaw_HasselbladFormatCodes = 5;
 pub const LibRaw_HasselbladFormatCodes_LIBRAW_HF_AdobeDNG_fromPhocusDNG:
     LibRaw_HasselbladFormatCodes = 6;
-pub type LibRaw_HasselbladFormatCodes = ::std::os::raw::c_uint;
+pub type LibRaw_HasselbladFormatCodes = libc::c_uint;
 pub const LibRaw_rawspecial_t_LIBRAW_RAWSPECIAL_SONYARW2_NONE: LibRaw_rawspecial_t = 0;
 pub const LibRaw_rawspecial_t_LIBRAW_RAWSPECIAL_SONYARW2_BASEONLY: LibRaw_rawspecial_t = 1;
 pub const LibRaw_rawspecial_t_LIBRAW_RAWSPECIAL_SONYARW2_DELTAONLY: LibRaw_rawspecial_t = 2;
@@ -4690,14 +4485,14 @@ pub const LibRaw_rawspecial_t_LIBRAW_RAWSPECIAL_NODP2Q_INTERPOLATERG: LibRaw_raw
 pub const LibRaw_rawspecial_t_LIBRAW_RAWSPECIAL_NODP2Q_INTERPOLATEAF: LibRaw_rawspecial_t = 32;
 pub const LibRaw_rawspecial_t_LIBRAW_RAWSPECIAL_SRAW_NO_RGB: LibRaw_rawspecial_t = 64;
 pub const LibRaw_rawspecial_t_LIBRAW_RAWSPECIAL_SRAW_NO_INTERPOLATE: LibRaw_rawspecial_t = 128;
-pub type LibRaw_rawspecial_t = ::std::os::raw::c_uint;
+pub type LibRaw_rawspecial_t = libc::c_uint;
 pub const LibRaw_rawspeed_bits_t_LIBRAW_RAWSPEEDV1_USE: LibRaw_rawspeed_bits_t = 1;
 pub const LibRaw_rawspeed_bits_t_LIBRAW_RAWSPEEDV1_FAILONUNKNOWN: LibRaw_rawspeed_bits_t = 2;
 pub const LibRaw_rawspeed_bits_t_LIBRAW_RAWSPEEDV1_IGNOREERRORS: LibRaw_rawspeed_bits_t = 4;
 pub const LibRaw_rawspeed_bits_t_LIBRAW_RAWSPEEDV3_USE: LibRaw_rawspeed_bits_t = 256;
 pub const LibRaw_rawspeed_bits_t_LIBRAW_RAWSPEEDV3_FAILONUNKNOWN: LibRaw_rawspeed_bits_t = 512;
 pub const LibRaw_rawspeed_bits_t_LIBRAW_RAWSPEEDV3_IGNOREERRORS: LibRaw_rawspeed_bits_t = 1024;
-pub type LibRaw_rawspeed_bits_t = ::std::os::raw::c_uint;
+pub type LibRaw_rawspeed_bits_t = libc::c_uint;
 pub const LibRaw_processing_options_LIBRAW_RAWOPTIONS_PENTAX_PS_ALLFRAMES:
     LibRaw_processing_options = 1;
 pub const LibRaw_processing_options_LIBRAW_RAWOPTIONS_CONVERTFLOAT_TO_INT:
@@ -4742,7 +4537,7 @@ pub const LibRaw_processing_options_LIBRAW_RAWOPTIONS_DNG_ADD_MASKS: LibRaw_proc
     4194304;
 pub const LibRaw_processing_options_LIBRAW_RAWOPTIONS_CANON_IGNORE_MAKERNOTES_ROTATION:
     LibRaw_processing_options = 8388608;
-pub type LibRaw_processing_options = ::std::os::raw::c_uint;
+pub type LibRaw_processing_options = libc::c_uint;
 pub const LibRaw_decoder_flags_LIBRAW_DECODER_HASCURVE: LibRaw_decoder_flags = 16;
 pub const LibRaw_decoder_flags_LIBRAW_DECODER_SONYARW2: LibRaw_decoder_flags = 32;
 pub const LibRaw_decoder_flags_LIBRAW_DECODER_TRYRAWSPEED: LibRaw_decoder_flags = 64;
@@ -4757,11 +4552,11 @@ pub const LibRaw_decoder_flags_LIBRAW_DECODER_FLAT_BG2_SWAPPED: LibRaw_decoder_f
 pub const LibRaw_decoder_flags_LIBRAW_DECODER_UNSUPPORTED_FORMAT: LibRaw_decoder_flags = 16384;
 pub const LibRaw_decoder_flags_LIBRAW_DECODER_NOTSET: LibRaw_decoder_flags = 32768;
 pub const LibRaw_decoder_flags_LIBRAW_DECODER_TRYRAWSPEED3: LibRaw_decoder_flags = 65536;
-pub type LibRaw_decoder_flags = ::std::os::raw::c_uint;
+pub type LibRaw_decoder_flags = libc::c_uint;
 pub const LibRaw_constructor_flags_LIBRAW_OPTIONS_NONE: LibRaw_constructor_flags = 0;
 pub const LibRaw_constructor_flags_LIBRAW_OPTIONS_NO_DATAERR_CALLBACK: LibRaw_constructor_flags = 2;
 pub const LibRaw_constructor_flags_LIBRAW_OPIONS_NO_DATAERR_CALLBACK: LibRaw_constructor_flags = 2;
-pub type LibRaw_constructor_flags = ::std::os::raw::c_uint;
+pub type LibRaw_constructor_flags = libc::c_uint;
 pub const LibRaw_warnings_LIBRAW_WARN_NONE: LibRaw_warnings = 0;
 pub const LibRaw_warnings_LIBRAW_WARN_BAD_CAMERA_WB: LibRaw_warnings = 4;
 pub const LibRaw_warnings_LIBRAW_WARN_NO_METADATA: LibRaw_warnings = 8;
@@ -4785,7 +4580,7 @@ pub const LibRaw_warnings_LIBRAW_WARN_RAWSPEED3_PROBLEM: LibRaw_warnings = 20971
 pub const LibRaw_warnings_LIBRAW_WARN_RAWSPEED3_UNSUPPORTED: LibRaw_warnings = 4194304;
 pub const LibRaw_warnings_LIBRAW_WARN_RAWSPEED3_PROCESSED: LibRaw_warnings = 8388608;
 pub const LibRaw_warnings_LIBRAW_WARN_RAWSPEED3_NOTLISTED: LibRaw_warnings = 16777216;
-pub type LibRaw_warnings = ::std::os::raw::c_uint;
+pub type LibRaw_warnings = libc::c_uint;
 pub const LibRaw_exceptions_LIBRAW_EXCEPTION_NONE: LibRaw_exceptions = 0;
 pub const LibRaw_exceptions_LIBRAW_EXCEPTION_ALLOC: LibRaw_exceptions = 1;
 pub const LibRaw_exceptions_LIBRAW_EXCEPTION_DECODE_RAW: LibRaw_exceptions = 2;
@@ -4799,7 +4594,7 @@ pub const LibRaw_exceptions_LIBRAW_EXCEPTION_DECODE_JPEG2000: LibRaw_exceptions 
 pub const LibRaw_exceptions_LIBRAW_EXCEPTION_TOOBIG: LibRaw_exceptions = 10;
 pub const LibRaw_exceptions_LIBRAW_EXCEPTION_MEMPOOL: LibRaw_exceptions = 11;
 pub const LibRaw_exceptions_LIBRAW_EXCEPTION_UNSUPPORTED_FORMAT: LibRaw_exceptions = 12;
-pub type LibRaw_exceptions = ::std::os::raw::c_uint;
+pub type LibRaw_exceptions = libc::c_uint;
 pub const LibRaw_progress_LIBRAW_PROGRESS_START: LibRaw_progress = 0;
 pub const LibRaw_progress_LIBRAW_PROGRESS_OPEN: LibRaw_progress = 1;
 pub const LibRaw_progress_LIBRAW_PROGRESS_IDENTIFY: LibRaw_progress = 2;
@@ -4832,7 +4627,7 @@ pub const LibRaw_progress_LIBRAW_PROGRESS_STAGE27: LibRaw_progress = 134217728;
 pub const LibRaw_progress_LIBRAW_PROGRESS_THUMB_LOAD: LibRaw_progress = 268435456;
 pub const LibRaw_progress_LIBRAW_PROGRESS_TRESERVED1: LibRaw_progress = 536870912;
 pub const LibRaw_progress_LIBRAW_PROGRESS_TRESERVED2: LibRaw_progress = 1073741824;
-pub type LibRaw_progress = ::std::os::raw::c_uint;
+pub type LibRaw_progress = libc::c_uint;
 pub const LibRaw_errors_LIBRAW_SUCCESS: LibRaw_errors = 0;
 pub const LibRaw_errors_LIBRAW_UNSPECIFIED_ERROR: LibRaw_errors = -1;
 pub const LibRaw_errors_LIBRAW_FILE_UNSUPPORTED: LibRaw_errors = -2;
@@ -4850,7 +4645,7 @@ pub const LibRaw_errors_LIBRAW_CANCELLED_BY_CALLBACK: LibRaw_errors = -100010;
 pub const LibRaw_errors_LIBRAW_BAD_CROP: LibRaw_errors = -100011;
 pub const LibRaw_errors_LIBRAW_TOO_BIG: LibRaw_errors = -100012;
 pub const LibRaw_errors_LIBRAW_MEMPOOL_OVERFLOW: LibRaw_errors = -100013;
-pub type LibRaw_errors = ::std::os::raw::c_int;
+pub type LibRaw_errors = libc::c_int;
 pub const LibRaw_internal_thumbnail_formats_LIBRAW_INTERNAL_THUMBNAIL_UNKNOWN:
     LibRaw_internal_thumbnail_formats = 0;
 pub const LibRaw_internal_thumbnail_formats_LIBRAW_INTERNAL_THUMBNAIL_KODAK_THUMB:
@@ -4871,7 +4666,7 @@ pub const LibRaw_internal_thumbnail_formats_LIBRAW_INTERNAL_THUMBNAIL_PPM16:
     LibRaw_internal_thumbnail_formats = 8;
 pub const LibRaw_internal_thumbnail_formats_LIBRAW_INTERNAL_THUMBNAIL_X3F:
     LibRaw_internal_thumbnail_formats = 9;
-pub type LibRaw_internal_thumbnail_formats = ::std::os::raw::c_uint;
+pub type LibRaw_internal_thumbnail_formats = libc::c_uint;
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_UNKNOWN: LibRaw_thumbnail_formats = 0;
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_JPEG: LibRaw_thumbnail_formats = 1;
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_BITMAP: LibRaw_thumbnail_formats = 2;
@@ -4879,111 +4674,106 @@ pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_BITMAP16: LibRaw_thumbnail_f
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_LAYER: LibRaw_thumbnail_formats = 4;
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_ROLLEI: LibRaw_thumbnail_formats = 5;
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_H265: LibRaw_thumbnail_formats = 6;
-pub type LibRaw_thumbnail_formats = ::std::os::raw::c_uint;
+pub type LibRaw_thumbnail_formats = libc::c_uint;
 pub const LibRaw_image_formats_LIBRAW_IMAGE_JPEG: LibRaw_image_formats = 1;
 pub const LibRaw_image_formats_LIBRAW_IMAGE_BITMAP: LibRaw_image_formats = 2;
-pub type LibRaw_image_formats = ::std::os::raw::c_uint;
-pub type INT64 = ::std::os::raw::c_longlong;
-pub type UINT64 = ::std::os::raw::c_ulonglong;
-pub type uchar = ::std::os::raw::c_uchar;
+pub type LibRaw_image_formats = libc::c_uint;
+pub type INT64 = libc::c_longlong;
+pub type UINT64 = libc::c_ulonglong;
+pub type uchar = libc::c_uchar;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_decoder_info_t {
-    pub decoder_name: *const ::std::os::raw::c_char,
-    pub decoder_flags: ::std::os::raw::c_uint,
+    pub decoder_name: *const libc::c_char,
+    pub decoder_flags: libc::c_uint,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_decoder_info_t"][::std::mem::size_of::<libraw_decoder_info_t>() - 16usize];
+    ["Size of libraw_decoder_info_t"][::core::mem::size_of::<libraw_decoder_info_t>() - 16usize];
     ["Alignment of libraw_decoder_info_t"]
-        [::std::mem::align_of::<libraw_decoder_info_t>() - 8usize];
+        [::core::mem::align_of::<libraw_decoder_info_t>() - 8usize];
     ["Offset of field: libraw_decoder_info_t::decoder_name"]
-        [::std::mem::offset_of!(libraw_decoder_info_t, decoder_name) - 0usize];
+        [::core::mem::offset_of!(libraw_decoder_info_t, decoder_name) - 0usize];
     ["Offset of field: libraw_decoder_info_t::decoder_flags"]
-        [::std::mem::offset_of!(libraw_decoder_info_t, decoder_flags) - 8usize];
+        [::core::mem::offset_of!(libraw_decoder_info_t, decoder_flags) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_internal_output_params_t {
-    pub mix_green: ::std::os::raw::c_uint,
-    pub raw_color: ::std::os::raw::c_uint,
-    pub zero_is_bad: ::std::os::raw::c_uint,
+    pub mix_green: libc::c_uint,
+    pub raw_color: libc::c_uint,
+    pub zero_is_bad: libc::c_uint,
     pub shrink: ushort,
     pub fuji_width: ushort,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_internal_output_params_t"]
-        [::std::mem::size_of::<libraw_internal_output_params_t>() - 16usize];
+        [::core::mem::size_of::<libraw_internal_output_params_t>() - 16usize];
     ["Alignment of libraw_internal_output_params_t"]
-        [::std::mem::align_of::<libraw_internal_output_params_t>() - 4usize];
+        [::core::mem::align_of::<libraw_internal_output_params_t>() - 4usize];
     ["Offset of field: libraw_internal_output_params_t::mix_green"]
-        [::std::mem::offset_of!(libraw_internal_output_params_t, mix_green) - 0usize];
+        [::core::mem::offset_of!(libraw_internal_output_params_t, mix_green) - 0usize];
     ["Offset of field: libraw_internal_output_params_t::raw_color"]
-        [::std::mem::offset_of!(libraw_internal_output_params_t, raw_color) - 4usize];
+        [::core::mem::offset_of!(libraw_internal_output_params_t, raw_color) - 4usize];
     ["Offset of field: libraw_internal_output_params_t::zero_is_bad"]
-        [::std::mem::offset_of!(libraw_internal_output_params_t, zero_is_bad) - 8usize];
+        [::core::mem::offset_of!(libraw_internal_output_params_t, zero_is_bad) - 8usize];
     ["Offset of field: libraw_internal_output_params_t::shrink"]
-        [::std::mem::offset_of!(libraw_internal_output_params_t, shrink) - 12usize];
+        [::core::mem::offset_of!(libraw_internal_output_params_t, shrink) - 12usize];
     ["Offset of field: libraw_internal_output_params_t::fuji_width"]
-        [::std::mem::offset_of!(libraw_internal_output_params_t, fuji_width) - 14usize];
+        [::core::mem::offset_of!(libraw_internal_output_params_t, fuji_width) - 14usize];
 };
-pub type memory_callback = ::std::option::Option<
+pub type memory_callback = ::core::option::Option<
     unsafe extern "C" fn(
-        data: *mut ::std::os::raw::c_void,
-        file: *const ::std::os::raw::c_char,
-        where_: *const ::std::os::raw::c_char,
+        data: *mut libc::c_void,
+        file: *const libc::c_char,
+        where_: *const libc::c_char,
     ),
 >;
-pub type exif_parser_callback = ::std::option::Option<
+pub type exif_parser_callback = ::core::option::Option<
     unsafe extern "C" fn(
-        context: *mut ::std::os::raw::c_void,
-        tag: ::std::os::raw::c_int,
-        type_: ::std::os::raw::c_int,
-        len: ::std::os::raw::c_int,
-        ord: ::std::os::raw::c_uint,
-        ifp: *mut ::std::os::raw::c_void,
+        context: *mut libc::c_void,
+        tag: libc::c_int,
+        type_: libc::c_int,
+        len: libc::c_int,
+        ord: libc::c_uint,
+        ifp: *mut libc::c_void,
         base: INT64,
     ),
 >;
-pub type data_callback = ::std::option::Option<
-    unsafe extern "C" fn(
-        data: *mut ::std::os::raw::c_void,
-        file: *const ::std::os::raw::c_char,
-        offset: ::std::os::raw::c_int,
-    ),
+pub type data_callback = ::core::option::Option<
+    unsafe extern "C" fn(data: *mut libc::c_void, file: *const libc::c_char, offset: libc::c_int),
 >;
 unsafe extern "C" {
     pub fn default_data_callback(
-        data: *mut ::std::os::raw::c_void,
-        file: *const ::std::os::raw::c_char,
-        offset: ::std::os::raw::c_int,
+        data: *mut libc::c_void,
+        file: *const libc::c_char,
+        offset: libc::c_int,
     );
 }
-pub type progress_callback = ::std::option::Option<
+pub type progress_callback = ::core::option::Option<
     unsafe extern "C" fn(
-        data: *mut ::std::os::raw::c_void,
+        data: *mut libc::c_void,
         stage: LibRaw_progress,
-        iteration: ::std::os::raw::c_int,
-        expected: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int,
+        iteration: libc::c_int,
+        expected: libc::c_int,
+    ) -> libc::c_int,
 >;
-pub type pre_identify_callback = ::std::option::Option<
-    unsafe extern "C" fn(ctx: *mut ::std::os::raw::c_void) -> ::std::os::raw::c_int,
->;
+pub type pre_identify_callback =
+    ::core::option::Option<unsafe extern "C" fn(ctx: *mut libc::c_void) -> libc::c_int>;
 pub type post_identify_callback =
-    ::std::option::Option<unsafe extern "C" fn(ctx: *mut ::std::os::raw::c_void)>;
+    ::core::option::Option<unsafe extern "C" fn(ctx: *mut libc::c_void)>;
 pub type process_step_callback =
-    ::std::option::Option<unsafe extern "C" fn(ctx: *mut ::std::os::raw::c_void)>;
+    ::core::option::Option<unsafe extern "C" fn(ctx: *mut libc::c_void)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_callbacks_t {
     pub data_cb: data_callback,
-    pub datacb_data: *mut ::std::os::raw::c_void,
+    pub datacb_data: *mut libc::c_void,
     pub progress_cb: progress_callback,
-    pub progresscb_data: *mut ::std::os::raw::c_void,
+    pub progresscb_data: *mut libc::c_void,
     pub exif_cb: exif_parser_callback,
-    pub exifparser_data: *mut ::std::os::raw::c_void,
+    pub exifparser_data: *mut libc::c_void,
     pub pre_identify_cb: pre_identify_callback,
     pub post_identify_cb: post_identify_callback,
     pub pre_subtractblack_cb: process_step_callback,
@@ -4998,42 +4788,42 @@ pub struct libraw_callbacks_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_callbacks_t"][::std::mem::size_of::<libraw_callbacks_t>() - 136usize];
-    ["Alignment of libraw_callbacks_t"][::std::mem::align_of::<libraw_callbacks_t>() - 8usize];
+    ["Size of libraw_callbacks_t"][::core::mem::size_of::<libraw_callbacks_t>() - 136usize];
+    ["Alignment of libraw_callbacks_t"][::core::mem::align_of::<libraw_callbacks_t>() - 8usize];
     ["Offset of field: libraw_callbacks_t::data_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, data_cb) - 0usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, data_cb) - 0usize];
     ["Offset of field: libraw_callbacks_t::datacb_data"]
-        [::std::mem::offset_of!(libraw_callbacks_t, datacb_data) - 8usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, datacb_data) - 8usize];
     ["Offset of field: libraw_callbacks_t::progress_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, progress_cb) - 16usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, progress_cb) - 16usize];
     ["Offset of field: libraw_callbacks_t::progresscb_data"]
-        [::std::mem::offset_of!(libraw_callbacks_t, progresscb_data) - 24usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, progresscb_data) - 24usize];
     ["Offset of field: libraw_callbacks_t::exif_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, exif_cb) - 32usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, exif_cb) - 32usize];
     ["Offset of field: libraw_callbacks_t::exifparser_data"]
-        [::std::mem::offset_of!(libraw_callbacks_t, exifparser_data) - 40usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, exifparser_data) - 40usize];
     ["Offset of field: libraw_callbacks_t::pre_identify_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, pre_identify_cb) - 48usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_identify_cb) - 48usize];
     ["Offset of field: libraw_callbacks_t::post_identify_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, post_identify_cb) - 56usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, post_identify_cb) - 56usize];
     ["Offset of field: libraw_callbacks_t::pre_subtractblack_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, pre_subtractblack_cb) - 64usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_subtractblack_cb) - 64usize];
     ["Offset of field: libraw_callbacks_t::pre_scalecolors_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, pre_scalecolors_cb) - 72usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_scalecolors_cb) - 72usize];
     ["Offset of field: libraw_callbacks_t::pre_preinterpolate_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, pre_preinterpolate_cb) - 80usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_preinterpolate_cb) - 80usize];
     ["Offset of field: libraw_callbacks_t::pre_interpolate_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, pre_interpolate_cb) - 88usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_interpolate_cb) - 88usize];
     ["Offset of field: libraw_callbacks_t::interpolate_bayer_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, interpolate_bayer_cb) - 96usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, interpolate_bayer_cb) - 96usize];
     ["Offset of field: libraw_callbacks_t::interpolate_xtrans_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, interpolate_xtrans_cb) - 104usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, interpolate_xtrans_cb) - 104usize];
     ["Offset of field: libraw_callbacks_t::post_interpolate_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, post_interpolate_cb) - 112usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, post_interpolate_cb) - 112usize];
     ["Offset of field: libraw_callbacks_t::pre_converttorgb_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, pre_converttorgb_cb) - 120usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_converttorgb_cb) - 120usize];
     ["Offset of field: libraw_callbacks_t::post_converttorgb_cb"]
-        [::std::mem::offset_of!(libraw_callbacks_t, post_converttorgb_cb) - 128usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, post_converttorgb_cb) - 128usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5043,89 +4833,89 @@ pub struct libraw_processed_image_t {
     pub width: ushort,
     pub colors: ushort,
     pub bits: ushort,
-    pub data_size: ::std::os::raw::c_uint,
-    pub data: [::std::os::raw::c_uchar; 1usize],
+    pub data_size: libc::c_uint,
+    pub data: [libc::c_uchar; 1usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_processed_image_t"]
-        [::std::mem::size_of::<libraw_processed_image_t>() - 20usize];
+        [::core::mem::size_of::<libraw_processed_image_t>() - 20usize];
     ["Alignment of libraw_processed_image_t"]
-        [::std::mem::align_of::<libraw_processed_image_t>() - 4usize];
+        [::core::mem::align_of::<libraw_processed_image_t>() - 4usize];
     ["Offset of field: libraw_processed_image_t::type_"]
-        [::std::mem::offset_of!(libraw_processed_image_t, type_) - 0usize];
+        [::core::mem::offset_of!(libraw_processed_image_t, type_) - 0usize];
     ["Offset of field: libraw_processed_image_t::height"]
-        [::std::mem::offset_of!(libraw_processed_image_t, height) - 4usize];
+        [::core::mem::offset_of!(libraw_processed_image_t, height) - 4usize];
     ["Offset of field: libraw_processed_image_t::width"]
-        [::std::mem::offset_of!(libraw_processed_image_t, width) - 6usize];
+        [::core::mem::offset_of!(libraw_processed_image_t, width) - 6usize];
     ["Offset of field: libraw_processed_image_t::colors"]
-        [::std::mem::offset_of!(libraw_processed_image_t, colors) - 8usize];
+        [::core::mem::offset_of!(libraw_processed_image_t, colors) - 8usize];
     ["Offset of field: libraw_processed_image_t::bits"]
-        [::std::mem::offset_of!(libraw_processed_image_t, bits) - 10usize];
+        [::core::mem::offset_of!(libraw_processed_image_t, bits) - 10usize];
     ["Offset of field: libraw_processed_image_t::data_size"]
-        [::std::mem::offset_of!(libraw_processed_image_t, data_size) - 12usize];
+        [::core::mem::offset_of!(libraw_processed_image_t, data_size) - 12usize];
     ["Offset of field: libraw_processed_image_t::data"]
-        [::std::mem::offset_of!(libraw_processed_image_t, data) - 16usize];
+        [::core::mem::offset_of!(libraw_processed_image_t, data) - 16usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_iparams_t {
-    pub guard: [::std::os::raw::c_char; 4usize],
-    pub make: [::std::os::raw::c_char; 64usize],
-    pub model: [::std::os::raw::c_char; 64usize],
-    pub software: [::std::os::raw::c_char; 64usize],
-    pub normalized_make: [::std::os::raw::c_char; 64usize],
-    pub normalized_model: [::std::os::raw::c_char; 64usize],
-    pub maker_index: ::std::os::raw::c_uint,
-    pub raw_count: ::std::os::raw::c_uint,
-    pub dng_version: ::std::os::raw::c_uint,
-    pub is_foveon: ::std::os::raw::c_uint,
-    pub colors: ::std::os::raw::c_int,
-    pub filters: ::std::os::raw::c_uint,
-    pub xtrans: [[::std::os::raw::c_char; 6usize]; 6usize],
-    pub xtrans_abs: [[::std::os::raw::c_char; 6usize]; 6usize],
-    pub cdesc: [::std::os::raw::c_char; 5usize],
-    pub xmplen: ::std::os::raw::c_uint,
-    pub xmpdata: *mut ::std::os::raw::c_char,
+    pub guard: [libc::c_char; 4usize],
+    pub make: [libc::c_char; 64usize],
+    pub model: [libc::c_char; 64usize],
+    pub software: [libc::c_char; 64usize],
+    pub normalized_make: [libc::c_char; 64usize],
+    pub normalized_model: [libc::c_char; 64usize],
+    pub maker_index: libc::c_uint,
+    pub raw_count: libc::c_uint,
+    pub dng_version: libc::c_uint,
+    pub is_foveon: libc::c_uint,
+    pub colors: libc::c_int,
+    pub filters: libc::c_uint,
+    pub xtrans: [[libc::c_char; 6usize]; 6usize],
+    pub xtrans_abs: [[libc::c_char; 6usize]; 6usize],
+    pub cdesc: [libc::c_char; 5usize],
+    pub xmplen: libc::c_uint,
+    pub xmpdata: *mut libc::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_iparams_t"][::std::mem::size_of::<libraw_iparams_t>() - 440usize];
-    ["Alignment of libraw_iparams_t"][::std::mem::align_of::<libraw_iparams_t>() - 8usize];
+    ["Size of libraw_iparams_t"][::core::mem::size_of::<libraw_iparams_t>() - 440usize];
+    ["Alignment of libraw_iparams_t"][::core::mem::align_of::<libraw_iparams_t>() - 8usize];
     ["Offset of field: libraw_iparams_t::guard"]
-        [::std::mem::offset_of!(libraw_iparams_t, guard) - 0usize];
+        [::core::mem::offset_of!(libraw_iparams_t, guard) - 0usize];
     ["Offset of field: libraw_iparams_t::make"]
-        [::std::mem::offset_of!(libraw_iparams_t, make) - 4usize];
+        [::core::mem::offset_of!(libraw_iparams_t, make) - 4usize];
     ["Offset of field: libraw_iparams_t::model"]
-        [::std::mem::offset_of!(libraw_iparams_t, model) - 68usize];
+        [::core::mem::offset_of!(libraw_iparams_t, model) - 68usize];
     ["Offset of field: libraw_iparams_t::software"]
-        [::std::mem::offset_of!(libraw_iparams_t, software) - 132usize];
+        [::core::mem::offset_of!(libraw_iparams_t, software) - 132usize];
     ["Offset of field: libraw_iparams_t::normalized_make"]
-        [::std::mem::offset_of!(libraw_iparams_t, normalized_make) - 196usize];
+        [::core::mem::offset_of!(libraw_iparams_t, normalized_make) - 196usize];
     ["Offset of field: libraw_iparams_t::normalized_model"]
-        [::std::mem::offset_of!(libraw_iparams_t, normalized_model) - 260usize];
+        [::core::mem::offset_of!(libraw_iparams_t, normalized_model) - 260usize];
     ["Offset of field: libraw_iparams_t::maker_index"]
-        [::std::mem::offset_of!(libraw_iparams_t, maker_index) - 324usize];
+        [::core::mem::offset_of!(libraw_iparams_t, maker_index) - 324usize];
     ["Offset of field: libraw_iparams_t::raw_count"]
-        [::std::mem::offset_of!(libraw_iparams_t, raw_count) - 328usize];
+        [::core::mem::offset_of!(libraw_iparams_t, raw_count) - 328usize];
     ["Offset of field: libraw_iparams_t::dng_version"]
-        [::std::mem::offset_of!(libraw_iparams_t, dng_version) - 332usize];
+        [::core::mem::offset_of!(libraw_iparams_t, dng_version) - 332usize];
     ["Offset of field: libraw_iparams_t::is_foveon"]
-        [::std::mem::offset_of!(libraw_iparams_t, is_foveon) - 336usize];
+        [::core::mem::offset_of!(libraw_iparams_t, is_foveon) - 336usize];
     ["Offset of field: libraw_iparams_t::colors"]
-        [::std::mem::offset_of!(libraw_iparams_t, colors) - 340usize];
+        [::core::mem::offset_of!(libraw_iparams_t, colors) - 340usize];
     ["Offset of field: libraw_iparams_t::filters"]
-        [::std::mem::offset_of!(libraw_iparams_t, filters) - 344usize];
+        [::core::mem::offset_of!(libraw_iparams_t, filters) - 344usize];
     ["Offset of field: libraw_iparams_t::xtrans"]
-        [::std::mem::offset_of!(libraw_iparams_t, xtrans) - 348usize];
+        [::core::mem::offset_of!(libraw_iparams_t, xtrans) - 348usize];
     ["Offset of field: libraw_iparams_t::xtrans_abs"]
-        [::std::mem::offset_of!(libraw_iparams_t, xtrans_abs) - 384usize];
+        [::core::mem::offset_of!(libraw_iparams_t, xtrans_abs) - 384usize];
     ["Offset of field: libraw_iparams_t::cdesc"]
-        [::std::mem::offset_of!(libraw_iparams_t, cdesc) - 420usize];
+        [::core::mem::offset_of!(libraw_iparams_t, cdesc) - 420usize];
     ["Offset of field: libraw_iparams_t::xmplen"]
-        [::std::mem::offset_of!(libraw_iparams_t, xmplen) - 428usize];
+        [::core::mem::offset_of!(libraw_iparams_t, xmplen) - 428usize];
     ["Offset of field: libraw_iparams_t::xmpdata"]
-        [::std::mem::offset_of!(libraw_iparams_t, xmpdata) - 432usize];
+        [::core::mem::offset_of!(libraw_iparams_t, xmpdata) - 432usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5137,17 +4927,17 @@ pub struct libraw_raw_inset_crop_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_raw_inset_crop_t"][::std::mem::size_of::<libraw_raw_inset_crop_t>() - 8usize];
+    ["Size of libraw_raw_inset_crop_t"][::core::mem::size_of::<libraw_raw_inset_crop_t>() - 8usize];
     ["Alignment of libraw_raw_inset_crop_t"]
-        [::std::mem::align_of::<libraw_raw_inset_crop_t>() - 2usize];
+        [::core::mem::align_of::<libraw_raw_inset_crop_t>() - 2usize];
     ["Offset of field: libraw_raw_inset_crop_t::cleft"]
-        [::std::mem::offset_of!(libraw_raw_inset_crop_t, cleft) - 0usize];
+        [::core::mem::offset_of!(libraw_raw_inset_crop_t, cleft) - 0usize];
     ["Offset of field: libraw_raw_inset_crop_t::ctop"]
-        [::std::mem::offset_of!(libraw_raw_inset_crop_t, ctop) - 2usize];
+        [::core::mem::offset_of!(libraw_raw_inset_crop_t, ctop) - 2usize];
     ["Offset of field: libraw_raw_inset_crop_t::cwidth"]
-        [::std::mem::offset_of!(libraw_raw_inset_crop_t, cwidth) - 4usize];
+        [::core::mem::offset_of!(libraw_raw_inset_crop_t, cwidth) - 4usize];
     ["Offset of field: libraw_raw_inset_crop_t::cheight"]
-        [::std::mem::offset_of!(libraw_raw_inset_crop_t, cheight) - 6usize];
+        [::core::mem::offset_of!(libraw_raw_inset_crop_t, cheight) - 6usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5160,94 +4950,94 @@ pub struct libraw_image_sizes_t {
     pub left_margin: ushort,
     pub iheight: ushort,
     pub iwidth: ushort,
-    pub raw_pitch: ::std::os::raw::c_uint,
+    pub raw_pitch: libc::c_uint,
     pub pixel_aspect: f64,
-    pub flip: ::std::os::raw::c_int,
-    pub mask: [[::std::os::raw::c_int; 4usize]; 8usize],
+    pub flip: libc::c_int,
+    pub mask: [[libc::c_int; 4usize]; 8usize],
     pub raw_aspect: ushort,
     pub raw_inset_crops: [libraw_raw_inset_crop_t; 2usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_image_sizes_t"][::std::mem::size_of::<libraw_image_sizes_t>() - 184usize];
-    ["Alignment of libraw_image_sizes_t"][::std::mem::align_of::<libraw_image_sizes_t>() - 8usize];
+    ["Size of libraw_image_sizes_t"][::core::mem::size_of::<libraw_image_sizes_t>() - 184usize];
+    ["Alignment of libraw_image_sizes_t"][::core::mem::align_of::<libraw_image_sizes_t>() - 8usize];
     ["Offset of field: libraw_image_sizes_t::raw_height"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, raw_height) - 0usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, raw_height) - 0usize];
     ["Offset of field: libraw_image_sizes_t::raw_width"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, raw_width) - 2usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, raw_width) - 2usize];
     ["Offset of field: libraw_image_sizes_t::height"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, height) - 4usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, height) - 4usize];
     ["Offset of field: libraw_image_sizes_t::width"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, width) - 6usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, width) - 6usize];
     ["Offset of field: libraw_image_sizes_t::top_margin"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, top_margin) - 8usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, top_margin) - 8usize];
     ["Offset of field: libraw_image_sizes_t::left_margin"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, left_margin) - 10usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, left_margin) - 10usize];
     ["Offset of field: libraw_image_sizes_t::iheight"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, iheight) - 12usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, iheight) - 12usize];
     ["Offset of field: libraw_image_sizes_t::iwidth"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, iwidth) - 14usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, iwidth) - 14usize];
     ["Offset of field: libraw_image_sizes_t::raw_pitch"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, raw_pitch) - 16usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, raw_pitch) - 16usize];
     ["Offset of field: libraw_image_sizes_t::pixel_aspect"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, pixel_aspect) - 24usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, pixel_aspect) - 24usize];
     ["Offset of field: libraw_image_sizes_t::flip"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, flip) - 32usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, flip) - 32usize];
     ["Offset of field: libraw_image_sizes_t::mask"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, mask) - 36usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, mask) - 36usize];
     ["Offset of field: libraw_image_sizes_t::raw_aspect"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, raw_aspect) - 164usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, raw_aspect) - 164usize];
     ["Offset of field: libraw_image_sizes_t::raw_inset_crops"]
-        [::std::mem::offset_of!(libraw_image_sizes_t, raw_inset_crops) - 166usize];
+        [::core::mem::offset_of!(libraw_image_sizes_t, raw_inset_crops) - 166usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_area_t {
-    pub t: ::std::os::raw::c_short,
-    pub l: ::std::os::raw::c_short,
-    pub b: ::std::os::raw::c_short,
-    pub r: ::std::os::raw::c_short,
+    pub t: libc::c_short,
+    pub l: libc::c_short,
+    pub b: libc::c_short,
+    pub r: libc::c_short,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_area_t"][::std::mem::size_of::<libraw_area_t>() - 8usize];
-    ["Alignment of libraw_area_t"][::std::mem::align_of::<libraw_area_t>() - 2usize];
-    ["Offset of field: libraw_area_t::t"][::std::mem::offset_of!(libraw_area_t, t) - 0usize];
-    ["Offset of field: libraw_area_t::l"][::std::mem::offset_of!(libraw_area_t, l) - 2usize];
-    ["Offset of field: libraw_area_t::b"][::std::mem::offset_of!(libraw_area_t, b) - 4usize];
-    ["Offset of field: libraw_area_t::r"][::std::mem::offset_of!(libraw_area_t, r) - 6usize];
+    ["Size of libraw_area_t"][::core::mem::size_of::<libraw_area_t>() - 8usize];
+    ["Alignment of libraw_area_t"][::core::mem::align_of::<libraw_area_t>() - 2usize];
+    ["Offset of field: libraw_area_t::t"][::core::mem::offset_of!(libraw_area_t, t) - 0usize];
+    ["Offset of field: libraw_area_t::l"][::core::mem::offset_of!(libraw_area_t, l) - 2usize];
+    ["Offset of field: libraw_area_t::b"][::core::mem::offset_of!(libraw_area_t, b) - 4usize];
+    ["Offset of field: libraw_area_t::r"][::core::mem::offset_of!(libraw_area_t, r) - 6usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ph1_t {
-    pub format: ::std::os::raw::c_int,
-    pub key_off: ::std::os::raw::c_int,
-    pub tag_21a: ::std::os::raw::c_int,
-    pub t_black: ::std::os::raw::c_int,
-    pub split_col: ::std::os::raw::c_int,
-    pub black_col: ::std::os::raw::c_int,
-    pub split_row: ::std::os::raw::c_int,
-    pub black_row: ::std::os::raw::c_int,
+    pub format: libc::c_int,
+    pub key_off: libc::c_int,
+    pub tag_21a: libc::c_int,
+    pub t_black: libc::c_int,
+    pub split_col: libc::c_int,
+    pub black_col: libc::c_int,
+    pub split_row: libc::c_int,
+    pub black_row: libc::c_int,
     pub tag_210: f32,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of ph1_t"][::std::mem::size_of::<ph1_t>() - 36usize];
-    ["Alignment of ph1_t"][::std::mem::align_of::<ph1_t>() - 4usize];
-    ["Offset of field: ph1_t::format"][::std::mem::offset_of!(ph1_t, format) - 0usize];
-    ["Offset of field: ph1_t::key_off"][::std::mem::offset_of!(ph1_t, key_off) - 4usize];
-    ["Offset of field: ph1_t::tag_21a"][::std::mem::offset_of!(ph1_t, tag_21a) - 8usize];
-    ["Offset of field: ph1_t::t_black"][::std::mem::offset_of!(ph1_t, t_black) - 12usize];
-    ["Offset of field: ph1_t::split_col"][::std::mem::offset_of!(ph1_t, split_col) - 16usize];
-    ["Offset of field: ph1_t::black_col"][::std::mem::offset_of!(ph1_t, black_col) - 20usize];
-    ["Offset of field: ph1_t::split_row"][::std::mem::offset_of!(ph1_t, split_row) - 24usize];
-    ["Offset of field: ph1_t::black_row"][::std::mem::offset_of!(ph1_t, black_row) - 28usize];
-    ["Offset of field: ph1_t::tag_210"][::std::mem::offset_of!(ph1_t, tag_210) - 32usize];
+    ["Size of ph1_t"][::core::mem::size_of::<ph1_t>() - 36usize];
+    ["Alignment of ph1_t"][::core::mem::align_of::<ph1_t>() - 4usize];
+    ["Offset of field: ph1_t::format"][::core::mem::offset_of!(ph1_t, format) - 0usize];
+    ["Offset of field: ph1_t::key_off"][::core::mem::offset_of!(ph1_t, key_off) - 4usize];
+    ["Offset of field: ph1_t::tag_21a"][::core::mem::offset_of!(ph1_t, tag_21a) - 8usize];
+    ["Offset of field: ph1_t::t_black"][::core::mem::offset_of!(ph1_t, t_black) - 12usize];
+    ["Offset of field: ph1_t::split_col"][::core::mem::offset_of!(ph1_t, split_col) - 16usize];
+    ["Offset of field: ph1_t::black_col"][::core::mem::offset_of!(ph1_t, black_col) - 20usize];
+    ["Offset of field: ph1_t::split_row"][::core::mem::offset_of!(ph1_t, split_row) - 24usize];
+    ["Offset of field: ph1_t::black_row"][::core::mem::offset_of!(ph1_t, black_row) - 28usize];
+    ["Offset of field: ph1_t::tag_210"][::core::mem::offset_of!(ph1_t, tag_210) - 32usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_dng_color_t {
-    pub parsedfields: ::std::os::raw::c_uint,
+    pub parsedfields: libc::c_uint,
     pub illuminant: ushort,
     pub calibration: [[f32; 4usize]; 4usize],
     pub colormatrix: [[f32; 3usize]; 4usize],
@@ -5255,31 +5045,31 @@ pub struct libraw_dng_color_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_dng_color_t"][::std::mem::size_of::<libraw_dng_color_t>() - 168usize];
-    ["Alignment of libraw_dng_color_t"][::std::mem::align_of::<libraw_dng_color_t>() - 4usize];
+    ["Size of libraw_dng_color_t"][::core::mem::size_of::<libraw_dng_color_t>() - 168usize];
+    ["Alignment of libraw_dng_color_t"][::core::mem::align_of::<libraw_dng_color_t>() - 4usize];
     ["Offset of field: libraw_dng_color_t::parsedfields"]
-        [::std::mem::offset_of!(libraw_dng_color_t, parsedfields) - 0usize];
+        [::core::mem::offset_of!(libraw_dng_color_t, parsedfields) - 0usize];
     ["Offset of field: libraw_dng_color_t::illuminant"]
-        [::std::mem::offset_of!(libraw_dng_color_t, illuminant) - 4usize];
+        [::core::mem::offset_of!(libraw_dng_color_t, illuminant) - 4usize];
     ["Offset of field: libraw_dng_color_t::calibration"]
-        [::std::mem::offset_of!(libraw_dng_color_t, calibration) - 8usize];
+        [::core::mem::offset_of!(libraw_dng_color_t, calibration) - 8usize];
     ["Offset of field: libraw_dng_color_t::colormatrix"]
-        [::std::mem::offset_of!(libraw_dng_color_t, colormatrix) - 72usize];
+        [::core::mem::offset_of!(libraw_dng_color_t, colormatrix) - 72usize];
     ["Offset of field: libraw_dng_color_t::forwardmatrix"]
-        [::std::mem::offset_of!(libraw_dng_color_t, forwardmatrix) - 120usize];
+        [::core::mem::offset_of!(libraw_dng_color_t, forwardmatrix) - 120usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_dng_levels_t {
-    pub parsedfields: ::std::os::raw::c_uint,
-    pub dng_cblack: [::std::os::raw::c_uint; 4104usize],
-    pub dng_black: ::std::os::raw::c_uint,
+    pub parsedfields: libc::c_uint,
+    pub dng_cblack: [libc::c_uint; 4104usize],
+    pub dng_black: libc::c_uint,
     pub dng_fcblack: [f32; 4104usize],
     pub dng_fblack: f32,
-    pub dng_whitelevel: [::std::os::raw::c_uint; 4usize],
+    pub dng_whitelevel: [libc::c_uint; 4usize],
     pub default_crop: [ushort; 4usize],
     pub user_crop: [f32; 4usize],
-    pub preview_colorspace: ::std::os::raw::c_uint,
+    pub preview_colorspace: libc::c_uint,
     pub analogbalance: [f32; 4usize],
     pub asshotneutral: [f32; 4usize],
     pub baseline_exposure: f32,
@@ -5287,34 +5077,34 @@ pub struct libraw_dng_levels_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_dng_levels_t"][::std::mem::size_of::<libraw_dng_levels_t>() - 32928usize];
-    ["Alignment of libraw_dng_levels_t"][::std::mem::align_of::<libraw_dng_levels_t>() - 4usize];
+    ["Size of libraw_dng_levels_t"][::core::mem::size_of::<libraw_dng_levels_t>() - 32928usize];
+    ["Alignment of libraw_dng_levels_t"][::core::mem::align_of::<libraw_dng_levels_t>() - 4usize];
     ["Offset of field: libraw_dng_levels_t::parsedfields"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, parsedfields) - 0usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, parsedfields) - 0usize];
     ["Offset of field: libraw_dng_levels_t::dng_cblack"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, dng_cblack) - 4usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, dng_cblack) - 4usize];
     ["Offset of field: libraw_dng_levels_t::dng_black"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, dng_black) - 16420usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, dng_black) - 16420usize];
     ["Offset of field: libraw_dng_levels_t::dng_fcblack"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, dng_fcblack) - 16424usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, dng_fcblack) - 16424usize];
     ["Offset of field: libraw_dng_levels_t::dng_fblack"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, dng_fblack) - 32840usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, dng_fblack) - 32840usize];
     ["Offset of field: libraw_dng_levels_t::dng_whitelevel"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, dng_whitelevel) - 32844usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, dng_whitelevel) - 32844usize];
     ["Offset of field: libraw_dng_levels_t::default_crop"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, default_crop) - 32860usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, default_crop) - 32860usize];
     ["Offset of field: libraw_dng_levels_t::user_crop"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, user_crop) - 32868usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, user_crop) - 32868usize];
     ["Offset of field: libraw_dng_levels_t::preview_colorspace"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, preview_colorspace) - 32884usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, preview_colorspace) - 32884usize];
     ["Offset of field: libraw_dng_levels_t::analogbalance"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, analogbalance) - 32888usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, analogbalance) - 32888usize];
     ["Offset of field: libraw_dng_levels_t::asshotneutral"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, asshotneutral) - 32904usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, asshotneutral) - 32904usize];
     ["Offset of field: libraw_dng_levels_t::baseline_exposure"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, baseline_exposure) - 32920usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, baseline_exposure) - 32920usize];
     ["Offset of field: libraw_dng_levels_t::LinearResponseLimit"]
-        [::std::mem::offset_of!(libraw_dng_levels_t, LinearResponseLimit) - 32924usize];
+        [::core::mem::offset_of!(libraw_dng_levels_t, LinearResponseLimit) - 32924usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5323,199 +5113,199 @@ pub struct libraw_P1_color_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_P1_color_t"][::std::mem::size_of::<libraw_P1_color_t>() - 36usize];
-    ["Alignment of libraw_P1_color_t"][::std::mem::align_of::<libraw_P1_color_t>() - 4usize];
+    ["Size of libraw_P1_color_t"][::core::mem::size_of::<libraw_P1_color_t>() - 36usize];
+    ["Alignment of libraw_P1_color_t"][::core::mem::align_of::<libraw_P1_color_t>() - 4usize];
     ["Offset of field: libraw_P1_color_t::romm_cam"]
-        [::std::mem::offset_of!(libraw_P1_color_t, romm_cam) - 0usize];
+        [::core::mem::offset_of!(libraw_P1_color_t, romm_cam) - 0usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_canon_makernotes_t {
-    pub ColorDataVer: ::std::os::raw::c_int,
-    pub ColorDataSubVer: ::std::os::raw::c_int,
-    pub SpecularWhiteLevel: ::std::os::raw::c_int,
-    pub NormalWhiteLevel: ::std::os::raw::c_int,
-    pub ChannelBlackLevel: [::std::os::raw::c_int; 4usize],
-    pub AverageBlackLevel: ::std::os::raw::c_int,
-    pub multishot: [::std::os::raw::c_uint; 4usize],
-    pub MeteringMode: ::std::os::raw::c_short,
-    pub SpotMeteringMode: ::std::os::raw::c_short,
+    pub ColorDataVer: libc::c_int,
+    pub ColorDataSubVer: libc::c_int,
+    pub SpecularWhiteLevel: libc::c_int,
+    pub NormalWhiteLevel: libc::c_int,
+    pub ChannelBlackLevel: [libc::c_int; 4usize],
+    pub AverageBlackLevel: libc::c_int,
+    pub multishot: [libc::c_uint; 4usize],
+    pub MeteringMode: libc::c_short,
+    pub SpotMeteringMode: libc::c_short,
     pub FlashMeteringMode: uchar,
-    pub FlashExposureLock: ::std::os::raw::c_short,
-    pub ExposureMode: ::std::os::raw::c_short,
-    pub AESetting: ::std::os::raw::c_short,
-    pub ImageStabilization: ::std::os::raw::c_short,
-    pub FlashMode: ::std::os::raw::c_short,
-    pub FlashActivity: ::std::os::raw::c_short,
-    pub FlashBits: ::std::os::raw::c_short,
-    pub ManualFlashOutput: ::std::os::raw::c_short,
-    pub FlashOutput: ::std::os::raw::c_short,
-    pub FlashGuideNumber: ::std::os::raw::c_short,
-    pub ContinuousDrive: ::std::os::raw::c_short,
-    pub SensorWidth: ::std::os::raw::c_short,
-    pub SensorHeight: ::std::os::raw::c_short,
-    pub AFMicroAdjMode: ::std::os::raw::c_int,
+    pub FlashExposureLock: libc::c_short,
+    pub ExposureMode: libc::c_short,
+    pub AESetting: libc::c_short,
+    pub ImageStabilization: libc::c_short,
+    pub FlashMode: libc::c_short,
+    pub FlashActivity: libc::c_short,
+    pub FlashBits: libc::c_short,
+    pub ManualFlashOutput: libc::c_short,
+    pub FlashOutput: libc::c_short,
+    pub FlashGuideNumber: libc::c_short,
+    pub ContinuousDrive: libc::c_short,
+    pub SensorWidth: libc::c_short,
+    pub SensorHeight: libc::c_short,
+    pub AFMicroAdjMode: libc::c_int,
     pub AFMicroAdjValue: f32,
-    pub MakernotesFlip: ::std::os::raw::c_short,
-    pub RecordMode: ::std::os::raw::c_short,
-    pub SRAWQuality: ::std::os::raw::c_short,
-    pub wbi: ::std::os::raw::c_uint,
-    pub RF_lensID: ::std::os::raw::c_short,
-    pub AutoLightingOptimizer: ::std::os::raw::c_int,
-    pub HighlightTonePriority: ::std::os::raw::c_int,
-    pub Quality: ::std::os::raw::c_short,
-    pub CanonLog: ::std::os::raw::c_int,
+    pub MakernotesFlip: libc::c_short,
+    pub RecordMode: libc::c_short,
+    pub SRAWQuality: libc::c_short,
+    pub wbi: libc::c_uint,
+    pub RF_lensID: libc::c_short,
+    pub AutoLightingOptimizer: libc::c_int,
+    pub HighlightTonePriority: libc::c_int,
+    pub Quality: libc::c_short,
+    pub CanonLog: libc::c_int,
     pub DefaultCropAbsolute: libraw_area_t,
     pub RecommendedImageArea: libraw_area_t,
     pub LeftOpticalBlack: libraw_area_t,
     pub UpperOpticalBlack: libraw_area_t,
     pub ActiveArea: libraw_area_t,
-    pub ISOgain: [::std::os::raw::c_short; 2usize],
+    pub ISOgain: [libc::c_short; 2usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_canon_makernotes_t"]
-        [::std::mem::size_of::<libraw_canon_makernotes_t>() - 168usize];
+        [::core::mem::size_of::<libraw_canon_makernotes_t>() - 168usize];
     ["Alignment of libraw_canon_makernotes_t"]
-        [::std::mem::align_of::<libraw_canon_makernotes_t>() - 4usize];
+        [::core::mem::align_of::<libraw_canon_makernotes_t>() - 4usize];
     ["Offset of field: libraw_canon_makernotes_t::ColorDataVer"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, ColorDataVer) - 0usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, ColorDataVer) - 0usize];
     ["Offset of field: libraw_canon_makernotes_t::ColorDataSubVer"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, ColorDataSubVer) - 4usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, ColorDataSubVer) - 4usize];
     ["Offset of field: libraw_canon_makernotes_t::SpecularWhiteLevel"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, SpecularWhiteLevel) - 8usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, SpecularWhiteLevel) - 8usize];
     ["Offset of field: libraw_canon_makernotes_t::NormalWhiteLevel"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, NormalWhiteLevel) - 12usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, NormalWhiteLevel) - 12usize];
     ["Offset of field: libraw_canon_makernotes_t::ChannelBlackLevel"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, ChannelBlackLevel) - 16usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, ChannelBlackLevel) - 16usize];
     ["Offset of field: libraw_canon_makernotes_t::AverageBlackLevel"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, AverageBlackLevel) - 32usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, AverageBlackLevel) - 32usize];
     ["Offset of field: libraw_canon_makernotes_t::multishot"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, multishot) - 36usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, multishot) - 36usize];
     ["Offset of field: libraw_canon_makernotes_t::MeteringMode"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, MeteringMode) - 52usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, MeteringMode) - 52usize];
     ["Offset of field: libraw_canon_makernotes_t::SpotMeteringMode"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, SpotMeteringMode) - 54usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, SpotMeteringMode) - 54usize];
     ["Offset of field: libraw_canon_makernotes_t::FlashMeteringMode"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, FlashMeteringMode) - 56usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, FlashMeteringMode) - 56usize];
     ["Offset of field: libraw_canon_makernotes_t::FlashExposureLock"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, FlashExposureLock) - 58usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, FlashExposureLock) - 58usize];
     ["Offset of field: libraw_canon_makernotes_t::ExposureMode"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, ExposureMode) - 60usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, ExposureMode) - 60usize];
     ["Offset of field: libraw_canon_makernotes_t::AESetting"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, AESetting) - 62usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, AESetting) - 62usize];
     ["Offset of field: libraw_canon_makernotes_t::ImageStabilization"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, ImageStabilization) - 64usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, ImageStabilization) - 64usize];
     ["Offset of field: libraw_canon_makernotes_t::FlashMode"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, FlashMode) - 66usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, FlashMode) - 66usize];
     ["Offset of field: libraw_canon_makernotes_t::FlashActivity"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, FlashActivity) - 68usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, FlashActivity) - 68usize];
     ["Offset of field: libraw_canon_makernotes_t::FlashBits"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, FlashBits) - 70usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, FlashBits) - 70usize];
     ["Offset of field: libraw_canon_makernotes_t::ManualFlashOutput"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, ManualFlashOutput) - 72usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, ManualFlashOutput) - 72usize];
     ["Offset of field: libraw_canon_makernotes_t::FlashOutput"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, FlashOutput) - 74usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, FlashOutput) - 74usize];
     ["Offset of field: libraw_canon_makernotes_t::FlashGuideNumber"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, FlashGuideNumber) - 76usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, FlashGuideNumber) - 76usize];
     ["Offset of field: libraw_canon_makernotes_t::ContinuousDrive"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, ContinuousDrive) - 78usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, ContinuousDrive) - 78usize];
     ["Offset of field: libraw_canon_makernotes_t::SensorWidth"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, SensorWidth) - 80usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, SensorWidth) - 80usize];
     ["Offset of field: libraw_canon_makernotes_t::SensorHeight"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, SensorHeight) - 82usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, SensorHeight) - 82usize];
     ["Offset of field: libraw_canon_makernotes_t::AFMicroAdjMode"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, AFMicroAdjMode) - 84usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, AFMicroAdjMode) - 84usize];
     ["Offset of field: libraw_canon_makernotes_t::AFMicroAdjValue"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, AFMicroAdjValue) - 88usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, AFMicroAdjValue) - 88usize];
     ["Offset of field: libraw_canon_makernotes_t::MakernotesFlip"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, MakernotesFlip) - 92usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, MakernotesFlip) - 92usize];
     ["Offset of field: libraw_canon_makernotes_t::RecordMode"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, RecordMode) - 94usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, RecordMode) - 94usize];
     ["Offset of field: libraw_canon_makernotes_t::SRAWQuality"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, SRAWQuality) - 96usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, SRAWQuality) - 96usize];
     ["Offset of field: libraw_canon_makernotes_t::wbi"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, wbi) - 100usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, wbi) - 100usize];
     ["Offset of field: libraw_canon_makernotes_t::RF_lensID"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, RF_lensID) - 104usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, RF_lensID) - 104usize];
     ["Offset of field: libraw_canon_makernotes_t::AutoLightingOptimizer"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, AutoLightingOptimizer) - 108usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, AutoLightingOptimizer) - 108usize];
     ["Offset of field: libraw_canon_makernotes_t::HighlightTonePriority"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, HighlightTonePriority) - 112usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, HighlightTonePriority) - 112usize];
     ["Offset of field: libraw_canon_makernotes_t::Quality"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, Quality) - 116usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, Quality) - 116usize];
     ["Offset of field: libraw_canon_makernotes_t::CanonLog"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, CanonLog) - 120usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, CanonLog) - 120usize];
     ["Offset of field: libraw_canon_makernotes_t::DefaultCropAbsolute"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, DefaultCropAbsolute) - 124usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, DefaultCropAbsolute) - 124usize];
     ["Offset of field: libraw_canon_makernotes_t::RecommendedImageArea"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, RecommendedImageArea) - 132usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, RecommendedImageArea) - 132usize];
     ["Offset of field: libraw_canon_makernotes_t::LeftOpticalBlack"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, LeftOpticalBlack) - 140usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, LeftOpticalBlack) - 140usize];
     ["Offset of field: libraw_canon_makernotes_t::UpperOpticalBlack"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, UpperOpticalBlack) - 148usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, UpperOpticalBlack) - 148usize];
     ["Offset of field: libraw_canon_makernotes_t::ActiveArea"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, ActiveArea) - 156usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, ActiveArea) - 156usize];
     ["Offset of field: libraw_canon_makernotes_t::ISOgain"]
-        [::std::mem::offset_of!(libraw_canon_makernotes_t, ISOgain) - 164usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, ISOgain) - 164usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_hasselblad_makernotes_t {
-    pub BaseISO: ::std::os::raw::c_int,
+    pub BaseISO: libc::c_int,
     pub Gain: f64,
-    pub Sensor: [::std::os::raw::c_char; 8usize],
-    pub SensorUnit: [::std::os::raw::c_char; 64usize],
-    pub HostBody: [::std::os::raw::c_char; 64usize],
-    pub SensorCode: ::std::os::raw::c_int,
-    pub SensorSubCode: ::std::os::raw::c_int,
-    pub CoatingCode: ::std::os::raw::c_int,
-    pub uncropped: ::std::os::raw::c_int,
-    pub CaptureSequenceInitiator: [::std::os::raw::c_char; 32usize],
-    pub SensorUnitConnector: [::std::os::raw::c_char; 64usize],
-    pub format: ::std::os::raw::c_int,
-    pub nIFD_CM: [::std::os::raw::c_int; 2usize],
-    pub RecommendedCrop: [::std::os::raw::c_int; 2usize],
+    pub Sensor: [libc::c_char; 8usize],
+    pub SensorUnit: [libc::c_char; 64usize],
+    pub HostBody: [libc::c_char; 64usize],
+    pub SensorCode: libc::c_int,
+    pub SensorSubCode: libc::c_int,
+    pub CoatingCode: libc::c_int,
+    pub uncropped: libc::c_int,
+    pub CaptureSequenceInitiator: [libc::c_char; 32usize],
+    pub SensorUnitConnector: [libc::c_char; 64usize],
+    pub format: libc::c_int,
+    pub nIFD_CM: [libc::c_int; 2usize],
+    pub RecommendedCrop: [libc::c_int; 2usize],
     pub mnColorMatrix: [[f64; 3usize]; 4usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_hasselblad_makernotes_t"]
-        [::std::mem::size_of::<libraw_hasselblad_makernotes_t>() - 384usize];
+        [::core::mem::size_of::<libraw_hasselblad_makernotes_t>() - 384usize];
     ["Alignment of libraw_hasselblad_makernotes_t"]
-        [::std::mem::align_of::<libraw_hasselblad_makernotes_t>() - 8usize];
+        [::core::mem::align_of::<libraw_hasselblad_makernotes_t>() - 8usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::BaseISO"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, BaseISO) - 0usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, BaseISO) - 0usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::Gain"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, Gain) - 8usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, Gain) - 8usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::Sensor"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, Sensor) - 16usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, Sensor) - 16usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::SensorUnit"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, SensorUnit) - 24usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, SensorUnit) - 24usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::HostBody"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, HostBody) - 88usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, HostBody) - 88usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::SensorCode"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, SensorCode) - 152usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, SensorCode) - 152usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::SensorSubCode"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, SensorSubCode) - 156usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, SensorSubCode) - 156usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::CoatingCode"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, CoatingCode) - 160usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, CoatingCode) - 160usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::uncropped"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, uncropped) - 164usize];
-    ["Offset of field: libraw_hasselblad_makernotes_t::CaptureSequenceInitiator"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, uncropped) - 164usize];
+    ["Offset of field: libraw_hasselblad_makernotes_t::CaptureSequenceInitiator"][::core::mem::offset_of!(
         libraw_hasselblad_makernotes_t,
         CaptureSequenceInitiator
     ) - 168usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::SensorUnitConnector"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, SensorUnitConnector) - 200usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, SensorUnitConnector) - 200usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::format"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, format) - 264usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, format) - 264usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::nIFD_CM"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, nIFD_CM) - 268usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, nIFD_CM) - 268usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::RecommendedCrop"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, RecommendedCrop) - 276usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, RecommendedCrop) - 276usize];
     ["Offset of field: libraw_hasselblad_makernotes_t::mnColorMatrix"]
-        [::std::mem::offset_of!(libraw_hasselblad_makernotes_t, mnColorMatrix) - 288usize];
+        [::core::mem::offset_of!(libraw_hasselblad_makernotes_t, mnColorMatrix) - 288usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5534,8 +5324,8 @@ pub struct libraw_fuji_info_t {
     pub AFMode: ushort,
     pub FocusPixel: [ushort; 2usize],
     pub PrioritySettings: ushort,
-    pub FocusSettings: ::std::os::raw::c_uint,
-    pub AF_C_Settings: ::std::os::raw::c_uint,
+    pub FocusSettings: libc::c_uint,
+    pub AF_C_Settings: libc::c_uint,
     pub FocusWarning: ushort,
     pub ImageStabilization: [ushort; 3usize],
     pub FlashMode: ushort,
@@ -5543,105 +5333,105 @@ pub struct libraw_fuji_info_t {
     pub ShutterType: ushort,
     pub ExrMode: ushort,
     pub Macro: ushort,
-    pub Rating: ::std::os::raw::c_uint,
+    pub Rating: libc::c_uint,
     pub CropMode: ushort,
-    pub SerialSignature: [::std::os::raw::c_char; 13usize],
-    pub SensorID: [::std::os::raw::c_char; 5usize],
-    pub RAFVersion: [::std::os::raw::c_char; 5usize],
-    pub RAFDataGeneration: ::std::os::raw::c_int,
+    pub SerialSignature: [libc::c_char; 13usize],
+    pub SensorID: [libc::c_char; 5usize],
+    pub RAFVersion: [libc::c_char; 5usize],
+    pub RAFDataGeneration: libc::c_int,
     pub RAFDataVersion: ushort,
-    pub isTSNERDTS: ::std::os::raw::c_int,
-    pub DriveMode: ::std::os::raw::c_short,
+    pub isTSNERDTS: libc::c_int,
+    pub DriveMode: libc::c_short,
     pub BlackLevel: [ushort; 9usize],
-    pub RAFData_ImageSizeTable: [::std::os::raw::c_uint; 32usize],
-    pub AutoBracketing: ::std::os::raw::c_int,
-    pub SequenceNumber: ::std::os::raw::c_int,
-    pub SeriesLength: ::std::os::raw::c_int,
+    pub RAFData_ImageSizeTable: [libc::c_uint; 32usize],
+    pub AutoBracketing: libc::c_int,
+    pub SequenceNumber: libc::c_int,
+    pub SeriesLength: libc::c_int,
     pub PixelShiftOffset: [f32; 2usize],
-    pub ImageCount: ::std::os::raw::c_int,
+    pub ImageCount: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_fuji_info_t"][::std::mem::size_of::<libraw_fuji_info_t>() - 280usize];
-    ["Alignment of libraw_fuji_info_t"][::std::mem::align_of::<libraw_fuji_info_t>() - 4usize];
+    ["Size of libraw_fuji_info_t"][::core::mem::size_of::<libraw_fuji_info_t>() - 280usize];
+    ["Alignment of libraw_fuji_info_t"][::core::mem::align_of::<libraw_fuji_info_t>() - 4usize];
     ["Offset of field: libraw_fuji_info_t::ExpoMidPointShift"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, ExpoMidPointShift) - 0usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, ExpoMidPointShift) - 0usize];
     ["Offset of field: libraw_fuji_info_t::DynamicRange"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, DynamicRange) - 4usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, DynamicRange) - 4usize];
     ["Offset of field: libraw_fuji_info_t::FilmMode"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, FilmMode) - 6usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FilmMode) - 6usize];
     ["Offset of field: libraw_fuji_info_t::DynamicRangeSetting"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, DynamicRangeSetting) - 8usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, DynamicRangeSetting) - 8usize];
     ["Offset of field: libraw_fuji_info_t::DevelopmentDynamicRange"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, DevelopmentDynamicRange) - 10usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, DevelopmentDynamicRange) - 10usize];
     ["Offset of field: libraw_fuji_info_t::AutoDynamicRange"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, AutoDynamicRange) - 12usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, AutoDynamicRange) - 12usize];
     ["Offset of field: libraw_fuji_info_t::DRangePriority"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, DRangePriority) - 14usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, DRangePriority) - 14usize];
     ["Offset of field: libraw_fuji_info_t::DRangePriorityAuto"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, DRangePriorityAuto) - 16usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, DRangePriorityAuto) - 16usize];
     ["Offset of field: libraw_fuji_info_t::DRangePriorityFixed"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, DRangePriorityFixed) - 18usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, DRangePriorityFixed) - 18usize];
     ["Offset of field: libraw_fuji_info_t::BrightnessCompensation"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, BrightnessCompensation) - 20usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, BrightnessCompensation) - 20usize];
     ["Offset of field: libraw_fuji_info_t::FocusMode"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, FocusMode) - 24usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FocusMode) - 24usize];
     ["Offset of field: libraw_fuji_info_t::AFMode"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, AFMode) - 26usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, AFMode) - 26usize];
     ["Offset of field: libraw_fuji_info_t::FocusPixel"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, FocusPixel) - 28usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FocusPixel) - 28usize];
     ["Offset of field: libraw_fuji_info_t::PrioritySettings"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, PrioritySettings) - 32usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, PrioritySettings) - 32usize];
     ["Offset of field: libraw_fuji_info_t::FocusSettings"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, FocusSettings) - 36usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FocusSettings) - 36usize];
     ["Offset of field: libraw_fuji_info_t::AF_C_Settings"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, AF_C_Settings) - 40usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, AF_C_Settings) - 40usize];
     ["Offset of field: libraw_fuji_info_t::FocusWarning"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, FocusWarning) - 44usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FocusWarning) - 44usize];
     ["Offset of field: libraw_fuji_info_t::ImageStabilization"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, ImageStabilization) - 46usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, ImageStabilization) - 46usize];
     ["Offset of field: libraw_fuji_info_t::FlashMode"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, FlashMode) - 52usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FlashMode) - 52usize];
     ["Offset of field: libraw_fuji_info_t::WB_Preset"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, WB_Preset) - 54usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, WB_Preset) - 54usize];
     ["Offset of field: libraw_fuji_info_t::ShutterType"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, ShutterType) - 56usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, ShutterType) - 56usize];
     ["Offset of field: libraw_fuji_info_t::ExrMode"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, ExrMode) - 58usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, ExrMode) - 58usize];
     ["Offset of field: libraw_fuji_info_t::Macro"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, Macro) - 60usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, Macro) - 60usize];
     ["Offset of field: libraw_fuji_info_t::Rating"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, Rating) - 64usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, Rating) - 64usize];
     ["Offset of field: libraw_fuji_info_t::CropMode"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, CropMode) - 68usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, CropMode) - 68usize];
     ["Offset of field: libraw_fuji_info_t::SerialSignature"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, SerialSignature) - 70usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, SerialSignature) - 70usize];
     ["Offset of field: libraw_fuji_info_t::SensorID"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, SensorID) - 83usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, SensorID) - 83usize];
     ["Offset of field: libraw_fuji_info_t::RAFVersion"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, RAFVersion) - 88usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, RAFVersion) - 88usize];
     ["Offset of field: libraw_fuji_info_t::RAFDataGeneration"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, RAFDataGeneration) - 96usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, RAFDataGeneration) - 96usize];
     ["Offset of field: libraw_fuji_info_t::RAFDataVersion"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, RAFDataVersion) - 100usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, RAFDataVersion) - 100usize];
     ["Offset of field: libraw_fuji_info_t::isTSNERDTS"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, isTSNERDTS) - 104usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, isTSNERDTS) - 104usize];
     ["Offset of field: libraw_fuji_info_t::DriveMode"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, DriveMode) - 108usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, DriveMode) - 108usize];
     ["Offset of field: libraw_fuji_info_t::BlackLevel"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, BlackLevel) - 110usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, BlackLevel) - 110usize];
     ["Offset of field: libraw_fuji_info_t::RAFData_ImageSizeTable"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, RAFData_ImageSizeTable) - 128usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, RAFData_ImageSizeTable) - 128usize];
     ["Offset of field: libraw_fuji_info_t::AutoBracketing"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, AutoBracketing) - 256usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, AutoBracketing) - 256usize];
     ["Offset of field: libraw_fuji_info_t::SequenceNumber"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, SequenceNumber) - 260usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, SequenceNumber) - 260usize];
     ["Offset of field: libraw_fuji_info_t::SeriesLength"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, SeriesLength) - 264usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, SeriesLength) - 264usize];
     ["Offset of field: libraw_fuji_info_t::PixelShiftOffset"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, PixelShiftOffset) - 268usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, PixelShiftOffset) - 268usize];
     ["Offset of field: libraw_fuji_info_t::ImageCount"]
-        [::std::mem::offset_of!(libraw_fuji_info_t, ImageCount) - 276usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, ImageCount) - 276usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5654,17 +5444,17 @@ pub struct libraw_sensor_highspeed_crop_t {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_sensor_highspeed_crop_t"]
-        [::std::mem::size_of::<libraw_sensor_highspeed_crop_t>() - 8usize];
+        [::core::mem::size_of::<libraw_sensor_highspeed_crop_t>() - 8usize];
     ["Alignment of libraw_sensor_highspeed_crop_t"]
-        [::std::mem::align_of::<libraw_sensor_highspeed_crop_t>() - 2usize];
+        [::core::mem::align_of::<libraw_sensor_highspeed_crop_t>() - 2usize];
     ["Offset of field: libraw_sensor_highspeed_crop_t::cleft"]
-        [::std::mem::offset_of!(libraw_sensor_highspeed_crop_t, cleft) - 0usize];
+        [::core::mem::offset_of!(libraw_sensor_highspeed_crop_t, cleft) - 0usize];
     ["Offset of field: libraw_sensor_highspeed_crop_t::ctop"]
-        [::std::mem::offset_of!(libraw_sensor_highspeed_crop_t, ctop) - 2usize];
+        [::core::mem::offset_of!(libraw_sensor_highspeed_crop_t, ctop) - 2usize];
     ["Offset of field: libraw_sensor_highspeed_crop_t::cwidth"]
-        [::std::mem::offset_of!(libraw_sensor_highspeed_crop_t, cwidth) - 4usize];
+        [::core::mem::offset_of!(libraw_sensor_highspeed_crop_t, cwidth) - 4usize];
     ["Offset of field: libraw_sensor_highspeed_crop_t::cheight"]
-        [::std::mem::offset_of!(libraw_sensor_highspeed_crop_t, cheight) - 6usize];
+        [::core::mem::offset_of!(libraw_sensor_highspeed_crop_t, cheight) - 6usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5675,15 +5465,15 @@ pub struct libraw_nikon_makernotes_t {
     pub ImageStabilization: [uchar; 7usize],
     pub VibrationReduction: uchar,
     pub VRMode: uchar,
-    pub FlashSetting: [::std::os::raw::c_char; 13usize],
-    pub FlashType: [::std::os::raw::c_char; 20usize],
+    pub FlashSetting: [libc::c_char; 13usize],
+    pub FlashType: [libc::c_char; 20usize],
     pub FlashExposureCompensation: [uchar; 4usize],
     pub ExternalFlashExposureComp: [uchar; 4usize],
     pub FlashExposureBracketValue: [uchar; 4usize],
     pub FlashMode: uchar,
-    pub FlashExposureCompensation2: ::std::os::raw::c_schar,
-    pub FlashExposureCompensation3: ::std::os::raw::c_schar,
-    pub FlashExposureCompensation4: ::std::os::raw::c_schar,
+    pub FlashExposureCompensation2: libc::c_schar,
+    pub FlashExposureCompensation3: libc::c_schar,
+    pub FlashExposureCompensation4: libc::c_schar,
     pub FlashSource: uchar,
     pub FlashFirmware: [uchar; 2usize],
     pub ExternalFlashFlags: uchar,
@@ -5695,17 +5485,17 @@ pub struct libraw_nikon_makernotes_t {
     pub FlashGroupOutputAndCompensation: [uchar; 4usize],
     pub FlashColorFilter: uchar,
     pub NEFCompression: ushort,
-    pub ExposureMode: ::std::os::raw::c_int,
-    pub ExposureProgram: ::std::os::raw::c_int,
-    pub nMEshots: ::std::os::raw::c_int,
-    pub MEgainOn: ::std::os::raw::c_int,
+    pub ExposureMode: libc::c_int,
+    pub ExposureProgram: libc::c_int,
+    pub nMEshots: libc::c_int,
+    pub MEgainOn: libc::c_int,
     pub ME_WB: [f64; 4usize],
     pub AFFineTune: uchar,
     pub AFFineTuneIndex: uchar,
     pub AFFineTuneAdj: i8,
-    pub LensDataVersion: ::std::os::raw::c_uint,
-    pub FlashInfoVersion: ::std::os::raw::c_uint,
-    pub ColorBalanceVersion: ::std::os::raw::c_uint,
+    pub LensDataVersion: libc::c_uint,
+    pub FlashInfoVersion: libc::c_uint,
+    pub ColorBalanceVersion: libc::c_uint,
     pub key: uchar,
     pub NEFBitDepth: [ushort; 4usize],
     pub HighSpeedCropFormat: ushort,
@@ -5713,8 +5503,8 @@ pub struct libraw_nikon_makernotes_t {
     pub SensorWidth: ushort,
     pub SensorHeight: ushort,
     pub Active_D_Lighting: ushort,
-    pub ShotInfoVersion: ::std::os::raw::c_uint,
-    pub MakernotesFlip: ::std::os::raw::c_short,
+    pub ShotInfoVersion: libc::c_uint,
+    pub MakernotesFlip: libc::c_short,
     pub RollAngle: f64,
     pub PitchAngle: f64,
     pub YawAngle: f64,
@@ -5722,195 +5512,195 @@ pub struct libraw_nikon_makernotes_t {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_nikon_makernotes_t"]
-        [::std::mem::size_of::<libraw_nikon_makernotes_t>() - 224usize];
+        [::core::mem::size_of::<libraw_nikon_makernotes_t>() - 224usize];
     ["Alignment of libraw_nikon_makernotes_t"]
-        [::std::mem::align_of::<libraw_nikon_makernotes_t>() - 8usize];
+        [::core::mem::align_of::<libraw_nikon_makernotes_t>() - 8usize];
     ["Offset of field: libraw_nikon_makernotes_t::ExposureBracketValue"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ExposureBracketValue) - 0usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ExposureBracketValue) - 0usize];
     ["Offset of field: libraw_nikon_makernotes_t::ActiveDLighting"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ActiveDLighting) - 8usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ActiveDLighting) - 8usize];
     ["Offset of field: libraw_nikon_makernotes_t::ShootingMode"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ShootingMode) - 10usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ShootingMode) - 10usize];
     ["Offset of field: libraw_nikon_makernotes_t::ImageStabilization"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ImageStabilization) - 12usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ImageStabilization) - 12usize];
     ["Offset of field: libraw_nikon_makernotes_t::VibrationReduction"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, VibrationReduction) - 19usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, VibrationReduction) - 19usize];
     ["Offset of field: libraw_nikon_makernotes_t::VRMode"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, VRMode) - 20usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, VRMode) - 20usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashSetting"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashSetting) - 21usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashSetting) - 21usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashType"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashType) - 34usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashType) - 34usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashExposureCompensation"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashExposureCompensation) - 54usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashExposureCompensation) - 54usize];
     ["Offset of field: libraw_nikon_makernotes_t::ExternalFlashExposureComp"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ExternalFlashExposureComp) - 58usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ExternalFlashExposureComp) - 58usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashExposureBracketValue"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashExposureBracketValue) - 62usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashExposureBracketValue) - 62usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashMode"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashMode) - 66usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashMode) - 66usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashExposureCompensation2"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashExposureCompensation2) - 67usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashExposureCompensation2) - 67usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashExposureCompensation3"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashExposureCompensation3) - 68usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashExposureCompensation3) - 68usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashExposureCompensation4"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashExposureCompensation4) - 69usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashExposureCompensation4) - 69usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashSource"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashSource) - 70usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashSource) - 70usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashFirmware"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashFirmware) - 71usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashFirmware) - 71usize];
     ["Offset of field: libraw_nikon_makernotes_t::ExternalFlashFlags"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ExternalFlashFlags) - 73usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ExternalFlashFlags) - 73usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashControlCommanderMode"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashControlCommanderMode) - 74usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashControlCommanderMode) - 74usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashOutputAndCompensation"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashOutputAndCompensation) - 75usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashOutputAndCompensation) - 75usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashFocalLength"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashFocalLength) - 76usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashFocalLength) - 76usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashGNDistance"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashGNDistance) - 77usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashGNDistance) - 77usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashGroupControlMode"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashGroupControlMode) - 78usize];
-    ["Offset of field: libraw_nikon_makernotes_t::FlashGroupOutputAndCompensation"][::std::mem::offset_of!(
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashGroupControlMode) - 78usize];
+    ["Offset of field: libraw_nikon_makernotes_t::FlashGroupOutputAndCompensation"][::core::mem::offset_of!(
         libraw_nikon_makernotes_t,
         FlashGroupOutputAndCompensation
     ) - 82usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashColorFilter"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashColorFilter) - 86usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashColorFilter) - 86usize];
     ["Offset of field: libraw_nikon_makernotes_t::NEFCompression"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, NEFCompression) - 88usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, NEFCompression) - 88usize];
     ["Offset of field: libraw_nikon_makernotes_t::ExposureMode"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ExposureMode) - 92usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ExposureMode) - 92usize];
     ["Offset of field: libraw_nikon_makernotes_t::ExposureProgram"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ExposureProgram) - 96usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ExposureProgram) - 96usize];
     ["Offset of field: libraw_nikon_makernotes_t::nMEshots"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, nMEshots) - 100usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, nMEshots) - 100usize];
     ["Offset of field: libraw_nikon_makernotes_t::MEgainOn"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, MEgainOn) - 104usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, MEgainOn) - 104usize];
     ["Offset of field: libraw_nikon_makernotes_t::ME_WB"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ME_WB) - 112usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ME_WB) - 112usize];
     ["Offset of field: libraw_nikon_makernotes_t::AFFineTune"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, AFFineTune) - 144usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, AFFineTune) - 144usize];
     ["Offset of field: libraw_nikon_makernotes_t::AFFineTuneIndex"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, AFFineTuneIndex) - 145usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, AFFineTuneIndex) - 145usize];
     ["Offset of field: libraw_nikon_makernotes_t::AFFineTuneAdj"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, AFFineTuneAdj) - 146usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, AFFineTuneAdj) - 146usize];
     ["Offset of field: libraw_nikon_makernotes_t::LensDataVersion"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, LensDataVersion) - 148usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, LensDataVersion) - 148usize];
     ["Offset of field: libraw_nikon_makernotes_t::FlashInfoVersion"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, FlashInfoVersion) - 152usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, FlashInfoVersion) - 152usize];
     ["Offset of field: libraw_nikon_makernotes_t::ColorBalanceVersion"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ColorBalanceVersion) - 156usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ColorBalanceVersion) - 156usize];
     ["Offset of field: libraw_nikon_makernotes_t::key"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, key) - 160usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, key) - 160usize];
     ["Offset of field: libraw_nikon_makernotes_t::NEFBitDepth"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, NEFBitDepth) - 162usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, NEFBitDepth) - 162usize];
     ["Offset of field: libraw_nikon_makernotes_t::HighSpeedCropFormat"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, HighSpeedCropFormat) - 170usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, HighSpeedCropFormat) - 170usize];
     ["Offset of field: libraw_nikon_makernotes_t::SensorHighSpeedCrop"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, SensorHighSpeedCrop) - 172usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, SensorHighSpeedCrop) - 172usize];
     ["Offset of field: libraw_nikon_makernotes_t::SensorWidth"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, SensorWidth) - 180usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, SensorWidth) - 180usize];
     ["Offset of field: libraw_nikon_makernotes_t::SensorHeight"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, SensorHeight) - 182usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, SensorHeight) - 182usize];
     ["Offset of field: libraw_nikon_makernotes_t::Active_D_Lighting"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, Active_D_Lighting) - 184usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, Active_D_Lighting) - 184usize];
     ["Offset of field: libraw_nikon_makernotes_t::ShotInfoVersion"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, ShotInfoVersion) - 188usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ShotInfoVersion) - 188usize];
     ["Offset of field: libraw_nikon_makernotes_t::MakernotesFlip"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, MakernotesFlip) - 192usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, MakernotesFlip) - 192usize];
     ["Offset of field: libraw_nikon_makernotes_t::RollAngle"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, RollAngle) - 200usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, RollAngle) - 200usize];
     ["Offset of field: libraw_nikon_makernotes_t::PitchAngle"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, PitchAngle) - 208usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, PitchAngle) - 208usize];
     ["Offset of field: libraw_nikon_makernotes_t::YawAngle"]
-        [::std::mem::offset_of!(libraw_nikon_makernotes_t, YawAngle) - 216usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, YawAngle) - 216usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_olympus_makernotes_t {
-    pub CameraType2: [::std::os::raw::c_char; 6usize],
+    pub CameraType2: [libc::c_char; 6usize],
     pub ValidBits: ushort,
-    pub SensorCalibration: [::std::os::raw::c_int; 2usize],
+    pub SensorCalibration: [libc::c_int; 2usize],
     pub DriveMode: [ushort; 5usize],
     pub ColorSpace: ushort,
     pub FocusMode: [ushort; 2usize],
     pub AutoFocus: ushort,
     pub AFPoint: ushort,
-    pub AFAreas: [::std::os::raw::c_uint; 64usize],
+    pub AFAreas: [libc::c_uint; 64usize],
     pub AFPointSelected: [f64; 5usize],
     pub AFResult: ushort,
     pub AFFineTune: uchar,
-    pub AFFineTuneAdj: [::std::os::raw::c_short; 3usize],
-    pub SpecialMode: [::std::os::raw::c_uint; 3usize],
+    pub AFFineTuneAdj: [libc::c_short; 3usize],
+    pub SpecialMode: [libc::c_uint; 3usize],
     pub ZoomStepCount: ushort,
     pub FocusStepCount: ushort,
     pub FocusStepInfinity: ushort,
     pub FocusStepNear: ushort,
     pub FocusDistance: f64,
     pub AspectFrame: [ushort; 4usize],
-    pub StackedImage: [::std::os::raw::c_uint; 2usize],
+    pub StackedImage: [libc::c_uint; 2usize],
     pub isLiveND: uchar,
-    pub LiveNDfactor: ::std::os::raw::c_uint,
+    pub LiveNDfactor: libc::c_uint,
     pub Panorama_mode: ushort,
     pub Panorama_frameNum: ushort,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_olympus_makernotes_t"]
-        [::std::mem::size_of::<libraw_olympus_makernotes_t>() - 408usize];
+        [::core::mem::size_of::<libraw_olympus_makernotes_t>() - 408usize];
     ["Alignment of libraw_olympus_makernotes_t"]
-        [::std::mem::align_of::<libraw_olympus_makernotes_t>() - 8usize];
+        [::core::mem::align_of::<libraw_olympus_makernotes_t>() - 8usize];
     ["Offset of field: libraw_olympus_makernotes_t::CameraType2"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, CameraType2) - 0usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, CameraType2) - 0usize];
     ["Offset of field: libraw_olympus_makernotes_t::ValidBits"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, ValidBits) - 6usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, ValidBits) - 6usize];
     ["Offset of field: libraw_olympus_makernotes_t::SensorCalibration"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, SensorCalibration) - 8usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, SensorCalibration) - 8usize];
     ["Offset of field: libraw_olympus_makernotes_t::DriveMode"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, DriveMode) - 16usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, DriveMode) - 16usize];
     ["Offset of field: libraw_olympus_makernotes_t::ColorSpace"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, ColorSpace) - 26usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, ColorSpace) - 26usize];
     ["Offset of field: libraw_olympus_makernotes_t::FocusMode"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, FocusMode) - 28usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusMode) - 28usize];
     ["Offset of field: libraw_olympus_makernotes_t::AutoFocus"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, AutoFocus) - 32usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AutoFocus) - 32usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFPoint"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, AFPoint) - 34usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFPoint) - 34usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFAreas"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, AFAreas) - 36usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFAreas) - 36usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFPointSelected"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, AFPointSelected) - 296usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFPointSelected) - 296usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFResult"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, AFResult) - 336usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFResult) - 336usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFFineTune"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, AFFineTune) - 338usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFFineTune) - 338usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFFineTuneAdj"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, AFFineTuneAdj) - 340usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFFineTuneAdj) - 340usize];
     ["Offset of field: libraw_olympus_makernotes_t::SpecialMode"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, SpecialMode) - 348usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, SpecialMode) - 348usize];
     ["Offset of field: libraw_olympus_makernotes_t::ZoomStepCount"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, ZoomStepCount) - 360usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, ZoomStepCount) - 360usize];
     ["Offset of field: libraw_olympus_makernotes_t::FocusStepCount"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepCount) - 362usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepCount) - 362usize];
     ["Offset of field: libraw_olympus_makernotes_t::FocusStepInfinity"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepInfinity) - 364usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepInfinity) - 364usize];
     ["Offset of field: libraw_olympus_makernotes_t::FocusStepNear"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepNear) - 366usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepNear) - 366usize];
     ["Offset of field: libraw_olympus_makernotes_t::FocusDistance"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, FocusDistance) - 368usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusDistance) - 368usize];
     ["Offset of field: libraw_olympus_makernotes_t::AspectFrame"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, AspectFrame) - 376usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AspectFrame) - 376usize];
     ["Offset of field: libraw_olympus_makernotes_t::StackedImage"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, StackedImage) - 384usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, StackedImage) - 384usize];
     ["Offset of field: libraw_olympus_makernotes_t::isLiveND"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, isLiveND) - 392usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, isLiveND) - 392usize];
     ["Offset of field: libraw_olympus_makernotes_t::LiveNDfactor"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, LiveNDfactor) - 396usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, LiveNDfactor) - 396usize];
     ["Offset of field: libraw_olympus_makernotes_t::Panorama_mode"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, Panorama_mode) - 400usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, Panorama_mode) - 400usize];
     ["Offset of field: libraw_olympus_makernotes_t::Panorama_frameNum"]
-        [::std::mem::offset_of!(libraw_olympus_makernotes_t, Panorama_frameNum) - 402usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, Panorama_frameNum) - 402usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5918,40 +5708,40 @@ pub struct libraw_panasonic_makernotes_t {
     pub Compression: ushort,
     pub BlackLevelDim: ushort,
     pub BlackLevel: [f32; 8usize],
-    pub Multishot: ::std::os::raw::c_uint,
+    pub Multishot: libc::c_uint,
     pub gamma: f32,
-    pub HighISOMultiplier: [::std::os::raw::c_int; 3usize],
-    pub FocusStepNear: ::std::os::raw::c_short,
-    pub FocusStepCount: ::std::os::raw::c_short,
-    pub ZoomPosition: ::std::os::raw::c_uint,
-    pub LensManufacturer: ::std::os::raw::c_uint,
+    pub HighISOMultiplier: [libc::c_int; 3usize],
+    pub FocusStepNear: libc::c_short,
+    pub FocusStepCount: libc::c_short,
+    pub ZoomPosition: libc::c_uint,
+    pub LensManufacturer: libc::c_uint,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_panasonic_makernotes_t"]
-        [::std::mem::size_of::<libraw_panasonic_makernotes_t>() - 68usize];
+        [::core::mem::size_of::<libraw_panasonic_makernotes_t>() - 68usize];
     ["Alignment of libraw_panasonic_makernotes_t"]
-        [::std::mem::align_of::<libraw_panasonic_makernotes_t>() - 4usize];
+        [::core::mem::align_of::<libraw_panasonic_makernotes_t>() - 4usize];
     ["Offset of field: libraw_panasonic_makernotes_t::Compression"]
-        [::std::mem::offset_of!(libraw_panasonic_makernotes_t, Compression) - 0usize];
+        [::core::mem::offset_of!(libraw_panasonic_makernotes_t, Compression) - 0usize];
     ["Offset of field: libraw_panasonic_makernotes_t::BlackLevelDim"]
-        [::std::mem::offset_of!(libraw_panasonic_makernotes_t, BlackLevelDim) - 2usize];
+        [::core::mem::offset_of!(libraw_panasonic_makernotes_t, BlackLevelDim) - 2usize];
     ["Offset of field: libraw_panasonic_makernotes_t::BlackLevel"]
-        [::std::mem::offset_of!(libraw_panasonic_makernotes_t, BlackLevel) - 4usize];
+        [::core::mem::offset_of!(libraw_panasonic_makernotes_t, BlackLevel) - 4usize];
     ["Offset of field: libraw_panasonic_makernotes_t::Multishot"]
-        [::std::mem::offset_of!(libraw_panasonic_makernotes_t, Multishot) - 36usize];
+        [::core::mem::offset_of!(libraw_panasonic_makernotes_t, Multishot) - 36usize];
     ["Offset of field: libraw_panasonic_makernotes_t::gamma"]
-        [::std::mem::offset_of!(libraw_panasonic_makernotes_t, gamma) - 40usize];
+        [::core::mem::offset_of!(libraw_panasonic_makernotes_t, gamma) - 40usize];
     ["Offset of field: libraw_panasonic_makernotes_t::HighISOMultiplier"]
-        [::std::mem::offset_of!(libraw_panasonic_makernotes_t, HighISOMultiplier) - 44usize];
+        [::core::mem::offset_of!(libraw_panasonic_makernotes_t, HighISOMultiplier) - 44usize];
     ["Offset of field: libraw_panasonic_makernotes_t::FocusStepNear"]
-        [::std::mem::offset_of!(libraw_panasonic_makernotes_t, FocusStepNear) - 56usize];
+        [::core::mem::offset_of!(libraw_panasonic_makernotes_t, FocusStepNear) - 56usize];
     ["Offset of field: libraw_panasonic_makernotes_t::FocusStepCount"]
-        [::std::mem::offset_of!(libraw_panasonic_makernotes_t, FocusStepCount) - 58usize];
+        [::core::mem::offset_of!(libraw_panasonic_makernotes_t, FocusStepCount) - 58usize];
     ["Offset of field: libraw_panasonic_makernotes_t::ZoomPosition"]
-        [::std::mem::offset_of!(libraw_panasonic_makernotes_t, ZoomPosition) - 60usize];
+        [::core::mem::offset_of!(libraw_panasonic_makernotes_t, ZoomPosition) - 60usize];
     ["Offset of field: libraw_panasonic_makernotes_t::LensManufacturer"]
-        [::std::mem::offset_of!(libraw_panasonic_makernotes_t, LensManufacturer) - 64usize];
+        [::core::mem::offset_of!(libraw_panasonic_makernotes_t, LensManufacturer) - 64usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5960,10 +5750,10 @@ pub struct libraw_pentax_makernotes_t {
     pub FocusMode: [ushort; 2usize],
     pub AFPointSelected: [ushort; 2usize],
     pub AFPointSelected_Area: ushort,
-    pub AFPointsInFocus_version: ::std::os::raw::c_int,
-    pub AFPointsInFocus: ::std::os::raw::c_uint,
+    pub AFPointsInFocus_version: libc::c_int,
+    pub AFPointsInFocus: libc::c_uint,
     pub FocusPosition: ushort,
-    pub AFAdjustment: ::std::os::raw::c_short,
+    pub AFAdjustment: libc::c_short,
     pub AFPointMode: uchar,
     pub MultiExposure: uchar,
     pub Quality: ushort,
@@ -5971,43 +5761,43 @@ pub struct libraw_pentax_makernotes_t {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_pentax_makernotes_t"]
-        [::std::mem::size_of::<libraw_pentax_makernotes_t>() - 32usize];
+        [::core::mem::size_of::<libraw_pentax_makernotes_t>() - 32usize];
     ["Alignment of libraw_pentax_makernotes_t"]
-        [::std::mem::align_of::<libraw_pentax_makernotes_t>() - 4usize];
+        [::core::mem::align_of::<libraw_pentax_makernotes_t>() - 4usize];
     ["Offset of field: libraw_pentax_makernotes_t::DriveMode"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, DriveMode) - 0usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, DriveMode) - 0usize];
     ["Offset of field: libraw_pentax_makernotes_t::FocusMode"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, FocusMode) - 4usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, FocusMode) - 4usize];
     ["Offset of field: libraw_pentax_makernotes_t::AFPointSelected"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, AFPointSelected) - 8usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFPointSelected) - 8usize];
     ["Offset of field: libraw_pentax_makernotes_t::AFPointSelected_Area"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, AFPointSelected_Area) - 12usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFPointSelected_Area) - 12usize];
     ["Offset of field: libraw_pentax_makernotes_t::AFPointsInFocus_version"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, AFPointsInFocus_version) - 16usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFPointsInFocus_version) - 16usize];
     ["Offset of field: libraw_pentax_makernotes_t::AFPointsInFocus"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, AFPointsInFocus) - 20usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFPointsInFocus) - 20usize];
     ["Offset of field: libraw_pentax_makernotes_t::FocusPosition"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, FocusPosition) - 24usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, FocusPosition) - 24usize];
     ["Offset of field: libraw_pentax_makernotes_t::AFAdjustment"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, AFAdjustment) - 26usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFAdjustment) - 26usize];
     ["Offset of field: libraw_pentax_makernotes_t::AFPointMode"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, AFPointMode) - 28usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFPointMode) - 28usize];
     ["Offset of field: libraw_pentax_makernotes_t::MultiExposure"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, MultiExposure) - 29usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, MultiExposure) - 29usize];
     ["Offset of field: libraw_pentax_makernotes_t::Quality"]
-        [::std::mem::offset_of!(libraw_pentax_makernotes_t, Quality) - 30usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, Quality) - 30usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_ricoh_makernotes_t {
     pub AFStatus: ushort,
-    pub AFAreaXPosition: [::std::os::raw::c_uint; 2usize],
-    pub AFAreaYPosition: [::std::os::raw::c_uint; 2usize],
+    pub AFAreaXPosition: [libc::c_uint; 2usize],
+    pub AFAreaYPosition: [libc::c_uint; 2usize],
     pub AFAreaMode: ushort,
-    pub SensorWidth: ::std::os::raw::c_uint,
-    pub SensorHeight: ::std::os::raw::c_uint,
-    pub CroppedImageWidth: ::std::os::raw::c_uint,
-    pub CroppedImageHeight: ::std::os::raw::c_uint,
+    pub SensorWidth: libc::c_uint,
+    pub SensorHeight: libc::c_uint,
+    pub CroppedImageWidth: libc::c_uint,
+    pub CroppedImageHeight: libc::c_uint,
     pub WideAdapter: ushort,
     pub CropMode: ushort,
     pub NDFilter: ushort,
@@ -6020,81 +5810,81 @@ pub struct libraw_ricoh_makernotes_t {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_ricoh_makernotes_t"]
-        [::std::mem::size_of::<libraw_ricoh_makernotes_t>() - 72usize];
+        [::core::mem::size_of::<libraw_ricoh_makernotes_t>() - 72usize];
     ["Alignment of libraw_ricoh_makernotes_t"]
-        [::std::mem::align_of::<libraw_ricoh_makernotes_t>() - 8usize];
+        [::core::mem::align_of::<libraw_ricoh_makernotes_t>() - 8usize];
     ["Offset of field: libraw_ricoh_makernotes_t::AFStatus"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, AFStatus) - 0usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, AFStatus) - 0usize];
     ["Offset of field: libraw_ricoh_makernotes_t::AFAreaXPosition"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, AFAreaXPosition) - 4usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, AFAreaXPosition) - 4usize];
     ["Offset of field: libraw_ricoh_makernotes_t::AFAreaYPosition"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, AFAreaYPosition) - 12usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, AFAreaYPosition) - 12usize];
     ["Offset of field: libraw_ricoh_makernotes_t::AFAreaMode"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, AFAreaMode) - 20usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, AFAreaMode) - 20usize];
     ["Offset of field: libraw_ricoh_makernotes_t::SensorWidth"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, SensorWidth) - 24usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, SensorWidth) - 24usize];
     ["Offset of field: libraw_ricoh_makernotes_t::SensorHeight"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, SensorHeight) - 28usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, SensorHeight) - 28usize];
     ["Offset of field: libraw_ricoh_makernotes_t::CroppedImageWidth"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, CroppedImageWidth) - 32usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, CroppedImageWidth) - 32usize];
     ["Offset of field: libraw_ricoh_makernotes_t::CroppedImageHeight"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, CroppedImageHeight) - 36usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, CroppedImageHeight) - 36usize];
     ["Offset of field: libraw_ricoh_makernotes_t::WideAdapter"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, WideAdapter) - 40usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, WideAdapter) - 40usize];
     ["Offset of field: libraw_ricoh_makernotes_t::CropMode"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, CropMode) - 42usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, CropMode) - 42usize];
     ["Offset of field: libraw_ricoh_makernotes_t::NDFilter"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, NDFilter) - 44usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, NDFilter) - 44usize];
     ["Offset of field: libraw_ricoh_makernotes_t::AutoBracketing"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, AutoBracketing) - 46usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, AutoBracketing) - 46usize];
     ["Offset of field: libraw_ricoh_makernotes_t::MacroMode"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, MacroMode) - 48usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, MacroMode) - 48usize];
     ["Offset of field: libraw_ricoh_makernotes_t::FlashMode"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, FlashMode) - 50usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, FlashMode) - 50usize];
     ["Offset of field: libraw_ricoh_makernotes_t::FlashExposureComp"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, FlashExposureComp) - 56usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, FlashExposureComp) - 56usize];
     ["Offset of field: libraw_ricoh_makernotes_t::ManualFlashOutput"]
-        [::std::mem::offset_of!(libraw_ricoh_makernotes_t, ManualFlashOutput) - 64usize];
+        [::core::mem::offset_of!(libraw_ricoh_makernotes_t, ManualFlashOutput) - 64usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_samsung_makernotes_t {
-    pub ImageSizeFull: [::std::os::raw::c_uint; 4usize],
-    pub ImageSizeCrop: [::std::os::raw::c_uint; 4usize],
-    pub ColorSpace: [::std::os::raw::c_int; 2usize],
-    pub key: [::std::os::raw::c_uint; 11usize],
+    pub ImageSizeFull: [libc::c_uint; 4usize],
+    pub ImageSizeCrop: [libc::c_uint; 4usize],
+    pub ColorSpace: [libc::c_int; 2usize],
+    pub key: [libc::c_uint; 11usize],
     pub DigitalGain: f64,
-    pub DeviceType: ::std::os::raw::c_int,
-    pub LensFirmware: [::std::os::raw::c_char; 32usize],
+    pub DeviceType: libc::c_int,
+    pub LensFirmware: [libc::c_char; 32usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_samsung_makernotes_t"]
-        [::std::mem::size_of::<libraw_samsung_makernotes_t>() - 136usize];
+        [::core::mem::size_of::<libraw_samsung_makernotes_t>() - 136usize];
     ["Alignment of libraw_samsung_makernotes_t"]
-        [::std::mem::align_of::<libraw_samsung_makernotes_t>() - 8usize];
+        [::core::mem::align_of::<libraw_samsung_makernotes_t>() - 8usize];
     ["Offset of field: libraw_samsung_makernotes_t::ImageSizeFull"]
-        [::std::mem::offset_of!(libraw_samsung_makernotes_t, ImageSizeFull) - 0usize];
+        [::core::mem::offset_of!(libraw_samsung_makernotes_t, ImageSizeFull) - 0usize];
     ["Offset of field: libraw_samsung_makernotes_t::ImageSizeCrop"]
-        [::std::mem::offset_of!(libraw_samsung_makernotes_t, ImageSizeCrop) - 16usize];
+        [::core::mem::offset_of!(libraw_samsung_makernotes_t, ImageSizeCrop) - 16usize];
     ["Offset of field: libraw_samsung_makernotes_t::ColorSpace"]
-        [::std::mem::offset_of!(libraw_samsung_makernotes_t, ColorSpace) - 32usize];
+        [::core::mem::offset_of!(libraw_samsung_makernotes_t, ColorSpace) - 32usize];
     ["Offset of field: libraw_samsung_makernotes_t::key"]
-        [::std::mem::offset_of!(libraw_samsung_makernotes_t, key) - 40usize];
+        [::core::mem::offset_of!(libraw_samsung_makernotes_t, key) - 40usize];
     ["Offset of field: libraw_samsung_makernotes_t::DigitalGain"]
-        [::std::mem::offset_of!(libraw_samsung_makernotes_t, DigitalGain) - 88usize];
+        [::core::mem::offset_of!(libraw_samsung_makernotes_t, DigitalGain) - 88usize];
     ["Offset of field: libraw_samsung_makernotes_t::DeviceType"]
-        [::std::mem::offset_of!(libraw_samsung_makernotes_t, DeviceType) - 96usize];
+        [::core::mem::offset_of!(libraw_samsung_makernotes_t, DeviceType) - 96usize];
     ["Offset of field: libraw_samsung_makernotes_t::LensFirmware"]
-        [::std::mem::offset_of!(libraw_samsung_makernotes_t, LensFirmware) - 100usize];
+        [::core::mem::offset_of!(libraw_samsung_makernotes_t, LensFirmware) - 100usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_kodak_makernotes_t {
     pub BlackLevelTop: ushort,
     pub BlackLevelBottom: ushort,
-    pub offset_left: ::std::os::raw::c_short,
-    pub offset_top: ::std::os::raw::c_short,
+    pub offset_left: libc::c_short,
+    pub offset_top: libc::c_short,
     pub clipBlack: ushort,
     pub clipWhite: ushort,
     pub romm_camDaylight: [[f32; 3usize]; 3usize],
@@ -6106,74 +5896,74 @@ pub struct libraw_kodak_makernotes_t {
     pub val018percent: ushort,
     pub val100percent: ushort,
     pub val170percent: ushort,
-    pub MakerNoteKodak8a: ::std::os::raw::c_short,
+    pub MakerNoteKodak8a: libc::c_short,
     pub ISOCalibrationGain: f32,
     pub AnalogISO: f32,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_kodak_makernotes_t"]
-        [::std::mem::size_of::<libraw_kodak_makernotes_t>() - 244usize];
+        [::core::mem::size_of::<libraw_kodak_makernotes_t>() - 244usize];
     ["Alignment of libraw_kodak_makernotes_t"]
-        [::std::mem::align_of::<libraw_kodak_makernotes_t>() - 4usize];
+        [::core::mem::align_of::<libraw_kodak_makernotes_t>() - 4usize];
     ["Offset of field: libraw_kodak_makernotes_t::BlackLevelTop"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, BlackLevelTop) - 0usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, BlackLevelTop) - 0usize];
     ["Offset of field: libraw_kodak_makernotes_t::BlackLevelBottom"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, BlackLevelBottom) - 2usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, BlackLevelBottom) - 2usize];
     ["Offset of field: libraw_kodak_makernotes_t::offset_left"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, offset_left) - 4usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, offset_left) - 4usize];
     ["Offset of field: libraw_kodak_makernotes_t::offset_top"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, offset_top) - 6usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, offset_top) - 6usize];
     ["Offset of field: libraw_kodak_makernotes_t::clipBlack"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, clipBlack) - 8usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, clipBlack) - 8usize];
     ["Offset of field: libraw_kodak_makernotes_t::clipWhite"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, clipWhite) - 10usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, clipWhite) - 10usize];
     ["Offset of field: libraw_kodak_makernotes_t::romm_camDaylight"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, romm_camDaylight) - 12usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, romm_camDaylight) - 12usize];
     ["Offset of field: libraw_kodak_makernotes_t::romm_camTungsten"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, romm_camTungsten) - 48usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, romm_camTungsten) - 48usize];
     ["Offset of field: libraw_kodak_makernotes_t::romm_camFluorescent"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, romm_camFluorescent) - 84usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, romm_camFluorescent) - 84usize];
     ["Offset of field: libraw_kodak_makernotes_t::romm_camFlash"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, romm_camFlash) - 120usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, romm_camFlash) - 120usize];
     ["Offset of field: libraw_kodak_makernotes_t::romm_camCustom"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, romm_camCustom) - 156usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, romm_camCustom) - 156usize];
     ["Offset of field: libraw_kodak_makernotes_t::romm_camAuto"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, romm_camAuto) - 192usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, romm_camAuto) - 192usize];
     ["Offset of field: libraw_kodak_makernotes_t::val018percent"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, val018percent) - 228usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, val018percent) - 228usize];
     ["Offset of field: libraw_kodak_makernotes_t::val100percent"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, val100percent) - 230usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, val100percent) - 230usize];
     ["Offset of field: libraw_kodak_makernotes_t::val170percent"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, val170percent) - 232usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, val170percent) - 232usize];
     ["Offset of field: libraw_kodak_makernotes_t::MakerNoteKodak8a"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, MakerNoteKodak8a) - 234usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, MakerNoteKodak8a) - 234usize];
     ["Offset of field: libraw_kodak_makernotes_t::ISOCalibrationGain"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, ISOCalibrationGain) - 236usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, ISOCalibrationGain) - 236usize];
     ["Offset of field: libraw_kodak_makernotes_t::AnalogISO"]
-        [::std::mem::offset_of!(libraw_kodak_makernotes_t, AnalogISO) - 240usize];
+        [::core::mem::offset_of!(libraw_kodak_makernotes_t, AnalogISO) - 240usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_p1_makernotes_t {
-    pub Software: [::std::os::raw::c_char; 64usize],
-    pub SystemType: [::std::os::raw::c_char; 64usize],
-    pub FirmwareString: [::std::os::raw::c_char; 256usize],
-    pub SystemModel: [::std::os::raw::c_char; 64usize],
+    pub Software: [libc::c_char; 64usize],
+    pub SystemType: [libc::c_char; 64usize],
+    pub FirmwareString: [libc::c_char; 256usize],
+    pub SystemModel: [libc::c_char; 64usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_p1_makernotes_t"][::std::mem::size_of::<libraw_p1_makernotes_t>() - 448usize];
+    ["Size of libraw_p1_makernotes_t"][::core::mem::size_of::<libraw_p1_makernotes_t>() - 448usize];
     ["Alignment of libraw_p1_makernotes_t"]
-        [::std::mem::align_of::<libraw_p1_makernotes_t>() - 1usize];
+        [::core::mem::align_of::<libraw_p1_makernotes_t>() - 1usize];
     ["Offset of field: libraw_p1_makernotes_t::Software"]
-        [::std::mem::offset_of!(libraw_p1_makernotes_t, Software) - 0usize];
+        [::core::mem::offset_of!(libraw_p1_makernotes_t, Software) - 0usize];
     ["Offset of field: libraw_p1_makernotes_t::SystemType"]
-        [::std::mem::offset_of!(libraw_p1_makernotes_t, SystemType) - 64usize];
+        [::core::mem::offset_of!(libraw_p1_makernotes_t, SystemType) - 64usize];
     ["Offset of field: libraw_p1_makernotes_t::FirmwareString"]
-        [::std::mem::offset_of!(libraw_p1_makernotes_t, FirmwareString) - 128usize];
+        [::core::mem::offset_of!(libraw_p1_makernotes_t, FirmwareString) - 128usize];
     ["Offset of field: libraw_p1_makernotes_t::SystemModel"]
-        [::std::mem::offset_of!(libraw_p1_makernotes_t, SystemModel) - 384usize];
+        [::core::mem::offset_of!(libraw_p1_makernotes_t, SystemModel) - 384usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -6181,16 +5971,16 @@ pub struct libraw_sony_info_t {
     pub CameraType: ushort,
     pub Sony0x9400_version: uchar,
     pub Sony0x9400_ReleaseMode2: uchar,
-    pub Sony0x9400_SequenceImageNumber: ::std::os::raw::c_uint,
+    pub Sony0x9400_SequenceImageNumber: libc::c_uint,
     pub Sony0x9400_SequenceLength1: uchar,
-    pub Sony0x9400_SequenceFileNumber: ::std::os::raw::c_uint,
+    pub Sony0x9400_SequenceFileNumber: libc::c_uint,
     pub Sony0x9400_SequenceLength2: uchar,
     pub AFAreaModeSetting: u8,
     pub AFAreaMode: u16,
     pub FlexibleSpotPosition: [ushort; 2usize],
     pub AFPointSelected: u8,
     pub AFPointSelected_0x201e: u8,
-    pub nAFPointsUsed: ::std::os::raw::c_short,
+    pub nAFPointsUsed: libc::c_short,
     pub AFPointsUsed: [u8; 10usize],
     pub AFTracking: u8,
     pub AFType: u8,
@@ -6200,7 +5990,7 @@ pub struct libraw_sony_info_t {
     pub AFMicroAdjOn: i8,
     pub AFMicroAdjRegisteredLenses: uchar,
     pub VariableLowPassFilter: ushort,
-    pub LongExposureNoiseReduction: ::std::os::raw::c_uint,
+    pub LongExposureNoiseReduction: libc::c_uint,
     pub HighISONoiseReduction: ushort,
     pub HDR: [ushort; 2usize],
     pub group2010: ushort,
@@ -6209,18 +5999,18 @@ pub struct libraw_sony_info_t {
     pub MeteringMode_offset: ushort,
     pub ExposureProgram_offset: ushort,
     pub ReleaseMode2_offset: ushort,
-    pub MinoltaCamID: ::std::os::raw::c_uint,
+    pub MinoltaCamID: libc::c_uint,
     pub firmware: f32,
     pub ImageCount3_offset: ushort,
-    pub ImageCount3: ::std::os::raw::c_uint,
-    pub ElectronicFrontCurtainShutter: ::std::os::raw::c_uint,
+    pub ImageCount3: libc::c_uint,
+    pub ElectronicFrontCurtainShutter: libc::c_uint,
     pub MeteringMode2: ushort,
-    pub SonyDateTime: [::std::os::raw::c_char; 20usize],
-    pub ShotNumberSincePowerUp: ::std::os::raw::c_uint,
+    pub SonyDateTime: [libc::c_char; 20usize],
+    pub ShotNumberSincePowerUp: libc::c_uint,
     pub PixelShiftGroupPrefix: ushort,
-    pub PixelShiftGroupID: ::std::os::raw::c_uint,
-    pub nShotsInPixelShiftGroup: ::std::os::raw::c_char,
-    pub numInPixelShiftGroup: ::std::os::raw::c_char,
+    pub PixelShiftGroupID: libc::c_uint,
+    pub nShotsInPixelShiftGroup: libc::c_char,
+    pub numInPixelShiftGroup: libc::c_char,
     pub prd_ImageHeight: ushort,
     pub prd_ImageWidth: ushort,
     pub prd_Total_bps: ushort,
@@ -6230,134 +6020,134 @@ pub struct libraw_sony_info_t {
     pub SonyRawFileType: ushort,
     pub RAWFileType: ushort,
     pub RawSizeType: ushort,
-    pub Quality: ::std::os::raw::c_uint,
+    pub Quality: libc::c_uint,
     pub FileFormat: ushort,
-    pub MetaVersion: [::std::os::raw::c_char; 16usize],
+    pub MetaVersion: [libc::c_char; 16usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_sony_info_t"][::std::mem::size_of::<libraw_sony_info_t>() - 180usize];
-    ["Alignment of libraw_sony_info_t"][::std::mem::align_of::<libraw_sony_info_t>() - 4usize];
+    ["Size of libraw_sony_info_t"][::core::mem::size_of::<libraw_sony_info_t>() - 180usize];
+    ["Alignment of libraw_sony_info_t"][::core::mem::align_of::<libraw_sony_info_t>() - 4usize];
     ["Offset of field: libraw_sony_info_t::CameraType"]
-        [::std::mem::offset_of!(libraw_sony_info_t, CameraType) - 0usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, CameraType) - 0usize];
     ["Offset of field: libraw_sony_info_t::Sony0x9400_version"]
-        [::std::mem::offset_of!(libraw_sony_info_t, Sony0x9400_version) - 2usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, Sony0x9400_version) - 2usize];
     ["Offset of field: libraw_sony_info_t::Sony0x9400_ReleaseMode2"]
-        [::std::mem::offset_of!(libraw_sony_info_t, Sony0x9400_ReleaseMode2) - 3usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, Sony0x9400_ReleaseMode2) - 3usize];
     ["Offset of field: libraw_sony_info_t::Sony0x9400_SequenceImageNumber"]
-        [::std::mem::offset_of!(libraw_sony_info_t, Sony0x9400_SequenceImageNumber) - 4usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, Sony0x9400_SequenceImageNumber) - 4usize];
     ["Offset of field: libraw_sony_info_t::Sony0x9400_SequenceLength1"]
-        [::std::mem::offset_of!(libraw_sony_info_t, Sony0x9400_SequenceLength1) - 8usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, Sony0x9400_SequenceLength1) - 8usize];
     ["Offset of field: libraw_sony_info_t::Sony0x9400_SequenceFileNumber"]
-        [::std::mem::offset_of!(libraw_sony_info_t, Sony0x9400_SequenceFileNumber) - 12usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, Sony0x9400_SequenceFileNumber) - 12usize];
     ["Offset of field: libraw_sony_info_t::Sony0x9400_SequenceLength2"]
-        [::std::mem::offset_of!(libraw_sony_info_t, Sony0x9400_SequenceLength2) - 16usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, Sony0x9400_SequenceLength2) - 16usize];
     ["Offset of field: libraw_sony_info_t::AFAreaModeSetting"]
-        [::std::mem::offset_of!(libraw_sony_info_t, AFAreaModeSetting) - 17usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, AFAreaModeSetting) - 17usize];
     ["Offset of field: libraw_sony_info_t::AFAreaMode"]
-        [::std::mem::offset_of!(libraw_sony_info_t, AFAreaMode) - 18usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, AFAreaMode) - 18usize];
     ["Offset of field: libraw_sony_info_t::FlexibleSpotPosition"]
-        [::std::mem::offset_of!(libraw_sony_info_t, FlexibleSpotPosition) - 20usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, FlexibleSpotPosition) - 20usize];
     ["Offset of field: libraw_sony_info_t::AFPointSelected"]
-        [::std::mem::offset_of!(libraw_sony_info_t, AFPointSelected) - 24usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, AFPointSelected) - 24usize];
     ["Offset of field: libraw_sony_info_t::AFPointSelected_0x201e"]
-        [::std::mem::offset_of!(libraw_sony_info_t, AFPointSelected_0x201e) - 25usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, AFPointSelected_0x201e) - 25usize];
     ["Offset of field: libraw_sony_info_t::nAFPointsUsed"]
-        [::std::mem::offset_of!(libraw_sony_info_t, nAFPointsUsed) - 26usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, nAFPointsUsed) - 26usize];
     ["Offset of field: libraw_sony_info_t::AFPointsUsed"]
-        [::std::mem::offset_of!(libraw_sony_info_t, AFPointsUsed) - 28usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, AFPointsUsed) - 28usize];
     ["Offset of field: libraw_sony_info_t::AFTracking"]
-        [::std::mem::offset_of!(libraw_sony_info_t, AFTracking) - 38usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, AFTracking) - 38usize];
     ["Offset of field: libraw_sony_info_t::AFType"]
-        [::std::mem::offset_of!(libraw_sony_info_t, AFType) - 39usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, AFType) - 39usize];
     ["Offset of field: libraw_sony_info_t::FocusLocation"]
-        [::std::mem::offset_of!(libraw_sony_info_t, FocusLocation) - 40usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, FocusLocation) - 40usize];
     ["Offset of field: libraw_sony_info_t::FocusPosition"]
-        [::std::mem::offset_of!(libraw_sony_info_t, FocusPosition) - 48usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, FocusPosition) - 48usize];
     ["Offset of field: libraw_sony_info_t::AFMicroAdjValue"]
-        [::std::mem::offset_of!(libraw_sony_info_t, AFMicroAdjValue) - 50usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, AFMicroAdjValue) - 50usize];
     ["Offset of field: libraw_sony_info_t::AFMicroAdjOn"]
-        [::std::mem::offset_of!(libraw_sony_info_t, AFMicroAdjOn) - 51usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, AFMicroAdjOn) - 51usize];
     ["Offset of field: libraw_sony_info_t::AFMicroAdjRegisteredLenses"]
-        [::std::mem::offset_of!(libraw_sony_info_t, AFMicroAdjRegisteredLenses) - 52usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, AFMicroAdjRegisteredLenses) - 52usize];
     ["Offset of field: libraw_sony_info_t::VariableLowPassFilter"]
-        [::std::mem::offset_of!(libraw_sony_info_t, VariableLowPassFilter) - 54usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, VariableLowPassFilter) - 54usize];
     ["Offset of field: libraw_sony_info_t::LongExposureNoiseReduction"]
-        [::std::mem::offset_of!(libraw_sony_info_t, LongExposureNoiseReduction) - 56usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, LongExposureNoiseReduction) - 56usize];
     ["Offset of field: libraw_sony_info_t::HighISONoiseReduction"]
-        [::std::mem::offset_of!(libraw_sony_info_t, HighISONoiseReduction) - 60usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, HighISONoiseReduction) - 60usize];
     ["Offset of field: libraw_sony_info_t::HDR"]
-        [::std::mem::offset_of!(libraw_sony_info_t, HDR) - 62usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, HDR) - 62usize];
     ["Offset of field: libraw_sony_info_t::group2010"]
-        [::std::mem::offset_of!(libraw_sony_info_t, group2010) - 66usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, group2010) - 66usize];
     ["Offset of field: libraw_sony_info_t::group9050"]
-        [::std::mem::offset_of!(libraw_sony_info_t, group9050) - 68usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, group9050) - 68usize];
     ["Offset of field: libraw_sony_info_t::real_iso_offset"]
-        [::std::mem::offset_of!(libraw_sony_info_t, real_iso_offset) - 70usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, real_iso_offset) - 70usize];
     ["Offset of field: libraw_sony_info_t::MeteringMode_offset"]
-        [::std::mem::offset_of!(libraw_sony_info_t, MeteringMode_offset) - 72usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, MeteringMode_offset) - 72usize];
     ["Offset of field: libraw_sony_info_t::ExposureProgram_offset"]
-        [::std::mem::offset_of!(libraw_sony_info_t, ExposureProgram_offset) - 74usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, ExposureProgram_offset) - 74usize];
     ["Offset of field: libraw_sony_info_t::ReleaseMode2_offset"]
-        [::std::mem::offset_of!(libraw_sony_info_t, ReleaseMode2_offset) - 76usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, ReleaseMode2_offset) - 76usize];
     ["Offset of field: libraw_sony_info_t::MinoltaCamID"]
-        [::std::mem::offset_of!(libraw_sony_info_t, MinoltaCamID) - 80usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, MinoltaCamID) - 80usize];
     ["Offset of field: libraw_sony_info_t::firmware"]
-        [::std::mem::offset_of!(libraw_sony_info_t, firmware) - 84usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, firmware) - 84usize];
     ["Offset of field: libraw_sony_info_t::ImageCount3_offset"]
-        [::std::mem::offset_of!(libraw_sony_info_t, ImageCount3_offset) - 88usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, ImageCount3_offset) - 88usize];
     ["Offset of field: libraw_sony_info_t::ImageCount3"]
-        [::std::mem::offset_of!(libraw_sony_info_t, ImageCount3) - 92usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, ImageCount3) - 92usize];
     ["Offset of field: libraw_sony_info_t::ElectronicFrontCurtainShutter"]
-        [::std::mem::offset_of!(libraw_sony_info_t, ElectronicFrontCurtainShutter) - 96usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, ElectronicFrontCurtainShutter) - 96usize];
     ["Offset of field: libraw_sony_info_t::MeteringMode2"]
-        [::std::mem::offset_of!(libraw_sony_info_t, MeteringMode2) - 100usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, MeteringMode2) - 100usize];
     ["Offset of field: libraw_sony_info_t::SonyDateTime"]
-        [::std::mem::offset_of!(libraw_sony_info_t, SonyDateTime) - 102usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, SonyDateTime) - 102usize];
     ["Offset of field: libraw_sony_info_t::ShotNumberSincePowerUp"]
-        [::std::mem::offset_of!(libraw_sony_info_t, ShotNumberSincePowerUp) - 124usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, ShotNumberSincePowerUp) - 124usize];
     ["Offset of field: libraw_sony_info_t::PixelShiftGroupPrefix"]
-        [::std::mem::offset_of!(libraw_sony_info_t, PixelShiftGroupPrefix) - 128usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, PixelShiftGroupPrefix) - 128usize];
     ["Offset of field: libraw_sony_info_t::PixelShiftGroupID"]
-        [::std::mem::offset_of!(libraw_sony_info_t, PixelShiftGroupID) - 132usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, PixelShiftGroupID) - 132usize];
     ["Offset of field: libraw_sony_info_t::nShotsInPixelShiftGroup"]
-        [::std::mem::offset_of!(libraw_sony_info_t, nShotsInPixelShiftGroup) - 136usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, nShotsInPixelShiftGroup) - 136usize];
     ["Offset of field: libraw_sony_info_t::numInPixelShiftGroup"]
-        [::std::mem::offset_of!(libraw_sony_info_t, numInPixelShiftGroup) - 137usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, numInPixelShiftGroup) - 137usize];
     ["Offset of field: libraw_sony_info_t::prd_ImageHeight"]
-        [::std::mem::offset_of!(libraw_sony_info_t, prd_ImageHeight) - 138usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, prd_ImageHeight) - 138usize];
     ["Offset of field: libraw_sony_info_t::prd_ImageWidth"]
-        [::std::mem::offset_of!(libraw_sony_info_t, prd_ImageWidth) - 140usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, prd_ImageWidth) - 140usize];
     ["Offset of field: libraw_sony_info_t::prd_Total_bps"]
-        [::std::mem::offset_of!(libraw_sony_info_t, prd_Total_bps) - 142usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, prd_Total_bps) - 142usize];
     ["Offset of field: libraw_sony_info_t::prd_Active_bps"]
-        [::std::mem::offset_of!(libraw_sony_info_t, prd_Active_bps) - 144usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, prd_Active_bps) - 144usize];
     ["Offset of field: libraw_sony_info_t::prd_StorageMethod"]
-        [::std::mem::offset_of!(libraw_sony_info_t, prd_StorageMethod) - 146usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, prd_StorageMethod) - 146usize];
     ["Offset of field: libraw_sony_info_t::prd_BayerPattern"]
-        [::std::mem::offset_of!(libraw_sony_info_t, prd_BayerPattern) - 148usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, prd_BayerPattern) - 148usize];
     ["Offset of field: libraw_sony_info_t::SonyRawFileType"]
-        [::std::mem::offset_of!(libraw_sony_info_t, SonyRawFileType) - 150usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, SonyRawFileType) - 150usize];
     ["Offset of field: libraw_sony_info_t::RAWFileType"]
-        [::std::mem::offset_of!(libraw_sony_info_t, RAWFileType) - 152usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, RAWFileType) - 152usize];
     ["Offset of field: libraw_sony_info_t::RawSizeType"]
-        [::std::mem::offset_of!(libraw_sony_info_t, RawSizeType) - 154usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, RawSizeType) - 154usize];
     ["Offset of field: libraw_sony_info_t::Quality"]
-        [::std::mem::offset_of!(libraw_sony_info_t, Quality) - 156usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, Quality) - 156usize];
     ["Offset of field: libraw_sony_info_t::FileFormat"]
-        [::std::mem::offset_of!(libraw_sony_info_t, FileFormat) - 160usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, FileFormat) - 160usize];
     ["Offset of field: libraw_sony_info_t::MetaVersion"]
-        [::std::mem::offset_of!(libraw_sony_info_t, MetaVersion) - 162usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, MetaVersion) - 162usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_colordata_t {
     pub curve: [ushort; 65536usize],
-    pub cblack: [::std::os::raw::c_uint; 4104usize],
-    pub black: ::std::os::raw::c_uint,
-    pub data_maximum: ::std::os::raw::c_uint,
-    pub maximum: ::std::os::raw::c_uint,
-    pub linear_max: [::std::os::raw::c_long; 4usize],
+    pub cblack: [libc::c_uint; 4104usize],
+    pub black: libc::c_uint,
+    pub data_maximum: libc::c_uint,
+    pub maximum: libc::c_uint,
+    pub linear_max: [libc::c_long; 4usize],
     pub fmaximum: f32,
     pub fnorm: f32,
     pub white: [[ushort; 8usize]; 8usize],
@@ -6370,98 +6160,98 @@ pub struct libraw_colordata_t {
     pub phase_one_data: ph1_t,
     pub flash_used: f32,
     pub canon_ev: f32,
-    pub model2: [::std::os::raw::c_char; 64usize],
-    pub UniqueCameraModel: [::std::os::raw::c_char; 64usize],
-    pub LocalizedCameraModel: [::std::os::raw::c_char; 64usize],
-    pub ImageUniqueID: [::std::os::raw::c_char; 64usize],
-    pub RawDataUniqueID: [::std::os::raw::c_char; 17usize],
-    pub OriginalRawFileName: [::std::os::raw::c_char; 64usize],
-    pub profile: *mut ::std::os::raw::c_void,
-    pub profile_length: ::std::os::raw::c_uint,
-    pub black_stat: [::std::os::raw::c_uint; 8usize],
+    pub model2: [libc::c_char; 64usize],
+    pub UniqueCameraModel: [libc::c_char; 64usize],
+    pub LocalizedCameraModel: [libc::c_char; 64usize],
+    pub ImageUniqueID: [libc::c_char; 64usize],
+    pub RawDataUniqueID: [libc::c_char; 17usize],
+    pub OriginalRawFileName: [libc::c_char; 64usize],
+    pub profile: *mut libc::c_void,
+    pub profile_length: libc::c_uint,
+    pub black_stat: [libc::c_uint; 8usize],
     pub dng_color: [libraw_dng_color_t; 2usize],
     pub dng_levels: libraw_dng_levels_t,
-    pub WB_Coeffs: [[::std::os::raw::c_int; 4usize]; 256usize],
+    pub WB_Coeffs: [[libc::c_int; 4usize]; 256usize],
     pub WBCT_Coeffs: [[f32; 5usize]; 64usize],
-    pub as_shot_wb_applied: ::std::os::raw::c_int,
+    pub as_shot_wb_applied: libc::c_int,
     pub P1_color: [libraw_P1_color_t; 2usize],
-    pub raw_bps: ::std::os::raw::c_uint,
-    pub ExifColorSpace: ::std::os::raw::c_int,
+    pub raw_bps: libc::c_uint,
+    pub ExifColorSpace: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_colordata_t"][::std::mem::size_of::<libraw_colordata_t>() - 187048usize];
-    ["Alignment of libraw_colordata_t"][::std::mem::align_of::<libraw_colordata_t>() - 8usize];
+    ["Size of libraw_colordata_t"][::core::mem::size_of::<libraw_colordata_t>() - 187048usize];
+    ["Alignment of libraw_colordata_t"][::core::mem::align_of::<libraw_colordata_t>() - 8usize];
     ["Offset of field: libraw_colordata_t::curve"]
-        [::std::mem::offset_of!(libraw_colordata_t, curve) - 0usize];
+        [::core::mem::offset_of!(libraw_colordata_t, curve) - 0usize];
     ["Offset of field: libraw_colordata_t::cblack"]
-        [::std::mem::offset_of!(libraw_colordata_t, cblack) - 131072usize];
+        [::core::mem::offset_of!(libraw_colordata_t, cblack) - 131072usize];
     ["Offset of field: libraw_colordata_t::black"]
-        [::std::mem::offset_of!(libraw_colordata_t, black) - 147488usize];
+        [::core::mem::offset_of!(libraw_colordata_t, black) - 147488usize];
     ["Offset of field: libraw_colordata_t::data_maximum"]
-        [::std::mem::offset_of!(libraw_colordata_t, data_maximum) - 147492usize];
+        [::core::mem::offset_of!(libraw_colordata_t, data_maximum) - 147492usize];
     ["Offset of field: libraw_colordata_t::maximum"]
-        [::std::mem::offset_of!(libraw_colordata_t, maximum) - 147496usize];
+        [::core::mem::offset_of!(libraw_colordata_t, maximum) - 147496usize];
     ["Offset of field: libraw_colordata_t::linear_max"]
-        [::std::mem::offset_of!(libraw_colordata_t, linear_max) - 147504usize];
+        [::core::mem::offset_of!(libraw_colordata_t, linear_max) - 147504usize];
     ["Offset of field: libraw_colordata_t::fmaximum"]
-        [::std::mem::offset_of!(libraw_colordata_t, fmaximum) - 147536usize];
+        [::core::mem::offset_of!(libraw_colordata_t, fmaximum) - 147536usize];
     ["Offset of field: libraw_colordata_t::fnorm"]
-        [::std::mem::offset_of!(libraw_colordata_t, fnorm) - 147540usize];
+        [::core::mem::offset_of!(libraw_colordata_t, fnorm) - 147540usize];
     ["Offset of field: libraw_colordata_t::white"]
-        [::std::mem::offset_of!(libraw_colordata_t, white) - 147544usize];
+        [::core::mem::offset_of!(libraw_colordata_t, white) - 147544usize];
     ["Offset of field: libraw_colordata_t::cam_mul"]
-        [::std::mem::offset_of!(libraw_colordata_t, cam_mul) - 147672usize];
+        [::core::mem::offset_of!(libraw_colordata_t, cam_mul) - 147672usize];
     ["Offset of field: libraw_colordata_t::pre_mul"]
-        [::std::mem::offset_of!(libraw_colordata_t, pre_mul) - 147688usize];
+        [::core::mem::offset_of!(libraw_colordata_t, pre_mul) - 147688usize];
     ["Offset of field: libraw_colordata_t::cmatrix"]
-        [::std::mem::offset_of!(libraw_colordata_t, cmatrix) - 147704usize];
+        [::core::mem::offset_of!(libraw_colordata_t, cmatrix) - 147704usize];
     ["Offset of field: libraw_colordata_t::ccm"]
-        [::std::mem::offset_of!(libraw_colordata_t, ccm) - 147752usize];
+        [::core::mem::offset_of!(libraw_colordata_t, ccm) - 147752usize];
     ["Offset of field: libraw_colordata_t::rgb_cam"]
-        [::std::mem::offset_of!(libraw_colordata_t, rgb_cam) - 147800usize];
+        [::core::mem::offset_of!(libraw_colordata_t, rgb_cam) - 147800usize];
     ["Offset of field: libraw_colordata_t::cam_xyz"]
-        [::std::mem::offset_of!(libraw_colordata_t, cam_xyz) - 147848usize];
+        [::core::mem::offset_of!(libraw_colordata_t, cam_xyz) - 147848usize];
     ["Offset of field: libraw_colordata_t::phase_one_data"]
-        [::std::mem::offset_of!(libraw_colordata_t, phase_one_data) - 147896usize];
+        [::core::mem::offset_of!(libraw_colordata_t, phase_one_data) - 147896usize];
     ["Offset of field: libraw_colordata_t::flash_used"]
-        [::std::mem::offset_of!(libraw_colordata_t, flash_used) - 147932usize];
+        [::core::mem::offset_of!(libraw_colordata_t, flash_used) - 147932usize];
     ["Offset of field: libraw_colordata_t::canon_ev"]
-        [::std::mem::offset_of!(libraw_colordata_t, canon_ev) - 147936usize];
+        [::core::mem::offset_of!(libraw_colordata_t, canon_ev) - 147936usize];
     ["Offset of field: libraw_colordata_t::model2"]
-        [::std::mem::offset_of!(libraw_colordata_t, model2) - 147940usize];
+        [::core::mem::offset_of!(libraw_colordata_t, model2) - 147940usize];
     ["Offset of field: libraw_colordata_t::UniqueCameraModel"]
-        [::std::mem::offset_of!(libraw_colordata_t, UniqueCameraModel) - 148004usize];
+        [::core::mem::offset_of!(libraw_colordata_t, UniqueCameraModel) - 148004usize];
     ["Offset of field: libraw_colordata_t::LocalizedCameraModel"]
-        [::std::mem::offset_of!(libraw_colordata_t, LocalizedCameraModel) - 148068usize];
+        [::core::mem::offset_of!(libraw_colordata_t, LocalizedCameraModel) - 148068usize];
     ["Offset of field: libraw_colordata_t::ImageUniqueID"]
-        [::std::mem::offset_of!(libraw_colordata_t, ImageUniqueID) - 148132usize];
+        [::core::mem::offset_of!(libraw_colordata_t, ImageUniqueID) - 148132usize];
     ["Offset of field: libraw_colordata_t::RawDataUniqueID"]
-        [::std::mem::offset_of!(libraw_colordata_t, RawDataUniqueID) - 148196usize];
+        [::core::mem::offset_of!(libraw_colordata_t, RawDataUniqueID) - 148196usize];
     ["Offset of field: libraw_colordata_t::OriginalRawFileName"]
-        [::std::mem::offset_of!(libraw_colordata_t, OriginalRawFileName) - 148213usize];
+        [::core::mem::offset_of!(libraw_colordata_t, OriginalRawFileName) - 148213usize];
     ["Offset of field: libraw_colordata_t::profile"]
-        [::std::mem::offset_of!(libraw_colordata_t, profile) - 148280usize];
+        [::core::mem::offset_of!(libraw_colordata_t, profile) - 148280usize];
     ["Offset of field: libraw_colordata_t::profile_length"]
-        [::std::mem::offset_of!(libraw_colordata_t, profile_length) - 148288usize];
+        [::core::mem::offset_of!(libraw_colordata_t, profile_length) - 148288usize];
     ["Offset of field: libraw_colordata_t::black_stat"]
-        [::std::mem::offset_of!(libraw_colordata_t, black_stat) - 148292usize];
+        [::core::mem::offset_of!(libraw_colordata_t, black_stat) - 148292usize];
     ["Offset of field: libraw_colordata_t::dng_color"]
-        [::std::mem::offset_of!(libraw_colordata_t, dng_color) - 148324usize];
+        [::core::mem::offset_of!(libraw_colordata_t, dng_color) - 148324usize];
     ["Offset of field: libraw_colordata_t::dng_levels"]
-        [::std::mem::offset_of!(libraw_colordata_t, dng_levels) - 148660usize];
+        [::core::mem::offset_of!(libraw_colordata_t, dng_levels) - 148660usize];
     ["Offset of field: libraw_colordata_t::WB_Coeffs"]
-        [::std::mem::offset_of!(libraw_colordata_t, WB_Coeffs) - 181588usize];
+        [::core::mem::offset_of!(libraw_colordata_t, WB_Coeffs) - 181588usize];
     ["Offset of field: libraw_colordata_t::WBCT_Coeffs"]
-        [::std::mem::offset_of!(libraw_colordata_t, WBCT_Coeffs) - 185684usize];
+        [::core::mem::offset_of!(libraw_colordata_t, WBCT_Coeffs) - 185684usize];
     ["Offset of field: libraw_colordata_t::as_shot_wb_applied"]
-        [::std::mem::offset_of!(libraw_colordata_t, as_shot_wb_applied) - 186964usize];
+        [::core::mem::offset_of!(libraw_colordata_t, as_shot_wb_applied) - 186964usize];
     ["Offset of field: libraw_colordata_t::P1_color"]
-        [::std::mem::offset_of!(libraw_colordata_t, P1_color) - 186968usize];
+        [::core::mem::offset_of!(libraw_colordata_t, P1_color) - 186968usize];
     ["Offset of field: libraw_colordata_t::raw_bps"]
-        [::std::mem::offset_of!(libraw_colordata_t, raw_bps) - 187040usize];
+        [::core::mem::offset_of!(libraw_colordata_t, raw_bps) - 187040usize];
     ["Offset of field: libraw_colordata_t::ExifColorSpace"]
-        [::std::mem::offset_of!(libraw_colordata_t, ExifColorSpace) - 187044usize];
+        [::core::mem::offset_of!(libraw_colordata_t, ExifColorSpace) - 187044usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -6469,26 +6259,26 @@ pub struct libraw_thumbnail_t {
     pub tformat: LibRaw_thumbnail_formats,
     pub twidth: ushort,
     pub theight: ushort,
-    pub tlength: ::std::os::raw::c_uint,
-    pub tcolors: ::std::os::raw::c_int,
-    pub thumb: *mut ::std::os::raw::c_char,
+    pub tlength: libc::c_uint,
+    pub tcolors: libc::c_int,
+    pub thumb: *mut libc::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_thumbnail_t"][::std::mem::size_of::<libraw_thumbnail_t>() - 24usize];
-    ["Alignment of libraw_thumbnail_t"][::std::mem::align_of::<libraw_thumbnail_t>() - 8usize];
+    ["Size of libraw_thumbnail_t"][::core::mem::size_of::<libraw_thumbnail_t>() - 24usize];
+    ["Alignment of libraw_thumbnail_t"][::core::mem::align_of::<libraw_thumbnail_t>() - 8usize];
     ["Offset of field: libraw_thumbnail_t::tformat"]
-        [::std::mem::offset_of!(libraw_thumbnail_t, tformat) - 0usize];
+        [::core::mem::offset_of!(libraw_thumbnail_t, tformat) - 0usize];
     ["Offset of field: libraw_thumbnail_t::twidth"]
-        [::std::mem::offset_of!(libraw_thumbnail_t, twidth) - 4usize];
+        [::core::mem::offset_of!(libraw_thumbnail_t, twidth) - 4usize];
     ["Offset of field: libraw_thumbnail_t::theight"]
-        [::std::mem::offset_of!(libraw_thumbnail_t, theight) - 6usize];
+        [::core::mem::offset_of!(libraw_thumbnail_t, theight) - 6usize];
     ["Offset of field: libraw_thumbnail_t::tlength"]
-        [::std::mem::offset_of!(libraw_thumbnail_t, tlength) - 8usize];
+        [::core::mem::offset_of!(libraw_thumbnail_t, tlength) - 8usize];
     ["Offset of field: libraw_thumbnail_t::tcolors"]
-        [::std::mem::offset_of!(libraw_thumbnail_t, tcolors) - 12usize];
+        [::core::mem::offset_of!(libraw_thumbnail_t, tcolors) - 12usize];
     ["Offset of field: libraw_thumbnail_t::thumb"]
-        [::std::mem::offset_of!(libraw_thumbnail_t, thumb) - 16usize];
+        [::core::mem::offset_of!(libraw_thumbnail_t, thumb) - 16usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -6497,46 +6287,47 @@ pub struct libraw_thumbnail_item_t {
     pub twidth: ushort,
     pub theight: ushort,
     pub tflip: ushort,
-    pub tlength: ::std::os::raw::c_uint,
-    pub tmisc: ::std::os::raw::c_uint,
+    pub tlength: libc::c_uint,
+    pub tmisc: libc::c_uint,
     pub toffset: INT64,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_thumbnail_item_t"][::std::mem::size_of::<libraw_thumbnail_item_t>() - 32usize];
+    ["Size of libraw_thumbnail_item_t"]
+        [::core::mem::size_of::<libraw_thumbnail_item_t>() - 32usize];
     ["Alignment of libraw_thumbnail_item_t"]
-        [::std::mem::align_of::<libraw_thumbnail_item_t>() - 8usize];
+        [::core::mem::align_of::<libraw_thumbnail_item_t>() - 8usize];
     ["Offset of field: libraw_thumbnail_item_t::tformat"]
-        [::std::mem::offset_of!(libraw_thumbnail_item_t, tformat) - 0usize];
+        [::core::mem::offset_of!(libraw_thumbnail_item_t, tformat) - 0usize];
     ["Offset of field: libraw_thumbnail_item_t::twidth"]
-        [::std::mem::offset_of!(libraw_thumbnail_item_t, twidth) - 4usize];
+        [::core::mem::offset_of!(libraw_thumbnail_item_t, twidth) - 4usize];
     ["Offset of field: libraw_thumbnail_item_t::theight"]
-        [::std::mem::offset_of!(libraw_thumbnail_item_t, theight) - 6usize];
+        [::core::mem::offset_of!(libraw_thumbnail_item_t, theight) - 6usize];
     ["Offset of field: libraw_thumbnail_item_t::tflip"]
-        [::std::mem::offset_of!(libraw_thumbnail_item_t, tflip) - 8usize];
+        [::core::mem::offset_of!(libraw_thumbnail_item_t, tflip) - 8usize];
     ["Offset of field: libraw_thumbnail_item_t::tlength"]
-        [::std::mem::offset_of!(libraw_thumbnail_item_t, tlength) - 12usize];
+        [::core::mem::offset_of!(libraw_thumbnail_item_t, tlength) - 12usize];
     ["Offset of field: libraw_thumbnail_item_t::tmisc"]
-        [::std::mem::offset_of!(libraw_thumbnail_item_t, tmisc) - 16usize];
+        [::core::mem::offset_of!(libraw_thumbnail_item_t, tmisc) - 16usize];
     ["Offset of field: libraw_thumbnail_item_t::toffset"]
-        [::std::mem::offset_of!(libraw_thumbnail_item_t, toffset) - 24usize];
+        [::core::mem::offset_of!(libraw_thumbnail_item_t, toffset) - 24usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_thumbnail_list_t {
-    pub thumbcount: ::std::os::raw::c_int,
+    pub thumbcount: libc::c_int,
     pub thumblist: [libraw_thumbnail_item_t; 8usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_thumbnail_list_t"]
-        [::std::mem::size_of::<libraw_thumbnail_list_t>() - 264usize];
+        [::core::mem::size_of::<libraw_thumbnail_list_t>() - 264usize];
     ["Alignment of libraw_thumbnail_list_t"]
-        [::std::mem::align_of::<libraw_thumbnail_list_t>() - 8usize];
+        [::core::mem::align_of::<libraw_thumbnail_list_t>() - 8usize];
     ["Offset of field: libraw_thumbnail_list_t::thumbcount"]
-        [::std::mem::offset_of!(libraw_thumbnail_list_t, thumbcount) - 0usize];
+        [::core::mem::offset_of!(libraw_thumbnail_list_t, thumbcount) - 0usize];
     ["Offset of field: libraw_thumbnail_list_t::thumblist"]
-        [::std::mem::offset_of!(libraw_thumbnail_list_t, thumblist) - 8usize];
+        [::core::mem::offset_of!(libraw_thumbnail_list_t, thumblist) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -6545,34 +6336,34 @@ pub struct libraw_gps_info_t {
     pub longitude: [f32; 3usize],
     pub gpstimestamp: [f32; 3usize],
     pub altitude: f32,
-    pub altref: ::std::os::raw::c_char,
-    pub latref: ::std::os::raw::c_char,
-    pub longref: ::std::os::raw::c_char,
-    pub gpsstatus: ::std::os::raw::c_char,
-    pub gpsparsed: ::std::os::raw::c_char,
+    pub altref: libc::c_char,
+    pub latref: libc::c_char,
+    pub longref: libc::c_char,
+    pub gpsstatus: libc::c_char,
+    pub gpsparsed: libc::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_gps_info_t"][::std::mem::size_of::<libraw_gps_info_t>() - 48usize];
-    ["Alignment of libraw_gps_info_t"][::std::mem::align_of::<libraw_gps_info_t>() - 4usize];
+    ["Size of libraw_gps_info_t"][::core::mem::size_of::<libraw_gps_info_t>() - 48usize];
+    ["Alignment of libraw_gps_info_t"][::core::mem::align_of::<libraw_gps_info_t>() - 4usize];
     ["Offset of field: libraw_gps_info_t::latitude"]
-        [::std::mem::offset_of!(libraw_gps_info_t, latitude) - 0usize];
+        [::core::mem::offset_of!(libraw_gps_info_t, latitude) - 0usize];
     ["Offset of field: libraw_gps_info_t::longitude"]
-        [::std::mem::offset_of!(libraw_gps_info_t, longitude) - 12usize];
+        [::core::mem::offset_of!(libraw_gps_info_t, longitude) - 12usize];
     ["Offset of field: libraw_gps_info_t::gpstimestamp"]
-        [::std::mem::offset_of!(libraw_gps_info_t, gpstimestamp) - 24usize];
+        [::core::mem::offset_of!(libraw_gps_info_t, gpstimestamp) - 24usize];
     ["Offset of field: libraw_gps_info_t::altitude"]
-        [::std::mem::offset_of!(libraw_gps_info_t, altitude) - 36usize];
+        [::core::mem::offset_of!(libraw_gps_info_t, altitude) - 36usize];
     ["Offset of field: libraw_gps_info_t::altref"]
-        [::std::mem::offset_of!(libraw_gps_info_t, altref) - 40usize];
+        [::core::mem::offset_of!(libraw_gps_info_t, altref) - 40usize];
     ["Offset of field: libraw_gps_info_t::latref"]
-        [::std::mem::offset_of!(libraw_gps_info_t, latref) - 41usize];
+        [::core::mem::offset_of!(libraw_gps_info_t, latref) - 41usize];
     ["Offset of field: libraw_gps_info_t::longref"]
-        [::std::mem::offset_of!(libraw_gps_info_t, longref) - 42usize];
+        [::core::mem::offset_of!(libraw_gps_info_t, longref) - 42usize];
     ["Offset of field: libraw_gps_info_t::gpsstatus"]
-        [::std::mem::offset_of!(libraw_gps_info_t, gpsstatus) - 43usize];
+        [::core::mem::offset_of!(libraw_gps_info_t, gpsstatus) - 43usize];
     ["Offset of field: libraw_gps_info_t::gpsparsed"]
-        [::std::mem::offset_of!(libraw_gps_info_t, gpsparsed) - 44usize];
+        [::core::mem::offset_of!(libraw_gps_info_t, gpsparsed) - 44usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -6582,63 +6373,63 @@ pub struct libraw_imgother_t {
     pub aperture: f32,
     pub focal_len: f32,
     pub timestamp: time_t,
-    pub shot_order: ::std::os::raw::c_uint,
-    pub gpsdata: [::std::os::raw::c_uint; 32usize],
+    pub shot_order: libc::c_uint,
+    pub gpsdata: [libc::c_uint; 32usize],
     pub parsed_gps: libraw_gps_info_t,
-    pub desc: [::std::os::raw::c_char; 512usize],
-    pub artist: [::std::os::raw::c_char; 64usize],
+    pub desc: [libc::c_char; 512usize],
+    pub artist: [libc::c_char; 64usize],
     pub analogbalance: [f32; 4usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_imgother_t"][::std::mem::size_of::<libraw_imgother_t>() - 800usize];
-    ["Alignment of libraw_imgother_t"][::std::mem::align_of::<libraw_imgother_t>() - 8usize];
+    ["Size of libraw_imgother_t"][::core::mem::size_of::<libraw_imgother_t>() - 800usize];
+    ["Alignment of libraw_imgother_t"][::core::mem::align_of::<libraw_imgother_t>() - 8usize];
     ["Offset of field: libraw_imgother_t::iso_speed"]
-        [::std::mem::offset_of!(libraw_imgother_t, iso_speed) - 0usize];
+        [::core::mem::offset_of!(libraw_imgother_t, iso_speed) - 0usize];
     ["Offset of field: libraw_imgother_t::shutter"]
-        [::std::mem::offset_of!(libraw_imgother_t, shutter) - 4usize];
+        [::core::mem::offset_of!(libraw_imgother_t, shutter) - 4usize];
     ["Offset of field: libraw_imgother_t::aperture"]
-        [::std::mem::offset_of!(libraw_imgother_t, aperture) - 8usize];
+        [::core::mem::offset_of!(libraw_imgother_t, aperture) - 8usize];
     ["Offset of field: libraw_imgother_t::focal_len"]
-        [::std::mem::offset_of!(libraw_imgother_t, focal_len) - 12usize];
+        [::core::mem::offset_of!(libraw_imgother_t, focal_len) - 12usize];
     ["Offset of field: libraw_imgother_t::timestamp"]
-        [::std::mem::offset_of!(libraw_imgother_t, timestamp) - 16usize];
+        [::core::mem::offset_of!(libraw_imgother_t, timestamp) - 16usize];
     ["Offset of field: libraw_imgother_t::shot_order"]
-        [::std::mem::offset_of!(libraw_imgother_t, shot_order) - 24usize];
+        [::core::mem::offset_of!(libraw_imgother_t, shot_order) - 24usize];
     ["Offset of field: libraw_imgother_t::gpsdata"]
-        [::std::mem::offset_of!(libraw_imgother_t, gpsdata) - 28usize];
+        [::core::mem::offset_of!(libraw_imgother_t, gpsdata) - 28usize];
     ["Offset of field: libraw_imgother_t::parsed_gps"]
-        [::std::mem::offset_of!(libraw_imgother_t, parsed_gps) - 156usize];
+        [::core::mem::offset_of!(libraw_imgother_t, parsed_gps) - 156usize];
     ["Offset of field: libraw_imgother_t::desc"]
-        [::std::mem::offset_of!(libraw_imgother_t, desc) - 204usize];
+        [::core::mem::offset_of!(libraw_imgother_t, desc) - 204usize];
     ["Offset of field: libraw_imgother_t::artist"]
-        [::std::mem::offset_of!(libraw_imgother_t, artist) - 716usize];
+        [::core::mem::offset_of!(libraw_imgother_t, artist) - 716usize];
     ["Offset of field: libraw_imgother_t::analogbalance"]
-        [::std::mem::offset_of!(libraw_imgother_t, analogbalance) - 780usize];
+        [::core::mem::offset_of!(libraw_imgother_t, analogbalance) - 780usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_afinfo_item_t {
-    pub AFInfoData_tag: ::std::os::raw::c_uint,
-    pub AFInfoData_order: ::std::os::raw::c_short,
-    pub AFInfoData_version: ::std::os::raw::c_uint,
-    pub AFInfoData_length: ::std::os::raw::c_uint,
+    pub AFInfoData_tag: libc::c_uint,
+    pub AFInfoData_order: libc::c_short,
+    pub AFInfoData_version: libc::c_uint,
+    pub AFInfoData_length: libc::c_uint,
     pub AFInfoData: *mut uchar,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_afinfo_item_t"][::std::mem::size_of::<libraw_afinfo_item_t>() - 24usize];
-    ["Alignment of libraw_afinfo_item_t"][::std::mem::align_of::<libraw_afinfo_item_t>() - 8usize];
+    ["Size of libraw_afinfo_item_t"][::core::mem::size_of::<libraw_afinfo_item_t>() - 24usize];
+    ["Alignment of libraw_afinfo_item_t"][::core::mem::align_of::<libraw_afinfo_item_t>() - 8usize];
     ["Offset of field: libraw_afinfo_item_t::AFInfoData_tag"]
-        [::std::mem::offset_of!(libraw_afinfo_item_t, AFInfoData_tag) - 0usize];
+        [::core::mem::offset_of!(libraw_afinfo_item_t, AFInfoData_tag) - 0usize];
     ["Offset of field: libraw_afinfo_item_t::AFInfoData_order"]
-        [::std::mem::offset_of!(libraw_afinfo_item_t, AFInfoData_order) - 4usize];
+        [::core::mem::offset_of!(libraw_afinfo_item_t, AFInfoData_order) - 4usize];
     ["Offset of field: libraw_afinfo_item_t::AFInfoData_version"]
-        [::std::mem::offset_of!(libraw_afinfo_item_t, AFInfoData_version) - 8usize];
+        [::core::mem::offset_of!(libraw_afinfo_item_t, AFInfoData_version) - 8usize];
     ["Offset of field: libraw_afinfo_item_t::AFInfoData_length"]
-        [::std::mem::offset_of!(libraw_afinfo_item_t, AFInfoData_length) - 12usize];
+        [::core::mem::offset_of!(libraw_afinfo_item_t, AFInfoData_length) - 12usize];
     ["Offset of field: libraw_afinfo_item_t::AFInfoData"]
-        [::std::mem::offset_of!(libraw_afinfo_item_t, AFInfoData) - 16usize];
+        [::core::mem::offset_of!(libraw_afinfo_item_t, AFInfoData) - 16usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -6660,243 +6451,245 @@ pub struct libraw_metadata_common_t {
     pub real_ISO: f32,
     pub exifExposureIndex: f32,
     pub ColorSpace: ushort,
-    pub firmware: [::std::os::raw::c_char; 128usize],
+    pub firmware: [libc::c_char; 128usize],
     pub ExposureCalibrationShift: f32,
     pub afdata: [libraw_afinfo_item_t; 4usize],
-    pub afcount: ::std::os::raw::c_int,
+    pub afcount: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_metadata_common_t"]
-        [::std::mem::size_of::<libraw_metadata_common_t>() - 304usize];
+        [::core::mem::size_of::<libraw_metadata_common_t>() - 304usize];
     ["Alignment of libraw_metadata_common_t"]
-        [::std::mem::align_of::<libraw_metadata_common_t>() - 8usize];
+        [::core::mem::align_of::<libraw_metadata_common_t>() - 8usize];
     ["Offset of field: libraw_metadata_common_t::FlashEC"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, FlashEC) - 0usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, FlashEC) - 0usize];
     ["Offset of field: libraw_metadata_common_t::FlashGN"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, FlashGN) - 4usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, FlashGN) - 4usize];
     ["Offset of field: libraw_metadata_common_t::CameraTemperature"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, CameraTemperature) - 8usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, CameraTemperature) - 8usize];
     ["Offset of field: libraw_metadata_common_t::SensorTemperature"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, SensorTemperature) - 12usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, SensorTemperature) - 12usize];
     ["Offset of field: libraw_metadata_common_t::SensorTemperature2"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, SensorTemperature2) - 16usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, SensorTemperature2) - 16usize];
     ["Offset of field: libraw_metadata_common_t::LensTemperature"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, LensTemperature) - 20usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, LensTemperature) - 20usize];
     ["Offset of field: libraw_metadata_common_t::AmbientTemperature"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, AmbientTemperature) - 24usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, AmbientTemperature) - 24usize];
     ["Offset of field: libraw_metadata_common_t::BatteryTemperature"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, BatteryTemperature) - 28usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, BatteryTemperature) - 28usize];
     ["Offset of field: libraw_metadata_common_t::exifAmbientTemperature"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, exifAmbientTemperature) - 32usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, exifAmbientTemperature) - 32usize];
     ["Offset of field: libraw_metadata_common_t::exifHumidity"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, exifHumidity) - 36usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, exifHumidity) - 36usize];
     ["Offset of field: libraw_metadata_common_t::exifPressure"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, exifPressure) - 40usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, exifPressure) - 40usize];
     ["Offset of field: libraw_metadata_common_t::exifWaterDepth"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, exifWaterDepth) - 44usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, exifWaterDepth) - 44usize];
     ["Offset of field: libraw_metadata_common_t::exifAcceleration"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, exifAcceleration) - 48usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, exifAcceleration) - 48usize];
     ["Offset of field: libraw_metadata_common_t::exifCameraElevationAngle"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, exifCameraElevationAngle) - 52usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, exifCameraElevationAngle) - 52usize];
     ["Offset of field: libraw_metadata_common_t::real_ISO"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, real_ISO) - 56usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, real_ISO) - 56usize];
     ["Offset of field: libraw_metadata_common_t::exifExposureIndex"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, exifExposureIndex) - 60usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, exifExposureIndex) - 60usize];
     ["Offset of field: libraw_metadata_common_t::ColorSpace"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, ColorSpace) - 64usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, ColorSpace) - 64usize];
     ["Offset of field: libraw_metadata_common_t::firmware"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, firmware) - 66usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, firmware) - 66usize];
     ["Offset of field: libraw_metadata_common_t::ExposureCalibrationShift"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, ExposureCalibrationShift) - 196usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, ExposureCalibrationShift) - 196usize];
     ["Offset of field: libraw_metadata_common_t::afdata"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, afdata) - 200usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, afdata) - 200usize];
     ["Offset of field: libraw_metadata_common_t::afcount"]
-        [::std::mem::offset_of!(libraw_metadata_common_t, afcount) - 296usize];
+        [::core::mem::offset_of!(libraw_metadata_common_t, afcount) - 296usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_output_params_t {
-    pub greybox: [::std::os::raw::c_uint; 4usize],
-    pub cropbox: [::std::os::raw::c_uint; 4usize],
+    pub greybox: [libc::c_uint; 4usize],
+    pub cropbox: [libc::c_uint; 4usize],
     pub aber: [f64; 4usize],
     pub gamm: [f64; 6usize],
     pub user_mul: [f32; 4usize],
     pub bright: f32,
     pub threshold: f32,
-    pub half_size: ::std::os::raw::c_int,
-    pub four_color_rgb: ::std::os::raw::c_int,
-    pub highlight: ::std::os::raw::c_int,
-    pub use_auto_wb: ::std::os::raw::c_int,
-    pub use_camera_wb: ::std::os::raw::c_int,
-    pub use_camera_matrix: ::std::os::raw::c_int,
-    pub output_color: ::std::os::raw::c_int,
-    pub output_profile: *mut ::std::os::raw::c_char,
-    pub camera_profile: *mut ::std::os::raw::c_char,
-    pub bad_pixels: *mut ::std::os::raw::c_char,
-    pub dark_frame: *mut ::std::os::raw::c_char,
-    pub output_bps: ::std::os::raw::c_int,
-    pub output_tiff: ::std::os::raw::c_int,
-    pub output_flags: ::std::os::raw::c_int,
-    pub user_flip: ::std::os::raw::c_int,
-    pub user_qual: ::std::os::raw::c_int,
-    pub user_black: ::std::os::raw::c_int,
-    pub user_cblack: [::std::os::raw::c_int; 4usize],
-    pub user_sat: ::std::os::raw::c_int,
-    pub med_passes: ::std::os::raw::c_int,
+    pub half_size: libc::c_int,
+    pub four_color_rgb: libc::c_int,
+    pub highlight: libc::c_int,
+    pub use_auto_wb: libc::c_int,
+    pub use_camera_wb: libc::c_int,
+    pub use_camera_matrix: libc::c_int,
+    pub output_color: libc::c_int,
+    pub output_profile: *mut libc::c_char,
+    pub camera_profile: *mut libc::c_char,
+    pub bad_pixels: *mut libc::c_char,
+    pub dark_frame: *mut libc::c_char,
+    pub output_bps: libc::c_int,
+    pub output_tiff: libc::c_int,
+    pub output_flags: libc::c_int,
+    pub user_flip: libc::c_int,
+    pub user_qual: libc::c_int,
+    pub user_black: libc::c_int,
+    pub user_cblack: [libc::c_int; 4usize],
+    pub user_sat: libc::c_int,
+    pub med_passes: libc::c_int,
     pub auto_bright_thr: f32,
     pub adjust_maximum_thr: f32,
-    pub no_auto_bright: ::std::os::raw::c_int,
-    pub use_fuji_rotate: ::std::os::raw::c_int,
-    pub green_matching: ::std::os::raw::c_int,
-    pub dcb_iterations: ::std::os::raw::c_int,
-    pub dcb_enhance_fl: ::std::os::raw::c_int,
-    pub fbdd_noiserd: ::std::os::raw::c_int,
-    pub exp_correc: ::std::os::raw::c_int,
+    pub no_auto_bright: libc::c_int,
+    pub use_fuji_rotate: libc::c_int,
+    pub green_matching: libc::c_int,
+    pub dcb_iterations: libc::c_int,
+    pub dcb_enhance_fl: libc::c_int,
+    pub fbdd_noiserd: libc::c_int,
+    pub exp_correc: libc::c_int,
     pub exp_shift: f32,
     pub exp_preser: f32,
-    pub no_auto_scale: ::std::os::raw::c_int,
-    pub no_interpolation: ::std::os::raw::c_int,
+    pub no_auto_scale: libc::c_int,
+    pub no_interpolation: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_output_params_t"][::std::mem::size_of::<libraw_output_params_t>() - 304usize];
+    ["Size of libraw_output_params_t"][::core::mem::size_of::<libraw_output_params_t>() - 304usize];
     ["Alignment of libraw_output_params_t"]
-        [::std::mem::align_of::<libraw_output_params_t>() - 8usize];
+        [::core::mem::align_of::<libraw_output_params_t>() - 8usize];
     ["Offset of field: libraw_output_params_t::greybox"]
-        [::std::mem::offset_of!(libraw_output_params_t, greybox) - 0usize];
+        [::core::mem::offset_of!(libraw_output_params_t, greybox) - 0usize];
     ["Offset of field: libraw_output_params_t::cropbox"]
-        [::std::mem::offset_of!(libraw_output_params_t, cropbox) - 16usize];
+        [::core::mem::offset_of!(libraw_output_params_t, cropbox) - 16usize];
     ["Offset of field: libraw_output_params_t::aber"]
-        [::std::mem::offset_of!(libraw_output_params_t, aber) - 32usize];
+        [::core::mem::offset_of!(libraw_output_params_t, aber) - 32usize];
     ["Offset of field: libraw_output_params_t::gamm"]
-        [::std::mem::offset_of!(libraw_output_params_t, gamm) - 64usize];
+        [::core::mem::offset_of!(libraw_output_params_t, gamm) - 64usize];
     ["Offset of field: libraw_output_params_t::user_mul"]
-        [::std::mem::offset_of!(libraw_output_params_t, user_mul) - 112usize];
+        [::core::mem::offset_of!(libraw_output_params_t, user_mul) - 112usize];
     ["Offset of field: libraw_output_params_t::bright"]
-        [::std::mem::offset_of!(libraw_output_params_t, bright) - 128usize];
+        [::core::mem::offset_of!(libraw_output_params_t, bright) - 128usize];
     ["Offset of field: libraw_output_params_t::threshold"]
-        [::std::mem::offset_of!(libraw_output_params_t, threshold) - 132usize];
+        [::core::mem::offset_of!(libraw_output_params_t, threshold) - 132usize];
     ["Offset of field: libraw_output_params_t::half_size"]
-        [::std::mem::offset_of!(libraw_output_params_t, half_size) - 136usize];
+        [::core::mem::offset_of!(libraw_output_params_t, half_size) - 136usize];
     ["Offset of field: libraw_output_params_t::four_color_rgb"]
-        [::std::mem::offset_of!(libraw_output_params_t, four_color_rgb) - 140usize];
+        [::core::mem::offset_of!(libraw_output_params_t, four_color_rgb) - 140usize];
     ["Offset of field: libraw_output_params_t::highlight"]
-        [::std::mem::offset_of!(libraw_output_params_t, highlight) - 144usize];
+        [::core::mem::offset_of!(libraw_output_params_t, highlight) - 144usize];
     ["Offset of field: libraw_output_params_t::use_auto_wb"]
-        [::std::mem::offset_of!(libraw_output_params_t, use_auto_wb) - 148usize];
+        [::core::mem::offset_of!(libraw_output_params_t, use_auto_wb) - 148usize];
     ["Offset of field: libraw_output_params_t::use_camera_wb"]
-        [::std::mem::offset_of!(libraw_output_params_t, use_camera_wb) - 152usize];
+        [::core::mem::offset_of!(libraw_output_params_t, use_camera_wb) - 152usize];
     ["Offset of field: libraw_output_params_t::use_camera_matrix"]
-        [::std::mem::offset_of!(libraw_output_params_t, use_camera_matrix) - 156usize];
+        [::core::mem::offset_of!(libraw_output_params_t, use_camera_matrix) - 156usize];
     ["Offset of field: libraw_output_params_t::output_color"]
-        [::std::mem::offset_of!(libraw_output_params_t, output_color) - 160usize];
+        [::core::mem::offset_of!(libraw_output_params_t, output_color) - 160usize];
     ["Offset of field: libraw_output_params_t::output_profile"]
-        [::std::mem::offset_of!(libraw_output_params_t, output_profile) - 168usize];
+        [::core::mem::offset_of!(libraw_output_params_t, output_profile) - 168usize];
     ["Offset of field: libraw_output_params_t::camera_profile"]
-        [::std::mem::offset_of!(libraw_output_params_t, camera_profile) - 176usize];
+        [::core::mem::offset_of!(libraw_output_params_t, camera_profile) - 176usize];
     ["Offset of field: libraw_output_params_t::bad_pixels"]
-        [::std::mem::offset_of!(libraw_output_params_t, bad_pixels) - 184usize];
+        [::core::mem::offset_of!(libraw_output_params_t, bad_pixels) - 184usize];
     ["Offset of field: libraw_output_params_t::dark_frame"]
-        [::std::mem::offset_of!(libraw_output_params_t, dark_frame) - 192usize];
+        [::core::mem::offset_of!(libraw_output_params_t, dark_frame) - 192usize];
     ["Offset of field: libraw_output_params_t::output_bps"]
-        [::std::mem::offset_of!(libraw_output_params_t, output_bps) - 200usize];
+        [::core::mem::offset_of!(libraw_output_params_t, output_bps) - 200usize];
     ["Offset of field: libraw_output_params_t::output_tiff"]
-        [::std::mem::offset_of!(libraw_output_params_t, output_tiff) - 204usize];
+        [::core::mem::offset_of!(libraw_output_params_t, output_tiff) - 204usize];
     ["Offset of field: libraw_output_params_t::output_flags"]
-        [::std::mem::offset_of!(libraw_output_params_t, output_flags) - 208usize];
+        [::core::mem::offset_of!(libraw_output_params_t, output_flags) - 208usize];
     ["Offset of field: libraw_output_params_t::user_flip"]
-        [::std::mem::offset_of!(libraw_output_params_t, user_flip) - 212usize];
+        [::core::mem::offset_of!(libraw_output_params_t, user_flip) - 212usize];
     ["Offset of field: libraw_output_params_t::user_qual"]
-        [::std::mem::offset_of!(libraw_output_params_t, user_qual) - 216usize];
+        [::core::mem::offset_of!(libraw_output_params_t, user_qual) - 216usize];
     ["Offset of field: libraw_output_params_t::user_black"]
-        [::std::mem::offset_of!(libraw_output_params_t, user_black) - 220usize];
+        [::core::mem::offset_of!(libraw_output_params_t, user_black) - 220usize];
     ["Offset of field: libraw_output_params_t::user_cblack"]
-        [::std::mem::offset_of!(libraw_output_params_t, user_cblack) - 224usize];
+        [::core::mem::offset_of!(libraw_output_params_t, user_cblack) - 224usize];
     ["Offset of field: libraw_output_params_t::user_sat"]
-        [::std::mem::offset_of!(libraw_output_params_t, user_sat) - 240usize];
+        [::core::mem::offset_of!(libraw_output_params_t, user_sat) - 240usize];
     ["Offset of field: libraw_output_params_t::med_passes"]
-        [::std::mem::offset_of!(libraw_output_params_t, med_passes) - 244usize];
+        [::core::mem::offset_of!(libraw_output_params_t, med_passes) - 244usize];
     ["Offset of field: libraw_output_params_t::auto_bright_thr"]
-        [::std::mem::offset_of!(libraw_output_params_t, auto_bright_thr) - 248usize];
+        [::core::mem::offset_of!(libraw_output_params_t, auto_bright_thr) - 248usize];
     ["Offset of field: libraw_output_params_t::adjust_maximum_thr"]
-        [::std::mem::offset_of!(libraw_output_params_t, adjust_maximum_thr) - 252usize];
+        [::core::mem::offset_of!(libraw_output_params_t, adjust_maximum_thr) - 252usize];
     ["Offset of field: libraw_output_params_t::no_auto_bright"]
-        [::std::mem::offset_of!(libraw_output_params_t, no_auto_bright) - 256usize];
+        [::core::mem::offset_of!(libraw_output_params_t, no_auto_bright) - 256usize];
     ["Offset of field: libraw_output_params_t::use_fuji_rotate"]
-        [::std::mem::offset_of!(libraw_output_params_t, use_fuji_rotate) - 260usize];
+        [::core::mem::offset_of!(libraw_output_params_t, use_fuji_rotate) - 260usize];
     ["Offset of field: libraw_output_params_t::green_matching"]
-        [::std::mem::offset_of!(libraw_output_params_t, green_matching) - 264usize];
+        [::core::mem::offset_of!(libraw_output_params_t, green_matching) - 264usize];
     ["Offset of field: libraw_output_params_t::dcb_iterations"]
-        [::std::mem::offset_of!(libraw_output_params_t, dcb_iterations) - 268usize];
+        [::core::mem::offset_of!(libraw_output_params_t, dcb_iterations) - 268usize];
     ["Offset of field: libraw_output_params_t::dcb_enhance_fl"]
-        [::std::mem::offset_of!(libraw_output_params_t, dcb_enhance_fl) - 272usize];
+        [::core::mem::offset_of!(libraw_output_params_t, dcb_enhance_fl) - 272usize];
     ["Offset of field: libraw_output_params_t::fbdd_noiserd"]
-        [::std::mem::offset_of!(libraw_output_params_t, fbdd_noiserd) - 276usize];
+        [::core::mem::offset_of!(libraw_output_params_t, fbdd_noiserd) - 276usize];
     ["Offset of field: libraw_output_params_t::exp_correc"]
-        [::std::mem::offset_of!(libraw_output_params_t, exp_correc) - 280usize];
+        [::core::mem::offset_of!(libraw_output_params_t, exp_correc) - 280usize];
     ["Offset of field: libraw_output_params_t::exp_shift"]
-        [::std::mem::offset_of!(libraw_output_params_t, exp_shift) - 284usize];
+        [::core::mem::offset_of!(libraw_output_params_t, exp_shift) - 284usize];
     ["Offset of field: libraw_output_params_t::exp_preser"]
-        [::std::mem::offset_of!(libraw_output_params_t, exp_preser) - 288usize];
+        [::core::mem::offset_of!(libraw_output_params_t, exp_preser) - 288usize];
     ["Offset of field: libraw_output_params_t::no_auto_scale"]
-        [::std::mem::offset_of!(libraw_output_params_t, no_auto_scale) - 292usize];
+        [::core::mem::offset_of!(libraw_output_params_t, no_auto_scale) - 292usize];
     ["Offset of field: libraw_output_params_t::no_interpolation"]
-        [::std::mem::offset_of!(libraw_output_params_t, no_interpolation) - 296usize];
+        [::core::mem::offset_of!(libraw_output_params_t, no_interpolation) - 296usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_raw_unpack_params_t {
-    pub use_rawspeed: ::std::os::raw::c_int,
-    pub use_dngsdk: ::std::os::raw::c_int,
-    pub options: ::std::os::raw::c_uint,
-    pub shot_select: ::std::os::raw::c_uint,
-    pub specials: ::std::os::raw::c_uint,
-    pub max_raw_memory_mb: ::std::os::raw::c_uint,
-    pub sony_arw2_posterization_thr: ::std::os::raw::c_int,
+    pub use_rawspeed: libc::c_int,
+    pub use_dngsdk: libc::c_int,
+    pub options: libc::c_uint,
+    pub shot_select: libc::c_uint,
+    pub specials: libc::c_uint,
+    pub max_raw_memory_mb: libc::c_uint,
+    pub sony_arw2_posterization_thr: libc::c_int,
     pub coolscan_nef_gamma: f32,
-    pub p4shot_order: [::std::os::raw::c_char; 5usize],
-    pub custom_camera_strings: *mut *mut ::std::os::raw::c_char,
+    pub p4shot_order: [libc::c_char; 5usize],
+    pub custom_camera_strings: *mut *mut libc::c_char,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_raw_unpack_params_t"]
-        [::std::mem::size_of::<libraw_raw_unpack_params_t>() - 48usize];
+        [::core::mem::size_of::<libraw_raw_unpack_params_t>() - 48usize];
     ["Alignment of libraw_raw_unpack_params_t"]
-        [::std::mem::align_of::<libraw_raw_unpack_params_t>() - 8usize];
+        [::core::mem::align_of::<libraw_raw_unpack_params_t>() - 8usize];
     ["Offset of field: libraw_raw_unpack_params_t::use_rawspeed"]
-        [::std::mem::offset_of!(libraw_raw_unpack_params_t, use_rawspeed) - 0usize];
+        [::core::mem::offset_of!(libraw_raw_unpack_params_t, use_rawspeed) - 0usize];
     ["Offset of field: libraw_raw_unpack_params_t::use_dngsdk"]
-        [::std::mem::offset_of!(libraw_raw_unpack_params_t, use_dngsdk) - 4usize];
+        [::core::mem::offset_of!(libraw_raw_unpack_params_t, use_dngsdk) - 4usize];
     ["Offset of field: libraw_raw_unpack_params_t::options"]
-        [::std::mem::offset_of!(libraw_raw_unpack_params_t, options) - 8usize];
+        [::core::mem::offset_of!(libraw_raw_unpack_params_t, options) - 8usize];
     ["Offset of field: libraw_raw_unpack_params_t::shot_select"]
-        [::std::mem::offset_of!(libraw_raw_unpack_params_t, shot_select) - 12usize];
+        [::core::mem::offset_of!(libraw_raw_unpack_params_t, shot_select) - 12usize];
     ["Offset of field: libraw_raw_unpack_params_t::specials"]
-        [::std::mem::offset_of!(libraw_raw_unpack_params_t, specials) - 16usize];
+        [::core::mem::offset_of!(libraw_raw_unpack_params_t, specials) - 16usize];
     ["Offset of field: libraw_raw_unpack_params_t::max_raw_memory_mb"]
-        [::std::mem::offset_of!(libraw_raw_unpack_params_t, max_raw_memory_mb) - 20usize];
-    ["Offset of field: libraw_raw_unpack_params_t::sony_arw2_posterization_thr"]
-        [::std::mem::offset_of!(libraw_raw_unpack_params_t, sony_arw2_posterization_thr) - 24usize];
+        [::core::mem::offset_of!(libraw_raw_unpack_params_t, max_raw_memory_mb) - 20usize];
+    ["Offset of field: libraw_raw_unpack_params_t::sony_arw2_posterization_thr"][::core::mem::offset_of!(
+        libraw_raw_unpack_params_t,
+        sony_arw2_posterization_thr
+    ) - 24usize];
     ["Offset of field: libraw_raw_unpack_params_t::coolscan_nef_gamma"]
-        [::std::mem::offset_of!(libraw_raw_unpack_params_t, coolscan_nef_gamma) - 28usize];
+        [::core::mem::offset_of!(libraw_raw_unpack_params_t, coolscan_nef_gamma) - 28usize];
     ["Offset of field: libraw_raw_unpack_params_t::p4shot_order"]
-        [::std::mem::offset_of!(libraw_raw_unpack_params_t, p4shot_order) - 32usize];
+        [::core::mem::offset_of!(libraw_raw_unpack_params_t, p4shot_order) - 32usize];
     ["Offset of field: libraw_raw_unpack_params_t::custom_camera_strings"]
-        [::std::mem::offset_of!(libraw_raw_unpack_params_t, custom_camera_strings) - 40usize];
+        [::core::mem::offset_of!(libraw_raw_unpack_params_t, custom_camera_strings) - 40usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_rawdata_t {
-    pub raw_alloc: *mut ::std::os::raw::c_void,
+    pub raw_alloc: *mut libc::c_void,
     pub raw_image: *mut ushort,
     pub color4_image: *mut [ushort; 4usize],
     pub color3_image: *mut [ushort; 3usize],
     pub float_image: *mut f32,
     pub float3_image: *mut [f32; 3usize],
     pub float4_image: *mut [f32; 4usize],
-    pub ph1_cblack: *mut [::std::os::raw::c_short; 2usize],
-    pub ph1_rblack: *mut [::std::os::raw::c_short; 2usize],
+    pub ph1_cblack: *mut [libc::c_short; 2usize],
+    pub ph1_rblack: *mut [libc::c_short; 2usize],
     pub iparams: libraw_iparams_t,
     pub sizes: libraw_image_sizes_t,
     pub ioparams: libraw_internal_output_params_t,
@@ -6904,49 +6697,49 @@ pub struct libraw_rawdata_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_rawdata_t"][::std::mem::size_of::<libraw_rawdata_t>() - 187760usize];
-    ["Alignment of libraw_rawdata_t"][::std::mem::align_of::<libraw_rawdata_t>() - 8usize];
+    ["Size of libraw_rawdata_t"][::core::mem::size_of::<libraw_rawdata_t>() - 187760usize];
+    ["Alignment of libraw_rawdata_t"][::core::mem::align_of::<libraw_rawdata_t>() - 8usize];
     ["Offset of field: libraw_rawdata_t::raw_alloc"]
-        [::std::mem::offset_of!(libraw_rawdata_t, raw_alloc) - 0usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, raw_alloc) - 0usize];
     ["Offset of field: libraw_rawdata_t::raw_image"]
-        [::std::mem::offset_of!(libraw_rawdata_t, raw_image) - 8usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, raw_image) - 8usize];
     ["Offset of field: libraw_rawdata_t::color4_image"]
-        [::std::mem::offset_of!(libraw_rawdata_t, color4_image) - 16usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, color4_image) - 16usize];
     ["Offset of field: libraw_rawdata_t::color3_image"]
-        [::std::mem::offset_of!(libraw_rawdata_t, color3_image) - 24usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, color3_image) - 24usize];
     ["Offset of field: libraw_rawdata_t::float_image"]
-        [::std::mem::offset_of!(libraw_rawdata_t, float_image) - 32usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, float_image) - 32usize];
     ["Offset of field: libraw_rawdata_t::float3_image"]
-        [::std::mem::offset_of!(libraw_rawdata_t, float3_image) - 40usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, float3_image) - 40usize];
     ["Offset of field: libraw_rawdata_t::float4_image"]
-        [::std::mem::offset_of!(libraw_rawdata_t, float4_image) - 48usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, float4_image) - 48usize];
     ["Offset of field: libraw_rawdata_t::ph1_cblack"]
-        [::std::mem::offset_of!(libraw_rawdata_t, ph1_cblack) - 56usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, ph1_cblack) - 56usize];
     ["Offset of field: libraw_rawdata_t::ph1_rblack"]
-        [::std::mem::offset_of!(libraw_rawdata_t, ph1_rblack) - 64usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, ph1_rblack) - 64usize];
     ["Offset of field: libraw_rawdata_t::iparams"]
-        [::std::mem::offset_of!(libraw_rawdata_t, iparams) - 72usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, iparams) - 72usize];
     ["Offset of field: libraw_rawdata_t::sizes"]
-        [::std::mem::offset_of!(libraw_rawdata_t, sizes) - 512usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, sizes) - 512usize];
     ["Offset of field: libraw_rawdata_t::ioparams"]
-        [::std::mem::offset_of!(libraw_rawdata_t, ioparams) - 696usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, ioparams) - 696usize];
     ["Offset of field: libraw_rawdata_t::color"]
-        [::std::mem::offset_of!(libraw_rawdata_t, color) - 712usize];
+        [::core::mem::offset_of!(libraw_rawdata_t, color) - 712usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_makernotes_lens_t {
-    pub LensID: ::std::os::raw::c_ulonglong,
-    pub Lens: [::std::os::raw::c_char; 128usize],
+    pub LensID: libc::c_ulonglong,
+    pub Lens: [libc::c_char; 128usize],
     pub LensFormat: ushort,
     pub LensMount: ushort,
-    pub CamID: ::std::os::raw::c_ulonglong,
+    pub CamID: libc::c_ulonglong,
     pub CameraFormat: ushort,
     pub CameraMount: ushort,
-    pub body: [::std::os::raw::c_char; 64usize],
-    pub FocalType: ::std::os::raw::c_short,
-    pub LensFeatures_pre: [::std::os::raw::c_char; 16usize],
-    pub LensFeatures_suf: [::std::os::raw::c_char; 16usize],
+    pub body: [libc::c_char; 64usize],
+    pub FocalType: libc::c_short,
+    pub LensFeatures_pre: [libc::c_char; 16usize],
+    pub LensFeatures_suf: [libc::c_char; 16usize],
     pub MinFocal: f32,
     pub MaxFocal: f32,
     pub MaxAp4MinFocal: f32,
@@ -6962,89 +6755,89 @@ pub struct libraw_makernotes_lens_t {
     pub MinFocusDistance: f32,
     pub FocusRangeIndex: f32,
     pub LensFStops: f32,
-    pub TeleconverterID: ::std::os::raw::c_ulonglong,
-    pub Teleconverter: [::std::os::raw::c_char; 128usize],
-    pub AdapterID: ::std::os::raw::c_ulonglong,
-    pub Adapter: [::std::os::raw::c_char; 128usize],
-    pub AttachmentID: ::std::os::raw::c_ulonglong,
-    pub Attachment: [::std::os::raw::c_char; 128usize],
+    pub TeleconverterID: libc::c_ulonglong,
+    pub Teleconverter: [libc::c_char; 128usize],
+    pub AdapterID: libc::c_ulonglong,
+    pub Adapter: [libc::c_char; 128usize],
+    pub AttachmentID: libc::c_ulonglong,
+    pub Attachment: [libc::c_char; 128usize],
     pub FocalUnits: ushort,
     pub FocalLengthIn35mmFormat: f32,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_makernotes_lens_t"]
-        [::std::mem::size_of::<libraw_makernotes_lens_t>() - 736usize];
+        [::core::mem::size_of::<libraw_makernotes_lens_t>() - 736usize];
     ["Alignment of libraw_makernotes_lens_t"]
-        [::std::mem::align_of::<libraw_makernotes_lens_t>() - 8usize];
+        [::core::mem::align_of::<libraw_makernotes_lens_t>() - 8usize];
     ["Offset of field: libraw_makernotes_lens_t::LensID"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, LensID) - 0usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, LensID) - 0usize];
     ["Offset of field: libraw_makernotes_lens_t::Lens"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, Lens) - 8usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, Lens) - 8usize];
     ["Offset of field: libraw_makernotes_lens_t::LensFormat"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, LensFormat) - 136usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, LensFormat) - 136usize];
     ["Offset of field: libraw_makernotes_lens_t::LensMount"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, LensMount) - 138usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, LensMount) - 138usize];
     ["Offset of field: libraw_makernotes_lens_t::CamID"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, CamID) - 144usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, CamID) - 144usize];
     ["Offset of field: libraw_makernotes_lens_t::CameraFormat"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, CameraFormat) - 152usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, CameraFormat) - 152usize];
     ["Offset of field: libraw_makernotes_lens_t::CameraMount"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, CameraMount) - 154usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, CameraMount) - 154usize];
     ["Offset of field: libraw_makernotes_lens_t::body"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, body) - 156usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, body) - 156usize];
     ["Offset of field: libraw_makernotes_lens_t::FocalType"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, FocalType) - 220usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, FocalType) - 220usize];
     ["Offset of field: libraw_makernotes_lens_t::LensFeatures_pre"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, LensFeatures_pre) - 222usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, LensFeatures_pre) - 222usize];
     ["Offset of field: libraw_makernotes_lens_t::LensFeatures_suf"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, LensFeatures_suf) - 238usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, LensFeatures_suf) - 238usize];
     ["Offset of field: libraw_makernotes_lens_t::MinFocal"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MinFocal) - 256usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MinFocal) - 256usize];
     ["Offset of field: libraw_makernotes_lens_t::MaxFocal"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MaxFocal) - 260usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MaxFocal) - 260usize];
     ["Offset of field: libraw_makernotes_lens_t::MaxAp4MinFocal"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MaxAp4MinFocal) - 264usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MaxAp4MinFocal) - 264usize];
     ["Offset of field: libraw_makernotes_lens_t::MaxAp4MaxFocal"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MaxAp4MaxFocal) - 268usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MaxAp4MaxFocal) - 268usize];
     ["Offset of field: libraw_makernotes_lens_t::MinAp4MinFocal"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MinAp4MinFocal) - 272usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MinAp4MinFocal) - 272usize];
     ["Offset of field: libraw_makernotes_lens_t::MinAp4MaxFocal"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MinAp4MaxFocal) - 276usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MinAp4MaxFocal) - 276usize];
     ["Offset of field: libraw_makernotes_lens_t::MaxAp"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MaxAp) - 280usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MaxAp) - 280usize];
     ["Offset of field: libraw_makernotes_lens_t::MinAp"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MinAp) - 284usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MinAp) - 284usize];
     ["Offset of field: libraw_makernotes_lens_t::CurFocal"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, CurFocal) - 288usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, CurFocal) - 288usize];
     ["Offset of field: libraw_makernotes_lens_t::CurAp"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, CurAp) - 292usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, CurAp) - 292usize];
     ["Offset of field: libraw_makernotes_lens_t::MaxAp4CurFocal"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MaxAp4CurFocal) - 296usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MaxAp4CurFocal) - 296usize];
     ["Offset of field: libraw_makernotes_lens_t::MinAp4CurFocal"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MinAp4CurFocal) - 300usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MinAp4CurFocal) - 300usize];
     ["Offset of field: libraw_makernotes_lens_t::MinFocusDistance"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, MinFocusDistance) - 304usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, MinFocusDistance) - 304usize];
     ["Offset of field: libraw_makernotes_lens_t::FocusRangeIndex"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, FocusRangeIndex) - 308usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, FocusRangeIndex) - 308usize];
     ["Offset of field: libraw_makernotes_lens_t::LensFStops"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, LensFStops) - 312usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, LensFStops) - 312usize];
     ["Offset of field: libraw_makernotes_lens_t::TeleconverterID"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, TeleconverterID) - 320usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, TeleconverterID) - 320usize];
     ["Offset of field: libraw_makernotes_lens_t::Teleconverter"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, Teleconverter) - 328usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, Teleconverter) - 328usize];
     ["Offset of field: libraw_makernotes_lens_t::AdapterID"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, AdapterID) - 456usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, AdapterID) - 456usize];
     ["Offset of field: libraw_makernotes_lens_t::Adapter"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, Adapter) - 464usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, Adapter) - 464usize];
     ["Offset of field: libraw_makernotes_lens_t::AttachmentID"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, AttachmentID) - 592usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, AttachmentID) - 592usize];
     ["Offset of field: libraw_makernotes_lens_t::Attachment"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, Attachment) - 600usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, Attachment) - 600usize];
     ["Offset of field: libraw_makernotes_lens_t::FocalUnits"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, FocalUnits) - 728usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, FocalUnits) - 728usize];
     ["Offset of field: libraw_makernotes_lens_t::FocalLengthIn35mmFormat"]
-        [::std::mem::offset_of!(libraw_makernotes_lens_t, FocalLengthIn35mmFormat) - 732usize];
+        [::core::mem::offset_of!(libraw_makernotes_lens_t, FocalLengthIn35mmFormat) - 732usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7057,18 +6850,18 @@ pub struct libraw_nikonlens_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_nikonlens_t"][::std::mem::size_of::<libraw_nikonlens_t>() - 8usize];
-    ["Alignment of libraw_nikonlens_t"][::std::mem::align_of::<libraw_nikonlens_t>() - 4usize];
+    ["Size of libraw_nikonlens_t"][::core::mem::size_of::<libraw_nikonlens_t>() - 8usize];
+    ["Alignment of libraw_nikonlens_t"][::core::mem::align_of::<libraw_nikonlens_t>() - 4usize];
     ["Offset of field: libraw_nikonlens_t::EffectiveMaxAp"]
-        [::std::mem::offset_of!(libraw_nikonlens_t, EffectiveMaxAp) - 0usize];
+        [::core::mem::offset_of!(libraw_nikonlens_t, EffectiveMaxAp) - 0usize];
     ["Offset of field: libraw_nikonlens_t::LensIDNumber"]
-        [::std::mem::offset_of!(libraw_nikonlens_t, LensIDNumber) - 4usize];
+        [::core::mem::offset_of!(libraw_nikonlens_t, LensIDNumber) - 4usize];
     ["Offset of field: libraw_nikonlens_t::LensFStops"]
-        [::std::mem::offset_of!(libraw_nikonlens_t, LensFStops) - 5usize];
+        [::core::mem::offset_of!(libraw_nikonlens_t, LensFStops) - 5usize];
     ["Offset of field: libraw_nikonlens_t::MCUVersion"]
-        [::std::mem::offset_of!(libraw_nikonlens_t, MCUVersion) - 6usize];
+        [::core::mem::offset_of!(libraw_nikonlens_t, MCUVersion) - 6usize];
     ["Offset of field: libraw_nikonlens_t::LensType"]
-        [::std::mem::offset_of!(libraw_nikonlens_t, LensType) - 7usize];
+        [::core::mem::offset_of!(libraw_nikonlens_t, LensType) - 7usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7080,16 +6873,16 @@ pub struct libraw_dnglens_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_dnglens_t"][::std::mem::size_of::<libraw_dnglens_t>() - 16usize];
-    ["Alignment of libraw_dnglens_t"][::std::mem::align_of::<libraw_dnglens_t>() - 4usize];
+    ["Size of libraw_dnglens_t"][::core::mem::size_of::<libraw_dnglens_t>() - 16usize];
+    ["Alignment of libraw_dnglens_t"][::core::mem::align_of::<libraw_dnglens_t>() - 4usize];
     ["Offset of field: libraw_dnglens_t::MinFocal"]
-        [::std::mem::offset_of!(libraw_dnglens_t, MinFocal) - 0usize];
+        [::core::mem::offset_of!(libraw_dnglens_t, MinFocal) - 0usize];
     ["Offset of field: libraw_dnglens_t::MaxFocal"]
-        [::std::mem::offset_of!(libraw_dnglens_t, MaxFocal) - 4usize];
+        [::core::mem::offset_of!(libraw_dnglens_t, MaxFocal) - 4usize];
     ["Offset of field: libraw_dnglens_t::MaxAp4MinFocal"]
-        [::std::mem::offset_of!(libraw_dnglens_t, MaxAp4MinFocal) - 8usize];
+        [::core::mem::offset_of!(libraw_dnglens_t, MaxAp4MinFocal) - 8usize];
     ["Offset of field: libraw_dnglens_t::MaxAp4MaxFocal"]
-        [::std::mem::offset_of!(libraw_dnglens_t, MaxAp4MaxFocal) - 12usize];
+        [::core::mem::offset_of!(libraw_dnglens_t, MaxAp4MaxFocal) - 12usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7099,10 +6892,10 @@ pub struct libraw_lensinfo_t {
     pub MaxAp4MinFocal: f32,
     pub MaxAp4MaxFocal: f32,
     pub EXIF_MaxAp: f32,
-    pub LensMake: [::std::os::raw::c_char; 128usize],
-    pub Lens: [::std::os::raw::c_char; 128usize],
-    pub LensSerial: [::std::os::raw::c_char; 128usize],
-    pub InternalLensSerial: [::std::os::raw::c_char; 128usize],
+    pub LensMake: [libc::c_char; 128usize],
+    pub Lens: [libc::c_char; 128usize],
+    pub LensSerial: [libc::c_char; 128usize],
+    pub InternalLensSerial: [libc::c_char; 128usize],
     pub FocalLengthIn35mmFormat: ushort,
     pub nikon: libraw_nikonlens_t,
     pub dng: libraw_dnglens_t,
@@ -7110,34 +6903,34 @@ pub struct libraw_lensinfo_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_lensinfo_t"][::std::mem::size_of::<libraw_lensinfo_t>() - 1296usize];
-    ["Alignment of libraw_lensinfo_t"][::std::mem::align_of::<libraw_lensinfo_t>() - 8usize];
+    ["Size of libraw_lensinfo_t"][::core::mem::size_of::<libraw_lensinfo_t>() - 1296usize];
+    ["Alignment of libraw_lensinfo_t"][::core::mem::align_of::<libraw_lensinfo_t>() - 8usize];
     ["Offset of field: libraw_lensinfo_t::MinFocal"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, MinFocal) - 0usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, MinFocal) - 0usize];
     ["Offset of field: libraw_lensinfo_t::MaxFocal"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, MaxFocal) - 4usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, MaxFocal) - 4usize];
     ["Offset of field: libraw_lensinfo_t::MaxAp4MinFocal"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, MaxAp4MinFocal) - 8usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, MaxAp4MinFocal) - 8usize];
     ["Offset of field: libraw_lensinfo_t::MaxAp4MaxFocal"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, MaxAp4MaxFocal) - 12usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, MaxAp4MaxFocal) - 12usize];
     ["Offset of field: libraw_lensinfo_t::EXIF_MaxAp"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, EXIF_MaxAp) - 16usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, EXIF_MaxAp) - 16usize];
     ["Offset of field: libraw_lensinfo_t::LensMake"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, LensMake) - 20usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, LensMake) - 20usize];
     ["Offset of field: libraw_lensinfo_t::Lens"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, Lens) - 148usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, Lens) - 148usize];
     ["Offset of field: libraw_lensinfo_t::LensSerial"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, LensSerial) - 276usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, LensSerial) - 276usize];
     ["Offset of field: libraw_lensinfo_t::InternalLensSerial"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, InternalLensSerial) - 404usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, InternalLensSerial) - 404usize];
     ["Offset of field: libraw_lensinfo_t::FocalLengthIn35mmFormat"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, FocalLengthIn35mmFormat) - 532usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, FocalLengthIn35mmFormat) - 532usize];
     ["Offset of field: libraw_lensinfo_t::nikon"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, nikon) - 536usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, nikon) - 536usize];
     ["Offset of field: libraw_lensinfo_t::dng"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, dng) - 544usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, dng) - 544usize];
     ["Offset of field: libraw_lensinfo_t::makernotes"]
-        [::std::mem::offset_of!(libraw_lensinfo_t, makernotes) - 560usize];
+        [::core::mem::offset_of!(libraw_lensinfo_t, makernotes) - 560usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7158,76 +6951,76 @@ pub struct libraw_makernotes_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_makernotes_t"][::std::mem::size_of::<libraw_makernotes_t>() - 2952usize];
-    ["Alignment of libraw_makernotes_t"][::std::mem::align_of::<libraw_makernotes_t>() - 8usize];
+    ["Size of libraw_makernotes_t"][::core::mem::size_of::<libraw_makernotes_t>() - 2952usize];
+    ["Alignment of libraw_makernotes_t"][::core::mem::align_of::<libraw_makernotes_t>() - 8usize];
     ["Offset of field: libraw_makernotes_t::canon"]
-        [::std::mem::offset_of!(libraw_makernotes_t, canon) - 0usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, canon) - 0usize];
     ["Offset of field: libraw_makernotes_t::nikon"]
-        [::std::mem::offset_of!(libraw_makernotes_t, nikon) - 168usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, nikon) - 168usize];
     ["Offset of field: libraw_makernotes_t::hasselblad"]
-        [::std::mem::offset_of!(libraw_makernotes_t, hasselblad) - 392usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, hasselblad) - 392usize];
     ["Offset of field: libraw_makernotes_t::fuji"]
-        [::std::mem::offset_of!(libraw_makernotes_t, fuji) - 776usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, fuji) - 776usize];
     ["Offset of field: libraw_makernotes_t::olympus"]
-        [::std::mem::offset_of!(libraw_makernotes_t, olympus) - 1056usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, olympus) - 1056usize];
     ["Offset of field: libraw_makernotes_t::sony"]
-        [::std::mem::offset_of!(libraw_makernotes_t, sony) - 1464usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, sony) - 1464usize];
     ["Offset of field: libraw_makernotes_t::kodak"]
-        [::std::mem::offset_of!(libraw_makernotes_t, kodak) - 1644usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, kodak) - 1644usize];
     ["Offset of field: libraw_makernotes_t::panasonic"]
-        [::std::mem::offset_of!(libraw_makernotes_t, panasonic) - 1888usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, panasonic) - 1888usize];
     ["Offset of field: libraw_makernotes_t::pentax"]
-        [::std::mem::offset_of!(libraw_makernotes_t, pentax) - 1956usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, pentax) - 1956usize];
     ["Offset of field: libraw_makernotes_t::phaseone"]
-        [::std::mem::offset_of!(libraw_makernotes_t, phaseone) - 1988usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, phaseone) - 1988usize];
     ["Offset of field: libraw_makernotes_t::ricoh"]
-        [::std::mem::offset_of!(libraw_makernotes_t, ricoh) - 2440usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, ricoh) - 2440usize];
     ["Offset of field: libraw_makernotes_t::samsung"]
-        [::std::mem::offset_of!(libraw_makernotes_t, samsung) - 2512usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, samsung) - 2512usize];
     ["Offset of field: libraw_makernotes_t::common"]
-        [::std::mem::offset_of!(libraw_makernotes_t, common) - 2648usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, common) - 2648usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_shootinginfo_t {
-    pub DriveMode: ::std::os::raw::c_short,
-    pub FocusMode: ::std::os::raw::c_short,
-    pub MeteringMode: ::std::os::raw::c_short,
-    pub AFPoint: ::std::os::raw::c_short,
-    pub ExposureMode: ::std::os::raw::c_short,
-    pub ExposureProgram: ::std::os::raw::c_short,
-    pub ImageStabilization: ::std::os::raw::c_short,
-    pub BodySerial: [::std::os::raw::c_char; 64usize],
-    pub InternalBodySerial: [::std::os::raw::c_char; 64usize],
+    pub DriveMode: libc::c_short,
+    pub FocusMode: libc::c_short,
+    pub MeteringMode: libc::c_short,
+    pub AFPoint: libc::c_short,
+    pub ExposureMode: libc::c_short,
+    pub ExposureProgram: libc::c_short,
+    pub ImageStabilization: libc::c_short,
+    pub BodySerial: [libc::c_char; 64usize],
+    pub InternalBodySerial: [libc::c_char; 64usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_shootinginfo_t"][::std::mem::size_of::<libraw_shootinginfo_t>() - 142usize];
+    ["Size of libraw_shootinginfo_t"][::core::mem::size_of::<libraw_shootinginfo_t>() - 142usize];
     ["Alignment of libraw_shootinginfo_t"]
-        [::std::mem::align_of::<libraw_shootinginfo_t>() - 2usize];
+        [::core::mem::align_of::<libraw_shootinginfo_t>() - 2usize];
     ["Offset of field: libraw_shootinginfo_t::DriveMode"]
-        [::std::mem::offset_of!(libraw_shootinginfo_t, DriveMode) - 0usize];
+        [::core::mem::offset_of!(libraw_shootinginfo_t, DriveMode) - 0usize];
     ["Offset of field: libraw_shootinginfo_t::FocusMode"]
-        [::std::mem::offset_of!(libraw_shootinginfo_t, FocusMode) - 2usize];
+        [::core::mem::offset_of!(libraw_shootinginfo_t, FocusMode) - 2usize];
     ["Offset of field: libraw_shootinginfo_t::MeteringMode"]
-        [::std::mem::offset_of!(libraw_shootinginfo_t, MeteringMode) - 4usize];
+        [::core::mem::offset_of!(libraw_shootinginfo_t, MeteringMode) - 4usize];
     ["Offset of field: libraw_shootinginfo_t::AFPoint"]
-        [::std::mem::offset_of!(libraw_shootinginfo_t, AFPoint) - 6usize];
+        [::core::mem::offset_of!(libraw_shootinginfo_t, AFPoint) - 6usize];
     ["Offset of field: libraw_shootinginfo_t::ExposureMode"]
-        [::std::mem::offset_of!(libraw_shootinginfo_t, ExposureMode) - 8usize];
+        [::core::mem::offset_of!(libraw_shootinginfo_t, ExposureMode) - 8usize];
     ["Offset of field: libraw_shootinginfo_t::ExposureProgram"]
-        [::std::mem::offset_of!(libraw_shootinginfo_t, ExposureProgram) - 10usize];
+        [::core::mem::offset_of!(libraw_shootinginfo_t, ExposureProgram) - 10usize];
     ["Offset of field: libraw_shootinginfo_t::ImageStabilization"]
-        [::std::mem::offset_of!(libraw_shootinginfo_t, ImageStabilization) - 12usize];
+        [::core::mem::offset_of!(libraw_shootinginfo_t, ImageStabilization) - 12usize];
     ["Offset of field: libraw_shootinginfo_t::BodySerial"]
-        [::std::mem::offset_of!(libraw_shootinginfo_t, BodySerial) - 14usize];
+        [::core::mem::offset_of!(libraw_shootinginfo_t, BodySerial) - 14usize];
     ["Offset of field: libraw_shootinginfo_t::InternalBodySerial"]
-        [::std::mem::offset_of!(libraw_shootinginfo_t, InternalBodySerial) - 78usize];
+        [::core::mem::offset_of!(libraw_shootinginfo_t, InternalBodySerial) - 78usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_custom_camera_t {
-    pub fsize: ::std::os::raw::c_uint,
+    pub fsize: libc::c_uint,
     pub rw: ushort,
     pub rh: ushort,
     pub lm: uchar,
@@ -7238,43 +7031,43 @@ pub struct libraw_custom_camera_t {
     pub cf: uchar,
     pub max: uchar,
     pub flags: uchar,
-    pub t_make: [::std::os::raw::c_char; 10usize],
-    pub t_model: [::std::os::raw::c_char; 20usize],
+    pub t_make: [libc::c_char; 10usize],
+    pub t_model: [libc::c_char; 20usize],
     pub offset: ushort,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_custom_camera_t"][::std::mem::size_of::<libraw_custom_camera_t>() - 52usize];
+    ["Size of libraw_custom_camera_t"][::core::mem::size_of::<libraw_custom_camera_t>() - 52usize];
     ["Alignment of libraw_custom_camera_t"]
-        [::std::mem::align_of::<libraw_custom_camera_t>() - 4usize];
+        [::core::mem::align_of::<libraw_custom_camera_t>() - 4usize];
     ["Offset of field: libraw_custom_camera_t::fsize"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, fsize) - 0usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, fsize) - 0usize];
     ["Offset of field: libraw_custom_camera_t::rw"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, rw) - 4usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, rw) - 4usize];
     ["Offset of field: libraw_custom_camera_t::rh"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, rh) - 6usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, rh) - 6usize];
     ["Offset of field: libraw_custom_camera_t::lm"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, lm) - 8usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, lm) - 8usize];
     ["Offset of field: libraw_custom_camera_t::tm"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, tm) - 9usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, tm) - 9usize];
     ["Offset of field: libraw_custom_camera_t::rm"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, rm) - 10usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, rm) - 10usize];
     ["Offset of field: libraw_custom_camera_t::bm"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, bm) - 11usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, bm) - 11usize];
     ["Offset of field: libraw_custom_camera_t::lf"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, lf) - 12usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, lf) - 12usize];
     ["Offset of field: libraw_custom_camera_t::cf"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, cf) - 14usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, cf) - 14usize];
     ["Offset of field: libraw_custom_camera_t::max"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, max) - 15usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, max) - 15usize];
     ["Offset of field: libraw_custom_camera_t::flags"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, flags) - 16usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, flags) - 16usize];
     ["Offset of field: libraw_custom_camera_t::t_make"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, t_make) - 17usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, t_make) - 17usize];
     ["Offset of field: libraw_custom_camera_t::t_model"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, t_model) - 27usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, t_model) - 27usize];
     ["Offset of field: libraw_custom_camera_t::offset"]
-        [::std::mem::offset_of!(libraw_custom_camera_t, offset) - 48usize];
+        [::core::mem::offset_of!(libraw_custom_camera_t, offset) - 48usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7287,178 +7080,178 @@ pub struct libraw_data_t {
     pub shootinginfo: libraw_shootinginfo_t,
     pub params: libraw_output_params_t,
     pub rawparams: libraw_raw_unpack_params_t,
-    pub progress_flags: ::std::os::raw::c_uint,
-    pub process_warnings: ::std::os::raw::c_uint,
+    pub progress_flags: libc::c_uint,
+    pub process_warnings: libc::c_uint,
     pub color: libraw_colordata_t,
     pub other: libraw_imgother_t,
     pub thumbnail: libraw_thumbnail_t,
     pub thumbs_list: libraw_thumbnail_list_t,
     pub rawdata: libraw_rawdata_t,
-    pub parent_class: *mut ::std::os::raw::c_void,
+    pub parent_class: *mut libc::c_void,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_data_t"][::std::mem::size_of::<libraw_data_t>() - 381288usize];
-    ["Alignment of libraw_data_t"][::std::mem::align_of::<libraw_data_t>() - 8usize];
+    ["Size of libraw_data_t"][::core::mem::size_of::<libraw_data_t>() - 381288usize];
+    ["Alignment of libraw_data_t"][::core::mem::align_of::<libraw_data_t>() - 8usize];
     ["Offset of field: libraw_data_t::image"]
-        [::std::mem::offset_of!(libraw_data_t, image) - 0usize];
+        [::core::mem::offset_of!(libraw_data_t, image) - 0usize];
     ["Offset of field: libraw_data_t::sizes"]
-        [::std::mem::offset_of!(libraw_data_t, sizes) - 8usize];
+        [::core::mem::offset_of!(libraw_data_t, sizes) - 8usize];
     ["Offset of field: libraw_data_t::idata"]
-        [::std::mem::offset_of!(libraw_data_t, idata) - 192usize];
+        [::core::mem::offset_of!(libraw_data_t, idata) - 192usize];
     ["Offset of field: libraw_data_t::lens"]
-        [::std::mem::offset_of!(libraw_data_t, lens) - 632usize];
+        [::core::mem::offset_of!(libraw_data_t, lens) - 632usize];
     ["Offset of field: libraw_data_t::makernotes"]
-        [::std::mem::offset_of!(libraw_data_t, makernotes) - 1928usize];
+        [::core::mem::offset_of!(libraw_data_t, makernotes) - 1928usize];
     ["Offset of field: libraw_data_t::shootinginfo"]
-        [::std::mem::offset_of!(libraw_data_t, shootinginfo) - 4880usize];
+        [::core::mem::offset_of!(libraw_data_t, shootinginfo) - 4880usize];
     ["Offset of field: libraw_data_t::params"]
-        [::std::mem::offset_of!(libraw_data_t, params) - 5024usize];
+        [::core::mem::offset_of!(libraw_data_t, params) - 5024usize];
     ["Offset of field: libraw_data_t::rawparams"]
-        [::std::mem::offset_of!(libraw_data_t, rawparams) - 5328usize];
+        [::core::mem::offset_of!(libraw_data_t, rawparams) - 5328usize];
     ["Offset of field: libraw_data_t::progress_flags"]
-        [::std::mem::offset_of!(libraw_data_t, progress_flags) - 5376usize];
+        [::core::mem::offset_of!(libraw_data_t, progress_flags) - 5376usize];
     ["Offset of field: libraw_data_t::process_warnings"]
-        [::std::mem::offset_of!(libraw_data_t, process_warnings) - 5380usize];
+        [::core::mem::offset_of!(libraw_data_t, process_warnings) - 5380usize];
     ["Offset of field: libraw_data_t::color"]
-        [::std::mem::offset_of!(libraw_data_t, color) - 5384usize];
+        [::core::mem::offset_of!(libraw_data_t, color) - 5384usize];
     ["Offset of field: libraw_data_t::other"]
-        [::std::mem::offset_of!(libraw_data_t, other) - 192432usize];
+        [::core::mem::offset_of!(libraw_data_t, other) - 192432usize];
     ["Offset of field: libraw_data_t::thumbnail"]
-        [::std::mem::offset_of!(libraw_data_t, thumbnail) - 193232usize];
+        [::core::mem::offset_of!(libraw_data_t, thumbnail) - 193232usize];
     ["Offset of field: libraw_data_t::thumbs_list"]
-        [::std::mem::offset_of!(libraw_data_t, thumbs_list) - 193256usize];
+        [::core::mem::offset_of!(libraw_data_t, thumbs_list) - 193256usize];
     ["Offset of field: libraw_data_t::rawdata"]
-        [::std::mem::offset_of!(libraw_data_t, rawdata) - 193520usize];
+        [::core::mem::offset_of!(libraw_data_t, rawdata) - 193520usize];
     ["Offset of field: libraw_data_t::parent_class"]
-        [::std::mem::offset_of!(libraw_data_t, parent_class) - 381280usize];
+        [::core::mem::offset_of!(libraw_data_t, parent_class) - 381280usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct fuji_q_table {
     pub q_table: *mut i8,
-    pub raw_bits: ::std::os::raw::c_int,
-    pub total_values: ::std::os::raw::c_int,
-    pub max_grad: ::std::os::raw::c_int,
-    pub q_grad_mult: ::std::os::raw::c_int,
-    pub q_base: ::std::os::raw::c_int,
+    pub raw_bits: libc::c_int,
+    pub total_values: libc::c_int,
+    pub max_grad: libc::c_int,
+    pub q_grad_mult: libc::c_int,
+    pub q_base: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of fuji_q_table"][::std::mem::size_of::<fuji_q_table>() - 32usize];
-    ["Alignment of fuji_q_table"][::std::mem::align_of::<fuji_q_table>() - 8usize];
+    ["Size of fuji_q_table"][::core::mem::size_of::<fuji_q_table>() - 32usize];
+    ["Alignment of fuji_q_table"][::core::mem::align_of::<fuji_q_table>() - 8usize];
     ["Offset of field: fuji_q_table::q_table"]
-        [::std::mem::offset_of!(fuji_q_table, q_table) - 0usize];
+        [::core::mem::offset_of!(fuji_q_table, q_table) - 0usize];
     ["Offset of field: fuji_q_table::raw_bits"]
-        [::std::mem::offset_of!(fuji_q_table, raw_bits) - 8usize];
+        [::core::mem::offset_of!(fuji_q_table, raw_bits) - 8usize];
     ["Offset of field: fuji_q_table::total_values"]
-        [::std::mem::offset_of!(fuji_q_table, total_values) - 12usize];
+        [::core::mem::offset_of!(fuji_q_table, total_values) - 12usize];
     ["Offset of field: fuji_q_table::max_grad"]
-        [::std::mem::offset_of!(fuji_q_table, max_grad) - 16usize];
+        [::core::mem::offset_of!(fuji_q_table, max_grad) - 16usize];
     ["Offset of field: fuji_q_table::q_grad_mult"]
-        [::std::mem::offset_of!(fuji_q_table, q_grad_mult) - 20usize];
+        [::core::mem::offset_of!(fuji_q_table, q_grad_mult) - 20usize];
     ["Offset of field: fuji_q_table::q_base"]
-        [::std::mem::offset_of!(fuji_q_table, q_base) - 24usize];
+        [::core::mem::offset_of!(fuji_q_table, q_base) - 24usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct fuji_compressed_params {
     pub qt: [fuji_q_table; 4usize],
-    pub buf: *mut ::std::os::raw::c_void,
-    pub max_bits: ::std::os::raw::c_int,
-    pub min_value: ::std::os::raw::c_int,
-    pub max_value: ::std::os::raw::c_int,
+    pub buf: *mut libc::c_void,
+    pub max_bits: libc::c_int,
+    pub min_value: libc::c_int,
+    pub max_value: libc::c_int,
     pub line_width: ushort,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of fuji_compressed_params"][::std::mem::size_of::<fuji_compressed_params>() - 152usize];
+    ["Size of fuji_compressed_params"][::core::mem::size_of::<fuji_compressed_params>() - 152usize];
     ["Alignment of fuji_compressed_params"]
-        [::std::mem::align_of::<fuji_compressed_params>() - 8usize];
+        [::core::mem::align_of::<fuji_compressed_params>() - 8usize];
     ["Offset of field: fuji_compressed_params::qt"]
-        [::std::mem::offset_of!(fuji_compressed_params, qt) - 0usize];
+        [::core::mem::offset_of!(fuji_compressed_params, qt) - 0usize];
     ["Offset of field: fuji_compressed_params::buf"]
-        [::std::mem::offset_of!(fuji_compressed_params, buf) - 128usize];
+        [::core::mem::offset_of!(fuji_compressed_params, buf) - 128usize];
     ["Offset of field: fuji_compressed_params::max_bits"]
-        [::std::mem::offset_of!(fuji_compressed_params, max_bits) - 136usize];
+        [::core::mem::offset_of!(fuji_compressed_params, max_bits) - 136usize];
     ["Offset of field: fuji_compressed_params::min_value"]
-        [::std::mem::offset_of!(fuji_compressed_params, min_value) - 140usize];
+        [::core::mem::offset_of!(fuji_compressed_params, min_value) - 140usize];
     ["Offset of field: fuji_compressed_params::max_value"]
-        [::std::mem::offset_of!(fuji_compressed_params, max_value) - 144usize];
+        [::core::mem::offset_of!(fuji_compressed_params, max_value) - 144usize];
     ["Offset of field: fuji_compressed_params::line_width"]
-        [::std::mem::offset_of!(fuji_compressed_params, line_width) - 148usize];
+        [::core::mem::offset_of!(fuji_compressed_params, line_width) - 148usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct internal_data_t {
     pub input: *mut LibRaw_abstract_datastream,
     pub output: *mut FILE,
-    pub input_internal: ::std::os::raw::c_int,
-    pub meta_data: *mut ::std::os::raw::c_char,
+    pub input_internal: libc::c_int,
+    pub meta_data: *mut libc::c_char,
     pub profile_offset: INT64,
     pub toffset: INT64,
-    pub pana_black: [::std::os::raw::c_uint; 4usize],
+    pub pana_black: [libc::c_uint; 4usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of internal_data_t"][::std::mem::size_of::<internal_data_t>() - 64usize];
-    ["Alignment of internal_data_t"][::std::mem::align_of::<internal_data_t>() - 8usize];
+    ["Size of internal_data_t"][::core::mem::size_of::<internal_data_t>() - 64usize];
+    ["Alignment of internal_data_t"][::core::mem::align_of::<internal_data_t>() - 8usize];
     ["Offset of field: internal_data_t::input"]
-        [::std::mem::offset_of!(internal_data_t, input) - 0usize];
+        [::core::mem::offset_of!(internal_data_t, input) - 0usize];
     ["Offset of field: internal_data_t::output"]
-        [::std::mem::offset_of!(internal_data_t, output) - 8usize];
+        [::core::mem::offset_of!(internal_data_t, output) - 8usize];
     ["Offset of field: internal_data_t::input_internal"]
-        [::std::mem::offset_of!(internal_data_t, input_internal) - 16usize];
+        [::core::mem::offset_of!(internal_data_t, input_internal) - 16usize];
     ["Offset of field: internal_data_t::meta_data"]
-        [::std::mem::offset_of!(internal_data_t, meta_data) - 24usize];
+        [::core::mem::offset_of!(internal_data_t, meta_data) - 24usize];
     ["Offset of field: internal_data_t::profile_offset"]
-        [::std::mem::offset_of!(internal_data_t, profile_offset) - 32usize];
+        [::core::mem::offset_of!(internal_data_t, profile_offset) - 32usize];
     ["Offset of field: internal_data_t::toffset"]
-        [::std::mem::offset_of!(internal_data_t, toffset) - 40usize];
+        [::core::mem::offset_of!(internal_data_t, toffset) - 40usize];
     ["Offset of field: internal_data_t::pana_black"]
-        [::std::mem::offset_of!(internal_data_t, pana_black) - 48usize];
+        [::core::mem::offset_of!(internal_data_t, pana_black) - 48usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct output_data_t {
-    pub histogram: *mut [::std::os::raw::c_int; 8192usize],
-    pub oprof: *mut ::std::os::raw::c_uint,
+    pub histogram: *mut [libc::c_int; 8192usize],
+    pub oprof: *mut libc::c_uint,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of output_data_t"][::std::mem::size_of::<output_data_t>() - 16usize];
-    ["Alignment of output_data_t"][::std::mem::align_of::<output_data_t>() - 8usize];
+    ["Size of output_data_t"][::core::mem::size_of::<output_data_t>() - 16usize];
+    ["Alignment of output_data_t"][::core::mem::align_of::<output_data_t>() - 8usize];
     ["Offset of field: output_data_t::histogram"]
-        [::std::mem::offset_of!(output_data_t, histogram) - 0usize];
+        [::core::mem::offset_of!(output_data_t, histogram) - 0usize];
     ["Offset of field: output_data_t::oprof"]
-        [::std::mem::offset_of!(output_data_t, oprof) - 8usize];
+        [::core::mem::offset_of!(output_data_t, oprof) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct identify_data_t {
-    pub olympus_exif_cfa: ::std::os::raw::c_uint,
-    pub unique_id: ::std::os::raw::c_ulonglong,
-    pub OlyID: ::std::os::raw::c_ulonglong,
-    pub tiff_nifds: ::std::os::raw::c_uint,
-    pub tiff_flip: ::std::os::raw::c_int,
-    pub metadata_blocks: ::std::os::raw::c_int,
+    pub olympus_exif_cfa: libc::c_uint,
+    pub unique_id: libc::c_ulonglong,
+    pub OlyID: libc::c_ulonglong,
+    pub tiff_nifds: libc::c_uint,
+    pub tiff_flip: libc::c_int,
+    pub metadata_blocks: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of identify_data_t"][::std::mem::size_of::<identify_data_t>() - 40usize];
-    ["Alignment of identify_data_t"][::std::mem::align_of::<identify_data_t>() - 8usize];
+    ["Size of identify_data_t"][::core::mem::size_of::<identify_data_t>() - 40usize];
+    ["Alignment of identify_data_t"][::core::mem::align_of::<identify_data_t>() - 8usize];
     ["Offset of field: identify_data_t::olympus_exif_cfa"]
-        [::std::mem::offset_of!(identify_data_t, olympus_exif_cfa) - 0usize];
+        [::core::mem::offset_of!(identify_data_t, olympus_exif_cfa) - 0usize];
     ["Offset of field: identify_data_t::unique_id"]
-        [::std::mem::offset_of!(identify_data_t, unique_id) - 8usize];
+        [::core::mem::offset_of!(identify_data_t, unique_id) - 8usize];
     ["Offset of field: identify_data_t::OlyID"]
-        [::std::mem::offset_of!(identify_data_t, OlyID) - 16usize];
+        [::core::mem::offset_of!(identify_data_t, OlyID) - 16usize];
     ["Offset of field: identify_data_t::tiff_nifds"]
-        [::std::mem::offset_of!(identify_data_t, tiff_nifds) - 24usize];
+        [::core::mem::offset_of!(identify_data_t, tiff_nifds) - 24usize];
     ["Offset of field: identify_data_t::tiff_flip"]
-        [::std::mem::offset_of!(identify_data_t, tiff_flip) - 28usize];
+        [::core::mem::offset_of!(identify_data_t, tiff_flip) - 28usize];
     ["Offset of field: identify_data_t::metadata_blocks"]
-        [::std::mem::offset_of!(identify_data_t, metadata_blocks) - 32usize];
+        [::core::mem::offset_of!(identify_data_t, metadata_blocks) - 32usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7469,15 +7262,15 @@ pub struct crx_sample_to_chunk_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of crx_sample_to_chunk_t"][::std::mem::size_of::<crx_sample_to_chunk_t>() - 12usize];
+    ["Size of crx_sample_to_chunk_t"][::core::mem::size_of::<crx_sample_to_chunk_t>() - 12usize];
     ["Alignment of crx_sample_to_chunk_t"]
-        [::std::mem::align_of::<crx_sample_to_chunk_t>() - 4usize];
+        [::core::mem::align_of::<crx_sample_to_chunk_t>() - 4usize];
     ["Offset of field: crx_sample_to_chunk_t::first"]
-        [::std::mem::offset_of!(crx_sample_to_chunk_t, first) - 0usize];
+        [::core::mem::offset_of!(crx_sample_to_chunk_t, first) - 0usize];
     ["Offset of field: crx_sample_to_chunk_t::count"]
-        [::std::mem::offset_of!(crx_sample_to_chunk_t, count) - 4usize];
+        [::core::mem::offset_of!(crx_sample_to_chunk_t, count) - 4usize];
     ["Offset of field: crx_sample_to_chunk_t::id"]
-        [::std::mem::offset_of!(crx_sample_to_chunk_t, id) - 8usize];
+        [::core::mem::offset_of!(crx_sample_to_chunk_t, id) - 8usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7509,218 +7302,218 @@ pub struct crx_data_header_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of crx_data_header_t"][::std::mem::size_of::<crx_data_header_t>() - 128usize];
-    ["Alignment of crx_data_header_t"][::std::mem::align_of::<crx_data_header_t>() - 8usize];
+    ["Size of crx_data_header_t"][::core::mem::size_of::<crx_data_header_t>() - 128usize];
+    ["Alignment of crx_data_header_t"][::core::mem::align_of::<crx_data_header_t>() - 8usize];
     ["Offset of field: crx_data_header_t::version"]
-        [::std::mem::offset_of!(crx_data_header_t, version) - 0usize];
+        [::core::mem::offset_of!(crx_data_header_t, version) - 0usize];
     ["Offset of field: crx_data_header_t::f_width"]
-        [::std::mem::offset_of!(crx_data_header_t, f_width) - 4usize];
+        [::core::mem::offset_of!(crx_data_header_t, f_width) - 4usize];
     ["Offset of field: crx_data_header_t::f_height"]
-        [::std::mem::offset_of!(crx_data_header_t, f_height) - 8usize];
+        [::core::mem::offset_of!(crx_data_header_t, f_height) - 8usize];
     ["Offset of field: crx_data_header_t::tileWidth"]
-        [::std::mem::offset_of!(crx_data_header_t, tileWidth) - 12usize];
+        [::core::mem::offset_of!(crx_data_header_t, tileWidth) - 12usize];
     ["Offset of field: crx_data_header_t::tileHeight"]
-        [::std::mem::offset_of!(crx_data_header_t, tileHeight) - 16usize];
+        [::core::mem::offset_of!(crx_data_header_t, tileHeight) - 16usize];
     ["Offset of field: crx_data_header_t::nBits"]
-        [::std::mem::offset_of!(crx_data_header_t, nBits) - 20usize];
+        [::core::mem::offset_of!(crx_data_header_t, nBits) - 20usize];
     ["Offset of field: crx_data_header_t::nPlanes"]
-        [::std::mem::offset_of!(crx_data_header_t, nPlanes) - 24usize];
+        [::core::mem::offset_of!(crx_data_header_t, nPlanes) - 24usize];
     ["Offset of field: crx_data_header_t::cfaLayout"]
-        [::std::mem::offset_of!(crx_data_header_t, cfaLayout) - 28usize];
+        [::core::mem::offset_of!(crx_data_header_t, cfaLayout) - 28usize];
     ["Offset of field: crx_data_header_t::encType"]
-        [::std::mem::offset_of!(crx_data_header_t, encType) - 32usize];
+        [::core::mem::offset_of!(crx_data_header_t, encType) - 32usize];
     ["Offset of field: crx_data_header_t::imageLevels"]
-        [::std::mem::offset_of!(crx_data_header_t, imageLevels) - 36usize];
+        [::core::mem::offset_of!(crx_data_header_t, imageLevels) - 36usize];
     ["Offset of field: crx_data_header_t::hasTileCols"]
-        [::std::mem::offset_of!(crx_data_header_t, hasTileCols) - 40usize];
+        [::core::mem::offset_of!(crx_data_header_t, hasTileCols) - 40usize];
     ["Offset of field: crx_data_header_t::hasTileRows"]
-        [::std::mem::offset_of!(crx_data_header_t, hasTileRows) - 44usize];
+        [::core::mem::offset_of!(crx_data_header_t, hasTileRows) - 44usize];
     ["Offset of field: crx_data_header_t::mdatHdrSize"]
-        [::std::mem::offset_of!(crx_data_header_t, mdatHdrSize) - 48usize];
+        [::core::mem::offset_of!(crx_data_header_t, mdatHdrSize) - 48usize];
     ["Offset of field: crx_data_header_t::medianBits"]
-        [::std::mem::offset_of!(crx_data_header_t, medianBits) - 52usize];
+        [::core::mem::offset_of!(crx_data_header_t, medianBits) - 52usize];
     ["Offset of field: crx_data_header_t::MediaSize"]
-        [::std::mem::offset_of!(crx_data_header_t, MediaSize) - 56usize];
+        [::core::mem::offset_of!(crx_data_header_t, MediaSize) - 56usize];
     ["Offset of field: crx_data_header_t::MediaOffset"]
-        [::std::mem::offset_of!(crx_data_header_t, MediaOffset) - 64usize];
+        [::core::mem::offset_of!(crx_data_header_t, MediaOffset) - 64usize];
     ["Offset of field: crx_data_header_t::MediaType"]
-        [::std::mem::offset_of!(crx_data_header_t, MediaType) - 72usize];
+        [::core::mem::offset_of!(crx_data_header_t, MediaType) - 72usize];
     ["Offset of field: crx_data_header_t::stsc_data"]
-        [::std::mem::offset_of!(crx_data_header_t, stsc_data) - 80usize];
+        [::core::mem::offset_of!(crx_data_header_t, stsc_data) - 80usize];
     ["Offset of field: crx_data_header_t::stsc_count"]
-        [::std::mem::offset_of!(crx_data_header_t, stsc_count) - 88usize];
+        [::core::mem::offset_of!(crx_data_header_t, stsc_count) - 88usize];
     ["Offset of field: crx_data_header_t::sample_count"]
-        [::std::mem::offset_of!(crx_data_header_t, sample_count) - 92usize];
+        [::core::mem::offset_of!(crx_data_header_t, sample_count) - 92usize];
     ["Offset of field: crx_data_header_t::sample_size"]
-        [::std::mem::offset_of!(crx_data_header_t, sample_size) - 96usize];
+        [::core::mem::offset_of!(crx_data_header_t, sample_size) - 96usize];
     ["Offset of field: crx_data_header_t::sample_sizes"]
-        [::std::mem::offset_of!(crx_data_header_t, sample_sizes) - 104usize];
+        [::core::mem::offset_of!(crx_data_header_t, sample_sizes) - 104usize];
     ["Offset of field: crx_data_header_t::chunk_count"]
-        [::std::mem::offset_of!(crx_data_header_t, chunk_count) - 112usize];
+        [::core::mem::offset_of!(crx_data_header_t, chunk_count) - 112usize];
     ["Offset of field: crx_data_header_t::chunk_offsets"]
-        [::std::mem::offset_of!(crx_data_header_t, chunk_offsets) - 120usize];
+        [::core::mem::offset_of!(crx_data_header_t, chunk_offsets) - 120usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct unpacker_data_t {
-    pub order: ::std::os::raw::c_short,
+    pub order: libc::c_short,
     pub sraw_mul: [ushort; 4usize],
     pub cr2_slice: [ushort; 3usize],
-    pub kodak_cbpp: ::std::os::raw::c_uint,
+    pub kodak_cbpp: libc::c_uint,
     pub strip_offset: INT64,
     pub data_offset: INT64,
     pub meta_offset: INT64,
     pub exif_offset: INT64,
     pub exif_subdir_offset: INT64,
     pub ifd0_offset: INT64,
-    pub data_size: ::std::os::raw::c_uint,
-    pub meta_length: ::std::os::raw::c_uint,
-    pub cr3_exif_length: ::std::os::raw::c_uint,
-    pub cr3_ifd0_length: ::std::os::raw::c_uint,
-    pub thumb_misc: ::std::os::raw::c_uint,
+    pub data_size: libc::c_uint,
+    pub meta_length: libc::c_uint,
+    pub cr3_exif_length: libc::c_uint,
+    pub cr3_ifd0_length: libc::c_uint,
+    pub thumb_misc: libc::c_uint,
     pub thumb_format: LibRaw_internal_thumbnail_formats,
-    pub fuji_layout: ::std::os::raw::c_uint,
-    pub tiff_samples: ::std::os::raw::c_uint,
-    pub tiff_bps: ::std::os::raw::c_uint,
-    pub tiff_compress: ::std::os::raw::c_uint,
-    pub tiff_sampleformat: ::std::os::raw::c_uint,
-    pub zero_after_ff: ::std::os::raw::c_uint,
-    pub tile_width: ::std::os::raw::c_uint,
-    pub tile_length: ::std::os::raw::c_uint,
-    pub load_flags: ::std::os::raw::c_uint,
-    pub data_error: ::std::os::raw::c_uint,
-    pub hasselblad_parser_flag: ::std::os::raw::c_int,
-    pub posRAFData: ::std::os::raw::c_longlong,
-    pub lenRAFData: ::std::os::raw::c_uint,
-    pub fuji_total_lines: ::std::os::raw::c_int,
-    pub fuji_total_blocks: ::std::os::raw::c_int,
-    pub fuji_block_width: ::std::os::raw::c_int,
-    pub fuji_bits: ::std::os::raw::c_int,
-    pub fuji_raw_type: ::std::os::raw::c_int,
-    pub fuji_lossless: ::std::os::raw::c_int,
-    pub pana_encoding: ::std::os::raw::c_int,
-    pub pana_bpp: ::std::os::raw::c_int,
+    pub fuji_layout: libc::c_uint,
+    pub tiff_samples: libc::c_uint,
+    pub tiff_bps: libc::c_uint,
+    pub tiff_compress: libc::c_uint,
+    pub tiff_sampleformat: libc::c_uint,
+    pub zero_after_ff: libc::c_uint,
+    pub tile_width: libc::c_uint,
+    pub tile_length: libc::c_uint,
+    pub load_flags: libc::c_uint,
+    pub data_error: libc::c_uint,
+    pub hasselblad_parser_flag: libc::c_int,
+    pub posRAFData: libc::c_longlong,
+    pub lenRAFData: libc::c_uint,
+    pub fuji_total_lines: libc::c_int,
+    pub fuji_total_blocks: libc::c_int,
+    pub fuji_block_width: libc::c_int,
+    pub fuji_bits: libc::c_int,
+    pub fuji_raw_type: libc::c_int,
+    pub fuji_lossless: libc::c_int,
+    pub pana_encoding: libc::c_int,
+    pub pana_bpp: libc::c_int,
     pub crx_header: [crx_data_header_t; 16usize],
-    pub crx_track_selected: ::std::os::raw::c_int,
-    pub crx_track_count: ::std::os::raw::c_int,
-    pub CR3_CTMDtag: ::std::os::raw::c_short,
-    pub CR3_Version: ::std::os::raw::c_short,
-    pub CM_found: ::std::os::raw::c_int,
-    pub is_NikonTransfer: ::std::os::raw::c_uint,
-    pub is_Olympus: ::std::os::raw::c_uint,
-    pub OlympusDNG_SubDirOffsetValid: ::std::os::raw::c_int,
-    pub is_Sony: ::std::os::raw::c_uint,
-    pub is_pana_raw: ::std::os::raw::c_uint,
-    pub is_PentaxRicohMakernotes: ::std::os::raw::c_uint,
-    pub dng_frames: [::std::os::raw::c_uint; 20usize],
-    pub raw_stride: ::std::os::raw::c_ushort,
+    pub crx_track_selected: libc::c_int,
+    pub crx_track_count: libc::c_int,
+    pub CR3_CTMDtag: libc::c_short,
+    pub CR3_Version: libc::c_short,
+    pub CM_found: libc::c_int,
+    pub is_NikonTransfer: libc::c_uint,
+    pub is_Olympus: libc::c_uint,
+    pub OlympusDNG_SubDirOffsetValid: libc::c_int,
+    pub is_Sony: libc::c_uint,
+    pub is_pana_raw: libc::c_uint,
+    pub is_PentaxRicohMakernotes: libc::c_uint,
+    pub dng_frames: [libc::c_uint; 20usize],
+    pub raw_stride: libc::c_ushort,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of unpacker_data_t"][::std::mem::size_of::<unpacker_data_t>() - 2368usize];
-    ["Alignment of unpacker_data_t"][::std::mem::align_of::<unpacker_data_t>() - 8usize];
+    ["Size of unpacker_data_t"][::core::mem::size_of::<unpacker_data_t>() - 2368usize];
+    ["Alignment of unpacker_data_t"][::core::mem::align_of::<unpacker_data_t>() - 8usize];
     ["Offset of field: unpacker_data_t::order"]
-        [::std::mem::offset_of!(unpacker_data_t, order) - 0usize];
+        [::core::mem::offset_of!(unpacker_data_t, order) - 0usize];
     ["Offset of field: unpacker_data_t::sraw_mul"]
-        [::std::mem::offset_of!(unpacker_data_t, sraw_mul) - 2usize];
+        [::core::mem::offset_of!(unpacker_data_t, sraw_mul) - 2usize];
     ["Offset of field: unpacker_data_t::cr2_slice"]
-        [::std::mem::offset_of!(unpacker_data_t, cr2_slice) - 10usize];
+        [::core::mem::offset_of!(unpacker_data_t, cr2_slice) - 10usize];
     ["Offset of field: unpacker_data_t::kodak_cbpp"]
-        [::std::mem::offset_of!(unpacker_data_t, kodak_cbpp) - 16usize];
+        [::core::mem::offset_of!(unpacker_data_t, kodak_cbpp) - 16usize];
     ["Offset of field: unpacker_data_t::strip_offset"]
-        [::std::mem::offset_of!(unpacker_data_t, strip_offset) - 24usize];
+        [::core::mem::offset_of!(unpacker_data_t, strip_offset) - 24usize];
     ["Offset of field: unpacker_data_t::data_offset"]
-        [::std::mem::offset_of!(unpacker_data_t, data_offset) - 32usize];
+        [::core::mem::offset_of!(unpacker_data_t, data_offset) - 32usize];
     ["Offset of field: unpacker_data_t::meta_offset"]
-        [::std::mem::offset_of!(unpacker_data_t, meta_offset) - 40usize];
+        [::core::mem::offset_of!(unpacker_data_t, meta_offset) - 40usize];
     ["Offset of field: unpacker_data_t::exif_offset"]
-        [::std::mem::offset_of!(unpacker_data_t, exif_offset) - 48usize];
+        [::core::mem::offset_of!(unpacker_data_t, exif_offset) - 48usize];
     ["Offset of field: unpacker_data_t::exif_subdir_offset"]
-        [::std::mem::offset_of!(unpacker_data_t, exif_subdir_offset) - 56usize];
+        [::core::mem::offset_of!(unpacker_data_t, exif_subdir_offset) - 56usize];
     ["Offset of field: unpacker_data_t::ifd0_offset"]
-        [::std::mem::offset_of!(unpacker_data_t, ifd0_offset) - 64usize];
+        [::core::mem::offset_of!(unpacker_data_t, ifd0_offset) - 64usize];
     ["Offset of field: unpacker_data_t::data_size"]
-        [::std::mem::offset_of!(unpacker_data_t, data_size) - 72usize];
+        [::core::mem::offset_of!(unpacker_data_t, data_size) - 72usize];
     ["Offset of field: unpacker_data_t::meta_length"]
-        [::std::mem::offset_of!(unpacker_data_t, meta_length) - 76usize];
+        [::core::mem::offset_of!(unpacker_data_t, meta_length) - 76usize];
     ["Offset of field: unpacker_data_t::cr3_exif_length"]
-        [::std::mem::offset_of!(unpacker_data_t, cr3_exif_length) - 80usize];
+        [::core::mem::offset_of!(unpacker_data_t, cr3_exif_length) - 80usize];
     ["Offset of field: unpacker_data_t::cr3_ifd0_length"]
-        [::std::mem::offset_of!(unpacker_data_t, cr3_ifd0_length) - 84usize];
+        [::core::mem::offset_of!(unpacker_data_t, cr3_ifd0_length) - 84usize];
     ["Offset of field: unpacker_data_t::thumb_misc"]
-        [::std::mem::offset_of!(unpacker_data_t, thumb_misc) - 88usize];
+        [::core::mem::offset_of!(unpacker_data_t, thumb_misc) - 88usize];
     ["Offset of field: unpacker_data_t::thumb_format"]
-        [::std::mem::offset_of!(unpacker_data_t, thumb_format) - 92usize];
+        [::core::mem::offset_of!(unpacker_data_t, thumb_format) - 92usize];
     ["Offset of field: unpacker_data_t::fuji_layout"]
-        [::std::mem::offset_of!(unpacker_data_t, fuji_layout) - 96usize];
+        [::core::mem::offset_of!(unpacker_data_t, fuji_layout) - 96usize];
     ["Offset of field: unpacker_data_t::tiff_samples"]
-        [::std::mem::offset_of!(unpacker_data_t, tiff_samples) - 100usize];
+        [::core::mem::offset_of!(unpacker_data_t, tiff_samples) - 100usize];
     ["Offset of field: unpacker_data_t::tiff_bps"]
-        [::std::mem::offset_of!(unpacker_data_t, tiff_bps) - 104usize];
+        [::core::mem::offset_of!(unpacker_data_t, tiff_bps) - 104usize];
     ["Offset of field: unpacker_data_t::tiff_compress"]
-        [::std::mem::offset_of!(unpacker_data_t, tiff_compress) - 108usize];
+        [::core::mem::offset_of!(unpacker_data_t, tiff_compress) - 108usize];
     ["Offset of field: unpacker_data_t::tiff_sampleformat"]
-        [::std::mem::offset_of!(unpacker_data_t, tiff_sampleformat) - 112usize];
+        [::core::mem::offset_of!(unpacker_data_t, tiff_sampleformat) - 112usize];
     ["Offset of field: unpacker_data_t::zero_after_ff"]
-        [::std::mem::offset_of!(unpacker_data_t, zero_after_ff) - 116usize];
+        [::core::mem::offset_of!(unpacker_data_t, zero_after_ff) - 116usize];
     ["Offset of field: unpacker_data_t::tile_width"]
-        [::std::mem::offset_of!(unpacker_data_t, tile_width) - 120usize];
+        [::core::mem::offset_of!(unpacker_data_t, tile_width) - 120usize];
     ["Offset of field: unpacker_data_t::tile_length"]
-        [::std::mem::offset_of!(unpacker_data_t, tile_length) - 124usize];
+        [::core::mem::offset_of!(unpacker_data_t, tile_length) - 124usize];
     ["Offset of field: unpacker_data_t::load_flags"]
-        [::std::mem::offset_of!(unpacker_data_t, load_flags) - 128usize];
+        [::core::mem::offset_of!(unpacker_data_t, load_flags) - 128usize];
     ["Offset of field: unpacker_data_t::data_error"]
-        [::std::mem::offset_of!(unpacker_data_t, data_error) - 132usize];
+        [::core::mem::offset_of!(unpacker_data_t, data_error) - 132usize];
     ["Offset of field: unpacker_data_t::hasselblad_parser_flag"]
-        [::std::mem::offset_of!(unpacker_data_t, hasselblad_parser_flag) - 136usize];
+        [::core::mem::offset_of!(unpacker_data_t, hasselblad_parser_flag) - 136usize];
     ["Offset of field: unpacker_data_t::posRAFData"]
-        [::std::mem::offset_of!(unpacker_data_t, posRAFData) - 144usize];
+        [::core::mem::offset_of!(unpacker_data_t, posRAFData) - 144usize];
     ["Offset of field: unpacker_data_t::lenRAFData"]
-        [::std::mem::offset_of!(unpacker_data_t, lenRAFData) - 152usize];
+        [::core::mem::offset_of!(unpacker_data_t, lenRAFData) - 152usize];
     ["Offset of field: unpacker_data_t::fuji_total_lines"]
-        [::std::mem::offset_of!(unpacker_data_t, fuji_total_lines) - 156usize];
+        [::core::mem::offset_of!(unpacker_data_t, fuji_total_lines) - 156usize];
     ["Offset of field: unpacker_data_t::fuji_total_blocks"]
-        [::std::mem::offset_of!(unpacker_data_t, fuji_total_blocks) - 160usize];
+        [::core::mem::offset_of!(unpacker_data_t, fuji_total_blocks) - 160usize];
     ["Offset of field: unpacker_data_t::fuji_block_width"]
-        [::std::mem::offset_of!(unpacker_data_t, fuji_block_width) - 164usize];
+        [::core::mem::offset_of!(unpacker_data_t, fuji_block_width) - 164usize];
     ["Offset of field: unpacker_data_t::fuji_bits"]
-        [::std::mem::offset_of!(unpacker_data_t, fuji_bits) - 168usize];
+        [::core::mem::offset_of!(unpacker_data_t, fuji_bits) - 168usize];
     ["Offset of field: unpacker_data_t::fuji_raw_type"]
-        [::std::mem::offset_of!(unpacker_data_t, fuji_raw_type) - 172usize];
+        [::core::mem::offset_of!(unpacker_data_t, fuji_raw_type) - 172usize];
     ["Offset of field: unpacker_data_t::fuji_lossless"]
-        [::std::mem::offset_of!(unpacker_data_t, fuji_lossless) - 176usize];
+        [::core::mem::offset_of!(unpacker_data_t, fuji_lossless) - 176usize];
     ["Offset of field: unpacker_data_t::pana_encoding"]
-        [::std::mem::offset_of!(unpacker_data_t, pana_encoding) - 180usize];
+        [::core::mem::offset_of!(unpacker_data_t, pana_encoding) - 180usize];
     ["Offset of field: unpacker_data_t::pana_bpp"]
-        [::std::mem::offset_of!(unpacker_data_t, pana_bpp) - 184usize];
+        [::core::mem::offset_of!(unpacker_data_t, pana_bpp) - 184usize];
     ["Offset of field: unpacker_data_t::crx_header"]
-        [::std::mem::offset_of!(unpacker_data_t, crx_header) - 192usize];
+        [::core::mem::offset_of!(unpacker_data_t, crx_header) - 192usize];
     ["Offset of field: unpacker_data_t::crx_track_selected"]
-        [::std::mem::offset_of!(unpacker_data_t, crx_track_selected) - 2240usize];
+        [::core::mem::offset_of!(unpacker_data_t, crx_track_selected) - 2240usize];
     ["Offset of field: unpacker_data_t::crx_track_count"]
-        [::std::mem::offset_of!(unpacker_data_t, crx_track_count) - 2244usize];
+        [::core::mem::offset_of!(unpacker_data_t, crx_track_count) - 2244usize];
     ["Offset of field: unpacker_data_t::CR3_CTMDtag"]
-        [::std::mem::offset_of!(unpacker_data_t, CR3_CTMDtag) - 2248usize];
+        [::core::mem::offset_of!(unpacker_data_t, CR3_CTMDtag) - 2248usize];
     ["Offset of field: unpacker_data_t::CR3_Version"]
-        [::std::mem::offset_of!(unpacker_data_t, CR3_Version) - 2250usize];
+        [::core::mem::offset_of!(unpacker_data_t, CR3_Version) - 2250usize];
     ["Offset of field: unpacker_data_t::CM_found"]
-        [::std::mem::offset_of!(unpacker_data_t, CM_found) - 2252usize];
+        [::core::mem::offset_of!(unpacker_data_t, CM_found) - 2252usize];
     ["Offset of field: unpacker_data_t::is_NikonTransfer"]
-        [::std::mem::offset_of!(unpacker_data_t, is_NikonTransfer) - 2256usize];
+        [::core::mem::offset_of!(unpacker_data_t, is_NikonTransfer) - 2256usize];
     ["Offset of field: unpacker_data_t::is_Olympus"]
-        [::std::mem::offset_of!(unpacker_data_t, is_Olympus) - 2260usize];
+        [::core::mem::offset_of!(unpacker_data_t, is_Olympus) - 2260usize];
     ["Offset of field: unpacker_data_t::OlympusDNG_SubDirOffsetValid"]
-        [::std::mem::offset_of!(unpacker_data_t, OlympusDNG_SubDirOffsetValid) - 2264usize];
+        [::core::mem::offset_of!(unpacker_data_t, OlympusDNG_SubDirOffsetValid) - 2264usize];
     ["Offset of field: unpacker_data_t::is_Sony"]
-        [::std::mem::offset_of!(unpacker_data_t, is_Sony) - 2268usize];
+        [::core::mem::offset_of!(unpacker_data_t, is_Sony) - 2268usize];
     ["Offset of field: unpacker_data_t::is_pana_raw"]
-        [::std::mem::offset_of!(unpacker_data_t, is_pana_raw) - 2272usize];
+        [::core::mem::offset_of!(unpacker_data_t, is_pana_raw) - 2272usize];
     ["Offset of field: unpacker_data_t::is_PentaxRicohMakernotes"]
-        [::std::mem::offset_of!(unpacker_data_t, is_PentaxRicohMakernotes) - 2276usize];
+        [::core::mem::offset_of!(unpacker_data_t, is_PentaxRicohMakernotes) - 2276usize];
     ["Offset of field: unpacker_data_t::dng_frames"]
-        [::std::mem::offset_of!(unpacker_data_t, dng_frames) - 2280usize];
+        [::core::mem::offset_of!(unpacker_data_t, dng_frames) - 2280usize];
     ["Offset of field: unpacker_data_t::raw_stride"]
-        [::std::mem::offset_of!(unpacker_data_t, raw_stride) - 2360usize];
+        [::core::mem::offset_of!(unpacker_data_t, raw_stride) - 2360usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7733,140 +7526,142 @@ pub struct libraw_internal_data_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_internal_data_t"][::std::mem::size_of::<libraw_internal_data_t>() - 2504usize];
+    ["Size of libraw_internal_data_t"]
+        [::core::mem::size_of::<libraw_internal_data_t>() - 2504usize];
     ["Alignment of libraw_internal_data_t"]
-        [::std::mem::align_of::<libraw_internal_data_t>() - 8usize];
+        [::core::mem::align_of::<libraw_internal_data_t>() - 8usize];
     ["Offset of field: libraw_internal_data_t::internal_data"]
-        [::std::mem::offset_of!(libraw_internal_data_t, internal_data) - 0usize];
+        [::core::mem::offset_of!(libraw_internal_data_t, internal_data) - 0usize];
     ["Offset of field: libraw_internal_data_t::internal_output_params"]
-        [::std::mem::offset_of!(libraw_internal_data_t, internal_output_params) - 64usize];
+        [::core::mem::offset_of!(libraw_internal_data_t, internal_output_params) - 64usize];
     ["Offset of field: libraw_internal_data_t::output_data"]
-        [::std::mem::offset_of!(libraw_internal_data_t, output_data) - 80usize];
+        [::core::mem::offset_of!(libraw_internal_data_t, output_data) - 80usize];
     ["Offset of field: libraw_internal_data_t::identify_data"]
-        [::std::mem::offset_of!(libraw_internal_data_t, identify_data) - 96usize];
+        [::core::mem::offset_of!(libraw_internal_data_t, identify_data) - 96usize];
     ["Offset of field: libraw_internal_data_t::unpacker_data"]
-        [::std::mem::offset_of!(libraw_internal_data_t, unpacker_data) - 136usize];
+        [::core::mem::offset_of!(libraw_internal_data_t, unpacker_data) - 136usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct decode {
     pub branch: [*mut decode; 2usize],
-    pub leaf: ::std::os::raw::c_int,
+    pub leaf: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of decode"][::std::mem::size_of::<decode>() - 24usize];
-    ["Alignment of decode"][::std::mem::align_of::<decode>() - 8usize];
-    ["Offset of field: decode::branch"][::std::mem::offset_of!(decode, branch) - 0usize];
-    ["Offset of field: decode::leaf"][::std::mem::offset_of!(decode, leaf) - 16usize];
+    ["Size of decode"][::core::mem::size_of::<decode>() - 24usize];
+    ["Alignment of decode"][::core::mem::align_of::<decode>() - 8usize];
+    ["Offset of field: decode::branch"][::core::mem::offset_of!(decode, branch) - 0usize];
+    ["Offset of field: decode::leaf"][::core::mem::offset_of!(decode, leaf) - 16usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct tiff_ifd_t {
-    pub t_width: ::std::os::raw::c_int,
-    pub t_height: ::std::os::raw::c_int,
-    pub bps: ::std::os::raw::c_int,
-    pub comp: ::std::os::raw::c_int,
-    pub phint: ::std::os::raw::c_int,
-    pub offset: ::std::os::raw::c_int,
-    pub t_flip: ::std::os::raw::c_int,
-    pub samples: ::std::os::raw::c_int,
-    pub bytes: ::std::os::raw::c_int,
-    pub extrasamples: ::std::os::raw::c_int,
-    pub t_tile_width: ::std::os::raw::c_int,
-    pub t_tile_length: ::std::os::raw::c_int,
-    pub sample_format: ::std::os::raw::c_int,
-    pub predictor: ::std::os::raw::c_int,
-    pub rows_per_strip: ::std::os::raw::c_int,
-    pub strip_offsets: *mut ::std::os::raw::c_int,
-    pub strip_offsets_count: ::std::os::raw::c_int,
-    pub strip_byte_counts: *mut ::std::os::raw::c_int,
-    pub strip_byte_counts_count: ::std::os::raw::c_int,
-    pub t_filters: ::std::os::raw::c_uint,
-    pub t_vwidth: ::std::os::raw::c_int,
-    pub t_vheight: ::std::os::raw::c_int,
-    pub t_lm: ::std::os::raw::c_int,
-    pub t_tm: ::std::os::raw::c_int,
-    pub t_fuji_width: ::std::os::raw::c_int,
+    pub t_width: libc::c_int,
+    pub t_height: libc::c_int,
+    pub bps: libc::c_int,
+    pub comp: libc::c_int,
+    pub phint: libc::c_int,
+    pub offset: libc::c_int,
+    pub t_flip: libc::c_int,
+    pub samples: libc::c_int,
+    pub bytes: libc::c_int,
+    pub extrasamples: libc::c_int,
+    pub t_tile_width: libc::c_int,
+    pub t_tile_length: libc::c_int,
+    pub sample_format: libc::c_int,
+    pub predictor: libc::c_int,
+    pub rows_per_strip: libc::c_int,
+    pub strip_offsets: *mut libc::c_int,
+    pub strip_offsets_count: libc::c_int,
+    pub strip_byte_counts: *mut libc::c_int,
+    pub strip_byte_counts_count: libc::c_int,
+    pub t_filters: libc::c_uint,
+    pub t_vwidth: libc::c_int,
+    pub t_vheight: libc::c_int,
+    pub t_lm: libc::c_int,
+    pub t_tm: libc::c_int,
+    pub t_fuji_width: libc::c_int,
     pub t_shutter: f32,
     pub opcode2_offset: INT64,
     pub lineartable_offset: INT64,
-    pub lineartable_len: ::std::os::raw::c_int,
+    pub lineartable_len: libc::c_int,
     pub dng_color: [libraw_dng_color_t; 2usize],
     pub dng_levels: libraw_dng_levels_t,
-    pub newsubfiletype: ::std::os::raw::c_int,
+    pub newsubfiletype: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of tiff_ifd_t"][::std::mem::size_of::<tiff_ifd_t>() - 33408usize];
-    ["Alignment of tiff_ifd_t"][::std::mem::align_of::<tiff_ifd_t>() - 8usize];
-    ["Offset of field: tiff_ifd_t::t_width"][::std::mem::offset_of!(tiff_ifd_t, t_width) - 0usize];
+    ["Size of tiff_ifd_t"][::core::mem::size_of::<tiff_ifd_t>() - 33408usize];
+    ["Alignment of tiff_ifd_t"][::core::mem::align_of::<tiff_ifd_t>() - 8usize];
+    ["Offset of field: tiff_ifd_t::t_width"][::core::mem::offset_of!(tiff_ifd_t, t_width) - 0usize];
     ["Offset of field: tiff_ifd_t::t_height"]
-        [::std::mem::offset_of!(tiff_ifd_t, t_height) - 4usize];
-    ["Offset of field: tiff_ifd_t::bps"][::std::mem::offset_of!(tiff_ifd_t, bps) - 8usize];
-    ["Offset of field: tiff_ifd_t::comp"][::std::mem::offset_of!(tiff_ifd_t, comp) - 12usize];
-    ["Offset of field: tiff_ifd_t::phint"][::std::mem::offset_of!(tiff_ifd_t, phint) - 16usize];
-    ["Offset of field: tiff_ifd_t::offset"][::std::mem::offset_of!(tiff_ifd_t, offset) - 20usize];
-    ["Offset of field: tiff_ifd_t::t_flip"][::std::mem::offset_of!(tiff_ifd_t, t_flip) - 24usize];
-    ["Offset of field: tiff_ifd_t::samples"][::std::mem::offset_of!(tiff_ifd_t, samples) - 28usize];
-    ["Offset of field: tiff_ifd_t::bytes"][::std::mem::offset_of!(tiff_ifd_t, bytes) - 32usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_height) - 4usize];
+    ["Offset of field: tiff_ifd_t::bps"][::core::mem::offset_of!(tiff_ifd_t, bps) - 8usize];
+    ["Offset of field: tiff_ifd_t::comp"][::core::mem::offset_of!(tiff_ifd_t, comp) - 12usize];
+    ["Offset of field: tiff_ifd_t::phint"][::core::mem::offset_of!(tiff_ifd_t, phint) - 16usize];
+    ["Offset of field: tiff_ifd_t::offset"][::core::mem::offset_of!(tiff_ifd_t, offset) - 20usize];
+    ["Offset of field: tiff_ifd_t::t_flip"][::core::mem::offset_of!(tiff_ifd_t, t_flip) - 24usize];
+    ["Offset of field: tiff_ifd_t::samples"]
+        [::core::mem::offset_of!(tiff_ifd_t, samples) - 28usize];
+    ["Offset of field: tiff_ifd_t::bytes"][::core::mem::offset_of!(tiff_ifd_t, bytes) - 32usize];
     ["Offset of field: tiff_ifd_t::extrasamples"]
-        [::std::mem::offset_of!(tiff_ifd_t, extrasamples) - 36usize];
+        [::core::mem::offset_of!(tiff_ifd_t, extrasamples) - 36usize];
     ["Offset of field: tiff_ifd_t::t_tile_width"]
-        [::std::mem::offset_of!(tiff_ifd_t, t_tile_width) - 40usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_tile_width) - 40usize];
     ["Offset of field: tiff_ifd_t::t_tile_length"]
-        [::std::mem::offset_of!(tiff_ifd_t, t_tile_length) - 44usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_tile_length) - 44usize];
     ["Offset of field: tiff_ifd_t::sample_format"]
-        [::std::mem::offset_of!(tiff_ifd_t, sample_format) - 48usize];
+        [::core::mem::offset_of!(tiff_ifd_t, sample_format) - 48usize];
     ["Offset of field: tiff_ifd_t::predictor"]
-        [::std::mem::offset_of!(tiff_ifd_t, predictor) - 52usize];
+        [::core::mem::offset_of!(tiff_ifd_t, predictor) - 52usize];
     ["Offset of field: tiff_ifd_t::rows_per_strip"]
-        [::std::mem::offset_of!(tiff_ifd_t, rows_per_strip) - 56usize];
+        [::core::mem::offset_of!(tiff_ifd_t, rows_per_strip) - 56usize];
     ["Offset of field: tiff_ifd_t::strip_offsets"]
-        [::std::mem::offset_of!(tiff_ifd_t, strip_offsets) - 64usize];
+        [::core::mem::offset_of!(tiff_ifd_t, strip_offsets) - 64usize];
     ["Offset of field: tiff_ifd_t::strip_offsets_count"]
-        [::std::mem::offset_of!(tiff_ifd_t, strip_offsets_count) - 72usize];
+        [::core::mem::offset_of!(tiff_ifd_t, strip_offsets_count) - 72usize];
     ["Offset of field: tiff_ifd_t::strip_byte_counts"]
-        [::std::mem::offset_of!(tiff_ifd_t, strip_byte_counts) - 80usize];
+        [::core::mem::offset_of!(tiff_ifd_t, strip_byte_counts) - 80usize];
     ["Offset of field: tiff_ifd_t::strip_byte_counts_count"]
-        [::std::mem::offset_of!(tiff_ifd_t, strip_byte_counts_count) - 88usize];
+        [::core::mem::offset_of!(tiff_ifd_t, strip_byte_counts_count) - 88usize];
     ["Offset of field: tiff_ifd_t::t_filters"]
-        [::std::mem::offset_of!(tiff_ifd_t, t_filters) - 92usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_filters) - 92usize];
     ["Offset of field: tiff_ifd_t::t_vwidth"]
-        [::std::mem::offset_of!(tiff_ifd_t, t_vwidth) - 96usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_vwidth) - 96usize];
     ["Offset of field: tiff_ifd_t::t_vheight"]
-        [::std::mem::offset_of!(tiff_ifd_t, t_vheight) - 100usize];
-    ["Offset of field: tiff_ifd_t::t_lm"][::std::mem::offset_of!(tiff_ifd_t, t_lm) - 104usize];
-    ["Offset of field: tiff_ifd_t::t_tm"][::std::mem::offset_of!(tiff_ifd_t, t_tm) - 108usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_vheight) - 100usize];
+    ["Offset of field: tiff_ifd_t::t_lm"][::core::mem::offset_of!(tiff_ifd_t, t_lm) - 104usize];
+    ["Offset of field: tiff_ifd_t::t_tm"][::core::mem::offset_of!(tiff_ifd_t, t_tm) - 108usize];
     ["Offset of field: tiff_ifd_t::t_fuji_width"]
-        [::std::mem::offset_of!(tiff_ifd_t, t_fuji_width) - 112usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_fuji_width) - 112usize];
     ["Offset of field: tiff_ifd_t::t_shutter"]
-        [::std::mem::offset_of!(tiff_ifd_t, t_shutter) - 116usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_shutter) - 116usize];
     ["Offset of field: tiff_ifd_t::opcode2_offset"]
-        [::std::mem::offset_of!(tiff_ifd_t, opcode2_offset) - 120usize];
+        [::core::mem::offset_of!(tiff_ifd_t, opcode2_offset) - 120usize];
     ["Offset of field: tiff_ifd_t::lineartable_offset"]
-        [::std::mem::offset_of!(tiff_ifd_t, lineartable_offset) - 128usize];
+        [::core::mem::offset_of!(tiff_ifd_t, lineartable_offset) - 128usize];
     ["Offset of field: tiff_ifd_t::lineartable_len"]
-        [::std::mem::offset_of!(tiff_ifd_t, lineartable_len) - 136usize];
+        [::core::mem::offset_of!(tiff_ifd_t, lineartable_len) - 136usize];
     ["Offset of field: tiff_ifd_t::dng_color"]
-        [::std::mem::offset_of!(tiff_ifd_t, dng_color) - 140usize];
+        [::core::mem::offset_of!(tiff_ifd_t, dng_color) - 140usize];
     ["Offset of field: tiff_ifd_t::dng_levels"]
-        [::std::mem::offset_of!(tiff_ifd_t, dng_levels) - 476usize];
+        [::core::mem::offset_of!(tiff_ifd_t, dng_levels) - 476usize];
     ["Offset of field: tiff_ifd_t::newsubfiletype"]
-        [::std::mem::offset_of!(tiff_ifd_t, newsubfiletype) - 33404usize];
+        [::core::mem::offset_of!(tiff_ifd_t, newsubfiletype) - 33404usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct jhead {
-    pub algo: ::std::os::raw::c_int,
-    pub bits: ::std::os::raw::c_int,
-    pub high: ::std::os::raw::c_int,
-    pub wide: ::std::os::raw::c_int,
-    pub clrs: ::std::os::raw::c_int,
-    pub sraw: ::std::os::raw::c_int,
-    pub psv: ::std::os::raw::c_int,
-    pub restart: ::std::os::raw::c_int,
-    pub vpred: [::std::os::raw::c_int; 6usize],
+    pub algo: libc::c_int,
+    pub bits: libc::c_int,
+    pub high: libc::c_int,
+    pub wide: libc::c_int,
+    pub clrs: libc::c_int,
+    pub sraw: libc::c_int,
+    pub psv: libc::c_int,
+    pub restart: libc::c_int,
+    pub vpred: [libc::c_int; 6usize],
     pub quant: [ushort; 64usize],
     pub idct: [ushort; 64usize],
     pub huff: [*mut ushort; 20usize],
@@ -7875,168 +7670,163 @@ pub struct jhead {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of jhead"][::std::mem::size_of::<jhead>() - 640usize];
-    ["Alignment of jhead"][::std::mem::align_of::<jhead>() - 8usize];
-    ["Offset of field: jhead::algo"][::std::mem::offset_of!(jhead, algo) - 0usize];
-    ["Offset of field: jhead::bits"][::std::mem::offset_of!(jhead, bits) - 4usize];
-    ["Offset of field: jhead::high"][::std::mem::offset_of!(jhead, high) - 8usize];
-    ["Offset of field: jhead::wide"][::std::mem::offset_of!(jhead, wide) - 12usize];
-    ["Offset of field: jhead::clrs"][::std::mem::offset_of!(jhead, clrs) - 16usize];
-    ["Offset of field: jhead::sraw"][::std::mem::offset_of!(jhead, sraw) - 20usize];
-    ["Offset of field: jhead::psv"][::std::mem::offset_of!(jhead, psv) - 24usize];
-    ["Offset of field: jhead::restart"][::std::mem::offset_of!(jhead, restart) - 28usize];
-    ["Offset of field: jhead::vpred"][::std::mem::offset_of!(jhead, vpred) - 32usize];
-    ["Offset of field: jhead::quant"][::std::mem::offset_of!(jhead, quant) - 56usize];
-    ["Offset of field: jhead::idct"][::std::mem::offset_of!(jhead, idct) - 184usize];
-    ["Offset of field: jhead::huff"][::std::mem::offset_of!(jhead, huff) - 312usize];
-    ["Offset of field: jhead::free"][::std::mem::offset_of!(jhead, free) - 472usize];
-    ["Offset of field: jhead::row"][::std::mem::offset_of!(jhead, row) - 632usize];
+    ["Size of jhead"][::core::mem::size_of::<jhead>() - 640usize];
+    ["Alignment of jhead"][::core::mem::align_of::<jhead>() - 8usize];
+    ["Offset of field: jhead::algo"][::core::mem::offset_of!(jhead, algo) - 0usize];
+    ["Offset of field: jhead::bits"][::core::mem::offset_of!(jhead, bits) - 4usize];
+    ["Offset of field: jhead::high"][::core::mem::offset_of!(jhead, high) - 8usize];
+    ["Offset of field: jhead::wide"][::core::mem::offset_of!(jhead, wide) - 12usize];
+    ["Offset of field: jhead::clrs"][::core::mem::offset_of!(jhead, clrs) - 16usize];
+    ["Offset of field: jhead::sraw"][::core::mem::offset_of!(jhead, sraw) - 20usize];
+    ["Offset of field: jhead::psv"][::core::mem::offset_of!(jhead, psv) - 24usize];
+    ["Offset of field: jhead::restart"][::core::mem::offset_of!(jhead, restart) - 28usize];
+    ["Offset of field: jhead::vpred"][::core::mem::offset_of!(jhead, vpred) - 32usize];
+    ["Offset of field: jhead::quant"][::core::mem::offset_of!(jhead, quant) - 56usize];
+    ["Offset of field: jhead::idct"][::core::mem::offset_of!(jhead, idct) - 184usize];
+    ["Offset of field: jhead::huff"][::core::mem::offset_of!(jhead, huff) - 312usize];
+    ["Offset of field: jhead::free"][::core::mem::offset_of!(jhead, free) - 472usize];
+    ["Offset of field: jhead::row"][::core::mem::offset_of!(jhead, row) - 632usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct libraw_tiff_tag {
     pub tag: ushort,
     pub type_: ushort,
-    pub count: ::std::os::raw::c_int,
+    pub count: libc::c_int,
     pub val: libraw_tiff_tag__bindgen_ty_1,
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union libraw_tiff_tag__bindgen_ty_1 {
-    pub c: [::std::os::raw::c_char; 4usize],
-    pub s: [::std::os::raw::c_short; 2usize],
-    pub i: ::std::os::raw::c_int,
+    pub c: [libc::c_char; 4usize],
+    pub s: [libc::c_short; 2usize],
+    pub i: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_tiff_tag__bindgen_ty_1"]
-        [::std::mem::size_of::<libraw_tiff_tag__bindgen_ty_1>() - 4usize];
+        [::core::mem::size_of::<libraw_tiff_tag__bindgen_ty_1>() - 4usize];
     ["Alignment of libraw_tiff_tag__bindgen_ty_1"]
-        [::std::mem::align_of::<libraw_tiff_tag__bindgen_ty_1>() - 4usize];
+        [::core::mem::align_of::<libraw_tiff_tag__bindgen_ty_1>() - 4usize];
     ["Offset of field: libraw_tiff_tag__bindgen_ty_1::c"]
-        [::std::mem::offset_of!(libraw_tiff_tag__bindgen_ty_1, c) - 0usize];
+        [::core::mem::offset_of!(libraw_tiff_tag__bindgen_ty_1, c) - 0usize];
     ["Offset of field: libraw_tiff_tag__bindgen_ty_1::s"]
-        [::std::mem::offset_of!(libraw_tiff_tag__bindgen_ty_1, s) - 0usize];
+        [::core::mem::offset_of!(libraw_tiff_tag__bindgen_ty_1, s) - 0usize];
     ["Offset of field: libraw_tiff_tag__bindgen_ty_1::i"]
-        [::std::mem::offset_of!(libraw_tiff_tag__bindgen_ty_1, i) - 0usize];
+        [::core::mem::offset_of!(libraw_tiff_tag__bindgen_ty_1, i) - 0usize];
 };
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_tiff_tag"][::std::mem::size_of::<libraw_tiff_tag>() - 12usize];
-    ["Alignment of libraw_tiff_tag"][::std::mem::align_of::<libraw_tiff_tag>() - 4usize];
+    ["Size of libraw_tiff_tag"][::core::mem::size_of::<libraw_tiff_tag>() - 12usize];
+    ["Alignment of libraw_tiff_tag"][::core::mem::align_of::<libraw_tiff_tag>() - 4usize];
     ["Offset of field: libraw_tiff_tag::tag"]
-        [::std::mem::offset_of!(libraw_tiff_tag, tag) - 0usize];
+        [::core::mem::offset_of!(libraw_tiff_tag, tag) - 0usize];
     ["Offset of field: libraw_tiff_tag::type_"]
-        [::std::mem::offset_of!(libraw_tiff_tag, type_) - 2usize];
+        [::core::mem::offset_of!(libraw_tiff_tag, type_) - 2usize];
     ["Offset of field: libraw_tiff_tag::count"]
-        [::std::mem::offset_of!(libraw_tiff_tag, count) - 4usize];
+        [::core::mem::offset_of!(libraw_tiff_tag, count) - 4usize];
     ["Offset of field: libraw_tiff_tag::val"]
-        [::std::mem::offset_of!(libraw_tiff_tag, val) - 8usize];
+        [::core::mem::offset_of!(libraw_tiff_tag, val) - 8usize];
 };
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct tiff_hdr {
     pub t_order: ushort,
     pub magic: ushort,
-    pub ifd: ::std::os::raw::c_int,
+    pub ifd: libc::c_int,
     pub pad: ushort,
     pub ntag: ushort,
     pub tag: [libraw_tiff_tag; 23usize],
-    pub nextifd: ::std::os::raw::c_int,
+    pub nextifd: libc::c_int,
     pub pad2: ushort,
     pub nexif: ushort,
     pub exif: [libraw_tiff_tag; 4usize],
     pub pad3: ushort,
     pub ngps: ushort,
     pub gpst: [libraw_tiff_tag; 10usize],
-    pub bps: [::std::os::raw::c_short; 4usize],
-    pub rat: [::std::os::raw::c_int; 10usize],
-    pub gps: [::std::os::raw::c_uint; 26usize],
-    pub t_desc: [::std::os::raw::c_char; 512usize],
-    pub t_make: [::std::os::raw::c_char; 64usize],
-    pub t_model: [::std::os::raw::c_char; 64usize],
-    pub soft: [::std::os::raw::c_char; 32usize],
-    pub date: [::std::os::raw::c_char; 20usize],
-    pub t_artist: [::std::os::raw::c_char; 64usize],
+    pub bps: [libc::c_short; 4usize],
+    pub rat: [libc::c_int; 10usize],
+    pub gps: [libc::c_uint; 26usize],
+    pub t_desc: [libc::c_char; 512usize],
+    pub t_make: [libc::c_char; 64usize],
+    pub t_model: [libc::c_char; 64usize],
+    pub soft: [libc::c_char; 32usize],
+    pub date: [libc::c_char; 20usize],
+    pub t_artist: [libc::c_char; 64usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of tiff_hdr"][::std::mem::size_of::<tiff_hdr>() - 1376usize];
-    ["Alignment of tiff_hdr"][::std::mem::align_of::<tiff_hdr>() - 4usize];
-    ["Offset of field: tiff_hdr::t_order"][::std::mem::offset_of!(tiff_hdr, t_order) - 0usize];
-    ["Offset of field: tiff_hdr::magic"][::std::mem::offset_of!(tiff_hdr, magic) - 2usize];
-    ["Offset of field: tiff_hdr::ifd"][::std::mem::offset_of!(tiff_hdr, ifd) - 4usize];
-    ["Offset of field: tiff_hdr::pad"][::std::mem::offset_of!(tiff_hdr, pad) - 8usize];
-    ["Offset of field: tiff_hdr::ntag"][::std::mem::offset_of!(tiff_hdr, ntag) - 10usize];
-    ["Offset of field: tiff_hdr::tag"][::std::mem::offset_of!(tiff_hdr, tag) - 12usize];
-    ["Offset of field: tiff_hdr::nextifd"][::std::mem::offset_of!(tiff_hdr, nextifd) - 288usize];
-    ["Offset of field: tiff_hdr::pad2"][::std::mem::offset_of!(tiff_hdr, pad2) - 292usize];
-    ["Offset of field: tiff_hdr::nexif"][::std::mem::offset_of!(tiff_hdr, nexif) - 294usize];
-    ["Offset of field: tiff_hdr::exif"][::std::mem::offset_of!(tiff_hdr, exif) - 296usize];
-    ["Offset of field: tiff_hdr::pad3"][::std::mem::offset_of!(tiff_hdr, pad3) - 344usize];
-    ["Offset of field: tiff_hdr::ngps"][::std::mem::offset_of!(tiff_hdr, ngps) - 346usize];
-    ["Offset of field: tiff_hdr::gpst"][::std::mem::offset_of!(tiff_hdr, gpst) - 348usize];
-    ["Offset of field: tiff_hdr::bps"][::std::mem::offset_of!(tiff_hdr, bps) - 468usize];
-    ["Offset of field: tiff_hdr::rat"][::std::mem::offset_of!(tiff_hdr, rat) - 476usize];
-    ["Offset of field: tiff_hdr::gps"][::std::mem::offset_of!(tiff_hdr, gps) - 516usize];
-    ["Offset of field: tiff_hdr::t_desc"][::std::mem::offset_of!(tiff_hdr, t_desc) - 620usize];
-    ["Offset of field: tiff_hdr::t_make"][::std::mem::offset_of!(tiff_hdr, t_make) - 1132usize];
-    ["Offset of field: tiff_hdr::t_model"][::std::mem::offset_of!(tiff_hdr, t_model) - 1196usize];
-    ["Offset of field: tiff_hdr::soft"][::std::mem::offset_of!(tiff_hdr, soft) - 1260usize];
-    ["Offset of field: tiff_hdr::date"][::std::mem::offset_of!(tiff_hdr, date) - 1292usize];
-    ["Offset of field: tiff_hdr::t_artist"][::std::mem::offset_of!(tiff_hdr, t_artist) - 1312usize];
+    ["Size of tiff_hdr"][::core::mem::size_of::<tiff_hdr>() - 1376usize];
+    ["Alignment of tiff_hdr"][::core::mem::align_of::<tiff_hdr>() - 4usize];
+    ["Offset of field: tiff_hdr::t_order"][::core::mem::offset_of!(tiff_hdr, t_order) - 0usize];
+    ["Offset of field: tiff_hdr::magic"][::core::mem::offset_of!(tiff_hdr, magic) - 2usize];
+    ["Offset of field: tiff_hdr::ifd"][::core::mem::offset_of!(tiff_hdr, ifd) - 4usize];
+    ["Offset of field: tiff_hdr::pad"][::core::mem::offset_of!(tiff_hdr, pad) - 8usize];
+    ["Offset of field: tiff_hdr::ntag"][::core::mem::offset_of!(tiff_hdr, ntag) - 10usize];
+    ["Offset of field: tiff_hdr::tag"][::core::mem::offset_of!(tiff_hdr, tag) - 12usize];
+    ["Offset of field: tiff_hdr::nextifd"][::core::mem::offset_of!(tiff_hdr, nextifd) - 288usize];
+    ["Offset of field: tiff_hdr::pad2"][::core::mem::offset_of!(tiff_hdr, pad2) - 292usize];
+    ["Offset of field: tiff_hdr::nexif"][::core::mem::offset_of!(tiff_hdr, nexif) - 294usize];
+    ["Offset of field: tiff_hdr::exif"][::core::mem::offset_of!(tiff_hdr, exif) - 296usize];
+    ["Offset of field: tiff_hdr::pad3"][::core::mem::offset_of!(tiff_hdr, pad3) - 344usize];
+    ["Offset of field: tiff_hdr::ngps"][::core::mem::offset_of!(tiff_hdr, ngps) - 346usize];
+    ["Offset of field: tiff_hdr::gpst"][::core::mem::offset_of!(tiff_hdr, gpst) - 348usize];
+    ["Offset of field: tiff_hdr::bps"][::core::mem::offset_of!(tiff_hdr, bps) - 468usize];
+    ["Offset of field: tiff_hdr::rat"][::core::mem::offset_of!(tiff_hdr, rat) - 476usize];
+    ["Offset of field: tiff_hdr::gps"][::core::mem::offset_of!(tiff_hdr, gps) - 516usize];
+    ["Offset of field: tiff_hdr::t_desc"][::core::mem::offset_of!(tiff_hdr, t_desc) - 620usize];
+    ["Offset of field: tiff_hdr::t_make"][::core::mem::offset_of!(tiff_hdr, t_make) - 1132usize];
+    ["Offset of field: tiff_hdr::t_model"][::core::mem::offset_of!(tiff_hdr, t_model) - 1196usize];
+    ["Offset of field: tiff_hdr::soft"][::core::mem::offset_of!(tiff_hdr, soft) - 1260usize];
+    ["Offset of field: tiff_hdr::date"][::core::mem::offset_of!(tiff_hdr, date) - 1292usize];
+    ["Offset of field: tiff_hdr::t_artist"]
+        [::core::mem::offset_of!(tiff_hdr, t_artist) - 1312usize];
 };
 unsafe extern "C" {
-    pub fn libraw_strerror(errorcode: ::std::os::raw::c_int) -> *const ::std::os::raw::c_char;
+    pub fn libraw_strerror(errorcode: libc::c_int) -> *const libc::c_char;
 }
 unsafe extern "C" {
-    pub fn libraw_strprogress(arg1: LibRaw_progress) -> *const ::std::os::raw::c_char;
+    pub fn libraw_strprogress(arg1: LibRaw_progress) -> *const libc::c_char;
 }
 unsafe extern "C" {
-    pub fn libraw_init(flags: ::std::os::raw::c_uint) -> *mut libraw_data_t;
+    pub fn libraw_init(flags: libc::c_uint) -> *mut libraw_data_t;
 }
 unsafe extern "C" {
-    pub fn libraw_open_file(
-        arg1: *mut libraw_data_t,
-        arg2: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
+    pub fn libraw_open_file(arg1: *mut libraw_data_t, arg2: *const libc::c_char) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn libraw_open_buffer(
         arg1: *mut libraw_data_t,
-        buffer: *const ::std::os::raw::c_void,
+        buffer: *const libc::c_void,
         size: usize,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn libraw_open_bayer(
         lr: *mut libraw_data_t,
-        data: *mut ::std::os::raw::c_uchar,
-        datalen: ::std::os::raw::c_uint,
+        data: *mut libc::c_uchar,
+        datalen: libc::c_uint,
         _raw_width: ushort,
         _raw_height: ushort,
         _left_margin: ushort,
         _top_margin: ushort,
         _right_margin: ushort,
         _bottom_margin: ushort,
-        procflags: ::std::os::raw::c_uchar,
-        bayer_battern: ::std::os::raw::c_uchar,
-        unused_bits: ::std::os::raw::c_uint,
-        otherflags: ::std::os::raw::c_uint,
-        black_level: ::std::os::raw::c_uint,
-    ) -> ::std::os::raw::c_int;
+        procflags: libc::c_uchar,
+        bayer_battern: libc::c_uchar,
+        unused_bits: libc::c_uint,
+        otherflags: libc::c_uint,
+        black_level: libc::c_uint,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_unpack(arg1: *mut libraw_data_t) -> ::std::os::raw::c_int;
+    pub fn libraw_unpack(arg1: *mut libraw_data_t) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_unpack_thumb(arg1: *mut libraw_data_t) -> ::std::os::raw::c_int;
+    pub fn libraw_unpack_thumb(arg1: *mut libraw_data_t) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_unpack_thumb_ex(
-        arg1: *mut libraw_data_t,
-        arg2: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
+    pub fn libraw_unpack_thumb_ex(arg1: *mut libraw_data_t, arg2: libc::c_int) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn libraw_recycle_datastream(arg1: *mut libraw_data_t);
@@ -8051,156 +7841,156 @@ unsafe extern "C" {
     pub fn libraw_subtract_black(arg1: *mut libraw_data_t);
 }
 unsafe extern "C" {
-    pub fn libraw_raw2image(arg1: *mut libraw_data_t) -> ::std::os::raw::c_int;
+    pub fn libraw_raw2image(arg1: *mut libraw_data_t) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn libraw_free_image(arg1: *mut libraw_data_t);
 }
 unsafe extern "C" {
-    pub fn libraw_version() -> *const ::std::os::raw::c_char;
+    pub fn libraw_version() -> *const libc::c_char;
 }
 unsafe extern "C" {
-    pub fn libraw_versionNumber() -> ::std::os::raw::c_int;
+    pub fn libraw_versionNumber() -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_cameraList() -> *mut *const ::std::os::raw::c_char;
+    pub fn libraw_cameraList() -> *mut *const libc::c_char;
 }
 unsafe extern "C" {
-    pub fn libraw_cameraCount() -> ::std::os::raw::c_int;
+    pub fn libraw_cameraCount() -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn libraw_set_exifparser_handler(
         arg1: *mut libraw_data_t,
         cb: exif_parser_callback,
-        datap: *mut ::std::os::raw::c_void,
+        datap: *mut libc::c_void,
     );
 }
 unsafe extern "C" {
     pub fn libraw_set_dataerror_handler(
         arg1: *mut libraw_data_t,
         func: data_callback,
-        datap: *mut ::std::os::raw::c_void,
+        datap: *mut libc::c_void,
     );
 }
 unsafe extern "C" {
     pub fn libraw_set_progress_handler(
         arg1: *mut libraw_data_t,
         cb: progress_callback,
-        datap: *mut ::std::os::raw::c_void,
+        datap: *mut libc::c_void,
     );
 }
 unsafe extern "C" {
-    pub fn libraw_unpack_function_name(lr: *mut libraw_data_t) -> *const ::std::os::raw::c_char;
+    pub fn libraw_unpack_function_name(lr: *mut libraw_data_t) -> *const libc::c_char;
 }
 unsafe extern "C" {
     pub fn libraw_get_decoder_info(
         lr: *mut libraw_data_t,
         d: *mut libraw_decoder_info_t,
-    ) -> ::std::os::raw::c_int;
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn libraw_COLOR(
         arg1: *mut libraw_data_t,
-        row: ::std::os::raw::c_int,
-        col: ::std::os::raw::c_int,
-    ) -> ::std::os::raw::c_int;
+        row: libc::c_int,
+        col: libc::c_int,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_capabilities() -> ::std::os::raw::c_uint;
+    pub fn libraw_capabilities() -> libc::c_uint;
 }
 unsafe extern "C" {
-    pub fn libraw_adjust_sizes_info_only(arg1: *mut libraw_data_t) -> ::std::os::raw::c_int;
+    pub fn libraw_adjust_sizes_info_only(arg1: *mut libraw_data_t) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn libraw_dcraw_ppm_tiff_writer(
         lr: *mut libraw_data_t,
-        filename: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
+        filename: *const libc::c_char,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn libraw_dcraw_thumb_writer(
         lr: *mut libraw_data_t,
-        fname: *const ::std::os::raw::c_char,
-    ) -> ::std::os::raw::c_int;
+        fname: *const libc::c_char,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_dcraw_process(lr: *mut libraw_data_t) -> ::std::os::raw::c_int;
+    pub fn libraw_dcraw_process(lr: *mut libraw_data_t) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn libraw_dcraw_make_mem_image(
         lr: *mut libraw_data_t,
-        errc: *mut ::std::os::raw::c_int,
+        errc: *mut libc::c_int,
     ) -> *mut libraw_processed_image_t;
 }
 unsafe extern "C" {
     pub fn libraw_dcraw_make_mem_thumb(
         lr: *mut libraw_data_t,
-        errc: *mut ::std::os::raw::c_int,
+        errc: *mut libc::c_int,
     ) -> *mut libraw_processed_image_t;
 }
 unsafe extern "C" {
     pub fn libraw_dcraw_clear_mem(arg1: *mut libraw_processed_image_t);
 }
 unsafe extern "C" {
-    pub fn libraw_set_demosaic(lr: *mut libraw_data_t, value: ::std::os::raw::c_int);
+    pub fn libraw_set_demosaic(lr: *mut libraw_data_t, value: libc::c_int);
 }
 unsafe extern "C" {
-    pub fn libraw_set_output_color(lr: *mut libraw_data_t, value: ::std::os::raw::c_int);
+    pub fn libraw_set_output_color(lr: *mut libraw_data_t, value: libc::c_int);
 }
 unsafe extern "C" {
     pub fn libraw_set_adjust_maximum_thr(lr: *mut libraw_data_t, value: f32);
 }
 unsafe extern "C" {
-    pub fn libraw_set_user_mul(lr: *mut libraw_data_t, index: ::std::os::raw::c_int, val: f32);
+    pub fn libraw_set_user_mul(lr: *mut libraw_data_t, index: libc::c_int, val: f32);
 }
 unsafe extern "C" {
-    pub fn libraw_set_output_bps(lr: *mut libraw_data_t, value: ::std::os::raw::c_int);
+    pub fn libraw_set_output_bps(lr: *mut libraw_data_t, value: libc::c_int);
 }
 unsafe extern "C" {
-    pub fn libraw_set_gamma(lr: *mut libraw_data_t, index: ::std::os::raw::c_int, value: f32);
+    pub fn libraw_set_gamma(lr: *mut libraw_data_t, index: libc::c_int, value: f32);
 }
 unsafe extern "C" {
-    pub fn libraw_set_no_auto_bright(lr: *mut libraw_data_t, value: ::std::os::raw::c_int);
+    pub fn libraw_set_no_auto_bright(lr: *mut libraw_data_t, value: libc::c_int);
 }
 unsafe extern "C" {
     pub fn libraw_set_bright(lr: *mut libraw_data_t, value: f32);
 }
 unsafe extern "C" {
-    pub fn libraw_set_highlight(lr: *mut libraw_data_t, value: ::std::os::raw::c_int);
+    pub fn libraw_set_highlight(lr: *mut libraw_data_t, value: libc::c_int);
 }
 unsafe extern "C" {
-    pub fn libraw_set_fbdd_noiserd(lr: *mut libraw_data_t, value: ::std::os::raw::c_int);
+    pub fn libraw_set_fbdd_noiserd(lr: *mut libraw_data_t, value: libc::c_int);
 }
 unsafe extern "C" {
-    pub fn libraw_get_raw_height(lr: *mut libraw_data_t) -> ::std::os::raw::c_int;
+    pub fn libraw_get_raw_height(lr: *mut libraw_data_t) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_get_raw_width(lr: *mut libraw_data_t) -> ::std::os::raw::c_int;
+    pub fn libraw_get_raw_width(lr: *mut libraw_data_t) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_get_iheight(lr: *mut libraw_data_t) -> ::std::os::raw::c_int;
+    pub fn libraw_get_iheight(lr: *mut libraw_data_t) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_get_iwidth(lr: *mut libraw_data_t) -> ::std::os::raw::c_int;
+    pub fn libraw_get_iwidth(lr: *mut libraw_data_t) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_get_cam_mul(lr: *mut libraw_data_t, index: ::std::os::raw::c_int) -> f32;
+    pub fn libraw_get_cam_mul(lr: *mut libraw_data_t, index: libc::c_int) -> f32;
 }
 unsafe extern "C" {
-    pub fn libraw_get_pre_mul(lr: *mut libraw_data_t, index: ::std::os::raw::c_int) -> f32;
+    pub fn libraw_get_pre_mul(lr: *mut libraw_data_t, index: libc::c_int) -> f32;
 }
 unsafe extern "C" {
     pub fn libraw_get_rgb_cam(
         lr: *mut libraw_data_t,
-        index1: ::std::os::raw::c_int,
-        index2: ::std::os::raw::c_int,
+        index1: libc::c_int,
+        index2: libc::c_int,
     ) -> f32;
 }
 unsafe extern "C" {
-    pub fn libraw_get_color_maximum(lr: *mut libraw_data_t) -> ::std::os::raw::c_int;
+    pub fn libraw_get_color_maximum(lr: *mut libraw_data_t) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn libraw_set_output_tif(lr: *mut libraw_data_t, value: ::std::os::raw::c_int);
+    pub fn libraw_set_output_tif(lr: *mut libraw_data_t, value: libc::c_int);
 }
 unsafe extern "C" {
     pub fn libraw_get_iparams(lr: *mut libraw_data_t) -> *mut libraw_iparams_t;
@@ -8220,23 +8010,23 @@ pub type __builtin_va_list = [__va_list_tag; 1usize];
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct __va_list_tag {
-    pub gp_offset: ::std::os::raw::c_uint,
-    pub fp_offset: ::std::os::raw::c_uint,
-    pub overflow_arg_area: *mut ::std::os::raw::c_void,
-    pub reg_save_area: *mut ::std::os::raw::c_void,
+    pub gp_offset: libc::c_uint,
+    pub fp_offset: libc::c_uint,
+    pub overflow_arg_area: *mut libc::c_void,
+    pub reg_save_area: *mut libc::c_void,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of __va_list_tag"][::std::mem::size_of::<__va_list_tag>() - 24usize];
-    ["Alignment of __va_list_tag"][::std::mem::align_of::<__va_list_tag>() - 8usize];
+    ["Size of __va_list_tag"][::core::mem::size_of::<__va_list_tag>() - 24usize];
+    ["Alignment of __va_list_tag"][::core::mem::align_of::<__va_list_tag>() - 8usize];
     ["Offset of field: __va_list_tag::gp_offset"]
-        [::std::mem::offset_of!(__va_list_tag, gp_offset) - 0usize];
+        [::core::mem::offset_of!(__va_list_tag, gp_offset) - 0usize];
     ["Offset of field: __va_list_tag::fp_offset"]
-        [::std::mem::offset_of!(__va_list_tag, fp_offset) - 4usize];
+        [::core::mem::offset_of!(__va_list_tag, fp_offset) - 4usize];
     ["Offset of field: __va_list_tag::overflow_arg_area"]
-        [::std::mem::offset_of!(__va_list_tag, overflow_arg_area) - 8usize];
+        [::core::mem::offset_of!(__va_list_tag, overflow_arg_area) - 8usize];
     ["Offset of field: __va_list_tag::reg_save_area"]
-        [::std::mem::offset_of!(__va_list_tag, reg_save_area) - 16usize];
+        [::core::mem::offset_of!(__va_list_tag, reg_save_area) - 16usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
