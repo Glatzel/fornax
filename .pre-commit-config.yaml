@@ -1,42 +1,112 @@
-ci:
-  autofix_prs: false
-  autoupdate_commit_msg: "ci(pre-commit): pre-commit autoupdate"
-  autoupdate_schedule: monthly
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+  - repo: local
     hooks:
+      # pre-commit-hooks
       - id: check-added-large-files
+        name: check-added-large-files
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-added-large-files
+        language: system
+        stages: [pre-commit, manual]
+
       - id: check-ast
-      - id: check-json
-      - id: check-toml
-      - id: check-xml
+        name: check-ast
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-added-large-files
+        language: system
+        types: [python]
+        stages: [pre-commit, manual]
+
       - id: check-yaml
-      - id: detect-private-key
-      - id: end-of-file-fixer
-      - id: mixed-line-ending
+        name: check-yaml
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-yaml
+        language: system
+        types: [yaml]
+        stages: [pre-commit, manual]
+
+      - id: end-of-file
+        name: end-of-file
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml end-of-file-fixer
+        language: system
+        types: [text]
+        stages: [pre-commit, manual]
+
       - id: trailing-whitespace
+        name: trailing-whitespace
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml trailing-whitespace-fixer
+        language: system
+        types: [text]
+        stages: [pre-commit, manual]
 
-  # python
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.8
-    hooks:
+      - id: check-json
+        name: check-json
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-json
+        language: system
+        types: [json]
+        stages: [pre-commit, manual]
+
+      - id: check-toml
+        name: check-toml
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-toml
+        language: system
+        types: [toml]
+        stages: [pre-commit, manual]
+
+      - id: check-xml
+        name: check-xml
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-xml
+        language: system
+        types: [xml]
+        stages: [pre-commit, manual]
+
+      - id: detect-private-key
+        name: detect-private-key
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml detect-private-key
+        language: system
+        types: [text]
+        stages: [pre-commit, manual]
+
+      - id: mixed-line-ending
+        name: mixed-line-ending
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml mixed-line-ending
+        language: system
+        types: [text]
+        stages: [pre-commit, manual]
+
+      # GitHub Actions
+      - id: actionlint
+        name: Lint GitHub Actions workflow files
+        language: system
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml actionlint
+        types: [yaml]
+        files: ^\.github/workflows/
+        stages: [pre-commit, manual]
+
+      # TOML format
+      - id: toml-format
+        name: TOML format
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml toml-format
+        language: system
+        types: [file, toml]
+        stages: [pre-commit, manual]
+
+       # ruff
       - id: ruff
-        args: ["--fix", "--show-fixes", "--exit-non-zero-on-fix"]
-      - id: ruff-format
+        name: Ruff lint
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml ruff-lint
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+        stages: [pre-commit, manual]
 
-  - repo: https://github.com/numpy/numpydoc
-    rev: v1.8.0
-    hooks:
-      - id: numpydoc-validation
+      - id: ruff-format
+        name: Ruff format
+        entry: pixi run --manifest-path ./pre-commit/pixi.toml ruff-format
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+        stages: [pre-commit, manual]
 
   # other
-  - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.7
-    hooks:
-      - id: actionlint
-
-  - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 40.7.1
-    hooks:
-      - id: renovate-config-validator
+  # - repo: https://github.com/renovatebot/pre-commit-hooks
+    # rev: 40.7.1
+    # hooks:
+      # - id: renovate-config-validator
