@@ -90,7 +90,7 @@ jobs:
         if: ${{!cancelled ()}}
         run: ./scripts/numpydoc.ps1
         shell: pwsh
-      
+
 
   test-build:
     strategy:
