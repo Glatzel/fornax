@@ -1,4 +1,4 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended","github>Glatzel/template//common/renovate"]
+  "extends": ["config:recommended","github>Glatzel/template//renovate"]
 }
