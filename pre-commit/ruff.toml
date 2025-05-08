@@ -1,5 +1,5 @@
-line-length = 120
 exclude = [".pixi"]
+line-length = 120
 
 [format]
 docstring-code-format = true
