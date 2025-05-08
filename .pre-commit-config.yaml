@@ -119,6 +119,6 @@ repos:
     - id: cargo-machete
   # other
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 40.7.1
+    rev: 40.8.1
     hooks:
       - id: renovate-config-validator
