@@ -83,6 +83,10 @@ jobs:
         if: ${{!cancelled ()}}
         run: ./scripts/cargo-fmt.ps1
         shell: pwsh
+      - name: cargo-fmt
+        if: ${{!cancelled ()}}
+        run: ./scripts/cargo-fmt.ps1
+        shell: pwsh
       - name: cargo-machete
         if: ${{!cancelled ()}}
         uses: bnjbvr/cargo-machete@main
@@ -151,7 +155,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload results to Codecov
-        if: ${{ !cancelled() && !inputs.release}}
+        if: ${{ !cancelled() && !inputs.release }}
         uses: codecov/codecov-action@v5
 
       - name: Upload test results to Codecov
