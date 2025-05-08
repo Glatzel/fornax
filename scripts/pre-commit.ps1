@@ -1,3 +1,4 @@
+
 Set-Location $PSScriptRoot/..
 New-Item ./pre-commit -ItemType Directory -ErrorAction SilentlyContinue
 curl -L -o .pre-commit-config.yaml  https://raw.githubusercontent.com/Glatzel/template/main//.pre-commit-config.yaml
