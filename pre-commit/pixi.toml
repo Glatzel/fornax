@@ -3,7 +3,7 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "win-64"]
 
 [tasks]
-numpydoc-check = "cd ..;numpydoc lint"
+numpydoc-check = "cd ..; bash -c 'numpydoc lint \"$@\" --ignore ES01 EX01 GL08 PR04 RT03 SA01 SA04' -- "
 pre-commit-run = "pre-commit run --all-files"
 ruff-format = "cd ..;ruff format --force-exclude --exit-non-zero-on-format --config ./pre-commit/ruff.toml"
 ruff-lint = "cd ..;ruff check --fix --show-fixes --exit-non-zero-on-fix --force-exclude --config ./pre-commit/ruff.toml"

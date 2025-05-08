@@ -83,6 +83,13 @@ jobs:
         if: ${{!cancelled ()}}
         run: ./scripts/cargo-fmt.ps1
         shell: pwsh
+      - name: cargo-fmt
+        if: ${{!cancelled ()}}
+        run: ./scripts/cargo-fmt.ps1
+        shell: pwsh
+      - name: cargo-machete
+        if: ${{!cancelled ()}}
+        uses: bnjbvr/cargo-machete@main
 
   test-build:
     strategy:
