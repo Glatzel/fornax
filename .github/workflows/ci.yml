@@ -34,15 +34,6 @@ jobs:
   pre-commit:
     if: ${{ !inputs.release }}
     uses: Glatzel/template/.github/workflows/pre-commit.yml@main
-  cargo-machete:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-        if: ${{github.event_name=='pull_request'}}
-      - name: Machete
-        uses: bnjbvr/cargo-machete@main
 
   cargo-doc:
     if: ${{!inputs.release}}
@@ -69,46 +60,37 @@ jobs:
           name: rust-doc
           path: ./dist/*.7z
           if-no-files-found: error
-
-  cargo-clippy:
+  check:
     if: ${{!inputs.release}}
     runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
       - uses: actions/checkout@v4
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.8
-        with:
-          run-install: false
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        if: ${{github.event_name=='pull_request'}}
-      - name: cargo-clippy
-        run: |
-          ${{env.RUST_ROOT}}/scripts/cargo-clippy.ps1
-        shell: pwsh
-
-  cargo-fmt:
-    if: ${{!inputs.release}}
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.8.8
-        with:
-          run-install: false
       - uses: dtolnay/rust-toolchain@nightly
         with:
-          components: rustfmt
-      - uses: Swatinem/rust-cache@v2
-        if: ${{github.event_name=='pull_request'}}
-      - name: cargo-fmt
-        run: |
-          ${{env.RUST_ROOT}}/scripts/cargo-fmt.ps1
+            components: rustfmt
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.8
+        with:
+          run-install: false
+      - name: cargo-clippy
+        if: ${{!cancelled ()}}
+        run: ./scripts/cargo-clippy.ps1
         shell: pwsh
+      - name: cargo-fmt
+        if: ${{!cancelled ()}}
+        run: ./scripts/cargo-fmt.ps1
+        shell: pwsh
+      - name: cargo-machete
+        if: ${{!cancelled ()}}
+        uses: bnjbvr/cargo-machete@main
+      - name: numpydoc
+        if: ${{!cancelled ()}}
+        run: ./scripts/numpydoc.ps1
+        shell: pwsh
+
 
   test-build:
     strategy:
@@ -173,7 +155,7 @@ jobs:
         uses: codecov/codecov-action@v5
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() && !inputs.release}}
+        if: ${{ !cancelled() && !inputs.release }}
         uses: codecov/test-results-action@v1
         with:
           fail_ci_if_error: true
