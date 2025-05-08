@@ -155,7 +155,7 @@ jobs:
         uses: codecov/codecov-action@v5
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() && !inputs.release}}
+        if: ${{ !cancelled() && !inputs.release }}
         uses: codecov/test-results-action@v1
         with:
           fail_ci_if_error: true
