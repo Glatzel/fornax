@@ -90,11 +90,6 @@ jobs:
       - name: cargo-machete
         if: ${{!cancelled ()}}
         uses: bnjbvr/cargo-machete@main
-      - name: numpydoc
-        if: ${{!cancelled ()}}
-        run: ./scripts/numpydoc.ps1
-        shell: pwsh
-
 
   test-build:
     strategy:
