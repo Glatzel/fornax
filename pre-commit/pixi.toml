@@ -1,13 +1,13 @@
 [workspace]
 channels = ["conda-forge"]
-platforms = ["linux-64","win-64"]
+platforms = ["linux-64", "win-64"]
 
 [tasks]
+numpydoc-check = "cd ..;numpydoc lint --ignore ES01 EX01 GL08 PR04 RT03 SA01 SA04 files"
 pre-commit-run = "pre-commit run --all-files"
-toml-format = { cmd = "taplo fmt", env = { RUST_LOG = "warn" } }
 ruff-format = "cd ..;ruff format --force-exclude --exit-non-zero-on-format --config ./pre-commit/ruff.toml"
 ruff-lint = "cd ..;ruff check --fix --show-fixes --exit-non-zero-on-fix --force-exclude --config ./pre-commit/ruff.toml"
-numpydoc-check = "cd ..;numpydoc lint --ignore ES01 EX01 GL08 PR04 RT03 SA01 SA04 files"
+toml-format = { cmd = "taplo fmt", env = { RUST_LOG = "warn" } }
 
 [dependencies]
 actionlint = "==1.7.7"
