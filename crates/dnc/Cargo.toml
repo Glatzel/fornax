@@ -9,7 +9,6 @@ dunce = { workspace = true }
 miette = { workspace = true }
 path-slash = { workspace = true }
 serde = { workspace = true, optional = true }
-bindgen = "0.71.1"
 
 [dev-dependencies]
 assert_cmd = { workspace = true }
