@@ -62,6 +62,8 @@ macro_rules! raw_workflow {
         (img_array,).into_pyobject($py)
     }};
 }
+
+#[allow(clippy::too_many_arguments)]
 #[pyfunction]
 fn py_process<'a>(
     py: Python<'a>,

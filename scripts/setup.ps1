@@ -1,4 +1,4 @@
-pixi install
+pixi install --no-progress
 $env:PYTHONPATH = Resolve-Path $PSScriptRoot/../crates/fornax-py
 
 if ($IsWindows) {

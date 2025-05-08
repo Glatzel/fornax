@@ -1,6 +1,7 @@
 use demosaic::IDemosaic;
 use fornax_core::{FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{ImageBuffer, Rgb};
+
 mod demosaic;
 pub use demosaic::Demosaicer;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
