@@ -143,7 +143,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload results to Codecov
-        if: ${{ !cancelled() && !inputs.release}}
+        if: ${{ !cancelled() && !inputs.release }}
         uses: codecov/codecov-action@v5
 
       - name: Upload test results to Codecov
