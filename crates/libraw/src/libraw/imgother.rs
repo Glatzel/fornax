@@ -32,15 +32,33 @@ impl LibrawGpsInfo {
                 .replace('\0', ""),
         }
     }
-    pub fn latitude(&self) -> [f32; 3usize] { self.latitude }
-    pub fn longitude(&self) -> [f32; 3usize] { self.longitude }
-    pub fn gpstimestamp(&self) -> [f32; 3usize] { self.gpstimestamp }
-    pub fn altitude(&self) -> f32 { self.altitude }
-    pub fn altref(&self) -> String { self.altref.clone() }
-    pub fn latref(&self) -> String { self.latref.clone() }
-    pub fn longref(&self) -> String { self.longref.clone() }
-    pub fn gpsstatus(&self) -> String { self.gpsstatus.clone() }
-    pub fn gpsparsed(&self) -> String { self.gpsparsed.clone() }
+    pub fn latitude(&self) -> [f32; 3usize] {
+        self.latitude
+    }
+    pub fn longitude(&self) -> [f32; 3usize] {
+        self.longitude
+    }
+    pub fn gpstimestamp(&self) -> [f32; 3usize] {
+        self.gpstimestamp
+    }
+    pub fn altitude(&self) -> f32 {
+        self.altitude
+    }
+    pub fn altref(&self) -> String {
+        self.altref.clone()
+    }
+    pub fn latref(&self) -> String {
+        self.latref.clone()
+    }
+    pub fn longref(&self) -> String {
+        self.longref.clone()
+    }
+    pub fn gpsstatus(&self) -> String {
+        self.gpsstatus.clone()
+    }
+    pub fn gpsparsed(&self) -> String {
+        self.gpsparsed.clone()
+    }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Clone)]
@@ -75,23 +93,43 @@ impl LibrawImgOther {
         })
     }
     ///ISO sensitivity.
-    pub fn iso_speed(&self) -> f32 { self.iso_speed }
+    pub fn iso_speed(&self) -> f32 {
+        self.iso_speed
+    }
     ///Shutter speed.
-    pub fn shutter(&self) -> f32 { self.shutter }
+    pub fn shutter(&self) -> f32 {
+        self.shutter
+    }
     ///Aperture.
-    pub fn aperture(&self) -> f32 { self.aperture }
+    pub fn aperture(&self) -> f32 {
+        self.aperture
+    }
     ///Focal length.
-    pub fn focal_len(&self) -> f32 { self.focal_len }
+    pub fn focal_len(&self) -> f32 {
+        self.focal_len
+    }
     ///Date of shooting.
-    pub fn timestamp(&self) -> DateTime<Utc> { self.timestamp }
+    pub fn timestamp(&self) -> DateTime<Utc> {
+        self.timestamp
+    }
     ///Serial number of image.
-    pub fn shot_order(&self) -> u32 { self.shot_order }
+    pub fn shot_order(&self) -> u32 {
+        self.shot_order
+    }
     ///GPS data (unparsed block, to write to output as is).
-    pub fn gpsdata(&self) -> [u32; 32] { self.gpsdata }
+    pub fn gpsdata(&self) -> [u32; 32] {
+        self.gpsdata
+    }
     ///Parsed GPS-data: longitude/latitude/altitude and time stamp.
-    pub fn parsed_gps(&self) -> LibrawGpsInfo { self.parsed_gps.clone() }
+    pub fn parsed_gps(&self) -> LibrawGpsInfo {
+        self.parsed_gps.clone()
+    }
     ///Image description.
-    pub fn desc(&self) -> String { self.desc.clone() }
+    pub fn desc(&self) -> String {
+        self.desc.clone()
+    }
     ///Author of image.
-    pub fn artist(&self) -> String { self.artist.clone() }
+    pub fn artist(&self) -> String {
+        self.artist.clone()
+    }
 }

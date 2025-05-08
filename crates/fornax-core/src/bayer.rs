@@ -138,10 +138,14 @@ where
     /// This method provides access to the original Bayer image data in the form
     /// of a grayscale image (`Luma<T>`), where each pixel value represents
     /// a color channel from the Bayer pattern.
-    pub fn mosaic(&self) -> &image::ImageBuffer<Luma<T>, Vec<T>> { &self.bayer_image }
+    pub fn mosaic(&self) -> &image::ImageBuffer<Luma<T>, Vec<T>> {
+        &self.bayer_image
+    }
     /// Returns a reference to the Bayer pattern associated with the image.
     ///
     /// This method allows you to access the pattern used to arrange the color
     /// channels in the Bayer image.
-    pub fn pattern(&self) -> &BayerPattern { &self.pattern }
+    pub fn pattern(&self) -> &BayerPattern {
+        &self.pattern
+    }
 }

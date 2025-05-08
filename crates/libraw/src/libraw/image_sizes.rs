@@ -55,33 +55,55 @@ impl LibrawImageSizes {
         })
     }
     ///Full size of RAW image (including the frame) in pixels.
-    pub fn raw_height(&self) -> u16 { self.raw_height }
+    pub fn raw_height(&self) -> u16 {
+        self.raw_height
+    }
     /// Full size of RAW image (including the frame) in pixels.
-    pub fn raw_width(&self) -> u16 { self.raw_width }
+    pub fn raw_width(&self) -> u16 {
+        self.raw_width
+    }
     ///Size of visible ("meaningful") part of the image (without the frame).
-    pub fn height(&self) -> u16 { self.height }
+    pub fn height(&self) -> u16 {
+        self.height
+    }
     ///Size of visible ("meaningful") part of the image (without the frame).
-    pub fn width(&self) -> u16 { self.width }
+    pub fn width(&self) -> u16 {
+        self.width
+    }
     ///Coordinates of the top left corner of the frame (the second corner is
     /// calculated from the full size of the image and size of its visible
     /// part).
-    pub fn top_margin(&self) -> u16 { self.top_margin }
+    pub fn top_margin(&self) -> u16 {
+        self.top_margin
+    }
     ///Coordinates of the top left corner of the frame (the second corner is
     /// calculated from the full size of the image and size of its visible
     /// part).
-    pub fn left_margin(&self) -> u16 { self.left_margin }
+    pub fn left_margin(&self) -> u16 {
+        self.left_margin
+    }
     ///Size of the output image (may differ from height/width for cameras that
     /// require image rotation or have non-square pixels).
-    pub fn iheight(&self) -> u16 { self.iheight }
+    pub fn iheight(&self) -> u16 {
+        self.iheight
+    }
     ///Size of the output image (may differ from height/width for cameras that
     /// require image rotation or have non-square pixels).
-    pub fn iwidth(&self) -> u16 { self.iwidth }
+    pub fn iwidth(&self) -> u16 {
+        self.iwidth
+    }
     ///Full size of raw data row in bytes .
-    pub fn raw_pitch(&self) -> u32 { self.raw_pitch }
+    pub fn raw_pitch(&self) -> u32 {
+        self.raw_pitch
+    }
     /// Pixel width/height ratio. If it is not unity, scaling of the image along
     /// one of the axes is required during output.
-    pub fn pixel_aspect(&self) -> f64 { self.pixel_aspect }
+    pub fn pixel_aspect(&self) -> f64 {
+        self.pixel_aspect
+    }
     ///Image orientation (0 if does not require rotation; 3 if requires 180-deg
     /// rotation; 5 if 90 deg counterclockwise, 6 if 90 deg clockwise).
-    pub fn flip(&self) -> LibrawFlip { self.flip }
+    pub fn flip(&self) -> LibrawFlip {
+        self.flip
+    }
 }
