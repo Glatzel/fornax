@@ -88,7 +88,7 @@ repos:
         types: [file, toml]
         stages: [pre-commit, manual]
 
-       # python
+        # python
       - id: ruff-lint
         name: Ruff lint
         entry: pixi run --manifest-path ./pre-commit/pixi.toml ruff-lint
@@ -110,13 +110,29 @@ repos:
         entry: pixi run --manifest-path ./pre-commit/pixi.toml numpydoc-check
         language: system
         types_or: [python]
+        stages: [pre-commit, manual]
+
+      #rust
+      - id: cargo-fmt
+        name: cargo-fmt
+        entry: pwsh -NoProfile -Command "$ErrorActionPreference ='Stop';$PSNativeCommandUseErrorActionPreference = $true;foreach ($f in $args) { &$f}"
+        language: system
+        files: '.*/cargo-fmt.ps1'
+        require_serial: true
+        stages: [pre-commit, manual]
+
+      - id: cargo-clippy
+        name: cargo-clippy
+        entry: pwsh -NoProfile -Command "$ErrorActionPreference ='Stop';$PSNativeCommandUseErrorActionPreference = $true;foreach ($f in $args) { &$f}"
+        language: system
+        files: '.*/cargo-clippy.ps1'
         require_serial: true
         stages: [pre-commit, manual]
 
   - repo: https://github.com/bnjbvr/cargo-machete
     rev: main
     hooks:
-    - id: cargo-machete
+      - id: cargo-machete
   # other
   - repo: https://github.com/renovatebot/pre-commit-hooks
     rev: 40.8.1
