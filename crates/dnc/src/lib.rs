@@ -32,13 +32,9 @@ pub struct Dnc {
     params: DncParams,
 }
 impl Dnc {
-    pub fn new(params: DncParams) -> Self {
-        Self { params }
-    }
+    pub fn new(params: DncParams) -> Self { Self { params } }
 
-    pub fn params(&self) -> &DncParams {
-        &self.params
-    }
+    pub fn params(&self) -> &DncParams { &self.params }
 
     fn dng_file(&self, raw_file: &Path) -> miette::Result<PathBuf> {
         let mut file = if let Some(dir) = &self.params.directory {
@@ -112,7 +108,5 @@ impl Dnc {
 }
 
 impl Default for Dnc {
-    fn default() -> Self {
-        Self::new(DncParams::default())
-    }
+    fn default() -> Self { Self::new(DncParams::default()) }
 }
