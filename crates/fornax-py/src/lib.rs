@@ -38,15 +38,15 @@ impl From<&str> for PyDecoder {
         }
     }
 }
-enum PyPostPorcessor {
+enum PyPostProcessor {
     Dalim,
     Libraw,
 }
-impl From<&str> for PyPostPorcessor {
+impl From<&str> for PyPostProcessor {
     fn from(value: &str) -> Self {
         match value.to_lowercase().as_str() {
-            "dalim" => PyPostPorcessor::Dalim,
-            "libraw" => PyPostPorcessor::Libraw,
+            "dalim" => PyPostProcessor::Dalim,
+            "libraw" => PyPostProcessor::Libraw,
             _ => panic!("Unknow decoder."),
         }
     }
@@ -84,42 +84,42 @@ fn py_process<'a>(
     };
     let output_bits = PyOutputBits::from(output_bits);
     let decoder = PyDecoder::from(decoder);
-    let post_processor = PyPostPorcessor::from(post_processor);
+    let post_processor = PyPostProcessor::from(post_processor);
     match (decoder, post_processor, output_bits) {
-        (PyDecoder::Libraw, PyPostPorcessor::Dalim, PyOutputBits::Unsigned8) => {
+        (PyDecoder::Libraw, PyPostProcessor::Dalim, PyOutputBits::Unsigned8) => {
             let libraw = libraw::Libraw::new(None);
             let dalim_params =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let dalim: Dalim<u8> = Dalim::new(dalim_params);
             raw_workflow!(py, &file, libraw, dalim, u8)
         }
-        (PyDecoder::Libraw, PyPostPorcessor::Dalim, PyOutputBits::Unsigned16) => {
+        (PyDecoder::Libraw, PyPostProcessor::Dalim, PyOutputBits::Unsigned16) => {
             let libraw = libraw::Libraw::new(None);
             let dalim_params =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let dalim: Dalim<u16> = Dalim::new(dalim_params);
             raw_workflow!(py, &file, libraw, dalim, u16)
         }
-        (PyDecoder::Libraw, PyPostPorcessor::Dalim, PyOutputBits::Float32) => {
+        (PyDecoder::Libraw, PyPostProcessor::Dalim, PyOutputBits::Float32) => {
             let libraw = libraw::Libraw::new(None);
             let dalim_params =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let dalim: Dalim<f32> = Dalim::new(dalim_params);
             raw_workflow!(py, &file, libraw, dalim, f32)
         }
-        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Unsigned8) => {
+        (PyDecoder::Libraw, PyPostProcessor::Libraw, PyOutputBits::Unsigned8) => {
             let post_processor_params: DCRawParams =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let libraw = libraw::Libraw::new(Some(post_processor_params));
             raw_workflow!(py, &file, &libraw, &libraw, u8)
         }
-        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Unsigned16) => {
+        (PyDecoder::Libraw, PyPostProcessor::Libraw, PyOutputBits::Unsigned16) => {
             let post_processor_params: DCRawParams =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let libraw = libraw::Libraw::new(Some(post_processor_params));
             raw_workflow!(py, &file, &libraw, &libraw, u16)
         }
-        (PyDecoder::Libraw, PyPostPorcessor::Libraw, PyOutputBits::Float32) => {
+        (PyDecoder::Libraw, PyPostProcessor::Libraw, PyOutputBits::Float32) => {
             let post_processor_params: DCRawParams =
                 Deserialize::deserialize(&mut Deserializer::new(post_processor_params)).unwrap();
             let libraw = libraw::Libraw::new(Some(post_processor_params));
