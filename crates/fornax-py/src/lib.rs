@@ -23,7 +23,7 @@ impl From<&str> for PyOutputBits {
             "u8" => Self::Unsigned8,
             "u16" => Self::Unsigned16,
             "f32" => Self::Float32,
-            bits => panic!("Unknow output bits: {bits}"),
+            bits => panic!("Unknown output bits: {bits}"),
         }
     }
 }
@@ -34,7 +34,7 @@ impl From<&str> for PyDecoder {
     fn from(value: &str) -> Self {
         match value.to_lowercase().as_str() {
             "libraw" => PyDecoder::Libraw,
-            _ => panic!("Unknow decoder."),
+            _ => panic!("Unknown decoder."),
         }
     }
 }
@@ -47,7 +47,7 @@ impl From<&str> for PyPostProcessor {
         match value.to_lowercase().as_str() {
             "dalim" => PyPostProcessor::Dalim,
             "libraw" => PyPostProcessor::Libraw,
-            _ => panic!("Unknow decoder."),
+            _ => panic!("Unknown decoder."),
         }
     }
 }

@@ -31,7 +31,7 @@ impl TryFrom<i32> for DCRawHighlightMode {
             7 => Ok(DCRawHighlightMode::Reconstruct7),
             8 => Ok(DCRawHighlightMode::Reconstruct8),
             9 => Ok(DCRawHighlightMode::Reconstruct9),
-            v => miette::bail!("Unknow highlight mode: {v}"),
+            v => miette::bail!("Unknown highlight mode: {v}"),
         }
     }
 }
@@ -66,7 +66,7 @@ impl TryFrom<i32> for DCRawUseCameraMatrix {
             0 => Ok(DCRawUseCameraMatrix::NotUse),
             1 => Ok(DCRawUseCameraMatrix::EmbeddedProfile),
             3 => Ok(DCRawUseCameraMatrix::EmbeddedData),
-            v => miette::bail!("Unknow UseCameraMatrix: {v}"),
+            v => miette::bail!("Unknown UseCameraMatrix: {v}"),
         }
     }
 }
@@ -105,7 +105,7 @@ impl TryFrom<i32> for DCRawOutputColor {
             6 => Ok(DCRawOutputColor::ACES),
             7 => Ok(DCRawOutputColor::DciP3),
             8 => Ok(DCRawOutputColor::Rec2020),
-            v => miette::bail!("Unknow `OutputColor`: {v}"),
+            v => miette::bail!("Unknown `OutputColor`: {v}"),
         }
     }
 }
@@ -137,7 +137,7 @@ impl TryFrom<i32> for DCRawOutputBps {
         match value {
             8 => Ok(DCRawOutputBps::_8bit),
             16 => Ok(DCRawOutputBps::_16bit),
-            v => miette::bail!("Unknow `OutputBps`: {v}"),
+            v => miette::bail!("Unknown `OutputBps`: {v}"),
         }
     }
 }
@@ -164,7 +164,7 @@ impl TryFrom<i32> for DCRawOutputTiff {
             -1 => Ok(Self::None),
             0 => Ok(Self::Ppm),
             1 => Ok(Self::Tiff),
-            v => miette::bail!("Unknow `OutputTiff`: {v}"),
+            v => miette::bail!("Unknown `OutputTiff`: {v}"),
         }
     }
 }
@@ -194,7 +194,7 @@ impl TryFrom<i32> for DCRawUserFlip {
             3 => Ok(Self::Rotate180),
             5 => Ok(Self::CCW90),
             6 => Ok(Self::CW90),
-            v => miette::bail!("Unknow `UserFlip`: {v}"),
+            v => miette::bail!("Unknown `UserFlip`: {v}"),
         }
     }
 }
@@ -231,7 +231,7 @@ impl TryFrom<i32> for DCRawUserQual {
             4 => Ok(Self::DCB),
             11 => Ok(Self::DHT),
             12 => Ok(Self::ModifiedAHD),
-            v => miette::bail!("Unknow `UserQual`: {v}"),
+            v => miette::bail!("Unknown `UserQual`: {v}"),
         }
     }
 }
@@ -261,7 +261,7 @@ impl TryFrom<i32> for DCRawUseFujiRotate {
         match value {
             -1 => Ok(Self::UseRotate),
             3 => Ok(Self::NotUse),
-            v => miette::bail!("Unknow `UseFujiRotate`: {v}"),
+            v => miette::bail!("Unknown `UseFujiRotate`: {v}"),
         }
     }
 }
@@ -288,7 +288,7 @@ impl TryFrom<i32> for DCRawFbddNoiserd {
             -1 => Ok(Self::Off),
             0 => Ok(Self::Light),
             1 => Ok(Self::Full),
-            v => miette::bail!("Unknow `OutputTiff`: {v}"),
+            v => miette::bail!("Unknown `OutputTiff`: {v}"),
         }
     }
 }

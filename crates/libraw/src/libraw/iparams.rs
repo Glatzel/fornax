@@ -16,7 +16,7 @@ impl From<&str> for ColorDesc {
             "RGBE" => ColorDesc::RGBE,
             "GMCY" => ColorDesc::GMCY,
             "GBTG" => ColorDesc::GBTG,
-            _ => panic!("Unknow color description."),
+            _ => panic!("Unknown color description."),
         }
     }
 }
