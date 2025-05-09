@@ -39,7 +39,7 @@ impl DCRawProcessedImage {
         match unsafe { (*self.processed_image).type_ } {
             1 => Ok(DCRawImageFormats::LibrawImageJpeg),
             2 => Ok(DCRawImageFormats::ImageBitmap),
-            t => miette::bail!("Unknow image format: {t}"),
+            t => miette::bail!("Unknown image format: {t}"),
         }
     }
     /// Image size (in pixels). Valid only if type==LIBRAW_IMAGE_BITMAP.
