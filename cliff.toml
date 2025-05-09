@@ -4,10 +4,6 @@
 # Lines starting with "#" are comments.
 # Configuration options are organized into tables and keys.
 # See documentation for more information on available options.
-[remote.github]
-owner = "Glatzel"
-repo = "fornax"
-
 [changelog]
 # template for the changelog header
 header = """
@@ -22,33 +18,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # template for the changelog body
 # https://keats.github.io/tera/docs/#introduction
 body = """
-{%- macro remote_url() -%}
-  https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
-{%- endmacro -%}
-
-{% if version -%}
-    ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
-{% else -%}
+{% macro remote_url() %}\
+  https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}\
+{% endmacro %}\
+{% if version %}\
+    ## {{ version | trim_start_matches(pat="v") }} - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
     ## [Unreleased]
-{% endif -%}
+{% endif %}
+{% for group, commits in commits | group_by(attribute="group") %}\
+    ### {{ group | upper_first }}
 
-{% for group, commits in commits | group_by(attribute="group") %}
-    ### {{ group | upper_first }}{{"\n"}}
-    {%- for commit in commits %}
-        - {{ commit.message | split(pat="\n") | first | upper_first | trim }}\
-            {% if commit.remote.username %} by @{{ commit.remote.username }}{%- endif -%}
+     {% for commit in commits %}\
+        {% if commit.scope %}\
+            - **({{commit.scope}})** {{ commit.message | split(pat="\n") | first | upper_first | trim }}\
+            {% if commit.remote.username %} by @{{ commit.remote.username }}{% endif %}\
             {% if commit.remote.pr_number %} in \
-            [#{{ commit.remote.pr_number }}]({{ self::remote_url() }}/pull/{{ commit.remote.pr_number }}) \
-            {%- endif -%}
+            [#{{ commit.remote.pr_number }}]({{ self::remote_url() }}/pull/{{ commit.remote.pr_number }})\
+            {% endif %}\
+        {% else %}\
+            - {{ commit.message | split(pat="\n") | first | upper_first | trim }}\
+            {% if commit.remote.username %} by @{{ commit.remote.username }}{% endif %}\
+            {% if commit.remote.pr_number %} in \
+            [#{{ commit.remote.pr_number }}]({{ self::remote_url() }}/pull/{{ commit.remote.pr_number }})\
+            {% endif %}\
+        {% endif %}
     {% endfor %}
-{% endfor %}\n
+{% endfor %}
 """
 # template for the changelog footer
 footer = """
-{%- macro remote_url() -%}
+{% macro remote_url() -%}
   https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
 {%- endmacro -%}
-
 {% for release in releases -%}
     {% if release.version -%}
         {% if release.previous.version -%}
