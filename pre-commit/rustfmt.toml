@@ -1,6 +1,0 @@
-fn_single_line = true
-group_imports = "StdExternalCrate"
-ignore = ["**/bindings.rs"]
-imports_granularity = "Module"
-reorder_imports = true
-wrap_comments = true
