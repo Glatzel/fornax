@@ -1,140 +1,25 @@
 repos:
-  - repo: local
+  - repo: https://github.com/Glatzel/template
+    rev: main
     hooks:
       # pre-commit-hooks
       - id: check-added-large-files
-        name: check-added-large-files
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-added-large-files
-        language: system
-        stages: [pre-commit, manual]
-
       - id: check-ast
-        name: check-ast
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-added-large-files
-        language: system
-        types: [python]
-        stages: [pre-commit, manual]
-
-      - id: check-yaml
-        name: check-yaml
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-yaml
-        language: system
-        types: [yaml]
-        stages: [pre-commit, manual]
-
-      - id: end-of-file
-        name: end-of-file
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml end-of-file-fixer
-        language: system
-        types: [text]
-        stages: [pre-commit, manual]
-
-      - id: trailing-whitespace
-        name: trailing-whitespace
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml trailing-whitespace-fixer
-        language: system
-        types: [text]
-        stages: [pre-commit, manual]
-
       - id: check-json
-        name: check-json
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-json
-        language: system
-        types: [json]
-        stages: [pre-commit, manual]
-
       - id: check-toml
-        name: check-toml
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-toml
-        language: system
-        types: [toml]
-        stages: [pre-commit, manual]
-
       - id: check-xml
-        name: check-xml
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml check-xml
-        language: system
-        types: [xml]
-        stages: [pre-commit, manual]
-
+      - id: check-yaml
       - id: detect-private-key
-        name: detect-private-key
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml detect-private-key
-        language: system
-        types: [text]
-        stages: [pre-commit, manual]
-
+      - id: end-of-file-fixer
       - id: mixed-line-ending
-        name: mixed-line-ending
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml mixed-line-ending
-        language: system
-        types: [text]
-        stages: [pre-commit, manual]
-
-      # GitHub Actions
-      - id: actionlint
-        name: Lint GitHub Actions workflow files
-        language: system
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml actionlint
-        types: [yaml]
-        files: ^\.github/workflows/
-        stages: [pre-commit, manual]
-
-      # TOML format
-      - id: toml-format
-        name: TOML format
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml toml-format
-        language: system
-        types: [file, toml]
-        stages: [pre-commit, manual]
-
-        # python
-      - id: ruff-lint
-        name: Ruff lint
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml ruff-lint
-        language: system
-        types_or: [python, pyi]
-        require_serial: true
-        stages: [pre-commit, manual]
-
-      - id: ruff-format
-        name: Ruff format
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml ruff-format
-        language: system
-        types_or: [python, pyi]
-        require_serial: true
-        stages: [pre-commit, manual]
-
-      - id: numpydoc
-        name: numpydoc
-        entry: pixi run --manifest-path ./pre-commit/pixi.toml numpydoc-check
-        language: system
-        types_or: [python]
-        stages: [pre-commit, manual]
-
+      - id: trailing-whitespace
       #rust
-      - id: cargo-fmt
-        name: cargo-fmt
-        entry: pwsh -NoProfile -Command "$ErrorActionPreference ='Stop';$PSNativeCommandUseErrorActionPreference = $true;foreach ($f in $args) { &$f}"
-        language: system
-        files: '.*/cargo-fmt.ps1'
-        require_serial: true
-        stages: [pre-commit, manual]
-
       - id: cargo-clippy
-        name: cargo-clippy
-        entry: pwsh -NoProfile -Command "$ErrorActionPreference ='Stop';$PSNativeCommandUseErrorActionPreference = $true;foreach ($f in $args) { &$f}"
-        language: system
-        files: '.*/cargo-clippy.ps1'
-        require_serial: true
-        stages: [pre-commit, manual]
-
-  - repo: https://github.com/bnjbvr/cargo-machete
-    rev: main
-    hooks:
-      - id: cargo-machete
-  # other
-  - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 40.8.1
-    hooks:
-      - id: renovate-config-validator
+      - id: cargo-fmt
+      # python
+      - id: ruff-lint
+      - id: ruff-format
+      - id: numpydoc
+      # misc
+      - id: taplo-format
+      - id: actionlint
