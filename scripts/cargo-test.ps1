@@ -25,7 +25,7 @@ if ($code -ne 0) {
     Write-Output "Test failed."
 }
 else {
-    Write-Output "Test successed."
+    Write-Output "Test succeeded."
 }
 Write-Output "::endgroup::"
 Set-Location $ROOT
