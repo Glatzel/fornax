@@ -12,7 +12,7 @@ hook-numpydoc = "cd ..;bash -c 'numpydoc lint \"$@\" --ignore ES01 EX01 GL08 PR0
 hook-ruff-format = "cd ..;ruff format --force-exclude --exit-non-zero-on-format"
 hook-ruff-lint = "cd ..;ruff check --fix --show-fixes --exit-non-zero-on-fix --force-exclude"
 hook-taplo = { cmd = "taplo fmt", env = { RUST_LOG = "warn" } }
-hook-typos = "cd ..;typos --write-changes --force-exclude"
+hook-typos = "cd ..;typos --force-exclude"
 
 [dependencies]
 actionlint = "==1.7.7"
