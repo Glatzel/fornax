@@ -19,8 +19,8 @@ where
     let left = img.get_pixel(x - 1, y);
     let right = img.get_pixel(x + 1, y);
     let top = img.get_pixel(x, y - 1);
-    let buttom = img.get_pixel(x, y + 1);
-    (left[0] + right[0] + top[0] + buttom[0]) / T::from(4).unwrap()
+    let bottom = img.get_pixel(x, y + 1);
+    (left[0] + right[0] + top[0] + bottom[0]) / T::from(4).unwrap()
 }
 
 fn get_left_right_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
@@ -38,8 +38,8 @@ where
     T: FornaxPrimitive,
 {
     let top = img.get_pixel(x, y - 1);
-    let buttom = img.get_pixel(x, y + 1);
-    (top[0] + buttom[0]) / T::from(2).unwrap()
+    let bottom = img.get_pixel(x, y + 1);
+    (top[0] + bottom[0]) / T::from(2).unwrap()
 }
 fn get_diagnal_value_check<T>(
     img: &ImageBuffer<image::Luma<T>, Vec<T>>,
@@ -109,13 +109,13 @@ where
         T::from(0).unwrap()
     };
 
-    let buttom = if y < height - 1 {
+    let bottom = if y < height - 1 {
         count += 1;
         img.get_pixel(x, y + 1)[0]
     } else {
         T::from(0).unwrap()
     };
-    (left + right + top + buttom) / T::from(count).unwrap()
+    (left + right + top + bottom) / T::from(count).unwrap()
 }
 
 fn get_left_right_value_check<T>(
@@ -162,13 +162,13 @@ where
         T::from(0).unwrap()
     };
 
-    let buttom = if y < height - 1 {
+    let bottom = if y < height - 1 {
         count += 1;
         img.get_pixel(x, y + 1)[0]
     } else {
         T::from(0).unwrap()
     };
-    (top + buttom) / T::from(count).unwrap()
+    (top + bottom) / T::from(count).unwrap()
 }
 pub struct DemosaicLinear();
 impl<T> super::IDemosaic<T> for DemosaicLinear
