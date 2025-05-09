@@ -5,13 +5,14 @@ platforms = ["linux-64", "win-64"]
 [tasks]
 pre-commit-run = "pre-commit run --all-files"
 
-hook-csharpier = "cd ..; dotnet-csharpier .; dotnet-csharpier . --check"
+hook-csharpier = "cd ..;dotnet-csharpier . ; dotnet-csharpier . --check"
 # csharpier >=1.0.0
-# hook-csharpier = "cd ..; csharpier format .; csharpier check ."
-hook-numpydoc = "cd ..; bash -c 'numpydoc lint \"$@\" --ignore ES01 EX01 GL08 PR04 RT03 SA01 SA04' -- "
+# hook-csharpier = " csharpier format .; csharpier check ."
+hook-numpydoc = "cd ..;bash -c 'numpydoc lint \"$@\" --ignore ES01 EX01 GL08 PR04 RT03 SA01 SA04' --"
 hook-ruff-format = "cd ..;ruff format --force-exclude --exit-non-zero-on-format"
 hook-ruff-lint = "cd ..;ruff check --fix --show-fixes --exit-non-zero-on-fix --force-exclude"
 hook-taplo = { cmd = "taplo fmt", env = { RUST_LOG = "warn" } }
+hook-typos = "cd ..;typos --write-changes --force-exclude"
 
 [dependencies]
 actionlint = "==1.7.7"
@@ -22,3 +23,4 @@ pre-commit-hooks = "==5.0.0"
 python = "3.11.*"
 ruff = "==0.11.8"
 taplo = "==0.9.3"
+typos = "==1.23.1"
