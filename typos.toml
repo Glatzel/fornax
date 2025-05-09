@@ -1,1 +1,5 @@
-files.extend-exclude = ["changelog.md"]
+[files]
+extend-exclude = ["changelog.md", "**/bingdings*.rs"]
+
+[default]
+extend-ignore-identifiers-re = ["AHD", "_thr", "UnsufficientMemory"]
