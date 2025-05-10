@@ -69,7 +69,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/roman-numerals-py-3.1.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruamel.yaml-0.18.10-py311h9ecbd09_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruamel.yaml.clib-0.2.8-py311h9ecbd09_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.11.8-py311h39e1cd3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.11.9-py311h39e1cd3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/setuptools-80.1.0-pyhff2d567_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/snowballstemmer-2.2.0-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/sphinx-8.2.3-pyhd8ed1ab_0.conda
@@ -142,7 +142,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/roman-numerals-py-3.1.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/ruamel.yaml-0.18.10-py311he736701_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/ruamel.yaml.clib-0.2.8-py311he736701_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/ruff-0.11.8-py311h7bc0161_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/ruff-0.11.9-py311h7bc0161_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/setuptools-80.1.0-pyhff2d567_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/snowballstemmer-2.2.0-pyhd8ed1ab_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/sphinx-8.2.3-pyhd8ed1ab_0.conda
@@ -1113,9 +1113,9 @@ packages:
   license_family: MIT
   size: 110651
   timestamp: 1728725069480
-- conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.11.8-py311h39e1cd3_0.conda
-  sha256: 1c3845add9f9df0da20106f52bdafb0071dc1e7186f693d37e0c13873dd94681
-  md5: 13fbcd34bbcbbab1b662e8d0fd388bb8
+- conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.11.9-py311h39e1cd3_0.conda
+  sha256: 786e018b592393d43e454ea75bb7c6565502145d374b805538b670660bd98ff4
+  md5: c51d9f0126289712ae7e75bf0aac1159
   depends:
   - __glibc >=2.17,<3.0.a0
   - libgcc >=13
@@ -1126,11 +1126,11 @@ packages:
   - __glibc >=2.17
   license: MIT
   license_family: MIT
-  size: 9185504
-  timestamp: 1746123691765
-- conda: https://conda.anaconda.org/conda-forge/win-64/ruff-0.11.8-py311h7bc0161_0.conda
-  sha256: 6b9e1060e6f4227f815bd4414ebc65484eea81bd15c2594aa71dd5d9e1cfb56b
-  md5: a1403c6994a6b88b2d041fc29b0365da
+  size: 9221632
+  timestamp: 1746841271621
+- conda: https://conda.anaconda.org/conda-forge/win-64/ruff-0.11.9-py311h7bc0161_0.conda
+  sha256: 5e322b1e61fd238b6a3e35002eaf7c6130c729f8bbda3e8f26d87b20f6decb92
+  md5: 8903d3662ae796454bd5b8f69a237b48
   depends:
   - python >=3.11,<3.12.0a0
   - python_abi 3.11.* *_cp311
@@ -1139,8 +1139,8 @@ packages:
   - vc14_runtime >=14.29.30139
   license: MIT
   license_family: MIT
-  size: 8265605
-  timestamp: 1746124432463
+  size: 8267353
+  timestamp: 1746842115413
 - conda: https://conda.anaconda.org/conda-forge/noarch/setuptools-80.1.0-pyhff2d567_0.conda
   sha256: 777d34ed359cedd5a5004c930077c101bb3b70e5fbb04d29da5058d75b0ba487
   md5: f6f72d0837c79eaec77661be43e8a691
