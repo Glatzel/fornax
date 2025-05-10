@@ -23,7 +23,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libuuid-2.38.1-h0b41bf4_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxcrypt-4.4.36-hd590300_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.1-hb9d3cd8_2.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/maturin-1.8.3-py311h9b3a049_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/maturin-1.8.4-py311h9b3a049_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.5-h2d0b736_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.5.0-h7b32b05_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pip-25.1.1-pyh8b19718_0.conda
@@ -48,7 +48,7 @@ environments:
       - conda: https://repo.prefix.dev/glatzel/win-64/libraw-0.21.4-h9490d1a_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/libsqlite-3.49.2-h67fdade_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/libzlib-1.3.1-h2466b09_2.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/maturin-1.8.3-py311h16f27fe_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/maturin-1.8.4-py311h16f27fe_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/openssl-3.5.0-ha4e3fda_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/pcre2-10.45-h99c9b8b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pip-25.1.1-pyh8b19718_0.conda
@@ -125,7 +125,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxcrypt-4.4.36-hd590300_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.1-hb9d3cd8_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/markupsafe-3.0.2-py311h2dc5d0c_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/maturin-1.8.3-py311h9b3a049_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/maturin-1.8.4-py311h9b3a049_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/msgspec-0.19.0-py311h9ecbd09_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.5-h2d0b736_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
@@ -230,7 +230,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/libxcb-1.17.0-h0e4246c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/libzlib-1.3.1-h2466b09_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/markupsafe-3.0.2-py311h5082efb_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/maturin-1.8.3-py311h16f27fe_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/maturin-1.8.4-py311h16f27fe_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/msgspec-0.19.0-py311he736701_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/win-64/numpy-2.2.5-py311h5e411d1_0.conda
@@ -1291,23 +1291,23 @@ packages:
   license_family: BSD
   size: 28238
   timestamp: 1733220208800
-- conda: https://conda.anaconda.org/conda-forge/linux-64/maturin-1.8.3-py311h9b3a049_0.conda
-  sha256: 6ee1a387e983e5ca253e3346f9c3a19a2abb7e295fa1d66d45eb4be26a54f0c9
-  md5: 59d67241bdc9e508d2abf3f33360b38b
+- conda: https://conda.anaconda.org/conda-forge/linux-64/maturin-1.8.4-py311h9b3a049_0.conda
+  sha256: 367ced087159ec01bce7c8718e073f8f51c09a2953c2a7175cf4eac36dac1b19
+  md5: 5d21cf08cecf4e6462c63f962af58608
   depends:
   - __glibc >=2.17,<3.0.a0
   - libgcc >=13
-  - openssl >=3.4.1,<4.0a0
+  - openssl >=3.5.0,<4.0a0
   - python >=3.11,<3.12.0a0
   - python_abi 3.11.* *_cp311
   - tomli >=1.1.0
   license: MIT
   license_family: MIT
-  size: 6472594
-  timestamp: 1741886506327
-- conda: https://conda.anaconda.org/conda-forge/win-64/maturin-1.8.3-py311h16f27fe_0.conda
-  sha256: 7fbe66a1fc8a17de2e0239c1c2c188f084ebef0df8062d40d542ac42e1290609
-  md5: 8f0bcc07297771d84e2dd3f70a70b41b
+  size: 6471652
+  timestamp: 1746840881784
+- conda: https://conda.anaconda.org/conda-forge/win-64/maturin-1.8.4-py311h16f27fe_0.conda
+  sha256: f6620c5590dbd6298acc8544502f13ab918998ff2a024f65239afb2a67983a02
+  md5: 18887fcec08327867524d13d797da85c
   depends:
   - python >=3.11,<3.12.0a0
   - python_abi 3.11.* *_cp311
@@ -1317,8 +1317,8 @@ packages:
   - vc14_runtime >=14.29.30139
   license: MIT
   license_family: MIT
-  size: 4771602
-  timestamp: 1741887408014
+  size: 4787878
+  timestamp: 1746841665834
 - conda: https://conda.anaconda.org/conda-forge/linux-64/msgspec-0.19.0-py311h9ecbd09_0.conda
   sha256: 3fd1594288aea816fa275ede36f7fb9806d9b2da383da0c6dd271c8f70b936e2
   md5: 5b3dffb182516658be44a957290d12da
