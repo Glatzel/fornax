@@ -1,15 +1,18 @@
+from __future__ import annotations
+
 from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ._base import BaseDecoderParams, BasePostProcessorParams
 from .decoder import LibrawParams
-from .dnc import DncParams
 from .fornax_py import py_process  # type: ignore
 from .post_processor import DalimParams, DCRawParams
 
 if TYPE_CHECKING:
     import numpy as np
+
+    from ._base import BaseDecoderParams, BasePostProcessorParams
+    from .dnc import DncParams
 
 
 class FornaxOutputBits(StrEnum):
@@ -47,7 +50,7 @@ class Fornax:
 
         self.dnc_params = dnc_params
 
-    def process(self, file: str | Path) -> "np.ndarray":
+    def process(self, file: str | Path) -> np.ndarray:
         """
         Decode and process raw image.
 
