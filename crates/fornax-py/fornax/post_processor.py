@@ -1,8 +1,12 @@
-from enum import StrEnum
+from __future__ import annotations
 
-from pydantic import FilePath, PositiveInt, StrictBool
+from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from ._base import BasePostProcessorParams
+
+if TYPE_CHECKING:
+    from pydantic import FilePath, PositiveInt, StrictBool
 
 
 # region Dalim
