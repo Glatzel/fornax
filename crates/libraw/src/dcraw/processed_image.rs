@@ -1,18 +1,12 @@
-use std::fmt::Display;
+use num_enum::{IntoPrimitive, TryFromPrimitive};
 
-#[derive(Debug)]
+#[derive(Debug, TryFromPrimitive, IntoPrimitive)]
+#[repr(i32)]
 pub enum DCRawImageFormats {
-    LibrawImageJpeg = 1,
-    ImageBitmap = 2,
+    LibrawImageJpeg = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_JPEG,
+    ImageBitmap = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_BITMAP,
 }
-impl Display for DCRawImageFormats {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            DCRawImageFormats::ImageBitmap => write!(f, "ImageBitmap"),
-            DCRawImageFormats::LibrawImageJpeg => write!(f, "LibrawImageJpeg"),
-        }
-    }
-}
+
 pub struct DCRawProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }
