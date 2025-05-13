@@ -777,6 +777,7 @@ name = "libraw-sys"
 version = "0.0.6"
 dependencies = [
  "bindgen",
+ "dunce",
  "libc",
  "pkg-config",
 ]

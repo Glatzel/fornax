@@ -3,7 +3,6 @@ $PSNativeCommandUseErrorActionPreference = $true
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 $env:RUSTFLAGS= "-Dwarnings"
-& $PSScriptRoot/setup.ps1
 cargo doc --no-deps --all-features `
     -p dnc `
     -p fornax `
