@@ -1,7 +1,6 @@
 #[allow(unused_imports)]
 use std::collections::HashSet;
 use std::env;
-use std::path::PathBuf;
 
 fn main() {
     let workspace_root = env::var("CARGO_WORKSPACE_DIR").unwrap();
