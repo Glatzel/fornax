@@ -1,47 +1,50 @@
 #[allow(unused_imports)]
 use std::collections::HashSet;
 use std::env;
+use std::fmt::format;
 #[allow(unused_imports)]
 use std::path::PathBuf;
 
 fn main() {
+    let workspace_root = env::var("CARGO_WORKSPACE_DIR").unwrap();
     // run pixi install
     std::process::Command::new("pixi")
         .arg("install")
-        .current_dir(env::var("CARGO_WORKSPACE_DIR").unwrap())
+        .current_dir(&workspace_root)
         .output()
         .expect("Failed to execute script");
     // pkg-config
     #[cfg(target_os = "windows")]
     {
         let path = env::var("PATH").unwrap().to_string();
-        let pkg_exe_dir = dunce::canonicalize("../../.pixi/envs/default/Library/bin")
-            .unwrap()
-            .to_string_lossy()
-            .to_string();
+        let pkg_exe_dir =
+            dunce::canonicalize(format!("{workspace_root}/.pixi/envs/default/Library/bin"))
+                .unwrap()
+                .to_string_lossy()
+                .to_string();
         unsafe {
             env::set_var("PATH", format!("{pkg_exe_dir};{path}"));
         }
     }
     let default_pkg_config_path = match env::var("CARGO_CFG_TARGET_OS").unwrap().as_str() {
-        "windows" => {
-            dunce::canonicalize("../../.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig")
-                .unwrap()
-                .to_string_lossy()
-                .to_string()
-        }
-        "linux" => {
-            dunce::canonicalize("../../.pixi/envs/default/libraw/x64-linux-release/lib/pkgconfig")
-                .unwrap()
-                .to_string_lossy()
-                .to_string()
-        }
-        "macos" => {
-            dunce::canonicalize("../../.pixi/envs/default/libraw/arm64-osx-release/lib/pkgconfig")
-                .unwrap()
-                .to_string_lossy()
-                .to_string()
-        }
+        "windows" => dunce::canonicalize(format!(
+            "{workspace_root}/.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig"
+        ))
+        .unwrap()
+        .to_string_lossy()
+        .to_string(),
+        "linux" => dunce::canonicalize(format!(
+            "{workspace_root}/.pixi/envs/default/libraw/x64-linux-release/lib/pkgconfig"
+        ))
+        .unwrap()
+        .to_string_lossy()
+        .to_string(),
+        "macos" => dunce::canonicalize(format!(
+            "{workspace_root}/.pixi/envs/default/libraw/arm64-osx-release/lib/pkgconfig"
+        ))
+        .unwrap()
+        .to_string_lossy()
+        .to_string(),
         other => {
             panic!("Unsupported OS: {}", other)
         }
