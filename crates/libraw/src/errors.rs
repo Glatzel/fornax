@@ -74,7 +74,7 @@ impl LibrawErrors {
 }
 pub(crate) trait ILibrawErrors {
     fn check_run(exit_code: i32, task: &str) -> miette::Result<i32> {
-        let result = crate::errors::LibrawErrors::try_from(exit_code)?;
+        let result = crate::errors::LibrawErrors::from(exit_code)?;
         result.report(task)?;
         Ok(exit_code)
     }
