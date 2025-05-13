@@ -1,3 +1,4 @@
+use miette::IntoDiagnostic;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 #[derive(Debug, TryFromPrimitive, IntoPrimitive)]
@@ -30,11 +31,7 @@ impl DCRawProcessedImage {
     /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file.
     ///   Only type, data_size and data fields are valid (and nonzero);
     pub fn image_type(&self) -> miette::Result<DCRawImageFormats> {
-        match unsafe { (*self.processed_image).type_ } {
-            1 => Ok(DCRawImageFormats::LibrawImageJpeg),
-            2 => Ok(DCRawImageFormats::ImageBitmap),
-            t => miette::bail!("Unknown image format: {t}"),
-        }
+        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ }).into_diagnostic()
     }
     /// Image size (in pixels). Valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn height(&self) -> u16 { unsafe { (*self.processed_image).height } }
