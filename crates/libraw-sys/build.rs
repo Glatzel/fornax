@@ -1,8 +1,6 @@
 #[allow(unused_imports)]
 use std::collections::HashSet;
 use std::env;
-use std::fmt::format;
-#[allow(unused_imports)]
 use std::path::PathBuf;
 
 fn main() {
