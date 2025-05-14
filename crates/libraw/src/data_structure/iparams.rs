@@ -1,6 +1,6 @@
 use libraw_sys as sys;
 
-use crate::utils::c_char_to_string;
+use crate::c_char_to_string;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug)]
 pub enum ColorDesc {

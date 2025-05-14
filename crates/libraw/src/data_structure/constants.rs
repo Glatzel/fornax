@@ -1,1 +1,3 @@
-use errors::{check_raw_alloc, check_run};
+mod errors;
+
+pub(crate) use errors::LibrawErrors;

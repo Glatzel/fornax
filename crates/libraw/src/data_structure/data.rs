@@ -1,37 +1,17 @@
-mod image_sizes;
-mod imgother;
-mod iparams;
-mod open_bayer_options;
-mod rawdata;
 use std::ffi::CString;
 use std::path::Path;
 use std::slice;
 
 use fornax_core::{BayerChannel, BayerPattern, FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{EncodableLayout, ImageBuffer, Rgb};
-pub use image_sizes::{LibrawFlip, LibrawImageSizes};
-pub use imgother::{LibrawGpsInfo, LibrawImgOther};
-pub use iparams::{ColorDesc, LibrawIParams};
-pub use open_bayer_options::ProcFlag;
-pub use rawdata::LibrawRawdata;
 
-use crate::dcraw::{
-    DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
-    DCRawProcessedImage, DCRawUserQual,
-};
-use crate::utils::c_char_to_string;
-use crate::{check_raw_alloc, check_run};
+use crate::{c_char_to_string, check_raw_alloc, check_run};
 #[derive(Debug)]
 pub struct Libraw {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
     pub(crate) params: Option<DCRawParams>,
 }
-// region:Initialization and denitialization
-impl Libraw {
-    fn libraw_init() -> *mut libraw_sys::libraw_data_t { unsafe { libraw_sys::libraw_init(0) } }
 
-    fn close(&self) { unsafe { libraw_sys::libraw_close(self.imgdata) } }
-}
 
 // region:Methods Loading Data from a File
 // https://www.libraw.org/docs/API-CXX.html#dataload
@@ -446,12 +426,6 @@ impl Libraw {
     }
 }
 
-impl Drop for Libraw {
-    fn drop(&mut self) { self.close(); }
-}
-impl Default for Libraw {
-    fn default() -> Self { Self::new(None) }
-}
 
 // region:fornax
 impl<T> IDecoder<T> for Libraw
