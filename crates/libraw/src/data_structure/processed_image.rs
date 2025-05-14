@@ -4,8 +4,8 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 #[derive(Debug, TryFromPrimitive, IntoPrimitive)]
 #[repr(i32)]
 pub enum DCRawImageFormats {
-    Jpeg = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_JPEG as i32,
-    Bitmap = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_BITMAP as i32,
+    Jpeg = 1,
+    Bitmap = 2,
 }
 impl TryFrom<u32> for DCRawImageFormats {
     type Error = miette::Report;
