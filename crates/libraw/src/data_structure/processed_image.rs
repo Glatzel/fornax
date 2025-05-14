@@ -10,7 +10,7 @@ pub enum DCRawImageFormats {
 impl TryFrom<u32> for DCRawImageFormats {
     type Error = miette::Report;
 
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
+    fn try_from(value: u32) -> miette::Result<Self> {
         Self::try_from(value as i32).into_diagnostic()
     }
 }
