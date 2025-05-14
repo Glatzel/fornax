@@ -24,4 +24,3 @@ rattler-build = "==0.41.0"
 # test
 pytest = "==8.3.5"
 pytest-cov = "==6.1.1"
-
