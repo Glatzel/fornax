@@ -14,4 +14,3 @@ fn test_libraw_libraw() {
     let exe = fornax_devtool::get_example_exe("libraw_libraw");
     Command::new(exe).current_dir(root).assert().success();
 }
-}
