@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use fornax::fornax_dalim::Dalim;
-use fornax::libraw::dcraw::DCRawParams;
+use fornax::libraw::DCRawParams;
 use fornax::{dnc, libraw};
 use numpy::{PyArray, PyArrayMethods};
 use pyo3::prelude::*;
