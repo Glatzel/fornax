@@ -43,45 +43,47 @@ impl std::fmt::Display for LibrawErrors {
     }
 }
 
-impl LibrawErrors {
-    pub(crate) fn report(&self, task: &str) -> miette::Result<()> {
-        match self {
-            LibrawErrors::Success => {
-                clerk::debug!("Task: {}. {}", task, self);
+// pub(crate) trait ILibrawErrors {
+//     fn check_run(exit_code: i32, task: &str) -> miette::Result<i32> {
+//         let result = crate::errors::LibrawErrors::from(exit_code);
+//         result.report(task)?;
+//         Ok(exit_code)
+//     }
+// }
+macro_rules! check_run {
+    ($code:expr) => {
+        match crate::errors::LibrawErrors::from($code) {
+            crate::errors::LibrawErrors::Success => {
+                clerk::debug!("{}", $code);
             }
-            LibrawErrors::UnspecifiedError
-            | LibrawErrors::FileUnsupported
-            | LibrawErrors::RequestForNonexistentImage
-            | LibrawErrors::OutOfOrderCall
-            | LibrawErrors::NoThumbnail
-            | LibrawErrors::UnsupportedThumbnail
-            | LibrawErrors::InputClosed
-            | LibrawErrors::NotImplemented
-            | LibrawErrors::RequestForNonexistentThumbnail => {
-                clerk::warn!("Task: {}. {}", task, self);
+            crate::errors::LibrawErrors::UnspecifiedError
+            | crate::errors::LibrawErrors::FileUnsupported
+            | crate::errors::LibrawErrors::RequestForNonexistentImage
+            | crate::errors::LibrawErrors::OutOfOrderCall
+            | crate::errors::LibrawErrors::NoThumbnail
+            | crate::errors::LibrawErrors::UnsupportedThumbnail
+            | crate::errors::LibrawErrors::InputClosed
+            | crate::errors::LibrawErrors::NotImplemented
+            | crate::errors::LibrawErrors::RequestForNonexistentThumbnail => {
+                clerk::warn!("{}", $code);
             }
-            LibrawErrors::UnknownError
-            | LibrawErrors::UnsufficientMemory
-            | LibrawErrors::DataError
-            | LibrawErrors::IoError
-            | LibrawErrors::CancelledByCallback
-            | LibrawErrors::BadCrop
-            | LibrawErrors::TooBig
-            | LibrawErrors::MempoolOverflow => miette::bail!("Task: {}. {}", task, self),
+            crate::errors::LibrawErrors::UnknownError
+            | crate::errors::LibrawErrors::UnsufficientMemory
+            | crate::errors::LibrawErrors::DataError
+            | crate::errors::LibrawErrors::IoError
+            | crate::errors::LibrawErrors::CancelledByCallback
+            | crate::errors::LibrawErrors::BadCrop
+            | crate::errors::LibrawErrors::TooBig
+            | crate::errors::LibrawErrors::MempoolOverflow => miette::bail!("{}", $code),
         };
-        Ok(())
-    }
+    };
 }
-pub(crate) trait ILibrawErrors {
-    fn check_run(exit_code: i32, task: &str) -> miette::Result<i32> {
-        let result = crate::errors::LibrawErrors::from(exit_code);
-        result.report(task)?;
-        Ok(exit_code)
-    }
-    fn check_raw_alloc(imgdata: *mut libraw_sys::libraw_data_t) -> miette::Result<()> {
-        if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
+pub(crate) use check_run;
+macro_rules! check_raw_alloc {
+    ($imgdata:expr) => {
+        if unsafe { (*$imgdata).rawdata.raw_alloc }.is_null() {
             miette::bail!("imgdata is null.")
         }
-        Ok(())
-    }
+    };
 }
+pub(crate) use check_raw_alloc;
