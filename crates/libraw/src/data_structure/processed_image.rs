@@ -7,7 +7,13 @@ pub enum DCRawImageFormats {
     Jpeg = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_JPEG,
     Bitmap = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_BITMAP,
 }
+impl TryFrom<u32> for DCRawImageFormats {
+    type Error = miette::Report;
 
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Self::try_from(value as i32).into_diagnostic()
+    }
+}
 pub struct ProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }
@@ -31,8 +37,7 @@ impl ProcessedImage {
     /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file.
     ///   Only type, data_size and data fields are valid (and nonzero);
     pub fn image_type(&self) -> miette::Result<DCRawImageFormats> {
-        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ })
-            .into_diagnostic()
+        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ }).into_diagnostic()
     }
     /// Image size (in pixels). Valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn height(&self) -> u16 { unsafe { (*self.processed_image).height } }
