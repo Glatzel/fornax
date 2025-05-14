@@ -1,8 +1,4 @@
 {
-    "python.analysis.exclude": [
-        "**/.pixi",
-        "**/output"
-    ],
     "VSCodeCounter.exclude": [
         "**/.gitignore",
         "**/.vscode/**",

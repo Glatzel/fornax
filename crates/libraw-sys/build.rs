@@ -46,11 +46,18 @@ fn main() {
             panic!("Unsupported OS: {}", other)
         }
     };
-    if env::var("PKG_CONFIG_PATH").is_err() {
-        unsafe {
+    match env::var("PKG_CONFIG_PATH") {
+        Ok(var) => unsafe {
+            env::set_var(
+                "PKG_CONFIG_PATH",
+                format!("{var};{}", &default_pkg_config_path),
+            );
+        },
+        Err(_) => unsafe {
             env::set_var("PKG_CONFIG_PATH", &default_pkg_config_path);
-        }
+        },
     }
+
     // check LIBCLANG_PATH
     #[cfg(target_os = "windows")]
     match std::env::var("LIBCLANG_PATH") {
