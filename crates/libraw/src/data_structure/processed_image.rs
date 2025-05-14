@@ -2,6 +2,7 @@ use miette::IntoDiagnostic;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 #[derive(Debug, TryFromPrimitive, IntoPrimitive)]
+#[num_enum(error_type(name = miette::Report, constructor = miette::Report::new))]
 #[repr(i32)]
 pub enum DCRawImageFormats {
     Jpeg = 1,
@@ -10,9 +11,7 @@ pub enum DCRawImageFormats {
 impl TryFrom<u32> for DCRawImageFormats {
     type Error = miette::Report;
 
-    fn try_from(value: u32) -> miette::Result<Self> {
-        Self::try_from(value as i32).into_diagnostic()
-    }
+    fn try_from(value: u32) -> miette::Result<Self> { Self::try_from(value as i32) }
 }
 pub struct ProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
@@ -37,7 +36,7 @@ impl ProcessedImage {
     /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file.
     ///   Only type, data_size and data fields are valid (and nonzero);
     pub fn image_type(&self) -> miette::Result<DCRawImageFormats> {
-        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ }).into_diagnostic()
+        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ })
     }
     /// Image size (in pixels). Valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn height(&self) -> u16 { unsafe { (*self.processed_image).height } }
