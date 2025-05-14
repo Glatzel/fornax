@@ -3,7 +3,7 @@ Set-Location $PSScriptRoot/../crates/fornax-py
 $env:PYTHONPATH = Resolve-Path $PSScriptRoot/../crates/fornax-py
 git submodule update --init --recursive
 # run test
-pixi run -e pydev pytest `
+pixi run pytest `
     ./tests `
     -v `
     --durations=10 `
