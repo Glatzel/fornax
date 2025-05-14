@@ -58,7 +58,7 @@ fn main() {
         Err(_) => {
             let path = "C:/Program Files/LLVM/bin";
 
-            if PathBuf::from(path).exists() {
+            if std::path::PathBuf::from(path).exists() {
                 unsafe {
                     std::env::set_var("LIBCLANG_PATH", path);
                 }
