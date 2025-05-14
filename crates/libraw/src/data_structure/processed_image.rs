@@ -4,8 +4,8 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 #[derive(Debug, TryFromPrimitive, IntoPrimitive)]
 #[repr(i32)]
 pub enum DCRawImageFormats {
-    Jpeg = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_JPEG as i32,
-    Bitmap = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_BITMAP as i32,
+    Jpeg = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_JPEG,
+    Bitmap = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_BITMAP,
 }
 
 pub struct ProcessedImage {
@@ -31,7 +31,7 @@ impl ProcessedImage {
     /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file.
     ///   Only type, data_size and data fields are valid (and nonzero);
     pub fn image_type(&self) -> miette::Result<DCRawImageFormats> {
-        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ } as i32)
+        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ })
             .into_diagnostic()
     }
     /// Image size (in pixels). Valid only if type==LIBRAW_IMAGE_BITMAP.
