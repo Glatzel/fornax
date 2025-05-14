@@ -1,28 +1,28 @@
 use libraw_sys as sys;
 
-use crate::utils::c_char_to_string;
+use crate::c_char_to_string;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug)]
-pub enum ColorDesc {
+pub enum IParamsColorDesc {
     RGBG,
     RGBE,
     GMCY,
     GBTG,
 }
-impl From<&str> for ColorDesc {
+impl From<&str> for IParamsColorDesc {
     fn from(value: &str) -> Self {
         match value {
-            "RGBG" => ColorDesc::RGBG,
-            "RGBE" => ColorDesc::RGBE,
-            "GMCY" => ColorDesc::GMCY,
-            "GBTG" => ColorDesc::GBTG,
+            "RGBG" => IParamsColorDesc::RGBG,
+            "RGBE" => IParamsColorDesc::RGBE,
+            "GMCY" => IParamsColorDesc::GMCY,
+            "GBTG" => IParamsColorDesc::GBTG,
             _ => panic!("Unknown color description."),
         }
     }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Debug)]
-pub struct LibrawIParams {
+pub struct IParams {
     make: String,
     model: String,
     normalized_make: String,
@@ -36,11 +36,11 @@ pub struct LibrawIParams {
     filters: u32,
     xtrans: [[i8; 6]; 6],
     xtrans_abs: [[i8; 6]; 6],
-    cdesc: ColorDesc,
+    cdesc: IParamsColorDesc,
     xmplen: u32,
     xmpdata: String,
 }
-impl LibrawIParams {
+impl IParams {
     pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
         let imgdata = unsafe { *imgdata };
         Ok(Self {
@@ -57,7 +57,7 @@ impl LibrawIParams {
             filters: imgdata.idata.filters,
             xtrans: imgdata.idata.xtrans,
             xtrans_abs: imgdata.idata.xtrans_abs,
-            cdesc: ColorDesc::from(c_char_to_string(imgdata.idata.cdesc.as_ptr()).as_str()),
+            cdesc: IParamsColorDesc::from(c_char_to_string(imgdata.idata.cdesc.as_ptr()).as_str()),
             xmplen: imgdata.idata.xmplen,
             xmpdata: unsafe {
                 std::ffi::CStr::from_ptr(imgdata.idata.xmpdata)
@@ -116,7 +116,7 @@ impl LibrawIParams {
     /// sensor edges.
     pub fn xtrans_abs(&self) -> [[i8; 6]; 6] { self.xtrans_abs }
     ///Description of colors numbered from 0 to 3 (RGBG,RGBE,GMCY, or GBTG).
-    pub fn cdesc(&self) -> ColorDesc { self.cdesc }
+    pub fn cdesc(&self) -> IParamsColorDesc { self.cdesc }
     ///XMP packed data length and pointer to extracted XMP packet.
     pub fn xmplen(&self) -> u32 { self.xmplen }
     ///XMP packed data length and pointer to extracted XMP packet.

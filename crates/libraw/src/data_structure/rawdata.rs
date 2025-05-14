@@ -2,7 +2,7 @@ use core::slice;
 
 use image::ImageBuffer;
 
-pub enum LibrawRawdata {
+pub enum Rawdata {
     Mono16(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),
     Rgb16(image::ImageBuffer<image::Rgb<u16>, Vec<u16>>),
     Rgba16(image::ImageBuffer<image::Rgba<u16>, Vec<u16>>),
@@ -10,7 +10,7 @@ pub enum LibrawRawdata {
     RgbF32(image::ImageBuffer<image::Rgb<f32>, Vec<f32>>),
     RgbaF32(image::ImageBuffer<image::Rgba<f32>, Vec<f32>>),
 }
-impl LibrawRawdata {
+impl Rawdata {
     pub(crate) fn get_rawdata(
         imgdata: *mut libraw_sys::libraw_data_t,
         width: usize,

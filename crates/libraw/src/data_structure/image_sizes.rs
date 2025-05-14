@@ -5,7 +5,7 @@ use num_enum::TryFromPrimitive;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug, PartialEq, TryFromPrimitive)]
 #[repr(i32)]
-pub enum LibrawFlip {
+pub enum ImageSizesFlip {
     None = 0,
     Rotate180 = 3,
     CCW90 = 6,
@@ -16,7 +16,7 @@ pub enum LibrawFlip {
 /// - [libraw_image_sizes_t](https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t)
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Copy, Clone)]
-pub struct LibrawImageSizes {
+pub struct ImageSizes {
     raw_height: u16,
     raw_width: u16,
     height: u16,
@@ -27,10 +27,10 @@ pub struct LibrawImageSizes {
     iwidth: u16,
     raw_pitch: u32,
     pixel_aspect: f64,
-    flip: LibrawFlip,
+    flip: ImageSizesFlip,
 }
 
-impl LibrawImageSizes {
+impl ImageSizes {
     pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
         let imgdata = unsafe { *imgdata };
         Ok(Self {
@@ -44,7 +44,7 @@ impl LibrawImageSizes {
             iwidth: imgdata.sizes.iwidth,
             raw_pitch: imgdata.sizes.raw_pitch,
             pixel_aspect: imgdata.sizes.pixel_aspect,
-            flip: LibrawFlip::try_from(imgdata.sizes.flip).into_diagnostic()?,
+            flip: ImageSizesFlip::try_from(imgdata.sizes.flip).into_diagnostic()?,
         })
     }
     ///Full size of RAW image (including the frame) in pixels.
@@ -76,5 +76,5 @@ impl LibrawImageSizes {
     pub fn pixel_aspect(&self) -> f64 { self.pixel_aspect }
     ///Image orientation (0 if does not require rotation; 3 if requires 180-deg
     /// rotation; 5 if 90 deg counterclockwise, 6 if 90 deg clockwise).
-    pub fn flip(&self) -> LibrawFlip { self.flip }
+    pub fn flip(&self) -> ImageSizesFlip { self.flip }
 }

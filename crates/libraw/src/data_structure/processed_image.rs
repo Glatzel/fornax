@@ -1,25 +1,31 @@
 use miette::IntoDiagnostic;
-use num_enum::{IntoPrimitive, TryFromPrimitive};
+use num_enum::{IntoPrimitive, TryFromPrimitive, TryFromPrimitiveError};
 
 #[derive(Debug, TryFromPrimitive, IntoPrimitive)]
 #[repr(i32)]
 pub enum DCRawImageFormats {
-    Jpeg = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_JPEG as i32,
-    Bitmap = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_BITMAP as i32,
+    Jpeg = 1,
+    Bitmap = 2,
 }
+impl TryFrom<u32> for DCRawImageFormats {
+    type Error = TryFromPrimitiveError<DCRawImageFormats>;
 
-pub struct DCRawProcessedImage {
+    fn try_from(value: u32) -> Result<DCRawImageFormats, TryFromPrimitiveError<DCRawImageFormats>> {
+        Self::try_from(value as i32)
+    }
+}
+pub struct ProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }
-impl DCRawProcessedImage {
+impl ProcessedImage {
     pub(crate) fn new(
         ptr: *mut libraw_sys::libraw_processed_image_t,
-    ) -> miette::Result<DCRawProcessedImage> {
+    ) -> miette::Result<ProcessedImage> {
         if ptr.is_null() {
             miette::bail!("`libraw_processed_image_t` pointer is null.")
         }
         clerk::debug!("{:?}", unsafe { *(ptr) });
-        let img: DCRawProcessedImage = Self {
+        let img: ProcessedImage = Self {
             processed_image: ptr,
         };
         Ok(img)
@@ -31,8 +37,7 @@ impl DCRawProcessedImage {
     /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file.
     ///   Only type, data_size and data fields are valid (and nonzero);
     pub fn image_type(&self) -> miette::Result<DCRawImageFormats> {
-        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ } as i32)
-            .into_diagnostic()
+        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ }).into_diagnostic()
     }
     /// Image size (in pixels). Valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn height(&self) -> u16 { unsafe { (*self.processed_image).height } }
@@ -53,6 +58,6 @@ impl DCRawProcessedImage {
     /// (i.e. extracted thnumbnail size + JPEG header + EXIF header).
     pub fn data(&self) -> *const u8 { unsafe { (*self.processed_image).data.as_ptr() } }
 }
-impl Drop for DCRawProcessedImage {
+impl Drop for ProcessedImage {
     fn drop(&mut self) { unsafe { libraw_sys::libraw_dcraw_clear_mem(self.processed_image) } }
 }

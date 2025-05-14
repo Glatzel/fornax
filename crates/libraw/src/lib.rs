@@ -1,8 +1,8 @@
-pub mod dcraw;
-mod errors;
-pub mod libraw;
-pub mod utils;
+mod c_api;
+mod data_structure;
+mod extension;
 
-use errors::{check_raw_alloc, check_run};
-pub use libraw::Libraw;
-use utils::c_char_to_string;
+pub use c_api::ProcFlag;
+pub(crate) use data_structure::LibrawErrors;
+pub use data_structure::*;
+pub(crate) use extension::*;
