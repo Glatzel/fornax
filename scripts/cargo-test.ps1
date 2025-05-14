@@ -1,7 +1,6 @@
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 git submodule update --init --recursive
-& $PSScriptRoot/setup.ps1
 $code = 0
 
 Write-Output "::group::nextest"

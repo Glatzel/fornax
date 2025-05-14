@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub enum ProcFlag {
     _10bit4PixelsIn5Bytes,
     _10bit6PixelsIn8Bytes,

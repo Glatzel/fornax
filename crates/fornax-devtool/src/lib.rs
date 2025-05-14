@@ -6,7 +6,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 
 pub fn example_setup() {
     tracing_subscriber::registry()
-        .with(clerk::terminal_layer(LevelFilter::DEBUG, true))
+        .with(clerk::terminal_layer(LevelFilter::TRACE, true))
         .init();
     let outdir = output_dir();
     std::fs::create_dir_all(&outdir).expect("output dir already exists.");

@@ -15,12 +15,12 @@ pub use iparams::{ColorDesc, LibrawIParams};
 pub use open_bayer_options::ProcFlag;
 pub use rawdata::LibrawRawdata;
 
-use crate::ILibrawErrors;
 use crate::dcraw::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
     DCRawProcessedImage, DCRawUserQual,
 };
 use crate::utils::c_char_to_string;
+use crate::{check_raw_alloc, check_run};
 #[derive(Debug)]
 pub struct Libraw {
     pub(crate) imgdata: *mut libraw_sys::libraw_data_t,
@@ -39,10 +39,9 @@ impl Libraw {
     pub fn open_file(&self, fname: &Path) -> miette::Result<&Self> {
         let c_string =
             CString::new(fname.to_string_lossy().to_string()).expect("CString::new failed");
-        Self::check_run(
-            unsafe { libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _) },
-            "libraw_open_file",
-        )?;
+        check_run!(unsafe {
+            libraw_sys::libraw_open_file(self.imgdata, c_string.as_ptr() as *const _)
+        });
         Ok(self)
     }
     fn _open_file_ex(&self) -> miette::Result<&Self> { unimplemented!() }
@@ -50,12 +49,9 @@ impl Libraw {
     fn _openwfile_ex(&self) -> miette::Result<&Self> { unimplemented!() }
 
     pub fn open_buffer(&self, buf: &[u8]) -> miette::Result<&Self> {
-        Self::check_run(
-            unsafe {
-                libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
-            },
-            "libraw_open_buffer",
-        )?;
+        check_run!(unsafe {
+            libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
+        });
         Ok(self)
     }
     #[allow(clippy::too_many_arguments)]
@@ -82,42 +78,33 @@ impl Libraw {
             BayerPattern::GRBG => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_GRBG as u8,
             BayerPattern::GBRG => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_GBRG as u8,
         };
-        Self::check_run(
-            unsafe {
-                libraw_sys::libraw_open_bayer(
-                    self.imgdata,
-                    data,
-                    datalen as std::ffi::c_uint,
-                    raw_width,
-                    raw_height,
-                    left_margin,
-                    top_margin,
-                    right_margin,
-                    bottom_margin,
-                    u8::from(procflags),
-                    bayer_pattern,
-                    unused_bits,
-                    otherflags,
-                    black_level,
-                )
-            },
-            "libraw_open_buffer",
-        )?;
+        check_run!(unsafe {
+            libraw_sys::libraw_open_bayer(
+                self.imgdata,
+                data,
+                datalen as std::ffi::c_uint,
+                raw_width,
+                raw_height,
+                left_margin,
+                top_margin,
+                right_margin,
+                bottom_margin,
+                u8::from(procflags.clone()),
+                bayer_pattern,
+                unused_bits,
+                otherflags,
+                black_level,
+            )
+        });
         Ok(self)
     }
 
     pub fn unpack(&self) -> miette::Result<&Self> {
-        Self::check_run(
-            unsafe { libraw_sys::libraw_unpack(self.imgdata) },
-            "libraw_unpack",
-        )?;
+        check_run!(unsafe { libraw_sys::libraw_unpack(self.imgdata) });
         Ok(self)
     }
     pub fn unpack_thumb(&self) -> miette::Result<&Self> {
-        Self::check_run(
-            unsafe { libraw_sys::libraw_unpack_thumb(self.imgdata) },
-            "libraw_unpack_thumb",
-        )?;
+        check_run!(unsafe { libraw_sys::libraw_unpack_thumb(self.imgdata) });
         Ok(self)
     }
     fn _unpack_thumb_ex(&self) -> miette::Result<&Self> { unimplemented!() }
@@ -125,44 +112,44 @@ impl Libraw {
 // region:Parameters setters/getters
 impl Libraw {
     pub fn get_raw_height(&self) -> miette::Result<i32> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_raw_height(self.imgdata) })
     }
     pub fn get_raw_width(&self) -> miette::Result<i32> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_raw_width(self.imgdata) })
     }
     pub fn get_iheight(&self) -> miette::Result<i32> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_iheight(self.imgdata) })
     }
     pub fn get_iwidth(&self) -> miette::Result<i32> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_iwidth(self.imgdata) })
     }
     pub fn get_cam_mul(&self, index: BayerChannel) -> miette::Result<f32> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata, u8::from(index) as i32) })
     }
     pub fn get_pre_mul(&self, index: BayerChannel) -> miette::Result<f32> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata, u8::from(index) as i32) })
     }
     pub fn get_rgb_cam(&self, index1: i32, index2: i32) -> miette::Result<f32> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_rgb_cam(self.imgdata, index1, index2) })
     }
     pub fn get_iparams(&self) -> miette::Result<LibrawIParams> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         LibrawIParams::new(self.imgdata)
     }
     pub fn get_lensinfo(&self) { unimplemented!() }
     pub fn get_imgother(&self) -> miette::Result<LibrawImgOther> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         LibrawImgOther::new(self.imgdata)
     }
     pub fn get_color_maximum(&self) -> miette::Result<i32> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_color_maximum(self.imgdata) })
     }
     pub fn set_user_mul(&self, index: i32, val: f32) -> &Self {
@@ -231,7 +218,7 @@ impl Libraw {
         unsafe { libraw_sys::libraw_COLOR(self.imgdata, row, col) }
     }
     pub fn libraw_subtract_black(&self) -> miette::Result<&Self> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
         Ok(self)
     }
@@ -248,21 +235,15 @@ impl Libraw {
 //https://www.libraw.org/docs/API-CXX.html#dcrawemu
 impl Libraw {
     pub fn raw2image(&self) -> miette::Result<&Self> {
-        Self::check_raw_alloc(self.imgdata)?;
-        Self::check_run(
-            unsafe { libraw_sys::libraw_raw2image(self.imgdata) },
-            "libraw_raw2image",
-        )?;
+        check_raw_alloc!(self.imgdata);
+        check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata) });
         Ok(self)
     }
     fn _libraw_free_image() { unimplemented!() }
     fn _libraw_adjust_sizes_info_only() { unimplemented!() }
     pub fn dcraw_process(&self) -> miette::Result<&Self> {
-        Self::check_raw_alloc(self.imgdata)?;
-        Self::check_run(
-            unsafe { libraw_sys::libraw_dcraw_process(self.imgdata) },
-            "libraw_dcraw_process",
-        )?;
+        check_raw_alloc!(self.imgdata);
+        check_run!(unsafe { libraw_sys::libraw_dcraw_process(self.imgdata) });
         Ok(self)
     }
 }
@@ -274,11 +255,11 @@ impl Libraw {
 //region:Writing processing results to memory buffer
 impl Libraw {
     fn dcraw_make_mem_image(&self) -> miette::Result<DCRawProcessedImage> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
             unsafe { libraw_sys::libraw_dcraw_make_mem_image(self.imgdata, &mut result) };
-        Self::check_run(result, "libraw_dcraw_make_mem_image")?;
+        check_run!(result);
 
         let processed = DCRawProcessedImage::new(processed)?;
         Ok(processed)
@@ -289,12 +270,12 @@ impl Libraw {
 // region:Data Structure
 impl Libraw {
     pub fn get_image_sizes(&self) -> miette::Result<LibrawImageSizes> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         LibrawImageSizes::new(self.imgdata)
     }
 
     pub fn get_rawdata(&self) -> miette::Result<LibrawRawdata> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         let size = self.get_image_sizes()?;
         let width = size.raw_width();
         let height = size.raw_height();
@@ -310,7 +291,7 @@ impl Libraw {
         }
     }
     pub fn bayer_pattern(&self) -> miette::Result<fornax_core::BayerPattern> {
-        Self::check_raw_alloc(self.imgdata)?;
+        check_raw_alloc!(self.imgdata);
         let pattern0 = self.color(0, 0);
         let pattern1 = self.color(0, 1);
         let pattern2 = self.color(1, 0);
@@ -438,10 +419,7 @@ impl Libraw {
         subtract_black: bool,
     ) -> miette::Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>> {
         self.raw2image()?;
-        Self::check_run(
-            unsafe { libraw_sys::libraw_raw2image(self.imgdata) },
-            "libraw_raw2image",
-        )?;
+        check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata) });
         if subtract_black {
             self.libraw_subtract_black()?;
         }
@@ -572,7 +550,7 @@ where
         self.map_processed_image(&processed)
     }
 }
-impl ILibrawErrors for Libraw {}
+
 // region:Test
 #[cfg(test)]
 mod tests {

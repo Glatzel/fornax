@@ -2,9 +2,11 @@ use std::ffi::CString;
 use std::path::PathBuf;
 
 use miette::IntoDiagnostic;
+use num_enum::IntoPrimitive;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, IntoPrimitive)]
+#[repr(i32)]
 pub enum DCRawHighlightMode {
     Clip = 0,
     Ignore = 1,
@@ -17,70 +19,19 @@ pub enum DCRawHighlightMode {
     Reconstruct8 = 8,
     Reconstruct9 = 9,
 }
-impl TryFrom<i32> for DCRawHighlightMode {
-    type Error = miette::Report;
-    fn try_from(value: i32) -> miette::Result<Self> {
-        match value {
-            0 => Ok(DCRawHighlightMode::Clip),
-            1 => Ok(DCRawHighlightMode::Ignore),
-            2 => Ok(DCRawHighlightMode::Blend),
-            3 => Ok(DCRawHighlightMode::Reconstruct3),
-            4 => Ok(DCRawHighlightMode::Reconstruct4),
-            5 => Ok(DCRawHighlightMode::Reconstruct5),
-            6 => Ok(DCRawHighlightMode::Reconstruct6),
-            7 => Ok(DCRawHighlightMode::Reconstruct7),
-            8 => Ok(DCRawHighlightMode::Reconstruct8),
-            9 => Ok(DCRawHighlightMode::Reconstruct9),
-            v => miette::bail!("Unknown highlight mode: {v}"),
-        }
-    }
-}
-impl From<DCRawHighlightMode> for i32 {
-    fn from(value: DCRawHighlightMode) -> Self {
-        match value {
-            DCRawHighlightMode::Clip => 0,
-            DCRawHighlightMode::Ignore => 1,
-            DCRawHighlightMode::Blend => 2,
-            DCRawHighlightMode::Reconstruct3 => 3,
-            DCRawHighlightMode::Reconstruct4 => 4,
-            DCRawHighlightMode::Reconstruct5 => 5,
-            DCRawHighlightMode::Reconstruct6 => 6,
-            DCRawHighlightMode::Reconstruct7 => 7,
-            DCRawHighlightMode::Reconstruct8 => 8,
-            DCRawHighlightMode::Reconstruct9 => 9,
-        }
-    }
-}
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, IntoPrimitive)]
+#[repr(i32)]
 pub enum DCRawUseCameraMatrix {
     NotUse = 0,
     EmbeddedProfile = 1,
     EmbeddedData = 3,
 }
-impl TryFrom<i32> for DCRawUseCameraMatrix {
-    type Error = miette::Report;
-    fn try_from(value: i32) -> miette::Result<DCRawUseCameraMatrix> {
-        match value {
-            0 => Ok(DCRawUseCameraMatrix::NotUse),
-            1 => Ok(DCRawUseCameraMatrix::EmbeddedProfile),
-            3 => Ok(DCRawUseCameraMatrix::EmbeddedData),
-            v => miette::bail!("Unknown UseCameraMatrix: {v}"),
-        }
-    }
-}
-impl From<DCRawUseCameraMatrix> for i32 {
-    fn from(value: DCRawUseCameraMatrix) -> Self {
-        match value {
-            DCRawUseCameraMatrix::NotUse => 0,
-            DCRawUseCameraMatrix::EmbeddedProfile => 1,
-            DCRawUseCameraMatrix::EmbeddedData => 3,
-        }
-    }
-}
+
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, IntoPrimitive)]
+#[repr(i32)]
 pub enum DCRawOutputColor {
     Raw = 0,
     SRgb = 1,
@@ -92,124 +43,37 @@ pub enum DCRawOutputColor {
     DciP3 = 7,
     Rec2020 = 8,
 }
-impl TryFrom<i32> for DCRawOutputColor {
-    type Error = miette::Report;
-    fn try_from(value: i32) -> miette::Result<DCRawOutputColor> {
-        match value {
-            0 => Ok(DCRawOutputColor::Raw),
-            1 => Ok(DCRawOutputColor::SRgb),
-            2 => Ok(DCRawOutputColor::Adobe),
-            3 => Ok(DCRawOutputColor::Wide),
-            4 => Ok(DCRawOutputColor::ProPhoto),
-            5 => Ok(DCRawOutputColor::XYZ),
-            6 => Ok(DCRawOutputColor::ACES),
-            7 => Ok(DCRawOutputColor::DciP3),
-            8 => Ok(DCRawOutputColor::Rec2020),
-            v => miette::bail!("Unknown `OutputColor`: {v}"),
-        }
-    }
-}
-impl From<DCRawOutputColor> for i32 {
-    fn from(value: DCRawOutputColor) -> Self {
-        match value {
-            DCRawOutputColor::Raw => 0,
-            DCRawOutputColor::SRgb => 1,
-            DCRawOutputColor::Adobe => 2,
-            DCRawOutputColor::Wide => 3,
-            DCRawOutputColor::ProPhoto => 4,
-            DCRawOutputColor::XYZ => 5,
-            DCRawOutputColor::ACES => 6,
-            DCRawOutputColor::DciP3 => 7,
-            DCRawOutputColor::Rec2020 => 8,
-        }
-    }
-}
+
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, IntoPrimitive)]
+#[repr(i32)]
 pub enum DCRawOutputBps {
     _8bit = 8,
     _16bit = 16,
 }
-impl TryFrom<i32> for DCRawOutputBps {
-    type Error = miette::Report;
 
-    fn try_from(value: i32) -> miette::Result<DCRawOutputBps> {
-        match value {
-            8 => Ok(DCRawOutputBps::_8bit),
-            16 => Ok(DCRawOutputBps::_16bit),
-            v => miette::bail!("Unknown `OutputBps`: {v}"),
-        }
-    }
-}
-impl From<DCRawOutputBps> for i32 {
-    fn from(value: DCRawOutputBps) -> Self {
-        match value {
-            DCRawOutputBps::_8bit => 8,
-            DCRawOutputBps::_16bit => 16,
-        }
-    }
-}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, IntoPrimitive)]
+#[repr(i32)]
 pub enum DCRawOutputTiff {
     None = -1,
     Ppm = 0,
     Tiff = 1,
 }
-impl TryFrom<i32> for DCRawOutputTiff {
-    type Error = miette::Report;
 
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        match value {
-            -1 => Ok(Self::None),
-            0 => Ok(Self::Ppm),
-            1 => Ok(Self::Tiff),
-            v => miette::bail!("Unknown `OutputTiff`: {v}"),
-        }
-    }
-}
-impl From<DCRawOutputTiff> for i32 {
-    fn from(value: DCRawOutputTiff) -> Self {
-        match value {
-            DCRawOutputTiff::None => -1,
-            DCRawOutputTiff::Ppm => 0,
-            DCRawOutputTiff::Tiff => 1,
-        }
-    }
-}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, IntoPrimitive)]
+#[repr(i32)]
 pub enum DCRawUserFlip {
     None = 0,
     Rotate180 = 3,
     CCW90 = 5,
     CW90 = 6,
 }
-impl TryFrom<i32> for DCRawUserFlip {
-    type Error = miette::Report;
 
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(Self::None),
-            3 => Ok(Self::Rotate180),
-            5 => Ok(Self::CCW90),
-            6 => Ok(Self::CW90),
-            v => miette::bail!("Unknown `UserFlip`: {v}"),
-        }
-    }
-}
-impl From<DCRawUserFlip> for i32 {
-    fn from(value: DCRawUserFlip) -> Self {
-        match value {
-            DCRawUserFlip::None => 0,
-            DCRawUserFlip::Rotate180 => 3,
-            DCRawUserFlip::CCW90 => 5,
-            DCRawUserFlip::CW90 => 6,
-        }
-    }
-}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, IntoPrimitive)]
+#[repr(i32)]
 pub enum DCRawUserQual {
     Linear = 0,
     VNG = 1,
@@ -219,87 +83,22 @@ pub enum DCRawUserQual {
     DHT = 11,
     ModifiedAHD = 12,
 }
-impl TryFrom<i32> for DCRawUserQual {
-    type Error = miette::Report;
 
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(Self::Linear),
-            1 => Ok(Self::VNG),
-            2 => Ok(Self::PPG),
-            3 => Ok(Self::AHD),
-            4 => Ok(Self::DCB),
-            11 => Ok(Self::DHT),
-            12 => Ok(Self::ModifiedAHD),
-            v => miette::bail!("Unknown `UserQual`: {v}"),
-        }
-    }
-}
-impl From<DCRawUserQual> for i32 {
-    fn from(value: DCRawUserQual) -> Self {
-        match value {
-            DCRawUserQual::Linear => 0,
-            DCRawUserQual::VNG => 1,
-            DCRawUserQual::PPG => 2,
-            DCRawUserQual::AHD => 3,
-            DCRawUserQual::DCB => 4,
-            DCRawUserQual::DHT => 11,
-            DCRawUserQual::ModifiedAHD => 12,
-        }
-    }
-}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, IntoPrimitive)]
+#[repr(i32)]
 pub enum DCRawUseFujiRotate {
     UseRotate = -1,
     NotUse = 0,
 }
-impl TryFrom<i32> for DCRawUseFujiRotate {
-    type Error = miette::Report;
 
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        match value {
-            -1 => Ok(Self::UseRotate),
-            3 => Ok(Self::NotUse),
-            v => miette::bail!("Unknown `UseFujiRotate`: {v}"),
-        }
-    }
-}
-impl From<DCRawUseFujiRotate> for i32 {
-    fn from(value: DCRawUseFujiRotate) -> Self {
-        match value {
-            DCRawUseFujiRotate::UseRotate => -1,
-            DCRawUseFujiRotate::NotUse => 0,
-        }
-    }
-}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, IntoPrimitive)]
+#[repr(i32)]
 pub enum DCRawFbddNoiserd {
     Off = 0,
     Light = 1,
     Full = 2,
-}
-impl TryFrom<i32> for DCRawFbddNoiserd {
-    type Error = miette::Report;
-
-    fn try_from(value: i32) -> Result<Self, Self::Error> {
-        match value {
-            -1 => Ok(Self::Off),
-            0 => Ok(Self::Light),
-            1 => Ok(Self::Full),
-            v => miette::bail!("Unknown `OutputTiff`: {v}"),
-        }
-    }
-}
-impl From<DCRawFbddNoiserd> for i32 {
-    fn from(value: DCRawFbddNoiserd) -> Self {
-        match value {
-            DCRawFbddNoiserd::Off => 0,
-            DCRawFbddNoiserd::Light => 1,
-            DCRawFbddNoiserd::Full => 2,
-        }
-    }
 }
 
 ///Structure libraw_output_params_t (imgdata.params) is used for management of
@@ -529,7 +328,7 @@ impl DCRawParams {
             unsafe { (*imgdata).params.four_color_rgb = four_color_rgb as i32 };
         }
         if let Some(highlight) = self.highlight {
-            unsafe { (*imgdata).params.highlight = i32::from(highlight) };
+            unsafe { (*imgdata).params.highlight = highlight.into() };
         }
         if let Some(use_auto_wb) = self.use_auto_wb {
             unsafe { (*imgdata).params.use_auto_wb = use_auto_wb as i32 };
@@ -538,10 +337,10 @@ impl DCRawParams {
             unsafe { (*imgdata).params.use_camera_wb = use_camera_wb as i32 };
         }
         if let Some(use_camera_matrix) = self.use_camera_matrix {
-            unsafe { (*imgdata).params.use_camera_matrix = i32::from(use_camera_matrix) };
+            unsafe { (*imgdata).params.use_camera_matrix = use_camera_matrix.into() };
         }
         if let Some(output_color) = self.output_color {
-            unsafe { (*imgdata).params.output_color = i32::from(output_color) };
+            unsafe { (*imgdata).params.output_color = output_color.into() };
         }
         if let Some(output_profile) = &self.output_profile {
             unsafe {
@@ -572,16 +371,16 @@ impl DCRawParams {
             }
         }
         if let Some(output_bps) = self.output_bps {
-            unsafe { (*imgdata).params.output_bps = i32::from(output_bps) };
+            unsafe { (*imgdata).params.output_bps = output_bps.into() };
         }
         if let Some(output_tiff) = self.output_tiff {
-            unsafe { (*imgdata).params.output_tiff = i32::from(output_tiff) };
+            unsafe { (*imgdata).params.output_tiff = output_tiff.into() };
         }
         if let Some(user_flip) = self.user_flip {
-            unsafe { (*imgdata).params.user_flip = i32::from(user_flip) };
+            unsafe { (*imgdata).params.user_flip = user_flip.into() };
         }
         if let Some(user_qual) = self.user_qual {
-            unsafe { (*imgdata).params.user_qual = i32::from(user_qual) };
+            unsafe { (*imgdata).params.user_qual = user_qual.into() };
         }
         if let Some(user_black) = self.user_black {
             unsafe { (*imgdata).params.user_black = user_black };
@@ -617,7 +416,7 @@ impl DCRawParams {
             unsafe { (*imgdata).params.dcb_enhance_fl = dcb_enhance_fl };
         }
         if let Some(fbdd_noiserd) = self.fbdd_noiserd {
-            unsafe { (*imgdata).params.fbdd_noiserd = i32::from(fbdd_noiserd) };
+            unsafe { (*imgdata).params.fbdd_noiserd = fbdd_noiserd.into() };
         }
         if let Some(exp_correc) = self.exp_correc {
             unsafe { (*imgdata).params.exp_correc = exp_correc };

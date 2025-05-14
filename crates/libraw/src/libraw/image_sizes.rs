@@ -1,24 +1,17 @@
 use libraw_sys as sys;
+use miette::IntoDiagnostic;
+use num_enum::TryFromPrimitive;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, TryFromPrimitive)]
+#[repr(i32)]
 pub enum LibrawFlip {
     None = 0,
     Rotate180 = 3,
     CCW90 = 6,
     CW90 = 9,
 }
-impl From<i32> for LibrawFlip {
-    fn from(value: i32) -> Self {
-        match value {
-            0 => LibrawFlip::None,
-            3 => LibrawFlip::Rotate180,
-            6 => LibrawFlip::CCW90,
-            9 => LibrawFlip::CW90,
-            _ => panic!("Invalid value for MyEnum"),
-        }
-    }
-}
+
 /// # references
 /// - [libraw_image_sizes_t](https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t)
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
@@ -51,7 +44,7 @@ impl LibrawImageSizes {
             iwidth: imgdata.sizes.iwidth,
             raw_pitch: imgdata.sizes.raw_pitch,
             pixel_aspect: imgdata.sizes.pixel_aspect,
-            flip: LibrawFlip::from(imgdata.sizes.flip),
+            flip: LibrawFlip::try_from(imgdata.sizes.flip).into_diagnostic()?,
         })
     }
     ///Full size of RAW image (including the frame) in pixels.
