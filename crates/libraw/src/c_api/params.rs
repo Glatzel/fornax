@@ -1,8 +1,8 @@
 use fornax_core::BayerChannel;
 
 use crate::{
-    DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawUserQual, Libraw,
-    LibrawIParams, LibrawImgOther, check_raw_alloc,
+    DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawUserQual, IParams,
+    ImgOther, Libraw, check_raw_alloc,
 };
 
 // region:Parameters setters/getters
@@ -35,14 +35,14 @@ impl Libraw {
         check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_rgb_cam(self.imgdata, index1, index2) })
     }
-    pub fn get_iparams(&self) -> miette::Result<LibrawIParams> {
+    pub fn get_iparams(&self) -> miette::Result<IParams> {
         check_raw_alloc!(self.imgdata);
-        LibrawIParams::new(self.imgdata)
+        IParams::new(self.imgdata)
     }
     pub fn get_lensinfo(&self) { unimplemented!() }
-    pub fn get_imgother(&self) -> miette::Result<LibrawImgOther> {
+    pub fn get_imgother(&self) -> miette::Result<ImgOther> {
         check_raw_alloc!(self.imgdata);
-        LibrawImgOther::new(self.imgdata)
+        ImgOther::new(self.imgdata)
     }
     pub fn get_color_maximum(&self) -> miette::Result<i32> {
         check_raw_alloc!(self.imgdata);

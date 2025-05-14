@@ -3,7 +3,7 @@ use std::slice;
 use fornax_core::FornaxPrimitive;
 use image::{ImageBuffer, Rgb};
 
-use crate::{DCRawParams, DCRawProcessedImage, Libraw, check_raw_alloc, check_run};
+use crate::{DCRawParams, Libraw, ProcessedImage, check_raw_alloc, check_run};
 
 // region:Custom API
 impl Libraw {
@@ -61,7 +61,7 @@ impl Libraw {
     }
     pub(crate) fn map_processed_image<O>(
         &self,
-        processed: &DCRawProcessedImage,
+        processed: &ProcessedImage,
     ) -> miette::Result<image::ImageBuffer<Rgb<O>, Vec<O>>>
     where
         O: FornaxPrimitive,

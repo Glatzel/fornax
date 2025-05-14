@@ -8,18 +8,18 @@ pub enum DCRawImageFormats {
     Bitmap = libraw_sys::LibRaw_image_formats_LIBRAW_IMAGE_BITMAP as i32,
 }
 
-pub struct DCRawProcessedImage {
+pub struct ProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }
-impl DCRawProcessedImage {
+impl ProcessedImage {
     pub(crate) fn new(
         ptr: *mut libraw_sys::libraw_processed_image_t,
-    ) -> miette::Result<DCRawProcessedImage> {
+    ) -> miette::Result<ProcessedImage> {
         if ptr.is_null() {
             miette::bail!("`libraw_processed_image_t` pointer is null.")
         }
         clerk::debug!("{:?}", unsafe { *(ptr) });
-        let img: DCRawProcessedImage = Self {
+        let img: ProcessedImage = Self {
             processed_image: ptr,
         };
         Ok(img)
@@ -53,6 +53,6 @@ impl DCRawProcessedImage {
     /// (i.e. extracted thnumbnail size + JPEG header + EXIF header).
     pub fn data(&self) -> *const u8 { unsafe { (*self.processed_image).data.as_ptr() } }
 }
-impl Drop for DCRawProcessedImage {
+impl Drop for ProcessedImage {
     fn drop(&mut self) { unsafe { libraw_sys::libraw_dcraw_clear_mem(self.processed_image) } }
 }

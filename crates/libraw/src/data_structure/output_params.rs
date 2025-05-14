@@ -1,7 +1,5 @@
-use std::ffi::CString;
 use std::path::PathBuf;
 
-use miette::IntoDiagnostic;
 use num_enum::IntoPrimitive;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

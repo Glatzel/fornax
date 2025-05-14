@@ -1,7 +1,7 @@
 use std::io::Read;
 
 use fornax::Fornax;
-use libraw::dcraw::{
+use libraw::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
     DCRawUserFlip, DCRawUserQual,
 };
@@ -16,7 +16,7 @@ fn main() -> miette::Result<()> {
 }
 fn default_settings() -> miette::Result<()> {
     let dcraw_params = DCRawParams {
-        user_qual: Some(libraw::dcraw::DCRawUserQual::Linear),
+        user_qual: Some(libraw::DCRawUserQual::Linear),
         ..Default::default()
     };
     let libraw = libraw::Libraw::new(Some(dcraw_params));
@@ -33,7 +33,7 @@ fn cg() -> miette::Result<()> {
     let mut file = std::fs::File::open(fornax_devtool::raw_file()).into_diagnostic()?;
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer).into_diagnostic()?;
-    let params = libraw::dcraw::DCRawParams::preset_cg();
+    let params = libraw::DCRawParams::preset_cg();
     let libraw = libraw::Libraw::new(Some(params));
     let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
     let img = manager.decode_buffer(&buffer)?.post_process()?;
@@ -46,7 +46,7 @@ fn custom() -> miette::Result<()> {
     let mut file = std::fs::File::open(fornax_devtool::raw_file()).into_diagnostic()?;
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer).into_diagnostic()?;
-    let params = libraw::dcraw::DCRawParams {
+    let params = libraw::DCRawParams {
         greybox: None,
         cropbox: None,
         aber: None,

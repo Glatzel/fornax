@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use crate::c_char_to_string;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Clone)]
-pub struct LibrawGpsInfo {
+pub struct ImgOtherGpsInfo {
     latitude: [f32; 3usize],
     longitude: [f32; 3usize],
     gpstimestamp: [f32; 3usize],
@@ -14,7 +14,7 @@ pub struct LibrawGpsInfo {
     gpsstatus: String,
     gpsparsed: String,
 }
-impl LibrawGpsInfo {
+impl ImgOtherGpsInfo {
     pub(crate) fn new(info: libraw_sys::libraw_gps_info_t) -> Self {
         Self {
             latitude: info.latitude,
@@ -44,7 +44,7 @@ impl LibrawGpsInfo {
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Clone)]
-pub struct LibrawImgOther {
+pub struct ImgOther {
     iso_speed: f32,
     shutter: f32,
     aperture: f32,
@@ -52,14 +52,14 @@ pub struct LibrawImgOther {
     timestamp: DateTime<Utc>,
     shot_order: u32,
     gpsdata: [u32; 32],
-    parsed_gps: LibrawGpsInfo,
+    parsed_gps: ImgOtherGpsInfo,
     desc: String,
     artist: String,
 }
-impl LibrawImgOther {
+impl ImgOther {
     pub(crate) fn new(imgdata: *mut libraw_sys::libraw_data_t) -> miette::Result<Self> {
         let imgdata = unsafe { *imgdata };
-        let parsed_gps = LibrawGpsInfo::new(imgdata.other.parsed_gps);
+        let parsed_gps = ImgOtherGpsInfo::new(imgdata.other.parsed_gps);
         Ok(Self {
             // make: utils::mnt_to_string(&imgdata.idata.make),
             iso_speed: imgdata.other.iso_speed,
@@ -89,7 +89,7 @@ impl LibrawImgOther {
     ///GPS data (unparsed block, to write to output as is).
     pub fn gpsdata(&self) -> [u32; 32] { self.gpsdata }
     ///Parsed GPS-data: longitude/latitude/altitude and time stamp.
-    pub fn parsed_gps(&self) -> LibrawGpsInfo { self.parsed_gps.clone() }
+    pub fn parsed_gps(&self) -> ImgOtherGpsInfo { self.parsed_gps.clone() }
     ///Image description.
     pub fn desc(&self) -> String { self.desc.clone() }
     ///Author of image.
