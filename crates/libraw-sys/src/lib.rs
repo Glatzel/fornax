@@ -5,7 +5,8 @@
     non_camel_case_types,
     non_snake_case,
     non_upper_case_globals,
-    unexpected_cfgs
+    unexpected_cfgs,
+    unsafe_code
 )]
 #[cfg(all(not(bindgen), target_os = "windows"))]
 include!("bindings-win.rs");
