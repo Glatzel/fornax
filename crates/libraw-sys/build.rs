@@ -108,9 +108,6 @@ fn main() {
             .generate()
             .unwrap();
 
-        bindings
-            .write_to_file(PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bindings.rs"))
-            .expect("Couldn't write bindings!");
         if env::var("UPDATE").unwrap_or("false".to_string()) == "true" {
             if cfg!(target_os = "windows") {
                 bindings
