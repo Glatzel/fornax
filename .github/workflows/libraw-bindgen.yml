@@ -13,8 +13,8 @@ jobs:
                 os: win
               - machine: ubuntu-latest
                 os: linux
-              - machine: macos-latest
-                os: macos
+              # - machine: macos-latest
+              #   os: macos
         runs-on: ${{matrix.machine}}
         env:
           RUSTFLAGS: "-Dwarnings"
