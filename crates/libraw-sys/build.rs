@@ -70,8 +70,8 @@ fn main() {
     let _pk_libraw = link_lib("libraw_r", "raw_r");
 
     // generate bindings
-    if env::var("UPDATE").unwrap_or("false".to_string()) != "true"
-        || env::var("BINDGEN").unwrap_or("false".to_string()) != "true"
+    if env::var("UPDATE").unwrap_or("false".to_string()) == "true"
+        || env::var("BINDGEN").unwrap_or("false".to_string()) == "true"
     {
         let ignored_macros = IgnoreMacros(
             vec![
