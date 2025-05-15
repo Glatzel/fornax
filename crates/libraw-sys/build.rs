@@ -111,22 +111,22 @@ fn main() {
         bindings
             .write_to_file(PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bindings.rs"))
             .expect("Couldn't write bindings!");
-        if env::var("UPDATE").unwrap_or("false".to_string()) == "true"
-            && cfg!(target_os = "windows")
-        {
-            bindings
-                .write_to_file("./src/bindings-win.rs")
-                .expect("Couldn't write bindings!");
-        }
-        if cfg!(target_os = "linux") {
-            bindings
-                .write_to_file("./src/bindings-linux.rs")
-                .expect("Couldn't write bindings!");
-        }
-        if cfg!(target_os = "macos") {
-            bindings
-                .write_to_file("./src/bindings-macos.rs")
-                .expect("Couldn't write bindings!");
+        if env::var("UPDATE").unwrap_or("false".to_string()) == "true" {
+            if cfg!(target_os = "windows") {
+                bindings
+                    .write_to_file("./src/bindings-win.rs")
+                    .expect("Couldn't write bindings!");
+            }
+            if cfg!(target_os = "linux") {
+                bindings
+                    .write_to_file("./src/bindings-linux.rs")
+                    .expect("Couldn't write bindings!");
+            }
+            if cfg!(target_os = "macos") {
+                bindings
+                    .write_to_file("./src/bindings-macos.rs")
+                    .expect("Couldn't write bindings!");
+            }
         }
         if env::var("BINDGEN").unwrap_or("false".to_string()) == "true" {
             println!("cargo:rustc-cfg=bindgen");
