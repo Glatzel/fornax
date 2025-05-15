@@ -14,5 +14,5 @@ if ($config -ne 'release') {
 & "$ROOT/scripts/build-python-whl.ps1" -config $config
 
 Set-Location $PSScriptRoot
-pixi run -e pydev rattler-build build
+pixi run rattler-build build
 Set-Location $ROOT
