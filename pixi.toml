@@ -7,7 +7,7 @@ version = "0.1.0"
 
 [dependencies]
 libraw = { version = "==0.21.4", channel = "https://repo.prefix.dev/glatzel" }
-maturin = "==1.8.4"
+maturin = "==1.8.6"
 pip = "==25.1.1"
 pkg-config = "==0.29.2"
 python = "3.11.*"
