@@ -7,9 +7,6 @@ version.workspace = true
 libc = { workspace = true }
 
 [build-dependencies]
-bindgen = { workspace = true, optional = true }
+bindgen = { workspace = true }
 pkg-config = { workspace = true }
 dunce =  { workspace = true }
-[features]
-bindgen = ["dep:bindgen"]
-update = []
