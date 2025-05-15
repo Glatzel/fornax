@@ -80,7 +80,7 @@ fn main() {
 
     // generate bindings
     if env::var("UPDATE").unwrap_or("false".to_string()) != "true"
-        && env::var("BINDGEN").unwrap_or("false".to_string()) != "true"
+        || env::var("BINDGEN").unwrap_or("false".to_string()) != "true"
     {
         let ignored_macros = IgnoreMacros(
             vec![
@@ -109,20 +109,25 @@ fn main() {
             .unwrap();
 
         if env::var("UPDATE").unwrap_or("false".to_string()) == "true" {
-            if cfg!(target_os = "windows") {
-                bindings
-                    .write_to_file("./src/bindings-win.rs")
-                    .expect("Couldn't write bindings!");
-            }
-            if cfg!(target_os = "linux") {
-                bindings
-                    .write_to_file("./src/bindings-linux.rs")
-                    .expect("Couldn't write bindings!");
-            }
-            if cfg!(target_os = "macos") {
-                bindings
-                    .write_to_file("./src/bindings-macos.rs")
-                    .expect("Couldn't write bindings!");
+            match env::var("CARGO_CFG_TARGET_OS").unwrap().as_str() {
+                "windows" => {
+                    bindings
+                        .write_to_file("./src/bindings-win.rs")
+                        .expect("Couldn't write bindings!");
+                }
+                "linux" => {
+                    bindings
+                        .write_to_file("./src/bindings-linux.rs")
+                        .expect("Couldn't write bindings!");
+                }
+                "macos" => {
+                    bindings
+                        .write_to_file("./src/bindings-macos.rs")
+                        .expect("Couldn't write bindings!");
+                }
+                other => {
+                    panic!("Unsupported OS: {}", other)
+                }
             }
         }
         if env::var("BINDGEN").unwrap_or("false".to_string()) == "true" {
