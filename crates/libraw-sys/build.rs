@@ -77,6 +77,7 @@ fn main() {
 
     // Link
     let _pk_libraw = link_lib("libraw_r", "raw_r");
+
     // generate bindings
     if env::var("UPDATE").unwrap_or("false".to_string()) != "true"
         && env::var("BINDGEN").unwrap_or("false".to_string()) != "true"
@@ -125,6 +126,12 @@ fn main() {
         if cfg!(target_os = "macos") {
             bindings
                 .write_to_file("./src/bindings-macos.rs")
+                .expect("Couldn't write bindings!");
+        }
+        if env::var("BINDGEN").unwrap_or("false".to_string()) == "true" {
+            println!("cargo:rustc-cfg=bindgen");
+            bindings
+                .write_to_file(PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs"))
                 .expect("Couldn't write bindings!");
         }
     }

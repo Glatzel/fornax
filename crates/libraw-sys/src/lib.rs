@@ -10,5 +10,7 @@
 include!("bindings-win.rs");
 #[cfg(all(not(feature = "bindgen"), target_os = "linux"))]
 include!("bindings-linux.rs");
+#[cfg(all(not(feature = "bindgen"), target_os = "macos"))]
+include!("bindings-macos.rs");
 #[cfg(feature = "bindgen")]
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

@@ -1,5 +1,6 @@
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 $env:RUSTFLAGS = "-Dwarnings"
-cargo build  --all-features -p libraw-sys
+$env:UPDATE = "true"
+cargo build -p libraw-sys
 Set-Location $ROOT
