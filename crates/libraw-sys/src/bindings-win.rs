@@ -1206,12 +1206,7 @@ unsafe extern "C" {
         _Alignment: usize,
     ) -> *mut libc::c_void;
 }
-unsafe extern "C" {
-    pub fn __threadid() -> libc::c_ulong;
-}
-unsafe extern "C" {
-    pub fn __threadhandle() -> usize;
-}
+pub type max_align_t = f64;
 pub type _CoreCrtSecureSearchSortCompareFunction = ::core::option::Option<
     unsafe extern "C" fn(
         arg1: *mut libc::c_void,

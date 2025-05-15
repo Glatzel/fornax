@@ -1,6 +1,5 @@
-#[allow(unused_imports)]
-use std::collections::HashSet;
 use std::env;
+use std::path::PathBuf;
 
 fn main() {
     let workspace_root = env::var("CARGO_WORKSPACE_DIR").unwrap();
@@ -46,17 +45,8 @@ fn main() {
             panic!("Unsupported OS: {}", other)
         }
     };
-    match env::var("PKG_CONFIG_PATH") {
-        Ok(var) => unsafe {
-            env::set_var(
-                "PKG_CONFIG_PATH",
-                format!("{var};{}", &default_pkg_config_path),
-            );
-        },
-        Err(_) => unsafe {
-            env::set_var("PKG_CONFIG_PATH", &default_pkg_config_path);
-        },
-    }
+
+    unsafe { env::set_var("PKG_CONFIG_PATH", &default_pkg_config_path) };
 
     // check LIBCLANG_PATH
     #[cfg(target_os = "windows")]
@@ -78,8 +68,10 @@ fn main() {
 
     // Link
     let _pk_libraw = link_lib("libraw_r", "raw_r");
+
     // generate bindings
-    #[cfg(any(feature = "bindgen", feature = "update"))]
+    if env::var("UPDATE").unwrap_or("false".to_string()) != "true"
+        || env::var("BINDGEN").unwrap_or("false".to_string()) != "true"
     {
         let ignored_macros = IgnoreMacros(
             vec![
@@ -107,17 +99,34 @@ fn main() {
             .generate()
             .unwrap();
 
-        bindings
-            .write_to_file(PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("bindings.rs"))
-            .expect("Couldn't write bindings!");
-        #[cfg(all(feature = "update", target_os = "windows"))]
-        bindings
-            .write_to_file("./src/bindings-win.rs")
-            .expect("Couldn't write bindings!");
-        #[cfg(all(feature = "update", target_os = "linux"))]
-        bindings
-            .write_to_file("./src/bindings-linux.rs")
-            .expect("Couldn't write bindings!");
+        if env::var("UPDATE").unwrap_or("false".to_string()) == "true" {
+            match env::var("CARGO_CFG_TARGET_OS").unwrap().as_str() {
+                "windows" => {
+                    bindings
+                        .write_to_file("./src/bindings-win.rs")
+                        .expect("Couldn't write bindings!");
+                }
+                "linux" => {
+                    bindings
+                        .write_to_file("./src/bindings-linux.rs")
+                        .expect("Couldn't write bindings!");
+                }
+                "macos" => {
+                    bindings
+                        .write_to_file("./src/bindings-macos.rs")
+                        .expect("Couldn't write bindings!");
+                }
+                other => {
+                    panic!("Unsupported OS: {}", other)
+                }
+            }
+        }
+        if env::var("BINDGEN").unwrap_or("false".to_string()) == "true" {
+            println!("cargo:rustc-cfg=bindgen");
+            bindings
+                .write_to_file(PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs"))
+                .expect("Couldn't write bindings!");
+        }
     }
 }
 fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
@@ -130,10 +139,10 @@ fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
         Err(e) => panic!("cargo:warning=Pkg-config error: {:?}", e),
     }
 }
-#[cfg(feature = "bindgen")]
+
 #[derive(Debug)]
-struct IgnoreMacros(HashSet<String>);
-#[cfg(feature = "bindgen")]
+struct IgnoreMacros(std::collections::HashSet<String>);
+
 impl bindgen::callbacks::ParseCallbacks for IgnoreMacros {
     fn will_parse_macro(&self, name: &str) -> bindgen::callbacks::MacroParsingBehavior {
         if self.0.contains(name) {
