@@ -6,10 +6,10 @@ version.workspace = true
 [dependencies]
 clerk = { workspace = true }
 fornax-core = { workspace = true }
-miette = { workspace = true }
-serde = { workspace = true, optional = true }
 image = { workspace = true }
+miette = { workspace = true }
 rayon = { workspace = true }
+serde = { workspace = true, optional = true }
 
 [dev-dependencies]
 clerk = { workspace = true, features = ["log"] }

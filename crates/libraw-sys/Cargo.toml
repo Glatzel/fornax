@@ -8,5 +8,5 @@ libc = { workspace = true }
 
 [build-dependencies]
 bindgen = { workspace = true }
+dunce = { workspace = true }
 pkg-config = { workspace = true }
-dunce =  { workspace = true }

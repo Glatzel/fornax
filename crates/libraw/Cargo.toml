@@ -11,8 +11,8 @@ fornax-core = { workspace = true }
 image = { workspace = true }
 libraw-sys = { workspace = true }
 miette = { workspace = true }
-serde = { workspace = true, optional = true }
 num_enum = { workspace = true }
+serde = { workspace = true, optional = true }
 
 [dev-dependencies]
 assert_cmd = { workspace = true }
