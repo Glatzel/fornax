@@ -15,12 +15,12 @@ module-name = "fornax.fornax_py"
 
 [tool.numpydoc_validation]
 checks = [
-    "all",  # report on all checks, except the below
-    "ES01", # No extended summary found
-    "EX01", # No examples section found
-    "GL08", # The object does not have a docstring
-    "PR04", # Parameter "{param_name}" has no type
-    "RT03", # Return value has no description
-    "SA01", # See Also section not found
-    "SA04", # Missing description for See Also "{reference_name}" reference
+  "all",  # report on all checks, except the below
+  "ES01", # No extended summary found
+  "EX01", # No examples section found
+  "GL08", # The object does not have a docstring
+  "PR04", # Parameter "{param_name}" has no type
+  "RT03", # Return value has no description
+  "SA01", # See Also section not found
+  "SA04", # Missing description for See Also "{reference_name}" reference
 ]
