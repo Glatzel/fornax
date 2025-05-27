@@ -31,10 +31,6 @@ env:
   RUST_ROOT: .
 
 jobs:
-  pre-commit:
-    if: ${{ !inputs.release }}
-    uses: Glatzel/template/.github/workflows/pre-commit.yml@main
-
   cargo-doc:
     if: ${{!inputs.release}}
     runs-on: ubuntu-latest
