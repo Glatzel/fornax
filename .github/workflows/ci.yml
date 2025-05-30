@@ -99,7 +99,11 @@ jobs:
 
       - name: cargo-test
         if: ${{!inputs.release}}
-        run: ${{env.RUST_ROOT}}/scripts/cargo-test.ps1
+        run: |
+          git submodule update --init --recursive
+          pixi install
+          $env:CONDA_PREFIX=resolve-path ./.pixi/envs/default
+          ${{env.RUST_ROOT}}/scripts/cargo-test.ps1
         shell: pwsh
 
       - name: rattler-build
