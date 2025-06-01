@@ -20,7 +20,7 @@ Write-Output "::endgroup::"
 
 Write-Output "::group::lcov"
 if ( $env:CI ) {
-    cargo +nightly llvm-cov report --lcov --output-path lcov.info
+    cargo +nightly llvm-cov report --cobertura --output-path coverage.xml
 }
 Write-Output "::endgroup::"
 
