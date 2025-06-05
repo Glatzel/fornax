@@ -7,6 +7,7 @@ version.workspace = true
 bytemuck = { workspace = true }
 chrono = { workspace = true }
 clerk = { workspace = true }
+envoy = { workspace = true }
 fornax-core = { workspace = true }
 image = { workspace = true }
 libraw-sys = { workspace = true }

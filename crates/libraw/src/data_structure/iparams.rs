@@ -1,6 +1,6 @@
+use envoy::CStrToString;
 use libraw_sys as sys;
 
-use crate::c_char_to_string;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug)]
 pub enum IParamsColorDesc {
@@ -44,12 +44,20 @@ impl IParams {
     pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
         let imgdata = unsafe { *imgdata };
         Ok(Self {
-            make: c_char_to_string(imgdata.idata.make.as_ptr()),
-            model: c_char_to_string(imgdata.idata.model.as_ptr()),
-            normalized_make: c_char_to_string(imgdata.idata.normalized_make.as_ptr()),
-            normalized_model: c_char_to_string(imgdata.idata.normalized_model.as_ptr()),
+            make: imgdata.idata.make.to_string().unwrap_or_default(),
+            model: imgdata.idata.model.to_string().unwrap_or_default(),
+            normalized_make: imgdata
+                .idata
+                .normalized_make
+                .to_string()
+                .unwrap_or_default(),
+            normalized_model: imgdata
+                .idata
+                .normalized_model
+                .to_string()
+                .unwrap_or_default(),
             maker_index: imgdata.idata.maker_index,
-            software: c_char_to_string(imgdata.idata.software.as_ptr()),
+            software: imgdata.idata.software.to_string().unwrap_or_default(),
             raw_count: imgdata.idata.raw_count,
             is_foveon: imgdata.idata.is_foveon != 0,
             dng_version: imgdata.idata.dng_version,
@@ -57,7 +65,7 @@ impl IParams {
             filters: imgdata.idata.filters,
             xtrans: imgdata.idata.xtrans,
             xtrans_abs: imgdata.idata.xtrans_abs,
-            cdesc: IParamsColorDesc::from(c_char_to_string(imgdata.idata.cdesc.as_ptr()).as_str()),
+            cdesc: IParamsColorDesc::from(imgdata.idata.cdesc.to_string().unwrap().as_str()),
             xmplen: imgdata.idata.xmplen,
             xmpdata: unsafe {
                 std::ffi::CStr::from_ptr(imgdata.idata.xmpdata)

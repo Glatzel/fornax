@@ -1,23 +1,18 @@
-use crate::{Libraw, c_char_to_string, check_raw_alloc, check_run};
+use envoy::{CStrListToVecString, CStrToString};
+
+use crate::{Libraw, check_raw_alloc, check_run};
 
 // region:Auxiliary Functions
 // https://www.libraw.org/docs/API-CXX.html#utility
 impl Libraw {
-    pub fn version() -> String { c_char_to_string(unsafe { libraw_sys::libraw_version() }) }
+    pub fn version() -> String {
+        unsafe { libraw_sys::libraw_version().to_string().unwrap_or_default() }
+    }
     fn _check_version() -> bool { unimplemented!() }
     fn _libraw_capabilities() { unimplemented!() }
     pub fn camera_count() -> i32 { unsafe { libraw_sys::libraw_cameraCount() } }
     pub fn camera_list() -> Vec<String> {
-        let mut vec = Vec::new();
-        let ptr = unsafe { libraw_sys::libraw_cameraList() };
-        unsafe {
-            let mut current_ptr = ptr;
-            while !(*current_ptr).is_null() {
-                vec.push(c_char_to_string(*current_ptr));
-                current_ptr = current_ptr.add(1);
-            }
-        }
-        vec
+        unsafe { libraw_sys::libraw_cameraList().cast_const().to_vec_string() }
     }
     fn _libraw_get_decoder_info() { unimplemented!() }
     fn _libraw_unpack_function_name() { unimplemented!() }
@@ -32,7 +27,11 @@ impl Libraw {
     fn _libraw_recycle_datastream() { unimplemented!() }
     fn _libraw_recycle() { unimplemented!() }
     pub fn strerror(errorcode: i32) -> String {
-        c_char_to_string(unsafe { libraw_sys::libraw_strerror(errorcode) })
+        unsafe {
+            libraw_sys::libraw_strerror(errorcode)
+                .to_string()
+                .unwrap_or_default()
+        }
     }
     fn _libraw_strprogress() { unimplemented!() }
     fn _libraw_set_dataerror_handler() { unimplemented!() }
