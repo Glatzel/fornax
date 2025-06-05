@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
+use envoy::CStrToString;
 
-use crate::c_char_to_string;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Clone)]
 pub struct ImgOtherGpsInfo {
@@ -21,15 +21,11 @@ impl ImgOtherGpsInfo {
             longitude: info.longitude,
             gpstimestamp: info.gpstimestamp,
             altitude: info.altitude,
-            altref: char::from(info.altref as u8).to_string().replace('\0', ""),
-            latref: char::from(info.latref as u8).to_string().replace('\0', ""),
-            longref: char::from(info.longref as u8).to_string().replace('\0', ""),
-            gpsstatus: char::from(info.gpsstatus as u8)
-                .to_string()
-                .replace('\0', ""),
-            gpsparsed: char::from(info.gpsparsed as u8)
-                .to_string()
-                .replace('\0', ""),
+            altref: info.altref.to_string(),
+            latref: info.latref.to_string(),
+            longref: info.longref.to_string(),
+            gpsstatus: info.gpsstatus.to_string(),
+            gpsparsed: info.gpsparsed.to_string(),
         }
     }
     pub fn latitude(&self) -> [f32; 3usize] { self.latitude }
@@ -70,8 +66,8 @@ impl ImgOther {
             shot_order: imgdata.other.shot_order,
             gpsdata: imgdata.other.gpsdata,
             parsed_gps,
-            desc: c_char_to_string(imgdata.other.desc.as_ptr()),
-            artist: c_char_to_string(imgdata.other.artist.as_ptr()),
+            desc: CStrToString::to_string(imgdata.other.desc.as_slice()).unwrap_or_default(),
+            artist: CStrToString::to_string(imgdata.other.artist.as_slice()).unwrap_or_default(),
         })
     }
     ///ISO sensitivity.
