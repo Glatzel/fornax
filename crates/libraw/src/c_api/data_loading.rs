@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use envoy::ToCStr;
+use envoy::ToCString;
 use fornax_core::BayerPattern;
 
 use crate::{Libraw, check_run};
@@ -24,7 +24,12 @@ impl From<ProcFlag> for u8 {
 // https://www.libraw.org/docs/API-CXX.html#dataload
 impl Libraw {
     pub fn open_file(&self, fname: &Path) -> miette::Result<&Self> {
-        check_run!(unsafe { libraw_sys::libraw_open_file(self.imgdata, fname.to_str().to_cstr()) });
+        check_run!(unsafe {
+            libraw_sys::libraw_open_file(
+                self.imgdata,
+                fname.to_str().unwrap().to_cstring().as_ptr(),
+            )
+        });
         Ok(self)
     }
     fn _open_file_ex(&self) -> miette::Result<&Self> { unimplemented!() }
