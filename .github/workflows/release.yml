@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
+        description: 'Tag to release'
         type: string
         required:  true
 
@@ -13,16 +14,40 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-and-build:
-    permissions: read-all
-    uses: ./.github/workflows/ci.yml
-    with:
-      release: true
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: [windows-latest]
+        include:
+          - machine: windows-latest
+            os: win-64
+    runs-on: ${{matrix.machine}}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.8
+        with:
+          run-install: false
+
+      - name: rattler-build
+        run: ./crates/fornax-py/rattler/ci-fornax-py.ps1 -config release
+        shell: pwsh
+
+      - name: upload-assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: pyxis-python-${{matrix.machine}}
+          path: |
+            ./crates/fornax-py/rattler/output/${{matrix.os}}/*.conda
+          if-no-files-found: error
+
 
   release:
     permissions:
       contents: write
-    needs: [check-and-build]
+    needs: [build]
     uses: Glatzel/template/.github/workflows/release.yml@main
     with:
       override: true
