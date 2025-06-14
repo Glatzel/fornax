@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.7] - 2025-06-14
+
+### Added
+
+- Add libraw-bindgen by @Glatzel in [#80](https://github.com/Glatzel/fornax/pull/80)
+
+### Fixed
+
+- Bindings by @Glatzel in [#83](https://github.com/Glatzel/fornax/pull/83)
+- Python scripts by @Glatzel in [#111](https://github.com/Glatzel/fornax/pull/111)
+- Build libraw by @Glatzel in [#115](https://github.com/Glatzel/fornax/pull/115)
+
+### Refactor
+
+- Optimize enum by @Glatzel in [#109](https://github.com/Glatzel/fornax/pull/109)
+- Libraw by @Glatzel in [#110](https://github.com/Glatzel/fornax/pull/110)
+- Use envoy to process cstring by @Glatzel in [#136](https://github.com/Glatzel/fornax/pull/136)
+
+### Removed
+
+- Remove some scripts by @Glatzel in [#94](https://github.com/Glatzel/fornax/pull/94)
+
 ## [0.0.6] - 2025-04-20
 
 ### Fixed
@@ -90,6 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial test by @Glatzel in [#8](https://github.com/Glatzel/fornax/pull/8)
 
+[0.0.7]: https://github.com/Glatzel/fornax/compare/v0.0.6..v0.0.7
 [0.0.6]: https://github.com/Glatzel/fornax/compare/v0.0.5..v0.0.6
 [0.0.5]: https://github.com/Glatzel/fornax/compare/v0.0.4..v0.0.5
 [0.0.4]: https://github.com/Glatzel/fornax/compare/v0.0.3..v0.0.4
