@@ -4,7 +4,7 @@ resolver = "2"
 
 [workspace.package]
 edition = "2024"
-version = "0.0.6"
+version = "0.0.7"
 
 [workspace.dependencies]
 dnc = { path = "./crates/dnc" }
