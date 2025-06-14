@@ -116,7 +116,6 @@ jobs:
           name: pyxis-python-${{matrix.machine}}
           path: |
             ./crates/fornax-py/rattler/output/${{matrix.os}}/*.conda
-            ./crates/fornax-py/dist/*.whl
           if-no-files-found: error
 
       - name: Upload results to Codecov
