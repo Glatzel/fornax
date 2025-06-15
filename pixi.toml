@@ -18,7 +18,7 @@ msgspec = "==0.19.0"
 nomkl = "==1.0"
 numpy = "==2.3.0"
 numpydoc = "==1.8.0"
-pydantic = "==2.11.6"
+pydantic = "==2.11.7"
 rattler-build = "==0.43.1"
 
 # test
