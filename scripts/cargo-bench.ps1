@@ -1,3 +1,5 @@
+# This File is automatically synchronized from https://github.com/Glatzel/template
+
 param($filter)
 if (Test-Path $PSScriptRoot/setup.ps1) {
     &$PSScriptRoot/setup.ps1
