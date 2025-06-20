@@ -7,11 +7,9 @@ platforms = ["linux-64", "win-64"]
 [tasks]
 pre-commit-run = "pre-commit run --all-files"
 
-hook-csharpier = "cd ..; dotnet-csharpier . ; dotnet-csharpier . --check"
-# csharpier >=1.0.0
-# hook-csharpier = " csharpier format .; csharpier check ."
 hook-cargo-clippy = "pwsh -f ./cargo-clippy.ps1"
 hook-cargo-fmt = "pwsh -f ./cargo-fmt.ps1"
+hook-csharpier = "cd ..; dotnet tool install -g csharpier; csharpier format .; csharpier check ."
 hook-markdown = "cd ..; pwsh -CommandWithArgs 'if(-not $IsWindows){markdownlint-cli2 --fix $args}'"
 hook-numpydoc = "cd ..; pwsh -CommandWithArgs 'numpydoc lint $args --ignore ES01 EX01 GL08 PR04 RT03 SA01 SA04'"
 hook-ruff-format = "cd ..; ruff format --force-exclude --exit-non-zero-on-format"
@@ -21,12 +19,11 @@ hook-typos = "cd ..; typos --force-exclude"
 
 [dependencies]
 actionlint = "==1.7.7"
-csharpier = "==0.30.6"
 markdownlint-cli2 = "==0.18.1"
 numpydoc = "==1.8.0"
 pre-commit = "==4.2.0"
 pre-commit-hooks = "==5.0.0"
 python = "3.11.*"
-ruff = "==0.11.13"
+ruff = "==0.12.0"
 taplo = "==0.10.0"
 typos = "==1.33.1"
