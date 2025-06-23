@@ -27,7 +27,7 @@ float-cmp = "0.10.0"
 image = { git = "https://github.com/fintelia/image", branch = "primitive-ext" }
 libc = "0.2"
 miette = { version = "7.5.0", features = ["fancy"] }
-num_enum = "0.7.3"
+num_enum = "0.7.4"
 numpy = "0.25.0"
 path-slash = "0.2.1"
 pkg-config = "0.3.32"
