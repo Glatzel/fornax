@@ -7,7 +7,7 @@ version = "0.1.0"
 
 [dependencies]
 libraw = { version = "==0.21.4", channel = "https://repo.prefix.dev/glatzel" }
-maturin = "==1.8.7"
+maturin = "==1.9.0"
 pip = "==25.1.1"
 pkg-config = "==0.29.2"
 python = "3.11.*"
@@ -17,9 +17,9 @@ lazy-loader = "==0.4"
 msgspec = "==0.19.0"
 nomkl = "==1.0"
 numpy = "==2.3.0"
-numpydoc = "==1.8.0"
+numpydoc = "==1.9.0"
 pydantic = "==2.11.7"
-rattler-build = "==0.43.1"
+rattler-build = "==0.44.0"
 
 # test
 pytest = "==8.4.1"
