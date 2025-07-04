@@ -1,13 +1,7 @@
 use std::path::PathBuf;
 
-use tracing::level_filters::LevelFilter;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
-
 pub fn example_setup() {
-    tracing_subscriber::registry()
-        .with(clerk::terminal_layer(LevelFilter::TRACE, true))
-        .init();
+    clerk::init_log_with_level(clerk::LevelFilter::TRACE);
     let outdir = output_dir();
     std::fs::create_dir_all(&outdir).expect("output dir already exists.");
     assert!(outdir.is_dir());
