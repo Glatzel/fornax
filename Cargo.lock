@@ -404,8 +404,8 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "envoy"
-version = "0.0.20"
-source = "git+https://github.com/Glatzel/toolbox?tag=v0.0.20#e36184f8fc608fd3cb031273345d27619497674b"
+version = "0.0.21"
+source = "git+https://github.com/Glatzel/toolbox?tag=v0.0.21#8cd23e965bde30d7ad15a751f919bad5fed50d54"
 
 [[package]]
 name = "equator"
