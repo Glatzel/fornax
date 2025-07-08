@@ -59,7 +59,7 @@ jobs:
           - machine: windows-latest
             os: win-64
     env:
-      dnc_version: 17_3_1
+      dnc_version: 17_4_1
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v4
