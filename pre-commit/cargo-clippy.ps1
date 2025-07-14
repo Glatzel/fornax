@@ -7,6 +7,7 @@ Set-Location $ROOT
 foreach ($f in Get-ChildItem "Cargo.lock" -Recurse) {
     Set-Location $f.Directory.ToString()
     Write-Output "Cargo fmt in: $pwd"
+    cargo clean
     if (Test-Path ./scripts/setup.ps1) {
         &./scripts/setup.ps1
         Set-Location $f.Directory.ToString()
