@@ -65,13 +65,13 @@ mod test {
     #[test]
     fn test_camera_count() {
         let count = Libraw::camera_count();
-        println!("camera_count: {}", count);
+        println!("camera_count: {count}");
         assert!(count > 0);
     }
     #[test]
     fn test_camera_list() {
         let camera_list = Libraw::camera_list();
-        println!("{:?}", camera_list);
+        println!("{camera_list:?}");
         assert!(!camera_list.is_empty());
     }
     #[test]
