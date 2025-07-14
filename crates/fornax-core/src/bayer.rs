@@ -85,7 +85,7 @@ impl Display for BayerPattern {
             BayerPattern::GRBG => "GRBG",
             BayerPattern::GBRG => "GBRG",
         };
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 
