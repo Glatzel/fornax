@@ -20,7 +20,7 @@ impl Display for DncPreview {
             DncPreview::Medium => "-p1",
             DncPreview::Full => "-p2",
         };
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -89,7 +89,7 @@ impl Display for DncCompatibility {
             DncCompatibility::DNG1_7 => "-dng1.7",
             DncCompatibility::DNG1_7_1 => "-dng1.7.1",
         };
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -145,11 +145,11 @@ impl DncParams {
         }
 
         if let Some(side) = self.side {
-            cmd.push(format!("-side {}", side));
+            cmd.push(format!("-side {side}"));
         }
 
         if let Some(count) = self.count {
-            cmd.push(format!("-count {}", count));
+            cmd.push(format!("-count {count}"));
         }
         cmd.push(self.compatibility.to_string());
 

@@ -5,7 +5,7 @@ fn main() -> miette::Result<()> {
     custom_path()?;
     match std::fs::remove_file(fornax_devtool::raw_file().with_extension("dng")) {
         Ok(()) => println!("dng file removed successfully."),
-        Err(e) => eprintln!("Failed to remove file: {}", e),
+        Err(e) => eprintln!("Failed to remove file: {e}"),
     }
     Ok(())
 }

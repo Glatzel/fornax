@@ -37,6 +37,6 @@ impl std::fmt::Display for LibrawErrors {
             Into::<i32>::into(self.clone()),
             info
         );
-        write!(f, "{}", text)
+        write!(f, "{text}")
     }
 }
