@@ -6,7 +6,7 @@ fn main() -> miette::Result<()> {
         .open_file(&fornax_devtool::raw_file())?
         .unpack()?
         .get_imgother()?;
-    println!("{:?}", imgother);
+    println!("{imgother:?}");
 
     assert_eq!(imgother.iso_speed(), 100.0);
     assert_eq!(imgother.aperture(), 5.6);

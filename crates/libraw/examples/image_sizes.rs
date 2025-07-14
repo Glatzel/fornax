@@ -6,7 +6,7 @@ fn main() -> miette::Result<()> {
         .unpack()?
         .get_image_sizes()?;
 
-    println!("{:?}", sizes);
+    println!("{sizes:?}");
 
     assert_eq!(sizes.raw_height(), 3516);
     assert_eq!(sizes.raw_width(), 5360);

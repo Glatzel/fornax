@@ -7,7 +7,7 @@ fn main() -> miette::Result<()> {
         .unpack()?
         .get_iparams()?;
 
-    println!("{:?}", iparams);
+    println!("{iparams:?}");
 
     assert_eq!(iparams.make(), "Canon");
     assert_eq!(iparams.model(), "EOS 7D");
