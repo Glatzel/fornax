@@ -47,25 +47,6 @@ fn main() {
     };
 
     unsafe { env::set_var("PKG_CONFIG_PATH", &default_pkg_config_path) };
-
-    // check LIBCLANG_PATH
-    #[cfg(target_os = "windows")]
-    match std::env::var("LIBCLANG_PATH") {
-        Ok(path) => println!("Found `LIBCLANG_PATH`: {path}"),
-        Err(_) => {
-            let path = "C:/Program Files/LLVM/bin";
-
-            if std::path::PathBuf::from(path).exists() {
-                unsafe {
-                    std::env::set_var("LIBCLANG_PATH", path);
-                }
-                println!("Set `LIBCLANG_PATH` to: {path}")
-            } else {
-                panic!("`LIBCLANG_PATH` not found.");
-            }
-        }
-    };
-
     // Link
     let _pk_libraw = link_lib("libraw_r", "raw_r");
 
