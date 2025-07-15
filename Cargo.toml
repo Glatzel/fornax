@@ -19,9 +19,9 @@ assert_cmd = "2.0"
 bindgen = "0.71.1"
 bytemuck = "1.23.1"
 chrono = "0.4.40"
-clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.21" }
+clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.22" }
 dunce = "1.0.5"
-envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.21" }
+envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.22" }
 # image = "0.25.5"
 float-cmp = "0.10.0"
 image = { git = "https://github.com/fintelia/image", branch = "primitive-ext" }
