@@ -16,6 +16,7 @@ repos:
       #rust
       - id: cargo-clippy
       - id: cargo-fmt
+      - id: cargo-machete
       # python
       - id: ruff-lint
       - id: ruff-format
