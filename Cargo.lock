@@ -528,8 +528,6 @@ name = "fornax-devtool"
 version = "0.0.7"
 dependencies = [
  "clerk",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
