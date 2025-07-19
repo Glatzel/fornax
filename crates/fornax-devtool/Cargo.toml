@@ -5,8 +5,6 @@ version.workspace = true
 
 [dependencies]
 clerk = { workspace = true, features = ["log"] }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
 
 [features]
 log = ["clerk/log"]
