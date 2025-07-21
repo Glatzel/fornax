@@ -303,8 +303,8 @@ dependencies = [
 
 [[package]]
 name = "clerk"
-version = "0.0.22"
-source = "git+https://github.com/Glatzel/clerk?tag=v0.0.22#6e2c84c736835eb80dc85b411d5be227b777e9e0"
+version = "0.0.24"
+source = "git+https://github.com/Glatzel/clerk?tag=v0.0.24#3467e10006453ffa8d480c819286811cd7f20602"
 dependencies = [
  "chrono",
  "owo-colors",
@@ -404,8 +404,8 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "envoy"
-version = "0.0.22"
-source = "git+https://github.com/Glatzel/toolbox?tag=v0.0.22#6e2c84c736835eb80dc85b411d5be227b777e9e0"
+version = "0.0.24"
+source = "git+https://github.com/Glatzel/toolbox?tag=v0.0.24#3467e10006453ffa8d480c819286811cd7f20602"
 
 [[package]]
 name = "equator"
