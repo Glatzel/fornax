@@ -1,6 +1,7 @@
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
 $ROOT = git rev-parse --show-toplevel
+&$PSScriptRoot/setup.ps1
 Set-Location $PSScriptRoot/..
 $env:RUSTFLAGS= "-Dwarnings"
 cargo doc --no-deps --all-features `
