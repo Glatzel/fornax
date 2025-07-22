@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 pub fn example_setup() {
-    clerk::init_log_with_level(clerk::LevelFilter::TRACE);
+    clerk::init_log_with_level(clerk::LogLevel::TRACE);
     let outdir = output_dir();
     std::fs::create_dir_all(&outdir).expect("output dir already exists.");
     assert!(outdir.is_dir());

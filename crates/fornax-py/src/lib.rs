@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use clerk::LogLevel;
 use fornax::fornax_dalim::Dalim;
 use fornax::libraw::DCRawParams;
 use fornax::{dnc, libraw};
@@ -9,7 +10,6 @@ use pyo3::types::PyTuple;
 use pyo3::{Python, pyfunction};
 use rmp_serde::Deserializer;
 use serde::Deserialize;
-use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 enum PyOutputBits {
@@ -131,12 +131,12 @@ fn py_process<'a>(
 #[pyfunction]
 pub fn py_init_tracing(level: u8, color: bool) {
     let level = match level {
-        1 => LevelFilter::ERROR,
-        2 => LevelFilter::WARN,
-        3 => LevelFilter::INFO,
-        4 => LevelFilter::DEBUG,
-        5 => LevelFilter::TRACE,
-        _ => LevelFilter::OFF,
+        1 => LogLevel::ERROR,
+        2 => LogLevel::WARN,
+        3 => LogLevel::INFO,
+        4 => LogLevel::DEBUG,
+        5 => LogLevel::TRACE,
+        _ => LogLevel::OFF,
     };
     tracing_subscriber::registry()
         .with(clerk::terminal_layer(level, color))
