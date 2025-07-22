@@ -541,7 +541,6 @@ dependencies = [
  "pyo3",
  "rmp-serde",
  "serde",
- "tracing",
  "tracing-subscriber",
 ]
 
