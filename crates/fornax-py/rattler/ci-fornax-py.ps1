@@ -5,6 +5,7 @@ param (
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
 $ROOT = git rev-parse --show-toplevel
+&$ROOT/scripts/setup.ps1
 Set-Location $PSScriptRoot
 
 if ($config -ne 'release') {
