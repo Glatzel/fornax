@@ -17,11 +17,11 @@ libraw-sys = { path = "./crates/libraw-sys" }
 
 assert_cmd = "2.0"
 bindgen = "0.71.1"
-bytemuck = "1.23.1"
+bytemuck = "1.23.2"
 chrono = "0.4.40"
-clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.24" }
+clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.25" }
 dunce = "1.0.5"
-envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.24" }
+envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.25" }
 # image = "0.25.5"
 float-cmp = "0.10.0"
 image = { git = "https://github.com/fintelia/image", branch = "primitive-ext" }
