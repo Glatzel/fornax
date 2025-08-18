@@ -20,7 +20,7 @@ hook-typos = "cd ..; typos --force-exclude"
 
 [dependencies]
 actionlint = "==1.7.7"
-cargo-machete = "==0.8.0"
+cargo-machete = "==0.9.1"
 markdownlint-cli2 = "==0.18.1"
 numpydoc = "==1.9.0"
 pre-commit = "==4.3.0"
