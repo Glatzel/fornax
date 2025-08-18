@@ -31,7 +31,7 @@ jobs:
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
@@ -62,7 +62,7 @@ jobs:
       dnc_version: 17_4_1
     runs-on: ${{matrix.machine}}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: restore dnc
         if: ${{ runner.os == 'Windows'}}
