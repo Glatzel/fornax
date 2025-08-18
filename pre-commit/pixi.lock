@@ -14,7 +14,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/brotli-python-1.1.0-py311hfdbb021_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-h4bc722e_7.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.7.14-hbd8a1cb_0.conda
-      - conda: https://repo.prefix.dev/glatzel/linux-64/cargo-machete-0.8.0-hb0f4dca_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/cargo-machete-0.9.1-he0c9142_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2025.7.14-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/cffi-1.17.1-py311hf29c0ef_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
@@ -96,7 +96,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/brotli-python-1.1.0-py311hda3d55a_3.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/bzip2-1.0.8-h2466b09_7.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.7.14-h4c7d964_0.conda
-      - conda: https://repo.prefix.dev/glatzel/win-64/cargo-machete-0.8.0-h9490d1a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/cargo-machete-0.9.1-h9d14792_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2025.7.14-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/cffi-1.17.1-py311he736701_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/cfgv-3.3.1-pyhd8ed1ab_1.conda
@@ -294,14 +294,26 @@ packages:
   license: ISC
   size: 155658
   timestamp: 1752482350666
-- conda: https://repo.prefix.dev/glatzel/linux-64/cargo-machete-0.8.0-hb0f4dca_0.conda
-  sha256: 1e30d058b72c908fa266100b6bb4eb50f419d74f9bcb5a8e10725394fb89b3e2
-  size: 2108430
-  timestamp: 1752895274978
-- conda: https://repo.prefix.dev/glatzel/win-64/cargo-machete-0.8.0-h9490d1a_0.conda
-  sha256: 231132467c2041cc76592417f313b463c681bb6bc32130f3fb005d919e184e67
-  size: 1802501
-  timestamp: 1752895344798
+- conda: https://conda.anaconda.org/conda-forge/linux-64/cargo-machete-0.9.1-he0c9142_0.conda
+  sha256: afe415b5ad93bbe4f9f9d4a657a78874c1c1a3ae23c553d96c7d70a6de0261d6
+  md5: 269089c1a7ca717908ba9091ec9179c8
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  constrains:
+  - __glibc >=2.17
+  license: MIT
+  size: 1828245
+  timestamp: 1755502118997
+- conda: https://conda.anaconda.org/conda-forge/win-64/cargo-machete-0.9.1-h9d14792_0.conda
+  sha256: bd69cc3c35e7833f3733ee7b32a79ba8633d28d68286df5dcd01dbc1ab029385
+  md5: 7067fe5bf1eb03ac543733acd7c6c6b3
+  depends:
+  - vc >=14.3,<15
+  - vc14_runtime >=14.44.35208
+  - ucrt >=10.0.20348.0
+  license: MIT
+  size: 1826395
+  timestamp: 1755502099510
 - conda: https://conda.anaconda.org/conda-forge/noarch/certifi-2025.7.14-pyhd8ed1ab_0.conda
   sha256: f68ee5038f37620a4fb4cdd8329c9897dce80331db8c94c3ab264a26a8c70a08
   md5: 4c07624f3faefd0bb6659fb7396cfa76
