@@ -7,8 +7,6 @@ if ($env:CI -and $args) {
 $ROOT = git rev-parse --show-toplevel
 Set-Location $ROOT
 foreach ($file in $args) {
-    if ("$file".Contains("target")){continue}
-    if ("$file".Contains("crate")){continue}
     Set-Location (Split-Path (Resolve-Path $file) -Parent)
     Write-Output "Cargo fmt in: $pwd"
     cargo +nightly fmt --all
