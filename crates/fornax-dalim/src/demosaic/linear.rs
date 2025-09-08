@@ -1,7 +1,7 @@
 use fornax_core::{BayerChannel, BayerImage, FornaxPrimitive};
 use image::ImageBuffer;
 use rayon::prelude::*;
-fn get_diagnal_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
+fn get_diagonal_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
 where
     T: FornaxPrimitive,
 {
@@ -41,7 +41,7 @@ where
     let bottom = img.get_pixel(x, y + 1);
     (top[0] + bottom[0]) / T::from(2).unwrap()
 }
-fn get_diagnal_value_check<T>(
+fn get_diagonal_value_check<T>(
     img: &ImageBuffer<image::Luma<T>, Vec<T>>,
     x: u32,
     y: u32,
@@ -192,7 +192,7 @@ where
                 (BayerChannel::R, true) => {
                     pixel[0] = mosaic.get_pixel(x, y)[0];
                     pixel[1] = get_neighbour_value(mosaic, x, y);
-                    pixel[2] = get_diagnal_value(mosaic, x, y);
+                    pixel[2] = get_diagonal_value(mosaic, x, y);
                 }
                 (BayerChannel::G, true) => {
                     pixel[0] = get_left_right_value(mosaic, x, y);
@@ -200,7 +200,7 @@ where
                     pixel[2] = get_top_down_value(mosaic, x, y);
                 }
                 (BayerChannel::B, true) => {
-                    pixel[0] = get_diagnal_value(mosaic, x, y);
+                    pixel[0] = get_diagonal_value(mosaic, x, y);
                     pixel[1] = get_neighbour_value(mosaic, x, y);
                     pixel[2] = mosaic.get_pixel(x, y)[0];
                 }
@@ -212,7 +212,7 @@ where
                 (BayerChannel::R, false) => {
                     pixel[0] = mosaic.get_pixel(x, y)[0];
                     pixel[1] = get_neighbour_value_check(mosaic, x, y, width, height);
-                    pixel[2] = get_diagnal_value_check(mosaic, x, y, width, height);
+                    pixel[2] = get_diagonal_value_check(mosaic, x, y, width, height);
                 }
                 (BayerChannel::G, false) => {
                     pixel[0] = get_left_right_value_check(mosaic, x, y, width);
@@ -220,7 +220,7 @@ where
                     pixel[2] = get_top_down_value_check(mosaic, x, y, height);
                 }
                 (BayerChannel::B, false) => {
-                    pixel[0] = get_diagnal_value_check(mosaic, x, y, width, height);
+                    pixel[0] = get_diagonal_value_check(mosaic, x, y, width, height);
                     pixel[1] = get_neighbour_value_check(mosaic, x, y, width, height);
                     pixel[2] = mosaic.get_pixel(x, y)[0];
                 }
