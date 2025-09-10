@@ -299,8 +299,6 @@ dependencies = [
 name = "clerk"
 version = "0.0.30"
 source = "git+https://github.com/Glatzel/clerk?tag=v0.0.30#57976cd8c948dd1dc0160cdaea4e4f5198bb527e"
-version = "0.0.30"
-source = "git+https://github.com/Glatzel/clerk?tag=v0.0.30#57976cd8c948dd1dc0160cdaea4e4f5198bb527e"
 dependencies = [
  "chrono",
  "owo-colors",
