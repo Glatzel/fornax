@@ -14,14 +14,14 @@ fornax-dalim = { path = "./crates/fornax-dalim" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
+clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.30" }
+envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.30" }
 
 assert_cmd = "2.0"
 bindgen = "0.71.1"
 bytemuck = "1.23.2"
 chrono = "0.4.42"
-clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.25" }
 dunce = "1.0.5"
-envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.25" }
 # image = "0.25.5"
 float-cmp = "0.10.0"
 image = { git = "https://github.com/fintelia/image", branch = "primitive-ext" }
