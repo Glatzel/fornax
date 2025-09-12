@@ -43,13 +43,6 @@ jobs:
         run: ${{env.RUST_ROOT}}/scripts/cargo-doc.ps1
         shell: pwsh
 
-      - name: upload doc
-        uses: actions/upload-artifact@v4
-        with:
-          name: rust-doc
-          path: ./dist/*.7z
-          if-no-files-found: error
-
   test-build:
     strategy:
       fail-fast: false
