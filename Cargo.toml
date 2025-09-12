@@ -7,15 +7,15 @@ edition = "2024"
 version = "0.0.7"
 
 [workspace.dependencies]
+clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.30" }
 dnc = { path = "./crates/dnc" }
+envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.30" }
 fornax = { path = "./crates/fornax" }
 fornax-core = { path = "./crates/fornax-core" }
 fornax-dalim = { path = "./crates/fornax-dalim" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
-clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.30" }
-envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.30" }
 
 assert_cmd = "2.0"
 bindgen = "0.71.1"
