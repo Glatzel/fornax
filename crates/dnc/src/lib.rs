@@ -1,8 +1,8 @@
 mod params;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
-
-use miette::{Context, IntoDiagnostic};
+mod error;
+pub use error::DncError;
 pub use params::DncParams;
 use path_slash::PathBufExt;
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
@@ -12,17 +12,7 @@ static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let exe = if default_install_path.exists() {
         default_install_path
     } else {
-        // Try to get executable from environment variable.
-        let e = std::env::var("DNG_CONVERTER")
-            .into_diagnostic()
-            .wrap_err("DNG converter is not installed.")
-            .unwrap();
-        let exe = PathBuf::from(e);
-        if exe.exists() && exe.is_file() {
-            exe
-        } else {
-            panic!("DNG converter is not installed.");
-        }
+        panic!("{}", DncError::ExecutableNotFound);
     };
     clerk::debug!("Find dng converter: {}", exe.to_slash_lossy());
     exe
@@ -36,7 +26,7 @@ impl Dnc {
 
     pub fn params(&self) -> &DncParams { &self.params }
 
-    fn dng_file(&self, raw_file: &Path) -> miette::Result<PathBuf> {
+    fn dng_file(&self, raw_file: &Path) -> Result<PathBuf, DncError> {
         let mut file = if let Some(dir) = &self.params.directory {
             dir.clone()
         } else {
@@ -53,8 +43,8 @@ impl Dnc {
         clerk::debug!("Dng file: {}", file.to_slash_lossy());
         Ok(file)
     }
-    pub fn convert(&self, raw_file: &Path) -> miette::Result<PathBuf> {
-        let raw_file = dunce::canonicalize(raw_file).into_diagnostic()?;
+    pub fn convert(&self, raw_file: &Path) -> Result<PathBuf, DncError> {
+        let raw_file = dunce::canonicalize(raw_file)?;
 
         // Skip dng file
         if raw_file.extension().unwrap().eq_ignore_ascii_case("dng") {
@@ -76,31 +66,22 @@ impl Dnc {
         if !dng_file.exists() {
             let program = DNC_EXECUTABLE.as_os_str();
             let args = self.params.to_cmd(&raw_file)?;
-            let _output = std::process::Command::new(program)
-                .args(&args)
-                .output()
-                .into_diagnostic()?;
+            let _output = std::process::Command::new(program).args(&args).output()?;
             clerk::debug!("Command:\n{:?} {}", program, &args.join(" "));
             clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&_output.stdout));
             clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&_output.stderr));
             if !&dng_file.exists() {
-                miette::bail!("Dng conversion failed.");
+                return Err(DncError::ConversionFailed);
             }
             clerk::debug!(
                 "Write dng to: {}",
-                dunce::canonicalize(&dng_file)
-                    .into_diagnostic()?
-                    .to_slash_lossy()
-                    .to_string()
+                dunce::canonicalize(&dng_file)?.to_slash_lossy().to_string()
             );
         } else {
             // Skip if dng file exists
             clerk::info!(
                 "DNG file already exists: {}",
-                dunce::canonicalize(&dng_file)
-                    .into_diagnostic()?
-                    .to_slash_lossy()
-                    .to_string()
+                dunce::canonicalize(&dng_file)?.to_slash_lossy().to_string()
             );
         }
         Ok(dng_file)

@@ -11,7 +11,7 @@ envoy = { workspace = true }
 fornax-core = { workspace = true }
 image = { workspace = true }
 libraw-sys = { workspace = true }
-miette = { workspace = true }
+thiserror = { workspace = true }
 num_enum = { workspace = true }
 serde = { workspace = true, optional = true }
 
@@ -20,7 +20,7 @@ assert_cmd = { workspace = true }
 clerk = { workspace = true, features = ["log"] }
 float-cmp = { workspace = true }
 fornax-devtool = { workspace = true }
+mischief = { workspace = true }
 
 [features]
-log = ["clerk/log"]
 serde = ["dep:serde", "chrono/serde"]

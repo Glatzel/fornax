@@ -6,7 +6,7 @@ version.workspace = true
 [dependencies]
 clerk = { workspace = true }
 dunce = { workspace = true }
-miette = { workspace = true }
+thiserror = { workspace = true }
 path-slash = { workspace = true }
 serde = { workspace = true, optional = true }
 
@@ -14,7 +14,7 @@ serde = { workspace = true, optional = true }
 assert_cmd = { workspace = true }
 clerk = { workspace = true, features = ["log"] }
 fornax-devtool = { workspace = true }
+mischief = { workspace = true }
 
 [features]
-log = ["clerk/log"]
 serde = ["dep:serde"]

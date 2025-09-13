@@ -1,0 +1,18 @@
+{
+     
+        "rust-analyzer.cargo.extraEnv": {
+            "Path": "${workspaceFolder}/.pixi/envs/default/Library/bin;${env:PATH}",
+            "PKG_CONFIG_PATH": "${workspaceFolder}/.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig",
+            "CONDA_PREFIX": "${workspaceFolder}/.pixi/envs/default"
+        },
+        "rust-analyzer.runnables.extraEnv": {
+               "Path": "${workspaceFolder}/.pixi/envs/default/Library/bin;${env:PATH}",
+            "PKG_CONFIG_PATH": "${workspaceFolder}/.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig",
+            "CONDA_PREFIX": "${workspaceFolder}/.pixi/envs/default"
+        },
+        "rust-analyzer.server.extraEnv": {
+               "Path": "${workspaceFolder}/.pixi/envs/default/Library/bin;${env:PATH}",
+            "PKG_CONFIG_PATH": "${workspaceFolder}/.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig",
+            "CONDA_PREFIX": "${workspaceFolder}/.pixi/envs/default"
+        }
+    }
