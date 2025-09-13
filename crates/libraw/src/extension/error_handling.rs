@@ -6,7 +6,7 @@ macro_rules! check_run {
                 clerk::debug!(
                     "{:?}",
                     $crate::LibrawError {
-                        code: code,
+                        code,
                         message: "Success".to_string()
                     }
                 );
@@ -23,7 +23,7 @@ macro_rules! check_run {
                 clerk::warn!(
                     "{:?}",
                     $crate::LibrawError {
-                        code: code,
+                        code,
                         message: crate::Libraw::strerror(code.into())
                     }
                 );
@@ -38,7 +38,7 @@ macro_rules! check_run {
             | crate::LibrawErrorCode::TooBig
             | crate::LibrawErrorCode::MempoolOverflow => {
                 let err = $crate::LibrawError {
-                    code: code,
+                    code,
                     message: crate::Libraw::strerror(code.into()),
                 };
                 clerk::error!("{:?}", err);
