@@ -1,5 +1,3 @@
-
-
 fn main() -> mischief::Result<()> {
     fornax_devtool::example_setup();
     let libraw = libraw::Libraw::new(None);
@@ -10,8 +8,7 @@ fn main() -> mischief::Result<()> {
 
     clerk::info!("Done building raw image.");
 
-    img.save(fornax_devtool::output_dir().join("raw_image.tiff"))
-       ?;
+    img.save(fornax_devtool::output_dir().join("raw_image.tiff"))?;
     clerk::info!("Done saving raw image.");
     Ok(())
 }
