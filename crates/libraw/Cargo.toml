@@ -11,9 +11,9 @@ envoy = { workspace = true }
 fornax-core = { workspace = true }
 image = { workspace = true }
 libraw-sys = { workspace = true }
-thiserror = { workspace = true }
 num_enum = { workspace = true }
 serde = { workspace = true, optional = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 assert_cmd = { workspace = true }

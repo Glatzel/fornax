@@ -7,15 +7,15 @@ version.workspace = true
 clerk = { workspace = true }
 fornax-core = { workspace = true }
 image = { workspace = true }
-thiserror = { workspace = true }
 rayon = { workspace = true }
 serde = { workspace = true, optional = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 clerk = { workspace = true, features = ["log"] }
+mischief = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-mischief= { workspace = true }
 
 [features]
 serde = ["dep:serde"]

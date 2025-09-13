@@ -2,7 +2,7 @@ use core::slice;
 
 use image::ImageBuffer;
 
-use crate::{check_raw_alloc, custom_error, LibrawError};
+use crate::{LibrawError, check_raw_alloc, custom_error};
 
 pub enum Rawdata {
     Mono16(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),
