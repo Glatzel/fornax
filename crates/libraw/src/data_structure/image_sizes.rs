@@ -45,7 +45,7 @@ impl ImageSizes {
             iwidth: imgdata.sizes.iwidth,
             raw_pitch: imgdata.sizes.raw_pitch,
             pixel_aspect: imgdata.sizes.pixel_aspect,
-            flip: ImageSizesFlip::try_from(imgdata.sizes.flip).map_err(|e| LibrawError::from(e))?,
+            flip: ImageSizesFlip::try_from(imgdata.sizes.flip).map_err(LibrawError::from)?,
         })
     }
     ///Full size of RAW image (including the frame) in pixels.

@@ -37,7 +37,7 @@ impl ProcessedImage {
     ///   Only type, data_size and data fields are valid (and nonzero);
     pub fn image_type(&self) -> Result<DCRawImageFormats, LibrawError> {
         DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ })
-            .map_err(|e| LibrawError::from(e))
+            .map_err(LibrawError::from)
     }
     /// Image size (in pixels). Valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn height(&self) -> u16 { unsafe { (*self.processed_image).height } }
