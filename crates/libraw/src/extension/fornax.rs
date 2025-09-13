@@ -13,18 +13,18 @@ where
     T: FornaxPrimitive,
 {
     fn decode_file(&self, file: &Path) -> Result<(), FornaxError> {
-        self.open_file(file).map_err(|e| FornaxError::from(e))?;
-        self.unpack().map_err(|e| FornaxError::from(e))?;
+        self.open_file(file).map_err(FornaxError::from)?;
+        self.unpack().map_err(FornaxError::from)?;
         Ok(())
     }
 
     fn decode_buffer(&self, buffer: &[u8]) -> Result<(), FornaxError> {
-        self.open_buffer(buffer).map_err(|e| FornaxError::from(e))?;
-        self.unpack().map_err(|e| FornaxError::from(e))?;
+        self.open_buffer(buffer).map_err(FornaxError::from)?;
+        self.unpack().map_err(FornaxError::from)?;
         Ok(())
     }
     fn bayer_image(&self) -> Result<fornax_core::BayerImage<T>, FornaxError> {
-        self.get_bayer_image().map_err(|e| FornaxError::from(e))
+        self.get_bayer_image().map_err(FornaxError::from)
     }
 }
 impl<T> IDecoder<T> for &Libraw
@@ -32,18 +32,18 @@ where
     T: FornaxPrimitive,
 {
     fn decode_file(&self, file: &Path) -> Result<(), FornaxError> {
-        self.open_file(file).map_err(|e| FornaxError::from(e))?;
-        self.unpack().map_err(|e| FornaxError::from(e))?;
+        self.open_file(file).map_err(FornaxError::from)?;
+        self.unpack().map_err(FornaxError::from)?;
         Ok(())
     }
 
     fn decode_buffer(&self, buffer: &[u8]) -> Result<(), FornaxError> {
-        self.open_buffer(buffer).map_err(|e| FornaxError::from(e))?;
-        self.unpack().map_err(|e| FornaxError::from(e))?;
+        self.open_buffer(buffer).map_err(FornaxError::from)?;
+        self.unpack().map_err(FornaxError::from)?;
         Ok(())
     }
     fn bayer_image(&self) -> Result<fornax_core::BayerImage<T>, FornaxError> {
-        self.get_bayer_image().map_err(|e| FornaxError::from(e))
+        self.get_bayer_image().map_err(FornaxError::from)
     }
 }
 
@@ -68,20 +68,20 @@ where
             0,
             0,
         )
-        .map_err(|e| FornaxError::from(e))?;
-        self.unpack().map_err(|e| FornaxError::from(e))?;
+        .map_err(FornaxError::from)?;
+        self.unpack().map_err(FornaxError::from)?;
         if let Some(params) = &self.params {
             params
                 .set_output_params(self.imgdata)
-                .map_err(|e| FornaxError::from(e))?;
+                .map_err(FornaxError::from)?;
         }
         let processed = self
             .dcraw_process()
-            .map_err(|e| FornaxError::from(e))?
+            .map_err(FornaxError::from)?
             .dcraw_make_mem_image()
-            .map_err(|e| FornaxError::from(e))?;
+            .map_err(FornaxError::from)?;
         self.map_processed_image(&processed)
-            .map_err(|e| FornaxError::from(e))
+            .map_err(FornaxError::from)
     }
 }
 
@@ -106,21 +106,21 @@ where
             0,
             0,
         )
-        .map_err(|e| FornaxError::from(e))?;
-        self.unpack().map_err(|e| FornaxError::from(e))?;
+        .map_err(FornaxError::from)?;
+        self.unpack().map_err(FornaxError::from)?;
         if let Some(params) = &self.params {
             params
                 .set_output_params(self.imgdata)
-                .map_err(|e| FornaxError::from(e))?;
+                .map_err(FornaxError::from)?;
         }
         clerk::debug!("Set new params.");
         clerk::debug!("{:?}", unsafe { (*self.imgdata).params });
         let processed = self
             .dcraw_process()
-            .map_err(|e| FornaxError::from(e))?
+            .map_err(FornaxError::from)?
             .dcraw_make_mem_image()
-            .map_err(|e| FornaxError::from(e))?;
+            .map_err(FornaxError::from)?;
         self.map_processed_image(&processed)
-            .map_err(|e| FornaxError::from(e))
+            .map_err(FornaxError::from)
     }
 }
