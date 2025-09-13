@@ -35,7 +35,7 @@ pub enum LibrawErrorCode {
 }
 
 #[derive(Debug, Error)]
-#[error("ProjError {code:?} [{}]: {message}", i32::from(.code.clone()))]
+#[error("LibrawError {code:?} [{}]: {message}", i32::from(*.code))]
 pub struct LibrawError {
     pub code: LibrawErrorCode,
     pub message: String,
