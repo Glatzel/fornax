@@ -9,7 +9,6 @@ fornax-core = { workspace = true }
 image = { workspace = true }
 rayon = { workspace = true }
 serde = { workspace = true, optional = true }
-thiserror = { workspace = true }
 
 [dev-dependencies]
 clerk = { workspace = true, features = ["log"] }

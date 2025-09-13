@@ -478,7 +478,6 @@ dependencies = [
  "mischief",
  "rayon",
  "serde",
- "thiserror 2.0.16",
  "tracing",
  "tracing-subscriber",
 ]
