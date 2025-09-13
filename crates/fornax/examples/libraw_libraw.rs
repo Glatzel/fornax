@@ -5,16 +5,15 @@ use libraw::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
     DCRawUserFlip, DCRawUserQual,
 };
-use miette::IntoDiagnostic;
 
-fn main() -> miette::Result<()> {
+fn main() -> mischief::Result<()> {
     fornax_devtool::example_setup();
     default_settings()?;
     cg()?;
     custom()?;
     Ok(())
 }
-fn default_settings() -> miette::Result<()> {
+fn default_settings() -> mischief::Result<()> {
     let dcraw_params = DCRawParams {
         user_qual: Some(libraw::DCRawUserQual::Linear),
         ..Default::default()
@@ -24,28 +23,26 @@ fn default_settings() -> miette::Result<()> {
     let img = manager
         .decode_file(&fornax_devtool::raw_file())?
         .post_process()?;
-    img.save(fornax_devtool::output_dir().join("fornax-libraw-libraw-default.tiff"))
-        .into_diagnostic()?;
+    img.save(fornax_devtool::output_dir().join("fornax-libraw-libraw-default.tiff"))?;
     clerk::info!("Done saving :fornax-libraw-libraw-default.tiff");
     Ok(())
 }
-fn cg() -> miette::Result<()> {
-    let mut file = std::fs::File::open(fornax_devtool::raw_file()).into_diagnostic()?;
+fn cg() -> mischief::Result<()> {
+    let mut file = std::fs::File::open(fornax_devtool::raw_file())?;
     let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).into_diagnostic()?;
+    file.read_to_end(&mut buffer)?;
     let params = libraw::DCRawParams::preset_cg();
     let libraw = libraw::Libraw::new(Some(params));
     let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
     let img = manager.decode_buffer(&buffer)?.post_process()?;
-    img.save(fornax_devtool::output_dir().join("fornax-libraw-libraw-cg.tiff"))
-        .into_diagnostic()?;
+    img.save(fornax_devtool::output_dir().join("fornax-libraw-libraw-cg.tiff"))?;
     clerk::info!("save img to: fornax-libraw-libraw-.tiff");
     Ok(())
 }
-fn custom() -> miette::Result<()> {
-    let mut file = std::fs::File::open(fornax_devtool::raw_file()).into_diagnostic()?;
+fn custom() -> mischief::Result<()> {
+    let mut file = std::fs::File::open(fornax_devtool::raw_file())?;
     let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).into_diagnostic()?;
+    file.read_to_end(&mut buffer)?;
     let params = libraw::DCRawParams {
         greybox: None,
         cropbox: None,
@@ -91,8 +88,7 @@ fn custom() -> miette::Result<()> {
     let libraw = libraw::Libraw::new(Some(params));
     let manager: Fornax<&libraw::Libraw, u16, &libraw::Libraw, u16> = Fornax::new(&libraw, &libraw);
     let img = manager.decode_buffer(&buffer)?.post_process()?;
-    img.save(fornax_devtool::output_dir().join("fornax-libraw-libraw-custom.tiff"))
-        .into_diagnostic()?;
+    img.save(fornax_devtool::output_dir().join("fornax-libraw-libraw-custom.tiff"))?;
     clerk::info!("save img to: custom.tiff");
     Ok(())
 }

@@ -1,7 +1,7 @@
 use std::path::Path;
 
 pub use fornax_core::NullPostProcessor;
-use fornax_core::{FornaxPrimitive, IDecoder, IPostProcessor};
+use fornax_core::{FornaxError, FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{ImageBuffer, Rgb};
 pub use {dnc, fornax_dalim, libraw};
 /// A struct that integrates decoding and post-processing of image data.
@@ -71,7 +71,7 @@ where
     /// # Returns
     /// A `Result` with a reference to the `Fornax` instance if decoding is
     /// successful.
-    pub fn decode_file(&self, file: &Path) -> miette::Result<&Self> {
+    pub fn decode_file(&self, file: &Path) -> Result<&Self, FornaxError> {
         self.decoder.decode_file(file)?;
         Ok(self)
     }
@@ -87,7 +87,7 @@ where
     /// # Returns
     /// A `Result` with a reference to the `Fornax` instance if decoding is
     /// successful.
-    pub fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<&Self> {
+    pub fn decode_buffer(&self, buffer: &[u8]) -> Result<&Self, FornaxError> {
         self.decoder.decode_buffer(buffer)?;
         Ok(self)
     }
@@ -98,7 +98,7 @@ where
     ///
     /// # Returns
     /// A `Result` containing the post-processed image buffer if successful.
-    pub fn post_process(&self) -> miette::Result<ImageBuffer<Rgb<O>, Vec<O>>> {
+    pub fn post_process(&self) -> Result<ImageBuffer<Rgb<O>, Vec<O>>, FornaxError> {
         self.post_processor.post_process(&self.decoder)
     }
 }
