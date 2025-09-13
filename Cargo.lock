@@ -457,7 +457,6 @@ dependencies = [
  "image",
  "libraw",
  "mischief",
- "thiserror 2.0.16",
 ]
 
 [[package]]
