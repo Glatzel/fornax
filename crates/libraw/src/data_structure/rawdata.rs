@@ -2,6 +2,8 @@ use core::slice;
 
 use image::ImageBuffer;
 
+use crate::{LibrawError, check_raw_alloc, custom_error};
+
 pub enum Rawdata {
     Mono16(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),
     Rgb16(image::ImageBuffer<image::Rgb<u16>, Vec<u16>>),
@@ -15,10 +17,8 @@ impl Rawdata {
         imgdata: *mut libraw_sys::libraw_data_t,
         width: usize,
         height: usize,
-    ) -> miette::Result<Self> {
-        if unsafe { (*imgdata).rawdata.raw_alloc }.is_null() {
-            miette::bail!("imgdata is null.")
-        }
+    ) -> Result<Self, LibrawError> {
+        check_raw_alloc!(imgdata);
 
         if !unsafe { (*imgdata).rawdata.raw_image }.is_null() {
             clerk::debug!("Found mono16 raw image.");
@@ -89,7 +89,7 @@ impl Rawdata {
 
             Ok(Self::RgbaF32(img))
         } else {
-            miette::bail!("Raw data is not found.")
+            custom_error!("Raw data is not found.");
         }
     }
 }

@@ -1,12 +1,17 @@
+use std::fmt::Display;
+
 use num_enum::{FromPrimitive, IntoPrimitive};
+use thiserror::Error;
 
 ///All functions returning integer numbers must return either errno or one of
 /// the following error codes.
-#[derive(Debug, Clone, IntoPrimitive, FromPrimitive)]
+#[derive(Debug, Clone, Copy, IntoPrimitive, FromPrimitive)]
 #[repr(i32)]
-pub enum LibrawErrors {
+pub enum LibrawErrorCode {
     #[num_enum(default)]
     UnknownError = 1,
+    OtherError = 2,
+
     //Non-Fatal Errors
     Success = 0,
     UnspecifiedError = -1,
@@ -29,14 +34,20 @@ pub enum LibrawErrors {
     MempoolOverflow = -100013,
 }
 
-impl std::fmt::Display for LibrawErrors {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let info = crate::Libraw::strerror(self.clone().into());
-        let text = format!(
-            "Libraw exit code: {}. {}",
-            Into::<i32>::into(self.clone()),
-            info
-        );
-        write!(f, "{text}")
+#[derive(Debug, Error)]
+#[error("LibrawError {code:?} [{}]: {message}", i32::from(*.code))]
+pub struct LibrawError {
+    pub code: LibrawErrorCode,
+    pub message: String,
+}
+impl LibrawError {
+    pub fn from<T>(err: T) -> Self
+    where
+        T: Display,
+    {
+        Self {
+            code: LibrawErrorCode::OtherError,
+            message: format!("{}", err),
+        }
     }
 }

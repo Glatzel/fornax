@@ -1,6 +1,4 @@
-use miette::IntoDiagnostic;
-
-fn main() -> miette::Result<()> {
+fn main() -> mischief::Result<()> {
     fornax_devtool::example_setup();
     let libraw = libraw::Libraw::new(None);
     let img = libraw
@@ -10,8 +8,7 @@ fn main() -> miette::Result<()> {
 
     clerk::info!("Done building raw image.");
 
-    img.save(fornax_devtool::output_dir().join("raw_image.tiff"))
-        .into_diagnostic()?;
+    img.save(fornax_devtool::output_dir().join("raw_image.tiff"))?;
     clerk::info!("Done saving raw image.");
     Ok(())
 }

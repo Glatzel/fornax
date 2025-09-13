@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use envoy::CStrToString;
 
+use crate::LibrawError;
+
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Clone)]
 pub struct ImgOtherGpsInfo {
@@ -53,7 +55,7 @@ pub struct ImgOther {
     artist: String,
 }
 impl ImgOther {
-    pub(crate) fn new(imgdata: *mut libraw_sys::libraw_data_t) -> miette::Result<Self> {
+    pub(crate) fn new(imgdata: *mut libraw_sys::libraw_data_t) -> Result<Self, LibrawError> {
         let imgdata = unsafe { *imgdata };
         let parsed_gps = ImgOtherGpsInfo::new(imgdata.other.parsed_gps);
         Ok(Self {

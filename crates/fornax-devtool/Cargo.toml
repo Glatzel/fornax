@@ -5,6 +5,3 @@ version.workspace = true
 
 [dependencies]
 clerk = { workspace = true, features = ["log"] }
-
-[features]
-log = ["clerk/log"]

@@ -1,4 +1,4 @@
-fn main() -> miette::Result<()> {
+fn main() -> mischief::Result<()> {
     fornax_devtool::example_setup();
 
     default_path()?;
@@ -10,7 +10,7 @@ fn main() -> miette::Result<()> {
     Ok(())
 }
 
-fn default_path() -> miette::Result<()> {
+fn default_path() -> mischief::Result<()> {
     let dnc = dnc::Dnc::new(dnc::DncParams {
         overwrite: true,
         ..Default::default()
@@ -21,7 +21,7 @@ fn default_path() -> miette::Result<()> {
     Ok(())
 }
 
-fn custom_path() -> miette::Result<()> {
+fn custom_path() -> mischief::Result<()> {
     let dnc = dnc::Dnc::new(dnc::DncParams {
         directory: Some(fornax_devtool::output_dir()),
         filename: Some("dng-converter.dng".to_string()),

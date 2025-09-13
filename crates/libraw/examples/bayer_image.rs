@@ -1,7 +1,6 @@
 use fornax_core::BayerPattern;
-use miette::IntoDiagnostic;
 
-fn main() -> miette::Result<()> {
+fn main() -> mischief::Result<()> {
     fornax_devtool::example_setup();
     let libraw = libraw::Libraw::new(None);
     let img: fornax_core::BayerImage<u16> = libraw
@@ -15,9 +14,7 @@ fn main() -> miette::Result<()> {
     assert_eq!(mosaic.width(), 5202);
     assert_eq!(mosaic.height(), 3464);
 
-    mosaic
-        .save(fornax_devtool::output_dir().join("bayerimga.tiff"))
-        .into_diagnostic()?;
+    mosaic.save(fornax_devtool::output_dir().join("bayerimga.tiff"))?;
     clerk::info!("Done saving raw image.");
     Ok(())
 }

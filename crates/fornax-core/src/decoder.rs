@@ -20,7 +20,7 @@ pub trait IDecoder<T>
 where
     T: crate::FornaxPrimitive,
 {
-    fn decode_file(&self, file: &Path) -> miette::Result<()>;
-    fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<()>;
-    fn bayer_image(&self) -> miette::Result<crate::BayerImage<T>>;
+    fn decode_file(&self, file: &Path) -> Result<(), crate::FornaxError>;
+    fn decode_buffer(&self, buffer: &[u8]) -> Result<(), crate::FornaxError>;
+    fn bayer_image(&self) -> Result<crate::BayerImage<T>, crate::FornaxError>;
 }

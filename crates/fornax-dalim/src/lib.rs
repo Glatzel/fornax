@@ -1,5 +1,5 @@
 use demosaic::IDemosaic;
-use fornax_core::{FornaxPrimitive, IDecoder, IPostProcessor};
+use fornax_core::{FornaxError, FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{ImageBuffer, Rgb};
 
 mod demosaic;
@@ -31,7 +31,7 @@ where
     D: IDecoder<T>,
     T: FornaxPrimitive,
 {
-    fn post_process(&self, decoder: &D) -> miette::Result<ImageBuffer<Rgb<T>, Vec<T>>> {
+    fn post_process(&self, decoder: &D) -> Result<ImageBuffer<Rgb<T>, Vec<T>>, FornaxError> {
         let bayer_image = decoder.bayer_image()?;
 
         let img = match &self.params.demosaicer {

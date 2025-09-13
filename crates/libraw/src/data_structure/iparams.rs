@@ -1,6 +1,8 @@
 use envoy::CStrToString;
 use libraw_sys as sys;
 
+use crate::LibrawError;
+
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug)]
 pub enum IParamsColorDesc {
@@ -41,7 +43,7 @@ pub struct IParams {
     xmpdata: String,
 }
 impl IParams {
-    pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
+    pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> Result<Self, LibrawError> {
         let imgdata = unsafe { *imgdata };
         Ok(Self {
             make: imgdata.idata.make.to_string().unwrap_or_default(),

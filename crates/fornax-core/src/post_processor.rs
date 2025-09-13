@@ -31,7 +31,10 @@ where
     /// This method takes a reference to a decoder (`D`) and processes the
     /// decoded data. It returns a `miette::Result` containing an
     /// `image::ImageBuffer` with the post-processed image data.
-    fn post_process(&self, decoder: &D) -> miette::Result<image::ImageBuffer<Rgb<O>, Vec<O>>>;
+    fn post_process(
+        &self,
+        decoder: &D,
+    ) -> Result<image::ImageBuffer<Rgb<O>, Vec<O>>, crate::FornaxError>;
 }
 
 /// A generic null post-processor that does not perform any post-processing.
@@ -58,7 +61,7 @@ where
     fn post_process(
         &self,
         _decoded: &D,
-    ) -> miette::Result<image::ImageBuffer<image::Rgb<u8>, Vec<u8>>> {
+    ) -> Result<image::ImageBuffer<image::Rgb<u8>, Vec<u8>>, crate::FornaxError> {
         unimplemented!("Null post processor doesn't return image.")
     }
 }

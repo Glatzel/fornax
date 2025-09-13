@@ -241,7 +241,7 @@ mod tests {
     use crate::demosaic::IDemosaic;
 
     #[test]
-    fn test_linear_rggb() -> miette::Result<()> {
+    fn test_linear_rggb() -> mischief::Result<()> {
         let test_vec: Vec<f32> = vec![
             1.0, 2.0, 3.0, // Row 1
             4.0, 5.0, 6.0, // Row 2
@@ -285,7 +285,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_linear_bggr() -> miette::Result<()> {
+    fn test_linear_bggr() -> mischief::Result<()> {
         let test_vec: Vec<f32> = vec![
             1.0, 2.0, 3.0, // Row 1
             4.0, 5.0, 6.0, // Row 2
@@ -329,7 +329,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_linear_grbg() -> miette::Result<()> {
+    fn test_linear_grbg() -> mischief::Result<()> {
         let test_vec: Vec<f32> = vec![
             1.0, 2.0, 3.0, // Row 1
             4.0, 5.0, 6.0, // Row 2
@@ -373,7 +373,7 @@ mod tests {
         Ok(())
     }
     #[test]
-    fn test_linear_gbrg() -> miette::Result<()> {
+    fn test_linear_gbrg() -> mischief::Result<()> {
         let test_vec: Vec<f32> = vec![
             1.0, 2.0, 3.0, // Row 1
             4.0, 5.0, 6.0, // Row 2

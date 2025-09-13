@@ -2,49 +2,49 @@ use fornax_core::BayerChannel;
 
 use crate::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawUserQual, IParams,
-    ImgOther, Libraw, check_raw_alloc,
+    ImgOther, Libraw, LibrawError, check_raw_alloc,
 };
 
 // region:Parameters setters/getters
 impl Libraw {
-    pub fn get_raw_height(&self) -> miette::Result<i32> {
+    pub fn get_raw_height(&self) -> Result<i32, LibrawError> {
         check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_raw_height(self.imgdata) })
     }
-    pub fn get_raw_width(&self) -> miette::Result<i32> {
+    pub fn get_raw_width(&self) -> Result<i32, LibrawError> {
         check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_raw_width(self.imgdata) })
     }
-    pub fn get_iheight(&self) -> miette::Result<i32> {
+    pub fn get_iheight(&self) -> Result<i32, LibrawError> {
         check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_iheight(self.imgdata) })
     }
-    pub fn get_iwidth(&self) -> miette::Result<i32> {
+    pub fn get_iwidth(&self) -> Result<i32, LibrawError> {
         check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_iwidth(self.imgdata) })
     }
-    pub fn get_cam_mul(&self, index: BayerChannel) -> miette::Result<f32> {
+    pub fn get_cam_mul(&self, index: BayerChannel) -> Result<f32, LibrawError> {
         check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata, u8::from(index) as i32) })
     }
-    pub fn get_pre_mul(&self, index: BayerChannel) -> miette::Result<f32> {
+    pub fn get_pre_mul(&self, index: BayerChannel) -> Result<f32, LibrawError> {
         check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata, u8::from(index) as i32) })
     }
-    pub fn get_rgb_cam(&self, index1: i32, index2: i32) -> miette::Result<f32> {
+    pub fn get_rgb_cam(&self, index1: i32, index2: i32) -> Result<f32, LibrawError> {
         check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_rgb_cam(self.imgdata, index1, index2) })
     }
-    pub fn get_iparams(&self) -> miette::Result<IParams> {
+    pub fn get_iparams(&self) -> Result<IParams, LibrawError> {
         check_raw_alloc!(self.imgdata);
         IParams::new(self.imgdata)
     }
     pub fn get_lensinfo(&self) { unimplemented!() }
-    pub fn get_imgother(&self) -> miette::Result<ImgOther> {
+    pub fn get_imgother(&self) -> Result<ImgOther, LibrawError> {
         check_raw_alloc!(self.imgdata);
         ImgOther::new(self.imgdata)
     }
-    pub fn get_color_maximum(&self) -> miette::Result<i32> {
+    pub fn get_color_maximum(&self) -> Result<i32, LibrawError> {
         check_raw_alloc!(self.imgdata);
         Ok(unsafe { libraw_sys::libraw_get_color_maximum(self.imgdata) })
     }
@@ -98,7 +98,7 @@ mod test {
 
     // region:Parameters setters/getters
     #[test]
-    fn test_get_raw_height() -> miette::Result<()> {
+    fn test_get_raw_height() -> mischief::Result<()> {
         let libraw = Libraw::default();
         let value = libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -108,7 +108,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_get_raw_width() -> miette::Result<()> {
+    fn test_get_raw_width() -> mischief::Result<()> {
         let libraw = Libraw::default();
         let value = libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -118,7 +118,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_get_iheight() -> miette::Result<()> {
+    fn test_get_iheight() -> mischief::Result<()> {
         let libraw = Libraw::default();
         let value = libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -128,7 +128,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_get_iwidth() -> miette::Result<()> {
+    fn test_get_iwidth() -> mischief::Result<()> {
         let libraw = Libraw::default();
         let value = libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -138,7 +138,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_get_cam_mul() -> miette::Result<()> {
+    fn test_get_cam_mul() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
 
@@ -153,7 +153,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_get_pre_mul() -> miette::Result<()> {
+    fn test_get_pre_mul() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
 
@@ -168,7 +168,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_get_rgb_cam() -> miette::Result<()> {
+    fn test_get_rgb_cam() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
         let value = libraw.get_rgb_cam(1, 2)?;
@@ -176,7 +176,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_get_color_maximum() -> miette::Result<()> {
+    fn test_get_color_maximum() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
         let value = libraw.get_color_maximum()?;
@@ -184,7 +184,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_set_user_mul() -> miette::Result<()> {
+    fn test_set_user_mul() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -194,7 +194,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_set_demosaic() -> miette::Result<()> {
+    fn test_set_demosaic() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -207,7 +207,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_set_adjust_maximum_thr() -> miette::Result<()> {
+    fn test_set_adjust_maximum_thr() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -217,7 +217,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_set_output_color() -> miette::Result<()> {
+    fn test_set_output_color() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -230,7 +230,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn set_output_bps() -> miette::Result<()> {
+    fn set_output_bps() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -243,7 +243,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_set_gamma() -> miette::Result<()> {
+    fn test_set_gamma() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -253,7 +253,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_set_no_auto_bright() -> miette::Result<()> {
+    fn test_set_no_auto_bright() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -263,7 +263,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_set_bright() -> miette::Result<()> {
+    fn test_set_bright() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -273,7 +273,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn test_set_highlight() -> miette::Result<()> {
+    fn test_set_highlight() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
@@ -286,7 +286,7 @@ mod test {
         Ok(())
     }
     #[test]
-    fn set_fbdd_noiserd() -> miette::Result<()> {
+    fn set_fbdd_noiserd() -> mischief::Result<()> {
         let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
