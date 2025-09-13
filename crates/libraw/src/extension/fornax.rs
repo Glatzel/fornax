@@ -5,26 +5,26 @@ use image::{EncodableLayout, Rgb};
 
 use crate::{Libraw, LibrawError, ProcFlag};
 
-impl Into<FornaxError> for LibrawError {
-    fn into(self) -> FornaxError { FornaxError(self.to_string()) }
+impl From<LibrawError> for FornaxError {
+    fn from(val: LibrawError) -> Self { FornaxError(val.to_string()) }
 }
 impl<T> IDecoder<T> for Libraw
 where
     T: FornaxPrimitive,
 {
     fn decode_file(&self, file: &Path) -> Result<(), FornaxError> {
-        self.open_file(file).map_err(|e| e.into())?;
-        self.unpack().map_err(|e| e.into())?;
+        self.open_file(file).map_err(|e| FornaxError::from(e))?;
+        self.unpack().map_err(|e| FornaxError::from(e))?;
         Ok(())
     }
 
     fn decode_buffer(&self, buffer: &[u8]) -> Result<(), FornaxError> {
-        self.open_buffer(buffer).map_err(|e| e.into())?;
-        self.unpack().map_err(|e| e.into())?;
+        self.open_buffer(buffer).map_err(|e| FornaxError::from(e))?;
+        self.unpack().map_err(|e| FornaxError::from(e))?;
         Ok(())
     }
     fn bayer_image(&self) -> Result<fornax_core::BayerImage<T>, FornaxError> {
-        self.get_bayer_image().map_err(|e| e.into())
+        self.get_bayer_image().map_err(|e| FornaxError::from(e))
     }
 }
 impl<T> IDecoder<T> for &Libraw
@@ -32,18 +32,18 @@ where
     T: FornaxPrimitive,
 {
     fn decode_file(&self, file: &Path) -> Result<(), FornaxError> {
-        self.open_file(file).map_err(|e| e.into())?;
-        self.unpack().map_err(|e| e.into())?;
+        self.open_file(file).map_err(|e| FornaxError::from(e))?;
+        self.unpack().map_err(|e| FornaxError::from(e))?;
         Ok(())
     }
 
     fn decode_buffer(&self, buffer: &[u8]) -> Result<(), FornaxError> {
-        self.open_buffer(buffer).map_err(|e| e.into())?;
-        self.unpack().map_err(|e| e.into())?;
+        self.open_buffer(buffer).map_err(|e| FornaxError::from(e))?;
+        self.unpack().map_err(|e| FornaxError::from(e))?;
         Ok(())
     }
     fn bayer_image(&self) -> Result<fornax_core::BayerImage<T>, FornaxError> {
-        self.get_bayer_image().map_err(|e| e.into())
+        self.get_bayer_image().map_err(|e| FornaxError::from(e))
     }
 }
 
@@ -68,19 +68,20 @@ where
             0,
             0,
         )
-        .map_err(|e| e.into())?;
-        self.unpack().map_err(|e| e.into())?;
+        .map_err(|e| FornaxError::from(e))?;
+        self.unpack().map_err(|e| FornaxError::from(e))?;
         if let Some(params) = &self.params {
             params
                 .set_output_params(self.imgdata)
-                .map_err(|e| e.into())?;
+                .map_err(|e| FornaxError::from(e))?;
         }
         let processed = self
             .dcraw_process()
-            .map_err(|e| e.into())?
+            .map_err(|e| FornaxError::from(e))?
             .dcraw_make_mem_image()
-            .map_err(|e| e.into())?;
-        self.map_processed_image(&processed).map_err(|e| e.into())
+            .map_err(|e| FornaxError::from(e))?;
+        self.map_processed_image(&processed)
+            .map_err(|e| FornaxError::from(e))
     }
 }
 
@@ -105,20 +106,21 @@ where
             0,
             0,
         )
-        .map_err(|e| e.into())?;
-        self.unpack().map_err(|e| e.into())?;
+        .map_err(|e| FornaxError::from(e))?;
+        self.unpack().map_err(|e| FornaxError::from(e))?;
         if let Some(params) = &self.params {
             params
                 .set_output_params(self.imgdata)
-                .map_err(|e| e.into())?;
+                .map_err(|e| FornaxError::from(e))?;
         }
         clerk::debug!("Set new params.");
         clerk::debug!("{:?}", unsafe { (*self.imgdata).params });
         let processed = self
             .dcraw_process()
-            .map_err(|e| e.into())?
+            .map_err(|e| FornaxError::from(e))?
             .dcraw_make_mem_image()
-            .map_err(|e| e.into())?;
-        self.map_processed_image(&processed).map_err(|e| e.into())
+            .map_err(|e| FornaxError::from(e))?;
+        self.map_processed_image(&processed)
+            .map_err(|e| FornaxError::from(e))
     }
 }
