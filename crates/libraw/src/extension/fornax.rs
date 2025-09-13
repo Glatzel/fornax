@@ -1,44 +1,50 @@
 use std::path::Path;
 
-use fornax_core::{FornaxPrimitive, IDecoder, IPostProcessor};
+use fornax_core::{FornaxError, FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{EncodableLayout, Rgb};
 
-use crate::{Libraw, ProcFlag};
+use crate::{Libraw, LibrawError, ProcFlag};
 
-// region:fornax
+impl Into<FornaxError> for LibrawError {
+    fn into(self) -> FornaxError { FornaxError(self.to_string()) }
+}
 impl<T> IDecoder<T> for Libraw
 where
     T: FornaxPrimitive,
 {
-    fn decode_file(&self, file: &Path) -> miette::Result<()> {
-        self.open_file(file)?;
-        self.unpack()?;
+    fn decode_file(&self, file: &Path) -> Result<(), FornaxError> {
+        self.open_file(file).map_err(|e| e.into())?;
+        self.unpack().map_err(|e| e.into())?;
         Ok(())
     }
 
-    fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<()> {
-        self.open_buffer(buffer)?;
-        self.unpack()?;
+    fn decode_buffer(&self, buffer: &[u8]) -> Result<(), FornaxError> {
+        self.open_buffer(buffer).map_err(|e| e.into())?;
+        self.unpack().map_err(|e| e.into())?;
         Ok(())
     }
-    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> { self.get_bayer_image() }
+    fn bayer_image(&self) -> Result<fornax_core::BayerImage<T>, FornaxError> {
+        self.get_bayer_image().map_err(|e| e.into())
+    }
 }
 impl<T> IDecoder<T> for &Libraw
 where
     T: FornaxPrimitive,
 {
-    fn decode_file(&self, file: &Path) -> miette::Result<()> {
-        self.open_file(file)?;
-        self.unpack()?;
+    fn decode_file(&self, file: &Path) -> Result<(), FornaxError> {
+        self.open_file(file).map_err(|e| e.into())?;
+        self.unpack().map_err(|e| e.into())?;
         Ok(())
     }
 
-    fn decode_buffer(&self, buffer: &[u8]) -> miette::Result<()> {
-        self.open_buffer(buffer)?;
-        self.unpack()?;
+    fn decode_buffer(&self, buffer: &[u8]) -> Result<(), FornaxError> {
+        self.open_buffer(buffer).map_err(|e| e.into())?;
+        self.unpack().map_err(|e| e.into())?;
         Ok(())
     }
-    fn bayer_image(&self) -> miette::Result<fornax_core::BayerImage<T>> { self.get_bayer_image() }
+    fn bayer_image(&self) -> Result<fornax_core::BayerImage<T>, FornaxError> {
+        self.get_bayer_image().map_err(|e| e.into())
+    }
 }
 
 impl<D, O> IPostProcessor<D, u16, O> for Libraw
@@ -46,7 +52,7 @@ where
     D: IDecoder<u16>,
     O: FornaxPrimitive,
 {
-    fn post_process(&self, decoder: &D) -> miette::Result<image::ImageBuffer<Rgb<O>, Vec<O>>> {
+    fn post_process(&self, decoder: &D) -> Result<image::ImageBuffer<Rgb<O>, Vec<O>>, FornaxError> {
         let bayer = decoder.bayer_image()?;
         self.open_bayer(
             bayer.mosaic().as_bytes(),
@@ -61,13 +67,20 @@ where
             0,
             0,
             0,
-        )?;
-        self.unpack()?;
+        )
+        .map_err(|e| e.into())?;
+        self.unpack().map_err(|e| e.into())?;
         if let Some(params) = &self.params {
-            params.set_output_params(self.imgdata)?;
+            params
+                .set_output_params(self.imgdata)
+                .map_err(|e| e.into())?;
         }
-        let processed = self.dcraw_process()?.dcraw_make_mem_image()?;
-        self.map_processed_image(&processed)
+        let processed = self
+            .dcraw_process()
+            .map_err(|e| e.into())?
+            .dcraw_make_mem_image()
+            .map_err(|e| e.into())?;
+        self.map_processed_image(&processed).map_err(|e| e.into())
     }
 }
 
@@ -76,7 +89,7 @@ where
     D: IDecoder<u16>,
     O: FornaxPrimitive,
 {
-    fn post_process(&self, decoder: &D) -> miette::Result<image::ImageBuffer<Rgb<O>, Vec<O>>> {
+    fn post_process(&self, decoder: &D) -> Result<image::ImageBuffer<Rgb<O>, Vec<O>>, FornaxError> {
         let bayer = decoder.bayer_image()?;
         self.open_bayer(
             bayer.mosaic().as_bytes(),
@@ -91,14 +104,21 @@ where
             0,
             0,
             0,
-        )?;
-        self.unpack()?;
+        )
+        .map_err(|e| e.into())?;
+        self.unpack().map_err(|e| e.into())?;
         if let Some(params) = &self.params {
-            params.set_output_params(self.imgdata)?;
+            params
+                .set_output_params(self.imgdata)
+                .map_err(|e| e.into())?;
         }
         clerk::debug!("Set new params.");
         clerk::debug!("{:?}", unsafe { (*self.imgdata).params });
-        let processed = self.dcraw_process()?.dcraw_make_mem_image()?;
-        self.map_processed_image(&processed)
+        let processed = self
+            .dcraw_process()
+            .map_err(|e| e.into())?
+            .dcraw_make_mem_image()
+            .map_err(|e| e.into())?;
+        self.map_processed_image(&processed).map_err(|e| e.into())
     }
 }

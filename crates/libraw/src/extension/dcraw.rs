@@ -1,12 +1,12 @@
 use envoy::ToCString;
 
-use crate::{DCRawOutputBps, DCRawOutputColor, DCRawParams};
+use crate::{DCRawOutputBps, DCRawOutputColor, DCRawParams, LibrawError};
 
 impl DCRawParams {
     pub(crate) fn set_output_params(
         &self,
         imgdata: *mut libraw_sys::libraw_data_t,
-    ) -> miette::Result<()> {
+    ) -> Result<(), LibrawError> {
         self.greybox
             .inspect(|v| unsafe { (*imgdata).params.greybox = *v });
         self.cropbox

@@ -1,6 +1,6 @@
 use envoy::{CStrListToVecString, CStrToString};
 
-use crate::{Libraw, check_raw_alloc, check_run};
+use crate::{Libraw, LibrawError, check_raw_alloc, check_run};
 
 // region:Auxiliary Functions
 // https://www.libraw.org/docs/API-CXX.html#utility
@@ -19,7 +19,7 @@ impl Libraw {
     pub fn color(&self, row: i32, col: i32) -> i32 {
         unsafe { libraw_sys::libraw_COLOR(self.imgdata, row, col) }
     }
-    pub fn libraw_subtract_black(&self) -> miette::Result<&Self> {
+    pub fn libraw_subtract_black(&self) -> Result<&Self, LibrawError> {
         check_raw_alloc!(self.imgdata);
         unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
         Ok(self)
@@ -40,14 +40,14 @@ impl Libraw {
 // region:Data Postprocessing: Emulation of dcraw Behavior
 //https://www.libraw.org/docs/API-CXX.html#dcrawemu
 impl Libraw {
-    pub fn raw2image(&self) -> miette::Result<&Self> {
+    pub fn raw2image(&self) -> Result<&Self, LibrawError> {
         check_raw_alloc!(self.imgdata);
         check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata) });
         Ok(self)
     }
     fn _libraw_free_image() { unimplemented!() }
     fn _libraw_adjust_sizes_info_only() { unimplemented!() }
-    pub fn dcraw_process(&self) -> miette::Result<&Self> {
+    pub fn dcraw_process(&self) -> Result<&Self, LibrawError> {
         check_raw_alloc!(self.imgdata);
         check_run!(unsafe { libraw_sys::libraw_dcraw_process(self.imgdata) });
         Ok(self)
@@ -75,7 +75,7 @@ mod test {
         assert!(!camera_list.is_empty());
     }
     #[test]
-    fn test_color() -> miette::Result<()> {
+    fn test_color() -> mischief::Result<()> {
         let libraw = Libraw::default();
         let value = libraw.open_file(&fornax_devtool::raw_file())?.color(0, 0);
 

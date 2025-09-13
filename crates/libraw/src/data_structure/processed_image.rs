@@ -1,5 +1,6 @@
-use miette::IntoDiagnostic;
 use num_enum::{IntoPrimitive, TryFromPrimitive, TryFromPrimitiveError};
+
+use crate::{LibrawError, check_run};
 
 #[derive(Debug, TryFromPrimitive, IntoPrimitive)]
 #[repr(i32)]
@@ -20,10 +21,8 @@ pub struct ProcessedImage {
 impl ProcessedImage {
     pub(crate) fn new(
         ptr: *mut libraw_sys::libraw_processed_image_t,
-    ) -> miette::Result<ProcessedImage> {
-        if ptr.is_null() {
-            miette::bail!("`libraw_processed_image_t` pointer is null.")
-        }
+    ) -> Result<ProcessedImage, LibrawError> {
+        check_run!(ptr.is_null(), "`libraw_processed_image_t` pointer is null.");
         clerk::debug!("{:?}", unsafe { *(ptr) });
         let img: ProcessedImage = Self {
             processed_image: ptr,
@@ -36,8 +35,9 @@ impl ProcessedImage {
     ///   fields (see below) are valid and describes image data.
     /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file.
     ///   Only type, data_size and data fields are valid (and nonzero);
-    pub fn image_type(&self) -> miette::Result<DCRawImageFormats> {
-        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ }).into_diagnostic()
+    pub fn image_type(&self) -> Result<DCRawImageFormats, LibrawError> {
+        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ })
+            .map_err(|e| LibrawError::from(e))
     }
     /// Image size (in pixels). Valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn height(&self) -> u16 { unsafe { (*self.processed_image).height } }

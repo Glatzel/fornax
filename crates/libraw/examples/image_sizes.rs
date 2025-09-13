@@ -1,4 +1,4 @@
-fn main() -> miette::Result<()> {
+fn main() -> mischief::Result<()> {
     fornax_devtool::example_setup();
     let libraw = libraw::Libraw::new(None);
     let sizes = libraw

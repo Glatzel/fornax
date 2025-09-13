@@ -1,13 +1,13 @@
-use crate::{ImageSizes, Libraw, Rawdata, check_raw_alloc};
+use crate::{ImageSizes, Libraw, LibrawError, Rawdata, check_raw_alloc};
 
 // region:Data Structure
 impl Libraw {
-    pub fn get_image_sizes(&self) -> miette::Result<ImageSizes> {
+    pub fn get_image_sizes(&self) -> Result<ImageSizes, LibrawError> {
         check_raw_alloc!(self.imgdata);
         ImageSizes::new(self.imgdata)
     }
 
-    pub fn get_rawdata(&self) -> miette::Result<Rawdata> {
+    pub fn get_rawdata(&self) -> Result<Rawdata, LibrawError> {
         check_raw_alloc!(self.imgdata);
         let size = self.get_image_sizes()?;
         let width = size.raw_width();

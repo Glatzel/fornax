@@ -1,6 +1,7 @@
 use libraw_sys as sys;
-use miette::IntoDiagnostic;
 use num_enum::TryFromPrimitive;
+
+use crate::LibrawError;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug, PartialEq, TryFromPrimitive)]
@@ -31,7 +32,7 @@ pub struct ImageSizes {
 }
 
 impl ImageSizes {
-    pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> miette::Result<Self> {
+    pub(crate) fn new(imgdata: *mut sys::libraw_data_t) -> Result<Self, LibrawError> {
         let imgdata = unsafe { *imgdata };
         Ok(Self {
             raw_height: imgdata.sizes.raw_height,
@@ -44,7 +45,7 @@ impl ImageSizes {
             iwidth: imgdata.sizes.iwidth,
             raw_pitch: imgdata.sizes.raw_pitch,
             pixel_aspect: imgdata.sizes.pixel_aspect,
-            flip: ImageSizesFlip::try_from(imgdata.sizes.flip).into_diagnostic()?,
+            flip: ImageSizesFlip::try_from(imgdata.sizes.flip).map_err(|e| LibrawError::from(e))?,
         })
     }
     ///Full size of RAW image (including the frame) in pixels.

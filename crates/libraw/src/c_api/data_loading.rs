@@ -3,7 +3,7 @@ use std::path::Path;
 use envoy::ToCString;
 use fornax_core::BayerPattern;
 
-use crate::{Libraw, check_run};
+use crate::{Libraw, LibrawError, check_run};
 
 #[derive(Debug, Clone)]
 pub enum ProcFlag {
@@ -23,7 +23,7 @@ impl From<ProcFlag> for u8 {
 // region:Methods Loading Data from a File
 // https://www.libraw.org/docs/API-CXX.html#dataload
 impl Libraw {
-    pub fn open_file(&self, fname: &Path) -> miette::Result<&Self> {
+    pub fn open_file(&self, fname: &Path) -> Result<&Self, LibrawError> {
         check_run!(unsafe {
             libraw_sys::libraw_open_file(
                 self.imgdata,
@@ -32,11 +32,11 @@ impl Libraw {
         });
         Ok(self)
     }
-    fn _open_file_ex(&self) -> miette::Result<&Self> { unimplemented!() }
-    fn _open_wfile(&self) -> miette::Result<&Self> { unimplemented!() }
-    fn _openwfile_ex(&self) -> miette::Result<&Self> { unimplemented!() }
+    fn _open_file_ex(&self) -> Result<&Self, LibrawError> { unimplemented!() }
+    fn _open_wfile(&self) -> Result<&Self, LibrawError> { unimplemented!() }
+    fn _openwfile_ex(&self) -> Result<&Self, LibrawError> { unimplemented!() }
 
-    pub fn open_buffer(&self, buf: &[u8]) -> miette::Result<&Self> {
+    pub fn open_buffer(&self, buf: &[u8]) -> Result<&Self, LibrawError> {
         check_run!(unsafe {
             libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
         });
@@ -57,7 +57,7 @@ impl Libraw {
         unused_bits: u32,
         otherflags: u32,
         black_level: u32,
-    ) -> miette::Result<&Self> {
+    ) -> Result<&Self, LibrawError> {
         let datalen = data.len();
         let data = data.as_ptr() as *mut std::ffi::c_uchar;
         let bayer_pattern = match bayer_pattern {
@@ -87,39 +87,37 @@ impl Libraw {
         Ok(self)
     }
 
-    pub fn unpack(&self) -> miette::Result<&Self> {
+    pub fn unpack(&self) -> Result<&Self, LibrawError> {
         check_run!(unsafe { libraw_sys::libraw_unpack(self.imgdata) });
         Ok(self)
     }
-    pub fn unpack_thumb(&self) -> miette::Result<&Self> {
+    pub fn unpack_thumb(&self) -> Result<&Self, LibrawError> {
         check_run!(unsafe { libraw_sys::libraw_unpack_thumb(self.imgdata) });
         Ok(self)
     }
-    fn _unpack_thumb_ex(&self) -> miette::Result<&Self> { unimplemented!() }
+    fn _unpack_thumb_ex(&self) -> Result<&Self, LibrawError> { unimplemented!() }
 }
 #[cfg(test)]
 mod test {
     use std::io::Read;
 
-    use miette::IntoDiagnostic;
-
     #[test]
-    fn test_open_file() -> miette::Result<()> {
+    fn test_open_file() -> mischief::Result<()> {
         let libraw = crate::Libraw::default();
         libraw.open_file(&fornax_devtool::raw_file())?;
         Ok(())
     }
     #[test]
-    pub fn test_open_buffer() -> miette::Result<()> {
-        let mut file = std::fs::File::open(fornax_devtool::raw_file()).into_diagnostic()?;
+    pub fn test_open_buffer() -> mischief::Result<()> {
+        let mut file = std::fs::File::open(fornax_devtool::raw_file())?;
         let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer).into_diagnostic()?;
+        file.read_to_end(&mut buffer)?;
         let libraw = crate::Libraw::default();
         libraw.open_buffer(&buffer)?;
         Ok(())
     }
     #[test]
-    fn test_unpack_thumb() -> miette::Result<()> {
+    fn test_unpack_thumb() -> mischief::Result<()> {
         let libraw = crate::Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
