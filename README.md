@@ -11,10 +11,10 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 
 ## Key Features
 
-- 🖼 **Flexible decoding pipeline** — Choose built-in or custom decoders.  
-- ⚙️ **Extensible post-processing** — Plug in your own algorithms.  
-- 🦀 **Rust + Python support** — Native performance with Python accessibility.  
-- 🔒 **Safe abstractions** — Rust bindings to LibRaw with memory safety in mind.  
+- 🖼 **Flexible decoding pipeline** — Choose built-in or custom decoders.
+- ⚙️ **Extensible post-processing** — Plug in your own algorithms.
+- 🦀 **Rust + Python support** — Native performance with Python accessibility.
+- 🔒 **Safe abstractions** — Rust bindings to LibRaw with memory safety in mind.
 
 ## Components
 
