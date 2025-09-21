@@ -4,9 +4,17 @@
 ![CI](https://github.com/Glatzel/fornax/actions/workflows/ci.yml/badge.svg?branch=main)
 [![codecov](https://codecov.io/gh/Glatzel/fornax/graph/badge.svg?token=GrOFsrR2x7)](https://codecov.io/gh/Glatzel/fornax)
 
-Fornax is a extensive raw image processing library. The goal of the library is to provide a one-stop solusion for raw image image processing with both simple high-level apis and low level controls, and also allow users to extend their own raw image processing algorithms.
+**Fornax** is an extensive raw image processing library.
+Its goal is to provide a one-stop solution for raw image processing with both simple high-level APIs and low-level control, while also enabling users to extend or plug in their own raw image processing algorithms.
 
-It takes built-in or custom decoder and post-processor to generate `ImageBuffer` of `image` crate that can be converted to other data types for further processing.
+Fornax uses built-in or custom decoders and post-processors to produce `ImageBuffer`s (from the [`image`](https://crates.io/crates/image) crate) that can be further transformed into other data types for analysis or display.
+
+## Key Features
+
+- 🖼 **Flexible decoding pipeline** — Choose built-in or custom decoders.
+- ⚙️ **Extensible post-processing** — Plug in your own algorithms.
+- 🦀 **Rust + Python support** — Native performance with Python accessibility.
+- 🔒 **Safe abstractions** — Rust bindings to LibRaw with memory safety in mind.
 
 ## Components
 
