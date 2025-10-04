@@ -30,7 +30,7 @@ impl ProcessedImage {
     /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file.
     ///   Only type, data_size and data fields are valid (and nonzero);
     pub fn image_type(&self) -> Result<DCRawImageFormats, LibrawError> {
-        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ as i32})
+        DCRawImageFormats::try_from(unsafe { (*self.processed_image).type_ as i32 })
             .map_err(LibrawError::from)
     }
     /// Image size (in pixels). Valid only if type==LIBRAW_IMAGE_BITMAP.
