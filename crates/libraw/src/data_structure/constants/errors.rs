@@ -1,11 +1,11 @@
 use std::fmt::Display;
 
-use num_enum::{FromPrimitive, IntoPrimitive};
+use num_enum::FromPrimitive;
 use thiserror::Error;
 
 ///All functions returning integer numbers must return either errno or one of
 /// the following error codes.
-#[derive(Debug, Clone, Copy, IntoPrimitive, FromPrimitive)]
+#[derive(Debug, Clone, Copy, FromPrimitive)]
 #[repr(i32)]
 pub enum LibrawErrorCode {
     #[num_enum(default)]
@@ -35,7 +35,7 @@ pub enum LibrawErrorCode {
 }
 
 #[derive(Debug, Error)]
-#[error("LibrawError {code:?} [{}]: {message}", i32::from(*.code))]
+#[error("LibrawError {code:?} [{}]: {message}", *.code as i32)]
 pub struct LibrawError {
     pub code: LibrawErrorCode,
     pub message: String,

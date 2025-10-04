@@ -30,15 +30,15 @@ impl DCRawParams {
         self.four_color_rgb
             .inspect(|v| unsafe { (*imgdata).params.four_color_rgb = *v as i32 });
         self.highlight
-            .inspect(|v| unsafe { (*imgdata).params.highlight = (*v).into() });
+            .inspect(|v| unsafe { (*imgdata).params.highlight = (*v) as i32 });
         self.use_auto_wb
             .inspect(|v| unsafe { (*imgdata).params.use_auto_wb = *v as i32 });
         self.use_camera_wb
             .inspect(|v| unsafe { (*imgdata).params.use_camera_wb = *v as i32 });
         self.use_camera_matrix
-            .inspect(|v| unsafe { (*imgdata).params.use_camera_matrix = (*v).into() });
+            .inspect(|v| unsafe { (*imgdata).params.use_camera_matrix = (*v) as i32 });
         self.output_color
-            .inspect(|v| unsafe { (*imgdata).params.output_color = (*v).into() });
+            .inspect(|v| unsafe { (*imgdata).params.output_color = (*v) as i32 });
 
         self.output_profile.as_ref().inspect(|v| unsafe {
             (*imgdata).params.output_profile = v.to_str().unwrap().to_cstring().into_raw();
@@ -54,13 +54,13 @@ impl DCRawParams {
         });
 
         self.output_bps
-            .inspect(|v| unsafe { (*imgdata).params.output_bps = (*v).into() });
+            .inspect(|v| unsafe { (*imgdata).params.output_bps = (*v) as i32 });
         self.output_tiff
-            .inspect(|v| unsafe { (*imgdata).params.output_tiff = (*v).into() });
+            .inspect(|v| unsafe { (*imgdata).params.output_tiff = (*v) as i32 });
         self.user_flip
-            .inspect(|v| unsafe { (*imgdata).params.user_flip = (*v).into() });
+            .inspect(|v| unsafe { (*imgdata).params.user_flip = (*v) as i32 });
         self.user_qual
-            .inspect(|v| unsafe { (*imgdata).params.user_qual = (*v).into() });
+            .inspect(|v| unsafe { (*imgdata).params.user_qual = (*v) as i32 });
         self.user_black
             .inspect(|v| unsafe { (*imgdata).params.user_black = *v });
         self.user_cblack
@@ -82,7 +82,7 @@ impl DCRawParams {
         self.dcb_enhance_fl
             .inspect(|v| unsafe { (*imgdata).params.dcb_enhance_fl = *v });
         self.fbdd_noiserd
-            .inspect(|v| unsafe { (*imgdata).params.fbdd_noiserd = (*v).into() });
+            .inspect(|v| unsafe { (*imgdata).params.fbdd_noiserd = (*v) as i32 });
         self.exp_correc
             .inspect(|v| unsafe { (*imgdata).params.exp_correc = *v });
         self.exp_shift

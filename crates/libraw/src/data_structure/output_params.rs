@@ -1,10 +1,8 @@
 use std::path::PathBuf;
 
-use num_enum::IntoPrimitive;
-
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone, IntoPrimitive)]
-#[repr(i32)]
+#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
 pub enum DCRawHighlightMode {
     Clip = 0,
     Ignore = 1,
@@ -19,8 +17,8 @@ pub enum DCRawHighlightMode {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone, IntoPrimitive)]
-#[repr(i32)]
+#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
 pub enum DCRawUseCameraMatrix {
     NotUse = 0,
     EmbeddedProfile = 1,
@@ -28,8 +26,8 @@ pub enum DCRawUseCameraMatrix {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone, IntoPrimitive)]
-#[repr(i32)]
+#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
 pub enum DCRawOutputColor {
     Raw = 0,
     SRgb = 1,
@@ -43,16 +41,16 @@ pub enum DCRawOutputColor {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone, IntoPrimitive)]
-#[repr(i32)]
+#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
 pub enum DCRawOutputBps {
     _8bit = 8,
     _16bit = 16,
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone, IntoPrimitive)]
-#[repr(i32)]
+#[derive(Debug, Copy, Clone)]
+#[repr(i8)]
 pub enum DCRawOutputTiff {
     None = -1,
     Ppm = 0,
@@ -60,8 +58,8 @@ pub enum DCRawOutputTiff {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone, IntoPrimitive)]
-#[repr(i32)]
+#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
 pub enum DCRawUserFlip {
     None = 0,
     Rotate180 = 3,
@@ -70,8 +68,8 @@ pub enum DCRawUserFlip {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone, IntoPrimitive)]
-#[repr(i32)]
+#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
 pub enum DCRawUserQual {
     Linear = 0,
     VNG = 1,
@@ -83,16 +81,16 @@ pub enum DCRawUserQual {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone, IntoPrimitive)]
-#[repr(i32)]
+#[derive(Debug, Copy, Clone)]
+#[repr(i8)]
 pub enum DCRawUseFujiRotate {
     UseRotate = -1,
     NotUse = 0,
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone, IntoPrimitive)]
-#[repr(i32)]
+#[derive(Debug, Copy, Clone)]
+#[repr(u8)]
 pub enum DCRawFbddNoiserd {
     Off = 0,
     Light = 1,
