@@ -16,7 +16,7 @@ pub enum ImageSizesFlip {
 /// # references
 /// - [libraw_image_sizes_t](https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t)
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct ImageSizes {
     raw_height: u16,
     raw_width: u16,
