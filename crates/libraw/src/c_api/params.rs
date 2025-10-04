@@ -53,7 +53,7 @@ impl Libraw {
         self
     }
     pub fn set_demosaic(&self, value: DCRawUserQual) -> &Self {
-        unsafe { libraw_sys::libraw_set_demosaic(self.imgdata, i32::from(value)) };
+        unsafe { libraw_sys::libraw_set_demosaic(self.imgdata, value as i32) };
         self
     }
     pub fn set_adjust_maximum_thr(&self, value: f32) -> &Self {
@@ -61,11 +61,11 @@ impl Libraw {
         self
     }
     pub fn set_output_color(&self, value: DCRawOutputColor) -> &Self {
-        unsafe { libraw_sys::libraw_set_output_color(self.imgdata, i32::from(value)) };
+        unsafe { libraw_sys::libraw_set_output_color(self.imgdata, value as i32) };
         self
     }
     pub fn set_output_bps(&self, value: DCRawOutputBps) -> &Self {
-        unsafe { libraw_sys::libraw_set_output_bps(self.imgdata, i32::from(value)) };
+        unsafe { libraw_sys::libraw_set_output_bps(self.imgdata, value as i32) };
         self
     }
     pub fn set_gamma(&self, index: i32, value: f32) -> &Self {
@@ -81,11 +81,11 @@ impl Libraw {
         self
     }
     pub fn set_highlight(&self, value: DCRawHighlightMode) -> &Self {
-        unsafe { libraw_sys::libraw_set_highlight(self.imgdata, i32::from(value)) };
+        unsafe { libraw_sys::libraw_set_highlight(self.imgdata, value as i32) };
         self
     }
     pub fn set_fbdd_noiserd(&self, value: DCRawFbddNoiserd) -> &Self {
-        unsafe { libraw_sys::libraw_set_fbdd_noiserd(self.imgdata, i32::from(value)) };
+        unsafe { libraw_sys::libraw_set_fbdd_noiserd(self.imgdata, value as i32) };
         self
     }
 }
@@ -200,10 +200,7 @@ mod test {
             .open_file(&fornax_devtool::raw_file())?
             .unpack()?
             .set_demosaic(DCRawUserQual::Linear);
-        assert_eq!(
-            i32::from(DCRawUserQual::Linear),
-            libraw.get_params()?.user_qual
-        );
+        assert_eq!(DCRawUserQual::Linear as i32, libraw.get_params()?.user_qual);
         Ok(())
     }
     #[test]
@@ -224,7 +221,7 @@ mod test {
             .unpack()?
             .set_output_color(DCRawOutputColor::ACES);
         assert_eq!(
-            i32::from(DCRawOutputColor::ACES),
+            DCRawOutputColor::ACES as i32,
             libraw.get_params()?.output_color
         );
         Ok(())
@@ -237,7 +234,7 @@ mod test {
             .unpack()?
             .set_output_bps(DCRawOutputBps::_16bit);
         assert_eq!(
-            i32::from(DCRawOutputBps::_16bit),
+            DCRawOutputBps::_16bit as i32,
             libraw.get_params()?.output_bps
         );
         Ok(())
@@ -280,7 +277,7 @@ mod test {
             .unpack()?
             .set_highlight(DCRawHighlightMode::Reconstruct4);
         assert_eq!(
-            i32::from(DCRawHighlightMode::Reconstruct4),
+            DCRawHighlightMode::Reconstruct4 as i32,
             libraw.get_params()?.highlight
         );
         Ok(())
@@ -293,7 +290,7 @@ mod test {
             .unpack()?
             .set_fbdd_noiserd(DCRawFbddNoiserd::Off);
         assert_eq!(
-            i32::from(DCRawFbddNoiserd::Off),
+            DCRawFbddNoiserd::Off as i32,
             libraw.get_params()?.fbdd_noiserd
         );
         Ok(())
