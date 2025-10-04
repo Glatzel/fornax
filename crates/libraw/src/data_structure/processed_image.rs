@@ -1,20 +1,14 @@
-use num_enum::{TryFromPrimitive, TryFromPrimitiveError};
+use num_enum::TryFromPrimitive;
 
 use crate::{LibrawError, check_run};
 
 #[derive(Debug, TryFromPrimitive)]
-#[repr(u8)]
+#[repr(i32)]
 pub enum DCRawImageFormats {
     Jpeg = 1,
     Bitmap = 2,
 }
-impl TryFrom<u32> for DCRawImageFormats {
-    type Error = TryFromPrimitiveError<DCRawImageFormats>;
 
-    fn try_from(value: u32) -> Result<DCRawImageFormats, TryFromPrimitiveError<DCRawImageFormats>> {
-        Self::try_from(value as i32)
-    }
-}
 pub struct ProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }

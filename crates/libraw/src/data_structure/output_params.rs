@@ -50,7 +50,7 @@ pub enum DCRawOutputBps {
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
-#[repr(u8)]
+#[repr(i8)]
 pub enum DCRawOutputTiff {
     None = -1,
     Ppm = 0,
@@ -82,7 +82,7 @@ pub enum DCRawUserQual {
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Copy, Clone)]
-#[repr(u8)]
+#[repr(i8)]
 pub enum DCRawUseFujiRotate {
     UseRotate = -1,
     NotUse = 0,
