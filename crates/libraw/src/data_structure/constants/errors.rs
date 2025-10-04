@@ -6,7 +6,7 @@ use thiserror::Error;
 ///All functions returning integer numbers must return either errno or one of
 /// the following error codes.
 #[derive(Debug, Clone, Copy, FromPrimitive)]
-#[repr(i32)]
+#[repr(u8)]
 pub enum LibrawErrorCode {
     #[num_enum(default)]
     UnknownError = 1,

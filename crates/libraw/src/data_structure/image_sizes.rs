@@ -5,7 +5,7 @@ use crate::LibrawError;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Clone, Copy, Debug, PartialEq, TryFromPrimitive)]
-#[repr(i32)]
+#[repr(u8)]
 pub enum ImageSizesFlip {
     None = 0,
     Rotate180 = 3,
