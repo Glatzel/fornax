@@ -4,7 +4,7 @@ name = "fornax-py"
 version.workspace = true
 
 [dependencies]
-clerk = { workspace = true, features = ["log"] }
+clerk = { workspace = true, features = ["tracing"] }
 fornax = { workspace = true, features = ["serde"] }
 image = { workspace = true }
 numpy = { workspace = true }

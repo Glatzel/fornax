@@ -12,7 +12,7 @@ libraw = { workspace = true }
 
 [dev-dependencies]
 assert_cmd = { workspace = true }
-clerk = { workspace = true, features = ["log"] }
+clerk = { workspace = true, features = ["tracing"] }
 fornax-devtool = { workspace = true }
 mischief = { workspace = true }
 [features]
