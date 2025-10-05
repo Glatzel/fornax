@@ -114,13 +114,13 @@ pub struct DCRawParams {
     /// remaining two values are width and height respectively. All
     /// coordinates are applied before any image rotation.
     pub cropbox: Option<[u32; 4]>,
-    /// Correction of chromatic aberrations; the only specified values are
+    /// correcttion of chromatic aberrations; the only specified values are
     ///
     /// - `aber[0]`, the red multiplier.
     /// - `aber[2]`, the blue multiplier.
     ///
     /// For some formats, it affects RAW data reading , since
-    /// correction of aberrations changes the output size.
+    /// correcttion of aberrations changes the output size.
     ///
     /// The `aber[0]` will set `aber[0]`.
     ///
@@ -210,7 +210,7 @@ pub struct DCRawParams {
     pub user_qual: Option<DCRawUserQual>,
     /// User black level.
     pub user_black: Option<i32>,
-    /// Per-channel corrections to user_black.
+    /// Per-channel correcttions to user_black.
     pub user_cblack: Option<[i32; 4]>,
     ///Saturation adjustment.
     pub user_sat: Option<i32>,
@@ -233,7 +233,7 @@ pub struct DCRawParams {
     /// adjustment will be performed.
     ///
     /// Adjusting maximum should not damage any picture (esp. if you use default
-    /// value) and is very useful for correcting channel overflow problems
+    /// value) and is very useful for correctting channel overflow problems
     /// (magenta clouds on landscape shots, green-blue highlights for indoor
     /// shots).
     pub adjust_maximum_thr: Option<f32>,
@@ -244,7 +244,7 @@ pub struct DCRawParams {
     /// Default: 0 (not use), 1 - turns on this postprocessing stage.
     /// green_matching requires additional memory for image data.
     pub green_matching: Option<bool>,
-    ///Number of DCB correction passes. Default is -1 (no correction). Useful
+    ///Number of DCB correcttion passes. Default is -1 (no correcttion). Useful
     /// only for DCB interpolation.
     pub dcb_iterations: Option<i32>,
     /// nonzero: DCB interpolation with enhance interpolated colors.
@@ -254,17 +254,17 @@ pub struct DCRawParams {
     /// - 1 - light FBDD reduction
     /// - 2 (and more) - full FBDD reduction
     pub fbdd_noiserd: Option<DCRawFbddNoiserd>,
-    ///Exposure correction before demosaic.
+    ///Exposure correcttion before demosaic.
     ///
-    ///exp_correc: positive value turns the feature on (default: off).
-    pub exp_correc: Option<i32>,
-    ///Exposure correction before demosaic.
+    ///exp_correct: positive value turns the feature on (default: off).
+    pub exp_correct: Option<i32>,
+    ///Exposure correcttion before demosaic.
     ///
     ///exp_shift: exposure shift in linear scale. Usable range from 0.25
     /// (2-stop darken) to 8.0 (3-stop lighter). Default: 1.0 (no exposure
     /// shift).
     pub exp_shift: Option<f32>,
-    ///Exposure correction before demosaic.
+    ///Exposure correcttion before demosaic.
     ///
     ///exp_preser: preserve highlights when lighten the image. Usable range
     /// from 0.0 (no preservation) to 1.0 (full preservation). 0.0 is the

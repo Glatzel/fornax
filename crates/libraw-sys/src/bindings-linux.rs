@@ -2521,7 +2521,7 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn gcvt(__value: f64, __ndigit: libc::c_int, __buf: *mut libc::c_char)
-        -> *mut libc::c_char;
+    -> *mut libc::c_char;
 }
 unsafe extern "C" {
     pub fn qecvt(
@@ -6543,7 +6543,7 @@ pub struct libraw_output_params_t {
     pub dcb_iterations: libc::c_int,
     pub dcb_enhance_fl: libc::c_int,
     pub fbdd_noiserd: libc::c_int,
-    pub exp_correc: libc::c_int,
+    pub exp_correct: libc::c_int,
     pub exp_shift: f32,
     pub exp_preser: f32,
     pub no_auto_scale: libc::c_int,
@@ -6624,8 +6624,8 @@ const _: () = {
         [::core::mem::offset_of!(libraw_output_params_t, dcb_enhance_fl) - 272usize];
     ["Offset of field: libraw_output_params_t::fbdd_noiserd"]
         [::core::mem::offset_of!(libraw_output_params_t, fbdd_noiserd) - 276usize];
-    ["Offset of field: libraw_output_params_t::exp_correc"]
-        [::core::mem::offset_of!(libraw_output_params_t, exp_correc) - 280usize];
+    ["Offset of field: libraw_output_params_t::exp_correct"]
+        [::core::mem::offset_of!(libraw_output_params_t, exp_correct) - 280usize];
     ["Offset of field: libraw_output_params_t::exp_shift"]
         [::core::mem::offset_of!(libraw_output_params_t, exp_shift) - 284usize];
     ["Offset of field: libraw_output_params_t::exp_preser"]
