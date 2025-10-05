@@ -40,7 +40,7 @@ impl ProcessedImage {
     /// Number of colors components (1 or 3) and color depth in bits (8 or 16).
     /// These fields are valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn colors(&self) -> u16 { unsafe { (*self.processed_image).colors } }
-    ///Is bitmap data gamma-corrected (always 1 for 8-bit data, may be 0 or 1
+    ///Is bitmap data gamma-correctted (always 1 for 8-bit data, may be 0 or 1
     /// for 16-bit). Valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn bits(&self) -> u16 { unsafe { (*self.processed_image).bits } }
     ///Size of data field (in bytes). For bitmap image equal to
