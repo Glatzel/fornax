@@ -4,4 +4,4 @@ name = "fornax-devtool"
 version.workspace = true
 
 [dependencies]
-clerk = { workspace = true, features = ["log"] }
+clerk = { workspace = true, features = ["tracing"] }
