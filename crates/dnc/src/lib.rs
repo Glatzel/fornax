@@ -5,6 +5,9 @@ mod error;
 pub use error::DncError;
 pub use params::DncParams;
 use path_slash::PathBufExt;
+#[cfg(not(any(target_os = "windows", target_os = "macos")))]
+compile_error!("Adobe DNC Converter only available on Windows or MacOS.");
+
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let default_install_path =
         PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");

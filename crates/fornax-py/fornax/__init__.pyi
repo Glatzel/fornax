@@ -5,7 +5,7 @@ from ._fornax import Fornax, FornaxOutputBits
 from ._tracing import LogLevel, init_tracing
 
 if sys.platform != "linux":
-    from . import dnc
+    from . import dnc  # noqa: F401
 
 __all__ = [
     "Fornax",
@@ -17,4 +17,4 @@ __all__ = [
 ]
 
 if sys.platform != "linux":
-    __all__.append("dnc")
+    __all__.append("dnc")  # noqa: PYI056
