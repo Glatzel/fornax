@@ -75,12 +75,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
 
-      - name: Install nextest
-        uses: taiki-e/install-action@nextest
-
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-
       - name: cargo-test
         run: |
           git submodule update --init --recursive
