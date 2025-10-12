@@ -24,12 +24,8 @@ pub fn get_example_exe(name: &str) -> PathBuf {
     if cfg!(windows) {
         exe.push(format!("target/llvm-cov-target/debug/examples/{name}.exe"));
     }
-
-    if !exe.exists() {
-        exe = root.clone();
-        if cfg!(windows) {
-            exe.push(format!("target/llvm-cov-target/debug/examples/{name}.exe"));
-        }
+    else{
+        exe.push(format!("target/llvm-cov-target/debug/examples/{name}"));
     }
     exe
 }
