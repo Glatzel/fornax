@@ -1,4 +1,6 @@
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 use assert_cmd::Command;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 #[test]
 fn test_dnc() {
     let root = fornax_devtool::root_dir();
