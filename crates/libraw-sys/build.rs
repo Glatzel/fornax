@@ -6,9 +6,10 @@ fn main() {
     #[cfg(target_os = "windows")]
     let _pk_libraw = link_lib("libraw_r", "raw_r");
     #[cfg(target_os = "linux")]
-    let _pk_libraw = link_lib("libraw_r", "raw_r");
+    let _pk_libraw = link_lib("libraw_r", "libraw_r");
     #[cfg(target_os = "linux")]
-    link_lib("m", "m");
+    println!("cargo:rustc-link-lib=static=m");
+
     // generate bindings
     if env::var("UPDATE").unwrap_or("false".to_string()) == "true"
         || env::var("BINDGEN").unwrap_or("false".to_string()) == "true"
