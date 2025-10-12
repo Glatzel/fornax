@@ -8,7 +8,7 @@ fn main() {
     {
         println!("cargo:rustc-link-lib=m");
         println!("cargo:rustc-link-lib=stdc++");
-        println!("cargo:rustc-link-lib=dylib=gomp");
+        println!("cargo:rustc-link-lib=static=gomp");
     }
     // generate bindings
     if env::var("UPDATE").unwrap_or("false".to_string()) == "true"
