@@ -10,7 +10,7 @@ fn main() {
     #[cfg(target_os = "linux")]
     println!("cargo:rustc-link-lib=m");
     #[cfg(target_os = "linux")]
-    println!("cargo:rustc-link-lib=static=stdc++");
+    println!("cargo:rustc-link-lib=stdc++");
 
     // generate bindings
     if env::var("UPDATE").unwrap_or("false".to_string()) == "true"
