@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use clerk::LogLevel;
+//Adobe DNC Converter only available on Windows or MacOS.
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 use fornax::dnc;
 use fornax::fornax_dalim::Dalim;

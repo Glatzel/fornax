@@ -4,6 +4,7 @@ from . import decoder, post_processor
 from ._fornax import Fornax, FornaxOutputBits
 from ._tracing import LogLevel, init_tracing
 
+# Adobe DNC Converter only available on Windows or MacOS.
 if sys.platform != "linux":
     from . import dnc  # noqa: F401
 

@@ -1,5 +1,6 @@
 use std::path::Path;
 
+//Adobe DNC Converter only available on Windows or MacOS.
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 pub use dnc;
 pub use fornax_core::NullPostProcessor;
