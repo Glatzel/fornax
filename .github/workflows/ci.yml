@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   cargo-doc:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
