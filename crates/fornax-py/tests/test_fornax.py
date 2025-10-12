@@ -1,7 +1,9 @@
+import sys
 from pathlib import Path
 
 import fornax
 import imageio.v3 as iio  # type: ignore
+import pytest
 
 root = Path(__file__).parents[3]
 temp_dir = root / "temp" / "fornax-py"
@@ -11,6 +13,7 @@ img_dir = root / "external" / "raw-images" / "images"
 fornax.init_tracing(fornax.LogLevel.DEBUG, True)
 
 
+@pytest.mark.skipif(sys.platform == "linux", reason="dnc not available on Linux")
 def test_dnc():
     f = img_dir / "colorchart-eos-7d.cr2"
     dnc = fornax.dnc.DncParams(
@@ -93,7 +96,7 @@ def test_libraw_libraw_custom():
         use_rawspeed=None,
         no_auto_scale=True,
         no_interpolation=True,
-    )
+    )  # type: ignore
     print(params.model_dump_json())
     img = fornax.Fornax(
         output_bits=fornax.FornaxOutputBits.u16,
