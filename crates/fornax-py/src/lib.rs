@@ -1,9 +1,12 @@
 use std::path::PathBuf;
 
 use clerk::LogLevel;
+//Adobe DNC Converter only available on Windows or MacOS.
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+use fornax::dnc;
 use fornax::fornax_dalim::Dalim;
+use fornax::libraw;
 use fornax::libraw::DCRawParams;
-use fornax::{dnc, libraw};
 use numpy::{PyArray, PyArrayMethods};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
@@ -73,10 +76,11 @@ fn py_process<'a>(
     _decoder_params: &'a [u8],
     post_processor: &str,
     post_processor_params: &'a [u8],
-    dnc_params: Option<&'a [u8]>,
+    _dnc_params: Option<&'a [u8]>,
 ) -> Result<pyo3::Bound<'a, PyTuple>, PyErr> {
     // convert with dnc
-    let file = if let Some(params) = dnc_params {
+    #[cfg(any(target_os = "windows", target_os = "macos"))]
+    let file = if let Some(params) = _dnc_params {
         let dnc = dnc::Dnc::new(Deserialize::deserialize(&mut Deserializer::new(params)).unwrap());
         dnc.convert(&file).unwrap()
     } else {

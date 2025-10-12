@@ -4,7 +4,12 @@ use std::path::PathBuf;
 fn main() {
     // Link
     let _pk_libraw = link_lib("libraw_r", "raw_r");
-
+    #[cfg(target_os = "linux")]
+    {
+        println!("cargo:rustc-link-lib=m");
+        println!("cargo:rustc-link-lib=stdc++");
+        println!("cargo:rustc-link-lib=gomp");
+    }
     // generate bindings
     if env::var("UPDATE").unwrap_or("false".to_string()) == "true"
         || env::var("BINDGEN").unwrap_or("false".to_string()) == "true"

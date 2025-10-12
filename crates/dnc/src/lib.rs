@@ -5,6 +5,7 @@ mod error;
 pub use error::DncError;
 pub use params::DncParams;
 use path_slash::PathBufExt;
+
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let default_install_path =
         PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");

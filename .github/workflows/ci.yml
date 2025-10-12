@@ -40,28 +40,25 @@ jobs:
         run: ./scripts/cargo-doc.ps1
         shell: pwsh
 
-  test-build:
+  test-build-win:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-latest]
         include:
           - machine: windows-latest
             os: win-64
     env:
       dnc_version: 17_5
-    runs-on: ${{matrix.machine}}
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
 
       - name: restore dnc
-        if: ${{ runner.os == 'Windows'}}
         uses: actions/cache@v4
         with:
           path: ./temp/dnc${{env.dnc_version}}.exe
           key: dnc-${{ runner.os }}-${{env.dnc_version}}
       - run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
-        if: ${{runner.os == 'Windows'}}
 
       - name: Set up pixi
         uses: prefix-dev/setup-pixi@v0.9.1
@@ -71,7 +68,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
 
       - name: cargo-test
-        run: ./scripts/cargo-test.ps1 --workspace --exclude fornax-py
+        run: ./scripts/cargo-test.ps1 --workspace --all-features --exclude fornax-py
         shell: pwsh
 
       - name: rattler-build
@@ -81,9 +78,47 @@ jobs:
       - name: upload-assets
         uses: actions/upload-artifact@v4
         with:
-          name: pyxis-python-${{matrix.machine}}
+          name: pyxis-python-${{runner.os}}
           path: |
-            ./crates/fornax-py/rattler/output/${{matrix.os}}/*.conda
+            ./crates/fornax-py/rattler/output/win-64/*.conda
+          if-no-files-found: error
+
+      - name: Upload results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          fail_ci_if_error: true
+
+  test-build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.1
+        with:
+          run-install: false
+
+      - uses: dtolnay/rust-toolchain@nightly
+
+      - name: cargo-test
+        run: ./scripts/cargo-test.ps1 --workspace --all-features --exclude fornax-py
+        shell: pwsh
+
+      - name: rattler-build
+        run: ./crates/fornax-py/rattler/ci-fornax-py.ps1
+        shell: pwsh
+
+      - name: upload-assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: pyxis-python-${{runner.os}}
+          path: |
+            ./crates/fornax-py/rattler/output/linux-64/*.conda
           if-no-files-found: error
 
       - name: Upload results to Codecov
