@@ -14,4 +14,3 @@ if ($IsLinux) {
     $env:PKG_CONFIG_PATH = Resolve-Path $PSScriptRoot/../.pixi/envs/default/libraw/x64-linux-release/lib/pkgconfig
 }
 Set-Location $ROOT
-
