@@ -68,7 +68,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
 
       - name: cargo-test
-        run: ./scripts/cargo-test.ps1 --workspace --exclude fornax-py
+        run: ./scripts/cargo-test.ps1 --workspace --all-features --exclude fornax-py
         shell: pwsh
 
       - name: rattler-build
@@ -106,7 +106,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
 
       - name: cargo-test
-        run: ./scripts/cargo-test.ps1 --workspace --exclude fornax-py dnc
+        run: ./scripts/cargo-test.ps1 --workspace --all-features --exclude fornax-py dnc
         shell: pwsh
 
       - name: rattler-build
