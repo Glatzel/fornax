@@ -6,7 +6,7 @@ fn main() {
     #[cfg(target_os = "windows")]
     let _pk_libraw = link_lib("libraw_r", "raw_r");
     #[cfg(target_os = "linux")]
-    let _pk_libraw = link_lib("libraw_r", "libraw_r");
+    let _pk_libraw = link_lib("libraw_r", "raw_r");
     #[cfg(target_os = "linux")]
     println!("cargo:rustc-link-lib=static=m");
 
