@@ -26,6 +26,7 @@ select = [
   "PIE",  # flake8-pie
   "PT",   # flake8-pytest-style
   "PTH",  # flake8-use-pathlib
+  "PYI",  # flake8-pyi
   "RUF",  # Ruff-specific rules
   "SIM",  # flake8-simplify
   "TCH",  # flake8-type-checking
