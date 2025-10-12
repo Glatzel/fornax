@@ -118,7 +118,7 @@ jobs:
         with:
           name: pyxis-python-${{runner.os}}
           path: |
-            ./crates/fornax-py/rattler/output/limux-64/*.conda
+            ./crates/fornax-py/rattler/output/linux-64/*.conda
           if-no-files-found: error
 
       - name: Upload results to Codecov
