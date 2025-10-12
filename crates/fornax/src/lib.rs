@@ -1,9 +1,12 @@
 use std::path::Path;
 
+//Adobe DNC Converter only available on Windows or MacOS.
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+pub use dnc;
 pub use fornax_core::NullPostProcessor;
 use fornax_core::{FornaxError, FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{ImageBuffer, Rgb};
-pub use {dnc, fornax_dalim, libraw};
+pub use {fornax_dalim, libraw};
 /// A struct that integrates decoding and post-processing of image data.
 ///
 /// `Fornax` combines the functionality of an image decoder and a
