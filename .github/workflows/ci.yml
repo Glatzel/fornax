@@ -22,9 +22,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  RUST_ROOT: .
-
 jobs:
   cargo-doc:
     runs-on: ubuntu-latest
@@ -40,7 +37,7 @@ jobs:
         with:
           run-install: false
       - name: cargo-doc
-        run: ${{env.RUST_ROOT}}/scripts/cargo-doc.ps1
+        run: ./scripts/cargo-doc.ps1
         shell: pwsh
 
   test-build:
@@ -72,21 +69,9 @@ jobs:
           run-install: false
 
       - uses: dtolnay/rust-toolchain@nightly
-      - uses: Swatinem/rust-cache@v2
-        if: ${{github.event_name=='pull_request'}}
-
-      - name: Install nextest
-        uses: taiki-e/install-action@nextest
-
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: cargo-test
-        run: |
-          git submodule update --init --recursive
-          pixi install
-          $env:CONDA_PREFIX=resolve-path ./.pixi/envs/default
-          ${{env.RUST_ROOT}}/scripts/cargo-test.ps1
+        run: ./scripts/cargo-test.ps1 --workspace --exclude fornax-py
         shell: pwsh
 
       - name: rattler-build

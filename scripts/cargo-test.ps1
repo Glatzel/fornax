@@ -2,6 +2,7 @@
 
 $config = if ($args.Count) { $args } else { @('--workspace', '--all-features') }
 if (Test-Path $PSScriptRoot/setup.ps1) { &$PSScriptRoot/setup.ps1 }
+if ($env:CI) { pixi global install cargo-llvm-cov cargo-nextest }
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 
