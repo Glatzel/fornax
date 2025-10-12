@@ -5,7 +5,7 @@ from ._fornax import Fornax, FornaxOutputBits
 from ._tracing import LogLevel, init_tracing
 
 if sys.platform != "linux":
-    from . import dnc
+    pass
 
 __all__ = [
     "Fornax",
