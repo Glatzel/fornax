@@ -13,7 +13,10 @@ img_dir = root / "external" / "raw-images" / "images"
 fornax.init_tracing(fornax.LogLevel.DEBUG, True)
 
 
-@pytest.mark.skipif(sys.platform == "linux", reason="dnc not available on Linux")
+@pytest.mark.skipif(
+    sys.platform not in ("win32", "darwin"),
+    reason="Adobe DNC Converter only available on Windows or MacOS.",
+)
 def test_dnc():
     f = img_dir / "colorchart-eos-7d.cr2"
     dnc = fornax.dnc.DncParams(
