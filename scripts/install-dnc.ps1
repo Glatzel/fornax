@@ -35,12 +35,30 @@ if ($IsMacOS) {
     $mountInfo = hdiutil attach $dmg -nobrowse
     Write-Output $mountInfo
 
-    # Find the mounted volume path (e.g., /Volumes/Adobe DNG Converter)
-    $volume = ($mountInfo | Select-String "/Volumes/").Line.Trim()
-    Write-Output "Mounted at: $volume"
+    # Mounted path from hdiutil attach
+    $volume = "/Volumes/DNGConverter_$version"
 
-    # Install the app (copy to /Applications)
-    Copy-Item -r "$volume/Adobe DNG Converter.app" /Applications/
+    # If it contains an .app bundle
+    $app = Get-ChildItem -Path $volume -Filter "*.app" | Select-Object -First 1
+
+    if ($app) {
+        Write-Host "Installing $($app.Name)..."
+        sudo cp -R "$($app.FullName)" /Applications/
+        Write-Host "✅ Installed to /Applications"
+    }
+    else {
+        # Maybe it's a .pkg installer
+        $pkg = Get-ChildItem -Path $volume -Filter "*.pkg" | Select-Object -First 1
+        if ($pkg) {
+            Write-Host "Running installer for $($pkg.Name)..."
+            sudo installer -pkg "$($pkg.FullName)" -target /
+            Write-Host "✅ Package installed"
+        }
+        else {
+            Write-Warning "No .app or .pkg found in $volume"
+        }
+    }
+
 
     # Unmount
     hdiutil detach "$volume"
