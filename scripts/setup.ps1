@@ -16,6 +16,6 @@ if ($IsLinux) {
 }
 if ($IsMacOS) {
     $env:PKG_CONFIG_PATH = Resolve-Path $PSScriptRoot/../.pixi/envs/default/libraw/arm64-osx-release/lib/pkgconfig
-    $env:Path = "/Applications/Adobe DNG Converter.app/;$env:Path"
+    $env:Path = "/Applications/Adobe DNG Converter.app/Contents/MacOS;$env:Path"
 }
 Set-Location $ROOT
