@@ -19,5 +19,31 @@ if ($IsWindows) {
     Write-Output "::endgroup::"
 }
 if ($IsMacOS) {
-   brew install --cask adobe-dng-converter
+    if (-not (Test-Path "$ROOT/temp/dnc$version.dmg")) {
+        Write-Output "::group::download dnc $version"
+        aria2c -c -x16 -s16 `
+            -d "$ROOT/temp" `
+            "https://download.adobe.com/pub/adobe/dng/mac/DNGConverter_$version.dmg" `
+            -o "dnc$version.dmg"
+        Write-Output "::endgroup::"
+    }
+    Write-Output "::group::install dnc $version"
+    # Path to your DMG
+    $dmg = "$ROOT/temp/dnc$version.dmg"
+
+    # Mount the DMG
+    $mountInfo = hdiutil attach $dmg -nobrowse
+    Write-Output $mountInfo
+
+    # Find the mounted volume path (e.g., /Volumes/Adobe DNG Converter)
+    $volume = ($mountInfo | Select-String "/Volumes/").Line.Trim()
+    Write-Output "Mounted at: $volume"
+
+    # Install the app (copy to /Applications)
+    Copy-Item -r "$volume/Adobe DNG Converter.app" /Applications/
+
+    # Unmount
+    hdiutil detach "$volume"
+    Write-Output "dnc installed"
+    Write-Output "::endgroup::"
 }
