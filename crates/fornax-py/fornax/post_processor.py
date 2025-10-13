@@ -231,10 +231,10 @@ class DCRawParams(BasePostProcessorParams):
         - 0 - do not use FBDD noise reduction
         - 1 - light FBDD reduction
         - 2 (and more) - full FBDD reduction
-    exp_correct
+    exp_correc
         Exposure correction before demosaic.
 
-        exp_correct: positive value turns the feature on (default: off).
+        exp_correc: positive value turns the feature on (default: off).
     exp_shift
         Exposure correction before demosaic.
 
@@ -457,11 +457,11 @@ class DCRawParams(BasePostProcessorParams):
     - 2 (and more) - full FBDD reduction
     """
 
-    exp_correct: int | None = None
+    exp_correc: int | None = None
     """
     Exposure correction before demosaic.
 
-    exp_correct: positive value turns the feature on (default: off).
+    exp_correc: positive value turns the feature on (default: off).
     """
 
     exp_shift: float | None = None

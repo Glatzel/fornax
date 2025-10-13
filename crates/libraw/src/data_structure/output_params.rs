@@ -256,8 +256,8 @@ pub struct DCRawParams {
     pub fbdd_noiserd: Option<DCRawFbddNoiserd>,
     ///Exposure correcttion before demosaic.
     ///
-    ///exp_correct: positive value turns the feature on (default: off).
-    pub exp_correct: Option<i32>,
+    ///exp_correc: positive value turns the feature on (default: off).
+    pub exp_correc: Option<i32>,
     ///Exposure correcttion before demosaic.
     ///
     ///exp_shift: exposure shift in linear scale. Usable range from 0.25

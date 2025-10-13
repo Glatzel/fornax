@@ -7,9 +7,7 @@ pub struct __BindgenBitfieldUnit<Storage> {
 }
 impl<Storage> __BindgenBitfieldUnit<Storage> {
     #[inline]
-    pub const fn new(storage: Storage) -> Self {
-        Self { storage }
-    }
+    pub const fn new(storage: Storage) -> Self { Self { storage } }
 }
 impl<Storage> __BindgenBitfieldUnit<Storage>
 where

@@ -83,8 +83,8 @@ impl DCRawParams {
             .inspect(|v| unsafe { (*imgdata).params.dcb_enhance_fl = *v });
         self.fbdd_noiserd
             .inspect(|v| unsafe { (*imgdata).params.fbdd_noiserd = (*v) as i32 });
-        self.exp_correct
-            .inspect(|v| unsafe { (*imgdata).params.exp_correct = *v });
+        self.exp_correc
+            .inspect(|v| unsafe { (*imgdata).params.exp_correc = *v });
         self.exp_shift
             .inspect(|v| unsafe { (*imgdata).params.exp_shift = *v });
         self.exp_preser
