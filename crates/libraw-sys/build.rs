@@ -12,7 +12,7 @@ fn main() {
     }
     #[cfg(target_os = "macos")]
     {
-        println!("cargo:rustc-link-lib=stdc++");
+        println!("cargo:rustc-link-lib=c++");
         println!("cargo:rustc-link-lib=m");
     }
     // generate bindings
