@@ -4,21 +4,7 @@ use std::sync::LazyLock;
 use path_slash::PathBufExt;
 
 use crate::{DncError, DncParams};
-static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
-    #[cfg(target_os = "windows")]
-    let default_install_path =
-        PathBuf::from("C:/Program Files/Adobe/Adobe DNG Converter/Adobe DNG Converter.exe");
-    #[cfg(target_os = "macos")]
-    let default_install_path =
-        PathBuf::from("/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter");
-    let exe = if default_install_path.exists() {
-        default_install_path
-    } else {
-        panic!("{}", DncError::ExecutableNotFound);
-    };
-    clerk::debug!("Find dng converter: {}", exe.to_slash_lossy());
-    exe
-});
+static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| PathBuf::from("Adobe DNG Converter"));
 
 pub struct Dnc {
     params: DncParams,
