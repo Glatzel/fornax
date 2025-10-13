@@ -78,7 +78,7 @@ fn custom() -> mischief::Result<()> {
         dcb_iterations: Some(3),
         dcb_enhance_fl: Some(3),
         fbdd_noiserd: Some(DCRawFbddNoiserd::Off),
-        exp_correct: Some(3),
+        exp_correc: Some(3),
         exp_shift: Some(3.0),
         exp_preser: Some(3.0),
         use_rawspeed: Some(true),

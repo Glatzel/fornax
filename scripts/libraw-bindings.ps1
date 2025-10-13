@@ -1,4 +1,5 @@
 $ROOT = git rev-parse --show-toplevel
+& $PSScriptRoot/setup.ps1
 Set-Location $PSScriptRoot/..
 $env:RUSTFLAGS = "-Dwarnings"
 $env:UPDATE = "true"

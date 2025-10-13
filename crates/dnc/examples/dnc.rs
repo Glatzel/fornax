@@ -1,3 +1,6 @@
+#[cfg(target_os = "linux")]
+fn main() {}
+#[cfg(not(target_os = "linux"))]
 fn main() -> mischief::Result<()> {
     fornax_devtool::example_setup();
 
@@ -9,7 +12,7 @@ fn main() -> mischief::Result<()> {
     }
     Ok(())
 }
-
+#[cfg(not(target_os = "linux"))]
 fn default_path() -> mischief::Result<()> {
     let dnc = dnc::Dnc::new(dnc::DncParams {
         overwrite: true,
@@ -20,7 +23,7 @@ fn default_path() -> mischief::Result<()> {
     assert!(dng_file.is_file());
     Ok(())
 }
-
+#[cfg(not(target_os = "linux"))]
 fn custom_path() -> mischief::Result<()> {
     let dnc = dnc::Dnc::new(dnc::DncParams {
         directory: Some(fornax_devtool::output_dir()),

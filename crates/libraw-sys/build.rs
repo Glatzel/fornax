@@ -10,6 +10,11 @@ fn main() {
         println!("cargo:rustc-link-lib=stdc++");
         println!("cargo:rustc-link-lib=gomp");
     }
+    #[cfg(target_os = "macos")]
+    {
+        println!("cargo:rustc-link-lib=c++");
+        println!("cargo:rustc-link-lib=m");
+    }
     // generate bindings
     if env::var("UPDATE").unwrap_or("false".to_string()) == "true"
         || env::var("BINDGEN").unwrap_or("false".to_string()) == "true"

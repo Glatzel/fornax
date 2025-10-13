@@ -93,7 +93,7 @@ def test_libraw_libraw_custom():
         dcb_iterations=None,
         dcb_enhance_fl=None,
         fbdd_noiserd=None,
-        exp_correct=None,
+        exp_correc=None,
         exp_shift=None,
         exp_preser=None,
         use_rawspeed=None,
