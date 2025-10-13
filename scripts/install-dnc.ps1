@@ -23,7 +23,7 @@ if ($IsMacOS) {
         Write-Output "::group::download dnc $version"
         aria2c -c -x16 -s16 `
             -d "$ROOT/temp" `
-            "https://download.adobe.com/pub/adobe/dng/mac/AdobeDNGConverter_$version.dmg" `
+            "https://download.adobe.com/pub/adobe/dng/mac/DNGConverter_$version.dmg" `
             -o "dnc$version.dmg"
         Write-Output "::endgroup::"
     }
