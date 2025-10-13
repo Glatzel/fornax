@@ -51,14 +51,13 @@ if ($IsMacOS) {
         $pkg = Get-ChildItem -Path $volume -Filter "*.pkg" | Select-Object -First 1
         if ($pkg) {
             Write-Host "Running installer for $($pkg.Name)..."
-            sudo installer -pkg "$($pkg.FullName)" -target /
+            sudo installer -pkg "$($pkg.FullName)" -target /Applications/
             Write-Host "✅ Package installed"
         }
         else {
             Write-Warning "No .app or .pkg found in $volume"
         }
     }
-
 
     # Unmount
     hdiutil detach "$volume"
