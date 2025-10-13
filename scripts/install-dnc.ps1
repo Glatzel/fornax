@@ -53,7 +53,7 @@ if ($IsMacOS) {
         if ($pkg) {
             Write-Host "Running installer for $($pkg.Name)..."
             sudo installer -pkg "$($pkg.FullName)" -target /Applications/
-            Get-ChildItem "/Applications/Adobe DNG Converter.app"
+            Get-ChildItem "/Applications/Adobe DNG Converter.app/"
             Write-Host "✅ Package installed"
         }
         else {
@@ -67,6 +67,6 @@ if ($IsMacOS) {
     Write-Output "::endgroup::"
 
     Write-Output "::group::add environment variable"
-    $env:Path = "/Applications/;$env:Path"
+    $env:Path = "/Applications/Adobe DNG Converter.app/;$env:Path"
     Write-Output "::endgroup::"
 }
