@@ -66,6 +66,7 @@ jobs:
           key: dnc-${{ runner.os }}-${{env.dnc_version}}
       - if: ${{runner.os != 'Linux'}}
         run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
+        shell: pwsh
 
       - name: Set up pixi
         uses: prefix-dev/setup-pixi@v0.9.1
