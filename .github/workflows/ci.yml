@@ -86,7 +86,7 @@ jobs:
       - name: upload-assets
         uses: actions/upload-artifact@v4
         with:
-          name: pyxis-python-${{runner.os}}
+          name: fornax-python-${{runner.os}}
           path: ./crates/fornax-py/rattler/output/${{matrix.os}}/*.conda
           if-no-files-found: error
 
