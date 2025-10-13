@@ -7,7 +7,7 @@ use crate::{DncError, DncParams};
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let mut path = std::env::var("PATH").unwrap_or_default();
     #[cfg(target_os = "macos")]
-    path.insert_str("/Applications/Adobe DNG Converter.app/Contents/MacOS:");
+    path.insert_str(0, "/Applications/Adobe DNG Converter.app/Contents/MacOS:");
     #[cfg(target_os = "windows")]
     path.insert_str(0, r"C:\Program Files\Adobe\Adobe DNG Converter;");
 
