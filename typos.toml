@@ -1,9 +1,5 @@
 [files]
 extend-exclude = ["changelog.md", "**/bindings*.rs"]
 
-
-[default.extend-identifiers]
-AHD = "AHD"
-UnsufficientMemory = "UnsufficientMemory"
-_thr = "_thr"
-correc = "correc"
+[default]
+extend-ignore-identifiers-re = ["AHD", "_thr", "UnsufficientMemory","correc"]
