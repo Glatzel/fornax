@@ -17,7 +17,6 @@ if ($IsWindows) {
     Start-Process "./temp/dnc$version.exe" -ArgumentList "/silent" -Wait
     Write-Output "dnc installed"
     Write-Output "::endgroup::"
-    $env:Path = "C:\Program Files\Adobe\Adobe DNG Converter;$env:Path"
 }
 if ($IsMacOS) {
     if (-not (Test-Path "$ROOT/temp/dnc$version.dmg")) {
@@ -53,7 +52,7 @@ if ($IsMacOS) {
         if ($pkg) {
             Write-Host "Running installer for $($pkg.Name)..."
             sudo installer -pkg "$($pkg.FullName)" -target /Applications/
-            Get-ChildItem "/Applications/Adobe DNG Converter.app/"
+            Get-ChildItem "/Applications/Adobe DNG Converter.app/Contents/MacOS"
             Write-Host "✅ Package installed"
         }
         else {
@@ -64,9 +63,5 @@ if ($IsMacOS) {
     # Unmount
     hdiutil detach "$volume"
     Write-Output "dnc installed"
-    Write-Output "::endgroup::"
-
-    Write-Output "::group::add environment variable"
-    $env:Path = "/Applications/Adobe DNG Converter.app/;$env:Path"
     Write-Output "::endgroup::"
 }
