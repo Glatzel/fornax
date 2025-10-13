@@ -7,8 +7,8 @@ Set-Location $PSScriptRoot/..
 if ($IsWindows) {
     if (-not (Test-Path "$ROOT/temp/dnc$version.exe")) {
         Write-Output "::group::download dnc $version"
-        aria2c -c -x16 -s16 -d `
-            "$ROOT/temp/" `
+        aria2c -c -x16 -s16 `
+            -d "$ROOT/temp/" `
             "https://download.adobe.com/pub/adobe/dng/win/AdobeDNGConverter_x64_$version.exe" `
             -o "dnc$version.exe"
         Write-Output "::endgroup::"
@@ -21,8 +21,8 @@ if ($IsWindows) {
 if ($IsMacOS) {
     if (-not (Test-Path "$ROOT/temp/dnc$version.dmg")) {
         Write-Output "::group::download dnc $version"
-        aria2c -c -x16 -s16 -d `
-            "$ROOT/temp" `
+        aria2c -c -x16 -s16 `
+            -d "$ROOT/temp" `
             "https://download.adobe.com/pub/adobe/dng/win/AdobeDNGConverter_$version.dmg" `
             -o "dnc$version.dmg"
         Write-Output "::endgroup::"
