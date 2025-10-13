@@ -7,7 +7,6 @@ fn main() {
     #[cfg(target_os = "linux")]
     {
         println!("cargo:rustc-link-lib=m");
-        println!("cargo:rustc-link-lib=stdc++");
         println!("cargo:rustc-link-lib=gomp");
     }
     #[cfg(target_os = "macos")]
