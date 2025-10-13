@@ -22,7 +22,7 @@ if ($IsMacOS) {
     if (-not (Test-Path "$ROOT/temp/dnc$version.dmg")) {
         Write-Output "::group::download dnc $version"
         aria2c -c -x16 -s16 -d `
-            "$ROOT/temp/" `
+            "$ROOT/temp" `
             "https://download.adobe.com/pub/adobe/dng/win/AdobeDNGConverter_$version.dmg" `
             -o "dnc$version.dmg"
         Write-Output "::endgroup::"
