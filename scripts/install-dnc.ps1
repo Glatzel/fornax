@@ -52,6 +52,7 @@ if ($IsMacOS) {
         if ($pkg) {
             Write-Host "Running installer for $($pkg.Name)..."
             sudo installer -pkg "$($pkg.FullName)" -target /Applications/
+            Get-ChildItem /Applications/
             Write-Host "✅ Package installed"
         }
         else {
