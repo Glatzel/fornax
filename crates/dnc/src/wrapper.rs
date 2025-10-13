@@ -4,7 +4,16 @@ use std::sync::LazyLock;
 use path_slash::PathBufExt;
 
 use crate::{DncError, DncParams};
-static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| PathBuf::from("Adobe DNG Converter"));
+static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
+    let mut path = std::env::var("PATH").unwrap_or_default();
+    #[cfg(target_os = "macos")]
+    path.insert_str("/Applications/Adobe DNG Converter.app/Contents/MacOS:");
+    #[cfg(target_os = "windows")]
+    path.insert_str(0, r"C:\Program Files\Adobe\Adobe DNG Converter;");
+
+    unsafe { std::env::set_var("PATH", &path) };
+    PathBuf::from("Adobe DNG Converter")
+});
 
 pub struct Dnc {
     params: DncParams,

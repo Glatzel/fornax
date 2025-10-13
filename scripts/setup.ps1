@@ -7,7 +7,6 @@ if ($IsWindows) {
     $bin = Resolve-Path $PSScriptRoot/../.pixi/envs/default/Library/bin
     $env:Path = "$bin" + ";" + "$env:Path"
     $env:PKG_CONFIG_PATH = Resolve-Path $PSScriptRoot/../.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig]
-    $env:Path = "C:\Program Files\Adobe\Adobe DNG Converter;$env:Path"
 }
 if ($IsLinux) {
     sudo apt-get update
@@ -16,6 +15,5 @@ if ($IsLinux) {
 }
 if ($IsMacOS) {
     $env:PKG_CONFIG_PATH = Resolve-Path $PSScriptRoot/../.pixi/envs/default/libraw/arm64-osx-release/lib/pkgconfig
-    $env:Path = "/Applications/Adobe DNG Converter.app/Contents/MacOS;$env:Path"
 }
 Set-Location $ROOT
