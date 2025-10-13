@@ -7,6 +7,9 @@ build:
     - if: win
       then:
         - pwsh -f %RECIPE_DIR%/build-fornax-py.ps1
+    - if: unix
+      then:
+        - pwsh -f $RECIPE_DIR/build-fornax-py.ps1
 
 requirements:
   host:
