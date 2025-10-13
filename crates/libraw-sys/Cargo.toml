@@ -10,7 +10,3 @@ libc = { workspace = true }
 bindgen = { workspace = true }
 dunce = { workspace = true }
 pkg-config = { workspace = true }
-
-[package.metadata.cc]
-cpp_std = "c++17"
-link_cpp_stdlib = true
