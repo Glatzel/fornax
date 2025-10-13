@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.9] - 2025-10-13
+
+### Added
+
+- Add readme by @Glatzel in [#211](https://github.com/Glatzel/fornax/pull/211)
+- Add linux ci by @Glatzel in [#228](https://github.com/Glatzel/fornax/pull/228)
+- Add mac target by @Glatzel in [#231](https://github.com/Glatzel/fornax/pull/231)
+- Add unix build in recipe.yaml by @Glatzel in [#233](https://github.com/Glatzel/fornax/pull/233)
+
+### Performance
+
+- Remove Copy on ImageSizes by @Glatzel in [#218](https://github.com/Glatzel/fornax/pull/218)
+- Zero copy enum to number by @Glatzel in [#219](https://github.com/Glatzel/fornax/pull/219)
+
+### Revert
+
+- "chore: Delete .config directory" by @Glatzel in [#232](https://github.com/Glatzel/fornax/pull/232)
+
 ## [0.0.8] - 2025-09-13
 
 ### Changed
@@ -122,6 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial test by @Glatzel in [#8](https://github.com/Glatzel/fornax/pull/8)
 
+[0.0.9]: https://github.com/Glatzel/fornax/compare/v0.0.8..v0.0.9
 [0.0.8]: https://github.com/Glatzel/fornax/compare/v0.0.7..v0.0.8
 [0.0.7]: https://github.com/Glatzel/fornax/compare/v0.0.6..v0.0.7
 [0.0.6]: https://github.com/Glatzel/fornax/compare/v0.0.5..v0.0.6
