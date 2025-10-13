@@ -13,6 +13,8 @@ static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     #[cfg(target_os = "macos")]
     let default_install_path =
         PathBuf::from("/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter");
+    #[cfg(target_os = "linux")]
+    return PathBuf::new();
     let exe = if default_install_path.exists() {
         default_install_path
     } else {
