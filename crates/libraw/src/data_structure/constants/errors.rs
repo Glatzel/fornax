@@ -5,7 +5,7 @@ use thiserror::Error;
 
 ///All functions returning integer numbers must return either errno or one of
 /// the following error codes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash,  FromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, FromPrimitive)]
 #[repr(i32)]
 pub enum LibrawErrorCode {
     #[num_enum(default)]
