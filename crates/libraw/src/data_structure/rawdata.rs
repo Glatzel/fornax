@@ -3,7 +3,7 @@ use core::slice;
 use image::ImageBuffer;
 
 use crate::{LibrawError, check_raw_alloc, custom_error};
-
+#[derive(Debug, Clone, PartialEq)]
 pub enum Rawdata {
     Mono16(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),
     Rgb16(image::ImageBuffer<image::Rgb<u16>, Vec<u16>>),

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum DCRawHighlightMode {
     Clip = 0,
@@ -17,7 +17,7 @@ pub enum DCRawHighlightMode {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum DCRawUseCameraMatrix {
     NotUse = 0,
@@ -26,7 +26,7 @@ pub enum DCRawUseCameraMatrix {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum DCRawOutputColor {
     Raw = 0,
@@ -41,7 +41,7 @@ pub enum DCRawOutputColor {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum DCRawOutputBps {
     _8bit = 8,
@@ -49,7 +49,7 @@ pub enum DCRawOutputBps {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(i8)]
 pub enum DCRawOutputTiff {
     None = -1,
@@ -58,7 +58,7 @@ pub enum DCRawOutputTiff {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum DCRawUserFlip {
     None = 0,
@@ -68,7 +68,7 @@ pub enum DCRawUserFlip {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum DCRawUserQual {
     Linear = 0,
@@ -81,7 +81,7 @@ pub enum DCRawUserQual {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(i8)]
 pub enum DCRawUseFujiRotate {
     UseRotate = -1,
@@ -89,7 +89,7 @@ pub enum DCRawUseFujiRotate {
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum DCRawFbddNoiserd {
     Off = 0,
@@ -102,7 +102,7 @@ pub enum DCRawFbddNoiserd {
 /// dcraw_thumb_writer(). Fields of this structure correspond to command line
 /// keys of dcraw.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct DCRawParams {
     /// 4 numbers corresponding to the coordinates (in pixels) of the rectangle
     /// that is used to calculate the white balance. X and Y are coordinates

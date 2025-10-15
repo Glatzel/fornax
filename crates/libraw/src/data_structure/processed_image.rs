@@ -2,13 +2,13 @@ use num_enum::TryFromPrimitive;
 
 use crate::{LibrawError, check_run};
 
-#[derive(Debug, TryFromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, TryFromPrimitive)]
 #[repr(i32)]
 pub enum DCRawImageFormats {
     Jpeg = 1,
     Bitmap = 2,
 }
-
+#[derive(Debug)]
 pub struct ProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }

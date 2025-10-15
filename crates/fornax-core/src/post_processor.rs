@@ -53,7 +53,8 @@ where
 /// # Notes
 /// The `NullPostProcessor` is often used as a no-op processor in cases where no
 /// post-processing is required or when setting up a default configuration.
-pub struct NullPostProcessor {}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct NullPostProcessor;
 impl<D> IPostProcessor<D, u8, u8> for NullPostProcessor
 where
     D: crate::IDecoder<u8>,

@@ -9,7 +9,7 @@ use image::Luma;
 /// - `G` for Green (first channel),
 /// - `B` for Blue,
 /// - `G2` for Green (second channel).
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum BayerChannel {
     R,
     G,
@@ -36,7 +36,7 @@ impl From<BayerChannel> for u8 {
 /// - `GBRG`: Green, Blue, Red, Green.
 ///
 /// The order of the channels affects how the image is processed and decoded.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum BayerPattern {
     RGGB,
     BGGR,
@@ -107,6 +107,7 @@ impl Display for BayerPattern {
 ///   and pattern.
 /// - `mosaic(&self)`: Returns the raw Bayer image data.
 /// - `pattern(&self)`: Returns the Bayer pattern associated with the image.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BayerImage<T>
 where
     T: crate::FornaxPrimitive,

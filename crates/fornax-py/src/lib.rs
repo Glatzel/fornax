@@ -15,6 +15,7 @@ use rmp_serde::Deserializer;
 use serde::Deserialize;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 enum PyOutputBits {
     Unsigned8,
     Unsigned16,
@@ -30,6 +31,7 @@ impl From<&str> for PyOutputBits {
         }
     }
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum PyDecoder {
     Libraw,
 }
@@ -41,6 +43,7 @@ impl From<&str> for PyDecoder {
         }
     }
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 enum PyPostProcessor {
     Dalim,
     Libraw,
