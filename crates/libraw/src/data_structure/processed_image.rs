@@ -8,7 +8,7 @@ pub enum DCRawImageFormats {
     Jpeg = 1,
     Bitmap = 2,
 }
-
+#[derive(Debug)]
 pub struct ProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }
