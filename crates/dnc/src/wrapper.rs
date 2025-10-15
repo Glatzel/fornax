@@ -14,7 +14,7 @@ static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     unsafe { std::env::set_var("PATH", &path) };
     PathBuf::from("Adobe DNG Converter")
 });
-
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Dnc {
     params: DncParams,
 }

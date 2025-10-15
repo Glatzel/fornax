@@ -24,6 +24,7 @@ pub use {fornax_dalim, libraw};
 ///   decoded data. It must implement the `IPostProcessor<D, T, O>` trait.
 /// - `O`: The type of the output data after post-processing (e.g., `u8`,
 ///   `f32`). It must implement the `FornaxPrimitive` trait.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Fornax<D, T, P, O>
 where
     D: IDecoder<T>,

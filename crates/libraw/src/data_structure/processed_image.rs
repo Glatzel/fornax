@@ -2,7 +2,7 @@ use num_enum::TryFromPrimitive;
 
 use crate::{LibrawError, check_run};
 
-#[derive(Debug, TryFromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, TryFromPrimitive)]
 #[repr(i32)]
 pub enum DCRawImageFormats {
     Jpeg = 1,

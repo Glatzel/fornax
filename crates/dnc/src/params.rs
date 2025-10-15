@@ -5,7 +5,7 @@ use path_slash::PathBufExt;
 
 use crate::DncError;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum DncPreview {
     #[cfg_attr(feature = "serde", serde(rename = "-p0"))]
     None,
@@ -25,7 +25,7 @@ impl Display for DncPreview {
     }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum DncCompatibility {
     #[cfg_attr(feature = "serde", serde(rename = "-cr2.4"))]
     CR2_4,
@@ -94,7 +94,7 @@ impl Display for DncCompatibility {
     }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DncParams {
     /// Output lossless compressed DNG files
     pub compressed: bool,

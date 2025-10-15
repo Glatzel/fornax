@@ -4,7 +4,7 @@ use num_enum::TryFromPrimitive;
 use crate::LibrawError;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Clone, Copy, Debug, PartialEq, TryFromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, TryFromPrimitive)]
 #[repr(i32)]
 pub enum ImageSizesFlip {
     None = 0,
@@ -16,7 +16,7 @@ pub enum ImageSizesFlip {
 /// # references
 /// - [libraw_image_sizes_t](https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t)
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ImageSizes {
     raw_height: u16,
     raw_width: u16,

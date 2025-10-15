@@ -4,7 +4,7 @@ use libraw_sys as sys;
 use crate::LibrawError;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum IParamsColorDesc {
     RGBG,
     RGBE,
@@ -23,7 +23,7 @@ impl From<&str> for IParamsColorDesc {
     }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct IParams {
     make: String,
     model: String,

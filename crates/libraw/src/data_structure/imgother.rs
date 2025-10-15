@@ -4,7 +4,7 @@ use envoy::CStrToString;
 use crate::LibrawError;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ImgOtherGpsInfo {
     latitude: [f32; 3usize],
     longitude: [f32; 3usize],
@@ -41,7 +41,7 @@ impl ImgOtherGpsInfo {
     pub fn gpsparsed(&self) -> String { self.gpsparsed.clone() }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ImgOther {
     iso_speed: f32,
     shutter: f32,

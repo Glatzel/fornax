@@ -170,7 +170,8 @@ where
     };
     (top + bottom) / T::from(count).unwrap()
 }
-pub struct DemosaicLinear();
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct DemosaicLinear;
 impl<T> super::IDemosaic<T> for DemosaicLinear
 where
     T: FornaxPrimitive,
@@ -252,7 +253,7 @@ mod tests {
             ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
             fornax_core::BayerPattern::RGGB,
         );
-        let demosaicer = DemosaicLinear();
+        let demosaicer = DemosaicLinear;
         let output_img = demosaicer.demosaic(&bayer_image);
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
@@ -296,7 +297,7 @@ mod tests {
             ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
             fornax_core::BayerPattern::BGGR,
         );
-        let demosaicer = DemosaicLinear();
+        let demosaicer = DemosaicLinear;
         let output_img = demosaicer.demosaic(&bayer_image);
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
@@ -340,7 +341,7 @@ mod tests {
             ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
             fornax_core::BayerPattern::GRBG,
         );
-        let demosaicer = DemosaicLinear();
+        let demosaicer = DemosaicLinear;
         let output_img = demosaicer.demosaic(&bayer_image);
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
@@ -384,7 +385,7 @@ mod tests {
             ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
             fornax_core::BayerPattern::GBRG,
         );
-        let demosaicer = DemosaicLinear();
+        let demosaicer = DemosaicLinear;
         let output_img = demosaicer.demosaic(&bayer_image);
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
