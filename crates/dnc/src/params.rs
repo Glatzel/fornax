@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use path_slash::PathBufExt;
 
@@ -126,7 +126,7 @@ pub struct DncParams {
     pub overwrite: bool,
 }
 impl DncParams {
-    pub fn to_cmd(&self, raw_file: &PathBuf) -> Result<Vec<String>, DncError> {
+    pub fn to_cmd(&self, raw_file: &Path) -> Result<Vec<String>, DncError> {
         let mut cmd: Vec<String> = Vec::new();
 
         if self.compressed {
