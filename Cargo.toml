@@ -7,9 +7,9 @@ edition = "2024"
 version = "0.0.9"
 
 [workspace.dependencies]
-clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.31" }
-envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.31" }
-mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.31" }
+clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.32" }
+envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.32" }
+mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v0.0.32" }
 
 dnc = { path = "./crates/dnc" }
 fornax = { path = "./crates/fornax" }
