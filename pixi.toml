@@ -1,6 +1,6 @@
 [workspace]
 authors = ["Glatzel <893016099@qq.com>"]
-channels = ["conda-forge", "https://repo.prefix.dev/glatzel"]
+channels = ["conda-forge", "https://prefix.dev/glatzel"]
 name = "fornax"
 platforms = ["win-64", "linux-64", "osx-arm64"]
 version = "0.1.0"
