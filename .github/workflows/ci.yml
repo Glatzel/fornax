@@ -84,7 +84,7 @@ jobs:
         shell: pwsh
 
       - name: upload-assets
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: fornax-python-${{runner.os}}
           path: ./crates/fornax-py/rattler/output/${{matrix.os}}/*.conda
