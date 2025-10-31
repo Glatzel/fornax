@@ -53,7 +53,7 @@ jobs:
             os: osx-arm64
 
     env:
-      dnc_version: 17_5_1
+      dnc_version: 18_0
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@v5
