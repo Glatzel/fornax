@@ -7,20 +7,20 @@ version = "0.1.0"
 
 [dependencies]
 libraw = { version = "==0.21.4", channel = "https://prefix.dev/glatzel" }
-maturin = "==1.9.6"
-pip = "==25.2"
+maturin = "==1.10.2"
+pip = "==25.3"
 pkg-config = "==0.29.2"
 python = "3.13.*"
 
 imageio = "==2.37.0"
 lazy-loader = "==0.4"
-msgspec = "==0.19.0"
+msgspec = "==0.20.0"
 nomkl = "==1.0"
 numpy = "2.3.*"
 numpydoc = "==1.9.0"
-pydantic = "==2.12.4"
-rattler-build = "==0.49.0"
+pydantic = "==2.12.5"
+rattler-build = "==0.53.0"
 
 # test
-pytest = "==9.0.0"
+pytest = "==9.0.1"
 pytest-cov = "==7.0.0"
