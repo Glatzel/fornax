@@ -13,10 +13,10 @@ build:
 
 requirements:
   host:
-    - python 3.11.*
+    - python 3.13.*
     - pip
   run:
-    - python >= 3.11
+    - python >= 3.13
     - lazy-loader
     - pydantic
     - msgspec
