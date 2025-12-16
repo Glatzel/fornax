@@ -14,7 +14,9 @@ on:
       - synchronize
       - ready_for_review
     paths:
-      - ""
+      - "crates/**"
+      - "Cargo**"
+      - "pixi*"
   schedule:
     - cron: 0 16 * * *
 
