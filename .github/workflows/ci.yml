@@ -4,15 +4,17 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths-ignore:
-      - "*.md"
+    paths:
+      - "crates/**"
+      - "Cargo**"
+      - "pixi*"
   pull_request:
     types:
       - opened
       - synchronize
       - ready_for_review
-    paths-ignore:
-      - "*.md"
+    paths:
+      - ""
   schedule:
     - cron: 0 16 * * *
 
