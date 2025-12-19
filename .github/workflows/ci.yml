@@ -64,7 +64,7 @@ jobs:
 
       - name: restore dnc
         if: ${{runner.os != 'Linux'}}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./temp/dnc${{env.dnc_version}}*
           key: dnc-${{ runner.os }}-${{env.dnc_version}}
@@ -88,7 +88,7 @@ jobs:
         shell: pwsh
 
       - name: upload-assets
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: fornax-python-${{runner.os}}
           path: ./crates/fornax-py/rattler/output/${{matrix.os}}/*.conda
