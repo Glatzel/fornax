@@ -1,6 +1,8 @@
 {
   "terminal": {
-    "env": { "PYTHONPATH": "${PYTHONPATH};./crates/fornax-py" },
+    "env": {
+      "PYTHONPATH": "${PYTHONPATH};./crates/fornax-py"
+    }
   },
   "lsp": {
     "rust-analyzer": {
@@ -9,24 +11,24 @@
           "extraEnv": {
             "Path": "./.pixi/envs/default/Library/bin;${PATH}",
             "PKG_CONFIG_PATH": "./.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig",
-            "CONDA_PREFIX": "./.pixi/envs/default",
-          },
+            "CONDA_PREFIX": "./.pixi/envs/default"
+          }
         },
         "runnables": {
           "extraEnv": {
             "Path": "./.pixi/envs/default/Library/bin;${PATH}",
             "PKG_CONFIG_PATH": "./.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig",
-            "CONDA_PREFIX": "./.pixi/envs/default",
-          },
+            "CONDA_PREFIX": "./.pixi/envs/default"
+          }
         },
         "server": {
           "extraEnv": {
             "Path": "./.pixi/envs/default/Library/bin;${PATH}",
             "PKG_CONFIG_PATH": "./.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig",
-            "CONDA_PREFIX": "./.pixi/envs/default",
-          },
-        },
-      },
-    },
-  },
+            "CONDA_PREFIX": "./.pixi/envs/default"
+          }
+        }
+      }
+    }
+  }
 }
