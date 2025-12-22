@@ -14,7 +14,7 @@ __all__ = [
     "LogLevel",
     "decoder",
     "init_tracing",
-    "post_processor",
+    "post_processor"
 ]
 
 if sys.platform in ("win32", "darwin"):  # noqa: PYI007
