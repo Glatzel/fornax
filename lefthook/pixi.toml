@@ -1,32 +1,20 @@
 # This File is automatically synchronized from https://github.com/Glatzel/template
 
 [workspace]
-channels = ["https://repo.prefix.dev/glatzel", "conda-forge"]
+channels = ["https://prefix.dev/glatzel", "conda-forge"]
 platforms = ["linux-64", "win-64"]
 
 [tasks]
-lefthook-run = "lefthook run pre-commit --all-files --force"
-
-hook-actionlint = "pwsh -f ./actionlint.ps1"
-hook-cargo-clippy = "pwsh -f ./cargo-clippy.ps1"
-hook-cargo-fmt = "pwsh -f ./cargo-fmt.ps1"
-hook-cargo-machete = "pwsh -f ./cargo-machete.ps1"
-hook-csharpier = "pwsh -f ./csharpier.ps1"
-hook-markdown = "pwsh -f ./markdown.ps1"
-hook-numpydoc = "pwsh -f ./numpydoc.ps1"
-hook-ruff-format = "cd ..;ruff format --force-exclude --exit-non-zero-on-format"
-hook-ruff-lint = "cd ..;ruff check --fix --show-fixes --exit-non-zero-on-fix --force-exclude"
-hook-taplo = { cmd = "cd ..;taplo format -o 'reorder_keys=true'", env = { RUST_LOG = "warn" } }
-hook-typos = "cd ..;typos --force-exclude"
+lefthook-run = "lefthook run pre-commit --all-files --no-auto-install"
 
 [dependencies]
-actionlint = "==1.7.8"
+actionlint = "==1.7.9"
 cargo-machete = "==0.9.1"
-lefthook = "==1.13.6"
-markdownlint-cli2 = "==0.18.1"
-numpydoc = "==1.9.0"
+lefthook = "==2.0.12"
+markdownlint-cli2 = "==0.20.0"
+numpydoc = "==1.10.0"
 pre-commit-hooks = "==5.0.0"
-python = "3.11.*"
-ruff = "==0.14.0"
+python = "3.13.*"
+ruff = "==0.14.9"
 taplo = "==0.10.0"
-typos = "==1.38.1"
+typos = "==1.40.0"

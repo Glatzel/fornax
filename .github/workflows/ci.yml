@@ -4,15 +4,19 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths-ignore:
-      - "*.md"
+    paths:
+      - "crates/**"
+      - "Cargo**"
+      - "pixi*"
   pull_request:
     types:
       - opened
       - synchronize
       - ready_for_review
-    paths-ignore:
-      - "*.md"
+    paths:
+      - "crates/**"
+      - "Cargo**"
+      - "pixi*"
   schedule:
     - cron: 0 16 * * *
 
@@ -28,12 +32,12 @@ jobs:
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         if: ${{github.event_name=='pull_request'}}
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.9.1
+        uses: prefix-dev/setup-pixi@v0.9.3
         with:
           run-install: false
       - name: cargo-doc
@@ -53,14 +57,14 @@ jobs:
             os: osx-arm64
 
     env:
-      dnc_version: 17_5_1
+      dnc_version: 18_0
     runs-on: ${{matrix.machine}}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: restore dnc
         if: ${{runner.os != 'Linux'}}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./temp/dnc${{env.dnc_version}}*
           key: dnc-${{ runner.os }}-${{env.dnc_version}}
@@ -69,7 +73,7 @@ jobs:
         shell: pwsh
 
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.9.1
+        uses: prefix-dev/setup-pixi@v0.9.3
         with:
           run-install: false
 
@@ -84,7 +88,7 @@ jobs:
         shell: pwsh
 
       - name: upload-assets
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: fornax-python-${{runner.os}}
           path: ./crates/fornax-py/rattler/output/${{matrix.os}}/*.conda
