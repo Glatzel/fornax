@@ -2,14 +2,14 @@ import sys
 from pathlib import Path
 
 import fornax
-import imageio.v3 as iio  # type: ignore
+import imageio.v3 as iio
 import pytest
 
 root = Path(__file__).parents[3]
 temp_dir = root / "temp" / "fornax-py"
 temp_dir.mkdir(parents=True, exist_ok=True)
 img_dir = root / "external" / "raw-images" / "images"
-
+print(sys.path)
 fornax.init_tracing(fornax.LogLevel.DEBUG, True)
 
 
@@ -19,15 +19,15 @@ fornax.init_tracing(fornax.LogLevel.DEBUG, True)
 )
 def test_dnc():
     f = img_dir / "colorchart-eos-7d.cr2"
-    dnc = fornax.dnc.DncParams(
+    dnc = fornax.dnc.DncParams(  # ty:ignore[possibly-missing-attribute]
         compressed=True,
         linear=False,
         embed=False,
-        preview=fornax.dnc.DncPreview._None,
+        preview=fornax.dnc.DncPreview._None,  # ty:ignore[possibly-missing-attribute]
         fast_load=False,
         side=1000,
         count=None,
-        compatibility=fornax.dnc.DncCompatibility.CR14_0,
+        compatibility=fornax.dnc.DncCompatibility.CR14_0,  # ty:ignore[possibly-missing-attribute]
         directory=temp_dir / "dnc",
         filename="test_dnc.dng",
         overwrite=True,
