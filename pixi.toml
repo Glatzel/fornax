@@ -19,7 +19,7 @@ nomkl = "==1.0"
 numpy = "2.3.*"
 numpydoc = "==1.10.0"
 pydantic = "==2.12.5"
-rattler-build = "==0.54.0"
+rattler-build = "==0.55.0"
 
 # test
 pytest = "==9.0.2"
