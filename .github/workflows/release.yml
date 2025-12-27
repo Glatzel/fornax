@@ -26,11 +26,8 @@ jobs:
           - machine: macos-latest
             os: osx-arm64
     runs-on: ${{matrix.machine}}
-    container:
-      image: ${{ matrix.container }}
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ github.token }}
+    container: ${{ matrix.container }}
+
     steps:
       - uses: actions/checkout@v6
 
