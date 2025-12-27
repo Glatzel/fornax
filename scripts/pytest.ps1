@@ -1,4 +1,4 @@
-$ROOT = git rev-parse --show-toplevel
+& $PSScriptRoot/setup.ps1
 Set-Location $PSScriptRoot/../crates/fornax-py
 $env:PYTHONPATH = Resolve-Path $PSScriptRoot/../crates/fornax-py
 git submodule update --init --recursive

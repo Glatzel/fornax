@@ -111,7 +111,7 @@ pre-commit:
               pwsh -CommandWithArgs '''
               $ErrorActionPreference = \"Stop\"
               $PSNativeCommandUseErrorActionPreference = $true;
-              $ROOT = git rev-parse --show-toplevel;
+              $ROOT = Resolve-Path ./;
               foreach ($file in $args) {
                   Set-Location (Split-Path (Resolve-Path $file) -Parent)
                   Write-Output \"Cargo update in: $pwd\"
@@ -123,7 +123,7 @@ pre-commit:
               pwsh -CommandWithArgs '''
               $ErrorActionPreference = \"Stop\"
               $PSNativeCommandUseErrorActionPreference = $true;
-              $ROOT = git rev-parse --show-toplevel;
+              $ROOT = Resolve-Path ./;
               foreach ($file in $args) {
                   Set-Location (Split-Path (Resolve-Path $file) -Parent)
                   Write-Output \"Cargo machete in: $pwd\"
@@ -136,7 +136,7 @@ pre-commit:
               pwsh -CommandWithArgs '''
               $ErrorActionPreference = \"Stop\"
               $PSNativeCommandUseErrorActionPreference = $true;
-              $ROOT = git rev-parse --show-toplevel;
+              $ROOT = Resolve-Path ./;
               if ($env:CI) {
                   rustup toolchain install stable --profile=minimal
                   rustup component add clippy --toolchain stable
@@ -160,7 +160,7 @@ pre-commit:
               pwsh -CommandWithArgs '''
               $ErrorActionPreference = \"Stop\"
               $PSNativeCommandUseErrorActionPreference = $true;
-              $ROOT = git rev-parse --show-toplevel;
+              $ROOT = Resolve-Path ./;
               if ($env:CI) {
                   rustup toolchain install nightly --profile=minimal
                   rustup component add rustfmt --toolchain nightly
