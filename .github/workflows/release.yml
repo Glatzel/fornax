@@ -14,9 +14,6 @@ concurrency:
 
 jobs:
   build:
-    permissions:
-      contents: read
-      packages: read
     strategy:
       fail-fast: false
       matrix:
@@ -29,7 +26,11 @@ jobs:
           - machine: macos-latest
             os: osx-arm64
     runs-on: ${{matrix.machine}}
-    container: ${{ matrix.container }}
+    container: 
+      image: ${{ matrix.container }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     steps:
       - uses: actions/checkout@v6
 
