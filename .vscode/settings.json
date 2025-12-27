@@ -15,4 +15,3 @@
         "CONDA_PREFIX": "${workspaceFolder}/.pixi/envs/default"
     }
 }
-
