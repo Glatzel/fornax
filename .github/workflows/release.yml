@@ -22,11 +22,9 @@ jobs:
             os: win-64
           - machine: ubuntu-latest
             os: linux-64
-            container: ghcr.io/glatzel/github-action-runner
           - machine: macos-latest
             os: osx-arm64
     runs-on: ${{matrix.machine}}
-    container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v6
 
