@@ -4,10 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release'
+        description: "Tag to release"
         type: string
-        required:  true
-
+        required: true
 
 concurrency:
   group: ${{ github.workflow }}
@@ -18,15 +17,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-latest]
         include:
           - machine: windows-latest
             os: win-64
           - machine: ubuntu-latest
             os: linux-64
+            container: ghcr.io/glatzel/github-action-runner
           - machine: macos-latest
             os: osx-arm64
     runs-on: ${{matrix.machine}}
+    container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v6
 
@@ -46,7 +46,6 @@ jobs:
           path: |
             ./crates/fornax-py/rattler/output/${{matrix.os}}/*.conda
           if-no-files-found: error
-
 
   release:
     permissions:
