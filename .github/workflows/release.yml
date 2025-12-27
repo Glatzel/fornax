@@ -26,7 +26,7 @@ jobs:
           - machine: macos-latest
             os: osx-arm64
     runs-on: ${{matrix.machine}}
-    container: 
+    container:
       image: ${{ matrix.container }}
       credentials:
         username: ${{ github.actor }}
