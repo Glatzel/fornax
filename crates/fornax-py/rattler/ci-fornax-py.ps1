@@ -4,7 +4,7 @@ param (
 )
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
-$ROOT = git rev-parse --show-toplevel
+$ROOT = Resolve-Path $PSScriptRoot/../../../..
 &$ROOT/scripts/setup.ps1
 Set-Location $PSScriptRoot
 

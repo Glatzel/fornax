@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$version
 )
-$ROOT = git rev-parse --show-toplevel
+& $PSScriptRoot/setup.ps1
 Set-Location $PSScriptRoot/..
 if ($IsWindows) {
     if (-not (Test-Path "$ROOT/temp/dnc$version.exe")) {
