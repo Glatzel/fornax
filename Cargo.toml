@@ -46,6 +46,3 @@ debug = false
 lto = "fat"
 opt-level = 3
 strip = true
-
-[profile.develop]
-inherits = "dev"

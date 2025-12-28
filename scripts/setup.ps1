@@ -1,4 +1,3 @@
-$ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 pixi install
 git submodule update --init --recursive
@@ -17,4 +16,3 @@ if ($IsMacOS) {
     $env:PKG_CONFIG_PATH = Resolve-Path $PSScriptRoot/../.pixi/envs/default/libraw/arm64-osx-release/lib/pkgconfig
     $env:MACOSX_DEPLOYMENT_TARGET="14.0"
 }
-Set-Location $ROOT
