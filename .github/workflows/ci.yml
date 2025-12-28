@@ -83,16 +83,11 @@ jobs:
         run: ./scripts/cargo-test.ps1 --workspace --all-features --exclude fornax-py
         shell: pwsh
 
-      - name: rattler-build
-        run: ./crates/fornax-py/rattler/ci-fornax-py.ps1
+      - name: pytest
+        run: |
+          ./scripts/maturin-develop.ps1
+          ./scripts/pytest.ps1
         shell: pwsh
-
-      - name: upload-assets
-        uses: actions/upload-artifact@v6
-        with:
-          name: fornax-python-${{runner.os}}
-          path: ./crates/fornax-py/rattler/output/${{matrix.os}}/*.conda
-          if-no-files-found: error
 
       - name: Upload results to Codecov
         if: ${{ !cancelled() }}
