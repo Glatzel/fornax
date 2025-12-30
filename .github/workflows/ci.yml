@@ -60,8 +60,11 @@ jobs:
       dnc_version: 18_0
     runs-on: ${{matrix.machine}}
     steps:
+      - if: ${{contains(matrix.os,'linux')}}
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgomp1
       - uses: actions/checkout@v6
-
       - name: restore dnc
         if: ${{runner.os != 'Linux'}}
         uses: actions/cache@v5

@@ -8,8 +8,6 @@ if ($IsWindows) {
     $env:PKG_CONFIG_PATH = Resolve-Path $PSScriptRoot/../.pixi/envs/default/libraw/x64-windows-static/lib/pkgconfig
 }
 if ($IsLinux) {
-    sudo apt-get update
-    sudo apt-get install libgomp1
     $env:PKG_CONFIG_PATH = Resolve-Path $PSScriptRoot/../.pixi/envs/default/libraw/x64-linux-release/lib/pkgconfig
 }
 if ($IsMacOS) {
