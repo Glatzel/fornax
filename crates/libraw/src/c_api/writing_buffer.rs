@@ -12,6 +12,6 @@ impl Libraw {
         let processed = ProcessedImage::new(processed)?;
         Ok(processed)
     }
-    fn _libraw_dcraw_make_mem_thumb() { unimplemented!() }
-    fn _libraw_dcraw_clear_mem() { unimplemented!() }
+    fn _libraw_dcraw_make_mem_thumb() { todo!() }
+    fn _libraw_dcraw_clear_mem() { todo!() }
 }

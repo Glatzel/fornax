@@ -8,14 +8,14 @@ impl Libraw {
     pub fn version() -> String {
         unsafe { libraw_sys::libraw_version().to_string().unwrap_or_default() }
     }
-    fn _check_version() -> bool { unimplemented!() }
-    fn _libraw_capabilities() { unimplemented!() }
+    fn _check_version() -> bool { todo!() }
+    fn _libraw_capabilities() { todo!() }
     pub fn camera_count() -> i32 { unsafe { libraw_sys::libraw_cameraCount() } }
     pub fn camera_list() -> Vec<String> {
         unsafe { libraw_sys::libraw_cameraList().cast_const().to_vec_string() }
     }
-    fn _libraw_get_decoder_info() { unimplemented!() }
-    fn _libraw_unpack_function_name() { unimplemented!() }
+    fn _libraw_get_decoder_info() { todo!() }
+    fn _libraw_unpack_function_name() { todo!() }
     pub fn color(&self, row: i32, col: i32) -> i32 {
         unsafe { libraw_sys::libraw_COLOR(self.imgdata, row, col) }
     }
@@ -24,8 +24,8 @@ impl Libraw {
         unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
         Ok(self)
     }
-    fn _libraw_recycle_datastream() { unimplemented!() }
-    fn _libraw_recycle() { unimplemented!() }
+    fn _libraw_recycle_datastream() { todo!() }
+    fn _libraw_recycle() { todo!() }
     pub fn strerror(errorcode: i32) -> String {
         unsafe {
             libraw_sys::libraw_strerror(errorcode)
@@ -33,9 +33,9 @@ impl Libraw {
                 .unwrap_or_default()
         }
     }
-    fn _libraw_strprogress() { unimplemented!() }
-    fn _libraw_set_dataerror_handler() { unimplemented!() }
-    fn _libraw_set_progress_handler() { unimplemented!() }
+    fn _libraw_strprogress() { todo!() }
+    fn _libraw_set_dataerror_handler() { todo!() }
+    fn _libraw_set_progress_handler() { todo!() }
 }
 // region:Data Postprocessing: Emulation of dcraw Behavior
 //https://www.libraw.org/docs/API-CXX.html#dcrawemu
@@ -45,8 +45,8 @@ impl Libraw {
         check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata) });
         Ok(self)
     }
-    fn _libraw_free_image() { unimplemented!() }
-    fn _libraw_adjust_sizes_info_only() { unimplemented!() }
+    fn _libraw_free_image() { todo!() }
+    fn _libraw_adjust_sizes_info_only() { todo!() }
     pub fn dcraw_process(&self) -> Result<&Self, LibrawError> {
         check_raw_alloc!(self.imgdata);
         check_run!(unsafe { libraw_sys::libraw_dcraw_process(self.imgdata) });

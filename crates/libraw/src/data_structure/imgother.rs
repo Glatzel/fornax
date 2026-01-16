@@ -34,11 +34,11 @@ impl ImgOtherGpsInfo {
     pub fn longitude(&self) -> [f32; 3usize] { self.longitude }
     pub fn gpstimestamp(&self) -> [f32; 3usize] { self.gpstimestamp }
     pub fn altitude(&self) -> f32 { self.altitude }
-    pub fn altref(&self) -> String { self.altref.clone() }
-    pub fn latref(&self) -> String { self.latref.clone() }
-    pub fn longref(&self) -> String { self.longref.clone() }
-    pub fn gpsstatus(&self) -> String { self.gpsstatus.clone() }
-    pub fn gpsparsed(&self) -> String { self.gpsparsed.clone() }
+    pub fn altref(&self) -> &str { &self.altref }
+    pub fn latref(&self) -> &str { &self.latref }
+    pub fn longref(&self) -> &str { &self.longref }
+    pub fn gpsstatus(&self) -> &str { &self.gpsstatus }
+    pub fn gpsparsed(&self) -> &str { &self.gpsparsed }
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Clone, PartialEq)]

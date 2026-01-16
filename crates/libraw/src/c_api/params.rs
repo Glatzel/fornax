@@ -39,7 +39,7 @@ impl Libraw {
         check_raw_alloc!(self.imgdata);
         IParams::new(self.imgdata)
     }
-    pub fn get_lensinfo(&self) { unimplemented!() }
+    pub fn get_lensinfo(&self) { todo!() }
     pub fn get_imgother(&self) -> Result<ImgOther, LibrawError> {
         check_raw_alloc!(self.imgdata);
         ImgOther::new(self.imgdata)
