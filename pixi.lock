@@ -54,7 +54,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libmpdec-4.0.0-hb9d3cd8_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libopenblas-0.3.30-pthreads_h94d23a6_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libpng-1.6.50-h421ea60_1.conda
-      - conda: https://prefix.dev/glatzel/linux-64/libraw-0.21.4-hb0f4dca_3.conda
+      - conda: https://prefix.dev/glatzel/linux-64/libraw-0.21.5-hb0f4dca_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libsqlite-3.50.4-h0c1763c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-15.2.0-h8f9b012_7.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libtiff-4.7.1-h8261f1e_0.conda
@@ -157,7 +157,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libmpdec-4.0.0-h5505292_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libopenblas-0.3.30-openmp_ha158390_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libpng-1.6.50-h280e0eb_1.conda
-      - conda: https://prefix.dev/glatzel/osx-arm64/libraw-0.21.4-h60d57d3_3.conda
+      - conda: https://prefix.dev/glatzel/osx-arm64/libraw-0.21.5-h60d57d3_3.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libsqlite-3.50.4-h4237e3c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libtiff-4.7.1-h7dc4979_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libwebp-base-1.6.0-h07db88b_0.conda
@@ -259,7 +259,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/libmpdec-4.0.0-h2466b09_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/libopenblas-0.3.30-pthreads_ha4fe6b2_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/libpng-1.6.50-h7351971_1.conda
-      - conda: https://prefix.dev/glatzel/win-64/libraw-0.21.4-h9490d1a_3.conda
+      - conda: https://prefix.dev/glatzel/win-64/libraw-0.21.5-h9490d1a_3.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/libsqlite-3.50.4-hf5d6505_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/libtiff-4.7.1-h550210a_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/libwebp-base-1.6.0-h4d5522a_0.conda
@@ -1432,21 +1432,21 @@ packages:
   license: zlib-acknowledgement
   size: 382709
   timestamp: 1753879944850
-- conda: https://prefix.dev/glatzel/linux-64/libraw-0.21.4-hb0f4dca_3.conda
-  sha256: c610a7b4d330b407b9667f211ece38cfb69e1936deba701ac47b8643ea4e34c4
+- conda: https://prefix.dev/glatzel/linux-64/libraw-0.21.5-hb0f4dca_3.conda
+  sha256: 2147ad27fedd96f077441ab5c4e90a81e857bd6d40952a68a15623d698303403
   license: BSD-2-Clause
-  size: 1520736
-  timestamp: 1760316750550
-- conda: https://prefix.dev/glatzel/osx-arm64/libraw-0.21.4-h60d57d3_3.conda
-  sha256: db1ff1a661970bb4ba47a8b5cf5377d34224dae91f1339a8d0a3e0353affedd8
+  size: 1476283
+  timestamp: 1767370176137
+- conda: https://prefix.dev/glatzel/osx-arm64/libraw-0.21.5-h60d57d3_3.conda
+  sha256: 4e5650ac144155ab03398989813f8ae595d208c1ff6a85806883286c9791f739
   license: BSD-2-Clause
-  size: 1418915
-  timestamp: 1760316427484
-- conda: https://prefix.dev/glatzel/win-64/libraw-0.21.4-h9490d1a_3.conda
-  sha256: 910167f212e196aecb65ceb99eb6e4df5b35631188f3a7b7c375df75653854be
+  size: 1422052
+  timestamp: 1767370149857
+- conda: https://prefix.dev/glatzel/win-64/libraw-0.21.5-h9490d1a_3.conda
+  sha256: 0a2e194420a6ab2adac8f88b53d990d3a464851a19cfc5dec30f2f1e5711877f
   license: BSD-2-Clause
-  size: 8211437
-  timestamp: 1760316568992
+  size: 8174256
+  timestamp: 1767370238269
 - conda: https://conda.anaconda.org/conda-forge/linux-64/libsqlite-3.50.4-h0c1763c_0.conda
   sha256: 6d9c32fc369af5a84875725f7ddfbfc2ace795c28f246dc70055a79f9b2003da
   md5: 0b367fad34931cb79e0d6b7e5c06bb1c
