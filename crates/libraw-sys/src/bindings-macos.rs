@@ -7,7 +7,9 @@ pub struct __BindgenBitfieldUnit<Storage> {
 }
 impl<Storage> __BindgenBitfieldUnit<Storage> {
     #[inline]
-    pub const fn new(storage: Storage) -> Self { Self { storage } }
+    pub const fn new(storage: Storage) -> Self {
+        Self { storage }
+    }
 }
 impl<Storage> __BindgenBitfieldUnit<Storage>
 where
@@ -1337,7 +1339,7 @@ pub const LIBRAW_XTRANS: u32 = 9;
 pub const LIBRAW_PROGRESS_THUMB_MASK: u32 = 268435455;
 pub const LIBRAW_MAJOR_VERSION: u32 = 0;
 pub const LIBRAW_MINOR_VERSION: u32 = 21;
-pub const LIBRAW_PATCH_VERSION: u32 = 4;
+pub const LIBRAW_PATCH_VERSION: u32 = 5;
 pub const LIBRAW_SHLIB_CURRENT: u32 = 23;
 pub const LIBRAW_SHLIB_REVISION: u32 = 0;
 pub const LIBRAW_SHLIB_AGE: u32 = 0;
