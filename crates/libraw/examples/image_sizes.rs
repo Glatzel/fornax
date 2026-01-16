@@ -1,6 +1,6 @@
 fn main() -> mischief::Result<()> {
     fornax_devtool::example_setup();
-    let libraw = libraw::Libraw::new(None);
+    let libraw = libraw::Libraw::default();
     let sizes = libraw
         .open_file(&fornax_devtool::raw_file())?
         .unpack()?
@@ -18,7 +18,7 @@ fn main() -> mischief::Result<()> {
     assert_eq!(sizes.iwidth(), 5202);
     assert_eq!(sizes.raw_pitch(), 10720);
     assert_eq!(sizes.pixel_aspect(), 1.0);
-    assert_eq!(sizes.flip(), libraw::ImageSizesFlip::None);
+    assert_eq!(sizes.flip()?, libraw::ImageSizesFlip::None);
 
     Ok(())
 }

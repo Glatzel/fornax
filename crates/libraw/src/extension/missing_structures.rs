@@ -4,7 +4,7 @@ use crate::{ImageSizes, Libraw, LibrawError, Rawdata, check_raw_alloc};
 impl Libraw {
     pub fn get_image_sizes(&self) -> Result<ImageSizes, LibrawError> {
         check_raw_alloc!(self.imgdata);
-        ImageSizes::new(self.imgdata)
+        ImageSizes::new(self.imgdata.clone())
     }
 
     pub fn get_rawdata(&self) -> Result<Rawdata, LibrawError> {
@@ -12,6 +12,6 @@ impl Libraw {
         let size = self.get_image_sizes()?;
         let width = size.raw_width();
         let height = size.raw_height();
-        Rawdata::get_rawdata(self.imgdata, width as usize, height as usize)
+        Rawdata::get_rawdata(self.imgdata.clone(), width as usize, height as usize)
     }
 }

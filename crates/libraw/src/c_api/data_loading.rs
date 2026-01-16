@@ -26,19 +26,19 @@ impl Libraw {
     pub fn open_file(&self, fname: &Path) -> Result<&Self, LibrawError> {
         check_run!(unsafe {
             libraw_sys::libraw_open_file(
-                self.imgdata,
+                self.imgdata.0,
                 fname.to_str().unwrap().to_cstring().as_ptr(),
             )
         });
         Ok(self)
     }
-    fn _open_file_ex(&self) -> Result<&Self, LibrawError> { unimplemented!() }
-    fn _open_wfile(&self) -> Result<&Self, LibrawError> { unimplemented!() }
-    fn _openwfile_ex(&self) -> Result<&Self, LibrawError> { unimplemented!() }
+    fn _open_file_ex(&self) -> Result<&Self, LibrawError> { todo!() }
+    fn _open_wfile(&self) -> Result<&Self, LibrawError> { todo!() }
+    fn _openwfile_ex(&self) -> Result<&Self, LibrawError> { todo!() }
 
     pub fn open_buffer(&self, buf: &[u8]) -> Result<&Self, LibrawError> {
         check_run!(unsafe {
-            libraw_sys::libraw_open_buffer(self.imgdata, buf.as_ptr() as *const _, buf.len())
+            libraw_sys::libraw_open_buffer(self.imgdata.0, buf.as_ptr() as *const _, buf.len())
         });
         Ok(self)
     }
@@ -68,7 +68,7 @@ impl Libraw {
         };
         check_run!(unsafe {
             libraw_sys::libraw_open_bayer(
-                self.imgdata,
+                self.imgdata.0,
                 data,
                 datalen as std::ffi::c_uint,
                 raw_width,
@@ -88,14 +88,14 @@ impl Libraw {
     }
 
     pub fn unpack(&self) -> Result<&Self, LibrawError> {
-        check_run!(unsafe { libraw_sys::libraw_unpack(self.imgdata) });
+        check_run!(unsafe { libraw_sys::libraw_unpack(self.imgdata.0) });
         Ok(self)
     }
     pub fn unpack_thumb(&self) -> Result<&Self, LibrawError> {
-        check_run!(unsafe { libraw_sys::libraw_unpack_thumb(self.imgdata) });
+        check_run!(unsafe { libraw_sys::libraw_unpack_thumb(self.imgdata.0) });
         Ok(self)
     }
-    fn _unpack_thumb_ex(&self) -> Result<&Self, LibrawError> { unimplemented!() }
+    fn _unpack_thumb_ex(&self) -> Result<&Self, LibrawError> { todo!() }
 }
 #[cfg(test)]
 mod test {
