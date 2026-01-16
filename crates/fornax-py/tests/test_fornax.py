@@ -99,7 +99,7 @@ def test_libraw_libraw_custom():
         use_rawspeed=None,
         no_auto_scale=True,
         no_interpolation=True,
-    )  # type: ignore
+    )
     print(params.model_dump_json())
     img = fornax.Fornax(
         output_bits=fornax.FornaxOutputBits.u16,
