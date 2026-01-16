@@ -251,6 +251,7 @@ pub const LIBRAW_DEFAULT_AUTO_BRIGHTNESS_THRESHOLD: f64 = 0.01;
 pub const LIBRAW_MAX_ALLOC_MB_DEFAULT: u32 = 2048;
 pub const LIBRAW_MAX_PROFILE_SIZE_MB: u32 = 256;
 pub const LIBRAW_MAX_NONDNG_RAW_FILE_SIZE: u32 = 2147483647;
+pub const LIBRAW_MAX_CR3_RAW_FILE_SIZE: u32 = 2147483647;
 pub const LIBRAW_MAX_DNG_RAW_FILE_SIZE: u32 = 2147483647;
 pub const LIBRAW_MAX_THUMBNAIL_MB: u32 = 512;
 pub const LIBRAW_MAX_METADATA_BLOCKS: u32 = 1024;
@@ -264,9 +265,9 @@ pub const LIBRAW_LENS_NOT_SET: i32 = -1;
 pub const LIBRAW_XTRANS: u32 = 9;
 pub const LIBRAW_PROGRESS_THUMB_MASK: u32 = 268435455;
 pub const LIBRAW_MAJOR_VERSION: u32 = 0;
-pub const LIBRAW_MINOR_VERSION: u32 = 21;
-pub const LIBRAW_PATCH_VERSION: u32 = 5;
-pub const LIBRAW_SHLIB_CURRENT: u32 = 23;
+pub const LIBRAW_MINOR_VERSION: u32 = 22;
+pub const LIBRAW_PATCH_VERSION: u32 = 0;
+pub const LIBRAW_SHLIB_CURRENT: u32 = 24;
 pub const LIBRAW_SHLIB_REVISION: u32 = 0;
 pub const LIBRAW_SHLIB_AGE: u32 = 0;
 pub const LibRawBigEndian: u32 = 0;
@@ -3888,6 +3889,7 @@ pub const LibRaw_As_Shot_WB_Applied_codes_LIBRAW_ASWB_NIKON: LibRaw_As_Shot_WB_A
 pub const LibRaw_As_Shot_WB_Applied_codes_LIBRAW_ASWB_NIKON_SRAW: LibRaw_As_Shot_WB_Applied_codes =
     8;
 pub const LibRaw_As_Shot_WB_Applied_codes_LIBRAW_ASWB_PENTAX: LibRaw_As_Shot_WB_Applied_codes = 16;
+pub const LibRaw_As_Shot_WB_Applied_codes_LIBRAW_ASWB_SONY: LibRaw_As_Shot_WB_Applied_codes = 32;
 pub type LibRaw_As_Shot_WB_Applied_codes = libc::c_int;
 pub const LibRaw_ExifTagTypes_LIBRAW_EXIFTAG_TYPE_UNKNOWN: LibRaw_ExifTagTypes = 0;
 pub const LibRaw_ExifTagTypes_LIBRAW_EXIFTAG_TYPE_BYTE: LibRaw_ExifTagTypes = 1;
@@ -4000,6 +4002,7 @@ pub const LibRaw_colorspace_LIBRAW_COLORSPACE_CameraGammaUniWB: LibRaw_colorspac
 pub const LibRaw_colorspace_LIBRAW_COLORSPACE_CameraGamma: LibRaw_colorspace = 10;
 pub const LibRaw_colorspace_LIBRAW_COLORSPACE_MonochromeLinear: LibRaw_colorspace = 11;
 pub const LibRaw_colorspace_LIBRAW_COLORSPACE_MonochromeGamma: LibRaw_colorspace = 12;
+pub const LibRaw_colorspace_LIBRAW_COLORSPACE_Rec2020: LibRaw_colorspace = 13;
 pub const LibRaw_colorspace_LIBRAW_COLORSPACE_Unknown: LibRaw_colorspace = 255;
 pub type LibRaw_colorspace = libc::c_int;
 pub const LibRaw_cameramaker_index_LIBRAW_CAMERAMAKER_Unknown: LibRaw_cameramaker_index = 0;
@@ -4224,6 +4227,7 @@ pub const LibRaw_Sony_0x9050_Type_LIBRAW_SONY_Tag9050None: LibRaw_Sony_0x9050_Ty
 pub const LibRaw_Sony_0x9050_Type_LIBRAW_SONY_Tag9050a: LibRaw_Sony_0x9050_Type = 1;
 pub const LibRaw_Sony_0x9050_Type_LIBRAW_SONY_Tag9050b: LibRaw_Sony_0x9050_Type = 2;
 pub const LibRaw_Sony_0x9050_Type_LIBRAW_SONY_Tag9050c: LibRaw_Sony_0x9050_Type = 3;
+pub const LibRaw_Sony_0x9050_Type_LIBRAW_SONY_Tag9050d: LibRaw_Sony_0x9050_Type = 4;
 pub type LibRaw_Sony_0x9050_Type = libc::c_int;
 pub const LIBRAW_SONY_FOCUSMODEmodes_LIBRAW_SONY_FOCUSMODE_MF: LIBRAW_SONY_FOCUSMODEmodes = 0;
 pub const LIBRAW_SONY_FOCUSMODEmodes_LIBRAW_SONY_FOCUSMODE_AF_S: LIBRAW_SONY_FOCUSMODEmodes = 2;
@@ -4324,6 +4328,12 @@ pub const LibRaw_processing_options_LIBRAW_RAWOPTIONS_DNG_ADD_MASKS: LibRaw_proc
     4194304;
 pub const LibRaw_processing_options_LIBRAW_RAWOPTIONS_CANON_IGNORE_MAKERNOTES_ROTATION:
     LibRaw_processing_options = 8388608;
+pub const LibRaw_processing_options_LIBRAW_RAWOPTIONS_ALLOW_JPEGXL_PREVIEWS:
+    LibRaw_processing_options = 16777216;
+pub const LibRaw_processing_options_LIBRAW_RAWOPTIONS_CANON_CHECK_CAMERA_AUTO_ROTATION_MODE:
+    LibRaw_processing_options = 67108864;
+pub const LibRaw_processing_options_LIBRAW_RAWOPTIONS_DNG_STAGE23_IFPRESENT_JPGJXL:
+    LibRaw_processing_options = 134217728;
 pub type LibRaw_processing_options = libc::c_int;
 pub const LibRaw_decoder_flags_LIBRAW_DECODER_HASCURVE: LibRaw_decoder_flags = 16;
 pub const LibRaw_decoder_flags_LIBRAW_DECODER_SONYARW2: LibRaw_decoder_flags = 32;
@@ -4367,6 +4377,9 @@ pub const LibRaw_warnings_LIBRAW_WARN_RAWSPEED3_PROBLEM: LibRaw_warnings = 20971
 pub const LibRaw_warnings_LIBRAW_WARN_RAWSPEED3_UNSUPPORTED: LibRaw_warnings = 4194304;
 pub const LibRaw_warnings_LIBRAW_WARN_RAWSPEED3_PROCESSED: LibRaw_warnings = 8388608;
 pub const LibRaw_warnings_LIBRAW_WARN_RAWSPEED3_NOTLISTED: LibRaw_warnings = 16777216;
+pub const LibRaw_warnings_LIBRAW_WARN_VENDOR_CROP_SUGGESTED: LibRaw_warnings = 33554432;
+pub const LibRaw_warnings_LIBRAW_WARN_DNG_NOT_PROCESSED: LibRaw_warnings = 67108864;
+pub const LibRaw_warnings_LIBRAW_WARN_DNG_NOT_PARSED: LibRaw_warnings = 134217728;
 pub type LibRaw_warnings = libc::c_int;
 pub const LibRaw_exceptions_LIBRAW_EXCEPTION_NONE: LibRaw_exceptions = 0;
 pub const LibRaw_exceptions_LIBRAW_EXCEPTION_ALLOC: LibRaw_exceptions = 1;
@@ -4453,6 +4466,10 @@ pub const LibRaw_internal_thumbnail_formats_LIBRAW_INTERNAL_THUMBNAIL_PPM16:
     LibRaw_internal_thumbnail_formats = 8;
 pub const LibRaw_internal_thumbnail_formats_LIBRAW_INTERNAL_THUMBNAIL_X3F:
     LibRaw_internal_thumbnail_formats = 9;
+pub const LibRaw_internal_thumbnail_formats_LIBRAW_INTERNAL_THUMBNAIL_DNG_YCBCR:
+    LibRaw_internal_thumbnail_formats = 10;
+pub const LibRaw_internal_thumbnail_formats_LIBRAW_INTERNAL_THUMBNAIL_JPEGXL:
+    LibRaw_internal_thumbnail_formats = 11;
 pub type LibRaw_internal_thumbnail_formats = libc::c_int;
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_UNKNOWN: LibRaw_thumbnail_formats = 0;
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_JPEG: LibRaw_thumbnail_formats = 1;
@@ -4461,9 +4478,12 @@ pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_BITMAP16: LibRaw_thumbnail_f
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_LAYER: LibRaw_thumbnail_formats = 4;
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_ROLLEI: LibRaw_thumbnail_formats = 5;
 pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_H265: LibRaw_thumbnail_formats = 6;
+pub const LibRaw_thumbnail_formats_LIBRAW_THUMBNAIL_JPEGXL: LibRaw_thumbnail_formats = 7;
 pub type LibRaw_thumbnail_formats = libc::c_int;
 pub const LibRaw_image_formats_LIBRAW_IMAGE_JPEG: LibRaw_image_formats = 1;
 pub const LibRaw_image_formats_LIBRAW_IMAGE_BITMAP: LibRaw_image_formats = 2;
+pub const LibRaw_image_formats_LIBRAW_IMAGE_JPEGXL: LibRaw_image_formats = 3;
+pub const LibRaw_image_formats_LIBRAW_IMAGE_H265: LibRaw_image_formats = 4;
 pub type LibRaw_image_formats = libc::c_int;
 pub type INT64 = libc::c_longlong;
 pub type UINT64 = libc::c_ulonglong;
@@ -4530,14 +4550,10 @@ pub type exif_parser_callback = ::core::option::Option<
     ),
 >;
 pub type data_callback = ::core::option::Option<
-    unsafe extern "C" fn(data: *mut libc::c_void, file: *const libc::c_char, offset: libc::c_int),
+    unsafe extern "C" fn(data: *mut libc::c_void, file: *const libc::c_char, offset: INT64),
 >;
 unsafe extern "C" {
-    pub fn default_data_callback(
-        data: *mut libc::c_void,
-        file: *const libc::c_char,
-        offset: libc::c_int,
-    );
+    pub fn default_data_callback(data: *mut libc::c_void, file: *const libc::c_char, offset: INT64);
 }
 pub type progress_callback = ::core::option::Option<
     unsafe extern "C" fn(
@@ -4561,7 +4577,9 @@ pub struct libraw_callbacks_t {
     pub progress_cb: progress_callback,
     pub progresscb_data: *mut libc::c_void,
     pub exif_cb: exif_parser_callback,
+    pub makernotes_cb: exif_parser_callback,
     pub exifparser_data: *mut libc::c_void,
+    pub makernotesparser_data: *mut libc::c_void,
     pub pre_identify_cb: pre_identify_callback,
     pub post_identify_cb: post_identify_callback,
     pub pre_subtractblack_cb: process_step_callback,
@@ -4576,7 +4594,7 @@ pub struct libraw_callbacks_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_callbacks_t"][::core::mem::size_of::<libraw_callbacks_t>() - 136usize];
+    ["Size of libraw_callbacks_t"][::core::mem::size_of::<libraw_callbacks_t>() - 152usize];
     ["Alignment of libraw_callbacks_t"][::core::mem::align_of::<libraw_callbacks_t>() - 8usize];
     ["Offset of field: libraw_callbacks_t::data_cb"]
         [::core::mem::offset_of!(libraw_callbacks_t, data_cb) - 0usize];
@@ -4588,30 +4606,34 @@ const _: () = {
         [::core::mem::offset_of!(libraw_callbacks_t, progresscb_data) - 24usize];
     ["Offset of field: libraw_callbacks_t::exif_cb"]
         [::core::mem::offset_of!(libraw_callbacks_t, exif_cb) - 32usize];
+    ["Offset of field: libraw_callbacks_t::makernotes_cb"]
+        [::core::mem::offset_of!(libraw_callbacks_t, makernotes_cb) - 40usize];
     ["Offset of field: libraw_callbacks_t::exifparser_data"]
-        [::core::mem::offset_of!(libraw_callbacks_t, exifparser_data) - 40usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, exifparser_data) - 48usize];
+    ["Offset of field: libraw_callbacks_t::makernotesparser_data"]
+        [::core::mem::offset_of!(libraw_callbacks_t, makernotesparser_data) - 56usize];
     ["Offset of field: libraw_callbacks_t::pre_identify_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, pre_identify_cb) - 48usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_identify_cb) - 64usize];
     ["Offset of field: libraw_callbacks_t::post_identify_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, post_identify_cb) - 56usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, post_identify_cb) - 72usize];
     ["Offset of field: libraw_callbacks_t::pre_subtractblack_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, pre_subtractblack_cb) - 64usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_subtractblack_cb) - 80usize];
     ["Offset of field: libraw_callbacks_t::pre_scalecolors_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, pre_scalecolors_cb) - 72usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_scalecolors_cb) - 88usize];
     ["Offset of field: libraw_callbacks_t::pre_preinterpolate_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, pre_preinterpolate_cb) - 80usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_preinterpolate_cb) - 96usize];
     ["Offset of field: libraw_callbacks_t::pre_interpolate_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, pre_interpolate_cb) - 88usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_interpolate_cb) - 104usize];
     ["Offset of field: libraw_callbacks_t::interpolate_bayer_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, interpolate_bayer_cb) - 96usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, interpolate_bayer_cb) - 112usize];
     ["Offset of field: libraw_callbacks_t::interpolate_xtrans_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, interpolate_xtrans_cb) - 104usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, interpolate_xtrans_cb) - 120usize];
     ["Offset of field: libraw_callbacks_t::post_interpolate_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, post_interpolate_cb) - 112usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, post_interpolate_cb) - 128usize];
     ["Offset of field: libraw_callbacks_t::pre_converttorgb_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, pre_converttorgb_cb) - 120usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, pre_converttorgb_cb) - 136usize];
     ["Offset of field: libraw_callbacks_t::post_converttorgb_cb"]
-        [::core::mem::offset_of!(libraw_callbacks_t, post_converttorgb_cb) - 128usize];
+        [::core::mem::offset_of!(libraw_callbacks_t, post_converttorgb_cb) - 144usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -4848,6 +4870,22 @@ const _: () = {
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct libraw_dng_rawopcode_t {
+    pub len: libc::c_uint,
+    pub data: *mut libc::c_void,
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of libraw_dng_rawopcode_t"][::core::mem::size_of::<libraw_dng_rawopcode_t>() - 16usize];
+    ["Alignment of libraw_dng_rawopcode_t"]
+        [::core::mem::align_of::<libraw_dng_rawopcode_t>() - 8usize];
+    ["Offset of field: libraw_dng_rawopcode_t::len"]
+        [::core::mem::offset_of!(libraw_dng_rawopcode_t, len) - 0usize];
+    ["Offset of field: libraw_dng_rawopcode_t::data"]
+        [::core::mem::offset_of!(libraw_dng_rawopcode_t, data) - 8usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct libraw_dng_levels_t {
     pub parsedfields: libc::c_uint,
     pub dng_cblack: [libc::c_uint; 4104usize],
@@ -4862,11 +4900,12 @@ pub struct libraw_dng_levels_t {
     pub asshotneutral: [f32; 4usize],
     pub baseline_exposure: f32,
     pub LinearResponseLimit: f32,
+    pub rawopcodes: [libraw_dng_rawopcode_t; 3usize],
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_dng_levels_t"][::core::mem::size_of::<libraw_dng_levels_t>() - 32928usize];
-    ["Alignment of libraw_dng_levels_t"][::core::mem::align_of::<libraw_dng_levels_t>() - 4usize];
+    ["Size of libraw_dng_levels_t"][::core::mem::size_of::<libraw_dng_levels_t>() - 32976usize];
+    ["Alignment of libraw_dng_levels_t"][::core::mem::align_of::<libraw_dng_levels_t>() - 8usize];
     ["Offset of field: libraw_dng_levels_t::parsedfields"]
         [::core::mem::offset_of!(libraw_dng_levels_t, parsedfields) - 0usize];
     ["Offset of field: libraw_dng_levels_t::dng_cblack"]
@@ -4893,6 +4932,8 @@ const _: () = {
         [::core::mem::offset_of!(libraw_dng_levels_t, baseline_exposure) - 32920usize];
     ["Offset of field: libraw_dng_levels_t::LinearResponseLimit"]
         [::core::mem::offset_of!(libraw_dng_levels_t, LinearResponseLimit) - 32924usize];
+    ["Offset of field: libraw_dng_levels_t::rawopcodes"]
+        [::core::mem::offset_of!(libraw_dng_levels_t, rawopcodes) - 32928usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -4935,6 +4976,7 @@ pub struct libraw_canon_makernotes_t {
     pub AFMicroAdjMode: libc::c_int,
     pub AFMicroAdjValue: f32,
     pub MakernotesFlip: libc::c_short,
+    pub AutoRotateMode: libc::c_short,
     pub RecordMode: libc::c_short,
     pub SRAWQuality: libc::c_short,
     pub wbi: libc::c_uint,
@@ -5008,10 +5050,12 @@ const _: () = {
         [::core::mem::offset_of!(libraw_canon_makernotes_t, AFMicroAdjValue) - 88usize];
     ["Offset of field: libraw_canon_makernotes_t::MakernotesFlip"]
         [::core::mem::offset_of!(libraw_canon_makernotes_t, MakernotesFlip) - 92usize];
+    ["Offset of field: libraw_canon_makernotes_t::AutoRotateMode"]
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, AutoRotateMode) - 94usize];
     ["Offset of field: libraw_canon_makernotes_t::RecordMode"]
-        [::core::mem::offset_of!(libraw_canon_makernotes_t, RecordMode) - 94usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, RecordMode) - 96usize];
     ["Offset of field: libraw_canon_makernotes_t::SRAWQuality"]
-        [::core::mem::offset_of!(libraw_canon_makernotes_t, SRAWQuality) - 96usize];
+        [::core::mem::offset_of!(libraw_canon_makernotes_t, SRAWQuality) - 98usize];
     ["Offset of field: libraw_canon_makernotes_t::wbi"]
         [::core::mem::offset_of!(libraw_canon_makernotes_t, wbi) - 100usize];
     ["Offset of field: libraw_canon_makernotes_t::RF_lensID"]
@@ -5107,6 +5151,8 @@ pub struct libraw_fuji_info_t {
     pub DRangePriority: ushort,
     pub DRangePriorityAuto: ushort,
     pub DRangePriorityFixed: ushort,
+    pub FujiModel: [libc::c_char; 33usize],
+    pub FujiModel2: [libc::c_char; 33usize],
     pub BrightnessCompensation: f32,
     pub FocusMode: ushort,
     pub AFMode: ushort,
@@ -5140,7 +5186,7 @@ pub struct libraw_fuji_info_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_fuji_info_t"][::core::mem::size_of::<libraw_fuji_info_t>() - 280usize];
+    ["Size of libraw_fuji_info_t"][::core::mem::size_of::<libraw_fuji_info_t>() - 348usize];
     ["Alignment of libraw_fuji_info_t"][::core::mem::align_of::<libraw_fuji_info_t>() - 4usize];
     ["Offset of field: libraw_fuji_info_t::ExpoMidPointShift"]
         [::core::mem::offset_of!(libraw_fuji_info_t, ExpoMidPointShift) - 0usize];
@@ -5160,66 +5206,70 @@ const _: () = {
         [::core::mem::offset_of!(libraw_fuji_info_t, DRangePriorityAuto) - 16usize];
     ["Offset of field: libraw_fuji_info_t::DRangePriorityFixed"]
         [::core::mem::offset_of!(libraw_fuji_info_t, DRangePriorityFixed) - 18usize];
+    ["Offset of field: libraw_fuji_info_t::FujiModel"]
+        [::core::mem::offset_of!(libraw_fuji_info_t, FujiModel) - 20usize];
+    ["Offset of field: libraw_fuji_info_t::FujiModel2"]
+        [::core::mem::offset_of!(libraw_fuji_info_t, FujiModel2) - 53usize];
     ["Offset of field: libraw_fuji_info_t::BrightnessCompensation"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, BrightnessCompensation) - 20usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, BrightnessCompensation) - 88usize];
     ["Offset of field: libraw_fuji_info_t::FocusMode"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, FocusMode) - 24usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FocusMode) - 92usize];
     ["Offset of field: libraw_fuji_info_t::AFMode"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, AFMode) - 26usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, AFMode) - 94usize];
     ["Offset of field: libraw_fuji_info_t::FocusPixel"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, FocusPixel) - 28usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FocusPixel) - 96usize];
     ["Offset of field: libraw_fuji_info_t::PrioritySettings"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, PrioritySettings) - 32usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, PrioritySettings) - 100usize];
     ["Offset of field: libraw_fuji_info_t::FocusSettings"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, FocusSettings) - 36usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FocusSettings) - 104usize];
     ["Offset of field: libraw_fuji_info_t::AF_C_Settings"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, AF_C_Settings) - 40usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, AF_C_Settings) - 108usize];
     ["Offset of field: libraw_fuji_info_t::FocusWarning"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, FocusWarning) - 44usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FocusWarning) - 112usize];
     ["Offset of field: libraw_fuji_info_t::ImageStabilization"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, ImageStabilization) - 46usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, ImageStabilization) - 114usize];
     ["Offset of field: libraw_fuji_info_t::FlashMode"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, FlashMode) - 52usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, FlashMode) - 120usize];
     ["Offset of field: libraw_fuji_info_t::WB_Preset"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, WB_Preset) - 54usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, WB_Preset) - 122usize];
     ["Offset of field: libraw_fuji_info_t::ShutterType"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, ShutterType) - 56usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, ShutterType) - 124usize];
     ["Offset of field: libraw_fuji_info_t::ExrMode"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, ExrMode) - 58usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, ExrMode) - 126usize];
     ["Offset of field: libraw_fuji_info_t::Macro"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, Macro) - 60usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, Macro) - 128usize];
     ["Offset of field: libraw_fuji_info_t::Rating"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, Rating) - 64usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, Rating) - 132usize];
     ["Offset of field: libraw_fuji_info_t::CropMode"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, CropMode) - 68usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, CropMode) - 136usize];
     ["Offset of field: libraw_fuji_info_t::SerialSignature"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, SerialSignature) - 70usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, SerialSignature) - 138usize];
     ["Offset of field: libraw_fuji_info_t::SensorID"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, SensorID) - 83usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, SensorID) - 151usize];
     ["Offset of field: libraw_fuji_info_t::RAFVersion"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, RAFVersion) - 88usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, RAFVersion) - 156usize];
     ["Offset of field: libraw_fuji_info_t::RAFDataGeneration"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, RAFDataGeneration) - 96usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, RAFDataGeneration) - 164usize];
     ["Offset of field: libraw_fuji_info_t::RAFDataVersion"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, RAFDataVersion) - 100usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, RAFDataVersion) - 168usize];
     ["Offset of field: libraw_fuji_info_t::isTSNERDTS"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, isTSNERDTS) - 104usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, isTSNERDTS) - 172usize];
     ["Offset of field: libraw_fuji_info_t::DriveMode"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, DriveMode) - 108usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, DriveMode) - 176usize];
     ["Offset of field: libraw_fuji_info_t::BlackLevel"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, BlackLevel) - 110usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, BlackLevel) - 178usize];
     ["Offset of field: libraw_fuji_info_t::RAFData_ImageSizeTable"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, RAFData_ImageSizeTable) - 128usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, RAFData_ImageSizeTable) - 196usize];
     ["Offset of field: libraw_fuji_info_t::AutoBracketing"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, AutoBracketing) - 256usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, AutoBracketing) - 324usize];
     ["Offset of field: libraw_fuji_info_t::SequenceNumber"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, SequenceNumber) - 260usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, SequenceNumber) - 328usize];
     ["Offset of field: libraw_fuji_info_t::SeriesLength"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, SeriesLength) - 264usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, SeriesLength) - 332usize];
     ["Offset of field: libraw_fuji_info_t::PixelShiftOffset"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, PixelShiftOffset) - 268usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, PixelShiftOffset) - 336usize];
     ["Offset of field: libraw_fuji_info_t::ImageCount"]
-        [::core::mem::offset_of!(libraw_fuji_info_t, ImageCount) - 276usize];
+        [::core::mem::offset_of!(libraw_fuji_info_t, ImageCount) - 344usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5291,7 +5341,16 @@ pub struct libraw_nikon_makernotes_t {
     pub SensorWidth: ushort,
     pub SensorHeight: ushort,
     pub Active_D_Lighting: ushort,
+    pub PictureControlVersion: libc::c_uint,
+    pub PictureControlName: [libc::c_char; 20usize],
+    pub PictureControlBase: [libc::c_char; 20usize],
     pub ShotInfoVersion: libc::c_uint,
+    pub ShotInfoFirmware: [libc::c_char; 9usize],
+    pub BurstTable_0x0056_len: libc::c_uint,
+    pub BurstTable_0x0056: *mut uchar,
+    pub BurstTable_0x0056_ver: ushort,
+    pub BurstTable_0x0056_gid: ushort,
+    pub BurstTable_0x0056_fnum: uchar,
     pub MakernotesFlip: libc::c_short,
     pub RollAngle: f64,
     pub PitchAngle: f64,
@@ -5300,7 +5359,7 @@ pub struct libraw_nikon_makernotes_t {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_nikon_makernotes_t"]
-        [::core::mem::size_of::<libraw_nikon_makernotes_t>() - 224usize];
+        [::core::mem::size_of::<libraw_nikon_makernotes_t>() - 296usize];
     ["Alignment of libraw_nikon_makernotes_t"]
         [::core::mem::align_of::<libraw_nikon_makernotes_t>() - 8usize];
     ["Offset of field: libraw_nikon_makernotes_t::ExposureBracketValue"]
@@ -5393,22 +5452,54 @@ const _: () = {
         [::core::mem::offset_of!(libraw_nikon_makernotes_t, SensorHeight) - 182usize];
     ["Offset of field: libraw_nikon_makernotes_t::Active_D_Lighting"]
         [::core::mem::offset_of!(libraw_nikon_makernotes_t, Active_D_Lighting) - 184usize];
+    ["Offset of field: libraw_nikon_makernotes_t::PictureControlVersion"]
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, PictureControlVersion) - 188usize];
+    ["Offset of field: libraw_nikon_makernotes_t::PictureControlName"]
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, PictureControlName) - 192usize];
+    ["Offset of field: libraw_nikon_makernotes_t::PictureControlBase"]
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, PictureControlBase) - 212usize];
     ["Offset of field: libraw_nikon_makernotes_t::ShotInfoVersion"]
-        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ShotInfoVersion) - 188usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ShotInfoVersion) - 232usize];
+    ["Offset of field: libraw_nikon_makernotes_t::ShotInfoFirmware"]
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, ShotInfoFirmware) - 236usize];
+    ["Offset of field: libraw_nikon_makernotes_t::BurstTable_0x0056_len"]
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, BurstTable_0x0056_len) - 248usize];
+    ["Offset of field: libraw_nikon_makernotes_t::BurstTable_0x0056"]
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, BurstTable_0x0056) - 256usize];
+    ["Offset of field: libraw_nikon_makernotes_t::BurstTable_0x0056_ver"]
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, BurstTable_0x0056_ver) - 264usize];
+    ["Offset of field: libraw_nikon_makernotes_t::BurstTable_0x0056_gid"]
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, BurstTable_0x0056_gid) - 266usize];
+    ["Offset of field: libraw_nikon_makernotes_t::BurstTable_0x0056_fnum"]
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, BurstTable_0x0056_fnum) - 268usize];
     ["Offset of field: libraw_nikon_makernotes_t::MakernotesFlip"]
-        [::core::mem::offset_of!(libraw_nikon_makernotes_t, MakernotesFlip) - 192usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, MakernotesFlip) - 270usize];
     ["Offset of field: libraw_nikon_makernotes_t::RollAngle"]
-        [::core::mem::offset_of!(libraw_nikon_makernotes_t, RollAngle) - 200usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, RollAngle) - 272usize];
     ["Offset of field: libraw_nikon_makernotes_t::PitchAngle"]
-        [::core::mem::offset_of!(libraw_nikon_makernotes_t, PitchAngle) - 208usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, PitchAngle) - 280usize];
     ["Offset of field: libraw_nikon_makernotes_t::YawAngle"]
-        [::core::mem::offset_of!(libraw_nikon_makernotes_t, YawAngle) - 216usize];
+        [::core::mem::offset_of!(libraw_nikon_makernotes_t, YawAngle) - 288usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_olympus_makernotes_t {
     pub CameraType2: [libc::c_char; 6usize],
     pub ValidBits: ushort,
+    pub tagX640: libc::c_uint,
+    pub tagX641: libc::c_uint,
+    pub tagX642: libc::c_uint,
+    pub tagX643: libc::c_uint,
+    pub tagX644: libc::c_uint,
+    pub tagX645: libc::c_uint,
+    pub tagX646: libc::c_uint,
+    pub tagX647: libc::c_uint,
+    pub tagX648: libc::c_uint,
+    pub tagX649: libc::c_uint,
+    pub tagX650: libc::c_uint,
+    pub tagX651: libc::c_uint,
+    pub tagX652: libc::c_uint,
+    pub tagX653: libc::c_uint,
     pub SensorCalibration: [libc::c_int; 2usize],
     pub DriveMode: [ushort; 5usize],
     pub ColorSpace: ushort,
@@ -5436,59 +5527,87 @@ pub struct libraw_olympus_makernotes_t {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_olympus_makernotes_t"]
-        [::core::mem::size_of::<libraw_olympus_makernotes_t>() - 408usize];
+        [::core::mem::size_of::<libraw_olympus_makernotes_t>() - 464usize];
     ["Alignment of libraw_olympus_makernotes_t"]
         [::core::mem::align_of::<libraw_olympus_makernotes_t>() - 8usize];
     ["Offset of field: libraw_olympus_makernotes_t::CameraType2"]
         [::core::mem::offset_of!(libraw_olympus_makernotes_t, CameraType2) - 0usize];
     ["Offset of field: libraw_olympus_makernotes_t::ValidBits"]
         [::core::mem::offset_of!(libraw_olympus_makernotes_t, ValidBits) - 6usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX640"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX640) - 8usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX641"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX641) - 12usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX642"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX642) - 16usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX643"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX643) - 20usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX644"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX644) - 24usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX645"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX645) - 28usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX646"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX646) - 32usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX647"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX647) - 36usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX648"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX648) - 40usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX649"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX649) - 44usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX650"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX650) - 48usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX651"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX651) - 52usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX652"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX652) - 56usize];
+    ["Offset of field: libraw_olympus_makernotes_t::tagX653"]
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, tagX653) - 60usize];
     ["Offset of field: libraw_olympus_makernotes_t::SensorCalibration"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, SensorCalibration) - 8usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, SensorCalibration) - 64usize];
     ["Offset of field: libraw_olympus_makernotes_t::DriveMode"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, DriveMode) - 16usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, DriveMode) - 72usize];
     ["Offset of field: libraw_olympus_makernotes_t::ColorSpace"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, ColorSpace) - 26usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, ColorSpace) - 82usize];
     ["Offset of field: libraw_olympus_makernotes_t::FocusMode"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusMode) - 28usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusMode) - 84usize];
     ["Offset of field: libraw_olympus_makernotes_t::AutoFocus"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AutoFocus) - 32usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AutoFocus) - 88usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFPoint"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFPoint) - 34usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFPoint) - 90usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFAreas"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFAreas) - 36usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFAreas) - 92usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFPointSelected"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFPointSelected) - 296usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFPointSelected) - 352usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFResult"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFResult) - 336usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFResult) - 392usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFFineTune"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFFineTune) - 338usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFFineTune) - 394usize];
     ["Offset of field: libraw_olympus_makernotes_t::AFFineTuneAdj"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFFineTuneAdj) - 340usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AFFineTuneAdj) - 396usize];
     ["Offset of field: libraw_olympus_makernotes_t::SpecialMode"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, SpecialMode) - 348usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, SpecialMode) - 404usize];
     ["Offset of field: libraw_olympus_makernotes_t::ZoomStepCount"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, ZoomStepCount) - 360usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, ZoomStepCount) - 416usize];
     ["Offset of field: libraw_olympus_makernotes_t::FocusStepCount"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepCount) - 362usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepCount) - 418usize];
     ["Offset of field: libraw_olympus_makernotes_t::FocusStepInfinity"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepInfinity) - 364usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepInfinity) - 420usize];
     ["Offset of field: libraw_olympus_makernotes_t::FocusStepNear"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepNear) - 366usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusStepNear) - 422usize];
     ["Offset of field: libraw_olympus_makernotes_t::FocusDistance"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusDistance) - 368usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, FocusDistance) - 424usize];
     ["Offset of field: libraw_olympus_makernotes_t::AspectFrame"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AspectFrame) - 376usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, AspectFrame) - 432usize];
     ["Offset of field: libraw_olympus_makernotes_t::StackedImage"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, StackedImage) - 384usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, StackedImage) - 440usize];
     ["Offset of field: libraw_olympus_makernotes_t::isLiveND"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, isLiveND) - 392usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, isLiveND) - 448usize];
     ["Offset of field: libraw_olympus_makernotes_t::LiveNDfactor"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, LiveNDfactor) - 396usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, LiveNDfactor) - 452usize];
     ["Offset of field: libraw_olympus_makernotes_t::Panorama_mode"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, Panorama_mode) - 400usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, Panorama_mode) - 456usize];
     ["Offset of field: libraw_olympus_makernotes_t::Panorama_frameNum"]
-        [::core::mem::offset_of!(libraw_olympus_makernotes_t, Panorama_frameNum) - 402usize];
+        [::core::mem::offset_of!(libraw_olympus_makernotes_t, Panorama_frameNum) - 458usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5541,6 +5660,7 @@ pub struct libraw_pentax_makernotes_t {
     pub AFPointsInFocus_version: libc::c_int,
     pub AFPointsInFocus: libc::c_uint,
     pub FocusPosition: ushort,
+    pub DynamicRangeExpansion: [uchar; 4usize],
     pub AFAdjustment: libc::c_short,
     pub AFPointMode: uchar,
     pub MultiExposure: uchar,
@@ -5549,7 +5669,7 @@ pub struct libraw_pentax_makernotes_t {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_pentax_makernotes_t"]
-        [::core::mem::size_of::<libraw_pentax_makernotes_t>() - 32usize];
+        [::core::mem::size_of::<libraw_pentax_makernotes_t>() - 36usize];
     ["Alignment of libraw_pentax_makernotes_t"]
         [::core::mem::align_of::<libraw_pentax_makernotes_t>() - 4usize];
     ["Offset of field: libraw_pentax_makernotes_t::DriveMode"]
@@ -5566,14 +5686,16 @@ const _: () = {
         [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFPointsInFocus) - 20usize];
     ["Offset of field: libraw_pentax_makernotes_t::FocusPosition"]
         [::core::mem::offset_of!(libraw_pentax_makernotes_t, FocusPosition) - 24usize];
+    ["Offset of field: libraw_pentax_makernotes_t::DynamicRangeExpansion"]
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, DynamicRangeExpansion) - 26usize];
     ["Offset of field: libraw_pentax_makernotes_t::AFAdjustment"]
-        [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFAdjustment) - 26usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFAdjustment) - 30usize];
     ["Offset of field: libraw_pentax_makernotes_t::AFPointMode"]
-        [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFPointMode) - 28usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, AFPointMode) - 32usize];
     ["Offset of field: libraw_pentax_makernotes_t::MultiExposure"]
-        [::core::mem::offset_of!(libraw_pentax_makernotes_t, MultiExposure) - 29usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, MultiExposure) - 33usize];
     ["Offset of field: libraw_pentax_makernotes_t::Quality"]
-        [::core::mem::offset_of!(libraw_pentax_makernotes_t, Quality) - 30usize];
+        [::core::mem::offset_of!(libraw_pentax_makernotes_t, Quality) - 34usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5783,6 +5905,7 @@ pub struct libraw_sony_info_t {
     pub HDR: [ushort; 2usize],
     pub group2010: ushort,
     pub group9050: ushort,
+    pub len_group9050: ushort,
     pub real_iso_offset: ushort,
     pub MeteringMode_offset: ushort,
     pub ExposureProgram_offset: ushort,
@@ -5811,10 +5934,11 @@ pub struct libraw_sony_info_t {
     pub Quality: libc::c_uint,
     pub FileFormat: ushort,
     pub MetaVersion: [libc::c_char; 16usize],
+    pub AspectRatio: f32,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_sony_info_t"][::core::mem::size_of::<libraw_sony_info_t>() - 180usize];
+    ["Size of libraw_sony_info_t"][::core::mem::size_of::<libraw_sony_info_t>() - 184usize];
     ["Alignment of libraw_sony_info_t"][::core::mem::align_of::<libraw_sony_info_t>() - 4usize];
     ["Offset of field: libraw_sony_info_t::CameraType"]
         [::core::mem::offset_of!(libraw_sony_info_t, CameraType) - 0usize];
@@ -5870,14 +5994,16 @@ const _: () = {
         [::core::mem::offset_of!(libraw_sony_info_t, group2010) - 66usize];
     ["Offset of field: libraw_sony_info_t::group9050"]
         [::core::mem::offset_of!(libraw_sony_info_t, group9050) - 68usize];
+    ["Offset of field: libraw_sony_info_t::len_group9050"]
+        [::core::mem::offset_of!(libraw_sony_info_t, len_group9050) - 70usize];
     ["Offset of field: libraw_sony_info_t::real_iso_offset"]
-        [::core::mem::offset_of!(libraw_sony_info_t, real_iso_offset) - 70usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, real_iso_offset) - 72usize];
     ["Offset of field: libraw_sony_info_t::MeteringMode_offset"]
-        [::core::mem::offset_of!(libraw_sony_info_t, MeteringMode_offset) - 72usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, MeteringMode_offset) - 74usize];
     ["Offset of field: libraw_sony_info_t::ExposureProgram_offset"]
-        [::core::mem::offset_of!(libraw_sony_info_t, ExposureProgram_offset) - 74usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, ExposureProgram_offset) - 76usize];
     ["Offset of field: libraw_sony_info_t::ReleaseMode2_offset"]
-        [::core::mem::offset_of!(libraw_sony_info_t, ReleaseMode2_offset) - 76usize];
+        [::core::mem::offset_of!(libraw_sony_info_t, ReleaseMode2_offset) - 78usize];
     ["Offset of field: libraw_sony_info_t::MinoltaCamID"]
         [::core::mem::offset_of!(libraw_sony_info_t, MinoltaCamID) - 80usize];
     ["Offset of field: libraw_sony_info_t::firmware"]
@@ -5926,6 +6052,8 @@ const _: () = {
         [::core::mem::offset_of!(libraw_sony_info_t, FileFormat) - 160usize];
     ["Offset of field: libraw_sony_info_t::MetaVersion"]
         [::core::mem::offset_of!(libraw_sony_info_t, MetaVersion) - 162usize];
+    ["Offset of field: libraw_sony_info_t::AspectRatio"]
+        [::core::mem::offset_of!(libraw_sony_info_t, AspectRatio) - 180usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -5935,7 +6063,7 @@ pub struct libraw_colordata_t {
     pub black: libc::c_uint,
     pub data_maximum: libc::c_uint,
     pub maximum: libc::c_uint,
-    pub linear_max: [libc::c_long; 4usize],
+    pub linear_max: [libc::c_uint; 4usize],
     pub fmaximum: f32,
     pub fnorm: f32,
     pub white: [[ushort; 8usize]; 8usize],
@@ -5968,7 +6096,7 @@ pub struct libraw_colordata_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_colordata_t"][::core::mem::size_of::<libraw_colordata_t>() - 187032usize];
+    ["Size of libraw_colordata_t"][::core::mem::size_of::<libraw_colordata_t>() - 187088usize];
     ["Alignment of libraw_colordata_t"][::core::mem::align_of::<libraw_colordata_t>() - 8usize];
     ["Offset of field: libraw_colordata_t::curve"]
         [::core::mem::offset_of!(libraw_colordata_t, curve) - 0usize];
@@ -6027,19 +6155,19 @@ const _: () = {
     ["Offset of field: libraw_colordata_t::dng_color"]
         [::core::mem::offset_of!(libraw_colordata_t, dng_color) - 148308usize];
     ["Offset of field: libraw_colordata_t::dng_levels"]
-        [::core::mem::offset_of!(libraw_colordata_t, dng_levels) - 148644usize];
+        [::core::mem::offset_of!(libraw_colordata_t, dng_levels) - 148648usize];
     ["Offset of field: libraw_colordata_t::WB_Coeffs"]
-        [::core::mem::offset_of!(libraw_colordata_t, WB_Coeffs) - 181572usize];
+        [::core::mem::offset_of!(libraw_colordata_t, WB_Coeffs) - 181624usize];
     ["Offset of field: libraw_colordata_t::WBCT_Coeffs"]
-        [::core::mem::offset_of!(libraw_colordata_t, WBCT_Coeffs) - 185668usize];
+        [::core::mem::offset_of!(libraw_colordata_t, WBCT_Coeffs) - 185720usize];
     ["Offset of field: libraw_colordata_t::as_shot_wb_applied"]
-        [::core::mem::offset_of!(libraw_colordata_t, as_shot_wb_applied) - 186948usize];
+        [::core::mem::offset_of!(libraw_colordata_t, as_shot_wb_applied) - 187000usize];
     ["Offset of field: libraw_colordata_t::P1_color"]
-        [::core::mem::offset_of!(libraw_colordata_t, P1_color) - 186952usize];
+        [::core::mem::offset_of!(libraw_colordata_t, P1_color) - 187004usize];
     ["Offset of field: libraw_colordata_t::raw_bps"]
-        [::core::mem::offset_of!(libraw_colordata_t, raw_bps) - 187024usize];
+        [::core::mem::offset_of!(libraw_colordata_t, raw_bps) - 187076usize];
     ["Offset of field: libraw_colordata_t::ExifColorSpace"]
-        [::core::mem::offset_of!(libraw_colordata_t, ExifColorSpace) - 187028usize];
+        [::core::mem::offset_of!(libraw_colordata_t, ExifColorSpace) - 187080usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -6327,6 +6455,7 @@ pub struct libraw_output_params_t {
     pub adjust_maximum_thr: f32,
     pub no_auto_bright: libc::c_int,
     pub use_fuji_rotate: libc::c_int,
+    pub use_p1_correction: libc::c_int,
     pub green_matching: libc::c_int,
     pub dcb_iterations: libc::c_int,
     pub dcb_enhance_fl: libc::c_int,
@@ -6404,24 +6533,26 @@ const _: () = {
         [::core::mem::offset_of!(libraw_output_params_t, no_auto_bright) - 256usize];
     ["Offset of field: libraw_output_params_t::use_fuji_rotate"]
         [::core::mem::offset_of!(libraw_output_params_t, use_fuji_rotate) - 260usize];
+    ["Offset of field: libraw_output_params_t::use_p1_correction"]
+        [::core::mem::offset_of!(libraw_output_params_t, use_p1_correction) - 264usize];
     ["Offset of field: libraw_output_params_t::green_matching"]
-        [::core::mem::offset_of!(libraw_output_params_t, green_matching) - 264usize];
+        [::core::mem::offset_of!(libraw_output_params_t, green_matching) - 268usize];
     ["Offset of field: libraw_output_params_t::dcb_iterations"]
-        [::core::mem::offset_of!(libraw_output_params_t, dcb_iterations) - 268usize];
+        [::core::mem::offset_of!(libraw_output_params_t, dcb_iterations) - 272usize];
     ["Offset of field: libraw_output_params_t::dcb_enhance_fl"]
-        [::core::mem::offset_of!(libraw_output_params_t, dcb_enhance_fl) - 272usize];
+        [::core::mem::offset_of!(libraw_output_params_t, dcb_enhance_fl) - 276usize];
     ["Offset of field: libraw_output_params_t::fbdd_noiserd"]
-        [::core::mem::offset_of!(libraw_output_params_t, fbdd_noiserd) - 276usize];
+        [::core::mem::offset_of!(libraw_output_params_t, fbdd_noiserd) - 280usize];
     ["Offset of field: libraw_output_params_t::exp_correc"]
-        [::core::mem::offset_of!(libraw_output_params_t, exp_correc) - 280usize];
+        [::core::mem::offset_of!(libraw_output_params_t, exp_correc) - 284usize];
     ["Offset of field: libraw_output_params_t::exp_shift"]
-        [::core::mem::offset_of!(libraw_output_params_t, exp_shift) - 284usize];
+        [::core::mem::offset_of!(libraw_output_params_t, exp_shift) - 288usize];
     ["Offset of field: libraw_output_params_t::exp_preser"]
-        [::core::mem::offset_of!(libraw_output_params_t, exp_preser) - 288usize];
+        [::core::mem::offset_of!(libraw_output_params_t, exp_preser) - 292usize];
     ["Offset of field: libraw_output_params_t::no_auto_scale"]
-        [::core::mem::offset_of!(libraw_output_params_t, no_auto_scale) - 292usize];
+        [::core::mem::offset_of!(libraw_output_params_t, no_auto_scale) - 296usize];
     ["Offset of field: libraw_output_params_t::no_interpolation"]
-        [::core::mem::offset_of!(libraw_output_params_t, no_interpolation) - 296usize];
+        [::core::mem::offset_of!(libraw_output_params_t, no_interpolation) - 300usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -6485,7 +6616,7 @@ pub struct libraw_rawdata_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_rawdata_t"][::core::mem::size_of::<libraw_rawdata_t>() - 187744usize];
+    ["Size of libraw_rawdata_t"][::core::mem::size_of::<libraw_rawdata_t>() - 187800usize];
     ["Alignment of libraw_rawdata_t"][::core::mem::align_of::<libraw_rawdata_t>() - 8usize];
     ["Offset of field: libraw_rawdata_t::raw_alloc"]
         [::core::mem::offset_of!(libraw_rawdata_t, raw_alloc) - 0usize];
@@ -6517,11 +6648,11 @@ const _: () = {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct libraw_makernotes_lens_t {
-    pub LensID: libc::c_ulonglong,
+    pub LensID: UINT64,
     pub Lens: [libc::c_char; 128usize],
     pub LensFormat: ushort,
     pub LensMount: ushort,
-    pub CamID: libc::c_ulonglong,
+    pub CamID: UINT64,
     pub CameraFormat: ushort,
     pub CameraMount: ushort,
     pub body: [libc::c_char; 64usize],
@@ -6543,11 +6674,11 @@ pub struct libraw_makernotes_lens_t {
     pub MinFocusDistance: f32,
     pub FocusRangeIndex: f32,
     pub LensFStops: f32,
-    pub TeleconverterID: libc::c_ulonglong,
+    pub TeleconverterID: UINT64,
     pub Teleconverter: [libc::c_char; 128usize],
-    pub AdapterID: libc::c_ulonglong,
+    pub AdapterID: UINT64,
     pub Adapter: [libc::c_char; 128usize],
-    pub AttachmentID: libc::c_ulonglong,
+    pub AttachmentID: UINT64,
     pub Attachment: [libc::c_char; 128usize],
     pub FocalUnits: ushort,
     pub FocalLengthIn35mmFormat: f32,
@@ -6739,34 +6870,34 @@ pub struct libraw_makernotes_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_makernotes_t"][::core::mem::size_of::<libraw_makernotes_t>() - 2952usize];
+    ["Size of libraw_makernotes_t"][::core::mem::size_of::<libraw_makernotes_t>() - 3160usize];
     ["Alignment of libraw_makernotes_t"][::core::mem::align_of::<libraw_makernotes_t>() - 8usize];
     ["Offset of field: libraw_makernotes_t::canon"]
         [::core::mem::offset_of!(libraw_makernotes_t, canon) - 0usize];
     ["Offset of field: libraw_makernotes_t::nikon"]
         [::core::mem::offset_of!(libraw_makernotes_t, nikon) - 168usize];
     ["Offset of field: libraw_makernotes_t::hasselblad"]
-        [::core::mem::offset_of!(libraw_makernotes_t, hasselblad) - 392usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, hasselblad) - 464usize];
     ["Offset of field: libraw_makernotes_t::fuji"]
-        [::core::mem::offset_of!(libraw_makernotes_t, fuji) - 776usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, fuji) - 848usize];
     ["Offset of field: libraw_makernotes_t::olympus"]
-        [::core::mem::offset_of!(libraw_makernotes_t, olympus) - 1056usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, olympus) - 1200usize];
     ["Offset of field: libraw_makernotes_t::sony"]
-        [::core::mem::offset_of!(libraw_makernotes_t, sony) - 1464usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, sony) - 1664usize];
     ["Offset of field: libraw_makernotes_t::kodak"]
-        [::core::mem::offset_of!(libraw_makernotes_t, kodak) - 1644usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, kodak) - 1848usize];
     ["Offset of field: libraw_makernotes_t::panasonic"]
-        [::core::mem::offset_of!(libraw_makernotes_t, panasonic) - 1888usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, panasonic) - 2092usize];
     ["Offset of field: libraw_makernotes_t::pentax"]
-        [::core::mem::offset_of!(libraw_makernotes_t, pentax) - 1956usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, pentax) - 2160usize];
     ["Offset of field: libraw_makernotes_t::phaseone"]
-        [::core::mem::offset_of!(libraw_makernotes_t, phaseone) - 1988usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, phaseone) - 2196usize];
     ["Offset of field: libraw_makernotes_t::ricoh"]
-        [::core::mem::offset_of!(libraw_makernotes_t, ricoh) - 2440usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, ricoh) - 2648usize];
     ["Offset of field: libraw_makernotes_t::samsung"]
-        [::core::mem::offset_of!(libraw_makernotes_t, samsung) - 2512usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, samsung) - 2720usize];
     ["Offset of field: libraw_makernotes_t::common"]
-        [::core::mem::offset_of!(libraw_makernotes_t, common) - 2648usize];
+        [::core::mem::offset_of!(libraw_makernotes_t, common) - 2856usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -6879,7 +7010,7 @@ pub struct libraw_data_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of libraw_data_t"][::core::mem::size_of::<libraw_data_t>() - 381256usize];
+    ["Size of libraw_data_t"][::core::mem::size_of::<libraw_data_t>() - 381576usize];
     ["Alignment of libraw_data_t"][::core::mem::align_of::<libraw_data_t>() - 8usize];
     ["Offset of field: libraw_data_t::image"]
         [::core::mem::offset_of!(libraw_data_t, image) - 0usize];
@@ -6892,27 +7023,27 @@ const _: () = {
     ["Offset of field: libraw_data_t::makernotes"]
         [::core::mem::offset_of!(libraw_data_t, makernotes) - 1928usize];
     ["Offset of field: libraw_data_t::shootinginfo"]
-        [::core::mem::offset_of!(libraw_data_t, shootinginfo) - 4880usize];
+        [::core::mem::offset_of!(libraw_data_t, shootinginfo) - 5088usize];
     ["Offset of field: libraw_data_t::params"]
-        [::core::mem::offset_of!(libraw_data_t, params) - 5024usize];
+        [::core::mem::offset_of!(libraw_data_t, params) - 5232usize];
     ["Offset of field: libraw_data_t::rawparams"]
-        [::core::mem::offset_of!(libraw_data_t, rawparams) - 5328usize];
+        [::core::mem::offset_of!(libraw_data_t, rawparams) - 5536usize];
     ["Offset of field: libraw_data_t::progress_flags"]
-        [::core::mem::offset_of!(libraw_data_t, progress_flags) - 5376usize];
+        [::core::mem::offset_of!(libraw_data_t, progress_flags) - 5584usize];
     ["Offset of field: libraw_data_t::process_warnings"]
-        [::core::mem::offset_of!(libraw_data_t, process_warnings) - 5380usize];
+        [::core::mem::offset_of!(libraw_data_t, process_warnings) - 5588usize];
     ["Offset of field: libraw_data_t::color"]
-        [::core::mem::offset_of!(libraw_data_t, color) - 5384usize];
+        [::core::mem::offset_of!(libraw_data_t, color) - 5592usize];
     ["Offset of field: libraw_data_t::other"]
-        [::core::mem::offset_of!(libraw_data_t, other) - 192416usize];
+        [::core::mem::offset_of!(libraw_data_t, other) - 192680usize];
     ["Offset of field: libraw_data_t::thumbnail"]
-        [::core::mem::offset_of!(libraw_data_t, thumbnail) - 193216usize];
+        [::core::mem::offset_of!(libraw_data_t, thumbnail) - 193480usize];
     ["Offset of field: libraw_data_t::thumbs_list"]
-        [::core::mem::offset_of!(libraw_data_t, thumbs_list) - 193240usize];
+        [::core::mem::offset_of!(libraw_data_t, thumbs_list) - 193504usize];
     ["Offset of field: libraw_data_t::rawdata"]
-        [::core::mem::offset_of!(libraw_data_t, rawdata) - 193504usize];
+        [::core::mem::offset_of!(libraw_data_t, rawdata) - 193768usize];
     ["Offset of field: libraw_data_t::parent_class"]
-        [::core::mem::offset_of!(libraw_data_t, parent_class) - 381248usize];
+        [::core::mem::offset_of!(libraw_data_t, parent_class) - 381568usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7143,6 +7274,56 @@ const _: () = {
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
+pub struct pana8_tags_t {
+    pub tag39: [u32; 6usize],
+    pub tag3A: [u16; 6usize],
+    pub tag3B: u16,
+    pub initial: [u16; 4usize],
+    pub tag40a: [u16; 17usize],
+    pub tag40b: [u16; 17usize],
+    pub tag41: [u16; 17usize],
+    pub stripe_count: u16,
+    pub tag43: u16,
+    pub stripe_offsets: [INT64; 5usize],
+    pub stripe_left: [u16; 5usize],
+    pub stripe_compressed_size: [u32; 5usize],
+    pub stripe_width: [u16; 5usize],
+    pub stripe_height: [u16; 5usize],
+}
+#[allow(clippy::unnecessary_operation, clippy::identity_op)]
+const _: () = {
+    ["Size of pana8_tags_t"][::core::mem::size_of::<pana8_tags_t>() - 248usize];
+    ["Alignment of pana8_tags_t"][::core::mem::align_of::<pana8_tags_t>() - 8usize];
+    ["Offset of field: pana8_tags_t::tag39"][::core::mem::offset_of!(pana8_tags_t, tag39) - 0usize];
+    ["Offset of field: pana8_tags_t::tag3A"]
+        [::core::mem::offset_of!(pana8_tags_t, tag3A) - 24usize];
+    ["Offset of field: pana8_tags_t::tag3B"]
+        [::core::mem::offset_of!(pana8_tags_t, tag3B) - 36usize];
+    ["Offset of field: pana8_tags_t::initial"]
+        [::core::mem::offset_of!(pana8_tags_t, initial) - 38usize];
+    ["Offset of field: pana8_tags_t::tag40a"]
+        [::core::mem::offset_of!(pana8_tags_t, tag40a) - 46usize];
+    ["Offset of field: pana8_tags_t::tag40b"]
+        [::core::mem::offset_of!(pana8_tags_t, tag40b) - 80usize];
+    ["Offset of field: pana8_tags_t::tag41"]
+        [::core::mem::offset_of!(pana8_tags_t, tag41) - 114usize];
+    ["Offset of field: pana8_tags_t::stripe_count"]
+        [::core::mem::offset_of!(pana8_tags_t, stripe_count) - 148usize];
+    ["Offset of field: pana8_tags_t::tag43"]
+        [::core::mem::offset_of!(pana8_tags_t, tag43) - 150usize];
+    ["Offset of field: pana8_tags_t::stripe_offsets"]
+        [::core::mem::offset_of!(pana8_tags_t, stripe_offsets) - 152usize];
+    ["Offset of field: pana8_tags_t::stripe_left"]
+        [::core::mem::offset_of!(pana8_tags_t, stripe_left) - 192usize];
+    ["Offset of field: pana8_tags_t::stripe_compressed_size"]
+        [::core::mem::offset_of!(pana8_tags_t, stripe_compressed_size) - 204usize];
+    ["Offset of field: pana8_tags_t::stripe_width"]
+        [::core::mem::offset_of!(pana8_tags_t, stripe_width) - 224usize];
+    ["Offset of field: pana8_tags_t::stripe_height"]
+        [::core::mem::offset_of!(pana8_tags_t, stripe_height) - 234usize];
+};
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
 pub struct unpacker_data_t {
     pub order: libc::c_short,
     pub sraw_mul: [ushort; 4usize],
@@ -7154,7 +7335,7 @@ pub struct unpacker_data_t {
     pub exif_offset: INT64,
     pub exif_subdir_offset: INT64,
     pub ifd0_offset: INT64,
-    pub data_size: libc::c_uint,
+    pub data_size: INT64,
     pub meta_length: libc::c_uint,
     pub cr3_exif_length: libc::c_uint,
     pub cr3_ifd0_length: libc::c_uint,
@@ -7181,6 +7362,7 @@ pub struct unpacker_data_t {
     pub fuji_lossless: libc::c_int,
     pub pana_encoding: libc::c_int,
     pub pana_bpp: libc::c_int,
+    pub pana8: pana8_tags_t,
     pub crx_header: [crx_data_header_t; 16usize],
     pub crx_track_selected: libc::c_int,
     pub crx_track_count: libc::c_int,
@@ -7198,7 +7380,7 @@ pub struct unpacker_data_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of unpacker_data_t"][::core::mem::size_of::<unpacker_data_t>() - 2368usize];
+    ["Size of unpacker_data_t"][::core::mem::size_of::<unpacker_data_t>() - 2616usize];
     ["Alignment of unpacker_data_t"][::core::mem::align_of::<unpacker_data_t>() - 8usize];
     ["Offset of field: unpacker_data_t::order"]
         [::core::mem::offset_of!(unpacker_data_t, order) - 0usize];
@@ -7223,37 +7405,37 @@ const _: () = {
     ["Offset of field: unpacker_data_t::data_size"]
         [::core::mem::offset_of!(unpacker_data_t, data_size) - 72usize];
     ["Offset of field: unpacker_data_t::meta_length"]
-        [::core::mem::offset_of!(unpacker_data_t, meta_length) - 76usize];
+        [::core::mem::offset_of!(unpacker_data_t, meta_length) - 80usize];
     ["Offset of field: unpacker_data_t::cr3_exif_length"]
-        [::core::mem::offset_of!(unpacker_data_t, cr3_exif_length) - 80usize];
+        [::core::mem::offset_of!(unpacker_data_t, cr3_exif_length) - 84usize];
     ["Offset of field: unpacker_data_t::cr3_ifd0_length"]
-        [::core::mem::offset_of!(unpacker_data_t, cr3_ifd0_length) - 84usize];
+        [::core::mem::offset_of!(unpacker_data_t, cr3_ifd0_length) - 88usize];
     ["Offset of field: unpacker_data_t::thumb_misc"]
-        [::core::mem::offset_of!(unpacker_data_t, thumb_misc) - 88usize];
+        [::core::mem::offset_of!(unpacker_data_t, thumb_misc) - 92usize];
     ["Offset of field: unpacker_data_t::thumb_format"]
-        [::core::mem::offset_of!(unpacker_data_t, thumb_format) - 92usize];
+        [::core::mem::offset_of!(unpacker_data_t, thumb_format) - 96usize];
     ["Offset of field: unpacker_data_t::fuji_layout"]
-        [::core::mem::offset_of!(unpacker_data_t, fuji_layout) - 96usize];
+        [::core::mem::offset_of!(unpacker_data_t, fuji_layout) - 100usize];
     ["Offset of field: unpacker_data_t::tiff_samples"]
-        [::core::mem::offset_of!(unpacker_data_t, tiff_samples) - 100usize];
+        [::core::mem::offset_of!(unpacker_data_t, tiff_samples) - 104usize];
     ["Offset of field: unpacker_data_t::tiff_bps"]
-        [::core::mem::offset_of!(unpacker_data_t, tiff_bps) - 104usize];
+        [::core::mem::offset_of!(unpacker_data_t, tiff_bps) - 108usize];
     ["Offset of field: unpacker_data_t::tiff_compress"]
-        [::core::mem::offset_of!(unpacker_data_t, tiff_compress) - 108usize];
+        [::core::mem::offset_of!(unpacker_data_t, tiff_compress) - 112usize];
     ["Offset of field: unpacker_data_t::tiff_sampleformat"]
-        [::core::mem::offset_of!(unpacker_data_t, tiff_sampleformat) - 112usize];
+        [::core::mem::offset_of!(unpacker_data_t, tiff_sampleformat) - 116usize];
     ["Offset of field: unpacker_data_t::zero_after_ff"]
-        [::core::mem::offset_of!(unpacker_data_t, zero_after_ff) - 116usize];
+        [::core::mem::offset_of!(unpacker_data_t, zero_after_ff) - 120usize];
     ["Offset of field: unpacker_data_t::tile_width"]
-        [::core::mem::offset_of!(unpacker_data_t, tile_width) - 120usize];
+        [::core::mem::offset_of!(unpacker_data_t, tile_width) - 124usize];
     ["Offset of field: unpacker_data_t::tile_length"]
-        [::core::mem::offset_of!(unpacker_data_t, tile_length) - 124usize];
+        [::core::mem::offset_of!(unpacker_data_t, tile_length) - 128usize];
     ["Offset of field: unpacker_data_t::load_flags"]
-        [::core::mem::offset_of!(unpacker_data_t, load_flags) - 128usize];
+        [::core::mem::offset_of!(unpacker_data_t, load_flags) - 132usize];
     ["Offset of field: unpacker_data_t::data_error"]
-        [::core::mem::offset_of!(unpacker_data_t, data_error) - 132usize];
+        [::core::mem::offset_of!(unpacker_data_t, data_error) - 136usize];
     ["Offset of field: unpacker_data_t::hasselblad_parser_flag"]
-        [::core::mem::offset_of!(unpacker_data_t, hasselblad_parser_flag) - 136usize];
+        [::core::mem::offset_of!(unpacker_data_t, hasselblad_parser_flag) - 140usize];
     ["Offset of field: unpacker_data_t::posRAFData"]
         [::core::mem::offset_of!(unpacker_data_t, posRAFData) - 144usize];
     ["Offset of field: unpacker_data_t::lenRAFData"]
@@ -7274,34 +7456,36 @@ const _: () = {
         [::core::mem::offset_of!(unpacker_data_t, pana_encoding) - 180usize];
     ["Offset of field: unpacker_data_t::pana_bpp"]
         [::core::mem::offset_of!(unpacker_data_t, pana_bpp) - 184usize];
+    ["Offset of field: unpacker_data_t::pana8"]
+        [::core::mem::offset_of!(unpacker_data_t, pana8) - 192usize];
     ["Offset of field: unpacker_data_t::crx_header"]
-        [::core::mem::offset_of!(unpacker_data_t, crx_header) - 192usize];
+        [::core::mem::offset_of!(unpacker_data_t, crx_header) - 440usize];
     ["Offset of field: unpacker_data_t::crx_track_selected"]
-        [::core::mem::offset_of!(unpacker_data_t, crx_track_selected) - 2240usize];
+        [::core::mem::offset_of!(unpacker_data_t, crx_track_selected) - 2488usize];
     ["Offset of field: unpacker_data_t::crx_track_count"]
-        [::core::mem::offset_of!(unpacker_data_t, crx_track_count) - 2244usize];
+        [::core::mem::offset_of!(unpacker_data_t, crx_track_count) - 2492usize];
     ["Offset of field: unpacker_data_t::CR3_CTMDtag"]
-        [::core::mem::offset_of!(unpacker_data_t, CR3_CTMDtag) - 2248usize];
+        [::core::mem::offset_of!(unpacker_data_t, CR3_CTMDtag) - 2496usize];
     ["Offset of field: unpacker_data_t::CR3_Version"]
-        [::core::mem::offset_of!(unpacker_data_t, CR3_Version) - 2250usize];
+        [::core::mem::offset_of!(unpacker_data_t, CR3_Version) - 2498usize];
     ["Offset of field: unpacker_data_t::CM_found"]
-        [::core::mem::offset_of!(unpacker_data_t, CM_found) - 2252usize];
+        [::core::mem::offset_of!(unpacker_data_t, CM_found) - 2500usize];
     ["Offset of field: unpacker_data_t::is_NikonTransfer"]
-        [::core::mem::offset_of!(unpacker_data_t, is_NikonTransfer) - 2256usize];
+        [::core::mem::offset_of!(unpacker_data_t, is_NikonTransfer) - 2504usize];
     ["Offset of field: unpacker_data_t::is_Olympus"]
-        [::core::mem::offset_of!(unpacker_data_t, is_Olympus) - 2260usize];
+        [::core::mem::offset_of!(unpacker_data_t, is_Olympus) - 2508usize];
     ["Offset of field: unpacker_data_t::OlympusDNG_SubDirOffsetValid"]
-        [::core::mem::offset_of!(unpacker_data_t, OlympusDNG_SubDirOffsetValid) - 2264usize];
+        [::core::mem::offset_of!(unpacker_data_t, OlympusDNG_SubDirOffsetValid) - 2512usize];
     ["Offset of field: unpacker_data_t::is_Sony"]
-        [::core::mem::offset_of!(unpacker_data_t, is_Sony) - 2268usize];
+        [::core::mem::offset_of!(unpacker_data_t, is_Sony) - 2516usize];
     ["Offset of field: unpacker_data_t::is_pana_raw"]
-        [::core::mem::offset_of!(unpacker_data_t, is_pana_raw) - 2272usize];
+        [::core::mem::offset_of!(unpacker_data_t, is_pana_raw) - 2520usize];
     ["Offset of field: unpacker_data_t::is_PentaxRicohMakernotes"]
-        [::core::mem::offset_of!(unpacker_data_t, is_PentaxRicohMakernotes) - 2276usize];
+        [::core::mem::offset_of!(unpacker_data_t, is_PentaxRicohMakernotes) - 2524usize];
     ["Offset of field: unpacker_data_t::dng_frames"]
-        [::core::mem::offset_of!(unpacker_data_t, dng_frames) - 2280usize];
+        [::core::mem::offset_of!(unpacker_data_t, dng_frames) - 2528usize];
     ["Offset of field: unpacker_data_t::raw_stride"]
-        [::core::mem::offset_of!(unpacker_data_t, raw_stride) - 2360usize];
+        [::core::mem::offset_of!(unpacker_data_t, raw_stride) - 2608usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7315,7 +7499,7 @@ pub struct libraw_internal_data_t {
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of libraw_internal_data_t"]
-        [::core::mem::size_of::<libraw_internal_data_t>() - 2504usize];
+        [::core::mem::size_of::<libraw_internal_data_t>() - 2752usize];
     ["Alignment of libraw_internal_data_t"]
         [::core::mem::align_of::<libraw_internal_data_t>() - 8usize];
     ["Offset of field: libraw_internal_data_t::internal_data"]
@@ -7350,19 +7534,19 @@ pub struct tiff_ifd_t {
     pub bps: libc::c_int,
     pub comp: libc::c_int,
     pub phint: libc::c_int,
-    pub offset: libc::c_int,
     pub t_flip: libc::c_int,
     pub samples: libc::c_int,
-    pub bytes: libc::c_int,
     pub extrasamples: libc::c_int,
+    pub offset: INT64,
+    pub bytes: INT64,
     pub t_tile_width: libc::c_int,
     pub t_tile_length: libc::c_int,
     pub sample_format: libc::c_int,
     pub predictor: libc::c_int,
     pub rows_per_strip: libc::c_int,
-    pub strip_offsets: *mut libc::c_int,
+    pub strip_offsets: *mut INT64,
     pub strip_offsets_count: libc::c_int,
-    pub strip_byte_counts: *mut libc::c_int,
+    pub strip_byte_counts: *mut INT64,
     pub strip_byte_counts_count: libc::c_int,
     pub t_filters: libc::c_uint,
     pub t_vwidth: libc::c_int,
@@ -7380,7 +7564,7 @@ pub struct tiff_ifd_t {
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
-    ["Size of tiff_ifd_t"][::core::mem::size_of::<tiff_ifd_t>() - 33408usize];
+    ["Size of tiff_ifd_t"][::core::mem::size_of::<tiff_ifd_t>() - 33472usize];
     ["Alignment of tiff_ifd_t"][::core::mem::align_of::<tiff_ifd_t>() - 8usize];
     ["Offset of field: tiff_ifd_t::t_width"][::core::mem::offset_of!(tiff_ifd_t, t_width) - 0usize];
     ["Offset of field: tiff_ifd_t::t_height"]
@@ -7388,55 +7572,55 @@ const _: () = {
     ["Offset of field: tiff_ifd_t::bps"][::core::mem::offset_of!(tiff_ifd_t, bps) - 8usize];
     ["Offset of field: tiff_ifd_t::comp"][::core::mem::offset_of!(tiff_ifd_t, comp) - 12usize];
     ["Offset of field: tiff_ifd_t::phint"][::core::mem::offset_of!(tiff_ifd_t, phint) - 16usize];
-    ["Offset of field: tiff_ifd_t::offset"][::core::mem::offset_of!(tiff_ifd_t, offset) - 20usize];
-    ["Offset of field: tiff_ifd_t::t_flip"][::core::mem::offset_of!(tiff_ifd_t, t_flip) - 24usize];
+    ["Offset of field: tiff_ifd_t::t_flip"][::core::mem::offset_of!(tiff_ifd_t, t_flip) - 20usize];
     ["Offset of field: tiff_ifd_t::samples"]
-        [::core::mem::offset_of!(tiff_ifd_t, samples) - 28usize];
-    ["Offset of field: tiff_ifd_t::bytes"][::core::mem::offset_of!(tiff_ifd_t, bytes) - 32usize];
+        [::core::mem::offset_of!(tiff_ifd_t, samples) - 24usize];
     ["Offset of field: tiff_ifd_t::extrasamples"]
-        [::core::mem::offset_of!(tiff_ifd_t, extrasamples) - 36usize];
+        [::core::mem::offset_of!(tiff_ifd_t, extrasamples) - 28usize];
+    ["Offset of field: tiff_ifd_t::offset"][::core::mem::offset_of!(tiff_ifd_t, offset) - 32usize];
+    ["Offset of field: tiff_ifd_t::bytes"][::core::mem::offset_of!(tiff_ifd_t, bytes) - 40usize];
     ["Offset of field: tiff_ifd_t::t_tile_width"]
-        [::core::mem::offset_of!(tiff_ifd_t, t_tile_width) - 40usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_tile_width) - 48usize];
     ["Offset of field: tiff_ifd_t::t_tile_length"]
-        [::core::mem::offset_of!(tiff_ifd_t, t_tile_length) - 44usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_tile_length) - 52usize];
     ["Offset of field: tiff_ifd_t::sample_format"]
-        [::core::mem::offset_of!(tiff_ifd_t, sample_format) - 48usize];
+        [::core::mem::offset_of!(tiff_ifd_t, sample_format) - 56usize];
     ["Offset of field: tiff_ifd_t::predictor"]
-        [::core::mem::offset_of!(tiff_ifd_t, predictor) - 52usize];
+        [::core::mem::offset_of!(tiff_ifd_t, predictor) - 60usize];
     ["Offset of field: tiff_ifd_t::rows_per_strip"]
-        [::core::mem::offset_of!(tiff_ifd_t, rows_per_strip) - 56usize];
+        [::core::mem::offset_of!(tiff_ifd_t, rows_per_strip) - 64usize];
     ["Offset of field: tiff_ifd_t::strip_offsets"]
-        [::core::mem::offset_of!(tiff_ifd_t, strip_offsets) - 64usize];
+        [::core::mem::offset_of!(tiff_ifd_t, strip_offsets) - 72usize];
     ["Offset of field: tiff_ifd_t::strip_offsets_count"]
-        [::core::mem::offset_of!(tiff_ifd_t, strip_offsets_count) - 72usize];
+        [::core::mem::offset_of!(tiff_ifd_t, strip_offsets_count) - 80usize];
     ["Offset of field: tiff_ifd_t::strip_byte_counts"]
-        [::core::mem::offset_of!(tiff_ifd_t, strip_byte_counts) - 80usize];
+        [::core::mem::offset_of!(tiff_ifd_t, strip_byte_counts) - 88usize];
     ["Offset of field: tiff_ifd_t::strip_byte_counts_count"]
-        [::core::mem::offset_of!(tiff_ifd_t, strip_byte_counts_count) - 88usize];
+        [::core::mem::offset_of!(tiff_ifd_t, strip_byte_counts_count) - 96usize];
     ["Offset of field: tiff_ifd_t::t_filters"]
-        [::core::mem::offset_of!(tiff_ifd_t, t_filters) - 92usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_filters) - 100usize];
     ["Offset of field: tiff_ifd_t::t_vwidth"]
-        [::core::mem::offset_of!(tiff_ifd_t, t_vwidth) - 96usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_vwidth) - 104usize];
     ["Offset of field: tiff_ifd_t::t_vheight"]
-        [::core::mem::offset_of!(tiff_ifd_t, t_vheight) - 100usize];
-    ["Offset of field: tiff_ifd_t::t_lm"][::core::mem::offset_of!(tiff_ifd_t, t_lm) - 104usize];
-    ["Offset of field: tiff_ifd_t::t_tm"][::core::mem::offset_of!(tiff_ifd_t, t_tm) - 108usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_vheight) - 108usize];
+    ["Offset of field: tiff_ifd_t::t_lm"][::core::mem::offset_of!(tiff_ifd_t, t_lm) - 112usize];
+    ["Offset of field: tiff_ifd_t::t_tm"][::core::mem::offset_of!(tiff_ifd_t, t_tm) - 116usize];
     ["Offset of field: tiff_ifd_t::t_fuji_width"]
-        [::core::mem::offset_of!(tiff_ifd_t, t_fuji_width) - 112usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_fuji_width) - 120usize];
     ["Offset of field: tiff_ifd_t::t_shutter"]
-        [::core::mem::offset_of!(tiff_ifd_t, t_shutter) - 116usize];
+        [::core::mem::offset_of!(tiff_ifd_t, t_shutter) - 124usize];
     ["Offset of field: tiff_ifd_t::opcode2_offset"]
-        [::core::mem::offset_of!(tiff_ifd_t, opcode2_offset) - 120usize];
+        [::core::mem::offset_of!(tiff_ifd_t, opcode2_offset) - 128usize];
     ["Offset of field: tiff_ifd_t::lineartable_offset"]
-        [::core::mem::offset_of!(tiff_ifd_t, lineartable_offset) - 128usize];
+        [::core::mem::offset_of!(tiff_ifd_t, lineartable_offset) - 136usize];
     ["Offset of field: tiff_ifd_t::lineartable_len"]
-        [::core::mem::offset_of!(tiff_ifd_t, lineartable_len) - 136usize];
+        [::core::mem::offset_of!(tiff_ifd_t, lineartable_len) - 144usize];
     ["Offset of field: tiff_ifd_t::dng_color"]
-        [::core::mem::offset_of!(tiff_ifd_t, dng_color) - 140usize];
+        [::core::mem::offset_of!(tiff_ifd_t, dng_color) - 148usize];
     ["Offset of field: tiff_ifd_t::dng_levels"]
-        [::core::mem::offset_of!(tiff_ifd_t, dng_levels) - 476usize];
+        [::core::mem::offset_of!(tiff_ifd_t, dng_levels) - 488usize];
     ["Offset of field: tiff_ifd_t::newsubfiletype"]
-        [::core::mem::offset_of!(tiff_ifd_t, newsubfiletype) - 33404usize];
+        [::core::mem::offset_of!(tiff_ifd_t, newsubfiletype) - 33464usize];
 };
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -7657,6 +7841,13 @@ unsafe extern "C" {
     );
 }
 unsafe extern "C" {
+    pub fn libraw_set_makernotes_handler(
+        arg1: *mut libraw_data_t,
+        cb: exif_parser_callback,
+        datap: *mut libc::c_void,
+    );
+}
+unsafe extern "C" {
     pub fn libraw_set_dataerror_handler(
         arg1: *mut libraw_data_t,
         func: data_callback,
@@ -7688,6 +7879,13 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn libraw_capabilities() -> libc::c_uint;
+}
+unsafe extern "C" {
+    pub fn libraw_adjust_to_raw_inset_crop(
+        lr: *mut libraw_data_t,
+        mask: libc::c_uint,
+        maxcrop: f32,
+    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn libraw_adjust_sizes_info_only(arg1: *mut libraw_data_t) -> libc::c_int;
