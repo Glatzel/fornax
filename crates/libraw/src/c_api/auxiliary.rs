@@ -55,12 +55,21 @@ impl Libraw {
 }
 #[cfg(test)]
 mod test {
+
     use super::*;
 
     #[test]
     fn test_version() {
         let version = Libraw::version();
-        assert_eq!(version, "0.21.4-Release".to_string());
+        assert_eq!(
+            version,
+            format!(
+                "{}.{}.{}-Release",
+                libraw_sys::LIBRAW_MAJOR_VERSION,
+                libraw_sys::LIBRAW_MINOR_VERSION,
+                libraw_sys::LIBRAW_PATCH_VERSION,
+            )
+        );
     }
     #[test]
     fn test_camera_count() {
