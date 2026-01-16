@@ -6,7 +6,7 @@ platforms = ["win-64", "linux-64", "osx-arm64"]
 version = "0.1.0"
 
 [dependencies]
-libraw = { version = "==0.21.4", channel = "https://prefix.dev/glatzel" }
+libraw = { version = "==0.22.0", channel = "https://prefix.dev/glatzel" }
 maturin = "==1.11.5"
 pip = "==25.3"
 pkg-config = "==0.29.2"
