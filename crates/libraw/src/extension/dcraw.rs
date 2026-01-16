@@ -5,6 +5,7 @@ use envoy::ToCString;
 use crate::{DCRawOutputBps, DCRawOutputColor, DCRawParams, ImgdataPointer, LibrawError};
 
 impl DCRawParams {
+    #[allow(unused_mut)]
     pub(crate) fn set_output_params(
         &self,
         mut imgdata: Arc<ImgdataPointer>,
