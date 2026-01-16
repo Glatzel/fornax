@@ -17,11 +17,11 @@ impl Libraw {
     fn _libraw_get_decoder_info() { todo!() }
     fn _libraw_unpack_function_name() { todo!() }
     pub fn color(&self, row: i32, col: i32) -> i32 {
-        unsafe { libraw_sys::libraw_COLOR(self.imgdata, row, col) }
+        unsafe { libraw_sys::libraw_COLOR(self.imgdata.0, row, col) }
     }
     pub fn libraw_subtract_black(&self) -> Result<&Self, LibrawError> {
         check_raw_alloc!(self.imgdata);
-        unsafe { libraw_sys::libraw_subtract_black(self.imgdata) };
+        unsafe { libraw_sys::libraw_subtract_black(self.imgdata.0) };
         Ok(self)
     }
     fn _libraw_recycle_datastream() { todo!() }
@@ -42,14 +42,14 @@ impl Libraw {
 impl Libraw {
     pub fn raw2image(&self) -> Result<&Self, LibrawError> {
         check_raw_alloc!(self.imgdata);
-        check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata) });
+        check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata.0) });
         Ok(self)
     }
     fn _libraw_free_image() { todo!() }
     fn _libraw_adjust_sizes_info_only() { todo!() }
     pub fn dcraw_process(&self) -> Result<&Self, LibrawError> {
         check_raw_alloc!(self.imgdata);
-        check_run!(unsafe { libraw_sys::libraw_dcraw_process(self.imgdata) });
+        check_run!(unsafe { libraw_sys::libraw_dcraw_process(self.imgdata.0) });
         Ok(self)
     }
 }

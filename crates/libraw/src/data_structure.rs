@@ -8,6 +8,7 @@ mod processed_image;
 mod rawdata;
 
 pub(crate) use constants::{LibrawError, LibrawErrorCode};
+pub(crate) use data::ImgdataPointer;
 pub use data::Libraw;
 pub use image_sizes::{ImageSizes, ImageSizesFlip};
 pub use imgother::{ImgOther, ImgOtherGpsInfo};

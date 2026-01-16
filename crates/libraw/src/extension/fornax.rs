@@ -72,7 +72,7 @@ where
         self.unpack().map_err(FornaxError::from)?;
         if let Some(params) = &self.params {
             params
-                .set_output_params(self.imgdata)
+                .set_output_params(self.imgdata.clone())
                 .map_err(FornaxError::from)?;
         }
         let processed = self
@@ -110,11 +110,11 @@ where
         self.unpack().map_err(FornaxError::from)?;
         if let Some(params) = &self.params {
             params
-                .set_output_params(self.imgdata)
+                .set_output_params(self.imgdata.clone())
                 .map_err(FornaxError::from)?;
         }
         clerk::debug!("Set new params.");
-        clerk::debug!("{:?}", unsafe { (*self.imgdata).params });
+        clerk::debug!("{:?}", unsafe { (*self.imgdata.0).params });
         let processed = self
             .dcraw_process()
             .map_err(FornaxError::from)?

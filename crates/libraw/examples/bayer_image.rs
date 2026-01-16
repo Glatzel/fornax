@@ -2,7 +2,7 @@ use fornax_core::BayerPattern;
 
 fn main() -> mischief::Result<()> {
     fornax_devtool::example_setup();
-    let libraw = libraw::Libraw::new(None);
+    let libraw = libraw::Libraw::default();
     let img: fornax_core::BayerImage<u16> = libraw
         .open_file(&fornax_devtool::raw_file())?
         .unpack()?
