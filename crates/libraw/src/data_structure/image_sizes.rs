@@ -12,9 +12,12 @@ pub enum ImageSizesFlip {
     CCW90 = 6,
     CW90 = 9,
 }
-
+///Structure libraw_image_sizes_t is a collection of all file data that
+/// describe the size of the image.
+///
 /// # references
-/// - [libraw_image_sizes_t](https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t)
+///
+/// * <https://www.libraw.org/docs/API-datastruct-eng.html#libraw_image_sizes_t>
 #[derive(Debug, Clone)]
 pub struct ImageSizes {
     imgdata: Arc<ImgdataPointer>,

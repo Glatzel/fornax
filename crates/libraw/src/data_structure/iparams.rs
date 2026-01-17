@@ -23,7 +23,9 @@ impl TryFrom<&CStr> for IParamsColorDesc {
         })
     }
 }
-
+///# References
+///
+/// * <https://www.libraw.org/docs/API-datastruct-eng.html#libraw_iparams_t>
 #[derive(Debug, Clone)]
 pub struct IParams {
     imgdata: Arc<ImgdataPointer>,
