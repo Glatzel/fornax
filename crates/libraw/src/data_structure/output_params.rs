@@ -99,7 +99,7 @@ pub enum DCRawFbddNoiserd {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(u8)]
-pub enum DCRawUseDngSdk {
+pub enum _DCRawUseDngSdk {
     DoNotUse = 0,
     UseForSpecialityFormats = 1,
     All = 2,
@@ -284,7 +284,7 @@ pub struct DCRawParams {
     /// Turns on using RawSpeed library for data unpacking (only if RawSpeed
     /// support compiled in).
     pub use_rawspeed: Option<bool>,
-    pub use_dng_sdk: Option<DCRawUseDngSdk>,
+    // pub use_dng_sdk: Option<DCRawUseDngSdk>,
     ///Disables pixel values scaling (call to LibRaw::scale_colors()) in
     /// LibRaw::dcraw_process().
     ///
