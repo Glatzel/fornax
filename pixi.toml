@@ -6,8 +6,6 @@ platforms = ["win-64", "linux-64", "osx-arm64"]
 [dependencies]
 libraw = "==0.22.0"
 maturin = "==1.11.5"
-pip = "==25.3"
-pkg-config = "==0.29.2"
 python = "3.13.*"
 
 imageio = "==2.37.0"
