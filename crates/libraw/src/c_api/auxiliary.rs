@@ -1,13 +1,13 @@
-use envoy::{CStrListToVecString, CStrToString};
+use std::ffi::CStr;
+
+use envoy::CStrListToVecString;
 
 use crate::{Libraw, LibrawError, check_raw_alloc, check_run};
 
 // region:Auxiliary Functions
 // https://www.libraw.org/docs/API-CXX.html#utility
 impl Libraw {
-    pub fn version() -> String {
-        unsafe { libraw_sys::libraw_version().to_string().unwrap_or_default() }
-    }
+    pub fn version() -> &'static CStr { unsafe { CStr::from_ptr(libraw_sys::libraw_version()) } }
     fn _check_version() -> bool { todo!() }
     fn _libraw_capabilities() { todo!() }
     pub fn camera_count() -> i32 { unsafe { libraw_sys::libraw_cameraCount() } }
@@ -26,12 +26,8 @@ impl Libraw {
     }
     fn _libraw_recycle_datastream() { todo!() }
     fn _libraw_recycle() { todo!() }
-    pub fn strerror(errorcode: i32) -> String {
-        unsafe {
-            libraw_sys::libraw_strerror(errorcode)
-                .to_string()
-                .unwrap_or_default()
-        }
+    pub fn strerror(errorcode: i32) -> &'static CStr {
+        unsafe { CStr::from_ptr(libraw_sys::libraw_strerror(errorcode)) }
     }
     fn _libraw_strprogress() { todo!() }
     fn _libraw_set_dataerror_handler() { todo!() }
@@ -59,10 +55,10 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_version() {
+    fn test_version() -> mischief::Result<()> {
         let version = Libraw::version();
         assert_eq!(
-            version,
+            version.to_str()?,
             format!(
                 "{}.{}.{}-Release",
                 libraw_sys::LIBRAW_MAJOR_VERSION,
@@ -70,6 +66,7 @@ mod test {
                 libraw_sys::LIBRAW_PATCH_VERSION,
             )
         );
+        Ok(())
     }
     #[test]
     fn test_camera_count() {

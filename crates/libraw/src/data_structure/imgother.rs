@@ -37,7 +37,9 @@ impl ImgOtherGpsInfo {
         unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.gpsparsed as *const i8) }
     }
 }
-
+///# References
+///
+/// * <https://www.libraw.org/docs/API-datastruct-eng.html#libraw_imgother_t>
 #[derive(Debug, Clone)]
 pub struct ImgOther {
     imgdata: Arc<ImgdataPointer>,

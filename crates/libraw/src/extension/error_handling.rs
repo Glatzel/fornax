@@ -25,6 +25,9 @@ macro_rules! check_run {
                     $crate::LibrawError {
                         code,
                         message: crate::Libraw::strerror(code as i32)
+                            .to_str()
+                            .map_err($crate::LibrawError::from)?
+                            .to_string()
                     }
                 );
             }
@@ -39,7 +42,10 @@ macro_rules! check_run {
             | crate::LibrawErrorCode::MempoolOverflow => {
                 let err = $crate::LibrawError {
                     code,
-                    message: crate::Libraw::strerror(code as i32),
+                    message: crate::Libraw::strerror(code as i32)
+                        .to_str()
+                        .map_err($crate::LibrawError::from)?
+                        .to_string(),
                 };
                 clerk::error!("{:?}", err);
                 return Err(err);

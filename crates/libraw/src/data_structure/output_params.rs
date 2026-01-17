@@ -96,11 +96,22 @@ pub enum DCRawFbddNoiserd {
     Light = 1,
     Full = 2,
 }
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[repr(u8)]
+pub enum DCRawUseDngSdk {
+    DoNotUse = 0,
+    UseForSpecialityFormats = 1,
+    All = 2,
+}
 
 ///Structure libraw_output_params_t (imgdata.params) is used for management of
 /// dcraw-compatible calls dcraw_process(), dcraw_ppm_tiff_writer(), and
 /// dcraw_thumb_writer(). Fields of this structure correspond to command line
 /// keys of dcraw.
+///# References
+///
+/// * <https://www.libraw.org/docs/API-datastruct-eng.html#libraw_output_params_t>
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct DCRawParams {
@@ -273,6 +284,7 @@ pub struct DCRawParams {
     /// Turns on using RawSpeed library for data unpacking (only if RawSpeed
     /// support compiled in).
     pub use_rawspeed: Option<bool>,
+    pub use_dng_sdk: Option<DCRawUseDngSdk>,
     ///Disables pixel values scaling (call to LibRaw::scale_colors()) in
     /// LibRaw::dcraw_process().
     ///

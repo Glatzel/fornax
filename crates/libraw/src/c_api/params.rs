@@ -5,7 +5,6 @@ use crate::{
     ImgOther, Libraw, LibrawError, check_raw_alloc,
 };
 
-// region:Parameters setters/getters
 impl Libraw {
     pub fn get_raw_height(&self) -> Result<i32, LibrawError> {
         check_raw_alloc!(self.imgdata);
