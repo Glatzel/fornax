@@ -12,5 +12,4 @@ if ($IsLinux) {
 }
 if ($IsMacOS) {
     $env:PKG_CONFIG_PATH = Resolve-Path $PSScriptRoot/../.pixi/envs/default/libraw/arm64-osx-release/lib/pkgconfig
-    $env:MACOSX_DEPLOYMENT_TARGET="14.0"
 }
