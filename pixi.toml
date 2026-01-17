@@ -1,5 +1,5 @@
 [workspace]
-channels = [ "https://prefix.dev/glatzel","conda-forge"]
+channels = ["https://prefix.dev/glatzel", "conda-forge"]
 name = "fornax"
 platforms = ["win-64", "linux-64", "osx-arm64"]
 
