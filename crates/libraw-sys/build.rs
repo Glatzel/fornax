@@ -3,7 +3,9 @@ use std::path::PathBuf;
 
 fn main() {
     // Link
-    let _pk_libraw = link_lib("libraw_r", "raw_r");
+    let _pk_libraw = pkg_config::Config::new().probe("libraw_r").unwrap();
+    println!("cargo:rustc-link-lib=raw_r");
+
     #[cfg(target_os = "linux")]
     {
         println!("cargo:rustc-link-lib=m");
@@ -66,23 +68,13 @@ fn main() {
                     panic!("Unsupported OS: {other}")
                 }
             }
+            if env::var("BINDGEN").unwrap_or("false".to_string()) == "true" {
+                println!("cargo:rustc-cfg=bindgen");
+                bindings
+                    .write_to_file(PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs"))
+                    .expect("Couldn't write bindings!");
+            }
         }
-        if env::var("BINDGEN").unwrap_or("false".to_string()) == "true" {
-            println!("cargo:rustc-cfg=bindgen");
-            bindings
-                .write_to_file(PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs"))
-                .expect("Couldn't write bindings!");
-        }
-    }
-}
-fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
-    match pkg_config::Config::new().probe(name) {
-        Ok(pklib) => {
-            println!("cargo:rustc-link-lib=static={lib}");
-            println!("Link to `{lib}`");
-            pklib
-        }
-        Err(e) => panic!("cargo:warning=Pkg-config error: {e:?}"),
     }
 }
 
