@@ -14,4 +14,3 @@ if ($IsMacOS) {
     $env:Path = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/default/lib)`:$env:Path"
     $env:PKG_CONFIG_PATH = Resolve-Path $PSScriptRoot/../.pixi/envs/default/lib/pkgconfig
 }
-
