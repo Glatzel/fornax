@@ -56,11 +56,21 @@ fn main() {
                         .write_to_file("./src/bindings-win.rs")
                         .expect("Couldn't write bindings!");
                 }
-                "linux" => {
-                    bindings
-                        .write_to_file("./src/bindings-linux.rs")
-                        .expect("Couldn't write bindings!");
-                }
+                "linux" => match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
+                    "x86_64" => {
+                        bindings
+                            .write_to_file("./src/bindings-linux.rs")
+                            .expect("Couldn't write bindings!");
+                    }
+                    "aarch64" => {
+                        bindings
+                            .write_to_file("./src/bindings-linux-aarch64.rs")
+                            .expect("Couldn't write bindings!");
+                    }
+                    other => {
+                        panic!("Unsupported OS: {other}")
+                    }
+                },
                 "macos" => {
                     bindings
                         .write_to_file("./src/bindings-macos.rs")
