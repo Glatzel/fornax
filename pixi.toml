@@ -1,7 +1,7 @@
 [workspace]
 channels = ["https://prefix.dev/glatzel", "conda-forge"]
 name = "fornax"
-platforms = ["win-64", "linux-64", "osx-arm64"]
+platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
 [dependencies]
 libraw = "==0.22.0"

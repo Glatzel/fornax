@@ -48,22 +48,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - machine: windows-latest
-            os: win-64
-          - machine: ubuntu-latest
-            os: linux-64
-          - machine: macos-latest
-            os: osx-arm64
-
+        machine: [windows-latest, ubuntu-latest, macos-latest, ubuntu-24.04-arm]
     env:
       dnc_version: 18_0
     runs-on: ${{matrix.machine}}
     steps:
-      - if: ${{contains(matrix.os,'linux')}}
-        run: |
-          sudo apt-get update
-          sudo apt-get install libgomp1
       - uses: actions/checkout@v6
       - name: restore dnc
         if: ${{runner.os != 'Linux'}}
