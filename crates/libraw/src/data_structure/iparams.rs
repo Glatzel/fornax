@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, c_char};
 use std::sync::Arc;
 
 use crate::{ImgdataPointer, LibrawError};
@@ -85,11 +85,11 @@ impl IParams {
     ///These matrices contains Fuji X-Trans row/col to color mapping. First one
     /// is relative to visible area, while second is positioned relative to
     /// sensor edges.
-    pub fn xtrans(&self) -> &[[i8; 6]; 6] { unsafe { &(*self.imgdata.0).idata.xtrans } }
+    pub fn xtrans(&self) -> &[[c_char; 6]; 6] { unsafe { &(*self.imgdata.0).idata.xtrans } }
     ///These matrices contains Fuji X-Trans row/col to color mapping. First one
     /// is relative to visible area, while second is positioned relative to
     /// sensor edges.
-    pub fn xtrans_abs(&self) -> &[[i8; 6]; 6] { unsafe { &(*self.imgdata.0).idata.xtrans_abs } }
+    pub fn xtrans_abs(&self) -> &[[c_char; 6]; 6] { unsafe { &(*self.imgdata.0).idata.xtrans_abs } }
     ///Description of colors numbered from 0 to 3 (RGBG,RGBE,GMCY, or GBTG).
     pub fn cdesc(&self) -> Result<IParamsColorDesc, LibrawError> {
         IParamsColorDesc::try_from(unsafe {
