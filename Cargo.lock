@@ -752,7 +752,6 @@ dependencies = [
  "bindgen",
  "dunce",
  "libc",
- "pkg-config",
 ]
 
 [[package]]
