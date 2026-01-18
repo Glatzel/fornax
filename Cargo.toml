@@ -4,7 +4,7 @@ resolver = "2"
 
 [workspace.package]
 edition = "2024"
-version = "0.0.13"
+version = "0.0.14"
 
 [workspace.dependencies]
 clerk = { git = "https://github.com/Glatzel/clerk", tag = "v0.0.33" }
