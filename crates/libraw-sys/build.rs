@@ -3,20 +3,22 @@ use std::path::PathBuf;
 
 fn main() {
     // Link
-    let _pk_libraw = pkg_config::Config::new().probe("libraw_r").unwrap();
+    let libraw_root = PathBuf::from(env::var("LIBRAW_ROOT").expect("LIBRAW_ROOT must be set"));
+    let lib_dir = libraw_root.join("lib");
+    println!("cargo:rustc-link-search=native={}", lib_dir.display());
     println!("cargo:rustc-link-lib=raw_r");
 
-    #[cfg(target_os = "linux")]
-    {
-        println!("cargo:rustc-link-lib=m");
-        println!("cargo:rustc-link-lib=stdc++");
-        println!("cargo:rustc-link-lib=gomp");
-    }
-    #[cfg(target_os = "macos")]
-    {
-        println!("cargo:rustc-link-lib=c++");
-        println!("cargo:rustc-link-lib=m");
-    }
+    // #[cfg(target_os = "linux")]
+    // {
+    //     println!("cargo:rustc-link-lib=m");
+    //     println!("cargo:rustc-link-lib=stdc++");
+    //     println!("cargo:rustc-link-lib=gomp");
+    // }
+    // #[cfg(target_os = "macos")]
+    // {
+    //     println!("cargo:rustc-link-lib=c++");
+    //     println!("cargo:rustc-link-lib=m");
+    // }
     // generate bindings
     if env::var("UPDATE").unwrap_or("false".to_string()) == "true"
         || env::var("BINDGEN").unwrap_or("false".to_string()) == "true"
@@ -32,8 +34,8 @@ fn main() {
             .into_iter()
             .collect(),
         );
-
-        let header = &_pk_libraw.include_paths[0]
+        let include_dir = libraw_root.join("include");
+        let header = include_dir
             .join("libraw/libraw.h")
             .to_string_lossy()
             .to_string();
