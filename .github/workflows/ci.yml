@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-latest, ubuntu-latest, macos-latest]
+        machine: [windows-latest, ubuntu-latest, macos-latest, ubuntu-24.04-arm]
     env:
       dnc_version: 18_0
     runs-on: ${{matrix.machine}}
