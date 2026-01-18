@@ -1,4 +1,4 @@
-use std::ffi::CStr;
+use std::ffi::{CStr, c_char};
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
@@ -22,19 +22,19 @@ impl ImgOtherGpsInfo {
     }
     pub fn altitude(&self) -> f32 { unsafe { (*self.imgdata.0).other.parsed_gps.altitude } }
     pub fn altref(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.altref as *const i8) }
+        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.altref as *const c_char) }
     }
     pub fn latref(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.latref as *const i8) }
+        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.latref as *const c_char) }
     }
     pub fn longref(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.longref as *const i8) }
+        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.longref as *const c_char) }
     }
     pub fn gpsstatus(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.gpsstatus as *const i8) }
+        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.gpsstatus as *const c_char) }
     }
     pub fn gpsparsed(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.gpsparsed as *const i8) }
+        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.gpsparsed as *const c_char) }
     }
 }
 ///# References

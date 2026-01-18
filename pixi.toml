@@ -1,15 +1,12 @@
 [workspace]
-authors = ["Glatzel <893016099@qq.com>"]
-channels = ["conda-forge", "https://prefix.dev/glatzel"]
+channels = ["https://prefix.dev/glatzel", "conda-forge"]
 name = "fornax"
-platforms = ["win-64", "linux-64", "osx-arm64"]
-version = "0.1.0"
+platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
 [dependencies]
-libraw-static = { version = "==0.22.0", channel = "https://prefix.dev/glatzel" }
+libraw = "==0.22.0"
 maturin = "==1.11.5"
 pip = "==25.3"
-pkg-config = "==0.29.2"
 python = "3.13.*"
 
 imageio = "==2.37.0"

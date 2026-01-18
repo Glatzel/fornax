@@ -3,18 +3,22 @@ use std::path::PathBuf;
 
 fn main() {
     // Link
-    let _pk_libraw = link_lib("libraw_r", "raw_r");
-    #[cfg(target_os = "linux")]
-    {
-        println!("cargo:rustc-link-lib=m");
-        println!("cargo:rustc-link-lib=stdc++");
-        println!("cargo:rustc-link-lib=gomp");
-    }
-    #[cfg(target_os = "macos")]
-    {
-        println!("cargo:rustc-link-lib=c++");
-        println!("cargo:rustc-link-lib=m");
-    }
+    let libraw_root = PathBuf::from(env::var("LIBRAW_ROOT").expect("LIBRAW_ROOT must be set"));
+    let lib_dir = libraw_root.join("lib");
+    println!("cargo:rustc-link-search=native={}", lib_dir.display());
+    println!("cargo:rustc-link-lib=raw_r");
+
+    // #[cfg(target_os = "linux")]
+    // {
+    //     println!("cargo:rustc-link-lib=m");
+    //     println!("cargo:rustc-link-lib=stdc++");
+    //     println!("cargo:rustc-link-lib=gomp");
+    // }
+    // #[cfg(target_os = "macos")]
+    // {
+    //     println!("cargo:rustc-link-lib=c++");
+    //     println!("cargo:rustc-link-lib=m");
+    // }
     // generate bindings
     if env::var("UPDATE").unwrap_or("false".to_string()) == "true"
         || env::var("BINDGEN").unwrap_or("false".to_string()) == "true"
@@ -30,8 +34,8 @@ fn main() {
             .into_iter()
             .collect(),
         );
-
-        let header = &_pk_libraw.include_paths[0]
+        let include_dir = libraw_root.join("include");
+        let header = include_dir
             .join("libraw/libraw.h")
             .to_string_lossy()
             .to_string();
@@ -52,11 +56,21 @@ fn main() {
                         .write_to_file("./src/bindings-win.rs")
                         .expect("Couldn't write bindings!");
                 }
-                "linux" => {
-                    bindings
-                        .write_to_file("./src/bindings-linux.rs")
-                        .expect("Couldn't write bindings!");
-                }
+                "linux" => match env::var("CARGO_CFG_TARGET_ARCH").unwrap().as_str() {
+                    "x86_64" => {
+                        bindings
+                            .write_to_file("./src/bindings-linux.rs")
+                            .expect("Couldn't write bindings!");
+                    }
+                    "aarch64" => {
+                        bindings
+                            .write_to_file("./src/bindings-linux-aarch64.rs")
+                            .expect("Couldn't write bindings!");
+                    }
+                    other => {
+                        panic!("Unsupported OS: {other}")
+                    }
+                },
                 "macos" => {
                     bindings
                         .write_to_file("./src/bindings-macos.rs")
@@ -66,23 +80,13 @@ fn main() {
                     panic!("Unsupported OS: {other}")
                 }
             }
+            if env::var("BINDGEN").unwrap_or("false".to_string()) == "true" {
+                println!("cargo:rustc-cfg=bindgen");
+                bindings
+                    .write_to_file(PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs"))
+                    .expect("Couldn't write bindings!");
+            }
         }
-        if env::var("BINDGEN").unwrap_or("false".to_string()) == "true" {
-            println!("cargo:rustc-cfg=bindgen");
-            bindings
-                .write_to_file(PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs"))
-                .expect("Couldn't write bindings!");
-        }
-    }
-}
-fn link_lib(name: &str, lib: &str) -> pkg_config::Library {
-    match pkg_config::Config::new().probe(name) {
-        Ok(pklib) => {
-            println!("cargo:rustc-link-lib=static={lib}");
-            println!("Link to `{lib}`");
-            pklib
-        }
-        Err(e) => panic!("cargo:warning=Pkg-config error: {e:?}"),
     }
 }
 
