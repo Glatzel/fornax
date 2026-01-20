@@ -14,7 +14,7 @@ pub enum IParamsColorDesc {
 impl TryFrom<&CStr> for IParamsColorDesc {
     type Error = crate::LibrawError;
     fn try_from(value: &CStr) -> Result<Self, Self::Error> {
-        Ok(match value.to_str().map_err(LibrawError::from)? {
+        Ok(match value.to_str()? {
             "RGBG" => IParamsColorDesc::RGBG,
             "RGBE" => IParamsColorDesc::RGBE,
             "GMCY" => IParamsColorDesc::GMCY,

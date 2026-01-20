@@ -21,8 +21,13 @@ impl ImgOtherGpsInfo {
         unsafe { (**self.imgdata).other.parsed_gps.gpstimestamp }
     }
     pub fn altitude(&self) -> f32 { unsafe { (**self.imgdata).other.parsed_gps.altitude } }
-    pub fn altref(&self) -> &CStr {
-        unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.altref as *const c_char) }
+    pub fn altref(&self) -> Result<&str, LibrawError> {
+        unsafe {
+            Ok(
+                CStr::from_ptr((**self.imgdata).other.parsed_gps.altref as *const c_char)
+                    .to_str()?,
+            )
+        }
     }
     pub fn latref(&self) -> &CStr {
         unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.latref as *const c_char) }

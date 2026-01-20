@@ -56,6 +56,8 @@ impl ImageSizes {
     ///Image orientation (0 if does not require rotation; 3 if requires 180-deg
     /// rotation; 5 if 90 deg counterclockwise, 6 if 90 deg clockwise).
     pub fn flip(&self) -> Result<ImageSizesFlip, LibrawError> {
-        ImageSizesFlip::try_from((unsafe { **self.imgdata }).sizes.flip).map_err(LibrawError::from)
+        Ok(ImageSizesFlip::try_from(
+            unsafe { **self.imgdata }.sizes.flip,
+        )?)
     }
 }
