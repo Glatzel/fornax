@@ -144,7 +144,7 @@ impl Libraw {
         subtract_black: bool,
     ) -> Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>, LibrawError> {
         self.raw2image()?;
-        check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata.0) });
+        check_run!(unsafe { libraw_sys::libraw_raw2image(*self.imgdata) });
         if subtract_black {
             self.libraw_subtract_black()?;
         }
@@ -158,7 +158,7 @@ impl Libraw {
         let img: ImageBuffer<image::Rgba<u16>, Vec<u16>> =
             ImageBuffer::from_vec(width as u32, height as u32, unsafe {
                 slice::from_raw_parts(
-                    (*self.imgdata.0).image as *const u16,
+                    (**self.imgdata).image as *const u16,
                     width as usize * height as usize * 4,
                 )
                 .to_vec()
@@ -167,6 +167,6 @@ impl Libraw {
         Ok(img)
     }
     pub fn get_params(&self) -> Result<libraw_sys::libraw_output_params_t, LibrawError> {
-        Ok(unsafe { (*self.imgdata.0).params })
+        Ok(unsafe { (**self.imgdata).params })
     }
 }

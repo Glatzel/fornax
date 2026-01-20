@@ -114,7 +114,7 @@ where
                 .map_err(FornaxError::from)?;
         }
         clerk::debug!("Set new params.");
-        clerk::debug!("{:?}", unsafe { (*self.imgdata.0).params });
+        clerk::debug!("{:?}", unsafe { (**self.imgdata).params });
         let processed = self
             .dcraw_process()
             .map_err(FornaxError::from)?

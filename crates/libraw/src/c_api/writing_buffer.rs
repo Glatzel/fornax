@@ -6,7 +6,7 @@ impl Libraw {
         check_raw_alloc!(self.imgdata);
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
-            unsafe { libraw_sys::libraw_dcraw_make_mem_image(self.imgdata.0, &mut result) };
+            unsafe { libraw_sys::libraw_dcraw_make_mem_image(*self.imgdata, &mut result) };
         check_run!(result);
 
         let processed = ProcessedImage::new(processed)?;

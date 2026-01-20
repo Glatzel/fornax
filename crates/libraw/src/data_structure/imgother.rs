@@ -12,29 +12,29 @@ pub struct ImgOtherGpsInfo {
 impl ImgOtherGpsInfo {
     pub(crate) fn new(imgdata: Arc<ImgdataPointer>) -> Self { Self { imgdata } }
     pub fn latitude(&self) -> [f32; 3usize] {
-        unsafe { (*self.imgdata.0).other.parsed_gps.latitude }
+        unsafe { (**self.imgdata).other.parsed_gps.latitude }
     }
     pub fn longitude(&self) -> [f32; 3usize] {
-        unsafe { (*self.imgdata.0).other.parsed_gps.longitude }
+        unsafe { (**self.imgdata).other.parsed_gps.longitude }
     }
     pub fn gps_time_stamp(&self) -> [f32; 3usize] {
-        unsafe { (*self.imgdata.0).other.parsed_gps.gpstimestamp }
+        unsafe { (**self.imgdata).other.parsed_gps.gpstimestamp }
     }
-    pub fn altitude(&self) -> f32 { unsafe { (*self.imgdata.0).other.parsed_gps.altitude } }
+    pub fn altitude(&self) -> f32 { unsafe { (**self.imgdata).other.parsed_gps.altitude } }
     pub fn altref(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.altref as *const c_char) }
+        unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.altref as *const c_char) }
     }
     pub fn latref(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.latref as *const c_char) }
+        unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.latref as *const c_char) }
     }
     pub fn longref(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.longref as *const c_char) }
+        unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.longref as *const c_char) }
     }
     pub fn gpsstatus(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.gpsstatus as *const c_char) }
+        unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.gpsstatus as *const c_char) }
     }
     pub fn gpsparsed(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.parsed_gps.gpsparsed as *const c_char) }
+        unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.gpsparsed as *const c_char) }
     }
 }
 ///# References
@@ -49,27 +49,27 @@ impl ImgOther {
         Ok(Self { imgdata })
     }
     ///ISO sensitivity.
-    pub fn iso_speed(&self) -> f32 { unsafe { (*self.imgdata.0).other.iso_speed } }
+    pub fn iso_speed(&self) -> f32 { unsafe { (**self.imgdata).other.iso_speed } }
     ///Shutter speed.
-    pub fn shutter(&self) -> f32 { unsafe { (*self.imgdata.0).other.shutter } }
+    pub fn shutter(&self) -> f32 { unsafe { (**self.imgdata).other.shutter } }
     ///Aperture.
-    pub fn aperture(&self) -> f32 { unsafe { (*self.imgdata.0).other.aperture } }
+    pub fn aperture(&self) -> f32 { unsafe { (**self.imgdata).other.aperture } }
     ///Focal length.
-    pub fn focal_len(&self) -> f32 { unsafe { (*self.imgdata.0).other.focal_len } }
+    pub fn focal_len(&self) -> f32 { unsafe { (**self.imgdata).other.focal_len } }
     ///Date of shooting.
     pub fn timestamp(&self) -> DateTime<Utc> {
-        unsafe { DateTime::from_timestamp((*self.imgdata.0).other.timestamp, 0).unwrap() }
+        unsafe { DateTime::from_timestamp((**self.imgdata).other.timestamp, 0).unwrap() }
     }
     ///Serial number of image.
-    pub fn shot_order(&self) -> u32 { unsafe { (*self.imgdata.0).other.shot_order } }
+    pub fn shot_order(&self) -> u32 { unsafe { (**self.imgdata).other.shot_order } }
     ///GPS data (unparsed block, to write to output as is).
-    pub fn gpsdata(&self) -> [u32; 32] { unsafe { (*self.imgdata.0).other.gpsdata } }
+    pub fn gpsdata(&self) -> [u32; 32] { unsafe { (**self.imgdata).other.gpsdata } }
     ///Parsed GPS-data: longitude/latitude/altitude and time stamp.
     pub fn parsed_gps(&self) -> ImgOtherGpsInfo { ImgOtherGpsInfo::new(self.imgdata.clone()) }
     ///Image description.
-    pub fn desc(&self) -> &CStr { unsafe { CStr::from_ptr((*self.imgdata.0).other.desc.as_ptr()) } }
+    pub fn desc(&self) -> &CStr { unsafe { CStr::from_ptr((**self.imgdata).other.desc.as_ptr()) } }
     ///Author of image.
     pub fn artist(&self) -> &CStr {
-        unsafe { CStr::from_ptr((*self.imgdata.0).other.artist.as_ptr()) }
+        unsafe { CStr::from_ptr((**self.imgdata).other.artist.as_ptr()) }
     }
 }
