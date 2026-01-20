@@ -1,3 +1,4 @@
+use std::ffi::NulError;
 use std::fmt::Display;
 use std::str::Utf8Error;
 
@@ -64,4 +65,7 @@ where
     T: TryFromPrimitive,
 {
     fn from(value: TryFromPrimitiveError<T>) -> Self { LibrawError::from(value) }
+}
+impl From<NulError> for LibrawError {
+    fn from(value: NulError) -> Self { LibrawError::from(value) }
 }

@@ -1,7 +1,8 @@
-use std::ffi::{CStr, c_char};
+use std::ffi::c_char;
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
+use envoy::PtrToString;
 
 use crate::{ImgdataPointer, LibrawError};
 
@@ -21,37 +22,20 @@ impl ImgOtherGpsInfo {
         unsafe { (**self.imgdata).other.parsed_gps.gpstimestamp }
     }
     pub fn altitude(&self) -> f32 { unsafe { (**self.imgdata).other.parsed_gps.altitude } }
-    pub fn altref(&self) -> Result<&str, LibrawError> {
-        unsafe {
-            Ok(
-                CStr::from_ptr((**self.imgdata).other.parsed_gps.altref as *const c_char)
-                    .to_str()?,
-            )
-        }
+    pub fn altref(&self) -> Result<String, LibrawError> {
+        unsafe { Ok(((**self.imgdata).other.parsed_gps.altref as *const c_char).to_string()?) }
     }
-    pub fn latref(&self) -> Result<&str, LibrawError> {
-        Ok(
-            unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.latref as *const c_char) }
-                .to_str()?,
-        )
+    pub fn latref(&self) -> Result<String, LibrawError> {
+        unsafe { Ok(((**self.imgdata).other.parsed_gps.latref as *const c_char).to_string()?) }
     }
-    pub fn longref(&self) -> Result<&str, LibrawError> {
-        Ok(
-            unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.longref as *const c_char) }
-                .to_str()?,
-        )
+    pub fn longref(&self) -> Result<String, LibrawError> {
+        unsafe { Ok(((**self.imgdata).other.parsed_gps.longref as *const c_char).to_string()?) }
     }
-    pub fn gpsstatus(&self) -> Result<&str, LibrawError> {
-        Ok(
-            unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.gpsstatus as *const c_char) }
-                .to_str()?,
-        )
+    pub fn gpsstatus(&self) -> Result<String, LibrawError> {
+        unsafe { Ok(((**self.imgdata).other.parsed_gps.gpsstatus as *const c_char).to_string()?) }
     }
-    pub fn gpsparsed(&self) -> Result<&str, LibrawError> {
-        Ok(
-            unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.gpsparsed as *const c_char) }
-                .to_str()?,
-        )
+    pub fn gpsparsed(&self) -> Result<String, LibrawError> {
+        unsafe { Ok(((**self.imgdata).other.parsed_gps.gpsparsed as *const c_char).to_string()?) }
     }
 }
 ///# References
@@ -84,11 +68,11 @@ impl ImgOther {
     ///Parsed GPS-data: longitude/latitude/altitude and time stamp.
     pub fn parsed_gps(&self) -> ImgOtherGpsInfo { ImgOtherGpsInfo::new(self.imgdata.clone()) }
     ///Image description.
-    pub fn desc(&self) -> Result<&str, LibrawError> {
-        Ok(unsafe { CStr::from_ptr((**self.imgdata).other.desc.as_ptr()) }.to_str()?)
+    pub fn desc(&self) -> Result<String, LibrawError> {
+        unsafe { Ok(((**self.imgdata).other.desc.as_ptr()).to_string()?) }
     }
     ///Author of image.
-    pub fn artist(&self) -> Result<&str, LibrawError> {
-        Ok(unsafe { CStr::from_ptr((**self.imgdata).other.artist.as_ptr()) }.to_str()?)
+    pub fn artist(&self) -> Result<String, LibrawError> {
+        unsafe { Ok(((**self.imgdata).other.artist.as_ptr()).to_string()?) }
     }
 }
