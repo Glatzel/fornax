@@ -29,17 +29,29 @@ impl ImgOtherGpsInfo {
             )
         }
     }
-    pub fn latref(&self) -> &CStr {
-        unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.latref as *const c_char) }
+    pub fn latref(&self) -> Result<&str, LibrawError> {
+        Ok(
+            unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.latref as *const c_char) }
+                .to_str()?,
+        )
     }
-    pub fn longref(&self) -> &CStr {
-        unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.longref as *const c_char) }
+    pub fn longref(&self) -> Result<&str, LibrawError> {
+        Ok(
+            unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.longref as *const c_char) }
+                .to_str()?,
+        )
     }
-    pub fn gpsstatus(&self) -> &CStr {
-        unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.gpsstatus as *const c_char) }
+    pub fn gpsstatus(&self) -> Result<&str, LibrawError> {
+        Ok(
+            unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.gpsstatus as *const c_char) }
+                .to_str()?,
+        )
     }
-    pub fn gpsparsed(&self) -> &CStr {
-        unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.gpsparsed as *const c_char) }
+    pub fn gpsparsed(&self) -> Result<&str, LibrawError> {
+        Ok(
+            unsafe { CStr::from_ptr((**self.imgdata).other.parsed_gps.gpsparsed as *const c_char) }
+                .to_str()?,
+        )
     }
 }
 ///# References
@@ -72,9 +84,11 @@ impl ImgOther {
     ///Parsed GPS-data: longitude/latitude/altitude and time stamp.
     pub fn parsed_gps(&self) -> ImgOtherGpsInfo { ImgOtherGpsInfo::new(self.imgdata.clone()) }
     ///Image description.
-    pub fn desc(&self) -> &CStr { unsafe { CStr::from_ptr((**self.imgdata).other.desc.as_ptr()) } }
+    pub fn desc(&self) -> Result<&str, LibrawError> {
+        Ok(unsafe { CStr::from_ptr((**self.imgdata).other.desc.as_ptr()) }.to_str()?)
+    }
     ///Author of image.
-    pub fn artist(&self) -> &CStr {
-        unsafe { CStr::from_ptr((**self.imgdata).other.artist.as_ptr()) }
+    pub fn artist(&self) -> Result<&str, LibrawError> {
+        Ok(unsafe { CStr::from_ptr((**self.imgdata).other.artist.as_ptr()) }.to_str()?)
     }
 }

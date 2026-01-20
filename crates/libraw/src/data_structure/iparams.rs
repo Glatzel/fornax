@@ -35,30 +35,32 @@ impl IParams {
         Ok(Self { imgdata })
     }
     ///Camera manufacturer.
-    pub fn make(&self) -> &CStr { unsafe { CStr::from_ptr((**self.imgdata).idata.make.as_ptr()) } }
+    pub fn make(&self) -> Result<&str, LibrawError> {
+        unsafe { Ok(CStr::from_ptr((**self.imgdata).idata.make.as_ptr()).to_str()?) }
+    }
     ///Camera model.
-    pub fn model(&self) -> &CStr {
-        unsafe { CStr::from_ptr((**self.imgdata).idata.model.as_ptr()) }
+    pub fn model(&self) -> Result<&str, LibrawError> {
+        unsafe { Ok(CStr::from_ptr((**self.imgdata).idata.model.as_ptr()).to_str()?) }
     }
     ///There is a huge number of identical cameras sold under different names,
     /// depending on the market (e.g. multiple Panasonic or Canon models)
     /// and even some identical cameras sold under different brands
     /// (Panasonic -> Leica, Sony -> Hasselblad). normalized_make contains
     /// primary vendor name (e.g. Panasonic for Leica re-branded cameras).
-    pub fn normalized_make(&self) -> &CStr {
-        unsafe { CStr::from_ptr((**self.imgdata).idata.normalized_make.as_ptr()) }
+    pub fn normalized_make(&self) -> Result<&str, LibrawError> {
+        unsafe { Ok(CStr::from_ptr((**self.imgdata).idata.normalized_make.as_ptr()).to_str()?) }
     }
     ///Primary camera model name.
-    pub fn normalized_model(&self) -> &CStr {
-        unsafe { CStr::from_ptr((**self.imgdata).idata.normalized_model.as_ptr()) }
+    pub fn normalized_model(&self) -> Result<&str, LibrawError> {
+        unsafe { Ok(CStr::from_ptr((**self.imgdata).idata.normalized_model.as_ptr()).to_str()?) }
     }
     ///Primary vendor name in indexed form (enum LibRaw_cameramaker_index,
     /// LIBRAW_CAMERAMAKER_* constant)
     pub fn maker_index(&self) -> u32 { unsafe { (**self.imgdata).idata.maker_index } }
     ///Softwary name/version (mostly for DNG files, to distinguish in-camera
     /// DNGs from Adobe DNG Converter produced ones).
-    pub fn software(&self) -> &CStr {
-        unsafe { CStr::from_ptr((**self.imgdata).idata.software.as_ptr()) }
+    pub fn software(&self) -> Result<&str, LibrawError> {
+        unsafe { Ok(CStr::from_ptr((**self.imgdata).idata.software.as_ptr()).to_str()?) }
     }
     ///   Number of RAW images in file (0 means that the file has not been
     /// recognized).
@@ -97,5 +99,7 @@ impl IParams {
     ///XMP packed data length and pointer to extracted XMP packet.
     pub fn xmplen(&self) -> u32 { unsafe { (**self.imgdata).idata.xmplen } }
     ///XMP packed data length and pointer to extracted XMP packet.
-    pub fn xmpdata(&self) -> &CStr { unsafe { CStr::from_ptr((**self.imgdata).idata.xmpdata) } }
+    pub fn xmpdata(&self) -> Result<&str, LibrawError> {
+        Ok(unsafe { CStr::from_ptr((**self.imgdata).idata.xmpdata) }.to_str()?)
+    }
 }
