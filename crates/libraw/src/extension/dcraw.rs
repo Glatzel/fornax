@@ -43,18 +43,28 @@ impl DCRawParams {
         self.output_color
             .inspect(|v| unsafe { (**imgdata).params.output_color = (*v) as i32 });
 
-        self.output_profile.as_ref().inspect(|v| unsafe {
-            (**imgdata).params.output_profile = v.to_str().unwrap().to_cstring().into_raw();
-        });
-        self.camera_profile.as_ref().inspect(|v| unsafe {
-            (**imgdata).params.camera_profile = v.to_str().unwrap().to_cstring().into_raw();
-        });
-        self.bad_pixels.as_ref().inspect(|v| unsafe {
-            (**imgdata).params.bad_pixels = v.to_str().unwrap().to_cstring().into_raw();
-        });
-        self.dark_frame.as_ref().inspect(|v| unsafe {
-            (**imgdata).params.dark_frame = v.to_str().unwrap().to_cstring().into_raw();
-        });
+        if let Some(v) = self.output_profile.as_ref() {
+            unsafe {
+                (**imgdata).params.output_profile = v.to_str().unwrap().to_cstring()?.into_raw();
+            }
+        }
+        if let Some(v) = self.camera_profile.as_ref() {
+            unsafe {
+                (**imgdata).params.camera_profile = v.to_str().unwrap().to_cstring()?.into_raw();
+            }
+        }
+
+        if let Some(v) = self.bad_pixels.as_ref() {
+            unsafe {
+                (**imgdata).params.bad_pixels = v.to_str().unwrap().to_cstring()?.into_raw();
+            }
+        }
+
+        if let Some(v) = self.dark_frame.as_ref() {
+            unsafe {
+                (**imgdata).params.dark_frame = v.to_str().unwrap().to_cstring()?.into_raw();
+            }
+        }
 
         self.output_bps
             .inspect(|v| unsafe { (**imgdata).params.output_bps = (*v) as i32 });

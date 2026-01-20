@@ -1,6 +1,8 @@
+use std::ffi::NulError;
 use std::fmt::Display;
+use std::str::Utf8Error;
 
-use num_enum::FromPrimitive;
+use num_enum::{FromPrimitive, TryFromPrimitive, TryFromPrimitiveError};
 use thiserror::Error;
 
 ///All functions returning integer numbers must return either errno or one of
@@ -54,4 +56,16 @@ impl LibrawError {
             message: format!("{}", err),
         }
     }
+}
+impl From<Utf8Error> for LibrawError {
+    fn from(value: Utf8Error) -> Self { LibrawError::from(value) }
+}
+impl<T> From<TryFromPrimitiveError<T>> for LibrawError
+where
+    T: TryFromPrimitive,
+{
+    fn from(value: TryFromPrimitiveError<T>) -> Self { LibrawError::from(value) }
+}
+impl From<NulError> for LibrawError {
+    fn from(value: NulError) -> Self { LibrawError::from(value) }
 }

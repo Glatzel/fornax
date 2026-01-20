@@ -27,7 +27,7 @@ impl Libraw {
         check_run!(unsafe {
             libraw_sys::libraw_open_file(
                 *self.imgdata,
-                fname.to_str().unwrap().to_cstring().as_ptr(),
+                fname.to_str().unwrap().to_cstring()?.as_ptr(),
             )
         });
         Ok(self)
