@@ -3,20 +3,12 @@ use std::slice;
 use fornax_core::FornaxPrimitive;
 use image::{ImageBuffer, Rgb};
 
-use crate::{
-    DCRawParams, Libraw, LibrawError, ProcessedImage, check_raw_alloc, check_run, custom_error,
-};
+use crate::{Libraw, LibrawError, ProcessedImage, check_raw_alloc, check_run, custom_error};
 
 // region:Custom API
 impl Libraw {
-    pub fn new(params: Option<DCRawParams>) -> Self {
-        Self {
-            imgdata: Self::libraw_init(),
-            params,
-        }
-    }
     pub fn bayer_pattern(&self) -> Result<fornax_core::BayerPattern, LibrawError> {
-        check_raw_alloc!(self.imgdata);
+        check_raw_alloc!(self.imgdata_ptr());
         let pattern0 = self.color(0, 0);
         let pattern1 = self.color(0, 1);
         let pattern2 = self.color(1, 0);
@@ -144,7 +136,7 @@ impl Libraw {
         subtract_black: bool,
     ) -> Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>, LibrawError> {
         self.raw2image()?;
-        check_run!(unsafe { libraw_sys::libraw_raw2image(*self.imgdata) });
+        check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata_ptr()) });
         if subtract_black {
             self.libraw_subtract_black()?;
         }
@@ -158,7 +150,7 @@ impl Libraw {
         let img: ImageBuffer<image::Rgba<u16>, Vec<u16>> =
             ImageBuffer::from_vec(width as u32, height as u32, unsafe {
                 slice::from_raw_parts(
-                    (**self.imgdata).image as *const u16,
+                    (*self.imgdata_ptr()).image as *const u16,
                     width as usize * height as usize * 4,
                 )
                 .to_vec()
@@ -167,6 +159,6 @@ impl Libraw {
         Ok(img)
     }
     pub fn get_params(&self) -> Result<libraw_sys::libraw_output_params_t, LibrawError> {
-        Ok(unsafe { (**self.imgdata).params })
+        Ok(unsafe { (*self.imgdata_ptr()).params })
     }
 }

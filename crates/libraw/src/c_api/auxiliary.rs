@@ -11,17 +11,21 @@ impl Libraw {
     fn _check_version() -> bool { todo!() }
     fn _libraw_capabilities() { todo!() }
     pub fn camera_count() -> i32 { unsafe { libraw_sys::libraw_cameraCount() } }
-    pub fn camera_list() -> Vec<String> {
-        unsafe { libraw_sys::libraw_cameraList().cast_const().to_vec_string() }
+    pub fn camera_list() -> Result<Vec<String>, LibrawError> {
+        unsafe {
+            Ok(libraw_sys::libraw_cameraList()
+                .cast_const()
+                .to_vec_string()?)
+        }
     }
     fn _libraw_get_decoder_info() { todo!() }
     fn _libraw_unpack_function_name() { todo!() }
     pub fn color(&self, row: i32, col: i32) -> i32 {
-        unsafe { libraw_sys::libraw_COLOR(*self.imgdata, row, col) }
+        unsafe { libraw_sys::libraw_COLOR(self.imgdata_ptr(), row, col) }
     }
     pub fn libraw_subtract_black(&self) -> Result<&Self, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        unsafe { libraw_sys::libraw_subtract_black(*self.imgdata) };
+        check_raw_alloc!(self.imgdata_ptr());
+        unsafe { libraw_sys::libraw_subtract_black(self.imgdata_ptr()) };
         Ok(self)
     }
     fn _libraw_recycle_datastream() { todo!() }
@@ -37,15 +41,15 @@ impl Libraw {
 //https://www.libraw.org/docs/API-CXX.html#dcrawemu
 impl Libraw {
     pub fn raw2image(&self) -> Result<&Self, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        check_run!(unsafe { libraw_sys::libraw_raw2image(*self.imgdata) });
+        check_raw_alloc!(self.imgdata_ptr());
+        check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata_ptr()) });
         Ok(self)
     }
     fn _libraw_free_image() { todo!() }
     fn _libraw_adjust_sizes_info_only() { todo!() }
     pub fn dcraw_process(&self) -> Result<&Self, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        check_run!(unsafe { libraw_sys::libraw_dcraw_process(*self.imgdata) });
+        check_raw_alloc!(self.imgdata_ptr());
+        check_run!(unsafe { libraw_sys::libraw_dcraw_process(self.imgdata_ptr()) });
         Ok(self)
     }
 }
@@ -75,10 +79,11 @@ mod test {
         assert!(count > 0);
     }
     #[test]
-    fn test_camera_list() {
-        let camera_list = Libraw::camera_list();
+    fn test_camera_list() -> mischief::Result<()> {
+        let camera_list = Libraw::camera_list()?;
         println!("{camera_list:?}");
         assert!(!camera_list.is_empty());
+        Ok(())
     }
     #[test]
     fn test_color() -> mischief::Result<()> {

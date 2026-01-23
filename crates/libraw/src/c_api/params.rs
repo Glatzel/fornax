@@ -7,84 +7,84 @@ use crate::{
 
 impl Libraw {
     pub fn get_raw_height(&self) -> Result<i32, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        Ok(unsafe { libraw_sys::libraw_get_raw_height(*self.imgdata) })
+        check_raw_alloc!(self.imgdata_ptr());
+        Ok(unsafe { libraw_sys::libraw_get_raw_height(self.imgdata_ptr()) })
     }
     pub fn get_raw_width(&self) -> Result<i32, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        Ok(unsafe { libraw_sys::libraw_get_raw_width(*self.imgdata) })
+        check_raw_alloc!(self.imgdata_ptr());
+        Ok(unsafe { libraw_sys::libraw_get_raw_width(self.imgdata_ptr()) })
     }
     pub fn get_iheight(&self) -> Result<i32, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        Ok(unsafe { libraw_sys::libraw_get_iheight(*self.imgdata) })
+        check_raw_alloc!(self.imgdata_ptr());
+        Ok(unsafe { libraw_sys::libraw_get_iheight(self.imgdata_ptr()) })
     }
     pub fn get_iwidth(&self) -> Result<i32, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        Ok(unsafe { libraw_sys::libraw_get_iwidth(*self.imgdata) })
+        check_raw_alloc!(self.imgdata_ptr());
+        Ok(unsafe { libraw_sys::libraw_get_iwidth(self.imgdata_ptr()) })
     }
     pub fn get_cam_mul(&self, index: BayerChannel) -> Result<f32, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        Ok(unsafe { libraw_sys::libraw_get_cam_mul(*self.imgdata, u8::from(index) as i32) })
+        check_raw_alloc!(self.imgdata_ptr());
+        Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata_ptr(), u8::from(index) as i32) })
     }
     pub fn get_pre_mul(&self, index: BayerChannel) -> Result<f32, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        Ok(unsafe { libraw_sys::libraw_get_pre_mul(*self.imgdata, u8::from(index) as i32) })
+        check_raw_alloc!(self.imgdata_ptr());
+        Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata_ptr(), u8::from(index) as i32) })
     }
     pub fn get_rgb_cam(&self, index1: i32, index2: i32) -> Result<f32, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        Ok(unsafe { libraw_sys::libraw_get_rgb_cam(*self.imgdata, index1, index2) })
+        check_raw_alloc!(self.imgdata_ptr());
+        Ok(unsafe { libraw_sys::libraw_get_rgb_cam(self.imgdata_ptr(), index1, index2) })
     }
     pub fn get_iparams(&self) -> Result<IParams, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        IParams::new(self.imgdata.clone())
+        check_raw_alloc!(self.imgdata_ptr());
+        IParams::new(self.arc_imgdata_ptr())
     }
     pub fn get_lensinfo(&self) { todo!() }
     pub fn get_imgother(&self) -> Result<ImgOther, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        ImgOther::new(self.imgdata.clone())
+        check_raw_alloc!(self.imgdata_ptr());
+        ImgOther::new(self.arc_imgdata_ptr())
     }
     pub fn get_color_maximum(&self) -> Result<i32, LibrawError> {
-        check_raw_alloc!(self.imgdata);
-        Ok(unsafe { libraw_sys::libraw_get_color_maximum(*self.imgdata) })
+        check_raw_alloc!(self.imgdata_ptr());
+        Ok(unsafe { libraw_sys::libraw_get_color_maximum(self.imgdata_ptr()) })
     }
     pub fn set_user_mul(&self, index: i32, val: f32) -> &Self {
-        unsafe { libraw_sys::libraw_set_user_mul(*self.imgdata, index, val) };
+        unsafe { libraw_sys::libraw_set_user_mul(self.imgdata_ptr(), index, val) };
         self
     }
     pub fn set_demosaic(&self, value: DCRawUserQual) -> &Self {
-        unsafe { libraw_sys::libraw_set_demosaic(*self.imgdata, value as i32) };
+        unsafe { libraw_sys::libraw_set_demosaic(self.imgdata_ptr(), value as i32) };
         self
     }
     pub fn set_adjust_maximum_thr(&self, value: f32) -> &Self {
-        unsafe { libraw_sys::libraw_set_adjust_maximum_thr(*self.imgdata, value) };
+        unsafe { libraw_sys::libraw_set_adjust_maximum_thr(self.imgdata_ptr(), value) };
         self
     }
     pub fn set_output_color(&self, value: DCRawOutputColor) -> &Self {
-        unsafe { libraw_sys::libraw_set_output_color(*self.imgdata, value as i32) };
+        unsafe { libraw_sys::libraw_set_output_color(self.imgdata_ptr(), value as i32) };
         self
     }
     pub fn set_output_bps(&self, value: DCRawOutputBps) -> &Self {
-        unsafe { libraw_sys::libraw_set_output_bps(*self.imgdata, value as i32) };
+        unsafe { libraw_sys::libraw_set_output_bps(self.imgdata_ptr(), value as i32) };
         self
     }
     pub fn set_gamma(&self, index: i32, value: f32) -> &Self {
-        unsafe { libraw_sys::libraw_set_gamma(*self.imgdata, index, value) };
+        unsafe { libraw_sys::libraw_set_gamma(self.imgdata_ptr(), index, value) };
         self
     }
     pub fn set_no_auto_bright(&self, value: bool) -> &Self {
-        unsafe { libraw_sys::libraw_set_no_auto_bright(*self.imgdata, value as i32) };
+        unsafe { libraw_sys::libraw_set_no_auto_bright(self.imgdata_ptr(), value as i32) };
         self
     }
     pub fn set_bright(&self, value: f32) -> &Self {
-        unsafe { libraw_sys::libraw_set_bright(*self.imgdata, value) };
+        unsafe { libraw_sys::libraw_set_bright(self.imgdata_ptr(), value) };
         self
     }
     pub fn set_highlight(&self, value: DCRawHighlightMode) -> &Self {
-        unsafe { libraw_sys::libraw_set_highlight(*self.imgdata, value as i32) };
+        unsafe { libraw_sys::libraw_set_highlight(self.imgdata_ptr(), value as i32) };
         self
     }
     pub fn set_fbdd_noiserd(&self, value: DCRawFbddNoiserd) -> &Self {
-        unsafe { libraw_sys::libraw_set_fbdd_noiserd(*self.imgdata, value as i32) };
+        unsafe { libraw_sys::libraw_set_fbdd_noiserd(self.imgdata_ptr(), value as i32) };
         self
     }
 }

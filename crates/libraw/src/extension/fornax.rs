@@ -70,7 +70,7 @@ where
         )?;
         self.unpack()?;
         if let Some(params) = &self.params {
-            params.set_output_params(self.imgdata.clone())?;
+            params.set_output_params(self.arc_imgdata_ptr())?;
         }
         let processed = self.dcraw_process()?.dcraw_make_mem_image()?;
         Ok(self.map_processed_image(&processed)?)
@@ -100,10 +100,10 @@ where
         )?;
         self.unpack()?;
         if let Some(params) = &self.params {
-            params.set_output_params(self.imgdata.clone())?;
+            params.set_output_params(self.arc_imgdata_ptr())?;
         }
         clerk::debug!("Set new params.");
-        clerk::debug!("{:?}", unsafe { (**self.imgdata).params });
+        clerk::debug!("{:?}", unsafe { (*self.imgdata_ptr()).params });
         let processed = self.dcraw_process()?.dcraw_make_mem_image()?;
         Ok(self.map_processed_image(&processed)?)
     }
