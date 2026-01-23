@@ -1,8 +1,5 @@
-use std::ffi::NulError;
-use std::fmt::Display;
-use std::str::Utf8Error;
-
-use num_enum::{FromPrimitive, TryFromPrimitive, TryFromPrimitiveError};
+use envoy::EnvoyError;
+use num_enum::{FromPrimitive, TryFromPrimitive};
 use thiserror::Error;
 
 ///All functions returning integer numbers must return either errno or one of
@@ -41,31 +38,20 @@ pub enum LibrawErrorCode {
 }
 
 #[derive(Debug, Error)]
-#[error("LibrawError {code:?} [{}]: {message}", *.code as i32)]
-pub struct LibrawError {
-    pub code: LibrawErrorCode,
-    pub message: String,
+pub enum LibrawError {
+    #[error("NumEnum TryFromPrimitive Error: {0}")]
+    NumEnumTryFromPrimitiveError(String),
+    #[error(transparent)]
+    EnvoyError(#[from] EnvoyError),
+    #[error("LibrawError {code:?} [{}]: {message}", *.code as i32)]
+    LibrawError {
+        code: LibrawErrorCode,
+        message: String,
+    },
 }
-impl LibrawError {
-    pub fn from<T>(err: T) -> Self
-    where
-        T: Display,
-    {
-        Self {
-            code: LibrawErrorCode::OtherError,
-            message: format!("{}", err),
-        }
+
+impl<T: TryFromPrimitive> From<num_enum::TryFromPrimitiveError<T>> for LibrawError {
+    fn from(value: num_enum::TryFromPrimitiveError<T>) -> Self {
+        Self::NumEnumTryFromPrimitiveError(value.to_string())
     }
-}
-impl From<Utf8Error> for LibrawError {
-    fn from(value: Utf8Error) -> Self { LibrawError::from(value) }
-}
-impl<T> From<TryFromPrimitiveError<T>> for LibrawError
-where
-    T: TryFromPrimitive,
-{
-    fn from(value: TryFromPrimitiveError<T>) -> Self { LibrawError::from(value) }
-}
-impl From<NulError> for LibrawError {
-    fn from(value: NulError) -> Self { LibrawError::from(value) }
 }

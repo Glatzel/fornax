@@ -11,8 +11,12 @@ impl Libraw {
     fn _check_version() -> bool { todo!() }
     fn _libraw_capabilities() { todo!() }
     pub fn camera_count() -> i32 { unsafe { libraw_sys::libraw_cameraCount() } }
-    pub fn camera_list() -> Vec<String> {
-        unsafe { libraw_sys::libraw_cameraList().cast_const().to_vec_string() }
+    pub fn camera_list() -> Result<Vec<String>, LibrawError> {
+        unsafe {
+            Ok(libraw_sys::libraw_cameraList()
+                .cast_const()
+                .to_vec_string()?)
+        }
     }
     fn _libraw_get_decoder_info() { todo!() }
     fn _libraw_unpack_function_name() { todo!() }
@@ -75,10 +79,11 @@ mod test {
         assert!(count > 0);
     }
     #[test]
-    fn test_camera_list() {
-        let camera_list = Libraw::camera_list();
+    fn test_camera_list() -> mischief::Result<()> {
+        let camera_list = Libraw::camera_list()?;
         println!("{camera_list:?}");
         assert!(!camera_list.is_empty());
+        Ok(())
     }
     #[test]
     fn test_color() -> mischief::Result<()> {
