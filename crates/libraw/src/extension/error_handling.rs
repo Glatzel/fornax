@@ -68,8 +68,8 @@ macro_rules! custom_error {
 pub(crate) use custom_error;
 
 macro_rules! check_raw_alloc {
-    ($imgdata:expr) => {
-        if unsafe { (**$imgdata).rawdata.raw_alloc }.is_null() {
+    ($imgdata_ptr:expr) => {
+        if unsafe { (*$imgdata_ptr).rawdata.raw_alloc }.is_null() {
             return Err($crate::LibrawError::LibrawError {
                 code: $crate::LibrawErrorCode::OtherError,
                 message: "imagedata pointer is null".to_string(),
