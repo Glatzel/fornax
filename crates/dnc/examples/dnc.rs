@@ -1,5 +1,5 @@
 #[cfg(target_os = "linux")]
-fn main() {}
+fn main() -> mischief::Result<()> { Ok(()) }
 #[cfg(not(target_os = "linux"))]
 fn main() -> mischief::Result<()> {
     fornax_devtool::example_setup();
@@ -35,3 +35,5 @@ fn custom_path() -> mischief::Result<()> {
     assert!(dng_file.is_file());
     Ok(())
 }
+#[test]
+fn test() -> mischief::Result<()> { main() }
