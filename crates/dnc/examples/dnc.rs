@@ -36,5 +36,5 @@ fn custom_path() -> mischief::Result<()> {
     Ok(())
 }
 #[test]
-#[cfg(target_os = "linux")]
+#[cfg(not(target_os = "linux"))]
 fn test() -> mischief::Result<()> { main() }
