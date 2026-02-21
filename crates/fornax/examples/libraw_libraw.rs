@@ -92,3 +92,5 @@ fn custom() -> mischief::Result<()> {
     clerk::info!("save img to: custom.tiff");
     Ok(())
 }
+#[test]
+fn test() -> mischief::Result<()> { main() }

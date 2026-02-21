@@ -4,16 +4,17 @@ name = "fornax"
 version.workspace = true
 
 [dependencies]
-dnc = { workspace = true }
-fornax-core = { workspace = true }
-fornax-dalim = { workspace = true }
-image = { workspace = true }
-libraw = { workspace = true }
+dnc.workspace = true
+fornax-core.workspace = true
+fornax-dalim.workspace = true
+image.workspace = true
+libraw.workspace = true
 
 [dev-dependencies]
-assert_cmd = { workspace = true }
+assert_cmd.workspace = true
 clerk = { workspace = true, features = ["tracing"] }
-fornax-devtool = { workspace = true }
-mischief = { workspace = true }
+fornax-devtool.workspace = true
+mischief.workspace = true
+
 [features]
 serde = ["libraw/serde", "dnc/serde", "fornax-dalim/serde"]

@@ -14,3 +14,5 @@ fn main() -> mischief::Result<()> {
 
     Ok(())
 }
+#[test]
+fn test() -> mischief::Result<()> { main() }

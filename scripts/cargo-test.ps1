@@ -11,6 +11,11 @@ cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast @config
 $code = $LASTEXITCODE
 Write-Output "::endgroup::"
 
+Write-Output "::group::examples"
+cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast --examples @config
+$code = $LASTEXITCODE
+Write-Output "::endgroup::"
+
 Write-Output "::group::doctest"
 cargo +nightly llvm-cov --no-report --branch --no-fail-fast --doc @config
 $code = $code + $LASTEXITCODE

@@ -18,3 +18,5 @@ fn linear() -> mischief::Result<()> {
     clerk::info!("Done saving image.");
     Ok(())
 }
+#[test]
+fn test() -> mischief::Result<()> { main() }

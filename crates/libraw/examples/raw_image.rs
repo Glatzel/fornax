@@ -12,3 +12,5 @@ fn main() -> mischief::Result<()> {
     clerk::info!("Done saving raw image.");
     Ok(())
 }
+#[test]
+fn test() -> mischief::Result<()> { main() }

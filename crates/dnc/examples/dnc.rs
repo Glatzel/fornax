@@ -35,3 +35,6 @@ fn custom_path() -> mischief::Result<()> {
     assert!(dng_file.is_file());
     Ok(())
 }
+#[test]
+#[cfg(target_os = "linux")]
+fn test() -> mischief::Result<()> { main() }
