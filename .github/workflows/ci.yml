@@ -21,6 +21,8 @@ concurrency:
 jobs:
   lefthook:
     uses: ./.github/workflows/ci-lefthook.yml
+    with:
+      cache-rust: true
   cargo-doc:
     runs-on: ubuntu-latest
     env:
