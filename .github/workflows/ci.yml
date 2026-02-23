@@ -19,6 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lefthook:
+    uses: ./.github/workflows/ci-lefthook.yml
   cargo-doc:
     runs-on: ubuntu-latest
     env:
@@ -83,3 +85,9 @@ jobs:
         with:
           report_type: test_results
           fail_ci_if_error: true
+  check-point:
+    if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
+    needs: [lefthook,cargo-doc,test-build]
+    runs-on: ubuntu-slim
+    steps:
+      - run: exit 1
