@@ -5,8 +5,9 @@ use std::path::Path;
 pub use dnc;
 pub use fornax_core::NullPostProcessor;
 use fornax_core::{FornaxError, FornaxPrimitive, IDecoder, IPostProcessor};
+pub use fornax_dalim;
 use image::{ImageBuffer, Rgb};
-pub use {fornax_dalim, libraw};
+pub use libraw;
 /// A struct that integrates decoding and post-processing of image data.
 ///
 /// `Fornax` combines the functionality of an image decoder and a
