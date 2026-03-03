@@ -13,7 +13,7 @@ Write-Output "::endgroup::"
 
 Write-Output "::group::examples"
 cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast --examples --no-tests pass @config
-$code = $LASTEXITCODE
+$code = $code + $LASTEXITCODE
 Write-Output "::endgroup::"
 
 Write-Output "::group::doctest"
