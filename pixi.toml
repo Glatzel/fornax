@@ -4,7 +4,7 @@ name = "fornax"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
 [dependencies]
-libraw-dev = "==0.22.0"
+libraw = "==0.22.0"
 maturin = "==1.12.6"
 pip = "==26.0.1"
 python = "3.13.*"
