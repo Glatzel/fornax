@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.15] - 2026-03-08
+
+### Changed
+
+- Drop on pointer by @Glatzel in [#305](https://github.com/Glatzel/fornax/pull/305)
+
+### Refactor
+
+- C string handing by @Glatzel in [#306](https://github.com/Glatzel/fornax/pull/306)
+
+### Testing
+
+- Add example test by @Glatzel in [#323](https://github.com/Glatzel/fornax/pull/323)
+
 ## [0.0.13] - 2026-01-17
 
 ### Refactor
@@ -163,6 +177,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial test by @Glatzel in [#8](https://github.com/Glatzel/fornax/pull/8)
 
+[0.0.15]: https://github.com/Glatzel/fornax/compare/v0.0.14..v0.0.15
 [0.0.13]: https://github.com/Glatzel/fornax/compare/v0.0.12..v0.0.13
 [0.0.11]: https://github.com/Glatzel/fornax/compare/v0.0.10..v0.0.11
 [0.0.10]: https://github.com/Glatzel/fornax/compare/v0.0.9..v0.0.10
