@@ -327,7 +327,7 @@ checksum = "6184e33543162437515c2e2b48714794e37845ec9851711914eec9d308f6ebe8"
 
 [[package]]
 name = "dnc"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "assert_cmd",
  "clerk",
@@ -436,7 +436,7 @@ dependencies = [
 
 [[package]]
 name = "fornax"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "assert_cmd",
  "clerk",
@@ -451,7 +451,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-core"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "image",
  "thiserror 2.0.18",
@@ -459,7 +459,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-dalim"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "clerk",
  "fornax-core",
@@ -473,14 +473,14 @@ dependencies = [
 
 [[package]]
 name = "fornax-devtool"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "clerk",
 ]
 
 [[package]]
 name = "fornax-py"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "clerk",
  "fornax",
@@ -721,7 +721,7 @@ dependencies = [
 
 [[package]]
 name = "libraw"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "assert_cmd",
  "bytemuck",
@@ -741,7 +741,7 @@ dependencies = [
 
 [[package]]
 name = "libraw-sys"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "bindgen",
  "dunce",
