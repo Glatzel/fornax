@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use envoy::ToCString;
 
-use crate::{DCRawOutputBps, DCRawOutputColor, DCRawParams, ImgdataPtr, Error};
+use crate::{DCRawOutputBps, DCRawOutputColor, DCRawParams, Error, ImgdataPtr};
 
 impl DCRawParams {
     #[allow(unused_mut)]

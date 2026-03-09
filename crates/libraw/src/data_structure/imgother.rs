@@ -4,7 +4,7 @@ use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use envoy::PtrToString;
 
-use crate::{ImgdataPtr, Error};
+use crate::{Error, ImgdataPtr};
 
 #[derive(Debug, Clone)]
 pub struct ImgOtherGpsInfo {
@@ -77,9 +77,7 @@ pub struct ImgOther {
     imgdata: Arc<ImgdataPtr>,
 }
 impl ImgOther {
-    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, Error> {
-        Ok(Self { imgdata })
-    }
+    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, Error> { Ok(Self { imgdata }) }
     ///ISO sensitivity.
     pub fn iso_speed(&self) -> f32 { unsafe { (*self.imgdata.ptr()).other.iso_speed } }
     ///Shutter speed.

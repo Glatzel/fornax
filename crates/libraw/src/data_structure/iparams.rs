@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use envoy::PtrToString;
 
-use crate::{ImgdataPtr, Error};
+use crate::{Error, ImgdataPtr};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]

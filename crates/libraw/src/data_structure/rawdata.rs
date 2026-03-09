@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use image::ImageBuffer;
 
-use crate::{ImgdataPtr, Error, check_raw_alloc, custom_error};
+use crate::{Error, ImgdataPtr, check_raw_alloc, custom_error};
 #[derive(Debug, Clone, PartialEq)]
 pub enum Rawdata {
     Mono16(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),

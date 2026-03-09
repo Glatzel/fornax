@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use num_enum::TryFromPrimitive;
 
-use crate::{ImgdataPtr, Error};
+use crate::{Error, ImgdataPtr};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, TryFromPrimitive)]
 #[repr(i32)]

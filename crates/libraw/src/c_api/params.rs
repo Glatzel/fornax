@@ -1,8 +1,8 @@
 use fornax_core::BayerChannel;
 
 use crate::{
-    DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawUserQual, IParams,
-    ImgOther, Libraw, Error, check_raw_alloc,
+    DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawUserQual, Error,
+    IParams, ImgOther, Libraw, check_raw_alloc,
 };
 
 impl Libraw {
