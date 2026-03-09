@@ -3,7 +3,7 @@ use std::path::Path;
 use envoy::ToCString;
 use fornax_core::BayerPattern;
 
-use crate::{Libraw, LibrawError, check_run};
+use crate::{Libraw, LibrawErrorKind, check_run};
 
 #[derive(Debug, Clone)]
 pub enum ProcFlag {
@@ -23,7 +23,7 @@ impl From<ProcFlag> for u8 {
 // region:Methods Loading Data from a File
 // https://www.libraw.org/docs/API-CXX.html#dataload
 impl Libraw {
-    pub fn open_file(&self, fname: &Path) -> Result<&Self, LibrawError> {
+    pub fn open_file(&self, fname: &Path) -> Result<&Self, LibrawErrorKind> {
         check_run!(unsafe {
             libraw_sys::libraw_open_file(
                 self.imgdata_ptr(),
@@ -32,11 +32,11 @@ impl Libraw {
         });
         Ok(self)
     }
-    fn _open_file_ex(&self) -> Result<&Self, LibrawError> { todo!() }
-    fn _open_wfile(&self) -> Result<&Self, LibrawError> { todo!() }
-    fn _openwfile_ex(&self) -> Result<&Self, LibrawError> { todo!() }
+    fn _open_file_ex(&self) -> Result<&Self, LibrawErrorKind> { todo!() }
+    fn _open_wfile(&self) -> Result<&Self, LibrawErrorKind> { todo!() }
+    fn _openwfile_ex(&self) -> Result<&Self, LibrawErrorKind> { todo!() }
 
-    pub fn open_buffer(&self, buf: &[u8]) -> Result<&Self, LibrawError> {
+    pub fn open_buffer(&self, buf: &[u8]) -> Result<&Self, LibrawErrorKind> {
         check_run!(unsafe {
             libraw_sys::libraw_open_buffer(self.imgdata_ptr(), buf.as_ptr() as *const _, buf.len())
         });
@@ -57,7 +57,7 @@ impl Libraw {
         unused_bits: u32,
         otherflags: u32,
         black_level: u32,
-    ) -> Result<&Self, LibrawError> {
+    ) -> Result<&Self, LibrawErrorKind> {
         let datalen = data.len();
         let data = data.as_ptr() as *mut std::ffi::c_uchar;
         let bayer_pattern = match bayer_pattern {
@@ -87,15 +87,15 @@ impl Libraw {
         Ok(self)
     }
 
-    pub fn unpack(&self) -> Result<&Self, LibrawError> {
+    pub fn unpack(&self) -> Result<&Self, LibrawErrorKind> {
         check_run!(unsafe { libraw_sys::libraw_unpack(self.imgdata_ptr()) });
         Ok(self)
     }
-    pub fn unpack_thumb(&self) -> Result<&Self, LibrawError> {
+    pub fn unpack_thumb(&self) -> Result<&Self, LibrawErrorKind> {
         check_run!(unsafe { libraw_sys::libraw_unpack_thumb(self.imgdata_ptr()) });
         Ok(self)
     }
-    fn _unpack_thumb_ex(&self) -> Result<&Self, LibrawError> { todo!() }
+    fn _unpack_thumb_ex(&self) -> Result<&Self, LibrawErrorKind> { todo!() }
 }
 #[cfg(test)]
 mod test {

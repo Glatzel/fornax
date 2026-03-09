@@ -38,7 +38,7 @@ pub enum LibrawErrorCode {
 }
 
 #[derive(Debug, Error)]
-pub enum LibrawError {
+pub enum LibrawErrorKind {
     #[error("NumEnum TryFromPrimitive Error: {0}")]
     NumEnumTryFromPrimitiveError(String),
     #[error(transparent)]
@@ -50,7 +50,7 @@ pub enum LibrawError {
     },
 }
 
-impl<T: TryFromPrimitive> From<num_enum::TryFromPrimitiveError<T>> for LibrawError {
+impl<T: TryFromPrimitive> From<num_enum::TryFromPrimitiveError<T>> for LibrawErrorKind {
     fn from(value: num_enum::TryFromPrimitiveError<T>) -> Self {
         Self::NumEnumTryFromPrimitiveError(value.to_string())
     }

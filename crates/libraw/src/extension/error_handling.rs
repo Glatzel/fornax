@@ -5,7 +5,7 @@ macro_rules! check_run {
             crate::LibrawErrorCode::Success => {
                 clerk::debug!(
                     "{:?}",
-                    $crate::LibrawError::LibrawError {
+                    $crate::LibrawErrorKind::LibrawError {
                         code,
                         message: "Success".to_string()
                     }
@@ -22,7 +22,7 @@ macro_rules! check_run {
             | crate::LibrawErrorCode::RequestForNonexistentThumbnail => {
                 clerk::warn!(
                     "{:?}",
-                    $crate::LibrawError::LibrawError {
+                    $crate::LibrawErrorKind::LibrawError {
                         code,
                         message: crate::Libraw::strerror(code as i32)?
                     }
@@ -37,7 +37,7 @@ macro_rules! check_run {
             | crate::LibrawErrorCode::BadCrop
             | crate::LibrawErrorCode::TooBig
             | crate::LibrawErrorCode::MempoolOverflow => {
-                let err = $crate::LibrawError::LibrawError {
+                let err = $crate::LibrawErrorKind::LibrawError {
                     code,
                     message: crate::Libraw::strerror(code as i32)?,
                 };
@@ -48,7 +48,7 @@ macro_rules! check_run {
     };
     ($condition:expr,$message:expr) => {
         if $condition {
-            return Err($crate::LibrawError::LibrawError {
+            return Err($crate::LibrawErrorKind::LibrawError {
                 code: $crate::LibrawErrorCode::OtherError,
                 message: format!("{}", $message),
             });
@@ -59,7 +59,7 @@ pub(crate) use check_run;
 
 macro_rules! custom_error {
     ($message:expr) => {
-        return Err($crate::LibrawError::LibrawError {
+        return Err($crate::LibrawErrorKind::LibrawError {
             code: $crate::LibrawErrorCode::OtherError,
             message: format!("{}", $message),
         })
@@ -70,7 +70,7 @@ pub(crate) use custom_error;
 macro_rules! check_raw_alloc {
     ($imgdata_ptr:expr) => {
         if unsafe { (*$imgdata_ptr).rawdata.raw_alloc }.is_null() {
-            return Err($crate::LibrawError::LibrawError {
+            return Err($crate::LibrawErrorKind::LibrawError {
                 code: $crate::LibrawErrorCode::OtherError,
                 message: "imagedata pointer is null".to_string(),
             });
