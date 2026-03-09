@@ -10,7 +10,7 @@ pip = "==26.0.1"
 python = "3.13.*"
 
 imageio = "==2.37.0"
-lazy-loader = "==0.4"
+lazy-loader = "==0.5"
 msgspec = "==0.20.0"
 nomkl = "==1.0"
 numpy = "2.3.*"
