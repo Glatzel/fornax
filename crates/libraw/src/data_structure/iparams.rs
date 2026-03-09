@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use envoy::PtrToString;
 
-use crate::{ImgdataPtr, LibrawError};
+use crate::{ImgdataPtr, Error};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -14,7 +14,7 @@ pub enum IParamsColorDesc {
     GBTG,
 }
 impl TryFrom<&str> for IParamsColorDesc {
-    type Error = crate::LibrawError;
+    type Error = crate::Error;
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Ok(match value {
             "RGBG" => IParamsColorDesc::RGBG,
@@ -33,17 +33,17 @@ pub struct IParams {
     arc_imgdata_ptr: Arc<ImgdataPtr>,
 }
 impl IParams {
-    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
+    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, Error> {
         Ok(Self {
             arc_imgdata_ptr: imgdata,
         })
     }
     ///Camera manufacturer.
-    pub fn make(&self) -> Result<String, LibrawError> {
+    pub fn make(&self) -> Result<String, Error> {
         unsafe { Ok(((*self.arc_imgdata_ptr.ptr()).idata.make.as_ptr()).to_string()?) }
     }
     ///Camera model.
-    pub fn model(&self) -> Result<String, LibrawError> {
+    pub fn model(&self) -> Result<String, Error> {
         unsafe { Ok(((*self.arc_imgdata_ptr.ptr()).idata.model.as_ptr()).to_string()?) }
     }
     ///There is a huge number of identical cameras sold under different names,
@@ -51,11 +51,11 @@ impl IParams {
     /// and even some identical cameras sold under different brands
     /// (Panasonic -> Leica, Sony -> Hasselblad). normalized_make contains
     /// primary vendor name (e.g. Panasonic for Leica re-branded cameras).
-    pub fn normalized_make(&self) -> Result<String, LibrawError> {
+    pub fn normalized_make(&self) -> Result<String, Error> {
         unsafe { Ok(((*self.arc_imgdata_ptr.ptr()).idata.normalized_make.as_ptr()).to_string()?) }
     }
     ///Primary camera model name.
-    pub fn normalized_model(&self) -> Result<String, LibrawError> {
+    pub fn normalized_model(&self) -> Result<String, Error> {
         unsafe {
             Ok(((*self.arc_imgdata_ptr.ptr())
                 .idata
@@ -69,7 +69,7 @@ impl IParams {
     pub fn maker_index(&self) -> u32 { unsafe { (*self.arc_imgdata_ptr.ptr()).idata.maker_index } }
     ///Softwary name/version (mostly for DNG files, to distinguish in-camera
     /// DNGs from Adobe DNG Converter produced ones).
-    pub fn software(&self) -> Result<String, LibrawError> {
+    pub fn software(&self) -> Result<String, Error> {
         unsafe { Ok(((*self.arc_imgdata_ptr.ptr()).idata.software.as_ptr()).to_string()?) }
     }
     ///   Number of RAW images in file (0 means that the file has not been
@@ -109,14 +109,14 @@ impl IParams {
         unsafe { &(*self.arc_imgdata_ptr.ptr()).idata.xtrans_abs }
     }
     ///Description of colors numbered from 0 to 3 (RGBG,RGBE,GMCY, or GBTG).
-    pub fn cdesc(&self) -> Result<IParamsColorDesc, LibrawError> {
+    pub fn cdesc(&self) -> Result<IParamsColorDesc, Error> {
         let s = unsafe { (*self.arc_imgdata_ptr.ptr()).idata.cdesc.to_string()? };
         IParamsColorDesc::try_from(s.as_str())
     }
     ///XMP packed data length and pointer to extracted XMP packet.
     pub fn xmplen(&self) -> u32 { unsafe { (*self.arc_imgdata_ptr.ptr()).idata.xmplen } }
     ///XMP packed data length and pointer to extracted XMP packet.
-    pub fn xmpdata(&self) -> Result<String, LibrawError> {
+    pub fn xmpdata(&self) -> Result<String, Error> {
         Ok(unsafe { (*self.arc_imgdata_ptr.ptr()).idata.xmpdata }.to_string()?)
     }
 }

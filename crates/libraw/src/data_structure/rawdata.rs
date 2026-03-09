@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use image::ImageBuffer;
 
-use crate::{ImgdataPtr, LibrawError, check_raw_alloc, custom_error};
+use crate::{ImgdataPtr, Error, check_raw_alloc, custom_error};
 #[derive(Debug, Clone, PartialEq)]
 pub enum Rawdata {
     Mono16(image::ImageBuffer<image::Luma<u16>, Vec<u16>>),
@@ -18,7 +18,7 @@ impl Rawdata {
         arc_imgdata_ptr: Arc<ImgdataPtr>,
         width: usize,
         height: usize,
-    ) -> Result<Self, LibrawError> {
+    ) -> Result<Self, Error> {
         check_raw_alloc!(arc_imgdata_ptr.ptr());
 
         if !unsafe { (*arc_imgdata_ptr.ptr()).rawdata.raw_image }.is_null() {

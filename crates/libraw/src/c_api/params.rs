@@ -2,48 +2,48 @@ use fornax_core::BayerChannel;
 
 use crate::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawUserQual, IParams,
-    ImgOther, Libraw, LibrawError, check_raw_alloc,
+    ImgOther, Libraw, Error, check_raw_alloc,
 };
 
 impl Libraw {
-    pub fn get_raw_height(&self) -> Result<i32, LibrawError> {
+    pub fn get_raw_height(&self) -> Result<i32, Error> {
         check_raw_alloc!(self.imgdata_ptr());
         Ok(unsafe { libraw_sys::libraw_get_raw_height(self.imgdata_ptr()) })
     }
-    pub fn get_raw_width(&self) -> Result<i32, LibrawError> {
+    pub fn get_raw_width(&self) -> Result<i32, Error> {
         check_raw_alloc!(self.imgdata_ptr());
         Ok(unsafe { libraw_sys::libraw_get_raw_width(self.imgdata_ptr()) })
     }
-    pub fn get_iheight(&self) -> Result<i32, LibrawError> {
+    pub fn get_iheight(&self) -> Result<i32, Error> {
         check_raw_alloc!(self.imgdata_ptr());
         Ok(unsafe { libraw_sys::libraw_get_iheight(self.imgdata_ptr()) })
     }
-    pub fn get_iwidth(&self) -> Result<i32, LibrawError> {
+    pub fn get_iwidth(&self) -> Result<i32, Error> {
         check_raw_alloc!(self.imgdata_ptr());
         Ok(unsafe { libraw_sys::libraw_get_iwidth(self.imgdata_ptr()) })
     }
-    pub fn get_cam_mul(&self, index: BayerChannel) -> Result<f32, LibrawError> {
+    pub fn get_cam_mul(&self, index: BayerChannel) -> Result<f32, Error> {
         check_raw_alloc!(self.imgdata_ptr());
         Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata_ptr(), u8::from(index) as i32) })
     }
-    pub fn get_pre_mul(&self, index: BayerChannel) -> Result<f32, LibrawError> {
+    pub fn get_pre_mul(&self, index: BayerChannel) -> Result<f32, Error> {
         check_raw_alloc!(self.imgdata_ptr());
         Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata_ptr(), u8::from(index) as i32) })
     }
-    pub fn get_rgb_cam(&self, index1: i32, index2: i32) -> Result<f32, LibrawError> {
+    pub fn get_rgb_cam(&self, index1: i32, index2: i32) -> Result<f32, Error> {
         check_raw_alloc!(self.imgdata_ptr());
         Ok(unsafe { libraw_sys::libraw_get_rgb_cam(self.imgdata_ptr(), index1, index2) })
     }
-    pub fn get_iparams(&self) -> Result<IParams, LibrawError> {
+    pub fn get_iparams(&self) -> Result<IParams, Error> {
         check_raw_alloc!(self.imgdata_ptr());
         IParams::new(self.arc_imgdata_ptr())
     }
     pub fn get_lensinfo(&self) { todo!() }
-    pub fn get_imgother(&self) -> Result<ImgOther, LibrawError> {
+    pub fn get_imgother(&self) -> Result<ImgOther, Error> {
         check_raw_alloc!(self.imgdata_ptr());
         ImgOther::new(self.arc_imgdata_ptr())
     }
-    pub fn get_color_maximum(&self) -> Result<i32, LibrawError> {
+    pub fn get_color_maximum(&self) -> Result<i32, Error> {
         check_raw_alloc!(self.imgdata_ptr());
         Ok(unsafe { libraw_sys::libraw_get_color_maximum(self.imgdata_ptr()) })
     }

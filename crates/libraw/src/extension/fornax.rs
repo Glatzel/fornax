@@ -3,10 +3,10 @@ use std::path::Path;
 use fornax_core::{FornaxError, FornaxPrimitive, IDecoder, IPostProcessor};
 use image::{EncodableLayout, Rgb};
 
-use crate::{Libraw, LibrawError, ProcFlag};
+use crate::{Error, Libraw, ProcFlag};
 
-impl From<LibrawError> for FornaxError {
-    fn from(val: LibrawError) -> Self { FornaxError(val.to_string()) }
+impl From<Error> for FornaxError {
+    fn from(val: Error) -> Self { FornaxError(val.to_string()) }
 }
 impl<T> IDecoder<T> for Libraw
 where

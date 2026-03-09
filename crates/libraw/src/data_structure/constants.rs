@@ -1,3 +1,3 @@
 mod errors;
 
-pub(crate) use errors::{LibrawError, LibrawErrorCode};
+pub(crate) use errors::{Error, LibrawErrorCode};
