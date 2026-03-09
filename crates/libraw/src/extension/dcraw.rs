@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use envoy::ToCString;
 
-use crate::{DCRawOutputBps, DCRawOutputColor, DCRawParams, ImgdataPtr, LibrawErrorKind};
+use crate::{DCRawOutputBps, DCRawOutputColor, DCRawParams, ImgdataPtr, LibrawError};
 
 impl DCRawParams {
     #[allow(unused_mut)]
     pub(crate) fn set_output_params(
         &self,
         mut arc_imgdata_ptr: Arc<ImgdataPtr>,
-    ) -> Result<(), LibrawErrorKind> {
+    ) -> Result<(), LibrawError> {
         self.greybox
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.greybox = *v });
         self.cropbox

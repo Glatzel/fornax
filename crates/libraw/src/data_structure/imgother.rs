@@ -4,7 +4,7 @@ use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use envoy::PtrToString;
 
-use crate::{ImgdataPtr, LibrawErrorKind};
+use crate::{ImgdataPtr, LibrawError};
 
 #[derive(Debug, Clone)]
 pub struct ImgOtherGpsInfo {
@@ -28,7 +28,7 @@ impl ImgOtherGpsInfo {
     pub fn altitude(&self) -> f32 {
         unsafe { (*self.arc_imgdata_ptr.ptr()).other.parsed_gps.altitude }
     }
-    pub fn altref(&self) -> Result<String, LibrawErrorKind> {
+    pub fn altref(&self) -> Result<String, LibrawError> {
         unsafe {
             Ok(
                 ((*self.arc_imgdata_ptr.ptr()).other.parsed_gps.altref as *const c_char)
@@ -36,7 +36,7 @@ impl ImgOtherGpsInfo {
             )
         }
     }
-    pub fn latref(&self) -> Result<String, LibrawErrorKind> {
+    pub fn latref(&self) -> Result<String, LibrawError> {
         unsafe {
             Ok(
                 ((*self.arc_imgdata_ptr.ptr()).other.parsed_gps.latref as *const c_char)
@@ -44,7 +44,7 @@ impl ImgOtherGpsInfo {
             )
         }
     }
-    pub fn longref(&self) -> Result<String, LibrawErrorKind> {
+    pub fn longref(&self) -> Result<String, LibrawError> {
         unsafe {
             Ok(
                 ((*self.arc_imgdata_ptr.ptr()).other.parsed_gps.longref as *const c_char)
@@ -52,7 +52,7 @@ impl ImgOtherGpsInfo {
             )
         }
     }
-    pub fn gpsstatus(&self) -> Result<String, LibrawErrorKind> {
+    pub fn gpsstatus(&self) -> Result<String, LibrawError> {
         unsafe {
             Ok(
                 ((*self.arc_imgdata_ptr.ptr()).other.parsed_gps.gpsstatus as *const c_char)
@@ -60,7 +60,7 @@ impl ImgOtherGpsInfo {
             )
         }
     }
-    pub fn gpsparsed(&self) -> Result<String, LibrawErrorKind> {
+    pub fn gpsparsed(&self) -> Result<String, LibrawError> {
         unsafe {
             Ok(
                 ((*self.arc_imgdata_ptr.ptr()).other.parsed_gps.gpsparsed as *const c_char)
@@ -77,7 +77,7 @@ pub struct ImgOther {
     imgdata: Arc<ImgdataPtr>,
 }
 impl ImgOther {
-    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawErrorKind> {
+    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
         Ok(Self { imgdata })
     }
     ///ISO sensitivity.
@@ -99,11 +99,11 @@ impl ImgOther {
     ///Parsed GPS-data: longitude/latitude/altitude and time stamp.
     pub fn parsed_gps(&self) -> ImgOtherGpsInfo { ImgOtherGpsInfo::new(self.imgdata.clone()) }
     ///Image description.
-    pub fn desc(&self) -> Result<String, LibrawErrorKind> {
+    pub fn desc(&self) -> Result<String, LibrawError> {
         unsafe { Ok(((*self.imgdata.ptr()).other.desc.as_ptr()).to_string()?) }
     }
     ///Author of image.
-    pub fn artist(&self) -> Result<String, LibrawErrorKind> {
+    pub fn artist(&self) -> Result<String, LibrawError> {
         unsafe { Ok(((*self.imgdata.ptr()).other.artist.as_ptr()).to_string()?) }
     }
 }

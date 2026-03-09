@@ -3,11 +3,11 @@ use std::slice;
 use fornax_core::FornaxPrimitive;
 use image::{ImageBuffer, Rgb};
 
-use crate::{Libraw, LibrawErrorKind, ProcessedImage, check_raw_alloc, check_run, custom_error};
+use crate::{Libraw, LibrawError, ProcessedImage, check_raw_alloc, check_run, custom_error};
 
 // region:Custom API
 impl Libraw {
-    pub fn bayer_pattern(&self) -> Result<fornax_core::BayerPattern, LibrawErrorKind> {
+    pub fn bayer_pattern(&self) -> Result<fornax_core::BayerPattern, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
         let pattern0 = self.color(0, 0);
         let pattern1 = self.color(0, 1);
@@ -21,7 +21,7 @@ impl Libraw {
             (a, b, c, d) => custom_error!(format!("Unknown bayer pattern: {a}, {b}, {c}, {d}")),
         }
     }
-    pub fn get_bayer_image<T>(&self) -> Result<fornax_core::BayerImage<T>, LibrawErrorKind>
+    pub fn get_bayer_image<T>(&self) -> Result<fornax_core::BayerImage<T>, LibrawError>
     where
         T: FornaxPrimitive,
     {
@@ -56,7 +56,7 @@ impl Libraw {
     pub(crate) fn map_processed_image<O>(
         &self,
         processed: &ProcessedImage,
-    ) -> Result<image::ImageBuffer<Rgb<O>, Vec<O>>, LibrawErrorKind>
+    ) -> Result<image::ImageBuffer<Rgb<O>, Vec<O>>, LibrawError>
     where
         O: FornaxPrimitive,
     {
@@ -134,7 +134,7 @@ impl Libraw {
     pub fn get_raw_image(
         &self,
         subtract_black: bool,
-    ) -> Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>, LibrawErrorKind> {
+    ) -> Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>, LibrawError> {
         self.raw2image()?;
         check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata_ptr()) });
         if subtract_black {
@@ -158,7 +158,7 @@ impl Libraw {
             .unwrap();
         Ok(img)
     }
-    pub fn get_params(&self) -> Result<libraw_sys::libraw_output_params_t, LibrawErrorKind> {
+    pub fn get_params(&self) -> Result<libraw_sys::libraw_output_params_t, LibrawError> {
         Ok(unsafe { (*self.imgdata_ptr()).params })
     }
 }

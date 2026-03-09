@@ -1,6 +1,6 @@
 use num_enum::TryFromPrimitive;
 
-use crate::{LibrawErrorKind, check_run};
+use crate::{LibrawError, check_run};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, TryFromPrimitive)]
 #[repr(i32)]
@@ -15,7 +15,7 @@ pub struct ProcessedImage {
 impl ProcessedImage {
     pub(crate) fn new(
         ptr: *mut libraw_sys::libraw_processed_image_t,
-    ) -> Result<ProcessedImage, LibrawErrorKind> {
+    ) -> Result<ProcessedImage, LibrawError> {
         check_run!(ptr.is_null(), "`libraw_processed_image_t` pointer is null.");
         clerk::debug!("{:?}", unsafe { *(ptr) });
         let img: ProcessedImage = Self {
@@ -29,7 +29,7 @@ impl ProcessedImage {
     ///   fields (see below) are valid and describes image data.
     /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file.
     ///   Only type, data_size and data fields are valid (and nonzero);
-    pub fn image_type(&self) -> Result<DCRawImageFormats, LibrawErrorKind> {
+    pub fn image_type(&self) -> Result<DCRawImageFormats, LibrawError> {
         Ok(DCRawImageFormats::try_from(unsafe {
             (*self.processed_image).type_ as i32
         })?)

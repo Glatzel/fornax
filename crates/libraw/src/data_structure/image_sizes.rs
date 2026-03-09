@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use num_enum::TryFromPrimitive;
 
-use crate::{ImgdataPtr, LibrawErrorKind};
+use crate::{ImgdataPtr, LibrawError};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, TryFromPrimitive)]
 #[repr(i32)]
@@ -23,7 +23,7 @@ pub struct ImageSizes {
     arc_imgdata_ptr: Arc<ImgdataPtr>,
 }
 impl ImageSizes {
-    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawErrorKind> {
+    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
         Ok(Self {
             arc_imgdata_ptr: imgdata,
         })
@@ -59,7 +59,7 @@ impl ImageSizes {
     }
     ///Image orientation (0 if does not require rotation; 3 if requires 180-deg
     /// rotation; 5 if 90 deg counterclockwise, 6 if 90 deg clockwise).
-    pub fn flip(&self) -> Result<ImageSizesFlip, LibrawErrorKind> {
+    pub fn flip(&self) -> Result<ImageSizesFlip, LibrawError> {
         Ok(ImageSizesFlip::try_from(
             unsafe { *self.arc_imgdata_ptr.ptr() }.sizes.flip,
         )?)
