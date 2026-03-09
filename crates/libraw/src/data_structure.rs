@@ -7,7 +7,7 @@ mod output_params;
 mod processed_image;
 mod rawdata;
 
-pub(crate) use constants::{LibrawErrorKind, LibrawErrorCode};
+pub(crate) use constants::{LibrawErrorCode, LibrawErrorKind};
 pub(crate) use data::ImgdataPtr;
 pub use data::Libraw;
 pub use image_sizes::{ImageSizes, ImageSizesFlip};
