@@ -3,7 +3,6 @@
 $config = if ($args.Count) { $args } else { @('--workspace', '--all-features') }
 if (Test-Path $PSScriptRoot/setup.ps1) { &$PSScriptRoot/setup.ps1 }
 if ($env:CI) { pixi global install cargo-llvm-cov cargo-nextest }
-$ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 
 Write-Output "::group::nextest"
@@ -40,5 +39,4 @@ else {
     Write-Host "Test succeeded." -ForegroundColor Green
 }
 Write-Output "::endgroup::"
-Set-Location $ROOT
 exit $code
