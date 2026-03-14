@@ -12,5 +12,6 @@ pixi run pytest `
     --cov `
     --cov-report term `
     --cov-report=xml:tests_report/coverage.xml `
-    --cov-report=html:tests_report/htmlcov
+    --cov-report=html:tests_report/htmlcov `
+    --color=yes
 Set-Location $ROOT
