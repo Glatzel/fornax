@@ -1,6 +1,0 @@
-# This File is automatically synchronized from https://github.com/Glatzel/template
-
-$config = if (-not $args) { '--workspace' } else { $args }
-if (Test-Path $PSScriptRoot/setup.ps1) { &$PSScriptRoot/setup.ps1 }
-Set-Location $PSScriptRoot/..
-cargo bench @config
