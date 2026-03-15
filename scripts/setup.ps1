@@ -1,6 +1,8 @@
 Set-Location $PSScriptRoot/..
 if ((-not $IsLinux) -and $env:CI_CARGO_TEST) {
     & $PSScriptRoot/install-dnc.ps1
+}
+if ( $env:CI_CARGO_TEST) {
     git submodule update --init --recursive
 }
 pixi install
