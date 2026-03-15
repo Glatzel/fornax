@@ -65,7 +65,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
       - if: ${{matrix.machine=='ubuntu-latest'}}
         uses: ./.github/actions/cargo-clippy
-      - uses: ./.github/actions/cargo-test 
+      - uses: ./.github/actions/cargo-test
         with:
           args: --workspace --all-features --exclude fornax-py
       - name: pytest
