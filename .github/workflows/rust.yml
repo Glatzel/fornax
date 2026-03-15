@@ -1,0 +1,282 @@
+# This File is automatically synchronized from https://github.com/Glatzel/template
+
+name: rust
+
+on:
+  workflow_dispatch:
+    inputs:
+      working-directory:
+        type: string
+        default: "."
+        required: false
+      setup-pixi:
+        type: boolean
+        default: true
+        required: false
+
+      build:
+        type: boolean
+        default: false
+        required: false
+      build-args:
+        type: string
+        default: "--all-features"
+        required: false
+
+      clippy:
+        type: boolean
+        default: false
+        required: false
+      clippy-args:
+        type: string
+        default: "--all-features  -- -Dwarnings"
+        required: false
+
+      doc:
+        type: boolean
+        default: false
+        required: false
+      doc-args:
+        type: string
+        default: "--all-features --no-deps"
+        required: false
+
+      miri:
+        type: boolean
+        default: false
+        required: false
+      miri-args:
+        type: string
+        default: ""
+        required: false
+
+      test:
+        type: boolean
+        default: false
+        required: false
+      test-args:
+        type: string
+        default: "--all-features"
+        required: false
+      test-machine:
+        type: string
+        required: true
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        default: "."
+        required: false
+      setup-pixi:
+        type: boolean
+        default: true
+        required: false
+
+      build:
+        type: boolean
+        default: false
+        required: false
+      build-args:
+        type: string
+        default: "--all-features"
+        required: false
+      build-machine:
+        type: string
+        required: false
+
+      clippy:
+        type: boolean
+        default: false
+        required: false
+      clippy-args:
+        type: string
+        default: "--all-features"
+        required: false
+
+      doc:
+        type: boolean
+        default: false
+        required: false
+      doc-args:
+        type: string
+        default: "--all-features --no-deps"
+        required: false
+
+      miri:
+        type: boolean
+        default: false
+        required: false
+      miri-args:
+        type: string
+        default: ""
+        required: false
+
+      test:
+        type: boolean
+        default: false
+        required: false
+      test-args:
+        type: string
+        default: "--all-features"
+        required: false
+      test-machine:
+        type: string
+        required: false
+
+jobs:
+  cargo-build:
+    if: inputs.build
+    defaults:
+      run:
+        working-directory: ${{inputs.working-directory}}
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: ${{ fromJSON(inputs.build-machine) }}
+    runs-on: ${{matrix.machine}}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Set up pixi
+        if: inputs.setup-pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          run-install: false
+      - run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1}
+          cargo +stable build ${{inputs.build-args}}
+        shell: pwsh
+
+  cargo-clippy:
+    if: inputs.clippy
+    defaults:
+      run:
+        working-directory: ${{inputs.working-directory}}
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: "clippy"
+      - uses: Swatinem/rust-cache@v2
+      - name: Set up pixi
+        if: inputs.setup-pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          run-install: false
+      - run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1}
+          cargo +stable clippy ${{inputs.clippy-args}}
+        shell: pwsh
+
+  cargo-doc:
+    if: inputs.doc
+    defaults:
+      run:
+        working-directory: ${{inputs.working-directory}}
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up pixi
+        if: inputs.setup-pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          run-install: false
+      - uses: dtolnay/rust-toolchain@stable
+      - run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
+          cargo doc ${{inputs.doc-args}}
+        shell: pwsh
+
+  cargo-miri:
+    if: inputs.miri
+    defaults:
+      run:
+        working-directory: ${{inputs.working-directory}}
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up pixi
+        if: inputs.setup-pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          run-install: false
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: "miri"
+      - run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
+          cargo +nightly miri test ${{inputs.miri-args}}
+        shell: pwsh
+
+  cargo-test:
+    if: inputs.test
+    defaults:
+      run:
+        working-directory: ${{inputs.working-directory}}
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: ${{ fromJSON(inputs.test-machine) }}
+    runs-on: ${{matrix.machine}}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          run-install: false
+      - uses: dtolnay/rust-toolchain@nightly
+      - run: |
+          if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
+          pixi global install -c https://prefix.dev/glatzel cargo-llvm-cov cargo-nextest
+
+          Write-Output "::group::nextest"
+          cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{inputs.test-args}}
+          $code = $LASTEXITCODE
+          Write-Output "::endgroup::"
+
+          Write-Output "::group::examples"
+          cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast --examples --no-tests pass ${{inputs.test-args}}
+          $code = $code + $LASTEXITCODE
+          Write-Output "::endgroup::"
+
+          Write-Output "::group::doctest"
+          cargo +nightly llvm-cov --no-report --branch --no-fail-fast --doc ${{inputs.test-args}}
+          $code = $code + $LASTEXITCODE
+          Write-Output "::endgroup::"
+
+          Write-Output "::group::report"
+          cargo +nightly llvm-cov report
+          cargo +nightly llvm-cov report --lcov --output-path lcov.info
+          Write-Output "::endgroup::"
+
+          Write-Output "::group::result"
+          $code = $code + $LASTEXITCODE
+          if ($code -ne 0) {
+              Write-Host "Test failed." -ForegroundColor Red
+          }
+          else {
+              Write-Host "Test succeeded." -ForegroundColor Green
+          }
+          Write-Output "::endgroup::"
+          exit $code
+        shell: pwsh
+      - name: Upload results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          report_type: test_results
+          fail_ci_if_error: true
