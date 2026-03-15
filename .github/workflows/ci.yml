@@ -37,6 +37,9 @@ jobs:
         with:
           run-install: false
       - uses: dtolnay/rust-toolchain@stable
+      - if: ${{matrix.machine == 'windows-latest' || matrix.machine =='macos-latest'}}
+        run: ./scripts/install-dnc.ps1
+        shell: pwsh
       - name: pytest
         run: |
           ./scripts/maturin-develop.ps1
