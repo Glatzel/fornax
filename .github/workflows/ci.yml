@@ -35,9 +35,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.4
         with:
           run-install: false
-      - name: cargo-doc
-        run: ./scripts/cargo-doc.ps1
-        shell: pwsh
+      - uses: ./.github/actions/cargo-doc
 
   test-build:
     strategy:
