@@ -55,7 +55,6 @@ jobs:
   rust:
     uses: ./.github/workflows/rust.yml
     with:
-      working-directory: "./rust"
       setup-pixi: true
       clippy: true
       doc: true
