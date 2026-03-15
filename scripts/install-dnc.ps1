@@ -1,7 +1,4 @@
-param(
-    [Parameter(Mandatory = $true)]
-    [string]$version
-)
+$version = '18_2_2'
 $ROOT = git rev-parse --show-toplevel
 Set-Location $PSScriptRoot/..
 if ($IsWindows) {
