@@ -22,29 +22,58 @@ jobs:
   lefthook:
     if: ${{ github.event_name != 'schedule' }}
     uses: ./.github/workflows/ci-lefthook.yml
-
-  python:
-    strategy:
-      fail-fast: false
-      matrix:
-        machine: [windows-latest, ubuntu-latest, macos-latest, ubuntu-24.04-arm]
-
-    runs-on: ${{matrix.machine}}
+  cargo-doc:
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-Dwarnings"
     steps:
       - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        if: ${{github.event_name=='pull_request'}}
       - name: Set up pixi
         uses: prefix-dev/setup-pixi@v0.9.4
         with:
           run-install: false
-      - uses: dtolnay/rust-toolchain@stable
-      - if: ${{matrix.machine == 'windows-latest' || matrix.machine =='macos-latest'}}
-        run: ./scripts/install-dnc.ps1
+      - name: cargo-doc
+        run: ./scripts/cargo-doc.ps1
         shell: pwsh
+
+  test-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        machine: [windows-latest, ubuntu-latest, macos-latest, ubuntu-24.04-arm]
+    env:
+      dnc_version: 18_0
+    runs-on: ${{matrix.machine}}
+    steps:
+      - uses: actions/checkout@v6
+      - name: restore dnc
+        if: ${{runner.os != 'Linux'}}
+        uses: actions/cache@v5
+        with:
+          path: ./temp/dnc${{env.dnc_version}}*
+          key: dnc-${{ runner.os }}-${{env.dnc_version}}
+      - if: ${{runner.os != 'Linux'}}
+        run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
+        shell: pwsh
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          run-install: false
+      - uses: dtolnay/rust-toolchain@nightly
+      - if: ${{matrix.machine=='ubuntu-latest'}}
+        uses: ./.github/actions/cargo-clippy
+      - uses: ./.github/actions/cargo-test 
+        with:
+          args: --workspace --all-features --exclude fornax-py
       - name: pytest
         run: |
           ./scripts/maturin-develop.ps1
           ./scripts/pytest.ps1
         shell: pwsh
+
       - name: Upload results to Codecov
         if: ${{ !cancelled() }}
         uses: codecov/codecov-action@v5
@@ -55,19 +84,9 @@ jobs:
         with:
           report_type: test_results
           fail_ci_if_error: true
-  rust:
-    uses: ./.github/workflows/rust.yml
-    with:
-      setup-pixi: true
-      clippy: true
-      doc: true
-      test: true
-      test-args: --workspace --all-features --exclude fornax-py
-      test-machine: "['windows-latest', 'ubuntu-latest', 'macos-latest', 'ubuntu-24.04-arm']"
-
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook, python, rust]
+    needs: [lefthook, cargo-doc, test-build]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1
