@@ -1,0 +1,24 @@
+# This File is automatically synchronized from https://github.com/Glatzel/template
+
+name: cargo doc
+description: cargo doc
+
+inputs:
+  working-directory:
+    description: "working-directory"
+    default: .
+  args:
+    description: "args"
+    required: false
+    default: --all-features --no-deps
+
+runs:
+  using: "composite"
+  steps:
+    - shell: pwsh
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        $ErrorActionPreference = "Stop"
+        $PSNativeCommandUseErrorActionPreference = $true
+        if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
+        cargo +stable doc ${{inputs.args}}
