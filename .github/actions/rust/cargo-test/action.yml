@@ -1,38 +1,43 @@
-# This File is automatically synchronized from https://github.com/Glatzel/template
+# This file is automatically synchronized from https://github.com/Glatzel/template
 
 name: cargo test
-description: cargo test
+description: Run Rust tests with nextest and generate coverage reports
 
 inputs:
   working-directory:
-    description: "working-directory"
+    description: Working directory
     default: .
   args:
-    description: "args"
+    description: Additional arguments passed to cargo llvm-cov
     required: false
     default: ""
 
 runs:
-  using: "composite"
+  using: composite
   steps:
-    - shell: pwsh
+    - name: Run tests and collect coverage
+      shell: pwsh
       working-directory: ${{ inputs.working-directory }}
       run: |
+        $ErrorActionPreference = "Stop"
+        $PSNativeCommandUseErrorActionPreference = $true
+
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
+
         pixi global install -c https://prefix.dev/glatzel cargo-llvm-cov cargo-nextest
 
         Write-Output "::group::nextest"
-        cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{inputs.args}}
+        cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{ inputs.args }}
         $code = $LASTEXITCODE
         Write-Output "::endgroup::"
 
         Write-Output "::group::examples"
-        cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast --examples --no-tests pass ${{inputs.args}}
+        cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast --examples --no-tests pass ${{ inputs.args }}
         $code = $code + $LASTEXITCODE
         Write-Output "::endgroup::"
 
         Write-Output "::group::doctest"
-        cargo +nightly llvm-cov --no-report --branch --no-fail-fast --doc ${{inputs.args}}
+        cargo +nightly llvm-cov --no-report --branch --no-fail-fast --doc ${{ inputs.args }}
         $code = $code + $LASTEXITCODE
         Write-Output "::endgroup::"
 
@@ -45,13 +50,14 @@ runs:
         $code = $code + $LASTEXITCODE
         if ($code -ne 0) {
             Write-Host "Test failed." -ForegroundColor Red
-        }
-        else {
+        } else {
             Write-Host "Test succeeded." -ForegroundColor Green
         }
         Write-Output "::endgroup::"
+
         exit $code
-    - name: Upload results to Codecov
+
+    - name: Upload coverage to Codecov
       if: ${{ !cancelled() }}
       uses: codecov/codecov-action@v5
 

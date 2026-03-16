@@ -1,24 +1,27 @@
-# This File is automatically synchronized from https://github.com/Glatzel/template
+# This file is automatically synchronized from https://github.com/Glatzel/template
 
 name: cargo clippy
-description: cargo clippy
+description: Run Rust lints using cargo clippy
 
 inputs:
   working-directory:
-    description: "working-directory"
+    description: Working directory
     default: .
   args:
-    description: "args"
+    description: Additional arguments passed to cargo clippy
     required: false
     default: --all-features
 
 runs:
-  using: "composite"
+  using: composite
   steps:
-    - shell: pwsh
+    - name: Run clippy
+      shell: pwsh
       working-directory: ${{ inputs.working-directory }}
       run: |
         $ErrorActionPreference = "Stop"
         $PSNativeCommandUseErrorActionPreference = $true
+
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-        cargo +stable clippy ${{inputs.args}}
+
+        cargo +stable clippy ${{ inputs.args }}
