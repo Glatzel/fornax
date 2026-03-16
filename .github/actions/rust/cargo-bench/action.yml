@@ -1,30 +1,33 @@
-# This File is automatically synchronized from https://github.com/Glatzel/template
+# This file is automatically synchronized from https://github.com/Glatzel/template
 
-name: cargo miri
-description: cargo miri
+name: cargo bench
+description: Run Rust benchmarks with CodSpeed
 
 inputs:
   working-directory:
-    description: "working-directory"
+    description: Working directory
     default: .
   args:
-    description: "args"
+    description: Additional arguments passed to cargo codspeed
     required: false
     default: ""
 
 runs:
-  using: "composite"
+  using: composite
   steps:
-    - run: cargo install cargo-codspeed --locked
+    - name: Install cargo-codspeed
+      run: cargo install cargo-codspeed --locked
       working-directory: ${{ inputs.working-directory }}
       shell: pwsh
-    - name: Build the benchmark target(s)
-      working-directory: ${{ inputs.working-directory }}
+
+    - name: Build benchmark targets
       run: |
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-        cargo codspeed build ${{inputs.args}}
+        cargo codspeed build ${{ inputs.args }}
+      working-directory: ${{ inputs.working-directory }}
       shell: pwsh
-    - name: Run the benchmarks
+
+    - name: Run benchmarks
       uses: CodSpeedHQ/action@v4
       with:
         run: cargo codspeed run
