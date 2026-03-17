@@ -10,7 +10,7 @@ inputs:
   args:
     description: Additional arguments passed to cargo codspeed
     required: false
-    default: ""
+    default: --all-features
 
 runs:
   using: composite
@@ -26,6 +26,8 @@ runs:
         cargo codspeed build ${{ inputs.args }}
       working-directory: ${{ inputs.working-directory }}
       shell: pwsh
+      env:
+        RUSTDOCFLAGS: "-D warnings"
 
     - name: Run benchmarks
       uses: CodSpeedHQ/action@v4
