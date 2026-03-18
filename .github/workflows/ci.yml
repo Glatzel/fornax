@@ -27,12 +27,12 @@ jobs:
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         if: ${{github.event_name=='pull_request'}}
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
         with:
           run-install: false
       - uses: ./.github/actions/rust/cargo-doc
@@ -46,10 +46,10 @@ jobs:
       dnc_version: 18_0
     runs-on: ${{matrix.machine}}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: restore dnc
         if: ${{runner.os != 'Linux'}}
-        uses: actions/cache@v5
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ./temp/dnc${{env.dnc_version}}*
           key: dnc-${{ runner.os }}-${{env.dnc_version}}
@@ -57,7 +57,7 @@ jobs:
         run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
         shell: pwsh
       - name: Set up pixi
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
         with:
           run-install: false
       - uses: dtolnay/rust-toolchain@nightly
@@ -74,11 +74,11 @@ jobs:
 
       - name: Upload results to Codecov
         if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           report_type: test_results
           fail_ci_if_error: true
