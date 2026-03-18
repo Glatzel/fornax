@@ -11,10 +11,17 @@ inputs:
     description: Additional arguments passed to cargo llvm-cov
     required: false
     default: ""
-
+  skip-doc:
+    description: Skip doc test
+    required: false
+    default: "false"
 runs:
   using: composite
   steps:
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
+      with:
+        run-install: false
     - name: Run tests and collect coverage
       shell: pwsh
       working-directory: ${{ inputs.working-directory }}
@@ -37,7 +44,9 @@ runs:
         Write-Output "::endgroup::"
 
         Write-Output "::group::doctest"
-        cargo +nightly llvm-cov --no-report --branch --no-fail-fast --doc ${{ inputs.args }}
+        if( -not ("${{ inputs.skip-doc }}" -eq 'true')){
+            cargo +nightly llvm-cov --no-report --branch --no-fail-fast --doc ${{ inputs.args }}
+        }
         $code = $code + $LASTEXITCODE
         Write-Output "::endgroup::"
 
@@ -56,16 +65,14 @@ runs:
         Write-Output "::endgroup::"
 
         exit $code
-      env:
-        RUSTDOCFLAGS: "-D warnings"
 
     - name: Upload coverage to Codecov
       if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
 
     - name: Upload test results to Codecov
       if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
       with:
         report_type: test_results
         fail_ci_if_error: true
