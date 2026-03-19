@@ -28,7 +28,7 @@ jobs:
       RUSTFLAGS: "-Dwarnings"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: ./.github/actions/rust/setup-rust
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         if: ${{github.event_name=='pull_request'}}
       - name: Set up pixi
@@ -56,11 +56,9 @@ jobs:
       - if: ${{runner.os != 'Linux'}}
         run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
         shell: pwsh
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
+      - uses: ./.github/actions/rust/setup-rust
         with:
-          run-install: false
-      - uses: dtolnay/rust-toolchain@nightly
+          toolchain: nightly
       - if: ${{matrix.machine=='ubuntu-latest'}}
         uses: ./.github/actions/rust/cargo-clippy
       - uses: ./.github/actions/rust/cargo-test

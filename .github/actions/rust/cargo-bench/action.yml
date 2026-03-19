@@ -15,11 +15,13 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Set up pixi
+      uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
+      with:
+        run-install: false
     - name: Install cargo-codspeed
-      run: cargo install cargo-codspeed --locked
-      working-directory: ${{ inputs.working-directory }}
+      run: pixi global install -c https://prefix.dev/glatzel cargo-codspeed
       shell: pwsh
-
     - name: Build benchmark targets
       run: |
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
