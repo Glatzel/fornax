@@ -24,17 +24,30 @@ runs:
       uses: prefix-dev/setup-pixi@a0af7a228712d6121d37aba47adf55c1332c9c2e # v0.9.4
       with:
         run-install: false
-    - name: Install rustup-init
-      run: pixi global install -c https://prefix.dev/glatzel -c conda-forge rustup-init
+
+    - name: Install rustup-init (if missing)
       shell: pwsh
+      run: |
+        if (-not (Get-Command rustup -ErrorAction SilentlyContinue)) {
+          pixi global install -c https://prefix.dev/glatzel -c conda-forge rustup-init
+        }
+
     - name: Install Rust toolchain
-      run: rustup-init -y --default-toolchain ${{ inputs.toolchain }} --profile minimal
       shell: pwsh
+      run: |
+        if (-not (Get-Command rustup -ErrorAction SilentlyContinue)) {
+          rustup-init -y --default-toolchain ${{ inputs.toolchain }} --profile minimal
+        } else {
+          rustup toolchain install ${{ inputs.toolchain }} --profile minimal
+          rustup default ${{ inputs.toolchain }}
+        }
+
     - name: Install Rust components
       if: ${{ inputs.components != '' }}
-      run: rustup component add ${{ inputs.components }}
       shell: pwsh
+      run: rustup component add ${{ inputs.components }}
+
     - name: Install Rust targets
       if: ${{ inputs.targets != '' }}
-      run: rustup target add ${{ inputs.targets }}
       shell: pwsh
+      run: rustup target add ${{ inputs.targets }}
