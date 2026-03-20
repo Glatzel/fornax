@@ -10,7 +10,7 @@ inputs:
   args:
     description: Additional arguments passed to cargo llvm-cov
     required: false
-    default: ""
+    default: --all-features
   skip-doc:
     description: Skip doc test
     required: false
