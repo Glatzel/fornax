@@ -10,7 +10,7 @@ inputs:
   args:
     description: Additional arguments passed to cargo miri test
     required: false
-    default: ""
+    default: null
 
 runs:
   using: composite
