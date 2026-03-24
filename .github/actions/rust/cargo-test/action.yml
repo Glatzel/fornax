@@ -10,7 +10,7 @@ inputs:
   args:
     description: Additional arguments passed to cargo llvm-cov
     required: false
-    default: --all-features
+    default: --workspace --all-features --all-targets
   skip-doc:
     description: Skip doc test
     required: false
@@ -26,8 +26,8 @@ runs:
         $PSNativeCommandUseErrorActionPreference = $true
 
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-
-        pixi global install -c https://prefix.dev/glatzel cargo-llvm-cov cargo-nextest
+        # problem with cli test against llvm-cov 0.7+
+        pixi global install -c https://prefix.dev/glatzel cargo-llvm-cov=0.6 cargo-nextest
 
         Write-Output "::group::nextest"
         cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{ inputs.args }}
@@ -47,6 +47,7 @@ runs:
         Write-Output "::endgroup::"
 
         Write-Output "::group::report"
+        copy-item *.profraw  ./target/llvm-cov-target -ErrorAction SilentlyContinue # temporary situation for llvm-cov
         cargo +nightly llvm-cov report
         cargo +nightly llvm-cov report --lcov --output-path lcov.info
         Write-Output "::endgroup::"
