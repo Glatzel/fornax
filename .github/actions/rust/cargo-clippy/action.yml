@@ -10,7 +10,7 @@ inputs:
   args:
     description: Additional arguments passed to cargo clippy
     required: false
-    default: --all-features
+    default: --workspace --all-features --no-deps
 
 runs:
   using: composite
@@ -24,6 +24,6 @@ runs:
 
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
 
-        cargo +stable clippy ${{ inputs.args }}
+        cargo clippy ${{ inputs.args }}
       env:
         RUSTDOCFLAGS: "-D warnings"
