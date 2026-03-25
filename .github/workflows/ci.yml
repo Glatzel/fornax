@@ -59,6 +59,7 @@ jobs:
       - uses: ./.github/actions/rust/setup-rust
         with:
           toolchain: nightly
+          components: clippy
       - if: ${{matrix.machine=='ubuntu-latest'}}
         uses: ./.github/actions/rust/cargo-clippy
       - uses: ./.github/actions/rust/cargo-test
