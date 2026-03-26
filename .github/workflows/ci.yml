@@ -64,23 +64,15 @@ jobs:
         uses: ./.github/actions/rust/cargo-clippy
       - uses: ./.github/actions/rust/cargo-test
         with:
-          args: --workspace --all-features --exclude fornax-py
+          nextest-args: --workspace --all-features --exclude fornax-py
+          doctest-args: --workspace --all-features --exclude fornax-py
       - name: pytest
         run: |
           ./scripts/maturin-develop.ps1
           ./scripts/pytest.ps1
         shell: pwsh
 
-      - name: Upload results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5.5.3
-
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5.5.3
-        with:
-          report_type: test_results
-          fail_ci_if_error: true
+      - uses: ./.github/actions/common/codecov
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs: [lefthook, cargo-doc, test-build]
