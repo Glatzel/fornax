@@ -46,7 +46,7 @@ runs:
 
         if ("${{ inputs.doctest }}" -eq "true") {
             Write-Output "::group::doctest"
-            cargo +nightly test --doc --no-report --branch --no-fail-fast ${{ inputs.doctest-args }}
+            cargo +nightly llvm-cov --doc --no-report --branch --no-fail-fast ${{ inputs.doctest-args }}
             $code = $LASTEXITCODE
             Write-Output "::endgroup::"
         }
