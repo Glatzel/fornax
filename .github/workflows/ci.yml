@@ -74,6 +74,7 @@ jobs:
         shell: pwsh
 
       - uses: ./.github/actions/common/codecov
+        if: ${{ !cancelled() }}
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs: [lefthook, cargo-doc, test-build]
