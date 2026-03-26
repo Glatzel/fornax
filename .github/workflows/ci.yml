@@ -64,7 +64,7 @@ jobs:
         uses: ./.github/actions/rust/cargo-clippy
       - uses: ./.github/actions/rust/cargo-test
         with:
-          nextest-args: --workspace --all-features --exclude fornax-py
+          nextest-args: --workspace --all-features --tests --exclude fornax-py
           doctest-args: --workspace --all-features --exclude fornax-py
       - name: pytest
         run: |
