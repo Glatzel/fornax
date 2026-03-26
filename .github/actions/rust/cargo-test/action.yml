@@ -7,6 +7,9 @@ inputs:
   working-directory:
     description: Working directory
     default: .
+  global-args:
+    description: Additional arguments passed to cargo llvm-cov
+    required: false
   nextest:
     description: Use nextest for testing
     required: false
@@ -44,21 +47,21 @@ runs:
 
         if ("${{ inputs.nextest }}" -eq "true") {
             Write-Output "::group::nextest"
-            cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{ inputs.nextest-args }}
+            cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.nextest-args }}
             $code = $LASTEXITCODE
             Write-Output "::endgroup::"
         }
 
         if ("${{ inputs.examples }}" -eq "true") {
             Write-Output "::group::examples"
-            cargo +nightly llvm-cov test --examples --no-report --branch --no-fail-fast ${{ inputs.examples-args }}
+            cargo +nightly llvm-cov test --examples --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.examples-args }}
             $code = $code+$LASTEXITCODE
             Write-Output "::endgroup::"
         }
 
         if ("${{ inputs.doc }}" -eq "true") {
             Write-Output "::group::doctest"
-            cargo +nightly llvm-cov --doc --no-report --branch --no-fail-fast ${{ inputs.doc-args }}
+            cargo +nightly llvm-cov --doc --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.doc-args }}
             $code = $code+$LASTEXITCODE
             Write-Output "::endgroup::"
         }
