@@ -7,6 +7,9 @@ inputs:
   working-directory:
     description: Working directory
     default: .
+  global-args:
+    description: Additional arguments passed to cargo llvm-cov
+    required: false
   nextest:
     description: Use nextest for testing
     required: false
@@ -14,15 +17,20 @@ inputs:
   nextest-args:
     description: Additional arguments passed to cargo llvm-cov
     required: false
-    default: ""
-  doctest:
+  examples:
+    description: Run examples
+    required: false
+    default: "true"
+  examples-args:
+    description: Additional arguments passed to examples
+    required: false
+  doc:
     description: Run doctests
     required: false
     default: "true"
-  doctest-args:
+  doc-args:
     description: Additional arguments passed to doc test
     required: false
-    default: ""
 runs:
   using: composite
   steps:
@@ -39,15 +47,22 @@ runs:
 
         if ("${{ inputs.nextest }}" -eq "true") {
             Write-Output "::group::nextest"
-            cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{ inputs.nextest-args }}
+            cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.nextest-args }}
             $code = $LASTEXITCODE
             Write-Output "::endgroup::"
         }
 
-        if ("${{ inputs.doctest }}" -eq "true") {
+        if ("${{ inputs.examples }}" -eq "true") {
+            Write-Output "::group::examples"
+            cargo +nightly llvm-cov test --examples --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.examples-args }}
+            $code = $code+$LASTEXITCODE
+            Write-Output "::endgroup::"
+        }
+
+        if ("${{ inputs.doc }}" -eq "true") {
             Write-Output "::group::doctest"
-            cargo +nightly llvm-cov --doc --no-report --branch --no-fail-fast ${{ inputs.doctest-args }}
-            $code = $LASTEXITCODE
+            cargo +nightly llvm-cov --doc --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.doc-args }}
+            $code = $code+$LASTEXITCODE
             Write-Output "::endgroup::"
         }
 
