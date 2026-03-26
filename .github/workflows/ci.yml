@@ -64,8 +64,7 @@ jobs:
         uses: ./.github/actions/rust/cargo-clippy
       - uses: ./.github/actions/rust/cargo-test
         with:
-          nextest-args: --workspace --all-features --exclude fornax-py
-          doctest-args: --workspace --all-features --exclude fornax-py
+          global-args: --workspace --all-features --exclude fornax-py
       - name: pytest
         run: |
           ./scripts/maturin-develop.ps1
