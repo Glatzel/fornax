@@ -1,0 +1,34 @@
+# This file is automatically synchronized from https://github.com/Glatzel/template
+
+name: pytest
+description: Run pytest tests
+
+inputs:
+  environment:
+    description: The pixi environment to use
+    required: false
+    default: "default"
+  args:
+    description: Additional arguments to pass to pytest
+    required: false
+    default: >
+      ./tests
+      -v
+      --durations=10
+      --junitxml=junit.xml
+      --cov
+      --cov-report term
+      --cov-report=xml:tests_report/coverage.xml
+      --cov-report=html:tests_report/htmlcov
+      --color=yes
+  working-directory:
+    description: Working directory
+    default: .
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run pytest
+      run: pixi run -e ${{ inputs.environment }} pytest ${{ inputs.args }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}

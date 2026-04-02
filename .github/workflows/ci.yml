@@ -22,6 +22,7 @@ jobs:
     uses: ./.github/workflows/ci-lefthook.yml
     permissions:
       contents: write
+      pull-requests: write
   cargo-doc:
     runs-on: ubuntu-latest
     env:
