@@ -68,12 +68,13 @@ jobs:
       - uses: ./.github/actions/rust/cargo-test
         with:
           global-args: --workspace --all-features --exclude fornax-py
-      - name: pytest
+      - name: build
         run: |
           ./scripts/maturin-develop.ps1
-          ./scripts/pytest.ps1
         shell: pwsh
-
+      - uses: ./.github/actions/python/pytest
+        with:
+          working-directory: ./crates/fornax-py
       - uses: ./.github/actions/common/codecov
         if: ${{ !cancelled() }}
   check-point:
