@@ -29,6 +29,7 @@ impl ProcessedImage {
     ///   fields (see below) are valid and describes image data.
     /// - LIBRAW_IMAGE_JPEG - structure contain in-memory image of JPEG file.
     ///   Only type, data_size and data fields are valid (and nonzero);
+    #[allow(clippy::unnecessary_cast)]
     pub fn image_type(&self) -> Result<DCRawImageFormats, LibrawError> {
         Ok(DCRawImageFormats::try_from(unsafe {
             (*self.processed_image).type_ as i32
