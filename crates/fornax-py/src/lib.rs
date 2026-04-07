@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clerk::LogLevel;
+use clerk::LevelFilter;
 //Adobe DNC Converter only available on Windows or MacOS.
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 use fornax::dnc;
@@ -13,6 +13,7 @@ use pyo3::types::PyTuple;
 use pyo3::{Python, pyfunction};
 use rmp_serde::Deserializer;
 use serde::Deserialize;
+use tracing_subscriber::Layer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -138,15 +139,15 @@ fn py_process<'a>(
 #[pyfunction]
 pub fn py_init_tracing(level: u8, color: bool) {
     let level = match level {
-        1 => LogLevel::ERROR,
-        2 => LogLevel::WARN,
-        3 => LogLevel::INFO,
-        4 => LogLevel::DEBUG,
-        5 => LogLevel::TRACE,
-        _ => LogLevel::OFF,
+        1 => LevelFilter::ERROR,
+        2 => LevelFilter::WARN,
+        3 => LevelFilter::INFO,
+        4 => LevelFilter::DEBUG,
+        5 => LevelFilter::TRACE,
+        _ => LevelFilter::OFF,
     };
     tracing_subscriber::registry()
-        .with(clerk::terminal_layer(color).with_filter(level))
+        .with(clerk::terminal_layer(color).with_filter(clerk::level_filter(level)))
         .init();
 }
 #[pymodule]
