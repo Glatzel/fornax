@@ -5,18 +5,18 @@ platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
 [dependencies]
 libraw-dev = "==0.22.1"
-maturin = "==1.12.6"
+maturin = "==1.13.1"
 pip = "==26.0.1"
 python = "3.13.*"
 
 imageio = "==2.37.0"
 lazy-loader = "==0.5"
-msgspec = "==0.20.0"
+msgspec = "==0.21.0"
 nomkl = "==1.0"
 numpy = "2.3.*"
 numpydoc = "==1.10.0"
 pydantic = "==2.12.5"
 
 # test
-pytest = "==9.0.2"
+pytest = "==9.0.3"
 pytest-cov = "==7.1.0"
