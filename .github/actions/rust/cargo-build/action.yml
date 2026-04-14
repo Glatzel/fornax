@@ -26,4 +26,4 @@ runs:
 
         cargo build ${{ inputs.args }}
       env:
-        RUSTDOCFLAGS: "-D warnings"
+        RUSTFLAGS: "-D warnings"

@@ -26,4 +26,4 @@ runs:
 
         cargo +nightly miri test ${{ inputs.args }}
       env:
-        RUSTDOCFLAGS: "-D warnings"
+        RUSTFLAGS: "-D warnings"
