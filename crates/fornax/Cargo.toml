@@ -1,7 +1,7 @@
 [package]
-edition.workspace = true
 name = "fornax"
 version.workspace = true
+edition.workspace = true
 
 [dependencies]
 dnc.workspace = true
@@ -17,4 +17,4 @@ fornax-devtool.workspace = true
 mischief.workspace = true
 
 [features]
-serde = ["libraw/serde", "dnc/serde", "fornax-dalim/serde"]
+serde = ["dnc/serde", "fornax-dalim/serde", "libraw/serde"]
