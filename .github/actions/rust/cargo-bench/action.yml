@@ -25,7 +25,7 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       shell: pwsh
       env:
-        RUSTDOCFLAGS: "-D warnings"
+        RUSTFLAGS: "-D warnings"
 
     - name: Run benchmarks
       uses: CodSpeedHQ/action@db35df748deb45fdef0960669f57d627c1956c30 # v4.13.1

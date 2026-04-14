@@ -47,21 +47,21 @@ runs:
 
         if ("${{ inputs.nextest }}" -eq "true") {
             Write-Output "::group::nextest"
-            cargo +nightly llvm-cov nextest --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.nextest-args }}
+            cargo +nightly llvm-cov nextest --no-report --no-fail-fast ${{ inputs.global-args }} ${{ inputs.nextest-args }}
             $code = $LASTEXITCODE
             Write-Output "::endgroup::"
         }
 
         if ("${{ inputs.examples }}" -eq "true") {
             Write-Output "::group::examples"
-            cargo +nightly llvm-cov test --examples --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.examples-args }}
+            cargo +nightly llvm-cov test --examples --no-report --no-fail-fast ${{ inputs.global-args }} ${{ inputs.examples-args }}
             $code = $code+$LASTEXITCODE
             Write-Output "::endgroup::"
         }
 
         if ("${{ inputs.doc }}" -eq "true") {
             Write-Output "::group::doctest"
-            cargo +nightly llvm-cov --doc --no-report --branch --no-fail-fast ${{ inputs.global-args }} ${{ inputs.doc-args }}
+            cargo +nightly llvm-cov --doc --no-report --no-fail-fast ${{ inputs.global-args }} ${{ inputs.doc-args }}
             $code = $code+$LASTEXITCODE
             Write-Output "::endgroup::"
         }
