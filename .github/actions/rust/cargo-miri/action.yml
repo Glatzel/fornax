@@ -10,7 +10,7 @@ inputs:
   args:
     description: Additional arguments passed to cargo miri test
     required: false
-    default: null
+    default: -- -D warnings
 
 runs:
   using: composite
@@ -25,5 +25,3 @@ runs:
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
 
         cargo +nightly miri test ${{ inputs.args }}
-      env:
-        RUSTFLAGS: "-D warnings"
