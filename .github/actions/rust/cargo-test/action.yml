@@ -42,8 +42,7 @@ runs:
         $PSNativeCommandUseErrorActionPreference = $true
 
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-        # problem with cli test against llvm-cov 0.7+
-        pixi global install -c https://prefix.dev/glatzel cargo-llvm-cov=0.6 cargo-nextest
+        pixi global install -c https://prefix.dev/glatzel -c conda-forge cargo-llvm-cov cargo-nextest
 
         if ("${{ inputs.nextest }}" -eq "true") {
             Write-Output "::group::nextest"
