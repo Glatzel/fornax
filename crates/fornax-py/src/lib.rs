@@ -147,7 +147,7 @@ pub fn py_init_tracing(level: u8, color: bool) {
         _ => LevelFilter::OFF,
     };
     tracing_subscriber::registry()
-        .with(clerk::terminal_layer(color).with_filter(clerk::level_filter(level)))
+        .with(clerk::terminal_layer(color).with_filter(level))
         .init();
 }
 #[pymodule]
