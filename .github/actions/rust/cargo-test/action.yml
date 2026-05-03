@@ -41,6 +41,9 @@ runs:
         $ErrorActionPreference = "Stop"
         $PSNativeCommandUseErrorActionPreference = $true
 
+        New-Item -ItemType Directory -Path .config -Force | Out-Null
+        Copy-Item -Path "$env:GITHUB_ACTION_PATH/nextest.toml" -Destination .config/nextest.toml -Force
+
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
         pixi global install -c https://prefix.dev/glatzel -c conda-forge cargo-llvm-cov cargo-nextest
 
