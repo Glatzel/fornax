@@ -5,7 +5,7 @@ platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
 [dependencies]
 libraw-dev = "==0.22.1"
-maturin = "==1.13.1"
+maturin = "==1.13.2"
 pip = "==26.1.1"
 python = "3.13.*"
 
@@ -15,7 +15,7 @@ msgspec = "==0.21.1"
 nomkl = "==1.0"
 numpy = "2.3.*"
 numpydoc = "==1.10.0"
-pydantic = "==2.13.3"
+pydantic = "==2.13.4"
 
 # test
 pytest = "==9.0.3"
