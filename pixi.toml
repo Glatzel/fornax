@@ -7,13 +7,13 @@ platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 libraw-dev = "==0.22.1"
 maturin = "==1.13.3"
 pip = "==26.1.1"
-python = "3.13.*"
+python = "3.11.*"
 
 imageio = "==2.37.0"
 lazy-loader = "==0.5"
 msgspec = "==0.21.1"
 nomkl = "==1.0"
-numpy = "2.3.*"
+numpy = "1.26.*"
 numpydoc = "==1.10.0"
 pydantic = "==2.13.4"
 
