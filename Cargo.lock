@@ -55,8 +55,8 @@ checksum = "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1"
 
 [[package]]
 name = "arbor"
-version = "2026.5.1"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.1#443e7962f066f2dcbf65dfa107663c668d9fd807"
+version = "2026.5.14"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.14#de42481a817bc689545e734d4a40952137520e1d"
 dependencies = [
  "textwrap",
 ]
@@ -265,11 +265,12 @@ dependencies = [
 
 [[package]]
 name = "clerk"
-version = "2026.5.1"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.1#443e7962f066f2dcbf65dfa107663c668d9fd807"
+version = "2026.5.14"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.14#de42481a817bc689545e734d4a40952137520e1d"
 dependencies = [
  "chrono",
  "owo-colors",
+ "thiserror 2.0.18",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
@@ -361,8 +362,8 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "envoy"
-version = "2026.5.1"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.1#443e7962f066f2dcbf65dfa107663c668d9fd807"
+version = "2026.5.14"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.14#de42481a817bc689545e734d4a40952137520e1d"
 dependencies = [
  "thiserror 2.0.18",
 ]
@@ -846,8 +847,8 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.5.1"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.1#443e7962f066f2dcbf65dfa107663c668d9fd807"
+version = "2026.5.14"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.14#de42481a817bc689545e734d4a40952137520e1d"
 dependencies = [
  "arbor",
  "mischief-macros",
@@ -860,8 +861,8 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "2026.5.1"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.1#443e7962f066f2dcbf65dfa107663c668d9fd807"
+version = "2026.5.14"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.14#de42481a817bc689545e734d4a40952137520e1d"
 dependencies = [
  "quote",
  "syn",
