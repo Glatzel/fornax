@@ -55,8 +55,8 @@ checksum = "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1"
 
 [[package]]
 name = "arbor"
-version = "2026.5.14"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.14#de42481a817bc689545e734d4a40952137520e1d"
+version = "2026.5.18"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.18#43a9c4c6ebca3ec832be961ba217d9e254a3f606"
 dependencies = [
  "textwrap",
 ]
@@ -265,8 +265,8 @@ dependencies = [
 
 [[package]]
 name = "clerk"
-version = "2026.5.14"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.14#de42481a817bc689545e734d4a40952137520e1d"
+version = "2026.5.18"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.18#43a9c4c6ebca3ec832be961ba217d9e254a3f606"
 dependencies = [
  "chrono",
  "owo-colors",
@@ -336,7 +336,7 @@ checksum = "6184e33543162437515c2e2b48714794e37845ec9851711914eec9d308f6ebe8"
 
 [[package]]
 name = "dnc"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "assert_cmd",
  "clerk",
@@ -362,8 +362,8 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "envoy"
-version = "2026.5.14"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.14#de42481a817bc689545e734d4a40952137520e1d"
+version = "2026.5.18"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.18#43a9c4c6ebca3ec832be961ba217d9e254a3f606"
 dependencies = [
  "thiserror 2.0.18",
 ]
@@ -455,7 +455,7 @@ dependencies = [
 
 [[package]]
 name = "fornax"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "assert_cmd",
  "clerk",
@@ -470,7 +470,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-core"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "image",
  "thiserror 2.0.18",
@@ -478,7 +478,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-dalim"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "clerk",
  "fornax-core",
@@ -492,14 +492,14 @@ dependencies = [
 
 [[package]]
 name = "fornax-devtool"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "clerk",
 ]
 
 [[package]]
 name = "fornax-py"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "clerk",
  "fornax",
@@ -746,7 +746,7 @@ dependencies = [
 
 [[package]]
 name = "libraw"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "assert_cmd",
  "bytemuck",
@@ -766,7 +766,7 @@ dependencies = [
 
 [[package]]
 name = "libraw-sys"
-version = "0.0.15"
+version = "0.0.16"
 dependencies = [
  "bindgen",
  "dunce",
@@ -847,8 +847,8 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.5.14"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.14#de42481a817bc689545e734d4a40952137520e1d"
+version = "2026.5.18"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.18#43a9c4c6ebca3ec832be961ba217d9e254a3f606"
 dependencies = [
  "arbor",
  "mischief-macros",
@@ -861,8 +861,8 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "2026.5.14"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.14#de42481a817bc689545e734d4a40952137520e1d"
+version = "2026.5.18"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.5.18#43a9c4c6ebca3ec832be961ba217d9e254a3f606"
 dependencies = [
  "quote",
  "syn",
