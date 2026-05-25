@@ -13,14 +13,15 @@ inputs:
     required: false
     default: >
       ./tests
-      -v
-      --durations=10
-      --junitxml=junit.xml
+      --color=yes
       --cov
       --cov-report term
       --cov-report=xml:tests_report/coverage.xml
       --cov-report=html:tests_report/htmlcov
-      --color=yes
+      --durations=10
+      --junitxml=junit.xml
+      --maxfail 0
+      --verbose
   working-directory:
     description: Working directory
     default: .
