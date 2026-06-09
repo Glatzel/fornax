@@ -18,8 +18,6 @@ fornax-dalim = { path = "./crates/fornax-dalim" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
-
-assert_cmd = "2.0"
 bindgen = "0.72.0"
 bytemuck = "1.23.2"
 chrono = "0.4.42"
@@ -36,7 +34,6 @@ rayon = "1.11.0"
 rmp-serde = "1.3.0"
 serde = { version = "1.0.224", features = ["derive"] }
 thiserror = "2.0.16"
-tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 
 [profile.release]
