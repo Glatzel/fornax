@@ -11,21 +11,21 @@ clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.5.29" }
 envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.5.29" }
 mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.5.29" }
 
+bindgen = "0.72.0"
+bytemuck = "1.23.2"
+chrono = "0.4.42"
 dnc = { path = "./crates/dnc" }
+dunce = "1.0.5"
+# image = "0.25.5"
+float-cmp = "0.10.0"
 fornax = { path = "./crates/fornax" }
 fornax-core = { path = "./crates/fornax-core" }
 fornax-dalim = { path = "./crates/fornax-dalim" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
-libraw = { path = "./crates/libraw" }
-libraw-sys = { path = "./crates/libraw-sys" }
-bindgen = "0.72.0"
-bytemuck = "1.23.2"
-chrono = "0.4.42"
-dunce = "1.0.5"
-# image = "0.25.5"
-float-cmp = "0.10.0"
 image = { git = "https://github.com/fintelia/image", branch = "primitive-ext" }
 libc = "0.2"
+libraw = { path = "./crates/libraw" }
+libraw-sys = { path = "./crates/libraw-sys" }
 num_enum = "0.7.4"
 numpy = "0.28.0"
 path-slash = "0.2.1"
