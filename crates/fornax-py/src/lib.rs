@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 
 use clerk::LevelFilter;
+use clerk::tracing_subscriber::Layer;
+use clerk::tracing_subscriber::layer::SubscriberExt;
+use clerk::tracing_subscriber::util::SubscriberInitExt;
 //Adobe DNC Converter only available on Windows or MacOS.
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 use fornax::dnc;
@@ -13,9 +16,6 @@ use pyo3::types::PyTuple;
 use pyo3::{Python, pyfunction};
 use rmp_serde::Deserializer;
 use serde::Deserialize;
-use tracing_subscriber::Layer;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 enum PyOutputBits {
     Unsigned8,
@@ -146,7 +146,7 @@ pub fn py_init_tracing(level: u8, color: bool) {
         5 => LevelFilter::TRACE,
         _ => LevelFilter::OFF,
     };
-    tracing_subscriber::registry()
+    clerk::tracing_subscriber::registry()
         .with(clerk::terminal_layer(color).with_filter(level))
         .init();
 }
