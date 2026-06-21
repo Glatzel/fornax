@@ -37,6 +37,8 @@ runs:
     - name: Run tests and collect coverage
       shell: pwsh
       working-directory: ${{ inputs.working-directory }}
+      env:
+        RUST_BACKTRACE: 1
       run: |
         $ErrorActionPreference = "Stop"
         $PSNativeCommandUseErrorActionPreference = $true
