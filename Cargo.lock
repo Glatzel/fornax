@@ -318,7 +318,7 @@ dependencies = [
 
 [[package]]
 name = "dnc"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "clerk",
  "dunce",
@@ -436,7 +436,7 @@ dependencies = [
 
 [[package]]
 name = "fornax"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "clerk",
  "dnc",
@@ -450,7 +450,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-core"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "image",
  "thiserror 2.0.18",
@@ -458,7 +458,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-dalim"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "clerk",
  "fornax-core",
@@ -470,14 +470,14 @@ dependencies = [
 
 [[package]]
 name = "fornax-devtool"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "clerk",
 ]
 
 [[package]]
 name = "fornax-py"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "clerk",
  "fornax",
@@ -828,7 +828,7 @@ checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 
 [[package]]
 name = "libraw"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "bytemuck",
  "chrono",
@@ -847,7 +847,7 @@ dependencies = [
 
 [[package]]
 name = "libraw-sys"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "bindgen",
  "libc",
