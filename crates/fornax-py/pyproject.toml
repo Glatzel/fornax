@@ -1,6 +1,6 @@
 [project]
 name = "fornax"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 authors = [{ name = "Glatzel", email = "893016099@qq.com" }]
 dependencies = ["lazy-loader", "msgspec", "pydantic"]
 dynamic = ["version"]
