@@ -68,9 +68,9 @@ dependencies = [
 
 [[package]]
 name = "arrayvec"
-version = "0.7.6"
+version = "0.7.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
+checksum = "f02882884d3e1bc524fb12c79f107f6ad0e1cfd498c536ffb494301740995dfe"
 
 [[package]]
 name = "autocfg"
@@ -171,9 +171,9 @@ checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
 
 [[package]]
 name = "cc"
-version = "1.2.64"
+version = "1.2.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dad887fd958be91b5098c0248def011f4523ab786cd411be668777e55063501f"
+checksum = "e228eec9be7c17ccb640b59b36a5cd805ea2a564a4c5e162c2f659fea30d3b96"
 dependencies = [
  "find-msvc-tools",
  "jobserver",
@@ -318,7 +318,7 @@ dependencies = [
 
 [[package]]
 name = "dnc"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "clerk",
  "dunce",
@@ -436,7 +436,7 @@ dependencies = [
 
 [[package]]
 name = "fornax"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "clerk",
  "dnc",
@@ -450,7 +450,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-core"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "image",
  "thiserror 2.0.18",
@@ -458,7 +458,7 @@ dependencies = [
 
 [[package]]
 name = "fornax-dalim"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "clerk",
  "fornax-core",
@@ -470,14 +470,14 @@ dependencies = [
 
 [[package]]
 name = "fornax-devtool"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "clerk",
 ]
 
 [[package]]
 name = "fornax-py"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "clerk",
  "fornax",
@@ -828,7 +828,7 @@ checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 
 [[package]]
 name = "libraw"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "bytemuck",
  "chrono",
@@ -847,7 +847,7 @@ dependencies = [
 
 [[package]]
 name = "libraw-sys"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "bindgen",
  "libc",
@@ -867,9 +867,9 @@ checksum = "23fb14cb19457329c82206317a5663005a4d404783dc74f4252769b0d5f42856"
 
 [[package]]
 name = "log"
-version = "0.4.32"
+version = "0.4.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "953f07c43838f8e6f9758cab68bf5bed85465e7587ebe0b823f1bcd81978ad3a"
+checksum = "0ceec5bc11778974d1bcb055b18002eba7f4b3518b6a0081b3af5f21666da9ad"
 
 [[package]]
 name = "loop9"
@@ -1300,9 +1300,9 @@ checksum = "a993555f31e5a609f617c12db6250dedcac1b0a85076912c436e6fc9b2c8e6a3"
 
 [[package]]
 name = "quote"
-version = "1.0.45"
+version = "1.0.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41f2619966050689382d2b44f664f4bc593e129785a36d6ee376ddf37259b924"
+checksum = "dfbc457d0c7a0759a614551b11a6409e5951f6c7537be1f1b7682b9ae9230368"
 dependencies = [
  "proc-macro2",
 ]
@@ -1587,9 +1587,9 @@ checksum = "8ed6a63f02c8539c91a8685a86f4099661ba3da017932f6ebbea6de3f0fa7c90"
 
 [[package]]
 name = "smawk"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7c388c1b5e93756d0c740965c41e8822f866621d41acbdf6336a6a168f8840c"
+checksum = "e8e2fb0f499abb4d162f2bedad68f5ef91a1682b5a03596ddb67efd37768d100"
 
 [[package]]
 name = "stable_deref_trait"
@@ -1620,9 +1620,9 @@ checksum = "b7401a30af6cb5818bb64852270bb722533397edcfc7344954a38f420819ece2"
 
 [[package]]
 name = "syn"
-version = "2.0.117"
+version = "2.0.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e665b8803e7b1d2a727f4023456bbbbe74da67099c585258af0ad9c5013b9b99"
+checksum = "1b9ae57f904213ebb649ce6895b8a66c66f0203b9319718f69a5612a065b1422"
 dependencies = [
  "proc-macro2",
  "quote",
