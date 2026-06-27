@@ -7,5 +7,5 @@ extend-ignore-identifiers-re = [
   "_thr",
   "UnsufficientMemory",
   "correc",
-  "INSUFFICIENT"
+  "UNSUFFICIENT"
 ]
