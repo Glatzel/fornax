@@ -20,7 +20,7 @@ fn main() {
     //     println!("cargo:rustc-link-lib=m");
     // }
     // generate bindings
-    if env::var("UPDATE_LIBRAW_BINDINGS").unwrap_or("false".to_string()) == "true" {
+    if env::var("UPDATE_LIBRAW_BINDINGS").is_ok() {
         let ignored_macros = IgnoreMacros(
             vec![
                 "FP_INFINITE".into(),
