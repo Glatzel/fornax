@@ -1,10 +1,11 @@
 #![no_std]
 #![allow(
+    clippy::approx_constant
+    dead_code,
     non_camel_case_types,
     non_snake_case,
     non_upper_case_globals,
     unexpected_cfgs,
-    dead_code
 )]
 #[cfg(target_os = "windows")]
 include!("bindings-win.rs");
