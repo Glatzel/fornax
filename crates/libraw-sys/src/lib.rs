@@ -6,7 +6,8 @@
     non_snake_case,
     non_upper_case_globals,
     unexpected_cfgs,
-    unsafe_code
+    unsafe_code,
+    dead_code
 )]
 #[cfg(target_os = "windows")]
 include!("bindings-win.rs");
