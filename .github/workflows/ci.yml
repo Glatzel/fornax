@@ -64,8 +64,6 @@ jobs:
           toolchain: nightly
           components: clippy
       - uses: ./.github/actions/rust/cargo-clippy
-        with:
-          args: --workspace --all-features --exclude libraw-sys
       - uses: ./.github/actions/rust/cargo-test
         with:
           global-args: --workspace --all-features --exclude fornax-py
