@@ -12,7 +12,6 @@ pub const _HAS_CXX17: u32 = 0;
 pub const _HAS_CXX20: u32 = 0;
 pub const _HAS_CXX23: u32 = 0;
 pub const _HAS_CXX26: u32 = 0;
-pub const _HAS_NODISCARD: u32 = 0;
 pub const CHAR_BIT: u32 = 8;
 pub const SCHAR_MIN: i32 = -128;
 pub const SCHAR_MAX: u32 = 127;
@@ -46,7 +45,7 @@ pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT: u32 = 0;
 pub const _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES: u32 = 1;
 pub const _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_MEMORY: u32 = 0;
 pub const _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES_MEMORY: u32 = 0;
-pub const _STATIC_INLINE_UCRT_FUNCTIONS: u32 = 1;
+pub const _STATIC_INLINE_UCRT_FUNCTIONS: u32 = 0;
 pub const EPERM: u32 = 1;
 pub const ENOENT: u32 = 2;
 pub const ESRCH: u32 = 3;
@@ -390,34 +389,6 @@ unsafe extern "C" {
         _Buf: *const libc::c_void,
         _Val: libc::c_int,
         _MaxCount: libc::c_ulonglong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn memcmp(
-        _Buf1: *const libc::c_void,
-        _Buf2: *const libc::c_void,
-        _Size: libc::c_ulonglong,
-    ) -> libc::c_int;
-}
-unsafe extern "C" {
-    pub fn memcpy(
-        _Dst: *mut libc::c_void,
-        _Src: *const libc::c_void,
-        _Size: libc::c_ulonglong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn memmove(
-        _Dst: *mut libc::c_void,
-        _Src: *const libc::c_void,
-        _Size: libc::c_ulonglong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn memset(
-        _Dst: *mut libc::c_void,
-        _Val: libc::c_int,
-        _Size: libc::c_ulonglong,
     ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
@@ -3654,9 +3625,6 @@ unsafe extern "C" {
         _String2: *const libc::c_char,
         _Locale: _locale_t,
     ) -> libc::c_int;
-}
-unsafe extern "C" {
-    pub fn strlen(_Str: *const libc::c_char) -> libc::c_ulonglong;
 }
 unsafe extern "C" {
     pub fn _strlwr_s(_String: *mut libc::c_char, _Size: usize) -> errno_t;

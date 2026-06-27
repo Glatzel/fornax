@@ -63,8 +63,7 @@ jobs:
         with:
           toolchain: nightly
           components: clippy
-      - if: ${{matrix.machine=='ubuntu-latest'}}
-        uses: ./.github/actions/rust/cargo-clippy
+      - uses: ./.github/actions/rust/cargo-clippy
       - uses: ./.github/actions/rust/cargo-test
         with:
           global-args: --workspace --all-features --exclude fornax-py
