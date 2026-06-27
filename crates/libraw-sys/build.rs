@@ -30,6 +30,12 @@ fn main() {
                 "FP_NORMAL".into(),
                 "FP_SUBNORMAL".into(),
                 "FP_ZERO".into(),
+                "memcpy".into(),
+                "memmove".into(),
+                "memset".into(),
+                "memcmp".into(),
+                "strlen".into(),
+                "bcmp".into(),
             ]
             .into_iter()
             .collect(),
