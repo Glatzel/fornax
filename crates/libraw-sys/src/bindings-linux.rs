@@ -630,40 +630,12 @@ pub const LIBRAW_SHLIB_AGE: u32 = 0;
 pub const LibRawBigEndian: u32 = 0;
 pub const LIBRAW_HISTOGRAM_SIZE: u32 = 8192;
 unsafe extern "C" {
-    pub fn memcpy(
-        __dest: *mut libc::c_void,
-        __src: *const libc::c_void,
-        __n: libc::c_ulong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn memmove(
-        __dest: *mut libc::c_void,
-        __src: *const libc::c_void,
-        __n: libc::c_ulong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
     pub fn memccpy(
         __dest: *mut libc::c_void,
         __src: *const libc::c_void,
         __c: libc::c_int,
         __n: libc::c_ulong,
     ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn memset(
-        __s: *mut libc::c_void,
-        __c: libc::c_int,
-        __n: libc::c_ulong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn memcmp(
-        __s1: *const libc::c_void,
-        __s2: *const libc::c_void,
-        __n: libc::c_ulong,
-    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn __memcmpeq(
@@ -836,9 +808,6 @@ unsafe extern "C" {
     ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn strlen(__s: *const libc::c_char) -> libc::c_ulong;
-}
-unsafe extern "C" {
     pub fn strnlen(__string: *const libc::c_char, __maxlen: usize) -> usize;
 }
 unsafe extern "C" {
@@ -854,13 +823,6 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn strerror_l(__errnum: libc::c_int, __l: locale_t) -> *mut libc::c_char;
-}
-unsafe extern "C" {
-    pub fn bcmp(
-        __s1: *const libc::c_void,
-        __s2: *const libc::c_void,
-        __n: libc::c_ulong,
-    ) -> libc::c_int;
 }
 unsafe extern "C" {
     pub fn bcopy(__src: *const libc::c_void, __dest: *mut libc::c_void, __n: libc::c_ulong);

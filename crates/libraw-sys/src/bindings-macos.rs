@@ -373,6 +373,14 @@ pub const __MAC_15_2: u32 = 150200;
 pub const __MAC_15_3: u32 = 150300;
 pub const __MAC_15_4: u32 = 150400;
 pub const __MAC_15_5: u32 = 150500;
+pub const __MAC_15_6: u32 = 150600;
+pub const __MAC_16_0: u32 = 160000;
+pub const __MAC_26_0: u32 = 260000;
+pub const __MAC_26_1: u32 = 260100;
+pub const __MAC_26_2: u32 = 260200;
+pub const __MAC_26_3: u32 = 260300;
+pub const __MAC_26_4: u32 = 260400;
+pub const __MAC_26_5: u32 = 260500;
 pub const __IPHONE_2_0: u32 = 20000;
 pub const __IPHONE_2_1: u32 = 20100;
 pub const __IPHONE_2_2: u32 = 20200;
@@ -425,7 +433,6 @@ pub const __IPHONE_14_1: u32 = 140100;
 pub const __IPHONE_14_2: u32 = 140200;
 pub const __IPHONE_14_3: u32 = 140300;
 pub const __IPHONE_14_5: u32 = 140500;
-pub const __IPHONE_14_4: u32 = 140400;
 pub const __IPHONE_14_6: u32 = 140600;
 pub const __IPHONE_14_7: u32 = 140700;
 pub const __IPHONE_14_8: u32 = 140800;
@@ -460,6 +467,14 @@ pub const __IPHONE_18_2: u32 = 180200;
 pub const __IPHONE_18_3: u32 = 180300;
 pub const __IPHONE_18_4: u32 = 180400;
 pub const __IPHONE_18_5: u32 = 180500;
+pub const __IPHONE_18_6: u32 = 180600;
+pub const __IPHONE_19_0: u32 = 190000;
+pub const __IPHONE_26_0: u32 = 260000;
+pub const __IPHONE_26_1: u32 = 260100;
+pub const __IPHONE_26_2: u32 = 260200;
+pub const __IPHONE_26_3: u32 = 260300;
+pub const __IPHONE_26_4: u32 = 260400;
+pub const __IPHONE_26_5: u32 = 260500;
 pub const __WATCHOS_1_0: u32 = 10000;
 pub const __WATCHOS_2_0: u32 = 20000;
 pub const __WATCHOS_2_1: u32 = 20100;
@@ -515,6 +530,14 @@ pub const __WATCHOS_11_2: u32 = 110200;
 pub const __WATCHOS_11_3: u32 = 110300;
 pub const __WATCHOS_11_4: u32 = 110400;
 pub const __WATCHOS_11_5: u32 = 110500;
+pub const __WATCHOS_11_6: u32 = 110600;
+pub const __WATCHOS_12_0: u32 = 120000;
+pub const __WATCHOS_26_0: u32 = 260000;
+pub const __WATCHOS_26_1: u32 = 260100;
+pub const __WATCHOS_26_2: u32 = 260200;
+pub const __WATCHOS_26_3: u32 = 260300;
+pub const __WATCHOS_26_4: u32 = 260400;
+pub const __WATCHOS_26_5: u32 = 260500;
 pub const __TVOS_9_0: u32 = 90000;
 pub const __TVOS_9_1: u32 = 90100;
 pub const __TVOS_9_2: u32 = 90200;
@@ -570,6 +593,14 @@ pub const __TVOS_18_2: u32 = 180200;
 pub const __TVOS_18_3: u32 = 180300;
 pub const __TVOS_18_4: u32 = 180400;
 pub const __TVOS_18_5: u32 = 180500;
+pub const __TVOS_18_6: u32 = 180600;
+pub const __TVOS_19_0: u32 = 190000;
+pub const __TVOS_26_0: u32 = 260000;
+pub const __TVOS_26_1: u32 = 260100;
+pub const __TVOS_26_2: u32 = 260200;
+pub const __TVOS_26_3: u32 = 260300;
+pub const __TVOS_26_4: u32 = 260400;
+pub const __TVOS_26_5: u32 = 260500;
 pub const __BRIDGEOS_2_0: u32 = 20000;
 pub const __BRIDGEOS_3_0: u32 = 30000;
 pub const __BRIDGEOS_3_1: u32 = 30100;
@@ -603,6 +634,13 @@ pub const __BRIDGEOS_9_2: u32 = 90200;
 pub const __BRIDGEOS_9_3: u32 = 90300;
 pub const __BRIDGEOS_9_4: u32 = 90400;
 pub const __BRIDGEOS_9_5: u32 = 90500;
+pub const __BRIDGEOS_9_6: u32 = 90600;
+pub const __BRIDGEOS_10_0: u32 = 100000;
+pub const __BRIDGEOS_10_1: u32 = 100100;
+pub const __BRIDGEOS_10_2: u32 = 100200;
+pub const __BRIDGEOS_10_3: u32 = 100300;
+pub const __BRIDGEOS_10_4: u32 = 100400;
+pub const __BRIDGEOS_26_5: u32 = 260500;
 pub const __DRIVERKIT_19_0: u32 = 190000;
 pub const __DRIVERKIT_20_0: u32 = 200000;
 pub const __DRIVERKIT_21_0: u32 = 210000;
@@ -623,6 +661,13 @@ pub const __DRIVERKIT_24_2: u32 = 240200;
 pub const __DRIVERKIT_24_3: u32 = 240300;
 pub const __DRIVERKIT_24_4: u32 = 240400;
 pub const __DRIVERKIT_24_5: u32 = 240500;
+pub const __DRIVERKIT_24_6: u32 = 240600;
+pub const __DRIVERKIT_25_0: u32 = 250000;
+pub const __DRIVERKIT_25_1: u32 = 250100;
+pub const __DRIVERKIT_25_2: u32 = 250200;
+pub const __DRIVERKIT_25_3: u32 = 250300;
+pub const __DRIVERKIT_25_4: u32 = 250400;
+pub const __DRIVERKIT_25_5: u32 = 250500;
 pub const __VISIONOS_1_0: u32 = 10000;
 pub const __VISIONOS_1_1: u32 = 10100;
 pub const __VISIONOS_1_2: u32 = 10200;
@@ -633,6 +678,14 @@ pub const __VISIONOS_2_2: u32 = 20200;
 pub const __VISIONOS_2_3: u32 = 20300;
 pub const __VISIONOS_2_4: u32 = 20400;
 pub const __VISIONOS_2_5: u32 = 20500;
+pub const __VISIONOS_2_6: u32 = 20600;
+pub const __VISIONOS_3_0: u32 = 30000;
+pub const __VISIONOS_26_0: u32 = 260000;
+pub const __VISIONOS_26_1: u32 = 260100;
+pub const __VISIONOS_26_2: u32 = 260200;
+pub const __VISIONOS_26_3: u32 = 260300;
+pub const __VISIONOS_26_4: u32 = 260400;
+pub const __VISIONOS_26_5: u32 = 260500;
 pub const MAC_OS_X_VERSION_10_0: u32 = 1000;
 pub const MAC_OS_X_VERSION_10_1: u32 = 1010;
 pub const MAC_OS_X_VERSION_10_2: u32 = 1020;
@@ -703,20 +756,28 @@ pub const MAC_OS_VERSION_15_2: u32 = 150200;
 pub const MAC_OS_VERSION_15_3: u32 = 150300;
 pub const MAC_OS_VERSION_15_4: u32 = 150400;
 pub const MAC_OS_VERSION_15_5: u32 = 150500;
+pub const MAC_OS_VERSION_15_6: u32 = 150600;
+pub const MAC_OS_VERSION_16_0: u32 = 160000;
+pub const MAC_OS_VERSION_26_0: u32 = 260000;
+pub const MAC_OS_VERSION_26_1: u32 = 260100;
+pub const MAC_OS_VERSION_26_2: u32 = 260200;
+pub const MAC_OS_VERSION_26_3: u32 = 260300;
+pub const MAC_OS_VERSION_26_4: u32 = 260400;
+pub const MAC_OS_VERSION_26_5: u32 = 260500;
 pub const __AVAILABILITY_VERSIONS_VERSION_HASH: u32 = 93585900;
 pub const __AVAILABILITY_VERSIONS_VERSION_STRING: &[u8; 6] = b"Local\0";
 pub const __AVAILABILITY_FILE: &[u8; 23] = b"AvailabilityVersions.h\0";
-pub const __MAC_OS_X_VERSION_MAX_ALLOWED: u32 = 150500;
+pub const __MAC_OS_X_VERSION_MAX_ALLOWED: u32 = 260500;
 pub const __ENABLE_LEGACY_MAC_AVAILABILITY: u32 = 1;
 pub const USE_CLANG_STDDEF: u32 = 0;
 pub const _USE_FORTIFY_LEVEL: u32 = 2;
-pub const __HAS_FIXED_CHK_PROTOTYPES: u32 = 1;
 pub const USE_CLANG_STDARG: u32 = 0;
 pub const RENAME_SECLUDE: u32 = 1;
 pub const RENAME_SWAP: u32 = 2;
 pub const RENAME_EXCL: u32 = 4;
 pub const RENAME_RESERVED1: u32 = 8;
 pub const RENAME_NOFOLLOW_ANY: u32 = 16;
+pub const RENAME_RESOLVE_BENEATH: u32 = 32;
 pub const SEEK_SET: u32 = 0;
 pub const SEEK_CUR: u32 = 1;
 pub const SEEK_END: u32 = 2;
@@ -788,6 +849,7 @@ pub const __DARWIN_OPAQUE_ARM_THREAD_STATE64: u32 = 0;
 pub const SIGEV_NONE: u32 = 0;
 pub const SIGEV_SIGNAL: u32 = 1;
 pub const SIGEV_THREAD: u32 = 3;
+pub const SIGEV_KEVENT: u32 = 4;
 pub const ILL_NOOP: u32 = 0;
 pub const ILL_ILLOPC: u32 = 1;
 pub const ILL_ILLTRP: u32 = 2;
@@ -955,6 +1017,7 @@ pub const IOPOL_TYPE_VFS_IGNORE_PERMISSIONS: u32 = 7;
 pub const IOPOL_TYPE_VFS_SKIP_MTIME_UPDATE: u32 = 8;
 pub const IOPOL_TYPE_VFS_ALLOW_LOW_SPACE_WRITES: u32 = 9;
 pub const IOPOL_TYPE_VFS_DISALLOW_RW_FOR_O_EVTONLY: u32 = 10;
+pub const IOPOL_TYPE_VFS_ENTITLED_RESERVE_ACCESS: u32 = 14;
 pub const IOPOL_SCOPE_PROCESS: u32 = 0;
 pub const IOPOL_SCOPE_THREAD: u32 = 1;
 pub const IOPOL_SCOPE_DARWIN_BG: u32 = 2;
@@ -971,6 +1034,8 @@ pub const IOPOL_ATIME_UPDATES_OFF: u32 = 1;
 pub const IOPOL_MATERIALIZE_DATALESS_FILES_DEFAULT: u32 = 0;
 pub const IOPOL_MATERIALIZE_DATALESS_FILES_OFF: u32 = 1;
 pub const IOPOL_MATERIALIZE_DATALESS_FILES_ON: u32 = 2;
+pub const IOPOL_MATERIALIZE_DATALESS_FILES_ORIG: u32 = 4;
+pub const IOPOL_MATERIALIZE_DATALESS_FILES_BASIC_MASK: u32 = 3;
 pub const IOPOL_VFS_STATFS_NO_DATA_VOLUME_DEFAULT: u32 = 0;
 pub const IOPOL_VFS_STATFS_FORCE_NO_DATA_VOLUME: u32 = 1;
 pub const IOPOL_VFS_TRIGGER_RESOLVE_DEFAULT: u32 = 0;
@@ -988,6 +1053,8 @@ pub const IOPOL_VFS_DISALLOW_RW_FOR_O_EVTONLY_DEFAULT: u32 = 0;
 pub const IOPOL_VFS_DISALLOW_RW_FOR_O_EVTONLY_ON: u32 = 1;
 pub const IOPOL_VFS_NOCACHE_WRITE_FS_BLKSIZE_DEFAULT: u32 = 0;
 pub const IOPOL_VFS_NOCACHE_WRITE_FS_BLKSIZE_ON: u32 = 1;
+pub const IOPOL_VFS_ENTITLED_RESERVE_ACCESS_OFF: u32 = 0;
+pub const IOPOL_VFS_ENTITLED_RESERVE_ACCESS_ON: u32 = 1;
 pub const WNOHANG: u32 = 1;
 pub const WUNTRACED: u32 = 2;
 pub const WCOREFLAG: u32 = 128;
@@ -1011,6 +1078,7 @@ pub const BYTE_ORDER: u32 = 1234;
 pub const EXIT_FAILURE: u32 = 1;
 pub const EXIT_SUCCESS: u32 = 0;
 pub const RAND_MAX: u32 = 2147483647;
+pub const _MALLOC_TYPE_MALLOC_BACKDEPLOY_PUBLIC: u32 = 1;
 pub const FP_SUPERNORMAL: u32 = 6;
 pub const FP_FAST_FMA: u32 = 1;
 pub const FP_FAST_FMAF: u32 = 1;
@@ -1149,7 +1217,8 @@ pub const ENOPOLICY: u32 = 103;
 pub const ENOTRECOVERABLE: u32 = 104;
 pub const EOWNERDEAD: u32 = 105;
 pub const EQFULL: u32 = 106;
-pub const ELAST: u32 = 106;
+pub const ENOTCAPABLE: u32 = 107;
+pub const ELAST: u32 = 107;
 pub const ITIMER_REAL: u32 = 0;
 pub const ITIMER_VIRTUAL: u32 = 1;
 pub const ITIMER_PROF: u32 = 2;
@@ -1596,34 +1665,6 @@ unsafe extern "C" {
     ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn memcmp(
-        __s1: *const libc::c_void,
-        __s2: *const libc::c_void,
-        __n: libc::c_ulong,
-    ) -> libc::c_int;
-}
-unsafe extern "C" {
-    pub fn memcpy(
-        __dst: *mut libc::c_void,
-        __src: *const libc::c_void,
-        __n: libc::c_ulong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn memmove(
-        __dst: *mut libc::c_void,
-        __src: *const libc::c_void,
-        __len: libc::c_ulong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn memset(
-        __b: *mut libc::c_void,
-        __c: libc::c_int,
-        __len: libc::c_ulong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
     pub fn strcat(__s1: *mut libc::c_char, __s2: *const libc::c_char) -> *mut libc::c_char;
 }
 unsafe extern "C" {
@@ -1643,9 +1684,6 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn strerror(__errnum: libc::c_int) -> *mut libc::c_char;
-}
-unsafe extern "C" {
-    pub fn strlen(__s: *const libc::c_char) -> libc::c_ulong;
 }
 unsafe extern "C" {
     pub fn strncat(
@@ -1828,13 +1866,6 @@ unsafe extern "C" {
         __sig: libc::c_int,
         __strsignalbuf: *mut libc::c_char,
         __buflen: usize,
-    ) -> libc::c_int;
-}
-unsafe extern "C" {
-    pub fn bcmp(
-        arg1: *const libc::c_void,
-        arg2: *const libc::c_void,
-        __n: libc::c_ulong,
     ) -> libc::c_int;
 }
 unsafe extern "C" {
@@ -2336,15 +2367,6 @@ unsafe extern "C" {
     ) -> *mut FILE;
 }
 unsafe extern "C" {
-    pub fn __sprintf_chk(
-        arg1: *mut libc::c_char,
-        arg2: libc::c_int,
-        arg3: usize,
-        arg4: *const libc::c_char,
-        ...
-    ) -> libc::c_int;
-}
-unsafe extern "C" {
     pub fn __snprintf_chk(
         arg1: *mut libc::c_char,
         __maxlen: usize,
@@ -2355,8 +2377,9 @@ unsafe extern "C" {
     ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __vsprintf_chk(
+    pub fn __vsnprintf_chk(
         arg1: *mut libc::c_char,
+        __maxlen: usize,
         arg2: libc::c_int,
         arg3: usize,
         arg4: *const libc::c_char,
@@ -2364,9 +2387,17 @@ unsafe extern "C" {
     ) -> libc::c_int;
 }
 unsafe extern "C" {
-    pub fn __vsnprintf_chk(
+    pub fn __sprintf_chk(
         arg1: *mut libc::c_char,
-        __maxlen: usize,
+        arg2: libc::c_int,
+        arg3: usize,
+        arg4: *const libc::c_char,
+        ...
+    ) -> libc::c_int;
+}
+unsafe extern "C" {
+    pub fn __vsprintf_chk(
+        arg1: *mut libc::c_char,
         arg2: libc::c_int,
         arg3: usize,
         arg4: *const libc::c_char,

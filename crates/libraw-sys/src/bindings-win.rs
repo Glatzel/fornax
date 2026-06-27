@@ -392,34 +392,6 @@ unsafe extern "C" {
     ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn memcmp(
-        _Buf1: *const libc::c_void,
-        _Buf2: *const libc::c_void,
-        _Size: libc::c_ulonglong,
-    ) -> libc::c_int;
-}
-unsafe extern "C" {
-    pub fn memcpy(
-        _Dst: *mut libc::c_void,
-        _Src: *const libc::c_void,
-        _Size: libc::c_ulonglong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn memmove(
-        _Dst: *mut libc::c_void,
-        _Src: *const libc::c_void,
-        _Size: libc::c_ulonglong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn memset(
-        _Dst: *mut libc::c_void,
-        _Val: libc::c_int,
-        _Size: libc::c_ulonglong,
-    ) -> *mut libc::c_void;
-}
-unsafe extern "C" {
     pub fn strchr(_Str: *const libc::c_char, _Val: libc::c_int) -> *mut libc::c_char;
 }
 unsafe extern "C" {
@@ -3653,9 +3625,6 @@ unsafe extern "C" {
         _String2: *const libc::c_char,
         _Locale: _locale_t,
     ) -> libc::c_int;
-}
-unsafe extern "C" {
-    pub fn strlen(_Str: *const libc::c_char) -> libc::c_ulonglong;
 }
 unsafe extern "C" {
     pub fn _strlwr_s(_String: *mut libc::c_char, _Size: usize) -> errno_t;
