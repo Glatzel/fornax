@@ -16,6 +16,3 @@ include!("bindings-linux.rs");
 include!("bindings-linux-aarch64.rs");
 #[cfg(all(not(bindgen), target_os = "macos"))]
 include!("bindings-macos.rs");
-
-#[cfg(bindgen)]
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
