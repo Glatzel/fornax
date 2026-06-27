@@ -11,30 +11,31 @@ use thiserror::Error;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, FromPrimitive)]
 #[repr(i32)]
 pub enum LibrawErrorCode {
+    OtherError = 2,
     #[num_enum(default)]
     UnknownError = 1,
-    OtherError = 2,
 
     //Non-Fatal Errors
-    Success = 0,
-    UnspecifiedError = -1,
-    FileUnsupported = -2,
-    RequestForNonexistentImage = -3,
-    OutOfOrderCall = -4,
-    NoThumbnail = -5,
-    UnsupportedThumbnail = -6,
-    InputClosed = -7,
-    NotImplemented = -8,
-    RequestForNonexistentThumbnail = -9,
+    Success = libraw_sys::LibRaw_errors_LIBRAW_SUCCESS,
+    UnspecifiedError = libraw_sys::LibRaw_errors_LIBRAW_UNSPECIFIED_ERROR,
+    FileUnsupported = libraw_sys::LibRaw_errors_LIBRAW_FILE_UNSUPPORTED,
+    RequestForNonexistentImage = libraw_sys::LibRaw_errors_LIBRAW_REQUEST_FOR_NONEXISTENT_IMAGE,
+    OutOfOrderCall = libraw_sys::LibRaw_errors_LIBRAW_OUT_OF_ORDER_CALL,
+    NoThumbnail = libraw_sys::LibRaw_errors_LIBRAW_NO_THUMBNAIL,
+    UnsupportedThumbnail = libraw_sys::LibRaw_errors_LIBRAW_UNSUPPORTED_THUMBNAIL,
+    InputClosed = libraw_sys::LibRaw_errors_LIBRAW_INPUT_CLOSED,
+    NotImplemented = libraw_sys::LibRaw_errors_LIBRAW_NOT_IMPLEMENTED,
+    RequestForNonexistentThumbnail =
+        libraw_sys::LibRaw_errors_LIBRAW_REQUEST_FOR_NONEXISTENT_THUMBNAIL,
 
     //Fatal Errors
-    UnsufficientMemory = -100007,
-    DataError = -100008,
-    IoError = -100009,
-    CancelledByCallback = -100010,
-    BadCrop = -100011,
-    TooBig = -100012,
-    MempoolOverflow = -100013,
+    UnsufficientMemory = libraw_sys::LibRaw_errors_LIBRAW_UNSUFFICIENT_MEMORY,
+    DataError = libraw_sys::LibRaw_errors_LIBRAW_DATA_ERROR,
+    IoError = libraw_sys::LibRaw_errors_LIBRAW_IO_ERROR,
+    CancelledByCallback = libraw_sys::LibRaw_errors_LIBRAW_CANCELLED_BY_CALLBACK,
+    BadCrop = libraw_sys::LibRaw_errors_LIBRAW_BAD_CROP,
+    TooBig = libraw_sys::LibRaw_errors_LIBRAW_TOO_BIG,
+    MempoolOverflow = libraw_sys::LibRaw_errors_LIBRAW_MEMPOOL_OVERFLOW,
 }
 
 #[derive(Debug, Error)]
