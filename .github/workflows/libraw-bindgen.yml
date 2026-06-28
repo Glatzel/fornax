@@ -14,7 +14,7 @@ jobs:
             os: linux
           - machine: macos-latest
             os: macos
-          - machine: ubuntu-24.04-arm
+          - machine: ubuntu-26.04-arm
             os: linux-aarch64
     runs-on: ${{matrix.machine}}
     env:
