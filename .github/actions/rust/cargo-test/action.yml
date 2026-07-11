@@ -7,6 +7,9 @@ inputs:
   working-directory:
     description: Working directory
     default: .
+  global-options:
+    description: Options passed to cargo test
+    required: false
   global-args:
     description: Additional arguments passed to cargo llvm-cov
     required: false
@@ -14,6 +17,9 @@ inputs:
     description: Use nextest for testing
     required: false
     default: "true"
+  nextest-options:
+    description: Options passed to cargo test
+    required: false
   nextest-args:
     description: Additional arguments passed to cargo llvm-cov
     required: false
@@ -21,6 +27,9 @@ inputs:
     description: Run examples
     required: false
     default: "true"
+  examples-options:
+    description: Options passed to examples
+    required: false
   examples-args:
     description: Additional arguments passed to examples
     required: false
@@ -28,6 +37,9 @@ inputs:
     description: Run doctests
     required: false
     default: "true"
+  doc-options:
+    description: Options passed to doc test
+    required: false
   doc-args:
     description: Additional arguments passed to doc test
     required: false
@@ -51,21 +63,21 @@ runs:
 
         if ("${{ inputs.nextest }}" -eq "true") {
             Write-Output "::group::nextest"
-            cargo +nightly llvm-cov nextest --no-report --no-fail-fast ${{ inputs.global-args }} ${{ inputs.nextest-args }}
+            cargo +nightly llvm-cov nextest --no-report --no-fail-fast ${{ inputs.global-options }} ${{ inputs.nextest-options }} -- ${{ inputs.global-args }} ${{ inputs.nextest-args }}
             $code = $LASTEXITCODE
             Write-Output "::endgroup::"
         }
 
         if ("${{ inputs.examples }}" -eq "true") {
             Write-Output "::group::examples"
-            cargo +nightly llvm-cov test --examples --no-report --no-fail-fast ${{ inputs.global-args }} ${{ inputs.examples-args }}
+            cargo +nightly llvm-cov test --examples --no-report --no-fail-fast ${{ inputs.global-options }} ${{ inputs.examples-options }} -- ${{ inputs.global-args }} ${{ inputs.examples-args }}
             $code = $code+$LASTEXITCODE
             Write-Output "::endgroup::"
         }
 
         if ("${{ inputs.doc }}" -eq "true") {
             Write-Output "::group::doctest"
-            cargo +nightly llvm-cov --doc --no-report --no-fail-fast ${{ inputs.global-args }} ${{ inputs.doc-args }}
+            cargo +nightly llvm-cov --doc --no-report --no-fail-fast ${{ inputs.global-options }} ${{ inputs.doc-options }} -- ${{ inputs.global-args }} ${{ inputs.doc-args }}
             $code = $code+$LASTEXITCODE
             Write-Output "::endgroup::"
         }
