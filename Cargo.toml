@@ -7,12 +7,12 @@ version = "0.0.17"
 edition = "2024"
 
 [workspace.dependencies]
-clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.5.29" }
-envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.5.29" }
-mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.5.29" }
+clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.7.6" }
+envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.7.6" }
+mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.7.6" }
 
 bindgen = "0.72.1"
-bytemuck = "1.25.0"
+bytemuck = "1.25.1"
 chrono = "0.4.45"
 dnc = { path = "./crates/dnc" }
 dunce = "1.0.5"
