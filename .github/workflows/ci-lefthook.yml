@@ -40,7 +40,7 @@ jobs:
         with:
           path: |
             ./lefthook/.pixi
-          key: lefthook-${{ hashFiles('lefthook.yaml','./lefthook/pixi*')}}
+          key: lefthook-${{ hashFiles('lefthook.yaml','./.github/actions/lefthook/pixi*')}}
           restore-keys: |
             lefthook
 
@@ -52,7 +52,7 @@ jobs:
 
       # pre-commit
       - name: lefthook
-        run: pixi run --manifest-path ./lefthook/pixi.toml lefthook-run
+        run: pixi run --manifest-path ./.github/actions/lefthook/pixi.toml lefthook-run
       - if: ${{!cancelled()}}
         run: |
           if ! git diff --quiet || ! git diff --cached --quiet; then
