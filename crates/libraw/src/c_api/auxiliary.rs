@@ -15,7 +15,7 @@ impl Libraw {
         unsafe {
             Ok(libraw_sys::libraw_cameraList()
                 .cast_const()
-                .to_vec_string()?)
+                .to_vec_string_null_terminated()?)
         }
     }
     fn _libraw_get_decoder_info() { todo!() }
