@@ -11,10 +11,6 @@ inputs:
     description: Options passed to cargo fuzz test
     required: false
     default: --all-features
-  args:
-    description: Additional arguments passed to cargo codspeed
-    required: false
-    default: -D warnings
 
 runs:
   using: composite
@@ -25,7 +21,7 @@ runs:
     - name: Build benchmark targets
       run: |
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-        cargo codspeed build ${{ inputs.options }} -- ${{ inputs.args }}
+        cargo codspeed build ${{ inputs.options }}
       working-directory: ${{ inputs.working-directory }}
       shell: pwsh
 
