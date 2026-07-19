@@ -13,19 +13,19 @@ fn main() -> mischief::Result<()> {
             clerk::info!("Done saving raw image.");
         }
         libraw::Rawdata::Rgb16(_) => {
-            clerk::info!("Found rgb16 rawdata.")
+            clerk::info!("Found rgb16 rawdata.");
         }
         libraw::Rawdata::Rgba16(_) => {
-            clerk::info!("Found rgba16 rawdata.")
+            clerk::info!("Found rgba16 rawdata.");
         }
         libraw::Rawdata::MonoF32(_) => {
-            clerk::info!("Found mono32 rawdata.")
+            clerk::info!("Found mono32 rawdata.");
         }
         libraw::Rawdata::RgbF32(_) => {
-            clerk::info!("Found rgb32 rawdata.")
+            clerk::info!("Found rgb32 rawdata.");
         }
         libraw::Rawdata::RgbaF32(_) => {
-            clerk::info!("Found rgba32 rawdata.")
+            clerk::info!("Found rgba32 rawdata.");
         }
     }
 
