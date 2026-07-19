@@ -7,10 +7,13 @@ inputs:
   working-directory:
     description: Working directory
     default: .
+  options:
+    description: Options passed to cargo doc
+    required: false
+    default: --all-features
   args:
     description: Additional arguments passed to cargo doc
     required: false
-    default: --all-features
 
 runs:
   using: composite
@@ -24,6 +27,6 @@ runs:
 
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
 
-        cargo doc --no-deps ${{ inputs.args }}
+        cargo doc --no-deps ${{ inputs.options }} -- ${{ inputs.args }}
       env:
         RUSTDOCFLAGS: "-D warnings"
