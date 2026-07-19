@@ -7,10 +7,10 @@ inputs:
   working-directory:
     description: Working directory
     default: .
-  args:
-    description: Additional arguments passed to cargo codspeed
+  options:
+    description: Options passed to cargo fuzz test
     required: false
-    default: --all-features -- -D warnings
+    default: --all-features
 
 runs:
   using: composite
@@ -21,12 +21,12 @@ runs:
     - name: Build benchmark targets
       run: |
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-        cargo codspeed build ${{ inputs.args }}
+        cargo codspeed build ${{ inputs.options }}
       working-directory: ${{ inputs.working-directory }}
       shell: pwsh
 
     - name: Run benchmarks
-      uses: CodSpeedHQ/action@63f3e98b61959fe67f146a3ff022e4136fe9bb9c # v4.17.6
+      uses: CodSpeedHQ/action@f99becdce5e5d51fd556489ebef684f4ecfd6286 # v4.18.5
       with:
         run: cargo codspeed run
         mode: simulation

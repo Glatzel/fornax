@@ -7,10 +7,10 @@ inputs:
   working-directory:
     description: Working directory
     default: .
-  args:
-    description: Additional arguments passed to cargo build
+  options:
+    description: Options passed to cargo build
     required: false
-    default: --all-features -- -D warnings
+    default: --all-features
 
 runs:
   using: composite
@@ -21,7 +21,5 @@ runs:
       run: |
         $ErrorActionPreference = "Stop"
         $PSNativeCommandUseErrorActionPreference = $true
-
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-
-        cargo build ${{ inputs.args }}
+        cargo build ${{ inputs.options }}

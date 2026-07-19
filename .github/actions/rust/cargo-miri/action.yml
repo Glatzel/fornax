@@ -7,8 +7,11 @@ inputs:
   working-directory:
     description: Working directory
     default: .
+  options:
+    description: Options passed to cargo fuzz test
+    required: false
   args:
-    description: Additional arguments passed to cargo miri test
+    description: Additional arguments passed to cargo fuzz test
     required: false
     default: -- -D warnings
 
@@ -21,7 +24,5 @@ runs:
       run: |
         $ErrorActionPreference = "Stop"
         $PSNativeCommandUseErrorActionPreference = $true
-
         if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
-
-        cargo +nightly miri test ${{ inputs.args }}
+        cargo +nightly miri test ${{ inputs.options }} -- ${{inputs.args}}

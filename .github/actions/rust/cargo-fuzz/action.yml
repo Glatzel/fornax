@@ -1,0 +1,55 @@
+# This file is automatically synchronized from https://github.com/Glatzel/template
+
+name: cargo fuzz
+description: Run Rust fuzz test
+
+inputs:
+  working-directory:
+    description: Working directory
+    default: .
+  target:
+    description: fuzz target name
+    required: true
+  time:
+    description: max fuzz test time
+    required: false
+    default: "300"
+  options:
+    description: Options passed to cargo fuzz test
+    required: false
+  args:
+    description: Additional arguments pass
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Run fuzz tests
+      shell: pwsh
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        RUST_BACKTRACE: 1
+      run: |
+        $ErrorActionPreference = "Stop"
+        $PSNativeCommandUseErrorActionPreference = $true
+        pixi global install -c https://prefix.dev/glatzel -c conda-forge cargo-fuzz
+        if (Test-Path ./scripts/setup.ps1) { . ./scripts/setup.ps1 }
+        cargo +nightly fuzz run --fuzz-dir ./ ${{ inputs.options }} ${{ inputs.target }} -- -max_total_time=${{ inputs.time }} ${{inputs.args}}
+    - name: Upload artifacts
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: artifacts-${{ inputs.target }}
+        path: ${{ inputs.working-directory }}/artifacts/
+    - name: coverage
+      if: ${{ !cancelled() }}
+      shell: pwsh
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        pixi global install -c https://prefix.dev/glatzel -c conda-forge cargo-llvm-cov
+        cargo +nightly fuzz coverage --fuzz-dir ./ ${{ inputs.target }}
+        new-item -ItemType Directory -Path ./target/llvm-cov-target -Force
+        Copy-Item (Get-ChildItem ./coverage -Recurse -Filter *.profraw) ./target/llvm-cov-target
+        Copy-Item ./target/$((rustc -vV | Select-String "host").ToString().Split(": ")[1])/coverage/* ./target/llvm-cov-target -recurse
+        cargo +nightly llvm-cov report --target $((rustc -vV | Select-String "host").ToString().Split(": ")[1]) --release
+        cargo +nightly llvm-cov report --target $((rustc -vV | Select-String "host").ToString().Split(": ")[1]) --lcov --output-path lcov.info --release
