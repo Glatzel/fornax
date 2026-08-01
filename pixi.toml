@@ -4,9 +4,9 @@ name = "fornax"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
 [dependencies]
-libraw-dev = "==0.22.1"
+libraw-dev = "==0.22.2"
 maturin = "==1.14.1"
-pip = "==26.1.2"
+pip = "==26.2"
 python = "3.13.*"
 
 imageio = "==2.37.0"
