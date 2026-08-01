@@ -1,10 +1,15 @@
 name: libraw-bindgen
 on:
   workflow_dispatch:
-
+permissions:
+  contents: write
+concurrency:
+  group: libraw-bindgen-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   libraw-bindings:
     strategy:
+      max-parallel: 1
       fail-fast: false
       matrix:
         include:
@@ -20,21 +25,25 @@ jobs:
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
-        with:
-          run-install: false
+      - parallel:
+          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
+            with:
+              run-install: false
       - uses: ./.github/actions/rust/setup-rust
       - name: libraw-bindings
-        run: |
-          scripts/libraw-bindings.ps1
+        run: scripts/libraw-bindings.ps1
         shell: pwsh
-
-      - name: upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: libraw-bindings-${{matrix.os}}
-          path: |
-            crates/libraw-sys/src/bindings-${{matrix.os}}.rs
-          if-no-files-found: error
+      - name: commit
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin ${{ github.ref_name }}
+          git add crates/libraw-sys/src/bindings-${{ matrix.os }}.rs
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Update libraw bindings for ${{ matrix.os }}"
+          git push
+        shell: bash
