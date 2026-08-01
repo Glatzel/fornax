@@ -70,7 +70,6 @@ macro_rules! raw_workflow {
     }};
 }
 
-#[allow(clippy::too_many_arguments)]
 #[pyfunction]
 fn py_process<'a>(
     py: Python<'a>,

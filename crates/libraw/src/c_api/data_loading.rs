@@ -43,7 +43,7 @@ impl Libraw {
         });
         Ok(self)
     }
-    #[allow(clippy::too_many_arguments)]
+
     pub fn open_bayer(
         &self,
         data: &[u8],

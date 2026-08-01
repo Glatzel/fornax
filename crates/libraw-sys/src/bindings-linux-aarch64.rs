@@ -7,9 +7,7 @@ pub struct __BindgenBitfieldUnit<Storage> {
 }
 impl<Storage> __BindgenBitfieldUnit<Storage> {
     #[inline]
-    pub const fn new(storage: Storage) -> Self {
-        Self { storage }
-    }
+    pub const fn new(storage: Storage) -> Self { Self { storage } }
 }
 impl<Storage> __BindgenBitfieldUnit<Storage>
 where
@@ -142,9 +140,7 @@ where
 #[repr(C)]
 pub struct __BindgenOpaqueArray<T: Copy, const N: usize>(pub [T; N]);
 impl<T: Copy + Default, const N: usize> Default for __BindgenOpaqueArray<T, N> {
-    fn default() -> Self {
-        Self([<T as Default>::default(); N])
-    }
+    fn default() -> Self { Self([<T as Default>::default(); N]) }
 }
 pub const _FILE_OFFSET_BITS: u32 = 64;
 pub const _LIBC_LIMITS_H_: u32 = 1;
