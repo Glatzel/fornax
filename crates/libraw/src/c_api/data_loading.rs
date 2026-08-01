@@ -3,7 +3,8 @@ use std::path::Path;
 use envoy::ToCString;
 use fornax_core::BayerPattern;
 
-use crate::{Libraw, LibrawError, extension::error_handling::check_run};
+use crate::extension::error_handling::check_run;
+use crate::{Libraw, LibrawError};
 
 #[derive(Debug, Clone)]
 pub enum ProcFlag {

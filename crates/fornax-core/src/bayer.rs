@@ -128,7 +128,10 @@ where
     ///
     /// # Returns
     /// A new `BayerImage` instance.
-    pub const fn new(bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>, pattern: BayerPattern) -> Self {
+    pub const fn new(
+        bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>,
+        pattern: BayerPattern,
+    ) -> Self {
         Self {
             bayer_image,
             pattern,
