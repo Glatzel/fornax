@@ -38,7 +38,7 @@ impl Libraw {
 
     pub fn open_buffer(&self, buf: &[u8]) -> Result<&Self, LibrawError> {
         check_run!(unsafe {
-            libraw_sys::libraw_open_buffer(self.imgdata_ptr(), buf.as_ptr() as *const _, buf.len())
+            libraw_sys::libraw_open_buffer(self.imgdata_ptr(), buf.as_ptr().cast(), buf.len())
         });
         Ok(self)
     }
@@ -59,7 +59,7 @@ impl Libraw {
         black_level: u32,
     ) -> Result<&Self, LibrawError> {
         let datalen = data.len();
-        let data = data.as_ptr() as *mut std::ffi::c_uchar;
+        let data = data.as_ptr().cast_mut();
         let bayer_pattern = match bayer_pattern {
             BayerPattern::RGGB => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_RGGB as u8,
             BayerPattern::BGGR => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_BGGR as u8,
@@ -77,7 +77,7 @@ impl Libraw {
                 top_margin,
                 right_margin,
                 bottom_margin,
-                u8::from(procflags.clone()),
+                u8::from(procflags),
                 bayer_pattern,
                 unused_bits,
                 otherflags,

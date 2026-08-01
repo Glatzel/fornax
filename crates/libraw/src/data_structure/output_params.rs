@@ -105,9 +105,9 @@ pub enum _DCRawUseDngSdk {
     All = 2,
 }
 
-///Structure libraw_output_params_t (imgdata.params) is used for management of
-/// dcraw-compatible calls dcraw_process(), dcraw_ppm_tiff_writer(), and
-/// dcraw_thumb_writer(). Fields of this structure correspond to command line
+///Structure `libraw_output_params_t` (imgdata.params) is used for management
+/// of dcraw-compatible calls `dcraw_process()`, `dcraw_ppm_tiff_writer()`, and
+/// `dcraw_thumb_writer()`. Fields of this structure correspond to command line
 /// keys of dcraw.
 ///# References
 ///
@@ -171,25 +171,25 @@ pub struct DCRawParams {
     pub use_auto_wb: Option<bool>,
     /// If possible, use the white balance from the camera.
     ///
-    /// If camera-recorded WB is not available, dcraw_process() will fallback
+    /// If camera-recorded WB is not available, `dcraw_process()` will fallback
     /// to:
     ///
-    /// - Auto-WB if bit LIBRAW_PROCESSING_CAMERAWB_FALLBACK_TO_DAYLIGHT is not
-    ///   set in params.raw_processing_options (or for the rare specific case:
-    ///   no valid WB index was parsed from CRW file).
+    /// - Auto-WB if bit `LIBRAW_PROCESSING_CAMERAWB_FALLBACK_TO_DAYLIGHT` is
+    ///   not set in `params.raw_processing_options` (or for the rare specific
+    ///   case: no valid WB index was parsed from CRW file).
     /// - Daylight-WB if abovementioned bit is not set.
     pub use_camera_wb: Option<bool>,
     /// - 0: do not use embedded color profile
     /// - 1 (default): use embedded color profile (if present) for DNG files
-    ///   (always); for other files only if use_camera_wb is set;
+    ///   (always); for other files only if `use_camera_wb` is set;
     /// - 3: use embedded color data (if present) regardless of white balance
     ///   setting.
     pub use_camera_matrix: Option<DCRawUseCameraMatrix>,
-    ///[0-8] Output colorspace (raw, sRGB, Adobe, Wide, ProPhoto, XYZ, ACES,
+    ///[0-8] Output colorspace (raw, sRGB, Adobe, Wide, `ProPhoto`, XYZ, ACES,
     /// DCI-P3, Rec. 2020).
     pub output_color: Option<DCRawOutputColor>,
-    ///Path to output profile ICC file (used only if LibRaw compiled with LCMS
-    /// support)
+    ///Path to output profile ICC file (used only if `LibRaw` compiled with
+    /// LCMS support)
     pub output_profile: Option<PathBuf>,
     ///Path to input (camera) profile ICC file (or 'embed' for embedded
     /// profile). Used only if LCMS support compiled in.
@@ -204,7 +204,7 @@ pub struct DCRawParams {
     /// 0/1: output PPM/TIFF.
     pub output_tiff: Option<DCRawOutputTiff>,
     /// Bitfield that allows to set output file options:
-    /// LIBRAW_OUTPUT_FLAGS_PPMMETA - write additional metadata into PPM/PGM
+    /// `LIBRAW_OUTPUT_FLAGS_PPMMETA` - write additional metadata into PPM/PGM
     /// output files
     // pub output_flags: i32,
     /// [0-7] Flip image (0=none, 3=180, 5=90CCW, 6=90CW). Default -1, which
@@ -221,7 +221,7 @@ pub struct DCRawParams {
     pub user_qual: Option<DCRawUserQual>,
     /// User black level.
     pub user_black: Option<i32>,
-    /// Per-channel correcttions to user_black.
+    /// Per-channel correcttions to `user_black`.
     pub user_cblack: Option<[i32; 4]>,
     ///Saturation adjustment.
     pub user_sat: Option<i32>,
@@ -235,9 +235,9 @@ pub struct DCRawParams {
     /// shooting style. Values in 0.001-0.00003 range looks reasonable.
     pub auto_bright_thr: Option<f32>,
     ///This parameters controls auto-adjusting of maximum value based on
-    /// channel_maximum[] data, calculated from real frame data. If
-    /// calculated maximum is greater than adjust_maximum_thr*maximum, than
-    /// maximum is set to calculated_maximum.
+    /// `channel_maximum`[] data, calculated from real frame data. If
+    /// calculated maximum is greater than `adjust_maximum_thr`*maximum, than
+    /// maximum is set to `calculated_maximum`.
     ///
     /// Default: 0.75. If you set this value above 0.99999, than default value
     /// will be used. If you set this value below 0.00001, than no maximum
@@ -253,7 +253,7 @@ pub struct DCRawParams {
     ///Turns on fixing of green channels disbalance. dcraw keys: none
     ///
     /// Default: 0 (not use), 1 - turns on this postprocessing stage.
-    /// green_matching requires additional memory for image data.
+    /// `green_matching` requires additional memory for image data.
     pub green_matching: Option<bool>,
     ///Number of DCB correcttion passes. Default is -1 (no correcttion). Useful
     /// only for DCB interpolation.
@@ -267,33 +267,33 @@ pub struct DCRawParams {
     pub fbdd_noiserd: Option<DCRawFbddNoiserd>,
     ///Exposure correcttion before demosaic.
     ///
-    ///exp_correc: positive value turns the feature on (default: off).
+    ///`exp_correc`: positive value turns the feature on (default: off).
     pub exp_correc: Option<i32>,
     ///Exposure correcttion before demosaic.
     ///
-    ///exp_shift: exposure shift in linear scale. Usable range from 0.25
+    ///`exp_shift`: exposure shift in linear scale. Usable range from 0.25
     /// (2-stop darken) to 8.0 (3-stop lighter). Default: 1.0 (no exposure
     /// shift).
     pub exp_shift: Option<f32>,
     ///Exposure correcttion before demosaic.
     ///
-    ///exp_preser: preserve highlights when lighten the image. Usable range
+    ///`exp_preser`: preserve highlights when lighten the image. Usable range
     /// from 0.0 (no preservation) to 1.0 (full preservation). 0.0 is the
     /// default value.
     pub exp_preser: Option<f32>,
-    /// Turns on using RawSpeed library for data unpacking (only if RawSpeed
+    /// Turns on using `RawSpeed` library for data unpacking (only if `RawSpeed`
     /// support compiled in).
     pub use_rawspeed: Option<bool>,
     // pub use_dng_sdk: Option<DCRawUseDngSdk>,
-    ///Disables pixel values scaling (call to LibRaw::scale_colors()) in
-    /// LibRaw::dcraw_process().
+    ///Disables pixel values scaling (call to `LibRaw::scale_colors()`) in
+    /// `LibRaw::dcraw_process()`.
     ///
     ///This is special use value because white balance is performed in
-    /// scale_colors(), so skipping it will result in non-balanced image.
+    /// `scale_colors()`, so skipping it will result in non-balanced image.
     ///
-    ///This setting is targeted to use with no_interpolation, or with own
+    ///This setting is targeted to use with `no_interpolation`, or with own
     /// interpolation callback call.
     pub no_auto_scale: Option<bool>,
-    ///Disables call to demosaic code in LibRaw::dcraw_process()
+    ///Disables call to demosaic code in `LibRaw::dcraw_process()`
     pub no_interpolation: Option<bool>,
 }

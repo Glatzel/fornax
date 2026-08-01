@@ -21,7 +21,8 @@ impl<T> Dalim<T>
 where
     T: FornaxPrimitive,
 {
-    pub fn new(params: DalimParams) -> Self {
+    #[must_use]
+    pub const fn new(params: DalimParams) -> Self {
         Self {
             _marker: std::marker::PhantomData,
             params,

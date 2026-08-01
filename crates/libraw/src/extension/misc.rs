@@ -63,8 +63,8 @@ impl Libraw {
         match (processed.colors(), processed.bits()) {
             (3, 8) => {
                 let img: image::ImageBuffer<image::Rgb<O>, Vec<O>> = image::ImageBuffer::from_vec(
-                    processed.width() as u32,
-                    processed.height() as u32,
+                    u32::from(processed.width()),
+                    u32::from(processed.height()),
                     unsafe {
                         slice::from_raw_parts(processed.data(), processed.data_size() as usize)
                             .iter()
@@ -98,8 +98,8 @@ impl Libraw {
             }
             (3, 16) => {
                 let img: image::ImageBuffer<image::Rgb<O>, Vec<O>> = image::ImageBuffer::from_vec(
-                    processed.width() as u32,
-                    processed.height() as u32,
+                    u32::from(processed.width()),
+                    u32::from(processed.height()),
                     bytemuck::cast_slice::<u8, u16>(unsafe {
                         slice::from_raw_parts(processed.data(), processed.data_size() as usize)
                     })
@@ -148,7 +148,7 @@ impl Libraw {
 
         clerk::debug!("Found rgba16 raw image.");
         let img: ImageBuffer<image::Rgba<u16>, Vec<u16>> =
-            ImageBuffer::from_vec(width as u32, height as u32, unsafe {
+            ImageBuffer::from_vec(u32::from(width), u32::from(height), unsafe {
                 slice::from_raw_parts(
                     (*self.imgdata_ptr()).image as *const u16,
                     width as usize * height as usize * 4,

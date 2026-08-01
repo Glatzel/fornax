@@ -43,7 +43,7 @@ where
 /// image data in any way. It is a placeholder implementation to be used when no
 /// post-processing is needed.
 ///
-/// assert!(result.is_err()); // Will not return an image as it is
+/// `assert!(result.is_err())`; // Will not return an image as it is
 /// unimplemented.
 ///
 /// # Type Parameters

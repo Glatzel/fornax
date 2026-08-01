@@ -10,6 +10,7 @@ impl Libraw {
     }
     fn _check_version() -> bool { todo!() }
     fn _libraw_capabilities() { todo!() }
+    #[must_use]
     pub fn camera_count() -> i32 { unsafe { libraw_sys::libraw_cameraCount() } }
     pub fn camera_list() -> Result<Vec<String>, LibrawError> {
         unsafe {
@@ -20,6 +21,7 @@ impl Libraw {
     }
     fn _libraw_get_decoder_info() { todo!() }
     fn _libraw_unpack_function_name() { todo!() }
+    #[must_use]
     pub fn color(&self, row: i32, col: i32) -> i32 {
         unsafe { libraw_sys::libraw_COLOR(self.imgdata_ptr(), row, col) }
     }

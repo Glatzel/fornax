@@ -57,7 +57,7 @@ impl Rawdata {
                     )
                     .iter()
                     .copied()
-                    .flat_map(|pixel| pixel.into_iter())
+                    .flat_map(std::iter::IntoIterator::into_iter)
                     .collect::<Vec<u16>>()
                 })
                 .unwrap();
@@ -72,7 +72,7 @@ impl Rawdata {
                     )
                     .iter()
                     .copied()
-                    .flat_map(|pixel| pixel.into_iter())
+                    .flat_map(std::iter::IntoIterator::into_iter)
                     .collect::<Vec<u16>>()
                 })
                 .unwrap();
@@ -87,13 +87,15 @@ impl Rawdata {
                     )
                     .iter()
                     .copied()
-                    .flat_map(|pixel| pixel.into_iter())
+                    .flat_map(std::iter::IntoIterator::into_iter)
                     .collect::<Vec<f32>>()
                 })
                 .unwrap();
             return Ok(Self::RgbF32(img));
         }
-        if !unsafe { (*arc_imgdata_ptr.ptr()).rawdata.float4_image }.is_null() {
+        if unsafe { (*arc_imgdata_ptr.ptr()).rawdata.float4_image }.is_null() {
+            custom_error!("Raw data is not found.");
+        } else {
             clerk::debug!("Found rgba32 raw image.");
             let img: image::ImageBuffer<image::Rgba<f32>, Vec<f32>> =
                 ImageBuffer::from_vec(width as u32, height as u32, unsafe {
@@ -103,14 +105,12 @@ impl Rawdata {
                     )
                     .iter()
                     .copied()
-                    .flat_map(|pixel| pixel.into_iter())
+                    .flat_map(std::iter::IntoIterator::into_iter)
                     .collect::<Vec<f32>>()
                 })
                 .unwrap();
 
             Ok(Self::RgbaF32(img))
-        } else {
-            custom_error!("Raw data is not found.");
         }
     }
 }

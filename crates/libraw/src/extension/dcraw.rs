@@ -29,17 +29,17 @@ impl DCRawParams {
         self.threshold
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.threshold = *v });
         self.half_size
-            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.half_size = *v as i32 });
+            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.half_size = i32::from(*v) });
         self.four_color_rgb
-            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.four_color_rgb = *v as i32 });
+            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.four_color_rgb = i32::from(*v) });
         self.highlight
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.highlight = (*v) as i32 });
         self.use_auto_wb
-            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.use_auto_wb = *v as i32 });
+            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.use_auto_wb = i32::from(*v) });
         self.use_camera_wb
-            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.use_camera_wb = *v as i32 });
+            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.use_camera_wb = i32::from(*v) });
         self.use_camera_matrix.inspect(|v| unsafe {
-            (*arc_imgdata_ptr.ptr()).params.use_camera_matrix = (*v) as i32
+            (*arc_imgdata_ptr.ptr()).params.use_camera_matrix = (*v) as i32;
         });
         self.output_color
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.output_color = (*v) as i32 });
@@ -88,7 +88,7 @@ impl DCRawParams {
         self.med_passes
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.med_passes = *v });
         self.no_auto_bright
-            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.no_auto_bright = *v as i32 });
+            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.no_auto_bright = i32::from(*v) });
         self.auto_bright_thr
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.auto_bright_thr = *v });
         self.adjust_maximum_thr
@@ -112,9 +112,10 @@ impl DCRawParams {
         // self.use_dng_sdk
         //     .inspect(|v| unsafe { (*imgdata.ptr()).params.use_dng_sdk = *v });
         self.no_auto_scale
-            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.no_auto_scale = *v as i32 });
-        self.no_interpolation
-            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.no_interpolation = *v as i32 });
+            .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.no_auto_scale = i32::from(*v) });
+        self.no_interpolation.inspect(|v| unsafe {
+            (*arc_imgdata_ptr.ptr()).params.no_interpolation = i32::from(*v)
+        });
         Ok(())
     }
 }
@@ -124,6 +125,7 @@ impl DCRawParams {
     /// - `gamm` = `[1.0, 1.0]`
     /// - `output_color`: ACES
     /// - `output_bps`: 16bit
+    #[must_use]
     pub fn preset_cg() -> Self {
         Self {
             gamm: Some([1.0, 1.0]),

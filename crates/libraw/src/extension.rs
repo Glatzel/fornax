@@ -4,4 +4,4 @@ mod fornax;
 mod misc;
 mod missing_structures;
 
-pub(crate) use error_handling::*;
+pub use error_handling::*;

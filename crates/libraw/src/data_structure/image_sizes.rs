@@ -12,7 +12,7 @@ pub enum ImageSizesFlip {
     CCW90 = 6,
     CW90 = 9,
 }
-///Structure libraw_image_sizes_t is a collection of all file data that
+///Structure `libraw_image_sizes_t` is a collection of all file data that
 /// describe the size of the image.
 ///
 /// # references
@@ -23,37 +23,47 @@ pub struct ImageSizes {
     arc_imgdata_ptr: Arc<ImgdataPtr>,
 }
 impl ImageSizes {
-    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
+    pub(crate) const fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
         Ok(Self {
             arc_imgdata_ptr: imgdata,
         })
     }
     ///Full size of RAW image (including the frame) in pixels.
+    #[must_use]
     pub fn raw_height(&self) -> u16 { (unsafe { *self.arc_imgdata_ptr.ptr() }).sizes.raw_height }
     /// Full size of RAW image (including the frame) in pixels.
+    #[must_use]
     pub fn raw_width(&self) -> u16 { (unsafe { *self.arc_imgdata_ptr.ptr() }).sizes.raw_width }
     ///Size of visible ("meaningful") part of the image (without the frame).
+    #[must_use]
     pub fn height(&self) -> u16 { (unsafe { *self.arc_imgdata_ptr.ptr() }).sizes.height }
     ///Size of visible ("meaningful") part of the image (without the frame).
+    #[must_use]
     pub fn width(&self) -> u16 { (unsafe { *self.arc_imgdata_ptr.ptr() }).sizes.width }
     ///Coordinates of the top left corner of the frame (the second corner is
     /// calculated from the full size of the image and size of its visible
     /// part).
+    #[must_use]
     pub fn top_margin(&self) -> u16 { (unsafe { *self.arc_imgdata_ptr.ptr() }).sizes.top_margin }
     ///Coordinates of the top left corner of the frame (the second corner is
     /// calculated from the full size of the image and size of its visible
     /// part).
+    #[must_use]
     pub fn left_margin(&self) -> u16 { (unsafe { *self.arc_imgdata_ptr.ptr() }).sizes.left_margin }
     ///Size of the output image (may differ from height/width for cameras that
     /// require image rotation or have non-square pixels).
+    #[must_use]
     pub fn iheight(&self) -> u16 { (unsafe { *self.arc_imgdata_ptr.ptr() }).sizes.iheight }
     ///Size of the output image (may differ from height/width for cameras that
     /// require image rotation or have non-square pixels).
+    #[must_use]
     pub fn iwidth(&self) -> u16 { (unsafe { *self.arc_imgdata_ptr.ptr() }).sizes.iwidth }
     ///Full size of raw data row in bytes .
+    #[must_use]
     pub fn raw_pitch(&self) -> u32 { (unsafe { *self.arc_imgdata_ptr.ptr() }).sizes.raw_pitch }
     /// Pixel width/height ratio. If it is not unity, scaling of the image along
     /// one of the axes is required during output.
+    #[must_use]
     pub fn pixel_aspect(&self) -> f64 {
         (unsafe { *self.arc_imgdata_ptr.ptr() }).sizes.pixel_aspect
     }

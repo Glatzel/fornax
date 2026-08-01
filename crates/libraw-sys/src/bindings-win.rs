@@ -7485,7 +7485,7 @@ const _: () = {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct decode {
-    pub branch: [*mut decode; 2usize],
+    pub branch: [*mut Self; 2usize],
     pub leaf: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]

@@ -17,10 +17,10 @@ impl TryFrom<&str> for IParamsColorDesc {
     type Error = crate::LibrawError;
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Ok(match value {
-            "RGBG" => IParamsColorDesc::RGBG,
-            "RGBE" => IParamsColorDesc::RGBE,
-            "GMCY" => IParamsColorDesc::GMCY,
-            "GBTG" => IParamsColorDesc::GBTG,
+            "RGBG" => Self::RGBG,
+            "RGBE" => Self::RGBE,
+            "GMCY" => Self::GMCY,
+            "GBTG" => Self::GBTG,
             _ => panic!("Unknown color description."),
         })
     }
@@ -33,7 +33,7 @@ pub struct IParams {
     arc_imgdata_ptr: Arc<ImgdataPtr>,
 }
 impl IParams {
-    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
+    pub(crate) const fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
         Ok(Self {
             arc_imgdata_ptr: imgdata,
         })
@@ -49,7 +49,7 @@ impl IParams {
     ///There is a huge number of identical cameras sold under different names,
     /// depending on the market (e.g. multiple Panasonic or Canon models)
     /// and even some identical cameras sold under different brands
-    /// (Panasonic -> Leica, Sony -> Hasselblad). normalized_make contains
+    /// (Panasonic -> Leica, Sony -> Hasselblad). `normalized_make` contains
     /// primary vendor name (e.g. Panasonic for Leica re-branded cameras).
     pub fn normalized_make(&self) -> Result<String, LibrawError> {
         unsafe { Ok(((*self.arc_imgdata_ptr.ptr()).idata.normalized_make.as_ptr()).to_string()?) }
@@ -64,8 +64,9 @@ impl IParams {
             .to_string()?)
         }
     }
-    ///Primary vendor name in indexed form (enum LibRaw_cameramaker_index,
-    /// LIBRAW_CAMERAMAKER_* constant)
+    ///Primary vendor name in indexed form (enum `LibRaw_cameramaker_index`,
+    /// `LIBRAW_CAMERAMAKER`_* constant)
+    #[must_use]
     pub fn maker_index(&self) -> u32 { unsafe { (*self.arc_imgdata_ptr.ptr()).idata.maker_index } }
     ///Softwary name/version (mostly for DNG files, to distinguish in-camera
     /// DNGs from Adobe DNG Converter produced ones).
@@ -74,14 +75,18 @@ impl IParams {
     }
     ///   Number of RAW images in file (0 means that the file has not been
     /// recognized).
+    #[must_use]
     pub fn raw_count(&self) -> u32 { unsafe { (*self.arc_imgdata_ptr.ptr()).idata.raw_count } }
     ///Nonzero for Sigma Foveon images
+    #[must_use]
     pub fn is_foveon(&self) -> bool {
         unsafe { (*self.arc_imgdata_ptr.ptr()).idata.is_foveon != 0 }
     }
     ///DNG version (for the DNG format).
+    #[must_use]
     pub fn dng_version(&self) -> u32 { unsafe { (*self.arc_imgdata_ptr.ptr()).idata.dng_version } }
     ///  Number of colors in the file.
+    #[must_use]
     pub fn colors(&self) -> i32 { unsafe { (*self.arc_imgdata_ptr.ptr()).idata.colors } }
     ///Bit mask describing the order of color pixels in the matrix (0 for
     /// full-color images). 32 bits of this field describe 16 pixels (8 rows
@@ -95,16 +100,19 @@ impl IParams {
     /// - 1 - Leaf Catchlight with 16x16 bayer matrix;
     /// - 9 - Fuji X-Trans (6x6 matrix)
     /// - 3..8 and 10..999 - are unused.
+    #[must_use]
     pub fn filters(&self) -> u32 { unsafe { (*self.arc_imgdata_ptr.ptr()).idata.filters } }
     ///These matrices contains Fuji X-Trans row/col to color mapping. First one
     /// is relative to visible area, while second is positioned relative to
     /// sensor edges.
+    #[must_use]
     pub fn xtrans(&self) -> &[[c_char; 6]; 6] {
         unsafe { &(*self.arc_imgdata_ptr.ptr()).idata.xtrans }
     }
     ///These matrices contains Fuji X-Trans row/col to color mapping. First one
     /// is relative to visible area, while second is positioned relative to
     /// sensor edges.
+    #[must_use]
     pub fn xtrans_abs(&self) -> &[[c_char; 6]; 6] {
         unsafe { &(*self.arc_imgdata_ptr.ptr()).idata.xtrans_abs }
     }
@@ -114,6 +122,7 @@ impl IParams {
         IParamsColorDesc::try_from(s.as_str())
     }
     ///XMP packed data length and pointer to extracted XMP packet.
+    #[must_use]
     pub fn xmplen(&self) -> u32 { unsafe { (*self.arc_imgdata_ptr.ptr()).idata.xmplen } }
     ///XMP packed data length and pointer to extracted XMP packet.
     pub fn xmpdata(&self) -> Result<String, LibrawError> {

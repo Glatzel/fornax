@@ -7,9 +7,8 @@ mod output_params;
 mod processed_image;
 mod rawdata;
 
-pub(crate) use constants::{LibrawError, LibrawErrorCode};
-pub(crate) use data::ImgdataPtr;
-pub use data::Libraw;
+pub use constants::{LibrawError, LibrawErrorCode};
+pub use data::{ImgdataPtr, Libraw};
 pub use image_sizes::{ImageSizes, ImageSizesFlip};
 pub use imgother::{ImgOther, ImgOtherGpsInfo};
 pub use iparams::{IParams, IParamsColorDesc};

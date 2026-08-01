@@ -24,11 +24,15 @@ impl Libraw {
     }
     pub fn get_cam_mul(&self, index: BayerChannel) -> Result<f32, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
-        Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata_ptr(), u8::from(index) as i32) })
+        Ok(unsafe {
+            libraw_sys::libraw_get_cam_mul(self.imgdata_ptr(), i32::from(u8::from(index)))
+        })
     }
     pub fn get_pre_mul(&self, index: BayerChannel) -> Result<f32, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
-        Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata_ptr(), u8::from(index) as i32) })
+        Ok(unsafe {
+            libraw_sys::libraw_get_pre_mul(self.imgdata_ptr(), i32::from(u8::from(index)))
+        })
     }
     pub fn get_rgb_cam(&self, index1: i32, index2: i32) -> Result<f32, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
@@ -47,42 +51,52 @@ impl Libraw {
         check_raw_alloc!(self.imgdata_ptr());
         Ok(unsafe { libraw_sys::libraw_get_color_maximum(self.imgdata_ptr()) })
     }
+    #[must_use]
     pub fn set_user_mul(&self, index: i32, val: f32) -> &Self {
         unsafe { libraw_sys::libraw_set_user_mul(self.imgdata_ptr(), index, val) };
         self
     }
+    #[must_use]
     pub fn set_demosaic(&self, value: DCRawUserQual) -> &Self {
         unsafe { libraw_sys::libraw_set_demosaic(self.imgdata_ptr(), value as i32) };
         self
     }
+    #[must_use]
     pub fn set_adjust_maximum_thr(&self, value: f32) -> &Self {
         unsafe { libraw_sys::libraw_set_adjust_maximum_thr(self.imgdata_ptr(), value) };
         self
     }
+    #[must_use]
     pub fn set_output_color(&self, value: DCRawOutputColor) -> &Self {
         unsafe { libraw_sys::libraw_set_output_color(self.imgdata_ptr(), value as i32) };
         self
     }
+    #[must_use]
     pub fn set_output_bps(&self, value: DCRawOutputBps) -> &Self {
         unsafe { libraw_sys::libraw_set_output_bps(self.imgdata_ptr(), value as i32) };
         self
     }
+    #[must_use]
     pub fn set_gamma(&self, index: i32, value: f32) -> &Self {
         unsafe { libraw_sys::libraw_set_gamma(self.imgdata_ptr(), index, value) };
         self
     }
+    #[must_use]
     pub fn set_no_auto_bright(&self, value: bool) -> &Self {
-        unsafe { libraw_sys::libraw_set_no_auto_bright(self.imgdata_ptr(), value as i32) };
+        unsafe { libraw_sys::libraw_set_no_auto_bright(self.imgdata_ptr(), i32::from(value)) };
         self
     }
+    #[must_use]
     pub fn set_bright(&self, value: f32) -> &Self {
         unsafe { libraw_sys::libraw_set_bright(self.imgdata_ptr(), value) };
         self
     }
+    #[must_use]
     pub fn set_highlight(&self, value: DCRawHighlightMode) -> &Self {
         unsafe { libraw_sys::libraw_set_highlight(self.imgdata_ptr(), value as i32) };
         self
     }
+    #[must_use]
     pub fn set_fbdd_noiserd(&self, value: DCRawFbddNoiserd) -> &Self {
         unsafe { libraw_sys::libraw_set_fbdd_noiserd(self.imgdata_ptr(), value as i32) };
         self
