@@ -1,14 +1,15 @@
 #![no_std]
 #![allow(
     clippy::approx_constant,
+    clippy::missing_safety_doc,
+    clippy::ptr_offset_with_cast
+    clippy::useless_transmute,
     dead_code,
     non_camel_case_types,
     non_snake_case,
     non_upper_case_globals,
     unexpected_cfgs,
-    clippy::useless_transmute,
-    clippy::missing_safety_doc,
-    clippy::ptr_offset_with_cast
+    unnecessary_transmutes,
 )]
 #[cfg(target_os = "windows")]
 include!("bindings-win.rs");
