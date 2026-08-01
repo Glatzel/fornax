@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use super::DCRawParams;
 #[derive(Debug)]
-pub(crate) struct ImgdataPtr(*mut libraw_sys::libraw_data_t);
+pub struct ImgdataPtr(*mut libraw_sys::libraw_data_t);
 impl ImgdataPtr {
-    pub(crate) fn ptr(&self) -> *mut libraw_sys::libraw_data_t { self.0 }
+    pub(crate) const fn ptr(&self) -> *mut libraw_sys::libraw_data_t { self.0 }
 }
 unsafe impl Send for ImgdataPtr {}
 unsafe impl Sync for ImgdataPtr {}

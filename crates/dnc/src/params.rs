@@ -17,9 +17,9 @@ pub enum DncPreview {
 impl Display for DncPreview {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = match self {
-            DncPreview::None => "-p0",
-            DncPreview::Medium => "-p1",
-            DncPreview::Full => "-p2",
+            Self::None => "-p0",
+            Self::Medium => "-p1",
+            Self::Full => "-p2",
         };
         write!(f, "{text}")
     }
@@ -70,25 +70,25 @@ pub enum DncCompatibility {
 impl Display for DncCompatibility {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = match self {
-            DncCompatibility::CR2_4 => "-cr2.4",
-            DncCompatibility::CR4_1 => "-cr4.1",
-            DncCompatibility::CR4_6 => "-cr4.6",
-            DncCompatibility::CR5_4 => "-cr5.4",
-            DncCompatibility::CR6_6 => "-cr6.6",
-            DncCompatibility::CR7_1 => "-cr7.1",
-            DncCompatibility::CR11_2 => "-cr11.2",
-            DncCompatibility::CR12_4 => "-cr12.4",
-            DncCompatibility::CR13_2 => "-cr13.2",
-            DncCompatibility::CR14_0 => "-cr14.0",
-            DncCompatibility::CR15_3 => "-cr15.3",
-            DncCompatibility::CR16_0 => "-cr16.0",
-            DncCompatibility::DNG1_1 => "-dng1.1",
-            DncCompatibility::DNG1_3 => "-dng1.3",
-            DncCompatibility::DNG1_4 => "-dng1.4",
-            DncCompatibility::DNG1_5 => "-dng1.5",
-            DncCompatibility::DNG1_6 => "-dng1.6",
-            DncCompatibility::DNG1_7 => "-dng1.7",
-            DncCompatibility::DNG1_7_1 => "-dng1.7.1",
+            Self::CR2_4 => "-cr2.4",
+            Self::CR4_1 => "-cr4.1",
+            Self::CR4_6 => "-cr4.6",
+            Self::CR5_4 => "-cr5.4",
+            Self::CR6_6 => "-cr6.6",
+            Self::CR7_1 => "-cr7.1",
+            Self::CR11_2 => "-cr11.2",
+            Self::CR12_4 => "-cr12.4",
+            Self::CR13_2 => "-cr13.2",
+            Self::CR14_0 => "-cr14.0",
+            Self::CR15_3 => "-cr15.3",
+            Self::CR16_0 => "-cr16.0",
+            Self::DNG1_1 => "-dng1.1",
+            Self::DNG1_3 => "-dng1.3",
+            Self::DNG1_4 => "-dng1.4",
+            Self::DNG1_5 => "-dng1.5",
+            Self::DNG1_6 => "-dng1.6",
+            Self::DNG1_7 => "-dng1.7",
+            Self::DNG1_7_1 => "-dng1.7.1",
         };
         write!(f, "{text}")
     }

@@ -39,7 +39,7 @@ impl DCRawParams {
         self.use_camera_wb
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.use_camera_wb = *v as i32 });
         self.use_camera_matrix.inspect(|v| unsafe {
-            (*arc_imgdata_ptr.ptr()).params.use_camera_matrix = (*v) as i32
+            (*arc_imgdata_ptr.ptr()).params.use_camera_matrix = (*v) as i32;
         });
         self.output_color
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.output_color = (*v) as i32 });

@@ -39,7 +39,7 @@ enum PyDecoder {
 impl From<&str> for PyDecoder {
     fn from(value: &str) -> Self {
         match value.to_lowercase().as_str() {
-            "libraw" => PyDecoder::Libraw,
+            "libraw" => Self::Libraw,
             _ => panic!("Unknown decoder."),
         }
     }
@@ -52,8 +52,8 @@ enum PyPostProcessor {
 impl From<&str> for PyPostProcessor {
     fn from(value: &str) -> Self {
         match value.to_lowercase().as_str() {
-            "dalim" => PyPostProcessor::Dalim,
-            "libraw" => PyPostProcessor::Libraw,
+            "dalim" => Self::Dalim,
+            "libraw" => Self::Libraw,
             _ => panic!("Unknown decoder."),
         }
     }

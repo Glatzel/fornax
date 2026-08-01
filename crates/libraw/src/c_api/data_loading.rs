@@ -77,7 +77,7 @@ impl Libraw {
                 top_margin,
                 right_margin,
                 bottom_margin,
-                u8::from(procflags.clone()),
+                u8::from(procflags),
                 bayer_pattern,
                 unused_bits,
                 otherflags,

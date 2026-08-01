@@ -56,7 +56,7 @@ where
     ///
     /// # Returns
     /// A new `Fornax` instance with the specified decoder and post-processor.
-    pub fn new(decoder: D, post_processor: P) -> Self {
+    pub const fn new(decoder: D, post_processor: P) -> Self {
         Self {
             _marker_t: std::marker::PhantomData,
             _marker_o: std::marker::PhantomData,

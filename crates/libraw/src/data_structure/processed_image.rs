@@ -15,10 +15,10 @@ pub struct ProcessedImage {
 impl ProcessedImage {
     pub(crate) fn new(
         ptr: *mut libraw_sys::libraw_processed_image_t,
-    ) -> Result<ProcessedImage, LibrawError> {
+    ) -> Result<Self, LibrawError> {
         check_run!(ptr.is_null(), "`libraw_processed_image_t` pointer is null.");
         clerk::debug!("{:?}", unsafe { *(ptr) });
-        let img: ProcessedImage = Self {
+        let img: Self = Self {
             processed_image: ptr,
         };
         Ok(img)

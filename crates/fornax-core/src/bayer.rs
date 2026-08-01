@@ -48,27 +48,27 @@ impl BayerPattern {
     ///
     /// The mask is an ordered list of `BayerChannel` values, representing the
     /// sequence of color channels in the pattern.
-    pub fn as_mask(&self) -> &[BayerChannel; 4] {
+    pub const fn as_mask(&self) -> &[BayerChannel; 4] {
         match self {
-            BayerPattern::RGGB => &[
+            Self::RGGB => &[
                 BayerChannel::R,
                 BayerChannel::G,
                 BayerChannel::G2,
                 BayerChannel::B,
             ],
-            BayerPattern::BGGR => &[
+            Self::BGGR => &[
                 BayerChannel::B,
                 BayerChannel::G2,
                 BayerChannel::G,
                 BayerChannel::R,
             ],
-            BayerPattern::GRBG => &[
+            Self::GRBG => &[
                 BayerChannel::G,
                 BayerChannel::R,
                 BayerChannel::B,
                 BayerChannel::G2,
             ],
-            BayerPattern::GBRG => &[
+            Self::GBRG => &[
                 BayerChannel::G2,
                 BayerChannel::B,
                 BayerChannel::R,
@@ -80,10 +80,10 @@ impl BayerPattern {
 impl Display for BayerPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let text = match self {
-            BayerPattern::RGGB => "RGGB",
-            BayerPattern::BGGR => "BGGR",
-            BayerPattern::GRBG => "GRBG",
-            BayerPattern::GBRG => "GBRG",
+            Self::RGGB => "RGGB",
+            Self::BGGR => "BGGR",
+            Self::GRBG => "GRBG",
+            Self::GBRG => "GBRG",
         };
         write!(f, "{text}")
     }
@@ -128,7 +128,7 @@ where
     ///
     /// # Returns
     /// A new `BayerImage` instance.
-    pub fn new(bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>, pattern: BayerPattern) -> Self {
+    pub const fn new(bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>, pattern: BayerPattern) -> Self {
         Self {
             bayer_image,
             pattern,
@@ -139,10 +139,10 @@ where
     /// This method provides access to the original Bayer image data in the form
     /// of a grayscale image (`Luma<T>`), where each pixel value represents
     /// a color channel from the Bayer pattern.
-    pub fn mosaic(&self) -> &image::ImageBuffer<Luma<T>, Vec<T>> { &self.bayer_image }
+    pub const fn mosaic(&self) -> &image::ImageBuffer<Luma<T>, Vec<T>> { &self.bayer_image }
     /// Returns a reference to the Bayer pattern associated with the image.
     ///
     /// This method allows you to access the pattern used to arrange the color
     /// channels in the Bayer image.
-    pub fn pattern(&self) -> &BayerPattern { &self.pattern }
+    pub const fn pattern(&self) -> &BayerPattern { &self.pattern }
 }

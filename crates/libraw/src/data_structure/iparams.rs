@@ -17,10 +17,10 @@ impl TryFrom<&str> for IParamsColorDesc {
     type Error = crate::LibrawError;
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Ok(match value {
-            "RGBG" => IParamsColorDesc::RGBG,
-            "RGBE" => IParamsColorDesc::RGBE,
-            "GMCY" => IParamsColorDesc::GMCY,
-            "GBTG" => IParamsColorDesc::GBTG,
+            "RGBG" => Self::RGBG,
+            "RGBE" => Self::RGBE,
+            "GMCY" => Self::GMCY,
+            "GBTG" => Self::GBTG,
             _ => panic!("Unknown color description."),
         })
     }
@@ -33,7 +33,7 @@ pub struct IParams {
     arc_imgdata_ptr: Arc<ImgdataPtr>,
 }
 impl IParams {
-    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
+    pub(crate) const fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
         Ok(Self {
             arc_imgdata_ptr: imgdata,
         })

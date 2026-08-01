@@ -19,9 +19,9 @@ pub struct Dnc {
     params: DncParams,
 }
 impl Dnc {
-    pub fn new(params: DncParams) -> Self { Self { params } }
+    pub const fn new(params: DncParams) -> Self { Self { params } }
 
-    pub fn params(&self) -> &DncParams { &self.params }
+    pub const fn params(&self) -> &DncParams { &self.params }
 
     fn dng_file(&self, raw_file: &Path) -> Result<PathBuf, DncError> {
         let mut file = if let Some(dir) = &self.params.directory {
@@ -36,7 +36,7 @@ impl Dnc {
                 "{}.dng",
                 raw_file.file_stem().unwrap().to_str().unwrap()
             ));
-        };
+        }
         clerk::debug!("Dng file: {}", file.to_slash_lossy());
         Ok(file)
     }
@@ -46,7 +46,7 @@ impl Dnc {
         // Skip dng file
         if raw_file.extension().unwrap().eq_ignore_ascii_case("dng") {
             clerk::info!("The input file is dng.");
-            return Ok(raw_file.clone());
+            return Ok(raw_file);
         }
 
         let dng_file: PathBuf = self.dng_file(&raw_file)?;
@@ -60,7 +60,13 @@ impl Dnc {
         }
 
         // Execute dng converter to generate dng file.
-        if !dng_file.exists() {
+        if dng_file.exists() {
+            // Skip if dng file exists
+            clerk::info!(
+                "DNG file already exists: {}",
+                dunce::canonicalize(&dng_file)?.to_slash_lossy().to_string()
+            );
+        } else {
             let program = DNC_EXECUTABLE.as_os_str();
             let args = self.params.to_cmd(&raw_file)?;
             let _output = std::process::Command::new(program).args(&args).output()?;
@@ -72,12 +78,6 @@ impl Dnc {
             }
             clerk::debug!(
                 "Write dng to: {}",
-                dunce::canonicalize(&dng_file)?.to_slash_lossy().to_string()
-            );
-        } else {
-            // Skip if dng file exists
-            clerk::info!(
-                "DNG file already exists: {}",
                 dunce::canonicalize(&dng_file)?.to_slash_lossy().to_string()
             );
         }
