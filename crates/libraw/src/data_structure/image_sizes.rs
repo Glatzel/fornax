@@ -23,7 +23,7 @@ pub struct ImageSizes {
     arc_imgdata_ptr: Arc<ImgdataPtr>,
 }
 impl ImageSizes {
-    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
+    pub(crate) const fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
         Ok(Self {
             arc_imgdata_ptr: imgdata,
         })

@@ -1,4 +1,5 @@
-use crate::{Libraw, LibrawError, ProcessedImage, check_raw_alloc, check_run};
+use crate::extension::error_handling::{check_raw_alloc, check_run};
+use crate::{Libraw, LibrawError, ProcessedImage};
 
 //region:Writing processing results to memory buffer
 impl Libraw {
@@ -6,7 +7,7 @@ impl Libraw {
         check_raw_alloc!(self.imgdata_ptr());
         let mut result = 0i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
-            unsafe { libraw_sys::libraw_dcraw_make_mem_image(self.imgdata_ptr(), &mut result) };
+            unsafe { libraw_sys::libraw_dcraw_make_mem_image(self.imgdata_ptr(), &raw mut result) };
         check_run!(result);
 
         let processed = ProcessedImage::new(processed)?;

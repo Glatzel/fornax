@@ -14,7 +14,7 @@ inputs:
   args:
     description: Additional arguments passed to cargo clippy
     required: false
-    default: -D warnings
+    default: -D warnings -A clippy::too_many_arguments
 
 runs:
   using: composite

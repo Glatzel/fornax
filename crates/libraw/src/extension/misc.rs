@@ -3,7 +3,8 @@ use std::slice;
 use fornax_core::FornaxPrimitive;
 use image::{ImageBuffer, Rgb};
 
-use crate::{Libraw, LibrawError, ProcessedImage, check_raw_alloc, check_run, custom_error};
+use crate::extension::error_handling::{check_raw_alloc, check_run, custom_error};
+use crate::{Libraw, LibrawError, ProcessedImage};
 
 // region:Custom API
 impl Libraw {

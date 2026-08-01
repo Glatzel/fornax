@@ -11,7 +11,7 @@ pub struct ImgOtherGpsInfo {
     arc_imgdata_ptr: Arc<ImgdataPtr>,
 }
 impl ImgOtherGpsInfo {
-    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Self {
+    pub(crate) const fn new(imgdata: Arc<ImgdataPtr>) -> Self {
         Self {
             arc_imgdata_ptr: imgdata,
         }
@@ -77,7 +77,7 @@ pub struct ImgOther {
     imgdata: Arc<ImgdataPtr>,
 }
 impl ImgOther {
-    pub(crate) fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
+    pub(crate) const fn new(imgdata: Arc<ImgdataPtr>) -> Result<Self, LibrawError> {
         Ok(Self { imgdata })
     }
     ///ISO sensitivity.
