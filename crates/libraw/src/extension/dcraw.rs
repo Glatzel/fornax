@@ -5,10 +5,9 @@ use envoy::ToCString;
 use crate::{DCRawOutputBps, DCRawOutputColor, DCRawParams, ImgdataPtr, LibrawError};
 
 impl DCRawParams {
-    #[allow(unused_mut)]
     pub(crate) fn set_output_params(
         &self,
-        mut arc_imgdata_ptr: Arc<ImgdataPtr>,
+        arc_imgdata_ptr: Arc<ImgdataPtr>,
     ) -> Result<(), LibrawError> {
         self.greybox
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.greybox = *v });
@@ -39,7 +38,7 @@ impl DCRawParams {
         self.use_camera_wb
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.use_camera_wb = *v as i32 });
         self.use_camera_matrix.inspect(|v| unsafe {
-            (*arc_imgdata_ptr.ptr()).params.use_camera_matrix = (*v) as i32
+            (*arc_imgdata_ptr.ptr()).params.use_camera_matrix = (*v) as i32;
         });
         self.output_color
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.output_color = (*v) as i32 });

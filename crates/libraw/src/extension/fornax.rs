@@ -6,7 +6,7 @@ use image::{EncodableLayout, Rgb};
 use crate::{Libraw, LibrawError, ProcFlag};
 
 impl From<LibrawError> for FornaxError {
-    fn from(val: LibrawError) -> Self { FornaxError(val.to_string()) }
+    fn from(val: LibrawError) -> Self { Self(val.to_string()) }
 }
 impl<T> IDecoder<T> for Libraw
 where

@@ -3,7 +3,8 @@ use std::path::Path;
 use envoy::ToCString;
 use fornax_core::BayerPattern;
 
-use crate::{Libraw, LibrawError, check_run};
+use crate::extension::error_handling::check_run;
+use crate::{Libraw, LibrawError};
 
 #[derive(Debug, Clone)]
 pub enum ProcFlag {
@@ -42,7 +43,7 @@ impl Libraw {
         });
         Ok(self)
     }
-    #[allow(clippy::too_many_arguments)]
+
     pub fn open_bayer(
         &self,
         data: &[u8],
@@ -77,7 +78,7 @@ impl Libraw {
                 top_margin,
                 right_margin,
                 bottom_margin,
-                u8::from(procflags.clone()),
+                u8::from(procflags),
                 bayer_pattern,
                 unused_bits,
                 otherflags,
