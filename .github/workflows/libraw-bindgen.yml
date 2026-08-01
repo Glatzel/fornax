@@ -43,5 +43,6 @@ jobs:
           fi
 
           git commit -m "Update libraw bindings for ${{ matrix.os }}"
-          git push --force-with-lease
+          git pull
+          git push
         shell: bash
