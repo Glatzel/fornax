@@ -21,12 +21,12 @@ jobs:
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - parallel:
+          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
             with:
               run-install: false
-          - uses: ./.github/actions/rust/setup-rust
+      - uses: ./.github/actions/rust/setup-rust
       - name: libraw-bindings
         run: scripts/libraw-bindings.ps1
         shell: pwsh
@@ -38,23 +38,23 @@ jobs:
             crates/libraw-sys/src/bindings-${{matrix.os}}.rs
           if-no-files-found: error
   commit:
-      needs: libraw-bindings
-      runs-on: ubuntu-slim
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/download-artifact@v4
-          with:
-            pattern: libraw-bindings-*
-        - run: |
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+    needs: libraw-bindings
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: libraw-bindings-*
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-            git add crates/libraw-sys/src/
+          git add crates/libraw-sys/src/
 
-            if git diff --cached --quiet; then
-              echo "No changes"
-              exit 0
-            fi
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
 
-            git commit -m "Update libraw bindings"
-            git push
+          git commit -m "Update libraw bindings"
+          git push
