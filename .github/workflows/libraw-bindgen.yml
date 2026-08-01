@@ -34,6 +34,13 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add crates/libraw-sys/src/bindings-${{matrix.os}}.rs
-          git commit -m "Update libraw bindings for ${{matrix.os}}"
+
+          git add crates/libraw-sys/src/bindings-${{ matrix.os }}.rs
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "Update libraw bindings for ${{ matrix.os }}"
           git push --force-with-lease
+        shell: bash
