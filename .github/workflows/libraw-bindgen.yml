@@ -42,6 +42,7 @@ jobs:
           fi
 
           git commit -m "Update libraw bindings for ${{ matrix.os }}"
+          git config pull.rebase true
           git pull
           git push
         shell: bash
