@@ -1,11 +1,13 @@
 name: libraw-bindgen
 on:
   workflow_dispatch:
-
+permissions:
+  contents: write
 jobs:
   libraw-bindings:
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include:
           - machine: windows-latest
@@ -20,7 +22,7 @@ jobs:
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Set up pixi
         uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f # v0.10.0
         with:
@@ -30,11 +32,10 @@ jobs:
         run: |
           scripts/libraw-bindings.ps1
         shell: pwsh
-
-      - name: upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: libraw-bindings-${{matrix.os}}
-          path: |
-            crates/libraw-sys/src/bindings-${{matrix.os}}.rs
-          if-no-files-found: error
+      - name: commit
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add crates/libraw-sys/src/bindings-${{matrix.os}}.rs
+          git commit -m "Update libraw bindings for ${{matrix.os}}"
+          git push
