@@ -27,9 +27,9 @@ jobs:
             with:
               run-install: false
           - uses: ./.github/actions/rust/setup-rust
-          - name: libraw-bindings
-            run: scripts/libraw-bindings.ps1
-            shell: pwsh
+      - name: libraw-bindings
+        run: scripts/libraw-bindings.ps1
+        shell: pwsh
       - name: commit
         run: |
           git config --global user.name "github-actions[bot]"
