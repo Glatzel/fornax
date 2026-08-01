@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: libraw-bindgen-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   libraw-bindings:
     strategy:
@@ -35,7 +38,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
+          git pull --rebase origin ${{ github.ref_name }}
           git add crates/libraw-sys/src/bindings-${{ matrix.os }}.rs
           if git diff --cached --quiet; then
             echo "No changes to commit"
@@ -43,6 +46,6 @@ jobs:
           fi
 
           git commit -m "Update libraw bindings for ${{ matrix.os }}"
-          git pull --rebase origin ${{ github.ref_name }}
+
           git push
         shell: bash
