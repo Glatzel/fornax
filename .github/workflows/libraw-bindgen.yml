@@ -7,6 +7,7 @@ jobs:
   libraw-bindings:
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include:
           - machine: windows-latest
@@ -30,31 +31,17 @@ jobs:
       - name: libraw-bindings
         run: scripts/libraw-bindings.ps1
         shell: pwsh
-      - name: upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: libraw-bindings-${{matrix.os}}
-          path: |
-            crates/libraw-sys/src/bindings-${{matrix.os}}.rs
-          if-no-files-found: error
-  commit:
-    needs: libraw-bindings
-    runs-on: ubuntu-slim
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          pattern: libraw-bindings-*
-      - run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: commit
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add crates/libraw-sys/src/
-
+          git add crates/libraw-sys/src/bindings-${{ matrix.os }}.rs
           if git diff --cached --quiet; then
-            echo "No changes"
+            echo "No changes to commit"
             exit 0
           fi
 
-          git commit -m "Update libraw bindings"
-          git push
+          git commit -m "Update libraw bindings for ${{ matrix.os }}"
+          git push --force-with-lease
+        shell: bash
