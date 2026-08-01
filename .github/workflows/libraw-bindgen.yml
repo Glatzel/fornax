@@ -30,17 +30,31 @@ jobs:
       - name: libraw-bindings
         run: scripts/libraw-bindings.ps1
         shell: pwsh
-      - name: commit
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add crates/libraw-sys/src/bindings-${{ matrix.os }}.rs
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-
-          git commit -m "Update libraw bindings for ${{ matrix.os }}"
-          git push --force-with-lease
-        shell: bash
+      - name: upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: libraw-bindings-${{matrix.os}}
+          path: |
+            crates/libraw-sys/src/bindings-${{matrix.os}}.rs
+          if-no-files-found: error
+  commit:
+      needs: libraw-bindings
+      runs-on: ubuntu-slim
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/download-artifact@v4
+          with:
+            pattern: libraw-bindings-*
+        - run: |
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  
+            git add crates/libraw-sys/src/
+  
+            if git diff --cached --quiet; then
+              echo "No changes"
+              exit 0
+            fi
+  
+            git commit -m "Update libraw bindings"
+            git push
