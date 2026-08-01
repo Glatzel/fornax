@@ -1,4 +1,5 @@
-use crate::{ImageSizes, Libraw, LibrawError, Rawdata, check_raw_alloc};
+use crate::extension::error_handling::check_raw_alloc;
+use crate::{ImageSizes, Libraw, LibrawError, Rawdata};
 
 // region:Data Structure
 impl Libraw {

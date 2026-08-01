@@ -1,6 +1,6 @@
 use envoy::{PtrListToVecString, PtrToString};
 
-use crate::{Libraw, LibrawError, check_raw_alloc, check_run};
+use crate::{Libraw, LibrawError, extension::error_handling::{check_raw_alloc, check_run}};
 
 // region:Auxiliary Functions
 // https://www.libraw.org/docs/API-CXX.html#utility

@@ -1,6 +1,7 @@
 use num_enum::TryFromPrimitive;
 
-use crate::{LibrawError, check_run};
+use crate::LibrawError;
+use crate::extension::error_handling::check_run;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, TryFromPrimitive)]
 #[repr(i32)]
@@ -13,9 +14,7 @@ pub struct ProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }
 impl ProcessedImage {
-    pub(crate) fn new(
-        ptr: *mut libraw_sys::libraw_processed_image_t,
-    ) -> Result<Self, LibrawError> {
+    pub(crate) fn new(ptr: *mut libraw_sys::libraw_processed_image_t) -> Result<Self, LibrawError> {
         check_run!(ptr.is_null(), "`libraw_processed_image_t` pointer is null.");
         clerk::debug!("{:?}", unsafe { *(ptr) });
         let img: Self = Self {

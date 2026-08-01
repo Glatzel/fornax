@@ -1,4 +1,4 @@
-use crate::{Libraw, LibrawError, ProcessedImage, check_raw_alloc, check_run};
+use crate::{Libraw, LibrawError, ProcessedImage, extension::error_handling::{check_raw_alloc, check_run}};
 
 //region:Writing processing results to memory buffer
 impl Libraw {
