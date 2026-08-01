@@ -8,7 +8,8 @@
     unexpected_cfgs,
     clippy::useless_transmute,
     clippy::missing_safety_doc,
-    clippy::ptr_offset_with_cast
+    clippy::ptr_offset_with_cast,
+    clippy::pub_underscore_fields
 )]
 #[cfg(target_os = "windows")]
 include!("bindings-win.rs");
