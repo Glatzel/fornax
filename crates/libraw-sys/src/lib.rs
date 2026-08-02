@@ -1,6 +1,8 @@
 #![no_std]
 #![allow(
     clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
     unnecessary_transmutes,
     dead_code,
     non_camel_case_types,
