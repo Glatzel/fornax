@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Display};
+use core::fmt::{Debug, Display};
 
 use image::Luma;
 /// An enum representing the channels in a Bayer pattern.
@@ -78,7 +78,7 @@ impl BayerPattern {
     }
 }
 impl Display for BayerPattern {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let text = match self {
             Self::RGGB => "RGGB",
             Self::BGGR => "BGGR",

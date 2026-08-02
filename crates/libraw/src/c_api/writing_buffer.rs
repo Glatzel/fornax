@@ -5,7 +5,7 @@ use crate::{Libraw, LibrawError, ProcessedImage};
 impl Libraw {
     pub(crate) fn dcraw_make_mem_image(&self) -> Result<ProcessedImage, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
-        let mut result = 0i32;
+        let mut result = 0_i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =
             unsafe { libraw_sys::libraw_dcraw_make_mem_image(self.imgdata_ptr(), &raw mut result) };
         check_run!(result);

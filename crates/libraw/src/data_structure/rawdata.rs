@@ -58,7 +58,7 @@ impl Rawdata {
                     )
                     .iter()
                     .copied()
-                    .flat_map(std::iter::IntoIterator::into_iter)
+                    .flat_map(core::iter::IntoIterator::into_iter)
                     .collect::<Vec<u16>>()
                 })
                 .unwrap();
@@ -73,7 +73,7 @@ impl Rawdata {
                     )
                     .iter()
                     .copied()
-                    .flat_map(std::iter::IntoIterator::into_iter)
+                    .flat_map(core::iter::IntoIterator::into_iter)
                     .collect::<Vec<u16>>()
                 })
                 .unwrap();
@@ -88,7 +88,7 @@ impl Rawdata {
                     )
                     .iter()
                     .copied()
-                    .flat_map(std::iter::IntoIterator::into_iter)
+                    .flat_map(core::iter::IntoIterator::into_iter)
                     .collect::<Vec<f32>>()
                 })
                 .unwrap();
@@ -106,7 +106,7 @@ impl Rawdata {
                 )
                 .iter()
                 .copied()
-                .flat_map(std::iter::IntoIterator::into_iter)
+                .flat_map(core::iter::IntoIterator::into_iter)
                 .collect::<Vec<f32>>()
             })
             .unwrap();

@@ -14,7 +14,7 @@ pub struct Dalim<T>
 where
     T: FornaxPrimitive,
 {
-    _marker: std::marker::PhantomData<T>,
+    _marker: core::marker::PhantomData<T>,
     params: DalimParams,
 }
 impl<T> Dalim<T>
@@ -23,7 +23,7 @@ where
 {
     pub const fn new(params: DalimParams) -> Self {
         Self {
-            _marker: std::marker::PhantomData,
+            _marker: core::marker::PhantomData,
             params,
         }
     }

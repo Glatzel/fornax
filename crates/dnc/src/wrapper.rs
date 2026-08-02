@@ -26,7 +26,7 @@ impl Dnc {
     fn dng_file(&self, raw_file: &Path) -> Result<PathBuf, DncError> {
         let mut file = self.params.directory.as_ref().map_or_else(
             || PathBuf::from(raw_file.parent().unwrap()),
-            std::clone::Clone::clone,
+            core::clone::Clone::clone,
         );
         if let Some(filename) = &self.params.filename {
             file.push(filename);
