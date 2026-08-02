@@ -1,9 +1,26 @@
 version: 7
 platforms:
 - name: linux-64
+  virtual-packages:
+  - __unix=0=0
+  - __linux=4.18
+  - __glibc=2.28
+  - __archspec=0=x86_64
 - name: linux-aarch64
+  virtual-packages:
+  - __unix=0=0
+  - __linux=4.18
+  - __glibc=2.28
+  - __archspec=0=aarch64
 - name: osx-arm64
+  virtual-packages:
+  - __unix=0=0
+  - __osx=13.0
+  - __archspec=0=m1
 - name: win-64
+  virtual-packages:
+  - __win=10.0
+  - __archspec=0=x86_64
 environments:
   default:
     channels:
@@ -93,7 +110,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/numpydoc-1.10.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/packaging-26.2-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pip-26.1.2-pyh145f28c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pip-26.2-pyh145f28c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhf9edf01_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.13.4-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.20.0-pyhd8ed1ab_0.conda
@@ -117,8 +134,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.7.0-pyhd8ed1ab_0.conda
-      - conda: https://prefix.dev/glatzel/linux-64/libraw-dev-0.22.1-h873e7db_1.conda
-      - conda: https://prefix.dev/glatzel/linux-64/libraw-rt-0.22.1-h873e7db_1.conda
+      - conda: https://prefix.dev/glatzel/linux-64/libraw-dev-0.22.2-h873e7db_0.conda
+      - conda: https://prefix.dev/glatzel/linux-64/libraw-rt-0.22.2-h873e7db_0.conda
       linux-aarch64:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/backports.zstd-1.6.0-py313h5c42d0f_0.conda
@@ -203,7 +220,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/numpydoc-1.10.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/packaging-26.2-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pip-26.1.2-pyh145f28c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pip-26.2-pyh145f28c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhf9edf01_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.13.4-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.20.0-pyhd8ed1ab_0.conda
@@ -227,8 +244,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.7.0-pyhd8ed1ab_0.conda
-      - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-dev-0.22.1-h47ec6e6_1.conda
-      - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-rt-0.22.1-h47ec6e6_1.conda
+      - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-dev-0.22.2-h47ec6e6_0.conda
+      - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-rt-0.22.2-h47ec6e6_0.conda
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/alabaster-1.0.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.7.0-pyhd8ed1ab_1.conda
@@ -251,7 +268,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/numpydoc-1.10.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/packaging-26.2-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pip-26.1.2-pyh145f28c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pip-26.2-pyh145f28c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhf9edf01_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.13.4-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.20.0-pyhd8ed1ab_0.conda
@@ -324,8 +341,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/xorg-libxdmcp-1.1.5-hc919400_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zlib-ng-2.3.3-hed4e4f5_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hbf9d68e_6.conda
-      - conda: https://prefix.dev/glatzel/osx-arm64/libraw-dev-0.22.1-hb33852e_1.conda
-      - conda: https://prefix.dev/glatzel/osx-arm64/libraw-rt-0.22.1-hb33852e_1.conda
+      - conda: https://prefix.dev/glatzel/osx-arm64/libraw-dev-0.22.2-hb33852e_0.conda
+      - conda: https://prefix.dev/glatzel/osx-arm64/libraw-rt-0.22.2-hb33852e_0.conda
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/alabaster-1.0.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/annotated-types-0.7.0-pyhd8ed1ab_1.conda
@@ -348,7 +365,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/numpydoc-1.10.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/packaging-26.2-pyhc364b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pip-26.1.2-pyh145f28c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pip-26.2-pyh145f28c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhf9edf01_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.13.4-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.20.0-pyhd8ed1ab_0.conda
@@ -421,8 +438,8 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/xorg-libxdmcp-1.1.5-hba3369d_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zlib-ng-2.3.3-h0261ad2_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-h534d264_6.conda
-      - conda: https://prefix.dev/glatzel/win-64/libraw-dev-0.22.1-h7e360f0_1.conda
-      - conda: https://prefix.dev/glatzel/win-64/libraw-rt-0.22.1-h7e360f0_1.conda
+      - conda: https://prefix.dev/glatzel/win-64/libraw-dev-0.22.2-h7e360f0_0.conda
+      - conda: https://prefix.dev/glatzel/win-64/libraw-rt-0.22.2-h7e360f0_0.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -2407,16 +2424,16 @@ packages:
   run_exports: {}
   size: 91574
   timestamp: 1777103621679
-- conda: https://conda.anaconda.org/conda-forge/noarch/pip-26.1.2-pyh145f28c_0.conda
-  sha256: 9e673d3c6003f416df11670a14b026a04e3a45ebec55357987e15b860f138f2a
-  md5: 733cc07ed34162ac50b936464b163366
+- conda: https://conda.anaconda.org/conda-forge/noarch/pip-26.2-pyh145f28c_0.conda
+  sha256: eb1066222db9d4c4fcf36c4a3c4cc1d122baecc052807061b931ab2ac672d386
+  md5: 94a03888aec9fd6270bcbdf6592d3196
   depends:
   - python >=3.13.0a0
   license: MIT
   license_family: MIT
   run_exports: {}
-  size: 1202377
-  timestamp: 1780262809860
+  size: 1201179
+  timestamp: 1785420951864
 - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhf9edf01_1.conda
   sha256: e14aafa63efa0528ca99ba568eaf506eb55a0371d12e6250aaaa61718d2eb62e
   md5: d7585b6550ad04c8c5e21097ada2888e
@@ -4147,143 +4164,143 @@ packages:
     - zstd >=1.5.7,<1.6.0a0
   size: 388453
   timestamp: 1764777142545
-- conda: https://prefix.dev/glatzel/linux-64/libraw-dev-0.22.1-h873e7db_1.conda
-  sha256: e70dc49e0e876b2203a7602061d345abda559353e2ae760a70b792780bd778db
-  md5: a2067e4f78739f50f116d07d25fc84e2
+- conda: https://prefix.dev/glatzel/linux-64/libraw-dev-0.22.2-h873e7db_0.conda
+  sha256: 93500664b673dbfa38c03cc560534e785b7171e117d318279742ce86a992e1ba
+  md5: 6df04892f4be44599ef495efcd86dd78
   depends:
-  - libgcc >=14
   - __glibc >=2.28,<3.0.a0
   - libstdcxx >=14
-  - jasper >=4.2.9,<5.0a0
+  - libgcc >=14
   - lcms2 >=2.19.1,<3.0a0
-  - openjpeg >=2.5.4,<3.0a0
   - libzlib >=1.3.2,<2.0a0
-  - libraw-rt >=0.22.1,<0.23.0a0
+  - openjpeg >=2.5.4,<3.0a0
+  - jasper >=4.2.9,<5.0a0
+  - libraw-rt >=0.22.2,<0.23.0a0
   license: BSD-2-Clause
   run_exports:
     weak:
-    - libraw-rt >=0.22.1,<0.23.0a0
-  size: 130606
-  timestamp: 1780627242342
-- conda: https://prefix.dev/glatzel/linux-64/libraw-rt-0.22.1-h873e7db_1.conda
-  sha256: 03b238fb380dfc90ff7274db08bed2dd93035e4d7d6c0d1551ab16c287163661
-  md5: ff23dc23365faf8cffc154886cb61dd2
+    - libraw-rt >=0.22.2,<0.23.0a0
+  size: 131657
+  timestamp: 1784207737295
+- conda: https://prefix.dev/glatzel/linux-64/libraw-rt-0.22.2-h873e7db_0.conda
+  sha256: 60c1bb235e0695b9df660a030ca300392a436cf7ed061bce84983bf2c1b86d96
+  md5: 67fca6e87a58ee82d6c6d58abdc3e979
   depends:
-  - libgcc >=14
   - __glibc >=2.28,<3.0.a0
   - libstdcxx >=14
-  - jasper >=4.2.9,<5.0a0
+  - libgcc >=14
   - lcms2 >=2.19.1,<3.0a0
-  - openjpeg >=2.5.4,<3.0a0
   - libzlib >=1.3.2,<2.0a0
+  - openjpeg >=2.5.4,<3.0a0
+  - jasper >=4.2.9,<5.0a0
   license: BSD-2-Clause
   run_exports:
     weak:
-    - libraw-rt >=0.22.1,<0.23.0a0
-  size: 500807
-  timestamp: 1780627242342
-- conda: https://prefix.dev/glatzel/linux-aarch64/libraw-dev-0.22.1-h47ec6e6_1.conda
-  sha256: 0d180afd4cec65a02aefd8e6d76f60da5ea948ee1578ac5f578e54b100eca72a
-  md5: 9a8d90e5d6944fb5b70f7a2fb58c7af2
+    - libraw-rt >=0.22.2,<0.23.0a0
+  size: 501680
+  timestamp: 1784207737295
+- conda: https://prefix.dev/glatzel/linux-aarch64/libraw-dev-0.22.2-h47ec6e6_0.conda
+  sha256: f8059a531d5fa7d795ab56bd2d458d3e602ca8e2de2df0bc45bf1419be33aff5
+  md5: fef79501c0979d128a5a7e7d8b89d408
   depends:
+  - __glibc >=2.28,<3.0.a0
   - libstdcxx >=14
   - libgcc >=14
-  - __glibc >=2.28,<3.0.a0
   - openjpeg >=2.5.4,<3.0a0
+  - libzlib >=1.3.2,<2.0a0
   - lcms2 >=2.19.1,<3.0a0
   - jasper >=4.2.9,<5.0a0
-  - libzlib >=1.3.2,<2.0a0
-  - libraw-rt >=0.22.1,<0.23.0a0
+  - libraw-rt >=0.22.2,<0.23.0a0
   license: BSD-2-Clause
   run_exports:
     weak:
-    - libraw-rt >=0.22.1,<0.23.0a0
-  size: 134778
-  timestamp: 1780627251159
-- conda: https://prefix.dev/glatzel/linux-aarch64/libraw-rt-0.22.1-h47ec6e6_1.conda
-  sha256: fefda1b07698473897314913e867892bee2bc1a850769b19f785a737c5de9bd0
-  md5: a8eb547b218e4a9b35ce15e060887561
+    - libraw-rt >=0.22.2,<0.23.0a0
+  size: 136239
+  timestamp: 1784207746350
+- conda: https://prefix.dev/glatzel/linux-aarch64/libraw-rt-0.22.2-h47ec6e6_0.conda
+  sha256: e3e587e72310b8f81c44736b18c79ea7a0f6a44c356ba5a425c8d9df723109ad
+  md5: 5318381fef6246fdb8276a810af892f4
   depends:
+  - __glibc >=2.28,<3.0.a0
   - libstdcxx >=14
   - libgcc >=14
-  - __glibc >=2.28,<3.0.a0
   - openjpeg >=2.5.4,<3.0a0
+  - libzlib >=1.3.2,<2.0a0
   - lcms2 >=2.19.1,<3.0a0
   - jasper >=4.2.9,<5.0a0
-  - libzlib >=1.3.2,<2.0a0
   license: BSD-2-Clause
   run_exports:
     weak:
-    - libraw-rt >=0.22.1,<0.23.0a0
-  size: 496028
-  timestamp: 1780627251159
-- conda: https://prefix.dev/glatzel/osx-arm64/libraw-dev-0.22.1-hb33852e_1.conda
-  sha256: f63a7f3e0d07d8e874d5923b328237d112bcf9866770bdc8225e408280540f2a
-  md5: 6ef7a2329a7589ec7a9ed80788b31119
+    - libraw-rt >=0.22.2,<0.23.0a0
+  size: 496391
+  timestamp: 1784207746350
+- conda: https://prefix.dev/glatzel/osx-arm64/libraw-dev-0.22.2-hb33852e_0.conda
+  sha256: 5fc4f555b1baad7e8390057abc66315d9163da1e7a0ea4482da647e8d0f1b1e0
+  md5: c9f89644a0efab13bdabf8af1c35f4cd
   depends:
-  - __osx >=11.0
   - libcxx >=19
-  - llvm-openmp >=22.1.7
-  - jasper >=4.2.9,<5.0a0
-  - openjpeg >=2.5.4,<3.0a0
-  - lcms2 >=2.19.1,<3.0a0
-  - libzlib >=1.3.2,<2.0a0
-  - libraw-rt >=0.22.1,<0.23.0a0
-  license: BSD-2-Clause
-  run_exports:
-    weak:
-    - libraw-rt >=0.22.1,<0.23.0a0
-  size: 126445
-  timestamp: 1780627237441
-- conda: https://prefix.dev/glatzel/osx-arm64/libraw-rt-0.22.1-hb33852e_1.conda
-  sha256: 0f45dafb1a8385ad4799bb353d6794443fce570e5dfc585014b51ee9c004df02
-  md5: 57316ae642703b0627829b8d750e8492
-  depends:
   - __osx >=11.0
-  - libcxx >=19
-  - llvm-openmp >=22.1.7
-  - jasper >=4.2.9,<5.0a0
-  - openjpeg >=2.5.4,<3.0a0
+  - llvm-openmp >=22.1.8
   - lcms2 >=2.19.1,<3.0a0
+  - openjpeg >=2.5.4,<3.0a0
   - libzlib >=1.3.2,<2.0a0
+  - jasper >=4.2.9,<5.0a0
+  - libraw-rt >=0.22.2,<0.23.0a0
   license: BSD-2-Clause
   run_exports:
     weak:
-    - libraw-rt >=0.22.1,<0.23.0a0
-  size: 449317
-  timestamp: 1780627237441
-- conda: https://prefix.dev/glatzel/win-64/libraw-dev-0.22.1-h7e360f0_1.conda
-  sha256: bbcbc331a0d9aac463b929783972fa6648cc8731e4213053eb3a6e6c7e29458f
-  md5: 65c83f0873e5bc57abda1f78669bb195
+    - libraw-rt >=0.22.2,<0.23.0a0
+  size: 127496
+  timestamp: 1784207727852
+- conda: https://prefix.dev/glatzel/osx-arm64/libraw-rt-0.22.2-hb33852e_0.conda
+  sha256: 6a5f2bc497ecd8caf1a17cc0755255295787ccdedcdb5d9a09a30dff0eb23df0
+  md5: 33b38cb24f6ec22e2c0c7f6d25e0d38a
+  depends:
+  - libcxx >=19
+  - __osx >=11.0
+  - llvm-openmp >=22.1.8
+  - lcms2 >=2.19.1,<3.0a0
+  - openjpeg >=2.5.4,<3.0a0
+  - libzlib >=1.3.2,<2.0a0
+  - jasper >=4.2.9,<5.0a0
+  license: BSD-2-Clause
+  run_exports:
+    weak:
+    - libraw-rt >=0.22.2,<0.23.0a0
+  size: 446626
+  timestamp: 1784207727852
+- conda: https://prefix.dev/glatzel/win-64/libraw-dev-0.22.2-h7e360f0_0.conda
+  sha256: aa7ea1000b0e46a27f271d5ac0630141a7e3c6ffea671f1512afa6b9751058e8
+  md5: 3b51ecb709f20784f5845d2c12949876
   depends:
   - vc >=14.5,<15
   - vc14_runtime >=14.51.36231
   - ucrt >=10.0.20348.0
-  - libzlib >=1.3.2,<2.0a0
   - lcms2 >=2.19.1,<3.0a0
-  - openjpeg >=2.5.4,<3.0a0
   - jasper >=4.2.9,<5.0a0
-  - libraw-rt >=0.22.1,<0.23.0a0
+  - openjpeg >=2.5.4,<3.0a0
+  - libzlib >=1.3.2,<2.0a0
+  - libraw-rt >=0.22.2,<0.23.0a0
   license: BSD-2-Clause
   run_exports:
     weak:
-    - libraw-rt >=0.22.1,<0.23.0a0
-  size: 80570
-  timestamp: 1780627244587
-- conda: https://prefix.dev/glatzel/win-64/libraw-rt-0.22.1-h7e360f0_1.conda
-  sha256: 8cb1d57f38415fb7f419d4e412660c5cd9812f27e944d89b03c72103681be3b6
-  md5: 9c05000c24c03eab740b405b008f720b
+    - libraw-rt >=0.22.2,<0.23.0a0
+  size: 79727
+  timestamp: 1784207752688
+- conda: https://prefix.dev/glatzel/win-64/libraw-rt-0.22.2-h7e360f0_0.conda
+  sha256: 06558dbc36dddb5c7a82e966ddb315ddf1b4338b47162591c7b9bb7b555f0165
+  md5: b3863acf5d68dc60db5374e32700324f
   depends:
   - vc >=14.5,<15
   - vc14_runtime >=14.51.36231
   - ucrt >=10.0.20348.0
-  - libzlib >=1.3.2,<2.0a0
   - lcms2 >=2.19.1,<3.0a0
-  - openjpeg >=2.5.4,<3.0a0
   - jasper >=4.2.9,<5.0a0
+  - openjpeg >=2.5.4,<3.0a0
+  - libzlib >=1.3.2,<2.0a0
   license: BSD-2-Clause
   run_exports:
     weak:
-    - libraw-rt >=0.22.1,<0.23.0a0
-  size: 446564
-  timestamp: 1780627244587
+    - libraw-rt >=0.22.2,<0.23.0a0
+  size: 439693
+  timestamp: 1784207752688
