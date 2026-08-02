@@ -84,7 +84,8 @@ impl Libraw {
                                 // u8 -> f32/f64
                                 else if core::any::TypeId::of::<O>()
                                     == core::any::TypeId::of::<f32>()
-                                    || core::any::TypeId::of::<O>() == core::any::TypeId::of::<f64>()
+                                    || core::any::TypeId::of::<O>()
+                                        == core::any::TypeId::of::<f64>()
                                 {
                                     O::from(v).unwrap() / O::from(255).unwrap()
                                 } else {
