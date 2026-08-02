@@ -60,7 +60,7 @@ impl Libraw {
         black_level: u32,
     ) -> Result<&Self, LibrawError> {
         let datalen = data.len();
-        let data = data.as_ptr() as *mut std::ffi::c_uchar;
+        let data = data.as_ptr() as *mut core::ffi::c_uchar;
         let bayer_pattern = match bayer_pattern {
             BayerPattern::RGGB => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_RGGB as u8,
             BayerPattern::BGGR => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_BGGR as u8,
@@ -71,7 +71,7 @@ impl Libraw {
             libraw_sys::libraw_open_bayer(
                 self.imgdata_ptr(),
                 data,
-                datalen as std::ffi::c_uint,
+                datalen as core::ffi::c_uint,
                 raw_width,
                 raw_height,
                 left_margin,

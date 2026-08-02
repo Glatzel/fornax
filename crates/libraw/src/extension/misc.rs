@@ -34,16 +34,16 @@ impl Libraw {
 
             let value =
             // u16 -> u8
-            if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u8>() {
+            if core::any::TypeId::of::<T>() == core::any::TypeId::of::<u8>() {
                 value / T::from(255).unwrap()
             }
              // u16 -> u16
-            else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<u16>() {
+            else if core::any::TypeId::of::<T>() == core::any::TypeId::of::<u16>() {
                 value
             }
             // u16 -> f32/f64
-            else if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f32>()
-                || std::any::TypeId::of::<T>() == std::any::TypeId::of::<f64>()
+            else if core::any::TypeId::of::<T>() == core::any::TypeId::of::<f32>()
+                || core::any::TypeId::of::<T>() == core::any::TypeId::of::<f64>()
             {
                 value / T::from(65535).unwrap()
             } else {
@@ -72,19 +72,19 @@ impl Libraw {
                             .copied()
                             .map(|v| {
                                 // u8 -> u8
-                                if std::any::TypeId::of::<O>() == std::any::TypeId::of::<u8>() {
+                                if core::any::TypeId::of::<O>() == core::any::TypeId::of::<u8>() {
                                     O::from(v).unwrap()
                                 }
                                 // u8 -> u16
-                                else if std::any::TypeId::of::<O>()
-                                    == std::any::TypeId::of::<u16>()
+                                else if core::any::TypeId::of::<O>()
+                                    == core::any::TypeId::of::<u16>()
                                 {
                                     O::from(v).unwrap() * O::from(255).unwrap()
                                 }
                                 // u8 -> f32/f64
-                                else if std::any::TypeId::of::<O>()
-                                    == std::any::TypeId::of::<f32>()
-                                    || std::any::TypeId::of::<O>() == std::any::TypeId::of::<f64>()
+                                else if core::any::TypeId::of::<O>()
+                                    == core::any::TypeId::of::<f32>()
+                                    || core::any::TypeId::of::<O>() == core::any::TypeId::of::<f64>()
                                 {
                                     O::from(v).unwrap() / O::from(255).unwrap()
                                 } else {
@@ -108,16 +108,16 @@ impl Libraw {
                     .copied()
                     .map(|v| {
                         // u16 -> u8
-                        if std::any::TypeId::of::<O>() == std::any::TypeId::of::<u8>() {
+                        if core::any::TypeId::of::<O>() == core::any::TypeId::of::<u8>() {
                             O::from(v).unwrap() / O::from(255).unwrap()
                         }
                         // u16 -> u16
-                        else if std::any::TypeId::of::<O>() == std::any::TypeId::of::<u16>() {
+                        else if core::any::TypeId::of::<O>() == core::any::TypeId::of::<u16>() {
                             O::from(v).unwrap()
                         }
                         // u16 -> f32/f64
-                        else if std::any::TypeId::of::<O>() == std::any::TypeId::of::<f32>()
-                            || std::any::TypeId::of::<O>() == std::any::TypeId::of::<f64>()
+                        else if core::any::TypeId::of::<O>() == core::any::TypeId::of::<f32>()
+                            || core::any::TypeId::of::<O>() == core::any::TypeId::of::<f64>()
                         {
                             O::from(v).unwrap() / O::from(65536).unwrap()
                         } else {

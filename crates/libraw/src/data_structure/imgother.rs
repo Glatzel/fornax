@@ -1,4 +1,4 @@
-use std::ffi::c_char;
+use core::ffi::c_char;
 use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
@@ -16,13 +16,13 @@ impl ImgOtherGpsInfo {
             arc_imgdata_ptr: imgdata,
         }
     }
-    pub fn latitude(&self) -> [f32; 3usize] {
+    pub fn latitude(&self) -> [f32; 3_usize] {
         unsafe { (*self.arc_imgdata_ptr.ptr()).other.parsed_gps.latitude }
     }
-    pub fn longitude(&self) -> [f32; 3usize] {
+    pub fn longitude(&self) -> [f32; 3_usize] {
         unsafe { (*self.arc_imgdata_ptr.ptr()).other.parsed_gps.longitude }
     }
-    pub fn gps_time_stamp(&self) -> [f32; 3usize] {
+    pub fn gps_time_stamp(&self) -> [f32; 3_usize] {
         unsafe { (*self.arc_imgdata_ptr.ptr()).other.parsed_gps.gpstimestamp }
     }
     pub fn altitude(&self) -> f32 {

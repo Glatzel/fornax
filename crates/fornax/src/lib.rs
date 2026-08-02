@@ -33,8 +33,8 @@ where
     P: IPostProcessor<D, T, O>,
     O: FornaxPrimitive,
 {
-    _marker_t: std::marker::PhantomData<T>,
-    _marker_o: std::marker::PhantomData<O>,
+    _marker_t: core::marker::PhantomData<T>,
+    _marker_o: core::marker::PhantomData<O>,
     pub decoder: D,
     pub post_processor: P,
 }
@@ -58,8 +58,8 @@ where
     /// A new `Fornax` instance with the specified decoder and post-processor.
     pub const fn new(decoder: D, post_processor: P) -> Self {
         Self {
-            _marker_t: std::marker::PhantomData,
-            _marker_o: std::marker::PhantomData,
+            _marker_t: core::marker::PhantomData,
+            _marker_o: core::marker::PhantomData,
             decoder,
             post_processor,
         }

@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use core::fmt::Display;
 use std::path::{Path, PathBuf};
 
 use path_slash::{PathBufExt, PathExt};
@@ -15,7 +15,7 @@ pub enum DncPreview {
     Full,
 }
 impl Display for DncPreview {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let text = match self {
             Self::None => "-p0",
             Self::Medium => "-p1",
@@ -68,7 +68,7 @@ pub enum DncCompatibility {
     DNG1_7_1,
 }
 impl Display for DncCompatibility {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let text = match self {
             Self::CR2_4 => "-cr2.4",
             Self::CR4_1 => "-cr4.1",
