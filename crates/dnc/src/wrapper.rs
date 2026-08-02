@@ -24,11 +24,10 @@ impl Dnc {
     pub const fn params(&self) -> &DncParams { &self.params }
 
     fn dng_file(&self, raw_file: &Path) -> Result<PathBuf, DncError> {
-        let mut file = if let Some(dir) = &self.params.directory {
-            dir.clone()
-        } else {
-            PathBuf::from(raw_file.parent().unwrap())
-        };
+        let mut file = self.params.directory.as_ref().map_or_else(
+            || PathBuf::from(raw_file.parent().unwrap()),
+            |dir| dir.clone(),
+        );
         if let Some(filename) = &self.params.filename {
             file.push(filename);
         } else {
