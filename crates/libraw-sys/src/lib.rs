@@ -1,16 +1,4 @@
 #![no_std]
-#![allow(
-    clippy::all,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::restriction,
-    unnecessary_transmutes,
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    non_upper_case_globals,
-    unexpected_cfgs
-)]
 #[cfg(target_os = "windows")]
 include!("bindings-win.rs");
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]

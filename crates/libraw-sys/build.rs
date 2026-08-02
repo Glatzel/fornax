@@ -39,12 +39,22 @@ fn main() {
             .to_string();
 
         let bindings = bindgen::Builder::default()
-            .header(header)
-            .size_t_is_usize(true)
-            .parse_callbacks(Box::new(ignored_macros))
-            .ctypes_prefix("libc")
-            .use_core()
             .blocklist_function("memcpy|memmove|memset|memcmp|strlen|bcmp")
+            .ctypes_prefix("libc")
+            .header(header)
+            .parse_callbacks(Box::new(ignored_macros))
+            .raw_line("#![allow(clippy::all)]")
+            .raw_line("#![allow(clippy::nursery)]")
+            .raw_line("#![allow(clippy::pedantic)]")
+            .raw_line("#![allow(clippy::restriction)]")
+            .raw_line("#![allow(dead_code)]")
+            .raw_line("#![allow(non_camel_case_types)]")
+            .raw_line("#![allow(non_snake_case)]")
+            .raw_line("#![allow(non_upper_case_globals)]")
+            .raw_line("#![allow(unexpected_cfgs)]")
+            .raw_line("#![allow(unnecessary_transmutes)]")
+            .size_t_is_usize(true)
+            .use_core()
             .generate()
             .unwrap();
 
