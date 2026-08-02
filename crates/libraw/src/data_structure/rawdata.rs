@@ -96,22 +96,21 @@ impl Rawdata {
         }
         if unsafe { (*arc_imgdata_ptr.ptr()).rawdata.float4_image }.is_null() {
             custom_error!("Raw data is not found.");
-        } else {
-            clerk::debug!("Found rgba32 raw image.");
-            let img: image::ImageBuffer<image::Rgba<f32>, Vec<f32>> =
-                ImageBuffer::from_vec(width as u32, height as u32, unsafe {
-                    slice::from_raw_parts(
-                        (*arc_imgdata_ptr.ptr()).rawdata.float4_image,
-                        width * height,
-                    )
-                    .iter()
-                    .copied()
-                    .flat_map(std::iter::IntoIterator::into_iter)
-                    .collect::<Vec<f32>>()
-                })
-                .unwrap();
-
-            Ok(Self::RgbaF32(img))
         }
+        clerk::debug!("Found rgba32 raw image.");
+        let img: image::ImageBuffer<image::Rgba<f32>, Vec<f32>> =
+            ImageBuffer::from_vec(width as u32, height as u32, unsafe {
+                slice::from_raw_parts(
+                    (*arc_imgdata_ptr.ptr()).rawdata.float4_image,
+                    width * height,
+                )
+                .iter()
+                .copied()
+                .flat_map(std::iter::IntoIterator::into_iter)
+                .collect::<Vec<f32>>()
+            })
+            .unwrap();
+
+        Ok(Self::RgbaF32(img))
     }
 }

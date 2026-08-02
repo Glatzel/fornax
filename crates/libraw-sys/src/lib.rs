@@ -1,10 +1,8 @@
 #![no_std]
 #![allow(
-    clippy::approx_constant,
-    clippy::missing_safety_doc,
-    clippy::ptr_offset_with_cast,
-    clippy::pub_underscore_fields,
-    clippy::useless_transmute,
+    clippy::all,
+    clippy::pedantic,
+    clippy::nursery,
     unnecessary_transmutes,
     dead_code,
     non_camel_case_types,
