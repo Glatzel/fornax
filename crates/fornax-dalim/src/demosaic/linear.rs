@@ -187,7 +187,7 @@ where
             // `(*x & 1) + 2 * (*y & 1)` is the of the current pixel at image (x,y) index in
             // bayer pattern.
             match (
-                &bayer_mask[((x & 1) + 2 * (y & 1)) as usize],
+                unsafe { bayer_mask.get_unchecked(((x & 1) + 2 * (y & 1)) as usize) },
                 x > 0 && y > 0 && x < width - 1 && y < height - 1,
             ) {
                 (BayerChannel::R, true) => {
