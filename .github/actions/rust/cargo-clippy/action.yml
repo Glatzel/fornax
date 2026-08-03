@@ -42,6 +42,7 @@ inputs:
       -D clippy::implicit_clone
       -D clippy::imprecise_flops
       -D clippy::inconsistent_struct_constructor
+      -D clippy::indexing_slicing
       -D clippy::inefficient_to_string
       -D clippy::inline_trait_bounds
       -D clippy::ip_constant
