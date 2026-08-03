@@ -17,6 +17,7 @@ inputs:
     default: >
       -A clippy::too_many_arguments
       -D clippy::alloc_instead_of_core
+      -D clippy::allow_attributes_without_reason
       -D clippy::bool_to_int_with_if
       -D clippy::borrow_as_ptr
       -D clippy::branches_sharing_code
@@ -29,6 +30,8 @@ inputs:
       -D clippy::deref_by_slicing
       -D clippy::duration_suboptimal_units
       -D clippy::elidable_lifetime_names
+      -D clippy::empty_enum_variants_with_brackets
+      -D clippy::empty_enums
       -D clippy::enum_glob_use
       -D clippy::equatable_if_let
       -D clippy::explicit_deref_methods
@@ -39,10 +42,10 @@ inputs:
       -D clippy::if_not_else
       -D clippy::if_then_some_else_none
       -D clippy::ignored_unit_patterns
+      -D clippy::impl_trait_in_params
       -D clippy::implicit_clone
       -D clippy::imprecise_flops
       -D clippy::inconsistent_struct_constructor
-      -D clippy::indexing_slicing
       -D clippy::inefficient_to_string
       -D clippy::inline_trait_bounds
       -D clippy::ip_constant
@@ -60,6 +63,7 @@ inputs:
       -D clippy::manual_string_new
       -D clippy::map_unwrap_or
       -D clippy::match_bool
+      -D clippy::match_same_arms
       -D clippy::missing_const_for_fn
       -D clippy::mixed_read_write_in_expression
       -D clippy::needless_bitwise_bool
