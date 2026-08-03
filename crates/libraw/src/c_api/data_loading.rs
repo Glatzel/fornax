@@ -15,9 +15,8 @@ pub enum ProcFlag {
 impl From<ProcFlag> for u8 {
     fn from(value: ProcFlag) -> Self {
         match value {
-            ProcFlag::_10bit4PixelsIn5Bytes => 1,
+            ProcFlag::_10bit4PixelsIn5Bytes | ProcFlag::BigEndianData => 1,
             ProcFlag::_10bit6PixelsIn8Bytes => 0,
-            ProcFlag::BigEndianData => 1,
         }
     }
 }
