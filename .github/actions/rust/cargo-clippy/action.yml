@@ -18,6 +18,7 @@ inputs:
       -A clippy::too_many_arguments
       -D clippy::alloc_instead_of_core
       -D clippy::allow_attributes_without_reason
+      -D clippy::as_underscore
       -D clippy::bool_to_int_with_if
       -D clippy::borrow_as_ptr
       -D clippy::branches_sharing_code
