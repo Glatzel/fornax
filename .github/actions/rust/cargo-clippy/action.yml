@@ -146,9 +146,7 @@ inputs:
       -D explicit_outlives_requirements
       -D future_incompatible
       -D rust_2018_idioms
-      -D rust_2021_prelude_collisions
-      -D semicolon_in_expressions_from_macros
-      -D unexpected_cfgs
+      -D rust-2024-compatibility
       -D unsafe_op_in_unsafe_fn
       -D unused_extern_crates
       -D unused_import_braces
