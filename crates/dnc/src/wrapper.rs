@@ -69,7 +69,7 @@ impl Dnc {
             let program = DNC_EXECUTABLE.as_os_str();
             let args = self.params.to_cmd(&raw_file)?;
             let _output = std::process::Command::new(program).args(&args).output()?;
-            clerk::debug!("Command:\n{:?} {}", program, &args.join(" "));
+            clerk::debug!("Command:\n{:?} {}", program, args.join(" "));
             clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&_output.stdout));
             clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&_output.stderr));
             if !&dng_file.exists() {
