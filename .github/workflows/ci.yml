@@ -32,10 +32,10 @@ jobs:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
             with:
               submodules: true
-          - uses: Glatzel/template/.github/actions/rust/setup-rust# v2026.8.16
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@v2026.8.16
           - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
             if: ${{github.event_name=='pull_request'}}
-      - uses: Glatzel/template/.github/actions/rust/cargo-doc# v2026.8.16
+      - uses: Glatzel/template/.github/actions/rust/cargo-doc@v2026.8.16
 
   test-build:
     strategy:
@@ -56,22 +56,22 @@ jobs:
       - if: ${{runner.os != 'Linux'}}
         run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
         shell: pwsh
-      - uses: Glatzel/template/.github/actions/rust/setup-rust# v2026.8.16
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@v2026.8.16
         with:
           toolchain: nightly
           components: clippy
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy# v2026.8.16
-      - uses: Glatzel/template/.github/actions/rust/cargo-test# v2026.8.16
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@v2026.8.16
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@v2026.8.16
         with:
           global-options: --workspace --all-features --exclude fornax-py
       - name: build
         run: |
           ./scripts/maturin-develop.ps1
         shell: pwsh
-      - uses: Glatzel/template/.github/actions/python/pytest# v2026.8.16
+      - uses: Glatzel/template/.github/actions/python/pytest@v2026.8.16
         with:
           working-directory: ./crates/fornax-py
-      - uses: Glatzel/template/.github/actions/common/codecov# v2026.8.16
+      - uses: Glatzel/template/.github/actions/common/codecov@v2026.8.16
         if: ${{ !cancelled() }}
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
