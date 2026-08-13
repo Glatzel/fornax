@@ -12,6 +12,6 @@ jobs:
   lefthook:
     runs-on: ubuntu-latest
     steps:
-      - uses: Glatzel/template/.github/actions/common/lefthook@e5b6ee4c6d9ddb2d5e329fc7d338b1787e40d204 # v2026.8.24
+      - uses: Glatzel/template/.github/actions/common/lefthook@2dd28d89802ee2c23ca12877c7b6d6270d31d029 # v2026.8.26
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
