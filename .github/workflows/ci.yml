@@ -17,12 +17,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lefthook:
-    if: ${{ github.event_name != 'schedule' }}
-    uses: ./.github/workflows/ci-lefthook.yml
-    permissions:
-      contents: write
-      pull-requests: write
   cargo-doc:
     runs-on: ubuntu-latest
     env:
@@ -75,7 +69,7 @@ jobs:
         if: ${{ !cancelled() }}
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook, cargo-doc, test-build]
+    needs: [ cargo-doc, test-build]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1
