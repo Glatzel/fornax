@@ -28,17 +28,14 @@ jobs:
     env:
       RUSTFLAGS: "-Dwarnings"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          submodules: true
-      - uses: ./.github/actions/rust/setup-rust
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
-        if: ${{github.event_name=='pull_request'}}
-      - name: Set up pixi
-        uses: prefix-dev/setup-pixi@f00437f565399d418b0acc85936d12c1fb668347 # v0.10.1
-        with:
-          run-install: false
-      - uses: ./.github/actions/rust/cargo-doc
+      - parallel:
+          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            with:
+              submodules: true
+          - uses: Glatzel/template/actions/rust/setup-rust@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
+          - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+            if: ${{github.event_name=='pull_request'}}
+      - uses: Glatzel/template/actions/rust/cargo-doc@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
 
   test-build:
     strategy:
@@ -59,22 +56,22 @@ jobs:
       - if: ${{runner.os != 'Linux'}}
         run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
         shell: pwsh
-      - uses: ./.github/actions/rust/setup-rust
+      - uses: Glatzel/template/actions/rust/setup-rust@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
         with:
           toolchain: nightly
           components: clippy
-      - uses: ./.github/actions/rust/cargo-clippy
-      - uses: ./.github/actions/rust/cargo-test
+      - uses: Glatzel/template/actions/rust/cargo-clippy@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
+      - uses: Glatzel/template/actions/rust/cargo-test@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
         with:
           global-options: --workspace --all-features --exclude fornax-py
       - name: build
         run: |
           ./scripts/maturin-develop.ps1
         shell: pwsh
-      - uses: ./.github/actions/python/pytest
+      - uses: Glatzel/template/actions/python/pytest@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
         with:
           working-directory: ./crates/fornax-py
-      - uses: ./.github/actions/common/codecov
+      - uses: Glatzel/template/actions/common/codecov@016957d864d2fb1f40b2e5b86b460a875d88b3c9 # v2026.8.13.0
         if: ${{ !cancelled() }}
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
