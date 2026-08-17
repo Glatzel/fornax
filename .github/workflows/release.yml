@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   create-release:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
       - parallel:
           - name: check-tag-release
