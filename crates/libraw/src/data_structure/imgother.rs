@@ -3,8 +3,6 @@ use std::sync::Arc;
 
 use envoy::PtrToString;
 use jiff::Timestamp;
-use jiff::civil::DateTime;
-use jiff::tz::TimeZone;
 
 use crate::{ImgdataPtr, LibrawError};
 
@@ -91,13 +89,8 @@ impl ImgOther {
     ///Focal length.
     pub fn focal_len(&self) -> f32 { unsafe { (*self.imgdata.ptr()).other.focal_len } }
     ///Date of shooting.
-    pub fn timestamp(&self) -> DateTime {
-        unsafe {
-            Timestamp::from_second((*self.imgdata.ptr()).other.timestamp)
-                .unwrap()
-                .to_zoned(TimeZone::UTC)
-                .datetime()
-        }
+    pub fn timestamp(&self) -> Timestamp {
+        unsafe { Timestamp::from_second((*self.imgdata.ptr()).other.timestamp).unwrap() }
     }
     ///Serial number of image.
     pub fn shot_order(&self) -> u32 { unsafe { (*self.imgdata.ptr()).other.shot_order } }
