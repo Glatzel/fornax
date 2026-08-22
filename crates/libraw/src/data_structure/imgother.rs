@@ -1,8 +1,8 @@
 use core::ffi::c_char;
 use std::sync::Arc;
 
-use chrono::{DateTime, Utc};
 use envoy::PtrToString;
+use jiff::Timestamp;
 
 use crate::{ImgdataPtr, LibrawError};
 
@@ -89,8 +89,8 @@ impl ImgOther {
     ///Focal length.
     pub fn focal_len(&self) -> f32 { unsafe { (*self.imgdata.ptr()).other.focal_len } }
     ///Date of shooting.
-    pub fn timestamp(&self) -> DateTime<Utc> {
-        unsafe { DateTime::from_timestamp((*self.imgdata.ptr()).other.timestamp, 0).unwrap() }
+    pub fn timestamp(&self) -> Timestamp {
+        unsafe { Timestamp::from_second((*self.imgdata.ptr()).other.timestamp).unwrap() }
     }
     ///Serial number of image.
     pub fn shot_order(&self) -> u32 { unsafe { (*self.imgdata.ptr()).other.shot_order } }
