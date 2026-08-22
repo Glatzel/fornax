@@ -13,7 +13,7 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.8.4" }
 
 bindgen = "0.72.1"
 bytemuck = "1.25.2"
-chrono = "0.4.45"
+jiff = "0.2.35"
 dnc = { path = "./crates/dnc" }
 dunce = "1.0.5"
 # image = "0.25.5"
