@@ -7,9 +7,9 @@ version = "0.0.17"
 edition = "2024"
 
 [workspace.dependencies]
-clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.8.4" }
-envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.8.4" }
-mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.8.4" }
+clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.8.22" }
+envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.8.22" }
+mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.8.22" }
 
 bindgen = "0.72.1"
 bytemuck = "1.25.2"
