@@ -13,7 +13,6 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.8.4" }
 
 bindgen = "0.72.1"
 bytemuck = "1.25.2"
-jiff = "0.2.35"
 dnc = { path = "./crates/dnc" }
 dunce = "1.0.5"
 # image = "0.25.5"
@@ -23,6 +22,7 @@ fornax-core = { path = "./crates/fornax-core" }
 fornax-dalim = { path = "./crates/fornax-dalim" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 image = { git = "https://github.com/fintelia/image", branch = "primitive-ext" }
+jiff = "0.2.35"
 libc = "0.2.189"
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
