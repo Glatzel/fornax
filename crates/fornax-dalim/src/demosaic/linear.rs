@@ -1,237 +1,286 @@
 use fornax_core::{BayerChannel, BayerImage, FornaxPrimitive};
-use image::ImageBuffer;
+use image::{ImageBuffer, Luma, Rgb};
 use rayon::prelude::*;
-fn get_diagonal_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
+
+#[inline(always)]
+const fn idx(width: u32, x: u32, y: u32) -> usize { y as usize * width as usize + x as usize }
+
+// ---------- Fast path: caller guarantees (x-1, y-1)..=(x+1, y+1) is in bounds
+// ----------
+
+/// # Safety
+/// Caller must guarantee `x` is in `1..width-1` and `y` is in `1..height-1`.
+#[inline(always)]
+unsafe fn diagonal_fast<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
 where
     T: FornaxPrimitive,
 {
-    let top_left = img.get_pixel(x - 1, y - 1);
-    let top_right = img.get_pixel(x + 1, y - 1);
-    let bottom_left = img.get_pixel(x - 1, y + 1);
-    let bottom_right = img.get_pixel(x + 1, y + 1);
-    (top_left[0] + top_right[0] + bottom_left[0] + bottom_right[0]) / T::from(4).unwrap()
+    unsafe {
+        let tl = *raw.get_unchecked(idx(width, x - 1, y - 1));
+        let tr = *raw.get_unchecked(idx(width, x + 1, y - 1));
+        let bl = *raw.get_unchecked(idx(width, x - 1, y + 1));
+        let br = *raw.get_unchecked(idx(width, x + 1, y + 1));
+
+        (tl + tr + bl + br) / T::from(4).unwrap()
+    }
 }
 
-fn get_neighbour_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
+/// # Safety
+/// Caller must guarantee `x` is in `1..width-1` and `y` is in `1..height-1`.
+#[inline(always)]
+unsafe fn neighbour_fast<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
 where
     T: FornaxPrimitive,
 {
-    let left = img.get_pixel(x - 1, y);
-    let right = img.get_pixel(x + 1, y);
-    let top = img.get_pixel(x, y - 1);
-    let bottom = img.get_pixel(x, y + 1);
-    (left[0] + right[0] + top[0] + bottom[0]) / T::from(4).unwrap()
+    unsafe {
+        let l = *raw.get_unchecked(idx(width, x - 1, y));
+        let r = *raw.get_unchecked(idx(width, x + 1, y));
+        let t = *raw.get_unchecked(idx(width, x, y - 1));
+        let b = *raw.get_unchecked(idx(width, x, y + 1));
+        (l + r + t + b) / T::from(4).unwrap()
+    }
 }
 
-fn get_left_right_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
+/// # Safety
+/// Caller must guarantee `x` is in `1..width-1`.
+#[inline(always)]
+unsafe fn left_right_fast<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
 where
     T: FornaxPrimitive,
 {
-    let left = img.get_pixel(x - 1, y);
-    let right = img.get_pixel(x + 1, y);
-
-    (left[0] + right[0]) / T::from(2).unwrap()
+    unsafe {
+        let l = *raw.get_unchecked(idx(width, x - 1, y));
+        let r = *raw.get_unchecked(idx(width, x + 1, y));
+        (l + r) / T::from(2).unwrap()
+    }
 }
 
-fn get_top_down_value<T>(img: &ImageBuffer<image::Luma<T>, Vec<T>>, x: u32, y: u32) -> T
+/// # Safety
+/// Caller must guarantee `y` is in `1..height-1`.
+#[inline(always)]
+unsafe fn top_down_fast<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
 where
     T: FornaxPrimitive,
 {
-    let top = img.get_pixel(x, y - 1);
-    let bottom = img.get_pixel(x, y + 1);
-    (top[0] + bottom[0]) / T::from(2).unwrap()
+    unsafe {
+        let t = *raw.get_unchecked(idx(width, x, y - 1));
+        let b = *raw.get_unchecked(idx(width, x, y + 1));
+        (t + b) / T::from(2).unwrap()
+    }
 }
-fn get_diagonal_value_check<T>(
-    img: &ImageBuffer<image::Luma<T>, Vec<T>>,
+
+// ---------- Checked path: used only for border rows/columns ----------
+
+fn diagonal_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T
+where
+    T: FornaxPrimitive,
+{
+    let mut count = 0_u32;
+    let mut sum = T::from(0).unwrap();
+    if x > 0 && y > 0 {
+        sum = sum + raw[idx(width, x - 1, y - 1)];
+        count += 1;
+    }
+    if x + 1 < width && y > 0 {
+        sum = sum + raw[idx(width, x + 1, y - 1)];
+        count += 1;
+    }
+    if x > 0 && y + 1 < height {
+        sum = sum + raw[idx(width, x - 1, y + 1)];
+        count += 1;
+    }
+    if x + 1 < width && y + 1 < height {
+        sum = sum + raw[idx(width, x + 1, y + 1)];
+        count += 1;
+    }
+    sum / T::from(count).unwrap()
+}
+
+fn neighbour_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T
+where
+    T: FornaxPrimitive,
+{
+    let mut count = 0_u32;
+    let mut sum = T::from(0).unwrap();
+    if x > 0 {
+        sum = sum + raw[idx(width, x - 1, y)];
+        count += 1;
+    }
+    if x + 1 < width {
+        sum = sum + raw[idx(width, x + 1, y)];
+        count += 1;
+    }
+    if y > 0 {
+        sum = sum + raw[idx(width, x, y - 1)];
+        count += 1;
+    }
+    if y + 1 < height {
+        sum = sum + raw[idx(width, x, y + 1)];
+        count += 1;
+    }
+    sum / T::from(count).unwrap()
+}
+
+fn left_right_checked<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
+where
+    T: FornaxPrimitive,
+{
+    let mut count = 0_u32;
+    let mut sum = T::from(0).unwrap();
+    if x > 0 {
+        sum = sum + raw[idx(width, x - 1, y)];
+        count += 1;
+    }
+    if x + 1 < width {
+        sum = sum + raw[idx(width, x + 1, y)];
+        count += 1;
+    }
+    sum / T::from(count).unwrap()
+}
+
+fn top_down_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T
+where
+    T: FornaxPrimitive,
+{
+    let mut count = 0_u32;
+    let mut sum = T::from(0).unwrap();
+    if y > 0 {
+        sum = sum + raw[idx(width, x, y - 1)];
+        count += 1;
+    }
+    if y + 1 < height {
+        sum = sum + raw[idx(width, x, y + 1)];
+        count += 1;
+    }
+    sum / T::from(count).unwrap()
+}
+
+// ---------- Per-pixel dispatch ----------
+
+#[inline(always)]
+fn write_pixel_fast<T>(
+    raw_mosaic: &[T],
+    width: u32,
     x: u32,
     y: u32,
+    channel: BayerChannel,
+    out_row: &mut [T],
+) where
+    T: FornaxPrimitive,
+{
+    let o = x as usize * 3;
+    // SAFETY: caller only invokes this for x in 1..width-1, y in 1..height-1.
+    unsafe {
+        let centre = *raw_mosaic.get_unchecked(idx(width, x, y));
+        match channel {
+            BayerChannel::R => {
+                out_row[o] = centre;
+                out_row[o + 1] = neighbour_fast(raw_mosaic, width, x, y);
+                out_row[o + 2] = diagonal_fast(raw_mosaic, width, x, y);
+            }
+            BayerChannel::G => {
+                out_row[o] = left_right_fast(raw_mosaic, width, x, y);
+                out_row[o + 1] = centre;
+                out_row[o + 2] = top_down_fast(raw_mosaic, width, x, y);
+            }
+            BayerChannel::B => {
+                out_row[o] = diagonal_fast(raw_mosaic, width, x, y);
+                out_row[o + 1] = neighbour_fast(raw_mosaic, width, x, y);
+                out_row[o + 2] = centre;
+            }
+            BayerChannel::G2 => {
+                out_row[o] = top_down_fast(raw_mosaic, width, x, y);
+                out_row[o + 1] = centre;
+                out_row[o + 2] = left_right_fast(raw_mosaic, width, x, y);
+            }
+        }
+    }
+}
+
+#[inline(always)]
+fn write_pixel_checked<T>(
+    raw_mosaic: &[T],
     width: u32,
     height: u32,
-) -> T
-where
-    T: FornaxPrimitive,
-{
-    let mut count = 0;
-    let top_left = if x != 0 && y != 0 {
-        count += 1;
-        img.get_pixel(x - 1, y - 1)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-    let top_right = if x < width - 1 && y != 0 {
-        count += 1;
-        img.get_pixel(x + 1, y - 1)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-    let bottom_left = if x != 0 && y < height - 1 {
-        count += 1;
-        img.get_pixel(x - 1, y + 1)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-    let bottom_right = if x < width - 1 && y < height - 1 {
-        count += 1;
-        img.get_pixel(x + 1, y + 1)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-    (top_left + top_right + bottom_left + bottom_right) / T::from(count).unwrap()
-}
-
-fn get_neighbour_value_check<T>(
-    img: &ImageBuffer<image::Luma<T>, Vec<T>>,
     x: u32,
     y: u32,
-    width: u32,
-    height: u32,
-) -> T
-where
+    channel: BayerChannel,
+    out_row: &mut [T],
+) where
     T: FornaxPrimitive,
 {
-    let mut count = 0;
-    let left = if x != 0 {
-        count += 1;
-        img.get_pixel(x - 1, y)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-    let right = if x < width - 1 {
-        count += 1;
-        img.get_pixel(x + 1, y)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-    let top = if y != 0 {
-        count += 1;
-        img.get_pixel(x, y - 1)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-
-    let bottom = if y < height - 1 {
-        count += 1;
-        img.get_pixel(x, y + 1)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-    (left + right + top + bottom) / T::from(count).unwrap()
+    let o = x as usize * 3;
+    let centre = raw_mosaic[idx(width, x, y)];
+    match channel {
+        BayerChannel::R => {
+            out_row[o] = centre;
+            out_row[o + 1] = neighbour_checked(raw_mosaic, width, height, x, y);
+            out_row[o + 2] = diagonal_checked(raw_mosaic, width, height, x, y);
+        }
+        BayerChannel::G => {
+            out_row[o] = left_right_checked(raw_mosaic, width, x, y);
+            out_row[o + 1] = centre;
+            out_row[o + 2] = top_down_checked(raw_mosaic, width, height, x, y);
+        }
+        BayerChannel::B => {
+            out_row[o] = diagonal_checked(raw_mosaic, width, height, x, y);
+            out_row[o + 1] = neighbour_checked(raw_mosaic, width, height, x, y);
+            out_row[o + 2] = centre;
+        }
+        BayerChannel::G2 => {
+            out_row[o] = top_down_checked(raw_mosaic, width, height, x, y);
+            out_row[o + 1] = centre;
+            out_row[o + 2] = left_right_checked(raw_mosaic, width, x, y);
+        }
+    }
 }
 
-fn get_left_right_value_check<T>(
-    img: &ImageBuffer<image::Luma<T>, Vec<T>>,
-    x: u32,
-    y: u32,
-    width: u32,
-) -> T
-where
-    T: FornaxPrimitive,
-{
-    let mut count = 0;
-    let left = if x != 0 {
-        count += 1;
-        img.get_pixel(x - 1, y)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-    let right = if x < width - 1 {
-        count += 1;
-        img.get_pixel(x + 1, y)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-
-    (left + right) / T::from(count).unwrap()
-}
-
-fn get_top_down_value_check<T>(
-    img: &ImageBuffer<image::Luma<T>, Vec<T>>,
-    x: u32,
-    y: u32,
-    height: u32,
-) -> T
-where
-    T: FornaxPrimitive,
-{
-    let mut count = 0;
-
-    let top = if y != 0 {
-        count += 1;
-        img.get_pixel(x, y - 1)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-
-    let bottom = if y < height - 1 {
-        count += 1;
-        img.get_pixel(x, y + 1)[0]
-    } else {
-        T::from(0).unwrap()
-    };
-    (top + bottom) / T::from(count).unwrap()
-}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DemosaicLinear;
+
 impl<T> super::IDemosaic<T> for DemosaicLinear
 where
     T: FornaxPrimitive,
 {
-    fn demosaic(&self, bayer_image: &BayerImage<T>) -> ImageBuffer<image::Rgb<T>, Vec<T>> {
-        let mosaic: &ImageBuffer<image::Luma<T>, Vec<T>> = bayer_image.mosaic();
+    fn demosaic(&self, bayer_image: &BayerImage<T>) -> ImageBuffer<Rgb<T>, Vec<T>> {
+        let mosaic: &ImageBuffer<Luma<T>, Vec<T>> = bayer_image.mosaic();
         let pattern = bayer_image.pattern();
         let (width, height) = mosaic.dimensions();
-        let mut img: ImageBuffer<image::Rgb<T>, Vec<T>> = ImageBuffer::new(width, height);
+        let mut img: ImageBuffer<Rgb<T>, Vec<T>> = ImageBuffer::new(width, height);
         let bayer_mask = pattern.as_mask();
+
         clerk::debug!("Start demosaicing.");
-        img.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
-            // `(*x & 1) + 2 * (*y & 1)` is the of the current pixel at image
-            // (x,y) index in bayer pattern.
-            match (
-                unsafe { bayer_mask.get_unchecked(((x & 1) + 2 * (y & 1)) as usize) },
-                x > 0 && y > 0 && x < width - 1 && y < height - 1,
-            ) {
-                (BayerChannel::R, true) => {
-                    pixel[0] = mosaic.get_pixel(x, y)[0];
-                    pixel[1] = get_neighbour_value(mosaic, x, y);
-                    pixel[2] = get_diagonal_value(mosaic, x, y);
+
+        if width == 0 || height == 0 {
+            clerk::debug!("End demosaicing.");
+            return img;
+        }
+
+        let raw_mosaic: &[T] = mosaic.as_raw();
+        let row_stride = width as usize * 3;
+        let raw_out: &mut [T] = &mut img;
+
+        raw_out
+            .par_chunks_mut(row_stride)
+            .enumerate()
+            .for_each(|(y, out_row)| {
+                let y = y as u32;
+                let is_border_row = y == 0 || y == height - 1;
+
+                for x in 0..width {
+                    // `(x & 1) + 2 * (y & 1)` is this pixel's slot in the 2x2
+                    // Bayer tile.
+                    let channel =
+                        unsafe { *bayer_mask.get_unchecked(((x & 1) + 2 * (y & 1)) as usize) };
+
+                    if is_border_row || x == 0 || x == width - 1 {
+                        write_pixel_checked(raw_mosaic, width, height, x, y, channel, out_row);
+                    } else {
+                        write_pixel_fast(raw_mosaic, width, x, y, channel, out_row);
+                    }
                 }
-                (BayerChannel::G, true) => {
-                    pixel[0] = get_left_right_value(mosaic, x, y);
-                    pixel[1] = mosaic.get_pixel(x, y)[0];
-                    pixel[2] = get_top_down_value(mosaic, x, y);
-                }
-                (BayerChannel::B, true) => {
-                    pixel[0] = get_diagonal_value(mosaic, x, y);
-                    pixel[1] = get_neighbour_value(mosaic, x, y);
-                    pixel[2] = mosaic.get_pixel(x, y)[0];
-                }
-                (BayerChannel::G2, true) => {
-                    pixel[0] = get_top_down_value(mosaic, x, y);
-                    pixel[1] = mosaic.get_pixel(x, y)[0];
-                    pixel[2] = get_left_right_value(mosaic, x, y);
-                }
-                (BayerChannel::R, false) => {
-                    pixel[0] = mosaic.get_pixel(x, y)[0];
-                    pixel[1] = get_neighbour_value_check(mosaic, x, y, width, height);
-                    pixel[2] = get_diagonal_value_check(mosaic, x, y, width, height);
-                }
-                (BayerChannel::G, false) => {
-                    pixel[0] = get_left_right_value_check(mosaic, x, y, width);
-                    pixel[1] = mosaic.get_pixel(x, y)[0];
-                    pixel[2] = get_top_down_value_check(mosaic, x, y, height);
-                }
-                (BayerChannel::B, false) => {
-                    pixel[0] = get_diagonal_value_check(mosaic, x, y, width, height);
-                    pixel[1] = get_neighbour_value_check(mosaic, x, y, width, height);
-                    pixel[2] = mosaic.get_pixel(x, y)[0];
-                }
-                (BayerChannel::G2, false) => {
-                    pixel[0] = get_top_down_value_check(mosaic, x, y, height);
-                    pixel[1] = mosaic.get_pixel(x, y)[0];
-                    pixel[2] = get_left_right_value_check(mosaic, x, y, width);
-                }
-            }
-        });
+            });
+
         clerk::debug!("End demosaicing.");
         img
     }
