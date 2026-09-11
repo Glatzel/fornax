@@ -701,7 +701,6 @@ dependencies = [
  "clerk",
  "codspeed-criterion-compat",
  "fornax-core",
- "fornax-devtool",
  "image",
  "mischief",
  "rand 0.10.2",

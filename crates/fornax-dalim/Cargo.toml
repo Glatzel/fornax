@@ -17,7 +17,6 @@ serde = { workspace = true, optional = true }
 [dev-dependencies]
 clerk = { workspace = true, features = ["tracing"] }
 criterion.workspace = true
-fornax-devtool.workspace = true
 image.workspace = true
 mischief.workspace = true
 rand.workspace = true
