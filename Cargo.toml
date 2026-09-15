@@ -7,11 +7,11 @@ version = "0.0.17"
 edition = "2024"
 
 [workspace.dependencies]
-clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.9.10" }
-envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.9.10" }
-mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.9.10" }
+clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.9.14" }
+envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.9.14" }
+mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.9.14" }
 
-bindgen = "0.72.1"
+bindgen = "0.73.2"
 bytemuck = "1.25.2"
 criterion = { package = "codspeed-criterion-compat", version = "5.0.1" }
 dnc = { path = "./crates/dnc" }
@@ -22,7 +22,7 @@ fornax-core = { path = "./crates/fornax-core" }
 fornax-dalim = { path = "./crates/fornax-dalim" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 image = { git = "https://github.com/Glatzel/image-rs" }
-jiff = "0.2.35"
+jiff = "0.2.37"
 libc = "0.2.189"
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
