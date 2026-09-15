@@ -79,8 +79,8 @@ checksum = "c3d036a3c4ab069c7b410a2ce876bd74808d2d0888a82667669f8e783a898bf1"
 
 [[package]]
 name = "arbor"
-version = "2026.8.22"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.9.10#3f201d1ec94c3a1237ac2d3b77b6ba55325b3a09"
+version = "2026.9.14"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.9.14#fe2736bbcadb3b16d2639d107b2f742f4cf93758"
 dependencies = [
  "textwrap",
 ]
@@ -177,22 +177,21 @@ dependencies = [
 
 [[package]]
 name = "bindgen"
-version = "0.72.1"
+version = "0.73.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "993776b509cfb49c750f11b8f07a46fa23e0a1386ffc01fb1e7d343efc387895"
+checksum = "787ef8ef523575546b106a58213d6e6b06198a05c2f757258c68a74273670cfa"
 dependencies = [
  "bitflags 2.13.2",
  "cexpr",
  "clang-sys",
- "itertools 0.13.0",
  "log",
  "prettyplease",
  "proc-macro2",
  "quote",
  "regex",
  "rustc-hash",
- "shlex 1.3.0",
- "syn 2.0.119",
+ "shlex",
+ "syn 3.0.5",
 ]
 
 [[package]]
@@ -261,7 +260,7 @@ dependencies = [
  "find-msvc-tools",
  "jobserver",
  "libc",
- "shlex 2.0.1",
+ "shlex",
 ]
 
 [[package]]
@@ -361,8 +360,8 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 
 [[package]]
 name = "clerk"
-version = "2026.8.22"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.9.10#3f201d1ec94c3a1237ac2d3b77b6ba55325b3a09"
+version = "2026.9.14"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.9.14#fe2736bbcadb3b16d2639d107b2f742f4cf93758"
 dependencies = [
  "jiff",
  "owo-colors",
@@ -573,8 +572,8 @@ checksum = "252afb9ae5eaa683babdc6a068b3f5726eb19e05070c731f9b2a23a7c3e8ed34"
 
 [[package]]
 name = "envoy"
-version = "2026.8.22"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.9.10#3f201d1ec94c3a1237ac2d3b77b6ba55325b3a09"
+version = "2026.9.14"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.9.14#fe2736bbcadb3b16d2639d107b2f742f4cf93758"
 dependencies = [
  "thiserror",
 ]
@@ -999,15 +998,6 @@ dependencies = [
 
 [[package]]
 name = "itertools"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
@@ -1023,9 +1013,9 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "jiff"
-version = "0.2.35"
+version = "0.2.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "668b7183bd07af9a4885f5c35b0cc5c83c4607a913c16b7e17291832910d2dcc"
+checksum = "0ab1baf72f08796de0260609515130699b890ac25f30e610ad894bc5856cafdb"
 dependencies = [
  "defmt",
  "jiff-core",
@@ -1049,9 +1039,9 @@ dependencies = [
 
 [[package]]
 name = "jiff-static"
-version = "0.2.35"
+version = "0.2.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a69dcb3a21cfb32ce1cd056169337ca284af0766dd766e7878819b251a49204"
+checksum = "378268a1116ad67ae6228701118ac9f491d78fda38a40a1f1a9e1348de6f7212"
 dependencies = [
  "jiff-core",
  "proc-macro2",
@@ -1262,8 +1252,8 @@ dependencies = [
 
 [[package]]
 name = "mischief"
-version = "2026.8.22"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.9.10#3f201d1ec94c3a1237ac2d3b77b6ba55325b3a09"
+version = "2026.9.14"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.9.14#fe2736bbcadb3b16d2639d107b2f742f4cf93758"
 dependencies = [
  "arbor",
  "backtrace",
@@ -1274,8 +1264,8 @@ dependencies = [
 
 [[package]]
 name = "mischief-macros"
-version = "2026.8.22"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.9.10#3f201d1ec94c3a1237ac2d3b77b6ba55325b3a09"
+version = "2026.9.14"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.9.14#fe2736bbcadb3b16d2639d107b2f742f4cf93758"
 dependencies = [
  "quote",
  "syn 3.0.5",
@@ -2055,12 +2045,6 @@ dependencies = [
 
 [[package]]
 name = "shlex"
-version = "1.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
-
-[[package]]
-name = "shlex"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
@@ -2165,9 +2149,9 @@ dependencies = [
 
 [[package]]
 name = "textwrap"
-version = "0.16.3"
+version = "0.16.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b81c0cb5fce14f53e49c1d4da0c508334ff12040221bb8ab01b2dabd91d04b6e"
+checksum = "6ecfad6c3abc80a577f2b91c1e412ee57e7a060d430b553c1b0c940974ebcd49"
 dependencies = [
  "icu_segmenter",
  "smawk",
