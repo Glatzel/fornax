@@ -14,7 +14,7 @@ lazy-loader = "==0.5"
 msgspec = "==0.21.1"
 nomkl = "==1.0"
 numpy = "2.3.*"
-numpydoc = "==1.10.0"
+numpydoc = "==1.11.0"
 pydantic = "==2.13.5"
 
 # test
