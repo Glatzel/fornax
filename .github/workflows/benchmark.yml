@@ -17,9 +17,9 @@ jobs:
             ./crates/fornax-dalim/benches/**
             ./crates/fornax-dalim/src/demosaic/**
             ./.github/workflows/benchmark.yml
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
         if: steps.changed-files.outputs.any_changed == 'true'
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@f8988acee66029caca381ab62241b0e3e41bd56b # v2026.9.19
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
         if: steps.changed-files.outputs.any_changed == 'true'
         env:
           LD_LIBRARY_PATH: ./.pixi/envs/default/lib
