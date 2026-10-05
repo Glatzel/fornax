@@ -30,7 +30,7 @@ jobs:
           - uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e # v0.10.2
             with:
               run-install: false
-      - uses: ./.github/actions/rust/setup-rust
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
       - name: libraw-bindings
         run: scripts/libraw-bindings.ps1
         shell: pwsh
