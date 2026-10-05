@@ -1,8 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
-use path_slash::PathBufExt;
-
 use crate::{DncError, DncParams};
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let mut path = std::env::var("PATH").unwrap_or_default();
@@ -36,7 +34,7 @@ impl Dnc {
                 raw_file.file_stem().unwrap().to_str().unwrap()
             ));
         }
-        clerk::debug!("Dng file: {}", file.to_slash_lossy());
+        clerk::debug!("Dng file: {}", file.to_string_lossy());
         Ok(file)
     }
     pub fn convert(&self, raw_file: &Path) -> Result<PathBuf, DncError> {
@@ -54,7 +52,7 @@ impl Dnc {
         if self.params.overwrite && std::fs::remove_file(&dng_file).is_ok() {
             clerk::info!(
                 "Remove(overwrite) existing dng file: {}",
-                self.dng_file(&raw_file)?.to_slash_lossy().to_string()
+                self.dng_file(&raw_file)?.to_string_lossy().to_string()
             );
         }
 
@@ -63,7 +61,9 @@ impl Dnc {
             // Skip if dng file exists
             clerk::info!(
                 "DNG file already exists: {}",
-                dunce::canonicalize(&dng_file)?.to_slash_lossy().to_string()
+                dunce::canonicalize(&dng_file)?
+                    .to_string_lossy()
+                    .to_string()
             );
         } else {
             let program = DNC_EXECUTABLE.as_os_str();
@@ -77,7 +77,9 @@ impl Dnc {
             }
             clerk::debug!(
                 "Write dng to: {}",
-                dunce::canonicalize(&dng_file)?.to_slash_lossy().to_string()
+                dunce::canonicalize(&dng_file)?
+                    .to_string_lossy()
+                    .to_string()
             );
         }
         Ok(dng_file)
