@@ -44,7 +44,7 @@ fn main() {
             .parse_callbacks(Box::new(ignored_macros))
             .ctypes_prefix("libc")
             .use_core()
-            .blocklist_function("memcpy|memmove|memset|memcmp|strlen|bcmp")
+            .blocklist_function("memcpy|memmove|memset|memcmp|strlen|bcmp|malloc|realloc")
             .generate()
             .unwrap();
 
