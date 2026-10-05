@@ -5,7 +5,7 @@ permissions:
   contents: write
 concurrency:
   group: libraw-bindgen-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   libraw-bindings:
     strategy:
