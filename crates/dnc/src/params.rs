@@ -1,8 +1,6 @@
 use core::fmt::Display;
 use std::path::{Path, PathBuf};
 
-use path_slash::{PathBufExt, PathExt};
-
 use crate::DncError;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -160,16 +158,16 @@ impl DncParams {
             cmd.push(
                 dunce::canonicalize(directory)
                     .unwrap()
-                    .to_slash_lossy()
-                    .to_string(),
+                    .into_string()
+                    .unwrap(),
             );
         } else {
             // Default to raw file directory
             cmd.push(
                 dunce::canonicalize(raw_file.parent().unwrap())
                     .unwrap()
-                    .to_slash_lossy()
-                    .to_string(),
+                    .into_string()
+                    .unwrap(),
             );
         }
 
@@ -187,7 +185,7 @@ impl DncParams {
                     .to_string(),
             );
         }
-        cmd.push(raw_file.to_slash_lossy().to_string());
+        cmd.push(raw_file.to_string_lossy().to_string());
         Ok(cmd)
     }
 }

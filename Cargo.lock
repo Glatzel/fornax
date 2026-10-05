@@ -554,7 +554,6 @@ dependencies = [
  "dunce",
  "fornax-devtool",
  "mischief",
- "path-slash",
  "serde",
  "thiserror",
 ]
@@ -1504,12 +1503,6 @@ name = "pastey"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35fb2e5f958ec131621fdd531e9fc186ed768cbe395337403ae56c17a74c68ec"
-
-[[package]]
-name = "path-slash"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e91099d4268b0e11973f036e885d652fb0b21fedcf69738c627f94db6a44f42"
 
 [[package]]
 name = "pic-scale-safe"
