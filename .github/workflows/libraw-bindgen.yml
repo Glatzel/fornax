@@ -43,7 +43,7 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git pull --rebase origin ${{ github.ref_name }}
           git commit -m "Update libraw bindings for ${{ matrix.os }}"
+          git pull --rebase origin ${{ github.ref_name }}
           git push
         shell: bash
