@@ -2332,13 +2332,7 @@ unsafe extern "C" {
     pub fn arc4random_uniform(__upper_bound: __uint32_t) -> __uint32_t;
 }
 unsafe extern "C" {
-    pub fn malloc(__size: libc::c_ulong) -> *mut libc::c_void;
-}
-unsafe extern "C" {
     pub fn calloc(__nmemb: libc::c_ulong, __size: libc::c_ulong) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn realloc(__ptr: *mut libc::c_void, __size: libc::c_ulong) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn free(__ptr: *mut libc::c_void);
