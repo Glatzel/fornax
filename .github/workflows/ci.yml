@@ -32,10 +32,10 @@ jobs:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
             with:
               submodules: true
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@5e518b5628253242fd320792cd5619d44d79a562 # v2026.10.6
           - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
             if: ${{github.event_name=='pull_request'}}
-      - uses: Glatzel/template/.github/actions/rust/cargo-doc@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-doc@5e518b5628253242fd320792cd5619d44d79a562 # v2026.10.6
 
   test-build:
     strategy:
@@ -56,22 +56,22 @@ jobs:
       - if: ${{runner.os != 'Linux'}}
         run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
         shell: pwsh
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@5e518b5628253242fd320792cd5619d44d79a562 # v2026.10.6
         with:
           toolchain: nightly
           components: clippy
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@5e518b5628253242fd320792cd5619d44d79a562 # v2026.10.6
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@5e518b5628253242fd320792cd5619d44d79a562 # v2026.10.6
         with:
           global-options: --workspace --all-features --exclude fornax-py
       - name: build
         run: |
           ./scripts/maturin-develop.ps1
         shell: pwsh
-      - uses: Glatzel/template/.github/actions/python/pytest@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/python/pytest@5e518b5628253242fd320792cd5619d44d79a562 # v2026.10.6
         with:
           working-directory: ./crates/fornax-py
-      - uses: Glatzel/template/.github/actions/common/codecov@e0998b97844397cce9bbb31f349f2cb94c3273b6 # v2026.10.2
+      - uses: Glatzel/template/.github/actions/common/codecov@5e518b5628253242fd320792cd5619d44d79a562 # v2026.10.6
         if: ${{ !cancelled() }}
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
