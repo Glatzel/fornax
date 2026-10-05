@@ -7,7 +7,9 @@ pub struct __BindgenBitfieldUnit<Storage> {
 }
 impl<Storage> __BindgenBitfieldUnit<Storage> {
     #[inline]
-    pub const fn new(storage: Storage) -> Self { Self { storage } }
+    pub const fn new(storage: Storage) -> Self {
+        Self { storage }
+    }
 }
 impl<Storage> __BindgenBitfieldUnit<Storage>
 where
@@ -4289,16 +4291,10 @@ unsafe extern "C" {
     ) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn malloc(__size: libc::c_ulong) -> *mut libc::c_void;
-}
-unsafe extern "C" {
     pub fn calloc(__count: libc::c_ulong, __size: libc::c_ulong) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn free(arg1: *mut libc::c_void);
-}
-unsafe extern "C" {
-    pub fn realloc(__ptr: *mut libc::c_void, __size: libc::c_ulong) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn reallocf(__ptr: *mut libc::c_void, __size: usize) -> *mut libc::c_void;

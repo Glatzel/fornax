@@ -5,7 +5,7 @@ permissions:
   contents: write
 concurrency:
   group: libraw-bindgen-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   libraw-bindings:
     strategy:
@@ -30,7 +30,7 @@ jobs:
           - uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e # v0.10.2
             with:
               run-install: false
-      - uses: ./.github/actions/rust/setup-rust
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@5e518b5628253242fd320792cd5619d44d79a562 # v2026.10.6
       - name: libraw-bindings
         run: scripts/libraw-bindings.ps1
         shell: pwsh
@@ -38,12 +38,12 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin ${{ github.ref_name }}
           git add crates/libraw-sys/src/bindings-${{ matrix.os }}.rs
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
           fi
           git commit -m "Update libraw bindings for ${{ matrix.os }}"
+          git pull --rebase origin ${{ github.ref_name }}
           git push
         shell: bash
