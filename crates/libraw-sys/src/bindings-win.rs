@@ -1108,9 +1108,6 @@ unsafe extern "C" {
     pub fn _malloc_base(_Size: usize) -> *mut libc::c_void;
 }
 unsafe extern "C" {
-    pub fn malloc(_Size: libc::c_ulonglong) -> *mut libc::c_void;
-}
-unsafe extern "C" {
     pub fn _msize_base(_Block: *mut libc::c_void) -> usize;
 }
 unsafe extern "C" {
@@ -1118,9 +1115,6 @@ unsafe extern "C" {
 }
 unsafe extern "C" {
     pub fn _realloc_base(_Block: *mut libc::c_void, _Size: usize) -> *mut libc::c_void;
-}
-unsafe extern "C" {
-    pub fn realloc(_Block: *mut libc::c_void, _Size: libc::c_ulonglong) -> *mut libc::c_void;
 }
 unsafe extern "C" {
     pub fn _recalloc_base(
@@ -7485,7 +7479,7 @@ const _: () = {
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct decode {
-    pub branch: [*mut Self; 2usize],
+    pub branch: [*mut decode; 2usize],
     pub leaf: libc::c_int,
 }
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
