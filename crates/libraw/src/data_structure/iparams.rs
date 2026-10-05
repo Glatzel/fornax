@@ -1,4 +1,5 @@
 use core::ffi::c_char;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use envoy::PtrToString;
@@ -13,9 +14,9 @@ pub enum IParamsColorDesc {
     GMCY,
     GBTG,
 }
-impl TryFrom<&str> for IParamsColorDesc {
-    type Error = crate::LibrawError;
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+impl FromStr for IParamsColorDesc {
+    type Err = crate::LibrawError;
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         Ok(match value {
             "RGBG" => Self::RGBG,
             "RGBE" => Self::RGBE,
@@ -111,7 +112,7 @@ impl IParams {
     ///Description of colors numbered from 0 to 3 (RGBG,RGBE,GMCY, or GBTG).
     pub fn cdesc(&self) -> Result<IParamsColorDesc, LibrawError> {
         let s = unsafe { (*self.arc_imgdata_ptr.ptr()).idata.cdesc.to_string()? };
-        IParamsColorDesc::try_from(s.as_str())
+        IParamsColorDesc::from_str(s.as_str())
     }
     ///XMP packed data length and pointer to extracted XMP packet.
     pub fn xmplen(&self) -> u32 { unsafe { (*self.arc_imgdata_ptr.ptr()).idata.xmplen } }
