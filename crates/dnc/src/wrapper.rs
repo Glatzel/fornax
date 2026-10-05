@@ -52,7 +52,7 @@ impl Dnc {
         if self.params.overwrite && std::fs::remove_file(&dng_file).is_ok() {
             clerk::info!(
                 "Remove(overwrite) existing dng file: {}",
-                self.dng_file(&raw_file)?.to_string_lossy()
+                self.dng_file(&raw_file)?.into_string().unwrap()
             );
         }
 
@@ -61,7 +61,7 @@ impl Dnc {
             // Skip if dng file exists
             clerk::info!(
                 "DNG file already exists: {}",
-                dunce::canonicalize(&dng_file)?.to_string_lossy()
+                dunce::canonicalize(&dng_file)?.into_string().unwrap()
             );
         } else {
             let program = DNC_EXECUTABLE.as_os_str();
@@ -75,7 +75,7 @@ impl Dnc {
             }
             clerk::debug!(
                 "Write dng to: {}",
-                dunce::canonicalize(&dng_file)?.to_string_lossy()
+                dunce::canonicalize(&dng_file)?.into_string().unwrap()
             );
         }
         Ok(dng_file)
