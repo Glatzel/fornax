@@ -15,7 +15,6 @@ bindgen = "0.72.1"
 bytemuck = "1.25.2"
 criterion = { package = "codspeed-criterion-compat", version = "5.0.2" }
 dnc = { path = "./crates/dnc" }
-dunce = "1.0.5"
 float-cmp = "0.10.0"
 fornax = { path = "./crates/fornax" }
 fornax-core = { path = "./crates/fornax-core" }
