@@ -1,5 +1,5 @@
 use core::fmt::Display;
-use std::path::{Path, PathBuf};
+use std::path::{self, Path, PathBuf};
 
 use crate::DncError;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -155,16 +155,11 @@ impl DncParams {
         cmd.push("-d".to_string());
         if let Some(directory) = &self.directory {
             std::fs::create_dir_all(directory)?;
-            cmd.push(
-                dunce::canonicalize(directory)
-                    .unwrap()
-                    .into_string()
-                    .unwrap(),
-            );
+            cmd.push(path::absolute(directory).unwrap().into_string().unwrap());
         } else {
             // Default to raw file directory
             cmd.push(
-                dunce::canonicalize(raw_file.parent().unwrap())
+                path::absolute(raw_file.parent().unwrap())
                     .unwrap()
                     .into_string()
                     .unwrap(),
