@@ -38,7 +38,7 @@ impl Dnc {
         Ok(file)
     }
     pub fn convert(&self, raw_file: &Path) -> Result<PathBuf, DncError> {
-        let raw_file = dunce::canonicalize(raw_file)?;
+        let raw_file = std::path::absolute(raw_file)?;
 
         // Skip dng file
         if raw_file.extension().unwrap().eq_ignore_ascii_case("dng") {
@@ -61,7 +61,7 @@ impl Dnc {
             // Skip if dng file exists
             clerk::info!(
                 "DNG file already exists: {}",
-                dunce::canonicalize(&dng_file)?.into_string().unwrap()
+                std::path::absolute(&dng_file)?.into_string().unwrap()
             );
         } else {
             let program = DNC_EXECUTABLE.as_os_str();
@@ -75,7 +75,7 @@ impl Dnc {
             }
             clerk::debug!(
                 "Write dng to: {}",
-                dunce::canonicalize(&dng_file)?.into_string().unwrap()
+                std::path::absolute(&dng_file)?.into_string().unwrap()
             );
         }
         Ok(dng_file)

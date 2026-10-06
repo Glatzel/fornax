@@ -5,7 +5,6 @@ edition.workspace = true
 
 [dependencies]
 clerk.workspace = true
-dunce.workspace = true
 serde = { workspace = true, optional = true }
 thiserror.workspace = true
 
