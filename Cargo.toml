@@ -13,7 +13,7 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 bindgen = "0.73.2"
 bytemuck = "1.25.2"
-criterion = { package = "codspeed-criterion-compat", version = "5.0.2" }
+criterion = { package = "codspeed-criterion-compat", version = "5.0.3" }
 dnc = { path = "./crates/dnc" }
 float-cmp = "0.10.0"
 fornax = { path = "./crates/fornax" }
