@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, StrEnum
 from pathlib import Path
 
 from pydantic import PositiveInt, StrictBool, field_validator
@@ -7,13 +7,13 @@ from ._base import BaseParams
 
 
 # region Dnc
-class DncPreview(str, Enum):
+class DncPreview(StrEnum):
     _None = "-p0"
     Medium = "-p1"
     Full = "-p2"
 
 
-class DncCompatibility(str, Enum):
+class DncCompatibility(StrEnum):
     CR2_4 = "-cr2.4"
     CR4_1 = "-cr4.1"
     CR4_6 = "-cr4.6"
