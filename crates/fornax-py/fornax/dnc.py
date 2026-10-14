@@ -1,4 +1,4 @@
-from enum import Enum, StrEnum
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import PositiveInt, StrictBool, field_validator
