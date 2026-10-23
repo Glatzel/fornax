@@ -53,7 +53,7 @@ Record actual results. If a command cannot be run, say so explicitly instead of 
 
 - Agent materials live in `agent-work/`. The hidden `.agents/` directory is mounted read-only in the agent runtime, so do not attempt to write there.
 - Read `agent-work/raw-pipeline.md` before beginning work on the RAW pipeline. It is the authoritative task specification and the single source of truth; do not create competing task specifications.
-- Check `agent-work/tasks/raw-pipeline.md` for live task status, dependencies, and evidence. Only `RES-01` through `RES-06` are initially ready; synthesis, design, and implementation tasks are blocked on upstream work.
+- Check `agent-work/tasks/raw-pipeline.md` for live task status, dependencies, and evidence. Research readiness is dynamic; do not assume a task is `ready` from an older summary.
 - Each reference has exactly one report under `agent-work/research/`. See `agent-work/research/README.md` for report ownership, prerequisites, and acceptance criteria.
 - Research owners write only their assigned report. `SYN-01` and `SYN-02` write only their own files under `agent-work/research/notes/`; `SYN-03` owns `agent-work/research/summary.md`. Never edit another task's report.
 - Do not start synthesis before its prerequisite reports are accepted, do not finalize design before `SYN-03`, and do not start implementation before `DES-007` is accepted.

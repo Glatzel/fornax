@@ -6,16 +6,17 @@ tracked phase; live status and full acceptance criteria are maintained in
 ownership, prerequisites, and the synthesis path without reading the full
 specification.
 
-**Current state:** initialized. Research has not started. Every report below is
-a structured placeholder; no findings have been recorded.
+**Current state:** research in progress. `RES-01` and `RES-02` are in `review`;
+`RES-03` is `blocked` on unavailable dnglab/DNG sources. `RES-04`–`RES-06`
+remain `ready`. No synthesis has started.
 
 ## Report ownership
 
 | Report | Task | Owner | Status | Prerequisites | Acceptance criterion (summary) |
 | --- | --- | --- | --- | --- | --- |
-| [`fornax-architecture.md`](fornax-architecture.md) | `RES-01` | unassigned | `ready` | none | Existing crates, public types, dependencies, reuse candidates, and gaps are documented with local paths and symbols. |
-| [`libraw.md`](libraw.md) | `RES-02` | unassigned | `ready` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
-| [`dnglab.md`](dnglab.md) | `RES-03` | unassigned | `ready` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
+| [`fornax-architecture.md`](fornax-architecture.md) | `RES-01` | research agent | `review` | none | Existing crates, public types, dependencies, reuse candidates, and gaps are documented with local paths and symbols. |
+| [`libraw.md`](libraw.md) | `RES-02` | research agent | `review` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
+| [`dnglab.md`](dnglab.md) | `RES-03` | research agent | `blocked` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
 | [`darktable.md`](darktable.md) | `RES-04` | unassigned | `ready` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
 | [`demosaicing.md`](demosaicing.md) | `RES-05` | unassigned | `ready` | none | Algorithms, input requirements, CFA handling, output semantics, and shared-interface requirements are documented and justified. |
 | [`rust-ecosystem.md`](rust-ecosystem.md) | `RES-06` | unassigned | `ready` | none | Relevant Rust projects, reusable components, API designs, dependencies, maintenance status, and licenses are documented. |

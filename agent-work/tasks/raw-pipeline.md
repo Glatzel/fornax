@@ -55,9 +55,9 @@ symbol: LibRaw::unpack().
 
 | Wave | ID | Title | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| R0 | `RES-01` | Audit the existing `fornax` architecture | `ready` | none |
-| R0 | `RES-02` | Research LibRaw | `ready` | none |
-| R0 | `RES-03` | Research dnglab and DNG metadata | `ready` | none |
+| R0 | `RES-01` | Audit the existing `fornax` architecture | `review` | none |
+| R0 | `RES-02` | Research LibRaw | `review` | none |
+| R0 | `RES-03` | Research dnglab and DNG metadata | `blocked` | none |
 | R0 | `RES-04` | Research darktable and RAW preprocessing | `ready` | none |
 | R0 | `RES-05` | Research demosaicing algorithms and interfaces | `ready` | none |
 | R0 | `RES-06` | Survey the Rust RAW-processing ecosystem | `ready` | none |
@@ -81,7 +81,7 @@ each owns a different report. A task must not edit another task's report.
 
 ### RES-01 — Audit the existing `fornax` architecture
 
-- **Status:** `ready`
+- **Status:** `review`
 - **Dependencies:** none
 - **Output report:** `agent-work/research/fornax-architecture.md`
 - **Scope:** Audit the workspace, crate boundaries, dependency direction,
@@ -107,7 +107,8 @@ each owns a different report. A task must not edit another task's report.
 
 ### RES-02 — Research LibRaw
 
-- **Status:** `ready`
+- **Status:** `review`
+- **Review note:** one acceptance criterion is partial: the installed LibRaw 0.22.2 headers declare `black`/`cblack[4104]` but not the repeat-pattern layout or coordinate alignment. See `agent-work/research/libraw.md` §5.
 - **Dependencies:** none
 - **Output report:** `agent-work/research/libraw.md`
 - **Scope:** Trace LibRaw from file opening through unpacking and raw-image
@@ -134,7 +135,8 @@ each owns a different report. A task must not edit another task's report.
 
 ### RES-03 — Research dnglab and DNG metadata
 
-- **Status:** `ready`
+- **Status:** `blocked`
+- **Blocker:** dnglab source and the DNG specification are unavailable in the offline environment; only LibRaw DNG-adjacent declarations could be recorded. Re-run when source/network access is available.
 - **Dependencies:** none
 - **Output report:** `agent-work/research/dnglab.md`
 - **Scope:** Inspect dnglab's DNG parsing, raw-image representation, CFA
@@ -317,9 +319,9 @@ recommendation, and must not silently resolve disagreements.
 
 | Report | Owning task | Status | Prerequisites | Acceptance focus |
 | --- | --- | --- | --- | --- |
-| `fornax-architecture.md` | `RES-01` | `ready` | none | Architecture, crate boundaries, reusable code, gaps |
-| `libraw.md` | `RES-02` | `ready` | none | Decoding, sample semantics, CFA, levels, metadata, APIs |
-| `dnglab.md` | `RES-03` | `ready` | none | DNG tags, active area, black patterns, white levels, coordinates |
+| `fornax-architecture.md` | `RES-01` | `review` | none | Architecture, crate boundaries, reusable code, gaps |
+| `libraw.md` | `RES-02` | `review` | none | Decoding, sample semantics, CFA, levels, metadata, APIs |
+| `dnglab.md` | `RES-03` | `blocked` | none | DNG tags, active area, black patterns, white levels, coordinates |
 | `darktable.md` | `RES-04` | `ready` | none | Preprocessing order, black-level behavior, processing boundary |
 | `demosaicing.md` | `RES-05` | `ready` | none | Algorithms, input requirements, CFA, output semantics, interface |
 | `rust-ecosystem.md` | `RES-06` | `ready` | none | Rust implementations, components, APIs, licenses |
@@ -511,3 +513,6 @@ before `DES-007`.
 | --- | --- | --- | --- |
 | 2026-10-23 | — | Tracker initialized. All research tasks `ready`; synthesis, design, and implementation `blocked`. No research or implementation started. | This file and `agent-work/raw-pipeline.md` |
 | 2026-10-23 | `RES-01`–`RES-06`, `SYN-01`–`SYN-03` | Research restructured into one report per source. Added report ownership, synthesis notes, and the `summary.md` gate. Reports are placeholders; no findings recorded. | `agent-work/research/README.md` and the report files |
+| 2026-10-23 | `RES-01` | Completed repository architecture audit; report written to `agent-work/research/fornax-architecture.md`; status `review`. | Local commit `d06f426`; report evidence table |
+| 2026-10-23 | `RES-02` | Completed LibRaw 0.22.2 declaration and wrapper audit; report written to `agent-work/research/libraw.md`; status `review` with the black-level layout criterion partial. | Installed `libraw_types.h`, `libraw.h`, `libraw_const.h`; wrapper sources |
+| 2026-10-23 | `RES-03` | Blocked: dnglab source and DNG specification unavailable offline. Recorded LibRaw DNG-adjacent declarations and open questions; report not accepted. | `agent-work/research/dnglab.md`; failed network probe |

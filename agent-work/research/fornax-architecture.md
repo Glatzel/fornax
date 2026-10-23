@@ -1,59 +1,293 @@
 # Existing `fornax` Architecture
 
 > **Task:** `RES-01`
-> **Owner:** unassigned
-> **Status:** `ready` (research not started)
+> **Owner:** research agent
+> **Status:** `review` (report complete; acceptance review pending)
 > **Last updated:** 2026-10-23
-> **Upstream versions:** record the local repository commit inspected
+> **Upstream versions:** local repository at commit `d06f426`
 >
 > **Acceptance criteria (authoritative version in the task tracker):**
 >
-> - [ ] Every public trait, type, and function relevant to decoding, metadata,
+> - [x] Every public trait, type, and function relevant to decoding, metadata,
 >   preprocessing, or demosaicing is listed with path and symbol.
-> - [ ] Current limitations are explicit, including missing metadata,
+> - [x] Current limitations are explicit, including missing metadata,
 >   black/white levels, crop, and non-Bayer support.
-> - [ ] Reuse candidates are separated from code that must be replaced.
-> - [ ] Dependency direction is documented.
-> - [ ] Findings use `[verified]`, `[inference]`, or `[recommendation]` labels.
-> - [ ] All six required report sections are complete.
+> - [x] Reuse candidates are separated from code that must be replaced.
+> - [x] Dependency direction is documented.
+> - [x] Findings use `[verified]`, `[inference]`, or `[recommendation]` labels.
+> - [x] All six required report sections are complete.
 
 ## 1. Scope and questions
 
 Audit the existing repository architecture, crate boundaries, data structures,
-dependencies, and reusable implementations. Questions to answer:
+dependencies, and reusable implementations. The questions were:
 
 - What do `IDecoder`, `IPostProcessor`, `BayerImage`, `BayerPattern`,
   `IDemosaic`, and `DemosaicLinear` actually guarantee?
 - Which public APIs are stable constraints and which are incidental?
-- How do dependencies flow between `fornax-core`, `fornax-dalim`, `libraw`,
-  `libraw-sys`, `fornax`, `fornax-py`, `dnc`, and `fornax-devtool`?
-- Which existing code can be reused for the universal representation,
-  preprocessing, or demosaicing?
-- Which current assumptions block non-Bayer, metadata-rich, or black-level-aware
+- How do dependencies flow between the crates?
+- Which existing code can be reused for a universal RAW representation,
+  metadata-driven preprocessing, or demosaicing?
+- Which assumptions block non-Bayer, metadata-rich, or black-level-aware
   processing?
-
-_No findings recorded yet._
 
 ## 2. Findings
 
-Not started. Record only source-verified behavior here.
+### 2.1 Workspace and crate boundaries
+
+`[verified]` The workspace has resolver 3, edition 2024, package version
+`0.0.17`, and members `./crates/*` (`Cargo.toml:1-7`). It contains eight crates:
+`fornax-core`, `fornax-dalim`, `libraw`, `libraw-sys`, `fornax`, `fornax-py`,
+`dnc`, and `fornax-devtool`.
+
+`[verified]` Dependency direction, from the manifests:
+
+- `fornax-core` → `image`, `thiserror` (`crates/fornax-core/Cargo.toml`).
+- `fornax-dalim` → `clerk`, `fornax-core`, `image`, `rayon`, optional `serde`
+  (`crates/fornax-dalim/Cargo.toml`).
+- `libraw` → `bytemuck`, `clerk`, `envoy`, `fornax-core`, `image`, `jiff`,
+  `libraw-sys`, `num_enum`, optional `serde`, `thiserror`
+  (`crates/libraw/Cargo.toml`).
+- `fornax` → `dnc`, `fornax-core`, `fornax-dalim`, `image`, `libraw`
+  (`crates/fornax/Cargo.toml`).
+- `fornax-py` → `fornax`, `image`, `numpy`, `pyo3`, `rmp-serde`, `serde`
+  (`crates/fornax-py/Cargo.toml`).
+- `libraw-sys` → `libc`; `bindgen` is a build dependency
+  (`crates/libraw-sys/Cargo.toml`).
+- `dnc` → `clerk`, optional `serde`, `thiserror`; `fornax-devtool` → `clerk`.
+
+`[verified]` `fornax-core` publicly exposes `image::ImageBuffer` and
+`image::Luma` through `BayerImage` and `IDecoder`
+(`crates/fornax-core/src/lib.rs:6-11`,
+`crates/fornax-core/src/bayer.rs:111-150`). The core data model is therefore
+already coupled to the `image` crate.
+
+`[verified]` `libraw` depends on `fornax-core`, and `fornax` depends on both
+`libraw` and `fornax-dalim`. The dependency direction is
+`fornax-core ← fornax-dalim ← fornax`, with `libraw → fornax-core` as a sibling
+backend that still leaks its own types through `fornax`'s `pub use libraw;`
+(`crates/fornax/src/lib.rs:8`).
+
+### 2.2 Decoder and processor contracts
+
+`[verified]` `IDecoder<T>` is defined at
+`crates/fornax-core/src/decoder.rs:19`. It has three methods:
+
+- `decode_file(&self, file: &Path) -> Result<(), FornaxError>`.
+- `decode_buffer(&self, buffer: &[u8]) -> Result<(), FornaxError>`.
+- `bayer_image(&self) -> Result<BayerImage<T>, FornaxError>`.
+
+`[verified]` All three take `&self`, so implementations must mutate interior
+state to hold the decoded image. The trait has no metadata return type, no
+sample-domain description, and no distinction between raw sensor samples and
+processed pixels.
+
+`[verified]` `IPostProcessor<D, T, O>` is defined at
+`crates/fornax-core/src/post_processor.rs:22`. It takes a decoder reference and
+returns `ImageBuffer<Rgb<O>, Vec<O>>`. `NullPostProcessor` is declared at line
+57, but its implementation calls `unimplemented!` at line 66, so it panics if
+used.
+
+`[verified]` `FornaxError` is a tuple struct wrapping `String`
+(`crates/fornax-core/src/error.rs:5`). There are no structured variants for
+invalid layouts, missing metadata, or unsupported CFA patterns.
+
+`[verified]` `FornaxPrimitive` is implemented for `u8`, `u16`, `f32`, and `f64`
+(`crates/fornax-core/src/primitive.rs:15-27`). Signed 16-bit and unsigned 32-bit
+samples are commented out, which limits signed or high-bit-depth sensor data.
+
+### 2.3 Bayer model
+
+`[verified]` `BayerChannel` has four variants: `R`, `G`, `B`, and `G2`
+(`crates/fornax-core/src/bayer.rs:13-18`). `BayerPattern` has exactly `RGGB`,
+`BGGR`, `GRBG`, and `GBRG` (`bayer.rs:40-49`). `as_mask()` returns the 2×2
+channel order (`bayer.rs:51-78`).
+
+`[verified]` `BayerImage<T>` wraps an `image::ImageBuffer<Luma<T>, Vec<T>>` and
+a `BayerPattern` (`bayer.rs:111-128`). Its public surface is only `new`,
+`mosaic`, and `pattern` (`bayer.rs:131-150`). It carries no black level, white
+level, active area, crop, margins, CFA origin, camera metadata, or provenance.
+
+`[verified]` There is no representation for X-Trans, monochrome, four-color, or
+non-mosaic RAW data in `fornax-core`.
+
+### 2.4 Demosaicing
+
+`[verified]` `IDemosaic<T>` is defined at `crates/fornax-dalim/src/demosaic.rs:4`.
+It takes `&BayerImage<T>` and returns
+`image::ImageBuffer<image::Rgb<T>, Vec<T>>` (`demosaic.rs:8-11`). It cannot fail:
+there is no `Result`, no unsupported-pattern error, and no metadata output.
+
+`[verified]` `DemosaicLinear` is the only implementation
+(`crates/fornax-dalim/src/demosaic/linear.rs:239`). It uses the pattern mask,
+unchecked neighbor reads on interior pixels, and checked reads on borders. The
+tests cover all four Bayer patterns: `test_linear_rggb` (line 294),
+`test_linear_bggr` (line 338), `test_linear_grbg` (line 382), and
+`test_linear_gbrg` (line 426). A Criterion benchmark is at
+`crates/fornax-dalim/benches/demosaic.rs:1-26`.
+
+`[verified]` `DalimParams` contains only a `Demosaicer` enum
+(`crates/fornax-dalim/src/lib.rs:10-12`), and `Dalim` dispatches only to
+`Demosaicer::Linear` (`lib.rs:40-43`). There is no preprocessing stage.
+
+### 2.5 LibRaw wrapper
+
+`[verified]` `Libraw` wraps a raw `libraw_data_t` pointer with `Arc<ImgdataPtr>`
+and closes it on `Drop` (`crates/libraw/src/data_structure/data.rs:5-38`).
+`Rawdata` is an enum of `image::ImageBuffer` values: mono/RGB/RGBA in `u16` and
+`f32` (`crates/libraw/src/data_structure/rawdata.rs:9-15`).
+
+`[verified]` `Rawdata::get_rawdata` is `pub(crate)` and receives only `width`
+and `height` (`rawdata.rs:18-22`). It checks `rawdata.raw_image`,
+`color4_image`, `float3_image`, and `float4_image` and converts each into an
+`image::ImageBuffer` (`rawdata.rs:25-114`). It does not return the LibRaw
+`ImageSizes`, `IParams`, `libraw_colordata_t`, or any black/white/crop metadata
+with the buffer.
+
+`[verified]` `get_rawdata` is called with `raw_width` and `raw_height` from
+`ImageSizes` (`crates/libraw/src/extension/missing_structures.rs:6-16`). The
+wrapper exposes `raw_pitch()` (`image_sizes.rs:54`) but the conversion does not
+use it.
+
+`[verified]` `ImageSizes` exposes `raw_height`, `raw_width`, `height`, `width`,
+`top_margin`, `left_margin`, `raw_pitch`, and `flip`
+(`crates/libraw/src/data_structure/image_sizes.rs:32-65`). `IParams` exposes
+make, model, normalized names, `raw_count`, `is_foveon`, `dng_version`,
+`colors`, `filters`, X-Trans tables, and `cdesc`
+(`crates/libraw/src/data_structure/iparams.rs:43-110`).
+
+`[verified]` The wrapper has `color(row, col)`, `libraw_subtract_black()`,
+`raw2image()`, `dcraw_process()`, and a processed-image accessor
+(`crates/libraw/src/c_api/auxiliary.rs:24-60`). `libraw_subtract_black` calls the
+LibRaw C function directly (`auxiliary.rs:27-30`).
+
+`[verified]` The wrapper does **not** expose the LibRaw black-level fields
+`color.black`, `color.cblack`, `color.maximum`, `color.linear_max`, or
+`color.dng_levels`. A search of `crates/libraw/src` for those field accesses
+returns only the DNG/black-related user parameters in
+`extension/dcraw.rs:81-84`, not read accessors.
+
+### 2.6 High-level manager and Python bindings
+
+`[verified]` `Fornax<D, T, P, O>` combines a decoder and post-processor
+(`crates/fornax/src/lib.rs:29-40`). Its public methods are `new` (line 59),
+`decode_file` (line 79), `decode_buffer` (line 95), and `post_process` (line
+106). It exposes no metadata, preprocessing control, or stage inspection.
+
+`[verified]` The Python binding has a `py_process` entry point and a `fornax_py`
+module (`crates/fornax-py/src/lib.rs:74-153`). Python tests cover DNC, LibRaw
+default/custom processing, and LibRaw+Dalim (`crates/fornax-py/tests/test_fornax.py:20-115`).
+
+`[verified]` `dnc` is re-exported only on Windows and macOS
+(`crates/fornax/src/lib.rs:3-5`), so DNG conversion is not a portable backend.
+
+### 2.7 CI and conventions
+
+`[verified]` CI runs cargo doc with `RUSTFLAGS=-Dwarnings`, clippy and
+workspace tests with nightly and all features excluding `fornax-py`, then
+`scripts/maturin-develop.ps1` and pytest
+(`.github/workflows/ci.yml:26-71`). Formatting uses unstable rustfmt options
+(`rustfmt.toml`), so nightly rustfmt is required.
 
 ## 3. Evidence
 
-Not started. Cite local file paths, line ranges, symbols, Cargo manifests, CI
-files, and test names.
+| Claim | Evidence |
+| --- | --- |
+| Workspace layout and version | `Cargo.toml:1-7` |
+| Crate dependency manifests | `crates/*/Cargo.toml` |
+| Core public exports | `crates/fornax-core/src/lib.rs:6-11` |
+| Decoder contract | `crates/fornax-core/src/decoder.rs:19-31` |
+| Post-processor contract | `crates/fornax-core/src/post_processor.rs:22-66` |
+| Error type | `crates/fornax-core/src/error.rs:5` |
+| Primitive types | `crates/fornax-core/src/primitive.rs:4-27` |
+| Bayer types and buffer | `crates/fornax-core/src/bayer.rs:13-150` |
+| Demosaic trait | `crates/fornax-dalim/src/demosaic.rs:4-16` |
+| Linear demosaic and tests | `crates/fornax-dalim/src/demosaic/linear.rs:239-470` |
+| LibRaw ownership and close | `crates/libraw/src/data_structure/data.rs:5-38` |
+| Rawdata conversion | `crates/libraw/src/data_structure/rawdata.rs:9-114` |
+| Image sizes and flip | `crates/libraw/src/data_structure/image_sizes.rs:9-65` |
+| LibRaw info parameters | `crates/libraw/src/data_structure/iparams.rs:33-110` |
+| LibRaw C API calls | `crates/libraw/src/c_api/auxiliary.rs:24-60` |
+| High-level manager | `crates/fornax/src/lib.rs:29-110` |
+| Python module | `crates/fornax-py/src/lib.rs:74-153` |
+| CI commands | `.github/workflows/ci.yml:26-71` |
 
 ## 4. Implications for fornax
 
-To be derived from the findings. State which existing abstractions can be
-extended, which must be replaced, and which crate boundaries must change.
+`[recommendation]` Keep the existing crate boundaries as a starting point:
+`fornax-core` for shared types, `fornax-dalim` for demosaicing, `libraw` as one
+decoder backend, and `fornax` as the composition layer. Do not put LibRaw types
+into the universal representation.
+
+`[recommendation]` Replace or extend `BayerImage<T>` with a universal raw image
+type that carries:
+
+- The sample buffer and a sample-domain description (type, range, bit depth).
+- Dimensions, stride, and ownership.
+- CFA layout and origin, including unsupported layouts expressed explicitly.
+- Black level, white level, active area, crop, and margins.
+- Camera and provenance metadata.
+- A processing-state marker to prevent double correction.
+
+`[recommendation]` Change the decoder contract so decoding returns both the
+buffer and the metadata needed to interpret it, rather than requiring a
+subsequent `bayer_image()` call that discards metadata. If the existing
+`IDecoder` must be preserved, add a new metadata-producing trait and adapt the
+old one.
+
+`[recommendation]` Introduce an explicit preprocessing stage between decode and
+demosaic. The current `IPostProcessor` jumps directly from `bayer_image()` to
+demosaicing, so there is nowhere to apply black-level correction without
+hiding it in a demosaicer.
+
+`[recommendation]` Do not reuse `Rawdata` as the universal buffer. It is an
+`image`-crate enum that drops `raw_pitch`, margins, CFA description, black/white
+levels, and provenance. Reuse it only as an internal LibRaw adapter.
+
+`[recommendation]` Reuse the existing `BayerPattern`/`BayerChannel` concepts,
+the linear demosaic test pattern, the crate layout, the Criterion benchmark, and
+the Python packaging structure. Treat the existing public traits as migration
+constraints, not as the final API.
+
+`[recommendation]` Add structured errors before public APIs stabilize. The
+current `FornaxError(String)` cannot distinguish missing metadata from an
+unsupported CFA layout.
 
 ## 5. Open questions and limitations
 
-Record unresolved questions, unverified assumptions, and missing evidence.
+- `[inference]` The current `BayerImage`/`IDecoder` split assumes the decoder
+  can return a fully formed Bayer image without metadata. This is workable for
+  the current LibRaw path but cannot express black/white levels or crop.
+- `[verified]` No integration fixtures for real RAW files were found under
+  `crates/*/tests`; only Python tests and unit tests exist. This limits
+  regression coverage.
+- `[verified]` There is no documentation for the public traits beyond doc
+  comments, and no design record for the existing API.
+- `[inference]` `Rawdata::get_rawdata` assumes the raw buffer is contiguous for
+  `raw_width * raw_height`; the wrapper exposes `raw_pitch` but does not use it.
+  This needs verification against LibRaw's allocation behavior.
+- `[inference]` The wrapper handles `raw_image`, `color4_image`, `float3_image`,
+  and `float4_image`; whether `color3_image` and `float_image` are reachable
+  through the current conversion needs a targeted code check during `RES-02` or
+  design.
+- `[verified]` `NullPostProcessor` panics by design (`unimplemented!`), so it is
+  not a no-op despite its name.
 
 ## 6. References
 
-- Local repository paths and symbols: not yet recorded.
-- CI and tooling files inspected: not yet recorded.
-- Relevant tests and benchmarks: not yet recorded.
+- Local repository: `/home/glatzel/project/fornax` at commit `d06f426`.
+- Workspace manifest: `Cargo.toml`.
+- Crate manifests: `crates/fornax-core/Cargo.toml`,
+  `crates/fornax-dalim/Cargo.toml`, `crates/libraw/Cargo.toml`,
+  `crates/libraw-sys/Cargo.toml`, `crates/fornax/Cargo.toml`,
+  `crates/fornax-py/Cargo.toml`, `crates/dnc/Cargo.toml`,
+  `crates/fornax-devtool/Cargo.toml`.
+- Core sources: `crates/fornax-core/src/{lib,bayer,decoder,post_processor,primitive,error}.rs`.
+- Demosaic sources: `crates/fornax-dalim/src/{lib,demosaic}.rs`,
+  `crates/fornax-dalim/src/demosaic/linear.rs`,
+  `crates/fornax-dalim/benches/demosaic.rs`.
+- LibRaw wrapper: `crates/libraw/src/{lib,c_api/*,data_structure/*,extension/*}.rs`.
+- High-level crate: `crates/fornax/src/lib.rs`.
+- Python bindings: `crates/fornax-py/src/lib.rs`,
+  `crates/fornax-py/tests/test_fornax.py`.
+- CI and formatting: `.github/workflows/ci.yml`, `rustfmt.toml`.

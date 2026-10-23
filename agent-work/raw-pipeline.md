@@ -1,7 +1,8 @@
 # Task: Research, Design, and Implement a Rust-Native RAW Processing Pipeline in `fornax`
 
-> **Status:** Initialised. Research tasks are defined and `ready`; design and
-> implementation have not started.
+> **Status:** Research phase in progress. `RES-01` and `RES-02` are in `review`;
+> `RES-03` is `blocked` on unavailable dnglab/DNG sources; `RES-04`–`RES-06`
+> remain `ready`. Synthesis, design, and implementation have not started.
 >
 > **Authority:** This file is the authoritative task specification for the RAW
 > processing pipeline. `AGENTS.md` at the repository root contains only concise
@@ -599,8 +600,11 @@ Represent dependencies explicitly. The dependency graph is:
 
 Execution waves:
 
-- **Wave R0 — independent research.** `RES-01` through `RES-06` are `ready`
-  simultaneously. Each worker owns one task ID and exactly one report file.
+- **Wave R0 — independent research.** `RES-01` through `RES-06` are independent
+  and may run concurrently. Their live readiness is recorded in the tracker;
+  a task that is `review`, `blocked`, or `done` must not be restarted merely
+  because it belongs to this wave. Each worker owns one task ID and exactly one
+  report file.
 - **Wave S1 — metadata and sample synthesis.** `SYN-01` starts after `RES-01`,
   `RES-02`, `RES-03`, `RES-04`, and `RES-06` are in `review` or `done`.
 - **Wave S2 — preprocessing synthesis.** `SYN-02` starts after `RES-02`,
@@ -704,3 +708,16 @@ At the end of implementation, report:
 - Unsupported formats, known limitations, and remaining work.
 
 The goal is a maintainable, Rust-native RAW pipeline whose data semantics are explicit and whose implementation can be developed incrementally by multiple independent contributors.
+
+## Task pause and resume
+
+Support the commands `start <TASK-ID>`, `pause <TASK-ID>`, `resume <TASK-ID>`, and `status <TASK-ID>`.
+
+- `pause`: If the task is running, interrupt it when supported. Before stopping, preserve completed findings in its assigned report and record unfinished work, next steps, and unresolved questions. Set the task status to `paused`.
+- `resume`: Read the task definition, report, and progress checkpoint. Continue unfinished work without repeating verified findings. Verify dependencies before proceeding.
+- `status`: Report the task's current status, completed work, remaining work, and blockers.
+- `start`: Start a task only if its dependencies are satisfied. Do not duplicate an already-running task.
+
+Persist progress in the task's assigned report or a task-specific checkpoint file. Never rely solely on conversation history. Do not mark a paused or interrupted task as `done`.
+
+For delegated tasks, distinguish interrupting a worker from merely asking the coordinator to stop. If the runtime cannot pause a worker directly, explain the limitation and preserve its progress before stopping.
