@@ -1,7 +1,7 @@
 # Task: Research, Design, and Implement a Rust-Native RAW Processing Pipeline in `fornax`
 
-> **Status:** Research phase in progress. `RES-01` and `RES-02` are in `review`;
-> `RES-03`–`RES-06` are `in_progress`. Synthesis, design, and implementation
+> **Status:** `RES-01`–`RES-06` are paused at the user's request after evidence
+> collection and draft acceptance review. Synthesis, design, and implementation
 > have not started.
 >
 > **Authority:** This file is the authoritative task specification for the RAW

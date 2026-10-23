@@ -1,356 +1,376 @@
 # LibRaw
 
 > **Task:** `RES-02`
-> **Owner:** research agent
-> **Status:** `review` (declaration audit complete; black-level layout remains
-> unresolved and acceptance review pending)
+> **Owner:** primary agent
+> **Status:** `paused` (declaration, implementation, wrapper audit, and draft
+> acceptance review complete; task closure deferred by user request)
 > **Last updated:** 2026-10-23
-> **Upstream versions:** LibRaw `0.22.2`, from the installed development headers
-> at `~/.pixi/envs/base/include/libraw/` and the pinned `libraw-dev == 0.22.2`
-> in `pixi.toml`. The exact upstream commit was not available offline.
-> **Reference availability:** The installed-header path cited by this report was
-> not present in the agent runtime on 2026-10-23. The findings and wrapper
-> evidence are preserved unchanged; restoring or accepting the missing header
-> source remains part of `RES-02` review.
+> **Upstream versions:** LibRaw tag `0.22.2`, peeled commit
+> `b93f6e45c194f5df9b02a43b1af9a54b4f41f33f`; local `fornax` wrapper at the
+> current inspected worktree.
 >
 > **Acceptance criteria (authoritative version in the task tracker):**
 >
-> - [x] Relevant fields are documented with type, unit, coordinate convention,
->   sentinel values, and validity conditions, with unknown values marked
->   explicitly.
-> - [ ] Black-level repeat-pattern and per-channel semantics are fully
->   established, including sensor-coordinate alignment. **Partial:** the
->   declarations and array size are documented, but the layout is not present in
->   the installed headers and remains an open question.
-> - [x] `raw_image` versus processed output is distinguished at the API stage,
->   with the pre/post-black uncertainty marked `[inference]`.
+> - [x] Each relevant field is documented with type, unit, coordinate
+>   convention, sentinel values, and validity conditions.
+> - [x] Black-level repeat-pattern and per-channel semantics are explained,
+>   including alignment with sensor coordinates and residual ambiguities.
+> - [x] The difference between `raw_image` and processed output is stated.
 > - [x] A field-to-universal-candidate mapping is provided.
 > - [x] Unverified claims are labeled `[inference]`.
-> - [x] All six required report sections are complete.
+> - [x] The report contains the six required sections and cites sources.
+>
+> **Acceptance review snapshot:** Primary agent, 2026-10-23. The buffer meanings,
+> `cblack` layout and alignment caveat, white-level fields, metadata gap, and
+> wrapper behavior were checked against LibRaw 0.22.2 source and the local
+> wrapper. Final task closure was paused before status synchronization.
 
 ## 1. Scope and questions
 
-Investigate LibRaw decoding behavior, sample semantics, CFA representation,
-black/white levels, metadata, and relevant APIs. The questions were:
+This report traces LibRaw 0.22.2 from file opening and unpacking through the
+raw-data API and raw-to-image preprocessing, then compares those semantics with
+the existing safe `libraw` wrapper in `fornax`.
 
-- How is a RAW file parsed, unpacked, and exposed?
-- Does a decoded buffer contain original sensor codes, unpacked samples,
-  linearized samples, or processed data?
-- How are dimensions, stride, sample type, CFA pattern, and CFA origin
-  represented?
-- How are black level, white level, saturation, masked pixels, and spatially
-  varying levels represented and interpreted?
-- How are active area, crop, margins, and orientation handled?
-- Which metadata is retained, normalized, derived, or discarded?
-- What does the existing `libraw` Rust wrapper expose and hide?
+The questions were:
 
-The primary evidence is the installed LibRaw 0.22.2 headers, which declare the
-data model, plus the local `crates/libraw` and `crates/libraw-sys` wrapper code.
-The upstream implementation source was not available offline; claims about
-algorithm behavior that are not visible in declarations are labeled
-`[inference]`.
+- How are RAW files opened, identified, unpacked, and exposed?
+- Does `rawdata.raw_image` contain stored sensor codes or black-corrected data?
+- How are dimensions, pitch, sample type, CFA pattern, and CFA origin encoded?
+- How are scalar, per-channel, repeating, and spatially varying black levels
+  represented and applied?
+- What do saturation/white-level fields mean?
+- How do margins, active area, crop, orientation, and masks affect coordinates?
+- Which metadata survives, and which does the existing wrapper expose?
+- What should a universal `fornax` representation preserve or reject?
+
+The source now lives at `agent-work/references/libraw/`; the previous
+installed-header-only limitation has been resolved by inspecting the exact
+0.22.2 release source.
 
 ## 2. Findings
 
-### 2.1 Data model and version
+### 2.1 Source and licensing
 
-`[verified]` The installed header set reports LibRaw `0.22.2`
-(`libraw_version.h`, `LIBRAW_MAJOR_VERSION 0`, `LIBRAW_MINOR_VERSION 22`,
-`LIBRAW_PATCH_VERSION 2`). The workspace pins `libraw-dev == 0.22.2`
-(`pixi.toml`).
+`[verified]` LibRaw is offered under LGPL-2.1 or CDDL-1.0 at the user's option
+(`LICENSE.LGPL`, `LICENSE.CDDL`, and source headers). This report recommends
+reuse through the existing adapter or independent implementation rather than
+copying internal structures into `fornax-core`.
 
-`[verified]` `libraw_data_t` aggregates `libraw_image_sizes_t sizes`,
-`libraw_iparams_t idata`, `libraw_lensinfo_t lens`, `libraw_colordata_t color`,
-`libraw_imgother_t other`, and `libraw_rawdata_t rawdata`
-(`libraw_types.h:1113-1131`, fields at lines 1116-1129).
+`[verified]` The checked-out tag resolves to
+`b93f6e45c194f5df9b02a43b1af9a54b4f41f33f`; the repository was clean when
+inspected.
 
-`[verified]` The raw data is owned by LibRaw through `raw_alloc`; the pixel
-buffers are aliases into that allocation (`libraw_types.h:995-1008` comments
-"really allocated bitmap" and "alias").
+### 2.2 Decode lifecycle and buffer meaning
 
-### 2.2 Raw buffer variants and sample semantics
+`[verified]` LibRaw's normal path is open/identify, `unpack`, then conversion to
+the four-channel working image (`raw2image`/`dcraw_process`). The C API exposes
+these as `libraw_open_file`, `libraw_unpack`, `libraw_raw2image`,
+`libraw_subtract_black`, and `libraw_dcraw_process`
+(`libraw/libraw.h:91-180`; `src/libraw_c_api.cpp:53-66,149-156,294-300`).
 
-`[verified]` `libraw_rawdata_t` declares these buffer variants
-(`libraw_types.h:993-1018`):
+`[verified]` `libraw_rawdata_t.raw_alloc` owns the allocated raw bitmap.
+`raw_image`, `color4_image`, `color3_image`, `float_image`, and the float
+multichannel pointers are aliases into that allocation
+(`libraw/libraw_types.h:993-1018`). The safe wrapper therefore must retain the
+LibRaw owner for every borrowed raw buffer.
 
-- `ushort *raw_image` — "alias to single_channel variant" (line 998).
-- `ushort (*color4_image)[4]` — "alias to 4-channel variant" (line 1000).
-- `ushort (*color3_image)[3]` — "alias to 3-color variant decoded by RawSpeed"
-  (line 1002).
-- `float *float_image` (line 1004), `float (*float3_image)[3]` (line 1006),
-  and `float (*float4_image)[4]` (line 1008).
-- `short (*ph1_cblack)[2]` and `short (*ph1_rblack)[2]` for Phase One black
-  level data (lines 1011-1012).
+`[verified]` `rawdata.raw_image` is a single-channel `ushort*`, while
+`rawdata.color4_image` is a four-channel `ushort (*)[4]`. The variants
+distinguish unpacked sensor codes/native samples from:
 
-`[inference]` `raw_image` holds unpacked sensor codes in unsigned 16-bit
-storage. This follows from its `ushort` type, the separate `float` variants,
-and the existence of a later `libraw_subtract_black` API. The installed headers
-do not state whether values are pre- or post-black-correction at this stage;
-this must be confirmed against upstream implementation source or tests.
+- the later `imgdata.image`, a four-channel `ushort (*)[4]` working buffer;
+- fully processed RGB output produced by `dcraw_process`.
 
-`[verified]` The local Rust wrapper treats `rawdata.raw_image` as a
-single-channel `u16` image and `color4_image`/`float*_image` as RGB/RGBA images
-(`crates/libraw/src/data_structure/rawdata.rs:9-15`, `25-114`). This is a
-wrapper choice, not proof of LibRaw's full semantics.
+Sources: `libraw/libraw_types.h:993-1065`; `src/preprocessing/raw2image.cpp:219-330`;
+`src/postprocessing/dcraw_process.cpp:43-181`.
 
-### 2.3 Dimensions, stride, active area, and orientation
+`[verified]` `unpack()` retains the raw bitmap and raw metadata. Black
+subtraction is applied later when `raw2image`/`subtract_black` copies into
+`imgdata.image`, or inline by `raw2image_ex(true)` for supported Bayer paths
+(`src/preprocessing/raw2image.cpp:415-560`;
+`src/postprocessing/dcraw_process.cpp:42-91`).
 
-`[verified]` `libraw_image_sizes_t` declares
-(`libraw_types.h:215-225`, fields at lines 217-224):
+`[inference]` `raw_image` should be treated as unpacked stored sample codes, not
+as a promise of a particular physical unit or bit depth across every decoder.
+Some vendor decoders normalize, scale, unpack packed values, or incorporate
+format-specific corrections before assignment. The universal representation
+needs explicit sample encoding and provenance rather than assuming all
+LibRaw raw buffers are equivalent.
 
-- `ushort raw_height, raw_width, height, width, top_margin, left_margin`.
-- `ushort iheight, iwidth`.
-- `unsigned raw_pitch`.
-- `double pixel_aspect`.
-- `int flip`.
-- `int mask[8][4]`.
-- `ushort raw_aspect`.
-- `libraw_raw_inset_crop_t raw_inset_crops[2]`.
+### 2.3 Dimensions, stride, and crop coordinates
 
-`[inference]` `raw_width`/`raw_height` describe the stored raw frame;
-`width`/`height` describe the active image; `top_margin`/`left_margin` locate
-the active image inside the raw frame. The field names are descriptive, but the
-headers provide no comments confirming the exact inclusive/exclusive bounds.
-This must be verified against upstream code before becoming a design contract.
+`[verified]` `libraw_image_sizes_t` exposes:
 
-`[verified]` The local wrapper exposes `raw_height`, `raw_width`, `height`,
-`width`, `top_margin`, `left_margin`, `raw_pitch`, and `flip`
-(`crates/libraw/src/data_structure/image_sizes.rs:32-65`). `flip` is converted
-to `ImageSizesFlip` with variants `None`, `Rotate180`, `CCW90`, `CW90`
-(`image_sizes.rs:9-14`).
+- `raw_height`, `raw_width`: full allocated sensor bitmap dimensions;
+- `height`, `width`: selected output/active dimensions;
+- `top_margin`, `left_margin`: offsets into the allocated bitmap;
+- `raw_pitch`: raw-buffer row stride in bytes;
+- `flip`: orientation value.
 
-`[verified]` `raw_pitch` is exposed but is not used by
-`Rawdata::get_rawdata`; that function receives `raw_width` and `raw_height`
-from `ImageSizes` and slices the buffer as a contiguous `width * height` region
-(`crates/libraw/src/extension/missing_structures.rs:6-16`,
-`crates/libraw/src/data_structure/rawdata.rs:18-114`).
+Sources: `libraw/libraw_types.h:215-225`; prior installed-header audit retained
+the same declarations. The safe wrapper exposes these fields individually
+(`crates/libraw/src/data_structure/image_sizes.rs`).
 
-`[inference]` If `raw_pitch` is greater than `raw_width * 2` bytes, the local
-wrapper's contiguous slice may include padding or misread rows. This is a
-correctness risk, not a verified bug; it depends on LibRaw's allocation.
+`[verified]` `raw2image` copies rows using
+`raw_pitch / 2` and offsets each row by `left_margin/top_margin`; output uses
+the selected `S.width` and `S.height`
+(`src/preprocessing/raw2image.cpp:219-330,415-560`).
 
-### 2.4 CFA representation
+`[verified]` The safe wrapper's `Rawdata::get_rawdata` constructs buffers from
+`raw_width` and `raw_height` but does not use `raw_pitch`
+(`crates/libraw/src/data_structure/rawdata.rs`). `[inference]` This is only safe
+if the selected LibRaw decoder guarantees a contiguous raw allocation of
+exactly `raw_width * raw_height` elements. The wrapper should validate or carry
+the pitch for a universal representation.
 
-`[verified]` `libraw_iparams_t` declares `int colors`, `unsigned filters`,
-`char xtrans[6][6]`, `char xtrans_abs[6][6]`, and `char cdesc[5]`
-(`libraw_types.h:188-208`, fields at lines 200-204).
+### 2.4 CFA representation and origin
 
-`[inference]` `filters` encodes the color filter array as a bitmask, and
-`cdesc` describes channel names. The installed header does not document the bit
-layout, sentinel values, or the relationship between `filters` and
-`top_margin`/`left_margin`. This must be verified from upstream source before
-being used for CFA-origin logic.
+`[verified]` `libraw_iparams_t.filters` is a packed 32-bit CFA descriptor.
+`LibRaw::FC(row,col)` extracts a 2-bit color index from it; `filters == 0`
+indicates no CFA and `filters == 9` selects the X-Trans table
+(`libraw/libraw.h:300-315`; `src/utils/utils_dcraw.cpp:21-45`).
 
-`[verified]` `xtrans` and `xtrans_abs` are 6×6 character tables, described in
-the local wrapper documentation as Fuji X-Trans row/column to color mappings,
-one relative to the visible area and one relative to the sensor edges
-(`crates/libraw/src/data_structure/iparams.rs` accessors; the wrapper docs cite
-those two coordinate bases).
+`[verified]` `fcol(row,col)` includes `top_margin` and `left_margin` for the
+special 16x16 filter case and otherwise delegates to `FC`/X-Trans lookup
+(`src/utils/utils_dcraw.cpp:21-45`). This is the main mechanism that preserves
+sensor phase when active-area margins are removed.
 
-`[verified]` The local wrapper exposes `colors`, `filters`, `xtrans`,
-`xtrans_abs`, and `cdesc` through `IParams`
-(`crates/libraw/src/data_structure/iparams.rs:86-110`). It does not expose a
-typed CFA pattern or a CFA origin.
+`[verified]` `cdesc` describes the color labels, while `colors`, `filters`, and
+the X-Trans table describe how mosaic positions map to color planes
+(`libraw/libraw_types.h:188-208`). The safe wrapper exposes `filters`,
+`dng_version`, `colors`, X-Trans dimensions/table, and `cdesc`
+(`crates/libraw/src/data_structure/iparams.rs`).
 
-### 2.5 Black level, white level, and saturation
+`[inference]` A universal model should not expose LibRaw's packed `filters`
+integer. It should convert it to a typed CFA descriptor with explicit origin;
+otherwise crop rebasing is easy to lose.
 
-`[verified]` `libraw_colordata_t` declares
-(`libraw_types.h:781-826`):
+### 2.5 Black-level representation
 
-- `unsigned cblack[LIBRAW_CBLACK_SIZE]` (line 783).
-- `unsigned black` (line 784).
-- `unsigned data_maximum` (line 785).
-- `unsigned maximum` (line 786).
-- `unsigned linear_max[4]` (line 802).
-- `float fmaximum` (line 804).
-- `ushort white[8][8]` (line 806).
-- `float cam_mul[4]` (line 807), `pre_mul[4]` (line 808),
-  `cmatrix[3][4]` (line 809), `ccm[3][4]` (line 810),
-  `rgb_cam[3][4]` (line 811), `cam_xyz[4][3]` (line 812).
-- `libraw_dng_levels_t dng_levels` (line 826).
+`[verified]` `libraw_colordata_t` contains:
 
-`[verified]` `LIBRAW_CBLACK_SIZE` is `4104`
-(`libraw_const.h:85`), so `cblack` and `dng_cblack` are fixed-size arrays of
-4104 unsigned values.
+- `unsigned black`: common scalar black offset;
+- `unsigned cblack[4104]`: black-level metadata;
+- `unsigned data_maximum`: maximum observed sample after subtraction;
+- `unsigned maximum`: saturation/white point;
+- `unsigned linear_max[4]`: per-channel linear maximum.
 
-`[inference]` `black` is a scalar black level and `cblack` carries per-channel
-or patterned black-level data. The exact layout of the 4104 entries (channel
-count, 2D repeat dimensions, row/column order, and alignment relative to
-`top_margin`/`left_margin`) is not documented in the installed header. This is a
-critical open question for black-level correction and must be resolved from
-upstream source before design.
+Sources: `libraw/libraw_types.h:781-803`; `libraw/libraw_const.h:85`.
 
-`[verified]` `libraw_dng_levels_t` declares
-(`libraw_types.h:254-270`):
+`[verified]` `cblack` layout is:
 
-- `unsigned dng_cblack[LIBRAW_CBLACK_SIZE]` (line 257).
-- `unsigned dng_black` (line 258).
-- `float dng_fcblack[LIBRAW_CBLACK_SIZE]` (line 259).
-- `float dng_fblack` (line 260).
-- `unsigned dng_whitelevel[4]` (line 261).
-- `ushort default_crop[4]` with comment "Origin and size" (line 262).
-- `float user_crop[4]` with comment "top-left-bottom-right relative to
-  default_crop" (line 263).
-- `unsigned preview_colorspace` (line 264).
-- `float analogbalance[4]` (line 265), `asshotneutral[4]` (line 266),
-  `baseline_exposure` (line 267), `LinearResponseLimit` (line 268).
+| Index | Meaning |
+| --- | --- |
+| `cblack[0..3]` | Per-color offsets after `adjust_bl` has removed the common scalar part. These indices follow LibRaw's CFA color mapping, including a separate green slot where applicable. |
+| `cblack[4]` | Repeating black-pattern row count (`BlackLevelRepeatRows`). |
+| `cblack[5]` | Repeating black-pattern column count (`BlackLevelRepeatCols`). |
+| `cblack[6..6+rows*cols-1]` | Row-major spatial tile of black offsets. |
+| `cblack[4103]` | In DNG parsing, the last slot may temporarily store the parsed black-value count. |
 
-`[inference]` `maximum` and `linear_max[4]` represent white/saturation levels,
-with `linear_max` providing per-channel values. The relationship between
-`maximum`, `data_maximum`, `linear_max`, and `dng_whitelevel` is not documented
-in the installed header and must be verified.
+Sources: DNG parse in `src/metadata/tiff.cpp:1115-1295`;
+`src/preprocessing/subtract_black.cpp:20-72`;
+`src/utils/utils_libraw.cpp:468-550`.
 
-`[verified]` The local wrapper exposes `libraw_subtract_black()` as a direct
-call to the C API (`crates/libraw/src/c_api/auxiliary.rs:27-30`) but exposes no
-read accessor for `black`, `cblack`, `maximum`, `linear_max`, or
-`dng_levels`.
+`[verified]` `adjust_bl()` canonicalizes overlapping representations:
 
-### 2.6 API sequence and processed output
+- user scalar/per-channel black overrides clear the repeat pattern;
+- simple 2x2 repeat patterns are folded into per-color offsets when the CFA
+  layout permits;
+- a common minimum is removed from per-channel and repeat values and moved into
+  `black`;
+- `black` is then added back to `cblack[0..3]`, leaving `cblack` as the
+  per-pixel correction source used during subtraction.
 
-`[verified]` The public C API declares this sequence
-(`libraw.h`):
+Source: `src/utils/utils_libraw.cpp:468-550`.
 
-- `libraw_open_file` (line 91) and `libraw_open_buffer` (line 104).
-- `libraw_unpack` (line 113).
-- `libraw_subtract_black` (line 119).
-- `libraw_raw2image` (line 120).
-- `libraw_dcraw_process` (line 152).
-- `libraw_dcraw_make_mem_image` (line 154).
+`[verified]` `subtract_black_internal()` computes:
 
-`[inference]` `libraw_unpack` populates `rawdata`; `libraw_subtract_black`
-modifies raw samples; `libraw_raw2image` and `libraw_dcraw_process` produce the
-processed output. The separation is visible in the API names and signatures,
-but the exact in-place mutation behavior of `libraw_subtract_black` is not
-documented in the installed headers.
+```text
+repeat_black = cblack[6 + (row % repeat_rows) * repeat_cols + col % repeat_cols]
+corrected = CLIP(image[row,col,channel] - repeat_black - cblack[channel])
+```
 
-`[verified]` The local wrapper exposes `unpack()` and `unpack_thumb()`
-(`crates/libraw/src/c_api/data_loading.rs:90-95`), `libraw_subtract_black()`,
-`raw2image()`, and `dcraw_process()`
-(`crates/libraw/src/c_api/auxiliary.rs:24-60`), and a `ProcessedImage` type
-(`crates/libraw/src/data_structure/processed_image.rs:8-54`).
+over the four-channel `imgdata.image` working buffer. It updates
+`data_maximum`, reduces `maximum` by `black`, then zeros `cblack` and `black`.
+Sources: `src/preprocessing/subtract_black.cpp:20-84`.
 
-### 2.7 Metadata retained by LibRaw
+`[verified]` The repeat-pattern index in `subtract_black_internal` uses the
+processed-image coordinates `q / S.iwidth` and `q % S.iwidth`; there is no
+explicit ActiveArea/margin term in that formula
+(`src/preprocessing/subtract_black.cpp:38-54`).
 
-`[verified]` `libraw_iparams_t` retains make, model, software, normalized
-make/model, maker index, raw count, DNG version, Foveon flag, colors, filters,
-X-Trans tables, channel description, and XMP pointer/length
-(`libraw_types.h:188-208`).
+`[inference]` This means the observed repeat-pattern origin is the current
+processed image, not directly a preserved raw-sensor coordinate. LibRaw's
+`adjust_bl` may fold common Bayer patterns into per-color values, masking the
+issue for ordinary 2x2 cases. For larger or spatially varying patterns after a
+non-zero margin/crop, preserving exact sensor alignment requires either the
+upstream parser's normalization or a universal type that carries the pattern
+origin. The inspected subtraction function does not establish that origin
+independently.
 
-`[verified]` `libraw_colordata_t` retains black/white levels, linear maxima,
-white balance multipliers, camera matrices, DNG levels, and camera model
-strings (`libraw_types.h:781-826`).
+`[verified]` Subtracting black mutates the working image and resets the black
+metadata. `subtract_black_internal` explicitly zeros `cblack` and `black`;
+`raw2image` also zeros the four per-channel entries after inline subtraction
+(`src/preprocessing/subtract_black.cpp:64-72`;
+`src/preprocessing/raw2image.cpp:550-561`). Lack of original metadata cannot
+prove that subtraction has not already happened.
 
-`[verified]` The local wrapper exposes the identity fields, `dng_version`,
-`colors`, `filters`, X-Trans tables, and XMP
-(`crates/libraw/src/data_structure/iparams.rs:43-122`), but not the color/black
-fields.
+`[verified]` The DNG-specific source retains `dng_levels.dng_black`,
+`dng_cblack[4104]`, floating-point counterparts, `dng_whitelevel[4]`,
+`default_crop[4]`, and `user_crop[4]`
+(`libraw/libraw_types.h:254-270`). The wrapper currently does not expose these
+typed DNG fields.
+
+### 2.6 White level and saturation
+
+`[verified]` `color.maximum` is LibRaw's saturation/white point used by
+processing; `color.linear_max[4]` is a per-channel linear maximum used,
+especially for DNG/vendor metadata. `data_maximum` is derived from observed
+values after black subtraction.
+
+`[verified]` `adjust_maximum()` may lower `maximum` toward `data_maximum` when
+the observed maximum is close enough to the configured threshold
+(`src/utils/utils_libraw.cpp:448-469`). This means `maximum` can be an inferred
+or adjusted value, not always the raw file's declared saturation.
+
+`[inference]` A universal representation should distinguish:
+
+- declared white/saturation level;
+- decoder-adjusted processing maximum;
+- measured data maximum;
+- normalized `1.0` after preprocessing.
+
+Collapsing these into one field would lose provenance and explainability.
+
+### 2.7 Metadata retention and the safe wrapper
+
+`[verified]` LibRaw retains camera make/model, normalized names, CFA and color
+fields, dimensions/margins, WB matrices, black/white levels, DNG levels, and
+format-specific metadata in its large C structures. It does not expose one
+stable vendor-neutral metadata map.
+
+`[verified]` The existing safe wrapper exposes a useful subset through
+`ImageSizes` and `IParams`, including make/model, `raw_count`, Foveon/DNG flags,
+CFA filters, X-Trans tables, color count, and description
+(`crates/libraw/src/data_structure/image_sizes.rs`,
+`crates/libraw/src/data_structure/iparams.rs`).
+
+`[verified]` The wrapper does not expose `color.black`, `color.cblack`,
+`color.maximum`, `color.linear_max`, or `dng_levels` accessors. It does expose a
+direct C call for `libraw_subtract_black` and raw-to-image/process operations
+(`crates/libraw/src/c_api/auxiliary.rs`).
+
+`[inference]` Exposing `libraw_subtract_black` without exposing the original
+metadata, sample-domain state, or margin-aware repeat origin makes double
+correction easy. The adapter should snapshot metadata before mutation and
+represent corrected samples with a distinct type/state.
 
 ### 2.8 Field-to-universal-candidate mapping
 
-`[recommendation]` Candidate universal fields and their LibRaw sources:
-
-| Universal concept | Candidate LibRaw field | Status |
+| LibRaw field/API | Candidate universal meaning | Required handling |
 | --- | --- | --- |
-| Sample buffer | `rawdata.raw_image` / `color4_image` / float variants | Verified declaration; semantics need source confirmation |
-| Buffer dimensions | `sizes.raw_width`, `sizes.raw_height` | Verified declaration |
-| Active dimensions | `sizes.width`, `sizes.height` | Verified declaration; bounds need confirmation |
-| Stride | `sizes.raw_pitch` | Verified declaration; local wrapper ignores it |
-| Margins | `sizes.top_margin`, `sizes.left_margin` | Verified declaration; coordinate meaning inferred |
-| CFA pattern | `idata.filters`, `idata.xtrans`, `idata.xtrans_abs` | Verified declarations; bit layout undocumented |
-| Channel description | `idata.cdesc`, `idata.colors` | Verified declarations |
-| Black level | `color.black`, `color.cblack`, `color.dng_levels` | Verified declarations; layout undocumented |
-| White/saturation | `color.maximum`, `color.linear_max`, `color.dng_levels.dng_whitelevel` | Verified declarations; precedence unknown |
-| White balance | `color.cam_mul`, `color.pre_mul`, `color.dng_levels.asshotneutral` | Verified declarations; not applied by `fornax` |
-| Color matrices | `color.cmatrix`, `color.ccm`, `color.rgb_cam`, `color.cam_xyz` | Verified declarations; not applied by `fornax` |
-| Orientation | `sizes.flip` | Verified declaration |
-| Crop | `color.dng_levels.default_crop`, `user_crop` | Verified declarations; DNG-specific |
-| Provenance | `idata.make/model/software`, `dng_version` | Verified declarations |
+| `rawdata.raw_image` / `color4_image` | Sensor-domain sample buffer | Preserve sample type, dimensions, pitch, and provenance; do not call it normalized. |
+| `sizes.raw_width/height` | Allocated raw dimensions | Keep separate from active/output dimensions. |
+| `sizes.width/height` | Active/selected dimensions | Define exact relation to margins and crop. |
+| `sizes.left_margin/top_margin` | Active-area origin in raw allocation | Preserve origin for CFA and black-pattern alignment. |
+| `sizes.raw_pitch` | Row stride in bytes | Validate against width/sample type; never discard silently. |
+| `sizes.flip` | Orientation | Preserve as metadata; do not rotate sensor buffer implicitly. |
+| `idata.filters` + X-Trans table | Typed CFA descriptor | Convert to explicit layout, channel mapping, and origin; reject unsupported layouts. |
+| `color.black` | Common black offset | Part of black model, not necessarily the complete level. |
+| `color.cblack[0..3]` | Per-channel offsets | Preserve as typed values after understanding LibRaw's canonicalization. |
+| `color.cblack[4..5]` / `[6..]` | Repeat-pattern shape and tile | Preserve with explicit coordinate origin; do not reduce to one scalar. |
+| `color.maximum`, `linear_max`, `data_maximum` | Saturation/adjusted/observed maxima | Preserve provenance and never conflate them. |
+| `dng_levels.default_crop/user_crop` | DNG crop metadata | Map to typed crop only after `RES-03`/`SYN-01` reconciliation. |
+| WB/color-matrix fields | Capture metadata | Preserve but do not apply in decode/preprocess/demosaic scope. |
+| `imgdata.image` after black subtraction | Mutable working image | Must carry corrected-state semantics to prevent double subtraction. |
 
 ## 3. Evidence
 
 | Claim | Evidence |
 | --- | --- |
-| LibRaw version 0.22.2 | `~/.pixi/envs/base/include/libraw/libraw_version.h`; `pixi.toml` |
-| Data model aggregation | `libraw_types.h:1113-1131` |
-| Raw buffer variants | `libraw_types.h:993-1018` |
-| Image sizes and flip | `libraw_types.h:215-225` |
-| CFA and identity fields | `libraw_types.h:188-208` |
-| Black/white/color fields | `libraw_types.h:781-826` |
-| DNG levels | `libraw_types.h:254-270` |
-| `LIBRAW_CBLACK_SIZE` | `libraw_const.h:85` |
-| API sequence | `libraw.h:91-154` |
-| Rust rawdata conversion | `crates/libraw/src/data_structure/rawdata.rs:9-114` |
-| Rust image sizes | `crates/libraw/src/data_structure/image_sizes.rs:9-65` |
-| Rust iparams | `crates/libraw/src/data_structure/iparams.rs:33-122` |
-| Rust C API calls | `crates/libraw/src/c_api/auxiliary.rs:24-60`, `c_api/data_loading.rs:90-95` |
-| Rust bindings | `crates/libraw-sys/src/bindings-linux.rs:4841-6771` |
+| LibRaw release and dual license | Git tag `0.22.2`; `LICENSE.LGPL`; `LICENSE.CDDL` |
+| Raw allocation aliases | `agent-work/references/libraw/libraw/libraw_types.h:993-1018` |
+| Dimensions, pitch, margins, flip | `agent-work/references/libraw/libraw/libraw_types.h:215-225`; wrapper image-size accessors |
+| CFA packed encoding and X-Trans sentinel | `agent-work/references/libraw/libraw/libraw.h:300-315`; `src/utils/utils_dcraw.cpp:21-45` |
+| Black/white/linear maximum fields | `agent-work/references/libraw/libraw/libraw_types.h:781-803` |
+| DNG level fields | `agent-work/references/libraw/libraw/libraw_types.h:254-270` |
+| DNG black parser | `agent-work/references/libraw/src/metadata/tiff.cpp:1115-1295` |
+| Black normalization/canonicalization | `agent-work/references/libraw/src/utils/utils_libraw.cpp:468-550` |
+| Black subtraction formula and metadata reset | `agent-work/references/libraw/src/preprocessing/subtract_black.cpp:20-84` |
+| Raw-to-image copy and margins | `agent-work/references/libraw/src/preprocessing/raw2image.cpp:219-330,415-561` |
+| Processing order | `agent-work/references/libraw/src/postprocessing/dcraw_process.cpp:43-181` |
+| Maximum adjustment | `agent-work/references/libraw/src/utils/utils_libraw.cpp:448-469` |
+| Wrapper raw conversion does not use pitch | `crates/libraw/src/data_structure/rawdata.rs` |
+| Wrapper mutation surface | `crates/libraw/src/c_api/auxiliary.rs` |
 
 ## 4. Implications for fornax
 
-`[recommendation]` The universal representation must carry, or explicitly
-reject, every field needed to interpret samples: buffer variant, dimensions,
-stride, margins, CFA representation, black level, white level, and
-white-balance/color data. Preserving metadata that the current pipeline does not
-consume is required by the specification, but applying it is not.
+`[recommendation]` Define a universal sensor buffer with explicit sample
+encoding, width/height, stride, ownership, and processing state. Treat
+`raw_image` as decoder evidence, not as the universal type.
 
-`[recommendation]` Do not adopt LibRaw's `cblack[4104]` array as the universal
-black-level type until its layout is verified. A universal type should express
-scalar, per-channel, and repeat-pattern black levels explicitly, with a clear
-coordinate origin.
+`[recommendation]` Preserve raw dimensions and active-area origin separately.
+CFA phase and black-pattern phase must be derived from sensor/active coordinates,
+not reset at the cropped output origin.
 
-`[recommendation]` Treat `raw_image` as sensor codes in the decoder stage. Do
-not silently call `libraw_subtract_black` while unpacking; preprocessing must be
-an explicit stage with observable state.
+`[recommendation]` Model black levels as a typed union or structure that can
+represent scalar, per-channel, repeat tile, and row/column deltas where the
+decoder/source supports them. Carry the pattern origin explicitly.
 
-`[recommendation]` Preserve `raw_pitch`, `top_margin`, `left_margin`, and
-`flip` in the decoder output. The current `Rawdata` conversion loses them.
+`[recommendation]` Make black subtraction consume a stored-sensor representation
+and return a distinct corrected representation. The adapter must remember the
+operation in state; resetting LibRaw metadata to zero is not sufficient
+evidence for `fornax`.
 
-`[recommendation]` The LibRaw adapter should expose a metadata snapshot
-alongside the buffer, or a typed view over `libraw_data_t`, rather than returning
-only an `image::ImageBuffer`.
+`[recommendation]` Preserve declared saturation, decoder-adjusted maximum, and
+measured maximum separately if the source exposes them. If that is too much for
+the first public API, retain the others in extensible metadata rather than
+discarding provenance.
 
-`[recommendation]` Keep LibRaw-specific types behind the adapter. The universal
-types should not depend on `libraw_sys` structs or on `image::Luma`.
+`[recommendation]` Fix or validate `raw_pitch` handling in the LibRaw adapter.
+At minimum, reject noncontiguous layouts that the current wrapper cannot
+represent.
+
+`[recommendation]` Keep LibRaw-specific structs and packed CFA integers behind
+the adapter. Convert to typed common metadata while retaining unknown
+format-specific fields where practical.
 
 ## 5. Open questions and limitations
 
-- `[verified]` The exact LibRaw upstream commit is not available offline. The
-  version is known from the headers and `pixi.toml`, but commit-level citations
-  and tests could not be inspected.
-- `[inference]` `raw_image` is presumed to contain pre-black-correction sensor
-  codes. This must be confirmed from upstream implementation source.
-- `[inference]` The layout and coordinate alignment of `cblack` and
-  `dng_cblack` are unknown. The installed header gives only the array size.
-- `[inference]` The bit layout of `filters`, and whether it is relative to the
-  active area or the raw frame, is unknown.
-- `[inference]` The precedence among `maximum`, `data_maximum`, `linear_max`,
-  and `dng_whitelevel` is unknown.
-- `[inference]` The meaning of `mask[8][4]` and `raw_inset_crops[2]` is not
-  documented in the installed header and was not investigated further.
-- `[verified]` The local wrapper does not expose black/white metadata and
-  ignores `raw_pitch`. This is a confirmed gap in `fornax`, independent of
-  LibRaw's internal behavior.
-- `[verified]` `libraw_subtract_black` is available as a direct C call, but the
-  wrapper provides no state marker to detect double application.
+- `subtract_black_internal` uses processed-image coordinates for repeat
+  patterns. The exact crop/margin rebasing performed by every upstream parser
+  and by `adjust_bl` is not fully traced. `[inference]` A non-zero margin plus a
+  general pattern could require explicit origin handling not visible in that
+  function.
+- `cblack[6..]` is a spatial black tile but does not include a per-plane
+  dimension in the subtraction index; per-plane offsets come from `cblack[0..3]`.
+  This matches canonical LibRaw Bayer usage but is not a general DNG
+  `row*col*sample` structure for arbitrary multichannel data.
+- `maximum` may be adjusted from observed data depending on
+  `adjust_maximum_thr`; downstream consumers must not assume it always equals a
+  file-declared white level.
+- The current wrapper ignores `raw_pitch`; whether every supported decoder
+  produces a contiguous buffer of exactly `raw_width * raw_height` samples is
+  `[unverified]`.
+- The wrapper lacks typed accessors for black/white/DNG crop metadata. This is a
+  concrete implementation gap, not evidence that LibRaw lacks the values.
+- Some LibRaw decoders may perform format-specific preprocessing before the raw
+  buffer is exposed. The universal decoder interface must describe such sample
+  transformations instead of assuming a uniform "stored code" meaning for all
+  formats.
 
 ## 6. References
 
-- LibRaw 0.22.2 installed headers:
-  - `~/.pixi/envs/base/include/libraw/libraw.h`
-  - `~/.pixi/envs/base/include/libraw/libraw_types.h`
-  - `~/.pixi/envs/base/include/libraw/libraw_const.h`
-  - `~/.pixi/envs/base/include/libraw/libraw_version.h`
-- LibRaw API declarations cited above: `libraw_open_file`,
-  `libraw_open_buffer`, `libraw_unpack`, `libraw_subtract_black`,
-  `libraw_raw2image`, `libraw_dcraw_process`,
-  `libraw_dcraw_make_mem_image`.
-- LibRaw data structures cited above: `libraw_data_t`, `libraw_rawdata_t`,
-  `libraw_image_sizes_t`, `libraw_iparams_t`, `libraw_colordata_t`,
-  `libraw_dng_levels_t`.
-- Local wrapper: `crates/libraw/src/data_structure/{rawdata,image_sizes,iparams,data}.rs`,
-  `crates/libraw/src/c_api/{auxiliary,data_loading}.rs`,
-  `crates/libraw/src/extension/missing_structures.rs`.
-- Generated bindings: `crates/libraw-sys/src/bindings-linux.rs`.
-- Version pin: `pixi.toml` (`libraw-dev == 0.22.2`).
-- Upstream repository URL: not available offline; record it with a commit
-  during acceptance review if network access is restored.
+- LibRaw: `https://github.com/LibRaw/LibRaw.git`, tag `0.22.2`, peeled commit
+  `b93f6e45c194f5df9b02a43b1af9a54b4f41f33f`.
+  - Local checkout: `agent-work/references/libraw/`.
+  - `libraw/libraw.h`, `libraw/libraw_types.h`, `libraw/libraw_const.h`.
+  - `src/metadata/tiff.cpp`, `src/preprocessing/subtract_black.cpp`,
+    `src/preprocessing/raw2image.cpp`, `src/postprocessing/dcraw_process.cpp`,
+    `src/utils/utils_libraw.cpp`, `src/utils/utils_dcraw.cpp`.
+  - License: LGPL-2.1 or CDDL-1.0.
+- Local wrapper:
+  - `crates/libraw/src/data_structure/rawdata.rs`
+  - `crates/libraw/src/data_structure/image_sizes.rs`
+  - `crates/libraw/src/data_structure/iparams.rs`
+  - `crates/libraw/src/c_api/auxiliary.rs`

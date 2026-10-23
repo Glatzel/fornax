@@ -18,8 +18,13 @@ location used for every material research claim.
 | `darktable/` | `https://github.com/darktable-org/darktable.git` | `master` | `6556cd7dbb0e69f95d165dda8b69e7270c327f6d` | GPL-3.0 | Source evidence for `RES-04`: RAW pipeline order, `rawprepare`, temperature/white balance, CFA handling, and the demosaic boundary. |
 | `dnglab/` | `https://github.com/dnglab/dnglab.git` | `main` | `62b77de1a206d467e910d55199191068b45a9cc1` | LGPL-2.1 | Source evidence for `RES-03`: DNG tags, sample interpretation, crop coordinates, black/white levels. Its `rawler/` subtree is also evidence for `RES-06`. |
 | `other/rawloader/` | `https://github.com/pedrocr/rawloader.git` | `master` | `8f2ace2d27c7fa6e7671a7fd0ef11d1b1bd77ddf` | LGPL-2.1 | Source evidence for `RES-06`: Rust RAW decoder API, sensor representation, metadata, and licensing. |
+| `libraw/` | `https://github.com/LibRaw/LibRaw.git` | tag `0.22.2` | `b93f6e45c194f5df9b02a43b1af9a54b4f41f33f` | LGPL-2.1 or CDDL-1.0 | Source evidence for `RES-02`: unpacked buffer semantics, CFA encoding, black/white levels, crop/margins, and preprocessing behavior. |
+| `dng_sdk/` | `https://github.com/emmcb/adobe-dng-sdk.git` | `master` | `962a7028efdc8f8a651cf6335c3ec53053472339` | Adobe SDK license; bundled DNG specification is copyright Adobe | Contains Adobe DNG Specification 1.7.0.0 and SDK source used for `RES-03` tag and linearization evidence. |
+| `other/image-tiff/` | `https://github.com/image-rs/image-tiff.git` | `main` | `3302936b08e2260d4c66f40f51170efbb1fded4c` | MIT | Source evidence for `RES-06`: maintained Rust TIFF decoder API, sample/buffer layout, and structured errors. |
+| `other/demosaic-crate/` | `https://github.com/naorunaoru/demosaic.git` | `main` | `5050131e998b7f6414eef02eeb60f74b99d77451` | MIT OR Apache-2.0 | Source evidence for `RES-05` and `RES-06`: Rust demosaic input/output contracts, algorithms, border handling, and tests. |
+| `other/meraraw-demosaic/` | `https://github.com/kaimai-apex/meraraw-demosaic.git` | `main` | `b94ebd4324ce56218e42989a5ed852b32a52003f` | Apache-2.0 | Source evidence for `RES-05` and `RES-06`: stateless demosaic trait, registry, options model, and synthetic correctness tests. |
 
-All three references were checked on 2026-10-23 and had clean worktrees with no
+All eight references were checked on 2026-10-23 and had clean worktrees with no
 local modifications or untracked files. They are ordinary shallow local
 clones, not Git submodules. Keeping them as ignored local checkouts avoids
 changing production dependency or build behavior; pinning is achieved by the
@@ -28,16 +33,10 @@ revision recorded above.
 `dnglab/` contains the rawler implementation in its `rawler/` subdirectory.
 There is no separate rawler checkout.
 
-## Non-checkout sources
-
-LibRaw `0.22.2` is pinned in `pixi.toml`, and the local wrapper evidence remains
-in `crates/libraw/` and `crates/libraw-sys/`. `RES-02` also cites installed
-development headers under `~/.pixi/envs/base/include/libraw/`, but that
-environment path is absent in the current agent runtime. Those headers were not
-vendored or downloaded during this restructuring, so they are not available as
-local reference files. This does not alter `RES-02`'s existing report or
-`review` status, but the missing source must be restored or explicitly accepted
-as a limitation before the review relies on it again.
+`dng_sdk/DNG_Spec_1_7_0_0.pdf` is the normative Adobe Digital Negative
+Specification 1.7.0.0 dated June 2023. A local plain-text extraction is kept at
+`dng_spec/DNG_Spec_1_7_0_0.txt` for source search. The PDF is the authority;
+the text extraction is only a navigation aid.
 
 ## Verification
 
@@ -52,6 +51,21 @@ git -C agent-work/references/dnglab status --short
 
 git -C agent-work/references/other/rawloader rev-parse HEAD
 git -C agent-work/references/other/rawloader status --short
+
+git -C agent-work/references/libraw rev-parse HEAD
+git -C agent-work/references/libraw status --short
+
+git -C agent-work/references/dng_sdk rev-parse HEAD
+git -C agent-work/references/dng_sdk status --short
+
+git -C agent-work/references/other/image-tiff rev-parse HEAD
+git -C agent-work/references/other/image-tiff status --short
+
+git -C agent-work/references/other/demosaic-crate rev-parse HEAD
+git -C agent-work/references/other/demosaic-crate status --short
+
+git -C agent-work/references/other/meraraw-demosaic rev-parse HEAD
+git -C agent-work/references/other/meraraw-demosaic status --short
 ```
 
 The commit printed by each `rev-parse` must match this manifest, and `status`
@@ -66,6 +80,7 @@ a production test-fixture dependency used by `crates/fornax-py/tests` and
 `fornax-devtool`, so it remains at `external/raw-images` and in `.gitmodules`.
 Moving it would change test and development behavior.
 
-No separate downloaded DNG specification document is retained. A specification
-URL or document added later must be stored under `agent-work/references/` with
-its source URL, version or date, and checksum recorded here.
+The DNG SDK checkout is a GitHub-hosted mirror rather than Adobe's original
+download endpoint. Its source headers carry Adobe SDK notices, and the retained
+specification identifies itself as version 1.7.0.0. Do not redistribute the
+specification or SDK code without reviewing Adobe's terms.

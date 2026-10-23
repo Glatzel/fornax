@@ -2,7 +2,8 @@
 
 > **Task:** `RES-01`
 > **Owner:** research agent
-> **Status:** `review` (report complete; acceptance review pending)
+> **Status:** `paused` (evidence and draft acceptance review complete; task
+> closure deferred by user request)
 > **Last updated:** 2026-10-23
 > **Upstream versions:** local repository at commit `d06f426`
 >
@@ -16,6 +17,11 @@
 > - [x] Dependency direction is documented.
 > - [x] Findings use `[verified]`, `[inference]`, or `[recommendation]` labels.
 > - [x] All six required report sections are complete.
+>
+> **Acceptance review snapshot:** Primary agent, 2026-10-23. The cited public symbols,
+> dependency edges, limitations, reuse candidates, and report structure were
+> checked against the current checkout. Final task closure was paused before
+> the tracker and report statuses were reconciled.
 
 ## 1. Scope and questions
 
@@ -275,7 +281,8 @@ unsupported CFA layout.
 
 ## 6. References
 
-- Local repository: `/home/glatzel/project/fornax` at commit `d06f426`.
+- Local repository: `D:\project\fornax`, with the architecture audit revision
+  recorded as commit `d06f426`.
 - Workspace manifest: `Cargo.toml`.
 - Crate manifests: `crates/fornax-core/Cargo.toml`,
   `crates/fornax-dalim/Cargo.toml`, `crates/libraw/Cargo.toml`,

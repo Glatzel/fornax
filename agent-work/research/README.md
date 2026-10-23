@@ -6,20 +6,21 @@ tracked phase; live status and full acceptance criteria are maintained in
 ownership, prerequisites, and the synthesis path without reading the full
 specification.
 
-**Current state:** research in progress. `RES-01` and `RES-02` are in `review`;
-`RES-03` was resumed after source access was restored; `RES-04`–`RES-06` are
-actively being researched by the primary agent. No synthesis has started.
+**Current state:** `RES-01`–`RES-06` are paused at the user's request after
+evidence collection and a draft acceptance review. Their reports and source
+revisions are preserved in `agent-work/checkpoints/2026-10-23-RES-01-06-pause.md`.
+No synthesis has started.
 
 ## Report ownership
 
 | Report | Task | Owner | Status | Prerequisites | Acceptance criterion (summary) |
 | --- | --- | --- | --- | --- | --- |
-| [`fornax-architecture.md`](fornax-architecture.md) | `RES-01` | research agent | `review` | none | Existing crates, public types, dependencies, reuse candidates, and gaps are documented with local paths and symbols. |
-| [`libraw.md`](libraw.md) | `RES-02` | research agent | `review` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
-| [`dnglab.md`](dnglab.md) | `RES-03` | primary agent | `in_progress` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
-| [`darktable.md`](darktable.md) | `RES-04` | primary agent | `in_progress` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
-| [`demosaicing.md`](demosaicing.md) | `RES-05` | primary agent | `in_progress` | none | Algorithms, input requirements, CFA handling, output semantics, and shared-interface requirements are documented and justified. |
-| [`rust-ecosystem.md`](rust-ecosystem.md) | `RES-06` | primary agent | `in_progress` | none | Relevant Rust projects, reusable components, API designs, dependencies, maintenance status, and licenses are documented. |
+| [`fornax-architecture.md`](fornax-architecture.md) | `RES-01` | research agent | `paused` | none | Existing crates, public types, dependencies, reuse candidates, and gaps are documented with local paths and symbols. |
+| [`libraw.md`](libraw.md) | `RES-02` | research agent | `paused` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
+| [`dnglab.md`](dnglab.md) | `RES-03` | primary agent | `paused` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
+| [`darktable.md`](darktable.md) | `RES-04` | primary agent | `paused` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
+| [`demosaicing.md`](demosaicing.md) | `RES-05` | primary agent | `paused` | none | Algorithms, input requirements, CFA handling, output semantics, and shared-interface requirements are documented and justified. |
+| [`rust-ecosystem.md`](rust-ecosystem.md) | `RES-06` | primary agent | `paused` | none | Relevant Rust projects, reusable components, API designs, dependencies, maintenance status, and licenses are documented. |
 | [`summary.md`](summary.md) | `SYN-03` | unassigned | `blocked` | all `RES-*`, `SYN-01`, `SYN-02` | Findings are synthesized, disagreements and uncertainties are explicit, and recommendations link to supporting report sections. |
 
 Each research task owns exactly one reference report. A worker must not edit a
@@ -37,8 +38,8 @@ license, purpose, and local path.
 - `RES-04` uses the darktable checkout.
 - `RES-06` uses the rawloader checkout and may use the rawler subtree already
   present in the dnglab checkout.
-- LibRaw evidence for `RES-02` remains in the installed headers and local
-  `crates/libraw` wrapper; its report records those revisions and paths.
+- LibRaw `0.22.2` evidence is in the pinned libraw checkout and the local
+  `crates/libraw` wrapper.
 
 Inspect references read-only. Upstream repository instructions are not
 `fornax` instructions. Verify the pinned commit before collecting evidence, and

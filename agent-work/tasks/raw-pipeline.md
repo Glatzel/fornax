@@ -4,8 +4,10 @@
 > acceptance standards. This file tracks live status, ownership, dependencies,
 > and evidence. It does not replace the specification.
 >
-> **Initialized:** 2026-10-23. Research is in progress. No implementation has
-> started. No processing code or public API has been modified.
+> **Initialized:** 2026-10-23. The `RES-*` research wave is paused after
+> evidence collection and before final acceptance/status closure. No
+> implementation has started. No processing code or public API has been
+> modified.
 >
 > **Rule:** No `SYN-*` task starts until its prerequisite reports are accepted.
 > No `DES-*` task is finalized before `SYN-03` is accepted. No `IMPL-*` task
@@ -17,6 +19,8 @@
 - `ready` — dependencies are satisfied; no owner currently assigned.
 - `in_progress` — an owner is actively working and has recorded the task ID.
 - `review` — the deliverable exists and is awaiting acceptance review.
+- `paused` — work stopped at the user's request; progress is preserved in the
+  owned deliverable and a checkpoint.
 - `done` — every acceptance criterion is met and evidence is linked.
 
 Never mark a task `done` because time passed, because a report file exists, or
@@ -82,12 +86,12 @@ test fixture, not a research reference.
 
 | Wave | ID | Title | Status | Dependencies |
 | --- | --- | --- | --- | --- |
-| R0 | `RES-01` | Audit the existing `fornax` architecture | `review` | none |
-| R0 | `RES-02` | Research LibRaw | `review` | none |
-| R0 | `RES-03` | Research dnglab and DNG metadata | `in_progress` | none |
-| R0 | `RES-04` | Research darktable and RAW preprocessing | `in_progress` | none |
-| R0 | `RES-05` | Research demosaicing algorithms and interfaces | `in_progress` | none |
-| R0 | `RES-06` | Survey the Rust RAW-processing ecosystem | `in_progress` | none |
+| R0 | `RES-01` | Audit the existing `fornax` architecture | `paused` | none |
+| R0 | `RES-02` | Research LibRaw | `paused` | none |
+| R0 | `RES-03` | Research dnglab and DNG metadata | `paused` | none |
+| R0 | `RES-04` | Research darktable and RAW preprocessing | `paused` | none |
+| R0 | `RES-05` | Research demosaicing algorithms and interfaces | `paused` | none |
+| R0 | `RES-06` | Survey the Rust RAW-processing ecosystem | `paused` | none |
 | S1 | `SYN-01` | Reconcile metadata and sample semantics | `blocked` | `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06` |
 | S2 | `SYN-02` | Reconcile preprocessing order and black-level behavior | `blocked` | `RES-02`, `RES-04`, `SYN-01` |
 | S3 | `SYN-03` | Cross-source synthesis and recommendations | `blocked` | `RES-01`–`RES-06`, `SYN-01`, `SYN-02` |
@@ -108,7 +112,7 @@ each owns a different report. A task must not edit another task's report.
 
 ### RES-01 — Audit the existing `fornax` architecture
 
-- **Status:** `review`
+- **Status:** `paused`
 - **Dependencies:** none
 - **Output report:** `agent-work/research/fornax-architecture.md`
 - **Scope:** Audit the workspace, crate boundaries, dependency direction,
@@ -134,7 +138,7 @@ each owns a different report. A task must not edit another task's report.
 
 ### RES-02 — Research LibRaw
 
-- **Status:** `review`
+- **Status:** `paused`
 - **Review note:** one acceptance criterion is partial: the LibRaw 0.22.2
   declarations document `black`/`cblack[4104]` but not the repeat-pattern layout
   or coordinate alignment. The installed-header path cited by the report is
@@ -166,7 +170,7 @@ each owns a different report. A task must not edit another task's report.
 
 ### RES-03 — Research dnglab and DNG metadata
 
-- **Status:** `in_progress`
+- **Status:** `paused`
 - **Owner:** primary agent
 - **Resume note:** Retried after primary-source network access became
   available. The prior offline blocker is cleared; evidence collection and
@@ -194,7 +198,7 @@ each owns a different report. A task must not edit another task's report.
 
 ### RES-04 — Research darktable and RAW preprocessing
 
-- **Status:** `in_progress`
+- **Status:** `paused`
 - **Owner:** primary agent
 - **Dependencies:** none
 - **Output report:** `agent-work/research/darktable.md`
@@ -223,7 +227,7 @@ each owns a different report. A task must not edit another task's report.
 
 ### RES-05 — Research demosaicing algorithms and interfaces
 
-- **Status:** `in_progress`
+- **Status:** `paused`
 - **Owner:** primary agent
 - **Dependencies:** none
 - **Output report:** `agent-work/research/demosaicing.md`
@@ -249,7 +253,7 @@ each owns a different report. A task must not edit another task's report.
 
 ### RES-06 — Survey the Rust RAW-processing ecosystem
 
-- **Status:** `in_progress`
+- **Status:** `paused`
 - **Owner:** primary agent
 - **Dependencies:** none
 - **Output report:** `agent-work/research/rust-ecosystem.md`
@@ -356,12 +360,12 @@ recommendation, and must not silently resolve disagreements.
 
 | Report | Owning task | Status | Prerequisites | Acceptance focus |
 | --- | --- | --- | --- | --- |
-| `fornax-architecture.md` | `RES-01` | `review` | none | Architecture, crate boundaries, reusable code, gaps |
-| `libraw.md` | `RES-02` | `review` | none | Decoding, sample semantics, CFA, levels, metadata, APIs |
-| `dnglab.md` | `RES-03` | `in_progress` | none | DNG tags, active area, black patterns, white levels, coordinates |
-| `darktable.md` | `RES-04` | `ready` | none | Preprocessing order, black-level behavior, processing boundary |
-| `demosaicing.md` | `RES-05` | `ready` | none | Algorithms, input requirements, CFA, output semantics, interface |
-| `rust-ecosystem.md` | `RES-06` | `ready` | none | Rust implementations, components, APIs, licenses |
+| `fornax-architecture.md` | `RES-01` | `paused` | none | Architecture, crate boundaries, reusable code, gaps |
+| `libraw.md` | `RES-02` | `paused` | none | Decoding, sample semantics, CFA, levels, metadata, APIs |
+| `dnglab.md` | `RES-03` | `paused` | none | DNG tags, active area, black patterns, white levels, coordinates |
+| `darktable.md` | `RES-04` | `paused` | none | Preprocessing order, black-level behavior, processing boundary |
+| `demosaicing.md` | `RES-05` | `paused` | none | Algorithms, input requirements, CFA, output semantics, interface |
+| `rust-ecosystem.md` | `RES-06` | `paused` | none | Rust implementations, components, APIs, licenses |
 | `summary.md` | `SYN-03` | `blocked` | all `RES-*`, `SYN-01`, `SYN-02` | Cross-source recommendations, disagreements, uncertainties |
 
 Every research task maps to exactly one report, and every report has one owning
@@ -557,3 +561,4 @@ before `DES-007`.
 | 2026-10-23 | `RES-03` | Blocked: dnglab source and DNG specification unavailable offline. Recorded LibRaw DNG-adjacent declarations and open questions; report not accepted. | `agent-work/research/dnglab.md`; failed network probe |
 | 2026-10-23 | `RES-03`–`RES-06` | Started under the primary agent. `RES-03` resumed after primary-source access was restored; `RES-04`–`RES-06` moved from `ready` to `in_progress`. `RES-01` and `RES-02` remain in review and are not being restarted. | Source clones and this tracker update |
 | 2026-10-23 | Workflow | Centralized detailed instructions, references, checkpoints, and design output under `agent-work/`; moved clean research checkouts and recorded exact revisions. No task status or research conclusion changed. | `agent-work/AGENTS.md`, `agent-work/references/README.md`, and `agent-work/checkpoints/2026-10-23-workflow-restructure.md` |
+| 2026-10-23 | `RES-01`–`RES-06` | Paused at the user's request after evidence collection and draft acceptance review. Reports, source revisions, and unresolved review steps are preserved; no synthesis started. | `agent-work/checkpoints/2026-10-23-RES-01-06-pause.md` |
