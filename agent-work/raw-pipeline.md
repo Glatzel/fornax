@@ -1,8 +1,8 @@
 # Task: Research, Design, and Implement a Rust-Native RAW Processing Pipeline in `fornax`
 
-> **Status:** `RES-01`–`RES-06` are paused at the user's request after evidence
-> collection and draft acceptance review. Synthesis, design, and implementation
-> have not started.
+> **Status:** `RES-01`–`RES-08` are paused at the user's request after evidence
+> collection and draft acceptance review. `RES-09` is blocked on the split
+> ecosystem reports. Synthesis, design, and implementation have not started.
 >
 > **Authority:** This file is the authoritative task specification for the RAW
 > processing pipeline. `AGENTS.md` at the repository root contains only concise
@@ -32,6 +32,9 @@
 > │   ├── dnglab.md
 > │   ├── darktable.md
 > │   ├── demosaicing.md
+> │   ├── rust-raw-decoders.md
+> │   ├── rust-dng-tiff.md
+> │   ├── rust-demosaicing.md
 > │   ├── rust-ecosystem.md
 > │   ├── summary.md
 > │   └── notes/                   # synthesis working notes
@@ -53,12 +56,16 @@ instruction discovery remains reliable.
 
 Upstream repositories used as evidence live under `agent-work/references/`.
 They are read-only evidence sources, not project instructions, and must not be
-added to the Cargo workspace or production builds. The tracked
-`agent-work/references/README.md` records each upstream URL, branch,
-checked-out commit, license, purpose, and any exception. Verify a checkout with
+added to the Cargo workspace or production builds. They are pinned Git
+submodules so a fresh checkout can reproduce the evidence and a maintainer can
+review upstream updates deliberately. The tracked
+`agent-work/references/README.md` records each upstream URL, branch, pinned
+commit, license, purpose, and any exception. Verify a checkout with
 `git -C <path> rev-parse HEAD` and `git -C <path> status --short` before using
 it. Do not move a reference to a new revision in the middle of a task without
-recording the change in the owning report.
+recording the change in the owning report. Update the submodule gitlink,
+manifest revision, and affected reports together; `git submodule update
+--remote` alone is not a completed reference update.
 
 The existing `external/raw-images` submodule is a production test-fixture
 dependency, not a research reference. Keep it at its current path.
@@ -85,6 +92,34 @@ The target pipeline is:
 The pipeline ends at demosaicing. Do not implement downstream white balance application, color correction, color-space conversion, tone mapping, denoising, sharpening, or display rendering.
 
 The primary deliverable is a well-researched and documented design, followed by an implementation whose progress and dependencies are explicitly tracked.
+
+### Initial sensor and file-format scope
+
+The initial pipeline targets a single-plane, conventional 2x2 RGB Bayer mosaic.
+The four Bayer phases (`RGGB`, `BGGR`, `GRBG`, and `GBRG`) are in scope, with
+CFA origin and crop alignment represented explicitly. Every other mosaic or
+sensor layout must produce a structured unsupported-layout error.
+
+The initial file-format target is:
+
+| Priority | Format | Initial target |
+| --- | --- | --- |
+| P0 | DNG | Standard TIFF/EP-based Bayer DNG |
+| P0 | Sony ARW | Sony Bayer RAW |
+| P0 | Nikon NEF | Nikon Bayer RAW |
+| P0 | Canon `CR*` | Canon Bayer RAW, with `CR2` and `CR3` expected in the regression matrix |
+
+The following are explicitly deferred and documented as future work, not
+implicitly supported:
+
+- Fujifilm X-Trans sensors and RAF files.
+- Sigma Foveon/X3 sensors and X3F files.
+- Quad Bayer, four-color CFA, monochrome, linearized/non-mosaic, and any other
+  non-conventional-Bayer payload.
+- RAW formats other than DNG, Sony ARW, Nikon NEF, and Canon `CR*`.
+
+Research may inspect non-target layouts to understand why they must be rejected,
+but no initial task is required to decode, preprocess, or demosaic them.
 
 ## 2. Phase A — Repository audit and reference research
 
@@ -138,10 +173,15 @@ the normative scope.
 | `RES-03` | `agent-work/research/dnglab.md` | DNG metadata, tags, active area, black-level patterns, white levels, coordinates | none | Yes, wave R0 |
 | `RES-04` | `agent-work/research/darktable.md` | RAW preprocessing pipeline, black-level correction, CFA handling, processing boundary | none | Yes, wave R0 |
 | `RES-05` | `agent-work/research/demosaicing.md` | Demosaicing algorithms, inputs, CFA handling, output semantics, common interfaces | none | Yes, wave R0 |
-| `RES-06` | `agent-work/research/rust-ecosystem.md` | Rust RAW decoders, demosaicing implementations, components, API designs, dependencies, licenses | none | Yes, wave R0 |
+| `RES-06` | `agent-work/research/rust-raw-decoders.md` | Rust RAW decoder crates, representations, target-format coverage, maintenance, licenses | none | Yes, wave R0 |
+| `RES-07` | `agent-work/research/rust-dng-tiff.md` | Rust TIFF/DNG building blocks, sample layout, errors, dependency suitability | none | Yes, wave R0 |
+| `RES-08` | `agent-work/research/rust-demosaicing.md` | Rust demosaicing crates, Bayer input/output contracts, validation, test patterns | none | Yes, wave R0 |
+| `RES-09` | `agent-work/research/rust-ecosystem.md` | Cross-report comparison, reuse boundary, dependency and license recommendation | `RES-06`, `RES-07`, `RES-08` | After R0 |
 
 Each research task owns exactly one report. A task may reference another report,
-but it must not edit it. The six tasks form wave R0 and may run concurrently.
+but it must not edit it. `RES-01`–`RES-08` form independent wave R0 and may run
+concurrently. `RES-09` compares only the three Rust ecosystem reports after they
+are ready.
 
 #### RES-01 — Audit the existing `fornax` architecture
 
@@ -158,7 +198,8 @@ but it must not edit it. The six tasks form wave R0 and may run concurrently.
 - **Acceptance criteria:** Every public trait, type, and function relevant to
   decoding, metadata, preprocessing, or demosaicing is listed with path and
   symbol. Current limitations are explicit, including the absence of metadata,
-  black/white levels, crop, and non-Bayer support. Reuse candidates are
+  black/white levels, crop, and structured rejection of non-Bayer layouts.
+  Reuse candidates are
   separated from code that must be replaced. Dependency direction is documented.
   The report satisfies the required report structure.
 - **Parallelization:** Independent. Owns only
@@ -171,8 +212,9 @@ but it must not edit it. The six tasks form wave R0 and may run concurrently.
   exposure. Establish the meaning of `rawdata.raw_image`, `color4_image`,
   dimensions, `filters`, black levels, white levels, saturation, crop, masks,
   and margins. Distinguish original sensor codes from unpacked, linearized, or
-  already processed samples. Record the relevant public APIs and the behavior of
-  the existing `libraw` wrapper.
+  already processed samples. Prioritize behavior needed for DNG, Sony ARW, Nikon
+  NEF, and Canon `CR*` Bayer images. Record the relevant public APIs and the
+  behavior of the existing `libraw` wrapper.
 - **Evidence requirements:** Cite upstream repository URL, version or commit,
   source path, symbol, line range, and tests or documentation where applicable.
   Inspect implementation code rather than relying on README prose. Record
@@ -181,9 +223,10 @@ but it must not edit it. The six tasks form wave R0 and may run concurrently.
   coordinate convention, sentinel values, and validity conditions. Black-level
   repeat-pattern and per-channel semantics are explained, including alignment
   with sensor coordinates. The difference between `raw_image` and processed
-  output is stated. A field-to-universal-candidate mapping is provided. Claims
-  that cannot be verified are labeled `[inference]`. The report satisfies the
-  required report structure.
+  output is stated. A field-to-universal-candidate mapping is provided. Coverage
+  distinguishes the initial DNG/ARW/NEF/CR* target from deferred formats and
+  non-Bayer payloads. Claims that cannot be verified are labeled `[inference]`.
+  The report satisfies the required report structure.
 - **Parallelization:** Independent. Owns only `agent-work/research/libraw.md`.
   Coordinates scope with `RES-06` to avoid duplicate ecosystem coverage.
 
@@ -193,7 +236,9 @@ but it must not edit it. The six tasks form wave R0 and may run concurrently.
 - **Scope:** Inspect dnglab's DNG parsing, raw-image representation, CFA
   handling, black/white level interpretation, active area, default crop,
   orientation, and decoder output semantics. Compare source behavior with the
-  DNG specification where the source is ambiguous.
+  DNG specification where the source is ambiguous. Limit the supported target
+  to standard Bayer DNG payloads; identify non-Bayer cases for explicit
+  rejection and future work.
 - **Evidence requirements:** Cite dnglab repository URL, version or commit,
   source paths, symbols, tests, and the relevant DNG specification sections.
   Record tag names, types, defaults, units, and coordinate conventions.
@@ -206,7 +251,8 @@ but it must not edit it. The six tasks form wave R0 and may run concurrently.
   Licensing constraints are recorded. The report satisfies the required report
   structure.
 - **Parallelization:** Independent. Owns only `agent-work/research/dnglab.md`.
-  Coordinates scope with `RES-06` to avoid duplicate ecosystem coverage.
+  Coordinates scope with `RES-06` and `RES-07` to avoid duplicate ecosystem
+  coverage.
 
 #### RES-04 — Research darktable and RAW preprocessing
 
@@ -214,8 +260,9 @@ but it must not edit it. The six tasks form wave R0 and may run concurrently.
 - **Scope:** Inspect darktable's actual RAW preprocessing pipeline, including
   rawprepare, temperature, demosaic, and related modules. Determine the order of
   sensor-domain operations, how black and white levels and masks are
-  represented, and where demosaicing sits. Verify the exact project and
-  repository intended by any reference to "darkroom".
+  represented, and where demosaicing sits. Use conventional Bayer behavior as
+  the initial target. Verify the exact project and repository intended by any
+  reference to "darkroom".
 - **Evidence requirements:** Cite darktable repository URL, version or commit,
   module source paths, symbols, and tests. Describe formulas and units. Use
   implementation code for behavior that documentation does not establish.
@@ -235,7 +282,9 @@ but it must not edit it. The six tasks form wave R0 and may run concurrently.
 - **Scope:** Survey bilinear, Malvar–He–Cutler, and representative edge-aware or
   higher-quality algorithms. Record input requirements, CFA assumptions, border
   handling, output semantics, numeric range, metadata needs, and complexity.
-  Inspect the existing `fornax-dalim` implementation and benchmark.
+  Inspect the existing `fornax-dalim` implementation and benchmark. Restrict
+  candidate evaluation and the initial recommendation to conventional 2x2 RGB
+  Bayer mosaics; record X-Trans, Foveon, and other layouts only as future work.
 - **Evidence requirements:** Cite papers, reference implementations, source
   paths, and tests. Distinguish algorithm properties from implementation
   choices. Record the exact version or commit of inspected implementations.
@@ -250,30 +299,88 @@ but it must not edit it. The six tasks form wave R0 and may run concurrently.
   `agent-work/research/demosaicing.md`. Algorithm implementations remain blocked
   until design review.
 
-#### RES-06 — Survey the Rust RAW-processing ecosystem
+#### RES-06 — Survey Rust RAW decoder crates
+
+- **Output report:** `agent-work/research/rust-raw-decoders.md`
+- **Scope:** Evaluate Rust RAW decoder crates as adapters or evidence, initially
+  rawloader and rawler's decoder-facing API. Record target-format coverage,
+  stored sample representation, crop/CFA metadata, active/default crop,
+  orientation, black/white metadata, preprocessing state, errors, and camera
+  catalog shape. Keep DNG tag semantics in `RES-03`, TIFF internals in `RES-07`,
+  and LibRaw internals in `RES-02`.
+- **Evidence requirements:** Cite repository URL, commit, source paths,
+  symbols, tests, and license files. Distinguish reusable code from reusable
+  ideas. State whether coverage for DNG, Sony ARW, Nikon NEF, and Canon `CR*` was
+  verified or remains unknown.
+- **Acceptance criteria:** Each decoder crate has a source-verified sample and
+  metadata model; target-format coverage and Bayer/non-Bayer behavior are
+  explicit; maintenance, license, adapter risks, and unsupported cases are
+  recorded; inferred claims are labeled `[inference]`; and the report contains
+  the six required sections.
+- **Parallelization:** Independent. Owns only
+  `agent-work/research/rust-raw-decoders.md`.
+
+#### RES-07 — Survey Rust TIFF and DNG building blocks
+
+- **Output report:** `agent-work/research/rust-dng-tiff.md`
+- **Scope:** Evaluate maintained Rust TIFF/DNG parsing and sample-layout
+  components that could support the DNG adapter without duplicating `RES-03`
+  tag semantics. Start with image-rs/image-tiff and any relevant DNG-facing API
+  exposed by rawler. Assess sample types, strips/tiles, compression hooks,
+  metadata access, row/plane strides, limits, errors, and extension points.
+- **Evidence requirements:** Cite repository URL, commit, source paths,
+  symbols, tests, and licenses. Distinguish what is verified for Bayer DNG from
+  generic TIFF capability.
+- **Acceptance criteria:** Candidate building blocks have source-verified
+  capabilities and gaps for Bayer DNG; adding a dependency is compared with
+  implementing the minimal parser; errors and limits are documented; deferred
+  non-Bayer payloads are not presented as supported; and the report contains the
+  six required sections.
+- **Parallelization:** Independent. Owns only
+  `agent-work/research/rust-dng-tiff.md`. Coordinates with `RES-03` and
+  `RES-06`.
+
+#### RES-08 — Survey Rust demosaicing crates and interface patterns
+
+- **Output report:** `agent-work/research/rust-demosaicing.md`
+- **Scope:** Evaluate maintained Rust demosaicing implementations and API
+  patterns, including the `demosaic` crate and MeraRAW Demosaic. Focus on
+  conventional Bayer input/output, border policy, validation, errors, strategy
+  registration, and synthetic-test patterns. Coordinate algorithm quality and
+  the initial algorithm set with `RES-05`.
+- **Evidence requirements:** Cite repository URL, commit, source paths,
+  symbols, tests, and licenses. Separate reusable code from reusable interface
+  ideas.
+- **Acceptance criteria:** Bayer API contracts, borders, validation, errors,
+  maintenance, licenses, and reusable test patterns are source-verified;
+  X-Trans/Foveon/Quad Bayer support is noted but excluded from the initial
+  recommendation; and the report contains the six required sections.
+- **Parallelization:** Independent. Owns only
+  `agent-work/research/rust-demosaicing.md`.
+
+#### RES-09 — Compare Rust ecosystem candidates
 
 - **Output report:** `agent-work/research/rust-ecosystem.md`
-- **Scope:** Identify relevant Rust RAW decoders, DNG/TIFF libraries, demosaicing
-  implementations, reusable components, API designs, dependency choices, and
-  licenses. Include rawloader, rawler, image-rs decoders, and other maintained
-  projects where relevant. Do not re-document LibRaw or dnglab internals.
-- **Evidence requirements:** Cite repository URL, version or commit, source
-  paths, symbols, tests, and license files. Record maintenance status and API
-  shape. Distinguish reusable code from reusable ideas.
-- **Acceptance criteria:** Each surveyed project has a source-verified summary of
-  its sample representation, metadata model, CFA handling, and preprocessing.
-  Reusable ideas and reusable code are distinguished, with license constraints
-  recorded. Unmaintained or unsuitable projects are named with a reason.
-  Findings that are inferred are labeled `[inference]`. The report satisfies the
-  required report structure.
-- **Parallelization:** Independent. Owns only
-  `agent-work/research/rust-ecosystem.md`. Coordinates scope with `RES-02` and
-  `RES-03`.
+- **Scope:** Compare the findings from `RES-06`–`RES-08` without repeating their
+  evidence. Produce a decision matrix for decoder adapters, DNG/TIFF reuse, and
+  demosaicing interfaces; recommend which components are dependencies, optional
+  backends, design references, or unsuitable.
+- **Evidence requirements:** Link every conclusion to the split reports. Keep
+  source citations in the owned reports and call out license or maintenance
+  conflicts explicitly.
+- **Acceptance criteria:** Every candidate is compared on scope fit, Bayer/target
+  format fit, API boundary, maintenance, and license; recommendations are
+  traceable to `RES-06`–`RES-08`; no whole upstream RAW type is recommended for
+  `fornax-core` without an explicit boundary; and the report contains the six
+  required sections.
+- **Parallelization:** Starts after `RES-06`, `RES-07`, and `RES-08` are in
+  `review` or `done`. Owns only `agent-work/research/rust-ecosystem.md`.
 
 ### Required report structure
 
 Every reference report (`fornax-architecture.md`, `libraw.md`, `dnglab.md`,
-`darktable.md`, `demosaicing.md`, `rust-ecosystem.md`) must contain:
+`darktable.md`, `demosaicing.md`, `rust-raw-decoders.md`,
+`rust-dng-tiff.md`, `rust-demosaicing.md`, `rust-ecosystem.md`) must contain:
 
 1. **Scope and questions** — what was investigated and the specific questions.
 2. **Findings** — specific technical behavior and design details.
@@ -317,9 +424,9 @@ prerequisite reports are accepted. It must not silently reconcile disagreements.
 
 | ID | Output | Reconciles | Depends on |
 | --- | --- | --- | --- |
-| `SYN-01` | `agent-work/research/notes/SYN-01.md` | Metadata and sample semantics | `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06` |
+| `SYN-01` | `agent-work/research/notes/SYN-01.md` | Metadata and sample semantics | `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06`, `RES-07` |
 | `SYN-02` | `agent-work/research/notes/SYN-02.md` | Preprocessing order and black-level behavior | `RES-02`, `RES-04`, `SYN-01` |
-| `SYN-03` | `agent-work/research/summary.md` | Cross-source synthesis and recommendations | `RES-01`–`RES-06`, `SYN-01`, `SYN-02` |
+| `SYN-03` | `agent-work/research/summary.md` | Cross-source synthesis and recommendations | `RES-01`–`RES-09`, `SYN-01`, `SYN-02` |
 
 `SYN-01` must specifically examine:
 
@@ -347,13 +454,15 @@ when sources disagree, and remaining uncertainty.
 - The precise boundary before demosaicing, and which later operations must
   remain unapplied.
 - Mandatory, optional, format-dependent, and unsupported operations.
+- Which operations are exercised by the initial Bayer DNG/ARW/NEF/CR* scope and
+  which are explicitly deferred for other formats or sensor layouts.
 
 It must produce an operation table with inputs, outputs, formulas, error
 behavior, ordering constraints, and synthetic-test strategy.
 
 `SYN-03` must:
 
-- Compare findings across all six reference reports.
+- Compare findings across all nine reference reports.
 - Document agreements, disagreements, uncertainties, and remaining questions.
 - Make evidence-backed recommendations for the `fornax` architecture.
 - Link each conclusion to the supporting report and section. It must not
@@ -369,7 +478,7 @@ behavior, ordering constraints, and synthetic-test strategy.
   cite the supporting `RES-*` or `SYN-*` task IDs, or explicitly state their
   assumptions.
 - No implementation task starts before the `DES-007` design review gate.
-- The research phase is complete only when `RES-01`–`RES-06` and `SYN-01`–
+- The research phase is complete only when `RES-01`–`RES-09` and `SYN-01`–
   `SYN-03` are `done` with satisfied acceptance criteria.
 - A report file existing is not evidence of completion.
 
@@ -383,6 +492,9 @@ agent-work/research/
 ├── dnglab.md
 ├── darktable.md
 ├── demosaicing.md
+├── rust-raw-decoders.md
+├── rust-dng-tiff.md
+├── rust-demosaicing.md
 ├── rust-ecosystem.md
 ├── summary.md
 └── notes/
@@ -430,9 +542,11 @@ Evaluate the following information and specify the exact type, units, semantics,
 - Exposure and other relevant capture metadata.
 - Original file metadata, decoder provenance, and source-format information.
 
-Do not assume that all RAW files contain a conventional Bayer mosaic.
-
-Explicitly define how unsupported CFA layouts, monochrome sensors, unusual sample encodings, and non-mosaic RAW data are represented or rejected.
+The initial implementation supports only the conventional Bayer layouts defined
+in Section 1. Do not generalize shared behavior to X-Trans, Foveon, Quad Bayer,
+four-color, monochrome, or non-mosaic payloads without a separately accepted
+task. Define how those layouts and unusual sample encodings are rejected with
+structured errors while keeping enough scope for a future extension.
 
 Separate immutable descriptive metadata from mutable processing state. Define which invariants must hold before and after each pipeline stage.
 
@@ -567,9 +681,9 @@ Create and refine tasks covering at least the following workstreams.
 
 **A. Research, synthesis, and shared contracts**
 
-- `RES-01` through `RES-06`: the six independent report-owning research tasks
-  defined in Section 2. All are `ready` at initialization and may run
-  concurrently. Each report has exactly one owner.
+- `RES-01` through `RES-08`: independent report-owning source research tasks.
+  Each report has exactly one owner and may run concurrently.
+- `RES-09`: ecosystem comparison after the three split Rust reports.
 - `SYN-01` through `SYN-03`: reconcile metadata and sample semantics,
   preprocessing order and black-level behavior, and cross-source
   recommendations. Each is `blocked` on its listed reports; `SYN-03` produces
@@ -590,7 +704,10 @@ Create and refine tasks covering at least the following workstreams.
 - Implement or adapt the initial RAW decoder backend.
 - Map source metadata into the universal representation.
 - Validate buffer layout, sample semantics, and CFA alignment.
-- Add decoder integration tests and format-specific regression tests.
+- Add decoder integration tests for Bayer DNG, Sony ARW, Nikon NEF, and Canon
+  `CR*` files.
+- Add explicit rejection tests for X-Trans, Foveon, other non-Bayer payloads, and
+  deferred RAW formats.
 
 **C. Preprocessing**
 
@@ -629,20 +746,27 @@ Each algorithm must have independent implementation and test criteria. Multiple 
 
 Represent dependencies explicitly. The dependency graph is:
 
-`RES-01..06 → SYN-01 → SYN-02 → SYN-03 → DES-001..007 → IMPL-* → QA-*`
+`RES-01..08 → SYN-01 → SYN-02 → SYN-03`
+
+`RES-06..08 → RES-09 → SYN-03`
+
+`SYN-03 → DES-001..007 → IMPL-* → QA-*`
 
 Execution waves:
 
-- **Wave R0 — independent research.** `RES-01` through `RES-06` are independent
+- **Wave R0 — independent research.** `RES-01` through `RES-08` are independent
   and may run concurrently. Their live readiness is recorded in the tracker;
   a task that is `review`, `blocked`, or `done` must not be restarted merely
   because it belongs to this wave. Each worker owns one task ID and exactly one
   report file.
+- **Wave R1 — ecosystem comparison.** `RES-09` starts after `RES-06`,
+  `RES-07`, and `RES-08` are in `review` or `done`.
 - **Wave S1 — metadata and sample synthesis.** `SYN-01` starts after `RES-01`,
-  `RES-02`, `RES-03`, `RES-04`, and `RES-06` are in `review` or `done`.
+  `RES-02`, `RES-03`, `RES-04`, `RES-06`, and `RES-07` are in `review` or
+  `done`.
 - **Wave S2 — preprocessing synthesis.** `SYN-02` starts after `RES-02`,
   `RES-04`, and `SYN-01` are accepted.
-- **Wave S3 — cross-source synthesis.** `SYN-03` starts after all six reports and
+- **Wave S3 — cross-source synthesis.** `SYN-03` starts after all nine reports and
   both synthesis notes are accepted, and produces `summary.md`.
 - **Wave D — design.** `DES-001` through `DES-006` start only after their listed
   `SYN-*` dependencies are accepted. `DES-007` also requires `SYN-03`.
@@ -702,6 +826,11 @@ The test plan must cover:
 7. Regression tests for existing `fornax` behavior.
 8. Performance tests for representative image sizes, allocations, and buffer copies.
 
+The initial real-file acceptance matrix is DNG, Sony ARW, Nikon NEF, and Canon
+`CR*` (including `CR2` and `CR3` coverage), using only conventional Bayer
+payloads. Test fixtures for Fujifilm X-Trans, Sigma Foveon, other non-Bayer
+layouts, and deferred formats are rejection tests, not supported-format tests.
+
 Do not use visual plausibility as the only correctness criterion. Explain expected differences caused by decoder conventions, algorithm choices, or rounding.
 
 Run the repository's applicable formatting, lint, test, and build commands. Record actual results and any checks that could not be run.
@@ -710,7 +839,8 @@ Run the repository's applicable formatting, lint, test, and build commands. Reco
 
 Work in this order:
 
-1. Start `RES-01` through `RES-06` as concurrent, tracked research tasks.
+1. Start `RES-01` through `RES-08` as concurrent, tracked research tasks. Run
+   `RES-09` only after the three Rust ecosystem reports are ready.
 2. Have each owner record findings and evidence in exactly one report under
    `agent-work/research/`.
 3. Run `SYN-01` after its prerequisite reports are accepted, then `SYN-02`

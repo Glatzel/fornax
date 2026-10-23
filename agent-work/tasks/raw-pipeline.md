@@ -13,6 +13,63 @@
 > No `DES-*` task is finalized before `SYN-03` is accepted. No `IMPL-*` task
 > becomes `ready` until `DES-007` is accepted.
 
+## Initial support scope
+
+These are planned targets, not claims of implemented support.
+
+| Area | In initial scope | Deferred |
+| --- | --- | --- |
+| CFA | Single-plane conventional 2x2 RGB Bayer: `RGGB`, `BGGR`, `GRBG`, `GBRG`, with explicit origin/crop alignment | Fujifilm X-Trans, Sigma Foveon/X3, Quad Bayer, four-color CFA, monochrome, and non-mosaic payloads |
+| Files | DNG, Sony ARW, Nikon NEF, Canon `CR*` (`CR2` and `CR3` expected in regression coverage) | Every other RAW format |
+
+Deferred layouts and formats must be documented and rejected with structured
+errors. A future task may expand this matrix; current tasks must not infer
+support from an upstream decoder's broader catalog.
+
+## Task dashboard
+
+The dashboard is the fast operational view. Detailed scope and acceptance
+criteria follow below.
+
+| Wave | ID | Work | Status | Depends on | Deliverable |
+| --- | --- | --- | --- | --- | --- |
+| R0 | `RES-01` | Audit `fornax` architecture | `paused` | none | `research/fornax-architecture.md` |
+| R0 | `RES-02` | Research LibRaw semantics | `paused` | none | `research/libraw.md` |
+| R0 | `RES-03` | Research dnglab and DNG metadata | `paused` | none | `research/dnglab.md` |
+| R0 | `RES-04` | Research darktable preprocessing | `paused` | none | `research/darktable.md` |
+| R0 | `RES-05` | Research Bayer demosaicing algorithms | `paused` | none | `research/demosaicing.md` |
+| R0 | `RES-06` | Survey Rust RAW decoders | `paused` | none | `research/rust-raw-decoders.md` |
+| R0 | `RES-07` | Survey Rust TIFF/DNG building blocks | `paused` | none | `research/rust-dng-tiff.md` |
+| R0 | `RES-08` | Survey Rust demosaicing crates | `paused` | none | `research/rust-demosaicing.md` |
+| R1 | `RES-09` | Compare Rust ecosystem candidates | `blocked` | `RES-06`–`RES-08` | `research/rust-ecosystem.md` |
+| S1 | `SYN-01` | Reconcile metadata and sample semantics | `blocked` | `RES-01`–`RES-04`, `RES-06`, `RES-07` | `research/notes/SYN-01.md` |
+| S2 | `SYN-02` | Reconcile preprocessing and black levels | `blocked` | `RES-02`, `RES-04`, `SYN-01` | `research/notes/SYN-02.md` |
+| S3 | `SYN-03` | Cross-source synthesis | `blocked` | `RES-01`–`RES-09`, `SYN-01`, `SYN-02` | `research/summary.md` |
+| D | `DES-001` | Universal RAW representation | `blocked` | `SYN-01`, `SYN-02`, `DES-003` | `design/raw-pipeline.md` |
+| D | `DES-002` | Extensible metadata and provenance | `blocked` | `SYN-01` | `design/raw-pipeline.md` |
+| D | `DES-003` | Bayer CFA model and indexing | `blocked` | `SYN-01` | `design/raw-pipeline.md` |
+| D | `DES-004` | Preprocessing and processing state | `blocked` | `SYN-01`, `SYN-02`, `DES-001`, `DES-003` | `design/raw-pipeline.md` |
+| D | `DES-005` | Shared demosaicing interface | `blocked` | `SYN-01`, `SYN-03`, `DES-001`, `DES-003` | `design/raw-pipeline.md` |
+| D | `DES-006` | Crate boundaries | `blocked` | `SYN-03`, `DES-001`, `DES-004`, `DES-005` | `design/raw-pipeline.md` |
+| Gate | `DES-007` | Design review and acceptance | `blocked` | `SYN-03`, `DES-001`–`DES-006` | review in design report |
+| I | `IMPL-*` | Implementation backlog | `blocked` | `DES-007` and accepted interfaces | source and tests |
+| Q | `QA-*` | Integration and regression | `blocked` | relevant `IMPL-*` | test evidence |
+
+```mermaid
+flowchart LR
+    R0["RES-01..05<br/>source research"] --> S1["SYN-01<br/>metadata and samples"]
+    RUST["RES-06..08<br/>Rust source research"] --> S1
+    RUST --> R9["RES-09<br/>Rust ecosystem comparison"]
+    R9 --> S3["SYN-03<br/>cross-source synthesis"]
+    S1 --> S2
+    S1 --> S3
+    S2 --> S3
+    S3 --> D["DES-001..006<br/>design"]
+    D --> G["DES-007<br/>acceptance gate"]
+    G --> I["IMPL-*<br/>implementation"]
+    I --> Q["QA-*<br/>validation"]
+```
+
 ## Status legend
 
 - `blocked` — cannot start; an upstream task or decision is unresolved.
@@ -65,8 +122,15 @@ symbol: LibRaw::unpack().
 
 The tracked reference manifest is
 `agent-work/references/README.md`. It records each upstream URL, branch,
-checked-out commit, license, purpose, local path, and any exception. Verify a
-checkout before use:
+pinned commit, license, purpose, local path, and any exception. Research
+references are Git submodules under `agent-work/references/`; initialize them
+with the rest of the workspace:
+
+```powershell
+git submodule update --init --recursive
+```
+
+Verify a checkout before use:
 
 ```powershell
 git -C agent-work/references/darktable rev-parse HEAD
@@ -77,38 +141,16 @@ git -C agent-work/references/other/rawloader rev-parse HEAD
 git -C agent-work/references/other/rawloader status --short
 ```
 
-Local checkout contents are ignored by the root repository to keep foreign
-source and history out of `fornax`. They are not submodules and are not Cargo
-workspace members. The existing `external/raw-images` submodule is a production
-test fixture, not a research reference.
-
-## Task overview
-
-| Wave | ID | Title | Status | Dependencies |
-| --- | --- | --- | --- | --- |
-| R0 | `RES-01` | Audit the existing `fornax` architecture | `paused` | none |
-| R0 | `RES-02` | Research LibRaw | `paused` | none |
-| R0 | `RES-03` | Research dnglab and DNG metadata | `paused` | none |
-| R0 | `RES-04` | Research darktable and RAW preprocessing | `paused` | none |
-| R0 | `RES-05` | Research demosaicing algorithms and interfaces | `paused` | none |
-| R0 | `RES-06` | Survey the Rust RAW-processing ecosystem | `paused` | none |
-| S1 | `SYN-01` | Reconcile metadata and sample semantics | `blocked` | `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06` |
-| S2 | `SYN-02` | Reconcile preprocessing order and black-level behavior | `blocked` | `RES-02`, `RES-04`, `SYN-01` |
-| S3 | `SYN-03` | Cross-source synthesis and recommendations | `blocked` | `RES-01`–`RES-06`, `SYN-01`, `SYN-02` |
-| D | `DES-001` | Universal RAW representation and typed common metadata | `blocked` | `SYN-01`, `SYN-02`, `DES-003` |
-| D | `DES-002` | Extensible metadata and provenance | `blocked` | `SYN-01` |
-| D | `DES-003` | CFA representation and indexing semantics | `blocked` | `SYN-01` |
-| D | `DES-004` | Preprocessing operations and processing state | `blocked` | `SYN-01`, `SYN-02`, `DES-001`, `DES-003` |
-| D | `DES-005` | Shared demosaicing interface | `blocked` | `SYN-01`, `SYN-03`, `DES-001`, `DES-003` |
-| D | `DES-006` | Crate architecture and dependency boundaries | `blocked` | `SYN-03`, `DES-001`, `DES-004`, `DES-005` |
-| GATE | `DES-007` | Design review and acceptance gate | `blocked` | `SYN-03`, `DES-001`–`DES-006` |
-| I | `IMPL-*` | Implementation backlog | `blocked` | `DES-007` and accepted interfaces |
-| Q | `QA-*` | Integration, regression, and validation | `blocked` | relevant `IMPL-*` |
+The submodule gitlinks pin the evidence revisions. Their contents are excluded
+from Cargo workspaces and production builds, even though the gitlinks are
+tracked for reproducibility. The existing `external/raw-images` submodule is a
+production test fixture and remains separate from research references.
 
 ## Wave R0 — Independent reference reports
 
-All six tasks are `ready` at initialization. They may run concurrently because
-each owns a different report. A task must not edit another task's report.
+`RES-01`–`RES-08` may run concurrently because each owns a different report.
+`RES-09` runs after the three split Rust ecosystem reports are ready. A task
+must not edit another task's report.
 
 ### RES-01 — Audit the existing `fornax` architecture
 
@@ -128,7 +170,7 @@ each owns a different report. A task must not edit another task's report.
   1. Every public trait, type, and function relevant to decoding, metadata,
      preprocessing, or demosaicing is listed with path and symbol.
   2. Current limitations are explicit, including the absence of metadata,
-     black/white levels, crop, and non-Bayer support.
+     black/white levels, crop, and structured non-Bayer rejection.
   3. Reuse candidates are separated from code that must be replaced.
   4. Dependency direction is documented, including `fornax-core`'s use of
      `image` and `libraw`'s coupling to `fornax-core`.
@@ -150,8 +192,9 @@ each owns a different report. A task must not edit another task's report.
   exposure. Establish the meaning of `rawdata.raw_image`, `color4_image`,
   dimensions, `filters`, black levels, white levels, saturation, crop, masks,
   and margins. Distinguish original sensor codes from unpacked, linearized, or
-  already processed samples. Record the relevant public APIs and the behavior of
-  the existing `libraw` wrapper.
+  already processed samples. Prioritize evidence needed for Bayer DNG, Sony
+  ARW, Nikon NEF, and Canon `CR*`; other formats are future work. Record the
+  relevant public APIs and the behavior of the existing `libraw` wrapper.
 - **Evidence requirements:** Cite upstream repository URL, version or commit,
   source path, symbol, line range, and tests or documentation where applicable.
   Inspect implementation code rather than relying on README prose. Record
@@ -163,10 +206,13 @@ each owns a different report. A task must not edit another task's report.
      including alignment with sensor coordinates.
   3. The difference between `raw_image` and processed output is stated.
   4. A field-to-universal-candidate mapping is provided.
-  5. Unverified claims are labeled `[inference]`.
-  6. The report contains the six required sections and cites sources.
+  5. Target-format coverage is separated from deferred formats and non-Bayer
+     payloads.
+  6. Unverified claims are labeled `[inference]`.
+  7. The report contains the six required sections and cites sources.
 - **Parallelization:** Independent. Owns only `agent-work/research/libraw.md`.
-  Coordinates scope with `RES-06` to avoid duplicate ecosystem coverage.
+  Coordinates scope with `RES-06` and `RES-07` to avoid duplicate ecosystem
+  coverage.
 
 ### RES-03 — Research dnglab and DNG metadata
 
@@ -180,7 +226,8 @@ each owns a different report. A task must not edit another task's report.
 - **Scope:** Inspect dnglab's DNG parsing, raw-image representation, CFA
   handling, black/white level interpretation, active area, default crop,
   orientation, and decoder output semantics. Compare source behavior with the
-  DNG specification where the source is ambiguous.
+  DNG specification where the source is ambiguous. The initial target is
+  standard Bayer DNG; identify non-Bayer cases for explicit rejection.
 - **Evidence requirements:** Cite dnglab repository URL, version or commit,
   source paths, symbols, tests, and the relevant DNG specification sections.
   Record tag names, types, defaults, units, and coordinate conventions.
@@ -192,9 +239,11 @@ each owns a different report. A task must not edit another task's report.
      related tags are covered or explicitly excluded with a reason.
   3. Differences between DNG and vendor RAW metadata are identified.
   4. Licensing constraints are recorded.
-  5. The report contains the six required sections and cites sources.
+  5. Standard Bayer DNG is distinguished from deferred non-Bayer DNG payloads.
+  6. The report contains the six required sections and cites sources.
 - **Parallelization:** Independent. Owns only `agent-work/research/dnglab.md`.
-  Coordinates scope with `RES-06` to avoid duplicate ecosystem coverage.
+  Coordinates scope with `RES-06` and `RES-07` to avoid duplicate ecosystem
+  coverage.
 
 ### RES-04 — Research darktable and RAW preprocessing
 
@@ -234,7 +283,8 @@ each owns a different report. A task must not edit another task's report.
 - **Scope:** Survey bilinear, Malvar–He–Cutler, and representative edge-aware or
   higher-quality algorithms. Record input requirements, CFA assumptions, border
   handling, output semantics, numeric range, metadata needs, and complexity.
-  Inspect the existing `fornax-dalim` implementation and benchmark.
+  Inspect the existing `fornax-dalim` implementation and benchmark. Limit the
+  initial recommendation to conventional 2x2 RGB Bayer mosaics.
 - **Evidence requirements:** Cite papers, reference implementations, source
   paths, and tests. Distinguish algorithm properties from implementation
   choices. Record the exact version or commit inspected.
@@ -246,36 +296,110 @@ each owns a different report. A task must not edit another task's report.
   3. The minimum shared input contract required by all candidates is stated
      without committing to a final public API.
   4. Existing `fornax-dalim` behavior and tests are documented.
-  5. The report contains the six required sections and cites sources.
+  5. X-Trans, Foveon, Quad Bayer, four-color, and monochrome handling is named
+     as deferred rather than included implicitly.
+  6. The report contains the six required sections and cites sources.
 - **Parallelization:** Independent. Owns only
   `agent-work/research/demosaicing.md`. Algorithm implementations remain
   `blocked` until design review.
 
-### RES-06 — Survey the Rust RAW-processing ecosystem
+### RES-06 — Survey Rust RAW decoder crates
 
 - **Status:** `paused`
 - **Owner:** primary agent
 - **Dependencies:** none
-- **Output report:** `agent-work/research/rust-ecosystem.md`
-- **Scope:** Identify relevant Rust RAW decoders, DNG/TIFF libraries, demosaicing
-  implementations, reusable components, API designs, dependency choices, and
-  licenses. Include rawloader, rawler, image-rs decoders, and other maintained
-  projects where relevant. Do not re-document LibRaw or dnglab internals.
+- **Output report:** `agent-work/research/rust-raw-decoders.md`
+- **Scope:** Evaluate Rust RAW decoder crates, starting with rawloader and the
+  decoder-facing API of rawler. Record target-format coverage, sample domains,
+  crop and CFA metadata, active/default crop, orientation, black/white levels,
+  processing state, errors, and adapter shape. Do not re-document LibRaw, DNG tag
+  semantics, TIFF internals, or demosaicing crates.
 - **Evidence requirements:** Cite repository URL, version or commit, source
   paths, symbols, tests, and license files. Record maintenance status and API
-  shape. Distinguish reusable code from reusable ideas.
+  shape. Distinguish reusable code from reusable ideas. Mark target-format
+  coverage as verified or unknown.
 - **Acceptance criteria:**
-  1. Each surveyed project has a source-verified summary of its sample
-     representation, metadata model, CFA handling, and preprocessing.
-  2. Reusable ideas and reusable code are distinguished, with license
-     constraints recorded.
-  3. Unmaintained or unsuitable projects are named with a reason.
-  4. Inferred findings are labeled `[inference]`.
-  5. Coverage does not duplicate `RES-02` or `RES-03`.
+  1. Each decoder has a source-verified sample and metadata model.
+  2. Coverage of DNG, Sony ARW, Nikon NEF, and Canon `CR*` is explicit.
+  3. Conventional Bayer behavior and non-Bayer handling are explicit.
+  4. Reusable code and ideas are distinguished with license constraints.
+  5. Maintenance and adapter risks are supported by evidence.
+  6. Inferred findings are labeled `[inference]`.
+  7. The report contains the six required sections and cites sources.
+- **Parallelization:** Independent. Owns only
+  `agent-work/research/rust-raw-decoders.md`.
+
+### RES-07 — Survey Rust TIFF and DNG building blocks
+
+- **Status:** `paused`
+- **Owner:** primary agent
+- **Dependencies:** none
+- **Output report:** `agent-work/research/rust-dng-tiff.md`
+- **Scope:** Evaluate maintained Rust TIFF/DNG components that could support the
+  DNG adapter. Start with image-rs/image-tiff and relevant DNG-facing rawler
+  APIs. Assess strips/tiles, sample types, metadata access, strides, compression
+  hooks, limits, and errors without repeating `RES-03` tag semantics.
+- **Evidence requirements:** Cite repository URL, version or commit, source
+  paths, symbols, tests, and licenses. Separate generic TIFF capability from
+  verified Bayer DNG capability.
+- **Acceptance criteria:**
+  1. Bayer DNG capabilities and gaps are source-verified.
+  2. Dependency use is compared with a minimal in-workspace parser.
+  3. Sample layout, metadata access, limits, and errors are documented.
+  4. License and maintenance evidence is recorded.
+  5. Non-Bayer DNG payloads are excluded from initial support.
   6. The report contains the six required sections and cites sources.
 - **Parallelization:** Independent. Owns only
-  `agent-work/research/rust-ecosystem.md`. Coordinates scope with `RES-02` and
-  `RES-03`.
+  `agent-work/research/rust-dng-tiff.md`. Coordinates with `RES-03` and
+  `RES-06`.
+
+### RES-08 — Survey Rust demosaicing crates and interface patterns
+
+- **Status:** `paused`
+- **Owner:** primary agent
+- **Dependencies:** none
+- **Output report:** `agent-work/research/rust-demosaicing.md`
+- **Scope:** Evaluate maintained Rust demosaicing crates and APIs, including the
+  `demosaic` crate and MeraRAW Demosaic. Focus on conventional Bayer input and
+  output, borders, validation, errors, strategy registration, and synthetic
+  tests. Coordinate algorithm recommendations with `RES-05`.
+- **Evidence requirements:** Cite repository URL, version or commit, source
+  paths, symbols, tests, and licenses. Separate reusable code from reusable API
+  ideas.
+- **Acceptance criteria:**
+  1. Bayer input/output and border contracts are source-verified.
+  2. Validation, errors, and allocation behavior are documented.
+  3. Reusable code and ideas are distinguished with licenses.
+  4. Maintenance and maturity are supported by evidence.
+  5. X-Trans, Foveon, Quad Bayer, and other non-target modes are excluded from
+     the initial recommendation.
+  6. The report contains the six required sections and cites sources.
+- **Parallelization:** Independent. Owns only
+  `agent-work/research/rust-demosaicing.md`.
+
+### RES-09 — Compare Rust ecosystem candidates
+
+- **Status:** `blocked`
+- **Owner:** unassigned
+- **Dependencies:** `RES-06`, `RES-07`, `RES-08`
+- **Output report:** `agent-work/research/rust-ecosystem.md`
+- **Scope:** Compare the split Rust ecosystem reports and recommend decoder,
+  DNG/TIFF, and demosaicing reuse boundaries. Do not repeat source-level findings
+  already owned by the split reports.
+- **Evidence requirements:** Link each recommendation to `RES-06`–`RES-08`.
+  Preserve maintenance and license uncertainty from the source reports.
+- **Acceptance criteria:**
+  1. Every candidate is compared on scope, Bayer/target-format fit, API
+     boundary, maintenance, and license.
+  2. Every recommendation links to a split report.
+  3. Dependency versus optional-backend versus design-reference status is
+     explicit.
+  4. No upstream RAW type is recommended for `fornax-core` without an adapter
+     and license decision.
+  5. Remaining unknowns and their impact are listed.
+  6. The report contains the six required sections and cites the split reports.
+- **Parallelization:** Starts after `RES-06`–`RES-08` are in `review` or `done`.
+  Owns only `agent-work/research/rust-ecosystem.md`.
 
 ## Wave S — Synthesis
 
@@ -286,7 +410,7 @@ recommendation, and must not silently resolve disagreements.
 ### SYN-01 — Reconcile metadata and sample semantics
 
 - **Status:** `blocked`
-- **Dependencies:** `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06`
+- **Dependencies:** `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06`, `RES-07`
 - **Output:** `agent-work/research/notes/SYN-01.md`
 - **Scope:** Reconcile stored versus black-corrected sample values; numeric
   ranges, bit depth, normalization, and white-level semantics; black-level
@@ -307,7 +431,7 @@ recommendation, and must not silently resolve disagreements.
   6. Coordinate spaces and CFA alignment are defined precisely.
   7. Universal versus backend-specific concepts are separated.
   8. Every conclusion links to the supporting report section.
-- **Parallelization:** Starts after its five research dependencies are in
+- **Parallelization:** Starts after its six research dependencies are in
   `review` or `done`. Owns only `agent-work/research/notes/SYN-01.md`.
 
 ### SYN-02 — Reconcile preprocessing order and black-level behavior
@@ -338,9 +462,9 @@ recommendation, and must not silently resolve disagreements.
 ### SYN-03 — Cross-source synthesis and recommendations
 
 - **Status:** `blocked`
-- **Dependencies:** `RES-01`–`RES-06`, `SYN-01`, `SYN-02`
+- **Dependencies:** `RES-01`–`RES-09`, `SYN-01`, `SYN-02`
 - **Output:** `agent-work/research/summary.md`
-- **Scope:** Compare findings across all six reports and both synthesis notes;
+- **Scope:** Compare findings across all nine reports and both synthesis notes;
   document agreements, disagreements, uncertainties, and remaining questions;
   make evidence-backed recommendations for the `fornax` architecture.
 - **Acceptance criteria:**
@@ -365,7 +489,10 @@ recommendation, and must not silently resolve disagreements.
 | `dnglab.md` | `RES-03` | `paused` | none | DNG tags, active area, black patterns, white levels, coordinates |
 | `darktable.md` | `RES-04` | `paused` | none | Preprocessing order, black-level behavior, processing boundary |
 | `demosaicing.md` | `RES-05` | `paused` | none | Algorithms, input requirements, CFA, output semantics, interface |
-| `rust-ecosystem.md` | `RES-06` | `paused` | none | Rust implementations, components, APIs, licenses |
+| `rust-raw-decoders.md` | `RES-06` | `paused` | none | Decoder coverage, representations, adapter risks, licenses |
+| `rust-dng-tiff.md` | `RES-07` | `paused` | none | DNG/TIFF building blocks, sample layout, errors, dependency fit |
+| `rust-demosaicing.md` | `RES-08` | `paused` | none | Bayer APIs, borders, validation, strategy patterns, licenses |
+| `rust-ecosystem.md` | `RES-09` | `blocked` | `RES-06`–`RES-08` | Cross-report dependency and reuse recommendation |
 | `summary.md` | `SYN-03` | `blocked` | all `RES-*`, `SYN-01`, `SYN-02` | Cross-source recommendations, disagreements, uncertainties |
 
 Every research task maps to exactly one report, and every report has one owning
@@ -483,9 +610,9 @@ scope and acceptance criteria are finalized at `DES-007`. All are `blocked`.
 | ID | Scope | Status | Dependencies | Acceptance / deliverable | Parallelization |
 | --- | --- | --- | --- | --- | --- |
 | `IMPL-DEC-001` | Define the decoder interface adapter to the universal representation | `blocked` | `DES-007`, `DES-001`, `DES-006` | Trait and adapter compile; layout validation; unit tests; owned by decoder workstream | Starts the decoder track |
-| `IMPL-DEC-002` | Adapt the LibRaw backend to the decoder interface | `blocked` | `IMPL-DEC-001` | Decodes supported fixtures; layout/CFA checked; no LibRaw types leak downstream | Can overlap `IMPL-DEC-003` only with file ownership split |
+| `IMPL-DEC-002` | Adapt the LibRaw backend to the decoder interface | `blocked` | `IMPL-DEC-001` | Decodes Bayer DNG, ARW, NEF, and `CR*` fixtures; deferred formats return structured unsupported errors; no LibRaw types leak downstream | Can overlap `IMPL-DEC-003` only with file ownership split |
 | `IMPL-DEC-003` | Map source metadata into typed and extensible metadata | `blocked` | `IMPL-DEC-001`, `DES-002`, `DES-003` | Every consumed field has a mapping test; provenance preserved; unknown fields retained | Coordinates with `IMPL-DEC-002`; shared adapter edits are serialized |
-| `IMPL-DEC-004` | Decoder validation and format regression tests | `blocked` | `IMPL-DEC-002`, `IMPL-DEC-003` | Real RAW fixtures pass; semantics documented; failures reported | After decoder and metadata mapping |
+| `IMPL-DEC-004` | Decoder validation and format regression tests | `blocked` | `IMPL-DEC-002`, `IMPL-DEC-003` | Bayer DNG/ARW/NEF/CR* fixtures pass; non-Bayer and deferred-format rejection is tested; semantics documented | After decoder and metadata mapping |
 | `IMPL-PRE-001` | Scalar black-level correction | `blocked` | `DES-007`, `DES-004`, `DES-001` | Synthetic numerical tests; clipping/rounding explicit; double application detected | Can run in parallel with decoder using synthetic buffers |
 | `IMPL-PRE-002` | CFA-aware black-level correction | `blocked` | `IMPL-PRE-001`, `DES-003` | Per-channel and pattern selection tested across all supported Bayer layouts | After `IMPL-PRE-001` |
 | `IMPL-PRE-003` | Repeat-pattern or spatially varying black levels | `blocked` | `IMPL-PRE-002` | Pattern alignment with crop and CFA phase tested; unsupported cases rejected | Conditional on research/design justification |
@@ -496,19 +623,20 @@ scope and acceptance criteria are finalized at `DES-007`. All are `blocked`.
 | `IMPL-INT-001` | End-to-end RAW-to-demosaiced pipeline | `blocked` | `IMPL-DEC-004`, `IMPL-PRE-002`, one `IMPL-DEM-*` | Real RAW fixture runs end to end; metadata preserved; no silent post-processing | After decoder, preprocessing, and one demosaicer |
 | `QA-001` | Metadata preservation and stage-transition tests | `blocked` | `IMPL-INT-001` | Invariants checked across decode, preprocess, demosaic | After integration |
 | `QA-002` | Numerical regression tests | `blocked` | `IMPL-INT-001` | Deterministic fixtures; tolerances explained | After integration |
-| `QA-003` | Error-path and unsupported-format tests | `blocked` | `IMPL-INT-001` | Structured errors for invalid layout, missing metadata, unsupported CFA | After integration |
+| `QA-003` | Error-path and unsupported-format tests | `blocked` | `IMPL-INT-001` | Structured errors for invalid layout, missing metadata, non-Bayer CFA, X-Trans/Foveon payloads, and deferred formats | After integration |
 | `QA-004` | Performance baselines and benchmarks | `blocked` | `IMPL-INT-001` | Representative sizes; allocations and copies recorded | After integration |
 | `QA-005` | Documentation and existing-API migration notes | `blocked` | `DES-007`, `IMPL-INT-001` | Public behavior documented; breaking changes listed | After design and integration |
 | `QA-006` | Workspace-wide CI, lint, and formatting validation | `blocked` | all `IMPL-*` and `QA-*` | Actual command output recorded; failures reported | Final gate |
 ## Parallel execution plan
 
-**Initial R0 candidates:** `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-05`,
-`RES-06`. Each owns a separate report and has no upstream task dependency. Use
-the live status table above rather than restarting a task that is already in
-`review`, `in_progress`, or `done`.
+**Initial R0 candidates:** `RES-01` through `RES-08`. Each owns a separate
+report and has no upstream task dependency. Use the live dashboard rather than
+restarting a task that is already in `review`, `in_progress`, or `done`.
 
-**S1:** `SYN-01` after `RES-01`, `RES-02`, `RES-03`, `RES-04`, and `RES-06`
-are accepted.
+**R1:** `RES-09` after `RES-06`, `RES-07`, and `RES-08` are accepted.
+
+**S1:** `SYN-01` after `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06`, and
+`RES-07` are accepted.
 
 **S2:** `SYN-02` after `SYN-01` and the relevant `RES-02` / `RES-04` findings
 are accepted.
@@ -533,9 +661,10 @@ workspace manifests, or a shared interface that is still under design.
 
 Explicit edges (left side must be accepted before the right side starts):
 
-- `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06` -> `SYN-01`
+- `RES-06`, `RES-07`, `RES-08` -> `RES-09`
+- `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06`, `RES-07` -> `SYN-01`
 - `RES-02`, `RES-04`, `SYN-01` -> `SYN-02`
-- `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-05`, `RES-06`, `SYN-01`, `SYN-02` -> `SYN-03`
+- `RES-01` through `RES-09`, `SYN-01`, `SYN-02` -> `SYN-03`
 - `SYN-01` -> `DES-002`, `DES-003`
 - `SYN-01`, `SYN-02`, `DES-003` -> `DES-001`
 - `SYN-01`, `SYN-02`, `DES-001`, `DES-003` -> `DES-004`
@@ -545,10 +674,10 @@ Explicit edges (left side must be accepted before the right side starts):
 - `DES-007` -> every `IMPL-*` task
 - completed `IMPL-*` tasks -> relevant `QA-*` tasks
 
-The six `RES-*` tasks have no upstream task dependencies and form the only
-immediately parallel wave. No `SYN-*` task may start from a single report alone.
-No `DES-*` task may be finalized before `SYN-03`. No `IMPL-*` task may start
-before `DES-007`.
+The first eight `RES-*` tasks have no upstream task dependencies and form the
+immediately parallel wave. `RES-09` then compares the three split Rust reports.
+No `SYN-*` task may start from a single report alone. No `DES-*` task may be
+finalized before `SYN-03`. No `IMPL-*` task may start before `DES-007`.
 
 ## Task update log
 
@@ -562,3 +691,4 @@ before `DES-007`.
 | 2026-10-23 | `RES-03`–`RES-06` | Started under the primary agent. `RES-03` resumed after primary-source access was restored; `RES-04`–`RES-06` moved from `ready` to `in_progress`. `RES-01` and `RES-02` remain in review and are not being restarted. | Source clones and this tracker update |
 | 2026-10-23 | Workflow | Centralized detailed instructions, references, checkpoints, and design output under `agent-work/`; moved clean research checkouts and recorded exact revisions. No task status or research conclusion changed. | `agent-work/AGENTS.md`, `agent-work/references/README.md`, and `agent-work/checkpoints/2026-10-23-workflow-restructure.md` |
 | 2026-10-23 | `RES-01`–`RES-06` | Paused at the user's request after evidence collection and draft acceptance review. Reports, source revisions, and unresolved review steps are preserved; no synthesis started. | `agent-work/checkpoints/2026-10-23-RES-01-06-pause.md` |
+| 2026-10-23 | Scope and `RES-06` | Split the broad Rust ecosystem survey into `RES-06` decoders, `RES-07` DNG/TIFF, `RES-08` demosaicing, and `RES-09` comparison. Added the task dashboard and dependency Mermaid above the detailed tracker. Scoped initial work to conventional Bayer DNG, ARW, NEF, and `CR*`; deferred X-Trans, Foveon, and other layouts/formats. Promoted research references to pinned submodules. | This tracker, `agent-work/raw-pipeline.md`, split research reports, and `agent-work/references/README.md` |

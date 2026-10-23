@@ -6,7 +6,8 @@ vcpkg/installed
 vcpkg/vcpkg
 draft
 
-# Local research checkouts; provenance is tracked in
+# Ignore worktree noise inside pinned research submodules. The submodule
+# gitlinks are tracked; provenance and updates live in
 # agent-work/references/README.md.
 /agent-work/references/*/
 

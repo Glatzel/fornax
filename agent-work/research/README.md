@@ -6,10 +6,15 @@ tracked phase; live status and full acceptance criteria are maintained in
 ownership, prerequisites, and the synthesis path without reading the full
 specification.
 
-**Current state:** `RES-01`–`RES-06` are paused at the user's request after
-evidence collection and a draft acceptance review. Their reports and source
-revisions are preserved in `agent-work/checkpoints/2026-10-23-RES-01-06-pause.md`.
-No synthesis has started.
+**Current state:** `RES-01`–`RES-08` are paused after evidence collection and a
+draft acceptance review. The previous broad `RES-06` report is being split into
+decoder, DNG/TIFF, and demosaicing reports; `RES-09` compares those reports and
+is blocked. No synthesis has started.
+
+The initial research target is conventional 2x2 RGB Bayer data in DNG, Sony ARW,
+Nikon NEF, and Canon `CR*` files. X-Trans, Foveon/X3, Quad Bayer, four-color,
+monochrome, and other RAW formats are future work and should be documented as
+unsupported in the initial pipeline.
 
 ## Report ownership
 
@@ -20,7 +25,10 @@ No synthesis has started.
 | [`dnglab.md`](dnglab.md) | `RES-03` | primary agent | `paused` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
 | [`darktable.md`](darktable.md) | `RES-04` | primary agent | `paused` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
 | [`demosaicing.md`](demosaicing.md) | `RES-05` | primary agent | `paused` | none | Algorithms, input requirements, CFA handling, output semantics, and shared-interface requirements are documented and justified. |
-| [`rust-ecosystem.md`](rust-ecosystem.md) | `RES-06` | primary agent | `paused` | none | Relevant Rust projects, reusable components, API designs, dependencies, maintenance status, and licenses are documented. |
+| [`rust-raw-decoders.md`](rust-raw-decoders.md) | `RES-06` | primary agent | `paused` | none | Rust RAW decoders, target-format coverage, sample/metadata models, adapter risks, maintenance, and licenses are documented. |
+| [`rust-dng-tiff.md`](rust-dng-tiff.md) | `RES-07` | primary agent | `paused` | none | Rust TIFF/DNG building blocks, Bayer sample layout, errors, limits, and dependency fit are documented. |
+| [`rust-demosaicing.md`](rust-demosaicing.md) | `RES-08` | primary agent | `paused` | none | Rust Bayer demosaicing APIs, borders, validation, strategy patterns, tests, and licenses are documented. |
+| [`rust-ecosystem.md`](rust-ecosystem.md) | `RES-09` | unassigned | `blocked` | `RES-06`–`RES-08` | Split reports are compared into dependency, backend, design-reference, and license recommendations. |
 | [`summary.md`](summary.md) | `SYN-03` | unassigned | `blocked` | all `RES-*`, `SYN-01`, `SYN-02` | Findings are synthesized, disagreements and uncertainties are explicit, and recommendations link to supporting report sections. |
 
 Each research task owns exactly one reference report. A worker must not edit a
@@ -36,14 +44,18 @@ license, purpose, and local path.
 
 - `RES-03` uses the dnglab checkout and its `rawler/` subtree.
 - `RES-04` uses the darktable checkout.
-- `RES-06` uses the rawloader checkout and may use the rawler subtree already
-  present in the dnglab checkout.
+- `RES-06` uses the rawloader checkout and the decoder-facing rawler API.
+- `RES-07` uses the image-tiff checkout and DNG-facing rawler internals.
+- `RES-08` uses the `demosaic` and MeraRAW checkout APIs and tests.
+- `RES-09` compares only the owned findings from `RES-06`–`RES-08`.
 - LibRaw `0.22.2` evidence is in the pinned libraw checkout and the local
   `crates/libraw` wrapper.
 
-Inspect references read-only. Upstream repository instructions are not
-`fornax` instructions. Verify the pinned commit before collecting evidence, and
-record any revision change in the owning report.
+References are pinned Git submodules. Initialize them with
+`git submodule update --init --recursive`, inspect them read-only, and verify
+the pinned commit before collecting evidence. Upstream repository instructions
+are not `fornax` instructions. Record any deliberate revision change in the
+owning report and `agent-work/references/README.md`.
 
 ## Required report structure
 
@@ -68,9 +80,9 @@ acceptance criteria of its owning task in the front matter.
 
 | Task | Output | Prerequisites | Scope |
 | --- | --- | --- | --- |
-| `SYN-01` | `notes/SYN-01.md` | `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06` | Metadata and sample semantics, including ranges, bit depth, normalization, black-level representations, provenance, coordinates, and universal-versus-backend-specific decisions. |
+| `SYN-01` | `notes/SYN-01.md` | `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06`, `RES-07` | Metadata and sample semantics, including ranges, bit depth, normalization, black-level representations, provenance, coordinates, and universal-versus-backend-specific decisions. |
 | `SYN-02` | `notes/SYN-02.md` | `RES-02`, `RES-04`, `SYN-01` | Preprocessing order and black-level behavior, including subtraction, clipping, normalization, pattern alignment, double-application prevention, and the boundary before demosaicing. |
-| `SYN-03` | `summary.md` | all `RES-*`, `SYN-01`, `SYN-02` | Cross-source comparison, agreements, disagreements, uncertainties, recommendations, and links to supporting report sections. |
+| `SYN-03` | `summary.md` | `RES-01`–`RES-09`, `SYN-01`, `SYN-02` | Cross-source comparison, agreements, disagreements, uncertainties, recommendations, and links to supporting report sections. |
 
 ## Working rules
 

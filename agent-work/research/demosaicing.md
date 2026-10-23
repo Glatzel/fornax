@@ -48,7 +48,9 @@ The questions were:
 
 The scope is conventional 2x2 RGB Bayer data. X-Trans, Quad Bayer, four-color
 CFA, and monochrome reconstruction are noted as explicit exclusions rather than
-hidden through pattern-dependent behavior.
+hidden through pattern-dependent behavior. Fujifilm X-Trans and Sigma Foveon/X3
+are deferred to a future investigation, along with every RAW format outside the
+initial DNG, Sony ARW, Nikon NEF, and Canon `CR*` scope.
 
 ## 2. Findings
 

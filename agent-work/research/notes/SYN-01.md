@@ -5,7 +5,7 @@
 > **Owner:** unassigned
 > **Last updated:** 2026-10-23
 >
-> **Prerequisites:** `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06`
+> **Prerequisites:** `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06`, `RES-07`
 >
 > **Output consumed by:** `SYN-02`, `SYN-03`, design tasks `DES-001`–`DES-005`.
 

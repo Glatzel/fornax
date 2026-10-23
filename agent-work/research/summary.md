@@ -5,7 +5,7 @@
 > **Status:** `blocked` (research and synthesis prerequisites not accepted)
 > **Last updated:** 2026-10-23
 >
-> **Prerequisites:** `RES-01`–`RES-06`, `SYN-01`, `SYN-02`
+> **Prerequisites:** `RES-01`–`RES-09`, `SYN-01`, `SYN-02`
 >
 > **Acceptance criteria (authoritative version in the task tracker):**
 >
@@ -18,7 +18,7 @@
 
 ## 1. Purpose and method
 
-This report synthesizes the six reference reports and the two reconciliation
+This report synthesizes the nine reference reports and the two reconciliation
 notes. It compares findings, records disagreements, makes evidence-backed
 recommendations for `fornax`, and identifies what remains unresolved. It must not
 be produced until all prerequisites are accepted.
@@ -34,7 +34,10 @@ Link each report with its task ID and the sections used:
 - [`dnglab.md`](dnglab.md) (`RES-03`): not yet summarized.
 - [`darktable.md`](darktable.md) (`RES-04`): not yet summarized.
 - [`demosaicing.md`](demosaicing.md) (`RES-05`): not yet summarized.
-- [`rust-ecosystem.md`](rust-ecosystem.md) (`RES-06`): not yet summarized.
+- [`rust-raw-decoders.md`](rust-raw-decoders.md) (`RES-06`): not yet summarized.
+- [`rust-dng-tiff.md`](rust-dng-tiff.md) (`RES-07`): not yet summarized.
+- [`rust-demosaicing.md`](rust-demosaicing.md) (`RES-08`): not yet summarized.
+- [`rust-ecosystem.md`](rust-ecosystem.md) (`RES-09`): not yet summarized.
 - [`notes/SYN-01.md`](notes/SYN-01.md): not yet summarized.
 - [`notes/SYN-02.md`](notes/SYN-02.md): not yet summarized.
 

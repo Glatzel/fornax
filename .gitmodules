@@ -1,3 +1,42 @@
 [submodule "external/raw-images"]
 	path = external/raw-images
 	url = https://github.com/syoyo/raw-images.git
+[submodule "agent-work/references/darktable"]
+	path = agent-work/references/darktable
+	url = https://github.com/darktable-org/darktable.git
+	branch = master
+	shallow = true
+[submodule "agent-work/references/dnglab"]
+	path = agent-work/references/dnglab
+	url = https://github.com/dnglab/dnglab.git
+	branch = main
+	shallow = true
+[submodule "agent-work/references/other/rawloader"]
+	path = agent-work/references/other/rawloader
+	url = https://github.com/pedrocr/rawloader.git
+	branch = master
+	shallow = true
+[submodule "agent-work/references/libraw"]
+	path = agent-work/references/libraw
+	url = https://github.com/LibRaw/LibRaw.git
+	shallow = true
+[submodule "agent-work/references/dng_sdk"]
+	path = agent-work/references/dng_sdk
+	url = https://github.com/emmcb/adobe-dng-sdk.git
+	branch = master
+	shallow = true
+[submodule "agent-work/references/other/image-tiff"]
+	path = agent-work/references/other/image-tiff
+	url = https://github.com/image-rs/image-tiff.git
+	branch = main
+	shallow = true
+[submodule "agent-work/references/other/demosaic-crate"]
+	path = agent-work/references/other/demosaic-crate
+	url = https://github.com/naorunaoru/demosaic.git
+	branch = main
+	shallow = true
+[submodule "agent-work/references/other/meraraw-demosaic"]
+	path = agent-work/references/other/meraraw-demosaic
+	url = https://github.com/kaimai-apex/meraraw-demosaic.git
+	branch = main
+	shallow = true
