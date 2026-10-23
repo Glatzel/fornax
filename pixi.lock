@@ -22,6 +22,50 @@ platforms:
   - __win=10.0
   - __archspec=0=x86_64
 environments:
+  agent:
+    channels:
+    - url: https://prefix.dev/glatzel/
+    - url: https://conda.anaconda.org/conda-forge/
+    packages:
+      linux-64:
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/codex-0.163.0-h19f7b01_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libcap-2.78-h084b8d7_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-16.2.0-ha9f2e26_7.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-16.2.0-he0feb66_7.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-16.2.0-h934c35e_7.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.6.5-h781a0a9_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
+      - conda: https://prefix.dev/glatzel/linux-64/ripgrep-15.2.0-hf804674_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/codex-config-0.0.1-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.2-h4616a5c_0.conda
+      linux-aarch64:
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/codex-0.163.0-h84b4292_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libcap-2.78-hfcc8634_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgcc-16.2.0-h205dda4_7.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgomp-16.2.0-h8acb6b2_7.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libstdcxx-16.2.0-hef695bb_7.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/openssl-3.6.5-he6ad1d5_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
+      - conda: https://prefix.dev/glatzel/linux-aarch64/ripgrep-15.2.0-hded5707_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/codex-config-0.0.1-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.2-h4616a5c_0.conda
+      osx-arm64:
+      - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/codex-0.118.0-h855ebe5_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-23.1.4-h55c6f16_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.6.5-h55eecbc_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/codex-config-0.0.1-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.2-h4616a5c_0.conda
+      win-64:
+      - conda: https://conda.anaconda.org/conda-forge/win-64/ucrt-10.0.26100.0-h57928b3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/vc-14.5-ha367084_41.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/vc14_runtime-14.51.36247-habf1de7_41.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/vcomp14-14.51.36247-habf1de7_41.conda
+      - conda: https://prefix.dev/glatzel/noarch/codex-config-0.0.1-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.2-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/win-64/codex-0.163.0-hf6e5eb2_2.conda
   default:
     channels:
     - url: https://prefix.dev/glatzel/
@@ -517,6 +561,23 @@ packages:
   run_exports: {}
   size: 217200
   timestamp: 1790766086110
+- conda: https://conda.anaconda.org/conda-forge/linux-64/codex-0.163.0-h19f7b01_0.conda
+  sha256: 7f58f79de3405985dfa38fccd36029a58a9552c2bbc887b02cbeaff0c437ad14
+  md5: d83f9556acaf0138a7284a3d7a2bbeb2
+  depends:
+  - ripgrep
+  - libgcc >=15
+  - libstdcxx >=15
+  - __glibc >=2.28,<3.0.a0
+  - libcap >=2.78,<2.79.0a0
+  - openssl >=3.6.5,<4.0a0
+  constrains:
+  - __glibc >=2.17
+  license: Apache-2.0
+  license_family: APACHE
+  run_exports: {}
+  size: 107506917
+  timestamp: 1792110301673
 - conda: https://conda.anaconda.org/conda-forge/linux-64/coverage-7.16.2-py313h2af15c8_0.conda
   sha256: c55126119f59f44ab476260a4abb67be2b8e420ea2a5f361bdcb30edfc3f1996
   md5: 97d81e36eb4c8fff723a1ff8a6c7d6fb
@@ -648,6 +709,19 @@ packages:
     - libblas >=3.11.0,<4.0a0
   size: 18246
   timestamp: 1789061062982
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libcap-2.78-h084b8d7_1.conda
+  sha256: 8cb25174d6b6fac95d31e86cfe41faffc8ee9dacbf2bfd22e6c23377e8f338c1
+  md5: 5db514adf5f843126ff846d1510f22a4
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=14
+  license: BSD-3-Clause
+  license_family: BSD
+  run_exports:
+    weak:
+    - libcap >=2.78,<2.79.0a0
+  size: 124306
+  timestamp: 1786025967663
 - conda: https://conda.anaconda.org/conda-forge/linux-64/libcblas-3.11.0-11_h0358290_openblas.conda
   build_number: 11
   sha256: f7d1bbdea61cf94ba219d17b2cb571a29830f8025385af799bff5a7ad1ef45e6
@@ -1145,6 +1219,20 @@ packages:
     - openssl >=3.6.4,<4.0a0
   size: 3202955
   timestamp: 1787698780103
+- conda: https://conda.anaconda.org/conda-forge/linux-64/openssl-3.6.5-h781a0a9_0.conda
+  sha256: 9c1533f1cf784f0e250919c0c9762d0b0e6bc727a79290ffb7cea1ceca1d038c
+  md5: 5a51a2ea653f120240b1a9bf76e0aae9
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - ca-certificates
+  - libgcc >=15
+  license: Apache-2.0
+  license_family: Apache
+  run_exports:
+    weak:
+    - openssl >=3.6.5,<4.0a0
+  size: 3195299
+  timestamp: 1791098052301
 - conda: https://conda.anaconda.org/conda-forge/linux-64/pillow-12.3.0-py313h3b26573_4.conda
   sha256: 26d0fec97210b130c5d4299a0d648e78a7386be1cc90ae25618fa4b838f1627a
   md5: 6739325f3022c709753d26fff83ae20e
@@ -1436,6 +1524,23 @@ packages:
     - bzip2 >=1.0.8,<2.0a0
   size: 194694
   timestamp: 1785906301397
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/codex-0.163.0-h84b4292_0.conda
+  sha256: e65e7ad61d46224613ac6a262e6372e5d977bc0e68579547a892d0848fd8ee78
+  md5: 0e56584b1109a394ff963f230107df48
+  depends:
+  - ripgrep
+  - libgcc >=15
+  - libstdcxx >=15
+  - __glibc >=2.28,<3.0.a0
+  - openssl >=3.6.5,<4.0a0
+  - libcap >=2.78,<2.79.0a0
+  constrains:
+  - __glibc >=2.17
+  license: Apache-2.0
+  license_family: APACHE
+  run_exports: {}
+  size: 105092546
+  timestamp: 1792110301686
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/coverage-7.16.2-py313hd50f550_0.conda
   sha256: 7427cede22d08f3938367606dbb7d5cc12620e70dc78b5c62ef3f43e93e20ac3
   md5: a7d7c6f68115703cd9ef844b42f7cc4c
@@ -1560,6 +1665,18 @@ packages:
     - libblas >=3.11.0,<4.0a0
   size: 18230
   timestamp: 1789060978935
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libcap-2.78-hfcc8634_1.conda
+  sha256: 6487e7644d062e18d389c11a9a3183e5a71c2652d05fdd88dbd063ad09f7ad4b
+  md5: 5e347c665a310b4c148bbb02596ae0c3
+  depends:
+  - libgcc >=14
+  license: BSD-3-Clause
+  license_family: BSD
+  run_exports:
+    weak:
+    - libcap >=2.78,<2.79.0a0
+  size: 108530
+  timestamp: 1786025925536
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libcblas-3.11.0-11_hd72aa62_openblas.conda
   build_number: 11
   sha256: e04bcb996eb712d07c0bd06a6a78b21fdc4030b52abae444f94d73065a9c5b81
@@ -2023,6 +2140,19 @@ packages:
     - openssl >=3.6.4,<4.0a0
   size: 3712923
   timestamp: 1787698545024
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/openssl-3.6.5-he6ad1d5_0.conda
+  sha256: 238136f1df197ecd89bafd728a34d0642176f3170423d13d8276746d675a9485
+  md5: 92aec5ec417d2ce9ae109e6c5ad377ff
+  depends:
+  - ca-certificates
+  - libgcc >=15
+  license: Apache-2.0
+  license_family: Apache
+  run_exports:
+    weak:
+    - openssl >=3.6.5,<4.0a0
+  size: 3716078
+  timestamp: 1791097887829
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/pillow-12.3.0-py313h8f2a6e6_4.conda
   sha256: 129355fe78587aa4f208b519adffc8e3f8efa4163f6b0bbf0fd8f1109ca460de
   md5: f959cc3fbd502da0393c10073062ec95
@@ -2290,6 +2420,15 @@ packages:
   run_exports: {}
   size: 7684321
   timestamp: 1772555330347
+- conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
+  sha256: 9404ee878c6bd5b260655ab651366db43fac6be8d465fcc0acd0f7a50be91acb
+  md5: a1d1bf676059d2863f000d5e2777743f
+  depends:
+  - __unix
+  license: ISC
+  run_exports: {}
+  size: 131396
+  timestamp: 1792483552251
 - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.7.22-h4c7d964_0.conda
   sha256: 95e8e74062a5fe5f870ac8c90302b6e89945165fdaed7810606e84ddee6aac12
   md5: e27d2ac27b096dc51fedfcf775a53f9b
@@ -2880,6 +3019,20 @@ packages:
     - bzip2 >=1.0.8,<2.0a0
   size: 124965
   timestamp: 1785906749812
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/codex-0.118.0-h855ebe5_0.conda
+  sha256: c6e1e5a815d84258d3729ab8b2b91dd742e6cc52e21ed501262013acabd7eb7e
+  md5: 577ba22486084f4d65db5f18a16ee47d
+  depends:
+  - libcxx >=19
+  - __osx >=11.0
+  - openssl >=3.5.5,<4.0a0
+  constrains:
+  - __osx >=11.0
+  license: Apache-2.0
+  license_family: APACHE
+  run_exports: {}
+  size: 42199227
+  timestamp: 1774993000401
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.16.2-py313h996ddf1_0.conda
   sha256: ab3e5daf2f66fd3a88d0da4ac36ad209875e37ee5ad95ae0ffe92b6bf5fa409f
   md5: f488c1d6fe714c800b65aab312036408
@@ -2991,6 +3144,16 @@ packages:
   run_exports: {}
   size: 579372
   timestamp: 1790163402114
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-23.1.4-h55c6f16_1.conda
+  sha256: fee42c635c948a52965ed549eb46d4c16d3007454df478902046b5c7f0ea9dd9
+  md5: 09437e207fd6d3d591f428fc82d4a04e
+  depends:
+  - __osx >=11.0
+  license: Apache-2.0 WITH LLVM-exception
+  license_family: Apache
+  run_exports: {}
+  size: 577968
+  timestamp: 1792721932940
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libdeflate-1.25-he7e0567_1.conda
   sha256: d896f4aa4ce4c590c2838678cb1917356fdb461d2a189991c0280c818c362172
   md5: 78650d671cb56909bb3e5c13bce310f9
@@ -3374,6 +3537,19 @@ packages:
     - openssl >=3.6.4,<4.0a0
   size: 3110142
   timestamp: 1787698648639
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.6.5-h55eecbc_0.conda
+  sha256: 44fbc526456571a9fb8fa18157f6f269d4d4bd40eef20183a93b9c9296f94497
+  md5: 45d9179cdf6e53d88aec034246f0dad6
+  depends:
+  - __osx >=11.0
+  - ca-certificates
+  license: Apache-2.0
+  license_family: Apache
+  run_exports:
+    weak:
+    - openssl >=3.6.5,<4.0a0
+  size: 3111573
+  timestamp: 1791097959641
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/pillow-12.3.0-py313h4ede67f_4.conda
   sha256: 46da06375555b512905685d89e86135aefff1a25576c5c6c81381edf75fb0f0b
   md5: e41cf4a049ffc3dadaec3a8cc94d1b83
@@ -4222,6 +4398,17 @@ packages:
     - libraw-rt >=0.22.2,<0.23.0a0
   size: 501680
   timestamp: 1784207737295
+- conda: https://prefix.dev/glatzel/linux-64/ripgrep-15.2.0-hf804674_0.conda
+  sha256: ad3ba70b08615fec9a3782a332c11ad251d77f2c0c62d2bac37b3efa01149528
+  md5: 010f8b9092e266d5a6d5c34c6dc76ffc
+  depends:
+  - libgcc >=14
+  - __glibc >=2.28,<3.0.a0
+  constrains:
+  - __glibc >=2.17
+  run_exports: {}
+  size: 1364629
+  timestamp: 1785315367878
 - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-dev-0.22.2-h47ec6e6_0.conda
   sha256: f8059a531d5fa7d795ab56bd2d458d3e602ca8e2de2df0bc45bf1419be33aff5
   md5: fef79501c0979d128a5a7e7d8b89d408
@@ -4257,6 +4444,29 @@ packages:
     - libraw-rt >=0.22.2,<0.23.0a0
   size: 496391
   timestamp: 1784207746350
+- conda: https://prefix.dev/glatzel/linux-aarch64/ripgrep-15.2.0-hded5707_0.conda
+  sha256: 387c3d266c5a78f1d8fe479551cbe8414911a80b375bb79c54b3982f358c65ed
+  md5: b7a49f029e795b9a1cea02b7e543c111
+  depends:
+  - libgcc >=14
+  - __glibc >=2.28,<3.0.a0
+  constrains:
+  - __glibc >=2.17
+  run_exports: {}
+  size: 1277776
+  timestamp: 1785315365361
+- conda: https://prefix.dev/glatzel/noarch/codex-config-0.0.1-h4616a5c_0.conda
+  sha256: 9b1c9901f386cfbb2df69a1a060d2287dddd6aebe1ea32655f9b15f52d3f13b4
+  md5: a8da37915e9065df2158345a75df2509
+  run_exports: {}
+  size: 18450
+  timestamp: 1792721075082
+- conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.2-h4616a5c_0.conda
+  sha256: fe85128a98b7ac8b308d30b33621a88e1dec8c0bb8d968d700b19adbfd37d73c
+  md5: f01cc302512e15f2629296c6ab99d42b
+  run_exports: {}
+  size: 14226
+  timestamp: 1792718429875
 - conda: https://prefix.dev/glatzel/osx-arm64/libraw-dev-0.22.2-hb33852e_0.conda
   sha256: 5fc4f555b1baad7e8390057abc66315d9163da1e7a0ea4482da647e8d0f1b1e0
   md5: c9f89644a0efab13bdabf8af1c35f4cd
@@ -4292,6 +4502,16 @@ packages:
     - libraw-rt >=0.22.2,<0.23.0a0
   size: 446626
   timestamp: 1784207727852
+- conda: https://prefix.dev/glatzel/win-64/codex-0.163.0-hf6e5eb2_2.conda
+  sha256: 0c9ed133391c7c8c16665aaf91b47820d78bcab7689a11f5529c74169bc330e5
+  md5: 586cad2921ddf62282184e37dba78f73
+  depends:
+  - vc >=14.5,<15
+  - vc14_runtime >=14.51.36247
+  - ucrt >=10.0.20348.0
+  run_exports: {}
+  size: 96017008
+  timestamp: 1792728085876
 - conda: https://prefix.dev/glatzel/win-64/libraw-dev-0.22.2-h7e360f0_0.conda
   sha256: aa7ea1000b0e46a27f271d5ac0630141a7e3c6ffea671f1512afa6b9751058e8
   md5: 3b51ecb709f20784f5845d2c12949876
