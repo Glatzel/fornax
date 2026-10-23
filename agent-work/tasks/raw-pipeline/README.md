@@ -5,6 +5,9 @@ This index defines the planned dependency graph and wave layout only. Live
 progress and review state are in GitHub pull requests, as described in
 [`../README.md`](../README.md).
 
+For a human-readable status overview, see [`STATUS.md`](STATUS.md). It is a
+convenience snapshot; the task pull requests remain authoritative.
+
 ## Task manifest map
 
 | Wave | Task | Manifest | Planned dependency |
