@@ -1,27 +1,28 @@
 # Existing `fornax` Architecture
 
 > **Task:** `RES-01`
-> **Owner:** research agent
-> **Status:** `paused` (evidence and draft acceptance review complete; task
-> closure deferred by user request)
+> **Owner:** RES-01 research agent / primary agent review
+> **Status:** `review` (ready for user review)
 > **Last updated:** 2026-10-23
-> **Upstream versions:** local repository at commit `d06f426`
+> **Upstream versions:** local repository at commit `46fabfd`; source-bearing
+> paths are unchanged from the earlier `d06f426` audit
 >
 > **Acceptance criteria (authoritative version in the task tracker):**
 >
 > - [x] Every public trait, type, and function relevant to decoding, metadata,
 >   preprocessing, or demosaicing is listed with path and symbol.
 > - [x] Current limitations are explicit, including missing metadata,
->   black/white levels, crop, and non-Bayer support.
+>   black/white levels, crop, and structured rejection of non-Bayer layouts.
 > - [x] Reuse candidates are separated from code that must be replaced.
 > - [x] Dependency direction is documented.
 > - [x] Findings use `[verified]`, `[inference]`, or `[recommendation]` labels.
 > - [x] All six required report sections are complete.
 >
-> **Acceptance review snapshot:** Primary agent, 2026-10-23. The cited public symbols,
-> dependency edges, limitations, reuse candidates, and report structure were
-> checked against the current checkout. Final task closure was paused before
-> the tracker and report statuses were reconciled.
+> **Review snapshot:** Primary checks completed 2026-10-23; user review is
+> pending. Public symbols, dependency edges, limitations, reuse candidates, and
+> report structure were checked against `46fabfd`. The source tree is unchanged
+> from `d06f426`; intervening commits do not alter Rust sources or manifests.
+> The malformed `color4_image` branch was added to the gap inventory.
 
 ## 1. Scope and questions
 
@@ -34,8 +35,14 @@ dependencies, and reusable implementations. The questions were:
 - How do dependencies flow between the crates?
 - Which existing code can be reused for a universal RAW representation,
   metadata-driven preprocessing, or demosaicing?
-- Which assumptions block non-Bayer, metadata-rich, or black-level-aware
-  processing?
+- Which assumptions require non-Bayer layouts to be rejected until a future
+  task explicitly extends the pipeline?
+- Which assumptions block metadata-rich or black-level-aware processing?
+
+The audit is evaluated against the current initial scope: conventional 2x2 RGB
+Bayer data in DNG, Sony ARW, Nikon NEF, and Canon `CR*`. X-Trans, Foveon/X3,
+Quad Bayer, four-color, monochrome, non-mosaic payloads, and other RAW formats
+are deferred and must be rejected rather than inferred as supported.
 
 ## 2. Findings
 
@@ -115,7 +122,10 @@ a `BayerPattern` (`bayer.rs:111-128`). Its public surface is only `new`,
 level, active area, crop, margins, CFA origin, camera metadata, or provenance.
 
 `[verified]` There is no representation for X-Trans, monochrome, four-color, or
-non-mosaic RAW data in `fornax-core`.
+non-mosaic RAW data in `fornax-core`. There is also no structured
+unsupported-layout error: decode failures can only use the string-wrapped
+`FornaxError`, and the type boundary cannot explain which layout or metadata
+condition caused rejection.
 
 ### 2.4 Demosaicing
 
@@ -145,10 +155,21 @@ and closes it on `Drop` (`crates/libraw/src/data_structure/data.rs:5-38`).
 
 `[verified]` `Rawdata::get_rawdata` is `pub(crate)` and receives only `width`
 and `height` (`rawdata.rs:18-22`). It checks `rawdata.raw_image`,
-`color4_image`, `float3_image`, and `float4_image` and converts each into an
-`image::ImageBuffer` (`rawdata.rs:25-114`). It does not return the LibRaw
-`ImageSizes`, `IParams`, `libraw_colordata_t`, or any black/white/crop metadata
-with the buffer.
+`float_image`, `color3_image`, `color4_image`, `float3_image`, and
+`float4_image` and attempts to convert them into an `image::ImageBuffer`
+(`rawdata.rs:25-114`). It does not return the LibRaw `ImageSizes`, `IParams`,
+`libraw_colordata_t`, or any black/white/crop metadata with the buffer.
+
+`[verified]` The `color4_image` branch is defective: line 66 tests
+`color4_image.is_null()` instead of `!color4_image.is_null()`. A non-null
+four-channel buffer therefore skips this branch and is rejected later unless a
+float pointer is also populated; a null pointer that reaches the branch would
+feed `slice::from_raw_parts` with a null address (`rawdata.rs:66-80`). The
+`Rgba16` variant is present but its normal pointer path is not safe to use until
+this condition is fixed and tested.
+
+`[recommendation]` Fix the `color4_image` condition and add a synthetic pointer
+test for each `Rawdata` variant before using `Rawdata` as a decoder adapter.
 
 `[verified]` `get_rawdata` is called with `raw_width` and `raw_height` from
 `ImageSizes` (`crates/libraw/src/extension/missing_structures.rs:6-16`). The
@@ -266,23 +287,25 @@ unsupported CFA layout.
   the current LibRaw path but cannot express black/white levels or crop.
 - `[verified]` No integration fixtures for real RAW files were found under
   `crates/*/tests`; only Python tests and unit tests exist. This limits
-  regression coverage.
+  regression coverage. In particular, the initial Bayer DNG/ARW/NEF/CR* matrix
+  is not established by repository-local fixtures.
 - `[verified]` There is no documentation for the public traits beyond doc
   comments, and no design record for the existing API.
 - `[inference]` `Rawdata::get_rawdata` assumes the raw buffer is contiguous for
   `raw_width * raw_height`; the wrapper exposes `raw_pitch` but does not use it.
-  This needs verification against LibRaw's allocation behavior.
-- `[inference]` The wrapper handles `raw_image`, `color4_image`, `float3_image`,
-  and `float4_image`; whether `color3_image` and `float_image` are reachable
-  through the current conversion needs a targeted code check during `RES-02` or
-  design.
+  `RES-02` confirms that `raw_pitch` is the authoritative row stride and that
+  zero-margin contiguous buffers do not establish the general case.
+- `[verified]` The wrapper contains conversion branches for `raw_image`,
+  `float_image`, `color3_image`, `color4_image`, `float3_image`, and
+  `float4_image`, but the `color4_image` condition is inverted. Fixture-level
+  reachability for each pointer is not covered by the current test suite.
 - `[verified]` `NullPostProcessor` panics by design (`unimplemented!`), so it is
   not a no-op despite its name.
 
 ## 6. References
 
-- Local repository: `D:\project\fornax`, with the architecture audit revision
-  recorded as commit `d06f426`.
+- Local repository: `/home/glatzel/project/fornax`, with the current audit at
+  commit `46fabfd`; Rust sources and manifests are unchanged from `d06f426`.
 - Workspace manifest: `Cargo.toml`.
 - Crate manifests: `crates/fornax-core/Cargo.toml`,
   `crates/fornax-dalim/Cargo.toml`, `crates/libraw/Cargo.toml`,

@@ -1,11 +1,10 @@
 # Demosaicing Algorithms and Interfaces
 
 > **Task:** `RES-05`
-> **Owner:** primary agent
-> **Status:** `paused` (evidence and draft acceptance review complete; task
-> closure deferred by user request)
+> **Owner:** RES-05 research agent
+> **Status:** `review` (ready for user review)
 > **Last updated:** 2026-10-23
-> **Upstream versions:** `fornax` workspace at the current inspected worktree;
+> **Upstream versions:** `fornax` at commit `46fabfd`;
 > `naorunaoru/demosaic` at `5050131e998b7f6414eef02eeb60f74b99d77451`;
 > `kaimai-apex/meraraw-demosaic` at `b94ebd4324ce56218e42989a5ed852b32a52003f`;
 > darktable at `6556cd7dbb0e69f95d165dda8b69e7270c327f6d`; dnglab/rawler at
@@ -19,13 +18,16 @@
 > - [x] The minimum shared input contract is stated without committing to the
 >   final public API.
 > - [x] Existing `fornax-dalim` behavior and tests are documented.
+> - [x] X-Trans, Foveon, Quad Bayer, four-color, and monochrome handling is
+>   explicitly deferred from the initial recommendation.
 > - [x] The report contains the six required sections and cites sources.
 >
-> **Acceptance review snapshot:** Primary agent, 2026-10-23. Algorithm comparison,
-> recommended initial set, shared-input boundary, existing `fornax-dalim`
-> tests/behavior, border rules, and licensing were checked against the cited
-> implementation and paper evidence. Final task closure was paused before
-> status synchronization.
+> **Review snapshot:** RES-05 research agent and primary checks completed
+> 2026-10-23; user review is pending. Algorithm comparison, recommended initial
+> set, shared-input boundary, existing `fornax-dalim` tests/behavior, border
+> rules, deferred layouts, and licensing were checked against the cited
+> implementation and paper evidence. `cargo test -p fornax-dalim --all-features`
+> passed 4 tests.
 
 ## 1. Scope and questions
 
@@ -82,22 +84,28 @@ state (`crates/fornax-dalim/src/demosaic.rs:4-16`;
 mosaic with exact expected output (`linear.rs:292-470`). The only benchmark
 uses a 1920x1080 random `f32` RGGB mosaic (`crates/fornax-dalim/benches/demosaic.rs:13-25`).
 
+`[verified]` On 2026-10-23, `cargo test -p fornax-dalim --all-features` passed
+all four unit tests; the doc-test target contained no runnable examples. This
+confirms the checked-in all-pattern tests, not larger images or other sample
+types.
+
 `[inference]` Although the trait is generic over `T: FornaxPrimitive`, averaging
 with integer `T` performs integer division and therefore truncates fractional
 results. No integer demosaic test was found. A final interface must either
 specify this rounding behavior or require a floating/intermediate accumulator.
 
-`[inference]` A 1x1 or 2xN image has no same-color neighbor in some directions;
-the checked path averages the zero neighbors it has. The code avoids out-of-
-bounds reads, but no explicit test or documented border contract covers these
-degenerate shapes.
+`[inference]` A 1x1 or sufficiently narrow image can have zero neighbors in a
+direction. The checked helpers compute `sum / count` without a zero-count guard,
+so an `f32`/`f64` run can produce `NaN` and an integer run can divide by zero
+(`linear.rs:74-156`). The code avoids out-of-bounds reads, but no test or
+documented border contract covers these degenerate shapes.
 
 ### 2.2 Candidate comparison
 
 | Algorithm | Input assumptions | Border behavior | Complexity / memory | Testability and risks |
 | --- | --- | --- | --- | --- |
 | **Bilinear** | Single-channel 2x2 Bayer mosaic in a linear sample domain; all four RGB Bayer phases | Existing `fornax` logic averages available neighbors, so edge values use fewer samples. Other reference implementations clamp/replicate coordinates or use a reduction. | `O(width*height)`, constant 3x3 work, one output buffer. | Easiest oracle: known-channel preservation and linear ramps have exact/closed-form expectations. Soft detail and zipper artifacts are expected, not defects. |
-| **Malvar-He-Cutler (MHC)** | Same single-channel 2x2 Bayer input and linear-domain samples. Uses a fixed 5x5 support; known sensors are copied unchanged. | A correct implementation requires a 2-pixel border. The inspected Rust reference uses bilinear fallback within two pixels of every edge. | `O(width*height)` with fixed 5x5 sparse kernels; two or three small filters per pixel, one output buffer. | Deterministic and highly testable: constant fields, known-channel identity, linear gradients, kernel coefficient checks, and border fallback. Can overshoot/undershoot, so clipping policy must be explicit. |
+| **Malvar-He-Cutler (MHC)** | Same single-channel 2x2 Bayer input and linear-domain samples. Uses a fixed 5x5 support; known sensors are copied unchanged. | A correct implementation requires a 2-pixel border. The `demosaic` crate clamps out-of-range coordinates; MeraRAW falls back to bilinear within two pixels of an edge. | `O(width*height)` with fixed 5x5 sparse kernels; two or three small filters per pixel, one output buffer. | Deterministic and highly testable: constant fields, known-channel identity, linear gradients, kernel coefficient checks, and explicit border policy. Can overshoot/undershoot, so clipping policy must be explicit. |
 | **PPG (Patterned Pixel Grouping)** | RGB 2x2 Bayer; needs channel balance assumptions even if not formally required. | Rawler explicitly interpolates a 3-pixel border by local averaging before the interior passes (`rawler/src/imgop/sensor/bayer/ppg.rs:60-105`). | `O(width*height)` with several local passes and gradient terms; more arithmetic than MHC but still bounded memory. | More state/stages to test. Compare color differences and edge/zone-plate PSNR, not just flats. Licensing of reference implementations varies. |
 | **RCD (Ratio Corrected Demosaicing)** | RGB 2x2 Bayer, float working data; directional ratios and green interpolation. Best treated as a quality-tier algorithm after bilinear/MHC. | Darktable documents a 10-pixel tile border, a 9-pixel outer margin, and filtering of incomplete border regions (`src/iop/demosaicing/rcd.c:47-63`). | `O(width*height)` asymptotic but high constant, directional fields and tile scratch memory. | Strong quality candidate, but needs large border fixtures, tiled-vs-untiled equivalence, and careful epsilon/negative-input tests. |
 | **AHD** | RGB 2x2 Bayer; homogeneity maps compare directional candidates. | Requires a larger neighborhood and explicit border fallback. | Higher constant and scratch memory than MHC. | Useful as a high-quality reference, but harder to validate and likely premature for the first implementation wave. |
@@ -108,10 +116,10 @@ The inspected Rust `demosaic` crate exposes a compact API over `f32`:
 single-channel row-major input, CFA descriptor, an algorithm enum, and
 preallocated planar output. It validates input/output sizes and unsupported
 algorithm/CFA combinations with structured errors
-(`src/lib.rs:137-220,230-270`). Its MHC implementation falls back to bilinear
-within two pixels of the border (`src/bayer/mhc_impl.rs:12-60`), preserving the
-known sample and applying fixed 5x5 kernels elsewhere
-(`src/bayer/mhc_impl.rs:70-145`).
+(`src/lib.rs:137-220,230-270`). Its MHC implementation clamps each 5x5 kernel
+coordinate to the image bounds rather than switching to a separate border
+algorithm (`src/bayer/mhc_impl.rs:64-85`); it preserves the known sample and
+applies fixed 5x5 kernels at every pixel (`src/bayer/mhc_impl.rs:12-62,87-145`).
 
 The inspected MeraRAW implementation uses a narrow stateless `Demosaic` trait:
 stable ID, supported CFA, minimum size, cost class, preflight buffer/pattern
@@ -162,7 +170,7 @@ its Bayer bilinear implementation supports a four-channel result and crops the
 input ROI before processing (`rawler/src/imgop/sensor/mod.rs:49-66`;
 `rawler/src/imgop/sensor/bayer/bilinear.rs:13-75`).
 
-`[inference]` A universal demoisaic result should state:
+`[inference]` A universal demosaiced result should state:
 
 - channel order (`R,G,B` versus four-plane `R,G1,G2,B`);
 - interleaved versus planar layout;
@@ -221,10 +229,12 @@ license decision.
 | Existing all-pattern tests | `crates/fornax-dalim/src/demosaic/linear.rs:292-470` |
 | Existing benchmark | `crates/fornax-dalim/benches/demosaic.rs:13-25` |
 | Rust `demosaic` API and errors | `agent-work/references/other/demosaic-crate/src/lib.rs:137-270` |
-| MHC 5x5 kernels and border fallback | `agent-work/references/other/demosaic-crate/src/bayer/mhc_impl.rs:1-145` |
+| MHC 5x5 kernels and conservative border clamping | `agent-work/references/other/demosaic-crate/src/bayer/mhc_impl.rs:1-145` |
+| AHD directional passes and homogeneity selection | `agent-work/references/other/demosaic-crate/src/bayer/ahd_impl.rs:5-57` |
 | MeraRAW trait and validation | `agent-work/references/other/meraraw-demosaic/crates/miro-demosaic/src/lib.rs:48-205` |
 | MeraRAW MHC provenance and border | `agent-work/references/other/meraraw-demosaic/crates/miro-demosaic/src/kaimai/malvar.rs:1-50` |
-| rawler demoisaic trait and ROI semantics | `agent-work/references/dnglab/rawler/src/imgop/sensor/mod.rs:49-66` |
+| LMMSE directional variance weighting | `agent-work/references/other/meraraw-demosaic/crates/miro-demosaic/src/kaimai/lmmse.rs:7-28,36-75`; darktable `src/iop/demosaicing/lmmse.c:19-65` |
+| rawler demosaicing trait and ROI semantics | `agent-work/references/dnglab/rawler/src/imgop/sensor/mod.rs:49-66` |
 | rawler PPG border fallback | `agent-work/references/dnglab/rawler/src/imgop/sensor/bayer/ppg.rs:23-105` |
 | darktable RCD border/tile notes | `agent-work/references/darktable/src/iop/demosaicing/rcd.c:20-65` |
 | darktable demosaic method set | `agent-work/references/darktable/src/iop/demosaic.c:55-172,928-971` |
@@ -301,10 +311,10 @@ gamma as part of an algorithm.
 - Rust `demosaic` crate: `https://github.com/naorunaoru/demosaic` at
   `5050131e998b7f6414eef02eeb60f74b99d77451`; `src/lib.rs`,
   `src/bayer/bilinear_impl.rs`, `src/bayer/mhc_impl.rs`, and
-  `src/bayer/ppg_impl.rs`; MIT OR Apache-2.0.
+  `src/bayer/{ahd,ppg}_impl.rs`; MIT OR Apache-2.0.
 - MeraRAW Demosaic: `https://github.com/kaimai-apex/meraraw-demosaic` at
-  `b94ebd4324ce56218e42989a5ed852b32a52003f`; `crates/miro-demosaic/src/`;
-  Apache-2.0.
+  `b94ebd4324ce56218e42989a5ed852b32a52003f`;
+  `crates/miro-demosaic/src/`, including `kaimai/lmmse.rs`; Apache-2.0.
 - dnglab/rawler: `https://github.com/dnglab/dnglab` at
   `62b77de1a206d467e910d55199191068b45a9cc1`;
   `rawler/src/imgop/sensor/`; LGPL-2.1.

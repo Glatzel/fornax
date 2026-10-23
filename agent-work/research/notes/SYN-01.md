@@ -1,7 +1,7 @@
 # SYN-01 — Metadata and Sample Semantics Reconciliation
 
 > **Task:** `SYN-01`
-> **Status:** `blocked` (prerequisite reports not accepted)
+> **Status:** `blocked` (prerequisite reports not user-approved as `done`)
 > **Owner:** unassigned
 > **Last updated:** 2026-10-23
 >
@@ -11,7 +11,7 @@
 
 ## Scope
 
-Reconcile, across the accepted reports:
+Reconcile, across the user-approved reports:
 
 - Stored versus black-corrected sample values.
 - Numeric ranges, bit depth, normalization, and white-level semantics.

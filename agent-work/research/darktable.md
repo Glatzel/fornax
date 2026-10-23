@@ -1,9 +1,8 @@
 # darktable and RAW Preprocessing
 
 > **Task:** `RES-04`
-> **Owner:** primary agent
-> **Status:** `paused` (evidence and draft acceptance review complete; task
-> closure deferred by user request)
+> **Owner:** RES-04 research agent
+> **Status:** `review` (ready for user review)
 > **Last updated:** 2026-10-23
 > **Upstream versions:** darktable `6556cd7dbb0e69f95d165dda8b69e7270c327f6d`
 > (`master`, 2026-10-22), inspected from
@@ -23,11 +22,11 @@
 >   `SYN-01` and `SYN-02`.
 > - [x] The report contains the six required sections and cites sources.
 >
-> **Acceptance review snapshot:** Primary agent, 2026-10-23. Module order, rawprepare
-> formula and CFA indexing, crop/mask behavior, the demosaic boundary,
-> out-of-scope operations, source differences, and licensing were checked
-> against the pinned darktable revision. Final task closure was paused before
-> status synchronization.
+> **Review snapshot:** RES-04 research agent and primary checks completed
+> 2026-10-23; user review is pending. Module order, `rawprepare` formula and CFA
+> indexing, crop/mask behavior, the demosaic boundary, out-of-scope operations,
+> source differences, and licensing were checked against the pinned darktable
+> revision.
 
 ## 1. Scope and questions
 
@@ -51,6 +50,11 @@ The inspected project is **darktable**, not a separate project named
 "darkroom". Source line 20 of `src/views/darkroom.c` identifies `darkroom` as
 the darktable UI view for developing an image; it is not a separate RAW
 processor.
+
+The actionable scope is conventional 2x2 RGB Bayer data in the initial DNG,
+Sony ARW, Nikon NEF, and Canon `CR*` files. X-Trans, Foveon, Quad Bayer,
+four-color, monochrome, and other sensor paths are treated as deferred
+comparison evidence, not as functions `fornax` should implement implicitly.
 
 ## 2. Findings
 
@@ -153,10 +157,15 @@ model.
 
 `[verified]` When no black-level-separate metadata is supplied, rawspeed may
 sample masked areas to calculate them. The loader contains a comment that
-rawspeed's black-area handling is currently broken, and deliberately does not
-call `calculateBlackAreas()` when separate black levels already exist
+rawspeed's black-area handling is currently broken, and calls
+`calculateBlackAreas()` only when separate black levels do not already exist
 (`src/imageio/imageio_rawspeed.cc:248-250`). `rawprepare` itself does not
 measure masked pixels; it uses the metadata snapshot it receives.
+
+`[inference]` Masked-area measurement is therefore not a dependable black-level
+source in this revision. The initial `fornax` path should require explicit
+black-level metadata or a separately verified fallback rather than reproducing
+darktable's provisional rawspeed behavior.
 
 `[verified]` `MaskedAreas`/masked borders are generally excluded by cropping,
 not by treating masked samples as image pixels. The crop params come from the
@@ -209,7 +218,7 @@ than a required preprocessing operation.
 `[verified]` `hotpixels`, `rawdenoise`, and chromatic-aberration correction
 also appear in darktable's pre-demosaic order but are optional and outside the
 currently specified minimum `fornax` pipeline. `fornax` should add them only
-after separate semantic research and design acceptance.
+after separate semantic research and user-approved design.
 
 ### 2.6 Demosaic boundary and later processing
 

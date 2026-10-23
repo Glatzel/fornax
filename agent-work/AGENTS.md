@@ -78,17 +78,18 @@ outputs there.
    `research/summary.md`.
 4. Record verified findings, inferences, recommendations, evidence, limitations,
    and blockers in the owned deliverable as work proceeds.
-5. Update the tracker only when the evidence and acceptance criteria support the
-   new status. Never mark work complete because time passed or a file exists.
+5. Update the tracker when evidence is complete, but stop agent work at
+   `review`. Never set `done`: only the user may approve `done` after reviewing
+   the deliverable and requesting no further changes.
 6. Before pausing or handing off, write a checkpoint under
    `agent-work/checkpoints/` with completed work, unfinished work, next steps,
    unresolved questions, and the relevant source revisions. The tracker remains
    the authority for status.
 
 Research tasks may run independently. Synthesis starts only after its listed
-research dependencies are in `review` or `done`. Design must not be finalized
-before `SYN-03` is accepted. No implementation task starts before `DES-007` is
-accepted.
+research dependencies are user-approved as `done`. Design must not be finalized
+before `SYN-03` is user-approved as `done`. No implementation task starts before
+`DES-007` is user-approved as `done`.
 
 ## Reference sources
 

@@ -1,8 +1,8 @@
 # Rust RAW Decoder Crates
 
 > **Task:** `RES-06`
-> **Owner:** primary agent
-> **Status:** `paused` (split evidence preserved; acceptance review deferred)
+> **Owner:** RES-06 research agent
+> **Status:** `review` (ready for user review)
 > **Last updated:** 2026-10-23
 > **Upstream versions:** rawloader
 > `8f2ace2d27c7fa6e7671a7fd0ef11d1b1bd77ddf`; rawler as part of dnglab
@@ -17,6 +17,13 @@
 > - [x] Maintenance and adapter risks are supported by evidence.
 > - [x] Inferred findings are labeled `[inference]`.
 > - [x] The report contains the six required sections and cites sources.
+>
+> **Review snapshot:** RES-06 research agent and primary checks completed
+> 2026-10-23; user review is pending. Decoder dispatch, public representations,
+> errors, preprocessing state, target-format coverage, Bayer/non-Bayer
+> behavior, maintenance, and licenses were checked against the pinned
+> rawloader and rawler sources. Coverage is source-verified only; no target RAW
+> fixtures were available for decode execution.
 
 ## 1. Scope and questions
 
@@ -40,13 +47,36 @@ The questions were:
 
 | Decoder | DNG | Sony ARW | Nikon NEF | Canon `CR*` | Evidence level |
 | --- | --- | --- | --- | --- | --- |
-| rawloader | Unknown | Unknown | Unknown | Unknown | The audit inspected the public decoder API and catalog shape, not one fixture per target format. |
-| rawler | Unknown for the exact Bayer fixture matrix | Unknown | Unknown | Unknown | DNG internals were inspected under `RES-03`, but a target-format decode matrix was not run. |
+| rawloader 0.37.2 | Dispatch by `DNGVersion` | `SONY` → `ArwDecoder` | `NIKON CORPORATION` → `NefDecoder` | `CR2` and `CRW` dispatch paths; no `CR3` module or BMFF path | Source dispatch verified; no fixture run |
+| rawler 0.8.0 | Dispatch by `DNGVersion` | `SONY` → `ArwDecoder` | `Nikon`/`NIKON CORPORATION` → `NefDecoder` | CIFF → `CRW`; Canon TIFF → `CR2`; BMFF `crx ` → `CR3` with default `crx` feature | Source dispatch verified; no fixture run |
 
-The API and representation findings below are source-verified. The absence of a
-fixture run means format support must not be inferred from a catalog name alone.
+Sources: rawloader `src/decoders/mod.rs:410-475`; rawler
+`src/decoders/mod.rs:143,1017-1049,1067-1109`.
 
-### 2.2 rawloader
+`[verified]` rawloader has decoder modules for DNG, ARW, NEF, CR2, and CRW, but
+no CR3/BMFF module in its source tree. Its target Canon coverage therefore does
+not include CR3 at this revision. rawler has dedicated CR3/CRX decoding and
+includes it in its supported-extension list. `[inference]` rawler is the
+stronger candidate when Canon CR3 is a required acceptance format.
+
+No DNG, ARW, NEF, CR2, CR3, or CRW fixture was present in either checkout's
+searched sample paths. The table proves dispatch and source presence, not
+successful camera/format decoding or correct metadata semantics.
+
+### 2.2 Maintenance and public surface
+
+| Decoder | Version | Latest inspected commit | License | Public entry point |
+| --- | --- | --- | --- | --- |
+| rawloader | 0.37.2 | `8f2ace2` (2026-08-16) | LGPL-2.1 | `decode_file` / `decode` returning `Result<RawImage, String>` |
+| rawler | 0.8.0 | `62b77de` (2026-10-23) | LGPL-2.1 | `decode_file` / `decode` returning `RawImage` or typed `RawlerError` |
+
+`[verified]` Both public decode entry points catch decoder panics and convert
+them into decoder errors (`rawloader/src/decoders/mod.rs:521-530`;
+`rawler/src/decoders/mod.rs:1181-1187`). This does not make internal APIs safe:
+CFA constructors and direct demosaic dispatch still contain panicking
+preconditions.
+
+### 2.3 rawloader
 
 `[verified]` The public API is `decode_file` / `decode`, returning `RawImage`
 with string errors (`src/lib.rs:78-136`). `RawImage` contains:
@@ -78,7 +108,7 @@ whether values are stored codes or decoder-produced samples.
 reference, but its fixed four-level metadata and string errors are insufficient
 for the universal representation.
 
-### 2.3 rawler
+### 2.4 rawler
 
 `[verified]` rawler's `RawImage` contains integer or float samples; dimensions,
 channels, camera names, WB, white level, and rational
@@ -102,7 +132,7 @@ error (`rawler/src/imgop/sensor/mod.rs:29-66`;
 monolithic mutable state and panic-prone preconditions should inform, not define,
 `fornax`'s core types.
 
-### 2.4 Reuse and licensing
+### 2.5 Reuse and licensing
 
 | Decoder | Reusable code | Reusable ideas | Constraint |
 | --- | --- | --- | --- |
@@ -118,12 +148,15 @@ pass the architectural and license review in `RES-09`.
 | Finding | Evidence |
 | --- | --- |
 | rawloader public decode and `RawImage` | `rawloader/src/lib.rs:78-136`; `src/decoders/image.rs:5-112` |
+| rawloader target dispatch and absent CR3 path | `rawloader/src/decoders/mod.rs:410-475`; decoder module list at `:48-110` |
 | rawloader CFA limits | `rawloader/src/decoders/cfa.rs:21-112` |
 | rawloader license | `rawloader/Cargo.toml`; `LICENSE` |
+| rawler target dispatch | dnglab `rawler/src/decoders/mod.rs:143,1017-1049,1067-1109` |
 | rawler public representation | dnglab `rawler/src/rawimage.rs:203-276` |
 | rawler mutating scaling | dnglab `rawler/src/rawimage.rs:546-576` |
 | rawler demosaic preconditions | dnglab `rawler/src/imgop/sensor/mod.rs:29-66`; Bayer implementations |
 | rawler license | dnglab `rawler/Cargo.toml`; repository license |
+| Decoder error surfaces | rawloader `src/decoders/mod.rs:521-530`; rawler `src/lib.rs:142-171`; `src/decoders/mod.rs:1181-1187` |
 
 All paths are relative to clean pinned submodules under
 `agent-work/references/`.
@@ -146,6 +179,8 @@ must reject them with a structured unsupported-layout error.
 
 - The exact target-format and camera coverage of each decoder was not verified
   through real fixture decoding.
+- rawloader has no CR3/CRX decode path at the pinned revision; CR3 coverage must
+  come from rawler, LibRaw, or a separate implementation.
 - rawler's complete error and panic surface was not audited.
 - No license decision is finalized here.
 - A decoder crate's successful parse does not prove CFA or black-level

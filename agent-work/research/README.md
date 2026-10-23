@@ -6,10 +6,9 @@ tracked phase; live status and full acceptance criteria are maintained in
 ownership, prerequisites, and the synthesis path without reading the full
 specification.
 
-**Current state:** `RES-01`–`RES-08` are paused after evidence collection and a
-draft acceptance review. The previous broad `RES-06` report is being split into
-decoder, DNG/TIFF, and demosaicing reports; `RES-09` compares those reports and
-is blocked. No synthesis has started.
+**Current state:** `RES-01`–`RES-08` are in `review` and await user approval.
+`RES-09` remains blocked until the user approves its dependencies as `done`.
+No synthesis has started.
 
 The initial research target is conventional 2x2 RGB Bayer data in DNG, Sony ARW,
 Nikon NEF, and Canon `CR*` files. X-Trans, Foveon/X3, Quad Bayer, four-color,
@@ -20,14 +19,14 @@ unsupported in the initial pipeline.
 
 | Report | Task | Owner | Status | Prerequisites | Acceptance criterion (summary) |
 | --- | --- | --- | --- | --- | --- |
-| [`fornax-architecture.md`](fornax-architecture.md) | `RES-01` | research agent | `paused` | none | Existing crates, public types, dependencies, reuse candidates, and gaps are documented with local paths and symbols. |
-| [`libraw.md`](libraw.md) | `RES-02` | research agent | `paused` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
-| [`dnglab.md`](dnglab.md) | `RES-03` | primary agent | `paused` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
-| [`darktable.md`](darktable.md) | `RES-04` | primary agent | `paused` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
-| [`demosaicing.md`](demosaicing.md) | `RES-05` | primary agent | `paused` | none | Algorithms, input requirements, CFA handling, output semantics, and shared-interface requirements are documented and justified. |
-| [`rust-raw-decoders.md`](rust-raw-decoders.md) | `RES-06` | primary agent | `paused` | none | Rust RAW decoders, target-format coverage, sample/metadata models, adapter risks, maintenance, and licenses are documented. |
-| [`rust-dng-tiff.md`](rust-dng-tiff.md) | `RES-07` | primary agent | `paused` | none | Rust TIFF/DNG building blocks, Bayer sample layout, errors, limits, and dependency fit are documented. |
-| [`rust-demosaicing.md`](rust-demosaicing.md) | `RES-08` | primary agent | `paused` | none | Rust Bayer demosaicing APIs, borders, validation, strategy patterns, tests, and licenses are documented. |
+| [`fornax-architecture.md`](fornax-architecture.md) | `RES-01` | primary agent | `review` | none | Existing crates, public types, dependencies, reuse candidates, and gaps are documented with local paths and symbols. |
+| [`libraw.md`](libraw.md) | `RES-02` | RES-02 research agent | `review` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
+| [`dnglab.md`](dnglab.md) | `RES-03` | RES-03 research agent | `review` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
+| [`darktable.md`](darktable.md) | `RES-04` | RES-04 research agent | `review` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
+| [`demosaicing.md`](demosaicing.md) | `RES-05` | RES-05 research agent | `review` | none | Algorithms, input requirements, CFA handling, output semantics, and shared-interface requirements are documented and justified. |
+| [`rust-raw-decoders.md`](rust-raw-decoders.md) | `RES-06` | RES-06 research agent | `review` | none | Rust RAW decoders, target-format coverage, sample/metadata models, adapter risks, maintenance, and licenses are documented. |
+| [`rust-dng-tiff.md`](rust-dng-tiff.md) | `RES-07` | RES-07 research agent | `review` | none | Rust TIFF/DNG building blocks, Bayer sample layout, errors, limits, and dependency fit are documented. |
+| [`rust-demosaicing.md`](rust-demosaicing.md) | `RES-08` | RES-08 research agent | `review` | none | Rust Bayer demosaicing APIs, borders, validation, strategy patterns, tests, and licenses are documented. |
 | [`rust-ecosystem.md`](rust-ecosystem.md) | `RES-09` | unassigned | `blocked` | `RES-06`–`RES-08` | Split reports are compared into dependency, backend, design-reference, and license recommendations. |
 | [`summary.md`](summary.md) | `SYN-03` | unassigned | `blocked` | all `RES-*`, `SYN-01`, `SYN-02` | Findings are synthesized, disagreements and uncertainties are explicit, and recommendations link to supporting report sections. |
 
@@ -104,4 +103,5 @@ acceptance criteria of its owning task in the front matter.
 When a report is ready for review, update the task status in
 `agent-work/tasks/raw-pipeline.md` to `review` and add the report path plus a
 short evidence summary to the tracker log. A report file existing is not enough
-to mark a task `done`; every acceptance criterion must be checked.
+to move a task forward. Agents must leave completed work in `review`; only the
+user may approve `done` after reviewing it.

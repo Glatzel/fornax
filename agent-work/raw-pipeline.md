@@ -1,8 +1,8 @@
 # Task: Research, Design, and Implement a Rust-Native RAW Processing Pipeline in `fornax`
 
-> **Status:** `RES-01`–`RES-08` are paused at the user's request after evidence
-> collection and draft acceptance review. `RES-09` is blocked on the split
-> ecosystem reports. Synthesis, design, and implementation have not started.
+> **Status:** `RES-01`–`RES-08` are in `review` and await user approval.
+> `RES-09` is blocked until its dependencies are user-approved as `done`.
+> Synthesis, design, and implementation have not started.
 >
 > **Authority:** This file is the authoritative task specification for the RAW
 > processing pipeline. `AGENTS.md` at the repository root contains only concise
@@ -373,8 +373,8 @@ are ready.
   traceable to `RES-06`–`RES-08`; no whole upstream RAW type is recommended for
   `fornax-core` without an explicit boundary; and the report contains the six
   required sections.
-- **Parallelization:** Starts after `RES-06`, `RES-07`, and `RES-08` are in
-  `review` or `done`. Owns only `agent-work/research/rust-ecosystem.md`.
+- **Parallelization:** Starts after `RES-06`, `RES-07`, and `RES-08` are
+  user-approved as `done`. Owns only `agent-work/research/rust-ecosystem.md`.
 
 ### Required report structure
 
@@ -395,8 +395,8 @@ Every reference report (`fornax-architecture.md`, `libraw.md`, `dnglab.md`,
 
 Front matter must record the owning task ID, status, owner, last update, and the
 upstream versions or commits inspected. Each report must include the acceptance
-criteria of its owning task and a reviewer must check them before the task moves
-to `done`.
+criteria of its owning task. Agents prepare the task in `review`; only the user
+may move it to `done`.
 
 ### Evidence and provenance rules
 
@@ -420,7 +420,8 @@ and reference other reports by path and section rather than copying them.
 ### Synthesis tasks
 
 Synthesis is separate from reference research and cannot start until its
-prerequisite reports are accepted. It must not silently reconcile disagreements.
+prerequisite reports are user-approved as `done`. It must not silently
+reconcile disagreements.
 
 | ID | Output | Reconciles | Depends on |
 | --- | --- | --- | --- |
@@ -472,14 +473,14 @@ behavior, ordering constraints, and synthetic-test strategy.
 
 ### Research completion gate
 
-- No synthesis task starts until every listed dependency report is in `review`
-  or `done`.
-- No design task is finalized before `SYN-03` is accepted. Design decisions must
-  cite the supporting `RES-*` or `SYN-*` task IDs, or explicitly state their
-  assumptions.
-- No implementation task starts before the `DES-007` design review gate.
+- No synthesis task starts until every listed dependency report is
+  user-approved as `done`.
+- No design task is finalized before `SYN-03` is user-approved as `done`.
+  Design decisions must cite the supporting user-approved `RES-*` or `SYN-*`
+  task IDs, or explicitly state their assumptions.
+- No implementation task starts before the user approves `DES-007`.
 - The research phase is complete only when `RES-01`–`RES-09` and `SYN-01`–
-  `SYN-03` are `done` with satisfied acceptance criteria.
+  `SYN-03` are user-approved as `done` with satisfied acceptance criteria.
 - A report file existing is not evidence of completion.
 
 ### Research deliverables
@@ -508,7 +509,7 @@ write only their own report; synthesis working notes are owned by `SYN-01` and
 `SYN-02`.
 
 Do not begin a broad implementation before the research reports and synthesis
-are accepted.
+are user-approved as `done`.
 
 ## 3. Phase B — API and data structure design
 
@@ -516,11 +517,11 @@ Create `agent-work/design/raw-pipeline.md` as a detailed design proposal.
 
 Design work is tracked as `DES-001` through `DES-006`, followed by the
 `DES-007` review gate. A design task may start only when its listed `SYN-*`
-dependencies are accepted, and its proposal must cite the `RES-*` or `SYN-*`
-task IDs that justify each decision. No public type or function is finalized
-before `SYN-03` is accepted. Do not introduce a public type or function whose
-metadata, coordinate, sample-domain, or preprocessing semantics are still
-unresolved by synthesis.
+dependencies are user-approved as `done`, and its proposal must cite the
+user-approved `RES-*` or `SYN-*` task IDs that justify each decision. No public
+type or function is finalized before `SYN-03` is user-approved. Do not introduce
+a public type or function whose metadata, coordinate, sample-domain, or
+preprocessing semantics are still unresolved by synthesis.
 
 The design must be consistent with the research report and the existing repository. It should describe actual proposed Rust types, fields, invariants, function signatures, data flow, and dependency boundaries rather than merely listing concepts.
 
@@ -544,9 +545,10 @@ Evaluate the following information and specify the exact type, units, semantics,
 
 The initial implementation supports only the conventional Bayer layouts defined
 in Section 1. Do not generalize shared behavior to X-Trans, Foveon, Quad Bayer,
-four-color, monochrome, or non-mosaic payloads without a separately accepted
-task. Define how those layouts and unusual sample encodings are rejected with
-structured errors while keeping enough scope for a future extension.
+four-color, monochrome, or non-mosaic payloads without a separately
+user-approved task. Define how those layouts and unusual sample encodings are
+rejected with structured errors while keeping enough scope for a future
+extension.
 
 Separate immutable descriptive metadata from mutable processing state. Define which invariants must hold before and after each pipeline stage.
 
@@ -663,7 +665,8 @@ Every tracked task must have:
 Use Markdown checklists or tables that are easy to update in code review. Keep
 the tracker synchronized with actual progress; never mark work complete without
 evidence. A task with unresolved acceptance criteria stays in `in_progress` or
-`review`, not `done`.
+`review`, not `done`. Agents must stop completed work at `review`; only the user
+may authorize `done` after reviewing the deliverable.
 
 ### Task ID scheme
 
@@ -760,21 +763,23 @@ Execution waves:
   because it belongs to this wave. Each worker owns one task ID and exactly one
   report file.
 - **Wave R1 — ecosystem comparison.** `RES-09` starts after `RES-06`,
-  `RES-07`, and `RES-08` are in `review` or `done`.
+  `RES-07`, and `RES-08` are user-approved as `done`.
 - **Wave S1 — metadata and sample synthesis.** `SYN-01` starts after `RES-01`,
-  `RES-02`, `RES-03`, `RES-04`, `RES-06`, and `RES-07` are in `review` or
+  `RES-02`, `RES-03`, `RES-04`, `RES-06`, and `RES-07` are user-approved as
   `done`.
 - **Wave S2 — preprocessing synthesis.** `SYN-02` starts after `RES-02`,
-  `RES-04`, and `SYN-01` are accepted.
+  `RES-04`, and `SYN-01` are user-approved as `done`.
 - **Wave S3 — cross-source synthesis.** `SYN-03` starts after all nine reports and
-  both synthesis notes are accepted, and produces `summary.md`.
+  both synthesis notes are user-approved as `done`, and produces `summary.md`.
 - **Wave D — design.** `DES-001` through `DES-006` start only after their listed
-  `SYN-*` dependencies are accepted. `DES-007` also requires `SYN-03`.
+  `SYN-*` dependencies are user-approved as `done`. `DES-007` also requires
+  user-approved `SYN-03`.
 - **Wave I — implementation.** No `IMPL-*` task is `ready` until `DES-007` is
-  accepted and the affected interfaces are stable.
+  user-approved as `done` and the affected interfaces are stable.
 
 After the common data model, CFA semantics, and demosaicing interface are
-accepted, independent algorithm implementations should not block one another.
+user-approved, independent algorithm implementations should not block one
+another.
 
 Decoder, metadata, preprocessing, and demosaicing tasks may overlap when their
 interfaces are stable. Do not parallelize tasks that are still changing the same
@@ -783,20 +788,21 @@ shared API.
 Only the `SYN-03` owner edits `agent-work/research/summary.md`. Each `RES-*`
 owner edits only its assigned report. `SYN-01` and `SYN-02` write only their
 own files under `agent-work/research/notes/`. Design work that consumes
-synthesis output must cite the accepted `RES-*` or `SYN-*` task IDs.
+synthesis output must cite user-approved `RES-*` or `SYN-*` task IDs.
 
 If using multiple agents or parallel workers:
 
 - Assign each worker a specific task ID and bounded file ownership.
-- Require workers to use the accepted design and interfaces.
+- Require workers to use the user-approved design and interfaces.
 - Avoid concurrent edits to shared types and workspace manifests.
-- Integrate through reviewable changes and run the relevant tests before marking tasks complete.
+- Integrate through reviewable changes and run the relevant tests before moving
+  tasks to `review`.
 
 Identify which tasks are ready to run in parallel and which are blocked by design decisions.
 
 ## 5. Phase D — Implementation
 
-Implement against the accepted research and design documents.
+Implement against the user-approved research and design documents.
 
 Requirements:
 
@@ -843,14 +849,15 @@ Work in this order:
    `RES-09` only after the three Rust ecosystem reports are ready.
 2. Have each owner record findings and evidence in exactly one report under
    `agent-work/research/`.
-3. Run `SYN-01` after its prerequisite reports are accepted, then `SYN-02`
+3. Run `SYN-01` after its prerequisite reports are user-approved as `done`,
+   then `SYN-02`
    after `SYN-01`, then `SYN-03` to produce `agent-work/research/summary.md`.
 4. Review the reports and the synthesis, resolving or documenting disagreements.
 5. Produce the API and data structure design report (`DES-001`–`DES-006`),
    citing `RES-*` or `SYN-*` evidence for every material decision.
 6. Review the architecture (`DES-007`). No public type or preprocessing API is
-   finalized before `SYN-03` is accepted.
-7. Implement in small, trackable tasks only after design acceptance.
+   finalized before `SYN-03` is user-approved as `done`.
+7. Implement in small, trackable tasks only after user approval of the design.
 8. Integrate, validate, and update documentation.
 
 Research tasks, synthesis tasks, design tasks, and implementation tasks are all
@@ -863,7 +870,7 @@ At the end of the research/design phase, provide a concise review summary and id
 At the end of implementation, report:
 
 - The final architecture and important research findings.
-- The accepted API and data model.
+- The user-approved API and data model.
 - How metadata drives preprocessing before demosaicing.
 - Task status, including blocked and incomplete work.
 - Which tasks were implemented concurrently.
@@ -885,5 +892,6 @@ Persist progress in the task's assigned report and, for pauses or handoffs, a
 task-specific checkpoint under `agent-work/checkpoints/`. The task manifest
 remains authoritative for status. Never rely solely on conversation history.
 Do not mark a paused or interrupted task as `done`.
+Only the user may move any reviewed task to `done`.
 
 For delegated tasks, distinguish interrupting a worker from merely asking the coordinator to stop. If the runtime cannot pause a worker directly, explain the limitation and preserve its progress before stopping.

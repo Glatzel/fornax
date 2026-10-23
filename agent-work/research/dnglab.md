@@ -1,9 +1,8 @@
 # dnglab and DNG Metadata
 
 > **Task:** `RES-03`
-> **Owner:** primary agent
-> **Status:** `paused` (evidence and draft acceptance review complete; task
-> closure deferred by user request)
+> **Owner:** RES-03 research agent
+> **Status:** `review` (ready for user review)
 > **Last updated:** 2026-10-23
 > **Upstream versions:** dnglab `62b77de1a206d467e910d55199191068b45a9cc1`
 > (including its `rawler/` subtree); Adobe DNG SDK mirror
@@ -19,14 +18,18 @@
 >   related tags are covered or explicitly excluded with a reason.
 > - [x] Differences between DNG and vendor RAW metadata are identified.
 > - [x] Licensing constraints are recorded.
+> - [x] Standard Bayer DNG is distinguished from deferred non-Bayer DNG
+>   payloads.
 > - [x] The report contains the six required sections, evidence labels, and
 >   cited source locations.
 >
-> **Acceptance review snapshot:** Primary agent, 2026-10-23. DNG tag mappings,
-> specification defaults, ActiveArea/DefaultCrop/CFA coordinate rules,
-> rawler limitations, vendor-metadata distinctions, and licensing were checked
-> against the pinned sources. Final task closure was paused before status
-> synchronization.
+> **Review snapshot:** RES-03 research agent and primary checks completed
+> 2026-10-23; user review is pending. DNG tag mappings, specification defaults,
+> ActiveArea/DefaultCrop/CFA coordinate rules, rawler limitations,
+> vendor-metadata distinctions, and licensing were checked against the pinned
+> sources. Stale references to a missing extracted text file were replaced with
+> stable PDF page/tag references, and the `DefaultCropSize` fallback was
+> corrected to ActiveArea dimensions using Adobe SDK source.
 
 ## 1. Scope and questions
 
@@ -48,6 +51,19 @@ The questions were:
 
 Only dnglab/rawler and Adobe's published specification are used for the DNG
 claims. LibRaw behavior is not used to fill gaps in DNG semantics.
+
+The initial implementation target is a DNG payload containing a conventional
+2x2 RGB Bayer mosaic.
+
+| Payload class | Treatment |
+| --- | --- |
+| Standard CFA DNG with a conventional 2x2 RGB Bayer pattern | In scope for metadata and corpus evidence. |
+| CFA DNG with X-Trans, Quad Bayer, four-color, nonstandard `CFALayout`, or another deferred CFA geometry | Deferred and must be rejected explicitly. |
+| LinearRaw DNG | Useful as format evidence, but not the initial Bayer decode target. |
+| Monochrome or other non-mosaic DNG | Deferred. |
+
+Rawler's broader camera and photometric support is not evidence that `fornax`
+supports every DNG payload. Each accepted payload class needs its own validation.
 
 ## 2. Findings
 
@@ -90,7 +106,7 @@ origin. Sources: `rawler/src/rawimage.rs:56-132`, `:549-576`;
 The DNG specification declares linear-reference values as zero-light `0.0` and
 maximum useful signal `1.0`. Its processing order is Linearization, Black
 Subtraction, Rescaling/Normalization, then Clipping
-(`DNG_Spec_1_7_0_0.txt:4623-4657`, Chapter 5).
+(DNG 1.7.0.0, "Mapping Raw Values to Linear Reference Values", p. 96).
 
 | DNG tag | Type / count | Default and units | Coordinate/sample meaning | rawler handling |
 | --- | --- | --- | --- | --- |
@@ -104,7 +120,7 @@ Subtraction, Rescaling/Normalization, then Clipping
 | `ActiveArea` | `SHORT` or `LONG`, count 4: top, left, bottom, right | Full `ImageLength`/`ImageWidth` | Half-open rectangle of active, non-masked samples in stored-image coordinates | Converted from TLBR to rawler `Rect{x,y,w,h}`, then to left/top/right/bottom border offsets. `rawler/src/decoders/dng.rs:466-482`; `rawler/src/imgop/mod.rs:146-166` |
 | `MaskedAreas` | `SHORT` or `LONG`, four values per rectangle: top, left, bottom, right | None | Fully masked rectangles in stored-image coordinates; optional measurement regions for black level | Parser exists in `_get_masked_areas`, but the DNG decode path does not populate `RawImage::blackareas`. `rawler/src/decoders/dng.rs:498-512` |
 | `DefaultCropOrigin` | `SHORT`, `LONG`, or `RATIONAL`, count 2: horizontal, vertical | `0,0` | Raw-image coordinates relative to ActiveArea top-left, before DefaultScale | Added to ActiveArea origin when creating `crop_area`. `rawler/src/decoders/dng.rs:331-343,484-495` |
-| `DefaultCropSize` | `SHORT`, `LONG`, or `RATIONAL`, count 2: width, height | Full `ImageWidth`, `ImageLength` | Output crop size in raw-image coordinates before DefaultScale; may be fractional | Rawler truncates through `force_usize`; fractional crop origins/sizes are not represented in `Rect`. `rawler/src/decoders/dng.rs:484-495` |
+| `DefaultCropSize` | `SHORT`, `LONG`, or `RATIONAL`, count 2: width, height | ActiveArea width and height | Output crop size in raw-image coordinates before DefaultScale; may be fractional | Rawler truncates through `force_usize`; fractional crop origins/sizes are not represented in `Rect`. `rawler/src/decoders/dng.rs:484-495` |
 | `BlackLevelRepeatDim` | `SHORT[2]`: rows, columns | `1,1` | Repeating black tile dimensions | Parsed and stored in `BlackLevel {width,height}`. `rawler/src/decoders/dng.rs:395-436` |
 | `BlackLevel` | `SHORT`, `LONG`, or `RATIONAL`; count `rows*cols*SamplesPerPixel` | Zero | Zero-light encoding in stored sample units; values are row-column-sample scan order and tile origin is ActiveArea top-left | Parsed into rational levels but later reduced to four Bayer values for scaling. `rawler/src/decoders/dng.rs:395-436`; `rawler/src/rawimage.rs:549-576` |
 | `BlackLevelDeltaH` | `SRATIONAL[ActiveArea width]` | All zero | Column black-level delta added to the repeating pattern | Declared in rawler tags but not parsed by the DNG decoder. `rawler/src/tags.rs:539` |
@@ -112,10 +128,12 @@ Subtraction, Rescaling/Normalization, then Clipping
 | `WhiteLevel` | `SHORT` or `LONG[ SamplesPerPixel ]` | `2^BitsPerSample - 1` for unsigned integer; `1.0` for floating point | Fully saturated stored encoding level, per sample plane | Parsed per channel; single value is replicated when `SamplesPerPixel > 1`. `rawler/src/decoders/dng.rs:438-446` |
 | `LinearizationTable` | `SHORT[]` | None | Maps stored integer codes to linear values before black subtraction | Preserved at decode; applied before black/white scaling with a lookup table. `rawler/src/decoders/dng.rs:420-436`; `rawler/src/imgop/raw.rs:203-228` |
 
-Specification support for the defaults and coordinate statements is in
-`DNG_Spec_1_7_0_0.txt`: CFA origin `:868-890`, black/white tags
-`:1087-1204`, default crop `:1253-1294`, ActiveArea `:1939-1957`, and
-linear-reference processing `:4623-4657`. The half-open rectangle behavior is
+Specification support for the defaults and coordinate statements is in DNG
+1.7.0.0: CFA photometric interpretation and origin (pp. 21-22), black, white,
+and default-crop tag definitions (pp. 26-30), ActiveArea and MaskedAreas (p. 43),
+and linear-reference processing (p. 96). The `DefaultCropSize` fallback to the
+ActiveArea dimensions is also explicit in the Adobe SDK
+(`dng_sdk/source/dng_ifd.cpp:3101-3118`). The half-open rectangle behavior is
 confirmed by Adobe's `dng_rect::Contains`, which uses `b > y` and `r > x`
 (`agent-work/references/dng_sdk/dng_sdk/source/dng_rect.h:112-125`).
 
@@ -168,7 +186,7 @@ gain maps and bad-pixel correction are optional broader DNG behavior.
 values. Values above the normalized maximum are retained by rawler, whereas the
 DNG specification says values above `1.0` should be clipped and permits, but
 does not require, clipping below `0.0`
-(`rawler/src/imgop/raw.rs:108-201`; `DNG_Spec_1_7_0_0.txt:4648-4657`).
+(`rawler/src/imgop/raw.rs:108-201`; DNG 1.7.0.0 p. 96).
 `[recommendation]` `fornax` must choose and document its clipping policy in
 `SYN-02`; it should not inherit rawler's policy by accident.
 
@@ -182,7 +200,7 @@ insufficient to prevent double correction once the original levels are reset
 
 `[verified]` DNG is self-describing for the listed fields: field types, defaults,
 and coordinate bases are specified, and the raw IFD must identify CFA or
-LinearRaw data (`DNG_Spec_1_7_0_0.txt:858-890,1087-1294,1939-1957`).
+LinearRaw data (DNG 1.7.0.0 pp. 21-22, 26-30, and 43).
 
 `[verified]` Vendor RAW support in rawler depends on format-specific parsers and
 a camera catalog. `Camera` carries catalog overrides such as black/white levels,
@@ -216,24 +234,24 @@ into `fornax`.
 | --- | --- |
 | DNG raw IFD parsing and accepted photometric values | `rawler/src/decoders/dng.rs:53-134` |
 | Stored integer/float samples are not normalized at decode | `rawler/src/rawimage.rs:203-266,549-576`; `rawler/src/decoders/dng.rs:87-134` |
-| Linearization/black/rescale/clip order | `DNG_Spec_1_7_0_0.txt:4623-4657`; `rawler/src/rawimage.rs:549-576` |
-| Black/White tag definitions and defaults | `DNG_Spec_1_7_0_0.txt:1087-1204` |
-| Black pattern origin and order | `DNG_Spec_1_7_0_0.txt:1108-1131` |
+| Linearization/black/rescale/clip order | DNG 1.7.0.0 p. 96; `rawler/src/rawimage.rs:549-576` |
+| Black/White tag definitions and defaults | DNG 1.7.0.0 pp. 26-30, `BlackLevel`/`WhiteLevel` |
+| Black pattern origin and order | DNG 1.7.0.0 pp. 26-30, `BlackLevelRepeatDim`/`BlackLevel` |
 | Rawler BlackLevel parsing and reduction | `rawler/src/decoders/dng.rs:395-446`; `rawler/src/rawimage.rs:56-156` |
-| ActiveArea order and default | `DNG_Spec_1_7_0_0.txt:1939-1957` |
-| Default crop basis and defaults | `DNG_Spec_1_7_0_0.txt:1253-1294` |
+| ActiveArea order and default | DNG 1.7.0.0 p. 43 |
+| Default crop basis and defaults | DNG 1.7.0.0 pp. 26-30; `agent-work/references/dng_sdk/dng_sdk/source/dng_ifd.cpp:3101-3118` |
 | Rawler crop conversion | `rawler/src/decoders/dng.rs:331-343,466-495` |
-| CFA origin relative to ActiveArea | `DNG_Spec_1_7_0_0.txt:868-890` |
+| CFA origin relative to ActiveArea | DNG 1.7.0.0 pp. 21-22 |
 | Rawler CFA rebasing and size inference | `rawler/src/decoders/dng.rs:451-463`; `rawler/src/cfa.rs:170-232` |
 | Orientation is preserved, not applied to samples | `rawler/src/decoders/dng.rs:66-73`; `rawler/src/decoders/mod.rs:390-474` |
 | Opcode staging | `rawler/src/imgop/develop.rs:181-250,440-491` |
-| Underflow/overflow difference | `rawler/src/imgop/raw.rs:108-201`; `DNG_Spec_1_7_0_0.txt:4648-4657` |
+| Underflow/overflow difference | `rawler/src/imgop/raw.rs:108-201`; DNG 1.7.0.0 p. 96 |
 | License | `agent-work/references/dnglab/LICENSE`; `agent-work/references/dnglab/rawler/Cargo.toml:8` |
-| DNG specification revision | `agent-work/references/dng_sdk/DNG_Spec_1_7_0_0.pdf`; extracted text `:1-5` |
+| DNG specification revision | `agent-work/references/dng_sdk/DNG_Spec_1_7_0_0.pdf`, title/version page |
 
 All dnglab paths above are relative to
-`agent-work/references/dnglab/`. The specification text is the locally extracted
-text of the PDF at `agent-work/references/dng_sdk/DNG_Spec_1_7_0_0.pdf`.
+`agent-work/references/dnglab/`. DNG page references use the pinned PDF at
+`agent-work/references/dng_sdk/DNG_Spec_1_7_0_0.pdf`.
 
 ## 4. Implications for fornax
 

@@ -2,7 +2,7 @@
 
 > **Task:** `SYN-03`
 > **Owner:** unassigned
-> **Status:** `blocked` (research and synthesis prerequisites not accepted)
+> **Status:** `blocked` (research and synthesis prerequisites not user-approved)
 > **Last updated:** 2026-10-23
 >
 > **Prerequisites:** `RES-01`–`RES-09`, `SYN-01`, `SYN-02`
@@ -21,7 +21,7 @@
 This report synthesizes the nine reference reports and the two reconciliation
 notes. It compares findings, records disagreements, makes evidence-backed
 recommendations for `fornax`, and identifies what remains unresolved. It must not
-be produced until all prerequisites are accepted.
+be produced until all prerequisites are user-approved as `done`.
 
 _Not started. This file is a required structure, not a completed synthesis._
 

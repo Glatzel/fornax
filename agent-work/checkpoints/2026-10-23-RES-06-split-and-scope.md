@@ -29,7 +29,7 @@ reports. No synthesis, design, implementation, or QA task has started.
 1. Initialize and verify the pinned reference submodules.
 2. Review the split reports against their updated acceptance criteria.
 3. Resolve or accept the remaining evidence gaps.
-4. Start `RES-09` only after `RES-06`–`RES-08` are in `review` or `done`.
+4. Start `RES-09` only after `RES-06`–`RES-08` are user-approved as `done`.
 
 ## Unresolved questions
 

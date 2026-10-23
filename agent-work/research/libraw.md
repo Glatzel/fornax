@@ -1,9 +1,8 @@
 # LibRaw
 
 > **Task:** `RES-02`
-> **Owner:** primary agent
-> **Status:** `paused` (declaration, implementation, wrapper audit, and draft
-> acceptance review complete; task closure deferred by user request)
+> **Owner:** RES-02 research agent
+> **Status:** `review` (ready for user review)
 > **Last updated:** 2026-10-23
 > **Upstream versions:** LibRaw tag `0.22.2`, peeled commit
 > `b93f6e45c194f5df9b02a43b1af9a54b4f41f33f`; local `fornax` wrapper at the
@@ -17,13 +16,16 @@
 >   including alignment with sensor coordinates and residual ambiguities.
 > - [x] The difference between `raw_image` and processed output is stated.
 > - [x] A field-to-universal-candidate mapping is provided.
+> - [x] Target-format coverage is separated from deferred formats and non-Bayer
+>   payloads.
 > - [x] Unverified claims are labeled `[inference]`.
 > - [x] The report contains the six required sections and cites sources.
 >
-> **Acceptance review snapshot:** Primary agent, 2026-10-23. The buffer meanings,
-> `cblack` layout and alignment caveat, white-level fields, metadata gap, and
-> wrapper behavior were checked against LibRaw 0.22.2 source and the local
-> wrapper. Final task closure was paused before status synchronization.
+> **Review snapshot:** Primary checks completed 2026-10-23; user review is
+> pending. The buffer meanings, `cblack` layout, ActiveArea copy/crop rebasing,
+> 1x1/2x2 folding, inline versus fallback subtraction, white-level fields,
+> metadata gap, and wrapper behavior were checked against LibRaw 0.22.2 source
+> and the local wrapper.
 
 ## 1. Scope and questions
 
@@ -46,6 +48,24 @@ The questions were:
 The source now lives at `agent-work/references/libraw/`; the previous
 installed-header-only limitation has been resolved by inspecting the exact
 0.22.2 release source.
+
+The initial implementation scope is DNG, Sony ARW, Nikon NEF, and Canon `CR*`
+payloads containing a conventional 2x2 RGB Bayer mosaic. This report uses
+LibRaw to establish shared RAW semantics for that scope:
+
+| Coverage class | Treatment in this report |
+| --- | --- |
+| Bayer DNG | In scope for metadata, black/white, CFA, crop, and sample-domain evidence. |
+| Sony ARW | In scope for the shared semantics above; vendor decoder behavior is not independently fixture-verified here. |
+| Nikon NEF | In scope for the shared semantics above; vendor decoder behavior is not independently fixture-verified here. |
+| Canon `CR*` | In scope for the shared semantics above; `CR2`/`CR3` decoder behavior is not independently fixture-verified here. |
+| Fujifilm X-Trans / RAF | Deferred future work; evidence is retained only to define rejection boundaries. |
+| Sigma Foveon/X3 / X3F | Deferred future work; evidence is retained only to define rejection boundaries. |
+| Quad Bayer, four-color, monochrome, non-mosaic, and other RAW formats | Deferred and outside the initial task. |
+
+`[inference]` LibRaw's broad camera catalog is not evidence that every target
+format/camera already produces the required sample and metadata semantics in
+`fornax`. Decoder integration must verify each target fixture.
 
 ## 2. Findings
 
@@ -161,7 +181,7 @@ Sources: `libraw/libraw_types.h:781-803`; `libraw/libraw_const.h:85`.
 
 | Index | Meaning |
 | --- | --- |
-| `cblack[0..3]` | Per-color offsets after `adjust_bl` has removed the common scalar part. These indices follow LibRaw's CFA color mapping, including a separate green slot where applicable. |
+| `cblack[0..3]` | Per-CFA-color offsets. During `adjust_bl`, the common minimum is moved into `black` and then added back to all four entries, so subtraction applies these values plus `black` through the per-channel term. These indices follow LibRaw's CFA color mapping, including a separate green slot where applicable. |
 | `cblack[4]` | Repeating black-pattern row count (`BlackLevelRepeatRows`). |
 | `cblack[5]` | Repeating black-pattern column count (`BlackLevelRepeatCols`). |
 | `cblack[6..6+rows*cols-1]` | Row-major spatial tile of black offsets. |
@@ -174,14 +194,21 @@ Sources: DNG parse in `src/metadata/tiff.cpp:1115-1295`;
 `[verified]` `adjust_bl()` canonicalizes overlapping representations:
 
 - user scalar/per-channel black overrides clear the repeat pattern;
-- simple 2x2 repeat patterns are folded into per-color offsets when the CFA
-  layout permits;
+- 1x1 and 2x2 repeat patterns are folded into per-color offsets for a normal
+  Bayer `filters > 1000` layout;
 - a common minimum is removed from per-channel and repeat values and moved into
   `black`;
 - `black` is then added back to `cblack[0..3]`, leaving `cblack` as the
   per-pixel correction source used during subtraction.
 
 Source: `src/utils/utils_libraw.cpp:468-550`.
+
+`[verified]` For a 2x2 pattern, the folding code maps each row-major tile entry
+to its CFA color using `FC(c / 2, c % 2)` before clearing
+`cblack[4]`/`cblack[5]` (`src/utils/utils_libraw.cpp:487-507`). The initial
+conventional Bayer path therefore reduces the spatial tile to the four per-CFA
+values before normal black subtraction. A 1x1 tile follows the same fold and
+applies its value to each color.
 
 `[verified]` `subtract_black_internal()` computes:
 
@@ -199,14 +226,37 @@ processed-image coordinates `q / S.iwidth` and `q % S.iwidth`; there is no
 explicit ActiveArea/margin term in that formula
 (`src/preprocessing/subtract_black.cpp:38-54`).
 
-`[inference]` This means the observed repeat-pattern origin is the current
-processed image, not directly a preserved raw-sensor coordinate. LibRaw's
-`adjust_bl` may fold common Bayer patterns into per-color values, masking the
-issue for ordinary 2x2 cases. For larger or spatially varying patterns after a
-non-zero margin/crop, preserving exact sensor alignment requires either the
-upstream parser's normalization or a universal type that carries the pattern
-origin. The inspected subtraction function does not establish that origin
-independently.
+`[verified]` LibRaw does not retain a separate repeat-pattern origin field.
+However, DNG defines the black tile origin at the top-left of `ActiveArea`
+(`RES-03` §2.2–2.3, mapping the DNG 1.7.0.0
+`BlackLevelRepeatDim`/`BlackLevel` rules). In the default conversion path,
+`raw2image_ex` copies the active rectangle starting at
+`top_margin`/`left_margin` into output coordinate `(0,0)`, so `q=0` corresponds
+to the ActiveArea top-left when no user crop is requested
+(`src/preprocessing/raw2image.cpp:273-298,423-435`).
+
+`[verified]` A user crop changes the relationship. `raw2image_ex` adds the crop
+offset to `S.top_margin`/`S.left_margin`, rewrites the CFA filter phase, and
+copies the cropped rectangle into a new image beginning at `(0,0)`
+(`src/preprocessing/raw2image.cpp:338-393`). A still-spatial general tile would
+therefore be indexed relative to the crop origin, not the original ActiveArea
+origin.
+
+`[verified]` The normal `dcraw_process` inline path calls `raw2image_ex(true)`.
+That path subtracts only `cblack[0..3]`, then clears those four entries; it does
+not subtract `cblack[6..]` while copying. The later
+`subtract_black_internal` pass, which does consume `cblack[6..]`, is called only
+when inline subtraction was disabled or `data_maximum == 0`
+(`src/preprocessing/raw2image.cpp:423-431,554-561`;
+`src/postprocessing/dcraw_process.cpp:43-87`).
+
+`[inference]` For normal Bayer data, the 1x1/2x2 fold makes the supported target
+well-defined: black is represented as common scalar plus per-CFA offsets, and
+the ActiveArea-relative tile phase is absorbed into those offsets. For a larger
+or otherwise spatial tile, the inspected normal path neither preserves an
+explicit tile origin nor establishes repeat-tile subtraction after a user crop.
+Such patterns must be rejected or remain in LibRaw-specific metadata until a
+separate task verifies and implements ActiveArea-origin-aware behavior.
 
 `[verified]` Subtracting black mutates the working image and resets the black
 metadata. `subtract_black_internal` explicitly zeros `cblack` and `black`;
@@ -295,11 +345,16 @@ represent corrected samples with a distinct type/state.
 | Black/white/linear maximum fields | `agent-work/references/libraw/libraw/libraw_types.h:781-803` |
 | DNG level fields | `agent-work/references/libraw/libraw/libraw_types.h:254-270` |
 | DNG black parser | `agent-work/references/libraw/src/metadata/tiff.cpp:1115-1295` |
+| DNG black-tile origin at ActiveArea top-left | `RES-03` §2.2–2.3; DNG 1.7.0.0 PDF, `BlackLevelRepeatDim`/`BlackLevel` tag definitions |
 | Black normalization/canonicalization | `agent-work/references/libraw/src/utils/utils_libraw.cpp:468-550` |
+| Conventional 1x1/2x2 CFA fold | `agent-work/references/libraw/src/utils/utils_libraw.cpp:487-507` |
 | Black subtraction formula and metadata reset | `agent-work/references/libraw/src/preprocessing/subtract_black.cpp:20-84` |
+| ActiveArea-to-image origin and crop rebasing | `agent-work/references/libraw/src/preprocessing/raw2image.cpp:273-298,338-393,423-435` |
+| Inline per-channel subtraction leaves spatial tile | `agent-work/references/libraw/src/preprocessing/raw2image.cpp:423-431,554-561` |
+| General-tile fallback condition | `agent-work/references/libraw/src/postprocessing/dcraw_process.cpp:43-87` |
 | Raw-to-image copy and margins | `agent-work/references/libraw/src/preprocessing/raw2image.cpp:219-330,415-561` |
-| Processing order | `agent-work/references/libraw/src/postprocessing/dcraw_process.cpp:43-181` |
 | Maximum adjustment | `agent-work/references/libraw/src/utils/utils_libraw.cpp:448-469` |
+| DNG row/column black delta averaging | `agent-work/references/libraw/src/metadata/tiff.cpp:1338-1348` |
 | Wrapper raw conversion does not use pitch | `crates/libraw/src/data_structure/rawdata.rs` |
 | Wrapper mutation surface | `crates/libraw/src/c_api/auxiliary.rs` |
 
@@ -314,8 +369,10 @@ CFA phase and black-pattern phase must be derived from sensor/active coordinates
 not reset at the cropped output origin.
 
 `[recommendation]` Model black levels as a typed union or structure that can
-represent scalar, per-channel, repeat tile, and row/column deltas where the
-decoder/source supports them. Carry the pattern origin explicitly.
+represent scalar, per-CFA, and repeat-tile values. Define the tile origin
+explicitly in ActiveArea coordinates. The initial normal-Bayer implementation
+may canonicalize 1x1/2x2 tiles to per-CFA values, but it must not pretend that
+arbitrary spatial tiles have been supported.
 
 `[recommendation]` Make black subtraction consume a stored-sensor representation
 and return a distinct corrected representation. The adapter must remember the
@@ -327,6 +384,14 @@ measured maximum separately if the source exposes them. If that is too much for
 the first public API, retain the others in extensible metadata rather than
 discarding provenance.
 
+`[recommendation]` Snapshot LibRaw black/white and geometric metadata before
+calling `raw2image`, `subtract_black`, or `dcraw_process`. The current wrapper
+allows those mutating calls, and LibRaw clears black metadata after correction.
+
+`[recommendation]` Reject black patterns that require a spatial origin beyond
+the folded conventional Bayer case unless the adapter can apply them before any
+crop and preserve the ActiveArea origin explicitly.
+
 `[recommendation]` Fix or validate `raw_pitch` handling in the LibRaw adapter.
 At minimum, reject noncontiguous layouts that the current wrapper cannot
 represent.
@@ -337,11 +402,10 @@ format-specific fields where practical.
 
 ## 5. Open questions and limitations
 
-- `subtract_black_internal` uses processed-image coordinates for repeat
-  patterns. The exact crop/margin rebasing performed by every upstream parser
-  and by `adjust_bl` is not fully traced. `[inference]` A non-zero margin plus a
-  general pattern could require explicit origin handling not visible in that
-  function.
+- LibRaw has no explicit repeat-pattern origin field. Conventional 1x1/2x2
+  DNG Bayer tiles are folded into per-CFA values and are within the verified
+  initial scope. General spatial tiles are not fully supported by the inspected
+  normal conversion path, especially after a user crop.
 - `cblack[6..]` is a spatial black tile but does not include a per-plane
   dimension in the subtraction index; per-plane offsets come from `cblack[0..3]`.
   This matches canonical LibRaw Bayer usage but is not a general DNG
@@ -358,6 +422,10 @@ format-specific fields where practical.
   buffer is exposed. The universal decoder interface must describe such sample
   transformations instead of assuming a uniform "stored code" meaning for all
   formats.
+- DNG `BlackLevelDeltaH`/`BlackLevelDeltaV` are not preserved as row/column
+  vectors by this path; LibRaw accumulates their average into the scalar black
+  level (`src/metadata/tiff.cpp:1338-1348`). Spatially varying deltas remain
+  deferred with general black-pattern support.
 
 ## 6. References
 
@@ -374,3 +442,8 @@ format-specific fields where practical.
   - `crates/libraw/src/data_structure/image_sizes.rs`
   - `crates/libraw/src/data_structure/iparams.rs`
   - `crates/libraw/src/c_api/auxiliary.rs`
+- DNG coordinate evidence:
+  - `agent-work/research/dnglab.md` (`RES-03`), §2.2–2.3.
+  - `agent-work/references/dng_sdk/DNG_Spec_1_7_0_0.pdf`, DNG 1.7.0.0
+    `BlackLevelRepeatDim` and `BlackLevel` definitions for tile origin and
+    ordering.
