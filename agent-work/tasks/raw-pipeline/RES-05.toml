@@ -1,0 +1,26 @@
+schema_version = 1
+id = "RES-05"
+slug = "demosaicing"
+title = "Research Bayer demosaicing algorithms and interfaces"
+phase = "research"
+dependencies = []
+parallelism = "Independent with other R0 research tasks."
+deliverables = ["agent-work/research/RES-05-demosaicing.md"]
+scope = """
+Survey bilinear, Malvar-He-Cutler, and representative edge-aware or
+higher-quality demosaicing algorithms for conventional 2x2 RGB Bayer mosaics.
+Compare input assumptions, border handling, output semantics, numeric range,
+metadata needs, complexity, and testability. Inspect existing fornax-dalim code
+and its benchmark. Other sensor layouts are future work.
+"""
+acceptance = [
+  "Candidate algorithms are compared on input assumptions, output semantics, border behavior, complexity, and testability.",
+  "A recommended initial algorithm set is justified.",
+  "The minimum shared input contract is stated without prematurely fixing the public API.",
+  "Existing fornax-dalim behavior and tests are documented.",
+  "The report contains the six required research sections and cites sources.",
+]
+validation = [
+  "Run the relevant existing fornax-dalim tests and benchmark.",
+  "Cite papers, implementations, versions or commits, source paths, and tests.",
+]

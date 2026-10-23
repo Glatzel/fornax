@@ -1,5 +1,8 @@
 # Workflow Restructure Checkpoint — 2026-10-23
 
+> Historical workflow checkpoint. Task status and review approval now live in
+> GitHub pull requests; status wording below is preserved as history.
+
 **Scope:** Organizational restructuring only. No new research findings, API
 design, or implementation were added during this work.
 

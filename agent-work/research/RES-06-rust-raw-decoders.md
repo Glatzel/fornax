@@ -2,13 +2,13 @@
 
 > **Task:** `RES-06`
 > **Owner:** RES-06 research agent
-> **Status:** `review` (ready for user review)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Last updated:** 2026-10-23
 > **Upstream versions:** rawloader
 > `8f2ace2d27c7fa6e7671a7fd0ef11d1b1bd77ddf`; rawler as part of dnglab
 > `62b77de1a206d467e910d55199191068b45a9cc1`.
 >
-> **Acceptance criteria (authoritative version in the task tracker):**
+> **Acceptance criteria (authoritative version in the task TOML manifest):**
 >
 > - [x] Each decoder has a source-verified sample and metadata model.
 > - [x] Coverage of DNG, Sony ARW, Nikon NEF, and Canon `CR*` is explicit.
@@ -18,8 +18,8 @@
 > - [x] Inferred findings are labeled `[inference]`.
 > - [x] The report contains the six required sections and cites sources.
 >
-> **Review snapshot:** RES-06 research agent and primary checks completed
-> 2026-10-23; user review is pending. Decoder dispatch, public representations,
+> **Verification snapshot:** RES-06 research agent and primary checks completed
+> 2026-10-23; GitHub pull-request review is pending. Decoder dispatch, public representations,
 > errors, preprocessing state, target-format coverage, Bayer/non-Bayer
 > behavior, maintenance, and licenses were checked against the pinned
 > rawloader and rawler sources. Coverage is source-verified only; no target RAW

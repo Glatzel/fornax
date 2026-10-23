@@ -2,13 +2,13 @@
 
 > **Task:** `RES-02`
 > **Owner:** RES-02 research agent
-> **Status:** `review` (ready for user review)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Last updated:** 2026-10-23
 > **Upstream versions:** LibRaw tag `0.22.2`, peeled commit
 > `b93f6e45c194f5df9b02a43b1af9a54b4f41f33f`; local `fornax` wrapper at the
 > current inspected worktree.
 >
-> **Acceptance criteria (authoritative version in the task tracker):**
+> **Acceptance criteria (authoritative version in the task TOML manifest):**
 >
 > - [x] Each relevant field is documented with type, unit, coordinate
 >   convention, sentinel values, and validity conditions.
@@ -21,7 +21,7 @@
 > - [x] Unverified claims are labeled `[inference]`.
 > - [x] The report contains the six required sections and cites sources.
 >
-> **Review snapshot:** Primary checks completed 2026-10-23; user review is
+> **Verification snapshot:** Primary checks completed 2026-10-23; GitHub pull-request review is
 > pending. The buffer meanings, `cblack` layout, ActiveArea copy/crop rebasing,
 > 1x1/2x2 folding, inline versus fallback subtraction, white-level fields,
 > metadata gap, and wrapper behavior were checked against LibRaw 0.22.2 source

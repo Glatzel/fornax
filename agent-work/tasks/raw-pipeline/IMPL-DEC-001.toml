@@ -1,0 +1,22 @@
+schema_version = 1
+id = "IMPL-DEC-001"
+slug = "decoder-interface"
+title = "Define the decoder interface adapter"
+phase = "implementation"
+dependencies = ["DES-001", "DES-006", "DES-007"]
+parallelism = "Starts the decoder track after the design gate is merged."
+deliverables = ["decoder interface source", "decoder interface unit tests"]
+scope = """
+Define the interface that maps a decoder backend into the approved universal RAW
+representation without leaking backend types downstream.
+"""
+acceptance = [
+  "The interface compiles against the approved design.",
+  "Layout validation and structured errors are implemented.",
+  "Backend-specific types do not appear in downstream public contracts.",
+  "Unit tests cover the interface contract and invalid layout paths.",
+]
+validation = [
+  "Verify DES-001, DES-006, and DES-007 PRs are merged.",
+  "Run formatting, clippy, and focused unit tests.",
+]

@@ -1,0 +1,25 @@
+schema_version = 1
+id = "RES-09"
+slug = "rust-ecosystem"
+title = "Compare Rust ecosystem candidates"
+phase = "research"
+dependencies = ["RES-06", "RES-07", "RES-08"]
+parallelism = "After RES-06 through RES-08 are merged; compare their findings without repeating their source research."
+deliverables = ["agent-work/research/RES-09-rust-ecosystem.md"]
+scope = """
+Compare the three split Rust ecosystem reports and recommend dependency,
+optional-adapter, design-reference, or no-reuse status for each candidate,
+including license and maintenance constraints.
+"""
+acceptance = [
+  "Every candidate is compared on scope, Bayer and target-format fit, API boundary, maintenance, and license.",
+  "Every recommendation links to a split report.",
+  "Dependency, optional-backend, and design-reference status is explicit.",
+  "No upstream RAW type is recommended for fornax-core without an adapter and license decision.",
+  "Remaining unknowns and their impact are listed.",
+  "The report contains the six required research sections and cites the split reports.",
+]
+validation = [
+  "Verify that all three dependency task PRs are merged.",
+  "Cross-check every recommendation against the corresponding report section.",
+]

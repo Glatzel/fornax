@@ -1,0 +1,24 @@
+schema_version = 1
+id = "IMPL-DEC-002"
+slug = "libraw-adapter"
+title = "Adapt the LibRaw backend to the decoder interface"
+phase = "implementation"
+dependencies = ["IMPL-DEC-001"]
+parallelism = "May overlap IMPL-DEC-003 only with disjoint files and explicit integration ownership."
+deliverables = ["LibRaw adapter source", "adapter integration tests"]
+scope = """
+Implement the LibRaw adapter for conventional Bayer DNG, Sony ARW, Nikon NEF, and
+Canon CR2/CR3 inputs. Return structured unsupported errors for deferred payloads
+and formats.
+"""
+acceptance = [
+  "Supported Bayer fixtures decode into the universal representation.",
+  "Deferred formats and non-Bayer payloads return structured errors.",
+  "No LibRaw type leaks downstream.",
+  "Adapter tests cover buffer and CFA alignment.",
+]
+validation = [
+  "Verify IMPL-DEC-001 is merged.",
+  "Run focused Rust tests and workspace checks.",
+  "Record fixture provenance and unavailable fixture coverage.",
+]

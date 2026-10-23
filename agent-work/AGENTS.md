@@ -2,9 +2,10 @@
 
 This file contains the detailed operating instructions for agents working on
 the `fornax` RAW pipeline. The root `AGENTS.md` points here so the guidance is
-discovered from the repository root. `agent-work/raw-pipeline.md` remains the
-authoritative workflow and task specification; this file explains how to apply
-it without duplicating its full requirements.
+discovered from the repository root.
+`agent-work/workflows/raw-pipeline.md` remains the authoritative workflow and
+task specification; this file explains how to apply it without duplicating its
+full requirements.
 
 ## Project identity
 
@@ -58,9 +59,13 @@ Record actual results. If a command cannot run, say so explicitly.
 
 ## Workspace map and ownership
 
-- `agent-work/raw-pipeline.md` — authoritative workflow and task specification.
-- `agent-work/tasks/raw-pipeline.md` — authoritative live status, dependencies,
-  ownership, acceptance criteria, and evidence log.
+- `agent-work/workflows/raw-pipeline.md` — authoritative workflow and pipeline
+  specification.
+- `agent-work/tasks/raw-pipeline/<TASK-ID>.toml` — one task contract per file.
+  It owns the task scope, dependencies, deliverables, acceptance criteria, and
+  validation requirements.
+- `agent-work/tasks/raw-pipeline/README.md` — planned task index and dependency
+  graph. It is not a live status tracker.
 - `agent-work/research/` — one owned report per reference source.
 - Research deliverable filenames must begin with the owning task ID, for example
   `RES-01-fornax-inventory.md` or `SYN-03-summary.md`. `README.md` is the
@@ -68,36 +73,54 @@ Record actual results. If a command cannot run, say so explicitly.
 - `agent-work/research/notes/` — synthesis working notes owned by `SYN-01` and
   `SYN-02`.
 - `agent-work/research/SYN-03-summary.md` — cross-source synthesis owned by `SYN-03`.
-- `agent-work/design/raw-pipeline.md` — shared API and data-model design output.
+- `agent-work/design/raw-pipeline/` — one task-owned proposal per `DES-*` task.
+- `agent-work/design/raw-pipeline.md` — consolidated design owned by `DES-007`.
 - `agent-work/references/` — pinned, read-only upstream evidence submodules and
   downloaded reference material.
-- `agent-work/checkpoints/` — durable pause/resume progress checkpoints.
+- `agent-work/checkpoints/<TASK-ID>/` — durable pause/resume checkpoints for a
+  task. Cross-task workflow checkpoints use `checkpoints/workflow/`.
 
 The hidden `.agents/` directory is read-only. Do not put writable progress or
 outputs there.
 
 ## Task workflow
 
-1. Read `agent-work/raw-pipeline.md`, then `agent-work/AGENTS.md`.
-2. Read the live task entry in `agent-work/tasks/raw-pipeline.md`. Do not infer
-   readiness from this file, report front matter, or an older summary.
-3. Work only within the files owned by the task. A research task owns exactly
-   one report named `<TASK-ID>-<slug>.md`. `SYN-01` and `SYN-02` own only their
-   correspondingly named notes; `SYN-03` owns `research/SYN-03-summary.md`.
-4. Record verified findings, inferences, recommendations, evidence, limitations,
+1. Read `agent-work/workflows/raw-pipeline.md`, then this file.
+2. Read `agent-work/tasks/raw-pipeline/<TASK-ID>.toml`. Verify every dependency
+   has an approved, merged task pull request. Do not infer readiness from a
+   report front matter or an older summary.
+3. Create a dedicated branch and worktree:
+
+   ```bash
+   git fetch origin
+   git worktree add -b "task/res-01-fornax-inventory" \
+     ".worktrees/res-01-fornax-inventory" origin/agent
+   ```
+
+   Use the task's lowercase ID and `slug` from its TOML manifest. The default
+   integration base is `origin/agent`; use another base only when the task
+   index explicitly defines a stacked dependency.
+4. Work only within the manifest's scope and deliverables. A research task
+   owns exactly one report named `<TASK-ID>-<slug>.md`. `SYN-01` and `SYN-02`
+   own only their correspondingly named notes; `SYN-03` owns
+   `research/SYN-03-summary.md`.
+5. Record verified findings, inferences, recommendations, evidence, limitations,
    and blockers in the owned deliverable as work proceeds.
-5. Update the tracker when evidence is complete, but stop agent work at
-   `review`. Never set `done`: only the user may approve `done` after reviewing
-   the deliverable and requesting no further changes.
-6. Before pausing or handing off, write a checkpoint under
-   `agent-work/checkpoints/` with completed work, unfinished work, next steps,
-   unresolved questions, and the relevant source revisions. The tracker remains
-   the authority for status.
+6. Commit, push, and open one pull request for the task using the repository PR
+   template. Put the task ID in the title, for example
+   `[RES-01] Inventory existing components`.
+7. Review and approval happen only in the pull request. Do not add review state
+   to the task manifest or report. An agent must never merge the pull request
+   or mark the task complete; only the user may approve and merge it.
+8. Before pausing or handing off, write a checkpoint under
+   `agent-work/checkpoints/<TASK-ID>/` with completed work, unfinished work,
+   next steps, unresolved questions, and relevant source revisions. Keep the
+   pull request open as the live state.
 
 Research tasks may run independently. Synthesis starts only after its listed
-research dependencies are user-approved as `done`. Design must not be finalized
-before `SYN-03` is user-approved as `done`. No implementation task starts before
-`DES-007` is user-approved as `done`.
+research dependencies have merged through their task pull requests. Design must
+not be finalized before `SYN-03` is merged. No implementation task starts before
+`DES-007` is merged.
 
 ## Reference sources
 
@@ -136,4 +159,4 @@ reference and must remain at its current path.
 - Preserve metadata across stage transitions.
 
 The complete requirements, evidence rules, task breakdown, dependency graph,
-and validation protocol live in `agent-work/raw-pipeline.md`.
+and validation protocol live in `agent-work/workflows/raw-pipeline.md`.

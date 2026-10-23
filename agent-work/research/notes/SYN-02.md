@@ -1,7 +1,7 @@
 # SYN-02 — Preprocessing Order and Black-Level Behavior
 
 > **Task:** `SYN-02`
-> **Status:** `blocked` (prerequisites not user-approved as `done`)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Owner:** unassigned
 > **Last updated:** 2026-10-23
 >
@@ -11,7 +11,7 @@
 
 ## Scope
 
-Reconcile, across the user-approved reports and `SYN-01`:
+Reconcile, across the merged report task pull requests and `SYN-01`:
 
 - The order and semantics of sensor-domain preprocessing.
 - Black-level selection, subtraction, clipping, underflow, saturation,

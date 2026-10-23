@@ -1,5 +1,8 @@
 # RES-06 Split and Initial Scope Checkpoint — 2026-10-23
 
+> Historical workflow checkpoint. Task status and review approval now live in
+> GitHub pull requests; status wording below is preserved as history.
+
 ## Completed
 
 - Split the broad Rust ecosystem research into:

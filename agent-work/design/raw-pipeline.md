@@ -1,13 +1,14 @@
-# RAW Pipeline API and Data-Structure Design
+# Consolidated RAW Pipeline Design
 
-> **Status:** `blocked` — design has not started.
-> **Authority:** `agent-work/raw-pipeline.md`.
-> **Prerequisites:** user-approved `SYN-*` outputs and the dependencies recorded
-> for each `DES-*` task in `agent-work/tasks/raw-pipeline.md`.
+> **Task:** `DES-007`
+> **Task contract:**
+> [`tasks/raw-pipeline/DES-007.toml`](../tasks/raw-pipeline/DES-007.toml)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 
-This is the required shared output for `DES-001`–`DES-007`. It is intentionally
-not populated until synthesis prerequisites are user-approved as `done`. Design
-decisions must cite user-approved `RES-*` or `SYN-*` task IDs and must not resolve unresolved
-metadata, coordinate, sample-domain, or preprocessing questions by assumption.
+This file is produced only after the `DES-001` through `DES-006` proposals are
+approved and merged. `DES-007` reviews those task-owned documents, records
+unresolved decisions and implementation impact, and consolidates the accepted
+API, data model, preprocessing semantics, demosaicing contract, and crate
+boundaries here.
 
-Do not begin implementation before the user approves the `DES-007` gate.
+Do not use this placeholder as evidence that design work has started.

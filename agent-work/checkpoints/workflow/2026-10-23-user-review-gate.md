@@ -1,5 +1,9 @@
 # User Review Gate Checkpoint — 2026-10-23
 
+> Historical workflow checkpoint. The former repository-local review gate has
+> been replaced by task pull requests; status wording below is preserved as
+> history.
+
 **Reason:** The user requires review of completed work and may request changes
 or extra work before accepting any task as `done`.
 

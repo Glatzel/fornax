@@ -1,0 +1,25 @@
+schema_version = 1
+id = "DES-004"
+slug = "preprocessing-state"
+title = "Design preprocessing operations and processing state"
+phase = "design"
+dependencies = ["SYN-01", "SYN-02", "DES-001", "DES-003"]
+parallelism = "After DES-001 and DES-003; blocks preprocessing implementation."
+deliverables = ["agent-work/design/raw-pipeline/DES-004-preprocessing-state.md"]
+scope = """
+Define preprocessing operations, ordering, input and output sample semantics,
+metadata requirements, error behavior, allocation policy, and a state model
+that prevents double application.
+"""
+acceptance = [
+  "Concrete operation types and signatures are specified.",
+  "Black-level formulas and clipping, normalization, and rounding rules are explicit.",
+  "Missing-metadata behavior and synthetic test strategy are specified.",
+  "White balance and color matrices are explicitly excluded.",
+  "Decisions cite merged SYN-01, SYN-02, DES-001, and DES-003 evidence.",
+]
+validation = [
+  "Verify dependency PRs are merged.",
+  "Compile representative snippets or doctests when feasible.",
+  "Check every numerical branch against SYN-02 evidence.",
+]

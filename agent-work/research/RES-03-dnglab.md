@@ -2,14 +2,14 @@
 
 > **Task:** `RES-03`
 > **Owner:** RES-03 research agent
-> **Status:** `review` (ready for user review)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Last updated:** 2026-10-23
 > **Upstream versions:** dnglab `62b77de1a206d467e910d55199191068b45a9cc1`
 > (including its `rawler/` subtree); Adobe DNG SDK mirror
 > `962a7028efdc8f8a651cf6335c3ec53053472339`, containing DNG Specification
 > 1.7.0.0 dated June 2023.
 >
-> **Acceptance criteria (authoritative version in the task tracker):**
+> **Acceptance criteria (authoritative version in the task TOML manifest):**
 >
 > - [x] DNG tags relevant to sample interpretation and preprocessing are mapped
 >   to source symbols, with units, defaults, and coordinate conventions.
@@ -23,8 +23,8 @@
 > - [x] The report contains the six required sections, evidence labels, and
 >   cited source locations.
 >
-> **Review snapshot:** RES-03 research agent and primary checks completed
-> 2026-10-23; user review is pending. DNG tag mappings, specification defaults,
+> **Verification snapshot:** RES-03 research agent and primary checks completed
+> 2026-10-23; GitHub pull-request review is pending. DNG tag mappings, specification defaults,
 > ActiveArea/DefaultCrop/CFA coordinate rules, rawler limitations,
 > vendor-metadata distinctions, and licensing were checked against the pinned
 > sources. Stale references to a missing extracted text file were replaced with

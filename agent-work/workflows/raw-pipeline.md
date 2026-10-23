@@ -1,12 +1,14 @@
 # Task: Research, Design, and Implement a Rust-Native RAW Processing Pipeline in `fornax`
 
-> **Status:** `RES-01`–`RES-08` are in `review` and await user approval.
-> `RES-09` is blocked until its dependencies are user-approved as `done`.
-> Synthesis, design, and implementation have not started.
+> **Authority:** This file is the authoritative workflow and task specification
+> for the RAW processing pipeline. `AGENTS.md` at the repository root contains
+> only concise repository instructions and must not duplicate or override this
+> specification.
 >
-> **Authority:** This file is the authoritative task specification for the RAW
-> processing pipeline. `AGENTS.md` at the repository root contains only concise
-> repository instructions and must not duplicate or override this specification.
+> **Task contracts:** One TOML manifest per task lives in
+> `agent-work/tasks/raw-pipeline/<TASK-ID>.toml`. GitHub pull requests are the
+> review and completion record; this workflow and the manifests contain no
+> duplicate live review state.
 >
 > **Deliverable layout:** The original prompt used `docs/` paths. Those paths are
 > mapped to this repository's `agent-work/` directory. The hidden `.agents/`
@@ -16,7 +18,8 @@
 > ```text
 > agent-work/
 > ├── AGENTS.md
-> ├── raw-pipeline.md
+> ├── README.md
+> ├── workflows/raw-pipeline.md
 > ├── references/
 > │   ├── README.md
 > │   ├── darktable/
@@ -24,7 +27,8 @@
 > │   └── other/
 > ├── checkpoints/
 > │   ├── README.md
-> │   └── <task-or-handoff-checkpoint>.md
+> │   ├── workflow/
+> │   └── <TASK-ID>/<date>-<slug>.md
 > ├── research/
 > │   ├── README.md
 > │   ├── RES-01-fornax-inventory.md
@@ -38,15 +42,21 @@
 > │   ├── RES-09-rust-ecosystem.md
 > │   ├── SYN-03-summary.md
 > │   └── notes/                   # synthesis working notes
-> ├── design/raw-pipeline.md
-> └── tasks/raw-pipeline.md
+> ├── design/
+> │   ├── raw-pipeline.md         # consolidated by DES-007
+> │   └── raw-pipeline/<TASK-ID>-<slug>.md
+> └── tasks/
+>     ├── README.md               # manifest and PR protocol
+>     └── raw-pipeline/
+>         ├── README.md           # planned dependency graph
+>         └── <TASK-ID>.toml      # one contract per task
 > ```
 >
 > Each reference report has exactly one owning research task. `SYN-03-summary.md` is
 > produced by `SYN-03`; it synthesizes the reports rather than replacing them.
-> Report contents and task statuses reflect the live progress recorded below and
-> in `agent-work/tasks/raw-pipeline.md`. A file existing is not evidence of
-> completion, and no task may fabricate findings or bypass its acceptance gate.
+> A file existing is not evidence of completion, and no task may fabricate
+> findings or bypass its acceptance gate. Review approval and task state are
+> recorded only by the task's GitHub pull request.
 > Every task-owned research filename must begin with its task ID
 > (`<TASK-ID>-<slug>.md`); only the directory-level `README.md` is exempt.
 
@@ -75,9 +85,10 @@ dependency, not a research reference. Keep it at its current path.
 Research owners write only their assigned report under `agent-work/research/`.
 `SYN-01` and `SYN-02` write only their files under
 `agent-work/research/notes/`; `SYN-03` owns
-`agent-work/research/SYN-03-summary.md`. Shared design output is
-`agent-work/design/raw-pipeline.md`. No task writes into another task's owned
-file.
+`agent-work/research/SYN-03-summary.md`. Each `DES-*` task writes a separate
+proposal under `agent-work/design/raw-pipeline/`; only `DES-007` writes the
+consolidated `agent-work/design/raw-pipeline.md`. No task writes into another
+task's owned file.
 
 ## 1. Project context and objective
 
@@ -170,8 +181,9 @@ Distinguish source-verified facts from assumptions and recommendations. Record u
 
 Research is a first-class, independently tracked phase. Each source has exactly
 one report and exactly one owning task; tasks must not share report files. Live
-status is maintained in `agent-work/tasks/raw-pipeline.md`; this section defines
-the normative scope.
+status is maintained by the task pull requests. This section defines the
+normative research scope; the TOML manifest is authoritative for each task
+contract.
 
 | ID | Report | Focus | Depends on | Parallel |
 | --- | --- | --- | --- | --- |
@@ -384,7 +396,7 @@ are ready.
   `fornax-core` without an explicit boundary; and the report contains the six
   required sections.
 - **Parallelization:** Starts after `RES-06`, `RES-07`, and `RES-08` are
-  user-approved as `done`. Owns only `agent-work/research/RES-09-rust-ecosystem.md`.
+  approved and merged in the dependency task PR. Owns only `agent-work/research/RES-09-rust-ecosystem.md`.
 
 ### Required report structure
 
@@ -403,10 +415,11 @@ Every reference report (`RES-01-fornax-inventory.md`, `RES-02-libraw.md`, `RES-0
    evidence, ambiguities, and unresolved issues.
 6. **References** — direct links to the relevant upstream sources.
 
-Front matter must record the owning task ID, status, owner, last update, and the
-upstream versions or commits inspected. Each report must include the acceptance
-criteria of its owning task. Agents prepare the task in `review`; only the user
-may move it to `done`.
+Front matter must record the owning task ID, owner, last update, upstream
+versions or commits inspected, and a link or identifier for the task pull
+request once one exists. Each report must include the acceptance criteria of
+its owning task manifest. Agents submit the report through the task PR; only
+the user approves and merges it.
 
 ### Evidence and provenance rules
 
@@ -430,7 +443,7 @@ and reference other reports by path and section rather than copying them.
 ### Synthesis tasks
 
 Synthesis is separate from reference research and cannot start until its
-prerequisite reports are user-approved as `done`. It must not silently
+prerequisite reports are approved and merged in the dependency task PR. It must not silently
 reconcile disagreements.
 
 | ID | Output | Reconciles | Depends on |
@@ -484,13 +497,13 @@ behavior, ordering constraints, and synthetic-test strategy.
 ### Research completion gate
 
 - No synthesis task starts until every listed dependency report is
-  user-approved as `done`.
-- No design task is finalized before `SYN-03` is user-approved as `done`.
-  Design decisions must cite the supporting user-approved `RES-*` or `SYN-*`
-  task IDs, or explicitly state their assumptions.
+  approved and merged in the dependency task PR.
+- No design task is finalized before `SYN-03` is approved and merged in the dependency task PR.
+  Design decisions must cite the supporting merged `RES-*` or `SYN-*` task IDs,
+  or explicitly state their assumptions.
 - No implementation task starts before the user approves `DES-007`.
 - The research phase is complete only when `RES-01`–`RES-09` and `SYN-01`–
-  `SYN-03` are user-approved as `done` with satisfied acceptance criteria.
+  `SYN-03` are approved and merged in the dependency task PR with satisfied acceptance criteria.
 - A report file existing is not evidence of completion.
 
 ### Research deliverables
@@ -519,18 +532,20 @@ write only their own report; synthesis working notes are owned by `SYN-01` and
 `SYN-02`.
 
 Do not begin a broad implementation before the research reports and synthesis
-are user-approved as `done`.
+are approved and merged in the dependency task PR.
 
 ## 3. Phase B — API and data structure design
 
-Create `agent-work/design/raw-pipeline.md` as a detailed design proposal.
+Create one task-owned proposal under `agent-work/design/raw-pipeline/` for each
+of `DES-001` through `DES-006`. `DES-007` reviews them and owns the consolidated
+`agent-work/design/raw-pipeline.md`.
 
 Design work is tracked as `DES-001` through `DES-006`, followed by the
 `DES-007` review gate. A design task may start only when its listed `SYN-*`
-dependencies are user-approved as `done`, and its proposal must cite the
-user-approved `RES-*` or `SYN-*` task IDs that justify each decision. No public
-type or function is finalized before `SYN-03` is user-approved. Do not introduce
-a public type or function whose metadata, coordinate, sample-domain, or
+dependencies are approved and merged in the dependency task PR, and its proposal must cite the
+merged `RES-*` or `SYN-*` task IDs that justify each decision. No public type or
+function is finalized before `SYN-03` is approved and merged. Do not introduce a
+public type or function whose metadata, coordinate, sample-domain, or
 preprocessing semantics are still unresolved by synthesis.
 
 The design must be consistent with the research report and the existing repository. It should describe actual proposed Rust types, fields, invariants, function signatures, data flow, and dependency boundaries rather than merely listing concepts.
@@ -556,7 +571,7 @@ Evaluate the following information and specify the exact type, units, semantics,
 The initial implementation supports only the conventional Bayer layouts defined
 in Section 1. Do not generalize shared behavior to X-Trans, Foveon, Quad Bayer,
 four-color, monochrome, or non-mosaic payloads without a separately
-user-approved task. Define how those layouts and unusual sample encodings are
+user-approved and merged task. Define how those layouts and unusual sample encodings are
 rejected with structured errors while keeping enough scope for a future
 extension.
 
@@ -660,165 +675,110 @@ the replacement architecture.
 
 Include representative Rust type definitions and function signatures in the design report.
 
-## 4. Phase C — Tracked backlog and task tracking
+## 4. Phase C — Tracked backlog and pull-request execution
 
-Create `agent-work/tasks/raw-pipeline.md` as the living tracker for every
-phase, including research and synthesis. Research, synthesis, design, and
-implementation tasks all use the same tracking rules.
+The durable task plan is one TOML manifest per task at
+`agent-work/tasks/raw-pipeline/<TASK-ID>.toml`. TOML is used for structured,
+parseable data: dependencies, deliverables, acceptance criteria, and validation.
+Markdown remains the format for task-owned evidence, design proposals,
+checkpoints, and pull-request discussion.
 
-Every tracked task must have:
+One manifest per task deliberately avoids a shared live tracker. Shared tracker
+files turn independent task branches into merge conflicts and make review state
+ambiguous. The task index in `agent-work/tasks/raw-pipeline/README.md` records
+the dependency graph; it does not duplicate live status.
 
-- A stable task ID.
-- A concise title and scope.
-- Status: `blocked`, `ready`, `in_progress`, `review`, or `done`.
-- Dependencies expressed as task IDs.
-- Acceptance criteria.
-- Deliverable, including the file where the result is recorded.
-- Relevant crates and files, or research sources.
-- Parallelization notes.
-- Test, validation, or review requirements.
+### Task manifest contract
 
-Use Markdown checklists or tables that are easy to update in code review. Keep
-the tracker synchronized with actual progress; never mark work complete without
-evidence. A task with unresolved acceptance criteria stays in `in_progress` or
-`review`, not `done`. Agents must stop completed work at `review`; only the user
-may authorize `done` after reviewing the deliverable.
+Every task manifest declares:
+
+- a stable task ID and immutable branch slug;
+- title and phase;
+- dependency task IDs;
+- one or more task-owned deliverables;
+- bounded scope;
+- objective acceptance criteria; and
+- commands or checks that produce validation evidence.
+
+Task manifests must not contain `review`, `approved`, or `done` fields. GitHub
+pull requests are the sole live state and approval record.
+
+### Branch, worktree, and pull-request protocol
+
+1. Verify every dependency task PR is merged into the integration base.
+2. Fetch `origin` and create a worktree on a task branch:
+
+   ```bash
+   git worktree add -b task/res-01-fornax-inventory \
+     .worktrees/res-01-fornax-inventory origin/agent
+   ```
+
+3. Work only in the manifest deliverables and files needed to validate them.
+   Keep unrelated cleanup in a separate task.
+4. Commit and push the branch, then open one PR titled
+   `[TASK-ID] Imperative summary` with the repository PR template.
+5. Address review feedback in the same branch and PR. Do not open a second PR
+   for the same task.
+6. The user approves and merges the PR. Agents never merge their own task PRs;
+   a merged PR is the durable completion record.
+7. Remove the merged worktree and local branch only when cleanup is requested or
+   completed by the normal housekeeping workflow.
+
+Review occurs in the pull request, not in a repository status field. A paused
+task keeps its PR open and records resume context in
+a `agent-work/checkpoints/<TASK-ID>/` checkpoint.
 
 ### Task ID scheme
 
-| Prefix | Phase | Typical status at initialization |
-| --- | --- | --- |
-| `RES-` | Independent reference research | `ready` |
-| `SYN-` | Cross-source synthesis and reconciliation | `blocked` |
-| `DES-` | API, data model, and architecture design | `blocked` |
-| `IMPL-` | Implementation | `blocked` |
-| `QA-` | Integration, validation, and performance | `blocked` |
+| Prefix | Phase |
+| --- | --- |
+| `RES-` | Independent reference research |
+| `SYN-` | Cross-source synthesis and reconciliation |
+| `DES-` | API, data model, and architecture design |
+| `IMPL-` | Implementation and integration |
+| `QA-` | Validation, regression, performance, and documentation |
 
 ### Initial work breakdown
 
-Create and refine tasks covering at least the following workstreams.
+The manifests cover these workstreams:
 
-**A. Research, synthesis, and shared contracts**
+- independent source research and split Rust ecosystem research;
+- metadata, preprocessing, and cross-source synthesis;
+- universal representation, metadata, CFA, preprocessing, demosaicing, and crate
+  architecture design;
+- decoder, preprocessing, demosaicing, and end-to-end implementation; and
+- metadata, numerical, error-path, performance, documentation, and workspace
+  validation.
 
-- `RES-01` through `RES-08`: independent report-owning source research tasks.
-  Each report has exactly one owner and may run concurrently.
-- `RES-09`: ecosystem comparison after the three split Rust reports.
-- `SYN-01` through `SYN-03`: reconcile metadata and sample semantics,
-  preprocessing order and black-level behavior, and cross-source
-  recommendations. Each is `blocked` on its listed reports; `SYN-03` produces
-  `agent-work/research/SYN-03-summary.md`.
-- Review and acceptance of the API/data model design (`DES-007`).
-- Universal RAW representation and common metadata (`DES-001`).
-- Extensible metadata and provenance (`DES-002`).
-- CFA representation and indexing semantics (`DES-003`).
-- Preprocessing semantics and processing state (`DES-004`).
-- Shared demosaicing interface (`DES-005`).
-- Crate architecture and dependency boundaries (`DES-006`).
-- Shared error types and validation.
-- Test fixture conventions and reference-comparison methodology.
+The exact scope and acceptance criteria are authoritative in each manifest, not
+in a duplicated backlog table.
 
-**B. Decoding**
+Run the manifest validator before opening or updating a task PR:
 
-- Define the decoder interface.
-- Implement or adapt the initial RAW decoder backend.
-- Map source metadata into the universal representation.
-- Validate buffer layout, sample semantics, and CFA alignment.
-- Add decoder integration tests for Bayer DNG, Sony ARW, Nikon NEF, and Canon
-  `CR*` files.
-- Add explicit rejection tests for X-Trans, Foveon, other non-Bayer payloads, and
-  deferred RAW formats.
-
-**C. Preprocessing**
-
-- Define preprocessing operations and processing-state semantics.
-- Implement scalar black-level correction.
-- Implement CFA-aware black-level correction.
-- Handle repeat-pattern or spatially varying black levels when supported.
-- Investigate and implement other justified sensor-domain operations as separate tasks.
-- Add synthetic numerical tests and reference comparisons.
-
-Split tasks further if an operation requires different algorithms, formats, or independent acceptance criteria.
-
-**D. Demosaicing**
-
-Create separate tasks for each selected algorithm, for example:
-
-- Demosaic algorithm A: bilinear baseline.
-- Demosaic algorithm B: Malvar–He–Cutler.
-- Demosaic algorithm C: selected edge-aware or higher-quality algorithm.
-
-These are example work items. Finalize the list based on research.
-
-Each algorithm must have independent implementation and test criteria. Multiple algorithms should be implementable concurrently after the shared interface and CFA semantics are stable.
-
-**E. Integration and quality**
-
-- End-to-end RAW-to-demosaiced-image pipeline.
-- Metadata preservation and stage-transition tests.
-- Numerical regression tests.
-- Error-path and unsupported-format tests.
-- Performance baselines and benchmarks.
-- Documentation and migration of existing APIs.
-- Workspace-wide CI and lint validation.
+```bash
+python3 agent-work/tasks/validate.py
+```
 
 ### Dependency and parallelization rules
 
-Represent dependencies explicitly. The dependency graph is:
+The dependency graph is:
 
-`RES-01..08 → SYN-01 → SYN-02 → SYN-03`
+`RES-01..08 -> SYN-01 -> SYN-02 -> SYN-03`
 
-`RES-06..08 → RES-09 → SYN-03`
+`RES-06..08 -> RES-09 -> SYN-03`
 
-`SYN-03 → DES-001..007 → IMPL-* → QA-*`
+`SYN-03 -> DES-001..007 -> IMPL-* -> QA-*`
 
-Execution waves:
-
-- **Wave R0 — independent research.** `RES-01` through `RES-08` are independent
-  and may run concurrently. Their live readiness is recorded in the tracker;
-  a task that is `review`, `blocked`, or `done` must not be restarted merely
-  because it belongs to this wave. Each worker owns one task ID and exactly one
-  report file.
-- **Wave R1 — ecosystem comparison.** `RES-09` starts after `RES-06`,
-  `RES-07`, and `RES-08` are user-approved as `done`.
-- **Wave S1 — metadata and sample synthesis.** `SYN-01` starts after `RES-01`,
-  `RES-02`, `RES-03`, `RES-04`, `RES-06`, and `RES-07` are user-approved as
-  `done`.
-- **Wave S2 — preprocessing synthesis.** `SYN-02` starts after `RES-02`,
-  `RES-04`, and `SYN-01` are user-approved as `done`.
-- **Wave S3 — cross-source synthesis.** `SYN-03` starts after all nine reports and
-  both synthesis notes are user-approved as `done`, and produces `SYN-03-summary.md`.
-- **Wave D — design.** `DES-001` through `DES-006` start only after their listed
-  `SYN-*` dependencies are user-approved as `done`. `DES-007` also requires
-  user-approved `SYN-03`.
-- **Wave I — implementation.** No `IMPL-*` task is `ready` until `DES-007` is
-  user-approved as `done` and the affected interfaces are stable.
-
-After the common data model, CFA semantics, and demosaicing interface are
-user-approved, independent algorithm implementations should not block one
-another.
-
-Decoder, metadata, preprocessing, and demosaicing tasks may overlap when their
-interfaces are stable. Do not parallelize tasks that are still changing the same
-shared API.
-
-Only the `SYN-03` owner edits `agent-work/research/SYN-03-summary.md`. Each `RES-*`
-owner edits only its assigned report. `SYN-01` and `SYN-02` write only their
-own files under `agent-work/research/notes/`. Design work that consumes
-synthesis output must cite user-approved `RES-*` or `SYN-*` task IDs.
-
-If using multiple agents or parallel workers:
-
-- Assign each worker a specific task ID and bounded file ownership.
-- Require workers to use the user-approved design and interfaces.
-- Avoid concurrent edits to shared types and workspace manifests.
-- Integrate through reviewable changes and run the relevant tests before moving
-  tasks to `review`.
-
-Identify which tasks are ready to run in parallel and which are blocked by design decisions.
+An arrow starts downstream work only after the upstream task PR is merged.
+Parallel workers must have distinct task IDs, branches, worktrees, and owned
+files. Serialize edits to shared interfaces, workspace manifests, and
+consolidated design output. If tasks need one shared file, introduce a stacked
+dependency or a dedicated integration task instead of racing in separate PRs.
 
 ## 5. Phase D — Implementation
 
-Implement against the user-approved research and design documents.
+Implement against research and design documents approved through their task
+pull requests.
 
 Requirements:
 
@@ -833,7 +793,7 @@ Requirements:
 - Treat the architecture refactor as breaking by default. Preserve only
   implementation assets that independently pass the new design and license
   requirements, and document their migration.
-- Update the implementation tracker as work proceeds.
+- Record implementation evidence in the task PR as work proceeds.
 
 Do not silently change shared interfaces to accommodate one algorithm. If the design must change, update the design report and affected task contracts before proceeding.
 
@@ -864,31 +824,30 @@ Run the repository's applicable formatting, lint, test, and build commands. Reco
 Work in this order:
 
 1. Start `RES-01` through `RES-08` as concurrent, tracked research tasks. Run
-   `RES-09` only after the three Rust ecosystem reports are ready.
+   `RES-09` only after the three Rust ecosystem report PRs are merged.
 2. Have each owner record findings and evidence in exactly one report under
    `agent-work/research/`.
-3. Run `SYN-01` after its prerequisite reports are user-approved as `done`,
-   then `SYN-02`
-   after `SYN-01`, then `SYN-03` to produce `agent-work/research/SYN-03-summary.md`.
+3. Run `SYN-01` after its prerequisite report PRs are approved and merged, then
+   `SYN-02` after `SYN-01`, then `SYN-03` to produce
+   `agent-work/research/SYN-03-summary.md`.
 4. Review the reports and the synthesis, resolving or documenting disagreements.
 5. Produce the API and data structure design report (`DES-001`–`DES-006`),
    citing `RES-*` or `SYN-*` evidence for every material decision.
 6. Review the architecture (`DES-007`). No public type or preprocessing API is
-   finalized before `SYN-03` is user-approved as `done`.
-7. Implement in small, trackable tasks only after user approval of the design.
+   finalized before `SYN-03` is approved and merged in the dependency task PR.
+7. Implement in small, trackable tasks only after the design PRs are merged.
 8. Integrate, validate, and update documentation.
 
-Research tasks, synthesis tasks, design tasks, and implementation tasks are all
-tracked in `agent-work/tasks/raw-pipeline.md`. Update status and evidence as
-work proceeds. Do not begin implementation while any required synthesis or
-design gate is unresolved.
+Each research, synthesis, design, and implementation task has its own TOML
+manifest and task PR. Update evidence in the owned deliverable and PR. Do not
+begin implementation while a required synthesis or design gate is unresolved.
 
 At the end of the research/design phase, provide a concise review summary and identify the tasks that are ready for implementation. Do not treat research or design documents as proof that the implementation exists.
 
 At the end of implementation, report:
 
 - The final architecture and important research findings.
-- The user-approved API and data model.
+- The API and data model approved and merged through the design task PR.
 - How metadata drives preprocessing before demosaicing.
 - Task status, including blocked and incomplete work.
 - Which tasks were implemented concurrently.
@@ -901,15 +860,19 @@ The goal is a maintainable, Rust-native RAW pipeline whose data semantics are ex
 
 Support the commands `start <TASK-ID>`, `pause <TASK-ID>`, `resume <TASK-ID>`, and `status <TASK-ID>`.
 
-- `pause`: If the task is running, interrupt it when supported. Before stopping, preserve completed findings in its assigned report and write a checkpoint under `agent-work/checkpoints/` with unfinished work, next steps, unresolved questions, source revisions, and validation results. Set the task status to `paused`.
+- `pause`: If the task is running, interrupt it when supported. Before stopping,
+  preserve completed findings in its assigned report, keep the task PR open, and
+  write a checkpoint under `agent-work/checkpoints/<TASK-ID>/` with unfinished
+  work, next steps, unresolved questions, source revisions, and validation
+  results.
 - `resume`: Read the task definition, owned report or note, latest checkpoint, and reference revisions. Continue unfinished work without repeating verified findings. Verify dependencies before proceeding.
 - `status`: Report the task's current status, completed work, remaining work, and blockers.
 - `start`: Start a task only if its dependencies are satisfied. Do not duplicate an already-running task.
 
 Persist progress in the task's assigned report and, for pauses or handoffs, a
-task-specific checkpoint under `agent-work/checkpoints/`. The task manifest
-remains authoritative for status. Never rely solely on conversation history.
-Do not mark a paused or interrupted task as `done`.
-Only the user may move any reviewed task to `done`.
+task-specific checkpoint under `agent-work/checkpoints/`. The open task PR is
+authoritative for live status. Never rely solely on conversation history.
+Keep the task PR open while paused or interrupted.
+Only the user may approve and merge a task PR.
 
 For delegated tasks, distinguish interrupting a worker from merely asking the coordinator to stop. If the runtime cannot pause a worker directly, explain the limitation and preserve its progress before stopping.

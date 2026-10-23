@@ -1,0 +1,25 @@
+schema_version = 1
+id = "SYN-01"
+slug = "metadata-sample-semantics"
+title = "Reconcile metadata and sample semantics"
+phase = "synthesis"
+dependencies = ["RES-01", "RES-02", "RES-03", "RES-04", "RES-06", "RES-07"]
+parallelism = "Single owner; may not start until every dependency PR is merged."
+deliverables = ["agent-work/research/notes/SYN-01.md"]
+scope = """
+Reconcile stored versus corrected samples, ranges and bit depth, black-level
+representations, metadata units and provenance, coordinates, CFA alignment, and
+universal versus backend-specific concepts across the listed reports.
+"""
+acceptance = [
+  "A decision table states meaning, unit, coordinate convention, valid range, supporting report sections, authority rule, and remaining uncertainty.",
+  "Disagreements and unresolved questions are explicit and not silently resolved.",
+  "Coordinate spaces and CFA alignment are defined precisely.",
+  "Universal and backend-specific concepts are separated.",
+  "Every conclusion links to a supporting report section.",
+  "Implementation decisions explicitly weight LibRaw and dnglab as high-priority references, subject to normative DNG rules.",
+]
+validation = [
+  "Verify every dependency task PR is merged.",
+  "Cross-check each decision against the cited report sections.",
+]

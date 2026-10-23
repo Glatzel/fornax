@@ -2,13 +2,13 @@
 
 > **Task:** `RES-04`
 > **Owner:** RES-04 research agent
-> **Status:** `review` (ready for user review)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Last updated:** 2026-10-23
 > **Upstream versions:** darktable `6556cd7dbb0e69f95d165dda8b69e7270c327f6d`
 > (`master`, 2026-10-22), inspected from
 > `agent-work/references/darktable/`.
 >
-> **Acceptance criteria (authoritative version in the task tracker):**
+> **Acceptance criteria (authoritative version in the task TOML manifest):**
 >
 > - [x] The pre-demosaic pipeline order is documented with source paths and
 >   symbols.
@@ -22,8 +22,8 @@
 >   `SYN-01` and `SYN-02`.
 > - [x] The report contains the six required sections and cites sources.
 >
-> **Review snapshot:** RES-04 research agent and primary checks completed
-> 2026-10-23; user review is pending. Module order, `rawprepare` formula and CFA
+> **Verification snapshot:** RES-04 research agent and primary checks completed
+> 2026-10-23; GitHub pull-request review is pending. Module order, `rawprepare` formula and CFA
 > indexing, crop/mask behavior, the demosaic boundary, out-of-scope operations,
 > source differences, and licensing were checked against the pinned darktable
 > revision.
@@ -218,7 +218,8 @@ than a required preprocessing operation.
 `[verified]` `hotpixels`, `rawdenoise`, and chromatic-aberration correction
 also appear in darktable's pre-demosaic order but are optional and outside the
 currently specified minimum `fornax` pipeline. `fornax` should add them only
-after separate semantic research and user-approved design.
+after separate semantic research and design approved and merged through task
+pull requests.
 
 ### 2.6 Demosaic boundary and later processing
 

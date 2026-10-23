@@ -1,0 +1,25 @@
+schema_version = 1
+id = "DES-005"
+slug = "demosaicing-interface"
+title = "Design the shared demosaicing interface"
+phase = "design"
+dependencies = ["SYN-01", "SYN-03", "DES-001", "DES-003"]
+parallelism = "After synthesis and foundational design tasks; unblocks independent algorithm tasks."
+deliverables = ["agent-work/design/raw-pipeline/DES-005-demosaicing-interface.md"]
+scope = """
+Define the stable demosaicing input and output contract, supported CFA patterns,
+border behavior, channel ordering, numeric representation, options, errors,
+metadata policy, and algorithm extension point.
+"""
+acceptance = [
+  "Concrete traits, types, and signatures are specified.",
+  "The generic or object-safe strategy choice is justified.",
+  "Independent algorithms can be added without changing shared types.",
+  "Border, output, metadata, allocation, and error semantics are explicit.",
+  "Decisions cite merged SYN-01, SYN-03, DES-001, and DES-003 evidence.",
+]
+validation = [
+  "Verify dependency PRs are merged.",
+  "Compile representative snippets or doctests when feasible.",
+  "Review the contract against the initial Bayer-only scope.",
+]

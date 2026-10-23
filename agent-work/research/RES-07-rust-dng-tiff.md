@@ -2,13 +2,13 @@
 
 > **Task:** `RES-07`
 > **Owner:** RES-07 research agent
-> **Status:** `review` (ready for user review)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Last updated:** 2026-10-23
 > **Upstream versions:** image-rs/image-tiff
 > `3302936b08e2260d4c66f40f51170efbb1fded4c`; dnglab/rawler
 > `62b77de1a206d467e910d55199191068b45a9cc1`.
 >
-> **Acceptance criteria (authoritative version in the task tracker):**
+> **Acceptance criteria (authoritative version in the task TOML manifest):**
 >
 > - [x] Bayer DNG capabilities and gaps are source-verified.
 > - [x] Dependency use is compared with a minimal in-workspace parser.
@@ -17,7 +17,7 @@
 > - [x] Non-Bayer DNG payloads are excluded from initial support.
 > - [x] The report contains the six required sections and cites sources.
 >
-> **Review snapshot:** RES-07 research agent, 2026-10-23. The
+> **Verification snapshot:** RES-07 research agent, 2026-10-23. The
 > image-tiff public surface, sample/layout model, tag access, compression
 > features, limits, errors, tests, and maintenance date were checked against
 > the pinned revisions. DNG-specific behavior was separated from generic TIFF

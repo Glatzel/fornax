@@ -1,0 +1,21 @@
+schema_version = 1
+id = "IMPL-DEM-001"
+slug = "bilinear-demosaic"
+title = "Implement bilinear demosaicing"
+phase = "implementation"
+dependencies = ["DES-005", "DES-007"]
+parallelism = "Can run concurrently with IMPL-DEM-002 and IMPL-DEM-003 through the shared interface."
+deliverables = ["bilinear demosaic source", "synthetic and regression tests", "bilinear benchmark results"]
+scope = """
+Implement the bilinear baseline through the approved demosaicing interface,
+including defined borders and output semantics.
+"""
+acceptance = [
+  "Synthetic Bayer mosaics match defined expected values.",
+  "Border and degenerate-size behavior is defined and tested.",
+  "The benchmark records representative performance.",
+]
+validation = [
+  "Verify dependency PRs are merged.",
+  "Run focused tests, formatting, clippy, and the benchmark.",
+]
