@@ -7,7 +7,7 @@ or extra work before accepting any task as `done`.
 
 | Task | Status | Report |
 | --- | --- | --- |
-| `RES-01` | `review` | `agent-work/research/RES-01-fornax-architecture.md` |
+| `RES-01` | `review` | `agent-work/research/RES-01-fornax-inventory.md` |
 | `RES-02` | `review` | `agent-work/research/RES-02-libraw.md` |
 | `RES-03` | `review` | `agent-work/research/RES-03-dnglab.md` |
 | `RES-04` | `review` | `agent-work/research/RES-04-darktable.md` |

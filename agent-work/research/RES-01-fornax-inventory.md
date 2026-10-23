@@ -1,4 +1,4 @@
-# Existing `fornax` Architecture
+# Existing `fornax` Components and Reuse Inventory
 
 > **Task:** `RES-01`
 > **Owner:** RES-01 research agent / primary agent review
@@ -9,44 +9,53 @@
 >
 > **Acceptance criteria (authoritative version in the task tracker):**
 >
-> - [x] Every public trait, type, and function relevant to decoding, metadata,
->   preprocessing, or demosaicing is listed with path and symbol.
-> - [x] Current limitations are explicit, including missing metadata,
->   black/white levels, crop, and structured rejection of non-Bayer layouts.
-> - [x] Reuse candidates are separated from code that must be replaced.
-> - [x] Dependency direction is documented.
+> - [x] Relevant existing components and public contracts are listed with path
+>   and symbol.
+> - [x] Current limitations and defects are explicit.
+> - [x] Reusable implementation assets are classified as direct reuse,
+>   adaptation, test/oracle only, or not reusable.
+> - [x] The report states that the architecture will be fully refactored and
+>   does not prescribe retaining existing boundaries or API shape.
+> - [x] Reusable implementation assets are distinguished from architecture.
 > - [x] Findings use `[verified]`, `[inference]`, or `[recommendation]` labels.
 > - [x] All six required report sections are complete.
 >
 > **Review snapshot:** Primary checks completed 2026-10-23; user review is
-> pending. Public symbols, dependency edges, limitations, reuse candidates, and
-> report structure were checked against `46fabfd`. The source tree is unchanged
-> from `d06f426`; intervening commits do not alter Rust sources or manifests.
-> The malformed `color4_image` branch was added to the gap inventory.
+> pending. Existing components, public symbols, limitations, implementation
+> reuse candidates, and report structure were checked against `46fabfd`. This is
+> an inventory for implementation reuse and migration; it is not an architecture
+> proposal. The current architecture is intended to be fully refactored.
 
 ## 1. Scope and questions
 
-Audit the existing repository architecture, crate boundaries, data structures,
-dependencies, and reusable implementations. The questions were:
+Inventory what the existing repository contains and identify implementation
+assets that may be useful when building a replacement architecture. The
+questions were:
 
 - What do `IDecoder`, `IPostProcessor`, `BayerImage`, `BayerPattern`,
   `IDemosaic`, and `DemosaicLinear` actually guarantee?
-- Which public APIs are stable constraints and which are incidental?
 - How do dependencies flow between the crates?
-- Which existing code can be reused for a universal RAW representation,
-  metadata-driven preprocessing, or demosaicing?
+- Which concrete algorithms, tests, fixtures, benchmarks, bindings, and tooling
+  may be reusable in the replacement implementation?
+- Which existing components are tightly coupled to assumptions that should not
+  survive the refactor?
 - Which assumptions require non-Bayer layouts to be rejected until a future
   task explicitly extends the pipeline?
 - Which assumptions block metadata-rich or black-level-aware processing?
 
-The audit is evaluated against the current initial scope: conventional 2x2 RGB
-Bayer data in DNG, Sony ARW, Nikon NEF, and Canon `CR*`. X-Trans, Foveon/X3,
-Quad Bayer, four-color, monochrome, non-mosaic payloads, and other RAW formats
-are deferred and must be rejected rather than inferred as supported.
+The existing crate boundaries, traits, composition model, and public API are
+evidence to inventory, not architecture to preserve. The replacement
+architecture will be designed from the required pipeline contracts after
+synthesis.
+
+The inventory is evaluated against the current initial scope: conventional 2x2
+RGB Bayer data in DNG, Sony ARW, Nikon NEF, and Canon `CR*`. X-Trans,
+Foveon/X3, Quad Bayer, four-color, monochrome, non-mosaic payloads, and other
+RAW formats are deferred and must be rejected rather than inferred as supported.
 
 ## 2. Findings
 
-### 2.1 Workspace and crate boundaries
+### 2.1 Current workspace topology (inventory only)
 
 `[verified]` The workspace has resolver 3, edition 2024, package version
 `0.0.17`, and members `./crates/*` (`Cargo.toml:1-7`). It contains eight crates:
@@ -241,44 +250,38 @@ workspace tests with nightly and all features excluding `fornax-py`, then
 
 ## 4. Implications for fornax
 
-`[recommendation]` Keep the existing crate boundaries as a starting point:
-`fornax-core` for shared types, `fornax-dalim` for demosaicing, `libraw` as one
-decoder backend, and `fornax` as the composition layer. Do not put LibRaw types
-into the universal representation.
+`[recommendation]` Treat the current architecture as legacy input only. The
+replacement must define new crate boundaries, contracts, data ownership,
+metadata semantics, and error handling from the research and synthesis
+findings. The existing architecture is expected to be fully refactored.
 
-`[recommendation]` Replace or extend `BayerImage<T>` with a universal raw image
-type that carries:
+| Existing asset | Reuse class | Implementation implication |
+| --- | --- | --- |
+| `DemosaicLinear` interpolation core | Adapt | Useful algorithmic baseline, but it needs explicit border behavior, zero-neighbor handling, integer rounding policy, and a new input/output contract. |
+| Bayer pattern/channel concepts | Adapt | The four-phase model is relevant, but the replacement must own CFA origin, crop phase, channel interpretation, and unsupported-layout errors. |
+| Linear-demosaic unit tests | Test/oracle only | Useful expected values for four Bayer phases after the algorithm contract is redesigned. |
+| Criterion benchmark scaffolding | Adapt | Reuse the benchmark idea and harness after adapting buffers and algorithm interfaces. |
+| LibRaw FFI declarations and ownership plumbing | Adapt | Potentially reusable behind a new decoder adapter. Do not expose LibRaw types or the current `Rawdata` model downstream. |
+| `ImageSizes` and `IParams` accessors | Adapt | Useful evidence for a backend adapter, not a universal metadata API. |
+| `Rawdata` buffer enum | Not reusable as architecture | Loses stride, crop, CFA, black/white, and provenance semantics; also contains the inverted `color4_image` condition. |
+| `IDecoder` and `IPostProcessor` | Not reusable as architecture | Stateful decode-then-query and direct post-processing obscure metadata and prevent an explicit preprocessing stage. |
+| `BayerImage<T>` | Not reusable as architecture | Lacks the metadata, sample-domain, stride, and processing-state invariants required by the target pipeline. |
+| `Fornax<D, T, P, O>` manager | Not reusable as architecture | Couples decoding and post-processing without explicit pipeline stages or metadata flow. |
+| `FornaxError(String)` | Not reusable as architecture | Cannot express structured decode, metadata, CFA, or stage errors. |
+| `NullPostProcessor` | Not reusable | Its implementation panics despite being described as a no-op. |
+| Current crate topology | Not reusable as architecture | The new design must justify its own boundaries from pipeline responsibilities. |
+| Python packaging and CI/tooling structure | Adapt | Potentially reusable build and test infrastructure after the public API is redesigned. |
+| DNC wrapper | Conditional | Keep only if a separately scoped implementation task requires vendor DNG conversion; it is not part of the core architecture. |
 
-- The sample buffer and a sample-domain description (type, range, bit depth).
-- Dimensions, stride, and ownership.
-- CFA layout and origin, including unsupported layouts expressed explicitly.
-- Black level, white level, active area, crop, and margins.
-- Camera and provenance metadata.
-- A processing-state marker to prevent double correction.
+`[recommendation]` Do not carry `BayerImage`, `IDecoder`, `IPostProcessor`, or
+`Fornax<D, T, P, O>` forward merely for compatibility. Carry code only when the
+new design independently requires that behavior and the adaptation has explicit
+tests, licensing review, and invariant preservation.
 
-`[recommendation]` Change the decoder contract so decoding returns both the
-buffer and the metadata needed to interpret it, rather than requiring a
-subsequent `bayer_image()` call that discards metadata. If the existing
-`IDecoder` must be preserved, add a new metadata-producing trait and adapt the
-old one.
-
-`[recommendation]` Introduce an explicit preprocessing stage between decode and
-demosaic. The current `IPostProcessor` jumps directly from `bayer_image()` to
-demosaicing, so there is nowhere to apply black-level correction without
-hiding it in a demosaicer.
-
-`[recommendation]` Do not reuse `Rawdata` as the universal buffer. It is an
-`image`-crate enum that drops `raw_pitch`, margins, CFA description, black/white
-levels, and provenance. Reuse it only as an internal LibRaw adapter.
-
-`[recommendation]` Reuse the existing `BayerPattern`/`BayerChannel` concepts,
-the linear demosaic test pattern, the crate layout, the Criterion benchmark, and
-the Python packaging structure. Treat the existing public traits as migration
-constraints, not as the final API.
-
-`[recommendation]` Add structured errors before public APIs stabilize. The
-current `FornaxError(String)` cannot distinguish missing metadata from an
-unsupported CFA layout.
+`[recommendation]` Record every reused implementation asset during design and
+implementation with its source path, target location, semantic changes, tests,
+and migration cost. An asset is not reusable merely because it compiles in the
+old architecture.
 
 ## 5. Open questions and limitations
 
@@ -304,8 +307,8 @@ unsupported CFA layout.
 
 ## 6. References
 
-- Local repository: `/home/glatzel/project/fornax`, with the current audit at
-  commit `46fabfd`; Rust sources and manifests are unchanged from `d06f426`.
+- Local repository: `/home/glatzel/project/fornax`, with the current inventory
+  at commit `46fabfd`; Rust sources and manifests are unchanged from `d06f426`.
 - Workspace manifest: `Cargo.toml`.
 - Crate manifests: `crates/fornax-core/Cargo.toml`,
   `crates/fornax-dalim/Cargo.toml`, `crates/libraw/Cargo.toml`,

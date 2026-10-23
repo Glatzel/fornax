@@ -23,18 +23,23 @@ sharpening, or display rendering.
 
 Current crates include `fornax-core`, `fornax-dalim`, `libraw`,
 `libraw-sys`, `fornax`, `fornax-py`, `dnc`, and `fornax-devtool`. Do not assume
-the current `BayerImage` is the final shared model.
+the current crate boundaries, public traits, or `BayerImage` are the target
+architecture. The existing architecture is legacy input and is expected to be
+fully refactored.
 
 ## Development principles
 
-- Inspect and reuse existing crates before proposing new ones.
+- Inventory existing components, behavior, tests, and tooling before designing
+  the replacement. Reuse implementation assets where justified, but do not
+  preserve the current architecture or public APIs for compatibility alone.
 - Keep decoder-specific representations behind adapters.
 - Keep shared RAW types independent of any decoder backend, including LibRaw.
 - Use explicit, statically typed APIs and well-defined numerical semantics.
 - Preserve metadata even when the current pipeline does not consume it.
 - Prefer safe Rust and document necessary unsafe code and invariants.
 - Avoid unnecessary dependencies, abstractions, allocations, and copies.
-- Preserve public APIs when practical; document intentional breaking changes.
+- Design the architecture from the required pipeline contracts; document all
+  breaking changes and any implementation assets carried across the refactor.
 - Add tests for numerical correctness, edge cases, and regressions.
 
 ## Build, test, and lint commands
@@ -58,7 +63,7 @@ Record actual results. If a command cannot run, say so explicitly.
   ownership, acceptance criteria, and evidence log.
 - `agent-work/research/` — one owned report per reference source.
 - Research deliverable filenames must begin with the owning task ID, for example
-  `RES-01-fornax-architecture.md` or `SYN-03-summary.md`. `README.md` is the
+  `RES-01-fornax-inventory.md` or `SYN-03-summary.md`. `README.md` is the
   non-task directory index and is exempt.
 - `agent-work/research/notes/` — synthesis working notes owned by `SYN-01` and
   `SYN-02`.

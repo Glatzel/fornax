@@ -29,7 +29,7 @@ _Not started. This file is a required structure, not a completed synthesis._
 
 Link each report with its task ID and the sections used:
 
-- [`RES-01-fornax-architecture.md`](RES-01-fornax-architecture.md) (`RES-01`): not yet summarized.
+- [`RES-01-fornax-inventory.md`](RES-01-fornax-inventory.md) (`RES-01`): not yet summarized.
 - [`RES-02-libraw.md`](RES-02-libraw.md) (`RES-02`): not yet summarized.
 - [`RES-03-dnglab.md`](RES-03-dnglab.md) (`RES-03`): not yet summarized.
 - [`RES-04-darktable.md`](RES-04-darktable.md) (`RES-04`): not yet summarized.

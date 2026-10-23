@@ -33,7 +33,7 @@ criteria follow below.
 
 | Wave | ID | Work | Status | Depends on | Deliverable |
 | --- | --- | --- | --- | --- | --- |
-| R0 | `RES-01` | Audit `fornax` architecture | `review` | none | `research/RES-01-fornax-architecture.md` |
+| R0 | `RES-01` | Inventory existing `fornax` components and reusable assets | `review` | none | `research/RES-01-fornax-inventory.md` |
 | R0 | `RES-02` | Research LibRaw semantics | `review` | none | `research/RES-02-libraw.md` |
 | R0 | `RES-03` | Research dnglab and DNG metadata | `review` | none | `research/RES-03-dnglab.md` |
 | R0 | `RES-04` | Research darktable preprocessing | `review` | none | `research/RES-04-darktable.md` |
@@ -61,7 +61,7 @@ Use this table to identify changes or extra work before approving any report.
 
 | Task | Review focus | Known gap to consider |
 | --- | --- | --- |
-| `RES-01` | Current public API, dependency direction, reusable code, and replacement candidates. | `Rawdata::get_rawdata` has an inverted `color4_image` condition; no structured unsupported-layout errors. |
+| `RES-01` | Inventory current crates, contracts, implementations, tests, tooling, and implementation assets reusable in the replacement. | Current crate boundaries and APIs are not reusable architecture; the design must be fully refactored. |
 | `RES-02` | LibRaw sample domain, CFA/crop coordinates, black/white metadata, and wrapper gaps. | General spatial black tiles and user-cropped tile rebasing are deferred. |
 | `RES-03` | DNG tag units/defaults, CFA and ActiveArea phase, crop semantics, rawler behavior, and license. | General black patterns, fractional crop geometry, and some opcode effects remain unresolved. |
 | `RES-04` | Pre-demosaic order, black normalization formula, clipping, CFA phase, and out-of-scope operations. | Masked-area black estimation is unreliable in the inspected rawspeed integration. |
@@ -183,36 +183,39 @@ production test fixture and remains separate from research references.
 `RES-09` runs after the three split Rust ecosystem reports are ready. A task
 must not edit another task's report.
 
-### RES-01 — Audit the existing `fornax` architecture
+### RES-01 — Inventory existing `fornax` components and reusable assets
 
 - **Status:** `review`
 - **Owner:** RES-01 research agent / primary agent review
 - **Review note:** Primary checks completed 2026-10-23. The report is ready for
-  user review against commit `46fabfd`; Rust sources and manifests are
-  unchanged from the audited `d06f426` revision. The malformed `color4_image`
-  wrapper branch is recorded as a concrete adapter gap.
+  user review against commit `46fabfd`. The report must inventory current
+  components and classify implementation assets for possible reuse without
+  recommending that the existing architecture be retained.
 - **Dependencies:** none
-- **Output report:** `agent-work/research/RES-01-fornax-architecture.md`
-- **Scope:** Audit the workspace, crate boundaries, dependency direction,
-  features, build scripts, CI, tests, fixtures, benchmarks, error types, naming
-  conventions, and coding standards. Inventory `fornax-core`, `fornax-dalim`,
-  `libraw`, `libraw-sys`, `fornax`, `fornax-py`, `dnc`, and `fornax-devtool`.
-  Determine what `IDecoder`, `IPostProcessor`, `BayerImage`, `BayerPattern`,
-  `IDemosaic`, and `DemosaicLinear` actually guarantee.
+- **Output report:** `agent-work/research/RES-01-fornax-inventory.md`
+- **Scope:** Inventory what currently exists and identify implementation assets
+  that may be reusable when building the replacement architecture. Cover crate
+  contents, public contracts, concrete implementations, tests, fixtures,
+  benchmarks, build/tooling, and relevant safety or defect findings. Inventory
+  `fornax-core`, `fornax-dalim`, `libraw`, `libraw-sys`, `fornax`, `fornax-py`,
+  `dnc`, and `fornax-devtool`. Determine what `IDecoder`, `IPostProcessor`,
+  `BayerImage`, `BayerPattern`, `IDemosaic`, and `DemosaicLinear` actually
+  guarantee. Current boundaries and public APIs are not design constraints.
 - **Evidence requirements:** Cite local file paths, line ranges, symbols, and
   test names. Record Cargo manifests, features, and dependency edges. Do not
   infer public behavior from names alone.
 - **Acceptance criteria:**
-  1. Every public trait, type, and function relevant to decoding, metadata,
-     preprocessing, or demosaicing is listed with path and symbol.
-  2. Current limitations are explicit, including the absence of metadata,
-     black/white levels, crop, and structured non-Bayer rejection.
-  3. Reuse candidates are separated from code that must be replaced.
-  4. Dependency direction is documented, including `fornax-core`'s use of
-     `image` and `libraw`'s coupling to `fornax-core`.
-  5. The report contains the six required sections and labels evidence.
+  1. Relevant existing components and public contracts are listed with path and
+     symbol.
+  2. Current limitations and defects are explicit.
+  3. Reusable implementation assets are classified as direct reuse, adaptation,
+     test/oracle only, or not reusable, with risks.
+  4. The report explicitly states that the architecture will be fully refactored
+     and does not prescribe retaining existing crate boundaries or API shape.
+  5. The report distinguishes reusable implementation assets from architecture.
+  6. The report contains the six required sections and labels evidence.
 - **Parallelization:** Independent. Owns only
-  `agent-work/research/RES-01-fornax-architecture.md`.
+  `agent-work/research/RES-01-fornax-inventory.md`.
 
 ### RES-02 — Research LibRaw
 
@@ -534,7 +537,7 @@ and recommendation, and must not silently resolve disagreements.
 
 | Report | Owning task | Status | Prerequisites | Acceptance focus |
 | --- | --- | --- | --- | --- |
-| `RES-01-fornax-architecture.md` | `RES-01` | `review` | none | Architecture, crate boundaries, reusable code, gaps |
+| `RES-01-fornax-inventory.md` | `RES-01` | `review` | none | Component inventory, implementation reuse candidates, gaps |
 | `RES-02-libraw.md` | `RES-02` | `review` | none | Decoding, sample semantics, CFA, levels, metadata, APIs |
 | `RES-03-dnglab.md` | `RES-03` | `review` | none | DNG tags, active area, black patterns, white levels, coordinates |
 | `RES-04-darktable.md` | `RES-04` | `review` | none | Preprocessing order, black-level behavior, processing boundary |
@@ -630,12 +633,14 @@ Design tasks produce the concrete API and data-model proposal in
 
 - **Status:** `blocked`
 - **Dependencies:** `SYN-03`, `DES-001`, `DES-004`, `DES-005`
-- **Scope:** Evaluate existing crate boundaries and propose retained or new
-  crates, allowed dependency direction, features, public versus internal types,
-  and error handling.
-- **Acceptance criteria:** No new crate without justification; `fornax-core`
-  stays independent of LibRaw; decoder adapters are behind interfaces;
-  dependency graph is acyclic; feature and error strategy is documented.
+- **Scope:** Design a new crate topology from the replacement architecture's
+  responsibilities, dependency direction, features, public versus internal
+  types, and error handling. Use current boundaries only to assess migration
+  impact and reusable assets.
+- **Acceptance criteria:** No existing crate is retained by default and no new
+  crate is introduced without justification; any retained shared core is
+  independent of LibRaw; decoder adapters are behind interfaces; dependency
+  graph is acyclic; feature and error strategy is documented.
 - **Deliverable:** Design report crate-architecture section.
 - **Parallelization:** After `DES-001`, `DES-004`, and `DES-005`.
 
@@ -740,7 +745,7 @@ finalized before `SYN-03`. No `IMPL-*` task may start before `DES-007`.
 | --- | --- | --- | --- |
 | 2026-10-23 | — | Tracker initialized. All research tasks `ready`; synthesis, design, and implementation `blocked`. No research or implementation started. | This file and `agent-work/raw-pipeline.md` |
 | 2026-10-23 | `RES-01`–`RES-06`, `SYN-01`–`SYN-03` | Research restructured into one report per source. Added report ownership, synthesis notes, and the `SYN-03-summary.md` gate. Reports are placeholders; no findings recorded. | `agent-work/research/README.md` and the report files |
-| 2026-10-23 | `RES-01` | Completed repository architecture audit; report written to `agent-work/research/RES-01-fornax-architecture.md`; status `review`. | Local commit `d06f426`; report evidence table |
+| 2026-10-23 | `RES-01` | Inventoried existing components and reusable implementation assets in `agent-work/research/RES-01-fornax-inventory.md`; status `review`. | Local commit `d06f426`; report evidence table |
 | 2026-10-23 | `RES-02` | Completed LibRaw 0.22.2 declaration and wrapper audit; report written to `agent-work/research/RES-02-libraw.md`; status `review` with the black-level layout criterion partial. | Installed `libraw_types.h`, `libraw.h`, `libraw_const.h`; wrapper sources |
 | 2026-10-23 | `RES-03` | Blocked: dnglab source and DNG specification unavailable offline. Recorded LibRaw DNG-adjacent declarations and open questions; report not accepted. | `agent-work/research/RES-03-dnglab.md`; failed network probe |
 | 2026-10-23 | `RES-03`–`RES-06` | Started under the primary agent. `RES-03` resumed after primary-source access was restored; `RES-04`–`RES-06` moved from `ready` to `in_progress`. `RES-01` and `RES-02` remain in review and are not being restarted. | Source clones and this tracker update |
@@ -749,7 +754,7 @@ finalized before `SYN-03`. No `IMPL-*` task may start before `DES-007`.
 | 2026-10-23 | Scope and `RES-06` | Split the broad Rust ecosystem survey into `RES-06` decoders, `RES-07` DNG/TIFF, `RES-08` demosaicing, and `RES-09` comparison. Added the task dashboard and dependency Mermaid above the detailed tracker. Scoped initial work to conventional Bayer DNG, ARW, NEF, and `CR*`; deferred X-Trans, Foveon, and other layouts/formats. Promoted research references to pinned submodules. | This tracker, `agent-work/raw-pipeline.md`, split research reports, and `agent-work/references/README.md` |
 | 2026-10-23 | `RES-01`, `RES-02` | Resumed as independent parallel research tasks with one report owner each; primary checks are complete and both await user review. | This tracker; reports and pinned source evidence |
 | 2026-10-23 | `RES-02` | Primary review completed. Resolved the initial Bayer black-pattern semantics: conventional 1x1/2x2 DNG tiles fold into per-CFA levels; ActiveArea and user-crop coordinate rebasing are documented; general spatial tiles are explicitly deferred. | `agent-work/research/RES-02-libraw.md`; LibRaw 0.22.2 `utils_libraw.cpp`, `raw2image.cpp`, `subtract_black.cpp`, and `dcraw_process.cpp` |
-| 2026-10-23 | `RES-01` | Primary review completed. Revalidated the architecture report at `46fabfd`; source-bearing paths are unchanged from `d06f426`. Added explicit structured-rejection gaps and corrected the wrapper audit to identify the inverted `color4_image` null check. | `agent-work/research/RES-01-fornax-architecture.md`; current crate manifests and source |
+| 2026-10-23 | `RES-01` | Primary review completed. Revalidated the component/reuse inventory at `46fabfd`; source-bearing paths are unchanged from `d06f426`. Added explicit structured-rejection gaps and corrected the wrapper audit to identify the inverted `color4_image` null check. The report treats the current architecture as full-refactor input. | `agent-work/research/RES-01-fornax-inventory.md`; current crate manifests and source |
 | 2026-10-23 | `RES-03`–`RES-05` | Resumed in parallel with disjoint report ownership for final evidence and acceptance review. | This tracker; paused reports and pinned references |
 | 2026-10-23 | `RES-04` | Primary review completed. Verified module order, `rawprepare` arithmetic, CFA/crop phase, demosaic boundary, exclusions, and GPL licensing. Corrected masked-area handling: rawspeed estimates black areas only when separate levels are absent and labels that path unreliable. | `agent-work/research/RES-04-darktable.md`; pinned darktable source |
 | 2026-10-23 | `RES-03` | Primary review completed. Replaced missing extracted-spec references with DNG 1.7.0.0 PDF pages and Adobe SDK source; corrected `DefaultCropSize` fallback to ActiveArea dimensions. | `agent-work/research/RES-03-dnglab.md`; pinned dnglab and DNG SDK source |
@@ -759,3 +764,4 @@ finalized before `SYN-03`. No `IMPL-*` task may start before `DES-007`.
 | 2026-10-23 | `RES-07`, `RES-08`, `RES-09` | RES-07 and RES-08 completed report review and moved back to `review`; RES-09 remains blocked until the user approves those dependencies. | `agent-work/checkpoints/2026-10-23-user-review-gate.md` |
 | 2026-10-23 | Workflow | Added an explicit user-review gate. All RES-01–RES-08 work moved to `review`; agents may not set `done`. Replaced the status legend with a Mermaid state chart and changed all dependency gates to require user-approved `done`. | `agent-work/raw-pipeline.md`, `agent-work/AGENTS.md`, this tracker, and research report front matter |
 | 2026-10-23 | Research files | Renamed every task-owned deliverable to `<TASK-ID>-<slug>.md`, including `SYN-03-summary.md`, and updated all workflow, tracker, report, and checkpoint references. `README.md` remains the non-task index. | `agent-work/research/` and repository-wide Markdown reference audit |
+| 2026-10-23 | `RES-01` | Narrowed RES-01 to a current-component and implementation-asset inventory. Removed recommendations to retain existing crate boundaries, traits, or APIs; the architecture is explicitly full-refactor input. | `agent-work/research/RES-01-fornax-inventory.md`; workflow and design instructions |

@@ -27,7 +27,7 @@
 > │   └── <task-or-handoff-checkpoint>.md
 > ├── research/
 > │   ├── README.md
-> │   ├── RES-01-fornax-architecture.md
+> │   ├── RES-01-fornax-inventory.md
 > │   ├── RES-02-libraw.md
 > │   ├── RES-03-dnglab.md
 > │   ├── RES-04-darktable.md
@@ -83,7 +83,12 @@ file.
 
 `fornax` is an existing Rust RAW image processing repository containing crates related to LibRaw bindings, Rust demosaicing implementations, Python bindings, and related functionality.
 
-Evolve the existing repository toward a Rust-native RAW processing library. Use the existing codebase and relevant upstream RAW processing libraries as references. Preserve useful implementations and compatibility where practical; do not rewrite the repository from scratch without justification.
+Replace the existing architecture with a Rust-native RAW processing design.
+Treat the current repository as legacy input: inventory its components and
+identify implementation assets that may be reusable, but do not preserve its
+crate boundaries, traits, composition model, or public API unless the new design
+independently justifies them. Relevant upstream RAW libraries remain evidence,
+not architectural templates.
 
 The target pipeline is:
 
@@ -170,7 +175,7 @@ the normative scope.
 
 | ID | Report | Focus | Depends on | Parallel |
 | --- | --- | --- | --- | --- |
-| `RES-01` | `agent-work/research/RES-01-fornax-architecture.md` | Existing repository, crates, data structures, dependencies, reusable code | none | Yes, wave R0 |
+| `RES-01` | `agent-work/research/RES-01-fornax-inventory.md` | Existing components, current contracts, implementation assets reusable in the replacement, and refactor hazards | none | Yes, wave R0 |
 | `RES-02` | `agent-work/research/RES-02-libraw.md` | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, APIs | none | Yes, wave R0 |
 | `RES-03` | `agent-work/research/RES-03-dnglab.md` | DNG metadata, tags, active area, black-level patterns, white levels, coordinates | none | Yes, wave R0 |
 | `RES-04` | `agent-work/research/RES-04-darktable.md` | RAW preprocessing pipeline, black-level correction, CFA handling, processing boundary | none | Yes, wave R0 |
@@ -185,27 +190,30 @@ but it must not edit it. `RES-01`–`RES-08` form independent wave R0 and may ru
 concurrently. `RES-09` compares only the three Rust ecosystem reports after they
 are ready.
 
-#### RES-01 — Audit the existing `fornax` architecture
+#### RES-01 — Inventory existing `fornax` components and reusable assets
 
-- **Output report:** `agent-work/research/RES-01-fornax-architecture.md`
-- **Scope:** Audit the workspace, crate boundaries, dependency direction,
-  features, build scripts, CI, tests, fixtures, benchmarks, error types, naming
-  conventions, and coding standards. Inventory `fornax-core`, `fornax-dalim`,
-  `libraw`, `libraw-sys`, `fornax`, `fornax-py`, `dnc`, and `fornax-devtool`.
-  Determine what `IDecoder`, `IPostProcessor`, `BayerImage`, `BayerPattern`,
-  `IDemosaic`, and `DemosaicLinear` actually guarantee.
+- **Output report:** `agent-work/research/RES-01-fornax-inventory.md`
+- **Scope:** Inventory what currently exists and identify what may be reusable
+  during implementation of the replacement architecture. Cover the workspace
+  crates, public contracts, concrete implementations, tests, fixtures,
+  benchmarks, build/tooling, and relevant safety or defect findings. Inventory
+  `fornax-core`, `fornax-dalim`, `libraw`, `libraw-sys`, `fornax`, `fornax-py`,
+  `dnc`, and `fornax-devtool`. Determine what `IDecoder`, `IPostProcessor`,
+  `BayerImage`, `BayerPattern`, `IDemosaic`, and `DemosaicLinear` actually
+  guarantee. The current architecture and public APIs are not design
+  constraints.
 - **Evidence requirements:** Cite local file paths, line ranges, symbols, and
   test names. Record Cargo manifests, features, and dependency edges. Do not
   infer public behavior from names alone.
-- **Acceptance criteria:** Every public trait, type, and function relevant to
-  decoding, metadata, preprocessing, or demosaicing is listed with path and
-  symbol. Current limitations are explicit, including the absence of metadata,
-  black/white levels, crop, and structured rejection of non-Bayer layouts.
-  Reuse candidates are
-  separated from code that must be replaced. Dependency direction is documented.
+- **Acceptance criteria:** Relevant existing components and public contracts are
+  inventoried with paths and symbols. Current limitations and defects are
+  explicit. Reusable implementation assets are classified as direct reuse,
+  adaptation, test/oracle only, or not reusable, with risks and expected
+  refactor work. The report states that the architecture will be fully
+  refactored and does not recommend preserving crate boundaries or API shape.
   The report satisfies the required report structure.
 - **Parallelization:** Independent. Owns only
-  `agent-work/research/RES-01-fornax-architecture.md`.
+  `agent-work/research/RES-01-fornax-inventory.md`.
 
 #### RES-02 — Research LibRaw
 
@@ -380,7 +388,7 @@ are ready.
 
 ### Required report structure
 
-Every reference report (`RES-01-fornax-architecture.md`, `RES-02-libraw.md`, `RES-03-dnglab.md`,
+Every reference report (`RES-01-fornax-inventory.md`, `RES-02-libraw.md`, `RES-03-dnglab.md`,
 `RES-04-darktable.md`, `RES-05-demosaicing.md`, `RES-06-rust-raw-decoders.md`,
 `RES-07-rust-dng-tiff.md`, `RES-08-rust-demosaicing.md`, `RES-09-rust-ecosystem.md`) must contain:
 
@@ -490,7 +498,7 @@ behavior, ordering constraints, and synthetic-test strategy.
 ```text
 agent-work/research/
 ├── README.md
-├── RES-01-fornax-architecture.md
+├── RES-01-fornax-inventory.md
 ├── RES-02-libraw.md
 ├── RES-03-dnglab.md
 ├── RES-04-darktable.md
@@ -631,7 +639,9 @@ Research and recommend an initial set of algorithms. Treat algorithm names such 
 
 ### 3.5 Crate architecture
 
-Evaluate existing crate boundaries before proposing new crates.
+Design the replacement architecture from a clean-slate pipeline model. The
+existing crate boundaries are not constraints; inspect them only to locate
+reusable implementation assets and migration impact.
 
 For each proposed or retained crate, document:
 
@@ -642,7 +652,11 @@ For each proposed or retained crate, document:
 - Error handling.
 - Whether it can be implemented and tested independently.
 
-Keep the core data model independent of LibRaw-specific types. Existing bindings may remain as one decoder backend or as a reference for compatibility, but downstream processing must not depend on them.
+No existing crate is retained by default. Justify every retained or new crate
+from its responsibility in the replacement design. Keep the core data model
+independent of LibRaw-specific types. Existing bindings may be adapted as one
+decoder backend, but neither their API nor the current crate topology defines
+the replacement architecture.
 
 Include representative Rust type definitions and function signatures in the design report.
 
@@ -816,7 +830,9 @@ Requirements:
 - Use structured errors for invalid layouts, unsupported formats, missing required metadata, and unsupported CFA patterns.
 - Avoid hidden post-processing.
 - Prefer safe Rust and document necessary unsafe code.
-- Preserve existing public APIs where practical and document intentional breaking changes.
+- Treat the architecture refactor as breaking by default. Preserve only
+  implementation assets that independently pass the new design and license
+  requirements, and document their migration.
 - Update the implementation tracker as work proceeds.
 
 Do not silently change shared interfaces to accommodate one algorithm. If the design must change, update the design report and affected task contracts before proceeding.

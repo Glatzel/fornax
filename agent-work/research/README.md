@@ -19,7 +19,7 @@ unsupported in the initial pipeline.
 
 | Report | Task | Owner | Status | Prerequisites | Acceptance criterion (summary) |
 | --- | --- | --- | --- | --- | --- |
-| [`RES-01-fornax-architecture.md`](RES-01-fornax-architecture.md) | `RES-01` | primary agent | `review` | none | Existing crates, public types, dependencies, reuse candidates, and gaps are documented with local paths and symbols. |
+| [`RES-01-fornax-inventory.md`](RES-01-fornax-inventory.md) | `RES-01` | primary agent | `review` | none | Existing components, public contracts, limitations, and implementation reuse candidates are inventoried; current architecture is not a design constraint. |
 | [`RES-02-libraw.md`](RES-02-libraw.md) | `RES-02` | RES-02 research agent | `review` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
 | [`RES-03-dnglab.md`](RES-03-dnglab.md) | `RES-03` | RES-03 research agent | `review` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
 | [`RES-04-darktable.md`](RES-04-darktable.md) | `RES-04` | RES-04 research agent | `review` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
@@ -87,7 +87,7 @@ acceptance criteria of its owning task in the front matter.
 
 - Research owners write only their assigned report.
 - Every task-owned report filename must begin with its task ID, such as
-  `RES-01-fornax-architecture.md`. The directory-level `README.md` is the only
+  `RES-01-fornax-inventory.md`. The directory-level `README.md` is the only
   non-task file.
 - `SYN-01` and `SYN-02` write only their own files under `notes/`.
 - `SYN-03` owns `SYN-03-summary.md`.
