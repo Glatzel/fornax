@@ -2,14 +2,14 @@
 
 > **Task:** `RES-08`
 > **Owner:** RES-08 research agent / primary agent review
-> **Status:** `review` (ready for user review)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Last updated:** 2026-10-23
 > **Upstream versions:** `naorunaoru/demosaic`
 > `5050131e998b7f6414eef02eeb60f74b99d77451` (2026-02-18);
 > `kaimai-apex/meraraw-demosaic`
 > `b94ebd4324ce56218e42989a5ed852b32a52003f` (2026-07-22).
 >
-> **Acceptance criteria (authoritative version in the task tracker):**
+> **Acceptance criteria (authoritative version in the task TOML manifest):**
 >
 > - [x] Bayer input/output and border contracts are source-verified.
 > - [x] Validation, errors, and allocation behavior are documented.
@@ -19,8 +19,8 @@
 >   from the initial recommendation.
 > - [x] The report contains the six required sections and cites sources.
 >
-> **Review snapshot:** RES-08 research agent and primary checks completed
-> 2026-10-23; user review is pending. Bayer API contracts, border behavior,
+> **Verification snapshot:** RES-08 research agent and primary checks completed
+> 2026-10-23; GitHub pull-request review is pending. Bayer API contracts, border behavior,
 > validation, allocation, registry patterns, synthetic-test designs,
 > maintenance, and licenses were checked against the pinned revisions.
 

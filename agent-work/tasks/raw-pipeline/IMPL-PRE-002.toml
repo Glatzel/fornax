@@ -1,0 +1,21 @@
+schema_version = 1
+id = "IMPL-PRE-002"
+slug = "cfa-black-level"
+title = "Implement CFA-aware black-level correction"
+phase = "implementation"
+dependencies = ["IMPL-PRE-001", "DES-003"]
+parallelism = "After scalar correction and CFA design are merged."
+deliverables = ["CFA-aware correction source", "all-pattern numerical tests"]
+scope = """
+Implement per-channel and repeat-pattern black-level selection for all supported
+Bayer phases with explicit coordinate alignment.
+"""
+acceptance = [
+  "Per-channel and 2x2 pattern selection is tested across all four Bayer layouts.",
+  "Crop, origin, and CFA phase alignment is tested.",
+  "Unsupported pattern shapes return structured errors.",
+]
+validation = [
+  "Verify dependency PRs are merged.",
+  "Run focused numerical tests, formatting, and clippy.",
+]

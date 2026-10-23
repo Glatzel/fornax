@@ -2,12 +2,12 @@
 
 > **Task:** `SYN-03`
 > **Owner:** unassigned
-> **Status:** `blocked` (research and synthesis prerequisites not user-approved)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Last updated:** 2026-10-23
 >
 > **Prerequisites:** `RES-01`–`RES-09`, `SYN-01`, `SYN-02`
 >
-> **Acceptance criteria (authoritative version in the task tracker):**
+> **Acceptance criteria (authoritative version in the task TOML manifest):**
 >
 > - [ ] Every reference report is represented and linked.
 > - [ ] Agreements and disagreements are explicit, with conflicting evidence.
@@ -21,7 +21,7 @@
 This report synthesizes the nine reference reports and the two reconciliation
 notes. It compares findings, records disagreements, makes evidence-backed
 recommendations for `fornax`, and identifies what remains unresolved. It must not
-be produced until all prerequisites are user-approved as `done`.
+be produced until all prerequisites are approved and merged through task pull requests.
 
 _Not started. This file is a required structure, not a completed synthesis._
 

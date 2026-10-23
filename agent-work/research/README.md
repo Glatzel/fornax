@@ -1,14 +1,14 @@
 # Research Index
 
 This directory holds one report per RAW-pipeline reference source. Research is a
-tracked phase; live status and full acceptance criteria are maintained in
-`agent-work/tasks/raw-pipeline.md`. This index exists so a worker can see report
-ownership, prerequisites, and the synthesis path without reading the full
-specification.
+task phase; each task's scope, dependencies, and acceptance criteria live in
+`agent-work/tasks/raw-pipeline/<TASK-ID>.toml`. This index exists so a worker can
+find report ownership, prerequisites, and the synthesis path without reading
+the workflow.
 
-**Current state:** `RES-01`–`RES-08` are in `review` and await user approval.
-`RES-09` remains blocked until the user approves its dependencies as `done`.
-No synthesis has started.
+Review and live state are not duplicated here. Look up the task's GitHub pull
+request by its `[TASK-ID]` title, `task:<TASK-ID>` label, or branch. A dependency
+is satisfied only after its task PR is approved and merged.
 
 The initial research target is conventional 2x2 RGB Bayer data in DNG, Sony ARW,
 Nikon NEF, and Canon `CR*` files. X-Trans, Foveon/X3, Quad Bayer, four-color,
@@ -17,22 +17,23 @@ unsupported in the initial pipeline.
 
 ## Report ownership
 
-| Report | Task | Owner | Status | Prerequisites | Acceptance criterion (summary) |
-| --- | --- | --- | --- | --- | --- |
-| [`RES-01-fornax-inventory.md`](RES-01-fornax-inventory.md) | `RES-01` | primary agent | `review` | none | Existing components, public contracts, limitations, and implementation reuse candidates are inventoried; current architecture is not a design constraint. |
-| [`RES-02-libraw.md`](RES-02-libraw.md) | `RES-02` | RES-02 research agent | `review` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
-| [`RES-03-dnglab.md`](RES-03-dnglab.md) | `RES-03` | RES-03 research agent | `review` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
-| [`RES-04-darktable.md`](RES-04-darktable.md) | `RES-04` | RES-04 research agent | `review` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
-| [`RES-05-demosaicing.md`](RES-05-demosaicing.md) | `RES-05` | RES-05 research agent | `review` | none | Algorithms, input requirements, CFA handling, output semantics, and shared-interface requirements are documented and justified. |
-| [`RES-06-rust-raw-decoders.md`](RES-06-rust-raw-decoders.md) | `RES-06` | RES-06 research agent | `review` | none | Rust RAW decoders, target-format coverage, sample/metadata models, adapter risks, maintenance, and licenses are documented. |
-| [`RES-07-rust-dng-tiff.md`](RES-07-rust-dng-tiff.md) | `RES-07` | RES-07 research agent | `review` | none | Rust TIFF/DNG building blocks, Bayer sample layout, errors, limits, and dependency fit are documented. |
-| [`RES-08-rust-demosaicing.md`](RES-08-rust-demosaicing.md) | `RES-08` | RES-08 research agent | `review` | none | Rust Bayer demosaicing APIs, borders, validation, strategy patterns, tests, and licenses are documented. |
-| [`RES-09-rust-ecosystem.md`](RES-09-rust-ecosystem.md) | `RES-09` | unassigned | `blocked` | `RES-06`–`RES-08` | Split reports are compared into dependency, backend, design-reference, and license recommendations. |
-| [`SYN-03-summary.md`](SYN-03-summary.md) | `SYN-03` | unassigned | `blocked` | all `RES-*`, `SYN-01`, `SYN-02` | Findings are synthesized, disagreements and uncertainties are explicit, and recommendations link to supporting report sections. |
+| Report | Task | Prerequisites | Acceptance criterion (summary) |
+| --- | --- | --- | --- |
+| [`RES-01-fornax-inventory.md`](RES-01-fornax-inventory.md) | `RES-01` | none | Existing components, public contracts, limitations, and implementation reuse candidates are inventoried; current architecture is not a design constraint. |
+| [`RES-02-libraw.md`](RES-02-libraw.md) | `RES-02` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
+| [`RES-03-dnglab.md`](RES-03-dnglab.md) | `RES-03` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
+| [`RES-04-darktable.md`](RES-04-darktable.md) | `RES-04` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
+| [`RES-05-demosaicing.md`](RES-05-demosaicing.md) | `RES-05` | none | Algorithms, input requirements, CFA handling, output semantics, and shared-interface requirements are documented and justified. |
+| [`RES-06-rust-raw-decoders.md`](RES-06-rust-raw-decoders.md) | `RES-06` | none | Rust RAW decoders, target-format coverage, sample/metadata models, adapter risks, maintenance, and licenses are documented. |
+| [`RES-07-rust-dng-tiff.md`](RES-07-rust-dng-tiff.md) | `RES-07` | none | Rust TIFF/DNG building blocks, Bayer sample layout, errors, limits, and dependency fit are documented. |
+| [`RES-08-rust-demosaicing.md`](RES-08-rust-demosaicing.md) | `RES-08` | none | Rust Bayer demosaicing APIs, borders, validation, strategy patterns, tests, and licenses are documented. |
+| [`RES-09-rust-ecosystem.md`](RES-09-rust-ecosystem.md) | `RES-09` | `RES-06`–`RES-08` merged | Split reports are compared into dependency, backend, design-reference, and license recommendations. |
+| [`SYN-03-summary.md`](SYN-03-summary.md) | `SYN-03` | all `RES-*`, `SYN-01`, `SYN-02` merged | Findings are synthesized, disagreements and uncertainties are explicit, and recommendations link to supporting report sections. |
 
 Each research task owns exactly one reference report. A worker must not edit a
 report owned by another task. `SYN-03-summary.md` is a synthesis deliverable
-produced only by `SYN-03`; it is not a research report.
+produced only by `SYN-03`; it is not a research report. New reports and design
+proposals are submitted through the owning task's branch and PR.
 
 ## Local reference sources
 
@@ -101,10 +102,10 @@ acceptance criteria of its owning task in the front matter.
   conversion, tone mapping, denoising, sharpening, and display rendering remain
   out of scope.
 
-## Updating status
+## Submitting a report
 
-When a report is ready for review, update the task status in
-`agent-work/tasks/raw-pipeline.md` to `review` and add the report path plus a
-short evidence summary to the tracker log. A report file existing is not enough
-to move a task forward. Agents must leave completed work in `review`; only the
-user may approve `done` after reviewing it.
+When a report is ready, commit it on the task branch, push that branch, and open
+the task's pull request using the repository template. Do not add a local review
+or completion field to the report. The PR contains the evidence summary,
+validation results, and review discussion. Only the user approves and merges
+the PR; a merged PR is the acceptance record.

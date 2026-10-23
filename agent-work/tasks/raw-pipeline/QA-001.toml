@@ -1,0 +1,21 @@
+schema_version = 1
+id = "QA-001"
+slug = "metadata-stage-tests"
+title = "Validate metadata preservation across pipeline stages"
+phase = "quality"
+dependencies = ["IMPL-INT-001"]
+parallelism = "After end-to-end integration is merged."
+deliverables = ["metadata preservation tests", "stage-transition validation evidence"]
+scope = """
+Verify metadata and processing-state invariants across decode, preprocess, and
+demosaic transitions.
+"""
+acceptance = [
+  "Required typed metadata survives every stage.",
+  "Unknown and provenance metadata follow the approved preservation policy.",
+  "Invalid stage transitions produce structured errors.",
+]
+validation = [
+  "Verify IMPL-INT-001 is merged.",
+  "Run focused and workspace tests and record actual results.",
+]

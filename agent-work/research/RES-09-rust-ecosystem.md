@@ -2,10 +2,10 @@
 
 > **Task:** `RES-09`
 > **Owner:** unassigned
-> **Status:** `blocked` on user approval of `RES-06`, `RES-07`, and `RES-08`
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Last updated:** 2026-10-23
 >
-> **Acceptance criteria (authoritative version in the task tracker):**
+> **Acceptance criteria (authoritative version in the task TOML manifest):**
 >
 > - [ ] Every candidate is compared on scope, Bayer/target-format fit, API
 >   boundary, maintenance, and license.

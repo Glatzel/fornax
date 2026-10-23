@@ -2,7 +2,7 @@
 
 > **Task:** `RES-05`
 > **Owner:** RES-05 research agent
-> **Status:** `review` (ready for user review)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Last updated:** 2026-10-23
 > **Upstream versions:** `fornax` at commit `46fabfd`;
 > `naorunaoru/demosaic` at `5050131e998b7f6414eef02eeb60f74b99d77451`;
@@ -10,7 +10,7 @@
 > darktable at `6556cd7dbb0e69f95d165dda8b69e7270c327f6d`; dnglab/rawler at
 > `62b77de1a206d467e910d55199191068b45a9cc1`.
 >
-> **Acceptance criteria (authoritative version in the task tracker):**
+> **Acceptance criteria (authoritative version in the task TOML manifest):**
 >
 > - [x] Candidate algorithms are compared on input assumptions, output
 >   semantics, border behavior, complexity, and testability.
@@ -22,8 +22,8 @@
 >   explicitly deferred from the initial recommendation.
 > - [x] The report contains the six required sections and cites sources.
 >
-> **Review snapshot:** RES-05 research agent and primary checks completed
-> 2026-10-23; user review is pending. Algorithm comparison, recommended initial
+> **Verification snapshot:** RES-05 research agent and primary checks completed
+> 2026-10-23; GitHub pull-request review is pending. Algorithm comparison, recommended initial
 > set, shared-input boundary, existing `fornax-dalim` tests/behavior, border
 > rules, deferred layouts, and licensing were checked against the cited
 > implementation and paper evidence. `cargo test -p fornax-dalim --all-features`

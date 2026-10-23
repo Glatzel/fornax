@@ -1,0 +1,25 @@
+schema_version = 1
+id = "RES-06"
+slug = "rust-raw-decoders"
+title = "Survey Rust RAW decoder crates"
+phase = "research"
+dependencies = []
+parallelism = "Independent with other R0 research tasks; coordinates scope with RES-02, RES-03, and RES-07."
+deliverables = ["agent-work/research/RES-06-rust-raw-decoders.md"]
+scope = """
+Evaluate Rust RAW decoder crates as adapters or evidence, initially rawloader and
+rawler's decoder-facing API. Record target-format coverage, stored sample
+representation, crop and CFA metadata, active and default crop, orientation,
+black and white metadata, preprocessing state, errors, camera catalog shape,
+maintenance, and licensing.
+"""
+acceptance = [
+  "Candidate representation and target-format coverage are distinguished between source-dispatch evidence and real-file verification.",
+  "Adapter boundaries, preprocessing state, error behavior, maintenance, and licenses are documented.",
+  "DNG tag semantics remain in RES-03, TIFF internals in RES-07, and LibRaw internals in RES-02.",
+  "The report contains the six required research sections and cites sources.",
+]
+validation = [
+  "Inspect pinned source, tests, and license files.",
+  "Run relevant crate tests when the checkout supports them.",
+]

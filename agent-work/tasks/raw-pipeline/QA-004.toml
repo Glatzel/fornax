@@ -1,0 +1,21 @@
+schema_version = 1
+id = "QA-004"
+slug = "performance-baselines"
+title = "Establish performance baselines and benchmarks"
+phase = "quality"
+dependencies = ["IMPL-INT-001"]
+parallelism = "After end-to-end integration is merged."
+deliverables = ["benchmark suite", "performance baseline report"]
+scope = """
+Measure representative pipeline image sizes, allocations, buffer copies, and
+demosaicing performance.
+"""
+acceptance = [
+  "Representative sizes and machine conditions are recorded.",
+  "Allocations and copies are measured where practical.",
+  "Results distinguish benchmark evidence from correctness.",
+]
+validation = [
+  "Verify IMPL-INT-001 is merged.",
+  "Run the documented benchmark commands and record results.",
+]

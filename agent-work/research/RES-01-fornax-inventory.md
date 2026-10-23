@@ -2,12 +2,12 @@
 
 > **Task:** `RES-01`
 > **Owner:** RES-01 research agent / primary agent review
-> **Status:** `review` (ready for user review)
+> **Review:** GitHub task pull request; its open/merged state is authoritative.
 > **Last updated:** 2026-10-23
 > **Upstream versions:** local repository at commit `46fabfd`; source-bearing
 > paths are unchanged from the earlier `d06f426` audit
 >
-> **Acceptance criteria (authoritative version in the task tracker):**
+> **Acceptance criteria (authoritative version in the task TOML manifest):**
 >
 > - [x] Relevant existing components and public contracts are listed with path
 >   and symbol.
@@ -20,7 +20,7 @@
 > - [x] Findings use `[verified]`, `[inference]`, or `[recommendation]` labels.
 > - [x] All six required report sections are complete.
 >
-> **Review snapshot:** Primary checks completed 2026-10-23; user review is
+> **Verification snapshot:** Primary checks completed 2026-10-23; GitHub pull-request review is
 > pending. Existing components, public symbols, limitations, implementation
 > reuse candidates, and report structure were checked against `46fabfd`. This is
 > an inventory for implementation reuse and migration; it is not an architecture
