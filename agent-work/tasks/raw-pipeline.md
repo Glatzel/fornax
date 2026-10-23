@@ -55,6 +55,24 @@ criteria follow below.
 | I | `IMPL-*` | Implementation backlog | `blocked` | `DES-007` and user-approved interfaces | source and tests |
 | Q | `QA-*` | Integration and regression | `blocked` | relevant `IMPL-*` | test evidence |
 
+## User review queue
+
+Use this table to identify changes or extra work before approving any report.
+
+| Task | Review focus | Known gap to consider |
+| --- | --- | --- |
+| `RES-01` | Current public API, dependency direction, reusable code, and replacement candidates. | `Rawdata::get_rawdata` has an inverted `color4_image` condition; no structured unsupported-layout errors. |
+| `RES-02` | LibRaw sample domain, CFA/crop coordinates, black/white metadata, and wrapper gaps. | General spatial black tiles and user-cropped tile rebasing are deferred. |
+| `RES-03` | DNG tag units/defaults, CFA and ActiveArea phase, crop semantics, rawler behavior, and license. | General black patterns, fractional crop geometry, and some opcode effects remain unresolved. |
+| `RES-04` | Pre-demosaic order, black normalization formula, clipping, CFA phase, and out-of-scope operations. | Masked-area black estimation is unreliable in the inspected rawspeed integration. |
+| `RES-05` | Algorithm comparison, initial set, shared input contract, borders, and current bilinear behavior. | Narrow images can divide by zero or produce `NaN`; no degenerate-size test exists. |
+| `RES-06` | Rust decoder representations, dispatch coverage, errors, maintenance, and licensing. | Target formats are source-dispatch verified, not fixture-verified; rawloader lacks CR3. |
+| `RES-07` | Generic TIFF capabilities, DNG-specific gaps, limits, errors, and dependency options. | image-tiff has no Bayer DNG fixture coverage or DNG metadata model. |
+| `RES-08` | Bayer API, validation, borders, allocation, registry design, tests, and licensing. | Some conversion helpers panic; MeraRAW allocation failure is not reliably typed. |
+
+`RES-09` stays blocked until you approve `RES-06`–`RES-08`. Reply with the task
+IDs to accept, revise, or extend; do not infer acceptance from `review` status.
+
 ```mermaid
 flowchart LR
     R0["RES-01..05<br/>source research"] --> S1["SYN-01<br/>metadata and samples"]
