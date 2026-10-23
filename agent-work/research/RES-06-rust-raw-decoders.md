@@ -48,7 +48,7 @@ The questions were:
 | Decoder | DNG | Sony ARW | Nikon NEF | Canon `CR*` | Evidence level |
 | --- | --- | --- | --- | --- | --- |
 | rawloader 0.37.2 | Dispatch by `DNGVersion` | `SONY` → `ArwDecoder` | `NIKON CORPORATION` → `NefDecoder` | `CR2` and `CRW` dispatch paths; no `CR3` module or BMFF path | Source dispatch verified; no fixture run |
-| rawler 0.8.0 | Dispatch by `DNGVersion` | `SONY` → `ArwDecoder` | `Nikon`/`NIKON CORPORATION` → `NefDecoder` | CIFF → `CRW`; Canon TIFF → `CR2`; BMFF `crx ` → `CR3` with default `crx` feature | Source dispatch verified; no fixture run |
+| rawler 0.8.0 | Dispatch by `DNGVersion` | `SONY` → `ArwDecoder` | `Nikon`/`NIKON CORPORATION` → `NefDecoder` | CIFF → `CRW`; Canon TIFF → `CR2`; BMFF `crx` → `CR3` with default `crx` feature | Source dispatch verified; no fixture run |
 
 Sources: rawloader `src/decoders/mod.rs:410-475`; rawler
 `src/decoders/mod.rs:143,1017-1049,1067-1109`.

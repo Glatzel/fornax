@@ -47,10 +47,7 @@ def load_manifests() -> dict[str, tuple[Path, dict[str, object]]]:
             fail(f"{path.relative_to(REPO_ROOT)}: missing fields: {sorted(missing)}")
         forbidden = FORBIDDEN_FIELDS & data.keys()
         if forbidden:
-            fail(
-                f"{path.relative_to(REPO_ROOT)}: GitHub owns live state; "
-                f"remove fields: {sorted(forbidden)}"
-            )
+            fail(f"{path.relative_to(REPO_ROOT)}: GitHub owns live state; remove fields: {sorted(forbidden)}")
 
         task_id = data["id"]
         if not isinstance(task_id, str) or not ID_RE.fullmatch(task_id):
@@ -121,10 +118,7 @@ def validate_ownership(manifests: dict[str, tuple[Path, dict[str, object]]]) -> 
                 continue
             front_matter = "\n".join(path.read_text(encoding="utf-8").splitlines()[:30])
             if re.search(r"^> \*\*Status:\*\*", front_matter, flags=re.MULTILINE):
-                fail(
-                    f"{deliverable}: remove local review status; "
-                    f"{task_id} is reviewed in its pull request"
-                )
+                fail(f"{deliverable}: remove local review status; {task_id} is reviewed in its pull request")
 
     shared = {path: ids for path, ids in owners.items() if len(ids) > 1}
     if shared:
@@ -133,9 +127,7 @@ def validate_ownership(manifests: dict[str, tuple[Path, dict[str, object]]]) -> 
 
 def validate_index(manifests: dict[str, tuple[Path, dict[str, object]]]) -> None:
     index = TASKS_ROOT / "raw-pipeline" / "README.md"
-    targets = set(
-        re.findall(r"\[`[^`]+`\]\(([^)]+\.toml)\)", index.read_text(encoding="utf-8"))
-    )
+    targets = set(re.findall(r"\[`[^`]+`\]\(([^)]+\.toml)\)", index.read_text(encoding="utf-8")))
     indexed_ids = {Path(target).stem for target in targets}
     missing = set(manifests) - indexed_ids
     stale = indexed_ids - set(manifests)
