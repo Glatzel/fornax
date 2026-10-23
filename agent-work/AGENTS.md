@@ -66,6 +66,8 @@ Record actual results. If a command cannot run, say so explicitly.
   validation requirements.
 - `agent-work/tasks/raw-pipeline/README.md` — planned task index and dependency
   graph. It is not a live status tracker.
+- `agent-work/PULL_REQUEST_TEMPLATE.md` — body template for agent task pull
+  requests. Copy it into the PR body manually.
 - `agent-work/research/` — one owned report per reference source.
 - Research deliverable filenames must begin with the owning task ID, for example
   `RES-01-fornax-inventory.md` or `SYN-03-summary.md`. `README.md` is the
@@ -106,9 +108,9 @@ outputs there.
    `research/SYN-03-summary.md`.
 5. Record verified findings, inferences, recommendations, evidence, limitations,
    and blockers in the owned deliverable as work proceeds.
-6. Commit, push, and open one pull request for the task using the repository PR
-   template. Put the task ID in the title, for example
-   `[RES-01] Inventory existing components`.
+6. Commit, push, and open one pull request for the task using
+   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Put the task ID in the
+   title, for example `[RES-01] Inventory existing components`.
 7. Review and approval happen only in the pull request. Do not add review state
    to the task manifest or report. An agent must never merge the pull request
    or mark the task complete; only the user may approve and merge it.
