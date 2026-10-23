@@ -4,6 +4,6 @@
     "MD013": false,
     "MD033": false,
     "ignores": [
-        "agent-work/**"
+        "agent-work"
     ]
 }
