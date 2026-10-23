@@ -3,7 +3,7 @@ channels = ["https://prefix.dev/glatzel", "conda-forge"]
 name = "fornax"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
-[dependencies]
+[feature.dev.dependencies]
 libraw-dev = "==0.22.2"
 maturin = "==1.15.0"
 pip = "==26.2.1"
@@ -20,3 +20,12 @@ pydantic = "==2.14.1"
 # test
 pytest = "==9.1.1"
 pytest-cov = "==7.1.0"
+
+[feature.agent.dependencies]
+codex="*"
+codex-config="*"
+skill-glatzel="*"
+
+[environments]
+default=["dev"]
+agent=["agent"]
