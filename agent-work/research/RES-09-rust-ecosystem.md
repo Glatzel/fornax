@@ -23,9 +23,9 @@
 This report will compare, rather than re-research, the Rust ecosystem evidence
 owned by:
 
-- `agent-work/research/rust-raw-decoders.md` (`RES-06`);
-- `agent-work/research/rust-dng-tiff.md` (`RES-07`); and
-- `agent-work/research/rust-demosaicing.md` (`RES-08`).
+- `agent-work/research/RES-06-rust-raw-decoders.md` (`RES-06`);
+- `agent-work/research/RES-07-rust-dng-tiff.md` (`RES-07`); and
+- `agent-work/research/RES-08-rust-demosaicing.md` (`RES-08`).
 
 The comparison will answer:
 
@@ -78,7 +78,7 @@ cover:
 
 ## 6. References
 
-- [`rust-raw-decoders.md`](rust-raw-decoders.md) — `RES-06`.
-- [`rust-dng-tiff.md`](rust-dng-tiff.md) — `RES-07`.
-- [`rust-demosaicing.md`](rust-demosaicing.md) — `RES-08`.
-- [`demosaicing.md`](demosaicing.md) — algorithm scope from `RES-05`.
+- [`RES-06-rust-raw-decoders.md`](RES-06-rust-raw-decoders.md) — `RES-06`.
+- [`RES-07-rust-dng-tiff.md`](RES-07-rust-dng-tiff.md) — `RES-07`.
+- [`RES-08-rust-demosaicing.md`](RES-08-rust-demosaicing.md) — `RES-08`.
+- [`RES-05-demosaicing.md`](RES-05-demosaicing.md) — algorithm scope from `RES-05`.

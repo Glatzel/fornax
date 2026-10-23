@@ -57,9 +57,12 @@ Record actual results. If a command cannot run, say so explicitly.
 - `agent-work/tasks/raw-pipeline.md` — authoritative live status, dependencies,
   ownership, acceptance criteria, and evidence log.
 - `agent-work/research/` — one owned report per reference source.
+- Research deliverable filenames must begin with the owning task ID, for example
+  `RES-01-fornax-architecture.md` or `SYN-03-summary.md`. `README.md` is the
+  non-task directory index and is exempt.
 - `agent-work/research/notes/` — synthesis working notes owned by `SYN-01` and
   `SYN-02`.
-- `agent-work/research/summary.md` — cross-source synthesis owned by `SYN-03`.
+- `agent-work/research/SYN-03-summary.md` — cross-source synthesis owned by `SYN-03`.
 - `agent-work/design/raw-pipeline.md` — shared API and data-model design output.
 - `agent-work/references/` — pinned, read-only upstream evidence submodules and
   downloaded reference material.
@@ -74,8 +77,8 @@ outputs there.
 2. Read the live task entry in `agent-work/tasks/raw-pipeline.md`. Do not infer
    readiness from this file, report front matter, or an older summary.
 3. Work only within the files owned by the task. A research task owns exactly
-   one report. `SYN-01` and `SYN-02` own only their notes; `SYN-03` owns
-   `research/summary.md`.
+   one report named `<TASK-ID>-<slug>.md`. `SYN-01` and `SYN-02` own only their
+   correspondingly named notes; `SYN-03` owns `research/SYN-03-summary.md`.
 4. Record verified findings, inferences, recommendations, evidence, limitations,
    and blockers in the owned deliverable as work proceeds.
 5. Update the tracker when evidence is complete, but stop agent work at

@@ -7,20 +7,20 @@ or extra work before accepting any task as `done`.
 
 | Task | Status | Report |
 | --- | --- | --- |
-| `RES-01` | `review` | `agent-work/research/fornax-architecture.md` |
-| `RES-02` | `review` | `agent-work/research/libraw.md` |
-| `RES-03` | `review` | `agent-work/research/dnglab.md` |
-| `RES-04` | `review` | `agent-work/research/darktable.md` |
-| `RES-05` | `review` | `agent-work/research/demosaicing.md` |
-| `RES-06` | `review` | `agent-work/research/rust-raw-decoders.md` |
-| `RES-07` | `review` | `agent-work/research/rust-dng-tiff.md` |
-| `RES-08` | `review` | `agent-work/research/rust-demosaicing.md` |
+| `RES-01` | `review` | `agent-work/research/RES-01-fornax-architecture.md` |
+| `RES-02` | `review` | `agent-work/research/RES-02-libraw.md` |
+| `RES-03` | `review` | `agent-work/research/RES-03-dnglab.md` |
+| `RES-04` | `review` | `agent-work/research/RES-04-darktable.md` |
+| `RES-05` | `review` | `agent-work/research/RES-05-demosaicing.md` |
+| `RES-06` | `review` | `agent-work/research/RES-06-rust-raw-decoders.md` |
+| `RES-07` | `review` | `agent-work/research/RES-07-rust-dng-tiff.md` |
+| `RES-08` | `review` | `agent-work/research/RES-08-rust-demosaicing.md` |
 
 Primary checks are complete for all eight reports:
 
-- `agent-work/research/rust-dng-tiff.md` distinguishes generic TIFF support from
+- `agent-work/research/RES-07-rust-dng-tiff.md` distinguishes generic TIFF support from
   the missing DNG/CFA metadata model.
-- `agent-work/research/rust-demosaicing.md` records Bayer API, border,
+- `agent-work/research/RES-08-rust-demosaicing.md` records Bayer API, border,
   validation, allocation, registry, and synthetic-test behavior while excluding
   non-target sensor layouts.
 

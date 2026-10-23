@@ -33,18 +33,18 @@ criteria follow below.
 
 | Wave | ID | Work | Status | Depends on | Deliverable |
 | --- | --- | --- | --- | --- | --- |
-| R0 | `RES-01` | Audit `fornax` architecture | `review` | none | `research/fornax-architecture.md` |
-| R0 | `RES-02` | Research LibRaw semantics | `review` | none | `research/libraw.md` |
-| R0 | `RES-03` | Research dnglab and DNG metadata | `review` | none | `research/dnglab.md` |
-| R0 | `RES-04` | Research darktable preprocessing | `review` | none | `research/darktable.md` |
-| R0 | `RES-05` | Research Bayer demosaicing algorithms | `review` | none | `research/demosaicing.md` |
-| R0 | `RES-06` | Survey Rust RAW decoders | `review` | none | `research/rust-raw-decoders.md` |
-| R0 | `RES-07` | Survey Rust TIFF/DNG building blocks | `review` | none | `research/rust-dng-tiff.md` |
-| R0 | `RES-08` | Survey Rust demosaicing crates | `review` | none | `research/rust-demosaicing.md` |
-| R1 | `RES-09` | Compare Rust ecosystem candidates | `blocked` | `RES-06`–`RES-08` | `research/rust-ecosystem.md` |
+| R0 | `RES-01` | Audit `fornax` architecture | `review` | none | `research/RES-01-fornax-architecture.md` |
+| R0 | `RES-02` | Research LibRaw semantics | `review` | none | `research/RES-02-libraw.md` |
+| R0 | `RES-03` | Research dnglab and DNG metadata | `review` | none | `research/RES-03-dnglab.md` |
+| R0 | `RES-04` | Research darktable preprocessing | `review` | none | `research/RES-04-darktable.md` |
+| R0 | `RES-05` | Research Bayer demosaicing algorithms | `review` | none | `research/RES-05-demosaicing.md` |
+| R0 | `RES-06` | Survey Rust RAW decoders | `review` | none | `research/RES-06-rust-raw-decoders.md` |
+| R0 | `RES-07` | Survey Rust TIFF/DNG building blocks | `review` | none | `research/RES-07-rust-dng-tiff.md` |
+| R0 | `RES-08` | Survey Rust demosaicing crates | `review` | none | `research/RES-08-rust-demosaicing.md` |
+| R1 | `RES-09` | Compare Rust ecosystem candidates | `blocked` | `RES-06`–`RES-08` | `research/RES-09-rust-ecosystem.md` |
 | S1 | `SYN-01` | Reconcile metadata and sample semantics | `blocked` | `RES-01`–`RES-04`, `RES-06`, `RES-07` | `research/notes/SYN-01.md` |
 | S2 | `SYN-02` | Reconcile preprocessing and black levels | `blocked` | `RES-02`, `RES-04`, `SYN-01` | `research/notes/SYN-02.md` |
-| S3 | `SYN-03` | Cross-source synthesis | `blocked` | `RES-01`–`RES-09`, `SYN-01`, `SYN-02` | `research/summary.md` |
+| S3 | `SYN-03` | Cross-source synthesis | `blocked` | `RES-01`–`RES-09`, `SYN-01`, `SYN-02` | `research/SYN-03-summary.md` |
 | D | `DES-001` | Universal RAW representation | `blocked` | `SYN-01`, `SYN-02`, `DES-003` | `design/raw-pipeline.md` |
 | D | `DES-002` | Extensible metadata and provenance | `blocked` | `SYN-01` | `design/raw-pipeline.md` |
 | D | `DES-003` | Bayer CFA model and indexing | `blocked` | `SYN-01` | `design/raw-pipeline.md` |
@@ -132,7 +132,7 @@ Every research and synthesis task must follow these rules:
 5. Do not rely on README descriptions alone; inspect implementation code when
    behavior cannot be established from documentation.
 6. Write only the file owned by the task. Research owners write one report;
-   `SYN-01` and `SYN-02` write their own notes; `SYN-03` writes `summary.md`.
+   `SYN-01` and `SYN-02` write their own notes; `SYN-03` writes `SYN-03-summary.md`.
 7. Do not invent APIs, metadata semantics, or implementation details.
 8. Inspect upstream checkouts at the revision recorded in
    `agent-work/references/README.md`. Reference repositories are evidence
@@ -192,7 +192,7 @@ must not edit another task's report.
   unchanged from the audited `d06f426` revision. The malformed `color4_image`
   wrapper branch is recorded as a concrete adapter gap.
 - **Dependencies:** none
-- **Output report:** `agent-work/research/fornax-architecture.md`
+- **Output report:** `agent-work/research/RES-01-fornax-architecture.md`
 - **Scope:** Audit the workspace, crate boundaries, dependency direction,
   features, build scripts, CI, tests, fixtures, benchmarks, error types, naming
   conventions, and coding standards. Inventory `fornax-core`, `fornax-dalim`,
@@ -212,7 +212,7 @@ must not edit another task's report.
      `image` and `libraw`'s coupling to `fornax-core`.
   5. The report contains the six required sections and labels evidence.
 - **Parallelization:** Independent. Owns only
-  `agent-work/research/fornax-architecture.md`.
+  `agent-work/research/RES-01-fornax-architecture.md`.
 
 ### RES-02 — Research LibRaw
 
@@ -222,7 +222,7 @@ must not edit another task's report.
   General spatial black tiles and user-cropped tile rebasing are explicitly
   deferred and must be rejected until separately designed.
 - **Dependencies:** none
-- **Output report:** `agent-work/research/libraw.md`
+- **Output report:** `agent-work/research/RES-02-libraw.md`
 - **Scope:** Trace LibRaw from file opening through unpacking and raw-image
   exposure. Establish the meaning of `rawdata.raw_image`, `color4_image`,
   dimensions, `filters`, black levels, white levels, saturation, crop, masks,
@@ -245,7 +245,7 @@ must not edit another task's report.
      payloads.
   6. Unverified claims are labeled `[inference]`.
   7. The report contains the six required sections and cites sources.
-- **Parallelization:** Independent. Owns only `agent-work/research/libraw.md`.
+- **Parallelization:** Independent. Owns only `agent-work/research/RES-02-libraw.md`.
   Coordinates scope with `RES-06` and `RES-07` to avoid duplicate ecosystem
   coverage.
 
@@ -258,7 +258,7 @@ must not edit another task's report.
   references, and the `DefaultCropSize` default was corrected to the
   ActiveArea dimensions.
 - **Dependencies:** none
-- **Output report:** `agent-work/research/dnglab.md`
+- **Output report:** `agent-work/research/RES-03-dnglab.md`
 - **Scope:** Inspect dnglab's DNG parsing, raw-image representation, CFA
   handling, black/white level interpretation, active area, default crop,
   orientation, and decoder output semantics. Compare source behavior with the
@@ -277,7 +277,7 @@ must not edit another task's report.
   4. Licensing constraints are recorded.
   5. Standard Bayer DNG is distinguished from deferred non-Bayer DNG payloads.
   6. The report contains the six required sections and cites sources.
-- **Parallelization:** Independent. Owns only `agent-work/research/dnglab.md`.
+- **Parallelization:** Independent. Owns only `agent-work/research/RES-03-dnglab.md`.
   Coordinates scope with `RES-06` and `RES-07` to avoid duplicate ecosystem
   coverage.
 
@@ -289,7 +289,7 @@ must not edit another task's report.
   Darktable's optional masked-area fallback is recorded as provisional and
   unsuitable as a required initial black-level source.
 - **Dependencies:** none
-- **Output report:** `agent-work/research/darktable.md`
+- **Output report:** `agent-work/research/RES-04-darktable.md`
 - **Scope:** Inspect darktable's actual RAW preprocessing pipeline, including
   rawprepare, temperature, demosaic, and related modules. Determine the order of
   sensor-domain operations, how black and white levels and masks are
@@ -311,7 +311,7 @@ must not edit another task's report.
      `SYN-02`.
   6. The report contains the six required sections and cites sources.
 - **Parallelization:** Independent. Owns only
-  `agent-work/research/darktable.md`.
+  `agent-work/research/RES-04-darktable.md`.
 
 ### RES-05 — Research demosaicing algorithms and interfaces
 
@@ -321,7 +321,7 @@ must not edit another task's report.
   The report records the checked border helpers' zero-neighbor division hazard.
   Verification: `cargo test -p fornax-dalim --all-features` passed 4 tests.
 - **Dependencies:** none
-- **Output report:** `agent-work/research/demosaicing.md`
+- **Output report:** `agent-work/research/RES-05-demosaicing.md`
 - **Scope:** Survey bilinear, Malvar–He–Cutler, and representative edge-aware or
   higher-quality algorithms. Record input requirements, CFA assumptions, border
   handling, output semantics, numeric range, metadata needs, and complexity.
@@ -342,7 +342,7 @@ must not edit another task's report.
      as deferred rather than included implicitly.
   6. The report contains the six required sections and cites sources.
 - **Parallelization:** Independent. Owns only
-  `agent-work/research/demosaicing.md`. Algorithm implementations remain
+  `agent-work/research/RES-05-demosaicing.md`. Algorithm implementations remain
   `blocked` until design review.
 
 ### RES-06 — Survey Rust RAW decoder crates
@@ -354,7 +354,7 @@ must not edit another task's report.
   dispatches DNG/ARW/NEF/CRW/CR2/CR3, with CRX enabled by default. Neither
   checkout supplies target RAW fixtures.
 - **Dependencies:** none
-- **Output report:** `agent-work/research/rust-raw-decoders.md`
+- **Output report:** `agent-work/research/RES-06-rust-raw-decoders.md`
 - **Scope:** Evaluate Rust RAW decoder crates, starting with rawloader and the
   decoder-facing API of rawler. Record target-format coverage, sample domains,
   crop and CFA metadata, active/default crop, orientation, black/white levels,
@@ -373,7 +373,7 @@ must not edit another task's report.
   6. Inferred findings are labeled `[inference]`.
   7. The report contains the six required sections and cites sources.
 - **Parallelization:** Independent. Owns only
-  `agent-work/research/rust-raw-decoders.md`.
+  `agent-work/research/RES-06-rust-raw-decoders.md`.
 
 ### RES-07 — Survey Rust TIFF and DNG building blocks
 
@@ -382,7 +382,7 @@ must not edit another task's report.
 - **Review note:** Review-ready evidence is preserved in the report and awaits
   user review.
 - **Dependencies:** none
-- **Output report:** `agent-work/research/rust-dng-tiff.md`
+- **Output report:** `agent-work/research/RES-07-rust-dng-tiff.md`
 - **Scope:** Evaluate maintained Rust TIFF/DNG components that could support the
   DNG adapter. Start with image-rs/image-tiff and relevant DNG-facing rawler
   APIs. Assess strips/tiles, sample types, metadata access, strides, compression
@@ -398,7 +398,7 @@ must not edit another task's report.
   5. Non-Bayer DNG payloads are excluded from initial support.
   6. The report contains the six required sections and cites sources.
 - **Parallelization:** Independent. Owns only
-  `agent-work/research/rust-dng-tiff.md`. Coordinates with `RES-03` and
+  `agent-work/research/RES-07-rust-dng-tiff.md`. Coordinates with `RES-03` and
   `RES-06`.
 
 ### RES-08 — Survey Rust demosaicing crates and interface patterns
@@ -408,7 +408,7 @@ must not edit another task's report.
 - **Review note:** Review-ready evidence is preserved in the report and awaits
   user review.
 - **Dependencies:** none
-- **Output report:** `agent-work/research/rust-demosaicing.md`
+- **Output report:** `agent-work/research/RES-08-rust-demosaicing.md`
 - **Scope:** Evaluate maintained Rust demosaicing crates and APIs, including the
   `demosaic` crate and MeraRAW Demosaic. Focus on conventional Bayer input and
   output, borders, validation, errors, strategy registration, and synthetic
@@ -425,14 +425,14 @@ must not edit another task's report.
      the initial recommendation.
   6. The report contains the six required sections and cites sources.
 - **Parallelization:** Independent. Owns only
-  `agent-work/research/rust-demosaicing.md`.
+  `agent-work/research/RES-08-rust-demosaicing.md`.
 
 ### RES-09 — Compare Rust ecosystem candidates
 
 - **Status:** `blocked`
 - **Owner:** unassigned
 - **Dependencies:** `RES-06`, `RES-07`, `RES-08`
-- **Output report:** `agent-work/research/rust-ecosystem.md`
+- **Output report:** `agent-work/research/RES-09-rust-ecosystem.md`
 - **Scope:** Compare the split Rust ecosystem reports and recommend decoder,
   DNG/TIFF, and demosaicing reuse boundaries. Do not repeat source-level findings
   already owned by the split reports.
@@ -449,7 +449,7 @@ must not edit another task's report.
   5. Remaining unknowns and their impact are listed.
   6. The report contains the six required sections and cites the split reports.
 - **Parallelization:** Starts only after `RES-06`–`RES-08` are user-approved as
-  `done`. Owns only `agent-work/research/rust-ecosystem.md`.
+  `done`. Owns only `agent-work/research/RES-09-rust-ecosystem.md`.
 
 ## Wave S — Synthesis
 
@@ -513,7 +513,7 @@ and recommendation, and must not silently resolve disagreements.
 
 - **Status:** `blocked`
 - **Dependencies:** `RES-01`–`RES-09`, `SYN-01`, `SYN-02`
-- **Output:** `agent-work/research/summary.md`
+- **Output:** `agent-work/research/SYN-03-summary.md`
 - **Scope:** Compare findings across all nine reports and both synthesis notes;
   document agreements, disagreements, uncertainties, and remaining questions;
   make evidence-backed recommendations for the `fornax` architecture.
@@ -528,25 +528,25 @@ and recommendation, and must not silently resolve disagreements.
   6. The summary is reviewed before any design task is finalized.
 - **Parallelization:** Starts only after all research reports and `SYN-01` /
   `SYN-02` are user-approved as `done`. Owns only
-  `agent-work/research/summary.md`; no other task edits that file.
+  `agent-work/research/SYN-03-summary.md`; no other task edits that file.
 
 ## Report ownership
 
 | Report | Owning task | Status | Prerequisites | Acceptance focus |
 | --- | --- | --- | --- | --- |
-| `fornax-architecture.md` | `RES-01` | `review` | none | Architecture, crate boundaries, reusable code, gaps |
-| `libraw.md` | `RES-02` | `review` | none | Decoding, sample semantics, CFA, levels, metadata, APIs |
-| `dnglab.md` | `RES-03` | `review` | none | DNG tags, active area, black patterns, white levels, coordinates |
-| `darktable.md` | `RES-04` | `review` | none | Preprocessing order, black-level behavior, processing boundary |
-| `demosaicing.md` | `RES-05` | `review` | none | Algorithms, input requirements, CFA, output semantics, interface |
-| `rust-raw-decoders.md` | `RES-06` | `review` | none | Decoder coverage, representations, adapter risks, licenses |
-| `rust-dng-tiff.md` | `RES-07` | `review` | none | DNG/TIFF building blocks, sample layout, errors, dependency fit |
-| `rust-demosaicing.md` | `RES-08` | `review` | none | Bayer APIs, borders, validation, strategy patterns, licenses |
-| `rust-ecosystem.md` | `RES-09` | `blocked` | `RES-06`–`RES-08` | Cross-report dependency and reuse recommendation |
-| `summary.md` | `SYN-03` | `blocked` | all `RES-*`, `SYN-01`, `SYN-02` | Cross-source recommendations, disagreements, uncertainties |
+| `RES-01-fornax-architecture.md` | `RES-01` | `review` | none | Architecture, crate boundaries, reusable code, gaps |
+| `RES-02-libraw.md` | `RES-02` | `review` | none | Decoding, sample semantics, CFA, levels, metadata, APIs |
+| `RES-03-dnglab.md` | `RES-03` | `review` | none | DNG tags, active area, black patterns, white levels, coordinates |
+| `RES-04-darktable.md` | `RES-04` | `review` | none | Preprocessing order, black-level behavior, processing boundary |
+| `RES-05-demosaicing.md` | `RES-05` | `review` | none | Algorithms, input requirements, CFA, output semantics, interface |
+| `RES-06-rust-raw-decoders.md` | `RES-06` | `review` | none | Decoder coverage, representations, adapter risks, licenses |
+| `RES-07-rust-dng-tiff.md` | `RES-07` | `review` | none | DNG/TIFF building blocks, sample layout, errors, dependency fit |
+| `RES-08-rust-demosaicing.md` | `RES-08` | `review` | none | Bayer APIs, borders, validation, strategy patterns, licenses |
+| `RES-09-rust-ecosystem.md` | `RES-09` | `blocked` | `RES-06`–`RES-08` | Cross-report dependency and reuse recommendation |
+| `SYN-03-summary.md` | `SYN-03` | `blocked` | all `RES-*`, `SYN-01`, `SYN-02` | Cross-source recommendations, disagreements, uncertainties |
 
 Every research task maps to exactly one report, and every report has one owning
-task and an explicit acceptance focus. `summary.md` is a synthesis deliverable,
+task and an explicit acceptance focus. `SYN-03-summary.md` is a synthesis deliverable,
 not a seventh research report.
 
 ## Wave D — Design
@@ -696,7 +696,7 @@ restarting a task that is already in `review`, `in_progress`, or `done`.
 are user-approved as `done`.
 
 **S3:** `SYN-03` after every research report and both synthesis notes are
-user-approved as `done`; it produces `summary.md`.
+user-approved as `done`; it produces `SYN-03-summary.md`.
 
 **Design:** `DES-002` and `DES-003` start after `SYN-01`; `DES-001` also needs
 `SYN-02` and `DES-003`; `DES-004` and `DES-005` follow; `DES-006` follows those.
@@ -708,7 +708,7 @@ in parallel with the decoder track after `DES-004`. `IMPL-DEC-002` and
 `IMPL-DEC-003` may overlap only with explicit file ownership, because both touch
 the decoder adapter.
 
-**Never parallelize:** edits to the same report, `summary.md`, shared types,
+**Never parallelize:** edits to the same report, `SYN-03-summary.md`, shared types,
 workspace manifests, or a shared interface that is still under design.
 
 ## Dependency graph
@@ -739,22 +739,23 @@ finalized before `SYN-03`. No `IMPL-*` task may start before `DES-007`.
 | Date | Task | Change | Evidence |
 | --- | --- | --- | --- |
 | 2026-10-23 | — | Tracker initialized. All research tasks `ready`; synthesis, design, and implementation `blocked`. No research or implementation started. | This file and `agent-work/raw-pipeline.md` |
-| 2026-10-23 | `RES-01`–`RES-06`, `SYN-01`–`SYN-03` | Research restructured into one report per source. Added report ownership, synthesis notes, and the `summary.md` gate. Reports are placeholders; no findings recorded. | `agent-work/research/README.md` and the report files |
-| 2026-10-23 | `RES-01` | Completed repository architecture audit; report written to `agent-work/research/fornax-architecture.md`; status `review`. | Local commit `d06f426`; report evidence table |
-| 2026-10-23 | `RES-02` | Completed LibRaw 0.22.2 declaration and wrapper audit; report written to `agent-work/research/libraw.md`; status `review` with the black-level layout criterion partial. | Installed `libraw_types.h`, `libraw.h`, `libraw_const.h`; wrapper sources |
-| 2026-10-23 | `RES-03` | Blocked: dnglab source and DNG specification unavailable offline. Recorded LibRaw DNG-adjacent declarations and open questions; report not accepted. | `agent-work/research/dnglab.md`; failed network probe |
+| 2026-10-23 | `RES-01`–`RES-06`, `SYN-01`–`SYN-03` | Research restructured into one report per source. Added report ownership, synthesis notes, and the `SYN-03-summary.md` gate. Reports are placeholders; no findings recorded. | `agent-work/research/README.md` and the report files |
+| 2026-10-23 | `RES-01` | Completed repository architecture audit; report written to `agent-work/research/RES-01-fornax-architecture.md`; status `review`. | Local commit `d06f426`; report evidence table |
+| 2026-10-23 | `RES-02` | Completed LibRaw 0.22.2 declaration and wrapper audit; report written to `agent-work/research/RES-02-libraw.md`; status `review` with the black-level layout criterion partial. | Installed `libraw_types.h`, `libraw.h`, `libraw_const.h`; wrapper sources |
+| 2026-10-23 | `RES-03` | Blocked: dnglab source and DNG specification unavailable offline. Recorded LibRaw DNG-adjacent declarations and open questions; report not accepted. | `agent-work/research/RES-03-dnglab.md`; failed network probe |
 | 2026-10-23 | `RES-03`–`RES-06` | Started under the primary agent. `RES-03` resumed after primary-source access was restored; `RES-04`–`RES-06` moved from `ready` to `in_progress`. `RES-01` and `RES-02` remain in review and are not being restarted. | Source clones and this tracker update |
 | 2026-10-23 | Workflow | Centralized detailed instructions, references, checkpoints, and design output under `agent-work/`; moved clean research checkouts and recorded exact revisions. No task status or research conclusion changed. | `agent-work/AGENTS.md`, `agent-work/references/README.md`, and `agent-work/checkpoints/2026-10-23-workflow-restructure.md` |
 | 2026-10-23 | `RES-01`–`RES-06` | Paused at the user's request after evidence collection and draft acceptance review. Reports, source revisions, and unresolved review steps are preserved; no synthesis started. | `agent-work/checkpoints/2026-10-23-RES-01-06-pause.md` |
 | 2026-10-23 | Scope and `RES-06` | Split the broad Rust ecosystem survey into `RES-06` decoders, `RES-07` DNG/TIFF, `RES-08` demosaicing, and `RES-09` comparison. Added the task dashboard and dependency Mermaid above the detailed tracker. Scoped initial work to conventional Bayer DNG, ARW, NEF, and `CR*`; deferred X-Trans, Foveon, and other layouts/formats. Promoted research references to pinned submodules. | This tracker, `agent-work/raw-pipeline.md`, split research reports, and `agent-work/references/README.md` |
 | 2026-10-23 | `RES-01`, `RES-02` | Resumed as independent parallel research tasks with one report owner each; primary checks are complete and both await user review. | This tracker; reports and pinned source evidence |
-| 2026-10-23 | `RES-02` | Primary review completed. Resolved the initial Bayer black-pattern semantics: conventional 1x1/2x2 DNG tiles fold into per-CFA levels; ActiveArea and user-crop coordinate rebasing are documented; general spatial tiles are explicitly deferred. | `agent-work/research/libraw.md`; LibRaw 0.22.2 `utils_libraw.cpp`, `raw2image.cpp`, `subtract_black.cpp`, and `dcraw_process.cpp` |
-| 2026-10-23 | `RES-01` | Primary review completed. Revalidated the architecture report at `46fabfd`; source-bearing paths are unchanged from `d06f426`. Added explicit structured-rejection gaps and corrected the wrapper audit to identify the inverted `color4_image` null check. | `agent-work/research/fornax-architecture.md`; current crate manifests and source |
+| 2026-10-23 | `RES-02` | Primary review completed. Resolved the initial Bayer black-pattern semantics: conventional 1x1/2x2 DNG tiles fold into per-CFA levels; ActiveArea and user-crop coordinate rebasing are documented; general spatial tiles are explicitly deferred. | `agent-work/research/RES-02-libraw.md`; LibRaw 0.22.2 `utils_libraw.cpp`, `raw2image.cpp`, `subtract_black.cpp`, and `dcraw_process.cpp` |
+| 2026-10-23 | `RES-01` | Primary review completed. Revalidated the architecture report at `46fabfd`; source-bearing paths are unchanged from `d06f426`. Added explicit structured-rejection gaps and corrected the wrapper audit to identify the inverted `color4_image` null check. | `agent-work/research/RES-01-fornax-architecture.md`; current crate manifests and source |
 | 2026-10-23 | `RES-03`–`RES-05` | Resumed in parallel with disjoint report ownership for final evidence and acceptance review. | This tracker; paused reports and pinned references |
-| 2026-10-23 | `RES-04` | Primary review completed. Verified module order, `rawprepare` arithmetic, CFA/crop phase, demosaic boundary, exclusions, and GPL licensing. Corrected masked-area handling: rawspeed estimates black areas only when separate levels are absent and labels that path unreliable. | `agent-work/research/darktable.md`; pinned darktable source |
-| 2026-10-23 | `RES-03` | Primary review completed. Replaced missing extracted-spec references with DNG 1.7.0.0 PDF pages and Adobe SDK source; corrected `DefaultCropSize` fallback to ActiveArea dimensions. | `agent-work/research/dnglab.md`; pinned dnglab and DNG SDK source |
-| 2026-10-23 | `RES-05` | Primary review completed. Verified Bayer algorithm comparison, initial set, shared contract, border behavior, deferred layouts, and licensing. Reran `cargo test -p fornax-dalim --all-features`: 4 passed. | `agent-work/research/demosaicing.md`; test output |
+| 2026-10-23 | `RES-04` | Primary review completed. Verified module order, `rawprepare` arithmetic, CFA/crop phase, demosaic boundary, exclusions, and GPL licensing. Corrected masked-area handling: rawspeed estimates black areas only when separate levels are absent and labels that path unreliable. | `agent-work/research/RES-04-darktable.md`; pinned darktable source |
+| 2026-10-23 | `RES-03` | Primary review completed. Replaced missing extracted-spec references with DNG 1.7.0.0 PDF pages and Adobe SDK source; corrected `DefaultCropSize` fallback to ActiveArea dimensions. | `agent-work/research/RES-03-dnglab.md`; pinned dnglab and DNG SDK source |
+| 2026-10-23 | `RES-05` | Primary review completed. Verified Bayer algorithm comparison, initial set, shared contract, border behavior, deferred layouts, and licensing. Reran `cargo test -p fornax-dalim --all-features`: 4 passed. | `agent-work/research/RES-05-demosaicing.md`; test output |
 | 2026-10-23 | `RES-06`–`RES-08` | Resumed in parallel for final split-report evidence and acceptance review. | This tracker; split reports and pinned Rust references |
-| 2026-10-23 | `RES-06` | Primary review completed. Verified rawloader and rawler format dispatch and representations. rawloader lacks CR3; rawler has CR2/CR3 paths. Real-file target coverage remains explicitly unverified because the pinned checkouts contain no target fixtures. | `agent-work/research/rust-raw-decoders.md`; pinned rawloader/rawler source |
+| 2026-10-23 | `RES-06` | Primary review completed. Verified rawloader and rawler format dispatch and representations. rawloader lacks CR3; rawler has CR2/CR3 paths. Real-file target coverage remains explicitly unverified because the pinned checkouts contain no target fixtures. | `agent-work/research/RES-06-rust-raw-decoders.md`; pinned rawloader/rawler source |
 | 2026-10-23 | `RES-07`, `RES-08`, `RES-09` | RES-07 and RES-08 completed report review and moved back to `review`; RES-09 remains blocked until the user approves those dependencies. | `agent-work/checkpoints/2026-10-23-user-review-gate.md` |
 | 2026-10-23 | Workflow | Added an explicit user-review gate. All RES-01–RES-08 work moved to `review`; agents may not set `done`. Replaced the status legend with a Mermaid state chart and changed all dependency gates to require user-approved `done`. | `agent-work/raw-pipeline.md`, `agent-work/AGENTS.md`, this tracker, and research report front matter |
+| 2026-10-23 | Research files | Renamed every task-owned deliverable to `<TASK-ID>-<slug>.md`, including `SYN-03-summary.md`, and updated all workflow, tracker, report, and checkpoint references. `README.md` remains the non-task index. | `agent-work/research/` and repository-wide Markdown reference audit |

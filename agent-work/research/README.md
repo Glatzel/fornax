@@ -19,20 +19,20 @@ unsupported in the initial pipeline.
 
 | Report | Task | Owner | Status | Prerequisites | Acceptance criterion (summary) |
 | --- | --- | --- | --- | --- | --- |
-| [`fornax-architecture.md`](fornax-architecture.md) | `RES-01` | primary agent | `review` | none | Existing crates, public types, dependencies, reuse candidates, and gaps are documented with local paths and symbols. |
-| [`libraw.md`](libraw.md) | `RES-02` | RES-02 research agent | `review` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
-| [`dnglab.md`](dnglab.md) | `RES-03` | RES-03 research agent | `review` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
-| [`darktable.md`](darktable.md) | `RES-04` | RES-04 research agent | `review` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
-| [`demosaicing.md`](demosaicing.md) | `RES-05` | RES-05 research agent | `review` | none | Algorithms, input requirements, CFA handling, output semantics, and shared-interface requirements are documented and justified. |
-| [`rust-raw-decoders.md`](rust-raw-decoders.md) | `RES-06` | RES-06 research agent | `review` | none | Rust RAW decoders, target-format coverage, sample/metadata models, adapter risks, maintenance, and licenses are documented. |
-| [`rust-dng-tiff.md`](rust-dng-tiff.md) | `RES-07` | RES-07 research agent | `review` | none | Rust TIFF/DNG building blocks, Bayer sample layout, errors, limits, and dependency fit are documented. |
-| [`rust-demosaicing.md`](rust-demosaicing.md) | `RES-08` | RES-08 research agent | `review` | none | Rust Bayer demosaicing APIs, borders, validation, strategy patterns, tests, and licenses are documented. |
-| [`rust-ecosystem.md`](rust-ecosystem.md) | `RES-09` | unassigned | `blocked` | `RES-06`–`RES-08` | Split reports are compared into dependency, backend, design-reference, and license recommendations. |
-| [`summary.md`](summary.md) | `SYN-03` | unassigned | `blocked` | all `RES-*`, `SYN-01`, `SYN-02` | Findings are synthesized, disagreements and uncertainties are explicit, and recommendations link to supporting report sections. |
+| [`RES-01-fornax-architecture.md`](RES-01-fornax-architecture.md) | `RES-01` | primary agent | `review` | none | Existing crates, public types, dependencies, reuse candidates, and gaps are documented with local paths and symbols. |
+| [`RES-02-libraw.md`](RES-02-libraw.md) | `RES-02` | RES-02 research agent | `review` | none | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, and APIs are documented with upstream citations. |
+| [`RES-03-dnglab.md`](RES-03-dnglab.md) | `RES-03` | RES-03 research agent | `review` | none | DNG tags, active area, black-level patterns, white levels, and coordinate semantics are mapped with specification and source citations. |
+| [`RES-04-darktable.md`](RES-04-darktable.md) | `RES-04` | RES-04 research agent | `review` | none | The RAW preprocessing order, black-level behavior, CFA handling, and the pre-demosaic boundary are documented with source citations. |
+| [`RES-05-demosaicing.md`](RES-05-demosaicing.md) | `RES-05` | RES-05 research agent | `review` | none | Algorithms, input requirements, CFA handling, output semantics, and shared-interface requirements are documented and justified. |
+| [`RES-06-rust-raw-decoders.md`](RES-06-rust-raw-decoders.md) | `RES-06` | RES-06 research agent | `review` | none | Rust RAW decoders, target-format coverage, sample/metadata models, adapter risks, maintenance, and licenses are documented. |
+| [`RES-07-rust-dng-tiff.md`](RES-07-rust-dng-tiff.md) | `RES-07` | RES-07 research agent | `review` | none | Rust TIFF/DNG building blocks, Bayer sample layout, errors, limits, and dependency fit are documented. |
+| [`RES-08-rust-demosaicing.md`](RES-08-rust-demosaicing.md) | `RES-08` | RES-08 research agent | `review` | none | Rust Bayer demosaicing APIs, borders, validation, strategy patterns, tests, and licenses are documented. |
+| [`RES-09-rust-ecosystem.md`](RES-09-rust-ecosystem.md) | `RES-09` | unassigned | `blocked` | `RES-06`–`RES-08` | Split reports are compared into dependency, backend, design-reference, and license recommendations. |
+| [`SYN-03-summary.md`](SYN-03-summary.md) | `SYN-03` | unassigned | `blocked` | all `RES-*`, `SYN-01`, `SYN-02` | Findings are synthesized, disagreements and uncertainties are explicit, and recommendations link to supporting report sections. |
 
 Each research task owns exactly one reference report. A worker must not edit a
-report owned by another task. `summary.md` is a synthesis deliverable produced
-only by `SYN-03`; it is not a research report.
+report owned by another task. `SYN-03-summary.md` is a synthesis deliverable
+produced only by `SYN-03`; it is not a research report.
 
 ## Local reference sources
 
@@ -81,13 +81,16 @@ acceptance criteria of its owning task in the front matter.
 | --- | --- | --- | --- |
 | `SYN-01` | `notes/SYN-01.md` | `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06`, `RES-07` | Metadata and sample semantics, including ranges, bit depth, normalization, black-level representations, provenance, coordinates, and universal-versus-backend-specific decisions. |
 | `SYN-02` | `notes/SYN-02.md` | `RES-02`, `RES-04`, `SYN-01` | Preprocessing order and black-level behavior, including subtraction, clipping, normalization, pattern alignment, double-application prevention, and the boundary before demosaicing. |
-| `SYN-03` | `summary.md` | `RES-01`–`RES-09`, `SYN-01`, `SYN-02` | Cross-source comparison, agreements, disagreements, uncertainties, recommendations, and links to supporting report sections. |
+| `SYN-03` | `SYN-03-summary.md` | `RES-01`–`RES-09`, `SYN-01`, `SYN-02` | Cross-source comparison, agreements, disagreements, uncertainties, recommendations, and links to supporting report sections. |
 
 ## Working rules
 
 - Research owners write only their assigned report.
+- Every task-owned report filename must begin with its task ID, such as
+  `RES-01-fornax-architecture.md`. The directory-level `README.md` is the only
+  non-task file.
 - `SYN-01` and `SYN-02` write only their own files under `notes/`.
-- `SYN-03` owns `summary.md`.
+- `SYN-03` owns `SYN-03-summary.md`.
 - Do not copy one report wholesale into another; reference it by path and
   section.
 - Do not fabricate findings, APIs, metadata semantics, or implementation

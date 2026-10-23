@@ -29,15 +29,15 @@ _Not started. This file is a required structure, not a completed synthesis._
 
 Link each report with its task ID and the sections used:
 
-- [`fornax-architecture.md`](fornax-architecture.md) (`RES-01`): not yet summarized.
-- [`libraw.md`](libraw.md) (`RES-02`): not yet summarized.
-- [`dnglab.md`](dnglab.md) (`RES-03`): not yet summarized.
-- [`darktable.md`](darktable.md) (`RES-04`): not yet summarized.
-- [`demosaicing.md`](demosaicing.md) (`RES-05`): not yet summarized.
-- [`rust-raw-decoders.md`](rust-raw-decoders.md) (`RES-06`): not yet summarized.
-- [`rust-dng-tiff.md`](rust-dng-tiff.md) (`RES-07`): not yet summarized.
-- [`rust-demosaicing.md`](rust-demosaicing.md) (`RES-08`): not yet summarized.
-- [`rust-ecosystem.md`](rust-ecosystem.md) (`RES-09`): not yet summarized.
+- [`RES-01-fornax-architecture.md`](RES-01-fornax-architecture.md) (`RES-01`): not yet summarized.
+- [`RES-02-libraw.md`](RES-02-libraw.md) (`RES-02`): not yet summarized.
+- [`RES-03-dnglab.md`](RES-03-dnglab.md) (`RES-03`): not yet summarized.
+- [`RES-04-darktable.md`](RES-04-darktable.md) (`RES-04`): not yet summarized.
+- [`RES-05-demosaicing.md`](RES-05-demosaicing.md) (`RES-05`): not yet summarized.
+- [`RES-06-rust-raw-decoders.md`](RES-06-rust-raw-decoders.md) (`RES-06`): not yet summarized.
+- [`RES-07-rust-dng-tiff.md`](RES-07-rust-dng-tiff.md) (`RES-07`): not yet summarized.
+- [`RES-08-rust-demosaicing.md`](RES-08-rust-demosaicing.md) (`RES-08`): not yet summarized.
+- [`RES-09-rust-ecosystem.md`](RES-09-rust-ecosystem.md) (`RES-09`): not yet summarized.
 - [`notes/SYN-01.md`](notes/SYN-01.md): not yet summarized.
 - [`notes/SYN-02.md`](notes/SYN-02.md): not yet summarized.
 

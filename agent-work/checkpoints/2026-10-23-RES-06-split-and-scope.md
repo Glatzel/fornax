@@ -7,9 +7,9 @@
   - `RES-07`: Rust TIFF/DNG building blocks;
   - `RES-08`: Rust demosaicing crates; and
   - `RES-09`: cross-report comparison.
-- Preserved the inspected evidence in `rust-raw-decoders.md`,
-  `rust-dng-tiff.md`, and `rust-demosaicing.md`.
-- Reset `rust-ecosystem.md` to the blocked `RES-09` comparison deliverable.
+- Preserved the inspected evidence in `RES-06-rust-raw-decoders.md`,
+  `RES-07-rust-dng-tiff.md`, and `RES-08-rust-demosaicing.md`.
+- Reset `RES-09-rust-ecosystem.md` to the blocked `RES-09` comparison deliverable.
 - Added a task dashboard and Mermaid dependency overview to the top of the live
   tracker.
 - Defined the initial format and sensor scope as conventional 2x2 RGB Bayer

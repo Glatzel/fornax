@@ -443,7 +443,7 @@ format-specific fields where practical.
   - `crates/libraw/src/data_structure/iparams.rs`
   - `crates/libraw/src/c_api/auxiliary.rs`
 - DNG coordinate evidence:
-  - `agent-work/research/dnglab.md` (`RES-03`), §2.2–2.3.
+  - `agent-work/research/RES-03-dnglab.md` (`RES-03`), §2.2–2.3.
   - `agent-work/references/dng_sdk/DNG_Spec_1_7_0_0.pdf`, DNG 1.7.0.0
     `BlackLevelRepeatDim` and `BlackLevel` definitions for tile origin and
     ordering.
