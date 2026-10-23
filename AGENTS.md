@@ -53,15 +53,16 @@ Record actual results. If a command cannot be run, say so explicitly instead of 
 
 - Agent materials live in `agent-work/`. The hidden `.agents/` directory is mounted read-only in the agent runtime, so do not attempt to write there.
 - Read `agent-work/raw-pipeline.md` before beginning work on the RAW pipeline. It is the authoritative task specification and the single source of truth; do not create competing task specifications.
-- Check `agent-work/tasks/raw-pipeline.md` for live task status, dependencies, and evidence. Only `RSCH-001` through `RSCH-006` are initially ready; synthesis, design, and implementation tasks are blocked on upstream work.
-- Store research in `agent-work/research/raw-pipeline.md`, design in `agent-work/design/raw-pipeline.md`, and implementation tracking in `agent-work/tasks/raw-pipeline.md`.
-- Research workers write only their own `agent-work/research/notes/<TASK-ID>.md`. Only the synthesis integrator edits the consolidated research report, so parallel workers never contend for the same file.
+- Check `agent-work/tasks/raw-pipeline.md` for live task status, dependencies, and evidence. Only `RES-01` through `RES-06` are initially ready; synthesis, design, and implementation tasks are blocked on upstream work.
+- Each reference has exactly one report under `agent-work/research/`. See `agent-work/research/README.md` for report ownership, prerequisites, and acceptance criteria.
+- Research owners write only their assigned report. `SYN-01` and `SYN-02` write only their own files under `agent-work/research/notes/`; `SYN-03` owns `agent-work/research/summary.md`. Never edit another task's report.
+- Do not start synthesis before its prerequisite reports are accepted, do not finalize design before `SYN-03`, and do not start implementation before `DES-007` is accepted.
 - Do not implement shared APIs before the research and design have been sufficiently reviewed.
 - Keep the implementation roadmap synchronized with actual progress; never mark work complete without evidence.
 - Define stable interfaces before assigning independent implementation tasks to parallel workers.
 - Avoid overlapping edits to shared types, manifests, and public interfaces.
 - Report evidence, test results, blockers, and unresolved decisions explicitly.
-- Do not fabricate research or design reports. Those files are future deliverables.
+- Do not fabricate research or design reports. Placeholder files describe required structure only.
 
 ## Scope discipline
 

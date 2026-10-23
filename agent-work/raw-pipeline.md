@@ -16,21 +16,25 @@
 > agent-work/
 > ├── raw-pipeline.md
 > ├── research/
-> │   ├── raw-pipeline.md          # consolidated report
-> │   └── notes/                   # per-task working notes
-> │       ├── RSCH-001.md
-> │       └── ...
+> │   ├── README.md
+> │   ├── fornax-architecture.md
+> │   ├── libraw.md
+> │   ├── dnglab.md
+> │   ├── darktable.md
+> │   ├── demosaicing.md
+> │   ├── rust-ecosystem.md
+> │   ├── summary.md
+> │   └── notes/                   # synthesis working notes
 > ├── design/raw-pipeline.md
 > └── tasks/raw-pipeline.md
 > ```
 >
-> The consolidated research report is `agent-work/research/raw-pipeline.md`.
-> Per-task working notes live under `agent-work/research/notes/` so that
-> parallel research workers never edit the consolidated report concurrently.
->
-> These reports are future deliverables. Do not fabricate them during
-> initialization, and do not begin the research phase until instructed.
-
+> Each reference report has exactly one owning research task. `summary.md` is
+> produced by `SYN-03`; it synthesizes the reports rather than replacing them.
+> Completed report content, design content, and tracker updates are future
+> deliverables. The report files currently define required structure only. Do
+> not fabricate findings during initialization, and do not begin the research
+> phase until instructed.
 
 ## 1. Project context and objective
 
@@ -86,188 +90,289 @@ For each relevant reference implementation, investigate:
 
 Distinguish source-verified facts from assumptions and recommendations. Record upstream URLs, source paths, relevant symbols, and licensing constraints for code considered for reuse.
 
-### Research is a tracked phase
+### Research reports and tracked tasks
 
-Research is not an untracked preamble. It is decomposed into independently
-verifiable tasks with stable IDs, explicit dependencies, acceptance criteria,
-and a single consolidated deliverable. Live status is maintained in
-`agent-work/tasks/raw-pipeline.md`; this section defines the normative scope.
+Research is a first-class, independently tracked phase. Each source has exactly
+one report and exactly one owning task; tasks must not share report files. Live
+status is maintained in `agent-work/tasks/raw-pipeline.md`; this section defines
+the normative scope.
 
-| ID | Research target | Depends on | Parallel group | Deliverable |
+| ID | Report | Focus | Depends on | Parallel |
 | --- | --- | --- | --- | --- |
-| `RSCH-001` | Existing `fornax` architecture and reusable code | none | R0 | `agent-work/research/notes/RSCH-001.md` + consolidated section |
-| `RSCH-002` | LibRaw decoding, sample semantics, and metadata | none | R0 | `agent-work/research/notes/RSCH-002.md` + consolidated section |
-| `RSCH-003` | dnglab and DNG metadata interpretation | none | R0 | `agent-work/research/notes/RSCH-003.md` + consolidated section |
-| `RSCH-004` | darktable preprocessing and black-level handling | none | R0 | `agent-work/research/notes/RSCH-004.md` + consolidated section |
-| `RSCH-005` | Demosaicing algorithms and shared input/output contracts | none | R0 | `agent-work/research/notes/RSCH-005.md` + consolidated section |
-| `RSCH-006` | Other relevant Rust RAW libraries and implementations | none | R0 | `agent-work/research/notes/RSCH-006.md` + consolidated section |
+| `RES-01` | `agent-work/research/fornax-architecture.md` | Existing repository, crates, data structures, dependencies, reusable code | none | Yes, wave R0 |
+| `RES-02` | `agent-work/research/libraw.md` | LibRaw decoding, sample semantics, CFA, black/white levels, metadata, APIs | none | Yes, wave R0 |
+| `RES-03` | `agent-work/research/dnglab.md` | DNG metadata, tags, active area, black-level patterns, white levels, coordinates | none | Yes, wave R0 |
+| `RES-04` | `agent-work/research/darktable.md` | RAW preprocessing pipeline, black-level correction, CFA handling, processing boundary | none | Yes, wave R0 |
+| `RES-05` | `agent-work/research/demosaicing.md` | Demosaicing algorithms, inputs, CFA handling, output semantics, common interfaces | none | Yes, wave R0 |
+| `RES-06` | `agent-work/research/rust-ecosystem.md` | Rust RAW decoders, demosaicing implementations, components, API designs, dependencies, licenses | none | Yes, wave R0 |
 
-All six research tasks are independent and may run concurrently. `RSCH-006`
-must not duplicate `RSCH-002` or `RSCH-003`; it covers libraries beyond LibRaw
-and dnglab.
+Each research task owns exactly one report. A task may reference another report,
+but it must not edit it. The six tasks form wave R0 and may run concurrently.
 
-#### `RSCH-001` — Existing `fornax` architecture and reusable code
+#### RES-01 — Audit the existing `fornax` architecture
 
-- **Scope:** Audit workspace and crate manifests, dependency direction,
-  features, build scripts, CI, tests, fixtures, benchmarks, error types,
-  naming conventions, and coding standards. Inventory `fornax-core`,
-  `fornax-dalim`, `libraw`, `libraw-sys`, `fornax`, and `fornax-py`.
-- **Acceptance criteria:** Every existing public trait and type relevant to
-  decoding, metadata, preprocessing, or demosaicing is listed with file path
-  and symbol. Reuse candidates and incompatibilities are identified. The
-  current `BayerImage`/`IDemosaic` limitations are stated explicitly.
-- **Deliverable:** Audit section in the consolidated report, with a reuse
-  matrix and a list of gaps that the universal representation must close.
-- **Parallelization:** Independent; start immediately.
+- **Output report:** `agent-work/research/fornax-architecture.md`
+- **Scope:** Audit the workspace, crate boundaries, dependency direction,
+  features, build scripts, CI, tests, fixtures, benchmarks, error types, naming
+  conventions, and coding standards. Inventory `fornax-core`, `fornax-dalim`,
+  `libraw`, `libraw-sys`, `fornax`, `fornax-py`, `dnc`, and `fornax-devtool`.
+  Determine what `IDecoder`, `IPostProcessor`, `BayerImage`, `BayerPattern`,
+  `IDemosaic`, and `DemosaicLinear` actually guarantee.
+- **Evidence requirements:** Cite local file paths, line ranges, symbols, and
+  test names. Record Cargo manifests, features, and dependency edges. Do not
+  infer public behavior from names alone.
+- **Acceptance criteria:** Every public trait, type, and function relevant to
+  decoding, metadata, preprocessing, or demosaicing is listed with path and
+  symbol. Current limitations are explicit, including the absence of metadata,
+  black/white levels, crop, and non-Bayer support. Reuse candidates are
+  separated from code that must be replaced. Dependency direction is documented.
+  The report satisfies the required report structure.
+- **Parallelization:** Independent. Owns only
+  `agent-work/research/fornax-architecture.md`.
 
-#### `RSCH-002` — LibRaw decoding, sample semantics, and metadata
+#### RES-02 — Research LibRaw
 
+- **Output report:** `agent-work/research/libraw.md`
 - **Scope:** Trace LibRaw from file opening through unpacking and raw-image
-  exposure. Determine what `rawdata.raw_image`, `color4_image`, dimensions,
-  `filters`, black levels, white levels, saturation, crop, and margins mean.
-  Distinguish sensor codes from linearized or processed samples.
-- **Acceptance criteria:** Each relevant LibRaw field is documented with unit,
-  coordinate convention, sentinel values, and the exact upstream source path
-  and symbol. The black-level repeat-pattern semantics are explained. Claims
-  that cannot be verified from source are marked as assumptions.
-- **Deliverable:** Source-verified LibRaw section with metadata examples and
-  a field-to-universal-candidate mapping.
-- **Parallelization:** Independent; start immediately.
+  exposure. Establish the meaning of `rawdata.raw_image`, `color4_image`,
+  dimensions, `filters`, black levels, white levels, saturation, crop, masks,
+  and margins. Distinguish original sensor codes from unpacked, linearized, or
+  already processed samples. Record the relevant public APIs and the behavior of
+  the existing `libraw` wrapper.
+- **Evidence requirements:** Cite upstream repository URL, version or commit,
+  source path, symbol, line range, and tests or documentation where applicable.
+  Inspect implementation code rather than relying on README prose. Record
+  licensing constraints for considered reuse.
+- **Acceptance criteria:** Each relevant field is documented with type, unit,
+  coordinate convention, sentinel values, and validity conditions. Black-level
+  repeat-pattern and per-channel semantics are explained, including alignment
+  with sensor coordinates. The difference between `raw_image` and processed
+  output is stated. A field-to-universal-candidate mapping is provided. Claims
+  that cannot be verified are labeled `[inference]`. The report satisfies the
+  required report structure.
+- **Parallelization:** Independent. Owns only `agent-work/research/libraw.md`.
+  Coordinates scope with `RES-06` to avoid duplicate ecosystem coverage.
 
-#### `RSCH-003` — dnglab and DNG metadata interpretation
+#### RES-03 — Research dnglab and DNG metadata
 
-- **Scope:** Inspect dnglab's DNG parsing, `RawImage` representation, CFA
-  handling, black/white level interpretation, crop/orientation metadata, and
-  decoder output semantics. Compare with the DNG specification where the
-  source is ambiguous.
+- **Output report:** `agent-work/research/dnglab.md`
+- **Scope:** Inspect dnglab's DNG parsing, raw-image representation, CFA
+  handling, black/white level interpretation, active area, default crop,
+  orientation, and decoder output semantics. Compare source behavior with the
+  DNG specification where the source is ambiguous.
+- **Evidence requirements:** Cite dnglab repository URL, version or commit,
+  source paths, symbols, tests, and the relevant DNG specification sections.
+  Record tag names, types, defaults, units, and coordinate conventions.
 - **Acceptance criteria:** DNG tags relevant to sample interpretation and
   preprocessing are mapped to source symbols, with units, defaults, and
-  coordinate conventions. Differences between DNG metadata and vendor RAW
-  metadata are identified. Licensing constraints are recorded.
-- **Deliverable:** Source-verified dnglab/DNG section and a tag mapping table.
-- **Parallelization:** Independent; start immediately.
+  coordinate conventions. `BlackLevel`, `WhiteLevel`, `BlackLevelRepeatDim`,
+  `CFAPattern`, `CFARepeatPatternDim`, `ActiveArea`, `DefaultCrop*`,
+  `Orientation`, and related tags are covered or explicitly excluded with a
+  reason. Differences between DNG and vendor RAW metadata are identified.
+  Licensing constraints are recorded. The report satisfies the required report
+  structure.
+- **Parallelization:** Independent. Owns only `agent-work/research/dnglab.md`.
+  Coordinates scope with `RES-06` to avoid duplicate ecosystem coverage.
 
-#### `RSCH-004` — darktable preprocessing and black-level handling
+#### RES-04 — Research darktable and RAW preprocessing
 
-- **Scope:** Inspect darktable's rawprepare, temperature, demosaic, and related
-  pipeline modules. Determine the order of sensor-domain operations, how
-  black/white levels and masks are represented, and which operations occur
-  before demosaicing. Verify the exact project and repository intended by any
-  reference to "darkroom".
+- **Output report:** `agent-work/research/darktable.md`
+- **Scope:** Inspect darktable's actual RAW preprocessing pipeline, including
+  rawprepare, temperature, demosaic, and related modules. Determine the order of
+  sensor-domain operations, how black and white levels and masks are
+  represented, and where demosaicing sits. Verify the exact project and
+  repository intended by any reference to "darkroom".
+- **Evidence requirements:** Cite darktable repository URL, version or commit,
+  module source paths, symbols, and tests. Describe formulas and units. Use
+  implementation code for behavior that documentation does not establish.
 - **Acceptance criteria:** The pre-demosaic pipeline order is documented with
   source paths and symbols. Black-level subtraction, clipping, normalization,
-  and masked-pixel handling are described numerically. Any operation that is
-  out of scope for `fornax` is named and excluded with a reason.
-- **Deliverable:** Source-verified darktable section and a proposed
-  pre-demosaic operation sequence for evaluation.
-- **Parallelization:** Independent; start immediately.
+  and masked-pixel handling are described numerically. The boundary between
+  sensor-domain preprocessing and later image processing is explicit. White
+  balance, color matrices, tone mapping, denoising, and display rendering are
+  named as out of scope. Contradictions with LibRaw or DNG semantics are
+  recorded for synthesis. The report satisfies the required report structure.
+- **Parallelization:** Independent. Owns only
+  `agent-work/research/darktable.md`.
 
-#### `RSCH-005` — Demosaicing algorithms and shared input/output contracts
+#### RES-05 — Research demosaicing algorithms and interfaces
 
-- **Scope:** Survey bilinear, Malvar–He–Cutler, and representative edge-aware
-  or higher-quality algorithms. For each, record CFA assumptions, border
-  handling, output channel semantics, numeric range, and metadata needs.
-  Inspect existing `fornax-dalim` implementations and benchmarks.
+- **Output report:** `agent-work/research/demosaicing.md`
+- **Scope:** Survey bilinear, Malvar–He–Cutler, and representative edge-aware or
+  higher-quality algorithms. Record input requirements, CFA assumptions, border
+  handling, output semantics, numeric range, metadata needs, and complexity.
+  Inspect the existing `fornax-dalim` implementation and benchmark.
+- **Evidence requirements:** Cite papers, reference implementations, source
+  paths, and tests. Distinguish algorithm properties from implementation
+  choices. Record the exact version or commit of inspected implementations.
 - **Acceptance criteria:** Candidate algorithms are compared on input
-  assumptions, output semantics, complexity, and testability. A recommended
-  initial set is justified. The minimum shared input contract required by all
-  candidates is stated without committing to a final API.
-- **Deliverable:** Algorithm survey, contract requirements, and a ranked
-  recommendation in the consolidated report.
-- **Parallelization:** Independent; start immediately. Algorithm
-  implementations remain blocked until the shared contract is accepted.
+  assumptions, output semantics, border behavior, complexity, and testability. A
+  recommended initial set is justified; no algorithm is included merely because
+  it is well known. The minimum shared input contract required by all candidates
+  is stated without committing to a final public API. Existing `fornax-dalim`
+  behavior and tests are documented. The report satisfies the required report
+  structure.
+- **Parallelization:** Independent. Owns only
+  `agent-work/research/demosaicing.md`. Algorithm implementations remain blocked
+  until design review.
 
-#### `RSCH-006` — Other relevant Rust RAW libraries and implementations
+#### RES-06 — Survey the Rust RAW-processing ecosystem
 
-- **Scope:** Survey additional Rust RAW decoders, DNG/TIFF libraries, and
-  demosaicing implementations not covered by `RSCH-002` or `RSCH-003`.
-  Include rawloader, rawler, image-rs decoders, and other maintained projects
-  where relevant. Record maintenance status and licensing.
-- **Acceptance criteria:** Each surveyed project has a source-verified summary
-  of its sample representation, metadata model, CFA handling, and
-  preprocessing. Reusable ideas and code are distinguished, with license
-  constraints recorded. The section states which findings are assumptions.
-- **Deliverable:** Comparative section and a shortlist of ideas worth adopting.
-- **Parallelization:** Independent; start immediately. Coordinate with
-  `RSCH-002` and `RSCH-003` to avoid duplicate coverage.
+- **Output report:** `agent-work/research/rust-ecosystem.md`
+- **Scope:** Identify relevant Rust RAW decoders, DNG/TIFF libraries, demosaicing
+  implementations, reusable components, API designs, dependency choices, and
+  licenses. Include rawloader, rawler, image-rs decoders, and other maintained
+  projects where relevant. Do not re-document LibRaw or dnglab internals.
+- **Evidence requirements:** Cite repository URL, version or commit, source
+  paths, symbols, tests, and license files. Record maintenance status and API
+  shape. Distinguish reusable code from reusable ideas.
+- **Acceptance criteria:** Each surveyed project has a source-verified summary of
+  its sample representation, metadata model, CFA handling, and preprocessing.
+  Reusable ideas and reusable code are distinguished, with license constraints
+  recorded. Unmaintained or unsuitable projects are named with a reason.
+  Findings that are inferred are labeled `[inference]`. The report satisfies the
+  required report structure.
+- **Parallelization:** Independent. Owns only
+  `agent-work/research/rust-ecosystem.md`. Coordinates scope with `RES-02` and
+  `RES-03`.
+
+### Required report structure
+
+Every reference report (`fornax-architecture.md`, `libraw.md`, `dnglab.md`,
+`darktable.md`, `demosaicing.md`, `rust-ecosystem.md`) must contain:
+
+1. **Scope and questions** — what was investigated and the specific questions.
+2. **Findings** — specific technical behavior and design details.
+3. **Evidence** — upstream documentation, source files, symbols, line ranges,
+   code locations, tests, or specification sections supporting each significant
+   claim.
+4. **Implications for fornax** — what the findings mean for the API, data model,
+   and pipeline.
+5. **Open questions and limitations** — unverified assumptions, missing
+   evidence, ambiguities, and unresolved issues.
+6. **References** — direct links to the relevant upstream sources.
+
+Front matter must record the owning task ID, status, owner, last update, and the
+upstream versions or commits inspected. Each report must include the acceptance
+criteria of its owning task and a reviewer must check them before the task moves
+to `done`.
 
 ### Evidence and provenance rules
 
-Every research task must:
+Each report must distinguish:
 
-- Cite upstream repository URL, commit or version, source path, and symbol for
-  each material claim. Cite tests or documentation when they are the evidence.
-- Label each finding as **verified** (observed in source, tests, or docs),
-  **assumption** (inferred but unverified), or **recommendation** (a proposed
-  choice for `fornax`).
-- Record licensing constraints for any code considered for reuse.
-- Record unresolved questions and contradictions between sources.
-- Avoid relying on README descriptions alone.
-- Write working notes only to its own `agent-work/research/notes/<ID>.md`.
-  Workers must not edit the consolidated report concurrently; the synthesis
-  owner integrates accepted findings.
+- **Verified upstream behavior** — observed directly in source, tests,
+  specifications, or documentation. Label `[verified]`.
+- **Interpretation or inference** — a reasoned conclusion not directly observed.
+  Label `[inference]`.
+- **Proposed design recommendation** — a proposed choice for `fornax`, not an
+  upstream fact. Label `[recommendation]`.
 
-### Research synthesis gates
+Every material claim must cite the upstream repository URL, version or commit,
+source path, and symbol or line range, or a test, specification section, or
+documentation page. Prefer primary sources. Inspect implementation code when
+documentation cannot establish behavior. Do not invent APIs, metadata semantics,
+or implementation details. Record disagreements between sources and missing
+evidence instead of smoothing them over. Keep each report within its own scope
+and reference other reports by path and section rather than copying them.
 
-Independent findings are not directly actionable until they are reconciled.
-After the six research tasks reach `review`, the following synthesis tasks
-must run before any universal representation or public API is proposed.
+### Synthesis tasks
 
-| ID | Reconciles | Depends on | Produces |
+Synthesis is separate from reference research and cannot start until its
+prerequisite reports are accepted. It must not silently reconcile disagreements.
+
+| ID | Output | Reconciles | Depends on |
 | --- | --- | --- | --- |
-| `SYNTH-001` | Metadata fields, units, provenance, and authority rules | `RSCH-002`, `RSCH-003`, `RSCH-004`, `RSCH-006` | Normative metadata field catalogue |
-| `SYNTH-002` | Coordinate systems, crop, margins, active area, and CFA phase | `RSCH-002`, `RSCH-003`, `SYNTH-001` | Coordinate and CFA-origin contract |
-| `SYNTH-003` | Black-level semantics, clipping, normalization, and pre-demosaic order | `RSCH-002`, `RSCH-004`, `SYNTH-001`, `SYNTH-002` | Preprocessing semantics contract |
-| `SYNTH-004` | Sample ranges, linearization, and decoder output semantics | `RSCH-001`, `RSCH-002`, `RSCH-003`, `RSCH-006` | Sample-domain and decoder contract |
-| `SYNTH-005` | Demosaicing input/output requirements across algorithms | `RSCH-005`, `SYNTH-002`, `SYNTH-004` | Demosaicing interface requirements |
+| `SYN-01` | `agent-work/research/notes/SYN-01.md` | Metadata and sample semantics | `RES-01`, `RES-02`, `RES-03`, `RES-04`, `RES-06` |
+| `SYN-02` | `agent-work/research/notes/SYN-02.md` | Preprocessing order and black-level behavior | `RES-02`, `RES-04`, `SYN-01` |
+| `SYN-03` | `agent-work/research/summary.md` | Cross-source synthesis and recommendations | `RES-01`–`RES-06`, `SYN-01`, `SYN-02` |
 
-`SYNTH-001`, `SYNTH-002`, and `SYNTH-004` may begin concurrently once their
-research dependencies are accepted. `SYNTH-003` waits for `SYNTH-001` and
-`SYNTH-002`. `SYNTH-005` waits for `SYNTH-002` and `SYNTH-004`.
+`SYN-01` must specifically examine:
 
-Each synthesis task must state, for every reconciled item:
+- Stored versus black-corrected sample values.
+- Numeric ranges, bit depth, normalization, and white-level semantics.
+- Black-level representations as metadata: scalar, per-channel, and spatially
+  varying patterns.
+- Metadata units, provenance, optionality, and conflicts between sources.
+- Sensor coordinates, active-area coordinates, cropped-image coordinates, and
+  CFA alignment.
+- Which concepts can be represented by universal types and which must remain
+  backend-specific.
 
-- The chosen meaning, unit, coordinate convention, and valid range.
-- The authority rule when sources disagree.
-- Which findings are verified, assumed, or recommended.
-- Which open questions remain and which design task is blocked by them.
+It must produce a decision table stating, per item, the chosen meaning, unit,
+coordinate convention, valid range, supporting report sections, authority rule
+when sources disagree, and remaining uncertainty.
 
-The synthesis outputs are inputs to Phase B. Do not propose the universal RAW
-representation or public APIs before the relevant synthesis tasks are accepted.
+`SYN-02` must specifically examine:
 
-### Research deliverable
+- The order and semantics of sensor-domain preprocessing.
+- Black-level selection, subtraction, clipping, underflow, saturation,
+  normalization, and rounding.
+- Pattern alignment with crop, margins, and CFA phase.
+- How to prevent applying the same correction twice.
+- The precise boundary before demosaicing, and which later operations must
+  remain unapplied.
+- Mandatory, optional, format-dependent, and unsupported operations.
 
-Create `agent-work/research/raw-pipeline.md` as the single consolidated report.
-It must contain:
+It must produce an operation table with inputs, outputs, formulas, error
+behavior, ordering constraints, and synthetic-test strategy.
 
-- A summary of each reference implementation.
-- A comparison table covering decoding, sample semantics, metadata,
-  preprocessing, and demosaicing.
-- The relevant source files, symbols, tests, and documentation for important
-  findings.
-- Examples of metadata as represented by upstream implementations.
-- An explanation of differences between formats and libraries.
-- Identified gaps in the current `fornax` implementation.
-- Recommended initial format, camera, and CFA support.
-- The synthesis decisions for metadata, coordinates, black levels, sample
-  ranges, and decoder behavior.
-- Evidence-based conclusions, assumptions, recommendations, and unresolved
-  questions.
+`SYN-03` must:
 
-Per-task working notes belong in `agent-work/research/notes/` and are
-supporting evidence, not substitutes for the consolidated report.
+- Compare findings across all six reference reports.
+- Document agreements, disagreements, uncertainties, and remaining questions.
+- Make evidence-backed recommendations for the `fornax` architecture.
+- Link each conclusion to the supporting report and section. It must not
+  concatenate the reports or introduce unreferenced claims.
+- State the assumptions behind every recommendation.
+- Be reviewed before any design task is finalized.
 
-Do not begin a broad implementation before the research report and the
-relevant synthesis gates are accepted.
+### Research completion gate
+
+- No synthesis task starts until every listed dependency report is in `review`
+  or `done`.
+- No design task is finalized before `SYN-03` is accepted. Design decisions must
+  cite the supporting `RES-*` or `SYN-*` task IDs, or explicitly state their
+  assumptions.
+- No implementation task starts before the `DES-007` design review gate.
+- The research phase is complete only when `RES-01`–`RES-06` and `SYN-01`–
+  `SYN-03` are `done` with satisfied acceptance criteria.
+- A report file existing is not evidence of completion.
+
+### Research deliverables
+
+```text
+agent-work/research/
+├── README.md
+├── fornax-architecture.md
+├── libraw.md
+├── dnglab.md
+├── darktable.md
+├── demosaicing.md
+├── rust-ecosystem.md
+├── summary.md
+└── notes/
+    ├── SYN-01.md
+    └── SYN-02.md
+```
+
+`README.md` is the index of reports, owning tasks, status, dependencies, and
+acceptance criteria. `summary.md` is produced only by `SYN-03`. Research owners
+write only their own report; synthesis working notes are owned by `SYN-01` and
+`SYN-02`.
+
+Do not begin a broad implementation before the research reports and synthesis
+are accepted.
 
 ## 3. Phase B — API and data structure design
 
 Create `agent-work/design/raw-pipeline.md` as a detailed design proposal.
 
 Design work is tracked as `DES-001` through `DES-006`, followed by the
-`DES-007` review gate. A design task may start only when its listed `SYNTH-*`
-dependencies are accepted, and its proposal must cite the synthesis task IDs
-that justify each decision. Do not introduce a public type or function whose
+`DES-007` review gate. A design task may start only when its listed `SYN-*`
+dependencies are accepted, and its proposal must cite the `RES-*` or `SYN-*`
+task IDs that justify each decision. No public type or function is finalized
+before `SYN-03` is accepted. Do not introduce a public type or function whose
 metadata, coordinate, sample-domain, or preprocessing semantics are still
 unresolved by synthesis.
 
@@ -416,8 +521,8 @@ evidence. A task with unresolved acceptance criteria stays in `in_progress` or
 
 | Prefix | Phase | Typical status at initialization |
 | --- | --- | --- |
-| `RSCH-` | Independent reference research | `ready` |
-| `SYNTH-` | Cross-source synthesis and reconciliation | `blocked` |
+| `RES-` | Independent reference research | `ready` |
+| `SYN-` | Cross-source synthesis and reconciliation | `blocked` |
 | `DES-` | API, data model, and architecture design | `blocked` |
 | `IMPL-` | Implementation | `blocked` |
 | `QA-` | Integration, validation, and performance | `blocked` |
@@ -428,11 +533,13 @@ Create and refine tasks covering at least the following workstreams.
 
 **A. Research, synthesis, and shared contracts**
 
-- `RSCH-001` through `RSCH-006`: the six independent research tasks defined in
-  Section 2. All are `ready` at initialization and may run concurrently.
-- `SYNTH-001` through `SYNTH-005`: reconcile metadata fields, units, coordinate
-  systems, black-level semantics, sample ranges, and decoder behavior before
-  design. Each is `blocked` on its listed research tasks.
+- `RES-01` through `RES-06`: the six independent report-owning research tasks
+  defined in Section 2. All are `ready` at initialization and may run
+  concurrently. Each report has exactly one owner.
+- `SYN-01` through `SYN-03`: reconcile metadata and sample semantics,
+  preprocessing order and black-level behavior, and cross-source
+  recommendations. Each is `blocked` on its listed reports; `SYN-03` produces
+  `agent-work/research/summary.md`.
 - Review and acceptance of the API/data model design (`DES-007`).
 - Universal RAW representation and common metadata (`DES-001`).
 - Extensible metadata and provenance (`DES-002`).
@@ -488,20 +595,20 @@ Each algorithm must have independent implementation and test criteria. Multiple 
 
 Represent dependencies explicitly. The dependency graph is:
 
-`RSCH-001..006 → SYNTH-001..005 → DES-001..007 → IMPL-* → QA-*`
+`RES-01..06 → SYN-01 → SYN-02 → SYN-03 → DES-001..007 → IMPL-* → QA-*`
 
 Execution waves:
 
-- **Wave R0 — independent research.** `RSCH-001` through `RSCH-006` are
-  `ready` simultaneously. Each worker owns one task ID, one working-notes file,
-  and no shared report edits.
-- **Wave S1 — first synthesis.** `SYNTH-001`, `SYNTH-002`, and `SYNTH-004` may
-  run concurrently once their research dependencies are in `review` or `done`.
-- **Wave S2 — dependent synthesis.** `SYNTH-003` waits for `SYNTH-001` and
-  `SYNTH-002`. `SYNTH-005` waits for `SYNTH-002` and `SYNTH-004`.
-- **Wave D — design.** `DES-001` through `DES-006` may overlap only where their
-  synthesis inputs are accepted. `DES-007` is the single design-review gate and
-  depends on all design tasks.
+- **Wave R0 — independent research.** `RES-01` through `RES-06` are `ready`
+  simultaneously. Each worker owns one task ID and exactly one report file.
+- **Wave S1 — metadata and sample synthesis.** `SYN-01` starts after `RES-01`,
+  `RES-02`, `RES-03`, `RES-04`, and `RES-06` are in `review` or `done`.
+- **Wave S2 — preprocessing synthesis.** `SYN-02` starts after `RES-02`,
+  `RES-04`, and `SYN-01` are accepted.
+- **Wave S3 — cross-source synthesis.** `SYN-03` starts after all six reports and
+  both synthesis notes are accepted, and produces `summary.md`.
+- **Wave D — design.** `DES-001` through `DES-006` start only after their listed
+  `SYN-*` dependencies are accepted. `DES-007` also requires `SYN-03`.
 - **Wave I — implementation.** No `IMPL-*` task is `ready` until `DES-007` is
   accepted and the affected interfaces are stable.
 
@@ -512,9 +619,10 @@ Decoder, metadata, preprocessing, and demosaicing tasks may overlap when their
 interfaces are stable. Do not parallelize tasks that are still changing the same
 shared API.
 
-Only the synthesis integrator edits `agent-work/research/raw-pipeline.md`.
-Research workers write `agent-work/research/notes/<ID>.md`. Design work that
-consumes synthesis output must cite the accepted `SYNTH-*` task IDs.
+Only the `SYN-03` owner edits `agent-work/research/summary.md`. Each `RES-*`
+owner edits only its assigned report. `SYN-01` and `SYN-02` write only their
+own files under `agent-work/research/notes/`. Design work that consumes
+synthesis output must cite the accepted `RES-*` or `SYN-*` task IDs.
 
 If using multiple agents or parallel workers:
 
@@ -565,16 +673,16 @@ Run the repository's applicable formatting, lint, test, and build commands. Reco
 
 Work in this order:
 
-1. Start `RSCH-001` through `RSCH-006` as concurrent, tracked research tasks.
-2. Have each research worker record evidence and citations in its working-notes
-   file and hand its section to the synthesis integrator.
-3. Run `SYNTH-001`, `SYNTH-002`, and `SYNTH-004` once their research
-   dependencies are accepted; then run `SYNTH-003` and `SYNTH-005`.
-4. Produce the consolidated research report including synthesis decisions.
+1. Start `RES-01` through `RES-06` as concurrent, tracked research tasks.
+2. Have each owner record findings and evidence in exactly one report under
+   `agent-work/research/`.
+3. Run `SYN-01` after its prerequisite reports are accepted, then `SYN-02`
+   after `SYN-01`, then `SYN-03` to produce `agent-work/research/summary.md`.
+4. Review the reports and the synthesis, resolving or documenting disagreements.
 5. Produce the API and data structure design report (`DES-001`–`DES-006`),
-   emphasizing metadata semantics and preprocessing, citing accepted synthesis
-   task IDs.
-6. Review the architecture (`DES-007`) and resolve critical design questions.
+   citing `RES-*` or `SYN-*` evidence for every material decision.
+6. Review the architecture (`DES-007`). No public type or preprocessing API is
+   finalized before `SYN-03` is accepted.
 7. Implement in small, trackable tasks only after design acceptance.
 8. Integrate, validate, and update documentation.
 
