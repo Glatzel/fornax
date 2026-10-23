@@ -83,18 +83,20 @@ once work starts because branches and PR search rely on it.
 
 Each task has exactly one review PR, titled `[TASK-ID] Imperative summary`.
 Apply the `agent-work` label, add `task:<TASK-ID>`, and fill in
-`.github/PULL_REQUEST_TEMPLATE.md`.
+`agent-work/PULL_REQUEST_TEMPLATE.md`.
 
 Push the task branch and target the integration branch explicitly:
 
 ```bash
 git push -u origin HEAD
-gh pr create --base agent --title "[RES-01] Inventory existing components"
+gh pr create --base agent --title "[RES-01] Inventory existing components" \
+  --body-file agent-work/PULL_REQUEST_TEMPLATE.md
 ```
 
-Use the GitHub PR form so the repository template is loaded, then complete every
-section with task-specific evidence. The PR base is `agent` unless the task
-index requires a stacked base.
+Because the agent template is outside `.github/`, GitHub does not load it
+automatically. Start the PR body from `agent-work/PULL_REQUEST_TEMPLATE.md`,
+then complete every section with task-specific evidence. The PR base is
+`agent` unless the task index requires a stacked base.
 
 The PR body must identify:
 

@@ -716,7 +716,8 @@ pull requests are the sole live state and approval record.
 3. Work only in the manifest deliverables and files needed to validate them.
    Keep unrelated cleanup in a separate task.
 4. Commit and push the branch, then open one PR titled
-   `[TASK-ID] Imperative summary` with the repository PR template.
+   `[TASK-ID] Imperative summary` with
+   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body.
 5. Address review feedback in the same branch and PR. Do not open a second PR
    for the same task.
 6. The user approves and merges the PR. Agents never merge their own task PRs;

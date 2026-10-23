@@ -8,6 +8,7 @@ discovery entry point; this file explains the layout.
 agent-work/
 ├── AGENTS.md                         # operating instructions
 ├── README.md                         # this index
+├── PULL_REQUEST_TEMPLATE.md          # task PR body template
 ├── workflows/
 │   └── raw-pipeline.md               # authoritative pipeline workflow
 ├── tasks/
@@ -42,6 +43,10 @@ agent-work/
 - The task's GitHub pull request is the only review record. Open means in
   progress or review; merged means accepted; closed without merge means
   abandoned or superseded.
+
+GitHub only loads pull-request templates from `.github/`.
+`PULL_REQUEST_TEMPLATE.md` is specific to agent tasks, so copy it into the PR
+body manually when opening a task PR.
 
 Do not add a `review`, `approved`, or `done` status to task TOML files, reports,
 or checkpoints. Those states duplicate and can conflict with GitHub.
