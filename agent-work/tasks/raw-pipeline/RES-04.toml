@@ -1,0 +1,26 @@
+schema_version = 1
+id = "RES-04"
+slug = "darktable"
+title = "Research darktable RAW preprocessing"
+phase = "research"
+dependencies = []
+parallelism = "Independent with other R0 research tasks; high-priority implementation reference."
+deliverables = ["agent-work/research/RES-04-darktable.md"]
+scope = """
+Inspect darktable rawprepare, temperature, demosaic, and related modules.
+Determine sensor-domain operation order, black and white level and mask
+representation, CFA alignment, and the pre-demosaic boundary. Verify the exact
+project intended by any reference to darkroom.
+"""
+acceptance = [
+  "The pre-demosaic pipeline order is documented with source paths and symbols.",
+  "Black-level subtraction, clipping, normalization, and masked-pixel handling are described numerically.",
+  "The boundary between sensor-domain preprocessing and later image processing is explicit.",
+  "White balance, color matrices, tone mapping, denoising, and display rendering are named as out of scope.",
+  "Contradictions with LibRaw or DNG semantics are recorded for synthesis.",
+  "The report contains the six required research sections and cites sources.",
+]
+validation = [
+  "Inspect pinned darktable implementation source, tests, and documentation.",
+  "Record upstream URL, commit, source path, symbol, line range, and GPL licensing implications.",
+]

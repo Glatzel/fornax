@@ -1,0 +1,22 @@
+schema_version = 1
+id = "IMPL-DEC-003"
+slug = "decoder-metadata-mapping"
+title = "Map source metadata into universal metadata"
+phase = "implementation"
+dependencies = ["IMPL-DEC-001", "DES-002", "DES-003"]
+parallelism = "Coordinates with IMPL-DEC-002; shared adapter edits are serialized."
+deliverables = ["metadata mapping source", "metadata mapping tests"]
+scope = """
+Map consumed source fields into typed metadata and preserve less-common,
+vendor-specific, and format-specific values with provenance.
+"""
+acceptance = [
+  "Every consumed field has a mapping test.",
+  "Provenance is preserved.",
+  "Unknown fields are retained according to DES-002.",
+  "CFA and coordinate mappings follow DES-003.",
+]
+validation = [
+  "Verify dependency PRs are merged.",
+  "Run focused mapping tests and workspace checks.",
+]

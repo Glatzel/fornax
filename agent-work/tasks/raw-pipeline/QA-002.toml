@@ -1,0 +1,21 @@
+schema_version = 1
+id = "QA-002"
+slug = "numerical-regressions"
+title = "Add numerical regression coverage"
+phase = "quality"
+dependencies = ["IMPL-INT-001"]
+parallelism = "After end-to-end integration is merged."
+deliverables = ["deterministic numerical fixtures", "regression test evidence"]
+scope = """
+Add deterministic numerical regressions for preprocessing and demosaicing with
+documented tolerances and reference semantics.
+"""
+acceptance = [
+  "Fixtures are deterministic and reproducible.",
+  "Tolerances are explained by rounding, algorithm, or decoder semantics.",
+  "Regression failures identify the pipeline stage and input.",
+]
+validation = [
+  "Verify IMPL-INT-001 is merged.",
+  "Run the regression suite repeatedly and record results.",
+]
