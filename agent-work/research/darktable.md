@@ -1,8 +1,8 @@
 # darktable and RAW Preprocessing
 
 > **Task:** `RES-04`
-> **Owner:** unassigned
-> **Status:** `ready` (research not started)
+> **Owner:** primary agent
+> **Status:** `in_progress`
 > **Last updated:** 2026-10-23
 > **Upstream versions:** record the darktable version or commit inspected
 >

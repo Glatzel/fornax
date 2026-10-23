@@ -6,6 +6,10 @@ vcpkg/installed
 vcpkg/vcpkg
 draft
 
+# Local research checkouts; provenance is tracked in
+# agent-work/references/README.md.
+/agent-work/references/*/
+
 # pixi environments
 .pixi
 *.egg-info

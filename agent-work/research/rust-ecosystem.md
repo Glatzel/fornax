@@ -1,8 +1,8 @@
 # Rust RAW-Processing Ecosystem
 
 > **Task:** `RES-06`
-> **Owner:** unassigned
-> **Status:** `ready` (research not started)
+> **Owner:** primary agent
+> **Status:** `in_progress`
 > **Last updated:** 2026-10-23
 > **Upstream versions:** record the version or commit of each project inspected
 >

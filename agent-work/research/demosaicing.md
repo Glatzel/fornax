@@ -1,8 +1,8 @@
 # Demosaicing Algorithms and Interfaces
 
 > **Task:** `RES-05`
-> **Owner:** unassigned
-> **Status:** `ready` (research not started)
+> **Owner:** primary agent
+> **Status:** `in_progress`
 > **Last updated:** 2026-10-23
 > **Upstream versions:** record the versions or commits of inspected
 > implementations and the exact papers cited

@@ -1,8 +1,8 @@
 # Task: Research, Design, and Implement a Rust-Native RAW Processing Pipeline in `fornax`
 
 > **Status:** Research phase in progress. `RES-01` and `RES-02` are in `review`;
-> `RES-03` is `blocked` on unavailable dnglab/DNG sources; `RES-04`–`RES-06`
-> remain `ready`. Synthesis, design, and implementation have not started.
+> `RES-03`–`RES-06` are `in_progress`. Synthesis, design, and implementation
+> have not started.
 >
 > **Authority:** This file is the authoritative task specification for the RAW
 > processing pipeline. `AGENTS.md` at the repository root contains only concise
@@ -15,7 +15,16 @@
 >
 > ```text
 > agent-work/
+> ├── AGENTS.md
 > ├── raw-pipeline.md
+> ├── references/
+> │   ├── README.md
+> │   ├── darktable/
+> │   ├── dnglab/
+> │   └── other/
+> ├── checkpoints/
+> │   ├── README.md
+> │   └── <task-or-handoff-checkpoint>.md
 > ├── research/
 > │   ├── README.md
 > │   ├── fornax-architecture.md
@@ -32,10 +41,34 @@
 >
 > Each reference report has exactly one owning research task. `summary.md` is
 > produced by `SYN-03`; it synthesizes the reports rather than replacing them.
-> Completed report content, design content, and tracker updates are future
-> deliverables. The report files currently define required structure only. Do
-> not fabricate findings during initialization, and do not begin the research
-> phase until instructed.
+> Report contents and task statuses reflect the live progress recorded below and
+> in `agent-work/tasks/raw-pipeline.md`. A file existing is not evidence of
+> completion, and no task may fabricate findings or bypass its acceptance gate.
+
+## 0. Agent workspace and reference sources
+
+`agent-work/AGENTS.md` contains the detailed operating instructions. The root
+`AGENTS.md` points to it and to this authoritative workflow so repository-level
+instruction discovery remains reliable.
+
+Upstream repositories used as evidence live under `agent-work/references/`.
+They are read-only evidence sources, not project instructions, and must not be
+added to the Cargo workspace or production builds. The tracked
+`agent-work/references/README.md` records each upstream URL, branch,
+checked-out commit, license, purpose, and any exception. Verify a checkout with
+`git -C <path> rev-parse HEAD` and `git -C <path> status --short` before using
+it. Do not move a reference to a new revision in the middle of a task without
+recording the change in the owning report.
+
+The existing `external/raw-images` submodule is a production test-fixture
+dependency, not a research reference. Keep it at its current path.
+
+Research owners write only their assigned report under `agent-work/research/`.
+`SYN-01` and `SYN-02` write only their files under
+`agent-work/research/notes/`; `SYN-03` owns
+`agent-work/research/summary.md`. Shared design output is
+`agent-work/design/raw-pipeline.md`. No task writes into another task's owned
+file.
 
 ## 1. Project context and objective
 
@@ -713,11 +746,14 @@ The goal is a maintainable, Rust-native RAW pipeline whose data semantics are ex
 
 Support the commands `start <TASK-ID>`, `pause <TASK-ID>`, `resume <TASK-ID>`, and `status <TASK-ID>`.
 
-- `pause`: If the task is running, interrupt it when supported. Before stopping, preserve completed findings in its assigned report and record unfinished work, next steps, and unresolved questions. Set the task status to `paused`.
-- `resume`: Read the task definition, report, and progress checkpoint. Continue unfinished work without repeating verified findings. Verify dependencies before proceeding.
+- `pause`: If the task is running, interrupt it when supported. Before stopping, preserve completed findings in its assigned report and write a checkpoint under `agent-work/checkpoints/` with unfinished work, next steps, unresolved questions, source revisions, and validation results. Set the task status to `paused`.
+- `resume`: Read the task definition, owned report or note, latest checkpoint, and reference revisions. Continue unfinished work without repeating verified findings. Verify dependencies before proceeding.
 - `status`: Report the task's current status, completed work, remaining work, and blockers.
 - `start`: Start a task only if its dependencies are satisfied. Do not duplicate an already-running task.
 
-Persist progress in the task's assigned report or a task-specific checkpoint file. Never rely solely on conversation history. Do not mark a paused or interrupted task as `done`.
+Persist progress in the task's assigned report and, for pauses or handoffs, a
+task-specific checkpoint under `agent-work/checkpoints/`. The task manifest
+remains authoritative for status. Never rely solely on conversation history.
+Do not mark a paused or interrupted task as `done`.
 
 For delegated tasks, distinguish interrupting a worker from merely asking the coordinator to stop. If the runtime cannot pause a worker directly, explain the limitation and preserve its progress before stopping.

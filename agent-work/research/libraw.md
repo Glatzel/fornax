@@ -8,6 +8,10 @@
 > **Upstream versions:** LibRaw `0.22.2`, from the installed development headers
 > at `~/.pixi/envs/base/include/libraw/` and the pinned `libraw-dev == 0.22.2`
 > in `pixi.toml`. The exact upstream commit was not available offline.
+> **Reference availability:** The installed-header path cited by this report was
+> not present in the agent runtime on 2026-10-23. The findings and wrapper
+> evidence are preserved unchanged; restoring or accepting the missing header
+> source remains part of `RES-02` review.
 >
 > **Acceptance criteria (authoritative version in the task tracker):**
 >

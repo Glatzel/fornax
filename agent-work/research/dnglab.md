@@ -1,11 +1,9 @@
 # dnglab and DNG Metadata
 
 > **Task:** `RES-03`
-> **Owner:** research agent
-> **Status:** `blocked` — dnglab source and the DNG specification are not
-> available in the offline environment. The report records the available
-> evidence and the exact unresolved questions; it is not a completed dnglab
-> investigation.
+> **Owner:** primary agent
+> **Status:** `in_progress` — resumed after primary-source network access
+> became available.
 > **Last updated:** 2026-10-23
 > **Upstream versions:** no dnglab version or commit could be inspected. The
 > available DNG-adjacent evidence is LibRaw `0.22.2`.
