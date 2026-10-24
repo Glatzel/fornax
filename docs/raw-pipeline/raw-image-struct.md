@@ -64,7 +64,7 @@ classDiagram
 | `DecodedRaw::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
 | `DecodedRaw::plane` | `StoredPlane` | samples | Matches source geometry and declared sample specification |
 | `RawImage::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during preprocessing and demosaicing |
-| `RawImage::plane` | `F32Plane` | samples | Finite preprocessed Bayer samples in `[0,1]` |
+| `RawImage::plane` | `F32Plane` | samples | Finite ActiveArea-sized Bayer samples in `[0,1]` |
 | `ValidatedMetadata::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend and revision |
 | `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleSpec` |
 | `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Working and preprocessed payload |
@@ -83,6 +83,10 @@ classDiagram
 
 `StoredGeometry::source_row_stride_bytes` describes the backend allocation
 before compacting. The canonical `ImageBuffer` is tightly packed.
+
+`DecodedRaw` keeps the complete stored raster and its ActiveArea origin.
+`RawImage` contains only the dense ActiveArea crop, while metadata continues to
+retain the original stored geometry and origin.
 
 ## CFA, crop, and levels
 

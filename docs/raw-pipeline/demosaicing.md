@@ -26,7 +26,7 @@ flowchart LR
 
 `RawImage` provides:
 
-- a single-channel f32 mosaic of `width * height` samples;
+- a single-channel f32 mosaic of ActiveArea `width * height` samples;
 - dimensions and the validated `BayerLayout`;
 - ActiveArea-relative phase information; and
 - immutable validated metadata.
@@ -39,7 +39,7 @@ Validation rejects:
 - samples outside `[0,1]`; and
 - unsupported CFA phases.
 
-The input is immutable. `slot_at_active(row,col)` maps dense active-buffer
+The input is immutable. The implementation maps dense active-buffer
 coordinates through the original ActiveArea origin before selecting the Bayer
 slot.
 

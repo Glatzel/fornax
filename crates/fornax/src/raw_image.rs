@@ -10,8 +10,9 @@ use crate::metadata::ValidatedMetadata;
 /// A preprocessed, demosaic-ready RAW image with a single f32 plane.
 ///
 /// A `RawImage` can only be produced by preprocessing a [`crate::DecodedRaw`].
-/// Metadata and provenance remain available, while the payload is guaranteed
-/// to use [`F32Plane`].
+/// Its plane contains the dense ActiveArea crop, while metadata retains the
+/// original stored geometry and origin. Metadata and provenance remain
+/// available, and the payload is guaranteed to use [`F32Plane`].
 ///
 /// # Examples
 ///
@@ -31,7 +32,7 @@ impl RawImage {
         metadata: Arc<ValidatedMetadata>,
         plane: F32Plane,
     ) -> Result<Self, RawValidationError> {
-        metadata.validate_f32_working_plane(&plane)?;
+        metadata.validate_preprocessed_plane(&plane)?;
         validate_finite(&plane)?;
         if plane
             .as_raw()
@@ -137,7 +138,10 @@ impl RawImage {
         algorithm: DemosaicAlgorithm,
     ) -> Result<(RgbImageF32, Arc<ValidatedMetadata>), DemosaicError> {
         let output = algorithm.demosaic(self)?;
-        validate_rgb_output(&output, self.metadata.stored_geometry().dimensions())?;
+        let active = self.metadata.active_area().rect();
+        let expected = PixelSize::new(active.width(), active.height())
+            .ok_or_else(|| DemosaicError::InvalidInput("empty ActiveArea".into()))?;
+        validate_rgb_output(&output, expected)?;
         Ok((output, self.metadata_arc()))
     }
 }

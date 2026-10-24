@@ -290,4 +290,23 @@ impl ValidatedMetadata {
         }
         crate::decoded_raw::plane::validate_finite(plane)
     }
+
+    pub(crate) fn validate_preprocessed_plane(
+        &self,
+        plane: &crate::F32Plane,
+    ) -> Result<(), RawValidationError> {
+        let dimensions = plane.dimensions();
+        let dimensions = PixelSize::new(dimensions.0, dimensions.1)
+            .ok_or(RawValidationError::InvalidGeometry)?;
+        let active = self.active_area().rect();
+        let active_dimensions = PixelSize::new(active.width(), active.height())
+            .ok_or(RawValidationError::InvalidGeometry)?;
+        if dimensions != active_dimensions
+            || plane.as_raw().len() != dimensions.sample_count()?
+            || !self.sample_spec().is_f32_exact()
+        {
+            return Err(RawValidationError::InvalidGeometry);
+        }
+        crate::decoded_raw::plane::validate_finite(plane)
+    }
 }

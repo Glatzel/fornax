@@ -8,6 +8,7 @@ harness = false
 name = "demosaic"
 
 [dependencies]
+envoy.workspace = true
 image.workspace = true
 libraw-sys = { workspace = true, optional = true }
 rawler = { workspace = true, optional = true }
@@ -17,6 +18,8 @@ thiserror.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
+fornax-devtool.workspace = true
+mischief.workspace = true
 
 [features]
 default = []

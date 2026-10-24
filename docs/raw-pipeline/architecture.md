@@ -1,8 +1,9 @@
 # RAW Pipeline Crate Architecture
 
-The production RAW pipeline is one Rust crate named `fornax`. There is no
-separate `fornax-core`, decoder-contract crate, decoder-adapter crates,
-preprocessing crate, or demosaicing crate.
+The production RAW pipeline is one Rust crate named `fornax`, supported only by
+the private `libraw-sys` FFI workspace package. There is no separate
+`fornax-core`, decoder-contract crate, public decoder-adapter crate, `libraw`
+wrapper crate, preprocessing crate, or demosaicing crate.
 
 The former `fornax-core` package has been renamed to `fornax`. The existing
 legacy `fornax` facade was replaced rather than preserved.
@@ -22,7 +23,7 @@ flowchart TB
         Pipeline["pipeline\nend-to-end composition"]
     end
 
-    Decoder -. feature backend-libraw .-> LibRawSys["libraw-sys\nprivate FFI"]
+    Decoder -. feature backend-libraw .-> LibRawSys["libraw-sys\nprivate bindings"]
     Decoder -. feature backend-dnglab .-> Rawler["rawler / dnglab\nupstream decoder"]
     Decoder -. feature backend-dnc .-> DNC["Adobe DNG Converter\nexternal process"]
     Python["fornax-py"] --> Fornax
@@ -43,15 +44,17 @@ crate remains usable without enabling any decoder backend.
 | `fornax::metadata` | Nested metadata aggregates with focused submodules for camera, CFA, extensible fields, levels, provenance, and exact values |
 | `fornax::error` | Model, metadata, decoder, preprocessing, and demosaicing errors |
 | `fornax::decoder` | Generic-input `IRawDecoder<I>` contract and backend modules |
-| `fornax::decoder::libraw` | Private LibRaw adapter over `libraw-sys` |
+| `fornax::decoder::libraw` | Private LibRaw adapter, safe native access, metadata/sample snapshot, and Bayer mapping |
 | `fornax::decoder::rawler` | Private rawler/dnglab adapter |
 | `fornax::decoder::dnc` | Private process bridge composed with a DNG decoder |
 | `DecodedRaw::preprocess` | One standard preprocessing entry point with private linearization, black subtraction, normalization, and clipping substeps |
 | `fornax::demosaic` | Direct algorithm selection, image-rs RGB output, and in-crate Bayer implementations |
 | `fornax::pipeline` | Explicit end-to-end backend and algorithm composition |
 
-These modules are an implementation boundary inside one crate. They are not
-reason to reintroduce workspace crates.
+These modules are the pipeline implementation boundary inside `fornax`.
+`libraw-sys` is generated native binding support, not a pipeline stage or
+supported public abstraction. All safe LibRaw access, snapshots, and universal
+Bayer mappings remain inside `fornax::decoder::libraw`.
 
 The operation and its private module are both named `preprocess`. A single
 word is the conventional Rust form for this action and keeps the method and
@@ -63,7 +66,11 @@ Source ownership follows the same hierarchy:
 src/
 ├── lib.rs
 ├── decoder/
-│   └── mod.rs                 # generic decoder boundary; concrete members follow
+│   ├── mod.rs                 # generic decoder boundary
+│   └── libraw/
+│       ├── native.rs          # private safe LibRaw FFI access
+│       ├── mod.rs             # LibRaw-to-universal translation
+│       └── snapshot.rs        # adapter-owned metadata/sample copy
 ├── decoded_raw/
 │   ├── mod.rs                 # DecodedRaw
 │   ├── preprocess.rs          # private ordered preprocessing substeps
@@ -92,18 +99,19 @@ src/
 | `fornax` | Universal model, decoder contracts, upstream decoder integrations, preprocessing, demosaicing, and end-to-end pipeline |
 | `fornax-py` | Python package over `fornax` |
 | `fornax-devtool` | Non-published fixtures and examples |
-| `libraw-sys` | Private generated LibRaw FFI used only by `fornax::decoder::libraw` |
+| `libraw-sys` | Private generated LibRaw FFI used only by the private adapter |
 
-`libraw-sys` is a low-level build-support package, not a pipeline stage or
-public abstraction. Upstream decoder crates are normal optional Cargo
-dependencies of `fornax`; they do not appear in the public model. Demosaicing
-algorithms are implemented in `fornax` itself.
+`libraw-sys` is a low-level native-support package, not a pipeline stage or
+public abstraction. Upstream decoder crates are optional Cargo dependencies of
+`fornax`; they do not appear in the public model. Demosaicing algorithms are
+implemented in `fornax` itself.
 
 ## Dependency direction
 
 - `fornax` depends on image-rs, `thiserror`, and standard library support.
 - `fornax` optionally depends on `libraw-sys`, rawler/dnglab, and parallelism
   support.
+- Only `fornax::decoder::libraw::native` reaches the LibRaw FFI package.
 - Adobe DNC integration invokes an external process and does not expose an
   upstream Rust type.
 - `fornax-py` and `fornax-devtool` depend on `fornax`.
@@ -114,6 +122,14 @@ Upstream decoder types remain private to their adapter module. `DecodedRaw`,
 `RawImage`, metadata, decoder contracts, errors, and pipeline APIs contain no
 LibRaw, rawler, or DNC-runtime types; demosaicing implementation types remain
 inside `fornax::demosaic`.
+
+## LibRaw distribution
+
+LibRaw 0.22.2 is available under LGPL-2.1 or CDDL-1.0 at the distributor's
+option. The `libraw-sys` package is not published. It dynamically links the
+native `raw_r` library and uses `LIBRAW_ROOT` during the build; released
+binaries therefore retain the native LibRaw runtime dependency and must ship
+under terms compatible with the chosen LibRaw license.
 
 ## Stage boundaries
 
@@ -165,7 +181,8 @@ parallel
 serde
 ```
 
-- `backend-libraw` enables the private LibRaw adapter through `libraw-sys`.
+- `backend-libraw` enables the private LibRaw adapter and its `libraw-sys`
+  dependency.
 - `backend-dnglab` enables the crates.io rawler `0.8.0` adapter.
 - `backend-dnc` enables the process bridge and requires a selected DNG backend.
 - `parallel` enables documented parallel execution where benchmarks justify it.
@@ -193,13 +210,14 @@ exposes upstream decoder error types or a string-only top-level error.
 - The legacy `fornax` implementation has been replaced by the renamed
   universal crate.
 - Move decoder selection and concrete `libraw`, rawler, and DNC adapters into
-  `fornax::decoder` modules.
+  `fornax::decoder` modules. Absorb the required safe LibRaw wrapper code into
+  `fornax::decoder::libraw` and remove the standalone `libraw` crate.
 - The `fornax-dalim` crate is removed after migrating its reusable linear
   demosaic implementation and Bayer tests into `fornax::demosaic`.
 - Implement the private substeps behind `DecodedRaw::preprocess`.
-- Retire the public `libraw` and `dnc` wrapper crates after their private
-  integrations exist in `fornax`.
-- Keep `libraw-sys` only as private FFI support.
+- Retire the public `dnc` wrapper after its private integration exists in
+  `fornax`.
+- Keep `libraw-sys` behind the private LibRaw adapter stack.
 - Rewrite `fornax-py` and `fornax-devtool` over `fornax`.
 
 No old core, adapter, preprocessing, demosaic, or facade crate boundary is
@@ -210,7 +228,7 @@ preserved for compatibility.
 - Build `fornax` with default features and every supported feature combination.
 - Verify no upstream decoder type appears in public API documentation.
 - Run model, metadata, decoder, preprocessing, demosaic, and end-to-end tests in
-  the same crate.
+  the same pipeline crate once the relevant stage tasks are merged.
 - Verify disabled backend features return explicit no-backend errors.
 - Verify optional features do not imply runtime selection.
 - Verify the workspace dependency graph contains no `fornax-core` or adapter
