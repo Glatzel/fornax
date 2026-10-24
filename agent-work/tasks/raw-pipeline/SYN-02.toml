@@ -18,6 +18,7 @@ acceptance = [
   "Processing-state semantics prevent accidental double correction.",
   "Every decision links to a supporting report or SYN-01 item.",
   "Implementation decisions explicitly weight LibRaw and darktable as high-priority references while preserving documented disagreements.",
+  "Native source storage precision and the f32 preprocessing working domain are explicit.",
 ]
 validation = [
   "Verify every dependency task PR is merged.",

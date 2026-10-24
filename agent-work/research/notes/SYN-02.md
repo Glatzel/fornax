@@ -20,6 +20,8 @@
 > - [x] Every decision links to a supporting report or SYN-01 item.
 > - [x] Implementation decisions explicitly weight LibRaw and darktable as
 >   high-priority references while preserving documented disagreements.
+> - [x] Native source storage precision and the f32 preprocessing working
+>   domain are explicit.
 
 ## Scope and authority
 
@@ -64,10 +66,10 @@ For an active sample at stored coordinate `(r, c)`:
 ```text
 l       = L(stored_sample)
 b       = black_common + black_slot[slot(r,c)] + black_tile[tile(r,c), plane]
-q       = l - b
+q       = round_f32(l as f64 - b)
 range   = white[slot(r,c)] - b
-n       = q / range
-d       = round_to_f32(clamp(n, 0.0, 1.0))
+n       = round_f32(q as f64 / range)
+d       = clamp(n, 0.0, 1.0)
 ```
 
 - `L` is identity when no linearization table is present; otherwise it is the
@@ -81,11 +83,22 @@ d       = round_to_f32(clamp(n, 0.0, 1.0))
 - `b` and `range` are evaluated in `f64` after exact integer/relational
   validation. Integer source samples up to 32 bits are exactly representable
   in `f64`.
-- `q` and `n` are unclipped working values. Negative and above-one values are
-  retained until the final clipping operation.
-- `d` is single-channel `f32` in `[0.0, 1.0]`. The final `f64` to `f32`
-  conversion uses IEEE round-to-nearest, ties-to-even.
+- The preprocessed working buffer uses `f32` samples. `q` and `n` are computed
+  with widened `f64` scalar arithmetic and stored as unclipped `f32` values.
+  Negative and above-one values are retained until the final clipping
+  operation.
+- `round_f32` denotes IEEE round-to-nearest, ties-to-even.
+- `d` is single-channel `f32` in `[0.0, 1.0]`; final clipping does not change
+  precision.
 - NaN and infinity are errors, not clampable values.
+
+For the initial target, native unsigned integer samples use a `u16` storage
+container while declared bit depths of 8, 10, 12, 14, or 16 bits remain
+separate metadata. Every such integer is exactly representable in `f32`.
+Floating source paths exposed by the inspected decoders use `f32`. Wider
+integer or `f64` source values must use an approved wider path or a structured
+unsupported-encoding error; they must not silently pass through `f32` with a
+false precision claim.
 
 The `[0.0, 1.0]` final clamp is chosen for the initial demosaic-ready input.
 The unclipped normalized state remains available to diagnostics and tests.
@@ -121,11 +134,11 @@ four numbers.
 | Order | Operation | Input domain | Output domain | Required metadata | Formula / rule | Error behavior | Synthetic tests |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Validate decode state | Backend-produced stored candidate | `ValidatedStoredRaw` | Sample encoding, dimensions, stride, CFA layout, ActiveArea, black/white candidates, provenance | Reject already-corrected/normalized samples; validate every required field, rectangle, stride, encoding, and layout invariant | `UnsupportedPreprocessingState`, `MissingRequiredMetadata`, `InvalidGeometry`, `UnsupportedCfa`, or `MetadataConflict`; no silent defaults for unknown semantics | Valid stored state; missing CFA; already normalized; wrong stride; malformed ActiveArea; unsupported layout |
-| 2 | Apply linearization table | `ValidatedStoredRaw`; declared table | `LinearizedRaw`; table treated as identity when absent | Table entries, source encoding/range, provenance | `l = table[stored_code]` or `l = stored_code`; do not use an out-of-range index | `UnsupportedLinearization` or `InvalidMetadata`; no extrapolation | Identity path; nontrivial table; first/last entry; out-of-range code; malformed table |
+| 2 | Apply linearization table | `ValidatedStoredRaw`; declared table | `LinearizedRaw` as `f32`; table treated as identity when absent | Table entries, source encoding/range, provenance | `l = table[stored_code]` or `l = stored_code`; convert to f32 after exact lookup; do not use an out-of-range index | `UnsupportedLinearization` or `InvalidMetadata`; no extrapolation | Identity path; nontrivial table; first/last entry; out-of-range code; malformed table |
 | 3 | Select black level | `LinearizedRaw` plus ActiveArea-relative CFA coordinate | Per-sample black tuple with provenance | Common, per-slot, and repeat components; tile dimensions/origin; white level for later validation | Select slot from active coordinates; select tile offset from active coordinates; sum only declared additive components | `UnsupportedBlackPattern`, `InvalidBlackLevel`, or `MissingRequiredMetadata` if a non-default component is required | Scalar black; four-slot phases; 1×1 tile at odd ActiveArea origin; 2×2 tile; general tile rejection; absent component |
-| 4 | Subtract black | Linearized sample and selected black | Unclipped signed `BlackCorrectedRaw` | Valid selected black and selected white level | `q = l - b` in widened arithmetic; no clamp at this stage | `InvalidMetadata` when black is negative or not below white for required normalization; invalid numeric values abort | Positive result; zero result; negative underflow retained; maximum sample; black equal white |
-| 5 | Normalize | `BlackCorrectedRaw` and selected white level | Unclipped `NormalizedRaw` | `white`, `black`, valid nonzero range, CFA plane | `n = (l - b) / (white - b)` in `f64`; preserve sign and overflow | `InvalidMetadata` when `white <= b`, denominator is zero, or values are non-finite | Black maps to zero; white maps to one; underflow below zero; value above one; floating rounding fixture |
-| 6 | Clip to demosaic range | `NormalizedRaw` | `DemosaicReadyMosaic` | Explicit policy version, CFA/ActiveArea geometry | `d = clamp(n, 0.0, 1.0)`; convert to `f32` using round-to-nearest, ties-to-even | `PreprocessingStateError` if input is not normalized; non-finite values are rejected before clipping | Negative clamps to zero; exact one; above one clamps to one; f64-to-f32 tie rounding; NaN/Infinity rejection |
+| 4 | Subtract black | Linearized f32 sample and selected black | Unclipped f32 `BlackCorrectedRaw` | Valid selected black and selected white level | `q = round_f32(l as f64 - b)`; no clamp at this stage | `InvalidMetadata` when black is negative or not below white for required normalization; invalid numeric values abort | Positive result; zero result; negative underflow retained; maximum sample; black equal white |
+| 5 | Normalize | `BlackCorrectedRaw` and selected white level | Unclipped f32 `NormalizedRaw` | `white`, `black`, valid nonzero range, CFA plane | `n = round_f32(q as f64 / (white - b))`; preserve sign and overflow | `InvalidMetadata` when `white <= b`, denominator is zero, or values are non-finite | Black maps to zero; white maps to one; underflow below zero; value above one; floating rounding fixture |
+| 6 | Clip to demosaic range | `NormalizedRaw` | `DemosaicReadyMosaic` | Explicit policy version, CFA/ActiveArea geometry | `d = clamp(n, 0.0, 1.0)` on f32 | `PreprocessingStateError` if input is not normalized; non-finite values are rejected before clipping | Negative clamps to zero; exact one; above one clamps to one; NaN/Infinity rejection |
 | 7 | Validate demosaic boundary | `DemosaicReadyMosaic` | Immutable demosaic input | Single active Bayer grid, stride/contiguity policy, CFA layout, processing-state tag | Verify `[0.0, 1.0]`, finite f32 samples, dimensions, and ActiveArea phase; no correction may follow | `PreprocessingStateError`, `InvalidGeometry`, or `NonFiniteSample` | All four Bayer phases; wrong state; wrong dimensions; non-finite sample; unchanged geometry after cropping |
 
 Operation evidence:
@@ -259,8 +272,8 @@ The implementation task should include a focused matrix:
 ## Open questions
 
 - The final implementation's exact widened arithmetic type is for `DES-004`; it
-  must preserve the numerical results specified here for the initial sample
-  encodings.
+  must preserve the `f32` buffer and `f64` scalar-arithmetic contract specified
+  here for the initial sample encodings.
 - A verified black-level fallback from masked pixels may be added later only
   after separate evidence and an explicit user-approved task.
 - General spatial black tiles and BlackLevelDeltaH/V remain unsupported until
@@ -298,3 +311,4 @@ The implementation task should include a focused matrix:
 - [x] Missing, invalid, and inconsistent metadata behavior specified.
 - [x] Processing-state semantics prevent double correction.
 - [x] Every decision links to a supporting report or SYN-01 item.
+- [x] Native storage precision and the `f32` preprocessing domain are explicit.
