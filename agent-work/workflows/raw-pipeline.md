@@ -717,16 +717,19 @@ pull requests are the sole live state and approval record.
    Keep unrelated cleanup in a separate task.
 4. Commit and push the branch, then open one PR titled
    `[TASK-ID] Imperative summary` with
-   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body.
-5. Address review feedback in the same branch and PR. Do not open a second PR
-   for the same task.
-6. The user approves and merges the PR. Agents never merge their own task PRs;
-   a merged PR is the durable completion record.
+   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Report the PR URL and
+   stop. Do not watch, poll, or wait for checks or review after creating it.
+5. The user initiates the next step in conversation: request local changes or
+   merge the PR. If changes are requested, update the same branch and PR unless
+   the user asks for a local-only result. Do not open a second PR for the same
+   task.
+6. Agents never merge or close their own task PRs. A PR merged by the user is
+   the durable completion record.
 7. Remove the merged worktree and local branch only when cleanup is requested or
    completed by the normal housekeeping workflow.
 
-Review occurs in the pull request, not in a repository status field. A paused
-task keeps its PR open and records resume context in
+The pull request is the review and completion record, not a process the agent
+must monitor. A paused task keeps its PR open and records resume context in
 a `agent-work/checkpoints/<TASK-ID>/` checkpoint.
 
 ### Task ID scheme

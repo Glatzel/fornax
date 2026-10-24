@@ -110,14 +110,17 @@ outputs there.
    and blockers in the owned deliverable as work proceeds.
 6. Commit, push, and open one pull request for the task using
    `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Put the task ID in the
-   title, for example `[RES-01] Inventory existing components`.
-7. Review and approval happen only in the pull request. Do not add review state
-   to the task manifest or report. An agent must never merge the pull request
-   or mark the task complete; only the user may approve and merge it.
+   title, for example `[RES-01] Inventory existing components`. Report the PR
+   URL and stop; do not watch, poll, or wait for checks or review.
+7. The user will initiate the next step in conversation: request local changes
+   or merge the PR. Update the same branch and PR when changes are requested
+   unless the user asks for a local-only result. Do not add review state to the
+   task manifest or report. An agent must never merge or close the pull request
+   or mark the task complete; only the user may merge it.
 8. Before pausing or handing off, write a checkpoint under
    `agent-work/checkpoints/<TASK-ID>/` with completed work, unfinished work,
    next steps, unresolved questions, and relevant source revisions. Keep the
-   pull request open as the live state.
+   pull request open as the durable record; do not monitor it while paused.
 
 Research tasks may run independently. Synthesis starts only after its listed
 research dependencies have merged through their task pull requests. Design must
