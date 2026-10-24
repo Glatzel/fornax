@@ -3,19 +3,30 @@ id = "IMPL-INT-003"
 slug = "legacy-crate-retirement"
 title = "Retire legacy decoder, demosaic, and facade architecture"
 phase = "integration"
-dependencies = ["IMPL-DEC-002", "IMPL-DEC-004", "IMPL-DEM-002", "IMPL-DEM-003", "IMPL-INT-002"]
-parallelism = "Final migration gate after all replacement paths and consumers are merged."
-deliverables = ["legacy crate removal and workspace migration", "dependency-graph validation evidence"]
+dependencies = [
+  "IMPL-DEC-003",
+  "IMPL-DEC-004",
+  "IMPL-DEC-005",
+  "IMPL-DEM-002",
+  "IMPL-PY-001",
+  "IMPL-DEV-001",
+]
+parallelism = "Final facade/workspace retirement after decoders absorb libraw/dnc internals and all supported consumers migrate."
+deliverables = [
+  "legacy fornax-core/fornax-dalim/facade removal",
+  "dependency-graph and workspace validation evidence",
+]
 scope = """
-Remove legacy crates and public architecture made obsolete by the replacement:
-the public libraw wrapper and standalone dnc crate, while retaining
-libraw-sys only as private FFI support for
-`fornax::decoder::libraw`. Resolve workspace dependencies, features, examples,
-and package metadata without maintaining compatibility shims.
+Remove the remaining legacy core, dalim, facade, examples, and workspace
+wiring made obsolete by the replacement. The LibRaw and DNC decoder tasks own
+their deprecated legacy wrapper code and production dependencies; this task
+only verifies the combined graph and retires integration-level leftovers
+without maintaining compatibility shims.
 """
 acceptance = [
-  "No removed crate remains in the workspace, path dependencies, release configuration, examples, tests, or supported public API.",
-  "fornax-core is absent; libraw-sys is reachable only through `fornax::decoder::libraw` and is not re-exported.",
+  "fornax-core, fornax-dalim, and the legacy fornax facade are absent from workspace dependencies, examples, tests, and the supported public API.",
+  "Legacy libraw and dnc wrappers have already been removed by IMPL-DEC-003 and IMPL-DEC-005; this task verifies no production edge remains.",
+  "libraw-sys is reachable only through `fornax::decoder::libraw` and is not re-exported.",
   "The dependency graph matches docs/raw-pipeline/architecture.md and remains acyclic.",
   "Every workspace member builds after legacy removal without relying on preserved compatibility traits or crate boundaries.",
   "The external/raw-images fixture submodule remains unchanged and available to devtool/Python tests.",

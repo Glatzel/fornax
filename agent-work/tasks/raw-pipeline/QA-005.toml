@@ -3,8 +3,8 @@ id = "QA-005"
 slug = "documentation-migration"
 title = "Document behavior and existing API migration"
 phase = "quality"
-dependencies = ["IMPL-INT-002", "IMPL-INT-003"]
-parallelism = "After Python/devtool migration and legacy-crate retirement settle the supported public surface."
+dependencies = ["IMPL-PY-001", "IMPL-DEV-001", "IMPL-INT-003"]
+parallelism = "After Python and devtool migration plus legacy retirement settle the supported public surface."
 deliverables = ["public API documentation", "migration and breaking-change notes"]
 scope = """
 Document final public behavior, numerical semantics, unsupported inputs, and
@@ -16,6 +16,6 @@ acceptance = [
   "Unsupported formats and known limitations are explicit.",
 ]
 validation = [
-  "Verify IMPL-INT-002 and IMPL-INT-003 PRs are merged.",
+  "Verify IMPL-PY-001, IMPL-DEV-001, and IMPL-INT-003 PRs are merged.",
   "Build documentation with warnings denied.",
 ]

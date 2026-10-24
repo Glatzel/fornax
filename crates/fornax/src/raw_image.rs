@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
+use crate::decoded_raw::plane::validate_finite;
 use crate::demosaic::{DemosaicAlgorithm, RgbImageF32};
 use crate::error::{DemosaicError, RawValidationError};
 use crate::geometry::PixelSize;
 use crate::metadata::ValidatedMetadata;
-use crate::plane::validate_finite;
 use crate::{DecodedRaw, F32Plane};
 
 /// A preprocessed, demosaic-ready RAW image with a single f32 plane.
@@ -60,9 +60,10 @@ impl RawImage {
     /// #     ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
     /// #     ValidatedMetadata, WhiteLevels,
     /// # };
+    /// # use fornax::metadata::{BayerLayout, BayerPattern};
     /// # use fornax::{
-    /// #     BayerLayout, BayerPattern, DecodedRaw, DemosaicAlgorithm, RawImage, SampleFormat,
-    /// #     SampleSpec, StoredPlane, into_preprocessed,
+    /// #     DecodedRaw, DemosaicAlgorithm, RawImage, SampleFormat, SampleSpec, StoredPlane,
+    /// #     into_preprocessed,
     /// # };
     /// # fn input() -> RawImage {
     /// #     let dimensions = PixelSize::new(1, 1).unwrap();

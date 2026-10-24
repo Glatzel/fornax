@@ -4,8 +4,11 @@ slug = "malvar-demosaic-strategy"
 title = "Implement the Malvar-He-Cutler demosaic algorithm"
 phase = "implementation"
 dependencies = ["IMPL-DEM-002", "DES-005", "RES-05"]
-parallelism = "Starts after the bilinear algorithm establishes the direct dispatch and tests."
-deliverables = ["fornax::demosaic Malvar-He-Cutler source", "reference, border, and overshoot tests"]
+parallelism = "Starts after bilinear establishes shared f32, border, and RGB output semantics."
+deliverables = [
+  "fornax::demosaic Malvar-He-Cutler implementation",
+  "reference, phase, border, overshoot, and rejection tests",
+]
 scope = """
 Implement Malvar-He-Cutler directly inside `fornax::demosaic` and register it
 as a `DemosaicAlgorithm` variant. Validate all public inputs before kernel

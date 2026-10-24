@@ -19,9 +19,11 @@
 use std::collections::BTreeMap;
 use std::num::NonZeroU32;
 
-use crate::{
-    ActiveArea, BayerLayout, PixelSize, RawValidationError, SampleSpec, StoredGeometry, StoredPlane,
-};
+mod cfa;
+
+pub use cfa::{BayerLayout, BayerPattern, BayerSlot, CfaColor, CfaShape};
+
+use crate::{ActiveArea, PixelSize, RawValidationError, SampleSpec, StoredGeometry, StoredPlane};
 
 /// A finite rational metadata value.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -1484,7 +1486,7 @@ impl ValidatedMetadata {
         {
             return Err(RawValidationError::InvalidGeometry);
         }
-        crate::plane::validate_finite(plane)
+        crate::decoded_raw::plane::validate_finite(plane)
     }
 }
 
@@ -1628,7 +1630,7 @@ mod tests {
                 provenance(AuthorityClass::DecoderObservation),
             )),
             cfa: Some(Sourced::new(
-                BayerLayout::new(crate::BayerPattern::Rggb, different_area),
+                BayerLayout::new(BayerPattern::Rggb, different_area),
                 provenance(AuthorityClass::DecoderObservation),
             )),
             black: Some(Sourced::new(
@@ -1707,7 +1709,7 @@ mod tests {
                 provenance(AuthorityClass::DecoderObservation),
             )),
             cfa: Some(Sourced::new(
-                BayerLayout::new(crate::BayerPattern::Rggb, active_area),
+                BayerLayout::new(BayerPattern::Rggb, active_area),
                 provenance(AuthorityClass::DecoderObservation),
             )),
             black: Some(Sourced::new(

@@ -3,9 +3,8 @@ id = "IMPL-INT-001"
 slug = "pipeline-facade"
 title = "Implement the explicit end-to-end pipeline module"
 phase = "integration"
-dependencies = ["IMPL-DEC-005", "IMPL-PRE-003", "IMPL-DEM-001"]
-requires_one_of = ["IMPL-DEM-002", "IMPL-DEM-003"]
-parallelism = "Starts after decoder conformance and complete preprocessing are merged and at least one demosaic algorithm is available."
+dependencies = ["IMPL-DEC-003", "IMPL-DEC-004", "IMPL-PRE-003", "IMPL-DEM-002"]
+parallelism = "Starts after the LibRaw/rawler decoders, complete preprocessing, and bilinear demosaic are merged."
 deliverables = ["fornax::pipeline source", "end-to-end pipeline and feature-combination tests"]
 scope = """
 Implement `fornax::pipeline` as an explicit builder over a selected decoder,
@@ -24,7 +23,7 @@ acceptance = [
   "Supported feature combinations build independently and backend types remain hidden.",
 ]
 validation = [
-  "Verify IMPL-DEC-005, IMPL-PRE-003, IMPL-DEM-001, and at least one demosaic algorithm PR are merged.",
+  "Verify IMPL-DEC-003, IMPL-DEC-004, IMPL-PRE-003, and IMPL-DEM-002 PRs are merged.",
   "Run `cargo test -p fornax` with every available backend/algorithm feature combination.",
   "Record fixture provenance and explicitly unsupported coverage.",
   "Run formatting, clippy, and affected workspace builds.",

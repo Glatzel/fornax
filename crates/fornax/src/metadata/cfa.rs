@@ -1,3 +1,5 @@
+//! CFA shapes, colors, Bayer phases, and ActiveArea-relative lookup.
+
 use std::num::NonZeroU32;
 
 use crate::error::RawValidationError;
@@ -28,7 +30,7 @@ impl CfaShape {
     /// # Examples
     ///
     /// ```
-    /// use fornax::CfaShape;
+    /// use fornax::metadata::CfaShape;
     ///
     /// assert_eq!(CfaShape::try_new(2, 2).unwrap().rows(), 2);
     /// assert!(CfaShape::try_new(0, 2).is_err());
@@ -72,7 +74,7 @@ impl BayerSlot {
     /// # Examples
     ///
     /// ```
-    /// use fornax::BayerSlot;
+    /// use fornax::metadata::BayerSlot;
     ///
     /// assert_eq!(BayerSlot::from_local(3, 4).index(), 2);
     /// ```
@@ -117,7 +119,7 @@ impl BayerPattern {
     /// # Examples
     ///
     /// ```
-    /// use fornax::{BayerPattern, CfaColor, CfaShape};
+    /// use fornax::metadata::{BayerPattern, CfaColor, CfaShape};
     ///
     /// let colors = [
     ///     CfaColor::Red,
@@ -187,7 +189,7 @@ impl BayerPattern {
     /// # Examples
     ///
     /// ```
-    /// use fornax::{BayerPattern, BayerSlot, CfaColor};
+    /// use fornax::metadata::{BayerPattern, BayerSlot, CfaColor};
     ///
     /// assert_eq!(
     ///     BayerPattern::Grbg.color_at(BayerSlot::from_local(1, 0)),
@@ -218,7 +220,7 @@ impl BayerLayout {
     ///
     /// ```
     /// use fornax::geometry::{ActiveArea, PixelSize};
-    /// use fornax::{BayerLayout, BayerPattern};
+    /// use fornax::metadata::{BayerLayout, BayerPattern};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 0, 0, 4, 4).unwrap();
     /// let layout = BayerLayout::new(BayerPattern::Rggb, area);
@@ -248,7 +250,7 @@ impl BayerLayout {
     ///
     /// ```
     /// use fornax::geometry::{ActiveArea, PixelCoord, PixelSize};
-    /// use fornax::{BayerLayout, BayerPattern};
+    /// use fornax::metadata::{BayerLayout, BayerPattern};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 1, 1, 4, 4).unwrap();
     /// let layout = BayerLayout::new(BayerPattern::Gbrg, area);
@@ -276,7 +278,7 @@ impl BayerLayout {
     ///
     /// ```
     /// use fornax::geometry::{ActiveArea, PixelCoord, PixelSize};
-    /// use fornax::{BayerLayout, BayerPattern, CfaColor};
+    /// use fornax::metadata::{BayerLayout, BayerPattern, CfaColor};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 0, 0, 4, 4).unwrap();
     /// let layout = BayerLayout::new(BayerPattern::Bggr, area);

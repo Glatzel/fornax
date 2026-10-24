@@ -803,15 +803,14 @@ The post-design manifests cover these workstreams:
   architecture design;
 - `IMPL-CORE-001` as the universal-model and direct stage-boundary gate in
   `fornax`;
-- decoder registry, LibRaw, dnglab/rawler, DNC bridge, and decoder conformance
-  modules (`IMPL-DEC-001`–`IMPL-DEC-005`);
+- concrete LibRaw, dnglab/rawler, and DNC decoder implementations with their
+  own fixture/conformance evidence (`IMPL-DEC-003`–`IMPL-DEC-005`);
 - staged conversion/linearization, black subtraction, and
   normalization/clipping modules (`IMPL-PRE-001`–`IMPL-PRE-003`);
-- direct demosaic dispatch, bilinear algorithm, and in-crate Malvar–He–Cutler
-  module
-  (`IMPL-DEM-001`–`IMPL-DEM-003`);
-- end-to-end composition, Python/devtool migration, and legacy crate retirement
-  (`IMPL-INT-001`–`IMPL-INT-003`); and
+- concrete in-crate bilinear and Malvar–He–Cutler algorithms
+  (`IMPL-DEM-002`–`IMPL-DEM-003`);
+- end-to-end composition (`IMPL-INT-001`), Python/devtool migration
+  (`IMPL-PY-001`, `IMPL-DEV-001`), and legacy retirement (`IMPL-INT-003`); and
 - metadata, numerical, error-path, performance, documentation, and workspace
   validation.
 
@@ -843,23 +842,19 @@ The implementation graph is:
 
 `docs/raw-pipeline -> IMPL-CORE-001`
 
-`IMPL-CORE-001 -> IMPL-DEC-001 | IMPL-PRE-001 | IMPL-DEM-001`
+`IMPL-CORE-001 -> IMPL-DEC-003 | IMPL-DEC-004 | IMPL-PRE-001 | IMPL-DEM-002`
 
-`IMPL-DEC-001 -> IMPL-DEC-002 | IMPL-DEC-003`
-
-`IMPL-DEC-003 -> IMPL-DEC-004`
-
-`IMPL-DEC-002 + IMPL-DEC-003 + IMPL-DEC-004 -> IMPL-DEC-005`
+`IMPL-DEC-004 -> IMPL-DEC-005`
 
 `IMPL-PRE-001 -> IMPL-PRE-002 -> IMPL-PRE-003`
 
-`IMPL-DEM-001 -> IMPL-DEM-002 -> IMPL-DEM-003`
+`IMPL-DEM-002 -> IMPL-DEM-003`
 
-`IMPL-DEC-005 + IMPL-PRE-003 + IMPL-DEM-001 + IMPL-DEM-002 -> IMPL-INT-001`
+`IMPL-DEC-003 + IMPL-DEC-004 + IMPL-DEC-005 + IMPL-PRE-003 + IMPL-DEM-002 -> IMPL-INT-001`
 
-`IMPL-INT-001 -> IMPL-INT-002`
+`IMPL-INT-001 -> IMPL-PY-001 | IMPL-DEV-001`
 
-`IMPL-INT-002 + all adapter/algorithm tasks -> IMPL-INT-003`
+`IMPL-DEC-003 + IMPL-DEC-004 + IMPL-DEC-005 + IMPL-DEM-002 + IMPL-PY-001 + IMPL-DEV-001 -> IMPL-INT-003`
 
 `IMPL-INT-001 -> QA-001..QA-004 -> QA-006`
 
@@ -881,18 +876,19 @@ planned around the boundaries that design actually produced:
    the model, metadata, CFA, image types, generic decoder boundary, direct
    stage methods, validation contracts, and reusable linear demosaic baseline.
    It also removes `fornax-dalim`.
-2. The decoder track adds registry and private `libraw`, `rawler`, and optional
-   DNC modules inside `fornax`, depending directly on upstream decoders behind
-   optional features. `IMPL-DEC-005` validates conformance and target-format
-   fixture claims.
+2. The decoder track implements private `libraw`, `rawler`, and optional DNC
+   modules inside `fornax`, depending directly on upstream decoders behind
+   optional features. Each task owns its target-format fixture and conformance
+   evidence; there is no separate decoder-conformance placeholder.
 3. The preprocessing track adds one private preprocessing implementation inside
    `fornax`, preserving the ordered substeps from decoded f32 conversion and
    linearization through black subtraction, normalization, and clipping.
-4. The demosaic track refines direct enum dispatch and extends the initial
-   linear baseline with additional in-crate algorithms inside `fornax`.
+4. The demosaic track completes the bilinear algorithm and adds
+   Malvar–He–Cutler as concrete in-crate algorithms inside `fornax`.
 5. `IMPL-INT-001` composes explicit decoder and algorithm selection in the
-   `fornax::pipeline` module. `IMPL-INT-002` migrates Python and devtool, and
-   `IMPL-INT-003` retires the legacy public crates and architecture.
+   `fornax::pipeline` module. `IMPL-PY-001` and `IMPL-DEV-001` migrate the
+   external Rust/Python surfaces, and `IMPL-INT-003` retires the remaining
+   legacy facade/core/dalim architecture.
 
 The cross-track contract is `IMPL-CORE-001`. A decoder, preprocessing, or
 demosaic task may not fork the universal types or add a compatibility trait to
@@ -993,8 +989,8 @@ Work in this order:
    is approved and merged in the dependency task PR.
 7. Implement `IMPL-CORE-001` first, then execute the decoder, preprocessing, and
    demosaic tracks only after the relevant PR and core dependency are merged.
-8. Compose the pipeline module after decoder conformance and preprocessing are complete,
-   migrate Python/devtool, retire the legacy architecture, then run QA and
+8. Compose the pipeline module after concrete decoders and preprocessing are
+   complete, migrate Python/devtool, retire the legacy architecture, then run QA and
    update documentation.
 9. After `QA-006` and every required task PR are merged into
    `refactor/raw-pipeline-v2`, prepare one promotion PR from that integration

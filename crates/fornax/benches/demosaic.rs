@@ -3,12 +3,13 @@ use std::num::{NonZeroU32, NonZeroU64};
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax::geometry::{ActiveArea, PixelSize, StoredGeometry};
 use fornax::metadata::{
-    AuthorityClass, BlackLevels, CommonMetadata, Confidence, DecoderProvenance, ExtensibleMetadata,
-    Provenance, ProviderId, Rational, SourceKind, Sourced, ValidatedMetadata, WhiteLevels,
+    AuthorityClass, BayerLayout, BayerPattern, BlackLevels, CommonMetadata, Confidence,
+    DecoderProvenance, ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
+    ValidatedMetadata, WhiteLevels,
 };
 use fornax::{
-    BayerLayout, BayerPattern, DecodedRaw, DemosaicAlgorithm, RawImage, SampleFormat, SampleSpec,
-    StoredPlane, into_preprocessed,
+    DecodedRaw, DemosaicAlgorithm, RawImage, SampleFormat, SampleSpec, StoredPlane,
+    into_preprocessed,
 };
 use image::ImageBuffer;
 

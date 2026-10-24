@@ -14,8 +14,8 @@
 
 use thiserror::Error;
 
+use crate::decoded_raw::plane::SampleFormat;
 use crate::metadata;
-use crate::plane::SampleFormat;
 
 /// A structured validation failure in the universal RAW model.
 ///

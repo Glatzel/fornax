@@ -8,10 +8,11 @@
 //! assert_eq!(DemosaicAlgorithm::default(), DemosaicAlgorithm::Linear);
 //! ```
 
+use crate::RawImage;
 use crate::demosaic::RgbImageF32;
 use crate::error::DemosaicError;
 use crate::geometry::PixelCoord;
-use crate::{BayerLayout, BayerPattern, CfaColor, RawImage};
+use crate::metadata::{BayerLayout, BayerPattern, CfaColor};
 
 #[derive(Clone, Copy)]
 enum BayerPhase {
@@ -73,9 +74,9 @@ const fn primary_green_slot(pattern: BayerPattern) -> u8 {
 /// #     ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
 /// #     ValidatedMetadata, WhiteLevels,
 /// # };
+/// # use fornax::metadata::{BayerLayout, BayerPattern};
 /// # use fornax::{
-/// #     BayerLayout, BayerPattern, DecodedRaw, RawImage, SampleFormat, SampleSpec, StoredPlane,
-/// #     into_preprocessed,
+/// #     DecodedRaw, RawImage, SampleFormat, SampleSpec, StoredPlane, into_preprocessed,
 /// # };
 /// # fn input() -> RawImage {
 /// #     let dimensions = PixelSize::new(1, 1).unwrap();
@@ -311,9 +312,9 @@ mod tests {
     use super::*;
     use crate::geometry::{ActiveArea, PixelSize, StoredGeometry};
     use crate::metadata::{
-        AuthorityClass, BlackLevels, CommonMetadata, Confidence, DecoderProvenance,
-        ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
-        ValidatedMetadata, WhiteLevels,
+        AuthorityClass, BayerLayout, BayerPattern, BlackLevels, CommonMetadata, Confidence,
+        DecoderProvenance, ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind,
+        Sourced, ValidatedMetadata, WhiteLevels,
     };
     use crate::{DecodedRaw, RawImage, SampleFormat, SampleSpec, StoredPlane, into_preprocessed};
 

@@ -6,7 +6,7 @@ phase = "implementation"
 dependencies = ["DES-001", "DES-002", "DES-003", "DES-006"]
 parallelism = "Foundational implementation gate; must merge before decoder or preprocessing module work and demosaic dispatch refinement."
 deliverables = [
-  "fornax universal model source with flattened root modules",
+  "fornax universal model source grouped by decoded-data and metadata ownership",
   "fornax generic-input decoder module",
   "fornax error, geometry, and metadata modules",
   "fornax::demosaic linear algorithm and Bayer phase tests",
@@ -19,7 +19,9 @@ fornax facade with that renamed crate. Install the persistent universal RAW
 model: native u8/u16/u32/f32 planes, sample specification, stored geometry,
 ActiveArea and Bayer indexing, typed and extensible metadata with provenance,
 black/white levels, DecodedRaw, f32-only RawImage, constructors, and structured
-validation errors. Flatten the model into the crate root. Define generic
+validation errors. Keep decoded native planes under `decoded_raw::plane`, CFA
+layout under `metadata::cfa`, and shared public types re-exported from the
+crate root only where they are not governed by a public module. Define generic
 decoder input through `IRawDecoder<I>`, direct `DecodedRaw::pre_process`, and
 direct `DemosaicAlgorithm` dispatch plus the target `fornax` feature topology
 for optional upstream decoders. Centralize phase errors under `fornax::error`;
@@ -30,7 +32,7 @@ implement concrete decoder or preprocessing algorithms in this task.
 """
 acceptance = [
   "The implementation follows docs/raw-pipeline rather than retaining legacy BayerImage, decoder, or post-processor contracts.",
-  "The model is exposed from the crate root without a nested model module; error, geometry, and metadata are public modules without public root re-exports.",
+  "The model has no generic nested `model` module; native sample planes live under `decoded_raw::plane`, CFA types under `metadata`, and error/geometry/metadata expose no public root members.",
   "Native sample containers retain the declared sample specification and reject invalid container/specification combinations.",
   "ActiveArea-relative CFA lookup is correct for RGGB, BGGR, GRBG, and GBRG, including odd origins.",
   "Typed metadata, extensible metadata, provenance, conflict handling, and level invariants are enforced by construction.",

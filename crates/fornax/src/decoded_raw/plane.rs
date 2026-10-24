@@ -1,3 +1,5 @@
+//! Native decoded sample planes and their declared sample specifications.
+
 use image::{ImageBuffer, Luma};
 
 use crate::error::RawValidationError;

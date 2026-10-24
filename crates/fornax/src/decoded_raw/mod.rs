@@ -1,8 +1,12 @@
 use std::sync::Arc;
 
+pub(crate) mod plane;
+
+pub use plane::{F32Plane, SampleFormat, SampleSpec, StoredPlane, U8Plane, U16Plane, U32Plane};
+
+use crate::RawImage;
 use crate::error::{PreprocessError, RawValidationError};
 use crate::metadata::{DecoderProvenance, ValidatedMetadata};
-use crate::{RawImage, SampleFormat, SampleSpec, StoredPlane};
 
 /// A decoder-produced RAW image before standard preprocessing.
 ///
@@ -189,9 +193,8 @@ impl DecodedRaw {
     /// #     ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
     /// #     ValidatedMetadata, WhiteLevels,
     /// # };
-    /// # use fornax::{
-    /// #     BayerLayout, BayerPattern, DecodedRaw, SampleFormat, SampleSpec, StoredPlane,
-    /// # };
+    /// # use fornax::metadata::{BayerLayout, BayerPattern};
+    /// # use fornax::{DecodedRaw, SampleFormat, SampleSpec, StoredPlane};
     /// use fornax::error::PreprocessError;
     /// # fn input() -> DecodedRaw {
     /// #     let dimensions = PixelSize::new(1, 1).unwrap();
@@ -262,10 +265,11 @@ mod tests {
     use super::*;
     use crate::geometry::{ActiveArea, PixelSize, StoredGeometry};
     use crate::metadata::{
-        AuthorityClass, BlackLevels, CommonMetadata, Confidence, ExtensibleMetadata, Provenance,
-        ProviderId, Rational, SourceKind, Sourced, ValidatedMetadata, WhiteLevels,
+        AuthorityClass, BayerLayout, BayerPattern, BlackLevels, CommonMetadata, Confidence,
+        ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
+        ValidatedMetadata, WhiteLevels,
     };
-    use crate::{BayerLayout, BayerPattern, RawImage, U16Plane, into_preprocessed};
+    use crate::{RawImage, U16Plane, into_preprocessed};
 
     fn provenance() -> Provenance {
         Provenance::new(

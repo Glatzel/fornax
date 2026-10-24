@@ -37,9 +37,10 @@ crate remains usable without enabling any decoder backend.
 
 | Module | Responsibility |
 | --- | --- |
-| `fornax` crate root | CFA, sample specification, `DecodedRaw`, f32-only `RawImage`, and shared type re-exports |
+| `fornax` crate root | Public re-exports for decoded planes, `DecodedRaw`, demosaic output, and f32-only `RawImage` |
+| `fornax::decoded_raw` | Internal `DecodedRaw` owner with a private `plane` submodule for native sample containers |
 | `fornax::geometry` | Pixel sizes, rectangles, ActiveArea, and stored geometry |
-| `fornax::metadata` | Typed and extensible metadata, levels, provenance, and validated metadata |
+| `fornax::metadata` | Typed/extensible metadata, levels, provenance, validated metadata, and private-file CFA submodule |
 | `fornax::error` | Model, metadata, decoder, preprocessing, and demosaicing errors |
 | `fornax::decoder` | Generic-input `IRawDecoder<I>` contract and backend modules |
 | `fornax::decoder::libraw` | Private LibRaw adapter over `libraw-sys` |
@@ -51,6 +52,27 @@ crate remains usable without enabling any decoder backend.
 
 These modules are an implementation boundary inside one crate. They are not
 reason to reintroduce workspace crates.
+
+Source ownership follows the same hierarchy:
+
+```text
+src/
+├── lib.rs
+├── decoder/
+│   └── mod.rs                 # generic decoder boundary; concrete members follow
+├── decoded_raw/
+│   ├── mod.rs                 # DecodedRaw
+│   └── plane.rs               # native u8/u16/u32/f32 sample containers
+├── demosaic/
+│   ├── mod.rs                 # algorithm selection and RGB output
+│   └── linear.rs              # linear/Bayer implementation
+├── error.rs
+├── geometry.rs
+├── metadata/
+│   ├── mod.rs                 # provenance, levels, extensible/validated metadata
+│   └── cfa.rs                 # Bayer/CFA layout and indexing
+└── raw_image.rs               # f32-only preprocessing output
+```
 
 ## Workspace members
 
@@ -111,7 +133,7 @@ the `IMPL-PRE-*` tasks implement them.
 
 `RawImage::demosaic` accepts a `DemosaicAlgorithm` and returns
 `(RgbImageF32, Arc<ValidatedMetadata>)`, where `RgbImageF32` is image-rs
-interleaved RGB. `pre_process` lives in `src/decoded_raw.rs`; demosaic dispatch
+interleaved RGB. `pre_process` lives in `src/decoded_raw/mod.rs`; demosaic dispatch
 and output validation live in `src/demosaic/` and `src/raw_image.rs`.
 
 `IMPL-CORE-001` establishes these direct boundaries. Later decoder,
@@ -145,7 +167,7 @@ backend or algorithm at runtime.
 Errors remain typed by phase under `fornax::error`:
 
 - `RawValidationError` for model and metadata invariants;
-- `DecodeError` for decoder registry and adapters;
+- `DecodeError` for concrete decoder implementations;
 - `PreprocessError` for preprocessing;
 - `DemosaicError` for demosaicing; and
 - `MetadataError` for metadata construction and conflicts.

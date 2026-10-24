@@ -35,26 +35,31 @@ implementation placeholders.
 | D | `DES-005` | [`DES-005.toml`](DES-005.toml) | `SYN-01`, `SYN-03`, `DES-001`, `DES-003` |
 | D | `DES-006` | [`DES-006.toml`](DES-006.toml) | `SYN-03`, `DES-001`, `DES-004`, `DES-005` |
 | I0 | `IMPL-CORE-001` | [`IMPL-CORE-001.toml`](IMPL-CORE-001.toml) | `DES-001`–`DES-003`, `DES-006` |
-| I1 | `IMPL-DEC-001` | [`IMPL-DEC-001.toml`](IMPL-DEC-001.toml) | `IMPL-CORE-001`, `DES-006` |
+| I1 | `IMPL-DEC-003` | [`IMPL-DEC-003.toml`](IMPL-DEC-003.toml) | `IMPL-CORE-001`, `DES-002`, `DES-003` |
+| I1 | `IMPL-DEC-004` | [`IMPL-DEC-004.toml`](IMPL-DEC-004.toml) | `IMPL-CORE-001`, `DES-002`, `DES-003` |
 | I1 | `IMPL-PRE-001` | [`IMPL-PRE-001.toml`](IMPL-PRE-001.toml) | `IMPL-CORE-001`, `DES-004` |
-| I1 | `IMPL-DEM-001` | [`IMPL-DEM-001.toml`](IMPL-DEM-001.toml) | `IMPL-CORE-001`, `DES-005` |
-| I2 | `IMPL-DEC-002` | [`IMPL-DEC-002.toml`](IMPL-DEC-002.toml) | `IMPL-DEC-001`, `DES-002`, `DES-003` |
-| I2 | `IMPL-DEC-003` | [`IMPL-DEC-003.toml`](IMPL-DEC-003.toml) | `IMPL-DEC-001`, `DES-002`, `DES-003` |
+| I1 | `IMPL-DEM-002` | [`IMPL-DEM-002.toml`](IMPL-DEM-002.toml) | `IMPL-CORE-001`, `DES-005`, `RES-05` |
 | I2 | `IMPL-PRE-002` | [`IMPL-PRE-002.toml`](IMPL-PRE-002.toml) | `IMPL-PRE-001`, `DES-003` |
-| I2 | `IMPL-DEM-002` | [`IMPL-DEM-002.toml`](IMPL-DEM-002.toml) | `IMPL-DEM-001`, `DES-005` |
-| I3 | `IMPL-DEC-004` | [`IMPL-DEC-004.toml`](IMPL-DEC-004.toml) | `IMPL-DEC-001`, `IMPL-DEC-003` |
+| I2 | `IMPL-DEC-005` | [`IMPL-DEC-005.toml`](IMPL-DEC-005.toml) | `IMPL-CORE-001`, `IMPL-DEC-004` |
+| I2 | `IMPL-DEM-003` | [`IMPL-DEM-003.toml`](IMPL-DEM-003.toml) | `IMPL-DEM-002`, `DES-005`, `RES-05` |
 | I3 | `IMPL-PRE-003` | [`IMPL-PRE-003.toml`](IMPL-PRE-003.toml) | `IMPL-PRE-002` |
-| I3 | `IMPL-DEM-003` | [`IMPL-DEM-003.toml`](IMPL-DEM-003.toml) | `IMPL-DEM-002`, `DES-005`, `RES-05` |
-| I4 | `IMPL-DEC-005` | [`IMPL-DEC-005.toml`](IMPL-DEC-005.toml) | `IMPL-DEC-002`–`IMPL-DEC-004` |
-| I5 | `IMPL-INT-001` | [`IMPL-INT-001.toml`](IMPL-INT-001.toml) | `IMPL-DEC-005`, `IMPL-PRE-003`, `IMPL-DEM-001`, one of `IMPL-DEM-002` / `IMPL-DEM-003` |
-| I6 | `IMPL-INT-002` | [`IMPL-INT-002.toml`](IMPL-INT-002.toml) | `IMPL-INT-001` |
-| I7 | `IMPL-INT-003` | [`IMPL-INT-003.toml`](IMPL-INT-003.toml) | `IMPL-DEC-002`, `IMPL-DEC-004`, `IMPL-DEM-002`, `IMPL-DEM-003`, `IMPL-INT-002` |
-| Q | `QA-001` | [`QA-001.toml`](QA-001.toml) | `IMPL-DEC-005`, `IMPL-INT-001` |
+| I4 | `IMPL-INT-001` | [`IMPL-INT-001.toml`](IMPL-INT-001.toml) | `IMPL-DEC-003`, `IMPL-DEC-004`, `IMPL-PRE-003`, `IMPL-DEM-002` |
+| I5 | `IMPL-PY-001` | [`IMPL-PY-001.toml`](IMPL-PY-001.toml) | `IMPL-INT-001` |
+| I5 | `IMPL-DEV-001` | [`IMPL-DEV-001.toml`](IMPL-DEV-001.toml) | `IMPL-INT-001` |
+| I6 | `IMPL-INT-003` | [`IMPL-INT-003.toml`](IMPL-INT-003.toml) | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-DEM-002`, `IMPL-PY-001`, `IMPL-DEV-001` |
+| Q | `QA-001` | [`QA-001.toml`](QA-001.toml) | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-INT-001` |
 | Q | `QA-002` | [`QA-002.toml`](QA-002.toml) | `IMPL-INT-001`, `IMPL-PRE-003`, `IMPL-DEM-002`, `IMPL-DEM-003` |
-| Q | `QA-003` | [`QA-003.toml`](QA-003.toml) | `IMPL-DEC-005`, `IMPL-PRE-003`, `IMPL-INT-001` |
-| Q | `QA-004` | [`QA-004.toml`](QA-004.toml) | `IMPL-DEC-005`, `IMPL-INT-001`, `IMPL-DEM-003` |
-| Q | `QA-005` | [`QA-005.toml`](QA-005.toml) | `IMPL-INT-002`, `IMPL-INT-003` |
+| Q | `QA-003` | [`QA-003.toml`](QA-003.toml) | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-PRE-003`, `IMPL-INT-001` |
+| Q | `QA-004` | [`QA-004.toml`](QA-004.toml) | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-INT-001`, `IMPL-DEM-003` |
+| Q | `QA-005` | [`QA-005.toml`](QA-005.toml) | `IMPL-PY-001`, `IMPL-DEV-001`, `IMPL-INT-003` |
 | Q | `QA-006` | [`QA-006.toml`](QA-006.toml) | `IMPL-INT-003`, `QA-001`–`QA-005` |
+
+The decoder/algorithm replan retires `IMPL-DEC-001`, `IMPL-DEC-002`, and
+`IMPL-DEM-001`: generic interfaces are owned by `IMPL-CORE-001`, and every
+remaining DEC/DEM task must deliver a concrete implementation. Decoder format
+conformance is part of each concrete decoder task. Python and devtool migration
+use dedicated `IMPL-PY-001` and `IMPL-DEV-001` tasks instead of the retired
+combined `IMPL-INT-002`.
 
 ## Planned execution waves
 
@@ -71,21 +76,19 @@ implementation placeholders.
   flattens the model, establishes generic decoder and direct stage boundaries,
   ports the reusable linear demosaic baseline, and removes `fornax-dalim` after
   the design and persistent documentation are merged.
-- **I1:** the decoder registry, preprocessing foundation, and direct demosaic
-  dispatch can start concurrently as distinct modules in `fornax` after the core gate.
+- **I1:** LibRaw, rawler, preprocessing foundation, and bilinear demosaic can
+  start concurrently as concrete implementations in `fornax` after the core gate.
   Root `Cargo.toml`/`Cargo.lock` edits are shared: merge one branch first, then
   rebase/regenerate the others before opening or updating their PRs when those
   files overlap.
-- **I2:** the LibRaw and dnglab adapter modules and black subtraction follow
-  their track contracts; later demosaic tasks refine the core baseline.
-  Decoder tasks own separate
-  `fornax::decoder` modules and must not edit one another's sources; the same
-  shared lockfile merge rule applies when their branches are finalized.
-- **I3:** the DNC bridge, normalization/final clipping, and in-crate
-  Malvar-He-Cutler strategy follow their prerequisites.
-- **I4–I5:** decoder conformance precedes the explicit pipeline module.
-- **I6–I7:** Python/devtool migration and legacy-crate retirement complete the
-  supported production surface.
+- **I2:** DNC, black subtraction, and Malvar-He-Cutler follow their concrete
+  decoder/algorithm prerequisites. Each decoder task owns its format fixture
+  and conformance evidence; there is no separate decoder QA placeholder.
+- **I3:** normalization and final clipping complete preprocessing.
+- **I4:** the explicit pipeline module composes the concrete decoders and
+  algorithms.
+- **I5–I6:** Python and devtool migrate independently, then the remaining legacy
+  facade/core/dalim wiring is retired.
 - **Q:** metadata, numerical, error, and performance QA start after integration;
   migration documentation waits for the retired public surface, and final
   workspace validation is last.
@@ -113,38 +116,37 @@ flowchart LR
     end
 
     Core["IMPL-CORE-001"]
-    Dec["IMPL-DEC-001"]
-    LibRaw["IMPL-DEC-002"]
-    Dnglab["IMPL-DEC-003"]
-    Dnc["IMPL-DEC-004"]
-    DecQA["IMPL-DEC-005"]
+    LibRaw["IMPL-DEC-003"]
+    Dnglab["IMPL-DEC-004"]
+    Dnc["IMPL-DEC-005"]
     Pre1["IMPL-PRE-001"]
     Pre2["IMPL-PRE-002"]
     Pre3["IMPL-PRE-003"]
-    Dem1["IMPL-DEM-001"]
     Dem2["IMPL-DEM-002"]
     Dem3["IMPL-DEM-003"]
     Int1["IMPL-INT-001"]
-    Int2["IMPL-INT-002"]
+    Py["IMPL-PY-001"]
+    Dev["IMPL-DEV-001"]
     Int3["IMPL-INT-003"]
     QA["QA-001..QA-006"]
 
     Docs --> Core
-    Core --> Dec
+    Core --> LibRaw
+    Core --> Dnglab
     Core --> Pre1
-    Core --> Dem1
-    Dec --> LibRaw
-    Dec --> Dnglab
+    Core --> Dem2
     Dnglab --> Dnc
-    LibRaw --> DecQA
-    Dnglab --> DecQA
-    Dnc --> DecQA
     Pre1 --> Pre2 --> Pre3
-    Dem1 --> Dem2 --> Dem3
-    DecQA --> Int1
+    Dem2 --> Dem3
+    LibRaw --> Int1
+    Dnglab --> Int1
+    Dnc --> Int1
     Pre3 --> Int1
     Dem2 --> Int1
-    Int1 --> Int2 --> Int3
+    Int1 --> Py
+    Int1 --> Dev
+    Py --> Int3
+    Dev --> Int3
     Int1 --> QA
     Int3 --> QA
 ```
