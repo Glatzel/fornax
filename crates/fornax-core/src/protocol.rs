@@ -4,9 +4,22 @@
 //! Concrete backends and algorithms belong to later implementation tasks; this
 //! module fixes the shared stage boundaries they implement.
 
+use image::{ImageBuffer, Rgb};
 use thiserror::Error;
 
 use crate::{DecodedRaw, PixelSize, RawImage, RawValidationError, ValidatedMetadata};
+
+/// Linear interleaved RGB `f32` output backed by image-rs.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_core::RgbImageF32;
+///
+/// let image = RgbImageF32::from_raw(1, 1, vec![0.1, 0.2, 0.3]).unwrap();
+/// assert_eq!(image.as_raw(), &[0.1, 0.2, 0.3]);
+/// ```
+pub type RgbImageF32 = ImageBuffer<Rgb<f32>, Vec<f32>>;
 
 /// Raw bytes and optional source name supplied to a decoder backend.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -134,7 +147,7 @@ pub trait RawPreprocessor: Send + Sync {
     ) -> Result<RawImage, PreprocessError>;
 }
 
-/// A demosaicing backend that reconstructs linear planar RGB.
+/// A demosaicing backend that reconstructs linear interleaved RGB.
 pub trait DemosaicBackend: Send + Sync {
     /// Reconstructs linear RGB from one preprocessed Bayer image.
     ///
@@ -146,7 +159,7 @@ pub trait DemosaicBackend: Send + Sync {
         &self,
         input: &RawImage,
         options: &DemosaicOptions,
-    ) -> Result<PlanarRgbF32, DemosaicError>;
+    ) -> Result<RgbImageF32, DemosaicError>;
 }
 
 impl DecodedRaw {
@@ -193,88 +206,36 @@ impl RawImage {
         &self,
         demosaicer: &D,
         options: &DemosaicOptions,
-    ) -> Result<(PlanarRgbF32, std::sync::Arc<ValidatedMetadata>), DemosaicError> {
+    ) -> Result<(RgbImageF32, std::sync::Arc<ValidatedMetadata>), DemosaicError> {
         let output = demosaicer.demosaic(self, options)?;
-        if output.dimensions() != self.metadata().stored_geometry().dimensions() {
-            return Err(DemosaicError::InvalidInput(
-                "output dimensions do not match the source image".into(),
-            ));
-        }
+        validate_rgb_output(&output, self.metadata().stored_geometry().dimensions())?;
         Ok((output, self.metadata_arc()))
     }
 }
 
-/// Tightly packed, channel-major linear RGB `f32` output.
-#[derive(Clone, Debug, PartialEq)]
-pub struct PlanarRgbF32 {
-    dimensions: PixelSize,
-    samples: Box<[f32]>,
-}
-
-impl PlanarRgbF32 {
-    /// Creates planar RGB output from channel-major samples.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`RawValidationError::InvalidGeometry`] when the sample count
-    /// does not equal `3 * width * height`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::{PixelSize, PlanarRgbF32};
-    ///
-    /// let image = PlanarRgbF32::try_new(PixelSize::new(1, 1).unwrap(), vec![1.0, 0.5, 0.0]).unwrap();
-    /// assert_eq!(image.channel(1), Some(&[0.5][..]));
-    /// ```
-    pub fn try_new(dimensions: PixelSize, samples: Vec<f32>) -> Result<Self, RawValidationError> {
-        let pixels = u64::from(dimensions.width())
-            .checked_mul(u64::from(dimensions.height()))
-            .and_then(|count| count.checked_mul(3))
-            .ok_or(RawValidationError::InvalidGeometry)?;
-        if u64::try_from(samples.len()) != Ok(pixels) {
-            return Err(RawValidationError::InvalidGeometry);
-        }
-        if samples.iter().any(|sample| !sample.is_finite()) {
-            return Err(RawValidationError::NonFiniteSample);
-        }
-        Ok(Self {
-            dimensions,
-            samples: samples.into_boxed_slice(),
-        })
+fn validate_rgb_output(output: &RgbImageF32, expected: PixelSize) -> Result<(), DemosaicError> {
+    let (width, height) = output.dimensions();
+    if width != expected.width() || height != expected.height() {
+        return Err(DemosaicError::InvalidInput(
+            "output dimensions do not match the source image".into(),
+        ));
     }
-
-    /// Returns output dimensions.
-    pub const fn dimensions(&self) -> PixelSize { self.dimensions }
-
-    /// Returns the channel-major R, G, B samples.
-    pub fn samples(&self) -> &[f32] { &self.samples }
-
-    /// Returns one channel plane, where channel 0, 1, and 2 are R, G, and B.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::PlanarRgbF32;
-    ///
-    /// assert_eq!(
-    ///     PlanarRgbF32::try_new(
-    ///         fornax_core::PixelSize::new(1, 1).unwrap(),
-    ///         vec![0.1, 0.2, 0.3],
-    ///     )
-    ///     .unwrap()
-    ///     .channel(2),
-    ///     Some(&[0.3][..])
-    /// );
-    /// ```
-    pub fn channel(&self, channel: usize) -> Option<&[f32]> {
-        let pixels =
-            u64::from(self.dimensions.width()).checked_mul(u64::from(self.dimensions.height()))?;
-        let pixels = usize::try_from(pixels).ok()?;
-        let start = channel.checked_mul(pixels)?;
-        let end = start.checked_add(pixels)?;
-        self.samples.get(start..end)
+    let expected_samples = expected
+        .sample_count()
+        .ok()
+        .and_then(|count| count.checked_mul(3))
+        .ok_or_else(|| DemosaicError::InvalidInput("output size overflows usize".into()))?;
+    if output.as_raw().len() != expected_samples {
+        return Err(DemosaicError::InvalidInput(
+            "output sample count does not match its dimensions".into(),
+        ));
     }
+    if output.as_raw().iter().any(|sample| !sample.is_finite()) {
+        return Err(DemosaicError::InvalidInput(
+            "output contains a non-finite sample".into(),
+        ));
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -293,27 +254,31 @@ mod tests {
     }
 
     #[test]
-    fn planar_rgb_has_channel_major_layout() {
-        let image = PlanarRgbF32::try_new(
-            PixelSize::new(2, 1).unwrap(),
-            vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-        )
-        .unwrap();
-        assert_eq!(image.channel(0), Some(&[1.0, 2.0][..]));
-        assert_eq!(image.channel(1), Some(&[3.0, 4.0][..]));
-        assert_eq!(image.channel(2), Some(&[5.0, 6.0][..]));
-        assert_eq!(image.channel(3), None);
+    fn rgb_image_uses_image_rs_interleaved_layout() {
+        let image = RgbImageF32::from_raw(1, 1, vec![0.1, 0.2, 0.3]).unwrap();
+        assert_eq!(image.get_pixel(0, 0), &Rgb([0.1, 0.2, 0.3]));
+        assert_eq!(
+            validate_rgb_output(&image, PixelSize::new(1, 1).unwrap()),
+            Ok(())
+        );
     }
 
     #[test]
-    fn planar_rgb_rejects_wrong_sample_count() {
-        assert_eq!(
-            PlanarRgbF32::try_new(PixelSize::new(2, 1).unwrap(), vec![0.0; 5]),
-            Err(RawValidationError::InvalidGeometry)
-        );
-        assert_eq!(
-            PlanarRgbF32::try_new(PixelSize::new(1, 1).unwrap(), vec![f32::NAN; 3]),
-            Err(RawValidationError::NonFiniteSample)
-        );
+    fn rgb_output_validation_rejects_invalid_buffers() {
+        let wrong_size = RgbImageF32::from_raw(2, 1, vec![0.0; 6]).unwrap();
+        assert!(matches!(
+            validate_rgb_output(&wrong_size, PixelSize::new(1, 1).unwrap()),
+            Err(DemosaicError::InvalidInput(_))
+        ));
+        let wrong_count = RgbImageF32::from_raw(1, 1, vec![0.0; 4]).unwrap();
+        assert!(matches!(
+            validate_rgb_output(&wrong_count, PixelSize::new(1, 1).unwrap()),
+            Err(DemosaicError::InvalidInput(_))
+        ));
+        let non_finite = RgbImageF32::from_raw(1, 1, vec![f32::NAN; 3]).unwrap();
+        assert!(matches!(
+            validate_rgb_output(&non_finite, PixelSize::new(1, 1).unwrap()),
+            Err(DemosaicError::InvalidInput(_))
+        ));
     }
 }

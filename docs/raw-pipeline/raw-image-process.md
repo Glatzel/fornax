@@ -51,7 +51,7 @@ flowchart TB
 | --- | --- | --- | --- | --- |
 | Decode / custom | u8/u16/u32/f32 sensor plane | Backend unpack; optional `convert_to_f32` (lossless when representable) and user operation while state remains `Decoded` | Native sample specification, geometry, CFA, ActiveArea, required levels, and provenance validated | Unsupported specification/layout, invalid levels, or lossy conversion |
 | `pre_process` | `DecodedRaw` to `RawImage` | Runs linearization, black subtraction, normalization, and final clipping as private substeps | Decoder-validated black/white metadata is present; output is f32-only and in `[0,1]` | Non-finite values |
-| Demosaic | f32 planar RGB | Apply selected Bayer algorithm | Planar channel order and border policy explicit | Unsupported algorithm/layout |
+| Demosaic | image-rs RGB `f32` | Apply selected Bayer algorithm | Interleaved channel order and border policy explicit | Unsupported algorithm/layout |
 
 ## Preprocessing operation contract
 

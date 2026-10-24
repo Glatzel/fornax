@@ -9,13 +9,13 @@ deliverables = ["fornax-demosaic contract source", "input, output, registry, and
 scope = """
 Use the draft DemosaicBackend, options, output, and error contracts in
 fornax-core and adjust them as necessary in fornax-demosaic. Add DemosaicInput,
-planar R/G/B f32 output validation, DemosaicStrategy, capabilities, border
+RgbImageF32 interleaved output validation, DemosaicStrategy, capabilities, border
 policy, and runtime registry. Validate the consuming f32-only RawImage boundary
 without implementing a reconstruction algorithm in this task.
 """
 acceptance = [
   "DemosaicInput validates dimensions, exact sample count, finite values in [0,1], Bayer phase, and ActiveArea-relative lookup.",
-  "Planar output uses checked size arithmetic and fallible allocation with fixed R, G, B channel-major order.",
+  "RgbImageF32 output uses image-rs ImageBuffer<Rgb<f32>, Vec<f32>> with checked dimensions, exact interleaved sample count, and finite values.",
   "The object-safe strategy contract exposes capabilities and algorithm identity without algorithm-specific options in shared input.",
   "Registry registration rejects duplicate IDs and phase claims unsupported by the initial contract.",
   "Output retains immutable metadata and run provenance and does not apply crop, orientation, white balance, color conversion, tone mapping, or clipping.",

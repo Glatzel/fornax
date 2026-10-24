@@ -119,12 +119,13 @@ pub trait DemosaicBackend: Send + Sync {
         &self,
         input: &RawImage,
         options: &DemosaicOptions,
-    ) -> Result<PlanarRgbF32, DemosaicError>;
+    ) -> Result<RgbImageF32, DemosaicError>;
 }
 ```
 
 Core's `RawImage::demosaic` wrapper validates output dimensions and returns
-`(PlanarRgbF32, Arc<ValidatedMetadata>)`.
+`(RgbImageF32, Arc<ValidatedMetadata>)`, where `RgbImageF32` is
+`ImageBuffer<Rgb<f32>, Vec<f32>>`.
 
 Later implementation tasks may refine options, capabilities, registries, and
 output details, but the phase boundaries and consuming image types are the

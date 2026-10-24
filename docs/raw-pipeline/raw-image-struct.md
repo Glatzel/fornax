@@ -54,7 +54,7 @@ classDiagram
     CommonMetadata *-- BlackLevels
     CommonMetadata *-- WhiteLevels
     DecodedRaw ..> RawImage : pre_process
-    RawImage ..> PlanarRgbF32 : demosaic tuple with metadata
+    RawImage ..> RgbImageF32 : demosaic tuple with metadata
 ```
 
 ## Core image

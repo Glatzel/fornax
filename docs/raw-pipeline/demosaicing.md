@@ -1,7 +1,7 @@
 # Demosaicing Interface
 
 Demosaicing is the final phase in the required pipeline. It accepts the
-f32-only preprocessed `RawImage` and returns linear planar RGB f32.
+f32-only preprocessed `RawImage` and returns linear image-rs RGB f32.
 
 ```mermaid
 flowchart LR
@@ -14,7 +14,7 @@ flowchart LR
     subgraph DemosaicPhase["3 · Demosaic"]
         Input["DemosaicInput\nphase-aware"]
         Strategy["Configured strategy\nobject-safe"]
-        Output["Planar R,G,B f32\nlinear output"]
+        Output["ImageBuffer<Rgb<f32>>\nlinear output"]
         Input --> Strategy
         Strategy --> Output
     end
@@ -45,18 +45,20 @@ slot.
 
 ## Output contract
 
-`PlanarRgbF32` stores `3 * width * height` f32 samples in channel-major planes:
+`RgbImageF32` is
+`image::ImageBuffer<image::Rgb<f32>, Vec<f32>>`. It stores
+`3 * width * height` interleaved f32 samples:
 
 ```text
-[R plane][G plane][B plane]
+[R G B][R G B]...
 ```
 
 Output dimensions equal input dimensions. Values remain linear and are not
 implicitly quantized or clipped. Algorithms document overshoot/undershoot
 behavior; callers may apply an explicit output policy where appropriate.
 
-Interleaved output is an optional downstream conversion, not a second pipeline
-representation.
+Image-rs owns the output allocation and dimensions. Core validates exact
+sample counts and finite values before returning the image.
 
 ## Strategy interface
 
@@ -69,13 +71,13 @@ pub trait DemosaicBackend: Send + Sync {
         &self,
         input: &RawImage,
         options: &DemosaicOptions,
-    ) -> Result<PlanarRgbF32, DemosaicError>;
+    ) -> Result<RgbImageF32, DemosaicError>;
 }
 ```
 
 `IMPL-DEM-001` may refine this into the runtime strategy/registry interface
-below while preserving the `RawImage` input and channel-major linear f32
-output boundary.
+below while preserving the `RawImage` input and interleaved linear f32 output
+boundary.
 
 ```rust
 pub trait DemosaicStrategy: Send + Sync {
@@ -85,13 +87,13 @@ pub trait DemosaicStrategy: Send + Sync {
     fn validate(
         &self,
         input: &DemosaicInput<'_>,
-        output: &PlanarRgbF32,
+        output: &RgbImageF32,
     ) -> Result<(), DemosaicError>;
 
     fn process(
         &self,
         input: &DemosaicInput<'_>,
-        output: &mut PlanarRgbF32,
+        output: &mut RgbImageF32,
     ) -> Result<DemosaicRun, DemosaicError>;
 }
 ```
@@ -122,7 +124,7 @@ allowed.
 
 ## Metadata retention
 
-`RawImage::demosaic` returns `(PlanarRgbF32, Arc<ValidatedMetadata>)`, retaining
+`RawImage::demosaic` returns `(RgbImageF32, Arc<ValidatedMetadata>)`, retaining
 source metadata without a wrapper type. It does not apply or discard WB, color
 matrices, orientation, crop, or decoder provenance. No per-pixel metadata is
 emitted.
@@ -133,9 +135,10 @@ emitted.
 out-of-range samples, unsupported phases, too-small images, duplicate/unknown
 algorithms, failed strategies, and allocation failure.
 
-`PlanarRgbF32::try_new` checks `3 * width * height` overflow and uses fallible
-allocation. Callers may reuse matching output buffers. Strategies may allocate
-private scratch buffers; allocation failure is structured.
+The demosaicing boundary checks `3 * width * height` overflow, exact buffer
+length, finite values, and output dimensions. Callers may reuse matching
+image-rs buffers. Strategies may allocate private scratch buffers; allocation
+failure is structured.
 
 ## Initial algorithms
 
@@ -144,8 +147,9 @@ private scratch buffers; allocation failure is structured.
 3. Edge-aware algorithms — deferred until quality and options are evaluated.
 
 The Rust `demosaic` crate is the initial adapter candidate: map the validated
-Bayer phase and configured algorithm, call its primary planar f32 entry, and do
-not expose its CFA/error/algorithm types as the public `fornax` contract.
+Bayer phase and configured algorithm, convert its planar f32 result to
+image-rs interleaved RGB, and do not expose its CFA/error/algorithm types as
+the public `fornax` contract.
 
 ## Exclusions
 

@@ -39,7 +39,7 @@ pub use metadata::{
 };
 pub use plane::{F32Plane, SampleFormat, SampleSpec, StoredPlane, U8Plane, U16Plane, U32Plane};
 pub use protocol::{
-    DecodeConfig, DecodeError, DemosaicBackend, DemosaicError, DemosaicOptions, PlanarRgbF32,
-    PreprocessError, PreprocessOptions, RawDecoderBackend, RawInput, RawPreprocessor,
+    DecodeConfig, DecodeError, DemosaicBackend, DemosaicError, DemosaicOptions, PreprocessError,
+    PreprocessOptions, RawDecoderBackend, RawInput, RawPreprocessor, RgbImageF32,
 };
 pub use raw_image::{RawImage, into_preprocessed};
