@@ -56,10 +56,10 @@ jobs:
       # - if: ${{runner.os != 'Linux'}}
       #   run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
       #   shell: pwsh
-      # - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
-      #   with:
-      #     toolchain: nightly
-      #     components: clippy
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+        with:
+          toolchain: nightly
+          components: clippy
       # - uses: Glatzel/template/.github/actions/rust/cargo-clippy@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
       - uses: Glatzel/template/.github/actions/rust/cargo-test@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         with:
