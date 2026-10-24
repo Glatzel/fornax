@@ -26,8 +26,9 @@ design, or implementation were added during this work.
   `agent-work/references/README.md`.
 - The production `external/raw-images` fixture submodule remains in place because
   existing tests and development tools consume it.
-- The empty design marker was replaced by the required, explicitly not-started
-  `agent-work/design/raw-pipeline.md` placeholder.
+- The empty design marker was initially replaced by an
+  `agent-work/design/raw-pipeline.md` placeholder. That placeholder is retired;
+  the persistent design now lives under repository-root `docs/raw-pipeline/`.
 
 ## Resume point
 

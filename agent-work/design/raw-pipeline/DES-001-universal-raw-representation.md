@@ -27,8 +27,8 @@ decoder adapter and consumed by preprocessing. It incorporates the metadata
 model from DES-002, the CFA and payload rules from DES-003, and the numerical
 stage contract from SYN-02.
 
-The proposed names are pre-`SYN-03`/`DES-007` candidates. They are not final
-public API.
+The names in this proposal record design rationale. The normative persistent
+design is maintained under repository-root `docs/raw-pipeline/`.
 
 Core decisions:
 
