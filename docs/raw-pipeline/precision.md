@@ -74,9 +74,8 @@ require a separately verified wider path or structured rejection.
 
 Converting decoded u8/u16/u32 data to f32 for custom processing is opt-in and
 keeps the value as `DecodedRaw` with an f32 plane. The custom
-operation must declare whether original black/white metadata remains valid. A
-changed sample basis with stale levels is rejected before standard
-preprocessing.
+operation must preserve the black/white semantics established by the decoder;
+standard preprocessing always uses those validated metadata levels.
 
 ## Related guides
 

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::plane::validate_finite;
-use crate::{DecodedRaw, F32Plane, MetadataBasis, RawValidationError, ValidatedMetadata};
+use crate::{DecodedRaw, F32Plane, RawValidationError, ValidatedMetadata};
 
 /// A preprocessed, demosaic-ready RAW image with a single f32 plane.
 ///
@@ -20,7 +20,6 @@ use crate::{DecodedRaw, F32Plane, MetadataBasis, RawValidationError, ValidatedMe
 pub struct RawImage {
     metadata: Arc<ValidatedMetadata>,
     plane: F32Plane,
-    metadata_basis: MetadataBasis,
 }
 
 impl RawImage {
@@ -32,9 +31,6 @@ impl RawImage {
 
     /// Returns the preprocessed single-channel f32 plane.
     pub const fn plane(&self) -> &F32Plane { &self.plane }
-
-    /// Returns the black/white metadata validity basis retained from decoding.
-    pub const fn metadata_basis(&self) -> &MetadataBasis { &self.metadata_basis }
 
     /// Consumes the image and returns its f32 plane.
     pub fn into_plane(self) -> F32Plane { self.plane }
@@ -49,7 +45,7 @@ pub fn into_preprocessed(
     image: DecodedRaw,
     plane: F32Plane,
 ) -> Result<RawImage, RawValidationError> {
-    let (metadata, _, metadata_basis) = image.into_preprocessing_parts()?;
+    let (metadata, _) = image.into_preprocessing_parts()?;
     metadata.validate_f32_working_plane(&plane)?;
     validate_finite(&plane)?;
     if plane
@@ -59,9 +55,5 @@ pub fn into_preprocessed(
     {
         return Err(RawValidationError::InvalidReadinessRange);
     }
-    Ok(RawImage {
-        metadata,
-        plane,
-        metadata_basis,
-    })
+    Ok(RawImage { metadata, plane })
 }

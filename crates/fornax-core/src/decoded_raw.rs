@@ -1,27 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    BlackLevels, DecoderProvenance, RawValidationError, SampleFormat, SampleSpec, Sourced,
-    StoredPlane, ValidatedMetadata, WhiteLevels,
+    DecoderProvenance, RawValidationError, SampleFormat, SampleSpec, StoredPlane, ValidatedMetadata,
 };
-
-/// Whether standard black/white metadata remains valid after decoded
-/// processing.
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub enum MetadataBasis {
-    /// The original file-declared black and white metadata remains valid.
-    OriginalLevelsValid,
-    /// Custom processing supplied replacement levels.
-    ReplacedLevels {
-        /// Replacement black levels.
-        black: Box<Sourced<BlackLevels>>,
-        /// Replacement white levels.
-        white: Box<Sourced<WhiteLevels>>,
-    },
-    /// Metadata no longer describes the sample basis.
-    Incompatible,
-}
 
 /// A decoder-produced RAW image before standard preprocessing.
 ///
@@ -45,7 +26,6 @@ pub enum MetadataBasis {
 pub struct DecodedRaw {
     metadata: Arc<ValidatedMetadata>,
     plane: StoredPlane,
-    metadata_basis: MetadataBasis,
 }
 
 impl DecodedRaw {
@@ -75,7 +55,6 @@ impl DecodedRaw {
         Ok(Self {
             metadata: Arc::new(metadata),
             plane,
-            metadata_basis: MetadataBasis::OriginalLevelsValid,
         })
     }
 
@@ -91,10 +70,9 @@ impl DecodedRaw {
     /// Returns mutable access to the decoded stored plane for custom
     /// processing.
     ///
-    /// Mutations are not validated immediately. Call
-    /// [`Self::set_metadata_basis`] when the sample transformation changes
-    /// the validity of black/white metadata. Validation is applied
-    /// automatically when preprocessing consumes the image.
+    /// Mutations are not validated immediately. Custom sample edits must
+    /// preserve the metadata semantics established by the decoder. Validation
+    /// is applied automatically when preprocessing consumes the image.
     ///
     /// # Examples
     ///
@@ -114,28 +92,6 @@ impl DecodedRaw {
 
     /// Returns decoder provenance.
     pub fn decoder(&self) -> &DecoderProvenance { self.metadata.decoder() }
-
-    /// Returns the black/white metadata validity basis.
-    pub const fn metadata_basis(&self) -> &MetadataBasis { &self.metadata_basis }
-
-    /// Replaces the validity basis after custom sample processing.
-    ///
-    /// The caller must supply replacement levels when transformations change
-    /// the sample basis, or [`MetadataBasis::Incompatible`] when standard
-    /// preprocessing must not consume the image.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::{DecodedRaw, MetadataBasis};
-    ///
-    /// fn reject_standard_preprocessing(image: &mut DecodedRaw) {
-    ///     image.set_metadata_basis(MetadataBasis::Incompatible);
-    /// }
-    /// ```
-    pub fn set_metadata_basis(&mut self, metadata_basis: MetadataBasis) {
-        self.metadata_basis = metadata_basis;
-    }
 
     /// Converts integer samples to working f32 storage.
     ///
@@ -184,9 +140,6 @@ impl DecodedRaw {
     }
 
     fn validate_for_preprocessing(&self) -> Result<(), RawValidationError> {
-        if matches!(self.metadata_basis, MetadataBasis::Incompatible) {
-            return Err(RawValidationError::InvalidCustomMetadataBasis);
-        }
         match &self.plane {
             StoredPlane::U8(_) | StoredPlane::U16(_) | StoredPlane::U32(_) => {
                 self.metadata.validate_native_plane(&self.plane)
@@ -206,13 +159,13 @@ impl DecodedRaw {
     /// # Errors
     ///
     /// Returns a typed error if user mutation left the plane incompatible with
-    /// its metadata or if the metadata basis is incompatible.
+    /// its metadata.
     #[doc(hidden)]
     pub fn into_preprocessing_parts(
         self,
-    ) -> Result<(Arc<ValidatedMetadata>, StoredPlane, MetadataBasis), RawValidationError> {
+    ) -> Result<(Arc<ValidatedMetadata>, StoredPlane), RawValidationError> {
         self.validate_for_preprocessing()?;
-        Ok((self.metadata, self.plane, self.metadata_basis))
+        Ok((self.metadata, self.plane))
     }
 }
 
@@ -224,9 +177,9 @@ mod tests {
 
     use super::*;
     use crate::{
-        ActiveArea, AuthorityClass, BayerLayout, BayerPattern, CommonMetadata, Confidence,
-        ExtensibleMetadata, PixelSize, Provenance, ProviderId, RawImage, SourceKind,
-        StoredGeometry, U16Plane, into_preprocessed,
+        ActiveArea, AuthorityClass, BayerLayout, BayerPattern, BlackLevels, CommonMetadata,
+        Confidence, ExtensibleMetadata, PixelSize, Provenance, ProviderId, Rational, RawImage,
+        SourceKind, Sourced, StoredGeometry, U16Plane, WhiteLevels, into_preprocessed,
     };
 
     fn provenance() -> Provenance {
@@ -242,6 +195,16 @@ mod tests {
 
     fn sourced<T>(value: T) -> Sourced<T> { Sourced::new(value, provenance()) }
 
+    fn black_levels() -> BlackLevels {
+        let zero = Rational::new(0, NonZeroU32::new(1).unwrap());
+        BlackLevels::try_new(zero, [zero; 4], None).unwrap()
+    }
+
+    fn white_levels() -> WhiteLevels {
+        let white = Rational::new(65_535, NonZeroU32::new(1).unwrap());
+        WhiteLevels::try_new(vec![white], None, None).unwrap()
+    }
+
     fn decoded() -> DecodedRaw {
         let dimensions = PixelSize::new(2, 2).unwrap();
         let active_area = ActiveArea::try_new(dimensions, 1, 1, 2, 2).unwrap();
@@ -253,6 +216,8 @@ mod tests {
             stored_geometry: Some(sourced(geometry)),
             active_area: Some(sourced(active_area)),
             cfa: Some(sourced(BayerLayout::new(BayerPattern::Gbrg, active_area))),
+            black: Some(sourced(black_levels())),
+            white: Some(sourced(white_levels())),
             ..CommonMetadata::default()
         };
         let metadata = ValidatedMetadata::try_new(
@@ -283,11 +248,7 @@ mod tests {
             panic!("converted image has an f32 plane");
         };
         plane.as_mut().fill(0.25);
-        custom.set_metadata_basis(MetadataBasis::Incompatible);
-        assert_eq!(
-            custom.into_preprocessing_parts().unwrap_err(),
-            RawValidationError::InvalidCustomMetadataBasis
-        );
+        custom.into_preprocessing_parts().unwrap();
     }
 
     #[test]
@@ -309,28 +270,6 @@ mod tests {
                 .unwrap_err(),
             RawValidationError::InvalidReadinessRange
         );
-    }
-
-    #[test]
-    fn replaced_levels_are_accepted() {
-        let one = NonZeroU32::new(1).unwrap();
-        let black = crate::Rational::new(1, one);
-        let white = crate::Rational::new(100, one);
-        let basis = MetadataBasis::ReplacedLevels {
-            black: Box::new(sourced(
-                BlackLevels::try_new(black, [black; 4], None).unwrap(),
-            )),
-            white: Box::new(sourced(
-                WhiteLevels::try_new(vec![white], None, None).unwrap(),
-            )),
-        };
-        let mut image = decoded().convert_to_f32().unwrap();
-        let StoredPlane::F32(plane) = image.plane_mut() else {
-            panic!("converted image has an f32 plane");
-        };
-        plane.as_mut().fill(0.5);
-        image.set_metadata_basis(basis);
-        image.into_preprocessing_parts().unwrap();
     }
 
     #[test]
@@ -384,6 +323,8 @@ mod tests {
                 ))),
                 active_area: Some(sourced(active_area)),
                 cfa: Some(sourced(BayerLayout::new(BayerPattern::Rggb, active_area))),
+                black: Some(sourced(black_levels())),
+                white: Some(sourced(white_levels())),
                 ..CommonMetadata::default()
             };
             ValidatedMetadata::try_new(

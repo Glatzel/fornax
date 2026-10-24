@@ -41,7 +41,7 @@ flowchart TB
     Reject["Structured rejection"]
 
     Adapter -->|unsupported layout / sample specification| Reject
-    Preprocess -->|metadata basis invalid| Reject
+    Decoded -->|missing/invalid metadata| Reject
     Ready --> Demosaic
 ```
 
@@ -49,8 +49,8 @@ flowchart TB
 
 | Step | Payload | Main operation | Required invariant | Failure mode |
 | --- | --- | --- | --- | --- |
-| Decode / custom | u8/u16/u32/f32 sensor plane | Backend unpack; optional `convert_to_f32` (lossless when representable) and user operation while state remains `Decoded` | Native sample specification, geometry, CFA, ActiveArea, levels, provenance, and metadata basis validated | Unsupported specification/layout or lossy conversion |
-| `pre_process` | `DecodedRaw` to `RawImage` | Runs linearization, black subtraction, normalization, and final clipping as private substeps | Input metadata basis permits standard preprocessing; output is f32-only and in `[0,1]` | Missing/invalid metadata or non-finite values |
+| Decode / custom | u8/u16/u32/f32 sensor plane | Backend unpack; optional `convert_to_f32` (lossless when representable) and user operation while state remains `Decoded` | Native sample specification, geometry, CFA, ActiveArea, required levels, and provenance validated | Unsupported specification/layout, invalid levels, or lossy conversion |
+| `pre_process` | `DecodedRaw` to `RawImage` | Runs linearization, black subtraction, normalization, and final clipping as private substeps | Decoder-validated black/white metadata is present; output is f32-only and in `[0,1]` | Non-finite values |
 | Demosaic | f32 planar RGB | Apply selected Bayer algorithm | Planar channel order and border policy explicit | Unsupported algorithm/layout |
 
 ## Preprocessing operation contract
@@ -87,10 +87,9 @@ that constructs `RawImage`. Because `pre_process` is defined only on
 `DecodedRaw::convert_to_f32` replaces an integer `StoredPlane` with an `f32`
 plane. Repeated conversion is rejected from the plane variant and declared
 integer sample specification without a separate storage flag. Custom
-processing uses `DecodedRaw::plane_mut()` and remains a `DecodedRaw`. After
-changing the sample basis, the caller updates it with `set_metadata_basis` using
-`MetadataBasis::{OriginalLevelsValid, ReplacedLevels, Incompatible}`. Standard
-preprocessing revalidates the mutated plane and rejects `Incompatible`.
+processing uses `DecodedRaw::plane_mut()` and remains a `DecodedRaw`. Custom
+sample edits must preserve the decoder-provided black/white metadata semantics;
+preprocessing revalidates the mutated plane before use.
 
 Numerical rules:
 
@@ -117,13 +116,13 @@ Allocation policy:
 - allocation arithmetic is checked; and
 - metadata remains immutable behind an `Arc`.
 
-Missing required CFA, linearization, black-level, or white-level metadata fails
-with a structured `PreprocessError`. General spatial black tiles and
-`BlackLevelDeltaH`/`V` remain unsupported.
+Missing or invalid black-level, white-level, CFA, or linearization metadata is
+rejected while constructing `DecodedRaw`. General spatial black tiles and
+`BlackLevelDeltaH`/`V` remain unsupported by preprocessing.
 
 The conversion itself is lossless for u8/u16 inputs. It does not prove that
-arbitrary custom processing preserves the meaning of file-declared black or
-white levels; `DecodedRaw` retains that metadata-basis decision.
+arbitrary custom processing preserves the meaning of decoder-validated black
+or white levels.
 
 ## Where preprocessing stops
 

@@ -64,9 +64,6 @@ pub enum RawValidationError {
     /// A demosaic-ready plane contains a sample outside `[0, 1]`.
     #[error("demosaic-ready sample is outside [0, 1]")]
     InvalidReadinessRange,
-    /// A custom operation left metadata that standard preprocessing cannot use.
-    #[error("custom processing metadata basis is incompatible with standard preprocessing")]
-    InvalidCustomMetadataBasis,
     /// A decoded image received an operation that is invalid for its sample
     /// storage.
     #[error("invalid decoded RAW sample storage")]

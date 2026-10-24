@@ -1096,6 +1096,25 @@ impl BlackLevels {
             Ok(())
         }
     }
+
+    fn repeat_maximum(&self) -> f64 {
+        self.repeat.as_ref().map_or(0.0, |tile| {
+            tile.values
+                .iter()
+                .map(|value| value.as_f64())
+                .fold(0.0_f64, f64::max)
+        })
+    }
+
+    fn effective_slot(&self, slot: usize) -> f64 {
+        self.common.as_f64() + self.per_slot[slot].as_f64() + self.repeat_maximum()
+    }
+
+    fn effective_maximum(&self) -> f64 {
+        (0..4)
+            .map(|slot| self.effective_slot(slot))
+            .fold(0.0_f64, f64::max)
+    }
 }
 
 /// Declared, decoder-adjusted, and measured white levels.
@@ -1179,6 +1198,27 @@ impl WhiteLevels {
     }
 }
 
+fn validate_level_relationship(
+    black: &BlackLevels,
+    white: &WhiteLevels,
+) -> Result<(), RawValidationError> {
+    let valid = match white.declared.as_ref() {
+        [scalar] => scalar.as_f64() > black.effective_maximum(),
+        values if values.len() == 4 => values
+            .iter()
+            .enumerate()
+            .all(|(slot, value)| value.as_f64() > black.effective_slot(slot)),
+        _ => false,
+    };
+    if valid {
+        Ok(())
+    } else {
+        Err(RawValidationError::Metadata(
+            crate::MetadataError::InvalidLevels,
+        ))
+    }
+}
+
 /// Typed metadata candidates before required fields are validated.
 #[derive(Clone, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
@@ -1219,6 +1259,8 @@ impl CommonMetadata {
             ),
             (TypedMetadataField::ActiveArea, self.active_area.is_some()),
             (TypedMetadataField::Cfa, self.cfa.is_some()),
+            (TypedMetadataField::Black, self.black.is_some()),
+            (TypedMetadataField::White, self.white.is_some()),
         ] {
             if !present {
                 return Err(crate::MetadataError::MissingRequiredField(field));
@@ -1275,6 +1317,15 @@ impl ValidatedMetadata {
         if let Some(white) = &common.white {
             white.value.validate()?;
         }
+        let black = common
+            .black
+            .as_ref()
+            .ok_or(RawValidationError::MissingMetadata("black"))?;
+        let white = common
+            .white
+            .as_ref()
+            .ok_or(RawValidationError::MissingMetadata("white"))?;
+        validate_level_relationship(&black.value, &white.value)?;
 
         let geometry = common
             .stored_geometry
@@ -1331,6 +1382,26 @@ impl ValidatedMetadata {
 
     /// Returns decoder provenance retained for the image lifecycle.
     pub const fn decoder(&self) -> &DecoderProvenance { &self.decoder }
+
+    /// Returns required validated black levels.
+    pub fn black(&self) -> &BlackLevels {
+        &self
+            .common
+            .black
+            .as_ref()
+            .expect("validated metadata has black levels")
+            .value
+    }
+
+    /// Returns required validated white levels.
+    pub fn white(&self) -> &WhiteLevels {
+        &self
+            .common
+            .white
+            .as_ref()
+            .expect("validated metadata has white levels")
+            .value
+    }
 
     /// Returns the required sample specification.
     pub fn sample_spec(&self) -> SampleSpec {
@@ -1521,6 +1592,8 @@ mod tests {
         let different_area = ActiveArea::try_new(dimensions, 0, 0, 8, 8).unwrap();
         let geometry = StoredGeometry::new(dimensions, NonZeroU64::new(16).unwrap());
         let spec = SampleSpec::try_new(16, SampleFormat::UnsignedInteger).unwrap();
+        let zero = Rational::new(0, NonZeroU32::new(1).unwrap());
+        let white = Rational::new(65_535, NonZeroU32::new(1).unwrap());
         let common = CommonMetadata {
             sample_spec: Some(Sourced::new(
                 spec,
@@ -1538,8 +1611,44 @@ mod tests {
                 BayerLayout::new(crate::BayerPattern::Rggb, different_area),
                 provenance(AuthorityClass::DecoderObservation),
             )),
+            black: Some(Sourced::new(
+                BlackLevels::try_new(zero, [zero; 4], None).unwrap(),
+                provenance(AuthorityClass::DecoderObservation),
+            )),
+            white: Some(Sourced::new(
+                WhiteLevels::try_new(vec![white], None, None).unwrap(),
+                provenance(AuthorityClass::DecoderObservation),
+            )),
             ..CommonMetadata::default()
         };
+        let missing_black = CommonMetadata {
+            black: None,
+            ..common.clone()
+        };
+        assert_eq!(
+            ValidatedMetadata::try_new(
+                missing_black,
+                ExtensibleMetadata::default(),
+                decoder_provenance()
+            ),
+            Err(RawValidationError::Metadata(
+                crate::MetadataError::MissingRequiredField(TypedMetadataField::Black)
+            ))
+        );
+        let missing_white = CommonMetadata {
+            white: None,
+            ..common.clone()
+        };
+        assert_eq!(
+            ValidatedMetadata::try_new(
+                missing_white,
+                ExtensibleMetadata::default(),
+                decoder_provenance()
+            ),
+            Err(RawValidationError::Metadata(
+                crate::MetadataError::MissingRequiredField(TypedMetadataField::White)
+            ))
+        );
         assert_eq!(
             ValidatedMetadata::try_new(common, ExtensibleMetadata::default(), decoder_provenance()),
             Err(RawValidationError::InvalidCfa)
@@ -1552,6 +1661,49 @@ mod tests {
             ),
             Err(RawValidationError::Metadata(
                 crate::MetadataError::MissingRequiredField(TypedMetadataField::SampleSpec)
+            ))
+        );
+    }
+
+    #[test]
+    fn validated_metadata_rejects_invalid_black_white_range() {
+        use std::num::NonZeroU64;
+
+        let dimensions = PixelSize::new(2, 2).unwrap();
+        let active_area = ActiveArea::try_new(dimensions, 0, 0, 2, 2).unwrap();
+        let black = Rational::new(100, NonZeroU32::new(1).unwrap());
+        let white = Rational::new(50, NonZeroU32::new(1).unwrap());
+        let common = CommonMetadata {
+            sample_spec: Some(Sourced::new(
+                SampleSpec::try_new(16, SampleFormat::UnsignedInteger).unwrap(),
+                provenance(AuthorityClass::DecoderObservation),
+            )),
+            stored_geometry: Some(Sourced::new(
+                StoredGeometry::new(dimensions, NonZeroU64::new(4).unwrap()),
+                provenance(AuthorityClass::DecoderObservation),
+            )),
+            active_area: Some(Sourced::new(
+                active_area,
+                provenance(AuthorityClass::DecoderObservation),
+            )),
+            cfa: Some(Sourced::new(
+                BayerLayout::new(crate::BayerPattern::Rggb, active_area),
+                provenance(AuthorityClass::DecoderObservation),
+            )),
+            black: Some(Sourced::new(
+                BlackLevels::try_new(black, [black; 4], None).unwrap(),
+                provenance(AuthorityClass::DecoderObservation),
+            )),
+            white: Some(Sourced::new(
+                WhiteLevels::try_new(vec![white], None, None).unwrap(),
+                provenance(AuthorityClass::DecoderObservation),
+            )),
+            ..CommonMetadata::default()
+        };
+        assert_eq!(
+            ValidatedMetadata::try_new(common, ExtensibleMetadata::default(), decoder_provenance()),
+            Err(RawValidationError::Metadata(
+                crate::MetadataError::InvalidLevels
             ))
         );
     }

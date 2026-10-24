@@ -13,13 +13,11 @@ classDiagram
         <<decoder output>>
         +metadata
         +plane
-        +metadata_basis
     }
     class RawImage {
         <<preprocessed f32 image>>
         +metadata
         +plane
-        +metadata_basis
     }
     class ValidatedMetadata {
         <<struct>>
@@ -69,10 +67,8 @@ classDiagram
 | --- | --- | --- | --- |
 | `DecodedRaw::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
 | `DecodedRaw::plane` | `StoredPlane` | samples | Matches source geometry and declared sample specification |
-| `DecodedRaw::metadata_basis` | `MetadataBasis` | N/A | States whether level metadata remains applicable |
 | `RawImage::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during preprocessing and demosaicing |
 | `RawImage::plane` | `F32Plane` | samples | Finite preprocessed Bayer samples in `[0,1]` |
-| `RawImage::metadata_basis` | `MetadataBasis` | N/A | Retained metadata-validity basis |
 | `ValidatedMetadata::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend and revision |
 | `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleSpec` |
 | `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Working and preprocessed payload |
@@ -116,6 +112,12 @@ optional adjusted and measured arrays use the same length as the declared
 array. This keeps both green CFA positions distinguishable without treating the
 common scalar component as one of those slots.
 
+Black and white levels are required typed metadata and must be supplied by the
+decoder. `ValidatedMetadata::try_new` rejects missing or structurally invalid
+levels and requires white levels to exceed the effective black level for the
+scalar or corresponding CFA slot. Invalid level metadata therefore fails
+`DecodedRaw` construction instead of deferring the decision to preprocessing.
+
 ## Image types
 
 Decoder adapters produce `DecodedRaw`. Its `StoredPlane` covers native u8,
@@ -133,11 +135,11 @@ private to core's preprocessing finalizer and validates finite samples in
 `[0,1]` before demosaicing.
 
 Users may mutate `DecodedRaw::plane_mut()` directly for custom processing.
-After changing the sample basis, they must call
-`DecodedRaw::set_metadata_basis`. The consuming preprocessing operation
-automatically validates the current plane's dimensions, sample specification,
-and finite values before the single preprocessing pass. No operation-history
-field is retained, and callers do not invoke a separate validation method.
+Custom sample edits must preserve the black/white semantics established by the
+decoder. The consuming preprocessing operation automatically validates the
+current plane's dimensions, sample specification, and finite values before the
+single preprocessing pass. No operation-history field is retained, and callers
+do not invoke a separate validation method.
 
 ## Validation fields and errors
 
@@ -170,11 +172,10 @@ to RGB, or treats a display image as a sensor plane.
 ## Construction boundary
 
 `DecodedRaw::try_new` is the public decode boundary and validates the native
-plane against its metadata. `fornax-core` exposes a doc-hidden finalization
-helper solely for the single preprocessing implementation to construct a
-`RawImage` after its private substeps finish. A custom
-`MetadataBasis::Incompatible` decoded image is rejected before preprocessing
-starts.
+plane against its metadata, including required black/white levels.
+`fornax-core` exposes a doc-hidden finalization helper solely for the single
+preprocessing implementation to construct a `RawImage` after its private
+substeps finish.
 
 ## Related guides
 

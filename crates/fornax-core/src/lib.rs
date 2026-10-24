@@ -26,7 +26,7 @@ mod plane;
 mod raw_image;
 
 pub use cfa::{BayerLayout, BayerPattern, BayerSlot, CfaColor, CfaShape};
-pub use decoded_raw::{DecodedRaw, MetadataBasis};
+pub use decoded_raw::DecodedRaw;
 pub use error::{MetadataError, RawValidationError};
 pub use geometry::{ActiveArea, PixelCoord, PixelRect, PixelSize, StoredGeometry};
 pub use metadata::{

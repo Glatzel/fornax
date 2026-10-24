@@ -16,7 +16,7 @@ type.
 acceptance = [
   "Scalar, distinct green-slot, and 2x2 repeat black selection are correct for all four Bayer phases.",
   "Odd ActiveArea origins produce the same selected black metadata as an equivalently rebased valid coordinate.",
-  "Missing or conflicting required black metadata fails structurally; format-declared zero is the only implicit zero.",
+  "Preprocessing receives required black metadata validated during DecodedRaw construction; missing or conflicting levels never reach preprocessing.",
   "General tiles, BlackLevelDeltaH/V, and unsupported decompositions are rejected until separately approved.",
   "Subtraction does not clip negative values; geometry, CFA, metadata Arc, and source f32 samples remain coherent.",
   "Black subtraction is callable only from the preprocessing pipeline; pre_process exists only on DecodedRaw, so the returned RawImage cannot be corrected again.",
