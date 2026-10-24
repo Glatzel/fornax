@@ -15,7 +15,6 @@ classDiagram
         +plane
         +decoder
         +metadata_basis
-        +storage
     }
     class RawImage {
         <<preprocessed f32 image>>
@@ -73,7 +72,6 @@ classDiagram
 | `DecodedRaw::plane` | `StoredPlane` | samples | Matches source geometry and declared encoding |
 | `DecodedRaw::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend |
 | `DecodedRaw::metadata_basis` | `MetadataBasis` | N/A | States whether level metadata remains applicable |
-| `DecodedRaw::storage` | `PlaneStorage` | enum | `Native` or `F32Working` |
 | `RawImage::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during preprocessing and demosaicing |
 | `RawImage::plane` | `F32Plane` | samples | Finite preprocessed Bayer samples in `[0,1]` |
 | `RawImage::decoder` | `DecoderProvenance` | N/A | Retained decoder provenance |

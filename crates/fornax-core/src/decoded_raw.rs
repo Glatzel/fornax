@@ -56,16 +56,6 @@ pub enum MetadataBasis {
     Incompatible,
 }
 
-/// The storage state of the samples in a [`DecodedRaw`].
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub enum PlaneStorage {
-    /// A native u8, u16, u32, or source-f32 plane.
-    Native,
-    /// A working f32 plane derived from an integer source or custom operation.
-    F32Working,
-}
-
 /// A decoder-produced RAW image before standard preprocessing.
 ///
 /// `DecodedRaw` owns one compact sensor plane, immutable validated metadata,
@@ -90,7 +80,6 @@ pub struct DecodedRaw {
     plane: StoredPlane,
     decoder: DecoderProvenance,
     metadata_basis: MetadataBasis,
-    storage: PlaneStorage,
 }
 
 impl DecodedRaw {
@@ -123,7 +112,6 @@ impl DecodedRaw {
             plane,
             decoder,
             metadata_basis: MetadataBasis::OriginalLevelsValid,
-            storage: PlaneStorage::Native,
         })
     }
 
@@ -186,9 +174,6 @@ impl DecodedRaw {
         self.metadata_basis = metadata_basis;
     }
 
-    /// Returns the sample storage state.
-    pub const fn storage(&self) -> PlaneStorage { self.storage }
-
     /// Converts integer samples to working f32 storage.
     ///
     /// Native floating-point images are already on the f32 path and are
@@ -198,7 +183,7 @@ impl DecodedRaw {
     /// # Errors
     ///
     /// Returns a typed error for repeated conversion, wider integer sources,
-    /// incompatible geometry, non-finite samples, or repeated conversion.
+    /// incompatible geometry, or non-finite samples.
     ///
     /// # Examples
     ///
@@ -211,13 +196,10 @@ impl DecodedRaw {
     /// );
     /// ```
     pub fn convert_to_f32(mut self) -> Result<Self, RawValidationError> {
-        if self.storage == PlaneStorage::F32Working {
-            return Err(RawValidationError::InvalidStorageState);
-        }
         let encoding = self.metadata.sample_encoding();
         if matches!(self.plane, StoredPlane::F32(_)) {
             if encoding.format() != SampleFormat::Float {
-                return Err(RawValidationError::UnsupportedPlaneEncoding);
+                return Err(RawValidationError::InvalidStorageState);
             }
             self.metadata
                 .validate_f32_working_plane(match &self.plane {
@@ -235,7 +217,6 @@ impl DecodedRaw {
                 StoredPlane::F32(plane) => plane,
                 StoredPlane::U8(_) | StoredPlane::U16(_) | StoredPlane::U32(_) => unreachable!(),
             })?;
-        self.storage = PlaneStorage::F32Working;
         Ok(self)
     }
 
@@ -261,21 +242,11 @@ impl DecodedRaw {
         if matches!(self.metadata_basis, MetadataBasis::Incompatible) {
             return Err(RawValidationError::InvalidCustomMetadataBasis);
         }
-        match (&self.plane, self.storage) {
-            (StoredPlane::U8(_), PlaneStorage::Native)
-            | (StoredPlane::U16(_), PlaneStorage::Native)
-            | (StoredPlane::U32(_), PlaneStorage::Native) => {
+        match &self.plane {
+            StoredPlane::U8(_) | StoredPlane::U16(_) | StoredPlane::U32(_) => {
                 self.metadata.validate_native_plane(&self.plane)
             }
-            (StoredPlane::F32(plane), PlaneStorage::F32Working) => {
-                self.metadata.validate_f32_working_plane(plane)
-            }
-            (StoredPlane::F32(plane), PlaneStorage::Native)
-                if self.metadata.sample_encoding().format() == SampleFormat::Float =>
-            {
-                self.metadata.validate_f32_working_plane(plane)
-            }
-            _ => Err(RawValidationError::InvalidStorageState),
+            StoredPlane::F32(plane) => self.metadata.validate_f32_working_plane(plane),
         }
     }
 
@@ -344,7 +315,7 @@ mod tests {
     #[test]
     fn conversion_remains_a_decoded_raw() {
         let decoded = decoded().convert_to_f32().unwrap();
-        assert_eq!(decoded.storage(), PlaneStorage::F32Working);
+        assert!(matches!(decoded.plane(), StoredPlane::F32(_)));
         assert_eq!(decoded.require_standard_preprocessing(), Ok(()));
         assert_eq!(
             decoded.clone().convert_to_f32(),
@@ -410,7 +381,7 @@ mod tests {
     }
 
     #[test]
-    fn preprocessing_revalidates_user_mutated_plane_storage() {
+    fn preprocessing_revalidates_user_mutated_plane() {
         let mut image = decoded();
         *image.plane_mut() = StoredPlane::U8(crate::U8Plane::from_raw(2, 2, vec![1; 4]).unwrap());
         assert_eq!(
@@ -488,7 +459,10 @@ mod tests {
         ];
         for (encoding, plane) in cases {
             let image = DecodedRaw::try_new(metadata(encoding), plane, decoder()).unwrap();
-            assert_eq!(image.storage(), PlaneStorage::Native);
+            assert_eq!(
+                image.plane().dimensions().unwrap(),
+                PixelSize::new(1, 1).unwrap()
+            );
         }
     }
 }
