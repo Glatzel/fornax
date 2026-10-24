@@ -21,4 +21,10 @@ component proposals have merged. Design decisions must cite merged `RES-*` or
 `SYN-*` pull requests and must not resolve unresolved metadata, coordinate,
 sample-domain, or preprocessing questions by assumption.
 
+The decoder architecture must expose existing implementations as selectable
+backends behind a `fornax`-owned contract. LibRaw and dnglab/rawler are decoder
+candidates, `dnc` is a conversion bridge, and darktable/rawspeed is eligible
+only through an isolated decoder boundary. Do not design a first-party RAW
+format decoder for the initial pipeline.
+
 Do not begin implementation before the user approves and merges `DES-007`.

@@ -20,7 +20,7 @@ convenience snapshot; the task pull requests remain authoritative.
 | R0 | `RES-06` | [`RES-06.toml`](RES-06.toml) | none |
 | R0 | `RES-07` | [`RES-07.toml`](RES-07.toml) | none |
 | R0 | `RES-08` | [`RES-08.toml`](RES-08.toml) | none |
-| R1 | `RES-09` | [`RES-09.toml`](RES-09.toml) | `RES-06`–`RES-08` |
+| R1 | `RES-09` | [`RES-09.toml`](RES-09.toml) | `RES-01`–`RES-04`, `RES-06`–`RES-08` |
 | S1 | `SYN-01` | [`SYN-01.toml`](SYN-01.toml) | `RES-01`–`RES-04`, `RES-06`, `RES-07` |
 | S2 | `SYN-02` | [`SYN-02.toml`](SYN-02.toml) | `RES-02`, `RES-04`, `SYN-01` |
 | S3 | `SYN-03` | [`SYN-03.toml`](SYN-03.toml) | `RES-01`–`RES-09`, `SYN-01`, `SYN-02` |
@@ -53,7 +53,8 @@ convenience snapshot; the task pull requests remain authoritative.
 ## Planned execution waves
 
 - **R0:** `RES-01`–`RES-08` can run concurrently.
-- **R1:** `RES-09` starts after the three split Rust reports are merged.
+- **R1:** `RES-09` starts after the existing-decoder and Rust ecosystem reports
+  are merged.
 - **S1:** `SYN-01` starts after its six inputs are merged.
 - **S2:** `SYN-02` starts after its inputs are merged.
 - **S3:** `SYN-03` starts after every research report and synthesis note is
@@ -63,11 +64,16 @@ convenience snapshot; the task pull requests remain authoritative.
 - **I:** implementation starts only after `DES-007` is merged.
 - **Q:** each QA task starts after its listed implementation artifacts merge.
 
+The decoder implementation track adapts existing decoders behind the selected
+backend contract. It must not replace that boundary with a newly maintained
+first-party RAW format decoder.
+
 ```mermaid
 flowchart LR
     R0["RES-01..RES-08"] --> S1["SYN-01"]
-    R0 --> R9["RES-09"]
-    R9 --> S3["SYN-03"]
+    R0 --> S3["SYN-03"]
+    BackendReports["RES-01..04,06..08"] --> R9["RES-09"]
+    R9 --> S3
     S1 --> S2["SYN-02"]
     S1 --> S3
     S2 --> S3

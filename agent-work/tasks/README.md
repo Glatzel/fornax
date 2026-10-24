@@ -81,15 +81,20 @@ once work starts because branches and PR search rely on it.
 
 ## Pull-request contract
 
-Each task has exactly one review PR, titled `[TASK-ID] Imperative summary`.
-Apply the `agent-work` label, add `task:<TASK-ID>`, and fill in
+Each task has exactly one review PR. Its title must use the semantic form
+`<type>(<task-id>): <imperative summary>`, where `<type>` is accepted by
+`.github/semantic.yml` and `<task-id>` is lowercase. For example:
+`docs(res-01): inventory existing components`.
+
+Do not use a bracketed task ID as the PR title. Apply the `agent-work` label,
+add `task:<TASK-ID>`, put the task ID in the PR body, and fill in
 `agent-work/PULL_REQUEST_TEMPLATE.md`.
 
 Push the task branch and target the integration branch explicitly:
 
 ```bash
 git push -u origin HEAD
-gh pr create --base agent --title "[RES-01] Inventory existing components" \
+gh pr create --base agent --title "docs(res-01): inventory existing components" \
   --body-file agent-work/PULL_REQUEST_TEMPLATE.md
 ```
 
