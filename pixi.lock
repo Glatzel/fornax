@@ -36,7 +36,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://prefix.dev/glatzel/linux-64/codex-0.164.0-hf804674_0.conda
       - conda: https://prefix.dev/glatzel/noarch/codex-config-0.0.3-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.2-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.3-h4616a5c_0.conda
       linux-aarch64:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libcap-2.78-hfcc8634_1.conda
@@ -46,10 +46,10 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.10.19-hbd8a1cb_0.conda
       - conda: https://prefix.dev/glatzel/linux-aarch64/codex-0.164.0-hded5707_0.conda
       - conda: https://prefix.dev/glatzel/noarch/codex-config-0.0.3-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.2-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.3-h4616a5c_0.conda
       osx-arm64:
       - conda: https://prefix.dev/glatzel/noarch/codex-config-0.0.3-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.2-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.3-h4616a5c_0.conda
       - conda: https://prefix.dev/glatzel/osx-arm64/codex-0.164.0-h8f394ba_0.conda
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/ucrt-10.0.26100.0-h57928b3_0.conda
@@ -57,7 +57,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/vc14_runtime-14.51.36247-habf1de7_41.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/vcomp14-14.51.36247-habf1de7_41.conda
       - conda: https://prefix.dev/glatzel/noarch/codex-config-0.0.3-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.2-h4616a5c_0.conda
+      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.3-h4616a5c_0.conda
       - conda: https://prefix.dev/glatzel/win-64/codex-0.164.0-hf6e5eb2_0.conda
   default:
     channels:
@@ -4318,12 +4318,12 @@ packages:
   run_exports: {}
   size: 18521
   timestamp: 1792733762199
-- conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.2-h4616a5c_0.conda
-  sha256: fe85128a98b7ac8b308d30b33621a88e1dec8c0bb8d968d700b19adbfd37d73c
-  md5: f01cc302512e15f2629296c6ab99d42b
+- conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.3-h4616a5c_0.conda
+  sha256: 3df81eaf0f1362526fbf8ef99a56013d52ac80df96de6ab747c4c92f6ed0c73e
+  md5: bed0fc503de2c96cfcc73a548f3ef9f9
   run_exports: {}
-  size: 14226
-  timestamp: 1792718429875
+  size: 19774
+  timestamp: 1792828022684
 - conda: https://prefix.dev/glatzel/osx-arm64/codex-0.164.0-h8f394ba_0.conda
   sha256: 2f447b7cd82be875fe4405bfe77ab9abb1d21026da344379eea6093d543d4e88
   md5: 1d77079c62577407329e852a9baef254

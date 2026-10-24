@@ -903,6 +903,11 @@ Requirements:
 - Use structured errors for invalid layouts, unsupported formats, missing required metadata, and unsupported CFA patterns.
 - Avoid hidden post-processing.
 - Prefer safe Rust and document necessary unsafe code.
+- Use applicable `glatzel-*` skills during implementation:
+  `glatzel-preferred-rust-crates` for dependency selection,
+  `glatzel-rust-apidoc` for public Rust API documentation, and
+  `glatzel-tool-discovery` when installed local tooling can materially help.
+  Skills do not override the task manifest, persistent design, or review gates.
 - Treat the architecture refactor as breaking by default. Preserve only
   implementation assets that independently pass the new design and license
   requirements, and document their migration.
