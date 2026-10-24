@@ -683,6 +683,7 @@ name = "fornax-core"
 version = "0.0.17"
 dependencies = [
  "image",
+ "serde",
  "thiserror",
 ]
 

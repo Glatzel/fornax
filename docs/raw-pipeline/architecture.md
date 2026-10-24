@@ -48,7 +48,7 @@ Arrow direction means the source crate depends on the target crate.
 
 | Crate | Responsibility |
 | --- | --- |
-| `fornax-core` | Universal samples, metadata, geometry, CFA, stage types, provenance, validation |
+| `fornax-core` | Universal samples, metadata, geometry, CFA, private stage types, provenance, validation, and a doc-hidden consuming transition boundary |
 | `fornax-decode` | `RawDecoderBackend`, backend capabilities/selection, decode configuration/errors |
 | `fornax-decoder-libraw` | LibRaw `unpack` adapter and metadata translation |
 | `fornax-decoder-dnglab` | dnglab/rawler adapter |
@@ -69,6 +69,9 @@ Arrow direction means the source crate depends on the target crate.
 - `fornax-preprocess` provides an extension trait over core stage types.
 - Demosaic strategies are object-safe and registered at runtime.
 - Only `fornax` depends on concrete adapters, and only through enabled features.
+- `fornax-core`'s `serde` feature currently serializes validated metadata and
+  stage descriptors; validating deserialization and plane wire formats remain
+  separate schema work so deserialization cannot bypass constructors.
 
 ## Selection and features
 

@@ -35,6 +35,7 @@ classDiagram
         +decoder
         +operations
         +metadata_basis
+        +storage
     }
     class StoredPlane {
         <<Decode payload>>
@@ -93,7 +94,7 @@ classDiagram
 | `PixelSize::{width,height}` | `u32` | pixels | Both non-zero for a stored image |
 | `PixelCoord::{row,col}` | `u32` | pixel | Stored raster coordinate |
 | `PixelRect::{top,left,bottom,right}` | `u32` | half-open pixels | `top < bottom`, `left < right`, inside stored size |
-| `SampleEncoding::bits_per_sample` | `NonZeroU8` | bits | Semantic source precision |
+| `SampleEncoding::bits_per_sample` | `u8` | bits | Non-zero and at most 32; semantic source precision |
 | `SampleEncoding::format` | `SampleFormat` | enum | Unsigned integer or float |
 | `StoredGeometry::dimensions` | `PixelSize` | pixels | Must equal payload dimensions |
 | `StoredGeometry::source_row_stride_bytes` | `NonZeroU64` | bytes | Preserves original backend stride |
@@ -117,11 +118,19 @@ before compacting. The canonical `ImageBuffer` is tightly packed.
 | `WhiteLevels::adjusted_maximum` | `Option<Box<[Rational]>>` | stored sample code | Decoder-adjusted value kept separate |
 | `WhiteLevels::measured_maximum` | `Option<Box<[Rational]>>` | stored sample code | Observed value kept separate |
 
+`BlackLevels`, `BlackTile`, and `WhiteLevels` are private-field types with
+validating constructors. Scalar black levels are non-negative. A black tile's
+value count must equal `rows * columns * samples_per_plane`. Declared white
+levels contain either one scalar or four CFA-slot values and must be positive;
+optional adjusted and measured arrays use the same length as the declared
+array. This keeps both green CFA positions distinguishable without treating the
+common scalar component as one of those slots.
+
 ## Stage types
 
 | Stage | Plane | Meaning |
 | --- | --- | --- |
-| `Decoded` | `StoredPlane` | Native source; optional `convert_to_f32`/custom operation keeps this state and records metadata basis |
+| `Decoded` | `StoredPlane` | Native source; optional `convert_to_f32`/custom operation keeps this state, records `DecodedStorage::{Native, F32Working}`, operations, and metadata basis |
 | `Linearized` | `F32Plane` | LUT applied once or identity |
 | `BlackCorrected` | `F32Plane` | Black subtracted once; unclipped |
 | `Normalized` | `F32Plane` | Linear-reference semantics; unclipped |
@@ -131,13 +140,38 @@ before compacting. The canonical `ImageBuffer` is tightly packed.
 
 `ValidatedMetadata` is constructed only after checking required metadata,
 geometry, CFA, level lengths, sample encoding, and provenance conflicts.
-`RawValidationError` distinguishes missing metadata, invalid geometry/encoding,
-unsupported CFA/non-mosaic input, invalid levels, conflicts, and incompatible
-custom-processing basis.
+The required typed fields are sample encoding, stored geometry, ActiveArea, and
+CFA. Their stored dimensions and ActiveArea must agree. The original row stride
+is retained as nonzero provenance and is not assumed to equal the compact
+`ImageBuffer` stride. Extensible keys use the `raw.*` names blocked for typed
+concepts and cannot override those fields.
+
+`RawValidationError` is the stage/model boundary error. It distinguishes
+missing metadata, invalid geometry/encoding, unsupported sample widths,
+non-mosaic/non-2x2/non-RGB CFA layouts, invalid levels, non-finite samples,
+invalid demosaic-ready values, metadata conflicts, and incompatible
+custom-processing bases. `MetadataError` reports key grammar, duplicate typed
+concepts, candidate conflicts, invalid values, and allocation limits.
+
+The optional `serde` feature serializes the validated metadata and stage
+descriptors. It deliberately does not derive deserialization for the model:
+deserializing private invariants without a schema-aware validating decoder
+would bypass construction checks. Plane serialization and stable schema
+versioning remain follow-up design work.
 
 Unsupported input is rejected at the adapter/constructor boundary. No code
 guesses a missing CFA origin, fabricates black levels, converts an unknown CFA
 to RGB, or treats a display image as a sensor plane.
+
+## Stage construction boundary
+
+`DecodedRaw::try_new` is the public decode boundary and validates the native
+plane against its metadata. The preprocessing crate uses the doc-hidden
+`fornax_core::transition` module to convert an owned `DecodedRaw` into
+`LinearizedRaw`, then to `BlackCorrectedRaw`, `NormalizedRaw`, and
+`DemosaicReadyMosaic`. Each transition consumes its source stage. Only
+`RawImage<Decoded>` has the standard-preprocessing entry point, and a custom
+`MetadataBasis::Incompatible` image is rejected before linearization.
 
 ## Related guides
 

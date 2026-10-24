@@ -101,6 +101,20 @@ impl NormalizedRaw {
 }
 ```
 
+The stage markers and `RawImage<S>` fields are private. Core exposes only the
+validated `DecodedRaw::try_new` constructor; later preprocessing operations use
+the doc-hidden `fornax_core::transition` module to construct the next stage.
+Those functions validate payload geometry, encoding basis, finiteness, and the
+final `[0,1]` clipping range. A caller cannot recover a previous stage from a
+later one or construct another `DecodedRaw` by dropping a stage value.
+
+`DecodedRaw::convert_to_f32` is available only while the value is still
+`DecodedRaw`. It records a `convert_to_f32` operation and changes
+`DecodedStorage` to `F32Working`; a second conversion is rejected. Custom f32
+processing likewise remains `DecodedRaw` and must declare one of
+`MetadataBasis::{OriginalLevelsValid, ReplacedLevels, Incompatible}`. Standard
+preprocessing rejects `Incompatible`.
+
 Custom f32 processing remains inside `DecodedRaw`. It records operation
 provenance and whether original, replaced, or incompatible
 linearization/black/white metadata applies.
