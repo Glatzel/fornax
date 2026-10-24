@@ -63,18 +63,21 @@ manifests. Track task status in [`STATUS.md`](STATUS.md):
 
 ## Branch and worktree contract
 
-For task `RES-01` with slug `fornax-inventory`:
+For task `IMPL-CORE-001` with slug `universal-core-model`:
 
 ```bash
 git fetch origin
-git worktree add -b task/res-01-fornax-inventory \
-  .worktrees/res-01-fornax-inventory origin/agent
-cd .worktrees/res-01-fornax-inventory
+git worktree add -b task/impl-core-001-universal-core-model \
+  .worktrees/impl-core-001-universal-core-model \
+  origin/refactor/raw-pipeline-v2
+cd .worktrees/impl-core-001-universal-core-model
 ```
 
-The default integration base is `origin/agent`. Use another base only when the
-task index defines an intentional stacked dependency. The repository ignores
-`.worktrees/`; worktrees are execution state and must not be committed.
+Unfinished `IMPL-*` and `QA-*` tasks use `origin/refactor/raw-pipeline-v2` as
+the integration base. Earlier research, synthesis, and design tasks use `main`.
+Use another base only when the task index defines an intentional stacked
+dependency. The repository ignores `.worktrees/`; worktrees are execution state
+and must not be committed.
 
 Use `task/<lowercase-task-id>-<slug>` for the branch and
 `.worktrees/<lowercase-task-id>-<slug>` for the worktree. A slug is immutable
@@ -95,14 +98,16 @@ Push the task branch and target the integration branch explicitly:
 
 ```bash
 git push -u origin HEAD
-gh pr create --base agent --title "docs(res-01): inventory existing components" \
+gh pr create --base refactor/raw-pipeline-v2 \
+  --title "feat(impl-core-001): implement universal raw model" \
   --body-file agent-work/PULL_REQUEST_TEMPLATE.md
 ```
 
 Because the agent template is outside `.github/`, GitHub does not load it
 automatically. Start the PR body from `agent-work/PULL_REQUEST_TEMPLATE.md`,
-then complete every section with task-specific evidence. The PR base is
-`agent` unless the task index requires a stacked base.
+then complete every section with task-specific evidence. Implementation and
+QA PRs target `refactor/raw-pipeline-v2` unless the task index requires a
+stacked base.
 
 The PR body must identify:
 

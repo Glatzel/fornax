@@ -10,6 +10,10 @@ still be open. GitHub remains the review and merge authority. A downstream task
 becomes `Ready` only after every dependency task is `Done` and every dependency
 PR is merged.
 
+Unfinished implementation and QA task PRs integrate through
+`refactor/raw-pipeline-v2`. `main` remains unchanged until the final QA gate
+passes on that branch and the user merges the promotion PR.
+
 ## Status legend
 
 | Status | Meaning |

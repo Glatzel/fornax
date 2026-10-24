@@ -15,3 +15,8 @@ task gates defined by the authoritative workflow. Execute each task in its own
 `task/<id>-<slug>` branch and `.worktrees/<id>-<slug>` worktree, and submit it
 through the task's GitHub pull request. GitHub pull-request review is the only
 approval record.
+
+All unfinished RAW-pipeline implementation and QA work integrates through the
+long-lived `refactor/raw-pipeline-v2` branch. Those task branches start from and
+target `origin/refactor/raw-pipeline-v2`; only the user may promote the fully
+validated integration branch to `main`.

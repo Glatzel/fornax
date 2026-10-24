@@ -80,7 +80,9 @@ public APIs remain gated by synthesis and design.
 
 1. Select a task whose dependencies are represented by merged pull requests.
 2. Create `.worktrees/<id>-<slug>` on `task/<id>-<slug>` from the current
-   integration base.
+   integration base. Unfinished implementation and QA tasks use
+   `origin/refactor/raw-pipeline-v2`; earlier research, synthesis, and design
+   tasks use `main`.
 3. Work only inside the manifest's scope and deliverables.
 4. Commit, push, and open one pull request with a semantic title such as
    `docs(res-01): inventory existing components`. Mark the task `Done` in
@@ -91,6 +93,11 @@ public APIs remain gated by synthesis and design.
    Apply requested changes on the same branch and PR unless the user asks for a
    local-only result.
 7. An agent never merges or closes the task pull request.
+
+After the implementation and QA tasks are merged into
+`refactor/raw-pipeline-v2`, the user may request a final promotion PR to
+`main`. The integration branch must remain unmerged until final validation
+passes.
 
 The status snapshot is for task tracking. GitHub pull-request search, labels,
 branches, and merged state remain authoritative for review and dependency

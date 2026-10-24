@@ -747,18 +747,20 @@ requests remain the sole review, approval, and merge record.
 2. Fetch `origin` and create a worktree on a task branch:
 
    ```bash
-   git worktree add -b task/res-01-fornax-inventory \
-     .worktrees/res-01-fornax-inventory origin/agent
+   git worktree add -b task/impl-core-001-universal-core-model \
+     .worktrees/impl-core-001-universal-core-model \
+     origin/refactor/raw-pipeline-v2
    ```
 
 3. Work only in the manifest deliverables and files needed to validate them.
    Keep unrelated cleanup in a separate task.
 4. Commit and push the branch, then open one PR with a semantic title
    `<type>(<task-id>): <imperative summary>`, such as
-   `docs(res-01): inventory existing components`, and use
-   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. The type must be accepted
-   by `.github/semantic.yml`, the scope must be the lowercase task ID, and the
-   task ID must also appear in the PR body. Mark the task `Done` in
+   `feat(impl-core-001): implement universal raw model`, and use
+   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Implementation and QA PRs
+   target `refactor/raw-pipeline-v2`. The type must be accepted by
+   `.github/semantic.yml`, the scope must be the lowercase task ID, and the task
+   ID must also appear in the PR body. Mark the task `Done` in
    `agent-work/tasks/STATUS.md`, add the PR link, and report the PR URL. Stop.
    Do not watch, poll, or wait for checks or review after creating it.
 5. The user initiates the next step in conversation: request local changes or
@@ -769,6 +771,13 @@ requests remain the sole review, approval, and merge record.
    the durable completion record.
 7. Remove the merged worktree and local branch only when cleanup is requested or
    completed by the normal housekeeping workflow.
+
+`refactor/raw-pipeline-v2` is the long-lived integration branch for this large
+breaking refactor. `IMPL-*` and `QA-*` branches start from its current `origin`
+tip and merge back into it. Research, synthesis, and design tasks use `main`
+unless the task index defines a stacked dependency. Do not propose the
+integration branch to `main` until `QA-006` and every required implementation
+PR are merged into it and validated there.
 
 The pull request is the review and completion record, not a process the agent
 must monitor. A paused task keeps its PR open and records resume context in
@@ -984,6 +993,11 @@ Work in this order:
 8. Compose the facade after decoder conformance and preprocessing are complete,
    migrate Python/devtool, retire the legacy architecture, then run QA and
    update documentation.
+9. After `QA-006` and every required task PR are merged into
+   `refactor/raw-pipeline-v2`, prepare one promotion PR from that integration
+   branch to `main`. It must summarize the complete branch, list actual
+   workspace/Python validation results, and identify remaining limitations.
+   Only the user may merge the promotion PR.
 
 Each research, synthesis, design, and implementation task has its own TOML
 manifest and task PR. Update evidence in the owned deliverable and PR. Do not
@@ -996,10 +1010,13 @@ At the end of implementation, report:
 - The final architecture and important research findings.
 - The API and data model approved and merged through the design task PR.
 - How metadata drives preprocessing before demosaicing.
-- Task status, including blocked and incomplete work.
+- Task status on `refactor/raw-pipeline-v2`, including blocked and incomplete
+  work.
 - Which tasks were implemented concurrently.
 - Actual test and validation results.
 - Unsupported formats, known limitations, and remaining work.
+- Whether the integration branch is ready for its final promotion PR to
+  `main`.
 
 The goal is a maintainable, Rust-native RAW pipeline whose data semantics are explicit and whose implementation can be developed incrementally by multiple independent contributors.
 

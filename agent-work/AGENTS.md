@@ -117,13 +117,15 @@ outputs there.
 
    ```bash
    git fetch origin
-   git worktree add -b "task/res-01-fornax-inventory" \
-     ".worktrees/res-01-fornax-inventory" origin/agent
+   git worktree add -b "task/impl-core-001-universal-core-model" \
+     ".worktrees/impl-core-001-universal-core-model" \
+     origin/refactor/raw-pipeline-v2
    ```
 
-   Use the task's lowercase ID and `slug` from its TOML manifest. The default
-   integration base is `origin/agent`; use another base only when the task
-   index explicitly defines a stacked dependency.
+   Use the task's lowercase ID and `slug` from its TOML manifest. Unfinished
+   `IMPL-*` and `QA-*` tasks use `origin/refactor/raw-pipeline-v2` as the
+   integration base. Research, synthesis, and design tasks use `main` unless a
+   stacked dependency explicitly requires another base.
 4. Work only within the manifest's scope and deliverables. A research task
    owns exactly one report named `<TASK-ID>-<slug>.md`. `SYN-01` and `SYN-02`
    own only their correspondingly named notes; `SYN-03` owns
@@ -134,9 +136,10 @@ outputs there.
    `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Use a semantic PR title
    accepted by `.github/semantic.yml`, with the lowercase task ID as the scope,
    for example `docs(res-01): inventory existing components`. Keep the task ID
-   in the PR body. Mark the task `Done` in `agent-work/tasks/STATUS.md`, add
-   the PR link, and report the PR URL. Stop; do not watch, poll, or wait for
-   checks or review.
+   in the PR body. Implementation and QA PRs target
+   `refactor/raw-pipeline-v2`. Mark the task `Done` in
+   `agent-work/tasks/STATUS.md`, add the PR link, and report the PR URL. Stop;
+   do not watch, poll, or wait for checks or review.
 7. The user will initiate the next step in conversation: request local changes
    or merge the PR. Update the same branch and PR when changes are requested
    unless the user asks for a local-only result. Do not add review state to the
@@ -146,6 +149,9 @@ outputs there.
    `agent-work/checkpoints/<TASK-ID>/` with completed work, unfinished work,
    next steps, unresolved questions, and relevant source revisions. Keep the
    pull request open as the durable record; do not monitor it while paused.
+9. After every implementation and QA PR is merged into
+   `refactor/raw-pipeline-v2`, the user may request a final promotion PR from
+   that branch to `main`. Agents prepare and validate it but never merge it.
 
 Research tasks may run independently. Synthesis starts only after its listed
 research dependencies have merged through their task pull requests. Design must
