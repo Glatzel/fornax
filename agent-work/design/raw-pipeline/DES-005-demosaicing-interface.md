@@ -11,7 +11,9 @@
 >
 > **Normative design:** repository-root
 > [`docs/raw-pipeline/`](../../../docs/raw-pipeline/README.md). This proposal
-> records the concrete demosaic interface and algorithm extension point.
+> records the concrete demosaic interface and algorithm extension point. The
+> persistent [demosaicing guide](../../../docs/raw-pipeline/demosaicing.md) is
+> added in this PR.
 >
 > **Acceptance criteria (authoritative in the task manifest):**
 >
@@ -382,6 +384,8 @@ some unimplemented strategies do not satisfy this interface.
   f32 input/output.
 - [Persistent structure design](../../../docs/raw-pipeline/raw-image-struct.md):
   `DemosaicReady` and output types.
+- [Persistent demosaicing guide](../../../docs/raw-pipeline/demosaicing.md):
+  input/output, strategy, border, allocation, and error contract.
 - [SYN-03 §Demosaicing](../../research/SYN-03-summary.md#6-demosaicing):
   algorithm order and output boundary.
 - [RES-05 §2.4–§2.5](../../research/RES-05-demosaicing.md#24-output-semantics):

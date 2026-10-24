@@ -9,6 +9,8 @@ different levels:
   f64 and what each choice guarantees.
 - [Key structures and fields](raw-image-struct.md) maps the persistent Rust types,
   fields, units, and invariants.
+- [Demosaicing interface](demosaicing.md) defines input/output, strategy
+  registration, border behavior, and errors.
 
 These files are the normative, persistent RAW pipeline design. The task-owned
 files under `agent-work/design/` are design history and implementation
