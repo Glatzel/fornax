@@ -1,0 +1,28 @@
+schema_version = 1
+id = "IMPL-INT-002"
+slug = "python-devtool-migration"
+title = "Migrate Python bindings and development tooling to the facade"
+phase = "integration"
+dependencies = ["IMPL-INT-001"]
+parallelism = "Starts after the Rust pipeline facade is merged."
+deliverables = ["fornax-py facade migration", "fornax-devtool fixture and example migration", "Python integration tests"]
+scope = """
+Rewrite fornax-py over the new facade without exposing backend-specific types
+or hidden processing. Update fornax-devtool examples and fixture handling to use
+the selected decoder and demosaic APIs, and migrate the existing Python fixture
+tests to assert the new pipeline semantics.
+"""
+acceptance = [
+  "Python callers explicitly select or configure a backend and demosaic strategy rather than relying on enabled features.",
+  "Python packaging declares its enabled backend features and does not add default processing or backend selection implicitly.",
+  "Python outputs preserve linear planar semantics, metadata/provenance, and structured failures from the Rust facade.",
+  "No legacy IDecoder, IPostProcessor, BayerImage, or backend-specific Python type remains on the supported API.",
+  "Python and devtool tests cover a supported RAW fixture, unsupported-input rejection, and backend selection failure.",
+  "The external/raw-images submodule remains at its existing production-test-fixture path.",
+]
+validation = [
+  "Verify IMPL-INT-001 is merged.",
+  "Build the Python extension and run the Python fixture suite.",
+  "Run devtool integration tests with available fixtures.",
+  "Record missing platforms, fixtures, or external-runtime coverage explicitly.",
+]

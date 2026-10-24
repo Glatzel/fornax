@@ -1,24 +1,28 @@
 schema_version = 1
 id = "IMPL-DEC-002"
 slug = "libraw-adapter"
-title = "Adapt the LibRaw backend to the decoder interface"
+title = "Implement the LibRaw decoder adapter"
 phase = "implementation"
-dependencies = ["IMPL-DEC-001"]
-parallelism = "May overlap IMPL-DEC-003 only with disjoint files and explicit integration ownership."
-deliverables = ["LibRaw adapter source", "adapter integration tests"]
+dependencies = ["IMPL-DEC-001", "DES-002", "DES-003"]
+parallelism = "Can run in parallel with IMPL-DEC-003 because each task owns a separate adapter crate."
+deliverables = ["fornax-decoder-libraw source", "LibRaw adapter conformance tests"]
 scope = """
-Implement the LibRaw adapter for conventional Bayer DNG, Sony ARW, Nikon NEF, and
-Canon CR2/CR3 inputs. Return structured unsupported errors for deferred payloads
-and formats.
+Create fornax-decoder-libraw around LibRaw's unpack/raw-image path. Compact
+backend buffers using the recorded stride, translate CFA and metadata with
+provenance, preserve native sample semantics, and return structured errors for
+unsupported layouts, encodings, and formats. Do not call LibRaw post-processing.
 """
 acceptance = [
-  "Supported Bayer fixtures decode into the universal representation.",
-  "Deferred formats and non-Bayer payloads return structured errors.",
-  "No LibRaw type leaks downstream.",
-  "Adapter tests cover buffer and CFA alignment.",
+  "The adapter invokes only the LibRaw decode/unpack surface needed to expose stored RAW samples.",
+  "Target-format Bayer fixtures or synthetic adapter tests verify buffer lengths, dimensions, stride compaction, encoding, ActiveArea, CFA phase, and levels.",
+  "Metadata conflicts and missing required fields fail with structured DecodeError values rather than inferred defaults.",
+  "Non-Bayer, LinearRaw, wider/incompatible encodings, and deferred formats are rejected.",
+  "LibRaw and libraw-sys types remain private to the adapter crate.",
+  "The adapter remains opt-in and its LGPL/CDDL/distribution decision is recorded before any default-feature or release claim.",
 ]
 validation = [
-  "Verify IMPL-DEC-001 is merged.",
-  "Run focused Rust tests and workspace checks.",
-  "Record fixture provenance and unavailable fixture coverage.",
+  "Verify IMPL-DEC-001, DES-002, and DES-003 PRs are merged.",
+  "Run focused adapter tests and the LibRaw-feature workspace build.",
+  "Record fixture provenance, tested camera/format coverage, and any unavailable fixtures.",
+  "Record the LibRaw license, native-link, and packaging decision; keep the backend non-default until that decision is accepted.",
 ]

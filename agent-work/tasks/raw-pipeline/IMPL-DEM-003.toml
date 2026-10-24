@@ -1,21 +1,27 @@
 schema_version = 1
 id = "IMPL-DEM-003"
-slug = "edge-aware-demosaic"
-title = "Implement the selected edge-aware demosaicing algorithm"
+slug = "malvar-demosaic-adapter"
+title = "Add Malvar-He-Cutler through the optional demosaic crate adapter"
 phase = "implementation"
-dependencies = ["DES-005", "RES-05"]
-parallelism = "Can run concurrently with IMPL-DEM-001 and IMPL-DEM-002 through the shared interface."
-deliverables = ["selected algorithm source", "edge-aware numerical tests", "edge-aware visual and benchmark evidence"]
+dependencies = ["IMPL-DEM-002", "DES-005", "RES-05"]
+parallelism = "Starts after the bilinear strategy establishes the built-in registration and tests."
+deliverables = ["optional demosaic adapter source", "Malvar-He-Cutler reference and border tests"]
 scope = """
-Implement the edge-aware or higher-quality algorithm selected by merged research
-and design, with numerical and visual checks clearly separated.
+Add a feature-gated adapter to the pinned Rust demosaic crate and expose its
+Malvar-He-Cutler strategy through the fornax DemosaicStrategy contract. Validate
+all public inputs before entering panic-prone helpers and translate upstream
+types and failures at the adapter boundary.
 """
 acceptance = [
-  "The selected algorithm is justified by merged evidence.",
-  "Numerical properties and border behavior are tested.",
-  "Visual checks are supplementary and performance is recorded.",
+  "The adapter maps all four supported Bayer phases and preserves fornax channel and border semantics.",
+  "Wrong lengths, unsupported algorithm/phase combinations, too-small images, and upstream failures are translated to DemosaicError.",
+  "Known-channel preservation, border behavior, overshoot/undershoot, and pinned-reference tolerances are characterized in tests.",
+  "Enabling the optional feature does not select or register an algorithm automatically.",
+  "No demosaic-crate CFA, error, option, or algorithm type appears in the public fornax contract.",
+  "Edge-aware algorithms remain deferred until separately approved.",
 ]
 validation = [
-  "Verify dependency PRs are merged.",
-  "Run focused tests, formatting, clippy, and the benchmark.",
+  "Verify IMPL-DEM-002, DES-005, and RES-05 PRs are merged.",
+  "Run focused reference, phase, border, failure, and feature-gating tests.",
+  "Run formatting, clippy, and the relevant feature-specific workspace build.",
 ]

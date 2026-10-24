@@ -1,0 +1,34 @@
+schema_version = 1
+id = "IMPL-CORE-001"
+slug = "universal-core-model"
+title = "Implement the universal RAW model and validation"
+phase = "implementation"
+dependencies = ["DES-001", "DES-002", "DES-003", "DES-006"]
+parallelism = "Foundational implementation gate; must merge before decoder, preprocessing, or demosaic crate work."
+deliverables = [
+  "fornax-core universal model source",
+  "fornax-core model and validation tests",
+]
+scope = """
+Replace the legacy fornax-core internals with the persistent universal RAW
+model: native u8/u16/u32/f32 planes, sample encoding, stored geometry,
+ActiveArea and Bayer indexing, typed and extensible metadata with provenance,
+black/white levels, consuming stage types, constructors, and structured
+validation errors. Do not add decoder-specific dependencies or preprocessing
+algorithms.
+"""
+acceptance = [
+  "The implementation follows docs/raw-pipeline rather than retaining legacy BayerImage, decoder, or post-processor contracts.",
+  "Native sample containers retain declared encoding and reject invalid container/encoding combinations.",
+  "ActiveArea-relative CFA lookup is correct for RGGB, BGGR, GRBG, and GBRG, including odd origins.",
+  "Typed metadata, extensible metadata, provenance, conflict handling, and level invariants are enforced by construction.",
+  "Only Decoded can enter standard preprocessing, and stage transitions cannot silently backtrack or repeat.",
+  "Unsupported non-mosaic, non-RGB, and wider sample encodings return typed errors.",
+  "fornax-core has no dependency on a decoder adapter, preprocessing implementation, or demosaic strategy.",
+]
+validation = [
+  "Verify DES-001, DES-002, DES-003, and DES-006 PRs are merged.",
+  "Run focused fornax-core tests for every Bayer phase, coordinate origin, stage transition, and rejection path.",
+  "Build fornax-core with and without serde.",
+  "Run formatting, clippy, and the workspace checks affected by the core rewrite.",
+]

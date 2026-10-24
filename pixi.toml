@@ -24,7 +24,7 @@ pytest-cov = "==7.1.0"
 [feature.agent.dependencies]
 codex = "*"
 codex-config = "*"
-skill-glatzel = "*"
+skill-glatzel = "==0.0.3"
 
 [environments]
 default = ["dev"]

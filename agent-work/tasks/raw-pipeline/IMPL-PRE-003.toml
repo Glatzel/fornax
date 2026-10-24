@@ -1,21 +1,27 @@
 schema_version = 1
 id = "IMPL-PRE-003"
-slug = "spatial-black-levels"
-title = "Implement supported spatially varying black levels"
+slug = "normalize-and-finish"
+title = "Implement normalization and the demosaic-ready transition"
 phase = "implementation"
 dependencies = ["IMPL-PRE-002"]
-parallelism = "Conditional on merged research and design justification."
-deliverables = ["spatial black-level source", "alignment and rejection tests"]
+parallelism = "Completes the preprocessing track after black subtraction."
+deliverables = ["normalization and clipping source", "numerical boundary and state tests"]
 scope = """
-Implement only the spatially varying black-level forms approved by design.
-Unsupported tile shapes must fail with structured errors.
+Implement BlackCorrectedRaw to NormalizedRaw and NormalizedRaw to
+DemosaicReadyMosaic. Preserve signed and above-one normalized f32 values,
+validate white/black range using f64 arithmetic, and clamp to [0,1] only in the
+explicit final transition.
 """
 acceptance = [
-  "Pattern alignment with crop and CFA phase is tested.",
-  "Only approved forms are accepted.",
-  "Unsupported forms return structured errors.",
+  "Normalization uses the selected slot white level and rejects white <= black or non-finite ranges.",
+  "Negative underflow and above-one overflow survive NormalizedRaw unchanged.",
+  "NaN and infinity are rejected before final clipping.",
+  "DemosaicReadyMosaic contains finite f32 values in [0,1], with final clamping applied exactly once.",
+  "In-place buffer reuse, checked allocation behavior, metadata retention, and ActiveArea/CFA invariants are tested.",
+  "The state API prevents normalization or clipping from being repeated.",
 ]
 validation = [
-  "Verify IMPL-PRE-002 and the approving design evidence are merged.",
-  "Run focused numerical tests and workspace checks.",
+  "Verify IMPL-PRE-002 is merged.",
+  "Run focused normalization, clipping, non-finite, and stage-transition tests.",
+  "Run formatting, clippy, and the affected workspace build.",
 ]

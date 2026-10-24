@@ -45,6 +45,16 @@ fully refactored.
 - Preserve metadata even when the current pipeline does not consume it.
 - Prefer safe Rust and document necessary unsafe code and invariants.
 - Avoid unnecessary dependencies, abstractions, allocations, and copies.
+- The `codex` package exports `CODEX_HOME` from the Pixi `agent` environment,
+  and `skill-glatzel` installs skill packages there. Codex discovers those
+  skills automatically; do not copy or install them separately. Run
+  `pixi install -e agent` when the agent environment or lockfile changes.
+- During implementation, use the applicable available `glatzel-*` skills:
+  `glatzel-preferred-rust-crates` when adding or evaluating Rust dependencies,
+  `glatzel-rust-apidoc` when writing or reviewing public Rust API
+  documentation, and `glatzel-tool-discovery` when an installed local tool can
+  materially improve the work. Skills are implementation aids; the task
+  manifest, persistent design, and task gates remain authoritative.
 - Design the architecture from the required pipeline contracts; document all
   breaking changes and any implementation assets carried across the refactor.
 - Any design or implementation change that affects the pipeline flow,
