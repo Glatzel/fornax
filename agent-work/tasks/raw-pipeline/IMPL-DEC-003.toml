@@ -33,7 +33,7 @@ acceptance = [
   "The Canon CR2 fixture runs from decode through preprocess and linear demosaic in a fornax example.",
   "Preprocessed and demosaiced outputs use ActiveArea dimensions while retaining the original stored geometry in metadata.",
   "The example writes stage images under repository-root `temp/` as `fornax-libraw-decoded.tiff`, `fornax-libraw-preprocess.tiff`, and `fornax-libraw-demosaic_linear.tiff`.",
-  "A comparison example writes pure-LibRaw, fornax-LibRaw, and absolute-difference images for decoded, preprocess, and linear-demosaic stages, then prints max, mean, RMS, changed-sample count, and changed percentage for each stage.",
+  "A comparison example writes pure-LibRaw and fornax-LibRaw images, then prints max, mean, RMS, changed-sample count, and changed percentage for the absolute difference at each stage without writing diff images.",
   "DNG, Sony ARW, Nikon NEF, and Canon CR3 fixtures remain documented as unavailable with backend risk.",
   "The backend stays opt-in and its LGPL/CDDL and native-link distribution decisions are recorded.",
 ]

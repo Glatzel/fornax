@@ -49,7 +49,6 @@ fn compare_decoded(output_dir: &Path, raw_path: &Path) -> mischief::Result<()> {
     pure.save(&pure_path)?;
     fornax.save(&fornax_path)?;
     let diff = abs_diff_gray(&pure, &fornax)?;
-    diff.save(output_dir.join("libraw-vs-fornax-libraw-decoded-diff.tiff"))?;
     print_diff_stats("decoded", diff.as_raw());
     Ok(())
 }
@@ -114,7 +113,6 @@ fn compare_preprocessed(output_dir: &Path, raw_path: &Path) -> mischief::Result<
     pure.save(&pure_path)?;
     fornax.save(&fornax_path)?;
     let diff = abs_diff_gray(&pure, &fornax)?;
-    diff.save(output_dir.join("libraw-vs-fornax-libraw-preprocess-diff.tiff"))?;
     print_diff_stats("preprocess", diff.as_raw());
     Ok(())
 }
@@ -138,7 +136,6 @@ fn compare_demosaiced(output_dir: &Path, raw_path: &Path) -> mischief::Result<()
     pure.save(&pure_path)?;
     fornax.save(&fornax_path)?;
     let diff = abs_diff_rgb(&pure, &fornax)?;
-    diff.save(output_dir.join("libraw-vs-fornax-libraw-demosaic_linear-diff.tiff"))?;
     print_diff_stats("demosaic_linear", diff.as_raw());
     Ok(())
 }
@@ -260,13 +257,10 @@ fn compare_libraw_example_writes_all_comparison_images() -> mischief::Result<()>
     for filename in [
         "libraw-decoded.tiff",
         "fornax-libraw-decoded.tiff",
-        "libraw-vs-fornax-libraw-decoded-diff.tiff",
         "libraw-preprocess.tiff",
         "fornax-libraw-preprocess.tiff",
-        "libraw-vs-fornax-libraw-preprocess-diff.tiff",
         "libraw-demosaic_linear.tiff",
         "fornax-libraw-demosaic_linear.tiff",
-        "libraw-vs-fornax-libraw-demosaic_linear-diff.tiff",
     ] {
         assert!(fornax_devtool::temp_dir().join(filename).is_file());
     }
