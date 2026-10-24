@@ -106,10 +106,12 @@ The PR body must identify:
 - exact validation commands and results;
 - known limitations, follow-up tasks, and files intentionally out of scope.
 
-Review comments and approval stay on GitHub. Do not mirror them into a task
-manifest, report front matter, or checkpoint. Agents do not merge their own
-pull requests. If review requests changes, update the same branch and PR rather
-than opening another PR for the task.
+After opening the PR, report its URL and stop. Do not watch, poll, or wait for
+checks or review. The user initiates the next step in conversation: request
+local changes or merge the PR. Do not mirror review state into a task manifest,
+report front matter, or checkpoint. If the user asks for changes, update the
+same branch and PR unless they ask for a local-only result rather than opening
+another PR for the task. Agents do not merge or close their own pull requests.
 
 ## Pause, handoff, and concurrency
 
