@@ -101,9 +101,18 @@ crate boundaries, traits, composition model, or public API unless the new design
 independently justifies them. Relevant upstream RAW libraries remain evidence,
 not architectural templates.
 
+Decoder reuse is an architectural requirement, not a convenience. Expose
+existing RAW decoders through selectable, backend-neutral adapters; do not make
+a first-party RAW format decoder the initial design or implementation target.
+The shared model, capability contract, selection policy, and provenance belong
+to `fornax`; format parsing, vendor metadata tables, and codec machinery stay in
+the selected backend.
+
 The target pipeline is:
 
-1. **Decode:** Read a supported RAW file and produce a universal, backend-independent RAW representation with sufficient metadata for subsequent processing.
+1. **Decode:** Read a supported RAW file through the selected existing-decoder
+   adapter and produce a universal, backend-independent RAW representation with
+   sufficient metadata for subsequent processing.
 2. **Preprocess:** Interpret the decoded sensor metadata and perform explicitly defined RAW-domain corrections, especially black-level correction.
 3. **Demosaic:** Reconstruct a full-resolution image from the sensor mosaic using interchangeable algorithms.
 
@@ -195,12 +204,12 @@ contract.
 | `RES-06` | `agent-work/research/RES-06-rust-raw-decoders.md` | Rust RAW decoder crates, representations, target-format coverage, maintenance, licenses | none | Yes, wave R0 |
 | `RES-07` | `agent-work/research/RES-07-rust-dng-tiff.md` | Rust TIFF/DNG building blocks, sample layout, errors, dependency suitability | none | Yes, wave R0 |
 | `RES-08` | `agent-work/research/RES-08-rust-demosaicing.md` | Rust demosaicing crates, Bayer input/output contracts, validation, test patterns | none | Yes, wave R0 |
-| `RES-09` | `agent-work/research/RES-09-rust-ecosystem.md` | Cross-report comparison, reuse boundary, dependency and license recommendation | `RES-06`, `RES-07`, `RES-08` | After R0 |
+| `RES-09` | `agent-work/research/RES-09-rust-ecosystem.md` | Existing-decoder and Rust ecosystem comparison, adapter boundaries, backend selection, reuse, and license recommendation | `RES-01`–`RES-04`, `RES-06`–`RES-08` | After R0 |
 
 Each research task owns exactly one report. A task may reference another report,
 but it must not edit it. `RES-01`–`RES-08` form independent wave R0 and may run
-concurrently. `RES-09` compares only the three Rust ecosystem reports after they
-are ready.
+concurrently. `RES-09` compares the relevant backend and Rust ecosystem reports
+after they are ready.
 
 #### RES-01 — Inventory existing `fornax` components and reusable assets
 
@@ -380,23 +389,29 @@ are ready.
 - **Parallelization:** Independent. Owns only
   `agent-work/research/RES-08-rust-demosaicing.md`.
 
-#### RES-09 — Compare Rust ecosystem candidates
+#### RES-09 — Compare existing decoder and Rust ecosystem candidates
 
 - **Output report:** `agent-work/research/RES-09-rust-ecosystem.md`
-- **Scope:** Compare the findings from `RES-06`–`RES-08` without repeating their
-  evidence. Produce a decision matrix for decoder adapters, DNG/TIFF reuse, and
-  demosaicing interfaces; recommend which components are dependencies, optional
-  backends, design references, or unsuitable.
+- **Scope:** Compare the existing decoder findings from `RES-01`–`RES-04` and
+  the Rust ecosystem findings from `RES-06`–`RES-08` without repeating their
+  evidence. Produce a decision matrix for LibRaw, dnglab/rawler, `dnc`,
+  darktable/rawspeed, DNG/TIFF reuse, and demosaicing interfaces; recommend
+  which components are selectable backends, conversion bridges, dependencies,
+  design references, or unsuitable.
 - **Evidence requirements:** Link every conclusion to the split reports. Keep
   source citations in the owned reports and call out license or maintenance
   conflicts explicitly.
-- **Acceptance criteria:** Every candidate is compared on scope fit, Bayer/target
-  format fit, API boundary, maintenance, and license; recommendations are
-  traceable to `RES-06`–`RES-08`; no whole upstream RAW type is recommended for
-  `fornax-core` without an explicit boundary; and the report contains the six
-  required sections.
-- **Parallelization:** Starts after `RES-06`, `RES-07`, and `RES-08` are
-  approved and merged in the dependency task PR. Owns only `agent-work/research/RES-09-rust-ecosystem.md`.
+- **Acceptance criteria:** Every decoder, conversion bridge, and reusable
+  component is compared on scope fit, Bayer/target-format fit, API boundary,
+  maintenance, and license; a backend-neutral adapter contract specifies
+  explicit selection, capabilities, structured rejection, and provenance; no
+  whole upstream RAW type is recommended for `fornax-core`; the recommendation
+  does not require `fornax` to maintain a first-party RAW decoder; all
+  recommendations are traceable to the split reports; and the report contains
+  the six required sections.
+- **Parallelization:** Starts after `RES-01`–`RES-04` and `RES-06`–`RES-08` are
+  approved and merged in their dependency task PRs. Owns only
+  `agent-work/research/RES-09-rust-ecosystem.md`.
 
 ### Required report structure
 
@@ -669,9 +684,17 @@ For each proposed or retained crate, document:
 
 No existing crate is retained by default. Justify every retained or new crate
 from its responsibility in the replacement design. Keep the core data model
-independent of LibRaw-specific types. Existing bindings may be adapted as one
-decoder backend, but neither their API nor the current crate topology defines
+independent of every decoder-specific type. Design existing RAW decoders as
+selectable adapters; neither their APIs nor the current crate topology define
 the replacement architecture.
+
+LibRaw and dnglab/rawler are the initial decoder-backend candidates. The
+existing `dnc` wrapper is a DNG-conversion bridge that must compose with a
+decoder backend. darktable/rawspeed is eligible only if a decoder-only boundary
+can return stored sensor data before `rawprepare`; the darktable application
+pipeline must not become a backend. The design must define backend capabilities,
+explicit selection, provenance, error translation, sample-domain state, and
+dependency features without exposing backend types in the universal model.
 
 Include representative Rust type definitions and function signatures in the design report.
 
@@ -715,10 +738,13 @@ pull requests are the sole live state and approval record.
 
 3. Work only in the manifest deliverables and files needed to validate them.
    Keep unrelated cleanup in a separate task.
-4. Commit and push the branch, then open one PR titled
-   `[TASK-ID] Imperative summary` with
-   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Report the PR URL and
-   stop. Do not watch, poll, or wait for checks or review after creating it.
+4. Commit and push the branch, then open one PR with a semantic title
+   `<type>(<task-id>): <imperative summary>`, such as
+   `docs(res-01): inventory existing components`, and use
+   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. The type must be accepted
+   by `.github/semantic.yml`, the scope must be the lowercase task ID, and the
+   task ID must also appear in the PR body. Report the PR URL and stop. Do not
+   watch, poll, or wait for checks or review after creating it.
 5. The user initiates the next step in conversation: request local changes or
    merge the PR. If changes are requested, update the same branch and PR unless
    the user asks for a local-only result. Do not open a second PR for the same
@@ -769,7 +795,7 @@ The dependency graph is:
 
 `RES-01..08 -> SYN-01 -> SYN-02 -> SYN-03`
 
-`RES-06..08 -> RES-09 -> SYN-03`
+`RES-01..04,06..08 -> RES-09 -> SYN-03`
 
 `SYN-03 -> DES-001..007 -> IMPL-* -> QA-*`
 
@@ -787,6 +813,11 @@ pull requests.
 Requirements:
 
 - Reuse existing `fornax` code where appropriate.
+- Implement decoding by adapting the selected existing decoder backend. Do not
+  add a first-party RAW format decoder within the initial implementation scope.
+- Keep backend selection and capabilities explicit, preserve decoder
+  provenance, and reject backend output that has already entered a processing
+  pipeline.
 - Avoid unnecessary crate proliferation or dependency additions.
 - Keep decoding, metadata interpretation, preprocessing, and demosaicing separate.
 - Define numerical behavior explicitly.
@@ -828,7 +859,8 @@ Run the repository's applicable formatting, lint, test, and build commands. Reco
 Work in this order:
 
 1. Start `RES-01` through `RES-08` as concurrent, tracked research tasks. Run
-   `RES-09` only after the three Rust ecosystem report PRs are merged.
+   `RES-09` only after its existing-decoder and Rust ecosystem report PRs are
+   merged.
 2. Have each owner record findings and evidence in exactly one report under
    `agent-work/research/`.
 3. Run `SYN-01` after its prerequisite report PRs are approved and merged, then

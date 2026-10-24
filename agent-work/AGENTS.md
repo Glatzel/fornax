@@ -12,8 +12,9 @@ full requirements.
 `fornax` is a Rust-first RAW image processing workspace (edition 2024, resolver
 3). The intended pipeline is:
 
-1. **Decode** a supported RAW file into a universal, backend-independent RAW
-   representation with enough metadata for later stages.
+1. **Decode** a supported RAW file through a selectable adapter over an
+   existing RAW decoder into a universal, backend-independent representation
+   with enough metadata for later stages.
 2. **Preprocess** sensor-domain samples using explicit metadata semantics,
    notably black-level correction.
 3. **Demosaic** the sensor mosaic into a reconstructed image.
@@ -33,8 +34,13 @@ fully refactored.
 - Inventory existing components, behavior, tests, and tooling before designing
   the replacement. Reuse implementation assets where justified, but do not
   preserve the current architecture or public APIs for compatibility alone.
+- Reuse existing RAW decoders through adapters rather than implement a
+  first-party format decoder. Initial candidates are LibRaw, dnglab/rawler, the
+  existing `dnc` conversion bridge, and a decoder-only darktable/rawspeed
+  integration if that boundary can be isolated.
 - Keep decoder-specific representations behind adapters.
-- Keep shared RAW types independent of any decoder backend, including LibRaw.
+- Keep shared RAW types, backend selection, capabilities, and provenance
+  independent of every decoder backend.
 - Use explicit, statically typed APIs and well-defined numerical semantics.
 - Preserve metadata even when the current pipeline does not consume it.
 - Prefer safe Rust and document necessary unsafe code and invariants.
@@ -109,9 +115,11 @@ outputs there.
 5. Record verified findings, inferences, recommendations, evidence, limitations,
    and blockers in the owned deliverable as work proceeds.
 6. Commit, push, and open one pull request for the task using
-   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Put the task ID in the
-   title, for example `[RES-01] Inventory existing components`. Report the PR
-   URL and stop; do not watch, poll, or wait for checks or review.
+   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Use a semantic PR title
+   accepted by `.github/semantic.yml`, with the lowercase task ID as the scope,
+   for example `docs(res-01): inventory existing components`. Keep the task ID
+   in the PR body. Report the PR URL and stop; do not watch, poll, or wait for
+   checks or review.
 7. The user will initiate the next step in conversation: request local changes
    or merge the PR. Update the same branch and PR when changes are requested
    unless the user asks for a local-only result. Do not add review state to the

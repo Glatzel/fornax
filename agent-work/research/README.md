@@ -7,13 +7,19 @@ find report ownership, prerequisites, and the synthesis path without reading
 the workflow.
 
 Review and live state are not duplicated here. Look up the task's GitHub pull
-request by its `[TASK-ID]` title, `task:<TASK-ID>` label, or branch. A dependency
-is satisfied only after its task PR is approved and merged.
+request by its task ID in the PR body, `task:<TASK-ID>` label, branch, or
+semantic scope such as `(res-01)`. A dependency is satisfied only after its
+task PR is approved and merged.
 
 The initial research target is conventional 2x2 RGB Bayer data in DNG, Sony ARW,
 Nikon NEF, and Canon `CR*` files. X-Trans, Foveon/X3, Quad Bayer, four-color,
 monochrome, and other RAW formats are future work and should be documented as
 unsupported in the initial pipeline.
+
+The decode architecture reuses existing implementations through adapters.
+Research therefore covers both the backend sources (LibRaw, dnglab/rawler,
+`dnc`, and darktable/rawspeed) and the Rust TIFF/demosaicing ecosystem before
+the design fixes public types.
 
 ## Report ownership
 
@@ -27,7 +33,7 @@ unsupported in the initial pipeline.
 | [`RES-06-rust-raw-decoders.md`](RES-06-rust-raw-decoders.md) | `RES-06` | none | Rust RAW decoders, target-format coverage, sample/metadata models, adapter risks, maintenance, and licenses are documented. |
 | [`RES-07-rust-dng-tiff.md`](RES-07-rust-dng-tiff.md) | `RES-07` | none | Rust TIFF/DNG building blocks, Bayer sample layout, errors, limits, and dependency fit are documented. |
 | [`RES-08-rust-demosaicing.md`](RES-08-rust-demosaicing.md) | `RES-08` | none | Rust Bayer demosaicing APIs, borders, validation, strategy patterns, tests, and licenses are documented. |
-| [`RES-09-rust-ecosystem.md`](RES-09-rust-ecosystem.md) | `RES-09` | `RES-06`–`RES-08` merged | Split reports are compared into dependency, backend, design-reference, and license recommendations. |
+| [`RES-09-rust-ecosystem.md`](RES-09-rust-ecosystem.md) | `RES-09` | `RES-01`–`RES-04`, `RES-06`–`RES-08` merged | Existing decoders, conversion bridges, and Rust components are compared into selectable-backend, dependency, design-reference, and license recommendations. |
 | [`SYN-03-summary.md`](SYN-03-summary.md) | `SYN-03` | all `RES-*`, `SYN-01`, `SYN-02` merged | Findings are synthesized, disagreements and uncertainties are explicit, and recommendations link to supporting report sections. |
 
 Each research task owns exactly one reference report. A worker must not edit a
@@ -47,7 +53,8 @@ license, purpose, and local path.
 - `RES-06` uses the rawloader checkout and the decoder-facing rawler API.
 - `RES-07` uses the image-tiff checkout and DNG-facing rawler internals.
 - `RES-08` uses the `demosaic` and MeraRAW checkout APIs and tests.
-- `RES-09` compares only the owned findings from `RES-06`–`RES-08`.
+- `RES-09` compares the owned decoder, preprocessing, DNG, and Rust ecosystem
+  findings without repeating their source evidence.
 - LibRaw `0.22.2` evidence is in the pinned libraw checkout and the local
   `crates/libraw` wrapper.
 

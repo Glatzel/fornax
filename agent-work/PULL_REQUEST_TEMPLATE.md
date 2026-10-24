@@ -31,7 +31,8 @@ task that needs its own branch and PR.
 
 ## Reviewer checklist
 
-- [ ] The task ID is in the PR title and the linked manifest matches the scope.
+- [ ] The PR title is semantic, uses the lowercase task ID as its scope, and
+  the linked manifest matches the scope.
 - [ ] Every dependency PR is merged.
 - [ ] Deliverables use the paths and names in the task manifest.
 - [ ] The branch contains only this task's changes.
