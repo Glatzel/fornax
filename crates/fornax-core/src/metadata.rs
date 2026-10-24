@@ -711,37 +711,7 @@ pub struct MetadataEntry {
 }
 
 impl MetadataEntry {
-    /// Validates finite values and the metadata allocation bound.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`crate::MetadataError::InvalidValue`] for non-finite numbers
-    /// and [`crate::MetadataError::AllocationLimit`] above 16 MiB per entry.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::{
-    ///     AuthorityClass, Confidence, MetadataEntry, MetadataKey, MetadataValue, Provenance,
-    ///     ProviderId, SourceKind,
-    /// };
-    ///
-    /// let entry = MetadataEntry {
-    ///     key: MetadataKey::try_new("vendor.note").unwrap(),
-    ///     value: MetadataValue::Text("preserved".into()),
-    ///     unit: None,
-    ///     coordinate_space: None,
-    ///     provenance: Provenance::new(
-    ///         ProviderId::try_new("test").unwrap(),
-    ///         SourceKind::UserOverride,
-    ///         AuthorityClass::UserOverride,
-    ///         Confidence::Exact,
-    ///     ),
-    ///     original: None,
-    /// };
-    /// assert!(entry.validate().is_ok());
-    /// ```
-    pub fn validate(&self) -> Result<(), crate::MetadataError> {
+    fn validate(&self) -> Result<(), crate::MetadataError> {
         if !self.value.is_finite() {
             return Err(crate::MetadataError::InvalidValue);
         }
@@ -1207,27 +1177,7 @@ pub struct CommonMetadata {
 }
 
 impl CommonMetadata {
-    /// Validates that all metadata required to enter standard preprocessing is
-    /// present.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`crate::MetadataError::MissingRequiredField`] for the first
-    /// absent required field.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::CommonMetadata;
-    ///
-    /// assert_eq!(
-    ///     CommonMetadata::default().validate_required(),
-    ///     Err(fornax_core::MetadataError::MissingRequiredField(
-    ///         fornax_core::TypedMetadataField::SampleSpec
-    ///     ))
-    /// );
-    /// ```
-    pub fn validate_required(&self) -> Result<(), crate::MetadataError> {
+    fn validate_required(&self) -> Result<(), crate::MetadataError> {
         for (field, present) in [
             (TypedMetadataField::SampleSpec, self.sample_spec.is_some()),
             (
@@ -1365,49 +1315,11 @@ impl ValidatedMetadata {
             .value
     }
 
-    /// Validates a native stored plane against geometry and spec.
-    ///
-    /// # Errors
-    ///
-    /// Returns a typed error for incompatible dimensions, container spec,
-    /// or non-finite floating samples.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use fornax_core::{
-    /// #     ActiveArea, BayerLayout, BayerPattern, CommonMetadata, ExtensibleMetadata,
-    /// #     PixelSize, SampleSpec, SampleFormat, StoredGeometry, StoredPlane, U16Plane,
-    /// #     ValidatedMetadata,
-    /// # };
-    /// # use std::num::NonZeroU64;
-    /// # fn sourced<T>(value: T) -> fornax_core::Sourced<T> {
-    /// #     use fornax_core::{AuthorityClass, Confidence, Provenance, ProviderId, SourceKind};
-    /// #     fornax_core::Sourced::new(
-    /// #         value,
-    /// #         Provenance::new(
-    /// #             ProviderId::try_new("test").unwrap(),
-    /// #             SourceKind::Derived { operation: "fixture".into() },
-    /// #             AuthorityClass::DerivedValue,
-    /// #             Confidence::Exact,
-    /// #         ),
-    /// #     )
-    /// # }
-    /// # let dimensions = PixelSize::new(2, 2).unwrap();
-    /// # let active_area = ActiveArea::try_new(dimensions, 0, 0, 2, 2).unwrap();
-    /// # let geometry = StoredGeometry::new(dimensions, NonZeroU64::new(4).unwrap());
-    /// # let common = CommonMetadata {
-    /// #     sample_spec: Some(sourced(SampleSpec::try_new(16, SampleFormat::UnsignedInteger).unwrap())),
-    /// #     stored_geometry: Some(sourced(geometry)),
-    /// #     active_area: Some(sourced(active_area)),
-    /// #     cfa: Some(sourced(BayerLayout::new(BayerPattern::Rggb, active_area))),
-    /// #     ..CommonMetadata::default()
-    /// # };
-    /// # let metadata = ValidatedMetadata::try_new(common, ExtensibleMetadata::default()).unwrap();
-    /// let plane = StoredPlane::U16(U16Plane::from_raw(2, 2, vec![0; 4]).unwrap());
-    /// assert!(metadata.validate_native_plane(&plane).is_ok());
-    /// ```
-    pub fn validate_native_plane(&self, plane: &StoredPlane) -> Result<(), RawValidationError> {
+    /// Validates a native stored plane against validated geometry and spec.
+    pub(crate) fn validate_native_plane(
+        &self,
+        plane: &StoredPlane,
+    ) -> Result<(), RawValidationError> {
         let dimensions = plane.dimensions()?;
         if dimensions != self.stored_geometry().dimensions() {
             return Err(RawValidationError::InvalidGeometry);

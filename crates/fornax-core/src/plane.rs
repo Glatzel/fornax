@@ -117,22 +117,7 @@ impl StoredPlane {
     }
 
     /// Validates native container width, format, exact length, and finiteness.
-    ///
-    /// # Errors
-    ///
-    /// Returns a typed error when the container is incompatible with
-    /// `spec` or contains an invalid value.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::{SampleFormat, SampleSpec, StoredPlane, U16Plane};
-    ///
-    /// let plane = StoredPlane::U16(U16Plane::from_raw(1, 1, vec![1023]).unwrap());
-    /// let spec = SampleSpec::try_new(10, SampleFormat::UnsignedInteger).unwrap();
-    /// assert!(plane.validate_native_spec(spec).is_ok());
-    /// ```
-    pub fn validate_native_spec(&self, spec: SampleSpec) -> Result<(), RawValidationError> {
+    pub(crate) fn validate_native_spec(&self, spec: SampleSpec) -> Result<(), RawValidationError> {
         let dimensions = self.dimensions()?;
         dimensions.sample_count()?;
         match (self, spec.format, spec.bits_per_sample) {

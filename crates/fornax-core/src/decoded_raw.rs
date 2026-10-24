@@ -129,9 +129,8 @@ impl DecodedRaw {
     ///
     /// Mutations are not validated immediately. Call
     /// [`Self::set_metadata_basis`] when the sample transformation changes
-    /// the validity of black/white metadata, then call
-    /// [`Self::require_standard_preprocessing`] before preprocessing or
-    /// demosaicing the image.
+    /// the validity of black/white metadata. Validation is applied
+    /// automatically when preprocessing consumes the image.
     ///
     /// # Examples
     ///
@@ -220,25 +219,7 @@ impl DecodedRaw {
         Ok(self)
     }
 
-    /// Verifies that the single standard preprocessing pass may consume this
-    /// image.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`RawValidationError::InvalidCustomMetadataBasis`] when custom
-    /// processing invalidated black/white metadata without replacements.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::RawValidationError;
-    ///
-    /// assert_eq!(
-    ///     RawValidationError::InvalidCustomMetadataBasis.to_string(),
-    ///     "custom processing metadata basis is incompatible with standard preprocessing"
-    /// );
-    /// ```
-    pub fn require_standard_preprocessing(&self) -> Result<(), RawValidationError> {
+    fn validate_for_preprocessing(&self) -> Result<(), RawValidationError> {
         if matches!(self.metadata_basis, MetadataBasis::Incompatible) {
             return Err(RawValidationError::InvalidCustomMetadataBasis);
         }
@@ -256,10 +237,26 @@ impl DecodedRaw {
     /// Consumes the image into retained metadata and stored plane.
     pub fn into_parts(self) -> (Arc<ValidatedMetadata>, StoredPlane) { (self.metadata, self.plane) }
 
-    pub(crate) fn into_preprocessing_parts(
+    /// Consumes and validates the decoded image for preprocessing.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed error if user mutation left the plane incompatible with
+    /// its metadata or if the metadata basis is incompatible.
+    #[doc(hidden)]
+    pub fn into_preprocessing_parts(
         self,
-    ) -> (Arc<ValidatedMetadata>, DecoderProvenance, MetadataBasis) {
-        (self.metadata, self.decoder, self.metadata_basis)
+    ) -> Result<
+        (
+            Arc<ValidatedMetadata>,
+            StoredPlane,
+            DecoderProvenance,
+            MetadataBasis,
+        ),
+        RawValidationError,
+    > {
+        self.validate_for_preprocessing()?;
+        Ok((self.metadata, self.plane, self.decoder, self.metadata_basis))
     }
 }
 
@@ -316,7 +313,7 @@ mod tests {
     fn conversion_remains_a_decoded_raw() {
         let decoded = decoded().convert_to_f32().unwrap();
         assert!(matches!(decoded.plane(), StoredPlane::F32(_)));
-        assert_eq!(decoded.require_standard_preprocessing(), Ok(()));
+        decoded.clone().into_preprocessing_parts().unwrap();
         assert_eq!(
             decoded.clone().convert_to_f32(),
             Err(RawValidationError::InvalidStorageState)
@@ -332,8 +329,8 @@ mod tests {
         plane.as_mut().fill(0.25);
         custom.set_metadata_basis(MetadataBasis::Incompatible);
         assert_eq!(
-            custom.require_standard_preprocessing(),
-            Err(RawValidationError::InvalidCustomMetadataBasis)
+            custom.into_preprocessing_parts().unwrap_err(),
+            RawValidationError::InvalidCustomMetadataBasis
         );
     }
 
@@ -344,7 +341,6 @@ mod tests {
             into_preprocessed(decoded, ImageBuffer::from_raw(2, 2, vec![0.75; 4]).unwrap())
                 .unwrap();
         assert_eq!(ready.plane().as_raw(), &[0.75; 4]);
-        assert_eq!(ready.validate_for_demosaic(), Ok(()));
         assert_eq!(ready.metadata().cfa().pattern(), BayerPattern::Gbrg);
     }
 
@@ -377,7 +373,7 @@ mod tests {
         };
         plane.as_mut().fill(0.5);
         image.set_metadata_basis(basis);
-        assert_eq!(image.require_standard_preprocessing(), Ok(()));
+        image.into_preprocessing_parts().unwrap();
     }
 
     #[test]
@@ -385,11 +381,11 @@ mod tests {
         let mut image = decoded();
         *image.plane_mut() = StoredPlane::U8(crate::U8Plane::from_raw(2, 2, vec![1; 4]).unwrap());
         assert_eq!(
-            image.require_standard_preprocessing(),
-            Err(RawValidationError::UnsupportedSampleSpec {
+            image.into_preprocessing_parts().unwrap_err(),
+            RawValidationError::UnsupportedSampleSpec {
                 bits_per_sample: 16,
                 format: SampleFormat::UnsignedInteger,
-            })
+            }
         );
     }
 

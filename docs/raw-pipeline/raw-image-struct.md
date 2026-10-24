@@ -136,9 +136,10 @@ private to core's preprocessing finalizer and validates finite samples in
 
 Users may mutate `DecodedRaw::plane_mut()` directly for custom processing.
 After changing the sample basis, they must call
-`DecodedRaw::set_metadata_basis`; `require_standard_preprocessing` revalidates
-the current plane's dimensions, sample specification, and finite values before
-the single preprocessing pass. No operation-history field is retained.
+`DecodedRaw::set_metadata_basis`. The consuming preprocessing operation
+automatically validates the current plane's dimensions, sample specification,
+and finite values before the single preprocessing pass. No operation-history
+field is retained, and callers do not invoke a separate validation method.
 
 ## Validation fields and errors
 
