@@ -1,6 +1,7 @@
 [submodule "external/raw-images"]
 	path = external/raw-images
 	url = https://github.com/syoyo/raw-images.git
+	shallow = true
 [submodule "agent-work/references/darktable"]
 	path = agent-work/references/darktable
 	url = https://github.com/darktable-org/darktable.git
