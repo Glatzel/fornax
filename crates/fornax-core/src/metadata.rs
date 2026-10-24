@@ -2,8 +2,7 @@ use std::collections::BTreeMap;
 use std::num::NonZeroU32;
 
 use crate::{
-    ActiveArea, BayerLayout, PixelSize, RawValidationError, SampleEncoding, StoredGeometry,
-    StoredPlane,
+    ActiveArea, BayerLayout, PixelSize, RawValidationError, SampleSpec, StoredGeometry, StoredPlane,
 };
 
 /// A finite rational metadata value.
@@ -775,7 +774,7 @@ pub enum TypedMetadataField {
     /// Camera identity.
     Camera,
     /// Sample precision and format.
-    SampleEncoding,
+    SampleSpec,
     /// Stored dimensions and stride.
     StoredGeometry,
     /// ActiveArea.
@@ -949,7 +948,7 @@ fn is_reserved_typed_key(key: &str) -> bool {
     matches!(
         key,
         "raw.camera"
-            | "raw.sample_encoding"
+            | "raw.sample_spec"
             | "raw.stored_geometry"
             | "raw.active_area"
             | "raw.default_crop"
@@ -1184,7 +1183,7 @@ pub struct CommonMetadata {
     /// Camera identity.
     pub camera: Option<Sourced<CameraIdentity>>,
     /// Sample precision and format.
-    pub sample_encoding: Option<Sourced<SampleEncoding>>,
+    pub sample_spec: Option<Sourced<SampleSpec>>,
     /// Compact dimensions and original row stride.
     pub stored_geometry: Option<Sourced<StoredGeometry>>,
     /// Active image rectangle.
@@ -1224,16 +1223,13 @@ impl CommonMetadata {
     /// assert_eq!(
     ///     CommonMetadata::default().validate_required(),
     ///     Err(fornax_core::MetadataError::MissingRequiredField(
-    ///         fornax_core::TypedMetadataField::SampleEncoding
+    ///         fornax_core::TypedMetadataField::SampleSpec
     ///     ))
     /// );
     /// ```
     pub fn validate_required(&self) -> Result<(), crate::MetadataError> {
         for (field, present) in [
-            (
-                TypedMetadataField::SampleEncoding,
-                self.sample_encoding.is_some(),
-            ),
+            (TypedMetadataField::SampleSpec, self.sample_spec.is_some()),
             (
                 TypedMetadataField::StoredGeometry,
                 self.stored_geometry.is_some(),
@@ -1333,12 +1329,12 @@ impl ValidatedMetadata {
     /// Returns the validated extensible metadata layer.
     pub const fn extensible(&self) -> &ExtensibleMetadata { &self.extensible }
 
-    /// Returns the required sample encoding.
-    pub fn sample_encoding(&self) -> SampleEncoding {
+    /// Returns the required sample specification.
+    pub fn sample_spec(&self) -> SampleSpec {
         self.common
-            .sample_encoding
+            .sample_spec
             .as_ref()
-            .expect("validated metadata has sample encoding")
+            .expect("validated metadata has sample specification")
             .value
     }
 
@@ -1369,11 +1365,11 @@ impl ValidatedMetadata {
             .value
     }
 
-    /// Validates a native stored plane against geometry and encoding.
+    /// Validates a native stored plane against geometry and spec.
     ///
     /// # Errors
     ///
-    /// Returns a typed error for incompatible dimensions, container encoding,
+    /// Returns a typed error for incompatible dimensions, container spec,
     /// or non-finite floating samples.
     ///
     /// # Examples
@@ -1381,7 +1377,7 @@ impl ValidatedMetadata {
     /// ```
     /// # use fornax_core::{
     /// #     ActiveArea, BayerLayout, BayerPattern, CommonMetadata, ExtensibleMetadata,
-    /// #     PixelSize, SampleEncoding, SampleFormat, StoredGeometry, StoredPlane, U16Plane,
+    /// #     PixelSize, SampleSpec, SampleFormat, StoredGeometry, StoredPlane, U16Plane,
     /// #     ValidatedMetadata,
     /// # };
     /// # use std::num::NonZeroU64;
@@ -1401,7 +1397,7 @@ impl ValidatedMetadata {
     /// # let active_area = ActiveArea::try_new(dimensions, 0, 0, 2, 2).unwrap();
     /// # let geometry = StoredGeometry::new(dimensions, NonZeroU64::new(4).unwrap());
     /// # let common = CommonMetadata {
-    /// #     sample_encoding: Some(sourced(SampleEncoding::try_new(16, SampleFormat::UnsignedInteger).unwrap())),
+    /// #     sample_spec: Some(sourced(SampleSpec::try_new(16, SampleFormat::UnsignedInteger).unwrap())),
     /// #     stored_geometry: Some(sourced(geometry)),
     /// #     active_area: Some(sourced(active_area)),
     /// #     cfa: Some(sourced(BayerLayout::new(BayerPattern::Rggb, active_area))),
@@ -1416,7 +1412,7 @@ impl ValidatedMetadata {
         if dimensions != self.stored_geometry().dimensions() {
             return Err(RawValidationError::InvalidGeometry);
         }
-        plane.validate_native_encoding(self.sample_encoding())
+        plane.validate_native_spec(self.sample_spec())
     }
 
     pub(crate) fn validate_f32_working_plane(
@@ -1428,7 +1424,7 @@ impl ValidatedMetadata {
             .ok_or(RawValidationError::InvalidGeometry)?;
         if dimensions != self.stored_geometry().dimensions()
             || plane.as_raw().len() != dimensions.sample_count()?
-            || !self.sample_encoding().is_f32_exact()
+            || !self.sample_spec().is_f32_exact()
         {
             return Err(RawValidationError::InvalidGeometry);
         }
@@ -1555,10 +1551,10 @@ mod tests {
         let active_area = ActiveArea::try_new(dimensions, 1, 2, 8, 8).unwrap();
         let different_area = ActiveArea::try_new(dimensions, 0, 0, 8, 8).unwrap();
         let geometry = StoredGeometry::new(dimensions, NonZeroU64::new(16).unwrap());
-        let encoding = SampleEncoding::try_new(16, SampleFormat::UnsignedInteger).unwrap();
+        let spec = SampleSpec::try_new(16, SampleFormat::UnsignedInteger).unwrap();
         let common = CommonMetadata {
-            sample_encoding: Some(Sourced::new(
-                encoding,
+            sample_spec: Some(Sourced::new(
+                spec,
                 provenance(AuthorityClass::DecoderObservation),
             )),
             stored_geometry: Some(Sourced::new(
@@ -1582,7 +1578,7 @@ mod tests {
         assert_eq!(
             ValidatedMetadata::try_new(CommonMetadata::default(), ExtensibleMetadata::default()),
             Err(RawValidationError::Metadata(
-                crate::MetadataError::MissingRequiredField(TypedMetadataField::SampleEncoding)
+                crate::MetadataError::MissingRequiredField(TypedMetadataField::SampleSpec)
             ))
         );
     }

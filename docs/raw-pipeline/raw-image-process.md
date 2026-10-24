@@ -40,7 +40,7 @@ flowchart TB
 
     Reject["Structured rejection"]
 
-    Adapter -->|unsupported layout / encoding| Reject
+    Adapter -->|unsupported layout / sample specification| Reject
     Preprocess -->|metadata basis invalid| Reject
     Ready --> Demosaic
 ```
@@ -49,7 +49,7 @@ flowchart TB
 
 | Step | Payload | Main operation | Required invariant | Failure mode |
 | --- | --- | --- | --- | --- |
-| Decode / custom | u8/u16/u32/f32 sensor plane | Backend unpack; optional `convert_to_f32` (lossless when representable) and user operation while state remains `Decoded` | Native encoding, geometry, CFA, ActiveArea, levels, provenance, and metadata basis validated | Unsupported encoding/layout or lossy conversion |
+| Decode / custom | u8/u16/u32/f32 sensor plane | Backend unpack; optional `convert_to_f32` (lossless when representable) and user operation while state remains `Decoded` | Native sample specification, geometry, CFA, ActiveArea, levels, provenance, and metadata basis validated | Unsupported specification/layout or lossy conversion |
 | `pre_process` | `DecodedRaw` to `RawImage` | Runs linearization, black subtraction, normalization, and final clipping as private substeps | Input metadata basis permits standard preprocessing; output is f32-only and in `[0,1]` | Missing/invalid metadata or non-finite values |
 | Demosaic | f32 planar RGB | Apply selected Bayer algorithm | Planar channel order and border policy explicit | Unsupported algorithm/layout |
 
@@ -86,9 +86,9 @@ that constructs `RawImage`. Because `pre_process` is defined only on
 
 `DecodedRaw::convert_to_f32` replaces an integer `StoredPlane` with an `f32`
 plane. Repeated conversion is rejected from the plane variant and declared
-integer encoding without a separate storage flag. Custom processing uses
-`DecodedRaw::plane_mut()` and remains a `DecodedRaw`. After changing the sample
-basis, the caller updates it with `set_metadata_basis` using
+integer sample specification without a separate storage flag. Custom
+processing uses `DecodedRaw::plane_mut()` and remains a `DecodedRaw`. After
+changing the sample basis, the caller updates it with `set_metadata_basis` using
 `MetadataBasis::{OriginalLevelsValid, ReplacedLevels, Incompatible}`. Standard
 preprocessing revalidates the mutated plane and rejects `Incompatible`.
 

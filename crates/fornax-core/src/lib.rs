@@ -36,5 +36,5 @@ pub use metadata::{
     OriginalValue, Provenance, ProviderId, Rational, SourceKind, Sourced, TypedMetadataField,
     ValidatedMetadata, WhiteBalance, WhiteLevels, resolve_sourced,
 };
-pub use plane::{F32Plane, SampleEncoding, SampleFormat, StoredPlane, U8Plane, U16Plane, U32Plane};
+pub use plane::{F32Plane, SampleFormat, SampleSpec, StoredPlane, U8Plane, U16Plane, U32Plane};
 pub use raw_image::{RawImage, into_preprocessed};

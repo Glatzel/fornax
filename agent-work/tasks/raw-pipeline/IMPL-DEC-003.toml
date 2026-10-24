@@ -14,7 +14,7 @@ backend's target-format dispatch for DNG, ARW, NEF, and Canon CR*.
 """
 acceptance = [
   "Rawler's sample content is not scaled, white-balanced, demosaiced, or otherwise post-processed by the adapter.",
-  "DNG ActiveArea, CFA phase, sample encoding, declared/adjusted/measured white levels, black levels, and crop semantics map without lossy guessing.",
+  "DNG ActiveArea, CFA phase, sample specification, declared/adjusted/measured white levels, black levels, and crop semantics map without lossy guessing.",
   "Crate-integer and vendor metadata are translated through typed values or namespaced provenance-aware entries.",
   "Unsupported non-RGB, non-Bayer, LinearRaw, wider sample, and unverified metadata cases fail structurally.",
   "Rawler types remain private and the adapter crate exposes only its selected backend constructor/configuration.",

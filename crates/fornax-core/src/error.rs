@@ -14,20 +14,21 @@ pub enum RawValidationError {
     /// An ActiveArea is empty or lies outside the stored plane.
     #[error("invalid ActiveArea")]
     InvalidActiveArea,
-    /// A sample encoding is incomplete or invalid.
-    #[error("invalid sample encoding")]
-    InvalidSampleEncoding,
-    /// The sample encoding is outside the initial supported model.
-    #[error("unsupported sample encoding: {bits_per_sample} bits, {format:?}")]
-    UnsupportedSampleEncoding {
+    /// A sample specification is incomplete or invalid.
+    #[error("invalid sample specification")]
+    InvalidSampleSpec,
+    /// The sample specification is outside the initial supported model.
+    #[error("unsupported sample specification: {bits_per_sample} bits, {format:?}")]
+    UnsupportedSampleSpec {
         /// Declared semantic precision in bits.
         bits_per_sample: u16,
         /// Declared sample format.
         format: SampleFormat,
     },
-    /// A stored plane's container does not match the declared encoding.
-    #[error("unsupported plane/encoding combination")]
-    UnsupportedPlaneEncoding,
+    /// A stored plane's container does not match the declared sample
+    /// specification.
+    #[error("unsupported plane/sample-specification combination")]
+    UnsupportedPlaneSpec,
     /// A CFA shape has zero dimensions.
     #[error("invalid CFA shape")]
     InvalidCfaShape,

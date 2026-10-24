@@ -14,7 +14,7 @@ This task defines the boundary only; it does not implement a concrete decoder.
 """
 acceptance = [
   "A backend returns a validated DecodedRaw and never exposes an upstream decoder type downstream.",
-  "Backend capabilities describe format, Bayer layout, sample encoding, metadata, and processing-state limitations.",
+  "Backend capabilities describe format, Bayer layout, sample specification, metadata, and metadata-basis limitations.",
   "Backend selection is explicit and deterministic; enabling a feature does not select a backend.",
   "Capability-based fallback is opt-in and records the resolved backend.",
   "Probe, decode, unsupported capability, malformed input, contained panic, and internal failure paths are structured and tested with synthetic backends.",

@@ -11,7 +11,7 @@ deliverables = [
 ]
 scope = """
 Replace the legacy fornax-core internals with the persistent universal RAW
-model: native u8/u16/u32/f32 planes, sample encoding, stored geometry,
+model: native u8/u16/u32/f32 planes, sample specification, stored geometry,
 ActiveArea and Bayer indexing, typed and extensible metadata with provenance,
 black/white levels, a DecodedRaw container for all supported decoder planes, a
 distinct f32-only RawImage preprocessed output, constructors, and structured
@@ -20,11 +20,11 @@ algorithms.
 """
 acceptance = [
   "The implementation follows docs/raw-pipeline rather than retaining legacy BayerImage, decoder, or post-processor contracts.",
-  "Native sample containers retain declared encoding and reject invalid container/encoding combinations.",
+  "Native sample containers retain the declared sample specification and reject invalid container/specification combinations.",
   "ActiveArea-relative CFA lookup is correct for RGGB, BGGR, GRBG, and GBRG, including odd origins.",
   "Typed metadata, extensible metadata, provenance, conflict handling, and level invariants are enforced by construction.",
   "DecodedRaw accepts every supported decoder plane, pre_process consumes it to produce the distinct f32-only RawImage type, and preprocessing cannot be called again on RawImage.",
-  "Unsupported non-mosaic, non-RGB, and wider sample encodings return typed errors.",
+  "Unsupported non-mosaic, non-RGB, and wider sample specifications return typed errors.",
   "fornax-core has no dependency on a decoder adapter, preprocessing implementation, or demosaic strategy.",
 ]
 validation = [

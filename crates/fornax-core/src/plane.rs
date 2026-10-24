@@ -21,36 +21,36 @@ pub enum SampleFormat {
     Float,
 }
 
-/// Declared precision and format, independent of the Rust storage container.
+/// Declared bit precision and numeric format, independent of storage.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct SampleEncoding {
+pub struct SampleSpec {
     bits_per_sample: u8,
     format: SampleFormat,
 }
 
-impl SampleEncoding {
-    /// Creates a supported sample encoding.
+impl SampleSpec {
+    /// Creates a supported sample specification.
     ///
     /// # Errors
     ///
-    /// Returns [`RawValidationError::InvalidSampleEncoding`] for zero bits and
-    /// [`RawValidationError::UnsupportedSampleEncoding`] above 32 bits.
+    /// Returns [`RawValidationError::InvalidSampleSpec`] for zero bits and
+    /// [`RawValidationError::UnsupportedSampleSpec`] above 32 bits.
     ///
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{SampleEncoding, SampleFormat};
+    /// use fornax_core::{SampleFormat, SampleSpec};
     ///
-    /// let encoding = SampleEncoding::try_new(12, SampleFormat::UnsignedInteger).unwrap();
-    /// assert_eq!(encoding.bits_per_sample(), 12);
+    /// let spec = SampleSpec::try_new(12, SampleFormat::UnsignedInteger).unwrap();
+    /// assert_eq!(spec.bits_per_sample(), 12);
     /// ```
     pub fn try_new(bits_per_sample: u8, format: SampleFormat) -> Result<Self, RawValidationError> {
         if bits_per_sample == 0 {
-            return Err(RawValidationError::InvalidSampleEncoding);
+            return Err(RawValidationError::InvalidSampleSpec);
         }
         if bits_per_sample > 32 {
-            return Err(RawValidationError::UnsupportedSampleEncoding {
+            return Err(RawValidationError::UnsupportedSampleSpec {
                 bits_per_sample: u16::from(bits_per_sample),
                 format,
             });
@@ -121,24 +121,21 @@ impl StoredPlane {
     /// # Errors
     ///
     /// Returns a typed error when the container is incompatible with
-    /// `encoding` or contains an invalid value.
+    /// `spec` or contains an invalid value.
     ///
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{SampleEncoding, SampleFormat, StoredPlane, U16Plane};
+    /// use fornax_core::{SampleFormat, SampleSpec, StoredPlane, U16Plane};
     ///
     /// let plane = StoredPlane::U16(U16Plane::from_raw(1, 1, vec![1023]).unwrap());
-    /// let encoding = SampleEncoding::try_new(10, SampleFormat::UnsignedInteger).unwrap();
-    /// assert!(plane.validate_native_encoding(encoding).is_ok());
+    /// let spec = SampleSpec::try_new(10, SampleFormat::UnsignedInteger).unwrap();
+    /// assert!(plane.validate_native_spec(spec).is_ok());
     /// ```
-    pub fn validate_native_encoding(
-        &self,
-        encoding: SampleEncoding,
-    ) -> Result<(), RawValidationError> {
+    pub fn validate_native_spec(&self, spec: SampleSpec) -> Result<(), RawValidationError> {
         let dimensions = self.dimensions()?;
         dimensions.sample_count()?;
-        match (self, encoding.format, encoding.bits_per_sample) {
+        match (self, spec.format, spec.bits_per_sample) {
             (Self::U8(plane), SampleFormat::UnsignedInteger, 1..=8) => {
                 validate_exact_len(plane.as_raw().len(), dimensions)
             }
@@ -152,30 +149,25 @@ impl StoredPlane {
                 validate_exact_len(plane.as_raw().len(), dimensions)?;
                 validate_finite(plane)
             }
-            (_, format, bits_per_sample) => Err(RawValidationError::UnsupportedSampleEncoding {
+            (_, format, bits_per_sample) => Err(RawValidationError::UnsupportedSampleSpec {
                 bits_per_sample: u16::from(bits_per_sample),
                 format,
             }),
         }
     }
 
-    pub(crate) fn into_f32(
-        self,
-        encoding: SampleEncoding,
-        allow_f32_working_encoding: bool,
-    ) -> Result<F32Plane, RawValidationError> {
-        if !encoding.is_f32_exact() {
-            return Err(RawValidationError::UnsupportedSampleEncoding {
-                bits_per_sample: u16::from(encoding.bits_per_sample),
-                format: encoding.format,
+    pub(crate) fn into_f32(self, spec: SampleSpec) -> Result<F32Plane, RawValidationError> {
+        if !spec.is_f32_exact() {
+            return Err(RawValidationError::UnsupportedSampleSpec {
+                bits_per_sample: u16::from(spec.bits_per_sample),
+                format: spec.format,
             });
         }
 
         match self {
             Self::U8(plane) => {
-                if encoding.format != SampleFormat::UnsignedInteger || encoding.bits_per_sample > 8
-                {
-                    return Err(RawValidationError::UnsupportedPlaneEncoding);
+                if spec.format != SampleFormat::UnsignedInteger || spec.bits_per_sample > 8 {
+                    return Err(RawValidationError::UnsupportedPlaneSpec);
                 }
                 validate_exact_len(plane.as_raw().len(), dimensions_from(plane.dimensions())?)?;
                 let (width, height) = plane.dimensions();
@@ -184,10 +176,10 @@ impl StoredPlane {
                     .ok_or(RawValidationError::InvalidGeometry)
             }
             Self::U16(plane) => {
-                if encoding.format != SampleFormat::UnsignedInteger
-                    || !(9..=16).contains(&encoding.bits_per_sample)
+                if spec.format != SampleFormat::UnsignedInteger
+                    || !(9..=16).contains(&spec.bits_per_sample)
                 {
-                    return Err(RawValidationError::UnsupportedPlaneEncoding);
+                    return Err(RawValidationError::UnsupportedPlaneSpec);
                 }
                 validate_exact_len(plane.as_raw().len(), dimensions_from(plane.dimensions())?)?;
                 let (width, height) = plane.dimensions();
@@ -196,10 +188,10 @@ impl StoredPlane {
                     .ok_or(RawValidationError::InvalidGeometry)
             }
             Self::U32(plane) => {
-                if encoding.format != SampleFormat::UnsignedInteger
-                    || !(17..=32).contains(&encoding.bits_per_sample)
+                if spec.format != SampleFormat::UnsignedInteger
+                    || !(17..=32).contains(&spec.bits_per_sample)
                 {
-                    return Err(RawValidationError::UnsupportedPlaneEncoding);
+                    return Err(RawValidationError::UnsupportedPlaneSpec);
                 }
                 validate_exact_len(plane.as_raw().len(), dimensions_from(plane.dimensions())?)?;
                 let (width, height) = plane.dimensions();
@@ -212,13 +204,8 @@ impl StoredPlane {
                     .ok_or(RawValidationError::InvalidGeometry)
             }
             Self::F32(plane) => {
-                let valid = if allow_f32_working_encoding {
-                    encoding.is_f32_exact()
-                } else {
-                    encoding.format == SampleFormat::Float
-                };
-                if !valid {
-                    return Err(RawValidationError::UnsupportedPlaneEncoding);
+                if spec.format != SampleFormat::Float {
+                    return Err(RawValidationError::UnsupportedPlaneSpec);
                 }
                 validate_exact_len(plane.as_raw().len(), dimensions_from(plane.dimensions())?)?;
                 validate_finite(&plane)?;
@@ -252,8 +239,8 @@ pub(crate) fn validate_finite(plane: &F32Plane) -> Result<(), RawValidationError
 mod tests {
     use super::*;
 
-    fn encoding(bits: u8, format: SampleFormat) -> SampleEncoding {
-        SampleEncoding::try_new(bits, format).unwrap()
+    fn spec(bits: u8, format: SampleFormat) -> SampleSpec {
+        SampleSpec::try_new(bits, format).unwrap()
     }
 
     #[test]
@@ -265,27 +252,27 @@ mod tests {
 
         assert!(
             u8_plane
-                .validate_native_encoding(encoding(9, SampleFormat::UnsignedInteger))
+                .validate_native_spec(spec(9, SampleFormat::UnsignedInteger))
                 .is_err()
         );
         assert!(
             u16_plane
-                .validate_native_encoding(encoding(8, SampleFormat::UnsignedInteger))
+                .validate_native_spec(spec(8, SampleFormat::UnsignedInteger))
                 .is_err()
         );
         assert!(
             u32_plane
-                .validate_native_encoding(encoding(16, SampleFormat::UnsignedInteger))
+                .validate_native_spec(spec(16, SampleFormat::UnsignedInteger))
                 .is_err()
         );
         assert!(
             f32_plane
-                .validate_native_encoding(encoding(32, SampleFormat::UnsignedInteger))
+                .validate_native_spec(spec(32, SampleFormat::UnsignedInteger))
                 .is_err()
         );
         assert_eq!(
-            SampleEncoding::try_new(33, SampleFormat::UnsignedInteger),
-            Err(RawValidationError::UnsupportedSampleEncoding {
+            SampleSpec::try_new(33, SampleFormat::UnsignedInteger),
+            Err(RawValidationError::UnsupportedSampleSpec {
                 bits_per_sample: 33,
                 format: SampleFormat::UnsignedInteger,
             })
@@ -296,7 +283,7 @@ mod tests {
     fn oversized_buffers_are_rejected_instead_of_reinterpreted() {
         let plane = StoredPlane::U8(U8Plane::from_raw(1, 1, vec![1, 2]).unwrap());
         assert_eq!(
-            plane.validate_native_encoding(encoding(8, SampleFormat::UnsignedInteger)),
+            plane.validate_native_spec(spec(8, SampleFormat::UnsignedInteger)),
             Err(RawValidationError::InvalidGeometry)
         );
     }
@@ -306,14 +293,14 @@ mod tests {
         for sample in 0..=u8::MAX {
             let plane = StoredPlane::U8(U8Plane::from_raw(1, 1, vec![sample]).unwrap());
             let converted = plane
-                .into_f32(encoding(8, SampleFormat::UnsignedInteger), false)
+                .into_f32(spec(8, SampleFormat::UnsignedInteger))
                 .unwrap();
             assert_eq!(converted.get_pixel(0, 0)[0], f32::from(sample));
         }
         for sample in 0..=u16::MAX {
             let plane = StoredPlane::U16(U16Plane::from_raw(1, 1, vec![sample]).unwrap());
             let converted = plane
-                .into_f32(encoding(16, SampleFormat::UnsignedInteger), false)
+                .into_f32(spec(16, SampleFormat::UnsignedInteger))
                 .unwrap();
             assert_eq!(converted.get_pixel(0, 0)[0], f32::from(sample));
         }
@@ -322,7 +309,7 @@ mod tests {
         let plane = StoredPlane::U32(U32Plane::from_raw(1, 1, vec![sample]).unwrap());
         assert_eq!(
             plane
-                .into_f32(encoding(24, SampleFormat::UnsignedInteger), false)
+                .into_f32(spec(24, SampleFormat::UnsignedInteger))
                 .unwrap()
                 .get_pixel(0, 0)[0],
             sample as f32
@@ -334,12 +321,12 @@ mod tests {
         let plane = StoredPlane::U32(U32Plane::from_raw(1, 1, vec![u32::MAX]).unwrap());
         assert!(
             plane
-                .into_f32(encoding(32, SampleFormat::UnsignedInteger), false)
+                .into_f32(spec(32, SampleFormat::UnsignedInteger))
                 .is_err()
         );
         let plane = StoredPlane::F32(F32Plane::from_raw(1, 1, vec![f32::NAN]).unwrap());
         assert_eq!(
-            plane.validate_native_encoding(encoding(32, SampleFormat::Float)),
+            plane.validate_native_spec(spec(32, SampleFormat::Float)),
             Err(RawValidationError::NonFiniteSample)
         );
     }

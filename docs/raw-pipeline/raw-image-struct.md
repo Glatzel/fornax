@@ -69,25 +69,25 @@ classDiagram
 | Type/field | Type | Unit | Invariant |
 | --- | --- | --- | --- |
 | `DecodedRaw::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
-| `DecodedRaw::plane` | `StoredPlane` | samples | Matches source geometry and declared encoding |
+| `DecodedRaw::plane` | `StoredPlane` | samples | Matches source geometry and declared sample specification |
 | `DecodedRaw::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend |
 | `DecodedRaw::metadata_basis` | `MetadataBasis` | N/A | States whether level metadata remains applicable |
 | `RawImage::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during preprocessing and demosaicing |
 | `RawImage::plane` | `F32Plane` | samples | Finite preprocessed Bayer samples in `[0,1]` |
 | `RawImage::decoder` | `DecoderProvenance` | N/A | Retained decoder provenance |
 | `RawImage::metadata_basis` | `MetadataBasis` | N/A | Retained metadata-validity basis |
-| `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleEncoding` |
+| `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleSpec` |
 | `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Working and preprocessed payload |
 
-## Geometry and encoding
+## Geometry and sample specification
 
 | Type/field | Type | Unit | Invariant |
 | --- | --- | --- | --- |
 | `PixelSize::{width,height}` | `u32` | pixels | Both non-zero for a stored image |
 | `PixelCoord::{row,col}` | `u32` | pixel | Stored raster coordinate |
 | `PixelRect::{top,left,bottom,right}` | `u32` | half-open pixels | `top < bottom`, `left < right`, inside stored size |
-| `SampleEncoding::bits_per_sample` | `u8` | bits | Non-zero and at most 32; semantic source precision |
-| `SampleEncoding::format` | `SampleFormat` | enum | Unsigned integer or float |
+| `SampleSpec::bits_per_sample` | `u8` | bits | Non-zero and at most 32; semantic source precision |
+| `SampleSpec::format` | `SampleFormat` | enum | Unsigned integer or float |
 | `StoredGeometry::dimensions` | `PixelSize` | pixels | Must equal payload dimensions |
 | `StoredGeometry::source_row_stride_bytes` | `NonZeroU64` | bytes | Preserves original backend stride |
 
@@ -137,22 +137,23 @@ private to core's preprocessing finalizer and validates finite samples in
 Users may mutate `DecodedRaw::plane_mut()` directly for custom processing.
 After changing the sample basis, they must call
 `DecodedRaw::set_metadata_basis`; `require_standard_preprocessing` revalidates
-the current plane's dimensions, encoding, and finite values before the single
-preprocessing pass. No operation-history field is retained.
+the current plane's dimensions, sample specification, and finite values before
+the single preprocessing pass. No operation-history field is retained.
 
 ## Validation fields and errors
 
 `ValidatedMetadata` is constructed only after checking required metadata,
-geometry, CFA, level lengths, sample encoding, and provenance conflicts.
-The required typed fields are sample encoding, stored geometry, ActiveArea, and
-CFA. Their stored dimensions and ActiveArea must agree. The original row stride
+geometry, CFA, level lengths, sample specification, and provenance conflicts.
+The required typed fields are sample specification, stored geometry,
+ActiveArea, and CFA. Their stored dimensions and ActiveArea must agree. The
+original row stride
 is retained as nonzero provenance and is not assumed to equal the compact
 `ImageBuffer` stride. Extensible keys use the `raw.*` names blocked for typed
 concepts and cannot override those fields.
 
 `RawValidationError` is the image/model boundary error. It distinguishes
-missing metadata, invalid geometry/encoding, unsupported sample widths,
-non-mosaic/non-2x2/non-RGB CFA layouts, invalid levels, non-finite samples,
+missing metadata, invalid geometry/sample specification, unsupported sample
+widths, non-mosaic/non-2x2/non-RGB CFA layouts, invalid levels, non-finite samples,
 invalid demosaic-ready values, metadata conflicts, and incompatible
 custom-processing bases. `MetadataError` reports key grammar, duplicate typed
 concepts, candidate conflicts, invalid values, and allocation limits.

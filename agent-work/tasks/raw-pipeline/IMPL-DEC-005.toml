@@ -14,7 +14,7 @@ deferred layouts and formats. Do not use image plausibility as decoder evidence.
 """
 acceptance = [
   "Each claimed format/support combination has reproducible fixture evidence and recorded provenance.",
-  "Buffer dimensions, stride compaction, native encoding, ActiveArea, CFA phase, black/white levels, crop metadata, and decoder provenance are asserted.",
+  "Buffer dimensions, stride compaction, native sample specification, ActiveArea, CFA phase, black/white levels, crop metadata, and decoder provenance are asserted.",
   "DNG, ARW, NEF, CR2, and CR3 are each tested or explicitly reported as unavailable with the affected backend and risk.",
   "Non-Bayer, LinearRaw, X-Trans, Foveon, Quad Bayer, monochrome, and deferred formats are rejected by every applicable backend.",
   "Backend capabilities are narrowed to match observed fixture support and do not advertise format dispatch as semantic support.",

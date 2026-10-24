@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    BlackLevels, ProviderId, RawValidationError, SampleEncoding, SampleFormat, Sourced,
-    StoredPlane, ValidatedMetadata, WhiteLevels,
+    BlackLevels, ProviderId, RawValidationError, SampleFormat, SampleSpec, Sourced, StoredPlane,
+    ValidatedMetadata, WhiteLevels,
 };
 
 /// Decoder identity retained with a decoded RAW image.
@@ -87,7 +87,7 @@ impl DecodedRaw {
     ///
     /// # Errors
     ///
-    /// Returns a structured error when plane dimensions, container, encoding,
+    /// Returns a structured error when plane dimensions, container, spec,
     /// or sample values do not satisfy the metadata contract.
     ///
     /// # Examples
@@ -146,8 +146,8 @@ impl DecodedRaw {
     /// ```
     pub fn plane_mut(&mut self) -> &mut StoredPlane { &mut self.plane }
 
-    /// Returns declared sample encoding.
-    pub fn sample_encoding(&self) -> SampleEncoding { self.metadata.sample_encoding() }
+    /// Returns declared sample specification.
+    pub fn sample_spec(&self) -> SampleSpec { self.metadata.sample_spec() }
 
     /// Returns decoder provenance.
     pub const fn decoder(&self) -> &DecoderProvenance { &self.decoder }
@@ -196,9 +196,9 @@ impl DecodedRaw {
     /// );
     /// ```
     pub fn convert_to_f32(mut self) -> Result<Self, RawValidationError> {
-        let encoding = self.metadata.sample_encoding();
+        let spec = self.metadata.sample_spec();
         if matches!(self.plane, StoredPlane::F32(_)) {
-            if encoding.format() != SampleFormat::Float {
+            if spec.format() != SampleFormat::Float {
                 return Err(RawValidationError::InvalidStorageState);
             }
             self.metadata
@@ -211,7 +211,7 @@ impl DecodedRaw {
             return Ok(self);
         }
 
-        self.plane = StoredPlane::F32(self.plane.into_f32(encoding, false)?);
+        self.plane = StoredPlane::F32(self.plane.into_f32(spec)?);
         self.metadata
             .validate_f32_working_plane(match &self.plane {
                 StoredPlane::F32(plane) => plane,
@@ -294,8 +294,8 @@ mod tests {
         let active_area = ActiveArea::try_new(dimensions, 1, 1, 2, 2).unwrap();
         let geometry = StoredGeometry::new(dimensions, NonZeroU64::new(4).unwrap());
         let common = CommonMetadata {
-            sample_encoding: Some(sourced(
-                SampleEncoding::try_new(16, SampleFormat::UnsignedInteger).unwrap(),
+            sample_spec: Some(sourced(
+                SampleSpec::try_new(16, SampleFormat::UnsignedInteger).unwrap(),
             )),
             stored_geometry: Some(sourced(geometry)),
             active_area: Some(sourced(active_area)),
@@ -386,7 +386,7 @@ mod tests {
         *image.plane_mut() = StoredPlane::U8(crate::U8Plane::from_raw(2, 2, vec![1; 4]).unwrap());
         assert_eq!(
             image.require_standard_preprocessing(),
-            Err(RawValidationError::UnsupportedSampleEncoding {
+            Err(RawValidationError::UnsupportedSampleSpec {
                 bits_per_sample: 16,
                 format: SampleFormat::UnsignedInteger,
             })
@@ -394,7 +394,7 @@ mod tests {
     }
 
     #[test]
-    fn constructor_rejects_wrong_dimensions_and_encoding() {
+    fn constructor_rejects_wrong_dimensions_and_spec() {
         let image = decoded();
         let metadata = image.metadata().clone();
         let decoder = DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None);
@@ -414,7 +414,7 @@ mod tests {
                 decoder,
             )
             .unwrap_err(),
-            RawValidationError::UnsupportedSampleEncoding {
+            RawValidationError::UnsupportedSampleSpec {
                 bits_per_sample: 16,
                 format: SampleFormat::UnsignedInteger,
             }
@@ -423,11 +423,11 @@ mod tests {
 
     #[test]
     fn decoded_raw_accepts_every_supported_plane() {
-        let metadata = |encoding| {
+        let metadata = |spec| {
             let dimensions = PixelSize::new(1, 1).unwrap();
             let active_area = ActiveArea::try_new(dimensions, 0, 0, 1, 1).unwrap();
             let common = CommonMetadata {
-                sample_encoding: Some(sourced(encoding)),
+                sample_spec: Some(sourced(spec)),
                 stored_geometry: Some(sourced(StoredGeometry::new(
                     dimensions,
                     NonZeroU64::new(4).unwrap(),
@@ -441,24 +441,24 @@ mod tests {
         let decoder = || DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None);
         let cases = [
             (
-                SampleEncoding::try_new(8, SampleFormat::UnsignedInteger).unwrap(),
+                SampleSpec::try_new(8, SampleFormat::UnsignedInteger).unwrap(),
                 StoredPlane::U8(ImageBuffer::from_raw(1, 1, vec![1]).unwrap()),
             ),
             (
-                SampleEncoding::try_new(16, SampleFormat::UnsignedInteger).unwrap(),
+                SampleSpec::try_new(16, SampleFormat::UnsignedInteger).unwrap(),
                 StoredPlane::U16(ImageBuffer::from_raw(1, 1, vec![1]).unwrap()),
             ),
             (
-                SampleEncoding::try_new(32, SampleFormat::UnsignedInteger).unwrap(),
+                SampleSpec::try_new(32, SampleFormat::UnsignedInteger).unwrap(),
                 StoredPlane::U32(ImageBuffer::from_raw(1, 1, vec![1]).unwrap()),
             ),
             (
-                SampleEncoding::try_new(32, SampleFormat::Float).unwrap(),
+                SampleSpec::try_new(32, SampleFormat::Float).unwrap(),
                 StoredPlane::F32(ImageBuffer::from_raw(1, 1, vec![0.5]).unwrap()),
             ),
         ];
-        for (encoding, plane) in cases {
-            let image = DecodedRaw::try_new(metadata(encoding), plane, decoder()).unwrap();
+        for (spec, plane) in cases {
+            let image = DecodedRaw::try_new(metadata(spec), plane, decoder()).unwrap();
             assert_eq!(
                 image.plane().dimensions().unwrap(),
                 PixelSize::new(1, 1).unwrap()
