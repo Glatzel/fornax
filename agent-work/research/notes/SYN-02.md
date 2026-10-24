@@ -3,6 +3,7 @@
 > **Task:** `SYN-02`
 > **Owner:** primary agent
 > **Review:** GitHub task pull request; its open/merged state is authoritative.
+> **Pull request:** [#541](https://github.com/Glatzel/fornax/pull/541).
 > **Last updated:** 2026-10-24
 >
 > **Prerequisites:** `RES-02`, `RES-04`, `SYN-01`
