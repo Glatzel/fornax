@@ -10,10 +10,14 @@ rationale; field names, units, and invariants in this file are authoritative.
 classDiagram
     direction LR
     class RawImage {
-        <<Decode context>>
+        <<universal container>>
         +metadata
         +plane
-        +stage
+        +decoder
+        +operations
+        +metadata_basis
+        +storage
+        +state
     }
     class ValidatedMetadata {
         <<struct>>
@@ -30,31 +34,12 @@ classDiagram
     class BayerLayout
     class BlackLevels
     class WhiteLevels
-    class Decoded {
-        <<Decode phase>>
-        +decoder
-        +operations
-        +metadata_basis
-        +storage
-    }
     class StoredPlane {
-        <<Decode payload>>
+        <<payload>>
         U8
         U16
         U32
         F32
-    }
-    class Linearized {
-        <<Preprocess phase>>
-    }
-    class BlackCorrected {
-        <<Preprocess phase>>
-    }
-    class Normalized {
-        <<Preprocess phase>>
-    }
-    class DemosaicReady {
-        <<Preprocess phase>>
     }
     class DemosaicOutput {
         <<Demosaic phase>>
@@ -63,29 +48,28 @@ classDiagram
 
     RawImage *-- ValidatedMetadata
     RawImage *-- StoredPlane
-    RawImage *-- Decoded
     ValidatedMetadata *-- CommonMetadata
     ValidatedMetadata *-- ExtensibleMetadata
     CommonMetadata *-- StoredGeometry
     CommonMetadata *-- BayerLayout
     CommonMetadata *-- BlackLevels
     CommonMetadata *-- WhiteLevels
-    Decoded ..> Linearized
-    Linearized ..> BlackCorrected
-    BlackCorrected ..> Normalized
-    Normalized ..> DemosaicReady
-    DemosaicReady ..> DemosaicOutput
+    RawImage ..> DemosaicOutput : preprocessed input
 ```
 
 ## Core image
 
 | Type/field | Type | Unit | Invariant |
 | --- | --- | --- | --- |
-| `RawImage<S>::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
-| `RawImage<S>::plane` | `S::Plane` | samples | Matches declared dimensions and stage |
-| `RawImage<S>::stage` | `S` | N/A | Carries state/provenance; no implicit stage recovery |
+| `RawImage::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
+| `RawImage::plane` | `StoredPlane` | samples | Matches declared dimensions and processing state |
+| `RawImage::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend |
+| `RawImage::operations` | `Box<[OperationProvenance]>` | N/A | Records pre-preprocessing operations |
+| `RawImage::metadata_basis` | `MetadataBasis` | N/A | States whether level metadata remains applicable |
+| `RawImage::storage` | `PlaneStorage` | enum | `Native` or `F32Working` |
+| `RawImage::state` | `RawImageState` | enum | `Decoded` or `Preprocessed` |
 | `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleEncoding` |
-| `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Preprocessing/demosaic stages only |
+| `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Working and preprocessed payload |
 
 ## Geometry and encoding
 
@@ -126,15 +110,19 @@ optional adjusted and measured arrays use the same length as the declared
 array. This keeps both green CFA positions distinguishable without treating the
 common scalar component as one of those slots.
 
-## Stage types
+## Processing state
 
-| Stage | Plane | Meaning |
-| --- | --- | --- |
-| `Decoded` | `StoredPlane` | Native source; optional `convert_to_f32`/custom operation keeps this state, records `DecodedStorage::{Native, F32Working}`, operations, and metadata basis |
-| `Linearized` | `F32Plane` | LUT applied once or identity |
-| `BlackCorrected` | `F32Plane` | Black subtracted once; unclipped |
-| `Normalized` | `F32Plane` | Linear-reference semantics; unclipped |
-| `DemosaicReady` | `F32Plane` | Finite f32 values in `[0,1]` |
+`RawImage` is the single public image container. It is non-generic so every
+supported native plane and working f32 plane use the same type. Linearization,
+black subtraction, normalization, and final clipping are private substeps of
+the single `RawImage::pre_process` entry point implemented by
+`fornax-preprocess`; they do not create public intermediate image types.
+
+`RawImageState::Decoded` permits the single standard preprocessing pass.
+`RawImageState::Preprocessed` is constructed only after the complete pass and
+accepts a finite f32 Bayer plane in `[0,1]` for demosaicing. Calling
+`pre_process` or a demosaic input validator with the wrong state returns a
+structured error.
 
 ## Validation fields and errors
 
@@ -146,14 +134,14 @@ is retained as nonzero provenance and is not assumed to equal the compact
 `ImageBuffer` stride. Extensible keys use the `raw.*` names blocked for typed
 concepts and cannot override those fields.
 
-`RawValidationError` is the stage/model boundary error. It distinguishes
+`RawValidationError` is the image/model boundary error. It distinguishes
 missing metadata, invalid geometry/encoding, unsupported sample widths,
 non-mosaic/non-2x2/non-RGB CFA layouts, invalid levels, non-finite samples,
 invalid demosaic-ready values, metadata conflicts, and incompatible
 custom-processing bases. `MetadataError` reports key grammar, duplicate typed
 concepts, candidate conflicts, invalid values, and allocation limits.
 
-The optional `serde` feature serializes the validated metadata and stage
+The optional `serde` feature serializes the validated metadata and processing
 descriptors. It deliberately does not derive deserialization for the model:
 deserializing private invariants without a schema-aware validating decoder
 would bypass construction checks. Plane serialization and stable schema
@@ -163,15 +151,13 @@ Unsupported input is rejected at the adapter/constructor boundary. No code
 guesses a missing CFA origin, fabricates black levels, converts an unknown CFA
 to RGB, or treats a display image as a sensor plane.
 
-## Stage construction boundary
+## Construction boundary
 
-`DecodedRaw::try_new` is the public decode boundary and validates the native
-plane against its metadata. The preprocessing crate uses the doc-hidden
-`fornax_core::transition` module to convert an owned `DecodedRaw` into
-`LinearizedRaw`, then to `BlackCorrectedRaw`, `NormalizedRaw`, and
-`DemosaicReadyMosaic`. Each transition consumes its source stage. Only
-`RawImage<Decoded>` has the standard-preprocessing entry point, and a custom
-`MetadataBasis::Incompatible` image is rejected before linearization.
+`RawImage::try_new` is the public decode boundary and validates the native
+plane against its metadata. `fornax-core` exposes a doc-hidden finalization
+helper solely for the single preprocessing implementation to mark an owned
+image preprocessed after its private substeps finish. A custom
+`MetadataBasis::Incompatible` image is rejected before preprocessing starts.
 
 ## Related guides
 

@@ -1,23 +1,25 @@
 schema_version = 1
 id = "IMPL-PRE-001"
 slug = "linearization-state"
-title = "Implement decoded f32 conversion and linearization state"
+title = "Implement preprocessing foundation and linearization substep"
 phase = "implementation"
 dependencies = ["IMPL-CORE-001", "DES-004"]
 parallelism = "Starts after IMPL-CORE-001; can run in parallel with decoder and demosaic foundations."
 deliverables = ["fornax-preprocess foundation source", "conversion and linearization tests"]
 scope = """
-Create fornax-preprocess with the consuming extension methods needed to convert
-DecodedRaw to f32 and produce LinearizedRaw. Implement exact integer conversion,
-custom-operation provenance and metadata-basis handling, identity/table
-linearization, allocation checks, and typed preprocessing errors.
+Create the fornax-preprocess foundation for the single public pre_process
+operation. Implement exact integer conversion, custom-operation provenance and
+metadata-basis handling, a private identity/table linearization substep,
+allocation checks, and typed preprocessing errors. Do not expose intermediate
+preprocessing image types or the public entry point before the complete
+pipeline is implemented.
 """
 acceptance = [
   "u8 and u16 conversion is exact and u32 conversion rejects values requiring more than f32's exact significant range.",
   "Float decoded samples follow the native float path without an integer round trip.",
-  "Custom f32 operations remain in Decoded state and record valid, replaced, or incompatible metadata basis.",
+  "Custom f32 operations remain in decoded RawImage state and record valid, replaced, or incompatible metadata basis.",
   "Identity and LUT linearization apply once, validate source-domain indices, reject non-finite table output, and preserve geometry and metadata.",
-  "Only DecodedRaw can call the linearization transition, so a LinearizedRaw cannot be linearized twice.",
+  "The linearization implementation is crate-private and does not introduce a public intermediate image type.",
   "Allocation failure and malformed table errors are structured.",
 ]
 validation = [

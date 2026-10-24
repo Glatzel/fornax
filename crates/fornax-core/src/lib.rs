@@ -1,9 +1,10 @@
 //! Backend-independent types for decoding, preprocessing, and demosaicing RAW
 //! images.
 //!
-//! A [`DecodedRaw`] combines compact sensor samples with immutable, validated
-//! metadata. Standard preprocessing consumes decoder-validated values into
-//! stage-specific types so corrections cannot silently run twice.
+//! [`RawImage`] is the universal container: it combines compact sensor samples
+//! with immutable validated metadata, provenance, and processing state.
+//! Standard preprocessing consumes that same container and records a finalized
+//! state so corrections cannot silently run twice.
 //!
 //! # Examples
 //!
@@ -22,7 +23,7 @@ mod error;
 mod geometry;
 mod metadata;
 mod plane;
-mod stage;
+mod raw_image;
 
 pub use cfa::{BayerLayout, BayerPattern, BayerSlot, CfaColor, CfaShape};
 pub use error::{MetadataError, RawValidationError};
@@ -35,8 +36,7 @@ pub use metadata::{
     ValidatedMetadata, WhiteBalance, WhiteLevels, resolve_sourced,
 };
 pub use plane::{F32Plane, SampleEncoding, SampleFormat, StoredPlane, U8Plane, U16Plane, U32Plane};
-pub use stage::{
-    BlackCorrected, BlackCorrectedRaw, Decoded, DecodedRaw, DecodedStorage, DecoderProvenance,
-    DemosaicReady, DemosaicReadyMosaic, Linearized, LinearizedRaw, MetadataBasis, Normalized,
-    NormalizedRaw, OperationProvenance, RawImage, RawStage, StageKind, transition,
+pub use raw_image::{
+    DecodedRaw, DecoderProvenance, MetadataBasis, OperationProvenance, PlaneStorage, RawImage,
+    RawImageState, into_preprocessed,
 };

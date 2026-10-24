@@ -2,40 +2,11 @@ use std::sync::Arc;
 
 use crate::plane::validate_finite;
 use crate::{
-    BlackLevels, F32Plane, ProviderId, RawValidationError, SampleFormat, Sourced, StoredPlane,
-    ValidatedMetadata, WhiteLevels,
+    BlackLevels, F32Plane, ProviderId, RawValidationError, SampleEncoding, SampleFormat, Sourced,
+    StoredPlane, ValidatedMetadata, WhiteLevels,
 };
 
-mod sealed {
-    pub trait Sealed {}
-}
-
-/// The processing state of a [`RawImage`].
-pub trait RawStage: sealed::Sealed {
-    /// The payload representation valid for this stage.
-    type Plane;
-
-    /// Returns the named processing stage.
-    fn kind() -> StageKind;
-}
-
-/// A named processing stage for diagnostics and metadata.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub enum StageKind {
-    /// Backend-decoded native or custom `f32` samples.
-    Decoded,
-    /// Linearized `f32` samples.
-    Linearized,
-    /// Black-subtracted, unclipped `f32` samples.
-    BlackCorrected,
-    /// Normalized, unclipped `f32` samples.
-    Normalized,
-    /// Clipped `f32` samples in `[0, 1]` ready for demosaicing.
-    DemosaicReady,
-}
-
-/// Decoder identity retained with a decoded image.
+/// Decoder identity retained with a decoded RAW image.
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct DecoderProvenance {
@@ -68,7 +39,7 @@ impl DecoderProvenance {
     pub fn revision(&self) -> Option<&str> { self.revision.as_deref() }
 }
 
-/// A decoded-plane operation that remains in the `Decoded` stage.
+/// An operation applied to samples before standard preprocessing.
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct OperationProvenance {
@@ -144,158 +115,60 @@ pub enum MetadataBasis {
     Incompatible,
 }
 
-/// Storage state while an image remains decoded.
+/// The storage state of the samples in a [`RawImage`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub enum DecodedStorage {
+pub enum PlaneStorage {
     /// A native u8, u16, u32, or source-f32 plane.
     Native,
     /// A working f32 plane derived from an integer source or custom operation.
     F32Working,
 }
 
-/// Decode-stage state carried alongside the payload.
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// The processing state of a [`RawImage`].
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct Decoded {
-    decoder: DecoderProvenance,
-    operations: Box<[OperationProvenance]>,
-    metadata_basis: MetadataBasis,
-    storage: DecodedStorage,
+pub enum RawImageState {
+    /// Samples have not entered standard preprocessing.
+    Decoded,
+    /// The single standard preprocessing pass has completed.
+    Preprocessed,
 }
 
-impl Decoded {
-    /// Returns the decoder provenance.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::{DecoderProvenance, ProviderId, RawStage};
-    ///
-    /// assert_eq!(
-    ///     <fornax_core::Decoded as RawStage>::kind(),
-    ///     fornax_core::StageKind::Decoded
-    /// );
-    /// ```
-    pub const fn decoder(&self) -> &DecoderProvenance { &self.decoder }
-
-    /// Returns operations applied while the image remained decoded.
-    pub fn operations(&self) -> &[OperationProvenance] { &self.operations }
-
-    /// Returns the validity basis for black and white metadata.
-    pub const fn metadata_basis(&self) -> &MetadataBasis { &self.metadata_basis }
-
-    /// Returns whether samples use native or working f32 storage.
-    pub const fn storage(&self) -> DecodedStorage { self.storage }
-}
-
-/// Linearization-stage marker.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct Linearized(());
-
-/// Black-corrected-stage marker; samples remain unclipped.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct BlackCorrected(());
-
-/// Normalization-stage marker; samples remain unclipped.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct Normalized(());
-
-/// Demosaic-ready stage marker with finite samples in `[0, 1]`.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct DemosaicReady(());
-
-macro_rules! impl_stage {
-    ($stage:ty, $plane:ty, $kind:expr) => {
-        impl sealed::Sealed for $stage {}
-
-        impl RawStage for $stage {
-            type Plane = $plane;
-
-            fn kind() -> StageKind { $kind }
-        }
-    };
-}
-
-impl_stage!(Decoded, StoredPlane, StageKind::Decoded);
-impl_stage!(Linearized, F32Plane, StageKind::Linearized);
-impl_stage!(BlackCorrected, F32Plane, StageKind::BlackCorrected);
-impl_stage!(Normalized, F32Plane, StageKind::Normalized);
-impl_stage!(DemosaicReady, F32Plane, StageKind::DemosaicReady);
-
-/// A RAW sensor plane and its immutable metadata in a consuming stage.
+/// The universal container for decoded and preprocessed RAW images.
+///
+/// `RawImage` owns one compact sensor plane, immutable validated metadata,
+/// decoder provenance, decoded operations, and processing state. The plane
+/// variant may change when integer samples are converted to working `f32`, but
+/// the container type remains the same.
+///
+/// Standard preprocessing consumes an owned `RawImage` through one public
+/// entry point in `fornax-preprocess`; its linearization, black subtraction,
+/// normalization, and clipping substeps are implementation details.
 ///
 /// # Examples
 ///
 /// ```
-/// use fornax_core::{DemosaicReady, RawStage};
+/// use fornax_core::{RawImage, RawImageState};
 ///
-/// assert_eq!(DemosaicReady::kind(), fornax_core::StageKind::DemosaicReady);
+/// assert_eq!(RawImageState::Decoded, RawImageState::Decoded);
 /// ```
 #[derive(Clone, Debug, PartialEq)]
-pub struct RawImage<S: RawStage> {
+pub struct RawImage {
     metadata: Arc<ValidatedMetadata>,
-    plane: S::Plane,
-    stage: S,
+    plane: StoredPlane,
+    decoder: DecoderProvenance,
+    operations: Box<[OperationProvenance]>,
+    metadata_basis: MetadataBasis,
+    storage: PlaneStorage,
+    state: RawImageState,
 }
 
-impl<S: RawStage> RawImage<S> {
-    /// Returns immutable validated metadata.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::{DemosaicReady, RawStage};
-    ///
-    /// assert_eq!(DemosaicReady::kind(), fornax_core::StageKind::DemosaicReady);
-    /// ```
-    pub fn metadata(&self) -> &ValidatedMetadata { &self.metadata }
+/// A [`RawImage`] before standard preprocessing.
+pub type DecodedRaw = RawImage;
 
-    /// Returns the shared metadata handle for retaining after processing.
-    pub fn metadata_arc(&self) -> Arc<ValidatedMetadata> { Arc::clone(&self.metadata) }
-
-    /// Returns the stage-specific payload.
-    pub fn plane(&self) -> &S::Plane { &self.plane }
-
-    /// Returns the stage state.
-    pub const fn stage(&self) -> &S { &self.stage }
-
-    /// Returns the stage kind.
-    pub fn stage_kind(&self) -> StageKind { S::kind() }
-
-    /// Consumes the image and returns its payload.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use image::{ImageBuffer, Luma};
-    ///
-    /// let plane = ImageBuffer::<Luma<f32>, Vec<f32>>::from_raw(1, 1, vec![0.5]).unwrap();
-    /// assert_eq!(plane.as_raw().len(), 1);
-    /// ```
-    pub fn into_plane(self) -> S::Plane { self.plane }
-
-    /// Consumes the image into retained metadata and payload.
-    pub fn into_parts(self) -> (Arc<ValidatedMetadata>, S::Plane) { (self.metadata, self.plane) }
-}
-
-/// A decoded RAW image, including native or custom f32 storage.
-pub type DecodedRaw = RawImage<Decoded>;
-/// A linearized RAW image.
-pub type LinearizedRaw = RawImage<Linearized>;
-/// A black-corrected RAW image.
-pub type BlackCorrectedRaw = RawImage<BlackCorrected>;
-/// A normalized RAW image.
-pub type NormalizedRaw = RawImage<Normalized>;
-/// A clipped Bayer mosaic ready for demosaicing.
-pub type DemosaicReadyMosaic = RawImage<DemosaicReady>;
-
-impl RawImage<Decoded> {
-    /// Constructs a decoded image and validates its native plane.
+impl RawImage {
+    /// Constructs a RAW image and validates its native plane.
     ///
     /// # Errors
     ///
@@ -322,26 +195,45 @@ impl RawImage<Decoded> {
         Ok(Self {
             metadata: Arc::new(metadata),
             plane,
-            stage: Decoded {
-                decoder,
-                operations: Box::new([]),
-                metadata_basis: MetadataBasis::OriginalLevelsValid,
-                storage: DecodedStorage::Native,
-            },
+            decoder,
+            operations: Box::new([]),
+            metadata_basis: MetadataBasis::OriginalLevelsValid,
+            storage: PlaneStorage::Native,
+            state: RawImageState::Decoded,
         })
     }
 
-    /// Returns decoder provenance.
-    pub const fn decoder(&self) -> &DecoderProvenance { self.stage.decoder() }
+    /// Returns immutable validated metadata.
+    pub fn metadata(&self) -> &ValidatedMetadata { &self.metadata }
 
-    /// Returns operations applied while decoded.
-    pub fn operations(&self) -> &[OperationProvenance] { self.stage.operations() }
+    /// Returns the shared metadata handle for retaining after processing.
+    pub fn metadata_arc(&self) -> Arc<ValidatedMetadata> { Arc::clone(&self.metadata) }
+
+    /// Returns the current stored plane.
+    pub const fn plane(&self) -> &StoredPlane { &self.plane }
+
+    /// Returns declared sample encoding.
+    pub fn sample_encoding(&self) -> SampleEncoding { self.metadata.sample_encoding() }
+
+    /// Returns decoder provenance.
+    pub const fn decoder(&self) -> &DecoderProvenance { &self.decoder }
+
+    /// Returns operations applied before standard preprocessing.
+    pub fn operations(&self) -> &[OperationProvenance] { &self.operations }
 
     /// Returns the black/white metadata validity basis.
-    pub const fn metadata_basis(&self) -> &MetadataBasis { self.stage.metadata_basis() }
+    pub const fn metadata_basis(&self) -> &MetadataBasis { &self.metadata_basis }
 
-    /// Returns the decoded storage state.
-    pub const fn storage(&self) -> DecodedStorage { self.stage.storage() }
+    /// Returns the sample storage state.
+    pub const fn storage(&self) -> PlaneStorage { self.storage }
+
+    /// Returns the processing state.
+    pub const fn state(&self) -> RawImageState { self.state }
+
+    /// Returns whether the single standard preprocessing pass has completed.
+    pub const fn is_preprocessed(&self) -> bool {
+        matches!(self.state, RawImageState::Preprocessed)
+    }
 
     /// Converts integer samples to working f32 storage.
     ///
@@ -352,24 +244,23 @@ impl RawImage<Decoded> {
     /// # Errors
     ///
     /// Returns a typed error for repeated conversion, wider integer sources,
-    /// incompatible geometry, or non-finite samples.
+    /// incompatible geometry, non-finite samples, or an already-preprocessed
+    /// image.
     ///
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::RawValidationError;
+    /// use fornax_core::{RawImageState, RawValidationError};
     ///
-    /// assert!(matches!(
-    ///     RawValidationError::UnsupportedSampleEncoding {
-    ///         bits_per_sample: 32,
-    ///         format: fornax_core::SampleFormat::UnsignedInteger,
-    ///     },
-    ///     RawValidationError::UnsupportedSampleEncoding { .. }
-    /// ));
+    /// assert_eq!(
+    ///     RawValidationError::InvalidProcessingState.to_string(),
+    ///     "invalid RAW image processing state"
+    /// );
+    /// assert_eq!(RawImageState::Decoded, RawImageState::Decoded);
     /// ```
     pub fn convert_to_f32(mut self) -> Result<Self, RawValidationError> {
-        if self.stage.storage == DecodedStorage::F32Working {
-            return Err(RawValidationError::InvalidStageTransition);
+        if self.state != RawImageState::Decoded || self.storage == PlaneStorage::F32Working {
+            return Err(RawValidationError::InvalidProcessingState);
         }
         let encoding = self.metadata.sample_encoding();
         if matches!(self.plane, StoredPlane::F32(_)) {
@@ -392,19 +283,19 @@ impl RawImage<Decoded> {
                 StoredPlane::F32(plane) => plane,
                 StoredPlane::U8(_) | StoredPlane::U16(_) | StoredPlane::U32(_) => unreachable!(),
             })?;
-        self.stage.storage = DecodedStorage::F32Working;
-        let mut operations = self.stage.operations.into_vec();
+        self.storage = PlaneStorage::F32Working;
+        let mut operations = self.operations.into_vec();
         operations.push(OperationProvenance::system_conversion());
-        self.stage.operations = operations.into_boxed_slice();
+        self.operations = operations.into_boxed_slice();
         Ok(self)
     }
 
-    /// Replaces the f32 plane after custom processing while remaining decoded.
+    /// Replaces the f32 plane after custom processing.
     ///
     /// # Errors
     ///
-    /// Returns a typed error unless the image is already on the f32 working
-    /// path and the replacement preserves geometry and finite samples.
+    /// Returns a typed error unless the image is decoded f32 storage and the
+    /// replacement preserves geometry and finite samples.
     ///
     /// # Examples
     ///
@@ -423,28 +314,32 @@ impl RawImage<Decoded> {
         metadata_basis: MetadataBasis,
     ) -> Result<Self, RawValidationError> {
         let has_f32_plane = matches!(self.plane, StoredPlane::F32(_));
-        if !has_f32_plane
-            || (self.stage.storage == DecodedStorage::Native
+        if self.state != RawImageState::Decoded
+            || !has_f32_plane
+            || (self.storage == PlaneStorage::Native
                 && self.metadata.sample_encoding().format() != SampleFormat::Float)
         {
-            return Err(RawValidationError::InvalidStageTransition);
+            return Err(RawValidationError::InvalidProcessingState);
         }
         self.metadata.validate_f32_working_plane(&plane)?;
         self.plane = StoredPlane::F32(plane);
-        self.stage.storage = DecodedStorage::F32Working;
-        self.stage.metadata_basis = metadata_basis;
-        let mut operations = self.stage.operations.into_vec();
+        self.storage = PlaneStorage::F32Working;
+        self.metadata_basis = metadata_basis;
+        let mut operations = self.operations.into_vec();
         operations.push(operation);
-        self.stage.operations = operations.into_boxed_slice();
+        self.operations = operations.into_boxed_slice();
         Ok(self)
     }
 
-    /// Verifies that standard preprocessing may consume this decoded image.
+    /// Verifies that the single standard preprocessing pass may consume this
+    /// image.
     ///
     /// # Errors
     ///
-    /// Returns [`RawValidationError::InvalidCustomMetadataBasis`] when a custom
-    /// operation invalidated black/white metadata without replacements.
+    /// Returns [`RawValidationError::InvalidProcessingState`] after
+    /// preprocessing has already completed and
+    /// [`RawValidationError::InvalidCustomMetadataBasis`] when custom
+    /// processing invalidated black/white metadata without replacements.
     ///
     /// # Examples
     ///
@@ -457,69 +352,44 @@ impl RawImage<Decoded> {
     /// );
     /// ```
     pub fn require_standard_preprocessing(&self) -> Result<(), RawValidationError> {
-        if matches!(self.metadata_basis(), MetadataBasis::Incompatible) {
+        if self.state != RawImageState::Decoded {
+            return Err(RawValidationError::InvalidProcessingState);
+        }
+        if matches!(self.metadata_basis, MetadataBasis::Incompatible) {
             Err(RawValidationError::InvalidCustomMetadataBasis)
         } else {
             Ok(())
         }
     }
-}
 
-/// Hidden transition operations used by the later preprocessing crate.
-///
-/// These functions enforce consuming transitions and payload invariants without
-/// adding preprocessing algorithms to `fornax-core`.
-#[doc(hidden)]
-pub mod transition {
-    use super::*;
-
-    /// Creates a linearized image from a decoded image.
-    pub fn linearized_from_decoded(
-        decoded: DecodedRaw,
-        plane: F32Plane,
-    ) -> Result<LinearizedRaw, RawValidationError> {
-        decoded.require_standard_preprocessing()?;
-        decoded.metadata.validate_f32_working_plane(&plane)?;
-        Ok(RawImage {
-            metadata: decoded.metadata,
-            plane,
-            stage: Linearized(()),
-        })
-    }
-
-    /// Creates a black-corrected image from a linearized image.
-    pub fn black_corrected_from_linearized(
-        linearized: LinearizedRaw,
-        plane: F32Plane,
-    ) -> Result<BlackCorrectedRaw, RawValidationError> {
-        linearized.metadata.validate_f32_working_plane(&plane)?;
-        Ok(RawImage {
-            metadata: linearized.metadata,
-            plane,
-            stage: BlackCorrected(()),
-        })
-    }
-
-    /// Creates a normalized image from a black-corrected image.
-    pub fn normalized_from_black_corrected(
-        corrected: BlackCorrectedRaw,
-        plane: F32Plane,
-    ) -> Result<NormalizedRaw, RawValidationError> {
-        corrected.metadata.validate_f32_working_plane(&plane)?;
-        Ok(RawImage {
-            metadata: corrected.metadata,
-            plane,
-            stage: Normalized(()),
-        })
-    }
-
-    /// Validates and creates a demosaic-ready image from a normalized image.
-    pub fn demosaic_ready_from_normalized(
-        normalized: NormalizedRaw,
-        plane: F32Plane,
-    ) -> Result<DemosaicReadyMosaic, RawValidationError> {
-        normalized.metadata.validate_f32_working_plane(&plane)?;
-        validate_finite(&plane)?;
+    /// Verifies that the image is a finite preprocessed Bayer mosaic in
+    /// `[0, 1]`.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed error if preprocessing is incomplete, the plane is not
+    /// f32, geometry is inconsistent, or values are outside the demosaic-ready
+    /// domain.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_core::RawValidationError;
+    ///
+    /// assert_eq!(
+    ///     RawValidationError::InvalidReadinessRange.to_string(),
+    ///     "demosaic-ready sample is outside [0, 1]"
+    /// );
+    /// ```
+    pub fn validate_for_demosaic(&self) -> Result<(), RawValidationError> {
+        if self.state != RawImageState::Preprocessed {
+            return Err(RawValidationError::InvalidProcessingState);
+        }
+        let StoredPlane::F32(plane) = &self.plane else {
+            return Err(RawValidationError::UnsupportedPlaneEncoding);
+        };
+        self.metadata.validate_f32_working_plane(plane)?;
+        validate_finite(plane)?;
         if plane
             .as_raw()
             .iter()
@@ -527,12 +397,38 @@ pub mod transition {
         {
             return Err(RawValidationError::InvalidReadinessRange);
         }
-        Ok(RawImage {
-            metadata: normalized.metadata,
-            plane,
-            stage: DemosaicReady(()),
-        })
+        Ok(())
     }
+
+    /// Consumes the image and returns its stored plane.
+    pub fn into_plane(self) -> StoredPlane { self.plane }
+
+    /// Consumes the image into retained metadata and stored plane.
+    pub fn into_parts(self) -> (Arc<ValidatedMetadata>, StoredPlane) { (self.metadata, self.plane) }
+}
+
+/// Hidden transition used by the single `fornax-preprocess` entry point.
+#[doc(hidden)]
+pub fn into_preprocessed(image: RawImage, plane: F32Plane) -> Result<RawImage, RawValidationError> {
+    image.require_standard_preprocessing()?;
+    image.metadata.validate_f32_working_plane(&plane)?;
+    validate_finite(&plane)?;
+    if plane
+        .as_raw()
+        .iter()
+        .any(|sample| !(0.0..=1.0).contains(sample))
+    {
+        return Err(RawValidationError::InvalidReadinessRange);
+    }
+    Ok(RawImage {
+        metadata: image.metadata,
+        plane: StoredPlane::F32(plane),
+        decoder: image.decoder,
+        operations: image.operations,
+        metadata_basis: image.metadata_basis,
+        storage: PlaneStorage::F32Working,
+        state: RawImageState::Preprocessed,
+    })
 }
 
 #[cfg(test)]
@@ -544,8 +440,7 @@ mod tests {
     use super::*;
     use crate::{
         ActiveArea, AuthorityClass, BayerLayout, BayerPattern, CommonMetadata, Confidence,
-        ExtensibleMetadata, PixelSize, Provenance, SampleEncoding, SourceKind, StoredGeometry,
-        U16Plane,
+        ExtensibleMetadata, PixelSize, Provenance, SourceKind, StoredGeometry, U16Plane,
     };
 
     fn provenance() -> Provenance {
@@ -561,7 +456,7 @@ mod tests {
 
     fn sourced<T>(value: T) -> Sourced<T> { Sourced::new(value, provenance()) }
 
-    fn decoded() -> DecodedRaw {
+    fn decoded() -> RawImage {
         let dimensions = PixelSize::new(2, 2).unwrap();
         let active_area = ActiveArea::try_new(dimensions, 1, 1, 2, 2).unwrap();
         let geometry = StoredGeometry::new(dimensions, NonZeroU64::new(4).unwrap());
@@ -576,7 +471,7 @@ mod tests {
         };
         let metadata = ValidatedMetadata::try_new(common, ExtensibleMetadata::default()).unwrap();
         let plane = StoredPlane::U16(U16Plane::from_raw(2, 2, vec![1, 2, 3, 4]).unwrap());
-        RawImage::<Decoded>::try_new(
+        RawImage::try_new(
             metadata,
             plane,
             DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None),
@@ -585,15 +480,15 @@ mod tests {
     }
 
     #[test]
-    fn conversion_stays_decoded_and_records_provenance() {
+    fn conversion_keeps_the_raw_image_container() {
         let decoded = decoded().convert_to_f32().unwrap();
-        assert_eq!(decoded.stage_kind(), StageKind::Decoded);
-        assert_eq!(decoded.storage(), DecodedStorage::F32Working);
+        assert_eq!(decoded.state(), RawImageState::Decoded);
+        assert_eq!(decoded.storage(), PlaneStorage::F32Working);
         assert_eq!(decoded.operations()[0].operation(), "convert_to_f32");
         assert_eq!(decoded.require_standard_preprocessing(), Ok(()));
         assert_eq!(
             decoded.clone().convert_to_f32(),
-            Err(RawValidationError::InvalidStageTransition)
+            Err(RawValidationError::InvalidProcessingState)
         );
     }
 
@@ -614,53 +509,40 @@ mod tests {
             custom.require_standard_preprocessing(),
             Err(RawValidationError::InvalidCustomMetadataBasis)
         );
+    }
+
+    #[test]
+    fn preprocessing_is_one_consuming_state_change() {
+        let decoded = decoded().convert_to_f32().unwrap();
+        let ready = into_preprocessed(decoded, ImageBuffer::from_raw(2, 2, vec![0.75; 4]).unwrap())
+            .unwrap();
+        assert_eq!(ready.state(), RawImageState::Preprocessed);
+        assert!(ready.is_preprocessed());
+        assert_eq!(ready.validate_for_demosaic(), Ok(()));
+        assert_eq!(ready.metadata().cfa().pattern(), BayerPattern::Gbrg);
         assert_eq!(
-            transition::linearized_from_decoded(
-                custom,
-                ImageBuffer::from_raw(2, 2, vec![0.25; 4]).unwrap()
-            )
-            .unwrap_err(),
-            RawValidationError::InvalidCustomMetadataBasis
+            ready.clone().require_standard_preprocessing(),
+            Err(RawValidationError::InvalidProcessingState)
+        );
+        assert_eq!(
+            into_preprocessed(ready, ImageBuffer::from_raw(2, 2, vec![0.75; 4]).unwrap())
+                .unwrap_err(),
+            RawValidationError::InvalidProcessingState
         );
     }
 
     #[test]
-    fn stages_are_consuming_and_readiness_is_checked() {
+    fn readiness_rejects_out_of_range_values() {
         let decoded = decoded().convert_to_f32().unwrap();
-        let linearized = transition::linearized_from_decoded(
-            decoded,
-            ImageBuffer::from_raw(2, 2, vec![1.0; 4]).unwrap(),
-        )
-        .unwrap();
-        let corrected = transition::black_corrected_from_linearized(
-            linearized,
-            ImageBuffer::from_raw(2, 2, vec![-0.5; 4]).unwrap(),
-        )
-        .unwrap();
-        let normalized = transition::normalized_from_black_corrected(
-            corrected,
-            ImageBuffer::from_raw(2, 2, vec![1.25; 4]).unwrap(),
-        )
-        .unwrap();
         assert_eq!(
-            transition::demosaic_ready_from_normalized(
-                normalized.clone(),
-                ImageBuffer::from_raw(2, 2, vec![1.25; 4]).unwrap(),
-            )
-            .unwrap_err(),
+            into_preprocessed(decoded, ImageBuffer::from_raw(2, 2, vec![1.25; 4]).unwrap())
+                .unwrap_err(),
             RawValidationError::InvalidReadinessRange
         );
-        let ready = transition::demosaic_ready_from_normalized(
-            normalized,
-            ImageBuffer::from_raw(2, 2, vec![0.75; 4]).unwrap(),
-        )
-        .unwrap();
-        assert_eq!(ready.stage_kind(), StageKind::DemosaicReady);
-        assert_eq!(ready.metadata().cfa().pattern(), BayerPattern::Gbrg);
     }
 
     #[test]
-    fn replaced_levels_are_structurally_valid_and_accepted() {
+    fn replaced_levels_are_accepted() {
         let one = NonZeroU32::new(1).unwrap();
         let black = crate::Rational::new(1, one);
         let white = crate::Rational::new(100, one);
@@ -688,12 +570,12 @@ mod tests {
     }
 
     #[test]
-    fn decoded_constructor_rejects_wrong_dimensions_and_encoding() {
+    fn constructor_rejects_wrong_dimensions_and_encoding() {
         let image = decoded();
         let metadata = image.metadata().clone();
         let decoder = DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None);
         assert_eq!(
-            RawImage::<Decoded>::try_new(
+            RawImage::try_new(
                 metadata.clone(),
                 StoredPlane::U16(U16Plane::from_raw(1, 1, vec![1]).unwrap()),
                 decoder.clone(),
@@ -702,7 +584,7 @@ mod tests {
             RawValidationError::InvalidGeometry
         );
         assert_eq!(
-            RawImage::<Decoded>::try_new(
+            RawImage::try_new(
                 metadata,
                 StoredPlane::U8(crate::U8Plane::from_raw(2, 2, vec![1; 4]).unwrap()),
                 decoder,
@@ -713,5 +595,47 @@ mod tests {
                 format: SampleFormat::UnsignedInteger,
             }
         );
+    }
+
+    #[test]
+    fn one_raw_image_container_accepts_every_supported_plane() {
+        let metadata = |encoding| {
+            let dimensions = PixelSize::new(1, 1).unwrap();
+            let active_area = ActiveArea::try_new(dimensions, 0, 0, 1, 1).unwrap();
+            let common = CommonMetadata {
+                sample_encoding: Some(sourced(encoding)),
+                stored_geometry: Some(sourced(StoredGeometry::new(
+                    dimensions,
+                    NonZeroU64::new(4).unwrap(),
+                ))),
+                active_area: Some(sourced(active_area)),
+                cfa: Some(sourced(BayerLayout::new(BayerPattern::Rggb, active_area))),
+                ..CommonMetadata::default()
+            };
+            ValidatedMetadata::try_new(common, ExtensibleMetadata::default()).unwrap()
+        };
+        let decoder = || DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None);
+        let cases = [
+            (
+                SampleEncoding::try_new(8, SampleFormat::UnsignedInteger).unwrap(),
+                StoredPlane::U8(ImageBuffer::from_raw(1, 1, vec![1]).unwrap()),
+            ),
+            (
+                SampleEncoding::try_new(16, SampleFormat::UnsignedInteger).unwrap(),
+                StoredPlane::U16(ImageBuffer::from_raw(1, 1, vec![1]).unwrap()),
+            ),
+            (
+                SampleEncoding::try_new(32, SampleFormat::UnsignedInteger).unwrap(),
+                StoredPlane::U32(ImageBuffer::from_raw(1, 1, vec![1]).unwrap()),
+            ),
+            (
+                SampleEncoding::try_new(32, SampleFormat::Float).unwrap(),
+                StoredPlane::F32(ImageBuffer::from_raw(1, 1, vec![0.5]).unwrap()),
+            ),
+        ];
+        for (encoding, plane) in cases {
+            let image = RawImage::try_new(metadata(encoding), plane, decoder()).unwrap();
+            assert_eq!(image.state(), RawImageState::Decoded);
+        }
     }
 }

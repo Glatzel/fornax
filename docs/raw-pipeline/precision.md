@@ -14,7 +14,7 @@ flowchart TD
         U16["u16 source\n9–16 declared bits"]
         U32["u32 source\n17–32 declared bits"]
         F32S["f32 source\nfloating RAW / DNG"]
-        Work["DecodedRaw.convert_to_f32()\nf32; still Decoded state\noptional user operation"]
+        Work["RawImage::convert_to_f32()\nf32; still decoded\noptional user operation"]
     end
 
     U8 -->|exact| Work
@@ -23,17 +23,19 @@ flowchart TD
     F32S -->|no u16 round-trip| Work
 
     subgraph PreprocessPhase["2 · Preprocess"]
-        Linear["LinearizedRaw\nf32 buffer; exact LUT lookup"]
-        Subtract["BlackCorrectedRaw\nf32 samples + f64 scalar arithmetic"]
-        Normalize["NormalizedRaw\nf64 division → f32 storage"]
-        Ready["DemosaicReadyMosaic\nf32, clamped [0,1]"]
+        Preprocess["RawImage::pre_process\nsingle public entry"]
+        Linear["private linearize\nf32; exact LUT lookup"]
+        Subtract["private subtract_black\nf32 + f64 scalar arithmetic"]
+        Normalize["private normalize\nf64 division → f32 storage"]
+        Ready["RawImage\nPreprocessed state\nf32, clamped [0,1]"]
     end
 
     subgraph DemosaicPhase["3 · Demosaic"]
         Demo["Demosaic output\nlinear f32 RGB"]
     end
 
-    Work --> Linear
+    Work --> Preprocess
+    Preprocess --> Linear
     Linear --> Subtract
     Subtract --> Normalize
     Normalize --> Ready
@@ -71,9 +73,10 @@ require a separately verified wider path or structured rejection.
 ## Custom processing rule
 
 Converting decoded u8/u16/u32 data to f32 for custom processing is opt-in and
-returns the same `Decoded` state with an f32 plane. The custom operation must
-declare whether original black/white metadata remains valid. A changed sample
-basis with stale levels is rejected before standard preprocessing.
+returns the same decoded `RawImage` container with an f32 plane. The custom
+operation must declare whether original black/white metadata remains valid. A
+changed sample basis with stale levels is rejected before standard
+preprocessing.
 
 ## Related guides
 

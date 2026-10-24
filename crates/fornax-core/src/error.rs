@@ -66,9 +66,10 @@ pub enum RawValidationError {
     /// A custom operation left metadata that standard preprocessing cannot use.
     #[error("custom processing metadata basis is incompatible with standard preprocessing")]
     InvalidCustomMetadataBasis,
-    /// A stage transition received an invariant-breaking plane.
-    #[error("invalid stage transition")]
-    InvalidStageTransition,
+    /// An image received an operation that is invalid for its processing
+    /// state.
+    #[error("invalid RAW image processing state")]
+    InvalidProcessingState,
 }
 
 /// A structured metadata validation or conflict failure.

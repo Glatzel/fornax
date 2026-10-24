@@ -1,15 +1,15 @@
 # Demosaicing Interface
 
 Demosaicing is the final phase in the required pipeline. It accepts a
-`DemosaicReadyMosaic` and returns linear planar RGB f32.
+preprocessed `RawImage` and returns linear planar RGB f32.
 
 ```mermaid
 flowchart LR
     subgraph DecodePhase["1 · Decode"]
-        Decoded["DecodedRaw"]
+        Decoded["RawImage\nDecoded state"]
     end
     subgraph PreprocessPhase["2 · Preprocess"]
-        Ready["DemosaicReadyMosaic\nf32, [0,1]"]
+        Ready["RawImage\nPreprocessed state\nf32, [0,1]"]
     end
     subgraph DemosaicPhase["3 · Demosaic"]
         Input["DemosaicInput\nphase-aware"]

@@ -48,12 +48,12 @@ Arrow direction means the source crate depends on the target crate.
 
 | Crate | Responsibility |
 | --- | --- |
-| `fornax-core` | Universal samples, metadata, geometry, CFA, private stage types, provenance, validation, and a doc-hidden consuming transition boundary |
+| `fornax-core` | Single `RawImage` container, universal samples, metadata, geometry, CFA, provenance, validation, and processing-state guards |
 | `fornax-decode` | `RawDecoderBackend`, backend capabilities/selection, decode configuration/errors |
 | `fornax-decoder-libraw` | LibRaw `unpack` adapter and metadata translation |
 | `fornax-decoder-dnglab` | dnglab/rawler adapter |
 | `fornax-decoder-dnc` | Adobe DNG conversion bridge composed with a DNG decoder |
-| `fornax-preprocess` | LUT, black correction, normalization, clipping, custom-f32 transition |
+| `fornax-preprocess` | One `RawImage::pre_process` entry point with private LUT, black correction, normalization, and clipping substeps |
 | `fornax-demosaic` | Object-safe strategy registry, planar f32 output, built-in/external algorithms |
 | `fornax` | Explicit backend selection and end-to-end composition |
 | `fornax-py` | Python package over the facade |
@@ -66,11 +66,12 @@ Arrow direction means the source crate depends on the target crate.
 - `fornax-decode`, `fornax-preprocess`, and `fornax-demosaic` depend on core but
   not on one another.
 - Decoder crates implement `RawDecoderBackend`; upstream types remain private.
-- `fornax-preprocess` provides an extension trait over core stage types.
+- `fornax-preprocess` implements one consuming `pre_process` operation for the
+  non-generic core `RawImage`; preprocessing substeps stay private.
 - Demosaic strategies are object-safe and registered at runtime.
 - Only `fornax` depends on concrete adapters, and only through enabled features.
 - `fornax-core`'s `serde` feature currently serializes validated metadata and
-  stage descriptors; validating deserialization and plane wire formats remain
+  processing descriptors; validating deserialization and plane wire formats remain
   separate schema work so deserialization cannot bypass constructors.
 
 ## Selection and features
@@ -91,13 +92,13 @@ selected backend and decode provenance.
 
 ## Errors
 
-Each stage owns its structured error:
+Each pipeline phase owns its structured error:
 
 - `RawValidationError` in core;
 - `DecodeError` in `fornax-decode`;
 - `PreprocessError` in `fornax-preprocess`;
 - `DemosaicError` in `fornax-demosaic`; and
-- `FornaxError` in the facade, wrapping stage errors with context.
+- `FornaxError` in the facade, wrapping phase errors with context.
 
 Public APIs do not expose upstream LibRaw/rawler/demosaic types or string-only
 errors.
