@@ -83,7 +83,7 @@ pre_process
 ```
 
 The substeps are private implementation details and do not expose intermediate
-image types. Both image types keep their fields private. Core exposes the
+image types. Both image types keep their fields private. `fornax` exposes the
 validated `DecodedRaw::try_new` decode constructor and a doc-hidden finalizer
 that constructs `RawImage`. Because `pre_process` is defined only on
 `DecodedRaw`, a second call on the returned f32-only `RawImage` is impossible.

@@ -4,7 +4,7 @@ slug = "numerical-regressions"
 title = "Add numerical regression coverage"
 phase = "quality"
 dependencies = ["IMPL-INT-001", "IMPL-PRE-003", "IMPL-DEM-002", "IMPL-DEM-003"]
-parallelism = "After complete preprocessing, the initial demosaic strategies, and facade integration are merged."
+parallelism = "After complete preprocessing, the initial demosaic strategies, and pipeline integration are merged."
 deliverables = ["deterministic numerical fixtures", "regression test evidence"]
 scope = """
 Add deterministic numerical regressions for preprocessing and demosaicing with

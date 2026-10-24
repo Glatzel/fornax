@@ -51,7 +51,7 @@ flowchart TD
 | Unsigned integer 17–32 bits | `ImageBuffer<Luma<u32>, Vec<u32>>` | Requires backend/source evidence; not every value is exact in f32 |
 | Floating DNG / float decoder path | `ImageBuffer<Luma<f32>, Vec<f32>>` | Do not round-trip through u16 |
 | Preprocessing | `ImageBuffer<Luma<f32>, Vec<f32>>` | f64 only for scalar arithmetic |
-| Demosaic output | planar `f32` | Preserve linear values; do not quantize to integer |
+| Demosaic output | image-rs interleaved RGB `f32` | Preserve linear values; do not quantize to integer |
 
 Signed integer samples, integer precision above 32 bits, and f64 source planes
 require a separately verified wider path or structured rejection.

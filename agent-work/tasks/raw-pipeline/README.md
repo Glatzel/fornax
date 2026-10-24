@@ -67,19 +67,21 @@ implementation placeholders.
   merged.
 - **D:** `DES-002` and `DES-003` start after `SYN-01`; the remaining design tasks
   follow their manifest dependencies.
-- **I0:** `IMPL-CORE-001` is the universal-model and draft global-protocol gate
-  after the design and persistent documentation are merged.
-- **I1:** the decoder contract, preprocessing foundation, and demosaic contract
-  can start concurrently after the core gate. Root `Cargo.toml`/`Cargo.lock`
-  edits are shared: merge one branch first, then rebase/regenerate the others
-  before opening or updating their PRs when those files overlap.
-- **I2:** the LibRaw and dnglab adapters, black subtraction, and bilinear
-  strategy follow their track contracts. Adapter tasks own separate crates and
-  must not edit one another's manifests or sources; the same shared lockfile
-  merge rule applies when their branches are finalized.
+- **I0:** `IMPL-CORE-001` renames the universal implementation to `fornax` and
+  establishes the model plus draft global protocol after the design and
+  persistent documentation are merged.
+- **I1:** the decoder registry, preprocessing foundation, and demosaic contract
+  can start concurrently as distinct modules in `fornax` after the core gate.
+  Root `Cargo.toml`/`Cargo.lock` edits are shared: merge one branch first, then
+  rebase/regenerate the others before opening or updating their PRs when those
+  files overlap.
+- **I2:** the LibRaw and dnglab adapter modules, black subtraction, and bilinear
+  strategy follow their track contracts. Decoder tasks own separate
+  `fornax::decode` modules and must not edit one another's sources; the same
+  shared lockfile merge rule applies when their branches are finalized.
 - **I3:** the DNC bridge, normalization/final clipping, and Malvar-He-Cutler
   adapter follow their prerequisites.
-- **I4–I5:** decoder conformance precedes the explicit facade.
+- **I4–I5:** decoder conformance precedes the explicit pipeline module.
 - **I6–I7:** Python/devtool migration and legacy-crate retirement complete the
   supported production surface.
 - **Q:** metadata, numerical, error, and performance QA start after integration;

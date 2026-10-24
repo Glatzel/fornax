@@ -4,25 +4,27 @@ slug = "libraw-adapter"
 title = "Implement the LibRaw decoder adapter"
 phase = "implementation"
 dependencies = ["IMPL-DEC-001", "DES-002", "DES-003"]
-parallelism = "Can run in parallel with IMPL-DEC-003 because each task owns a separate adapter crate."
-deliverables = ["fornax-decoder-libraw source", "LibRaw adapter conformance tests"]
+parallelism = "Can run in parallel with IMPL-DEC-003 through separate modules; root Cargo changes are serialized."
+deliverables = ["fornax::decode::libraw source", "LibRaw adapter conformance tests"]
 scope = """
-Create fornax-decoder-libraw around LibRaw's unpack/raw-image path. Compact
+Implement the private `fornax::decode::libraw` module around LibRaw's
+unpack/raw-image path using the optional `libraw-sys` dependency. Compact
 backend buffers using the recorded stride, translate CFA and metadata with
 provenance, preserve native sample semantics, and return structured errors for
-unsupported layouts, sample specifications, and formats. Do not call LibRaw post-processing.
+unsupported layouts, sample specifications, and formats. Do not call LibRaw
+post-processing.
 """
 acceptance = [
   "The adapter invokes only the LibRaw decode/unpack surface needed to expose stored RAW samples.",
   "Target-format Bayer fixtures or synthetic adapter tests verify buffer lengths, dimensions, stride compaction, sample specification, ActiveArea, CFA phase, and levels.",
   "Metadata conflicts and missing required fields fail with structured DecodeError values rather than inferred defaults.",
   "Non-Bayer, LinearRaw, wider/incompatible sample specifications, and deferred formats are rejected.",
-  "LibRaw and libraw-sys types remain private to the adapter crate.",
+  "LibRaw and libraw-sys types remain private to `fornax::decode::libraw`.",
   "The adapter remains opt-in and its LGPL/CDDL/distribution decision is recorded before any default-feature or release claim.",
 ]
 validation = [
   "Verify IMPL-DEC-001, DES-002, and DES-003 PRs are merged.",
-  "Run focused adapter tests and the LibRaw-feature workspace build.",
+  "Run focused module tests and `cargo test -p fornax --features backend-libraw`.",
   "Record fixture provenance, tested camera/format coverage, and any unavailable fixtures.",
   "Record the LibRaw license, native-link, and packaging decision; keep the backend non-default until that decision is accepted.",
 ]

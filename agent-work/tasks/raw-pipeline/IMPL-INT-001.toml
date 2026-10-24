@@ -1,22 +1,22 @@
 schema_version = 1
 id = "IMPL-INT-001"
 slug = "pipeline-facade"
-title = "Implement the explicit end-to-end pipeline facade"
+title = "Implement the explicit end-to-end pipeline module"
 phase = "integration"
 dependencies = ["IMPL-DEC-005", "IMPL-PRE-003", "IMPL-DEM-001"]
 requires_one_of = ["IMPL-DEM-002", "IMPL-DEM-003"]
 parallelism = "Starts after decoder conformance and complete preprocessing are merged and at least one demosaic strategy is available."
-deliverables = ["fornax facade source", "end-to-end pipeline and feature-combination tests"]
+deliverables = ["fornax::pipeline source", "end-to-end pipeline and feature-combination tests"]
 scope = """
-Replace the legacy facade with an explicit pipeline builder over a selected
-decoder backend, the consuming preprocessing sequence, and a selected demosaic
-strategy. Preserve metadata/provenance, expose stage-specific errors, and keep
-backend features distinct from runtime selection.
+Implement `fornax::pipeline` as an explicit builder over a selected decoder,
+the consuming preprocessing sequence, and a selected demosaic strategy.
+Preserve metadata/provenance, expose stage-specific errors, and keep backend
+features distinct from runtime selection.
 """
 acceptance = [
   "A supported real RAW fixture runs through selected decode, linearization, black subtraction, normalization, final clipping, and demosaicing.",
-  "Facade with no enabled backend compiles and returns an explicit no-backend error rather than selecting one implicitly.",
-  "The facade default feature set remains empty; backend, external-demosaic, parallel, and serde support are explicit opt-ins.",
+  "Pipeline with no enabled backend compiles and returns an explicit no-backend error rather than selecting one implicitly.",
+  "The fornax default feature set remains empty; backend, external-demosaic, parallel, and serde support are explicit opt-ins.",
   "Backend and algorithm selection are explicit and recorded in provenance.",
   "Metadata and processing state remain valid across every stage transition and in the final output.",
   "No white balance, camera color matrix, highlight reconstruction, tone mapping, denoising, sharpening, or display rendering is applied.",
@@ -25,7 +25,7 @@ acceptance = [
 ]
 validation = [
   "Verify IMPL-DEC-005, IMPL-PRE-003, IMPL-DEM-001, and at least one demosaic strategy PR are merged.",
-  "Run the end-to-end integration suite with every available backend/strategy feature combination.",
+  "Run `cargo test -p fornax` with every available backend/strategy feature combination.",
   "Record fixture provenance and explicitly unsupported coverage.",
   "Run formatting, clippy, and affected workspace builds.",
 ]

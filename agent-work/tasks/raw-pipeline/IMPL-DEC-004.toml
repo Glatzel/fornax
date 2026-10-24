@@ -5,11 +5,12 @@ title = "Implement the DNC conversion bridge backend"
 phase = "implementation"
 dependencies = ["IMPL-DEC-001", "IMPL-DEC-003"]
 parallelism = "Starts after the dnglab adapter because DNC composition requires a DNG decoder backend."
-deliverables = ["fornax-decoder-dnc source", "DNC bridge tests and platform notes"]
+deliverables = ["fornax::decode::dnc source", "DNC bridge tests and platform notes"]
 scope = """
-Create the optional fornax-decoder-dnc backend as a process conversion bridge
-composed with a DNG decoder backend. Keep conversion, temporary-file lifecycle,
-external-runtime discovery, errors, and provenance behind the adapter boundary.
+Implement the optional `fornax::decode::dnc` module as a process conversion
+bridge composed with a DNG decoder. Keep conversion, temporary-file lifecycle,
+external-runtime discovery, errors, and provenance behind the private adapter
+boundary.
 """
 acceptance = [
   "The bridge is generic over or explicitly composed with a compatible DNG backend rather than duplicating DNG parsing.",

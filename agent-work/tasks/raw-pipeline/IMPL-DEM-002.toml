@@ -5,7 +5,7 @@ title = "Implement the bilinear demosaic strategy"
 phase = "implementation"
 dependencies = ["IMPL-DEM-001", "DES-005"]
 parallelism = "Starts after the shared demosaic contract is merged."
-deliverables = ["bilinear strategy source", "synthetic numerical and border tests"]
+deliverables = ["fornax::demosaic bilinear strategy source", "synthetic numerical and border tests"]
 scope = """
 Implement the deterministic bilinear baseline as a DemosaicStrategy. Reuse
 legacy DemosaicLinear assets only after adapting their tests and semantics to
@@ -22,5 +22,5 @@ acceptance = [
 validation = [
   "Verify IMPL-DEM-001 and DES-005 PRs are merged.",
   "Run focused synthetic, phase, border, and determinism tests.",
-  "Run formatting, clippy, and a focused benchmark smoke check.",
+  "Run formatting, clippy, focused tests, and a benchmark smoke check in fornax.",
 ]

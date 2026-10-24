@@ -5,13 +5,13 @@ title = "Implement the decoder backend contract and registry"
 phase = "implementation"
 dependencies = ["IMPL-CORE-001", "DES-006"]
 parallelism = "Starts after IMPL-CORE-001; can run in parallel with the preprocessing and demosaic track foundations."
-deliverables = ["fornax-decode source", "backend contract and registry tests"]
+deliverables = ["fornax::decode registry source", "backend contract and registry tests"]
 scope = """
-Move the draft IRawDecoder, RawInput, DecodeConfig, and DecodeError
-contract reviewed in fornax-core into fornax-decode as appropriate. Add backend
-identifiers, capabilities, explicit selection and registry policy, and decode
-provenance. This task defines the concrete backend boundary; it does not
-implement a concrete decoder.
+Refine the draft IRawDecoder, RawInput, DecodeConfig, and DecodeError contract
+inside `fornax::decode`. Add backend identifiers, capabilities, explicit
+selection and registry policy, and decode provenance. Define feature-gated
+entry points for upstream decoder modules. This task defines the concrete
+backend boundary; it does not implement a concrete decoder.
 """
 acceptance = [
   "IRawDecoder exposes decode(&self, input: &RawInput<'_>, config: &DecodeConfig) -> Result<DecodedRaw, DecodeError>; decoder provenance is attached through ValidatedMetadata.",
@@ -24,7 +24,7 @@ acceptance = [
 ]
 validation = [
   "Verify IMPL-CORE-001 and DES-006 PRs are merged.",
-  "Run focused registry and synthetic-backend tests.",
-  "Build fornax-decode with and without enabled optional features where applicable.",
-  "Run formatting and clippy for the new crate.",
+  "Run focused fornax::decode registry and synthetic-backend tests.",
+  "Build fornax with and without every backend feature.",
+  "Run formatting and clippy for fornax.",
 ]

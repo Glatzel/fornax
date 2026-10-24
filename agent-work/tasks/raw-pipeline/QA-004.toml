@@ -4,7 +4,7 @@ slug = "performance-baselines"
 title = "Establish performance baselines and benchmarks"
 phase = "quality"
 dependencies = ["IMPL-DEC-005", "IMPL-INT-001", "IMPL-DEM-003"]
-parallelism = "After the facade and every initial decoder/demosaic path are merged."
+parallelism = "After the pipeline module and every initial decoder/demosaic path are merged."
 deliverables = ["benchmark suite", "performance baseline report"]
 scope = """
 Measure representative pipeline image sizes, allocations, buffer copies, and

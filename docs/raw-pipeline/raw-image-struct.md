@@ -57,7 +57,7 @@ classDiagram
     RawImage ..> RgbImageF32 : demosaic tuple with metadata
 ```
 
-## Core image
+## Universal image
 
 | Type/field | Type | Unit | Invariant |
 | --- | --- | --- | --- |
@@ -120,14 +120,14 @@ Decoder adapters produce `DecodedRaw`. Its `StoredPlane` covers native u8,
 u16, u32, and f32 samples, so one preprocessing implementation handles every
 supported decoder output.
 
-`DecodedRaw::pre_process` is implemented by `fornax-preprocess` and consumes
+`DecodedRaw::pre_process` is implemented by `fornax::preprocess` and consumes
 the decoded image. It returns the distinct `RawImage` type, whose payload is
 exclusively `F32Plane`. Linearization, black subtraction, normalization, and
 final clipping are private substeps and expose no intermediate image types.
 
 Because preprocessing is available only on `DecodedRaw`, calling it again on
 the returned `RawImage` is a compile-time error. `RawImage` construction is
-private to core's preprocessing finalizer and validates finite samples in
+private to the crate's preprocessing finalizer and validates finite samples in
 `[0,1]` before demosaicing.
 
 Users may mutate `DecodedRaw::plane_mut()` directly for custom processing.
@@ -169,7 +169,7 @@ to RGB, or treats a display image as a sensor plane.
 
 `DecodedRaw::try_new` is the public decode boundary and validates the native
 plane against its metadata, including required black/white levels.
-`fornax-core` exposes a doc-hidden finalization helper solely for the single
+`fornax` exposes a doc-hidden finalization helper solely for the single
 preprocessing implementation to construct a `RawImage` after its private
 substeps finish.
 

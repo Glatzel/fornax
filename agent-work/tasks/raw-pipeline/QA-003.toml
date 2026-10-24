@@ -4,7 +4,7 @@ slug = "error-path-tests"
 title = "Validate error paths and unsupported inputs"
 phase = "quality"
 dependencies = ["IMPL-DEC-005", "IMPL-PRE-003", "IMPL-INT-001"]
-parallelism = "After decoder conformance, preprocessing, and facade integration are merged."
+parallelism = "After decoder conformance, preprocessing, and pipeline integration are merged."
 deliverables = ["error-path tests", "unsupported-format test matrix"]
 scope = """
 Test structured errors for invalid layout, missing metadata, non-Bayer CFA,

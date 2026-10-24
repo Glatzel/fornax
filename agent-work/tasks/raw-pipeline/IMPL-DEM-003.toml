@@ -5,7 +5,7 @@ title = "Add Malvar-He-Cutler through the optional demosaic crate adapter"
 phase = "implementation"
 dependencies = ["IMPL-DEM-002", "DES-005", "RES-05"]
 parallelism = "Starts after the bilinear strategy establishes the built-in registration and tests."
-deliverables = ["optional demosaic adapter source", "Malvar-He-Cutler reference and border tests"]
+deliverables = ["fornax::demosaic optional adapter source", "Malvar-He-Cutler reference and border tests"]
 scope = """
 Add a feature-gated adapter to the pinned Rust demosaic crate and expose its
 Malvar-He-Cutler strategy through the fornax DemosaicStrategy contract. Validate
@@ -23,5 +23,5 @@ acceptance = [
 validation = [
   "Verify IMPL-DEM-002, DES-005, and RES-05 PRs are merged.",
   "Run focused reference, phase, border, failure, and feature-gating tests.",
-  "Run formatting, clippy, and the relevant feature-specific workspace build.",
+  "Run formatting, clippy, and `cargo test -p fornax --features demosaic-external`.",
 ]

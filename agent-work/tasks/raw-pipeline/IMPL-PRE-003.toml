@@ -5,7 +5,7 @@ title = "Implement the single preprocessing entry point"
 phase = "implementation"
 dependencies = ["IMPL-PRE-002"]
 parallelism = "Completes the preprocessing track after the private black subtraction substep."
-deliverables = ["normalization and clipping source", "numerical boundary and state tests"]
+deliverables = ["fornax::preprocess normalization and clipping source", "numerical boundary and state tests"]
 scope = """
 Implement the crate-private normalization and final-clipping substeps and expose
 one consuming `impl DecodedRaw { fn pre_process(...) -> RawImage }` entry
@@ -25,5 +25,5 @@ acceptance = [
 validation = [
   "Verify IMPL-PRE-002 is merged.",
   "Run focused normalization, clipping, non-finite, and processing-state tests.",
-  "Run formatting, clippy, and the affected workspace build.",
+  "Run formatting, clippy, and `cargo test -p fornax`.",
 ]

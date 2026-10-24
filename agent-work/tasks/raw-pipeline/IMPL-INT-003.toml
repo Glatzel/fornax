@@ -8,14 +8,14 @@ parallelism = "Final migration gate after all replacement paths and consumers ar
 deliverables = ["legacy crate removal and workspace migration", "dependency-graph validation evidence"]
 scope = """
 Remove legacy crates and public architecture made obsolete by the replacement:
-fornax-dalim, the public libraw wrapper, and the standalone dnc crate, while
-retaining libraw-sys only as private FFI support for fornax-decoder-libraw.
-Resolve workspace dependencies, features, examples, and package metadata without
-maintaining compatibility shims.
+fornax-core, fornax-dalim, the public libraw wrapper, and the standalone dnc
+crate, while retaining libraw-sys only as private FFI support for
+`fornax::decode::libraw`. Resolve workspace dependencies, features, examples,
+and package metadata without maintaining compatibility shims.
 """
 acceptance = [
   "No removed crate remains in the workspace, path dependencies, release configuration, examples, tests, or supported public API.",
-  "libraw-sys is reachable only through the LibRaw adapter and is not re-exported.",
+  "fornax-core is absent; libraw-sys is reachable only through `fornax::decode::libraw` and is not re-exported.",
   "The dependency graph matches docs/raw-pipeline/architecture.md and remains acyclic.",
   "Every workspace member builds after legacy removal without relying on preserved compatibility traits or crate boundaries.",
   "The external/raw-images fixture submodule remains unchanged and available to devtool/Python tests.",

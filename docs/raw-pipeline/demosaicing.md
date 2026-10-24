@@ -57,13 +57,13 @@ Output dimensions equal input dimensions. Values remain linear and are not
 implicitly quantized or clipped. Algorithms document overshoot/undershoot
 behavior; callers may apply an explicit output policy where appropriate.
 
-Image-rs owns the output allocation and dimensions. Core validates exact
+Image-rs owns the output allocation and dimensions. `fornax` validates exact
 sample counts and finite values before returning the image.
 
 ## Strategy interface
 
-`fornax-core` contains the draft phase protocol used to validate the global
-call flow:
+`fornax::protocol` contains the phase protocol used to validate the global call
+flow:
 
 ```rust
 pub trait IDemosaic: Send + Sync {

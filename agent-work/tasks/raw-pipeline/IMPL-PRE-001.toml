@@ -5,10 +5,10 @@ title = "Implement preprocessing foundation and linearization substep"
 phase = "implementation"
 dependencies = ["IMPL-CORE-001", "DES-004"]
 parallelism = "Starts after IMPL-CORE-001; can run in parallel with decoder and demosaic foundations."
-deliverables = ["fornax-preprocess foundation source", "conversion and linearization tests"]
+deliverables = ["fornax::preprocess foundation source", "conversion and linearization tests"]
 scope = """
-Use the IRawPreprocessor and option/error contracts drafted in fornax-core and
-adjust them as necessary in fornax-preprocess. Implement IRawPreprocessor,
+Refine the IRawPreprocessor and option/error contracts inside
+`fornax::preprocess`. Implement IRawPreprocessor,
 exact integer conversion and mutable custom-plane access, a private
 identity/table linearization substep,
 allocation checks, and typed preprocessing errors. Do not expose intermediate
@@ -25,6 +25,6 @@ acceptance = [
 ]
 validation = [
   "Verify IMPL-CORE-001 and DES-004 PRs are merged.",
-  "Run focused conversion, custom-basis, identity, lookup-table, and allocation tests.",
-  "Run formatting, clippy, and the affected workspace build.",
+  "Run focused conversion, custom-plane, identity, lookup-table, and allocation tests in fornax.",
+  "Run formatting, clippy, and `cargo test -p fornax`.",
 ]

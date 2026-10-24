@@ -5,7 +5,7 @@ title = "Implement ActiveArea-aware black selection and subtraction"
 phase = "implementation"
 dependencies = ["IMPL-PRE-001", "DES-003"]
 parallelism = "Starts after the preprocessing foundation and linearization substep exist."
-deliverables = ["black selection and subtraction source", "coordinate and numerical tests"]
+deliverables = ["fornax::preprocess black selection and subtraction source", "coordinate and numerical tests"]
 scope = """
 Implement the crate-private black subtraction substep used by the single
 pre_process operation. Select common, four-slot, and supported 1x1/2x2 black
@@ -24,5 +24,5 @@ acceptance = [
 validation = [
   "Verify IMPL-PRE-001 and DES-003 PRs are merged.",
   "Run focused numerical, coordinate-alignment, pattern, and rejection tests.",
-  "Run formatting and clippy for fornax-preprocess.",
+  "Run formatting, clippy, and focused tests for fornax.",
 ]
