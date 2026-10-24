@@ -1,12 +1,12 @@
 # RAW Pipeline Task Index
 
 The authoritative contracts are the per-task TOML manifests in this directory.
-This index defines the planned dependency graph and wave layout only. Live
-progress and review state are in GitHub pull requests, as described in
-[`../README.md`](../README.md).
+This index defines the dependency graph and wave layout. GitHub pull requests
+remain the review and merge authority.
 
-For a human-readable status overview, see [`STATUS.md`](STATUS.md). It is a
-convenience snapshot; the task pull requests remain authoritative.
+For the human-readable task-status snapshot, see [`../STATUS.md`](../STATUS.md).
+The snapshot marks a task `Done` when its PR is opened; downstream readiness
+still requires dependency PRs to be merged.
 
 ## Task manifest map
 
