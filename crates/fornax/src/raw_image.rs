@@ -1,0 +1,208 @@
+use std::sync::Arc;
+
+use crate::decoded_raw::plane::validate_finite;
+use crate::demosaic::{DemosaicAlgorithm, RgbImageF32};
+use crate::error::{DemosaicError, RawValidationError};
+use crate::geometry::PixelSize;
+use crate::metadata::ValidatedMetadata;
+use crate::{DecodedRaw, F32Plane};
+
+/// A preprocessed, demosaic-ready RAW image with a single f32 plane.
+///
+/// A `RawImage` can only be produced by preprocessing a [`DecodedRaw`].
+/// Metadata and provenance remain available, while the payload is guaranteed
+/// to use [`F32Plane`].
+///
+/// # Examples
+///
+/// ```
+/// use fornax::RawImage;
+///
+/// fn accepts_f32_image(_image: &RawImage) {}
+/// ```
+#[derive(Clone, Debug, PartialEq)]
+pub struct RawImage {
+    metadata: Arc<ValidatedMetadata>,
+    plane: F32Plane,
+}
+
+impl RawImage {
+    /// Returns immutable validated metadata.
+    pub fn metadata(&self) -> &ValidatedMetadata { &self.metadata }
+
+    /// Returns the shared metadata handle for retaining after preprocessing.
+    pub fn metadata_arc(&self) -> Arc<ValidatedMetadata> { Arc::clone(&self.metadata) }
+
+    /// Returns the preprocessed single-channel f32 plane.
+    pub const fn plane(&self) -> &F32Plane { &self.plane }
+
+    /// Consumes the image and returns its f32 plane.
+    pub fn into_plane(self) -> F32Plane { self.plane }
+
+    /// Consumes the image into retained metadata and f32 plane.
+    pub fn into_parts(self) -> (Arc<ValidatedMetadata>, F32Plane) { (self.metadata, self.plane) }
+
+    /// Runs the selected demosaicing algorithm.
+    ///
+    /// # Errors
+    ///
+    /// Returns the selected algorithm's structured error or
+    /// [`DemosaicError::InvalidInput`] when the algorithm returns an invalid
+    /// output image.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::num::{NonZeroU32, NonZeroU64};
+    /// # use fornax::geometry::{ActiveArea, PixelSize, StoredGeometry};
+    /// # use fornax::metadata::{
+    /// #     AuthorityClass, BlackLevels, CommonMetadata, Confidence, DecoderProvenance,
+    /// #     ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
+    /// #     ValidatedMetadata, WhiteLevels,
+    /// # };
+    /// # use fornax::metadata::{BayerLayout, BayerPattern};
+    /// # use fornax::{
+    /// #     DecodedRaw, DemosaicAlgorithm, RawImage, SampleFormat, SampleSpec, StoredPlane,
+    /// #     into_preprocessed,
+    /// # };
+    /// # fn input() -> RawImage {
+    /// #     let dimensions = PixelSize::new(1, 1).unwrap();
+    /// #     let area = ActiveArea::try_new(dimensions, 0, 0, 1, 1).unwrap();
+    /// #     let provider = ProviderId::try_new("example").unwrap();
+    /// #     let provenance = Provenance::new(
+    /// #         provider.clone(),
+    /// #         SourceKind::Derived { operation: "example".into() },
+    /// #         AuthorityClass::DerivedValue,
+    /// #         Confidence::Exact,
+    /// #     );
+    /// #     let zero = Rational::new(0, NonZeroU32::new(1).unwrap());
+    /// #     let one = Rational::new(1, NonZeroU32::new(1).unwrap());
+    /// #     let metadata = ValidatedMetadata::try_new(
+    /// #         CommonMetadata {
+    /// #             sample_spec: Some(Sourced::new(
+    /// #                 SampleSpec::try_new(32, SampleFormat::Float).unwrap(),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             stored_geometry: Some(Sourced::new(
+    /// #                 StoredGeometry::new(dimensions, NonZeroU64::new(4).unwrap()),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             active_area: Some(Sourced::new(area, provenance.clone())),
+    /// #             cfa: Some(Sourced::new(
+    /// #                 BayerLayout::new(BayerPattern::Rggb, area),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             black: Some(Sourced::new(
+    /// #                 BlackLevels::try_new(zero, [zero; 4], None).unwrap(),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             white: Some(Sourced::new(
+    /// #                 WhiteLevels::try_new(vec![one], None, None).unwrap(),
+    /// #                 provenance,
+    /// #             )),
+    /// #             ..CommonMetadata::default()
+    /// #         },
+    /// #         ExtensibleMetadata::default(),
+    /// #         DecoderProvenance::new(provider, None),
+    /// #     )
+    /// #     .unwrap();
+    /// #     let plane = image::ImageBuffer::from_raw(1, 1, vec![0.25]).unwrap();
+    /// #     let decoded = DecodedRaw::try_new(metadata, StoredPlane::F32(plane.clone())).unwrap();
+    /// #     into_preprocessed(decoded, plane).unwrap()
+    /// # }
+    /// let (rgb, metadata) = input()
+    ///     .demosaic(DemosaicAlgorithm::Linear)
+    ///     .unwrap();
+    ///
+    /// assert_eq!(rgb.get_pixel(0, 0).0, [0.25, 0.0, 0.0]);
+    /// assert!(metadata.cfa().pattern() == BayerPattern::Rggb);
+    /// ```
+    pub fn demosaic(
+        &self,
+        algorithm: DemosaicAlgorithm,
+    ) -> Result<(RgbImageF32, Arc<ValidatedMetadata>), DemosaicError> {
+        let output = algorithm.demosaic(self)?;
+        validate_rgb_output(&output, self.metadata.stored_geometry().dimensions())?;
+        Ok((output, self.metadata_arc()))
+    }
+}
+
+/// Hidden finalizer used by the single `DecodedRaw::pre_process` entry point.
+#[doc(hidden)]
+pub fn into_preprocessed(
+    image: DecodedRaw,
+    plane: F32Plane,
+) -> Result<RawImage, RawValidationError> {
+    let (metadata, _) = image.into_preprocessing_parts()?;
+    metadata.validate_f32_working_plane(&plane)?;
+    validate_finite(&plane)?;
+    if plane
+        .as_raw()
+        .iter()
+        .any(|sample| !(0.0..=1.0).contains(sample))
+    {
+        return Err(RawValidationError::InvalidReadinessRange);
+    }
+    Ok(RawImage { metadata, plane })
+}
+
+fn validate_rgb_output(output: &RgbImageF32, expected: PixelSize) -> Result<(), DemosaicError> {
+    let (width, height) = output.dimensions();
+    if width != expected.width() || height != expected.height() {
+        return Err(DemosaicError::InvalidInput(
+            "output dimensions do not match the source image".into(),
+        ));
+    }
+    let expected_samples = expected
+        .sample_count()
+        .ok()
+        .and_then(|count| count.checked_mul(3))
+        .ok_or_else(|| DemosaicError::InvalidInput("output size overflows usize".into()))?;
+    if output.as_raw().len() != expected_samples {
+        return Err(DemosaicError::InvalidInput(
+            "output sample count does not match its dimensions".into(),
+        ));
+    }
+    if output.as_raw().iter().any(|sample| !sample.is_finite()) {
+        return Err(DemosaicError::InvalidInput(
+            "output contains a non-finite sample".into(),
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use image::Rgb;
+
+    use super::*;
+
+    #[test]
+    fn rgb_image_uses_image_rs_interleaved_layout() {
+        let image = RgbImageF32::from_raw(1, 1, vec![0.1, 0.2, 0.3]).unwrap();
+        assert_eq!(image.get_pixel(0, 0), &Rgb([0.1, 0.2, 0.3]));
+        assert_eq!(
+            validate_rgb_output(&image, PixelSize::new(1, 1).unwrap()),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn rgb_output_validation_rejects_invalid_buffers() {
+        let wrong_size = RgbImageF32::from_raw(2, 1, vec![0.0; 6]).unwrap();
+        assert!(matches!(
+            validate_rgb_output(&wrong_size, PixelSize::new(1, 1).unwrap()),
+            Err(DemosaicError::InvalidInput(_))
+        ));
+        let wrong_count = RgbImageF32::from_raw(1, 1, vec![0.0; 4]).unwrap();
+        assert!(matches!(
+            validate_rgb_output(&wrong_count, PixelSize::new(1, 1).unwrap()),
+            Err(DemosaicError::InvalidInput(_))
+        ));
+        let non_finite = RgbImageF32::from_raw(1, 1, vec![f32::NAN; 3]).unwrap();
+        assert!(matches!(
+            validate_rgb_output(&non_finite, PixelSize::new(1, 1).unwrap()),
+            Err(DemosaicError::InvalidInput(_))
+        ));
+    }
+}

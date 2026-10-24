@@ -3,17 +3,25 @@ name = "fornax"
 version.workspace = true
 edition.workspace = true
 
+[[bench]]
+harness = false
+name = "demosaic"
+
 [dependencies]
-dnc.workspace = true
-fornax-core.workspace = true
-fornax-dalim.workspace = true
 image.workspace = true
-libraw.workspace = true
+libraw-sys = { workspace = true, optional = true }
+rawler = { workspace = true, optional = true }
+rayon = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+thiserror.workspace = true
 
 [dev-dependencies]
-clerk = { workspace = true, features = ["tracing"] }
-fornax-devtool.workspace = true
-mischief.workspace = true
+criterion.workspace = true
 
 [features]
-serde = ["dnc/serde", "fornax-dalim/serde", "libraw/serde"]
+default = []
+backend-dnc = []
+backend-dnglab = ["dep:rawler"]
+backend-libraw = ["dep:libraw-sys"]
+parallel = ["dep:rayon"]
+serde = ["dep:serde"]

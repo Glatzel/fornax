@@ -1,113 +1,211 @@
 # RAW Pipeline Crate Architecture
 
-This is the persistent crate topology for the Rust RAW pipeline. Existing crate
-boundaries are migration input, not compatibility requirements.
+The production RAW pipeline is one Rust crate named `fornax`. There is no
+separate `fornax-core`, decoder-contract crate, decoder-adapter crates,
+preprocessing crate, or demosaicing crate.
 
-## Pipeline phases
+The former `fornax-core` package has been renamed to `fornax`. The existing
+legacy `fornax` facade was replaced rather than preserved.
+
+## Crate and module topology
 
 ```mermaid
 flowchart TB
-    subgraph DecodePhase["1 · Decode"]
-        Decode["fornax-decode\nbackend contract"]
-        LibRaw["fornax-decoder-libraw"]
-        Dnglab["fornax-decoder-dnglab"]
-        Dnc["fornax-decoder-dnc"]
-        Decode --> Core["fornax-core"]
-        LibRaw --> Decode
-        LibRaw --> LibRawSys["libraw-sys"]
-        Dnglab --> Decode
-        Dnc --> Decode
+    subgraph Fornax["fornax crate"]
+        Model["crate root\nCFA / DecodedRaw / RawImage"]
+        Geometry["geometry"]
+        Metadata["metadata"]
+        Error["error"]
+        Decoder["decoder\nIRawDecoder<I> + backend modules"]
+        Preprocess["DecodedRaw::pre_process\nprivate ordered substeps"]
+        Demosaic["demosaic\nDemosaicAlgorithm"]
+        Pipeline["pipeline\nend-to-end composition"]
     end
 
-    subgraph PreprocessPhase["2 · Preprocess"]
-        Preprocess["fornax-preprocess"]
-        Preprocess --> Core
-    end
-
-    subgraph DemosaicPhase["3 · Demosaic"]
-        Demosaic["fornax-demosaic"]
-        Demosaic --> Core
-    end
-
-    Facade["fornax\nfacade"]
-    Python["fornax-py"]
-    Dev["fornax-devtool\ndev only"]
-    Facade --> Decode
-    Facade --> Preprocess
-    Facade --> Demosaic
-    Facade -.optional.-> LibRaw
-    Facade -.optional.-> Dnglab
-    Facade -.optional.-> Dnc
-    Python --> Facade
-    Dev --> Facade
+    Decoder -. feature backend-libraw .-> LibRawSys["libraw-sys\nprivate FFI"]
+    Decoder -. feature backend-dnglab .-> Rawler["rawler / dnglab\nupstream decoder"]
+    Decoder -. feature backend-dnc .-> DNC["Adobe DNG Converter\nexternal process"]
+    Python["fornax-py"] --> Fornax
+    Dev["fornax-devtool\ndev only"] --> Fornax
 ```
 
-Arrow direction means the source crate depends on the target crate.
+Arrow direction means dependency. Upstream decoder dependencies are optional
+Cargo features. Demosaicing is implemented entirely inside `fornax`; the base
+crate remains usable without enabling any decoder backend.
 
-## Responsibilities
+## Module responsibilities
 
-| Crate | Responsibility |
+| Module | Responsibility |
 | --- | --- |
-| `fornax-core` | Universal samples, metadata, geometry, CFA, stage types, provenance, validation |
-| `fornax-decode` | `RawDecoderBackend`, backend capabilities/selection, decode configuration/errors |
-| `fornax-decoder-libraw` | LibRaw `unpack` adapter and metadata translation |
-| `fornax-decoder-dnglab` | dnglab/rawler adapter |
-| `fornax-decoder-dnc` | Adobe DNG conversion bridge composed with a DNG decoder |
-| `fornax-preprocess` | LUT, black correction, normalization, clipping, custom-f32 transition |
-| `fornax-demosaic` | Object-safe strategy registry, planar f32 output, built-in/external algorithms |
-| `fornax` | Explicit backend selection and end-to-end composition |
-| `fornax-py` | Python package over the facade |
+| `fornax` crate root | Public re-exports for decoded planes, `DecodedRaw`, demosaic output, and f32-only `RawImage` |
+| `fornax::decoded_raw` | Internal `DecodedRaw` owner with a private `plane` submodule for native sample containers |
+| `fornax::geometry` | Pixel sizes, rectangles, ActiveArea, and stored geometry |
+| `fornax::metadata` | Nested metadata aggregates with focused submodules for camera, CFA, extensible fields, levels, provenance, and exact values |
+| `fornax::error` | Model, metadata, decoder, preprocessing, and demosaicing errors |
+| `fornax::decoder` | Generic-input `IRawDecoder<I>` contract and backend modules |
+| `fornax::decoder::libraw` | Private LibRaw adapter over `libraw-sys` |
+| `fornax::decoder::rawler` | Private rawler/dnglab adapter |
+| `fornax::decoder::dnc` | Private process bridge composed with a DNG decoder |
+| `DecodedRaw::pre_process` | One standard preprocessing entry point with private linearization, black subtraction, normalization, and clipping substeps |
+| `fornax::demosaic` | Direct algorithm selection, image-rs RGB output, and in-crate Bayer implementations |
+| `fornax::pipeline` | Explicit end-to-end backend and algorithm composition |
+
+These modules are an implementation boundary inside one crate. They are not
+reason to reintroduce workspace crates.
+
+Source ownership follows the same hierarchy:
+
+```text
+src/
+├── lib.rs
+├── decoder/
+│   └── mod.rs                 # generic decoder boundary; concrete members follow
+├── decoded_raw/
+│   ├── mod.rs                 # DecodedRaw
+│   └── plane.rs               # native u8/u16/u32/f32 sample containers
+├── demosaic/
+│   ├── mod.rs                 # algorithm selection and RGB output
+│   └── linear.rs              # linear/Bayer implementation
+├── error.rs
+├── geometry.rs
+├── metadata/
+│   ├── mod.rs                 # nested CommonMetadata / ValidatedMetadata only
+│   ├── camera.rs              # camera, crop, capture, WB, color, orientation
+│   ├── cfa.rs                 # Bayer/CFA layout and indexing
+│   ├── extensible.rs          # extensible keys, entries, values, conflicts
+│   ├── levels.rs              # black/white level metadata
+│   ├── provenance.rs          # provider, source, authority, confidence
+│   ├── value.rs               # exact rational values
+│   └── tests.rs               # metadata invariant tests
+└── raw_image.rs               # f32-only preprocessing output
+```
+
+## Workspace members
+
+| Package | Responsibility |
+| --- | --- |
+| `fornax` | Universal model, decoder contracts, upstream decoder integrations, preprocessing, demosaicing, and end-to-end pipeline |
+| `fornax-py` | Python package over `fornax` |
 | `fornax-devtool` | Non-published fixtures and examples |
-| `libraw-sys` | Private generated LibRaw FFI |
+| `libraw-sys` | Private generated LibRaw FFI used only by `fornax::decoder::libraw` |
 
-## Boundaries
+`libraw-sys` is a low-level build-support package, not a pipeline stage or
+public abstraction. Upstream decoder crates are normal optional Cargo
+dependencies of `fornax`; they do not appear in the public model. Demosaicing
+algorithms are implemented in `fornax` itself.
 
-- `fornax-core` has no dependency on any decoder or demosaic implementation.
-- `fornax-decode`, `fornax-preprocess`, and `fornax-demosaic` depend on core but
-  not on one another.
-- Decoder crates implement `RawDecoderBackend`; upstream types remain private.
-- `fornax-preprocess` provides an extension trait over core stage types.
-- Demosaic strategies are object-safe and registered at runtime.
-- Only `fornax` depends on concrete adapters, and only through enabled features.
+## Dependency direction
 
-## Selection and features
+- `fornax` depends on image-rs, `thiserror`, and standard library support.
+- `fornax` optionally depends on `libraw-sys`, rawler/dnglab, and parallelism
+  support.
+- Adobe DNC integration invokes an external process and does not expose an
+  upstream Rust type.
+- `fornax-py` and `fornax-devtool` depend on `fornax`.
+- No production package depends on `fornax-core`; that package no longer
+  exists after migration.
 
-The facade has no default backend. Callers enable and explicitly select:
+Upstream decoder types remain private to their adapter module. `DecodedRaw`,
+`RawImage`, metadata, decoder contracts, errors, and pipeline APIs contain no
+LibRaw, rawler, or DNC-runtime types; demosaicing implementation types remain
+inside `fornax::demosaic`.
+
+## Stage boundaries
+
+The phase interfaces are direct methods and one generic decoder contract inside
+`fornax`, not crate boundaries:
+
+```rust
+pub trait IRawDecoder<I: ?Sized>: Send + Sync {
+    fn decode(&self, input: &I) -> Result<DecodedRaw, DecodeError>;
+}
+
+impl DecodedRaw {
+    pub fn pre_process(self) -> Result<RawImage, PreprocessError>;
+}
+
+impl RawImage {
+    pub fn demosaic(
+        &self,
+        algorithm: DemosaicAlgorithm,
+    ) -> Result<(RgbImageF32, Arc<ValidatedMetadata>), DemosaicError>;
+}
+```
+
+The generic decoder input may be an in-memory byte slice, a filesystem path, or
+another backend-specific source. `DecodedRaw::pre_process` is the single
+consuming preprocessing entry point; its ordered substeps remain TODO until
+the `IMPL-PRE-*` tasks implement them.
+
+`RawImage::demosaic` accepts a `DemosaicAlgorithm` and returns
+`(RgbImageF32, Arc<ValidatedMetadata>)`, where `RgbImageF32` is image-rs
+interleaved RGB. `pre_process` lives in `src/decoded_raw/mod.rs`; demosaic dispatch
+and output validation live in `src/demosaic/` and `src/raw_image.rs`.
+
+`IMPL-CORE-001` establishes these direct boundaries. Later decoder,
+preprocessing, and demosaicing tasks refine their implementations inside
+`fornax` without adding a protocol module, options wrapper, or new pipeline
+crate.
+
+## Features
+
+The `fornax` default feature set is empty:
 
 ```text
 backend-libraw
 backend-dnglab
 backend-dnc
-demosaic-external
 parallel
 serde
 ```
 
-Enabling a backend does not select it automatically. `fornax` records the
-selected backend and decode provenance.
+- `backend-libraw` enables the private LibRaw adapter through `libraw-sys`.
+- `backend-dnglab` enables the crates.io rawler `0.8.0` adapter.
+- `backend-dnc` enables the process bridge and requires a selected DNG backend.
+- `parallel` enables documented parallel execution where benchmarks justify it.
+- `serde` serializes validated metadata and processing descriptors.
+
+Enabling a feature makes an implementation available; it never selects that
+backend or algorithm at runtime.
 
 ## Errors
 
-Each stage owns its structured error:
+Errors remain typed by phase under `fornax::error`:
 
-- `RawValidationError` in core;
-- `DecodeError` in `fornax-decode`;
-- `PreprocessError` in `fornax-preprocess`;
-- `DemosaicError` in `fornax-demosaic`; and
-- `FornaxError` in the facade, wrapping stage errors with context.
+- `RawValidationError` for model and metadata invariants;
+- `DecodeError` for concrete decoder implementations;
+- `PreprocessError` for preprocessing;
+- `DemosaicError` for demosaicing; and
+- `MetadataError` for metadata construction and conflicts.
 
-Public APIs do not expose upstream LibRaw/rawler/demosaic types or string-only
-errors.
+Upstream errors are translated at the decoder adapter boundary. No public API
+exposes upstream decoder error types or a string-only top-level error.
 
 ## Migration
 
-- Rewrite `fornax-core` under its existing name.
-- Move usable linear demosaic code/tests into `fornax-demosaic`; retire
-  `fornax-dalim` as an architecture.
-- Move LibRaw wrapper logic into `fornax-decoder-libraw`; retain `libraw-sys` as
-  private FFI support.
-- Recreate the `dnc` process wrapper inside `fornax-decoder-dnc`.
-- Rewrite `fornax` and `fornax-py` over the new contracts.
-- Keep `fornax-devtool` development-only.
+- The `fornax-core` package has been renamed to `fornax`.
+- The legacy `fornax` implementation has been replaced by the renamed
+  universal crate.
+- Move decoder selection and concrete `libraw`, rawler, and DNC adapters into
+  `fornax::decoder` modules.
+- The `fornax-dalim` crate is removed after migrating its reusable linear
+  demosaic implementation and Bayer tests into `fornax::demosaic`.
+- Implement the private substeps behind `DecodedRaw::pre_process`.
+- Retire the public `libraw` and `dnc` wrapper crates after their private
+  integrations exist in `fornax`.
+- Keep `libraw-sys` only as private FFI support.
+- Rewrite `fornax-py` and `fornax-devtool` over `fornax`.
 
-No legacy public trait or crate boundary is preserved solely for compatibility.
+No old core, adapter, preprocessing, demosaic, or facade crate boundary is
+preserved for compatibility.
+
+## Validation
+
+- Build `fornax` with default features and every supported feature combination.
+- Verify no upstream decoder type appears in public API documentation.
+- Run model, metadata, decoder, preprocessing, demosaic, and end-to-end tests in
+  the same crate.
+- Verify disabled backend features return explicit no-backend errors.
+- Verify optional features do not imply runtime selection.
+- Verify the workspace dependency graph contains no `fornax-core` or adapter
+  crate.

@@ -9,10 +9,11 @@ different levels:
   f64 and what each choice guarantees.
 - [Key structures and fields](raw-image-struct.md) maps the persistent Rust types,
   fields, units, and invariants.
-- [Demosaicing interface](demosaicing.md) defines input/output, strategy
+- [Demosaicing interface](demosaicing.md) defines input/output, algorithm
   registration, border behavior, and errors.
-- [Crate architecture](architecture.md) defines responsibilities, feature
-  gates, dependency direction, errors, and migration.
+- [Crate architecture](architecture.md) defines the single-crate module
+  topology, feature-gated upstream dependencies, error boundaries, and
+  migration.
 
 These files are the normative, persistent RAW pipeline design. The task-owned
 files under `agent-work/design/` are design history and implementation
@@ -32,7 +33,7 @@ flowchart LR
 
     subgraph PreprocessPhase["2 · Preprocess"]
         Convert["Optional DecodedRaw\nf32 custom processing"]
-        Pre["f32 buffer\nf64 scalar arithmetic"]
+        Pre["RawImage\nf32 buffer\nf64 scalar arithmetic"]
     end
 
     subgraph DemosaicPhase["3 · Demosaic"]

@@ -1,26 +1,30 @@
 schema_version = 1
 id = "IMPL-DEM-002"
 slug = "bilinear-demosaic"
-title = "Implement the bilinear demosaic strategy"
+title = "Implement and validate bilinear demosaicing"
 phase = "implementation"
-dependencies = ["IMPL-DEM-001", "DES-005"]
-parallelism = "Starts after the shared demosaic contract is merged."
-deliverables = ["bilinear strategy source", "synthetic numerical and border tests"]
+dependencies = ["IMPL-CORE-001", "DES-005", "RES-05"]
+parallelism = "Starts after the core demosaic boundary; independent of decoder and preprocessing implementation work."
+deliverables = [
+  "complete fornax::demosaic::linear implementation",
+  "synthetic numerical, phase, border, and deterministic tests",
+]
 scope = """
-Implement the deterministic bilinear baseline as a DemosaicStrategy. Reuse
-legacy DemosaicLinear assets only after adapting their tests and semantics to
-the new ActiveArea-aware f32 contract. Define border behavior and preserve known
-CFA samples explicitly.
+Complete the bilinear/direct-linear demosaic algorithm moved into
+`fornax::demosaic` by `IMPL-CORE-001`. Implement and document all four Bayer
+phases, ActiveArea-relative indexing, border handling, known-sample preservation,
+determinism, and the image-rs RGB f32 output contract without adding a trait or
+options wrapper.
 """
 acceptance = [
   "Synthetic mosaics in all four Bayer phases produce the documented bilinear values.",
   "Known Red, Green, and Blue samples retain their original linear values unless the documented border policy requires fallback.",
   "Odd ActiveArea origins and small-image border behavior are tested.",
   "Output dimensions equal input dimensions and values are not silently clipped or quantized.",
-  "The strategy is deterministic and does not mutate input or metadata.",
+  "The algorithm is deterministic, does not mutate input or metadata, and its benchmark smoke check passes.",
 ]
 validation = [
-  "Verify IMPL-DEM-001 and DES-005 PRs are merged.",
+  "Verify IMPL-CORE-001, DES-005, and RES-05 PRs are merged.",
   "Run focused synthetic, phase, border, and determinism tests.",
-  "Run formatting, clippy, and a focused benchmark smoke check.",
+  "Run formatting, clippy, focused tests, and a benchmark smoke check in fornax.",
 ]

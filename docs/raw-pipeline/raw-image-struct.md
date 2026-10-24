@@ -9,16 +9,21 @@ rationale; field names, units, and invariants in this file are authoritative.
 ```mermaid
 classDiagram
     direction LR
-    class RawImage {
-        <<Decode context>>
+    class DecodedRaw {
+        <<decoder output>>
         +metadata
         +plane
-        +stage
+    }
+    class RawImage {
+        <<preprocessed f32 image>>
+        +metadata
+        +plane
     }
     class ValidatedMetadata {
         <<struct>>
         +common
         +extensible
+        +decoder
     }
     class CommonMetadata {
         <<struct>>
@@ -30,71 +35,49 @@ classDiagram
     class BayerLayout
     class BlackLevels
     class WhiteLevels
-    class Decoded {
-        <<Decode phase>>
-        +decoder
-        +operations
-        +metadata_basis
-    }
     class StoredPlane {
-        <<Decode payload>>
+        <<payload>>
         U8
         U16
         U32
         F32
     }
-    class Linearized {
-        <<Preprocess phase>>
-    }
-    class BlackCorrected {
-        <<Preprocess phase>>
-    }
-    class Normalized {
-        <<Preprocess phase>>
-    }
-    class DemosaicReady {
-        <<Preprocess phase>>
-    }
-    class DemosaicOutput {
-        <<Demosaic phase>>
-        +planar_rgb_f32
-    }
 
+    DecodedRaw *-- ValidatedMetadata
+    DecodedRaw *-- StoredPlane
     RawImage *-- ValidatedMetadata
-    RawImage *-- StoredPlane
-    RawImage *-- Decoded
+    RawImage *-- F32Plane
     ValidatedMetadata *-- CommonMetadata
     ValidatedMetadata *-- ExtensibleMetadata
     CommonMetadata *-- StoredGeometry
     CommonMetadata *-- BayerLayout
     CommonMetadata *-- BlackLevels
     CommonMetadata *-- WhiteLevels
-    Decoded ..> Linearized
-    Linearized ..> BlackCorrected
-    BlackCorrected ..> Normalized
-    Normalized ..> DemosaicReady
-    DemosaicReady ..> DemosaicOutput
+    DecodedRaw ..> RawImage : pre_process
+    RawImage ..> RgbImageF32 : demosaic tuple with metadata
 ```
 
-## Core image
+## Universal image
 
 | Type/field | Type | Unit | Invariant |
 | --- | --- | --- | --- |
-| `RawImage<S>::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
-| `RawImage<S>::plane` | `S::Plane` | samples | Matches declared dimensions and stage |
-| `RawImage<S>::stage` | `S` | N/A | Carries state/provenance; no implicit stage recovery |
-| `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleEncoding` |
-| `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Preprocessing/demosaic stages only |
+| `DecodedRaw::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
+| `DecodedRaw::plane` | `StoredPlane` | samples | Matches source geometry and declared sample specification |
+| `RawImage::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during preprocessing and demosaicing |
+| `RawImage::plane` | `F32Plane` | samples | Finite preprocessed Bayer samples in `[0,1]` |
+| `ValidatedMetadata::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend and revision |
+| `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleSpec` |
+| `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Working and preprocessed payload |
 
-## Geometry and encoding
+## Geometry and sample specification
 
 | Type/field | Type | Unit | Invariant |
 | --- | --- | --- | --- |
 | `PixelSize::{width,height}` | `u32` | pixels | Both non-zero for a stored image |
 | `PixelCoord::{row,col}` | `u32` | pixel | Stored raster coordinate |
 | `PixelRect::{top,left,bottom,right}` | `u32` | half-open pixels | `top < bottom`, `left < right`, inside stored size |
-| `SampleEncoding::bits_per_sample` | `NonZeroU8` | bits | Semantic source precision |
-| `SampleEncoding::format` | `SampleFormat` | enum | Unsigned integer or float |
+| `SampleSpec::bits_per_sample` | `u8` | bits | Non-zero and at most 32; semantic source precision |
+| `SampleSpec::format` | `SampleFormat` | enum | Unsigned integer or float |
 | `StoredGeometry::dimensions` | `PixelSize` | pixels | Must equal payload dimensions |
 | `StoredGeometry::source_row_stride_bytes` | `NonZeroU64` | bytes | Preserves original backend stride |
 
@@ -117,27 +100,79 @@ before compacting. The canonical `ImageBuffer` is tightly packed.
 | `WhiteLevels::adjusted_maximum` | `Option<Box<[Rational]>>` | stored sample code | Decoder-adjusted value kept separate |
 | `WhiteLevels::measured_maximum` | `Option<Box<[Rational]>>` | stored sample code | Observed value kept separate |
 
-## Stage types
+`BlackLevels`, `BlackTile`, and `WhiteLevels` are private-field types with
+validating constructors. Scalar black levels are non-negative. A black tile's
+value count must equal `rows * columns * samples_per_plane`. Declared white
+levels contain either one scalar or four CFA-slot values and must be positive;
+optional adjusted and measured arrays use the same length as the declared
+array. This keeps both green CFA positions distinguishable without treating the
+common scalar component as one of those slots.
 
-| Stage | Plane | Meaning |
-| --- | --- | --- |
-| `Decoded` | `StoredPlane` | Native source; optional `convert_to_f32`/custom operation keeps this state and records metadata basis |
-| `Linearized` | `F32Plane` | LUT applied once or identity |
-| `BlackCorrected` | `F32Plane` | Black subtracted once; unclipped |
-| `Normalized` | `F32Plane` | Linear-reference semantics; unclipped |
-| `DemosaicReady` | `F32Plane` | Finite f32 values in `[0,1]` |
+Black and white levels are required typed metadata and must be supplied by the
+decoder. `ValidatedMetadata::try_new` rejects missing or structurally invalid
+levels and requires white levels to exceed the effective black level for the
+scalar or corresponding CFA slot. Invalid level metadata therefore fails
+`DecodedRaw` construction instead of deferring the decision to preprocessing.
+
+## Image types
+
+Decoder adapters produce `DecodedRaw`. Its `StoredPlane` covers native u8,
+u16, u32, and f32 samples, so one preprocessing implementation handles every
+supported decoder output.
+
+`DecodedRaw::pre_process` will consume the decoded image once its TODO substeps
+are implemented. It returns the distinct `RawImage` type, whose payload is
+exclusively `F32Plane`. Linearization, black subtraction, normalization, and
+final clipping are private substeps and expose no intermediate image types.
+
+Because preprocessing is available only on `DecodedRaw`, calling it again on
+the returned `RawImage` is a compile-time error. `RawImage` construction is
+private to the crate's preprocessing finalizer and validates finite samples in
+`[0,1]` before demosaicing.
+
+Users may mutate `DecodedRaw::plane_mut()` directly for custom processing.
+Custom sample edits must preserve the black/white semantics established by the
+decoder. The consuming preprocessing operation automatically validates the
+current plane's dimensions, sample specification, and finite values before the
+single preprocessing pass. No operation-history field is retained, and callers
+do not invoke a separate validation method.
 
 ## Validation fields and errors
 
 `ValidatedMetadata` is constructed only after checking required metadata,
-geometry, CFA, level lengths, sample encoding, and provenance conflicts.
-`RawValidationError` distinguishes missing metadata, invalid geometry/encoding,
-unsupported CFA/non-mosaic input, invalid levels, conflicts, and incompatible
-custom-processing basis.
+geometry, CFA, level lengths, sample specification, and provenance conflicts.
+The required typed fields are sample specification, stored geometry,
+ActiveArea, and CFA. Their stored dimensions and ActiveArea must agree. The
+original row stride
+is retained as nonzero provenance and is not assumed to equal the compact
+`ImageBuffer` stride. Extensible keys use the `raw.*` names blocked for typed
+concepts and cannot override those fields.
+
+`fornax::error::RawValidationError` is the image/model boundary error. It distinguishes
+missing metadata, invalid geometry/sample specification, unsupported sample
+widths, non-mosaic/non-2x2/non-RGB CFA layouts, invalid levels, non-finite samples,
+invalid demosaic-ready values, metadata conflicts, and incompatible
+custom-processing bases. `fornax::error::MetadataError` reports key grammar,
+duplicate typed concepts, candidate conflicts, invalid values, and allocation
+limits.
+
+The optional `serde` feature serializes the validated metadata and processing
+descriptors. It deliberately does not derive deserialization for the model:
+deserializing private invariants without a schema-aware validating decoder
+would bypass construction checks. Plane serialization and stable schema
+versioning remain follow-up design work.
 
 Unsupported input is rejected at the adapter/constructor boundary. No code
 guesses a missing CFA origin, fabricates black levels, converts an unknown CFA
 to RGB, or treats a display image as a sensor plane.
+
+## Construction boundary
+
+`DecodedRaw::try_new` is the public decode boundary and validates the native
+plane against its metadata, including required black/white levels.
+`fornax` exposes a doc-hidden finalization helper solely for the single
+preprocessing implementation to construct a `RawImage` after its private
+substeps finish.
 
 ## Related guides
 

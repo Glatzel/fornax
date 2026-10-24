@@ -23,22 +23,28 @@ The intended scope stops at demosaicing. Do not silently add white-balance
 application, color correction, color-space conversion, tone mapping, denoising,
 sharpening, or display rendering.
 
-Current crates include `fornax-core`, `fornax-dalim`, `libraw`,
-`libraw-sys`, `fornax`, `fornax-py`, `dnc`, and `fornax-devtool`. Do not assume
-the current crate boundaries, public traits, or `BayerImage` are the target
-architecture. The existing architecture is legacy input and is expected to be
-fully refactored.
+The target production crate is `fornax`. It owns the universal model, decoder
+boundary, upstream decoder integrations, direct preprocessing and demosaicing
+stages, and end-to-end pipeline. There is no target `fornax-core`, decoder
+adapter, preprocessing, or demosaic crate.
+
+Current crates include the legacy `libraw`, `libraw-sys`, `fornax`,
+`fornax-py`, `dnc`, and `fornax-devtool`. Do not assume their current
+boundaries, public traits, or `BayerImage` are the target architecture. The
+existing architecture is migration input.
 
 ## Development principles
 
 - Inventory existing components, behavior, tests, and tooling before designing
   the replacement. Reuse implementation assets where justified, but do not
   preserve the current architecture or public APIs for compatibility alone.
-- Reuse existing RAW decoders through adapters rather than implement a
-  first-party format decoder. Initial candidates are LibRaw, dnglab/rawler, the
-  existing `dnc` conversion bridge, and a decoder-only darktable/rawspeed
-  integration if that boundary can be isolated.
-- Keep decoder-specific representations behind adapters.
+- Reuse existing RAW decoders through private adapter modules inside `fornax`
+  rather than implement a first-party format decoder. Initial candidates are
+  LibRaw, dnglab/rawler, the existing `dnc` conversion bridge, and a
+  decoder-only darktable/rawspeed integration if that boundary can be isolated.
+- Let `fornax` depend directly on upstream decoders behind optional Cargo
+  features, while keeping decoder-specific representations private to their
+  modules.
 - Keep shared RAW types, backend selection, capabilities, and provenance
   independent of every decoder backend.
 - Use explicit, statically typed APIs and well-defined numerical semantics.
@@ -70,7 +76,7 @@ fully refactored.
 - **Clippy**: `cargo clippy --workspace --all-features --exclude fornax-py`
 - **Docs**: `RUSTFLAGS="-Dwarnings" cargo doc --workspace --all-features --no-deps`
 - **Format**: `cargo +nightly fmt` and `cargo +nightly fmt --check`
-- **Benchmarks**: `cargo bench -p fornax-dalim --bench demosaic`
+- **Benchmarks**: `cargo bench -p fornax --bench demosaic`
 - **Python**: `pwsh ./scripts/maturin-develop.ps1`, then `pytest` from
   `crates/fornax-py`.
 

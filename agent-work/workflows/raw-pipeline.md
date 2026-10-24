@@ -406,7 +406,7 @@ after they are ready.
   component is compared on scope fit, Bayer/target-format fit, API boundary,
   maintenance, and license; a backend-neutral adapter contract specifies
   explicit selection, capabilities, structured rejection, and provenance; no
-  whole upstream RAW type is recommended for `fornax-core`; the recommendation
+  whole upstream RAW type is recommended for the `fornax` public model; the recommendation
   does not require `fornax` to maintain a first-party RAW decoder; all
   recommendations are traceable to the split reports; and the report contains
   the six required sections.
@@ -801,15 +801,16 @@ The post-design manifests cover these workstreams:
 - metadata, preprocessing, and cross-source synthesis;
 - universal representation, metadata, CFA, preprocessing, demosaicing, and crate
   architecture design;
-- `IMPL-CORE-001` as the universal-model implementation gate;
-- decoder backend contract, LibRaw, dnglab/rawler, DNC bridge, and decoder
-  conformance tasks (`IMPL-DEC-001`–`IMPL-DEC-005`);
+- `IMPL-CORE-001` as the universal-model and direct stage-boundary gate in
+  `fornax`;
+- concrete LibRaw, dnglab/rawler, and DNC decoder implementations with their
+  own fixture/conformance evidence (`IMPL-DEC-003`–`IMPL-DEC-005`);
 - staged conversion/linearization, black subtraction, and
-  normalization/clipping tasks (`IMPL-PRE-001`–`IMPL-PRE-003`);
-- demosaic contract, bilinear strategy, and Malvar–He–Cutler adapter tasks
-  (`IMPL-DEM-001`–`IMPL-DEM-003`);
-- facade, Python/devtool migration, and legacy crate retirement
-  (`IMPL-INT-001`–`IMPL-INT-003`); and
+  normalization/clipping modules (`IMPL-PRE-001`–`IMPL-PRE-003`);
+- concrete in-crate bilinear and Malvar–He–Cutler algorithms
+  (`IMPL-DEM-002`–`IMPL-DEM-003`);
+- end-to-end composition (`IMPL-INT-001`), Python/devtool migration
+  (`IMPL-PY-001`, `IMPL-DEV-001`), and legacy retirement (`IMPL-INT-003`); and
 - metadata, numerical, error-path, performance, documentation, and workspace
   validation.
 
@@ -841,23 +842,19 @@ The implementation graph is:
 
 `docs/raw-pipeline -> IMPL-CORE-001`
 
-`IMPL-CORE-001 -> IMPL-DEC-001 | IMPL-PRE-001 | IMPL-DEM-001`
+`IMPL-CORE-001 -> IMPL-DEC-003 | IMPL-DEC-004 | IMPL-PRE-001 | IMPL-DEM-002`
 
-`IMPL-DEC-001 -> IMPL-DEC-002 | IMPL-DEC-003`
-
-`IMPL-DEC-003 -> IMPL-DEC-004`
-
-`IMPL-DEC-002 + IMPL-DEC-003 + IMPL-DEC-004 -> IMPL-DEC-005`
+`IMPL-DEC-004 -> IMPL-DEC-005`
 
 `IMPL-PRE-001 -> IMPL-PRE-002 -> IMPL-PRE-003`
 
-`IMPL-DEM-001 -> IMPL-DEM-002 -> IMPL-DEM-003`
+`IMPL-DEM-002 -> IMPL-DEM-003`
 
-`IMPL-DEC-005 + IMPL-PRE-003 + IMPL-DEM-001 + IMPL-DEM-002 -> IMPL-INT-001`
+`IMPL-DEC-003 + IMPL-DEC-004 + IMPL-DEC-005 + IMPL-PRE-003 + IMPL-DEM-002 -> IMPL-INT-001`
 
-`IMPL-INT-001 -> IMPL-INT-002`
+`IMPL-INT-001 -> IMPL-PY-001 | IMPL-DEV-001`
 
-`IMPL-INT-002 + all adapter/strategy tasks -> IMPL-INT-003`
+`IMPL-DEC-003 + IMPL-DEC-004 + IMPL-DEC-005 + IMPL-DEM-002 + IMPL-PY-001 + IMPL-DEV-001 -> IMPL-INT-003`
 
 `IMPL-INT-001 -> QA-001..QA-004 -> QA-006`
 
@@ -875,21 +872,23 @@ Implementation starts only after all relevant design task PRs and the
 persistent `docs/raw-pipeline/` design PR are merged. The implementation is
 planned around the boundaries that design actually produced:
 
-1. `IMPL-CORE-001` installs the universal model, metadata, CFA, stage, and
-   validation contracts in `fornax-core`.
-2. The decoder track implements `fornax-decode`, then the LibRaw
-   (`fornax-decoder-libraw`), dnglab/rawler (`fornax-decoder-dnglab`), and
-   optional DNC bridge (`fornax-decoder-dnc`) adapters. `IMPL-DEC-005` validates
-   their shared conformance and target-format fixture claims.
-3. The preprocessing track implements one crate and the consuming transitions
-   in order: decoded f32 conversion/linearization, ActiveArea-aware black
-   subtraction, then normalization and final clipping.
-4. The demosaic track implements the object-safe contract/registry, the
-   bilinear strategy, and Malvar–He–Cutler through the optional Rust demosaic
-   adapter.
-5. `IMPL-INT-001` composes explicit decoder selection, preprocessing, and
-   strategy selection in the facade. `IMPL-INT-002` migrates Python and
-   devtool, and `IMPL-INT-003` retires the legacy public architecture.
+1. `IMPL-CORE-001` renames the universal implementation to `fornax` and installs
+   the model, metadata, CFA, image types, generic decoder boundary, direct
+   stage methods, validation contracts, and reusable linear demosaic baseline.
+   It also removes `fornax-dalim`.
+2. The decoder track implements private `libraw`, `rawler`, and optional DNC
+   modules inside `fornax`, depending directly on upstream decoders behind
+   optional features. Each task owns its target-format fixture and conformance
+   evidence; there is no separate decoder-conformance placeholder.
+3. The preprocessing track adds one private preprocessing implementation inside
+   `fornax`, preserving the ordered substeps from decoded f32 conversion and
+   linearization through black subtraction, normalization, and clipping.
+4. The demosaic track completes the bilinear algorithm and adds
+   Malvar–He–Cutler as concrete in-crate algorithms inside `fornax`.
+5. `IMPL-INT-001` composes explicit decoder and algorithm selection in the
+   `fornax::pipeline` module. `IMPL-PY-001` and `IMPL-DEV-001` migrate the
+   external Rust/Python surfaces, and `IMPL-INT-003` retires the remaining
+   legacy facade/core/dalim architecture.
 
 The cross-track contract is `IMPL-CORE-001`. A decoder, preprocessing, or
 demosaic task may not fork the universal types or add a compatibility trait to
@@ -930,14 +929,14 @@ Do not silently change shared interfaces to accommodate one algorithm. If the de
 
 Shared-file ownership is explicit:
 
-- adapter tasks own distinct adapter crates and must not edit another adapter's
-  manifest or source;
+- decoder tasks own distinct modules under `fornax::decoder` and must not edit
+  another decoder module's source;
 - preprocessing transitions are serialized by the PRE dependency chain;
-- demosaic strategy registration is serialized by the DEM dependency chain;
-- only the integration tasks may change the facade and cross-crate feature
-  composition after their listed components merge; and
-- legacy crate removal occurs in `IMPL-INT-003`, after replacement consumers
-  and tests exist.
+- demosaic algorithm additions are serialized by the DEM dependency chain;
+- only the integration tasks may change the pipeline composition and feature
+  topology after their listed components merge; and
+- remaining legacy crate removal occurs in `IMPL-INT-003`, after replacement
+  consumers and tests exist.
 
 Parallel component tasks may update the shared root `Cargo.toml` or generated
 `Cargo.lock`. When that happens, merge one branch first and require the other
@@ -990,8 +989,8 @@ Work in this order:
    is approved and merged in the dependency task PR.
 7. Implement `IMPL-CORE-001` first, then execute the decoder, preprocessing, and
    demosaic tracks only after the relevant PR and core dependency are merged.
-8. Compose the facade after decoder conformance and preprocessing are complete,
-   migrate Python/devtool, retire the legacy architecture, then run QA and
+8. Compose the pipeline module after concrete decoders and preprocessing are
+   complete, migrate Python/devtool, retire the legacy architecture, then run QA and
    update documentation.
 9. After `QA-006` and every required task PR are merged into
    `refactor/raw-pipeline-v2`, prepare one promotion PR from that integration

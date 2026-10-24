@@ -1,27 +1,34 @@
 schema_version = 1
 id = "IMPL-DEC-003"
-slug = "dnglab-rawler-adapter"
-title = "Implement the dnglab/rawler decoder adapter"
+slug = "libraw-decoder"
+title = "Implement and validate the LibRaw decoder"
 phase = "implementation"
-dependencies = ["IMPL-DEC-001", "DES-002", "DES-003"]
-parallelism = "Can run in parallel with IMPL-DEC-002 because each task owns a separate adapter crate."
-deliverables = ["fornax-decoder-dnglab source", "rawler adapter conformance tests"]
+dependencies = ["IMPL-CORE-001", "DES-002", "DES-003"]
+parallelism = "Can run in parallel with IMPL-DEC-004 in a separate decoder member; root Cargo changes are serialized."
+deliverables = [
+  "fornax::decoder::libraw implementation",
+  "LibRaw format fixtures and conformance tests",
+  "legacy libraw wrapper removal",
+]
 scope = """
-Create fornax-decoder-dnglab around the pinned rawler backend. Snapshot RAW
-samples and metadata before any scaling or downstream conversion, translate DNG
-and vendor fields into the universal model with provenance, and use the pinned
-backend's target-format dispatch for DNG, ARW, NEF, and Canon CR*.
+Implement the private `fornax::decoder::libraw` module around LibRaw's
+unpack/raw-image path through optional `libraw-sys`. Compact backend buffers,
+translate CFA and metadata with provenance, preserve native sample semantics,
+and classify unsupported layouts and formats structurally. Move or remove the
+deprecated public `libraw` wrapper in this task; retain `libraw-sys` as private
+FFI support only.
 """
 acceptance = [
-  "Rawler's sample content is not scaled, white-balanced, demosaiced, or otherwise post-processed by the adapter.",
-  "DNG ActiveArea, CFA phase, sample encoding, declared/adjusted/measured white levels, black levels, and crop semantics map without lossy guessing.",
-  "Crate-integer and vendor metadata are translated through typed values or namespaced provenance-aware entries.",
-  "Unsupported non-RGB, non-Bayer, LinearRaw, wider sample, and unverified metadata cases fail structurally.",
-  "Rawler types remain private and the adapter crate exposes only its selected backend constructor/configuration.",
-  "The pre-1.0 rawler revision is pinned and its license/distribution decision is recorded before any default-feature or release claim.",
+  "The decoder invokes only the LibRaw unpack/decode surface needed to expose stored RAW samples and never calls LibRaw post-processing.",
+  "DNG, Sony ARW, Nikon NEF, and Canon CR2/CR3 outcomes are tested where fixtures exist, or explicitly documented as unavailable with backend risk.",
+  "Buffer dimensions, stride compaction, native sample specification, ActiveArea, CFA phase, black/white levels, crop metadata, and decoder provenance are asserted.",
+  "Non-Bayer, LinearRaw, X-Trans, Foveon, Quad Bayer, monochrome, wider sample specifications, and deferred formats are rejected structurally.",
+  "LibRaw types remain private to `fornax::decoder::libraw`; the legacy public `libraw` wrapper is removed or fully absorbed by this task.",
+  "The backend stays opt-in and its LGPL/CDDL and native-link distribution decisions are recorded.",
 ]
 validation = [
-  "Verify IMPL-DEC-001, DES-002, and DES-003 PRs are merged.",
-  "Run focused rawler mapping and rejection tests plus the DNG-adapter workspace build.",
-  "Record the pinned rawler revision, license/distribution decision, target-format fixture coverage, and known parser limits.",
+  "Verify IMPL-CORE-001, DES-002, and DES-003 PRs are merged.",
+  "Run focused LibRaw conformance and `cargo test -p fornax --features backend-libraw`.",
+  "Record fixture provenance, tested cameras/formats, checksums, backend limits, licenses, and unavailable coverage.",
+  "Run cargo metadata and verify no public `libraw` wrapper dependency remains.",
 ]

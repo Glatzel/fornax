@@ -13,25 +13,22 @@ flowchart TB
         direction LR
         File["RAW file\nDNG / ARW / NEF / Canon CR*"]
         Adapter["Selected decoder adapter\nLibRaw / dnglab-rawler / dnc bridge"]
-        Decoded["DecodedRaw\nU8 ≤8 bits / U16 9–16 / U32 17–32 / F32"]
+        Decoded["DecodedRaw\nU8 / U16 / U32 / F32"]
         File --> Adapter
         Adapter -->|supported Bayer| Decoded
     end
 
     subgraph PreprocessPhase["2 · Preprocess"]
         direction LR
-        Custom["DecodedRaw after convert_to_f32\nauto f32; optional user operation"]
-        Linear["LinearizedRaw\nf32 buffer\nLUT applied once"]
-        Subtract["BlackCorrectedRaw\nf32 samples; f64 scalar arithmetic"]
-        Normalize["NormalizedRaw\nunclipped f32"]
-        Ready["DemosaicReadyMosaic\nclamped f32 [0,1]"]
+        Preprocess["DecodedRaw::pre_process\nsingle consuming entry point"]
+        Linear["private linearize\nLUT or identity"]
+        Subtract["private subtract_black\nf64 scalar arithmetic"]
+        Normalize["private normalize\nunclipped f32"]
+        Finish["private finish_for_demosaic\nclamped f32 [0,1]"]
+        Ready["RawImage\nf32-only preprocessed image"]
 
-        Decoded -->|standard path| Linear
-        Decoded -->|"convert_to_f32 → still DecodedRaw"| Custom
-        Custom -->|metadata basis valid| Linear
-        Linear --> Subtract
-        Subtract --> Normalize
-        Normalize --> Ready
+        Decoded --> Preprocess
+        Preprocess --> Linear --> Subtract --> Normalize --> Finish --> Ready
     end
 
     subgraph DemosaicPhase["3 · Demosaic"]
@@ -43,67 +40,55 @@ flowchart TB
 
     Reject["Structured rejection"]
 
-    Adapter -->|unsupported layout / encoding| Reject
-    Custom -->|metadata basis invalid| Reject
+    Adapter -->|unsupported layout / sample specification| Reject
+    Decoded -->|missing/invalid metadata| Reject
     Ready --> Demosaic
 ```
 
-## Stage contract
+## Processing contract
 
-| Stage | Payload | Main operation | Required invariant | Failure mode |
+| Step | Payload | Main operation | Required invariant | Failure mode |
 | --- | --- | --- | --- | --- |
-| Decode / custom | u8/u16/u32/f32 sensor plane | Backend unpack; optional `convert_to_f32` (lossless when representable) and user operation while state remains `Decoded` | Native encoding, geometry, CFA, ActiveArea, levels, provenance, and metadata basis validated | Unsupported encoding/layout or lossy conversion |
-| Linearization | f32 plane | Apply declared LUT once, otherwise identity | ActiveArea/CFA geometry unchanged | Missing/invalid table |
-| Black subtraction | f32 plane | Select black by active CFA/tile coordinate; subtract once | Black and white levels valid; no clamp yet | Unsupported pattern/delta |
-| Normalization | f32 plane | `(sample - black) / (white - black)` with f64 scalar arithmetic | Signed and overflow values remain unclipped | `white <= black` or non-finite |
-| Demosaic-ready | f32 plane | Clamp to `[0,1]` and validate finite values | Bayer phase and ActiveArea unchanged | Wrong state/non-finite values |
-| Demosaic | f32 planar RGB | Apply selected Bayer algorithm | Planar channel order and border policy explicit | Unsupported algorithm/layout |
+| Decode / custom | u8/u16/u32/f32 sensor plane | Backend unpack; optional `convert_to_f32` (lossless when representable) and user operation while state remains `Decoded` | Native sample specification, geometry, CFA, ActiveArea, required levels, and provenance validated | Unsupported specification/layout, invalid levels, or lossy conversion |
+| `pre_process` | `DecodedRaw` to `RawImage` | Runs linearization, black subtraction, normalization, and final clipping as private substeps | Decoder-validated black/white metadata is present; output is f32-only and in `[0,1]` | Non-finite values |
+| Demosaic | image-rs RGB `f32` | Apply selected Bayer algorithm | Interleaved channel order and border policy explicit | Unsupported algorithm/layout |
 
 ## Preprocessing operation contract
 
-Preprocessing is expressed as consuming state transitions:
-
-```text
-DecodedRaw
-  -> LinearizedRaw
-  -> BlackCorrectedRaw
-  -> NormalizedRaw
-  -> DemosaicReadyMosaic
-```
-
-The public operations are:
+Preprocessing has one public operation:
 
 ```rust
 impl DecodedRaw {
-    pub fn convert_to_f32(self) -> Result<Self, PreprocessError>;
-    pub fn into_linearized(
-        self,
-        table: Option<LinearizationTable>,
-    ) -> Result<LinearizedRaw, PreprocessError>;
-}
-
-impl LinearizedRaw {
-    pub fn subtract_black(
-        self,
-    ) -> Result<BlackCorrectedRaw, PreprocessError>;
-}
-
-impl BlackCorrectedRaw {
-    pub fn normalize(
-        self,
-    ) -> Result<NormalizedRaw, PreprocessError>;
-}
-
-impl NormalizedRaw {
-    pub fn finish_for_demosaic(
-        self,
-    ) -> Result<DemosaicReadyMosaic, PreprocessError>;
+    pub fn pre_process(self) -> Result<RawImage, PreprocessError>;
 }
 ```
 
-Custom f32 processing remains inside `DecodedRaw`. It records operation
-provenance and whether original, replaced, or incompatible
-linearization/black/white metadata applies.
+It applies for every supported `DecodedRaw`, regardless of whether the decoded
+payload is u8, u16, u32, or f32. The implementation converts to the f32 working
+domain as needed and calls private substep functions:
+
+```text
+pre_process
+  -> linearize
+  -> subtract_black
+  -> normalize
+  -> finish_for_demosaic
+```
+
+The substeps are private implementation details and do not expose intermediate
+image types. Both image types keep their fields private. `fornax` exposes the
+validated `DecodedRaw::try_new` decode constructor and a doc-hidden finalizer
+that constructs `RawImage`. Because `pre_process` is defined only on
+`DecodedRaw`, a second call on the returned f32-only `RawImage` is impossible.
+The entry point exists in `IMPL-CORE-001`; its numerical implementation remains
+TODO for `IMPL-PRE-*` and returns a structured unsupported error until then.
+
+`DecodedRaw::convert_to_f32` replaces an integer `StoredPlane` with an `f32`
+plane. Repeated conversion is rejected from the plane variant and declared
+integer sample specification without a separate storage flag. Custom
+processing uses `DecodedRaw::plane_mut()` and remains a `DecodedRaw`. Custom
+sample edits must preserve the decoder-provided black/white metadata semantics;
+preprocessing revalidates the mutated plane before use.
 
 Numerical rules:
 
@@ -117,7 +102,7 @@ ready = clamp(n, 0.0, 1.0)
 
 - Subtraction never clips.
 - Normalization requires `white > black`.
-- `NormalizedRaw` retains negative and above-one values.
+- The normalized working buffer retains negative and above-one values.
 - Final clipping occurs only in `finish_for_demosaic`.
 - NaN and infinity are errors.
 
@@ -126,17 +111,17 @@ Allocation policy:
 - linearization allocates at most one owned f32 plane;
 - black selection is evaluated per sample without a black plane;
 - subtraction, normalization, and clipping mutate the owned f32 plane in
-  place while changing the state type;
+  place;
 - allocation arithmetic is checked; and
 - metadata remains immutable behind an `Arc`.
 
-Missing required CFA, linearization, black-level, or white-level metadata fails
-with a structured `PreprocessError`. General spatial black tiles and
-`BlackLevelDeltaH`/`V` remain unsupported.
+Missing or invalid black-level, white-level, CFA, or linearization metadata is
+rejected while constructing `DecodedRaw`. General spatial black tiles and
+`BlackLevelDeltaH`/`V` remain unsupported by preprocessing.
 
 The conversion itself is lossless for u8/u16 inputs. It does not prove that
-arbitrary custom processing preserves the meaning of file-declared black or
-white levels; `Decoded` retains that metadata-basis decision.
+arbitrary custom processing preserves the meaning of decoder-validated black
+or white levels.
 
 ## Where preprocessing stops
 
