@@ -11,6 +11,8 @@ different levels:
   fields, units, and invariants.
 - [Demosaicing interface](demosaicing.md) defines input/output, strategy
   registration, border behavior, and errors.
+- [Crate architecture](architecture.md) defines responsibilities, feature
+  gates, dependency direction, errors, and migration.
 
 These files are the normative, persistent RAW pipeline design. The task-owned
 files under `agent-work/design/` are design history and implementation

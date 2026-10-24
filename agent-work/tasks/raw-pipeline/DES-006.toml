@@ -5,7 +5,10 @@ title = "Design crate architecture and dependency boundaries"
 phase = "design"
 dependencies = ["SYN-03", "DES-001", "DES-004", "DES-005"]
 parallelism = "After foundational API design is reviewed and merged."
-deliverables = ["agent-work/design/raw-pipeline/DES-006-crate-architecture.md"]
+deliverables = [
+  "agent-work/design/raw-pipeline/DES-006-crate-architecture.md",
+  "docs/raw-pipeline/architecture.md",
+]
 scope = """
 Define a new crate topology from required responsibilities, dependency
 directions, features, public and internal types, decoder adapters, and error
@@ -18,6 +21,7 @@ acceptance = [
   "The dependency graph is acyclic.",
   "Feature and error strategy are documented.",
   "Decisions cite merged synthesis and foundational design PRs.",
+  "The persistent docs/raw-pipeline architecture guide is updated and linked.",
 ]
 validation = [
   "Verify dependency PRs are merged.",
