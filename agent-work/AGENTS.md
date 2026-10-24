@@ -71,7 +71,9 @@ Record actual results. If a command cannot run, say so explicitly.
   It owns the task scope, dependencies, deliverables, acceptance criteria, and
   validation requirements.
 - `agent-work/tasks/raw-pipeline/README.md` — planned task index and dependency
-  graph. It is not a live status tracker.
+  graph.
+- `agent-work/tasks/STATUS.md` — human-readable task-status snapshot. Mark a
+  task `Done` when its deliverable is complete and its task PR is open.
 - `agent-work/PULL_REQUEST_TEMPLATE.md` — body template for agent task pull
   requests. Copy it into the PR body manually.
 - `agent-work/research/` — one owned report per reference source.
@@ -118,7 +120,8 @@ outputs there.
    `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Use a semantic PR title
    accepted by `.github/semantic.yml`, with the lowercase task ID as the scope,
    for example `docs(res-01): inventory existing components`. Keep the task ID
-   in the PR body. Report the PR URL and stop; do not watch, poll, or wait for
+   in the PR body. Mark the task `Done` in `agent-work/tasks/STATUS.md`, add
+   the PR link, and report the PR URL. Stop; do not watch, poll, or wait for
    checks or review.
 7. The user will initiate the next step in conversation: request local changes
    or merge the PR. Update the same branch and PR when changes are requested

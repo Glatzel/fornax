@@ -4,7 +4,8 @@ Each agent task is a single TOML file under
 `agent-work/tasks/<workflow>/<TASK-ID>.toml`. TOML is used because task
 contracts are structured data: IDs, dependencies, deliverables, acceptance
 criteria, and validation can be parsed and checked without scraping prose.
-Markdown remains the format for task-owned reports and design proposals.
+Markdown remains the format for the task-status snapshot, task-owned reports,
+and design proposals.
 
 One file per task is intentional. It gives every branch a narrow, conflict-free
 metadata change and lets GitHub review the task contract alongside its output.
@@ -51,13 +52,13 @@ accept any one of several prerequisite implementations; it does not replace
 the mandatory `dependencies` array. Files must use the task ID as their basename:
 `RES-01.toml`, `DES-007.toml`, and so on.
 
-Do not add live status, review approval, branch URL, or completion fields.
-Those facts belong to Git and GitHub and would otherwise become stale:
+Do not add status, review approval, branch URL, or completion fields to TOML
+manifests. Track task status in [`STATUS.md`](STATUS.md):
 
-- dependencies are complete when their task pull requests are merged;
-- a task is ready when all dependencies are merged and no task PR is active;
-- a task is in progress or review while its task PR is open;
-- a task is complete when the user approves and merges its pull request;
+- `Blocked` means a dependency is not `Done` or a dependency PR is still open;
+- `Ready` means all dependencies are `Done` and merged;
+- `Done` means the deliverable is complete and its task PR exists, whether that
+  PR is open or merged; and
 - an abandoned task PR is closed and its branch/worktree is removed.
 
 ## Branch and worktree contract
@@ -114,9 +115,11 @@ The PR body must identify:
 After opening the PR, report its URL and stop. Do not watch, poll, or wait for
 checks or review. The user initiates the next step in conversation: request
 local changes or merge the PR. Do not mirror review state into a task manifest,
-report front matter, or checkpoint. If the user asks for changes, update the
-same branch and PR unless they ask for a local-only result rather than opening
-another PR for the task. Agents do not merge or close their own pull requests.
+report front matter, or checkpoint. Do update `agent-work/tasks/STATUS.md`:
+mark the task `Done` and add the PR link. If the user asks for changes, update
+the same branch and PR unless they ask for a local-only result rather than
+opening another PR for the task. Agents do not merge or close their own pull
+requests.
 
 ## Pause, handoff, and concurrency
 
