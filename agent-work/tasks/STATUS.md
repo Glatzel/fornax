@@ -23,11 +23,11 @@ PR is merged.
 | Phase | Tasks | Blocked | Ready | Done |
 | --- | ---: | ---: | ---: | ---: |
 | Research | 9 | 0 | 0 | 9 |
-| Synthesis | 3 | 1 | 0 | 2 |
-| Design | 7 | 5 | 0 | 2 |
+| Synthesis | 3 | 0 | 0 | 3 |
+| Design | 7 | 4 | 0 | 3 |
 | Implementation | 12 | 12 | 0 | 0 |
 | QA | 6 | 6 | 0 | 0 |
-| **Total** | **37** | **24** | **0** | **13** |
+| **Total** | **37** | **22** | **0** | **15** |
 
 ## Research
 
@@ -49,13 +49,13 @@ PR is merged.
 | --- | --- | --- | --- | --- |
 | `SYN-01` | [Reconcile metadata and sample semantics](raw-pipeline/SYN-01.toml) | `RES-01`–`RES-04`, `RES-06`, `RES-07` | `Done` | [note](../research/notes/SYN-01.md), [#540](https://github.com/Glatzel/fornax/pull/540) |
 | `SYN-02` | [Reconcile preprocessing and black levels](raw-pipeline/SYN-02.toml) | `RES-02`, `RES-04`, `SYN-01` | `Done` | [note](../research/notes/SYN-02.md), [#541](https://github.com/Glatzel/fornax/pull/541) |
-| `SYN-03` | [Synthesize cross-source recommendations](raw-pipeline/SYN-03.toml) | all `RES-*`, `SYN-01`, `SYN-02` | `Blocked` | [placeholder](../research/SYN-03-summary.md) |
+| `SYN-03` | [Synthesize cross-source recommendations](raw-pipeline/SYN-03.toml) | all `RES-*`, `SYN-01`, `SYN-02` | `Done` | [summary](../research/SYN-03-summary.md), [#546](https://github.com/Glatzel/fornax/pull/546) |
 
 ## Design
 
 | ID | Task | Depends on | Status | Proposal / PR |
 | --- | --- | --- | --- | --- |
-| `DES-001` | Design universal RAW representation | `SYN-01`, `SYN-02`, `DES-003` | `Blocked` | [manifest](raw-pipeline/DES-001.toml) |
+| `DES-001` | Design universal RAW representation | `SYN-01`, `SYN-02`, `DES-003` | `Done` | [proposal](../design/raw-pipeline/DES-001-universal-raw-representation.md), [#545](https://github.com/Glatzel/fornax/pull/545) |
 | `DES-002` | Design metadata and provenance | `SYN-01` | `Done` | [proposal](../design/raw-pipeline/DES-002-metadata-provenance.md), [#542](https://github.com/Glatzel/fornax/pull/542) |
 | `DES-003` | Design Bayer CFA model and indexing | `SYN-01` | `Done` | [proposal](../design/raw-pipeline/DES-003-cfa-indexing.md), [#543](https://github.com/Glatzel/fornax/pull/543) |
 | `DES-004` | Design preprocessing and processing state | `SYN-01`, `SYN-02`, `DES-001`, `DES-003` | `Blocked` | [manifest](raw-pipeline/DES-004.toml) |
