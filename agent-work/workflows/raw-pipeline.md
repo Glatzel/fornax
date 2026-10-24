@@ -738,10 +738,13 @@ pull requests are the sole live state and approval record.
 
 3. Work only in the manifest deliverables and files needed to validate them.
    Keep unrelated cleanup in a separate task.
-4. Commit and push the branch, then open one PR titled
-   `[TASK-ID] Imperative summary` with
-   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Report the PR URL and
-   stop. Do not watch, poll, or wait for checks or review after creating it.
+4. Commit and push the branch, then open one PR with a semantic title
+   `<type>(<task-id>): <imperative summary>`, such as
+   `docs(res-01): inventory existing components`, and use
+   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. The type must be accepted
+   by `.github/semantic.yml`, the scope must be the lowercase task ID, and the
+   task ID must also appear in the PR body. Report the PR URL and stop. Do not
+   watch, poll, or wait for checks or review after creating it.
 5. The user initiates the next step in conversation: request local changes or
    merge the PR. If changes are requested, update the same branch and PR unless
    the user asks for a local-only result. Do not open a second PR for the same

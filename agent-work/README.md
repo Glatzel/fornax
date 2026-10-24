@@ -78,7 +78,8 @@ public APIs remain gated by synthesis and design.
 2. Create `.worktrees/<id>-<slug>` on `task/<id>-<slug>` from the current
    integration base.
 3. Work only inside the manifest's scope and deliverables.
-4. Commit, push, and open one pull request for the task.
+4. Commit, push, and open one pull request with a semantic title such as
+   `docs(res-01): inventory existing components`.
 5. Report the PR URL and stop. Do not watch, poll, or wait for checks or
    review.
 6. The user initiates the next step: request local changes or merge the PR.

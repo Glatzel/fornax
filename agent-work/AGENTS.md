@@ -115,9 +115,11 @@ outputs there.
 5. Record verified findings, inferences, recommendations, evidence, limitations,
    and blockers in the owned deliverable as work proceeds.
 6. Commit, push, and open one pull request for the task using
-   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Put the task ID in the
-   title, for example `[RES-01] Inventory existing components`. Report the PR
-   URL and stop; do not watch, poll, or wait for checks or review.
+   `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. Use a semantic PR title
+   accepted by `.github/semantic.yml`, with the lowercase task ID as the scope,
+   for example `docs(res-01): inventory existing components`. Keep the task ID
+   in the PR body. Report the PR URL and stop; do not watch, poll, or wait for
+   checks or review.
 7. The user will initiate the next step in conversation: request local changes
    or merge the PR. Update the same branch and PR when changes are requested
    unless the user asks for a local-only result. Do not add review state to the

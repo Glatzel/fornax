@@ -7,8 +7,9 @@ find report ownership, prerequisites, and the synthesis path without reading
 the workflow.
 
 Review and live state are not duplicated here. Look up the task's GitHub pull
-request by its `[TASK-ID]` title, `task:<TASK-ID>` label, or branch. A dependency
-is satisfied only after its task PR is approved and merged.
+request by its task ID in the PR body, `task:<TASK-ID>` label, branch, or
+semantic scope such as `(res-01)`. A dependency is satisfied only after its
+task PR is approved and merged.
 
 The initial research target is conventional 2x2 RGB Bayer data in DNG, Sony ARW,
 Nikon NEF, and Canon `CR*` files. X-Trans, Foveon/X3, Quad Bayer, four-color,
