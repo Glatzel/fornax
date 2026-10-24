@@ -1,22 +1,26 @@
 schema_version = 1
 id = "IMPL-DEC-004"
-slug = "decoder-regression-tests"
-title = "Add decoder validation and format regression tests"
+slug = "dnc-conversion-bridge"
+title = "Implement the DNC conversion bridge backend"
 phase = "implementation"
-dependencies = ["IMPL-DEC-002", "IMPL-DEC-003"]
-parallelism = "After the adapter and metadata mappings are merged."
-deliverables = ["decoder regression tests", "decoder validation documentation"]
+dependencies = ["IMPL-DEC-001", "IMPL-DEC-003"]
+parallelism = "Starts after the dnglab adapter because DNC composition requires a DNG decoder backend."
+deliverables = ["fornax-decoder-dnc source", "DNC bridge tests and platform notes"]
 scope = """
-Validate Bayer DNG, ARW, NEF, and CR* fixtures and verify structured rejection of
-deferred formats and unsupported sensor layouts.
+Create the optional fornax-decoder-dnc backend as a process conversion bridge
+composed with a DNG decoder backend. Keep conversion, temporary-file lifecycle,
+external-runtime discovery, errors, and provenance behind the adapter boundary.
 """
 acceptance = [
-  "Bayer DNG, ARW, NEF, and Canon CR* fixture tests pass or missing fixtures are explicitly reported.",
-  "Non-Bayer and deferred-format rejection tests pass.",
-  "CFA, crop, and sample semantics are asserted rather than inferred from visual output.",
+  "The bridge is generic over or explicitly composed with a compatible DNG backend rather than duplicating DNG parsing.",
+  "Temporary paths, process failures, partial output, cancellation, and cleanup failures map to structured DecodeError values.",
+  "Converted output retains bridge provenance and identifies the composed DNG backend.",
+  "Unsupported platforms and missing external runtimes produce explicit capability or decode errors.",
+  "No process or external-runtime type leaks into the shared decoder contract.",
+  "The bridge remains opt-in and its external-runtime distribution terms are recorded before packaging.",
 ]
 validation = [
-  "Verify dependency PRs are merged.",
-  "Run the focused integration suite and record actual results.",
-  "Document fixture provenance and any coverage gaps.",
+  "Verify IMPL-DEC-001 and IMPL-DEC-003 PRs are merged.",
+  "Run bridge path tests with a fake converter and an available-runtime integration path where supported.",
+  "Document platform support, external licensing/terms, and unavailable-runtime behavior.",
 ]

@@ -3,8 +3,8 @@ id = "QA-003"
 slug = "error-path-tests"
 title = "Validate error paths and unsupported inputs"
 phase = "quality"
-dependencies = ["IMPL-INT-001"]
-parallelism = "After end-to-end integration is merged."
+dependencies = ["IMPL-DEC-005", "IMPL-PRE-003", "IMPL-INT-001"]
+parallelism = "After decoder conformance, preprocessing, and facade integration are merged."
 deliverables = ["error-path tests", "unsupported-format test matrix"]
 scope = """
 Test structured errors for invalid layout, missing metadata, non-Bayer CFA,
@@ -16,6 +16,6 @@ acceptance = [
   "No deferred payload is silently interpreted as Bayer.",
 ]
 validation = [
-  "Verify IMPL-INT-001 is merged.",
+  "Verify IMPL-DEC-005, IMPL-PRE-003, and IMPL-INT-001 are merged.",
   "Run the error-path suite and workspace tests.",
 ]

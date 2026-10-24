@@ -1,21 +1,27 @@
 schema_version = 1
 id = "IMPL-PRE-001"
-slug = "scalar-black-level"
-title = "Implement scalar black-level correction"
+slug = "linearization-state"
+title = "Implement decoded f32 conversion and linearization state"
 phase = "implementation"
-dependencies = ["DES-001", "DES-004"]
-parallelism = "May run in parallel with the decoder track when synthetic buffers suffice."
-deliverables = ["black-level correction source", "synthetic numerical tests"]
+dependencies = ["IMPL-CORE-001", "DES-004"]
+parallelism = "Starts after IMPL-CORE-001; can run in parallel with decoder and demosaic foundations."
+deliverables = ["fornax-preprocess foundation source", "conversion and linearization tests"]
 scope = """
-Implement scalar black-level correction exactly as specified by DES-004,
-including clipping, rounding, underflow, and processing-state behavior.
+Create fornax-preprocess with the consuming extension methods needed to convert
+DecodedRaw to f32 and produce LinearizedRaw. Implement exact integer conversion,
+custom-operation provenance and metadata-basis handling, identity/table
+linearization, allocation checks, and typed preprocessing errors.
 """
 acceptance = [
-  "Synthetic numerical tests cover normal, boundary, and underflow cases.",
-  "Clipping and rounding behavior is explicit and tested.",
-  "Double application is detected or prevented.",
+  "u8 and u16 conversion is exact and u32 conversion rejects values requiring more than f32's exact significant range.",
+  "Float decoded samples follow the native float path without an integer round trip.",
+  "Custom f32 operations remain in Decoded state and record valid, replaced, or incompatible metadata basis.",
+  "Identity and LUT linearization apply once, validate source-domain indices, reject non-finite table output, and preserve geometry and metadata.",
+  "Only DecodedRaw can call the linearization transition, so a LinearizedRaw cannot be linearized twice.",
+  "Allocation failure and malformed table errors are structured.",
 ]
 validation = [
-  "Verify dependency PRs are merged.",
-  "Run focused numerical tests, formatting, and clippy.",
+  "Verify IMPL-CORE-001 and DES-004 PRs are merged.",
+  "Run focused conversion, custom-basis, identity, lookup-table, and allocation tests.",
+  "Run formatting, clippy, and the affected workspace build.",
 ]

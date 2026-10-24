@@ -3,8 +3,8 @@ id = "QA-001"
 slug = "metadata-stage-tests"
 title = "Validate metadata preservation across pipeline stages"
 phase = "quality"
-dependencies = ["IMPL-INT-001"]
-parallelism = "After end-to-end integration is merged."
+dependencies = ["IMPL-DEC-005", "IMPL-INT-001"]
+parallelism = "After decoder conformance and facade integration are merged."
 deliverables = ["metadata preservation tests", "stage-transition validation evidence"]
 scope = """
 Verify metadata and processing-state invariants across decode, preprocess, and
@@ -16,6 +16,6 @@ acceptance = [
   "Invalid stage transitions produce structured errors.",
 ]
 validation = [
-  "Verify IMPL-INT-001 is merged.",
+  "Verify IMPL-DEC-005 and IMPL-INT-001 are merged.",
   "Run focused and workspace tests and record actual results.",
 ]

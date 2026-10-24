@@ -786,15 +786,28 @@ a `agent-work/checkpoints/<TASK-ID>/` checkpoint.
 
 ### Initial work breakdown
 
-The manifests cover these workstreams:
+The post-design manifests cover these workstreams:
 
 - independent source research and split Rust ecosystem research;
 - metadata, preprocessing, and cross-source synthesis;
 - universal representation, metadata, CFA, preprocessing, demosaicing, and crate
   architecture design;
-- decoder, preprocessing, demosaicing, and end-to-end implementation; and
+- `IMPL-CORE-001` as the universal-model implementation gate;
+- decoder backend contract, LibRaw, dnglab/rawler, DNC bridge, and decoder
+  conformance tasks (`IMPL-DEC-001`–`IMPL-DEC-005`);
+- staged conversion/linearization, black subtraction, and
+  normalization/clipping tasks (`IMPL-PRE-001`–`IMPL-PRE-003`);
+- demosaic contract, bilinear strategy, and Malvar–He–Cutler adapter tasks
+  (`IMPL-DEM-001`–`IMPL-DEM-003`);
+- facade, Python/devtool migration, and legacy crate retirement
+  (`IMPL-INT-001`–`IMPL-INT-003`); and
 - metadata, numerical, error-path, performance, documentation, and workspace
   validation.
+
+Tasks for additional preprocessing operations, general spatial black tiles and
+deltas, or edge-aware demosaicing are intentionally absent. Those behaviors
+remain deferred until a separate design decision and user-approved task add
+them.
 
 The exact scope and acceptance criteria are authoritative in each manifest, not
 in a duplicated backlog table.
@@ -807,13 +820,39 @@ python3 agent-work/tasks/validate.py
 
 ### Dependency and parallelization rules
 
-The dependency graph is:
+The completed research/design graph is:
 
 `RES-01..08 -> SYN-01 -> SYN-02 -> SYN-03`
 
 `RES-01..04,06..08 -> RES-09 -> SYN-03`
 
-`SYN-03 -> DES-001..006 -> docs/raw-pipeline -> IMPL-* -> QA-*`
+`SYN-03 -> DES-001..006 -> docs/raw-pipeline`
+
+The implementation graph is:
+
+`docs/raw-pipeline -> IMPL-CORE-001`
+
+`IMPL-CORE-001 -> IMPL-DEC-001 | IMPL-PRE-001 | IMPL-DEM-001`
+
+`IMPL-DEC-001 -> IMPL-DEC-002 | IMPL-DEC-003`
+
+`IMPL-DEC-003 -> IMPL-DEC-004`
+
+`IMPL-DEC-002 + IMPL-DEC-003 + IMPL-DEC-004 -> IMPL-DEC-005`
+
+`IMPL-PRE-001 -> IMPL-PRE-002 -> IMPL-PRE-003`
+
+`IMPL-DEM-001 -> IMPL-DEM-002 -> IMPL-DEM-003`
+
+`IMPL-DEC-005 + IMPL-PRE-003 + IMPL-DEM-001 + IMPL-DEM-002 -> IMPL-INT-001`
+
+`IMPL-INT-001 -> IMPL-INT-002`
+
+`IMPL-INT-002 + all adapter/strategy tasks -> IMPL-INT-003`
+
+`IMPL-INT-001 -> QA-001..QA-004 -> QA-006`
+
+`IMPL-INT-003 -> QA-005 -> QA-006`
 
 An arrow starts downstream work only after the upstream task PR is merged.
 Parallel workers must have distinct task IDs, branches, worktrees, and owned
@@ -823,8 +862,31 @@ dependency or a dedicated integration task instead of racing in separate PRs.
 
 ## 5. Phase D — Implementation
 
-Implement against research and design documents approved through their task
-pull requests.
+Implementation starts only after all relevant design task PRs and the
+persistent `docs/raw-pipeline/` design PR are merged. The implementation is
+planned around the boundaries that design actually produced:
+
+1. `IMPL-CORE-001` installs the universal model, metadata, CFA, stage, and
+   validation contracts in `fornax-core`.
+2. The decoder track implements `fornax-decode`, then the LibRaw
+   (`fornax-decoder-libraw`), dnglab/rawler (`fornax-decoder-dnglab`), and
+   optional DNC bridge (`fornax-decoder-dnc`) adapters. `IMPL-DEC-005` validates
+   their shared conformance and target-format fixture claims.
+3. The preprocessing track implements one crate and the consuming transitions
+   in order: decoded f32 conversion/linearization, ActiveArea-aware black
+   subtraction, then normalization and final clipping.
+4. The demosaic track implements the object-safe contract/registry, the
+   bilinear strategy, and Malvar–He–Cutler through the optional Rust demosaic
+   adapter.
+5. `IMPL-INT-001` composes explicit decoder selection, preprocessing, and
+   strategy selection in the facade. `IMPL-INT-002` migrates Python and
+   devtool, and `IMPL-INT-003` retires the legacy public architecture.
+
+The cross-track contract is `IMPL-CORE-001`. A decoder, preprocessing, or
+demosaic task may not fork the universal types or add a compatibility trait to
+work around a missing core field. If implementation proves the core contract
+insufficient, update the persistent design and affected task manifests in their
+own reviewed change before continuing.
 
 Requirements:
 
@@ -847,6 +909,26 @@ Requirements:
 - Record implementation evidence in the task PR as work proceeds.
 
 Do not silently change shared interfaces to accommodate one algorithm. If the design must change, update the design report and affected task contracts before proceeding.
+
+Shared-file ownership is explicit:
+
+- adapter tasks own distinct adapter crates and must not edit another adapter's
+  manifest or source;
+- preprocessing transitions are serialized by the PRE dependency chain;
+- demosaic strategy registration is serialized by the DEM dependency chain;
+- only the integration tasks may change the facade and cross-crate feature
+  composition after their listed components merge; and
+- legacy crate removal occurs in `IMPL-INT-003`, after replacement consumers
+  and tests exist.
+
+Parallel component tasks may update the shared root `Cargo.toml` or generated
+`Cargo.lock`. When that happens, merge one branch first and require the other
+task branches to rebase and regenerate the lockfile before updating their PRs;
+do not resolve generated-lock conflicts by hand.
+
+General spatial black tiles/vectors, additional sensor-domain transforms, and
+edge-aware demosaicing are not implementation tasks under this plan. They need a
+new approved design and manifest before implementation.
 
 ## 6. Phase E — Testing and validation
 
@@ -888,9 +970,11 @@ Work in this order:
 6. Assemble the persistent design under `docs/raw-pipeline/` and review it with
    the user. No public type or preprocessing API is finalized before `SYN-03`
    is approved and merged in the dependency task PR.
-7. Implement in small, trackable tasks only after the relevant design PRs and
-   persistent design-docs PR are merged.
-8. Integrate, validate, and update documentation.
+7. Implement `IMPL-CORE-001` first, then execute the decoder, preprocessing, and
+   demosaic tracks only after the relevant PR and core dependency are merged.
+8. Compose the facade after decoder conformance and preprocessing are complete,
+   migrate Python/devtool, retire the legacy architecture, then run QA and
+   update documentation.
 
 Each research, synthesis, design, and implementation task has its own TOML
 manifest and task PR. Update evidence in the owned deliverable and PR. Do not

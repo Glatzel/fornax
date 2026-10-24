@@ -1,21 +1,26 @@
 schema_version = 1
 id = "IMPL-PRE-002"
-slug = "cfa-black-level"
-title = "Implement CFA-aware black-level correction"
+slug = "active-area-black-subtraction"
+title = "Implement ActiveArea-aware black selection and subtraction"
 phase = "implementation"
 dependencies = ["IMPL-PRE-001", "DES-003"]
-parallelism = "After scalar correction and CFA design are merged."
-deliverables = ["CFA-aware correction source", "all-pattern numerical tests"]
+parallelism = "Starts after the linearized state exists."
+deliverables = ["black selection and subtraction source", "coordinate and numerical tests"]
 scope = """
-Implement per-channel and repeat-pattern black-level selection for all supported
-Bayer phases with explicit coordinate alignment.
+Implement the LinearizedRaw to BlackCorrectedRaw transition. Select common,
+four-slot, and supported 1x1/2x2 black components in ActiveArea-relative
+coordinates, use f64 scalar arithmetic, and preserve signed f32 underflow.
 """
 acceptance = [
-  "Per-channel and 2x2 pattern selection is tested across all four Bayer layouts.",
-  "Crop, origin, and CFA phase alignment is tested.",
-  "Unsupported pattern shapes return structured errors.",
+  "Scalar, distinct green-slot, and 2x2 repeat black selection are correct for all four Bayer phases.",
+  "Odd ActiveArea origins produce the same selected black metadata as an equivalently rebased valid coordinate.",
+  "Missing or conflicting required black metadata fails structurally; format-declared zero is the only implicit zero.",
+  "General tiles, BlackLevelDeltaH/V, and unsupported decompositions are rejected until separately approved.",
+  "Subtraction does not clip negative values; geometry, CFA, metadata Arc, and source f32 samples remain coherent.",
+  "The consuming transition makes repeated correction unrepresentable.",
 ]
 validation = [
-  "Verify dependency PRs are merged.",
-  "Run focused numerical tests, formatting, and clippy.",
+  "Verify IMPL-PRE-001 and DES-003 PRs are merged.",
+  "Run focused numerical, coordinate-alignment, pattern, and rejection tests.",
+  "Run formatting and clippy for fornax-preprocess.",
 ]
