@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-pub(crate) mod plane;
+pub mod plane;
 
 pub use plane::{F32Plane, SampleFormat, SampleSpec, StoredPlane, U8Plane, U16Plane, U32Plane};
 
@@ -89,7 +89,7 @@ impl DecodedRaw {
     ///     }
     /// }
     /// ```
-    pub fn plane_mut(&mut self) -> &mut StoredPlane { &mut self.plane }
+    pub const fn plane_mut(&mut self) -> &mut StoredPlane { &mut self.plane }
 
     /// Returns declared sample specification.
     pub fn sample_spec(&self) -> SampleSpec { self.metadata.sample_spec() }

@@ -202,12 +202,12 @@ unsafe fn fast_pixel(
         let left_right = {
             let left = *raw.get_unchecked(idx(width, x - 1, y));
             let right = *raw.get_unchecked(idx(width, x + 1, y));
-            (left + right) * 0.5
+            f32::midpoint(left, right)
         };
         let top_down = {
             let top = *raw.get_unchecked(idx(width, x, y - 1));
             let bottom = *raw.get_unchecked(idx(width, x, y + 1));
-            (top + bottom) * 0.5
+            f32::midpoint(top, bottom)
         };
         let diagonal = {
             let tl = *raw.get_unchecked(idx(width, x - 1, y - 1));
@@ -267,7 +267,7 @@ fn checked_pixel(
     phase_with_neighbours(phase, centre, cardinal, left_right, top_down, diagonal)
 }
 
-fn phase_with_neighbours(
+const fn phase_with_neighbours(
     phase: BayerPhase,
     centre: f32,
     cardinal: f32,
@@ -285,7 +285,7 @@ fn phase_with_neighbours(
 
 fn average2(a: Option<f32>, b: Option<f32>) -> f32 {
     match (a, b) {
-        (Some(a), Some(b)) => (a + b) * 0.5,
+        (Some(a), Some(b)) => f32::midpoint(a, b),
         (Some(value), None) | (None, Some(value)) => value,
         (None, None) => 0.0,
     }

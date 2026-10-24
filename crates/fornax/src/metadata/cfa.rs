@@ -256,7 +256,7 @@ impl BayerLayout {
     /// let layout = BayerLayout::new(BayerPattern::Gbrg, area);
     /// assert_eq!(layout.slot_at(PixelCoord::new(1, 1)).unwrap().index(), 0);
     /// ```
-    pub fn slot_at(&self, stored: PixelCoord) -> Result<BayerSlot, RawValidationError> {
+    pub const fn slot_at(&self, stored: PixelCoord) -> Result<BayerSlot, RawValidationError> {
         if !self.active_area.contains(stored) {
             return Err(RawValidationError::CoordOutsideActiveArea);
         }

@@ -216,7 +216,7 @@ fn validate_exact_len(actual: usize, dimensions: PixelSize) -> Result<(), RawVal
     }
 }
 
-pub(crate) fn validate_finite(plane: &F32Plane) -> Result<(), RawValidationError> {
+pub fn validate_finite(plane: &F32Plane) -> Result<(), RawValidationError> {
     if plane.as_raw().iter().all(|sample| sample.is_finite()) {
         Ok(())
     } else {

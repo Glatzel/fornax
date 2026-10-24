@@ -208,7 +208,7 @@ impl ValidatedMetadata {
     pub const fn decoder(&self) -> &DecoderProvenance { &self.decoder }
 
     /// Returns required validated black levels.
-    pub fn black(&self) -> &BlackLevels {
+    pub const fn black(&self) -> &BlackLevels {
         &self
             .common
             .black
@@ -218,7 +218,7 @@ impl ValidatedMetadata {
     }
 
     /// Returns required validated white levels.
-    pub fn white(&self) -> &WhiteLevels {
+    pub const fn white(&self) -> &WhiteLevels {
         &self
             .common
             .white
@@ -228,7 +228,7 @@ impl ValidatedMetadata {
     }
 
     /// Returns the required sample specification.
-    pub fn sample_spec(&self) -> SampleSpec {
+    pub const fn sample_spec(&self) -> SampleSpec {
         self.common
             .sample_spec
             .as_ref()
@@ -237,7 +237,7 @@ impl ValidatedMetadata {
     }
 
     /// Returns the required compact geometry.
-    pub fn stored_geometry(&self) -> StoredGeometry {
+    pub const fn stored_geometry(&self) -> StoredGeometry {
         self.common
             .stored_geometry
             .as_ref()
@@ -246,7 +246,7 @@ impl ValidatedMetadata {
     }
 
     /// Returns the required ActiveArea.
-    pub fn active_area(&self) -> ActiveArea {
+    pub const fn active_area(&self) -> ActiveArea {
         self.common
             .active_area
             .as_ref()
@@ -255,7 +255,7 @@ impl ValidatedMetadata {
     }
 
     /// Returns the required Bayer layout.
-    pub fn cfa(&self) -> BayerLayout {
+    pub const fn cfa(&self) -> BayerLayout {
         self.common
             .cfa
             .as_ref()

@@ -1443,7 +1443,6 @@ dependencies = [
  "clerk",
  "envoy",
  "float-cmp",
- "fornax",
  "fornax-devtool",
  "image 0.25.9",
  "jiff",
