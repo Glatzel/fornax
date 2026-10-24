@@ -7,8 +7,8 @@
 >
 > **Task contracts:** One TOML manifest per task lives in
 > `agent-work/tasks/raw-pipeline/<TASK-ID>.toml`. GitHub pull requests are the
-> review and completion record; this workflow and the manifests contain no
-> duplicate live review state.
+> review and merge record. `agent-work/tasks/STATUS.md` is the human-readable
+> task-status snapshot; manifests contain no duplicate live review state.
 >
 > **Deliverable layout:** The original prompt used `docs/` paths. Those paths are
 > mapped to this repository's `agent-work/` directory. The hidden `.agents/`
@@ -47,6 +47,7 @@
 > │   └── raw-pipeline/<TASK-ID>-<slug>.md
 > └── tasks/
 >     ├── README.md               # manifest and PR protocol
+>     ├── STATUS.md               # task-status snapshot
 >     └── raw-pipeline/
 >         ├── README.md           # planned dependency graph
 >         └── <TASK-ID>.toml      # one contract per task
@@ -55,8 +56,9 @@
 > Each reference report has exactly one owning research task. `SYN-03-summary.md` is
 > produced by `SYN-03`; it synthesizes the reports rather than replacing them.
 > A file existing is not evidence of completion, and no task may fabricate
-> findings or bypass its acceptance gate. Review approval and task state are
-> recorded only by the task's GitHub pull request.
+> findings or bypass its acceptance gate. Review approval and merge state are
+> recorded by the task's GitHub pull request; task progress is mirrored in
+> `agent-work/tasks/STATUS.md`.
 > Every task-owned research filename must begin with its task ID
 > (`<TASK-ID>-<slug>.md`); only the directory-level `README.md` is exempt.
 
@@ -706,10 +708,14 @@ parseable data: dependencies, deliverables, acceptance criteria, and validation.
 Markdown remains the format for task-owned evidence, design proposals,
 checkpoints, and pull-request discussion.
 
-One manifest per task deliberately avoids a shared live tracker. Shared tracker
-files turn independent task branches into merge conflicts and make review state
-ambiguous. The task index in `agent-work/tasks/raw-pipeline/README.md` records
-the dependency graph; it does not duplicate live status.
+One manifest per task avoids task-contract conflicts. The shared snapshot in
+`agent-work/tasks/STATUS.md` tracks Blocked, Ready, and Done state for easier
+human tracking. The task index in
+`agent-work/tasks/raw-pipeline/README.md` records the dependency graph.
+
+Mark a task `Done` when its deliverable is complete and its task PR is opened.
+`Done` does not imply that the PR is merged. Keep downstream tasks `Blocked`
+until every dependency PR is merged, then move them to `Ready`.
 
 ### Task manifest contract
 
@@ -723,8 +729,9 @@ Every task manifest declares:
 - objective acceptance criteria; and
 - commands or checks that produce validation evidence.
 
-Task manifests must not contain `review`, `approved`, or `done` fields. GitHub
-pull requests are the sole live state and approval record.
+Task manifests must not contain `review`, `approved`, or `done` fields. Use
+`agent-work/tasks/STATUS.md` for Blocked/Ready/Done tracking. GitHub pull
+requests remain the sole review, approval, and merge record.
 
 ### Branch, worktree, and pull-request protocol
 
@@ -743,8 +750,9 @@ pull requests are the sole live state and approval record.
    `docs(res-01): inventory existing components`, and use
    `agent-work/PULL_REQUEST_TEMPLATE.md` as its body. The type must be accepted
    by `.github/semantic.yml`, the scope must be the lowercase task ID, and the
-   task ID must also appear in the PR body. Report the PR URL and stop. Do not
-   watch, poll, or wait for checks or review after creating it.
+   task ID must also appear in the PR body. Mark the task `Done` in
+   `agent-work/tasks/STATUS.md`, add the PR link, and report the PR URL. Stop.
+   Do not watch, poll, or wait for checks or review after creating it.
 5. The user initiates the next step in conversation: request local changes or
    merge the PR. If changes are requested, update the same branch and PR unless
    the user asks for a local-only result. Do not open a second PR for the same
@@ -902,13 +910,15 @@ Support the commands `start <TASK-ID>`, `pause <TASK-ID>`, `resume <TASK-ID>`, a
   work, next steps, unresolved questions, source revisions, and validation
   results.
 - `resume`: Read the task definition, owned report or note, latest checkpoint, and reference revisions. Continue unfinished work without repeating verified findings. Verify dependencies before proceeding.
-- `status`: Report the task's current status, completed work, remaining work, and blockers.
+- `status`: Report the task's status from `agent-work/tasks/STATUS.md`, plus
+  completed work, remaining work, and blockers.
 - `start`: Start a task only if its dependencies are satisfied. Do not duplicate an already-running task.
 
 Persist progress in the task's assigned report and, for pauses or handoffs, a
-task-specific checkpoint under `agent-work/checkpoints/`. The open task PR is
-authoritative for live status. Never rely solely on conversation history.
-Keep the task PR open while paused or interrupted.
+task-specific checkpoint under `agent-work/checkpoints/`. Keep
+`agent-work/tasks/STATUS.md` current, but do not use it as a substitute for
+GitHub's review and merge state. Keep the task PR open while paused or
+interrupted.
 Only the user may approve and merge a task PR.
 
 For delegated tasks, distinguish interrupting a worker from merely asking the coordinator to stop. If the runtime cannot pause a worker directly, explain the limitation and preserve its progress before stopping.

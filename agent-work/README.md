@@ -13,6 +13,7 @@ agent-work/
 │   └── raw-pipeline.md               # authoritative pipeline workflow
 ├── tasks/
 │   ├── README.md                     # manifest schema and execution protocol
+│   ├── STATUS.md                     # task-status snapshot
 │   └── raw-pipeline/
 │       ├── README.md                 # task index and dependency graph
 │       └── <TASK-ID>.toml            # exactly one task contract per file
@@ -40,6 +41,8 @@ agent-work/
 - Each task TOML defines scope, dependencies, deliverables, acceptance
   criteria, and validation.
 - The task-owned report contains evidence and conclusions.
+- `tasks/STATUS.md` is the human-readable task-status snapshot. A task is
+  marked `Done` when its deliverable is complete and its task PR is open.
 - The task's GitHub pull request is the only review record. Open means in
   progress or review; merged means accepted; closed without merge means
   abandoned or superseded.
@@ -79,7 +82,8 @@ public APIs remain gated by synthesis and design.
    integration base.
 3. Work only inside the manifest's scope and deliverables.
 4. Commit, push, and open one pull request with a semantic title such as
-   `docs(res-01): inventory existing components`.
+   `docs(res-01): inventory existing components`. Mark the task `Done` in
+   `tasks/STATUS.md` and add the PR link.
 5. Report the PR URL and stop. Do not watch, poll, or wait for checks or
    review.
 6. The user initiates the next step: request local changes or merge the PR.
@@ -87,9 +91,9 @@ public APIs remain gated by synthesis and design.
    local-only result.
 7. An agent never merges or closes the task pull request.
 
-The repository does not maintain a second dashboard of PR states. Use GitHub's
-pull-request search, labels, and branch names. The task index records the
-planned dependency graph, not live status.
+The status snapshot is for task tracking. GitHub pull-request search, labels,
+branches, and merged state remain authoritative for review and dependency
+gates.
 
 See [`tasks/README.md`](tasks/README.md) for the manifest schema and exact Git
 commands.
