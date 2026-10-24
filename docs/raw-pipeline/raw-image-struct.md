@@ -4,34 +4,55 @@ This is a field-oriented index for the proposed DES-001 model. The complete
 normative Rust snippets and validation rules are in
 [DES-001 §2–§8](../../agent-work/design/raw-pipeline/DES-001-universal-raw-representation.md#2-representative-rust-types).
 
-## Ownership map
+## Structure class diagram
 
 ```mermaid
-flowchart TB
-    RawImage["RawImage&lt;S&gt;"]
-    Metadata["Arc&lt;ValidatedMetadata&gt;"]
-    Common["CommonMetadata"]
-    Extensible["ExtensibleMetadata"]
-    Geometry["StoredGeometry"]
-    CFA["BayerLayout"]
-    Levels["BlackLevels / WhiteLevels"]
-    Origin["Decoder / operation provenance"]
-    Payload["S::Plane"]
-    Stored["StoredPlane\nU8 / U16 / F32"]
-    Float["F32Plane"]
-    Stage["Stage marker S\nDecoded / Linearized / ..."]
+classDiagram
+    direction LR
+    class RawImage {
+        <<struct>>
+        +metadata
+        +plane
+        +stage
+    }
+    class ValidatedMetadata {
+        <<struct>>
+        +common
+        +extensible
+    }
+    class CommonMetadata {
+        <<struct>>
+    }
+    class ExtensibleMetadata {
+        <<struct>>
+    }
+    class StoredGeometry
+    class BayerLayout
+    class BlackLevels
+    class WhiteLevels
+    class Decoded {
+        <<struct>>
+        +decoder
+        +operations
+        +metadata_basis
+    }
+    class StoredPlane {
+        <<enum>>
+        U8
+        U16
+        U32
+        F32
+    }
 
-    RawImage --> Metadata
-    RawImage --> Payload
-    RawImage --> Stage
-    Metadata --> Common
-    Metadata --> Extensible
-    Common --> Geometry
-    Common --> CFA
-    Common --> Levels
-    RawImage --> Origin
-    Payload --> Stored
-    Payload --> Float
+    RawImage *-- ValidatedMetadata
+    RawImage *-- StoredPlane
+    RawImage *-- Decoded
+    ValidatedMetadata *-- CommonMetadata
+    ValidatedMetadata *-- ExtensibleMetadata
+    CommonMetadata *-- StoredGeometry
+    CommonMetadata *-- BayerLayout
+    CommonMetadata *-- BlackLevels
+    CommonMetadata *-- WhiteLevels
 ```
 
 ## Core image
@@ -41,7 +62,7 @@ flowchart TB
 | `RawImage<S>::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
 | `RawImage<S>::plane` | `S::Plane` | samples | Matches declared dimensions and stage |
 | `RawImage<S>::stage` | `S` | N/A | Carries state/provenance; no implicit stage recovery |
-| `StoredPlane` | `U8`, `U16`, or `F32` variant | sample | Container compatible with `SampleEncoding` |
+| `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleEncoding` |
 | `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Preprocessing/demosaic stages only |
 
 ## Geometry and encoding
@@ -79,9 +100,7 @@ before compacting. The canonical `ImageBuffer` is tightly packed.
 
 | Stage | Plane | Meaning |
 | --- | --- | --- |
-| `Decoded` | `StoredPlane` | Native backend source samples |
-| `DecodedF32` | `F32Plane` | Explicit lossless custom-processing input |
-| `CustomProcessedF32` | `F32Plane` | User-transformed samples plus metadata basis |
+| `Decoded` | `StoredPlane` | Native source; optional `convert_to_f32`/custom operation keeps this state and records metadata basis |
 | `Linearized` | `F32Plane` | LUT applied once or identity |
 | `BlackCorrected` | `F32Plane` | Black subtracted once; unclipped |
 | `Normalized` | `F32Plane` | Linear-reference semantics; unclipped |
@@ -89,10 +108,8 @@ before compacting. The canonical `ImageBuffer` is tightly packed.
 
 ```mermaid
 stateDiagram-v2
-    Decoded --> DecodedF32: custom conversion
+    Decoded --> Decoded: convert_to_f32 / custom operation
     Decoded --> Linearized: standard path
-    DecodedF32 --> CustomProcessedF32: user transform
-    CustomProcessedF32 --> Linearized: valid/replaced levels
     Linearized --> BlackCorrected
     BlackCorrected --> Normalized
     Normalized --> DemosaicReady

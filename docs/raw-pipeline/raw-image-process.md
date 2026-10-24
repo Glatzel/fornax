@@ -10,11 +10,10 @@ linear demosaiced image. The normative type and invariant details are in
 flowchart TD
     File["RAW file\nDNG / ARW / NEF / Canon CR*"]
     Adapter["Selected decoder adapter\nLibRaw / dnglab-rawler / dnc bridge"]
-    Decoded["DecodedRaw\nstored sensor samples"]
-    Convert["Optional DecodedF32Raw\nlossless u8/u16 conversion"]
-    Custom["Optional custom operation\nCustomProcessedF32Raw"]
-    Linear["LinearizedRaw\nLUT applied once"]
-    Subtract["BlackCorrectedRaw\nblack selected by ActiveArea + CFA slot"]
+    Decoded["DecodedRaw\nU8 ≤8 bits / U16 9–16 / U32 17–32 / F32"]
+    Custom["DecodedRaw after convert_to_f32\nauto f32; optional user operation"]
+    Linear["LinearizedRaw\nf32 working buffer\nLUT applied once"]
+    Subtract["BlackCorrectedRaw\nf32 samples; f64 scalar arithmetic"]
     Normalize["NormalizedRaw\nunclipped f32"]
     Ready["DemosaicReadyMosaic\nclamped f32 [0,1]"]
     Demosaic["Bayer demosaic\nf32 planar RGB"]
@@ -25,8 +24,7 @@ flowchart TD
     Adapter -->|supported Bayer| Decoded
     Adapter -->|unsupported layout / encoding| Reject
     Decoded -->|standard path| Linear
-    Decoded -->|custom path| Convert
-    Convert --> Custom
+    Decoded -->|"convert_to_f32 → still DecodedRaw"| Custom
     Custom -->|metadata basis valid| Linear
     Custom -->|metadata basis invalid| Reject
     Linear --> Subtract
@@ -40,35 +38,16 @@ flowchart TD
 
 | Stage | Payload | Main operation | Required invariant | Failure mode |
 | --- | --- | --- | --- | --- |
-| Decode | u8/u16/f32 sensor plane | Backend unpack; no normalization or black subtraction | Native encoding, geometry, CFA, ActiveArea, levels, and provenance validated | Unsupported format/layout/encoding |
-| Optional custom conversion | f32 plane | Lossless conversion from u8/u16; native f32 retained | No sample correction yet; conversion provenance recorded | Invalid state |
-| Optional custom processing | f32 plane | User operation before standard preprocessing | `MetadataBasis` declares whether original levels remain valid | Stale black/white metadata |
+| Decode / custom | u8/u16/u32/f32 sensor plane | Backend unpack; optional `convert_to_f32` (lossless when representable) and user operation while state remains `Decoded` | Native encoding, geometry, CFA, ActiveArea, levels, provenance, and metadata basis validated | Unsupported encoding/layout or lossy conversion |
 | Linearization | f32 plane | Apply declared LUT once, otherwise identity | ActiveArea/CFA geometry unchanged | Missing/invalid table |
 | Black subtraction | f32 plane | Select black by active CFA/tile coordinate; subtract once | Black and white levels valid; no clamp yet | Unsupported pattern/delta |
 | Normalization | f32 plane | `(sample - black) / (white - black)` with f64 scalar arithmetic | Signed and overflow values remain unclipped | `white <= black` or non-finite |
 | Demosaic-ready | f32 plane | Clamp to `[0,1]` and validate finite values | Bayer phase and ActiveArea unchanged | Wrong state/non-finite values |
 | Demosaic | f32 planar RGB | Apply selected Bayer algorithm | Planar channel order and border policy explicit | Unsupported algorithm/layout |
 
-## Standard and custom paths
-
-```mermaid
-flowchart LR
-    Decoded["DecodedRaw"]
-    F32["DecodedF32Raw"]
-    Custom["CustomProcessedF32Raw"]
-    Standard["Standard preprocessing"]
-    Stop["Reject standard preprocessing"]
-
-    Decoded --> Standard
-    Decoded -->|"explicit conversion"| F32
-    F32 -->|"user transform"| Custom
-    Custom -->|"OriginalLevelsValid / ReplacedLevels"| Standard
-    Custom -->|"Incompatible"| Stop
-```
-
-The conversion itself is lossless for the initial u8/u16 inputs. It does not
-prove that arbitrary custom processing preserves the meaning of file-declared
-black or white levels.
+The conversion itself is lossless for u8/u16 inputs. It does not prove that
+arbitrary custom processing preserves the meaning of file-declared black or
+white levels; `Decoded` retains that metadata-basis decision.
 
 ## Where preprocessing stops
 
