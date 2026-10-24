@@ -97,17 +97,17 @@ cannot do so, it fails the adapter gate.
 ## 4. Metadata, sample precision, and provenance
 
 `[recommendation]` Decode returns source samples, not a normalized image.
-Initial native storage supports u8 for 8-bit integer samples, u16 for 9–16-bit
-integer samples, and f32 for verified floating paths. Declared bit depth and
-sample format remain metadata rather than being inferred from container width
+Initial native storage supports u8, u16, u32, and f32 containers. Declared bit
+depth and sample format remain metadata rather than being inferred from
+container width
 ([SYN-01 §Decision table](notes/SYN-01.md#decision-table);
 [RES-02 §2.2](RES-02-libraw.md#22-decode-lifecycle-and-buffer-meaning);
 [RES-03 §2.2](RES-03-dnglab.md#22-dng-tag-mapping)).
 
-`[recommendation]` Provide an explicit lossless u8/u16-to-f32 conversion for
-user custom processing before standard preprocessing. The resulting sample
-basis must be recorded; stale linearization/black/white metadata cannot be
-applied silently afterward
+`[recommendation]` Provide an explicit f32 conversion on `DecodedRaw` for user
+custom processing before standard preprocessing; conversion returns the same
+`Decoded` state. The resulting sample basis must be recorded, and stale
+linearization/black/white metadata cannot be applied silently afterward
 ([SYN-02 §Numerical model](notes/SYN-02.md#numerical-model)).
 
 `[recommendation]` Keep algorithm-critical metadata typed and provenance-bearing.
@@ -133,7 +133,7 @@ buffer origin
 ```text
 decoded source
   -> validated stored image
-  -> optional custom f32 processing with metadata-basis decision
+  -> optional DecodedRaw.convert_to_f32/custom operation with metadata-basis decision
   -> optional linearization
   -> ActiveArea/CFA-aware black subtraction
   -> linear-reference normalization
@@ -225,7 +225,7 @@ No upstream RAW type enters the universal core.
 | Black repeat origin after crop | DNG anchors at ActiveArea; LibRaw spatial correction can index crop-local coordinates | ActiveArea origin is authoritative; reject backend paths that cannot preserve it. [RES-02 §2.5](RES-02-libraw.md#25-black-level-representation); [RES-03 §2.3](RES-03-dnglab.md#23-coordinate-spaces-and-cfa-phase) | Resolved policy; backend tests pending |
 | White level meaning | DNG declares per-plane saturation; LibRaw `maximum` may be adjusted and also exposes linear/measured maxima | Preserve declared, adjusted, and measured values separately with provenance. [SYN-01](notes/SYN-01.md#decision-table) | Resolved for representation |
 | CFA plane mapping | DNG has `CFAPlaneColor`/`CFALayout`; rawler assumes common RGB in its DNG path | Initial scope accepts conventional RGB only and rejects alternatives. [RES-03 §2.2 and §5](RES-03-dnglab.md#22-dng-tag-mapping) | Resolved |
-| Sample precision | Native integer containers are often u16, but 8-bit and floating source paths exist; f32 preprocessing is not universally higher precision | Support native u8/u16/f32, preserve bit depth, use f32 preprocess for initial ≤16-bit inputs, reject/widen >24-bit cases. [SYN-02](notes/SYN-02.md#numerical-model) | Resolved for initial scope |
+| Sample precision | Native integer containers may be u8/u16/u32; floating paths use f32; f32 preprocessing is not universally higher precision | Support u8/u16/u32/f32 storage, preserve bit depth, use f32 preprocessing when source precision is exactly representable, and reject/widen wider cases. [SYN-02](notes/SYN-02.md#numerical-model) | Resolved for initial scope |
 | DNG parser approach | image-tiff provides generic TIFF but not DNG semantics; rawler provides DNG support with a broad mutable model | Use rawler as a decoder adapter initially; retain image-tiff as fallback building block after fixture proof. [RES-07 §2.3](RES-07-rust-dng-tiff.md#23-dependency-versus-minimal-parser); [RES-09 §2.4](RES-09-rust-ecosystem.md#24-libraw-adapter); [RES-09 §2.5](RES-09-rust-ecosystem.md#25-dnglabrawler-adapter) | Recommendation; fixture gate |
 | Demosaic quality | `demosaic` and MeraRAW have different interfaces/status; no independent comparative quality ranking | Choose algorithms by contract/testability first: bilinear, then MHC. Do not claim quality superiority from crate names. [RES-05 §2.2](RES-05-demosaicing.md#22-candidate-comparison); [RES-08 §2.1–§2.5](RES-08-rust-demosaicing.md#21-demosaic-crate-api-and-bayer-contract) | Deferred quality validation |
 
@@ -234,7 +234,7 @@ No upstream RAW type enters the universal core.
 | `[recommendation]` | Confidence | Assumptions | Invalidated if |
 | --- | --- | --- | --- |
 | Backend-neutral adapter architecture; no first-party decoder | High | Existing backend sample/metadata APIs can be isolated | Target files require format behavior unavailable through acceptable backends |
-| Universal source image with native u8/u16/f32 and separate bit depth | High | Initial integer samples are ≤16 bits; float DNG is representable in f32 | Fixtures expose required integer widths >16 or f64 semantics |
+| Universal source image with native u8/u16/u32/f32 and separate bit depth | Medium-high | u32 support requires decoder/source evidence; f32 conversion is lossless only within its significand | Fixtures expose required >32-bit integer or f64 semantics |
 | Typed metadata plus provenance-aware extension map | High | Backend adapters can identify source/default/catalog origin | A backend cannot expose enough origin to avoid ambiguity |
 | ActiveArea-relative CFA and black coordinates | High | Backends can preserve ActiveArea origin or compact faithfully | Required target cameras expose irreconcilable coordinate semantics |
 | f32 preprocessing/demosaic, f64 scalar intermediates | High | Target inputs normalize to `[0,1]` with ≤16-bit source precision | High-precision source/output requirements exceed f32 |
