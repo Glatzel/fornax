@@ -18,11 +18,19 @@ These guides explain that design; they do not introduce additional behavior.
 
 ```mermaid
 flowchart LR
-    Decode["DecodedRaw\nnative u8/u16/u32/f32"]
-    Convert["Optional DecodedRaw\nf32 custom processing"]
-    Pre["Preprocess\nf32 buffer + f64 scalars"]
-    Demo["Demosaic\nf32 input/output"]
-    Output["Linear RGB\nf32"]
+    subgraph DecodePhase["1 · Decode"]
+        Decode["DecodedRaw\nU8 / U16 / U32 / F32"]
+    end
+
+    subgraph PreprocessPhase["2 · Preprocess"]
+        Convert["Optional DecodedRaw\nf32 custom processing"]
+        Pre["f32 buffer\nf64 scalar arithmetic"]
+    end
+
+    subgraph DemosaicPhase["3 · Demosaic"]
+        Demo["f32 Bayer input"]
+        Output["Linear RGB\nf32"]
+    end
 
     Decode --> Pre
     Decode -->|"convert_to_f32"| Convert

@@ -11,21 +11,30 @@ and [DES-001 §7](../../agent-work/design/raw-pipeline/DES-001-universal-raw-rep
 
 ```mermaid
 flowchart TD
-    U8["u8 source\n≤8 declared bits"]
-    U16["u16 source\n9–16 declared bits"]
-    U32["u32 source\n17–32 declared bits"]
-    F32S["f32 source\nfloating RAW / DNG"]
-    Work["DecodedRaw.convert_to_f32()\nf32; still Decoded state\noptional user operation"]
-    Linear["LinearizedRaw\nf32 buffer; exact LUT lookup"]
-    Subtract["BlackCorrectedRaw\nf32 samples + f64 scalar arithmetic"]
-    Normalize["NormalizedRaw\nf64 division → f32 storage"]
-    Ready["DemosaicReadyMosaic\nf32, clamped [0,1]"]
-    Demo["Demosaic output\nlinear f32 RGB"]
+    subgraph DecodePhase["1 · Decode"]
+        U8["u8 source\n≤8 declared bits"]
+        U16["u16 source\n9–16 declared bits"]
+        U32["u32 source\n17–32 declared bits"]
+        F32S["f32 source\nfloating RAW / DNG"]
+        Work["DecodedRaw.convert_to_f32()\nf32; still Decoded state\noptional user operation"]
+    end
 
     U8 -->|exact| Work
     U16 -->|exact| Work
     U32 -->|"exact only if ≤24 significant bits"| Work
     F32S -->|no u16 round-trip| Work
+
+    subgraph PreprocessPhase["2 · Preprocess"]
+        Linear["LinearizedRaw\nf32 buffer; exact LUT lookup"]
+        Subtract["BlackCorrectedRaw\nf32 samples + f64 scalar arithmetic"]
+        Normalize["NormalizedRaw\nf64 division → f32 storage"]
+        Ready["DemosaicReadyMosaic\nf32, clamped [0,1]"]
+    end
+
+    subgraph DemosaicPhase["3 · Demosaic"]
+        Demo["Demosaic output\nlinear f32 RGB"]
+    end
+
     Work --> Linear
     Linear --> Subtract
     Subtract --> Normalize

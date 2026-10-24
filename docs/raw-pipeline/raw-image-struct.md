@@ -10,7 +10,7 @@ normative Rust snippets and validation rules are in
 classDiagram
     direction LR
     class RawImage {
-        <<struct>>
+        <<Decode context>>
         +metadata
         +plane
         +stage
@@ -31,17 +31,33 @@ classDiagram
     class BlackLevels
     class WhiteLevels
     class Decoded {
-        <<struct>>
+        <<Decode phase>>
         +decoder
         +operations
         +metadata_basis
     }
     class StoredPlane {
-        <<enum>>
+        <<Decode payload>>
         U8
         U16
         U32
         F32
+    }
+    class Linearized {
+        <<Preprocess phase>>
+    }
+    class BlackCorrected {
+        <<Preprocess phase>>
+    }
+    class Normalized {
+        <<Preprocess phase>>
+    }
+    class DemosaicReady {
+        <<Preprocess phase>>
+    }
+    class DemosaicOutput {
+        <<Demosaic phase>>
+        +planar_rgb_f32
     }
 
     RawImage *-- ValidatedMetadata
@@ -53,6 +69,11 @@ classDiagram
     CommonMetadata *-- BayerLayout
     CommonMetadata *-- BlackLevels
     CommonMetadata *-- WhiteLevels
+    Decoded ..> Linearized
+    Linearized ..> BlackCorrected
+    BlackCorrected ..> Normalized
+    Normalized ..> DemosaicReady
+    DemosaicReady ..> DemosaicOutput
 ```
 
 ## Core image
@@ -105,16 +126,6 @@ before compacting. The canonical `ImageBuffer` is tightly packed.
 | `BlackCorrected` | `F32Plane` | Black subtracted once; unclipped |
 | `Normalized` | `F32Plane` | Linear-reference semantics; unclipped |
 | `DemosaicReady` | `F32Plane` | Finite f32 values in `[0,1]` |
-
-```mermaid
-stateDiagram-v2
-    Decoded --> Decoded: convert_to_f32 / custom operation
-    Decoded --> Linearized: standard path
-    Linearized --> BlackCorrected
-    BlackCorrected --> Normalized
-    Normalized --> DemosaicReady
-    DemosaicReady --> [*]: f32 demosaic
-```
 
 ## Validation fields and errors
 
