@@ -18,6 +18,7 @@
 #![warn(missing_docs)]
 
 mod cfa;
+mod decoded_raw;
 mod error;
 mod geometry;
 mod metadata;
@@ -25,6 +26,9 @@ mod plane;
 mod raw_image;
 
 pub use cfa::{BayerLayout, BayerPattern, BayerSlot, CfaColor, CfaShape};
+pub use decoded_raw::{
+    DecodedRaw, DecoderProvenance, MetadataBasis, OperationProvenance, PlaneStorage,
+};
 pub use error::{MetadataError, RawValidationError};
 pub use geometry::{ActiveArea, PixelCoord, PixelRect, PixelSize, StoredGeometry};
 pub use metadata::{
@@ -35,7 +39,4 @@ pub use metadata::{
     ValidatedMetadata, WhiteBalance, WhiteLevels, resolve_sourced,
 };
 pub use plane::{F32Plane, SampleEncoding, SampleFormat, StoredPlane, U8Plane, U16Plane, U32Plane};
-pub use raw_image::{
-    DecodedRaw, DecoderProvenance, MetadataBasis, OperationProvenance, PlaneStorage, RawImage,
-    into_preprocessed,
-};
+pub use raw_image::{RawImage, into_preprocessed};
