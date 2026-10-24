@@ -35,6 +35,8 @@ task that needs its own branch and PR.
   the linked manifest matches the scope.
 - [ ] Every dependency PR is merged.
 - [ ] Deliverables use the paths and names in the task manifest.
+- [ ] Relevant `docs/raw-pipeline/` design files are updated, or the PR states
+  that the persistent design is unchanged.
 - [ ] `agent-work/tasks/STATUS.md` marks this task `Done` with the PR link.
 - [ ] The branch contains only this task's changes.
 - [ ] Validation results are complete and reproducible.

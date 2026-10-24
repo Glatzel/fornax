@@ -14,6 +14,10 @@ These files are the normative, persistent RAW pipeline design. The task-owned
 files under `agent-work/design/` are design history and implementation
 provenance; if they differ from these guides, these guides take precedence.
 
+Every PR that changes pipeline flow, precision, structs, public behavior,
+errors, or allocation semantics must update the relevant files in this
+directory in the same PR.
+
 ## Reading map
 
 ```mermaid

@@ -18,6 +18,10 @@ Design decisions must cite merged `RES-*` or `SYN-*` pull requests and must not
 resolve unresolved metadata, coordinate, sample-domain, or preprocessing
 questions by assumption.
 
+Every design change must update the corresponding persistent
+`docs/raw-pipeline/` guide in the same PR. If a proposal conflicts with those
+guides, the persistent guide is authoritative and the PR must reconcile them.
+
 The decoder architecture must expose existing implementations as selectable
 backends behind a `fornax`-owned contract. LibRaw and dnglab/rawler are decoder
 candidates, `dnc` is a conversion bridge, and darktable/rawspeed is eligible

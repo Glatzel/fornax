@@ -109,6 +109,8 @@ The PR body must identify:
 - the task manifest and task-owned deliverables;
 - each dependency and its merged PR;
 - the architectural or numerical decisions made;
+- updates to the relevant `docs/raw-pipeline/` files, or an explicit statement
+  that the change does not affect the persistent design;
 - exact validation commands and results;
 - known limitations, follow-up tasks, and files intentionally out of scope.
 
