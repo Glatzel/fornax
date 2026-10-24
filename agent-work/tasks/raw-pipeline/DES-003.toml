@@ -17,9 +17,12 @@ acceptance = [
   "RGGB, BGGR, GRBG, and GBRG tests are planned for every supported pattern.",
   "Shared APIs do not hide a 2x2-only assumption.",
   "Decisions cite merged SYN-01 evidence.",
+  "Image-rs container suitability and row-stride limitations are evaluated.",
+  "Initial source precision and the f32 preprocessing domain are justified from decoder evidence.",
 ]
 validation = [
   "Verify SYN-01 is merged.",
   "Compile representative snippets or doctests when feasible.",
   "Check indexing formulas against all four Bayer phases.",
+  "Check image-rs container behavior against the pinned dependency revision.",
 ]

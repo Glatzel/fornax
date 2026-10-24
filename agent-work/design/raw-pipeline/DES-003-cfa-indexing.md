@@ -17,13 +17,18 @@
 >   pattern.
 > - [x] Shared APIs do not hide a 2×2-only assumption.
 > - [x] Decisions cite merged SYN-01 evidence.
+> - [x] Image-rs container suitability and row-stride limitations are
+>   evaluated.
+> - [x] Initial source precision and the `f32` preprocessing domain are
+>   justified from decoder evidence.
 
 ## 1. Scope and decisions
 
 This proposal defines the typed CFA model used between decoding,
-CFA-dependent preprocessing, and Bayer demosaicing. It does not define the
-sample buffer, black-level values, decoder adapter API, or demosaicing
-algorithms.
+CFA-dependent preprocessing, and Bayer demosaicing. It also evaluates image-rs
+as the pixel payload container and distinguishes native source precision from
+the `f32` preprocessing domain. It does not define the black-level algorithm,
+decoder adapter API, or demosaicing algorithms.
 
 The design follows the [SYN-01 decision table](../../research/notes/SYN-01.md#decision-table):
 
@@ -307,7 +312,120 @@ The backends' packed filter integers are not part of this model. DNG CFA tags,
 rawler's plane mapping, and LibRaw's packed `filters` must be validated and
 translated by their adapters.
 
-## 4. General CFA boundary
+## 4. Image-rs payload container
+
+The workspace already depends on image-rs `0.25.9` at commit `d11aaf5`
+(`Cargo.lock:910-912`). The inspected API offers two relevant containers:
+
+- `ImageBuffer<Luma<T>, Vec<T>>` is an owned, row-major, tightly packed payload
+  with width and height (`image src/images/buffer.rs:492-546`).
+- `FlatSamples<Buffer>` stores an explicit `SampleLayout`, including height
+  stride, and can represent padded, borrowed, or owned layouts
+  (`image src/images/flat.rs:81-117,471-529`).
+
+`ImageBuffer` is suitable as the compact stored payload container, but not as
+the universal RAW type:
+
+```rust,ignore
+use image::{ImageBuffer, Luma};
+
+pub type StoredU16Plane = ImageBuffer<Luma<u16>, Vec<u16>>;
+pub type StoredF32Plane = ImageBuffer<Luma<f32>, Vec<f32>>;
+pub type PreprocessedPlane = ImageBuffer<Luma<f32>, Vec<f32>>;
+
+pub enum StoredPlane {
+    U16(StoredU16Plane),
+    F32(StoredF32Plane),
+}
+```
+
+Constraints and recommendation:
+
+- `ImageBuffer` is tightly packed and has no row-pitch field. A backend buffer
+  with `row_stride != width * bytes_per_sample` must be copied row-by-row into
+  a compact `ImageBuffer`; its original stride is retained in source
+  provenance.
+- `ImageBuffer::from_raw` accepts any container at least as large as
+  `width * height`; callers must use exact-length containers or explicitly
+  compact them first. Passing a padded raw allocation directly misinterprets
+  row starts.
+- `FlatSamples` is preferred for inspecting or borrowing backend buffers with
+  padding. `FlatSamples::try_into_buffer` succeeds only for row-major packed
+  layouts, which makes the compacting boundary explicit.
+- `ImageBuffer` carries an inherent display color-space field initialized to
+  sRGB. RAW use must remain an opaque payload limited to pixel/sample access;
+  it must not call color-conversion, encoding, or display APIs. Preserve CFA,
+  processing state, and color metadata in the separate universal model.
+- `ImageBuffer` has no ActiveArea, CFA phase, black levels, processing state,
+  or backend provenance. These remain wrapper metadata.
+- `get_pixel_checked`/`get_pixel_mut_checked` should be used by the wrapper to
+  avoid image-rs's panicking unchecked accessors.
+
+Recommended boundary:
+
+```text
+backend borrowed/owned samples + source stride
+    -> adapter validation (FlatSamples/view or checked copy)
+    -> compact owned ImageBuffer<Luma<T>, Vec<T>>
+    -> RawPlane wrapper carrying geometry, sample encoding, CFA, and state
+```
+
+This reuses image-rs for storage and checked pixel access without treating a
+display-oriented image container as the RAW semantic model.
+
+## 5. Source precision and preprocessing type
+
+`u16` is the common integer storage container in the inspected decoder
+surfaces, not a statement that every RAW sample has 16 bits of precision:
+
+- LibRaw exposes single-plane `raw_image` as `ushort*` and separate float image
+  pointers; source reports require preserving the actual sample encoding
+  ([RES-02 §2.2](../../research/RES-02-libraw.md#22-decode-lifecycle-and-buffer-meaning)).
+- rawloader stores `RawImageData::{Integer(Vec<u16>), Float(Vec<f32>)}`
+  ([RES-06 §2.3](../../research/RES-06-rust-raw-decoders.md#23-rawloader)).
+- rawler stores integer or floating samples and retains the DNG
+  `BitsPerSample`/`SampleFormat`; DNG floating samples can declare 16, 24, or
+  32 bits while the populated backend container remains `f32`
+  ([RES-03 §2.2](../../research/RES-03-dnglab.md#22-dng-tag-mapping);
+  [RES-06 §2.4](../../research/RES-06-rust-raw-decoders.md#24-rawler)).
+
+Therefore:
+
+- Initial compact integer storage is `ImageBuffer<Luma<u16>, Vec<u16>>`.
+- The declared bit depth remains part of `SampleEncoding`, so 8-, 10-, 12-,
+  14-, and 16-bit sources are not silently promoted to semantic 16-bit data.
+  Packed source values are unpacked without an extra left shift unless the
+  source specification/decoder says otherwise.
+- Initial float storage is `ImageBuffer<Luma<f32>, Vec<f32>>` when a backend
+  exposes a floating source path.
+- Integer widths that cannot fit losslessly in `u16` must use a verified wider
+  variant or return a structured unsupported-encoding error. Signed integers
+  and `f64` are not established initial decoder outputs.
+- Preprocessing and demosaic input use
+  `ImageBuffer<Luma<f32>, Vec<f32>>`.
+
+For the initial target, every native unsigned integer up to 16 bits is exactly
+representable in `f32` because `f32` has 24 bits of significand precision.
+This makes `f32` suitable for black subtraction, normalization, and
+demosaicing without repeating integer quantization. It is not universally
+higher precision: integers above 24 significant bits and some `f64` source
+values can lose information when stored as `f32`.
+
+The preprocessing contract therefore uses `f32` sample storage with widened
+scalar arithmetic where needed:
+
+- convert validated source samples to `f32` before the preprocessed working
+  buffer;
+- compute black/white level arithmetic in `f64` to avoid avoidable
+  intermediate rounding;
+- store unclipped corrected/normalized values as `f32` for `SYN-02`'s explicit
+  clipping stage; and
+- finalize the demosaic-ready mosaic as clamped `f32`.
+
+High-bit-depth or `f64` inputs require an explicitly approved wider path; they
+must not silently pass through `f32` with a false precision claim.
+
+## 6. General CFA boundary
 
 The universal metadata may need to preserve the observed CFA shape before
 rejecting an unsupported sensor. The proposed shared shape type is `CfaShape`;
@@ -332,7 +450,7 @@ The `Other(u8)` color exists to represent metadata while diagnosing malformed
 or unsupported inputs. A valid `BayerLayout` can produce only `Red`, `Green`,
 or `Blue`.
 
-## 5. Validation and errors
+## 7. Validation and errors
 
 | Condition | Result |
 | --- | --- |
@@ -353,7 +471,7 @@ future constructors fails structurally rather than panicking.
 No public CFA operation panics for malformed input. Indexing is checked by type
 construction; unsupported layouts fail at the adapter boundary.
 
-## 6. Test plan
+## 8. Test plan
 
 Each supported phase must test the same properties:
 
@@ -380,7 +498,7 @@ The required pattern matrix is:
 Additional negative tests cover zero dimensions, reversed ActiveArea bounds,
 out-of-buffer bounds, and malformed CFA shapes/planes.
 
-## 7. Integration decisions and risks
+## 9. Integration decisions and risks
 
 - `DES-001` should own or re-export the shared pixel-size, coordinate, and
   rectangle types rather than duplicating them.
@@ -395,10 +513,12 @@ out-of-buffer bounds, and malformed CFA shapes/planes.
   represented by an enum or trait. It preserves `CfaShape` as the general
   boundary so adding those variants does not require pretending they are 2×2.
 
-## 8. Open questions
+## 10. Open questions
 
 - Should `PixelSize`, `PixelCoord`, and `ActiveArea` live in the universal
   representation module or a shared geometry module?
+- Should the compact payload use image-rs `ImageBuffer` directly or an opaque
+  one-field wrapper that prevents accidental display/color operations?
 - Should a stored-coordinate phase be cached on `BayerLayout`, or recomputed
   from ActiveArea for each lookup?
 - How should adapter provenance retain non-Bayer plane mappings after
@@ -406,7 +526,7 @@ out-of-buffer bounds, and malformed CFA shapes/planes.
 - Does the final demosaicing API need a borrowed tile LUT for hot loops, or are
   slot lookups sufficient after validation?
 
-## 9. Evidence
+## 11. Evidence
 
 - [SYN-01 decision table](../../research/notes/SYN-01.md#decision-table):
   stored coordinates, ActiveArea, CFA phase, per-position black slots, and
@@ -418,6 +538,16 @@ out-of-buffer bounds, and malformed CFA shapes/planes.
   conversion.
 - [RES-06 §2.3–§2.4](../../research/RES-06-rust-raw-decoders.md#23-rawloader):
   rawloader/rawler CFA representations and unsupported-layout risks.
+- `Cargo.lock:910-912`: image-rs `0.25.9` at
+  `d11aaf5f12c948606d5865cacb30da016ef175c2`.
+- image-rs `src/images/buffer.rs:492-546`: owned row-major `ImageBuffer`,
+  dimensions, raw-container acceptance, and checked pixel access.
+- image-rs `src/images/flat.rs:81-117,471-529,827-851`: explicit sample
+  strides, `FlatSamples`, and packed-buffer conversion requirements.
+- [RES-02 §2.2](../../research/RES-02-libraw.md#22-decode-lifecycle-and-buffer-meaning);
+  [RES-03 §2.2](../../research/RES-03-dnglab.md#22-dng-tag-mapping);
+  [RES-06 §2.3–§2.4](../../research/RES-06-rust-raw-decoders.md#23-rawloader):
+  native integer/float storage and bit-depth provenance.
 
 ## Acceptance checklist
 
@@ -428,3 +558,6 @@ out-of-buffer bounds, and malformed CFA shapes/planes.
   pattern.
 - [x] Shared APIs do not hide a 2×2-only assumption.
 - [x] Decisions cite merged SYN-01 evidence.
+- [x] Image-rs container suitability and row-stride limitations are evaluated.
+- [x] Initial source precision and the `f32` preprocessing domain are justified
+  from decoder evidence.
