@@ -40,7 +40,7 @@ crate remains usable without enabling any decoder backend.
 | `fornax` crate root | Public re-exports for decoded planes, `DecodedRaw`, demosaic output, and f32-only `RawImage` |
 | `fornax::decoded_raw` | Internal `DecodedRaw` owner with a private `plane` submodule for native sample containers |
 | `fornax::geometry` | Pixel sizes, rectangles, ActiveArea, and stored geometry |
-| `fornax::metadata` | Typed/extensible metadata, levels, provenance, validated metadata, and private-file CFA submodule |
+| `fornax::metadata` | Nested metadata aggregates with focused submodules for camera, CFA, extensible fields, levels, provenance, and exact values |
 | `fornax::error` | Model, metadata, decoder, preprocessing, and demosaicing errors |
 | `fornax::decoder` | Generic-input `IRawDecoder<I>` contract and backend modules |
 | `fornax::decoder::libraw` | Private LibRaw adapter over `libraw-sys` |
@@ -69,8 +69,14 @@ src/
 ├── error.rs
 ├── geometry.rs
 ├── metadata/
-│   ├── mod.rs                 # provenance, levels, extensible/validated metadata
-│   └── cfa.rs                 # Bayer/CFA layout and indexing
+│   ├── mod.rs                 # nested CommonMetadata / ValidatedMetadata only
+│   ├── camera.rs              # camera, crop, capture, WB, color, orientation
+│   ├── cfa.rs                 # Bayer/CFA layout and indexing
+│   ├── extensible.rs          # extensible keys, entries, values, conflicts
+│   ├── levels.rs              # black/white level metadata
+│   ├── provenance.rs          # provider, source, authority, confidence
+│   ├── value.rs               # exact rational values
+│   └── tests.rs               # metadata invariant tests
 └── raw_image.rs               # f32-only preprocessing output
 ```
 
