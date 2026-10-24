@@ -118,7 +118,7 @@ pub enum DemosaicError {
 }
 
 /// A decoder backend that produces the universal decoded representation.
-pub trait RawDecoderBackend: Send + Sync {
+pub trait IRawDecoder: Send + Sync {
     /// Decodes one RAW input into a validated [`DecodedRaw`].
     ///
     /// # Errors
@@ -133,7 +133,7 @@ pub trait RawDecoderBackend: Send + Sync {
 }
 
 /// A preprocessing backend that performs the complete standard RAW pass.
-pub trait RawPreprocessor: Send + Sync {
+pub trait IRawPreprocessor: Send + Sync {
     /// Converts one decoded image into a demosaic-ready f32-only [`RawImage`].
     ///
     /// # Errors
@@ -148,7 +148,7 @@ pub trait RawPreprocessor: Send + Sync {
 }
 
 /// A demosaicing backend that reconstructs linear interleaved RGB.
-pub trait DemosaicBackend: Send + Sync {
+pub trait IDemosaic: Send + Sync {
     /// Reconstructs linear RGB from one preprocessed Bayer image.
     ///
     /// # Errors
@@ -172,10 +172,10 @@ impl DecodedRaw {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{DecodedRaw, PreprocessError, PreprocessOptions, RawImage, RawPreprocessor};
+    /// use fornax_core::{DecodedRaw, IRawPreprocessor, PreprocessError, PreprocessOptions, RawImage};
     ///
     /// struct Unsupported;
-    /// impl RawPreprocessor for Unsupported {
+    /// impl IRawPreprocessor for Unsupported {
     ///     fn pre_process(
     ///         &self,
     ///         _input: DecodedRaw,
@@ -187,7 +187,7 @@ impl DecodedRaw {
     ///
     /// assert_eq!(PreprocessOptions::default(), PreprocessOptions);
     /// ```
-    pub fn pre_process<P: RawPreprocessor + ?Sized>(
+    pub fn pre_process<P: IRawPreprocessor + ?Sized>(
         self,
         preprocessor: &P,
         options: &PreprocessOptions,
@@ -202,7 +202,7 @@ impl RawImage {
     /// # Errors
     ///
     /// Returns the selected backend's structured error.
-    pub fn demosaic<D: DemosaicBackend + ?Sized>(
+    pub fn demosaic<D: IDemosaic + ?Sized>(
         &self,
         demosaicer: &D,
         options: &DemosaicOptions,
@@ -244,13 +244,13 @@ mod tests {
 
     #[test]
     fn phase_backends_are_object_safe() {
-        fn decoder(_: &dyn RawDecoderBackend) {}
-        fn preprocessor(_: &dyn RawPreprocessor) {}
-        fn demosaicer(_: &dyn DemosaicBackend) {}
+        fn decoder(_: &dyn IRawDecoder) {}
+        fn preprocessor(_: &dyn IRawPreprocessor) {}
+        fn demosaicer(_: &dyn IDemosaic) {}
 
-        let _: fn(&dyn RawDecoderBackend) = decoder;
-        let _: fn(&dyn RawPreprocessor) = preprocessor;
-        let _: fn(&dyn DemosaicBackend) = demosaicer;
+        let _: fn(&dyn IRawDecoder) = decoder;
+        let _: fn(&dyn IRawPreprocessor) = preprocessor;
+        let _: fn(&dyn IDemosaic) = demosaicer;
     }
 
     #[test]

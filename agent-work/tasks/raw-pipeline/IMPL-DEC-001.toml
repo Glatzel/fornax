@@ -7,14 +7,14 @@ dependencies = ["IMPL-CORE-001", "DES-006"]
 parallelism = "Starts after IMPL-CORE-001; can run in parallel with the preprocessing and demosaic track foundations."
 deliverables = ["fornax-decode source", "backend contract and registry tests"]
 scope = """
-Move the draft RawDecoderBackend, RawInput, DecodeConfig, and DecodeError
+Move the draft IRawDecoder, RawInput, DecodeConfig, and DecodeError
 contract reviewed in fornax-core into fornax-decode as appropriate. Add backend
 identifiers, capabilities, explicit selection and registry policy, and decode
 provenance. This task defines the concrete backend boundary; it does not
 implement a concrete decoder.
 """
 acceptance = [
-  "RawDecoderBackend exposes decode(&self, input: &RawInput<'_>, config: &DecodeConfig) -> Result<DecodedRaw, DecodeError>; decoder provenance is attached through ValidatedMetadata.",
+  "IRawDecoder exposes decode(&self, input: &RawInput<'_>, config: &DecodeConfig) -> Result<DecodedRaw, DecodeError>; decoder provenance is attached through ValidatedMetadata.",
   "A backend returns a validated DecodedRaw and never exposes an upstream decoder type downstream.",
   "A decoder returns DecodeError when required black/white metadata is missing or invalid instead of deferring the failure to preprocessing.",
   "Backend capabilities describe format, Bayer layout, sample specification, metadata, and level limitations.",

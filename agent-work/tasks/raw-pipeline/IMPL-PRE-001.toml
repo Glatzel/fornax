@@ -7,8 +7,8 @@ dependencies = ["IMPL-CORE-001", "DES-004"]
 parallelism = "Starts after IMPL-CORE-001; can run in parallel with decoder and demosaic foundations."
 deliverables = ["fornax-preprocess foundation source", "conversion and linearization tests"]
 scope = """
-Use the RawPreprocessor and option/error contracts drafted in fornax-core and
-adjust them as necessary in fornax-preprocess. Implement RawPreprocessor,
+Use the IRawPreprocessor and option/error contracts drafted in fornax-core and
+adjust them as necessary in fornax-preprocess. Implement IRawPreprocessor,
 exact integer conversion and mutable custom-plane access, a private
 identity/table linearization substep,
 allocation checks, and typed preprocessing errors. Do not expose intermediate

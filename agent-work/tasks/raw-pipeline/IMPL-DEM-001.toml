@@ -7,7 +7,7 @@ dependencies = ["IMPL-CORE-001", "DES-005"]
 parallelism = "Starts after IMPL-CORE-001; can run in parallel with decoder and preprocessing foundations."
 deliverables = ["fornax-demosaic contract source", "input, output, registry, and error tests"]
 scope = """
-Use the draft DemosaicBackend, options, output, and error contracts in
+Use the draft IDemosaic, options, output, and error contracts in
 fornax-core and adjust them as necessary in fornax-demosaic. Add DemosaicInput,
 RgbImageF32 interleaved output validation, DemosaicStrategy, capabilities, border
 policy, and runtime registry. Validate the consuming f32-only RawImage boundary

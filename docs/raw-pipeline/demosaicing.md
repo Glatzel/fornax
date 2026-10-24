@@ -66,7 +66,7 @@ sample counts and finite values before returning the image.
 call flow:
 
 ```rust
-pub trait DemosaicBackend: Send + Sync {
+pub trait IDemosaic: Send + Sync {
     fn demosaic(
         &self,
         input: &RawImage,

@@ -49,12 +49,12 @@ Arrow direction means the source crate depends on the target crate.
 | Crate | Responsibility |
 | --- | --- |
 | `fornax-core` | `DecodedRaw`, f32-only `RawImage`, universal metadata/geometry/CFA, and the draft decoder/preprocess/demosaic protocols |
-| `fornax-decode` | Concrete `RawDecoderBackend` registry, capabilities, selection policy, and decoder errors |
+| `fornax-decode` | Concrete `IRawDecoder` registry, capabilities, selection policy, and decoder errors |
 | `fornax-decoder-libraw` | LibRaw `unpack` adapter and metadata translation |
 | `fornax-decoder-dnglab` | dnglab/rawler adapter |
 | `fornax-decoder-dnc` | Adobe DNG conversion bridge composed with a DNG decoder |
-| `fornax-preprocess` | `RawPreprocessor` implementation with private LUT, black correction, normalization, and clipping substeps |
-| `fornax-demosaic` | `DemosaicBackend` implementations, registry, and built-in/external algorithms |
+| `fornax-preprocess` | `IRawPreprocessor` implementation with private LUT, black correction, normalization, and clipping substeps |
+| `fornax-demosaic` | `IDemosaic` implementations, registry, and built-in/external algorithms |
 | `fornax` | Explicit backend selection and end-to-end composition |
 | `fornax-py` | Python package over the facade |
 | `fornax-devtool` | Non-published fixtures and examples |
@@ -66,10 +66,10 @@ Arrow direction means the source crate depends on the target crate.
   implementation.
 - `fornax-decode`, `fornax-preprocess`, and `fornax-demosaic` depend on core but
   not on one another.
-- Decoder crates implement `RawDecoderBackend`; upstream types remain private.
-- `fornax-preprocess` implements `RawPreprocessor`; preprocessing substeps stay
+- Decoder crates implement `IRawDecoder`; upstream types remain private.
+- `fornax-preprocess` implements `IRawPreprocessor`; preprocessing substeps stay
   private.
-- Demosaic backends implement `DemosaicBackend`; strategy registries can be
+- Demosaic backends implement `IDemosaic`; strategy registries can be
   added in the demosaicing task.
 - Only `fornax` depends on concrete adapters, and only through enabled features.
 - `fornax-core`'s `serde` feature currently serializes validated metadata and
@@ -82,7 +82,7 @@ The draft contract lives in `fornax-core::protocol`; `fornax-decode` will add
 registry and capability policy around it in `IMPL-DEC-001`:
 
 ```rust
-pub trait RawDecoderBackend: Send + Sync {
+pub trait IRawDecoder: Send + Sync {
     fn id(&self) -> DecoderBackendId;
     fn capabilities(&self) -> DecoderCapabilities;
 
@@ -102,7 +102,7 @@ store or expose a separate decoder field.
 The draft preprocessing contract consumes and returns distinct image types:
 
 ```rust
-pub trait RawPreprocessor: Send + Sync {
+pub trait IRawPreprocessor: Send + Sync {
     fn pre_process(
         &self,
         input: DecodedRaw,
@@ -114,7 +114,7 @@ pub trait RawPreprocessor: Send + Sync {
 The draft demosaicing contract accepts the f32-only preprocessed image:
 
 ```rust
-pub trait DemosaicBackend: Send + Sync {
+pub trait IDemosaic: Send + Sync {
     fn demosaic(
         &self,
         input: &RawImage,

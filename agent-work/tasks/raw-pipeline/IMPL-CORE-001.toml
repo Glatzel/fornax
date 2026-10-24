@@ -28,7 +28,7 @@ acceptance = [
   "Typed metadata, extensible metadata, provenance, conflict handling, and level invariants are enforced by construction.",
   "Black and white levels are required decoder metadata; missing levels or a white range that does not exceed the effective black level rejects ValidatedMetadata/DecodedRaw construction.",
   "DecodedRaw accepts every supported decoder plane, pre_process consumes it to produce the distinct f32-only RawImage type, and preprocessing cannot be called again on RawImage.",
-  "Draft RawDecoderBackend, RawPreprocessor, and DemosaicBackend protocols expose the decode -> preprocess -> demosaic call flow with structured phase errors.",
+  "Draft IRawDecoder, IRawPreprocessor, and IDemosaic protocols expose the decode -> preprocess -> demosaic call flow with structured phase errors.",
   "Unsupported non-mosaic, non-RGB, and wider sample specifications return typed errors.",
   "fornax-core has no dependency on a decoder adapter, preprocessing implementation, or demosaic strategy.",
 ]

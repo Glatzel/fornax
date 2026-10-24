@@ -59,7 +59,7 @@ Preprocessing has one public operation:
 
 ```rust
 impl DecodedRaw {
-    pub fn pre_process<P: RawPreprocessor + ?Sized>(
+    pub fn pre_process<P: IRawPreprocessor + ?Sized>(
         self,
         preprocessor: &P,
         options: &PreprocessOptions,
@@ -70,7 +70,7 @@ impl DecodedRaw {
 ```
 
 It applies for every supported `DecodedRaw`, regardless of whether the decoded
-payload is u8, u16, u32, or f32. The selected `RawPreprocessor` implementation
+payload is u8, u16, u32, or f32. The selected `IRawPreprocessor` implementation
 converts to the f32 working domain as needed and calls private substep
 functions:
 
