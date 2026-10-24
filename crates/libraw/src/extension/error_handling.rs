@@ -19,16 +19,8 @@ macro_rules! check_run {
             | crate::LibrawErrorCode::UnsupportedThumbnail
             | crate::LibrawErrorCode::InputClosed
             | crate::LibrawErrorCode::NotImplemented
-            | crate::LibrawErrorCode::RequestForNonexistentThumbnail => {
-                clerk::warn!(
-                    "{:?}",
-                    $crate::LibrawError::Libraw {
-                        code,
-                        message: crate::Libraw::strerror(code as i32)?
-                    }
-                );
-            }
-            crate::LibrawErrorCode::UnknownError
+            | crate::LibrawErrorCode::RequestForNonexistentThumbnail
+            | crate::LibrawErrorCode::UnknownError
             | crate::LibrawErrorCode::OtherError
             | crate::LibrawErrorCode::UnsufficientMemory
             | crate::LibrawErrorCode::DataError

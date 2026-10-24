@@ -1,10 +1,9 @@
 use std::path::Path;
 
 use envoy::ToCString;
-use fornax_core::BayerPattern;
 
 use crate::extension::error_handling::check_run;
-use crate::{Libraw, LibrawError};
+use crate::{BayerPattern, Libraw, LibrawError};
 
 #[derive(Debug, Clone)]
 pub enum ProcFlag {
@@ -43,6 +42,7 @@ impl Libraw {
         Ok(self)
     }
 
+    #[allow(clippy::too_many_arguments, reason = "mirrors the LibRaw C API")]
     pub fn open_bayer(
         &self,
         data: &[u8],

@@ -875,9 +875,11 @@ planned around the boundaries that design actually produced:
    stage methods, validation contracts, and reusable linear demosaic baseline.
    It also removes `fornax-dalim`.
 2. The decoder track implements private `libraw`, `rawler`, and optional DNC
-   modules inside `fornax`, depending directly on upstream decoders behind
-   optional features. Each task owns its target-format fixture and conformance
-   evidence; there is no separate decoder-conformance placeholder.
+   modules inside `fornax`. The LibRaw module uses the non-published internal
+   `libraw` wrapper; other upstream decoders remain optional dependencies.
+   `IMPL-DEC-003` owns focused wrapper and adapter unit tests, while real-format
+   LibRaw conformance follows PR #557. Rawler and DNC tasks own their
+   target-format fixture evidence.
 3. The preprocessing track adds one private preprocessing implementation inside
    `fornax`, preserving the ordered substeps from decoded f32 conversion and
    linearization through black subtraction, normalization, and clipping.

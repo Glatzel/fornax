@@ -11,22 +11,23 @@ dependencies = [
   "IMPL-PY-001",
   "IMPL-DEV-001",
 ]
-parallelism = "Final facade/workspace retirement after decoders absorb libraw/dnc internals and all supported consumers migrate."
+parallelism = "Final facade/workspace retirement after decoder integrations and supported consumers migrate."
 deliverables = [
   "legacy fornax-core/fornax-dalim/facade removal",
   "dependency-graph and workspace validation evidence",
 ]
 scope = """
 Remove the remaining legacy core, dalim, facade, examples, and workspace
-wiring made obsolete by the replacement. The LibRaw and DNC decoder tasks own
-their deprecated legacy wrapper code and production dependencies; this task
-only verifies the combined graph and retires integration-level leftovers
-without maintaining compatibility shims.
+wiring made obsolete by the replacement. `IMPL-DEC-003` retains `libraw` as an
+internal, non-published safe wrapper behind the private adapter, while
+`IMPL-DEC-005` owns DNC integration cleanup. This task verifies the combined
+graph and retires integration-level leftovers without maintaining public
+compatibility shims.
 """
 acceptance = [
   "fornax-core, fornax-dalim, and the legacy fornax facade are absent from workspace dependencies, examples, tests, and the supported public API.",
-  "Legacy libraw and dnc wrappers have already been removed by IMPL-DEC-003 and IMPL-DEC-005; this task verifies no production edge remains.",
-  "libraw-sys is reachable only through `fornax::decoder::libraw` and is not re-exported.",
+  "The internal libraw wrapper is non-published, has no legacy fornax_core API, and is consumed only by `fornax` behind backend-libraw.",
+  "libraw-sys is reachable only through the private `fornax::decoder::libraw` adapter stack and is not re-exported.",
   "The dependency graph matches docs/raw-pipeline/architecture.md and remains acyclic.",
   "Every workspace member builds after legacy removal without relying on preserved compatibility traits or crate boundaries.",
   "The external/raw-images fixture submodule remains unchanged and available to devtool/Python tests.",

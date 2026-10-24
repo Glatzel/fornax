@@ -744,7 +744,7 @@ version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
  "image 0.25.9",
- "libraw-sys",
+ "libraw",
  "rawler",
  "rayon",
  "serde",
@@ -1446,6 +1446,7 @@ dependencies = [
  "fornax-devtool",
  "image 0.25.9",
  "jiff",
+ "libc",
  "libraw-sys",
  "mischief",
  "num_enum",

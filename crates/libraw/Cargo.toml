@@ -2,6 +2,7 @@
 name = "libraw"
 version.workspace = true
 edition.workspace = true
+publish = false
 
 [dependencies]
 bytemuck.workspace = true
@@ -9,6 +10,7 @@ clerk.workspace = true
 envoy.workspace = true
 image.workspace = true
 jiff.workspace = true
+libc.workspace = true
 libraw-sys.workspace = true
 num_enum.workspace = true
 serde = { workspace = true, optional = true }

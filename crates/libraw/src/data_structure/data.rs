@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
 use super::DCRawParams;
+use crate::{LibrawError, LibrawErrorCode};
+
 #[derive(Debug)]
 pub struct ImgdataPtr(*mut libraw_sys::libraw_data_t);
 impl ImgdataPtr {
@@ -23,13 +25,33 @@ impl Libraw {
         Arc::new(ImgdataPtr(unsafe { libraw_sys::libraw_init(0) }))
     }
     pub fn new(params: Option<DCRawParams>) -> Self {
-        Self {
-            imgdata_ptr: Self::libraw_init(),
-            params,
-        }
+        Self::try_new(params).expect("LibRaw initialization failed")
     }
 
-    fn close(&self) { unsafe { libraw_sys::libraw_close(self.imgdata_ptr.0) } }
+    /// Initializes a LibRaw context and reports allocation failure.
+    ///
+    /// # Errors
+    ///
+    /// Returns a LibRaw error when the native library cannot create a context.
+    pub fn try_new(params: Option<DCRawParams>) -> Result<Self, LibrawError> {
+        let imgdata_ptr = Self::libraw_init();
+        if imgdata_ptr.0.is_null() {
+            return Err(LibrawError::Libraw {
+                code: LibrawErrorCode::UnsufficientMemory,
+                message: "LibRaw initialization returned a null context".into(),
+            });
+        }
+        Ok(Self {
+            imgdata_ptr,
+            params,
+        })
+    }
+
+    fn close(&self) {
+        if !self.imgdata_ptr.0.is_null() {
+            unsafe { libraw_sys::libraw_close(self.imgdata_ptr.0) }
+        }
+    }
 }
 impl Drop for Libraw {
     fn drop(&mut self) { self.close(); }

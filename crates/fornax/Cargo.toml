@@ -9,7 +9,7 @@ name = "demosaic"
 
 [dependencies]
 image.workspace = true
-libraw-sys = { workspace = true, optional = true }
+libraw = { workspace = true, optional = true }
 rawler = { workspace = true, optional = true }
 rayon = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
@@ -22,6 +22,6 @@ criterion.workspace = true
 default = []
 backend-dnc = []
 backend-dnglab = ["dep:rawler"]
-backend-libraw = ["dep:libraw-sys"]
+backend-libraw = ["dep:libraw"]
 parallel = ["dep:rayon"]
 serde = ["dep:serde"]
