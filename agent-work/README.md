@@ -58,8 +58,12 @@ or checkpoints. Those states duplicate and can conflict with GitHub.
    integration base.
 3. Work only inside the manifest's scope and deliverables.
 4. Commit, push, and open one pull request for the task.
-5. Iterate in that pull request. The user reviews and approves it there.
-6. An agent never merges or closes the review pull request.
+5. Report the PR URL and stop. Do not watch, poll, or wait for checks or
+   review.
+6. The user initiates the next step: request local changes or merge the PR.
+   Apply requested changes on the same branch and PR unless the user asks for a
+   local-only result.
+7. An agent never merges or closes the task pull request.
 
 The repository does not maintain a second dashboard of PR states. Use GitHub's
 pull-request search, labels, and branch names. The task index records the

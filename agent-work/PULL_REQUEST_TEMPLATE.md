@@ -36,5 +36,6 @@ task that needs its own branch and PR.
 - [ ] Deliverables use the paths and names in the task manifest.
 - [ ] The branch contains only this task's changes.
 - [ ] Validation results are complete and reproducible.
-- [ ] Review comments are resolved in this PR.
-- [ ] The user, not the agent, approves and merges the PR.
+- [ ] Requested changes are resolved on this branch.
+- [ ] The user, not the agent, initiates local changes or merges the PR.
+- [ ] The agent has not been left watching or polling the PR.
