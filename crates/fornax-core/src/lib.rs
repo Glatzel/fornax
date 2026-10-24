@@ -1,10 +1,9 @@
 //! Backend-independent types for decoding, preprocessing, and demosaicing RAW
 //! images.
 //!
-//! [`RawImage`] is the universal container: it combines compact sensor samples
-//! with immutable validated metadata, provenance, and processing state.
-//! Standard preprocessing consumes that same container and records a finalized
-//! state so corrections cannot silently run twice.
+//! [`DecodedRaw`] combines decoder samples with immutable validated metadata
+//! and provenance. Standard preprocessing consumes it and returns the distinct,
+//! f32-only [`RawImage`] type, so corrections cannot silently run twice.
 //!
 //! # Examples
 //!
@@ -38,5 +37,5 @@ pub use metadata::{
 pub use plane::{F32Plane, SampleEncoding, SampleFormat, StoredPlane, U8Plane, U16Plane, U32Plane};
 pub use raw_image::{
     DecodedRaw, DecoderProvenance, MetadataBasis, OperationProvenance, PlaneStorage, RawImage,
-    RawImageState, into_preprocessed,
+    into_preprocessed,
 };

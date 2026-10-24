@@ -13,19 +13,19 @@ flowchart TB
         direction LR
         File["RAW file\nDNG / ARW / NEF / Canon CR*"]
         Adapter["Selected decoder adapter\nLibRaw / dnglab-rawler / dnc bridge"]
-        Decoded["RawImage\nDecoded state\nU8 / U16 / U32 / F32"]
+        Decoded["DecodedRaw\nU8 / U16 / U32 / F32"]
         File --> Adapter
         Adapter -->|supported Bayer| Decoded
     end
 
     subgraph PreprocessPhase["2 · Preprocess"]
         direction LR
-        Preprocess["RawImage::pre_process\nsingle consuming entry point"]
+        Preprocess["DecodedRaw::pre_process\nsingle consuming entry point"]
         Linear["private linearize\nLUT or identity"]
         Subtract["private subtract_black\nf64 scalar arithmetic"]
         Normalize["private normalize\nunclipped f32"]
         Finish["private finish_for_demosaic\nclamped f32 [0,1]"]
-        Ready["RawImage\nPreprocessed state"]
+        Ready["RawImage\nf32-only preprocessed image"]
 
         Decoded --> Preprocess
         Preprocess --> Linear --> Subtract --> Normalize --> Finish --> Ready
@@ -50,7 +50,7 @@ flowchart TB
 | Step | Payload | Main operation | Required invariant | Failure mode |
 | --- | --- | --- | --- | --- |
 | Decode / custom | u8/u16/u32/f32 sensor plane | Backend unpack; optional `convert_to_f32` (lossless when representable) and user operation while state remains `Decoded` | Native encoding, geometry, CFA, ActiveArea, levels, provenance, and metadata basis validated | Unsupported encoding/layout or lossy conversion |
-| `pre_process` | `RawImage` | Runs linearization, black subtraction, normalization, and final clipping as private substeps | Input is decoded and metadata basis permits standard preprocessing; output is preprocessed f32 in `[0,1]` | Wrong state, missing/invalid metadata, or non-finite values |
+| `pre_process` | `DecodedRaw` to `RawImage` | Runs linearization, black subtraction, normalization, and final clipping as private substeps | Input metadata basis permits standard preprocessing; output is f32-only and in `[0,1]` | Missing/invalid metadata or non-finite values |
 | Demosaic | f32 planar RGB | Apply selected Bayer algorithm | Planar channel order and border policy explicit | Unsupported algorithm/layout |
 
 ## Preprocessing operation contract
@@ -58,15 +58,15 @@ flowchart TB
 Preprocessing has one public operation:
 
 ```rust
-impl RawImage {
+impl DecodedRaw {
     pub fn pre_process(
         self,
         options: &PreprocessOptions,
-    ) -> Result<Self, PreprocessError>;
+    ) -> Result<RawImage, PreprocessError>;
 }
 ```
 
-It applies for every supported `RawImage`, regardless of whether the decoded
+It applies for every supported `DecodedRaw`, regardless of whether the decoded
 payload is u8, u16, u32, or f32. The implementation converts to the f32 working
 domain as needed and calls private substep functions:
 
@@ -79,19 +79,19 @@ pre_process
 ```
 
 The substeps are private implementation details and do not expose intermediate
-image types. `RawImage` fields are private. Core exposes the validated
-`RawImage::try_new` decode constructor and a doc-hidden finalization helper;
-only the complete preprocessing pass changes the state to `Preprocessed`. A
-second call is rejected.
+image types. Both image types keep their fields private. Core exposes the
+validated `DecodedRaw::try_new` decode constructor and a doc-hidden finalizer
+that constructs `RawImage`. Because `pre_process` is defined only on
+`DecodedRaw`, a second call on the returned f32-only `RawImage` is impossible.
 
-`RawImage::convert_to_f32` is available only while the image remains decoded.
-It records a `convert_to_f32` operation and changes `PlaneStorage` to
+`DecodedRaw::convert_to_f32` records a `convert_to_f32` operation and changes
+`PlaneStorage` to
 `F32Working`; a second conversion is rejected. Custom f32 processing likewise
-remains decoded and must declare one of
+remains a `DecodedRaw` and must declare one of
 `MetadataBasis::{OriginalLevelsValid, ReplacedLevels, Incompatible}`. Standard
 preprocessing rejects `Incompatible`.
 
-Custom f32 processing remains inside the decoded `RawImage`. It records operation
+Custom f32 processing remains inside `DecodedRaw`. It records operation
 provenance and whether original, replaced, or incompatible
 linearization/black/white metadata applies.
 
@@ -126,7 +126,7 @@ with a structured `PreprocessError`. General spatial black tiles and
 
 The conversion itself is lossless for u8/u16 inputs. It does not prove that
 arbitrary custom processing preserves the meaning of file-declared black or
-white levels; the decoded `RawImage` retains that metadata-basis decision.
+white levels; `DecodedRaw` retains that metadata-basis decision.
 
 ## Where preprocessing stops
 

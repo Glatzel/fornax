@@ -32,7 +32,7 @@ flowchart LR
 
     subgraph PreprocessPhase["2 · Preprocess"]
         Convert["Optional DecodedRaw\nf32 custom processing"]
-        Pre["f32 buffer\nf64 scalar arithmetic"]
+        Pre["RawImage\nf32 buffer\nf64 scalar arithmetic"]
     end
 
     subgraph DemosaicPhase["3 · Demosaic"]

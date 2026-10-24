@@ -9,15 +9,22 @@ rationale; field names, units, and invariants in this file are authoritative.
 ```mermaid
 classDiagram
     direction LR
-    class RawImage {
-        <<universal container>>
+    class DecodedRaw {
+        <<decoder output>>
         +metadata
         +plane
         +decoder
         +operations
         +metadata_basis
         +storage
-        +state
+    }
+    class RawImage {
+        <<preprocessed f32 image>>
+        +metadata
+        +plane
+        +decoder
+        +operations
+        +metadata_basis
     }
     class ValidatedMetadata {
         <<struct>>
@@ -46,28 +53,35 @@ classDiagram
         +planar_rgb_f32
     }
 
+    DecodedRaw *-- ValidatedMetadata
+    DecodedRaw *-- StoredPlane
     RawImage *-- ValidatedMetadata
-    RawImage *-- StoredPlane
+    RawImage *-- F32Plane
     ValidatedMetadata *-- CommonMetadata
     ValidatedMetadata *-- ExtensibleMetadata
     CommonMetadata *-- StoredGeometry
     CommonMetadata *-- BayerLayout
     CommonMetadata *-- BlackLevels
     CommonMetadata *-- WhiteLevels
-    RawImage ..> DemosaicOutput : preprocessed input
+    DecodedRaw ..> RawImage : pre_process
+    RawImage ..> DemosaicOutput
 ```
 
 ## Core image
 
 | Type/field | Type | Unit | Invariant |
 | --- | --- | --- | --- |
-| `RawImage::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
-| `RawImage::plane` | `StoredPlane` | samples | Matches declared dimensions and processing state |
-| `RawImage::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend |
-| `RawImage::operations` | `Box<[OperationProvenance]>` | N/A | Records pre-preprocessing operations |
-| `RawImage::metadata_basis` | `MetadataBasis` | N/A | States whether level metadata remains applicable |
-| `RawImage::storage` | `PlaneStorage` | enum | `Native` or `F32Working` |
-| `RawImage::state` | `RawImageState` | enum | `Decoded` or `Preprocessed` |
+| `DecodedRaw::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
+| `DecodedRaw::plane` | `StoredPlane` | samples | Matches source geometry and declared encoding |
+| `DecodedRaw::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend |
+| `DecodedRaw::operations` | `Box<[OperationProvenance]>` | N/A | Records pre-preprocessing operations |
+| `DecodedRaw::metadata_basis` | `MetadataBasis` | N/A | States whether level metadata remains applicable |
+| `DecodedRaw::storage` | `PlaneStorage` | enum | `Native` or `F32Working` |
+| `RawImage::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during preprocessing and demosaicing |
+| `RawImage::plane` | `F32Plane` | samples | Finite preprocessed Bayer samples in `[0,1]` |
+| `RawImage::decoder` | `DecoderProvenance` | N/A | Retained decoder provenance |
+| `RawImage::operations` | `Box<[OperationProvenance]>` | N/A | Retained decoded operations |
+| `RawImage::metadata_basis` | `MetadataBasis` | N/A | Retained metadata-validity basis |
 | `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleEncoding` |
 | `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Working and preprocessed payload |
 
@@ -110,19 +124,21 @@ optional adjusted and measured arrays use the same length as the declared
 array. This keeps both green CFA positions distinguishable without treating the
 common scalar component as one of those slots.
 
-## Processing state
+## Image types
 
-`RawImage` is the single public image container. It is non-generic so every
-supported native plane and working f32 plane use the same type. Linearization,
-black subtraction, normalization, and final clipping are private substeps of
-the single `RawImage::pre_process` entry point implemented by
-`fornax-preprocess`; they do not create public intermediate image types.
+Decoder adapters produce `DecodedRaw`. Its `StoredPlane` covers native u8,
+u16, u32, and f32 samples, so one preprocessing implementation handles every
+supported decoder output.
 
-`RawImageState::Decoded` permits the single standard preprocessing pass.
-`RawImageState::Preprocessed` is constructed only after the complete pass and
-accepts a finite f32 Bayer plane in `[0,1]` for demosaicing. Calling
-`pre_process` or a demosaic input validator with the wrong state returns a
-structured error.
+`DecodedRaw::pre_process` is implemented by `fornax-preprocess` and consumes
+the decoded image. It returns the distinct `RawImage` type, whose payload is
+exclusively `F32Plane`. Linearization, black subtraction, normalization, and
+final clipping are private substeps and expose no intermediate image types.
+
+Because preprocessing is available only on `DecodedRaw`, calling it again on
+the returned `RawImage` is a compile-time error. `RawImage` construction is
+private to core's preprocessing finalizer and validates finite samples in
+`[0,1]` before demosaicing.
 
 ## Validation fields and errors
 
@@ -153,11 +169,12 @@ to RGB, or treats a display image as a sensor plane.
 
 ## Construction boundary
 
-`RawImage::try_new` is the public decode boundary and validates the native
+`DecodedRaw::try_new` is the public decode boundary and validates the native
 plane against its metadata. `fornax-core` exposes a doc-hidden finalization
-helper solely for the single preprocessing implementation to mark an owned
-image preprocessed after its private substeps finish. A custom
-`MetadataBasis::Incompatible` image is rejected before preprocessing starts.
+helper solely for the single preprocessing implementation to construct a
+`RawImage` after its private substeps finish. A custom
+`MetadataBasis::Incompatible` decoded image is rejected before preprocessing
+starts.
 
 ## Related guides
 

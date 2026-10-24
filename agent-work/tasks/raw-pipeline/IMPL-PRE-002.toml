@@ -19,7 +19,7 @@ acceptance = [
   "Missing or conflicting required black metadata fails structurally; format-declared zero is the only implicit zero.",
   "General tiles, BlackLevelDeltaH/V, and unsupported decompositions are rejected until separately approved.",
   "Subtraction does not clip negative values; geometry, CFA, metadata Arc, and source f32 samples remain coherent.",
-  "Black subtraction is callable only from the preprocessing pipeline; the RawImage state guard prevents the complete correction pass from being repeated.",
+  "Black subtraction is callable only from the preprocessing pipeline; pre_process exists only on DecodedRaw, so the returned RawImage cannot be corrected again.",
 ]
 validation = [
   "Verify IMPL-PRE-001 and DES-003 PRs are merged.",

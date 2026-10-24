@@ -48,12 +48,12 @@ Arrow direction means the source crate depends on the target crate.
 
 | Crate | Responsibility |
 | --- | --- |
-| `fornax-core` | Single `RawImage` container, universal samples, metadata, geometry, CFA, provenance, validation, and processing-state guards |
+| `fornax-core` | `DecodedRaw` decoder container, f32-only `RawImage` output, universal samples, metadata, geometry, CFA, provenance, and validation |
 | `fornax-decode` | `RawDecoderBackend`, backend capabilities/selection, decode configuration/errors |
 | `fornax-decoder-libraw` | LibRaw `unpack` adapter and metadata translation |
 | `fornax-decoder-dnglab` | dnglab/rawler adapter |
 | `fornax-decoder-dnc` | Adobe DNG conversion bridge composed with a DNG decoder |
-| `fornax-preprocess` | One `RawImage::pre_process` entry point with private LUT, black correction, normalization, and clipping substeps |
+| `fornax-preprocess` | One `DecodedRaw::pre_process` entry point returning `RawImage`, with private LUT, black correction, normalization, and clipping substeps |
 | `fornax-demosaic` | Object-safe strategy registry, planar f32 output, built-in/external algorithms |
 | `fornax` | Explicit backend selection and end-to-end composition |
 | `fornax-py` | Python package over the facade |
@@ -66,8 +66,8 @@ Arrow direction means the source crate depends on the target crate.
 - `fornax-decode`, `fornax-preprocess`, and `fornax-demosaic` depend on core but
   not on one another.
 - Decoder crates implement `RawDecoderBackend`; upstream types remain private.
-- `fornax-preprocess` implements one consuming `pre_process` operation for the
-  non-generic core `RawImage`; preprocessing substeps stay private.
+- `fornax-preprocess` implements one consuming `pre_process` operation from
+  `DecodedRaw` to the f32-only `RawImage`; preprocessing substeps stay private.
 - Demosaic strategies are object-safe and registered at runtime.
 - Only `fornax` depends on concrete adapters, and only through enabled features.
 - `fornax-core`'s `serde` feature currently serializes validated metadata and

@@ -8,7 +8,8 @@ parallelism = "Completes the preprocessing track after the private black subtrac
 deliverables = ["normalization and clipping source", "numerical boundary and state tests"]
 scope = """
 Implement the crate-private normalization and final-clipping substeps and expose
-one consuming `impl RawImage { fn pre_process(...) }` entry point. Preserve
+one consuming `impl DecodedRaw { fn pre_process(...) -> RawImage }` entry
+point. Preserve
 signed and above-one normalized f32 values, validate white/black range using
 f64 arithmetic, and clamp to [0,1] only in the private final substep.
 """
@@ -16,10 +17,10 @@ acceptance = [
   "Normalization uses the selected slot white level and rejects white <= black or non-finite ranges.",
   "Negative underflow and above-one overflow survive normalization internally and affect only the final clipping substep.",
   "NaN and infinity are rejected before final clipping.",
-  "Successful pre_process returns the same non-generic RawImage type in preprocessed state with finite f32 values in [0,1] and final clamping applied exactly once.",
-  "pre_process is implemented once for every supported RawImage plane and delegates to private linearize, subtract_black, normalize, and finish substeps.",
+  "Successful pre_process returns the distinct f32-only RawImage type with finite values in [0,1] and final clamping applied exactly once.",
+  "pre_process is implemented once for DecodedRaw across every supported stored plane and delegates to private linearize, subtract_black, normalize, and finish substeps.",
   "In-place buffer reuse, checked allocation behavior, metadata retention, and ActiveArea/CFA invariants are tested.",
-  "The RawImage state prevents pre_process from being run twice.",
+  "pre_process exists only on DecodedRaw, so it cannot be run twice on the returned RawImage.",
 ]
 validation = [
   "Verify IMPL-PRE-002 is merged.",

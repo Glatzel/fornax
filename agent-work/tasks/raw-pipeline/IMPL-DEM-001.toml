@@ -9,7 +9,7 @@ deliverables = ["fornax-demosaic contract source", "input, output, registry, and
 scope = """
 Create fornax-demosaic with DemosaicInput, planar R/G/B f32 output,
 DemosaicStrategy, capabilities, border policy, runtime registry, and structured
-errors. Validate the consuming DemosaicReadyMosaic boundary without implementing
+errors. Validate the consuming f32-only RawImage boundary without implementing
 a reconstruction algorithm in this task.
 """
 acceptance = [
