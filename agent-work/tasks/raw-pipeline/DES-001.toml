@@ -5,13 +5,7 @@ title = "Design the universal RAW representation"
 phase = "design"
 dependencies = ["SYN-01", "SYN-02", "DES-003"]
 parallelism = "May overlap other design tasks only when output files and shared re-exports do not overlap."
-deliverables = [
-  "agent-work/design/raw-pipeline/DES-001-universal-raw-representation.md",
-  "agent-work/design/raw-pipeline/docs/README.md",
-  "agent-work/design/raw-pipeline/docs/raw-image-process.md",
-  "agent-work/design/raw-pipeline/docs/precision.md",
-  "agent-work/design/raw-pipeline/docs/raw-image-struct.md",
-]
+deliverables = ["agent-work/design/raw-pipeline/DES-001-universal-raw-representation.md"]
 scope = """
 Define the canonical decoder output, typed common metadata, dimensions, sample
 buffer, CFA, black and white levels, active area, crop, provenance, invariants,
@@ -24,7 +18,6 @@ acceptance = [
   "Representative code and signatures are included.",
   "Decisions cite merged SYN-01 and SYN-02 task PRs.",
   "Native u8/u16/f32 storage and the explicit custom f32 transition are represented.",
-  "Companion Markdown guides explain the processing flow, precision, and key struct fields with appropriate diagrams or tables.",
 ]
 validation = [
   "Verify dependency PRs are merged and cited.",
