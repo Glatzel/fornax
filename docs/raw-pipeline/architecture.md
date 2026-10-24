@@ -21,10 +21,10 @@ flowchart TB
         Pipeline["pipeline\nend-to-end composition"]
     end
 
-    LibRawSys["libraw-sys\nprivate FFI"] -. feature backend-libraw .-> Decode
-    Rawler["rawler / dnglab\nupstream decoder"] -. feature backend-dnglab .-> Decode
-    DNC["Adobe DNG Converter\nexternal process"] -. feature backend-dnc .-> Decode
-    DemosaicCrate["demosaic crate\nupstream algorithms"] -. feature demosaic-external .-> Demosaic
+    Decode -. feature backend-libraw .-> LibRawSys["libraw-sys\nprivate FFI"]
+    Decode -. feature backend-dnglab .-> Rawler["rawler / dnglab\nupstream decoder"]
+    Decode -. feature backend-dnc .-> DNC["Adobe DNG Converter\nexternal process"]
+    Demosaic -. feature demosaic-external .-> DemosaicCrate["demosaic crate\nupstream algorithms"]
 
     Python["fornax-py"] --> Fornax
     Dev["fornax-devtool\ndev only"] --> Fornax
