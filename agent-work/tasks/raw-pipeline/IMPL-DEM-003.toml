@@ -1,27 +1,26 @@
 schema_version = 1
 id = "IMPL-DEM-003"
-slug = "malvar-demosaic-adapter"
-title = "Add Malvar-He-Cutler through the optional demosaic crate adapter"
+slug = "malvar-demosaic-strategy"
+title = "Implement the Malvar-He-Cutler demosaic strategy"
 phase = "implementation"
 dependencies = ["IMPL-DEM-002", "DES-005", "RES-05"]
 parallelism = "Starts after the bilinear strategy establishes the built-in registration and tests."
-deliverables = ["fornax::demosaic optional adapter source", "Malvar-He-Cutler reference and border tests"]
+deliverables = ["fornax::demosaic Malvar-He-Cutler source", "reference, border, and overshoot tests"]
 scope = """
-Add a feature-gated adapter to the pinned Rust demosaic crate and expose its
-Malvar-He-Cutler strategy through the fornax DemosaicStrategy contract. Validate
-all public inputs before entering panic-prone helpers and translate upstream
-types and failures at the adapter boundary.
+Implement Malvar-He-Cutler directly inside `fornax::demosaic` and register it
+through the DemosaicStrategy contract. Validate all public inputs before kernel
+evaluation, define border behavior, and keep the implementation and tests in
+the `fornax` crate.
 """
 acceptance = [
-  "The adapter maps all four supported Bayer phases and preserves fornax channel and border semantics.",
-  "Wrong lengths, unsupported algorithm/phase combinations, too-small images, and upstream failures are translated to DemosaicError.",
-  "Known-channel preservation, border behavior, overshoot/undershoot, and pinned-reference tolerances are characterized in tests.",
-  "Enabling the optional feature does not select or register an algorithm automatically.",
-  "No demosaic-crate CFA, error, option, or algorithm type appears in the public fornax contract.",
+  "The strategy maps all four supported Bayer phases and preserves fornax channel and border semantics.",
+  "Wrong lengths, unsupported phases, too-small images, and non-finite intermediate/output values return DemosaicError.",
+  "Known-channel preservation, border behavior, overshoot/undershoot, and reference tolerances are characterized in tests.",
+  "The algorithm is implemented and tested inside fornax without an external demosaic dependency.",
   "Edge-aware algorithms remain deferred until separately approved.",
 ]
 validation = [
   "Verify IMPL-DEM-002, DES-005, and RES-05 PRs are merged.",
-  "Run focused reference, phase, border, failure, and feature-gating tests.",
-  "Run formatting, clippy, and `cargo test -p fornax --features demosaic-external`.",
+  "Run focused reference, phase, border, overshoot, and failure tests.",
+  "Run formatting, clippy, and `cargo test -p fornax`.",
 ]

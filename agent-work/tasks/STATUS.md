@@ -81,7 +81,7 @@ passes on that branch and the user merges the promotion PR.
 | `IMPL-PRE-003` | Implement the single preprocessing entry point | `IMPL-PRE-002` | `Blocked` | [manifest](raw-pipeline/IMPL-PRE-003.toml) |
 | `IMPL-DEM-001` | Implement the demosaicing contract and registry | `IMPL-CORE-001`, `DES-005` | `Blocked` | [manifest](raw-pipeline/IMPL-DEM-001.toml) |
 | `IMPL-DEM-002` | Implement the bilinear demosaic strategy | `IMPL-DEM-001`, `DES-005` | `Blocked` | [manifest](raw-pipeline/IMPL-DEM-002.toml) |
-| `IMPL-DEM-003` | Add Malvar–He–Cutler through the optional adapter | `IMPL-DEM-002`, `DES-005`, `RES-05` | `Blocked` | [manifest](raw-pipeline/IMPL-DEM-003.toml) |
+| `IMPL-DEM-003` | Implement the Malvar–He–Cutler demosaic strategy | `IMPL-DEM-002`, `DES-005`, `RES-05` | `Blocked` | [manifest](raw-pipeline/IMPL-DEM-003.toml) |
 | `IMPL-INT-001` | Implement the explicit end-to-end pipeline module | `IMPL-DEC-005`, `IMPL-PRE-003`, `IMPL-DEM-001`, one of `IMPL-DEM-002` / `IMPL-DEM-003` | `Blocked` | [manifest](raw-pipeline/IMPL-INT-001.toml) |
 | `IMPL-INT-002` | Migrate Python bindings and development tooling to fornax | `IMPL-INT-001` | `Blocked` | [manifest](raw-pipeline/IMPL-INT-002.toml) |
 | `IMPL-INT-003` | Retire legacy decoder, demosaic, and facade architecture | `IMPL-DEC-002`, `IMPL-DEC-004`, `IMPL-DEM-002`, `IMPL-DEM-003`, `IMPL-INT-002` | `Blocked` | [manifest](raw-pipeline/IMPL-INT-003.toml) |

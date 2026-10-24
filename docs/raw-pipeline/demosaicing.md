@@ -146,10 +146,8 @@ failure is structured.
 2. Malvar–He–Cutler — fixed higher-quality kernel with explicit border behavior.
 3. Edge-aware algorithms — deferred until quality and options are evaluated.
 
-The Rust `demosaic` crate is the initial adapter candidate: map the validated
-Bayer phase and configured algorithm, convert its planar f32 result to
-image-rs interleaved RGB, and do not expose its CFA/error/algorithm types as
-the public `fornax` contract.
+Both initial algorithms are implemented inside `fornax::demosaic`. No external
+demosaic crate or adapter is part of the target architecture.
 
 ## Exclusions
 

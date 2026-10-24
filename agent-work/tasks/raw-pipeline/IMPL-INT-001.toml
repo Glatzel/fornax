@@ -16,7 +16,7 @@ features distinct from runtime selection.
 acceptance = [
   "A supported real RAW fixture runs through selected decode, linearization, black subtraction, normalization, final clipping, and demosaicing.",
   "Pipeline with no enabled backend compiles and returns an explicit no-backend error rather than selecting one implicitly.",
-  "The fornax default feature set remains empty; backend, external-demosaic, parallel, and serde support are explicit opt-ins.",
+  "The fornax default feature set remains empty; backend, parallel, and serde support are explicit opt-ins.",
   "Backend and algorithm selection are explicit and recorded in provenance.",
   "Metadata and processing state remain valid across every stage transition and in the final output.",
   "No white balance, camera color matrix, highlight reconstruction, tone mapping, denoising, sharpening, or display rendering is applied.",

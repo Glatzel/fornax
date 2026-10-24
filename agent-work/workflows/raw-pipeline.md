@@ -806,7 +806,7 @@ The post-design manifests cover these workstreams:
   modules (`IMPL-DEC-001`–`IMPL-DEC-005`);
 - staged conversion/linearization, black subtraction, and
   normalization/clipping modules (`IMPL-PRE-001`–`IMPL-PRE-003`);
-- demosaic registry, bilinear strategy, and Malvar–He–Cutler adapter modules
+- demosaic registry, bilinear strategy, and in-crate Malvar–He–Cutler module
   (`IMPL-DEM-001`–`IMPL-DEM-003`);
 - end-to-end composition, Python/devtool migration, and legacy crate retirement
   (`IMPL-INT-001`–`IMPL-INT-003`); and
@@ -884,8 +884,8 @@ planned around the boundaries that design actually produced:
 3. The preprocessing track adds one private preprocessing implementation inside
    `fornax`, preserving the ordered substeps from decoded f32 conversion and
    linearization through black subtraction, normalization, and clipping.
-4. The demosaic track adds the object-safe registry, bilinear implementation,
-   and optional Rust demosaic adapter inside `fornax`.
+4. The demosaic track adds the object-safe registry plus in-crate bilinear and
+   Malvar–He–Cutler implementations inside `fornax`.
 5. `IMPL-INT-001` composes explicit decoder and strategy selection in the
    `fornax::pipeline` module. `IMPL-INT-002` migrates Python and devtool, and
    `IMPL-INT-003` retires the legacy public crates and architecture.

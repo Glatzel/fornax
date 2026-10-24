@@ -79,8 +79,8 @@ implementation placeholders.
   strategy follow their track contracts. Decoder tasks own separate
   `fornax::decode` modules and must not edit one another's sources; the same
   shared lockfile merge rule applies when their branches are finalized.
-- **I3:** the DNC bridge, normalization/final clipping, and Malvar-He-Cutler
-  adapter follow their prerequisites.
+- **I3:** the DNC bridge, normalization/final clipping, and in-crate
+  Malvar-He-Cutler strategy follow their prerequisites.
 - **I4–I5:** decoder conformance precedes the explicit pipeline module.
 - **I6–I7:** Python/devtool migration and legacy-crate retirement complete the
   supported production surface.

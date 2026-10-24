@@ -24,15 +24,13 @@ flowchart TB
     Decode -. feature backend-libraw .-> LibRawSys["libraw-sys\nprivate FFI"]
     Decode -. feature backend-dnglab .-> Rawler["rawler / dnglab\nupstream decoder"]
     Decode -. feature backend-dnc .-> DNC["Adobe DNG Converter\nexternal process"]
-    Demosaic -. feature demosaic-external .-> DemosaicCrate["demosaic crate\nupstream algorithms"]
-
     Python["fornax-py"] --> Fornax
     Dev["fornax-devtool\ndev only"] --> Fornax
 ```
 
-Arrow direction means dependency. Upstream decoder and demosaic dependencies
-are optional Cargo features. The base crate remains usable without enabling any
-backend or external demosaic adapter.
+Arrow direction means dependency. Upstream decoder dependencies are optional
+Cargo features. Demosaicing is implemented entirely inside `fornax`; the base
+crate remains usable without enabling any decoder backend.
 
 ## Module responsibilities
 
@@ -45,7 +43,7 @@ backend or external demosaic adapter.
 | `fornax::decode::rawler` | Private rawler/dnglab adapter |
 | `fornax::decode::dnc` | Private process bridge composed with a DNG decoder |
 | `fornax::preprocess` | One standard preprocessing implementation with private linearization, black subtraction, normalization, and clipping substeps |
-| `fornax::demosaic` | Strategy contract/registry, bilinear implementation, and optional external-demosaic adapter |
+| `fornax::demosaic` | Strategy contract/registry plus in-crate bilinear and Malvar–He–Cutler implementations |
 | `fornax::pipeline` | Explicit end-to-end backend and strategy composition |
 
 These modules are an implementation boundary inside one crate. They are not
@@ -61,15 +59,15 @@ reason to reintroduce workspace crates.
 | `libraw-sys` | Private generated LibRaw FFI used only by `fornax::decode::libraw` |
 
 `libraw-sys` is a low-level build-support package, not a pipeline stage or
-public abstraction. Upstream decoder and demosaic crates are normal Cargo
-dependencies of `fornax`, gated by features; they do not appear in the public
-model.
+public abstraction. Upstream decoder crates are normal optional Cargo
+dependencies of `fornax`; they do not appear in the public model. Demosaicing
+algorithms are implemented in `fornax` itself.
 
 ## Dependency direction
 
 - `fornax` depends on image-rs, `thiserror`, and standard library support.
-- `fornax` optionally depends on `libraw-sys`, rawler/dnglab, the external
-  demosaic crate, and parallelism support.
+- `fornax` optionally depends on `libraw-sys`, rawler/dnglab, and parallelism
+  support.
 - Adobe DNC integration invokes an external process and does not expose an
   upstream Rust type.
 - `fornax-py` and `fornax-devtool` depend on `fornax`.
@@ -78,7 +76,8 @@ model.
 
 Upstream decoder types remain private to their adapter module. `DecodedRaw`,
 `RawImage`, metadata, protocol traits, errors, and pipeline APIs contain no
-LibRaw, rawler, DNC-runtime, or demosaic-crate types.
+LibRaw, rawler, or DNC-runtime types; demosaicing implementation types remain
+inside `fornax::demosaic`.
 
 ## Stage protocols
 
@@ -128,7 +127,6 @@ The `fornax` default feature set is empty:
 backend-libraw
 backend-dnglab
 backend-dnc
-demosaic-external
 parallel
 serde
 ```
@@ -136,7 +134,6 @@ serde
 - `backend-libraw` enables the private LibRaw adapter through `libraw-sys`.
 - `backend-dnglab` enables the pinned rawler/dnglab adapter.
 - `backend-dnc` enables the process bridge and requires a selected DNG backend.
-- `demosaic-external` enables the optional Rust demosaic adapter.
 - `parallel` enables documented parallel execution where benchmarks justify it.
 - `serde` serializes validated metadata and processing descriptors.
 
@@ -153,8 +150,8 @@ Errors remain typed by phase inside `fornax`:
 - `DemosaicError` for demosaicing; and
 - `FornaxError` for end-to-end pipeline context.
 
-Upstream errors are translated at the adapter boundary. No public API exposes
-upstream decoder or demosaic error types or a string-only top-level error.
+Upstream errors are translated at the decoder adapter boundary. No public API
+exposes upstream decoder error types or a string-only top-level error.
 
 ## Migration
 
