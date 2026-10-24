@@ -22,6 +22,8 @@
 >   high-priority references while preserving documented disagreements.
 > - [x] Native source storage precision and the f32 preprocessing working
 >   domain are explicit.
+> - [x] Native u8/u16/f32 storage and the explicit custom-processing path are
+>   defined.
 
 ## Scope and authority
 
@@ -47,6 +49,7 @@ rejected.
 ```text
 decoded stored samples
   -> validate metadata and processing state
+  -> optional custom f32 transformation with basis/provenance
   -> optional linearization-table application
   -> select black from ActiveArea-relative metadata
   -> exact/widened black subtraction
@@ -93,12 +96,18 @@ d       = clamp(n, 0.0, 1.0)
 - NaN and infinity are errors, not clampable values.
 
 For the initial target, native unsigned integer samples use a `u16` storage
-container while declared bit depths of 8, 10, 12, 14, or 16 bits remain
-separate metadata. Every such integer is exactly representable in `f32`.
-Floating source paths exposed by the inspected decoders use `f32`. Wider
-integer or `f64` source values must use an approved wider path or a structured
-unsupported-encoding error; they must not silently pass through `f32` with a
-false precision claim.
+container for 9–16 bits and a `u8` container for 8-bit samples; declared bit
+depths remain separate metadata. Every such integer is exactly representable
+in `f32`. Floating DNG and other verified float paths use `f32` natively.
+Wider integer or `f64` source values must use an approved wider path or a
+structured unsupported-encoding error; they must not silently pass through
+`f32` with a false precision claim.
+
+An explicit opt-in conversion lets users process decoded u8/u16/f32 samples in
+`f32` before standard preprocessing. The resulting `CustomProcessedF32Raw`
+must carry operation provenance and declare whether linearization/black/white
+metadata remains valid in the transformed domain. If it does not, standard
+preprocessing rejects the input unless transformed level metadata is supplied.
 
 The `[0.0, 1.0]` final clamp is chosen for the initial demosaic-ready input.
 The unclipped normalized state remains available to diagnostics and tests.
@@ -134,18 +143,20 @@ four numbers.
 | Order | Operation | Input domain | Output domain | Required metadata | Formula / rule | Error behavior | Synthetic tests |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Validate decode state | Backend-produced stored candidate | `ValidatedStoredRaw` | Sample encoding, dimensions, stride, CFA layout, ActiveArea, black/white candidates, provenance | Reject already-corrected/normalized samples; validate every required field, rectangle, stride, encoding, and layout invariant | `UnsupportedPreprocessingState`, `MissingRequiredMetadata`, `InvalidGeometry`, `UnsupportedCfa`, or `MetadataConflict`; no silent defaults for unknown semantics | Valid stored state; missing CFA; already normalized; wrong stride; malformed ActiveArea; unsupported layout |
-| 2 | Apply linearization table | `ValidatedStoredRaw`; declared table | `LinearizedRaw` as `f32`; table treated as identity when absent | Table entries, source encoding/range, provenance | `l = table[stored_code]` or `l = stored_code`; convert to f32 after exact lookup; do not use an out-of-range index | `UnsupportedLinearization` or `InvalidMetadata`; no extrapolation | Identity path; nontrivial table; first/last entry; out-of-range code; malformed table |
-| 3 | Select black level | `LinearizedRaw` plus ActiveArea-relative CFA coordinate | Per-sample black tuple with provenance | Common, per-slot, and repeat components; tile dimensions/origin; white level for later validation | Select slot from active coordinates; select tile offset from active coordinates; sum only declared additive components | `UnsupportedBlackPattern`, `InvalidBlackLevel`, or `MissingRequiredMetadata` if a non-default component is required | Scalar black; four-slot phases; 1×1 tile at odd ActiveArea origin; 2×2 tile; general tile rejection; absent component |
-| 4 | Subtract black | Linearized f32 sample and selected black | Unclipped f32 `BlackCorrectedRaw` | Valid selected black and selected white level | `q = round_f32(l as f64 - b)`; no clamp at this stage | `InvalidMetadata` when black is negative or not below white for required normalization; invalid numeric values abort | Positive result; zero result; negative underflow retained; maximum sample; black equal white |
-| 5 | Normalize | `BlackCorrectedRaw` and selected white level | Unclipped f32 `NormalizedRaw` | `white`, `black`, valid nonzero range, CFA plane | `n = round_f32(q as f64 / (white - b))`; preserve sign and overflow | `InvalidMetadata` when `white <= b`, denominator is zero, or values are non-finite | Black maps to zero; white maps to one; underflow below zero; value above one; floating rounding fixture |
-| 6 | Clip to demosaic range | `NormalizedRaw` | `DemosaicReadyMosaic` | Explicit policy version, CFA/ActiveArea geometry | `d = clamp(n, 0.0, 1.0)` on f32 | `PreprocessingStateError` if input is not normalized; non-finite values are rejected before clipping | Negative clamps to zero; exact one; above one clamps to one; NaN/Infinity rejection |
-| 7 | Validate demosaic boundary | `DemosaicReadyMosaic` | Immutable demosaic input | Single active Bayer grid, stride/contiguity policy, CFA layout, processing-state tag | Verify `[0.0, 1.0]`, finite f32 samples, dimensions, and ActiveArea phase; no correction may follow | `PreprocessingStateError`, `InvalidGeometry`, or `NonFiniteSample` | All four Bayer phases; wrong state; wrong dimensions; non-finite sample; unchanged geometry after cropping |
+| 2 | Optional custom f32 transformation | `ValidatedStoredRaw` converted explicitly to `DecodedF32Raw` | `CustomProcessedF32Raw` | Operation provenance; source domain; linearization/black/white metadata-transform declaration | User-defined operation may modify f32 samples; standard metadata can continue only when the operation declares its basis remains valid or supplies transformed metadata | `InvalidCustomProcessingState` or `IncompatibleMetadataBasis`; no stale black/white application | U8/U16 lossless conversion; native f32 DNG; unchanged-basis custom operation; changed-basis operation with and without transformed levels |
+| 3 | Apply linearization table | `ValidatedStoredRaw` or `CustomProcessedF32Raw` with valid basis; declared table | `LinearizedRaw` as `f32`; table treated as identity when absent | Table entries, source encoding/range, valid custom basis, provenance | `l = table[stored_code]` or `l = stored_code`; convert to f32 after exact lookup; do not use an out-of-range index | `UnsupportedLinearization` or `InvalidMetadata`; no extrapolation | Identity path; nontrivial table; first/last entry; out-of-range code; malformed table; incompatible custom basis |
+| 4 | Select black level | `LinearizedRaw` plus ActiveArea-relative CFA coordinate | Per-sample black tuple with provenance | Common, per-slot, and repeat components; tile dimensions/origin; white level for later validation | Select slot from active coordinates; select tile offset from active coordinates; sum only declared additive components | `UnsupportedBlackPattern`, `InvalidBlackLevel`, or `MissingRequiredMetadata` if a non-default component is required | Scalar black; four-slot phases; 1×1 tile at odd ActiveArea origin; 2×2 tile; general tile rejection; absent component |
+| 5 | Subtract black | Linearized f32 sample and selected black | Unclipped f32 `BlackCorrectedRaw` | Valid selected black and selected white level | `q = round_f32(l as f64 - b)`; no clamp at this stage | `InvalidMetadata` when black is negative or not below white for required normalization; invalid numeric values abort | Positive result; zero result; negative underflow retained; maximum sample; black equal white |
+| 6 | Normalize | `BlackCorrectedRaw` and selected white level | Unclipped f32 `NormalizedRaw` | `white`, `black`, valid nonzero range, CFA plane | `n = round_f32(q as f64 / (white - b))`; preserve sign and overflow | `InvalidMetadata` when `white <= b`, denominator is zero, or values are non-finite | Black maps to zero; white maps to one; underflow below zero; value above one; floating rounding fixture |
+| 7 | Clip to demosaic range | `NormalizedRaw` | `DemosaicReadyMosaic` | Explicit policy version, CFA/ActiveArea geometry | `d = clamp(n, 0.0, 1.0)` on f32 | `PreprocessingStateError` if input is not normalized; non-finite values are rejected before clipping | Negative clamps to zero; exact one; above one clamps to one; NaN/Infinity rejection |
+| 8 | Validate demosaic boundary | `DemosaicReadyMosaic` | Immutable f32 demosaic input | Single active Bayer grid, stride/contiguity policy, CFA layout, processing-state tag | Verify `[0.0, 1.0]`, finite f32 samples, dimensions, and ActiveArea phase; no correction may follow | `PreprocessingStateError`, `InvalidGeometry`, or `NonFiniteSample` | All four Bayer phases; wrong state; wrong dimensions; non-finite sample; unchanged geometry after cropping |
 
 Operation evidence:
 
 | Operation | Supporting evidence |
 | --- | --- |
 | Validate decode state | [SYN-01](SYN-01.md#decision-table); [RES-02 §2.2](../RES-02-libraw.md#22-decode-lifecycle-and-buffer-meaning) |
+| Optional custom f32 transformation | [SYN-01](SYN-01.md#decision-table); [RES-02 §2.2](../RES-02-libraw.md#22-decode-lifecycle-and-buffer-meaning) |
 | Apply linearization | [RES-04 §4](../RES-04-darktable.md#4-implications-for-fornax); [SYN-01](SYN-01.md#decision-table) |
 | Select black level | [RES-02 §2.5](../RES-02-libraw.md#25-black-level-representation); [RES-04 §2.2–§2.4](../RES-04-darktable.md#22-rawprepare-inputs-and-output) |
 | Subtract black | [RES-02 §2.5](../RES-02-libraw.md#25-black-level-representation); [RES-04 §2.3](../RES-04-darktable.md#23-numerical-black-level-correction-and-normalization) |
@@ -185,6 +196,7 @@ Operation evidence:
 | A component may exist but adapter cannot read it | Capability error; do not substitute zero |
 | Source values are non-finite | Invalid-sample error before arithmetic |
 | Same-authority required metadata disagrees | Structured metadata conflict per SYN-01 |
+| Custom f32 processing changes the sample basis but retains original black/white metadata | Incompatible-metadata-basis error unless transformed levels are supplied |
 
 ## Processing-state constraints
 
@@ -193,6 +205,8 @@ The stage types consume ownership or use a sealed transition token:
 ```text
 DecodedRaw
   -> ValidatedStoredRaw
+  -> DecodedF32Raw                  (optional custom-processing conversion)
+  -> CustomProcessedF32Raw          (optional user transformation)
   -> LinearizedRaw
   -> BlackCorrectedRaw
   -> NormalizedRaw
@@ -209,6 +223,10 @@ Requirements:
   float buffer type;
 - a linearization table or black correction can occur once per transition; and
 - cloned values retain the state, so copying cannot reset the correction stage.
+- `DecodedF32Raw` and `CustomProcessedF32Raw` retain operation provenance and
+  cannot be confused with an unmodified decoded or normalized image; and
+- only a custom state that preserves or replaces the preprocessing metadata
+  basis may enter the standard linearization/black path.
 
 This follows the double-correction warnings in
 [SYN-01](SYN-01.md#decision-table),
@@ -227,6 +245,12 @@ Demosaicing receives:
 - `DemosaicReadyMosaic` processing state; and
 - preserved metadata/provenance needed after demosaicing without reapplying
   preprocessing.
+
+The shared demosaic input and output are `f32`. `f64` is not required for the
+initial normalized `[0,1]` data: the selected Rust `demosaic` API is `f32`, and
+`f64` buffers would double memory and bandwidth. An individual algorithm may
+use `f64` accumulators internally only when tests/benchmarks justify it; the
+public pipeline remains `f32`.
 
 Demosaicing must not:
 
@@ -268,6 +292,9 @@ The implementation task should include a focused matrix:
     expressed through the state API; backend-normalized input is rejected.
 11. **Round-trip provenance:** every operation carries source metadata and
     transformation identity into the demosaic-ready state.
+12. **Custom processing:** u8/u16/f32 decoded inputs enter `DecodedF32Raw`
+    explicitly; a changed processing basis without transformed levels is
+    rejected.
 
 ## Open questions
 
@@ -285,6 +312,8 @@ The implementation task should include a focused matrix:
   requires fixture validation.
 - Whether diagnostics retain the unclipped normalized buffer after
   demosaic-ready conversion is a design/memory tradeoff for `DES-004`.
+- Which transformed metadata a custom f32 processor must supply to continue
+  through standard preprocessing is a `DES-004` API decision.
 
 ## Evidence
 
@@ -312,3 +341,5 @@ The implementation task should include a focused matrix:
 - [x] Processing-state semantics prevent double correction.
 - [x] Every decision links to a supporting report or SYN-01 item.
 - [x] Native storage precision and the `f32` preprocessing domain are explicit.
+- [x] Native u8/u16/f32 storage and the explicit custom-processing path are
+  defined.
