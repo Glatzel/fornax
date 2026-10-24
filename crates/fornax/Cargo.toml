@@ -3,6 +3,10 @@ name = "fornax"
 version.workspace = true
 edition.workspace = true
 
+[[bench]]
+harness = false
+name = "demosaic"
+
 [dependencies]
 image.workspace = true
 rawler = { workspace = true, optional = true }
@@ -10,6 +14,9 @@ rayon = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 thiserror.workspace = true
 libraw-sys = { workspace = true, optional = true }
+
+[dev-dependencies]
+criterion.workspace = true
 
 [features]
 default = []

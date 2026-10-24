@@ -8,8 +8,8 @@ parallelism = "Final migration gate after all replacement paths and consumers ar
 deliverables = ["legacy crate removal and workspace migration", "dependency-graph validation evidence"]
 scope = """
 Remove legacy crates and public architecture made obsolete by the replacement:
-fornax-core, fornax-dalim, the public libraw wrapper, and the standalone dnc
-crate, while retaining libraw-sys only as private FFI support for
+the public libraw wrapper and standalone dnc crate, while retaining
+libraw-sys only as private FFI support for
 `fornax::decode::libraw`. Resolve workspace dependencies, features, examples,
 and package metadata without maintaining compatibility shims.
 """

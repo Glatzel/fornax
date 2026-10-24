@@ -7,10 +7,10 @@ dependencies = ["IMPL-DEM-001", "DES-005"]
 parallelism = "Starts after the shared demosaic contract is merged."
 deliverables = ["fornax::demosaic bilinear strategy source", "synthetic numerical and border tests"]
 scope = """
-Implement the deterministic bilinear baseline as a DemosaicStrategy. Reuse
-legacy DemosaicLinear assets only after adapting their tests and semantics to
-the new ActiveArea-aware f32 contract. Define border behavior and preserve known
-CFA samples explicitly.
+Refine the initial linear implementation moved into `fornax::demosaic` by
+`IMPL-CORE-001` into the full DemosaicStrategy contract. Preserve its
+ActiveArea-aware f32 semantics, border behavior, and known CFA samples; extend
+the tests and benchmark coverage required by this task.
 """
 acceptance = [
   "Synthetic mosaics in all four Bayer phases produce the documented bilinear values.",

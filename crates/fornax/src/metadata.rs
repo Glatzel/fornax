@@ -1464,7 +1464,7 @@ impl ValidatedMetadata {
         {
             return Err(RawValidationError::InvalidGeometry);
         }
-        super::plane::validate_finite(plane)
+        crate::plane::validate_finite(plane)
     }
 }
 

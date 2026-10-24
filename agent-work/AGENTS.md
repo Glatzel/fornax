@@ -28,10 +28,10 @@ protocols, upstream decoder integrations, preprocessing, demosaicing, and
 end-to-end pipeline. There is no target `fornax-core`, decoder adapter,
 preprocessing, or demosaic crate.
 
-Current crates include the legacy `fornax-core`, `fornax-dalim`, `libraw`,
-`libraw-sys`, `fornax`, `fornax-py`, `dnc`, and `fornax-devtool`. Do not assume
-their current boundaries, public traits, or `BayerImage` are the target
-architecture. The existing architecture is migration input.
+Current crates include the legacy `libraw`, `libraw-sys`, `fornax`,
+`fornax-py`, `dnc`, and `fornax-devtool`. Do not assume their current
+boundaries, public traits, or `BayerImage` are the target architecture. The
+existing architecture is migration input.
 
 ## Development principles
 

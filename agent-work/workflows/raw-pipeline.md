@@ -876,7 +876,8 @@ persistent `docs/raw-pipeline/` design PR are merged. The implementation is
 planned around the boundaries that design actually produced:
 
 1. `IMPL-CORE-001` renames the universal implementation to `fornax` and installs
-   the model, metadata, CFA, image types, protocols, and validation contracts.
+   the model, metadata, CFA, image types, draft protocols, validation contracts,
+   and reusable linear demosaic baseline. It also removes `fornax-dalim`.
 2. The decoder track adds registry and private `libraw`, `rawler`, and optional
    DNC modules inside `fornax`, depending directly on upstream decoders behind
    optional features. `IMPL-DEC-005` validates conformance and target-format
@@ -884,8 +885,8 @@ planned around the boundaries that design actually produced:
 3. The preprocessing track adds one private preprocessing implementation inside
    `fornax`, preserving the ordered substeps from decoded f32 conversion and
    linearization through black subtraction, normalization, and clipping.
-4. The demosaic track adds the object-safe registry plus in-crate bilinear and
-   Malvar–He–Cutler implementations inside `fornax`.
+4. The demosaic track refines the object-safe registry and extends the initial
+   linear baseline with additional in-crate strategies inside `fornax`.
 5. `IMPL-INT-001` composes explicit decoder and strategy selection in the
    `fornax::pipeline` module. `IMPL-INT-002` migrates Python and devtool, and
    `IMPL-INT-003` retires the legacy public crates and architecture.
@@ -935,8 +936,8 @@ Shared-file ownership is explicit:
 - demosaic strategy registration is serialized by the DEM dependency chain;
 - only the integration tasks may change the pipeline composition and feature
   topology after their listed components merge; and
-- legacy crate removal occurs in `IMPL-INT-003`, after replacement consumers
-  and tests exist.
+- remaining legacy crate removal occurs in `IMPL-INT-003`, after replacement
+  consumers and tests exist.
 
 Parallel component tasks may update the shared root `Cargo.toml` or generated
 `Cargo.lock`. When that happens, merge one branch first and require the other

@@ -12,8 +12,8 @@ flowchart LR
         Ready["RawImage\nf32, [0,1]"]
     end
     subgraph DemosaicPhase["3 · Demosaic"]
-        Input["DemosaicInput\nphase-aware"]
-        Strategy["Configured strategy\nobject-safe"]
+        Input["RawImage\nphase-aware"]
+        Strategy["DemosaicAlgorithm\nLinear"]
         Output["ImageBuffer<Rgb<f32>>\nlinear output"]
         Input --> Strategy
         Strategy --> Output
@@ -75,9 +75,11 @@ pub trait IDemosaic: Send + Sync {
 }
 ```
 
-`IMPL-DEM-001` may refine this into the runtime strategy/registry interface
-below while preserving the `RawImage` input and interleaved linear f32 output
-boundary.
+`fornax::demosaic::DemosaicAlgorithm` is the current selectable algorithm
+type. It implements `IDemosaic` and dispatches `Linear` to the in-crate linear
+implementation. A later contract task may add the runtime strategy/registry
+interface below while preserving the `RawImage` input and interleaved linear
+f32 output boundary.
 
 ```rust
 pub trait DemosaicStrategy: Send + Sync {
@@ -142,11 +144,14 @@ failure is structured.
 
 ## Initial algorithms
 
-1. Bilinear — deterministic baseline and cheapest implementation.
-2. Malvar–He–Cutler — fixed higher-quality kernel with explicit border behavior.
+1. Bilinear — implemented in `fornax::demosaic::linear`. It preserves the
+   known CFA sample and averages available same-color neighbors, including
+   reduced neighborhoods at image borders.
+2. Malvar–He–Cutler — planned fixed higher-quality kernel with explicit border
+   behavior.
 3. Edge-aware algorithms — deferred until quality and options are evaluated.
 
-Both initial algorithms are implemented inside `fornax::demosaic`. No external
+Demosaicing algorithms are implemented inside `fornax::demosaic`. No external
 demosaic crate or adapter is part of the target architecture.
 
 ## Exclusions

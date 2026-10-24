@@ -35,7 +35,7 @@ crate remains usable without enabling any decoder backend.
 
 | Module | Responsibility |
 | --- | --- |
-| `fornax::model` | Universal geometry, CFA, sample specification, metadata, provenance, `DecodedRaw`, f32-only `RawImage`, and shared validation |
+| `fornax` crate root | Universal geometry, CFA, sample specification, metadata, provenance, `DecodedRaw`, f32-only `RawImage`, and shared validation |
 | `fornax::protocol` | `IRawDecoder`, `IRawPreprocessor`, `IDemosaic`, phase options, inputs/outputs, and structured phase errors |
 | `fornax::decode` | Backend registry, explicit selection, capabilities, provenance, and target-format dispatch |
 | `fornax::decode::libraw` | Private LibRaw adapter over `libraw-sys` |
@@ -114,8 +114,8 @@ returns the distinct f32-only `RawImage`. `RawImage::demosaic` returns
 `(RgbImageF32, Arc<ValidatedMetadata>)`, where `RgbImageF32` is image-rs
 interleaved RGB.
 
-`pre_process` is implemented in `fornax::model::decoded_raw`; `demosaic` and
-its output validation are implemented in `fornax::model::raw_image`.
+`pre_process` is implemented in `src/decoded_raw.rs`; `demosaic` and its output
+validation are implemented in `src/raw_image.rs`.
 `protocol.rs` contains only phase traits and shared protocol types.
 
 `IMPL-CORE-001` establishes the draft protocols. The decoder, preprocessing,
@@ -163,7 +163,8 @@ exposes upstream decoder error types or a string-only top-level error.
   universal crate.
 - Move decoder selection and concrete `libraw`, rawler, and DNC adapters into
   `fornax::decode` modules.
-- Move usable `fornax-dalim` algorithms into `fornax::demosaic`.
+- The `fornax-dalim` crate is removed after migrating its reusable linear
+  demosaic implementation and Bayer tests into `fornax::demosaic`.
 - Move preprocessing into `fornax::preprocess`.
 - Retire the public `libraw` and `dnc` wrapper crates after their private
   integrations exist in `fornax`.

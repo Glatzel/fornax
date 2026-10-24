@@ -4,10 +4,12 @@ slug = "universal-core-model"
 title = "Implement the universal RAW model and global protocol in fornax"
 phase = "implementation"
 dependencies = ["DES-001", "DES-002", "DES-003", "DES-006"]
-parallelism = "Foundational implementation gate; must merge before decoder, preprocessing, or demosaic module work."
+parallelism = "Foundational implementation gate; must merge before decoder or preprocessing module work and demosaic contract refinement."
 deliverables = [
-  "fornax universal model source",
+  "fornax universal model source with flattened root modules",
   "fornax draft global protocol",
+  "fornax::demosaic linear algorithm and Bayer phase tests",
+  "fornax-dalim removal and workspace migration",
   "fornax model, protocol, and validation tests",
 ]
 scope = """
@@ -16,26 +18,32 @@ fornax facade with that renamed crate. Install the persistent universal RAW
 model: native u8/u16/u32/f32 planes, sample specification, stored geometry,
 ActiveArea and Bayer indexing, typed and extensible metadata with provenance,
 black/white levels, DecodedRaw, f32-only RawImage, constructors, and structured
-validation errors. Define draft object-safe decoder, preprocessor, and demosaic
-protocols plus the target `fornax` feature topology for optional upstream
-decoders. Do not implement concrete decoder, preprocessing, or demosaicing
-algorithms in this task.
+validation errors. Flatten the model into the crate root. Define draft
+object-safe decoder, preprocessor, and demosaic protocols plus the target
+`fornax` feature topology for optional upstream decoders. Move the reusable
+linear demosaic implementation and tests from fornax-dalim into
+fornax::demosaic, then remove the legacy crate. Do not implement concrete
+decoder or preprocessing algorithms in this task.
 """
 acceptance = [
   "The implementation follows docs/raw-pipeline rather than retaining legacy BayerImage, decoder, or post-processor contracts.",
+  "The model is exposed from the crate root without a nested model module.",
   "Native sample containers retain the declared sample specification and reject invalid container/specification combinations.",
   "ActiveArea-relative CFA lookup is correct for RGGB, BGGR, GRBG, and GBRG, including odd origins.",
   "Typed metadata, extensible metadata, provenance, conflict handling, and level invariants are enforced by construction.",
   "Black and white levels are required decoder metadata; missing levels or a white range that does not exceed the effective black level rejects ValidatedMetadata/DecodedRaw construction.",
   "DecodedRaw accepts every supported decoder plane, pre_process consumes it to produce the distinct f32-only RawImage type, and preprocessing cannot be called again on RawImage.",
   "Draft IRawDecoder, IRawPreprocessor, and IDemosaic protocols expose the decode -> preprocess -> demosaic call flow with structured phase errors.",
+  "DemosaicAlgorithm::Linear reconstructs image-rs interleaved RGB f32 for all four Bayer phases, including odd ActiveArea origins.",
+  "The fornax-dalim package and workspace dependency are removed after its reusable linear implementation and tests are migrated.",
   "Unsupported non-mosaic, non-RGB, and wider sample specifications return typed errors.",
   "The crate is named fornax; no fornax-core package remains in the target architecture, and upstream decoder types stay out of the public model.",
-  "Decoder, demosaic, parallel, and serde dependencies are optional features; enabling a feature does not select an implementation.",
+  "Decoder dependencies and parallel/serde support are optional features; enabling a feature does not select an implementation.",
 ]
 validation = [
   "Verify DES-001, DES-002, DES-003, and DES-006 PRs are merged.",
-  "Run focused fornax tests for every Bayer phase, coordinate origin, DecodedRaw/RawImage type boundary, and rejection path.",
+  "Run focused fornax tests for every Bayer phase, coordinate origin, DecodedRaw/RawImage type boundary, demosaic output, and rejection path.",
+  "Run cargo metadata and verify no fornax-dalim package or dependency remains.",
   "Build fornax with default features and with serde.",
   "Run formatting, clippy, and the workspace checks affected by the package rename.",
 ]

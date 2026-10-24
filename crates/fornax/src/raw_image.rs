@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use super::plane::validate_finite;
+use crate::plane::validate_finite;
 use crate::{
     DecodedRaw, DemosaicError, DemosaicOptions, F32Plane, IDemosaic, PixelSize, RawValidationError,
     RgbImageF32, ValidatedMetadata,

@@ -17,7 +17,6 @@ criterion = { package = "codspeed-criterion-compat", version = "5.0.3" }
 dnc = { path = "./crates/dnc" }
 float-cmp = "0.10.0"
 fornax = { path = "./crates/fornax" }
-fornax-dalim = { path = "./crates/fornax-dalim" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 image = { git = "https://github.com/Glatzel/image-rs" }
 jiff = "0.2.38"

@@ -12,8 +12,8 @@ use crate::{
 /// integer plane may be converted explicitly to working f32 while remaining a
 /// `DecodedRaw` for custom processing.
 ///
-/// Standard preprocessing consumes an owned `DecodedRaw` through one public
-/// entry point in `fornax-preprocess` and returns a distinct f32-only
+/// Standard preprocessing consumes an owned `DecodedRaw` through
+/// [`DecodedRaw::pre_process`] and returns a distinct f32-only
 /// [`crate::RawImage`].
 ///
 /// # Examples
