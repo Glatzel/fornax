@@ -23,10 +23,10 @@ The intended scope stops at demosaicing. Do not silently add white-balance
 application, color correction, color-space conversion, tone mapping, denoising,
 sharpening, or display rendering.
 
-The target production crate is `fornax`. It owns the universal model,
-protocols, upstream decoder integrations, preprocessing, demosaicing, and
-end-to-end pipeline. There is no target `fornax-core`, decoder adapter,
-preprocessing, or demosaic crate.
+The target production crate is `fornax`. It owns the universal model, decoder
+boundary, upstream decoder integrations, direct preprocessing and demosaicing
+stages, and end-to-end pipeline. There is no target `fornax-core`, decoder
+adapter, preprocessing, or demosaic crate.
 
 Current crates include the legacy `libraw`, `libraw-sys`, `fornax`,
 `fornax-py`, `dnc`, and `fornax-devtool`. Do not assume their current

@@ -8,10 +8,10 @@
 //! assert_eq!(DemosaicAlgorithm::default(), DemosaicAlgorithm::Linear);
 //! ```
 
-use crate::{
-    BayerLayout, BayerPattern, CfaColor, DemosaicError, DemosaicOptions, PixelCoord, RawImage,
-    RgbImageF32,
-};
+use crate::demosaic::RgbImageF32;
+use crate::error::DemosaicError;
+use crate::geometry::PixelCoord;
+use crate::{BayerLayout, BayerPattern, CfaColor, RawImage};
 
 #[derive(Clone, Copy)]
 enum BayerPhase {
@@ -67,11 +67,15 @@ const fn primary_green_slot(pattern: BayerPattern) -> u8 {
 ///
 /// ```
 /// # use std::num::{NonZeroU32, NonZeroU64};
+/// # use fornax::geometry::{ActiveArea, PixelSize, StoredGeometry};
+/// # use fornax::metadata::{
+/// #     AuthorityClass, BlackLevels, CommonMetadata, Confidence, DecoderProvenance,
+/// #     ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
+/// #     ValidatedMetadata, WhiteLevels,
+/// # };
 /// # use fornax::{
-/// #     ActiveArea, AuthorityClass, BayerLayout, BayerPattern, BlackLevels, CommonMetadata,
-/// #     Confidence, DecodedRaw, DecoderProvenance, ExtensibleMetadata, PixelSize, Provenance,
-/// #     ProviderId, Rational, RawImage, SampleFormat, SampleSpec, SourceKind, Sourced,
-/// #     StoredGeometry, StoredPlane, ValidatedMetadata, WhiteLevels, into_preprocessed,
+/// #     BayerLayout, BayerPattern, DecodedRaw, RawImage, SampleFormat, SampleSpec, StoredPlane,
+/// #     into_preprocessed,
 /// # };
 /// # fn input() -> RawImage {
 /// #     let dimensions = PixelSize::new(1, 1).unwrap();
@@ -118,16 +122,10 @@ const fn primary_green_slot(pattern: BayerPattern) -> u8 {
 /// #     let decoded = DecodedRaw::try_new(metadata, StoredPlane::F32(plane.clone())).unwrap();
 /// #     into_preprocessed(decoded, plane).unwrap()
 /// # }
-/// use fornax::DemosaicOptions;
-///
-/// let output =
-///     fornax::demosaic::linear::demosaic(&input(), &DemosaicOptions).unwrap();
+/// let output = fornax::demosaic::linear::demosaic(&input()).unwrap();
 /// assert_eq!(output.get_pixel(0, 0).0, [0.25, 0.0, 0.0]);
 /// ```
-pub fn demosaic(
-    input: &RawImage,
-    _options: &DemosaicOptions,
-) -> Result<RgbImageF32, DemosaicError> {
+pub fn demosaic(input: &RawImage) -> Result<RgbImageF32, DemosaicError> {
     let mosaic = input.plane();
     let (width, height) = mosaic.dimensions();
     if width == 0 || height == 0 {
@@ -311,12 +309,13 @@ mod tests {
     use image::ImageBuffer;
 
     use super::*;
-    use crate::{
-        ActiveArea, AuthorityClass, BlackLevels, CommonMetadata, Confidence, DecodedRaw,
-        DecoderProvenance, ExtensibleMetadata, PixelSize, Provenance, ProviderId, Rational,
-        RawImage, SampleFormat, SampleSpec, SourceKind, Sourced, StoredGeometry, StoredPlane,
-        ValidatedMetadata, WhiteLevels, into_preprocessed,
+    use crate::geometry::{ActiveArea, PixelSize, StoredGeometry};
+    use crate::metadata::{
+        AuthorityClass, BlackLevels, CommonMetadata, Confidence, DecoderProvenance,
+        ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
+        ValidatedMetadata, WhiteLevels,
     };
+    use crate::{DecodedRaw, RawImage, SampleFormat, SampleSpec, StoredPlane, into_preprocessed};
 
     fn provenance() -> Provenance {
         Provenance::new(
@@ -368,7 +367,7 @@ mod tests {
     fn run(pattern: BayerPattern) -> Vec<[f32; 3]> {
         let samples = (1_u16..=9).map(|value| f32::from(value) / 16.0).collect();
         let input = image(pattern, samples);
-        demosaic(&input, &DemosaicOptions)
+        demosaic(&input)
             .unwrap()
             .pixels()
             .iter()

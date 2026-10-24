@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
+use crate::demosaic::{DemosaicAlgorithm, RgbImageF32};
+use crate::error::{DemosaicError, RawValidationError};
+use crate::geometry::PixelSize;
+use crate::metadata::ValidatedMetadata;
 use crate::plane::validate_finite;
-use crate::{
-    DecodedRaw, DemosaicError, DemosaicOptions, F32Plane, IDemosaic, PixelSize, RawValidationError,
-    RgbImageF32, ValidatedMetadata,
-};
+use crate::{DecodedRaw, F32Plane};
 
 /// A preprocessed, demosaic-ready RAW image with a single f32 plane.
 ///
@@ -41,19 +42,85 @@ impl RawImage {
     /// Consumes the image into retained metadata and f32 plane.
     pub fn into_parts(self) -> (Arc<ValidatedMetadata>, F32Plane) { (self.metadata, self.plane) }
 
-    /// Runs the selected demosaicing backend.
+    /// Runs the selected demosaicing algorithm.
     ///
     /// # Errors
     ///
-    /// Returns the selected backend's structured error or
-    /// [`DemosaicError::InvalidInput`] when the backend returns an invalid
+    /// Returns the selected algorithm's structured error or
+    /// [`DemosaicError::InvalidInput`] when the algorithm returns an invalid
     /// output image.
-    pub fn demosaic<D: IDemosaic + ?Sized>(
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::num::{NonZeroU32, NonZeroU64};
+    /// # use fornax::geometry::{ActiveArea, PixelSize, StoredGeometry};
+    /// # use fornax::metadata::{
+    /// #     AuthorityClass, BlackLevels, CommonMetadata, Confidence, DecoderProvenance,
+    /// #     ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
+    /// #     ValidatedMetadata, WhiteLevels,
+    /// # };
+    /// # use fornax::{
+    /// #     BayerLayout, BayerPattern, DecodedRaw, DemosaicAlgorithm, RawImage, SampleFormat,
+    /// #     SampleSpec, StoredPlane, into_preprocessed,
+    /// # };
+    /// # fn input() -> RawImage {
+    /// #     let dimensions = PixelSize::new(1, 1).unwrap();
+    /// #     let area = ActiveArea::try_new(dimensions, 0, 0, 1, 1).unwrap();
+    /// #     let provider = ProviderId::try_new("example").unwrap();
+    /// #     let provenance = Provenance::new(
+    /// #         provider.clone(),
+    /// #         SourceKind::Derived { operation: "example".into() },
+    /// #         AuthorityClass::DerivedValue,
+    /// #         Confidence::Exact,
+    /// #     );
+    /// #     let zero = Rational::new(0, NonZeroU32::new(1).unwrap());
+    /// #     let one = Rational::new(1, NonZeroU32::new(1).unwrap());
+    /// #     let metadata = ValidatedMetadata::try_new(
+    /// #         CommonMetadata {
+    /// #             sample_spec: Some(Sourced::new(
+    /// #                 SampleSpec::try_new(32, SampleFormat::Float).unwrap(),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             stored_geometry: Some(Sourced::new(
+    /// #                 StoredGeometry::new(dimensions, NonZeroU64::new(4).unwrap()),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             active_area: Some(Sourced::new(area, provenance.clone())),
+    /// #             cfa: Some(Sourced::new(
+    /// #                 BayerLayout::new(BayerPattern::Rggb, area),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             black: Some(Sourced::new(
+    /// #                 BlackLevels::try_new(zero, [zero; 4], None).unwrap(),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             white: Some(Sourced::new(
+    /// #                 WhiteLevels::try_new(vec![one], None, None).unwrap(),
+    /// #                 provenance,
+    /// #             )),
+    /// #             ..CommonMetadata::default()
+    /// #         },
+    /// #         ExtensibleMetadata::default(),
+    /// #         DecoderProvenance::new(provider, None),
+    /// #     )
+    /// #     .unwrap();
+    /// #     let plane = image::ImageBuffer::from_raw(1, 1, vec![0.25]).unwrap();
+    /// #     let decoded = DecodedRaw::try_new(metadata, StoredPlane::F32(plane.clone())).unwrap();
+    /// #     into_preprocessed(decoded, plane).unwrap()
+    /// # }
+    /// let (rgb, metadata) = input()
+    ///     .demosaic(DemosaicAlgorithm::Linear)
+    ///     .unwrap();
+    ///
+    /// assert_eq!(rgb.get_pixel(0, 0).0, [0.25, 0.0, 0.0]);
+    /// assert!(metadata.cfa().pattern() == BayerPattern::Rggb);
+    /// ```
+    pub fn demosaic(
         &self,
-        demosaicer: &D,
-        options: &DemosaicOptions,
+        algorithm: DemosaicAlgorithm,
     ) -> Result<(RgbImageF32, Arc<ValidatedMetadata>), DemosaicError> {
-        let output = demosaicer.demosaic(self, options)?;
+        let output = algorithm.demosaic(self)?;
         validate_rgb_output(&output, self.metadata.stored_geometry().dimensions())?;
         Ok((output, self.metadata_arc()))
     }

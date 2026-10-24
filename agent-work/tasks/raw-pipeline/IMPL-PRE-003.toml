@@ -8,7 +8,7 @@ parallelism = "Completes the preprocessing track after the private black subtrac
 deliverables = ["fornax::preprocess normalization and clipping source", "numerical boundary and state tests"]
 scope = """
 Implement the crate-private normalization and final-clipping substeps and expose
-one consuming `impl DecodedRaw { fn pre_process(...) -> RawImage }` entry
+one consuming `impl DecodedRaw { fn pre_process() -> RawImage }` entry
 point. Preserve
 signed and above-one normalized f32 values, validate white/black range using
 f64 arithmetic, and clamp to [0,1] only in the private final substep.

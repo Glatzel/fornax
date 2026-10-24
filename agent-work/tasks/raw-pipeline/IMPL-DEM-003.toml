@@ -1,19 +1,19 @@
 schema_version = 1
 id = "IMPL-DEM-003"
 slug = "malvar-demosaic-strategy"
-title = "Implement the Malvar-He-Cutler demosaic strategy"
+title = "Implement the Malvar-He-Cutler demosaic algorithm"
 phase = "implementation"
 dependencies = ["IMPL-DEM-002", "DES-005", "RES-05"]
-parallelism = "Starts after the bilinear strategy establishes the built-in registration and tests."
+parallelism = "Starts after the bilinear algorithm establishes the direct dispatch and tests."
 deliverables = ["fornax::demosaic Malvar-He-Cutler source", "reference, border, and overshoot tests"]
 scope = """
 Implement Malvar-He-Cutler directly inside `fornax::demosaic` and register it
-through the DemosaicStrategy contract. Validate all public inputs before kernel
-evaluation, define border behavior, and keep the implementation and tests in
-the `fornax` crate.
+as a `DemosaicAlgorithm` variant. Validate all public inputs before kernel
+evaluation, define border behavior, and keep the implementation and tests in the
+`fornax` crate.
 """
 acceptance = [
-  "The strategy maps all four supported Bayer phases and preserves fornax channel and border semantics.",
+  "The algorithm maps all four supported Bayer phases and preserves fornax channel and border semantics.",
   "Wrong lengths, unsupported phases, too-small images, and non-finite intermediate/output values return DemosaicError.",
   "Known-channel preservation, border behavior, overshoot/undershoot, and reference tolerances are characterized in tests.",
   "The algorithm is implemented and tested inside fornax without an external demosaic dependency.",

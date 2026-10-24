@@ -7,13 +7,11 @@ dependencies = ["IMPL-CORE-001", "DES-004"]
 parallelism = "Starts after IMPL-CORE-001; can run in parallel with decoder and demosaic foundations."
 deliverables = ["fornax::preprocess foundation source", "conversion and linearization tests"]
 scope = """
-Refine the IRawPreprocessor and option/error contracts inside
-`fornax::preprocess`. Implement IRawPreprocessor,
+Implement the TODO substeps behind direct `DecodedRaw::pre_process`, including
 exact integer conversion and mutable custom-plane access, a private
-identity/table linearization substep,
-allocation checks, and typed preprocessing errors. Do not expose intermediate
-preprocessing image types or the public entry point before the complete
-pipeline is implemented.
+identity/table linearization substep, allocation checks, and typed
+preprocessing errors. Do not add a preprocessing trait or options wrapper and
+do not expose intermediate preprocessing image types.
 """
 acceptance = [
   "u8 and u16 conversion is exact and u32 conversion rejects values requiring more than f32's exact significant range.",

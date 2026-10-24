@@ -5,16 +5,18 @@ title = "Implement the decoder backend contract and registry"
 phase = "implementation"
 dependencies = ["IMPL-CORE-001", "DES-006"]
 parallelism = "Starts after IMPL-CORE-001; can run in parallel with the preprocessing and demosaic track foundations."
-deliverables = ["fornax::decode registry source", "backend contract and registry tests"]
+deliverables = ["fornax::decoder registry source", "backend contract and registry tests"]
 scope = """
-Refine the draft IRawDecoder, RawInput, DecodeConfig, and DecodeError contract
-inside `fornax::decode`. Add backend identifiers, capabilities, explicit
+Refine the generic `IRawDecoder<I>` and `DecodeError` contract inside
+`fornax::decoder`. Add backend identifiers, capabilities, explicit
 selection and registry policy, and decode provenance. Define feature-gated
-entry points for upstream decoder modules. This task defines the concrete
-backend boundary; it does not implement a concrete decoder.
+entry points for the TODO LibRaw, rawler, and DNC member modules. Decoder
+configuration belongs to each backend rather than a shared input wrapper or
+empty global options type. This task defines the concrete backend boundary; it
+does not implement a concrete decoder.
 """
 acceptance = [
-  "IRawDecoder exposes decode(&self, input: &RawInput<'_>, config: &DecodeConfig) -> Result<DecodedRaw, DecodeError>; decoder provenance is attached through ValidatedMetadata.",
+  "IRawDecoder<I: ?Sized> exposes decode(&self, input: &I) -> Result<DecodedRaw, DecodeError>; decoder provenance is attached through ValidatedMetadata.",
   "A backend returns a validated DecodedRaw and never exposes an upstream decoder type downstream.",
   "A decoder returns DecodeError when required black/white metadata is missing or invalid instead of deferring the failure to preprocessing.",
   "Backend capabilities describe format, Bayer layout, sample specification, metadata, and level limitations.",
@@ -24,7 +26,7 @@ acceptance = [
 ]
 validation = [
   "Verify IMPL-CORE-001 and DES-006 PRs are merged.",
-  "Run focused fornax::decode registry and synthetic-backend tests.",
+  "Run focused fornax::decoder registry and synthetic-backend tests.",
   "Build fornax with and without every backend feature.",
   "Run formatting and clippy for fornax.",
 ]

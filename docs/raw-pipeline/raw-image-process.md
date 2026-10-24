@@ -59,20 +59,13 @@ Preprocessing has one public operation:
 
 ```rust
 impl DecodedRaw {
-    pub fn pre_process<P: IRawPreprocessor + ?Sized>(
-        self,
-        preprocessor: &P,
-        options: &PreprocessOptions,
-    ) -> Result<RawImage, PreprocessError> {
-        preprocessor.pre_process(self, options)
-    }
+    pub fn pre_process(self) -> Result<RawImage, PreprocessError>;
 }
 ```
 
 It applies for every supported `DecodedRaw`, regardless of whether the decoded
-payload is u8, u16, u32, or f32. The selected `IRawPreprocessor` implementation
-converts to the f32 working domain as needed and calls private substep
-functions:
+payload is u8, u16, u32, or f32. The implementation converts to the f32 working
+domain as needed and calls private substep functions:
 
 ```text
 pre_process
@@ -87,6 +80,8 @@ image types. Both image types keep their fields private. `fornax` exposes the
 validated `DecodedRaw::try_new` decode constructor and a doc-hidden finalizer
 that constructs `RawImage`. Because `pre_process` is defined only on
 `DecodedRaw`, a second call on the returned f32-only `RawImage` is impossible.
+The entry point exists in `IMPL-CORE-001`; its numerical implementation remains
+TODO for `IMPL-PRE-*` and returns a structured unsupported error until then.
 
 `DecodedRaw::convert_to_f32` replaces an integer `StoredPlane` with an `f32`
 plane. Repeated conversion is rejected from the plane variant and declared

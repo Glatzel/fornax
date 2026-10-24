@@ -13,7 +13,7 @@ the selected decoder and demosaic APIs, and migrate the existing Python fixture
 tests to assert the new pipeline semantics.
 """
 acceptance = [
-  "Python callers explicitly select or configure a backend and demosaic strategy rather than relying on enabled features.",
+  "Python callers explicitly select or configure a backend and demosaic algorithm rather than relying on enabled features.",
   "Python packaging declares its enabled backend features and does not add default processing or backend selection implicitly.",
   "Python outputs preserve linear image-rs RGB semantics, metadata/provenance, and structured failures from fornax.",
   "No legacy IDecoder, IPostProcessor, BayerImage, or backend-specific Python type remains on the supported API.",

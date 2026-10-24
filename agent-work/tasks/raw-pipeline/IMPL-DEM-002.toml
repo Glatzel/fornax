@@ -1,14 +1,14 @@
 schema_version = 1
 id = "IMPL-DEM-002"
 slug = "bilinear-demosaic"
-title = "Implement the bilinear demosaic strategy"
+title = "Refine the bilinear demosaic algorithm"
 phase = "implementation"
 dependencies = ["IMPL-DEM-001", "DES-005"]
-parallelism = "Starts after the shared demosaic contract is merged."
-deliverables = ["fornax::demosaic bilinear strategy source", "synthetic numerical and border tests"]
+parallelism = "Starts after direct demosaic dispatch is refined."
+deliverables = ["fornax::demosaic bilinear algorithm source", "synthetic numerical and border tests"]
 scope = """
 Refine the initial linear implementation moved into `fornax::demosaic` by
-`IMPL-CORE-001` into the full DemosaicStrategy contract. Preserve its
+`IMPL-CORE-001` without adding a trait or options wrapper. Preserve its
 ActiveArea-aware f32 semantics, border behavior, and known CFA samples; extend
 the tests and benchmark coverage required by this task.
 """
@@ -17,7 +17,7 @@ acceptance = [
   "Known Red, Green, and Blue samples retain their original linear values unless the documented border policy requires fallback.",
   "Odd ActiveArea origins and small-image border behavior are tested.",
   "Output dimensions equal input dimensions and values are not silently clipped or quantized.",
-  "The strategy is deterministic and does not mutate input or metadata.",
+  "The algorithm is deterministic and does not mutate input or metadata.",
 ]
 validation = [
   "Verify IMPL-DEM-001 and DES-005 PRs are merged.",

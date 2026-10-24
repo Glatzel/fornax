@@ -11,7 +11,22 @@
 
 pub mod linear;
 
-use crate::{DemosaicError, DemosaicOptions, IDemosaic, RawImage, RgbImageF32};
+use image::{ImageBuffer, Rgb};
+
+use crate::RawImage;
+use crate::error::DemosaicError;
+
+/// Linear interleaved RGB `f32` output backed by image-rs.
+///
+/// # Examples
+///
+/// ```
+/// use fornax::demosaic::RgbImageF32;
+///
+/// let image = RgbImageF32::from_raw(1, 1, vec![0.1, 0.2, 0.3]).unwrap();
+/// assert_eq!(image.as_raw(), &[0.1, 0.2, 0.3]);
+/// ```
+pub type RgbImageF32 = ImageBuffer<Rgb<f32>, Vec<f32>>;
 
 /// A selectable demosaicing algorithm.
 ///
@@ -30,14 +45,16 @@ pub enum DemosaicAlgorithm {
     Linear,
 }
 
-impl IDemosaic for DemosaicAlgorithm {
-    fn demosaic(
-        &self,
-        input: &RawImage,
-        options: &DemosaicOptions,
-    ) -> Result<RgbImageF32, DemosaicError> {
+impl DemosaicAlgorithm {
+    /// Reconstructs linear interleaved RGB from one preprocessed Bayer image.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DemosaicError`] when the image cannot be reconstructed or the
+    /// selected algorithm fails.
+    pub(crate) fn demosaic(&self, input: &RawImage) -> Result<RgbImageF32, DemosaicError> {
         match self {
-            Self::Linear => linear::demosaic(input, options),
+            Self::Linear => linear::demosaic(input),
         }
     }
 }

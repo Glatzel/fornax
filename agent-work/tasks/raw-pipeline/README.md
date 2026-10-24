@@ -68,18 +68,18 @@ implementation placeholders.
 - **D:** `DES-002` and `DES-003` start after `SYN-01`; the remaining design tasks
   follow their manifest dependencies.
 - **I0:** `IMPL-CORE-001` renames the universal implementation to `fornax`,
-  flattens the model, establishes the draft global protocol, ports the reusable
-  linear demosaic baseline, and removes `fornax-dalim` after the design and
-  persistent documentation are merged.
-- **I1:** the decoder registry, preprocessing foundation, and demosaic contract
-  can start concurrently as distinct modules in `fornax` after the core gate.
+  flattens the model, establishes generic decoder and direct stage boundaries,
+  ports the reusable linear demosaic baseline, and removes `fornax-dalim` after
+  the design and persistent documentation are merged.
+- **I1:** the decoder registry, preprocessing foundation, and direct demosaic
+  dispatch can start concurrently as distinct modules in `fornax` after the core gate.
   Root `Cargo.toml`/`Cargo.lock` edits are shared: merge one branch first, then
   rebase/regenerate the others before opening or updating their PRs when those
   files overlap.
 - **I2:** the LibRaw and dnglab adapter modules and black subtraction follow
   their track contracts; later demosaic tasks refine the core baseline.
   Decoder tasks own separate
-  `fornax::decode` modules and must not edit one another's sources; the same
+  `fornax::decoder` modules and must not edit one another's sources; the same
   shared lockfile merge rule applies when their branches are finalized.
 - **I3:** the DNC bridge, normalization/final clipping, and in-crate
   Malvar-He-Cutler strategy follow their prerequisites.

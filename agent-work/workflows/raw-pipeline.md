@@ -801,12 +801,14 @@ The post-design manifests cover these workstreams:
 - metadata, preprocessing, and cross-source synthesis;
 - universal representation, metadata, CFA, preprocessing, demosaicing, and crate
   architecture design;
-- `IMPL-CORE-001` as the universal-model and global-protocol gate in `fornax`;
+- `IMPL-CORE-001` as the universal-model and direct stage-boundary gate in
+  `fornax`;
 - decoder registry, LibRaw, dnglab/rawler, DNC bridge, and decoder conformance
   modules (`IMPL-DEC-001`–`IMPL-DEC-005`);
 - staged conversion/linearization, black subtraction, and
   normalization/clipping modules (`IMPL-PRE-001`–`IMPL-PRE-003`);
-- demosaic registry, bilinear strategy, and in-crate Malvar–He–Cutler module
+- direct demosaic dispatch, bilinear algorithm, and in-crate Malvar–He–Cutler
+  module
   (`IMPL-DEM-001`–`IMPL-DEM-003`);
 - end-to-end composition, Python/devtool migration, and legacy crate retirement
   (`IMPL-INT-001`–`IMPL-INT-003`); and
@@ -857,7 +859,7 @@ The implementation graph is:
 
 `IMPL-INT-001 -> IMPL-INT-002`
 
-`IMPL-INT-002 + all adapter/strategy tasks -> IMPL-INT-003`
+`IMPL-INT-002 + all adapter/algorithm tasks -> IMPL-INT-003`
 
 `IMPL-INT-001 -> QA-001..QA-004 -> QA-006`
 
@@ -876,8 +878,9 @@ persistent `docs/raw-pipeline/` design PR are merged. The implementation is
 planned around the boundaries that design actually produced:
 
 1. `IMPL-CORE-001` renames the universal implementation to `fornax` and installs
-   the model, metadata, CFA, image types, draft protocols, validation contracts,
-   and reusable linear demosaic baseline. It also removes `fornax-dalim`.
+   the model, metadata, CFA, image types, generic decoder boundary, direct
+   stage methods, validation contracts, and reusable linear demosaic baseline.
+   It also removes `fornax-dalim`.
 2. The decoder track adds registry and private `libraw`, `rawler`, and optional
    DNC modules inside `fornax`, depending directly on upstream decoders behind
    optional features. `IMPL-DEC-005` validates conformance and target-format
@@ -885,9 +888,9 @@ planned around the boundaries that design actually produced:
 3. The preprocessing track adds one private preprocessing implementation inside
    `fornax`, preserving the ordered substeps from decoded f32 conversion and
    linearization through black subtraction, normalization, and clipping.
-4. The demosaic track refines the object-safe registry and extends the initial
-   linear baseline with additional in-crate strategies inside `fornax`.
-5. `IMPL-INT-001` composes explicit decoder and strategy selection in the
+4. The demosaic track refines direct enum dispatch and extends the initial
+   linear baseline with additional in-crate algorithms inside `fornax`.
+5. `IMPL-INT-001` composes explicit decoder and algorithm selection in the
    `fornax::pipeline` module. `IMPL-INT-002` migrates Python and devtool, and
    `IMPL-INT-003` retires the legacy public crates and architecture.
 
@@ -930,10 +933,10 @@ Do not silently change shared interfaces to accommodate one algorithm. If the de
 
 Shared-file ownership is explicit:
 
-- decoder tasks own distinct modules under `fornax::decode` and must not edit
+- decoder tasks own distinct modules under `fornax::decoder` and must not edit
   another decoder module's source;
 - preprocessing transitions are serialized by the PRE dependency chain;
-- demosaic strategy registration is serialized by the DEM dependency chain;
+- demosaic algorithm additions are serialized by the DEM dependency chain;
 - only the integration tasks may change the pipeline composition and feature
   topology after their listed components merge; and
 - remaining legacy crate removal occurs in `IMPL-INT-003`, after replacement

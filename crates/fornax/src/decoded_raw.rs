@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
-use crate::{
-    DecoderProvenance, IRawPreprocessor, PreprocessError, PreprocessOptions, RawImage,
-    RawValidationError, SampleFormat, SampleSpec, StoredPlane, ValidatedMetadata,
-};
+use crate::error::{PreprocessError, RawValidationError};
+use crate::metadata::{DecoderProvenance, ValidatedMetadata};
+use crate::{RawImage, SampleFormat, SampleSpec, StoredPlane};
 
 /// A decoder-produced RAW image before standard preprocessing.
 ///
@@ -12,9 +11,9 @@ use crate::{
 /// integer plane may be converted explicitly to working f32 while remaining a
 /// `DecodedRaw` for custom processing.
 ///
-/// Standard preprocessing consumes an owned `DecodedRaw` through
-/// [`DecodedRaw::pre_process`] and returns a distinct f32-only
-/// [`crate::RawImage`].
+/// Standard preprocessing will consume an owned `DecodedRaw` through
+/// [`DecodedRaw::pre_process`] and return a distinct f32-only
+/// [`crate::RawImage`]; the numerical substeps remain TODO in this core pass.
 ///
 /// # Examples
 ///
@@ -40,7 +39,7 @@ impl DecodedRaw {
     /// # Examples
     ///
     /// ```
-    /// use fornax::RawValidationError;
+    /// use fornax::error::RawValidationError;
     ///
     /// let error = RawValidationError::MissingMetadata("stored_geometry");
     /// assert_eq!(
@@ -108,7 +107,7 @@ impl DecodedRaw {
     /// # Examples
     ///
     /// ```
-    /// use fornax::RawValidationError;
+    /// use fornax::error::RawValidationError;
     ///
     /// assert_eq!(
     ///     RawValidationError::InvalidStorageState.to_string(),
@@ -169,36 +168,88 @@ impl DecodedRaw {
         Ok((self.metadata, self.plane))
     }
 
-    /// Runs the complete standard preprocessing pass.
+    /// Consumes the decoded image through the single standard preprocessing
+    /// entry point.
+    ///
+    /// This core scaffold currently returns [`PreprocessError::Unsupported`].
+    /// Linearization, black subtraction, normalization, and final clipping are
+    /// TODO private substeps for the preprocessing implementation tasks.
     ///
     /// # Errors
     ///
-    /// Returns the selected preprocessor's structured error.
+    /// Returns a structured preprocessing error when the pass cannot complete.
     ///
     /// # Examples
     ///
     /// ```
-    /// use fornax::{DecodedRaw, IRawPreprocessor, PreprocessError, PreprocessOptions, RawImage};
+    /// # use std::num::{NonZeroU32, NonZeroU64};
+    /// # use fornax::geometry::{ActiveArea, PixelSize, StoredGeometry};
+    /// # use fornax::metadata::{
+    /// #     AuthorityClass, BlackLevels, CommonMetadata, Confidence, DecoderProvenance,
+    /// #     ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
+    /// #     ValidatedMetadata, WhiteLevels,
+    /// # };
+    /// # use fornax::{
+    /// #     BayerLayout, BayerPattern, DecodedRaw, SampleFormat, SampleSpec, StoredPlane,
+    /// # };
+    /// use fornax::error::PreprocessError;
+    /// # fn input() -> DecodedRaw {
+    /// #     let dimensions = PixelSize::new(1, 1).unwrap();
+    /// #     let area = ActiveArea::try_new(dimensions, 0, 0, 1, 1).unwrap();
+    /// #     let provider = ProviderId::try_new("example").unwrap();
+    /// #     let provenance = Provenance::new(
+    /// #         provider.clone(),
+    /// #         SourceKind::Derived { operation: "example".into() },
+    /// #         AuthorityClass::DerivedValue,
+    /// #         Confidence::Exact,
+    /// #     );
+    /// #     let zero = Rational::new(0, NonZeroU32::new(1).unwrap());
+    /// #     let one = Rational::new(1, NonZeroU32::new(1).unwrap());
+    /// #     let metadata = ValidatedMetadata::try_new(
+    /// #         CommonMetadata {
+    /// #             sample_spec: Some(Sourced::new(
+    /// #                 SampleSpec::try_new(32, SampleFormat::Float).unwrap(),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             stored_geometry: Some(Sourced::new(
+    /// #                 StoredGeometry::new(dimensions, NonZeroU64::new(4).unwrap()),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             active_area: Some(Sourced::new(area, provenance.clone())),
+    /// #             cfa: Some(Sourced::new(
+    /// #                 BayerLayout::new(BayerPattern::Rggb, area),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             black: Some(Sourced::new(
+    /// #                 BlackLevels::try_new(zero, [zero; 4], None).unwrap(),
+    /// #                 provenance.clone(),
+    /// #             )),
+    /// #             white: Some(Sourced::new(
+    /// #                 WhiteLevels::try_new(vec![one], None, None).unwrap(),
+    /// #                 provenance,
+    /// #             )),
+    /// #             ..CommonMetadata::default()
+    /// #         },
+    /// #         ExtensibleMetadata::default(),
+    /// #         DecoderProvenance::new(provider, None),
+    /// #     )
+    /// #     .unwrap();
+    /// #     let plane = image::ImageBuffer::from_raw(1, 1, vec![0.25]).unwrap();
+    /// #     DecodedRaw::try_new(metadata, StoredPlane::F32(plane)).unwrap()
+    /// # }
     ///
-    /// struct Unsupported;
-    /// impl IRawPreprocessor for Unsupported {
-    ///     fn pre_process(
-    ///         &self,
-    ///         _input: DecodedRaw,
-    ///         _options: &PreprocessOptions,
-    ///     ) -> Result<RawImage, PreprocessError> {
-    ///         Err(PreprocessError::Unsupported("draft".into()))
-    ///     }
-    /// }
-    ///
-    /// assert_eq!(PreprocessOptions::default(), PreprocessOptions);
+    /// assert!(matches!(
+    ///     input().pre_process(),
+    ///     Err(PreprocessError::Unsupported(_))
+    /// ));
     /// ```
-    pub fn pre_process<P: IRawPreprocessor + ?Sized>(
-        self,
-        preprocessor: &P,
-        options: &PreprocessOptions,
-    ) -> Result<RawImage, PreprocessError> {
-        preprocessor.pre_process(self, options)
+    pub fn pre_process(self) -> Result<RawImage, PreprocessError> {
+        // TODO(IMPL-PRE-001): implement linearization, black subtraction,
+        // normalization, and clipping as private substeps.
+        let _ = self;
+        Err(PreprocessError::Unsupported(
+            "standard preprocessing is not implemented".into(),
+        ))
     }
 }
 
@@ -209,11 +260,12 @@ mod tests {
     use image::ImageBuffer;
 
     use super::*;
-    use crate::{
-        ActiveArea, AuthorityClass, BayerLayout, BayerPattern, BlackLevels, CommonMetadata,
-        Confidence, ExtensibleMetadata, PixelSize, Provenance, ProviderId, Rational, RawImage,
-        SourceKind, Sourced, StoredGeometry, U16Plane, WhiteLevels, into_preprocessed,
+    use crate::geometry::{ActiveArea, PixelSize, StoredGeometry};
+    use crate::metadata::{
+        AuthorityClass, BlackLevels, CommonMetadata, Confidence, ExtensibleMetadata, Provenance,
+        ProviderId, Rational, SourceKind, Sourced, ValidatedMetadata, WhiteLevels,
     };
+    use crate::{BayerLayout, BayerPattern, RawImage, U16Plane, into_preprocessed};
 
     fn provenance() -> Provenance {
         Provenance::new(

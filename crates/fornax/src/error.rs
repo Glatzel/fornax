@@ -1,8 +1,34 @@
+//! Structured model, metadata, and pipeline errors.
+//!
+//! # Examples
+//!
+//! ```
+//! use fornax::error::RawValidationError;
+//!
+//! let error = RawValidationError::MissingMetadata("stored_geometry");
+//! assert_eq!(
+//!     error.to_string(),
+//!     "missing required metadata: stored_geometry"
+//! );
+//! ```
+
 use thiserror::Error;
 
-use crate::SampleFormat;
+use crate::metadata;
+use crate::plane::SampleFormat;
 
 /// A structured validation failure in the universal RAW model.
+///
+/// # Examples
+///
+/// ```
+/// use fornax::error::RawValidationError;
+///
+/// assert_eq!(
+///     RawValidationError::InvalidGeometry.to_string(),
+///     "invalid RAW geometry"
+/// );
+/// ```
 #[derive(Clone, Debug, Error, PartialEq, Eq)]
 pub enum RawValidationError {
     /// A required typed metadata field is absent.
@@ -71,6 +97,17 @@ pub enum RawValidationError {
 }
 
 /// A structured metadata validation or conflict failure.
+///
+/// # Examples
+///
+/// ```
+/// use fornax::error::MetadataError;
+///
+/// assert_eq!(
+///     MetadataError::InvalidValue.to_string(),
+///     "invalid metadata value"
+/// );
+/// ```
 #[derive(Clone, Debug, Error, PartialEq, Eq)]
 pub enum MetadataError {
     /// An extensible metadata key does not use the required grammar.
@@ -81,10 +118,10 @@ pub enum MetadataError {
     DuplicateTypedField(Box<str>),
     /// A required typed field is absent.
     #[error("missing required typed metadata field")]
-    MissingRequiredField(crate::TypedMetadataField),
+    MissingRequiredField(metadata::TypedMetadataField),
     /// Two equally authoritative candidates disagree.
     #[error("metadata candidates conflict")]
-    Conflict(crate::MetadataField),
+    Conflict(metadata::MetadataField),
     /// A level value, level length, or level shape is invalid.
     #[error("invalid level metadata")]
     InvalidLevels,
@@ -94,4 +131,89 @@ pub enum MetadataError {
     /// Preserving metadata would exceed the implementation allocation bound.
     #[error("metadata allocation limit exceeded")]
     AllocationLimit,
+}
+
+/// Structured decoder backend failure.
+///
+/// # Examples
+///
+/// ```
+/// use fornax::error::DecodeError;
+///
+/// let error = DecodeError::Unsupported("compact RAW".into());
+/// assert_eq!(
+///     error.to_string(),
+///     "unsupported RAW format or layout: compact RAW"
+/// );
+/// ```
+#[derive(Clone, Debug, Error, PartialEq, Eq)]
+pub enum DecodeError {
+    /// The input container or file cannot be parsed.
+    #[error("invalid RAW input: {0}")]
+    InvalidInput(Box<str>),
+    /// The input format or layout is unsupported by this backend.
+    #[error("unsupported RAW format or layout: {0}")]
+    Unsupported(Box<str>),
+    /// The backend failed after recognizing the input.
+    #[error("decoder backend failure: {0}")]
+    Backend(Box<str>),
+    /// The backend produced metadata or samples that fail core validation.
+    #[error(transparent)]
+    InvalidOutput(#[from] RawValidationError),
+}
+
+/// Structured preprocessing failure.
+///
+/// # Examples
+///
+/// ```
+/// use fornax::error::PreprocessError;
+///
+/// assert_eq!(
+///     PreprocessError::Numeric.to_string(),
+///     "invalid preprocessing numerical result"
+/// );
+/// ```
+#[derive(Clone, Debug, Error, PartialEq, Eq)]
+pub enum PreprocessError {
+    /// The decoded image cannot enter standard preprocessing.
+    #[error("invalid preprocessing input: {0}")]
+    InvalidInput(Box<str>),
+    /// The configured preprocessing operation is unsupported.
+    #[error("unsupported preprocessing operation: {0}")]
+    Unsupported(Box<str>),
+    /// Floating-point arithmetic produced an invalid value.
+    #[error("invalid preprocessing numerical result")]
+    Numeric,
+    /// A required preprocessing allocation failed.
+    #[error("preprocessing allocation failed")]
+    Allocation,
+}
+
+/// Structured demosaicing failure.
+///
+/// # Examples
+///
+/// ```
+/// use fornax::error::DemosaicError;
+///
+/// assert_eq!(
+///     DemosaicError::Allocation.to_string(),
+///     "demosaicing allocation failed"
+/// );
+/// ```
+#[derive(Clone, Debug, Error, PartialEq, Eq)]
+pub enum DemosaicError {
+    /// The preprocessed image or requested output dimensions are invalid.
+    #[error("invalid demosaicing input: {0}")]
+    InvalidInput(Box<str>),
+    /// The selected algorithm does not support the image or configuration.
+    #[error("unsupported demosaicing operation: {0}")]
+    Unsupported(Box<str>),
+    /// The algorithm failed after accepting the input.
+    #[error("demosaicing algorithm failure: {0}")]
+    Algorithm(Box<str>),
+    /// A required demosaicing allocation failed.
+    #[error("demosaicing allocation failed")]
+    Allocation,
 }

@@ -1,6 +1,18 @@
+//! Pixel geometry, stored dimensions, and ActiveArea coordinates.
+//!
+//! # Examples
+//!
+//! ```
+//! use fornax::geometry::{ActiveArea, PixelSize};
+//!
+//! let stored = PixelSize::new(8, 6).unwrap();
+//! let active = ActiveArea::try_new(stored, 1, 1, 5, 7).unwrap();
+//! assert_eq!(active.rect().width(), 6);
+//! ```
+
 use std::num::NonZeroU64;
 
-use crate::RawValidationError;
+use crate::error::RawValidationError;
 
 /// A non-empty two-dimensional pixel extent.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -16,7 +28,7 @@ impl PixelSize {
     /// # Examples
     ///
     /// ```
-    /// use fornax::PixelSize;
+    /// use fornax::geometry::PixelSize;
     ///
     /// assert_eq!(PixelSize::new(4, 3).unwrap().width(), 4);
     /// assert_eq!(PixelSize::new(0, 3), None);
@@ -59,7 +71,7 @@ impl PixelCoord {
     /// # Examples
     ///
     /// ```
-    /// use fornax::PixelCoord;
+    /// use fornax::geometry::PixelCoord;
     ///
     /// assert_eq!(PixelCoord::new(2, 5).col, 5);
     /// ```
@@ -82,7 +94,7 @@ impl PixelRect {
     /// # Examples
     ///
     /// ```
-    /// use fornax::PixelRect;
+    /// use fornax::geometry::PixelRect;
     ///
     /// let rect = PixelRect::new(1, 2, 4, 6).unwrap();
     /// assert_eq!(rect.width(), 4);
@@ -123,7 +135,7 @@ impl PixelRect {
     /// # Examples
     ///
     /// ```
-    /// use fornax::{PixelCoord, PixelRect};
+    /// use fornax::geometry::{PixelCoord, PixelRect};
     ///
     /// let rect = PixelRect::new(1, 2, 4, 6).unwrap();
     /// assert!(rect.contains(PixelCoord::new(1, 2)));
@@ -157,7 +169,7 @@ impl ActiveArea {
     /// # Examples
     ///
     /// ```
-    /// use fornax::{ActiveArea, PixelSize};
+    /// use fornax::geometry::{ActiveArea, PixelSize};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(8, 6).unwrap(), 1, 1, 5, 7).unwrap();
     /// assert_eq!(area.rect().width(), 6);
@@ -180,7 +192,7 @@ impl ActiveArea {
     /// # Examples
     ///
     /// ```
-    /// use fornax::{ActiveArea, PixelSize};
+    /// use fornax::geometry::{ActiveArea, PixelSize};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 0, 0, 4, 4).unwrap();
     /// assert_eq!(area.rect().bottom(), 4);
@@ -207,7 +219,7 @@ impl StoredGeometry {
     /// ```
     /// use std::num::NonZeroU64;
     ///
-    /// use fornax::{PixelSize, StoredGeometry};
+    /// use fornax::geometry::{PixelSize, StoredGeometry};
     ///
     /// let geometry = StoredGeometry::new(PixelSize::new(4, 2).unwrap(), NonZeroU64::new(8).unwrap());
     /// assert_eq!(geometry.dimensions().height(), 2);

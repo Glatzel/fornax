@@ -9,7 +9,7 @@ different levels:
   f64 and what each choice guarantees.
 - [Key structures and fields](raw-image-struct.md) maps the persistent Rust types,
   fields, units, and invariants.
-- [Demosaicing interface](demosaicing.md) defines input/output, strategy
+- [Demosaicing interface](demosaicing.md) defines input/output, algorithm
   registration, border behavior, and errors.
 - [Crate architecture](architecture.md) defines the single-crate module
   topology, feature-gated upstream dependencies, error boundaries, and

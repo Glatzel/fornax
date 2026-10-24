@@ -13,10 +13,10 @@ flowchart LR
     end
     subgraph DemosaicPhase["3 · Demosaic"]
         Input["RawImage\nphase-aware"]
-        Strategy["DemosaicAlgorithm\nLinear"]
+        Algorithm["DemosaicAlgorithm\nLinear"]
         Output["ImageBuffer<Rgb<f32>>\nlinear output"]
-        Input --> Strategy
-        Strategy --> Output
+        Input --> Algorithm
+        Algorithm --> Output
     end
     Decoded --> Ready
     Ready --> Input
@@ -24,7 +24,7 @@ flowchart LR
 
 ## Input contract
 
-`DemosaicInput` borrows:
+`RawImage` provides:
 
 - a single-channel f32 mosaic of `width * height` samples;
 - dimensions and the validated `BayerLayout`;
@@ -60,56 +60,24 @@ behavior; callers may apply an explicit output policy where appropriate.
 Image-rs owns the output allocation and dimensions. `fornax` validates exact
 sample counts and finite values before returning the image.
 
-## Strategy interface
+## Algorithm interface
 
-`fornax::protocol` contains the phase protocol used to validate the global call
-flow:
+Demosaicing uses direct enum dispatch. There is no separate demosaic trait or
+options wrapper:
 
 ```rust
-pub trait IDemosaic: Send + Sync {
-    fn demosaic(
+impl RawImage {
+    pub fn demosaic(
         &self,
-        input: &RawImage,
-        options: &DemosaicOptions,
-    ) -> Result<RgbImageF32, DemosaicError>;
+        algorithm: DemosaicAlgorithm,
+    ) -> Result<(RgbImageF32, Arc<ValidatedMetadata>), DemosaicError>;
 }
 ```
 
 `fornax::demosaic::DemosaicAlgorithm` is the current selectable algorithm
-type. It implements `IDemosaic` and dispatches `Linear` to the in-crate linear
-implementation. A later contract task may add the runtime strategy/registry
-interface below while preserving the `RawImage` input and interleaved linear
-f32 output boundary.
-
-```rust
-pub trait DemosaicStrategy: Send + Sync {
-    fn id(&self) -> DemosaicAlgorithmId;
-    fn capabilities(&self) -> DemosaicCapabilities;
-
-    fn validate(
-        &self,
-        input: &DemosaicInput<'_>,
-        output: &RgbImageF32,
-    ) -> Result<(), DemosaicError>;
-
-    fn process(
-        &self,
-        input: &DemosaicInput<'_>,
-        output: &mut RgbImageF32,
-    ) -> Result<DemosaicRun, DemosaicError>;
-}
-```
-
-The interface is object-safe so one runtime registry can hold independently
-compiled algorithms. Algorithm-specific options belong to the configured
-strategy object, not the shared input type.
-
-`DemosaicCapabilities` records:
-
-- Bayer phases supported;
-- minimum dimensions;
-- border policy; and
-- algorithm identity.
+type. It dispatches `Linear` to the in-crate linear implementation.
+`RawImage::demosaic` adds output-size and finite-value validation while
+retaining metadata.
 
 ## Border behavior
 
@@ -120,7 +88,7 @@ Supported descriptions are:
   borders; and
 - `AlgorithmDefined` — the implementation documents and tests its own policy.
 
-The output always has the input dimensions. A strategy requiring an internal
+The output always has the input dimensions. An algorithm requiring an internal
 halo gathers it only from available input; no implicit crop or CFA rebase is
 allowed.
 
@@ -133,14 +101,13 @@ emitted.
 
 ## Errors and allocation
 
-`DemosaicError` covers invalid input/output dimensions, non-finite or
-out-of-range samples, unsupported phases, too-small images, duplicate/unknown
-algorithms, failed strategies, and allocation failure.
+`fornax::error::DemosaicError` covers invalid input/output dimensions, non-finite
+or out-of-range samples, unsupported phases, too-small images, failed
+algorithms, and allocation failure.
 
 The demosaicing boundary checks `3 * width * height` overflow, exact buffer
-length, finite values, and output dimensions. Callers may reuse matching
-image-rs buffers. Strategies may allocate private scratch buffers; allocation
-failure is structured.
+length, finite values, and output dimensions. Algorithms may allocate private
+scratch buffers; allocation failure is structured.
 
 ## Initial algorithms
 

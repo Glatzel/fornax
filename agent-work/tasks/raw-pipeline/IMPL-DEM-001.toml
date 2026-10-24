@@ -1,28 +1,28 @@
 schema_version = 1
 id = "IMPL-DEM-001"
 slug = "demosaic-contract"
-title = "Implement the demosaicing contract and registry"
+title = "Refine direct demosaicing algorithm dispatch"
 phase = "implementation"
 dependencies = ["IMPL-CORE-001", "DES-005"]
 parallelism = "Starts after IMPL-CORE-001; can run in parallel with decoder and preprocessing foundations."
-deliverables = ["fornax::demosaic contract source", "input, output, registry, and error tests"]
+deliverables = ["fornax::demosaic direct dispatch source", "input, output, and error tests"]
 scope = """
-Refine the draft IDemosaic, options, output, and error contracts inside
-`fornax::demosaic`. Add DemosaicInput,
-RgbImageF32 interleaved output validation, DemosaicStrategy, capabilities, border
-policy, and runtime registry. Validate the consuming f32-only RawImage boundary
-without implementing a reconstruction algorithm in this task.
+Refine the direct `DemosaicAlgorithm` and `RgbImageF32` boundary inside
+`fornax::demosaic`. Add algorithm capabilities, border-policy metadata, and
+interleaved output validation. Validate the consuming f32-only `RawImage`
+boundary without adding an `IDemosaic` trait, options wrapper, or runtime
+registry.
 """
 acceptance = [
-  "DemosaicInput validates dimensions, exact sample count, finite values in [0,1], Bayer phase, and ActiveArea-relative lookup.",
+  "RawImage validates dimensions, exact sample count, finite values in [0,1], Bayer phase, and ActiveArea-relative lookup.",
   "RgbImageF32 output uses image-rs ImageBuffer<Rgb<f32>, Vec<f32>> with checked dimensions, exact interleaved sample count, and finite values.",
-  "The object-safe strategy contract exposes capabilities and algorithm identity without algorithm-specific options in shared input.",
-  "Registry registration rejects duplicate IDs and phase claims unsupported by the initial contract.",
+  "Algorithm capabilities identify supported Bayer phases, minimum dimensions, border policy, and algorithm identity.",
+  "Unknown algorithms cannot be constructed, so duplicate registration and unknown-ID paths are unnecessary.",
   "Output retains immutable metadata and run provenance and does not apply crop, orientation, white balance, color conversion, tone mapping, or clipping.",
-  "Invalid, too-small, unknown, duplicate, allocation, and strategy-failure paths are structured.",
+  "Invalid, too-small, allocation, and algorithm-failure paths are structured.",
 ]
 validation = [
   "Verify IMPL-CORE-001 and DES-005 PRs are merged.",
-  "Run focused contract, registry, buffer, metadata-retention, and rejection tests.",
+  "Run focused dispatch, buffer, metadata-retention, and rejection tests.",
   "Run formatting, clippy, and focused tests for fornax.",
 ]

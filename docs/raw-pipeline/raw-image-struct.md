@@ -120,8 +120,8 @@ Decoder adapters produce `DecodedRaw`. Its `StoredPlane` covers native u8,
 u16, u32, and f32 samples, so one preprocessing implementation handles every
 supported decoder output.
 
-`DecodedRaw::pre_process` is implemented by `fornax::preprocess` and consumes
-the decoded image. It returns the distinct `RawImage` type, whose payload is
+`DecodedRaw::pre_process` will consume the decoded image once its TODO substeps
+are implemented. It returns the distinct `RawImage` type, whose payload is
 exclusively `F32Plane`. Linearization, black subtraction, normalization, and
 final clipping are private substeps and expose no intermediate image types.
 
@@ -148,12 +148,13 @@ is retained as nonzero provenance and is not assumed to equal the compact
 `ImageBuffer` stride. Extensible keys use the `raw.*` names blocked for typed
 concepts and cannot override those fields.
 
-`RawValidationError` is the image/model boundary error. It distinguishes
+`fornax::error::RawValidationError` is the image/model boundary error. It distinguishes
 missing metadata, invalid geometry/sample specification, unsupported sample
 widths, non-mosaic/non-2x2/non-RGB CFA layouts, invalid levels, non-finite samples,
 invalid demosaic-ready values, metadata conflicts, and incompatible
-custom-processing bases. `MetadataError` reports key grammar, duplicate typed
-concepts, candidate conflicts, invalid values, and allocation limits.
+custom-processing bases. `fornax::error::MetadataError` reports key grammar,
+duplicate typed concepts, candidate conflicts, invalid values, and allocation
+limits.
 
 The optional `serde` feature serializes the validated metadata and processing
 descriptors. It deliberately does not derive deserialization for the model:

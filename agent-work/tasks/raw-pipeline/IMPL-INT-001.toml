@@ -5,11 +5,11 @@ title = "Implement the explicit end-to-end pipeline module"
 phase = "integration"
 dependencies = ["IMPL-DEC-005", "IMPL-PRE-003", "IMPL-DEM-001"]
 requires_one_of = ["IMPL-DEM-002", "IMPL-DEM-003"]
-parallelism = "Starts after decoder conformance and complete preprocessing are merged and at least one demosaic strategy is available."
+parallelism = "Starts after decoder conformance and complete preprocessing are merged and at least one demosaic algorithm is available."
 deliverables = ["fornax::pipeline source", "end-to-end pipeline and feature-combination tests"]
 scope = """
 Implement `fornax::pipeline` as an explicit builder over a selected decoder,
-the consuming preprocessing sequence, and a selected demosaic strategy.
+the consuming preprocessing sequence, and a selected demosaic algorithm.
 Preserve metadata/provenance, expose stage-specific errors, and keep backend
 features distinct from runtime selection.
 """
@@ -24,8 +24,8 @@ acceptance = [
   "Supported feature combinations build independently and backend types remain hidden.",
 ]
 validation = [
-  "Verify IMPL-DEC-005, IMPL-PRE-003, IMPL-DEM-001, and at least one demosaic strategy PR are merged.",
-  "Run `cargo test -p fornax` with every available backend/strategy feature combination.",
+  "Verify IMPL-DEC-005, IMPL-PRE-003, IMPL-DEM-001, and at least one demosaic algorithm PR are merged.",
+  "Run `cargo test -p fornax` with every available backend/algorithm feature combination.",
   "Record fixture provenance and explicitly unsupported coverage.",
   "Run formatting, clippy, and affected workspace builds.",
 ]

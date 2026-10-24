@@ -1,6 +1,7 @@
 use image::{ImageBuffer, Luma};
 
-use crate::{PixelSize, RawValidationError};
+use crate::error::RawValidationError;
+use crate::geometry::PixelSize;
 
 /// A tightly packed single-channel 8-bit RAW plane.
 pub type U8Plane = ImageBuffer<Luma<u8>, Vec<u8>>;
@@ -98,7 +99,8 @@ impl StoredPlane {
     /// # Examples
     ///
     /// ```
-    /// use fornax::{PixelSize, U8Plane};
+    /// use fornax::U8Plane;
+    /// use fornax::geometry::PixelSize;
     ///
     /// let plane = U8Plane::from_raw(2, 1, vec![1, 2]).unwrap();
     /// assert_eq!(

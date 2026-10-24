@@ -7,7 +7,7 @@ dependencies = ["IMPL-DEC-002", "IMPL-DEC-003", "IMPL-DEC-004"]
 parallelism = "Runs after all planned adapter backends are merged so their contracts can be compared."
 deliverables = ["decoder conformance suite", "target-format fixture matrix and documented gaps"]
 scope = """
-Verify every concrete module under `fornax::decode` against the same universal expectations and an
+Verify every concrete module under `fornax::decoder` against the same universal expectations and an
 honest target-format matrix. Assert Bayer DNG, Sony ARW, Nikon NEF, Canon CR2,
 and Canon CR3 outcomes where fixtures exist; verify structured rejection for
 deferred layouts and formats. Do not use image plausibility as decoder evidence.

@@ -1,16 +1,17 @@
 schema_version = 1
 id = "IMPL-CORE-001"
 slug = "universal-core-model"
-title = "Implement the universal RAW model and global protocol in fornax"
+title = "Implement the universal RAW model and direct stage boundaries in fornax"
 phase = "implementation"
 dependencies = ["DES-001", "DES-002", "DES-003", "DES-006"]
-parallelism = "Foundational implementation gate; must merge before decoder or preprocessing module work and demosaic contract refinement."
+parallelism = "Foundational implementation gate; must merge before decoder or preprocessing module work and demosaic dispatch refinement."
 deliverables = [
   "fornax universal model source with flattened root modules",
-  "fornax draft global protocol",
+  "fornax generic-input decoder module",
+  "fornax error, geometry, and metadata modules",
   "fornax::demosaic linear algorithm and Bayer phase tests",
   "fornax-dalim removal and workspace migration",
-  "fornax model, protocol, and validation tests",
+  "fornax model, stage-boundary, and validation tests",
 ]
 scope = """
 Rename the current fornax-core implementation to fornax and replace the legacy
@@ -18,22 +19,25 @@ fornax facade with that renamed crate. Install the persistent universal RAW
 model: native u8/u16/u32/f32 planes, sample specification, stored geometry,
 ActiveArea and Bayer indexing, typed and extensible metadata with provenance,
 black/white levels, DecodedRaw, f32-only RawImage, constructors, and structured
-validation errors. Flatten the model into the crate root. Define draft
-object-safe decoder, preprocessor, and demosaic protocols plus the target
-`fornax` feature topology for optional upstream decoders. Move the reusable
-linear demosaic implementation and tests from fornax-dalim into
-fornax::demosaic, then remove the legacy crate. Do not implement concrete
-decoder or preprocessing algorithms in this task.
+validation errors. Flatten the model into the crate root. Define generic
+decoder input through `IRawDecoder<I>`, direct `DecodedRaw::pre_process`, and
+direct `DemosaicAlgorithm` dispatch plus the target `fornax` feature topology
+for optional upstream decoders. Centralize phase errors under `fornax::error`;
+expose geometry and metadata as public modules without public root member
+re-exports. Move the reusable linear demosaic implementation and tests from
+fornax-dalim into fornax::demosaic, then remove the legacy crate. Do not
+implement concrete decoder or preprocessing algorithms in this task.
 """
 acceptance = [
   "The implementation follows docs/raw-pipeline rather than retaining legacy BayerImage, decoder, or post-processor contracts.",
-  "The model is exposed from the crate root without a nested model module.",
+  "The model is exposed from the crate root without a nested model module; error, geometry, and metadata are public modules without public root re-exports.",
   "Native sample containers retain the declared sample specification and reject invalid container/specification combinations.",
   "ActiveArea-relative CFA lookup is correct for RGGB, BGGR, GRBG, and GBRG, including odd origins.",
   "Typed metadata, extensible metadata, provenance, conflict handling, and level invariants are enforced by construction.",
   "Black and white levels are required decoder metadata; missing levels or a white range that does not exceed the effective black level rejects ValidatedMetadata/DecodedRaw construction.",
-  "DecodedRaw accepts every supported decoder plane, pre_process consumes it to produce the distinct f32-only RawImage type, and preprocessing cannot be called again on RawImage.",
-  "Draft IRawDecoder, IRawPreprocessor, and IDemosaic protocols expose the decode -> preprocess -> demosaic call flow with structured phase errors.",
+  "DecodedRaw accepts every supported decoder plane and exposes one consuming pre_process entry point whose numerical substeps remain TODO.",
+  "IRawDecoder<I> accepts generic inputs such as byte slices and file paths; no RawInput or protocol module exists.",
+  "RawImage::demosaic and DemosaicAlgorithm dispatch directly without IDemosaic, DemosaicOptions, IRawPreprocessor, or preprocess options.",
   "DemosaicAlgorithm::Linear reconstructs image-rs interleaved RGB f32 for all four Bayer phases, including odd ActiveArea origins.",
   "The fornax-dalim package and workspace dependency are removed after its reusable linear implementation and tests are migrated.",
   "Unsupported non-mosaic, non-RGB, and wider sample specifications return typed errors.",

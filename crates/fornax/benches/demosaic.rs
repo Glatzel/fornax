@@ -1,12 +1,14 @@
 use std::num::{NonZeroU32, NonZeroU64};
 
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use fornax::geometry::{ActiveArea, PixelSize, StoredGeometry};
+use fornax::metadata::{
+    AuthorityClass, BlackLevels, CommonMetadata, Confidence, DecoderProvenance, ExtensibleMetadata,
+    Provenance, ProviderId, Rational, SourceKind, Sourced, ValidatedMetadata, WhiteLevels,
+};
 use fornax::{
-    ActiveArea, AuthorityClass, BayerLayout, BayerPattern, BlackLevels, CommonMetadata, Confidence,
-    DecodedRaw, DecoderProvenance, DemosaicAlgorithm, DemosaicOptions, ExtensibleMetadata,
-    IDemosaic, PixelSize, Provenance, ProviderId, Rational, RawImage, SampleFormat, SampleSpec,
-    SourceKind, Sourced, StoredGeometry, StoredPlane, ValidatedMetadata, WhiteLevels,
-    into_preprocessed,
+    BayerLayout, BayerPattern, DecodedRaw, DemosaicAlgorithm, RawImage, SampleFormat, SampleSpec,
+    StoredPlane, into_preprocessed,
 };
 use image::ImageBuffer;
 
@@ -18,7 +20,7 @@ fn image(width: u32, height: u32) -> RawImage {
     let dimensions = PixelSize::new(width, height).unwrap();
     let active_area = ActiveArea::try_new(dimensions, 0, 0, width, height).unwrap();
     let provider = ProviderId::try_new("benchmark").unwrap();
-    let provenance = fornax::Provenance::new(
+    let provenance = Provenance::new(
         provider.clone(),
         SourceKind::Derived {
             operation: "synthetic mosaic".into(),
@@ -68,13 +70,11 @@ fn image(width: u32, height: u32) -> RawImage {
 
 fn bench_linear(c: &mut Criterion) {
     let input = image(1920, 1080);
-    let algorithm = DemosaicAlgorithm::Linear;
-    let options = DemosaicOptions;
     c.bench_function("linear 1920x1080 RGGB", |b| {
         b.iter(|| {
             black_box(
-                algorithm
-                    .demosaic(black_box(&input), black_box(&options))
+                input
+                    .demosaic(black_box(DemosaicAlgorithm::Linear))
                     .unwrap(),
             )
         });

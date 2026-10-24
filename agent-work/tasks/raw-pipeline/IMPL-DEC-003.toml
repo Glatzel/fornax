@@ -5,9 +5,9 @@ title = "Implement the dnglab/rawler decoder adapter"
 phase = "implementation"
 dependencies = ["IMPL-DEC-001", "DES-002", "DES-003"]
 parallelism = "Can run in parallel with IMPL-DEC-002 through a separate module; root Cargo changes are serialized."
-deliverables = ["fornax::decode::rawler source", "rawler adapter conformance tests"]
+deliverables = ["fornax::decoder::rawler source", "rawler adapter conformance tests"]
 scope = """
-Implement the private `fornax::decode::rawler` module around the workspace
+Implement the private `fornax::decoder::rawler` module around the workspace
 crates.io rawler 0.8.0 dependency. Snapshot RAW samples and metadata before any
 scaling or downstream conversion, translate DNG and vendor fields into the
 universal model with provenance, and use rawler's target-format dispatch for
@@ -18,7 +18,7 @@ acceptance = [
   "DNG ActiveArea, CFA phase, sample specification, declared/adjusted/measured white levels, black levels, and crop semantics map without lossy guessing.",
   "Crate-integer and vendor metadata are translated through typed values or namespaced provenance-aware entries.",
   "Unsupported non-RGB, non-Bayer, LinearRaw, wider sample, and unverified metadata cases fail structurally.",
-  "Rawler types remain private to `fornax::decode::rawler` and only the backend constructor/config is public.",
+  "Rawler types remain private to `fornax::decoder::rawler` and only the backend constructor/config is public.",
   "rawler is consumed from crates.io at the workspace-pinned version 0.8.0, and its LGPL-2.1 distribution decision is recorded before any default-feature or release claim.",
 ]
 validation = [

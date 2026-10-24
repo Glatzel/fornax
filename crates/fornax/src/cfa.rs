@@ -1,6 +1,7 @@
 use std::num::NonZeroU32;
 
-use crate::{ActiveArea, PixelCoord, RawValidationError};
+use crate::error::RawValidationError;
+use crate::geometry::{ActiveArea, PixelCoord};
 
 /// The dimensions of a CFA repeat tile.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -216,7 +217,8 @@ impl BayerLayout {
     /// # Examples
     ///
     /// ```
-    /// use fornax::{ActiveArea, BayerLayout, BayerPattern, PixelSize};
+    /// use fornax::geometry::{ActiveArea, PixelSize};
+    /// use fornax::{BayerLayout, BayerPattern};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 0, 0, 4, 4).unwrap();
     /// let layout = BayerLayout::new(BayerPattern::Rggb, area);
@@ -245,7 +247,8 @@ impl BayerLayout {
     /// # Examples
     ///
     /// ```
-    /// use fornax::{ActiveArea, BayerLayout, BayerPattern, PixelCoord, PixelSize};
+    /// use fornax::geometry::{ActiveArea, PixelCoord, PixelSize};
+    /// use fornax::{BayerLayout, BayerPattern};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 1, 1, 4, 4).unwrap();
     /// let layout = BayerLayout::new(BayerPattern::Gbrg, area);
@@ -272,7 +275,8 @@ impl BayerLayout {
     /// # Examples
     ///
     /// ```
-    /// use fornax::{ActiveArea, BayerLayout, BayerPattern, CfaColor, PixelCoord, PixelSize};
+    /// use fornax::geometry::{ActiveArea, PixelCoord, PixelSize};
+    /// use fornax::{BayerLayout, BayerPattern, CfaColor};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 0, 0, 4, 4).unwrap();
     /// let layout = BayerLayout::new(BayerPattern::Bggr, area);
@@ -286,7 +290,7 @@ impl BayerLayout {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::PixelSize;
+    use crate::geometry::PixelSize;
 
     const PATTERNS: [BayerPattern; 4] = [
         BayerPattern::Rggb,
