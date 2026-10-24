@@ -1,9 +1,12 @@
 use std::path::Path;
 
-use fornax::decoder::libraw::native::{LibRawContext, UnpackedRawImage, UnpackedRawImageKind};
+#[path = "../src/decoder/libraw/native.rs"]
+mod native;
+
 use fornax::decoder::{IRawDecoder, LibRawDecoder};
 use fornax::{DemosaicAlgorithm, F32Plane, StoredPlane};
 use image::{ImageBuffer, Luma, Rgb};
+use native::{LibRawContext, UnpackedRawImage, UnpackedRawImageKind};
 
 type Gray16 = ImageBuffer<Luma<u16>, Vec<u16>>;
 type Rgb16 = ImageBuffer<Rgb<u16>, Vec<u16>>;

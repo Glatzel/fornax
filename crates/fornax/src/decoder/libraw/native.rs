@@ -1,6 +1,7 @@
 #![allow(
+    dead_code,
     missing_docs,
-    reason = "native backend support is exposed only for backend-specific examples"
+    reason = "native backend support is shared by production decoding and backend-specific examples"
 )]
 
 use std::ffi::c_char;

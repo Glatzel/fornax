@@ -24,8 +24,7 @@ use crate::DecodedRaw;
 use crate::error::DecodeError;
 
 #[cfg(feature = "backend-libraw")]
-#[doc(hidden)]
-pub mod libraw;
+mod libraw;
 // TODO(IMPL-DEC-004..005): add rawler and dnc member modules.
 
 #[cfg(feature = "backend-libraw")]

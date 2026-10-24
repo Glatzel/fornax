@@ -1,7 +1,6 @@
 //! LibRaw decoder backed by the workspace's private safe wrapper.
 
-#[doc(hidden)]
-pub mod native;
+mod native;
 mod snapshot;
 
 use std::num::{NonZeroU32, NonZeroU64};
