@@ -17,7 +17,7 @@ flowchart TB
         Metadata["metadata"]
         Error["error"]
         Decoder["decoder\nIRawDecoder<I> + backend modules"]
-        Preprocess["DecodedRaw::pre_process\nprivate ordered substeps"]
+        Preprocess["DecodedRaw::preprocess\nprivate ordered substeps"]
         Demosaic["demosaic\nDemosaicAlgorithm"]
         Pipeline["pipeline\nend-to-end composition"]
     end
@@ -46,12 +46,16 @@ crate remains usable without enabling any decoder backend.
 | `fornax::decoder::libraw` | Private LibRaw adapter over `libraw-sys` |
 | `fornax::decoder::rawler` | Private rawler/dnglab adapter |
 | `fornax::decoder::dnc` | Private process bridge composed with a DNG decoder |
-| `DecodedRaw::pre_process` | One standard preprocessing entry point with private linearization, black subtraction, normalization, and clipping substeps |
+| `DecodedRaw::preprocess` | One standard preprocessing entry point with private linearization, black subtraction, normalization, and clipping substeps |
 | `fornax::demosaic` | Direct algorithm selection, image-rs RGB output, and in-crate Bayer implementations |
 | `fornax::pipeline` | Explicit end-to-end backend and algorithm composition |
 
 These modules are an implementation boundary inside one crate. They are not
 reason to reintroduce workspace crates.
+
+The operation and its private module are both named `preprocess`. A single
+word is the conventional Rust form for this action and keeps the method and
+module aligned; `pre_process` is not retained as a compatibility alias.
 
 Source ownership follows the same hierarchy:
 
@@ -62,6 +66,7 @@ src/
 │   └── mod.rs                 # generic decoder boundary; concrete members follow
 ├── decoded_raw/
 │   ├── mod.rs                 # DecodedRaw
+│   ├── preprocess.rs          # private ordered preprocessing substeps
 │   └── plane.rs               # native u8/u16/u32/f32 sample containers
 ├── demosaic/
 │   ├── mod.rs                 # algorithm selection and RGB output
@@ -121,7 +126,7 @@ pub trait IRawDecoder<I: ?Sized>: Send + Sync {
 }
 
 impl DecodedRaw {
-    pub fn pre_process(self) -> Result<RawImage, PreprocessError>;
+    pub fn preprocess(self) -> Result<RawImage, PreprocessError>;
 }
 
 impl RawImage {
@@ -133,14 +138,15 @@ impl RawImage {
 ```
 
 The generic decoder input may be an in-memory byte slice, a filesystem path, or
-another backend-specific source. `DecodedRaw::pre_process` is the single
-consuming preprocessing entry point; its ordered substeps remain TODO until
-the `IMPL-PRE-*` tasks implement them.
+another backend-specific source. `DecodedRaw::preprocess` is the single
+consuming preprocessing entry point; its ordered substeps live in the private
+`decoded_raw::preprocess` module.
 
 `RawImage::demosaic` accepts a `DemosaicAlgorithm` and returns
 `(RgbImageF32, Arc<ValidatedMetadata>)`, where `RgbImageF32` is image-rs
-interleaved RGB. `pre_process` lives in `src/decoded_raw/mod.rs`; demosaic dispatch
-and output validation live in `src/demosaic/` and `src/raw_image.rs`.
+interleaved RGB. `preprocess` is declared in `src/decoded_raw/mod.rs`; its
+numerical implementation lives in `src/decoded_raw/preprocess.rs`. Demosaic
+dispatch and output validation live in `src/demosaic/` and `src/raw_image.rs`.
 
 `IMPL-CORE-001` establishes these direct boundaries. Later decoder,
 preprocessing, and demosaicing tasks refine their implementations inside
@@ -190,7 +196,7 @@ exposes upstream decoder error types or a string-only top-level error.
   `fornax::decoder` modules.
 - The `fornax-dalim` crate is removed after migrating its reusable linear
   demosaic implementation and Bayer tests into `fornax::demosaic`.
-- Implement the private substeps behind `DecodedRaw::pre_process`.
+- Implement the private substeps behind `DecodedRaw::preprocess`.
 - Retire the public `libraw` and `dnc` wrapper crates after their private
   integrations exist in `fornax`.
 - Keep `libraw-sys` only as private FFI support.

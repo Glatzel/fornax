@@ -7,10 +7,7 @@ use fornax::metadata::{
     DecoderProvenance, ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
     ValidatedMetadata, WhiteLevels,
 };
-use fornax::{
-    DecodedRaw, DemosaicAlgorithm, RawImage, SampleFormat, SampleSpec, StoredPlane,
-    into_preprocessed,
-};
+use fornax::{DecodedRaw, DemosaicAlgorithm, RawImage, SampleFormat, SampleSpec, StoredPlane};
 use image::ImageBuffer;
 
 fn sourced<T>(value: T, provenance: &Provenance) -> Sourced<T> {
@@ -65,8 +62,10 @@ fn image(width: u32, height: u32) -> RawImage {
         .map(|index| (index % 256) as f32 / 255.0)
         .collect();
     let plane = ImageBuffer::from_raw(width, height, samples).unwrap();
-    let decoded = DecodedRaw::try_new(metadata, StoredPlane::F32(plane.clone())).unwrap();
-    into_preprocessed(decoded, plane).unwrap()
+    DecodedRaw::try_new(metadata, StoredPlane::F32(plane))
+        .unwrap()
+        .preprocess()
+        .unwrap()
 }
 
 fn bench_linear(c: &mut Criterion) {

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 pub mod plane;
+mod preprocess;
 
 pub use plane::{F32Plane, SampleFormat, SampleSpec, StoredPlane, U8Plane, U16Plane, U32Plane};
 
@@ -15,9 +16,9 @@ use crate::metadata::{DecoderProvenance, ValidatedMetadata};
 /// integer plane may be converted explicitly to working f32 while remaining a
 /// `DecodedRaw` for custom processing.
 ///
-/// Standard preprocessing will consume an owned `DecodedRaw` through
-/// [`DecodedRaw::pre_process`] and return a distinct f32-only
-/// [`crate::RawImage`]; the numerical substeps remain TODO in this core pass.
+/// Standard preprocessing consumes an owned `DecodedRaw` through
+/// [`DecodedRaw::preprocess`] and returns a distinct f32-only
+/// [`crate::RawImage`]. Its numerical substeps remain private.
 ///
 /// # Examples
 ///
@@ -101,12 +102,13 @@ impl DecodedRaw {
     ///
     /// Native floating-point images are already on the f32 path and are
     /// returned unchanged. Integer conversion is exact only when the declared
-    /// precision fits f32's 24-bit significand.
+    /// precision fits f32's 24-bit significand and every sample value
+    /// round-trips exactly.
     ///
     /// # Errors
     ///
-    /// Returns a typed error for repeated conversion, wider integer sources,
-    /// incompatible geometry, or non-finite samples.
+    /// Returns a typed error for repeated conversion, wider or lossy integer
+    /// sources, incompatible geometry, or non-finite samples.
     ///
     /// # Examples
     ///
@@ -158,30 +160,19 @@ impl DecodedRaw {
     /// Consumes the image into retained metadata and stored plane.
     pub fn into_parts(self) -> (Arc<ValidatedMetadata>, StoredPlane) { (self.metadata, self.plane) }
 
-    /// Consumes and validates the decoded image for preprocessing.
-    ///
-    /// # Errors
-    ///
-    /// Returns a typed error if user mutation left the plane incompatible with
-    /// its metadata.
-    #[doc(hidden)]
-    pub fn into_preprocessing_parts(
-        self,
-    ) -> Result<(Arc<ValidatedMetadata>, StoredPlane), RawValidationError> {
-        self.validate_for_preprocessing()?;
-        Ok((self.metadata, self.plane))
-    }
-
     /// Consumes the decoded image through the single standard preprocessing
     /// entry point.
     ///
-    /// This core scaffold currently returns [`PreprocessError::Unsupported`].
-    /// Linearization, black subtraction, normalization, and final clipping are
-    /// TODO private substeps for the preprocessing implementation tasks.
+    /// The operation converts native integer samples to the f32 working domain
+    /// when needed, then applies identity linearization, black-level
+    /// subtraction, white-level normalization, and final clipping in that
+    /// order. Decoder-validated metadata and provenance are retained.
     ///
     /// # Errors
     ///
-    /// Returns a structured preprocessing error when the pass cannot complete.
+    /// Returns a structured [`PreprocessError`] when the current plane is
+    /// invalid, conversion would be lossy, metadata cannot be applied, or an
+    /// allocation or numerical operation fails.
     ///
     /// # Examples
     ///
@@ -195,7 +186,6 @@ impl DecodedRaw {
     /// # };
     /// # use fornax::metadata::{BayerLayout, BayerPattern};
     /// # use fornax::{DecodedRaw, SampleFormat, SampleSpec, StoredPlane};
-    /// use fornax::error::PreprocessError;
     /// # fn input() -> DecodedRaw {
     /// #     let dimensions = PixelSize::new(1, 1).unwrap();
     /// #     let area = ActiveArea::try_new(dimensions, 0, 0, 1, 1).unwrap();
@@ -241,19 +231,10 @@ impl DecodedRaw {
     /// #     DecodedRaw::try_new(metadata, StoredPlane::F32(plane)).unwrap()
     /// # }
     ///
-    /// assert!(matches!(
-    ///     input().pre_process(),
-    ///     Err(PreprocessError::Unsupported(_))
-    /// ));
+    /// let output = input().preprocess().unwrap();
+    /// assert_eq!(output.plane().get_pixel(0, 0)[0], 0.25);
     /// ```
-    pub fn pre_process(self) -> Result<RawImage, PreprocessError> {
-        // TODO(IMPL-PRE-001): implement linearization, black subtraction,
-        // normalization, and clipping as private substeps.
-        let _ = self;
-        Err(PreprocessError::Unsupported(
-            "standard preprocessing is not implemented".into(),
-        ))
-    }
+    pub fn preprocess(self) -> Result<RawImage, PreprocessError> { preprocess::run(self) }
 }
 
 #[cfg(test)]
@@ -269,7 +250,7 @@ mod tests {
         ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind, Sourced,
         ValidatedMetadata, WhiteLevels,
     };
-    use crate::{RawImage, U16Plane, into_preprocessed};
+    use crate::{RawImage, U16Plane};
 
     fn provenance() -> Provenance {
         Provenance::new(
@@ -323,7 +304,7 @@ mod tests {
     fn conversion_remains_a_decoded_raw() {
         let decoded = decoded().convert_to_f32().unwrap();
         assert!(matches!(decoded.plane(), StoredPlane::F32(_)));
-        decoded.clone().into_preprocessing_parts().unwrap();
+        decoded.clone().preprocess().unwrap();
         assert_eq!(
             decoded.clone().convert_to_f32(),
             Err(RawValidationError::InvalidStorageState)
@@ -337,41 +318,26 @@ mod tests {
             panic!("converted image has an f32 plane");
         };
         plane.as_mut().fill(0.25);
-        custom.into_preprocessing_parts().unwrap();
+        custom.preprocess().unwrap();
     }
 
     #[test]
     fn preprocessing_returns_the_distinct_f32_only_type() {
-        let decoded = decoded().convert_to_f32().unwrap();
-        let ready: RawImage =
-            into_preprocessed(decoded, ImageBuffer::from_raw(2, 2, vec![0.75; 4]).unwrap())
-                .unwrap();
-        assert_eq!(ready.plane().as_raw(), &[0.75; 4]);
+        let ready: RawImage = decoded().preprocess().unwrap();
+        let expected = [1.0_f32, 2.0, 3.0, 4.0].map(|sample| (f64::from(sample) / 65_535.0) as f32);
+        assert_eq!(ready.plane().as_raw(), &expected);
         assert_eq!(ready.metadata().cfa().pattern(), BayerPattern::Gbrg);
         assert_eq!(ready.metadata().decoder().backend().as_str(), "test");
-    }
-
-    #[test]
-    fn readiness_rejects_out_of_range_values() {
-        let decoded = decoded().convert_to_f32().unwrap();
-        assert_eq!(
-            into_preprocessed(decoded, ImageBuffer::from_raw(2, 2, vec![1.25; 4]).unwrap())
-                .unwrap_err(),
-            RawValidationError::InvalidReadinessRange
-        );
     }
 
     #[test]
     fn preprocessing_revalidates_user_mutated_plane() {
         let mut image = decoded();
         *image.plane_mut() = StoredPlane::U8(crate::U8Plane::from_raw(2, 2, vec![1; 4]).unwrap());
-        assert_eq!(
-            image.into_preprocessing_parts().unwrap_err(),
-            RawValidationError::UnsupportedSampleSpec {
-                bits_per_sample: 16,
-                format: SampleFormat::UnsignedInteger,
-            }
-        );
+        assert!(matches!(
+            image.preprocess(),
+            Err(PreprocessError::InvalidInput(_))
+        ));
     }
 
     #[test]

@@ -29,9 +29,9 @@ passes on that branch and the user merges the promotion PR.
 | Research | 9 | 0 | 0 | 9 |
 | Synthesis | 3 | 0 | 0 | 3 |
 | Design | 6 | 0 | 0 | 6 |
-| Implementation | 15 | 14 | 0 | 1 |
+| Implementation | 13 | 12 | 0 | 1 |
 | QA | 6 | 6 | 0 | 0 |
-| **Total** | **39** | **20** | **0** | **19** |
+| **Total** | **37** | **18** | **0** | **19** |
 
 ## Research
 
@@ -74,12 +74,10 @@ passes on that branch and the user merges the promotion PR.
 | `IMPL-DEC-003` | Implement and validate the LibRaw decoder | `IMPL-CORE-001`, `DES-002`, `DES-003` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-003.toml) |
 | `IMPL-DEC-004` | Implement and validate the dnglab/rawler decoder | `IMPL-CORE-001`, `DES-002`, `DES-003` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-004.toml) |
 | `IMPL-DEC-005` | Implement and validate the DNC decoder bridge | `IMPL-CORE-001`, `IMPL-DEC-004` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-005.toml) |
-| `IMPL-PRE-001` | Implement preprocessing foundation and linearization substep | `IMPL-CORE-001`, `DES-004` | `Blocked` | [manifest](raw-pipeline/IMPL-PRE-001.toml) |
-| `IMPL-PRE-002` | Implement ActiveArea-aware black subtraction | `IMPL-PRE-001`, `DES-003` | `Blocked` | [manifest](raw-pipeline/IMPL-PRE-002.toml) |
-| `IMPL-PRE-003` | Implement the single preprocessing entry point | `IMPL-PRE-002` | `Blocked` | [manifest](raw-pipeline/IMPL-PRE-003.toml) |
+| `IMPL-PRE-001` | Implement the complete RAW preprocessing pipeline | `IMPL-CORE-001`, `DES-003`, `DES-004` | `Blocked` | [manifest](raw-pipeline/IMPL-PRE-001.toml) |
 | `IMPL-DEM-002` | Implement and validate bilinear demosaicing | `IMPL-CORE-001`, `DES-005`, `RES-05` | `Blocked` | [manifest](raw-pipeline/IMPL-DEM-002.toml) |
 | `IMPL-DEM-003` | Implement the Malvar–He–Cutler demosaic algorithm | `IMPL-DEM-002`, `DES-005`, `RES-05` | `Blocked` | [manifest](raw-pipeline/IMPL-DEM-003.toml) |
-| `IMPL-INT-001` | Implement the explicit end-to-end pipeline module | `IMPL-DEC-003`, `IMPL-DEC-004`, `IMPL-PRE-003`, `IMPL-DEM-002` | `Blocked` | [manifest](raw-pipeline/IMPL-INT-001.toml) |
+| `IMPL-INT-001` | Implement the explicit end-to-end pipeline module | `IMPL-DEC-003`, `IMPL-DEC-004`, `IMPL-PRE-001`, `IMPL-DEM-002` | `Blocked` | [manifest](raw-pipeline/IMPL-INT-001.toml) |
 | `IMPL-PY-001` | Migrate Python bindings to the fornax pipeline | `IMPL-INT-001` | `Blocked` | [manifest](raw-pipeline/IMPL-PY-001.toml) |
 | `IMPL-DEV-001` | Migrate development tooling to the fornax pipeline | `IMPL-INT-001` | `Blocked` | [manifest](raw-pipeline/IMPL-DEV-001.toml) |
 | `IMPL-INT-003` | Retire legacy facade, core, and dalim architecture | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-DEM-002`, `IMPL-PY-001`, `IMPL-DEV-001` | `Blocked` | [manifest](raw-pipeline/IMPL-INT-003.toml) |
@@ -89,8 +87,8 @@ passes on that branch and the user merges the promotion PR.
 | ID | Task | Depends on | Status | Manifest |
 | --- | --- | --- | --- | --- |
 | `QA-001` | Validate metadata preservation | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-INT-001` | `Blocked` | [manifest](raw-pipeline/QA-001.toml) |
-| `QA-002` | Add numerical regression coverage | `IMPL-INT-001`, `IMPL-PRE-003`, `IMPL-DEM-002`, `IMPL-DEM-003` | `Blocked` | [manifest](raw-pipeline/QA-002.toml) |
-| `QA-003` | Validate error paths and unsupported inputs | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-PRE-003`, `IMPL-INT-001` | `Blocked` | [manifest](raw-pipeline/QA-003.toml) |
+| `QA-002` | Add numerical regression coverage | `IMPL-INT-001`, `IMPL-PRE-001`, `IMPL-DEM-002`, `IMPL-DEM-003` | `Blocked` | [manifest](raw-pipeline/QA-002.toml) |
+| `QA-003` | Validate error paths and unsupported inputs | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-PRE-001`, `IMPL-INT-001` | `Blocked` | [manifest](raw-pipeline/QA-003.toml) |
 | `QA-004` | Establish performance baselines | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-INT-001`, `IMPL-DEM-003` | `Blocked` | [manifest](raw-pipeline/QA-004.toml) |
 | `QA-005` | Document behavior and API migration | `IMPL-PY-001`, `IMPL-DEV-001`, `IMPL-INT-003` | `Blocked` | [manifest](raw-pipeline/QA-005.toml) |
 | `QA-006` | Run final workspace validation | `IMPL-INT-003`, `QA-001`–`QA-005` | `Blocked` | [manifest](raw-pipeline/QA-006.toml) |

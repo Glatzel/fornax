@@ -37,19 +37,17 @@ implementation placeholders.
 | I0 | `IMPL-CORE-001` | [`IMPL-CORE-001.toml`](IMPL-CORE-001.toml) | `DES-001`–`DES-003`, `DES-006` |
 | I1 | `IMPL-DEC-003` | [`IMPL-DEC-003.toml`](IMPL-DEC-003.toml) | `IMPL-CORE-001`, `DES-002`, `DES-003` |
 | I1 | `IMPL-DEC-004` | [`IMPL-DEC-004.toml`](IMPL-DEC-004.toml) | `IMPL-CORE-001`, `DES-002`, `DES-003` |
-| I1 | `IMPL-PRE-001` | [`IMPL-PRE-001.toml`](IMPL-PRE-001.toml) | `IMPL-CORE-001`, `DES-004` |
+| I1 | `IMPL-PRE-001` | [`IMPL-PRE-001.toml`](IMPL-PRE-001.toml) | `IMPL-CORE-001`, `DES-003`, `DES-004` |
 | I1 | `IMPL-DEM-002` | [`IMPL-DEM-002.toml`](IMPL-DEM-002.toml) | `IMPL-CORE-001`, `DES-005`, `RES-05` |
-| I2 | `IMPL-PRE-002` | [`IMPL-PRE-002.toml`](IMPL-PRE-002.toml) | `IMPL-PRE-001`, `DES-003` |
 | I2 | `IMPL-DEC-005` | [`IMPL-DEC-005.toml`](IMPL-DEC-005.toml) | `IMPL-CORE-001`, `IMPL-DEC-004` |
 | I2 | `IMPL-DEM-003` | [`IMPL-DEM-003.toml`](IMPL-DEM-003.toml) | `IMPL-DEM-002`, `DES-005`, `RES-05` |
-| I3 | `IMPL-PRE-003` | [`IMPL-PRE-003.toml`](IMPL-PRE-003.toml) | `IMPL-PRE-002` |
-| I4 | `IMPL-INT-001` | [`IMPL-INT-001.toml`](IMPL-INT-001.toml) | `IMPL-DEC-003`, `IMPL-DEC-004`, `IMPL-PRE-003`, `IMPL-DEM-002` |
+| I4 | `IMPL-INT-001` | [`IMPL-INT-001.toml`](IMPL-INT-001.toml) | `IMPL-DEC-003`, `IMPL-DEC-004`, `IMPL-PRE-001`, `IMPL-DEM-002` |
 | I5 | `IMPL-PY-001` | [`IMPL-PY-001.toml`](IMPL-PY-001.toml) | `IMPL-INT-001` |
 | I5 | `IMPL-DEV-001` | [`IMPL-DEV-001.toml`](IMPL-DEV-001.toml) | `IMPL-INT-001` |
 | I6 | `IMPL-INT-003` | [`IMPL-INT-003.toml`](IMPL-INT-003.toml) | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-DEM-002`, `IMPL-PY-001`, `IMPL-DEV-001` |
 | Q | `QA-001` | [`QA-001.toml`](QA-001.toml) | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-INT-001` |
-| Q | `QA-002` | [`QA-002.toml`](QA-002.toml) | `IMPL-INT-001`, `IMPL-PRE-003`, `IMPL-DEM-002`, `IMPL-DEM-003` |
-| Q | `QA-003` | [`QA-003.toml`](QA-003.toml) | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-PRE-003`, `IMPL-INT-001` |
+| Q | `QA-002` | [`QA-002.toml`](QA-002.toml) | `IMPL-INT-001`, `IMPL-PRE-001`, `IMPL-DEM-002`, `IMPL-DEM-003` |
+| Q | `QA-003` | [`QA-003.toml`](QA-003.toml) | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-PRE-001`, `IMPL-INT-001` |
 | Q | `QA-004` | [`QA-004.toml`](QA-004.toml) | `IMPL-DEC-003`–`IMPL-DEC-005`, `IMPL-INT-001`, `IMPL-DEM-003` |
 | Q | `QA-005` | [`QA-005.toml`](QA-005.toml) | `IMPL-PY-001`, `IMPL-DEV-001`, `IMPL-INT-003` |
 | Q | `QA-006` | [`QA-006.toml`](QA-006.toml) | `IMPL-INT-003`, `QA-001`–`QA-005` |
@@ -76,15 +74,14 @@ combined `IMPL-INT-002`.
   flattens the model, establishes generic decoder and direct stage boundaries,
   ports the reusable linear demosaic baseline, and removes `fornax-dalim` after
   the design and persistent documentation are merged.
-- **I1:** LibRaw, rawler, preprocessing foundation, and bilinear demosaic can
+- **I1:** LibRaw, rawler, complete preprocessing, and bilinear demosaic can
   start concurrently as concrete implementations in `fornax` after the core gate.
   Root `Cargo.toml`/`Cargo.lock` edits are shared: merge one branch first, then
   rebase/regenerate the others before opening or updating their PRs when those
   files overlap.
-- **I2:** DNC, black subtraction, and Malvar-He-Cutler follow their concrete
+- **I2:** DNC and Malvar-He-Cutler follow their concrete
   decoder/algorithm prerequisites. Each decoder task owns its format fixture
   and conformance evidence; there is no separate decoder QA placeholder.
-- **I3:** normalization and final clipping complete preprocessing.
 - **I4:** the explicit pipeline module composes the concrete decoders and
   algorithms.
 - **I5–I6:** Python and devtool migrate independently, then the remaining legacy
@@ -120,8 +117,6 @@ flowchart LR
     Dnglab["IMPL-DEC-004"]
     Dnc["IMPL-DEC-005"]
     Pre1["IMPL-PRE-001"]
-    Pre2["IMPL-PRE-002"]
-    Pre3["IMPL-PRE-003"]
     Dem2["IMPL-DEM-002"]
     Dem3["IMPL-DEM-003"]
     Int1["IMPL-INT-001"]
@@ -136,12 +131,11 @@ flowchart LR
     Core --> Pre1
     Core --> Dem2
     Dnglab --> Dnc
-    Pre1 --> Pre2 --> Pre3
     Dem2 --> Dem3
     LibRaw --> Int1
     Dnglab --> Int1
     Dnc --> Int1
-    Pre3 --> Int1
+    Pre1 --> Int1
     Dem2 --> Int1
     Int1 --> Py
     Int1 --> Dev

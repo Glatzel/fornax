@@ -805,8 +805,8 @@ The post-design manifests cover these workstreams:
   `fornax`;
 - concrete LibRaw, dnglab/rawler, and DNC decoder implementations with their
   own fixture/conformance evidence (`IMPL-DEC-003`–`IMPL-DEC-005`);
-- staged conversion/linearization, black subtraction, and
-  normalization/clipping modules (`IMPL-PRE-001`–`IMPL-PRE-003`);
+- one private, ordered conversion/linearization, black subtraction,
+  normalization, and clipping implementation (`IMPL-PRE-001`);
 - concrete in-crate bilinear and Malvar–He–Cutler algorithms
   (`IMPL-DEM-002`–`IMPL-DEM-003`);
 - end-to-end composition (`IMPL-INT-001`), Python/devtool migration
@@ -846,11 +846,9 @@ The implementation graph is:
 
 `IMPL-DEC-004 -> IMPL-DEC-005`
 
-`IMPL-PRE-001 -> IMPL-PRE-002 -> IMPL-PRE-003`
-
 `IMPL-DEM-002 -> IMPL-DEM-003`
 
-`IMPL-DEC-003 + IMPL-DEC-004 + IMPL-DEC-005 + IMPL-PRE-003 + IMPL-DEM-002 -> IMPL-INT-001`
+`IMPL-DEC-003 + IMPL-DEC-004 + IMPL-DEC-005 + IMPL-PRE-001 + IMPL-DEM-002 -> IMPL-INT-001`
 
 `IMPL-INT-001 -> IMPL-PY-001 | IMPL-DEV-001`
 
@@ -931,7 +929,8 @@ Shared-file ownership is explicit:
 
 - decoder tasks own distinct modules under `fornax::decoder` and must not edit
   another decoder module's source;
-- preprocessing transitions are serialized by the PRE dependency chain;
+- preprocessing numerical transitions are private implementation details of
+  the single PRE task;
 - demosaic algorithm additions are serialized by the DEM dependency chain;
 - only the integration tasks may change the pipeline composition and feature
   topology after their listed components merge; and
