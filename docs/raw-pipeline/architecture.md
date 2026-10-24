@@ -4,9 +4,8 @@ The production RAW pipeline is one Rust crate named `fornax`. There is no
 separate `fornax-core`, decoder-contract crate, decoder-adapter crates,
 preprocessing crate, or demosaicing crate.
 
-The current `fornax-core` package is the implementation starting point and is
-renamed to `fornax`. The existing legacy `fornax` facade is replaced rather
-than preserved.
+The former `fornax-core` package has been renamed to `fornax`. The existing
+legacy `fornax` facade was replaced rather than preserved.
 
 ## Crate and module topology
 
@@ -155,8 +154,9 @@ exposes upstream decoder error types or a string-only top-level error.
 
 ## Migration
 
-- Rename `fornax-core` to `fornax`.
-- Replace the legacy `fornax` implementation with the renamed universal crate.
+- The `fornax-core` package has been renamed to `fornax`.
+- The legacy `fornax` implementation has been replaced by the renamed
+  universal crate.
 - Move decoder selection and concrete `libraw`, rawler, and DNC adapters into
   `fornax::decode` modules.
 - Move usable `fornax-dalim` algorithms into `fornax::demosaic`.

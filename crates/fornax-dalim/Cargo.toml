@@ -9,7 +9,7 @@ name = "demosaic"
 
 [dependencies]
 clerk.workspace = true
-fornax-core.workspace = true
+fornax.workspace = true
 image.workspace = true
 rayon.workspace = true
 serde = { workspace = true, optional = true }

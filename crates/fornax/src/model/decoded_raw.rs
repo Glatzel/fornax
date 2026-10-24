@@ -18,7 +18,7 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// use fornax_core::{DecodedRaw, RawImage};
+/// use fornax::{DecodedRaw, RawImage};
 ///
 /// fn accepts_distinct_types(_decoded: &DecodedRaw, _preprocessed: &RawImage) {}
 /// ```
@@ -39,7 +39,7 @@ impl DecodedRaw {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::RawValidationError;
+    /// use fornax::RawValidationError;
     ///
     /// let error = RawValidationError::MissingMetadata("stored_geometry");
     /// assert_eq!(
@@ -77,7 +77,7 @@ impl DecodedRaw {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{DecodedRaw, StoredPlane};
+    /// use fornax::{DecodedRaw, StoredPlane};
     ///
     /// fn clear_f32_plane(image: &mut DecodedRaw) {
     ///     if let StoredPlane::F32(samples) = image.plane_mut() {
@@ -107,7 +107,7 @@ impl DecodedRaw {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::RawValidationError;
+    /// use fornax::RawValidationError;
     ///
     /// assert_eq!(
     ///     RawValidationError::InvalidStorageState.to_string(),

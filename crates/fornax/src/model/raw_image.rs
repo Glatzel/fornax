@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::plane::validate_finite;
+use super::plane::validate_finite;
 use crate::{DecodedRaw, F32Plane, RawValidationError, ValidatedMetadata};
 
 /// A preprocessed, demosaic-ready RAW image with a single f32 plane.
@@ -12,7 +12,7 @@ use crate::{DecodedRaw, F32Plane, RawValidationError, ValidatedMetadata};
 /// # Examples
 ///
 /// ```
-/// use fornax_core::RawImage;
+/// use fornax::RawImage;
 ///
 /// fn accepts_f32_image(_image: &RawImage) {}
 /// ```

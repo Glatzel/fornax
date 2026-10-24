@@ -40,7 +40,7 @@ impl SampleSpec {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{SampleFormat, SampleSpec};
+    /// use fornax::{SampleFormat, SampleSpec};
     ///
     /// let spec = SampleSpec::try_new(12, SampleFormat::UnsignedInteger).unwrap();
     /// assert_eq!(spec.bits_per_sample(), 12);
@@ -98,11 +98,11 @@ impl StoredPlane {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{PixelSize, U8Plane};
+    /// use fornax::{PixelSize, U8Plane};
     ///
     /// let plane = U8Plane::from_raw(2, 1, vec![1, 2]).unwrap();
     /// assert_eq!(
-    ///     fornax_core::StoredPlane::U8(plane).dimensions().unwrap(),
+    ///     fornax::StoredPlane::U8(plane).dimensions().unwrap(),
     ///     PixelSize::new(2, 1).unwrap()
     /// );
     /// ```

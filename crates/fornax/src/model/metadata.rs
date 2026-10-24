@@ -21,7 +21,7 @@ impl Rational {
     /// ```
     /// use std::num::NonZeroU32;
     ///
-    /// use fornax_core::Rational;
+    /// use fornax::Rational;
     ///
     /// let value = Rational::new(1, NonZeroU32::new(2).unwrap());
     /// assert_eq!(value.as_f64(), 0.5);
@@ -46,7 +46,7 @@ impl Rational {
     /// ```
     /// use std::num::NonZeroU32;
     ///
-    /// use fornax_core::Rational;
+    /// use fornax::Rational;
     ///
     /// assert_eq!(Rational::new(3, NonZeroU32::new(4).unwrap()).as_f64(), 0.75);
     /// ```
@@ -92,7 +92,7 @@ impl DefaultCrop {
     /// ```
     /// use std::num::NonZeroU32;
     ///
-    /// use fornax_core::{DefaultCrop, Rational};
+    /// use fornax::{DefaultCrop, Rational};
     ///
     /// let zero = Rational::new(0, NonZeroU32::new(1).unwrap());
     /// let size = Rational::new(20, NonZeroU32::new(1).unwrap());
@@ -144,7 +144,7 @@ impl Orientation {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::Orientation;
+    /// use fornax::Orientation;
     ///
     /// assert_eq!(Orientation::new(6).unwrap().value(), 6);
     /// assert!(Orientation::new(0).is_none());
@@ -181,7 +181,7 @@ impl WhiteBalance {
     /// ```
     /// use std::num::NonZeroU32;
     ///
-    /// use fornax_core::{Rational, WhiteBalance};
+    /// use fornax::{Rational, WhiteBalance};
     ///
     /// let one = Rational::new(1, NonZeroU32::new(1).unwrap());
     /// assert_eq!(
@@ -242,7 +242,7 @@ impl ProviderId {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::ProviderId;
+    /// use fornax::ProviderId;
     ///
     /// assert_eq!(ProviderId::try_new("libraw").unwrap().as_str(), "libraw");
     /// assert!(ProviderId::try_new("").is_err());
@@ -274,7 +274,7 @@ impl DecoderProvenance {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{DecoderProvenance, ProviderId};
+    /// use fornax::{DecoderProvenance, ProviderId};
     ///
     /// let decoder = DecoderProvenance::new(
     ///     ProviderId::try_new("libraw").unwrap(),
@@ -358,7 +358,7 @@ impl AuthorityClass {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::AuthorityClass;
+    /// use fornax::AuthorityClass;
     ///
     /// assert!(
     ///     AuthorityClass::FormatDeclaration.rank() < AuthorityClass::CameraCatalogFallback.rank()
@@ -404,7 +404,7 @@ impl Provenance {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{AuthorityClass, Confidence, Provenance, ProviderId, SourceKind};
+    /// use fornax::{AuthorityClass, Confidence, Provenance, ProviderId, SourceKind};
     ///
     /// let provenance = Provenance::new(
     ///     ProviderId::try_new("dnglab").unwrap(),
@@ -459,7 +459,7 @@ impl<T> Sourced<T> {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{AuthorityClass, Confidence, Provenance, ProviderId, SourceKind, Sourced};
+    /// use fornax::{AuthorityClass, Confidence, Provenance, ProviderId, SourceKind, Sourced};
     ///
     /// let provenance = Provenance::new(
     ///     ProviderId::try_new("decoder").unwrap(),
@@ -485,7 +485,7 @@ impl<T> Sourced<T> {
 /// # Examples
 ///
 /// ```
-/// use fornax_core::{
+/// use fornax::{
 ///     AuthorityClass, Confidence, MetadataField, Provenance, ProviderId, SourceKind, Sourced,
 ///     TypedMetadataField, resolve_sourced,
 /// };
@@ -549,7 +549,7 @@ impl MetadataKey {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::MetadataKey;
+    /// use fornax::MetadataKey;
     ///
     /// assert_eq!(
     ///     MetadataKey::try_new("dng.tag_50740").unwrap().as_str(),
@@ -711,7 +711,7 @@ impl OriginalValue {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::OriginalValue;
+    /// use fornax::OriginalValue;
     ///
     /// let original = OriginalValue::new(vec![1, 2], Some("SHORT".into()), Some(1));
     /// assert_eq!(original.raw.len(), 2);
@@ -841,7 +841,7 @@ impl ExtensibleMetadata {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{
+    /// use fornax::{
     ///     AuthorityClass, Confidence, ExtensibleMetadata, MetadataEntry, MetadataKey, MetadataValue,
     ///     Provenance, ProviderId, SourceKind,
     /// };
@@ -885,7 +885,7 @@ impl ExtensibleMetadata {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{ExtensibleMetadata, MetadataKey};
+    /// use fornax::{ExtensibleMetadata, MetadataKey};
     ///
     /// let metadata = ExtensibleMetadata::default();
     /// assert!(
@@ -909,7 +909,7 @@ impl ExtensibleMetadata {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{
+    /// use fornax::{
     ///     AuthorityClass, Confidence, ExtensibleMetadata, MetadataConflict, MetadataField,
     ///     Provenance, ProviderId, SourceKind, TypedMetadataField,
     /// };
@@ -989,7 +989,7 @@ impl BlackTile {
     /// ```
     /// use std::num::NonZeroU32;
     ///
-    /// use fornax_core::{BlackTile, Rational};
+    /// use fornax::{BlackTile, Rational};
     ///
     /// let one = NonZeroU32::new(1).unwrap();
     /// let black = Rational::new(64, one);
@@ -1053,7 +1053,7 @@ impl BlackLevels {
     /// ```
     /// use std::num::NonZeroU32;
     ///
-    /// use fornax_core::{BlackLevels, Rational};
+    /// use fornax::{BlackLevels, Rational};
     ///
     /// let black = Rational::new(64, NonZeroU32::new(1).unwrap());
     /// assert_eq!(
@@ -1139,7 +1139,7 @@ impl WhiteLevels {
     /// ```
     /// use std::num::NonZeroU32;
     ///
-    /// use fornax_core::{Rational, WhiteLevels};
+    /// use fornax::{Rational, WhiteLevels};
     ///
     /// let white = Rational::new(4095, NonZeroU32::new(1).unwrap());
     /// assert_eq!(
@@ -1290,7 +1290,7 @@ impl ValidatedMetadata {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{
+    /// use fornax::{
     ///     CommonMetadata, DecoderProvenance, ExtensibleMetadata, ProviderId, ValidatedMetadata,
     /// };
     ///
@@ -1367,7 +1367,7 @@ impl ValidatedMetadata {
     /// # Examples
     ///
     /// ```
-    /// # use fornax_core::{
+    /// # use fornax::{
     /// #     CommonMetadata, DecoderProvenance, ExtensibleMetadata, ProviderId, ValidatedMetadata,
     /// # };
     /// # let decoder = DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None);
@@ -1464,7 +1464,7 @@ impl ValidatedMetadata {
         {
             return Err(RawValidationError::InvalidGeometry);
         }
-        crate::plane::validate_finite(plane)
+        super::plane::validate_finite(plane)
     }
 }
 

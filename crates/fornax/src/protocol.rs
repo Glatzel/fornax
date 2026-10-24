@@ -14,7 +14,7 @@ use crate::{DecodedRaw, PixelSize, RawImage, RawValidationError, ValidatedMetada
 /// # Examples
 ///
 /// ```
-/// use fornax_core::RgbImageF32;
+/// use fornax::RgbImageF32;
 ///
 /// let image = RgbImageF32::from_raw(1, 1, vec![0.1, 0.2, 0.3]).unwrap();
 /// assert_eq!(image.as_raw(), &[0.1, 0.2, 0.3]);
@@ -35,7 +35,7 @@ impl<'a> RawInput<'a> {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::RawInput;
+    /// use fornax::RawInput;
     ///
     /// let input = RawInput::new(b"raw bytes", Some("image.dng"));
     /// assert_eq!(input.source_name(), Some("image.dng"));
@@ -172,7 +172,7 @@ impl DecodedRaw {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{DecodedRaw, IRawPreprocessor, PreprocessError, PreprocessOptions, RawImage};
+    /// use fornax::{DecodedRaw, IRawPreprocessor, PreprocessError, PreprocessOptions, RawImage};
     ///
     /// struct Unsupported;
     /// impl IRawPreprocessor for Unsupported {

@@ -27,7 +27,7 @@ impl CfaShape {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::CfaShape;
+    /// use fornax::CfaShape;
     ///
     /// assert_eq!(CfaShape::try_new(2, 2).unwrap().rows(), 2);
     /// assert!(CfaShape::try_new(0, 2).is_err());
@@ -71,7 +71,7 @@ impl BayerSlot {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::BayerSlot;
+    /// use fornax::BayerSlot;
     ///
     /// assert_eq!(BayerSlot::from_local(3, 4).index(), 2);
     /// ```
@@ -116,7 +116,7 @@ impl BayerPattern {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{BayerPattern, CfaColor, CfaShape};
+    /// use fornax::{BayerPattern, CfaColor, CfaShape};
     ///
     /// let colors = [
     ///     CfaColor::Red,
@@ -186,7 +186,7 @@ impl BayerPattern {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{BayerPattern, BayerSlot, CfaColor};
+    /// use fornax::{BayerPattern, BayerSlot, CfaColor};
     ///
     /// assert_eq!(
     ///     BayerPattern::Grbg.color_at(BayerSlot::from_local(1, 0)),
@@ -216,7 +216,7 @@ impl BayerLayout {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{ActiveArea, BayerLayout, BayerPattern, PixelSize};
+    /// use fornax::{ActiveArea, BayerLayout, BayerPattern, PixelSize};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 0, 0, 4, 4).unwrap();
     /// let layout = BayerLayout::new(BayerPattern::Rggb, area);
@@ -245,7 +245,7 @@ impl BayerLayout {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{ActiveArea, BayerLayout, BayerPattern, PixelCoord, PixelSize};
+    /// use fornax::{ActiveArea, BayerLayout, BayerPattern, PixelCoord, PixelSize};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 1, 1, 4, 4).unwrap();
     /// let layout = BayerLayout::new(BayerPattern::Gbrg, area);
@@ -272,7 +272,7 @@ impl BayerLayout {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{ActiveArea, BayerLayout, BayerPattern, CfaColor, PixelCoord, PixelSize};
+    /// use fornax::{ActiveArea, BayerLayout, BayerPattern, CfaColor, PixelCoord, PixelSize};
     ///
     /// let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 0, 0, 4, 4).unwrap();
     /// let layout = BayerLayout::new(BayerPattern::Bggr, area);
