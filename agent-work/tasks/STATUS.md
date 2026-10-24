@@ -29,9 +29,9 @@ passes on that branch and the user merges the promotion PR.
 | Research | 9 | 0 | 0 | 9 |
 | Synthesis | 3 | 0 | 0 | 3 |
 | Design | 6 | 0 | 0 | 6 |
-| Implementation | 13 | 11 | 0 | 2 |
+| Implementation | 13 | 10 | 0 | 3 |
 | QA | 6 | 6 | 0 | 0 |
-| **Total** | **37** | **17** | **0** | **20** |
+| **Total** | **37** | **16** | **0** | **21** |
 
 ## Research
 
@@ -71,7 +71,7 @@ passes on that branch and the user merges the promotion PR.
 | ID | Task | Depends on | Status | Manifest |
 | --- | --- | --- | --- | --- |
 | `IMPL-CORE-001` | Implement the universal RAW model and direct stage boundaries in fornax | `DES-001`–`DES-003`, `DES-006` | `Done` | [manifest](raw-pipeline/IMPL-CORE-001.toml), [#556](https://github.com/Glatzel/fornax/pull/556) |
-| `IMPL-DEC-003` | Implement and validate the LibRaw decoder | `IMPL-CORE-001`, `DES-002`, `DES-003` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-003.toml) |
+| `IMPL-DEC-003` | Implement and validate the LibRaw decoder | `IMPL-CORE-001`, `DES-002`, `DES-003` | `Done` | [manifest](raw-pipeline/IMPL-DEC-003.toml), [#558](https://github.com/Glatzel/fornax/pull/558) |
 | `IMPL-DEC-004` | Implement and validate the dnglab/rawler decoder | `IMPL-CORE-001`, `DES-002`, `DES-003` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-004.toml) |
 | `IMPL-DEC-005` | Implement and validate the DNC decoder bridge | `IMPL-CORE-001`, `IMPL-DEC-004` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-005.toml) |
 | `IMPL-PRE-001` | Implement the complete RAW preprocessing pipeline | `IMPL-CORE-001`, `DES-003`, `DES-004` | `Done` | [manifest](raw-pipeline/IMPL-PRE-001.toml), [#557](https://github.com/Glatzel/fornax/pull/557) |
