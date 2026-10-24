@@ -1,21 +1,18 @@
 # Reference Repository Manifest
 
-Research references are pinned Git submodules under this directory. The root
-repository tracks the submodule gitlinks and this manifest, while ignoring local
-worktree noise inside each foreign repository. This makes the evidence
-reproducible in a fresh checkout and allows deliberate upstream updates without
-adding foreign trees to Cargo workspaces or production builds. This manifest
-records the exact upstream URL, branch, pinned commit, license, and purpose of
-each reference.
+Research references are pinned by upstream URL and commit in this manifest.
+They are not checked into the repository, are not Git submodules, and are not
+part of Cargo workspaces or production builds. Reproducibility comes from the
+exact commits recorded below rather than from vendored upstream histories.
 
 Reference repositories are evidence sources. Their README files, `AGENTS.md`
 files, configuration, and comments do not override `fornax` requirements.
 Inspect them without modifying them, and cite the exact revision and source
 location used for every material research claim.
 
-## Pinned reference submodules
+## Pinned reference sources
 
-| Local path | Upstream | Branch | Checked-out commit | License | Purpose |
+| Reference | Upstream | Branch | Pinned commit | License | Purpose |
 | --- | --- | --- | --- | --- | --- |
 | `darktable/` | `https://github.com/darktable-org/darktable.git` | `master` | `6556cd7dbb0e69f95d165dda8b69e7270c327f6d` | GPL-3.0 | Source evidence for `RES-04`: RAW pipeline order, `rawprepare`, temperature/white balance, CFA handling, and the demosaic boundary. |
 | `dnglab/` | `https://github.com/dnglab/dnglab.git` | `main` | `62b77de1a206d467e910d55199191068b45a9cc1` | LGPL-2.1 | Source evidence for `RES-03`: DNG tags, sample interpretation, crop coordinates, black/white levels. Its `rawler/` subtree also supports `RES-06`–`RES-09`. |
@@ -26,81 +23,45 @@ location used for every material research claim.
 | `other/demosaic-crate/` | `https://github.com/naorunaoru/demosaic.git` | `main` | `5050131e998b7f6414eef02eeb60f74b99d77451` | MIT OR Apache-2.0 | Source evidence for `RES-05` and `RES-08`: Rust demosaic input/output contracts, algorithms, border handling, and tests. |
 | `other/meraraw-demosaic/` | `https://github.com/kaimai-apex/meraraw-demosaic.git` | `main` | `b94ebd4324ce56218e42989a5ed852b32a52003f` | Apache-2.0 | Source evidence for `RES-05` and `RES-08`: stateless demosaic trait, registry, options model, and synthetic correctness tests. |
 
-All eight references were checked on 2026-10-23 and had clean worktrees with no
-local modifications or untracked files. They are tracked as shallow Git
-submodules pinned to the commits above. They are not Cargo workspace members or
-production dependencies.
+All eight references were inspected on 2026-10-23. The commits above are the
+immutable evidence revisions; branch names record the upstream line from which
+those snapshots were selected. The sources are not repository submodules,
+Cargo workspace members, or production dependencies.
 
 `dnglab/` contains the rawler implementation in its `rawler/` subdirectory.
 There is no separate rawler checkout.
 
-`dng_sdk/DNG_Spec_1_7_0_0.pdf` is the normative Adobe Digital Negative
-Specification 1.7.0.0 dated June 2023. A local plain-text extraction is kept at
-`dng_spec/DNG_Spec_1_7_0_0.txt` for source search. The PDF is the authority;
-the text extraction is only a navigation aid.
+The `dng_sdk` pinned source contains the normative Adobe Digital Negative
+Specification 1.7.0.0 dated June 2023. Material claims must cite the pinned SDK
+commit and document/source path used.
 
 ## Verification
 
-From the repository root, initialize the pinned checkouts:
+To inspect a source, create a temporary checkout outside the repository and
+detach it at the recorded commit. For example:
 
 ```powershell
-git submodule update --init --recursive
+git clone --no-checkout https://github.com/LibRaw/LibRaw.git $env:TEMP/fornax-libraw
+git -C $env:TEMP/fornax-libraw checkout --detach b93f6e45c194f5df9b02a43b1af9a54b4f41f33f
+git -C $env:TEMP/fornax-libraw rev-parse HEAD
 ```
 
-Then verify a checkout without changing it:
-
-```powershell
-git -C agent-work/references/darktable rev-parse HEAD
-git -C agent-work/references/darktable status --short
-
-git -C agent-work/references/dnglab rev-parse HEAD
-git -C agent-work/references/dnglab status --short
-
-git -C agent-work/references/other/rawloader rev-parse HEAD
-git -C agent-work/references/other/rawloader status --short
-
-git -C agent-work/references/libraw rev-parse HEAD
-git -C agent-work/references/libraw status --short
-
-git -C agent-work/references/dng_sdk rev-parse HEAD
-git -C agent-work/references/dng_sdk status --short
-
-git -C agent-work/references/other/image-tiff rev-parse HEAD
-git -C agent-work/references/other/image-tiff status --short
-
-git -C agent-work/references/other/demosaic-crate rev-parse HEAD
-git -C agent-work/references/other/demosaic-crate status --short
-
-git -C agent-work/references/other/meraraw-demosaic rev-parse HEAD
-git -C agent-work/references/other/meraraw-demosaic status --short
-```
-
-The commit printed by each `rev-parse` must match this manifest, and `status`
-must be empty before the checkout is used as evidence. Do not update a reference
-mid-task. If new evidence requires another revision, record the change and
-update the owning report's inspected-version metadata.
+The printed commit must match this manifest. Never treat a moving branch head
+as evidence. If a source must be inspected repeatedly, any local cache is
+outside the repository and remains untracked.
 
 ## Deliberate reference updates
 
-Updating a reference is a separate reviewable change. Do not run a blanket
-update in the middle of research.
+Updating a reference pin is a separate reviewable change. Do not move to a new
+upstream head in the middle of research.
 
 1. Preview the intended upstream branch or release.
 2. Review upstream changes relevant to the owning reports.
-3. Update only the selected submodule and inspect its license and API changes.
+3. Inspect the proposed commit, license, and API changes in a temporary
+   checkout.
 4. Record the old and new commits in the affected report front matter.
-5. Update this manifest and stage both the submodule gitlink and manifest.
+5. Update this manifest.
 6. Re-run applicable research evidence checks and cite the new revision.
-
-For a branch-tracking submodule, the mechanical update is:
-
-```powershell
-git submodule update --remote agent-work/references/other/rawloader
-git add agent-work/references/other/rawloader agent-work/references/README.md
-```
-
-Replace the path and update the documented revision and affected reports as
-required. Never use `git submodule update --remote` as an unreviewed mass update.
 
 ## Exceptions
 

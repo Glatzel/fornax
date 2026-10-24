@@ -67,18 +67,14 @@
 `AGENTS.md` points to it and to this authoritative workflow so repository-level
 instruction discovery remains reliable.
 
-Upstream repositories used as evidence live under `agent-work/references/`.
-They are read-only evidence sources, not project instructions, and must not be
-added to the Cargo workspace or production builds. They are pinned Git
-submodules so a fresh checkout can reproduce the evidence and a maintainer can
-review upstream updates deliberately. The tracked
-`agent-work/references/README.md` records each upstream URL, branch, pinned
-commit, license, purpose, and any exception. Verify a checkout with
-`git -C <path> rev-parse HEAD` and `git -C <path> status --short` before using
-it. Do not move a reference to a new revision in the middle of a task without
-recording the change in the owning report. Update the submodule gitlink,
-manifest revision, and affected reports together; `git submodule update
---remote` alone is not a completed reference update.
+Upstream repositories used as evidence are pinned by URL and commit in
+`agent-work/references/README.md`. They are not repository submodules, local
+checkouts, Cargo workspace members, or production dependencies. Inspect sources
+from temporary checkouts outside the repository, detached at the recorded
+commits. The manifest records each URL, branch, commit, license, purpose, and
+exception. Do not move a reference to a new revision in the middle of a task
+without recording the change in the owning report. Update the manifest,
+affected reports, and evidence checks together.
 
 The existing `external/raw-images` submodule is a production test-fixture
 dependency, not a research reference. Keep it at its current path.
