@@ -7,31 +7,44 @@ linear demosaiced image. The normative type and invariant details are in
 ## End-to-end flow
 
 ```mermaid
-flowchart TD
-    File["RAW file\nDNG / ARW / NEF / Canon CR*"]
-    Adapter["Selected decoder adapter\nLibRaw / dnglab-rawler / dnc bridge"]
-    Decoded["DecodedRaw\nU8 ≤8 bits / U16 9–16 / U32 17–32 / F32"]
-    Custom["DecodedRaw after convert_to_f32\nauto f32; optional user operation"]
-    Linear["LinearizedRaw\nf32 working buffer\nLUT applied once"]
-    Subtract["BlackCorrectedRaw\nf32 samples; f64 scalar arithmetic"]
-    Normalize["NormalizedRaw\nunclipped f32"]
-    Ready["DemosaicReadyMosaic\nclamped f32 [0,1]"]
-    Demosaic["Bayer demosaic\nf32 planar RGB"]
-    Done["Linear RGB\nend of pipeline scope"]
+flowchart TB
+    subgraph DecodePhase["1 · Decode"]
+        direction LR
+        File["RAW file\nDNG / ARW / NEF / Canon CR*"]
+        Adapter["Selected decoder adapter\nLibRaw / dnglab-rawler / dnc bridge"]
+        Decoded["DecodedRaw\nU8 ≤8 bits / U16 9–16 / U32 17–32 / F32"]
+        File --> Adapter
+        Adapter -->|supported Bayer| Decoded
+    end
+
+    subgraph PreprocessPhase["2 · Preprocess"]
+        direction LR
+        Custom["DecodedRaw after convert_to_f32\nauto f32; optional user operation"]
+        Linear["LinearizedRaw\nf32 buffer\nLUT applied once"]
+        Subtract["BlackCorrectedRaw\nf32 samples; f64 scalar arithmetic"]
+        Normalize["NormalizedRaw\nunclipped f32"]
+        Ready["DemosaicReadyMosaic\nclamped f32 [0,1]"]
+
+        Decoded -->|standard path| Linear
+        Decoded -->|"convert_to_f32 → still DecodedRaw"| Custom
+        Custom -->|metadata basis valid| Linear
+        Linear --> Subtract
+        Subtract --> Normalize
+        Normalize --> Ready
+    end
+
+    subgraph DemosaicPhase["3 · Demosaic"]
+        direction LR
+        Demosaic["Bayer demosaic\nf32 input/output"]
+        Done["Linear RGB\nend of pipeline scope"]
+        Demosaic --> Done
+    end
+
     Reject["Structured rejection"]
 
-    File --> Adapter
-    Adapter -->|supported Bayer| Decoded
     Adapter -->|unsupported layout / encoding| Reject
-    Decoded -->|standard path| Linear
-    Decoded -->|"convert_to_f32 → still DecodedRaw"| Custom
-    Custom -->|metadata basis valid| Linear
     Custom -->|metadata basis invalid| Reject
-    Linear --> Subtract
-    Subtract --> Normalize
-    Normalize --> Ready
     Ready --> Demosaic
-    Demosaic --> Done
 ```
 
 ## Stage contract
