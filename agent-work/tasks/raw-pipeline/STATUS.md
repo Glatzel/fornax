@@ -7,9 +7,9 @@ when task work starts or finishes.
 
 This is the init branch and some tasks were dispatched directly here rather than
 through individual task worktrees and pull requests. Their completed work is
-recorded as `Done` below. The aggregate draft
-[#534](https://github.com/Glatzel/fornax/pull/534) contains the current branch
-materials.
+recorded as `Done` below. The split research materials were merged through
+[#534](https://github.com/Glatzel/fornax/pull/534); RES-09 is under review in
+[#537](https://github.com/Glatzel/fornax/pull/537).
 
 ## Status legend
 
@@ -24,12 +24,12 @@ materials.
 
 | Phase | Tasks | Blocked | Ready | In progress | Done |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Research | 9 | 0 | 1 | 0 | 8 |
+| Research | 9 | 0 | 0 | 1 | 8 |
 | Synthesis | 3 | 2 | 1 | 0 | 0 |
 | Design | 7 | 7 | 0 | 0 | 0 |
 | Implementation | 12 | 12 | 0 | 0 | 0 |
 | QA | 6 | 6 | 0 | 0 | 0 |
-| **Total** | **37** | **27** | **2** | **0** | **8** |
+| **Total** | **37** | **27** | **1** | **1** | **8** |
 
 ## Research
 
@@ -43,7 +43,7 @@ materials.
 | `RES-06` | [Survey Rust RAW decoders](RES-06.toml) | none | `Done` | [report](../../research/RES-06-rust-raw-decoders.md), [#534](https://github.com/Glatzel/fornax/pull/534) |
 | `RES-07` | [Survey Rust TIFF and DNG components](RES-07.toml) | none | `Done` | [report](../../research/RES-07-rust-dng-tiff.md), [#534](https://github.com/Glatzel/fornax/pull/534) |
 | `RES-08` | [Survey Rust demosaicing crates](RES-08.toml) | none | `Done` | [report](../../research/RES-08-rust-demosaicing.md), [#534](https://github.com/Glatzel/fornax/pull/534) |
-| `RES-09` | [Compare Rust ecosystem candidates](RES-09.toml) | `RES-06`–`RES-08` | `Ready` | [placeholder](../../research/RES-09-rust-ecosystem.md) |
+| `RES-09` | [Recommend selectable raw decoder backends](RES-09.toml) | `RES-01`–`RES-04`, `RES-06`–`RES-08` | `In progress` | [report](../../research/RES-09-rust-ecosystem.md), [#537](https://github.com/Glatzel/fornax/pull/537) |
 
 ## Synthesis
 

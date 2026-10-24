@@ -51,6 +51,27 @@ body manually when opening a task PR.
 Do not add a `review`, `approved`, or `done` status to task TOML files, reports,
 or checkpoints. Those states duplicate and can conflict with GitHub.
 
+## RAW decoder direction
+
+The planned implementation reuses existing RAW decoders behind a `fornax`-owned
+adapter contract. The core owns the universal raw representation, backend
+capabilities, deterministic backend selection, structured errors, and
+provenance; backend crates own calls into their existing decoder libraries or
+conversion tools.
+
+The initial candidates are:
+
+- LibRaw as the broad existing C/C++ decoder backend;
+- dnglab/rawler as the pure Rust decoder backend;
+- `dnc` as an Adobe-DNG conversion bridge that composes with LibRaw or
+  dnglab/rawler; and
+- darktable/rawspeed only through an isolated decoder boundary that returns
+  sensor-domain data before darktable's `rawprepare` pipeline.
+
+Do not introduce a first-party RAW/TIFF decoder as the initial implementation.
+The detailed evidence and candidate boundaries are owned by the RES-09 report;
+public APIs remain gated by synthesis and design.
+
 ## Task lifecycle
 
 1. Select a task whose dependencies are represented by merged pull requests.

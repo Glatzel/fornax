@@ -12,8 +12,9 @@ full requirements.
 `fornax` is a Rust-first RAW image processing workspace (edition 2024, resolver
 3). The intended pipeline is:
 
-1. **Decode** a supported RAW file into a universal, backend-independent RAW
-   representation with enough metadata for later stages.
+1. **Decode** a supported RAW file through a selectable adapter over an
+   existing RAW decoder into a universal, backend-independent representation
+   with enough metadata for later stages.
 2. **Preprocess** sensor-domain samples using explicit metadata semantics,
    notably black-level correction.
 3. **Demosaic** the sensor mosaic into a reconstructed image.
@@ -33,8 +34,13 @@ fully refactored.
 - Inventory existing components, behavior, tests, and tooling before designing
   the replacement. Reuse implementation assets where justified, but do not
   preserve the current architecture or public APIs for compatibility alone.
+- Reuse existing RAW decoders through adapters rather than implement a
+  first-party format decoder. Initial candidates are LibRaw, dnglab/rawler, the
+  existing `dnc` conversion bridge, and a decoder-only darktable/rawspeed
+  integration if that boundary can be isolated.
 - Keep decoder-specific representations behind adapters.
-- Keep shared RAW types independent of any decoder backend, including LibRaw.
+- Keep shared RAW types, backend selection, capabilities, and provenance
+  independent of every decoder backend.
 - Use explicit, statically typed APIs and well-defined numerical semantics.
 - Preserve metadata even when the current pipeline does not consume it.
 - Prefer safe Rust and document necessary unsafe code and invariants.
