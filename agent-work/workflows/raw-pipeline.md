@@ -568,6 +568,13 @@ preprocessing semantics are still unresolved by synthesis.
 
 The design must be consistent with the research report and the existing repository. It should describe actual proposed Rust types, fields, invariants, function signatures, data flow, and dependency boundaries rather than merely listing concepts.
 
+Every design PR that changes user-facing or implementation-critical design must
+update the relevant files under repository-root `docs/raw-pipeline/` in the same
+PR. This includes pipeline order, precision, data structures, public contracts,
+errors, allocation policy, or behavior. A task proposal alone is not a complete
+design change. If a design document and task proposal differ, the persistent
+`docs/raw-pipeline/` files are authoritative.
+
 ### 3.1 Universal RAW representation
 
 Define the canonical representation produced by the decoder.

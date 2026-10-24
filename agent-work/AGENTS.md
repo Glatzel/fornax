@@ -47,6 +47,9 @@ fully refactored.
 - Avoid unnecessary dependencies, abstractions, allocations, and copies.
 - Design the architecture from the required pipeline contracts; document all
   breaking changes and any implementation assets carried across the refactor.
+- Any design or implementation change that affects the pipeline flow,
+  precision, data model, public API, error behavior, or stage semantics must
+  update the relevant `docs/raw-pipeline/` files in the same PR.
 - Add tests for numerical correctness, edge cases, and regressions.
 
 ## Build, test, and lint commands
