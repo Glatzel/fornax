@@ -3,7 +3,7 @@ use std::path::Path;
 use envoy::ToCString;
 
 use crate::extension::error_handling::check_run;
-use crate::{BayerPattern, Libraw, LibrawError};
+use crate::{Libraw, LibrawError};
 
 #[derive(Debug, Clone)]
 pub enum ProcFlag {
@@ -53,19 +53,13 @@ impl Libraw {
         right_margin: u16,
         bottom_margin: u16,
         procflags: ProcFlag,
-        bayer_pattern: &BayerPattern,
+        bayer_pattern: u8,
         unused_bits: u32,
         otherflags: u32,
         black_level: u32,
     ) -> Result<&Self, LibrawError> {
         let datalen = data.len();
         let data = data.as_ptr() as *mut core::ffi::c_uchar;
-        let bayer_pattern = match bayer_pattern {
-            BayerPattern::RGGB => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_RGGB as u8,
-            BayerPattern::BGGR => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_BGGR as u8,
-            BayerPattern::GRBG => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_GRBG as u8,
-            BayerPattern::GBRG => libraw_sys::LibRaw_openbayer_patterns_LIBRAW_OPENBAYER_GBRG as u8,
-        };
         check_run!(unsafe {
             libraw_sys::libraw_open_bayer(
                 self.imgdata_ptr(),

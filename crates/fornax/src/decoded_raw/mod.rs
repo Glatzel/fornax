@@ -165,8 +165,9 @@ impl DecodedRaw {
     ///
     /// The operation converts native integer samples to the f32 working domain
     /// when needed, then applies identity linearization, black-level
-    /// subtraction, white-level normalization, and final clipping in that
-    /// order. Decoder-validated metadata and provenance are retained.
+    /// subtraction, white-level normalization, ActiveArea cropping, and final
+    /// clipping in that order. Decoder-validated metadata and provenance are
+    /// retained, including the original stored geometry.
     ///
     /// # Errors
     ///
@@ -324,8 +325,9 @@ mod tests {
     #[test]
     fn preprocessing_returns_the_distinct_f32_only_type() {
         let ready: RawImage = decoded().preprocess().unwrap();
-        let expected = [1.0_f32, 2.0, 3.0, 4.0].map(|sample| (f64::from(sample) / 65_535.0) as f32);
+        let expected = [(4.0_f64 / 65_535.0) as f32];
         assert_eq!(ready.plane().as_raw(), &expected);
+        assert_eq!(ready.plane().dimensions(), (1, 1));
         assert_eq!(ready.metadata().cfa().pattern(), BayerPattern::Gbrg);
         assert_eq!(ready.metadata().decoder().backend().as_str(), "test");
     }

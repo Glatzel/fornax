@@ -22,7 +22,12 @@ impl FromStr for IParamsColorDesc {
             "RGBE" => Self::RGBE,
             "GMCY" => Self::GMCY,
             "GBTG" => Self::GBTG,
-            _ => panic!("Unknown color description."),
+            _ => {
+                return Err(crate::LibrawError::Libraw {
+                    code: crate::LibrawErrorCode::DataError,
+                    message: format!("unknown LibRaw color description: {value}"),
+                });
+            }
         })
     }
 }
@@ -111,8 +116,11 @@ impl IParams {
     }
     ///Description of colors numbered from 0 to 3 (RGBG,RGBE,GMCY, or GBTG).
     pub fn cdesc(&self) -> Result<IParamsColorDesc, LibrawError> {
-        let s = unsafe { (*self.arc_imgdata_ptr.ptr()).idata.cdesc.to_string()? };
-        IParamsColorDesc::from_str(s.as_str())
+        IParamsColorDesc::from_str(&self.cdesc_text()?)
+    }
+    ///Returns the raw LibRaw color description text.
+    pub fn cdesc_text(&self) -> Result<String, LibrawError> {
+        unsafe { Ok((*self.arc_imgdata_ptr.ptr()).idata.cdesc.to_string()?) }
     }
     ///XMP packed data length and pointer to extracted XMP packet.
     pub fn xmplen(&self) -> u32 { unsafe { (*self.arc_imgdata_ptr.ptr()).idata.xmplen } }

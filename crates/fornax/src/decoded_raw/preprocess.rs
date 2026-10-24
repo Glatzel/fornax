@@ -24,6 +24,7 @@ pub(super) fn run(image: DecodedRaw) -> Result<RawImage, PreprocessError> {
 
     subtract_black(&mut plane, &selector)?;
     normalize(&mut plane, &selector)?;
+    plane = crop_to_active_area(plane, metadata.active_area())?;
     finish_for_demosaic(&mut plane)?;
 
     RawImage::from_preprocessed(metadata, plane).map_err(|error| invalid_input(error.to_string()))
@@ -250,6 +251,35 @@ fn finish_for_demosaic(plane: &mut F32Plane) -> Result<(), PreprocessError> {
         *sample = sample.clamp(0.0, 1.0);
     }
     Ok(())
+}
+
+fn crop_to_active_area(
+    plane: F32Plane,
+    active_area: ActiveArea,
+) -> Result<F32Plane, PreprocessError> {
+    let rect = active_area.rect();
+    let dimensions = plane.dimensions();
+    if rect.top() == 0
+        && rect.left() == 0
+        && rect.width() == dimensions.0
+        && rect.height() == dimensions.1
+    {
+        return Ok(plane);
+    }
+
+    let sample_count = usize::try_from(u64::from(rect.width()) * u64::from(rect.height()))
+        .map_err(|_| invalid_input("active-area sample count overflows usize"))?;
+    let mut samples = Vec::new();
+    samples
+        .try_reserve_exact(sample_count)
+        .map_err(|_| PreprocessError::Allocation)?;
+    for row in rect.top()..rect.bottom() {
+        for column in rect.left()..rect.right() {
+            samples.push(plane.get_pixel(column, row)[0]);
+        }
+    }
+    ImageBuffer::from_raw(rect.width(), rect.height(), samples)
+        .ok_or_else(|| invalid_input("cropped plane dimensions do not match its sample count"))
 }
 
 fn round_f32(value: f64) -> Result<f32, PreprocessError> {
@@ -666,5 +696,6 @@ mod tests {
         assert!(Arc::ptr_eq(&metadata_arc, &output.metadata_arc()));
         assert_eq!(output.metadata().active_area(), area);
         assert_eq!(output.metadata().cfa().pattern(), BayerPattern::Gbrg);
+        assert_eq!(output.plane().dimensions(), (1, 1));
     }
 }

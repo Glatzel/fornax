@@ -17,6 +17,8 @@ pub fn output_dir() -> PathBuf {
     outdir
 }
 
+pub fn temp_dir() -> PathBuf { root_dir().join("temp") }
+
 pub fn raw_file() -> PathBuf { root_dir().join("external/raw-images/images/colorchart-eos-7d.cr2") }
 pub fn get_example_exe(name: &str) -> PathBuf {
     let root = root_dir();

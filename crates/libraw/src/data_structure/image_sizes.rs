@@ -64,4 +64,7 @@ impl ImageSizes {
             unsafe { *self.arc_imgdata_ptr.ptr() }.sizes.flip,
         )?)
     }
+
+    /// Returns the unvalidated LibRaw orientation code.
+    pub fn flip_raw(&self) -> i32 { unsafe { (*self.arc_imgdata_ptr.ptr()).sizes.flip } }
 }

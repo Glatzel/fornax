@@ -743,8 +743,10 @@ name = "fornax"
 version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
+ "fornax-devtool",
  "image 0.25.9",
  "libraw",
+ "mischief",
  "rawler",
  "rayon",
  "serde",
@@ -1446,7 +1448,6 @@ dependencies = [
  "fornax-devtool",
  "image 0.25.9",
  "jiff",
- "libc",
  "libraw-sys",
  "mischief",
  "num_enum",

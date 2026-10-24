@@ -1,7 +1,7 @@
 use crate::extension::error_handling::check_raw_alloc;
 use crate::{
-    BayerChannel, DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor,
-    DCRawUserQual, IParams, ImgOther, Libraw, LibrawError,
+    DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawUserQual, IParams,
+    ImgOther, Libraw, LibrawError,
 };
 
 impl Libraw {
@@ -21,13 +21,13 @@ impl Libraw {
         check_raw_alloc!(self.imgdata_ptr());
         Ok(unsafe { libraw_sys::libraw_get_iwidth(self.imgdata_ptr()) })
     }
-    pub fn get_cam_mul(&self, index: BayerChannel) -> Result<f32, LibrawError> {
+    pub fn get_cam_mul(&self, index: u8) -> Result<f32, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
-        Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata_ptr(), u8::from(index) as i32) })
+        Ok(unsafe { libraw_sys::libraw_get_cam_mul(self.imgdata_ptr(), i32::from(index)) })
     }
-    pub fn get_pre_mul(&self, index: BayerChannel) -> Result<f32, LibrawError> {
+    pub fn get_pre_mul(&self, index: u8) -> Result<f32, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
-        Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata_ptr(), u8::from(index) as i32) })
+        Ok(unsafe { libraw_sys::libraw_get_pre_mul(self.imgdata_ptr(), i32::from(index)) })
     }
     pub fn get_rgb_cam(&self, index1: i32, index2: i32) -> Result<f32, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
@@ -140,13 +140,13 @@ mod test {
         let libraw = Libraw::default();
         libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
 
-        let value = libraw.get_cam_mul(BayerChannel::R)?;
+        let value = libraw.get_cam_mul(0)?;
         assert_eq!(2127.0, value);
-        let value = libraw.get_cam_mul(BayerChannel::G)?;
+        let value = libraw.get_cam_mul(1)?;
         assert_eq!(1024.0, value);
-        let value = libraw.get_cam_mul(BayerChannel::B)?;
+        let value = libraw.get_cam_mul(2)?;
         assert_eq!(1584.0, value);
-        let value = libraw.get_cam_mul(BayerChannel::G2)?;
+        let value = libraw.get_cam_mul(3)?;
         assert_eq!(1024.0, value);
         Ok(())
     }
@@ -155,13 +155,13 @@ mod test {
         let libraw = Libraw::default();
         libraw.open_file(&fornax_devtool::raw_file())?.unpack()?;
 
-        let value = libraw.get_pre_mul(BayerChannel::R)?;
+        let value = libraw.get_pre_mul(0)?;
         assert_approx_eq!(f32, 2.1848476, value);
-        let value = libraw.get_pre_mul(BayerChannel::G)?;
+        let value = libraw.get_pre_mul(1)?;
         assert_approx_eq!(f32, 0.9358199, value);
-        let value = libraw.get_pre_mul(BayerChannel::B)?;
+        let value = libraw.get_pre_mul(2)?;
         assert_approx_eq!(f32, 1.2567647, value);
-        let value = libraw.get_pre_mul(BayerChannel::G2)?;
+        let value = libraw.get_pre_mul(3)?;
         assert_approx_eq!(f32, 0.0, value);
         Ok(())
     }

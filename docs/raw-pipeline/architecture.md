@@ -45,7 +45,7 @@ crate remains usable without enabling any decoder backend.
 | `fornax::metadata` | Nested metadata aggregates with focused submodules for camera, CFA, extensible fields, levels, provenance, and exact values |
 | `fornax::error` | Model, metadata, decoder, preprocessing, and demosaicing errors |
 | `fornax::decoder` | Generic-input `IRawDecoder<I>` contract and backend modules |
-| `fornax::decoder::libraw` | Private LibRaw adapter over the internal `libraw` wrapper |
+| `fornax::decoder::libraw` | Private LibRaw adapter, including its owned metadata/sample snapshot and Bayer mapping |
 | `fornax::decoder::rawler` | Private rawler/dnglab adapter |
 | `fornax::decoder::dnc` | Private process bridge composed with a DNG decoder |
 | `DecodedRaw::preprocess` | One standard preprocessing entry point with private linearization, black subtraction, normalization, and clipping substeps |
@@ -55,7 +55,9 @@ crate remains usable without enabling any decoder backend.
 These modules are the pipeline implementation boundary inside `fornax`. The
 workspace-level `libraw` package is a non-published safe native wrapper and
 `libraw-sys` is its generated binding support; neither is a pipeline stage or a
-supported public abstraction.
+supported public abstraction. The wrapper exposes native LibRaw concepts and
+safe views/accessors only; adapter-owned snapshots and universal Bayer mappings
+remain inside `fornax`.
 
 The operation and its private module are both named `preprocess`. A single
 word is the conventional Rust form for this action and keeps the method and
@@ -67,7 +69,10 @@ Source ownership follows the same hierarchy:
 src/
 ├── lib.rs
 ├── decoder/
-│   └── mod.rs                 # generic decoder boundary; concrete members follow
+│   ├── mod.rs                 # generic decoder boundary
+│   └── libraw/
+│       ├── mod.rs             # LibRaw-to-universal translation
+│       └── snapshot.rs        # adapter-owned metadata/sample copy
 ├── decoded_raw/
 │   ├── mod.rs                 # DecodedRaw
 │   ├── preprocess.rs          # private ordered preprocessing substeps

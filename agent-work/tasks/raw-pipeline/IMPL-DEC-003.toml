@@ -8,30 +8,38 @@ parallelism = "Can run in parallel with IMPL-DEC-004 in a separate decoder membe
 deliverables = [
   "fornax::decoder::libraw implementation",
   "fornax LibRaw mapping unit tests",
+  "fornax LibRaw end-to-end example with TIFF output for each stage",
   "internal non-published libraw wrapper with legacy Fornax coupling removed",
 ]
 scope = """
 Implement the private `fornax::decoder::libraw` module around LibRaw's
 unpack/raw-image path through the internal, non-published `libraw` wrapper.
 Compact backend buffers, translate CFA and metadata with provenance, preserve
-native sample semantics, and classify unsupported layouts and formats
-structurally. Retain the wrapper's current low-level API, remove only obsolete
-Fornax compatibility code, and keep `libraw-sys` behind the private adapter
-stack. Real-format end-to-end conformance is deferred until PR #557 and the
-requested follow-up test task.
+sample semantics, and classify unsupported layouts and formats structurally.
+Keep `libraw` focused on native LibRaw concepts and safe accessors; own the
+adapter snapshot and Bayer mapping inside `fornax`. Retain the wrapper's
+low-level API, remove only obsolete Fornax compatibility code, and keep
+`libraw-sys` behind the private adapter stack. The decoder's real-file example
+also verifies that preprocessing crops the corrected stored raster to
+ActiveArea and demosaicing maps that dense crop through the original origin.
 """
 acceptance = [
   "The decoder invokes only the LibRaw unpack/decode surface needed to expose stored RAW samples and never calls LibRaw post-processing.",
   "Buffer dimensions, stride compaction, native sample specification, ActiveArea, CFA phase, black/white levels, crop metadata, and decoder provenance are asserted by focused fornax unit tests.",
   "Non-Bayer, LinearRaw, X-Trans, Foveon, Quad Bayer, monochrome, wider sample specifications, and deferred formats are rejected structurally.",
-  "LibRaw types remain private to `fornax::decoder::libraw`; the internal `libraw` wrapper has no legacy `fornax_core` API and is not a supported public package.",
-  "DNG, Sony ARW, Nikon NEF, and Canon CR2/CR3 real-format coverage is explicitly deferred until PR #557 and the follow-up end-to-end test task.",
+  "The adapter-owned snapshot and Bayer mapping live in `fornax::decoder::libraw`; the internal `libraw` wrapper exposes only native LibRaw concepts and safe accessors.",
+  "The internal `libraw` wrapper has no legacy `fornax_core` API and is not a supported public package.",
+  "The Canon CR2 fixture runs from decode through preprocess and linear demosaic in a fornax example.",
+  "Preprocessed and demosaiced outputs use ActiveArea dimensions while retaining the original stored geometry in metadata.",
+  "The example writes stage images under repository-root `temp/` as `fornax-libraw-decoded.tiff`, `fornax-libraw-preprocess.tiff`, and `fornax-libraw-demosaic_linear.tiff`.",
+  "DNG, Sony ARW, Nikon NEF, and Canon CR3 fixtures remain documented as unavailable with backend risk.",
   "The backend stays opt-in and its LGPL/CDDL and native-link distribution decisions are recorded.",
 ]
 validation = [
   "Verify IMPL-CORE-001, DES-002, and DES-003 PRs are merged.",
   "Run `cargo test -p libraw` for the retained wrapper tests.",
   "Run `cargo test -p fornax --features backend-libraw --lib` for decoder unit tests.",
-  "Record backend limits, licenses, unavailable format coverage, and the deferred end-to-end test dependency on PR #557.",
+  "Run `cargo test -p fornax --features backend-libraw --example libraw_pipeline`.",
+  "Record backend limits, licenses, fixture checksum, unavailable format coverage, and generated stage outputs.",
   "Run cargo metadata and verify `libraw` is consumed only as an optional internal dependency of `fornax`.",
 ]

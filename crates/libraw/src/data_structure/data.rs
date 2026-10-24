@@ -8,6 +8,13 @@ pub struct ImgdataPtr(*mut libraw_sys::libraw_data_t);
 impl ImgdataPtr {
     pub(crate) const fn ptr(&self) -> *mut libraw_sys::libraw_data_t { self.0 }
 }
+impl Drop for ImgdataPtr {
+    fn drop(&mut self) {
+        if !self.0.is_null() {
+            unsafe { libraw_sys::libraw_close(self.0) }
+        }
+    }
+}
 unsafe impl Send for ImgdataPtr {}
 unsafe impl Sync for ImgdataPtr {}
 /// # References
@@ -46,15 +53,6 @@ impl Libraw {
             params,
         })
     }
-
-    fn close(&self) {
-        if !self.imgdata_ptr.0.is_null() {
-            unsafe { libraw_sys::libraw_close(self.imgdata_ptr.0) }
-        }
-    }
-}
-impl Drop for Libraw {
-    fn drop(&mut self) { self.close(); }
 }
 impl Default for Libraw {
     fn default() -> Self { Self::new(None) }

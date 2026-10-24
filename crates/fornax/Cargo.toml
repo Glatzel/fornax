@@ -17,6 +17,8 @@ thiserror.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
+fornax-devtool.workspace = true
+mischief.workspace = true
 
 [features]
 default = []

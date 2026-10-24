@@ -1,10 +1,13 @@
 //! LibRaw decoder backed by the workspace's private safe wrapper.
 
+mod snapshot;
+
 use std::num::{NonZeroU32, NonZeroU64};
 use std::path::Path;
 
 use image::ImageBuffer;
-use libraw::{Libraw, LibrawError, LibrawErrorCode, UnpackedRawBuffer, UnpackedRawSnapshot};
+use libraw::{Libraw, LibrawError, LibrawErrorCode};
+use snapshot::{RawBuffer, RawSnapshot, snapshot};
 
 use super::IRawDecoder;
 use crate::error::{DecodeError, RawValidationError};
@@ -57,9 +60,7 @@ impl IRawDecoder<Path> for LibRawDecoder {
         let context = Libraw::try_new(None).map_err(translate_libraw_error)?;
         context.open_file(input).map_err(translate_libraw_error)?;
         context.unpack().map_err(translate_libraw_error)?;
-        let snapshot = context
-            .unpacked_snapshot()
-            .map_err(translate_libraw_error)?;
+        let snapshot = snapshot(&context)?;
         map_snapshot(snapshot, revision)
     }
 }
@@ -70,9 +71,7 @@ impl IRawDecoder<[u8]> for LibRawDecoder {
         let context = Libraw::try_new(None).map_err(translate_libraw_error)?;
         context.open_buffer(input).map_err(translate_libraw_error)?;
         context.unpack().map_err(translate_libraw_error)?;
-        let snapshot = context
-            .unpacked_snapshot()
-            .map_err(translate_libraw_error)?;
+        let snapshot = snapshot(&context)?;
         map_snapshot(snapshot, revision)
     }
 }
@@ -115,7 +114,7 @@ fn ensure_supported_path(path: &Path) -> Result<(), DecodeError> {
 }
 
 fn map_snapshot(
-    mut snapshot: UnpackedRawSnapshot,
+    mut snapshot: RawSnapshot,
     revision: Option<String>,
 ) -> Result<DecodedRaw, DecodeError> {
     validate_snapshot(&snapshot)?;
@@ -197,7 +196,7 @@ fn map_snapshot(
     DecodedRaw::try_new(metadata, plane).map_err(invalid_output)
 }
 
-fn validate_snapshot(snapshot: &UnpackedRawSnapshot) -> Result<(), DecodeError> {
+fn validate_snapshot(snapshot: &RawSnapshot) -> Result<(), DecodeError> {
     if snapshot.progress_flags & LIBRAW_POSTPROCESS_PROGRESS_MASK != 0 {
         return Err(DecodeError::Backend(
             "LibRaw input has already entered post-processing".into(),
@@ -251,7 +250,7 @@ fn validate_snapshot(snapshot: &UnpackedRawSnapshot) -> Result<(), DecodeError> 
     Ok(())
 }
 
-fn decode_bayer_layout(snapshot: &UnpackedRawSnapshot) -> Result<BayerLayout, DecodeError> {
+fn decode_bayer_layout(snapshot: &RawSnapshot) -> Result<BayerLayout, DecodeError> {
     let codes = bayer_codes(snapshot.filters, snapshot.top_margin, snapshot.left_margin)?;
     let colors = codes.map(|code| match code {
         0 => CfaColor::Red,
@@ -309,7 +308,7 @@ fn bayer_codes(filters: u32, top: u32, left: u32) -> Result<[u8; 4], DecodeError
     ])
 }
 
-fn active_area(snapshot: &UnpackedRawSnapshot) -> Result<ActiveArea, DecodeError> {
+fn active_area(snapshot: &RawSnapshot) -> Result<ActiveArea, DecodeError> {
     let dimensions = PixelSize::new(snapshot.raw_width, snapshot.raw_height)
         .ok_or_else(|| invalid_output(RawValidationError::InvalidGeometry))?;
     let bottom = snapshot
@@ -330,13 +329,13 @@ fn active_area(snapshot: &UnpackedRawSnapshot) -> Result<ActiveArea, DecodeError
     .map_err(invalid_output)
 }
 
-fn stored_plane(snapshot: &mut UnpackedRawSnapshot) -> Result<StoredPlane, DecodeError> {
+fn stored_plane(snapshot: &mut RawSnapshot) -> Result<StoredPlane, DecodeError> {
     let buffer = snapshot
         .buffer
         .take()
         .ok_or_else(|| invalid_output(RawValidationError::UnsupportedNonMosaic))?;
     match buffer {
-        UnpackedRawBuffer::Integer(samples) => {
+        RawBuffer::Integer(samples) => {
             if snapshot.raw_bps == 0 || snapshot.raw_bps > 16 {
                 return Err(invalid_output(RawValidationError::UnsupportedSampleSpec {
                     bits_per_sample: snapshot.raw_bps.min(u32::from(u16::MAX)) as u16,
@@ -365,7 +364,7 @@ fn stored_plane(snapshot: &mut UnpackedRawSnapshot) -> Result<StoredPlane, Decod
                     .ok_or_else(|| invalid_output(RawValidationError::InvalidGeometry))
             }
         }
-        UnpackedRawBuffer::Float(samples) => {
+        RawBuffer::Float(samples) => {
             if samples.len() != checked_sample_count(snapshot)? {
                 return Err(invalid_output(RawValidationError::InvalidGeometry));
             }
@@ -376,10 +375,7 @@ fn stored_plane(snapshot: &mut UnpackedRawSnapshot) -> Result<StoredPlane, Decod
     }
 }
 
-fn sample_spec(
-    snapshot: &UnpackedRawSnapshot,
-    plane: &StoredPlane,
-) -> Result<SampleSpec, DecodeError> {
+fn sample_spec(snapshot: &RawSnapshot, plane: &StoredPlane) -> Result<SampleSpec, DecodeError> {
     match plane {
         StoredPlane::U8(_) | StoredPlane::U16(_) => {
             SampleSpec::try_new(snapshot.raw_bps as u8, SampleFormat::UnsignedInteger)
@@ -402,17 +398,14 @@ fn sample_spec(
     }
 }
 
-fn checked_sample_count(snapshot: &UnpackedRawSnapshot) -> Result<usize, DecodeError> {
+fn checked_sample_count(snapshot: &RawSnapshot) -> Result<usize, DecodeError> {
     let count = u64::from(snapshot.raw_width)
         .checked_mul(u64::from(snapshot.raw_height))
         .ok_or_else(|| invalid_output(RawValidationError::InvalidGeometry))?;
     usize::try_from(count).map_err(|_| invalid_output(RawValidationError::InvalidGeometry))
 }
 
-fn black_levels(
-    snapshot: &UnpackedRawSnapshot,
-    codes: &[u8; 4],
-) -> Result<BlackLevels, DecodeError> {
+fn black_levels(snapshot: &RawSnapshot, codes: &[u8; 4]) -> Result<BlackLevels, DecodeError> {
     if snapshot.cblack[4] != 0 || snapshot.cblack[5] != 0 {
         return Err(DecodeError::Unsupported(
             "spatial LibRaw black-level tiles are unsupported".into(),
@@ -429,10 +422,7 @@ fn black_levels(
         .map_err(|error| invalid_output(RawValidationError::Metadata(error)))
 }
 
-fn white_levels(
-    snapshot: &UnpackedRawSnapshot,
-    codes: &[u8; 4],
-) -> Result<WhiteLevels, DecodeError> {
+fn white_levels(snapshot: &RawSnapshot, codes: &[u8; 4]) -> Result<WhiteLevels, DecodeError> {
     let declared = if snapshot.dng_whitelevel[0] != 0 {
         vec![rational(snapshot.dng_whitelevel[0])]
     } else {
@@ -482,7 +472,7 @@ fn map_default_crop(crop: [u16; 4]) -> Option<DefaultCrop> {
 }
 
 fn extensible_metadata(
-    snapshot: &UnpackedRawSnapshot,
+    snapshot: &RawSnapshot,
     provider: &ProviderId,
     revision: Option<&str>,
 ) -> Result<ExtensibleMetadata, DecodeError> {
@@ -592,8 +582,8 @@ mod tests {
         filters
     }
 
-    fn snapshot(tile: [u8; 4]) -> UnpackedRawSnapshot {
-        UnpackedRawSnapshot {
+    fn snapshot(tile: [u8; 4]) -> RawSnapshot {
+        RawSnapshot {
             raw_height: 2,
             raw_width: 2,
             raw_pitch: 4,
@@ -626,7 +616,7 @@ mod tests {
             has_float4_image: false,
             progress_flags: LIBRAW_RAW2_IMAGE_PROGRESS >> 1,
             unpack_function: Some("canon_load_raw".into()),
-            buffer: Some(UnpackedRawBuffer::Integer(vec![100, 200, 300, 400])),
+            buffer: Some(RawBuffer::Integer(vec![100, 200, 300, 400])),
         }
     }
 
@@ -699,7 +689,7 @@ mod tests {
         eight_bit.cblack = [0, 1, 2, 3, 0, 0];
         eight_bit.black = 8;
         eight_bit.linear_max = [240, 241, 242, 243];
-        eight_bit.buffer = Some(UnpackedRawBuffer::Integer(vec![20, 30, 40, 50]));
+        eight_bit.buffer = Some(RawBuffer::Integer(vec![20, 30, 40, 50]));
         let decoded = map_snapshot(eight_bit, None).unwrap();
         assert!(matches!(decoded.plane(), StoredPlane::U8(_)));
         assert_eq!(
@@ -713,7 +703,7 @@ mod tests {
         float.black = 0;
         float.cblack = [0; 6];
         float.linear_max = [0; 4];
-        float.buffer = Some(UnpackedRawBuffer::Float(vec![0.1, 0.2, 0.3, 0.4]));
+        float.buffer = Some(RawBuffer::Float(vec![0.1, 0.2, 0.3, 0.4]));
         let decoded = map_snapshot(float, None).unwrap();
         assert!(matches!(decoded.plane(), StoredPlane::F32(_)));
         assert_eq!(
