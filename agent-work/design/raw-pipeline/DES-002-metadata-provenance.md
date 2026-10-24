@@ -33,8 +33,9 @@ The design follows the [SYN-01 decision table](../../research/notes/SYN-01.md#de
 - unknown source metadata is preserved without allowing it to redefine typed
   universal semantics.
 
-The names below are proposed pre-`SYN-03` APIs. They are not finalized until
-`DES-007` accepts the consolidated design.
+The names below are design-history APIs. The persistent normative design is
+under repository-root `docs/raw-pipeline/`; this proposal retains rationale and
+review evidence.
 
 ## 2. Two-layer metadata model
 
@@ -492,8 +493,8 @@ rather than repeated ad hoc branches.
 - `DES-006` decides crate visibility and serialization features.
 - The final backend adapter must report which unknown fields it can preserve.
 - Serialization stability, maximum metadata size, and whether original raw
-  values are retained in memory or behind a feature flag require `DES-007`
-  review.
+  values are retained in memory or behind a feature flag require final
+  persistent-design review.
 - The exact mapping from LibRaw's canonicalized `cblack` back to a declared
   source tile may be unavailable; the adapter must report the loss rather than
   invent provenance.

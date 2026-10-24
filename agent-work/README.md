@@ -22,7 +22,6 @@ agent-work/
 │   ├── <TASK-ID>-<slug>.md           # task-owned evidence reports
 │   └── notes/<TASK-ID>.md            # task-owned synthesis notes
 ├── design/
-│   ├── raw-pipeline.md               # DES-007 consolidated design
 │   └── raw-pipeline/
 │       ├── README.md
 │       └── <TASK-ID>-<slug>.md       # task-owned design proposals
@@ -43,6 +42,8 @@ agent-work/
 - The task-owned report contains evidence and conclusions.
 - `tasks/STATUS.md` is the human-readable task-status snapshot. A task is
   marked `Done` when its deliverable is complete and its task PR is open.
+- `../docs/raw-pipeline/` is the normative persistent design. Design proposals
+  under `agent-work/design/` retain rationale and review history.
 - The task's GitHub pull request is the only review record. Open means in
   progress or review; merged means accepted; closed without merge means
   abandoned or superseded.

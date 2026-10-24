@@ -38,8 +38,8 @@ The design follows the [SYN-01 decision table](../../research/notes/SYN-01.md#de
   distinct; and
 - an unsupported layout is a structured error rather than a reinterpretation.
 
-The proposed names are design candidates. They are not final public API until
-`SYN-03` and `DES-007` approve the consolidated design.
+The names are retained as design history. The persistent normative design is
+under repository-root `docs/raw-pipeline/`.
 
 ## 2. Proposed types
 
