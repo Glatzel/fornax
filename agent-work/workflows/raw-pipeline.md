@@ -907,6 +907,10 @@ Requirements:
   `glatzel-preferred-rust-crates` for dependency selection,
   `glatzel-rust-apidoc` for public Rust API documentation, and
   `glatzel-tool-discovery` when installed local tooling can materially help.
+  These skills are discovered automatically from the Pixi `agent` environment:
+  its `codex` package exports `CODEX_HOME`, and `skill-glatzel` installs the
+  skill packages there. Do not add a separate skill setup or copy step; refresh
+  the environment with `pixi install -e agent` when the lockfile changes.
   Skills do not override the task manifest, persistent design, or review gates.
 - Treat the architecture refactor as breaking by default. Preserve only
   implementation assets that independently pass the new design and license

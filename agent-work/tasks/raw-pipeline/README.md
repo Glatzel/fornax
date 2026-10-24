@@ -93,8 +93,10 @@ first-party RAW format decoder.
 Implementation agents should use the applicable `glatzel-*` skills while
 working: preferred Rust crates for dependency decisions, Rust API docs guidance
 for public interfaces, and tool discovery when installed local tools materially
-improve validation or analysis. The task manifest and persistent design remain
-authoritative.
+improve validation or analysis. The Pixi `agent` environment exports
+`CODEX_HOME`, so Codex discovers the installed `skill-glatzel` packages
+automatically; no separate skill installation or configuration is required.
+The task manifest and persistent design remain authoritative.
 
 ```mermaid
 flowchart LR
