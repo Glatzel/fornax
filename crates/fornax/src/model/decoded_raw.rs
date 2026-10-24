@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    DecoderProvenance, RawValidationError, SampleFormat, SampleSpec, StoredPlane, ValidatedMetadata,
+    DecoderProvenance, IRawPreprocessor, PreprocessError, PreprocessOptions, RawImage,
+    RawValidationError, SampleFormat, SampleSpec, StoredPlane, ValidatedMetadata,
 };
 
 /// A decoder-produced RAW image before standard preprocessing.
@@ -166,6 +167,38 @@ impl DecodedRaw {
     ) -> Result<(Arc<ValidatedMetadata>, StoredPlane), RawValidationError> {
         self.validate_for_preprocessing()?;
         Ok((self.metadata, self.plane))
+    }
+
+    /// Runs the complete standard preprocessing pass.
+    ///
+    /// # Errors
+    ///
+    /// Returns the selected preprocessor's structured error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax::{DecodedRaw, IRawPreprocessor, PreprocessError, PreprocessOptions, RawImage};
+    ///
+    /// struct Unsupported;
+    /// impl IRawPreprocessor for Unsupported {
+    ///     fn pre_process(
+    ///         &self,
+    ///         _input: DecodedRaw,
+    ///         _options: &PreprocessOptions,
+    ///     ) -> Result<RawImage, PreprocessError> {
+    ///         Err(PreprocessError::Unsupported("draft".into()))
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(PreprocessOptions::default(), PreprocessOptions);
+    /// ```
+    pub fn pre_process<P: IRawPreprocessor + ?Sized>(
+        self,
+        preprocessor: &P,
+        options: &PreprocessOptions,
+    ) -> Result<RawImage, PreprocessError> {
+        preprocessor.pre_process(self, options)
     }
 }
 

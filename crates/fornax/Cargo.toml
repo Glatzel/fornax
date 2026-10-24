@@ -5,7 +5,7 @@ edition.workspace = true
 
 [dependencies]
 image.workspace = true
-rawler = { git = "https://github.com/dnglab/dnglab.git", rev = "62b77de1a206d467e910d55199191068b45a9cc1", optional = true }
+rawler = { workspace = true, optional = true }
 rayon = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 thiserror.workspace = true

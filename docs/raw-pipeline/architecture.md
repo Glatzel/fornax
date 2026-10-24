@@ -114,6 +114,10 @@ returns the distinct f32-only `RawImage`. `RawImage::demosaic` returns
 `(RgbImageF32, Arc<ValidatedMetadata>)`, where `RgbImageF32` is image-rs
 interleaved RGB.
 
+`pre_process` is implemented in `fornax::model::decoded_raw`; `demosaic` and
+its output validation are implemented in `fornax::model::raw_image`.
+`protocol.rs` contains only phase traits and shared protocol types.
+
 `IMPL-CORE-001` establishes the draft protocols. The decoder, preprocessing,
 and demosaicing tasks refine their concrete implementations inside `fornax`
 without creating new pipeline crates.
@@ -131,7 +135,7 @@ serde
 ```
 
 - `backend-libraw` enables the private LibRaw adapter through `libraw-sys`.
-- `backend-dnglab` enables the pinned rawler/dnglab adapter.
+- `backend-dnglab` enables the crates.io rawler `0.8.0` adapter.
 - `backend-dnc` enables the process bridge and requires a selected DNG backend.
 - `parallel` enables documented parallel execution where benchmarks justify it.
 - `serde` serializes validated metadata and processing descriptors.
