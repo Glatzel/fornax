@@ -87,12 +87,14 @@ impl PixelRect {
 
 pub type U8Plane = ImageBuffer<Luma<u8>, Vec<u8>>;
 pub type U16Plane = ImageBuffer<Luma<u16>, Vec<u16>>;
+pub type U32Plane = ImageBuffer<Luma<u32>, Vec<u32>>;
 pub type F32Plane = ImageBuffer<Luma<f32>, Vec<f32>>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum StoredPlane {
     U8(U8Plane),
     U16(U16Plane),
+    U32(U32Plane),
     F32(F32Plane),
 }
 
@@ -246,15 +248,8 @@ pub trait RawStage {
 
 pub struct Decoded {
     pub decoder: DecoderProvenance,
-}
-
-pub struct DecodedF32 {
-    pub conversion: F32ConversionProvenance,
-}
-
-pub struct CustomProcessedF32 {
-    pub metadata_basis: MetadataBasis,
     pub operations: Box<[OperationProvenance]>,
+    pub metadata_basis: MetadataBasis,
 }
 
 pub struct Linearized;
@@ -263,8 +258,6 @@ pub struct Normalized;
 pub struct DemosaicReady;
 
 impl RawStage for Decoded { type Plane = StoredPlane; }
-impl RawStage for DecodedF32 { type Plane = F32Plane; }
-impl RawStage for CustomProcessedF32 { type Plane = F32Plane; }
 impl RawStage for Linearized { type Plane = F32Plane; }
 impl RawStage for BlackCorrected { type Plane = F32Plane; }
 impl RawStage for Normalized { type Plane = F32Plane; }
@@ -283,17 +276,16 @@ impl<S: RawStage> RawImage<S> {
 }
 
 pub type DecodedRaw = RawImage<Decoded>;
-pub type DecodedF32Raw = RawImage<DecodedF32>;
-pub type CustomProcessedRaw = RawImage<CustomProcessedF32>;
 pub type LinearizedRaw = RawImage<Linearized>;
 pub type BlackCorrectedRaw = RawImage<BlackCorrected>;
 pub type NormalizedRaw = RawImage<Normalized>;
 pub type DemosaicReadyMosaic = RawImage<DemosaicReady>;
 ```
 
-The stage type carries non-interchangeable semantics. Metadata is immutable
-behind `Arc`; operations consume the source image by value and return the next
-stage. DES-004 owns concrete transition methods.
+The stage type carries non-interchangeable processing semantics. Metadata is
+immutable behind `Arc`; operations consume the source image by value and return
+the next stage. User f32 conversion/custom processing remains in `Decoded`; it
+does not introduce another pipeline stage.
 
 `MetadataBasis` is:
 
@@ -309,9 +301,9 @@ pub enum MetadataBasis {
 }
 ```
 
-`Incompatible` custom output is valid as a user-processed image but cannot
-enter standard preprocessing. `OriginalLevelsValid` is accepted only when the
-custom processing contract proves it.
+`Incompatible` decoded/custom output is valid as a user-processed image but
+cannot enter standard preprocessing. `OriginalLevelsValid` is accepted only
+when the custom operation contract proves it.
 
 ## 4. Source container validation
 
@@ -319,12 +311,16 @@ custom processing contract proves it.
 | --- | --- | --- |
 | `U8Plane` | Unsigned integer, `bits_per_sample <= 8` | Values are stored codes, not implicitly normalized |
 | `U16Plane` | Unsigned integer, `bits_per_sample <= 16` | Unpacked values are retained without semantic left shift |
+| `U32Plane` | Unsigned integer, `16 < bits_per_sample <= 32` | Used only when backend/source evidence supports wider integer samples |
 | `F32Plane` | Float, source declares a floating encoding | Used natively for floating DNG; no u16 round-trip |
 
-Signed integers, integer samples above 16 bits, and f64 source planes are
+Signed integers, integer samples above 32 bits, and f64 source planes are
 rejected with `UnsupportedSampleEncoding` until a separately verified storage
 path exists. Container size is not proof of semantic precision: an 8-bit source
-in u8 and a 12-bit source in u16 retain their declared bit depth.
+in u8 and a 12-bit source in u16 retain their declared bit depth. A u32 source
+is not exact in f32 when it needs more than 24 significant bits.
+`convert_to_f32` must reject such u32 sources rather than silently lose
+precision; a wider working path is future work.
 
 Every compact `ImageBuffer` must have exact `width * height` sample count. A
 padded backend allocation is copied row-by-row before canonical storage; source
@@ -380,9 +376,7 @@ non-mosaic payloads are unsupported structured outcomes, not inferred RGB.
 
 | Stage | Plane | Required invariants | Allowed next stage |
 | --- | --- | --- | --- |
-| `Decoded` | u8/u16/f32 native | Validated stored dimensions/stride, source encoding/state, CFA, ActiveArea, levels, provenance; no inferred normalization | `DecodedF32` for custom processing, or standard linearization/preprocessing |
-| `DecodedF32` | f32 | Lossless explicit conversion for u8/u16, native f32 retained; same metadata state/provenance; no correction | User custom processing |
-| `CustomProcessedF32` | f32 | Operation provenance and `MetadataBasis`; no claim of unmodified source | Standard preprocessing only with valid/replaced basis |
+| `Decoded` | u8/u16/u32/f32 native or f32 after explicit conversion/custom processing | Validated source geometry/encoding/CFA/levels; conversion and operations remain in `Decoded` with `MetadataBasis`; no implied correction | Standard preprocessing only with valid/replaced basis |
 | `Linearized` | f32 | Linearization applied once or identity; geometry/phase unchanged | Black selection/subtraction |
 | `BlackCorrected` | f32 | Black subtracted once; signed values allowed; geometry/phase unchanged | Normalization |
 | `Normalized` | f32 | Unclipped signed `f32`; denominator validated; no second correction | Final clipping |
@@ -407,20 +401,10 @@ impl DecodedRaw {
         todo!("constructor design")
     }
 
-    pub fn into_f32_for_custom_processing(
+    pub fn convert_to_f32(
         self,
-    ) -> Result<DecodedF32Raw, RawValidationError> {
+    ) -> Result<Self, RawValidationError> {
         todo!("conversion design")
-    }
-}
-
-impl DecodedF32Raw {
-    pub fn finish_custom_processing(
-        self,
-        _metadata_basis: MetadataBasis,
-        _operations: Box<[OperationProvenance]>,
-    ) -> Result<CustomProcessedRaw, RawValidationError> {
-        todo!("custom-processing state design")
     }
 }
 ```
@@ -432,9 +416,9 @@ plane; geometry cannot silently diverge from the payload.
 
 ```text
 decoder adapter
-  -> StoredPlane { U8 | U16 | F32 } + ValidatedMetadata
+  -> StoredPlane { U8 | U16 | U32 | F32 } + ValidatedMetadata
   -> DecodedRaw
-       -> [optional] DecodedF32Raw -> CustomProcessedRaw
+       -> [optional] convert_to_f32/user processing, still DecodedRaw
        -> LinearizedRaw
        -> BlackCorrectedRaw
        -> NormalizedRaw
@@ -447,18 +431,21 @@ structured errors. Preprocessing cannot recover missing semantics by guessing.
 
 ## 10. Testing plan
 
-1. Construct valid u8, u16, and f32 planes with exact dimensions and encoding.
-2. Reject u8 with >8 declared bits, u16 with >16 declared bits, and unsupported
-   signed/f64 containers.
+1. Construct valid u8, u16, u32, and f32 planes with exact dimensions and
+   encoding.
+2. Reject u8 with >8 declared bits, u16 with >16 declared bits, u32 with >32
+   declared bits, and unsupported signed/f64 containers.
 3. Reject padded allocations passed as compact buffers; verify correct
    row-by-row compaction.
-4. Exhaustively verify u8/u16 conversion to f32 is lossless.
+4. Exhaustively verify u8/u16 conversion to f32 is lossless; verify u32
+   conversion succeeds only when it fits f32's 24-bit significand and rejects
+   wider values.
 5. Verify floating DNG remains on the native f32 path.
 6. Test ActiveArea validity, crop separation, orientation preservation, and
    active-relative CFA/black phase at odd origins.
 7. Reject all non-Bayer/non-mosaic layouts with structured variants.
-8. Verify u8/u16/f32 custom processing produces distinct state/provenance and
-   rejects stale metadata basis.
+8. Verify u8/u16/u32/f32 custom processing remains `DecodedRaw`, records
+   operation provenance, and rejects stale metadata basis.
 9. Verify each preprocessing transition consumes the previous state and cannot
    be applied twice.
 10. Verify `DemosaicReadyMosaic` is finite f32 in `[0,1]` and retains Bayer
@@ -470,12 +457,13 @@ structured errors. Preprocessing cannot recover missing semantics by guessing.
   non-optional validated representation used here.
 - DES-003 owns the finalized CFA module location; DES-001 owns shared geometry
   to prevent duplicate coordinate types.
-- DES-004 owns concrete operation structs and custom-processing transition APIs.
+- DES-004 owns concrete operation structs and the mutable custom-processing API
+  used while the image remains in `DecodedRaw`.
 - DES-005 owns planar/interleaved ordered RGB output and metadata retention.
 - Exact `DefaultScale` and fractional-crop handling remain unresolved.
 - General black tiles, row/column deltas, and DNG opcode subsets remain
   unsupported gates.
-- Signed integer and >16-bit integer source support require decoder/source
+- Signed integer and >32-bit integer source support require decoder/source
   evidence and a separate design update.
 
 ## 12. Evidence

@@ -17,7 +17,7 @@ acceptance = [
   "Stage invariants before and after preprocessing and demosaicing are explicit.",
   "Representative code and signatures are included.",
   "Decisions cite merged SYN-01 and SYN-02 task PRs.",
-  "Native u8/u16/f32 storage and the explicit custom f32 transition are represented.",
+  "Native u8/u16/u32/f32 storage and the explicit f32 conversion retained in Decoded are represented.",
 ]
 validation = [
   "Verify dependency PRs are merged and cited.",
