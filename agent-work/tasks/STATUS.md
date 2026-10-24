@@ -29,9 +29,9 @@ passes on that branch and the user merges the promotion PR.
 | Research | 9 | 0 | 0 | 9 |
 | Synthesis | 3 | 0 | 0 | 3 |
 | Design | 6 | 0 | 0 | 6 |
-| Implementation | 15 | 14 | 1 | 0 |
+| Implementation | 15 | 14 | 0 | 1 |
 | QA | 6 | 6 | 0 | 0 |
-| **Total** | **39** | **20** | **1** | **18** |
+| **Total** | **39** | **20** | **0** | **19** |
 
 ## Research
 
@@ -70,7 +70,7 @@ passes on that branch and the user merges the promotion PR.
 
 | ID | Task | Depends on | Status | Manifest |
 | --- | --- | --- | --- | --- |
-| `IMPL-CORE-001` | Implement the universal RAW model and validation | `DES-001`–`DES-003`, `DES-006` | `Ready` | [manifest](raw-pipeline/IMPL-CORE-001.toml) |
+| `IMPL-CORE-001` | Implement the universal RAW model and validation | `DES-001`–`DES-003`, `DES-006` | `Done` | [manifest](raw-pipeline/IMPL-CORE-001.toml), [#556](https://github.com/Glatzel/fornax/pull/556) |
 | `IMPL-DEC-001` | Implement the decoder backend contract and registry | `IMPL-CORE-001`, `DES-006` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-001.toml) |
 | `IMPL-DEC-002` | Implement the LibRaw decoder adapter | `IMPL-DEC-001`, `DES-002`, `DES-003` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-002.toml) |
 | `IMPL-DEC-003` | Implement the dnglab/rawler decoder adapter | `IMPL-DEC-001`, `DES-002`, `DES-003` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-003.toml) |
