@@ -631,14 +631,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "envoy"
-version = "2026.10.11"
-source = "git+https://github.com/Glatzel/toolbox?tag=v2026.10.11#787c33708712713ad9bc149180291950decab039"
-dependencies = [
- "thiserror",
-]
-
-[[package]]
 name = "equator"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -724,15 +716,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "float-cmp"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b09cf3155332e944990140d967ff5eceb70df778b34f77d8075db46e4704e6d8"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
 name = "foldhash"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -745,7 +728,7 @@ dependencies = [
  "codspeed-criterion-compat",
  "fornax-devtool",
  "image 0.25.9",
- "libraw",
+ "libraw-sys",
  "mischief",
  "rawler",
  "rayon",
@@ -1119,7 +1102,6 @@ dependencies = [
  "defmt",
  "jiff-core",
  "jiff-static",
- "jiff-tzdb-platform",
  "log",
  "portable-atomic",
  "portable-atomic-util",
@@ -1147,21 +1129,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
-]
-
-[[package]]
-name = "jiff-tzdb"
-version = "0.1.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa8377070c6bae868759445e5a77f66d84f0b72f3a054bfb00e6d038b8282da7"
-
-[[package]]
-name = "jiff-tzdb-platform"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "875a5a69ac2bab1a891711cf5eccbec1ce0341ea805560dcd90b7a2e925132e8"
-dependencies = [
- "jiff-tzdb",
 ]
 
 [[package]]
@@ -1436,24 +1403,6 @@ name = "libm"
 version = "0.2.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
-
-[[package]]
-name = "libraw"
-version = "0.0.17"
-dependencies = [
- "bytemuck",
- "clerk",
- "envoy",
- "float-cmp",
- "fornax-devtool",
- "image 0.25.9",
- "jiff",
- "libraw-sys",
- "mischief",
- "num_enum",
- "serde",
- "thiserror",
-]
 
 [[package]]
 name = "libraw-sys"

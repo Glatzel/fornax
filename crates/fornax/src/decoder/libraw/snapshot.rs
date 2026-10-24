@@ -1,5 +1,4 @@
-use libraw::{Libraw, UnpackedRawImageKind};
-
+use super::native::{LibRawContext, UnpackedRawImage, UnpackedRawImageKind};
 use super::translate_libraw_error;
 use crate::error::DecodeError;
 
@@ -48,12 +47,12 @@ pub(super) enum RawBuffer {
     Float(Vec<f32>),
 }
 
-pub(super) fn snapshot(context: &Libraw) -> Result<RawSnapshot, DecodeError> {
-    let sizes = context.get_image_sizes().map_err(translate_libraw_error)?;
-    let params = context.get_iparams().map_err(translate_libraw_error)?;
-    let color = context.get_color_data().map_err(translate_libraw_error)?;
+pub(super) fn snapshot(context: &LibRawContext) -> Result<RawSnapshot, DecodeError> {
+    let sizes = context.image_sizes();
+    let params = context.parameters();
+    let color = context.color_data();
     let raw = context
-        .get_unpacked_raw_image()
+        .unpacked_raw_image()
         .map_err(translate_libraw_error)?;
     let buffer = match raw.kind() {
         UnpackedRawImageKind::Integer => Some(RawBuffer::Integer(copy_u16_rows(&raw)?)),
@@ -62,32 +61,32 @@ pub(super) fn snapshot(context: &Libraw) -> Result<RawSnapshot, DecodeError> {
     };
 
     Ok(RawSnapshot {
-        raw_height: u32::from(sizes.raw_height()),
-        raw_width: u32::from(sizes.raw_width()),
-        raw_pitch: sizes.raw_pitch(),
-        height: u32::from(sizes.height()),
-        width: u32::from(sizes.width()),
-        top_margin: u32::from(sizes.top_margin()),
-        left_margin: u32::from(sizes.left_margin()),
-        flip: sizes.flip_raw(),
-        make: params.make().map_err(translate_libraw_error)?,
-        model: params.model().map_err(translate_libraw_error)?,
-        normalized_make: params.normalized_make().map_err(translate_libraw_error)?,
-        normalized_model: params.normalized_model().map_err(translate_libraw_error)?,
-        cdesc: params.cdesc_text().map_err(translate_libraw_error)?,
-        raw_count: params.raw_count(),
-        is_foveon: params.is_foveon(),
-        dng_version: params.dng_version(),
-        colors: params.colors(),
-        filters: params.filters(),
-        raw_bps: color.raw_bps(),
-        black: color.black(),
-        cblack: color.cblack(),
-        maximum: color.maximum(),
-        data_maximum: color.data_maximum(),
-        linear_max: color.linear_max(),
-        dng_whitelevel: color.dng_whitelevel(),
-        default_crop: color.dng_default_crop(),
+        raw_height: sizes.raw_height,
+        raw_width: sizes.raw_width,
+        raw_pitch: sizes.raw_pitch,
+        height: sizes.height,
+        width: sizes.width,
+        top_margin: sizes.top_margin,
+        left_margin: sizes.left_margin,
+        flip: sizes.flip,
+        make: params.make,
+        model: params.model,
+        normalized_make: params.normalized_make,
+        normalized_model: params.normalized_model,
+        cdesc: params.cdesc,
+        raw_count: params.raw_count,
+        is_foveon: params.is_foveon,
+        dng_version: params.dng_version,
+        colors: params.colors,
+        filters: params.filters,
+        raw_bps: color.raw_bps,
+        black: color.black,
+        cblack: color.cblack,
+        maximum: color.maximum,
+        data_maximum: color.data_maximum,
+        linear_max: color.linear_max,
+        dng_whitelevel: color.dng_whitelevel,
+        default_crop: color.default_crop,
         has_color3_image: raw.has_color3_image(),
         has_color4_image: raw.has_color4_image(),
         has_float3_image: raw.has_float3_image(),
@@ -98,15 +97,20 @@ pub(super) fn snapshot(context: &Libraw) -> Result<RawSnapshot, DecodeError> {
     })
 }
 
-fn copy_u16_rows(raw: &libraw::UnpackedRawImage<'_>) -> Result<Vec<u16>, DecodeError> {
-    let capacity = usize::from(raw.raw_width())
-        .checked_mul(usize::from(raw.raw_height()))
+fn copy_u16_rows(raw: &UnpackedRawImage<'_>) -> Result<Vec<u16>, DecodeError> {
+    let capacity = usize::try_from(raw.raw_width())
+        .ok()
+        .and_then(|width| {
+            usize::try_from(raw.raw_height())
+                .ok()
+                .and_then(|height| width.checked_mul(height))
+        })
         .ok_or_else(allocation_error)?;
     let mut samples = Vec::new();
     samples
         .try_reserve_exact(capacity)
         .map_err(|_| allocation_error())?;
-    for row in 0..u32::from(raw.raw_height()) {
+    for row in 0..raw.raw_height() {
         let samples_row = raw
             .integer_row(row)
             .map_err(translate_libraw_error)?
@@ -116,15 +120,20 @@ fn copy_u16_rows(raw: &libraw::UnpackedRawImage<'_>) -> Result<Vec<u16>, DecodeE
     Ok(samples)
 }
 
-fn copy_f32_rows(raw: &libraw::UnpackedRawImage<'_>) -> Result<Vec<f32>, DecodeError> {
-    let capacity = usize::from(raw.raw_width())
-        .checked_mul(usize::from(raw.raw_height()))
+fn copy_f32_rows(raw: &UnpackedRawImage<'_>) -> Result<Vec<f32>, DecodeError> {
+    let capacity = usize::try_from(raw.raw_width())
+        .ok()
+        .and_then(|width| {
+            usize::try_from(raw.raw_height())
+                .ok()
+                .and_then(|height| width.checked_mul(height))
+        })
         .ok_or_else(allocation_error)?;
     let mut samples = Vec::new();
     samples
         .try_reserve_exact(capacity)
         .map_err(|_| allocation_error())?;
-    for row in 0..u32::from(raw.raw_height()) {
+    for row in 0..raw.raw_height() {
         let samples_row = raw
             .float_row(row)
             .map_err(translate_libraw_error)?

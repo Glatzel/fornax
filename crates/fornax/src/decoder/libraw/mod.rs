@@ -1,12 +1,14 @@
 //! LibRaw decoder backed by the workspace's private safe wrapper.
 
+#[doc(hidden)]
+pub mod native;
 mod snapshot;
 
 use std::num::{NonZeroU32, NonZeroU64};
 use std::path::Path;
 
 use image::ImageBuffer;
-use libraw::{Libraw, LibrawError, LibrawErrorCode};
+use native::{LibRawContext, LibRawError, LibRawErrorCode};
 use snapshot::{RawBuffer, RawSnapshot, snapshot};
 
 use super::IRawDecoder;
@@ -56,8 +58,8 @@ impl LibRawDecoder {
 impl IRawDecoder<Path> for LibRawDecoder {
     fn decode(&self, input: &Path) -> Result<DecodedRaw, DecodeError> {
         ensure_supported_path(input)?;
-        let revision = Libraw::version().ok();
-        let context = Libraw::try_new(None).map_err(translate_libraw_error)?;
+        let revision = native::version();
+        let mut context = LibRawContext::new().map_err(translate_libraw_error)?;
         context.open_file(input).map_err(translate_libraw_error)?;
         context.unpack().map_err(translate_libraw_error)?;
         let snapshot = snapshot(&context)?;
@@ -67,8 +69,8 @@ impl IRawDecoder<Path> for LibRawDecoder {
 
 impl IRawDecoder<[u8]> for LibRawDecoder {
     fn decode(&self, input: &[u8]) -> Result<DecodedRaw, DecodeError> {
-        let revision = Libraw::version().ok();
-        let context = Libraw::try_new(None).map_err(translate_libraw_error)?;
+        let revision = native::version();
+        let mut context = LibRawContext::new().map_err(translate_libraw_error)?;
         context.open_buffer(input).map_err(translate_libraw_error)?;
         context.unpack().map_err(translate_libraw_error)?;
         let snapshot = snapshot(&context)?;
@@ -76,18 +78,18 @@ impl IRawDecoder<[u8]> for LibRawDecoder {
     }
 }
 
-fn translate_libraw_error(error: LibrawError) -> DecodeError {
+fn translate_libraw_error(error: LibRawError) -> DecodeError {
     match error {
-        LibrawError::Libraw { code, message } => match code {
-            LibrawErrorCode::FileUnsupported
-            | LibrawErrorCode::UnspecifiedError
-            | LibrawErrorCode::NotImplemented => DecodeError::Unsupported(message.into()),
-            LibrawErrorCode::DataError
-            | LibrawErrorCode::IoError
-            | LibrawErrorCode::InputClosed => DecodeError::InvalidInput(message.into()),
+        LibRawError::Native { code, message } => match code {
+            LibRawErrorCode::FileUnsupported
+            | LibRawErrorCode::Unspecified
+            | LibRawErrorCode::NotImplemented => DecodeError::Unsupported(message.into()),
+            LibRawErrorCode::DataError
+            | LibRawErrorCode::IoError
+            | LibRawErrorCode::InputClosed => DecodeError::InvalidInput(message.into()),
             _ => DecodeError::Backend(message.into()),
         },
-        other => DecodeError::Backend(other.to_string().into()),
+        LibRawError::InvalidInput(message) => DecodeError::InvalidInput(message.into()),
     }
 }
 

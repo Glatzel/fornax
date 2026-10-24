@@ -28,10 +28,9 @@ boundary, upstream decoder integrations, direct preprocessing and demosaicing
 stages, and end-to-end pipeline. There is no target `fornax-core`, decoder
 adapter, preprocessing, or demosaic crate.
 
-Current crates include the internal `libraw` safe wrapper, `libraw-sys`,
-`fornax`, `fornax-py`, the legacy `dnc`, and `fornax-devtool`. Do not assume
-their current public traits or `BayerImage` are the target architecture. The
-existing architecture is migration input.
+Current crates include `libraw-sys`, `fornax`, `fornax-py`, the legacy `dnc`,
+and `fornax-devtool`. Do not assume their current public traits or `BayerImage`
+are the target architecture. The existing architecture is migration input.
 
 ## Development principles
 
@@ -43,8 +42,8 @@ existing architecture is migration input.
   LibRaw, dnglab/rawler, the existing `dnc` conversion bridge, and a
   decoder-only darktable/rawspeed integration if that boundary can be isolated.
 - Let `fornax` depend on upstream decoders behind optional Cargo features.
-  Where native FFI needs a safe ownership boundary, use a non-published internal
-  workspace wrapper such as `libraw`, while keeping decoder-specific
+  Absorb the minimum safe native ownership code into the decoder module instead
+  of maintaining a separate wrapper crate, while keeping decoder-specific
   representations private to their adapter modules.
 - Keep shared RAW types, backend selection, capabilities, and provenance
   independent of every decoder backend.

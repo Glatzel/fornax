@@ -1,12 +1,9 @@
 use std::path::Path;
 
+use fornax::decoder::libraw::native::{LibRawContext, UnpackedRawImage, UnpackedRawImageKind};
 use fornax::decoder::{IRawDecoder, LibRawDecoder};
 use fornax::{DemosaicAlgorithm, F32Plane, StoredPlane};
 use image::{ImageBuffer, Luma, Rgb};
-use libraw::{
-    DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawParams,
-    DCRawUseCameraMatrix, DCRawUserFlip, DCRawUserQual, Libraw, UnpackedRawImageKind,
-};
 
 type Gray16 = ImageBuffer<Luma<u16>, Vec<u16>>;
 type Rgb16 = ImageBuffer<Rgb<u16>, Vec<u16>>;
@@ -26,9 +23,10 @@ fn main() -> mischief::Result<()> {
 }
 
 fn compare_decoded(output_dir: &Path, raw_path: &Path) -> mischief::Result<()> {
-    let context = Libraw::default();
-    context.open_file(raw_path)?.unpack()?;
-    let raw = context.get_unpacked_raw_image()?;
+    let mut context = LibRawContext::new()?;
+    context.open_file(raw_path)?;
+    context.unpack()?;
+    let raw = context.unpacked_raw_image()?;
     let pure = match raw.kind() {
         UnpackedRawImageKind::Integer => copy_integer_rows(&raw)?,
         UnpackedRawImageKind::Float => {
@@ -54,18 +52,19 @@ fn compare_decoded(output_dir: &Path, raw_path: &Path) -> mischief::Result<()> {
 }
 
 fn compare_preprocessed(output_dir: &Path, raw_path: &Path) -> mischief::Result<()> {
-    let context = Libraw::default();
-    context.open_file(raw_path)?.unpack()?;
-    let sizes = context.get_image_sizes()?;
-    let color = context.get_color_data()?;
-    let black = color.black();
-    let cblack = color.cblack();
-    let dng_white = color.dng_whitelevel()[0];
-    let linear_max = color.linear_max();
-    let common_white = color.maximum();
-    let rgba = context.get_raw_image(true)?;
-    let top = u32::from(sizes.top_margin());
-    let left = u32::from(sizes.left_margin());
+    let mut context = LibRawContext::new()?;
+    context.open_file(raw_path)?;
+    context.unpack()?;
+    let sizes = context.image_sizes();
+    let color = context.color_data();
+    let black = color.black;
+    let cblack = color.cblack;
+    let dng_white = color.dng_whitelevel[0];
+    let linear_max = color.linear_max;
+    let common_white = color.maximum;
+    let rgba = context.active_rgba_image(true)?;
+    let top = sizes.top_margin;
+    let left = sizes.left_margin;
     let cfa_codes = [
         context.color(top as i32, left as i32),
         context.color(top as i32, (left + 1) as i32),
@@ -118,10 +117,11 @@ fn compare_preprocessed(output_dir: &Path, raw_path: &Path) -> mischief::Result<
 }
 
 fn compare_demosaiced(output_dir: &Path, raw_path: &Path) -> mischief::Result<()> {
-    let params = neutral_libraw_params();
-    let context = Libraw::new(Some(params));
-    context.open_file(raw_path)?.unpack()?;
-    let processed = context.dcraw_process()?.dcraw_make_mem_image()?;
+    let mut context = LibRawContext::new()?;
+    context.open_file(raw_path)?;
+    context.unpack()?;
+    context.dcraw_process_neutral()?;
+    let processed = context.make_processed_image()?;
     let pure = processed.rgb16_image()?;
 
     let fornax = LibRawDecoder::new()
@@ -140,29 +140,9 @@ fn compare_demosaiced(output_dir: &Path, raw_path: &Path) -> mischief::Result<()
     Ok(())
 }
 
-fn neutral_libraw_params() -> DCRawParams {
-    DCRawParams {
-        gamm: Some([1.0, 1.0]),
-        user_mul: Some([1.0; 4]),
-        highlight: Some(DCRawHighlightMode::Clip),
-        use_auto_wb: Some(false),
-        use_camera_wb: Some(false),
-        use_camera_matrix: Some(DCRawUseCameraMatrix::NotUse),
-        output_color: Some(DCRawOutputColor::Raw),
-        output_bps: Some(DCRawOutputBps::_16bit),
-        user_flip: Some(DCRawUserFlip::None),
-        user_qual: Some(DCRawUserQual::Linear),
-        no_auto_bright: Some(true),
-        fbdd_noiserd: Some(DCRawFbddNoiserd::Off),
-        no_auto_scale: Some(true),
-        no_interpolation: Some(false),
-        ..DCRawParams::default()
-    }
-}
-
-fn copy_integer_rows(raw: &libraw::UnpackedRawImage<'_>) -> mischief::Result<Gray16> {
-    let width = u32::from(raw.raw_width());
-    let height = u32::from(raw.raw_height());
+fn copy_integer_rows(raw: &UnpackedRawImage<'_>) -> mischief::Result<Gray16> {
+    let width = raw.raw_width();
+    let height = raw.raw_height();
     let mut samples = Vec::with_capacity(width as usize * height as usize);
     for row in 0..height {
         let source = raw
