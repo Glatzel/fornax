@@ -1,7 +1,7 @@
 //! Decoder boundary and backend input contract.
 //!
-//! Concrete LibRaw, rawler/dnglab, and DNC members are left to
-//! `IMPL-DEC-003` through `IMPL-DEC-005`.
+//! Concrete rawler/dnglab and DNC members are left to `IMPL-DEC-004` and
+//! `IMPL-DEC-005`.
 //!
 //! # Examples
 //!
@@ -23,7 +23,12 @@
 use crate::DecodedRaw;
 use crate::error::DecodeError;
 
-// TODO(IMPL-DEC-003..005): add libraw, rawler, and dnc member modules.
+#[cfg(feature = "backend-libraw")]
+mod libraw;
+// TODO(IMPL-DEC-004..005): add rawler and dnc member modules.
+
+#[cfg(feature = "backend-libraw")]
+pub use libraw::LibRawDecoder;
 
 /// A decoder backend that produces the universal decoded representation.
 ///

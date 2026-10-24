@@ -26,8 +26,12 @@ enum BayerPhase {
 const fn idx(width: u32, x: u32, y: u32) -> usize { y as usize * width as usize + x as usize }
 
 fn phase_at(layout: BayerLayout, x: u32, y: u32) -> BayerPhase {
+    let active = layout.active_area().rect();
     let slot = layout
-        .slot_at(PixelCoord::new(y, x))
+        .slot_at(PixelCoord::new(
+            active.top().checked_add(y).unwrap(),
+            active.left().checked_add(x).unwrap(),
+        ))
         .expect("every stored coordinate is inside the validated ActiveArea");
     match layout.pattern().color_at(slot) {
         CfaColor::Red => BayerPhase::Red,
@@ -500,7 +504,7 @@ mod tests {
             .preprocess()
             .unwrap();
         assert!(matches!(
-            phase_at(input.metadata().cfa(), 1, 1),
+            phase_at(input.metadata().cfa(), 0, 0),
             BayerPhase::Red
         ));
     }

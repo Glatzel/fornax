@@ -72,6 +72,7 @@ preprocess
   -> linearize
   -> subtract_black
   -> normalize
+  -> crop_to_active_area
   -> finish_for_demosaic
 ```
 
@@ -101,6 +102,8 @@ ready = clamp(n, 0.0, 1.0)
 - Subtraction never clips.
 - Normalization requires `white > black`.
 - The normalized working buffer retains negative and above-one values.
+- Preprocessing crops the corrected stored raster to its validated ActiveArea;
+  `RawImage` dimensions therefore equal the ActiveArea dimensions.
 - Final clipping occurs only in `finish_for_demosaic`.
 - NaN and infinity are errors.
 
