@@ -48,13 +48,13 @@ Arrow direction means the source crate depends on the target crate.
 
 | Crate | Responsibility |
 | --- | --- |
-| `fornax-core` | `DecodedRaw` decoder container, f32-only `RawImage` output, universal samples, metadata, geometry, CFA, provenance, and validation |
-| `fornax-decode` | `RawDecoderBackend`, backend capabilities/selection, decode configuration/errors |
+| `fornax-core` | `DecodedRaw`, f32-only `RawImage`, universal metadata/geometry/CFA, and the draft decoder/preprocess/demosaic protocols |
+| `fornax-decode` | Concrete `RawDecoderBackend` registry, capabilities, selection policy, and decoder errors |
 | `fornax-decoder-libraw` | LibRaw `unpack` adapter and metadata translation |
 | `fornax-decoder-dnglab` | dnglab/rawler adapter |
 | `fornax-decoder-dnc` | Adobe DNG conversion bridge composed with a DNG decoder |
-| `fornax-preprocess` | One `DecodedRaw::pre_process` entry point returning `RawImage`, with private LUT, black correction, normalization, and clipping substeps |
-| `fornax-demosaic` | Object-safe strategy registry, planar f32 output, built-in/external algorithms |
+| `fornax-preprocess` | `RawPreprocessor` implementation with private LUT, black correction, normalization, and clipping substeps |
+| `fornax-demosaic` | `DemosaicBackend` implementations, registry, and built-in/external algorithms |
 | `fornax` | Explicit backend selection and end-to-end composition |
 | `fornax-py` | Python package over the facade |
 | `fornax-devtool` | Non-published fixtures and examples |
@@ -62,13 +62,15 @@ Arrow direction means the source crate depends on the target crate.
 
 ## Boundaries
 
-- `fornax-core` has no dependency on any decoder or demosaic implementation.
+- `fornax-core` defines the draft global protocols but no decoder or demosaic
+  implementation.
 - `fornax-decode`, `fornax-preprocess`, and `fornax-demosaic` depend on core but
   not on one another.
 - Decoder crates implement `RawDecoderBackend`; upstream types remain private.
-- `fornax-preprocess` implements one consuming `pre_process` operation from
-  `DecodedRaw` to the f32-only `RawImage`; preprocessing substeps stay private.
-- Demosaic strategies are object-safe and registered at runtime.
+- `fornax-preprocess` implements `RawPreprocessor`; preprocessing substeps stay
+  private.
+- Demosaic backends implement `DemosaicBackend`; strategy registries can be
+  added in the demosaicing task.
 - Only `fornax` depends on concrete adapters, and only through enabled features.
 - `fornax-core`'s `serde` feature currently serializes validated metadata and
   processing descriptors; validating deserialization and plane wire formats remain
@@ -76,8 +78,8 @@ Arrow direction means the source crate depends on the target crate.
 
 ## Decoder protocol
 
-The decoder contract belongs to `fornax-decode` and returns the universal
-decoded container:
+The draft contract lives in `fornax-core::protocol`; `fornax-decode` will add
+registry and capability policy around it in `IMPL-DEC-001`:
 
 ```rust
 pub trait RawDecoderBackend: Send + Sync {
@@ -97,6 +99,37 @@ Consequently both `DecodedRaw` and the preprocessed `RawImage` retain decoder
 identity through their shared `Arc<ValidatedMetadata>`; `RawImage` does not
 store or expose a separate decoder field.
 
+The draft preprocessing contract consumes and returns distinct image types:
+
+```rust
+pub trait RawPreprocessor: Send + Sync {
+    fn pre_process(
+        &self,
+        input: DecodedRaw,
+        options: &PreprocessOptions,
+    ) -> Result<RawImage, PreprocessError>;
+}
+```
+
+The draft demosaicing contract accepts the f32-only preprocessed image:
+
+```rust
+pub trait DemosaicBackend: Send + Sync {
+    fn demosaic(
+        &self,
+        input: &RawImage,
+        options: &DemosaicOptions,
+    ) -> Result<PlanarRgbF32, DemosaicError>;
+}
+```
+
+Core's `RawImage::demosaic` wrapper validates output dimensions and attaches
+the source metadata to `DemosaicOutput`.
+
+Later implementation tasks may refine options, capabilities, registries, and
+output details, but the phase boundaries and consuming image types are the
+global protocol reviewed by `IMPL-CORE-001`.
+
 ## Selection and features
 
 The facade has no default backend. Callers enable and explicitly select:
@@ -115,12 +148,13 @@ selected backend and decode provenance.
 
 ## Errors
 
-Each pipeline phase owns its structured error:
+The draft phase errors live in `fornax-core::protocol`; concrete crates may
+refine or wrap their own errors in later implementation tasks:
 
-- `RawValidationError` in core;
-- `DecodeError` in `fornax-decode`;
-- `PreprocessError` in `fornax-preprocess`;
-- `DemosaicError` in `fornax-demosaic`; and
+- `RawValidationError` for shared model validation;
+- `DecodeError` for decoder backends;
+- `PreprocessError` for preprocessors;
+- `DemosaicError` for demosaic backends; and
 - `FornaxError` in the facade, wrapping phase errors with context.
 
 Public APIs do not expose upstream LibRaw/rawler/demosaic types or string-only

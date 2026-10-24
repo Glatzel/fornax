@@ -59,16 +59,20 @@ Preprocessing has one public operation:
 
 ```rust
 impl DecodedRaw {
-    pub fn pre_process(
+    pub fn pre_process<P: RawPreprocessor + ?Sized>(
         self,
+        preprocessor: &P,
         options: &PreprocessOptions,
-    ) -> Result<RawImage, PreprocessError>;
+    ) -> Result<RawImage, PreprocessError> {
+        preprocessor.pre_process(self, options)
+    }
 }
 ```
 
 It applies for every supported `DecodedRaw`, regardless of whether the decoded
-payload is u8, u16, u32, or f32. The implementation converts to the f32 working
-domain as needed and calls private substep functions:
+payload is u8, u16, u32, or f32. The selected `RawPreprocessor` implementation
+converts to the f32 working domain as needed and calls private substep
+functions:
 
 ```text
 pre_process

@@ -67,8 +67,8 @@ implementation placeholders.
   merged.
 - **D:** `DES-002` and `DES-003` start after `SYN-01`; the remaining design tasks
   follow their manifest dependencies.
-- **I0:** `IMPL-CORE-001` is the single universal-model gate after the design
-  and persistent documentation are merged.
+- **I0:** `IMPL-CORE-001` is the universal-model and draft global-protocol gate
+  after the design and persistent documentation are merged.
 - **I1:** the decoder contract, preprocessing foundation, and demosaic contract
   can start concurrently after the core gate. Root `Cargo.toml`/`Cargo.lock`
   edits are shared: merge one branch first, then rebase/regenerate the others

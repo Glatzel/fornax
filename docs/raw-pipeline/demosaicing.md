@@ -60,6 +60,23 @@ representation.
 
 ## Strategy interface
 
+`fornax-core` contains the draft phase protocol used to validate the global
+call flow:
+
+```rust
+pub trait DemosaicBackend: Send + Sync {
+    fn demosaic(
+        &self,
+        input: &RawImage,
+        options: &DemosaicOptions,
+    ) -> Result<PlanarRgbF32, DemosaicError>;
+}
+```
+
+`IMPL-DEM-001` may refine this into the runtime strategy/registry interface
+below while preserving the `RawImage` input and channel-major linear f32
+output boundary.
+
 ```rust
 pub trait DemosaicStrategy: Send + Sync {
     fn id(&self) -> DemosaicAlgorithmId;

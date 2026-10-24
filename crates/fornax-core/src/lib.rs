@@ -23,6 +23,7 @@ mod error;
 mod geometry;
 mod metadata;
 mod plane;
+pub mod protocol;
 mod raw_image;
 
 pub use cfa::{BayerLayout, BayerPattern, BayerSlot, CfaColor, CfaShape};
@@ -37,4 +38,8 @@ pub use metadata::{
     Sourced, TypedMetadataField, ValidatedMetadata, WhiteBalance, WhiteLevels, resolve_sourced,
 };
 pub use plane::{F32Plane, SampleFormat, SampleSpec, StoredPlane, U8Plane, U16Plane, U32Plane};
+pub use protocol::{
+    DecodeConfig, DecodeError, DemosaicBackend, DemosaicError, DemosaicOptions, DemosaicOutput,
+    PlanarRgbF32, PreprocessError, PreprocessOptions, RawDecoderBackend, RawInput, RawPreprocessor,
+};
 pub use raw_image::{RawImage, into_preprocessed};
