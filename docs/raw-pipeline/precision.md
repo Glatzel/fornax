@@ -2,10 +2,8 @@
 
 Precision has two dimensions: the **container** used to store samples and the
 **semantic precision** declared by the source. They are not interchangeable.
-
-Normative rules are in
-[DES-001 §4](../../agent-work/design/raw-pipeline/DES-001-universal-raw-representation.md#4-source-container-validation)
-and [DES-001 §7](../../agent-work/design/raw-pipeline/DES-001-universal-raw-representation.md#7-stage-invariants).
+This file is the normative precision definition; the field-level contract is in
+[Key structures and fields](raw-image-struct.md).
 
 ## Precision flow
 

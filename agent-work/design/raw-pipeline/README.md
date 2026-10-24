@@ -1,9 +1,9 @@
-# RAW Pipeline Design Index
+# RAW Pipeline Design History
 
 Each `DES-*` task writes a proposal named `<TASK-ID>-<slug>.md` in this
-directory. This split keeps each design branch reviewable and avoids concurrent
-edits to one shared document. The authoritative task contracts are in
-`agent-work/tasks/raw-pipeline/DES-*.toml`.
+directory. These proposals retain design rationale and review history. The
+normative, persistent design lives in
+[`docs/raw-pipeline/`](../../../docs/raw-pipeline/README.md).
 
 | Task | Deliverable |
 | --- | --- |
@@ -13,13 +13,10 @@ edits to one shared document. The authoritative task contracts are in
 | `DES-004` | `DES-004-preprocessing-state.md` |
 | `DES-005` | `DES-005-demosaicing-interface.md` |
 | `DES-006` | `DES-006-crate-architecture.md` |
-| `DES-007` | `DES-007-design-review.md` |
 
-`DES-007` also owns the consolidated
-[`../raw-pipeline.md`](../raw-pipeline.md), which it assembles only after the
-component proposals have merged. Design decisions must cite merged `RES-*` or
-`SYN-*` pull requests and must not resolve unresolved metadata, coordinate,
-sample-domain, or preprocessing questions by assumption.
+Design decisions must cite merged `RES-*` or `SYN-*` pull requests and must not
+resolve unresolved metadata, coordinate, sample-domain, or preprocessing
+questions by assumption.
 
 The decoder architecture must expose existing implementations as selectable
 backends behind a `fornax`-owned contract. LibRaw and dnglab/rawler are decoder
@@ -27,4 +24,5 @@ candidates, `dnc` is a conversion bridge, and darktable/rawspeed is eligible
 only through an isolated decoder boundary. Do not design a first-party RAW
 format decoder for the initial pipeline.
 
-Do not begin implementation before the user approves and merges `DES-007`.
+Implementation begins only after the relevant `DES-*` PRs and the persistent
+design-docs PR are merged.

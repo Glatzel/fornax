@@ -1,8 +1,8 @@
 # Key Structures and Fields
 
-This is a field-oriented index for the proposed DES-001 model. The complete
-normative Rust snippets and validation rules are in
-[DES-001 §2–§8](../../agent-work/design/raw-pipeline/DES-001-universal-raw-representation.md#2-representative-rust-types).
+This file is the normative field-level reference for the persistent RAW image
+model. The task-owned DES-001 proposal records the drafting history and
+rationale; field names, units, and invariants in this file are authoritative.
 
 ## Structure class diagram
 

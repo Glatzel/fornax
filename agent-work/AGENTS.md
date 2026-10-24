@@ -84,7 +84,8 @@ Record actual results. If a command cannot run, say so explicitly.
   `SYN-02`.
 - `agent-work/research/SYN-03-summary.md` — cross-source synthesis owned by `SYN-03`.
 - `agent-work/design/raw-pipeline/` — one task-owned proposal per `DES-*` task.
-- `agent-work/design/raw-pipeline.md` — consolidated design owned by `DES-007`.
+- `docs/raw-pipeline/` — normative persistent design for users and
+  implementation.
 - `agent-work/references/` — pinned, read-only upstream evidence submodules and
   downloaded reference material.
 - `agent-work/checkpoints/<TASK-ID>/` — durable pause/resume checkpoints for a
@@ -136,7 +137,7 @@ outputs there.
 Research tasks may run independently. Synthesis starts only after its listed
 research dependencies have merged through their task pull requests. Design must
 not be finalized before `SYN-03` is merged. No implementation task starts before
-`DES-007` is merged.
+the relevant design task PRs and persistent design-docs PR are merged.
 
 ## Reference sources
 

@@ -1,8 +1,9 @@
 # Raw Image Processing Flow
 
-This guide describes the proposed processing path from a decoder adapter to a
-linear demosaiced image. The normative type and invariant details are in
-[DES-001 §3–§9](../../agent-work/design/raw-pipeline/DES-001-universal-raw-representation.md#3-stage-typed-image).
+This guide defines the persistent processing path from a decoder adapter to a
+linear demosaiced image. [Precision by phase](precision.md) defines sample
+types and [Key structures and fields](raw-image-struct.md) defines the
+corresponding type invariants.
 
 ## End-to-end flow
 

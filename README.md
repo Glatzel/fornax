@@ -27,7 +27,7 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 - **libraw**: Safe wrapper around the native libraw library.
 - **libraw-sys**: Libraw rust bindings.
 
-## Documentation
+## Design documentation
 
-- [Universal RAW pipeline design guides](docs/raw-pipeline/README.md) — processing
-  flow, precision by phase, and key data-model structures.
+- [Universal RAW pipeline design](docs/raw-pipeline/README.md) — persistent
+  processing flow, precision rules, and data-model structures.

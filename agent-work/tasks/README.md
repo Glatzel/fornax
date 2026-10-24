@@ -50,7 +50,7 @@ Required fields are `schema_version`, `id`, `slug`, `title`, `phase`,
 `parallelism` is optional. `requires_one_of` is an optional array for tasks that
 accept any one of several prerequisite implementations; it does not replace
 the mandatory `dependencies` array. Files must use the task ID as their basename:
-`RES-01.toml`, `DES-007.toml`, and so on.
+`RES-01.toml`, `DES-006.toml`, and so on.
 
 Do not add status, review approval, branch URL, or completion fields to TOML
 manifests. Track task status in [`STATUS.md`](STATUS.md):
@@ -129,6 +129,7 @@ records completed work, remaining work, command results, reference revisions,
 and the next safe action.
 
 Parallel tasks must use distinct branches, worktrees, and task-owned output
-files. Serialize edits to shared interfaces, workspace manifests, and
-consolidated design documents. If two tasks need the same file, either define a
+files. Serialize edits to shared interfaces, workspace manifests, and the
+persistent `docs/raw-pipeline/` design. If two tasks need the same file, either
+define a
 stacked dependency in the task index or move the shared edit into its own task.

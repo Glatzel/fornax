@@ -30,24 +30,23 @@ still requires dependency PRs to be merged.
 | D | `DES-004` | [`DES-004.toml`](DES-004.toml) | `SYN-01`, `SYN-02`, `DES-001`, `DES-003` |
 | D | `DES-005` | [`DES-005.toml`](DES-005.toml) | `SYN-01`, `SYN-03`, `DES-001`, `DES-003` |
 | D | `DES-006` | [`DES-006.toml`](DES-006.toml) | `SYN-03`, `DES-001`, `DES-004`, `DES-005` |
-| Gate | `DES-007` | [`DES-007.toml`](DES-007.toml) | `SYN-03`, `DES-001`–`DES-006` |
-| I | `IMPL-DEC-001` | [`IMPL-DEC-001.toml`](IMPL-DEC-001.toml) | `DES-001`, `DES-006`, `DES-007` |
+| I | `IMPL-DEC-001` | [`IMPL-DEC-001.toml`](IMPL-DEC-001.toml) | `DES-001`, `DES-006` |
 | I | `IMPL-DEC-002` | [`IMPL-DEC-002.toml`](IMPL-DEC-002.toml) | `IMPL-DEC-001` |
 | I | `IMPL-DEC-003` | [`IMPL-DEC-003.toml`](IMPL-DEC-003.toml) | `IMPL-DEC-001`, `DES-002`, `DES-003` |
 | I | `IMPL-DEC-004` | [`IMPL-DEC-004.toml`](IMPL-DEC-004.toml) | `IMPL-DEC-002`, `IMPL-DEC-003` |
-| I | `IMPL-PRE-001` | [`IMPL-PRE-001.toml`](IMPL-PRE-001.toml) | `DES-001`, `DES-004`, `DES-007` |
+| I | `IMPL-PRE-001` | [`IMPL-PRE-001.toml`](IMPL-PRE-001.toml) | `DES-001`, `DES-004` |
 | I | `IMPL-PRE-002` | [`IMPL-PRE-002.toml`](IMPL-PRE-002.toml) | `IMPL-PRE-001`, `DES-003` |
 | I | `IMPL-PRE-003` | [`IMPL-PRE-003.toml`](IMPL-PRE-003.toml) | `IMPL-PRE-002` |
-| I | `IMPL-PRE-004` | [`IMPL-PRE-004.toml`](IMPL-PRE-004.toml) | `DES-004`, `DES-007` |
-| I | `IMPL-DEM-001` | [`IMPL-DEM-001.toml`](IMPL-DEM-001.toml) | `DES-005`, `DES-007` |
-| I | `IMPL-DEM-002` | [`IMPL-DEM-002.toml`](IMPL-DEM-002.toml) | `DES-005`, `DES-007` |
-| I | `IMPL-DEM-003` | [`IMPL-DEM-003.toml`](IMPL-DEM-003.toml) | `DES-005`, `DES-007`, `RES-05` |
+| I | `IMPL-PRE-004` | [`IMPL-PRE-004.toml`](IMPL-PRE-004.toml) | `DES-004` |
+| I | `IMPL-DEM-001` | [`IMPL-DEM-001.toml`](IMPL-DEM-001.toml) | `DES-005` |
+| I | `IMPL-DEM-002` | [`IMPL-DEM-002.toml`](IMPL-DEM-002.toml) | `DES-005` |
+| I | `IMPL-DEM-003` | [`IMPL-DEM-003.toml`](IMPL-DEM-003.toml) | `DES-005`, `RES-05` |
 | I | `IMPL-INT-001` | [`IMPL-INT-001.toml`](IMPL-INT-001.toml) | `IMPL-DEC-004`, `IMPL-PRE-002`, one `IMPL-DEM-*` |
 | Q | `QA-001` | [`QA-001.toml`](QA-001.toml) | `IMPL-INT-001` |
 | Q | `QA-002` | [`QA-002.toml`](QA-002.toml) | `IMPL-INT-001` |
 | Q | `QA-003` | [`QA-003.toml`](QA-003.toml) | `IMPL-INT-001` |
 | Q | `QA-004` | [`QA-004.toml`](QA-004.toml) | `IMPL-INT-001` |
-| Q | `QA-005` | [`QA-005.toml`](QA-005.toml) | `DES-007`, `IMPL-INT-001` |
+| Q | `QA-005` | [`QA-005.toml`](QA-005.toml) | `IMPL-INT-001` |
 | Q | `QA-006` | [`QA-006.toml`](QA-006.toml) | all `IMPL-*`, `QA-001`–`QA-005` |
 
 ## Planned execution waves
@@ -61,7 +60,8 @@ still requires dependency PRs to be merged.
   merged.
 - **D:** `DES-002` and `DES-003` start after `SYN-01`; the remaining design tasks
   follow their manifest dependencies.
-- **I:** implementation starts only after `DES-007` is merged.
+- **I:** implementation starts only after its listed design dependencies and
+  the persistent design-docs PR are merged.
 - **Q:** each QA task starts after its listed implementation artifacts merge.
 
 The decoder implementation track adapts existing decoders behind the selected
@@ -78,8 +78,8 @@ flowchart LR
     S1 --> S3
     S2 --> S3
     S3 --> D["DES-001..DES-006"]
-    D --> G["DES-007"]
-    G --> I["IMPL-*"]
+    D --> Docs["docs/raw-pipeline"]
+    Docs --> I["IMPL-*"]
     I --> Q["QA-*"]
 ```
 

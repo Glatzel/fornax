@@ -43,7 +43,6 @@
 > │   ├── SYN-03-summary.md
 > │   └── notes/                   # synthesis working notes
 > ├── design/
-> │   ├── raw-pipeline.md         # consolidated by DES-007
 > │   └── raw-pipeline/<TASK-ID>-<slug>.md
 > └── tasks/
 >     ├── README.md               # manifest and PR protocol
@@ -88,9 +87,9 @@ Research owners write only their assigned report under `agent-work/research/`.
 `SYN-01` and `SYN-02` write only their files under
 `agent-work/research/notes/`; `SYN-03` owns
 `agent-work/research/SYN-03-summary.md`. Each `DES-*` task writes a separate
-proposal under `agent-work/design/raw-pipeline/`; only `DES-007` writes the
-consolidated `agent-work/design/raw-pipeline.md`. No task writes into another
-task's owned file.
+proposal under `agent-work/design/raw-pipeline/`. The normative persistent
+design lives in repository-root `docs/raw-pipeline/`. No task writes into
+another task's owned file.
 
 ## 1. Project context and objective
 
@@ -518,7 +517,8 @@ behavior, ordering constraints, and synthetic-test strategy.
 - No design task is finalized before `SYN-03` is approved and merged in the dependency task PR.
   Design decisions must cite the supporting merged `RES-*` or `SYN-*` task IDs,
   or explicitly state their assumptions.
-- No implementation task starts before the user approves `DES-007`.
+- No implementation task starts before the relevant `DES-*` task PRs and the
+  persistent design-docs PR are approved and merged.
 - The research phase is complete only when `RES-01`–`RES-09` and `SYN-01`–
   `SYN-03` are approved and merged in the dependency task PR with satisfied acceptance criteria.
 - A report file existing is not evidence of completion.
@@ -554,11 +554,12 @@ are approved and merged in the dependency task PR.
 ## 3. Phase B — API and data structure design
 
 Create one task-owned proposal under `agent-work/design/raw-pipeline/` for each
-of `DES-001` through `DES-006`. `DES-007` reviews them and owns the consolidated
-`agent-work/design/raw-pipeline.md`.
+of `DES-001` through `DES-006`. The user-facing persistent design is maintained
+under repository-root `docs/raw-pipeline/`; task-owned proposals retain design
+rationale and review history.
 
-Design work is tracked as `DES-001` through `DES-006`, followed by the
-`DES-007` review gate. A design task may start only when its listed `SYN-*`
+Design work is tracked as `DES-001` through `DES-006`. A design task may start
+only when its listed `SYN-*`
 dependencies are approved and merged in the dependency task PR, and its proposal must cite the
 merged `RES-*` or `SYN-*` task IDs that justify each decision. No public type or
 function is finalized before `SYN-03` is approved and merged. Do not introduce a
@@ -805,12 +806,12 @@ The dependency graph is:
 
 `RES-01..04,06..08 -> RES-09 -> SYN-03`
 
-`SYN-03 -> DES-001..007 -> IMPL-* -> QA-*`
+`SYN-03 -> DES-001..006 -> docs/raw-pipeline -> IMPL-* -> QA-*`
 
 An arrow starts downstream work only after the upstream task PR is merged.
 Parallel workers must have distinct task IDs, branches, worktrees, and owned
-files. Serialize edits to shared interfaces, workspace manifests, and
-consolidated design output. If tasks need one shared file, introduce a stacked
+files. Serialize edits to shared interfaces, workspace manifests, and the
+persistent `docs/raw-pipeline/` design. If tasks need one shared file, introduce a stacked
 dependency or a dedicated integration task instead of racing in separate PRs.
 
 ## 5. Phase D — Implementation
@@ -877,9 +878,11 @@ Work in this order:
 4. Review the reports and the synthesis, resolving or documenting disagreements.
 5. Produce the API and data structure design report (`DES-001`–`DES-006`),
    citing `RES-*` or `SYN-*` evidence for every material decision.
-6. Review the architecture (`DES-007`). No public type or preprocessing API is
-   finalized before `SYN-03` is approved and merged in the dependency task PR.
-7. Implement in small, trackable tasks only after the design PRs are merged.
+6. Assemble the persistent design under `docs/raw-pipeline/` and review it with
+   the user. No public type or preprocessing API is finalized before `SYN-03`
+   is approved and merged in the dependency task PR.
+7. Implement in small, trackable tasks only after the relevant design PRs and
+   persistent design-docs PR are merged.
 8. Integrate, validate, and update documentation.
 
 Each research, synthesis, design, and implementation task has its own TOML
