@@ -122,9 +122,10 @@ allowed.
 
 ## Metadata retention
 
-`DemosaicOutput` retains an `Arc<ValidatedMetadata>` and `DemosaicRun`
-provenance. It does not apply or discard WB, color matrices, orientation, crop,
-or decoder provenance. No per-pixel metadata is emitted.
+`RawImage::demosaic` returns `(PlanarRgbF32, Arc<ValidatedMetadata>)`, retaining
+source metadata without a wrapper type. It does not apply or discard WB, color
+matrices, orientation, crop, or decoder provenance. No per-pixel metadata is
+emitted.
 
 ## Errors and allocation
 

@@ -193,14 +193,14 @@ impl RawImage {
         &self,
         demosaicer: &D,
         options: &DemosaicOptions,
-    ) -> Result<DemosaicOutput, DemosaicError> {
+    ) -> Result<(PlanarRgbF32, std::sync::Arc<ValidatedMetadata>), DemosaicError> {
         let output = demosaicer.demosaic(self, options)?;
         if output.dimensions() != self.metadata().stored_geometry().dimensions() {
             return Err(DemosaicError::InvalidInput(
                 "output dimensions do not match the source image".into(),
             ));
         }
-        Ok(DemosaicOutput::new(self.metadata_arc(), output))
+        Ok((output, self.metadata_arc()))
     }
 }
 
@@ -275,35 +275,6 @@ impl PlanarRgbF32 {
         let end = start.checked_add(pixels)?;
         self.samples.get(start..end)
     }
-}
-
-/// A demosaicing output retaining the source image metadata.
-#[derive(Clone, Debug, PartialEq)]
-pub struct DemosaicOutput {
-    metadata: std::sync::Arc<ValidatedMetadata>,
-    pixels: PlanarRgbF32,
-}
-
-impl DemosaicOutput {
-    /// Creates demosaicing output while retaining source metadata.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::{DemosaicOutput, PixelSize, PlanarRgbF32};
-    ///
-    /// fn accepts_output(_: &DemosaicOutput) {}
-    /// assert_eq!(PixelSize::new(1, 1).unwrap().width(), 1);
-    /// ```
-    pub const fn new(metadata: std::sync::Arc<ValidatedMetadata>, pixels: PlanarRgbF32) -> Self {
-        Self { metadata, pixels }
-    }
-
-    /// Returns retained source metadata.
-    pub fn metadata(&self) -> &ValidatedMetadata { &self.metadata }
-
-    /// Returns linear planar RGB pixels.
-    pub const fn pixels(&self) -> &PlanarRgbF32 { &self.pixels }
 }
 
 #[cfg(test)]

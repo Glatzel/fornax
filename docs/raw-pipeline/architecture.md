@@ -123,8 +123,8 @@ pub trait DemosaicBackend: Send + Sync {
 }
 ```
 
-Core's `RawImage::demosaic` wrapper validates output dimensions and attaches
-the source metadata to `DemosaicOutput`.
+Core's `RawImage::demosaic` wrapper validates output dimensions and returns
+`(PlanarRgbF32, Arc<ValidatedMetadata>)`.
 
 Later implementation tasks may refine options, capabilities, registries, and
 output details, but the phase boundaries and consuming image types are the

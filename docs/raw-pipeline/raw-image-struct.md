@@ -42,10 +42,6 @@ classDiagram
         U32
         F32
     }
-    class DemosaicOutput {
-        <<Demosaic phase>>
-        +planar_rgb_f32
-    }
 
     DecodedRaw *-- ValidatedMetadata
     DecodedRaw *-- StoredPlane
@@ -58,7 +54,7 @@ classDiagram
     CommonMetadata *-- BlackLevels
     CommonMetadata *-- WhiteLevels
     DecodedRaw ..> RawImage : pre_process
-    RawImage ..> DemosaicOutput
+    RawImage ..> PlanarRgbF32 : demosaic tuple with metadata
 ```
 
 ## Core image
