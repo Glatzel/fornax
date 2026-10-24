@@ -631,6 +631,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "envoy"
+version = "2026.10.11"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.10.11#787c33708712713ad9bc149180291950decab039"
+dependencies = [
+ "thiserror",
+]
+
+[[package]]
 name = "equator"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -726,6 +734,7 @@ name = "fornax"
 version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
+ "envoy",
  "fornax-devtool",
  "image 0.25.9",
  "libraw-sys",

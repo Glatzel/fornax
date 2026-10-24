@@ -49,7 +49,7 @@ pub(super) enum RawBuffer {
 
 pub(super) fn snapshot(context: &LibRawContext) -> Result<RawSnapshot, DecodeError> {
     let sizes = context.image_sizes();
-    let params = context.parameters();
+    let params = context.parameters().map_err(translate_libraw_error)?;
     let color = context.color_data();
     let raw = context
         .unpacked_raw_image()

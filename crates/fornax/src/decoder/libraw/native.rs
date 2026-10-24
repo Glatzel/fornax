@@ -3,10 +3,11 @@
     reason = "native backend support is exposed only for backend-specific examples"
 )]
 
-use std::ffi::{CStr, CString, c_char};
+use std::ffi::c_char;
 use std::marker::PhantomData;
 use std::path::Path;
 
+use envoy::{PtrToString, ToCString};
 use image::{ImageBuffer, Rgba};
 
 pub const LIBRAW_PROGRESS_RAW2_IMAGE: u32 = 1 << 4;
@@ -62,7 +63,9 @@ impl LibRawError {
             if pointer.is_null() {
                 format!("LibRaw error {raw}")
             } else {
-                CStr::from_ptr(pointer).to_string_lossy().into_owned()
+                pointer
+                    .to_string_lossy()
+                    .unwrap_or_else(|_| format!("LibRaw error {raw}"))
             }
         };
         Self::Native { code, message }
@@ -95,8 +98,9 @@ impl LibRawContext {
         let path = path
             .to_str()
             .ok_or_else(|| LibRawError::InvalidInput("path is not valid UTF-8".into()))?;
-        let path = CString::new(path)
-            .map_err(|_| LibRawError::InvalidInput("path contains a NUL byte".into()))?;
+        let path = path
+            .to_cstring()
+            .map_err(|error| LibRawError::InvalidInput(error.to_string()))?;
         check(unsafe { libraw_sys::libraw_open_file(self.pointer, path.as_ptr()) })
     }
 
@@ -129,20 +133,20 @@ impl LibRawContext {
         }
     }
 
-    pub fn parameters(&self) -> ImageParameters {
+    pub fn parameters(&self) -> LibRawResult<ImageParameters> {
         let data = unsafe { &(*self.pointer).idata };
-        ImageParameters {
-            make: c_array_string(&data.make),
-            model: c_array_string(&data.model),
-            normalized_make: c_array_string(&data.normalized_make),
-            normalized_model: c_array_string(&data.normalized_model),
-            cdesc: c_array_string(&data.cdesc),
+        Ok(ImageParameters {
+            make: c_array_string(&data.make)?,
+            model: c_array_string(&data.model)?,
+            normalized_make: c_array_string(&data.normalized_make)?,
+            normalized_model: c_array_string(&data.normalized_model)?,
+            cdesc: c_array_string(&data.cdesc)?,
             raw_count: data.raw_count,
             is_foveon: data.is_foveon != 0,
             dng_version: data.dng_version,
             colors: data.colors,
             filters: data.filters,
-        }
+        })
     }
 
     pub fn color_data(&self) -> ColorData {
@@ -184,7 +188,9 @@ impl LibRawContext {
     pub fn unpack_function_name(&self) -> Option<String> {
         unsafe {
             let name = libraw_sys::libraw_unpack_function_name(self.pointer);
-            (!name.is_null()).then(|| CStr::from_ptr(name).to_string_lossy().into_owned())
+            (!name.is_null())
+                .then(|| name.to_string_lossy().ok())
+                .flatten()
         }
     }
 
@@ -273,7 +279,9 @@ impl Drop for LibRawContext {
 pub fn version() -> Option<String> {
     unsafe {
         let pointer = libraw_sys::libraw_version();
-        (!pointer.is_null()).then(|| CStr::from_ptr(pointer).to_string_lossy().into_owned())
+        (!pointer.is_null())
+            .then(|| pointer.to_string_lossy().ok())
+            .flatten()
     }
 }
 
@@ -471,11 +479,9 @@ fn check_raw_alloc(pointer: *mut libraw_sys::libraw_data_t) -> LibRawResult<()> 
     }
 }
 
-fn c_array_string<const N: usize>(value: &[c_char; N]) -> String {
-    let length = value.iter().position(|byte| *byte == 0).unwrap_or(N);
-    let bytes = value[..length]
-        .iter()
-        .map(|byte| *byte as u8)
-        .collect::<Vec<_>>();
-    String::from_utf8_lossy(&bytes).into_owned()
+fn c_array_string<const N: usize>(value: &[c_char; N]) -> LibRawResult<String> {
+    value
+        .as_slice()
+        .to_string_lossy()
+        .map_err(|error| LibRawError::InvalidInput(error.to_string()))
 }
