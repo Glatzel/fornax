@@ -1,25 +1,31 @@
 schema_version = 1
 id = "RES-09"
 slug = "rust-ecosystem"
-title = "Compare Rust ecosystem candidates"
+title = "Recommend selectable raw decoder backends"
 phase = "research"
-dependencies = ["RES-06", "RES-07", "RES-08"]
-parallelism = "After RES-06 through RES-08 are merged; compare their findings without repeating their source research."
+dependencies = ["RES-01", "RES-02", "RES-03", "RES-04", "RES-06", "RES-07", "RES-08"]
+parallelism = "After the listed reports are merged; compare their findings without repeating their source research."
 deliverables = ["agent-work/research/RES-09-rust-ecosystem.md"]
 scope = """
-Compare the three split Rust ecosystem reports and recommend dependency,
-optional-adapter, design-reference, or no-reuse status for each candidate,
-including license and maintenance constraints.
+Compare the existing decoder and Rust ecosystem reports and recommend a
+selectable backend architecture. Treat LibRaw and dnglab/rawler as decoder
+adapters, dnc as a composed DNG-conversion path, and darktable/rawspeed as a
+conditional decoder-only adapter or design reference. Define the common adapter
+boundary, provenance, Bayer/format fit, and license and maintenance constraints
+without requiring fornax to maintain a first-party RAW decoder.
 """
 acceptance = [
-  "Every candidate is compared on scope, Bayer and target-format fit, API boundary, maintenance, and license.",
+  "Every decoder, conversion bridge, and reusable component is compared on scope, Bayer and target-format fit, API boundary, maintenance, and license.",
   "Every recommendation links to a split report.",
-  "Dependency, optional-backend, and design-reference status is explicit.",
+  "Dependency, selectable-backend, conversion-bridge, experimental-adapter, and design-reference status are explicit.",
+  "A backend-neutral adapter contract requires explicit selection, capabilities, structured rejection, and provenance.",
   "No upstream RAW type is recommended for fornax-core without an adapter and license decision.",
+  "The recommendation does not require fornax to maintain a first-party RAW decoder.",
   "Remaining unknowns and their impact are listed.",
   "The report contains the six required research sections and cites the split reports.",
 ]
 validation = [
-  "Verify that all three dependency task PRs are merged.",
+  "Verify that all dependency task PRs are merged.",
   "Cross-check every recommendation against the corresponding report section.",
+  "Confirm that every decoder or conversion candidate has an explicit adapter boundary and backend role.",
 ]
