@@ -18,7 +18,7 @@ acceptance = [
   "Shared APIs do not hide a 2x2-only assumption.",
   "Decisions cite merged SYN-01 evidence.",
   "Image-rs container suitability and row-stride limitations are evaluated.",
-  "Initial source precision and the f32 preprocessing domain are justified from decoder evidence.",
+  "Native u8/u16/f32 storage, explicit custom-processing conversion, and preprocessing/demosaic precision are justified from decoder evidence.",
 ]
 validation = [
   "Verify SYN-01 is merged.",

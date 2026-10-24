@@ -19,8 +19,8 @@
 > - [x] Decisions cite merged SYN-01 evidence.
 > - [x] Image-rs container suitability and row-stride limitations are
 >   evaluated.
-> - [x] Initial source precision and the `f32` preprocessing domain are
->   justified from decoder evidence.
+> - [x] Native u8/u16/f32 storage, explicit custom-processing conversion, and
+>   preprocessing/demosaic precision are justified from decoder evidence.
 
 ## 1. Scope and decisions
 
@@ -329,11 +329,13 @@ the universal RAW type:
 ```rust,ignore
 use image::{ImageBuffer, Luma};
 
+pub type StoredU8Plane = ImageBuffer<Luma<u8>, Vec<u8>>;
 pub type StoredU16Plane = ImageBuffer<Luma<u16>, Vec<u16>>;
 pub type StoredF32Plane = ImageBuffer<Luma<f32>, Vec<f32>>;
 pub type PreprocessedPlane = ImageBuffer<Luma<f32>, Vec<f32>>;
 
 pub enum StoredPlane {
+    U8(StoredU8Plane),
     U16(StoredU16Plane),
     F32(StoredF32Plane),
 }
@@ -375,8 +377,8 @@ display-oriented image container as the RAW semantic model.
 
 ## 5. Source precision and preprocessing type
 
-`u16` is the common integer storage container in the inspected decoder
-surfaces, not a statement that every RAW sample has 16 bits of precision:
+`u16` is a common integer storage container in the inspected decoder surfaces,
+not a statement that every RAW sample has 16 bits of precision:
 
 - LibRaw exposes single-plane `raw_image` as `ushort*` and separate float image
   pointers; source reports require preserving the actual sample encoding
@@ -391,31 +393,60 @@ surfaces, not a statement that every RAW sample has 16 bits of precision:
 
 Therefore:
 
-- Initial compact integer storage is `ImageBuffer<Luma<u16>, Vec<u16>>`.
-- The declared bit depth remains part of `SampleEncoding`, so 8-, 10-, 12-,
-  14-, and 16-bit sources are not silently promoted to semantic 16-bit data.
+- The decoded representation supports native `u8` and `u16` integer planes:
+  `ImageBuffer<Luma<u8>, Vec<u8>>` for 8-bit sources and
+  `ImageBuffer<Luma<u16>, Vec<u16>>` for 9–16-bit sources.
+- The declared bit depth remains part of `SampleEncoding`, so 10-, 12-, 14-,
+  and 16-bit sources are not silently promoted to semantic 16-bit data.
   Packed source values are unpacked without an extra left shift unless the
   source specification/decoder says otherwise.
-- Initial float storage is `ImageBuffer<Luma<f32>, Vec<f32>>` when a backend
-  exposes a floating source path.
+- Floating DNG and another verified floating decoder path use
+  `ImageBuffer<Luma<f32>, Vec<f32>>` natively. The decoder does not force a
+  float DNG through `u16`.
 - Integer widths that cannot fit losslessly in `u16` must use a verified wider
   variant or return a structured unsupported-encoding error. Signed integers
   and `f64` are not established initial decoder outputs.
 - Preprocessing and demosaic input use
   `ImageBuffer<Luma<f32>, Vec<f32>>`.
 
-For the initial target, every native unsigned integer up to 16 bits is exactly
-representable in `f32` because `f32` has 24 bits of significand precision.
-This makes `f32` suitable for black subtraction, normalization, and
-demosaicing without repeating integer quantization. It is not universally
-higher precision: integers above 24 significant bits and some `f64` source
-values can lose information when stored as `f32`.
+Every native unsigned integer up to 16 bits is exactly representable in `f32`
+because `f32` has 24 bits of significand precision. This makes an explicit
+`u8`/`u16` to `f32` conversion lossless for the initial integer sources.
+`f32` is not universally higher precision: integers above 24 significant bits
+and some `f64` source values can lose information when stored as `f32`.
 
-The preprocessing contract therefore uses `f32` sample storage with widened
+### Custom processing before preprocessing
+
+The decoded source should expose these opt-in conversions without changing the
+default storage:
+
+```text
+DecodedRaw -> into_f32_for_custom_processing() -> DecodedF32Raw
+DecodedF32Raw -> user transformation -> CustomProcessedF32Raw
+CustomProcessedF32Raw -> standard preprocessing (only when metadata basis matches)
+```
+
+Requirements:
+
+- `u8` and `u16` conversion to `f32` is explicit, lossless, and preserves
+  geometry, CFA, original bit depth, and provenance.
+- An already-floating decoded plane is used as `f32` directly.
+- A custom transformation returns a distinct processing state and operation
+  provenance; it cannot masquerade as unmodified decoded data.
+- Standard black/white preprocessing may follow only if the custom operation
+  states that black/white metadata remains valid in the transformed domain.
+  Otherwise the custom operation must provide transformed levels or standard
+  preprocessing is rejected.
+
+### Preprocessing precision
+
+The standard preprocessing contract uses `f32` sample storage with widened
 scalar arithmetic where needed:
 
-- convert validated source samples to `f32` before the preprocessed working
-  buffer;
+- convert validated `u8`/`u16` source samples to `f32` before the preprocessed
+  working buffer;
+- retain native `f32` source samples without an additional quantizing
+  round-trip;
 - compute black/white level arithmetic in `f64` to avoid avoidable
   intermediate rounding;
 - store unclipped corrected/normalized values as `f32` for `SYN-02`'s explicit
@@ -424,6 +455,25 @@ scalar arithmetic where needed:
 
 High-bit-depth or `f64` inputs require an explicitly approved wider path; they
 must not silently pass through `f32` with a false precision claim.
+
+### Demosaic precision
+
+Demosaicing should use `f32` input and output buffers, not `f64`:
+
+- the selected Rust `demosaic` API already accepts single-channel `f32` and
+  writes planar `f32` output
+  ([RES-08 §2.1](../../research/RES-08-rust-demosaicing.md#21-demosaic-crate-api-and-bayer-contract));
+- normalized initial samples occupy `[0,1]`, where `f32` has substantially
+  finer spacing than a 16-bit source step;
+- `f64` buffers double memory and bandwidth without improving the quantized
+  f32 preprocessing input; and
+- an individual algorithm may use `f64` accumulators or kernel intermediates
+  only when benchmarks/tests justify the cost. This remains internal and does
+  not change the shared `f32` input/output contract.
+
+Higher-order demosaic algorithms can overshoot or undershoot the input range.
+Their output remains linear `f32`; clipping is an explicit algorithm/output
+policy, not a reason to switch to `f64`.
 
 ## 6. General CFA boundary
 
@@ -462,6 +512,7 @@ or `Blue`.
 | CFA layout is non-rectangular | `UnsupportedLayout { observed }` |
 | Coordinate is outside ActiveArea | `CoordOutsideActiveArea` |
 | Slot coordinate is outside the pattern tile | `InvalidCfaSlot` |
+| Custom processing changes sample basis without transformed black/white metadata | Structured preprocessing-basis error; original black levels are not applied |
 
 During normal validated-pipeline operation, `BayerLayout::slot_at` never
 returns `InvalidCfaSlot`: the modulo operation and constructor guarantee a
@@ -498,12 +549,27 @@ The required pattern matrix is:
 Additional negative tests cover zero dimensions, reversed ActiveArea bounds,
 out-of-buffer bounds, and malformed CFA shapes/planes.
 
+Precision and container tests:
+
+1. Every `u8` value converts exactly to `f32`.
+2. Every `u16` value converts exactly to `f32`.
+3. An 8-bit source remains semantic 8-bit after native `u8` storage or `f32`
+   conversion; the container does not rewrite `bits_per_sample`.
+4. A floating DNG enters the `f32` path without a `u16` round-trip.
+5. Custom `f32` processing returns a distinct state and cannot be passed to
+   standard preprocessing with stale black/white metadata.
+6. Demosaic tests use `f32` input/output; no `f64` buffer is required by the
+   shared interface.
+
 ## 9. Integration decisions and risks
 
 - `DES-001` should own or re-export the shared pixel-size, coordinate, and
   rectangle types rather than duplicating them.
 - `DES-004` can use the slot index for per-position black selection while
   using `CfaColor` for channel interpretation.
+- `DES-004` owns the custom-processing state/provenance guard that determines
+  whether standard black/white preprocessing remains valid after a user
+  transformation.
 - `DES-005` should accept a validated Bayer layout and the preprocessed mosaic;
   it should not recover CFA phase from buffer-local coordinates.
 - Backends must retain CFA plane mapping and ActiveArea origin during adapter
@@ -559,5 +625,5 @@ out-of-buffer bounds, and malformed CFA shapes/planes.
 - [x] Shared APIs do not hide a 2×2-only assumption.
 - [x] Decisions cite merged SYN-01 evidence.
 - [x] Image-rs container suitability and row-stride limitations are evaluated.
-- [x] Initial source precision and the `f32` preprocessing domain are justified
-  from decoder evidence.
+- [x] Native u8/u16/f32 storage, explicit custom-processing conversion, and
+  preprocessing/demosaic precision are justified from decoder evidence.
