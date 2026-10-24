@@ -3,7 +3,7 @@ use crate::{Libraw, LibrawError, ProcessedImage};
 
 //region:Writing processing results to memory buffer
 impl Libraw {
-    pub(crate) fn dcraw_make_mem_image(&self) -> Result<ProcessedImage, LibrawError> {
+    pub fn dcraw_make_mem_image(&self) -> Result<ProcessedImage, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
         let mut result = 0_i32;
         let processed: *mut libraw_sys::libraw_processed_image_t =

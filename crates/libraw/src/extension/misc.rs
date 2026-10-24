@@ -2,7 +2,6 @@ use std::slice;
 
 use image::ImageBuffer;
 
-use crate::extension::error_handling::check_run;
 use crate::{Libraw, LibrawError};
 
 // region:Custom API
@@ -12,7 +11,6 @@ impl Libraw {
         subtract_black: bool,
     ) -> Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>, LibrawError> {
         self.raw2image()?;
-        check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata_ptr()) });
         if subtract_black {
             self.libraw_subtract_black()?;
         }

@@ -50,6 +50,9 @@ impl Libraw {
     fn _libraw_adjust_sizes_info_only() { todo!() }
     pub fn dcraw_process(&self) -> Result<&Self, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
+        if let Some(params) = &self.params {
+            params.set_output_params(self.arc_imgdata_ptr())?;
+        }
         check_run!(unsafe { libraw_sys::libraw_dcraw_process(self.imgdata_ptr()) });
         Ok(self)
     }
