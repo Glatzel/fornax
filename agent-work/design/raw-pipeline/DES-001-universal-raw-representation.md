@@ -478,7 +478,17 @@ structured errors. Preprocessing cannot recover missing semantics by guessing.
 - Signed integer and >16-bit integer source support require decoder/source
   evidence and a separate design update.
 
-## 12. Evidence
+## 12. Companion documentation
+
+- [Documentation index](docs/README.md)
+- [Raw image processing flow](docs/raw-image-process.md)
+- [Precision by phase](docs/precision.md)
+- [Key structures and fields](docs/raw-image-struct.md)
+
+These documents explain the proposal with stage tables, Mermaid diagrams, and
+field-level references. This design proposal remains normative.
+
+## 13. Evidence
 
 - [SYN-01 decision table](../../research/notes/SYN-01.md#decision-table):
   sample state, units, ranges, coordinates, CFA, black/white metadata,
