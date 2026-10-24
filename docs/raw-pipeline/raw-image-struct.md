@@ -14,7 +14,6 @@ classDiagram
         +metadata
         +plane
         +decoder
-        +operations
         +metadata_basis
         +storage
     }
@@ -23,7 +22,6 @@ classDiagram
         +metadata
         +plane
         +decoder
-        +operations
         +metadata_basis
     }
     class ValidatedMetadata {
@@ -74,13 +72,11 @@ classDiagram
 | `DecodedRaw::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
 | `DecodedRaw::plane` | `StoredPlane` | samples | Matches source geometry and declared encoding |
 | `DecodedRaw::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend |
-| `DecodedRaw::operations` | `Box<[OperationProvenance]>` | N/A | Records pre-preprocessing operations |
 | `DecodedRaw::metadata_basis` | `MetadataBasis` | N/A | States whether level metadata remains applicable |
 | `DecodedRaw::storage` | `PlaneStorage` | enum | `Native` or `F32Working` |
 | `RawImage::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during preprocessing and demosaicing |
 | `RawImage::plane` | `F32Plane` | samples | Finite preprocessed Bayer samples in `[0,1]` |
 | `RawImage::decoder` | `DecoderProvenance` | N/A | Retained decoder provenance |
-| `RawImage::operations` | `Box<[OperationProvenance]>` | N/A | Retained decoded operations |
 | `RawImage::metadata_basis` | `MetadataBasis` | N/A | Retained metadata-validity basis |
 | `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleEncoding` |
 | `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Working and preprocessed payload |
@@ -139,6 +135,12 @@ Because preprocessing is available only on `DecodedRaw`, calling it again on
 the returned `RawImage` is a compile-time error. `RawImage` construction is
 private to core's preprocessing finalizer and validates finite samples in
 `[0,1]` before demosaicing.
+
+Users may mutate `DecodedRaw::plane_mut()` directly for custom processing.
+After changing the sample basis, they must call
+`DecodedRaw::set_metadata_basis`; `require_standard_preprocessing` revalidates
+the current plane's dimensions, encoding, and finite values before the single
+preprocessing pass. No operation-history field is retained.
 
 ## Validation fields and errors
 

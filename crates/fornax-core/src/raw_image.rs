@@ -2,8 +2,7 @@ use std::sync::Arc;
 
 use crate::plane::validate_finite;
 use crate::{
-    DecodedRaw, DecoderProvenance, F32Plane, MetadataBasis, OperationProvenance,
-    RawValidationError, ValidatedMetadata,
+    DecodedRaw, DecoderProvenance, F32Plane, MetadataBasis, RawValidationError, ValidatedMetadata,
 };
 
 /// A preprocessed, demosaic-ready RAW image with a single f32 plane.
@@ -24,7 +23,6 @@ pub struct RawImage {
     metadata: Arc<ValidatedMetadata>,
     plane: F32Plane,
     decoder: DecoderProvenance,
-    operations: Box<[OperationProvenance]>,
     metadata_basis: MetadataBasis,
 }
 
@@ -40,9 +38,6 @@ impl RawImage {
 
     /// Returns decoder provenance.
     pub const fn decoder(&self) -> &DecoderProvenance { &self.decoder }
-
-    /// Returns operations applied before standard preprocessing.
-    pub fn operations(&self) -> &[OperationProvenance] { &self.operations }
 
     /// Returns the black/white metadata validity basis retained from decoding.
     pub const fn metadata_basis(&self) -> &MetadataBasis { &self.metadata_basis }
@@ -101,12 +96,11 @@ pub fn into_preprocessed(
     {
         return Err(RawValidationError::InvalidReadinessRange);
     }
-    let (metadata, decoder, operations, metadata_basis) = image.into_preprocessing_parts();
+    let (metadata, decoder, metadata_basis) = image.into_preprocessing_parts();
     Ok(RawImage {
         metadata,
         plane,
         decoder,
-        operations,
         metadata_basis,
     })
 }

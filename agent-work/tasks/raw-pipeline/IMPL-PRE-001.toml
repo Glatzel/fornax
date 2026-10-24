@@ -8,7 +8,7 @@ parallelism = "Starts after IMPL-CORE-001; can run in parallel with decoder and 
 deliverables = ["fornax-preprocess foundation source", "conversion and linearization tests"]
 scope = """
 Create the fornax-preprocess foundation for the single public pre_process
-operation. Implement exact integer conversion, custom-operation provenance and
+operation. Implement exact integer conversion, mutable custom-plane access and
 metadata-basis handling, a private identity/table linearization substep,
 allocation checks, and typed preprocessing errors. Do not expose intermediate
 preprocessing image types or the public entry point before the complete
@@ -17,7 +17,7 @@ pipeline is implemented.
 acceptance = [
   "u8 and u16 conversion is exact and u32 conversion rejects values requiring more than f32's exact significant range.",
   "Float decoded samples follow the native float path without an integer round trip.",
-  "Custom f32 operations remain in decoded RawImage state and record valid, replaced, or incompatible metadata basis.",
+  "Custom plane mutation remains on DecodedRaw and records valid, replaced, or incompatible metadata basis.",
   "Identity and LUT linearization apply once, validate source-domain indices, reject non-finite table output, and preserve geometry and metadata.",
   "The linearization implementation is crate-private and does not introduce a public intermediate image type.",
   "Allocation failure and malformed table errors are structured.",

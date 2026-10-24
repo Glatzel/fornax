@@ -84,16 +84,12 @@ validated `DecodedRaw::try_new` decode constructor and a doc-hidden finalizer
 that constructs `RawImage`. Because `pre_process` is defined only on
 `DecodedRaw`, a second call on the returned f32-only `RawImage` is impossible.
 
-`DecodedRaw::convert_to_f32` records a `convert_to_f32` operation and changes
-`PlaneStorage` to
-`F32Working`; a second conversion is rejected. Custom f32 processing likewise
-remains a `DecodedRaw` and must declare one of
+`DecodedRaw::convert_to_f32` changes `PlaneStorage` to `F32Working`; a second
+conversion is rejected. Custom processing uses `DecodedRaw::plane_mut()` and
+remains a `DecodedRaw`. After changing the sample basis, the caller updates it
+with `set_metadata_basis` using
 `MetadataBasis::{OriginalLevelsValid, ReplacedLevels, Incompatible}`. Standard
-preprocessing rejects `Incompatible`.
-
-Custom f32 processing remains inside `DecodedRaw`. It records operation
-provenance and whether original, replaced, or incompatible
-linearization/black/white metadata applies.
+preprocessing revalidates the mutated plane and rejects `Incompatible`.
 
 Numerical rules:
 

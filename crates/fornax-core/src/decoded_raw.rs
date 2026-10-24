@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    BlackLevels, F32Plane, ProviderId, RawValidationError, SampleEncoding, SampleFormat, Sourced,
+    BlackLevels, ProviderId, RawValidationError, SampleEncoding, SampleFormat, Sourced,
     StoredPlane, ValidatedMetadata, WhiteLevels,
 };
 
@@ -38,64 +38,6 @@ impl DecoderProvenance {
     pub fn revision(&self) -> Option<&str> { self.revision.as_deref() }
 }
 
-/// An operation applied to samples before standard preprocessing.
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct OperationProvenance {
-    operation: Box<str>,
-    provider: ProviderId,
-}
-
-impl OperationProvenance {
-    /// Creates operation provenance for custom decoded-plane processing.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`crate::MetadataError::InvalidValue`] for an empty operation
-    /// name.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::{OperationProvenance, ProviderId};
-    ///
-    /// let operation = OperationProvenance::try_new(
-    ///     "linearize_baseline",
-    ///     ProviderId::try_new("example").unwrap(),
-    /// )
-    /// .unwrap();
-    /// assert_eq!(operation.operation(), "linearize_baseline");
-    /// ```
-    pub fn try_new(
-        operation: impl Into<Box<str>>,
-        provider: ProviderId,
-    ) -> Result<Self, crate::MetadataError> {
-        let operation = operation.into();
-        if operation.is_empty() {
-            Err(crate::MetadataError::InvalidValue)
-        } else {
-            Ok(Self {
-                operation,
-                provider,
-            })
-        }
-    }
-
-    /// Returns the operation name.
-    pub fn operation(&self) -> &str { &self.operation }
-
-    /// Returns the operation provider.
-    pub const fn provider(&self) -> &ProviderId { &self.provider }
-
-    fn system_conversion() -> Self {
-        Self {
-            operation: "convert_to_f32".into(),
-            provider: ProviderId::try_new("fornax-core")
-                .expect("the built-in provider identifier is non-empty"),
-        }
-    }
-}
-
 /// Whether standard black/white metadata remains valid after decoded
 /// processing.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -127,9 +69,9 @@ pub enum PlaneStorage {
 /// A decoder-produced RAW image before standard preprocessing.
 ///
 /// `DecodedRaw` owns one compact sensor plane, immutable validated metadata,
-/// decoder provenance, and decoded operations. Its plane may be native u8,
-/// u16, u32, or f32. An integer plane may be converted explicitly to working
-/// f32 while remaining a `DecodedRaw` for custom processing.
+/// and decoder provenance. Its plane may be native u8, u16, u32, or f32. An
+/// integer plane may be converted explicitly to working f32 while remaining a
+/// `DecodedRaw` for custom processing.
 ///
 /// Standard preprocessing consumes an owned `DecodedRaw` through one public
 /// entry point in `fornax-preprocess` and returns a distinct f32-only
@@ -147,7 +89,6 @@ pub struct DecodedRaw {
     metadata: Arc<ValidatedMetadata>,
     plane: StoredPlane,
     decoder: DecoderProvenance,
-    operations: Box<[OperationProvenance]>,
     metadata_basis: MetadataBasis,
     storage: PlaneStorage,
 }
@@ -181,7 +122,6 @@ impl DecodedRaw {
             metadata: Arc::new(metadata),
             plane,
             decoder,
-            operations: Box::new([]),
             metadata_basis: MetadataBasis::OriginalLevelsValid,
             storage: PlaneStorage::Native,
         })
@@ -196,17 +136,55 @@ impl DecodedRaw {
     /// Returns the current stored plane.
     pub const fn plane(&self) -> &StoredPlane { &self.plane }
 
+    /// Returns mutable access to the decoded stored plane for custom
+    /// processing.
+    ///
+    /// Mutations are not validated immediately. Call
+    /// [`Self::set_metadata_basis`] when the sample transformation changes
+    /// the validity of black/white metadata, then call
+    /// [`Self::require_standard_preprocessing`] before preprocessing or
+    /// demosaicing the image.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_core::{DecodedRaw, StoredPlane};
+    ///
+    /// fn clear_f32_plane(image: &mut DecodedRaw) {
+    ///     if let StoredPlane::F32(samples) = image.plane_mut() {
+    ///         samples.as_mut().fill(0.0);
+    ///     }
+    /// }
+    /// ```
+    pub fn plane_mut(&mut self) -> &mut StoredPlane { &mut self.plane }
+
     /// Returns declared sample encoding.
     pub fn sample_encoding(&self) -> SampleEncoding { self.metadata.sample_encoding() }
 
     /// Returns decoder provenance.
     pub const fn decoder(&self) -> &DecoderProvenance { &self.decoder }
 
-    /// Returns operations applied before standard preprocessing.
-    pub fn operations(&self) -> &[OperationProvenance] { &self.operations }
-
     /// Returns the black/white metadata validity basis.
     pub const fn metadata_basis(&self) -> &MetadataBasis { &self.metadata_basis }
+
+    /// Replaces the validity basis after custom sample processing.
+    ///
+    /// The caller must supply replacement levels when transformations change
+    /// the sample basis, or [`MetadataBasis::Incompatible`] when standard
+    /// preprocessing must not consume the image.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_core::{DecodedRaw, MetadataBasis};
+    ///
+    /// fn reject_standard_preprocessing(image: &mut DecodedRaw) {
+    ///     image.set_metadata_basis(MetadataBasis::Incompatible);
+    /// }
+    /// ```
+    pub fn set_metadata_basis(&mut self, metadata_basis: MetadataBasis) {
+        self.metadata_basis = metadata_basis;
+    }
 
     /// Returns the sample storage state.
     pub const fn storage(&self) -> PlaneStorage { self.storage }
@@ -258,49 +236,6 @@ impl DecodedRaw {
                 StoredPlane::U8(_) | StoredPlane::U16(_) | StoredPlane::U32(_) => unreachable!(),
             })?;
         self.storage = PlaneStorage::F32Working;
-        let mut operations = self.operations.into_vec();
-        operations.push(OperationProvenance::system_conversion());
-        self.operations = operations.into_boxed_slice();
-        Ok(self)
-    }
-
-    /// Replaces the f32 plane after custom processing.
-    ///
-    /// # Errors
-    ///
-    /// Returns a typed error unless the image is decoded f32 storage and the
-    /// replacement preserves geometry and finite samples.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::RawValidationError;
-    ///
-    /// assert_eq!(
-    ///     RawValidationError::NonFiniteSample.to_string(),
-    ///     "RAW plane contains a non-finite sample"
-    /// );
-    /// ```
-    pub fn with_custom_f32_plane(
-        mut self,
-        plane: F32Plane,
-        operation: OperationProvenance,
-        metadata_basis: MetadataBasis,
-    ) -> Result<Self, RawValidationError> {
-        let has_f32_plane = matches!(self.plane, StoredPlane::F32(_));
-        if !has_f32_plane
-            || (self.storage == PlaneStorage::Native
-                && self.metadata.sample_encoding().format() != SampleFormat::Float)
-        {
-            return Err(RawValidationError::InvalidStorageState);
-        }
-        self.metadata.validate_f32_working_plane(&plane)?;
-        self.plane = StoredPlane::F32(plane);
-        self.storage = PlaneStorage::F32Working;
-        self.metadata_basis = metadata_basis;
-        let mut operations = self.operations.into_vec();
-        operations.push(operation);
-        self.operations = operations.into_boxed_slice();
         Ok(self)
     }
 
@@ -324,9 +259,23 @@ impl DecodedRaw {
     /// ```
     pub fn require_standard_preprocessing(&self) -> Result<(), RawValidationError> {
         if matches!(self.metadata_basis, MetadataBasis::Incompatible) {
-            Err(RawValidationError::InvalidCustomMetadataBasis)
-        } else {
-            Ok(())
+            return Err(RawValidationError::InvalidCustomMetadataBasis);
+        }
+        match (&self.plane, self.storage) {
+            (StoredPlane::U8(_), PlaneStorage::Native)
+            | (StoredPlane::U16(_), PlaneStorage::Native)
+            | (StoredPlane::U32(_), PlaneStorage::Native) => {
+                self.metadata.validate_native_plane(&self.plane)
+            }
+            (StoredPlane::F32(plane), PlaneStorage::F32Working) => {
+                self.metadata.validate_f32_working_plane(plane)
+            }
+            (StoredPlane::F32(plane), PlaneStorage::Native)
+                if self.metadata.sample_encoding().format() == SampleFormat::Float =>
+            {
+                self.metadata.validate_f32_working_plane(plane)
+            }
+            _ => Err(RawValidationError::InvalidStorageState),
         }
     }
 
@@ -338,18 +287,8 @@ impl DecodedRaw {
 
     pub(crate) fn into_preprocessing_parts(
         self,
-    ) -> (
-        Arc<ValidatedMetadata>,
-        DecoderProvenance,
-        Box<[OperationProvenance]>,
-        MetadataBasis,
-    ) {
-        (
-            self.metadata,
-            self.decoder,
-            self.operations,
-            self.metadata_basis,
-        )
+    ) -> (Arc<ValidatedMetadata>, DecoderProvenance, MetadataBasis) {
+        (self.metadata, self.decoder, self.metadata_basis)
     }
 }
 
@@ -406,7 +345,6 @@ mod tests {
     fn conversion_remains_a_decoded_raw() {
         let decoded = decoded().convert_to_f32().unwrap();
         assert_eq!(decoded.storage(), PlaneStorage::F32Working);
-        assert_eq!(decoded.operations()[0].operation(), "convert_to_f32");
         assert_eq!(decoded.require_standard_preprocessing(), Ok(()));
         assert_eq!(
             decoded.clone().convert_to_f32(),
@@ -415,18 +353,13 @@ mod tests {
     }
 
     #[test]
-    fn custom_processing_can_reject_standard_metadata() {
-        let operation =
-            OperationProvenance::try_new("custom", ProviderId::try_new("test").unwrap()).unwrap();
-        let custom = decoded()
-            .convert_to_f32()
-            .unwrap()
-            .with_custom_f32_plane(
-                ImageBuffer::from_raw(2, 2, vec![0.25; 4]).unwrap(),
-                operation,
-                MetadataBasis::Incompatible,
-            )
-            .unwrap();
+    fn custom_processing_can_mutate_the_decoded_plane() {
+        let mut custom = decoded().convert_to_f32().unwrap();
+        let StoredPlane::F32(plane) = custom.plane_mut() else {
+            panic!("converted image has an f32 plane");
+        };
+        plane.as_mut().fill(0.25);
+        custom.set_metadata_basis(MetadataBasis::Incompatible);
         assert_eq!(
             custom.require_standard_preprocessing(),
             Err(RawValidationError::InvalidCustomMetadataBasis)
@@ -467,19 +400,26 @@ mod tests {
                 WhiteLevels::try_new(vec![white], None, None).unwrap(),
             )),
         };
-        let operation =
-            OperationProvenance::try_new("replace_levels", ProviderId::try_new("test").unwrap())
-                .unwrap();
-        let image = decoded()
-            .convert_to_f32()
-            .unwrap()
-            .with_custom_f32_plane(
-                ImageBuffer::from_raw(2, 2, vec![0.5; 4]).unwrap(),
-                operation,
-                basis,
-            )
-            .unwrap();
+        let mut image = decoded().convert_to_f32().unwrap();
+        let StoredPlane::F32(plane) = image.plane_mut() else {
+            panic!("converted image has an f32 plane");
+        };
+        plane.as_mut().fill(0.5);
+        image.set_metadata_basis(basis);
         assert_eq!(image.require_standard_preprocessing(), Ok(()));
+    }
+
+    #[test]
+    fn preprocessing_revalidates_user_mutated_plane_storage() {
+        let mut image = decoded();
+        *image.plane_mut() = StoredPlane::U8(crate::U8Plane::from_raw(2, 2, vec![1; 4]).unwrap());
+        assert_eq!(
+            image.require_standard_preprocessing(),
+            Err(RawValidationError::UnsupportedSampleEncoding {
+                bits_per_sample: 16,
+                format: SampleFormat::UnsignedInteger,
+            })
+        );
     }
 
     #[test]
