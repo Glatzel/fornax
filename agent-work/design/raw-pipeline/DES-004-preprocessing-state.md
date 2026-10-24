@@ -11,7 +11,9 @@
 >
 > **Normative design:** repository-root
 > [`docs/raw-pipeline/`](../../../docs/raw-pipeline/README.md). This proposal
-> records operation-level rationale and implementation signatures.
+> records operation-level rationale and implementation signatures. The
+> persistent [processing guide](../../../docs/raw-pipeline/raw-image-process.md)
+> is updated in this PR with the operation contract.
 >
 > **Acceptance criteria (authoritative in the task manifest):**
 >
