@@ -3,6 +3,7 @@
 - Task ID:
 - Task manifest:
 - Dependencies and merged PRs:
+- Integration base: `refactor/raw-pipeline-v2` for `IMPL-*` and `QA-*`
 - Branch and worktree:
 
 ## Scope
@@ -34,6 +35,7 @@ task that needs its own branch and PR.
 - [ ] The PR title is semantic, uses the lowercase task ID as its scope, and
   the linked manifest matches the scope.
 - [ ] Every dependency PR is merged.
+- [ ] The PR targets `refactor/raw-pipeline-v2` for implementation or QA work.
 - [ ] Deliverables use the paths and names in the task manifest.
 - [ ] Relevant `docs/raw-pipeline/` design files are updated, or the PR states
   that the persistent design is unchanged.

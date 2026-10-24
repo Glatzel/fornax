@@ -146,5 +146,8 @@ flowchart LR
 ```
 
 The dependency and parallelization requirements are repeated only where they
-are task-specific. Create branches from the current `origin/agent` tip, not from
-another task's local worktree, after the dependency PR is merged.
+are task-specific. Create `IMPL-*` and `QA-*` branches from the current
+`origin/refactor/raw-pipeline-v2` tip, not from another task's local worktree,
+after the dependency PR is merged into that branch. Do not promote the
+integration branch to `main` until `QA-006` is merged and its final validation
+passes there.
