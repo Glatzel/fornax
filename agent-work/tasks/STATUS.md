@@ -29,9 +29,9 @@ passes on that branch and the user merges the promotion PR.
 | Research | 9 | 0 | 0 | 9 |
 | Synthesis | 3 | 0 | 0 | 3 |
 | Design | 6 | 0 | 0 | 6 |
-| Implementation | 13 | 12 | 0 | 1 |
+| Implementation | 13 | 11 | 0 | 2 |
 | QA | 6 | 6 | 0 | 0 |
-| **Total** | **37** | **18** | **0** | **19** |
+| **Total** | **37** | **17** | **0** | **20** |
 
 ## Research
 
@@ -74,7 +74,7 @@ passes on that branch and the user merges the promotion PR.
 | `IMPL-DEC-003` | Implement and validate the LibRaw decoder | `IMPL-CORE-001`, `DES-002`, `DES-003` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-003.toml) |
 | `IMPL-DEC-004` | Implement and validate the dnglab/rawler decoder | `IMPL-CORE-001`, `DES-002`, `DES-003` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-004.toml) |
 | `IMPL-DEC-005` | Implement and validate the DNC decoder bridge | `IMPL-CORE-001`, `IMPL-DEC-004` | `Blocked` | [manifest](raw-pipeline/IMPL-DEC-005.toml) |
-| `IMPL-PRE-001` | Implement the complete RAW preprocessing pipeline | `IMPL-CORE-001`, `DES-003`, `DES-004` | `Blocked` | [manifest](raw-pipeline/IMPL-PRE-001.toml) |
+| `IMPL-PRE-001` | Implement the complete RAW preprocessing pipeline | `IMPL-CORE-001`, `DES-003`, `DES-004` | `Done` | [manifest](raw-pipeline/IMPL-PRE-001.toml), [#557](https://github.com/Glatzel/fornax/pull/557) |
 | `IMPL-DEM-002` | Implement and validate bilinear demosaicing | `IMPL-CORE-001`, `DES-005`, `RES-05` | `Blocked` | [manifest](raw-pipeline/IMPL-DEM-002.toml) |
 | `IMPL-DEM-003` | Implement the Malvar–He–Cutler demosaic algorithm | `IMPL-DEM-002`, `DES-005`, `RES-05` | `Blocked` | [manifest](raw-pipeline/IMPL-DEM-003.toml) |
 | `IMPL-INT-001` | Implement the explicit end-to-end pipeline module | `IMPL-DEC-003`, `IMPL-DEC-004`, `IMPL-PRE-001`, `IMPL-DEM-002` | `Blocked` | [manifest](raw-pipeline/IMPL-INT-001.toml) |
