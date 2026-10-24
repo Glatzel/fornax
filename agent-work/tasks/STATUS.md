@@ -24,10 +24,10 @@ PR is merged.
 | --- | ---: | ---: | ---: | ---: |
 | Research | 9 | 0 | 0 | 9 |
 | Synthesis | 3 | 0 | 0 | 3 |
-| Design | 6 | 3 | 0 | 3 |
+| Design | 6 | 1 | 0 | 5 |
 | Implementation | 12 | 12 | 0 | 0 |
 | QA | 6 | 6 | 0 | 0 |
-| **Total** | **36** | **21** | **0** | **15** |
+| **Total** | **36** | **19** | **0** | **17** |
 
 ## Research
 
@@ -58,8 +58,8 @@ PR is merged.
 | `DES-001` | Design universal RAW representation | `SYN-01`, `SYN-02`, `DES-003` | `Done` | [proposal](../design/raw-pipeline/DES-001-universal-raw-representation.md), [#545](https://github.com/Glatzel/fornax/pull/545) |
 | `DES-002` | Design metadata and provenance | `SYN-01` | `Done` | [proposal](../design/raw-pipeline/DES-002-metadata-provenance.md), [#542](https://github.com/Glatzel/fornax/pull/542) |
 | `DES-003` | Design Bayer CFA model and indexing | `SYN-01` | `Done` | [proposal](../design/raw-pipeline/DES-003-cfa-indexing.md), [#543](https://github.com/Glatzel/fornax/pull/543) |
-| `DES-004` | Design preprocessing and processing state | `SYN-01`, `SYN-02`, `DES-001`, `DES-003` | `Blocked` | [manifest](raw-pipeline/DES-004.toml) |
-| `DES-005` | Design the demosaicing interface | `SYN-01`, `SYN-03`, `DES-001`, `DES-003` | `Blocked` | [manifest](raw-pipeline/DES-005.toml) |
+| `DES-004` | Design preprocessing and processing state | `SYN-01`, `SYN-02`, `DES-001`, `DES-003` | `Done` | [proposal](../design/raw-pipeline/DES-004-preprocessing-state.md), [#549](https://github.com/Glatzel/fornax/pull/549) |
+| `DES-005` | Design the demosaicing interface | `SYN-01`, `SYN-03`, `DES-001`, `DES-003` | `Done` | [proposal](../design/raw-pipeline/DES-005-demosaicing-interface.md), [#550](https://github.com/Glatzel/fornax/pull/550) |
 | `DES-006` | Design crate boundaries | `SYN-03`, `DES-001`, `DES-004`, `DES-005` | `Blocked` | [manifest](raw-pipeline/DES-006.toml) |
 
 ## Implementation
