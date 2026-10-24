@@ -23,7 +23,7 @@ flowchart TD
     F32S -->|no u16 round-trip| Work
 
     subgraph PreprocessPhase["2 · Preprocess"]
-        Preprocess["DecodedRaw::pre_process\nsingle public entry"]
+        Preprocess["DecodedRaw::preprocess\nsingle public entry"]
         Linear["private linearize\nf32; exact LUT lookup"]
         Subtract["private subtract_black\nf32 + f64 scalar arithmetic"]
         Normalize["private normalize\nf64 division → f32 storage"]
@@ -65,7 +65,8 @@ require a separately verified wider path or structured rejection.
 - f32 has 24 bits of significand precision; it is not a universal replacement
   for integer values above 24 significant bits or arbitrary f64 source data.
   A u32 conversion is therefore accepted only when declared precision is ≤24
-  bits; wider integer values need a separately designed wider path.
+  bits and each value round-trips exactly; wider or lossy integer values need a
+  separately designed wider path.
 - f64 is used for black/white arithmetic, not as the image buffer type. f64
   buffers double memory and bandwidth without recovering information already
   represented in the f32 preprocessing input.

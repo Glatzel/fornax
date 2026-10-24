@@ -299,7 +299,10 @@ pub fn resolve_sourced<T>(
     field: MetadataField,
     left: Sourced<T>,
     right: Sourced<T>,
-) -> Result<Sourced<T>, MetadataError> where T: PartialEq {
+) -> Result<Sourced<T>, MetadataError>
+where
+    T: PartialEq,
+{
     let left_rank = left.provenance.authority().rank();
     let right_rank = right.provenance.authority().rank();
     match left_rank.cmp(&right_rank) {

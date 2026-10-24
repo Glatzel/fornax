@@ -1,15 +1,15 @@
 use std::sync::Arc;
 
+use crate::F32Plane;
 use crate::decoded_raw::plane::validate_finite;
 use crate::demosaic::{DemosaicAlgorithm, RgbImageF32};
 use crate::error::{DemosaicError, RawValidationError};
 use crate::geometry::PixelSize;
 use crate::metadata::ValidatedMetadata;
-use crate::{DecodedRaw, F32Plane};
 
 /// A preprocessed, demosaic-ready RAW image with a single f32 plane.
 ///
-/// A `RawImage` can only be produced by preprocessing a [`DecodedRaw`].
+/// A `RawImage` can only be produced by preprocessing a [`crate::DecodedRaw`].
 /// Metadata and provenance remain available, while the payload is guaranteed
 /// to use [`F32Plane`].
 ///
@@ -27,6 +27,22 @@ pub struct RawImage {
 }
 
 impl RawImage {
+    pub(crate) fn from_preprocessed(
+        metadata: Arc<ValidatedMetadata>,
+        plane: F32Plane,
+    ) -> Result<Self, RawValidationError> {
+        metadata.validate_f32_working_plane(&plane)?;
+        validate_finite(&plane)?;
+        if plane
+            .as_raw()
+            .iter()
+            .any(|sample| !(0.0..=1.0).contains(sample))
+        {
+            return Err(RawValidationError::InvalidReadinessRange);
+        }
+        Ok(Self { metadata, plane })
+    }
+
     /// Returns immutable validated metadata.
     pub fn metadata(&self) -> &ValidatedMetadata { &self.metadata }
 
@@ -63,7 +79,6 @@ impl RawImage {
     /// # use fornax::metadata::{BayerLayout, BayerPattern};
     /// # use fornax::{
     /// #     DecodedRaw, DemosaicAlgorithm, RawImage, SampleFormat, SampleSpec, StoredPlane,
-    /// #     into_preprocessed,
     /// # };
     /// # fn input() -> RawImage {
     /// #     let dimensions = PixelSize::new(1, 1).unwrap();
@@ -107,12 +122,12 @@ impl RawImage {
     /// #     )
     /// #     .unwrap();
     /// #     let plane = image::ImageBuffer::from_raw(1, 1, vec![0.25]).unwrap();
-    /// #     let decoded = DecodedRaw::try_new(metadata, StoredPlane::F32(plane.clone())).unwrap();
-    /// #     into_preprocessed(decoded, plane).unwrap()
+    /// #     DecodedRaw::try_new(metadata, StoredPlane::F32(plane))
+    /// #         .unwrap()
+    /// #         .preprocess()
+    /// #         .unwrap()
     /// # }
-    /// let (rgb, metadata) = input()
-    ///     .demosaic(DemosaicAlgorithm::Linear)
-    ///     .unwrap();
+    /// let (rgb, metadata) = input().demosaic(DemosaicAlgorithm::Linear).unwrap();
     ///
     /// assert_eq!(rgb.get_pixel(0, 0).0, [0.25, 0.0, 0.0]);
     /// assert!(metadata.cfa().pattern() == BayerPattern::Rggb);
@@ -125,25 +140,6 @@ impl RawImage {
         validate_rgb_output(&output, self.metadata.stored_geometry().dimensions())?;
         Ok((output, self.metadata_arc()))
     }
-}
-
-/// Hidden finalizer used by the single `DecodedRaw::pre_process` entry point.
-#[doc(hidden)]
-pub fn into_preprocessed(
-    image: DecodedRaw,
-    plane: F32Plane,
-) -> Result<RawImage, RawValidationError> {
-    let (metadata, _) = image.into_preprocessing_parts()?;
-    metadata.validate_f32_working_plane(&plane)?;
-    validate_finite(&plane)?;
-    if plane
-        .as_raw()
-        .iter()
-        .any(|sample| !(0.0..=1.0).contains(sample))
-    {
-        return Err(RawValidationError::InvalidReadinessRange);
-    }
-    Ok(RawImage { metadata, plane })
 }
 
 fn validate_rgb_output(output: &RgbImageF32, expected: PixelSize) -> Result<(), DemosaicError> {

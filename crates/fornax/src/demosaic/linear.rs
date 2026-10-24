@@ -75,9 +75,7 @@ const fn primary_green_slot(pattern: BayerPattern) -> u8 {
 /// #     ValidatedMetadata, WhiteLevels,
 /// # };
 /// # use fornax::metadata::{BayerLayout, BayerPattern};
-/// # use fornax::{
-/// #     DecodedRaw, RawImage, SampleFormat, SampleSpec, StoredPlane, into_preprocessed,
-/// # };
+/// # use fornax::{DecodedRaw, RawImage, SampleFormat, SampleSpec, StoredPlane};
 /// # fn input() -> RawImage {
 /// #     let dimensions = PixelSize::new(1, 1).unwrap();
 /// #     let area = ActiveArea::try_new(dimensions, 0, 0, 1, 1).unwrap();
@@ -120,8 +118,10 @@ const fn primary_green_slot(pattern: BayerPattern) -> u8 {
 /// #     )
 /// #     .unwrap();
 /// #     let plane = image::ImageBuffer::from_raw(1, 1, vec![0.25]).unwrap();
-/// #     let decoded = DecodedRaw::try_new(metadata, StoredPlane::F32(plane.clone())).unwrap();
-/// #     into_preprocessed(decoded, plane).unwrap()
+/// #     DecodedRaw::try_new(metadata, StoredPlane::F32(plane))
+/// #         .unwrap()
+/// #         .preprocess()
+/// #         .unwrap()
 /// # }
 /// let output = fornax::demosaic::linear::demosaic(&input()).unwrap();
 /// assert_eq!(output.get_pixel(0, 0).0, [0.25, 0.0, 0.0]);
@@ -316,7 +316,7 @@ mod tests {
         DecoderProvenance, ExtensibleMetadata, Provenance, ProviderId, Rational, SourceKind,
         Sourced, ValidatedMetadata, WhiteLevels,
     };
-    use crate::{DecodedRaw, RawImage, SampleFormat, SampleSpec, StoredPlane, into_preprocessed};
+    use crate::{DecodedRaw, RawImage, SampleFormat, SampleSpec, StoredPlane};
 
     fn provenance() -> Provenance {
         Provenance::new(
@@ -361,8 +361,10 @@ mod tests {
         )
         .unwrap();
         let plane = ImageBuffer::from_raw(3, 3, samples).unwrap();
-        let decoded = DecodedRaw::try_new(metadata, StoredPlane::F32(plane.clone())).unwrap();
-        into_preprocessed(decoded, plane).unwrap()
+        DecodedRaw::try_new(metadata, StoredPlane::F32(plane))
+            .unwrap()
+            .preprocess()
+            .unwrap()
     }
 
     fn run(pattern: BayerPattern) -> Vec<[f32; 3]> {
@@ -493,8 +495,10 @@ mod tests {
         )
         .unwrap();
         let plane = ImageBuffer::from_raw(4, 4, vec![0.5; 16]).unwrap();
-        let decoded = DecodedRaw::try_new(metadata, StoredPlane::F32(plane.clone())).unwrap();
-        let input = into_preprocessed(decoded, plane).unwrap();
+        let input = DecodedRaw::try_new(metadata, StoredPlane::F32(plane))
+            .unwrap()
+            .preprocess()
+            .unwrap();
         assert!(matches!(
             phase_at(input.metadata().cfa(), 1, 1),
             BayerPhase::Red

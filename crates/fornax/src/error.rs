@@ -55,6 +55,10 @@ pub enum RawValidationError {
     /// specification.
     #[error("unsupported plane/sample-specification combination")]
     UnsupportedPlaneSpec,
+    /// An integer sample cannot be represented exactly in the f32 working
+    /// plane.
+    #[error("integer sample cannot be represented exactly in f32")]
+    LossyF32Conversion,
     /// A CFA shape has zero dimensions.
     #[error("invalid CFA shape")]
     InvalidCfaShape,
@@ -182,6 +186,40 @@ pub enum PreprocessError {
     /// The configured preprocessing operation is unsupported.
     #[error("unsupported preprocessing operation: {0}")]
     Unsupported(Box<str>),
+    /// Integer samples cannot be represented exactly in the f32 working plane.
+    #[error("integer samples with {bits_per_sample} declared bits are not exact in f32")]
+    LossyConversion {
+        /// Declared source precision in bits.
+        bits_per_sample: u8,
+    },
+    /// A lookup table is empty, non-finite, or receives non-integer source
+    /// data.
+    #[error("malformed preprocessing linearization table")]
+    MalformedLinearization,
+    /// A source sample has no entry in the supplied lookup table.
+    #[error("linearization index {code} is outside table length {table_len}")]
+    LinearizationOutOfRange {
+        /// Integer source code.
+        code: u32,
+        /// Number of entries in the lookup table.
+        table_len: usize,
+    },
+    /// Black metadata uses a repeat or plane decomposition outside the initial
+    /// implementation.
+    #[error(
+        "unsupported black-level repeat: {rows}x{columns}, {samples_per_plane} samples per plane"
+    )]
+    UnsupportedBlackPattern {
+        /// Repeat row count.
+        rows: u32,
+        /// Repeat column count.
+        columns: u32,
+        /// Samples at each repeat position.
+        samples_per_plane: u32,
+    },
+    /// A selected white and black level do not form a positive finite range.
+    #[error("black and white levels do not form a valid normalization range")]
+    InvalidLevelRange,
     /// Floating-point arithmetic produced an invalid value.
     #[error("invalid preprocessing numerical result")]
     Numeric,

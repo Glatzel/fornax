@@ -53,7 +53,7 @@ classDiagram
     CommonMetadata *-- BayerLayout
     CommonMetadata *-- BlackLevels
     CommonMetadata *-- WhiteLevels
-    DecodedRaw ..> RawImage : pre_process
+    DecodedRaw ..> RawImage : preprocess
     RawImage ..> RgbImageF32 : demosaic tuple with metadata
 ```
 
@@ -120,10 +120,10 @@ Decoder adapters produce `DecodedRaw`. Its `StoredPlane` covers native u8,
 u16, u32, and f32 samples, so one preprocessing implementation handles every
 supported decoder output.
 
-`DecodedRaw::pre_process` will consume the decoded image once its TODO substeps
-are implemented. It returns the distinct `RawImage` type, whose payload is
-exclusively `F32Plane`. Linearization, black subtraction, normalization, and
-final clipping are private substeps and expose no intermediate image types.
+`DecodedRaw::preprocess` consumes the decoded image and returns the distinct
+`RawImage` type, whose payload is exclusively `F32Plane`. Linearization, black
+subtraction, normalization, and final clipping live in the private
+`decoded_raw::preprocess` module and expose no intermediate image types.
 
 Because preprocessing is available only on `DecodedRaw`, calling it again on
 the returned `RawImage` is a compile-time error. `RawImage` construction is
@@ -170,9 +170,8 @@ to RGB, or treats a display image as a sensor plane.
 
 `DecodedRaw::try_new` is the public decode boundary and validates the native
 plane against its metadata, including required black/white levels.
-`fornax` exposes a doc-hidden finalization helper solely for the single
-preprocessing implementation to construct a `RawImage` after its private
-substeps finish.
+`DecodedRaw::preprocess` is the only public preprocessing operation;
+`RawImage` construction remains crate-private to its private substeps.
 
 ## Related guides
 

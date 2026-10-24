@@ -3,7 +3,7 @@ id = "QA-003"
 slug = "error-path-tests"
 title = "Validate error paths and unsupported inputs"
 phase = "quality"
-dependencies = ["IMPL-DEC-003", "IMPL-DEC-004", "IMPL-DEC-005", "IMPL-PRE-003", "IMPL-INT-001"]
+dependencies = ["IMPL-DEC-003", "IMPL-DEC-004", "IMPL-DEC-005", "IMPL-PRE-001", "IMPL-INT-001"]
 parallelism = "After concrete decoder conformance, preprocessing, and pipeline integration are merged."
 deliverables = ["error-path tests", "unsupported-format test matrix"]
 scope = """
@@ -16,6 +16,6 @@ acceptance = [
   "No deferred payload is silently interpreted as Bayer.",
 ]
 validation = [
-  "Verify IMPL-DEC-003, IMPL-DEC-004, IMPL-DEC-005, IMPL-PRE-003, and IMPL-INT-001 are merged.",
+  "Verify IMPL-DEC-003, IMPL-DEC-004, IMPL-DEC-005, IMPL-PRE-001, and IMPL-INT-001 are merged.",
   "Run the error-path suite and workspace tests.",
 ]

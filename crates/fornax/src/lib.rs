@@ -1,9 +1,8 @@
 //! Rust-native RAW decoding, preprocessing, and demosaicing.
 //!
 //! [`DecodedRaw`] combines decoder samples with immutable validated metadata
-//! and provenance. Once its TODO substeps are implemented, standard
-//! preprocessing will consume it and return the distinct, f32-only [`RawImage`]
-//! type, so corrections cannot silently run twice.
+//! and provenance. Standard preprocessing consumes it and returns the distinct,
+//! f32-only [`RawImage`] type, so corrections cannot silently run twice.
 //!
 //! # Examples
 //!
@@ -32,4 +31,4 @@ pub use decoded_raw::{
 pub use demosaic::{DemosaicAlgorithm, RgbImageF32};
 use error::{MetadataError, RawValidationError};
 use geometry::{ActiveArea, PixelSize, StoredGeometry};
-pub use raw_image::{RawImage, into_preprocessed};
+pub use raw_image::RawImage;

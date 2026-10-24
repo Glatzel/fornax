@@ -3,7 +3,7 @@ id = "QA-002"
 slug = "numerical-regressions"
 title = "Add numerical regression coverage"
 phase = "quality"
-dependencies = ["IMPL-INT-001", "IMPL-PRE-003", "IMPL-DEM-002", "IMPL-DEM-003"]
+dependencies = ["IMPL-INT-001", "IMPL-PRE-001", "IMPL-DEM-002", "IMPL-DEM-003"]
 parallelism = "After complete preprocessing, the initial demosaic strategies, and pipeline integration are merged."
 deliverables = ["deterministic numerical fixtures", "regression test evidence"]
 scope = """
@@ -16,6 +16,6 @@ acceptance = [
   "Regression failures identify the pipeline stage and input.",
 ]
 validation = [
-  "Verify IMPL-INT-001, IMPL-PRE-003, IMPL-DEM-002, and IMPL-DEM-003 are merged.",
+  "Verify IMPL-INT-001, IMPL-PRE-001, IMPL-DEM-002, and IMPL-DEM-003 are merged.",
   "Run the regression suite repeatedly and record results.",
 ]

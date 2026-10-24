@@ -187,8 +187,15 @@ impl StoredPlane {
                 let samples = plane
                     .into_raw()
                     .into_iter()
-                    .map(|sample| sample as f32)
-                    .collect();
+                    .map(|sample| {
+                        let converted = sample as f32;
+                        if f64::from(converted) == f64::from(sample) {
+                            Ok(converted)
+                        } else {
+                            Err(RawValidationError::LossyF32Conversion)
+                        }
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
                 ImageBuffer::from_raw(width, height, samples)
                     .ok_or(RawValidationError::InvalidGeometry)
             }
@@ -312,6 +319,11 @@ mod tests {
             plane
                 .into_f32(spec(32, SampleFormat::UnsignedInteger))
                 .is_err()
+        );
+        let plane = StoredPlane::U32(U32Plane::from_raw(1, 1, vec![16_777_217]).unwrap());
+        assert_eq!(
+            plane.into_f32(spec(24, SampleFormat::UnsignedInteger)),
+            Err(RawValidationError::LossyF32Conversion)
         );
         let plane = StoredPlane::F32(F32Plane::from_raw(1, 1, vec![f32::NAN]).unwrap());
         assert_eq!(
