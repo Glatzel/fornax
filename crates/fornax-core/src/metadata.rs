@@ -260,6 +260,39 @@ impl ProviderId {
     pub fn as_str(&self) -> &str { &self.0 }
 }
 
+/// Decoder identity retained as part of validated image provenance.
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+pub struct DecoderProvenance {
+    backend: ProviderId,
+    revision: Option<Box<str>>,
+}
+
+impl DecoderProvenance {
+    /// Creates decoder provenance.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_core::{DecoderProvenance, ProviderId};
+    ///
+    /// let decoder = DecoderProvenance::new(
+    ///     ProviderId::try_new("libraw").unwrap(),
+    ///     Some("0.22.2".into()),
+    /// );
+    /// assert_eq!(decoder.backend().as_str(), "libraw");
+    /// ```
+    pub const fn new(backend: ProviderId, revision: Option<Box<str>>) -> Self {
+        Self { backend, revision }
+    }
+
+    /// Returns the decoder backend identifier.
+    pub const fn backend(&self) -> &ProviderId { &self.backend }
+
+    /// Returns the optional decoder revision.
+    pub fn revision(&self) -> Option<&str> { self.revision.as_deref() }
+}
+
 /// The source mechanism that produced a metadata value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
@@ -1201,6 +1234,7 @@ impl CommonMetadata {
 pub struct ValidatedMetadata {
     common: CommonMetadata,
     extensible: ExtensibleMetadata,
+    decoder: DecoderProvenance,
 }
 
 impl ValidatedMetadata {
@@ -1214,16 +1248,24 @@ impl ValidatedMetadata {
     /// # Examples
     ///
     /// ```
-    /// use fornax_core::{CommonMetadata, ExtensibleMetadata, ValidatedMetadata};
+    /// use fornax_core::{
+    ///     CommonMetadata, DecoderProvenance, ExtensibleMetadata, ProviderId, ValidatedMetadata,
+    /// };
     ///
+    /// let decoder = DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None);
     /// assert!(
-    ///     ValidatedMetadata::try_new(CommonMetadata::default(), ExtensibleMetadata::default())
-    ///         .is_err()
+    ///     ValidatedMetadata::try_new(
+    ///         CommonMetadata::default(),
+    ///         ExtensibleMetadata::default(),
+    ///         decoder
+    ///     )
+    ///     .is_err()
     /// );
     /// ```
     pub fn try_new(
         common: CommonMetadata,
         extensible: ExtensibleMetadata,
+        decoder: DecoderProvenance,
     ) -> Result<Self, RawValidationError> {
         common.validate_required()?;
         extensible.validate()?;
@@ -1258,7 +1300,11 @@ impl ValidatedMetadata {
         if rect.bottom() > dimensions.height() || rect.right() > dimensions.width() {
             return Err(RawValidationError::InvalidActiveArea);
         }
-        Ok(Self { common, extensible })
+        Ok(Self {
+            common,
+            extensible,
+            decoder,
+        })
     }
 
     /// Returns validated typed metadata.
@@ -1270,14 +1316,21 @@ impl ValidatedMetadata {
     /// # Examples
     ///
     /// ```
-    /// # use fornax_core::{CommonMetadata, ExtensibleMetadata, ValidatedMetadata};
-    /// # let validated = ValidatedMetadata::try_new(CommonMetadata::default(), ExtensibleMetadata::default());
+    /// # use fornax_core::{
+    /// #     CommonMetadata, DecoderProvenance, ExtensibleMetadata, ProviderId, ValidatedMetadata,
+    /// # };
+    /// # let decoder = DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None);
+    /// # let validated =
+    /// #     ValidatedMetadata::try_new(CommonMetadata::default(), ExtensibleMetadata::default(), decoder);
     /// # assert!(validated.is_err());
     /// ```
     pub const fn common(&self) -> &CommonMetadata { &self.common }
 
     /// Returns the validated extensible metadata layer.
     pub const fn extensible(&self) -> &ExtensibleMetadata { &self.extensible }
+
+    /// Returns decoder provenance retained for the image lifecycle.
+    pub const fn decoder(&self) -> &DecoderProvenance { &self.decoder }
 
     /// Returns the required sample specification.
     pub fn sample_spec(&self) -> SampleSpec {
@@ -1358,6 +1411,10 @@ mod tests {
             authority,
             Confidence::Exact,
         )
+    }
+
+    fn decoder_provenance() -> DecoderProvenance {
+        DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None)
     }
 
     #[test]
@@ -1484,11 +1541,15 @@ mod tests {
             ..CommonMetadata::default()
         };
         assert_eq!(
-            ValidatedMetadata::try_new(common, ExtensibleMetadata::default()),
+            ValidatedMetadata::try_new(common, ExtensibleMetadata::default(), decoder_provenance()),
             Err(RawValidationError::InvalidCfa)
         );
         assert_eq!(
-            ValidatedMetadata::try_new(CommonMetadata::default(), ExtensibleMetadata::default()),
+            ValidatedMetadata::try_new(
+                CommonMetadata::default(),
+                ExtensibleMetadata::default(),
+                decoder_provenance()
+            ),
             Err(RawValidationError::Metadata(
                 crate::MetadataError::MissingRequiredField(TypedMetadataField::SampleSpec)
             ))

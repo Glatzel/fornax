@@ -13,20 +13,19 @@ classDiagram
         <<decoder output>>
         +metadata
         +plane
-        +decoder
         +metadata_basis
     }
     class RawImage {
         <<preprocessed f32 image>>
         +metadata
         +plane
-        +decoder
         +metadata_basis
     }
     class ValidatedMetadata {
         <<struct>>
         +common
         +extensible
+        +decoder
     }
     class CommonMetadata {
         <<struct>>
@@ -70,12 +69,11 @@ classDiagram
 | --- | --- | --- | --- |
 | `DecodedRaw::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during processing |
 | `DecodedRaw::plane` | `StoredPlane` | samples | Matches source geometry and declared sample specification |
-| `DecodedRaw::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend |
 | `DecodedRaw::metadata_basis` | `MetadataBasis` | N/A | States whether level metadata remains applicable |
 | `RawImage::metadata` | `Arc<ValidatedMetadata>` | N/A | Immutable during preprocessing and demosaicing |
 | `RawImage::plane` | `F32Plane` | samples | Finite preprocessed Bayer samples in `[0,1]` |
-| `RawImage::decoder` | `DecoderProvenance` | N/A | Retained decoder provenance |
 | `RawImage::metadata_basis` | `MetadataBasis` | N/A | Retained metadata-validity basis |
+| `ValidatedMetadata::decoder` | `DecoderProvenance` | N/A | Identifies the selected backend and revision |
 | `StoredPlane` | `U8`, `U16`, `U32`, or `F32` variant | sample | Container compatible with `SampleSpec` |
 | `F32Plane` | `ImageBuffer<Luma<f32>, Vec<f32>>` | sample | Working and preprocessed payload |
 

@@ -13,6 +13,7 @@ selection and registry policy, decode provenance, and structured DecodeError.
 This task defines the boundary only; it does not implement a concrete decoder.
 """
 acceptance = [
+  "RawDecoderBackend exposes decode(&self, input: &RawInput<'_>, config: &DecodeConfig) -> Result<DecodedRaw, DecodeError>; decoder provenance is attached through ValidatedMetadata.",
   "A backend returns a validated DecodedRaw and never exposes an upstream decoder type downstream.",
   "Backend capabilities describe format, Bayer layout, sample specification, metadata, and metadata-basis limitations.",
   "Backend selection is explicit and deterministic; enabling a feature does not select a backend.",

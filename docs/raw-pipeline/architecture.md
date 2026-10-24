@@ -74,6 +74,29 @@ Arrow direction means the source crate depends on the target crate.
   processing descriptors; validating deserialization and plane wire formats remain
   separate schema work so deserialization cannot bypass constructors.
 
+## Decoder protocol
+
+The decoder contract belongs to `fornax-decode` and returns the universal
+decoded container:
+
+```rust
+pub trait RawDecoderBackend: Send + Sync {
+    fn id(&self) -> DecoderBackendId;
+    fn capabilities(&self) -> DecoderCapabilities;
+
+    fn decode(
+        &self,
+        input: &RawInput<'_>,
+        config: &DecodeConfig,
+    ) -> Result<DecodedRaw, DecodeError>;
+}
+```
+
+The backend attaches `DecoderProvenance` while constructing validated metadata.
+Consequently both `DecodedRaw` and the preprocessed `RawImage` retain decoder
+identity through their shared `Arc<ValidatedMetadata>`; `RawImage` does not
+store or expose a separate decoder field.
+
 ## Selection and features
 
 The facade has no default backend. Callers enable and explicitly select:

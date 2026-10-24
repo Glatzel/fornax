@@ -1,42 +1,9 @@
 use std::sync::Arc;
 
 use crate::{
-    BlackLevels, ProviderId, RawValidationError, SampleFormat, SampleSpec, Sourced, StoredPlane,
-    ValidatedMetadata, WhiteLevels,
+    BlackLevels, DecoderProvenance, RawValidationError, SampleFormat, SampleSpec, Sourced,
+    StoredPlane, ValidatedMetadata, WhiteLevels,
 };
-
-/// Decoder identity retained with a decoded RAW image.
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct DecoderProvenance {
-    backend: ProviderId,
-    revision: Option<Box<str>>,
-}
-
-impl DecoderProvenance {
-    /// Creates decoder provenance.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_core::{DecoderProvenance, ProviderId};
-    ///
-    /// let decoder = DecoderProvenance::new(
-    ///     ProviderId::try_new("libraw").unwrap(),
-    ///     Some("0.22.2".into()),
-    /// );
-    /// assert_eq!(decoder.backend().as_str(), "libraw");
-    /// ```
-    pub const fn new(backend: ProviderId, revision: Option<Box<str>>) -> Self {
-        Self { backend, revision }
-    }
-
-    /// Returns the decoder backend identifier.
-    pub const fn backend(&self) -> &ProviderId { &self.backend }
-
-    /// Returns the optional decoder revision.
-    pub fn revision(&self) -> Option<&str> { self.revision.as_deref() }
-}
 
 /// Whether standard black/white metadata remains valid after decoded
 /// processing.
@@ -78,7 +45,6 @@ pub enum MetadataBasis {
 pub struct DecodedRaw {
     metadata: Arc<ValidatedMetadata>,
     plane: StoredPlane,
-    decoder: DecoderProvenance,
     metadata_basis: MetadataBasis,
 }
 
@@ -104,13 +70,11 @@ impl DecodedRaw {
     pub fn try_new(
         metadata: ValidatedMetadata,
         plane: StoredPlane,
-        decoder: DecoderProvenance,
     ) -> Result<Self, RawValidationError> {
         metadata.validate_native_plane(&plane)?;
         Ok(Self {
             metadata: Arc::new(metadata),
             plane,
-            decoder,
             metadata_basis: MetadataBasis::OriginalLevelsValid,
         })
     }
@@ -149,7 +113,7 @@ impl DecodedRaw {
     pub fn sample_spec(&self) -> SampleSpec { self.metadata.sample_spec() }
 
     /// Returns decoder provenance.
-    pub const fn decoder(&self) -> &DecoderProvenance { &self.decoder }
+    pub fn decoder(&self) -> &DecoderProvenance { self.metadata.decoder() }
 
     /// Returns the black/white metadata validity basis.
     pub const fn metadata_basis(&self) -> &MetadataBasis { &self.metadata_basis }
@@ -246,17 +210,9 @@ impl DecodedRaw {
     #[doc(hidden)]
     pub fn into_preprocessing_parts(
         self,
-    ) -> Result<
-        (
-            Arc<ValidatedMetadata>,
-            StoredPlane,
-            DecoderProvenance,
-            MetadataBasis,
-        ),
-        RawValidationError,
-    > {
+    ) -> Result<(Arc<ValidatedMetadata>, StoredPlane, MetadataBasis), RawValidationError> {
         self.validate_for_preprocessing()?;
-        Ok((self.metadata, self.plane, self.decoder, self.metadata_basis))
+        Ok((self.metadata, self.plane, self.metadata_basis))
     }
 }
 
@@ -269,8 +225,8 @@ mod tests {
     use super::*;
     use crate::{
         ActiveArea, AuthorityClass, BayerLayout, BayerPattern, CommonMetadata, Confidence,
-        ExtensibleMetadata, PixelSize, Provenance, RawImage, SourceKind, StoredGeometry, U16Plane,
-        into_preprocessed,
+        ExtensibleMetadata, PixelSize, Provenance, ProviderId, RawImage, SourceKind,
+        StoredGeometry, U16Plane, into_preprocessed,
     };
 
     fn provenance() -> Provenance {
@@ -299,14 +255,14 @@ mod tests {
             cfa: Some(sourced(BayerLayout::new(BayerPattern::Gbrg, active_area))),
             ..CommonMetadata::default()
         };
-        let metadata = ValidatedMetadata::try_new(common, ExtensibleMetadata::default()).unwrap();
-        let plane = StoredPlane::U16(U16Plane::from_raw(2, 2, vec![1, 2, 3, 4]).unwrap());
-        DecodedRaw::try_new(
-            metadata,
-            plane,
+        let metadata = ValidatedMetadata::try_new(
+            common,
+            ExtensibleMetadata::default(),
             DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None),
         )
-        .unwrap()
+        .unwrap();
+        let plane = StoredPlane::U16(U16Plane::from_raw(2, 2, vec![1, 2, 3, 4]).unwrap());
+        DecodedRaw::try_new(metadata, plane).unwrap()
     }
 
     #[test]
@@ -342,6 +298,7 @@ mod tests {
                 .unwrap();
         assert_eq!(ready.plane().as_raw(), &[0.75; 4]);
         assert_eq!(ready.metadata().cfa().pattern(), BayerPattern::Gbrg);
+        assert_eq!(ready.metadata().decoder().backend().as_str(), "test");
     }
 
     #[test]
@@ -393,12 +350,10 @@ mod tests {
     fn constructor_rejects_wrong_dimensions_and_spec() {
         let image = decoded();
         let metadata = image.metadata().clone();
-        let decoder = DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None);
         assert_eq!(
             DecodedRaw::try_new(
                 metadata.clone(),
                 StoredPlane::U16(U16Plane::from_raw(1, 1, vec![1]).unwrap()),
-                decoder.clone(),
             )
             .unwrap_err(),
             RawValidationError::InvalidGeometry
@@ -407,7 +362,6 @@ mod tests {
             DecodedRaw::try_new(
                 metadata,
                 StoredPlane::U8(crate::U8Plane::from_raw(2, 2, vec![1; 4]).unwrap()),
-                decoder,
             )
             .unwrap_err(),
             RawValidationError::UnsupportedSampleSpec {
@@ -432,9 +386,13 @@ mod tests {
                 cfa: Some(sourced(BayerLayout::new(BayerPattern::Rggb, active_area))),
                 ..CommonMetadata::default()
             };
-            ValidatedMetadata::try_new(common, ExtensibleMetadata::default()).unwrap()
+            ValidatedMetadata::try_new(
+                common,
+                ExtensibleMetadata::default(),
+                DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None),
+            )
+            .unwrap()
         };
-        let decoder = || DecoderProvenance::new(ProviderId::try_new("test").unwrap(), None);
         let cases = [
             (
                 SampleSpec::try_new(8, SampleFormat::UnsignedInteger).unwrap(),
@@ -454,7 +412,7 @@ mod tests {
             ),
         ];
         for (spec, plane) in cases {
-            let image = DecodedRaw::try_new(metadata(spec), plane, decoder()).unwrap();
+            let image = DecodedRaw::try_new(metadata(spec), plane).unwrap();
             assert_eq!(
                 image.plane().dimensions().unwrap(),
                 PixelSize::new(1, 1).unwrap()
