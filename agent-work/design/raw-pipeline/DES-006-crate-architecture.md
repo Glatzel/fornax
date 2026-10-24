@@ -3,6 +3,7 @@
 > **Task:** `DES-006`
 > **Owner:** primary agent
 > **Review:** GitHub task pull request; its open/merged state is authoritative.
+> **Pull request:** [#552](https://github.com/Glatzel/fornax/pull/552).
 > **Last updated:** 2026-10-24
 >
 > **Dependencies:** `SYN-03` (#546), `DES-001` (#545), `DES-004` (#549), and
