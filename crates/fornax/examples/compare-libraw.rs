@@ -7,6 +7,7 @@ use fornax::Demosaic::Linear;
 use fornax::decoder::{IDecoder, LibRawDecoder};
 use fornax::{BayerPattern, LumaImage, RgbImage};
 use image::{ImageBuffer, Luma, Rgb};
+use mischief::mischief;
 use native::{ColorData, ImageSizes, LibRawContext, UnpackedRawImageKind};
 
 type Gray16 = ImageBuffer<Luma<u16>, Vec<u16>>;
@@ -147,17 +148,17 @@ fn compare_demosaiced(
 fn copy_integer_rows(context: &LibRawContext) -> mischief::Result<Gray16> {
     let raw = context.unpacked_raw_image()?;
     if raw.kind() != UnpackedRawImageKind::Integer {
-        return Err(example_error("comparison fixture is not integer RAW"));
+        return Err(mischief!("comparison fixture is not integer RAW"));
     }
     let mut samples = Vec::with_capacity(raw.raw_width() as usize * raw.raw_height() as usize);
     for row in 0..raw.raw_height() {
         samples.extend_from_slice(
             raw.integer_row(row)?
-                .ok_or_else(|| example_error("LibRaw raw_image row is unavailable"))?,
+                .ok_or_else(|| mischief!("LibRaw raw_image row is unavailable"))?,
         );
     }
     Gray16::from_raw(raw.raw_width(), raw.raw_height(), samples)
-        .ok_or_else(|| example_error("LibRaw decoded buffer is inconsistent"))
+        .ok_or_else(|| mischief!("LibRaw decoded buffer is inconsistent"))
 }
 
 fn normalized_reference(
@@ -168,17 +169,17 @@ fn normalized_reference(
 ) -> mischief::Result<Gray16> {
     let raw = context.unpacked_raw_image()?;
     if raw.kind() != UnpackedRawImageKind::Integer {
-        return Err(example_error("comparison fixture is not integer RAW"));
+        return Err(mischief!("comparison fixture is not integer RAW"));
     }
     let tile = cfa_tile(filters)?;
     let mut samples = Vec::with_capacity(
         usize::try_from(u64::from(sizes.raw_width) * u64::from(sizes.raw_height))
-            .map_err(|_| example_error("RAW dimensions overflow"))?,
+            .map_err(|_| mischief!("RAW dimensions overflow"))?,
     );
     for row in 0..raw.raw_height() {
         let source = raw
             .integer_row(row)?
-            .ok_or_else(|| example_error("LibRaw raw_image row is unavailable"))?;
+            .ok_or_else(|| mischief!("LibRaw raw_image row is unavailable"))?;
         for (column, sample) in source.iter().enumerate() {
             let code = tile[((row & 1) * 2 + column as u32 % 2) as usize];
             let black = f64::from(color.black) + f64::from(color.cblack[code as usize]);
@@ -188,7 +189,7 @@ fn normalized_reference(
         }
     }
     Gray16::from_raw(sizes.raw_width, sizes.raw_height, samples)
-        .ok_or_else(|| example_error("normalized LibRaw buffer is inconsistent"))
+        .ok_or_else(|| mischief!("normalized LibRaw buffer is inconsistent"))
 }
 
 fn reference_white(color: &ColorData, code: u8) -> f64 {
@@ -213,9 +214,7 @@ fn cfa_tile(filters: u32) -> mischief::Result<[u8; 4]> {
         codes,
         [0, 1, 3, 2] | [2, 3, 1, 0] | [1, 0, 2, 3] | [3, 2, 0, 1]
     ) {
-        return Err(example_error(
-            "comparison fixture is not conventional Bayer",
-        ));
+        return Err(mischief!("comparison fixture is not conventional Bayer",));
     }
     Ok(codes)
 }
@@ -235,7 +234,7 @@ fn active_pattern(filters: u32, sizes: &ImageSizes) -> mischief::Result<BayerPat
         (2, 3, 1, 0) => Ok(BayerPattern::BGGR),
         (1, 0, 2, 3) => Ok(BayerPattern::GRBG),
         (3, 2, 0, 1) => Ok(BayerPattern::GBRG),
-        _ => Err(example_error("active-area Bayer pattern is unsupported")),
+        _ => Err(mischief!("active-area Bayer pattern is unsupported")),
     }
 }
 
@@ -252,14 +251,14 @@ fn derive_libraw_scale(pure: &Rgb16, mosaic: &Gray16, tile: [u8; 4]) -> mischief
             0 => 0,
             1 | 3 => 1,
             2 => 2,
-            _ => return Err(example_error("invalid CFA code")),
+            _ => return Err(mischief!("invalid CFA code")),
         };
         let reference = f64::from(pure.get_pixel(x, y)[channel]);
         dot += reference * value;
         square += value * value;
     }
     if square == 0.0 {
-        return Err(example_error("could not derive LibRaw output scale"));
+        return Err(mischief!("could not derive LibRaw output scale"));
     }
     Ok(dot / square)
 }
@@ -312,7 +311,7 @@ fn crop_gray(
         }
     }
     Gray16::from_raw(width, height, samples)
-        .ok_or_else(|| example_error("cropped grayscale buffer is inconsistent"))
+        .ok_or_else(|| mischief!("cropped grayscale buffer is inconsistent"))
 }
 
 fn f32_plane_to_u16(plane: &LumaImage<f32>) -> mischief::Result<Gray16> {
@@ -323,7 +322,7 @@ fn f32_plane_to_u16(plane: &LumaImage<f32>) -> mischief::Result<Gray16> {
         .map(|sample| (sample * f32::from(u16::MAX)).round() as u16)
         .collect();
     Gray16::from_raw(width, height, samples)
-        .ok_or_else(|| example_error("f32 plane dimensions are inconsistent"))
+        .ok_or_else(|| mischief!("f32 plane dimensions are inconsistent"))
 }
 
 fn raw_f32_plane_to_u16(plane: &LumaImage<f32>) -> mischief::Result<Gray16> {
@@ -334,7 +333,7 @@ fn raw_f32_plane_to_u16(plane: &LumaImage<f32>) -> mischief::Result<Gray16> {
         .map(|sample| sample.round() as u16)
         .collect();
     Gray16::from_raw(width, height, samples)
-        .ok_or_else(|| example_error("raw f32 plane dimensions are inconsistent"))
+        .ok_or_else(|| mischief!("raw f32 plane dimensions are inconsistent"))
 }
 
 fn rgb_f32_to_u16(image: &RgbImage<f32>) -> Rgb16 {
@@ -348,7 +347,7 @@ fn rgb_f32_to_u16(image: &RgbImage<f32>) -> Rgb16 {
 
 fn abs_diff_gray(left: &Gray16, right: &Gray16) -> mischief::Result<Gray16> {
     if left.dimensions() != right.dimensions() {
-        return Err(example_error(
+        return Err(mischief!(
             "cannot diff grayscale images with different dimensions",
         ));
     }
@@ -359,7 +358,7 @@ fn abs_diff_gray(left: &Gray16, right: &Gray16) -> mischief::Result<Gray16> {
         .map(|(left, right)| left.abs_diff(*right))
         .collect();
     Gray16::from_raw(left.width(), left.height(), samples)
-        .ok_or_else(|| example_error("grayscale diff dimensions are inconsistent"))
+        .ok_or_else(|| mischief!("grayscale diff dimensions are inconsistent"))
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -402,8 +401,6 @@ fn print_diff_stats(stage: &str, stats: Stats) {
     );
 }
 
-fn example_error(message: &str) -> mischief::Report { mischief::mischief!("{message}") }
-
 fn non_empty(value: &str) -> Option<&str> { (!value.is_empty()).then_some(value) }
 
 #[test]
@@ -412,7 +409,9 @@ fn compare_libraw_example_writes_grouped_outputs() -> mischief::Result<()> {
     for producer in ["libraw", "fornax"] {
         for filename in ["decoded.tiff", "preprocess.tiff", "demosaic_linear.tiff"] {
             assert!(
-                fornax_devtool::output_dir_for("compare-libraw", producer)
+                fornax_devtool::temp_dir()
+                    .join("compare-libraw")
+                    .join(producer)
                     .join(filename)
                     .is_file()
             );
