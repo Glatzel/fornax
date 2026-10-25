@@ -13,8 +13,18 @@ pub fn root_dir() -> PathBuf {
     root
 }
 pub fn output_dir() -> PathBuf {
-    let outdir: PathBuf = root_dir().join("temp/fornax/example");
+    let outdir: PathBuf = root_dir().join("temp/fornax/dnc");
     outdir
+}
+
+pub fn output_dir_for(example: &str, producer: &str) -> PathBuf {
+    root_dir().join("temp/fornax").join(example).join(producer)
+}
+
+pub fn prepare_output_dir(example: &str, producer: &str) -> std::io::Result<PathBuf> {
+    let outdir = output_dir_for(example, producer);
+    std::fs::create_dir_all(&outdir)?;
+    Ok(outdir)
 }
 
 pub fn temp_dir() -> PathBuf { root_dir().join("temp") }

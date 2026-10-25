@@ -10,11 +10,6 @@ draft
 # reviewable records.
 /.worktrees/
 
-# Ignore worktree noise inside pinned research submodules. The submodule
-# gitlinks are tracked; provenance and updates live in
-# agent-work/references/README.md.
-/agent-work/references/*/
-
 # pixi environments
 .pixi
 *.egg-info

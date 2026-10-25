@@ -739,6 +739,7 @@ dependencies = [
  "image 0.25.9",
  "libraw-sys",
  "mischief",
+ "num_enum",
  "rawler",
  "rayon",
  "serde",

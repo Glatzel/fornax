@@ -1,34 +1,18 @@
-//! Rust-native RAW decoding, preprocessing, and demosaicing.
-//!
-//! [`DecodedRaw`] combines decoder samples with immutable validated metadata
-//! and provenance. Standard preprocessing consumes it and returns the distinct,
-//! f32-only [`RawImage`] type, so corrections cannot silently run twice.
-//!
-//! # Examples
-//!
-//! ```
-//! use fornax::geometry::{ActiveArea, PixelCoord, PixelSize};
-//! use fornax::metadata::{BayerLayout, BayerPattern, CfaColor};
-//!
-//! let area = ActiveArea::try_new(PixelSize::new(4, 4).unwrap(), 1, 1, 4, 4).unwrap();
-//! let layout = BayerLayout::new(BayerPattern::Rggb, area);
-//! assert_eq!(layout.color_at(PixelCoord::new(1, 1)), Ok(CfaColor::Red));
-//! ```
-
-#![warn(missing_docs)]
-
+mod bayer;
 mod decoded_raw;
 pub mod decoder;
 pub mod demosaic;
 pub mod error;
-pub mod geometry;
 pub mod metadata;
+pub mod preprocess;
 mod raw_image;
 
-pub use decoded_raw::{
-    DecodedRaw, F32Plane, SampleFormat, SampleSpec, StoredPlane, U8Plane, U16Plane, U32Plane,
-};
-pub use demosaic::{DemosaicAlgorithm, RgbImageF32};
-use error::{MetadataError, RawValidationError};
-use geometry::{ActiveArea, PixelSize, StoredGeometry};
+pub use bayer::BayerPattern;
+pub use decoded_raw::DecodedRaw;
+pub use demosaic::{RgbImageF32, demosaic};
+pub use error::{DecodeError, PreprocessError, RawValidationError};
+use image::{ImageBuffer, Luma};
+pub use preprocess::preprocess;
 pub use raw_image::RawImage;
+
+pub type F32Plane = ImageBuffer<Luma<f32>, Vec<f32>>;

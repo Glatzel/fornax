@@ -11,8 +11,9 @@ name = "demosaic"
 envoy.workspace = true
 image.workspace = true
 libraw-sys = { workspace = true, optional = true }
+num_enum.workspace = true
 rawler = { workspace = true, optional = true }
-rayon = { workspace = true, optional = true }
+rayon.workspace = true
 serde = { workspace = true, optional = true }
 thiserror.workspace = true
 
@@ -26,5 +27,4 @@ default = []
 backend-dnc = []
 backend-dnglab = ["dep:rawler"]
 backend-libraw = ["dep:libraw-sys"]
-parallel = ["dep:rayon"]
 serde = ["dep:serde"]

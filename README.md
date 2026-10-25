@@ -5,29 +5,31 @@
 [![codecov](https://codecov.io/gh/Glatzel/fornax/graph/badge.svg?token=GrOFsrR2x7)](https://codecov.io/gh/Glatzel/fornax)
 [![CodSpeed Badge](https://img.shields.io/endpoint?url=https://app.codspeed.io//badge.json)](https://app.codspeed.io//Glatzel/fornax?utm_source=badge)
 
-**Fornax** is an extensive raw image processing library.
-Its goal is to provide a one-stop solution for raw image processing with both simple high-level APIs and low-level control, while also enabling users to extend or plug in their own raw image processing algorithms.
+Fornax is a Rust RAW processing library for conventional 2x2 RGB Bayer images.
+The current path decodes raw sensor codes through LibRaw, normalizes them in a
+separate metadata-driven preprocessing step, exposes a zero-copy ActiveArea
+view, and performs parallel bilinear demosaicing.
 
-Fornax uses built-in or custom decoders and post-processors to produce `ImageBuffer`s (from the [`image`](https://crates.io/crates/image) crate) that can be further transformed into other data types for analysis or display.
+White balance, camera-to-sRGB correction, gamma, and output rendering are not
+applied. LibRaw as-shot white balance and `rgb_cam` are preserved for a future,
+not-yet-designed postprocess pipeline.
 
-## Key Features
+## Workspace
 
-- 🖼 **Flexible decoding pipeline** — Choose built-in or custom decoders.
-- ⚙️ **Extensible post-processing** — Plug in your own algorithms.
-- 🦀 **Rust + Python support** — Native performance with Python accessibility.
-- 🔒 **Safe abstractions** — Rust bindings to LibRaw with memory safety in mind.
+- **fornax**: normalized decoding model, LibRaw adapter, and Bayer demosaicing.
+- **fornax-devtool**: fixture and example output helpers.
+- **fornax-py**: Python bindings under migration.
+- **dnc**: Adobe DNG Converter wrapper.
+- **libraw-sys**: generated LibRaw bindings used by the private adapter.
 
-## Components
+## Development
 
-- **dnc**: A wrapper of Adobe dng converter.
-- **fornax**: Simple high-level raw processing manager.
-- **fornax-core**: Foundational traits and structs for decoder and post-processor.
-- **fornax-dalim**: Rust native raw image post processor.
-- **fornax-py**: Python package for raw processing manager with Rust backend.
-- **libraw**: Safe wrapper around the native libraw library.
-- **libraw-sys**: Libraw rust bindings.
+Run `pixi install`, initialize `external/raw-images`, then configure
+`LIBRAW_ROOT` as described in `scripts/setup.ps1`. The primary checks are:
 
-## Design documentation
-
-- [Universal RAW pipeline design](docs/raw-pipeline/README.md) — persistent
-  processing flow, precision rules, and data-model structures.
+```bash
+cargo test -p fornax --lib
+cargo test -p fornax --features backend-libraw --lib
+cargo test -p fornax --features backend-libraw --examples
+python3 agent-work/tasks/validate.py
+```

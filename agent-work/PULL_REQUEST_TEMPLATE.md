@@ -2,46 +2,40 @@
 
 - Task ID:
 - Task manifest:
-- Dependencies and merged PRs:
-- Integration base: `refactor/raw-pipeline-v2` for `IMPL-*` and `QA-*`
 - Branch and worktree:
+- Integration base: `refactor/raw-pipeline-v2`
 
 ## Scope
 
-Describe the requested outcome and the files that are intentionally in scope.
-List any shared interfaces or cross-task files and explain how their ownership
-is serialized.
+Describe the requested outcome and intentionally excluded work.
 
-## Review notes
+## Decisions
 
-Point reviewers to the decisions that need judgment. Separate verified facts
-from inferences and recommendations when the task produces research evidence.
+Summarize API, numerical, decoder, and workflow decisions that need review.
 
 ## Validation
 
-List each command or review check and paste the actual result. State any check
-that could not run and why.
+List each command and paste the actual result. State skipped checks explicitly.
 
-At minimum, run `python3 agent-work/tasks/validate.py` when this PR changes a
-task manifest, task index, or task-owned deliverable.
+```text
+cargo test -p fornax --lib
+cargo test -p fornax --features backend-libraw --lib
+cargo test -p fornax --features backend-libraw --examples
+cargo fmt --check
+cargo clippy -p fornax --all-targets --features backend-libraw -- -D warnings
+python3 agent-work/tasks/validate.py
+```
 
 ## Risks and follow-up
 
-Describe known limitations, deferred work, migration impact, and any follow-up
-task that needs its own branch and PR.
+Record limitations and deferred work. White balance, color correction, and
+future postprocessing remain explicitly undecided.
 
 ## Reviewer checklist
 
-- [ ] The PR title is semantic, uses the lowercase task ID as its scope, and
-  the linked manifest matches the scope.
-- [ ] Every dependency PR is merged.
-- [ ] The PR targets `refactor/raw-pipeline-v2` for implementation or QA work.
-- [ ] Deliverables use the paths and names in the task manifest.
-- [ ] Relevant `docs/raw-pipeline/` design files are updated, or the PR states
-  that the persistent design is unchanged.
-- [ ] `agent-work/tasks/STATUS.md` marks this task `Done` with the PR link.
-- [ ] The branch contains only this task's changes.
+- [ ] The task manifest matches the branch and PR.
+- [ ] The branch starts from and targets `refactor/raw-pipeline-v2`.
 - [ ] Validation results are complete and reproducible.
-- [ ] Requested changes are resolved on this branch.
-- [ ] The user, not the agent, initiates local changes or merges the PR.
-- [ ] The agent has not been left watching or polling the PR.
+- [ ] The branch contains only this task's changes.
+- [ ] `STATUS.md` is marked `Done` after the PR opens.
+- [ ] The agent has not merged, closed, watched, or polled the PR.

@@ -1,6 +1,5 @@
 #![allow(
     dead_code,
-    missing_docs,
     reason = "native backend support is shared by production decoding and backend-specific examples"
 )]
 
@@ -9,40 +8,32 @@ use std::marker::PhantomData;
 use std::path::Path;
 
 use envoy::{PtrToString, ToCString};
-use image::{ImageBuffer, Rgba};
+use image::ImageBuffer;
 
-pub const LIBRAW_PROGRESS_RAW2_IMAGE: u32 = 1 << 4;
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, num_enum::FromPrimitive)]
 #[repr(i32)]
 pub enum LibRawErrorCode {
-    Success = 0,
-    Unspecified = -1,
-    FileUnsupported = -2,
-    OutOfOrder = -4,
-    InputClosed = -7,
-    NotImplemented = -8,
-    InsufficientMemory = -100007,
-    DataError = -100008,
-    IoError = -100009,
     Other = 2,
-}
-
-impl LibRawErrorCode {
-    fn from_raw(code: i32) -> Self {
-        match code {
-            0 => Self::Success,
-            -1 => Self::Unspecified,
-            -2 => Self::FileUnsupported,
-            -4 => Self::OutOfOrder,
-            -7 => Self::InputClosed,
-            -8 => Self::NotImplemented,
-            -100007 => Self::InsufficientMemory,
-            -100008 => Self::DataError,
-            -100009 => Self::IoError,
-            _ => Self::Other,
-        }
-    }
+    #[num_enum(default)]
+    Unknown = 1,
+    Success = libraw_sys::LibRaw_errors_LIBRAW_SUCCESS,
+    Unspecified = libraw_sys::LibRaw_errors_LIBRAW_UNSPECIFIED_ERROR,
+    FileUnsupported = libraw_sys::LibRaw_errors_LIBRAW_FILE_UNSUPPORTED,
+    RequestForNonexistentImage = libraw_sys::LibRaw_errors_LIBRAW_REQUEST_FOR_NONEXISTENT_IMAGE,
+    OutOfOrder = libraw_sys::LibRaw_errors_LIBRAW_OUT_OF_ORDER_CALL,
+    NoThumbnail = libraw_sys::LibRaw_errors_LIBRAW_NO_THUMBNAIL,
+    UnsupportedThumbnail = libraw_sys::LibRaw_errors_LIBRAW_UNSUPPORTED_THUMBNAIL,
+    InputClosed = libraw_sys::LibRaw_errors_LIBRAW_INPUT_CLOSED,
+    NotImplemented = libraw_sys::LibRaw_errors_LIBRAW_NOT_IMPLEMENTED,
+    RequestForNonexistentThumbnail =
+        libraw_sys::LibRaw_errors_LIBRAW_REQUEST_FOR_NONEXISTENT_THUMBNAIL,
+    InsufficientMemory = libraw_sys::LibRaw_errors_LIBRAW_UNSUFFICIENT_MEMORY,
+    DataError = libraw_sys::LibRaw_errors_LIBRAW_DATA_ERROR,
+    IoError = libraw_sys::LibRaw_errors_LIBRAW_IO_ERROR,
+    CancelledByCallback = libraw_sys::LibRaw_errors_LIBRAW_CANCELLED_BY_CALLBACK,
+    BadCrop = libraw_sys::LibRaw_errors_LIBRAW_BAD_CROP,
+    TooBig = libraw_sys::LibRaw_errors_LIBRAW_TOO_BIG,
+    MempoolOverflow = libraw_sys::LibRaw_errors_LIBRAW_MEMPOOL_OVERFLOW,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -58,7 +49,7 @@ pub enum LibRawError {
 
 impl LibRawError {
     fn native(raw: i32) -> Self {
-        let code = LibRawErrorCode::from_raw(raw);
+        let code = LibRawErrorCode::from(raw);
         let message = unsafe {
             let pointer = libraw_sys::libraw_strerror(raw);
             if pointer.is_null() {
@@ -125,8 +116,6 @@ impl LibRawContext {
             raw_height: u32::from(sizes.raw_height),
             width: u32::from(sizes.width),
             height: u32::from(sizes.height),
-            iwidth: u32::from(sizes.iwidth),
-            iheight: u32::from(sizes.iheight),
             top_margin: u32::from(sizes.top_margin),
             left_margin: u32::from(sizes.left_margin),
             raw_pitch: sizes.raw_pitch,
@@ -139,12 +128,14 @@ impl LibRawContext {
         Ok(ImageParameters {
             make: c_array_string(&data.make)?,
             model: c_array_string(&data.model)?,
+            software: c_array_string(&data.software)?,
             normalized_make: c_array_string(&data.normalized_make)?,
             normalized_model: c_array_string(&data.normalized_model)?,
+            maker_index: data.maker_index,
             cdesc: c_array_string(&data.cdesc)?,
             raw_count: data.raw_count,
-            is_foveon: data.is_foveon != 0,
             dng_version: data.dng_version,
+            is_foveon: data.is_foveon != 0,
             colors: data.colors,
             filters: data.filters,
         })
@@ -154,16 +145,32 @@ impl LibRawContext {
         let data = unsafe { &(*self.pointer).color };
         let cblack = data.cblack;
         ColorData {
-            raw_bps: data.raw_bps,
             black: data.black,
             cblack: [
                 cblack[0], cblack[1], cblack[2], cblack[3], cblack[4], cblack[5],
             ],
             maximum: data.maximum,
-            data_maximum: data.data_maximum,
             linear_max: data.linear_max,
             dng_whitelevel: data.dng_levels.dng_whitelevel,
             default_crop: data.dng_levels.default_crop,
+            cam_mul: data.cam_mul,
+            rgb_cam: data.rgb_cam,
+            cam_xyz: data.cam_xyz,
+            cmatrix: data.cmatrix,
+            ccm: data.ccm,
+            raw_bps: data.raw_bps,
+            data_maximum: data.data_maximum,
+        }
+    }
+
+    pub fn capture_data(&self) -> CaptureData {
+        let data = unsafe { &(*self.pointer).other };
+        CaptureData {
+            timestamp: Some(data.timestamp),
+            iso_speed: data.iso_speed,
+            shutter: data.shutter,
+            aperture: data.aperture,
+            focal_length: data.focal_len,
         }
     }
 
@@ -182,57 +189,6 @@ impl LibRawContext {
             has_float4_image: !data.rawdata.float4_image.is_null(),
             _owner: PhantomData,
         })
-    }
-
-    pub fn progress_flags(&self) -> u32 { unsafe { (*self.pointer).progress_flags } }
-
-    pub fn unpack_function_name(&self) -> Option<String> {
-        unsafe {
-            let name = libraw_sys::libraw_unpack_function_name(self.pointer);
-            (!name.is_null())
-                .then(|| name.to_string_lossy().ok())
-                .flatten()
-        }
-    }
-
-    pub fn color(&self, row: i32, column: i32) -> i32 {
-        unsafe { libraw_sys::libraw_COLOR(self.pointer, row, column) }
-    }
-
-    pub fn raw_to_image(&mut self) -> LibRawResult<()> {
-        check(unsafe { libraw_sys::libraw_raw2image(self.pointer) })
-    }
-
-    pub fn subtract_black(&mut self) -> LibRawResult<()> {
-        unsafe { libraw_sys::libraw_subtract_black(self.pointer) };
-        Ok(())
-    }
-
-    pub fn active_rgba_image(
-        &mut self,
-        subtract_black: bool,
-    ) -> LibRawResult<ImageBuffer<Rgba<u16>, Vec<u16>>> {
-        self.raw_to_image()?;
-        if subtract_black {
-            self.subtract_black()?;
-        }
-        let sizes = self.image_sizes();
-        let data = unsafe { &(*self.pointer) };
-        let sample_count = usize::try_from(
-            u64::from(sizes.iwidth)
-                .checked_mul(u64::from(sizes.iheight))
-                .and_then(|count| count.checked_mul(4))
-                .ok_or_else(|| LibRawError::InvalidInput("image size overflows usize".into()))?,
-        )
-        .map_err(|_| LibRawError::InvalidInput("image size overflows usize".into()))?;
-        if data.image.is_null() {
-            return Err(LibRawError::InvalidInput(
-                "LibRaw working image is null".into(),
-            ));
-        }
-        let samples = unsafe { std::slice::from_raw_parts(data.image.cast::<u16>(), sample_count) };
-        ImageBuffer::from_raw(sizes.iwidth, sizes.iheight, samples.to_vec())
-            .ok_or_else(|| LibRawError::InvalidInput("LibRaw working image is inconsistent".into()))
     }
 
     pub fn dcraw_process_neutral(&mut self) -> LibRawResult<()> {
@@ -267,6 +223,17 @@ impl LibRawContext {
         }
         Ok(ProcessedImage { pointer })
     }
+
+    pub fn progress_flags(&self) -> u32 { unsafe { (*self.pointer).progress_flags } }
+
+    pub fn unpack_function_name(&self) -> Option<String> {
+        unsafe {
+            let name = libraw_sys::libraw_unpack_function_name(self.pointer);
+            (!name.is_null())
+                .then(|| name.to_string_lossy().ok())
+                .flatten()
+        }
+    }
 }
 
 impl Drop for LibRawContext {
@@ -292,8 +259,6 @@ pub struct ImageSizes {
     pub raw_height: u32,
     pub width: u32,
     pub height: u32,
-    pub iwidth: u32,
-    pub iheight: u32,
     pub top_margin: u32,
     pub left_margin: u32,
     pub raw_pitch: u32,
@@ -304,26 +269,42 @@ pub struct ImageSizes {
 pub struct ImageParameters {
     pub make: String,
     pub model: String,
+    pub software: String,
     pub normalized_make: String,
     pub normalized_model: String,
+    pub maker_index: u32,
     pub cdesc: String,
     pub raw_count: u32,
-    pub is_foveon: bool,
     pub dng_version: u32,
+    pub is_foveon: bool,
     pub colors: i32,
     pub filters: u32,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct CaptureData {
+    pub timestamp: Option<i64>,
+    pub iso_speed: f32,
+    pub shutter: f32,
+    pub aperture: f32,
+    pub focal_length: f32,
+}
+
 #[derive(Clone, Debug)]
 pub struct ColorData {
-    pub raw_bps: u32,
     pub black: u32,
     pub cblack: [u32; 6],
     pub maximum: u32,
-    pub data_maximum: u32,
     pub linear_max: [u32; 4],
     pub dng_whitelevel: [u32; 4],
     pub default_crop: [u16; 4],
+    pub cam_mul: [f32; 4],
+    pub rgb_cam: [[f32; 4]; 3],
+    pub cam_xyz: [[f32; 3]; 4],
+    pub cmatrix: [[f32; 4]; 3],
+    pub ccm: [[f32; 4]; 3],
+    pub raw_bps: u32,
+    pub data_maximum: u32,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -351,8 +332,6 @@ impl UnpackedRawImage<'_> {
     pub const fn raw_width(&self) -> u32 { self.raw_width }
 
     pub const fn raw_height(&self) -> u32 { self.raw_height }
-
-    pub const fn raw_pitch(&self) -> u32 { self.raw_pitch }
 
     pub const fn kind(&self) -> UnpackedRawImageKind {
         if !self.integer.is_null() {
@@ -485,4 +464,25 @@ fn c_array_string<const N: usize>(value: &[c_char; N]) -> LibRawResult<String> {
         .as_slice()
         .to_string_lossy()
         .map_err(|error| LibRawError::InvalidInput(error.to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn error_discriminants_use_libraw_sys_values() {
+        assert_eq!(
+            LibRawErrorCode::FileUnsupported as i32,
+            libraw_sys::LibRaw_errors_LIBRAW_FILE_UNSUPPORTED
+        );
+        assert_eq!(
+            LibRawErrorCode::IoError as i32,
+            libraw_sys::LibRaw_errors_LIBRAW_IO_ERROR
+        );
+        assert_eq!(
+            LibRawErrorCode::MempoolOverflow as i32,
+            libraw_sys::LibRaw_errors_LIBRAW_MEMPOOL_OVERFLOW
+        );
+    }
 }

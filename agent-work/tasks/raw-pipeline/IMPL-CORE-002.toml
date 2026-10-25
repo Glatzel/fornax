@@ -1,0 +1,48 @@
+schema_version = 1
+id = "IMPL-CORE-002"
+slug = "simplify-bayer-pipeline"
+title = "Simplify the standard Bayer linear pipeline"
+phase = "implementation"
+dependencies = []
+deliverables = [
+  "raw-code DecodedRaw with separate nested Metadata",
+  "metadata-free RawImage with zero-copy crop view",
+  "metadata-driven preprocessing returning RawImage and remaining metadata",
+  "two-argument Rayon-backed Bayer demosaic function",
+  "LibRaw error codes sourced from libraw-sys",
+  "hard LibRaw decode, preprocess, and demosaic comparison assertions",
+  "grouped development image output directories",
+  "lean active agent workflow",
+]
+scope = """
+Refactor fornax around conventional 2x2 RGB Bayer only. Decode through LibRaw
+into raw sensor codes represented as f32. Keep RawImage metadata-free and pair
+it with nested metadata only inside DecodedRaw. DecodedRaw::preprocess uses the
+preprocess metadata group and returns a normalized full-raster RawImage plus
+metadata needed by demosaic and postprocess. Cropping is a metadata-free
+image-rs view operation. Preserve postprocess color metadata without applying
+it. Remove unused geometry, sample variants, duplicate validators, and
+historical agent design material. Do not add Rust code documentation or
+doctests in this task.
+"""
+acceptance = [
+  "DecodedRaw owns a metadata-free raw-code RawImage and separate nested Metadata; decoded values may exceed 1.",
+  "RawImage::cropped returns an image-rs view without allocating a cropped mosaic, and full-raster access is hidden.",
+  "DecodedRaw::preprocess normalizes the full raster using PreprocessMetadata and returns (RawImage, ProcessedMetadata).",
+  "Metadata uses named decoder, vendor, capture, preprocess, postprocess, and demosaic structs plus one top-level extra HashMap.",
+  "Only conventional RGGB, BGGR, GRBG, and GBRG layouts are accepted; other LibRaw CFA layouts fail structurally.",
+  "demosaic accepts an image-rs Deref view plus BayerPattern, never allocates a cropped mosaic, and always uses Rayon.",
+  "StoredPlane, SampleSpec, geometry, provenance trees, RawSnapshot, DemosaicAlgorithm, validate_rgb_output, and duplicate validators are removed.",
+  "LibRawErrorCode discriminants use libraw-sys constants; postprocess white balance and color matrices are preserved without applying transformations.",
+  "The CR2 comparison asserts exact decoded RAW values, preprocessing within one code, and unsaturated demosaic max <= 8, mean <= 2, RMS <= 3.",
+  "Development images are grouped below temp/fornax/<example>/<producer>/.",
+  "docs/raw-pipeline and historical research/design/checkpoint/task material are removed, leaving one active task workflow.",
+  "No Rustdoc examples or doctest/documentation validation gates are added.",
+]
+validation = [
+  "Run cargo test -p fornax --lib.",
+  "Run cargo test -p fornax --features backend-libraw --lib.",
+  "Run both LibRaw examples in the backend-libraw feature.",
+  "Run cargo fmt --check and clippy with warnings denied.",
+  "Run python3 agent-work/tasks/validate.py.",
+]
