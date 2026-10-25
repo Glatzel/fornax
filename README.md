@@ -26,8 +26,3 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 - **fornax-py**: Python package for raw processing manager with Rust backend.
 - **libraw**: Safe wrapper around the native libraw library.
 - **libraw-sys**: Libraw rust bindings.
-
-## Design documentation
-
-- [Universal RAW pipeline design](docs/raw-pipeline/README.md) — persistent
-  processing flow, precision rules, and data-model structures.
