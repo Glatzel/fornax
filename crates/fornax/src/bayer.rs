@@ -115,14 +115,14 @@ impl Display for BayerPattern {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BayerImage<T>
 where
-    T: crate::FornaxPrimitive,
+    T: crate::Primitive,
 {
     bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>,
     pattern: BayerPattern,
 }
 impl<T> BayerImage<T>
 where
-    T: crate::FornaxPrimitive,
+    T: crate::Primitive,
 {
     /// Creates a new `BayerImage` from raw mosaic data and its pattern.
     pub const fn new(

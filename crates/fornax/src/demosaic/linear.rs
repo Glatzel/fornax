@@ -1,6 +1,8 @@
-use fornax_core::{BayerChannel, BayerImage, FornaxPrimitive};
 use image::{ImageBuffer, Luma, Rgb};
 use rayon::prelude::*;
+
+use crate::alias::{LumaImage, RgbImage};
+use crate::{BayerChannel, BayerImage, BayerPattern, Primitive};
 
 /// Output rows handed to each rayon task.
 const ROWS_PER_TASK: usize = 16;
@@ -15,7 +17,7 @@ const fn idx(width: u32, x: u32, y: u32) -> usize { y as usize * width as usize 
 
 // ---------- Checked path: used only for border rows/columns ----------
 
-fn diagonal_checked<T: FornaxPrimitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
+fn diagonal_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
     let mut sum = T::from(0).unwrap();
     if x > 0 && y > 0 {
@@ -37,7 +39,7 @@ fn diagonal_checked<T: FornaxPrimitive>(raw: &[T], width: u32, height: u32, x: u
     sum / T::from(count.max(1)).unwrap()
 }
 
-fn neighbour_checked<T: FornaxPrimitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
+fn neighbour_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
     let mut sum = T::from(0).unwrap();
     if x > 0 {
@@ -59,7 +61,7 @@ fn neighbour_checked<T: FornaxPrimitive>(raw: &[T], width: u32, height: u32, x: 
     sum / T::from(count.max(1)).unwrap()
 }
 
-fn left_right_checked<T: FornaxPrimitive>(raw: &[T], width: u32, x: u32, y: u32) -> T {
+fn left_right_checked<T: Primitive>(raw: &[T], width: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
     let mut sum = T::from(0).unwrap();
     if x > 0 {
@@ -73,7 +75,7 @@ fn left_right_checked<T: FornaxPrimitive>(raw: &[T], width: u32, x: u32, y: u32)
     sum / T::from(count.max(1)).unwrap()
 }
 
-fn top_down_checked<T: FornaxPrimitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
+fn top_down_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
     let mut sum = T::from(0).unwrap();
     if y > 0 {
@@ -88,7 +90,7 @@ fn top_down_checked<T: FornaxPrimitive>(raw: &[T], width: u32, height: u32, x: u
 }
 
 #[inline(always)]
-fn write_pixel_checked<T: FornaxPrimitive>(
+fn write_pixel_checked<T: Primitive>(
     raw_mosaic: &[T],
     width: u32,
     height: u32,
@@ -129,13 +131,7 @@ fn write_pixel_checked<T: FornaxPrimitive>(
 /// Interpolates one interior pixel (`1 <= x < w-1`) of channel `CH`.
 /// `p`, `c`, `n` are the previous, current and next mosaic rows.
 #[inline(always)]
-fn interior_px<T: FornaxPrimitive, const CH: u8>(
-    p: &[T],
-    c: &[T],
-    n: &[T],
-    x: usize,
-    out: &mut [T],
-) {
+fn interior_px<T: Primitive, const CH: u8>(p: &[T], c: &[T], n: &[T], x: usize, out: &mut [T]) {
     let two = T::from(2).unwrap();
     let four = T::from(4).unwrap();
     let (l, r, t, b) = (c[x - 1], c[x + 1], p[x], n[x]);
@@ -160,7 +156,7 @@ fn interior_px<T: FornaxPrimitive, const CH: u8>(
 /// Fills `x` in `1..w-1` of one row. `CE` / `CO` are the channels at even /
 /// odd `x`.
 #[inline(always)]
-fn interior_row<T: FornaxPrimitive, const CE: u8, const CO: u8>(
+fn interior_row<T: Primitive, const CE: u8, const CO: u8>(
     prev: &[T],
     cur: &[T],
     next: &[T],
@@ -184,15 +180,13 @@ pub struct DemosaicLinear;
 
 impl<T> super::IDemosaic<T> for DemosaicLinear
 where
-    T: FornaxPrimitive,
+    T: Primitive,
 {
-    fn demosaic(&self, bayer_image: &BayerImage<T>) -> ImageBuffer<Rgb<T>, Vec<T>> {
-        let mosaic: &ImageBuffer<Luma<T>, Vec<T>> = bayer_image.mosaic();
-        let pattern = *bayer_image.pattern();
-        let (width, height) = mosaic.dimensions();
+    fn demosaic(&self, bayer_image: &LumaImage<T>, pattern: BayerPattern) -> RgbImage<T> {
+        let (width, height) = bayer_image.dimensions();
         let mut img: ImageBuffer<Rgb<T>, Vec<T>> = ImageBuffer::new(width, height);
 
-        let raw: &[T] = mosaic.as_raw();
+        let raw: &[T] = bayer_image.as_raw();
         let (w, h) = (width as usize, height as usize);
         let row_stride = w * 3;
         let raw_out: &mut [T] = &mut img;
@@ -263,9 +257,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::BayerPattern;
 
     use super::*;
+    use crate::BayerPattern;
     use crate::demosaic::IDemosaic;
 
     fn run(pattern: BayerPattern) -> Vec<Vec<Vec<f32>>> {

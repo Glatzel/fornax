@@ -1,0 +1,18 @@
+[package]
+name = "fornax"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+image.workspace = true
+thiserror.workspace = true
+serde = { workspace = true, optional = true }
+rayon.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+fornax-devtool.workspace = true
+mischief.workspace = true
+
+[features]
+serde = ["dep:serde"]
