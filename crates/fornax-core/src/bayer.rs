@@ -20,7 +20,7 @@ impl BayerChannel {
     pub const fn is_green(self) -> bool { matches!(self, Self::GRedRow | Self::GBlueRow) }
 }
 impl From<BayerChannel> for u8 {
-    fn from(value: BayerChannel) -> Self { value as u8 }
+    fn from(value: BayerChannel) -> Self { value as Self }
 }
 
 /// Common Bayer patterns used in image sensors, named after the 2x2 tile read
