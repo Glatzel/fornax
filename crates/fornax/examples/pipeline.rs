@@ -6,8 +6,8 @@ use fornax_devtool::save_image;
 use image::{Luma, Rgb};
 fn wrapper(decoded: DecodedRaw<f32>, output_dir: PathBuf) -> mischief::Result<()> {
     assert_eq!(decoded.image().dimensions(), (5_360, 3_516));
-    assert_eq!(decoded.metadata().preprocess.active_area.width, 5_202);
-    assert_eq!(decoded.metadata().preprocess.active_area.height, 3_464);
+    assert_eq!(decoded.metadata().active_area.width, 5_202);
+    assert_eq!(decoded.metadata().active_area.height, 3_464);
     let decoded_path = output_dir.join("1.fornax-libraw-decoded.tiff");
     dbg!(decoded.image().as_raw().get(0..10));
     save_image::<_, _, Luma<u16>, _>(decoded.image(), &decoded_path, 1.0)?;
@@ -25,18 +25,13 @@ fn wrapper(decoded: DecodedRaw<f32>, output_dir: PathBuf) -> mischief::Result<()
     println!("Decoded output: {}", decoded_path.display());
     println!("Preprocessed output: {}", preprocessed_path.display());
     println!("Demosaiced output: {}", demosaiced_path.display());
-    println!(
-        "{} {}",
-        metadata.decoder.vendor.make.unwrap_or_default(),
-        metadata.decoder.vendor.model.unwrap_or_default()
-    );
     Ok(())
 }
 fn main() -> mischief::Result<()> {
     let output_dir = fornax_devtool::temp_dir().join("pipeline");
     let raw_path = fornax_devtool::raw_file();
     wrapper(
-        LibRawDecoder::new().decode(raw_path.as_path())?,
+        LibRawDecoder.decode(raw_path.as_path())?,
         output_dir.join("libraw"),
     )?;
     #[cfg(not(target_os = "linux"))]

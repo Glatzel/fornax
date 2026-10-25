@@ -1,0 +1,18 @@
+fn main() -> mischief::Result<()> {
+    fornax_devtool::setup();
+
+    let libraw = libraw::Libraw::default();
+    let imgother = libraw
+        .open_file(&fornax_devtool::raw_file())?
+        .unpack()?
+        .get_imgother()?;
+    println!("{imgother:?}");
+
+    assert_eq!(imgother.iso_speed(), 100.0);
+    assert_eq!(imgother.aperture(), 5.6);
+    assert_eq!(imgother.focal_len(), 30.0);
+
+    Ok(())
+}
+#[test]
+fn test() -> mischief::Result<()> { main() }

@@ -105,6 +105,6 @@ where
 {
     fn decode(&self, input: &Path) -> Result<DecodedRaw<T>, DecodeError> {
         let dng_file = self.convert(input)?;
-        super::LibRawDecoder::new().decode(&dng_file as &Path)
+        super::LibRawDecoder.decode(&dng_file as &Path)
     }
 }
