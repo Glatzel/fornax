@@ -20,12 +20,3 @@ pub enum DecodeError {
     InvalidOutput(#[from] RawValidationError),
 }
 
-#[derive(Clone, Debug, Error, PartialEq, Eq)]
-pub enum PreprocessError {
-    #[error("preprocessing ActiveArea is outside the decoded image")]
-    InvalidActiveArea,
-    #[error("black and white levels do not form a valid range")]
-    InvalidLevelRange,
-    #[error(transparent)]
-    InvalidImage(RawValidationError),
-}

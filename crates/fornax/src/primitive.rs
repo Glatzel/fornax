@@ -1,16 +1,7 @@
-use core::fmt::{Debug, Display};
+use num_traits::Float;
 /// The type of each channel in a pixel.
 /// Including `u8`, `u16`, `f32`, `f64`.
-pub trait Primitive:
-    image::Primitive
-    + image::Enlargeable
-    + core::marker::Send
-    + core::marker::Sync
-    + Debug
-    + Display
-    + 'static
-{
-}
+pub trait Primitive: image::Primitive + image::Enlargeable + Float + Send + Sync {}
 
 // impl Primitive for f16 {}
 impl Primitive for f32 {}

@@ -8,6 +8,7 @@ pub mod metadata;
 mod primitive;
 mod raw_image;
 
+pub use alias::{LumaImage, RgbImage};
 pub use bayer::{BayerChannel, BayerPattern};
 pub use decoded_raw::DecodedRaw;
 pub use decoder::IDecoder;

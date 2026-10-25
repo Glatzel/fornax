@@ -1,8 +1,8 @@
+use image::ImageBuffer;
 use rayon::prelude::*;
 
 use crate::alias::LumaImage;
-use crate::error::{PreprocessError, RawValidationError};
-use crate::metadata::{LevelsMetadata, Metadata, PreprocessMetadata, WhiteLevels};
+use crate::metadata::{Metadata, WhiteLevels};
 use crate::{Primitive, RawImage};
 #[derive(Clone, Debug, PartialEq)]
 pub struct DecodedRaw<T>
@@ -29,54 +29,53 @@ where
         let Self { image, metadata } = self;
 
         let area = metadata.preprocess.active_area;
-        let left = area.x;
-        let top = area.y;
-        let width = area.width;
-        let height = area.height;
+        let (left, top) = (area.x as usize, area.y as usize);
+        let (width, height) = (area.width, area.height);
+        let w = width as usize;
 
-        let pattern = metadata.preprocess.cfa.bayer_pattern;
         let black = metadata.preprocess.levels.black;
         let white = metadata.preprocess.levels.white;
 
-        let cropped = image::imageops::crop_imm(&image, left, top, width, height).to_image();
-
-        let pixels = cropped.into_raw();
-
-        let white_at = |slot: usize| -> u32 {
-            match white {
+        // Per-CFA-slot (black, range), computed once instead of per pixel.
+        let slots: [(T, T); 4] = std::array::from_fn(|slot| {
+            let black_level = black.common.saturating_add(black.per_slot[slot]);
+            let white_level = match white {
                 WhiteLevels::Uniform(value) => value,
                 WhiteLevels::PerSlot(values) => values[slot],
-            }
-        };
+            };
+            let black_t = T::from(black_level).unwrap_or_else(T::zero);
+            let white_t = T::from(white_level).unwrap_or_else(T::zero);
+            (black_t, white_t - black_t)
+        });
 
-        let pixels: Vec<T> = pixels
-            .into_par_iter()
+        let src_stride = image.width() as usize;
+        let src = image.as_raw();
+
+        let mut out = vec![T::zero(); w * height as usize];
+
+        out.par_chunks_exact_mut(w)
             .enumerate()
-            .map(|(index, pixel)| {
-                let x = index as u32 % width;
-                let y = index as u32 / width;
+            .for_each(|(y, dst_row)| {
+                let sy = y + top;
+                let start = sy * src_stride + left;
+                let src_row = &src[start..start + w];
+                let row_slot = (sy & 1) * 2;
 
-                // CFA slot in the original, uncropped sensor image.
-                let slot = ((x + left) & 1) as usize + (((y + top) & 1) as usize * 2);
+                for (x, (dst, &pixel)) in dst_row.iter_mut().zip(src_row).enumerate() {
+                    // CFA slot in the original, uncropped sensor image.
+                    let slot = ((x + left) & 1) + row_slot;
+                    let (black_level, range) = slots[slot];
 
-                let black_level = black.common.saturating_add(black.per_slot[slot]);
-                let white_level = white_at(slot);
-
-                let pixel = T::from(pixel).unwrap_or_else(T::zero);
-                let black_level = T::from(black_level).unwrap_or_else(T::zero);
-                let white_level = T::from(white_level).unwrap_or_else(T::zero);
-
-                let range = white_level - black_level;
-
-                if range <= T::zero() {
-                    T::zero()
-                } else {
-                    ((pixel - black_level) / range).max(T::zero())
+                    *dst = if range <= T::zero() {
+                        T::zero()
+                    } else {
+                        let pixel = T::from(pixel).unwrap_or_else(T::zero);
+                        ((pixel - black_level) / range).max(T::zero())
+                    };
                 }
-            })
-            .collect();
+            });
 
-        let normalized = ImageBuffer::from_raw(width, height, pixels)
+        let normalized = ImageBuffer::from_raw(width, height, out)
             .expect("pixel count matches image dimensions");
 
         RawImage::new(normalized)
