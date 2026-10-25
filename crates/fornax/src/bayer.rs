@@ -1,66 +1,89 @@
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+use std::fmt::Display;
+
+/// An enum representing the channels in a Bayer pattern.
+///
+/// The `BayerChannel` enum defines the four possible color channels in a Bayer
+/// pattern:
+/// - `R` for Red,
+/// - `G` for Green (first channel),
+/// - `B` for Blue,
+/// - `G2` for Green (second channel).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum BayerChannel {
+    R,
+    G,
+    B,
+    G2,
+}
+impl From<BayerChannel> for u8 {
+    fn from(value: BayerChannel) -> Self {
+        match value {
+            BayerChannel::R => 0,
+            BayerChannel::G => 1,
+            BayerChannel::B => 2,
+            BayerChannel::G2 => 3,
+        }
+    }
+}
+/// An enum representing common Bayer patterns used in image sensors.
+///
+/// The `BayerPattern` enum defines the layout of color channels in a Bayer
+/// filter:
+/// - `RGGB`: Red, Green, Green, Blue,
+/// - `BGGR`: Blue, Green, Green, Red,
+/// - `GRBG`: Green, Red, Blue, Green,
+/// - `GBRG`: Green, Blue, Red, Green.
+///
+/// The order of the channels affects how the image is processed and decoded.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum BayerPattern {
-    Rggb,
-    Bggr,
-    Grbg,
-    Gbrg,
+    RGGB,
+    BGGR,
+    GRBG,
+    GBRG,
 }
-
 impl BayerPattern {
-    pub(crate) const fn from_codes(codes: [u8; 4]) -> Option<Self> {
-        match codes {
-            [0, 1, 3, 2] => Some(Self::Rggb),
-            [2, 3, 1, 0] => Some(Self::Bggr),
-            [1, 0, 2, 3] => Some(Self::Grbg),
-            [3, 2, 0, 1] => Some(Self::Gbrg),
-            _ => None,
-        }
-    }
-
-    pub(crate) const fn codes(self) -> [u8; 4] {
+    /// Returns the color channel mask associated with the Bayer pattern.
+    ///
+    /// The mask is an ordered list of `BayerChannel` values, representing the
+    /// sequence of color channels in the pattern.
+    pub const fn as_mask(&self) -> &[BayerChannel; 4] {
         match self {
-            Self::Rggb => [0, 1, 3, 2],
-            Self::Bggr => [2, 3, 1, 0],
-            Self::Grbg => [1, 0, 2, 3],
-            Self::Gbrg => [3, 2, 0, 1],
+            Self::RGGB => &[
+                BayerChannel::R,
+                BayerChannel::G,
+                BayerChannel::G2,
+                BayerChannel::B,
+            ],
+            Self::BGGR => &[
+                BayerChannel::B,
+                BayerChannel::G2,
+                BayerChannel::G,
+                BayerChannel::R,
+            ],
+            Self::GRBG => &[
+                BayerChannel::G,
+                BayerChannel::R,
+                BayerChannel::B,
+                BayerChannel::G2,
+            ],
+            Self::GBRG => &[
+                BayerChannel::G2,
+                BayerChannel::B,
+                BayerChannel::R,
+                BayerChannel::G,
+            ],
         }
-    }
-
-    pub(crate) const fn shift(mut self, mut rows: u32, mut columns: u32) -> Self {
-        while rows & 1 != 0 {
-            let [r, g1, g2, b] = self.codes();
-            self = Self::from_codes([g2, b, r, g1]).expect("row shift preserves Bayer layout");
-            rows -= 1;
-        }
-        while columns & 1 != 0 {
-            let [r, g1, g2, b] = self.codes();
-            self = Self::from_codes([g1, r, b, g2]).expect("column shift preserves Bayer layout");
-            columns -= 1;
-        }
-        self
     }
 }
-
-impl core::fmt::Display for BayerPattern {
-    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        formatter.write_str(match self {
-            Self::Rggb => "RGGB",
-            Self::Bggr => "BGGR",
-            Self::Grbg => "GRBG",
-            Self::Gbrg => "GBRG",
-        })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn shifts_all_phase_combinations() {
-        assert_eq!(BayerPattern::Rggb.shift(0, 0), BayerPattern::Rggb);
-        assert_eq!(BayerPattern::Rggb.shift(1, 0), BayerPattern::Gbrg);
-        assert_eq!(BayerPattern::Rggb.shift(0, 1), BayerPattern::Grbg);
-        assert_eq!(BayerPattern::Rggb.shift(1, 1), BayerPattern::Bggr);
+impl Display for BayerPattern {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let text = match self {
+            Self::RGGB => "RGGB",
+            Self::BGGR => "BGGR",
+            Self::GRBG => "GRBG",
+            Self::GBRG => "GBRG",
+        };
+        write!(f, "{text}")
     }
 }

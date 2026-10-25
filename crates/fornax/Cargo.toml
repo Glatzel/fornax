@@ -23,7 +23,7 @@ fornax-devtool.workspace = true
 mischief.workspace = true
 
 [features]
-default = []
+default = ["backend-libraw"]
 backend-dnc = []
 backend-dnglab = ["dep:rawler"]
 backend-libraw = ["dep:libraw-sys"]

@@ -130,7 +130,7 @@ fn bayer_pattern(filters: u32) -> Result<BayerPattern, DecodeError> {
         }
     }
     BayerPattern::from_codes(codes).ok_or_else(|| {
-        DecodeError::Unsupported(
+        DecodeError::Unsupported( 
             format!("LibRaw CFA is not conventional RGB Bayer: {filters:#x}").into(),
         )
     })

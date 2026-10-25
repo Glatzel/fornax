@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use fornax::decoder::{IRawDecoder, LibRawDecoder};
-use fornax::{F32Plane, RgbImageF32, demosaic};
+use fornax::{LumaImage, RgbImage, demosaic};
 use image::{ImageBuffer, Luma, Rgb};
 
 fn main() -> mischief::Result<()> {
@@ -37,7 +37,7 @@ fn main() -> mischief::Result<()> {
     Ok(())
 }
 
-fn save_f32_gray(plane: &F32Plane, path: &Path) -> mischief::Result<()> {
+fn save_f32_gray(plane: &LumaImage, path: &Path) -> mischief::Result<()> {
     let (width, height) = plane.dimensions();
     ImageBuffer::<Luma<u16>, Vec<u16>>::from_raw(
         width,
@@ -53,7 +53,7 @@ fn save_f32_gray(plane: &F32Plane, path: &Path) -> mischief::Result<()> {
     Ok(())
 }
 
-fn save_f32_rgb(plane: &RgbImageF32, path: &Path) -> mischief::Result<()> {
+fn save_f32_rgb(plane: &RgbImage, path: &Path) -> mischief::Result<()> {
     ImageBuffer::<Rgb<u16>, Vec<u16>>::from_raw(
         plane.width(),
         plane.height(),

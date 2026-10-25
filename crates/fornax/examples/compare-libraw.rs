@@ -4,7 +4,7 @@ use std::path::Path;
 mod native;
 
 use fornax::decoder::{IRawDecoder, LibRawDecoder};
-use fornax::{BayerPattern, F32Plane, RgbImageF32, demosaic};
+use fornax::{BayerPattern, LumaImage, RgbImage, demosaic};
 use image::{ImageBuffer, Luma, Rgb};
 use native::{ColorData, ImageSizes, LibRawContext, UnpackedRawImageKind};
 
@@ -315,7 +315,7 @@ fn crop_gray(
         .ok_or_else(|| example_error("cropped grayscale buffer is inconsistent"))
 }
 
-fn f32_plane_to_u16(plane: &F32Plane) -> mischief::Result<Gray16> {
+fn f32_plane_to_u16(plane: &LumaImage) -> mischief::Result<Gray16> {
     let (width, height) = plane.dimensions();
     let samples = plane
         .as_raw()
@@ -326,7 +326,7 @@ fn f32_plane_to_u16(plane: &F32Plane) -> mischief::Result<Gray16> {
         .ok_or_else(|| example_error("f32 plane dimensions are inconsistent"))
 }
 
-fn raw_f32_plane_to_u16(plane: &F32Plane) -> mischief::Result<Gray16> {
+fn raw_f32_plane_to_u16(plane: &LumaImage) -> mischief::Result<Gray16> {
     let (width, height) = plane.dimensions();
     let samples = plane
         .as_raw()
@@ -337,7 +337,7 @@ fn raw_f32_plane_to_u16(plane: &F32Plane) -> mischief::Result<Gray16> {
         .ok_or_else(|| example_error("raw f32 plane dimensions are inconsistent"))
 }
 
-fn rgb_f32_to_u16(image: &RgbImageF32) -> Rgb16 {
+fn rgb_f32_to_u16(image: &RgbImage) -> Rgb16 {
     let samples = image
         .as_raw()
         .iter()

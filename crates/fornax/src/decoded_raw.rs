@@ -23,24 +23,10 @@ impl DecodedRaw {
 
     pub fn into_parts(self) -> (RawImage, Metadata) { (self.image, self.metadata) }
 
-    pub fn preprocess(self) -> Result<(RawImage, ProcessedMetadata), PreprocessError> {
+    pub fn preprocess(self) -> Result<(RawImage, Metadata), PreprocessError> {
         let Self { image, metadata } = self;
-        let area = metadata.preprocess.active_area;
-        let full_pattern = metadata.preprocess.cfa.bayer_pattern;
         let image = preprocess(image, &metadata.preprocess)?;
-        let demosaic = DemosaicMetadata {
-            active_area: area,
-            bayer_pattern: full_pattern.shift(area.y, area.x),
-        };
-        Ok((
-            image,
-            ProcessedMetadata {
-                decoder: metadata.decoder,
-                demosaic,
-                postprocess: metadata.postprocess,
-                extra: metadata.extra,
-            },
-        ))
+        Ok((image, metadata))
     }
 }
 
