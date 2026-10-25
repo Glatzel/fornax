@@ -15,3 +15,18 @@ where
 pub enum Demosaicer {
     Linear,
 }
+
+// impl Demosaicer {
+//     fn demosaic<T>(
+//         &self,
+//         bayer_image: &fornax_core::BayerImage<T>,
+//     ) -> image::ImageBuffer<image::Rgb<T>, Vec<T>>
+//     where
+//         T: FornaxPrimitive,
+//     {
+//         todo!()
+        // if width == 0 || height == 0 {
+        //     return img;
+        // }
+//     }
+// }

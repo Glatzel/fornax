@@ -192,13 +192,6 @@ where
         let (width, height) = mosaic.dimensions();
         let mut img: ImageBuffer<Rgb<T>, Vec<T>> = ImageBuffer::new(width, height);
 
-        clerk::debug!("Start demosaicing.");
-
-        if width == 0 || height == 0 {
-            clerk::debug!("End demosaicing.");
-            return img;
-        }
-
         let raw: &[T] = mosaic.as_raw();
         let (w, h) = (width as usize, height as usize);
         let row_stride = w * 3;
@@ -264,7 +257,6 @@ where
                 }
             });
 
-        clerk::debug!("End demosaicing.");
         img
     }
 }
