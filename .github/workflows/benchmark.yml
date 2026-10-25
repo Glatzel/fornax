@@ -24,4 +24,4 @@ jobs:
         env:
           LD_LIBRARY_PATH: ./.pixi/envs/default/lib
         with:
-          options: -p fornax-dalim
+          options: -p fornax
