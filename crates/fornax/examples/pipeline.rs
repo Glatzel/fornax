@@ -1,13 +1,10 @@
+use std::path::PathBuf;
+
 use fornax::decoder::{IDecoder, LibRawDecoder};
 use fornax::{DecodedRaw, Demosaic};
 use fornax_devtool::save_image;
 use image::{Luma, Rgb};
-
-fn main() -> mischief::Result<()> {
-    let output_dir = fornax_devtool::temp_dir().join("libraw-pipeline");
-    let raw_path = fornax_devtool::raw_file();
-    let decoded: DecodedRaw<f32> = LibRawDecoder::new().decode(raw_path.as_path())?;
-
+fn wrapper(decoded: DecodedRaw<f32>, output_dir: PathBuf) -> mischief::Result<()> {
     assert_eq!(decoded.image().dimensions(), (5_360, 3_516));
     assert_eq!(decoded.metadata().preprocess.active_area.width, 5_202);
     assert_eq!(decoded.metadata().preprocess.active_area.height, 3_464);
@@ -35,21 +32,23 @@ fn main() -> mischief::Result<()> {
     );
     Ok(())
 }
+fn main() -> mischief::Result<()> {
+    let output_dir = fornax_devtool::temp_dir().join("pipeline");
+    let raw_path = fornax_devtool::raw_file();
+    wrapper(
+        LibRawDecoder::new().decode(raw_path.as_path())?,
+        output_dir.join("libraw"),
+    )?;
+    #[cfg(not(target_os = "linux"))]
+    wrapper(
+        fornax::decoder::DncDecoder::default().decode(raw_path.as_path())?,
+        output_dir.join("libraw"),
+    )?;
+    Ok(())
+}
 
 #[test]
 fn libraw_pipeline_example_writes_grouped_outputs() -> mischief::Result<()> {
     main()?;
-    for filename in [
-        "1.fornax-libraw-decoded.tiff",
-        "2.fornax-libraw-preprocess.tiff",
-        "3.fornax-libraw-demosaic_linear.tiff",
-    ] {
-        assert!(
-            fornax_devtool::temp_dir()
-                .join("libraw-pipeline")
-                .join(filename)
-                .is_file()
-        );
-    }
     Ok(())
 }

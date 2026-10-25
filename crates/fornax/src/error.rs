@@ -18,5 +18,7 @@ pub enum DecodeError {
     Backend(Box<str>),
     #[error(transparent)]
     InvalidOutput(#[from] RawValidationError),
+      #[error("{0}")]
+    Other(Box<str>)
 }
 

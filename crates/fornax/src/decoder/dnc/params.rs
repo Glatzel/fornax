@@ -1,7 +1,6 @@
 use core::fmt::Display;
 use std::path::{self, Path, PathBuf};
 
-use crate::DncError;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum DncPreview {
@@ -124,7 +123,7 @@ pub struct DncParams {
     pub overwrite: bool,
 }
 impl DncParams {
-    pub fn to_cmd(&self, raw_file: &Path) -> Result<Vec<String>, DncError> {
+    pub fn to_cmd(&self, raw_file: &Path) -> Vec<String> {
         let mut cmd: Vec<String> = Vec::new();
 
         if self.compressed {
@@ -154,7 +153,7 @@ impl DncParams {
 
         cmd.push("-d".to_string());
         if let Some(directory) = &self.directory {
-            std::fs::create_dir_all(directory)?;
+            std::fs::create_dir_all(directory).unwrap();
             cmd.push(path::absolute(directory).unwrap().into_string().unwrap());
         } else {
             // Default to raw file directory
@@ -181,7 +180,7 @@ impl DncParams {
             );
         }
         cmd.push(raw_file.to_string_lossy().to_string());
-        Ok(cmd)
+        cmd
     }
 }
 impl Default for DncParams {

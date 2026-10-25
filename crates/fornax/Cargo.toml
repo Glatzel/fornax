@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+clerk.workspace = true
 envoy = { workspace = true, optional = true }
 generic-num.workspace = true
 image.workspace = true
@@ -21,6 +22,7 @@ mischief.workspace = true
 rand.workspace = true
 
 [features]
-default = ["backend-libraw"]
+default = ["backend-dnc", "backend-libraw"]
+backend-dnc = ["backend-libraw"]
 backend-libraw = ["dep:libraw-sys", "envoy", "num_enum"]
 serde = ["dep:serde"]

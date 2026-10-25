@@ -279,6 +279,8 @@ fn metadata(
 
 fn levels(color: &ColorData) -> Result<LevelsMetadata, DecodeError> {
     if color.cblack[4] != 0 || color.cblack[5] != 0 {
+        dbg!(color.black);
+        dbg!(color.cblack);
         return Err(DecodeError::Unsupported(
             "spatial LibRaw black-level tiles are unsupported".into(),
         ));
