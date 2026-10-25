@@ -1,5 +1,5 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use fornax::{BayerPattern, IDemosaic, Primitive};
+use fornax::{BayerPattern, Demosaic, IDemosaic, LumaImage, Primitive};
 use rand::rngs::StdRng;
 use rand::{RngExt, SeedableRng};
 
@@ -9,7 +9,7 @@ where
     T: Primitive,
 {
     c.bench_function(name, |b| {
-        b.iter(|| method.demosaic(black_box(image), black_box(BayerPattern::RGGB)))
+        b.iter(|| method.demosaic(black_box(&image), black_box(BayerPattern::RGGB)))
     });
 }
 fn benches(c: &mut Criterion) {
@@ -17,11 +17,8 @@ fn benches(c: &mut Criterion) {
     let buf: Vec<f32> = (0..1920 * 1080)
         .map(|_| rng.random_range(0.0..1.0))
         .collect();
-    let image = LumaImage::<f32>::new(
-        image::ImageBuffer::from_vec(1920, 1080, buf).unwrap(),
-        BayerPattern::RGGB,
-    );
-    bench_methods::<_, f32>(c, "linear", DemosaicLinear, image.clone());
+    let image = image::ImageBuffer::from_vec(1920, 1080, buf).unwrap();
+    bench_methods::<_, f32>(c, "linear", Demosaic::Linear, image.clone());
 }
 criterion_group!(benches_group, benches);
 criterion_main!(benches_group);

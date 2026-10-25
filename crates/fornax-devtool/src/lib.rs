@@ -28,3 +28,9 @@ pub fn get_example_exe(name: &str) -> PathBuf {
     }
     exe
 }
+pub fn temp_dir() -> PathBuf { root_dir().join("temp") }
+pub fn prepare_output_dir(subfolder: &str) -> std::io::Result<PathBuf> {
+    let outdir = temp_dir().join(subfolder);
+    std::fs::create_dir_all(&outdir)?;
+    Ok(outdir)
+}

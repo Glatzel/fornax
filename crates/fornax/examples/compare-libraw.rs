@@ -3,8 +3,7 @@ use std::path::Path;
 #[path = "../src/decoder/libraw/native.rs"]
 mod native;
 
-use fornax::decoder::{IRawDecoder, LibRawDecoder};
-use fornax::{BayerPattern, LumaImage, RgbImage, demosaic};
+use fornax::{BayerPattern, LumaImage, RgbImage, decoder::LibRawDecoder};
 use image::{ImageBuffer, Luma, Rgb};
 use native::{ColorData, ImageSizes, LibRawContext, UnpackedRawImageKind};
 
@@ -12,8 +11,8 @@ type Gray16 = ImageBuffer<Luma<u16>, Vec<u16>>;
 type Rgb16 = ImageBuffer<Rgb<u16>, Vec<u16>>;
 
 fn main() -> mischief::Result<()> {
-    let libraw_dir = fornax_devtool::prepare_output_dir("compare-libraw", "libraw")?;
-    let fornax_dir = fornax_devtool::prepare_output_dir("compare-libraw", "fornax")?;
+    let libraw_dir = fornax_devtool::prepare_output_dir("compare-libraw")?;
+    let fornax_dir = fornax_devtool::prepare_output_dir("compare-libraw")?;
     let raw_path = fornax_devtool::raw_file();
 
     println!("running decoded RAW comparison");

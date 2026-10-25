@@ -20,6 +20,6 @@ where
     where
         D: IDemosaic<T>,
     {
-        algorithm.demosaic(self.into_image(), pattern)
+        algorithm.demosaic(self.image(), pattern)
     }
 }

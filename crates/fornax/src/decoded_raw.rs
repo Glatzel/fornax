@@ -25,7 +25,7 @@ where
 
     pub fn into_parts(self) -> (LumaImage<T>, Metadata) { (self.image, self.metadata) }
 
-    pub fn preprocess(self) -> RawImage<T> {
+    pub fn preprocess(self) -> (RawImage<T>, Metadata) {
         let Self { image, metadata } = self;
 
         let area = metadata.preprocess.active_area;
@@ -78,6 +78,6 @@ where
         let normalized = ImageBuffer::from_raw(width, height, out)
             .expect("pixel count matches image dimensions");
 
-        RawImage::new(normalized)
+        (RawImage::new(normalized), metadata)
     }
 }

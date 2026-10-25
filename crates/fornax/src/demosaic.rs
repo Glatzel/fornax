@@ -7,7 +7,7 @@ pub trait IDemosaic<T>
 where
     T: Primitive,
 {
-    fn demosaic(&self, bayer_image: LumaImage<T>, pattern: BayerPattern) -> RgbImage<T>;
+    fn demosaic(&self, bayer_image: &LumaImage<T>, pattern: BayerPattern) -> RgbImage<T>;
 }
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -18,7 +18,7 @@ impl<T> IDemosaic<T> for Demosaic
 where
     T: Primitive,
 {
-    fn demosaic(&self, bayer_image: LumaImage<T>, pattern: BayerPattern) -> RgbImage<T>
+    fn demosaic(&self, bayer_image: &LumaImage<T>, pattern: BayerPattern) -> RgbImage<T>
     where
         T: Primitive,
     {

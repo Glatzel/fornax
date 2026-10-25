@@ -1,25 +1,24 @@
-
 use std::path::Path;
 
-use fornax::decoder::{IRawDecoder, LibRawDecoder};
-use fornax::{LumaImage, RgbImage, demosaic};
+use fornax::decoder::{IDecoder, LibRawDecoder};
+use fornax::{DecodedRaw, LumaImage, RgbImage};
 use image::{ImageBuffer, Luma, Rgb};
 
 fn main() -> mischief::Result<()> {
-    let output_dir = fornax_devtool::prepare_output_dir("libraw-pipeline", "fornax")?;
+    let output_dir = fornax_devtool::prepare_output_dir("libraw-pipeline")?;
     let raw_path = fornax_devtool::raw_file();
-    let decoded = LibRawDecoder::new().decode(raw_path.as_path())?;
+    let decoded: DecodedRaw<f32> = LibRawDecoder::new().decode(raw_path.as_path())?;
 
-    assert_eq!(decoded.image().full_image().dimensions(), (5_360, 3_516));
+    assert_eq!(decoded.image().dimensions(), (5_360, 3_516));
     assert_eq!(decoded.metadata().preprocess.active_area.width, 5_202);
     assert_eq!(decoded.metadata().preprocess.active_area.height, 3_464);
     let decoded_path = output_dir.join("fornax-libraw-decoded.tiff");
-    save_f32_gray(decoded.image().full_image(), &decoded_path)?;
+    save_f32_gray(decoded.image(), &decoded_path)?;
 
-    let (processed, metadata) = decoded.preprocess()?;
-    assert_eq!(processed.full_image().dimensions(), (5_360, 3_516));
+    let (processed, metadata) = decoded.preprocess();
+    assert_eq!(processed.image().dimensions(), (5_360, 3_516));
     let preprocessed_path = output_dir.join("fornax-libraw-preprocess.tiff");
-    save_f32_gray(processed.full_image(), &preprocessed_path)?;
+    save_f32_gray(processed.image(), &preprocessed_path)?;
 
     let mosaic = processed.cropped(metadata.demosaic.active_area)?;
     let demosaiced = demosaic(mosaic, metadata.demosaic.bayer_pattern);

@@ -669,11 +669,14 @@ name = "fornax"
 version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
+ "envoy",
  "fornax-devtool",
  "generic-num",
  "image",
+ "libraw-sys",
  "mischief",
  "num-traits",
+ "num_enum",
  "rand 0.10.3",
  "rayon",
  "serde",

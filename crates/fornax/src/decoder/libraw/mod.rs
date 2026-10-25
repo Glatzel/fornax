@@ -3,19 +3,21 @@ mod native;
 use std::collections::HashMap;
 use std::path::Path;
 
+use generic_num::num;
 use image::math::Rect;
 use native::{
     CaptureData, ColorData, ImageParameters, ImageSizes, LibRawContext, LibRawError,
     LibRawErrorCode, UnpackedRawImage, UnpackedRawImageKind,
 };
 
-use super::IRawDecoder;
+use super::IDecoder;
+use crate::error::{DecodeError, RawValidationError};
 use crate::metadata::{
     BlackLevels, CaptureMetadata, CfaMetadata, ColorMatrixMetadata, DecoderMetadata, DefaultCrop,
     ExtraMetadata, LevelsMetadata, Metadata, MetadataValue, PostprocessMetadata,
     PreprocessMetadata, VendorMetadata, WhiteBalanceMetadata, WhiteLevels,
 };
-use crate::{BayerPattern, DecodeError, DecodedRaw, RawImage, RawValidationError};
+use crate::{BayerPattern, DecodedRaw, LumaImage, Primitive};
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct LibRawDecoder;
@@ -24,8 +26,11 @@ impl LibRawDecoder {
     pub const fn new() -> Self { Self }
 }
 
-impl IRawDecoder<Path> for LibRawDecoder {
-    fn decode(&self, input: &Path) -> Result<DecodedRaw, DecodeError> {
+impl<T> IDecoder<Path, T> for LibRawDecoder
+where
+    T: Primitive,
+{
+    fn decode(&self, input: &Path) -> Result<DecodedRaw<T>, DecodeError> {
         let mut context = LibRawContext::new().map_err(translate_libraw_error)?;
         context.open_file(input).map_err(translate_libraw_error)?;
         context.unpack().map_err(translate_libraw_error)?;
@@ -33,8 +38,11 @@ impl IRawDecoder<Path> for LibRawDecoder {
     }
 }
 
-impl IRawDecoder<[u8]> for LibRawDecoder {
-    fn decode(&self, input: &[u8]) -> Result<DecodedRaw, DecodeError> {
+impl<T> IDecoder<[u8], T> for LibRawDecoder
+where
+    T: Primitive,
+{
+    fn decode(&self, input: &[u8]) -> Result<DecodedRaw<T>, DecodeError> {
         let mut context = LibRawContext::new().map_err(translate_libraw_error)?;
         context.open_buffer(input).map_err(translate_libraw_error)?;
         context.unpack().map_err(translate_libraw_error)?;
@@ -42,7 +50,10 @@ impl IRawDecoder<[u8]> for LibRawDecoder {
     }
 }
 
-fn decode_context(context: &LibRawContext) -> Result<DecodedRaw, DecodeError> {
+fn decode_context<T>(context: &LibRawContext) -> Result<DecodedRaw<T>, DecodeError>
+where
+    T: Primitive,
+{
     let sizes = context.image_sizes();
     let parameters = context.parameters().map_err(translate_libraw_error)?;
     let color = context.color_data();
@@ -52,7 +63,7 @@ fn decode_context(context: &LibRawContext) -> Result<DecodedRaw, DecodeError> {
     let pattern = bayer_pattern(parameters.filters)?;
     let image = raw_image(context, &sizes)?;
     let metadata = metadata(context, &sizes, &parameters, &color, capture, pattern)?;
-    DecodedRaw::try_new(image, metadata).map_err(DecodeError::InvalidOutput)
+    Ok(DecodedRaw::new(image, metadata))
 }
 
 fn validate_layout(parameters: &ImageParameters) -> Result<(), DecodeError> {
@@ -104,7 +115,9 @@ fn bayer_pattern(filters: u32) -> Result<BayerPattern, DecodeError> {
                 "non-mosaic RAW is unsupported".into(),
             ));
         }
-        1 => return Err(DecodeError::Unsupported("16x16 CFA is unsupported".into())),
+        1 => {
+            return Err(DecodeError::Unsupported("16x16 CFA is unsupported".into()));
+        }
         9 => {
             return Err(DecodeError::Unsupported(
                 "X-Trans CFA is unsupported".into(),
@@ -118,27 +131,18 @@ fn bayer_pattern(filters: u32) -> Result<BayerPattern, DecodeError> {
         _ => {}
     }
 
-    let codes = [0, 1, 2, 3].map(|slot| filter_code(filters, slot >> 1, slot & 1));
-    for row in 0..8 {
-        for column in 0..2 {
-            let expected = codes[((row & 1) * 2 + column) as usize];
-            if filter_code(filters, row, column) != expected {
-                return Err(DecodeError::Unsupported(
-                    format!("LibRaw CFA is not a repeating 2x2 Bayer tile: {filters:#x}").into(),
-                ));
-            }
-        }
-    }
-    BayerPattern::from_codes(codes).ok_or_else(|| {
-        DecodeError::Unsupported( 
-            format!("LibRaw CFA is not conventional RGB Bayer: {filters:#x}").into(),
-        )
-    })
-}
+    // LibRaw COLOR(row, column) uses two bits per CFA color.
+    let color = |row: u32, col: u32| -> u32 { (filters >> (((row << 1) & 14) + col) * 2) & 3 };
 
-const fn filter_code(filters: u32, row: u32, column: u32) -> u8 {
-    let index = ((row & 7) * 2 + (column & 1)) * 2;
-    ((filters >> index) & 0b11) as u8
+    match (color(0, 0), color(0, 1), color(1, 0), color(1, 1)) {
+        (0, 1, 3, 2) => Ok(BayerPattern::RGGB),
+        (2, 3, 1, 0) => Ok(BayerPattern::BGGR),
+        (1, 0, 2, 3) => Ok(BayerPattern::GRBG),
+        (3, 2, 0, 1) => Ok(BayerPattern::GBRG),
+        _ => Err(DecodeError::Unsupported(
+            format!("unsupported LibRaw CFA pattern {filters:#010x}").into(),
+        )),
+    }
 }
 
 fn active_area(sizes: &ImageSizes) -> Rect {
@@ -150,7 +154,10 @@ fn active_area(sizes: &ImageSizes) -> Rect {
     }
 }
 
-fn raw_image(context: &LibRawContext, sizes: &ImageSizes) -> Result<RawImage, DecodeError> {
+fn raw_image<T>(context: &LibRawContext, sizes: &ImageSizes) -> Result<LumaImage<T>, DecodeError>
+where
+    T: Primitive,
+{
     let raw = context
         .unpacked_raw_image()
         .map_err(translate_libraw_error)?;
@@ -181,30 +188,33 @@ fn raw_image(context: &LibRawContext, sizes: &ImageSizes) -> Result<RawImage, De
 
     let plane = image::ImageBuffer::from_raw(sizes.raw_width, sizes.raw_height, samples)
         .ok_or(DecodeError::InvalidOutput(RawValidationError::InvalidImage))?;
-    RawImage::try_new(plane).map_err(DecodeError::InvalidOutput)
+    Ok(plane)
 }
 
-fn copy_integer_rows(
-    raw: &UnpackedRawImage<'_>,
-    samples: &mut Vec<f32>,
-) -> Result<(), DecodeError> {
+fn copy_integer_rows<T>(raw: &UnpackedRawImage<'_>, samples: &mut Vec<T>) -> Result<(), DecodeError>
+where
+    T: Primitive,
+{
     for row in 0..raw.raw_height() {
         let source = raw
             .integer_row(row)
             .map_err(translate_libraw_error)?
             .ok_or_else(|| DecodeError::Backend("LibRaw raw_image disappeared".into()))?;
-        samples.extend(source.iter().map(|sample| f32::from(*sample)));
+        samples.extend(source.iter().map(|sample| num!(*sample)));
     }
     Ok(())
 }
 
-fn copy_float_rows(raw: &UnpackedRawImage<'_>, samples: &mut Vec<f32>) -> Result<(), DecodeError> {
+fn copy_float_rows<T>(raw: &UnpackedRawImage<'_>, samples: &mut Vec<T>) -> Result<(), DecodeError>
+where
+    T: Primitive,
+{
     for row in 0..raw.raw_height() {
         let source = raw
             .float_row(row)
             .map_err(translate_libraw_error)?
             .ok_or_else(|| DecodeError::Backend("LibRaw float_image disappeared".into()))?;
-        samples.extend_from_slice(source);
+        samples.extend(source.iter().map(|sample| num!(*sample)));
     }
     Ok(())
 }
@@ -430,10 +440,10 @@ mod tests {
     #[test]
     fn recognizes_every_conventional_bayer_phase() {
         for (tile, pattern) in [
-            ([0, 1, 3, 2], BayerPattern::Rggb),
-            ([2, 3, 1, 0], BayerPattern::Bggr),
-            ([1, 0, 2, 3], BayerPattern::Grbg),
-            ([3, 2, 0, 1], BayerPattern::Gbrg),
+            ([0, 1, 3, 2], BayerPattern::RGGB),
+            ([2, 3, 1, 0], BayerPattern::BGGR),
+            ([1, 0, 2, 3], BayerPattern::GRBG),
+            ([3, 2, 0, 1], BayerPattern::GBRG),
         ] {
             assert_eq!(bayer_pattern(encode_filters(tile)).unwrap(), pattern);
         }
