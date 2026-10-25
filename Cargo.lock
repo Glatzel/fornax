@@ -650,6 +650,7 @@ version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
  "fornax-devtool",
+ "generic-num",
  "image",
  "mischief",
  "rayon",
@@ -700,6 +701,11 @@ dependencies = [
  "pin-project-lite",
  "slab",
 ]
+
+[[package]]
+name = "generic-num"
+version = "2026.10.11"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.10.11#787c33708712713ad9bc149180291950decab039"
 
 [[package]]
 name = "getrandom"

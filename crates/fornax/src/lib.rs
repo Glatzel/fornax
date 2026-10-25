@@ -8,7 +8,7 @@ pub mod metadata;
 mod primitive;
 mod raw_image;
 
-pub use bayer::{BayerChannel, BayerImage, BayerPattern};
+pub use bayer::{BayerChannel, BayerPattern};
 pub use decoded_raw::DecodedRaw;
 pub use decoder::IDecoder;
 pub use demosaic::{Demosaic, IDemosaic};

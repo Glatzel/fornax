@@ -9,14 +9,15 @@ edition = "2024"
 [workspace.dependencies]
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
+generic-num = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 image = { git = "https://github.com/Glatzel/image-rs" }
 mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
+dnc = { path = "./crates/dnc" }
 fornax = { path = "./crates/fornax" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
-dnc = { path = "./crates/dnc" }
 
 bindgen = "0.73.2"
 bytemuck = "1.25.2"

@@ -1,7 +1,4 @@
-use image::math::Rect;
-use image::{GenericImageView, SubImage};
-
-use crate::alias::{BayerImage, LumaImage};
+use crate::alias::{LumaImage, RgbImage};
 use crate::{BayerPattern, IDemosaic, Primitive};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -17,15 +14,12 @@ where
     T: Primitive,
 {
     pub fn new(plane: LumaImage<T>) -> Self { Self { plane } }
-    pub fn image<'a>(&'a self, active_area: Rect) -> BayerImage<'a, T> {
-        self.plane.view(active_area)
-    }
-    pub const fn full_image(&self) -> &LumaImage<T> { &self.plane }
-    pub fn into_full_image(self) -> LumaImage<T> { self.plane }
-    pub fn demosaic<D>(&self, algorithm: D, pattern: BayerPattern, active_area: Rect)
+    pub fn image(&self) -> &LumaImage<T> { &self.plane }
+    pub fn into_image(self) -> LumaImage<T> { self.plane }
+    pub fn demosaic<D>(self, algorithm: &D, pattern: BayerPattern) -> RgbImage<T>
     where
         D: IDemosaic<T>,
     {
-        algorithm.demosaic(self.image(active_area), pattern)
+        algorithm.demosaic(self.into_image(), pattern)
     }
 }

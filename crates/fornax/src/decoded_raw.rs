@@ -1,64 +1,84 @@
-use crate::RawImage;
+use rayon::prelude::*;
+
+use crate::alias::LumaImage;
 use crate::error::{PreprocessError, RawValidationError};
 use crate::metadata::{LevelsMetadata, Metadata, PreprocessMetadata, WhiteLevels};
-
+use crate::{Primitive, RawImage};
 #[derive(Clone, Debug, PartialEq)]
-pub struct DecodedRaw {
-    image: RawImage,
+pub struct DecodedRaw<T>
+where
+    T: Primitive,
+{
+    image: LumaImage<T>,
     metadata: Metadata,
 }
 
-impl DecodedRaw {
-    pub fn try_new(image: RawImage, metadata: Metadata) -> Result<Self, RawValidationError> {
-        image
-            .cropped(metadata.preprocess.active_area)
-            .map_err(|_| RawValidationError::InvalidImage)?;
-        Ok(Self { image, metadata })
-    }
+impl<T> DecodedRaw<T>
+where
+    T: Primitive,
+{
+    pub fn new(image: LumaImage<T>, metadata: Metadata) -> Self { Self { image, metadata } }
 
-    pub const fn image(&self) -> &RawImage { &self.image }
+    pub const fn image(&self) -> &LumaImage<T> { &self.image }
 
     pub const fn metadata(&self) -> &Metadata { &self.metadata }
 
-    pub fn into_parts(self) -> (RawImage, Metadata) { (self.image, self.metadata) }
+    pub fn into_parts(self) -> (LumaImage<T>, Metadata) { (self.image, self.metadata) }
 
-    pub fn preprocess(self) -> Result<(RawImage, Metadata), PreprocessError> {
+    pub fn preprocess(self) -> RawImage<T> {
         let Self { image, metadata } = self;
-        let image = preprocess(image, &metadata.preprocess)?;
-        Ok((image, metadata))
-    }
-}
 
-fn preprocess(image: RawImage, metadata: &PreprocessMetadata) -> Result<RawImage, PreprocessError> {
-    image
-        .cropped(metadata.active_area)
-        .map_err(|_| PreprocessError::InvalidActiveArea)?;
-    let ranges = level_ranges(&metadata.levels)?;
-    let codes = metadata.cfa.bayer_pattern.codes();
-    let width = image.full_image().width() as usize;
-    let mut plane = image.into_full_image();
-    for (index, sample) in plane.as_mut().iter_mut().enumerate() {
-        let row = index / width;
-        let column = index % width;
-        let code = codes[(row & 1) * 2 + (column & 1)] as usize;
-        let (black, range) = ranges[code];
-        *sample = ((f64::from(*sample) - black) / range).clamp(0.0, 1.0) as f32;
-    }
-    RawImage::try_new(plane).map_err(PreprocessError::InvalidImage)
-}
+        let area = metadata.preprocess.active_area;
+        let left = area.x;
+        let top = area.y;
+        let width = area.width;
+        let height = area.height;
 
-fn level_ranges(levels: &LevelsMetadata) -> Result<[(f64, f64); 4], PreprocessError> {
-    let mut ranges = [(0.0, 0.0); 4];
-    for (code, range) in ranges.iter_mut().enumerate() {
-        let black = f64::from(levels.black.common) + f64::from(levels.black.per_slot[code]);
-        let white = match levels.white {
-            WhiteLevels::Uniform(white) => f64::from(white),
-            WhiteLevels::PerSlot(white) => f64::from(white[code]),
+        let pattern = metadata.preprocess.cfa.bayer_pattern;
+        let black = metadata.preprocess.levels.black;
+        let white = metadata.preprocess.levels.white;
+
+        let cropped = image::imageops::crop_imm(&image, left, top, width, height).to_image();
+
+        let pixels = cropped.into_raw();
+
+        let white_at = |slot: usize| -> u32 {
+            match white {
+                WhiteLevels::Uniform(value) => value,
+                WhiteLevels::PerSlot(values) => values[slot],
+            }
         };
-        if !white.is_finite() || white <= black {
-            return Err(PreprocessError::InvalidLevelRange);
-        }
-        *range = (black, white - black);
+
+        let pixels: Vec<T> = pixels
+            .into_par_iter()
+            .enumerate()
+            .map(|(index, pixel)| {
+                let x = index as u32 % width;
+                let y = index as u32 / width;
+
+                // CFA slot in the original, uncropped sensor image.
+                let slot = ((x + left) & 1) as usize + (((y + top) & 1) as usize * 2);
+
+                let black_level = black.common.saturating_add(black.per_slot[slot]);
+                let white_level = white_at(slot);
+
+                let pixel = T::from(pixel).unwrap_or_else(T::zero);
+                let black_level = T::from(black_level).unwrap_or_else(T::zero);
+                let white_level = T::from(white_level).unwrap_or_else(T::zero);
+
+                let range = white_level - black_level;
+
+                if range <= T::zero() {
+                    T::zero()
+                } else {
+                    ((pixel - black_level) / range).max(T::zero())
+                }
+            })
+            .collect();
+
+        let normalized = ImageBuffer::from_raw(width, height, pixels)
+            .expect("pixel count matches image dimensions");
+
+        RawImage::new(normalized)
     }
-    Ok(ranges)
 }

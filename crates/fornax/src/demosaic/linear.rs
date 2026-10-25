@@ -1,7 +1,8 @@
-use image::{GenericImageView, ImageBuffer, Rgb};
+use generic_num::num;
+use image::{ImageBuffer, Rgb};
 use rayon::prelude::*;
 
-use crate::alias::{BayerImage, RgbImage};
+use crate::alias::{LumaImage, RgbImage};
 use crate::{BayerChannel, BayerPattern, Primitive};
 
 /// Output rows handed to each rayon task.
@@ -19,7 +20,7 @@ const fn idx(width: u32, x: u32, y: u32) -> usize { y as usize * width as usize 
 
 fn diagonal_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
-    let mut sum = T::from(0).unwrap();
+    let mut sum = T::zero();
     if x > 0 && y > 0 {
         sum = sum + raw[idx(width, x - 1, y - 1)];
         count += 1;
@@ -36,12 +37,12 @@ fn diagonal_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y:
         sum = sum + raw[idx(width, x + 1, y + 1)];
         count += 1;
     }
-    sum / T::from(count.max(1)).unwrap()
+    sum / num!(count.max(1))
 }
 
 fn neighbour_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
-    let mut sum = T::from(0).unwrap();
+    let mut sum = T::zero();
     if x > 0 {
         sum = sum + raw[idx(width, x - 1, y)];
         count += 1;
@@ -58,12 +59,12 @@ fn neighbour_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y
         sum = sum + raw[idx(width, x, y + 1)];
         count += 1;
     }
-    sum / T::from(count.max(1)).unwrap()
+    sum / num!(count.max(1))
 }
 
 fn left_right_checked<T: Primitive>(raw: &[T], width: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
-    let mut sum = T::from(0).unwrap();
+    let mut sum = T::zero();
     if x > 0 {
         sum = sum + raw[idx(width, x - 1, y)];
         count += 1;
@@ -72,12 +73,12 @@ fn left_right_checked<T: Primitive>(raw: &[T], width: u32, x: u32, y: u32) -> T 
         sum = sum + raw[idx(width, x + 1, y)];
         count += 1;
     }
-    sum / T::from(count.max(1)).unwrap()
+    sum / num!(count.max(1))
 }
 
 fn top_down_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
-    let mut sum = T::from(0).unwrap();
+    let mut sum = T::zero();
     if y > 0 {
         sum = sum + raw[idx(width, x, y - 1)];
         count += 1;
@@ -86,7 +87,7 @@ fn top_down_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y:
         sum = sum + raw[idx(width, x, y + 1)];
         count += 1;
     }
-    sum / T::from(count.max(1)).unwrap()
+    sum / num!(count.max(1))
 }
 
 #[inline(always)]
@@ -132,8 +133,8 @@ fn write_pixel_checked<T: Primitive>(
 /// `p`, `c`, `n` are the previous, current and next mosaic rows.
 #[inline(always)]
 fn interior_px<T: Primitive, const CH: u8>(p: &[T], c: &[T], n: &[T], x: usize, out: &mut [T]) {
-    let two = T::from(2).unwrap();
-    let four = T::from(4).unwrap();
+    let two = num!(2);
+    let four = num!(4);
     let (l, r, t, b) = (c[x - 1], c[x + 1], p[x], n[x]);
     let ctr = c[x];
     let rgb = match CH {
@@ -182,11 +183,11 @@ impl<T> super::IDemosaic<T> for DemosaicLinear
 where
     T: Primitive,
 {
-    fn demosaic(&self, bayer_image: BayerImage<'_, T>, pattern: BayerPattern) -> RgbImage<T> {
+    fn demosaic(&self, bayer_image: LumaImage<T>, pattern: BayerPattern) -> RgbImage<T> {
         let (width, height) = bayer_image.dimensions();
         let mut img: ImageBuffer<Rgb<T>, Vec<T>> = ImageBuffer::new(width, height);
 
-        let raw: &[T] = bayer_image.pixels();
+        let raw: &[T] = bayer_image.as_raw();
         let (w, h) = (width as usize, height as usize);
         let row_stride = w * 3;
         let raw_out: &mut [T] = &mut img;
@@ -257,9 +258,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use image::math::Rect;
-
-use super::*;
+    use super::*;
     use crate::demosaic::IDemosaic;
 
     #[test]
@@ -271,7 +270,7 @@ use super::*;
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(bayer_image.view(Rect{ x: 0, y: 0, width: 3, height: 3 }), BayerPattern::RGGB);
+        let output_img = DemosaicLinear.demosaic(bayer_image, BayerPattern::RGGB);
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
@@ -311,7 +310,7 @@ use super::*;
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(bayer_image.view(Rect{ x: 0, y: 0, width: 3, height: 3 }), BayerPattern::BGGR);
+        let output_img = DemosaicLinear.demosaic(bayer_image, BayerPattern::BGGR);
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
@@ -351,7 +350,7 @@ use super::*;
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(bayer_image.view(Rect{ x: 0, y: 0, width: 3, height: 3 }), BayerPattern::GRBG);
+        let output_img = DemosaicLinear.demosaic(bayer_image, BayerPattern::GRBG);
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
@@ -391,7 +390,7 @@ use super::*;
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(bayer_image.view(Rect{ x: 0, y: 0, width: 3, height: 3 }), BayerPattern::GBRG);
+        let output_img = DemosaicLinear.demosaic(bayer_image, BayerPattern::GBRG);
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)

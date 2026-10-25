@@ -8,6 +8,7 @@ image.workspace = true
 thiserror.workspace = true
 serde = { workspace = true, optional = true }
 rayon.workspace = true
+generic-num.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
