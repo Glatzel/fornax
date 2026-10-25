@@ -1,51 +1,65 @@
+
 use image::math::Rect;
 
-use crate::{BayerPattern, Primitive};
+use crate::{BayerPattern, MonoImage, Primitive};
 
 #[derive(Clone, Debug)]
 pub struct Metadata<T>
 where
     T: Primitive,
 {
-    /// Usable sensor area, relative to the full decoded image.
+    /// Usable sensor area.
+    ///
+    /// DNG reference: `ActiveArea` (tag 50829).
     pub active_area: Rect,
 
-    /// Recommended output crop, relative to the active area.
-    pub default_crop: Rect,
+    pub black_levels: BlackLevels<T>,
 
-    pub levels: Levels<T>,
+    /// Sensor saturation levels.
+    ///
+    /// DNG reference: `WhiteLevel` (tag 50717).
+    pub white_levels: WhiteLevels,
+
+    /// Color filter array pattern.
+    ///
+    /// DNG reference: `CFAPattern` (tag 33422).
     pub bayer_pattern: BayerPattern,
 }
 
-#[derive(Clone, Debug)]
-pub struct Levels<T>
+#[derive(Clone, Debug, Default)]
+pub struct BlackLevels<T>
 where
     T: Primitive,
 {
-    /// Repeating black-level pattern.
-    pub black: BlackLevel<T>,
+    /// Common black-level offset.
+    ///
+    /// DNG reference: baseline values in `BlackLevel` (tag 50714).
+    pub common: T,
 
-    /// Per-column black-level adjustments.
-    pub black_delta_h: Option<Vec<T>>,
+    /// Black-level offsets for the four Bayer slots.
+    ///
+    /// DNG reference: `BlackLevelRepeatDim` (tag 50713) and
+    /// `BlackLevel` (tag 50714), when the repeating pattern is 2 × 2.
+    pub per_slot: [T; 4],
 
-    /// Per-row black-level adjustments.
-    pub black_delta_v: Option<Vec<T>>,
-
-    /// White level for single-sample Bayer RAW.
-    pub white: T,
+    /// Spatial black-level correction map.
+    ///
+    /// DNG reference: `BlackLevel` (tag 50714) for a general repeating
+    /// pattern, or `BlackLevelDeltaH` (tag 50715) and
+    /// `BlackLevelDeltaV` (tag 50716) for per-column and per-row deltas.
+    pub spatial: Option<MonoImage<T>>,
 }
 
-#[derive(Clone, Debug)]
-pub struct BlackLevel<T>
-where
-    T: Primitive,
-{
-    /// Number of rows in the repeating pattern.
-    pub rows: u32,
+#[derive(Clone, Copy, Debug)]
+pub enum WhiteLevels {
+    /// One white level for the image.
+    ///
+    /// DNG reference: `WhiteLevel` (tag 50717).
+    Uniform(u32),
 
-    /// Number of columns in the repeating pattern.
-    pub cols: u32,
-
-    /// Pattern values in row-major order.
-    pub values: Vec<T>,
+    /// White levels for the four Bayer slots.
+    ///
+    /// DNG reference: `WhiteLevel` (tag 50717), represented per CFA slot
+    /// by this API rather than as a DNG-defined Bayer-specific structure.
+    PerSlot([u32; 4]),
 }
