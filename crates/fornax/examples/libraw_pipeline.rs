@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use fornax::decoder::{IDecoder, LibRawDecoder};
-use fornax::{DecodedRaw, LumaImage, RgbImage};
+use fornax::{DecodedRaw, Demosaic, LumaImage, RgbImage};
 use image::{ImageBuffer, Luma, Rgb};
 
 fn main() -> mischief::Result<()> {
@@ -20,8 +20,7 @@ fn main() -> mischief::Result<()> {
     let preprocessed_path = output_dir.join("fornax-libraw-preprocess.tiff");
     save_f32_gray(processed.image(), &preprocessed_path)?;
 
-    let mosaic = processed.cropped(metadata.demosaic.active_area)?;
-    let demosaiced = demosaic(mosaic, metadata.demosaic.bayer_pattern);
+    let demosaiced = processed.demosaic(&Demosaic::Linear, metadata.preprocess.cfa.bayer_pattern);
     assert_eq!(demosaiced.dimensions(), (5_202, 3_464));
     let demosaiced_path = output_dir.join("fornax-libraw-demosaic_linear.tiff");
     save_f32_rgb(&demosaiced, &demosaiced_path)?;
@@ -37,7 +36,7 @@ fn main() -> mischief::Result<()> {
     Ok(())
 }
 
-fn save_f32_gray(plane: &LumaImage, path: &Path) -> mischief::Result<()> {
+fn save_f32_gray(plane: &LumaImage<f32>, path: &Path) -> mischief::Result<()> {
     let (width, height) = plane.dimensions();
     ImageBuffer::<Luma<u16>, Vec<u16>>::from_raw(
         width,
@@ -53,7 +52,7 @@ fn save_f32_gray(plane: &LumaImage, path: &Path) -> mischief::Result<()> {
     Ok(())
 }
 
-fn save_f32_rgb(plane: &RgbImage, path: &Path) -> mischief::Result<()> {
+fn save_f32_rgb(plane: &RgbImage<f32>, path: &Path) -> mischief::Result<()> {
     ImageBuffer::<Rgb<u16>, Vec<u16>>::from_raw(
         plane.width(),
         plane.height(),

@@ -3,7 +3,9 @@ use std::path::Path;
 #[path = "../src/decoder/libraw/native.rs"]
 mod native;
 
-use fornax::{BayerPattern, LumaImage, RgbImage, decoder::LibRawDecoder};
+use fornax::Demosaic::Linear;
+use fornax::decoder::{IDecoder, LibRawDecoder};
+use fornax::{BayerPattern, LumaImage, RgbImage};
 use image::{ImageBuffer, Luma, Rgb};
 use native::{ColorData, ImageSizes, LibRawContext, UnpackedRawImageKind};
 
@@ -45,7 +47,7 @@ fn compare_decoded(libraw_dir: &Path, fornax_dir: &Path, raw_path: &Path) -> mis
         color.rgb_cam
     );
     assert!(!metadata.extra.is_empty());
-    let fornax = raw_f32_plane_to_u16(decoded.image().full_image())?;
+    let fornax = raw_f32_plane_to_u16(decoded.image())?;
 
     pure.save(libraw_dir.join("decoded.tiff"))?;
     fornax.save(fornax_dir.join("decoded.tiff"))?;
@@ -74,9 +76,9 @@ fn compare_preprocessed(
     let parameters = context.parameters()?;
     let pure = normalized_reference(&context, &sizes, &color, parameters.filters)?;
 
-    let (processed, metadata) = LibRawDecoder::new().decode(raw_path)?.preprocess()?;
+    let (processed, metadata) = LibRawDecoder::new().decode(raw_path)?.preprocess();
     assert!(!metadata.decoder.backend.is_empty());
-    let fornax = f32_plane_to_u16(processed.full_image())?;
+    let fornax = f32_plane_to_u16(processed.image())?;
     pure.save(libraw_dir.join("preprocess.tiff"))?;
     fornax.save(fornax_dir.join("preprocess.tiff"))?;
     let stats = diff_stats(abs_diff_gray(&pure, &fornax)?.as_raw());
@@ -102,8 +104,8 @@ fn compare_demosaiced(
     context.dcraw_process_neutral()?;
     let pure = context.make_processed_image()?.rgb16_image()?;
 
-    let (processed, metadata) = LibRawDecoder::new().decode(raw_path)?.preprocess()?;
-    let normalized = f32_plane_to_u16(processed.full_image())?;
+    let (processed, metadata) = LibRawDecoder::new().decode(raw_path)?.preprocess();
+    let normalized = f32_plane_to_u16(processed.image())?;
     let mosaic = crop_gray(
         &normalized,
         sizes.left_margin,
@@ -113,8 +115,7 @@ fn compare_demosaiced(
     )?;
     let tile = cfa_tile(parameters.filters)?;
     let scale = derive_libraw_scale(&pure, &mosaic, tile)?;
-    let mosaic_view = processed.cropped(metadata.demosaic.active_area)?;
-    let output = demosaic(mosaic_view, metadata.demosaic.bayer_pattern);
+    let output = processed.demosaic(&Linear, metadata.preprocess.cfa.bayer_pattern);
     let fornax = rgb_f32_to_u16(&output);
 
     pure.save(libraw_dir.join("demosaic_linear.tiff"))?;
@@ -137,7 +138,7 @@ fn compare_demosaiced(
         stats.rms
     );
     assert_eq!(
-        metadata.demosaic.bayer_pattern,
+        metadata.preprocess.cfa.bayer_pattern,
         active_pattern(parameters.filters, &sizes)?
     );
     Ok(())
@@ -230,10 +231,10 @@ fn active_pattern(filters: u32, sizes: &ImageSizes) -> mischief::Result<BayerPat
         code(top + 1, left),
         code(top + 1, left + 1),
     ) {
-        (0, 1, 3, 2) => Ok(BayerPattern::Rggb),
-        (2, 3, 1, 0) => Ok(BayerPattern::Bggr),
-        (1, 0, 2, 3) => Ok(BayerPattern::Grbg),
-        (3, 2, 0, 1) => Ok(BayerPattern::Gbrg),
+        (0, 1, 3, 2) => Ok(BayerPattern::RGGB),
+        (2, 3, 1, 0) => Ok(BayerPattern::BGGR),
+        (1, 0, 2, 3) => Ok(BayerPattern::GRBG),
+        (3, 2, 0, 1) => Ok(BayerPattern::GBRG),
         _ => Err(example_error("active-area Bayer pattern is unsupported")),
     }
 }
@@ -314,7 +315,7 @@ fn crop_gray(
         .ok_or_else(|| example_error("cropped grayscale buffer is inconsistent"))
 }
 
-fn f32_plane_to_u16(plane: &LumaImage) -> mischief::Result<Gray16> {
+fn f32_plane_to_u16(plane: &LumaImage<f32>) -> mischief::Result<Gray16> {
     let (width, height) = plane.dimensions();
     let samples = plane
         .as_raw()
@@ -325,7 +326,7 @@ fn f32_plane_to_u16(plane: &LumaImage) -> mischief::Result<Gray16> {
         .ok_or_else(|| example_error("f32 plane dimensions are inconsistent"))
 }
 
-fn raw_f32_plane_to_u16(plane: &LumaImage) -> mischief::Result<Gray16> {
+fn raw_f32_plane_to_u16(plane: &LumaImage<f32>) -> mischief::Result<Gray16> {
     let (width, height) = plane.dimensions();
     let samples = plane
         .as_raw()
@@ -336,7 +337,7 @@ fn raw_f32_plane_to_u16(plane: &LumaImage) -> mischief::Result<Gray16> {
         .ok_or_else(|| example_error("raw f32 plane dimensions are inconsistent"))
 }
 
-fn rgb_f32_to_u16(image: &RgbImage) -> Rgb16 {
+fn rgb_f32_to_u16(image: &RgbImage<f32>) -> Rgb16 {
     let samples = image
         .as_raw()
         .iter()
