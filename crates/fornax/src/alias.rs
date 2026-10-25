@@ -1,4 +1,4 @@
-use image::{ImageBuffer, Luma, Rgb};
+use image::{ImageBuffer, Luma, Rgb, SubImage};
 
 use crate::Primitive;
 
@@ -11,3 +11,8 @@ pub type LumaImage<T>
 where
     T: Primitive,
 = ImageBuffer<Luma<T>, Vec<T>>;
+
+pub type BayerImage<'a, T>
+where
+    T: Primitive,
+= SubImage<&'a LumaImage<T>>;

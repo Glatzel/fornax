@@ -1,7 +1,5 @@
 use core::fmt::Display;
 
-use image::Luma;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum BayerChannel {
@@ -101,62 +99,6 @@ impl Display for BayerPattern {
             Self::GBRG => "GBRG",
         };
         f.write_str(text)
-    }
-}
-
-/// A raw Bayer mosaic together with its [`BayerPattern`].
-///
-/// The mosaic is a single-channel (`Luma`) image where each pixel holds the
-/// sample of the colour channel the pattern assigns to that position.
-///
-/// # Type Parameters
-/// - `T`: the sample type (e.g. `u16`, `f32`); must implement
-///   [`FornaxPrimitive`](crate::FornaxPrimitive).
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct BayerImage<T>
-where
-    T: crate::Primitive,
-{
-    bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>,
-    pattern: BayerPattern,
-}
-impl<T> BayerImage<T>
-where
-    T: crate::Primitive,
-{
-    /// Creates a new `BayerImage` from raw mosaic data and its pattern.
-    pub const fn new(
-        bayer_image: image::ImageBuffer<Luma<T>, Vec<T>>,
-        pattern: BayerPattern,
-    ) -> Self {
-        Self {
-            bayer_image,
-            pattern,
-        }
-    }
-
-    /// The raw mosaic.
-    pub const fn mosaic(&self) -> &image::ImageBuffer<Luma<T>, Vec<T>> { &self.bayer_image }
-
-    /// The pattern describing how channels are laid out in the mosaic.
-    pub const fn pattern(&self) -> &BayerPattern { &self.pattern }
-
-    /// Width in pixels.
-    pub fn width(&self) -> u32 { self.bayer_image.width() }
-
-    /// Height in pixels.
-    pub fn height(&self) -> u32 { self.bayer_image.height() }
-
-    /// `(width, height)` in pixels.
-    pub fn dimensions(&self) -> (u32, u32) { self.bayer_image.dimensions() }
-
-    /// The channel at pixel `(x, y)`.
-    #[inline(always)]
-    pub const fn channel_at(&self, x: u32, y: u32) -> BayerChannel { self.pattern.channel_at(x, y) }
-
-    /// Splits the image back into its mosaic and pattern.
-    pub fn into_parts(self) -> (image::ImageBuffer<Luma<T>, Vec<T>>, BayerPattern) {
-        (self.bayer_image, self.pattern)
     }
 }
 

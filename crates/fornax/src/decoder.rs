@@ -1,4 +1,4 @@
-use crate::error::DecodeError;
+use crate::{DecodedRaw, error::DecodeError};
 
 pub trait IDecoder<I: ?Sized>: Send + Sync {
     fn decode(&self, input: &I) -> Result<DecodedRaw, DecodeError>;

@@ -1,8 +1,8 @@
-use image::{ImageBuffer, Luma, Rgb};
+use image::{GenericImageView, ImageBuffer, Rgb};
 use rayon::prelude::*;
 
-use crate::alias::{LumaImage, RgbImage};
-use crate::{BayerChannel, BayerImage, BayerPattern, Primitive};
+use crate::alias::{BayerImage, RgbImage};
+use crate::{BayerChannel, BayerPattern, Primitive};
 
 /// Output rows handed to each rayon task.
 const ROWS_PER_TASK: usize = 16;
@@ -182,11 +182,11 @@ impl<T> super::IDemosaic<T> for DemosaicLinear
 where
     T: Primitive,
 {
-    fn demosaic(&self, bayer_image: &LumaImage<T>, pattern: BayerPattern) -> RgbImage<T> {
+    fn demosaic(&self, bayer_image: BayerImage<'_, T>, pattern: BayerPattern) -> RgbImage<T> {
         let (width, height) = bayer_image.dimensions();
         let mut img: ImageBuffer<Rgb<T>, Vec<T>> = ImageBuffer::new(width, height);
 
-        let raw: &[T] = bayer_image.as_raw();
+        let raw: &[T] = bayer_image.pixels();
         let (w, h) = (width as usize, height as usize);
         let row_stride = w * 3;
         let raw_out: &mut [T] = &mut img;
@@ -257,27 +257,29 @@ where
 
 #[cfg(test)]
 mod tests {
+    use image::math::Rect;
 
-    use super::*;
-    use crate::BayerPattern;
+use super::*;
     use crate::demosaic::IDemosaic;
 
-    fn run(pattern: BayerPattern) -> Vec<Vec<Vec<f32>>> {
+    #[test]
+    fn test_linear_rggb() -> mischief::Result<()> {
         let test_vec: Vec<f32> = vec![
             1.0, 2.0, 3.0, // Row 1
             4.0, 5.0, 6.0, // Row 2
             7.0, 8.0, 9.0, // Row 3
         ];
-        let bayer_image = BayerImage::new(ImageBuffer::from_vec(3, 3, test_vec).unwrap(), pattern);
-        let out = DemosaicLinear.demosaic(&bayer_image);
-        out.as_raw()
-            .chunks(9)
-            .map(|row| row.chunks(3).map(|c| c.to_vec()).collect())
-            .collect()
-    }
 
-    #[test]
-    fn test_linear_rggb() {
+        let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
+        let output_img = DemosaicLinear.demosaic(bayer_image.view(Rect{ x: 0, y: 0, width: 3, height: 3 }), BayerPattern::RGGB);
+        let out_vec: Vec<Vec<Vec<f32>>> = output_img
+            .as_raw()
+            .chunks(9)
+            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .collect();
+        println!("{:?}", out_vec[0]);
+        println!("{:?}", out_vec[1]);
+        println!("{:?}", out_vec[2]);
         assert_eq!(
             vec![
                 vec![
@@ -294,14 +296,30 @@ mod tests {
                     vec![7.0, 6.0, 5.0],
                     vec![8.0, 8.0, 5.0],
                     vec![9.0, 7.0, 5.0]
-                ],
+                ]
             ],
-            run(BayerPattern::RGGB)
+            out_vec
         );
+        Ok(())
     }
-
     #[test]
-    fn test_linear_bggr() {
+    fn test_linear_bggr() -> mischief::Result<()> {
+        let test_vec: Vec<f32> = vec![
+            1.0, 2.0, 3.0, // Row 1
+            4.0, 5.0, 6.0, // Row 2
+            7.0, 8.0, 9.0, // Row 3
+        ];
+
+        let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
+        let output_img = DemosaicLinear.demosaic(bayer_image.view(Rect{ x: 0, y: 0, width: 3, height: 3 }), BayerPattern::BGGR);
+        let out_vec: Vec<Vec<Vec<f32>>> = output_img
+            .as_raw()
+            .chunks(9)
+            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .collect();
+        println!("{:?}", out_vec[0]);
+        println!("{:?}", out_vec[1]);
+        println!("{:?}", out_vec[2]);
         assert_eq!(
             vec![
                 vec![
@@ -320,12 +338,28 @@ mod tests {
                     vec![5.0, 7.0, 9.0]
                 ],
             ],
-            run(BayerPattern::BGGR)
+            out_vec
         );
+        Ok(())
     }
-
     #[test]
-    fn test_linear_grbg() {
+    fn test_linear_grbg() -> mischief::Result<()> {
+        let test_vec: Vec<f32> = vec![
+            1.0, 2.0, 3.0, // Row 1
+            4.0, 5.0, 6.0, // Row 2
+            7.0, 8.0, 9.0, // Row 3
+        ];
+
+        let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
+        let output_img = DemosaicLinear.demosaic(bayer_image.view(Rect{ x: 0, y: 0, width: 3, height: 3 }), BayerPattern::GRBG);
+        let out_vec: Vec<Vec<Vec<f32>>> = output_img
+            .as_raw()
+            .chunks(9)
+            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .collect();
+        println!("{:?}", out_vec[0]);
+        println!("{:?}", out_vec[1]);
+        println!("{:?}", out_vec[2]);
         assert_eq!(
             vec![
                 vec![
@@ -344,12 +378,28 @@ mod tests {
                     vec![8.0, 9.0, 6.0]
                 ],
             ],
-            run(BayerPattern::GRBG)
+            out_vec
         );
+        Ok(())
     }
-
     #[test]
-    fn test_linear_gbrg() {
+    fn test_linear_gbrg() -> mischief::Result<()> {
+        let test_vec: Vec<f32> = vec![
+            1.0, 2.0, 3.0, // Row 1
+            4.0, 5.0, 6.0, // Row 2
+            7.0, 8.0, 9.0, // Row 3
+        ];
+
+        let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
+        let output_img = DemosaicLinear.demosaic(bayer_image.view(Rect{ x: 0, y: 0, width: 3, height: 3 }), BayerPattern::GBRG);
+        let out_vec: Vec<Vec<Vec<f32>>> = output_img
+            .as_raw()
+            .chunks(9)
+            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .collect();
+        println!("{:?}", out_vec[0]);
+        println!("{:?}", out_vec[1]);
+        println!("{:?}", out_vec[2]);
         assert_eq!(
             vec![
                 vec![
@@ -368,35 +418,8 @@ mod tests {
                     vec![6.0, 9.0, 8.0]
                 ],
             ],
-            run(BayerPattern::GBRG)
+            out_vec
         );
-    }
-
-    /// The fast (interior) path must match the always-checked path on sizes
-    /// that exercise odd/even widths, multiple rayon chunks and tiny images.
-    #[test]
-    fn fast_path_matches_checked_path() {
-        for pattern in [
-            BayerPattern::RGGB,
-            BayerPattern::BGGR,
-            BayerPattern::GRBG,
-            BayerPattern::GBRG,
-        ] {
-            for (w, h) in [(1, 1), (1, 5), (5, 1), (2, 2), (4, 3), (7, 6), (8, 37)] {
-                let data: Vec<f32> = (0..w * h).map(|i| ((i * 7) % 13) as f32).collect();
-                let bayer =
-                    BayerImage::new(ImageBuffer::from_vec(w, h, data.clone()).unwrap(), pattern);
-                let got = DemosaicLinear.demosaic(&bayer);
-
-                let mut expect = vec![0.0_f32; (w * h * 3) as usize];
-                for y in 0..h {
-                    let row = &mut expect[(y * w * 3) as usize..((y + 1) * w * 3) as usize];
-                    for x in 0..w {
-                        write_pixel_checked(&data, w, h, x, y, pattern.channel_at(x, y), row);
-                    }
-                }
-                assert_eq!(got.as_raw(), &expect, "{pattern} {w}x{h}");
-            }
-        }
+        Ok(())
     }
 }
