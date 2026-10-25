@@ -144,11 +144,11 @@ mod test {
 
         let value = libraw.get_cam_mul(BayerChannel::R)?;
         assert_eq!(2127.0, value);
-        let value = libraw.get_cam_mul(BayerChannel::G)?;
+        let value = libraw.get_cam_mul(BayerChannel::GRedRow)?;
         assert_eq!(1024.0, value);
         let value = libraw.get_cam_mul(BayerChannel::B)?;
         assert_eq!(1584.0, value);
-        let value = libraw.get_cam_mul(BayerChannel::G2)?;
+        let value = libraw.get_cam_mul(BayerChannel::GRedRow)?;
         assert_eq!(1024.0, value);
         Ok(())
     }
@@ -159,11 +159,11 @@ mod test {
 
         let value = libraw.get_pre_mul(BayerChannel::R)?;
         assert_approx_eq!(f32, 2.1848476, value);
-        let value = libraw.get_pre_mul(BayerChannel::G)?;
+        let value = libraw.get_pre_mul(BayerChannel::GRedRow)?;
         assert_approx_eq!(f32, 0.9358199, value);
         let value = libraw.get_pre_mul(BayerChannel::B)?;
         assert_approx_eq!(f32, 1.2567647, value);
-        let value = libraw.get_pre_mul(BayerChannel::G2)?;
+        let value = libraw.get_pre_mul(BayerChannel::GRedRow)?;
         assert_approx_eq!(f32, 0.0, value);
         Ok(())
     }
