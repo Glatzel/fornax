@@ -1,5 +1,7 @@
-use crate::metadata::{DemosaicMetadata, Metadata, ProcessedMetadata};
-use crate::{PreprocessError, RawImage, RawValidationError, preprocess};
+use crate::metadata::{
+    DemosaicMetadata, LevelsMetadata, Metadata, PreprocessMetadata, ProcessedMetadata, WhiteLevels,
+};
+use crate::{PreprocessError, RawImage, RawValidationError};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DecodedRaw {
@@ -25,7 +27,7 @@ impl DecodedRaw {
         let Self { image, metadata } = self;
         let area = metadata.preprocess.active_area;
         let full_pattern = metadata.preprocess.cfa.bayer_pattern;
-        let image = preprocess::preprocess(image, &metadata.preprocess)?;
+        let image = preprocess(image, &metadata.preprocess)?;
         let demosaic = DemosaicMetadata {
             active_area: area,
             bayer_pattern: full_pattern.shift(area.y, area.x),
@@ -40,6 +42,40 @@ impl DecodedRaw {
             },
         ))
     }
+}
+
+fn preprocess(image: RawImage, metadata: &PreprocessMetadata) -> Result<RawImage, PreprocessError> {
+    image
+        .cropped(metadata.active_area)
+        .map_err(|_| PreprocessError::InvalidActiveArea)?;
+    let ranges = level_ranges(&metadata.levels)?;
+    let codes = metadata.cfa.bayer_pattern.codes();
+    let width = image.full_image().width() as usize;
+    let mut plane = image.into_full_image();
+    for (index, sample) in plane.as_mut().iter_mut().enumerate() {
+        let row = index / width;
+        let column = index % width;
+        let code = codes[(row & 1) * 2 + (column & 1)] as usize;
+        let (black, range) = ranges[code];
+        *sample = ((f64::from(*sample) - black) / range).clamp(0.0, 1.0) as f32;
+    }
+    RawImage::try_new(plane).map_err(PreprocessError::InvalidImage)
+}
+
+fn level_ranges(levels: &LevelsMetadata) -> Result<[(f64, f64); 4], PreprocessError> {
+    let mut ranges = [(0.0, 0.0); 4];
+    for (code, range) in ranges.iter_mut().enumerate() {
+        let black = f64::from(levels.black.common) + f64::from(levels.black.per_slot[code]);
+        let white = match levels.white {
+            WhiteLevels::Uniform(white) => f64::from(white),
+            WhiteLevels::PerSlot(white) => f64::from(white[code]),
+        };
+        if !white.is_finite() || white <= black {
+            return Err(PreprocessError::InvalidLevelRange);
+        }
+        *range = (black, white - black);
+    }
+    Ok(ranges)
 }
 
 #[cfg(test)]
@@ -103,5 +139,45 @@ mod tests {
         let view = image.cropped(metadata.demosaic.active_area).unwrap();
         assert_eq!(view.dimensions(), (2, 2));
         assert_eq!(view.get_pixel(0, 0)[0], 0.25);
+    }
+
+    #[test]
+    fn preprocess_uses_each_bayer_slot_level() {
+        let mut metadata = metadata();
+        metadata.preprocess.levels.black.per_slot = [0, 1, 2, 3];
+        metadata.preprocess.levels.white = WhiteLevels::PerSlot([100, 101, 102, 103]);
+        let row0 = [50.0, 51.0, 50.0, 51.0];
+        let row1 = [53.0, 52.0, 53.0, 52.0];
+        let samples = [row0, row1, row0].concat();
+        let image = RawImage::try_new(ImageBuffer::from_raw(4, 3, samples).unwrap()).unwrap();
+        let (image, _) = DecodedRaw::try_new(image, metadata)
+            .unwrap()
+            .preprocess()
+            .unwrap();
+        for sample in image.full_image().as_raw() {
+            assert!((*sample - 0.5).abs() < 1e-6);
+        }
+    }
+
+    #[test]
+    fn preprocess_rejects_invalid_levels_and_crop() {
+        let mut invalid_levels = metadata();
+        invalid_levels.preprocess.levels.black.common = 10;
+        invalid_levels.preprocess.levels.white = WhiteLevels::Uniform(10);
+        let image = RawImage::try_new(ImageBuffer::from_raw(3, 3, vec![0.0; 9]).unwrap()).unwrap();
+        assert_eq!(
+            DecodedRaw::try_new(image, invalid_levels)
+                .unwrap()
+                .preprocess(),
+            Err(PreprocessError::InvalidLevelRange)
+        );
+
+        let mut invalid_crop = metadata();
+        invalid_crop.preprocess.active_area.width = 4;
+        let image = RawImage::try_new(ImageBuffer::from_raw(3, 3, vec![0.0; 9]).unwrap()).unwrap();
+        assert_eq!(
+            DecodedRaw::try_new(image, invalid_crop),
+            Err(RawValidationError::InvalidImage)
+        );
     }
 }
