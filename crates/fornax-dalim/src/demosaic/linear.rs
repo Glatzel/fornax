@@ -2,79 +2,20 @@ use fornax_core::{BayerChannel, BayerImage, FornaxPrimitive};
 use image::{ImageBuffer, Luma, Rgb};
 use rayon::prelude::*;
 
+/// Output rows handed to each rayon task.
+const ROWS_PER_TASK: usize = 16;
+
+// Channel ids usable as const-generic parameters.
+const CH_R: u8 = BayerChannel::R as u8;
+const CH_G: u8 = BayerChannel::GRedRow as u8;
+const CH_B: u8 = BayerChannel::B as u8;
+
 #[inline(always)]
 const fn idx(width: u32, x: u32, y: u32) -> usize { y as usize * width as usize + x as usize }
 
-// ---------- Fast path: caller guarantees (x-1, y-1)..=(x+1, y+1) is in bounds
-// ----------
-
-/// # Safety
-/// Caller must guarantee `x` is in `1..width-1` and `y` is in `1..height-1`.
-#[inline(always)]
-unsafe fn diagonal_fast<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
-where
-    T: FornaxPrimitive,
-{
-    unsafe {
-        let tl = *raw.get_unchecked(idx(width, x - 1, y - 1));
-        let tr = *raw.get_unchecked(idx(width, x + 1, y - 1));
-        let bl = *raw.get_unchecked(idx(width, x - 1, y + 1));
-        let br = *raw.get_unchecked(idx(width, x + 1, y + 1));
-
-        (tl + tr + bl + br) / T::from(4).unwrap()
-    }
-}
-
-/// # Safety
-/// Caller must guarantee `x` is in `1..width-1` and `y` is in `1..height-1`.
-#[inline(always)]
-unsafe fn neighbour_fast<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
-where
-    T: FornaxPrimitive,
-{
-    unsafe {
-        let l = *raw.get_unchecked(idx(width, x - 1, y));
-        let r = *raw.get_unchecked(idx(width, x + 1, y));
-        let t = *raw.get_unchecked(idx(width, x, y - 1));
-        let b = *raw.get_unchecked(idx(width, x, y + 1));
-        (l + r + t + b) / T::from(4).unwrap()
-    }
-}
-
-/// # Safety
-/// Caller must guarantee `x` is in `1..width-1`.
-#[inline(always)]
-unsafe fn left_right_fast<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
-where
-    T: FornaxPrimitive,
-{
-    unsafe {
-        let l = *raw.get_unchecked(idx(width, x - 1, y));
-        let r = *raw.get_unchecked(idx(width, x + 1, y));
-        (l + r) / T::from(2).unwrap()
-    }
-}
-
-/// # Safety
-/// Caller must guarantee `y` is in `1..height-1`.
-#[inline(always)]
-unsafe fn top_down_fast<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
-where
-    T: FornaxPrimitive,
-{
-    unsafe {
-        let t = *raw.get_unchecked(idx(width, x, y - 1));
-        let b = *raw.get_unchecked(idx(width, x, y + 1));
-        (t + b) / T::from(2).unwrap()
-    }
-}
-
 // ---------- Checked path: used only for border rows/columns ----------
 
-fn diagonal_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T
-where
-    T: FornaxPrimitive,
-{
+fn diagonal_checked<T: FornaxPrimitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
     let mut sum = T::from(0).unwrap();
     if x > 0 && y > 0 {
@@ -93,13 +34,10 @@ where
         sum = sum + raw[idx(width, x + 1, y + 1)];
         count += 1;
     }
-    sum / T::from(count).unwrap()
+    sum / T::from(count.max(1)).unwrap()
 }
 
-fn neighbour_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T
-where
-    T: FornaxPrimitive,
-{
+fn neighbour_checked<T: FornaxPrimitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
     let mut sum = T::from(0).unwrap();
     if x > 0 {
@@ -118,13 +56,10 @@ where
         sum = sum + raw[idx(width, x, y + 1)];
         count += 1;
     }
-    sum / T::from(count).unwrap()
+    sum / T::from(count.max(1)).unwrap()
 }
 
-fn left_right_checked<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
-where
-    T: FornaxPrimitive,
-{
+fn left_right_checked<T: FornaxPrimitive>(raw: &[T], width: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
     let mut sum = T::from(0).unwrap();
     if x > 0 {
@@ -135,13 +70,10 @@ where
         sum = sum + raw[idx(width, x + 1, y)];
         count += 1;
     }
-    sum / T::from(count).unwrap()
+    sum / T::from(count.max(1)).unwrap()
 }
 
-fn top_down_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T
-where
-    T: FornaxPrimitive,
-{
+fn top_down_checked<T: FornaxPrimitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
     let mut count = 0_u32;
     let mut sum = T::from(0).unwrap();
     if y > 0 {
@@ -152,53 +84,11 @@ where
         sum = sum + raw[idx(width, x, y + 1)];
         count += 1;
     }
-    sum / T::from(count).unwrap()
-}
-
-// ---------- Per-pixel dispatch ----------
-
-#[inline(always)]
-fn write_pixel_fast<T>(
-    raw_mosaic: &[T],
-    width: u32,
-    x: u32,
-    y: u32,
-    channel: BayerChannel,
-    out_row: &mut [T],
-) where
-    T: FornaxPrimitive,
-{
-    let o = x as usize * 3;
-    // SAFETY: caller only invokes this for x in 1..width-1, y in 1..height-1.
-    unsafe {
-        let centre = *raw_mosaic.get_unchecked(idx(width, x, y));
-        match channel {
-            BayerChannel::R => {
-                out_row[o] = centre;
-                out_row[o + 1] = neighbour_fast(raw_mosaic, width, x, y);
-                out_row[o + 2] = diagonal_fast(raw_mosaic, width, x, y);
-            }
-            BayerChannel::G => {
-                out_row[o] = left_right_fast(raw_mosaic, width, x, y);
-                out_row[o + 1] = centre;
-                out_row[o + 2] = top_down_fast(raw_mosaic, width, x, y);
-            }
-            BayerChannel::B => {
-                out_row[o] = diagonal_fast(raw_mosaic, width, x, y);
-                out_row[o + 1] = neighbour_fast(raw_mosaic, width, x, y);
-                out_row[o + 2] = centre;
-            }
-            BayerChannel::G2 => {
-                out_row[o] = top_down_fast(raw_mosaic, width, x, y);
-                out_row[o + 1] = centre;
-                out_row[o + 2] = left_right_fast(raw_mosaic, width, x, y);
-            }
-        }
-    }
+    sum / T::from(count.max(1)).unwrap()
 }
 
 #[inline(always)]
-fn write_pixel_checked<T>(
+fn write_pixel_checked<T: FornaxPrimitive>(
     raw_mosaic: &[T],
     width: u32,
     height: u32,
@@ -206,9 +96,7 @@ fn write_pixel_checked<T>(
     y: u32,
     channel: BayerChannel,
     out_row: &mut [T],
-) where
-    T: FornaxPrimitive,
-{
+) {
     let o = x as usize * 3;
     let centre = raw_mosaic[idx(width, x, y)];
     match channel {
@@ -217,7 +105,7 @@ fn write_pixel_checked<T>(
             out_row[o + 1] = neighbour_checked(raw_mosaic, width, height, x, y);
             out_row[o + 2] = diagonal_checked(raw_mosaic, width, height, x, y);
         }
-        BayerChannel::G => {
+        BayerChannel::GRedRow => {
             out_row[o] = left_right_checked(raw_mosaic, width, x, y);
             out_row[o + 1] = centre;
             out_row[o + 2] = top_down_checked(raw_mosaic, width, height, x, y);
@@ -227,11 +115,67 @@ fn write_pixel_checked<T>(
             out_row[o + 1] = neighbour_checked(raw_mosaic, width, height, x, y);
             out_row[o + 2] = centre;
         }
-        BayerChannel::G2 => {
+        BayerChannel::GBlueRow => {
             out_row[o] = top_down_checked(raw_mosaic, width, height, x, y);
             out_row[o + 1] = centre;
             out_row[o + 2] = left_right_checked(raw_mosaic, width, x, y);
         }
+    }
+}
+
+// ---------- Fast path: interior pixels, channel known at compile time
+// ----------
+
+/// Interpolates one interior pixel (`1 <= x < w-1`) of channel `CH`.
+/// `p`, `c`, `n` are the previous, current and next mosaic rows.
+#[inline(always)]
+fn interior_px<T: FornaxPrimitive, const CH: u8>(
+    p: &[T],
+    c: &[T],
+    n: &[T],
+    x: usize,
+    out: &mut [T],
+) {
+    let two = T::from(2).unwrap();
+    let four = T::from(4).unwrap();
+    let (l, r, t, b) = (c[x - 1], c[x + 1], p[x], n[x]);
+    let ctr = c[x];
+    let rgb = match CH {
+        CH_R | CH_B => {
+            let cross = (l + r + t + b) / four;
+            let diag = (p[x - 1] + p[x + 1] + n[x - 1] + n[x + 1]) / four;
+            if CH == CH_R {
+                [ctr, cross, diag]
+            } else {
+                [diag, cross, ctr]
+            }
+        }
+        CH_G => [(l + r) / two, ctr, (t + b) / two],
+        // G2
+        _ => [(t + b) / two, ctr, (l + r) / two],
+    };
+    out[x * 3..x * 3 + 3].copy_from_slice(&rgb);
+}
+
+/// Fills `x` in `1..w-1` of one row. `CE` / `CO` are the channels at even /
+/// odd `x`.
+#[inline(always)]
+fn interior_row<T: FornaxPrimitive, const CE: u8, const CO: u8>(
+    prev: &[T],
+    cur: &[T],
+    next: &[T],
+    out: &mut [T],
+) {
+    let w = cur.len();
+    assert!(prev.len() == w && next.len() == w && out.len() == 3 * w);
+    let mut x = 1; // odd -> CO, then even -> CE, ...
+    while x + 2 < w {
+        interior_px::<T, CO>(prev, cur, next, x, out);
+        interior_px::<T, CE>(prev, cur, next, x + 1, out);
+        x += 2;
+    }
+    if x + 1 < w {
+        interior_px::<T, CO>(prev, cur, next, x, out);
     }
 }
 
@@ -244,10 +188,9 @@ where
 {
     fn demosaic(&self, bayer_image: &BayerImage<T>) -> ImageBuffer<Rgb<T>, Vec<T>> {
         let mosaic: &ImageBuffer<Luma<T>, Vec<T>> = bayer_image.mosaic();
-        let pattern = bayer_image.pattern();
+        let pattern = *bayer_image.pattern();
         let (width, height) = mosaic.dimensions();
         let mut img: ImageBuffer<Rgb<T>, Vec<T>> = ImageBuffer::new(width, height);
-        let bayer_mask = pattern.as_mask();
 
         clerk::debug!("Start demosaicing.");
 
@@ -256,27 +199,67 @@ where
             return img;
         }
 
-        let raw_mosaic: &[T] = mosaic.as_raw();
-        let row_stride = width as usize * 3;
+        let raw: &[T] = mosaic.as_raw();
+        let (w, h) = (width as usize, height as usize);
+        let row_stride = w * 3;
         let raw_out: &mut [T] = &mut img;
 
         raw_out
-            .par_chunks_mut(row_stride)
+            .par_chunks_mut(row_stride * ROWS_PER_TASK)
             .enumerate()
-            .for_each(|(y, out_row)| {
-                let y = y as u32;
-                let is_border_row = y == 0 || y == height - 1;
+            .for_each(|(chunk_idx, chunk)| {
+                let y0 = chunk_idx * ROWS_PER_TASK;
+                for (dy, out) in chunk.chunks_exact_mut(row_stride).enumerate() {
+                    let y = y0 + dy;
+                    let yu = y as u32;
 
-                for x in 0..width {
-                    // `(x & 1) + 2 * (y & 1)` is this pixel's slot in the 2x2
-                    // Bayer tile.
-                    let channel =
-                        unsafe { *bayer_mask.get_unchecked(((x & 1) + 2 * (y & 1)) as usize) };
+                    // Border rows, and the first/last column of every row, use
+                    // the bounds-aware path.
+                    if y == 0 || y == h - 1 {
+                        for x in 0..width {
+                            let ch = pattern.channel_at(x, yu);
+                            write_pixel_checked(raw, width, height, x, yu, ch, out);
+                        }
+                        continue;
+                    }
 
-                    if is_border_row || x == 0 || x == width - 1 {
-                        write_pixel_checked(raw_mosaic, width, height, x, y, channel, out_row);
-                    } else {
-                        write_pixel_fast(raw_mosaic, width, x, y, channel, out_row);
+                    let prev = &raw[(y - 1) * w..y * w];
+                    let cur = &raw[y * w..(y + 1) * w];
+                    let next = &raw[(y + 1) * w..(y + 2) * w];
+
+                    // Channels at even / odd x are fixed for the whole row.
+                    match (pattern.channel_at(0, yu), pattern.channel_at(1, yu)) {
+                        (BayerChannel::R, BayerChannel::GRedRow) => {
+                            interior_row::<T, CH_R, CH_G>(prev, cur, next, out)
+                        }
+                        (BayerChannel::GRedRow, BayerChannel::R) => {
+                            interior_row::<T, CH_G, CH_R>(prev, cur, next, out)
+                        }
+                        (BayerChannel::GBlueRow, BayerChannel::B) => {
+                            interior_row::<T, { BayerChannel::GBlueRow as u8 }, CH_B>(
+                                prev, cur, next, out,
+                            )
+                        }
+                        (BayerChannel::B, BayerChannel::GBlueRow) => {
+                            interior_row::<T, CH_B, { BayerChannel::GBlueRow as u8 }>(
+                                prev, cur, next, out,
+                            )
+                        }
+                        _ => unreachable!("rows in a Bayer tile are always R/G or G/B"),
+                    }
+
+                    write_pixel_checked(raw, width, height, 0, yu, pattern.channel_at(0, yu), out);
+                    if width > 1 {
+                        let x = width - 1;
+                        write_pixel_checked(
+                            raw,
+                            width,
+                            height,
+                            x,
+                            yu,
+                            pattern.channel_at(x, yu),
+                            out,
+                        );
                     }
                 }
             });
@@ -285,33 +268,30 @@ where
         img
     }
 }
+
 #[cfg(test)]
 mod tests {
+    use fornax_core::BayerPattern;
+
     use super::*;
     use crate::demosaic::IDemosaic;
 
-    #[test]
-    fn test_linear_rggb() -> mischief::Result<()> {
+    fn run(pattern: BayerPattern) -> Vec<Vec<Vec<f32>>> {
         let test_vec: Vec<f32> = vec![
             1.0, 2.0, 3.0, // Row 1
             4.0, 5.0, 6.0, // Row 2
             7.0, 8.0, 9.0, // Row 3
         ];
-
-        let bayer_image = BayerImage::new(
-            ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
-            fornax_core::BayerPattern::RGGB,
-        );
-        let demosaicer = DemosaicLinear;
-        let output_img = demosaicer.demosaic(&bayer_image);
-        let out_vec: Vec<Vec<Vec<f32>>> = output_img
-            .as_raw()
+        let bayer_image = BayerImage::new(ImageBuffer::from_vec(3, 3, test_vec).unwrap(), pattern);
+        let out = DemosaicLinear.demosaic(&bayer_image);
+        out.as_raw()
             .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
-            .collect();
-        println!("{:?}", out_vec[0]);
-        println!("{:?}", out_vec[1]);
-        println!("{:?}", out_vec[2]);
+            .map(|row| row.chunks(3).map(|c| c.to_vec()).collect())
+            .collect()
+    }
+
+    #[test]
+    fn test_linear_rggb() {
         assert_eq!(
             vec![
                 vec![
@@ -328,34 +308,14 @@ mod tests {
                     vec![7.0, 6.0, 5.0],
                     vec![8.0, 8.0, 5.0],
                     vec![9.0, 7.0, 5.0]
-                ]
+                ],
             ],
-            out_vec
+            run(BayerPattern::RGGB)
         );
-        Ok(())
     }
-    #[test]
-    fn test_linear_bggr() -> mischief::Result<()> {
-        let test_vec: Vec<f32> = vec![
-            1.0, 2.0, 3.0, // Row 1
-            4.0, 5.0, 6.0, // Row 2
-            7.0, 8.0, 9.0, // Row 3
-        ];
 
-        let bayer_image = BayerImage::new(
-            ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
-            fornax_core::BayerPattern::BGGR,
-        );
-        let demosaicer = DemosaicLinear;
-        let output_img = demosaicer.demosaic(&bayer_image);
-        let out_vec: Vec<Vec<Vec<f32>>> = output_img
-            .as_raw()
-            .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
-            .collect();
-        println!("{:?}", out_vec[0]);
-        println!("{:?}", out_vec[1]);
-        println!("{:?}", out_vec[2]);
+    #[test]
+    fn test_linear_bggr() {
         assert_eq!(
             vec![
                 vec![
@@ -374,32 +334,12 @@ mod tests {
                     vec![5.0, 7.0, 9.0]
                 ],
             ],
-            out_vec
+            run(BayerPattern::BGGR)
         );
-        Ok(())
     }
-    #[test]
-    fn test_linear_grbg() -> mischief::Result<()> {
-        let test_vec: Vec<f32> = vec![
-            1.0, 2.0, 3.0, // Row 1
-            4.0, 5.0, 6.0, // Row 2
-            7.0, 8.0, 9.0, // Row 3
-        ];
 
-        let bayer_image = BayerImage::new(
-            ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
-            fornax_core::BayerPattern::GRBG,
-        );
-        let demosaicer = DemosaicLinear;
-        let output_img = demosaicer.demosaic(&bayer_image);
-        let out_vec: Vec<Vec<Vec<f32>>> = output_img
-            .as_raw()
-            .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
-            .collect();
-        println!("{:?}", out_vec[0]);
-        println!("{:?}", out_vec[1]);
-        println!("{:?}", out_vec[2]);
+    #[test]
+    fn test_linear_grbg() {
         assert_eq!(
             vec![
                 vec![
@@ -418,32 +358,12 @@ mod tests {
                     vec![8.0, 9.0, 6.0]
                 ],
             ],
-            out_vec
+            run(BayerPattern::GRBG)
         );
-        Ok(())
     }
-    #[test]
-    fn test_linear_gbrg() -> mischief::Result<()> {
-        let test_vec: Vec<f32> = vec![
-            1.0, 2.0, 3.0, // Row 1
-            4.0, 5.0, 6.0, // Row 2
-            7.0, 8.0, 9.0, // Row 3
-        ];
 
-        let bayer_image = BayerImage::new(
-            ImageBuffer::from_vec(3, 3, test_vec).unwrap(),
-            fornax_core::BayerPattern::GBRG,
-        );
-        let demosaicer = DemosaicLinear;
-        let output_img = demosaicer.demosaic(&bayer_image);
-        let out_vec: Vec<Vec<Vec<f32>>> = output_img
-            .as_raw()
-            .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
-            .collect();
-        println!("{:?}", out_vec[0]);
-        println!("{:?}", out_vec[1]);
-        println!("{:?}", out_vec[2]);
+    #[test]
+    fn test_linear_gbrg() {
         assert_eq!(
             vec![
                 vec![
@@ -462,8 +382,35 @@ mod tests {
                     vec![6.0, 9.0, 8.0]
                 ],
             ],
-            out_vec
+            run(BayerPattern::GBRG)
         );
-        Ok(())
+    }
+
+    /// The fast (interior) path must match the always-checked path on sizes
+    /// that exercise odd/even widths, multiple rayon chunks and tiny images.
+    #[test]
+    fn fast_path_matches_checked_path() {
+        for pattern in [
+            BayerPattern::RGGB,
+            BayerPattern::BGGR,
+            BayerPattern::GRBG,
+            BayerPattern::GBRG,
+        ] {
+            for (w, h) in [(1, 1), (1, 5), (5, 1), (2, 2), (4, 3), (7, 6), (8, 37)] {
+                let data: Vec<f32> = (0..w * h).map(|i| ((i * 7) % 13) as f32).collect();
+                let bayer =
+                    BayerImage::new(ImageBuffer::from_vec(w, h, data.clone()).unwrap(), pattern);
+                let got = DemosaicLinear.demosaic(&bayer);
+
+                let mut expect = vec![0.0_f32; (w * h * 3) as usize];
+                for y in 0..h {
+                    let row = &mut expect[(y * w * 3) as usize..((y + 1) * w * 3) as usize];
+                    for x in 0..w {
+                        write_pixel_checked(&data, w, h, x, y, pattern.channel_at(x, y), row);
+                    }
+                }
+                assert_eq!(got.as_raw(), &expect, "{pattern} {w}x{h}");
+            }
+        }
     }
 }
