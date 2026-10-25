@@ -2,7 +2,7 @@
 fn main() -> mischief::Result<()> { Ok(()) }
 #[cfg(not(target_os = "linux"))]
 fn main() -> mischief::Result<()> {
-    fornax_devtool::example_setup();
+    fornax_devtool::setup();
 
     default_path()?;
     custom_path()?;

@@ -1,21 +1,20 @@
-use crate::alias::{LumaImage, RgbImage};
-use crate::{BayerPattern, IDemosaic, Primitive};
+use crate::{BayerPattern, IDemosaic, MonoImage, Primitive, RgbImage};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct RawImage<T>
 where
     T: Primitive,
 {
-    plane: LumaImage<T>,
+    plane: MonoImage<T>,
 }
 
 impl<T> RawImage<T>
 where
     T: Primitive,
 {
-    pub fn new(plane: LumaImage<T>) -> Self { Self { plane } }
-    pub fn image(&self) -> &LumaImage<T> { &self.plane }
-    pub fn into_image(self) -> LumaImage<T> { self.plane }
+    pub fn new(plane: MonoImage<T>) -> Self { Self { plane } }
+    pub fn image(&self) -> &MonoImage<T> { &self.plane }
+    pub fn into_image(self) -> MonoImage<T> { self.plane }
     pub fn demosaic<D>(self, algorithm: &D, pattern: BayerPattern) -> RgbImage<T>
     where
         D: IDemosaic<T>,

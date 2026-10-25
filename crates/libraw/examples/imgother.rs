@@ -1,5 +1,5 @@
 fn main() -> mischief::Result<()> {
-    fornax_devtool::example_setup();
+    fornax_devtool::setup();
 
     let libraw = libraw::Libraw::default();
     let imgother = libraw

@@ -5,3 +5,7 @@ edition.workspace = true
 
 [dependencies]
 clerk = { workspace = true, features = ["tracing"] }
+image.workspace = true
+mischief.workspace = true
+generic-num.workspace = true
+num-traits.workspace = true

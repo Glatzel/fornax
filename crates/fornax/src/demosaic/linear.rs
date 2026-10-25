@@ -2,7 +2,7 @@ use generic_num::num;
 use image::{ImageBuffer, Rgb};
 use rayon::prelude::*;
 
-use crate::alias::{LumaImage, RgbImage};
+use crate::alias::{MonoImage, RgbImage};
 use crate::{BayerChannel, BayerPattern, Primitive};
 
 /// Output rows handed to each rayon task.
@@ -183,7 +183,7 @@ impl<T> super::IDemosaic<T> for DemosaicLinear
 where
     T: Primitive,
 {
-    fn demosaic(&self, bayer_image: &LumaImage<T>, pattern: BayerPattern) -> RgbImage<T> {
+    fn demosaic(&self, bayer_image: &MonoImage<T>, pattern: BayerPattern) -> RgbImage<T> {
         let (width, height) = bayer_image.dimensions();
         let mut img: ImageBuffer<Rgb<T>, Vec<T>> = ImageBuffer::new(width, height);
 

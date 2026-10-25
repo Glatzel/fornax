@@ -1,9 +1,9 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use fornax::{BayerPattern, Demosaic, IDemosaic, LumaImage, Primitive};
+use fornax::{BayerPattern, Demosaic, IDemosaic, MonoImage, Primitive};
 use rand::rngs::StdRng;
 use rand::{RngExt, SeedableRng};
 
-fn bench_methods<M, T>(c: &mut Criterion, name: &str, method: M, image: LumaImage<T>)
+fn bench_methods<M, T>(c: &mut Criterion, name: &str, method: M, image: MonoImage<T>)
 where
     M: IDemosaic<T>,
     T: Primitive,

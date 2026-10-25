@@ -17,7 +17,7 @@ use crate::metadata::{
     ExtraMetadata, LevelsMetadata, Metadata, MetadataValue, PostprocessMetadata,
     PreprocessMetadata, VendorMetadata, WhiteBalanceMetadata, WhiteLevels,
 };
-use crate::{BayerPattern, DecodedRaw, LumaImage, Primitive};
+use crate::{BayerPattern, DecodedRaw, MonoImage, Primitive};
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct LibRawDecoder;
@@ -154,7 +154,7 @@ fn active_area(sizes: &ImageSizes) -> Rect {
     }
 }
 
-fn raw_image<T>(context: &LibRawContext, sizes: &ImageSizes) -> Result<LumaImage<T>, DecodeError>
+fn raw_image<T>(context: &LibRawContext, sizes: &ImageSizes) -> Result<MonoImage<T>, DecodeError>
 where
     T: Primitive,
 {

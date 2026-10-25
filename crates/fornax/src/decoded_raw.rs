@@ -1,7 +1,7 @@
 use image::ImageBuffer;
 use rayon::prelude::*;
 
-use crate::alias::LumaImage;
+use crate::alias::MonoImage;
 use crate::metadata::{Metadata, WhiteLevels};
 use crate::{Primitive, RawImage};
 #[derive(Clone, Debug, PartialEq)]
@@ -9,7 +9,7 @@ pub struct DecodedRaw<T>
 where
     T: Primitive,
 {
-    image: LumaImage<T>,
+    image: MonoImage<T>,
     metadata: Metadata,
 }
 
@@ -17,13 +17,13 @@ impl<T> DecodedRaw<T>
 where
     T: Primitive,
 {
-    pub fn new(image: LumaImage<T>, metadata: Metadata) -> Self { Self { image, metadata } }
+    pub fn new(image: MonoImage<T>, metadata: Metadata) -> Self { Self { image, metadata } }
 
-    pub const fn image(&self) -> &LumaImage<T> { &self.image }
+    pub const fn image(&self) -> &MonoImage<T> { &self.image }
 
     pub const fn metadata(&self) -> &Metadata { &self.metadata }
 
-    pub fn into_parts(self) -> (LumaImage<T>, Metadata) { (self.image, self.metadata) }
+    pub fn into_parts(self) -> (MonoImage<T>, Metadata) { (self.image, self.metadata) }
 
     pub fn preprocess(self) -> (RawImage<T>, Metadata) {
         let Self { image, metadata } = self;
