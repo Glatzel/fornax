@@ -657,7 +657,6 @@ dependencies = [
 name = "fornax"
 version = "0.0.17"
 dependencies = [
- "clerk",
  "codspeed-criterion-compat",
  "fornax-core",
  "fornax-decoder-dnc",
@@ -668,7 +667,6 @@ dependencies = [
  "image",
  "libraw",
  "mischief",
- "num-traits",
  "rand 0.10.3",
  "rayon",
  "serde",
@@ -1155,7 +1153,6 @@ checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 name = "libraw"
 version = "0.0.17"
 dependencies = [
- "bytemuck",
  "clerk",
  "envoy",
  "float-cmp",

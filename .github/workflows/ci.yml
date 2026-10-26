@@ -47,30 +47,30 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      # - name: restore dnc
-      #   if: ${{runner.os != 'Linux'}}
-      #   uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      #   with:
-      #     path: ./temp/dnc${{env.dnc_version}}*
-      #     key: dnc-${{ runner.os }}-${{env.dnc_version}}
-      # - if: ${{runner.os != 'Linux'}}
-      #   run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
-      #   shell: pwsh
+      - name: restore dnc
+        if: ${{runner.os != 'Linux'}}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ./temp/dnc${{env.dnc_version}}*
+          key: dnc-${{ runner.os }}-${{env.dnc_version}}
+      - if: ${{runner.os != 'Linux'}}
+        run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
+        shell: pwsh
       - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         with:
           toolchain: nightly
           components: clippy
-      # - uses: Glatzel/template/.github/actions/rust/cargo-clippy@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
       - uses: Glatzel/template/.github/actions/rust/cargo-test@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         with:
-          global-options: --all-features -p fornax
-      # - name: build
-      #   run: |
-      #     ./scripts/maturin-develop.ps1
-      #   shell: pwsh
-      # - uses: Glatzel/template/.github/actions/python/pytest@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
-      #   with:
-      #     working-directory: ./crates/fornax-py
+          global-options: --all-features --workspace
+      - name: build
+        run: |
+          ./scripts/maturin-develop.ps1
+        shell: pwsh
+      - uses: Glatzel/template/.github/actions/python/pytest@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+        with:
+          working-directory: ./crates/fornax-py
       - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         if: ${{ !cancelled() }}
   check-point:
