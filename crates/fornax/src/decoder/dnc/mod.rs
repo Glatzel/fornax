@@ -5,7 +5,9 @@ use params::DncParams;
 
 use crate::decoder::IDecoder;
 use crate::error::DecodeError;
-use crate::{DecodedRaw, Primitive};
+use crate::metadata::Metadata;
+use crate::{DecodedRawFull, Primitive};
+
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let mut path = std::env::var("PATH").unwrap_or_default();
     #[cfg(target_os = "macos")]
@@ -16,6 +18,7 @@ static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     unsafe { std::env::set_var("PATH", &path) };
     PathBuf::from("Adobe DNG Converter")
 });
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DncDecoder {
     params: DncParams,
@@ -103,8 +106,16 @@ impl<T> IDecoder<Path, T> for DncDecoder
 where
     T: Primitive,
 {
-    fn decode(&self, input: &Path) -> Result<DecodedRaw<T>, DecodeError> {
+    fn decode_full(&self, input: &Path) -> Result<(DecodedRawFull<T>, Metadata<T>), DecodeError> {
         let dng_file = self.convert(input)?;
-        super::LibRawDecoder.decode(&dng_file as &Path)
+        super::LibRawDecoder.decode_full(&dng_file as &Path)
+    }
+
+    fn decode_active(
+        &self,
+        input: &Path,
+    ) -> Result<(crate::DecodedRawActive<T>, Metadata<T>), DecodeError> {
+        let dng_file = self.convert(input)?;
+        super::LibRawDecoder.decode_active(&dng_file as &Path)
     }
 }

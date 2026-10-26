@@ -10,7 +10,7 @@ mod raw_image;
 
 pub use alias::{MonoImage, RgbImage};
 pub use bayer::{BayerChannel, BayerPattern};
-pub use decoded_raw::DecodedRaw;
+pub use decoded_raw::{DecodedRawActive, DecodedRawFull};
 pub use demosaic::{Demosaic, IDemosaic};
 pub use primitive::Primitive;
 pub use raw_image::RawImage;
