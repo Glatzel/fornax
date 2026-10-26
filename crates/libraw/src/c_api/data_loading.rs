@@ -24,17 +24,22 @@ impl From<ProcFlag> for u8 {
 // https://www.libraw.org/docs/API-CXX.html#dataload
 impl Libraw {
     pub fn open_file(&self, fname: &Path) -> Result<&Self, LibrawError> {
-        check_run!(unsafe {
-            libraw_sys::libraw_open_file(
-                self.imgdata_ptr(),
-                fname.to_str().unwrap().to_cstring()?.as_ptr(),
-            )
-        });
+        let path = fname.to_str().ok_or_else(|| {
+            LibrawError::Other(format!("input path is not valid UTF-8: {}", fname.display()).into())
+        })?;
+        let path = path.to_cstring()?;
+        check_run!(unsafe { libraw_sys::libraw_open_file(self.imgdata_ptr(), path.as_ptr()) });
         Ok(self)
     }
-    fn _open_file_ex(&self) -> Result<&Self, LibrawError> { todo!() }
-    fn _open_wfile(&self) -> Result<&Self, LibrawError> { todo!() }
-    fn _openwfile_ex(&self) -> Result<&Self, LibrawError> { todo!() }
+    fn _open_file_ex(&self) -> Result<&Self, LibrawError> {
+        todo!()
+    }
+    fn _open_wfile(&self) -> Result<&Self, LibrawError> {
+        todo!()
+    }
+    fn _openwfile_ex(&self) -> Result<&Self, LibrawError> {
+        todo!()
+    }
 
     pub fn open_buffer(&self, buf: &[u8]) -> Result<&Self, LibrawError> {
         check_run!(unsafe {
@@ -95,7 +100,9 @@ impl Libraw {
         check_run!(unsafe { libraw_sys::libraw_unpack_thumb(self.imgdata_ptr()) });
         Ok(self)
     }
-    fn _unpack_thumb_ex(&self) -> Result<&Self, LibrawError> { todo!() }
+    fn _unpack_thumb_ex(&self) -> Result<&Self, LibrawError> {
+        todo!()
+    }
 }
 #[cfg(test)]
 mod test {
