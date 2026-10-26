@@ -1,7 +1,5 @@
-use std::slice;
-
-use fornax_core::{BayerPattern, MonoImage, Primitive};
-use image::ImageBuffer;
+use fornax_core::{BayerPattern, Primitive};
+use fornax_decoder_protocol::{DecodedRawActive, DecodedRawFull};
 
 use super::super::{Libraw, LibrawError};
 use super::error_handling::{check_run, custom_error};
@@ -14,7 +12,7 @@ impl Libraw {
             0 => {
                 custom_error!("non-mosaic RAW is unsupported");
             }
-            1 => {
+            1 => { 
                 custom_error!("16x16 CFA is unsupported");
             }
             9 => {
@@ -37,63 +35,17 @@ impl Libraw {
             _ => custom_error!("unsupported LibRaw CFA pattern {filters:#010x}"),
         }
     }
-    pub fn get_bayer_image<T>(&self) -> Result<MonoImage<T>, LibrawError>
+    pub fn get_decoded_raw_active<T>(&self) -> Result<DecodedRawActive<T>, LibrawError>
     where
-        T: Primitive + 'static,
+        T: Primitive,
     {
-        let raw_img = self.get_raw_image(true)?;
-        let img = ImageBuffer::from_par_fn(raw_img.width(), raw_img.height(), |x, y| {
-            let pixel = raw_img.get_pixel(x, y);
-            let value = T::from(pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3])).unwrap();
-
-            let value =
-            // u16 -> u8
-            if core::any::TypeId::of::<T>() == core::any::TypeId::of::<u8>() {
-                value / T::from(255).unwrap()
-            }
-             // u16 -> u16
-            else if core::any::TypeId::of::<T>() == core::any::TypeId::of::<u16>() {
-                value
-            }
-            // u16 -> f32/f64
-            else if core::any::TypeId::of::<T>() == core::any::TypeId::of::<f32>()
-                || core::any::TypeId::of::<T>() == core::any::TypeId::of::<f64>()
-            {
-                value / T::from(65535).unwrap()
-            } else {
-                panic!()
-            };
-
-            image::Luma::<T>([value])
-        });
-        Ok(img)
+        todo!()
     }
-    pub fn get_raw_image(
-        &self,
-        subtract_black: bool,
-    ) -> Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>, LibrawError> {
-        self.raw2image()?;
-        check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata_ptr()) });
-        if subtract_black {
-            self.libraw_subtract_black()?;
-        }
-
-        let size = self.get_image_sizes()?;
-        let width = size.iwidth();
-        let height = size.iheight();
-        clerk::debug!("Width: {width}, Height: {height}");
-
-        clerk::debug!("Found rgba16 raw image.");
-        let img: ImageBuffer<image::Rgba<u16>, Vec<u16>> =
-            ImageBuffer::from_vec(width as u32, height as u32, unsafe {
-                slice::from_raw_parts(
-                    (*self.imgdata_ptr()).image as *const u16,
-                    width as usize * height as usize * 4,
-                )
-                .to_vec()
-            })
-            .unwrap();
-        Ok(img)
+    pub fn get_decoded_raw_full<T>(&self) -> Result<DecodedRawFull<T>, LibrawError>
+    where
+        T: Primitive,
+    {
+        todo!()
     }
     pub fn get_params(&self) -> Result<libraw_sys::libraw_output_params_t, LibrawError> {
         Ok(unsafe { (*self.imgdata_ptr()).params })

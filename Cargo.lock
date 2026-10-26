@@ -1163,6 +1163,7 @@ dependencies = [
  "fornax-decoder-protocol",
  "fornax-devtool",
  "fornax-metadata",
+ "generic-num",
  "image",
  "jiff",
  "libraw-sys",

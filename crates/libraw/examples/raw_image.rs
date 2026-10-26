@@ -4,7 +4,7 @@ fn main() -> mischief::Result<()> {
     let img = libraw
         .open_file(&fornax_devtool::raw_file())?
         .unpack()?
-        .get_raw_image(true)?;
+        .get_decoded_raw_full()?;
 
     clerk::info!("Done building raw image.");
 

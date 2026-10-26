@@ -1,12 +1,13 @@
 use fornax_core::BayerPattern;
+use fornax_decoder_protocol::DecodedRawActive;
 
 fn main() -> mischief::Result<()> {
     fornax_devtool::setup();
     let libraw = libraw::Libraw::default();
-    let mosaic: fornax_core::MonoImage<f32> = libraw
+    let mosaic: DecodedRawActive<f32> = libraw
         .open_file(&fornax_devtool::raw_file())?
         .unpack()?
-        .get_bayer_image()?;
+        .get_decoded_raw_active()?;
     let bayer_pattern = libraw.bayer_pattern()?;
     clerk::info!("Bayer pattern: {}", bayer_pattern);
     assert_eq!(bayer_pattern, BayerPattern::GBRG);

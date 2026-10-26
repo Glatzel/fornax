@@ -17,4 +17,4 @@ pub use output_params::{
     DCRawParams, DCRawUseCameraMatrix, DCRawUseFujiRotate, DCRawUserFlip, DCRawUserQual,
 };
 pub use processed_image::{DCRawImageFormats, ProcessedImage};
-pub use rawdata::Rawdata;
+
