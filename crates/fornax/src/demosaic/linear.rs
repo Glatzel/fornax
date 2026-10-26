@@ -2,8 +2,7 @@ use generic_num::num;
 use image::{ImageBuffer, Rgb};
 use rayon::prelude::*;
 
-use crate::alias::{MonoImage, RgbImage};
-use crate::{BayerChannel, BayerPattern, Primitive};
+use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage};
 
 /// Output rows handed to each rayon task.
 const ROWS_PER_TASK: usize = 16;

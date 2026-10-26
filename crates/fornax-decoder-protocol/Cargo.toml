@@ -1,0 +1,10 @@
+[package]
+name = "fornax-decoder-protocol"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+fornax-core.workspace = true
+fornax-metadata.workspace = true
+image.workspace = true
+thiserror.workspace = true

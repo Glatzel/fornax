@@ -1,0 +1,25 @@
+[package]
+name = "fornax-decoder-libraw"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bytemuck.workspace = true
+clerk.workspace = true
+envoy.workspace = true
+fornax-core.workspace = true
+fornax-decoder-protocol.workspace = true
+fornax-metadata.workspace = true
+image.workspace = true
+jiff.workspace = true
+libraw-sys.workspace = true
+num_enum.workspace = true
+serde = { workspace = true, optional = true }
+thiserror.workspace = true
+
+[dev-dependencies]
+fornax-devtool.workspace = true
+mischief.workspace = true
+
+[features]
+serde = ["dep:serde", "jiff/serde"]

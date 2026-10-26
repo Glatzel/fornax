@@ -648,21 +648,71 @@ dependencies = [
 name = "fornax"
 version = "0.0.17"
 dependencies = [
- "bytemuck",
  "clerk",
  "codspeed-criterion-compat",
- "envoy",
+ "fornax-core",
+ "fornax-decoder-dnc",
+ "fornax-decoder-libraw",
+ "fornax-decoder-protocol",
  "fornax-devtool",
+ "fornax-metadata",
  "generic-num",
+ "image",
+ "mischief",
+ "num-traits",
+ "rand 0.10.3",
+ "rayon",
+ "serde",
+]
+
+[[package]]
+name = "fornax-core"
+version = "0.0.17"
+dependencies = [
+ "image",
+ "num-traits",
+ "thiserror",
+]
+
+[[package]]
+name = "fornax-decoder-dnc"
+version = "0.0.17"
+dependencies = [
+ "clerk",
+ "fornax-core",
+ "fornax-decoder-libraw",
+ "fornax-decoder-protocol",
+ "fornax-metadata",
+ "serde",
+]
+
+[[package]]
+name = "fornax-decoder-libraw"
+version = "0.0.17"
+dependencies = [
+ "bytemuck",
+ "clerk",
+ "envoy",
+ "fornax-core",
+ "fornax-decoder-protocol",
+ "fornax-devtool",
+ "fornax-metadata",
  "image",
  "jiff",
  "libraw-sys",
  "mischief",
- "num-traits",
  "num_enum",
- "rand 0.10.3",
- "rayon",
  "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "fornax-decoder-protocol"
+version = "0.0.17"
+dependencies = [
+ "fornax-core",
+ "fornax-metadata",
+ "image",
  "thiserror",
 ]
 
@@ -675,6 +725,14 @@ dependencies = [
  "image",
  "mischief",
  "num-traits",
+]
+
+[[package]]
+name = "fornax-metadata"
+version = "0.0.17"
+dependencies = [
+ "fornax-core",
+ "image",
 ]
 
 [[package]]

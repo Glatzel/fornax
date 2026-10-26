@@ -1,12 +1,12 @@
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
-mod params;
-use params::DncParams;
 
-use crate::decoder::IDecoder;
-use crate::error::DecodeError;
-use crate::metadata::Metadata;
-use crate::{DecodedRawFull, Primitive};
+use fornax_core::Primitive;
+use fornax_decoder_libraw::LibRawDecoder;
+use fornax_decoder_protocol::{DecodeError, DecodedRawActive, DecodedRawFull, IDecoder};
+use fornax_metadata::Metadata;
+
+use crate::DncParams;
 
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let mut path = std::env::var("PATH").unwrap_or_default();
@@ -108,14 +108,14 @@ where
 {
     fn decode_full(&self, input: &Path) -> Result<(DecodedRawFull<T>, Metadata<T>), DecodeError> {
         let dng_file = self.convert(input)?;
-        super::LibRawDecoder.decode_full(&dng_file as &Path)
+        LibRawDecoder.decode_full(&dng_file as &Path)
     }
 
     fn decode_active(
         &self,
         input: &Path,
-    ) -> Result<(crate::DecodedRawActive<T>, Metadata<T>), DecodeError> {
+    ) -> Result<(DecodedRawActive<T>, Metadata<T>), DecodeError> {
         let dng_file = self.convert(input)?;
-        super::LibRawDecoder.decode_active(&dng_file as &Path)
+        LibRawDecoder.decode_active(&dng_file as &Path)
     }
 }
