@@ -34,7 +34,7 @@ fn main() -> mischief::Result<()> {
     let output_dir = fornax_devtool::temp_dir().join("pipeline");
     let raw_path = fornax_devtool::raw_file();
     {
-        let (image, metadata) = LibrawDecoder::default().decode_active(raw_path.as_path())?;
+        let (image, metadata) = LibrawDecoder.decode_active(raw_path.as_path())?;
         wrapper(image, metadata, output_dir.join("libraw"))?;
     }
     #[cfg(not(target_os = "linux"))]

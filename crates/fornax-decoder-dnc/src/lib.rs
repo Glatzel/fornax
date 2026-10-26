@@ -5,7 +5,7 @@ use std::sync::LazyLock;
 
 use fornax_core::metadata::Metadata;
 use fornax_core::{DecodeError, DecodedRawActive, DecodedRawFull, IDecoder, Primitive};
-use libraw::Libraw;
+use libraw::LibrawDecoder;
 pub use params::DncParams;
 
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
@@ -116,6 +116,6 @@ where
         input: &Path,
     ) -> Result<(DecodedRawActive<T>, Metadata<T>), DecodeError> {
         let dng_file = self.convert(input)?;
-        Libraw::default().decode_active(&dng_file as &Path)
+        LibrawDecoder.decode_active(&dng_file as &Path)
     }
 }

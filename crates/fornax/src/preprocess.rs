@@ -1,6 +1,5 @@
-use fornax_core::{MonoImage, Primitive};
-use fornax_decoder_protocol::DecodedRawActive;
-use fornax_metadata::Levels;
+use fornax_core::metadata::Levels;
+use fornax_core::{DecodedRawActive, MonoImage, Primitive};
 use rayon::prelude::*;
 
 use crate::RawImage;
