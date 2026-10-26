@@ -1,5 +1,5 @@
 [package]
-name = "fornax-decoder-libraw"
+name = "libraw"
 version.workspace = true
 edition.workspace = true
 
@@ -20,6 +20,7 @@ thiserror.workspace = true
 [dev-dependencies]
 fornax-devtool.workspace = true
 mischief.workspace = true
+float-cmp.workspace = true
 
 [features]
 serde = ["dep:serde", "jiff/serde"]

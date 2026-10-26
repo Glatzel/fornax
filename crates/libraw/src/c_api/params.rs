@@ -1,10 +1,10 @@
 use fornax_core::BayerChannel;
 
-use crate::native::extension::error_handling::check_raw_alloc;
-use crate::{
+use crate::data_structure::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawUserQual, IParams,
     ImgOther, Libraw, LibrawError,
 };
+use crate::extension::error_handling::check_raw_alloc;
 
 impl Libraw {
     pub fn get_raw_height(&self) -> Result<i32, LibrawError> {

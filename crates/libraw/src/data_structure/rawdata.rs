@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use image::ImageBuffer;
 
-use crate::native::extension::error_handling::{check_raw_alloc, custom_error};
+use crate::extension::error_handling::{check_raw_alloc, custom_error};
 use crate::{ImgdataPtr, LibrawError};
 #[derive(Debug, Clone, PartialEq)]
 pub enum Rawdata {

@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-use fornax::decoder::{IDecoder, LibRawDecoder};
+use fornax::decoder::{IDecoder, LibrawDecoder};
 use fornax::metadata::Metadata;
-use fornax::{DecodedRawActive, DecodedRawActiveExt, Demosaic};
+use fornax::{DecodedRawActive, Demosaic, Preprocess};
 use fornax_devtool::save_image;
 use image::{Luma, Rgb};
 fn wrapper(
@@ -34,7 +34,7 @@ fn main() -> mischief::Result<()> {
     let output_dir = fornax_devtool::temp_dir().join("pipeline");
     let raw_path = fornax_devtool::raw_file();
     {
-        let (image, metadata) = LibRawDecoder.decode_active(raw_path.as_path())?;
+        let (image, metadata) = LibrawDecoder::default().decode_active(raw_path.as_path())?;
         wrapper(image, metadata, output_dir.join("libraw"))?;
     }
     #[cfg(not(target_os = "linux"))]

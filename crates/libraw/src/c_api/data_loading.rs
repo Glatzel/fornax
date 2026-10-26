@@ -3,8 +3,8 @@ use std::path::Path;
 use envoy::ToCString;
 use fornax_core::BayerPattern;
 
-use crate::native::extension::error_handling::check_run;
-use crate::{Libraw, LibrawError};
+use crate::data_structure::{Libraw, LibrawError};
+use crate::extension::error_handling::check_run;
 
 #[derive(Debug, Clone)]
 pub enum ProcFlag {
@@ -101,9 +101,11 @@ impl Libraw {
 mod test {
     use std::io::Read;
 
+    use super::*;
+
     #[test]
     fn test_open_file() -> mischief::Result<()> {
-        let libraw = crate::Libraw::default();
+        let libraw = Libraw::default();
         libraw.open_file(&fornax_devtool::raw_file())?;
         Ok(())
     }
@@ -112,13 +114,13 @@ mod test {
         let mut file = std::fs::File::open(fornax_devtool::raw_file())?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer)?;
-        let libraw = crate::Libraw::default();
+        let libraw =Libraw::default();
         libraw.open_buffer(&buffer)?;
         Ok(())
     }
     #[test]
     fn test_unpack_thumb() -> mischief::Result<()> {
-        let libraw = crate::Libraw::default();
+        let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
             .unpack_thumb()?;

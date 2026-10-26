@@ -1,9 +1,9 @@
 pub mod decoder;
-mod decoded_raw_ext;
+mod preprocess;
 mod demosaic;
 mod raw_image;
 
-pub use decoded_raw_ext::DecodedRawActiveExt;
+pub use preprocess::Preprocess;
 pub use demosaic::{Demosaic, IDemosaic};
 pub use fornax_core::{
     BayerChannel, BayerPattern, MonoImage, Primitive, RawValidationError, RgbImage,

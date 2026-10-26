@@ -5,14 +5,14 @@ use rayon::prelude::*;
 
 use crate::RawImage;
 
-pub trait DecodedRawActiveExt<T>: Sized
+pub trait Preprocess<T>: Sized
 where
     T: Primitive,
 {
     fn preprocess(self, levels: Levels<T>) -> RawImage<T>;
 }
 
-impl<T> DecodedRawActiveExt<T> for DecodedRawActive<T>
+impl<T> Preprocess<T> for DecodedRawActive<T>
 where
     T: Primitive,
 {

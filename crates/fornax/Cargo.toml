@@ -7,11 +7,11 @@ edition.workspace = true
 clerk.workspace = true
 fornax-core.workspace = true
 fornax-decoder-dnc = { workspace = true, optional = true }
-fornax-decoder-libraw = { workspace = true, optional = true }
 fornax-decoder-protocol.workspace = true
 fornax-metadata.workspace = true
 generic-num.workspace = true
 image.workspace = true
+libraw = { workspace = true, optional = true }
 num-traits.workspace = true
 rayon.workspace = true
 serde = { workspace = true, optional = true }
@@ -24,10 +24,8 @@ rand.workspace = true
 
 [features]
 default = ["backend-dnc", "backend-libraw"]
-backend-dnc = ["dep:fornax-decoder-dnc", "backend-libraw"]
-backend-libraw = ["dep:fornax-decoder-libraw"]
+backend-dnc = ["backend-libraw", "dep:fornax-decoder-dnc"]
+backend-libraw = ["dep:libraw"]
 serde = [
-    "dep:serde",
-    "fornax-decoder-dnc?/serde",
-    "fornax-decoder-libraw?/serde",
+  "dep:serde",
 ]
