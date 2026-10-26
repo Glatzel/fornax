@@ -2,7 +2,9 @@
 name = "fornax"
 version.workspace = true
 edition.workspace = true
-
+[[bench]]
+harness = false
+name = "demosaic"
 [dependencies]
 fornax-core.workspace = true
 fornax-decoder-dnc = { workspace = true, optional = true }
