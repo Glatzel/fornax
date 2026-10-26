@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use fornax::decoder::{IDecoder, LibRawDecoder};
 use fornax::metadata::Metadata;
-use fornax::{DecodedRawActive, Demosaic};
+use fornax::{DecodedRawActive, DecodedRawActiveExt, Demosaic};
 use fornax_devtool::save_image;
 use image::{Luma, Rgb};
 fn wrapper(

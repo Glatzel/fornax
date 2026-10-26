@@ -5,17 +5,16 @@ edition.workspace = true
 
 [dependencies]
 clerk.workspace = true
-envoy = { workspace = true, optional = true }
+fornax-core.workspace = true
+fornax-decoder-dnc = { workspace = true, optional = true }
+fornax-decoder-libraw = { workspace = true, optional = true }
+fornax-decoder-protocol.workspace = true
+fornax-metadata.workspace = true
 generic-num.workspace = true
 image.workspace = true
-libraw-sys = { workspace = true, optional = true }
-num_enum = { workspace = true, optional = true }
 num-traits.workspace = true
 rayon.workspace = true
 serde = { workspace = true, optional = true }
-thiserror.workspace = true
-bytemuck= { workspace = true, optional = true }
-jiff = { workspace = true, optional = true }
 
 [dev-dependencies]
 criterion.workspace = true
@@ -25,6 +24,10 @@ rand.workspace = true
 
 [features]
 default = ["backend-dnc", "backend-libraw"]
-backend-dnc = ["backend-libraw"]
-backend-libraw = ["dep:libraw-sys", "envoy", "num_enum"]
-serde = ["dep:serde"]
+backend-dnc = ["dep:fornax-decoder-dnc", "backend-libraw"]
+backend-libraw = ["dep:fornax-decoder-libraw"]
+serde = [
+    "dep:serde",
+    "fornax-decoder-dnc?/serde",
+    "fornax-decoder-libraw?/serde",
+]

@@ -1,12 +1,5 @@
+use fornax_core::RawValidationError;
 use thiserror::Error;
-
-#[derive(Clone, Debug, Error, PartialEq, Eq)]
-pub enum RawValidationError {
-    #[error("invalid decoded RAW image")]
-    InvalidImage,
-    #[error("decoded RAW contains a non-finite sample")]
-    NonFiniteSample,
-}
 
 #[derive(Clone, Debug, Error, PartialEq, Eq)]
 pub enum DecodeError {
@@ -18,7 +11,6 @@ pub enum DecodeError {
     Backend(Box<str>),
     #[error(transparent)]
     InvalidOutput(#[from] RawValidationError),
-      #[error("{0}")]
-    Other(Box<str>)
+    #[error("{0}")]
+    Other(Box<str>),
 }
-

@@ -1,6 +1,6 @@
 use fornax_core::BayerChannel;
 
-use crate::extension::error_handling::check_raw_alloc;
+use crate::native::extension::error_handling::check_raw_alloc;
 use crate::{
     DCRawFbddNoiserd, DCRawHighlightMode, DCRawOutputBps, DCRawOutputColor, DCRawUserQual, IParams,
     ImgOther, Libraw, LibrawError,

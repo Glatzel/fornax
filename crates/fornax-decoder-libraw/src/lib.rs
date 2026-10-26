@@ -1,11 +1,11 @@
 mod native;
+pub use native::*;
 
 use std::path::Path;
 
-use super::IDecoder;
-use crate::error::DecodeError;
-use crate::metadata::Metadata;
-use crate::{DecodedRawActive, DecodedRawFull, Primitive};
+use fornax_core::Primitive;
+use fornax_decoder_protocol::{DecodeError, DecodedRawActive, DecodedRawFull, IDecoder};
+use fornax_metadata::Metadata;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct LibRawDecoder;

@@ -1,4 +1,4 @@
-use crate::extension::error_handling::check_raw_alloc;
+use crate::native::extension::error_handling::check_raw_alloc;
 use crate::{ImageSizes, Libraw, LibrawError, Rawdata};
 
 // region:Data Structure

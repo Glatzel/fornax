@@ -4,7 +4,7 @@ use image::{ImageBuffer, Rgb};
 
 use super::super::{Libraw, LibrawError, ProcessedImage};
 use super::error_handling::{check_raw_alloc, check_run, custom_error};
-use crate::{BayerPattern, MonoImage, Primitive};
+use fornax_core::{BayerPattern, MonoImage, Primitive};
 
 // region:Custom API
 impl Libraw {

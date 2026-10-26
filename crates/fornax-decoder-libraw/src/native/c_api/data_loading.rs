@@ -3,7 +3,7 @@ use std::path::Path;
 use envoy::ToCString;
 use fornax_core::BayerPattern;
 
-use crate::extension::error_handling::check_run;
+use crate::native::extension::error_handling::check_run;
 use crate::{Libraw, LibrawError};
 
 #[derive(Debug, Clone)]

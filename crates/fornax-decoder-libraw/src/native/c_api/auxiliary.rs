@@ -1,6 +1,6 @@
 use envoy::{PtrListToVecString, PtrToString};
 
-use crate::extension::error_handling::{check_raw_alloc, check_run};
+use crate::native::extension::error_handling::{check_raw_alloc, check_run};
 use crate::{Libraw, LibrawError};
 
 // region:Auxiliary Functions

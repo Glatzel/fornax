@@ -1,41 +1,22 @@
-use image::math::Rect;
+use fornax_core::{MonoImage, Primitive};
+use fornax_decoder_protocol::DecodedRawActive;
+use fornax_metadata::Levels;
 use rayon::prelude::*;
 
-use crate::alias::MonoImage;
-use crate::metadata::Levels;
-use crate::{Primitive, RawImage};
-#[derive(Clone, Debug)]
-pub struct DecodedRawFull<T>(MonoImage<T>)
-where
-    T: Primitive;
+use crate::RawImage;
 
-impl<T> DecodedRawFull<T>
+pub trait DecodedRawActiveExt<T>: Sized
 where
     T: Primitive,
 {
-    pub fn new(image: MonoImage<T>) -> Self { Self(image) }
-
-    pub const fn image(&self) -> &MonoImage<T> { &self.0 }
-
-    pub fn active_area(mut self, active_area: Rect) -> DecodedRawActive<T> {
-        self.0.crop_in_place(active_area);
-        DecodedRawActive(self.0)
-    }
+    fn preprocess(self, levels: Levels<T>) -> RawImage<T>;
 }
 
-#[derive(Clone, Debug)]
-pub struct DecodedRawActive<T>(MonoImage<T>)
-where
-    T: Primitive;
-impl<T> DecodedRawActive<T>
+impl<T> DecodedRawActiveExt<T> for DecodedRawActive<T>
 where
     T: Primitive,
 {
-    pub fn new(image: MonoImage<T>) -> Self { Self(image) }
-
-    pub const fn image(&self) -> &MonoImage<T> { &self.0 }
-
-    pub fn preprocess(self, levels: Levels<T>) -> RawImage<T> {
+    fn preprocess(self, levels: Levels<T>) -> RawImage<T> {
         let Levels {
             black,
             black_delta_h,
@@ -43,7 +24,7 @@ where
             white,
         } = levels;
 
-        let image = self.0;
+        let image = self.into_image();
         let (width, height) = image.dimensions();
         let w = width as usize;
         let h = height as usize;
@@ -56,7 +37,6 @@ where
         );
         let pattern = black.as_raw();
 
-        // Empty delta vectors mean "no adjustment".
         let zeros = |n: usize| vec![T::zero(); n];
         let delta_h = if black_delta_h.is_empty() {
             zeros(w)

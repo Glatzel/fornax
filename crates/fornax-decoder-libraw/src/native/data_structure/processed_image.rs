@@ -1,7 +1,7 @@
 use num_enum::TryFromPrimitive;
 
 use crate::LibrawError;
-use crate::extension::error_handling::check_run;
+use crate::native::extension::error_handling::check_run;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, TryFromPrimitive)]
 #[repr(i32)]

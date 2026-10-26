@@ -13,10 +13,13 @@ generic-num = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" 
 image = { git = "https://github.com/Glatzel/image-rs" }
 mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
-dnc = { path = "./crates/dnc" }
 fornax = { path = "./crates/fornax" }
+fornax-core = { path = "./crates/fornax-core" }
+fornax-decoder-dnc = { path = "./crates/fornax-decoder-dnc" }
+fornax-decoder-libraw = { path = "./crates/fornax-decoder-libraw" }
+fornax-decoder-protocol = { path = "./crates/fornax-decoder-protocol" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
-libraw = { path = "./crates/libraw" }
+fornax-metadata = { path = "./crates/fornax-metadata" }
 libraw-sys = { path = "./crates/libraw-sys" }
 
 bindgen = "0.73.2"
