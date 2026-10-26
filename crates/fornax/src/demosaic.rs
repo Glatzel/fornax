@@ -1,7 +1,6 @@
 mod linear;
-use linear::DemosaicLinear;
-
 use fornax_core::{BayerPattern, MonoImage, Primitive, RgbImage};
+use linear::DemosaicLinear;
 pub trait IDemosaic<T>
 where
     T: Primitive,

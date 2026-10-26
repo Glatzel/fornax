@@ -5,10 +5,7 @@ use envoy::ToCString;
 use crate::{DCRawOutputBps, DCRawOutputColor, DCRawParams, ImgdataPtr, LibrawError};
 
 impl DCRawParams {
-    pub fn set_output_params(
-        &self,
-        arc_imgdata_ptr: Arc<ImgdataPtr>,
-    ) -> Result<(), LibrawError> {
+    pub fn set_output_params(&self, arc_imgdata_ptr: Arc<ImgdataPtr>) -> Result<(), LibrawError> {
         self.greybox
             .inspect(|v| unsafe { (*arc_imgdata_ptr.ptr()).params.greybox = *v });
         self.cropbox

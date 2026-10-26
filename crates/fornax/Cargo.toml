@@ -4,7 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-clerk.workspace = true
 fornax-core.workspace = true
 fornax-decoder-dnc = { workspace = true, optional = true }
 fornax-decoder-protocol.workspace = true
@@ -12,7 +11,6 @@ fornax-metadata.workspace = true
 generic-num.workspace = true
 image.workspace = true
 libraw = { workspace = true, optional = true }
-num-traits.workspace = true
 rayon.workspace = true
 serde = { workspace = true, optional = true }
 

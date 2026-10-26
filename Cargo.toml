@@ -23,7 +23,6 @@ libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
 
 bindgen = "0.73.2"
-bytemuck = "1.25.2"
 criterion = { package = "codspeed-criterion-compat", version = "5.0.3" }
 float-cmp = "0.10.0"
 jiff = "0.2.38"

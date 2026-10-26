@@ -1,11 +1,10 @@
 mod decoded_raw;
 mod error;
 
-use fornax_core::Primitive;
-use fornax_metadata::Metadata;
-
 pub use decoded_raw::{DecodedRawActive, DecodedRawFull};
 pub use error::DecodeError;
+use fornax_core::Primitive;
+use fornax_metadata::Metadata;
 
 pub trait IDecoder<I: ?Sized, T>: Send + Sync
 where

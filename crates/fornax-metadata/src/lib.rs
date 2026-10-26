@@ -1,6 +1,5 @@
-use image::math::Rect;
-
 use fornax_core::{BayerPattern, MonoImage, Primitive};
+use image::math::Rect;
 
 #[derive(Clone, Debug)]
 pub struct Metadata<T>

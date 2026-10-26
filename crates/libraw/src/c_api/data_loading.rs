@@ -114,7 +114,7 @@ mod test {
         let mut file = std::fs::File::open(fornax_devtool::raw_file())?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer)?;
-        let libraw =Libraw::default();
+        let libraw = Libraw::default();
         libraw.open_buffer(&buffer)?;
         Ok(())
     }
