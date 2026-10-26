@@ -1,30 +1,30 @@
 use std::slice;
 
-use fornax_core::FornaxPrimitive;
 use image::{ImageBuffer, Rgb};
 
-use crate::extension::error_handling::{check_raw_alloc, check_run, custom_error};
-use crate::{Libraw, LibrawError, ProcessedImage};
+use super::super::{Libraw, LibrawError, ProcessedImage};
+use super::error_handling::{check_raw_alloc, check_run, custom_error};
+use crate::{BayerPattern, MonoImage, Primitive};
 
 // region:Custom API
 impl Libraw {
-    pub fn bayer_pattern(&self) -> Result<fornax_core::BayerPattern, LibrawError> {
+    pub fn bayer_pattern(&self) -> Result<BayerPattern, LibrawError> {
         check_raw_alloc!(self.imgdata_ptr());
         let pattern0 = self.color(0, 0);
         let pattern1 = self.color(0, 1);
         let pattern2 = self.color(1, 0);
         let pattern3 = self.color(1, 1);
         match (pattern0, pattern1, pattern2, pattern3) {
-            (0, 1, 3, 2) => Ok(fornax_core::BayerPattern::RGGB),
-            (2, 3, 1, 0) => Ok(fornax_core::BayerPattern::BGGR),
-            (1, 0, 2, 3) => Ok(fornax_core::BayerPattern::GRBG),
-            (3, 2, 0, 1) => Ok(fornax_core::BayerPattern::GBRG),
+            (0, 1, 3, 2) => Ok(BayerPattern::RGGB),
+            (2, 3, 1, 0) => Ok(BayerPattern::BGGR),
+            (1, 0, 2, 3) => Ok(BayerPattern::GRBG),
+            (3, 2, 0, 1) => Ok(BayerPattern::GBRG),
             (a, b, c, d) => custom_error!(format!("Unknown bayer pattern: {a}, {b}, {c}, {d}")),
         }
     }
-    pub fn get_bayer_image<T>(&self) -> Result<fornax_core::BayerImage<T>, LibrawError>
+    pub fn get_bayer_image<T>(&self) -> Result<MonoImage<T>, LibrawError>
     where
-        T: FornaxPrimitive,
+        T: Primitive,
     {
         let pattern = self.bayer_pattern()?;
         let raw_img = self.get_raw_image(true)?;

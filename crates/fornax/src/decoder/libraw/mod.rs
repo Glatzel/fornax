@@ -1,3 +1,5 @@
+mod native;
+
 use std::path::Path;
 
 use super::IDecoder;
