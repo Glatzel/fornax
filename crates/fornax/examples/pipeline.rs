@@ -10,12 +10,12 @@ fn wrapper(
     metadata: Metadata<f32>,
     output_dir: PathBuf,
 ) -> mischief::Result<()> {
-    assert_eq!(decoded.image().dimensions(), (5_360, 3_516));
+    assert_eq!(decoded.image().dimensions(), (5_202, 3_464));
     let decoded_path = output_dir.join("1.fornax-libraw-decoded.tiff");
     dbg!(decoded.image().as_raw().get(0..10));
     save_image::<_, _, Luma<u16>, _>(decoded.image(), &decoded_path, 1.0)?;
 
-    let processed = decoded.preprocess(metadata.levels);
+    let processed = decoded.preprocess(&metadata.levels);
     assert_eq!(processed.image().dimensions(), (5_202, 3_464));
     let preprocessed_path = &output_dir.join("2.fornax-libraw-preprocess.tiff");
     save_image::<_, _, Luma<u16>, _>(processed.image(), &preprocessed_path, u16::MAX as _)?;
@@ -25,6 +25,10 @@ fn wrapper(
     let demosaiced_path = output_dir.join("3.fornax-libraw-demosaic_linear.tiff");
     save_image::<_, _, Rgb<u16>, _>(&demosaiced, &demosaiced_path, u16::MAX as _)?;
 
+    println!(
+        "Decoded output: {:?}",
+        metadata.levels.black.as_raw().as_slice()
+    );
     println!("Decoded output: {}", decoded_path.display());
     println!("Preprocessed output: {}", preprocessed_path.display());
     println!("Demosaiced output: {}", demosaiced_path.display());

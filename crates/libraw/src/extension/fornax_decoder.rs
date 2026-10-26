@@ -118,9 +118,9 @@ fn get_metadata<T: Primitive>(libraw: &Libraw) -> Result<Metadata<T>, DecodeErro
     }
 
     let crop_origin_present =
-        dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPORIGIN != 0;
+        dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPORIGIN as u32 != 0;
     let crop_size_present =
-        dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPSIZE != 0;
+        dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPSIZE as u32 != 0;
     let dng_crop = Rect {
         x: dng.default_crop[0] as _,
         y: dng.default_crop[1] as _,
@@ -134,17 +134,17 @@ fn get_metadata<T: Primitive>(libraw: &Libraw) -> Result<Metadata<T>, DecodeErro
         && dng_crop.x.saturating_add(dng_crop.width) <= active_area.width
         && dng_crop.y.saturating_add(dng_crop.height) <= active_area.height;
     let raw_inset = sizes.raw_inset_crops[0];
-    let promoted_dng_crop = raw_inset.cleft.checked_sub(sizes.left_margin).and_then(|x| {
-        raw_inset
-            .ctop
-            .checked_sub(sizes.top_margin)
-            .map(|y| Rect {
+    let promoted_dng_crop = raw_inset
+        .cleft
+        .checked_sub(sizes.left_margin)
+        .and_then(|x| {
+            raw_inset.ctop.checked_sub(sizes.top_margin).map(|y| Rect {
                 x: x as _,
                 y: y as _,
                 width: raw_inset.cwidth as _,
                 height: raw_inset.cheight as _,
             })
-    });
+        });
     let promoted_dng_crop = promoted_dng_crop.filter(|crop| {
         imgdata.idata.dng_version != 0
             && crop.width > 0
@@ -176,9 +176,7 @@ fn get_metadata<T: Primitive>(libraw: &Libraw) -> Result<Metadata<T>, DecodeErro
                 .map(|black| dng.dng_fblack + black)
                 .collect();
             (dng_cols, dng_rows, values)
-        } else if color_rows > 0
-            && color_cols > 0
-            && color_rows.saturating_mul(color_cols) <= 4096
+        } else if color_rows > 0 && color_cols > 0 && color_rows.saturating_mul(color_cols) <= 4096
         {
             let values = color.cblack[6..6 + color_rows * color_cols]
                 .iter()
@@ -208,7 +206,7 @@ fn get_metadata<T: Primitive>(libraw: &Libraw) -> Result<Metadata<T>, DecodeErro
     })?;
 
     let white_present =
-        dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_WHITE != 0;
+        dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_WHITE as u32 != 0;
     let white = if white_present && dng.dng_whitelevel[0] > 0 {
         dng.dng_whitelevel[0]
     } else {
