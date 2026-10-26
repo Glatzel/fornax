@@ -7,6 +7,4 @@ impl Libraw {
         check_raw_alloc!(self.imgdata_ptr());
         ImageSizes::new(self.arc_imgdata_ptr())
     }
-
-   
 }

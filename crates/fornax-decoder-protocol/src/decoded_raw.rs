@@ -9,7 +9,7 @@ impl<T> DecodedRawFull<T>
 where
     T: Primitive,
 {
-    pub fn new(image: MonoImage<T>) -> Self { Self(image) }
+    pub const fn new(image: MonoImage<T>) -> Self { Self(image) }
 
     pub const fn image(&self) -> &MonoImage<T> { &self.0 }
 
@@ -27,7 +27,7 @@ impl<T> DecodedRawActive<T>
 where
     T: Primitive,
 {
-    pub fn new(image: MonoImage<T>) -> Self { Self(image) }
+    pub const fn new(image: MonoImage<T>) -> Self { Self(image) }
 
     pub const fn image(&self) -> &MonoImage<T> { &self.0 }
 

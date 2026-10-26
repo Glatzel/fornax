@@ -1,8 +1,10 @@
-use fornax_core::{BayerPattern, Primitive};
+use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_decoder_protocol::{DecodedRawActive, DecodedRawFull};
+use generic_num::num;
 
 use super::super::{Libraw, LibrawError};
-use super::error_handling::{check_run, custom_error};
+use super::error_handling::custom_error;
+use crate::extension::error_handling::check_raw_alloc;
 
 // region:Custom API
 impl Libraw {
@@ -12,7 +14,7 @@ impl Libraw {
             0 => {
                 custom_error!("non-mosaic RAW is unsupported");
             }
-            1 => { 
+            1 => {
                 custom_error!("16x16 CFA is unsupported");
             }
             9 => {
@@ -39,13 +41,77 @@ impl Libraw {
     where
         T: Primitive,
     {
-        todo!()
+        check_raw_alloc!(self.imgdata_ptr());
+
+        let imgdata = unsafe { &*self.imgdata_ptr() };
+        let sizes = &imgdata.rawdata.sizes;
+
+        let raw_w = sizes.raw_width as usize;
+        let raw_h = sizes.raw_height as usize;
+        let left = sizes.left_margin as usize;
+        let top = sizes.top_margin as usize;
+        let w = sizes.width as usize;
+        let h = sizes.height as usize;
+
+        // Source stride in elements. raw_pitch is in bytes; fall back to
+        // raw_width. (raw_pitch can be 0 for float/DNG paths, so don't
+        // rely on it blindly.)
+        let stride = raw_w;
+
+        let image = if !imgdata.rawdata.raw_image.is_null() {
+            let src =
+                unsafe { std::slice::from_raw_parts(imgdata.rawdata.raw_image, raw_w * raw_h) };
+            let mut pixels: Vec<T> = Vec::with_capacity(w * h);
+            for y in 0..h {
+                let row = &src[(y + top) * stride + left..][..w];
+                pixels.extend(row.iter().map(|&p| num!(p)));
+            }
+            MonoImage::from_vec(w as _, h as _, pixels)
+        } else if !imgdata.rawdata.float_image.is_null() {
+            let src =
+                unsafe { std::slice::from_raw_parts(imgdata.rawdata.float_image, raw_w * raw_h) };
+            let mut pixels: Vec<T> = Vec::with_capacity(w * h);
+            for y in 0..h {
+                let row = &src[(y + top) * stride + left..][..w];
+                pixels.extend(row.iter().map(|&p| num!(p)));
+            }
+            MonoImage::from_vec(w as _, h as _, pixels)
+        } else {
+            custom_error!("No mono raw image found.")
+        };
+
+        Ok(DecodedRawActive::new(image.unwrap()))
     }
     pub fn get_decoded_raw_full<T>(&self) -> Result<DecodedRawFull<T>, LibrawError>
     where
         T: Primitive,
     {
-        todo!()
+        check_raw_alloc!(self.imgdata_ptr());
+
+        let imgdata = unsafe { &*self.imgdata_ptr() };
+        let sizes = &imgdata.rawdata.sizes;
+
+        let w = sizes.raw_width as usize;
+        let h = sizes.raw_height as usize;
+        let len = w * h;
+
+        let image = if !imgdata.rawdata.raw_image.is_null() {
+            let pixels = unsafe { std::slice::from_raw_parts(imgdata.rawdata.raw_image, len) }
+                .iter()
+                .map(|&p| num!(p))
+                .collect();
+            MonoImage::from_vec(w as _, h as _, pixels)
+        } else if !imgdata.rawdata.float_image.is_null() {
+            let pixels = unsafe { std::slice::from_raw_parts(imgdata.rawdata.float_image, len) }
+                .iter()
+                .map(|&p| num!(p))
+                .collect();
+            MonoImage::from_vec(w as _, h as _, pixels)
+        } else {
+            custom_error!("No mono raw image found.")
+        };
+
+        Ok(DecodedRawFull::new(image.unwrap()))
     }
     pub fn get_params(&self) -> Result<libraw_sys::libraw_output_params_t, LibrawError> {
         Ok(unsafe { (*self.imgdata_ptr()).params })
