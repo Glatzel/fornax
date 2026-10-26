@@ -1,6 +1,4 @@
-use fornax_core::{
-    BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive,
-};
+use fornax_core::{BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive};
 use generic_num::num;
 
 use super::super::{Libraw, LibrawError};
@@ -28,7 +26,8 @@ impl Libraw {
         }
 
         // LibRaw COLOR(row, column) uses two bits per CFA color.
-        let color = |row: u32, col: u32| -> u32 { (filters >> (((row << 1) & 14) + col) * 2) & 3 };
+        let color =
+            |row: u32, col: u32| -> u32 { (filters >> ((((row << 1) & 14) + col) * 2)) & 3 };
 
         match (color(0, 0), color(0, 1), color(1, 0), color(1, 1)) {
             (0, 1, 3, 2) => Ok(BayerPattern::RGGB),
@@ -44,7 +43,8 @@ impl Libraw {
     {
         check_raw_alloc!(self.imgdata_ptr());
 
-        let imgdata = unsafe { &*self.imgdata_ptr() };
+        let imgdata_ptr = self.arc_imgdata_ptr();
+        let imgdata = &*imgdata_ptr;
         let sizes = &imgdata.rawdata.sizes;
 
         let raw_w = sizes.raw_width as usize;
@@ -53,6 +53,11 @@ impl Libraw {
         let top = sizes.top_margin as usize;
         let w = sizes.width as usize;
         let h = sizes.height as usize;
+        if w == 0 || h == 0 || left.saturating_add(w) > raw_w || top.saturating_add(h) > raw_h {
+            custom_error!(format!(
+                "invalid LibRaw active area ({left}, {top}, {w}, {h}) for {raw_w}x{raw_h} raw image"
+            ));
+        }
 
         // Source stride in elements. raw_pitch is in bytes; fall back to
         // raw_width. (raw_pitch can be 0 for float/DNG paths, so don't
@@ -78,10 +83,15 @@ impl Libraw {
             }
             MonoImage::from_vec(w as _, h as _, pixels)
         } else {
-            custom_error!("No mono raw image found.")
+            custom_error!("LibRaw decoded data contains neither a mono raw image nor a float image")
         };
 
-        Ok(DecodedRawActive::new(image.unwrap()))
+        let image = image.ok_or_else(|| {
+            LibrawError::Other(
+                format!("LibRaw active image data is inconsistent with {w}x{h} dimensions").into(),
+            )
+        })?;
+        Ok(DecodedRawActive::new(image))
     }
     pub fn get_decoded_raw_full<T>(&self) -> Result<DecodedRawFull<T>, LibrawError>
     where
@@ -89,11 +99,15 @@ impl Libraw {
     {
         check_raw_alloc!(self.imgdata_ptr());
 
-        let imgdata = unsafe { &*self.imgdata_ptr() };
+        let imgdata_ptr = self.arc_imgdata_ptr();
+        let imgdata = &*imgdata_ptr;
         let sizes = &imgdata.rawdata.sizes;
 
         let w = sizes.raw_width as usize;
         let h = sizes.raw_height as usize;
+        if w == 0 || h == 0 {
+            custom_error!(format!("invalid LibRaw raw dimensions {w}x{h}"));
+        }
         let len = w * h;
 
         let image = if !imgdata.rawdata.raw_image.is_null() {
@@ -109,12 +123,18 @@ impl Libraw {
                 .collect();
             MonoImage::from_vec(w as _, h as _, pixels)
         } else {
-            custom_error!("No mono raw image found.")
+            custom_error!("LibRaw decoded data contains neither a mono raw image nor a float image")
         };
 
-        Ok(DecodedRawFull::new(image.unwrap()))
+        let image = image.ok_or_else(|| {
+            LibrawError::Other(
+                format!("LibRaw full image data is inconsistent with {w}x{h} dimensions").into(),
+            )
+        })?;
+        Ok(DecodedRawFull::new(image))
     }
     pub fn get_params(&self) -> Result<libraw_sys::libraw_output_params_t, LibrawError> {
-        Ok(unsafe { (*self.imgdata_ptr()).params })
+        let imgdata = self.arc_imgdata_ptr();
+        Ok(imgdata.params)
     }
 }

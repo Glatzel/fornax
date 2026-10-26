@@ -72,7 +72,8 @@ macro_rules! check_raw_alloc {
         if unsafe { (*$imgdata_ptr).rawdata.raw_alloc }.is_null() {
             return Err($crate::LibrawError::Libraw {
                 code: $crate::LibrawErrorCode::OtherError,
-                message: "imagedata pointer is null".into(),
+                message: "LibRaw raw-data allocation is null; open and unpack the image first"
+                    .into(),
             });
         }
     };

@@ -17,56 +17,31 @@ impl ImgOtherGpsInfo {
         }
     }
     pub fn latitude(&self) -> [f32; 3_usize] {
-        unsafe { (*self.arc_imgdata_ptr.ptr()).other.parsed_gps.latitude }
+        self.arc_imgdata_ptr.other.parsed_gps.latitude
     }
     pub fn longitude(&self) -> [f32; 3_usize] {
-        unsafe { (*self.arc_imgdata_ptr.ptr()).other.parsed_gps.longitude }
+        self.arc_imgdata_ptr.other.parsed_gps.longitude
     }
     pub fn gps_time_stamp(&self) -> [f32; 3_usize] {
-        unsafe { (*self.arc_imgdata_ptr.ptr()).other.parsed_gps.gpstimestamp }
+        self.arc_imgdata_ptr.other.parsed_gps.gpstimestamp
     }
     pub fn altitude(&self) -> f32 {
-        unsafe { (*self.arc_imgdata_ptr.ptr()).other.parsed_gps.altitude }
+        self.arc_imgdata_ptr.other.parsed_gps.altitude
     }
     pub fn altref(&self) -> Result<String, LibrawError> {
-        unsafe {
-            Ok(
-                ((*self.arc_imgdata_ptr.ptr()).other.parsed_gps.altref as *const c_char)
-                    .to_string()?,
-            )
-        }
+        Ok((self.arc_imgdata_ptr.other.parsed_gps.altref as *const c_char).to_string()?)
     }
     pub fn latref(&self) -> Result<String, LibrawError> {
-        unsafe {
-            Ok(
-                ((*self.arc_imgdata_ptr.ptr()).other.parsed_gps.latref as *const c_char)
-                    .to_string()?,
-            )
-        }
+        Ok((self.arc_imgdata_ptr.other.parsed_gps.latref as *const c_char).to_string()?)
     }
     pub fn longref(&self) -> Result<String, LibrawError> {
-        unsafe {
-            Ok(
-                ((*self.arc_imgdata_ptr.ptr()).other.parsed_gps.longref as *const c_char)
-                    .to_string()?,
-            )
-        }
+        Ok((self.arc_imgdata_ptr.other.parsed_gps.longref as *const c_char).to_string()?)
     }
     pub fn gpsstatus(&self) -> Result<String, LibrawError> {
-        unsafe {
-            Ok(
-                ((*self.arc_imgdata_ptr.ptr()).other.parsed_gps.gpsstatus as *const c_char)
-                    .to_string()?,
-            )
-        }
+        Ok((self.arc_imgdata_ptr.other.parsed_gps.gpsstatus as *const c_char).to_string()?)
     }
     pub fn gpsparsed(&self) -> Result<String, LibrawError> {
-        unsafe {
-            Ok(
-                ((*self.arc_imgdata_ptr.ptr()).other.parsed_gps.gpsparsed as *const c_char)
-                    .to_string()?,
-            )
-        }
+        Ok((self.arc_imgdata_ptr.other.parsed_gps.gpsparsed as *const c_char).to_string()?)
     }
 }
 ///# References
@@ -81,29 +56,43 @@ impl ImgOther {
         Ok(Self { imgdata })
     }
     ///ISO sensitivity.
-    pub fn iso_speed(&self) -> f32 { unsafe { (*self.imgdata.ptr()).other.iso_speed } }
+    pub fn iso_speed(&self) -> f32 {
+        self.imgdata.other.iso_speed
+    }
     ///Shutter speed.
-    pub fn shutter(&self) -> f32 { unsafe { (*self.imgdata.ptr()).other.shutter } }
+    pub fn shutter(&self) -> f32 {
+        self.imgdata.other.shutter
+    }
     ///Aperture.
-    pub fn aperture(&self) -> f32 { unsafe { (*self.imgdata.ptr()).other.aperture } }
+    pub fn aperture(&self) -> f32 {
+        self.imgdata.other.aperture
+    }
     ///Focal length.
-    pub fn focal_len(&self) -> f32 { unsafe { (*self.imgdata.ptr()).other.focal_len } }
+    pub fn focal_len(&self) -> f32 {
+        self.imgdata.other.focal_len
+    }
     ///Date of shooting.
     pub fn timestamp(&self) -> Timestamp {
-        unsafe { Timestamp::from_second((*self.imgdata.ptr()).other.timestamp).unwrap() }
+        Timestamp::from_second(self.imgdata.other.timestamp).unwrap()
     }
     ///Serial number of image.
-    pub fn shot_order(&self) -> u32 { unsafe { (*self.imgdata.ptr()).other.shot_order } }
+    pub fn shot_order(&self) -> u32 {
+        self.imgdata.other.shot_order
+    }
     ///GPS data (unparsed block, to write to output as is).
-    pub fn gpsdata(&self) -> [u32; 32] { unsafe { (*self.imgdata.ptr()).other.gpsdata } }
+    pub fn gpsdata(&self) -> [u32; 32] {
+        self.imgdata.other.gpsdata
+    }
     ///Parsed GPS-data: longitude/latitude/altitude and time stamp.
-    pub fn parsed_gps(&self) -> ImgOtherGpsInfo { ImgOtherGpsInfo::new(self.imgdata.clone()) }
+    pub fn parsed_gps(&self) -> ImgOtherGpsInfo {
+        ImgOtherGpsInfo::new(self.imgdata.clone())
+    }
     ///Image description.
     pub fn desc(&self) -> Result<String, LibrawError> {
-        unsafe { Ok(((*self.imgdata.ptr()).other.desc.as_ptr()).to_string()?) }
+        Ok((self.imgdata.other.desc.as_ptr()).to_string()?)
     }
     ///Author of image.
     pub fn artist(&self) -> Result<String, LibrawError> {
-        unsafe { Ok(((*self.imgdata.ptr()).other.artist.as_ptr()).to_string()?) }
+        Ok((self.imgdata.other.artist.as_ptr()).to_string()?)
     }
 }

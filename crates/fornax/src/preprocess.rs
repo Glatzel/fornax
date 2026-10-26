@@ -8,44 +8,37 @@ pub trait Preprocess<T>: Sized
 where
     T: Primitive,
 {
-    fn preprocess(self, levels: Levels<T>) -> RawImage<T>;
+    fn preprocess(self, levels: &Levels<T>) -> RawImage<T>;
 }
 
 impl<T> Preprocess<T> for DecodedRawActive<T>
 where
     T: Primitive,
 {
-    fn preprocess(self, levels: Levels<T>) -> RawImage<T> {
-        let Levels {
-            black,
-            black_delta_h,
-            black_delta_v,
-            white,
-        } = levels;
-
+    fn preprocess(self, levels: &Levels<T>) -> RawImage<T> {
         let image = self.into_image();
         let (width, height) = image.dimensions();
         let w = width as usize;
         let h = height as usize;
 
-        let pattern_w = black.width() as usize;
-        let pattern_h = black.height() as usize;
+        let pattern_w = levels.black.width() as usize;
+        let pattern_h = levels.black.height() as usize;
         debug_assert!(
             pattern_w > 0 && pattern_h > 0,
             "black pattern must not be empty"
         );
-        let pattern = black.as_raw();
+        let pattern = levels.black.as_raw();
 
         let zeros = |n: usize| vec![T::zero(); n];
-        let delta_h = if black_delta_h.is_empty() {
-            zeros(w)
+        let delta_h = if levels.black_delta_h.is_empty() {
+            &zeros(w)
         } else {
-            black_delta_h
+            &levels.black_delta_h
         };
-        let delta_v = if black_delta_v.is_empty() {
-            zeros(h)
+        let delta_v = if levels.black_delta_v.is_empty() {
+            &zeros(h)
         } else {
-            black_delta_v
+            &levels.black_delta_v
         };
         debug_assert_eq!(delta_h.len(), w, "black_delta_h must match image width");
         debug_assert_eq!(delta_v.len(), h, "black_delta_v must match image height");
@@ -65,7 +58,7 @@ where
                     .zip(pattern_row.iter().cycle())
                 {
                     let black_level = pat + dh + dv;
-                    let range = white - black_level;
+                    let range = levels.white - black_level;
 
                     *px = if range <= T::zero() {
                         T::zero()

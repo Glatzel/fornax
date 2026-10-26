@@ -4,7 +4,6 @@ use image::Luma;
 fn main() -> mischief::Result<()> {
     fornax_devtool::setup();
     let libraw = libraw::Libraw::default();
-
     let decoded_full: DecodedRawFull<f32> = libraw
         .open_file(&fornax_devtool::raw_file())?
         .unpack()?

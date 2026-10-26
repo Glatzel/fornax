@@ -163,7 +163,7 @@ mod test {
         assert_approx_eq!(f32, 0.9358199, value);
         let value = libraw.get_pre_mul(BayerChannel::B)?;
         assert_approx_eq!(f32, 1.2567647, value);
-        let value = libraw.get_pre_mul(BayerChannel::GRedRow)?;
+        let value = libraw.get_pre_mul(BayerChannel::GBlueRow)?;
         assert_approx_eq!(f32, 0.0, value);
         Ok(())
     }
