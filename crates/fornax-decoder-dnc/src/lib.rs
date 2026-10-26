@@ -9,14 +9,30 @@ use libraw::LibrawDecoder;
 pub use params::DncParams;
 
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
-    let mut path = std::env::var("PATH").unwrap_or_default();
-    #[cfg(target_os = "macos")]
-    path.insert_str(0, "/Applications/Adobe DNG Converter.app/Contents/MacOS:");
-    #[cfg(target_os = "windows")]
-    path.insert_str(0, r"C:\Program Files\Adobe\Adobe DNG Converter;");
+    let executable = "Adobe DNG Converter";
 
-    unsafe { std::env::set_var("PATH", &path) };
-    PathBuf::from("Adobe DNG Converter")
+    #[cfg(target_os = "windows")]
+    let executable = format!("{executable}.exe");
+
+    if let Some(path) = std::env::var_os("PATH").and_then(|paths| {
+        std::env::split_paths(&paths)
+            .map(|dir| dir.join(&executable))
+            .find(|path| path.is_file())
+    }) {
+        return path;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        PathBuf::from(
+            "/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter",
+        )
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        PathBuf::from(r"C:\Program Files\Adobe\Adobe DNG Converter.exe")
+    }
 });
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
