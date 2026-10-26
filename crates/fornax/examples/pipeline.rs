@@ -12,7 +12,6 @@ fn wrapper(
 ) -> mischief::Result<()> {
     assert_eq!(decoded.image().dimensions(), (5_202, 3_464));
     let decoded_path = output_dir.join("1.fornax-libraw-decoded.tiff");
-    dbg!(decoded.image().as_raw().get(0..10));
     save_image::<_, _, Luma<u16>, _>(decoded.image(), &decoded_path, 1.0)?;
 
     let processed = decoded.preprocess(&metadata.levels);
