@@ -7,13 +7,13 @@ edition.workspace = true
 clerk.workspace = true
 envoy.workspace = true
 fornax-core.workspace = true
+generic-num.workspace = true
 image.workspace = true
 jiff.workspace = true
 libraw-sys.workspace = true
 num_enum.workspace = true
 serde = { workspace = true, optional = true }
 thiserror.workspace = true
-generic-num.workspace = true
 
 [dev-dependencies]
 float-cmp.workspace = true
