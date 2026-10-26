@@ -3,3 +3,4 @@ mod data_structure;
 mod extension;
 
 pub use data_structure::*;
+pub use extension::LibrawDecoder;

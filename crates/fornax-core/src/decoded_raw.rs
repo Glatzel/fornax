@@ -1,5 +1,6 @@
-use fornax_core::{MonoImage, Primitive};
 use image::math::Rect;
+
+use crate::{MonoImage, Primitive};
 #[derive(Clone, Debug)]
 pub struct DecodedRawFull<T>(MonoImage<T>)
 where

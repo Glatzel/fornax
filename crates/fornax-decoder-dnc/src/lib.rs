@@ -3,9 +3,8 @@ mod params;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
-use fornax_core::Primitive;
-use fornax_decoder_protocol::{DecodeError, DecodedRawActive, DecodedRawFull, IDecoder};
-use fornax_metadata::Metadata;
+use fornax_core::metadata::Metadata;
+use fornax_core::{DecodeError, DecodedRawActive, DecodedRawFull, IDecoder, Primitive};
 use libraw::Libraw;
 pub use params::DncParams;
 
@@ -109,7 +108,7 @@ where
 {
     fn decode_full(&self, input: &Path) -> Result<(DecodedRawFull<T>, Metadata<T>), DecodeError> {
         let dng_file = self.convert(input)?;
-        Libraw::default().decode_full(&dng_file as &Path)
+        LibrawDecoder.decode_full(&dng_file as &Path)
     }
 
     fn decode_active(

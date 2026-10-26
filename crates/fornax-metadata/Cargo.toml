@@ -1,8 +1,0 @@
-[package]
-name = "fornax-metadata"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-fornax-core.workspace = true
-image.workspace = true

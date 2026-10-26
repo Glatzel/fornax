@@ -660,9 +660,7 @@ dependencies = [
  "codspeed-criterion-compat",
  "fornax-core",
  "fornax-decoder-dnc",
- "fornax-decoder-protocol",
  "fornax-devtool",
- "fornax-metadata",
  "generic-num",
  "image",
  "libraw",
@@ -687,20 +685,8 @@ version = "0.0.17"
 dependencies = [
  "clerk",
  "fornax-core",
- "fornax-decoder-protocol",
- "fornax-metadata",
  "libraw",
  "serde",
-]
-
-[[package]]
-name = "fornax-decoder-protocol"
-version = "0.0.17"
-dependencies = [
- "fornax-core",
- "fornax-metadata",
- "image",
- "thiserror",
 ]
 
 [[package]]
@@ -712,14 +698,6 @@ dependencies = [
  "image",
  "mischief",
  "num-traits",
-]
-
-[[package]]
-name = "fornax-metadata"
-version = "0.0.17"
-dependencies = [
- "fornax-core",
- "image",
 ]
 
 [[package]]
@@ -1157,9 +1135,7 @@ dependencies = [
  "envoy",
  "float-cmp",
  "fornax-core",
- "fornax-decoder-protocol",
  "fornax-devtool",
- "fornax-metadata",
  "generic-num",
  "image",
  "jiff",

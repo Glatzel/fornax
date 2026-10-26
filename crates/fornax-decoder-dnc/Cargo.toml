@@ -6,8 +6,6 @@ edition.workspace = true
 [dependencies]
 clerk.workspace = true
 fornax-core.workspace = true
-fornax-decoder-protocol.workspace = true
-fornax-metadata.workspace = true
 libraw.workspace = true
 serde = { workspace = true, optional = true }
 

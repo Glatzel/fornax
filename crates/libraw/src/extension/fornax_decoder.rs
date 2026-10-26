@@ -1,12 +1,10 @@
 use std::path::Path;
 
-use fornax_core::Primitive;
-use fornax_decoder_protocol::{DecodeError, DecodedRawActive, DecodedRawFull, IDecoder};
-use fornax_metadata::Metadata;
+use fornax_core::metadata::Metadata;
+use fornax_core::{DecodeError, DecodedRawActive, DecodedRawFull, IDecoder, Primitive};
 
-use crate::Libraw;
-
-impl<T> IDecoder<Path, T> for Libraw
+pub struct LibrawDecoder;
+impl<T> IDecoder<Path, T> for LibrawDecoder
 where
     T: Primitive,
 {
@@ -22,7 +20,7 @@ where
     }
 }
 
-impl<T> IDecoder<[u8], T> for Libraw
+impl<T> IDecoder<[u8], T> for LibrawDecoder
 where
     T: Primitive,
 {

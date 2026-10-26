@@ -1,4 +1,4 @@
-use fornax_core::{BayerPattern, MonoImage, Primitive};
+use crate::{BayerPattern, MonoImage, Primitive};
 use image::math::Rect;
 
 #[derive(Clone, Debug)]

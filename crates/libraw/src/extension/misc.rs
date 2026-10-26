@@ -1,5 +1,6 @@
-use fornax_core::{BayerPattern, MonoImage, Primitive};
-use fornax_decoder_protocol::{DecodedRawActive, DecodedRawFull};
+use fornax_core::{
+    BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive,
+};
 use generic_num::num;
 
 use super::super::{Libraw, LibrawError};

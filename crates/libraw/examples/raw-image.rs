@@ -1,5 +1,4 @@
-use fornax_core::BayerPattern;
-use fornax_decoder_protocol::{DecodedRawActive, DecodedRawFull};
+use fornax_core::{BayerPattern, DecodedRawActive, DecodedRawFull};
 use image::Luma;
 
 fn main() -> mischief::Result<()> {
@@ -19,7 +18,7 @@ fn main() -> mischief::Result<()> {
             .join("raw_image_full.tiff"),
         1.0,
     )?;
-    
+
     let decoded_active: DecodedRawActive<f32> = libraw.get_decoded_raw_active()?;
     assert_eq!(decoded_active.image().width(), 5202);
     assert_eq!(decoded_active.image().height(), 3464);
