@@ -2,3 +2,19 @@
 	path = external/raw-images
 	url = https://github.com/syoyo/raw-images.git
 	shallow = true
+[submodule "external/darktable"]
+	path = external/darktable
+	url = https://github.com/darktable-org/darktable.git
+	shallow = true
+[submodule "external/dng_sdk"]
+	path = external/dng_sdk
+	url = https://github.com/emmcb/adobe-dng-sdk.git
+	shallow = true
+[submodule "external/dnglab"]
+	path = external/dnglab
+	url = https://github.com/dnglab/dnglab.git
+	shallow = true
+[submodule "external/libraw"]
+	path = external/libraw
+	url = https://github.com/LibRaw/LibRaw.git
+	shallow = true
