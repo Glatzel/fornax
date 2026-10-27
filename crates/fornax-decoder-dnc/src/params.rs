@@ -1,98 +1,91 @@
-use core::fmt::Display;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use fornax_core::error::DecodeError;
+use strum::{AsRefStr, Display, EnumString};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, AsRefStr, EnumString, Display,
+)]
 pub enum DncPreview {
     #[cfg_attr(feature = "serde", serde(rename = "-p0"))]
+    #[strum(serialize = "-p0")]
     None,
     #[cfg_attr(feature = "serde", serde(rename = "-p1"))]
+    #[strum(serialize = "-p1")]
     Medium,
+    #[strum(serialize = "-p2")]
     #[cfg_attr(feature = "serde", serde(rename = "-p2"))]
     Full,
 }
-impl Display for DncPreview {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let text = match self {
-            Self::None => "-p0",
-            Self::Medium => "-p1",
-            Self::Full => "-p2",
-        };
-        write!(f, "{text}")
-    }
-}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, AsRefStr, EnumString, Display,
+)]
 pub enum DncCompatibility {
     #[cfg_attr(feature = "serde", serde(rename = "-cr2.4"))]
+    #[strum(serialize = "-cr2.4")]
     CR2_4,
     #[cfg_attr(feature = "serde", serde(rename = "-cr4.1"))]
+    #[strum(serialize = "-cr4.1")]
     CR4_1,
     #[cfg_attr(feature = "serde", serde(rename = "-cr4.6"))]
+    #[strum(serialize = "-cr4.6")]
     CR4_6,
     #[cfg_attr(feature = "serde", serde(rename = "-cr5.4"))]
+    #[strum(serialize = "-cr5.4")]
     CR5_4,
     #[cfg_attr(feature = "serde", serde(rename = "-cr6.6"))]
+    #[strum(serialize = "-cr6.6")]
     CR6_6,
     #[cfg_attr(feature = "serde", serde(rename = "-cr7.1"))]
+    #[strum(serialize = "-cr7.1")]
     CR7_1,
     #[cfg_attr(feature = "serde", serde(rename = "-cr11.2"))]
+    #[strum(serialize = "-cr11.2")]
     CR11_2,
     #[cfg_attr(feature = "serde", serde(rename = "-cr12.4"))]
+    #[strum(serialize = "-cr12.4")]
     CR12_4,
     #[cfg_attr(feature = "serde", serde(rename = "-cr13.2"))]
+    #[strum(serialize = "-cr13.2")]
     CR13_2,
     #[cfg_attr(feature = "serde", serde(rename = "-cr14.0"))]
+    #[strum(serialize = "-cr14.0")]
     CR14_0,
     #[cfg_attr(feature = "serde", serde(rename = "-cr15.3"))]
+    #[strum(serialize = "15.3")]
     CR15_3,
     #[cfg_attr(feature = "serde", serde(rename = "-cr16.0"))]
+    #[strum(serialize = "-cr16.0")]
     CR16_0,
 
     #[cfg_attr(feature = "serde", serde(rename = "-dng1.1"))]
+    #[strum(serialize = "-dng1.1")]
     DNG1_1,
     #[cfg_attr(feature = "serde", serde(rename = "-dng1.3"))]
+    #[strum(serialize = "-dng1.3")]
     DNG1_3,
     #[cfg_attr(feature = "serde", serde(rename = "-dng1.4"))]
+    #[strum(serialize = "-dng1.4")]
     DNG1_4,
     #[cfg_attr(feature = "serde", serde(rename = "-dng1.5"))]
+    #[strum(serialize = "-dng1.5")]
     DNG1_5,
     #[cfg_attr(feature = "serde", serde(rename = "-dng1.6"))]
+    #[strum(serialize = "-dng1.6")]
     DNG1_6,
     #[cfg_attr(feature = "serde", serde(rename = "-dng1.7"))]
+    #[strum(serialize = "-dng1.7")]
     DNG1_7,
     #[cfg_attr(feature = "serde", serde(rename = "-dng1.7.1"))]
+    #[strum(serialize = "-dng1.7.1")]
     DNG1_7_1,
 }
-impl Display for DncCompatibility {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let text = match self {
-            Self::CR2_4 => "-cr2.4",
-            Self::CR4_1 => "-cr4.1",
-            Self::CR4_6 => "-cr4.6",
-            Self::CR5_4 => "-cr5.4",
-            Self::CR6_6 => "-cr6.6",
-            Self::CR7_1 => "-cr7.1",
-            Self::CR11_2 => "-cr11.2",
-            Self::CR12_4 => "-cr12.4",
-            Self::CR13_2 => "-cr13.2",
-            Self::CR14_0 => "-cr14.0",
-            Self::CR15_3 => "-cr15.3",
-            Self::CR16_0 => "-cr16.0",
-            Self::DNG1_1 => "-dng1.1",
-            Self::DNG1_3 => "-dng1.3",
-            Self::DNG1_4 => "-dng1.4",
-            Self::DNG1_5 => "-dng1.5",
-            Self::DNG1_6 => "-dng1.6",
-            Self::DNG1_7 => "-dng1.7",
-            Self::DNG1_7_1 => "-dng1.7.1",
-        };
-        write!(f, "{text}")
-    }
-}
+
+///# References
+/// [dng_converter_commandline](https://helpx.adobe.com/content/dam/help/en/camera-raw/digital-negative/jcr_content/root/content/flex/items/position/position-par/download_section/download-1/dng_converter_commandline.pdf)
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DncParams {

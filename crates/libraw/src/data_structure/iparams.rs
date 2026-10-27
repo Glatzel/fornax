@@ -1,35 +1,24 @@
 use core::ffi::c_char;
-use std::str::FromStr;
 use std::sync::Arc;
 
-use envoy::PtrToString;
+use envoy::{PtrAsStr, PtrToString};
+use strum::EnumString;
 
 use crate::{ImgdataPtr, LibrawError};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, EnumString)]
 pub enum IParamsColorDesc {
+    #[strum(serialize = "RGBG")]
     RGBG,
+    #[strum(serialize = "RGBE")]
     RGBE,
+    #[strum(serialize = "GMCY")]
     GMCY,
+    #[strum(serialize = "GBTG")]
     GBTG,
 }
-impl FromStr for IParamsColorDesc {
-    type Err = crate::LibrawError;
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        Ok(match value {
-            "RGBG" => Self::RGBG,
-            "RGBE" => Self::RGBE,
-            "GMCY" => Self::GMCY,
-            "GBTG" => Self::GBTG,
-            _ => {
-                return Err(crate::LibrawError::Other(
-                    format!("unknown LibRaw color description {value:?}").into(),
-                ));
-            }
-        })
-    }
-}
+
 ///# References
 ///
 /// * <https://www.libraw.org/docs/API-datastruct-eng.html#libraw_iparams_t>
@@ -103,8 +92,11 @@ impl IParams {
     pub fn xtrans_abs(&self) -> &[[c_char; 6]; 6] { &self.arc_imgdata_ptr.idata.xtrans_abs }
     ///Description of colors numbered from 0 to 3 (RGBG,RGBE,GMCY, or GBTG).
     pub fn cdesc(&self) -> Result<IParamsColorDesc, LibrawError> {
-        let s = self.arc_imgdata_ptr.idata.cdesc.to_string()?;
-        IParamsColorDesc::from_str(s.as_str())
+        let cdesc = self.arc_imgdata_ptr.idata.cdesc.as_str()?;
+
+        cdesc.parse().map_err(|err| {
+            LibrawError::Other(format!("Failed to parse color description {cdesc:?}: {err}").into())
+        })
     }
     ///XMP packed data length and pointer to extracted XMP packet.
     pub fn xmplen(&self) -> u32 { self.arc_imgdata_ptr.idata.xmplen }
