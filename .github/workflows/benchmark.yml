@@ -19,9 +19,9 @@ jobs:
           files: |
             ./crates/fornax-demosaic/**
             ./crates/bench-demosaic/**
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: steps.changed-files.outputs.any_changed == 'true'
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: steps.changed-files.outputs.any_changed == 'true'
         env:
           LD_LIBRARY_PATH: ./.pixi/envs/default/lib
