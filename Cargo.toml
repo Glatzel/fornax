@@ -30,7 +30,7 @@ bindgen = "0.73.2"
 criterion = { package = "codspeed-criterion-compat", version = "6.0.0" }
 float-cmp = "0.10.0"
 jiff = "0.2.38"
-libc = "0.2.190"
+libc = "0.2.191"
 num_enum = "0.7.6"
 num-traits = "0.2.19"
 rand = "0.10.3"
