@@ -11,9 +11,6 @@ pub use crate::DncParams;
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     let executable = "Adobe DNG Converter";
 
-    #[cfg(target_os = "windows")]
-    let executable = format!("{executable}.exe");
-
     if let Some(path) = std::env::var_os("PATH").and_then(|paths| {
         std::env::split_paths(&paths)
             .map(|dir| dir.join(executable))
