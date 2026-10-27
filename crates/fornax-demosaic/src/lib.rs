@@ -1,4 +1,5 @@
 mod linear;
+use fornax_core::error::DemosaicError;
 use fornax_core::{BayerPattern, IDemosaic, MonoImage, Primitive, RgbImage};
 use linear::DemosaicLinear;
 
@@ -11,7 +12,11 @@ impl<T> IDemosaic<T> for Demosaic
 where
     T: Primitive,
 {
-    fn demosaic(&self, bayer_image: &MonoImage<T>, pattern: BayerPattern) -> RgbImage<T>
+    fn demosaic(
+        &self,
+        bayer_image: &MonoImage<T>,
+        pattern: BayerPattern,
+    ) -> Result<RgbImage<T>, DemosaicError>
     where
         T: Primitive,
     {

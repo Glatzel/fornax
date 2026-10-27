@@ -22,7 +22,7 @@ fn wrapper(
     let preprocessed_path = &output_dir.join("2.fornax-libraw-preprocess.tiff");
     save_image::<_, _, Luma<u16>, _>(processed.image(), &preprocessed_path, u16::MAX as _)?;
 
-    let demosaiced = processed.demosaic(&Demosaic::Linear, metadata.bayer_pattern);
+    let demosaiced = processed.demosaic(&Demosaic::Linear, metadata.bayer_pattern)?;
     assert_eq!(demosaiced.dimensions(), (5_202, 3_464));
     let demosaiced_path = output_dir.join("3.fornax-libraw-demosaic_linear.tiff");
     save_image::<_, _, Rgb<u16>, _>(&demosaiced, &demosaiced_path, u16::MAX as _)?;

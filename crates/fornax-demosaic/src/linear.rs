@@ -1,3 +1,4 @@
+use fornax_core::error::DemosaicError;
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage};
 use generic_num::num;
 use image::{ImageBuffer, Rgb};
@@ -183,7 +184,11 @@ impl<T> IDemosaic<T> for DemosaicLinear
 where
     T: Primitive,
 {
-    fn demosaic(&self, bayer_image: &MonoImage<T>, pattern: BayerPattern) -> RgbImage<T> {
+    fn demosaic(
+        &self,
+        bayer_image: &MonoImage<T>,
+        pattern: BayerPattern,
+    ) -> Result<RgbImage<T>, DemosaicError> {
         let (width, height) = bayer_image.dimensions();
         let mut img: ImageBuffer<Rgb<T>, Vec<T>> = ImageBuffer::new(width, height);
 
@@ -252,7 +257,7 @@ where
                 }
             });
 
-        img
+        Ok(img)
     }
 }
 
@@ -270,7 +275,7 @@ mod tests {
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::RGGB);
+        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::RGGB)?;
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
@@ -310,7 +315,7 @@ mod tests {
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::BGGR);
+        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::BGGR)?;
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
@@ -350,7 +355,7 @@ mod tests {
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::GRBG);
+        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::GRBG)?;
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
@@ -390,7 +395,7 @@ mod tests {
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::GBRG);
+        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::GBRG)?;
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)

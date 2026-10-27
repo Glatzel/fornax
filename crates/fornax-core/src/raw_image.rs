@@ -1,3 +1,4 @@
+use crate::error::DemosaicError;
 use crate::{BayerPattern, IDemosaic, MonoImage, Primitive, RgbImage};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -12,7 +13,11 @@ where
     pub fn new(plane: MonoImage<T>) -> Self { Self(plane) }
     pub fn image(&self) -> &MonoImage<T> { &self.0 }
     pub fn into_image(self) -> MonoImage<T> { self.0 }
-    pub fn demosaic<D>(self, algorithm: &D, pattern: BayerPattern) -> RgbImage<T>
+    pub fn demosaic<D>(
+        self,
+        algorithm: &D,
+        pattern: BayerPattern,
+    ) -> Result<RgbImage<T>, DemosaicError>
     where
         D: IDemosaic<T>,
     {
