@@ -1,7 +1,7 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_core::{BayerPattern, IDemosaic, MonoImage, Primitive};
 use fornax_demosaic::Demosaic;
-use fornax_devtool::{BenchSampleBits, bench_mono_image, bench_sample_bits};
+use fornax_devtool::{BenchSampleBits, bench_bits, bench_mono_image, bench_size};
 
 fn bench_methods<M, T>(c: &mut Criterion, name: &str, method: M, image: MonoImage<T>)
 where
@@ -13,19 +13,19 @@ where
     });
 }
 
-fn bench_inputs<T: Primitive>(c: &mut Criterion, sample_bits: BenchSampleBits) {
-    for input in fornax_devtool::bench_inputs() {
-        let image = bench_mono_image::<T>(input, 1.0);
-        let name = format!("linear/{}/{}", input.name, sample_bits.name());
+fn bench_sizes<T: Primitive>(c: &mut Criterion, sample_bits: BenchSampleBits) {
+    for (label, size) in bench_size() {
+        let image = bench_mono_image::<T>(size, 1.0);
+        let name = format!("linear/{label}/{}", sample_bits.name());
         bench_methods::<_, T>(c, &name, Demosaic::Linear, image);
     }
 }
 
 fn benches(c: &mut Criterion) {
-    for sample_bits in bench_sample_bits() {
+    for sample_bits in bench_bits() {
         match sample_bits {
-            BenchSampleBits::B32 => bench_inputs::<f32>(c, sample_bits),
-            BenchSampleBits::B64 => bench_inputs::<f64>(c, sample_bits),
+            BenchSampleBits::B32 => bench_sizes::<f32>(c, sample_bits),
+            BenchSampleBits::B64 => bench_sizes::<f64>(c, sample_bits),
         }
     }
 }
