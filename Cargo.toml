@@ -27,7 +27,7 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 # other
 bindgen = "0.73.2"
-criterion = { package = "codspeed-criterion-compat", version = "5.0.3" }
+criterion = { package = "codspeed-criterion-compat", version = "6.0.0" }
 float-cmp = "0.10.0"
 jiff = "0.2.38"
 libc = "0.2.190"
