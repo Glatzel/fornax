@@ -173,12 +173,15 @@ fn get_metadata<T: Primitive>(libraw: &Libraw) -> Result<Metadata<T>, DecodeErro
         }
     };
 
-    let dng_rows = dng.dng_cblack[4] as usize;
-    let dng_cols = dng.dng_cblack[5] as usize;
-    let color_rows = color.cblack[4] as usize;
-    let color_cols = color.cblack[5] as usize;
-    let (black_width, black_height, black_values): (usize, usize, Vec<f32>) =
-        if dng_rows > 0 && dng_cols > 0 && dng_rows.saturating_mul(dng_cols) <= 4096 {
+    let black = {
+        let dng_rows = dng.dng_cblack[4] as usize;
+        let dng_cols = dng.dng_cblack[5] as usize;
+        let color_rows = color.cblack[4] as usize;
+        let color_cols = color.cblack[5] as usize;
+        let (width, height, values): (usize, usize, Vec<f32>) = if dng_rows > 0
+            && dng_cols > 0
+            && dng_rows.saturating_mul(dng_cols) <= 4096
+        {
             let values = dng.dng_fcblack[6..6 + dng_rows * dng_cols]
                 .iter()
                 .map(|black| dng.dng_fblack + black)
@@ -199,32 +202,36 @@ fn get_metadata<T: Primitive>(libraw: &Libraw) -> Result<Metadata<T>, DecodeErro
                 .collect();
             (2, 2, values)
         };
-    let black = image::ImageBuffer::from_vec(
-        black_width as u32,
-        black_height as u32,
-        black_values
-            .into_iter()
-            .map(|value| num!(value))
-            .collect::<Vec<T>>(),
-    )
-    .ok_or_else(|| {
-        backend_err(format!(
-            "LibRaw black-level pattern is inconsistent with {black_width}x{black_height} dimensions"
-        ))
-    })?;
-
-    let white_present =
-        dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_WHITE as u32 != 0;
-    let white = if white_present && dng.dng_whitelevel[0] > 0 {
-        dng.dng_whitelevel[0]
-    } else {
-        color.maximum
+        image::ImageBuffer::from_vec(
+            width as u32,
+            height as u32,
+            values
+                .into_iter()
+                .map(|value| num!(value))
+                .collect::<Vec<T>>(),
+        )
+        .ok_or_else(|| {
+            backend_err(format!(
+                "LibRaw black-level pattern is inconsistent with {width}x{height} dimensions"
+            ))
+        })?
     };
-    if white == 0 {
-        return Err(backend_err(
-            "LibRaw reported a zero white level for a single-sample Bayer image",
-        ));
-    }
+
+    let white = {
+        let white_present =
+            dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_WHITE as u32 != 0;
+        let white = if white_present && dng.dng_whitelevel[0] > 0 {
+            dng.dng_whitelevel[0]
+        } else {
+            color.maximum
+        };
+        if white == 0 {
+            return Err(backend_err(
+                "LibRaw reported a zero white level for a single-sample Bayer image",
+            ));
+        }
+        white
+    };
 
     Ok(Metadata {
         active_area,
