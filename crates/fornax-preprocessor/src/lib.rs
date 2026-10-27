@@ -80,11 +80,11 @@ where
 }
 
 #[cfg(debug_assertions)]
-fn validate_levels<T: Primitive>(
+fn validate_levels<T>(
     width: usize,
     height: usize,
     levels: &Levels<T>,
-) -> Result<(), PreprocessError> {
+) -> Result<(), PreprocessError> where T: Primitive {
     if width == 0 || height == 0 {
         return Err(PreprocessError::EmptyImage);
     }

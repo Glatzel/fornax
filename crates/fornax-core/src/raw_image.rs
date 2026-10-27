@@ -10,8 +10,8 @@ impl<T> RawImage<T>
 where
     T: Primitive,
 {
-    pub fn new(plane: MonoImage<T>) -> Self { Self(plane) }
-    pub fn image(&self) -> &MonoImage<T> { &self.0 }
+    pub const fn new(plane: MonoImage<T>) -> Self { Self(plane) }
+    pub const fn image(&self) -> &MonoImage<T> { &self.0 }
     pub fn into_image(self) -> MonoImage<T> { self.0 }
     pub fn demosaic<D>(
         self,

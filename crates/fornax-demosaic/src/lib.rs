@@ -21,7 +21,7 @@ where
         T: Primitive,
     {
         match self {
-            Demosaic::Linear => DemosaicLinear.demosaic(bayer_image, pattern),
+            Self::Linear => DemosaicLinear.demosaic(bayer_image, pattern),
         }
     }
 }

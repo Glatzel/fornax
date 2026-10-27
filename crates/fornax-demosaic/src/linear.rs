@@ -19,7 +19,7 @@ const fn idx(width: u32, x: u32, y: u32) -> usize { y as usize * width as usize 
 
 // ---------- Checked path: used only for border rows/columns ----------
 
-fn diagonal_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
+fn diagonal_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T where T: Primitive {
     let mut count = 0_u32;
     let mut sum = T::zero();
     if x > 0 && y > 0 {
@@ -41,7 +41,7 @@ fn diagonal_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y:
     sum / num!(count.max(1))
 }
 
-fn neighbour_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
+fn neighbour_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T where T: Primitive {
     let mut count = 0_u32;
     let mut sum = T::zero();
     if x > 0 {
@@ -63,7 +63,7 @@ fn neighbour_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y
     sum / num!(count.max(1))
 }
 
-fn left_right_checked<T: Primitive>(raw: &[T], width: u32, x: u32, y: u32) -> T {
+fn left_right_checked<T>(raw: &[T], width: u32, x: u32, y: u32) -> T where T: Primitive {
     let mut count = 0_u32;
     let mut sum = T::zero();
     if x > 0 {
@@ -77,7 +77,7 @@ fn left_right_checked<T: Primitive>(raw: &[T], width: u32, x: u32, y: u32) -> T 
     sum / num!(count.max(1))
 }
 
-fn top_down_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T {
+fn top_down_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T where T: Primitive {
     let mut count = 0_u32;
     let mut sum = T::zero();
     if y > 0 {
@@ -92,7 +92,7 @@ fn top_down_checked<T: Primitive>(raw: &[T], width: u32, height: u32, x: u32, y:
 }
 
 #[inline(always)]
-fn write_pixel_checked<T: Primitive>(
+fn write_pixel_checked<T>(
     raw_mosaic: &[T],
     width: u32,
     height: u32,
@@ -100,7 +100,7 @@ fn write_pixel_checked<T: Primitive>(
     y: u32,
     channel: BayerChannel,
     out_row: &mut [T],
-) {
+) where T: Primitive {
     let o = x as usize * 3;
     let centre = raw_mosaic[idx(width, x, y)];
     match channel {
@@ -133,7 +133,7 @@ fn write_pixel_checked<T: Primitive>(
 /// Interpolates one interior pixel (`1 <= x < w-1`) of channel `CH`.
 /// `p`, `c`, `n` are the previous, current and next mosaic rows.
 #[inline(always)]
-fn interior_px<T: Primitive, const CH: u8>(p: &[T], c: &[T], n: &[T], x: usize, out: &mut [T]) {
+fn interior_px<T, const CH: u8>(p: &[T], c: &[T], n: &[T], x: usize, out: &mut [T]) where T: Primitive {
     let two = num!(2);
     let four = num!(4);
     let (l, r, t, b) = (c[x - 1], c[x + 1], p[x], n[x]);
@@ -158,12 +158,12 @@ fn interior_px<T: Primitive, const CH: u8>(p: &[T], c: &[T], n: &[T], x: usize, 
 /// Fills `x` in `1..w-1` of one row. `CE` / `CO` are the channels at even /
 /// odd `x`.
 #[inline(always)]
-fn interior_row<T: Primitive, const CE: u8, const CO: u8>(
+fn interior_row<T, const CE: u8, const CO: u8>(
     prev: &[T],
     cur: &[T],
     next: &[T],
     out: &mut [T],
-) {
+) where T: Primitive {
     let w = cur.len();
     assert!(prev.len() == w && next.len() == w && out.len() == 3 * w);
     let mut x = 1; // odd -> CO, then even -> CE, ...
@@ -223,20 +223,20 @@ where
                     // Channels at even / odd x are fixed for the whole row.
                     match (pattern.channel_at(0, yu), pattern.channel_at(1, yu)) {
                         (BayerChannel::R, BayerChannel::GRedRow) => {
-                            interior_row::<T, CH_R, CH_G>(prev, cur, next, out)
+                            interior_row::<T, CH_R, CH_G>(prev, cur, next, out);
                         }
                         (BayerChannel::GRedRow, BayerChannel::R) => {
-                            interior_row::<T, CH_G, CH_R>(prev, cur, next, out)
+                            interior_row::<T, CH_G, CH_R>(prev, cur, next, out);
                         }
                         (BayerChannel::GBlueRow, BayerChannel::B) => {
                             interior_row::<T, { BayerChannel::GBlueRow as u8 }, CH_B>(
                                 prev, cur, next, out,
-                            )
+                            );
                         }
                         (BayerChannel::B, BayerChannel::GBlueRow) => {
                             interior_row::<T, CH_B, { BayerChannel::GBlueRow as u8 }>(
                                 prev, cur, next, out,
-                            )
+                            );
                         }
                         _ => unreachable!("rows in a Bayer tile are always R/G or G/B"),
                     }

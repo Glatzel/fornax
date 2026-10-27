@@ -185,9 +185,7 @@ impl DncParams {
     pub(crate) fn output_file(&self, raw_file: &Path) -> Result<PathBuf, DecodeError> {
         let mut directory = match &self.directory {
             None => raw_file
-                .parent()
-                .map(Path::to_path_buf)
-                .unwrap_or_else(|| PathBuf::from(".")),
+                .parent().map_or_else(|| PathBuf::from("."), Path::to_path_buf),
             Some(directory) => std::path::absolute(directory).map_err(|error| {
                 DecodeError::InvalidInput(
                     format!(

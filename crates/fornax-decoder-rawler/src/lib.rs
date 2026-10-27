@@ -27,7 +27,7 @@ where
     }
 }
 
-fn decode<T: Primitive>(input: &Path) -> Result<(DecodedRawFull<T>, Metadata<T>), DecodeError> {
+fn decode<T>(input: &Path) -> Result<(DecodedRawFull<T>, Metadata<T>), DecodeError> where T: Primitive {
     if !input.is_file() {
         return Err(DecodeError::InvalidInput(
             format!("RAW input is not a file: {}", input.display()).into(),
@@ -54,7 +54,7 @@ fn backend_error(error: rawler::RawlerError) -> DecodeError {
     }
 }
 
-fn convert_image<T: Primitive>(raw: &RawImage) -> Result<MonoImage<T>, DecodeError> {
+fn convert_image<T>(raw: &RawImage) -> Result<MonoImage<T>, DecodeError> where T: Primitive {
     let cfa = match &raw.photometric {
         RawPhotometricInterpretation::Cfa(config) => &config.cfa,
         RawPhotometricInterpretation::BlackIsZero | RawPhotometricInterpretation::LinearRaw => {
@@ -108,7 +108,7 @@ fn convert_image<T: Primitive>(raw: &RawImage) -> Result<MonoImage<T>, DecodeErr
     MonoImage::from_raw(width, height, samples).ok_or(RawValidationError::InvalidImage.into())
 }
 
-fn convert_metadata<T: Primitive>(raw: &RawImage) -> Result<Metadata<T>, DecodeError> {
+fn convert_metadata<T>(raw: &RawImage) -> Result<Metadata<T>, DecodeError> where T: Primitive {
     let cfa = match &raw.photometric {
         RawPhotometricInterpretation::Cfa(config) => &config.cfa,
         RawPhotometricInterpretation::BlackIsZero | RawPhotometricInterpretation::LinearRaw => {
@@ -289,7 +289,7 @@ fn convert_metadata<T: Primitive>(raw: &RawImage) -> Result<Metadata<T>, DecodeE
     })
 }
 
-fn align_to_bayer_tile(mut area: Rect) -> Rect {
+const fn align_to_bayer_tile(mut area: Rect) -> Rect {
     if area.x & 1 == 1 {
         area.x = area.x.saturating_add(1);
         area.width = area.width.saturating_sub(1);
