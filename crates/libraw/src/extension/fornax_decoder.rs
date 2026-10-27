@@ -228,7 +228,7 @@ where
 
     let white = {
         let white_present =
-            dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_WHITE as _ != 0;
+            dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_WHITE as u32 != 0;
         let white = if white_present && dng.dng_whitelevel[0] > 0 {
             dng.dng_whitelevel[0]
         } else {
