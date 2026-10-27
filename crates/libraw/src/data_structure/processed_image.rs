@@ -14,9 +14,9 @@ pub struct ProcessedImage {
     processed_image: *mut libraw_sys::libraw_processed_image_t,
 }
 impl ProcessedImage {
-    pub(crate) fn new(ptr: *mut libraw_sys::libraw_processed_image_t) -> Result<Self, LibrawError> {
+    pub fn new(ptr: *mut libraw_sys::libraw_processed_image_t) -> Result<Self, LibrawError> {
         check_run!(ptr.is_null(), "`libraw_processed_image_t` pointer is null.");
-        clerk::debug!("{:?}", unsafe { *(ptr) });
+        clerk::debug!("created LibRaw processed image from {ptr:p}");
         let img: Self = Self {
             processed_image: ptr,
         };
@@ -30,9 +30,12 @@ impl ProcessedImage {
     ///   Only type, data_size and data fields are valid (and nonzero);
     #[allow(clippy::unnecessary_cast, reason = "libc use usize on unix.")]
     pub fn image_type(&self) -> Result<DCRawImageFormats, LibrawError> {
-        Ok(DCRawImageFormats::try_from(unsafe {
-            (*self.processed_image).type_ as i32
-        })?)
+        let image_type = unsafe { (*self.processed_image).type_ as i32 };
+        DCRawImageFormats::try_from(image_type).map_err(|_| {
+            crate::LibrawError::Other(
+                format!("unsupported LibRaw processed-image type {image_type}").into(),
+            )
+        })
     }
     /// Image size (in pixels). Valid only if type==LIBRAW_IMAGE_BITMAP.
     pub fn height(&self) -> u16 { unsafe { (*self.processed_image).height } }

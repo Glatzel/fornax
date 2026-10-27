@@ -1,6 +1,6 @@
 Set-Location $PSScriptRoot/..
 pixi install
-git submodule update --init --depth 1 external/raw-images
+git submodule update --init external/raw-images
 $env:CONDA_PREFIX = resolve-path $PSScriptRoot/../.pixi/envs/default
 if ($IsWindows) {
     $env:Path = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/default/Library/bin);$env:Path"

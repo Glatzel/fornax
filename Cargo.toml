@@ -1,36 +1,41 @@
 [workspace]
 resolver = "3"
 members = ["./crates/*"]
+exclude = ["./crates/fornax-py/"]  # temporary exclude before api stable.
 
 [workspace.package]
 version = "0.0.17"
 edition = "2024"
 
 [workspace.dependencies]
-clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-
-bindgen = "0.73.2"
-bytemuck = "1.25.2"
-criterion = { package = "codspeed-criterion-compat", version = "5.0.3" }
-dnc = { path = "./crates/dnc" }
-float-cmp = "0.10.0"
-fornax = { path = "./crates/fornax" }
+# local
 fornax-core = { path = "./crates/fornax-core" }
-fornax-dalim = { path = "./crates/fornax-dalim" }
+fornax-decoder-dnc = { path = "./crates/fornax-decoder-dnc" }
+fornax-decoder-rawler = { path = "./crates/fornax-decoder-rawler" }
+fornax-demosaic = { path = "./crates/fornax-demosaic" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
-image = { git = "https://github.com/Glatzel/image-rs" }
-jiff = "0.2.38"
-libc = "0.2.190"
+fornax-preprocessor = { path = "./crates/fornax-preprocessor" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
+
+# glatzel
+clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
+envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
+generic-num = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
+image = { git = "https://github.com/Glatzel/image-rs" }
+mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
+
+# other
+bindgen = "0.73.2"
+criterion = { package = "codspeed-criterion-compat", version = "5.0.3" }
+float-cmp = "0.10.0"
+jiff = "0.2.38"
+libc = "0.2.190"
 num_enum = "0.7.6"
-numpy = "0.29.0"
-pyo3 = { version = "0.29.3", features = ["abi3-py313", "extension-module"] }
+num-traits = "0.2.19"
 rand = "0.10.3"
+rawler = "0.8.0"
 rayon = "1.12.0"
-rmp-serde = "1.3.1"
 serde = { version = "1.0.229", features = ["derive"] }
 thiserror = "2.0.21"
 

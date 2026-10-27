@@ -1,0 +1,11 @@
+[package]
+name = "fornax-preprocessor"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+fornax-core.workspace = true
+rayon.workspace = true
+
+[dev-dependencies]
+image.workspace = true

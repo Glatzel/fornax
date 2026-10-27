@@ -1,0 +1,13 @@
+[package]
+name = "fornax-decoder-dnc"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clerk.workspace = true
+fornax-core.workspace = true
+fornax-decoder-rawler.workspace = true
+serde = { workspace = true, optional = true }
+
+[features]
+serde = ["dep:serde"]

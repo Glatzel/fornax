@@ -1,26 +1,9 @@
-use core::fmt::{Debug, Display};
+use num_traits::Float;
 /// The type of each channel in a pixel.
 /// Including `u8`, `u16`, `f32`, `f64`.
-pub trait FornaxPrimitive:
-    image::Primitive
-    + image::Enlargeable
-    + core::marker::Send
-    + core::marker::Sync
-    + Debug
-    + Display
-    + 'static
-{
-}
-// impl FornaxPrimitive for usize {}
-impl FornaxPrimitive for u8 {}
-impl FornaxPrimitive for u16 {}
-// impl FornaxPrimitive for u32 {}
-// impl FornaxPrimitive for u64 {}
+pub trait Primitive: image::Primitive + image::Enlargeable + Float + Send + Sync {}
 
-// impl FornaxPrimitive for isize {}
-// impl FornaxPrimitive for i8 {}
-// impl FornaxPrimitive for i16 {}
-// impl FornaxPrimitive for i32 {}
-// impl FornaxPrimitive for i64 {}
-impl FornaxPrimitive for f32 {}
-impl FornaxPrimitive for f64 {}
+// impl Primitive for f16 {}
+impl Primitive for f32 {}
+impl Primitive for f64 {}
+// impl Primitive for f128 {}

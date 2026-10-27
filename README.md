@@ -19,15 +19,12 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 
 ## Components
 
-- **dnc**: A wrapper of Adobe dng converter.
+- **fornax-core**: Foundational image aliases, Bayer types, and primitives.
+- **fornax-decoder-dnc**: A wrapper of Adobe DNG Converter.
+- **fornax-decoder-libraw**: Safe wrapper around the native LibRaw library.
+- **fornax-decoder-protocol**: Shared decoder trait, errors, and decoded output types.
 - **fornax**: Simple high-level raw processing manager.
-- **fornax-core**: Foundational traits and structs for decoder and post-processor.
 - **fornax-dalim**: Rust native raw image post processor.
+- **fornax-metadata**: Universal RAW metadata and level information.
 - **fornax-py**: Python package for raw processing manager with Rust backend.
-- **libraw**: Safe wrapper around the native libraw library.
 - **libraw-sys**: Libraw rust bindings.
-
-## Design documentation
-
-- [Universal RAW pipeline design](docs/raw-pipeline/README.md) — persistent
-  processing flow, precision rules, and data-model structures.

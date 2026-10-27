@@ -1,166 +1,140 @@
-use std::slice;
+use fornax_core::{BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive};
+use generic_num::num;
 
-use fornax_core::FornaxPrimitive;
-use image::{ImageBuffer, Rgb};
-
-use crate::extension::error_handling::{check_raw_alloc, check_run, custom_error};
-use crate::{Libraw, LibrawError, ProcessedImage};
+use super::super::{Libraw, LibrawError};
+use super::error_handling::custom_error;
+use crate::extension::error_handling::check_raw_alloc;
 
 // region:Custom API
 impl Libraw {
-    pub fn bayer_pattern(&self) -> Result<fornax_core::BayerPattern, LibrawError> {
+    pub fn bayer_pattern(&self) -> Result<BayerPattern, LibrawError> {
+        let filters = self.get_iparams()?.filters();
+        match filters {
+            0 => {
+                custom_error!("non-mosaic RAW is unsupported");
+            }
+            1 => {
+                custom_error!("16x16 CFA is unsupported");
+            }
+            9 => {
+                custom_error!("X-Trans CFA is unsupported");
+            }
+            2..=8 | 10..=999 => {
+                custom_error!(format!("reserved LibRaw CFA descriptor {filters}"));
+            }
+            _ => {}
+        }
+
+        // LibRaw COLOR(row, column) uses two bits per CFA color.
+        let color =
+            |row: u32, col: u32| -> u32 { (filters >> ((((row << 1) & 14) + col) * 2)) & 3 };
+
+        match (color(0, 0), color(0, 1), color(1, 0), color(1, 1)) {
+            (0, 1, 3, 2) => Ok(BayerPattern::RGGB),
+            (2, 3, 1, 0) => Ok(BayerPattern::BGGR),
+            (1, 0, 2, 3) => Ok(BayerPattern::GRBG),
+            (3, 2, 0, 1) => Ok(BayerPattern::GBRG),
+            _ => custom_error!("unsupported LibRaw CFA pattern {filters:#010x}"),
+        }
+    }
+    pub fn get_decoded_raw_active<T>(&self) -> Result<DecodedRawActive<T>, LibrawError>
+    where
+        T: Primitive,
+    {
         check_raw_alloc!(self.imgdata_ptr());
-        let pattern0 = self.color(0, 0);
-        let pattern1 = self.color(0, 1);
-        let pattern2 = self.color(1, 0);
-        let pattern3 = self.color(1, 1);
-        match (pattern0, pattern1, pattern2, pattern3) {
-            (0, 1, 3, 2) => Ok(fornax_core::BayerPattern::RGGB),
-            (2, 3, 1, 0) => Ok(fornax_core::BayerPattern::BGGR),
-            (1, 0, 2, 3) => Ok(fornax_core::BayerPattern::GRBG),
-            (3, 2, 0, 1) => Ok(fornax_core::BayerPattern::GBRG),
-            (a, b, c, d) => custom_error!(format!("Unknown bayer pattern: {a}, {b}, {c}, {d}")),
+
+        let imgdata_ptr = self.arc_imgdata_ptr();
+        let imgdata = &*imgdata_ptr;
+        let sizes = &imgdata.rawdata.sizes;
+
+        let raw_w = sizes.raw_width as usize;
+        let raw_h = sizes.raw_height as usize;
+        let left = sizes.left_margin as usize;
+        let top = sizes.top_margin as usize;
+        let w = sizes.width as usize;
+        let h = sizes.height as usize;
+        if w == 0 || h == 0 || left.saturating_add(w) > raw_w || top.saturating_add(h) > raw_h {
+            custom_error!(format!(
+                "invalid LibRaw active area ({left}, {top}, {w}, {h}) for {raw_w}x{raw_h} raw image"
+            ));
         }
+
+        // Source stride in elements. raw_pitch is in bytes; fall back to
+        // raw_width. (raw_pitch can be 0 for float/DNG paths, so don't
+        // rely on it blindly.)
+        let stride = raw_w;
+
+        let image = if !imgdata.rawdata.raw_image.is_null() {
+            let src =
+                unsafe { std::slice::from_raw_parts(imgdata.rawdata.raw_image, raw_w * raw_h) };
+            let mut pixels: Vec<T> = Vec::with_capacity(w * h);
+            for y in 0..h {
+                let row = &src[(y + top) * stride + left..][..w];
+                pixels.extend(row.iter().map(|&p| num!(p)));
+            }
+            MonoImage::from_vec(w as u32, h as u32, pixels)
+        } else if !imgdata.rawdata.float_image.is_null() {
+            let src =
+                unsafe { std::slice::from_raw_parts(imgdata.rawdata.float_image, raw_w * raw_h) };
+            let mut pixels: Vec<T> = Vec::with_capacity(w * h);
+            for y in 0..h {
+                let row = &src[(y + top) * stride + left..][..w];
+                pixels.extend(row.iter().map(|&p| num!(p)));
+            }
+            MonoImage::from_vec(w as u32, h as u32, pixels)
+        } else {
+            custom_error!("LibRaw decoded data contains neither a mono raw image nor a float image")
+        };
+
+        let image = image.ok_or_else(|| {
+            LibrawError::Other(
+                format!("LibRaw active image data is inconsistent with {w}x{h} dimensions").into(),
+            )
+        })?;
+        Ok(DecodedRawActive::new(image))
     }
-    pub fn get_bayer_image<T>(&self) -> Result<fornax_core::BayerImage<T>, LibrawError>
+    pub fn get_decoded_raw_full<T>(&self) -> Result<DecodedRawFull<T>, LibrawError>
     where
-        T: FornaxPrimitive,
+        T: Primitive,
     {
-        let pattern = self.bayer_pattern()?;
-        let raw_img = self.get_raw_image(true)?;
-        let img = ImageBuffer::from_par_fn(raw_img.width(), raw_img.height(), |x, y| {
-            let pixel = raw_img.get_pixel(x, y);
-            let value = T::from(pixel[0].max(pixel[1]).max(pixel[2]).max(pixel[3])).unwrap();
+        check_raw_alloc!(self.imgdata_ptr());
 
-            let value =
-            // u16 -> u8
-            if core::any::TypeId::of::<T>() == core::any::TypeId::of::<u8>() {
-                value / T::from(255).unwrap()
-            }
-             // u16 -> u16
-            else if core::any::TypeId::of::<T>() == core::any::TypeId::of::<u16>() {
-                value
-            }
-            // u16 -> f32/f64
-            else if core::any::TypeId::of::<T>() == core::any::TypeId::of::<f32>()
-                || core::any::TypeId::of::<T>() == core::any::TypeId::of::<f64>()
-            {
-                value / T::from(65535).unwrap()
-            } else {
-                panic!()
-            };
+        let imgdata_ptr = self.arc_imgdata_ptr();
+        let imgdata = &*imgdata_ptr;
+        let sizes = &imgdata.rawdata.sizes;
 
-            image::Luma::<T>([value])
-        });
-        Ok(fornax_core::BayerImage::new(img, pattern))
-    }
-    pub(crate) fn map_processed_image<O>(
-        &self,
-        processed: &ProcessedImage,
-    ) -> Result<image::ImageBuffer<Rgb<O>, Vec<O>>, LibrawError>
-    where
-        O: FornaxPrimitive,
-    {
-        match (processed.colors(), processed.bits()) {
-            (3, 8) => {
-                let img: image::ImageBuffer<image::Rgb<O>, Vec<O>> = image::ImageBuffer::from_vec(
-                    processed.width() as u32,
-                    processed.height() as u32,
-                    unsafe {
-                        slice::from_raw_parts(processed.data(), processed.data_size() as usize)
-                            .iter()
-                            .copied()
-                            .map(|v| {
-                                // u8 -> u8
-                                if core::any::TypeId::of::<O>() == core::any::TypeId::of::<u8>() {
-                                    O::from(v).unwrap()
-                                }
-                                // u8 -> u16
-                                else if core::any::TypeId::of::<O>()
-                                    == core::any::TypeId::of::<u16>()
-                                {
-                                    O::from(v).unwrap() * O::from(255).unwrap()
-                                }
-                                // u8 -> f32/f64
-                                else if core::any::TypeId::of::<O>()
-                                    == core::any::TypeId::of::<f32>()
-                                    || core::any::TypeId::of::<O>()
-                                        == core::any::TypeId::of::<f64>()
-                                {
-                                    O::from(v).unwrap() / O::from(255).unwrap()
-                                } else {
-                                    panic!()
-                                }
-                            })
-                            .collect()
-                    },
-                )
-                .unwrap();
-                Ok(img)
-            }
-            (3, 16) => {
-                let img: image::ImageBuffer<image::Rgb<O>, Vec<O>> = image::ImageBuffer::from_vec(
-                    processed.width() as u32,
-                    processed.height() as u32,
-                    bytemuck::cast_slice::<u8, u16>(unsafe {
-                        slice::from_raw_parts(processed.data(), processed.data_size() as usize)
-                    })
-                    .iter()
-                    .copied()
-                    .map(|v| {
-                        // u16 -> u8
-                        if core::any::TypeId::of::<O>() == core::any::TypeId::of::<u8>() {
-                            O::from(v).unwrap() / O::from(255).unwrap()
-                        }
-                        // u16 -> u16
-                        else if core::any::TypeId::of::<O>() == core::any::TypeId::of::<u16>() {
-                            O::from(v).unwrap()
-                        }
-                        // u16 -> f32/f64
-                        else if core::any::TypeId::of::<O>() == core::any::TypeId::of::<f32>()
-                            || core::any::TypeId::of::<O>() == core::any::TypeId::of::<f64>()
-                        {
-                            O::from(v).unwrap() / O::from(65536).unwrap()
-                        } else {
-                            panic!()
-                        }
-                    })
-                    .collect(),
-                )
-                .unwrap();
-                Ok(img)
-            }
-            (c, b) => custom_error!(format!("Unsupported color:{}, bits: {}.", c, b)),
+        let w = sizes.raw_width as usize;
+        let h = sizes.raw_height as usize;
+        if w == 0 || h == 0 {
+            custom_error!(format!("invalid LibRaw raw dimensions {w}x{h}"));
         }
-    }
-    pub fn get_raw_image(
-        &self,
-        subtract_black: bool,
-    ) -> Result<ImageBuffer<image::Rgba<u16>, Vec<u16>>, LibrawError> {
-        self.raw2image()?;
-        check_run!(unsafe { libraw_sys::libraw_raw2image(self.imgdata_ptr()) });
-        if subtract_black {
-            self.libraw_subtract_black()?;
-        }
+        let len = w * h;
 
-        let size = self.get_image_sizes()?;
-        let width = size.iwidth();
-        let height = size.iheight();
-        clerk::debug!("Width: {width}, Height: {height}");
+        let image = if !imgdata.rawdata.raw_image.is_null() {
+            let pixels = unsafe { std::slice::from_raw_parts(imgdata.rawdata.raw_image, len) }
+                .iter()
+                .map(|&p| num!(p))
+                .collect();
+            MonoImage::from_vec(w as u32, h as u32, pixels)
+        } else if !imgdata.rawdata.float_image.is_null() {
+            let pixels = unsafe { std::slice::from_raw_parts(imgdata.rawdata.float_image, len) }
+                .iter()
+                .map(|&p| num!(p))
+                .collect();
+            MonoImage::from_vec(w as u32, h as u32, pixels)
+        } else {
+            custom_error!("LibRaw decoded data contains neither a mono raw image nor a float image")
+        };
 
-        clerk::debug!("Found rgba16 raw image.");
-        let img: ImageBuffer<image::Rgba<u16>, Vec<u16>> =
-            ImageBuffer::from_vec(width as u32, height as u32, unsafe {
-                slice::from_raw_parts(
-                    (*self.imgdata_ptr()).image as *const u16,
-                    width as usize * height as usize * 4,
-                )
-                .to_vec()
-            })
-            .unwrap();
-        Ok(img)
+        let image = image.ok_or_else(|| {
+            LibrawError::Other(
+                format!("LibRaw full image data is inconsistent with {w}x{h} dimensions").into(),
+            )
+        })?;
+        Ok(DecodedRawFull::new(image))
     }
     pub fn get_params(&self) -> Result<libraw_sys::libraw_output_params_t, LibrawError> {
-        Ok(unsafe { (*self.imgdata_ptr()).params })
+        let imgdata = self.arc_imgdata_ptr();
+        Ok(imgdata.params)
     }
 }

@@ -63,19 +63,19 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-clippy@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
       - uses: Glatzel/template/.github/actions/rust/cargo-test@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         with:
-          global-options: --workspace --all-features --exclude fornax-py
-      - name: build
-        run: |
-          ./scripts/maturin-develop.ps1
-        shell: pwsh
-      - uses: Glatzel/template/.github/actions/python/pytest@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
-        with:
-          working-directory: ./crates/fornax-py
+          global-options: --workspace --all-features
+      # - name: build
+      #   run: |
+      #     ./scripts/maturin-develop.ps1
+      #   shell: pwsh
+      # - uses: Glatzel/template/.github/actions/python/pytest@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
+      #   with:
+      #     working-directory: ./crates/fornax-py
       - uses: Glatzel/template/.github/actions/common/codecov@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         if: ${{ !cancelled() }}
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [ lefthook, cargo-doc, test-build]
+    needs: [lefthook, cargo-doc, test-build]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1

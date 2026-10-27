@@ -5,7 +5,6 @@ mod imgother;
 mod iparams;
 mod output_params;
 mod processed_image;
-mod rawdata;
 
 pub use constants::{LibrawError, LibrawErrorCode};
 pub use data::{ImgdataPtr, Libraw};
@@ -17,4 +16,3 @@ pub use output_params::{
     DCRawParams, DCRawUseCameraMatrix, DCRawUseFujiRotate, DCRawUserFlip, DCRawUserQual,
 };
 pub use processed_image::{DCRawImageFormats, ProcessedImage};
-pub use rawdata::Rawdata;

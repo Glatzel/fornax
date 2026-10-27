@@ -4,6 +4,9 @@ on:
   pull_request:
   push:
     branches: [main]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   cargo-bench:
     if: github.event_name != 'pull_request' || contains(join(github.event.pull_request.labels.*.name, ','), 'perf')
@@ -14,9 +17,8 @@ jobs:
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           files: |
-            ./crates/fornax-dalim/benches/**
-            ./crates/fornax-dalim/src/demosaic/**
-            ./.github/workflows/benchmark.yml
+            ./crates/fornax-demosaic/**
+            ./crates/bench-demosaic/**
       - uses: Glatzel/template/.github/actions/rust/setup-rust@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
         if: steps.changed-files.outputs.any_changed == 'true'
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
@@ -24,4 +26,4 @@ jobs:
         env:
           LD_LIBRARY_PATH: ./.pixi/envs/default/lib
         with:
-          options: -p fornax-dalim
+          options: -p bench-demosaic -p bench-preprocessor

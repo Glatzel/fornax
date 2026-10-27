@@ -4,10 +4,10 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-bytemuck.workspace = true
 clerk.workspace = true
 envoy.workspace = true
 fornax-core.workspace = true
+generic-num.workspace = true
 image.workspace = true
 jiff.workspace = true
 libraw-sys.workspace = true
@@ -16,7 +16,6 @@ serde = { workspace = true, optional = true }
 thiserror.workspace = true
 
 [dev-dependencies]
-clerk = { workspace = true, features = ["tracing"] }
 float-cmp.workspace = true
 fornax-devtool.workspace = true
 mischief.workspace = true

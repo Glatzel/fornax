@@ -1,11 +1,15 @@
+mod alias;
 mod bayer;
-mod decoder;
-mod post_processor;
-
-mod error;
-pub use bayer::{BayerChannel, BayerImage, BayerPattern};
-pub use decoder::IDecoder;
-pub use error::FornaxError;
-pub use post_processor::{IPostProcessor, NullPostProcessor};
+mod decoded_raw;
+pub mod error;
+pub mod metadata;
 mod primitive;
-pub use primitive::FornaxPrimitive;
+mod protocol;
+mod raw_image;
+
+pub use alias::{MonoImage, RgbImage};
+pub use bayer::{BayerChannel, BayerPattern};
+pub use decoded_raw::{DecodedRawActive, DecodedRawFull};
+pub use primitive::Primitive;
+pub use protocol::{IDecoder, IDemosaic, IPreprocessor};
+pub use raw_image::RawImage;

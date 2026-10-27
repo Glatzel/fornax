@@ -7,7 +7,7 @@ macro_rules! check_run {
                     "{:?}",
                     $crate::LibrawError::Libraw {
                         code,
-                        message: "Success".to_string()
+                        message: "Success".into()
                     }
                 );
             }
@@ -24,7 +24,7 @@ macro_rules! check_run {
                     "{:?}",
                     $crate::LibrawError::Libraw {
                         code,
-                        message: crate::Libraw::strerror(code as i32)?
+                        message: crate::Libraw::strerror(code as i32)?.into()
                     }
                 );
             }
@@ -39,7 +39,7 @@ macro_rules! check_run {
             | crate::LibrawErrorCode::MempoolOverflow => {
                 let err = $crate::LibrawError::Libraw {
                     code,
-                    message: crate::Libraw::strerror(code as i32)?,
+                    message: crate::Libraw::strerror(code as i32)?.into(),
                 };
                 clerk::error!("{:?}", err);
                 return Err(err);
@@ -50,7 +50,7 @@ macro_rules! check_run {
         if $condition {
             return Err($crate::LibrawError::Libraw {
                 code: $crate::LibrawErrorCode::OtherError,
-                message: format!("{}", $message),
+                message: format!("{}", $message).into(),
             });
         }
     };
@@ -61,7 +61,7 @@ macro_rules! custom_error {
     ($message:expr) => {
         return Err($crate::LibrawError::Libraw {
             code: $crate::LibrawErrorCode::OtherError,
-            message: format!("{}", $message),
+            message: format!("{}", $message).into(),
         })
     };
 }
@@ -72,7 +72,8 @@ macro_rules! check_raw_alloc {
         if unsafe { (*$imgdata_ptr).rawdata.raw_alloc }.is_null() {
             return Err($crate::LibrawError::Libraw {
                 code: $crate::LibrawErrorCode::OtherError,
-                message: "imagedata pointer is null".to_string(),
+                message: "LibRaw raw-data allocation is null; open and unpack the image first"
+                    .into(),
             });
         }
     };

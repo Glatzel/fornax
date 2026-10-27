@@ -3,8 +3,8 @@ use std::path::Path;
 use envoy::ToCString;
 use fornax_core::BayerPattern;
 
+use crate::data_structure::{Libraw, LibrawError};
 use crate::extension::error_handling::check_run;
-use crate::{Libraw, LibrawError};
 
 #[derive(Debug, Clone)]
 pub enum ProcFlag {
@@ -24,12 +24,11 @@ impl From<ProcFlag> for u8 {
 // https://www.libraw.org/docs/API-CXX.html#dataload
 impl Libraw {
     pub fn open_file(&self, fname: &Path) -> Result<&Self, LibrawError> {
-        check_run!(unsafe {
-            libraw_sys::libraw_open_file(
-                self.imgdata_ptr(),
-                fname.to_str().unwrap().to_cstring()?.as_ptr(),
-            )
-        });
+        let path = fname.to_str().ok_or_else(|| {
+            LibrawError::Other(format!("input path is not valid UTF-8: {}", fname.display()).into())
+        })?;
+        let path = path.to_cstring()?;
+        check_run!(unsafe { libraw_sys::libraw_open_file(self.imgdata_ptr(), path.as_ptr()) });
         Ok(self)
     }
     fn _open_file_ex(&self) -> Result<&Self, LibrawError> { todo!() }
@@ -101,9 +100,11 @@ impl Libraw {
 mod test {
     use std::io::Read;
 
+    use super::*;
+
     #[test]
     fn test_open_file() -> mischief::Result<()> {
-        let libraw = crate::Libraw::default();
+        let libraw = Libraw::default();
         libraw.open_file(&fornax_devtool::raw_file())?;
         Ok(())
     }
@@ -112,13 +113,13 @@ mod test {
         let mut file = std::fs::File::open(fornax_devtool::raw_file())?;
         let mut buffer = Vec::new();
         file.read_to_end(&mut buffer)?;
-        let libraw = crate::Libraw::default();
+        let libraw = Libraw::default();
         libraw.open_buffer(&buffer)?;
         Ok(())
     }
     #[test]
     fn test_unpack_thumb() -> mischief::Result<()> {
-        let libraw = crate::Libraw::default();
+        let libraw = Libraw::default();
         libraw
             .open_file(&fornax_devtool::raw_file())?
             .unpack_thumb()?;
