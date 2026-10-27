@@ -66,10 +66,9 @@ work unless the user explicitly identifies a TODO item in the request.
 
 ## Shared workspace
 
-`agent-work/` is a shared workspace for temporary or persistent files that
-agents need to exchange between tasks. It is intentionally not ignored. Files
-may be committed there when they are needed by multiple tasks, but they are
-not task state, task instructions, or completion records.
+`agent-work/` is an ignored local workspace for temporary or persistent files
+that agents need to exchange between tasks. It is not task state, task
+instructions, or completion records.
 
 The hidden `.agents/` directory is read-only. Do not add files to it.
 
