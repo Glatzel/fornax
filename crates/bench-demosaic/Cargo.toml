@@ -9,7 +9,7 @@ name = "demosaic"
 
 [dev-dependencies]
 criterion.workspace = true
-rand.workspace = true
 fornax-core.workspace = true
-image.workspace = true
 fornax-demosaic.workspace = true
+image.workspace = true
+rand.workspace = true

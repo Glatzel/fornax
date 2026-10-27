@@ -6,10 +6,3 @@ edition.workspace = true
 [[bench]]
 harness = false
 name = "preprocessor"
-
-[dev-dependencies]
-criterion.workspace = true
-rand.workspace = true
-fornax-core.workspace = true
-image.workspace = true
-fornax-preprocessor.workspace = true
