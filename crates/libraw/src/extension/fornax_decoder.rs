@@ -88,13 +88,14 @@ fn decode<T: Primitive, R>(
 }
 
 fn get_metadata<T: Primitive>(libraw: &Libraw) -> Result<Metadata<T>, DecodeError> {
-    let bayer_pattern = libraw
-        .bayer_pattern()
-        .map_err(|error| backend_err(format!("reading LibRaw CFA metadata: {error}")))?;
     let imgdata = libraw.arc_imgdata_ptr();
     let sizes = &imgdata.rawdata.sizes;
     let color = &imgdata.color;
     let dng = &color.dng_levels;
+
+    let bayer_pattern = libraw
+        .bayer_pattern()
+        .map_err(|error| backend_err(format!("reading LibRaw CFA metadata: {error}")))?;
 
     let active_area = {
         let active_area = Rect {
