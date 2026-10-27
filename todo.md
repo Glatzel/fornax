@@ -1,0 +1,12 @@
+- decoder
+  - [DEC-RAWLER]: impl fornax-decoder-rawler
+- demosaic
+  - [VNG]
+  - [AHD]
+  - [PPG]
+  - [DCB]
+  - [DHT]
+  - [Modified-AHD]
+- misc
+  - [PY]: impl fornax-py 
+- document

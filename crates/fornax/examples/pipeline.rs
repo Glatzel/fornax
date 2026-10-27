@@ -39,15 +39,24 @@ fn wrapper(
 fn main() -> mischief::Result<()> {
     let output_dir = fornax_devtool::temp_dir().join("pipeline");
     let raw_path = fornax_devtool::raw_file();
+    //libraw
     {
         let (image, metadata) = LibrawDecoder.decode_active(raw_path.as_path())?;
         wrapper(image, metadata, output_dir.join("libraw"))?;
     }
+    //dnc
     #[cfg(not(target_os = "linux"))]
     {
         let (image, metadata) =
             fornax::decoder::DncDecoder::default().decode_active(raw_path.as_path())?;
         wrapper(image, metadata, output_dir.join("dnc"))?;
+    }
+    //rawler
+    {
+        use fornax_decoder_rawler::RawlerDecoder;
+
+        let (image, metadata) = RawlerDecoder.decode_active(raw_path.as_path())?;
+        wrapper(image, metadata, output_dir.join("rawler"))?;
     }
     Ok(())
 }

@@ -96,73 +96,79 @@ fn get_metadata<T: Primitive>(libraw: &Libraw) -> Result<Metadata<T>, DecodeErro
     let color = &imgdata.color;
     let dng = &color.dng_levels;
 
-    let active_area = Rect {
-        x: sizes.left_margin as _,
-        y: sizes.top_margin as _,
-        width: sizes.width as _,
-        height: sizes.height as _,
+    let active_area = {
+        let active_area = Rect {
+            x: sizes.left_margin as _,
+            y: sizes.top_margin as _,
+            width: sizes.width as _,
+            height: sizes.height as _,
+        };
+        if active_area.width == 0
+            || active_area.height == 0
+            || active_area.x.saturating_add(active_area.width) > sizes.raw_width as _
+            || active_area.y.saturating_add(active_area.height) > sizes.raw_height as _
+        {
+            return Err(backend_err(format!(
+                "invalid LibRaw active area {}x{} at ({}, {}) for {}x{} raw image",
+                active_area.width,
+                active_area.height,
+                active_area.x,
+                active_area.y,
+                sizes.raw_width,
+                sizes.raw_height
+            )));
+        }
+        active_area
     };
-    if active_area.width == 0
-        || active_area.height == 0
-        || active_area.x.saturating_add(active_area.width) > sizes.raw_width as _
-        || active_area.y.saturating_add(active_area.height) > sizes.raw_height as _
-    {
-        return Err(backend_err(format!(
-            "invalid LibRaw active area {}x{} at ({}, {}) for {}x{} raw image",
-            active_area.width,
-            active_area.height,
-            active_area.x,
-            active_area.y,
-            sizes.raw_width,
-            sizes.raw_height
-        )));
-    }
 
-    let crop_origin_present =
-        dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPORIGIN as u32 != 0;
-    let crop_size_present =
-        dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPSIZE as u32 != 0;
-    let dng_crop = Rect {
-        x: dng.default_crop[0] as _,
-        y: dng.default_crop[1] as _,
-        width: dng.default_crop[2] as _,
-        height: dng.default_crop[3] as _,
-    };
-    let dng_crop_valid = crop_origin_present
-        && crop_size_present
-        && dng_crop.width > 0
-        && dng_crop.height > 0
-        && dng_crop.x.saturating_add(dng_crop.width) <= active_area.width
-        && dng_crop.y.saturating_add(dng_crop.height) <= active_area.height;
-    let raw_inset = sizes.raw_inset_crops[0];
-    let promoted_dng_crop = raw_inset
-        .cleft
-        .checked_sub(sizes.left_margin)
-        .and_then(|x| {
-            raw_inset.ctop.checked_sub(sizes.top_margin).map(|y| Rect {
-                x: x as _,
-                y: y as _,
-                width: raw_inset.cwidth as _,
-                height: raw_inset.cheight as _,
-            })
+    let default_crop = {
+        let crop_origin_present = dng.parsedfields
+            & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPORIGIN as u32
+            != 0;
+        let crop_size_present =
+            dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPSIZE as u32 != 0;
+        let dng_crop = Rect {
+            x: dng.default_crop[0] as _,
+            y: dng.default_crop[1] as _,
+            width: dng.default_crop[2] as _,
+            height: dng.default_crop[3] as _,
+        };
+        let dng_crop_valid = crop_origin_present
+            && crop_size_present
+            && dng_crop.width > 0
+            && dng_crop.height > 0
+            && dng_crop.x.saturating_add(dng_crop.width) <= active_area.width
+            && dng_crop.y.saturating_add(dng_crop.height) <= active_area.height;
+        let raw_inset = sizes.raw_inset_crops[0];
+        let promoted_dng_crop = raw_inset
+            .cleft
+            .checked_sub(sizes.left_margin)
+            .and_then(|x| {
+                raw_inset.ctop.checked_sub(sizes.top_margin).map(|y| Rect {
+                    x: x as _,
+                    y: y as _,
+                    width: raw_inset.cwidth as _,
+                    height: raw_inset.cheight as _,
+                })
+            });
+        let promoted_dng_crop = promoted_dng_crop.filter(|crop| {
+            imgdata.idata.dng_version != 0
+                && crop.width > 0
+                && crop.height > 0
+                && crop.x.saturating_add(crop.width) <= active_area.width
+                && crop.y.saturating_add(crop.height) <= active_area.height
         });
-    let promoted_dng_crop = promoted_dng_crop.filter(|crop| {
-        imgdata.idata.dng_version != 0
-            && crop.width > 0
-            && crop.height > 0
-            && crop.x.saturating_add(crop.width) <= active_area.width
-            && crop.y.saturating_add(crop.height) <= active_area.height
-    });
-    let default_crop = if dng_crop_valid {
-        dng_crop
-    } else if let Some(crop) = promoted_dng_crop {
-        crop
-    } else {
-        Rect {
-            x: 0,
-            y: 0,
-            width: active_area.width,
-            height: active_area.height,
+        if dng_crop_valid {
+            dng_crop
+        } else if let Some(crop) = promoted_dng_crop {
+            crop
+        } else {
+            Rect {
+                x: 0,
+                y: 0,
+                width: active_area.width,
+                height: active_area.height,
+            }
         }
     };
 
