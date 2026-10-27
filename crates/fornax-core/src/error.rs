@@ -7,6 +7,10 @@ pub enum RawValidationError {
     #[error("decoded RAW contains a non-finite sample")]
     NonFiniteSample,
 }
+
+#[derive(Clone, Debug, Error, PartialEq, Eq)]
+pub enum MetadataValidationError {}
+
 #[derive(Clone, Debug, Error, PartialEq, Eq)]
 pub enum DecodeError {
     #[error("invalid RAW input: {0}")]
@@ -20,3 +24,8 @@ pub enum DecodeError {
     #[error("{0}")]
     Other(Box<str>),
 }
+#[derive(Clone, Debug, Error, PartialEq, Eq)]
+pub enum PreprocessError {}
+
+#[derive(Clone, Debug, Error, PartialEq, Eq)]
+pub enum DemosaicError {}

@@ -1,8 +1,9 @@
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
+use fornax_core::error::DecodeError;
 use fornax_core::metadata::Metadata;
-use fornax_core::{DecodeError, DecodedRawActive, DecodedRawFull, IDecoder, Primitive};
+use fornax_core::{DecodedRawActive, DecodedRawFull, IDecoder, Primitive};
 use libraw::LibrawDecoder;
 
 pub use crate::DncParams;

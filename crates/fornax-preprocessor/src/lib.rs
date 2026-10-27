@@ -1,3 +1,4 @@
+use fornax_core::error::PreprocessError;
 use fornax_core::metadata::Levels;
 use fornax_core::{DecodedRawActive, IPreprocessor, MonoImage, Primitive, RawImage};
 use rayon::prelude::*;
@@ -6,7 +7,11 @@ impl<T> IPreprocessor<T> for Preprocessor
 where
     T: Primitive,
 {
-    fn preprocess(&self, decoded: DecodedRawActive<T>, levels: &Levels<T>) -> RawImage<T> {
+    fn preprocess(
+        &self,
+        decoded: DecodedRawActive<T>,
+        levels: &Levels<T>,
+    ) -> Result<RawImage<T>, PreprocessError> {
         let image = decoded.into_image();
         let (width, height) = image.dimensions();
         let w = width as usize;
@@ -63,6 +68,6 @@ where
         let normalized =
             MonoImage::from_raw(width, height, raw).expect("pixel count matches image dimensions");
 
-        RawImage::new(normalized)
+        Ok(RawImage::new(normalized))
     }
 }

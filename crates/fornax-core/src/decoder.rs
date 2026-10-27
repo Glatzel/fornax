@@ -1,5 +1,6 @@
+use crate::error::DecodeError;
 use crate::metadata::Metadata;
-use crate::{DecodeError, DecodedRawActive, DecodedRawFull, Primitive};
+use crate::{DecodedRawActive, DecodedRawFull, Primitive};
 
 pub trait IDecoder<I: ?Sized, T>: Send + Sync
 where

@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 
 use image::math::Rect;
 
+use crate::error::PreprocessError;
 use crate::metadata::Levels;
 use crate::{IPreprocessor, MonoImage, Primitive, RawImage};
 
@@ -31,7 +32,11 @@ impl<T: Primitive> DecodedRawFull<T> {
     }
 }
 impl<T: Primitive> DecodedRawActive<T> {
-    pub fn preprocess<P>(self, preprocessor: &P, levels: &Levels<T>) -> RawImage<T>
+    pub fn preprocess<P>(
+        self,
+        preprocessor: &P,
+        levels: &Levels<T>,
+    ) -> Result<RawImage<T>, PreprocessError>
     where
         P: IPreprocessor<T>,
     {
