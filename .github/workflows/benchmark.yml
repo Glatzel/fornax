@@ -23,4 +23,4 @@ jobs:
         env:
           LD_LIBRARY_PATH: ./.pixi/envs/default/lib
         with:
-          options: -p bench-demosaic
+          options: -p bench-demosaic -p bench-preprocessor
