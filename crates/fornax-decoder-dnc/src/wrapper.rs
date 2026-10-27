@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::Metadata;
@@ -7,11 +8,30 @@ use fornax_decoder_rawler::RawlerDecoder;
 
 pub use crate::DncParams;
 
-#[cfg(target_os = "macos")]
-const DNC_EXECUTABLE: &str =
-    "/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter";
-#[cfg(target_os = "windows")]
-const DNC_EXECUTABLE: &str = r"C:\Program Files\Adobe\Adobe DNG Converter\Adobe DNG Converter.exe";
+static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
+    let executable = "Adobe DNG Converter";
+
+    #[cfg(target_os = "windows")]
+    let executable = format!("{executable}.exe");
+
+    if let Some(path) = std::env::var_os("PATH").and_then(|paths| {
+        std::env::split_paths(&paths)
+            .map(|dir| dir.join(&executable))
+            .find(|path| path.is_file())
+    }) {
+        return path;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        PathBuf::from("/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter")
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        PathBuf::from(r"C:\Program Files\Adobe\Adobe DNG Converter.exe")
+    }
+});
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DncDecoder {
