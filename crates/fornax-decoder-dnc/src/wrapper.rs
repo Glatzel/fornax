@@ -153,9 +153,7 @@ impl DncDecoder {
             }
             clerk::debug!(
                 "Write dng to: {}",
-                std::path::absolute(&dng_file)
-                    .unwrap_or_else(|_| dng_file.clone())
-                    .display()
+                std::path::absolute(&dng_file).unwrap().display()
             );
         }
         Ok(dng_file)
