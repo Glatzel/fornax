@@ -40,7 +40,31 @@ pub fn temp_dir() -> PathBuf { root_dir().join("temp") }
 /// The environment variable accepts one short edge or a comma-separated list.
 /// The default is `1000,2000`; dimensions are landscape 3:2 images.
 pub fn bench_size() -> Vec<(String, (u32, u32))> {
-    parse_bench_size(std::env::var("FORNAX_BENCH_SIZE").ok().as_deref())
+    std::env::var("FORNAX_BENCH_SIZE")
+        .unwrap_or_else(|_| "1000,2000".to_owned())
+        .split(',')
+        .map(str::trim)
+        .map(|short_edge| {
+            let short_edge = short_edge.parse::<u32>().unwrap_or_else(|_| {
+                panic!(
+                    "unknown FORNAX_BENCH_SIZE value {short_edge:?}; expected a positive integer"
+                )
+            });
+            assert!(
+                short_edge > 0,
+                "unknown FORNAX_BENCH_SIZE value {short_edge:?}; expected a positive integer"
+            );
+            let long_edge = (u64::from(short_edge) * 3).div_ceil(2);
+            let width = u32::try_from(long_edge).unwrap_or_else(|_| {
+                panic!("FORNAX_BENCH_SIZE value {short_edge:?} exceeds supported dimensions")
+            });
+            let pixels = u64::from(width) * u64::from(short_edge);
+            (
+                format!("{:.2}MP", pixels as f64 / 1_000_000.0),
+                (width, short_edge),
+            )
+        })
+        .collect()
 }
 
 /// Returns benchmark sample bit depths configured by `FORNAX_BENCH_BITS`.
@@ -48,7 +72,16 @@ pub fn bench_size() -> Vec<(String, (u32, u32))> {
 /// The environment variable accepts `32`, `64`, or a comma-separated list.
 /// The default benchmarks both sample types.
 pub fn bench_bits() -> Vec<BenchSampleBits> {
-    parse_bench_bits(std::env::var("FORNAX_BENCH_BITS").ok().as_deref())
+    std::env::var("FORNAX_BENCH_BITS")
+        .unwrap_or_else(|_| "32,64".to_owned())
+        .split(',')
+        .map(str::trim)
+        .map(|bits| match bits {
+            "32" => BenchSampleBits::B32,
+            "64" => BenchSampleBits::B64,
+            _ => panic!("unknown FORNAX_BENCH_BITS value {bits:?}; expected 32, 64, or a comma-separated list"),
+        })
+        .collect()
 }
 
 pub fn bench_mono_image<T>((width, height): (u32, u32), upper: f64) -> MonoImage<T>
@@ -100,99 +133,72 @@ where
     Ok(())
 }
 
-fn parse_bench_size(value: Option<&str>) -> Vec<(String, (u32, u32))> {
-    value
-        .unwrap_or("1000,2000")
-        .split(',')
-        .map(str::trim)
-        .map(|short_edge| {
-            let short_edge = short_edge.parse::<u32>().unwrap_or_else(|_| {
-                panic!(
-                    "unknown FORNAX_BENCH_SIZE value {short_edge:?}; expected a positive integer"
-                )
-            });
-            assert!(
-                short_edge > 0,
-                "unknown FORNAX_BENCH_SIZE value {short_edge:?}; expected a positive integer"
-            );
-            let long_edge = (u64::from(short_edge) * 3).div_ceil(2);
-            let width = u32::try_from(long_edge).unwrap_or_else(|_| {
-                panic!("FORNAX_BENCH_SIZE value {short_edge:?} exceeds supported dimensions")
-            });
-            let pixels = u64::from(width) * u64::from(short_edge);
-            (
-                format!("{:.2}MP", pixels as f64 / 1_000_000.0),
-                (width, short_edge),
-            )
-        })
-        .collect()
-}
-
-fn parse_bench_bits(value: Option<&str>) -> Vec<BenchSampleBits> {
-    value
-        .unwrap_or("32,64")
-        .split(',')
-        .map(str::trim)
-        .map(|bits| match bits {
-            "32" => BenchSampleBits::B32,
-            "64" => BenchSampleBits::B64,
-            _ => panic!("unknown FORNAX_BENCH_BITS value {bits:?}; expected 32, 64, or a comma-separated list"),
-        })
-        .collect()
-}
+#[cfg(test)]
+static BENCH_ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn benchmark_sizes_default_to_camera_ratios() {
+    fn benchmark_configuration_reads_environment() {
+        let _guard = BENCH_ENV_LOCK
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        let previous_size = std::env::var_os("FORNAX_BENCH_SIZE");
+        let previous_bits = std::env::var_os("FORNAX_BENCH_BITS");
+
+        unsafe {
+            std::env::remove_var("FORNAX_BENCH_SIZE");
+            std::env::remove_var("FORNAX_BENCH_BITS");
+        }
         assert_eq!(
-            parse_bench_size(None),
+            bench_size(),
             vec![
                 ("1.50MP".to_owned(), (1_500, 1_000)),
                 ("6.00MP".to_owned(), (3_000, 2_000)),
             ]
         );
-    }
-
-    #[test]
-    fn benchmark_sizes_support_scalar_and_array_values() {
         assert_eq!(
-            parse_bench_size(Some("1500")),
-            vec![("3.38MP".to_owned(), (2_250, 1_500))]
+            bench_bits(),
+            vec![BenchSampleBits::B32, BenchSampleBits::B64]
+        );
+
+        unsafe { std::env::set_var("FORNAX_BENCH_SIZE", "1500, 2001") };
+        unsafe { std::env::set_var("FORNAX_BENCH_BITS", "64, 32") };
+        assert_eq!(
+            bench_size(),
+            vec![
+                ("3.38MP".to_owned(), (2_250, 1_500)),
+                ("6.01MP".to_owned(), (3_002, 2_001)),
+            ]
         );
         assert_eq!(
-            parse_bench_size(Some("2001")),
-            vec![("6.01MP".to_owned(), (3_002, 2_001))]
+            bench_bits(),
+            vec![BenchSampleBits::B64, BenchSampleBits::B32]
         );
-    }
 
-    #[test]
-    fn benchmark_sizes_reject_invalid_values() {
         for value in ["", "1000,,2000", "0", "invalid", "4294967295"] {
+            unsafe { std::env::set_var("FORNAX_BENCH_SIZE", value) };
             assert!(
-                std::panic::catch_unwind(|| parse_bench_size(Some(value))).is_err(),
+                std::panic::catch_unwind(bench_size).is_err(),
                 "{value:?} should be rejected"
             );
         }
-    }
 
-    #[test]
-    fn benchmark_bits_default_to_both() {
-        assert_eq!(
-            parse_bench_bits(None),
-            vec![BenchSampleBits::B32, BenchSampleBits::B64]
-        );
-    }
+        unsafe { std::env::set_var("FORNAX_BENCH_BITS", "invalid") };
+        assert!(std::panic::catch_unwind(bench_bits).is_err());
 
-    #[test]
-    fn benchmark_bits_support_scalar_and_array_values() {
-        assert_eq!(parse_bench_bits(Some("64")), vec![BenchSampleBits::B64]);
-        assert_eq!(
-            parse_bench_bits(Some("64, 32")),
-            vec![BenchSampleBits::B64, BenchSampleBits::B32]
-        );
+        unsafe {
+            match previous_size {
+                Some(value) => std::env::set_var("FORNAX_BENCH_SIZE", value),
+                None => std::env::remove_var("FORNAX_BENCH_SIZE"),
+            }
+            match previous_bits {
+                Some(value) => std::env::set_var("FORNAX_BENCH_BITS", value),
+                None => std::env::remove_var("FORNAX_BENCH_BITS"),
+            }
+        }
     }
 
     #[test]
