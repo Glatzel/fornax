@@ -1,0 +1,17 @@
+[package]
+name = "bench-demosaic"
+version.workspace = true
+edition.workspace = true
+
+[[bench]]
+harness = false
+name = "demosaic"
+
+[dependencies]
+fornax-demosaic.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+fornax-devtool.workspace = true
+mischief.workspace = true
+rand.workspace = true

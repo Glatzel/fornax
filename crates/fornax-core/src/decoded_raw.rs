@@ -2,7 +2,8 @@ use std::marker::PhantomData;
 
 use image::math::Rect;
 
-use crate::{MonoImage, Primitive};
+use crate::metadata::Levels;
+use crate::{IPreprocessor, MonoImage, Primitive, RawImage};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Full;
@@ -27,5 +28,13 @@ impl<T: Primitive> DecodedRawFull<T> {
     pub fn active_area(mut self, active_area: Rect) -> DecodedRawActive<T> {
         self.0.crop_in_place(active_area);
         DecodedRaw::new(self.0)
+    }
+}
+impl<T: Primitive> DecodedRawActive<T> {
+    pub fn preprocess<P>(self, preprocessor: &P, levels: &Levels<T>) -> RawImage<T>
+    where
+        P: IPreprocessor<T>,
+    {
+        preprocessor.preprocess(self, levels)
     }
 }

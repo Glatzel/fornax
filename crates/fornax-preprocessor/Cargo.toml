@@ -1,0 +1,19 @@
+[package]
+name = "fornax-preprocessor"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+fornax-core.workspace = true
+fornax-decoder-dnc = { workspace = true, optional = true }
+generic-num.workspace = true
+image.workspace = true
+libraw = { workspace = true, optional = true }
+rayon.workspace = true
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+criterion.workspace = true
+fornax-devtool.workspace = true
+mischief.workspace = true
+rand.workspace = true

@@ -1,10 +1,13 @@
 use std::path::PathBuf;
 
+use fornax::DecodedRawActive;
 use fornax::decoder::{IDecoder, LibrawDecoder};
 use fornax::metadata::Metadata;
-use fornax::{DecodedRawActive, Demosaic, Preprocess};
+use fornax_demosaic::Demosaic;
 use fornax_devtool::save_image;
+use fornax_preprocessor::Preprocessor;
 use image::{Luma, Rgb};
+
 fn wrapper(
     decoded: DecodedRawActive<f32>,
     metadata: Metadata<f32>,
@@ -14,7 +17,7 @@ fn wrapper(
     let decoded_path = output_dir.join("1.fornax-libraw-decoded.tiff");
     save_image::<_, _, Luma<u16>, _>(decoded.image(), &decoded_path, 1.0)?;
 
-    let processed = decoded.preprocess(&metadata.levels);
+    let processed = decoded.preprocess(&Preprocessor, &metadata.levels);
     assert_eq!(processed.image().dimensions(), (5_202, 3_464));
     let preprocessed_path = &output_dir.join("2.fornax-libraw-preprocess.tiff");
     save_image::<_, _, Luma<u16>, _>(processed.image(), &preprocessed_path, u16::MAX as _)?;

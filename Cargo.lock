@@ -176,6 +176,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bench-demosaic"
+version = "0.0.17"
+dependencies = [
+ "codspeed-criterion-compat",
+ "fornax-demosaic",
+ "fornax-devtool",
+ "mischief",
+ "rand 0.10.3",
+]
+
+[[package]]
 name = "bindgen"
 version = "0.73.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -660,7 +671,9 @@ dependencies = [
  "codspeed-criterion-compat",
  "fornax-core",
  "fornax-decoder-dnc",
+ "fornax-demosaic",
  "fornax-devtool",
+ "fornax-preprocessor",
  "generic-num",
  "image",
  "libraw",
@@ -690,6 +703,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-demosaic"
+version = "0.0.17"
+dependencies = [
+ "codspeed-criterion-compat",
+ "fornax-core",
+ "fornax-decoder-dnc",
+ "fornax-devtool",
+ "fornax-preprocessor",
+ "generic-num",
+ "image",
+ "libraw",
+ "mischief",
+ "rand 0.10.3",
+ "rayon",
+ "serde",
+]
+
+[[package]]
 name = "fornax-devtool"
 version = "0.0.17"
 dependencies = [
@@ -698,6 +729,23 @@ dependencies = [
  "image",
  "mischief",
  "num-traits",
+]
+
+[[package]]
+name = "fornax-preprocessor"
+version = "0.0.17"
+dependencies = [
+ "codspeed-criterion-compat",
+ "fornax-core",
+ "fornax-decoder-dnc",
+ "fornax-devtool",
+ "generic-num",
+ "image",
+ "libraw",
+ "mischief",
+ "rand 0.10.3",
+ "rayon",
+ "serde",
 ]
 
 [[package]]

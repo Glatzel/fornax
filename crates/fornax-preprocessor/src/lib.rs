@@ -1,22 +1,13 @@
 use fornax_core::metadata::Levels;
-use fornax_core::{DecodedRawActive, MonoImage, Primitive};
+use fornax_core::{DecodedRawActive, IPreprocessor, MonoImage, Primitive, RawImage};
 use rayon::prelude::*;
-
-use crate::RawImage;
-
-pub trait Preprocess<T>: Sized
+pub struct Preprocessor;
+impl<T> IPreprocessor<T> for Preprocessor
 where
     T: Primitive,
 {
-    fn preprocess(self, levels: &Levels<T>) -> RawImage<T>;
-}
-
-impl<T> Preprocess<T> for DecodedRawActive<T>
-where
-    T: Primitive,
-{
-    fn preprocess(self, levels: &Levels<T>) -> RawImage<T> {
-        let image = self.into_image();
+    fn preprocess(&self, decoded: DecodedRawActive<T>, levels: &Levels<T>) -> RawImage<T> {
+        let image = decoded.into_image();
         let (width, height) = image.dimensions();
         let w = width as usize;
         let h = height as usize;

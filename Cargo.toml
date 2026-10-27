@@ -16,7 +16,9 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 fornax = { path = "./crates/fornax" }
 fornax-core = { path = "./crates/fornax-core" }
 fornax-decoder-dnc = { path = "./crates/fornax-decoder-dnc" }
+fornax-demosaic = { path = "./crates/fornax-demosaic" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
+fornax-preprocessor = { path = "./crates/fornax-preprocessor" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
 

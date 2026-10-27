@@ -3,6 +3,8 @@ use generic_num::num;
 use image::{ImageBuffer, Rgb};
 use rayon::prelude::*;
 
+use super::IDemosaic;
+
 /// Output rows handed to each rayon task.
 const ROWS_PER_TASK: usize = 16;
 
@@ -177,7 +179,7 @@ fn interior_row<T: Primitive, const CE: u8, const CO: u8>(
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DemosaicLinear;
 
-impl<T> super::IDemosaic<T> for DemosaicLinear
+impl<T> IDemosaic<T> for DemosaicLinear
 where
     T: Primitive,
 {
@@ -256,8 +258,8 @@ where
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
-    use crate::demosaic::IDemosaic;
 
     #[test]
     fn test_linear_rggb() -> mischief::Result<()> {
