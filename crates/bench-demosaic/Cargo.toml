@@ -11,5 +11,4 @@ name = "demosaic"
 criterion.workspace = true
 fornax-core.workspace = true
 fornax-demosaic.workspace = true
-image.workspace = true
-rand.workspace = true
+fornax-devtool.workspace = true

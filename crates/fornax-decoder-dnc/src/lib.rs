@@ -1,6 +1,8 @@
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 mod params;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 pub use params::DncParams;
-#[cfg(not(target_os = "linux"))]
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 mod wrapper;
-#[cfg(not(target_os = "linux"))]
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 pub use wrapper::*;

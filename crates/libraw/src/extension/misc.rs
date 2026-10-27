@@ -72,7 +72,7 @@ impl Libraw {
                 let row = &src[(y + top) * stride + left..][..w];
                 pixels.extend(row.iter().map(|&p| num!(p)));
             }
-            MonoImage::from_vec(w as _, h as _, pixels)
+            MonoImage::from_vec(w as u32, h as u32, pixels)
         } else if !imgdata.rawdata.float_image.is_null() {
             let src =
                 unsafe { std::slice::from_raw_parts(imgdata.rawdata.float_image, raw_w * raw_h) };
@@ -81,7 +81,7 @@ impl Libraw {
                 let row = &src[(y + top) * stride + left..][..w];
                 pixels.extend(row.iter().map(|&p| num!(p)));
             }
-            MonoImage::from_vec(w as _, h as _, pixels)
+            MonoImage::from_vec(w as u32, h as u32, pixels)
         } else {
             custom_error!("LibRaw decoded data contains neither a mono raw image nor a float image")
         };
@@ -115,13 +115,13 @@ impl Libraw {
                 .iter()
                 .map(|&p| num!(p))
                 .collect();
-            MonoImage::from_vec(w as _, h as _, pixels)
+            MonoImage::from_vec(w as u32, h as u32, pixels)
         } else if !imgdata.rawdata.float_image.is_null() {
             let pixels = unsafe { std::slice::from_raw_parts(imgdata.rawdata.float_image, len) }
                 .iter()
                 .map(|&p| num!(p))
                 .collect();
-            MonoImage::from_vec(w as _, h as _, pixels)
+            MonoImage::from_vec(w as u32, h as u32, pixels)
         } else {
             custom_error!("LibRaw decoded data contains neither a mono raw image nor a float image")
         };

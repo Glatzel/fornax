@@ -1,8 +1,7 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_core::{BayerPattern, IDemosaic, MonoImage, Primitive};
 use fornax_demosaic::Demosaic;
-use rand::rngs::StdRng;
-use rand::{RngExt, SeedableRng};
+use fornax_devtool::{BenchSampleBits, bench_mono_image, bench_sample_bits};
 
 fn bench_methods<M, T>(c: &mut Criterion, name: &str, method: M, image: MonoImage<T>)
 where
@@ -13,13 +12,23 @@ where
         b.iter(|| method.demosaic(black_box(&image), black_box(BayerPattern::RGGB)))
     });
 }
-fn benches(c: &mut Criterion) {
-    let mut rng = StdRng::seed_from_u64(12345);
-    let buf: Vec<f32> = (0..1920 * 1080)
-        .map(|_| rng.random_range(0.0..1.0))
-        .collect();
-    let image = image::ImageBuffer::from_vec(1920, 1080, buf).unwrap();
-    bench_methods::<_, f32>(c, "linear", Demosaic::Linear, image.clone());
+
+fn bench_inputs<T: Primitive>(c: &mut Criterion, sample_bits: BenchSampleBits) {
+    for input in fornax_devtool::bench_inputs() {
+        let image = bench_mono_image::<T>(input, 1.0);
+        let name = format!("linear/{}/{}", input.name, sample_bits.name());
+        bench_methods::<_, T>(c, &name, Demosaic::Linear, image);
+    }
 }
+
+fn benches(c: &mut Criterion) {
+    for sample_bits in bench_sample_bits() {
+        match sample_bits {
+            BenchSampleBits::B32 => bench_inputs::<f32>(c, sample_bits),
+            BenchSampleBits::B64 => bench_inputs::<f64>(c, sample_bits),
+        }
+    }
+}
+
 criterion_group!(benches_group, benches);
 criterion_main!(benches_group);
