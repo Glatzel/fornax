@@ -1,5 +1,8 @@
 use core::fmt::Display;
-use std::path::{self, Path, PathBuf};
+use std::ffi::OsString;
+use std::path::{Path, PathBuf};
+
+use fornax_core::error::DecodeError;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -123,64 +126,104 @@ pub struct DncParams {
     pub overwrite: bool,
 }
 impl DncParams {
-    pub fn to_cmd(&self, raw_file: &Path) -> Vec<String> {
-        let mut cmd: Vec<String> = Vec::new();
+    pub fn to_cmd(&self, raw_file: &Path) -> Result<Vec<OsString>, DecodeError> {
+        let raw_file = std::path::absolute(raw_file).map_err(|error| {
+            DecodeError::InvalidInput(
+                format!("cannot resolve RAW path {}: {error}", raw_file.display()).into(),
+            )
+        })?;
+        let output_file = self.output_file(&raw_file)?;
+        let directory = output_file.parent().ok_or_else(|| {
+            DecodeError::InvalidInput(
+                format!("output path has no parent: {}", output_file.display()).into(),
+            )
+        })?;
+        let filename = output_file.file_name().ok_or_else(|| {
+            DecodeError::InvalidInput(
+                format!("output path has no filename: {}", output_file.display()).into(),
+            )
+        })?;
+
+        let mut cmd: Vec<OsString> = Vec::new();
 
         if self.compressed {
-            cmd.push("-c".to_string());
+            cmd.push("-c".into());
         } else {
-            cmd.push("-u".to_string());
+            cmd.push("-u".into());
         }
 
         if self.linear {
-            cmd.push("-l".to_string());
+            cmd.push("-l".into());
         }
 
-        cmd.push(self.preview.to_string());
+        cmd.push(self.preview.to_string().into());
 
         if self.fast_load {
-            cmd.push("-fl".to_string());
+            cmd.push("-fl".into());
         }
 
         if let Some(side) = self.side {
-            cmd.push(format!("-side {side}"));
+            cmd.push("-side".into());
+            cmd.push(side.to_string().into());
         }
 
         if let Some(count) = self.count {
-            cmd.push(format!("-count {count}"));
+            cmd.push("-count".into());
+            cmd.push(count.to_string().into());
         }
-        cmd.push(self.compatibility.to_string());
+        cmd.push(self.compatibility.to_string().into());
 
-        cmd.push("-d".to_string());
-        if let Some(directory) = &self.directory {
-            std::fs::create_dir_all(directory).unwrap();
-            cmd.push(path::absolute(directory).unwrap().into_string().unwrap());
-        } else {
-            // Default to raw file directory
-            cmd.push(
-                path::absolute(raw_file.parent().unwrap())
-                    .unwrap()
-                    .into_string()
-                    .unwrap(),
-            );
-        }
+        cmd.push("-d".into());
+        cmd.push(directory.as_os_str().to_owned());
 
-        cmd.push("-o".to_string());
-        if let Some(filename) = &self.filename {
-            cmd.push(filename.clone());
-        } else {
-            // Default to raw file name with dng extension
-            cmd.push(
+        cmd.push("-o".into());
+        cmd.push(filename.to_owned());
+        cmd.push(raw_file.into_os_string());
+        Ok(cmd)
+    }
+
+    pub(crate) fn output_file(&self, raw_file: &Path) -> Result<PathBuf, DecodeError> {
+        let mut directory = match &self.directory {
+            None => raw_file
+                .parent()
+                .map(Path::to_path_buf)
+                .unwrap_or_else(|| PathBuf::from(".")),
+            Some(directory) => std::path::absolute(directory).map_err(|error| {
+                DecodeError::InvalidInput(
+                    format!(
+                        "cannot resolve DNC output directory {}: {error}",
+                        directory.display()
+                    )
+                    .into(),
+                )
+            })?,
+        };
+
+        let filename = match &self.filename {
+            Some(filename) if filename.is_empty() => {
+                return Err(DecodeError::InvalidInput(
+                    "DNC output filename must not be empty".into(),
+                ));
+            }
+            Some(filename) => PathBuf::from(filename),
+            None => PathBuf::from(
                 raw_file
-                    .with_extension("dng")
-                    .file_name()
-                    .unwrap()
-                    .to_string_lossy()
-                    .to_string(),
-            );
-        }
-        cmd.push(raw_file.to_string_lossy().to_string());
-        cmd
+                    .file_stem()
+                    .map(|stem| {
+                        let mut filename = OsString::from(stem);
+                        filename.push(".dng");
+                        filename
+                    })
+                    .ok_or_else(|| {
+                        DecodeError::InvalidInput(
+                            format!("RAW path has no filename: {}", raw_file.display()).into(),
+                        )
+                    })?,
+            ),
+        };
+
+        directory.push(filename);
+        Ok(directory)
     }
 }
 impl Default for DncParams {
@@ -198,5 +241,43 @@ impl Default for DncParams {
             filename: None,
             overwrite: false,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn command_arguments_preserve_paths_and_separate_values() -> Result<(), DecodeError> {
+        let raw = std::env::temp_dir().join("fornax input.CR2");
+        let params = DncParams {
+            side: Some(4_000),
+            count: Some(20_000_000),
+            ..DncParams::default()
+        };
+        let args = params.to_cmd(&raw)?;
+        let args: Vec<String> = args
+            .into_iter()
+            .map(|arg| arg.into_string().expect("test paths are Unicode"))
+            .collect();
+
+        assert!(args.windows(2).any(|args| args == ["-side", "4000"]));
+        assert!(args.windows(2).any(|args| args == ["-count", "20000000"]));
+        assert!(args.iter().any(|arg| arg == "fornax input.dng"));
+        assert!(args.iter().any(|arg| arg.ends_with("fornax input.CR2")));
+        Ok(())
+    }
+
+    #[test]
+    fn empty_output_filename_is_rejected() {
+        let params = DncParams {
+            filename: Some(String::new()),
+            ..DncParams::default()
+        };
+        let error = params
+            .to_cmd(Path::new("input.cr2"))
+            .expect_err("empty filename must fail");
+        assert!(matches!(error, DecodeError::InvalidInput(_)));
     }
 }

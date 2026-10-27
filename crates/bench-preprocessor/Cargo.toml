@@ -6,3 +6,9 @@ edition.workspace = true
 [[bench]]
 harness = false
 name = "preprocessor"
+
+[dev-dependencies]
+criterion.workspace = true
+fornax-core.workspace = true
+fornax-devtool.workspace = true
+fornax-preprocessor.workspace = true

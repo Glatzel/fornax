@@ -1,5 +1,3 @@
-- decoder
-  - [DEC-RAWLER] rawler decoder: implement `fornax-decoder-rawler`
 - demosaic
   - [VNG] VNG/VNG4: variable-number-of-gradients interpolation from darktable and LibRaw
   - [AHD] AHD: adaptive homogeneity-directed interpolation from LibRaw

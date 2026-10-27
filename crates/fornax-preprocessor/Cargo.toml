@@ -9,3 +9,6 @@ fornax-decoder-dnc = { workspace = true, optional = true }
 libraw = { workspace = true, optional = true }
 rayon.workspace = true
 serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+image.workspace = true
