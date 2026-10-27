@@ -132,9 +132,11 @@ where
     };
 
     let default_crop = {
+        #[allow(clippy::unnecessary_cast, reason = "bindgen generate i32 on windows")]
         let crop_origin_present = dng.parsedfields
             & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPORIGIN as u32
             != 0;
+        #[allow(clippy::unnecessary_cast, reason = "bindgen generate i32 on windows")]
         let crop_size_present =
             dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPSIZE as u32 != 0;
         let dng_crop = Rect {
@@ -227,6 +229,7 @@ where
     };
 
     let white = {
+        #[allow(clippy::unnecessary_cast, reason = "bindgen generate i32 on windows")]
         let white_present =
             dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_WHITE as u32 != 0;
         let white = if white_present && dng.dng_whitelevel[0] > 0 {
