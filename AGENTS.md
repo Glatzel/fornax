@@ -4,6 +4,10 @@
 selecting implementation work. Agent instructions live in this root file and
 in no other directory.
 
+Until `refactor/pipeline-v3` is merged into `main`, use
+`refactor/pipeline-v3` as the integration base. Once it has merged, use `main`
+as the integration base for every new task and bug-fix branch.
+
 ## Task work
 
 The user selects work by its bracketed ID in `TODO.md`, for example `[VNG]`.
@@ -16,17 +20,18 @@ request:
    ```bash
    git fetch origin
    git worktree add -b "task/<lowercase-id>-<slug>" \
-     ".worktrees/<lowercase-id>-<slug>" origin/refactor/pipeline-v3
+     ".worktrees/<lowercase-id>-<slug>" origin/<integration-base>
    ```
 
-   Use a short lowercase kebab-case slug derived from the item.
+   Use a short lowercase kebab-case slug derived from the item and substitute
+   the current integration base from the rule above.
 2. Implement only the selected TODO item and its required tests or
    documentation.
 3. Remove that item from `TODO.md` in the same branch and pull request. The
    removal means the task is complete in that pull request.
 4. Run the relevant validation commands and record the actual results.
-5. Commit, push, and open one semantic pull request targeting
-   `refactor/pipeline-v3`. Include the task ID in the pull request body.
+5. Commit, push, and open one semantic pull request targeting the current
+   integration base. Include the task ID in the pull request body.
 6. Report the pull request URL and stop. Do not watch, poll, merge, or close
    the pull request.
 
@@ -46,13 +51,13 @@ Handle only the named issue:
    ```bash
    git fetch origin
    git worktree add -b "fix/<number>-<slug>" \
-     ".worktrees/fix-<number>-<slug>" origin/refactor/pipeline-v3
+     ".worktrees/fix-<number>-<slug>" origin/<integration-base>
    ```
 
 3. Implement the fix, add regression coverage, and validate the affected
    surface.
-4. Open one semantic pull request targeting `refactor/pipeline-v3` and include
-   `Fixes #<number>` in its body.
+4. Open one semantic pull request targeting the current integration base and
+   include `Fixes #<number>` in its body.
 5. Report the pull request URL and stop. Do not watch, poll, merge, manually
    close the issue, or close the pull request.
 
