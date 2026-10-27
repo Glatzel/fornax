@@ -63,6 +63,7 @@ impl DncDecoder {
         }
 
         let dng_file = self.params.output_file(&raw_file)?;
+        let dng_file_absolute = std::path::absolute(&dng_file).unwrap();
         let output_directory = dng_file.parent().ok_or_else(|| {
             DecodeError::InvalidInput(
                 format!("DNG output path has no parent: {}", dng_file.display()).into(),
@@ -100,12 +101,7 @@ impl DncDecoder {
         }
 
         if dng_file.exists() {
-            clerk::info!(
-                "DNG file already exists: {}",
-                std::path::absolute(&dng_file)
-                    .unwrap_or_else(|_| dng_file.clone())
-                    .display()
-            );
+            clerk::info!("DNG file already exists: {}", dng_file_absolute.display());
         } else {
             let program = &*DNC_EXECUTABLE;
             let args = self.params.to_cmd(&raw_file)?;
@@ -116,7 +112,7 @@ impl DncDecoder {
                     DecodeError::Backend(
                         format!(
                             "failed to launch {} for {}: {error}",
-                            program.to_str().unwrap(),
+                            program.display(),
                             raw_file.display()
                         )
                         .into(),
@@ -134,7 +130,7 @@ impl DncDecoder {
                 return Err(DecodeError::Backend(
                     format!(
                         "{} failed with {}: {}",
-                        program.to_str().unwrap(),
+                        program.display(),
                         output.status,
                         String::from_utf8_lossy(&output.stderr).trim()
                     )
@@ -145,16 +141,13 @@ impl DncDecoder {
                 return Err(DecodeError::Backend(
                     format!(
                         "{} completed without creating {}",
-                        program.to_str().unwrap(),
+                        program.display(),
                         dng_file.display()
                     )
                     .into(),
                 ));
             }
-            clerk::debug!(
-                "Write dng to: {}",
-                std::path::absolute(&dng_file).unwrap().display()
-            );
+            clerk::debug!("Write dng to: {}", dng_file_absolute.display());
         }
         Ok(dng_file)
     }
