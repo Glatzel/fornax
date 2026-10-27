@@ -10,6 +10,7 @@ use fornax_preprocessor::Preprocessor;
 use image::{Luma, Rgb};
 
 fn wrapper(
+    name: &str,
     decoded: DecodedRawActive<f32>,
     metadata: Metadata<f32>,
     output_dir: PathBuf,
@@ -27,11 +28,8 @@ fn wrapper(
     assert_eq!(demosaiced.dimensions(), (5_202, 3_464));
     let demosaiced_path = output_dir.join("3.demosaic_linear.tiff");
     save_image::<_, _, Rgb<u16>, _>(&demosaiced, &demosaiced_path, u16::MAX as _)?;
-
-    println!(
-        "Decoded output: {:?}",
-        metadata.levels.black.as_raw().as_slice()
-    );
+    println!("=================={}==========================", name);
+    dbg!(&metadata);
     println!("Decoded output: {}", decoded_path.display());
     println!("Preprocessed output: {}", preprocessed_path.display());
     println!("Demosaiced output: {}", demosaiced_path.display());
@@ -43,19 +41,19 @@ fn main() -> mischief::Result<()> {
     //libraw
     {
         let (image, metadata) = LibrawDecoder.decode_active(raw_path.as_path())?;
-        wrapper(image, metadata, output_dir.join("libraw"))?;
+        wrapper("libraw", image, metadata, output_dir.join("libraw"))?;
     }
     //dnc
     #[cfg(not(target_os = "linux"))]
     {
         let (image, metadata) =
             fornax::decoder::DncDecoder::default().decode_active(raw_path.as_path())?;
-        wrapper(image, metadata, output_dir.join("dnc"))?;
+        wrapper("dnc", image, metadata, output_dir.join("dnc"))?;
     }
     //rawler
     {
         let (image, metadata) = RawlerDecoder.decode_active(raw_path.as_path())?;
-        wrapper(image, metadata, output_dir.join("rawler"))?;
+        wrapper("rawler", image, metadata, output_dir.join("rawler"))?;
     }
     Ok(())
 }
