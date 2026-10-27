@@ -107,7 +107,7 @@ impl DncDecoder {
                     .display()
             );
         } else {
-            let program = DNC_EXECUTABLE;
+            let program = &*DNC_EXECUTABLE;
             let args = self.params.to_cmd(&raw_file)?;
             let output = std::process::Command::new(program)
                 .args(&args)
@@ -115,7 +115,7 @@ impl DncDecoder {
                 .map_err(|error| {
                     DecodeError::Backend(
                         format!(
-                            "failed to launch {program} for {}: {error}",
+                            "failed to launch {program:?} for {}: {error}",
                             raw_file.display()
                         )
                         .into(),
@@ -126,13 +126,13 @@ impl DncDecoder {
                 .map(|arg| arg.to_string_lossy())
                 .collect::<Vec<_>>()
                 .join(" ");
-            clerk::debug!("Command:\n{program} {command}");
+            clerk::debug!("Command:\n{program:?} {command}");
             clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
             clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
             if !output.status.success() {
                 return Err(DecodeError::Backend(
                     format!(
-                        "{program} failed with {}: {}",
+                        "{program:?} failed with {}: {}",
                         output.status,
                         String::from_utf8_lossy(&output.stderr).trim()
                     )
@@ -142,7 +142,7 @@ impl DncDecoder {
             if !dng_file.exists() {
                 return Err(DecodeError::Backend(
                     format!(
-                        "{program} completed without creating {}",
+                        "{program:?} completed without creating {}",
                         dng_file.display()
                     )
                     .into(),
