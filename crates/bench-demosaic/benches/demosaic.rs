@@ -1,5 +1,6 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use fornax::{BayerPattern, Demosaic, IDemosaic, MonoImage, Primitive};
+use fornax_core::{BayerPattern, IDemosaic, MonoImage, Primitive};
+use fornax_demosaic::Demosaic;
 use rand::rngs::StdRng;
 use rand::{RngExt, SeedableRng};
 

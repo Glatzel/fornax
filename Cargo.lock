@@ -180,6 +180,9 @@ name = "bench-demosaic"
 version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
+ "fornax-core",
+ "fornax-demosaic",
+ "image",
  "rand 0.10.3",
 ]
 
