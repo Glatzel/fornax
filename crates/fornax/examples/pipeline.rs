@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use fornax::DecodedRawActive;
 use fornax::decoder::{IDecoder, LibrawDecoder};
 use fornax::metadata::Metadata;
+use fornax_decoder_rawler::RawlerDecoder;
 use fornax_demosaic::Demosaic;
 use fornax_devtool::save_image;
 use fornax_preprocessor::Preprocessor;
@@ -53,8 +54,6 @@ fn main() -> mischief::Result<()> {
     }
     //rawler
     {
-        use fornax_decoder_rawler::RawlerDecoder;
-
         let (image, metadata) = RawlerDecoder.decode_active(raw_path.as_path())?;
         wrapper(image, metadata, output_dir.join("rawler"))?;
     }
