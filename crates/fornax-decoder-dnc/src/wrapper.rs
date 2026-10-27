@@ -16,7 +16,7 @@ static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
 
     if let Some(path) = std::env::var_os("PATH").and_then(|paths| {
         std::env::split_paths(&paths)
-            .map(|dir| dir.join(&executable))
+            .map(|dir| dir.join(executable))
             .find(|path| path.is_file())
     }) {
         return path;
