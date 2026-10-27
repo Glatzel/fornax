@@ -706,6 +706,7 @@ dependencies = [
  "clerk",
  "fornax-core",
  "fornax-decoder-rawler",
+ "serde",
 ]
 
 [[package]]
