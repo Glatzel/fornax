@@ -180,9 +180,6 @@ name = "bench-demosaic"
 version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
- "fornax-demosaic",
- "fornax-devtool",
- "mischief",
  "rand 0.10.3",
 ]
 
@@ -668,18 +665,14 @@ dependencies = [
 name = "fornax"
 version = "0.0.17"
 dependencies = [
- "codspeed-criterion-compat",
  "fornax-core",
  "fornax-decoder-dnc",
  "fornax-demosaic",
  "fornax-devtool",
  "fornax-preprocessor",
- "generic-num",
  "image",
  "libraw",
  "mischief",
- "rand 0.10.3",
- "rayon",
  "serde",
 ]
 
@@ -706,16 +699,12 @@ dependencies = [
 name = "fornax-demosaic"
 version = "0.0.17"
 dependencies = [
- "codspeed-criterion-compat",
  "fornax-core",
  "fornax-decoder-dnc",
- "fornax-devtool",
- "fornax-preprocessor",
  "generic-num",
  "image",
  "libraw",
  "mischief",
- "rand 0.10.3",
  "rayon",
  "serde",
 ]
@@ -735,15 +724,9 @@ dependencies = [
 name = "fornax-preprocessor"
 version = "0.0.17"
 dependencies = [
- "codspeed-criterion-compat",
  "fornax-core",
  "fornax-decoder-dnc",
- "fornax-devtool",
- "generic-num",
- "image",
  "libraw",
- "mischief",
- "rand 0.10.3",
  "rayon",
  "serde",
 ]
