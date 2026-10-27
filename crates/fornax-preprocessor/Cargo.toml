@@ -6,7 +6,6 @@ edition.workspace = true
 [dependencies]
 fornax-core.workspace = true
 rayon.workspace = true
-serde = { workspace = true, optional = true }
 
 [dev-dependencies]
 image.workspace = true
