@@ -9,11 +9,11 @@ use fornax_decoder_rawler::RawlerDecoder;
 pub use crate::DncParams;
 
 static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
-        #[cfg(target_os = "macos")]
+    #[cfg(target_os = "macos")]
     let executable = "Adobe DNG Converter";
-        #[cfg(target_os = "windows")]
+    #[cfg(target_os = "windows")]
     let executable = "Adobe DNG Converter.exe";
-    
+
     if let Some(path) = std::env::var_os("PATH").and_then(|paths| {
         std::env::split_paths(&paths)
             .map(|dir| dir.join(executable))
@@ -23,14 +23,13 @@ static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
     }
 
     #[cfg(target_os = "macos")]
-    
+    {
         PathBuf::from("/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter")
-    
-
+    }
     #[cfg(target_os = "windows")]
-    
+    {
         PathBuf::from(r"C:\Program Files\Adobe\Adobe DNG Converter\Adobe DNG Converter.exe")
-    
+    }
 });
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
