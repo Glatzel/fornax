@@ -4,7 +4,7 @@ use std::sync::LazyLock;
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::Metadata;
 use fornax_core::{DecodedRawActive, DecodedRawFull, IDecoder, Primitive};
-use libraw::LibrawDecoder;
+use fornax_decoder_rawler::RawlerDecoder;
 
 pub use crate::DncParams;
 
@@ -108,7 +108,7 @@ where
 {
     fn decode_full(&self, input: &Path) -> Result<(DecodedRawFull<T>, Metadata<T>), DecodeError> {
         let dng_file = self.convert(input)?;
-        LibrawDecoder.decode_full(&dng_file as &Path)
+        RawlerDecoder.decode_full(&dng_file as &Path)
     }
 
     fn decode_active(
@@ -116,6 +116,6 @@ where
         input: &Path,
     ) -> Result<(DecodedRawActive<T>, Metadata<T>), DecodeError> {
         let dng_file = self.convert(input)?;
-        LibrawDecoder.decode_active(&dng_file as &Path)
+        RawlerDecoder.decode_active(&dng_file as &Path)
     }
 }

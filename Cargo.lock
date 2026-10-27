@@ -681,13 +681,13 @@ version = "0.0.17"
 dependencies = [
  "fornax-core",
  "fornax-decoder-dnc",
+ "fornax-decoder-rawler",
  "fornax-demosaic",
  "fornax-devtool",
  "fornax-preprocessor",
  "image",
  "libraw",
  "mischief",
- "serde",
 ]
 
 [[package]]
@@ -696,6 +696,7 @@ version = "0.0.17"
 dependencies = [
  "image",
  "num-traits",
+ "serde",
  "thiserror",
 ]
 
@@ -705,7 +706,15 @@ version = "0.0.17"
 dependencies = [
  "clerk",
  "fornax-core",
- "libraw",
+ "fornax-decoder-rawler",
+]
+
+[[package]]
+name = "fornax-decoder-rawler"
+version = "0.0.17"
+dependencies = [
+ "clerk",
+ "fornax-core",
  "serde",
 ]
 
@@ -1996,9 +2005,9 @@ checksum = "6b1e7f9a428571be2dc5bc0505c13fb6bf936822b894ec87abf8a08a4e51742d"
 
 [[package]]
 name = "rustix"
-version = "1.1.5"
+version = "1.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "891efababe418670775f199f0d233d84843c227a0949a883ce15b37c78d6629d"
+checksum = "e5e76742e5294153d4dde1207dbec5bdd81eef6fabdc0d2118babadabfd858aa"
 dependencies = [
  "bitflags 2.13.2",
  "errno",

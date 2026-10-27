@@ -6,20 +6,19 @@ edition.workspace = true
 [dependencies]
 fornax-core.workspace = true
 fornax-decoder-dnc = { workspace = true, optional = true }
+fornax-decoder-rawler = { workspace = true, optional = true }
 fornax-demosaic.workspace = true
 fornax-preprocessor.workspace = true
 libraw = { workspace = true, optional = true }
-serde = { workspace = true, optional = true }
 
 [dev-dependencies]
 fornax-devtool.workspace = true
-mischief.workspace = true
 image.workspace = true
+mischief.workspace = true
 
 [features]
-default = ["backend-dnc", "backend-libraw"]
-backend-dnc = ["backend-libraw", "dep:fornax-decoder-dnc"]
-backend-libraw = ["dep:libraw"]
-serde = [
-  "dep:serde",
-]
+default = ["decoder-dnc", "decoder-libraw", "decoder-rawler"]
+serde = ["fornax-core/serde"]
+decoder-dnc = ["dep:fornax-decoder-dnc"]
+decoder-libraw = ["dep:libraw"]
+decoder-rawler = ["dep:fornax-decoder-rawler"]

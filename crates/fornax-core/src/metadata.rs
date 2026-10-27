@@ -6,7 +6,6 @@ use crate::{BayerPattern, MonoImage, Primitive};
 /// The geometry and level fields correspond to the same concepts as the
 /// corresponding DNG raw-image tags. Coordinates use pixels with `x` as the
 /// column and `y` as the row.
-
 #[derive(Clone, Debug)]
 pub struct Metadata<T>
 where
