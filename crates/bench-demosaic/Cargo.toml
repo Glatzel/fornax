@@ -7,11 +7,6 @@ edition.workspace = true
 harness = false
 name = "demosaic"
 
-[dependencies]
-fornax-demosaic.workspace = true
-
 [dev-dependencies]
 criterion.workspace = true
-fornax-devtool.workspace = true
-mischief.workspace = true
 rand.workspace = true
