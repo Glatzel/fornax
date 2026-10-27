@@ -105,7 +105,7 @@ fn convert_image<T>(raw: &RawImage) -> Result<MonoImage<T>, DecodeError> where T
         }
     };
 
-    MonoImage::from_raw(width, height, samples).ok_or(RawValidationError::InvalidImage.into())
+    MonoImage::from_raw(width, height, samples).ok_or_else(||RawValidationError::InvalidImage.into())
 }
 
 fn convert_metadata<T>(raw: &RawImage) -> Result<Metadata<T>, DecodeError> where T: Primitive {

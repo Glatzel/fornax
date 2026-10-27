@@ -115,7 +115,8 @@ impl DncDecoder {
                 .map_err(|error| {
                     DecodeError::Backend(
                         format!(
-                            "failed to launch {program:?} for {}: {error}",
+                            "failed to launch {} for {}: {error}",
+                            program.to_str().unwrap(),
                             raw_file.display()
                         )
                         .into(),
@@ -126,13 +127,14 @@ impl DncDecoder {
                 .map(|arg| arg.to_string_lossy())
                 .collect::<Vec<_>>()
                 .join(" ");
-            clerk::debug!("Command:\n{program:?} {command}");
+            clerk::debug!("Command:\n{} {command}", program.to_str().unwrap(),);
             clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
             clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
             if !output.status.success() {
                 return Err(DecodeError::Backend(
                     format!(
-                        "{program:?} failed with {}: {}",
+                        "{} failed with {}: {}",
+                        program.to_str().unwrap(),
                         output.status,
                         String::from_utf8_lossy(&output.stderr).trim()
                     )
@@ -142,7 +144,8 @@ impl DncDecoder {
             if !dng_file.exists() {
                 return Err(DecodeError::Backend(
                     format!(
-                        "{program:?} completed without creating {}",
+                        "{} completed without creating {}",
+                        program.to_str().unwrap(),
                         dng_file.display()
                     )
                     .into(),
