@@ -843,7 +843,6 @@ dependencies = [
  "fornax-core",
  "image 0.25.9",
  "rayon",
- "serde",
 ]
 
 [[package]]
