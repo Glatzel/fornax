@@ -133,12 +133,14 @@ where
     Ok(())
 }
 
-#[cfg(test)]
-static BENCH_ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    static BENCH_ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
     #[test]
     fn benchmark_configuration_reads_environment() {
