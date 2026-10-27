@@ -100,10 +100,8 @@ impl DncDecoder {
         }
 
         if dng_file.exists() {
-            clerk::info!(
-                "DNG file already exists: {}",
-                std::path::absolute(&dng_file).unwrap().display()
-            );
+            let dng_file_absolute = std::path::absolute(&dng_file).unwrap();
+            clerk::info!("DNG file already exists: {}", dng_file_absolute.display());
         } else {
             let program = &*DNC_EXECUTABLE;
             let args = self.params.to_cmd(&raw_file)?;
@@ -145,10 +143,8 @@ impl DncDecoder {
                     .into(),
                 ));
             }
-            clerk::debug!(
-                "Write dng to: {}",
-                std::path::absolute(&dng_file).unwrap().display()
-            );
+            let dng_file_absolute = std::path::absolute(&dng_file).unwrap();
+            clerk::debug!("Write dng to: {}", dng_file_absolute.display());
         }
         Ok(dng_file)
     }

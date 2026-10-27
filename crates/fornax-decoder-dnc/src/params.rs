@@ -156,7 +156,7 @@ impl DncParams {
             cmd.push("-l".into());
         }
 
-        cmd.push(self.preview.to_string().into());
+        cmd.push(self.preview.to_string());
 
         if self.fast_load {
             cmd.push("-fl".into());
@@ -164,14 +164,14 @@ impl DncParams {
 
         if let Some(side) = self.side {
             cmd.push("-side".into());
-            cmd.push(side.to_string().into());
+            cmd.push(side.to_string());
         }
 
         if let Some(count) = self.count {
             cmd.push("-count".into());
-            cmd.push(count.to_string().into());
+            cmd.push(count.to_string());
         }
-        cmd.push(self.compatibility.to_string().into());
+        cmd.push(self.compatibility.to_string());
 
         cmd.push("-d".into());
         cmd.push(directory.to_string_lossy().into());

@@ -108,15 +108,15 @@ where
 
     let active_area = {
         let active_area = Rect {
-            x: sizes.left_margin as _,
-            y: sizes.top_margin as _,
-            width: sizes.width as _,
-            height: sizes.height as _,
+            x: sizes.left_margin as u32,
+            y: sizes.top_margin as u32,
+            width: sizes.width as u32,
+            height: sizes.height as u32,
         };
         if active_area.width == 0
             || active_area.height == 0
-            || active_area.x.saturating_add(active_area.width) > sizes.raw_width as _
-            || active_area.y.saturating_add(active_area.height) > sizes.raw_height as _
+            || active_area.x.saturating_add(active_area.width) > sizes.raw_width as u32
+            || active_area.y.saturating_add(active_area.height) > sizes.raw_height as u32
         {
             return Err(backend_err(format!(
                 "invalid LibRaw active area {}x{} at ({}, {}) for {}x{} raw image",
@@ -138,10 +138,10 @@ where
         let crop_size_present =
             dng.parsedfields & libraw_sys::LibRaw_dngfields_marks_LIBRAW_DNGFM_CROPSIZE as u32 != 0;
         let dng_crop = Rect {
-            x: dng.default_crop[0] as _,
-            y: dng.default_crop[1] as _,
-            width: dng.default_crop[2] as _,
-            height: dng.default_crop[3] as _,
+            x: dng.default_crop[0] as u32,
+            y: dng.default_crop[1] as u32,
+            width: dng.default_crop[2] as u32,
+            height: dng.default_crop[3] as u32,
         };
         let dng_crop_valid = crop_origin_present
             && crop_size_present
@@ -155,10 +155,10 @@ where
             .checked_sub(sizes.left_margin)
             .and_then(|x| {
                 raw_inset.ctop.checked_sub(sizes.top_margin).map(|y| Rect {
-                    x: x as _,
-                    y: y as _,
-                    width: raw_inset.cwidth as _,
-                    height: raw_inset.cheight as _,
+                    x: x as u32,
+                    y: y as u32,
+                    width: raw_inset.cwidth as u32,
+                    height: raw_inset.cheight as u32,
                 })
             });
         let promoted_dng_crop = promoted_dng_crop.filter(|crop| {
@@ -212,8 +212,8 @@ where
             (2, 2, values)
         };
         image::ImageBuffer::from_vec(
-            width as _,
-            height as _,
+            width as u32,
+            height as u32,
             values
                 .into_iter()
                 .map(|value| num!(value))
