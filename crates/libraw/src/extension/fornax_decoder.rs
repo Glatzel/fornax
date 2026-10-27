@@ -11,7 +11,10 @@ use crate::Libraw;
 
 pub struct LibrawDecoder;
 
-fn backend_err<E>(error: E) -> DecodeError where E: Display {
+fn backend_err<E>(error: E) -> DecodeError
+where
+    E: Display,
+{
     DecodeError::Backend(error.to_string().into())
 }
 
@@ -80,14 +83,20 @@ impl<T: Primitive> IDecoder<[u8], T> for LibrawDecoder {
 fn decode<T, R>(
     open: impl FnOnce(&Libraw) -> Result<(), DecodeError>,
     extract: impl FnOnce(&Libraw) -> Result<R, DecodeError>,
-) -> Result<(R, Metadata<T>), DecodeError> where T: Primitive {
+) -> Result<(R, Metadata<T>), DecodeError>
+where
+    T: Primitive,
+{
     let libraw = Libraw::default();
     open(&libraw)?;
     let image = extract(&libraw)?;
     Ok((image, get_metadata(&libraw)?))
 }
 
-fn get_metadata<T>(libraw: &Libraw) -> Result<Metadata<T>, DecodeError> where T: Primitive {
+fn get_metadata<T>(libraw: &Libraw) -> Result<Metadata<T>, DecodeError>
+where
+    T: Primitive,
+{
     let imgdata = libraw.arc_imgdata_ptr();
     let sizes = &imgdata.rawdata.sizes;
     let color = &imgdata.color;

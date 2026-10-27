@@ -27,7 +27,10 @@ where
     }
 }
 
-fn decode<T>(input: &Path) -> Result<(DecodedRawFull<T>, Metadata<T>), DecodeError> where T: Primitive {
+fn decode<T>(input: &Path) -> Result<(DecodedRawFull<T>, Metadata<T>), DecodeError>
+where
+    T: Primitive,
+{
     if !input.is_file() {
         return Err(DecodeError::InvalidInput(
             format!("RAW input is not a file: {}", input.display()).into(),
@@ -54,7 +57,10 @@ fn backend_error(error: rawler::RawlerError) -> DecodeError {
     }
 }
 
-fn convert_image<T>(raw: &RawImage) -> Result<MonoImage<T>, DecodeError> where T: Primitive {
+fn convert_image<T>(raw: &RawImage) -> Result<MonoImage<T>, DecodeError>
+where
+    T: Primitive,
+{
     let cfa = match &raw.photometric {
         RawPhotometricInterpretation::Cfa(config) => &config.cfa,
         RawPhotometricInterpretation::BlackIsZero | RawPhotometricInterpretation::LinearRaw => {
@@ -105,10 +111,14 @@ fn convert_image<T>(raw: &RawImage) -> Result<MonoImage<T>, DecodeError> where T
         }
     };
 
-    MonoImage::from_raw(width, height, samples).ok_or_else(||RawValidationError::InvalidImage.into())
+    MonoImage::from_raw(width, height, samples)
+        .ok_or_else(|| RawValidationError::InvalidImage.into())
 }
 
-fn convert_metadata<T>(raw: &RawImage) -> Result<Metadata<T>, DecodeError> where T: Primitive {
+fn convert_metadata<T>(raw: &RawImage) -> Result<Metadata<T>, DecodeError>
+where
+    T: Primitive,
+{
     let cfa = match &raw.photometric {
         RawPhotometricInterpretation::Cfa(config) => &config.cfa,
         RawPhotometricInterpretation::BlackIsZero | RawPhotometricInterpretation::LinearRaw => {
