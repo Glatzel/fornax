@@ -29,7 +29,7 @@ static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
 
     #[cfg(target_os = "windows")]
     {
-        PathBuf::from(r"C:\Program Files\Adobe\Adobe DNG Converter.exe")
+        PathBuf::from(r"C:\Program Files\Adobe\Adobe DNG Converter\Adobe DNG Converter.exe")
     }
 });
 
@@ -63,7 +63,6 @@ impl DncDecoder {
         }
 
         let dng_file = self.params.output_file(&raw_file)?;
-        let dng_file_absolute = std::path::absolute(&dng_file).unwrap();
         let output_directory = dng_file.parent().ok_or_else(|| {
             DecodeError::InvalidInput(
                 format!("DNG output path has no parent: {}", dng_file.display()).into(),
@@ -101,7 +100,10 @@ impl DncDecoder {
         }
 
         if dng_file.exists() {
-            clerk::info!("DNG file already exists: {}", dng_file_absolute.display());
+            clerk::info!(
+                "DNG file already exists: {}",
+                std::path::absolute(&dng_file).unwrap().display()
+            );
         } else {
             let program = &*DNC_EXECUTABLE;
             let args = self.params.to_cmd(&raw_file)?;
@@ -118,12 +120,8 @@ impl DncDecoder {
                         .into(),
                     )
                 })?;
-            let command = args
-                .iter()
-                .map(|arg| arg.to_string_lossy())
-                .collect::<Vec<_>>()
-                .join(" ");
-            clerk::debug!("Command:\n{} {command}", program.to_str().unwrap(),);
+
+            clerk::debug!("Command:\n{} {}", program.to_str().unwrap(), args.join(" "));
             clerk::debug!("Stdout:\n{}", String::from_utf8_lossy(&output.stdout));
             clerk::debug!("Stderr:\n{}", String::from_utf8_lossy(&output.stderr));
             if !output.status.success() {
@@ -147,7 +145,10 @@ impl DncDecoder {
                     .into(),
                 ));
             }
-            clerk::debug!("Write dng to: {}", dng_file_absolute.display());
+            clerk::debug!(
+                "Write dng to: {}",
+                std::path::absolute(&dng_file).unwrap().display()
+            );
         }
         Ok(dng_file)
     }

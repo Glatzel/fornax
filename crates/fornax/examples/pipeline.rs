@@ -36,6 +36,7 @@ fn wrapper(
     Ok(())
 }
 fn main() -> mischief::Result<()> {
+    fornax_devtool::setup();
     let output_dir = fornax_devtool::temp_dir().join("pipeline");
     let raw_path = fornax_devtool::raw_file();
     //libraw

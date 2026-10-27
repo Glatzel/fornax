@@ -126,7 +126,7 @@ pub struct DncParams {
     pub overwrite: bool,
 }
 impl DncParams {
-    pub fn to_cmd(&self, raw_file: &Path) -> Result<Vec<OsString>, DecodeError> {
+    pub fn to_cmd(&self, raw_file: &Path) -> Result<Vec<String>, DecodeError> {
         let raw_file = std::path::absolute(raw_file).map_err(|error| {
             DecodeError::InvalidInput(
                 format!("cannot resolve RAW path {}: {error}", raw_file.display()).into(),
@@ -144,7 +144,7 @@ impl DncParams {
             )
         })?;
 
-        let mut cmd: Vec<OsString> = Vec::new();
+        let mut cmd: Vec<String> = Vec::new();
 
         if self.compressed {
             cmd.push("-c".into());
@@ -174,11 +174,11 @@ impl DncParams {
         cmd.push(self.compatibility.to_string().into());
 
         cmd.push("-d".into());
-        cmd.push(directory.as_os_str().to_owned());
+        cmd.push(directory.to_string_lossy().into());
 
         cmd.push("-o".into());
-        cmd.push(filename.to_owned());
-        cmd.push(raw_file.into_os_string());
+        cmd.push(filename.to_string_lossy().into());
+        cmd.push(raw_file.to_string_lossy().into());
         Ok(cmd)
     }
 
@@ -256,10 +256,6 @@ mod tests {
             ..DncParams::default()
         };
         let args = params.to_cmd(&raw)?;
-        let args: Vec<String> = args
-            .into_iter()
-            .map(|arg| arg.into_string().expect("test paths are Unicode"))
-            .collect();
 
         assert!(args.windows(2).any(|args| args == ["-side", "4000"]));
         assert!(args.windows(2).any(|args| args == ["-count", "20000000"]));
