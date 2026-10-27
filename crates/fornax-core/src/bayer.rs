@@ -1,4 +1,4 @@
-use core::fmt::Display;
+use strum::Display;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[repr(u8)]
@@ -27,11 +27,15 @@ impl From<BayerChannel> for u8 {
 /// - `BGGR`: Blue, Green, Green, Red,
 /// - `GRBG`: Green, Red, Blue, Green,
 /// - `GBRG`: Green, Blue, Red, Green.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Display)]
 pub enum BayerPattern {
+    #[strum(serialize = "RGGB")]
     RGGB,
+    #[strum(serialize = "BGGR")]
     BGGR,
+    #[strum(serialize = "GRBG")]
     GRBG,
+    #[strum(serialize = "GBRG")]
     GBRG,
 }
 impl BayerPattern {
@@ -88,17 +92,6 @@ impl BayerPattern {
             BayerChannel::GBlueRow => Self::GBRG,
             BayerChannel::B => Self::BGGR,
         }
-    }
-}
-impl Display for BayerPattern {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let text = match self {
-            Self::RGGB => "RGGB",
-            Self::BGGR => "BGGR",
-            Self::GRBG => "GRBG",
-            Self::GBRG => "GBRG",
-        };
-        f.write_str(text)
     }
 }
 

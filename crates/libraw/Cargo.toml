@@ -13,6 +13,7 @@ jiff.workspace = true
 libraw-sys.workspace = true
 num_enum.workspace = true
 serde = { workspace = true, optional = true }
+strum.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]

@@ -8,6 +8,7 @@ clerk.workspace = true
 fornax-core.workspace = true
 fornax-decoder-rawler.workspace = true
 serde = { workspace = true, optional = true }
+strum.workspace = true
 
 [features]
 serde = ["dep:serde"]
