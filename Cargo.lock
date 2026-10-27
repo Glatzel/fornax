@@ -817,13 +817,10 @@ name = "fornax-demosaic"
 version = "0.0.17"
 dependencies = [
  "fornax-core",
- "fornax-decoder-dnc",
  "generic-num",
  "image 0.25.9",
- "libraw",
  "mischief",
  "rayon",
- "serde",
 ]
 
 [[package]]
@@ -844,9 +841,7 @@ name = "fornax-preprocessor"
 version = "0.0.17"
 dependencies = [
  "fornax-core",
- "fornax-decoder-dnc",
  "image 0.25.9",
- "libraw",
  "rayon",
  "serde",
 ]
