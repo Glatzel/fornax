@@ -10,17 +10,17 @@ edition = "2024"
 [workspace.dependencies]
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-generic-num = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-image = { git = "https://github.com/Glatzel/image-rs" }
-mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 fornax-core = { path = "./crates/fornax-core" }
 fornax-decoder-dnc = { path = "./crates/fornax-decoder-dnc" }
 fornax-decoder-rawler = { path = "./crates/fornax-decoder-rawler" }
 fornax-demosaic = { path = "./crates/fornax-demosaic" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-preprocessor = { path = "./crates/fornax-preprocessor" }
+generic-num = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
+image = { git = "https://github.com/Glatzel/image-rs" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
+mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 bindgen = "0.73.2"
 criterion = { package = "codspeed-criterion-compat", version = "5.0.3" }

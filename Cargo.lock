@@ -189,13 +189,6 @@ dependencies = [
 [[package]]
 name = "bench-preprocessor"
 version = "0.0.17"
-dependencies = [
- "codspeed-criterion-compat",
- "fornax-core",
- "fornax-preprocessor",
- "image",
- "rand 0.10.3",
-]
 
 [[package]]
 name = "bindgen"
