@@ -18,7 +18,6 @@ mischief.workspace = true
 
 [features]
 default = ["decoder-dnc", "decoder-libraw", "decoder-rawler"]
-serde = ["fornax-core/serde"]
 decoder-dnc = ["dep:fornax-decoder-dnc"]
 decoder-libraw = ["dep:libraw"]
 decoder-rawler = ["dep:fornax-decoder-rawler"]
