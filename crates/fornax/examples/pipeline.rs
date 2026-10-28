@@ -2,9 +2,8 @@ use std::path::PathBuf;
 
 use fornax::DecodedRawActive;
 use fornax::decoder::{LibrawDecoder, RawlerDecoder};
-use fornax::demosaic::Demosaic;
 use fornax::metadata::Metadata;
-use fornax::postprocessor::PostProcessor;
+use fornax::postprocessor::{Demosaic, PostProcessor};
 use fornax::preprocessor::Preprocessor;
 use fornax::protocol::IDecoder;
 use fornax_devtool::save_image;

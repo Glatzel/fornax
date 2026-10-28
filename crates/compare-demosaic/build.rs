@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::{self, Path, PathBuf};
 use std::{env, fs};
 
 const LIBRAW_SOURCE_VERSION: &str = "0.22.3";
@@ -8,7 +8,6 @@ const SHIM_SOURCES: &[&str] = &["cpp/algos/linear.cpp", "cpp/shim.cpp"];
 fn main() {
     println!("cargo:rerun-if-changed=cpp");
     println!("cargo:rerun-if-env-changed=LIBRAW_ROOT");
-    println!("cargo:rerun-if-env-changed=CONDA_PREFIX");
 
     let manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
     let libraw_root = find_libraw_root(&manifest_dir);
@@ -73,7 +72,7 @@ fn platform_prefix(prefix: &Path) -> PathBuf {
 }
 
 fn libraw_version(include_dir: &Path) -> String {
-    let header_path = include_dir.join("libraw/libraw_version.h");
+    let header_path = path::absolute(include_dir.join("libraw/libraw_version.h")).unwrap();
     let header = fs::read_to_string(&header_path).unwrap_or_else(|error| {
         panic!(
             "reading LibRaw version header from the Pixi package at {}: {error}",

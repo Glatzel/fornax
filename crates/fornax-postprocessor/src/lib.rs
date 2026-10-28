@@ -1,5 +1,7 @@
+mod demosaic;
 use std::marker::PhantomData;
 
+pub use demosaic::Demosaic;
 use fornax_core::Primitive;
 use fornax_core::error::PostProcessError;
 use fornax_core::protocol::{IDemosaic, IPostProcessMetadata, IPostProcessor};

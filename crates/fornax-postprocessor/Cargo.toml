@@ -5,3 +5,9 @@ edition.workspace = true
 
 [dependencies]
 fornax-core.workspace = true
+generic-num.workspace = true
+image.workspace = true
+rayon.workspace = true
+
+[dev-dependencies]
+mischief.workspace = true

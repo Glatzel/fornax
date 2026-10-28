@@ -1,1 +1,1 @@
-pub use fornax_postprocessor::PostProcessor;
+pub use fornax_postprocessor::{Demosaic, PostProcessor};
