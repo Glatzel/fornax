@@ -10,19 +10,22 @@
         "cargo": {
           "extraEnv": {
             "Path": "./.pixi/envs/dev/Library/bin;${PATH}",
-            "LIBRAW_ROOT": "./.pixi/envs/dev/Library"
+            "LIBRAW_ROOT": "./.pixi/envs/dev/Library",
+            "CONDA_PREFIX": "./.pixi/envs/python"
           }
         },
         "runnables": {
           "extraEnv": {
             "Path": "./.pixi/envs/dev/Library/bin;${PATH}",
-            "LIBRAW_ROOT": "./.pixi/envs/dev/Library"
+            "LIBRAW_ROOT": "./.pixi/envs/dev/Library",
+            "CONDA_PREFIX": "./.pixi/envs/python"
           }
         },
         "server": {
           "extraEnv": {
             "Path": "./.pixi/envs/dev/Library/bin;${PATH}",
-            "LIBRAW_ROOT": "./.pixi/envs/dev/Library"
+            "LIBRAW_ROOT": "./.pixi/envs/dev/Library",
+            "CONDA_PREFIX": "./.pixi/envs/python"
           }
         }
       }
