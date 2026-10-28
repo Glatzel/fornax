@@ -14,3 +14,4 @@ num-traits.workspace = true
 
 [build-dependencies]
 cc.workspace = true
+libraw-sys.workspace = true
