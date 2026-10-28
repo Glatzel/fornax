@@ -3,7 +3,8 @@ use std::path::Path;
 
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::{Levels, Metadata};
-use fornax_core::{DecodedRawActive, DecodedRawFull, IDecoder, Primitive};
+use fornax_core::protocol::IDecoder;
+use fornax_core::{DecodedRawActive, DecodedRawFull, Primitive};
 use generic_num::num;
 use image::math::Rect;
 

@@ -10,6 +10,7 @@ fornax-decoder-rawler = { workspace = true, optional = true }
 fornax-demosaic.workspace = true
 fornax-preprocessor.workspace = true
 libraw = { workspace = true, optional = true }
+fornax-postprocessor.workspace = true
 
 [dev-dependencies]
 fornax-devtool.workspace = true

@@ -1,5 +1,6 @@
 use image::math::Rect;
 
+use crate::protocol::IPostProcessMetadata;
 use crate::{BayerPattern, MonoImage, Primitive};
 /// Normalized metadata for a single-sample Bayer RAW image.
 ///
@@ -59,4 +60,10 @@ where
 
     /// White level from DNG `WhiteLevel` for single-sample Bayer RAW.
     pub white: T,
+}
+impl<T> IPostProcessMetadata<T> for Metadata<T>
+where
+    T: Primitive,
+{
+    fn bayer_pattern(&self) -> BayerPattern { self.bayer_pattern }
 }

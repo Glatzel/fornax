@@ -787,6 +787,7 @@ dependencies = [
  "fornax-decoder-rawler",
  "fornax-demosaic",
  "fornax-devtool",
+ "fornax-postprocessor",
  "fornax-preprocessor",
  "image 0.25.9",
  "libraw",
@@ -847,6 +848,14 @@ dependencies = [
  "mischief",
  "num-traits",
  "rand 0.10.3",
+]
+
+[[package]]
+name = "fornax-postprocessor"
+version = "0.0.17"
+dependencies = [
+ "fornax-core",
+ "fornax-demosaic",
 ]
 
 [[package]]

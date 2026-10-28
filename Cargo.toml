@@ -17,6 +17,7 @@ fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-preprocessor = { path = "./crates/fornax-preprocessor" }
 libraw = { path = "./crates/libraw" }
 libraw-sys = { path = "./crates/libraw-sys" }
+fornax-postprocessor = { path = "./crates/fornax-postprocessor" }
 
 # glatzel
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }

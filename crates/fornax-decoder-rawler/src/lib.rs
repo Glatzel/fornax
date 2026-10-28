@@ -2,7 +2,8 @@ use std::path::Path;
 
 use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationError};
 use fornax_core::metadata::{Levels, Metadata};
-use fornax_core::{BayerPattern, DecodedRawActive, DecodedRawFull, IDecoder, MonoImage, Primitive};
+use fornax_core::protocol::IDecoder;
+use fornax_core::{BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive};
 use image::math::Rect;
 use num_traits::cast;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
@@ -317,11 +318,7 @@ const fn align_to_bayer_tile(mut area: Rect) -> Rect {
 mod tests {
     use std::path::Path;
 
-    use fornax_core::error::DecodeError;
-    use fornax_core::{BayerPattern, IDecoder, Primitive};
-    use image::math::Rect;
-
-    use super::RawlerDecoder;
+    use super::*;
 
     fn decode_with<T: Primitive>() -> Result<(), Box<dyn std::error::Error>> {
         let decoder = RawlerDecoder;

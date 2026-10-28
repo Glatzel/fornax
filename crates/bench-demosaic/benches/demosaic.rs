@@ -1,5 +1,6 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use fornax_core::{BayerPattern, IDemosaic, MonoImage, Primitive};
+use fornax_core::protocol::IDemosaic;
+use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_demosaic::Demosaic;
 use fornax_devtool::{BenchSampleBits, bench_bits, bench_size, synthetic_mono_image};
 

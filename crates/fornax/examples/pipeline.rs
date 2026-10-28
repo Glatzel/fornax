@@ -1,12 +1,13 @@
 use std::path::PathBuf;
 
 use fornax::DecodedRawActive;
-use fornax::decoder::{IDecoder, LibrawDecoder};
+use fornax::decoder::{LibrawDecoder, RawlerDecoder};
+use fornax::demosaic::Demosaic;
 use fornax::metadata::Metadata;
-use fornax_decoder_rawler::RawlerDecoder;
-use fornax_demosaic::Demosaic;
+use fornax::postprocessor::PostProcessor;
+use fornax::preprocessor::Preprocessor;
+use fornax::protocol::IDecoder;
 use fornax_devtool::save_image;
-use fornax_preprocessor::Preprocessor;
 use image::{Luma, Rgb};
 
 fn process(
@@ -18,11 +19,17 @@ fn process(
     let decoded_path = output_dir.join("1.decoded.tiff");
     save_image::<_, _, Luma<u16>, _>(decoded.image(), &decoded_path, 1.0)?;
 
-    let processed = decoded.preprocess(&Preprocessor, &metadata.levels)?;
+    let processed = decoded.process(&Preprocessor, &metadata.levels)?;
     let preprocessed_path = &output_dir.join("2.preprocess.tiff");
     save_image::<_, _, Luma<u16>, _>(processed.image(), &preprocessed_path, u16::MAX as _)?;
 
-    let demosaiced = processed.demosaic(&Demosaic::Linear, metadata.bayer_pattern)?;
+    let demosaiced = processed.process(
+        &PostProcessor {
+            demosaic: Demosaic::Linear,
+            _mark: std::marker::PhantomData,
+        },
+        &metadata,
+    )?;
     let demosaiced_path = output_dir.join("3.demosaic_linear.tiff");
     save_image::<_, _, Rgb<u16>, _>(&demosaiced, &demosaiced_path, u16::MAX as _)?;
     println!("=================={}==========================", name);

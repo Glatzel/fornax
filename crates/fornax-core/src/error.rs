@@ -50,6 +50,11 @@ pub enum PreprocessError {
     #[error("black_delta_v length {actual} does not match image height {expected}")]
     BlackDeltaHeightMismatch { expected: usize, actual: usize },
 }
+#[derive(Clone, Debug, Error, PartialEq, Eq)]
+pub enum PostProcessError {
+    #[error(transparent)]
+    Demosaic(#[from] DemosaicError),
+}
 
 #[derive(Clone, Debug, Error, PartialEq, Eq)]
 pub enum DemosaicError {

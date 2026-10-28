@@ -1,6 +1,7 @@
 mod linear;
 use fornax_core::error::DemosaicError;
-use fornax_core::{BayerPattern, IDemosaic, MonoImage, Primitive, RgbImage};
+use fornax_core::protocol::IDemosaic;
+use fornax_core::{BayerPattern, MonoImage, Primitive, RgbImage};
 use linear::DemosaicLinear;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
