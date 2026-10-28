@@ -1,3 +1,6 @@
+- decoder
+  - [DEC-RSP] rawspeed(the backend of darktable)
+  - [DEC-FR] flashraw(https://crates.io/crates/flashraw)
 - demosaic
   - [DEM-VNG] VNG/VNG4: variable-number-of-gradients interpolation from darktable and LibRaw
   - [DEM-AHD] AHD: adaptive homogeneity-directed interpolation from LibRaw
@@ -8,6 +11,9 @@
   - [DEM-AMAZE] AMaZE: alias-free zipper elimination demosaicing from darktable
   - [DEM-RCD] RCD: ratio-corrected demosaicing from darktable
   - [DEM-LMMSE] LMMSE: linear minimum mean-square-error demosaicing from darktable
+- perf
+  - [P-SIMD] use fearless simd to optimize demosaic and preprocessor, in separate crates.
+  - [P-CUDA] try cutiles-rs to improve perf
 - misc
   - [PY] python bindings: implement `fornax-py`
 - document
