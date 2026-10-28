@@ -1,7 +1,7 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_core::{BayerPattern, IDemosaic, MonoImage, Primitive};
 use fornax_demosaic::Demosaic;
-use fornax_devtool::{BenchSampleBits, bench_bits, bench_mono_image, bench_size};
+use fornax_devtool::{BenchSampleBits, bench_bits, bench_size, synthetic_mono_image};
 
 fn bench_methods<M, T>(c: &mut Criterion, name: &str, method: M, image: MonoImage<T>)
 where
@@ -15,7 +15,7 @@ where
 
 fn bench_sizes<T: Primitive>(c: &mut Criterion, sample_bits: BenchSampleBits) {
     for (label, size) in bench_size() {
-        let image = bench_mono_image::<T>(size, 1.0);
+        let image = synthetic_mono_image::<T>(size, 1.0);
         let name = format!("linear/{label}/{}", sample_bits.name());
         bench_methods::<_, T>(c, &name, Demosaic::Linear, image);
     }

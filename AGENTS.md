@@ -4,9 +4,7 @@
 selecting implementation work. Agent instructions live in this root file and
 in no other directory.
 
-Until `refactor/pipeline-v3` is merged into `main`, use
-`refactor/pipeline-v3` as the integration base. Once it has merged, use `main`
-as the integration base for every new task and bug-fix branch.
+Use `main` as the integration base for every new task and bug-fix branch.
 
 ## Task work
 
@@ -82,6 +80,20 @@ monochrome, or other CFA layouts.
 Do not copy or reintroduce the `refactor/raw-pipeline-v2` research, design,
 task-manifest, status, or checkpoint files. Refer to that branch only when
 directed by the task.
+
+### Adding a demosaic comparison
+
+Keep reference comparison cases table-driven:
+
+1. Add `cpp/algos/<name>.cpp` for the LibRaw reference routine.
+2. Add its stable algorithm ID to `cpp/shim.cpp`.
+3. Add a `Case` and Fornax runner under `crates/compare-demosaic/src/cases/`.
+4. Register the case in `CASES`.
+5. Run `pixi run -e dev compare-demosaic` and commit the result.
+
+Reference routines and headers come from the repository-managed `libraw-dev`
+Pixi package. The comparison crate does not compile LibRaw from the external
+checkout.
 
 ## Validation
 

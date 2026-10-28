@@ -2,7 +2,7 @@ use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main
 use fornax_core::error::PreprocessError;
 use fornax_core::metadata::Levels;
 use fornax_core::{DecodedRawActive, IPreprocessor, MonoImage, Primitive};
-use fornax_devtool::{BenchSampleBits, bench_bits, bench_mono_image, bench_size};
+use fornax_devtool::{BenchSampleBits, bench_bits, bench_size, synthetic_mono_image};
 use fornax_preprocessor::Preprocessor;
 
 fn bench_sizes<T: Primitive>(c: &mut Criterion, sample_bits: BenchSampleBits) {
@@ -14,7 +14,7 @@ fn bench_sizes<T: Primitive>(c: &mut Criterion, sample_bits: BenchSampleBits) {
     };
 
     for (label, size) in bench_size() {
-        let source = bench_mono_image::<T>(size, 1.0);
+        let source = synthetic_mono_image::<T>(size, 1.0);
         let name = format!("preprocess/{label}/{}", sample_bits.name());
         c.bench_function(&name, |b| {
             b.iter_batched(

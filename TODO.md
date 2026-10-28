@@ -8,7 +8,6 @@
   - [DEM-AMAZE] AMaZE: alias-free zipper elimination demosaicing from darktable
   - [DEM-RCD] RCD: ratio-corrected demosaicing from darktable
   - [DEM-LMMSE] LMMSE: linear minimum mean-square-error demosaicing from darktable
-  - [DEM-CPR] : compare algorithms against referenced lib
 - misc
   - [PY] python bindings: implement `fornax-py`
 - document
