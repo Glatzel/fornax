@@ -13,8 +13,6 @@ Requires: pip install httpx duckdb   (and aria2c on PATH)
 # nomkl="*"
 # ///
 
-#!/usr/bin/env python3
-
 import argparse
 import re
 import shutil

@@ -12,7 +12,7 @@ python = "3.13.*"
 imageio = "==2.38.1"
 lazy-loader = "==0.6"
 msgspec = "==0.22.0"
-nomkl = "==1.0"
+nomkl = "*"
 numpy = "2.3.*"
 numpydoc = "==1.11.0"
 pydantic = "==2.14.1"
@@ -26,6 +26,14 @@ codex = "*"
 codex-config = "*"
 skill-glatzel = "*"
 
+[feature.data.dependencies]
+python-duckdb = "*"
+httpx = "*"
+nomkl = "*"
+[feature.data.tasks]
+get-raw-samples="python $PIXI_WORKSPACE_ROOT/scripts/get_raw_samples.py"
+
 [environments]
 default = ["dev"]
 agent = ["agent"]
+data=["data"]
