@@ -23,8 +23,8 @@ std::int32_t ReferenceDemosaicer::prepare(const std::uint16_t *mosaic,
 
   const auto pixel_count =
       static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
-  auto *image = static_cast<ushort(*)[4]>(
-      std::calloc(pixel_count, sizeof(ushort[4])));
+  auto *image =
+      static_cast<ushort(*)[4]>(std::calloc(pixel_count, sizeof(ushort[4])));
   if (image == nullptr) {
     return COMPARE_DEMOSAIC_STATUS_ALLOCATION_FAILED;
   }
@@ -63,10 +63,9 @@ void ReferenceDemosaicer::copy_rgb(std::uint16_t *output) const {
 }
 
 extern "C" std::int32_t
-compare_demosaic_libraw(std::uint32_t algorithm,
-                        const std::uint16_t *mosaic, std::uint32_t width,
-                        std::uint32_t height, std::uint32_t filters,
-                        std::uint16_t *output) noexcept {
+compare_demosaic_libraw(std::uint32_t algorithm, const std::uint16_t *mosaic,
+                        std::uint32_t width, std::uint32_t height,
+                        std::uint32_t filters, std::uint16_t *output) noexcept {
   if (mosaic == nullptr || output == nullptr) {
     return COMPARE_DEMOSAIC_STATUS_NULL_POINTER;
   }

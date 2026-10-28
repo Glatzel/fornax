@@ -22,7 +22,6 @@ public:
 };
 
 extern "C" std::int32_t
-compare_demosaic_libraw(std::uint32_t algorithm,
-                        const std::uint16_t *mosaic, std::uint32_t width,
-                        std::uint32_t height, std::uint32_t filters,
-                        std::uint16_t *output) noexcept;
+compare_demosaic_libraw(std::uint32_t algorithm, const std::uint16_t *mosaic,
+                        std::uint32_t width, std::uint32_t height,
+                        std::uint32_t filters, std::uint16_t *output) noexcept;
