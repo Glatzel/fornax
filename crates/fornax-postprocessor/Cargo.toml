@@ -4,5 +4,4 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-fornax-demosaic.workspace = true
 fornax-core.workspace = true

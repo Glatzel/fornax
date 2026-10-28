@@ -5,7 +5,7 @@ use image::math::Rect;
 use crate::error::PreprocessError;
 use crate::metadata::Levels;
 use crate::protocol::IPreprocessor;
-use crate::{ MonoImage, Primitive, RawImage};
+use crate::{MonoImage, Primitive, RawImage};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Full;
