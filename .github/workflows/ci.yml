@@ -60,6 +60,8 @@ jobs:
         with:
           toolchain: nightly
           components: clippy
+      - name: initialize native reference fixtures
+        run: git submodule update --init external/libraw external/raw-images
       - uses: Glatzel/template/.github/actions/rust/cargo-clippy@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
       - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         with:

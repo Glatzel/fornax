@@ -3,12 +3,14 @@ name = "compare-demosaic"
 version.workspace = true
 edition.workspace = true
 build = "build.rs"
+publish = false
 
 [dependencies]
 fornax-core.workspace = true
 fornax-demosaic.workspace = true
 fornax-devtool.workspace = true
 mischief.workspace = true
+num-traits.workspace = true
 
 [build-dependencies]
 cc.workspace = true

@@ -5,6 +5,7 @@ platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
 [tasks]
 pipeline = "cargo run --example pipeline"
+compare-demosaic = "cargo run -p compare-demosaic -- --update-readme"
 
 [feature.dev.dependencies]
 libraw-dev = "==0.22.3"

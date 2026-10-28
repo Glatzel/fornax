@@ -537,6 +537,7 @@ dependencies = [
  "fornax-demosaic",
  "fornax-devtool",
  "mischief",
+ "num-traits",
 ]
 
 [[package]]

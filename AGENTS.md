@@ -81,6 +81,20 @@ Do not copy or reintroduce the `refactor/raw-pipeline-v2` research, design,
 task-manifest, status, or checkpoint files. Refer to that branch only when
 directed by the task.
 
+### Adding a demosaic comparison
+
+Keep reference comparison cases table-driven:
+
+1. Add `cpp/algos/<name>.cpp` for the LibRaw reference routine.
+2. Add its stable algorithm ID to `cpp/shim.cpp`.
+3. Add a `Case` and Fornax runner under `crates/compare-demosaic/src/cases/`.
+4. Register the case in `CASES`.
+5. Run `cargo run -p compare-demosaic -- --update-readme` and commit the result.
+
+Never edit `external/libraw`. If a source replacement is unavoidable, add an
+exact `(old, new)` replacement to `SOURCE_PATCHES` in the comparison crate's
+build script; every replacement must match exactly once.
+
 ## Validation
 
 For Rust changes, run the applicable commands from the repository root:

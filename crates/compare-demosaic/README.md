@@ -10,6 +10,15 @@ codes and passed unchanged to both implementations:
 - Fornax receives the codes as normalized `f32` samples.
 - LibRaw receives the original `u16` samples.
 
+LibRaw is compiled directly from the pinned `external/libraw` checkout. The
+crate does not use an installed LibRaw package or `LIBRAW_ROOT`.
+
+Initialize the reference checkout before building:
+
+```bash
+git submodule update --init external/libraw
+```
+
 LibRaw's decoding, black subtraction, white balance, color conversion, and tone
 mapping stages are bypassed. The adapter injects the mosaic into LibRaw's
 working image and invokes only `LibRaw::lin_interpolate`.
@@ -18,23 +27,42 @@ Metrics cover the three output channels while excluding the one-pixel image
 border, because Fornax and LibRaw use different boundary strategies. MAE and
 RMSE are measured in 16-bit code values. PSNR uses a peak value of 65535.
 `Changed` is the percentage of interior channel samples that differ.
+The table uses `f32`; tests repeat every case with both `f32` and `f64`.
 
 Run the comparison from the repository root:
 
 ```bash
-cargo run -p compare-demosaic
+cargo run -p compare-demosaic -- --update-readme
 ```
 
 ## Results
 
-<!-- comparison-results:start -->
-| Fornax algorithm | Reference algorithm | Source | Bayer pattern | MAE (codes) | RMSE (codes) | Max difference (codes) | PSNR (dB) | Changed |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | BGGR | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GRBG | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GBRG | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
-<!-- comparison-results:end -->
+<!-- BEGIN:compare-table -->
+| Fornax algorithm | Reference algorithm | Source | Bayer pattern | Verdict | MAE (codes) | RMSE (codes) | Max difference (codes) | PSNR (dB) | Changed |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/b93f6e45c194f5df9b02a43b1af9a54b4f41f33f/src/demosaic/misc_demosaic.cpp#L128) | RGGB | ✅ rounding only | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
+| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/b93f6e45c194f5df9b02a43b1af9a54b4f41f33f/src/demosaic/misc_demosaic.cpp#L128) | BGGR | ✅ rounding only | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
+| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/b93f6e45c194f5df9b02a43b1af9a54b4f41f33f/src/demosaic/misc_demosaic.cpp#L128) | GRBG | ✅ rounding only | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
+| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/b93f6e45c194f5df9b02a43b1af9a54b4f41f33f/src/demosaic/misc_demosaic.cpp#L128) | GBRG | ✅ rounding only | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
 
-The table is generated against LibRaw 0.22.3. Its `Source` cell uses a
-permanent GitHub link pinned to the implementation's exact source commit.
+Reference build: LibRaw 0.22.2.
+<!-- END:compare-table -->
+
+Legend:
+
+- `✅ exact`: every compared sample is bit-identical.
+- `✅ rounding only`: Fornax rounds to nearest while LibRaw truncates, so differences are one code upward.
+- `✅ within tolerance`: every sample is within the case's declared maximum error.
+- `❌ differs`: at least one compared sample exceeds that tolerance.
+
+## Adding an algorithm
+
+1. Add a reference runner to `cpp/algos/<name>.cpp`.
+2. Add its ID to the `switch` in `cpp/shim.cpp`.
+3. Add `src/cases/<name>.rs` with a `CASE` and its Fornax runner.
+4. Register the case in `src/cases/mod.rs`.
+5. Run `cargo run -p compare-demosaic -- --update-readme`, review the table, and commit.
+
+Do not edit `external/libraw`. If an upstream source change is unavoidable,
+register an exact replacement in `SOURCE_PATCHES` in `build.rs`; the build
+requires each search string to match exactly once.
