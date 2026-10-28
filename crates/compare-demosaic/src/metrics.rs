@@ -24,15 +24,13 @@ impl Metrics {
             return Verdict::Exact;
         }
         match tolerance {
-            Tolerance::Exact => Verdict::Differs,
             Tolerance::RoundingUp if self.maximum_error <= 1 && self.below_reference == 0 => {
                 Verdict::RoundingOnly
             }
-            Tolerance::RoundingUp => Verdict::Differs,
             Tolerance::MaxError(maximum) if self.maximum_error <= maximum => {
                 Verdict::WithinTolerance(maximum)
             }
-            Tolerance::MaxError(_) => Verdict::Differs,
+            Tolerance::Exact | Tolerance::RoundingUp | Tolerance::MaxError(_) => Verdict::Differs,
         }
     }
 
@@ -100,7 +98,7 @@ pub fn calculate(
         peak_signal_to_noise_ratio: if mean_squared_error == 0.0 {
             f64::INFINITY
         } else {
-            10.0f64.mul_add(-mean_squared_error.log10(), 20.0 * peak.log10())
+            10.0_f64.mul_add(-mean_squared_error.log10(), 20.0 * peak.log10())
         },
         below_reference,
     })
