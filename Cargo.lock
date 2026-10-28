@@ -855,7 +855,6 @@ name = "fornax-postprocessor"
 version = "0.0.17"
 dependencies = [
  "fornax-core",
- "fornax-demosaic",
 ]
 
 [[package]]
