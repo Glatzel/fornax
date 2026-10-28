@@ -112,14 +112,20 @@ pub fn update_table(readme: &str, rows: &[Row]) -> mischief::Result<String> {
             "README comparison table markers are out of order"
         ));
     }
+    let line_ending = if readme.contains("\r\n") {
+        "\r\n"
+    } else {
+        "\n"
+    };
+    let table = render_table(rows).replace('\n', line_ending);
     let content_start = begin + TABLE_BEGIN.len();
+    let replacement = format!(
+        "{line_ending}{table}{line_ending}Reference build: LibRaw {LIBRAW_VERSION}.{line_ending}"
+    );
     Ok(format!(
-        "{}\n{}\nReference build: LibRaw {}.\n{}{}",
+        "{}{replacement}{}",
         &readme[..content_start],
-        render_table(rows),
-        LIBRAW_VERSION,
-        TABLE_END,
-        &readme[end + TABLE_END.len()..],
+        &readme[end..],
     ))
 }
 
@@ -129,5 +135,26 @@ const fn verdict(verdict: metrics::Verdict) -> &'static str {
         metrics::Verdict::RoundingOnly => "✅ rounding only",
         metrics::Verdict::WithinTolerance(_) => "✅ within tolerance",
         metrics::Verdict::Differs => "❌ differs",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn table_generation_preserves_crlf_line_endings() -> mischief::Result<()> {
+        let readme = concat!(
+            "# Test\r\n",
+            "<!-- BEGIN:compare-table -->\r\n",
+            "stale\r\n",
+            "<!-- END:compare-table -->\r\n",
+            "footer\r\n",
+        );
+        let updated = update_table(readme, &[])?;
+        assert!(!updated.replace("\r\n", "").contains('\n'));
+        assert!(updated.contains("Reference build: LibRaw"));
+        assert!(updated.ends_with("footer\r\n"));
+        Ok(())
     }
 }
