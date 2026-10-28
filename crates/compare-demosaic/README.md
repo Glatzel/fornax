@@ -10,14 +10,9 @@ codes and passed unchanged to both implementations:
 - Fornax receives the codes as normalized `f32` samples.
 - LibRaw receives the original `u16` samples.
 
-LibRaw is compiled directly from the pinned `external/libraw` checkout. The
-crate does not use an installed LibRaw package or `LIBRAW_ROOT`.
-
-Initialize the reference checkout before building:
-
-```bash
-git submodule update --init external/libraw
-```
+LibRaw headers and the `libraw_r` library come from the repository-managed
+`libraw-dev 0.22.3` Pixi package. The comparison crate does not compile LibRaw
+from source.
 
 LibRaw's decoding, black subtraction, white balance, color conversion, and tone
 mapping stages are bypassed. The adapter injects the mosaic into LibRaw's
@@ -32,7 +27,7 @@ The table uses `f32`; tests repeat every case with both `f32` and `f64`.
 Run the comparison from the repository root:
 
 ```bash
-cargo run -p compare-demosaic -- --update-readme
+pixi run -e dev compare-demosaic
 ```
 
 ## Results
@@ -40,12 +35,12 @@ cargo run -p compare-demosaic -- --update-readme
 <!-- BEGIN:compare-table -->
 | Fornax algorithm | Reference algorithm | Source | Bayer pattern | Verdict | MAE (codes) | RMSE (codes) | Max difference (codes) | PSNR (dB) | Changed |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/b93f6e45c194f5df9b02a43b1af9a54b4f41f33f/src/demosaic/misc_demosaic.cpp#L128) | RGGB | ✅ rounding only | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/b93f6e45c194f5df9b02a43b1af9a54b4f41f33f/src/demosaic/misc_demosaic.cpp#L128) | BGGR | ✅ rounding only | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/b93f6e45c194f5df9b02a43b1af9a54b4f41f33f/src/demosaic/misc_demosaic.cpp#L128) | GRBG | ✅ rounding only | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/b93f6e45c194f5df9b02a43b1af9a54b4f41f33f/src/demosaic/misc_demosaic.cpp#L128) | GBRG | ✅ rounding only | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
+| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | ✅ rounding only | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
+| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | BGGR | ✅ rounding only | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
+| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GRBG | ✅ rounding only | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
+| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GBRG | ✅ rounding only | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
 
-Reference build: LibRaw 0.22.2.
+Reference build: LibRaw 0.22.3.
 <!-- END:compare-table -->
 
 Legend:
@@ -61,8 +56,7 @@ Legend:
 2. Add its ID to the `switch` in `cpp/shim.cpp`.
 3. Add `src/cases/<name>.rs` with a `CASE` and its Fornax runner.
 4. Register the case in `src/cases/mod.rs`.
-5. Run `cargo run -p compare-demosaic -- --update-readme`, review the table, and commit.
+5. Run `pixi run -e dev compare-demosaic`, review the table, and commit.
 
-Do not edit `external/libraw`. If an upstream source change is unavoidable,
-register an exact replacement in `SOURCE_PATCHES` in `build.rs`; the build
-requires each search string to match exactly once.
+Reference routines and headers come from the Pixi-managed `libraw-dev` package;
+the comparison crate does not compile LibRaw from the external checkout.

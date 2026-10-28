@@ -31,8 +31,6 @@ fn update_readme() -> mischief::Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use std::process::Command;
-
     use fornax_core::BayerPattern;
 
     use super::*;
@@ -99,7 +97,7 @@ mod tests {
         let expected = report::update_table(readme, &rows)?;
         assert_eq!(
             readme, expected,
-            "README results are stale; run `cargo run -p compare-demosaic -- --update-readme`"
+            "README results are stale; run `pixi run -e dev compare-demosaic`"
         );
         assert_eq!(
             report::render_table(&rows).lines().count(),
@@ -109,25 +107,11 @@ mod tests {
     }
 
     #[test]
-    fn source_link_and_external_checkout_use_the_same_commit() {
+    fn source_link_matches_packaged_version() {
+        assert_eq!(report::LIBRAW_VERSION, "0.22.3");
         for case in CASES {
             assert!(case.source_url.contains(report::LIBRAW_COMMIT));
-        }
-
-        let commit = Command::new("git")
-            .arg("-C")
-            .arg(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/../../external/libraw"
-            ))
-            .args(["rev-parse", "HEAD"])
-            .output()
-            .ok()
-            .filter(|output| output.status.success())
-            .and_then(|output| String::from_utf8(output.stdout).ok())
-            .map(|commit| commit.trim().to_owned());
-        if let Some(commit) = commit {
-            assert_eq!(report::LIBRAW_COMMIT, commit);
+            assert!(case.source_url.contains("#L146"));
         }
     }
 

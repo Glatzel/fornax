@@ -23,7 +23,5 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: steps.changed-files.outputs.any_changed == 'true'
-        env:
-          LD_LIBRARY_PATH: ./.pixi/envs/default/lib
         with:
           options: -p bench-demosaic -p bench-preprocessor

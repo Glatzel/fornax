@@ -9,23 +9,20 @@
       "initialization_options": {
         "cargo": {
           "extraEnv": {
-            "Path": "./.pixi/envs/default/Library/bin;${PATH}",
-            "LIBRAW_ROOT": "./.pixi/envs/default/Library",
-            "CONDA_PREFIX": "./.pixi/envs/default"
+            "Path": "./.pixi/envs/dev/Library/bin;${PATH}",
+            "LIBRAW_ROOT": "./.pixi/envs/dev/Library"
           }
         },
         "runnables": {
           "extraEnv": {
-            "Path": "./.pixi/envs/default/Library/bin;${PATH}",
-            "LIBRAW_ROOT": "./.pixi/envs/default/Library",
-            "CONDA_PREFIX": "./.pixi/envs/default"
+            "Path": "./.pixi/envs/dev/Library/bin;${PATH}",
+            "LIBRAW_ROOT": "./.pixi/envs/dev/Library"
           }
         },
         "server": {
           "extraEnv": {
-            "Path": "./.pixi/envs/default/Library/bin;${PATH}",
-            "LIBRAW_ROOT": "./.pixi/envs/default/Library",
-            "CONDA_PREFIX": "./.pixi/envs/default"
+            "Path": "./.pixi/envs/dev/Library/bin;${PATH}",
+            "LIBRAW_ROOT": "./.pixi/envs/dev/Library"
           }
         }
       }

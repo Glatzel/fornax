@@ -89,11 +89,11 @@ Keep reference comparison cases table-driven:
 2. Add its stable algorithm ID to `cpp/shim.cpp`.
 3. Add a `Case` and Fornax runner under `crates/compare-demosaic/src/cases/`.
 4. Register the case in `CASES`.
-5. Run `cargo run -p compare-demosaic -- --update-readme` and commit the result.
+5. Run `pixi run -e dev compare-demosaic` and commit the result.
 
-Never edit `external/libraw`. If a source replacement is unavoidable, add an
-exact `(old, new)` replacement to `SOURCE_PATCHES` in the comparison crate's
-build script; every replacement must match exactly once.
+Reference routines and headers come from the repository-managed `libraw-dev`
+Pixi package. The comparison crate does not compile LibRaw from the external
+checkout.
 
 ## Validation
 

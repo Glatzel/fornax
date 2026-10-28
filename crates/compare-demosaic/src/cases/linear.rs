@@ -6,7 +6,7 @@ use crate::case::{Case, SampleType, Tolerance};
 const LIBRAW_LINEAR_URL: &str = concat!(
     "https://github.com/LibRaw/LibRaw/blob/",
     env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
-    "/src/demosaic/misc_demosaic.cpp#L128"
+    "/src/demosaic/misc_demosaic.cpp#L146"
 );
 
 pub const CASE: Case = Case {
