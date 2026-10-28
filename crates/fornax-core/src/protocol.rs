@@ -3,7 +3,6 @@ use crate::metadata::{Levels, Metadata};
 use crate::{
     BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive, RawImage, RgbImage,
 };
-
 pub trait IDecoder<I: ?Sized, T>: Send + Sync
 where
     T: Primitive,

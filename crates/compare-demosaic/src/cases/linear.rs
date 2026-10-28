@@ -1,4 +1,5 @@
-use fornax_core::{BayerPattern, IDemosaic, MonoImage, Primitive};
+use fornax_core::protocol::IDemosaic;
+use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_demosaic::Demosaic;
 
 use crate::case::{Case, SampleType, Tolerance};
