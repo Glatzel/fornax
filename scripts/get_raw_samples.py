@@ -28,8 +28,8 @@ def safe(s: str) -> str:
     return BAD_CHARS.sub("_", s).strip(" .")
 
 
+# Download the repository listing once; revalidate with ETag afterwards.
 def fetch_repository(cache_dir: Path, refresh: bool) -> Path:
-    """Download the repository listing once; revalidate with ETag afterwards."""
     cache_dir.mkdir(parents=True, exist_ok=True)
     data, etag = cache_dir / "repository.json", cache_dir / "repository.etag"
 
@@ -55,8 +55,8 @@ def fetch_repository(cache_dir: Path, refresh: bool) -> Path:
     return data
 
 
+# Column 7 of each row is an HTML anchor; pull its href out with duckdb.
 def extract_urls(json_path: Path) -> list[str]:
-    """Column 7 of each row is an HTML anchor; pull its href out with duckdb."""
     rows = duckdb.execute(
         """
         SELECT DISTINCT
