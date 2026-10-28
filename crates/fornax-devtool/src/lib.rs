@@ -84,7 +84,7 @@ pub fn bench_bits() -> Vec<BenchSampleBits> {
         .collect()
 }
 
-pub fn bench_mono_image<T>((width, height): (u32, u32), upper: f64) -> MonoImage<T>
+pub fn synthetic_mono_image<T>((width, height): (u32, u32), upper: f64) -> MonoImage<T>
 where
     T: Primitive,
 {
@@ -203,7 +203,7 @@ mod tests {
     #[test]
     fn benchmark_data_has_requested_shape_and_range() {
         let size = (150, 100);
-        let image = bench_mono_image::<f32>(size, 1.0);
+        let image = synthetic_mono_image::<f32>(size, 1.0);
         assert_eq!(image.dimensions(), size);
         assert!(
             image

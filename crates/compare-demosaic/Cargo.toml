@@ -1,0 +1,14 @@
+[package]
+name = "compare-demosaic"
+version.workspace = true
+edition.workspace = true
+build = "build.rs"
+
+[dependencies]
+fornax-core.workspace = true
+fornax-demosaic.workspace = true
+fornax-devtool.workspace = true
+mischief.workspace = true
+
+[build-dependencies]
+cc.workspace = true

@@ -529,6 +529,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "compare-demosaic"
+version = "0.0.17"
+dependencies = [
+ "cc",
+ "fornax-core",
+ "fornax-demosaic",
+ "fornax-devtool",
+ "mischief",
+]
+
+[[package]]
 name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -4,9 +4,7 @@
 selecting implementation work. Agent instructions live in this root file and
 in no other directory.
 
-Until `refactor/pipeline-v3` is merged into `main`, use
-`refactor/pipeline-v3` as the integration base. Once it has merged, use `main`
-as the integration base for every new task and bug-fix branch.
+Use `main` as the integration base for every new task and bug-fix branch.
 
 ## Task work
 
