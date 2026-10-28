@@ -6,13 +6,6 @@ Requires: pip install httpx duckdb   (and aria2c on PATH)
   get_raw_samples.py 'Sony - *' 'Nikon - *' -o D:/raws
 """
 
-# /// script
-# [tool.pixi.dependencies]
-# python-duckdb="*"
-# httpx="*"
-# nomkl="*"
-# ///
-
 import argparse
 import re
 import shutil

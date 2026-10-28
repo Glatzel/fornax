@@ -30,10 +30,12 @@ skill-glatzel = "*"
 python-duckdb = "*"
 httpx = "*"
 nomkl = "*"
+aria2 = "*"
+
 [feature.data.tasks]
-get-raw-samples="python $PIXI_WORKSPACE_ROOT/scripts/get_raw_samples.py"
+get-raw-samples = "python $PIXI_WORKSPACE_ROOT/scripts/get_raw_samples.py"
 
 [environments]
 default = ["dev"]
 agent = ["agent"]
-data=["data"]
+data = ["data"]
