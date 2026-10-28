@@ -34,12 +34,12 @@ fn run(
     }
 }
 
-fn run_typed<T: Primitive>(
+fn run_typed<T>(
     codes: &[u16],
     width: u32,
     height: u32,
     pattern: BayerPattern,
-) -> mischief::Result<Vec<u16>> {
+) -> mischief::Result<Vec<u16>> where T: Primitive {
     let expected = (width as usize)
         .checked_mul(height as usize)
         .ok_or_else(|| mischief::mischief!("synthetic image dimensions overflow"))?;

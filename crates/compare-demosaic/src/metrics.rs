@@ -19,7 +19,7 @@ pub struct Metrics {
 }
 
 impl Metrics {
-    pub fn verdict(self, tolerance: Tolerance) -> Verdict {
+    pub const fn verdict(self, tolerance: Tolerance) -> Verdict {
         if self.maximum_error == 0 {
             return Verdict::Exact;
         }
@@ -100,7 +100,7 @@ pub fn calculate(
         peak_signal_to_noise_ratio: if mean_squared_error == 0.0 {
             f64::INFINITY
         } else {
-            20.0 * peak.log10() - 10.0 * mean_squared_error.log10()
+            10.0f64.mul_add(-mean_squared_error.log10(), 20.0 * peak.log10())
         },
         below_reference,
     })
