@@ -5,7 +5,7 @@ set -e
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 pixi install
-git submodule update --init external/raw-images
+git submodule update --init external/libraw external/raw-images
 
 export CONDA_PREFIX="$(realpath .pixi/envs/default)"
 

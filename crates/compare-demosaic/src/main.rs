@@ -145,4 +145,40 @@ mod tests {
         }
         Ok(())
     }
+
+    #[test]
+    fn mismatched_mosaic_length_is_rejected() {
+        let codes = [0_u16; 10];
+        let error = ffi::run(
+            cases::LINEAR.algorithm,
+            &codes,
+            8,
+            8,
+            ffi::libraw_filters(BayerPattern::RGGB),
+        )
+        .expect_err("mismatched mosaic length must fail");
+        assert!(error.to_string().contains("expected 64"));
+    }
+
+    #[test]
+    fn saturated_input_is_exact() -> mischief::Result<()> {
+        let input = data::test_inputs()
+            .into_iter()
+            .find(|input| input.label == "saturated")
+            .expect("saturated test input");
+        for pattern in BayerPattern::ALL {
+            for sample_type in [SampleType::F32, SampleType::F64] {
+                let row = report::compare(
+                    &cases::LINEAR,
+                    &input.codes,
+                    input.width,
+                    input.height,
+                    pattern,
+                    sample_type,
+                )?;
+                assert_eq!(row.verdict, metrics::Verdict::Exact);
+            }
+        }
+        Ok(())
+    }
 }
