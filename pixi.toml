@@ -3,6 +3,9 @@ channels = ["https://prefix.dev/glatzel", "conda-forge"]
 name = "fornax"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
+[tasks]
+pipeline = "cargo run --example pipeline"
+
 [feature.dev.dependencies]
 libraw-dev = "==0.22.3"
 maturin = "==1.15.0"
@@ -12,7 +15,7 @@ python = "3.13.*"
 imageio = "==2.38.1"
 lazy-loader = "==0.6"
 msgspec = "==0.22.0"
-nomkl = "==1.0"
+nomkl = "*"
 numpy = "2.3.*"
 numpydoc = "==1.11.0"
 pydantic = "==2.14.1"
@@ -26,6 +29,16 @@ codex = "*"
 codex-config = "*"
 skill-glatzel = "*"
 
+[feature.data.dependencies]
+python-duckdb = "*"
+httpx = "*"
+nomkl = "*"
+aria2 = "*"
+
+[feature.data.tasks]
+get-raw-samples = "python $PIXI_WORKSPACE_ROOT/scripts/get_raw_samples.py"
+
 [environments]
 default = ["dev"]
 agent = ["agent"]
+data = ["data"]

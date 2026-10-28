@@ -1,13 +1,14 @@
 - demosaic
-  - [VNG] VNG/VNG4: variable-number-of-gradients interpolation from darktable and LibRaw
-  - [AHD] AHD: adaptive homogeneity-directed interpolation from LibRaw
-  - [PPG] PPG: patterned pixel grouping interpolation from darktable and LibRaw
-  - [DCB] DCB: directional color balance demosaicing from LibRaw
-  - [DHT] DHT: directional homogeneity-targeted demosaicing from LibRaw
-  - [Modified-AHD] AAHD: advanced/modified AHD from LibRaw
-  - [AMAZE] AMaZE: alias-free zipper elimination demosaicing from darktable
-  - [RCD] RCD: ratio-corrected demosaicing from darktable
-  - [LMMSE] LMMSE: linear minimum mean-square-error demosaicing from darktable
+  - [DEM-VNG] VNG/VNG4: variable-number-of-gradients interpolation from darktable and LibRaw
+  - [DEM-AHD] AHD: adaptive homogeneity-directed interpolation from LibRaw
+  - [DEM-PPG] PPG: patterned pixel grouping interpolation from darktable and LibRaw
+  - [DEM-DCB] DCB: directional color balance demosaicing from LibRaw
+  - [DEM-DHT] DHT: directional homogeneity-targeted demosaicing from LibRaw
+  - [DEM-Modified-AHD] AAHD: advanced/modified AHD from LibRaw
+  - [DEM-AMAZE] AMaZE: alias-free zipper elimination demosaicing from darktable
+  - [DEM-RCD] RCD: ratio-corrected demosaicing from darktable
+  - [DEM-LMMSE] LMMSE: linear minimum mean-square-error demosaicing from darktable
+  - [DEM-CPR] : compare algorithms against referenced lib
 - misc
   - [PY] python bindings: implement `fornax-py`
 - document
