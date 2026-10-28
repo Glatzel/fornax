@@ -1,7 +1,7 @@
 #include "../shim.h"
 
-compare_demosaic_status ReferenceDemosaicer::run_linear() {
+std::int32_t ReferenceDemosaicer::run_linear() {
   pre_interpolate();
   lin_interpolate();
-  return compare_demosaic_ok;
+  return COMPARE_DEMOSAIC_STATUS_OK;
 }

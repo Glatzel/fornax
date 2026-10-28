@@ -133,6 +133,7 @@ fn main() {
     }
     let version = libraw_version(&libraw_root);
     println!("cargo:rustc-env=COMPARE_DEMOSAIC_LIBRAW_VERSION={version}");
+    write_status_codes(&manifest_dir);
 
     let mut build = cc::Build::new();
     build
@@ -162,6 +163,30 @@ fn main() {
         build.file(manifest_dir.join(source));
     }
     build.compile("compare_demosaic_libraw_reference");
+}
+
+fn write_status_codes(manifest_dir: &Path) {
+    let header =
+        fs::read_to_string(manifest_dir.join("cpp/shim.h")).expect("reading comparison FFI header");
+    let mut generated = String::from("// Generated from cpp/shim.h by build.rs.\n");
+    let mut count = 0;
+    for line in header
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix("#define COMPARE_DEMOSAIC_STATUS_"))
+    {
+        let (name, value) = line
+            .split_once(' ')
+            .expect("comparison status macro must contain a value");
+        let name = format!("COMPARE_DEMOSAIC_STATUS_{name}");
+        value
+            .parse::<i32>()
+            .unwrap_or_else(|_| panic!("invalid value for {name}"));
+        generated.push_str(&format!("pub const {name}: i32 = {value};\n"));
+        count += 1;
+    }
+    assert_eq!(count, 8, "comparison FFI header must define 8 statuses");
+    let output = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("status_codes.rs");
+    fs::write(output, generated).expect("writing generated comparison FFI statuses");
 }
 
 fn patched_source(original: &Path, patch: &SourcePatch) -> std::io::Result<PathBuf> {

@@ -5,20 +5,20 @@
 #include <limits>
 #include <new>
 
-compare_demosaic_status
-ReferenceDemosaicer::prepare(const std::uint16_t *mosaic,
-                             std::uint32_t width, std::uint32_t height,
-                             std::uint32_t filters) {
+std::int32_t ReferenceDemosaicer::prepare(const std::uint16_t *mosaic,
+                                          std::uint32_t width,
+                                          std::uint32_t height,
+                                          std::uint32_t filters) {
   constexpr auto ushort_max = std::numeric_limits<ushort>::max();
   if (width < 3 || height < 3) {
-    return compare_demosaic_invalid_dimensions;
+    return COMPARE_DEMOSAIC_STATUS_INVALID_DIMENSIONS;
   }
   if (width > ushort_max || height > ushort_max) {
-    return compare_demosaic_dimension_overflow;
+    return COMPARE_DEMOSAIC_STATUS_DIMENSION_OVERFLOW;
   }
   if (static_cast<std::size_t>(width) >
       std::numeric_limits<std::size_t>::max() / height) {
-    return compare_demosaic_dimension_overflow;
+    return COMPARE_DEMOSAIC_STATUS_DIMENSION_OVERFLOW;
   }
 
   const auto pixel_count =
@@ -26,7 +26,7 @@ ReferenceDemosaicer::prepare(const std::uint16_t *mosaic,
   auto *image = static_cast<ushort(*)[4]>(
       std::calloc(pixel_count, sizeof(ushort[4])));
   if (image == nullptr) {
-    return compare_demosaic_allocation_failed;
+    return COMPARE_DEMOSAIC_STATUS_ALLOCATION_FAILED;
   }
 
   // LibRaw::recycle() owns and frees imgdata.image.
@@ -49,7 +49,7 @@ ReferenceDemosaicer::prepare(const std::uint16_t *mosaic,
       image[index][channel] = mosaic[index];
     }
   }
-  return compare_demosaic_ok;
+  return COMPARE_DEMOSAIC_STATUS_OK;
 }
 
 void ReferenceDemosaicer::copy_rgb(std::uint16_t *output) const {
@@ -68,17 +68,17 @@ compare_demosaic_libraw(std::uint32_t algorithm,
                         std::uint32_t height, std::uint32_t filters,
                         std::uint16_t *output) noexcept {
   if (mosaic == nullptr || output == nullptr) {
-    return compare_demosaic_null_pointer;
+    return COMPARE_DEMOSAIC_STATUS_NULL_POINTER;
   }
 
   try {
     ReferenceDemosaicer reference;
     const auto prepared = reference.prepare(mosaic, width, height, filters);
-    if (prepared != compare_demosaic_ok) {
+    if (prepared != COMPARE_DEMOSAIC_STATUS_OK) {
       return prepared;
     }
 
-    compare_demosaic_status status = compare_demosaic_unknown_algorithm;
+    auto status = COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM;
     switch (algorithm) {
     case 0:
       status = reference.run_linear();
@@ -86,15 +86,15 @@ compare_demosaic_libraw(std::uint32_t algorithm,
     default:
       break;
     }
-    if (status != compare_demosaic_ok) {
+    if (status != COMPARE_DEMOSAIC_STATUS_OK) {
       return status;
     }
 
     reference.copy_rgb(output);
-    return compare_demosaic_ok;
+    return COMPARE_DEMOSAIC_STATUS_OK;
   } catch (const std::bad_alloc &) {
-    return compare_demosaic_out_of_memory;
+    return COMPARE_DEMOSAIC_STATUS_OUT_OF_MEMORY;
   } catch (...) {
-    return compare_demosaic_exception;
+    return COMPARE_DEMOSAIC_STATUS_EXCEPTION;
   }
 }

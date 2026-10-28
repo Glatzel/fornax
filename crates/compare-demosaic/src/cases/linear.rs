@@ -12,6 +12,7 @@ const LIBRAW_LINEAR_URL: &str = concat!(
 pub const CASE: Case = Case {
     name: "Linear",
     reference: "LibRaw::lin_interpolate",
+    source_name: "misc_demosaic.cpp",
     source_url: LIBRAW_LINEAR_URL,
     algorithm: 0,
     // Both routines read one pixel around each interpolated pixel.

@@ -13,6 +13,7 @@ pub const TABLE_END: &str = "<!-- END:compare-table -->";
 pub struct Row {
     pub case: &'static str,
     pub reference: &'static str,
+    pub source_name: &'static str,
     pub source_url: &'static str,
     pub pattern: BayerPattern,
     pub metrics: metrics::Metrics,
@@ -39,6 +40,7 @@ pub fn compare(
     Ok(Row {
         case: case.name,
         reference: case.reference,
+        source_name: case.source_name,
         source_url: case.source_url,
         pattern,
         metrics,
@@ -76,9 +78,10 @@ pub fn render_table(rows: &[Row]) -> String {
             format!("{:.2}", row.metrics.peak_signal_to_noise_ratio)
         };
         output.push_str(&format!(
-            "| {} | `{}` | [`misc_demosaic.cpp`]({}) | {} | {} | {:.3} | {:.3} | {} | {} | {:.3}% |\n",
+            "| {} | `{}` | [`{}`]({}) | {} | {} | {:.3} | {:.3} | {} | {} | {:.3}% |\n",
             row.case,
             row.reference,
+            row.source_name,
             row.source_url,
             row.pattern,
             verdict(row.verdict),

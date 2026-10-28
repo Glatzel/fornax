@@ -1,29 +1,31 @@
 use fornax_core::{BayerChannel, BayerPattern};
 
+include!(concat!(env!("OUT_DIR"), "/status_codes.rs"));
+
 #[repr(i32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Status {
-    Ok = 0,
-    InvalidDimensions = 1,
-    DimensionOverflow = 2,
-    AllocationFailed = 3,
-    NullPointer = 4,
-    OutOfMemory = 5,
-    Exception = 6,
-    UnknownAlgorithm = 7,
+    Ok = COMPARE_DEMOSAIC_STATUS_OK,
+    InvalidDimensions = COMPARE_DEMOSAIC_STATUS_INVALID_DIMENSIONS,
+    DimensionOverflow = COMPARE_DEMOSAIC_STATUS_DIMENSION_OVERFLOW,
+    AllocationFailed = COMPARE_DEMOSAIC_STATUS_ALLOCATION_FAILED,
+    NullPointer = COMPARE_DEMOSAIC_STATUS_NULL_POINTER,
+    OutOfMemory = COMPARE_DEMOSAIC_STATUS_OUT_OF_MEMORY,
+    Exception = COMPARE_DEMOSAIC_STATUS_EXCEPTION,
+    UnknownAlgorithm = COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM,
 }
 
 impl Status {
     fn from_code(code: i32) -> Self {
         match code {
-            0 => Self::Ok,
-            1 => Self::InvalidDimensions,
-            2 => Self::DimensionOverflow,
-            3 => Self::AllocationFailed,
-            4 => Self::NullPointer,
-            5 => Self::OutOfMemory,
-            6 => Self::Exception,
-            7 => Self::UnknownAlgorithm,
+            COMPARE_DEMOSAIC_STATUS_OK => Self::Ok,
+            COMPARE_DEMOSAIC_STATUS_INVALID_DIMENSIONS => Self::InvalidDimensions,
+            COMPARE_DEMOSAIC_STATUS_DIMENSION_OVERFLOW => Self::DimensionOverflow,
+            COMPARE_DEMOSAIC_STATUS_ALLOCATION_FAILED => Self::AllocationFailed,
+            COMPARE_DEMOSAIC_STATUS_NULL_POINTER => Self::NullPointer,
+            COMPARE_DEMOSAIC_STATUS_OUT_OF_MEMORY => Self::OutOfMemory,
+            COMPARE_DEMOSAIC_STATUS_EXCEPTION => Self::Exception,
+            COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM => Self::UnknownAlgorithm,
             other => panic!("unknown compare-demosaic FFI status {other}"),
         }
     }
