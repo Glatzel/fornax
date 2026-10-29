@@ -213,7 +213,12 @@ const fn sensor_color(channel: BayerChannel) -> usize {
 }
 
 #[inline(always)]
-fn non_negative<T>(value: T) -> T where T: Primitive { value.max(T::zero()) }
+fn non_negative<T>(value: T) -> T
+where
+    T: Primitive,
+{
+    value.max(T::zero())
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DemosaicPpg;
