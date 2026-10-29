@@ -94,10 +94,9 @@ Keep reference comparison cases table-driven:
 
 Reference routines and headers come from the repository-managed `libraw-dev`
 Pixi package. The comparison crate does not compile LibRaw from the external
-checkout. darktable comparison code comes directly from the pinned
-`external/darktable` submodule. Use
-`scripts/checkout-darktable-reference.sh` to create its partial sparse checkout
-instead of initializing the full darktable tree.
+checkout. darktable comparison code comes from the pinned darktable commit. Use
+the repository setup scripts, which perform a GitHub CLI sparse clone of only
+the required source, instead of initializing the full darktable tree.
 
 ## Validation
 
