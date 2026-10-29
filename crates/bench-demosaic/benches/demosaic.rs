@@ -35,12 +35,7 @@ fn bench_sizes<T: Primitive + Send + Sync>(
 }
 
 fn benches(c: &mut Criterion) {
-    let mut params = BenchParams::from_env();
-    // CI / simulation: one run, names match the unswept baseline on main.
-    if std::env::var_os("BENCH_SINGLE_THREAD").is_some() {
-        params = params.with_threads([1]);
-    }
-
+    let params = BenchParams::from_env();
     for &bits in &params.bits {
         match bits {
             BenchSampleBits::F32 => bench_sizes::<f32>(c, &params, bits),
