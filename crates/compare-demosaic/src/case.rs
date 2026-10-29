@@ -1,5 +1,11 @@
 use fornax_core::BayerPattern;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ReferenceBackend {
+    LibRaw,
+    Darktable,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(dead_code, reason = "f64 cases are exercised by comparison tests")]
 pub enum SampleType {
@@ -27,6 +33,7 @@ pub struct Case {
     pub reference: &'static str,
     pub source_name: &'static str,
     pub source_url: &'static str,
+    pub reference_backend: ReferenceBackend,
     pub algorithm: u32,
     pub border: u32,
     pub tolerance: Tolerance,

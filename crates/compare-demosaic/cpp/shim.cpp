@@ -63,11 +63,29 @@ void ReferenceDemosaicer::copy_rgb(std::uint16_t *output) const {
 }
 
 extern "C" std::int32_t
-compare_demosaic_libraw(std::uint32_t algorithm, const std::uint16_t *mosaic,
-                        std::uint32_t width, std::uint32_t height,
-                        std::uint32_t filters, std::uint16_t *output) noexcept {
+compare_demosaic_reference(std::uint32_t reference, std::uint32_t algorithm,
+                           const std::uint16_t *mosaic, std::uint32_t width,
+                           std::uint32_t height, std::uint32_t filters,
+                           std::uint16_t *output) noexcept {
   if (mosaic == nullptr || output == nullptr) {
     return COMPARE_DEMOSAIC_STATUS_NULL_POINTER;
+  }
+  constexpr auto ushort_max = std::numeric_limits<ushort>::max();
+  if (width < 3 || height < 3) {
+    return COMPARE_DEMOSAIC_STATUS_INVALID_DIMENSIONS;
+  }
+  if (width > ushort_max || height > ushort_max) {
+    return COMPARE_DEMOSAIC_STATUS_DIMENSION_OVERFLOW;
+  }
+  if (static_cast<std::size_t>(width) >
+      std::numeric_limits<std::size_t>::max() / height) {
+    return COMPARE_DEMOSAIC_STATUS_DIMENSION_OVERFLOW;
+  }
+  if (reference == COMPARE_DEMOSAIC_REFERENCE_DARKTABLE) {
+    return run_darktable_ppg(mosaic, width, height, filters, output);
+  }
+  if (reference != COMPARE_DEMOSAIC_REFERENCE_LIBRAW) {
+    return COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM;
   }
 
   try {
@@ -81,6 +99,9 @@ compare_demosaic_libraw(std::uint32_t algorithm, const std::uint16_t *mosaic,
     switch (algorithm) {
     case 0:
       status = reference.run_linear();
+      break;
+    case 1:
+      status = reference.run_ppg();
       break;
     default:
       break;

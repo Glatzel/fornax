@@ -4,7 +4,6 @@
 - demosaic
   - [DEM-VNG] VNG/VNG4: variable-number-of-gradients interpolation from darktable and LibRaw
   - [DEM-AHD] AHD: adaptive homogeneity-directed interpolation from LibRaw
-  - [DEM-PPG] PPG: patterned pixel grouping interpolation from darktable and LibRaw
   - [DEM-DCB] DCB: directional color balance demosaicing from LibRaw
   - [DEM-DHT] DHT: directional homogeneity-targeted demosaicing from LibRaw
   - [DEM-Modified-AHD] AAHD: advanced/modified AHD from LibRaw

@@ -1,5 +1,7 @@
 use fornax_core::{BayerChannel, BayerPattern};
 
+use crate::case::ReferenceBackend;
+
 include!(concat!(env!("OUT_DIR"), "/status_codes.rs"));
 
 #[repr(i32)]
@@ -33,19 +35,20 @@ impl Status {
     const fn message(self) -> &'static str {
         match self {
             Self::Ok => "success",
-            Self::InvalidDimensions => "LibRaw reference requires dimensions of at least 3x3",
-            Self::DimensionOverflow => "LibRaw reference dimensions exceed supported limits",
-            Self::AllocationFailed => "LibRaw reference image allocation failed",
-            Self::NullPointer => "LibRaw reference received a null buffer",
-            Self::OutOfMemory => "LibRaw reference ran out of memory",
-            Self::Exception => "LibRaw reference raised an unknown exception",
-            Self::UnknownAlgorithm => "LibRaw reference returned unknown algorithm",
+            Self::InvalidDimensions => "reference requires dimensions of at least 3x3",
+            Self::DimensionOverflow => "reference dimensions exceed supported limits",
+            Self::AllocationFailed => "reference image allocation failed",
+            Self::NullPointer => "reference received a null buffer",
+            Self::OutOfMemory => "reference ran out of memory",
+            Self::Exception => "reference raised an unknown exception",
+            Self::UnknownAlgorithm => "reference returned unknown algorithm",
         }
     }
 }
 
 unsafe extern "C" {
-    fn compare_demosaic_libraw(
+    fn compare_demosaic_reference(
+        reference: u32,
         algorithm: u32,
         mosaic: *const u16,
         width: u32,
@@ -56,6 +59,7 @@ unsafe extern "C" {
 }
 
 pub fn run(
+    reference: ReferenceBackend,
     algorithm: u32,
     codes: &[u16],
     width: u32,
@@ -79,7 +83,11 @@ pub fn run(
     // SAFETY: both buffers are valid for the dimensions checked above, and the
     // C++ function writes exactly `pixels * 3` samples.
     let code = unsafe {
-        compare_demosaic_libraw(
+        compare_demosaic_reference(
+            match reference {
+                ReferenceBackend::LibRaw => 0,
+                ReferenceBackend::Darktable => 1,
+            },
             algorithm,
             codes.as_ptr(),
             width,
@@ -149,7 +157,8 @@ mod tests {
             // SAFETY: the C++ function rejects these dimensions before reading
             // either buffer, and both pointers remain valid for the call.
             let code = unsafe {
-                compare_demosaic_libraw(
+                compare_demosaic_reference(
+                    0,
                     0,
                     mosaic.as_ptr(),
                     width,

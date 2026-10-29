@@ -28,8 +28,10 @@ fn bench_sizes<T: Primitive + Send + Sync>(
     for (threads, pool) in params.pools() {
         for size in &params.sizes {
             let image = synthetic_mono_image::<T>(size.dims, 1.0);
-            let name = params.case_name("linear", size, bits, threads);
-            bench_methods::<_, T>(c, &pool, &name, Demosaic::Linear, image);
+            for (prefix, demosaic) in [("linear", Demosaic::Linear), ("ppg", Demosaic::Ppg)] {
+                let name = params.case_name(prefix, size, bits, threads);
+                bench_methods::<_, T>(c, &pool, &name, demosaic, image.clone());
+            }
         }
     }
 }

@@ -25,3 +25,5 @@ jobs:
         if: steps.changed-files.outputs.any_changed == 'true'
         with:
           options: -p bench-demosaic -p bench-preprocessor
+        env:
+          GH_TOKEN: ${{ github.token }}
