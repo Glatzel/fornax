@@ -1,5 +1,5 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use fornax_core::protocol::IDemosaic;
+use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_devtool::{BenchSampleBits, bench_bits, bench_size, synthetic_mono_image};
 use fornax_postprocessor::Demosaic;
@@ -10,7 +10,12 @@ where
     T: Primitive,
 {
     c.bench_function(name, |b| {
-        b.iter(|| method.demosaic(black_box(&image), black_box(BayerPattern::RGGB)))
+        b.iter(|| {
+            method
+                .demosaic(black_box(&image), black_box(BayerPattern::RGGB))
+                .unwrap()
+                .collect()
+        })
     });
 }
 
