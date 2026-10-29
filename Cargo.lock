@@ -230,6 +230,7 @@ dependencies = [
  "fornax-core",
  "fornax-devtool",
  "fornax-preprocessor",
+ "rayon",
 ]
 
 [[package]]
@@ -841,6 +842,7 @@ dependencies = [
  "num-traits",
  "rand 0.10.3",
  "rayon",
+ "strum",
 ]
 
 [[package]]

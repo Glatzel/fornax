@@ -1,7 +1,7 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
-use fornax_devtool::{BenchSampleBits, bench_bits, bench_size, synthetic_mono_image};
+use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
 use fornax_postprocessor::Demosaic;
 
 fn bench_methods<D, T>(
@@ -19,25 +19,32 @@ fn bench_methods<D, T>(
         b.iter(|| pool.install(|| black_box(lazy.collect())));
     });
 }
-fn bench_sizes<T: Primitive + Send + Sync>(c: &mut Criterion, sample_bits: BenchSampleBits) {
-    for threads in fornax_devtool::thread_counts() {
-        let pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(threads)
-            .build()
-            .unwrap();
 
-        for (label, size) in bench_size() {
-            let image = synthetic_mono_image::<T>(size, 1.0);
-            let name = format!("linear/{label}/{}/{threads}T", sample_bits.name());
+fn bench_sizes<T: Primitive + Send + Sync>(
+    c: &mut Criterion,
+    params: &BenchParams,
+    bits: BenchSampleBits,
+) {
+    for (threads, pool) in params.pools() {
+        for size in &params.sizes {
+            let image = synthetic_mono_image::<T>(size.dims, 1.0);
+            let name = params.case_name("linear", size, bits, threads);
             bench_methods::<_, T>(c, &pool, &name, Demosaic::Linear, image);
         }
     }
 }
+
 fn benches(c: &mut Criterion) {
-    for sample_bits in bench_bits() {
-        match sample_bits {
-            BenchSampleBits::B32 => bench_sizes::<f32>(c, sample_bits),
-            BenchSampleBits::B64 => bench_sizes::<f64>(c, sample_bits),
+    let mut params = BenchParams::from_env();
+    // CI / simulation: one run, names match the unswept baseline on main.
+    if std::env::var_os("BENCH_SINGLE_THREAD").is_some() {
+        params = params.with_threads([1]);
+    }
+
+    for &bits in &params.bits {
+        match bits {
+            BenchSampleBits::F32 => bench_sizes::<f32>(c, &params, bits),
+            BenchSampleBits::F64 => bench_sizes::<f64>(c, &params, bits),
         }
     }
 }
