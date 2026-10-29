@@ -21,20 +21,11 @@ mapping stages are bypassed. The adapter injects the mosaic into LibRaw's
 working image and invokes only the selected interpolation routine.
 
 The darktable reference compiles the pinned, unmodified
-`src/iop/demosaicing/ppg.c` from the `external/darktable` submodule through a
-small adapter. Initialize a shallow, partial checkout containing only that
-source file:
-
-```bash
-./scripts/checkout-darktable-reference.sh
-```
-
-If darktable was previously initialized as a full submodule, run the script
-with `--force` to replace its checkout and object store:
-
-```bash
-./scripts/checkout-darktable-reference.sh --force
-```
+`src/iop/demosaicing/ppg.c` through a small adapter. The repository setup
+scripts use `gh repo clone --sparse` and a partial clone to materialize only
+that source file. If darktable was previously initialized as a full submodule,
+remove `external/darktable` before rerunning setup so GitHub CLI can create the
+sparse clone.
 
 Metrics cover the three output channels. Each case declares whether its
 one-pixel border is excluded to account for reference boundary strategy

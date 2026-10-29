@@ -35,7 +35,15 @@ jobs:
             if: ${{github.event_name=='pull_request'}}
       - name: Checkout darktable comparison source
         shell: bash
-        run: ./scripts/checkout-darktable-reference.sh
+        run: |
+          darktable_commit="$(git rev-parse HEAD:external/darktable)"
+          rm -rf external/darktable
+          gh repo clone darktable-org/darktable external/darktable -- \
+            --depth=1 --filter=blob:none --sparse
+          git -C external/darktable fetch --depth=1 origin "$darktable_commit"
+          git -C external/darktable sparse-checkout set --no-cone \
+            /src/iop/demosaicing/ppg.c
+          git -C external/darktable checkout --detach "$darktable_commit"
       - uses: Glatzel/template/.github/actions/rust/cargo-doc@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
 
   test-build:
@@ -48,6 +56,17 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Checkout darktable comparison source
+        shell: bash
+        run: |
+          darktable_commit="$(git rev-parse HEAD:external/darktable)"
+          rm -rf external/darktable
+          gh repo clone darktable-org/darktable external/darktable -- \
+            --depth=1 --filter=blob:none --sparse
+          git -C external/darktable fetch --depth=1 origin "$darktable_commit"
+          git -C external/darktable sparse-checkout set --no-cone \
+            /src/iop/demosaicing/ppg.c
+          git -C external/darktable checkout --detach "$darktable_commit"
       - name: restore dnc
         if: ${{runner.os != 'Linux'}}
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
