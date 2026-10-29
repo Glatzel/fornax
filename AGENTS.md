@@ -38,6 +38,13 @@ in another file. Do not recreate per-task manifests, `STATUS.md`,
 `agent-work/AGENTS.md`, design gates, or checkpoint trees; those are obsolete
 workflow artifacts.
 
+## Maintenance work
+
+When the user explicitly requests work that is not represented by a TODO item,
+use one `chore/<slug>` branch and worktree created from the current integration
+base, and open one semantic pull request. Do not change `TODO.md` unless the
+request explicitly names a TODO item.
+
 ## Bug work
 
 The user reports bugs through GitHub issues and supplies the issue number.
