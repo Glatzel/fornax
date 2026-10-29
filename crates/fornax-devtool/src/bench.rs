@@ -123,3 +123,87 @@ impl BenchParams {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sizes_use_three_by_two_dimensions_and_megapixel_labels() {
+        let sizes = BenchParams::parse_sizes("1000, 2001");
+        assert_eq!(
+            sizes,
+            vec![
+                BenchSize {
+                    label: "1.50MP".to_owned(),
+                    dims: (1_500, 1_000),
+                },
+                BenchSize {
+                    label: "6.01MP".to_owned(),
+                    dims: (3_002, 2_001),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn size_parser_rejects_invalid_values() {
+        for value in ["", "1000,,2000", "0", "-1", "invalid", "4294967295"] {
+            assert!(
+                std::panic::catch_unwind(|| BenchParams::parse_sizes(value)).is_err(),
+                "{value:?} should be rejected"
+            );
+        }
+    }
+
+    #[test]
+    fn bits_preserve_order_and_reject_unknown_values() {
+        assert_eq!(
+            BenchParams::parse_bits("64, 32"),
+            vec![BenchSampleBits::F64, BenchSampleBits::F32]
+        );
+        for value in ["", "16", "invalid"] {
+            assert!(
+                std::panic::catch_unwind(|| BenchParams::parse_bits(value)).is_err(),
+                "{value:?} should be rejected"
+            );
+        }
+    }
+
+    #[test]
+    fn case_names_only_include_threads_for_multi_thread_sweeps() {
+        let size = BenchSize {
+            label: "1.50MP".to_owned(),
+            dims: (1_500, 1_000),
+        };
+        let single = BenchParams {
+            sizes: vec![size.clone()],
+            bits: vec![BenchSampleBits::F32],
+            threads: vec![1],
+        };
+        assert_eq!(
+            single.case_name("alpha", &size, BenchSampleBits::F32, 1),
+            "alpha/1.50MP/f32"
+        );
+
+        let swept = single.with_threads([1, 4]);
+        assert_eq!(
+            swept.case_name("alpha", &size, BenchSampleBits::F64, 4),
+            "alpha/1.50MP/f64/4T"
+        );
+    }
+
+    #[test]
+    fn thread_pools_match_requested_sizes() {
+        let params = BenchParams {
+            sizes: Vec::new(),
+            bits: Vec::new(),
+            threads: vec![1, 2],
+        };
+        let pools = params
+            .pools()
+            .map(|(configured, pool)| (configured, pool.current_num_threads()))
+            .collect::<Vec<_>>();
+        assert_eq!(pools, vec![(1, 1), (2, 2)]);
+    }
+}
