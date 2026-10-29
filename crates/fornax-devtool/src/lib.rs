@@ -41,7 +41,7 @@ pub fn temp_dir() -> PathBuf { root_dir().join("temp") }
 /// The default is `1000,2000`; dimensions are landscape 3:2 images.
 pub fn bench_size() -> Vec<(String, (u32, u32))> {
     std::env::var("FORNAX_BENCH_SIZE")
-        .unwrap_or_else(|_| "1000,2000".to_owned())
+        .unwrap_or_else(|_| "1000,2000,6000".to_owned())
         .split(',')
         .map(str::trim)
         .map(|short_edge| {
@@ -163,6 +163,7 @@ mod tests {
             vec![
                 ("1.50MP".to_owned(), (1_500, 1_000)),
                 ("6.00MP".to_owned(), (3_000, 2_000)),
+                ("54.00MP".to_owned(), (9_000, 6_000)),
             ]
         );
         assert_eq!(
