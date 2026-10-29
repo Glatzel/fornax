@@ -318,7 +318,11 @@ where
         if ![r, g, b].into_iter().all(finite_pos) {
             break 'neutral None;
         }
-        let g = if finite_pos(g2) { f32::midpoint(g, g2) } else { g };
+        let g = if finite_pos(g2) {
+            f32::midpoint(g, g2)
+        } else {
+            g
+        };
 
         Some(WhiteBalance::AsShotNeutral(num!(r), num!(g), num!(b)))
     };
