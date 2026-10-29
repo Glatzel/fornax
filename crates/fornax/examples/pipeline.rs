@@ -39,7 +39,7 @@ fn run(input: Option<PathBuf>) -> mischief::Result<()> {
     {
         let (image, metadata) = LibrawDecoder.decode_active(raw_path.as_path())?;
         process("libraw", image, metadata, output_dir.join("libraw"))?;
-    } 
+    }
     //rawler
     {
         let (image, metadata) = RawlerDecoder.decode_active(raw_path.as_path())?;
