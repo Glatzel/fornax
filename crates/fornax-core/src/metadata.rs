@@ -32,7 +32,7 @@ where
     pub bayer_pattern: BayerPattern,
 
     ///green normalized
-    pub as_shot_neutral: Option<AsShotNeutral<T>>,
+    pub white_balance: Option<WhiteBalance<T>>,
 }
 
 /// Black and white levels for a single-sample Bayer RAW image.
@@ -66,9 +66,22 @@ where
 }
 ///(R,B),green normalized
 #[derive(Clone, Debug)]
-pub struct AsShotNeutral<T>(pub T, pub T)
+pub enum WhiteBalance<T>
 where
-    T: Primitive;
+    T: Primitive,
+{
+    AsShotNeutral(T, T, T),
+    CamMul(T, T, T),
+}
+impl<T: Primitive> WhiteBalance<T> {
+    /// Multipliers to apply to raw R, B (green-normalized).
+    pub fn multipliers(&self) -> (T, T) {
+        match *self {
+            Self::CamMul(r, g, b) => (r / g, b / g),
+            Self::AsShotNeutral(r, g, b) => (g / r, g / b),
+        }
+    }
+}
 
 impl<T> IPostProcessMetadata<T> for Metadata<T>
 where
@@ -76,5 +89,5 @@ where
 {
     fn bayer_pattern(&self) -> BayerPattern { self.bayer_pattern }
 
-    fn as_shot_neutral(&self) -> &Option<AsShotNeutral<T>> { &self.as_shot_neutral }
+    fn white_balance(&self) -> &Option<WhiteBalance<T>> { &self.white_balance }
 }

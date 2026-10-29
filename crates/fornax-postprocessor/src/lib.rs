@@ -31,12 +31,13 @@ where
         let mut result = self
             .demosaic
             .demosaic(bayer_image, metadata.bayer_pattern())?;
-        if let Some(as_shot_neutral) = metadata.as_shot_neutral()
+        if let Some(wb) = metadata.white_balance()
             && self.use_as_shot_neutral
         {
+            let multipliers = wb.multipliers();
             result.par_enumerate_pixels_mut().for_each(|(_x, _y, rgb)| {
-                rgb.0[0] = rgb.0[0] * as_shot_neutral.0;
-                rgb.0[2] = rgb.0[2] * as_shot_neutral.1;
+                rgb.0[0] = rgb.0[0] * multipliers.0;
+                rgb.0[2] = rgb.0[2] * multipliers.1;
             });
         }
         Ok(result)

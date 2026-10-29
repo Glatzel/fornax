@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::path::Path;
 
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::{AsShotNeutral, Levels, Metadata};
+use fornax_core::metadata::{Levels, Metadata, WhiteBalance};
 use fornax_core::protocol::IDecoder;
 use fornax_core::{DecodedRawActive, DecodedRawFull, Primitive};
 use generic_num::num;
@@ -248,16 +248,20 @@ where
         white
     };
     let as_shot_neutral = {
-        if dng.asshotneutral[0] > 0.0 && dng.asshotneutral[1] > 0.0 && dng.asshotneutral[2] > 0.0 {
-            Some(AsShotNeutral(
-                num!(dng.asshotneutral[0]),
-                num!(dng.asshotneutral[2]),
+        if color.cam_mul[0] > 0.0 && color.cam_mul[1] > 0.0 && color.cam_mul[2] > 0.0 {
+            Some(WhiteBalance::CamMul(
+                num!(color.cam_mul[0]),
+                num!(color.cam_mul[1]),
+                num!(color.cam_mul[2]),
             ))
-        } else if color.cam_mul[0] > 0.0 && color.cam_mul[1] > 0.0 && color.cam_mul[2] > 0.0 {
-            let g = num!(color.cam_mul[1]);
-            Some(AsShotNeutral(
-                T::one() / (num!(color.cam_mul[0]) / g),
-                T::one() / (num!(color.cam_mul[2]) / g),
+        } else if dng.asshotneutral[0] > 0.0
+            && dng.asshotneutral[1] > 0.0
+            && dng.asshotneutral[2] > 0.0
+        {
+            Some(WhiteBalance::AsShotNeutral(
+                num!(dng.asshotneutral[0]),
+                num!(dng.asshotneutral[1]),
+                num!(dng.asshotneutral[2]),
             ))
         } else {
             None
@@ -273,7 +277,7 @@ where
             white: num!(white),
         },
         bayer_pattern,
-        as_shot_neutral,
+        white_balance: as_shot_neutral,
     })
 }
 

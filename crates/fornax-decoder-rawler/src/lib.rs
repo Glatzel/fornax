@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationError};
-use fornax_core::metadata::{AsShotNeutral, Levels, Metadata};
+use fornax_core::metadata::{Levels, Metadata, WhiteBalance};
 use fornax_core::protocol::IDecoder;
 use fornax_core::{BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive};
 use generic_num::num;
@@ -295,9 +295,10 @@ where
         if let Some(tag) = raw.dng_tags.get(&50728_u16) {
             let v: Vec<f32> = (0..3).map(|i| tag.force_f32(i)).collect(); // adapt to your Tag API
             if v.iter().copied().all(finite_pos) {
-                break 'neutral Some(AsShotNeutral(
-                    num!(v[0]) / num!(v[1]),
-                    num!(v[2]) / num!(v[1]),
+                break 'neutral Some(WhiteBalance::AsShotNeutral(
+                    num!(v[0]),
+                    num!(v[1]),
+                    num!(v[2]),
                 ));
             }
         }
@@ -305,9 +306,10 @@ where
         // 2. rawler's own neutral, if sane.
         let n = raw.neutralwb();
         if n[..3].iter().copied().all(finite_pos) {
-            break 'neutral Some(AsShotNeutral(
-                num!(n[0]) / num!(n[1]),
-                num!(n[2]) / num!(n[1]),
+            break 'neutral Some(WhiteBalance::AsShotNeutral(
+                num!(n[0]),
+                num!(n[1]),
+                num!(n[2]),
             ));
         }
 
@@ -318,7 +320,7 @@ where
         }
         let g = if finite_pos(g2) { (g + g2) * 0.5 } else { g };
 
-        Some(AsShotNeutral(num!(g) / num!(r), num!(g) / num!(b)))
+        Some(WhiteBalance::AsShotNeutral(num!(r), num!(g), num!(b)))
     };
     Ok(Metadata {
         active_area,
@@ -330,7 +332,7 @@ where
             white,
         },
         bayer_pattern,
-        as_shot_neutral,
+        white_balance: as_shot_neutral,
     })
 }
 
