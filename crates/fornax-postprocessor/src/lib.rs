@@ -51,7 +51,7 @@ where
         Self {
             demosaic: Demosaic::Linear,
             use_as_shot_neutral: true,
-            _mark: Default::default(),
+            _mark: PhantomData,
         }
     }
 }
