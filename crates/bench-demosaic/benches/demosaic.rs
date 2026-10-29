@@ -1,32 +1,45 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use fornax_core::protocol::IDemosaic;
+use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
-use fornax_devtool::{BenchSampleBits, bench_bits, bench_size, synthetic_mono_image};
+use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
 use fornax_postprocessor::Demosaic;
 
-fn bench_methods<M, T>(c: &mut Criterion, name: &str, method: M, image: MonoImage<T>)
-where
-    M: IDemosaic<T>,
-    T: Primitive,
+fn bench_methods<D, T>(
+    c: &mut Criterion,
+    pool: &rayon::ThreadPool,
+    name: &str,
+    demosaic: D,
+    image: MonoImage<T>,
+) where
+    D: IDemosaic<T>,
+    T: Primitive + Send + Sync,
 {
     c.bench_function(name, |b| {
-        b.iter(|| method.demosaic(black_box(&image), black_box(BayerPattern::RGGB)))
+        let lazy = demosaic.demosaic(&image, BayerPattern::RGGB).unwrap();
+        b.iter(|| pool.install(|| black_box(lazy.collect())));
     });
 }
 
-fn bench_sizes<T: Primitive>(c: &mut Criterion, sample_bits: BenchSampleBits) {
-    for (label, size) in bench_size() {
-        let image = synthetic_mono_image::<T>(size, 1.0);
-        let name = format!("linear/{label}/{}", sample_bits.name());
-        bench_methods::<_, T>(c, &name, Demosaic::Linear, image);
+fn bench_sizes<T: Primitive + Send + Sync>(
+    c: &mut Criterion,
+    params: &BenchParams,
+    bits: BenchSampleBits,
+) {
+    for (threads, pool) in params.pools() {
+        for size in &params.sizes {
+            let image = synthetic_mono_image::<T>(size.dims, 1.0);
+            let name = params.case_name("linear", size, bits, threads);
+            bench_methods::<_, T>(c, &pool, &name, Demosaic::Linear, image);
+        }
     }
 }
 
 fn benches(c: &mut Criterion) {
-    for sample_bits in bench_bits() {
-        match sample_bits {
-            BenchSampleBits::B32 => bench_sizes::<f32>(c, sample_bits),
-            BenchSampleBits::B64 => bench_sizes::<f64>(c, sample_bits),
+    let params = BenchParams::from_env();
+    for &bits in &params.bits {
+        match bits {
+            BenchSampleBits::F32 => bench_sizes::<f32>(c, &params, bits),
+            BenchSampleBits::F64 => bench_sizes::<f64>(c, &params, bits),
         }
     }
 }

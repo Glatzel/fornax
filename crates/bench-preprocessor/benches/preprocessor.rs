@@ -3,10 +3,10 @@ use fornax_core::error::PreprocessError;
 use fornax_core::metadata::Levels;
 use fornax_core::protocol::IPreprocessor;
 use fornax_core::{DecodedRawActive, MonoImage, Primitive};
-use fornax_devtool::{BenchSampleBits, bench_bits, bench_size, synthetic_mono_image};
+use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
 use fornax_preprocessor::Preprocessor;
 
-fn bench_sizes<T: Primitive>(c: &mut Criterion, sample_bits: BenchSampleBits) {
+fn bench_sizes<T: Primitive>(c: &mut Criterion, params: &BenchParams, bits: BenchSampleBits) {
     let levels = Levels {
         black: MonoImage::from_raw(2, 2, vec![T::zero(); 4]).expect("2x2 black-level pattern"),
         black_delta_h: Vec::new(),
@@ -14,9 +14,9 @@ fn bench_sizes<T: Primitive>(c: &mut Criterion, sample_bits: BenchSampleBits) {
         white: T::one(),
     };
 
-    for (label, size) in bench_size() {
-        let source = synthetic_mono_image::<T>(size, 1.0);
-        let name = format!("preprocess/{label}/{}", sample_bits.name());
+    for size in &params.sizes {
+        let source = synthetic_mono_image::<T>(size.dims, 1.0);
+        let name = format!("preprocess/{}/{}", size.label, bits.as_ref());
         c.bench_function(&name, |b| {
             b.iter_batched(
                 || DecodedRawActive::new(black_box(source.clone())),
@@ -30,10 +30,12 @@ fn bench_sizes<T: Primitive>(c: &mut Criterion, sample_bits: BenchSampleBits) {
 }
 
 fn benches(c: &mut Criterion) {
-    for sample_bits in bench_bits() {
-        match sample_bits {
-            BenchSampleBits::B32 => bench_sizes::<f32>(c, sample_bits),
-            BenchSampleBits::B64 => bench_sizes::<f64>(c, sample_bits),
+    let params = BenchParams::from_env();
+
+    for &bits in &params.bits {
+        match bits {
+            BenchSampleBits::F32 => bench_sizes::<f32>(c, &params, bits),
+            BenchSampleBits::F64 => bench_sizes::<f64>(c, &params, bits),
         }
     }
 }

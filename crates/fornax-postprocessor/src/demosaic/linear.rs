@@ -1,19 +1,70 @@
 use fornax_core::error::DemosaicError;
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage};
+use fornax_core::protocol::LazyDemosaic;
+use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use generic_num::num;
-use image::{ImageBuffer, Rgb};
-use rayon::prelude::*;
-
-use super::IDemosaic;
-
-/// Output rows handed to each rayon task.
-const ROWS_PER_TASK: usize = 16;
-
-// Channel ids usable as const-generic parameters.
 const CH_R: u8 = BayerChannel::R as u8;
 const CH_G: u8 = BayerChannel::GRedRow as u8;
 const CH_B: u8 = BayerChannel::B as u8;
 
+pub struct LinearLazy<'a, T> {
+    raw: &'a [T],
+    width: u32,
+    height: u32,
+    pattern: BayerPattern,
+}
+
+impl<T: Primitive + Send + Sync> LazyDemosaic<T> for LinearLazy<'_, T> {
+    fn dimensions(&self) -> (u32, u32) { (self.width, self.height) }
+
+    fn fill_rows(&self, y0: usize, out: &mut [T]) {
+        let row_stride = self.width as usize * 3;
+        for (dy, row) in out.chunks_exact_mut(row_stride).enumerate() {
+            self.fill_row(y0 + dy, row); // the previous per-row body, unchanged
+        }
+    }
+}
+impl<T: Primitive + Send + Sync> LinearLazy<'_, T> {
+    fn fill_row(&self, y: usize, out: &mut [T]) {
+        let (width, height) = (self.width, self.height);
+        let (w, h) = (width as usize, height as usize);
+        let yu = y as u32;
+        let pattern = self.pattern;
+        let raw = self.raw;
+
+        if y == 0 || y == h - 1 {
+            for x in 0..width {
+                write_pixel_checked(raw, width, height, x, yu, pattern.channel_at(x, yu), out);
+            }
+            return;
+        }
+
+        let prev = &raw[(y - 1) * w..y * w];
+        let cur = &raw[y * w..(y + 1) * w];
+        let next = &raw[(y + 1) * w..(y + 2) * w];
+
+        match (pattern.channel_at(0, yu), pattern.channel_at(1, yu)) {
+            (BayerChannel::R, BayerChannel::GRedRow) => {
+                interior_row::<T, CH_R, CH_G>(prev, cur, next, out);
+            }
+            (BayerChannel::GRedRow, BayerChannel::R) => {
+                interior_row::<T, CH_G, CH_R>(prev, cur, next, out);
+            }
+            (BayerChannel::GBlueRow, BayerChannel::B) => {
+                interior_row::<T, { BayerChannel::GBlueRow as u8 }, CH_B>(prev, cur, next, out);
+            }
+            (BayerChannel::B, BayerChannel::GBlueRow) => {
+                interior_row::<T, CH_B, { BayerChannel::GBlueRow as u8 }>(prev, cur, next, out);
+            }
+            _ => unreachable!("rows in a Bayer tile are always R/G or G/B"),
+        }
+
+        write_pixel_checked(raw, width, height, 0, yu, pattern.channel_at(0, yu), out);
+        if width > 1 {
+            let x = width - 1;
+            write_pixel_checked(raw, width, height, x, yu, pattern.channel_at(x, yu), out);
+        }
+    }
+}
 #[inline(always)]
 const fn idx(width: u32, x: u32, y: u32) -> usize { y as usize * width as usize + x as usize }
 
@@ -191,93 +242,30 @@ where
         interior_px::<T, CO>(prev, cur, next, x, out);
     }
 }
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DemosaicLinear;
 
-impl<T> IDemosaic<T> for DemosaicLinear
-where
-    T: Primitive,
-{
-    fn demosaic(
+impl DemosaicLinear {
+    pub fn lazy<'a, T>(
         &self,
-        bayer_image: &MonoImage<T>,
+        bayer: &'a MonoImage<T>,
         pattern: BayerPattern,
-    ) -> Result<RgbImage<T>, DemosaicError> {
-        let (width, height) = bayer_image.dimensions();
-        let mut img: ImageBuffer<Rgb<T>, Vec<T>> = ImageBuffer::new(width, height);
-
-        let raw: &[T] = bayer_image.as_raw();
-        let (w, h) = (width as usize, height as usize);
-        let row_stride = w * 3;
-        let raw_out: &mut [T] = &mut img;
-
-        raw_out
-            .par_chunks_mut(row_stride * ROWS_PER_TASK)
-            .enumerate()
-            .for_each(|(chunk_idx, chunk)| {
-                let y0 = chunk_idx * ROWS_PER_TASK;
-                for (dy, out) in chunk.chunks_exact_mut(row_stride).enumerate() {
-                    let y = y0 + dy;
-                    let yu = y as u32;
-
-                    // Border rows, and the first/last column of every row, use
-                    // the bounds-aware path.
-                    if y == 0 || y == h - 1 {
-                        for x in 0..width {
-                            let ch = pattern.channel_at(x, yu);
-                            write_pixel_checked(raw, width, height, x, yu, ch, out);
-                        }
-                        continue;
-                    }
-
-                    let prev = &raw[(y - 1) * w..y * w];
-                    let cur = &raw[y * w..(y + 1) * w];
-                    let next = &raw[(y + 1) * w..(y + 2) * w];
-
-                    // Channels at even / odd x are fixed for the whole row.
-                    match (pattern.channel_at(0, yu), pattern.channel_at(1, yu)) {
-                        (BayerChannel::R, BayerChannel::GRedRow) => {
-                            interior_row::<T, CH_R, CH_G>(prev, cur, next, out);
-                        }
-                        (BayerChannel::GRedRow, BayerChannel::R) => {
-                            interior_row::<T, CH_G, CH_R>(prev, cur, next, out);
-                        }
-                        (BayerChannel::GBlueRow, BayerChannel::B) => {
-                            interior_row::<T, { BayerChannel::GBlueRow as u8 }, CH_B>(
-                                prev, cur, next, out,
-                            );
-                        }
-                        (BayerChannel::B, BayerChannel::GBlueRow) => {
-                            interior_row::<T, CH_B, { BayerChannel::GBlueRow as u8 }>(
-                                prev, cur, next, out,
-                            );
-                        }
-                        _ => unreachable!("rows in a Bayer tile are always R/G or G/B"),
-                    }
-
-                    write_pixel_checked(raw, width, height, 0, yu, pattern.channel_at(0, yu), out);
-                    if width > 1 {
-                        let x = width - 1;
-                        write_pixel_checked(
-                            raw,
-                            width,
-                            height,
-                            x,
-                            yu,
-                            pattern.channel_at(x, yu),
-                            out,
-                        );
-                    }
-                }
-            });
-
-        Ok(img)
+    ) -> Result<LinearLazy<'a, T>, DemosaicError>
+    where
+        T: Primitive + Send + Sync,
+    {
+        Ok(LinearLazy {
+            raw: bayer.as_raw(),
+            width: bayer.width(),
+            height: bayer.height(),
+            pattern,
+        })
     }
 }
-
 #[cfg(test)]
 mod tests {
+
+    use image::ImageBuffer;
 
     use super::*;
 
@@ -290,7 +278,9 @@ mod tests {
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::RGGB)?;
+        let output_img = DemosaicLinear
+            .lazy(&bayer_image, BayerPattern::RGGB)?
+            .collect();
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
@@ -330,7 +320,9 @@ mod tests {
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::BGGR)?;
+        let output_img = DemosaicLinear
+            .lazy(&bayer_image, BayerPattern::BGGR)?
+            .collect();
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
@@ -370,7 +362,9 @@ mod tests {
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::GRBG)?;
+        let output_img = DemosaicLinear
+            .lazy(&bayer_image, BayerPattern::GRBG)?
+            .collect();
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
@@ -410,7 +404,9 @@ mod tests {
         ];
 
         let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear.demosaic(&bayer_image, BayerPattern::GBRG)?;
+        let output_img = DemosaicLinear
+            .lazy(&bayer_image, BayerPattern::GBRG)?
+            .collect();
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)

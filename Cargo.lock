@@ -219,6 +219,7 @@ dependencies = [
  "fornax-core",
  "fornax-devtool",
  "fornax-postprocessor",
+ "rayon",
 ]
 
 [[package]]
@@ -800,6 +801,7 @@ version = "0.0.17"
 dependencies = [
  "image 0.25.9",
  "num-traits",
+ "rayon",
  "strum",
  "thiserror",
 ]
@@ -838,6 +840,8 @@ dependencies = [
  "mischief",
  "num-traits",
  "rand 0.10.3",
+ "rayon",
+ "strum",
 ]
 
 [[package]]
@@ -848,7 +852,6 @@ dependencies = [
  "generic-num",
  "image 0.25.9",
  "mischief",
- "rayon",
 ]
 
 [[package]]
