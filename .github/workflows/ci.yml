@@ -30,11 +30,12 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-            with:
-              submodules: true
           - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
           - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
             if: ${{github.event_name=='pull_request'}}
+      - name: Checkout darktable comparison source
+        shell: bash
+        run: ./scripts/checkout-darktable-reference.sh
       - uses: Glatzel/template/.github/actions/rust/cargo-doc@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
 
   test-build:
@@ -47,6 +48,9 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Checkout darktable comparison source
+        shell: bash
+        run: ./scripts/checkout-darktable-reference.sh
       - name: restore dnc
         if: ${{runner.os != 'Linux'}}
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
