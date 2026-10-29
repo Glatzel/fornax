@@ -230,7 +230,6 @@ dependencies = [
  "fornax-core",
  "fornax-devtool",
  "fornax-preprocessor",
- "rayon",
 ]
 
 [[package]]
@@ -853,7 +852,6 @@ dependencies = [
  "generic-num",
  "image 0.25.9",
  "mischief",
- "rayon",
 ]
 
 [[package]]

@@ -7,12 +7,12 @@ use linear::{DemosaicLinear, LinearLazy};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Demosaic {
     Linear,
-    // Ahd, Rcd, ...
+    //  ...
 }
 
 pub enum AnyLazy<'a, T> {
     Linear(LinearLazy<'a, T>),
-    // Ahd(AhdLazy<'a, T>),
+    // ...,
 }
 
 impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
