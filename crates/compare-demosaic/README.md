@@ -22,10 +22,18 @@ working image and invokes only the selected interpolation routine.
 
 The darktable reference compiles the pinned, unmodified
 `src/iop/demosaicing/ppg.c` from the `external/darktable` submodule through a
-small adapter. Initialize it with:
+small adapter. Initialize a shallow, partial checkout containing only that
+source file:
 
 ```bash
-git submodule update --init external/darktable
+./scripts/checkout-darktable-reference.sh
+```
+
+If darktable was previously initialized as a full submodule, run the script
+with `--force` to replace its checkout and object store:
+
+```bash
+./scripts/checkout-darktable-reference.sh --force
 ```
 
 Metrics cover the three output channels. Each case declares whether its
@@ -54,12 +62,12 @@ pixi run -e dev compare-demosaic
 | PPG | `LibRaw::ppg_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | ✅ within tolerance | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
 | PPG | `LibRaw::ppg_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | ✅ within tolerance | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
 | PPG | `LibRaw::ppg_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | ✅ within tolerance | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
-| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/6556cd7dbb0e69f95d165dda8b69e7270c327f6d/src/iop/demosaicing/ppg.c#L20) | RGGB | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/6556cd7dbb0e69f95d165dda8b69e7270c327f6d/src/iop/demosaicing/ppg.c#L20) | BGGR | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/6556cd7dbb0e69f95d165dda8b69e7270c327f6d/src/iop/demosaicing/ppg.c#L20) | GRBG | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/6556cd7dbb0e69f95d165dda8b69e7270c327f6d/src/iop/demosaicing/ppg.c#L20) | GBRG | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/093e10b207ccf201a85c0f2d951480c6df4dbd8d/src/iop/demosaicing/ppg.c#L20) | RGGB | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/093e10b207ccf201a85c0f2d951480c6df4dbd8d/src/iop/demosaicing/ppg.c#L20) | BGGR | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/093e10b207ccf201a85c0f2d951480c6df4dbd8d/src/iop/demosaicing/ppg.c#L20) | GRBG | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/093e10b207ccf201a85c0f2d951480c6df4dbd8d/src/iop/demosaicing/ppg.c#L20) | GBRG | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
 
-Reference builds: LibRaw 0.22.3; darktable 6556cd7dbb0e69f95d165dda8b69e7270c327f6d.
+Reference builds: LibRaw 0.22.3; darktable 093e10b207ccf201a85c0f2d951480c6df4dbd8d.
 <!-- END:compare-table -->
 
 Legend:

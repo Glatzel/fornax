@@ -3,7 +3,7 @@ use std::{env, fs};
 
 const LIBRAW_SOURCE_VERSION: &str = "0.22.3";
 const LIBRAW_SOURCE_COMMIT: &str = "cf02d66eb5c19d4e46df7aee0582e47a4918509a";
-const DARKTABLE_SOURCE_COMMIT: &str = "6556cd7dbb0e69f95d165dda8b69e7270c327f6d";
+const DARKTABLE_SOURCE_COMMIT: &str = "093e10b207ccf201a85c0f2d951480c6df4dbd8d";
 const SHIM_SOURCES: &[&str] = &[
     "cpp/algos/darktable_ppg.cpp",
     "cpp/algos/linear.cpp",
