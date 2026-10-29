@@ -17,7 +17,7 @@ jobs:
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           files: |
-            ./crates/fornax-demosaic/**
+            ./crates/fornax-postprocessor/**
             ./crates/bench-demosaic/**
       - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: steps.changed-files.outputs.any_changed == 'true'
