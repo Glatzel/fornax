@@ -30,7 +30,10 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
 }
 
 impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
-    #[allow(refining_impl_trait)]
+    #[allow(
+        refining_impl_trait,
+        reason = "callers holding a concrete `Demosaic` should be able to name `AnyLazy`"
+    )]
     fn demosaic<'a>(
         &self,
         bayer: &'a MonoImage<T>,
