@@ -88,7 +88,7 @@ impl BenchParams {
 
     /// Builder-style override, e.g. `BenchParams::from_env().with_threads([1])`
     /// for CI.
-    pub fn with_threads(mut self, threads: impl IntoIterator<Item = usize>) -> Self {
+    pub fn with_threads<T: IntoIterator<Item = usize>>(mut self, threads: T) -> Self {
         self.threads = threads.into_iter().collect();
         self
     }
