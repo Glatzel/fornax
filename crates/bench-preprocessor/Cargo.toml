@@ -12,4 +12,3 @@ criterion.workspace = true
 fornax-core.workspace = true
 fornax-devtool.workspace = true
 fornax-preprocessor.workspace = true
-rayon.workspace = true

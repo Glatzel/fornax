@@ -250,7 +250,10 @@ impl DemosaicLinear {
         &self,
         bayer: &'a MonoImage<T>,
         pattern: BayerPattern,
-    ) -> Result<LinearLazy<'a, T>, DemosaicError> where T: Primitive + Send + Sync {
+    ) -> Result<LinearLazy<'a, T>, DemosaicError>
+    where
+        T: Primitive + Send + Sync,
+    {
         Ok(LinearLazy {
             raw: bayer.as_raw(),
             width: bayer.width(),
