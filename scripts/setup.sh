@@ -5,7 +5,7 @@ set -e
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 pixi install -e dev
-git submodule update --init external/libraw external/raw-images
+git submodule update --init external/libraw external/raw-images external/darktable
 
 pixi_env_dir="$(realpath .pixi/envs/dev)"
 

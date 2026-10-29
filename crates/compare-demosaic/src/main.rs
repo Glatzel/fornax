@@ -34,7 +34,7 @@ mod tests {
     use fornax_core::BayerPattern;
 
     use super::*;
-    use crate::case::SampleType;
+    use crate::case::{ReferenceBackend, SampleType};
     use crate::cases::CASES;
 
     #[test]
@@ -68,13 +68,17 @@ mod tests {
 
     #[test]
     fn algorithm_ids_are_unique_and_unknown_ids_are_rejected() -> mischief::Result<()> {
-        let mut ids = CASES.iter().map(|case| case.algorithm).collect::<Vec<_>>();
+        let mut ids = CASES
+            .iter()
+            .map(|case| (case.reference_backend, case.algorithm))
+            .collect::<Vec<_>>();
         ids.sort_unstable();
         ids.dedup();
         assert_eq!(ids.len(), CASES.len());
 
         let input = data::canonical();
         let error = ffi::run(
+            ReferenceBackend::LibRaw,
             u32::MAX,
             &input.codes,
             input.width,
@@ -85,7 +89,7 @@ mod tests {
         assert!(
             error
                 .to_string()
-                .contains("LibRaw reference returned unknown algorithm")
+                .contains("reference returned unknown algorithm")
         );
         Ok(())
     }
@@ -110,8 +114,12 @@ mod tests {
     fn source_link_matches_packaged_version() {
         assert_eq!(report::LIBRAW_VERSION, "0.22.3");
         for case in CASES {
-            assert!(case.source_url.contains(report::LIBRAW_COMMIT));
-            assert!(case.source_url.contains("#L146"));
+            let commit = match case.reference_backend {
+                ReferenceBackend::LibRaw => report::LIBRAW_COMMIT,
+                ReferenceBackend::Darktable => report::DARKTABLE_COMMIT,
+            };
+            assert!(case.source_url.contains(commit));
+            assert!(case.source_url.contains("#L"));
         }
     }
 
@@ -120,6 +128,7 @@ mod tests {
         let input = data::canonical();
         for _ in 0..16 {
             ffi::run(
+                ReferenceBackend::LibRaw,
                 cases::LINEAR.algorithm,
                 &input.codes,
                 input.width,
@@ -134,6 +143,7 @@ mod tests {
     fn mismatched_mosaic_length_is_rejected() {
         let codes = [0_u16; 10];
         let error = ffi::run(
+            ReferenceBackend::LibRaw,
             cases::LINEAR.algorithm,
             &codes,
             8,
@@ -150,17 +160,19 @@ mod tests {
             .into_iter()
             .find(|input| input.label == "saturated")
             .expect("saturated test input");
-        for pattern in BayerPattern::ALL {
-            for sample_type in [SampleType::F32, SampleType::F64] {
-                let row = report::compare(
-                    &cases::LINEAR,
-                    &input.codes,
-                    input.width,
-                    input.height,
-                    pattern,
-                    sample_type,
-                )?;
-                assert_eq!(row.verdict, metrics::Verdict::Exact);
+        for case in CASES {
+            for pattern in BayerPattern::ALL {
+                for sample_type in [SampleType::F32, SampleType::F64] {
+                    let row = report::compare(
+                        case,
+                        &input.codes,
+                        input.width,
+                        input.height,
+                        pattern,
+                        sample_type,
+                    )?;
+                    assert_eq!(row.verdict, metrics::Verdict::Exact);
+                }
             }
         }
         Ok(())

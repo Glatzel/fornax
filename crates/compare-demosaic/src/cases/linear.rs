@@ -2,7 +2,7 @@ use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_postprocessor::Demosaic;
 
-use crate::case::{Case, SampleType, Tolerance};
+use crate::case::{Case, ReferenceBackend, SampleType, Tolerance};
 
 const LIBRAW_LINEAR_URL: &str = concat!(
     "https://github.com/LibRaw/LibRaw/blob/",
@@ -15,6 +15,7 @@ pub const CASE: Case = Case {
     reference: "LibRaw::lin_interpolate",
     source_name: "misc_demosaic.cpp",
     source_url: LIBRAW_LINEAR_URL,
+    reference_backend: ReferenceBackend::LibRaw,
     algorithm: 0,
     // Both routines read one pixel around each interpolated pixel.
     border: 1,

@@ -5,6 +5,7 @@ use crate::{cases, data, ffi, metrics};
 
 #[cfg(test)]
 pub const LIBRAW_COMMIT: &str = env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT");
+pub const DARKTABLE_COMMIT: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_COMMIT");
 pub const LIBRAW_VERSION: &str = env!("COMPARE_DEMOSAIC_LIBRAW_VERSION");
 pub const TABLE_BEGIN: &str = "<!-- BEGIN:compare-table -->";
 pub const TABLE_END: &str = "<!-- END:compare-table -->";
@@ -29,6 +30,7 @@ pub fn compare(
     sample_type: SampleType,
 ) -> mischief::Result<Row> {
     let reference = ffi::run(
+        case.reference_backend,
         case.algorithm,
         codes,
         width,
@@ -120,7 +122,8 @@ pub fn update_table(readme: &str, rows: &[Row]) -> mischief::Result<String> {
     let table = render_table(rows).replace('\n', line_ending);
     let content_start = begin + TABLE_BEGIN.len();
     let replacement = format!(
-        "{line_ending}{table}{line_ending}Reference build: LibRaw {LIBRAW_VERSION}.{line_ending}"
+        "{line_ending}{table}{line_ending}Reference builds: LibRaw {LIBRAW_VERSION}; \
+         darktable {DARKTABLE_COMMIT}.{line_ending}"
     );
     Ok(format!(
         "{}{replacement}{}",
@@ -153,7 +156,7 @@ mod tests {
         );
         let updated = update_table(readme, &[])?;
         assert!(!updated.replace("\r\n", "").contains('\n'));
-        assert!(updated.contains("Reference build: LibRaw"));
+        assert!(updated.contains("Reference builds: LibRaw"));
         assert!(updated.ends_with("footer\r\n"));
         Ok(())
     }

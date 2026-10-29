@@ -1,6 +1,6 @@
 Set-Location $PSScriptRoot/..
 pixi install -e dev
-git submodule update --init external/libraw external/raw-images
+git submodule update --init external/libraw external/raw-images external/darktable
 if ($IsWindows) {
     $env:Path = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev/Library/bin);$env:Path"
     $env:LIBRAW_ROOT = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev/Library)"

@@ -3,7 +3,13 @@ use std::{env, fs};
 
 const LIBRAW_SOURCE_VERSION: &str = "0.22.3";
 const LIBRAW_SOURCE_COMMIT: &str = "cf02d66eb5c19d4e46df7aee0582e47a4918509a";
-const SHIM_SOURCES: &[&str] = &["cpp/algos/linear.cpp", "cpp/shim.cpp"];
+const DARKTABLE_SOURCE_COMMIT: &str = "6556cd7dbb0e69f95d165dda8b69e7270c327f6d";
+const SHIM_SOURCES: &[&str] = &[
+    "cpp/algos/darktable_ppg.cpp",
+    "cpp/algos/linear.cpp",
+    "cpp/algos/ppg.cpp",
+    "cpp/shim.cpp",
+];
 
 fn main() {
     println!("cargo:rerun-if-changed=cpp");
@@ -11,6 +17,12 @@ fn main() {
 
     let manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
     let workspace_root = PathBuf::from(env::var_os("CARGO_WORKSPACE_DIR").unwrap());
+    let darktable_source = workspace_root.join("external/darktable/src/iop/demosaicing/ppg.c");
+    assert!(
+        darktable_source.is_file(),
+        "initialize the pinned darktable submodule: git submodule update --init external/darktable"
+    );
+    println!("cargo:rerun-if-changed={}", darktable_source.display());
     let libraw_root =
         workspace_root.join(env::var("LIBRAW_ROOT").expect("LIBRAW_ROOT must be set"));
     let include_dir = libraw_root.join("include");
@@ -27,6 +39,7 @@ fn main() {
     );
     println!("cargo:rustc-env=COMPARE_DEMOSAIC_LIBRAW_VERSION={version}");
     println!("cargo:rustc-env=COMPARE_DEMOSAIC_LIBRAW_COMMIT={LIBRAW_SOURCE_COMMIT}");
+    println!("cargo:rustc-env=COMPARE_DEMOSAIC_DARKTABLE_COMMIT={DARKTABLE_SOURCE_COMMIT}");
     write_status_codes(&manifest_dir);
 
     let mut build = cc::Build::new();
@@ -34,6 +47,7 @@ fn main() {
         .cpp(true)
         .warnings(true)
         .include(&include_dir)
+        .include(&workspace_root)
         .flag_if_supported("-std=c++17");
     for source in SHIM_SOURCES {
         build.file(manifest_dir.join(source));
