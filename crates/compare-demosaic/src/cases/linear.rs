@@ -1,4 +1,4 @@
-use fornax_core::protocol::IDemosaic;
+use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_postprocessor::Demosaic;
 
@@ -69,6 +69,7 @@ where
         .ok_or_else(|| mischief::mischief!("synthetic image dimensions are inconsistent"))?;
     let output = Demosaic::Linear.demosaic(&image, pattern)?;
     Ok(output
+        .collect()
         .as_raw()
         .iter()
         .map(|sample| {

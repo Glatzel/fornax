@@ -800,6 +800,7 @@ version = "0.0.17"
 dependencies = [
  "image 0.25.9",
  "num-traits",
+ "rayon",
  "strum",
  "thiserror",
 ]
