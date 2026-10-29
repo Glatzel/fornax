@@ -63,3 +63,24 @@ where
     .save(path)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn synthetic_mono_image_is_deterministic_and_in_range() {
+        let size = (150, 100);
+        let first = synthetic_mono_image::<f32>(size, 1.0);
+        let second = synthetic_mono_image::<f32>(size, 1.0);
+
+        assert_eq!(first.dimensions(), size);
+        assert_eq!(first.as_raw(), second.as_raw());
+        assert!(
+            first
+                .as_raw()
+                .iter()
+                .all(|sample| (0.0..1.0).contains(sample))
+        );
+    }
+}
