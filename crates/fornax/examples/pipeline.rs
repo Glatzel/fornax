@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use fornax::DecodedRawActive;
 use fornax::decoder::{LibrawDecoder, RawlerDecoder};
 use fornax::metadata::Metadata;
-use fornax::postprocessor::{Demosaic, PostProcessor};
+use fornax::postprocessor::PostProcessor;
 use fornax::preprocessor::Preprocessor;
 use fornax::protocol::IDecoder;
 use fornax_devtool::save_image;
@@ -22,13 +22,7 @@ fn process(
     let preprocessed_path = &output_dir.join("2.preprocess.tiff");
     save_image::<_, _, Luma<u16>, _>(processed.image(), &preprocessed_path, u16::MAX as _)?;
 
-    let demosaiced = processed.process(
-        &PostProcessor {
-            demosaic: Demosaic::Linear,
-            _mark: std::marker::PhantomData,
-        },
-        &metadata,
-    )?;
+    let demosaiced = processed.process(&PostProcessor::default(), &metadata)?;
     let demosaiced_path = output_dir.join("3.demosaic_linear.tiff");
     save_image::<_, _, Rgb<u16>, _>(&demosaiced, &demosaiced_path, u16::MAX as _)?;
     println!("=================={}==========================", name);
@@ -45,6 +39,11 @@ fn run(input: Option<PathBuf>) -> mischief::Result<()> {
     {
         let (image, metadata) = LibrawDecoder.decode_active(raw_path.as_path())?;
         process("libraw", image, metadata, output_dir.join("libraw"))?;
+    } 
+    //rawler
+    {
+        let (image, metadata) = RawlerDecoder.decode_active(raw_path.as_path())?;
+        process("rawler", image, metadata, output_dir.join("rawler"))?;
     }
     //dnc
     #[cfg(not(target_os = "linux"))]
@@ -52,11 +51,6 @@ fn run(input: Option<PathBuf>) -> mischief::Result<()> {
         let (image, metadata) =
             fornax::decoder::DncDecoder::default().decode_active(raw_path.as_path())?;
         process("dnc", image, metadata, output_dir.join("dnc"))?;
-    }
-    //rawler
-    {
-        let (image, metadata) = RawlerDecoder.decode_active(raw_path.as_path())?;
-        process("rawler", image, metadata, output_dir.join("rawler"))?;
     }
     Ok(())
 }

@@ -1,5 +1,5 @@
 use crate::error::{DecodeError, DemosaicError, PostProcessError, PreprocessError};
-use crate::metadata::{Levels, Metadata};
+use crate::metadata::{AsShotNeutral, Levels, Metadata};
 use crate::{
     BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive, RawImage, RgbImage,
 };
@@ -21,11 +21,12 @@ where
         levels: &Levels<T>,
     ) -> Result<RawImage<T>, PreprocessError>;
 }
-pub trait IPostProcessMetadata<T>
+pub trait IPostProcessMetadata<T>: Sync
 where
     T: Primitive,
 {
     fn bayer_pattern(&self) -> BayerPattern;
+    fn as_shot_neutral(&self) -> &Option<AsShotNeutral<T>>;
 }
 pub trait IPostProcessor<T, M>
 where

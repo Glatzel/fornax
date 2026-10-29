@@ -1,9 +1,10 @@
 use std::path::Path;
 
 use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationError};
-use fornax_core::metadata::{Levels, Metadata};
+use fornax_core::metadata::{AsShotNeutral, Levels, Metadata};
 use fornax_core::protocol::IDecoder;
 use fornax_core::{BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive};
+use generic_num::num;
 use image::math::Rect;
 use num_traits::cast;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
@@ -286,7 +287,39 @@ where
         }
     }
     .shifted(active_area.x, active_area.y);
+    let as_shot_neutral = 'neutral: {
+        let finite_pos = |v: f32| v.is_finite() && v > 0.0;
 
+        // 1. The file's own AsShotNeutral tag (50728): [R, G, B], already
+        //    neutral.
+        if let Some(tag) = raw.dng_tags.get(&50728_u16) {
+            let v: Vec<f32> = (0..3).map(|i| tag.force_f32(i)).collect(); // adapt to your Tag API
+            if v.iter().copied().all(finite_pos) {
+                break 'neutral Some(AsShotNeutral(
+                    num!(v[0]) / num!(v[1]),
+                    num!(v[2]) / num!(v[1]),
+                ));
+            }
+        }
+
+        // 2. rawler's own neutral, if sane.
+        let n = raw.neutralwb();
+        if n[..3].iter().copied().all(finite_pos) {
+            break 'neutral Some(AsShotNeutral(
+                num!(n[0]) / num!(n[1]),
+                num!(n[2]) / num!(n[1]),
+            ));
+        }
+
+        // 3. Invert the WB multipliers. G2 is NaN on 3-channel sensors.
+        let [r, g, b, g2] = raw.wb_coeffs;
+        if ![r, g, b].into_iter().all(finite_pos) {
+            break 'neutral None;
+        }
+        let g = if finite_pos(g2) { (g + g2) * 0.5 } else { g };
+
+        Some(AsShotNeutral(num!(g) / num!(r), num!(g) / num!(b)))
+    };
     Ok(Metadata {
         active_area,
         default_crop,
@@ -297,6 +330,7 @@ where
             white,
         },
         bayer_pattern,
+        as_shot_neutral,
     })
 }
 

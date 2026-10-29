@@ -30,6 +30,9 @@ where
     /// CFA layout described by DNG `CFARepeatPatternDim`, `CFAPattern`, and
     /// `CFAPlaneColor`.
     pub bayer_pattern: BayerPattern,
+
+    ///green normalized
+    pub as_shot_neutral: Option<AsShotNeutral<T>>,
 }
 
 /// Black and white levels for a single-sample Bayer RAW image.
@@ -61,9 +64,17 @@ where
     /// White level from DNG `WhiteLevel` for single-sample Bayer RAW.
     pub white: T,
 }
+///(R,B),green normalized
+#[derive(Clone, Debug)]
+pub struct AsShotNeutral<T>(pub T, pub T)
+where
+    T: Primitive;
+
 impl<T> IPostProcessMetadata<T> for Metadata<T>
 where
     T: Primitive,
 {
     fn bayer_pattern(&self) -> BayerPattern { self.bayer_pattern }
+
+    fn as_shot_neutral(&self) -> &Option<AsShotNeutral<T>> { &self.as_shot_neutral }
 }
