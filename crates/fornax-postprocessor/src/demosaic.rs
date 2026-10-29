@@ -15,7 +15,7 @@ pub enum AnyLazy<'a, T> {
     // Ahd(AhdLazy<'a, T>),
 }
 
-impl<'a, T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'a, T> {
+impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
     fn dimensions(&self) -> (u32, u32) {
         match self {
             Self::Linear(l) => l.dimensions(),

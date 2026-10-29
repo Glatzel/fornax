@@ -13,7 +13,7 @@ pub struct LinearLazy<'a, T> {
     pattern: BayerPattern,
 }
 
-impl<'a, T: Primitive + Send + Sync> LazyDemosaic<T> for LinearLazy<'a, T> {
+impl<T: Primitive + Send + Sync> LazyDemosaic<T> for LinearLazy<'_, T> {
     fn dimensions(&self) -> (u32, u32) { (self.width, self.height) }
 
     fn fill_rows(&self, y0: usize, out: &mut [T]) {
@@ -23,7 +23,7 @@ impl<'a, T: Primitive + Send + Sync> LazyDemosaic<T> for LinearLazy<'a, T> {
         }
     }
 }
-impl<'a, T: Primitive + Send + Sync> LinearLazy<'a, T> {
+impl<T: Primitive + Send + Sync> LinearLazy<'_, T> {
     fn fill_row(&self, y: usize, out: &mut [T]) {
         let (width, height) = (self.width, self.height);
         let (w, h) = (width as usize, height as usize);
@@ -44,16 +44,16 @@ impl<'a, T: Primitive + Send + Sync> LinearLazy<'a, T> {
 
         match (pattern.channel_at(0, yu), pattern.channel_at(1, yu)) {
             (BayerChannel::R, BayerChannel::GRedRow) => {
-                interior_row::<T, CH_R, CH_G>(prev, cur, next, out)
+                interior_row::<T, CH_R, CH_G>(prev, cur, next, out);
             }
             (BayerChannel::GRedRow, BayerChannel::R) => {
-                interior_row::<T, CH_G, CH_R>(prev, cur, next, out)
+                interior_row::<T, CH_G, CH_R>(prev, cur, next, out);
             }
             (BayerChannel::GBlueRow, BayerChannel::B) => {
-                interior_row::<T, { BayerChannel::GBlueRow as u8 }, CH_B>(prev, cur, next, out)
+                interior_row::<T, { BayerChannel::GBlueRow as u8 }, CH_B>(prev, cur, next, out);
             }
             (BayerChannel::B, BayerChannel::GBlueRow) => {
-                interior_row::<T, CH_B, { BayerChannel::GBlueRow as u8 }>(prev, cur, next, out)
+                interior_row::<T, CH_B, { BayerChannel::GBlueRow as u8 }>(prev, cur, next, out);
             }
             _ => unreachable!("rows in a Bayer tile are always R/G or G/B"),
         }
@@ -246,11 +246,11 @@ where
 pub struct DemosaicLinear;
 
 impl DemosaicLinear {
-    pub fn lazy<'a, T: Primitive + Send + Sync>(
+    pub fn lazy<'a, T>(
         &self,
         bayer: &'a MonoImage<T>,
         pattern: BayerPattern,
-    ) -> Result<LinearLazy<'a, T>, DemosaicError> {
+    ) -> Result<LinearLazy<'a, T>, DemosaicError> where T: Primitive + Send + Sync {
         Ok(LinearLazy {
             raw: bayer.as_raw(),
             width: bayer.width(),

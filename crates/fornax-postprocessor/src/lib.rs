@@ -36,7 +36,7 @@ where
         {
             let (r_mul, b_mul) = wb.multipliers();
             return Ok(result.collect_with(|_y, row| {
-                for px in row.chunks_exact_mut(3) {
+                for px in row.as_chunks_mut::<3>().0 {
                     px[0] = px[0] * r_mul;
                     px[2] = px[0] * b_mul;
                 }
