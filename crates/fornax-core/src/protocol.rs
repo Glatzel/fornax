@@ -50,17 +50,19 @@ pub trait LazyDemosaic<T: Primitive + Send + Sync>: Sync {
     where
         Self: Sized,
     {
-        const ROWS_PER_TASK: usize = 16;
         let (width, height) = self.dimensions();
+        let threads = rayon::current_num_threads();
+        let rows_per_task = (height as usize / (threads * 4)).clamp(8, 128);
+
         let mut img = RgbImage::new(width, height);
         let row_stride = width as usize * 3;
         let raw_out: &mut [T] = &mut img;
 
         raw_out
-            .par_chunks_mut(row_stride * ROWS_PER_TASK)
+            .par_chunks_mut(row_stride * rows_per_task)
             .enumerate()
             .for_each(|(i, chunk)| {
-                let y0 = i * ROWS_PER_TASK;
+                let y0 = i * rows_per_task;
                 self.fill_rows(y0, chunk);
                 for (dy, row) in chunk.chunks_exact_mut(row_stride).enumerate() {
                     post(y0 + dy, row);
