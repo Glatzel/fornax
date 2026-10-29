@@ -219,6 +219,7 @@ dependencies = [
  "fornax-core",
  "fornax-devtool",
  "fornax-postprocessor",
+ "rayon",
 ]
 
 [[package]]
@@ -839,6 +840,7 @@ dependencies = [
  "mischief",
  "num-traits",
  "rand 0.10.3",
+ "rayon",
 ]
 
 [[package]]

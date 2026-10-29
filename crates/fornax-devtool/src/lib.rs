@@ -97,7 +97,14 @@ where
         .collect();
     MonoImage::from_raw(width, height, samples).expect("benchmark dimensions match sample count")
 }
-
+pub fn thread_counts() -> Vec<usize> {
+    let max = rayon::current_num_threads(); // logical cores, or RAYON_NUM_THREADS if set
+    let mut v: Vec<usize> = std::iter::successors(Some(1usize), |&n| n.checked_mul(2))
+        .take_while(|&n| n < max)
+        .collect();
+    v.push(max);
+    v
+}
 pub fn save_image<T, P, Q, C>(
     image: &ImageBuffer<P, C>,
     path: &Path,
