@@ -32,6 +32,8 @@ jobs:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
           - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
       - uses: Glatzel/template/.github/actions/rust/cargo-doc@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   test-build:
     strategy:
@@ -57,10 +59,14 @@ jobs:
           toolchain: nightly
           components: clippy
       - uses: Glatzel/template/.github/actions/rust/cargo-clippy@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+        env:
+          GH_TOKEN: ${{ github.token }}
       - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled()}}
         with:
           global-options: --workspace --all-features
+        env:
+          GH_TOKEN: ${{ github.token }}
       # - name: build
       #   run: |
       #     ./scripts/maturin-develop.ps1

@@ -194,11 +194,11 @@ impl<T: Primitive + Send + Sync> PpgLazy<'_, T> {
         non_negative(sum / num!(count))
     }
 
-    fn in_three_pixel_border(&self, x: u32, y: u32) -> bool {
+    const fn in_three_pixel_border(&self, x: u32, y: u32) -> bool {
         x < 3 || y < 3 || x + 3 >= self.width || y + 3 >= self.height
     }
 
-    fn raw_at(&self, x: u32, y: u32) -> T {
+    const fn raw_at(&self, x: u32, y: u32) -> T {
         self.raw[y as usize * self.width as usize + x as usize]
     }
 }
@@ -213,7 +213,7 @@ const fn sensor_color(channel: BayerChannel) -> usize {
 }
 
 #[inline(always)]
-fn non_negative<T: Primitive>(value: T) -> T { value.max(T::zero()) }
+fn non_negative<T>(value: T) -> T where T: Primitive { value.max(T::zero()) }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DemosaicPpg;
