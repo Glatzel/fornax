@@ -103,11 +103,11 @@ impl<T: Primitive + Send + Sync> PpgLazy<'_, T> {
         } else {
             (horizontal_guess, west, east)
         };
-        non_negative(
-            (guess / num!(4))
-                .max(first.min(second))
-                .min(first.max(second)),
-        )
+
+        (guess / num!(4))
+            .max(first.min(second))
+            .min(first.max(second))
+            .max(T::zero())
     }
 
     fn opposite_at_green(&self, x: u32, y: u32, color: usize) -> T {
@@ -137,7 +137,8 @@ impl<T: Primitive + Send + Sync> PpgLazy<'_, T> {
                 ],
             )
         };
-        non_negative((first + second + green[1] * num!(2) - green[0] - green[2]) / num!(2))
+
+        ((first + second + green[1] * num!(2) - green[0] - green[2]) / num!(2)).max(T::zero())
     }
 
     fn opposite_at_non_green(&self, x: u32, y: u32, current: usize) -> T {
@@ -166,7 +167,7 @@ impl<T: Primitive + Send + Sync> PpgLazy<'_, T> {
         } else {
             (ne_guess + nw_guess) / num!(2)
         };
-        non_negative(guess / num!(2))
+        (guess / num!(2)).max(T::zero())
     }
 
     fn border_channel(&self, x: u32, y: u32, color: usize) -> T {
@@ -191,7 +192,7 @@ impl<T: Primitive + Send + Sync> PpgLazy<'_, T> {
                 }
             }
         }
-        non_negative(sum / num!(count))
+        (sum / num!(count)).max(T::zero())
     }
 
     const fn in_three_pixel_border(&self, x: u32, y: u32) -> bool {
@@ -210,14 +211,6 @@ const fn sensor_color(channel: BayerChannel) -> usize {
         BayerChannel::GRedRow | BayerChannel::GBlueRow => GREEN,
         BayerChannel::B => BLUE,
     }
-}
-
-#[inline(always)]
-fn non_negative<T>(value: T) -> T
-where
-    T: Primitive,
-{
-    value.max(T::zero())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
