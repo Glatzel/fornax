@@ -1,5 +1,6 @@
-use crate::error::DemosaicError;
-use crate::{BayerPattern, IDemosaic, MonoImage, Primitive, RgbImage};
+use crate::error::PostProcessError;
+use crate::protocol::{IPostProcessMetadata, IPostProcessor};
+use crate::{MonoImage, Primitive, RgbImage};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct RawImage<T>(MonoImage<T>)
@@ -13,14 +14,11 @@ where
     pub const fn new(plane: MonoImage<T>) -> Self { Self(plane) }
     pub const fn image(&self) -> &MonoImage<T> { &self.0 }
     pub fn into_image(self) -> MonoImage<T> { self.0 }
-    pub fn demosaic<D>(
-        self,
-        algorithm: &D,
-        pattern: BayerPattern,
-    ) -> Result<RgbImage<T>, DemosaicError>
+    pub fn process<P, M>(self, processor: &P, metadata: &M) -> Result<RgbImage<T>, PostProcessError>
     where
-        D: IDemosaic<T>,
+        P: IPostProcessor<T, M>,
+        M: IPostProcessMetadata<T>,
     {
-        algorithm.demosaic(self.image(), pattern)
+        processor.process(self.image(), metadata)
     }
 }

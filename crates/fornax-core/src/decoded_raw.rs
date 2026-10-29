@@ -4,7 +4,8 @@ use image::math::Rect;
 
 use crate::error::PreprocessError;
 use crate::metadata::Levels;
-use crate::{IPreprocessor, MonoImage, Primitive, RawImage};
+use crate::protocol::IPreprocessor;
+use crate::{MonoImage, Primitive, RawImage};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Full;
@@ -32,7 +33,7 @@ impl<T: Primitive> DecodedRawFull<T> {
     }
 }
 impl<T: Primitive> DecodedRawActive<T> {
-    pub fn preprocess<P>(
+    pub fn process<P>(
         self,
         preprocessor: &P,
         levels: &Levels<T>,
@@ -40,6 +41,6 @@ impl<T: Primitive> DecodedRawActive<T> {
     where
         P: IPreprocessor<T>,
     {
-        preprocessor.preprocess(self, levels)
+        preprocessor.process(self, levels)
     }
 }

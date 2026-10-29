@@ -2,23 +2,13 @@ use std::env;
 use std::path::PathBuf;
 
 fn main() {
+    println!("cargo:rerun-if-env-changed=LIBRAW_ROOT");
     // Link
     let libraw_root = PathBuf::from(env::var("LIBRAW_ROOT").expect("LIBRAW_ROOT must be set"));
     let lib_dir = libraw_root.join("lib");
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
     println!("cargo:rustc-link-lib=raw_r");
 
-    // #[cfg(target_os = "linux")]
-    // {
-    //     println!("cargo:rustc-link-lib=m");
-    //     println!("cargo:rustc-link-lib=stdc++");
-    //     println!("cargo:rustc-link-lib=gomp");
-    // }
-    // #[cfg(target_os = "macos")]
-    // {
-    //     println!("cargo:rustc-link-lib=c++");
-    //     println!("cargo:rustc-link-lib=m");
-    // }
     // generate bindings
     if env::var("UPDATE_LIBRAW_BINDINGS").is_ok() {
         let ignored_macros = IgnoreMacros(

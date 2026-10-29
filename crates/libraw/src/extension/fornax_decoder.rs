@@ -2,8 +2,9 @@ use std::fmt::Display;
 use std::path::Path;
 
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::{Levels, Metadata};
-use fornax_core::{DecodedRawActive, DecodedRawFull, IDecoder, Primitive};
+use fornax_core::metadata::{Levels, Metadata, WhiteBalance};
+use fornax_core::protocol::IDecoder;
+use fornax_core::{DecodedRawActive, DecodedRawFull, Primitive};
 use generic_num::num;
 use image::math::Rect;
 
@@ -101,6 +102,8 @@ where
     let sizes = &imgdata.rawdata.sizes;
     let color = &imgdata.color;
     let dng = &color.dng_levels;
+
+    // dbg!(color.WBCT_Coeffs);
 
     let bayer_pattern = libraw
         .bayer_pattern()
@@ -244,7 +247,26 @@ where
         }
         white
     };
-
+    let as_shot_neutral = {
+        if color.cam_mul[0] > 0.0 && color.cam_mul[1] > 0.0 && color.cam_mul[2] > 0.0 {
+            Some(WhiteBalance::CamMul(
+                num!(color.cam_mul[0]),
+                num!(color.cam_mul[1]),
+                num!(color.cam_mul[2]),
+            ))
+        } else if dng.asshotneutral[0] > 0.0
+            && dng.asshotneutral[1] > 0.0
+            && dng.asshotneutral[2] > 0.0
+        {
+            Some(WhiteBalance::AsShotNeutral(
+                num!(dng.asshotneutral[0]),
+                num!(dng.asshotneutral[1]),
+                num!(dng.asshotneutral[2]),
+            ))
+        } else {
+            None
+        }
+    };
     Ok(Metadata {
         active_area,
         default_crop,
@@ -255,6 +277,7 @@ where
             white: num!(white),
         },
         bayer_pattern,
+        white_balance: as_shot_neutral,
     })
 }
 

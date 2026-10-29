@@ -7,7 +7,7 @@ edition.workspace = true
 fornax-core.workspace = true
 fornax-decoder-dnc = { workspace = true, optional = true }
 fornax-decoder-rawler = { workspace = true, optional = true }
-fornax-demosaic.workspace = true
+fornax-postprocessor.workspace = true
 fornax-preprocessor.workspace = true
 libraw = { workspace = true, optional = true }
 

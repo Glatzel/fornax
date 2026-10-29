@@ -1,5 +1,6 @@
 use image::math::Rect;
 
+use crate::protocol::IPostProcessMetadata;
 use crate::{BayerPattern, MonoImage, Primitive};
 /// Normalized metadata for a single-sample Bayer RAW image.
 ///
@@ -29,6 +30,9 @@ where
     /// CFA layout described by DNG `CFARepeatPatternDim`, `CFAPattern`, and
     /// `CFAPlaneColor`.
     pub bayer_pattern: BayerPattern,
+
+    ///green normalized
+    pub white_balance: Option<WhiteBalance<T>>,
 }
 
 /// Black and white levels for a single-sample Bayer RAW image.
@@ -59,4 +63,31 @@ where
 
     /// White level from DNG `WhiteLevel` for single-sample Bayer RAW.
     pub white: T,
+}
+///(R,B),green normalized
+#[derive(Clone, Debug)]
+pub enum WhiteBalance<T>
+where
+    T: Primitive,
+{
+    AsShotNeutral(T, T, T),
+    CamMul(T, T, T),
+}
+impl<T: Primitive> WhiteBalance<T> {
+    /// Multipliers to apply to raw R, B (green-normalized).
+    pub fn multipliers(&self) -> (T, T) {
+        match *self {
+            Self::CamMul(r, g, b) => (r / g, b / g),
+            Self::AsShotNeutral(r, g, b) => (g / r, g / b),
+        }
+    }
+}
+
+impl<T> IPostProcessMetadata<T> for Metadata<T>
+where
+    T: Primitive,
+{
+    fn bayer_pattern(&self) -> BayerPattern { self.bayer_pattern }
+
+    fn white_balance(&self) -> &Option<WhiteBalance<T>> { &self.white_balance }
 }

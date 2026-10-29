@@ -10,5 +10,5 @@ name = "demosaic"
 [dev-dependencies]
 criterion.workspace = true
 fornax-core.workspace = true
-fornax-demosaic.workspace = true
 fornax-devtool.workspace = true
+fornax-postprocessor.workspace = true

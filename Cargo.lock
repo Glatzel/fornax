@@ -217,8 +217,8 @@ version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
  "fornax-core",
- "fornax-demosaic",
  "fornax-devtool",
+ "fornax-postprocessor",
 ]
 
 [[package]]
@@ -534,8 +534,9 @@ version = "0.0.17"
 dependencies = [
  "cc",
  "fornax-core",
- "fornax-demosaic",
  "fornax-devtool",
+ "fornax-postprocessor",
+ "libraw-sys",
  "mischief",
  "num-traits",
 ]
@@ -785,8 +786,8 @@ dependencies = [
  "fornax-core",
  "fornax-decoder-dnc",
  "fornax-decoder-rawler",
- "fornax-demosaic",
  "fornax-devtool",
+ "fornax-postprocessor",
  "fornax-preprocessor",
  "image 0.25.9",
  "libraw",
@@ -820,20 +821,10 @@ version = "0.0.17"
 dependencies = [
  "fornax-core",
  "fornax-devtool",
+ "generic-num",
  "image 0.25.9",
  "num-traits",
  "rawler",
-]
-
-[[package]]
-name = "fornax-demosaic"
-version = "0.0.17"
-dependencies = [
- "fornax-core",
- "generic-num",
- "image 0.25.9",
- "mischief",
- "rayon",
 ]
 
 [[package]]
@@ -847,6 +838,17 @@ dependencies = [
  "mischief",
  "num-traits",
  "rand 0.10.3",
+]
+
+[[package]]
+name = "fornax-postprocessor"
+version = "0.0.17"
+dependencies = [
+ "fornax-core",
+ "generic-num",
+ "image 0.25.9",
+ "mischief",
+ "rayon",
 ]
 
 [[package]]

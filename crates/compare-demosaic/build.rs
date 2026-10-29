@@ -8,13 +8,19 @@ const SHIM_SOURCES: &[&str] = &["cpp/algos/linear.cpp", "cpp/shim.cpp"];
 fn main() {
     println!("cargo:rerun-if-changed=cpp");
     println!("cargo:rerun-if-env-changed=LIBRAW_ROOT");
-    println!("cargo:rerun-if-env-changed=CONDA_PREFIX");
 
     let manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
-    let libraw_root = find_libraw_root(&manifest_dir);
+    let workspace_root = PathBuf::from(env::var_os("CARGO_WORKSPACE_DIR").unwrap());
+    let libraw_root =
+        workspace_root.join(env::var("LIBRAW_ROOT").expect("LIBRAW_ROOT must be set"));
     let include_dir = libraw_root.join("include");
     let lib_dir = libraw_root.join("lib");
-    let version = libraw_version(&include_dir);
+    let version = format!(
+        "{}.{}.{}",
+        libraw_sys::LIBRAW_MAJOR_VERSION,
+        libraw_sys::LIBRAW_MINOR_VERSION,
+        libraw_sys::LIBRAW_PATCH_VERSION
+    );
     assert_eq!(
         version, LIBRAW_SOURCE_VERSION,
         "update the comparison source link when the Pixi LibRaw package changes"
@@ -36,63 +42,6 @@ fn main() {
 
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
     println!("cargo:rustc-link-lib=raw_r");
-    if env::var("CARGO_CFG_TARGET_FAMILY").as_deref() == Ok("unix") {
-        println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib_dir.display());
-    }
-}
-
-fn find_libraw_root(manifest_dir: &Path) -> PathBuf {
-    if let Some(root) = env::var_os("LIBRAW_ROOT") {
-        return PathBuf::from(root);
-    }
-    let workspace_root = manifest_dir
-        .ancestors()
-        .nth(2)
-        .expect("compare-demosaic must be inside the workspace");
-    let repository_prefix = platform_prefix(&workspace_root.join(".pixi/envs/dev"));
-    if repository_prefix.join("include/libraw/libraw.h").is_file() {
-        return repository_prefix;
-    }
-    if let Some(prefix) = env::var_os("CONDA_PREFIX") {
-        let prefix = platform_prefix(&PathBuf::from(prefix));
-        if prefix.join("include/libraw/libraw.h").is_file() {
-            return prefix;
-        }
-    }
-    panic!(
-        "LibRaw headers are missing. Run `pixi install -e dev` or set LIBRAW_ROOT to a LibRaw installation."
-    );
-}
-
-fn platform_prefix(prefix: &Path) -> PathBuf {
-    if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
-        prefix.join("Library")
-    } else {
-        prefix.to_path_buf()
-    }
-}
-
-fn libraw_version(include_dir: &Path) -> String {
-    let header_path = include_dir.join("libraw/libraw_version.h");
-    let header = fs::read_to_string(&header_path).unwrap_or_else(|error| {
-        panic!(
-            "reading LibRaw version header from the Pixi package at {}: {error}",
-            header_path.display()
-        )
-    });
-    let field = |name: &str| {
-        header
-            .lines()
-            .find_map(|line| line.strip_prefix(&format!("#define {name} ")))
-            .unwrap_or_else(|| panic!("missing {name} in LibRaw version header"))
-            .trim()
-    };
-    format!(
-        "{}.{}.{}",
-        field("LIBRAW_MAJOR_VERSION"),
-        field("LIBRAW_MINOR_VERSION"),
-        field("LIBRAW_PATCH_VERSION")
-    )
 }
 
 fn write_status_codes(manifest_dir: &Path) {

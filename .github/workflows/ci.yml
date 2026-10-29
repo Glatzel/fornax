@@ -13,7 +13,7 @@ on:
     - cron: 0 16 * * *
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  group: ${{github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -62,6 +62,7 @@ jobs:
           components: clippy
       - uses: Glatzel/template/.github/actions/rust/cargo-clippy@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
       - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+        if: ${{!cancelled()}}
         with:
           global-options: --workspace --all-features
       # - name: build

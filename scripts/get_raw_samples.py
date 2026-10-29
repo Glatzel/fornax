@@ -15,8 +15,8 @@ from fnmatch import fnmatchcase
 from pathlib import Path
 from urllib.parse import unquote
 
-import duckdb
-import httpx
+import duckdb  # ty: ignore[unresolved-import]
+import httpx  # ty: ignore[unresolved-import]
 
 API = "https://raw.pixls.us/json/getrepository.php?set=all"
 OUT_DIR = Path(__file__).resolve().parent.parent / "external" / "raw.pixls.us"
