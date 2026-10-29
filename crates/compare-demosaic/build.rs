@@ -48,7 +48,9 @@ fn main() {
         .warnings(true)
         .include(&include_dir)
         .include(&workspace_root)
-        .flag_if_supported("-std=c++17");
+        .flag_if_supported("/std:c++17") // MSVC
+        .flag_if_supported("-std=c++17") // gcc/clang
+      ;
     for source in SHIM_SOURCES {
         build.file(manifest_dir.join(source));
     }

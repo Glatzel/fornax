@@ -6,7 +6,9 @@
 #include <cstring>
 #include <new>
 #include <vector>
-
+#if defined(_MSC_VER) && !defined(__clang__)
+#define __builtin_expect(x, y) (x)
+#endif
 using gboolean = int;
 using dt_aligned_pixel_t = float[4];
 using std::size_t;
