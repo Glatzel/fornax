@@ -6,6 +6,7 @@ on:
     branches: [main]
   pull_request:
     types:
+      - labeled
       - opened
       - synchronize
       - ready_for_review
@@ -76,9 +77,60 @@ jobs:
       #     working-directory: ./crates/fornax-py
       - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{ !cancelled() }}
+  benchmark:
+    name: benchmark (${{ matrix.package }})
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && contains(join(github.event.pull_request.labels.*.name, ','), 'perf')) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: bench-decoder
+            paths: |
+              ./Cargo.toml
+              ./Cargo.lock
+              ./crates/bench-decoder/**
+              ./crates/fornax-core/**
+              ./crates/fornax-decoder-rawler/**
+              ./crates/fornax-devtool/**
+              ./crates/libraw/**
+              ./crates/libraw-sys/**
+          - package: bench-demosaic
+            paths: |
+              ./Cargo.toml
+              ./Cargo.lock
+              ./crates/bench-demosaic/**
+              ./crates/fornax-core/**
+              ./crates/fornax-devtool/**
+              ./crates/fornax-postprocessor/**
+          - package: bench-preprocessor
+            paths: |
+              ./Cargo.toml
+              ./Cargo.lock
+              ./crates/bench-preprocessor/**
+              ./crates/fornax-core/**
+              ./crates/fornax-devtool/**
+              ./crates/fornax-preprocessor/**
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: changed-files
+        if: ${{ github.event_name != 'workflow_dispatch' }}
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+        with:
+          files: ${{ matrix.paths }}
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+        if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+        if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
+        with:
+          options: -p ${{ matrix.package }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
+          CARGO_WORKSPACE_DIR: ${{ github.workspace }}
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook, cargo-doc, test-build]
+    needs: [lefthook, cargo-doc, test-build, benchmark]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1
