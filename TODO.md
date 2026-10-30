@@ -2,7 +2,6 @@
   - [DEC-RSP] rawspeed(the backend of darktable)
   - [DEC-FR] flashraw(https://crates.io/crates/flashraw)
 - demosaic
-  - Completed reference: linear interpolation from LibRaw; darktable has no linear Bayer demosaic routine.
   - [DEM-VNG] VNG/VNG4: variable-number-of-gradients interpolation; references: LibRaw, darktable.
   - [DEM-AHD] AHD: adaptive homogeneity-directed interpolation; reference: LibRaw.
   - [DEM-DCB] DCB: directional color balance demosaicing; reference: LibRaw.
