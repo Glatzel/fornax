@@ -30,7 +30,7 @@ static CBRT: LazyLock<[f32; 65_536]> = LazyLock::new(|| {
         if value > 0.008_856 {
             value.cbrt()
         } else {
-            7.787 * value + 16.0 / 116.0
+            7.787f32.mul_add(value, 16.0 / 116.0)
         }
     })
 });
@@ -190,8 +190,7 @@ fn green_candidates(
             let center = raw_at(raw, width, col, row);
             let left_green = raw_at(raw, width, col - 1, row);
             let right_green = raw_at(raw, width, col + 1, row);
-            let horizontal = (((left_green + center + right_green) * 2.0
-                - raw_at(raw, width, col - 2, row)
+            let horizontal = (((left_green + center + right_green).mul_add(2.0, -raw_at(raw, width, col - 2, row))
                 - raw_at(raw, width, col + 2, row))
                 / 4.0)
                 .floor();
@@ -199,8 +198,7 @@ fn green_candidates(
 
             let above_green = raw_at(raw, width, col, row - 1);
             let below_green = raw_at(raw, width, col, row + 1);
-            let vertical = (((above_green + center + below_green) * 2.0
-                - raw_at(raw, width, col, row - 2)
+            let vertical = (((above_green + center + below_green).mul_add(2.0, -raw_at(raw, width, col, row - 2))
                 - raw_at(raw, width, col, row + 2))
                 / 4.0)
                 .floor();
@@ -238,21 +236,15 @@ fn directional_rgb_and_lab(
                     let down = if down == GREEN { 2 } else { down };
                     let other = 2 - down;
                     candidate[other] = clamp_code(
-                        (center_green
-                            + (raw_channel(raw, width, pattern, col - 1, row, other)
+                        (raw_channel(raw, width, pattern, col - 1, row, other)
                                 + raw_channel(raw, width, pattern, col + 1, row, other)
-                                - rgb[candidate_index - 1][GREEN]
-                                - rgb[candidate_index + 1][GREEN])
-                                * 0.5)
+                                - rgb[candidate_index - 1][GREEN] - rgb[candidate_index + 1][GREEN]).mul_add(0.5, center_green)
                             .floor(),
                     );
                     candidate[down] = clamp_code(
-                        (center_green
-                            + (raw_channel(raw, width, pattern, col, row - 1, down)
+                        (raw_channel(raw, width, pattern, col, row - 1, down)
                                 + raw_channel(raw, width, pattern, col, row + 1, down)
-                                - rgb[candidate_index - TILE_SIZE][GREEN]
-                                - rgb[candidate_index + TILE_SIZE][GREEN])
-                                * 0.5)
+                                - rgb[candidate_index - TILE_SIZE][GREEN] - rgb[candidate_index + TILE_SIZE][GREEN]).mul_add(0.5, center_green)
                             .floor(),
                     );
                     candidate[GREEN] = center_green;
@@ -364,7 +356,7 @@ fn combine_pixels(
             let selected = if score[0] == score[1] {
                 (0..3)
                     .map(|channel| {
-                        (rgb[local][channel] + rgb[TILE_SIZE * TILE_SIZE + local][channel]) * 0.5
+                        f32::midpoint(rgb[local][channel], rgb[TILE_SIZE * TILE_SIZE + local][channel])
                     })
                     .collect::<Vec<_>>()
             } else {
@@ -381,14 +373,14 @@ fn to_lab(rgb: [f32; 3]) -> [i32; 3] {
     let mut xyz = [0.5_f32; 3];
     for channel in 0..3 {
         for component in 0..3 {
-            xyz[component] += XYZ_CAMERA[component][channel] * rgb[channel];
+            xyz[component] = XYZ_CAMERA[component][channel].mul_add(rgb[channel], xyz[component]);
         }
     }
     let x = CBRT[xyz[0].clamp(0.0, 65_535.0) as usize];
     let y = CBRT[xyz[1].clamp(0.0, 65_535.0) as usize];
     let z = CBRT[xyz[2].clamp(0.0, 65_535.0) as usize];
     [
-        ((64.0 * (116.0 * y - 16.0)) as i32) as i16 as i32,
+        ((64.0 * 116.0f32.mul_add(y, -16.0)) as i32) as i16 as i32,
         ((64.0 * 500.0 * (x - y)) as i32) as i16 as i32,
         ((64.0 * 200.0 * (y - z)) as i32) as i16 as i32,
     ]
@@ -410,11 +402,11 @@ fn raw_channel(
 }
 
 #[inline(always)]
-fn raw_at(raw: &[f32], width: usize, x: usize, y: usize) -> f32 { raw[y * width + x] }
+const fn raw_at(raw: &[f32], width: usize, x: usize, y: usize) -> f32 { raw[y * width + x] }
 
-fn clamp_code(value: f32) -> f32 { value.clamp(0.0, 65_535.0).floor() }
+const fn clamp_code(value: f32) -> f32 { value.clamp(0.0, 65_535.0).floor() }
 
-fn clamp_between(value: f32, first: f32, second: f32) -> f32 {
+const fn clamp_between(value: f32, first: f32, second: f32) -> f32 {
     value.clamp(first.min(second), first.max(second))
 }
 
