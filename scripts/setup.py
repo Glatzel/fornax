@@ -35,10 +35,7 @@ def checkout_darktable() -> Path:
         shutil.rmtree(darktable_root)
     destination.parent.mkdir(parents=True, exist_ok=True)
 
-    endpoint = (
-        "repos/darktable-org/darktable/contents/"
-        f"{DARKTABLE_SOURCE}?ref=release-{DARKTABLE_RELEASE}"
-    )
+    endpoint = f"repos/darktable-org/darktable/contents/{DARKTABLE_SOURCE}?ref=release-{DARKTABLE_RELEASE}"
     print(f"+ gh api {endpoint} --jq .content")
     encoded = subprocess.run(
         ["gh", "api", endpoint, "--jq", ".content"],
@@ -50,14 +47,9 @@ def checkout_darktable() -> Path:
     content = base64.b64decode(encoded)
     actual = hashlib.sha256(content).hexdigest()
     if actual != DARKTABLE_SHA256:
-        raise RuntimeError(
-            f"darktable source checksum mismatch: expected {DARKTABLE_SHA256}, got {actual}"
-        )
+        raise RuntimeError(f"darktable source checksum mismatch: expected {DARKTABLE_SHA256}, got {actual}")
     destination.write_bytes(content)
-    print(
-        f"Materialized darktable {DARKTABLE_RELEASE} "
-        f"({DARKTABLE_COMMIT}) source at {destination}"
-    )
+    print(f"Materialized darktable {DARKTABLE_RELEASE} ({DARKTABLE_COMMIT}) source at {destination}")
     return destination
 
 
@@ -99,12 +91,8 @@ def main() -> int:
     parser.add_argument("--skip-dng", action="store_true")
     parser.add_argument("--force-dng", action="store_true")
     environment_output = parser.add_mutually_exclusive_group()
-    environment_output.add_argument(
-        "--env-json", action="store_true", help="print the setup environment as JSON"
-    )
-    environment_output.add_argument(
-        "--env-shell", action="store_true", help="print POSIX shell environment exports"
-    )
+    environment_output.add_argument("--env-json", action="store_true", help="print the setup environment as JSON")
+    environment_output.add_argument("--env-shell", action="store_true", help="print POSIX shell environment exports")
     args = parser.parse_args()
 
     if args.env_json:
@@ -132,10 +120,7 @@ def main() -> int:
         run(*command)
 
     print("Setup complete.")
-    print(
-        "For this POSIX shell, run: "
-        'eval "$(python3 scripts/setup.py --env-shell)"'
-    )
+    print('For this POSIX shell, run: eval "$(python3 scripts/setup.py --env-shell)"')
     return 0
 
 

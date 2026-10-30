@@ -32,24 +32,19 @@ def is_installed() -> bool:
 
 def download(archive: Path) -> None:
     digest = hashlib.sha256()
-    with urllib.request.urlopen(URL, timeout=180) as response:
-        with archive.open("wb") as output:
-            while chunk := response.read(1024 * 1024):
-                digest.update(chunk)
-                output.write(chunk)
+    with urllib.request.urlopen(URL, timeout=180) as response, archive.open("wb") as output:
+        while chunk := response.read(1024 * 1024):
+            digest.update(chunk)
+            output.write(chunk)
 
     actual = digest.hexdigest()
     if actual != SHA256:
-        raise RuntimeError(
-            f"DNG SDK checksum mismatch: expected {SHA256}, downloaded {actual}"
-        )
+        raise RuntimeError(f"DNG SDK checksum mismatch: expected {SHA256}, downloaded {actual}")
 
 
 def extract(archive: Path, destination: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(
-        prefix=".dng-sdk-", dir=destination.parent
-    ) as temporary:
+    with tempfile.TemporaryDirectory(prefix=".dng-sdk-", dir=destination.parent) as temporary:
         temporary_path = Path(temporary)
         with zipfile.ZipFile(archive) as package:
             root = temporary_path.resolve()
@@ -66,9 +61,7 @@ def extract(archive: Path, destination: Path) -> None:
         if destination.exists():
             shutil.rmtree(destination)
         shutil.move(source, destination)
-        (destination / ".version").write_text(
-            f"{VERSION}/{BUILD}\n", encoding="utf-8"
-        )
+        (destination / ".version").write_text(f"{VERSION}/{BUILD}\n", encoding="utf-8")
 
 
 def install(force: bool = False) -> None:
