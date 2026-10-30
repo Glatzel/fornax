@@ -7,9 +7,9 @@ pub const LIBRAW_COMMIT: &str = env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT");
 pub const DARKTABLE_RELEASE: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_RELEASE");
 pub const DARKTABLE_COMMIT: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_COMMIT");
 pub const LIBRAW_VERSION: &str = env!("COMPARE_DEMOSAIC_LIBRAW_VERSION");
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 pub const TABLE_BEGIN: &str = "<!-- BEGIN:compare-table -->";
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 pub const TABLE_END: &str = "<!-- END:compare-table -->";
 
 #[derive(Clone, Debug)]

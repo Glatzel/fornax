@@ -44,6 +44,10 @@ The command writes `results/canonical.json`; it does not edit this README. A
 Codex agent reads that JSON, updates the per-algorithm tables, and writes an
 evidence-based note after any table containing `⚠️` results.
 
+The committed JSON and tables are Linux-canonical. Cross-platform tests still
+validate the declared tolerances, but exact documentation freshness is checked
+on Linux because compiler and math-library rounding can vary by platform.
+
 ## Results
 
 <!-- BEGIN:compare-table -->
