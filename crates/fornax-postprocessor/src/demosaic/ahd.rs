@@ -241,7 +241,6 @@ fn build_homogeneity(
     homogeneity: &mut [[u8; 2]],
     top: usize,
     left: usize,
-
     height: usize,
     width: usize,
 ) {
@@ -287,7 +286,6 @@ fn combine_pixels(
     homogeneity: &[[u8; 2]],
     top: usize,
     left: usize,
-
     height: usize,
 ) {
     let row_limit = (top + TILE_SIZE - 3).min(height.saturating_sub(5));
