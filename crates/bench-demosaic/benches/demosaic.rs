@@ -36,6 +36,7 @@ fn bench_sizes<T: Primitive + Send + Sync>(
                 ("linear", Demosaic::Linear),
                 ("ppg", Demosaic::Ppg),
                 ("rcd", Demosaic::Rcd),
+                ("ahd", Demosaic::Ahd),
             ] {
                 let name = params.case_name(prefix, size, bits, threads);
                 bench_methods::<_, T>(c, &pool, &name, demosaic, image.clone());

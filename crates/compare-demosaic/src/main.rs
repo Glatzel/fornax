@@ -47,7 +47,7 @@ mod tests {
 
     #[rstest]
     fn every_case_matches_for_all_patterns_precisions_and_inputs(
-        #[values(0, 1, 2, 3)] case_index: usize,
+        #[values(0, 1, 2, 3, 4)] case_index: usize,
         #[values(
             BayerPattern::RGGB,
             BayerPattern::BGGR,
@@ -121,7 +121,7 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(target_os = "linux")]
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn canonical_results_artifact_is_current() -> mischief::Result<()> {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(DEFAULT_RESULTS_FILE);
@@ -149,7 +149,7 @@ mod tests {
         assert_eq!(normalize_line_endings(lf), normalize_line_endings(&crlf));
     }
 
-    #[cfg(target_os = "linux")]
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn readme_tables_match_results_and_warning_notes() -> mischief::Result<()> {
         let readme = include_str!("../README.md");
@@ -281,7 +281,7 @@ mod tests {
 
     #[rstest]
     fn saturated_input_is_exact(
-        #[values(0, 1, 2, 3)] case_index: usize,
+        #[values(0, 1, 2, 3, 4)] case_index: usize,
         #[values(
             BayerPattern::RGGB,
             BayerPattern::BGGR,

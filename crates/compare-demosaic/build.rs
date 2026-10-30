@@ -7,6 +7,7 @@ const DARKTABLE_SOURCE_RELEASE: &str = "5.6.2";
 const DARKTABLE_SOURCE_COMMIT: &str = "20891f6c6fa7be995e5bf9dff9d1ee5062051773";
 const SHIM_SOURCES: &[&str] = &[
     "cpp/algos/darktable_ppg.cpp",
+    "cpp/algos/libraw_ahd.cpp",
     "cpp/algos/libraw_linear.cpp",
     "cpp/algos/libraw_ppg.cpp",
     "cpp/shim.cpp",

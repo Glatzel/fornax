@@ -51,6 +51,21 @@ on Linux because compiler and math-library rounding can vary by platform.
 ## Results
 
 <!-- BEGIN:compare-table -->
+### AHD
+
+| Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | BGGR | ⚠️ | 1.610 | 150.616 | 32622 | 52.77 | 2.329% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | ⚠️ | 0.955 | 104.925 | 28795 | 55.91 | 2.310% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | ⚠️ | 1.309 | 127.391 | 32501 | 54.23 | 2.339% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | ⚠️ | 1.459 | 139.687 | 36331 | 53.43 | 2.325% |
+
+> [!NOTE]
+> The AHD/LibRaw rows use the declared 40,000-code tolerance. The independent
+> Rust and LibRaw implementations agree closely, but rare
+> homogeneity-direction selection differences near local edges produce
+> isolated maximum errors even though MAE remains low.
+
 ### Linear
 
 | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |

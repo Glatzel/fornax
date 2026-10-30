@@ -44,6 +44,11 @@ std::int32_t ReferenceDemosaicer::prepare(
     imgdata.sizes.iheight = static_cast<ushort>(height);
     imgdata.idata.colors = 3;
     imgdata.idata.filters = filters;
+    for (int row = 0; row < 3; ++row) {
+        for (int col = 0; col < 3; ++col) {
+            imgdata.color.rgb_cam[row][col] = row == col ? 1.0F : 0.0F;
+        }
+    }
     imgdata.params.four_color_rgb = 0;
     imgdata.params.half_size = 0;
     libraw_internal_data.internal_output_params.shrink = 0;
@@ -118,6 +123,9 @@ extern "C" std::int32_t compare_demosaic_reference(
                 break;
             case 1:
                 status = reference.run_ppg();
+                break;
+            case 2:
+                status = reference.run_ahd();
                 break;
             default:
                 break;
