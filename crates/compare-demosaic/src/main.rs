@@ -34,41 +34,62 @@ fn write_results(path: Option<&Path>) -> mischief::Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::LazyLock;
+
     use fornax_core::BayerPattern;
+    use rstest::rstest;
 
     use super::*;
     use crate::case::{ReferenceBackend, SampleType};
     use crate::cases::CASES;
 
-    #[test]
-    fn every_case_matches_for_all_patterns_precisions_and_inputs() -> mischief::Result<()> {
-        for case in CASES {
-            for pattern in BayerPattern::ALL {
-                for sample_type in [SampleType::F32, SampleType::F64] {
-                    for input in data::test_inputs() {
-                        if case.border.saturating_mul(2) >= input.width.min(input.height) {
-                            continue;
-                        }
-                        let row = report::compare(
-                            case,
-                            &input.codes,
-                            input.width,
-                            input.height,
-                            pattern,
-                            sample_type,
-                        )?;
-                        assert_ne!(
-                            row.verdict,
-                            metrics::Verdict::Differs,
-                            "{} / {pattern} / {sample_type:?} / {} ({})",
-                            case.name,
-                            input.label,
-                            row.metrics.summary()
-                        );
-                    }
-                }
-            }
+    static TEST_INPUTS: LazyLock<Vec<data::Input>> = LazyLock::new(data::test_inputs);
+
+    #[rstest]
+    fn every_case_matches_for_all_patterns_precisions_and_inputs(
+        #[values(0, 1, 2, 3)] case_index: usize,
+        #[values(
+            BayerPattern::RGGB,
+            BayerPattern::BGGR,
+            BayerPattern::GRBG,
+            BayerPattern::GBRG
+        )]
+        pattern: BayerPattern,
+        #[values(SampleType::F32, SampleType::F64)] sample_type: SampleType,
+        #[values(
+            "canonical",
+            "odd",
+            "partial-row-chunk",
+            "tiny",
+            "saturated",
+            "saturated-tiny"
+        )]
+        input_label: &str,
+    ) -> mischief::Result<()> {
+        let case = &CASES[case_index];
+        let input = TEST_INPUTS
+            .iter()
+            .find(|input| input.label == input_label)
+            .expect("test input");
+        if case.border.saturating_mul(2) >= input.width.min(input.height) {
+            return Ok(());
         }
+        let row = report::compare(
+            case,
+            &input.codes,
+            input.width,
+            input.height,
+            pattern,
+            sample_type,
+        )?;
+        assert_ne!(
+            row.verdict,
+            metrics::Verdict::Differs,
+            "{} / {pattern} / {sample_type:?} / {} ({})",
+            case.name,
+            input.label,
+            row.metrics.summary()
+        );
         Ok(())
     }
 
@@ -255,30 +276,35 @@ mod tests {
         assert!(error.to_string().contains("expected 64"));
     }
 
-    #[test]
-    fn saturated_input_is_exact() -> mischief::Result<()> {
-        let input = data::test_inputs()
-            .into_iter()
+    #[rstest]
+    fn saturated_input_is_exact(
+        #[values(0, 1, 2, 3)] case_index: usize,
+        #[values(
+            BayerPattern::RGGB,
+            BayerPattern::BGGR,
+            BayerPattern::GRBG,
+            BayerPattern::GBRG
+        )]
+        pattern: BayerPattern,
+        #[values(SampleType::F32, SampleType::F64)] sample_type: SampleType,
+    ) -> mischief::Result<()> {
+        let case = &CASES[case_index];
+        let input = TEST_INPUTS
+            .iter()
             .find(|input| input.label == "saturated")
             .expect("saturated test input");
-        for case in CASES {
-            for pattern in BayerPattern::ALL {
-                for sample_type in [SampleType::F32, SampleType::F64] {
-                    if case.border.saturating_mul(2) >= input.width.min(input.height) {
-                        continue;
-                    }
-                    let row = report::compare(
-                        case,
-                        &input.codes,
-                        input.width,
-                        input.height,
-                        pattern,
-                        sample_type,
-                    )?;
-                    assert_eq!(row.verdict, metrics::Verdict::Exact);
-                }
-            }
+        if case.border.saturating_mul(2) >= input.width.min(input.height) {
+            return Ok(());
         }
+        let row = report::compare(
+            case,
+            &input.codes,
+            input.width,
+            input.height,
+            pattern,
+            sample_type,
+        )?;
+        assert_eq!(row.verdict, metrics::Verdict::Exact);
         Ok(())
     }
 }
