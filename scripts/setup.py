@@ -47,7 +47,8 @@ def checkout_darktable() -> Path:
     content = base64.b64decode(encoded)
     actual = hashlib.sha256(content).hexdigest()
     if actual != DARKTABLE_SHA256:
-        raise RuntimeError(f"darktable source checksum mismatch: expected {DARKTABLE_SHA256}, got {actual}")
+        msg = f"darktable source checksum mismatch: expected {DARKTABLE_SHA256}, got {actual}"
+        raise RuntimeError(msg)
     destination.write_bytes(content)
     print(f"Materialized darktable {DARKTABLE_RELEASE} ({DARKTABLE_COMMIT}) source at {destination}")
     return destination
