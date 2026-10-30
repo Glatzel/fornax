@@ -133,8 +133,8 @@ pub fn update_table(readme: &str, rows: &[Row]) -> mischief::Result<String> {
 const fn verdict(verdict: metrics::Verdict) -> &'static str {
     match verdict {
         metrics::Verdict::Exact => "✅",
-        metrics::Verdict::RoundingOnly => "🔵",
-        metrics::Verdict::WithinTolerance(_) => "🟡",
+        metrics::Verdict::RoundingOnly => "🟢",
+        metrics::Verdict::WithinTolerance(_) => "⚠️",
         metrics::Verdict::Differs => "❌",
     }
 }
@@ -167,8 +167,8 @@ mod tests {
         assert!(!table.contains("Reference algorithm"));
         assert!(!table.contains("Source |"));
         assert_eq!(verdict(metrics::Verdict::Exact), "✅");
-        assert_eq!(verdict(metrics::Verdict::RoundingOnly), "🔵");
-        assert_eq!(verdict(metrics::Verdict::WithinTolerance(1)), "🟡");
+        assert_eq!(verdict(metrics::Verdict::RoundingOnly), "🟢");
+        assert_eq!(verdict(metrics::Verdict::WithinTolerance(1)), "⚠️");
         assert_eq!(verdict(metrics::Verdict::Differs), "❌");
     }
 }
