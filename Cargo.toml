@@ -21,7 +21,10 @@ libraw-sys = { path = "./crates/libraw-sys" }
 # glatzel
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 envoy = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-generic-num = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
+generic-num = {
+  git = "https://github.com/Glatzel/toolbox",
+  tag = "v2026.10.11"
+}
 image = { git = "https://github.com/Glatzel/image-rs" }
 mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 

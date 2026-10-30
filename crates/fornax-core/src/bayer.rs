@@ -1,6 +1,7 @@
+use num_enum::IntoPrimitive;
 use strum::Display;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, IntoPrimitive)]
 #[repr(u8)]
 pub enum BayerChannel {
     R = 0,
@@ -8,6 +9,7 @@ pub enum BayerChannel {
     B = 2,
     GBlueRow = 3,
 }
+
 impl BayerChannel {
     /// The channel's stable index: `R = 0`, `G = 1`, `B = 2`, `G2 = 3`.
     #[inline(always)]
@@ -16,9 +18,6 @@ impl BayerChannel {
     /// `true` for both `G` and `G2`.
     #[inline(always)]
     pub const fn is_green(self) -> bool { matches!(self, Self::GRedRow | Self::GBlueRow) }
-}
-impl From<BayerChannel> for u8 {
-    fn from(value: BayerChannel) -> Self { value as Self }
 }
 
 /// Common Bayer patterns used in image sensors, named after the 2x2 tile read

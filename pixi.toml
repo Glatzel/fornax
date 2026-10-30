@@ -31,6 +31,7 @@ pytest-cov = "==7.1.0"
 codex = "*"
 codex-config = "*"
 skill-glatzel = "*"
+codex-rtk = "*"
 
 [feature.data.dependencies]
 python-duckdb = "*"

@@ -1,0 +1,7 @@
+# This File is automatically synchronized from https://github.com/Glatzel/template
+InlayHints:
+  Enabled: true
+  ParameterNames: true
+  DeducedTypes: true
+  BlockEnd: true
+  DefaultArguments: true
