@@ -113,6 +113,7 @@ mod tests {
     #[test]
     fn source_link_matches_packaged_version() {
         assert_eq!(report::LIBRAW_VERSION, "0.22.3");
+        assert_eq!(report::DARKTABLE_RELEASE, "5.6.2");
         for case in CASES {
             let commit = match case.reference_backend {
                 ReferenceBackend::LibRaw => report::LIBRAW_COMMIT,

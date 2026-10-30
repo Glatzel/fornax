@@ -212,6 +212,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bench-decoder"
+version = "0.0.17"
+dependencies = [
+ "codspeed-criterion-compat",
+ "fornax-core",
+ "fornax-decoder-rawler",
+ "fornax-devtool",
+ "libraw",
+]
+
+[[package]]
 name = "bench-demosaic"
 version = "0.0.17"
 dependencies = [

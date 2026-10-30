@@ -6,6 +6,15 @@ pub enum ReferenceBackend {
     Darktable,
 }
 
+impl ReferenceBackend {
+    pub const fn library(self) -> &'static str {
+        match self {
+            Self::LibRaw => "LibRaw",
+            Self::Darktable => "darktable",
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(dead_code, reason = "f64 cases are exercised by comparison tests")]
 pub enum SampleType {
@@ -30,8 +39,6 @@ pub type FornaxRunner =
 #[derive(Clone, Copy, Debug)]
 pub struct Case {
     pub name: &'static str,
-    pub reference: &'static str,
-    pub source_name: &'static str,
     pub source_url: &'static str,
     pub reference_backend: ReferenceBackend,
     pub algorithm: u32,

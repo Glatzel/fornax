@@ -92,8 +92,8 @@ directed by the task.
 
 Keep reference comparison cases table-driven:
 
-1. Add `cpp/algos/<name>.cpp` for the reference routine, or adapt a pinned
-   external source without copying it into the comparison crate.
+1. Add `cpp/algos/<library>_<algorithm>.cpp` for the reference routine, or
+   adapt a pinned external source without copying it into the comparison crate.
 2. Add its reference backend and stable algorithm ID to `cpp/shim.cpp`.
 3. Add a `Case` and Fornax runner under `crates/compare-demosaic/src/cases/`.
 4. Register the case in `CASES`.
@@ -101,9 +101,10 @@ Keep reference comparison cases table-driven:
 
 Reference routines and headers come from the repository-managed `libraw-dev`
 Pixi package. The comparison crate does not compile LibRaw from the external
-checkout. darktable comparison code comes from the pinned darktable commit. Use
-the repository setup scripts, which perform a GitHub CLI sparse clone of only
-the required source, instead of initializing the full darktable tree.
+checkout. darktable comparison code comes from the pinned `5.6.2` release. Use
+`scripts/setup.sh` on Linux/macOS or `scripts/setup.ps1` on Windows. The
+platform setup scripts use `gh api` to materialize only the required source
+file instead of initializing the full darktable tree.
 
 ## Validation
 

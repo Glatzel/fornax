@@ -5,6 +5,7 @@ use crate::{cases, data, ffi, metrics};
 
 #[cfg(test)]
 pub const LIBRAW_COMMIT: &str = env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT");
+pub const DARKTABLE_RELEASE: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_RELEASE");
 pub const DARKTABLE_COMMIT: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_COMMIT");
 pub const LIBRAW_VERSION: &str = env!("COMPARE_DEMOSAIC_LIBRAW_VERSION");
 pub const TABLE_BEGIN: &str = "<!-- BEGIN:compare-table -->";
@@ -14,7 +15,6 @@ pub const TABLE_END: &str = "<!-- END:compare-table -->";
 pub struct Row {
     pub case: &'static str,
     pub reference: &'static str,
-    pub source_name: &'static str,
     pub source_url: &'static str,
     pub pattern: BayerPattern,
     pub metrics: metrics::Metrics,
@@ -41,8 +41,7 @@ pub fn compare(
     let metrics = metrics::calculate(&actual, &reference, width, height, case.border)?;
     Ok(Row {
         case: case.name,
-        reference: case.reference,
-        source_name: case.source_name,
+        reference: case.reference_backend.library(),
         source_url: case.source_url,
         pattern,
         metrics,
@@ -70,8 +69,8 @@ pub fn canonical_rows() -> mischief::Result<Vec<Row>> {
 
 pub fn render_table(rows: &[Row]) -> String {
     let mut output = String::from(
-        "| Fornax algorithm | Reference algorithm | Source | Bayer pattern | Verdict | MAE (codes) | RMSE (codes) | Max difference (codes) | PSNR (dB) | Changed |\n\
-         | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |\n",
+        "| Fornax | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |\n\
+         | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |\n",
     );
     for row in rows {
         let psnr = if row.metrics.peak_signal_to_noise_ratio.is_infinite() {
@@ -80,10 +79,9 @@ pub fn render_table(rows: &[Row]) -> String {
             format!("{:.2}", row.metrics.peak_signal_to_noise_ratio)
         };
         output.push_str(&format!(
-            "| {} | `{}` | [`{}`]({}) | {} | {} | {:.3} | {:.3} | {} | {} | {:.3}% |\n",
+            "| {} | [{}]({}) | {} | {} | {:.3} | {:.3} | {} | {} | {:.3}% |\n",
             row.case,
             row.reference,
-            row.source_name,
             row.source_url,
             row.pattern,
             verdict(row.verdict),
@@ -123,7 +121,7 @@ pub fn update_table(readme: &str, rows: &[Row]) -> mischief::Result<String> {
     let content_start = begin + TABLE_BEGIN.len();
     let replacement = format!(
         "{line_ending}{table}{line_ending}Reference builds: LibRaw {LIBRAW_VERSION}; \
-         darktable {DARKTABLE_COMMIT}.{line_ending}"
+         darktable {DARKTABLE_RELEASE} ({DARKTABLE_COMMIT}).{line_ending}"
     );
     Ok(format!(
         "{}{replacement}{}",
@@ -134,10 +132,10 @@ pub fn update_table(readme: &str, rows: &[Row]) -> mischief::Result<String> {
 
 const fn verdict(verdict: metrics::Verdict) -> &'static str {
     match verdict {
-        metrics::Verdict::Exact => "✅ exact",
-        metrics::Verdict::RoundingOnly => "✅ rounding only",
-        metrics::Verdict::WithinTolerance(_) => "✅ within tolerance",
-        metrics::Verdict::Differs => "❌ differs",
+        metrics::Verdict::Exact => "✅",
+        metrics::Verdict::RoundingOnly => "🟢",
+        metrics::Verdict::WithinTolerance(_) => "⚠️",
+        metrics::Verdict::Differs => "❌",
     }
 }
 
@@ -159,5 +157,28 @@ mod tests {
         assert!(updated.contains("Reference builds: LibRaw"));
         assert!(updated.ends_with("footer\r\n"));
         Ok(())
+    }
+
+    #[test]
+    fn table_uses_compact_headers_and_emoji_only_verdicts() {
+        let table = render_table(&[]);
+        assert!(table.contains("| Reference Library |"));
+        assert!(table.contains("| Verdict |"));
+        assert!(!table.contains("Reference algorithm"));
+        assert!(!table.contains("Source |"));
+        assert_eq!(verdict(metrics::Verdict::Exact), "✅");
+        assert_eq!(verdict(metrics::Verdict::RoundingOnly), "🟢");
+        assert_eq!(verdict(metrics::Verdict::WithinTolerance(1)), "⚠️");
+        assert_eq!(verdict(metrics::Verdict::Differs), "❌");
+    }
+
+    #[test]
+    fn reference_cells_only_show_library_names() {
+        let rows = canonical_rows().expect("canonical comparison rows");
+        let table = render_table(&rows);
+        assert!(table.contains("| [LibRaw]("));
+        assert!(table.contains("| [darktable]("));
+        assert!(!table.contains("`LibRaw::"));
+        assert!(!table.contains("demosaic_ppg"));
     }
 }

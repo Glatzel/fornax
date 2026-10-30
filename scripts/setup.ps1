@@ -3,17 +3,25 @@ Set-Location $PSScriptRoot/..
 pixi install -e dev
 git submodule update --init external/libraw external/raw-images
 
-$darktablePath = "external/darktable"
-$darktableCommit = (& git rev-parse "HEAD:$darktablePath").Trim()
-if (-not (Test-Path -LiteralPath "$darktablePath/.git"))
+foreach ($file in  @(
+        "src/iop/demosaicing/ppg.c"
+    ))
 {
-    Remove-Item -LiteralPath $darktablePath -Recurse -Force -ErrorAction SilentlyContinue
-    gh repo clone darktable-org/darktable $darktablePath -- --depth=1 --filter=blob:none --sparse
-}
-git -C $darktablePath fetch --depth=1 origin $darktableCommit
-git -C $darktablePath sparse-checkout set --no-cone "/src/iop/demosaicing/ppg.c"
-git -C $darktablePath checkout --detach $darktableCommit
+    $destination = Join-Path "external/darktable" $file
 
+    New-Item -ItemType Directory -Force (Split-Path $destination) | Out-Null
+
+    $content = gh api "repos/darktable-org/darktable/contents/${file}?ref=release-5.6.2" --jq .content
+    if ($LASTEXITCODE -ne 0)
+    {
+        throw "failed to download darktable/$file"
+    }
+
+    [IO.File]::WriteAllBytes(
+        $destination,
+        [Convert]::FromBase64String(($content -join ""))
+    )
+}
 
 if ($IsWindows)
 {

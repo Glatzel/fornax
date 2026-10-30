@@ -2,14 +2,14 @@
   - [DEC-RSP] rawspeed(the backend of darktable)
   - [DEC-FR] flashraw(https://crates.io/crates/flashraw)
 - demosaic
-  - [DEM-VNG] VNG/VNG4: variable-number-of-gradients interpolation from darktable and LibRaw
-  - [DEM-AHD] AHD: adaptive homogeneity-directed interpolation from LibRaw
-  - [DEM-DCB] DCB: directional color balance demosaicing from LibRaw
-  - [DEM-DHT] DHT: directional homogeneity-targeted demosaicing from LibRaw
-  - [DEM-Modified-AHD] AAHD: advanced/modified AHD from LibRaw
-  - [DEM-AMAZE] AMaZE: alias-free zipper elimination demosaicing from darktable
-  - [DEM-RCD] RCD: ratio-corrected demosaicing from darktable
-  - [DEM-LMMSE] LMMSE: linear minimum mean-square-error demosaicing from darktable
+  - [DEM-VNG] VNG/VNG4: variable-number-of-gradients interpolation; references: LibRaw, darktable.
+  - [DEM-AHD] AHD: adaptive homogeneity-directed interpolation; reference: LibRaw.
+  - [DEM-DCB] DCB: directional color balance demosaicing; reference: LibRaw.
+  - [DEM-DHT] DHT: directional homogeneity-targeted demosaicing; reference: LibRaw.
+  - [DEM-AAHD] AAHD: advanced/modified AHD; reference: LibRaw.
+  - [DEM-AMAZE] AMaZE: alias-free zipper elimination demosaicing; reference: darktable.
+  - [DEM-RCD] RCD: ratio-corrected demosaicing; reference: darktable.
+  - [DEM-LMMSE] LMMSE: linear minimum mean-square-error demosaicing; reference: darktable.
 - perf
   - [P-SIMD] use fearless simd to optimize demosaic and preprocessor, in separate crates.
   - [P-CUDA] try cutiles-rs to improve perf

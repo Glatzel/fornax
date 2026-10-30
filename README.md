@@ -28,3 +28,17 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 - **fornax-metadata**: Universal RAW metadata and level information.
 - **fornax-py**: Python package for raw processing manager with Rust backend.
 - **libraw-sys**: Libraw rust bindings.
+
+## Development
+
+Install the development environment and pinned reference sources:
+
+```bash
+source scripts/setup.sh
+```
+
+On Windows, run the PowerShell setup from the repository root:
+
+```powershell
+./scripts/setup.ps1
+```

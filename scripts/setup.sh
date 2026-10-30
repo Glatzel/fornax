@@ -7,17 +7,18 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 pixi install -e dev
 git submodule update --init external/libraw external/raw-images
 
-darktable_path="external/darktable"
-darktable_commit="$(git rev-parse "HEAD:$darktable_path")"
-if [[ ! -e "$darktable_path/.git" ]]; then
-    rm -rf -- "$darktable_path"
-    gh repo clone darktable-org/darktable "$darktable_path" -- \
-        --depth=1 --filter=blob:none --sparse
-fi
-git -C "$darktable_path" fetch --depth=1 origin "$darktable_commit"
-git -C "$darktable_path" sparse-checkout set --no-cone \
-    "/src/iop/demosaicing/ppg.c"
-git -C "$darktable_path" checkout --detach "$darktable_commit"
+files=(
+    "src/iop/demosaicing/ppg.c"
+    # "src/iop/demosaicing/other.c"
+)
+for file in "${files[@]}"; do
+    destination="external/darktable/$file"
+    mkdir -p "$(dirname "$destination")"
+
+    gh api "repos/darktable-org/darktable/contents/$file?ref=release-5.6.2" \
+        --jq .content |
+        base64 -d > "$destination" || exit 1
+done
 
 pixi_env_dir="$(realpath .pixi/envs/dev)"
 

@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  group: ${{github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   cargo-bench:
@@ -17,6 +17,11 @@ jobs:
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           files: |
+            ./crates/bench-decoder/**
+            ./crates/fornax-core/**
+            ./crates/fornax-decoder-rawler/**
+            ./crates/fornax-devtool/**
+            ./crates/libraw/**
             ./crates/fornax-postprocessor/**
             ./crates/bench-demosaic/**
       - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
@@ -24,6 +29,8 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: steps.changed-files.outputs.any_changed == 'true'
         with:
-          options: -p bench-demosaic -p bench-preprocessor
+          options: -p bench-decoder -p bench-demosaic -p bench-preprocessor
         env:
           GH_TOKEN: ${{ github.token }}
+          LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
+          CARGO_WORKSPACE_DIR: ${{ github.workspace }}
