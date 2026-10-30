@@ -462,7 +462,7 @@ where
 }
 
 #[inline(always)]
-fn square<T: Primitive>(value: T) -> T { value * value }
+fn square<T>(value: T) -> T where T: Primitive { value * value }
 
 const fn color_index(channel: fornax_core::BayerChannel) -> usize {
     match channel {
@@ -473,7 +473,7 @@ const fn color_index(channel: fornax_core::BayerChannel) -> usize {
 }
 
 #[inline(always)]
-fn interpolate<T: Primitive>(weight: T, first: T, second: T) -> T {
+fn interpolate<T>(weight: T, first: T, second: T) -> T where T: Primitive {
     weight * (first - second) + second
 }
 
