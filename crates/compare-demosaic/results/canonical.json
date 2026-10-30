@@ -15,6 +15,98 @@
   },
   "comparisons": [
     {
+      "algorithm": "AHD",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293",
+      "bayer_pattern": "BGGR",
+      "border": 5,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 40000
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 40000
+      },
+      "metrics": {
+        "mean_absolute_error": 1.6101649180171744,
+        "root_mean_square_error": 150.61639489314317,
+        "maximum_error": 32622,
+        "changed_percent": 2.328931286804971,
+        "psnr_db": 52.772021110244445,
+        "below_reference": 64
+      }
+    },
+    {
+      "algorithm": "AHD",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293",
+      "bayer_pattern": "GBRG",
+      "border": 5,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 40000
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 40000
+      },
+      "metrics": {
+        "mean_absolute_error": 0.9546938408385052,
+        "root_mean_square_error": 104.92465979227862,
+        "maximum_error": 28795,
+        "changed_percent": 2.3102807891938224,
+        "psnr_db": 55.911914680717715,
+        "below_reference": 61
+      }
+    },
+    {
+      "algorithm": "AHD",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293",
+      "bayer_pattern": "GRBG",
+      "border": 5,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 40000
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 40000
+      },
+      "metrics": {
+        "mean_absolute_error": 1.3092027639772914,
+        "root_mean_square_error": 127.3912514990857,
+        "maximum_error": 32501,
+        "changed_percent": 2.3391163103231167,
+        "psnr_db": 54.22667399194793,
+        "below_reference": 69
+      }
+    },
+    {
+      "algorithm": "AHD",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293",
+      "bayer_pattern": "RGGB",
+      "border": 5,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 40000
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 40000
+      },
+      "metrics": {
+        "mean_absolute_error": 1.451699179378105,
+        "root_mean_square_error": 139.59025409391833,
+        "maximum_error": 36331,
+        "changed_percent": 2.3253599149219855,
+        "psnr_db": 53.43236411944531,
+        "below_reference": 61
+      }
+    },
+    {
       "algorithm": "Linear",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146",

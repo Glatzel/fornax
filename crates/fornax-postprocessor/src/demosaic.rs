@@ -1,3 +1,4 @@
+mod ahd;
 mod linear;
 mod ppg;
 mod rcd;
@@ -13,12 +14,14 @@ pub enum Demosaic {
     Linear,
     Ppg,
     Rcd,
+    Ahd,
 }
 
 pub enum AnyLazy<'a, T: Primitive> {
     Linear(LinearLazy<'a, T>),
     Ppg(PpgLazy<'a, T>),
     Rcd(RcdLazy<T>),
+    Ahd(AhdLazy<T>),
 }
 
 impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
@@ -27,6 +30,7 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Linear(l) => l.dimensions(),
             Self::Ppg(p) => p.dimensions(),
             Self::Rcd(r) => r.dimensions(),
+            Self::Ahd(a) => a.dimensions(),
         }
     }
 
@@ -35,6 +39,7 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Linear(l) => l.fill_rows(y0, out),
             Self::Ppg(p) => p.fill_rows(y0, out),
             Self::Rcd(r) => r.fill_rows(y0, out),
+            Self::Ahd(a) => a.fill_rows(y0, out),
         }
     }
 }
@@ -53,6 +58,8 @@ impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
             Self::Linear => AnyLazy::Linear(DemosaicLinear.lazy(bayer, pattern)?),
             Self::Ppg => AnyLazy::Ppg(DemosaicPpg.lazy(bayer, pattern)?),
             Self::Rcd => AnyLazy::Rcd(DemosaicRcd.lazy(bayer, pattern)?),
+            Self::Ahd => AnyLazy::Ahd(DemosaicAhd.lazy(bayer, pattern)?),
         })
     }
 }
+use ahd::{AhdLazy, DemosaicAhd};

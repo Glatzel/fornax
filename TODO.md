@@ -3,7 +3,6 @@
   - [DEC-FR] flashraw(https://crates.io/crates/flashraw)
 - demosaic
   - [DEM-VNG] VNG/VNG4: variable-number-of-gradients interpolation; references: LibRaw, darktable.
-  - [DEM-AHD] AHD: adaptive homogeneity-directed interpolation; reference: LibRaw.
   - [DEM-DCB] DCB: directional color balance demosaicing; reference: LibRaw.
   - [DEM-DHT] DHT: directional homogeneity-targeted demosaicing; reference: LibRaw.
   - [DEM-AAHD] AAHD: advanced/modified AHD; reference: LibRaw.

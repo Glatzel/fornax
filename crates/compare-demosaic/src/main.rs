@@ -47,7 +47,7 @@ mod tests {
 
     #[rstest]
     fn every_case_matches_for_all_patterns_precisions_and_inputs(
-        #[values(0, 1, 2, 3)] case_index: usize,
+        #[values(0, 1, 2, 3, 4)] case_index: usize,
         #[values(
             BayerPattern::RGGB,
             BayerPattern::BGGR,
@@ -281,7 +281,7 @@ mod tests {
 
     #[rstest]
     fn saturated_input_is_exact(
-        #[values(0, 1, 2, 3)] case_index: usize,
+        #[values(0, 1, 2, 3, 4)] case_index: usize,
         #[values(
             BayerPattern::RGGB,
             BayerPattern::BGGR,
