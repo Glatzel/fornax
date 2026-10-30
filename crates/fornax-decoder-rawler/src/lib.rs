@@ -6,7 +6,6 @@ use fornax_core::protocol::IDecoder;
 use fornax_core::{BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive};
 use generic_num::num;
 use image::math::Rect;
-use num_traits::cast;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -89,15 +88,13 @@ where
         .width
         .checked_mul(raw.height)
         .ok_or(RawValidationError::InvalidImage)?;
-    let samples: Vec<T> = match &raw.data {
+    match &raw.data {
         RawImageData::Integer(samples) => {
             if samples.len() != expected {
                 return Err(RawValidationError::InvalidImage.into());
             }
-            samples
-                .iter()
-                .map(|&value| cast(value).ok_or(RawValidationError::InvalidImage))
-                .collect::<Result<_, _>>()?
+            MonoImage::from_raw(width, height, samples.iter().map(|v| num!(*v)).collect())
+                .ok_or_else(|| RawValidationError::InvalidImage.into())
         }
         RawImageData::Float(samples) => {
             if samples.len() != expected {
@@ -106,15 +103,10 @@ where
             if samples.iter().any(|value| !value.is_finite()) {
                 return Err(RawValidationError::NonFiniteSample.into());
             }
-            samples
-                .iter()
-                .map(|&value| cast(value).ok_or(RawValidationError::InvalidImage))
-                .collect::<Result<_, _>>()?
+            MonoImage::from_raw(width, height, samples.iter().map(|v| num!(*v)).collect())
+                .ok_or_else(|| RawValidationError::InvalidImage.into())
         }
-    };
-
-    MonoImage::from_raw(width, height, samples)
-        .ok_or_else(|| RawValidationError::InvalidImage.into())
+    }
 }
 
 fn convert_metadata<T>(raw: &RawImage) -> Result<Metadata<T>, DecodeError>
@@ -130,45 +122,48 @@ where
         }
     };
 
-    let width = u32::try_from(raw.width)
-        .map_err(|_| MetadataValidationError::InvalidGeometry(raw.width.to_string().into()))?;
-    let height = u32::try_from(raw.height)
-        .map_err(|_| MetadataValidationError::InvalidGeometry(raw.height.to_string().into()))?;
-    if width == 0 || height == 0 {
-        return Err(
-            MetadataValidationError::InvalidGeometry(format!("{width}x{height}").into()).into(),
-        );
-    }
-
-    let active_area = raw.active_area.map_or(
-        Rect {
-            x: 0,
-            y: 0,
-            width,
-            height,
-        },
-        |rect| Rect {
-            x: u32::try_from(rect.p.x).unwrap_or(u32::MAX),
-            y: u32::try_from(rect.p.y).unwrap_or(u32::MAX),
-            width: u32::try_from(rect.d.w).unwrap_or(u32::MAX),
-            height: u32::try_from(rect.d.h).unwrap_or(u32::MAX),
-        },
-    );
-    let active_area = align_to_bayer_tile(active_area);
-    if active_area.width == 0
-        || active_area.height == 0
-        || active_area.x.saturating_add(active_area.width) > width
-        || active_area.y.saturating_add(active_area.height) > height
-    {
-        return Err(MetadataValidationError::InvalidActiveArea(
-            format!(
-                "{}x{} at ({}, {}) for {width}x{height}",
-                active_area.width, active_area.height, active_area.x, active_area.y
+    let active_area = {
+        let width = u32::try_from(raw.width)
+            .map_err(|_| MetadataValidationError::InvalidGeometry(raw.width.to_string().into()))?;
+        let height = u32::try_from(raw.height)
+            .map_err(|_| MetadataValidationError::InvalidGeometry(raw.height.to_string().into()))?;
+        if width == 0 || height == 0 {
+            return Err(MetadataValidationError::InvalidGeometry(
+                format!("{width}x{height}").into(),
             )
-            .into(),
-        )
-        .into());
-    }
+            .into());
+        }
+        let active_area = raw.active_area.map_or(
+            Rect {
+                x: 0,
+                y: 0,
+                width,
+                height,
+            },
+            |rect| Rect {
+                x: u32::try_from(rect.p.x).unwrap_or(u32::MAX),
+                y: u32::try_from(rect.p.y).unwrap_or(u32::MAX),
+                width: u32::try_from(rect.d.w).unwrap_or(u32::MAX),
+                height: u32::try_from(rect.d.h).unwrap_or(u32::MAX),
+            },
+        );
+        let active_area = align_to_bayer_tile(active_area);
+        if active_area.width == 0
+            || active_area.height == 0
+            || active_area.x.saturating_add(active_area.width) > width
+            || active_area.y.saturating_add(active_area.height) > height
+        {
+            return Err(MetadataValidationError::InvalidActiveArea(
+                format!(
+                    "{}x{} at ({}, {}) for {width}x{height}",
+                    active_area.width, active_area.height, active_area.x, active_area.y
+                )
+                .into(),
+            )
+            .into());
+        }
+        active_area
+    };
 
     let default_crop = match raw.crop_area {
         None => Rect {
@@ -221,59 +216,54 @@ where
         }
     };
 
-    let black_width = u32::try_from(raw.blacklevel.width).map_err(|_| {
-        MetadataValidationError::InvalidLevels("black-level width exceeds u32".into())
-    })?;
-    let black_height = u32::try_from(raw.blacklevel.height).map_err(|_| {
-        MetadataValidationError::InvalidLevels("black-level height exceeds u32".into())
-    })?;
-    let black_values = raw.blacklevel.as_vec();
-    let expected_black = (black_width as usize)
-        .checked_mul(black_height as usize)
-        .ok_or_else(|| {
-            MetadataValidationError::InvalidLevels("black-level shape overflows".into())
+    let black = {
+        let black_width = u32::try_from(raw.blacklevel.width).map_err(|_| {
+            MetadataValidationError::InvalidLevels("black-level width exceeds u32".into())
         })?;
-    if black_width == 0
-        || black_height == 0
-        || black_values.len() != expected_black
-        || black_values.iter().any(|value| !value.is_finite())
-    {
-        return Err(MetadataValidationError::InvalidLevels(
-            format!(
-                "black-level shape is {black_width}x{black_height} with {} samples",
-                black_values.len()
+        let black_height = u32::try_from(raw.blacklevel.height).map_err(|_| {
+            MetadataValidationError::InvalidLevels("black-level height exceeds u32".into())
+        })?;
+        let black_values = raw.blacklevel.as_vec();
+        let expected_black = (black_width as usize)
+            .checked_mul(black_height as usize)
+            .ok_or_else(|| {
+                MetadataValidationError::InvalidLevels("black-level shape overflows".into())
+            })?;
+        if black_width == 0
+            || black_height == 0
+            || black_values.len() != expected_black
+            || black_values.iter().any(|value| !value.is_finite())
+        {
+            return Err(MetadataValidationError::InvalidLevels(
+                format!(
+                    "black-level shape is {black_width}x{black_height} with {} samples",
+                    black_values.len()
+                )
+                .into(),
             )
-            .into(),
+            .into());
+        }
+        MonoImage::from_raw(
+            black_width,
+            black_height,
+            black_values.into_iter().map(|v| num!(v)).collect(),
         )
-        .into());
-    }
-    let black = black_values
-        .into_iter()
-        .map(|value| {
-            cast(value).ok_or_else(|| {
-                MetadataValidationError::InvalidLevels("black level cannot be represented".into())
-            })
-        })
-        .collect::<Result<Vec<T>, _>>()
-        .and_then(|values| {
-            MonoImage::from_raw(black_width, black_height, values).ok_or_else(|| {
-                MetadataValidationError::InvalidLevels("invalid black-level image".into())
-            })
-        })?;
+        .ok_or_else(|| MetadataValidationError::InvalidLevels("invalid black-level image".into()))?
+    };
 
-    let white_value =
-        raw.whitelevel.0.first().copied().ok_or_else(|| {
+    let white = {
+        let white_value = raw.whitelevel.0.first().copied().ok_or_else(|| {
             MetadataValidationError::InvalidLevels("white level is missing".into())
         })?;
-    let white = cast(white_value).ok_or_else(|| {
-        MetadataValidationError::InvalidLevels("white level cannot be represented".into())
-    })?;
-    if white <= T::zero() {
-        return Err(MetadataValidationError::InvalidLevels(
-            "white level must be greater than zero".into(),
-        )
-        .into());
-    }
+        let white = num!(white_value);
+        if white <= T::zero() {
+            return Err(MetadataValidationError::InvalidLevels(
+                "white level must be greater than zero".into(),
+            )
+            .into());
+        }
+        white
+    };
 
     let bayer_pattern = match cfa.name.to_ascii_uppercase().as_str() {
         "RGGB" => BayerPattern::RGGB,
