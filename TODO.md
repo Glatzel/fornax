@@ -6,7 +6,7 @@
   - [DEM-AHD] AHD: adaptive homogeneity-directed interpolation; reference: LibRaw.
   - [DEM-DCB] DCB: directional color balance demosaicing; reference: LibRaw.
   - [DEM-DHT] DHT: directional homogeneity-targeted demosaicing; reference: LibRaw.
-  - [DEM-Modified-AHD] AAHD: advanced/modified AHD; reference: LibRaw.
+  - [DEM-AAHD] AAHD: advanced/modified AHD; reference: LibRaw.
   - [DEM-AMAZE] AMaZE: alias-free zipper elimination demosaicing; reference: darktable.
   - [DEM-RCD] RCD: ratio-corrected demosaicing; reference: darktable.
   - [DEM-LMMSE] LMMSE: linear minimum mean-square-error demosaicing; reference: darktable.
