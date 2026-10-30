@@ -66,7 +66,8 @@ fn main() {
     darktable_rcd
         .warnings(true)
         .include(&workspace_root)
-        .flag_if_supported("-std=c17")
+        .flag_if_supported("-std=c17") // MSVC
+        .flag_if_supported("/std:c++17") // gcc/clang
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-parameter")
         .file(manifest_dir.join("cpp/algos/darktable_rcd.c"));
