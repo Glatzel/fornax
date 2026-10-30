@@ -1,20 +1,24 @@
 mod linear;
 mod ppg;
+mod rcd;
 use fornax_core::error::DemosaicError;
 use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use linear::{DemosaicLinear, LinearLazy};
 use ppg::{DemosaicPpg, PpgLazy};
+use rcd::{DemosaicRcd, RcdLazy};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Demosaic {
     Linear,
     Ppg,
+    Rcd,
 }
 
-pub enum AnyLazy<'a, T> {
+pub enum AnyLazy<'a, T: Primitive> {
     Linear(LinearLazy<'a, T>),
     Ppg(PpgLazy<'a, T>),
+    Rcd(RcdLazy<T>),
 }
 
 impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
@@ -22,6 +26,7 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
         match self {
             Self::Linear(l) => l.dimensions(),
             Self::Ppg(p) => p.dimensions(),
+            Self::Rcd(r) => r.dimensions(),
         }
     }
 
@@ -29,6 +34,7 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
         match self {
             Self::Linear(l) => l.fill_rows(y0, out),
             Self::Ppg(p) => p.fill_rows(y0, out),
+            Self::Rcd(r) => r.fill_rows(y0, out),
         }
     }
 }
@@ -46,6 +52,7 @@ impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
         Ok(match self {
             Self::Linear => AnyLazy::Linear(DemosaicLinear.lazy(bayer, pattern)?),
             Self::Ppg => AnyLazy::Ppg(DemosaicPpg.lazy(bayer, pattern)?),
+            Self::Rcd => AnyLazy::Rcd(DemosaicRcd.lazy(bayer, pattern)?),
         })
     }
 }

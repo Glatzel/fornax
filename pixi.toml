@@ -8,7 +8,7 @@ libraw-dev = "==0.22.3"
 
 [feature.dev.tasks]
 pipeline = "cargo run --example pipeline"
-compare-demosaic = "cargo run -p compare-demosaic -- --update-readme"
+compare-demosaic = "cargo run -p compare-demosaic"
 
 [feature.python.dependencies]
 maturin = "==1.15.0"

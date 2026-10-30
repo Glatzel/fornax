@@ -21,14 +21,15 @@ mapping stages are bypassed. The adapter injects the mosaic into LibRaw's
 working image and invokes only the selected interpolation routine.
 
 The darktable reference compiles the unmodified
-`src/iop/demosaicing/ppg.c` from release 5.6.2 through a small adapter. The
-repository setup script uses `gh api` to materialize only that source file.
+`src/iop/demosaicing/ppg.c` and `src/iop/demosaicing/rcd.c` from release 5.6.2
+through small adapters. The repository setup scripts use `gh api` to
+materialize only those source files.
 
 Metrics cover the three output channels. Each case declares whether its
-one-pixel border is excluded to account for reference boundary strategy
-differences. MAE and maximum error are 16-bit codes, PSNR uses a peak value of
-65535 and is reported in dB, and changed values are percentages. The table
-uses `f32`; tests repeat every case with both `f32` and `f64`.
+implementation-specific border is excluded to account for reference boundary
+strategy differences. MAE and maximum error are 16-bit codes, PSNR uses a peak
+value of 65535 and is reported in dB, and changed values are percentages. The
+table uses `f32`; tests repeat every case with both `f32` and `f64`.
 
 Run the comparison from the repository root:
 
@@ -39,23 +40,54 @@ pixi run -e dev compare-demosaic
 
 On Windows, run `./scripts/setup.ps1` before `pixi run -e dev compare-demosaic`.
 
+The command writes `results/canonical.json`; it does not edit this README. A
+Codex agent reads that JSON, updates the per-algorithm tables, and writes an
+evidence-based note after any table containing `⚠️` results.
+
+The committed JSON and tables are Linux-canonical. Cross-platform tests still
+validate the declared tolerances, but exact documentation freshness is checked
+on Linux because compiler and math-library rounding can vary by platform.
+
 ## Results
 
 <!-- BEGIN:compare-table -->
-| Fornax | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Linear | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | 🟢 | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
-| Linear | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | BGGR | 🟢 | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
-| Linear | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GRBG | 🟢 | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
-| Linear | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GBRG | 🟢 | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
-| PPG | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | ⚠️ | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
-| PPG | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | ⚠️ | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
-| PPG | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | ⚠️ | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
-| PPG | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | ⚠️ | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
-| PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+### Linear
+
+| Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | BGGR | 🟢 | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GBRG | 🟢 | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GRBG | 🟢 | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | 🟢 | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
+
+### PPG
+
+| Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | ⚠️ | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | ⚠️ | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | ⚠️ | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | ⚠️ | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
+
+> [!NOTE]
+> The PPG/LibRaw rows use the declared 12,000-code tolerance. Fornax clamps
+> reconstructed RGB to `[0, 1]` before 16-bit quantization, while the LibRaw
+> comparison path does not apply an equivalent clamp. Isolated interpolation
+> and boundary differences on the random synthetic fixture can therefore
+> produce a large maximum error even though MAE remains low.
+
+### RCD
+
+| Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
 
 Reference builds: LibRaw 0.22.3; darktable 5.6.2 (20891f6c6fa7be995e5bf9dff9d1ee5062051773).
 <!-- END:compare-table -->
@@ -69,12 +101,14 @@ Legend:
 
 ## Adding an algorithm
 
-1. Add a reference runner to `cpp/algos/<library>_<algorithm>.cpp`, or adapt a
-   pinned external source without copying it into the comparison crate.
+1. Add a reference runner to `cpp/algos/<library>_<algorithm>.{c,cpp}`, or
+   adapt a pinned external source without copying it into the comparison crate.
 2. Add its reference backend and ID to the `switch` in `cpp/shim.cpp`.
 3. Add `src/cases/<name>.rs` with a `CASE` and its Fornax runner.
 4. Register the case in `src/cases/mod.rs`.
-5. Run `pixi run -e dev compare-demosaic`, review the table, and commit.
+5. Run `pixi run -e dev compare-demosaic` to update the canonical JSON result.
+6. Have the Codex agent update the README tables and warning notes from JSON.
+7. Commit both the JSON result and README.
 
 Reference routines and headers come from the Pixi-managed `libraw-dev` package;
 the comparison crate does not compile LibRaw from the external checkout.
