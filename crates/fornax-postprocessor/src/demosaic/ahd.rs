@@ -126,7 +126,6 @@ fn process_ahd(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 fn green_candidates(
     raw: &[f32],
     width: usize,
