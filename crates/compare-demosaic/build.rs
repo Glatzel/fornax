@@ -18,12 +18,16 @@ fn main() {
 
     let manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
     let workspace_root = PathBuf::from(env::var_os("CARGO_WORKSPACE_DIR").unwrap());
-    let darktable_source = workspace_root.join("external/darktable/src/iop/demosaicing/ppg.c");
-    assert!(
-        darktable_source.is_file(),
-        "initialize the pinned darktable submodule: git submodule update --init external/darktable"
-    );
-    println!("cargo:rerun-if-changed={}", darktable_source.display());
+    for source in ["ppg.c", "rcd.c"] {
+        let darktable_source = workspace_root
+            .join("external/darktable/src/iop/demosaicing")
+            .join(source);
+        assert!(
+            darktable_source.is_file(),
+            "run the platform setup script to materialize darktable {source}"
+        );
+        println!("cargo:rerun-if-changed={}", darktable_source.display());
+    }
     let libraw_root =
         workspace_root.join(env::var("LIBRAW_ROOT").expect("LIBRAW_ROOT must be set"));
     let include_dir = libraw_root.join("include");
@@ -58,14 +62,24 @@ fn main() {
     }
     build.compile("compare_demosaic_libraw_reference");
 
+    let mut darktable_rcd = cc::Build::new();
+    darktable_rcd
+        .warnings(true)
+        .include(&workspace_root)
+        .flag_if_supported("-std=c17")
+        .flag_if_supported("-Wno-unused-function")
+        .flag_if_supported("-Wno-unused-parameter")
+        .file(manifest_dir.join("cpp/algos/darktable_rcd.c"));
+    darktable_rcd.compile("compare_demosaic_darktable_rcd");
+
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
     println!("cargo:rustc-link-lib=raw_r");
 }
 
 fn write_status_codes(manifest_dir: &Path) {
-    let header =
-        fs::read_to_string(manifest_dir.join("cpp/shim.h")).expect("reading comparison FFI header");
-    let mut generated = String::from("// Generated from cpp/shim.h by build.rs.\n");
+    let header = fs::read_to_string(manifest_dir.join("cpp/status.h"))
+        .expect("reading comparison FFI status header");
+    let mut generated = String::from("// Generated from cpp/status.h by build.rs.\n");
     let mut count = 0;
     for line in header
         .lines()

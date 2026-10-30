@@ -43,6 +43,9 @@ mod tests {
             for pattern in BayerPattern::ALL {
                 for sample_type in [SampleType::F32, SampleType::F64] {
                     for input in data::test_inputs() {
+                        if case.border.saturating_mul(2) >= input.width.min(input.height) {
+                            continue;
+                        }
                         let row = report::compare(
                             case,
                             &input.codes,
@@ -164,6 +167,9 @@ mod tests {
         for case in CASES {
             for pattern in BayerPattern::ALL {
                 for sample_type in [SampleType::F32, SampleType::F64] {
+                    if case.border.saturating_mul(2) >= input.width.min(input.height) {
+                        continue;
+                    }
                     let row = report::compare(
                         case,
                         &input.codes,

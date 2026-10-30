@@ -1,7 +1,7 @@
 # fornax-postprocessor
 
-Post-processes normalized Bayer data into RGB output, including Fornax's linear
-and patterned-pixel-grouping demosaic implementations.
+Post-processes normalized Bayer data into RGB output, including Fornax's linear,
+patterned-pixel-grouping, and ratio-corrected demosaic implementations.
 
 ```rust
 use fornax_core::protocol::IPostProcessor;

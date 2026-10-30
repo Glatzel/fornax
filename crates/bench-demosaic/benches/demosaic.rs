@@ -15,8 +15,12 @@ fn bench_methods<D, T>(
     T: Primitive + Send + Sync,
 {
     c.bench_function(name, |b| {
-        let lazy = demosaic.demosaic(&image, BayerPattern::RGGB).unwrap();
-        b.iter(|| pool.install(|| black_box(lazy.collect())));
+        b.iter(|| {
+            let lazy = demosaic
+                .demosaic(black_box(&image), BayerPattern::RGGB)
+                .unwrap();
+            pool.install(|| black_box(lazy.collect()))
+        });
     });
 }
 
@@ -28,7 +32,11 @@ fn bench_sizes<T: Primitive + Send + Sync>(
     for (threads, pool) in params.pools() {
         for size in &params.sizes {
             let image = synthetic_mono_image::<T>(size.dims, 1.0);
-            for (prefix, demosaic) in [("linear", Demosaic::Linear), ("ppg", Demosaic::Ppg)] {
+            for (prefix, demosaic) in [
+                ("linear", Demosaic::Linear),
+                ("ppg", Demosaic::Ppg),
+                ("rcd", Demosaic::Rcd),
+            ] {
                 let name = params.case_name(prefix, size, bits, threads);
                 bench_methods::<_, T>(c, &pool, &name, demosaic, image.clone());
             }

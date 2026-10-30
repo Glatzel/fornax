@@ -9,7 +9,7 @@ git submodule update --init external/libraw external/raw-images
 
 files=(
     "src/iop/demosaicing/ppg.c"
-    # "src/iop/demosaicing/other.c"
+    "src/iop/demosaicing/rcd.c"
 )
 for file in "${files[@]}"; do
     destination="external/darktable/$file"

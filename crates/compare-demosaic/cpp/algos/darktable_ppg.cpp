@@ -1,30 +1,8 @@
 #include "../shim.h"
+#include "darktable_common.h"
 
-#include <algorithm>
-#include <cmath>
-#include <cstddef>
-#include <cstring>
 #include <new>
 #include <vector>
-#if defined(_MSC_VER) && !defined(__clang__)
-#define __builtin_expect(x, y) (x)
-#endif
-using gboolean = int;
-using dt_aligned_pixel_t = float[4];
-using std::size_t;
-
-#define DT_PIXEL_SIMD_CHANNELS 4
-#define DT_OMP_DECLARE_SIMD(...)
-#define DT_OMP_FOR(...)
-#define for_each_channel(_var, ...) for (size_t _var = 0; _var < DT_PIXEL_SIMD_CHANNELS; ++_var)
-#define dt_omp_nontemporal(pointer)
-#define FC(row, col, filters) ((filters >> (((((row) << 1) & 14U) + ((col) & 1U)) * 2U)) & 3U)
-
-// PPG is called with the edge-aware median disabled, so this dependency is
-// unreachable but still required while compiling darktable's source.
-static void   pre_median(float*, const float*, int, int, std::uint32_t, int, float) {}
-static float* dt_alloc_align_float(size_t) { return nullptr; }
-static void   dt_free_align(float*) {}
 
 #include "external/darktable/src/iop/demosaicing/ppg.c"
 

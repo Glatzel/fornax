@@ -5,6 +5,14 @@
 #include <limits>
 #include <new>
 
+extern "C" std::int32_t run_darktable_rcd(
+    const std::uint16_t* mosaic,
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output
+);
+
 std::int32_t ReferenceDemosaicer::prepare(
     const std::uint16_t* mosaic,
     std::uint32_t        width,
@@ -83,7 +91,14 @@ extern "C" std::int32_t compare_demosaic_reference(
         return COMPARE_DEMOSAIC_STATUS_DIMENSION_OVERFLOW;
     }
     if (reference == COMPARE_DEMOSAIC_REFERENCE_DARKTABLE) {
-        return run_darktable_ppg(mosaic, width, height, filters, output);
+        switch (algorithm) {
+            case 0:
+                return run_darktable_ppg(mosaic, width, height, filters, output);
+            case 1:
+                return run_darktable_rcd(mosaic, width, height, filters, output);
+            default:
+                return COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM;
+        }
     }
     if (reference != COMPARE_DEMOSAIC_REFERENCE_LIBRAW) {
         return COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM;

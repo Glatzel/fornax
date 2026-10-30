@@ -21,14 +21,15 @@ mapping stages are bypassed. The adapter injects the mosaic into LibRaw's
 working image and invokes only the selected interpolation routine.
 
 The darktable reference compiles the unmodified
-`src/iop/demosaicing/ppg.c` from release 5.6.2 through a small adapter. The
-repository setup script uses `gh api` to materialize only that source file.
+`src/iop/demosaicing/ppg.c` and `src/iop/demosaicing/rcd.c` from release 5.6.2
+through small adapters. The repository setup scripts use `gh api` to
+materialize only those source files.
 
 Metrics cover the three output channels. Each case declares whether its
-one-pixel border is excluded to account for reference boundary strategy
-differences. MAE and maximum error are 16-bit codes, PSNR uses a peak value of
-65535 and is reported in dB, and changed values are percentages. The table
-uses `f32`; tests repeat every case with both `f32` and `f64`.
+implementation-specific border is excluded to account for reference boundary
+strategy differences. MAE and maximum error are 16-bit codes, PSNR uses a peak
+value of 65535 and is reported in dB, and changed values are percentages. The
+table uses `f32`; tests repeat every case with both `f32` and `f64`.
 
 Run the comparison from the repository root:
 
@@ -56,6 +57,10 @@ On Windows, run `./scripts/setup.ps1` before `pixi run -e dev compare-demosaic`.
 | PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
 | PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
 | PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| RCD | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| RCD | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| RCD | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| RCD | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
 
 Reference builds: LibRaw 0.22.3; darktable 5.6.2 (20891f6c6fa7be995e5bf9dff9d1ee5062051773).
 <!-- END:compare-table -->
@@ -69,8 +74,8 @@ Legend:
 
 ## Adding an algorithm
 
-1. Add a reference runner to `cpp/algos/<library>_<algorithm>.cpp`, or adapt a
-   pinned external source without copying it into the comparison crate.
+1. Add a reference runner to `cpp/algos/<library>_<algorithm>.{c,cpp}`, or
+   adapt a pinned external source without copying it into the comparison crate.
 2. Add its reference backend and ID to the `switch` in `cpp/shim.cpp`.
 3. Add `src/cases/<name>.rs` with a `CASE` and its Fornax runner.
 4. Register the case in `src/cases/mod.rs`.
