@@ -106,8 +106,8 @@ mod tests {
         let stored = std::fs::read_to_string(path)?;
         let expected = ComparisonResults::canonical()?;
         assert_eq!(
-            stored,
-            expected.to_pretty_json()?,
+            normalize_line_endings(&stored),
+            normalize_line_endings(&expected.to_pretty_json()?),
             "comparison results are stale; run `pixi run -e dev compare-demosaic`"
         );
         let parsed = serde_json::from_str::<ComparisonResults>(&stored).unwrap();
@@ -118,6 +118,13 @@ mod tests {
             expected.comparisons[0].algorithm
         );
         Ok(())
+    }
+
+    #[test]
+    fn result_freshness_ignores_platform_line_endings() {
+        let lf = "{\n  \"schema_version\": 1\n}\n";
+        let crlf = lf.replace('\n', "\r\n");
+        assert_eq!(normalize_line_endings(lf), normalize_line_endings(&crlf));
     }
 
     #[test]
@@ -200,6 +207,8 @@ mod tests {
             result.metrics.changed_percent,
         )
     }
+
+    fn normalize_line_endings(text: &str) -> String { text.replace("\r\n", "\n") }
 
     #[test]
     fn source_link_matches_packaged_version() {
