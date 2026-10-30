@@ -1,25 +1,48 @@
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot/..
+pixi install -e dev
+git submodule update --init external/libraw external/raw-images
 
-& pixi run -e python python $PSScriptRoot/setup.py @args
-if ($LASTEXITCODE -ne 0)
+foreach ($file in  @(
+        "src/iop/demosaicing/ppg.c"
+    ))
 {
-    exit $LASTEXITCODE
+    $destination = Join-Path "external/darktable" $file
+
+    New-Item -ItemType Directory -Force (Split-Path $destination) | Out-Null
+
+    $content = gh api "repos/darktable-org/darktable/contents/${file}?ref=release-5.6.2" --jq .content
+    if ($LASTEXITCODE -ne 0)
+    {
+        throw "failed to download darktable/$file"
+    }
+
+    [IO.File]::WriteAllBytes(
+        $destination,
+        [Convert]::FromBase64String(($content -join ""))
+    )
 }
 
-$setupEnvironment = (& pixi run -e python python $PSScriptRoot/setup.py --env-json | ConvertFrom-Json)
-$env:LIBRAW_ROOT = $setupEnvironment.libraw_root
-$env:Path = "$($setupEnvironment.path_entry)$([IO.Path]::PathSeparator)$env:Path"
-if ($setupEnvironment.loader_name)
+if ($IsWindows)
 {
-    $loaderPath = [Environment]::GetEnvironmentVariable($setupEnvironment.loader_name)
-    $envValue = if ($loaderPath)
-    {
-        "$($setupEnvironment.loader_path)$([IO.Path]::PathSeparator)$loaderPath"
-    }
-    else
-    {
-        $setupEnvironment.loader_path
-    }
-    [Environment]::SetEnvironmentVariable($setupEnvironment.loader_name, $envValue)
+    $env:Path = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev/Library/bin);$env:Path"
+    $env:LIBRAW_ROOT = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev/Library)"
+}
+if ($IsMacOS)
+{
+    $env:Path = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev/lib)`:$env:Path"
+    $env:DYLD_LIBRARY_PATH = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev/lib)`:$env:DYLD_LIBRARY_PATH"
+    $env:LIBRAW_ROOT = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev)"
+}
+if ($IsLinux -and ($(uname -m) -eq 'x86_64' ))
+{
+    $env:Path = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev/lib)`:$env:Path"
+    $env:LD_LIBRARY_PATH = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev/lib)`:$env:LD_LIBRARY_PATH"
+    $env:LIBRAW_ROOT = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev)"
+}
+if ($IsLinux -and ($(uname -m) -eq 'aarch64' ))
+{
+    $env:Path = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev/lib)`:$env:Path"
+    $env:LD_LIBRARY_PATH = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev/lib)`:$env:LD_LIBRARY_PATH"
+    $env:LIBRAW_ROOT = "$(Resolve-Path $PSScriptRoot/../.pixi/envs/dev)"
 }
