@@ -114,56 +114,14 @@ fn process_ahd(
 
     for top in (2..height - BORDER).step_by(TILE_STEP) {
         for left in (2..width - BORDER).step_by(TILE_STEP) {
-            let tile_height = TILE_SIZE.min(height - top);
-            let tile_width = TILE_SIZE.min(width - left);
             rgb.fill([0.0; 3]);
             lab.fill([0; 3]);
             homogeneity.fill([0; 2]);
 
-            green_candidates(
-                raw,
-                width,
-                height,
-                pattern,
-                &mut rgb,
-                top,
-                left,
-                tile_height,
-                tile_width,
-            );
-            directional_rgb_and_lab(
-                raw,
-                width,
-                height,
-                pattern,
-                &mut rgb,
-                &mut lab,
-                top,
-                left,
-                tile_height,
-                tile_width,
-            );
-            build_homogeneity(
-                &lab,
-                &mut homogeneity,
-                top,
-                left,
-                tile_height,
-                tile_width,
-                height,
-                width,
-            );
-            combine_pixels(
-                output,
-                width,
-                &rgb,
-                &homogeneity,
-                top,
-                left,
-                tile_height,
-                tile_width,
-                height,
-            );
+            green_candidates(raw, width, height, pattern, &mut rgb, top, left);
+            directional_rgb_and_lab(raw, width, height, pattern, &mut rgb, &mut lab, top, left);
+            build_homogeneity(&lab, &mut homogeneity, top, left, height, width);
+            combine_pixels(output, width, &rgb, &homogeneity, top, left, height);
         }
     }
 }
@@ -177,8 +135,6 @@ fn green_candidates(
     rgb: &mut [[f32; 3]],
     top: usize,
     left: usize,
-    _tile_height: usize,
-    _tile_width: usize,
 ) {
     let row_limit = (top + TILE_SIZE).min(height.saturating_sub(2));
     let col_limit = (left + TILE_SIZE).min(width.saturating_sub(2));
@@ -219,8 +175,6 @@ fn directional_rgb_and_lab(
     lab: &mut [[i32; 3]],
     top: usize,
     left: usize,
-    _tile_height: usize,
-    _tile_width: usize,
 ) {
     let row_limit = (top + TILE_SIZE - 1).min(height.saturating_sub(3));
     let col_limit = (left + TILE_SIZE - 1).min(width.saturating_sub(3));
@@ -288,8 +242,7 @@ fn build_homogeneity(
     homogeneity: &mut [[u8; 2]],
     top: usize,
     left: usize,
-    _tile_height: usize,
-    _tile_width: usize,
+
     height: usize,
     width: usize,
 ) {
@@ -335,8 +288,7 @@ fn combine_pixels(
     homogeneity: &[[u8; 2]],
     top: usize,
     left: usize,
-    _tile_height: usize,
-    _tile_width: usize,
+
     height: usize,
 ) {
     let row_limit = (top + TILE_SIZE - 3).min(height.saturating_sub(5));
