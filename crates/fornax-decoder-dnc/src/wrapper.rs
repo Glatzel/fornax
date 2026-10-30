@@ -145,22 +145,6 @@ pub struct DncDecoder {
     pub overwrite: bool,
 }
 impl DncDecoder {
-    pub fn new() -> Self {
-        Self {
-            compressed: true,
-            linear: false,
-            embed: false,
-            preview: DncPreview::Medium,
-            fast_load: false,
-            side: None,
-            count: None,
-            compatibility: DncCompatibility::CR16_0,
-            directory: None,
-            filename: None,
-            overwrite: false,
-        }
-    }
-
     fn command_args(&self, raw_file: &Path) -> Result<Vec<String>, DecodeError> {
         let raw_file = std::path::absolute(raw_file).map_err(|error| {
             DecodeError::InvalidInput(
@@ -357,7 +341,21 @@ impl DncDecoder {
 }
 
 impl Default for DncDecoder {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self {
+            compressed: true,
+            linear: false,
+            embed: false,
+            preview: DncPreview::Medium,
+            fast_load: false,
+            side: None,
+            count: None,
+            compatibility: DncCompatibility::CR16_0,
+            directory: None,
+            filename: None,
+            overwrite: false,
+        }
+    }
 }
 impl<T> IDecoder<Path, T> for DncDecoder
 where
