@@ -32,3 +32,4 @@ jobs:
           options: -p bench-decoder -p bench-demosaic -p bench-preprocessor
         env:
           GH_TOKEN: ${{ github.token }}
+          LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/dev/lib:${{ env.LD_LIBRARY_PATH }}
