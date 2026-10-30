@@ -41,7 +41,7 @@ pub fn compare(
     let metrics = metrics::calculate(&actual, &reference, width, height, case.border)?;
     Ok(Row {
         case: case.name,
-        reference: case.reference,
+        reference: case.reference_backend.library(),
         source_url: case.source_url,
         pattern,
         metrics,
@@ -79,7 +79,7 @@ pub fn render_table(rows: &[Row]) -> String {
             format!("{:.2}", row.metrics.peak_signal_to_noise_ratio)
         };
         output.push_str(&format!(
-            "| {} | [`{}`]({}) | {} | {} | {:.3} | {:.3} | {} | {} | {:.3}% |\n",
+            "| {} | [{}]({}) | {} | {} | {:.3} | {:.3} | {} | {} | {:.3}% |\n",
             row.case,
             row.reference,
             row.source_url,
@@ -170,5 +170,15 @@ mod tests {
         assert_eq!(verdict(metrics::Verdict::RoundingOnly), "🟢");
         assert_eq!(verdict(metrics::Verdict::WithinTolerance(1)), "⚠️");
         assert_eq!(verdict(metrics::Verdict::Differs), "❌");
+    }
+
+    #[test]
+    fn reference_cells_only_show_library_names() {
+        let rows = canonical_rows().expect("canonical comparison rows");
+        let table = render_table(&rows);
+        assert!(table.contains("| [LibRaw]("));
+        assert!(table.contains("| [darktable]("));
+        assert!(!table.contains("`LibRaw::"));
+        assert!(!table.contains("demosaic_ppg"));
     }
 }

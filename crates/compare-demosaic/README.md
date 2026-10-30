@@ -44,18 +44,18 @@ On Windows, run `./scripts/setup.ps1` before `pixi run -e dev compare-demosaic`.
 <!-- BEGIN:compare-table -->
 | Fornax | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Linear | [`LibRaw::lin_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | 🟢 | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
-| Linear | [`LibRaw::lin_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | BGGR | 🟢 | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
-| Linear | [`LibRaw::lin_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GRBG | 🟢 | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
-| Linear | [`LibRaw::lin_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GBRG | 🟢 | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
-| PPG | [`LibRaw::ppg_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | ⚠️ | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
-| PPG | [`LibRaw::ppg_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | ⚠️ | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
-| PPG | [`LibRaw::ppg_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | ⚠️ | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
-| PPG | [`LibRaw::ppg_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | ⚠️ | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
-| PPG | [`darktable demosaic_ppg`](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | [`darktable demosaic_ppg`](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | [`darktable demosaic_ppg`](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | [`darktable demosaic_ppg`](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| Linear | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | 🟢 | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
+| Linear | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | BGGR | 🟢 | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
+| Linear | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GRBG | 🟢 | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
+| Linear | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GBRG | 🟢 | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
+| PPG | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | ⚠️ | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
+| PPG | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | ⚠️ | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
+| PPG | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | ⚠️ | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
+| PPG | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | ⚠️ | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
+| PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| PPG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
 
 Reference builds: LibRaw 0.22.3; darktable 5.6.2 (20891f6c6fa7be995e5bf9dff9d1ee5062051773).
 <!-- END:compare-table -->

@@ -12,7 +12,6 @@ const LIBRAW_LINEAR_URL: &str = concat!(
 
 pub const CASE: Case = Case {
     name: "Linear",
-    reference: "LibRaw::lin_interpolate",
     source_url: LIBRAW_LINEAR_URL,
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 0,

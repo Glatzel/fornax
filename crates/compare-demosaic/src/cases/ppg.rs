@@ -17,7 +17,6 @@ const DARKTABLE_PPG_URL: &str = concat!(
 
 pub const LIBRAW_CASE: Case = Case {
     name: "PPG",
-    reference: "LibRaw::ppg_interpolate",
     source_url: LIBRAW_PPG_URL,
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 1,
@@ -28,7 +27,6 @@ pub const LIBRAW_CASE: Case = Case {
 
 pub const DARKTABLE_CASE: Case = Case {
     name: "PPG",
-    reference: "darktable demosaic_ppg",
     source_url: DARKTABLE_PPG_URL,
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 0,
