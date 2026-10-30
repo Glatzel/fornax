@@ -21,12 +21,11 @@
 #define for_each_channel(_var, ...) for (size_t _var = 0; _var < DT_PIXEL_SIMD_CHANNELS; ++_var)
 #define dt_omp_nontemporal(pointer)
 
-typedef int gboolean;
+typedef int   gboolean;
 typedef float dt_aligned_pixel_t[4];
 
-static void pre_median(float* out, const float* in, int width, int height,
-                       uint32_t filters, int passes, float threshold)
-{
+static void
+pre_median(float* out, const float* in, int width, int height, uint32_t filters, int passes, float threshold) {
     (void)out;
     (void)in;
     (void)width;
@@ -36,30 +35,19 @@ static void pre_median(float* out, const float* in, int width, int height,
     (void)threshold;
 }
 
-static float* dt_alloc_align_float(size_t count)
-{
-    return (float*)malloc(count * sizeof(float));
-}
+static float* dt_alloc_align_float(size_t count) { return (float*)malloc(count * sizeof(float)); }
 
-static float* dt_calloc_align_float(size_t count)
-{
-    return (float*)calloc(count, sizeof(float));
-}
+static float* dt_calloc_align_float(size_t count) { return (float*)calloc(count, sizeof(float)); }
 
-static void dt_free_align(void* pointer) { free(pointer); }
+static void  dt_free_align(void* pointer) { free(pointer); }
 static float sqrf(float value) { return value * value; }
 
-static float interpolatef(float weight, float first, float second)
-{
-    return weight * (first - second) + second;
-}
+static float interpolatef(float weight, float first, float second) { return weight * (first - second) + second; }
 
 #include "external/darktable/src/iop/demosaicing/ppg.c"
 #include "external/darktable/src/iop/demosaicing/rcd.c"
 
-int32_t run_darktable_rcd(const uint16_t* mosaic, uint32_t width, uint32_t height,
-                          uint32_t filters, uint16_t* output)
-{
+int32_t run_darktable_rcd(const uint16_t* mosaic, uint32_t width, uint32_t height, uint32_t filters, uint16_t* output) {
     const size_t pixel_count = (size_t)width * height;
     for (uint32_t shift = 0; shift < 32; shift += 2) {
         if (((filters >> shift) & 3U) == 3U) {

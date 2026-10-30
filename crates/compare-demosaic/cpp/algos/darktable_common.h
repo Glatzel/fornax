@@ -29,8 +29,6 @@ using std::size_t;
 
 static void pre_median(float*, const float*, int, int, std::uint32_t, int, float) {}
 
-static float* dt_alloc_align_float(size_t count) {
-    return static_cast<float*>(std::malloc(count * sizeof(float)));
-}
+static float* dt_alloc_align_float(size_t count) { return static_cast<float*>(std::malloc(count * sizeof(float))); }
 
 static void dt_free_align(float* pointer) { std::free(pointer); }
