@@ -31,7 +31,6 @@ pub type FornaxRunner =
 pub struct Case {
     pub name: &'static str,
     pub reference: &'static str,
-    pub source_name: &'static str,
     pub source_url: &'static str,
     pub reference_backend: ReferenceBackend,
     pub algorithm: u32,

@@ -20,58 +20,56 @@ LibRaw's decoding, black subtraction, white balance, color conversion, and tone
 mapping stages are bypassed. The adapter injects the mosaic into LibRaw's
 working image and invokes only the selected interpolation routine.
 
-The darktable reference compiles the pinned, unmodified
-`src/iop/demosaicing/ppg.c` through a small adapter. The repository setup
-scripts use `gh repo clone --sparse` and a partial clone to materialize only
-that source file. If darktable was previously initialized as a full submodule,
-remove `external/darktable` before rerunning setup so GitHub CLI can create the
-sparse clone.
+The darktable reference compiles the unmodified
+`src/iop/demosaicing/ppg.c` from release 5.6.2 through a small adapter. The
+repository setup script uses `gh api` to materialize only that source file.
 
 Metrics cover the three output channels. Each case declares whether its
 one-pixel border is excluded to account for reference boundary strategy
-differences. MAE and RMSE are measured in 16-bit code values. PSNR uses a peak
-value of 65535. `Changed` is the percentage of compared channel samples that
-differ.
-The table uses `f32`; tests repeat every case with both `f32` and `f64`.
+differences. MAE and maximum error are 16-bit codes, PSNR uses a peak value of
+65535 and is reported in dB, and changed values are percentages. The table
+uses `f32`; tests repeat every case with both `f32` and `f64`.
 
 Run the comparison from the repository root:
 
 ```bash
+python3 scripts/setup.py
+eval "$(python3 scripts/setup.py --env-shell)"
 pixi run -e dev compare-demosaic
 ```
 
 ## Results
 
 <!-- BEGIN:compare-table -->
-| Fornax algorithm | Reference algorithm | Source | Bayer pattern | Verdict | MAE (codes) | RMSE (codes) | Max difference (codes) | PSNR (dB) | Changed |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | ✅ rounding only | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | BGGR | ✅ rounding only | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GRBG | ✅ rounding only | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
-| Linear | `LibRaw::lin_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GBRG | ✅ rounding only | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
-| PPG | `LibRaw::ppg_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | ✅ within tolerance | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
-| PPG | `LibRaw::ppg_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | ✅ within tolerance | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
-| PPG | `LibRaw::ppg_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | ✅ within tolerance | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
-| PPG | `LibRaw::ppg_interpolate` | [`misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | ✅ within tolerance | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
-| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/093e10b207ccf201a85c0f2d951480c6df4dbd8d/src/iop/demosaicing/ppg.c#L20) | RGGB | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/093e10b207ccf201a85c0f2d951480c6df4dbd8d/src/iop/demosaicing/ppg.c#L20) | BGGR | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/093e10b207ccf201a85c0f2d951480c6df4dbd8d/src/iop/demosaicing/ppg.c#L20) | GRBG | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| PPG | `darktable demosaic_ppg` | [`ppg.c`](https://github.com/darktable-org/darktable/blob/093e10b207ccf201a85c0f2d951480c6df4dbd8d/src/iop/demosaicing/ppg.c#L20) | GBRG | ✅ exact | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| Fornax | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Linear | [`LibRaw::lin_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | 🔵 | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
+| Linear | [`LibRaw::lin_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | BGGR | 🔵 | 0.303 | 0.550 | 1 | 101.52 | 30.284% |
+| Linear | [`LibRaw::lin_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GRBG | 🔵 | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
+| Linear | [`LibRaw::lin_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GBRG | 🔵 | 0.302 | 0.550 | 1 | 101.53 | 30.227% |
+| PPG | [`LibRaw::ppg_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | 🟡 | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
+| PPG | [`LibRaw::ppg_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | 🟡 | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
+| PPG | [`LibRaw::ppg_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | 🟡 | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
+| PPG | [`LibRaw::ppg_interpolate`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | 🟡 | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
+| PPG | [`darktable demosaic_ppg`](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| PPG | [`darktable demosaic_ppg`](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| PPG | [`darktable demosaic_ppg`](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| PPG | [`darktable demosaic_ppg`](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
 
-Reference builds: LibRaw 0.22.3; darktable 093e10b207ccf201a85c0f2d951480c6df4dbd8d.
+Reference builds: LibRaw 0.22.3; darktable 5.6.2 (20891f6c6fa7be995e5bf9dff9d1ee5062051773).
 <!-- END:compare-table -->
 
 Legend:
 
-- `✅ exact`: every compared sample is bit-identical.
-- `✅ rounding only`: Fornax rounds to nearest while LibRaw truncates, so differences are one code upward.
-- `✅ within tolerance`: every sample is within the case's declared maximum error.
-- `❌ differs`: at least one compared sample exceeds that tolerance.
+- `✅`: every compared sample is bit-identical.
+- `🔵`: Fornax rounds to nearest while LibRaw truncates, so differences are one code upward.
+- `🟡`: every sample is within the case's declared maximum error.
+- `❌`: at least one compared sample exceeds that tolerance.
 
 ## Adding an algorithm
 
-1. Add a reference runner to `cpp/algos/<name>.cpp`, or adapt a pinned external
-   source without copying it into the comparison crate.
+1. Add a reference runner to `cpp/algos/<library>_<algorithm>.cpp`, or adapt a
+   pinned external source without copying it into the comparison crate.
 2. Add its reference backend and ID to the `switch` in `cpp/shim.cpp`.
 3. Add `src/cases/<name>.rs` with a `CASE` and its Fornax runner.
 4. Register the case in `src/cases/mod.rs`.
@@ -79,4 +77,4 @@ Legend:
 
 Reference routines and headers come from the Pixi-managed `libraw-dev` package;
 the comparison crate does not compile LibRaw from the external checkout.
-darktable reference source comes directly from its pinned submodule.
+darktable reference source is fetched from its pinned release with `gh api`.

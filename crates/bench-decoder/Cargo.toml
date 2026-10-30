@@ -1,0 +1,15 @@
+[package]
+name = "bench-decoder"
+version.workspace = true
+edition.workspace = true
+
+[[bench]]
+harness = false
+name = "decoder"
+
+[dev-dependencies]
+criterion.workspace = true
+fornax-core.workspace = true
+fornax-decoder-rawler.workspace = true
+fornax-devtool.workspace = true
+libraw.workspace = true

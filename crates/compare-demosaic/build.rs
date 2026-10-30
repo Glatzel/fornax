@@ -3,11 +3,12 @@ use std::{env, fs};
 
 const LIBRAW_SOURCE_VERSION: &str = "0.22.3";
 const LIBRAW_SOURCE_COMMIT: &str = "cf02d66eb5c19d4e46df7aee0582e47a4918509a";
-const DARKTABLE_SOURCE_COMMIT: &str = "093e10b207ccf201a85c0f2d951480c6df4dbd8d";
+const DARKTABLE_SOURCE_RELEASE: &str = "5.6.2";
+const DARKTABLE_SOURCE_COMMIT: &str = "20891f6c6fa7be995e5bf9dff9d1ee5062051773";
 const SHIM_SOURCES: &[&str] = &[
     "cpp/algos/darktable_ppg.cpp",
-    "cpp/algos/linear.cpp",
-    "cpp/algos/ppg.cpp",
+    "cpp/algos/libraw_linear.cpp",
+    "cpp/algos/libraw_ppg.cpp",
     "cpp/shim.cpp",
 ];
 
@@ -39,6 +40,7 @@ fn main() {
     );
     println!("cargo:rustc-env=COMPARE_DEMOSAIC_LIBRAW_VERSION={version}");
     println!("cargo:rustc-env=COMPARE_DEMOSAIC_LIBRAW_COMMIT={LIBRAW_SOURCE_COMMIT}");
+    println!("cargo:rustc-env=COMPARE_DEMOSAIC_DARKTABLE_RELEASE={DARKTABLE_SOURCE_RELEASE}");
     println!("cargo:rustc-env=COMPARE_DEMOSAIC_DARKTABLE_COMMIT={DARKTABLE_SOURCE_COMMIT}");
     write_status_codes(&manifest_dir);
 
