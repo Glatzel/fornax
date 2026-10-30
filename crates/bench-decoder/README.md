@@ -8,4 +8,5 @@ cargo bench -p bench-decoder
 ```
 
 Set `FORNAX_BENCH_RAW` to benchmark another RAW file. The default fixture is
-installed by `python3 scripts/setup.py`.
+installed by `scripts/setup.sh` on Linux/macOS or `scripts/setup.ps1` on
+Windows.

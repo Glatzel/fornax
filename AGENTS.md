@@ -102,8 +102,9 @@ Keep reference comparison cases table-driven:
 Reference routines and headers come from the repository-managed `libraw-dev`
 Pixi package. The comparison crate does not compile LibRaw from the external
 checkout. darktable comparison code comes from the pinned `5.6.2` release. Use
-`scripts/setup.py`, which uses `gh api` to materialize only the required source
-file, instead of initializing the full darktable tree.
+`scripts/setup.sh` on Linux/macOS or `scripts/setup.ps1` on Windows. The
+platform setup scripts use `gh api` to materialize only the required source
+file instead of initializing the full darktable tree.
 
 ## Validation
 

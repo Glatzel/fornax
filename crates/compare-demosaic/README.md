@@ -33,10 +33,11 @@ uses `f32`; tests repeat every case with both `f32` and `f64`.
 Run the comparison from the repository root:
 
 ```bash
-python3 scripts/setup.py
-eval "$(python3 scripts/setup.py --env-shell)"
+source scripts/setup.sh
 pixi run -e dev compare-demosaic
 ```
+
+On Windows, run `./scripts/setup.ps1` before `pixi run -e dev compare-demosaic`.
 
 ## Results
 

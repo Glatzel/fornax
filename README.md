@@ -34,6 +34,11 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 Install the development environment and pinned reference sources:
 
 ```bash
-python3 scripts/setup.py
-eval "$(python3 scripts/setup.py --env-shell)"
+source scripts/setup.sh
+```
+
+On Windows, run the PowerShell setup from the repository root:
+
+```powershell
+./scripts/setup.ps1
 ```
