@@ -40,12 +40,13 @@ pixi run -e dev compare-demosaic
 
 On Windows, run `./scripts/setup.ps1` before `pixi run -e dev compare-demosaic`.
 
+The command writes `results/canonical.json`; it does not edit this README. A
+Codex agent reads that JSON, updates the per-algorithm tables, and writes an
+evidence-based note after any table containing `⚠️` results.
+
 ## Results
 
 <!-- BEGIN:compare-table -->
-> [!NOTE]
-> `⚠️`: every sample is within the case's declared maximum error.
-
 ### Linear
 
 | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
@@ -68,6 +69,13 @@ On Windows, run `./scripts/setup.ps1` before `pixi run -e dev compare-demosaic`.
 | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | ⚠️ | 0.145 | 7.435 | 6344 | 78.90 | 13.469% |
 | [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | ⚠️ | 0.152 | 12.912 | 11088 | 74.11 | 13.425% |
 
+> [!NOTE]
+> The PPG/LibRaw rows use the declared 12,000-code tolerance. Fornax clamps
+> reconstructed RGB to `[0, 1]` before 16-bit quantization, while the LibRaw
+> comparison path does not apply an equivalent clamp. Isolated interpolation
+> and boundary differences on the random synthetic fixture can therefore
+> produce a large maximum error even though MAE remains low.
+
 ### RCD
 
 | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
@@ -84,6 +92,7 @@ Legend:
 
 - `✅`: every compared sample is bit-identical.
 - `🟢`: Fornax rounds to nearest while LibRaw truncates, so differences are one code upward.
+- `⚠️`: every sample is within the case's declared maximum error.
 - `❌`: at least one compared sample exceeds that tolerance.
 
 ## Adding an algorithm
@@ -93,7 +102,9 @@ Legend:
 2. Add its reference backend and ID to the `switch` in `cpp/shim.cpp`.
 3. Add `src/cases/<name>.rs` with a `CASE` and its Fornax runner.
 4. Register the case in `src/cases/mod.rs`.
-5. Run `pixi run -e dev compare-demosaic`, review the table, and commit.
+5. Run `pixi run -e dev compare-demosaic` to update the canonical JSON result.
+6. Have the Codex agent update the README tables and warning notes from JSON.
+7. Commit both the JSON result and README.
 
 Reference routines and headers come from the Pixi-managed `libraw-dev` package;
 the comparison crate does not compile LibRaw from the external checkout.

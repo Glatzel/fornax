@@ -551,6 +551,8 @@ dependencies = [
  "libraw-sys",
  "mischief",
  "num-traits",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

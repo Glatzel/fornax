@@ -1,0 +1,370 @@
+{
+  "schema_version": 1,
+  "input": {
+    "fixture": "fornax-devtool::synthetic_mono_image",
+    "seed": 12345,
+    "width": 512,
+    "height": 512,
+    "sample_type": "f32"
+  },
+  "reference_builds": {
+    "libraw_version": "0.22.3",
+    "libraw_commit": "cf02d66eb5c19d4e46df7aee0582e47a4918509a",
+    "darktable_release": "5.6.2",
+    "darktable_commit": "20891f6c6fa7be995e5bf9dff9d1ee5062051773"
+  },
+  "comparisons": [
+    {
+      "algorithm": "Linear",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146",
+      "bayer_pattern": "BGGR",
+      "border": 1,
+      "tolerance": {
+        "kind": "rounding_up"
+      },
+      "verdict": {
+        "kind": "rounding_only"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.3028399333589645,
+        "root_mean_square_error": 0.55030894355713,
+        "maximum_error": 1,
+        "changed_percent": 30.28399333589645,
+        "psnr_db": 101.5173346558637,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "Linear",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146",
+      "bayer_pattern": "GBRG",
+      "border": 1,
+      "tolerance": {
+        "kind": "rounding_up"
+      },
+      "verdict": {
+        "kind": "rounding_only"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.30227092144047163,
+        "root_mean_square_error": 0.5497917073223928,
+        "maximum_error": 1,
+        "changed_percent": 30.227092144047162,
+        "psnr_db": 101.52550237611584,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "Linear",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146",
+      "bayer_pattern": "GRBG",
+      "border": 1,
+      "tolerance": {
+        "kind": "rounding_up"
+      },
+      "verdict": {
+        "kind": "rounding_only"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.30227092144047163,
+        "root_mean_square_error": 0.5497917073223928,
+        "maximum_error": 1,
+        "changed_percent": 30.227092144047162,
+        "psnr_db": 101.52550237611584,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "Linear",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146",
+      "bayer_pattern": "RGGB",
+      "border": 1,
+      "tolerance": {
+        "kind": "rounding_up"
+      },
+      "verdict": {
+        "kind": "rounding_only"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.3028399333589645,
+        "root_mean_square_error": 0.55030894355713,
+        "maximum_error": 1,
+        "changed_percent": 30.28399333589645,
+        "psnr_db": 101.5173346558637,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "PPG",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20",
+      "bayer_pattern": "BGGR",
+      "border": 0,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 12000
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "PPG",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20",
+      "bayer_pattern": "GBRG",
+      "border": 0,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 12000
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "PPG",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20",
+      "bayer_pattern": "GRBG",
+      "border": 0,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 12000
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "PPG",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20",
+      "bayer_pattern": "RGGB",
+      "border": 0,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 12000
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "PPG",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363",
+      "bayer_pattern": "BGGR",
+      "border": 0,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 12000
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 12000
+      },
+      "metrics": {
+        "mean_absolute_error": 0.15195719401041666,
+        "root_mean_square_error": 12.911778433605578,
+        "maximum_error": 11088,
+        "changed_percent": 13.425064086914062,
+        "psnr_db": 74.10974477651845,
+        "below_reference": 11007
+      }
+    },
+    {
+      "algorithm": "PPG",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363",
+      "bayer_pattern": "GBRG",
+      "border": 0,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 12000
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 12000
+      },
+      "metrics": {
+        "mean_absolute_error": 0.14500300089518228,
+        "root_mean_square_error": 7.435404591877002,
+        "maximum_error": 6344,
+        "changed_percent": 13.469060262044271,
+        "psnr_db": 78.90337396921775,
+        "below_reference": 11122
+      }
+    },
+    {
+      "algorithm": "PPG",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363",
+      "bayer_pattern": "GRBG",
+      "border": 0,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 12000
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 12000
+      },
+      "metrics": {
+        "mean_absolute_error": 0.14500300089518228,
+        "root_mean_square_error": 7.435404591877002,
+        "maximum_error": 6344,
+        "changed_percent": 13.469060262044271,
+        "psnr_db": 78.90337396921775,
+        "below_reference": 11122
+      }
+    },
+    {
+      "algorithm": "PPG",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363",
+      "bayer_pattern": "RGGB",
+      "border": 0,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 12000
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 12000
+      },
+      "metrics": {
+        "mean_absolute_error": 0.15195719401041666,
+        "root_mean_square_error": 12.911778433605578,
+        "maximum_error": 11088,
+        "changed_percent": 13.425064086914062,
+        "psnr_db": 74.10974477651845,
+        "below_reference": 11007
+      }
+    },
+    {
+      "algorithm": "RCD",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119",
+      "bayer_pattern": "BGGR",
+      "border": 10,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 64
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "RCD",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119",
+      "bayer_pattern": "GBRG",
+      "border": 10,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 64
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "RCD",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119",
+      "bayer_pattern": "GRBG",
+      "border": 10,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 64
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "RCD",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119",
+      "bayer_pattern": "RGGB",
+      "border": 10,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 64
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    }
+  ]
+}
