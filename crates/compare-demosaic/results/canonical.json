@@ -98,12 +98,12 @@
         "max_error": 40000
       },
       "metrics": {
-        "mean_absolute_error": 1.451699179378105,
-        "root_mean_square_error": 139.59025409391833,
+        "mean_absolute_error": 1.458792982121977,
+        "root_mean_square_error": 139.68652174051226,
         "maximum_error": 36331,
         "changed_percent": 2.3253599149219855,
-        "psnr_db": 53.43236411944531,
-        "below_reference": 61
+        "psnr_db": 53.42637600829893,
+        "below_reference": 62
       }
     },
     {
