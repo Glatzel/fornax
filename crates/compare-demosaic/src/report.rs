@@ -67,30 +67,49 @@ pub fn canonical_rows() -> mischief::Result<Vec<Row>> {
     Ok(rows)
 }
 
-pub fn render_table(rows: &[Row]) -> String {
+pub fn render_tables(rows: &[Row]) -> String {
+    let mut algorithms = rows.iter().map(|row| row.case).collect::<Vec<_>>();
+    algorithms.sort_unstable_by_key(|name| name.to_ascii_lowercase());
+    algorithms.dedup();
+
     let mut output = String::from(
-        "| Fornax | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |\n\
-         | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |\n",
+        "> [!NOTE]\n\
+         > `⚠️`: every sample is within the case's declared maximum error.\n",
     );
-    for row in rows {
-        let psnr = if row.metrics.peak_signal_to_noise_ratio.is_infinite() {
-            "∞".to_owned()
-        } else {
-            format!("{:.2}", row.metrics.peak_signal_to_noise_ratio)
-        };
-        output.push_str(&format!(
-            "| {} | [{}]({}) | {} | {} | {:.3} | {:.3} | {} | {} | {:.3}% |\n",
-            row.case,
-            row.reference,
-            row.source_url,
-            row.pattern,
-            verdict(row.verdict),
-            row.metrics.mean_absolute_error,
-            row.metrics.root_mean_square_error,
-            row.metrics.maximum_error,
-            psnr,
-            row.metrics.changed_percent,
-        ));
+    for algorithm in algorithms {
+        output.push('\n');
+        output.push_str(&format!("### {algorithm}\n\n"));
+        output.push_str(
+            "| Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |\n\
+             | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |\n",
+        );
+
+        let mut algorithm_rows = rows
+            .iter()
+            .filter(|row| row.case == algorithm)
+            .collect::<Vec<_>>();
+        algorithm_rows.sort_unstable_by_key(|row| {
+            (row.reference.to_ascii_lowercase(), row.pattern.to_string())
+        });
+        for row in algorithm_rows {
+            let psnr = if row.metrics.peak_signal_to_noise_ratio.is_infinite() {
+                "∞".to_owned()
+            } else {
+                format!("{:.2}", row.metrics.peak_signal_to_noise_ratio)
+            };
+            output.push_str(&format!(
+                "| [{}]({}) | {} | {} | {:.3} | {:.3} | {} | {} | {:.3}% |\n",
+                row.reference,
+                row.source_url,
+                row.pattern,
+                verdict(row.verdict),
+                row.metrics.mean_absolute_error,
+                row.metrics.root_mean_square_error,
+                row.metrics.maximum_error,
+                psnr,
+                row.metrics.changed_percent,
+            ));
+        }
     }
     output
 }
@@ -117,10 +136,12 @@ pub fn update_table(readme: &str, rows: &[Row]) -> mischief::Result<String> {
     } else {
         "\n"
     };
-    let table = render_table(rows).replace('\n', line_ending);
+    let table = render_tables(rows)
+        .trim_end_matches('\n')
+        .replace('\n', line_ending);
     let content_start = begin + TABLE_BEGIN.len();
     let replacement = format!(
-        "{line_ending}{table}{line_ending}Reference builds: LibRaw {LIBRAW_VERSION}; \
+        "{line_ending}{table}{line_ending}{line_ending}Reference builds: LibRaw {LIBRAW_VERSION}; \
          darktable {DARKTABLE_RELEASE} ({DARKTABLE_COMMIT}).{line_ending}"
     );
     Ok(format!(
@@ -161,9 +182,19 @@ mod tests {
 
     #[test]
     fn table_uses_compact_headers_and_emoji_only_verdicts() {
-        let table = render_table(&[]);
+        let rows = canonical_rows().expect("canonical comparison rows");
+        let table = render_tables(&rows);
+        let algorithms = rows
+            .iter()
+            .map(|row| row.case)
+            .collect::<std::collections::BTreeSet<_>>();
         assert!(table.contains("| Reference Library |"));
         assert!(table.contains("| Verdict |"));
+        assert_eq!(
+            table.matches("| Reference Library |").count(),
+            algorithms.len()
+        );
+        assert!(!table.contains("| Fornax |"));
         assert!(!table.contains("Reference algorithm"));
         assert!(!table.contains("Source |"));
         assert_eq!(verdict(metrics::Verdict::Exact), "✅");
@@ -175,10 +206,24 @@ mod tests {
     #[test]
     fn reference_cells_only_show_library_names() {
         let rows = canonical_rows().expect("canonical comparison rows");
-        let table = render_table(&rows);
+        let table = render_tables(&rows);
         assert!(table.contains("| [LibRaw]("));
         assert!(table.contains("| [darktable]("));
         assert!(!table.contains("`LibRaw::"));
         assert!(!table.contains("demosaic_ppg"));
+    }
+
+    #[test]
+    fn algorithm_tables_are_alphabetical_and_use_github_note_syntax() {
+        let rows = canonical_rows().expect("canonical comparison rows");
+        let table = render_tables(&rows);
+        let linear = table.find("### Linear").expect("Linear table");
+        let ppg = table.find("### PPG").expect("PPG table");
+        let rcd = table.find("### RCD").expect("RCD table");
+        assert!(linear < ppg && ppg < rcd);
+        assert!(table.starts_with("> [!NOTE]\n"));
+        assert!(
+            table.contains("> `⚠️`: every sample is within the case's declared maximum error.")
+        );
     }
 }

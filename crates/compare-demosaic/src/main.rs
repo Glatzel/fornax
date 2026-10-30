@@ -10,7 +10,7 @@ use std::path::PathBuf;
 fn main() -> mischief::Result<()> {
     match std::env::args().skip(1).collect::<Vec<_>>().as_slice() {
         [] => {
-            print!("{}", report::render_table(&report::canonical_rows()?));
+            print!("{}", report::render_tables(&report::canonical_rows()?));
             Ok(())
         }
         [argument] if argument == "--update-readme" => update_readme(),
@@ -106,10 +106,16 @@ mod tests {
             readme, expected,
             "README results are stale; run `pixi run -e dev compare-demosaic`"
         );
+        let table = report::render_tables(&rows);
+        let algorithms = CASES
+            .iter()
+            .map(|case| case.name)
+            .collect::<std::collections::BTreeSet<_>>();
         assert_eq!(
-            report::render_table(&rows).lines().count(),
-            CASES.len() * BayerPattern::ALL.len() + 2
+            table.matches("| Reference Library |").count(),
+            algorithms.len()
         );
+        assert_eq!(table.matches("### ").count(), algorithms.len());
         Ok(())
     }
 
