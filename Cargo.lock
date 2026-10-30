@@ -826,7 +826,6 @@ dependencies = [
  "fornax-devtool",
  "generic-num",
  "image 0.25.9",
- "num-traits",
  "rawler",
 ]
 
