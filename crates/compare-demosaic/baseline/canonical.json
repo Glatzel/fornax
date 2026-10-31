@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "meta": {
-    "generated_at": "2026-10-31T09:43:15.937467796Z",
+    "generated_at": "2026-10-31T09:54:07.281817648Z",
     "machine": {
       "os": "linux",
       "architecture": "x86_64"
     },
-    "fornax_commit": "ff47e110b1e940843458ee367c59e9df37374238-dirty",
+    "fornax_commit": "18d47ea09b2b1ba9a0527a066514ac3613f95903",
     "references": {
       "libraw": {
         "version": "0.22.3",
