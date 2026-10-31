@@ -8,14 +8,14 @@ returned by `fornax_devtool::raw_file()`. The mosaic is normalized using its
 black and white levels and evaluated under all four Bayer pattern labels.
 White balance and the default output crop are not applied.
 
-The regression snapshots use a centered 512x512 crop of that active area,
+The regression snapshots use a centered 128x128 crop of that active area,
 split into four pattern-specific `rstest` cases. `cargo nextest` runs them in
-parallel. A separate 512x512 `synthetic_mono_image` smoke test runs every
+parallel. A separate 128x128 `synthetic_mono_image` smoke test runs every
 algorithm for fast failure feedback, but it is not used for quality verdicts.
 
 ```bash
 source scripts/setup.sh
-pixi run compare-demosaic
+cargo run --release -p compare-demosaic
 ```
 
 Setup installs the Rust environment, initializes `external/raw-images`, and

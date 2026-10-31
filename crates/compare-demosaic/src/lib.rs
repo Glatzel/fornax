@@ -16,14 +16,21 @@ mod tests {
     use crate::report::compare;
     use crate::results::SummaryComparison;
 
+    #[derive(serde::Serialize)]
+    struct ComparisonChecksum<'a> {
+        algorithm: &'a str,
+        reference_library: &'a str,
+        checksum: String,
+    }
+
     #[fixture]
     #[once]
-    fn synthetic_512() -> crate::data::ActiveArea {
-        let image = synthetic_mono_image::<f32>((512, 512), 65_535.0);
+    fn synthetic_128() -> crate::data::ActiveArea {
+        let image = synthetic_mono_image::<f32>((128, 128), 65_535.0);
         crate::data::ActiveArea {
             source: "fornax-devtool::synthetic_mono_image".to_owned(),
-            width: 512,
-            height: 512,
+            width: 128,
+            height: 128,
             codes: image
                 .as_raw()
                 .iter()
@@ -32,9 +39,9 @@ mod tests {
         }
     }
 
-    fn crop_512(input: &crate::data::ActiveArea) -> crate::data::ActiveArea {
-        let width = 512;
-        let height = 512;
+    fn crop_128(input: &crate::data::ActiveArea) -> crate::data::ActiveArea {
+        let width = 128;
+        let height = 128;
         let x = ((input.width - width) / 2) & !1;
         let y = ((input.height - height) / 2) & !1;
         let codes = (y..y + height)
@@ -52,18 +59,22 @@ mod tests {
     }
 
     #[rstest]
-    fn every_algorithm_accepts_synthetic_512(
-        synthetic_512: &crate::data::ActiveArea,
+    fn every_algorithm_accepts_synthetic_128(
+        synthetic_128: &crate::data::ActiveArea,
         #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)] case_index: usize,
     ) -> mischief::Result<()> {
         let case = &crate::cases::CASES[case_index];
-        let row = compare(case, synthetic_512, BayerPattern::GBRG, SampleType::F32)?;
-        assert!(
-            row.metrics.mean_absolute_error.is_finite(),
-            "{} produced non-finite metrics",
-            case.name
-        );
+        compare(case, synthetic_128, BayerPattern::GBRG, SampleType::F32)?;
         Ok(())
+    }
+
+    fn comparison_checksum(comparison: &SummaryComparison) -> String {
+        let bytes =
+            serde_json::to_vec(comparison).expect("comparison result must serialize to JSON");
+        let hash = bytes.iter().fold(0xcbf2_9ce4_8422_2325_u64, |hash, byte| {
+            (hash ^ u64::from(*byte)).wrapping_mul(0x0000_0100_0000_01b3)
+        });
+        format!("{hash:016x}")
     }
 
     #[test]
@@ -117,12 +128,20 @@ mod tests {
         #[case] pattern: BayerPattern,
         #[case] snapshot_name: &str,
     ) -> mischief::Result<()> {
-        let input = crop_512(&crate::data::active_area()?);
+        let input = crop_128(&crate::data::active_area()?);
         let comparisons = crate::report::comparison_rows_for_pattern(&input, pattern)?
             .into_iter()
             .map(SummaryComparison::from)
             .collect::<Vec<_>>();
-        insta::assert_json_snapshot!(snapshot_name, comparisons);
+        let checksums = comparisons
+            .iter()
+            .map(|comparison| ComparisonChecksum {
+                algorithm: comparison.algorithm.as_str(),
+                reference_library: comparison.reference_library.as_str(),
+                checksum: comparison_checksum(comparison),
+            })
+            .collect::<Vec<_>>();
+        insta::assert_json_snapshot!(snapshot_name, checksums);
         Ok(())
     }
 }

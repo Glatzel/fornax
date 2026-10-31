@@ -1,0 +1,31 @@
+name: Compare demosaic summary
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  summary:
+    name: generate summary
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
+        with:
+          run-install: false
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+      - name: Run tests and generate summary
+        shell: bash
+        run: |
+          source scripts/setup.sh
+          cargo test -p compare-demosaic --all-features
+          cargo run --release -p compare-demosaic
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: compare-demosaic-summary
+          path: target/compare-demosaic/summary.json
+          if-no-files-found: error
