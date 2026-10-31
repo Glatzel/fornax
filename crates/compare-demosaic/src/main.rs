@@ -43,6 +43,12 @@ fn write_results(path: Option<&Path>) -> mischief::Result<()> {
             .retain(|comparison| comparison.fixture == fixture);
         fixture_results.write(&corpus_dir.join(format!("{fixture}.json")))?;
     }
+    let status = std::process::Command::new("python3")
+        .arg(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("scripts/render_readme.py"))
+        .status()?;
+    if !status.success() {
+        return Err(mischief::mischief!("README rendering failed: {status}"));
+    }
     println!("wrote {}", path.display());
     println!("wrote corpus results to {}", corpus_dir.display());
     Ok(())
