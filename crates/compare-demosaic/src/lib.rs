@@ -1,13 +1,20 @@
 mod artifacts;
+pub mod bless;
 mod case;
 mod cases;
 mod data;
 pub mod diff;
+pub mod error;
 mod ffi;
+pub mod merge;
 mod metrics;
+pub mod registry;
 pub mod render;
 mod report;
 pub mod results;
+pub mod run;
+mod timings;
+pub mod validate;
 
 #[cfg(test)]
 mod tests {
@@ -17,7 +24,9 @@ mod tests {
 
     use crate::case::{ReferenceBackend, SampleType};
     use crate::report::compare;
-    use crate::results::ComparisonResult;
+    use crate::results::{
+        self, CanonicalResults, ComparisonResult, Coverage, RunMetadata, Selection, ShardMetadata,
+    };
 
     #[fixture]
     #[once]
@@ -26,6 +35,7 @@ mod tests {
         crate::data::ActiveArea {
             source: "fornax-devtool::synthetic_mono_image".to_owned(),
             source_path: "fornax-devtool::synthetic_mono_image".to_owned(),
+            source_sha256: "synthetic".to_owned(),
             width: 128,
             height: 128,
             codes: image
@@ -62,6 +72,7 @@ mod tests {
         crate::data::ActiveArea {
             source: input.source.clone(),
             source_path: input.source_path.clone(),
+            source_sha256: input.source_sha256.clone(),
             width,
             height,
             codes,
@@ -169,12 +180,193 @@ mod tests {
     ) -> mischief::Result<()> {
         let case = &crate::cases::CASES[case_index];
         let row = compare(case, cropped_real_128, pattern, SampleType::F32, false)?;
-        let comparison = ComparisonResult::from_row(&cropped_real_128.native_pattern, row);
+        let mut comparison = ComparisonResult::from_row(&cropped_real_128.native_pattern, row);
+        comparison.artifacts = None;
         let snapshot_name = format!(
             "{}-{}-{}",
             comparison.pattern, comparison.algorithm, comparison.reference
         );
         insta::assert_snapshot!(snapshot_name, comparison_checksum(&comparison));
+        Ok(())
+    }
+
+    #[rstest]
+    fn per_algorithm_shards_merge_to_the_single_run(
+        cropped_real_128: &crate::data::ActiveArea,
+    ) -> mischief::Result<()> {
+        let (full_rows, _) = crate::report::comparison_rows(
+            cropped_real_128,
+            &crate::report::ComparisonOptions {
+                algorithms: &[],
+                references: &[],
+                patterns: &[],
+                artifacts: false,
+                output_dir: None,
+                jobs: 1,
+                border_px: 16,
+            },
+        )?;
+        let stable = results::stable_metadata(cropped_real_128, 16);
+        let full = results::from_rows(
+            cropped_real_128,
+            full_rows,
+            stable.clone(),
+            results::full_run_metadata(),
+        );
+
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let mut algorithms = crate::cases::CASES
+            .iter()
+            .map(|case| case.name.to_owned())
+            .collect::<Vec<_>>();
+        algorithms.sort();
+        algorithms.dedup();
+        let mut paths = Vec::new();
+        for algorithm in &algorithms {
+            let (rows, _) = crate::report::comparison_rows(
+                cropped_real_128,
+                &crate::report::ComparisonOptions {
+                    algorithms: std::slice::from_ref(algorithm),
+                    references: &[],
+                    patterns: &[],
+                    artifacts: false,
+                    output_dir: None,
+                    jobs: algorithms.len(),
+                    border_px: 16,
+                },
+            )?;
+            let shard = results::from_rows(
+                cropped_real_128,
+                rows,
+                stable.clone(),
+                RunMetadata {
+                    coverage: Coverage::Partial,
+                    shards: vec![ShardMetadata {
+                        name: algorithm.to_ascii_lowercase(),
+                        selection: Selection::new(std::slice::from_ref(algorithm), &[], &[]),
+                        started: String::new(),
+                        finished: String::new(),
+                        runner: String::new(),
+                    }],
+                    generated_by: results::generated_by(),
+                },
+            );
+            let path = directory
+                .path()
+                .join(format!("{}.shard.json", algorithm.to_ascii_lowercase()));
+            shard.write(&path)?;
+            paths.push(path);
+        }
+
+        let merged_path = directory.path().join("canonical.json");
+        let report = crate::merge::merge(&paths, &merged_path, false, false).unwrap();
+        let merged = CanonicalResults::read(&merged_path)?;
+        assert!(report.complete);
+        assert_eq!(merged.results, full.results);
+        assert_eq!(merged.meta.stable, full.meta.stable);
+        Ok(())
+    }
+
+    #[rstest]
+    fn worker_count_does_not_change_results(
+        cropped_real_128: &crate::data::ActiveArea,
+    ) -> mischief::Result<()> {
+        let (serial_rows, _) = crate::report::comparison_rows(
+            cropped_real_128,
+            &crate::report::ComparisonOptions {
+                algorithms: &[],
+                references: &[],
+                patterns: &[],
+                artifacts: false,
+                output_dir: None,
+                jobs: 1,
+                border_px: 16,
+            },
+        )?;
+        let (parallel_rows, _) = crate::report::comparison_rows(
+            cropped_real_128,
+            &crate::report::ComparisonOptions {
+                algorithms: &[],
+                references: &[],
+                patterns: &[],
+                artifacts: false,
+                output_dir: None,
+                jobs: 4,
+                border_px: 16,
+            },
+        )?;
+        let stable = results::stable_metadata(cropped_real_128, 16);
+        let serial = results::from_rows(
+            cropped_real_128,
+            serial_rows,
+            stable.clone(),
+            results::full_run_metadata(),
+        );
+        let parallel = results::from_rows(
+            cropped_real_128,
+            parallel_rows,
+            stable,
+            results::full_run_metadata(),
+        );
+        assert_eq!(serial.results, parallel.results);
+        Ok(())
+    }
+
+    #[rstest]
+    fn merge_detects_missing_and_duplicate_shards(
+        cropped_real_128: &crate::data::ActiveArea,
+    ) -> mischief::Result<()> {
+        let stable = results::stable_metadata(cropped_real_128, 16);
+        let algorithms = ["AHD".to_owned()];
+        let (rows, _) = crate::report::comparison_rows(
+            cropped_real_128,
+            &crate::report::ComparisonOptions {
+                algorithms: &algorithms,
+                references: &[],
+                patterns: &[],
+                artifacts: false,
+                output_dir: None,
+                jobs: 1,
+                border_px: 16,
+            },
+        )?;
+        let shard = results::from_rows(
+            cropped_real_128,
+            rows,
+            stable,
+            RunMetadata {
+                coverage: Coverage::Partial,
+                shards: vec![ShardMetadata {
+                    name: "ahd".to_owned(),
+                    selection: Selection::new(&["AHD".to_owned()], &[], &[]),
+                    started: String::new(),
+                    finished: String::new(),
+                    runner: String::new(),
+                }],
+                generated_by: results::generated_by(),
+            },
+        );
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let path = directory.path().join("ahd.shard.json");
+        shard.write(&path)?;
+
+        let missing = crate::merge::merge(
+            std::slice::from_ref(&path),
+            &directory.path().join("missing.json"),
+            false,
+            false,
+        )
+        .unwrap_err();
+        assert_eq!(missing.class().exit_code(), 2);
+
+        let duplicate = crate::merge::merge(
+            &[path.clone(), path],
+            &directory.path().join("duplicate.json"),
+            true,
+            false,
+        )
+        .unwrap_err();
+        assert!(duplicate.to_string().contains("duplicate row"));
         Ok(())
     }
 }

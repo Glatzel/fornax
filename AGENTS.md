@@ -98,15 +98,16 @@ Keep reference comparison cases table-driven:
 2. Add its reference backend and stable algorithm ID to `cpp/shim.cpp`.
 3. Add a `Case` and Fornax runner under `crates/compare-demosaic/src/cases/`.
 4. Register the case in `CASES`.
-5. Run `cargo run --release -p compare-demosaic` to write
-   `target/compare-demosaic/canonical.json`.
+5. Build once, then run the new algorithm as a partial shard with
+   `target/release/compare-demosaic run --algorithm <id> --shard <id> --artifacts`.
 6. Run and review the comparison snapshot with `cargo insta test -p
    compare-demosaic`, accepting intended changes with `cargo insta accept`.
 7. Follow [the comparison agent guide](crates/compare-demosaic/AGENTS.md),
    add prose notes without numbers, and regenerate the README from the
    canonical baseline.
-8. Diff the run against the committed baseline, then commit the snapshot,
-   baseline, schema, notes, and generated Markdown.
+8. Merge the shard into `canonical.json`, diff the full run against the
+   committed baseline, then commit the snapshot, baseline, schema, notes, and
+   generated Markdown.
 
 Reference routines and headers come from the repository-managed `libraw-dev`
 Pixi package. The comparison crate does not compile LibRaw from the external
@@ -114,6 +115,38 @@ checkout. darktable comparison code comes from the pinned `5.6.2` release. Use
 `scripts/setup.sh` on Linux/macOS or `scripts/setup.ps1` on Windows. The
 platform setup scripts use `gh api` to materialize only the required source
 files instead of initializing the full darktable tree.
+
+## CLI quick reference
+
+```bash
+cargo build --release -p compare-demosaic
+bin=target/release/compare-demosaic
+
+$bin run [--algorithm A]... [--reference R]... [--pattern P]... [--artifacts] [--jobs N]
+$bin merge target/compare-demosaic/*.shard.json --out target/compare-demosaic/canonical.json
+$bin validate <file> [--partial] [--check-artifacts]
+$bin diff <old> <new> [--fail-on regression|any|never] [--md-out FILE]
+$bin schema --check
+$bin readme --check
+$bin list
+$bin bless <file> --yes
+```
+
+A full selection writes `target/compare-demosaic/canonical.json`. A partial
+selection must pass `--shard NAME` and writes `NAME.shard.json`; partial files
+are evidence fragments, never baselines. Use `--format json` when parsing
+command output.
+
+Exit codes are `0` for success, `1` for a failed check or regression, `2` for
+invalid evidence or a merge failure, and `3` for a usage or environment error.
+
+Workflow: `Compare demosaic canonical evidence`. Pull requests run the build,
+tests, schema, README, and baseline validation jobs. Manual dispatches also run
+one shard per algorithm group and merge them before diffing. If `merge` reports
+missing rows, a shard failed or the static matrix is stale. If `diff` reports a
+regression, download `compare-demosaic-canonical` from the run before
+investigating. Only `bless` updates the baseline, and only from a clean,
+full-coverage, CI-produced file.
 
 ## Validation
 

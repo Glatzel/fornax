@@ -20,10 +20,12 @@ rayon.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+sha2.workspace = true
 
 [dev-dependencies]
 insta.workspace = true
 rstest.workspace = true
+tempfile.workspace = true
 
 [build-dependencies]
 cc.workspace = true

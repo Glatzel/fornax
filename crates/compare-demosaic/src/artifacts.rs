@@ -1,12 +1,10 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use fornax_core::BayerPattern;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::metrics::{Evaluation, MAX_ERROR};
-
-pub const ARTIFACT_DIR: &str = "target/compare-demosaic/artifacts";
 
 #[derive(Clone, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
 pub struct ArtifactPaths {
@@ -25,40 +23,55 @@ struct TileArtifact<'a> {
     tiles: &'a [crate::metrics::TileSummary],
 }
 
-pub fn write(
-    actual: &[u16],
-    reference: &[u16],
-    width: u32,
-    height: u32,
-    pattern: BayerPattern,
-    algorithm: &str,
-    reference_name: &str,
-    evaluation: &Evaluation,
-) -> mischief::Result<ArtifactPaths> {
-    let directory_name = format!("{}-{}-{}", slug(algorithm), pattern, slug(reference_name));
-    let directory = PathBuf::from(ARTIFACT_DIR).join(&directory_name);
+pub struct ArtifactInput<'a> {
+    pub actual: &'a [u16],
+    pub reference: &'a [u16],
+    pub width: u32,
+    pub height: u32,
+    pub pattern: BayerPattern,
+    pub algorithm: &'a str,
+    pub reference_name: &'a str,
+    pub evaluation: &'a Evaluation,
+    pub output_dir: &'a Path,
+}
+
+pub fn write(input: ArtifactInput<'_>) -> mischief::Result<ArtifactPaths> {
+    let directory_name = format!(
+        "{}-{}-{}",
+        slug(input.algorithm),
+        input.pattern,
+        slug(input.reference_name)
+    );
+    let artifacts_root = input.output_dir.join("artifacts");
+    let directory = artifacts_root.join(&directory_name);
     std::fs::create_dir_all(&directory)?;
 
     let error_map = directory.join("error-map.png");
-    write_error_map(actual, reference, width, height, &error_map)?;
+    write_error_map(
+        input.actual,
+        input.reference,
+        input.width,
+        input.height,
+        &error_map,
+    )?;
 
     let tile_summary = directory.join("tiles.json");
     let mut bytes = serde_json::to_vec_pretty(&TileArtifact {
-        algorithm,
-        pattern: pattern.to_string(),
-        reference: reference_name,
-        width,
-        height,
+        algorithm: input.algorithm,
+        pattern: input.pattern.to_string(),
+        reference: input.reference_name,
+        width: input.width,
+        height: input.height,
         threshold: 1024,
-        tiles: &evaluation.tiles,
+        tiles: &input.evaluation.tiles,
     })
     .map_err(|error| mischief::mischief!("cannot serialize tile summary: {error}"))?;
     bytes.push(b'\n');
     std::fs::write(&tile_summary, bytes)?;
 
     Ok(ArtifactPaths {
-        error_map: path_string(&error_map),
-        tile_summary: path_string(&tile_summary),
+        error_map: relative_path(&artifacts_root, &error_map),
+        tile_summary: relative_path(&artifacts_root, &tile_summary),
     })
 }
 
@@ -103,7 +116,14 @@ fn slug(value: &str) -> String {
     output.trim_matches('-').to_owned()
 }
 
-fn path_string(path: &Path) -> String { path.to_string_lossy().replace('\\', "/") }
+fn relative_path(root: &Path, path: &Path) -> String {
+    let relative = path
+        .strip_prefix(root)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .replace('\\', "/");
+    format!("artifacts/{relative}")
+}
 
 #[cfg(test)]
 mod tests {

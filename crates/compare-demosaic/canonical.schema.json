@@ -122,6 +122,29 @@
         "worst_pixels"
       ]
     },
+    "Conventions": {
+      "type": "object",
+      "properties": {
+        "fornax": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "fornax",
+        "reference"
+      ]
+    },
+    "Coverage": {
+      "type": "string",
+      "enum": [
+        "full",
+        "partial"
+      ]
+    },
     "FailedLimit": {
       "type": "string",
       "enum": [
@@ -161,7 +184,7 @@
         "native_pattern": {
           "type": "string"
         },
-        "path": {
+        "sha256": {
           "type": "string"
         },
         "white": {
@@ -177,7 +200,7 @@
       "additionalProperties": false,
       "required": [
         "file",
-        "path",
+        "sha256",
         "width",
         "height",
         "black",
@@ -217,22 +240,6 @@
         "p99",
         "high_err_threshold",
         "high_err_frac"
-      ]
-    },
-    "Machine": {
-      "type": "object",
-      "properties": {
-        "architecture": {
-          "type": "string"
-        },
-        "os": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "os",
-        "architecture"
       ]
     },
     "Metrics": {
@@ -412,21 +419,114 @@
     "RunMeta": {
       "type": "object",
       "properties": {
+        "run": {
+          "$ref": "#/$defs/RunMetadata"
+        },
+        "stable": {
+          "$ref": "#/$defs/StableMeta"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "stable",
+        "run"
+      ]
+    },
+    "RunMetadata": {
+      "type": "object",
+      "properties": {
+        "coverage": {
+          "$ref": "#/$defs/Coverage"
+        },
+        "generated_by": {
+          "type": "string"
+        },
+        "shards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ShardMetadata"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "coverage",
+        "shards",
+        "generated_by"
+      ]
+    },
+    "Selection": {
+      "type": "object",
+      "properties": {
+        "algorithms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "patterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "algorithms",
+        "references",
+        "patterns"
+      ]
+    },
+    "ShardMetadata": {
+      "type": "object",
+      "properties": {
+        "finished": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "runner": {
+          "type": "string"
+        },
+        "selection": {
+          "$ref": "#/$defs/Selection"
+        },
+        "started": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "selection",
+        "started",
+        "finished",
+        "runner"
+      ]
+    },
+    "StableMeta": {
+      "type": "object",
+      "properties": {
         "border_px": {
           "type": "integer",
           "format": "uint32",
           "minimum": 0
         },
-        "fornax_clamping": {
-          "type": "string"
+        "conventions": {
+          "$ref": "#/$defs/Conventions"
+        },
+        "dirty": {
+          "type": "boolean"
         },
         "fornax_commit": {
-          "type": "string"
-        },
-        "fornax_rounding": {
-          "type": "string"
-        },
-        "generated_at": {
           "type": "string"
         },
         "input": {
@@ -435,28 +535,19 @@
         "limits": {
           "$ref": "#/$defs/Limits"
         },
-        "machine": {
-          "$ref": "#/$defs/Machine"
-        },
-        "reference_rounding": {
-          "type": "string"
-        },
         "references": {
           "$ref": "#/$defs/References"
         }
       },
       "additionalProperties": false,
       "required": [
-        "generated_at",
-        "machine",
         "fornax_commit",
+        "dirty",
         "references",
         "input",
         "border_px",
         "limits",
-        "fornax_rounding",
-        "fornax_clamping",
-        "reference_rounding"
+        "conventions"
       ]
     },
     "ToleranceKind": {

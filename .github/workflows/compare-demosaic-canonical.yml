@@ -2,13 +2,25 @@ name: Compare demosaic canonical evidence
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "crates/compare-demosaic/**"
+      - "crates/fornax-postprocessor/**"
+      - "crates/fornax-core/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/compare-demosaic-canonical.yml"
 
 permissions:
   contents: read
 
+concurrency:
+  group: compare-demosaic-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  canonical:
-    name: verify canonical evidence
+  build:
+    name: build binary
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -18,25 +30,134 @@ jobs:
         with:
           run-install: false
       - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
-      - name: Run tests and generate canonical evidence
+      - name: Build
         shell: bash
         run: |
           source scripts/setup.sh
-          cargo test -p compare-demosaic --all-features
-          cargo run --release -p compare-demosaic -- schema --check
-          cargo run --release -p compare-demosaic -- readme --check
-          cargo run --release -p compare-demosaic -- validate \
-            crates/compare-demosaic/baseline/canonical.json
-          cargo run --release -p compare-demosaic
-          cargo run --release -p compare-demosaic -- validate \
-            target/compare-demosaic/canonical.json
-          cargo run --release -p compare-demosaic -- diff \
-            crates/compare-demosaic/baseline/canonical.json \
-            target/compare-demosaic/canonical.json
+          cargo build --release -p compare-demosaic
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: compare-demosaic-bin
+          path: target/release/compare-demosaic
+          retention-days: 1
+          if-no-files-found: error
+
+  test:
+    name: cargo test
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
+        with:
+          run-install: false
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+      - name: Test
+        shell: bash
+        run: |
+          source scripts/setup.sh
+          cargo test --release -p compare-demosaic --all-features
+
+  static:
+    name: schema, readme, baseline
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: compare-demosaic-bin
+          path: bin
+      - name: Static checks
+        shell: bash
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib
+        run: |
+          chmod +x bin/compare-demosaic
+          bin/compare-demosaic schema --check
+          bin/compare-demosaic readme --check
+          bin/compare-demosaic validate crates/compare-demosaic/baseline/canonical.json
+
+  run:
+    name: run ${{ matrix.name }}
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: aahd, args: "--algorithm aahd" }
+          - { name: ahd, args: "--algorithm ahd" }
+          - { name: amaze, args: "--algorithm amaze" }
+          - { name: dcb, args: "--algorithm dcb" }
+          - { name: dht, args: "--algorithm dht" }
+          - { name: lmmse, args: "--algorithm lmmse" }
+          - { name: rcd, args: "--algorithm rcd" }
+          - { name: vng, args: "--algorithm vng" }
+          - { name: linear-ppg, args: "--algorithm linear --algorithm ppg" }
+    env:
+      SHARD_ARGS: ${{ matrix.args }}
+      LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
+      - name: Fetch raw input
+        shell: bash
+        run: git submodule update --init --depth 1 external/raw-images
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: compare-demosaic-bin
+          path: bin
+      - name: Run shard
+        shell: bash
+        run: |
+          chmod +x bin/compare-demosaic
+          bin/compare-demosaic run --out out --shard "${{ matrix.name }}" --artifacts --jobs 2 $SHARD_ARGS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: shard-${{ matrix.name }}
+          path: out
+          retention-days: 7
+          if-no-files-found: error
+
+  merge:
+    name: merge and diff
+    if: ${{ github.event_name == 'workflow_dispatch' && !cancelled() && needs.build.result == 'success' }}
+    needs: [build, run]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: compare-demosaic-bin
+          path: bin
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: shard-*
+          merge-multiple: true
+          path: in
+      - name: Merge, validate, diff
+        shell: bash
+        env:
+          LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib
+        run: |
+          chmod +x bin/compare-demosaic
+          bin/compare-demosaic merge in/*.shard.json --out in/canonical.json --check-artifacts
+          bin/compare-demosaic validate in/canonical.json --check-artifacts
+          bin/compare-demosaic diff \
+            crates/compare-demosaic/baseline/canonical.json in/canonical.json \
+            --md-out "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
         with:
           name: compare-demosaic-canonical
           path: |
-            target/compare-demosaic/canonical.json
-            target/compare-demosaic/artifacts
+            in/canonical.json
+            in/timings.json
+            in/artifacts
           if-no-files-found: error

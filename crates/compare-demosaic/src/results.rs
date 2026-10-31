@@ -10,9 +10,8 @@ use crate::case::Tolerance;
 use crate::metrics::{FailedLimit, Metrics, Verdict, WorstPixel};
 use crate::report::{self, CANONICAL_BORDER_PX};
 
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 pub const CANONICAL_FILE: &str = "target/compare-demosaic/canonical.json";
-pub const FILTERED_FILE: &str = "target/compare-demosaic/canonical.filtered.json";
 pub const BASELINE_FILE: &str = "crates/compare-demosaic/baseline/canonical.json";
 pub const SCHEMA_FILE: &str = "crates/compare-demosaic/canonical.schema.json";
 
@@ -27,23 +26,85 @@ pub struct CanonicalResults {
 #[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RunMeta {
-    pub generated_at: String,
-    pub machine: Machine,
-    pub fornax_commit: String,
-    pub references: References,
-    pub input: Input,
-    pub border_px: u32,
-    pub limits: Limits,
-    pub fornax_rounding: String,
-    pub fornax_clamping: String,
-    pub reference_rounding: String,
+    pub stable: StableMeta,
+    pub run: RunMetadata,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct Machine {
-    pub os: String,
-    pub architecture: String,
+pub struct StableMeta {
+    pub fornax_commit: String,
+    pub dirty: bool,
+    pub references: References,
+    pub input: Input,
+    pub border_px: u32,
+    pub limits: Limits,
+    pub conventions: Conventions,
+}
+
+#[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RunMetadata {
+    pub coverage: Coverage,
+    pub shards: Vec<ShardMetadata>,
+    pub generated_by: String,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Coverage {
+    Full,
+    Partial,
+}
+
+#[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ShardMetadata {
+    pub name: String,
+    pub selection: Selection,
+    pub started: String,
+    pub finished: String,
+    pub runner: String,
+}
+
+#[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Selection {
+    pub algorithms: Vec<String>,
+    pub references: Vec<String>,
+    pub patterns: Vec<String>,
+}
+
+impl Selection {
+    pub fn new(algorithms: &[String], references: &[String], patterns: &[String]) -> Self {
+        let mut algorithms = algorithms
+            .iter()
+            .map(|value| value.to_ascii_lowercase())
+            .collect::<Vec<_>>();
+        let mut references = references
+            .iter()
+            .map(|value| value.to_ascii_lowercase())
+            .collect::<Vec<_>>();
+        let mut patterns = patterns
+            .iter()
+            .map(|value| value.to_ascii_uppercase())
+            .collect::<Vec<_>>();
+        algorithms.sort();
+        algorithms.dedup();
+        references.sort();
+        references.dedup();
+        patterns.sort();
+        patterns.dedup();
+        Self {
+            algorithms,
+            references,
+            patterns,
+        }
+    }
+
+    pub const fn is_full(&self) -> bool {
+        self.algorithms.is_empty() && self.references.is_empty() && self.patterns.is_empty()
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize)]
@@ -64,7 +125,7 @@ pub struct ReferenceBuild {
 #[serde(deny_unknown_fields)]
 pub struct Input {
     pub file: String,
-    pub path: String,
+    pub sha256: String,
     pub width: u32,
     pub height: u32,
     pub black: Vec<f64>,
@@ -81,6 +142,13 @@ pub struct Limits {
     pub p99: u16,
     pub high_err_threshold: u16,
     pub high_err_frac: f64,
+}
+
+#[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Conventions {
+    pub fornax: String,
+    pub reference: String,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
@@ -128,18 +196,47 @@ pub struct PerSite {
     pub interpolated: Metrics,
 }
 
-pub fn generate_filtered(
-    pattern: Option<BayerPattern>,
-    algorithm: Option<&str>,
-    artifacts: bool,
-) -> mischief::Result<CanonicalResults> {
-    let input = crate::data::active_area()?;
-    let rows =
-        report::comparison_rows_filtered_with_artifacts(&input, pattern, algorithm, artifacts)?;
-    Ok(from_rows(&input, rows))
+pub fn stable_metadata(input: &crate::data::ActiveArea, border_px: u32) -> StableMeta {
+    let (fornax_commit, dirty) = fornax_revision();
+    StableMeta {
+        fornax_commit,
+        dirty,
+        references: References {
+            libraw: ReferenceBuild {
+                version: report::LIBRAW_VERSION.to_owned(),
+                commit: report::LIBRAW_COMMIT.to_owned(),
+            },
+            darktable: ReferenceBuild {
+                version: report::DARKTABLE_RELEASE.to_owned(),
+                commit: report::DARKTABLE_COMMIT.to_owned(),
+            },
+        },
+        input: Input {
+            file: input.source.clone(),
+            sha256: input.source_sha256.clone(),
+            width: input.width,
+            height: input.height,
+            black: input.black.iter().copied().map(round6).collect(),
+            black_width: input.black_width,
+            black_height: input.black_height,
+            white: round6(input.white),
+            native_pattern: input.native_pattern.to_string(),
+        },
+        border_px,
+        limits: robust_limits(),
+        conventions: Conventions {
+            fornax: "clamp:[0,1];rounding:nearest".to_owned(),
+            reference: "rounding:truncate".to_owned(),
+        },
+    }
 }
 
-pub fn from_rows(input: &crate::data::ActiveArea, rows: Vec<report::Row>) -> CanonicalResults {
+pub fn from_rows(
+    input: &crate::data::ActiveArea,
+    rows: Vec<report::Row>,
+    stable: StableMeta,
+    run: RunMetadata,
+) -> CanonicalResults {
     let mut results = rows
         .into_iter()
         .map(|row| ComparisonResult::from_row(&input.native_pattern, row))
@@ -147,42 +244,25 @@ pub fn from_rows(input: &crate::data::ActiveArea, rows: Vec<report::Row>) -> Can
     results.sort_unstable_by(comparison_order);
     CanonicalResults {
         schema_version: SCHEMA_VERSION,
-        meta: RunMeta {
-            generated_at: jiff::Timestamp::now().to_string(),
-            machine: Machine {
-                os: std::env::consts::OS.to_owned(),
-                architecture: std::env::consts::ARCH.to_owned(),
-            },
-            fornax_commit: fornax_commit(),
-            references: References {
-                libraw: ReferenceBuild {
-                    version: report::LIBRAW_VERSION.to_owned(),
-                    commit: report::LIBRAW_COMMIT.to_owned(),
-                },
-                darktable: ReferenceBuild {
-                    version: report::DARKTABLE_RELEASE.to_owned(),
-                    commit: report::DARKTABLE_COMMIT.to_owned(),
-                },
-            },
-            input: Input {
-                file: input.source.clone(),
-                path: input.source_path.clone(),
-                width: input.width,
-                height: input.height,
-                black: input.black.iter().copied().map(round6).collect(),
-                black_width: input.black_width,
-                black_height: input.black_height,
-                white: round6(input.white),
-                native_pattern: input.native_pattern.to_string(),
-            },
-            border_px: CANONICAL_BORDER_PX,
-            limits: robust_limits(),
-            fornax_rounding: "round_to_nearest".to_owned(),
-            fornax_clamping: "[0, 1]".to_owned(),
-            reference_rounding: "truncate".to_owned(),
-        },
+        meta: RunMeta { stable, run },
         results,
     }
+}
+
+pub fn generated_by() -> String {
+    format!("compare-demosaic {}", env!("CARGO_PKG_VERSION"))
+}
+
+pub fn full_run_metadata() -> RunMetadata {
+    RunMetadata {
+        coverage: Coverage::Full,
+        shards: Vec::new(),
+        generated_by: generated_by(),
+    }
+}
+
+pub const fn default_border_px() -> u32 {
+    CANONICAL_BORDER_PX
 }
 
 impl CanonicalResults {
@@ -215,10 +295,6 @@ impl CanonicalResults {
         self.write_repo_file(CANONICAL_FILE)
     }
 
-    pub fn write_filtered(&self) -> mischief::Result<PathBuf> {
-        self.write_repo_file(FILTERED_FILE)
-    }
-
     pub fn write_baseline(&self) -> mischief::Result<PathBuf> {
         self.write_repo_file(BASELINE_FILE)
     }
@@ -230,7 +306,9 @@ impl CanonicalResults {
     }
 }
 
-pub fn repo_path(relative_path: &str) -> PathBuf { fornax_devtool::root_dir().join(relative_path) }
+pub fn repo_path(relative_path: &str) -> PathBuf {
+    fornax_devtool::root_dir().join(relative_path)
+}
 
 pub fn schema_json() -> mischief::Result<String> {
     let schema = schemars::schema_for!(CanonicalResults);
@@ -272,7 +350,7 @@ impl ComparisonResult {
 }
 
 impl Tolerance {
-    const fn kind(self) -> ToleranceKind {
+    pub(crate) const fn kind(self) -> ToleranceKind {
         match self {
             Self::Exact => ToleranceKind::Exact,
             Self::RoundingUp => ToleranceKind::Rounding,
@@ -282,7 +360,7 @@ impl Tolerance {
     }
 }
 
-fn robust_limits() -> Limits {
+pub fn robust_limits() -> Limits {
     match crate::case::ROBUST {
         Tolerance::Robust {
             max_mae,
@@ -300,7 +378,7 @@ fn robust_limits() -> Limits {
     }
 }
 
-fn comparison_order(left: &ComparisonResult, right: &ComparisonResult) -> std::cmp::Ordering {
+pub fn comparison_order(left: &ComparisonResult, right: &ComparisonResult) -> std::cmp::Ordering {
     (
         left.algorithm.to_ascii_lowercase(),
         left.reference.to_ascii_lowercase(),
@@ -313,9 +391,11 @@ fn comparison_order(left: &ComparisonResult, right: &ComparisonResult) -> std::c
         ))
 }
 
-fn round6(value: f64) -> f64 { (value * 1_000_000.0).round() / 1_000_000.0 }
+fn round6(value: f64) -> f64 {
+    (value * 1_000_000.0).round() / 1_000_000.0
+}
 
-fn fornax_commit() -> String {
+fn fornax_revision() -> (String, bool) {
     let root = fornax_devtool::root_dir();
     let commit = Command::new("git")
         .args(["rev-parse", "HEAD"])
@@ -334,11 +414,7 @@ fn fornax_commit() -> String {
         .ok()
         .filter(|output| output.status.success())
         .is_some_and(|output| !output.stdout.is_empty());
-    if dirty {
-        format!("{commit}-dirty")
-    } else {
-        commit
-    }
+    (commit, dirty)
 }
 
 #[cfg(test)]
@@ -349,9 +425,9 @@ mod tests {
     fn schema_contains_the_canonical_contract() -> mischief::Result<()> {
         let schema = schema_json()?;
         assert!(schema.contains("\"CanonicalResults\""));
-        assert!(schema.contains("\"failed_limits\""));
-        assert!(schema.contains("\"metrics_interior\""));
-        assert!(schema.contains("\"native\""));
+        assert!(schema.contains("\"stable\""));
+        assert!(schema.contains("\"coverage\""));
+        assert!(schema.contains("\"sha256\""));
         Ok(())
     }
 }

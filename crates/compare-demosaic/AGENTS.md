@@ -10,8 +10,9 @@ verdicts. If a number is not in `canonical.json`, it is not evidence.
 
 | Path | What it is |
 | --- | --- |
-| `target/compare-demosaic/canonical.json` | Generated output of the canonical full-frame run. Never edit by hand. |
-| `target/compare-demosaic/canonical.filtered.json` | Output from a filtered diagnostic run. Never use it as a baseline. |
+| `target/compare-demosaic/canonical.json` | Merged or single-process full-frame evidence. Never edit by hand. |
+| `target/compare-demosaic/<name>.shard.json` | Output from a partial diagnostic or CI shard. Never use it as a baseline. |
+| `target/compare-demosaic/timings.json` | Per-row performance data. Not evidence of quality. |
 | `target/compare-demosaic/artifacts/` | Error maps and tile summaries referenced from the JSON. |
 | `crates/compare-demosaic/baseline/canonical.json` | Committed baseline. Changed only with `--bless`. |
 | `crates/compare-demosaic/canonical.schema.json` | Generated JSON Schema. Regenerate, do not hand-edit. |
@@ -25,14 +26,25 @@ fast-failure guards only. They are never evidence of quality.
 
 ```bash
 source scripts/setup.sh
-cargo run --release -p compare-demosaic
-cargo run --release -p compare-demosaic -- --artifacts
-cargo run --release -p compare-demosaic -- diff old.json new.json
-cargo run --release -p compare-demosaic -- validate new.json
-cargo run --release -p compare-demosaic -- --bless
-cargo run --release -p compare-demosaic -- schema --check
-cargo run --release -p compare-demosaic -- readme --check
+cargo build --release -p compare-demosaic
+target/release/compare-demosaic run
+target/release/compare-demosaic run --algorithm ahd --shard ahd --artifacts
+target/release/compare-demosaic merge target/compare-demosaic/*.shard.json --out target/compare-demosaic/canonical.json
+target/release/compare-demosaic validate target/compare-demosaic/canonical.json
+target/release/compare-demosaic diff old.json new.json --md-out report.md
+target/release/compare-demosaic bless target/compare-demosaic/canonical.json --yes
+target/release/compare-demosaic schema --check
+target/release/compare-demosaic readme --check
+target/release/compare-demosaic list
 ```
+
+Exit codes are `0` success, `1` failed check or verdict regression, `2` invalid
+evidence or merge failure, and `3` usage or environment error. Human logs go to
+stderr; `--format json` writes machine-readable command output to stdout.
+
+A partial selection without `--shard` is refused. Only `merge` or a full
+single-process run may produce `canonical.json`, and only `bless` updates the
+committed baseline.
 
 ## How to read canonical.json
 
