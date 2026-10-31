@@ -24,6 +24,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+
   cargo-doc:
     runs-on: ubuntu-latest
     env:
@@ -85,6 +86,7 @@ jobs:
       #     working-directory: ./crates/fornax-py
       - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{ !cancelled() }}
+
   benchmark-plan:
     name: plan benchmarks
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && contains(join(github.event.pull_request.labels.*.name, ','), 'perf')) }}
@@ -121,6 +123,7 @@ jobs:
           FORNAX_BENCH_ALGORITHM: ${{ matrix.algorithm }}
           LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
+
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs: [lefthook, cargo-doc, test-build, benchmark-plan, benchmark]
