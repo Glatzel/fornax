@@ -80,6 +80,19 @@ pub fn run(
         .ok_or_else(|| mischief::mischief!("RGB output dimensions overflow"))?;
     let mut output = vec![0_u16; samples];
 
+    let backend_algorithm = match (reference, algorithm) {
+        (ReferenceBackend::LibRaw, 4) => Some(fornax_demosaic_reference::Algorithm::Dcb),
+        (ReferenceBackend::LibRaw, 5) => Some(fornax_demosaic_reference::Algorithm::Dht),
+        (ReferenceBackend::LibRaw, 6) => Some(fornax_demosaic_reference::Algorithm::Aahd),
+        (ReferenceBackend::Darktable, 3) => Some(fornax_demosaic_reference::Algorithm::Amaze),
+        (ReferenceBackend::Darktable, 4) => Some(fornax_demosaic_reference::Algorithm::Lmmse),
+        _ => None,
+    };
+    if let Some(algorithm) = backend_algorithm {
+        return fornax_demosaic_reference::demosaic(algorithm, codes, width, height, filters)
+            .map_err(|error| mischief::mischief!("reference backend failed: {error:?}"));
+    }
+
     // SAFETY: both buffers are valid for the dimensions checked above, and the
     // C++ function writes exactly `pixels * 3` samples.
     let code = unsafe {

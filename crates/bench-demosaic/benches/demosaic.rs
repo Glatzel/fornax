@@ -1,8 +1,8 @@
+use bench_demosaic::{algorithm_ids, demosaic, selected_algorithm};
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
-use fornax_postprocessor::Demosaic;
 
 fn bench_methods<D, T>(
     c: &mut Criterion,
@@ -29,17 +29,19 @@ fn bench_sizes<T: Primitive + Send + Sync>(
     params: &BenchParams,
     bits: BenchSampleBits,
 ) {
+    let selected = selected_algorithm();
     for (threads, pool) in params.pools() {
         for size in &params.sizes {
             let image = synthetic_mono_image::<T>(size.dims, 1.0);
-            for (prefix, demosaic) in [
-                ("linear", Demosaic::Linear),
-                ("ppg", Demosaic::Ppg),
-                ("rcd", Demosaic::Rcd),
-                ("ahd", Demosaic::Ahd),
-            ] {
-                let name = params.case_name(prefix, size, bits, threads);
-                bench_methods::<_, T>(c, &pool, &name, demosaic, image.clone());
+            for algorithm in algorithm_ids() {
+                if selected
+                    .as_ref()
+                    .is_some_and(|selected| selected != algorithm)
+                {
+                    continue;
+                }
+                let name = params.case_name(algorithm, size, bits, threads);
+                bench_methods::<_, T>(c, &pool, &name, demosaic(algorithm), image.clone());
             }
         }
     }

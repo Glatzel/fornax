@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 fornax-core.workspace = true
+fornax-demosaic-reference.workspace = true
 generic-num.workspace = true
 image.workspace = true
 

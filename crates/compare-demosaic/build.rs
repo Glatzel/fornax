@@ -7,9 +7,13 @@ const DARKTABLE_SOURCE_RELEASE: &str = "5.6.2";
 const DARKTABLE_SOURCE_COMMIT: &str = "20891f6c6fa7be995e5bf9dff9d1ee5062051773";
 const SHIM_SOURCES: &[&str] = &[
     "cpp/algos/darktable_ppg.cpp",
+    "cpp/algos/libraw_aahd.cpp",
     "cpp/algos/libraw_ahd.cpp",
+    "cpp/algos/libraw_dcb.cpp",
+    "cpp/algos/libraw_dht.cpp",
     "cpp/algos/libraw_linear.cpp",
     "cpp/algos/libraw_ppg.cpp",
+    "cpp/algos/libraw_vng.cpp",
     "cpp/shim.cpp",
 ];
 
@@ -19,7 +23,7 @@ fn main() {
 
     let manifest_dir = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
     let workspace_root = PathBuf::from(env::var_os("CARGO_WORKSPACE_DIR").unwrap());
-    for source in ["ppg.c", "rcd.c"] {
+    for source in ["amaze.cc", "lmmse.c", "ppg.c", "rcd.c", "vng.c"] {
         let darktable_source = workspace_root
             .join("external/darktable/src/iop/demosaicing")
             .join(source);
@@ -73,6 +77,16 @@ fn main() {
         .flag_if_supported("-Wno-unused-parameter")
         .file(manifest_dir.join("cpp/algos/darktable_rcd.c"));
     darktable_rcd.compile("compare_demosaic_darktable_rcd");
+
+    let mut darktable_vng = cc::Build::new();
+    darktable_vng
+        .warnings(true)
+        .include(&workspace_root)
+        .flag_if_supported("-std=c17")
+        .flag_if_supported("-Wno-unused-function")
+        .flag_if_supported("-Wno-unused-parameter")
+        .file(manifest_dir.join("cpp/algos/darktable_vng.c"));
+    darktable_vng.compile("compare_demosaic_darktable_vng");
 
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
     println!("cargo:rustc-link-lib=raw_r");

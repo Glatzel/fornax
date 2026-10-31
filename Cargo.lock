@@ -231,6 +231,7 @@ dependencies = [
  "fornax-devtool",
  "fornax-postprocessor",
  "rayon",
+ "serde_json",
 ]
 
 [[package]]
@@ -546,6 +547,7 @@ version = "0.0.17"
 dependencies = [
  "cc",
  "fornax-core",
+ "fornax-demosaic-reference",
  "fornax-devtool",
  "fornax-postprocessor",
  "libraw-sys",
@@ -844,6 +846,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-demosaic-reference"
+version = "0.0.17"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "fornax-devtool"
 version = "0.0.17"
 dependencies = [
@@ -863,6 +872,7 @@ name = "fornax-postprocessor"
 version = "0.0.17"
 dependencies = [
  "fornax-core",
+ "fornax-demosaic-reference",
  "generic-num",
  "image 0.25.9",
  "mischief",

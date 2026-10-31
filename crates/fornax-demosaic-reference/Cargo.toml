@@ -1,0 +1,9 @@
+[package]
+name = "fornax-demosaic-reference"
+version.workspace = true
+edition.workspace = true
+build = "build.rs"
+publish = false
+
+[build-dependencies]
+cc.workspace = true

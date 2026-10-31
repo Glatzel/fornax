@@ -77,39 +77,23 @@ jobs:
       #     working-directory: ./crates/fornax-py
       - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{ !cancelled() }}
+  benchmark-plan:
+    name: plan benchmarks
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && contains(join(github.event.pull_request.labels.*.name, ','), 'perf')) }}
+    runs-on: ubuntu-slim
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: matrix
+        run: python3 scripts/benchmark-matrix.py | sed 's/^/matrix=/' >> "$GITHUB_OUTPUT"
   benchmark:
-    name: benchmark (${{ matrix.package }})
+    name: benchmark (${{ matrix.name }})
+    needs: benchmark-plan
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && contains(join(github.event.pull_request.labels.*.name, ','), 'perf')) }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - package: bench-decoder
-            paths: |
-              ./Cargo.toml
-              ./Cargo.lock
-              ./crates/bench-decoder/**
-              ./crates/fornax-core/**
-              ./crates/fornax-decoder-rawler/**
-              ./crates/fornax-devtool/**
-              ./crates/libraw/**
-              ./crates/libraw-sys/**
-          - package: bench-demosaic
-            paths: |
-              ./Cargo.toml
-              ./Cargo.lock
-              ./crates/bench-demosaic/**
-              ./crates/fornax-core/**
-              ./crates/fornax-devtool/**
-              ./crates/fornax-postprocessor/**
-          - package: bench-preprocessor
-            paths: |
-              ./Cargo.toml
-              ./Cargo.lock
-              ./crates/bench-preprocessor/**
-              ./crates/fornax-core/**
-              ./crates/fornax-devtool/**
-              ./crates/fornax-preprocessor/**
+      matrix: ${{ fromJSON(needs.benchmark-plan.outputs.matrix) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -126,11 +110,12 @@ jobs:
           options: -p ${{ matrix.package }}
         env:
           GH_TOKEN: ${{ github.token }}
+          FORNAX_BENCH_ALGORITHM: ${{ matrix.algorithm }}
           LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook, cargo-doc, test-build, benchmark]
+    needs: [lefthook, cargo-doc, test-build, benchmark-plan, benchmark]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1

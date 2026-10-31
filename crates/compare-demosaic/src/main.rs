@@ -47,7 +47,7 @@ mod tests {
 
     #[rstest]
     fn every_case_matches_for_all_patterns_precisions_and_inputs(
-        #[values(0, 1, 2, 3, 4)] case_index: usize,
+        #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)] case_index: usize,
         #[values(
             BayerPattern::RGGB,
             BayerPattern::BGGR,
@@ -159,10 +159,15 @@ mod tests {
         let algorithms = results
             .comparisons
             .iter()
-            .map(|result| result.algorithm.as_str())
+            .map(|result| {
+                (
+                    result.algorithm.to_ascii_lowercase(),
+                    result.algorithm.clone(),
+                )
+            })
             .collect::<std::collections::BTreeSet<_>>();
         let mut positions = Vec::new();
-        for algorithm in &algorithms {
+        for (_, algorithm) in &algorithms {
             let heading = format!("### {algorithm}");
             let position = readme
                 .find(&heading)

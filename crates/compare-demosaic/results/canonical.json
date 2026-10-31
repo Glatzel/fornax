@@ -15,6 +15,90 @@
   },
   "comparisons": [
     {
+      "algorithm": "AAHD",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771",
+      "bayer_pattern": "BGGR",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "AAHD",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771",
+      "bayer_pattern": "GBRG",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "AAHD",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771",
+      "bayer_pattern": "GRBG",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "AAHD",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771",
+      "bayer_pattern": "RGGB",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
       "algorithm": "AHD",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293",
@@ -107,6 +191,258 @@
       }
     },
     {
+      "algorithm": "AMaZE",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129",
+      "bayer_pattern": "BGGR",
+      "border": 16,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "AMaZE",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129",
+      "bayer_pattern": "GBRG",
+      "border": 16,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "AMaZE",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129",
+      "bayer_pattern": "GRBG",
+      "border": 16,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "AMaZE",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129",
+      "bayer_pattern": "RGGB",
+      "border": 16,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "DCB",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849",
+      "bayer_pattern": "BGGR",
+      "border": 6,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "DCB",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849",
+      "bayer_pattern": "GBRG",
+      "border": 6,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "DCB",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849",
+      "bayer_pattern": "GRBG",
+      "border": 6,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "DCB",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849",
+      "bayer_pattern": "RGGB",
+      "border": 6,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "DHT",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
+      "bayer_pattern": "BGGR",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "DHT",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
+      "bayer_pattern": "GBRG",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "DHT",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
+      "bayer_pattern": "GRBG",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "DHT",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
+      "bayer_pattern": "RGGB",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
       "algorithm": "Linear",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146",
@@ -187,6 +523,90 @@
         "maximum_error": 1,
         "changed_percent": 30.28399333589645,
         "psnr_db": 101.5173346558637,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "LMMSE",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120",
+      "bayer_pattern": "BGGR",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "LMMSE",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120",
+      "bayer_pattern": "GBRG",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "LMMSE",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120",
+      "bayer_pattern": "GRBG",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "LMMSE",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120",
+      "bayer_pattern": "RGGB",
+      "border": 4,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
         "below_reference": 0
       }
     },
@@ -445,6 +865,90 @@
       "tolerance": {
         "kind": "max_error",
         "max_error": 64
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "VNG",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171",
+      "bayer_pattern": "BGGR",
+      "border": 2,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "VNG",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171",
+      "bayer_pattern": "GBRG",
+      "border": 2,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "VNG",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171",
+      "bayer_pattern": "GRBG",
+      "border": 2,
+      "tolerance": {
+        "kind": "exact"
+      },
+      "verdict": {
+        "kind": "exact"
+      },
+      "metrics": {
+        "mean_absolute_error": 0.0,
+        "root_mean_square_error": 0.0,
+        "maximum_error": 0,
+        "changed_percent": 0.0,
+        "psnr_db": null,
+        "below_reference": 0
+      }
+    },
+    {
+      "algorithm": "VNG",
+      "reference_library": "darktable",
+      "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171",
+      "bayer_pattern": "RGGB",
+      "border": 2,
+      "tolerance": {
+        "kind": "exact"
       },
       "verdict": {
         "kind": "exact"

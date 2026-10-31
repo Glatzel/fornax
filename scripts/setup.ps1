@@ -4,8 +4,11 @@ pixi install -e dev
 git submodule update --init external/libraw external/raw-images
 
 foreach ($file in  @(
+        "src/iop/demosaicing/amaze.cc",
+        "src/iop/demosaicing/lmmse.c",
         "src/iop/demosaicing/ppg.c",
-        "src/iop/demosaicing/rcd.c"
+        "src/iop/demosaicing/rcd.c",
+        "src/iop/demosaicing/vng.c"
     ))
 {
     $destination = Join-Path "external/darktable" $file
