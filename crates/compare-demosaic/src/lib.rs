@@ -7,6 +7,7 @@ mod ffi;
 mod metrics;
 pub mod registry;
 pub mod report;
+pub mod results_md;
 pub mod run;
 
 #[cfg(test)]

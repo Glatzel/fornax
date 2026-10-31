@@ -84,6 +84,8 @@ fn run_cli(args: Args) -> Result<u8> {
             .report
             .write_baseline()
             .map_err(|error| CompareError::usage(error.to_string()))?;
+        compare_demosaic::results_md::write(&output.report)
+            .map_err(|error| CompareError::usage(error.to_string()))?;
         writeln!(std::io::stderr().lock(), "updated baseline")?;
     } else if args.check {
         let baseline = run::repo_path(BASELINE_FILE);
