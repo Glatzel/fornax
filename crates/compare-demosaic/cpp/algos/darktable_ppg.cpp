@@ -5,7 +5,10 @@
 #include <vector>
 
 #include "external/darktable/src/iop/demosaicing/ppg.c"
-
+#define COMPARE_DEMOSAIC_REFERENCE_DARKTABLE 1
+#if defined(_MSC_VER) && !defined(__clang__)
+#define __builtin_expect(x, y) (x)
+#endif
 std::int32_t run_darktable_ppg(
     const std::uint16_t* mosaic,
     std::uint32_t        width,

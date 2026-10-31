@@ -19,10 +19,11 @@
 #define FILTERS_ARE_4BAYER(filters) (0)
 #define for_each_channel(_var, ...) for (size_t _var = 0; _var < DT_PIXEL_SIMD_CHANNELS; ++_var)
 #define dt_omp_nontemporal(pointer)
-
+#define COMPARE_DEMOSAIC_REFERENCE_DARKTABLE 1
 #if defined(_MSC_VER) && !defined(__clang__)
-#define __builtin_expect(expr, value) (expr)
+#define __builtin_expect(x, y) (x)
 #endif
+
 
 typedef int   gboolean;
 typedef float dt_aligned_pixel_t[4];
