@@ -88,11 +88,11 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: external/raw.pixls.us
-          key: raw-corpus-${{ runner.os }}-${{ hashFiles('scripts/download-raw-corps.ps1', 'scripts/get_raw_samples.py', 'pixi.lock') }}
+          key: raw-corpus-${{ runner.os }}-${{ hashFiles('scripts/download-raw-corpus.ps1', 'scripts/get_raw_samples.py', 'pixi.lock') }}
           restore-keys: |
             raw-corpus-${{ runner.os }}-
       - name: download RAW corpus
-        run: pwsh ./scripts/download-raw-corps.ps1
+        run: pwsh ./scripts/download-raw-corpus.ps1
         env:
           GH_TOKEN: ${{ github.token }}
       - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13

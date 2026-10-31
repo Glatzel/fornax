@@ -1,6 +1,4 @@
-use std::path::Path;
-#[cfg(test)]
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use fornax_core::BayerPattern;
 use fornax_core::protocol::{IDecoder, IPreprocessor};
@@ -9,13 +7,11 @@ use fornax_decoder_rawler::RawlerDecoder;
 use fornax_devtool::synthetic_mono_image;
 use fornax_preprocessor::Preprocessor;
 
+#[cfg(test)]
 pub const CANONICAL_WIDTH: u32 = 512;
+#[cfg(test)]
 pub const CANONICAL_HEIGHT: u32 = 512;
-#[cfg(test)]
 const RAW_CORPUS: &str = "external/raw.pixls.us";
-const FALLBACK_FIXTURE: &str = "external/raw-images/images/colorchart-eos-7d.cr2";
-#[cfg(test)]
-const MAX_REAL_FILES: usize = 8;
 
 #[derive(Clone, Debug)]
 pub struct Input {
@@ -27,15 +23,9 @@ pub struct Input {
     pub codes: Vec<u16>,
 }
 
-#[cfg(test)]
 pub fn real_inputs() -> Vec<Input> {
     let root = fornax_devtool::root_dir();
-    let mut paths = raw_paths(&root.join(RAW_CORPUS));
-    if paths.is_empty() {
-        paths.push(root.join(FALLBACK_FIXTURE));
-    }
-    paths.sort();
-    paths.truncate(MAX_REAL_FILES);
+    let paths = one_per_make(raw_paths(&root.join(RAW_CORPUS)), &root);
 
     let mut inputs = Vec::new();
     for path in paths {
@@ -46,15 +36,9 @@ pub fn real_inputs() -> Vec<Input> {
     }
     assert!(
         !inputs.is_empty(),
-        "no decodable 2x2 Bayer RAW files found; run scripts/download-raw-corps.ps1"
+        "no decodable 2x2 Bayer RAW files found; run scripts/download-raw-corpus.ps1"
     );
     inputs
-}
-
-pub fn canonical_input() -> Input {
-    let root = fornax_devtool::root_dir();
-    decode_input(&root, &root.join(FALLBACK_FIXTURE))
-        .expect("decode the canonical raw-images fixture")
 }
 
 fn decode_input(root: &Path, path: &Path) -> Result<Input, String> {
@@ -65,41 +49,26 @@ fn decode_input(root: &Path, path: &Path) -> Result<Input, String> {
         .process(decoded, &metadata.levels)
         .map_err(|error| error.to_string())?
         .into_image();
-    let (width, height) = normalized.dimensions();
-    if width < CANONICAL_WIDTH || height < CANONICAL_HEIGHT {
-        return Err(format!("active area too small: {width}x{height}"));
-    }
-    let x = ((width - CANONICAL_WIDTH) / 2) & !1;
-    let y = ((height - CANONICAL_HEIGHT) / 2) & !1;
-    let row_stride = width as usize;
-    let mut crop = Vec::with_capacity((CANONICAL_WIDTH * CANONICAL_HEIGHT) as usize);
-    for row in y..y + CANONICAL_HEIGHT {
-        let start = row as usize * row_stride + x as usize;
-        crop.extend_from_slice(&normalized.as_raw()[start..start + CANONICAL_WIDTH as usize]);
-    }
     let source = relative(root, path);
-    let label = if source == FALLBACK_FIXTURE {
-        "real-colorchart-center".to_owned()
-    } else {
-        source
-            .replace(['/', '\\', '.'], "-")
-            .trim_matches('-')
-            .to_owned()
-    };
+    let label = source
+        .replace(['/', '\\', '.'], "-")
+        .trim_matches('-')
+        .to_owned();
+    let (width, height) = normalized.dimensions();
     Ok(Input {
         label,
         source,
         pattern: Some(metadata.bayer_pattern),
-        width: CANONICAL_WIDTH,
-        height: CANONICAL_HEIGHT,
-        codes: crop
+        width,
+        height,
+        codes: normalized
+            .as_raw()
             .iter()
             .map(|sample| (sample.clamp(0.0, 1.0) * f32::from(u16::MAX)).round() as u16)
             .collect(),
     })
 }
 
-#[cfg(test)]
 fn raw_paths(root: &Path) -> Vec<PathBuf> {
     let mut pending = vec![root.to_path_buf()];
     let mut paths = Vec::new();
@@ -125,6 +94,20 @@ fn raw_paths(root: &Path) -> Vec<PathBuf> {
             }
         }
     }
+    paths
+}
+
+fn one_per_make(mut paths: Vec<PathBuf>, root: &Path) -> Vec<PathBuf> {
+    paths.sort();
+    let mut seen = std::collections::BTreeSet::new();
+    paths.retain(|path| {
+        let make = path
+            .strip_prefix(root.join(RAW_CORPUS))
+            .ok()
+            .and_then(|path| path.components().next())
+            .map(|component| component.as_os_str().to_owned());
+        make.is_some_and(|make| seen.insert(make))
+    });
     paths
 }
 

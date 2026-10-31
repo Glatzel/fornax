@@ -3,7 +3,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::case::Tolerance;
-use crate::{data, metrics, report};
+use crate::{metrics, report};
 
 pub const SCHEMA_VERSION: u32 = 2;
 pub const DEFAULT_RESULTS_FILE: &str = "results/canonical.json";
@@ -101,7 +101,6 @@ pub struct MetricsResult {
 
 impl ComparisonResults {
     pub fn canonical() -> mischief::Result<Self> {
-        let input = data::canonical_input();
         let mut comparisons = report::canonical_rows()?
             .into_iter()
             .map(ComparisonResult::from)
@@ -125,11 +124,11 @@ impl ComparisonResults {
             schema_version: SCHEMA_VERSION,
             input: ComparisonInput {
                 fixture: "raw-corpus".to_owned(),
-                source: input.source,
+                source: "external/raw.pixls.us".to_owned(),
                 kind: "real_raw".to_owned(),
                 pattern: "mixed".to_owned(),
-                width: input.width,
-                height: input.height,
+                width: 0,
+                height: 0,
                 sample_type: "f32".to_owned(),
             },
             reference_builds: ReferenceBuilds {

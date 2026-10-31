@@ -28,8 +28,23 @@ fn main() -> mischief::Result<()> {
 fn write_results(path: Option<&Path>) -> mischief::Result<()> {
     let default = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(DEFAULT_RESULTS_FILE);
     let path = path.unwrap_or(&default);
-    ComparisonResults::canonical()?.write(path)?;
+    let results = ComparisonResults::canonical()?;
+    results.write(path)?;
+    let corpus_dir = path.parent().unwrap_or(Path::new(".")).join("corpus");
+    let fixtures = results
+        .comparisons
+        .iter()
+        .map(|comparison| comparison.fixture.clone())
+        .collect::<std::collections::BTreeSet<_>>();
+    for fixture in fixtures {
+        let mut fixture_results = results.clone();
+        fixture_results
+            .comparisons
+            .retain(|comparison| comparison.fixture == fixture);
+        fixture_results.write(&corpus_dir.join(format!("{fixture}.json")))?;
+    }
     println!("wrote {}", path.display());
+    println!("wrote corpus results to {}", corpus_dir.display());
     Ok(())
 }
 

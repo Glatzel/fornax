@@ -65,22 +65,24 @@ pub fn compare(
 }
 
 pub fn canonical_rows() -> mischief::Result<Vec<Row>> {
-    let input = data::canonical_input();
-    let pattern = input
-        .pattern
-        .expect("canonical comparison input must declare its Bayer pattern");
-    let mut rows = Vec::with_capacity(cases::CASES.len());
-    for case in cases::CASES {
-        rows.push(compare(
-            case,
-            &input.label,
-            &input.source,
-            &input.codes,
-            input.width,
-            input.height,
-            pattern,
-            SampleType::F32,
-        )?);
+    let inputs = data::real_inputs();
+    let mut rows = Vec::with_capacity(cases::CASES.len() * inputs.len());
+    for input in inputs {
+        let pattern = input
+            .pattern
+            .expect("real comparison input must declare its Bayer pattern");
+        for case in cases::CASES {
+            rows.push(compare(
+                case,
+                &input.label,
+                &input.source,
+                &input.codes,
+                input.width,
+                input.height,
+                pattern,
+                SampleType::F32,
+            )?);
+        }
     }
     Ok(rows)
 }
