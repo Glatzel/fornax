@@ -1,0 +1,279 @@
+---
+source: crates/compare-demosaic/src/lib.rs
+expression: comparisons
+---
+[
+  {
+    "algorithm": "AHD",
+    "reference_library": "LibRaw",
+    "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "differs"
+    },
+    "metrics": {
+      "mean_absolute_error": 3.0226583705020555,
+      "root_mean_square_error": 59.714048722220845,
+      "maximum_error": 4301,
+      "changed_percent": 2.1612090813373332,
+      "p99_error": 1,
+      "over_1024_percent": 0.0902102083035719
+    }
+  },
+  {
+    "algorithm": "AMaZE",
+    "reference_library": "darktable",
+    "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "differs"
+    },
+    "metrics": {
+      "mean_absolute_error": 305.1469777199074,
+      "root_mean_square_error": 469.9173674636038,
+      "maximum_error": 2670,
+      "changed_percent": 66.56582754629629,
+      "p99_error": 1248,
+      "over_1024_percent": 4.254484953703703
+    }
+  },
+  {
+    "algorithm": "AAHD",
+    "reference_library": "LibRaw",
+    "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "differs"
+    },
+    "metrics": {
+      "mean_absolute_error": 440.69114937641723,
+      "root_mean_square_error": 812.0557721505777,
+      "maximum_error": 7503,
+      "changed_percent": 63.39653145208701,
+      "p99_error": 2017,
+      "over_1024_percent": 24.861294826572603
+    }
+  },
+  {
+    "algorithm": "DCB",
+    "reference_library": "LibRaw",
+    "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "differs"
+    },
+    "metrics": {
+      "mean_absolute_error": 380.52625333333333,
+      "root_mean_square_error": 668.809639057333,
+      "maximum_error": 11028,
+      "changed_percent": 67.24706666666667,
+      "p99_error": 1847,
+      "over_1024_percent": 16.7056
+    }
+  },
+  {
+    "algorithm": "DHT",
+    "reference_library": "LibRaw",
+    "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "differs"
+    },
+    "metrics": {
+      "mean_absolute_error": 342.5853562127976,
+      "root_mean_square_error": 585.4121897855712,
+      "maximum_error": 3957,
+      "changed_percent": 66.55572385204081,
+      "p99_error": 2247,
+      "over_1024_percent": 7.280373086734694
+    }
+  },
+  {
+    "algorithm": "Linear",
+    "reference_library": "LibRaw",
+    "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "rounding_up"
+    },
+    "verdict": {
+      "kind": "rounding_only"
+    },
+    "metrics": {
+      "mean_absolute_error": 0.30214148404459823,
+      "root_mean_square_error": 0.5496739797776481,
+      "maximum_error": 1,
+      "changed_percent": 30.214148404459824,
+      "p99_error": 1,
+      "over_1024_percent": 0.0
+    }
+  },
+  {
+    "algorithm": "LMMSE",
+    "reference_library": "darktable",
+    "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "differs"
+    },
+    "metrics": {
+      "mean_absolute_error": 213.6499105043252,
+      "root_mean_square_error": 455.23713695581245,
+      "maximum_error": 9839,
+      "changed_percent": 66.46510456034265,
+      "p99_error": 1464,
+      "over_1024_percent": 2.8878758293440834
+    }
+  },
+  {
+    "algorithm": "PPG",
+    "reference_library": "LibRaw",
+    "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "within_robust_tolerance"
+    },
+    "metrics": {
+      "mean_absolute_error": 0.29328155517578125,
+      "root_mean_square_error": 11.017176078372442,
+      "maximum_error": 2153,
+      "changed_percent": 14.961369832356771,
+      "p99_error": 1,
+      "over_1024_percent": 0.0030517578125
+    }
+  },
+  {
+    "algorithm": "PPG",
+    "reference_library": "darktable",
+    "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "exact"
+    },
+    "metrics": {
+      "mean_absolute_error": 0.0,
+      "root_mean_square_error": 0.0,
+      "maximum_error": 0,
+      "changed_percent": 0.0,
+      "p99_error": 0,
+      "over_1024_percent": 0.0
+    }
+  },
+  {
+    "algorithm": "RCD",
+    "reference_library": "darktable",
+    "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "within_robust_tolerance"
+    },
+    "metrics": {
+      "mean_absolute_error": 0.17219275343159934,
+      "root_mean_square_error": 3.1570441047337527,
+      "maximum_error": 674,
+      "changed_percent": 3.285770154449512,
+      "p99_error": 3,
+      "over_1024_percent": 0.0
+    }
+  },
+  {
+    "algorithm": "VNG",
+    "reference_library": "darktable",
+    "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "differs"
+    },
+    "metrics": {
+      "mean_absolute_error": 3228.610135470271,
+      "root_mean_square_error": 4734.402483614467,
+      "maximum_error": 32265,
+      "changed_percent": 83.32261247855828,
+      "p99_error": 10764,
+      "over_1024_percent": 53.351752536838404
+    }
+  },
+  {
+    "algorithm": "VNG",
+    "reference_library": "LibRaw",
+    "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199",
+    "bayer_pattern": "BGGR",
+    "tolerance": {
+      "kind": "robust",
+      "max_mae": 2.0,
+      "max_p99": 64,
+      "max_over_1024_percent": 0.1
+    },
+    "verdict": {
+      "kind": "differs"
+    },
+    "metrics": {
+      "mean_absolute_error": 3139.9459307251946,
+      "root_mean_square_error": 4723.669847962555,
+      "maximum_error": 32265,
+      "changed_percent": 66.66550416434166,
+      "p99_error": 10779,
+      "over_1024_percent": 53.094710356087376
+    }
+  }
+]

@@ -109,17 +109,20 @@ mod tests {
 
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[rstest]
-    #[case::rggb(BayerPattern::RGGB)]
-    #[case::bggr(BayerPattern::BGGR)]
-    #[case::grbg(BayerPattern::GRBG)]
-    #[case::gbrg(BayerPattern::GBRG)]
-    fn pattern_snapshot(#[case] pattern: BayerPattern) -> mischief::Result<()> {
+    #[case::rggb(BayerPattern::RGGB, "rggb")]
+    #[case::bggr(BayerPattern::BGGR, "bggr")]
+    #[case::grbg(BayerPattern::GRBG, "grbg")]
+    #[case::gbrg(BayerPattern::GBRG, "gbrg")]
+    fn pattern_snapshot(
+        #[case] pattern: BayerPattern,
+        #[case] snapshot_name: &str,
+    ) -> mischief::Result<()> {
         let input = crop_512(&crate::data::active_area()?);
         let comparisons = crate::report::comparison_rows_for_pattern(&input, pattern)?
             .into_iter()
             .map(SummaryComparison::from)
             .collect::<Vec<_>>();
-        insta::assert_json_snapshot!(comparisons);
+        insta::assert_json_snapshot!(snapshot_name, comparisons);
         Ok(())
     }
 }
