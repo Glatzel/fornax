@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <limits>
 #include <new>
-
 extern "C" std::int32_t run_darktable_rcd(
     const std::uint16_t* mosaic,
     std::uint32_t        width,
@@ -101,6 +100,12 @@ extern "C" std::int32_t compare_demosaic_reference(
                 return run_darktable_ppg(mosaic, width, height, filters, output);
             case 1:
                 return run_darktable_rcd(mosaic, width, height, filters, output);
+            case 2:
+                return run_darktable_vng(mosaic, width, height, filters, output);
+            case 3:
+                return run_darktable_amaze(mosaic, width, height, filters, output);
+            case 4:
+                return run_darktable_lmmse(mosaic, width, height, filters, output);
             default:
                 return COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM;
         }
@@ -126,6 +131,18 @@ extern "C" std::int32_t compare_demosaic_reference(
                 break;
             case 2:
                 status = reference.run_ahd();
+                break;
+            case 3:
+                status = reference.run_vng();
+                break;
+            case 4:
+                status = reference.run_dcb();
+                break;
+            case 5:
+                status = reference.run_dht();
+                break;
+            case 6:
+                status = reference.run_aahd();
                 break;
             default:
                 break;

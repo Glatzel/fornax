@@ -7,9 +7,12 @@ edition.workspace = true
 harness = false
 name = "demosaic"
 
+[dependencies]
+fornax-postprocessor.workspace = true
+serde_json.workspace = true
+
 [dev-dependencies]
 criterion.workspace = true
 fornax-core.workspace = true
 fornax-devtool.workspace = true
-fornax-postprocessor.workspace = true
 rayon.workspace = true

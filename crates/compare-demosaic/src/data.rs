@@ -1,51 +1,65 @@
-use fornax_devtool::synthetic_mono_image;
+use std::path::Path;
 
-pub const CANONICAL_WIDTH: u32 = 512;
-pub const CANONICAL_HEIGHT: u32 = 512;
+use fornax_core::BayerPattern;
+use fornax_core::protocol::{IDecoder, IPreprocessor};
+use fornax_decoder_rawler::RawlerDecoder;
+use fornax_preprocessor::Preprocessor;
 
 #[derive(Clone, Debug)]
-pub struct Input {
-    #[allow(dead_code, reason = "used in comparison test diagnostics")]
-    pub label: String,
+pub struct ActiveArea {
+    pub source: String,
+    pub source_path: String,
     pub width: u32,
     pub height: u32,
     pub codes: Vec<u16>,
+    pub black: Vec<f64>,
+    pub black_width: u32,
+    pub black_height: u32,
+    pub white: f64,
+    pub native_pattern: BayerPattern,
 }
 
-pub fn canonical() -> Input { seeded("canonical", CANONICAL_WIDTH, CANONICAL_HEIGHT) }
-
-#[cfg(test)]
-pub fn test_inputs() -> Vec<Input> {
-    vec![
-        seeded("canonical", CANONICAL_WIDTH, CANONICAL_HEIGHT),
-        seeded("odd", 513, 511),
-        seeded("partial-row-chunk", 34, 513),
-        seeded("tiny", 3, 3),
-        saturated("saturated", CANONICAL_WIDTH, CANONICAL_HEIGHT),
-        saturated("saturated-tiny", 3, 3),
-    ]
-}
-
-fn seeded(label: &str, width: u32, height: u32) -> Input {
-    let image = synthetic_mono_image::<f32>((width, height), 65_535.0);
-    Input {
-        label: label.to_owned(),
+pub fn active_area() -> mischief::Result<ActiveArea> {
+    let path = fornax_devtool::raw_file();
+    let (decoded, metadata) =
+        <RawlerDecoder as IDecoder<Path, f32>>::decode_active(&RawlerDecoder, &path)
+            .map_err(|error| mischief::mischief!("cannot decode {}: {error}", path.display()))?;
+    let image = Preprocessor
+        .process(decoded, &metadata.levels)
+        .map_err(|error| mischief::mischief!("cannot preprocess {}: {error}", path.display()))?
+        .into_image();
+    let (width, height) = image.dimensions();
+    let source_path = path
+        .strip_prefix(fornax_devtool::root_dir())
+        .unwrap_or(&path)
+        .to_string_lossy()
+        .into_owned();
+    let black = metadata
+        .levels
+        .black
+        .as_raw()
+        .iter()
+        .map(|value| f64::from(*value))
+        .collect();
+    let (black_width, black_height) = metadata.levels.black.dimensions();
+    Ok(ActiveArea {
+        source: path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .into_owned(),
+        source_path,
         width,
         height,
         codes: image
             .as_raw()
             .iter()
-            .map(|sample| sample.round().clamp(0.0, 65_535.0) as u16)
+            .map(|sample| (sample.clamp(0.0, 1.0) * f32::from(u16::MAX)).round() as u16)
             .collect(),
-    }
-}
-
-#[cfg(test)]
-fn saturated(label: &str, width: u32, height: u32) -> Input {
-    Input {
-        label: label.to_owned(),
-        width,
-        height,
-        codes: vec![u16::MAX; width as usize * height as usize],
-    }
+        black,
+        black_width,
+        black_height,
+        white: f64::from(metadata.levels.white),
+        native_pattern: metadata.bayer_pattern,
+    })
 }

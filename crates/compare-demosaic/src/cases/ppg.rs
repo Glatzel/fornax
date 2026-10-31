@@ -2,7 +2,7 @@ use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_postprocessor::Demosaic;
 
-use crate::case::{Case, ReferenceBackend, SampleType, Tolerance};
+use crate::case::{Case, ROBUST, ReferenceBackend, SampleType};
 
 const LIBRAW_PPG_URL: &str = concat!(
     "https://github.com/LibRaw/LibRaw/blob/",
@@ -20,8 +20,7 @@ pub const LIBRAW_CASE: Case = Case {
     source_url: LIBRAW_PPG_URL,
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 1,
-    border: 0,
-    tolerance: Tolerance::MaxError(12_000),
+    tolerance: ROBUST,
     run_fornax: run,
 };
 
@@ -30,8 +29,7 @@ pub const DARKTABLE_CASE: Case = Case {
     source_url: DARKTABLE_PPG_URL,
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 0,
-    border: 0,
-    tolerance: Tolerance::MaxError(12_000),
+    tolerance: ROBUST,
     run_fornax: run,
 };
 

@@ -24,6 +24,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+
   cargo-doc:
     runs-on: ubuntu-latest
     env:
@@ -40,7 +41,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        machine: [windows-latest, ubuntu-latest, macos-latest, ubuntu-26.04-arm]
+        include:
+          - machine: windows-latest
+            test-options: --workspace --all-features --exclude compare-demosaic
+          - machine: ubuntu-latest
+            test-options: --workspace --all-features
+          - machine: macos-latest
+            test-options: --workspace --all-features --exclude compare-demosaic
+          - machine: ubuntu-26.04-arm
+            test-options: --workspace --all-features --exclude compare-demosaic
     env:
       dnc_version: 18_5
     runs-on: ${{matrix.machine}}
@@ -65,7 +74,7 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled()}}
         with:
-          global-options: --workspace --all-features
+          global-options: ${{ matrix.test-options }}
         env:
           GH_TOKEN: ${{ github.token }}
       # - name: build
@@ -77,6 +86,7 @@ jobs:
       #     working-directory: ./crates/fornax-py
       - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{ !cancelled() }}
+
   benchmark:
     name: benchmark (${{ matrix.package }})
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && contains(join(github.event.pull_request.labels.*.name, ','), 'perf')) }}
@@ -128,6 +138,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
+
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs: [lefthook, cargo-doc, test-build, benchmark]

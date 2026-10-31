@@ -2,7 +2,7 @@ use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_postprocessor::Demosaic;
 
-use crate::case::{Case, ReferenceBackend, SampleType, Tolerance};
+use crate::case::{Case, ROBUST, ReferenceBackend, SampleType};
 
 const LIBRAW_AHD_URL: &str = concat!(
     "https://github.com/LibRaw/LibRaw/blob/",
@@ -15,8 +15,7 @@ pub const CASE: Case = Case {
     source_url: LIBRAW_AHD_URL,
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 2,
-    border: 5,
-    tolerance: Tolerance::MaxError(40_000),
+    tolerance: ROBUST,
     run_fornax: run,
 };
 

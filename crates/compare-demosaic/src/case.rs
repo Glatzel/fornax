@@ -31,7 +31,18 @@ pub enum Tolerance {
     Exact,
     RoundingUp,
     MaxError(u16),
+    Robust {
+        max_mae: f64,
+        max_p99: u16,
+        max_high_error_frac: f64,
+    },
 }
+
+pub const ROBUST: Tolerance = Tolerance::Robust {
+    max_mae: 2.0,
+    max_p99: 64,
+    max_high_error_frac: 0.001,
+};
 
 pub type FornaxRunner =
     fn(&[u16], u32, u32, BayerPattern, SampleType) -> mischief::Result<Vec<u16>>;
@@ -42,7 +53,6 @@ pub struct Case {
     pub source_url: &'static str,
     pub reference_backend: ReferenceBackend,
     pub algorithm: u32,
-    pub border: u32,
     pub tolerance: Tolerance,
     pub run_fornax: FornaxRunner,
 }

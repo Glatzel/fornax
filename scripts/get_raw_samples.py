@@ -1,27 +1,42 @@
 """Download selected raw samples from raw.pixls.us.
 
-Requires: pip install httpx duckdb   (and aria2c on PATH)
+Requires: pip install httpx duckdb typer   (and aria2c on PATH)
 
   get_raw_samples.py '*ILCE-7M5*' --list
-  get_raw_samples.py 'Sony - *' 'Nikon - *' -o D:/raws
+  get_raw_samples.py 'Sony - *' 'Nikon - *' -o D:/raws --after 2024-01-01
 """
 
-import argparse
 import re
 import shutil
 import subprocess
 import sys
+from dataclasses import dataclass
+from datetime import datetime
 from fnmatch import fnmatchcase
 from pathlib import Path
+from typing import Annotated
 from urllib.parse import unquote
 
 import duckdb  # ty: ignore[unresolved-import]
 import httpx  # ty: ignore[unresolved-import]
+import typer  # ty: ignore[unresolved-import]
 
 API = "https://raw.pixls.us/json/getrepository.php?set=all"
-OUT_DIR = Path(__file__).resolve().parent.parent / "external" / "raw.pixls.us"
+DEFAULT_OUT = Path(__file__).resolve().parent.parent / "external" / "raw.pixls.us"
 BAD_CHARS = re.compile(r'[<>:"/\\|?*]')
 NAME_RE = re.compile(r"^(?P<make>.+?) - (?P<model>.+?) - (?P<rest>.+)$")
+
+app = typer.Typer(add_completion=False, help=__doc__.splitlines()[0])
+
+
+@dataclass(frozen=True)
+class Entry:
+    rel: str  # Make/Model/<sha256>.<ext>
+    url: str
+    sha: str
+    make: str | None
+    model: str | None
+    orig: str  # original filename from the listing
 
 
 def safe(s: str) -> str:
@@ -55,84 +70,119 @@ def fetch_repository(cache_dir: Path, refresh: bool) -> Path:
     return data
 
 
-# Column 7 of each row is an HTML anchor; pull its href out with duckdb.
-def extract_urls(json_path: Path) -> list[str]:
+# Column 6 is the date added (YYYY-MM-DD); column 7 is an HTML cell holding
+# the anchor and the sha256 checksum span.
+def extract_rows(json_path: Path) -> list[tuple[str, str, str]]:
     rows = duckdb.execute(
         """
         SELECT DISTINCT
-            regexp_extract(json_extract_string(je.value, '$[7]'),
-                           'href=[''"]([^''"]+)[''"]', 1) AS url
-        FROM (SELECT content::JSON AS j FROM read_text(?)) AS t,
-             json_each(t.j, '$.data') AS je
+            regexp_extract(cell, 'href=[''"]([^''"]+)[''"]', 1) AS url,
+            regexp_extract(cell, '([0-9a-f]{64})', 1)           AS sha256,
+            added
+        FROM (
+            SELECT json_extract_string(je.value, '$[7]') AS cell,
+                   json_extract_string(je.value, '$[6]') AS added
+            FROM (SELECT content::JSON AS j FROM read_text(?)) AS t,
+                 json_each(t.j, '$.data') AS je
+        )
         WHERE url <> ''
         """,
         [json_path.as_posix()],
     ).fetchall()
-    return [r[0] for r in rows]
+    return [(r[0], r[1], r[2] or "") for r in rows]
 
 
-def build_entries(urls: list[str], patterns: list[str]) -> list[tuple[str, str]]:
+def build_entries(rows: list[tuple[str, str, str]], patterns: list[str], after: str | None) -> list[Entry]:
     pats = [p.lower() for p in patterns]
-    out = []
-    for url in urls:
-        parts = url.split("/")
-        file = unquote(parts[-1])
+    out: dict[str, Entry] = {}  # keyed by rel; dedupes identical files
+    for url, sha, added in rows:
+        if after and not (added > after):  # ISO dates compare lexicographically
+            continue
+        file = unquote(url.split("/")[-1])
         if not any(fnmatchcase(file.lower(), p) for p in pats):
             continue
-        sample_id = parts[-3]  # .../getfile.php/<id>/nice/<name>
         stem, dot, ext = file.rpartition(".")
-        ext = dot + ext if dot else ""
+        ext = f".{ext.lower()}" if dot else ""
         stem = stem if dot else file
+        name = (sha or safe(stem)) + ext
         if m := NAME_RE.match(stem):
-            leaf = safe(m["rest"] + f" [{sample_id}]" + ext)
-            rel = f"{safe(m['make'])}/{safe(m['model'])}/{leaf}"
+            make, model = safe(m["make"]), safe(m["model"])
+            rel = f"{make}/{model}/{name}"
         else:
-            rel = f"_unsorted/{safe(f'{stem} [{sample_id}]{ext}')}"
-        out.append((rel, url.replace(" ", "%20")))
-    return sorted(out)
+            make = model = None
+            rel = f"_unsorted/{name}"
+        out[rel] = Entry(rel, url.replace(" ", "%20"), sha, make, model, file)
+    return sorted(out.values(), key=lambda e: e.rel)
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument(
-        "name", nargs="*", default=["*"], help="wildcard(s) on the sample filename, case-insensitive (default: *)"
+def show_table(entries: list[Entry]) -> None:
+    con = duckdb.connect()
+    con.execute("CREATE TABLE t (make VARCHAR, model VARCHAR, file VARCHAR)")
+    con.executemany("INSERT INTO t VALUES (?, ?, ?)", [(e.make, e.model, e.orig) for e in entries])
+    con.sql("SELECT make, model, file FROM t").show(
+        max_rows=len(entries) + 1,
+        max_width=shutil.get_terminal_size().columns,
+        max_col_width=200,
+        null_value="-",
     )
-    ap.add_argument("-j", "--jobs", type=int, default=8)
-    ap.add_argument("-l", "--list", action="store_true", help="list matches, don't download")
-    ap.add_argument("--refresh", action="store_true", help="ignore the cached listing")
-    ap.add_argument("--json", type=Path, help="use a local listing file instead of fetching")
-    args = ap.parse_args()
 
-    json_path = args.json or fetch_repository(OUT_DIR / ".cache", args.refresh)
-    entries = build_entries(extract_urls(json_path), args.name)
+
+@app.command()
+def main(
+    names: Annotated[
+        list[str] | None,
+        typer.Argument(help="Wildcard(s) on the sample filename, case-insensitive (default: *)."),
+    ] = None,
+    out: Annotated[Path, typer.Option("-o", "--out", help="Output directory.")] = DEFAULT_OUT,
+    after: Annotated[
+        datetime | None,
+        typer.Option(
+            formats=["%Y-%m-%d"],
+            help="Only samples added after this date (YYYY-MM-DD, exclusive).",
+        ),
+    ] = None,
+    jobs: Annotated[int, typer.Option("-j", "--jobs", help="Parallel downloads.")] = 8,
+    list_only: Annotated[bool, typer.Option("-l", "--list", help="List matches, don't download.")] = False,
+    refresh: Annotated[bool, typer.Option("--refresh", help="Ignore the cached listing.")] = False,
+    json_file: Annotated[
+        Path | None, typer.Option("--json", help="Use a local listing file instead of fetching.")
+    ] = None,
+) -> None:
+    json_path = json_file or fetch_repository(out / ".cache", refresh)
+    after_str = after.strftime("%Y-%m-%d") if after else None
+    entries = build_entries(extract_rows(json_path), names or ["*"], after_str)
 
     if not entries:
-        print("No files matched.", file=sys.stderr)
-        return 1
-    if args.list:
-        for rel, _ in entries:
-            print(rel)
-        print(f"{len(entries)} files")
-        return 0
+        typer.echo("No files matched.", err=True)
+        raise typer.Exit(1)
+    if list_only:
+        show_table(entries)
+        typer.echo(f"{len(entries)} files")
+        return
 
     aria2 = shutil.which("aria2c")
     if not aria2:
-        print("aria2c not found on PATH", file=sys.stderr)
-        return 2
+        typer.echo("aria2c not found on PATH", err=True)
+        raise typer.Exit(2)
 
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    input_file = OUT_DIR / "aria2-input.txt"
-    input_file.write_text("".join(f"{url}\n  out={rel}\n" for rel, url in entries), encoding="utf-8")
+    out.mkdir(parents=True, exist_ok=True)
+    input_file = out / "aria2-input.txt"
+    lines = []
+    for e in entries:
+        lines.append(f"{e.url}\n  out={e.rel}\n")
+        if e.sha:
+            lines.append(f"  checksum=sha-256={e.sha}\n")
+    input_file.write_text("".join(lines), encoding="utf-8")
 
-    return subprocess.run(
+    rc = subprocess.run(
         [
             aria2,
             "-i",
             str(input_file),
             "-d",
-            str(OUT_DIR),
+            str(out),
             "-j",
-            str(args.jobs),
+            str(jobs),
             "-x",
             "1",
             "-s",
@@ -142,7 +192,8 @@ def main() -> int:
             "--file-allocation=none",
         ]
     ).returncode
+    raise typer.Exit(rc)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    app()

@@ -8,11 +8,18 @@ pixi install -e dev
 git submodule update --init external/libraw external/raw-images
 
 files=(
+    "src/iop/demosaicing/amaze.cc"
+    "src/iop/demosaicing/lmmse.c"
     "src/iop/demosaicing/ppg.c"
     "src/iop/demosaicing/rcd.c"
+    "src/iop/demosaicing/vng.c"
 )
+
 for file in "${files[@]}"; do
     destination="external/darktable/$file"
+
+    [[ -f "$destination" ]] && continue
+
     mkdir -p "$(dirname "$destination")"
 
     gh api "repos/darktable-org/darktable/contents/$file?ref=release-5.6.2" \

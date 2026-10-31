@@ -15,8 +15,6 @@ pub const CASE: Case = Case {
     source_url: LIBRAW_LINEAR_URL,
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 0,
-    // Both routines read one pixel around each interpolated pixel.
-    border: 1,
     tolerance: Tolerance::RoundingUp,
     run_fornax: run,
 };

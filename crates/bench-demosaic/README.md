@@ -31,6 +31,19 @@ FORNAX_BENCH_BITS=32 cargo bench -p bench-demosaic
 
 The default is `32,64`.
 
+`FORNAX_BENCH_ALGORITHM` selects one algorithm from
+`crates/bench-demosaic/algorithms.json`. The value is an ID such as `ahd`,
+`dcb`, or `lmmse`; an unset or empty value runs every registered algorithm:
+
+```bash
+FORNAX_BENCH_ALGORITHM=ahd cargo bench -p bench-demosaic
+```
+
+CI generates one simulation job per registry entry with
+`scripts/benchmark-matrix.py`. Add new benchmarkable algorithms to the JSON
+registry and map the ID to its `Demosaic` variant in
+`crates/bench-demosaic/src/lib.rs`.
+
 Demosaic benchmarks also sweep Rayon thread counts. Set
 `RAYON_NUM_THREADS` to control the maximum sweep:
 

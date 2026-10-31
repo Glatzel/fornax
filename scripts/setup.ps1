@@ -3,18 +3,24 @@ Set-Location $PSScriptRoot/..
 pixi install -e dev
 git submodule update --init external/libraw external/raw-images
 
-foreach ($file in  @(
-        "src/iop/demosaicing/ppg.c",
-        "src/iop/demosaicing/rcd.c"
-    ))
+foreach ($file in @(
+    "src/iop/demosaicing/amaze.cc",
+    "src/iop/demosaicing/lmmse.c",
+    "src/iop/demosaicing/ppg.c",
+    "src/iop/demosaicing/rcd.c",
+    "src/iop/demosaicing/vng.c"
+))
 {
     $destination = Join-Path "external/darktable" $file
+
+    if (Test-Path $destination) {
+        continue
+    }
 
     New-Item -ItemType Directory -Force (Split-Path $destination) | Out-Null
 
     $content = gh api "repos/darktable-org/darktable/contents/${file}?ref=release-5.6.2" --jq .content
-    if ($LASTEXITCODE -ne 0)
-    {
+    if ($LASTEXITCODE -ne 0) {
         throw "failed to download darktable/$file"
     }
 

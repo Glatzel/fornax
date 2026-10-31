@@ -1,8 +1,9 @@
 # Agent Instructions — fornax
 
 `TODO.md` is the authoritative backlog and completion record. Read it before
-selecting implementation work. Agent instructions live in this root file and
-in no other directory.
+selecting implementation work. Repository-wide agent instructions live in this
+root file. The comparison-specific investigation guide is
+[`crates/compare-demosaic/AGENTS.md`](crates/compare-demosaic/AGENTS.md).
 
 Use `main` as the integration base for every new task and bug-fix branch.
 
@@ -97,10 +98,15 @@ Keep reference comparison cases table-driven:
 2. Add its reference backend and stable algorithm ID to `cpp/shim.cpp`.
 3. Add a `Case` and Fornax runner under `crates/compare-demosaic/src/cases/`.
 4. Register the case in `CASES`.
-5. Run `pixi run -e dev compare-demosaic` to update
-   `crates/compare-demosaic/results/canonical.json`.
-6. Read the JSON result and update the Markdown tables and warning notes.
-7. Commit both the JSON result and updated Markdown.
+5. Run `cargo run --release -p compare-demosaic` to write
+   `target/compare-demosaic/canonical.json`.
+6. Run and review the comparison snapshot with `cargo insta test -p
+   compare-demosaic`, accepting intended changes with `cargo insta accept`.
+7. Follow [the comparison agent guide](crates/compare-demosaic/AGENTS.md),
+   add prose notes without numbers, and regenerate the README from the
+   canonical baseline.
+8. Diff the run against the committed baseline, then commit the snapshot,
+   baseline, schema, notes, and generated Markdown.
 
 Reference routines and headers come from the repository-managed `libraw-dev`
 Pixi package. The comparison crate does not compile LibRaw from the external

@@ -1,8 +1,12 @@
+use std::sync::Mutex;
+
 use fornax_core::{BayerChannel, BayerPattern};
 
 use crate::case::ReferenceBackend;
 
 include!(concat!(env!("OUT_DIR"), "/status_codes.rs"));
+
+static REFERENCE_LOCK: Mutex<()> = Mutex::new(());
 
 #[repr(i32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -79,6 +83,10 @@ pub fn run(
         .checked_mul(3)
         .ok_or_else(|| mischief::mischief!("RGB output dimensions overflow"))?;
     let mut output = vec![0_u16; samples];
+
+    let _guard = REFERENCE_LOCK
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
 
     // SAFETY: both buffers are valid for the dimensions checked above, and the
     // C++ function writes exactly `pixels * 3` samples.

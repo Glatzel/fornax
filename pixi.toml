@@ -6,10 +6,6 @@ platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 [feature.dev.dependencies]
 libraw-dev = "==0.22.3"
 
-[feature.dev.tasks]
-pipeline = "cargo run --example pipeline"
-compare-demosaic = "cargo run -p compare-demosaic"
-
 [feature.python.dependencies]
 maturin = "==1.15.0"
 pip = "==26.2.2"
@@ -34,16 +30,21 @@ skill-glatzel = "*"
 codex-rtk = "*"
 
 [feature.data.dependencies]
+aria2 = "*"
 python-duckdb = "*"
 httpx = "*"
 nomkl = "*"
+typer = "*"
 
 [feature.data.tasks]
 get-raw-samples = "python $PIXI_WORKSPACE_ROOT/scripts/get_raw_samples.py"
 
 [environments]
 default = []
-dev = { features = ["dev"], no-default-feature = true }
-python = { features = ["dev", "python"], no-default-feature = true }
-agent = { features = ["agent"], no-default-feature = true }
-data = { features = ["data"], no-default-feature = true }
+dev = {
+  features = ["dev"],
+  tasks = { pipeline = "cargo run --example pipeline" }
+}
+python = ["dev", "python"]
+agent = ["agent"]
+data = ["data"]
