@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot/..
 pixi install -e dev
-git submodule update --init external/libraw external/raw-images
+git submodule update --init external/libraw
 
 foreach ($file in  @(
         "src/iop/demosaicing/amaze.cc",
@@ -25,6 +25,15 @@ foreach ($file in  @(
         $destination,
         [Convert]::FromBase64String(($content -join ""))
     )
+}
+
+foreach ($pattern in  @(
+        '*sony*ILCE-7*14bit uncompressed (3:2).ARW'
+        '*canon*eos r*3:2.CR3'
+        '*nikon*Z*Lossless*(3:2).NEF'
+    ))
+{
+    pixi run get-raw-samples --after 2020-01-01 $pattern
 }
 
 if ($IsWindows)
