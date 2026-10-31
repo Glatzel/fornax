@@ -18,10 +18,10 @@ serde.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
+image.workspace = true
 insta.workspace = true
 rstest.workspace = true
 tempfile.workspace = true
-image.workspace = true
 
 [build-dependencies]
 cc.workspace = true
