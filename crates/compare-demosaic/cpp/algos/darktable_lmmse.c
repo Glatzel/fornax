@@ -81,13 +81,15 @@ static inline float median9f(const float* pixels) {
 #define __attribute__(attribute)
 #endif
 
-static void demosaic_ppg(float *const out,
-                         const float *const in,
-                         const int width,
-                         const int height,
-                         const uint32_t filters,
-                         const float thrs,
-                         const int margin);
+static void demosaic_ppg(
+    float* const       out,
+    const float* const in,
+    const int          width,
+    const int          height,
+    const uint32_t     filters,
+    const float        thrs,
+    const int          margin
+);
 
 #include "external/darktable/src/iop/demosaicing/lmmse.c"
 #include "external/darktable/src/iop/demosaicing/ppg.c"
