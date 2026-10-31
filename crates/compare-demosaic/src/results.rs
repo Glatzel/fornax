@@ -6,7 +6,7 @@ use crate::case::Tolerance;
 use crate::{data, metrics, report};
 
 pub const SCHEMA_VERSION: u32 = 1;
-pub const TARGET_SUMMARY_FILE: &str = "target/compare-demosaic/summary.json";
+pub const TARGET_SUMMARY_FILE: &str = "crates/compare-demosaic/summary.json";
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct SummaryResults {
