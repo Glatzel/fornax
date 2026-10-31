@@ -21,9 +21,7 @@ pub struct CaseRow {
     pub pattern: BayerPattern,
 }
 
-pub fn all_cases() -> impl Iterator<Item = &'static crate::case::Case> {
-    cases::CASES.iter()
-}
+pub fn all_cases() -> impl Iterator<Item = &'static crate::case::Case> { cases::CASES.iter() }
 
 pub fn expected_rows() -> Vec<ExpectedRow> {
     let mut rows = all_cases()

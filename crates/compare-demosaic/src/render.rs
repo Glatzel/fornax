@@ -20,9 +20,7 @@ pub fn render_from(path: &Path) -> mischief::Result<String> {
     Ok(render(&baseline, &notes))
 }
 
-pub fn write_baseline() -> mischief::Result<()> {
-    write(None)
-}
+pub fn write_baseline() -> mischief::Result<()> { write(None) }
 
 pub fn write(from: Option<&Path>) -> mischief::Result<()> {
     let path = crate::results::repo_path(README_FILE);
@@ -32,9 +30,7 @@ pub fn write(from: Option<&Path>) -> mischief::Result<()> {
     Ok(())
 }
 
-pub fn check_baseline() -> mischief::Result<()> {
-    check(None)
-}
+pub fn check_baseline() -> mischief::Result<()> { check(None) }
 
 pub fn check(from: Option<&Path>) -> mischief::Result<()> {
     let path = crate::results::repo_path(README_FILE);

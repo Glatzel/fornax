@@ -249,9 +249,7 @@ pub fn from_rows(
     }
 }
 
-pub fn generated_by() -> String {
-    format!("compare-demosaic {}", env!("CARGO_PKG_VERSION"))
-}
+pub fn generated_by() -> String { format!("compare-demosaic {}", env!("CARGO_PKG_VERSION")) }
 
 pub fn full_run_metadata() -> RunMetadata {
     RunMetadata {
@@ -261,9 +259,7 @@ pub fn full_run_metadata() -> RunMetadata {
     }
 }
 
-pub const fn default_border_px() -> u32 {
-    CANONICAL_BORDER_PX
-}
+pub const fn default_border_px() -> u32 { CANONICAL_BORDER_PX }
 
 impl CanonicalResults {
     pub fn read(path: &Path) -> mischief::Result<Self> {
@@ -306,9 +302,7 @@ impl CanonicalResults {
     }
 }
 
-pub fn repo_path(relative_path: &str) -> PathBuf {
-    fornax_devtool::root_dir().join(relative_path)
-}
+pub fn repo_path(relative_path: &str) -> PathBuf { fornax_devtool::root_dir().join(relative_path) }
 
 pub fn schema_json() -> mischief::Result<String> {
     let schema = schemars::schema_for!(CanonicalResults);
@@ -391,9 +385,7 @@ pub fn comparison_order(left: &ComparisonResult, right: &ComparisonResult) -> st
         ))
 }
 
-fn round6(value: f64) -> f64 {
-    (value * 1_000_000.0).round() / 1_000_000.0
-}
+fn round6(value: f64) -> f64 { (value * 1_000_000.0).round() / 1_000_000.0 }
 
 fn fornax_revision() -> (String, bool) {
     let root = fornax_devtool::root_dir();

@@ -45,13 +45,9 @@ impl CompareError {
         }
     }
 
-    pub const fn class(&self) -> ErrorClass {
-        self.class
-    }
+    pub const fn class(&self) -> ErrorClass { self.class }
 
-    pub fn message(&self) -> &str {
-        &self.message
-    }
+    pub fn message(&self) -> &str { &self.message }
 }
 
 impl Display for CompareError {
@@ -63,15 +59,11 @@ impl Display for CompareError {
 impl std::error::Error for CompareError {}
 
 impl From<std::io::Error> for CompareError {
-    fn from(error: std::io::Error) -> Self {
-        Self::usage(error.to_string())
-    }
+    fn from(error: std::io::Error) -> Self { Self::usage(error.to_string()) }
 }
 
 impl From<serde_json::Error> for CompareError {
-    fn from(error: serde_json::Error) -> Self {
-        Self::invalid(error.to_string())
-    }
+    fn from(error: serde_json::Error) -> Self { Self::invalid(error.to_string()) }
 }
 
 pub type Result<T> = std::result::Result<T, CompareError>;

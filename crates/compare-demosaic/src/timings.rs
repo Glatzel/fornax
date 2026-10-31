@@ -56,9 +56,7 @@ impl Timings {
     }
 }
 
-pub fn millis(duration: Duration) -> u64 {
-    duration.as_millis().try_into().unwrap_or(u64::MAX)
-}
+pub fn millis(duration: Duration) -> u64 { duration.as_millis().try_into().unwrap_or(u64::MAX) }
 
 pub fn shard_timings_path(shard_path: &Path) -> PathBuf {
     let name = shard_path
