@@ -80,7 +80,7 @@ fn write_error_map(
                 .map(|channel| actual[channel].abs_diff(reference[channel]))
                 .max()
                 .unwrap_or(0);
-            ((f64::from(error) + 1.0).ln() / (scale + 1.0).ln() * 255.0)
+            (f64::from(error).ln_1p() / scale.ln_1p() * 255.0)
                 .round()
                 .clamp(0.0, 255.0) as u8
         })

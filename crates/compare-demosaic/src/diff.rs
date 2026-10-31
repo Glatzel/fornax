@@ -34,31 +34,35 @@ pub fn compare(old: &CanonicalResults, new: &CanonicalResults) -> DiffReport {
                 } else {
                     format!("; {}", metric_changes.join(", "))
                 };
-                if after.verdict.rank() < before.verdict.rank() {
-                    regressions += 1;
-                    lines.push(format!(
-                        "REGRESSION {}: {} -> {}{}",
-                        key,
-                        before.verdict.symbol(),
-                        after.verdict.symbol(),
-                        details
-                    ));
-                } else if after.verdict.rank() > before.verdict.rank() {
-                    improvements += 1;
-                    lines.push(format!(
-                        "IMPROVEMENT {}: {} -> {}{}",
-                        key,
-                        before.verdict.symbol(),
-                        after.verdict.symbol(),
-                        details
-                    ));
-                } else {
-                    lines.push(format!(
-                        "CHANGED {}: {}{}",
-                        key,
-                        after.verdict.symbol(),
-                        details
-                    ));
+                match after.verdict.rank().cmp(&before.verdict.rank()) {
+                    std::cmp::Ordering::Less => {
+                        regressions += 1;
+                        lines.push(format!(
+                            "REGRESSION {}: {} -> {}{}",
+                            key,
+                            before.verdict.symbol(),
+                            after.verdict.symbol(),
+                            details
+                        ));
+                    }
+                    std::cmp::Ordering::Greater => {
+                        improvements += 1;
+                        lines.push(format!(
+                            "IMPROVEMENT {}: {} -> {}{}",
+                            key,
+                            before.verdict.symbol(),
+                            after.verdict.symbol(),
+                            details
+                        ));
+                    }
+                    std::cmp::Ordering::Equal => {
+                        lines.push(format!(
+                            "CHANGED {}: {}{}",
+                            key,
+                            after.verdict.symbol(),
+                            details
+                        ));
+                    }
                 }
             }
             (Some(before), None) => {

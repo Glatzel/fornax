@@ -205,13 +205,13 @@ pub fn verdict(metrics: &Metrics, tolerance: Tolerance) -> (Verdict, Vec<FailedL
         return (Verdict::Exact, Vec::new());
     }
     match tolerance {
-        Tolerance::Exact => (Verdict::Fail, Vec::new()),
         Tolerance::RoundingUp if metrics.max <= 1 && metrics.count_below_reference == 0 => {
             (Verdict::RoundingOnly, Vec::new())
         }
-        Tolerance::RoundingUp => (Verdict::Fail, Vec::new()),
         Tolerance::MaxError(maximum) if metrics.max <= maximum => (Verdict::Pass, Vec::new()),
-        Tolerance::MaxError(_) => (Verdict::Fail, Vec::new()),
+        Tolerance::Exact | Tolerance::RoundingUp | Tolerance::MaxError(_) => {
+            (Verdict::Fail, Vec::new())
+        }
         Tolerance::Robust {
             max_mae,
             max_p99,
