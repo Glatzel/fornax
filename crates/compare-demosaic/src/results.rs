@@ -3,9 +3,9 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::case::Tolerance;
-use crate::{metrics, report};
+use crate::{data, metrics, report};
 
-pub const SCHEMA_VERSION: u32 = 2;
+pub const SCHEMA_VERSION: u32 = 3;
 pub const DEFAULT_RESULTS_FILE: &str = "results/canonical.json";
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -14,14 +14,12 @@ pub struct ComparisonResults {
     pub input: ComparisonInput,
     pub reference_builds: ReferenceBuilds,
     pub comparisons: Vec<ComparisonResult>,
-    pub skipped_inputs: Vec<SkippedInput>,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ComparisonInput {
     pub fixture: String,
     pub source: String,
-    pub kind: String,
     pub pattern: String,
     pub width: u32,
     pub height: u32,
@@ -38,8 +36,6 @@ pub struct ReferenceBuilds {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ComparisonResult {
-    pub fixture: String,
-    pub source: String,
     pub algorithm: String,
     pub reference_library: String,
     pub source_url: String,
@@ -48,12 +44,6 @@ pub struct ComparisonResult {
     pub tolerance: ToleranceResult,
     pub verdict: VerdictResult,
     pub metrics: MetricsResult,
-}
-
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct SkippedInput {
-    pub source: String,
-    pub reason: String,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
@@ -100,21 +90,31 @@ pub struct MetricsResult {
 }
 
 impl ComparisonResults {
-    pub fn canonical() -> mischief::Result<Self> {
-        let mut comparisons = report::canonical_rows()?
+    pub fn canonical() -> mischief::Result<Self> { Self::canonical_with_progress(|_| {}) }
+
+    pub fn canonical_with_progress(
+        progress: impl FnMut(report::ProgressEvent),
+    ) -> mischief::Result<Self> {
+        let input = data::canonical()?;
+        Self::from_input_with_progress(input, progress)
+    }
+
+    pub(crate) fn from_input_with_progress(
+        input: data::Input,
+        progress: impl FnMut(report::ProgressEvent),
+    ) -> mischief::Result<Self> {
+        let mut comparisons = report::canonical_rows(&input, progress)?
             .into_iter()
             .map(ComparisonResult::from)
             .collect::<Vec<_>>();
         comparisons.sort_unstable_by(|left, right| {
             (
                 left.algorithm.to_ascii_lowercase(),
-                left.fixture.clone(),
                 left.reference_library.to_ascii_lowercase(),
                 left.bayer_pattern.clone(),
             )
                 .cmp(&(
                     right.algorithm.to_ascii_lowercase(),
-                    right.fixture.clone(),
                     right.reference_library.to_ascii_lowercase(),
                     right.bayer_pattern.clone(),
                 ))
@@ -123,12 +123,11 @@ impl ComparisonResults {
         Ok(Self {
             schema_version: SCHEMA_VERSION,
             input: ComparisonInput {
-                fixture: "raw-corpus".to_owned(),
-                source: "external/raw.pixls.us".to_owned(),
-                kind: "real_raw".to_owned(),
-                pattern: "mixed".to_owned(),
-                width: 0,
-                height: 0,
+                fixture: "colorchart-eos-7d".to_owned(),
+                source: input.source,
+                pattern: input.pattern.to_string(),
+                width: input.width,
+                height: input.height,
                 sample_type: "f32".to_owned(),
             },
             reference_builds: ReferenceBuilds {
@@ -138,7 +137,6 @@ impl ComparisonResults {
                 darktable_commit: report::DARKTABLE_COMMIT.to_owned(),
             },
             comparisons,
-            skipped_inputs: Vec::new(),
         })
     }
 
@@ -161,8 +159,6 @@ impl ComparisonResults {
 impl From<report::Row> for ComparisonResult {
     fn from(row: report::Row) -> Self {
         Self {
-            fixture: row.fixture,
-            source: row.source,
             algorithm: row.case.to_owned(),
             reference_library: row.reference.to_owned(),
             source_url: row.source_url.to_owned(),

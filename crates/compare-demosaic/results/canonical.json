@@ -1,12 +1,11 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "input": {
-    "fixture": "raw-corpus",
+    "fixture": "colorchart-eos-7d",
     "source": "external/raw-images/images/colorchart-eos-7d.cr2",
-    "kind": "real_raw",
-    "pattern": "mixed",
-    "width": 512,
-    "height": 512,
+    "pattern": "GBRG",
+    "width": 5202,
+    "height": 3464,
     "sample_type": "f32"
   },
   "reference_builds": {
@@ -17,8 +16,6 @@
   },
   "comparisons": [
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "AAHD",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771",
@@ -34,29 +31,27 @@
         "kind": "differs"
       },
       "metrics": {
-        "mean_absolute_error": 63.01863268455531,
-        "root_mean_square_error": 119.94376895909443,
-        "maximum_error": 1198,
-        "changed_percent": 62.93173133450911,
-        "psnr_db": 54.74991224673051,
-        "below_reference": 182680,
-        "p95_error": 283,
-        "p99_error": 462,
-        "p99_9_error": 682,
-        "over_64_percent": 29.755737171411774,
-        "over_1024_percent": 0.0010498026371042245,
+        "mean_absolute_error": 102.13317687312521,
+        "root_mean_square_error": 272.07633257303337,
+        "maximum_error": 8349,
+        "changed_percent": 62.95605877745927,
+        "psnr_db": 47.635650776643274,
+        "below_reference": 13226503,
+        "p95_error": 619,
+        "p99_error": 1321,
+        "p99_9_error": 2083,
+        "over_64_percent": 26.81079070342323,
+        "over_1024_percent": 2.0218623132341684,
         "channel_mae": [
-          72.90758456160242,
-          40.05165028974553,
-          76.09666320231797
+          117.27055980279953,
+          62.80101533865643,
+          126.32795547791967
         ],
-        "luminance_rmse": 90.2011828643391,
-        "chroma_rmse": 147.98660182362514
+        "luminance_rmse": 195.49588006732944,
+        "chroma_rmse": 347.3195630560299
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "AHD",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293",
@@ -72,29 +67,27 @@
         "kind": "within_robust_tolerance"
       },
       "metrics": {
-        "mean_absolute_error": 0.5031256117627763,
-        "root_mean_square_error": 9.255456065586696,
-        "maximum_error": 675,
-        "changed_percent": 2.2914980185499703,
-        "psnr_db": 77.00150960296423,
-        "below_reference": 1812,
+        "mean_absolute_error": 0.8788886232110987,
+        "root_mean_square_error": 24.710664503123283,
+        "maximum_error": 5222,
+        "changed_percent": 2.128166460419412,
+        "psnr_db": 68.47177758882607,
+        "below_reference": 91792,
         "p95_error": 0,
         "p99_error": 1,
-        "p99_9_error": 155,
-        "over_64_percent": 0.2794929181018291,
-        "over_1024_percent": 0.0,
+        "p99_9_error": 297,
+        "over_64_percent": 0.2091246045688451,
+        "over_1024_percent": 0.012578182876927638,
         "channel_mae": [
-          0.5908834780400312,
-          0.3360026031332836,
-          0.582490754115014
+          1.0674632056087356,
+          0.5379521342798996,
+          1.0312505297446608
         ],
-        "luminance_rmse": 6.5616402288896225,
-        "chroma_rmse": 12.042855402550735
+        "luminance_rmse": 17.01235182902385,
+        "chroma_rmse": 32.777758746174
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "AMaZE",
       "reference_library": "darktable",
       "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129",
@@ -110,29 +103,27 @@
         "kind": "differs"
       },
       "metrics": {
-        "mean_absolute_error": 54.327432002314815,
-        "root_mean_square_error": 96.61579641346852,
-        "maximum_error": 1815,
-        "changed_percent": 66.25520833333333,
-        "psnr_db": 56.628503312139415,
-        "below_reference": 174403,
-        "p95_error": 205,
-        "p99_error": 351,
-        "p99_9_error": 678,
-        "over_64_percent": 30.189380787037038,
-        "over_1024_percent": 0.006076388888888889,
+        "mean_absolute_error": 79.18827267993129,
+        "root_mean_square_error": 185.04105511762634,
+        "maximum_error": 9623,
+        "changed_percent": 65.9471575598268,
+        "psnr_db": 50.9841041523347,
+        "below_reference": 13317258,
+        "p95_error": 409,
+        "p99_error": 802,
+        "p99_9_error": 1430,
+        "over_64_percent": 26.383978153804073,
+        "over_1024_percent": 0.43082025432122145,
         "channel_mae": [
-          58.9883203125,
-          42.10296875,
-          61.89100694444444
+          85.25039580825364,
+          62.590144695729805,
+          89.72427753581042
         ],
-        "luminance_rmse": 71.67780206039208,
-        "chroma_rmse": 115.73682270045096
+        "luminance_rmse": 135.17699310808592,
+        "chroma_rmse": 226.48786821122465
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "DCB",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849",
@@ -148,29 +139,27 @@
         "kind": "differs"
       },
       "metrics": {
-        "mean_absolute_error": 56.540656,
-        "root_mean_square_error": 103.02546335089528,
-        "maximum_error": 1021,
-        "changed_percent": 67.17573333333333,
-        "psnr_db": 56.07057454701247,
-        "below_reference": 200515,
-        "p95_error": 233,
-        "p99_error": 404,
-        "p99_9_error": 619,
-        "over_64_percent": 29.0044,
-        "over_1024_percent": 0.0,
+        "mean_absolute_error": 87.89797191095275,
+        "root_mean_square_error": 227.66074500571574,
+        "maximum_error": 6783,
+        "changed_percent": 66.88154679907807,
+        "psnr_db": 49.183703020939134,
+        "below_reference": 14196154,
+        "p95_error": 470,
+        "p99_error": 1102,
+        "p99_9_error": 1897,
+        "over_64_percent": 25.734465736542106,
+        "over_1024_percent": 1.224459343703277,
         "channel_mae": [
-          63.33382,
-          41.596132,
-          64.692016
+          101.09872314393711,
+          61.13555934734995,
+          101.45963324157117
         ],
-        "luminance_rmse": 76.41223367364714,
-        "chroma_rmse": 123.69039716517942
+        "luminance_rmse": 162.3664758355443,
+        "chroma_rmse": 281.0556944685706
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "DHT",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
@@ -186,29 +175,27 @@
         "kind": "differs"
       },
       "metrics": {
-        "mean_absolute_error": 81.67686576583759,
-        "root_mean_square_error": 139.55974989203057,
-        "maximum_error": 1858,
-        "changed_percent": 66.42933540603741,
-        "psnr_db": 53.43426242593548,
-        "below_reference": 204489,
-        "p95_error": 313,
-        "p99_error": 485,
-        "p99_9_error": 761,
-        "over_64_percent": 39.945392219387756,
-        "over_1024_percent": 0.034877232142857144,
+        "mean_absolute_error": 94.4005783321503,
+        "root_mean_square_error": 203.13077025144548,
+        "maximum_error": 15912,
+        "changed_percent": 66.21559659286058,
+        "psnr_db": 50.17395176888112,
+        "below_reference": 17654859,
+        "p95_error": 444,
+        "p99_error": 889,
+        "p99_9_error": 1504,
+        "over_64_percent": 34.579685007517995,
+        "over_1024_percent": 0.6024832276234745,
         "channel_mae": [
-          84.18576610331633,
-          74.08137854751276,
-          86.76345264668367
+          99.56608224761294,
+          87.19067868019143,
+          96.44497406864653
         ],
-        "luminance_rmse": 116.35501150473793,
-        "chroma_rmse": 157.7340667678213
+        "luminance_rmse": 168.42637947733294,
+        "chroma_rmse": 231.29599100979755
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "Linear",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146",
@@ -221,11 +208,11 @@
         "kind": "rounding_only"
       },
       "metrics": {
-        "mean_absolute_error": 0.306958861976163,
-        "root_mean_square_error": 0.5540386827435093,
+        "mean_absolute_error": 0.29416138959249877,
+        "root_mean_square_error": 0.5423664716706765,
         "maximum_error": 1,
-        "changed_percent": 30.6958861976163,
-        "psnr_db": 101.45866431447057,
+        "changed_percent": 29.416138959249878,
+        "psnr_db": 101.64360939095961,
         "below_reference": 0,
         "p95_error": 1,
         "p99_error": 1,
@@ -233,17 +220,15 @@
         "over_64_percent": 0.0,
         "over_1024_percent": 0.0,
         "channel_mae": [
-          0.33978085351787773,
-          0.23482122260668972,
-          0.34627450980392155
+          0.3192850397724748,
+          0.2298416322268142,
+          0.33335749677820736
         ],
-        "luminance_rmse": 0.38674197977930735,
-        "chroma_rmse": 0.6992139556357142
+        "luminance_rmse": 0.3796368930206202,
+        "chroma_rmse": 0.6890762010093123
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "LMMSE",
       "reference_library": "darktable",
       "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120",
@@ -259,29 +244,27 @@
         "kind": "differs"
       },
       "metrics": {
-        "mean_absolute_error": 35.618328504241205,
-        "root_mean_square_error": 63.92054824538239,
-        "maximum_error": 1022,
-        "changed_percent": 66.09951079197111,
-        "psnr_db": 60.21665625014899,
-        "below_reference": 248440,
-        "p95_error": 138,
-        "p99_error": 240,
-        "p99_9_error": 427,
-        "over_64_percent": 19.275819895859577,
-        "over_1024_percent": 0.0,
+        "mean_absolute_error": 44.69070580385369,
+        "root_mean_square_error": 103.50164821532196,
+        "maximum_error": 5416,
+        "changed_percent": 65.75096517467924,
+        "psnr_db": 56.030520759616344,
+        "below_reference": 17285270,
+        "p95_error": 213,
+        "p99_error": 462,
+        "p99_9_error": 879,
+        "over_64_percent": 18.35753846437247,
+        "over_1024_percent": 0.04815660104013653,
         "channel_mae": [
-          34.14674666162762,
-          36.849005574452,
-          35.85923327664399
+          46.02756151595858,
+          43.57447389660791,
+          44.470081998994566
         ],
-        "luminance_rmse": 54.78849444349963,
-        "chroma_rmse": 74.20035975440653
+        "luminance_rmse": 85.09739470852983,
+        "chroma_rmse": 120.04660901923492
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "PPG",
       "reference_library": "darktable",
       "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20",
@@ -318,8 +301,6 @@
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "PPG",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363",
@@ -335,29 +316,27 @@
         "kind": "within_robust_tolerance"
       },
       "metrics": {
-        "mean_absolute_error": 0.18123372395833334,
-        "root_mean_square_error": 2.052519104931004,
-        "maximum_error": 379,
-        "changed_percent": 14.887110392252604,
-        "psnr_db": 90.08372191048642,
-        "below_reference": 17165,
+        "mean_absolute_error": 0.1867011903102348,
+        "root_mean_square_error": 3.106661822358513,
+        "maximum_error": 2221,
+        "changed_percent": 14.691583209987039,
+        "psnr_db": 86.48358646676844,
+        "below_reference": 1063883,
         "p95_error": 1,
         "p99_error": 1,
         "p99_9_error": 1,
-        "over_64_percent": 0.016530354817708332,
-        "over_1024_percent": 0.0,
+        "over_64_percent": 0.014384234878573083,
+        "over_1024_percent": 0.00009804069554582992,
         "channel_mae": [
-          0.19799041748046875,
-          0.14835739135742188,
-          0.19735336303710938
+          0.20947563692415336,
+          0.14193699261165318,
+          0.20869094139489786
         ],
-        "luminance_rmse": 1.3816107170802359,
-        "chroma_rmse": 2.7397438581216735
+        "luminance_rmse": 2.226583015153359,
+        "chroma_rmse": 3.956154847139746
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "RCD",
       "reference_library": "darktable",
       "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119",
@@ -373,29 +352,27 @@
         "kind": "within_robust_tolerance"
       },
       "metrics": {
-        "mean_absolute_error": 0.03862890254918809,
-        "root_mean_square_error": 0.7313477737542766,
-        "maximum_error": 151,
-        "changed_percent": 1.4618723423006588,
-        "psnr_db": 99.04698720082547,
-        "below_reference": 5143,
+        "mean_absolute_error": 0.08383224608008334,
+        "root_mean_square_error": 1.0203496929245797,
+        "maximum_error": 1359,
+        "changed_percent": 3.367375275175258,
+        "psnr_db": 96.15448531300316,
+        "below_reference": 899477,
         "p95_error": 0,
-        "p99_error": 1,
-        "p99_9_error": 7,
-        "over_64_percent": 0.0015147509198669223,
-        "over_1024_percent": 0.0,
+        "p99_error": 2,
+        "p99_9_error": 11,
+        "over_64_percent": 0.0020993483353811317,
+        "over_1024_percent": 1.8677476293426439e-6,
         "channel_mae": [
-          0.05090802432414568,
-          0.017734979179060084,
-          0.047243704144358516
+          0.10670109747356502,
+          0.039820342102632585,
+          0.10497529866405242
         ],
-        "luminance_rmse": 0.5465908224844302,
-        "chroma_rmse": 0.8801756522304153
+        "luminance_rmse": 0.743278213398173,
+        "chroma_rmse": 1.2761865205813259
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "VNG",
       "reference_library": "darktable",
       "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171",
@@ -411,29 +388,27 @@
         "kind": "differs"
       },
       "metrics": {
-        "mean_absolute_error": 1808.793703629074,
-        "root_mean_square_error": 3004.0365656837466,
-        "maximum_error": 32627,
-        "changed_percent": 83.22857895715791,
-        "psnr_db": 26.77536178177803,
-        "below_reference": 272265,
-        "p95_error": 6659,
-        "p99_error": 9499,
-        "p99_9_error": 20166,
-        "over_64_percent": 72.71736210139088,
-        "over_1024_percent": 49.09273151879637,
+        "mean_absolute_error": 2787.957703644725,
+        "root_mean_square_error": 6483.909740573118,
+        "maximum_error": 65535,
+        "changed_percent": 82.80214303559765,
+        "psnr_db": 20.092726863076713,
+        "below_reference": 18914634,
+        "p95_error": 14034,
+        "p99_error": 30364,
+        "p99_9_error": 45817,
+        "over_64_percent": 70.29614176491476,
+        "over_1024_percent": 38.91727661669191,
         "channel_mae": [
-          1341.934136493273,
-          2547.592511935024,
-          1536.854462458925
+          2157.675240421505,
+          4108.773232034553,
+          2097.4246384781163
         ],
-        "luminance_rmse": 2899.333473958696,
-        "chroma_rmse": 3489.611793817258
+        "luminance_rmse": 6292.169945335347,
+        "chroma_rmse": 7893.784289796282
       }
     },
     {
-      "fixture": "real-colorchart-center",
-      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "VNG",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199",
@@ -449,26 +424,25 @@
         "kind": "differs"
       },
       "metrics": {
-        "mean_absolute_error": 1796.8210986421973,
-        "root_mean_square_error": 3003.809800018866,
-        "maximum_error": 32523,
-        "changed_percent": 66.65878748424163,
-        "psnr_db": 26.776017478152365,
-        "below_reference": 207435,
-        "p95_error": 6658,
-        "p99_error": 9490,
-        "p99_9_error": 20205,
-        "over_64_percent": 65.54808109616219,
-        "over_1024_percent": 49.09156901647137,
+        "mean_absolute_error": 2768.0981665543513,
+        "root_mean_square_error": 6483.030593229885,
+        "maximum_error": 65535,
+        "changed_percent": 66.63498299701753,
+        "psnr_db": 20.093904654693553,
+        "below_reference": 14518155,
+        "p95_error": 14029,
+        "p99_error": 30367,
+        "p99_9_error": 45817,
+        "over_64_percent": 64.27613703506833,
+        "over_1024_percent": 38.88046832893339,
         "channel_mae": [
-          1341.57707002914,
-          2512.502123504247,
-          1536.3841023932048
+          2157.57269964882,
+          4050.3786278960115,
+          2096.3431721182224
         ],
-        "luminance_rmse": 2899.20684595081,
-        "chroma_rmse": 3490.977900319132
+        "luminance_rmse": 6291.138285558996,
+        "chroma_rmse": 7893.764443504936
       }
     }
-  ],
-  "skipped_inputs": []
+  ]
 }

@@ -20,7 +20,7 @@ fn process(
 
     let processed = decoded.process(&Preprocessor, &metadata.levels)?;
     let preprocessed_path = &output_dir.join("2.preprocess.tiff");
-    save_image::<_, _, Luma<u16>, _>(processed.image(), &preprocessed_path, u16::MAX as _)?;
+    save_image::<_, _, Luma<u16>, _>(processed.image(), preprocessed_path, u16::MAX as _)?;
 
     let demosaiced = processed.process(&PostProcessor::default(), &metadata)?;
     let demosaiced_path = output_dir.join("3.demosaic_linear.tiff");
