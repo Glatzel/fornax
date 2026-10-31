@@ -27,12 +27,11 @@ typedef int   gboolean;
 typedef float dt_aligned_pixel_t[4];
 typedef int   dt_iop_demosaic_lmmse_t;
 
-static inline float* dt_alloc_align_float(size_t count) {
-    return (float*)calloc(count, sizeof(float));
-}
-static inline void dt_free_align(void* pointer) { free(pointer); }
-static inline float sqrf(float value) { return value * value; }
-static inline void pre_median(float* out, const float* in, int width, int height, uint32_t filters, int passes, float threshold) {
+static inline float* dt_alloc_align_float(size_t count) { return (float*)calloc(count, sizeof(float)); }
+static inline void   dt_free_align(void* pointer) { free(pointer); }
+static inline float  sqrf(float value) { return value * value; }
+static inline void
+pre_median(float* out, const float* in, int width, int height, uint32_t filters, int passes, float threshold) {
     (void)out;
     (void)in;
     (void)width;
@@ -46,18 +45,18 @@ static inline void dt_print(int level, const char* message, ...) {
     (void)message;
 }
 static inline float median9f(const float* pixels) {
-    float p1 = MIN(pixels[1], pixels[2]);
-    float p2 = MAX(pixels[1], pixels[2]);
-    float p4 = MIN(pixels[4], pixels[5]);
-    float p5 = MAX(pixels[4], pixels[5]);
-    float p7 = MIN(pixels[7], pixels[8]);
-    float p8 = MAX(pixels[7], pixels[8]);
+    float       p1 = MIN(pixels[1], pixels[2]);
+    float       p2 = MAX(pixels[1], pixels[2]);
+    float       p4 = MIN(pixels[4], pixels[5]);
+    float       p5 = MAX(pixels[4], pixels[5]);
+    float       p7 = MIN(pixels[7], pixels[8]);
+    float       p8 = MAX(pixels[7], pixels[8]);
     const float p0 = MIN(pixels[0], p1);
     const float p1a = MAX(pixels[0], p1);
-    float p3 = MIN(pixels[3], p4);
-    float p4a = MAX(pixels[3], p4);
-    float p6 = MIN(pixels[6], p7);
-    float p7a = MAX(pixels[6], p7);
+    float       p3 = MIN(pixels[3], p4);
+    float       p4a = MAX(pixels[3], p4);
+    float       p6 = MIN(pixels[6], p7);
+    float       p7a = MAX(pixels[6], p7);
     p1 = MIN(p1a, p2);
     p2 = MAX(p1a, p2);
     p4 = MIN(p4a, p5);
@@ -78,16 +77,11 @@ static inline float median9f(const float* pixels) {
     return MIN(p2, p4);
 }
 
-#include "external/darktable/src/iop/demosaicing/ppg.c"
 #include "external/darktable/src/iop/demosaicing/lmmse.c"
+#include "external/darktable/src/iop/demosaicing/ppg.c"
 
-int32_t run_darktable_lmmse(
-    const uint16_t* mosaic,
-    uint32_t        width,
-    uint32_t        height,
-    uint32_t        filters,
-    uint16_t*       output
-) {
+int32_t
+run_darktable_lmmse(const uint16_t* mosaic, uint32_t width, uint32_t height, uint32_t filters, uint16_t* output) {
     const size_t pixel_count = (size_t)width * height;
     for (uint32_t shift = 0; shift < 32; shift += 2) {
         if (((filters >> shift) & 3U) == 3U)

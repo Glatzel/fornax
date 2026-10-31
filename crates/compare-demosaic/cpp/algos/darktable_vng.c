@@ -1,7 +1,7 @@
 #include "../status.h"
 
-#include <math.h>
 #include <limits.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -23,35 +23,25 @@
 typedef int   gboolean;
 typedef float dt_aligned_pixel_t[4];
 
-static inline int
-fcol(int row, int col, uint32_t filters, const uint8_t (*xtrans)[6]) {
+static inline int fcol(int row, int col, uint32_t filters, const uint8_t (*xtrans)[6]) {
     (void)xtrans;
     return (filters >> (((((unsigned)row << 1) & 14U) + ((unsigned)col & 1U)) * 2U)) & 3U;
 }
 
-static inline void*
-dt_alloc_aligned_impl(size_t size) {
-    return malloc(size);
-}
+static inline void* dt_alloc_aligned_impl(size_t size) { return malloc(size); }
 
-static inline void
-dt_free_align(void* pointer) {
-    free(pointer);
-}
+static inline void dt_free_align(void* pointer) { free(pointer); }
 
-static inline void
-dt_iop_image_copy(float* destination, const float* source, size_t count) {
+static inline void dt_iop_image_copy(float* destination, const float* source, size_t count) {
     memcpy(destination, source, count * sizeof(float));
 }
 
-static inline void
-dt_vector_clipneg(dt_aligned_pixel_t pixel) {
+static inline void dt_vector_clipneg(dt_aligned_pixel_t pixel) {
     for (size_t channel = 0; channel < 4; ++channel)
         pixel[channel] = fmaxf(0.0F, pixel[channel]);
 }
 
-static inline void
-dt_print(int level, const char* message, ...) {
+static inline void dt_print(int level, const char* message, ...) {
     (void)level;
     (void)message;
 }
@@ -60,14 +50,7 @@ dt_print(int level, const char* message, ...) {
 
 #include "external/darktable/src/iop/demosaicing/vng.c"
 
-int32_t
-run_darktable_vng(
-    const uint16_t* mosaic,
-    uint32_t        width,
-    uint32_t        height,
-    uint32_t        filters,
-    uint16_t*       output
-) {
+int32_t run_darktable_vng(const uint16_t* mosaic, uint32_t width, uint32_t height, uint32_t filters, uint16_t* output) {
     const size_t pixel_count = (size_t)width * height;
     for (uint32_t shift = 0; shift < 32; shift += 2) {
         if (((filters >> shift) & 3U) == 3U)

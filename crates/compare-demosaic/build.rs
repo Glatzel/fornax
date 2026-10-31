@@ -71,7 +71,6 @@ fn main() {
     darktable_rcd
         .warnings(true)
         .include(&workspace_root)
-
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-parameter")
         .file(manifest_dir.join("cpp/algos/darktable_rcd.c"));

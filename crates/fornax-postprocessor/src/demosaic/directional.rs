@@ -82,9 +82,11 @@ fn run(
             let north2 = at(input, width, x, y.saturating_sub(2));
             let south2 = at(input, width, x, (y + 2).min(height - 1));
 
-            let horizontal = (2.0_f32.mul_add(center, -west2) - east2).mul_add(0.25, f32::midpoint(west, east))
+            let horizontal = (2.0_f32.mul_add(center, -west2) - east2)
+                .mul_add(0.25, f32::midpoint(west, east))
                 .clamp(west.min(east), west.max(east));
-            let vertical = (2.0_f32.mul_add(center, -north2) - south2).mul_add(0.25, f32::midpoint(north, south))
+            let vertical = (2.0_f32.mul_add(center, -north2) - south2)
+                .mul_add(0.25, f32::midpoint(north, south))
                 .clamp(north.min(south), north.max(south));
             let horizontal_gradient = (west - east).abs()
                 + (center - west2).abs()
@@ -102,8 +104,8 @@ fn run(
                 Profile::Dht => {
                     let horizontal_ratio =
                         center * f32::midpoint(west, east) / (f32::midpoint(west2, east2) + 1.0e-5);
-                    let vertical_ratio =
-                        center * f32::midpoint(north, south) / (f32::midpoint(north2, south2) + 1.0e-5);
+                    let vertical_ratio = center * f32::midpoint(north, south)
+                        / (f32::midpoint(north2, south2) + 1.0e-5);
                     vertical_ratio.mul_add(vertical_weight, horizontal_ratio * horizontal_weight)
                         / (horizontal_weight + vertical_weight)
                 }
@@ -157,7 +159,8 @@ fn run(
                         let distance = (dx * dx + dy * dy) as f32;
                         let color_edge = (input[neighbor] - green[neighbor]).abs();
                         let weight = 1.0 / (0.25 + distance + color_edge);
-                        sum = (green[index] + input[neighbor] - green[neighbor]).mul_add(weight, sum);
+                        sum =
+                            (green[index] + input[neighbor] - green[neighbor]).mul_add(weight, sum);
                         weight_sum += weight;
                     }
                 }
