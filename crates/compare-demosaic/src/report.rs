@@ -55,11 +55,18 @@ pub fn compare(
     })
 }
 
-pub fn comparison_rows(input: &data::ActiveArea) -> mischief::Result<Vec<Row>> {
-    let jobs = BayerPattern::ALL
-        .iter()
-        .copied()
+pub fn comparison_rows_filtered(
+    input: &data::ActiveArea,
+    pattern: Option<BayerPattern>,
+    algorithm: Option<&str>,
+) -> mischief::Result<Vec<Row>> {
+    let patterns = pattern.map_or_else(|| BayerPattern::ALL.to_vec(), |pattern| vec![pattern]);
+    let jobs = patterns
+        .into_iter()
         .flat_map(|pattern| cases::CASES.iter().map(move |case| (pattern, case)))
+        .filter(|(_, case)| {
+            algorithm.is_none_or(|algorithm| case.name.eq_ignore_ascii_case(algorithm))
+        })
         .collect::<Vec<_>>();
     jobs.par_iter()
         .map(|(pattern, case)| compare(case, input, *pattern, SampleType::F32))

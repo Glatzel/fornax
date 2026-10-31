@@ -68,6 +68,21 @@ mod tests {
         Ok(())
     }
 
+    #[rstest]
+    fn comparison_filter_selects_pattern_and_algorithm(
+        synthetic_128: &crate::data::ActiveArea,
+    ) -> mischief::Result<()> {
+        let rows = crate::report::comparison_rows_filtered(
+            synthetic_128,
+            Some(BayerPattern::RGGB),
+            Some("vng"),
+        )?;
+        assert_eq!(rows.len(), 2);
+        assert!(rows.iter().all(|row| row.pattern == BayerPattern::RGGB));
+        assert!(rows.iter().all(|row| row.case == "VNG"));
+        Ok(())
+    }
+
     fn comparison_checksum(comparison: &SummaryComparison) -> String {
         let bytes =
             serde_json::to_vec(comparison).expect("comparison result must serialize to JSON");

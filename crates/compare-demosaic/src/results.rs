@@ -1,12 +1,14 @@
 use std::path::{Path, PathBuf};
 
+use fornax_core::BayerPattern;
 use serde::{Deserialize, Serialize};
 
 use crate::case::Tolerance;
 use crate::{data, metrics, report};
 
 pub const SCHEMA_VERSION: u32 = 1;
-pub const TARGET_SUMMARY_FILE: &str = "crates/compare-demosaic/summary.json";
+pub const DEFAULT_SUMMARY_FILE: &str = "crates/compare-demosaic/summary.json";
+pub const FILTERED_SUMMARY_FILE: &str = "target/compare-demosaic/summary.json";
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct SummaryResults {
@@ -73,9 +75,14 @@ pub enum VerdictResult {
     Differs,
 }
 
-pub fn generate() -> mischief::Result<SummaryResults> {
+pub fn generate() -> mischief::Result<SummaryResults> { generate_filtered(None, None) }
+
+pub fn generate_filtered(
+    pattern: Option<BayerPattern>,
+    algorithm: Option<&str>,
+) -> mischief::Result<SummaryResults> {
     let input = data::active_area()?;
-    let mut comparisons = report::comparison_rows(&input)?
+    let mut comparisons = report::comparison_rows_filtered(&input, pattern, algorithm)?
         .into_iter()
         .map(SummaryComparison::from)
         .collect::<Vec<_>>();
@@ -104,7 +111,15 @@ impl SummaryResults {
     }
 
     pub fn write_default(&self) -> mischief::Result<PathBuf> {
-        let path = fornax_devtool::root_dir().join(TARGET_SUMMARY_FILE);
+        self.write_repo_file(DEFAULT_SUMMARY_FILE)
+    }
+
+    pub fn write_filtered(&self) -> mischief::Result<PathBuf> {
+        self.write_repo_file(FILTERED_SUMMARY_FILE)
+    }
+
+    fn write_repo_file(&self, relative_path: &str) -> mischief::Result<PathBuf> {
+        let path = fornax_devtool::root_dir().join(relative_path);
         self.write(&path)?;
         Ok(path)
     }

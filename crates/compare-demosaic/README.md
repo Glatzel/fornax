@@ -20,8 +20,18 @@ cargo run --release -p compare-demosaic
 ```
 
 Setup installs the Rust environment, initializes `external/raw-images`, and
-materializes the darktable reference sources. The comparison command writes
-`target/compare-demosaic/summary.json` and does not modify this README.
+materializes the darktable reference sources. With no options, the command
+writes the complete comparison to `crates/compare-demosaic/summary.json`.
+
+Use `--pattern` and/or `--algorithm` for a filtered comparison. Matching is
+case-insensitive, and an algorithm name includes all of its reference
+implementations.
+
+```bash
+cargo run --release -p compare-demosaic -- --pattern rggb --algorithm vng
+```
+
+Filtered output is written to `target/compare-demosaic/summary.json`.
 
 ## Evaluation
 
@@ -41,7 +51,7 @@ reconstructed RGB to `[0, 1]` before 16-bit quantization in comparison cases.
 ## Results
 
 These tables were reviewed by an agent using
-`target/compare-demosaic/summary.json`.
+`crates/compare-demosaic/summary.json`.
 
 ### AAHD
 
