@@ -43,10 +43,7 @@ get-raw-samples = "python $PIXI_WORKSPACE_ROOT/scripts/get_raw_samples.py"
 default = []
 dev = {
   features = ["dev"],
-  tasks = {
-    pipeline = "cargo run --example pipeline",
-    compare-demosaic = "cargo run --release -p compare-demosaic"
-  }
+  tasks = { pipeline = "cargo run --example pipeline" }
 }
 python = ["dev", "python"]
 agent = ["agent"]
