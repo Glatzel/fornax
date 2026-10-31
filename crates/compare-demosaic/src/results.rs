@@ -322,7 +322,11 @@ fn fornax_commit() -> String {
         .current_dir(&root)
         .output()
         .ok()
-        .filter(|output| output.status.success()).map_or_else(|| "unknown".to_owned(), |output| String::from_utf8_lossy(&output.stdout).trim().to_owned());
+        .filter(|output| output.status.success())
+        .map_or_else(
+            || "unknown".to_owned(),
+            |output| String::from_utf8_lossy(&output.stdout).trim().to_owned(),
+        );
     let dirty = Command::new("git")
         .args(["status", "--porcelain"])
         .current_dir(root)
