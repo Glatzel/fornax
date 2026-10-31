@@ -5,9 +5,6 @@
 #include <cstdint>
 
 #include "status.h"
-#if defined(_MSC_VER) && !defined(__clang__)
-#define __builtin_expect(x, y) (x)
-#endif
 #define COMPARE_DEMOSAIC_REFERENCE_LIBRAW 0
 #define COMPARE_DEMOSAIC_REFERENCE_DARKTABLE 1
 class ReferenceDemosaicer final : public LibRaw {

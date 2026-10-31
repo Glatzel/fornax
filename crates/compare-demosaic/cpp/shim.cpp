@@ -4,9 +4,6 @@
 #include <cstdlib>
 #include <limits>
 #include <new>
-#if defined(_MSC_VER) && !defined(__clang__)
-#define __builtin_expect(x, y) (x)
-#endif
 extern "C" std::int32_t run_darktable_rcd(
     const std::uint16_t* mosaic,
     std::uint32_t        width,
