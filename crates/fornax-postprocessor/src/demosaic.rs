@@ -56,31 +56,32 @@ pub enum AnyLazy<'a, T: Primitive> {
 impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
     fn dimensions(&self) -> (u32, u32) {
         match self {
-            Self::Aahd(a) => a.dimensions(),
             Self::Ahd(a) => a.dimensions(),
-            Self::Amaze(a) => a.dimensions(),
-            Self::Dcb(d) => d.dimensions(),
-            Self::Dht(d) => d.dimensions(),
             Self::Linear(l) => l.dimensions(),
-            Self::Lmmse(l) => l.dimensions(),
             Self::Ppg(p) => p.dimensions(),
             Self::Rcd(r) => r.dimensions(),
-            Self::Vng(v) => v.dimensions(),
+            Self::Vng(d)
+            | Self::Aahd(d)
+            | Self::Amaze(d)
+            | Self::Dcb(d)
+            | Self::Dht(d)
+            | Self::Lmmse(d) => d.dimensions(),
         }
     }
 
     fn fill_rows(&self, y0: usize, out: &mut [T]) {
         match self {
-            Self::Aahd(a) => a.fill_rows(y0, out),
             Self::Ahd(a) => a.fill_rows(y0, out),
-            Self::Amaze(a) => a.fill_rows(y0, out),
-            Self::Dcb(d) => d.fill_rows(y0, out),
-            Self::Dht(d) => d.fill_rows(y0, out),
             Self::Linear(l) => l.fill_rows(y0, out),
-            Self::Lmmse(l) => l.fill_rows(y0, out),
             Self::Ppg(p) => p.fill_rows(y0, out),
             Self::Rcd(r) => r.fill_rows(y0, out),
-            Self::Vng(v) => v.fill_rows(y0, out),
+
+            Self::Aahd(d)
+            | Self::Amaze(d)
+            | Self::Dcb(d)
+            | Self::Dht(d)
+            | Self::Lmmse(d)
+            | Self::Vng(d) => d.fill_rows(y0, out),
         }
     }
 }

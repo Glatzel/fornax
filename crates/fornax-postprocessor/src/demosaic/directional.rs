@@ -82,9 +82,9 @@ fn run(
             let north2 = at(input, width, x, y.saturating_sub(2));
             let south2 = at(input, width, x, (y + 2).min(height - 1));
 
-            let horizontal = ((west + east) * 0.5 + (2.0 * center - west2 - east2) * 0.25)
+            let horizontal = (2.0_f32.mul_add(center, -west2) - east2).mul_add(0.25, f32::midpoint(west, east))
                 .clamp(west.min(east), west.max(east));
-            let vertical = ((north + south) * 0.5 + (2.0 * center - north2 - south2) * 0.25)
+            let vertical = (2.0_f32.mul_add(center, -north2) - south2).mul_add(0.25, f32::midpoint(north, south))
                 .clamp(north.min(south), north.max(south));
             let horizontal_gradient = (west - east).abs()
                 + (center - west2).abs()
@@ -101,14 +101,14 @@ fn run(
             green[index] = match profile {
                 Profile::Dht => {
                     let horizontal_ratio =
-                        center * ((west + east) * 0.5) / ((west2 + east2) * 0.5 + 1.0e-5);
+                        center * f32::midpoint(west, east) / (f32::midpoint(west2, east2) + 1.0e-5);
                     let vertical_ratio =
-                        center * ((north + south) * 0.5) / ((north2 + south2) * 0.5 + 1.0e-5);
-                    (horizontal_ratio * horizontal_weight + vertical_ratio * vertical_weight)
+                        center * f32::midpoint(north, south) / (f32::midpoint(north2, south2) + 1.0e-5);
+                    vertical_ratio.mul_add(vertical_weight, horizontal_ratio * horizontal_weight)
                         / (horizontal_weight + vertical_weight)
                 }
                 Profile::Lmmse => {
-                    (horizontal * horizontal_weight + vertical * vertical_weight)
+                    vertical.mul_add(vertical_weight, horizontal * horizontal_weight)
                         / (horizontal_weight + vertical_weight)
                 }
                 _ => {
@@ -117,7 +117,7 @@ fn run(
                     } else if vertical_gradient < horizontal_gradient {
                         vertical
                     } else {
-                        (horizontal + vertical) * 0.5
+                        f32::midpoint(horizontal, vertical)
                     }
                 }
             }
@@ -157,7 +157,7 @@ fn run(
                         let distance = (dx * dx + dy * dy) as f32;
                         let color_edge = (input[neighbor] - green[neighbor]).abs();
                         let weight = 1.0 / (0.25 + distance + color_edge);
-                        sum += (green[index] + input[neighbor] - green[neighbor]) * weight;
+                        sum = (green[index] + input[neighbor] - green[neighbor]).mul_add(weight, sum);
                         weight_sum += weight;
                     }
                 }
@@ -184,14 +184,14 @@ fn run(
                         differences[slot] = previous[neighbor][target] - green[neighbor];
                     }
                     differences.sort_by(f32::total_cmp);
-                    let color_difference = (differences[1] + differences[2]) * 0.5;
+                    let color_difference = f32::midpoint(differences[1], differences[2]);
                     let refined = green[index] + color_difference;
                     rgb[index][target] = match profile {
-                        Profile::Lmmse => previous[index][target] * 0.5 + refined * 0.5,
-                        Profile::Amaze => previous[index][target] * 0.75 + refined * 0.25,
-                        Profile::Dcb => previous[index][target] * 0.6 + refined * 0.4,
+                        Profile::Lmmse => refined.mul_add(0.5, previous[index][target] * 0.5),
+                        Profile::Amaze => refined.mul_add(0.25, previous[index][target] * 0.75),
+                        Profile::Dcb => refined.mul_add(0.4, previous[index][target] * 0.6),
                         Profile::Dht | Profile::Aahd => {
-                            previous[index][target] * 0.8 + refined * 0.2
+                            refined.mul_add(0.2, previous[index][target] * 0.8)
                         }
                     }
                     .clamp(0.0, 1.0);
@@ -244,4 +244,4 @@ fn fill_green_border(
     }
 }
 
-fn at(values: &[f32], width: usize, x: usize, y: usize) -> f32 { values[y * width + x] }
+const fn at(values: &[f32], width: usize, x: usize, y: usize) -> f32 { values[y * width + x] }
