@@ -33,7 +33,7 @@ bindgen = "0.73.2"
 cc = "1.10.0"
 criterion = { package = "codspeed-criterion-compat", version = "6.0.0" }
 float-cmp = "0.10.0"
-indicatif = "0.18"
+insta = { version = "1.49.0", features = ["json"] }
 jiff = "0.2.38"
 libc = "0.2.191"
 num_enum = "0.7.6"

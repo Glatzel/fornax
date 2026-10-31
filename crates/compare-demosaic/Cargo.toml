@@ -8,16 +8,17 @@ publish = false
 [dependencies]
 fornax-core.workspace = true
 fornax-decoder-rawler.workspace = true
+fornax-devtool.workspace = true
 fornax-postprocessor.workspace = true
 fornax-preprocessor.workspace = true
-indicatif.workspace = true
 mischief.workspace = true
 num-traits.workspace = true
+rayon.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
-fornax-devtool.workspace = true
+insta.workspace = true
 rstest.workspace = true
 
 [build-dependencies]

@@ -97,10 +97,13 @@ Keep reference comparison cases table-driven:
 2. Add its reference backend and stable algorithm ID to `cpp/shim.cpp`.
 3. Add a `Case` and Fornax runner under `crates/compare-demosaic/src/cases/`.
 4. Register the case in `CASES`.
-5. Run `pixi run -e dev compare-demosaic` to update
-   `crates/compare-demosaic/results/canonical.json`.
-6. Read the JSON result and update the Markdown tables and warning notes.
-7. Commit both the JSON result and updated Markdown.
+5. Run `pixi run compare-demosaic` to write
+   `target/compare-demosaic/summary.json`.
+6. Run and review the comparison snapshot with `cargo insta test -p
+   compare-demosaic`, accepting intended changes with `cargo insta accept`.
+7. Read the summary JSON and use an agent to update the Markdown tables and
+   explain every warning or failure.
+8. Commit the snapshot and updated Markdown.
 
 Reference routines and headers come from the repository-managed `libraw-dev`
 Pixi package. The comparison crate does not compile LibRaw from the external

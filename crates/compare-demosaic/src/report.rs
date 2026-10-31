@@ -1,4 +1,5 @@
 use fornax_core::BayerPattern;
+use rayon::prelude::*;
 
 use crate::case::{Case, SampleType};
 use crate::{cases, data, ffi, metrics};
@@ -19,18 +20,10 @@ pub struct Row {
     pub verdict: metrics::Verdict,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ProgressEvent {
-    Started {
-        algorithm: &'static str,
-        reference: &'static str,
-    },
-    Finished,
-}
-
 pub fn compare(
     case: &'static Case,
-    input: &data::Input,
+    input: &data::ActiveArea,
+    pattern: BayerPattern,
     sample_type: SampleType,
 ) -> mischief::Result<Row> {
     let reference = ffi::run(
@@ -39,13 +32,13 @@ pub fn compare(
         &input.codes,
         input.width,
         input.height,
-        ffi::libraw_filters(input.pattern),
+        ffi::libraw_filters(pattern),
     )?;
     let actual = (case.run_fornax)(
         &input.codes,
         input.width,
         input.height,
-        input.pattern,
+        pattern,
         sample_type,
     )?;
     let metrics = metrics::calculate(&actual, &reference, input.width, input.height, case.border)?;
@@ -54,7 +47,7 @@ pub fn compare(
         case: case.name,
         reference: case.reference_backend.library(),
         source_url: case.source_url,
-        pattern: input.pattern,
+        pattern,
         border: case.border,
         tolerance: case.tolerance,
         metrics,
@@ -62,18 +55,24 @@ pub fn compare(
     })
 }
 
-pub fn canonical_rows(
-    input: &data::Input,
-    mut progress: impl FnMut(ProgressEvent),
+pub fn comparison_rows(input: &data::ActiveArea) -> mischief::Result<Vec<Row>> {
+    BayerPattern::ALL
+        .par_iter()
+        .flat_map_iter(|pattern| {
+            cases::CASES
+                .iter()
+                .map(move |case| compare(case, input, *pattern, SampleType::F32))
+        })
+        .collect()
+}
+
+#[cfg(test)]
+pub fn comparison_rows_for_pattern(
+    input: &data::ActiveArea,
+    pattern: BayerPattern,
 ) -> mischief::Result<Vec<Row>> {
-    let mut rows = Vec::with_capacity(cases::CASES.len());
-    for case in cases::CASES {
-        progress(ProgressEvent::Started {
-            algorithm: case.name,
-            reference: case.reference_backend.library(),
-        });
-        rows.push(compare(case, input, SampleType::F32)?);
-        progress(ProgressEvent::Finished);
-    }
-    Ok(rows)
+    cases::CASES
+        .par_iter()
+        .map(|case| compare(case, input, pattern, SampleType::F32))
+        .collect()
 }
