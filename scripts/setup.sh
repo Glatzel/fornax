@@ -14,8 +14,12 @@ files=(
     "src/iop/demosaicing/rcd.c"
     "src/iop/demosaicing/vng.c"
 )
+
 for file in "${files[@]}"; do
     destination="external/darktable/$file"
+
+    [[ -f "$destination" ]] && continue
+
     mkdir -p "$(dirname "$destination")"
 
     gh api "repos/darktable-org/darktable/contents/$file?ref=release-5.6.2" \
