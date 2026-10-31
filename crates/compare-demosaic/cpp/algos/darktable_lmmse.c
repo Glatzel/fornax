@@ -77,6 +77,18 @@ static inline float median9f(const float* pixels) {
     return MIN(p2, p4);
 }
 
+#if defined(_MSC_VER)
+#define __attribute__(attribute)
+#endif
+
+static void demosaic_ppg(float *const out,
+                         const float *const in,
+                         const int width,
+                         const int height,
+                         const uint32_t filters,
+                         const float thrs,
+                         const int margin);
+
 #include "external/darktable/src/iop/demosaicing/lmmse.c"
 #include "external/darktable/src/iop/demosaicing/ppg.c"
 

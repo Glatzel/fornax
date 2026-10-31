@@ -107,12 +107,8 @@ pub fn calculate(
                 channel_sum[channel] += f64::from(difference);
                 errors.push(difference);
             }
-            let actual_luma = 0.299 * f64::from(actual[offset])
-                + 0.587 * f64::from(actual[offset + 1])
-                + 0.114 * f64::from(actual[offset + 2]);
-            let reference_luma = 0.299 * f64::from(reference[offset])
-                + 0.587 * f64::from(reference[offset + 1])
-                + 0.114 * f64::from(reference[offset + 2]);
+            let actual_luma = 0.114_f64.mul_add(f64::from(actual[offset + 2]), 0.587_f64.mul_add(f64::from(actual[offset + 1]), 0.299 * f64::from(actual[offset])));
+            let reference_luma = 0.114_f64.mul_add(f64::from(reference[offset + 2]), 0.587_f64.mul_add(f64::from(reference[offset + 1]), 0.299 * f64::from(reference[offset])));
             luma_squared_sum += (actual_luma - reference_luma).powi(2);
             let actual_chroma = [
                 f64::from(actual[offset + 2]) - actual_luma,
@@ -122,8 +118,7 @@ pub fn calculate(
                 f64::from(reference[offset + 2]) - reference_luma,
                 f64::from(reference[offset]) - reference_luma,
             ];
-            chroma_squared_sum += (actual_chroma[0] - reference_chroma[0]).powi(2)
-                + (actual_chroma[1] - reference_chroma[1]).powi(2);
+            chroma_squared_sum += (actual_chroma[1] - reference_chroma[1]).mul_add(actual_chroma[1] - reference_chroma[1], (actual_chroma[0] - reference_chroma[0]).powi(2));
         }
     }
 
