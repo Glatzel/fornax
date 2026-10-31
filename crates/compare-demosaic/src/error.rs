@@ -24,21 +24,30 @@ pub struct CompareError {
 }
 
 impl CompareError {
-    pub fn check(message: impl Into<String>) -> Self {
+    pub fn check<T>(message: T) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
             class: ErrorClass::Check,
             message: message.into(),
         }
     }
 
-    pub fn invalid(message: impl Into<String>) -> Self {
+    pub fn invalid<T>(message: T) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
             class: ErrorClass::Invalid,
             message: message.into(),
         }
     }
 
-    pub fn usage(message: impl Into<String>) -> Self {
+    pub fn usage<T>(message: T) -> Self
+    where
+        T: Into<String>,
+    {
         Self {
             class: ErrorClass::Usage,
             message: message.into(),

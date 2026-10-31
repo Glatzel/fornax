@@ -29,7 +29,10 @@ pub struct Row {
     pub artifacts: Option<ArtifactPaths>,
 }
 
-#[cfg_attr(not(test), allow(dead_code))]
+#[cfg_attr(
+    not(test),
+    allow(dead_code, reason = "used by comparison crate integration tests")
+)]
 pub fn compare(
     case: &'static Case,
     input: &data::ActiveArea,
@@ -128,7 +131,10 @@ pub fn comparison_rows_filtered(
     comparison_rows_filtered_with_artifacts(input, pattern, algorithm, false)
 }
 
-#[cfg_attr(not(test), allow(dead_code))]
+#[cfg_attr(
+    not(test),
+    allow(dead_code, reason = "used by comparison crate integration tests")
+)]
 pub fn comparison_rows_filtered_with_artifacts(
     input: &data::ActiveArea,
     pattern: Option<BayerPattern>,

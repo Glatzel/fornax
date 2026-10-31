@@ -276,7 +276,7 @@ fn main() -> ExitCode {
     match dispatch(args) {
         Ok(code) => ExitCode::from(code),
         Err(error) => {
-            eprintln!("error: {error}");
+            let _ = write_status(format_args!("error: {error}"));
             ExitCode::from(error.class().exit_code())
         }
     }
@@ -321,7 +321,7 @@ fn dispatch(args: Args) -> Result<u8> {
             let run_args = args.run;
             if args.bless {
                 let output = run::execute(&run_args.request())?;
-                emit_run(&output, run_args.format);
+                emit_run(&output, run_args.format)?;
                 bless_command(&output.path, true)
             } else {
                 run_command(run_args)
@@ -333,14 +333,14 @@ fn dispatch(args: Args) -> Result<u8> {
 fn run_command(args: RunArgs) -> Result<u8> {
     let format = args.format;
     let output = run::execute(&args.request())?;
-    emit_run(&output, format);
+    emit_run(&output, format)?;
     Ok(0)
 }
 
-fn emit_run(output: &compare_demosaic::run::RunOutput, format: OutputFormat) {
+fn emit_run(output: &compare_demosaic::run::RunOutput, format: OutputFormat) -> Result<()> {
     match format {
         OutputFormat::Text => {
-            eprintln!(
+            write_status(format_args!(
                 "wrote {} ({} rows, {} coverage)",
                 output.path.display(),
                 output.results.results.len(),
@@ -348,7 +348,7 @@ fn emit_run(output: &compare_demosaic::run::RunOutput, format: OutputFormat) {
                     results::Coverage::Full => "full",
                     results::Coverage::Partial => "partial",
                 }
-            );
+            ))?;
         }
         OutputFormat::Json => {
             println!(
@@ -362,6 +362,7 @@ fn emit_run(output: &compare_demosaic::run::RunOutput, format: OutputFormat) {
             );
         }
     }
+    Ok(())
 }
 
 fn merge_command(
@@ -373,12 +374,12 @@ fn merge_command(
 ) -> Result<u8> {
     let report = compare_demosaic::merge::merge(shards, out, allow_partial, check_artifacts)?;
     match format {
-        OutputFormat::Text => eprintln!(
+        OutputFormat::Text => write_status(format_args!(
             "merged {} rows into {} ({})",
             report.rows,
             report.path.display(),
             if report.complete { "full" } else { "partial" }
-        ),
+        ))?,
         OutputFormat::Json => println!(
             "{}",
             serde_json::json!({
@@ -401,7 +402,7 @@ fn diff_command(
 ) -> Result<u8> {
     let report = diff::compare_files(old, new, fail_on, only_native)?;
     match format {
-        OutputFormat::Text => eprintln!("{}", report.render_text()),
+        OutputFormat::Text => write_status(format_args!("{}", report.render_text()))?,
         OutputFormat::Json => println!(
             "{}",
             serde_json::to_string(&report)
@@ -423,7 +424,13 @@ fn validate_command(
 ) -> Result<u8> {
     let report = compare_demosaic::validate::validate_file(path, partial, check_artifacts)?;
     match format {
-        OutputFormat::Text => eprintln!("valid {} ({} rows)", path.display(), report.rows),
+        OutputFormat::Text => {
+            write_status(format_args!(
+                "valid {} ({} rows)",
+                path.display(),
+                report.rows
+            ))?;
+        }
         OutputFormat::Json => println!(
             "{}",
             serde_json::json!({
@@ -448,10 +455,10 @@ fn schema_command(check: bool) -> Result<u8> {
                 path.display()
             )));
         }
-        eprintln!("schema up to date");
+        write_status(format_args!("schema up to date"))?;
     } else {
         std::fs::write(&path, expected)?;
-        eprintln!("schema written to {}", path.display());
+        write_status(format_args!("schema written to {}", path.display()))?;
     }
     Ok(0)
 }
@@ -460,21 +467,21 @@ fn readme_command(check: bool, from: Option<&Path>) -> Result<u8> {
     if check {
         compare_demosaic::render::check(from)
             .map_err(|error| CompareError::check(error.to_string()))?;
-        eprintln!("README up to date");
+        write_status(format_args!("README up to date"))?;
     } else {
         compare_demosaic::render::write(from)
             .map_err(|error| CompareError::usage(error.to_string()))?;
-        eprintln!("README written");
+        write_status(format_args!("README written"))?;
     }
     Ok(0)
 }
 
 fn bless_command(path: &Path, yes: bool) -> Result<u8> {
     let report = compare_demosaic::bless::bless(path, yes)?;
-    eprintln!(
+    write_status(format_args!(
         "blessed {} and regenerated README tables",
         report.baseline.display()
-    );
+    ))?;
     Ok(0)
 }
 
@@ -483,9 +490,12 @@ fn list_command(format: OutputFormat) -> Result<u8> {
     match format {
         OutputFormat::Text => {
             for row in &rows {
-                eprintln!("{:<8} {:<10} {}", row.algorithm, row.reference, row.pattern);
+                write_status(format_args!(
+                    "{:<8} {:<10} {}",
+                    row.algorithm, row.reference, row.pattern
+                ))?;
             }
-            eprintln!("{} expected rows", rows.len());
+            write_status(format_args!("{} expected rows", rows.len()))?;
         }
         OutputFormat::Json => println!(
             "{}",
@@ -499,6 +509,11 @@ fn default_jobs() -> usize {
     std::thread::available_parallelism()
         .map_or(1, std::num::NonZeroUsize::get)
         .min(4)
+}
+
+fn write_status(message: std::fmt::Arguments<'_>) -> Result<()> {
+    writeln!(std::io::stderr().lock(), "{message}")?;
+    Ok(())
 }
 
 #[cfg(test)]

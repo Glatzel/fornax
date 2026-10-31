@@ -21,7 +21,10 @@ pub struct ActiveArea {
     pub native_pattern: BayerPattern,
 }
 
-#[cfg_attr(not(test), allow(dead_code))]
+#[cfg_attr(
+    not(test),
+    allow(dead_code, reason = "used by comparison crate integration tests")
+)]
 pub fn active_area() -> mischief::Result<ActiveArea> {
     active_area_from(&fornax_devtool::raw_file())
 }

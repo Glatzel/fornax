@@ -140,13 +140,13 @@ pub fn compare(
             .cmp(&change_order(right.kind))
             .then_with(|| left.key.cmp(&right.key))
     });
+    let failed = match fail_on {
+        FailOn::Never => false,
+        FailOn::Regression => regressions > 0,
+        FailOn::Any => !changes.is_empty(),
+    };
     let exit_code = if stable_differences.is_empty() {
-        match fail_on {
-            FailOn::Never => 0,
-            FailOn::Regression if regressions > 0 => 1,
-            FailOn::Any if !changes.is_empty() => 1,
-            FailOn::Regression | FailOn::Any => 0,
-        }
+        u8::from(failed)
     } else {
         2
     };
