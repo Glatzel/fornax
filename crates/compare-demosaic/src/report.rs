@@ -1,7 +1,7 @@
 use fornax_core::BayerPattern;
 
 use crate::case::{Case, SampleType};
-use crate::{cases, data, ffi, metrics};
+use crate::{artifact, cases, data, ffi, metrics};
 
 pub const LIBRAW_COMMIT: &str = env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT");
 pub const DARKTABLE_RELEASE: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_RELEASE");
@@ -42,6 +42,10 @@ pub fn compare(
     )?;
     let actual = (case.run_fornax)(codes, width, height, pattern, sample_type)?;
     let metrics = metrics::calculate(&actual, &reference, width, height, case.border)?;
+    let verdict = metrics.verdict(case.tolerance);
+    if verdict == metrics::Verdict::Differs {
+        artifact::write_failure(case, pattern, &reference, &actual, width, height)?;
+    }
     Ok(Row {
         case: case.name,
         reference: case.reference_backend.library(),
@@ -50,24 +54,25 @@ pub fn compare(
         border: case.border,
         tolerance: case.tolerance,
         metrics,
-        verdict: metrics.verdict(case.tolerance),
+        verdict,
     })
 }
 
 pub fn canonical_rows() -> mischief::Result<Vec<Row>> {
     let input = data::canonical();
-    let mut rows = Vec::with_capacity(cases::CASES.len() * BayerPattern::ALL.len());
+    let pattern = input
+        .pattern
+        .expect("the canonical real fixture must declare its Bayer pattern");
+    let mut rows = Vec::with_capacity(cases::CASES.len());
     for case in cases::CASES {
-        for pattern in BayerPattern::ALL {
-            rows.push(compare(
-                case,
-                &input.codes,
-                input.width,
-                input.height,
-                pattern,
-                SampleType::F32,
-            )?);
-        }
+        rows.push(compare(
+            case,
+            &input.codes,
+            input.width,
+            input.height,
+            pattern,
+            SampleType::F32,
+        )?);
     }
     Ok(rows)
 }

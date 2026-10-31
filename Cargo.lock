@@ -547,8 +547,11 @@ version = "0.0.17"
 dependencies = [
  "cc",
  "fornax-core",
+ "fornax-decoder-rawler",
  "fornax-devtool",
  "fornax-postprocessor",
+ "fornax-preprocessor",
+ "image 0.25.9",
  "libraw-sys",
  "mischief",
  "num-traits",

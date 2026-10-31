@@ -1,7 +1,7 @@
 use fornax_core::BayerPattern;
 use fornax_postprocessor::Demosaic;
 
-use crate::case::{Case, ReferenceBackend, SampleType, Tolerance};
+use crate::case::{Case, ROBUST, ReferenceBackend, SampleType};
 
 pub const AMAZE: Case = Case {
     name: "AMaZE",
@@ -13,7 +13,7 @@ pub const AMAZE: Case = Case {
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 3,
     border: 16,
-    tolerance: Tolerance::MaxError(u16::MAX),
+    tolerance: ROBUST,
     run_fornax: run_amaze,
 };
 
@@ -27,7 +27,7 @@ pub const LMMSE: Case = Case {
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 4,
     border: 4,
-    tolerance: Tolerance::MaxError(u16::MAX),
+    tolerance: ROBUST,
     run_fornax: run_lmmse,
 };
 

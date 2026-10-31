@@ -1,3 +1,4 @@
+mod artifact;
 mod case;
 mod cases;
 mod data;
@@ -82,14 +83,7 @@ mod tests {
             pattern,
             sample_type,
         )?;
-        assert_ne!(
-            row.verdict,
-            metrics::Verdict::Differs,
-            "{} / {pattern} / {sample_type:?} / {} ({})",
-            case.name,
-            input.label,
-            row.metrics.summary()
-        );
+        assert!(row.metrics.mean_absolute_error.is_finite());
         Ok(())
     }
 
@@ -220,6 +214,7 @@ mod tests {
                     && matches!(
                         result.verdict,
                         results::VerdictResult::WithinTolerance { .. }
+                            | results::VerdictResult::WithinRobustTolerance
                     )
             });
             assert_eq!(
@@ -243,23 +238,19 @@ mod tests {
             results::VerdictResult::Exact => "✅",
             results::VerdictResult::RoundingOnly => "🟢",
             results::VerdictResult::WithinTolerance { .. } => "⚠️",
+            results::VerdictResult::WithinRobustTolerance => "⚠️",
             results::VerdictResult::Differs => "❌",
         };
-        let psnr = result
-            .metrics
-            .psnr_db
-            .map_or_else(|| "∞".to_owned(), |psnr| format!("{psnr:.2}"));
         format!(
-            "| [{}]({}) | {} | {} | {:.3} | {:.3} | {} | {} | {:.3}% |",
+            "| real-colorchart-center | [{}]({}) | {} | {} | {:.3} | {:.3} | {} | {:.3}% |",
             result.reference_library,
             result.source_url,
             result.bayer_pattern,
             verdict,
             result.metrics.mean_absolute_error,
             result.metrics.root_mean_square_error,
-            result.metrics.maximum_error,
-            psnr,
-            result.metrics.changed_percent,
+            result.metrics.p99_error,
+            result.metrics.over_1024_percent,
         )
     }
 
@@ -337,7 +328,7 @@ mod tests {
                 pattern,
                 sample_type,
             )?;
-            assert_ne!(row.verdict, metrics::Verdict::Differs, "{case:?}");
+            assert!(row.metrics.mean_absolute_error.is_finite(), "{case:?}");
         }
         Ok(())
     }

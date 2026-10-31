@@ -68,6 +68,13 @@ jobs:
           global-options: --workspace --all-features
         env:
           GH_TOKEN: ${{ github.token }}
+          FORNAX_COMPARE_ARTIFACTS: "1"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ failure() && runner.os == 'Linux' }}
+        with:
+          name: compare-demosaic-diffs
+          path: target/compare-demosaic
+          if-no-files-found: ignore
       # - name: build
       #   run: |
       #     ./scripts/maturin-develop.ps1

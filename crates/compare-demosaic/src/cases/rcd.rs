@@ -2,7 +2,7 @@ use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_postprocessor::Demosaic;
 
-use crate::case::{Case, ReferenceBackend, SampleType, Tolerance};
+use crate::case::{Case, ROBUST, ReferenceBackend, SampleType};
 
 const DARKTABLE_RCD_URL: &str = concat!(
     "https://github.com/darktable-org/darktable/blob/",
@@ -16,7 +16,7 @@ pub const DARKTABLE_CASE: Case = Case {
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 1,
     border: 10,
-    tolerance: Tolerance::MaxError(64),
+    tolerance: ROBUST,
     run_fornax: run,
 };
 

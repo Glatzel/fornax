@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::case::Tolerance;
 use crate::{data, metrics, report};
 
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 pub const DEFAULT_RESULTS_FILE: &str = "results/canonical.json";
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -19,7 +19,9 @@ pub struct ComparisonResults {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ComparisonInput {
     pub fixture: String,
-    pub seed: u64,
+    pub source: String,
+    pub kind: String,
+    pub pattern: String,
     pub width: u32,
     pub height: u32,
     pub sample_type: String,
@@ -45,12 +47,19 @@ pub struct ComparisonResult {
     pub metrics: MetricsResult,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ToleranceResult {
     Exact,
     RoundingUp,
-    MaxError { max_error: u16 },
+    MaxError {
+        max_error: u16,
+    },
+    Robust {
+        max_mae: f64,
+        max_p99: u16,
+        max_over_1024_percent: f64,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize)]
@@ -59,6 +68,7 @@ pub enum VerdictResult {
     Exact,
     RoundingOnly,
     WithinTolerance { max_error: u16 },
+    WithinRobustTolerance,
     Differs,
 }
 
@@ -70,6 +80,14 @@ pub struct MetricsResult {
     pub changed_percent: f64,
     pub psnr_db: Option<f64>,
     pub below_reference: u64,
+    pub p95_error: u16,
+    pub p99_error: u16,
+    pub p99_9_error: u16,
+    pub over_64_percent: f64,
+    pub over_1024_percent: f64,
+    pub channel_mae: [f64; 3],
+    pub luminance_rmse: f64,
+    pub chroma_rmse: f64,
 }
 
 impl ComparisonResults {
@@ -95,8 +113,10 @@ impl ComparisonResults {
         Ok(Self {
             schema_version: SCHEMA_VERSION,
             input: ComparisonInput {
-                fixture: "fornax-devtool::synthetic_mono_image".to_owned(),
-                seed: 12_345,
+                fixture: input.label,
+                source: input.source,
+                kind: input.kind,
+                pattern: input.pattern.expect("canonical pattern").to_string(),
                 width: input.width,
                 height: input.height,
                 sample_type: "f32".to_owned(),
@@ -148,6 +168,15 @@ impl From<Tolerance> for ToleranceResult {
             Tolerance::Exact => Self::Exact,
             Tolerance::RoundingUp => Self::RoundingUp,
             Tolerance::MaxError(max_error) => Self::MaxError { max_error },
+            Tolerance::Robust {
+                max_mae,
+                max_p99,
+                max_over_1024_percent,
+            } => Self::Robust {
+                max_mae,
+                max_p99,
+                max_over_1024_percent,
+            },
         }
     }
 }
@@ -158,6 +187,7 @@ impl From<metrics::Verdict> for VerdictResult {
             metrics::Verdict::Exact => Self::Exact,
             metrics::Verdict::RoundingOnly => Self::RoundingOnly,
             metrics::Verdict::WithinTolerance(max_error) => Self::WithinTolerance { max_error },
+            metrics::Verdict::WithinRobustTolerance => Self::WithinRobustTolerance,
             metrics::Verdict::Differs => Self::Differs,
         }
     }
@@ -175,6 +205,14 @@ impl From<metrics::Metrics> for MetricsResult {
                 .is_finite()
                 .then_some(metrics.peak_signal_to_noise_ratio),
             below_reference: metrics.below_reference,
+            p95_error: metrics.p95_error,
+            p99_error: metrics.p99_error,
+            p99_9_error: metrics.p99_9_error,
+            over_64_percent: metrics.over_64_percent,
+            over_1024_percent: metrics.over_1024_percent,
+            channel_mae: metrics.channel_mae,
+            luminance_rmse: metrics.luminance_rmse,
+            chroma_rmse: metrics.chroma_rmse,
         }
     }
 }

@@ -1,7 +1,7 @@
 use fornax_core::BayerPattern;
 use fornax_postprocessor::Demosaic;
 
-use crate::case::{Case, ReferenceBackend, SampleType, Tolerance};
+use crate::case::{Case, ROBUST, ReferenceBackend, SampleType};
 
 pub const DCB: Case = Case {
     name: "DCB",
@@ -13,7 +13,7 @@ pub const DCB: Case = Case {
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 4,
     border: 6,
-    tolerance: Tolerance::MaxError(u16::MAX),
+    tolerance: ROBUST,
     run_fornax: run_dcb,
 };
 
@@ -27,7 +27,7 @@ pub const DHT: Case = Case {
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 5,
     border: 32,
-    tolerance: Tolerance::MaxError(u16::MAX),
+    tolerance: ROBUST,
     run_fornax: run_dht,
 };
 
@@ -41,7 +41,7 @@ pub const AAHD: Case = Case {
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 6,
     border: 4,
-    tolerance: Tolerance::MaxError(u16::MAX),
+    tolerance: ROBUST,
     run_fornax: run_aahd,
 };
 

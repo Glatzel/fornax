@@ -1,7 +1,7 @@
 use fornax_core::BayerPattern;
 use fornax_postprocessor::Demosaic;
 
-use crate::case::{Case, ReferenceBackend, SampleType, Tolerance};
+use crate::case::{Case, ROBUST, ReferenceBackend, SampleType};
 
 const DARKTABLE_VNG_URL: &str = concat!(
     "https://github.com/darktable-org/darktable/blob/",
@@ -20,7 +20,7 @@ pub const DARKTABLE_CASE: Case = Case {
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 2,
     border: 2,
-    tolerance: Tolerance::MaxError(u16::MAX),
+    tolerance: ROBUST,
     run_fornax: run,
 };
 
@@ -30,7 +30,7 @@ pub const LIBRAW_CASE: Case = Case {
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 3,
     border: 2,
-    tolerance: Tolerance::MaxError(u16::MAX),
+    tolerance: ROBUST,
     run_fornax: run,
 };
 
