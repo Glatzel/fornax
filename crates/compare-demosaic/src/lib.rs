@@ -8,8 +8,6 @@ pub mod results;
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
     use fornax_core::BayerPattern;
     use fornax_devtool::synthetic_mono_image;
     use rstest::{fixture, rstest};
@@ -122,26 +120,25 @@ mod tests {
 
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[rstest]
-    fn pattern_checksums(cropped_real_128: &crate::data::ActiveArea) -> mischief::Result<()> {
-        let comparisons = crate::report::comparison_rows(cropped_real_128)?
-            .into_iter()
-            .map(SummaryComparison::from)
-            .collect::<Vec<_>>();
-        let checksums = comparisons
-            .iter()
-            .map(|comparison| {
-                (
-                    format!(
-                        "{}-{}-{}",
-                        comparison.bayer_pattern,
-                        comparison.algorithm,
-                        comparison.reference_library
-                    ),
-                    comparison_checksum(comparison),
-                )
-            })
-            .collect::<BTreeMap<_, _>>();
-        insta::assert_json_snapshot!("pattern_checksums", checksums);
+    fn algorithm_checksum(
+        cropped_real_128: &crate::data::ActiveArea,
+        #[values(
+            BayerPattern::RGGB,
+            BayerPattern::BGGR,
+            BayerPattern::GRBG,
+            BayerPattern::GBRG
+        )]
+        pattern: BayerPattern,
+        #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)] case_index: usize,
+    ) -> mischief::Result<()> {
+        let case = &crate::cases::CASES[case_index];
+        let comparison =
+            SummaryComparison::from(compare(case, cropped_real_128, pattern, SampleType::F32)?);
+        let snapshot_name = format!(
+            "{}-{}-{}",
+            comparison.bayer_pattern, comparison.algorithm, comparison.reference_library
+        );
+        insta::assert_snapshot!(snapshot_name, comparison_checksum(&comparison));
         Ok(())
     }
 }

@@ -8,11 +8,11 @@ returned by `fornax_devtool::raw_file()`. The mosaic is normalized using its
 black and white levels and evaluated under all four Bayer pattern labels.
 White balance and the default output crop are not applied.
 
-The regression snapshot decodes and crops a centered 128x128 area once, then
-runs all patterns in parallel through one order-independent
-pattern-algorithm-reference checksum map. A separate 128x128
-`synthetic_mono_image` smoke test runs every algorithm for fast failure
-feedback, but it is not used for quality verdicts.
+The regression tests share a once-decoded, centered 128x128 crop. Each
+pattern-algorithm-reference combination is an independent `rstest` case with
+its own checksum snapshot, allowing the test harness to run them in parallel.
+A separate 128x128 `synthetic_mono_image` smoke test runs every algorithm for
+fast failure feedback, but it is not used for quality verdicts.
 
 ```bash
 source scripts/setup.sh
