@@ -7,7 +7,6 @@ publish = false
 
 [dependencies]
 fornax-core.workspace = true
-fornax-demosaic-reference.workspace = true
 fornax-devtool.workspace = true
 fornax-postprocessor.workspace = true
 mischief.workspace = true

@@ -44,8 +44,8 @@ Codex agent reads that JSON, updates the per-algorithm tables, and writes an
 evidence-based note after any table containing `⚠️` results.
 
 The committed JSON and tables are Linux-canonical. Cross-platform tests still
-validate the declared tolerances, but exact documentation freshness is checked
-on Linux because compiler and math-library rounding can vary by platform.
+validate the declared tolerances, but documentation freshness is checked on
+Linux because compiler and math-library rounding can vary by platform.
 
 ## Results
 
@@ -54,10 +54,15 @@ on Linux because compiler and math-library rounding can vary by platform.
 
 | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | ⚠️ | 5990.645 | 10783.613 | 65535 | 15.67 | 63.492% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | ⚠️ | 6010.452 | 10818.270 | 65535 | 15.65 | 63.598% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | ⚠️ | 6011.409 | 10816.953 | 65535 | 15.65 | 63.610% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | ⚠️ | 5994.805 | 10790.549 | 65535 | 15.67 | 63.492% |
+
+> [!NOTE]
+> AAHD currently uses the audited directional candidate implementation. The
+> random synthetic fixture amplifies direction-selection differences, so the
+> declared 65,535-code tolerance captures the observed range.
 
 ### AHD
 
@@ -78,28 +83,40 @@ on Linux because compiler and math-library rounding can vary by platform.
 
 | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | BGGR | ⚠️ | 4451.443 | 7701.440 | 65535 | 18.60 | 65.507% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GBRG | ⚠️ | 4437.127 | 7683.401 | 65535 | 18.62 | 65.461% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GRBG | ⚠️ | 4437.127 | 7683.401 | 65535 | 18.62 | 65.461% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | RGGB | ⚠️ | 4451.443 | 7701.440 | 65535 | 18.60 | 65.507% |
+
+> [!NOTE]
+> AMaZE uses the Rust gradient, color-ratio, and chroma refinement pipeline.
+> Extreme synthetic edges produce large isolated differences from darktable.
 
 ### DCB
 
 | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | BGGR | ⚠️ | 5613.509 | 9505.043 | 65535 | 16.77 | 67.688% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GBRG | ⚠️ | 5607.248 | 9486.709 | 65535 | 16.79 | 67.713% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GRBG | ⚠️ | 5607.248 | 9486.709 | 65535 | 16.79 | 67.713% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | RGGB | ⚠️ | 5613.509 | 9505.043 | 65535 | 16.77 | 67.688% |
+
+> [!NOTE]
+> DCB uses Rust directional candidates and color-difference correction.
+> The declared tolerance records the current synthetic-fixture envelope.
 
 ### DHT
 
 | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | BGGR | ⚠️ | 8813.007 | 14321.071 | 65535 | 13.21 | 66.478% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GBRG | ⚠️ | 8803.115 | 14285.292 | 65534 | 13.23 | 66.237% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GRBG | ⚠️ | 8803.115 | 14285.292 | 65534 | 13.23 | 66.237% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | RGGB | ⚠️ | 8813.007 | 14321.071 | 65535 | 13.21 | 66.478% |
+
+> [!NOTE]
+> DHT uses the Rust ratio-based directional path. High-frequency random
+> chroma causes the largest divergence from LibRaw's implementation.
 
 ### Linear
 
@@ -114,10 +131,15 @@ on Linux because compiler and math-library rounding can vary by platform.
 
 | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | BGGR | ⚠️ | 3812.467 | 6470.421 | 51418 | 20.11 | 65.837% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | ⚠️ | 3823.210 | 6484.743 | 48661 | 20.09 | 65.839% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | ⚠️ | 3823.256 | 6484.808 | 48661 | 20.09 | 65.839% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | ⚠️ | 3812.560 | 6470.534 | 51418 | 20.11 | 65.837% |
+
+> [!NOTE]
+> LMMSE applies Rust directional color-difference estimates and local
+> shrinkage. The declared tolerance reflects the synthetic-fixture outlier
+> range.
 
 ### PPG
 
@@ -152,10 +174,19 @@ on Linux because compiler and math-library rounding can vary by platform.
 
 | Reference Library | Bayer | Verdict | MAE | RMSE | Max | PSNR | Changed |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | BGGR | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GBRG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GRBG | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | RGGB | ✅ | 0.000 | 0.000 | 0 | ∞ | 0.000% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | BGGR | ⚠️ | 9538.049 | 13375.509 | 65535 | 13.80 | 83.208% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GBRG | ⚠️ | 9500.087 | 13328.946 | 65535 | 13.83 | 83.212% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GRBG | ⚠️ | 9500.187 | 13329.889 | 61580 | 13.83 | 83.214% |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | RGGB | ⚠️ | 9539.018 | 13377.971 | 65535 | 13.80 | 83.209% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | BGGR | ⚠️ | 8264.333 | 12639.377 | 65535 | 14.29 | 66.006% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GBRG | ⚠️ | 8214.444 | 12575.191 | 65535 | 14.34 | 66.004% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GRBG | ⚠️ | 8216.889 | 12577.259 | 65535 | 14.34 | 66.006% |
+| [LibRaw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | RGGB | ⚠️ | 8266.178 | 12641.304 | 65535 | 14.29 | 66.005% |
+
+> [!NOTE]
+> VNG uses the Rust variable-gradient implementation. Darktable remains the
+> primary tuning reference; the LibRaw comparison documents the alternate VNG
+> variant. High-frequency synthetic edges dominate the current differences.
 
 Reference builds: LibRaw 0.22.3; darktable 5.6.2 (20891f6c6fa7be995e5bf9dff9d1ee5062051773).
 <!-- END:compare-table -->

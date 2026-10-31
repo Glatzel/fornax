@@ -103,6 +103,10 @@ extern "C" std::int32_t compare_demosaic_reference(
                 return run_darktable_rcd(mosaic, width, height, filters, output);
             case 2:
                 return run_darktable_vng(mosaic, width, height, filters, output);
+            case 3:
+                return run_darktable_amaze(mosaic, width, height, filters, output);
+            case 4:
+                return run_darktable_lmmse(mosaic, width, height, filters, output);
             default:
                 return COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM;
         }

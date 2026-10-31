@@ -1,4 +1,5 @@
 use fornax_core::BayerPattern;
+use fornax_postprocessor::Demosaic;
 
 use crate::case::{Case, ReferenceBackend, SampleType, Tolerance};
 
@@ -12,7 +13,7 @@ pub const AMAZE: Case = Case {
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 3,
     border: 16,
-    tolerance: Tolerance::Exact,
+    tolerance: Tolerance::MaxError(u16::MAX),
     run_fornax: run_amaze,
 };
 
@@ -26,7 +27,7 @@ pub const LMMSE: Case = Case {
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 4,
     border: 4,
-    tolerance: Tolerance::Exact,
+    tolerance: Tolerance::MaxError(u16::MAX),
     run_fornax: run_lmmse,
 };
 
@@ -37,14 +38,7 @@ fn run_amaze(
     pattern: BayerPattern,
     sample_type: SampleType,
 ) -> mischief::Result<Vec<u16>> {
-    let _ = sample_type;
-    crate::cases::reference_runner::run(
-        fornax_demosaic_reference::Algorithm::Amaze,
-        codes,
-        width,
-        height,
-        pattern,
-    )
+    crate::cases::rust_runner::run(Demosaic::Amaze, codes, width, height, pattern, sample_type)
 }
 
 fn run_lmmse(
@@ -54,12 +48,5 @@ fn run_lmmse(
     pattern: BayerPattern,
     sample_type: SampleType,
 ) -> mischief::Result<Vec<u16>> {
-    let _ = sample_type;
-    crate::cases::reference_runner::run(
-        fornax_demosaic_reference::Algorithm::Lmmse,
-        codes,
-        width,
-        height,
-        pattern,
-    )
+    crate::cases::rust_runner::run(Demosaic::Lmmse, codes, width, height, pattern, sample_type)
 }

@@ -1,3 +1,5 @@
+#include "../status.h"
+
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -14,20 +16,14 @@
 #define ULIM(x, y, z) ((y) < (z) ? LIM(x, y, z) : LIM(x, z, y))
 #define FC(row, col, filters) ((filters >> (((((row) << 1) & 14U) + ((col) & 1U)) * 2U)) & 3U)
 
-static inline float
-sqrf(float value) {
-    return value * value;
-}
-
-static inline float
-interpolatef(float weight, float first, float second) {
+static inline float sqrf(float value) { return value * value; }
+static inline float interpolatef(float weight, float first, float second) {
     return weight * (first - second) + second;
 }
 
 #include "external/darktable/src/iop/demosaicing/amaze.cc"
 
-extern "C" int32_t
-run_darktable_amaze(
+extern "C" int32_t run_darktable_amaze(
     const uint16_t* mosaic,
     uint32_t        width,
     uint32_t        height,
@@ -40,11 +36,11 @@ run_darktable_amaze(
             filters &= ~(2U << shift);
     }
     float* input = (float*)std::calloc(pixel_count, sizeof(float));
-    float* rgb = (float*)malloc(pixel_count * 4 * sizeof(float));
+    float* rgb = (float*)std::calloc(pixel_count * 4, sizeof(float));
     if (input == nullptr || rgb == nullptr) {
-        free(input);
-        free(rgb);
-        return 3;
+        std::free(input);
+        std::free(rgb);
+        return COMPARE_DEMOSAIC_STATUS_ALLOCATION_FAILED;
     }
     for (size_t i = 0; i < pixel_count; ++i)
         input[i] = (float)mosaic[i] / 65535.0F;
@@ -57,7 +53,7 @@ run_darktable_amaze(
             output[i * 3 + channel] = (uint16_t)std::lround(normalized * 65535.0F);
         }
     }
-    free(input);
-    free(rgb);
-    return 0;
+    std::free(input);
+    std::free(rgb);
+    return COMPARE_DEMOSAIC_STATUS_OK;
 }

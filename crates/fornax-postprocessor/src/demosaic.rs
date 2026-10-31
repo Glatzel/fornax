@@ -1,18 +1,29 @@
+mod aahd;
 mod ahd;
+mod amaze;
 mod buffer;
+mod dcb;
+mod dht;
+mod directional;
 mod linear;
+mod lmmse;
 mod ppg;
 mod rcd;
-mod reference;
+mod vng;
 
+use aahd::DemosaicAahd;
 use ahd::{AhdLazy, DemosaicAhd};
+use amaze::DemosaicAmaze;
+use dcb::DemosaicDcb;
+use dht::DemosaicDht;
 use fornax_core::error::DemosaicError;
 use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
-use fornax_demosaic_reference::Algorithm as ReferenceAlgorithm;
 use linear::{DemosaicLinear, LinearLazy};
+use lmmse::DemosaicLmmse;
 use ppg::{DemosaicPpg, PpgLazy};
 use rcd::{DemosaicRcd, RcdLazy};
+use vng::DemosaicVng;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Demosaic {
@@ -85,31 +96,27 @@ impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
         pattern: BayerPattern,
     ) -> Result<AnyLazy<'a, T>, DemosaicError> {
         Ok(match self {
-            Self::Aahd => AnyLazy::Aahd(reference::lazy(ReferenceAlgorithm::Aahd, bayer, pattern)?),
+            Self::Aahd => AnyLazy::Aahd(DemosaicAahd.lazy(bayer, pattern)?),
             Self::Ahd => AnyLazy::Ahd(DemosaicAhd.lazy(bayer, pattern)?),
-            Self::Amaze => {
-                AnyLazy::Amaze(reference::lazy(ReferenceAlgorithm::Amaze, bayer, pattern)?)
-            }
-            Self::Dcb => AnyLazy::Dcb(reference::lazy(ReferenceAlgorithm::Dcb, bayer, pattern)?),
-            Self::Dht => AnyLazy::Dht(reference::lazy(ReferenceAlgorithm::Dht, bayer, pattern)?),
+            Self::Amaze => AnyLazy::Amaze(DemosaicAmaze.lazy(bayer, pattern)?),
+            Self::Dcb => AnyLazy::Dcb(DemosaicDcb.lazy(bayer, pattern)?),
+            Self::Dht => AnyLazy::Dht(DemosaicDht.lazy(bayer, pattern)?),
             Self::Linear => AnyLazy::Linear(DemosaicLinear.lazy(bayer, pattern)?),
-            Self::Lmmse => {
-                AnyLazy::Lmmse(reference::lazy(ReferenceAlgorithm::Lmmse, bayer, pattern)?)
-            }
+            Self::Lmmse => AnyLazy::Lmmse(DemosaicLmmse.lazy(bayer, pattern)?),
             Self::Ppg => AnyLazy::Ppg(DemosaicPpg.lazy(bayer, pattern)?),
             Self::Rcd => AnyLazy::Rcd(DemosaicRcd.lazy(bayer, pattern)?),
-            Self::Vng => AnyLazy::Vng(reference::lazy(ReferenceAlgorithm::Vng, bayer, pattern)?),
+            Self::Vng => AnyLazy::Vng(DemosaicVng.lazy(bayer, pattern)?),
         })
     }
 }
 
 #[cfg(test)]
-mod reference_tests {
+mod rust_algorithm_tests {
     use fornax_core::MonoImage;
 
     use super::*;
 
-    const REFERENCE_ALGORITHMS: [Demosaic; 6] = [
+    const RUST_ALGORITHMS: [Demosaic; 6] = [
         Demosaic::Vng,
         Demosaic::Dcb,
         Demosaic::Dht,
@@ -121,7 +128,7 @@ mod reference_tests {
     #[test]
     fn reference_algorithms_preserve_uniform_mosaics() -> mischief::Result<()> {
         let image = MonoImage::from_raw(64, 64, vec![0.25_f32; 64 * 64]).unwrap();
-        for algorithm in REFERENCE_ALGORITHMS {
+        for algorithm in RUST_ALGORITHMS {
             let output = algorithm.demosaic(&image, BayerPattern::RGGB)?.collect();
             for y in 16..48 {
                 for x in 16..48 {
@@ -146,7 +153,7 @@ mod reference_tests {
             .map(|sample| sample as f64 / f64::from(64 * 64 - 1))
             .collect::<Vec<_>>();
         let image = MonoImage::from_raw(64, 64, samples).unwrap();
-        for algorithm in REFERENCE_ALGORITHMS {
+        for algorithm in RUST_ALGORITHMS {
             let output = algorithm.demosaic(&image, BayerPattern::GRBG)?.collect();
             for y in 16..48 {
                 for x in 16..48 {

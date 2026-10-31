@@ -88,6 +88,28 @@ fn main() {
         .file(manifest_dir.join("cpp/algos/darktable_vng.c"));
     darktable_vng.compile("compare_demosaic_darktable_vng");
 
+    let mut darktable_amaze = cc::Build::new();
+    darktable_amaze
+        .cpp(true)
+        .warnings(true)
+        .include(manifest_dir.join("cpp/algos/stubs"))
+        .include(&workspace_root)
+        .flag_if_supported("-std=c++17")
+        .flag_if_supported("-Wno-unused-function")
+        .flag_if_supported("-Wno-unused-parameter")
+        .file(manifest_dir.join("cpp/algos/darktable_amaze.cc"));
+    darktable_amaze.compile("compare_demosaic_darktable_amaze");
+
+    let mut darktable_lmmse = cc::Build::new();
+    darktable_lmmse
+        .warnings(true)
+        .include(&workspace_root)
+        .flag_if_supported("-std=c17")
+        .flag_if_supported("-Wno-unused-function")
+        .flag_if_supported("-Wno-unused-parameter")
+        .file(manifest_dir.join("cpp/algos/darktable_lmmse.c"));
+    darktable_lmmse.compile("compare_demosaic_darktable_lmmse");
+
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
     println!("cargo:rustc-link-lib=raw_r");
 }

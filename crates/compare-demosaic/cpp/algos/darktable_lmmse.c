@@ -1,4 +1,7 @@
+#include "../status.h"
+
 #include <math.h>
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -28,23 +31,12 @@ typedef int   gboolean;
 typedef float dt_aligned_pixel_t[4];
 typedef int   dt_iop_demosaic_lmmse_t;
 
-static inline float*
-dt_alloc_align_float(size_t count) {
-    return (float*)malloc(count * sizeof(float));
+static inline float* dt_alloc_align_float(size_t count) {
+    return (float*)calloc(count, sizeof(float));
 }
-
-static inline void
-dt_free_align(void* pointer) {
-    free(pointer);
-}
-
-static inline float
-sqrf(float value) {
-    return value * value;
-}
-
-static inline void
-pre_median(float* out, const float* in, int width, int height, uint32_t filters, int passes, float threshold) {
+static inline void dt_free_align(void* pointer) { free(pointer); }
+static inline float sqrf(float value) { return value * value; }
+static inline void pre_median(float* out, const float* in, int width, int height, uint32_t filters, int passes, float threshold) {
     (void)out;
     (void)in;
     (void)width;
@@ -53,15 +45,11 @@ pre_median(float* out, const float* in, int width, int height, uint32_t filters,
     (void)passes;
     (void)threshold;
 }
-
-static inline void
-dt_print(int level, const char* message, ...) {
+static inline void dt_print(int level, const char* message, ...) {
     (void)level;
     (void)message;
 }
-
-static inline float
-median9f(const float* pixels) {
+static inline float median9f(const float* pixels) {
     float p1 = MIN(pixels[1], pixels[2]);
     float p2 = MAX(pixels[1], pixels[2]);
     float p4 = MIN(pixels[4], pixels[5]);
@@ -97,8 +85,7 @@ median9f(const float* pixels) {
 #include "external/darktable/src/iop/demosaicing/ppg.c"
 #include "external/darktable/src/iop/demosaicing/lmmse.c"
 
-int32_t
-run_darktable_lmmse(
+int32_t run_darktable_lmmse(
     const uint16_t* mosaic,
     uint32_t        width,
     uint32_t        height,
@@ -111,24 +98,16 @@ run_darktable_lmmse(
             filters &= ~(2U << shift);
     }
     float* input = (float*)calloc(pixel_count, sizeof(float));
-    float* rgb = (float*)malloc(pixel_count * 4 * sizeof(float));
+    float* rgb = (float*)calloc(pixel_count * 4, sizeof(float));
     if (input == NULL || rgb == NULL) {
         free(input);
         free(rgb);
-        return 3;
+        return COMPARE_DEMOSAIC_STATUS_ALLOCATION_FAILED;
     }
     for (size_t i = 0; i < pixel_count; ++i)
         input[i] = (float)mosaic[i] / 65535.0F;
 
-    lmmse_demosaic(
-        rgb,
-        input,
-        (int)width,
-        (int)height,
-        filters,
-        1,
-        1.0F
-    );
+    lmmse_demosaic(rgb, input, (int)width, (int)height, filters, 1, 1.0F);
     for (size_t i = 0; i < pixel_count; ++i) {
         for (size_t channel = 0; channel < 3; ++channel) {
             const float value = rgb[i * 4 + channel];
@@ -139,5 +118,5 @@ run_darktable_lmmse(
     free(input);
     free(rgb);
     _cleanup_lmmse_gamma();
-    return 0;
+    return COMPARE_DEMOSAIC_STATUS_OK;
 }

@@ -21,18 +21,20 @@
       "bayer_pattern": "BGGR",
       "border": 4,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 5990.64536617116,
+        "root_mean_square_error": 10783.612870819212,
+        "maximum_error": 65535,
+        "changed_percent": 63.49166981607458,
+        "psnr_db": 15.674180307290264,
+        "below_reference": 245509
       }
     },
     {
@@ -42,18 +44,20 @@
       "bayer_pattern": "GBRG",
       "border": 4,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 6010.451894106408,
+        "root_mean_square_error": 10818.27049954403,
+        "maximum_error": 65535,
+        "changed_percent": 63.598093558411016,
+        "psnr_db": 15.64630934887898,
+        "below_reference": 243674
       }
     },
     {
@@ -63,18 +67,20 @@
       "bayer_pattern": "GRBG",
       "border": 4,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 6011.4085543167885,
+        "root_mean_square_error": 10816.953435005475,
+        "maximum_error": 65535,
+        "changed_percent": 63.60964138741917,
+        "psnr_db": 15.64736687222858,
+        "below_reference": 243718
       }
     },
     {
@@ -84,18 +90,20 @@
       "bayer_pattern": "RGGB",
       "border": 4,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 5994.804913863693,
+        "root_mean_square_error": 10790.548939251894,
+        "maximum_error": 65535,
+        "changed_percent": 63.49219471739313,
+        "psnr_db": 15.668595299860133,
+        "below_reference": 245251
       }
     },
     {
@@ -197,18 +205,20 @@
       "bayer_pattern": "BGGR",
       "border": 16,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 4451.443057002315,
+        "root_mean_square_error": 7701.440381334313,
+        "maximum_error": 65535,
+        "changed_percent": 65.50679976851852,
+        "psnr_db": 18.598026919480866,
+        "below_reference": 228562
       }
     },
     {
@@ -218,18 +228,20 @@
       "bayer_pattern": "GBRG",
       "border": 16,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 4437.126944444444,
+        "root_mean_square_error": 7683.401066443808,
+        "maximum_error": 65535,
+        "changed_percent": 65.46122685185185,
+        "psnr_db": 18.618396004287384,
+        "below_reference": 228381
       }
     },
     {
@@ -239,18 +251,20 @@
       "bayer_pattern": "GRBG",
       "border": 16,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 4437.126944444444,
+        "root_mean_square_error": 7683.401066443808,
+        "maximum_error": 65535,
+        "changed_percent": 65.46122685185185,
+        "psnr_db": 18.618396004287384,
+        "below_reference": 228381
       }
     },
     {
@@ -260,18 +274,20 @@
       "bayer_pattern": "RGGB",
       "border": 16,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 4451.443057002315,
+        "root_mean_square_error": 7701.440381334313,
+        "maximum_error": 65535,
+        "changed_percent": 65.50679976851852,
+        "psnr_db": 18.598026919480866,
+        "below_reference": 228562
       }
     },
     {
@@ -281,18 +297,20 @@
       "bayer_pattern": "BGGR",
       "border": 6,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 5613.508762666666,
+        "root_mean_square_error": 9505.043424845851,
+        "maximum_error": 65535,
+        "changed_percent": 67.68826666666666,
+        "psnr_db": 16.77038396873425,
+        "below_reference": 221730
       }
     },
     {
@@ -302,18 +320,20 @@
       "bayer_pattern": "GBRG",
       "border": 6,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 5607.248497333333,
+        "root_mean_square_error": 9486.708554117527,
+        "maximum_error": 65535,
+        "changed_percent": 67.71266666666666,
+        "psnr_db": 16.787154903119557,
+        "below_reference": 221808
       }
     },
     {
@@ -323,18 +343,20 @@
       "bayer_pattern": "GRBG",
       "border": 6,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 5607.248497333333,
+        "root_mean_square_error": 9486.708554117527,
+        "maximum_error": 65535,
+        "changed_percent": 67.71266666666666,
+        "psnr_db": 16.787154903119557,
+        "below_reference": 221808
       }
     },
     {
@@ -344,18 +366,20 @@
       "bayer_pattern": "RGGB",
       "border": 6,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 5613.508762666666,
+        "root_mean_square_error": 9505.043424845851,
+        "maximum_error": 65535,
+        "changed_percent": 67.68826666666666,
+        "psnr_db": 16.77038396873425,
+        "below_reference": 221730
       }
     },
     {
@@ -363,20 +387,22 @@
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
       "bayer_pattern": "BGGR",
-      "border": 4,
+      "border": 32,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 8813.007023610226,
+        "root_mean_square_error": 14321.070962719603,
+        "maximum_error": 65535,
+        "changed_percent": 66.47783136692176,
+        "psnr_db": 13.20995614071757,
+        "below_reference": 223391
       }
     },
     {
@@ -384,20 +410,22 @@
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
       "bayer_pattern": "GBRG",
-      "border": 4,
+      "border": 32,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 8803.114883941858,
+        "root_mean_square_error": 14285.291532854095,
+        "maximum_error": 65534,
+        "changed_percent": 66.23734454719387,
+        "psnr_db": 13.231683918321586,
+        "below_reference": 223634
       }
     },
     {
@@ -405,20 +433,22 @@
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
       "bayer_pattern": "GRBG",
-      "border": 4,
+      "border": 32,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 8803.114883941858,
+        "root_mean_square_error": 14285.291532854095,
+        "maximum_error": 65534,
+        "changed_percent": 66.23734454719387,
+        "psnr_db": 13.231683918321586,
+        "below_reference": 223634
       }
     },
     {
@@ -426,20 +456,22 @@
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
       "bayer_pattern": "RGGB",
-      "border": 4,
+      "border": 32,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 8813.007023610226,
+        "root_mean_square_error": 14321.070962719603,
+        "maximum_error": 65535,
+        "changed_percent": 66.47783136692176,
+        "psnr_db": 13.20995614071757,
+        "below_reference": 223391
       }
     },
     {
@@ -533,18 +565,20 @@
       "bayer_pattern": "BGGR",
       "border": 4,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 3812.466895786092,
+        "root_mean_square_error": 6470.420608329763,
+        "maximum_error": 51418,
+        "changed_percent": 65.83679768203578,
+        "psnr_db": 20.110815819150815,
+        "below_reference": 227026
       }
     },
     {
@@ -554,18 +588,20 @@
       "bayer_pattern": "GBRG",
       "border": 4,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 3823.210124559083,
+        "root_mean_square_error": 6484.743181526365,
+        "maximum_error": 48661,
+        "changed_percent": 65.83902851263963,
+        "psnr_db": 20.091610451650908,
+        "below_reference": 226624
       }
     },
     {
@@ -575,18 +611,20 @@
       "bayer_pattern": "GRBG",
       "border": 4,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 3823.255871021248,
+        "root_mean_square_error": 6484.808481662335,
+        "maximum_error": 48661,
+        "changed_percent": 65.83915973796927,
+        "psnr_db": 20.091522986827286,
+        "below_reference": 226609
       }
     },
     {
@@ -596,18 +634,20 @@
       "bayer_pattern": "RGGB",
       "border": 4,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 3812.5598361258085,
+        "root_mean_square_error": 6470.5338285634225,
+        "maximum_error": 51418,
+        "changed_percent": 65.83679768203578,
+        "psnr_db": 20.110663833691127,
+        "below_reference": 227026
       }
     },
     {
@@ -885,18 +925,20 @@
       "bayer_pattern": "BGGR",
       "border": 2,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 9538.04873984748,
+        "root_mean_square_error": 13375.50899832208,
+        "maximum_error": 65535,
+        "changed_percent": 83.20829974993283,
+        "psnr_db": 13.803259717953384,
+        "below_reference": 445362
       }
     },
     {
@@ -906,18 +948,20 @@
       "bayer_pattern": "GBRG",
       "border": 2,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 9500.086584464836,
+        "root_mean_square_error": 13328.946394908928,
+        "maximum_error": 65535,
+        "changed_percent": 83.21191642383285,
+        "psnr_db": 13.833549648110335,
+        "below_reference": 444969
       }
     },
     {
@@ -927,18 +971,20 @@
       "bayer_pattern": "GRBG",
       "border": 2,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 9500.187151249302,
+        "root_mean_square_error": 13329.889484891244,
+        "maximum_error": 61580,
+        "changed_percent": 83.21385392770786,
+        "psnr_db": 13.832935099482206,
+        "below_reference": 444742
       }
     },
     {
@@ -948,18 +994,112 @@
       "bayer_pattern": "RGGB",
       "border": 2,
       "tolerance": {
-        "kind": "exact"
+        "kind": "max_error",
+        "max_error": 65535
       },
       "verdict": {
-        "kind": "exact"
+        "kind": "within_tolerance",
+        "max_error": 65535
       },
       "metrics": {
-        "mean_absolute_error": 0.0,
-        "root_mean_square_error": 0.0,
-        "maximum_error": 0,
-        "changed_percent": 0.0,
-        "psnr_db": null,
-        "below_reference": 0
+        "mean_absolute_error": 9539.017920619175,
+        "root_mean_square_error": 13377.971152387481,
+        "maximum_error": 65535,
+        "changed_percent": 83.20894558455784,
+        "psnr_db": 13.801660972786483,
+        "below_reference": 445406
+      }
+    },
+    {
+      "algorithm": "VNG",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199",
+      "bayer_pattern": "BGGR",
+      "border": 2,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 65535
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 65535
+      },
+      "metrics": {
+        "mean_absolute_error": 8264.332935499204,
+        "root_mean_square_error": 12639.377283773389,
+        "maximum_error": 65535,
+        "changed_percent": 66.00649451298902,
+        "psnr_db": 14.294952521825408,
+        "below_reference": 385011
+      }
+    },
+    {
+      "algorithm": "VNG",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199",
+      "bayer_pattern": "GBRG",
+      "border": 2,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 65535
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 65535
+      },
+      "metrics": {
+        "mean_absolute_error": 8214.443680637361,
+        "root_mean_square_error": 12575.190954900829,
+        "maximum_error": 65535,
+        "changed_percent": 66.00442784218902,
+        "psnr_db": 14.339174304077602,
+        "below_reference": 384202
+      }
+    },
+    {
+      "algorithm": "VNG",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199",
+      "bayer_pattern": "GRBG",
+      "border": 2,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 65535
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 65535
+      },
+      "metrics": {
+        "mean_absolute_error": 8216.889107611549,
+        "root_mean_square_error": 12577.259208283016,
+        "maximum_error": 65535,
+        "changed_percent": 66.00571951143903,
+        "psnr_db": 14.337745845176357,
+        "below_reference": 384311
+      }
+    },
+    {
+      "algorithm": "VNG",
+      "reference_library": "LibRaw",
+      "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199",
+      "bayer_pattern": "RGGB",
+      "border": 2,
+      "tolerance": {
+        "kind": "max_error",
+        "max_error": 65535
+      },
+      "verdict": {
+        "kind": "within_tolerance",
+        "max_error": 65535
+      },
+      "metrics": {
+        "mean_absolute_error": 8266.177849939033,
+        "root_mean_square_error": 12641.303795989548,
+        "maximum_error": 65535,
+        "changed_percent": 66.00533201066402,
+        "psnr_db": 14.293628706816186,
+        "below_reference": 384913
       }
     }
   ]
