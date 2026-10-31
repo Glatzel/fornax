@@ -1,10 +1,10 @@
 {
   "schema_version": 2,
   "input": {
-    "fixture": "real-colorchart-center",
+    "fixture": "raw-corpus",
     "source": "external/raw-images/images/colorchart-eos-7d.cr2",
     "kind": "real_raw",
-    "pattern": "GBRG",
+    "pattern": "mixed",
     "width": 512,
     "height": 512,
     "sample_type": "f32"
@@ -17,6 +17,8 @@
   },
   "comparisons": [
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "AAHD",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771",
@@ -53,6 +55,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "AHD",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293",
@@ -89,6 +93,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "AMaZE",
       "reference_library": "darktable",
       "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129",
@@ -125,6 +131,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "DCB",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849",
@@ -161,6 +169,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "DHT",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012",
@@ -197,6 +207,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "Linear",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146",
@@ -230,6 +242,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "LMMSE",
       "reference_library": "darktable",
       "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120",
@@ -266,6 +280,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "PPG",
       "reference_library": "darktable",
       "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20",
@@ -302,6 +318,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "PPG",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363",
@@ -338,6 +356,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "RCD",
       "reference_library": "darktable",
       "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119",
@@ -374,6 +394,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "VNG",
       "reference_library": "darktable",
       "source_url": "https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171",
@@ -410,6 +432,8 @@
       }
     },
     {
+      "fixture": "real-colorchart-center",
+      "source": "external/raw-images/images/colorchart-eos-7d.cr2",
       "algorithm": "VNG",
       "reference_library": "LibRaw",
       "source_url": "https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199",
@@ -445,5 +469,6 @@
         "chroma_rmse": 3490.977900319132
       }
     }
-  ]
+  ],
+  "skipped_inputs": []
 }

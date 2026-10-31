@@ -77,6 +77,8 @@ mod tests {
         }
         let row = report::compare(
             case,
+            &input.label,
+            &input.source,
             &input.codes,
             input.width,
             input.height,
@@ -97,7 +99,7 @@ mod tests {
         ids.dedup();
         assert_eq!(ids.len(), CASES.len());
 
-        let input = data::canonical();
+        let input = data::test_inputs().remove(0);
         let error = ffi::run(
             ReferenceBackend::LibRaw,
             u32::MAX,
@@ -112,6 +114,28 @@ mod tests {
                 .to_string()
                 .contains("reference returned unknown algorithm")
         );
+        Ok(())
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn real_corpus_is_measurable() -> mischief::Result<()> {
+        for input in data::real_inputs() {
+            let pattern = input.pattern.expect("real input pattern");
+            for case in CASES {
+                let row = report::compare(
+                    case,
+                    &input.label,
+                    &input.source,
+                    &input.codes,
+                    input.width,
+                    input.height,
+                    pattern,
+                    SampleType::F32,
+                )?;
+                assert!(row.metrics.mean_absolute_error.is_finite());
+            }
+        }
         Ok(())
     }
 
@@ -242,7 +266,8 @@ mod tests {
             results::VerdictResult::Differs => "❌",
         };
         format!(
-            "| real-colorchart-center | [{}]({}) | {} | {} | {:.3} | {:.3} | {} | {:.3}% |",
+            "| {} | [{}]({}) | {} | {} | {:.3} | {:.3} | {} | {:.3}% |",
+            result.fixture,
             result.reference_library,
             result.source_url,
             result.bayer_pattern,
@@ -272,7 +297,7 @@ mod tests {
 
     #[test]
     fn repeated_calls_leave_libraw_owned_by_its_context() -> mischief::Result<()> {
-        let input = data::canonical();
+        let input = data::test_inputs().remove(0);
         for _ in 0..16 {
             ffi::run(
                 ReferenceBackend::LibRaw,
@@ -322,6 +347,8 @@ mod tests {
             }
             let row = report::compare(
                 case,
+                &input.label,
+                &input.source,
                 &input.codes,
                 input.width,
                 input.height,

@@ -30,6 +30,7 @@ skill-glatzel = "*"
 codex-rtk = "*"
 
 [feature.data.dependencies]
+aria2 = "*"
 python-duckdb = "*"
 httpx = "*"
 nomkl = "*"

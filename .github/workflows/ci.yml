@@ -65,16 +65,9 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{!cancelled()}}
         with:
-          global-options: --workspace --all-features
+          global-options: --workspace --all-features --exclude compare-demosaic
         env:
           GH_TOKEN: ${{ github.token }}
-          FORNAX_COMPARE_ARTIFACTS: "1"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        if: ${{ failure() && runner.os == 'Linux' }}
-        with:
-          name: compare-demosaic-diffs
-          path: target/compare-demosaic
-          if-no-files-found: ignore
       # - name: build
       #   run: |
       #     ./scripts/maturin-develop.ps1
@@ -84,6 +77,36 @@ jobs:
       #     working-directory: ./crates/fornax-py
       - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
         if: ${{ !cancelled() }}
+  compare-demosaic:
+    name: compare demosaic
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
+        with:
+          run-install: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: external/raw.pixls.us
+          key: raw-corpus-${{ runner.os }}-${{ hashFiles('scripts/download-raw-corps.ps1', 'scripts/get_raw_samples.py', 'pixi.lock') }}
+          restore-keys: |
+            raw-corpus-${{ runner.os }}-
+      - name: download RAW corpus
+        run: pwsh ./scripts/download-raw-corps.ps1
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+        with:
+          global-options: -p compare-demosaic --all-features
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORNAX_COMPARE_ARTIFACTS: "1"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: ${{ failure() }}
+        with:
+          name: compare-demosaic-diffs
+          path: target/compare-demosaic
+          if-no-files-found: ignore
   benchmark-plan:
     name: plan benchmarks
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && contains(join(github.event.pull_request.labels.*.name, ','), 'perf')) }}
@@ -122,7 +145,7 @@ jobs:
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook, cargo-doc, test-build, benchmark-plan, benchmark]
+    needs: [lefthook, cargo-doc, test-build, compare-demosaic, benchmark-plan, benchmark]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1

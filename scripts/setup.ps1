@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot/..
 pixi install -e dev
-git submodule update --init external/libraw
+git submodule update --init external/libraw external/raw-images
 
 foreach ($file in  @(
         "src/iop/demosaicing/amaze.cc",

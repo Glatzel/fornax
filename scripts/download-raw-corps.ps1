@@ -4,5 +4,5 @@ foreach ($pattern in  @(
         '*nikon*Z*Lossless*(3:2).NEF'
     ))
 {
-    pixi run get-raw-samples --after 2020-01-01 $pattern
+    pixi run -e data get-raw-samples --after 2020-01-01 $pattern
 }

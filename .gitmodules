@@ -6,3 +6,7 @@
 	path = external/libraw
 	url = https://github.com/LibRaw/LibRaw.git
 	shallow = true
+[submodule "external/raw-images"]
+	path = external/raw-images
+	url = https://github.com/syoyo/raw-images.git
+	shallow = true

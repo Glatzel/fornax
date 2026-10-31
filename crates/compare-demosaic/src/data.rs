@@ -1,3 +1,7 @@
+use std::path::Path;
+#[cfg(test)]
+use std::path::PathBuf;
+
 use fornax_core::BayerPattern;
 use fornax_core::protocol::{IDecoder, IPreprocessor};
 use fornax_decoder_rawler::RawlerDecoder;
@@ -7,38 +11,64 @@ use fornax_preprocessor::Preprocessor;
 
 pub const CANONICAL_WIDTH: u32 = 512;
 pub const CANONICAL_HEIGHT: u32 = 512;
-const REAL_FIXTURE: &str = "external/raw-images/images/colorchart-eos-7d.cr2";
+#[cfg(test)]
+const RAW_CORPUS: &str = "external/raw.pixls.us";
+const FALLBACK_FIXTURE: &str = "external/raw-images/images/colorchart-eos-7d.cr2";
+#[cfg(test)]
+const MAX_REAL_FILES: usize = 8;
 
 #[derive(Clone, Debug)]
 pub struct Input {
-    #[allow(dead_code, reason = "used in comparison test diagnostics")]
     pub label: String,
     pub source: String,
-    pub kind: String,
     pub pattern: Option<BayerPattern>,
     pub width: u32,
     pub height: u32,
     pub codes: Vec<u16>,
 }
 
-pub fn canonical() -> Input {
-    let path = fornax_devtool::root_dir().join(REAL_FIXTURE);
+#[cfg(test)]
+pub fn real_inputs() -> Vec<Input> {
+    let root = fornax_devtool::root_dir();
+    let mut paths = raw_paths(&root.join(RAW_CORPUS));
+    if paths.is_empty() {
+        paths.push(root.join(FALLBACK_FIXTURE));
+    }
+    paths.sort();
+    paths.truncate(MAX_REAL_FILES);
+
+    let mut inputs = Vec::new();
+    for path in paths {
+        match decode_input(&root, &path) {
+            Ok(input) => inputs.push(input),
+            Err(_) => continue,
+        }
+    }
     assert!(
-        path.is_file(),
-        "real comparison fixture is missing: {}; run the platform setup script",
-        path.display()
+        !inputs.is_empty(),
+        "no decodable 2x2 Bayer RAW files found; run scripts/download-raw-corps.ps1"
     );
-    let (decoded, metadata) = <RawlerDecoder as IDecoder<std::path::Path, f32>>::decode_active(
-        &RawlerDecoder,
-        path.as_path(),
-    )
-    .expect("decode real comparison fixture");
+    inputs
+}
+
+pub fn canonical_input() -> Input {
+    let root = fornax_devtool::root_dir();
+    decode_input(&root, &root.join(FALLBACK_FIXTURE))
+        .expect("decode the canonical raw-images fixture")
+}
+
+fn decode_input(root: &Path, path: &Path) -> Result<Input, String> {
+    let (decoded, metadata) =
+        <RawlerDecoder as IDecoder<Path, f32>>::decode_active(&RawlerDecoder, path)
+            .map_err(|error| error.to_string())?;
     let normalized = Preprocessor
         .process(decoded, &metadata.levels)
-        .expect("normalize real comparison fixture")
+        .map_err(|error| error.to_string())?
         .into_image();
     let (width, height) = normalized.dimensions();
-    assert!(width >= CANONICAL_WIDTH && height >= CANONICAL_HEIGHT);
+    if width < CANONICAL_WIDTH || height < CANONICAL_HEIGHT {
+        return Err(format!("active area too small: {width}x{height}"));
+    }
     let x = ((width - CANONICAL_WIDTH) / 2) & !1;
     let y = ((height - CANONICAL_HEIGHT) / 2) & !1;
     let row_stride = width as usize;
@@ -47,10 +77,18 @@ pub fn canonical() -> Input {
         let start = row as usize * row_stride + x as usize;
         crop.extend_from_slice(&normalized.as_raw()[start..start + CANONICAL_WIDTH as usize]);
     }
-    Input {
-        label: "real-colorchart-center".to_owned(),
-        source: REAL_FIXTURE.to_owned(),
-        kind: "real_raw".to_owned(),
+    let source = relative(root, path);
+    let label = if source == FALLBACK_FIXTURE {
+        "real-colorchart-center".to_owned()
+    } else {
+        source
+            .replace(['/', '\\', '.'], "-")
+            .trim_matches('-')
+            .to_owned()
+    };
+    Ok(Input {
+        label,
+        source,
         pattern: Some(metadata.bayer_pattern),
         width: CANONICAL_WIDTH,
         height: CANONICAL_HEIGHT,
@@ -58,7 +96,43 @@ pub fn canonical() -> Input {
             .iter()
             .map(|sample| (sample.clamp(0.0, 1.0) * f32::from(u16::MAX)).round() as u16)
             .collect(),
+    })
+}
+
+#[cfg(test)]
+fn raw_paths(root: &Path) -> Vec<PathBuf> {
+    let mut pending = vec![root.to_path_buf()];
+    let mut paths = Vec::new();
+    while let Some(directory) = pending.pop() {
+        let Ok(entries) = std::fs::read_dir(directory) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                pending.push(path);
+            } else if path
+                .extension()
+                .and_then(|extension| extension.to_str())
+                .is_some_and(|extension| {
+                    matches!(
+                        extension.to_ascii_lowercase().as_str(),
+                        "arw" | "cr2" | "cr3" | "dng" | "nef" | "orf" | "raf" | "rw2"
+                    )
+                })
+            {
+                paths.push(path);
+            }
+        }
     }
+    paths
+}
+
+fn relative(root: &Path, path: &Path) -> String {
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .into_owned()
 }
 
 #[cfg(test)]
@@ -79,7 +153,6 @@ fn seeded(label: &str, width: u32, height: u32) -> Input {
     Input {
         label: label.to_owned(),
         source: "fornax-devtool::synthetic_mono_image".to_owned(),
-        kind: "synthetic_stress".to_owned(),
         pattern: None,
         width,
         height,
@@ -96,7 +169,6 @@ fn saturated(label: &str, width: u32, height: u32) -> Input {
     Input {
         label: label.to_owned(),
         source: "constant".to_owned(),
-        kind: "synthetic_stress".to_owned(),
         pattern: None,
         width,
         height,

@@ -14,6 +14,8 @@ pub const TABLE_END: &str = "<!-- END:compare-table -->";
 
 #[derive(Clone, Debug)]
 pub struct Row {
+    pub fixture: String,
+    pub source: String,
     pub case: &'static str,
     pub reference: &'static str,
     pub source_url: &'static str,
@@ -26,6 +28,8 @@ pub struct Row {
 
 pub fn compare(
     case: &'static Case,
+    fixture: &str,
+    source: &str,
     codes: &[u16],
     width: u32,
     height: u32,
@@ -47,6 +51,8 @@ pub fn compare(
         artifact::write_failure(case, pattern, &reference, &actual, width, height)?;
     }
     Ok(Row {
+        fixture: fixture.to_owned(),
+        source: source.to_owned(),
         case: case.name,
         reference: case.reference_backend.library(),
         source_url: case.source_url,
@@ -59,14 +65,16 @@ pub fn compare(
 }
 
 pub fn canonical_rows() -> mischief::Result<Vec<Row>> {
-    let input = data::canonical();
+    let input = data::canonical_input();
     let pattern = input
         .pattern
-        .expect("the canonical real fixture must declare its Bayer pattern");
+        .expect("canonical comparison input must declare its Bayer pattern");
     let mut rows = Vec::with_capacity(cases::CASES.len());
     for case in cases::CASES {
         rows.push(compare(
             case,
+            &input.label,
+            &input.source,
             &input.codes,
             input.width,
             input.height,

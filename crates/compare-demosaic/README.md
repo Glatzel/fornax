@@ -12,6 +12,11 @@ Seeded synthetic images remain as deterministic stress cases for odd
 dimensions, partial row chunks, tiny images, and saturation. They are not the
 primary quality signal.
 
+The downloadable RAW corpus under `external/raw.pixls.us` is exercised by
+`real_corpus_is_measurable`. Up to eight sorted corpus files are decoded; files
+with unsupported CFA layouts or decoder errors are skipped. Run
+`pwsh scripts/download-raw-corps.ps1` to populate the corpus.
+
 ```bash
 source scripts/setup.sh
 pixi run -e dev compare-demosaic
