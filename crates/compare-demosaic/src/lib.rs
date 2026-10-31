@@ -8,6 +8,8 @@ pub mod results;
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use fornax_core::BayerPattern;
     use fornax_devtool::synthetic_mono_image;
     use rstest::{fixture, rstest};
@@ -15,13 +17,6 @@ mod tests {
     use crate::case::{ReferenceBackend, SampleType};
     use crate::report::compare;
     use crate::results::SummaryComparison;
-
-    #[derive(serde::Serialize)]
-    struct ComparisonChecksum<'a> {
-        algorithm: &'a str,
-        reference_library: &'a str,
-        checksum: String,
-    }
 
     #[fixture]
     #[once]
@@ -37,6 +32,13 @@ mod tests {
                 .map(|sample| sample.round().clamp(0.0, 65_535.0) as u16)
                 .collect(),
         }
+    }
+
+    #[fixture]
+    #[once]
+    fn cropped_real_128() -> crate::data::ActiveArea {
+        let input = crate::data::active_area().expect("the pinned CR2 fixture must decode");
+        crop_128(&input)
     }
 
     fn crop_128(input: &crate::data::ActiveArea) -> crate::data::ActiveArea {
@@ -120,28 +122,26 @@ mod tests {
 
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[rstest]
-    #[case::rggb(BayerPattern::RGGB, "rggb")]
-    #[case::bggr(BayerPattern::BGGR, "bggr")]
-    #[case::grbg(BayerPattern::GRBG, "grbg")]
-    #[case::gbrg(BayerPattern::GBRG, "gbrg")]
-    fn pattern_snapshot(
-        #[case] pattern: BayerPattern,
-        #[case] snapshot_name: &str,
-    ) -> mischief::Result<()> {
-        let input = crop_128(&crate::data::active_area()?);
-        let comparisons = crate::report::comparison_rows_for_pattern(&input, pattern)?
+    fn pattern_checksums(cropped_real_128: &crate::data::ActiveArea) -> mischief::Result<()> {
+        let comparisons = crate::report::comparison_rows(cropped_real_128)?
             .into_iter()
             .map(SummaryComparison::from)
             .collect::<Vec<_>>();
         let checksums = comparisons
             .iter()
-            .map(|comparison| ComparisonChecksum {
-                algorithm: comparison.algorithm.as_str(),
-                reference_library: comparison.reference_library.as_str(),
-                checksum: comparison_checksum(comparison),
+            .map(|comparison| {
+                (
+                    format!(
+                        "{}-{}-{}",
+                        comparison.bayer_pattern,
+                        comparison.algorithm,
+                        comparison.reference_library
+                    ),
+                    comparison_checksum(comparison),
+                )
             })
-            .collect::<Vec<_>>();
-        insta::assert_json_snapshot!(snapshot_name, checksums);
+            .collect::<BTreeMap<_, _>>();
+        insta::assert_json_snapshot!("pattern_checksums", checksums);
         Ok(())
     }
 }
