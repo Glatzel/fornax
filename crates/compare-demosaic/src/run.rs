@@ -2,10 +2,9 @@ use std::path::PathBuf;
 
 use fornax_core::BayerPattern;
 
-use crate::case::{Case, SampleType, Tolerance};
+use crate::cases::{self, Case, SampleType, Tolerance};
 use crate::metrics::{self, Evaluation, FailedLimit, Verdict as DetailedVerdict};
-use crate::registry;
-use crate::report::{self, Kind, Limits, Meta, References, Report, Row, Verdict, VerdictInput};
+use crate::report::{self, Kind, Meta, References, Report, Row, Verdict, VerdictInput};
 
 pub const LIBRAW_COMMIT: &str = env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT");
 pub const DARKTABLE_RELEASE: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_RELEASE");
@@ -40,7 +39,7 @@ pub fn execute(request: &RunRequest) -> mischief::Result<RunOutput> {
         .input
         .clone()
         .unwrap_or_else(fornax_devtool::raw_file);
-    let input = crate::data::active_area_from(&input_path)?;
+    let input = crate::reference::active_area_from(&input_path)?;
     let rows = selected_evaluations(&input, &request.algorithms, request.border_px)?
         .into_iter()
         .map(|evaluation| row_from_evaluation(&evaluation))
@@ -55,12 +54,7 @@ pub fn execute(request: &RunRequest) -> mischief::Result<RunOutput> {
                 libraw: LIBRAW_VERSION.to_owned(),
                 darktable: DARKTABLE_RELEASE.to_owned(),
             },
-            limits: Limits {
-                mae: report::LIMITS.mae,
-                p99: report::LIMITS.p99,
-                high_err: report::LIMITS.high_err,
-                high_err_frac: report::LIMITS.high_err_frac,
-            },
+            limits: report::LIMITS,
             border_px: request.border_px,
         },
         rows,
@@ -70,11 +64,11 @@ pub fn execute(request: &RunRequest) -> mischief::Result<RunOutput> {
 }
 
 pub(crate) fn selected_evaluations(
-    input: &crate::data::ActiveArea,
+    input: &crate::reference::ActiveArea,
     algorithms: &[String],
     border_px: u32,
 ) -> mischief::Result<Vec<CaseEvaluation>> {
-    registry::selected_cases(algorithms)
+    cases::selected_cases(algorithms)
         .into_iter()
         .map(|selection| evaluate_case(selection.case, input, selection.pattern, border_px))
         .collect()
@@ -86,17 +80,17 @@ pub(crate) fn selected_evaluations(
 )]
 pub(crate) fn evaluate_case(
     case: &'static Case,
-    input: &crate::data::ActiveArea,
+    input: &crate::reference::ActiveArea,
     pattern: BayerPattern,
     border_px: u32,
 ) -> mischief::Result<CaseEvaluation> {
-    let reference = crate::ffi::run(
+    let reference = crate::reference::run(
         case.reference_backend,
         case.algorithm,
         &input.codes,
         input.width,
         input.height,
-        crate::ffi::libraw_filters(pattern),
+        crate::reference::libraw_filters(pattern),
     )?;
     let actual = (case.run_fornax)(
         &input.codes,

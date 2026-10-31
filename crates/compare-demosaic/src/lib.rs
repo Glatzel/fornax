@@ -1,11 +1,7 @@
-pub mod case;
 pub mod cases;
 pub mod check;
-pub mod data;
-pub mod error;
-pub mod ffi;
 pub mod metrics;
-pub mod registry;
+pub mod reference;
 pub mod report;
 pub mod results_md;
 pub mod run;
@@ -17,15 +13,15 @@ mod tests {
     use rstest::{fixture, rstest};
     use serde::Serialize;
 
-    use crate::case::ReferenceBackend;
+    use crate::cases::ReferenceBackend;
     use crate::metrics::{FailedLimit, Metrics, Verdict, WorstPixel};
     use crate::run::{CaseEvaluation, LIBRAW_COMMIT, LIBRAW_VERSION};
 
     #[fixture]
     #[once]
-    fn synthetic_128() -> crate::data::ActiveArea {
+    fn synthetic_128() -> crate::reference::ActiveArea {
         let image = synthetic_mono_image::<f32>((128, 128), 65_535.0);
-        crate::data::ActiveArea {
+        crate::reference::ActiveArea {
             source: "fornax-devtool::synthetic_mono_image".to_owned(),
             width: 128,
             height: 128,
@@ -40,11 +36,14 @@ mod tests {
 
     #[fixture]
     #[once]
-    fn cropped_real_128() -> crate::data::ActiveArea {
-        crop_128(&crate::data::active_area().expect("pinned CR2 fixture decodes"))
+    fn cropped_real_128() -> crate::reference::ActiveArea {
+        crop_128(
+            &crate::reference::active_area_from(&fornax_devtool::raw_file())
+                .expect("pinned CR2 fixture decodes"),
+        )
     }
 
-    fn crop_128(input: &crate::data::ActiveArea) -> crate::data::ActiveArea {
+    fn crop_128(input: &crate::reference::ActiveArea) -> crate::reference::ActiveArea {
         let width = 128;
         let height = 128;
         let x = ((input.width - width) / 2) & !1;
@@ -55,7 +54,7 @@ mod tests {
                 input.codes[start..start + width as usize].iter().copied()
             })
             .collect();
-        crate::data::ActiveArea {
+        crate::reference::ActiveArea {
             source: input.source.clone(),
             width,
             height,
@@ -66,7 +65,7 @@ mod tests {
 
     #[rstest]
     fn every_algorithm_accepts_synthetic_128(
-        synthetic_128: &crate::data::ActiveArea,
+        synthetic_128: &crate::reference::ActiveArea,
         #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)] case_index: usize,
     ) -> mischief::Result<()> {
         crate::run::evaluate_case(
@@ -80,7 +79,7 @@ mod tests {
 
     #[rstest]
     fn algorithm_filter_selects_the_registered_algorithm(
-        synthetic_128: &crate::data::ActiveArea,
+        synthetic_128: &crate::reference::ActiveArea,
     ) -> mischief::Result<()> {
         let algorithm = "VNG".to_owned();
         let rows = crate::run::selected_evaluations(synthetic_128, &[algorithm], 16)?;
@@ -99,13 +98,13 @@ mod tests {
         ids.dedup();
         assert_eq!(ids.len(), crate::cases::CASES.len());
 
-        let error = crate::ffi::run(
+        let error = crate::reference::run(
             ReferenceBackend::LibRaw,
             u32::MAX,
             &[0_u16; 9],
             3,
             3,
-            crate::ffi::libraw_filters(BayerPattern::RGGB),
+            crate::reference::libraw_filters(BayerPattern::RGGB),
         )
         .expect_err("unknown algorithm must fail");
         assert!(
@@ -133,7 +132,7 @@ mod tests {
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[rstest]
     fn algorithm_checksum(
-        cropped_real_128: &crate::data::ActiveArea,
+        cropped_real_128: &crate::reference::ActiveArea,
         #[values(
             BayerPattern::RGGB,
             BayerPattern::BGGR,
@@ -190,7 +189,10 @@ mod tests {
     }
 
     impl LegacyComparison {
-        fn from_evaluation(input: &crate::data::ActiveArea, evaluation: &CaseEvaluation) -> Self {
+        fn from_evaluation(
+            input: &crate::reference::ActiveArea,
+            evaluation: &CaseEvaluation,
+        ) -> Self {
             Self {
                 algorithm: evaluation.case.name,
                 source_url: evaluation.case.source_url,
@@ -202,10 +204,10 @@ mod tests {
                     .library()
                     .to_ascii_lowercase(),
                 kind: match evaluation.case.tolerance {
-                    crate::case::Tolerance::RoundingUp => "rounding",
-                    crate::case::Tolerance::Robust { .. } => "robust",
-                    crate::case::Tolerance::Exact => "exact",
-                    crate::case::Tolerance::MaxError(_) => "max_error",
+                    crate::cases::Tolerance::RoundingUp => "rounding",
+                    crate::cases::Tolerance::Robust { .. } => "robust",
+                    crate::cases::Tolerance::Exact => "exact",
+                    crate::cases::Tolerance::MaxError(_) => "max_error",
                 },
                 verdict: evaluation.verdict,
                 failed_limits: evaluation.failed_limits.clone(),

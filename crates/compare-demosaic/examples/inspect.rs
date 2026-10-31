@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use clap::Parser;
-use compare_demosaic::case::SampleType;
+use compare_demosaic::cases::SampleType;
 use compare_demosaic::metrics::{Evaluation, calculate};
 use fornax_core::BayerPattern;
 
@@ -13,20 +13,20 @@ struct Args {
 
 fn main() -> mischief::Result<()> {
     let args = Args::parse();
-    let input = compare_demosaic::data::active_area()?;
+    let input = compare_demosaic::reference::active_area_from(&fornax_devtool::raw_file())?;
     let output_root = PathBuf::from("target/compare-demosaic/inspect");
     for case in compare_demosaic::cases::CASES
         .iter()
         .filter(|case| case.name.eq_ignore_ascii_case(&args.algorithm))
     {
         for pattern in BayerPattern::ALL {
-            let reference = compare_demosaic::ffi::run(
+            let reference = compare_demosaic::reference::run(
                 case.reference_backend,
                 case.algorithm,
                 &input.codes,
                 input.width,
                 input.height,
-                compare_demosaic::ffi::libraw_filters(pattern),
+                compare_demosaic::reference::libraw_filters(pattern),
             )?;
             let actual = (case.run_fornax)(
                 &input.codes,

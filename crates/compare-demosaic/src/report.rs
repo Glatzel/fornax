@@ -23,6 +23,7 @@ pub struct Report {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
+/// Invariant comparison inputs. Volatile run details belong in git or CI logs.
 pub struct Meta {
     pub input: String,
     pub width: u32,
@@ -80,6 +81,7 @@ pub struct Row {
     pub p99: u16,
     pub p999: u16,
     pub count_gt1024: u64,
+    /// Subset of `count_gt1024` inside the excluded border strip.
     pub count_gt1024_border: u64,
     pub changed_frac: f64,
 }
@@ -94,6 +96,7 @@ pub struct VerdictInput {
     pub count_below_reference: u64,
 }
 
+/// Each kind keeps the rule it inherited from the previous comparison contract.
 pub const fn verdict(kind: Kind, input: VerdictInput, limits: Limits) -> Verdict {
     let pass = match kind {
         Kind::Exact => input.max == 0,
@@ -202,7 +205,7 @@ impl Report {
     }
 }
 
-fn kind_name(kind: Kind) -> &'static str {
+const fn kind_name(kind: Kind) -> &'static str {
     match kind {
         Kind::Exact => "exact",
         Kind::Rounding => "rounding",
@@ -210,7 +213,7 @@ fn kind_name(kind: Kind) -> &'static str {
     }
 }
 
-fn verdict_name(verdict: Verdict) -> &'static str {
+const fn verdict_name(verdict: Verdict) -> &'static str {
     match verdict {
         Verdict::Pass => "pass",
         Verdict::Fail => "fail",

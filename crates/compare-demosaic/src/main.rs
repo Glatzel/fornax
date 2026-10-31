@@ -3,7 +3,6 @@ use std::process::ExitCode;
 
 use clap::{Parser, ValueEnum};
 use compare_demosaic::check;
-use compare_demosaic::error::{CompareError, Result};
 use compare_demosaic::report::BASELINE_FILE;
 use compare_demosaic::run::{self, RunRequest};
 
@@ -67,7 +66,7 @@ fn main() -> ExitCode {
     }
 }
 
-fn run_cli(args: Args) -> Result<u8> {
+fn run_cli(args: Args) -> mischief::Result<u8> {
     let algorithm_names = args
         .algorithm
         .iter()
@@ -78,22 +77,15 @@ fn run_cli(args: Args) -> Result<u8> {
         input: None,
         border_px: 16,
     };
-    let output = run::execute(&request).map_err(|error| CompareError::usage(error.to_string()))?;
+    let output = run::execute(&request)?;
     if args.update {
-        output
-            .report
-            .write_baseline()
-            .map_err(|error| CompareError::usage(error.to_string()))?;
-        compare_demosaic::results_md::write(&output.report)
-            .map_err(|error| CompareError::usage(error.to_string()))?;
+        output.report.write_baseline()?;
+        compare_demosaic::results_md::write(&output.report)?;
         writeln!(std::io::stderr().lock(), "updated baseline")?;
     } else if args.check {
         let baseline = run::repo_path(BASELINE_FILE);
-        let report = check::check_file(&baseline, &output.report, &algorithm_names)
-            .map_err(|error| CompareError::usage(error.to_string()))?;
-        report
-            .append_github_summary()
-            .map_err(|error| CompareError::usage(error.to_string()))?;
+        let report = check::check_file(&baseline, &output.report, &algorithm_names)?;
+        report.append_github_summary()?;
         std::io::stdout()
             .lock()
             .write_all(report.render_text().as_bytes())?;

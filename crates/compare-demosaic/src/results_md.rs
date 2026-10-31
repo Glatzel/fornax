@@ -51,6 +51,8 @@ Limits: MAE <= {:.6}, P99 <= {}, high-error fraction <= {:.6} above {} codes; bo
         }
         output.push('\n');
     }
+    output.truncate(output.trim_end_matches('\n').len());
+    output.push('\n');
     output
 }
 

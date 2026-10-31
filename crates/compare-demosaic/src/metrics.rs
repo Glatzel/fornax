@@ -4,7 +4,7 @@ use std::collections::BinaryHeap;
 use fornax_core::{BayerChannel, BayerPattern};
 use serde::{Deserialize, Serialize};
 
-use crate::case::Tolerance;
+use crate::cases::Tolerance;
 
 pub const MAX_ERROR: usize = u16::MAX as usize + 1;
 
