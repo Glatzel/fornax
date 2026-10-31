@@ -12,8 +12,8 @@ COMMON_PATHS = [
     "./Cargo.lock",
 ]
 DECODER_PATHS = "\n".join(
-    COMMON_PATHS
-    + [
+    [
+        *COMMON_PATHS,
         "./crates/bench-decoder/**",
         "./crates/fornax-core/**",
         "./crates/fornax-decoder-rawler/**",
@@ -23,8 +23,8 @@ DECODER_PATHS = "\n".join(
     ]
 )
 DEMOSAIC_PATHS = "\n".join(
-    COMMON_PATHS
-    + [
+    [
+        *COMMON_PATHS,
         "./crates/bench-demosaic/**",
         "./crates/fornax-core/**",
         "./crates/fornax-devtool/**",
@@ -32,8 +32,8 @@ DEMOSAIC_PATHS = "\n".join(
     ]
 )
 PREPROCESSOR_PATHS = "\n".join(
-    COMMON_PATHS
-    + [
+    [
+        *COMMON_PATHS,
         "./crates/bench-preprocessor/**",
         "./crates/fornax-core/**",
         "./crates/fornax-devtool/**",
@@ -45,9 +45,11 @@ PREPROCESSOR_PATHS = "\n".join(
 def load_algorithms() -> list[str]:
     algorithms = json.loads(REGISTRY.read_text(encoding="utf-8"))
     if not algorithms or len(algorithms) != len(set(algorithms)):
-        raise ValueError("demosaic algorithm registry must be non-empty and unique")
+        msg = "demosaic algorithm registry must be non-empty and unique"
+        raise ValueError(msg)
     if algorithms != sorted(algorithms):
-        raise ValueError("demosaic algorithm registry must be alphabetically sorted")
+        msg_0 = "demosaic algorithm registry must be alphabetically sorted"
+        raise ValueError(msg_0)
     return algorithms
 
 
