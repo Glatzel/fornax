@@ -1,5 +1,6 @@
 mod case;
 mod cases;
+pub mod check;
 mod data;
 pub mod error;
 mod ffi;

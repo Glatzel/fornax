@@ -2,7 +2,9 @@ use std::io::Write;
 use std::process::ExitCode;
 
 use clap::{Parser, ValueEnum};
+use compare_demosaic::check;
 use compare_demosaic::error::{CompareError, Result};
+use compare_demosaic::report::BASELINE_FILE;
 use compare_demosaic::run::{self, RunRequest};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -60,25 +62,19 @@ fn main() -> ExitCode {
         Ok(code) => ExitCode::from(code),
         Err(error) => {
             let _ = writeln!(std::io::stderr().lock(), "error: {error}");
-            ExitCode::from(error.class().exit_code())
+            ExitCode::from(2)
         }
     }
 }
 
 fn run_cli(args: Args) -> Result<u8> {
-    if args.check {
-        return Err(CompareError::usage(format!(
-            "--check is implemented in the next simplification step"
-        )));
-    }
-
-    let algorithms = args
+    let algorithm_names = args
         .algorithm
         .iter()
         .map(|algorithm| algorithm.name().to_owned())
         .collect::<Vec<_>>();
     let request = RunRequest {
-        algorithms,
+        algorithms: algorithm_names.clone(),
         input: None,
         border_px: 16,
     };
@@ -88,6 +84,18 @@ fn run_cli(args: Args) -> Result<u8> {
             .report
             .write_baseline()
             .map_err(|error| CompareError::usage(error.to_string()))?;
+        writeln!(std::io::stderr().lock(), "updated baseline")?;
+    } else if args.check {
+        let baseline = run::repo_path(BASELINE_FILE);
+        let report = check::check_file(&baseline, &output.report, &algorithm_names)
+            .map_err(|error| CompareError::usage(error.to_string()))?;
+        report
+            .append_github_summary()
+            .map_err(|error| CompareError::usage(error.to_string()))?;
+        std::io::stdout()
+            .lock()
+            .write_all(report.render_text().as_bytes())?;
+        return Ok(report.exit_code());
     }
     writeln!(
         std::io::stderr().lock(),
