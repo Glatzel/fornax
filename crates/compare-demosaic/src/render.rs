@@ -138,6 +138,9 @@ fn replace_generated(actual: &str, rendered: &str) -> String {
         return rendered.to_owned();
     };
     let end = begin + relative_end + GENERATED_END.len();
+    if begin == 0 && actual[end..].trim().is_empty() {
+        return rendered.to_owned();
+    }
     let mut output = String::new();
     output.push_str(&actual[..begin]);
     output.push_str(rendered);

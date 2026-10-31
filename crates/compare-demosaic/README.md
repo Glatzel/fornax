@@ -1,3 +1,4 @@
+<!-- BEGIN GENERATED -->
 # compare-demosaic
 
 Compares Fornax demosaic implementations with LibRaw and darktable at the
@@ -11,17 +12,17 @@ See [AGENTS.md](AGENTS.md) for the investigation workflow.
 
 ```bash
 source scripts/setup.sh
-cargo run --release -p compare-demosaic
-cargo run --release -p compare-demosaic -- --artifacts
-cargo run --release -p compare-demosaic -- diff <old.json> <new.json>
-cargo run --release -p compare-demosaic -- --bless
+cargo build --release -p compare-demosaic
+target/release/compare-demosaic run [--artifacts] [--jobs N]
+target/release/compare-demosaic diff <old.json> <new.json> [--fail-on regression|any|never]
+target/release/compare-demosaic bless <canonical.json> --yes
 ```
 
 The default run writes `target/compare-demosaic/canonical.json`. Failed rows
-write log-scaled error maps and tile summaries under
-`target/compare-demosaic/artifacts/`; `--artifacts` writes them for passing rows
-too. Filtered runs write `target/compare-demosaic/canonical.filtered.json` and
-are not valid baselines.
+and `--artifacts` write log-scaled error maps and tile summaries under
+`target/compare-demosaic/artifacts/`. A filtered selection must pass
+`--shard NAME`, writes `NAME.shard.json`, and is never valid as a baseline.
+Use `merge` to combine shards into `canonical.json`.
 
 ## Evaluation
 
@@ -174,3 +175,4 @@ Legend:
   LibRaw truncates.
 - `⚠️`: every robust limit passes, but isolated high-error samples remain.
 - `❌`: at least one limit in `failed_limits` failed.
+<!-- END GENERATED -->
