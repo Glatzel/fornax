@@ -1,14 +1,21 @@
-name: Compare demosaic canonical evidence
+name: Compare demosaic
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "crates/compare-demosaic/**"
+      - "crates/fornax-postprocessor/**"
+      - "crates/fornax-core/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/compare-demosaic-canonical.yml"
 
 permissions:
   contents: read
 
 jobs:
-  canonical:
-    name: verify canonical evidence
+  compare:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -18,25 +25,15 @@ jobs:
         with:
           run-install: false
       - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
-      - name: Run tests and generate canonical evidence
+      - name: Test and check
         shell: bash
         run: |
           source scripts/setup.sh
           cargo test -p compare-demosaic --all-features
-          cargo run --release -p compare-demosaic -- schema --check
-          cargo run --release -p compare-demosaic -- readme --check
-          cargo run --release -p compare-demosaic -- validate \
-            crates/compare-demosaic/baseline/canonical.json
-          cargo run --release -p compare-demosaic
-          cargo run --release -p compare-demosaic -- validate \
-            target/compare-demosaic/canonical.json
-          cargo run --release -p compare-demosaic -- diff \
-            crates/compare-demosaic/baseline/canonical.json \
-            target/compare-demosaic/canonical.json
+          cargo run --release -p compare-demosaic -- --check
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
         with:
-          name: compare-demosaic-canonical
-          path: |
-            target/compare-demosaic/canonical.json
-            target/compare-demosaic/artifacts
-          if-no-files-found: error
+          name: compare-demosaic
+          path: target/compare-demosaic
+          if-no-files-found: warn

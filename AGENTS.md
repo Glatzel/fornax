@@ -98,15 +98,14 @@ Keep reference comparison cases table-driven:
 2. Add its reference backend and stable algorithm ID to `cpp/shim.cpp`.
 3. Add a `Case` and Fornax runner under `crates/compare-demosaic/src/cases/`.
 4. Register the case in `CASES`.
-5. Run `cargo run --release -p compare-demosaic` to write
-   `target/compare-demosaic/canonical.json`.
+5. Run the new algorithm with
+   `cargo run --release -p compare-demosaic -- --algorithm <id>`.
 6. Run and review the comparison snapshot with `cargo insta test -p
    compare-demosaic`, accepting intended changes with `cargo insta accept`.
-7. Follow [the comparison agent guide](crates/compare-demosaic/AGENTS.md),
-   add prose notes without numbers, and regenerate the README from the
-   canonical baseline.
-8. Diff the run against the committed baseline, then commit the snapshot,
-   baseline, schema, notes, and generated Markdown.
+7. Follow [the comparison agent guide](crates/compare-demosaic/AGENTS.md), and
+   update the hand-written README notes when the algorithm needs explanation.
+8. Run with `--update`, review `git diff`, then commit the snapshot, baseline,
+   and generated `RESULTS.md`.
 
 Reference routines and headers come from the repository-managed `libraw-dev`
 Pixi package. The comparison crate does not compile LibRaw from the external
@@ -114,6 +113,26 @@ checkout. darktable comparison code comes from the pinned `5.6.2` release. Use
 `scripts/setup.sh` on Linux/macOS or `scripts/setup.ps1` on Windows. The
 platform setup scripts use `gh api` to materialize only the required source
 files instead of initializing the full darktable tree.
+
+## CLI quick reference
+
+```bash
+cargo run --release -p compare-demosaic
+cargo run --release -p compare-demosaic -- --algorithm ahd
+cargo run --release -p compare-demosaic -- --check
+cargo run --release -p compare-demosaic -- --update
+```
+
+The default run writes `target/compare-demosaic/canonical.json`. `--check`
+exits 1 on a regression, missing row, new row, or metadata mismatch.
+`--update` overwrites the baseline and `RESULTS.md`; review the diff before
+committing it.
+
+Exit codes are `0` for success, `1` for a regression, and `2` for any other
+error.
+
+Workflow: `Compare demosaic` is one job that runs the tests and `--check`, then
+uploads `target/compare-demosaic` even on failure.
 
 ## Validation
 

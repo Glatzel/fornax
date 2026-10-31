@@ -2,4 +2,4 @@
 source: crates/compare-demosaic/src/lib.rs
 expression: comparison_checksum(&comparison)
 ---
-3f2ca3f0524ce821
+2cb1965a89a28ed3

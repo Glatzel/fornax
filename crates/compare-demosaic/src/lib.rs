@@ -1,31 +1,28 @@
-mod artifacts;
-mod case;
-mod cases;
-mod data;
-pub mod diff;
-mod ffi;
-mod metrics;
-pub mod render;
-mod report;
-pub mod results;
+pub mod cases;
+pub mod check;
+pub mod metrics;
+pub mod reference;
+pub mod report;
+pub mod results_md;
+pub mod run;
 
 #[cfg(test)]
 mod tests {
     use fornax_core::BayerPattern;
     use fornax_devtool::synthetic_mono_image;
     use rstest::{fixture, rstest};
+    use serde::Serialize;
 
-    use crate::case::{ReferenceBackend, SampleType};
-    use crate::report::compare;
-    use crate::results::ComparisonResult;
+    use crate::cases::ReferenceBackend;
+    use crate::metrics::{FailedLimit, Metrics, Verdict, WorstPixel};
+    use crate::run::{CaseEvaluation, LIBRAW_COMMIT, LIBRAW_VERSION};
 
     #[fixture]
     #[once]
-    fn synthetic_128() -> crate::data::ActiveArea {
+    fn synthetic_128() -> crate::reference::ActiveArea {
         let image = synthetic_mono_image::<f32>((128, 128), 65_535.0);
-        crate::data::ActiveArea {
+        crate::reference::ActiveArea {
             source: "fornax-devtool::synthetic_mono_image".to_owned(),
-            source_path: "fornax-devtool::synthetic_mono_image".to_owned(),
             width: 128,
             height: 128,
             codes: image
@@ -33,22 +30,20 @@ mod tests {
                 .iter()
                 .map(|sample| sample.round().clamp(0.0, 65_535.0) as u16)
                 .collect(),
-            black: vec![0.0],
-            black_width: 1,
-            black_height: 1,
-            white: 65_535.0,
             native_pattern: BayerPattern::GBRG,
         }
     }
 
     #[fixture]
     #[once]
-    fn cropped_real_128() -> crate::data::ActiveArea {
-        let input = crate::data::active_area().expect("the pinned CR2 fixture must decode");
-        crop_128(&input)
+    fn cropped_real_128() -> crate::reference::ActiveArea {
+        crop_128(
+            &crate::reference::active_area_from(&fornax_devtool::raw_file())
+                .expect("pinned CR2 fixture decodes"),
+        )
     }
 
-    fn crop_128(input: &crate::data::ActiveArea) -> crate::data::ActiveArea {
+    fn crop_128(input: &crate::reference::ActiveArea) -> crate::reference::ActiveArea {
         let width = 128;
         let height = 128;
         let x = ((input.width - width) / 2) & !1;
@@ -59,58 +54,38 @@ mod tests {
                 input.codes[start..start + width as usize].iter().copied()
             })
             .collect();
-        crate::data::ActiveArea {
+        crate::reference::ActiveArea {
             source: input.source.clone(),
-            source_path: input.source_path.clone(),
             width,
             height,
             codes,
-            black: input.black.clone(),
-            black_width: input.black_width,
-            black_height: input.black_height,
-            white: input.white,
             native_pattern: input.native_pattern,
         }
     }
 
     #[rstest]
     fn every_algorithm_accepts_synthetic_128(
-        synthetic_128: &crate::data::ActiveArea,
+        synthetic_128: &crate::reference::ActiveArea,
         #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)] case_index: usize,
     ) -> mischief::Result<()> {
-        let case = &crate::cases::CASES[case_index];
-        compare(
-            case,
+        crate::run::evaluate_case(
+            &crate::cases::CASES[case_index],
             synthetic_128,
             BayerPattern::GBRG,
-            SampleType::F32,
-            false,
+            16,
         )?;
         Ok(())
     }
 
     #[rstest]
-    fn comparison_filter_selects_pattern_and_algorithm(
-        synthetic_128: &crate::data::ActiveArea,
+    fn algorithm_filter_selects_the_registered_algorithm(
+        synthetic_128: &crate::reference::ActiveArea,
     ) -> mischief::Result<()> {
-        let rows = crate::report::comparison_rows_filtered(
-            synthetic_128,
-            Some(BayerPattern::RGGB),
-            Some("vng"),
-        )?;
-        assert_eq!(rows.len(), 2);
-        assert!(rows.iter().all(|row| row.pattern == BayerPattern::RGGB));
-        assert!(rows.iter().all(|row| row.case == "VNG"));
+        let algorithm = "VNG".to_owned();
+        let rows = crate::run::selected_evaluations(synthetic_128, &[algorithm], 16)?;
+        assert_eq!(rows.len(), 8);
+        assert!(rows.iter().all(|row| row.case.name == "VNG"));
         Ok(())
-    }
-
-    fn comparison_checksum(comparison: &ComparisonResult) -> String {
-        let bytes =
-            serde_json::to_vec(comparison).expect("comparison result must serialize to JSON");
-        let hash = bytes.iter().fold(0xcbf2_9ce4_8422_2325_u64, |hash, byte| {
-            (hash ^ u64::from(*byte)).wrapping_mul(0x0000_0100_0000_01b3)
-        });
-        format!("{hash:016x}")
     }
 
     #[test]
@@ -123,13 +98,13 @@ mod tests {
         ids.dedup();
         assert_eq!(ids.len(), crate::cases::CASES.len());
 
-        let error = crate::ffi::run(
+        let error = crate::reference::run(
             ReferenceBackend::LibRaw,
             u32::MAX,
             &[0_u16; 9],
             3,
             3,
-            crate::ffi::libraw_filters(BayerPattern::RGGB),
+            crate::reference::libraw_filters(BayerPattern::RGGB),
         )
         .expect_err("unknown algorithm must fail");
         assert!(
@@ -142,12 +117,12 @@ mod tests {
 
     #[test]
     fn source_links_match_packaged_versions() {
-        assert_eq!(crate::report::LIBRAW_VERSION, "0.22.3");
-        assert_eq!(crate::report::DARKTABLE_RELEASE, "5.6.2");
+        assert_eq!(LIBRAW_VERSION, "0.22.3");
+        assert_eq!(crate::run::DARKTABLE_RELEASE, "5.6.2");
         for case in crate::cases::CASES {
             let commit = match case.reference_backend {
-                ReferenceBackend::LibRaw => crate::report::LIBRAW_COMMIT,
-                ReferenceBackend::Darktable => crate::report::DARKTABLE_COMMIT,
+                ReferenceBackend::LibRaw => LIBRAW_COMMIT,
+                ReferenceBackend::Darktable => crate::run::DARKTABLE_COMMIT,
             };
             assert!(case.source_url.contains(commit));
             assert!(case.source_url.contains("#L"));
@@ -157,7 +132,7 @@ mod tests {
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[rstest]
     fn algorithm_checksum(
-        cropped_real_128: &crate::data::ActiveArea,
+        cropped_real_128: &crate::reference::ActiveArea,
         #[values(
             BayerPattern::RGGB,
             BayerPattern::BGGR,
@@ -167,14 +142,98 @@ mod tests {
         pattern: BayerPattern,
         #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)] case_index: usize,
     ) -> mischief::Result<()> {
-        let case = &crate::cases::CASES[case_index];
-        let row = compare(case, cropped_real_128, pattern, SampleType::F32, false)?;
-        let comparison = ComparisonResult::from_row(&cropped_real_128.native_pattern, row);
+        let evaluation = crate::run::evaluate_case(
+            &crate::cases::CASES[case_index],
+            cropped_real_128,
+            pattern,
+            16,
+        )?;
+        let comparison = LegacyComparison::from_evaluation(cropped_real_128, &evaluation);
         let snapshot_name = format!(
             "{}-{}-{}",
             comparison.pattern, comparison.algorithm, comparison.reference
         );
         insta::assert_snapshot!(snapshot_name, comparison_checksum(&comparison));
         Ok(())
+    }
+
+    #[derive(Serialize)]
+    struct LegacyComparison {
+        algorithm: &'static str,
+        source_url: &'static str,
+        pattern: String,
+        native: bool,
+        reference: String,
+        kind: &'static str,
+        verdict: Verdict,
+        failed_limits: Vec<FailedLimit>,
+        total_samples: u64,
+        metrics: Metrics,
+        metrics_interior: Metrics,
+        per_channel: LegacyPerChannel,
+        per_site: LegacyPerSite,
+        worst_pixels: Vec<WorstPixel>,
+    }
+
+    #[derive(Serialize)]
+    struct LegacyPerChannel {
+        r: Metrics,
+        g: Metrics,
+        b: Metrics,
+    }
+
+    #[derive(Serialize)]
+    struct LegacyPerSite {
+        sampled: Metrics,
+        interpolated: Metrics,
+    }
+
+    impl LegacyComparison {
+        fn from_evaluation(
+            input: &crate::reference::ActiveArea,
+            evaluation: &CaseEvaluation,
+        ) -> Self {
+            Self {
+                algorithm: evaluation.case.name,
+                source_url: evaluation.case.source_url,
+                pattern: evaluation.pattern.to_string(),
+                native: evaluation.pattern == input.native_pattern,
+                reference: evaluation
+                    .case
+                    .reference_backend
+                    .library()
+                    .to_ascii_lowercase(),
+                kind: match evaluation.case.tolerance {
+                    crate::cases::Tolerance::RoundingUp => "rounding",
+                    crate::cases::Tolerance::Robust { .. } => "robust",
+                    crate::cases::Tolerance::Exact => "exact",
+                    crate::cases::Tolerance::MaxError(_) => "max_error",
+                },
+                verdict: evaluation.verdict,
+                failed_limits: evaluation.failed_limits.clone(),
+                total_samples: evaluation.evaluation.metrics.total_samples,
+                metrics: evaluation.evaluation.metrics.clone(),
+                metrics_interior: evaluation.evaluation.metrics_interior.clone(),
+                per_channel: LegacyPerChannel {
+                    r: evaluation.evaluation.per_channel[0].clone(),
+                    g: evaluation.evaluation.per_channel[1].clone(),
+                    b: evaluation.evaluation.per_channel[2].clone(),
+                },
+                per_site: LegacyPerSite {
+                    sampled: evaluation.evaluation.per_site[0].clone(),
+                    interpolated: evaluation.evaluation.per_site[1].clone(),
+                },
+                worst_pixels: evaluation.evaluation.worst_pixels.clone(),
+            }
+        }
+    }
+
+    fn comparison_checksum(comparison: &LegacyComparison) -> String {
+        let bytes =
+            serde_json::to_vec(comparison).expect("comparison result must serialize to JSON");
+        let hash = bytes.iter().fold(0xcbf2_9ce4_8422_2325_u64, |hash, byte| {
+            (hash ^ u64::from(*byte)).wrapping_mul(0x0000_0100_0000_01b3)
+        });
+        format!("{hash:016x}")
     }
 }
