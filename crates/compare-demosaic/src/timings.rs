@@ -67,20 +67,25 @@ pub fn shard_timings_path(shard_path: &Path) -> PathBuf {
     shard_path.with_file_name(format!("{name}.timings.json"))
 }
 
-pub const fn peak_rss_mb() -> u64 {
+pub fn peak_rss_mb() -> u64 {
     #[cfg(target_os = "linux")]
     {
-        let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
-        let kilobytes = status
-            .lines()
-            .find_map(|line| line.strip_prefix("VmHWM:"))
-            .and_then(|value| value.split_whitespace().next())
-            .and_then(|value| value.parse::<u64>().ok())
-            .unwrap_or(0);
-        kilobytes / 1024
+        linux_peak_rss_mb()
     }
     #[cfg(not(target_os = "linux"))]
     {
         0
     }
+}
+
+#[cfg(target_os = "linux")]
+fn linux_peak_rss_mb() -> u64 {
+    let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
+    let kilobytes = status
+        .lines()
+        .find_map(|line| line.strip_prefix("VmHWM:"))
+        .and_then(|value| value.split_whitespace().next())
+        .and_then(|value| value.parse::<u64>().ok())
+        .unwrap_or(0);
+    kilobytes / 1024
 }
