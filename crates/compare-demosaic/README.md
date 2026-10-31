@@ -1,221 +1,176 @@
 # compare-demosaic
 
 Compares Fornax demosaic implementations with LibRaw and darktable at the
-demosaic stage.
+demosaic stage. The canonical comparison uses the full active area returned by
+`fornax_devtool::raw_file()` and evaluates the same mosaic under all four Bayer
+labels. White balance and the default output crop are not applied.
 
-The canonical comparison uses the full active area of the colorchart CR2
-returned by `fornax_devtool::raw_file()`. The mosaic is normalized using its
-black and white levels and evaluated under all four Bayer pattern labels.
-White balance and the default output crop are not applied.
-
-The regression tests share a once-decoded, centered 128x128 crop. Each
-pattern-algorithm-reference combination is an independent `rstest` case with
-its own checksum snapshot, allowing the test harness to run them in parallel.
-A separate 128x128 `synthetic_mono_image` smoke test runs every algorithm for
-fast failure feedback, but it is not used for quality verdicts.
+`canonical.json` is the source of truth for quality verdicts. The tables below
+are generated from the committed baseline; do not edit their numbers by hand.
+See [AGENTS.md](AGENTS.md) for the investigation workflow.
 
 ```bash
 source scripts/setup.sh
 cargo run --release -p compare-demosaic
+cargo run --release -p compare-demosaic -- --artifacts
+cargo run --release -p compare-demosaic -- diff <old.json> <new.json>
+cargo run --release -p compare-demosaic -- --bless
 ```
 
-Setup installs the Rust environment, initializes `external/raw-images`, and
-materializes the darktable reference sources. With no options, the command
-writes the complete comparison to `crates/compare-demosaic/summary.json`.
-
-Use `--pattern` and/or `--algorithm` for a filtered comparison. Matching is
-case-insensitive, and an algorithm name includes all of its reference
-implementations.
-
-```bash
-cargo run --release -p compare-demosaic -- --pattern rggb --algorithm vng
-```
-
-Filtered output is written to `target/compare-demosaic/summary.json`.
+The default run writes `target/compare-demosaic/canonical.json`. Failed rows
+write log-scaled error maps and tile summaries under
+`target/compare-demosaic/artifacts/`; `--artifacts` writes them for passing rows
+too. Filtered runs write `target/compare-demosaic/canonical.filtered.json` and
+are not valid baselines.
 
 ## Evaluation
 
-For robust comparisons, verdicts require:
+Robust verdicts require all three conditions:
 
 - MAE at most 2 codes.
 - P99 absolute error at most 64 codes.
-- At most 0.1% of channel samples above 1024 codes.
+- At most a 0.001 fraction of channel samples above 1024 codes.
 
-The summary records MAE, RMSE, maximum error, changed percentage, P99, and the
-percentage above 1024 codes. Maximum error is diagnostic rather than the sole
-pass/fail rule.
+All errors are 16-bit codes. Exact means every sample is bit-identical.
+Rounding-only means every difference is one code upward from the truncating
+LibRaw reference. A warning means every robust limit passed but at least one
+sample exceeded 1024 codes.
 
-Exact and rounding-only cases retain their stricter semantics. Fornax clamps
-reconstructed RGB to `[0, 1]` before 16-bit quantization in comparison cases.
+## AAHD
 
-## Results
-
-These tables were reviewed by an agent using
-`crates/compare-demosaic/summary.json`.
-
-### AAHD
-
-| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | >1024 | Changed |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BGGR | [LibRaw][aahd] | ❌ | 748.027 | 2099.650 | 22138 | 8772 | 12.837% | 62.925% |
-| GBRG | [LibRaw][aahd] | ❌ | 102.133 | 272.076 | 8349 | 1321 | 2.022% | 62.956% |
-| GRBG | [LibRaw][aahd] | ❌ | 102.116 | 272.082 | 8349 | 1321 | 2.023% | 62.954% |
-| RGGB | [LibRaw][aahd] | ❌ | 748.091 | 2099.763 | 22138 | 8772 | 12.838% | 62.926% |
+| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | P999 | >1024 frac | Changed frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BGGR | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | ❌ | 747.885294 | 2099.339848 | 22138 | 8777 | 11968 | 0.128480 | 0.629272 |
+| GBRG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | ❌ | 103.105439 | 287.955685 | 18089 | 1327 | 2118 | 0.020369 | 0.629560 |
+| GRBG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | ❌ | 103.088593 | 287.963386 | 18089 | 1327 | 2119 | 0.020378 | 0.629544 |
+| RGGB | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | ❌ | 747.938956 | 2099.423686 | 22138 | 8778 | 11965 | 0.128496 | 0.629277 |
 
 > [!NOTE]
-> AAHD fails all robust limits for every pattern. `GBRG` and `GRBG` are the
-> closest at MAE 102.1, P99 1321, and about 2.02% above 1024 codes; `BGGR` and
-> `RGGB` are substantially worse at MAE about 748 and 12.84% above 1024 codes.
+> AAHD exceeds the robust limits across every pattern. The green-red and green-blue label pair is materially closer to LibRaw than the red-first and blue-first pair.
 
-### AHD
+## AHD
 
-| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | >1024 | Changed |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BGGR | [LibRaw][ahd] | ❌ | 6.705 | 182.755 | 22478 | 1 | 0.155% | 2.159% |
-| GBRG | [LibRaw][ahd] | ⚠️ | 0.879 | 24.711 | 5222 | 1 | 0.013% | 2.128% |
-| GRBG | [LibRaw][ahd] | ⚠️ | 0.993 | 26.523 | 4835 | 1 | 0.014% | 2.131% |
-| RGGB | [LibRaw][ahd] | ❌ | 6.849 | 184.792 | 23556 | 1 | 0.158% | 2.183% |
+| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | P999 | >1024 frac | Changed frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BGGR | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | ❌ | 6.673725 | 182.315588 | 22478 | 1 | 3020 | 0.001539 | 0.022739 |
+| GBRG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | ⚠️ | 0.875973 | 24.651269 | 5222 | 1 | 296 | 0.000125 | 0.022486 |
+| GRBG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | ⚠️ | 0.989094 | 26.458811 | 4835 | 1 | 352 | 0.000143 | 0.022518 |
+| RGGB | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | ❌ | 6.817086 | 184.347885 | 23556 | 1 | 3093 | 0.001569 | 0.022979 |
 
 > [!NOTE]
-> AHD passes every robust limit for `GBRG` and `GRBG`. `BGGR` and `RGGB` fail
-> both the MAE limit and the 0.1% high-error limit, while their isolated
-> maximum errors remain diagnostic rather than the direct failure criterion.
+> AHD is close to LibRaw on the green-red and green-blue labels and diverges strongly on the red-first and blue-first labels. The heavy tail is concentrated in discrete interpolation decisions rather than a global offset.
 
-### AMaZE
+## AMaZE
 
-| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | >1024 | Changed |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BGGR | [darktable][amaze] | ❌ | 526.780 | 1280.791 | 21316 | 5288 | 14.170% | 66.196% |
-| GBRG | [darktable][amaze] | ❌ | 79.188 | 185.041 | 9623 | 802 | 0.431% | 65.947% |
-| GRBG | [darktable][amaze] | ❌ | 79.188 | 185.041 | 9623 | 802 | 0.431% | 65.947% |
-| RGGB | [darktable][amaze] | ❌ | 526.780 | 1280.791 | 21316 | 5288 | 14.170% | 66.196% |
+| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | P999 | >1024 frac | Changed frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BGGR | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | ❌ | 525.714046 | 1278.370104 | 21316 | 5293 | 7820 | 0.141383 | 0.661846 |
+| GBRG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | ❌ | 79.498569 | 186.002581 | 9623 | 808 | 1442 | 0.004437 | 0.659406 |
+| GRBG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | ❌ | 79.498569 | 186.002581 | 9623 | 808 | 1442 | 0.004437 | 0.659406 |
+| RGGB | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | ❌ | 525.714046 | 1278.370104 | 21316 | 5293 | 7820 | 0.141383 | 0.661846 |
 
 > [!NOTE]
-> AMaZE fails MAE, P99, and the high-error limit for all patterns. `BGGR` and
-> `RGGB` share the worst failures, with about 14.17% of samples above 1024.
+> AMaZE exceeds the robust limits for every pattern, with the strongest divergence on the red-first and blue-first labels.
 
-### DCB
+## DCB
 
-| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | >1024 | Changed |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BGGR | [LibRaw][dcb] | ❌ | 657.622 | 1797.708 | 31865 | 8002 | 13.111% | 67.092% |
-| GBRG | [LibRaw][dcb] | ❌ | 87.898 | 227.661 | 6783 | 1102 | 1.224% | 66.882% |
-| GRBG | [LibRaw][dcb] | ❌ | 87.898 | 227.661 | 6783 | 1102 | 1.224% | 66.882% |
-| RGGB | [LibRaw][dcb] | ❌ | 657.622 | 1797.708 | 31865 | 8002 | 13.111% | 67.092% |
-
-> [!NOTE]
-> DCB exceeds all robust limits for every pattern. Its paired `GBRG`/`GRBG`
-> rows are materially closer than `BGGR`/`RGGB`, but still fail MAE at 87.9,
-> P99 at 1102, and the high-error limit at 1.224%.
-
-### DHT
-
-| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | >1024 | Changed |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BGGR | [LibRaw][dht] | ❌ | 527.470 | 1385.385 | 24042 | 5913 | 13.536% | 66.113% |
-| GBRG | [LibRaw][dht] | ❌ | 94.401 | 203.131 | 15912 | 889 | 0.602% | 66.216% |
-| GRBG | [LibRaw][dht] | ❌ | 94.401 | 203.131 | 15912 | 889 | 0.602% | 66.216% |
-| RGGB | [LibRaw][dht] | ❌ | 527.470 | 1385.385 | 24042 | 5913 | 13.536% | 66.113% |
+| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | P999 | >1024 frac | Changed frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BGGR | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | ❌ | 656.695242 | 1795.569469 | 31865 | 8002 | 11223 | 0.131078 | 0.670707 |
+| GBRG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | ❌ | 88.009547 | 228.137404 | 7094 | 1105 | 1902 | 0.012320 | 0.668585 |
+| GRBG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | ❌ | 88.009547 | 228.137404 | 7094 | 1105 | 1902 | 0.012320 | 0.668585 |
+| RGGB | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | ❌ | 656.695242 | 1795.569469 | 31865 | 8002 | 11223 | 0.131078 | 0.670707 |
 
 > [!NOTE]
-> DHT fails all robust limits for every pattern. Even the closer
-> `GBRG`/`GRBG` cases have MAE 94.4, P99 889, and 0.602% above 1024 codes.
+> DCB exceeds the robust limits for every pattern. The green-red and green-blue labels are substantially closer than the opposite diagonal.
 
-### Linear
+## DHT
 
-| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | >1024 | Changed |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BGGR | [LibRaw][linear] | 🟢 | 0.294 | 0.542 | 1 | 1 | 0.000% | 29.367% |
-| GBRG | [LibRaw][linear] | 🟢 | 0.294 | 0.542 | 1 | 1 | 0.000% | 29.416% |
-| GRBG | [LibRaw][linear] | 🟢 | 0.294 | 0.542 | 1 | 1 | 0.000% | 29.416% |
-| RGGB | [LibRaw][linear] | 🟢 | 0.294 | 0.542 | 1 | 1 | 0.000% | 29.367% |
-
-> [!NOTE]
-> Linear differs only because Fornax rounds to nearest while LibRaw truncates;
-> every difference is one code upward for every pattern.
-
-### LMMSE
-
-| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | >1024 | Changed |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BGGR | [darktable][lmmse] | ❌ | 334.642 | 932.606 | 20371 | 4395 | 9.644% | 65.850% |
-| GBRG | [darktable][lmmse] | ❌ | 44.691 | 103.502 | 5416 | 462 | 0.048% | 65.751% |
-| GRBG | [darktable][lmmse] | ❌ | 44.691 | 103.501 | 5416 | 462 | 0.048% | 65.751% |
-| RGGB | [darktable][lmmse] | ❌ | 334.642 | 932.606 | 20371 | 4395 | 9.644% | 65.850% |
+| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | P999 | >1024 frac | Changed frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BGGR | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | ❌ | 527.009423 | 1382.556065 | 24042 | 5936 | 11447 | 0.135363 | 0.660867 |
+| GBRG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | ❌ | 96.496395 | 220.513723 | 15912 | 906 | 1620 | 0.006594 | 0.662065 |
+| GRBG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | ❌ | 96.496395 | 220.513723 | 15912 | 906 | 1620 | 0.006594 | 0.662065 |
+| RGGB | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | ❌ | 527.009423 | 1382.556065 | 24042 | 5936 | 11447 | 0.135363 | 0.660867 |
 
 > [!NOTE]
-> LMMSE fails MAE and P99 for all patterns. `GBRG` and `GRBG` remain below the
-> high-error limit at 0.048%, while `BGGR` and `RGGB` also fail it at 9.644%.
+> DHT exceeds the robust limits for every pattern and remains materially divergent even on its closest label pair.
 
-### PPG
+## LMMSE
 
-| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | >1024 | Changed |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BGGR | [darktable][ppg-darktable] | ✅ | 0.000 | 0.000 | 0 | 0 | 0.000% | 0.000% |
-| BGGR | [LibRaw][ppg-libraw] | ⚠️ | 0.315 | 21.504 | 13493 | 1 | 0.003% | 14.720% |
-| GBRG | [darktable][ppg-darktable] | ✅ | 0.000 | 0.000 | 0 | 0 | 0.000% | 0.000% |
-| GBRG | [LibRaw][ppg-libraw] | ⚠️ | 0.187 | 3.107 | 2221 | 1 | 0.0001% | 14.692% |
-| GRBG | [darktable][ppg-darktable] | ✅ | 0.000 | 0.000 | 0 | 0 | 0.000% | 0.000% |
-| GRBG | [LibRaw][ppg-libraw] | ⚠️ | 0.187 | 3.107 | 2221 | 1 | 0.0001% | 14.692% |
-| RGGB | [darktable][ppg-darktable] | ✅ | 0.000 | 0.000 | 0 | 0 | 0.000% | 0.000% |
-| RGGB | [LibRaw][ppg-libraw] | ⚠️ | 0.315 | 21.504 | 13493 | 1 | 0.003% | 14.720% |
+| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | P999 | >1024 frac | Changed frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BGGR | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | ❌ | 334.214702 | 931.666478 | 20371 | 4393 | 7808 | 0.096257 | 0.658283 |
+| GBRG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | ❌ | 44.776609 | 103.955914 | 9522 | 463 | 884 | 0.000500 | 0.657319 |
+| GRBG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | ❌ | 44.776464 | 103.955704 | 9522 | 463 | 884 | 0.000500 | 0.657319 |
+| RGGB | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | ❌ | 334.214427 | 931.666276 | 20371 | 4393 | 7808 | 0.096257 | 0.658283 |
 
 > [!NOTE]
-> darktable PPG is bit-identical for every pattern. LibRaw PPG passes all robust
-> limits everywhere despite isolated large errors; `BGGR`/`RGGB` are weaker
-> than `GBRG`/`GRBG` but remain within MAE, P99, and high-error thresholds.
+> LMMSE fails its headline limits on every pattern. The red-first and blue-first labels also exceed the high-error fraction limit.
 
-### RCD
+## Linear
 
-| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | >1024 | Changed |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BGGR | [darktable][rcd] | ⚠️ | 0.376 | 5.610 | 5922 | 8 | 0.0002% | 6.618% |
-| GBRG | [darktable][rcd] | ⚠️ | 0.084 | 1.020 | 1359 | 2 | 0.000002% | 3.367% |
-| GRBG | [darktable][rcd] | ⚠️ | 0.084 | 1.020 | 1359 | 2 | 0.000002% | 3.367% |
-| RGGB | [darktable][rcd] | ⚠️ | 0.376 | 5.610 | 5922 | 8 | 0.0002% | 6.618% |
+| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | P999 | >1024 frac | Changed frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BGGR | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | 🟢 | 0.293568 | 0.541820 | 1 | 1 | 1 | 0.000000 | 0.293568 |
+| GBRG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | 🟢 | 0.294064 | 0.542277 | 1 | 1 | 1 | 0.000000 | 0.294064 |
+| GRBG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | 🟢 | 0.294064 | 0.542277 | 1 | 1 | 1 | 0.000000 | 0.294064 |
+| RGGB | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | 🟢 | 0.293568 | 0.541820 | 1 | 1 | 1 | 0.000000 | 0.293568 |
 
 > [!NOTE]
-> RCD passes every robust limit for all patterns. `GBRG`/`GRBG` are closest;
-> `BGGR`/`RGGB` still pass despite larger MAE, P99 8, and isolated outliers.
+> Linear differs only because Fornax rounds to nearest while LibRaw truncates.
 
-### VNG
+## PPG
 
-| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | >1024 | Changed |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| BGGR | [darktable][vng-darktable] | ❌ | 4425.727 | 9266.991 | 65535 | 37198 | 49.045% | 83.284% |
-| BGGR | [LibRaw][vng-libraw] | ❌ | 4251.676 | 9148.800 | 65535 | 36696 | 45.054% | 66.642% |
-| GBRG | [darktable][vng-darktable] | ❌ | 2787.958 | 6483.910 | 65535 | 30364 | 38.917% | 82.802% |
-| GBRG | [LibRaw][vng-libraw] | ❌ | 2768.098 | 6483.031 | 65535 | 30367 | 38.880% | 66.635% |
-| GRBG | [darktable][vng-darktable] | ❌ | 2789.975 | 6486.119 | 65535 | 30374 | 38.907% | 82.802% |
-| GRBG | [LibRaw][vng-libraw] | ❌ | 2770.055 | 6485.244 | 65535 | 30374 | 38.871% | 66.635% |
-| RGGB | [darktable][vng-darktable] | ❌ | 4425.247 | 9265.749 | 65535 | 37120 | 49.049% | 83.284% |
-| RGGB | [LibRaw][vng-libraw] | ❌ | 4251.192 | 9147.545 | 65535 | 36702 | 45.057% | 66.642% |
+| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | P999 | >1024 frac | Changed frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BGGR | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | ✅ | 0.000000 | 0.000000 | 0 | 0 | 0 | 0.000000 | 0.000000 |
+| GBRG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | ✅ | 0.000000 | 0.000000 | 0 | 0 | 0 | 0.000000 | 0.000000 |
+| GRBG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | ✅ | 0.000000 | 0.000000 | 0 | 0 | 0 | 0.000000 | 0.000000 |
+| RGGB | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | ✅ | 0.000000 | 0.000000 | 0 | 0 | 0 | 0.000000 | 0.000000 |
+| BGGR | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | ⚠️ | 0.314865 | 21.504192 | 13493 | 1 | 1 | 0.000029 | 0.147196 |
+| GBRG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | ⚠️ | 0.186701 | 3.106662 | 2221 | 1 | 1 | 0.000001 | 0.146916 |
+| GRBG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | ⚠️ | 0.186701 | 3.106662 | 2221 | 1 | 1 | 0.000001 | 0.146916 |
+| RGGB | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | ⚠️ | 0.314865 | 21.504192 | 13493 | 1 | 1 | 0.000029 | 0.147196 |
 
 > [!NOTE]
-> Both VNG references fail every robust limit for every pattern. `BGGR` and
-> `RGGB` are worst, exceeding 45% high-error samples; even
-> `GBRG`/`GRBG` have MAE around 2.8k and P99 above 30k.
+> Fornax PPG is bit-identical to darktable PPG for every pattern. Against LibRaw it remains within the robust limits despite isolated outliers.
 
-Reference builds: LibRaw 0.22.3; darktable 5.6.2
-(20891f6c6fa7be995e5bf9dff9d1ee5062051773).
+## RCD
+
+| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | P999 | >1024 frac | Changed frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BGGR | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | ⚠️ | 0.372633 | 5.609573 | 5922 | 8 | 48 | 0.000002 | 0.065598 |
+| GBRG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | ⚠️ | 0.083077 | 1.015566 | 1359 | 2 | 11 | 0.000000 | 0.033374 |
+| GRBG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | ⚠️ | 0.083077 | 1.015566 | 1359 | 2 | 11 | 0.000000 | 0.033374 |
+| RGGB | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | ⚠️ | 0.372633 | 5.609573 | 5922 | 8 | 48 | 0.000002 | 0.065598 |
+
+> [!NOTE]
+> RCD remains within every robust limit. The green-red and green-blue labels are closest, while the opposite diagonal retains a small outlier tail.
+
+## VNG
+
+| Pattern | Reference | Verdict | MAE | RMSE | Max | P99 | P999 | >1024 frac | Changed frac |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BGGR | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | ❌ | 4417.576591 | 9258.126444 | 65535 | 37184 | 48831 | 0.489596 | 0.832106 |
+| GBRG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | ❌ | 2782.662776 | 6477.675994 | 65535 | 30349 | 45809 | 0.388432 | 0.827285 |
+| GRBG | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | ❌ | 2784.676172 | 6479.882985 | 65535 | 30358 | 45804 | 0.388330 | 0.827284 |
+| RGGB | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | ❌ | 4417.097668 | 9256.884772 | 65535 | 37107 | 48859 | 0.489642 | 0.832107 |
+| BGGR | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | ❌ | 4243.524941 | 9140.000579 | 65535 | 36685 | 46497 | 0.449676 | 0.665300 |
+| GBRG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | ❌ | 2762.780291 | 6476.794907 | 65535 | 30351 | 45810 | 0.388057 | 0.665211 |
+| GRBG | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | ❌ | 2764.732896 | 6479.005956 | 65535 | 30360 | 45806 | 0.387967 | 0.665210 |
+| RGGB | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | ❌ | 4243.041290 | 9138.746679 | 65535 | 36691 | 46499 | 0.449708 | 0.665299 |
+
+> [!NOTE]
+> Both VNG references show a broad failure rather than isolated outliers. The red-first and blue-first labels are the worse pair.
+
+Reference builds: LibRaw 0.22.3; darktable 5.6.2 (20891f6c6fa7be995e5bf9dff9d1ee5062051773).
 
 Legend:
 
-- `✅`: every compared sample is bit-identical.
-- `🟢`: Fornax rounds to nearest while LibRaw truncates, so differences are one
-  code upward.
-- `⚠️`: every robust limit passes, though isolated diagnostic errors remain.
-- `❌`: at least one robust limit fails.
-
-[aahd]: https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771
-[ahd]: https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293
-[amaze]: https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129
-[dcb]: https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849
-[dht]: https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012
-[linear]: https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146
-[lmmse]: https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120
-[ppg-darktable]: https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20
-[ppg-libraw]: https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363
-[rcd]: https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119
-[vng-darktable]: https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171
-[vng-libraw]: https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199
+- `✅`: every compared sample is bit-identical or every robust limit passes
+  without high-error outliers.
+- `🟢`: differences are one code upward because Fornax rounds to nearest while
+  LibRaw truncates.
+- `⚠️`: every robust limit passes, but isolated high-error samples remain.
+- `❌`: at least one limit in `failed_limits` failed.

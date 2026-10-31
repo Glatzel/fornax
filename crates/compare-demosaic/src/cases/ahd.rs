@@ -15,7 +15,6 @@ pub const CASE: Case = Case {
     source_url: LIBRAW_AHD_URL,
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 2,
-    border: 5,
     tolerance: ROBUST,
     run_fornax: run,
 };

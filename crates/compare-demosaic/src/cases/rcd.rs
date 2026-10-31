@@ -15,7 +15,6 @@ pub const DARKTABLE_CASE: Case = Case {
     source_url: DARKTABLE_RCD_URL,
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 1,
-    border: 10,
     tolerance: ROBUST,
     run_fornax: run,
 };

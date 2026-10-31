@@ -20,7 +20,6 @@ pub const LIBRAW_CASE: Case = Case {
     source_url: LIBRAW_PPG_URL,
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 1,
-    border: 0,
     tolerance: ROBUST,
     run_fornax: run,
 };
@@ -30,7 +29,6 @@ pub const DARKTABLE_CASE: Case = Case {
     source_url: DARKTABLE_PPG_URL,
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 0,
-    border: 0,
     tolerance: ROBUST,
     run_fornax: run,
 };

@@ -34,14 +34,14 @@ pub enum Tolerance {
     Robust {
         max_mae: f64,
         max_p99: u16,
-        max_over_1024_percent: f64,
+        max_high_error_frac: f64,
     },
 }
 
 pub const ROBUST: Tolerance = Tolerance::Robust {
     max_mae: 2.0,
     max_p99: 64,
-    max_over_1024_percent: 0.1,
+    max_high_error_frac: 0.001,
 };
 
 pub type FornaxRunner =
@@ -53,7 +53,6 @@ pub struct Case {
     pub source_url: &'static str,
     pub reference_backend: ReferenceBackend,
     pub algorithm: u32,
-    pub border: u32,
     pub tolerance: Tolerance,
     pub run_fornax: FornaxRunner,
 }

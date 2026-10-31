@@ -1,8 +1,11 @@
+mod artifacts;
 mod case;
 mod cases;
 mod data;
+pub mod diff;
 mod ffi;
 mod metrics;
+pub mod render;
 mod report;
 pub mod results;
 
@@ -14,7 +17,7 @@ mod tests {
 
     use crate::case::{ReferenceBackend, SampleType};
     use crate::report::compare;
-    use crate::results::SummaryComparison;
+    use crate::results::ComparisonResult;
 
     #[fixture]
     #[once]
@@ -22,6 +25,7 @@ mod tests {
         let image = synthetic_mono_image::<f32>((128, 128), 65_535.0);
         crate::data::ActiveArea {
             source: "fornax-devtool::synthetic_mono_image".to_owned(),
+            source_path: "fornax-devtool::synthetic_mono_image".to_owned(),
             width: 128,
             height: 128,
             codes: image
@@ -29,6 +33,11 @@ mod tests {
                 .iter()
                 .map(|sample| sample.round().clamp(0.0, 65_535.0) as u16)
                 .collect(),
+            black: vec![0.0],
+            black_width: 1,
+            black_height: 1,
+            white: 65_535.0,
+            native_pattern: BayerPattern::GBRG,
         }
     }
 
@@ -52,9 +61,15 @@ mod tests {
             .collect();
         crate::data::ActiveArea {
             source: input.source.clone(),
+            source_path: input.source_path.clone(),
             width,
             height,
             codes,
+            black: input.black.clone(),
+            black_width: input.black_width,
+            black_height: input.black_height,
+            white: input.white,
+            native_pattern: input.native_pattern,
         }
     }
 
@@ -64,7 +79,13 @@ mod tests {
         #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)] case_index: usize,
     ) -> mischief::Result<()> {
         let case = &crate::cases::CASES[case_index];
-        compare(case, synthetic_128, BayerPattern::GBRG, SampleType::F32)?;
+        compare(
+            case,
+            synthetic_128,
+            BayerPattern::GBRG,
+            SampleType::F32,
+            false,
+        )?;
         Ok(())
     }
 
@@ -83,7 +104,7 @@ mod tests {
         Ok(())
     }
 
-    fn comparison_checksum(comparison: &SummaryComparison) -> String {
+    fn comparison_checksum(comparison: &ComparisonResult) -> String {
         let bytes =
             serde_json::to_vec(comparison).expect("comparison result must serialize to JSON");
         let hash = bytes.iter().fold(0xcbf2_9ce4_8422_2325_u64, |hash, byte| {
@@ -147,11 +168,11 @@ mod tests {
         #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)] case_index: usize,
     ) -> mischief::Result<()> {
         let case = &crate::cases::CASES[case_index];
-        let comparison =
-            SummaryComparison::from(compare(case, cropped_real_128, pattern, SampleType::F32)?);
+        let row = compare(case, cropped_real_128, pattern, SampleType::F32, false)?;
+        let comparison = ComparisonResult::from_row(&cropped_real_128.native_pattern, row);
         let snapshot_name = format!(
             "{}-{}-{}",
-            comparison.bayer_pattern, comparison.algorithm, comparison.reference_library
+            comparison.pattern, comparison.algorithm, comparison.reference
         );
         insta::assert_snapshot!(snapshot_name, comparison_checksum(&comparison));
         Ok(())

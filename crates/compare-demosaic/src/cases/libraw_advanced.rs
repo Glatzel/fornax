@@ -12,7 +12,6 @@ pub const DCB: Case = Case {
     ),
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 4,
-    border: 6,
     tolerance: ROBUST,
     run_fornax: run_dcb,
 };
@@ -26,7 +25,6 @@ pub const DHT: Case = Case {
     ),
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 5,
-    border: 32,
     tolerance: ROBUST,
     run_fornax: run_dht,
 };
@@ -40,7 +38,6 @@ pub const AAHD: Case = Case {
     ),
     reference_backend: ReferenceBackend::LibRaw,
     algorithm: 6,
-    border: 4,
     tolerance: ROBUST,
     run_fornax: run_aahd,
 };

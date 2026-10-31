@@ -12,7 +12,6 @@ pub const AMAZE: Case = Case {
     ),
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 3,
-    border: 16,
     tolerance: ROBUST,
     run_fornax: run_amaze,
 };
@@ -26,7 +25,6 @@ pub const LMMSE: Case = Case {
     ),
     reference_backend: ReferenceBackend::Darktable,
     algorithm: 4,
-    border: 4,
     tolerance: ROBUST,
     run_fornax: run_lmmse,
 };
