@@ -1,32 +1,23 @@
-mod artifacts;
-pub mod bless;
 mod case;
 mod cases;
 mod data;
-pub mod diff;
 pub mod error;
 mod ffi;
-pub mod merge;
 mod metrics;
 pub mod registry;
-pub mod render;
-mod report;
-pub mod results;
+pub mod report;
 pub mod run;
-mod timings;
-pub mod validate;
 
 #[cfg(test)]
 mod tests {
     use fornax_core::BayerPattern;
     use fornax_devtool::synthetic_mono_image;
     use rstest::{fixture, rstest};
+    use serde::Serialize;
 
-    use crate::case::{ReferenceBackend, SampleType};
-    use crate::report::compare;
-    use crate::results::{
-        self, CanonicalResults, ComparisonResult, Coverage, RunMetadata, Selection, ShardMetadata,
-    };
+    use crate::case::ReferenceBackend;
+    use crate::metrics::{FailedLimit, Metrics, Verdict, WorstPixel};
+    use crate::run::{CaseEvaluation, LIBRAW_COMMIT, LIBRAW_VERSION};
 
     #[fixture]
     #[once]
@@ -34,8 +25,6 @@ mod tests {
         let image = synthetic_mono_image::<f32>((128, 128), 65_535.0);
         crate::data::ActiveArea {
             source: "fornax-devtool::synthetic_mono_image".to_owned(),
-            source_path: "fornax-devtool::synthetic_mono_image".to_owned(),
-            source_sha256: "synthetic".to_owned(),
             width: 128,
             height: 128,
             codes: image
@@ -43,10 +32,6 @@ mod tests {
                 .iter()
                 .map(|sample| sample.round().clamp(0.0, 65_535.0) as u16)
                 .collect(),
-            black: vec![0.0],
-            black_width: 1,
-            black_height: 1,
-            white: 65_535.0,
             native_pattern: BayerPattern::GBRG,
         }
     }
@@ -54,8 +39,7 @@ mod tests {
     #[fixture]
     #[once]
     fn cropped_real_128() -> crate::data::ActiveArea {
-        let input = crate::data::active_area().expect("the pinned CR2 fixture must decode");
-        crop_128(&input)
+        crop_128(&crate::data::active_area().expect("pinned CR2 fixture decodes"))
     }
 
     fn crop_128(input: &crate::data::ActiveArea) -> crate::data::ActiveArea {
@@ -71,15 +55,9 @@ mod tests {
             .collect();
         crate::data::ActiveArea {
             source: input.source.clone(),
-            source_path: input.source_path.clone(),
-            source_sha256: input.source_sha256.clone(),
             width,
             height,
             codes,
-            black: input.black.clone(),
-            black_width: input.black_width,
-            black_height: input.black_height,
-            white: input.white,
             native_pattern: input.native_pattern,
         }
     }
@@ -89,39 +67,24 @@ mod tests {
         synthetic_128: &crate::data::ActiveArea,
         #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)] case_index: usize,
     ) -> mischief::Result<()> {
-        let case = &crate::cases::CASES[case_index];
-        compare(
-            case,
+        crate::run::evaluate_case(
+            &crate::cases::CASES[case_index],
             synthetic_128,
             BayerPattern::GBRG,
-            SampleType::F32,
-            false,
+            16,
         )?;
         Ok(())
     }
 
     #[rstest]
-    fn comparison_filter_selects_pattern_and_algorithm(
+    fn algorithm_filter_selects_the_registered_algorithm(
         synthetic_128: &crate::data::ActiveArea,
     ) -> mischief::Result<()> {
-        let rows = crate::report::comparison_rows_filtered(
-            synthetic_128,
-            Some(BayerPattern::RGGB),
-            Some("vng"),
-        )?;
-        assert_eq!(rows.len(), 2);
-        assert!(rows.iter().all(|row| row.pattern == BayerPattern::RGGB));
-        assert!(rows.iter().all(|row| row.case == "VNG"));
+        let algorithm = "VNG".to_owned();
+        let rows = crate::run::selected_evaluations(synthetic_128, &[algorithm], 16)?;
+        assert_eq!(rows.len(), 8);
+        assert!(rows.iter().all(|row| row.case.name == "VNG"));
         Ok(())
-    }
-
-    fn comparison_checksum(comparison: &ComparisonResult) -> String {
-        let bytes =
-            serde_json::to_vec(comparison).expect("comparison result must serialize to JSON");
-        let hash = bytes.iter().fold(0xcbf2_9ce4_8422_2325_u64, |hash, byte| {
-            (hash ^ u64::from(*byte)).wrapping_mul(0x0000_0100_0000_01b3)
-        });
-        format!("{hash:016x}")
     }
 
     #[test]
@@ -153,12 +116,12 @@ mod tests {
 
     #[test]
     fn source_links_match_packaged_versions() {
-        assert_eq!(crate::report::LIBRAW_VERSION, "0.22.3");
-        assert_eq!(crate::report::DARKTABLE_RELEASE, "5.6.2");
+        assert_eq!(LIBRAW_VERSION, "0.22.3");
+        assert_eq!(crate::run::DARKTABLE_RELEASE, "5.6.2");
         for case in crate::cases::CASES {
             let commit = match case.reference_backend {
-                ReferenceBackend::LibRaw => crate::report::LIBRAW_COMMIT,
-                ReferenceBackend::Darktable => crate::report::DARKTABLE_COMMIT,
+                ReferenceBackend::LibRaw => LIBRAW_COMMIT,
+                ReferenceBackend::Darktable => crate::run::DARKTABLE_COMMIT,
             };
             assert!(case.source_url.contains(commit));
             assert!(case.source_url.contains("#L"));
@@ -178,10 +141,13 @@ mod tests {
         pattern: BayerPattern,
         #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)] case_index: usize,
     ) -> mischief::Result<()> {
-        let case = &crate::cases::CASES[case_index];
-        let row = compare(case, cropped_real_128, pattern, SampleType::F32, false)?;
-        let mut comparison = ComparisonResult::from_row(&cropped_real_128.native_pattern, row);
-        comparison.artifacts = None;
+        let evaluation = crate::run::evaluate_case(
+            &crate::cases::CASES[case_index],
+            cropped_real_128,
+            pattern,
+            16,
+        )?;
+        let comparison = LegacyComparison::from_evaluation(cropped_real_128, &evaluation);
         let snapshot_name = format!(
             "{}-{}-{}",
             comparison.pattern, comparison.algorithm, comparison.reference
@@ -190,183 +156,80 @@ mod tests {
         Ok(())
     }
 
-    #[rstest]
-    fn per_algorithm_shards_merge_to_the_single_run(
-        cropped_real_128: &crate::data::ActiveArea,
-    ) -> mischief::Result<()> {
-        let (full_rows, _) = crate::report::comparison_rows(
-            cropped_real_128,
-            &crate::report::ComparisonOptions {
-                algorithms: &[],
-                references: &[],
-                patterns: &[],
-                artifacts: false,
-                output_dir: None,
-                jobs: 1,
-                border_px: 16,
-            },
-        )?;
-        let stable = results::stable_metadata(cropped_real_128, 16);
-        let full = results::from_rows(
-            cropped_real_128,
-            full_rows,
-            stable.clone(),
-            results::full_run_metadata(),
-        );
+    #[derive(Serialize)]
+    struct LegacyComparison {
+        algorithm: &'static str,
+        source_url: &'static str,
+        pattern: String,
+        native: bool,
+        reference: String,
+        kind: &'static str,
+        verdict: Verdict,
+        failed_limits: Vec<FailedLimit>,
+        total_samples: u64,
+        metrics: Metrics,
+        metrics_interior: Metrics,
+        per_channel: LegacyPerChannel,
+        per_site: LegacyPerSite,
+        worst_pixels: Vec<WorstPixel>,
+    }
 
-        let directory = tempfile::tempdir().expect("temporary directory");
-        let mut algorithms = crate::cases::CASES
-            .iter()
-            .map(|case| case.name.to_owned())
-            .collect::<Vec<_>>();
-        algorithms.sort();
-        algorithms.dedup();
-        let mut paths = Vec::new();
-        for algorithm in &algorithms {
-            let (rows, _) = crate::report::comparison_rows(
-                cropped_real_128,
-                &crate::report::ComparisonOptions {
-                    algorithms: std::slice::from_ref(algorithm),
-                    references: &[],
-                    patterns: &[],
-                    artifacts: false,
-                    output_dir: None,
-                    jobs: algorithms.len(),
-                    border_px: 16,
+    #[derive(Serialize)]
+    struct LegacyPerChannel {
+        r: Metrics,
+        g: Metrics,
+        b: Metrics,
+    }
+
+    #[derive(Serialize)]
+    struct LegacyPerSite {
+        sampled: Metrics,
+        interpolated: Metrics,
+    }
+
+    impl LegacyComparison {
+        fn from_evaluation(input: &crate::data::ActiveArea, evaluation: &CaseEvaluation) -> Self {
+            Self {
+                algorithm: evaluation.case.name,
+                source_url: evaluation.case.source_url,
+                pattern: evaluation.pattern.to_string(),
+                native: evaluation.pattern == input.native_pattern,
+                reference: evaluation
+                    .case
+                    .reference_backend
+                    .library()
+                    .to_ascii_lowercase(),
+                kind: match evaluation.case.tolerance {
+                    crate::case::Tolerance::RoundingUp => "rounding",
+                    crate::case::Tolerance::Robust { .. } => "robust",
+                    crate::case::Tolerance::Exact => "exact",
+                    crate::case::Tolerance::MaxError(_) => "max_error",
                 },
-            )?;
-            let shard = results::from_rows(
-                cropped_real_128,
-                rows,
-                stable.clone(),
-                RunMetadata {
-                    coverage: Coverage::Partial,
-                    shards: vec![ShardMetadata {
-                        name: algorithm.to_ascii_lowercase(),
-                        selection: Selection::new(std::slice::from_ref(algorithm), &[], &[]),
-                        started: String::new(),
-                        finished: String::new(),
-                        runner: String::new(),
-                    }],
-                    generated_by: results::generated_by(),
+                verdict: evaluation.verdict,
+                failed_limits: evaluation.failed_limits.clone(),
+                total_samples: evaluation.evaluation.metrics.total_samples,
+                metrics: evaluation.evaluation.metrics.clone(),
+                metrics_interior: evaluation.evaluation.metrics_interior.clone(),
+                per_channel: LegacyPerChannel {
+                    r: evaluation.evaluation.per_channel[0].clone(),
+                    g: evaluation.evaluation.per_channel[1].clone(),
+                    b: evaluation.evaluation.per_channel[2].clone(),
                 },
-            );
-            let path = directory
-                .path()
-                .join(format!("{}.shard.json", algorithm.to_ascii_lowercase()));
-            shard.write(&path)?;
-            paths.push(path);
+                per_site: LegacyPerSite {
+                    sampled: evaluation.evaluation.per_site[0].clone(),
+                    interpolated: evaluation.evaluation.per_site[1].clone(),
+                },
+                worst_pixels: evaluation.evaluation.worst_pixels.clone(),
+            }
         }
-
-        let merged_path = directory.path().join("canonical.json");
-        let report = crate::merge::merge(&paths, &merged_path, false, false).unwrap();
-        let merged = CanonicalResults::read(&merged_path)?;
-        assert!(report.complete);
-        assert_eq!(merged.results, full.results);
-        assert_eq!(merged.meta.stable, full.meta.stable);
-        Ok(())
     }
 
-    #[rstest]
-    fn worker_count_does_not_change_results(
-        cropped_real_128: &crate::data::ActiveArea,
-    ) -> mischief::Result<()> {
-        let (serial_rows, _) = crate::report::comparison_rows(
-            cropped_real_128,
-            &crate::report::ComparisonOptions {
-                algorithms: &[],
-                references: &[],
-                patterns: &[],
-                artifacts: false,
-                output_dir: None,
-                jobs: 1,
-                border_px: 16,
-            },
-        )?;
-        let (parallel_rows, _) = crate::report::comparison_rows(
-            cropped_real_128,
-            &crate::report::ComparisonOptions {
-                algorithms: &[],
-                references: &[],
-                patterns: &[],
-                artifacts: false,
-                output_dir: None,
-                jobs: 4,
-                border_px: 16,
-            },
-        )?;
-        let stable = results::stable_metadata(cropped_real_128, 16);
-        let serial = results::from_rows(
-            cropped_real_128,
-            serial_rows,
-            stable.clone(),
-            results::full_run_metadata(),
-        );
-        let parallel = results::from_rows(
-            cropped_real_128,
-            parallel_rows,
-            stable,
-            results::full_run_metadata(),
-        );
-        assert_eq!(serial.results, parallel.results);
-        Ok(())
-    }
-
-    #[rstest]
-    fn merge_detects_missing_and_duplicate_shards(
-        cropped_real_128: &crate::data::ActiveArea,
-    ) -> mischief::Result<()> {
-        let stable = results::stable_metadata(cropped_real_128, 16);
-        let algorithms = ["AHD".to_owned()];
-        let (rows, _) = crate::report::comparison_rows(
-            cropped_real_128,
-            &crate::report::ComparisonOptions {
-                algorithms: &algorithms,
-                references: &[],
-                patterns: &[],
-                artifacts: false,
-                output_dir: None,
-                jobs: 1,
-                border_px: 16,
-            },
-        )?;
-        let shard = results::from_rows(
-            cropped_real_128,
-            rows,
-            stable,
-            RunMetadata {
-                coverage: Coverage::Partial,
-                shards: vec![ShardMetadata {
-                    name: "ahd".to_owned(),
-                    selection: Selection::new(&["AHD".to_owned()], &[], &[]),
-                    started: String::new(),
-                    finished: String::new(),
-                    runner: String::new(),
-                }],
-                generated_by: results::generated_by(),
-            },
-        );
-        let directory = tempfile::tempdir().expect("temporary directory");
-        let path = directory.path().join("ahd.shard.json");
-        shard.write(&path)?;
-
-        let missing = crate::merge::merge(
-            std::slice::from_ref(&path),
-            &directory.path().join("missing.json"),
-            false,
-            false,
-        )
-        .unwrap_err();
-        assert_eq!(missing.class().exit_code(), 2);
-
-        let duplicate = crate::merge::merge(
-            &[path.clone(), path],
-            &directory.path().join("duplicate.json"),
-            true,
-            false,
-        )
-        .unwrap_err();
-        assert!(duplicate.to_string().contains("duplicate row"));
-        Ok(())
+    fn comparison_checksum(comparison: &LegacyComparison) -> String {
+        let bytes =
+            serde_json::to_vec(comparison).expect("comparison result must serialize to JSON");
+        let hash = bytes.iter().fold(0xcbf2_9ce4_8422_2325_u64, |hash, byte| {
+            (hash ^ u64::from(*byte)).wrapping_mul(0x0000_0100_0000_01b3)
+        });
+        format!("{hash:016x}")
     }
 }

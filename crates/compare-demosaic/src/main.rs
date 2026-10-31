@@ -1,5 +1,4 @@
 use std::io::Write;
-use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::{Parser, ValueEnum};
@@ -52,7 +51,7 @@ struct Args {
     check: bool,
 
     /// Replace the committed baseline and RESULTS.md with this run.
-    #[arg(long, conflicts_with = "check")]
+    #[arg(long, conflicts_with_all = ["algorithm", "check"])]
     update: bool,
 }
 
@@ -67,14 +66,12 @@ fn main() -> ExitCode {
 }
 
 fn run_cli(args: Args) -> Result<u8> {
-    if args.check || args.update {
-        let mode = if args.check { "--check" } else { "--update" };
+    if args.check {
         return Err(CompareError::usage(format!(
-            "{mode} is implemented in the next simplification step"
+            "--check is implemented in the next simplification step"
         )));
     }
 
-    let output_dir = PathBuf::from("target/compare-demosaic");
     let algorithms = args
         .algorithm
         .iter()
@@ -82,23 +79,21 @@ fn run_cli(args: Args) -> Result<u8> {
         .collect::<Vec<_>>();
     let request = RunRequest {
         algorithms,
-        references: Vec::new(),
-        patterns: Vec::new(),
         input: None,
-        output_dir,
-        shard: (!args.algorithm.is_empty()).then(|| "filtered".to_owned()),
-        artifacts: false,
         border_px: 16,
-        jobs: std::thread::available_parallelism()
-            .map_or(1, std::num::NonZeroUsize::get)
-            .min(4),
     };
-    let output = run::execute(&request)?;
+    let output = run::execute(&request).map_err(|error| CompareError::usage(error.to_string()))?;
+    if args.update {
+        output
+            .report
+            .write_baseline()
+            .map_err(|error| CompareError::usage(error.to_string()))?;
+    }
     writeln!(
         std::io::stderr().lock(),
         "wrote {} ({} rows)",
         output.path.display(),
-        output.results.results.len()
+        output.report.rows.len()
     )?;
     Ok(0)
 }

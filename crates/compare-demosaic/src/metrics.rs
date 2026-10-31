@@ -2,14 +2,13 @@ use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 
 use fornax_core::{BayerChannel, BayerPattern};
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::case::Tolerance;
 
 pub const MAX_ERROR: usize = u16::MAX as usize + 1;
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Verdict {
     Exact,
@@ -19,28 +18,7 @@ pub enum Verdict {
     Fail,
 }
 
-impl Verdict {
-    pub const fn rank(self) -> u8 {
-        match self {
-            Self::Exact => 5,
-            Self::RoundingOnly => 4,
-            Self::Pass => 3,
-            Self::PassWithOutliers => 2,
-            Self::Fail => 1,
-        }
-    }
-
-    pub const fn symbol(self) -> &'static str {
-        match self {
-            Self::Exact | Self::Pass => "✅",
-            Self::RoundingOnly => "🟢",
-            Self::PassWithOutliers => "⚠️",
-            Self::Fail => "❌",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FailedLimit {
     Mae,
@@ -48,7 +26,7 @@ pub enum FailedLimit {
     HighErrFrac,
 }
 
-#[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Metrics {
     pub total_samples: u64,
     pub mae: f64,
@@ -69,7 +47,7 @@ pub struct Metrics {
     pub changed_frac: f64,
 }
 
-#[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct WorstPixel {
     pub x: u32,
     pub y: u32,
@@ -78,7 +56,7 @@ pub struct WorstPixel {
     pub reference: u16,
 }
 
-#[derive(Clone, Debug, Deserialize, JsonSchema, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct TileSummary {
     pub x: u32,
     pub y: u32,
@@ -89,6 +67,10 @@ pub struct TileSummary {
 }
 
 #[derive(Clone, Debug)]
+#[allow(
+    dead_code,
+    reason = "detailed fields remain available to the investigation example"
+)]
 pub struct Evaluation {
     pub metrics: Metrics,
     pub metrics_interior: Metrics,
