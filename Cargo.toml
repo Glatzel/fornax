@@ -31,7 +31,6 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 # other
 bindgen = "0.73.2"
 cc = "1.10.0"
-comfy-table = { version = "8.0.1", default-features = false }
 criterion = { package = "codspeed-criterion-compat", version = "6.0.0" }
 float-cmp = "0.10.0"
 indicatif = "0.18"

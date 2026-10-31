@@ -3,6 +3,9 @@ channels = ["https://prefix.dev/glatzel", "conda-forge"]
 name = "fornax"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
+[tasks]
+compare-demosaic = "cargo run --release -p compare-demosaic"
+
 [feature.dev.dependencies]
 libraw-dev = "==0.22.3"
 
@@ -44,8 +47,7 @@ default = []
 dev = {
   features = ["dev"],
   tasks = {
-    pipeline = "cargo run --example pipeline",
-    compare-demosaic = "cargo run -p compare-demosaic"
+    pipeline = "cargo run --example pipeline"
   }
 }
 python = ["dev", "python"]

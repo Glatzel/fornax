@@ -5,11 +5,7 @@ edition.workspace = true
 build = "build.rs"
 publish = false
 
-[features]
-render-readme = ["dep:comfy-table"]
-
 [dependencies]
-comfy-table = { workspace = true, optional = true }
 fornax-core.workspace = true
 fornax-decoder-rawler.workspace = true
 fornax-postprocessor.workspace = true
@@ -21,12 +17,8 @@ serde.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
+fornax-devtool.workspace = true
 rstest.workspace = true
-
-[[bin]]
-name = "render-readme"
-path = "src/bin/render_readme.rs"
-required-features = ["render-readme"]
 
 [build-dependencies]
 cc.workspace = true

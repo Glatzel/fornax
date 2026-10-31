@@ -30,28 +30,31 @@ pub enum ProgressEvent {
 
 pub fn compare(
     case: &'static Case,
-    codes: &[u16],
-    width: u32,
-    height: u32,
-    pattern: BayerPattern,
+    input: &data::Input,
     sample_type: SampleType,
 ) -> mischief::Result<Row> {
     let reference = ffi::run(
         case.reference_backend,
         case.algorithm,
-        codes,
-        width,
-        height,
-        ffi::libraw_filters(pattern),
+        &input.codes,
+        input.width,
+        input.height,
+        ffi::libraw_filters(input.pattern),
     )?;
-    let actual = (case.run_fornax)(codes, width, height, pattern, sample_type)?;
-    let metrics = metrics::calculate(&actual, &reference, width, height, case.border)?;
+    let actual = (case.run_fornax)(
+        &input.codes,
+        input.width,
+        input.height,
+        input.pattern,
+        sample_type,
+    )?;
+    let metrics = metrics::calculate(&actual, &reference, input.width, input.height, case.border)?;
     let verdict = metrics.verdict(case.tolerance);
     Ok(Row {
         case: case.name,
         reference: case.reference_backend.library(),
         source_url: case.source_url,
-        pattern,
+        pattern: input.pattern,
         border: case.border,
         tolerance: case.tolerance,
         metrics,
@@ -69,14 +72,7 @@ pub fn canonical_rows(
             algorithm: case.name,
             reference: case.reference_backend.library(),
         });
-        rows.push(compare(
-            case,
-            &input.codes,
-            input.width,
-            input.height,
-            input.pattern,
-            SampleType::F32,
-        )?);
+        rows.push(compare(case, input, SampleType::F32)?);
         progress(ProgressEvent::Finished);
     }
     Ok(rows)

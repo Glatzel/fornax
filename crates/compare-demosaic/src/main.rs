@@ -1,37 +1,29 @@
 use std::path::PathBuf;
 
-use compare_demosaic::results::{ComparisonResults, DEFAULT_RESULTS_FILE};
-use compare_demosaic::{ALGORITHM_COUNT, ProgressEvent};
+use compare_demosaic::results::{
+    CANONICAL_RESULTS_FILE, ComparisonResults, DEFAULT_RESULTS_DIR, SUMMARY_RESULTS_FILE,
+};
+use compare_demosaic::{ALGORITHM_COUNT, ProgressEvent, data};
 use indicatif::{ProgressBar, ProgressStyle};
 
 fn main() -> mischief::Result<()> {
-    ensure_no_arguments(std::env::args().skip(1))?;
-    write_results()
-}
+    let input = data::canonical()?;
+    let progress = progress_bar(ALGORITHM_COUNT)?;
+    let results = ComparisonResults::build(input, |event| report_progress(&progress, event))?;
 
-fn ensure_no_arguments(arguments: impl IntoIterator<Item = String>) -> mischief::Result<()> {
-    if arguments.into_iter().next().is_some() {
-        return Err(mischief::mischief!(
-            "usage: compare-demosaic (writes results/canonical.json)"
-        ));
-    }
-    Ok(())
-}
-
-fn write_results() -> mischief::Result<()> {
-    let progress = progress_bar()?;
-    let results =
-        ComparisonResults::canonical_with_progress(|event| report_progress(&progress, event))?;
-
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(DEFAULT_RESULTS_FILE);
-    results.write(&path)?;
+    let results_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(DEFAULT_RESULTS_DIR);
+    let canonical_path = results_dir.join(CANONICAL_RESULTS_FILE);
+    let summary_path = results_dir.join(SUMMARY_RESULTS_FILE);
+    results.write(&canonical_path)?;
+    results.summary().write(&summary_path)?;
     progress.finish_with_message("comparison complete");
-    println!("wrote {}", path.display());
+    println!("wrote {}", canonical_path.display());
+    println!("wrote {}", summary_path.display());
     Ok(())
 }
 
-fn progress_bar() -> mischief::Result<ProgressBar> {
-    let progress = ProgressBar::new(ALGORITHM_COUNT as u64);
+fn progress_bar(total: usize) -> mischief::Result<ProgressBar> {
+    let progress = ProgressBar::new(total as u64);
     progress.set_style(
         ProgressStyle::with_template("{elapsed_precise} [{bar:40.cyan/blue}] {pos}/{len} {msg}")
             .map_err(|error| mischief::mischief!("invalid progress template: {error}"))?
@@ -55,21 +47,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn command_accepts_no_options() {
-        ensure_no_arguments(Vec::<String>::new()).expect("no arguments are valid");
-        for removed_option in ["--stdout", "--output"] {
-            let error = ensure_no_arguments([removed_option.to_owned()])
-                .expect_err("comparison command options are unsupported");
-            assert!(error.to_string().contains("results/canonical.json"));
-        }
-    }
-
-    #[test]
-    fn progress_tracks_total_case_and_completion() -> mischief::Result<()> {
-        let progress = progress_bar()?;
+    fn progress_tracks_algorithm_and_completion() -> mischief::Result<()> {
+        let progress = progress_bar(3)?;
         progress.set_draw_target(indicatif::ProgressDrawTarget::hidden());
-        assert_eq!(progress.length(), Some(ALGORITHM_COUNT as u64));
-        assert_eq!(progress.position(), 0);
+        assert_eq!(progress.length(), Some(3));
 
         report_progress(
             &progress,
