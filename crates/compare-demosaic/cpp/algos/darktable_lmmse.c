@@ -77,8 +77,8 @@ static inline float median9f(const float* pixels) {
     return MIN(p2, p4);
 }
 
-#include "external/darktable/src/iop/demosaicing/ppg.c"
 #include "external/darktable/src/iop/demosaicing/lmmse.c"
+#include "external/darktable/src/iop/demosaicing/ppg.c"
 
 int32_t
 run_darktable_lmmse(const uint16_t* mosaic, uint32_t width, uint32_t height, uint32_t filters, uint16_t* output) {
