@@ -8,3 +8,6 @@
 #define COMPARE_DEMOSAIC_STATUS_OUT_OF_MEMORY 5
 #define COMPARE_DEMOSAIC_STATUS_EXCEPTION 6
 #define COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM 7
+#if defined(_MSC_VER) && !defined(__clang__)
+#define __builtin_expect(x, y) (x)
+#endif
