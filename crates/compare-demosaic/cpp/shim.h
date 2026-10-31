@@ -9,7 +9,7 @@
 #define __builtin_expect(x, y) (x)
 #endif
 #define COMPARE_DEMOSAIC_REFERENCE_LIBRAW 0
-
+#define COMPARE_DEMOSAIC_REFERENCE_DARKTABLE 1
 class ReferenceDemosaicer final : public LibRaw {
   public:
     std::int32_t prepare(const std::uint16_t* mosaic, std::uint32_t width, std::uint32_t height, std::uint32_t filters);

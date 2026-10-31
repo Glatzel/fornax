@@ -71,8 +71,7 @@ fn main() {
     darktable_rcd
         .warnings(true)
         .include(&workspace_root)
-        .flag_if_supported("-std=c17") // MSVC
-        .flag_if_supported("/std:c++17") // gcc/clang
+
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-parameter")
         .file(manifest_dir.join("cpp/algos/darktable_rcd.c"));
@@ -82,8 +81,6 @@ fn main() {
     darktable_vng
         .warnings(true)
         .include(&workspace_root)
-        .flag_if_supported("-std=c17") // MSVC
-        .flag_if_supported("/std:c++17") // gcc/clang
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-parameter")
         .file(manifest_dir.join("cpp/algos/darktable_vng.c"));
@@ -95,8 +92,6 @@ fn main() {
         .warnings(true)
         .include(manifest_dir.join("cpp/algos/stubs"))
         .include(&workspace_root)
-        .flag_if_supported("-std=c17") // MSVC
-        .flag_if_supported("/std:c++17") // gcc/clang
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-parameter")
         .file(manifest_dir.join("cpp/algos/darktable_amaze.cc"));
@@ -106,8 +101,6 @@ fn main() {
     darktable_lmmse
         .warnings(true)
         .include(&workspace_root)
-        .flag_if_supported("-std=c17") // MSVC
-        .flag_if_supported("/std:c++17") // gcc/clang
         .flag_if_supported("-Wno-unused-function")
         .flag_if_supported("-Wno-unused-parameter")
         .file(manifest_dir.join("cpp/algos/darktable_lmmse.c"));

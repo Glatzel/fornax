@@ -15,9 +15,6 @@
 #define LIM(x, min, max) MAX(min, MIN(x, max))
 #define ULIM(x, y, z) ((y) < (z) ? LIM(x, y, z) : LIM(x, z, y))
 #define FC(row, col, filters) ((filters >> (((((row) << 1) & 14U) + ((col) & 1U)) * 2U)) & 3U)
-#if defined(_MSC_VER) && !defined(__clang__)
-#define __builtin_expect(x, y) (x)
-#endif
 static inline float sqrf(float value) { return value * value; }
 static inline float interpolatef(float weight, float first, float second) {
     return weight * (first - second) + second;

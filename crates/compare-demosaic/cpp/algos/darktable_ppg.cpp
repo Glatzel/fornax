@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "external/darktable/src/iop/demosaicing/ppg.c"
-#define COMPARE_DEMOSAIC_REFERENCE_DARKTABLE 1
 #if defined(_MSC_VER) && !defined(__clang__)
 #define __builtin_expect(x, y) (x)
 #endif
