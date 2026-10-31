@@ -67,7 +67,7 @@ pub fn shard_timings_path(shard_path: &Path) -> PathBuf {
     shard_path.with_file_name(format!("{name}.timings.json"))
 }
 
-pub fn peak_rss_mb() -> u64 {
+pub const fn peak_rss_mb() -> u64 {
     #[cfg(target_os = "linux")]
     {
         let status = std::fs::read_to_string("/proc/self/status").unwrap_or_default();

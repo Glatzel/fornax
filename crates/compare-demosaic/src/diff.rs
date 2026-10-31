@@ -140,15 +140,15 @@ pub fn compare(
             .cmp(&change_order(right.kind))
             .then_with(|| left.key.cmp(&right.key))
     });
-    let exit_code = if !stable_differences.is_empty() {
-        2
-    } else {
+    let exit_code = if stable_differences.is_empty() {
         match fail_on {
             FailOn::Never => 0,
             FailOn::Regression if regressions > 0 => 1,
             FailOn::Any if !changes.is_empty() => 1,
             FailOn::Regression | FailOn::Any => 0,
         }
+    } else {
+        2
     };
     Ok(DiffReport {
         stable_metadata_matches: stable_differences.is_empty(),
