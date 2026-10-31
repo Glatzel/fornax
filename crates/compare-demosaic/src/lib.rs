@@ -1,10 +1,10 @@
-mod case;
-mod cases;
+pub mod case;
+pub mod cases;
 pub mod check;
-mod data;
+pub mod data;
 pub mod error;
-mod ffi;
-mod metrics;
+pub mod ffi;
+pub mod metrics;
 pub mod registry;
 pub mod report;
 pub mod results_md;
