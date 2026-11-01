@@ -32,8 +32,8 @@ jobs:
     steps:
       - parallel:
           - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
-      - uses: Glatzel/template/.github/actions/rust/cargo-doc@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+          - uses: Glatzel/template/.github/actions/rust/setup-rust@abc2dfda04597e174777b47175ff07a1b8000784 # v2026.11.1
+      - uses: Glatzel/template/.github/actions/rust/cargo-doc@abc2dfda04597e174777b47175ff07a1b8000784 # v2026.11.1
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -64,14 +64,14 @@ jobs:
       - if: ${{runner.os != 'Linux'}}
         run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
         shell: pwsh
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@abc2dfda04597e174777b47175ff07a1b8000784 # v2026.11.1
         with:
           toolchain: nightly
           components: clippy
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@abc2dfda04597e174777b47175ff07a1b8000784 # v2026.11.1
         env:
           GH_TOKEN: ${{ github.token }}
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@abc2dfda04597e174777b47175ff07a1b8000784 # v2026.11.1
         if: ${{!cancelled()}}
         with:
           global-options: ${{ matrix.test-options }}
@@ -84,7 +84,7 @@ jobs:
       # - uses: Glatzel/template/.github/actions/python/pytest@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
       #   with:
       #     working-directory: ./crates/fornax-py
-      - uses: Glatzel/template/.github/actions/common/codecov@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+      - uses: Glatzel/template/.github/actions/common/codecov@abc2dfda04597e174777b47175ff07a1b8000784 # v2026.11.1
         if: ${{ !cancelled() }}
 
   benchmark:
@@ -128,9 +128,9 @@ jobs:
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           files: ${{ matrix.paths }}
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@abc2dfda04597e174777b47175ff07a1b8000784 # v2026.11.1
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@abc2dfda04597e174777b47175ff07a1b8000784 # v2026.11.1
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
         with:
           options: -p ${{ matrix.package }}
