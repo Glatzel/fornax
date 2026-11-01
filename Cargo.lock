@@ -626,6 +626,7 @@ dependencies = [
  "fornax-devtool",
  "fornax-postprocessor",
  "fornax-preprocessor",
+ "hex",
  "image 0.25.9",
  "insta",
  "libraw-sys",
