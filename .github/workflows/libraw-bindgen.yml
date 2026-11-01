@@ -47,4 +47,3 @@ jobs:
           git pull --rebase origin ${{ github.ref_name }}
           git push
         shell: bash
-

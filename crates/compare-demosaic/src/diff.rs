@@ -329,12 +329,10 @@ fn push_float(changes: &mut Vec<FieldChange>, field: &str, before: f64, after: f
     }
 }
 
-fn push_integer<T>(
-    changes: &mut Vec<FieldChange>,
-    field: &str,
-    before: T,
-    after: T,
-) where T: PartialEq + ToString {
+fn push_integer<T>(changes: &mut Vec<FieldChange>, field: &str, before: T, after: T)
+where
+    T: PartialEq + ToString,
+{
     if before != after {
         changes.push(FieldChange {
             field: field.to_owned(),
