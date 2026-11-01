@@ -1,158 +1,83 @@
-# Agent Instructions — fornax
+# Agent instructions — fornax
 
-`TODO.md` is the authoritative backlog and completion record. Read it before
-selecting implementation work. Repository-wide agent instructions live in this
-root file. The comparison-specific investigation guide is
-[`crates/compare-demosaic/AGENTS.md`](crates/compare-demosaic/AGENTS.md).
+## Overview
 
-Use `main` as the integration base for every new task and bug-fix branch.
+Fornax is a Rust workspace for decoding RAW images, normalizing Bayer mosaics,
+and reconstructing RGB output through separate pipeline stages. When
+instructions conflict, the user's explicit request wins. Otherwise, the
+`AGENTS.md` closest to the files being changed wins over this root file.
 
-## Task work
+## Project map
 
-The user selects work by its bracketed ID in `TODO.md`, for example `[VNG]`.
-Each selected TODO item maps to exactly one branch, one worktree, and one pull
-request:
+Read [docs/architecture.md](docs/architecture.md) for crate roles, interfaces,
+and pipeline data flow. These invariants always apply:
 
-1. Fetch `origin` and create a branch and worktree from the current integration
-   base:
+- Keep decoding, preprocessing, and demosaicing as separate stages.
+- The active demosaic target is conventional 2x2 RGB Bayer input. Do not claim
+  support for X-Trans, four-color, monochrome, or other CFA layouts.
 
-   ```bash
-   git fetch origin
-   git worktree add -b "task/<lowercase-id>-<slug>" \
-     ".worktrees/<lowercase-id>-<slug>" origin/<integration-base>
-   ```
+## Choosing work
 
-   Use a short lowercase kebab-case slug derived from the item and substitute
-   the current integration base from the rule above.
-2. Implement only the selected TODO item and its required tests or
-   documentation.
-3. Remove that item from `TODO.md` in the same branch and pull request. The
-   removal means the task is complete in that pull request.
-4. Run the relevant validation commands and record the actual results.
-5. Commit, push, and open one semantic pull request targeting the current
-   integration base. Include the task ID in the pull request body.
-6. Report the pull request URL and stop. Do not watch, poll, merge, or close
-   the pull request.
+Read `TODO.md`, the human-owned backlog and completion record, before selecting
+a bracketed task ID. Branch every request from the current `origin/main`. One
+request maps to one branch, one worktree, and one pull request.
 
-Keep the TODO item when work is incomplete or blocked. Do not mark completion
-in another file. Do not recreate per-task manifests, `STATUS.md`,
-`agent-work/AGENTS.md`, design gates, or checkpoint trees; those are obsolete
-workflow artifacts.
+| Request | Branch | Worktree | Pull request requirements |
+| --- | --- | --- | --- |
+| `TODO.md` item selected by bracketed ID | `task/<lowercase-id>-<slug>` | `.worktrees/<lowercase-id>-<slug>` | Include the task ID and remove the item from `TODO.md` in the same pull request. Keep the item if work is incomplete or blocked. |
+| GitHub issue number supplied by the user | `fix/<number>-<slug>` | `.worktrees/fix-<number>-<slug>` | Read only that issue with `gh issue view <number>`, add regression coverage, and include `Fixes #<number>` in the body. |
+| Explicit request not in `TODO.md` | `chore/<slug>` | `.worktrees/chore-<slug>` | Leave `TODO.md` untouched unless the request names an item. |
 
-## Maintenance work
+Use a short lowercase kebab-case slug.
+Modify `TODO.md` only for a completed selected task, or when the request names an item.
 
-When the user explicitly requests work that is not represented by a TODO item,
-use one `chore/<slug>` branch and worktree created from the current integration
-base, and open one semantic pull request. Do not change `TODO.md` unless the
-request explicitly names a TODO item.
+## Workflow
 
-## Bug work
-
-The user reports bugs through GitHub issues and supplies the issue number.
-Handle only the named issue:
-
-1. Read the issue with `gh issue view <number>`.
-2. Fetch `origin` and create a branch and worktree for that issue:
-
-   ```bash
-   git fetch origin
-   git worktree add -b "fix/<number>-<slug>" \
-     ".worktrees/fix-<number>-<slug>" origin/<integration-base>
-   ```
-
-3. Implement the fix, add regression coverage, and validate the affected
-   surface.
-4. Open one semantic pull request targeting the current integration base and
-   include `Fixes #<number>` in its body.
-5. Report the pull request URL and stop. Do not watch, poll, merge, manually
-   close the issue, or close the pull request.
-
-A bug-fix pull request addresses one issue. Do not change `TODO.md` for issue
-work unless the user explicitly identifies a TODO item in the request.
-
-## Shared workspace
-
-`agent-work/` is an ignored local workspace for temporary or persistent files
-that agents need to exchange between tasks. It is not task state, task
-instructions, or completion records.
-
-The hidden `.agents/` directory is read-only. Do not add files to it.
-
-## Project boundaries
-
-Fornax is a Rust workspace using edition 2024. Keep decoding, preprocessing,
-and demosaicing as separate stages. The active demosaic target is conventional
-2x2 RGB Bayer input; do not silently claim support for X-Trans, four-color,
-monochrome, or other CFA layouts.
-
-Do not copy or reintroduce the `refactor/raw-pipeline-v2` research, design,
-task-manifest, status, or checkpoint files. Refer to that branch only when
-directed by the task.
-
-## Accepted outliers (⚖️)
-
-⚖️ means: every limit passes, high-error outliers remain, and a person reviewed
-and accepted them. It is never derived from the numbers alone.
-
-- Accepted outliers are declared in the waiver table in `waivers.rs`: algorithm,
-  reference, optional pattern and input, bounds (`max_count_gt1024`, `max_error`),
-  reason (the mechanism), and evidence (how it was verified).
-- Only rows that pass every limit can be waived. A failing row must be fixed or
-  the test input corrected; never waive a failure.
-- Bounds equal the reviewed values. If a row gets worse, the symbol falls back to
-  `⚠️` and `readme` exits 1 until someone decides again.
-- Remove a waiver as soon as it is unused; `readme` reports unused waivers.
-- Never add a waiver without evidence. Write what you checked, not just "looks
-  fine".
-
-### Adding a demosaic comparison
-
-Keep reference comparison cases table-driven:
-
-1. Add `cpp/algos/<library>_<algorithm>.{c,cpp}` for the reference routine, or
-   adapt a pinned external source without copying it into the comparison crate.
-2. Add its reference backend and stable algorithm ID to `cpp/shim.cpp`.
-3. Add a `Case` and Fornax runner under `crates/compare-demosaic/src/cases/`.
-4. Register the case in `CASES`.
-5. Run the new algorithm with
-   `cargo run --release -p compare-demosaic -- --algorithm <id>`.
-6. Run and review the comparison snapshot with `cargo insta test -p
-   compare-demosaic`, accepting intended changes with `cargo insta accept`.
-7. Follow [the comparison agent guide](crates/compare-demosaic/AGENTS.md), and
-   update the hand-written README notes when the algorithm needs explanation.
-8. Run with `--update`, review `git diff`, then commit the snapshot, baseline,
-   and generated `RESULTS.md`.
-
-Reference routines and headers come from the repository-managed `libraw-dev`
-Pixi package. The comparison crate does not compile LibRaw from the external
-checkout. darktable comparison code comes from the pinned `5.6.2` release. Use
-`scripts/setup.sh` on Linux/macOS or `scripts/setup.ps1` on Windows. The
-platform setup scripts use `gh api` to materialize only the required source
-files instead of initializing the full darktable tree.
-
-## CLI quick reference
+Fetch and create the worktree from `origin/main`:
 
 ```bash
-cargo run --release -p compare-demosaic
-cargo run --release -p compare-demosaic -- --algorithm ahd
-cargo run --release -p compare-demosaic -- --check
-cargo run --release -p compare-demosaic -- --update
+git fetch origin
+git worktree add -b "<branch>" ".worktrees/<worktree>" origin/main
 ```
 
-The default run writes `target/compare-demosaic/canonical.json`. `--check`
-exits 1 on a regression, missing row, new row, or metadata mismatch.
-`--update` overwrites the baseline and `RESULTS.md`; review the diff before
-committing it.
+Implement only the requested change and its required tests or documentation.
+Run validation, then inspect the diff before committing:
 
-Exit codes are `0` for success, `1` for a regression, and `2` for any other
-error.
+```bash
+git add <paths>
+git commit -m "<type>: <summary>"
+git push -u origin HEAD
+gh pr create --base main --title "<type>: <summary>" --body "<body>"
+```
 
-Workflow: `Compare demosaic` is one job that runs the tests and `--check`, then
-uploads `target/compare-demosaic` even on failure.
+Open one semantic pull request and report its URL. Put the task ID, issue
+reference, or maintenance summary in the body as applicable.
+
+## Plans
+
+Write a plan only for non-trivial work: several files or crates, a design
+decision, or more than a short session. Small items go straight to
+implementation.
+
+Store plans under `docs/plans/` using the branch ID and slug:
+
+- Task: `docs/plans/<lowercase-id>-<slug>.md`
+- Issue: `docs/plans/fix-<number>-<slug>.md`
+- Chore: `docs/plans/chore-<slug>.md`
+
+Commit the plan in the same pull request. Update its progress and record
+decisions while the work proceeds; stop treating it as authoritative once the
+pull request merges.
+
+Every plan must contain Goal, Scope (in and out), Task checklist, Files
+expected to change, Validation, and Decisions and notes. Derive the detailed
+checklist from the selected `TODO.md` item and the code without expanding
+`TODO.md`. Make the plan self-contained: a reader with only the working tree
+and that file must be able to carry out the work.
 
 ## Validation
 
-For Rust changes, run the applicable commands from the repository root:
+For Rust changes, run from the repository root:
 
 ```bash
 cargo test --workspace --all-features
@@ -160,13 +85,36 @@ cargo fmt --check
 cargo clippy --workspace --all-features --all-targets -- -D warnings
 ```
 
-Run relevant examples, benchmarks, or task-specific tests as well. For
-documentation-only changes, run `git diff --check` and any relevant Markdown
-checks. Report failures and skipped checks explicitly; do not describe an
-unverified check as passing.
+Also run task-specific tests, benchmarks, or examples. For documentation-only
+changes, run `git diff --check` and the repository-configured Markdown lint on
+the changed Markdown. Record commands and outcomes in the pull request. Report
+failures and skipped checks explicitly; never describe an unrun check as
+passing.
 
 ## Pull request handoff
 
-Use a title accepted by `.github/semantic.yml`. If the user requests changes,
-update the same branch and pull request. Only the user merges or abandons a
-pull request; the agent stops after reporting it.
+Titles must satisfy `.github/semantic.yml`; for example, use
+`docs: rewrite agent guidance`. Put requested changes on the same branch and
+pull request. Do not watch, poll, merge, or manually close a pull request or
+linked issue. Only the user merges or abandons a pull request.
+
+## Boundaries
+
+- Project skills live in `.agents/skills/`. Add or improve them by pull
+  request. Skills installed by pixi are managed by pixi; never edit them by
+  hand.
+- `agent-work/` is ignored scratch space. Never use it for task state,
+  instructions, or plans.
+- Do not add items to `TODO.md`; propose them in the report or pull request
+  description.
+- Keep the repository root clean: the only agent-related root files are
+  `AGENTS.md` and `TODO.md`. Do not add tool-specific instruction files for a
+  particular coding agent.
+
+## Where to look next
+
+- Architecture and pipeline boundaries: [docs/architecture.md](docs/architecture.md)
+- Per-work plans: [docs/plans/](docs/plans/)
+- Comparison-crate rules:
+  [crates/compare-demosaic/AGENTS.md](crates/compare-demosaic/AGENTS.md)
+- Project procedures: [.agents/skills/](.agents/skills/)
