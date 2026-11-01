@@ -1,103 +1,199 @@
 use std::io::Write;
-use std::process::ExitCode;
+use std::path::PathBuf;
 
-use clap::{Parser, ValueEnum};
-use compare_demosaic::check;
-use compare_demosaic::report::BASELINE_FILE;
-use compare_demosaic::run::{self, RunRequest};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
+use compare_demosaic::report::{self, Report};
+use compare_demosaic::run::{self, RunOutput, RunRequest};
+use compare_demosaic::{diff, readme};
+use fornax_core::BayerPattern;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
-enum AlgorithmArg {
-    Aahd,
-    Ahd,
-    Amaze,
-    Dcb,
-    Dht,
-    Linear,
-    Lmmse,
-    Ppg,
-    Rcd,
-    Vng,
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum PatternArg {
+    #[value(name = "RGGB")]
+    Rggb,
+    #[value(name = "BGGR")]
+    Bggr,
+    #[value(name = "GRBG")]
+    Grbg,
+    #[value(name = "GBRG")]
+    Gbrg,
 }
 
-impl AlgorithmArg {
-    const fn name(self) -> &'static str {
-        match self {
-            Self::Aahd => "AAHD",
-            Self::Ahd => "AHD",
-            Self::Amaze => "AMaZE",
-            Self::Dcb => "DCB",
-            Self::Dht => "DHT",
-            Self::Linear => "Linear",
-            Self::Lmmse => "LMMSE",
-            Self::Ppg => "PPG",
-            Self::Rcd => "RCD",
-            Self::Vng => "VNG",
+impl From<PatternArg> for BayerPattern {
+    fn from(pattern: PatternArg) -> Self {
+        match pattern {
+            PatternArg::Rggb => Self::RGGB,
+            PatternArg::Bggr => Self::BGGR,
+            PatternArg::Grbg => Self::GRBG,
+            PatternArg::Gbrg => Self::GBRG,
         }
     }
+}
+
+#[derive(Clone, Copy, Debug, Default, ValueEnum)]
+enum OutputFormat {
+    #[default]
+    Text,
+    Json,
+}
+
+#[derive(Debug, Subcommand)]
+enum Command {
+    /// Compute comparison rows and write canonical or shard JSON.
+    Run(RunArgs),
+    /// Compare a baseline JSON document with a new run.
+    Diff(DiffArgs),
+    /// Generate or verify the README regions and notes.
+    Readme(ReadmeArgs),
+}
+
+#[derive(Debug, clap::Args)]
+struct RunArgs {
+    /// Restrict rows to an algorithm; repeat for more than one.
+    #[arg(long)]
+    algorithm: Vec<String>,
+    /// Restrict rows to a reference; repeat for more than one.
+    #[arg(long)]
+    reference: Vec<String>,
+    /// Restrict rows to a Bayer pattern; repeat for more than one.
+    #[arg(long, value_enum, ignore_case = true)]
+    pattern: Vec<PatternArg>,
+    /// Use a RAW input; repeat for more than one. Defaults to the devtool
+    /// fixture.
+    #[arg(long)]
+    input: Vec<PathBuf>,
+    /// Directory for canonical JSON and artifacts.
+    #[arg(long, default_value = "target/compare-demosaic")]
+    out: PathBuf,
+    /// Write <name>.shard.json instead of canonical.json.
+    #[arg(long)]
+    shard: Option<String>,
+    /// Write a log-scaled error map and high-error tile summary for every row.
+    #[arg(long)]
+    artifacts: bool,
+    /// Border width excluded from interior statistics.
+    #[arg(long, default_value_t = report::BORDER_PX)]
+    border_px: u32,
+    /// Number of rows computed in parallel.
+    #[arg(long, default_value_t = run::default_jobs())]
+    jobs: usize,
+    /// Output format written to stdout.
+    #[arg(long, value_enum, default_value_t)]
+    format: OutputFormat,
+}
+
+#[derive(Debug, clap::Args)]
+struct DiffArgs {
+    /// Accepted baseline JSON. It must be a full run.
+    baseline: PathBuf,
+    /// New run JSON. A partial run compares only its selected rows.
+    new: PathBuf,
+    /// Ignore numeric-only changes when choosing the exit code.
+    #[arg(long)]
+    verdict_only: bool,
+    /// Output format written to stdout.
+    #[arg(long, value_enum, default_value_t)]
+    format: OutputFormat,
+}
+
+#[derive(Debug, clap::Args)]
+struct ReadmeArgs {
+    /// Fail instead of updating when the README is out of date.
+    #[arg(long)]
+    check: bool,
+    /// Read a different full JSON report instead of the committed baseline.
+    #[arg(long)]
+    from: Option<PathBuf>,
 }
 
 #[derive(Debug, Parser)]
 #[command(
     version,
-    about = "Compare Fornax demosaic implementations with reference implementations"
+    about = "Compare Fornax demosaic implementations with LibRaw and darktable"
 )]
 struct Args {
-    /// Restrict the comparison to an algorithm; repeat for multiple algorithms.
-    #[arg(long, value_enum, ignore_case = true)]
-    algorithm: Vec<AlgorithmArg>,
-
-    /// Compare the run with the committed baseline.
-    #[arg(long, conflicts_with = "update")]
-    check: bool,
-
-    /// Replace the committed baseline and RESULTS.md with this run.
-    #[arg(long, conflicts_with_all = ["algorithm", "check"])]
-    update: bool,
+    #[command(subcommand)]
+    command: Command,
 }
 
-fn main() -> ExitCode {
-    match run_cli(Args::parse()) {
-        Ok(code) => ExitCode::from(code),
+fn main() {
+    match run() {
+        Ok(0) => {}
+        Ok(code) => std::process::exit(code),
         Err(error) => {
-            let _ = writeln!(std::io::stderr().lock(), "error: {error}");
-            ExitCode::from(2)
+            eprintln!("error: {error}");
+            std::process::exit(2);
         }
     }
 }
 
-fn run_cli(args: Args) -> mischief::Result<u8> {
-    let algorithm_names = args
-        .algorithm
-        .iter()
-        .map(|algorithm| algorithm.name().to_owned())
-        .collect::<Vec<_>>();
+fn run() -> mischief::Result<i32> {
+    match Args::parse().command {
+        Command::Run(arguments) => run_command(arguments),
+        Command::Diff(arguments) => diff_command(arguments),
+        Command::Readme(arguments) => readme_command(arguments),
+    }
+}
+
+fn run_command(arguments: RunArgs) -> mischief::Result<i32> {
     let request = RunRequest {
-        algorithms: algorithm_names.clone(),
-        input: None,
-        border_px: 16,
+        algorithms: arguments.algorithm,
+        references: arguments.reference,
+        patterns: arguments
+            .pattern
+            .into_iter()
+            .map(BayerPattern::from)
+            .collect(),
+        inputs: arguments.input,
+        out: arguments.out,
+        shard: arguments.shard,
+        artifacts: arguments.artifacts,
+        border_px: arguments.border_px,
+        jobs: arguments.jobs,
     };
     let output = run::execute(&request)?;
-    if args.update {
-        output.report.write_baseline()?;
-        compare_demosaic::results_md::write(&output.report)?;
-        writeln!(std::io::stderr().lock(), "updated baseline")?;
-    } else if args.check {
-        let baseline = run::repo_path(BASELINE_FILE);
-        let report = check::check_file(&baseline, &output.report, &algorithm_names)?;
-        report.append_github_summary()?;
-        std::io::stdout()
-            .lock()
-            .write_all(report.render_text().as_bytes())?;
-        return Ok(report.exit_code());
+    match arguments.format {
+        OutputFormat::Text => print!("{}", run::render_text(&output)),
+        OutputFormat::Json => print_document(&output)?,
     }
-    writeln!(
-        std::io::stderr().lock(),
-        "wrote {} ({} rows)",
-        output.path.display(),
-        output.report.rows.len()
-    )?;
     Ok(0)
+}
+
+fn diff_command(arguments: DiffArgs) -> mischief::Result<i32> {
+    let baseline = Report::read(&arguments.baseline)?;
+    let new = Report::read(&arguments.new)?;
+    let report = diff::compare(&baseline, &new, arguments.verdict_only)?;
+    report.append_github_summary()?;
+    match arguments.format {
+        OutputFormat::Text => print!("{}", report.render_text()),
+        OutputFormat::Json => {
+            let json = serde_json::to_string_pretty(&report)
+                .map_err(|error| mischief::mischief!("cannot serialize diff: {error}"))?;
+            println!("{json}");
+        }
+    }
+    Ok(i32::from(report.exit_code()))
+}
+
+fn readme_command(arguments: ReadmeArgs) -> mischief::Result<i32> {
+    let source = arguments.from.unwrap_or_else(report::baseline_path);
+    let report = readme::load(&source)?;
+    let usage = readme::render_clap_usage(&Args::command());
+    if arguments.check {
+        let result = readme::check(&report, &usage, None)?;
+        print!("{}", result.render());
+        Ok(i32::from(result.exit_code()))
+    } else {
+        readme::write(&report, &usage, None)?;
+        println!("README written");
+        Ok(0)
+    }
+}
+
+fn print_document(output: &RunOutput) -> mischief::Result<()> {
+    let document = std::fs::read(&output.path)?;
+    std::io::stdout().write_all(&document)?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -105,20 +201,51 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parses_repeatable_algorithm_filters() {
-        let args = Args::try_parse_from([
-            "compare-demosaic",
-            "--algorithm",
-            "ahd",
-            "--algorithm",
-            "AmAzE",
-        ])
-        .expect("valid filters");
-        assert_eq!(args.algorithm, vec![AlgorithmArg::Ahd, AlgorithmArg::Amaze]);
+    fn exposes_only_run_diff_and_readme() {
+        let command = Args::command();
+        let names = command
+            .get_subcommands()
+            .map(clap::Command::get_name)
+            .collect::<Vec<_>>();
+        assert_eq!(names, ["run", "diff", "readme"]);
     }
 
     #[test]
-    fn check_and_update_are_mutually_exclusive() {
-        assert!(Args::try_parse_from(["compare-demosaic", "--check", "--update"]).is_err());
+    fn run_options_are_repeatable_and_case_insensitive() {
+        let args = Args::try_parse_from([
+            "compare-demosaic",
+            "run",
+            "--algorithm",
+            "ahd",
+            "--algorithm",
+            "rcd",
+            "--reference",
+            "LibRaw",
+            "--pattern",
+            "rGgB",
+            "--input",
+            "one.raw",
+            "--input",
+            "two.raw",
+            "--jobs",
+            "2",
+        ])
+        .expect("valid run");
+        let Command::Run(run) = args.command else {
+            panic!("expected run");
+        };
+        assert_eq!(run.algorithm, ["ahd", "rcd"]);
+        assert_eq!(run.reference, ["LibRaw"]);
+        assert_eq!(run.input.len(), 2);
+        assert_eq!(run.jobs, 2);
+    }
+
+    #[test]
+    fn committed_readme_matches_the_baseline_and_cli() -> mischief::Result<()> {
+        let report = readme::load(&report::baseline_path())?;
+        let usage = readme::render_clap_usage(&Args::command());
+        let result = readme::check(&report, &usage, None)?;
+        assert_eq!(result.exit_code(), 0, "{}", result.render());
+        Ok(())
     }
 }

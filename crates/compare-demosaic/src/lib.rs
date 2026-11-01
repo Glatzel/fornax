@@ -1,9 +1,10 @@
+pub mod artifacts;
 pub mod cases;
-pub mod check;
+pub mod diff;
 pub mod metrics;
+pub mod readme;
 pub mod reference;
 pub mod report;
-pub mod results_md;
 pub mod run;
 
 #[cfg(test)]
@@ -23,6 +24,7 @@ mod tests {
         let image = synthetic_mono_image::<f32>((128, 128), 65_535.0);
         crate::reference::ActiveArea {
             source: "fornax-devtool::synthetic_mono_image".to_owned(),
+            sha256: "00".repeat(32),
             width: 128,
             height: 128,
             codes: image
@@ -30,6 +32,10 @@ mod tests {
                 .iter()
                 .map(|sample| sample.round().clamp(0.0, 65_535.0) as u16)
                 .collect(),
+            black: vec![0.0; 4],
+            black_width: 2,
+            black_height: 2,
+            white: 65_535.0,
             native_pattern: BayerPattern::GBRG,
         }
     }
@@ -56,9 +62,14 @@ mod tests {
             .collect();
         crate::reference::ActiveArea {
             source: input.source.clone(),
+            sha256: input.sha256.clone(),
             width,
             height,
             codes,
+            black: input.black.clone(),
+            black_width: input.black_width,
+            black_height: input.black_height,
+            white: input.white,
             native_pattern: input.native_pattern,
         }
     }

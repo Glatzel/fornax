@@ -234,21 +234,68 @@ pub struct CaseRow {
 }
 
 pub fn selected_cases(algorithms: &[String]) -> Vec<CaseRow> {
-    let algorithms = algorithms
-        .iter()
-        .map(|algorithm| algorithm.to_ascii_lowercase())
-        .collect::<Vec<_>>();
+    selected_cases_filtered(algorithms, &[], &BayerPattern::ALL)
+}
+
+pub fn selected_cases_filtered(
+    algorithms: &[String],
+    references: &[String],
+    patterns: &[BayerPattern],
+) -> Vec<CaseRow> {
+    let algorithms = lowercase(algorithms);
+    let references = lowercase(references);
     CASES
         .iter()
         .filter(|case| {
             algorithms.is_empty() || algorithms.contains(&case.name.to_ascii_lowercase())
         })
+        .filter(|case| {
+            references.is_empty()
+                || references.contains(&case.reference_backend.library().to_ascii_lowercase())
+        })
         .flat_map(|case| {
-            BayerPattern::ALL
+            patterns
                 .iter()
                 .copied()
                 .map(move |pattern| CaseRow { case, pattern })
         })
+        .collect()
+}
+
+pub fn algorithm_names() -> Vec<&'static str> {
+    let mut names = CASES.iter().map(|case| case.name).collect::<Vec<_>>();
+    names.sort_unstable_by_key(|name| name.to_ascii_lowercase());
+    names.dedup_by(|left, right| left.eq_ignore_ascii_case(right));
+    names
+}
+
+pub fn reference_names() -> Vec<&'static str> { vec!["darktable", "libraw"] }
+
+pub fn case_for(algorithm: &str, reference: &str) -> Option<&'static Case> {
+    CASES.iter().find(|case| {
+        case.name.eq_ignore_ascii_case(algorithm)
+            && case
+                .reference_backend
+                .library()
+                .eq_ignore_ascii_case(reference)
+    })
+}
+
+pub fn display_name(algorithm: &str) -> &str {
+    CASES
+        .iter()
+        .find(|case| case.name.eq_ignore_ascii_case(algorithm))
+        .map_or(algorithm, |case| case.name)
+}
+
+pub fn source_url(algorithm: &str, reference: &str) -> Option<&'static str> {
+    case_for(algorithm, reference).map(|case| case.source_url)
+}
+
+fn lowercase(values: &[String]) -> Vec<String> {
+    values
+        .iter()
+        .map(|value| value.to_ascii_lowercase())
         .collect()
 }
 
