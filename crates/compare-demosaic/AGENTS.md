@@ -1,7 +1,8 @@
 # compare-demosaic: agent guide
 
 Compares Fornax demosaic output with LibRaw and darktable. The baseline JSON is
-the only source of truth for results.
+the only source of truth for results. Repository-wide workflow lives in the
+[root agent guide](../../AGENTS.md); this file covers only comparison work.
 
 ## Commands
 
@@ -16,6 +17,20 @@ compare-demosaic readme [--check] [--from FILE]
 Run with `cargo run --release -p compare-demosaic -- <subcommand> ...`.
 Exit codes: 0 ok, 1 differences or out of date, 2 error.
 
+Common commands from the repository root:
+
+```bash
+cargo run --release -p compare-demosaic -- run
+cargo run --release -p compare-demosaic -- run --algorithm ahd
+cargo run --release -p compare-demosaic -- readme --check
+cargo run --release -p compare-demosaic -- run --artifacts
+```
+
+A full `run` writes `target/compare-demosaic/canonical.json`. A full `diff`
+exits 1 for any difference, including a regression, missing or new row, or
+metadata mismatch. `--verdict-only` ignores numeric-only changes when choosing
+the exit code.
+
 ## Files
 
 - `baseline/canonical.json`: accepted results, one line per row. Never edit by
@@ -24,12 +39,24 @@ Exit codes: 0 ok, 1 differences or out of date, 2 error.
   markers, and note blocks. Never edit text between markers by hand.
 - `target/compare-demosaic/`: latest run (not committed). `--out` changes it.
 
+## Reference sources
+
+LibRaw 0.22.3 reference headers and routines come from the repository-managed
+`libraw-dev` Pixi package; do not compile LibRaw from the external checkout.
+darktable reference code is pinned to the `5.6.2` release. Run
+`scripts/setup.sh` on Linux/macOS or `scripts/setup.ps1` on Windows. The setup
+scripts use `gh api` to materialize only the required darktable source files.
+Keep the versions and commit URLs in `build.rs` and `src/cases.rs` synchronized
+with those sources.
+
 ## Investigating one algorithm or case
 
 ```bash
-compare-demosaic run --algorithm ahd --reference libraw --pattern RGGB \
+cargo run --release -p compare-demosaic -- run --algorithm ahd \
+  --reference libraw --pattern RGGB \
   --artifacts --out target/dbg
-compare-demosaic diff crates/compare-demosaic/baseline/canonical.json \
+cargo run --release -p compare-demosaic -- diff \
+  crates/compare-demosaic/baseline/canonical.json \
   target/dbg/canonical.json
 ```
 
@@ -50,6 +77,26 @@ Partial runs record `meta.selection`; they cannot be used as a baseline.
 - Artifacts:
   `<out>/artifacts/<input>/<algorithm>-<reference>-<pattern>-{error.png,tiles.json}`
 
+## Accepted outliers
+
+`⚖️` means every limit passes, high-error outliers remain, and a person
+reviewed and accepted them. It is never derived from the numbers alone.
+
+- Declare accepted outliers in the waiver table in `src/waivers.rs` with
+  algorithm, reference, optional pattern and input, `max_count_gt1024`,
+  `max_error`, mechanism, and evidence.
+- Waive only rows that pass every limit. Fix a failing row or correct its test
+  input; never waive a failure.
+- Use the reviewed values as exact bounds. If a row gets worse, the symbol
+  falls back to `⚠️` and `readme` exits 1 until someone reviews it again.
+- Remove a waiver as soon as it is unused; `readme` reports unused waivers.
+- Write what was checked as evidence, not merely that the result looks fine.
+
+## Adding a comparison
+
+Follow the
+[add-demosaic-comparison skill](../../.agents/skills/add-demosaic-comparison/SKILL.md).
+
 ## Failure investigation order
 
 1. Tail or whole image? Compare `p999`, `count_gt1024`, `max` with `mae`.
@@ -62,9 +109,9 @@ Partial runs record `meta.selection`; they cannot be used as a baseline.
 ## Updating the baseline
 
 ```bash
-run
+cargo run --release -p compare-demosaic -- run
 cp target/compare-demosaic/canonical.json crates/compare-demosaic/baseline/canonical.json
-readme
+cargo run --release -p compare-demosaic -- readme
 ```
 
 Review `git diff`, fill in any TODO notes, commit. If local numbers differ from
@@ -79,9 +126,10 @@ Reference functions by name, not path. Remove Open issues when fixed.
 
 ## CI
 
-One job: cargo test, `readme --check`, `run --artifacts`, diff against the
-baseline. On any failure the artifact `compare-demosaic` holds canonical.json,
-diff.txt and the artifacts. If nothing differs, nothing is uploaded.
+The `compare-demosaic` job in `.github/workflows/ci.yml` runs the crate tests,
+`readme --check`, `run --artifacts`, and a diff against the baseline. On failure
+the `compare-demosaic` artifact holds `canonical.json`, `diff.txt`, and any
+artifacts; if nothing differs, nothing is uploaded.
 
 ## Rules for changing this crate
 
