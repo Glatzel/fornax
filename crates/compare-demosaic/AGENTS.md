@@ -45,8 +45,8 @@ Partial runs record `meta.selection`; they cannot be used as a baseline.
 - `sites.sampled` should be near zero error for most algorithms.
 - `channels` shows which colour channel carries the error.
 - `worst` lists the largest errors with coordinates and both values.
-- Only `native` rows are independent tests; other patterns are the same data
-  relabelled.
+- Only `native` rows are independent tests. Other patterns use the smallest
+  one-pixel crop that makes their CFA layout valid; `crop` records `[x, y]`.
 - Artifacts:
   `<out>/artifacts/<input>/<algorithm>-<reference>-<pattern>-{error.png,tiles.json}`
 

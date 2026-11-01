@@ -27,6 +27,66 @@ pub struct ActiveArea {
     pub native_pattern: BayerPattern,
 }
 
+/// Returns the smallest non-negative crop offset that turns `native` into
+/// `target` according to [`BayerPattern::shifted`].
+pub fn pattern_offset(native: BayerPattern, target: BayerPattern) -> Option<(u32, u32)> {
+    (0..2).find_map(|y| {
+        (0..2)
+            .find(|x| native.shifted(*x, y) == target)
+            .map(|x| (x, y))
+    })
+}
+
+/// Crops one pixel when necessary so that `target` is a valid Bayer label for
+/// the returned mosaic.
+pub fn shifted_to_pattern(
+    input: &ActiveArea,
+    target: BayerPattern,
+) -> mischief::Result<ActiveArea> {
+    let (x, y) = pattern_offset(input.native_pattern, target).ok_or_else(|| {
+        mischief::mischief!(
+            "no Bayer crop converts {} to {target}",
+            input.native_pattern
+        )
+    })?;
+    if x >= input.width || y >= input.height {
+        return Err(mischief::mischief!(
+            "cannot shift {}x{} input by ({x}, {y})",
+            input.width,
+            input.height
+        ));
+    }
+    let expected = (input.width as usize)
+        .checked_mul(input.height as usize)
+        .ok_or_else(|| mischief::mischief!("input dimensions overflow"))?;
+    if input.codes.len() != expected {
+        return Err(mischief::mischief!(
+            "input contains {} samples, expected {expected}",
+            input.codes.len()
+        ));
+    }
+    let width = input.width - x;
+    let height = input.height - y;
+    let codes = (y..input.height)
+        .flat_map(|row| {
+            let start = row as usize * input.width as usize + x as usize;
+            input.codes[start..start + width as usize].iter().copied()
+        })
+        .collect();
+    Ok(ActiveArea {
+        source: input.source.clone(),
+        sha256: input.sha256.clone(),
+        width,
+        height,
+        codes,
+        black: input.black.clone(),
+        black_width: input.black_width,
+        black_height: input.black_height,
+        white: input.white,
+        native_pattern: target,
+    })
+}
+
 pub fn active_area_from(path: &Path) -> mischief::Result<ActiveArea> {
     let source_bytes = std::fs::read(path)
         .map_err(|error| mischief::mischief!("cannot read {}: {error}", path.display()))?;
@@ -210,6 +270,59 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn every_target_pattern_has_a_minimal_valid_crop() {
+        for native in BayerPattern::ALL {
+            for target in BayerPattern::ALL {
+                let (x, y) = pattern_offset(native, target).expect("target pattern is reachable");
+                assert!(x < 2 && y < 2);
+                assert_eq!(native.shifted(x, y), target);
+            }
+        }
+    }
+
+    #[test]
+    fn gbrg_offsets_match_the_valid_crop_table() {
+        assert_eq!(
+            pattern_offset(BayerPattern::GBRG, BayerPattern::GBRG),
+            Some((0, 0))
+        );
+        assert_eq!(
+            pattern_offset(BayerPattern::GBRG, BayerPattern::BGGR),
+            Some((1, 0))
+        );
+        assert_eq!(
+            pattern_offset(BayerPattern::GBRG, BayerPattern::RGGB),
+            Some((0, 1))
+        );
+        assert_eq!(
+            pattern_offset(BayerPattern::GBRG, BayerPattern::GRBG),
+            Some((1, 1))
+        );
+    }
+
+    #[test]
+    fn shifted_crop_rewrites_pattern_and_samples() -> mischief::Result<()> {
+        let input = ActiveArea {
+            source: "test.raw".to_owned(),
+            sha256: "00".repeat(32),
+            width: 4,
+            height: 4,
+            codes: (0..16).collect(),
+            black: vec![0.0; 4],
+            black_width: 2,
+            black_height: 2,
+            white: 65_535.0,
+            native_pattern: BayerPattern::GBRG,
+        };
+        let shifted = shifted_to_pattern(&input, BayerPattern::RGGB)?;
+        assert_eq!(shifted.width, 4);
+        assert_eq!(shifted.height, 3);
+        assert_eq!(shifted.native_pattern, BayerPattern::RGGB);
+        assert_eq!(shifted.codes, (4..16).collect::<Vec<_>>());
+        Ok(())
     }
 
     #[test]

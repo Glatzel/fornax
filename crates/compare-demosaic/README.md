@@ -131,8 +131,9 @@ decision flips. A positive `mean_signed` means Fornax is above the reference.
 The channel and sampled/interpolated-site scopes show where those errors live.
 `worst` gives coordinates and both values for the largest errors.
 
-Only a native-pattern row is an independent fidelity test. The other three
-patterns relabel the same mosaic and are consistency checks.
+Only the native-pattern row is an independent fidelity test. The other three
+patterns use the smallest one-pixel shift that makes their CFA layout valid,
+and are consistency checks against the same image.
 
 ## Summary
 
@@ -140,7 +141,7 @@ patterns relabel the same mosaic and are consistency checks.
 | Algorithm | Reference | Worst verdict | Native-pattern result |
 | --- | --- | --- | --- |
 | AAHD | libraw | ❌ fail | GBRG ❌ fail |
-| AHD | libraw | ❌ fail | GBRG ⚠️ pass with outliers |
+| AHD | libraw | ✅ pass | GBRG ⚠️ pass with outliers |
 | AMaZE | darktable | ❌ fail | GBRG ❌ fail |
 | DCB | libraw | ❌ fail | GBRG ❌ fail |
 | DHT | libraw | ❌ fail | GBRG ❌ fail |
@@ -162,7 +163,7 @@ patterns relabel the same mosaic and are consistency checks.
 - `❌`: at least one limit failed.
 - Limits: MAE <= 2.000000, P99 <= 64, high-error fraction <= 0.001000 above 1024 codes.
 - Kinds: `exact` requires equality; `rounding` permits one-code upward rounding differences; `robust` applies the numeric limits.
-- A row is `native` only when its pattern equals the input's original CFA layout. Relabelled patterns are consistency checks, not independent tests.
+- A row is `native` only when it uses the input's original CFA layout and crop `[0, 0]`. Other patterns use the smallest valid one-pixel shift and are consistency checks, not independent tests.
 - Interior statistics exclude a 16 px border.
 - References: LibRaw 0.22.3; darktable 5.6.2.
 - Inputs:
@@ -172,12 +173,12 @@ patterns relabel the same mosaic and are consistency checks.
 ## AAHD
 
 <!-- compare-demosaic:begin algo:aahd -->
-| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | no | ❌ fail | 747.885294 | 2099.339848 | 22138 | -119.338890 | 8777 | 11968 | 6945544 (127378) | 0.629272 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | yes | ❌ fail | 103.105439 | 287.955685 | 18089 | 15.733126 | 1327 | 2118 | 1101122 (35228) | 0.629560 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | no | ❌ fail | 103.088593 | 287.963386 | 18089 | 15.767824 | 1327 | 2119 | 1101640 (35314) | 0.629544 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | no | ❌ fail | 747.938956 | 2099.423686 | 22138 | -119.450251 | 8778 | 11965 | 6946380 (127401) | 0.629277 |
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 0] | no | ❌ fail | 103.110399 | 288.014295 | 18089 | 15.741260 | 1327 | 2119 | 1100592 (34793) | 0.629555 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 0] | yes | ❌ fail | 103.105439 | 287.955685 | 18089 | 15.733126 | 1327 | 2118 | 1101122 (35228) | 0.629560 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 1] | no | ❌ fail | 102.968181 | 282.967937 | 12529 | 15.936816 | 1327 | 2117 | 1101178 (37286) | 0.629571 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 1] | no | ❌ fail | 102.954954 | 282.896321 | 12529 | 15.925241 | 1327 | 2116 | 1101523 (37725) | 0.629567 |
 <!-- compare-demosaic:end algo:aahd -->
 
 > [!NOTE]
@@ -196,12 +197,12 @@ patterns relabel the same mosaic and are consistency checks.
 ## AHD
 
 <!-- compare-demosaic:begin algo:ahd -->
-| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | BGGR | no | ❌ fail | 6.673725 | 182.315588 | 22478 | 0.022883 | 1 | 3020 | 83207 (739) | 0.022739 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | yes | ⚠️ pass with outliers | 0.875973 | 24.651269 | 5222 | 0.019917 | 1 | 296 | 6767 (193) | 0.022486 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | no | ⚠️ pass with outliers | 0.989094 | 26.458811 | 4835 | 0.024568 | 1 | 352 | 7722 (192) | 0.022518 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | no | ❌ fail | 6.817086 | 184.347885 | 23556 | 0.010033 | 1 | 3093 | 84797 (845) | 0.022979 |
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | BGGR | [1, 0] | no | ⚠️ pass with outliers | 0.876028 | 24.653182 | 5222 | 0.019920 | 1 | 296 | 6767 (193) | 0.022485 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | [0, 0] | yes | ⚠️ pass with outliers | 0.875973 | 24.651269 | 5222 | 0.019917 | 1 | 296 | 6767 (193) | 0.022486 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | [1, 1] | no | ⚠️ pass with outliers | 0.875274 | 24.637366 | 5222 | 0.019827 | 1 | 295 | 6754 (190) | 0.022486 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | [0, 1] | no | ⚠️ pass with outliers | 0.875219 | 24.635455 | 5222 | 0.019824 | 1 | 295 | 6754 (190) | 0.022486 |
 <!-- compare-demosaic:end algo:ahd -->
 
 > [!NOTE]
@@ -219,12 +220,12 @@ patterns relabel the same mosaic and are consistency checks.
 ## AMaZE
 
 <!-- compare-demosaic:begin algo:amaze -->
-| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | BGGR | no | ❌ fail | 525.714046 | 1278.370104 | 21316 | -132.779921 | 5293 | 7820 | 7643060 (100304) | 0.661846 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GBRG | yes | ❌ fail | 79.498569 | 186.002581 | 9623 | 17.574803 | 808 | 1442 | 239862 (10535) | 0.659406 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GRBG | no | ❌ fail | 79.498569 | 186.002581 | 9623 | 17.574803 | 808 | 1442 | 239862 (10535) | 0.659406 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | RGGB | no | ❌ fail | 525.714046 | 1278.370104 | 21316 | -132.779921 | 5293 | 7820 | 7643060 (100304) | 0.661846 |
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | BGGR | [1, 0] | no | ❌ fail | 79.506490 | 186.017209 | 9623 | 17.580096 | 808 | 1442 | 239832 (10535) | 0.659406 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GBRG | [0, 0] | yes | ❌ fail | 79.498569 | 186.002581 | 9623 | 17.574803 | 808 | 1442 | 239862 (10535) | 0.659406 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GRBG | [1, 1] | no | ❌ fail | 79.472438 | 185.943699 | 9623 | 17.631790 | 808 | 1441 | 239711 (11161) | 0.659409 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | RGGB | [0, 1] | no | ❌ fail | 79.464767 | 185.929591 | 9623 | 17.626376 | 808 | 1441 | 239741 (11160) | 0.659410 |
 <!-- compare-demosaic:end algo:amaze -->
 
 > [!NOTE]
@@ -243,12 +244,12 @@ patterns relabel the same mosaic and are consistency checks.
 ## DCB
 
 <!-- compare-demosaic:begin algo:dcb -->
-| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | BGGR | no | ❌ fail | 656.695242 | 1795.569469 | 31865 | -124.893244 | 8002 | 11223 | 7085982 (110130) | 0.670707 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GBRG | yes | ❌ fail | 88.009547 | 228.137404 | 7094 | 18.157793 | 1105 | 1902 | 665986 (21082) | 0.668585 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GRBG | no | ❌ fail | 88.009547 | 228.137404 | 7094 | 18.157793 | 1105 | 1902 | 665986 (21082) | 0.668585 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | RGGB | no | ❌ fail | 656.695242 | 1795.569469 | 31865 | -124.893244 | 8002 | 11223 | 7085982 (110130) | 0.670707 |
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | BGGR | [1, 0] | no | ❌ fail | 88.015023 | 228.152732 | 7094 | 18.166627 | 1105 | 1902 | 665983 (21079) | 0.668584 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GBRG | [0, 0] | yes | ❌ fail | 88.009547 | 228.137404 | 7094 | 18.157793 | 1105 | 1902 | 665986 (21082) | 0.668585 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GRBG | [1, 1] | no | ❌ fail | 87.970957 | 228.041357 | 7866 | 18.306786 | 1104 | 1902 | 664573 (20758) | 0.668591 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | RGGB | [0, 1] | no | ❌ fail | 87.965500 | 228.026068 | 7866 | 18.297917 | 1104 | 1902 | 664576 (20761) | 0.668592 |
 <!-- compare-demosaic:end algo:dcb -->
 
 > [!NOTE]
@@ -266,12 +267,12 @@ patterns relabel the same mosaic and are consistency checks.
 ## DHT
 
 <!-- compare-demosaic:begin algo:dht -->
-| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | BGGR | no | ❌ fail | 527.009423 | 1382.556065 | 24042 | -65.080811 | 5936 | 11447 | 7317594 (118114) | 0.660867 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GBRG | yes | ❌ fail | 96.496395 | 220.513723 | 15912 | 1.320177 | 906 | 1620 | 356469 (31484) | 0.662065 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GRBG | no | ❌ fail | 96.496395 | 220.513723 | 15912 | 1.320177 | 906 | 1620 | 356469 (31484) | 0.662065 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | RGGB | no | ❌ fail | 527.009423 | 1382.556065 | 24042 | -65.080811 | 5936 | 11447 | 7317594 (118114) | 0.660867 |
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | BGGR | [1, 0] | no | ❌ fail | 96.188576 | 219.842766 | 15912 | 1.314828 | 902 | 1616 | 350562 (31447) | 0.662048 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GBRG | [0, 0] | yes | ❌ fail | 96.496395 | 220.513723 | 15912 | 1.320177 | 906 | 1620 | 356469 (31484) | 0.662065 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GRBG | [1, 1] | no | ❌ fail | 96.024958 | 212.912355 | 15912 | 1.219283 | 905 | 1604 | 353294 (28814) | 0.662069 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | RGGB | [0, 1] | no | ❌ fail | 95.759780 | 212.259519 | 15912 | 1.223951 | 901 | 1598 | 347343 (28742) | 0.662053 |
 <!-- compare-demosaic:end algo:dht -->
 
 > [!NOTE]
@@ -289,12 +290,12 @@ patterns relabel the same mosaic and are consistency checks.
 ## Linear
 
 <!-- compare-demosaic:begin algo:linear -->
-| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | BGGR | no | 🟢 rounding | 0.293568 | 0.541820 | 1 | 0.293568 | 1 | 1 | 0 (0) | 0.293568 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GBRG | yes | 🟢 rounding | 0.294064 | 0.542277 | 1 | 0.294064 | 1 | 1 | 0 (0) | 0.294064 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GRBG | no | 🟢 rounding | 0.294064 | 0.542277 | 1 | 0.294064 | 1 | 1 | 0 (0) | 0.294064 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | no | 🟢 rounding | 0.293568 | 0.541820 | 1 | 0.293568 | 1 | 1 | 0 (0) | 0.293568 |
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | BGGR | [1, 0] | no | 🟢 rounding | 0.294064 | 0.542277 | 1 | 0.294064 | 1 | 1 | 0 (0) | 0.294064 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GBRG | [0, 0] | yes | 🟢 rounding | 0.294064 | 0.542277 | 1 | 0.294064 | 1 | 1 | 0 (0) | 0.294064 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | GRBG | [1, 1] | no | 🟢 rounding | 0.294068 | 0.542280 | 1 | 0.294068 | 1 | 1 | 0 (0) | 0.294068 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | [0, 1] | no | 🟢 rounding | 0.294068 | 0.542280 | 1 | 0.294068 | 1 | 1 | 0 (0) | 0.294068 |
 <!-- compare-demosaic:end algo:linear -->
 
 > [!NOTE]
@@ -312,12 +313,12 @@ patterns relabel the same mosaic and are consistency checks.
 ## LMMSE
 
 <!-- compare-demosaic:begin algo:lmmse -->
-| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | BGGR | no | ❌ fail | 334.214702 | 931.666478 | 20371 | -22.419190 | 4393 | 7808 | 5203568 (78826) | 0.658283 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | yes | ❌ fail | 44.776609 | 103.955914 | 9522 | 1.144272 | 463 | 884 | 27014 (4421) | 0.657319 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | no | ❌ fail | 44.776464 | 103.955704 | 9522 | 1.144345 | 463 | 884 | 27014 (4421) | 0.657319 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | no | ❌ fail | 334.214427 | 931.666276 | 20371 | -22.419055 | 4393 | 7808 | 5203554 (78814) | 0.658283 |
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | BGGR | [1, 0] | no | ❌ fail | 44.785192 | 104.000798 | 9522 | 1.146402 | 464 | 885 | 27140 (4408) | 0.657319 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | [0, 0] | yes | ❌ fail | 44.776609 | 103.955914 | 9522 | 1.144272 | 463 | 884 | 27014 (4421) | 0.657319 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | [1, 1] | no | ❌ fail | 44.780937 | 104.020885 | 8779 | 1.196977 | 464 | 886 | 27443 (4791) | 0.657324 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | [0, 1] | no | ❌ fail | 44.772275 | 103.976072 | 8779 | 1.195146 | 463 | 885 | 27314 (4797) | 0.657324 |
 <!-- compare-demosaic:end algo:lmmse -->
 
 > [!NOTE]
@@ -336,16 +337,16 @@ patterns relabel the same mosaic and are consistency checks.
 ## PPG
 
 <!-- compare-demosaic:begin algo:ppg -->
-| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | BGGR | no | ✅ exact | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GBRG | yes | ✅ exact | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GRBG | no | ✅ exact | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | RGGB | no | ✅ exact | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | no | ⚠️ pass with outliers | 0.314865 | 21.504192 | 13493 | 0.123634 | 1 | 1 | 1582 (11) | 0.147196 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | yes | ⚠️ pass with outliers | 0.186701 | 3.106662 | 2221 | 0.108924 | 1 | 1 | 53 (0) | 0.146916 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | no | ⚠️ pass with outliers | 0.186701 | 3.106662 | 2221 | 0.108924 | 1 | 1 | 53 (0) | 0.146916 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | no | ⚠️ pass with outliers | 0.314865 | 21.504192 | 13493 | 0.123634 | 1 | 1 | 1582 (11) | 0.147196 |
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | BGGR | [1, 0] | no | ✅ exact | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GBRG | [0, 0] | yes | ✅ exact | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GRBG | [1, 1] | no | ✅ exact | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | RGGB | [0, 1] | no | ✅ exact | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | [1, 0] | no | ⚠️ pass with outliers | 0.186705 | 3.106230 | 2221 | 0.108934 | 1 | 1 | 53 (0) | 0.146917 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | [0, 0] | yes | ⚠️ pass with outliers | 0.186701 | 3.106662 | 2221 | 0.108924 | 1 | 1 | 53 (0) | 0.146916 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | [1, 1] | no | ⚠️ pass with outliers | 0.186698 | 3.106884 | 2221 | 0.108933 | 1 | 1 | 53 (0) | 0.146911 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | [0, 1] | no | ⚠️ pass with outliers | 0.186694 | 3.107317 | 2221 | 0.108922 | 1 | 1 | 53 (0) | 0.146910 |
 <!-- compare-demosaic:end algo:ppg -->
 
 > [!NOTE]
@@ -365,12 +366,12 @@ patterns relabel the same mosaic and are consistency checks.
 ## RCD
 
 <!-- compare-demosaic:begin algo:rcd -->
-| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | BGGR | no | ⚠️ pass with outliers | 0.372633 | 5.609573 | 5922 | -0.001610 | 8 | 48 | 109 (1) | 0.065598 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | GBRG | yes | ⚠️ pass with outliers | 0.083077 | 1.015566 | 1359 | -0.000212 | 2 | 11 | 1 (0) | 0.033374 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | GRBG | no | ⚠️ pass with outliers | 0.083077 | 1.015566 | 1359 | -0.000212 | 2 | 11 | 1 (0) | 0.033374 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | RGGB | no | ⚠️ pass with outliers | 0.372633 | 5.609573 | 5922 | -0.001610 | 8 | 48 | 109 (1) | 0.065598 |
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | BGGR | [1, 0] | no | ⚠️ pass with outliers | 0.083022 | 1.012225 | 1072 | -0.000215 | 2 | 11 | 1 (0) | 0.033346 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | GBRG | [0, 0] | yes | ⚠️ pass with outliers | 0.083077 | 1.015566 | 1359 | -0.000212 | 2 | 11 | 1 (0) | 0.033374 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | GRBG | [1, 1] | no | ⚠️ pass with outliers | 0.083046 | 1.012371 | 1072 | -0.000215 | 2 | 11 | 1 (0) | 0.033355 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | RGGB | [0, 1] | no | ⚠️ pass with outliers | 0.083101 | 1.015712 | 1359 | -0.000212 | 2 | 11 | 1 (0) | 0.033384 |
 <!-- compare-demosaic:end algo:rcd -->
 
 > [!NOTE]
@@ -383,21 +384,23 @@ patterns relabel the same mosaic and are consistency checks.
 > **Known differences:** Fornax evaluates the formulas through normalized
 > floating-point Rust and clamps final output to `[0, 1]`; the reference bridge
 > quantizes the darktable result after the same clamp. Border fill and the
-> surrounding metadata pipeline are not shared.
+> surrounding metadata pipeline are not shared. The remaining outlier tail is
+> confined to interpolated samples near high-contrast chart features; sampled
+> Bayer values match the reference exactly.
 
 ## VNG
 
 <!-- compare-demosaic:begin algo:vng -->
-| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | BGGR | no | ❌ fail | 4417.576591 | 9258.126444 | 65535 | -3184.600269 | 37184 | 48831 | 26467159 (376708) | 0.832106 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GBRG | yes | ❌ fail | 2782.662776 | 6477.675994 | 65535 | -687.175060 | 30349 | 45809 | 20998328 (288980) | 0.827285 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GRBG | no | ❌ fail | 2784.676172 | 6479.882985 | 65535 | -687.205934 | 30358 | 45804 | 20992778 (288525) | 0.827284 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | RGGB | no | ❌ fail | 4417.097668 | 9256.884772 | 65535 | -3184.330787 | 37107 | 48859 | 26469636 (376814) | 0.832107 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | BGGR | no | ❌ fail | 4243.524941 | 9140.000579 | 65535 | -3167.610609 | 36685 | 46497 | 24309095 (341860) | 0.665300 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GBRG | yes | ❌ fail | 2762.780291 | 6476.794907 | 65535 | -686.974152 | 30351 | 45810 | 20978050 (287078) | 0.665211 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GRBG | no | ❌ fail | 2764.732896 | 6479.005956 | 65535 | -687.005027 | 30360 | 45806 | 20973190 (286726) | 0.665210 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | RGGB | no | ❌ fail | 4243.041290 | 9138.746679 | 65535 | -3167.341126 | 36691 | 46499 | 24310846 (341994) | 0.665299 |
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | BGGR | [1, 0] | no | ❌ fail | 2908.244251 | 6278.863563 | 65535 | -205.327950 | 27623 | 41993 | 21565603 (299936) | 0.827316 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GBRG | [0, 0] | yes | ❌ fail | 2782.662776 | 6477.675994 | 65535 | -687.175060 | 30349 | 45809 | 20998328 (288980) | 0.827285 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GRBG | [1, 1] | no | ❌ fail | 2906.591015 | 6275.848437 | 65535 | -205.018867 | 27614 | 41987 | 21555394 (299756) | 0.827327 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | RGGB | [0, 1] | no | ❌ fail | 2781.053846 | 6474.143142 | 65535 | -686.327066 | 30332 | 45804 | 20988507 (288866) | 0.827296 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | BGGR | [1, 0] | no | ❌ fail | 2888.494132 | 6278.175031 | 65535 | -205.131550 | 27625 | 41998 | 21537751 (298052) | 0.665242 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GBRG | [0, 0] | yes | ❌ fail | 2762.780291 | 6476.794907 | 65535 | -686.974152 | 30351 | 45810 | 20978050 (287078) | 0.665211 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GRBG | [1, 1] | no | ❌ fail | 2886.824296 | 6275.098482 | 65535 | -204.883123 | 27616 | 41993 | 21527687 (297943) | 0.665241 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | RGGB | [0, 1] | no | ❌ fail | 2761.159370 | 6473.230877 | 65535 | -686.186804 | 30333 | 45806 | 20968345 (287052) | 0.665211 |
 <!-- compare-demosaic:end algo:vng -->
 
 > [!NOTE]

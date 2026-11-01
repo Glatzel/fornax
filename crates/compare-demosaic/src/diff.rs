@@ -252,6 +252,12 @@ fn check_comparable(baseline: &Report, new: &Report) -> mischief::Result<()> {
             baseline.meta.border_px, new.meta.border_px
         ));
     }
+    if baseline.meta.pattern_source != new.meta.pattern_source {
+        differences.push(format!(
+            "pattern_source {:?} != {:?}",
+            baseline.meta.pattern_source, new.meta.pattern_source
+        ));
+    }
     let baseline_inputs = baseline
         .meta
         .inputs
@@ -345,6 +351,7 @@ where
 fn other_changed_fields(before: &Row, after: &Row) -> usize {
     let mut changed = 0;
     changed += usize::from(before.samples != after.samples);
+    changed += usize::from(before.crop != after.crop);
     changed += usize::from(before.failed_limits != after.failed_limits);
     changed += usize::from(before.kind != after.kind);
     changed += usize::from(before.native != after.native);
@@ -386,7 +393,8 @@ const fn kind_name(kind: ChangeKind) -> &'static str {
 mod tests {
     use super::*;
     use crate::report::{
-        Channels, InputMeta, Kind, Limits, Meta, References, Selection, Sites, WorstSample,
+        Channels, InputMeta, Kind, Limits, Meta, PatternSource, References, Selection, Sites,
+        WorstSample,
     };
 
     fn metrics(mae: f64) -> Metrics {
@@ -412,6 +420,7 @@ mod tests {
             algorithm: algorithm.to_owned(),
             reference: "libraw".to_owned(),
             pattern: "RGGB".to_owned(),
+            crop: [0, 0],
             native: true,
             kind: Kind::Robust,
             samples: 12,
@@ -467,6 +476,7 @@ mod tests {
                     high_err_frac: 0.001,
                 },
                 border_px: 0,
+                pattern_source: PatternSource::ShiftedCrops,
                 selection: Selection::default(),
             },
             rows,

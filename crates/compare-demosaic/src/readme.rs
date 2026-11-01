@@ -138,7 +138,7 @@ fn render_legend(report: &Report) -> String {
 - `❌`: at least one limit failed.\n\
 - Limits: MAE <= {:.6}, P99 <= {}, high-error fraction <= {:.6} above {} codes.\n\
 - Kinds: `exact` requires equality; `rounding` permits one-code upward rounding differences; `robust` applies the numeric limits.\n\
-- A row is `native` only when its pattern equals the input's original CFA layout. Relabelled patterns are consistency checks, not independent tests.\n\
+- A row is `native` only when it uses the input's original CFA layout and crop `[0, 0]`. Other patterns use the smallest valid one-pixel shift and are consistency checks, not independent tests.\n\
 - Interior statistics exclude a {} px border.\n",
         report.meta.limits.mae,
         report.meta.limits.p99,
@@ -206,8 +206,8 @@ fn render_summary(report: &Report) -> String {
 
 fn render_algorithm(rows: &[&Row]) -> String {
     let mut output = String::from(
-        "| Reference | Pattern | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |\n\
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n",
+        "| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |\n\
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n",
     );
     for row in rows {
         let reference = crate::cases::source_url(&row.algorithm, &row.reference).map_or_else(
@@ -219,9 +219,11 @@ fn render_algorithm(rows: &[&Row]) -> String {
             .count_gt1024
             .saturating_sub(row.interior.count_gt1024);
         output.push_str(&format!(
-            "| {} | {} | {} | {} | {:.6} | {:.6} | {} | {:.6} | {} | {} | {} ({}) | {:.6} |\n",
+            "| {} | {} | [{}, {}] | {} | {} | {:.6} | {:.6} | {} | {:.6} | {} | {} | {} ({}) | {:.6} |\n",
             reference,
             row.pattern,
+            row.crop[0],
+            row.crop[1],
             if row.native { "yes" } else { "no" },
             status(row),
             row.all.mae,
@@ -421,6 +423,7 @@ mod tests {
             algorithm: algorithm.to_owned(),
             reference: "libraw".to_owned(),
             pattern: "RGGB".to_owned(),
+            crop: [0, 0],
             native: true,
             kind: Kind::Robust,
             samples: 12,
@@ -469,6 +472,7 @@ mod tests {
                     high_err_frac: 0.001,
                 },
                 border_px: 0,
+                pattern_source: crate::report::PatternSource::ShiftedCrops,
                 selection: Selection::default(),
             },
             vec![row],
