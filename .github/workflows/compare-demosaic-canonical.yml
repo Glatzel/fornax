@@ -2,14 +2,7 @@ name: Compare demosaic
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "crates/compare-demosaic/**"
-      - "crates/fornax-postprocessor/**"
-      - "crates/fornax-core/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - ".github/workflows/compare-demosaic-canonical.yml"
+  # Later, if the run is fast enough: pull_request with a paths: filter.
 
 permissions:
   contents: read
@@ -25,15 +18,19 @@ jobs:
         with:
           run-install: false
       - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
-      - name: Test and check
+      - name: Test, run, compare
         shell: bash
         run: |
           source scripts/setup.sh
           cargo test -p compare-demosaic --all-features
-          cargo run --release -p compare-demosaic -- --check
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
+          cmp="cargo run --release -q -p compare-demosaic --"
+          $cmp readme --check
+          $cmp run --artifacts
+          $cmp diff crates/compare-demosaic/baseline/canonical.json \
+            target/compare-demosaic/canonical.json | tee target/compare-demosaic/diff.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: failure()
         with:
           name: compare-demosaic
           path: target/compare-demosaic
-          if-no-files-found: warn
+          if-no-files-found: ignore
