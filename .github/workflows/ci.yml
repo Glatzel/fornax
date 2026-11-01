@@ -51,7 +51,7 @@ jobs:
           - machine: ubuntu-26.04-arm
             test-options: --workspace --all-features --exclude compare-demosaic
     env:
-      dnc_version: 18_5
+      dnc_version: 18_7
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
