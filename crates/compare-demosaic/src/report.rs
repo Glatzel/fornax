@@ -1,6 +1,7 @@
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
+use fornax_core::BayerPattern;
 use serde::{Deserialize, Serialize};
 
 pub const CANONICAL_FILE: &str = "target/compare-demosaic/canonical.json";
@@ -29,6 +30,7 @@ pub struct Meta {
     pub references: References,
     pub limits: Limits,
     pub border_px: u32,
+    pub pattern_source: PatternSource,
     pub selection: Selection,
 }
 
@@ -44,6 +46,12 @@ pub struct InputMeta {
     pub black_height: u32,
     pub white: f64,
     pub native_pattern: String,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PatternSource {
+    ShiftedCrops,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -111,6 +119,8 @@ pub struct Row {
     pub algorithm: String,
     pub reference: String,
     pub pattern: String,
+    /// `[x, y]` pixels dropped from the native mosaic before demosaicing.
+    pub crop: [u32; 2],
     pub native: bool,
     pub kind: Kind,
     pub samples: u64,
@@ -272,6 +282,17 @@ impl Report {
                     input.name
                 ));
             }
+            if !BayerPattern::ALL.iter().any(|pattern| {
+                pattern
+                    .to_string()
+                    .eq_ignore_ascii_case(&input.native_pattern)
+            }) {
+                return Err(mischief::mischief!(
+                    "input {} has an unknown native pattern {}",
+                    input.name,
+                    input.native_pattern
+                ));
+            }
         }
 
         for pair in self.rows.windows(2) {
@@ -299,6 +320,33 @@ impl Row {
             .iter()
             .find(|input| input.name == self.input)
             .ok_or_else(|| mischief::mischief!("row references unknown input {}", self.input))?;
+        let native = BayerPattern::ALL
+            .into_iter()
+            .find(|pattern| pattern.to_string() == input.native_pattern)
+            .ok_or_else(|| mischief::mischief!("input has an unknown native pattern"))?;
+        let pattern = BayerPattern::ALL
+            .into_iter()
+            .find(|pattern| pattern.to_string() == self.pattern)
+            .ok_or_else(|| {
+                mischief::mischief!(
+                    "row {} {} {} has an unknown pattern",
+                    self.input,
+                    self.algorithm,
+                    self.pattern
+                )
+            })?;
+        let expected_crop = crate::reference::pattern_offset(native, pattern)
+            .ok_or_else(|| mischief::mischief!("Bayer pattern conversion is unavailable"))?;
+        if self.crop != [expected_crop.0, expected_crop.1] {
+            return Err(mischief::mischief!(
+                "row {} {} {} has crop {:?}, expected {:?}",
+                self.input,
+                self.algorithm,
+                self.pattern,
+                self.crop,
+                [expected_crop.0, expected_crop.1]
+            ));
+        }
         if self.native != (self.pattern == input.native_pattern) {
             return Err(mischief::mischief!(
                 "row {} {} {} has an incorrect native flag",
@@ -307,7 +355,15 @@ impl Row {
                 self.pattern
             ));
         }
-        let pixels = u64::from(input.width) * u64::from(input.height);
+        let width = input
+            .width
+            .checked_sub(self.crop[0])
+            .ok_or_else(|| mischief::mischief!("row {} crop exceeds input width", self.input))?;
+        let height = input
+            .height
+            .checked_sub(self.crop[1])
+            .ok_or_else(|| mischief::mischief!("row {} crop exceeds input height", self.input))?;
+        let pixels = u64::from(width) * u64::from(height);
         let samples = pixels
             .checked_mul(3)
             .ok_or_else(|| mischief::mischief!("row sample count overflow"))?;
@@ -321,15 +377,14 @@ impl Row {
             ));
         }
         let border = u64::from(meta.border_px);
-        if border * 2 >= u64::from(input.width) || border * 2 >= u64::from(input.height) {
+        if border * 2 >= u64::from(width) || border * 2 >= u64::from(height) {
             return Err(mischief::mischief!(
                 "border {} leaves no interior for input {}",
                 meta.border_px,
                 input.name
             ));
         }
-        let interior_pixels =
-            (u64::from(input.width) - border * 2) * (u64::from(input.height) - border * 2);
+        let interior_pixels = (u64::from(width) - border * 2) * (u64::from(height) - border * 2);
         validate_metrics("all", &self.all, self.samples)?;
         validate_metrics("interior", &self.interior, interior_pixels * 3)?;
         validate_metrics("channels.r", &self.channels.r, self.samples / 3)?;
@@ -350,8 +405,8 @@ impl Row {
             return Err(mischief::mischief!("worst samples are not sorted by error"));
         }
         if self.worst.iter().any(|sample| {
-            sample.x >= input.width
-                || sample.y >= input.height
+            sample.x >= width
+                || sample.y >= height
                 || sample.c > 2
                 || sample.fornax == sample.reference
         }) {
@@ -498,6 +553,7 @@ mod tests {
             algorithm: "ahd".to_owned(),
             reference: "libraw".to_owned(),
             pattern: "RGGB".to_owned(),
+            crop: [0, 0],
             native: true,
             kind: Kind::Robust,
             samples: 12,
@@ -545,6 +601,7 @@ mod tests {
                 },
                 limits: LIMITS,
                 border_px: 0,
+                pattern_source: PatternSource::ShiftedCrops,
                 selection: Selection::default(),
             },
             vec![row],

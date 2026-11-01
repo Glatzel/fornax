@@ -7,8 +7,8 @@ use rayon::prelude::*;
 use crate::cases::{self, Case, SampleType, Tolerance};
 use crate::metrics::{self, Evaluation, FailedLimit, Verdict as DetailedVerdict};
 use crate::report::{
-    self, Channels, InputMeta, Kind, Meta, References, Report, Row, Selection, Sites, Verdict,
-    WorstSample,
+    self, Channels, InputMeta, Kind, Meta, PatternSource, References, Report, Row, Selection,
+    Sites, Verdict, WorstSample,
 };
 
 pub const LIBRAW_COMMIT: &str = env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT");
@@ -130,13 +130,14 @@ pub(crate) fn execute_with_inputs(
     let computed = pool.install(|| {
         jobs.par_iter()
             .map(|job| {
-                let input = &inputs[job.input_index];
-                let computation = compute_case(job.case, input, job.pattern, request.border_px)?;
-                let row = row_from_computation(input, &computation);
+                let native_input = &inputs[job.input_index];
+                let input = crate::reference::shifted_to_pattern(native_input, job.pattern)?;
+                let computation = compute_case(job.case, &input, job.pattern, request.border_px)?;
+                let row = row_from_computation(native_input, &computation)?;
                 if request.artifacts {
                     crate::artifacts::write(
                         &request.out,
-                        &input.source,
+                        &native_input.source,
                         job.case.name,
                         job.case.reference_backend.library(),
                         job.pattern,
@@ -175,6 +176,7 @@ pub(crate) fn execute_with_inputs(
             },
             limits: report::LIMITS,
             border_px: request.border_px,
+            pattern_source: PatternSource::ShiftedCrops,
             selection,
         },
         rows,
@@ -213,7 +215,8 @@ pub(crate) fn evaluate_case(
     pattern: BayerPattern,
     border_px: u32,
 ) -> mischief::Result<CaseEvaluation> {
-    let computation = compute_case(case, input, pattern, border_px)?;
+    let input = crate::reference::shifted_to_pattern(input, pattern)?;
+    let computation = compute_case(case, &input, pattern, border_px)?;
     Ok(CaseEvaluation {
         case,
         pattern,
@@ -264,7 +267,10 @@ fn compute_case(
     })
 }
 
-fn row_from_computation(input: &crate::reference::ActiveArea, evaluation: &CaseComputation) -> Row {
+fn row_from_computation(
+    native_input: &crate::reference::ActiveArea,
+    evaluation: &CaseComputation,
+) -> mischief::Result<Row> {
     let metrics = &evaluation.evaluation.metrics;
     let kind = kind(evaluation.case.tolerance);
     let (verdict, failed_limits) = report::verdict(
@@ -277,8 +283,10 @@ fn row_from_computation(input: &crate::reference::ActiveArea, evaluation: &CaseC
         verdict == Verdict::Pass,
         evaluation.verdict != DetailedVerdict::Fail
     );
-    Row {
-        input: input.source.clone(),
+    let crop = crate::reference::pattern_offset(native_input.native_pattern, evaluation.pattern)
+        .ok_or_else(|| mischief::mischief!("no Bayer crop converts to pattern"))?;
+    Ok(Row {
+        input: native_input.source.clone(),
         algorithm: evaluation.case.name.to_ascii_lowercase(),
         reference: evaluation
             .case
@@ -286,7 +294,8 @@ fn row_from_computation(input: &crate::reference::ActiveArea, evaluation: &CaseC
             .library()
             .to_ascii_lowercase(),
         pattern: evaluation.pattern.to_string(),
-        native: evaluation.pattern == input.native_pattern,
+        crop: [crop.0, crop.1],
+        native: evaluation.pattern == native_input.native_pattern,
         kind,
         samples: metrics.total_samples,
         verdict,
@@ -314,7 +323,7 @@ fn row_from_computation(input: &crate::reference::ActiveArea, evaluation: &CaseC
                 reference: sample.reference,
             })
             .collect(),
-    }
+    })
 }
 
 pub(crate) const fn report_metrics(metrics: &metrics::Metrics) -> report::Metrics {
@@ -523,6 +532,24 @@ mod tests {
         invalid.algorithms = vec!["not-an-algorithm".to_owned()];
         let error = execute_with_inputs(&invalid, vec![input()]).expect_err("unknown algorithm");
         assert!(error.to_string().contains("valid algorithms"));
+        Ok(())
+    }
+
+    #[test]
+    fn shifted_patterns_record_original_input_dimensions_and_crop() -> mischief::Result<()> {
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let mut native = input();
+        native.native_pattern = BayerPattern::GBRG;
+        let mut request = request(directory.path(), 1);
+        request.patterns = vec![BayerPattern::RGGB];
+
+        let output = execute_with_inputs(&request, vec![native])?;
+        let row = &output.report.rows[0];
+        assert_eq!(row.crop, [0, 1]);
+        assert!(!row.native);
+        assert_eq!(row.samples, 128 * 127 * 3);
+        assert_eq!(output.report.meta.inputs[0].height, 128);
+        assert_eq!(output.report.meta.inputs[0].native_pattern, "GBRG");
         Ok(())
     }
 
