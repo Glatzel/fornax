@@ -147,7 +147,7 @@ and are consistency checks against the same image.
 | Algorithm | Reference | Worst verdict | Native-pattern result |
 | --- | --- | --- | --- |
 | AAHD | libraw | ❌ | GBRG ❌ |
-| AHD | libraw | ⚠️ | GBRG ⚠️ |
+| AHD | libraw | ⚖️ | GBRG ⚖️ |
 | AMaZE | darktable | ❌ | GBRG ❌ |
 | DCB | libraw | ❌ | GBRG ❌ |
 | DHT | libraw | ❌ | GBRG ❌ |
@@ -209,10 +209,12 @@ and are consistency checks against the same image.
 <!-- compare-demosaic:begin algo:ahd -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | BGGR | [1, 0] | no | ⚠️ | 0.876028 | 24.653182 | 5222 | 0.019920 | 1 | 296 | 6767 (193) | 0.022485 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | [0, 0] | yes | ⚠️ | 0.875973 | 24.651269 | 5222 | 0.019917 | 1 | 296 | 6767 (193) | 0.022486 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | [1, 1] | no | ⚠️ | 0.875274 | 24.637366 | 5222 | 0.019827 | 1 | 295 | 6754 (190) | 0.022486 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | [0, 1] | no | ⚠️ | 0.875219 | 24.635455 | 5222 | 0.019824 | 1 | 295 | 6754 (190) | 0.022486 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | BGGR | [1, 0] | no | ⚖️ | 0.876028 | 24.653182 | 5222 | 0.019920 | 1 | 296 | 6767 (193) | 0.022485 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | [0, 0] | yes | ⚖️ | 0.875973 | 24.651269 | 5222 | 0.019917 | 1 | 296 | 6767 (193) | 0.022486 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | [1, 1] | no | ⚖️ | 0.875274 | 24.637366 | 5222 | 0.019827 | 1 | 295 | 6754 (190) | 0.022486 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | [0, 1] | no | ⚖️ | 0.875219 | 24.635455 | 5222 | 0.019824 | 1 | 295 | 6754 (190) | 0.022486 |
+
+Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024, maximum error at most 5222. Reason: Independent AHD tile, clipping, matrix, and quantization conventions change local directional decisions at high-contrast chart edges. Evidence: PR #602's valid-crop experiment has the same outlier tail in all four CFA phases with exact sampled Bayer values; the former BGGR and RGGB failures were invalid green-phase test input.
 <!-- compare-demosaic:end algo:ahd -->
 
 > [!NOTE]
@@ -226,6 +228,10 @@ and are consistency checks against the same image.
 > 512-pixel working tiles, floor intermediates and nearest-neighbor output
 > quantization. LibRaw owns its tile, clipping and final quantization
 > conventions, so decision boundaries can differ even with the same AHD rules.
+> PR #602's valid-crop experiment shows the remaining outlier tail is stable
+> across all four CFA phases and sampled Bayer values are exact. The former
+> BGGR/RGGB failures were invalid green-phase test input; the remaining
+> high-contrast outliers are accepted under the bounded waiver below the table.
 
 ## AMaZE
 
