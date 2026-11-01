@@ -10,7 +10,6 @@ libraw-dev = "==0.22.3"
 maturin = "==1.16.0"
 pip = "==26.2.2"
 python = "3.13.*"
-
 imageio = "==2.38.1"
 lazy-loader = "==0.6"
 msgspec = "==0.22.0"
@@ -18,16 +17,8 @@ nomkl = "*"
 numpy = "2.3.*"
 numpydoc = "==1.11.0"
 pydantic = "==2.14.2"
-
-# test
 pytest = "==9.2.0"
 pytest-cov = "==7.1.0"
-
-[feature.agent.dependencies]
-codex = "*"
-codex-config = "*"
-skill-glatzel = "*"
-codex-rtk = "*"
 
 [feature.data.dependencies]
 aria2 = "*"
@@ -46,5 +37,4 @@ dev = {
   tasks = { pipeline = "cargo run --example pipeline" }
 }
 python = ["dev", "python"]
-agent = ["agent"]
 data = ["data"]
