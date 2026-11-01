@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -23,15 +23,27 @@ pub struct Report {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
-/// Invariant comparison inputs. Volatile run details belong in git or CI logs.
+/// Invariant comparison inputs. Volatile run details belong in Git or CI logs.
 pub struct Meta {
-    pub input: String,
-    pub width: u32,
-    pub height: u32,
-    pub native_pattern: String,
+    pub inputs: Vec<InputMeta>,
     pub references: References,
     pub limits: Limits,
     pub border_px: u32,
+    pub selection: Selection,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct InputMeta {
+    pub name: String,
+    pub sha256: String,
+    pub width: u32,
+    pub height: u32,
+    pub black: Vec<f64>,
+    pub black_width: u32,
+    pub black_height: u32,
+    pub white: f64,
+    pub native_pattern: String,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -50,6 +62,24 @@ pub struct Limits {
     pub high_err_frac: f64,
 }
 
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Selection {
+    pub algorithm: Vec<String>,
+    pub reference: Vec<String>,
+    pub pattern: Vec<String>,
+    pub input: Vec<String>,
+}
+
+impl Selection {
+    pub fn is_partial(&self) -> bool {
+        !self.algorithm.is_empty()
+            || !self.reference.is_empty()
+            || !self.pattern.is_empty()
+            || !self.input.is_empty()
+    }
+}
+
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Kind {
@@ -65,54 +95,75 @@ pub enum Verdict {
     Fail,
 }
 
+impl Verdict {
+    pub const fn symbol(self) -> &'static str {
+        match self {
+            Self::Pass => "✅",
+            Self::Fail => "❌",
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Row {
+    pub input: String,
     pub algorithm: String,
     pub reference: String,
     pub pattern: String,
+    pub native: bool,
     pub kind: Kind,
-    pub verdict: Verdict,
     pub samples: u64,
+    pub verdict: Verdict,
+    pub failed_limits: Vec<String>,
+    #[serde(rename = "all")]
+    pub all: Metrics,
+    pub interior: Metrics,
+    pub channels: Channels,
+    pub sites: Sites,
+    pub worst: Vec<WorstSample>,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Metrics {
     pub mae: f64,
     pub rmse: f64,
     pub max: u16,
     pub mean_signed: f64,
     pub p99: u16,
     pub p999: u16,
+    pub p9999: u16,
+    pub frac_gt1: f64,
+    pub frac_gt16: f64,
     pub count_gt1024: u64,
-    /// Subset of `count_gt1024` inside the excluded border strip.
-    pub count_gt1024_border: u64,
     pub changed_frac: f64,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct VerdictInput {
-    pub samples: u64,
-    pub mae: f64,
-    pub p99: u16,
-    pub max: u16,
-    pub count_gt1024: u64,
-    pub count_below_reference: u64,
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Channels {
+    pub r: Metrics,
+    pub g: Metrics,
+    pub b: Metrics,
 }
 
-/// Each kind keeps the rule it inherited from the previous comparison contract.
-pub const fn verdict(kind: Kind, input: VerdictInput, limits: Limits) -> Verdict {
-    let pass = match kind {
-        Kind::Exact => input.max == 0,
-        Kind::Rounding => input.max <= 1 && input.count_below_reference == 0,
-        Kind::Robust => {
-            let high_error_frac = if input.samples == 0 {
-                0.0
-            } else {
-                input.count_gt1024 as f64 / input.samples as f64
-            };
-            input.mae <= limits.mae
-                && input.p99 <= limits.p99
-                && high_error_frac <= limits.high_err_frac
-        }
-    };
-    if pass { Verdict::Pass } else { Verdict::Fail }
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Sites {
+    pub sampled: Metrics,
+    pub interpolated: Metrics,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorstSample {
+    pub x: u32,
+    pub y: u32,
+    pub c: u8,
+    pub fornax: u16,
+    #[serde(rename = "ref")]
+    pub reference: u16,
 }
 
 impl Report {
@@ -122,10 +173,13 @@ impl Report {
     }
 
     pub fn read(path: &Path) -> mischief::Result<Self> {
-        let bytes = std::fs::read(path)?;
+        let bytes = std::fs::read(path)
+            .map_err(|error| mischief::mischief!("cannot read {}: {error}", path.display()))?;
         let report = serde_json::from_slice::<Self>(&bytes)
             .map_err(|error| mischief::mischief!("cannot parse {}: {error}", path.display()))?;
-        report.validate()?;
+        report
+            .validate()
+            .map_err(|error| mischief::mischief!("invalid {}: {error}", path.display()))?;
         Ok(report)
     }
 
@@ -134,44 +188,25 @@ impl Report {
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        let mut file = std::fs::File::create(path)?;
+        let file = std::fs::File::create(path)?;
+        let mut writer = BufWriter::new(file);
         let meta = serde_json::to_string(&self.meta)
             .map_err(|error| mischief::mischief!("cannot serialize metadata: {error}"))?;
-        writeln!(file, "{{")?;
-        writeln!(file, "  \"meta\": {meta},")?;
-        writeln!(file, "  \"rows\": [")?;
+        writeln!(writer, "{{")?;
+        writeln!(writer, "  \"meta\": {meta},")?;
+        writeln!(writer, "  \"rows\": [")?;
         for (index, row) in self.rows.iter().enumerate() {
-            write!(
-                file,
-                "    {{\"algorithm\":\"{}\",\"reference\":\"{}\",\"pattern\":\"{}\",\"kind\":\"{}\",\"verdict\":\"{}\",\"samples\":{},\"mae\":{:.6},\"rmse\":{:.6},\"max\":{},\"mean_signed\":{:.6},\"p99\":{},\"p999\":{},\"count_gt1024\":{},\"count_gt1024_border\":{},\"changed_frac\":{:.6}}}",
-                row.algorithm,
-                row.reference,
-                row.pattern,
-                kind_name(row.kind),
-                verdict_name(row.verdict),
-                row.samples,
-                row.mae,
-                row.rmse,
-                row.max,
-                row.mean_signed,
-                row.p99,
-                row.p999,
-                row.count_gt1024,
-                row.count_gt1024_border,
-                row.changed_frac,
-            )?;
-            writeln!(
-                file,
-                "{}",
-                if index + 1 == self.rows.len() {
-                    ""
-                } else {
-                    ","
-                }
-            )?;
+            let row = serde_json::to_string(row)
+                .map_err(|error| mischief::mischief!("cannot serialize row: {error}"))?;
+            if index + 1 == self.rows.len() {
+                writeln!(writer, "    {row}")?;
+            } else {
+                writeln!(writer, "    {row},")?;
+            }
         }
-        writeln!(file, "  ]")?;
-        writeln!(file, "}}")?;
+        writeln!(writer, "  ]")?;
+        writeln!(writer, "}}")?;
+        writer.flush()?;
         Ok(())
     }
 
@@ -187,41 +222,248 @@ impl Report {
         Ok(path)
     }
 
-    fn validate(&self) -> mischief::Result<()> {
+    pub fn validate(&self) -> mischief::Result<()> {
         if self.rows.is_empty() {
             return Err(mischief::mischief!("report has no rows"));
         }
+        if self.meta.inputs.is_empty() {
+            return Err(mischief::mischief!("report has no inputs"));
+        }
+        validate_selection_sorted("algorithm", &self.meta.selection.algorithm)?;
+        validate_selection_sorted("reference", &self.meta.selection.reference)?;
+        validate_selection_sorted("pattern", &self.meta.selection.pattern)?;
+        validate_selection_sorted("input", &self.meta.selection.input)?;
+
+        let mut input_names = self
+            .meta
+            .inputs
+            .iter()
+            .map(|input| input.name.as_str())
+            .collect::<Vec<_>>();
+        input_names.sort_unstable();
+        input_names.dedup();
+        if input_names.len() != self.meta.inputs.len() {
+            return Err(mischief::mischief!("metadata contains duplicate inputs"));
+        }
+        for input in &self.meta.inputs {
+            if input.name.is_empty() {
+                return Err(mischief::mischief!("metadata contains an empty input name"));
+            }
+            if input.width == 0 || input.height == 0 {
+                return Err(mischief::mischief!(
+                    "input {} has zero dimensions",
+                    input.name
+                ));
+            }
+            if input.sha256.len() != 64
+                || !input.sha256.bytes().all(|byte| byte.is_ascii_hexdigit())
+            {
+                return Err(mischief::mischief!(
+                    "input {} has an invalid sha256",
+                    input.name
+                ));
+            }
+            let expected_black = (input.black_width as usize)
+                .checked_mul(input.black_height as usize)
+                .ok_or_else(|| mischief::mischief!("black-level dimensions overflow"))?;
+            if input.black.len() != expected_black {
+                return Err(mischief::mischief!(
+                    "input {} has inconsistent black levels",
+                    input.name
+                ));
+            }
+        }
+
         for pair in self.rows.windows(2) {
             if row_order(&pair[0], &pair[1]) != std::cmp::Ordering::Less {
                 return Err(mischief::mischief!(
-                    "report rows are not strictly sorted at {} {} {}",
+                    "report rows are not strictly sorted at {} {} {} {}",
+                    pair[1].input,
                     pair[1].algorithm,
                     pair[1].reference,
                     pair[1].pattern
                 ));
             }
         }
+        for row in &self.rows {
+            row.validate(&self.meta)?;
+        }
         Ok(())
     }
 }
 
-const fn kind_name(kind: Kind) -> &'static str {
-    match kind {
-        Kind::Exact => "exact",
-        Kind::Rounding => "rounding",
-        Kind::Robust => "robust",
+impl Row {
+    fn validate(&self, meta: &Meta) -> mischief::Result<()> {
+        let input = meta
+            .inputs
+            .iter()
+            .find(|input| input.name == self.input)
+            .ok_or_else(|| mischief::mischief!("row references unknown input {}", self.input))?;
+        if self.native != (self.pattern == input.native_pattern) {
+            return Err(mischief::mischief!(
+                "row {} {} {} has an incorrect native flag",
+                self.input,
+                self.algorithm,
+                self.pattern
+            ));
+        }
+        let pixels = u64::from(input.width) * u64::from(input.height);
+        let samples = pixels
+            .checked_mul(3)
+            .ok_or_else(|| mischief::mischief!("row sample count overflow"))?;
+        if self.samples != samples {
+            return Err(mischief::mischief!(
+                "row {} {} {} has samples {}, expected {samples}",
+                self.input,
+                self.algorithm,
+                self.pattern,
+                self.samples
+            ));
+        }
+        let border = u64::from(meta.border_px);
+        if border * 2 >= u64::from(input.width) || border * 2 >= u64::from(input.height) {
+            return Err(mischief::mischief!(
+                "border {} leaves no interior for input {}",
+                meta.border_px,
+                input.name
+            ));
+        }
+        let interior_pixels =
+            (u64::from(input.width) - border * 2) * (u64::from(input.height) - border * 2);
+        validate_metrics("all", &self.all, self.samples)?;
+        validate_metrics("interior", &self.interior, interior_pixels * 3)?;
+        validate_metrics("channels.r", &self.channels.r, self.samples / 3)?;
+        validate_metrics("channels.g", &self.channels.g, self.samples / 3)?;
+        validate_metrics("channels.b", &self.channels.b, self.samples / 3)?;
+        validate_metrics("sites.sampled", &self.sites.sampled, samples / 3)?;
+        validate_metrics(
+            "sites.interpolated",
+            &self.sites.interpolated,
+            samples * 2 / 3,
+        )?;
+        if self.worst.len() > 20 {
+            return Err(mischief::mischief!("worst sample list exceeds 20 entries"));
+        }
+        if self.worst.windows(2).any(|pair| {
+            pair[0].fornax.abs_diff(pair[0].reference) < pair[1].fornax.abs_diff(pair[1].reference)
+        }) {
+            return Err(mischief::mischief!("worst samples are not sorted by error"));
+        }
+        if self.worst.iter().any(|sample| {
+            sample.x >= input.width
+                || sample.y >= input.height
+                || sample.c > 2
+                || sample.fornax == sample.reference
+        }) {
+            return Err(mischief::mischief!("worst sample is outside the input"));
+        }
+        let (verdict, failed_limits) = verdict(self.kind, &self.all, self.samples, meta.limits);
+        if self.verdict != verdict || self.failed_limits != failed_limits {
+            return Err(mischief::mischief!(
+                "row {} {} {} has a stale verdict",
+                self.input,
+                self.algorithm,
+                self.pattern
+            ));
+        }
+        Ok(())
     }
 }
 
-const fn verdict_name(verdict: Verdict) -> &'static str {
-    match verdict {
-        Verdict::Pass => "pass",
-        Verdict::Fail => "fail",
+pub fn verdict(
+    kind: Kind,
+    metrics: &Metrics,
+    samples: u64,
+    limits: Limits,
+) -> (Verdict, Vec<String>) {
+    let pass = match kind {
+        Kind::Exact => metrics.max == 0,
+        Kind::Rounding => metrics.max <= 1 && metrics.mean_signed == metrics.changed_frac,
+        Kind::Robust => {
+            metrics.mae <= limits.mae
+                && metrics.p99 <= limits.p99
+                && fraction(metrics.count_gt1024, samples) <= limits.high_err_frac
+        }
+    };
+    let mut failed = Vec::new();
+    if matches!(kind, Kind::Robust) {
+        if metrics.mae > limits.mae {
+            failed.push("mae".to_owned());
+        }
+        if metrics.p99 > limits.p99 {
+            failed.push("p99".to_owned());
+        }
+        if fraction(metrics.count_gt1024, samples) > limits.high_err_frac {
+            failed.push("high_err_frac".to_owned());
+        }
+    }
+    (if pass { Verdict::Pass } else { Verdict::Fail }, failed)
+}
+
+pub fn fraction(count: u64, total: u64) -> f64 {
+    if total == 0 {
+        0.0
+    } else {
+        count as f64 / total as f64
     }
 }
+
+pub fn baseline_path() -> PathBuf { crate::run::repo_path(BASELINE_FILE) }
+
+fn validate_selection_sorted(name: &str, values: &[String]) -> mischief::Result<()> {
+    if values.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return Err(mischief::mischief!(
+            "selection.{name} must be sorted and unique"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_metrics(scope: &str, metrics: &Metrics, samples: u64) -> mischief::Result<()> {
+    let invalid = |message: &str| mischief::mischief!("{scope} {message}");
+    if metrics.max > HIGH_ERROR_THRESHOLD && metrics.count_gt1024 == 0 {
+        return Err(invalid("has a high maximum but no high-error samples"));
+    }
+    if metrics.p99 > metrics.p999 || metrics.p999 > metrics.p9999 || metrics.p9999 > metrics.max {
+        return Err(invalid("has non-monotonic percentiles"));
+    }
+    if metrics.count_gt1024 > samples {
+        return Err(invalid("has more high-error samples than samples"));
+    }
+    if !metrics.mae.is_finite()
+        || metrics.mae < 0.0
+        || !metrics.rmse.is_finite()
+        || metrics.rmse < 0.0
+        || !metrics.mean_signed.is_finite()
+        || !metrics.frac_gt1.is_finite()
+        || !(0.0..=1.0).contains(&metrics.frac_gt1)
+        || !metrics.frac_gt16.is_finite()
+        || !(0.0..=1.0).contains(&metrics.frac_gt16)
+        || !metrics.changed_frac.is_finite()
+        || !(0.0..=1.0).contains(&metrics.changed_frac)
+    {
+        return Err(invalid("has an invalid statistic"));
+    }
+    if metrics.frac_gt1 < metrics.frac_gt16 {
+        return Err(invalid("has inverted threshold fractions"));
+    }
+    if round6(metrics.frac_gt1) != metrics.frac_gt1
+        || round6(metrics.frac_gt16) != metrics.frac_gt16
+        || round6(metrics.changed_frac) != metrics.changed_frac
+        || round6(metrics.mae) != metrics.mae
+        || round6(metrics.rmse) != metrics.rmse
+        || round6(metrics.mean_signed) != metrics.mean_signed
+    {
+        return Err(invalid("contains an unrounded float"));
+    }
+    Ok(())
+}
+
+pub const fn round6(value: f64) -> f64 { (value * 1_000_000.0).round() / 1_000_000.0 }
 
 fn row_order(left: &Row, right: &Row) -> std::cmp::Ordering {
-    (&left.algorithm, &left.reference, &left.pattern).cmp(&(
+    (&left.input, &left.algorithm, &left.reference, &left.pattern).cmp(&(
+        &right.input,
         &right.algorithm,
         &right.reference,
         &right.pattern,
@@ -232,88 +474,137 @@ fn row_order(left: &Row, right: &Row) -> std::cmp::Ordering {
 mod tests {
     use super::*;
 
-    fn input() -> VerdictInput {
-        VerdictInput {
-            samples: 1_000,
-            mae: 1.0,
-            p99: 32,
-            max: 2_000,
-            count_gt1024: 1,
-            count_below_reference: 0,
+    fn metrics() -> Metrics {
+        Metrics {
+            mae: 0.5,
+            rmse: 1.0,
+            max: 2,
+            mean_signed: 0.5,
+            p99: 1,
+            p999: 1,
+            p9999: 2,
+            frac_gt1: 0.5,
+            frac_gt16: 0.0,
+            count_gt1024: 0,
+            changed_frac: 0.5,
         }
     }
 
-    fn row(algorithm: &str) -> Row {
-        Row {
-            algorithm: algorithm.to_owned(),
+    fn report(verdict: Verdict, mae: f64) -> Report {
+        let mut values = metrics();
+        values.mae = mae;
+        let row = Row {
+            input: "input.raw".to_owned(),
+            algorithm: "ahd".to_owned(),
             reference: "libraw".to_owned(),
             pattern: "RGGB".to_owned(),
+            native: true,
             kind: Kind::Robust,
-            verdict: Verdict::Pass,
-            samples: 1_000,
-            mae: 1.0,
-            rmse: 2.0,
-            max: 2_000,
-            mean_signed: 0.5,
-            p99: 32,
-            p999: 512,
-            count_gt1024: 1,
-            count_gt1024_border: 0,
-            changed_frac: 0.25,
-        }
-    }
-
-    #[test]
-    fn verdict_boundaries_are_inclusive() {
-        assert_eq!(verdict(Kind::Exact, input(), LIMITS), Verdict::Fail);
-        assert_eq!(
-            verdict(Kind::Rounding, VerdictInput { max: 1, ..input() }, LIMITS),
-            Verdict::Pass
-        );
-        assert_eq!(verdict(Kind::Robust, input(), LIMITS), Verdict::Pass);
-        assert_eq!(
-            verdict(
-                Kind::Robust,
-                VerdictInput {
-                    count_gt1024: 2,
-                    ..input()
-                },
-                LIMITS
-            ),
-            Verdict::Fail
-        );
-    }
-
-    #[test]
-    fn write_then_read_is_strict_and_lossless() -> mischief::Result<()> {
-        let directory = tempfile::tempdir().expect("temporary directory");
-        let path = directory.path().join("canonical.json");
-        let report = Report::new(
+            samples: 12,
+            verdict,
+            failed_limits: if verdict == Verdict::Fail {
+                vec!["mae".to_owned()]
+            } else {
+                Vec::new()
+            },
+            all: values.clone(),
+            interior: values.clone(),
+            channels: Channels {
+                r: values.clone(),
+                g: values.clone(),
+                b: values,
+            },
+            sites: Sites {
+                sampled: metrics(),
+                interpolated: metrics(),
+            },
+            worst: vec![WorstSample {
+                x: 1,
+                y: 1,
+                c: 2,
+                fornax: 2,
+                reference: 0,
+            }],
+        };
+        Report::new(
             Meta {
-                input: "input.raw".to_owned(),
-                width: 2,
-                height: 2,
-                native_pattern: "RGGB".to_owned(),
+                inputs: vec![InputMeta {
+                    name: "input.raw".to_owned(),
+                    sha256: "00".repeat(32),
+                    width: 2,
+                    height: 2,
+                    black: vec![0.0; 4],
+                    black_width: 2,
+                    black_height: 2,
+                    white: 65_535.0,
+                    native_pattern: "RGGB".to_owned(),
+                }],
                 references: References {
                     libraw: "0.22.3".to_owned(),
                     darktable: "5.6.2".to_owned(),
                 },
                 limits: LIMITS,
-                border_px: BORDER_PX,
+                border_px: 0,
+                selection: Selection::default(),
             },
-            vec![row("rcd"), row("ahd")],
+            vec![row],
+        )
+    }
+
+    #[test]
+    fn verdict_boundaries_are_inclusive() {
+        let mut input = metrics();
+        input.mae = 2.0;
+        input.p99 = 64;
+        assert_eq!(
+            verdict(Kind::Robust, &input, 12, LIMITS),
+            (Verdict::Pass, Vec::new())
         );
+        input.p99 = 65;
+        assert_eq!(
+            verdict(Kind::Robust, &input, 12, LIMITS),
+            (Verdict::Fail, vec!["p99".to_owned()])
+        );
+        assert_eq!(
+            verdict(Kind::Exact, &metrics(), 12, LIMITS).0,
+            Verdict::Fail
+        );
+    }
+
+    #[test]
+    fn write_then_read_is_strict_and_line_oriented() -> mischief::Result<()> {
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let path = directory.path().join("canonical.json");
+        let report = report(Verdict::Pass, 0.5);
         report.write(&path)?;
+        let text = std::fs::read_to_string(&path)?;
+        assert_eq!(text.lines().count(), 6);
         assert_eq!(Report::read(&path)?, report);
 
-        let mut tampered = std::fs::read_to_string(&path)?;
-        tampered = tampered.replacen(
-            "\"border_px\":16",
-            "\"border_px\":16,\"unexpected\":true",
-            1,
-        );
+        let tampered = text.replacen("\"border_px\":0", "\"border_px\":0,\"unexpected\":true", 1);
         std::fs::write(&path, tampered)?;
         assert!(Report::read(&path).is_err());
         Ok(())
+    }
+
+    #[test]
+    fn committed_baseline_loads_strictly() -> mischief::Result<()> {
+        Report::read(&baseline_path())?;
+        Ok(())
+    }
+
+    #[test]
+    fn stale_verdicts_and_unsorted_rows_are_rejected() {
+        let mut bad = report(Verdict::Pass, 0.5);
+        bad.rows[0].verdict = Verdict::Fail;
+        assert!(bad.validate().is_err());
+
+        let mut first = report(Verdict::Pass, 0.5).rows.remove(0);
+        let mut second = first.clone();
+        first.algorithm = "vng".to_owned();
+        second.algorithm = "ahd".to_owned();
+        let mut unsorted = report(Verdict::Pass, 0.5);
+        unsorted.rows = vec![first, second];
+        assert!(unsorted.validate().is_err());
     }
 }
