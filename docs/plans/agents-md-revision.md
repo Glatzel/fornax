@@ -69,8 +69,8 @@ Out of scope:
 - [x] 7. Check `.gitignore` for `agent-work/` and for accidental ignoring of
   new files (2026-11-01).
 - [x] 8. Run validation and fix problems (2026-11-01).
-- [ ] 9. Commit (this plan included), push, open the pull request, report the
-  URL, and stop.
+- [x] 9. Commit (this plan included), push, open the pull request, report the
+  URL, and stop (2026-11-01; PR #613).
 
 ## Steps
 
