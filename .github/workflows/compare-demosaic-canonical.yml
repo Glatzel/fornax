@@ -2,7 +2,14 @@ name: Compare demosaic
 
 on:
   workflow_dispatch:
-  # Later, if the run is fast enough: pull_request with a paths: filter.
+  pull_request:
+    paths:
+      - "crates/compare-demosaic/**"
+      - "crates/fornax-postprocessor/**"
+      - "crates/fornax-core/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/compare-demosaic-canonical.yml"
 
 permissions:
   contents: read
