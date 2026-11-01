@@ -90,7 +90,7 @@ pub fn shifted_to_pattern(
 pub fn active_area_from(path: &Path) -> mischief::Result<ActiveArea> {
     let source_bytes = std::fs::read(path)
         .map_err(|error| mischief::mischief!("cannot read {}: {error}", path.display()))?;
-    hex::encode(Sha256::digest(&source_bytes));
+    let sha256 = hex::encode(Sha256::digest(&source_bytes));
     let (decoded, metadata) =
         <RawlerDecoder as IDecoder<Path, f32>>::decode_active(&RawlerDecoder, path)
             .map_err(|error| mischief::mischief!("cannot decode {}: {error}", path.display()))?;
