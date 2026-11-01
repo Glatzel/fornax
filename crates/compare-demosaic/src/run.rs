@@ -317,7 +317,7 @@ fn row_from_computation(input: &crate::reference::ActiveArea, evaluation: &CaseC
     }
 }
 
-pub(crate) fn report_metrics(metrics: &metrics::Metrics) -> report::Metrics {
+pub(crate) const fn report_metrics(metrics: &metrics::Metrics) -> report::Metrics {
     report::Metrics {
         mae: metrics.mae,
         rmse: metrics.rmse,

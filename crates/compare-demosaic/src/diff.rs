@@ -73,7 +73,7 @@ impl DiffReport {
                     .iter()
                     .filter(|change| matches!(change.kind, ChangeKind::Removed | ChangeKind::Added))
                     .count();
-            if blocking == 0 { 0 } else { 1 }
+            u8::from(blocking != 0)
         } else {
             1
         }
@@ -329,12 +329,12 @@ fn push_float(changes: &mut Vec<FieldChange>, field: &str, before: f64, after: f
     }
 }
 
-fn push_integer<T: PartialEq + ToString>(
+fn push_integer<T>(
     changes: &mut Vec<FieldChange>,
     field: &str,
     before: T,
     after: T,
-) {
+) where T: PartialEq + ToString {
     if before != after {
         changes.push(FieldChange {
             field: field.to_owned(),

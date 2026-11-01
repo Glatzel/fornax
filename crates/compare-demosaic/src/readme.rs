@@ -293,7 +293,7 @@ fn new_section(algorithm: &str, table: &str) -> String {
     )
 }
 
-fn stub_note() -> &'static str {
+const fn stub_note() -> &'static str {
     "> [!NOTE]\n\
 > **Reference:** TODO\n\
 > **Why this reference:** TODO\n\

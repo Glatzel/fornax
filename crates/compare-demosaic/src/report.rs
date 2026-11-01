@@ -72,7 +72,7 @@ pub struct Selection {
 }
 
 impl Selection {
-    pub fn is_partial(&self) -> bool {
+    pub const fn is_partial(&self) -> bool {
         !self.algorithm.is_empty()
             || !self.reference.is_empty()
             || !self.pattern.is_empty()
