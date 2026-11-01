@@ -9,6 +9,12 @@ as generated below are derived from that JSON. Text outside the markers and the
 notes beside each algorithm are written by the author and reviewed with the
 implementation.
 
+The status legend distinguishes measured warnings from reviewed decisions. A
+`⚖️` means the row passes every limit and its remaining high-error outliers were
+accepted by a person for explicit count and maximum-error bounds. These waivers
+live in the comparison crate's Rust source; canonical JSON remains purely
+measured.
+
 ## Commands
 
 <!-- compare-demosaic:begin usage -->
@@ -141,15 +147,15 @@ and are consistency checks against the same image.
 | Algorithm | Reference | Worst verdict | Native-pattern result |
 | --- | --- | --- | --- |
 | AAHD | libraw | ❌ fail | GBRG ❌ fail |
-| AHD | libraw | ✅ pass | GBRG ⚠️ pass with outliers |
+| AHD | libraw | ⚠️ pass with outliers | GBRG ⚠️ pass with outliers |
 | AMaZE | darktable | ❌ fail | GBRG ❌ fail |
 | DCB | libraw | ❌ fail | GBRG ❌ fail |
 | DHT | libraw | ❌ fail | GBRG ❌ fail |
-| Linear | libraw | ✅ pass | GBRG 🟢 rounding |
+| Linear | libraw | 🟢 rounding | GBRG 🟢 rounding |
 | LMMSE | darktable | ❌ fail | GBRG ❌ fail |
-| PPG | darktable | ✅ pass | GBRG ✅ exact |
-| PPG | libraw | ✅ pass | GBRG ⚠️ pass with outliers |
-| RCD | darktable | ✅ pass | GBRG ⚠️ pass with outliers |
+| PPG | darktable | ✅ exact | GBRG ✅ exact |
+| PPG | libraw | ⚠️ pass with outliers | GBRG ⚠️ pass with outliers |
+| RCD | darktable | ⚠️ pass with outliers | GBRG ⚠️ pass with outliers |
 | VNG | darktable | ❌ fail | GBRG ❌ fail |
 | VNG | libraw | ❌ fail | GBRG ❌ fail |
 <!-- compare-demosaic:end summary -->
@@ -159,7 +165,8 @@ and are consistency checks against the same image.
 <!-- compare-demosaic:begin legend -->
 - `✅`: exact or passing without high-error outliers.
 - `🟢`: rounding-only differences.
-- `⚠️`: every limit passes, but high-error outliers remain.
+- `⚖️`: every limit passes; high-error outliers remain and were reviewed and accepted for the stated bounds and reason.
+- `⚠️`: every limit passes; high-error outliers remain and are not yet explained.
 - `❌`: at least one limit failed.
 - Limits: MAE <= 2.000000, P99 <= 64, high-error fraction <= 0.001000 above 1024 codes.
 - Kinds: `exact` requires equality; `rounding` permits one-code upward rounding differences; `robust` applies the numeric limits.

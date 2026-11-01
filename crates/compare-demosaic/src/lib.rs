@@ -6,6 +6,8 @@ pub mod readme;
 pub mod reference;
 pub mod report;
 pub mod run;
+pub mod status;
+pub mod waivers;
 
 #[cfg(test)]
 mod tests {
