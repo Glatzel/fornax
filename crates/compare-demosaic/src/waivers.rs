@@ -12,4 +12,13 @@ pub struct Waiver {
     pub evidence: &'static str,
 }
 
-pub const WAIVERS: &[Waiver] = &[];
+pub const WAIVERS: &[Waiver] = &[Waiver {
+    algorithm: "rcd",
+    reference: ReferenceBackend::Darktable,
+    pattern: None,
+    input: None,
+    max_count_gt1024: 1,
+    max_error: 1359,
+    reason: "A near-tie RCD interpolation decision flips under independent floating-point evaluation at one high-contrast chart edge.",
+    evidence: "Every CFA phase has one interior high-error sample at the same shifted red-site edge; sampled Bayer values are exact.",
+}];

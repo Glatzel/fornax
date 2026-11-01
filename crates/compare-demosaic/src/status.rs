@@ -21,17 +21,6 @@ impl Status {
             Self::Fail => "❌",
         }
     }
-
-    pub const fn label(self) -> &'static str {
-        match self {
-            Self::Exact => "exact",
-            Self::Pass => "pass",
-            Self::Rounding => "rounding",
-            Self::AcceptedOutliers => "accepted outliers",
-            Self::UnreviewedOutliers => "pass with outliers",
-            Self::Fail => "fail",
-        }
-    }
 }
 
 pub fn evaluate(row: &Row, waivers: &[Waiver]) -> Status {

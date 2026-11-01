@@ -164,11 +164,13 @@ fn render_usage(usage: &str) -> String {
 
 fn render_legend(report: &Report) -> String {
     let mut output = format!(
-        "- `✅`: exact or passing without high-error outliers.\n\
-- `🟢`: rounding-only differences.\n\
-- `⚖️`: every limit passes; high-error outliers remain and were reviewed and accepted for the stated bounds and reason.\n\
-- `⚠️`: every limit passes; high-error outliers remain and are not yet explained.\n\
-- `❌`: at least one limit failed.\n\
+        "| Verdict | Meaning |\n\
+| --- | --- |\n\
+| `✅` | Exact or passing without high-error outliers. |\n\
+| `🟢` | Rounding-only differences. |\n\
+| `⚖️` | Every limit passes; high-error outliers remain and were reviewed and accepted for the stated bounds and reason. |\n\
+| `⚠️` | Every limit passes; high-error outliers remain and are not yet explained. |\n\
+| `❌` | At least one limit failed. |\n\n\
 - Limits: MAE <= {:.6}, P99 <= {}, high-error fraction <= {:.6} above {} codes.\n\
 - Kinds: `exact` requires equality; `rounding` permits one-code upward rounding differences; `robust` applies the numeric limits.\n\
 - A row is `native` only when it uses the input's original CFA layout and crop `[0, 0]`. Other patterns use the smallest valid one-pixel shift and are consistency checks, not independent tests.\n\
@@ -219,10 +221,15 @@ fn render_summary(report: &Report, waivers: &[Waiver]) -> String {
         let native = rows
             .iter()
             .filter(|row| row.native)
-            .map(|row| format!("{} {}", row.pattern, status_text(row, waivers)))
+            .map(|row| {
+                format!(
+                    "{} {}",
+                    row.pattern,
+                    status::evaluate(row, waivers).symbol()
+                )
+            })
             .collect::<Vec<_>>()
             .join(", ");
-        let worst = format!("{} {}", worst.symbol(), worst.label());
         let native = if native.is_empty() {
             "not selected".to_owned()
         } else {
@@ -232,7 +239,7 @@ fn render_summary(report: &Report, waivers: &[Waiver]) -> String {
             "| {} | {} | {} | {} |\n",
             crate::cases::display_name(algorithm),
             reference,
-            worst,
+            worst.symbol(),
             native,
         ));
     }
@@ -260,7 +267,7 @@ fn render_algorithm(rows: &[&Row], waivers: &[Waiver]) -> String {
             row.crop[0],
             row.crop[1],
             if row.native { "yes" } else { "no" },
-            status_text(row, waivers),
+            status::evaluate(row, waivers).symbol(),
             row.all.mae,
             row.all.rmse,
             row.all.max,
@@ -280,15 +287,9 @@ fn render_algorithm(rows: &[&Row], waivers: &[Waiver]) -> String {
         .collect::<Vec<_>>();
     if !waiver_lines.is_empty() {
         output.push('\n');
-        output.push('\n');
         output.push_str(&waiver_lines.join("\n"));
     }
     output.trim_end().to_owned()
-}
-
-fn status_text(row: &Row, waivers: &[Waiver]) -> String {
-    let status = status::evaluate(row, waivers);
-    format!("{} {}", status.symbol(), status.label())
 }
 
 fn render_waiver(waiver: &Waiver) -> String {
@@ -301,7 +302,7 @@ fn render_waiver(waiver: &Waiver) -> String {
         scope.push_str(&format!(", input `{input}`"));
     }
     format!(
-        "⚖️ Accepted outliers ({} vs {}, {scope}): at most {} samples above 1024, maximum error at most {}. Reason: {} Evidence: {}",
+        "Accepted outliers ({} vs {}, {scope}): at most {} samples above 1024, maximum error at most {}. Reason: {} Evidence: {}",
         waiver.algorithm,
         waiver.reference.library(),
         waiver.max_count_gt1024,
@@ -587,12 +588,24 @@ mod tests {
         let first = std::fs::read_to_string(&path)?;
         write_with_waivers(&report, "usage", &waivers, Some(&path))?;
         assert_eq!(std::fs::read_to_string(&path)?, first);
-        assert!(first.contains("⚖️ accepted outliers"));
+        assert!(first.contains("| ⚖️ |"));
         assert!(first.contains(
-            "⚖️ Accepted outliers (ahd vs LibRaw, all patterns): at most 1 samples above 1024, maximum error at most 1500."
+            "Accepted outliers (ahd vs LibRaw, all patterns): at most 1 samples above 1024, maximum error at most 1500."
         ));
         assert!(first.contains("Reason: Near-tie direction decisions differ"));
         assert!(first.contains("Evidence: The stage diff first diverges"));
+        for (line_number, line) in first.lines().enumerate() {
+            if ["✅", "🟢", "⚖️", "⚠️", "❌"]
+                .iter()
+                .any(|symbol| line.contains(symbol))
+            {
+                assert!(
+                    line.trim_start().starts_with('|'),
+                    "README symbol outside a table on line {}: {line}",
+                    line_number + 1
+                );
+            }
+        }
 
         let checked = check_with_waivers(&report, "usage", &waivers, Some(&path))?;
         assert!(
@@ -611,7 +624,7 @@ mod tests {
                 .iter()
                 .any(|issue| issue.contains("is exceeded"))
         );
-        assert!(std::fs::read_to_string(&path)?.contains("⚠️ pass with outliers"));
+        assert!(std::fs::read_to_string(&path)?.contains("| ⚠️ |"));
         Ok(())
     }
 
