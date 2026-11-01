@@ -113,7 +113,7 @@ impl Waiver {
             && self.input.is_none_or(|input| input == row.input)
     }
 
-    fn accepts(self, row: &Row) -> bool {
+    const fn accepts(self, row: &Row) -> bool {
         row.all.count_gt1024 <= self.max_count_gt1024 && row.all.max <= self.max_error
     }
 }
