@@ -10,6 +10,8 @@ use crate::report::{
     self, Channels, InputMeta, Kind, Meta, PatternSource, References, Report, Row, Selection,
     Sites, Verdict, WorstSample,
 };
+use crate::status;
+use crate::waivers::WAIVERS;
 
 pub const LIBRAW_COMMIT: &str = env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT");
 pub const DARKTABLE_RELEASE: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_RELEASE");
@@ -447,7 +449,7 @@ pub fn render_text(output: &RunOutput) -> String {
             row.reference,
             row.pattern,
             if row.native { "yes" } else { "no" },
-            row.verdict.symbol(),
+            status::evaluate(row, WAIVERS).symbol(),
             row.all.mae,
             row.all.p99,
             row.all.p999,

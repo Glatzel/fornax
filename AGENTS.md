@@ -89,6 +89,22 @@ Do not copy or reintroduce the `refactor/raw-pipeline-v2` research, design,
 task-manifest, status, or checkpoint files. Refer to that branch only when
 directed by the task.
 
+## Accepted outliers (⚖️)
+
+⚖️ means: every limit passes, high-error outliers remain, and a person reviewed
+and accepted them. It is never derived from the numbers alone.
+
+- Accepted outliers are declared in the waiver table in `waivers.rs`: algorithm,
+  reference, optional pattern and input, bounds (`max_count_gt1024`, `max_error`),
+  reason (the mechanism), and evidence (how it was verified).
+- Only rows that pass every limit can be waived. A failing row must be fixed or
+  the test input corrected; never waive a failure.
+- Bounds equal the reviewed values. If a row gets worse, the symbol falls back to
+  `⚠️` and `readme` exits 1 until someone decides again.
+- Remove a waiver as soon as it is unused; `readme` reports unused waivers.
+- Never add a waiver without evidence. Write what you checked, not just "looks
+  fine".
+
 ### Adding a demosaic comparison
 
 Keep reference comparison cases table-driven:

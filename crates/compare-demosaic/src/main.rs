@@ -184,9 +184,12 @@ fn readme_command(arguments: ReadmeArgs) -> mischief::Result<i32> {
         print!("{}", result.render());
         Ok(i32::from(result.exit_code()))
     } else {
-        readme::write(&report, &usage, None)?;
+        let result = readme::write(&report, &usage, None)?;
         println!("README written");
-        Ok(0)
+        if !result.issues.is_empty() {
+            print!("{}", result.render());
+        }
+        Ok(i32::from(result.exit_code()))
     }
 }
 

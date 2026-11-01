@@ -1,7 +1,9 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use crate::report::{InputMeta, Kind, Report, Row, Verdict};
+use crate::report::{InputMeta, Report, Row};
+use crate::status::{self, Status};
+use crate::waivers::{WAIVERS, Waiver};
 
 pub const README_FILE: &str = "crates/compare-demosaic/README.md";
 
@@ -48,9 +50,18 @@ pub fn load(path: &Path) -> mischief::Result<Report> {
 }
 
 pub fn write(report: &Report, usage: &str, path: Option<&Path>) -> mischief::Result<ReadmeReport> {
+    write_with_waivers(report, usage, WAIVERS, path)
+}
+
+fn write_with_waivers(
+    report: &Report,
+    usage: &str,
+    waivers: &[Waiver],
+    path: Option<&Path>,
+) -> mischief::Result<ReadmeReport> {
     let path = path.map_or_else(readme_path, Path::to_path_buf);
     let mut document = std::fs::read_to_string(&path)?;
-    let regions = generated_regions(report, usage);
+    let regions = generated_regions_with_waivers(report, usage, waivers);
     for id in REQUIRED_REGIONS {
         document = replace_region(&document, id, &regions[*id])?;
     }
@@ -67,14 +78,27 @@ pub fn write(report: &Report, usage: &str, path: Option<&Path>) -> mischief::Res
         }
     }
     std::fs::write(path, document)?;
-    Ok(ReadmeReport::default())
+    Ok(ReadmeReport {
+        issues: status::waiver_findings(report, waivers),
+    })
 }
 
 pub fn check(report: &Report, usage: &str, path: Option<&Path>) -> mischief::Result<ReadmeReport> {
+    check_with_waivers(report, usage, WAIVERS, path)
+}
+
+fn check_with_waivers(
+    report: &Report,
+    usage: &str,
+    waivers: &[Waiver],
+    path: Option<&Path>,
+) -> mischief::Result<ReadmeReport> {
     let path = path.map_or_else(readme_path, Path::to_path_buf);
     let document = std::fs::read_to_string(&path)?;
-    let regions = generated_regions(report, usage);
-    let mut report_out = ReadmeReport::default();
+    let regions = generated_regions_with_waivers(report, usage, waivers);
+    let mut report_out = ReadmeReport {
+        issues: status::waiver_findings(report, waivers),
+    };
     for id in REQUIRED_REGIONS {
         check_region(&document, id, &regions[*id], &mut report_out.issues);
     }
@@ -93,14 +117,22 @@ pub fn check(report: &Report, usage: &str, path: Option<&Path>) -> mischief::Res
 }
 
 pub fn generated_regions(report: &Report, usage: &str) -> BTreeMap<String, String> {
+    generated_regions_with_waivers(report, usage, WAIVERS)
+}
+
+fn generated_regions_with_waivers(
+    report: &Report,
+    usage: &str,
+    waivers: &[Waiver],
+) -> BTreeMap<String, String> {
     let mut regions = BTreeMap::new();
     regions.insert("usage".to_owned(), render_usage(usage));
     regions.insert("legend".to_owned(), render_legend(report));
-    regions.insert("summary".to_owned(), render_summary(report));
+    regions.insert("summary".to_owned(), render_summary(report, waivers));
     for (algorithm, rows) in algorithms(report) {
         regions.insert(
             format!("algo:{}", algorithm_id(algorithm)),
-            render_algorithm(&rows),
+            render_algorithm(&rows, waivers),
         );
     }
     regions
@@ -132,10 +164,13 @@ fn render_usage(usage: &str) -> String {
 
 fn render_legend(report: &Report) -> String {
     let mut output = format!(
-        "- `✅`: exact or passing without high-error outliers.\n\
-- `🟢`: rounding-only differences.\n\
-- `⚠️`: every limit passes, but high-error outliers remain.\n\
-- `❌`: at least one limit failed.\n\
+        "| Verdict | Meaning |\n\
+| --- | --- |\n\
+| `✅` | Exact or passing without high-error outliers. |\n\
+| `🟢` | Rounding-only differences. |\n\
+| `⚖️` | Every limit passes; high-error outliers remain and were reviewed and accepted for the stated bounds and reason. |\n\
+| `⚠️` | Every limit passes; high-error outliers remain and are not yet explained. |\n\
+| `❌` | At least one limit failed. |\n\n\
 - Limits: MAE <= {:.6}, P99 <= {}, high-error fraction <= {:.6} above {} codes.\n\
 - Kinds: `exact` requires equality; `rounding` permits one-code upward rounding differences; `robust` applies the numeric limits.\n\
 - A row is `native` only when it uses the input's original CFA layout and crop `[0, 0]`. Other patterns use the smallest valid one-pixel shift and are consistency checks, not independent tests.\n\
@@ -165,7 +200,7 @@ fn render_inputs(inputs: &[InputMeta]) -> String {
     output
 }
 
-fn render_summary(report: &Report) -> String {
+fn render_summary(report: &Report, waivers: &[Waiver]) -> String {
     let mut groups = BTreeMap::<(&str, &str), Vec<&Row>>::new();
     for row in &report.rows {
         groups
@@ -178,33 +213,40 @@ fn render_summary(report: &Report) -> String {
 | --- | --- | --- | --- |\n",
     );
     for ((algorithm, reference), rows) in groups {
-        let worst = if rows.iter().any(|row| row.verdict == Verdict::Fail) {
-            Verdict::Fail
-        } else {
-            Verdict::Pass
-        };
+        let worst = rows
+            .iter()
+            .map(|row| status::evaluate(row, waivers))
+            .max()
+            .unwrap_or(Status::Fail);
         let native = rows
             .iter()
             .filter(|row| row.native)
-            .map(|row| format!("{} {}", row.pattern, status(row)))
+            .map(|row| {
+                format!(
+                    "{} {}",
+                    row.pattern,
+                    status::evaluate(row, waivers).symbol()
+                )
+            })
             .collect::<Vec<_>>()
             .join(", ");
+        let native = if native.is_empty() {
+            "not selected".to_owned()
+        } else {
+            native
+        };
         output.push_str(&format!(
             "| {} | {} | {} | {} |\n",
             crate::cases::display_name(algorithm),
             reference,
-            status_verdict(worst),
-            if native.is_empty() {
-                "not selected".to_owned()
-            } else {
-                native
-            },
+            worst.symbol(),
+            native,
         ));
     }
     output.trim_end().to_owned()
 }
 
-fn render_algorithm(rows: &[&Row]) -> String {
+fn render_algorithm(rows: &[&Row], waivers: &[Waiver]) -> String {
     let mut output = String::from(
         "| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |\n\
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n",
@@ -225,7 +267,7 @@ fn render_algorithm(rows: &[&Row]) -> String {
             row.crop[0],
             row.crop[1],
             if row.native { "yes" } else { "no" },
-            status(row),
+            status::evaluate(row, waivers).symbol(),
             row.all.mae,
             row.all.rmse,
             row.all.max,
@@ -237,28 +279,37 @@ fn render_algorithm(rows: &[&Row]) -> String {
             row.all.changed_frac,
         ));
     }
+    let algorithm = rows.first().map_or("", |row| row.algorithm.as_str());
+    let waiver_lines = waivers
+        .iter()
+        .filter(|waiver| waiver.algorithm.eq_ignore_ascii_case(algorithm))
+        .map(render_waiver)
+        .collect::<Vec<_>>();
+    if !waiver_lines.is_empty() {
+        output.push('\n');
+        output.push_str(&waiver_lines.join("\n"));
+    }
     output.trim_end().to_owned()
 }
 
-fn status(row: &Row) -> String {
-    match (row.kind, row.verdict) {
-        (_, Verdict::Fail) => "❌ fail".to_owned(),
-        (_, Verdict::Pass) if row.all.changed_frac == 0.0 => "✅ exact".to_owned(),
-        (Kind::Rounding, Verdict::Pass) => "🟢 rounding".to_owned(),
-        (_, Verdict::Pass) if row.all.count_gt1024 > 0 => "⚠️ pass with outliers".to_owned(),
-        (_, Verdict::Pass) => "✅ pass".to_owned(),
+fn render_waiver(waiver: &Waiver) -> String {
+    let pattern = waiver.pattern.map_or_else(
+        || "all patterns".to_owned(),
+        |pattern| format!("pattern `{pattern}`"),
+    );
+    let mut scope = pattern;
+    if let Some(input) = waiver.input {
+        scope.push_str(&format!(", input `{input}`"));
     }
-}
-
-fn status_verdict(verdict: Verdict) -> String {
-    format!("{} {}", verdict.symbol(), verdict_name(verdict))
-}
-
-const fn verdict_name(verdict: Verdict) -> &'static str {
-    match verdict {
-        Verdict::Pass => "pass",
-        Verdict::Fail => "fail",
-    }
+    format!(
+        "Accepted outliers ({} vs {}, {scope}): at most {} samples above 1024, maximum error at most {}. Reason: {} Evidence: {}",
+        waiver.algorithm,
+        waiver.reference.library(),
+        waiver.max_count_gt1024,
+        waiver.max_error,
+        waiver.reason,
+        waiver.evidence,
+    )
 }
 
 fn algorithms(report: &Report) -> BTreeMap<&str, Vec<&Row>> {
@@ -402,7 +453,10 @@ fn note_algorithm_names(document: &str) -> std::collections::BTreeSet<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::report::{Channels, Limits, Meta, References, Selection, Sites, WorstSample};
+    use crate::cases::ReferenceBackend;
+    use crate::report::{
+        Channels, Kind, Limits, Meta, References, Selection, Sites, Verdict, WorstSample,
+    };
 
     fn report(algorithm: &str) -> Report {
         let metrics = crate::report::Metrics {
@@ -491,6 +545,19 @@ mod tests {
         )
     }
 
+    fn waiver() -> Waiver {
+        Waiver {
+            algorithm: "ahd",
+            reference: ReferenceBackend::LibRaw,
+            pattern: None,
+            input: None,
+            max_count_gt1024: 1,
+            max_error: 1_500,
+            reason: "Near-tie direction decisions differ at one high-contrast edge.",
+            evidence: "The stage diff first diverges in the direction map.",
+        }
+    }
+
     #[test]
     fn write_is_idempotent_and_creates_stub_notes() -> mischief::Result<()> {
         let directory = tempfile::tempdir().expect("temporary directory");
@@ -503,6 +570,61 @@ mod tests {
         assert_eq!(std::fs::read_to_string(&path)?, first);
         let checked = check(&report, "usage", Some(&path))?;
         assert!(checked.issues.iter().any(|issue| issue.contains("TODO")));
+        Ok(())
+    }
+
+    #[test]
+    fn write_is_idempotent_with_waivers_and_renders_their_bounds() -> mischief::Result<()> {
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let path = directory.path().join("README.md");
+        std::fs::write(&path, shell())?;
+        let mut report = report("ahd");
+        report.rows[0].all.count_gt1024 = 1;
+        report.rows[0].all.max = 1_500;
+        let waivers = [waiver()];
+
+        let first_result = write_with_waivers(&report, "usage", &waivers, Some(&path))?;
+        assert!(first_result.issues.is_empty(), "{}", first_result.render());
+        let first = std::fs::read_to_string(&path)?;
+        write_with_waivers(&report, "usage", &waivers, Some(&path))?;
+        assert_eq!(std::fs::read_to_string(&path)?, first);
+        assert!(first.contains("| ⚖️ |"));
+        assert!(first.contains(
+            "Accepted outliers (ahd vs LibRaw, all patterns): at most 1 samples above 1024, maximum error at most 1500."
+        ));
+        assert!(first.contains("Reason: Near-tie direction decisions differ"));
+        assert!(first.contains("Evidence: The stage diff first diverges"));
+        for (line_number, line) in first.lines().enumerate() {
+            if ["✅", "🟢", "⚖️", "⚠️", "❌"]
+                .iter()
+                .any(|symbol| line.contains(symbol))
+            {
+                assert!(
+                    line.trim_start().starts_with('|'),
+                    "README symbol outside a table on line {}: {line}",
+                    line_number + 1
+                );
+            }
+        }
+
+        let checked = check_with_waivers(&report, "usage", &waivers, Some(&path))?;
+        assert!(
+            checked
+                .issues
+                .iter()
+                .all(|issue| !issue.contains("waiver for ahd"))
+        );
+
+        report.rows[0].all.max = 1_501;
+        let exceeded = write_with_waivers(&report, "usage", &waivers, Some(&path))?;
+        assert_eq!(exceeded.exit_code(), 1);
+        assert!(
+            exceeded
+                .issues
+                .iter()
+                .any(|issue| issue.contains("is exceeded"))
+        );
+        assert!(std::fs::read_to_string(&path)?.contains("| ⚠️ |"));
         Ok(())
     }
 
