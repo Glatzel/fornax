@@ -30,7 +30,7 @@ jobs:
           - uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
             with:
               run-install: false
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@bc1c681e2b4bf1f60e69a5e372b696f4ff1ebf9d # v2026.10.13
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@abc2dfda04597e174777b47175ff07a1b8000784 # v2026.11.1
       - name: libraw-bindings
         run: scripts/libraw-bindings.ps1
         shell: pwsh
@@ -47,3 +47,4 @@ jobs:
           git pull --rebase origin ${{ github.ref_name }}
           git push
         shell: bash
+
