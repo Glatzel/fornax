@@ -1,6 +1,6 @@
-use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_postprocessor::Demosaic;
+use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub enum ReferenceBackend {

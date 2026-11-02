@@ -1,6 +1,7 @@
-use fornax_core::protocol::LazyDemosaic;
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage};
 use generic_num::num;
+
+use crate::protocol::LazyDemosaic;
 
 pub struct DenseLazy<T: Primitive> {
     image: RgbImage<T>,
