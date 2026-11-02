@@ -154,7 +154,7 @@ and are consistency checks against the same image.
 | Linear | libraw | 🟢 | GBRG 🟢 |
 | LMMSE | darktable | ❌ | GBRG ❌ |
 | PPG | darktable | ✅ | GBRG ✅ |
-| PPG | libraw | ⚠️ | GBRG ⚠️ |
+| PPG | libraw | ⚖️ | GBRG ⚖️ |
 | RCD | darktable | ⚖️ | GBRG ⚖️ |
 | VNG | darktable | ✅ | GBRG ✅ |
 | VNG | libraw | ❌ | GBRG ❌ |
@@ -359,10 +359,12 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GBRG | [0, 0] | yes | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | GRBG | [1, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/ppg.c#L20) | RGGB | [0, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | [1, 0] | no | ⚠️ | 0.186705 | 3.106230 | 2221 | 0.108934 | 1 | 1 | 53 (0) | 0.146917 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | [0, 0] | yes | ⚠️ | 0.186701 | 3.106662 | 2221 | 0.108924 | 1 | 1 | 53 (0) | 0.146916 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | [1, 1] | no | ⚠️ | 0.186698 | 3.106884 | 2221 | 0.108933 | 1 | 1 | 53 (0) | 0.146911 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | [0, 1] | no | ⚠️ | 0.186694 | 3.107317 | 2221 | 0.108922 | 1 | 1 | 53 (0) | 0.146910 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | BGGR | [1, 0] | no | ⚖️ | 0.186705 | 3.106230 | 2221 | 0.108934 | 1 | 1 | 53 (0) | 0.146917 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | [0, 0] | yes | ⚖️ | 0.186701 | 3.106662 | 2221 | 0.108924 | 1 | 1 | 53 (0) | 0.146916 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | [1, 1] | no | ⚖️ | 0.186698 | 3.106884 | 2221 | 0.108933 | 1 | 1 | 53 (0) | 0.146911 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | [0, 1] | no | ⚖️ | 0.186694 | 3.107317 | 2221 | 0.108922 | 1 | 1 | 53 (0) | 0.146910 |
+
+Accepted outliers (ppg vs LibRaw, all patterns): at most 53 samples above 1024, maximum error at most 2221. Reason: LibRaw selects PPG directions with integer shifts and truncating arithmetic while Fornax follows darktable's normalized f32 path; near ties at high-contrast chart edges flip a small local set of directional choices. Evidence: The committed baseline matches darktable exactly in all CFA phases, preserves sampled Bayer sites exactly, and has the same 53 interior high-error samples and maximum error 2221 in every phase; each row's top-20 worst samples align after its crop offset, and the error map is sparse. LibRaw 0.22.3 ppg_interpolate uses right shifts and integer division for its predictions and diagonal tie.
 <!-- compare-demosaic:end algo:ppg -->
 
 > [!NOTE]
@@ -377,7 +379,12 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 > nearest matching color samples and consumes the Bayer pattern directly.
 > darktable bridges normalize both green CFA codes and run its own border
 > margin; LibRaw applies its pipeline around `ppg_interpolate`. Final integer
-> rounding can therefore differ at code boundaries.
+> rounding can therefore differ at code boundaries. LibRaw also uses right
+> shifts and truncating integer arithmetic for its PPG predictions and
+> diagonal tie, while Fornax follows darktable's normalized `f32` path. Near
+> ties at high-contrast chart edges can therefore select different local
+> directions. The same bounded outlier tail appears in all four CFA phases and
+> is accepted below the table.
 
 ## RCD
 

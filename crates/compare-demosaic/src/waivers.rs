@@ -24,6 +24,16 @@ pub const WAIVERS: &[Waiver] = &[
         evidence: "PR #602's valid-crop experiment has the same outlier tail in all four CFA phases with exact sampled Bayer values; the former BGGR and RGGB failures were invalid green-phase test input.",
     },
     Waiver {
+        algorithm: "ppg",
+        reference: ReferenceBackend::LibRaw,
+        pattern: None,
+        input: None,
+        max_count_gt1024: 53,
+        max_error: 2221,
+        reason: "LibRaw selects PPG directions with integer shifts and truncating arithmetic while Fornax follows darktable's normalized f32 path; near ties at high-contrast chart edges flip a small local set of directional choices.",
+        evidence: "The committed baseline matches darktable exactly in all CFA phases, preserves sampled Bayer sites exactly, and has the same 53 interior high-error samples and maximum error 2221 in every phase; each row's top-20 worst samples align after its crop offset, and the error map is sparse. LibRaw 0.22.3 ppg_interpolate uses right shifts and integer division for its predictions and diagonal tie.",
+    },
+    Waiver {
         algorithm: "rcd",
         reference: ReferenceBackend::Darktable,
         pattern: None,
