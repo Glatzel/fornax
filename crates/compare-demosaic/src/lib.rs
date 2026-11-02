@@ -101,6 +101,35 @@ mod tests {
         Ok(())
     }
 
+    #[rstest]
+    fn native_vng_meets_reference_limits(
+        cropped_real_128: &crate::reference::ActiveArea,
+        #[values("libraw", "darktable")] reference: &str,
+    ) -> mischief::Result<()> {
+        let case = crate::cases::case_for("vng", reference)
+            .expect("the VNG reference case must be registered");
+        let evaluation = crate::run::evaluate_case(case, cropped_real_128, BayerPattern::GBRG, 16)?;
+        match case.reference_backend {
+            ReferenceBackend::Darktable => assert!(
+                matches!(
+                    evaluation.verdict,
+                    crate::metrics::Verdict::Exact | crate::metrics::Verdict::Pass
+                ),
+                "VNG versus {reference} failed limits: {:?}",
+                evaluation.failed_limits
+            ),
+            // LibRaw uses a different green-plane convention. Record its
+            // distance for information without making it a VNG acceptance gate.
+            ReferenceBackend::LibRaw => {
+                println!(
+                    "VNG versus LibRaw: MAE {}, max {}",
+                    evaluation.evaluation.metrics.mae, evaluation.evaluation.metrics.max
+                );
+            }
+        }
+        Ok(())
+    }
+
     #[test]
     fn algorithm_ids_are_unique_and_unknown_ids_are_rejected() -> mischief::Result<()> {
         let mut ids = crate::cases::CASES
