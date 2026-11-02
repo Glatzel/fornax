@@ -43,9 +43,11 @@ behavior, adding compatibility re-exports at the old trait paths, changing
 ### Task 1: Lock the new public protocol path
 
 **Files:**
+
 - Create: `crates/fornax-postprocessor/tests/protocol.rs`
 
 **Interfaces:**
+
 - Consumes: `fornax_core::{BayerPattern, MonoImage, Primitive}`, `fornax_core::error::DemosaicError`
 - Produces: a regression test importing `IDemosaic` and `LazyDemosaic` from `fornax_postprocessor::protocol`
 
@@ -99,6 +101,7 @@ Expected: compilation fails because `fornax_postprocessor::protocol` does not ex
 ### Task 2: Move the traits and update all consumers
 
 **Files:**
+
 - Create: `crates/fornax-postprocessor/src/protocol.rs`
 - Modify: `crates/fornax-core/Cargo.toml`
 - Modify: `crates/fornax-core/src/protocol.rs`
@@ -114,6 +117,7 @@ Expected: compilation fails because `fornax_postprocessor::protocol` does not ex
 - Modify: `docs/architecture.md`
 
 **Interfaces:**
+
 - Consumes: the failing test and existing `DemosaicError`
 - Produces:
   - `fornax_postprocessor::protocol::LazyDemosaic<T>`
@@ -159,9 +163,11 @@ Expected: no matches.
 ### Task 3: Validate the workspace and comparison behavior
 
 **Files:**
+
 - No source-file changes expected.
 
 **Interfaces:**
+
 - Consumes: the completed move
 - Produces: recorded validation evidence and PR-ready commit
 
