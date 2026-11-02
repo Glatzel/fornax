@@ -18,7 +18,7 @@ changes to comparison limits, and waivers for VNG failures.
 
 ## Task checklist
 
-- [ ] Add focused tests for phase invariants, border interpolation, a small
+- [x] Add focused tests for phase invariants, border interpolation, a small
   directional reconstruction, measured-sample preservation, independent row
   reads, and minimum dimensions.
 - [x] Replace the mixed gradient convention with same-CFA terms using shift
@@ -32,9 +32,9 @@ changes to comparison limits, and waivers for VNG failures.
 - [x] Inspect the remaining maximum error numerically, including channel, site,
   neighborhood, and pre-pack green values.
 - [x] Review and accept only the intended VNG snapshots.
-- [ ] Refresh the full canonical baseline and generated README, then update
+- [x] Refresh the full canonical baseline and generated README, then update
   the hand-written VNG note.
-- [ ] Remove `[VNG]` from `TODO.md` only after acceptance and all validation
+- [x] Remove `[VNG]` from `TODO.md` only after acceptance and all validation
   commands pass.
 
 ## Files expected to change
@@ -43,6 +43,8 @@ changes to comparison limits, and waivers for VNG failures.
 - `crates/compare-demosaic/src/snapshots/*-VNG-*.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
+- `AGENTS.md`
+- `docs/references/vng.md`
 - `TODO.md`
 - This plan
 
@@ -96,7 +98,10 @@ fraction `<= 0.001` above 1024 codes. No numeric limit or waiver may change.
   rounding error. There are no errors above 1024.
 - The focused VNG tests and full workspace suite pass. The exact workspace
   Clippy command is blocked by an unrelated pre-existing
-  `clippy::too_many_arguments` error in `ahd.rs`; Clippy passes for the changed
-  packages when that unrelated lint is allowed.
-- If fidelity cannot be reached without changing limits or adding a waiver,
-  the task remains incomplete and `[VNG]` stays in `TODO.md`.
+  `clippy::too_many_arguments` errors in `ahd.rs` and the LibRaw binding;
+  Clippy passes for the changed packages when that unrelated lint is allowed.
+- The full comparison run changed only the eight VNG rows; every non-VNG row
+  remained identical to the committed baseline.
+- Reusable VNG sources and implementation decisions are recorded in
+  `docs/references/vng.md`. The root agent guidance now requires durable
+  algorithm research to be committed there with the code it informs.

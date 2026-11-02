@@ -156,7 +156,7 @@ and are consistency checks against the same image.
 | PPG | darktable | ✅ | GBRG ✅ |
 | PPG | libraw | ⚠️ | GBRG ⚠️ |
 | RCD | darktable | ⚖️ | GBRG ⚖️ |
-| VNG | darktable | ❌ | GBRG ❌ |
+| VNG | darktable | ✅ | GBRG ✅ |
 | VNG | libraw | ❌ | GBRG ❌ |
 <!-- compare-demosaic:end summary -->
 
@@ -413,26 +413,33 @@ Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024
 <!-- compare-demosaic:begin algo:vng -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | BGGR | [1, 0] | no | ❌ | 2908.244251 | 6278.863563 | 65535 | -205.327950 | 27623 | 41993 | 21565603 (299936) | 0.827316 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GBRG | [0, 0] | yes | ❌ | 2782.662776 | 6477.675994 | 65535 | -687.175060 | 30349 | 45809 | 20998328 (288980) | 0.827285 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GRBG | [1, 1] | no | ❌ | 2906.591015 | 6275.848437 | 65535 | -205.018867 | 27614 | 41987 | 21555394 (299756) | 0.827327 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | RGGB | [0, 1] | no | ❌ | 2781.053846 | 6474.143142 | 65535 | -686.327066 | 30332 | 45804 | 20988507 (288866) | 0.827296 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | BGGR | [1, 0] | no | ❌ | 2888.494132 | 6278.175031 | 65535 | -205.131550 | 27625 | 41998 | 21537751 (298052) | 0.665242 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GBRG | [0, 0] | yes | ❌ | 2762.780291 | 6476.794907 | 65535 | -686.974152 | 30351 | 45810 | 20978050 (287078) | 0.665211 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GRBG | [1, 1] | no | ❌ | 2886.824296 | 6275.098482 | 65535 | -204.883123 | 27616 | 41993 | 21527687 (297943) | 0.665241 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | RGGB | [0, 1] | no | ❌ | 2761.159370 | 6473.230877 | 65535 | -686.186804 | 30333 | 45806 | 20968345 (287052) | 0.665211 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | BGGR | [1, 0] | no | ✅ | 0.385723 | 1.245002 | 733 | 0.014067 | 1 | 9 | 0 (0) | 0.358690 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GBRG | [0, 0] | yes | ✅ | 0.385726 | 1.244920 | 733 | 0.014069 | 1 | 9 | 0 (0) | 0.358696 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GRBG | [1, 1] | no | ✅ | 0.385724 | 1.244787 | 733 | 0.014062 | 1 | 9 | 0 (0) | 0.358699 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | RGGB | [0, 1] | no | ✅ | 0.385727 | 1.244705 | 733 | 0.014064 | 1 | 9 | 0 (0) | 0.358705 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | BGGR | [1, 0] | no | ❌ | 62.978851 | 151.418190 | 6698 | 0.210467 | 692 | 1105 | 87273 (4831) | 0.752408 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GBRG | [0, 0] | yes | ❌ | 62.973616 | 151.406061 | 6698 | 0.214976 | 692 | 1105 | 87273 (4831) | 0.752412 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GRBG | [1, 1] | no | ❌ | 62.941900 | 151.318005 | 6698 | 0.149805 | 692 | 1104 | 86874 (4704) | 0.752458 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | RGGB | [0, 1] | no | ❌ | 62.936663 | 151.305885 | 6698 | 0.154326 | 692 | 1104 | 86874 (4704) | 0.752462 |
 <!-- compare-demosaic:end algo:vng -->
 
 > [!NOTE]
-> **Reference:** darktable, `vng_interpolate`, with LibRaw
-> `vng_interpolate` as a secondary reference.
-> **Why this reference:** both are widely used VNG implementations with the
-> gradient tables needed to compare this variable-neighbor algorithm.
-> **Why we match:** both begin with linear interpolation, score eight
-> directional gradients, retain the lower-gradient neighbors, and correct
-> missing colors by averaging green-referenced neighbor differences.
-> **Known differences:** Fornax maintains a three-row rolling result in
-> generic `u16` channels and clamps normalized output before nearest
-> quantization. The darktable bridge uses four-channel float pixels and
-> normalizes the two green filter codes first. Border windows and filter mask
-> conventions are therefore distinct.
+> **Reference:** darktable `vng_interpolate` is authoritative. LibRaw
+> `vng_interpolate` is retained as informational evidence for the original
+> dcraw-family algorithm.
+> **Why this reference:** darktable defines the split-green VNG behavior that
+> Fornax targets. LibRaw provides a second widely used implementation for
+> understanding shared algorithmic structure, but not an acceptance gate.
+> **Why we match:** both references begin with linear interpolation, score
+> eight directional gradients, retain lower-gradient neighbors, and correct
+> missing colors through green-referenced neighbor differences.
+> **Known differences:** darktable keeps the two green CFA phases in separate
+> planes through interpolation and averages them only when packing RGB.
+> LibRaw's comparison adapter sets `four_color_rgb = 0`, so it retains one
+> green plane and intentionally produces a materially different result.
+> Fornax follows darktable's split-green convention with a three-row rolling
+> result in generic `u16` channels; the bridge uses four-channel float pixels.
+> Border windows and fixed-point clipping can therefore produce sparse
+> high-value differences even when the aggregate error is small. See
+> [the VNG reference notes](../../docs/references/vng.md) for source links and
+> implementation details.

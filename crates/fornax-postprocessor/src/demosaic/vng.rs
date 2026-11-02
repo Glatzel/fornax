@@ -1,4 +1,9 @@
 //! Variable-number-of-gradients Bayer demosaicing.
+//!
+//! The algorithm is described by the
+//! [original VNG report](http://scien.stanford.edu/pages/labsite/1999/psych221/projects/99/tingchen/algodep/vargra.html).
+//! The port follows darktable's split-green convention; see the
+//! [VNG reference notes](https://github.com/Glatzel/fornax/blob/main/docs/references/vng.md).
 
 use fornax_core::error::DemosaicError;
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
@@ -425,6 +430,89 @@ mod tests {
 
         for pixel in output.as_chunks::<3>().0 {
             assert_eq!(pixel, &[1_000, 20_000, 2_000]);
+        }
+    }
+
+    #[test]
+    fn linear_stage_preserves_measured_bayer_samples() {
+        let width = 12;
+        let height = 12;
+        let pattern = BayerPattern::GBRG;
+        let input = (0..width * height)
+            .map(|pixel| 1_000 + (pixel as u16).wrapping_mul(97))
+            .collect::<Vec<_>>();
+
+        let pixels = linear_interpolate(&input, width, height, pattern);
+
+        for pixel in 0..width * height {
+            let x = (pixel % width) as i32;
+            let y = (pixel / width) as i32;
+            let sampled_channel = color_at(pattern, x, y);
+            assert_eq!(pixels[pixel][sampled_channel], input[pixel]);
+        }
+    }
+
+    #[test]
+    fn rows_are_reconstructed_independently() {
+        let width = 12;
+        let height = 16;
+        let pattern = BayerPattern::GBRG;
+        let input = (0..width * height)
+            .map(|pixel| 2_000 + (pixel / width) as u16 * 64)
+            .collect::<Vec<_>>();
+
+        let output = interpolate(&input, width, height, pattern);
+
+        for y in 2..height - 2 {
+            let expected = 2_000 + y as u16 * 64;
+            for x in 2..width - 2 {
+                let offset = (y * width + x) * 3;
+                assert_eq!(
+                    &output[offset..offset + 3],
+                    &[expected; 3],
+                    "row {y}, column {x}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn affine_directional_input_is_reconstructed() {
+        let width = 16;
+        let height = 16;
+        let pattern = BayerPattern::GBRG;
+        let value = |x: usize, y: usize| 3_000 + x as u16 * 64 + y as u16 * 32;
+        let input = (0..width * height)
+            .map(|pixel| value(pixel % width, pixel / width))
+            .collect::<Vec<_>>();
+
+        let output = interpolate(&input, width, height, pattern);
+
+        for y in 2..height - 2 {
+            for x in 2..width - 2 {
+                let offset = (y * width + x) * 3;
+                assert_eq!(
+                    &output[offset..offset + 3],
+                    &[value(x, y); 3],
+                    "pixel ({x}, {y})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn images_smaller_than_eight_pixels_are_rejected() {
+        for (width, height) in [(7, 8), (8, 7)] {
+            let mosaic = MonoImage::from_raw(
+                width,
+                height,
+                vec![0.0_f32; width as usize * height as usize],
+            )
+            .unwrap();
+            assert!(matches!(
+                DemosaicVng.lazy(&mosaic, BayerPattern::GBRG),
+                Err(DemosaicError::InvalidInput(_))
+            ));
         }
     }
 

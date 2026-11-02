@@ -111,10 +111,24 @@ linked issue. Only the user merges or abandons a pull request.
   `AGENTS.md` and `TODO.md`. Do not add tool-specific instruction files for a
   particular coding agent.
 
+## Reference knowledge
+
+- Preserve reusable algorithm and implementation research in
+  `docs/references/<topic>.md` and commit it with the code it informs. Do not
+  leave important findings only in chat, scratch files, or pull request
+  comments.
+- Record authoritative source links with pinned versions or commits, the
+  behavior or decision they support, known implementation differences, and
+  license constraints that affect reuse.
+- Link implementation modules or generated documentation to the relevant
+  reference note when the source material clarifies invariants that are easy
+  to regress.
+
 ## Where to look next
 
 - Architecture and pipeline boundaries: [docs/architecture.md](docs/architecture.md)
 - Per-work plans: [docs/plans/](docs/plans/)
+- Algorithm and reference notes: [docs/references/](docs/references/)
 - Comparison-crate rules:
   [crates/compare-demosaic/AGENTS.md](crates/compare-demosaic/AGENTS.md)
 - Project procedures: [.agents/skills/](.agents/skills/)
