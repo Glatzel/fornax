@@ -38,6 +38,7 @@ the exit code.
 - `README.md`: hand-written text, generated regions between compare-demosaic
   markers, and note blocks. Never edit text between markers by hand.
 - `target/compare-demosaic/`: latest run (not committed). `--out` changes it.
+- From the repository root, query the 120 KB baseline with `jq -r '.rows[] | select(.verdict == "fail") | [.algorithm, .reference, .pattern, (.failed_limits | join(","))] | @tsv' crates/compare-demosaic/baseline/canonical.json` instead of reading it whole; read `README.md` by algorithm or marker section.
 
 ## Reference sources
 

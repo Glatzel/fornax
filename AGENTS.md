@@ -118,3 +118,6 @@ linked issue. Only the user merges or abandons a pull request.
 - Comparison-crate rules:
   [crates/compare-demosaic/AGENTS.md](crates/compare-demosaic/AGENTS.md)
 - Project procedures: [.agents/skills/](.agents/skills/)
+- Use XERJ only to locate unfamiliar external reference code; verify hits at
+  `file:line`. Never substitute it for reading `TODO.md`, `AGENTS.md`, generated
+  README tables, Cargo output, or diffs.
