@@ -17,13 +17,14 @@ use amaze::DemosaicAmaze;
 use dcb::DemosaicDcb;
 use dht::DemosaicDht;
 use fornax_core::error::DemosaicError;
-use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use linear::{DemosaicLinear, LinearLazy};
 use lmmse::DemosaicLmmse;
 use ppg::{DemosaicPpg, PpgLazy};
 use rcd::{DemosaicRcd, RcdLazy};
 use vng::DemosaicVng;
+
+use crate::protocol::{IDemosaic, LazyDemosaic};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Demosaic {

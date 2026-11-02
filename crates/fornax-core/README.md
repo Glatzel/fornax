@@ -1,7 +1,8 @@
 # fornax-core
 
 Shared RAW pipeline types, errors, metadata, Bayer layouts, and decoder,
-preprocessor, demosaic, and post-processor traits for Fornax.
+preprocessor, and post-processor traits for Fornax. Demosaic protocol traits
+and implementations live in `fornax-postprocessor`.
 
 ```rust
 use fornax_core::{BayerPattern, MonoImage};

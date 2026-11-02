@@ -5,11 +5,11 @@
 //! reference; no darktable source code is copied into this module.
 
 use fornax_core::error::DemosaicError;
-use fornax_core::protocol::LazyDemosaic;
 use fornax_core::{BayerPattern, MonoImage, Primitive, RgbImage};
 use generic_num::num;
 
 use super::ppg::DemosaicPpg;
+use crate::protocol::LazyDemosaic;
 
 const TILE_SIZE: usize = 112;
 const TILE_CORE: usize = 92;

@@ -1,6 +1,4 @@
-use rayon::prelude::*;
-
-use crate::error::{DecodeError, DemosaicError, PostProcessError, PreprocessError};
+use crate::error::{DecodeError, PostProcessError, PreprocessError};
 use crate::metadata::{Levels, Metadata, WhiteBalance};
 use crate::{
     BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive, RawImage, RgbImage,
@@ -40,48 +38,4 @@ where
         bayer_image: &MonoImage<T>,
         metadata: &M,
     ) -> Result<RgbImage<T>, PostProcessError>;
-}
-pub trait LazyDemosaic<T: Primitive + Send + Sync>: Sync {
-    fn dimensions(&self) -> (u32, u32);
-    fn fill_rows(&self, y0: usize, out: &mut [T]);
-    /// Shared by every algorithm: one parallel pass, optional fused per-row
-    /// stage.
-    fn collect_with(&self, post: impl Fn(usize, &mut [T]) + Sync) -> RgbImage<T>
-    where
-        Self: Sized,
-    {
-        let (width, height) = self.dimensions();
-        let threads = rayon::current_num_threads();
-        let rows_per_task = (height as usize / (threads * 4)).clamp(8, 128);
-
-        let mut img = RgbImage::new(width, height);
-        let row_stride = width as usize * 3;
-        let raw_out: &mut [T] = &mut img;
-
-        raw_out
-            .par_chunks_mut(row_stride * rows_per_task)
-            .enumerate()
-            .for_each(|(i, chunk)| {
-                let y0 = i * rows_per_task;
-                self.fill_rows(y0, chunk);
-                for (dy, row) in chunk.chunks_exact_mut(row_stride).enumerate() {
-                    post(y0 + dy, row);
-                }
-            });
-        img
-    }
-
-    fn collect(&self) -> RgbImage<T>
-    where
-        Self: Sized,
-    {
-        self.collect_with(|_, _| {})
-    }
-}
-pub trait IDemosaic<T: Primitive + Send + Sync> {
-    fn demosaic<'a>(
-        &self,
-        bayer: &'a MonoImage<T>,
-        pattern: BayerPattern,
-    ) -> Result<impl LazyDemosaic<T> + 'a, DemosaicError>;
 }

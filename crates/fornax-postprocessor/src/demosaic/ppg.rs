@@ -6,9 +6,10 @@
 //! from diagonal color differences.
 
 use fornax_core::error::DemosaicError;
-use fornax_core::protocol::LazyDemosaic;
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use generic_num::num;
+
+use crate::protocol::LazyDemosaic;
 
 const RED: usize = 0;
 const GREEN: usize = 1;

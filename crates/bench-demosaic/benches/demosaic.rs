@@ -1,8 +1,8 @@
 use bench_demosaic::{algorithm_ids, demosaic, selected_algorithm};
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use fornax_core::protocol::{IDemosaic, LazyDemosaic};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
+use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
 
 fn bench_methods<D, T>(
     c: &mut Criterion,

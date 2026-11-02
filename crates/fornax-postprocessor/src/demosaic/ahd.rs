@@ -7,11 +7,11 @@
 use std::sync::LazyLock;
 
 use fornax_core::error::DemosaicError;
-use fornax_core::protocol::LazyDemosaic;
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage};
 use generic_num::num;
 
 use super::linear::DemosaicLinear;
+use crate::protocol::LazyDemosaic;
 
 const TILE_SIZE: usize = 512;
 const TILE_STEP: usize = TILE_SIZE - 6;

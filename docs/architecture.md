@@ -18,13 +18,13 @@ tooling.
 
 | Crate | Role | Internal dependencies |
 | --- | --- | --- |
-| `fornax-core` | Shared image aliases, Bayer types, metadata, errors, decoded-image wrappers, and stage traits. | None |
+| `fornax-core` | Shared image aliases, Bayer types, metadata, errors, decoded-image wrappers, and decoder, preprocessor, and post-processor traits. | None |
 | `fornax-decoder-rawler` | Decodes conventional 2x2 RGB Bayer RAW files with Rawler. | `fornax-core` |
 | `fornax-decoder-dnc` | Converts RAW with Adobe DNG Converter, then decodes through Rawler; available on Windows and macOS. | `fornax-core`, `fornax-decoder-rawler` |
 | `libraw-sys` | Low-level Rust FFI for the LibRaw C API. | None |
 | `libraw` | Safe LibRaw data types, decoder adapter, and processed-image interface. | `fornax-core`, `libraw-sys` |
 | `fornax-preprocessor` | Normalizes decoded active-area mosaics using black and white levels. | `fornax-core` |
-| `fornax-postprocessor` | Implements demosaic algorithms and converts mosaics to RGB. | `fornax-core` |
+| `fornax-postprocessor` | Owns the demosaic protocol traits, implements demosaic algorithms, and converts mosaics to RGB. | `fornax-core` |
 | `fornax` | Public facade and feature-gated decoder exports. | `fornax-core`, both Rust decoders, `libraw`, both processors |
 | `fornax-py` | PyO3/Maturin Python binding source. | `fornax`, `libraw`, Python-facing crates |
 | `fornax-devtool` | Shared fixtures, synthetic images, tracing setup, and image helpers. | `fornax-core` |
@@ -66,9 +66,12 @@ The boundary between decode and preprocess is therefore
 ### Demosaic and post-process
 
 `RawImage<T>::process` delegates to `IPostProcessor<T, M>` with metadata.
-`PostProcessor` calls an `IDemosaic<T>` implementation with the mosaic and
-`Metadata::bayer_pattern`. `IDemosaic` returns a `LazyDemosaic<T>`, which
-produces RGB rows and then an `RgbImage<T>`.
+`PostProcessor` calls an `fornax_postprocessor::protocol::IDemosaic<T>`
+implementation with the mosaic and `Metadata::bayer_pattern`. `IDemosaic`
+returns a `fornax_postprocessor::protocol::LazyDemosaic<T>`, which produces RGB
+rows and then an `RgbImage<T>`. `DemosaicError` remains
+`fornax_core::error::DemosaicError` because `PostProcessError` and the core
+post-processor interfaces are defined in `fornax-core`.
 
 The postprocessor supports Linear, PPG, RCD, AHD, VNG, DCB, DHT, AAHD, AMaZE,
 and LMMSE reconstruction. `PostProcessor::default()` selects Linear
@@ -89,9 +92,11 @@ supported.
 
 ## Interfaces
 
-- Rust callers use the stage traits from `fornax-core` or the re-exports in the
-  `fornax` facade. `crates/fornax/examples/pipeline.rs` demonstrates
-  decode-active, preprocess, and demosaic calls.
+- Rust callers use decoder, preprocessor, and post-processor traits from
+  `fornax-core`, and demosaic protocol traits from `fornax-postprocessor`, or
+  the corresponding re-exports in the `fornax` facade.
+  `crates/fornax/examples/pipeline.rs` demonstrates decode-active, preprocess,
+  and demosaic calls.
 - `libraw-sys` exposes unsafe LibRaw FFI declarations, and `libraw` provides
   safe wrappers plus `LibrawDecoder`. This is a binding to LibRaw, not a
   general-purpose Fornax C API.
