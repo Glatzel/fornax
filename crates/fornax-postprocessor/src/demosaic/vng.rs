@@ -201,8 +201,7 @@ fn interpolate(input: &[u16], width: usize, height: usize, pattern: BayerPattern
     for pixel in 0..width * height {
         rgb[pixel * 3] = pixels[pixel][0];
         // darktable keeps G1/G2 separate through VNG and mixes them only here.
-        rgb[pixel * 3 + 1] =
-            ((u32::from(pixels[pixel][1]) + u32::from(pixels[pixel][3])) / 2) as u16;
+        rgb[pixel * 3 + 1] = u32::midpoint(pixels[pixel][1].into(), pixels[pixel][3].into()) as u16;
         rgb[pixel * 3 + 2] = pixels[pixel][2];
     }
     rgb

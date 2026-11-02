@@ -50,7 +50,7 @@ Fornax mirrors that behavior:
 - red is channel 0 and blue is channel 2.
 
 The split changes the accepted phase-term and special-neighbor plans. For each
-of the four Bayer patterns, darktable's `GBRG`-style split plan has 512 term
+of the four Bayer patterns, darktable's split-green plan has 512 term
 associations and 128 special green-neighbor flags across the 16 phase
 templates. Collapsing both greens produces 544 terms and only 96 flags. The
 split-green regression tests in `crates/fornax-postprocessor/src/demosaic/vng.rs`

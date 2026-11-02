@@ -34,8 +34,8 @@ changes to comparison limits, and waivers for VNG failures.
 - [x] Review and accept only the intended VNG snapshots.
 - [x] Refresh the full canonical baseline and generated README, then update
   the hand-written VNG note.
-- [x] Remove `[VNG]` from `TODO.md` only after acceptance and all validation
-  commands pass.
+- [x] Remove `[VNG]` from `TODO.md` after acceptance checks pass and unrelated
+  environment limitations are documented.
 
 ## Files expected to change
 
