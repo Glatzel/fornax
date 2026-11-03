@@ -31,7 +31,7 @@ typer = "*"
 get-raw-samples = "python $PIXI_WORKSPACE_ROOT/scripts/get_raw_samples.py"
 
 [feature.book.dependencies]
-matplotlib = "3.11.*"
+matplotlib-base = "3.11.*"
 python = "3.13.*"
 
 [feature.book.activation.env]

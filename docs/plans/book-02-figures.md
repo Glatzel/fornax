@@ -76,8 +76,9 @@ Sample file names follow the chapter ids planned in `TODO.md`; rename to match w
 
 - On 2026-11-03, `pixi search -c conda-forge gnuplot --platform win-64` found
   no package, so gnuplot remains unavailable on a declared repository
-  platform. The `book` environment resolves Python 3.13.18 and matplotlib
-  3.11.2 on every declared platform.
+  platform. The `book` environment resolves Python 3.13.18 and
+  `matplotlib-base` 3.11.2 on every declared platform. The base package
+  provides the matplotlib API without an unused Qt GUI stack.
 - On 2026-11-03, two consecutive `pixi run -e book book-figures` runs produced
   byte-identical SVGs on this Linux machine.
 - Byte-identical output across operating systems is not promised: layout depends on font metrics. Regenerate on one machine, inspect the files there, and do not add a CI drift check.
