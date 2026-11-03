@@ -146,7 +146,7 @@ and are consistency checks against the same image.
 <!-- compare-demosaic:begin summary -->
 | Algorithm | Reference | Worst verdict | Native-pattern result |
 | --- | --- | --- | --- |
-| AAHD | libraw | ⚠️ | GBRG ⚠️ |
+| AAHD | libraw | ⚖️ | GBRG ⚖️ |
 | AHD | libraw | ⚖️ | GBRG ⚖️ |
 | AMaZE | darktable | ❌ | GBRG ❌ |
 | DCB | libraw | ❌ | GBRG ❌ |
@@ -186,10 +186,12 @@ and are consistency checks against the same image.
 <!-- compare-demosaic:begin algo:aahd -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 0] | no | ⚠️ | 0.254582 | 15.455211 | 5349 | 0.034854 | 0 | 13 | 3063 (63) | 0.001123 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 0] | yes | ⚠️ | 0.262976 | 15.868994 | 5385 | -0.038376 | 0 | 14 | 3310 (61) | 0.001134 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 1] | no | ⚠️ | 0.284509 | 16.857542 | 5941 | 0.036856 | 0 | 17 | 3696 (84) | 0.001156 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 1] | no | ⚠️ | 0.275929 | 16.457193 | 5941 | -0.040267 | 0 | 16 | 3447 (88) | 0.001145 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 0] | no | ⚖️ | 0.254582 | 15.455211 | 5349 | 0.034854 | 0 | 13 | 3063 (63) | 0.001123 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 0] | yes | ⚖️ | 0.262976 | 15.868994 | 5385 | -0.038376 | 0 | 14 | 3310 (61) | 0.001134 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 1] | no | ⚖️ | 0.284509 | 16.857542 | 5941 | 0.036856 | 0 | 17 | 3696 (84) | 0.001156 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 1] | no | ⚖️ | 0.275929 | 16.457193 | 5941 | -0.040267 | 0 | 16 | 3447 (88) | 0.001145 |
+
+Accepted outliers (aahd vs LibRaw, all patterns): at most 3696 samples above 1024, maximum error at most 5941. Reason: Independent floating-point homogeneity and gradient comparisons can select the other AAHD directional candidate at sparse, high-frequency and clipped chart details. Evidence: The full-resolution error map was reviewed in all four CFA phases: every robust limit passes, sampled Bayer sites are exact, all high-error values are interpolated-site outliers, and the map is sparse point noise without a border strip or full-frame structure. The reviewed maxima are 3696 samples above 1024 and maximum error 5941 (GRBG/RGGB).
 <!-- compare-demosaic:end algo:aahd -->
 
 > [!NOTE]
