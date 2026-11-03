@@ -1,8 +1,6 @@
 # TODO
 
 - decoder
-  - [DEC-RSP] rawspeed(the backend of darktable)
-  - [DEC-FR] flashraw(https://crates.io/crates/flashraw)
   - [DEC-DNG] Implement DNG 1.7.1.0 reading, metadata preservation, pure-Rust export, and 2x2 Bayer handoff. Plan: `docs/decoder/formats/dng.md`.
   - [DEC-CR3] Implement Canon CR3/CRM BMFF parsing and CRX decoding. Plan: `docs/decoder/formats/canon-cr3.md`.
   - [DEC-ARW] Implement Sony ARW/NRW TIFF variants and compression families. Plan: `docs/decoder/formats/sony-arw.md`.
