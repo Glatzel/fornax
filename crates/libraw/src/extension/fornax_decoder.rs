@@ -315,14 +315,12 @@ mod tests {
             }
         );
         assert_eq!(metadata.levels.black.dimensions(), (2, 2));
-        assert!(
-            metadata
-                .levels
-                .black
-                .as_raw()
-                .iter()
-                .all(|&black| black >= 0.0 && black < metadata.levels.white)
-        );
+        assert!(metadata
+            .levels
+            .black
+            .as_raw()
+            .iter()
+            .all(|&black| black >= 0.0 && black < metadata.levels.white));
         assert_eq!(metadata.levels.white, 13_584.0);
         assert_eq!(metadata.bayer_pattern, BayerPattern::GBRG);
         assert!(metadata.levels.black_delta_h.is_empty());
@@ -357,14 +355,12 @@ mod tests {
             }
         );
         assert_eq!(metadata.levels.black.dimensions(), (2, 2));
-        assert!(
-            metadata
-                .levels
-                .black
-                .as_raw()
-                .iter()
-                .all(|&black| black == 1_024.0)
-        );
+        assert!(metadata
+            .levels
+            .black
+            .as_raw()
+            .iter()
+            .all(|&black| black == 1_024.0));
         assert_eq!(metadata.levels.white, 15_600.0);
         assert_eq!(metadata.bayer_pattern, BayerPattern::GBRG);
         Ok(())
