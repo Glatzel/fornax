@@ -244,6 +244,4 @@ fn fill_green_border(
     }
 }
 
-const fn at(values: &[f32], width: usize, x: usize, y: usize) -> f32 {
-    values[y * width + x]
-}
+const fn at(values: &[f32], width: usize, x: usize, y: usize) -> f32 { values[y * width + x] }

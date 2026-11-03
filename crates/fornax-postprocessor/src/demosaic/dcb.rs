@@ -167,7 +167,8 @@ fn horizontal_colors(
                 pixels[index + 1][color] as f32,
             )) as f32;
             candidates[index][other] = clip_f32(
-                (2.0_f32.mul_add(candidates[index][1], -candidates[index + u][1]) - candidates[index - u][1]
+                (2.0_f32.mul_add(candidates[index][1], -candidates[index + u][1])
+                    - candidates[index - u][1]
                     + pixels[index + u][other] as f32
                     + pixels[index - u][other] as f32)
                     / 2.0,
@@ -234,7 +235,8 @@ fn vertical_colors(
             let color = cfa_channel(pattern, col as isize + 1, row as isize);
             let other = 2 - color;
             candidates[index][color] = clip_f32(
-                (2.0_f32.mul_add(candidates[index][1], -candidates[index + 1][1]) - candidates[index - 1][1]
+                (2.0_f32.mul_add(candidates[index][1], -candidates[index + 1][1])
+                    - candidates[index - 1][1]
                     + pixels[index + 1][color] as f32
                     + pixels[index - 1][color] as f32)
                     / 2.0,
@@ -302,13 +304,9 @@ fn direction_is_vertical(
     ((current - current2) as i32).abs() >= ((current - current3) as i32).abs()
 }
 
-fn clip_f32(value: f32) -> u16 {
-    (value as i32).clamp(0, i32::from(u16::MAX)) as u16
-}
+fn clip_f32(value: f32) -> u16 { (value as i32).clamp(0, i32::from(u16::MAX)) as u16 }
 
-fn clip_i32(value: i32) -> u16 {
-    value.clamp(0, i32::from(u16::MAX)) as u16
-}
+fn clip_i32(value: i32) -> u16 { value.clamp(0, i32::from(u16::MAX)) as u16 }
 
 #[allow(
     dead_code,
@@ -379,8 +377,11 @@ fn correction(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
                 + i32::from(pixels[index - v][3])
                 + i32::from(pixels[index + 2][3])
                 + i32::from(pixels[index - 2][3]);
-            pixels[index][1] = ((current as f32).mul_add(f32::midpoint(pixels[index - u][1] as f32, pixels[index + u][1] as f32), (16 - current) as f32 * f32::midpoint(pixels[index - 1][1] as f32, pixels[index + 1][1] as f32))
-                / 16.0) as u16;
+            pixels[index][1] = ((current as f32).mul_add(
+                f32::midpoint(pixels[index - u][1] as f32, pixels[index + u][1] as f32),
+                (16 - current) as f32
+                    * f32::midpoint(pixels[index - 1][1] as f32, pixels[index + 1][1] as f32),
+            ) / 16.0) as u16;
             col += 2;
         }
     }
@@ -404,19 +405,21 @@ fn correction2(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Ba
                 + i32::from(pixels[index + 2][3])
                 + i32::from(pixels[index - 2][3]);
             pixels[index][1] = clip_f32(
-                (current as f32).mul_add(f32::midpoint(
-                            pixels[index - u][1] as f32,
-                            pixels[index + u][1] as f32,
-                        ) + pixels[index][color] as f32 - f32::midpoint(
-                                pixels[index + v][color] as f32,
-                                pixels[index - v][color] as f32,
-                            ), (16 - current) as f32 * (f32::midpoint(pixels[index - 1][1] as f32, pixels[index + 1][1] as f32)
+                (current as f32).mul_add(
+                    f32::midpoint(pixels[index - u][1] as f32, pixels[index + u][1] as f32)
                         + pixels[index][color] as f32
                         - f32::midpoint(
-                            pixels[index + 2][color] as f32,
-                            pixels[index - 2][color] as f32,
-                        )))
-                    / 16.0,
+                            pixels[index + v][color] as f32,
+                            pixels[index - v][color] as f32,
+                        ),
+                    (16 - current) as f32
+                        * (f32::midpoint(pixels[index - 1][1] as f32, pixels[index + 1][1] as f32)
+                            + pixels[index][color] as f32
+                            - f32::midpoint(
+                                pixels[index + 2][color] as f32,
+                                pixels[index - 2][color] as f32,
+                            )),
+                ) / 16.0,
             );
             col += 2;
         }
@@ -545,7 +548,8 @@ fn refinement(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
                 } else {
                     f[0]
                 };
-                let vertical_ratio = (3.0_f32.mul_add(f[3], 3.0_f32.mul_add(f[1], 5.0 * f[0]) + f[2]) + f[4]) / 13.0;
+                let vertical_ratio =
+                    (3.0_f32.mul_add(f[3], 3.0_f32.mul_add(f[1], 5.0 * f[0]) + f[2]) + f[4]) / 13.0;
 
                 f[0] = (pixels[index - 1][1] as f32 + pixels[index + 1][1] as f32) / (2.0 * center);
                 f[1] = if pixels[index - 2][color] > 0 {
@@ -570,10 +574,12 @@ fn refinement(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
                 } else {
                     f[0]
                 };
-                let horizontal_ratio = (3.0_f32.mul_add(f[3], 3.0_f32.mul_add(f[1], 5.0 * f[0]) + f[2]) + f[4]) / 13.0;
+                let horizontal_ratio =
+                    (3.0_f32.mul_add(f[3], 3.0_f32.mul_add(f[1], 5.0 * f[0]) + f[2]) + f[4]) / 13.0;
                 pixels[index][1] = clip_f32(
                     center
-                        * ((16 - current) as f32).mul_add(horizontal_ratio, current as f32 * vertical_ratio)
+                        * ((16 - current) as f32)
+                            .mul_add(horizontal_ratio, current as f32 * vertical_ratio)
                         / 16.0,
                 );
             } else {
@@ -632,12 +638,51 @@ fn color_full(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
             for (direction, weight) in f.iter_mut().enumerate() {
                 *weight = diagonal_chroma_weight(&chroma, index, width, color, direction);
             }
-            g[0] = 0.075_f32.mul_add(-chroma[index - u - 3][color], 0.075_f32.mul_add(-chroma[index - w - 1][color], 0.175_f32.mul_add(-chroma[index - w - 3][color], 1.325 * chroma[index - u - 1][color])));
-            g[1] = 0.075_f32.mul_add(-chroma[index - u + 3][color], 0.075_f32.mul_add(-chroma[index - w + 1][color], 0.175_f32.mul_add(-chroma[index - w + 3][color], 1.325 * chroma[index - u + 1][color])));
-            g[2] = 0.075_f32.mul_add(-chroma[index + u - 3][color], 0.075_f32.mul_add(-chroma[index + w - 1][color], 0.175_f32.mul_add(-chroma[index + w - 3][color], 1.325 * chroma[index + u - 1][color])));
-            g[3] = 0.075_f32.mul_add(-chroma[index + u + 3][color], 0.075_f32.mul_add(-chroma[index + w + 1][color], 0.175_f32.mul_add(-chroma[index + w + 3][color], 1.325 * chroma[index + u + 1][color])));
-            chroma[index][color] = f32::mul_add(f[3], g[3], f32::mul_add(f[2], g[2], f32::mul_add(f[1], g[1], f[0] * g[0])))
-                / (f[0] + f[1] + f[2] + f[3]);
+            g[0] = 0.075_f32.mul_add(
+                -chroma[index - u - 3][color],
+                0.075_f32.mul_add(
+                    -chroma[index - w - 1][color],
+                    0.175_f32.mul_add(
+                        -chroma[index - w - 3][color],
+                        1.325 * chroma[index - u - 1][color],
+                    ),
+                ),
+            );
+            g[1] = 0.075_f32.mul_add(
+                -chroma[index - u + 3][color],
+                0.075_f32.mul_add(
+                    -chroma[index - w + 1][color],
+                    0.175_f32.mul_add(
+                        -chroma[index - w + 3][color],
+                        1.325 * chroma[index - u + 1][color],
+                    ),
+                ),
+            );
+            g[2] = 0.075_f32.mul_add(
+                -chroma[index + u - 3][color],
+                0.075_f32.mul_add(
+                    -chroma[index + w - 1][color],
+                    0.175_f32.mul_add(
+                        -chroma[index + w - 3][color],
+                        1.325 * chroma[index + u - 1][color],
+                    ),
+                ),
+            );
+            g[3] = 0.075_f32.mul_add(
+                -chroma[index + u + 3][color],
+                0.075_f32.mul_add(
+                    -chroma[index + w + 1][color],
+                    0.175_f32.mul_add(
+                        -chroma[index + w + 3][color],
+                        1.325 * chroma[index + u + 1][color],
+                    ),
+                ),
+            );
+            chroma[index][color] = f32::mul_add(
+                f[3],
+                g[3],
+                f32::mul_add(f[2], g[2], f32::mul_add(f[1], g[1], f[0] * g[0])),
+            ) / (f[0] + f[1] + f[2] + f[3]);
             col += 2;
         }
     }
@@ -670,12 +715,19 @@ fn color_full(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
                         + (chroma[index + u][color] - chroma[index - u][color]).abs()
                         + (chroma[index + u][color] - chroma[index + w][color]).abs()
                         + (chroma[index - u][color] - chroma[index + w][color]).abs());
-                g[0] = 0.125_f32.mul_add(chroma[index - w][color], 0.875 * chroma[index - u][color]);
-                g[1] = 0.125_f32.mul_add(chroma[index + 3][color], 0.875 * chroma[index + 1][color]);
-                g[2] = 0.125_f32.mul_add(chroma[index - 3][color], 0.875 * chroma[index - 1][color]);
-                g[3] = 0.125_f32.mul_add(chroma[index + w][color], 0.875 * chroma[index + u][color]);
-                chroma[index][color] = f32::mul_add(f[3], g[3], f32::mul_add(f[2], g[2], f32::mul_add(f[1], g[1], f[0] * g[0])))
-                    / (f[0] + f[1] + f[2] + f[3]);
+                g[0] =
+                    0.125_f32.mul_add(chroma[index - w][color], 0.875 * chroma[index - u][color]);
+                g[1] =
+                    0.125_f32.mul_add(chroma[index + 3][color], 0.875 * chroma[index + 1][color]);
+                g[2] =
+                    0.125_f32.mul_add(chroma[index - 3][color], 0.875 * chroma[index - 1][color]);
+                g[3] =
+                    0.125_f32.mul_add(chroma[index + w][color], 0.875 * chroma[index + u][color]);
+                chroma[index][color] = f32::mul_add(
+                    f[3],
+                    g[3],
+                    f32::mul_add(f[2], g[2], f32::mul_add(f[1], g[1], f[0] * g[0])),
+                ) / (f[0] + f[1] + f[2] + f[3]);
                 color = 1 - color;
             }
             col += 2;
@@ -795,9 +847,8 @@ fn pack(pixels: &[DcbPixel]) -> Vec<u16> {
 
 #[cfg(test)]
 mod tests {
-    use crate::protocol::LazyDemosaic;
-
     use super::*;
+    use crate::protocol::LazyDemosaic;
 
     #[test]
     fn border_interpolate_fills_corner_channels_from_their_cfa_neighbors() {
