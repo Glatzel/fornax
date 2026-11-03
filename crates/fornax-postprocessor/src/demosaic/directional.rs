@@ -6,7 +6,6 @@ use super::buffer::{DenseLazy, channel, dense_from_f32, normalized};
 pub(super) enum Profile {
     Dcb,
     Dht,
-    Aahd,
     Amaze,
     Lmmse,
 }
@@ -50,7 +49,6 @@ fn run(
     let (green_power, chroma_radius, refinement) = match profile {
         Profile::Dcb => (2.0, 2, 0),
         Profile::Dht => (1.0, 2, 0),
-        Profile::Aahd => (4.0, 3, 0),
         Profile::Amaze => (3.0, 3, 0),
         Profile::Lmmse => (1.0, 2, 1),
     };
@@ -193,9 +191,7 @@ fn run(
                         Profile::Lmmse => refined.mul_add(0.5, previous[index][target] * 0.5),
                         Profile::Amaze => refined.mul_add(0.25, previous[index][target] * 0.75),
                         Profile::Dcb => refined.mul_add(0.4, previous[index][target] * 0.6),
-                        Profile::Dht | Profile::Aahd => {
-                            refined.mul_add(0.2, previous[index][target] * 0.8)
-                        }
+                        Profile::Dht => refined.mul_add(0.2, previous[index][target] * 0.8),
                     }
                     .clamp(0.0, 1.0);
                 }

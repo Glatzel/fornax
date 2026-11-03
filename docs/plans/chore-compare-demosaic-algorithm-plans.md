@@ -443,19 +443,19 @@ and the reference's own integer output conventions.
 
 ### Task checklist
 
-- [ ] Add a failing gamma-LUT test at dark values, the linear/gamma threshold,
+- [x] Add a failing gamma-LUT test at dark values, the linear/gamma threshold,
   and white.
-- [ ] Add a failing two-direction fixture that distinguishes horizontal and
+- [x] Add a failing two-direction fixture that distinguishes horizontal and
   vertical green candidates and asserts the homogeneity decision.
-- [ ] Add a failing hot-pixel fixture that verifies the original CFA sample is
+- [x] Add a failing hot-pixel fixture that verifies the original CFA sample is
   restored before directional combination.
-- [ ] Add a failing final-`ushort` truncation/clipping fixture, including
+- [x] Add a failing final-`ushort` truncation/clipping fixture, including
   negative and over-white intermediates.
-- [ ] Implement the dedicated AAHD path and remove `Aahd` from the shared
+- [x] Implement the dedicated AAHD path and remove `Aahd` from the shared
   profile only after the comparison passes; keep `DemosaicAahd` and
   `DenseLazy`.
-- [ ] Add all-pattern, measured-sample, uniform-field, and row-boundary tests.
-- [ ] Run the native comparison and inspect the error map for full-frame
+- [x] Add all-pattern, measured-sample, uniform-field, and row-boundary tests.
+- [x] Run the native comparison and inspect the error map for full-frame
   structure and chart-edge tails.
 
 ### Files expected to change
@@ -470,6 +470,7 @@ and the reference's own integer output conventions.
 - `crates/compare-demosaic/src/snapshots/*-AAHD-libraw.snap`
 - `crates/compare-demosaic/README.md` AAHD note outside generated markers
 - `crates/compare-demosaic/baseline/canonical.json`
+- `docs/references/aahd.md`
 - `TODO.md`
 
 ### Acceptance criteria
@@ -514,6 +515,14 @@ is required before implementation; this plan does not choose a license.
 
 - Port AAHD, not standard AHD. The existing AHD implementation is a behavioral
   reference and must not be replaced to make AAHD easier.
+- Stage-level comparison against an instrumented copy of the pinned LibRaw
+  routine found that the second red/blue endpoint must use `-dirs`, not
+  `+dirs`; otherwise zero padding contaminates gradients at image edges and
+  ±1 candidate drift cascades into homogeneity decision changes.
+- The full native GBRG run has MAE `0.262976`, P99 `0`, and `3310` samples
+  above 1024 codes, which is `0.000061` of all output values. All four Bayer
+  phases pass the unchanged robust limits, and the error map is sparse texture
+  noise without a full-frame or border pattern.
 
 ---
 

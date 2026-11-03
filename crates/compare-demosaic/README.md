@@ -146,7 +146,7 @@ and are consistency checks against the same image.
 <!-- compare-demosaic:begin summary -->
 | Algorithm | Reference | Worst verdict | Native-pattern result |
 | --- | --- | --- | --- |
-| AAHD | libraw | ❌ | GBRG ❌ |
+| AAHD | libraw | ⚠️ | GBRG ⚠️ |
 | AHD | libraw | ⚖️ | GBRG ⚖️ |
 | AMaZE | darktable | ❌ | GBRG ❌ |
 | DCB | libraw | ❌ | GBRG ❌ |
@@ -186,24 +186,28 @@ and are consistency checks against the same image.
 <!-- compare-demosaic:begin algo:aahd -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 0] | no | ❌ | 103.110399 | 288.014295 | 18089 | 15.741260 | 1327 | 2119 | 1100592 (34793) | 0.629555 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 0] | yes | ❌ | 103.105439 | 287.955685 | 18089 | 15.733126 | 1327 | 2118 | 1101122 (35228) | 0.629560 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 1] | no | ❌ | 102.968181 | 282.967937 | 12529 | 15.936816 | 1327 | 2117 | 1101178 (37286) | 0.629571 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 1] | no | ❌ | 102.954954 | 282.896321 | 12529 | 15.925241 | 1327 | 2116 | 1101523 (37725) | 0.629567 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 0] | no | ⚠️ | 0.254582 | 15.455211 | 5349 | 0.034854 | 0 | 13 | 3063 (63) | 0.001123 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 0] | yes | ⚠️ | 0.262976 | 15.868994 | 5385 | -0.038376 | 0 | 14 | 3310 (61) | 0.001134 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 1] | no | ⚠️ | 0.284509 | 16.857542 | 5941 | 0.036856 | 0 | 17 | 3696 (84) | 0.001156 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 1] | no | ⚠️ | 0.275929 | 16.457193 | 5941 | -0.040267 | 0 | 16 | 3447 (88) | 0.001145 |
 <!-- compare-demosaic:end algo:aahd -->
 
 > [!NOTE]
 > **Reference:** LibRaw, `aahd_interpolate`.
 > **Why this reference:** it is a widely used advanced AHD implementation
 > with an independently maintained interpolation pipeline.
-> **Why we match:** both preserve the measured CFA samples, estimate missing
-> green from horizontal and vertical candidates, and reconstruct red and blue
-> from color differences around the estimated green plane.
-> **Known differences:** Fornax uses its shared directional kernel with an
-> edge-weight exponent of four and a three-pixel chroma radius; LibRaw AAHD
-> applies its own homogeneity and refinement stages. Fornax clamps normalized
-> output and quantizes to nearest, while the reference controls its own
-> intermediate and output conventions.
+> **Why we match:** Fornax ports AAHD's four-pixel padded working planes,
+> hot-pixel masking, horizontal and vertical green candidates, directional
+> red/blue reconstruction, 16-bit gamma and YUV homogeneity scoring, direction
+> refinement, and per-pixel candidate selection. Both use LibRaw's channel
+> extrema, integer clamps, and truncating `ushort` output.
+> **Known differences:** the comparison bridge supplies an identity
+> camera-to-RGB matrix and no white balance, so only the demosaic stage is
+> compared. Fornax accepts conventional 2x2 RGB Bayer input only and does not
+> reproduce LibRaw's camera metadata or output-color pipeline. Sparse
+> high-frequency and clipped-chart decisions can remain different when an
+> independent floating-point evaluation lands on the other side of a
+> homogeneity or gradient comparison.
 
 ## AHD
 
