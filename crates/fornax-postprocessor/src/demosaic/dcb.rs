@@ -55,7 +55,7 @@ fn insert_measured(
     pixels
 }
 
-fn cfa_channel(pattern: BayerPattern, x: isize, y: isize) -> usize {
+const fn cfa_channel(pattern: BayerPattern, x: isize, y: isize) -> usize {
     match pattern.channel_at(x.rem_euclid(2) as u32, y.rem_euclid(2) as u32) {
         fornax_core::BayerChannel::R => 0,
         fornax_core::BayerChannel::GRedRow | fornax_core::BayerChannel::GBlueRow => 1,
@@ -142,8 +142,7 @@ fn horizontal_colors(
             let index = row * width + col;
             let color = 2 - cfa_channel(pattern, col as isize, row as isize);
             candidates[index][color] = clip_f32(
-                (4.0 * candidates[index][1]
-                    - candidates[index + u + 1][1]
+                (4.0_f32.mul_add(candidates[index][1], -candidates[index + u + 1][1])
                     - candidates[index + u - 1][1]
                     - candidates[index - u + 1][1]
                     - candidates[index - u - 1][1]
@@ -168,7 +167,7 @@ fn horizontal_colors(
                 pixels[index + 1][color] as f32,
             )) as f32;
             candidates[index][other] = clip_f32(
-                (2.0 * candidates[index][1] - candidates[index + u][1] - candidates[index - u][1]
+                (2.0_f32.mul_add(candidates[index][1], -candidates[index + u][1]) - candidates[index - u][1]
                     + pixels[index + u][other] as f32
                     + pixels[index - u][other] as f32)
                     / 2.0,
@@ -214,8 +213,7 @@ fn vertical_colors(
             let index = row * width + col;
             let color = 2 - cfa_channel(pattern, col as isize, row as isize);
             candidates[index][color] = clip_f32(
-                (4.0 * candidates[index][1]
-                    - candidates[index + u + 1][1]
+                (4.0_f32.mul_add(candidates[index][1], -candidates[index + u + 1][1])
                     - candidates[index + u - 1][1]
                     - candidates[index - u + 1][1]
                     - candidates[index - u - 1][1]
@@ -236,7 +234,7 @@ fn vertical_colors(
             let color = cfa_channel(pattern, col as isize + 1, row as isize);
             let other = 2 - color;
             candidates[index][color] = clip_f32(
-                (2.0 * candidates[index][1] - candidates[index + 1][1] - candidates[index - 1][1]
+                (2.0_f32.mul_add(candidates[index][1], -candidates[index + 1][1]) - candidates[index - 1][1]
                     + pixels[index + 1][color] as f32
                     + pixels[index - 1][color] as f32)
                     / 2.0,
@@ -381,10 +379,7 @@ fn correction(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
                 + i32::from(pixels[index - v][3])
                 + i32::from(pixels[index + 2][3])
                 + i32::from(pixels[index - 2][3]);
-            pixels[index][1] = (((16 - current) as f32
-                * f32::midpoint(pixels[index - 1][1] as f32, pixels[index + 1][1] as f32)
-                + current as f32
-                    * f32::midpoint(pixels[index - u][1] as f32, pixels[index + u][1] as f32))
+            pixels[index][1] = ((current as f32).mul_add(f32::midpoint(pixels[index - u][1] as f32, pixels[index + u][1] as f32), (16 - current) as f32 * f32::midpoint(pixels[index - 1][1] as f32, pixels[index + 1][1] as f32))
                 / 16.0) as u16;
             col += 2;
         }
@@ -409,22 +404,18 @@ fn correction2(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Ba
                 + i32::from(pixels[index + 2][3])
                 + i32::from(pixels[index - 2][3]);
             pixels[index][1] = clip_f32(
-                ((16 - current) as f32
-                    * (f32::midpoint(pixels[index - 1][1] as f32, pixels[index + 1][1] as f32)
+                (current as f32).mul_add(f32::midpoint(
+                            pixels[index - u][1] as f32,
+                            pixels[index + u][1] as f32,
+                        ) + pixels[index][color] as f32 - f32::midpoint(
+                                pixels[index + v][color] as f32,
+                                pixels[index - v][color] as f32,
+                            ), (16 - current) as f32 * (f32::midpoint(pixels[index - 1][1] as f32, pixels[index + 1][1] as f32)
                         + pixels[index][color] as f32
                         - f32::midpoint(
                             pixels[index + 2][color] as f32,
                             pixels[index - 2][color] as f32,
-                        ))
-                    + current as f32
-                        * (f32::midpoint(
-                            pixels[index - u][1] as f32,
-                            pixels[index + u][1] as f32,
-                        ) + pixels[index][color] as f32
-                            - f32::midpoint(
-                                pixels[index + v][color] as f32,
-                                pixels[index - v][color] as f32,
-                            )))
+                        )))
                     / 16.0,
             );
             col += 2;
@@ -440,8 +431,7 @@ fn color(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: BayerPat
             let index = row * width + col;
             let color = 2 - cfa_channel(pattern, col as isize, row as isize);
             pixels[index][color] = clip_f32(
-                (4.0 * pixels[index][1] as f32
-                    - pixels[index + u + 1][1] as f32
+                (4.0_f32.mul_add(pixels[index][1] as f32, -(pixels[index + u + 1][1] as f32))
                     - pixels[index + u - 1][1] as f32
                     - pixels[index - u + 1][1] as f32
                     - pixels[index - u - 1][1] as f32
@@ -461,16 +451,14 @@ fn color(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: BayerPat
             let color = cfa_channel(pattern, col as isize + 1, row as isize);
             let other = 2 - color;
             pixels[index][color] = clip_f32(
-                (2.0 * pixels[index][1] as f32
-                    - pixels[index + 1][1] as f32
+                (2.0_f32.mul_add(pixels[index][1] as f32, -(pixels[index + 1][1] as f32))
                     - pixels[index - 1][1] as f32
                     + pixels[index + 1][color] as f32
                     + pixels[index - 1][color] as f32)
                     / 2.0,
             );
             pixels[index][other] = clip_f32(
-                (2.0 * pixels[index][1] as f32
-                    - pixels[index + u][1] as f32
+                (2.0_f32.mul_add(pixels[index][1] as f32, -(pixels[index + u][1] as f32))
                     - pixels[index - u][1] as f32
                     + pixels[index + u][other] as f32
                     + pixels[index - u][other] as f32)
@@ -557,7 +545,7 @@ fn refinement(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
                 } else {
                     f[0]
                 };
-                let vertical_ratio = (5.0 * f[0] + 3.0 * f[1] + f[2] + 3.0 * f[3] + f[4]) / 13.0;
+                let vertical_ratio = (3.0_f32.mul_add(f[3], 3.0_f32.mul_add(f[1], 5.0 * f[0]) + f[2]) + f[4]) / 13.0;
 
                 f[0] = (pixels[index - 1][1] as f32 + pixels[index + 1][1] as f32) / (2.0 * center);
                 f[1] = if pixels[index - 2][color] > 0 {
@@ -582,11 +570,10 @@ fn refinement(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
                 } else {
                     f[0]
                 };
-                let horizontal_ratio = (5.0 * f[0] + 3.0 * f[1] + f[2] + 3.0 * f[3] + f[4]) / 13.0;
+                let horizontal_ratio = (3.0_f32.mul_add(f[3], 3.0_f32.mul_add(f[1], 5.0 * f[0]) + f[2]) + f[4]) / 13.0;
                 pixels[index][1] = clip_f32(
                     center
-                        * (current as f32 * vertical_ratio
-                            + (16 - current) as f32 * horizontal_ratio)
+                        * ((16 - current) as f32).mul_add(horizontal_ratio, current as f32 * vertical_ratio)
                         / 16.0,
                 );
             } else {
@@ -645,23 +632,11 @@ fn color_full(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
             for (direction, weight) in f.iter_mut().enumerate() {
                 *weight = diagonal_chroma_weight(&chroma, index, width, color, direction);
             }
-            g[0] = 1.325 * chroma[index - u - 1][color]
-                - 0.175 * chroma[index - w - 3][color]
-                - 0.075 * chroma[index - w - 1][color]
-                - 0.075 * chroma[index - u - 3][color];
-            g[1] = 1.325 * chroma[index - u + 1][color]
-                - 0.175 * chroma[index - w + 3][color]
-                - 0.075 * chroma[index - w + 1][color]
-                - 0.075 * chroma[index - u + 3][color];
-            g[2] = 1.325 * chroma[index + u - 1][color]
-                - 0.175 * chroma[index + w - 3][color]
-                - 0.075 * chroma[index + w - 1][color]
-                - 0.075 * chroma[index + u - 3][color];
-            g[3] = 1.325 * chroma[index + u + 1][color]
-                - 0.175 * chroma[index + w + 3][color]
-                - 0.075 * chroma[index + w + 1][color]
-                - 0.075 * chroma[index + u + 3][color];
-            chroma[index][color] = (f[0] * g[0] + f[1] * g[1] + f[2] * g[2] + f[3] * g[3])
+            g[0] = 0.075_f32.mul_add(-chroma[index - u - 3][color], 0.075_f32.mul_add(-chroma[index - w - 1][color], 0.175_f32.mul_add(-chroma[index - w - 3][color], 1.325 * chroma[index - u - 1][color])));
+            g[1] = 0.075_f32.mul_add(-chroma[index - u + 3][color], 0.075_f32.mul_add(-chroma[index - w + 1][color], 0.175_f32.mul_add(-chroma[index - w + 3][color], 1.325 * chroma[index - u + 1][color])));
+            g[2] = 0.075_f32.mul_add(-chroma[index + u - 3][color], 0.075_f32.mul_add(-chroma[index + w - 1][color], 0.175_f32.mul_add(-chroma[index + w - 3][color], 1.325 * chroma[index + u - 1][color])));
+            g[3] = 0.075_f32.mul_add(-chroma[index + u + 3][color], 0.075_f32.mul_add(-chroma[index + w + 1][color], 0.175_f32.mul_add(-chroma[index + w + 3][color], 1.325 * chroma[index + u + 1][color])));
+            chroma[index][color] = f32::mul_add(f[3], g[3], f32::mul_add(f[2], g[2], f32::mul_add(f[1], g[1], f[0] * g[0])))
                 / (f[0] + f[1] + f[2] + f[3]);
             col += 2;
         }
@@ -695,11 +670,11 @@ fn color_full(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
                         + (chroma[index + u][color] - chroma[index - u][color]).abs()
                         + (chroma[index + u][color] - chroma[index + w][color]).abs()
                         + (chroma[index - u][color] - chroma[index + w][color]).abs());
-                g[0] = 0.875 * chroma[index - u][color] + 0.125 * chroma[index - w][color];
-                g[1] = 0.875 * chroma[index + 1][color] + 0.125 * chroma[index + 3][color];
-                g[2] = 0.875 * chroma[index - 1][color] + 0.125 * chroma[index - 3][color];
-                g[3] = 0.875 * chroma[index + u][color] + 0.125 * chroma[index + w][color];
-                chroma[index][color] = (f[0] * g[0] + f[1] * g[1] + f[2] * g[2] + f[3] * g[3])
+                g[0] = 0.125_f32.mul_add(chroma[index - w][color], 0.875 * chroma[index - u][color]);
+                g[1] = 0.125_f32.mul_add(chroma[index + 3][color], 0.875 * chroma[index + 1][color]);
+                g[2] = 0.125_f32.mul_add(chroma[index - 3][color], 0.875 * chroma[index - 1][color]);
+                g[3] = 0.125_f32.mul_add(chroma[index + w][color], 0.875 * chroma[index + u][color]);
+                chroma[index][color] = f32::mul_add(f[3], g[3], f32::mul_add(f[2], g[2], f32::mul_add(f[1], g[1], f[0] * g[0])))
                     / (f[0] + f[1] + f[2] + f[3]);
                 color = 1 - color;
             }
