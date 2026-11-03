@@ -6,7 +6,6 @@
         "MD033": false,
     },
     "ignores": [
-        "agent-work",
         "TODO.md"
     ]
 }
