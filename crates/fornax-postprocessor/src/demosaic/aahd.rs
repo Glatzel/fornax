@@ -27,7 +27,7 @@ static GAMMA_LUT: LazyLock<[u16; 65_536]> = LazyLock::new(|| {
         let encoded = if value < 0.0181 {
             4.5 * value
         } else {
-            1.0993 * value.powf(0.45) - 0.0993
+            1.0993_f32.mul_add(value.powf(0.45), -0.0993)
         };
         (65_536.0 * encoded) as u16
     })
@@ -259,7 +259,7 @@ impl Aahd {
 
         self.ndir[index] |= HOT;
         let direction = if dv > dh { pw } else { pn };
-        let replacement = (sample(2 * direction) + sample(-2 * direction)) / 2;
+        let replacement = i32::midpoint(sample(2 * direction), sample(-2 * direction));
         let replacement = replacement as u16;
         self.rgb[0][index][channel] = replacement;
         self.rgb[1][index][channel] = replacement;
@@ -323,7 +323,7 @@ impl Aahd {
                         - i32::from(self.rgb[direction][add(index, -offset)][1]);
                     let h2 = i32::from(self.rgb[direction][add(index, offset)][channel])
                         - i32::from(self.rgb[direction][add(index, offset)][1]);
-                    let value = i32::from(self.rgb[direction][index][1]) + (h1 + h2) / 2;
+                    let value = i32::from(self.rgb[direction][index][1]) + i32::midpoint(h1, h2);
                     self.rgb[direction][index][channel] =
                         clip(value, self.minimum[channel], self.maximum[channel]);
                 }
@@ -386,7 +386,7 @@ impl Aahd {
                         - i32::from(self.rgb[direction][forward_index][1]);
                     let h2 = i32::from(self.rgb[direction][backward_index][channel])
                         - i32::from(self.rgb[direction][backward_index][1]);
-                    let value = i32::from(self.rgb[direction][index][1]) + (h1 + h2) / 2;
+                    let value = i32::from(self.rgb[direction][index][1]) + i32::midpoint(h1, h2);
                     self.rgb[direction][index][channel] =
                         clip(value, self.minimum[channel], self.maximum[channel]);
                 }
@@ -399,14 +399,9 @@ impl Aahd {
             for index in 0..self.rgb[direction].len() {
                 let rgb = self.rgb[direction][index].map(|value| GAMMA_LUT[value as usize]);
                 self.yuv[direction][index] = [
-                    (0.2627 * f32::from(rgb[0])
-                        + 0.6780 * f32::from(rgb[1])
-                        + 0.0593 * f32::from(rgb[2])) as i32,
-                    (-0.13963 * f32::from(rgb[0]) - 0.36037 * f32::from(rgb[1])
-                        + 0.5 * f32::from(rgb[2])) as i32,
-                    (0.5034 * f32::from(rgb[0])
-                        - 0.4629 * f32::from(rgb[1])
-                        - 0.0405 * f32::from(rgb[2])) as i32,
+                    0.0593_f32.mul_add(f32::from(rgb[2]), 0.6780_f32.mul_add(f32::from(rgb[1]), 0.2627 * f32::from(rgb[0]))) as i32,
+                    0.5_f32.mul_add(f32::from(rgb[2]), 0.36037_f32.mul_add(-f32::from(rgb[1]), -0.13963 * f32::from(rgb[0]))) as i32,
+                    0.0405_f32.mul_add(-f32::from(rgb[2]), 0.4629_f32.mul_add(-f32::from(rgb[1]), 0.5034 * f32::from(rgb[0]))) as i32,
                 ];
             }
         }
@@ -478,9 +473,7 @@ impl Aahd {
                         }
                     }
                 }
-                let direction = if scores[0] != scores[1] {
-                    if scores[1] > scores[0] { VERSH } else { HORSH }
-                } else {
+                let direction = if scores[0] == scores[1] {
                     let vertical = interp_error(
                         self.yuv[1][index],
                         self.yuv[1][add(index, pn)],
@@ -524,7 +517,7 @@ impl Aahd {
                         .wrapping_div(2),
                     );
                     if vertical > horizontal { HOR } else { VER }
-                };
+                } else if scores[1] > scores[0] { VERSH } else { HORSH };
                 self.ndir[index] |= direction;
             }
         }
@@ -594,7 +587,7 @@ impl Aahd {
             .count() as i32
     }
 
-    fn offset(&self, x: usize, y: usize) -> usize { (y + MARGIN) * self.stride + x + MARGIN }
+    const fn offset(&self, x: usize, y: usize) -> usize { (y + MARGIN) * self.stride + x + MARGIN }
 
     fn known_input(&self, x: usize, y: usize) -> u16 { self.input[y * self.width + x] }
 }
