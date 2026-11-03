@@ -100,6 +100,8 @@ linked issue. Only the user merges or abandons a pull request.
 
 ## Boundaries
 
+- Do not commit binary files to the book; CI enforces this through
+  `book/scripts/check_assets.py`.
 - Project skills live in `.agents/skills/`. Add or improve them by pull
   request. Skills installed by pixi are managed by pixi; never edit them by
   hand.
@@ -129,6 +131,8 @@ linked issue. Only the user merges or abandons a pull request.
 - Algorithm and reference notes: [docs/references/](docs/references/)
 - Comparison-crate rules:
   [crates/compare-demosaic/AGENTS.md](crates/compare-demosaic/AGENTS.md)
+- Human-facing book: [book/](book/README.md); agents edit it only when asked
+  and follow [book/AGENTS.md](book/AGENTS.md).
 - Project procedures: [.agents/skills/](.agents/skills/)
 - Use XERJ only to locate unfamiliar external reference code; verify hits at
   `file:line`. Never substitute it for reading `TODO.md`, `AGENTS.md`, generated

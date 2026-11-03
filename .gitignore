@@ -26,3 +26,7 @@ output
 *.tiff
 *.png
 *.dng
+*.svg
+
+# book build output
+/book/build/
