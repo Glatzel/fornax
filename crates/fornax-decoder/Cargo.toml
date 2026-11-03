@@ -1,0 +1,8 @@
+[package]
+name = "fornax-decoder"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+fornax-core.workspace = true
+thiserror.workspace = true

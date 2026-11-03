@@ -932,6 +932,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-decoder"
+version = "0.0.17"
+dependencies = [
+ "fornax-core",
+ "thiserror",
+]
+
+[[package]]
 name = "fornax-decoder-dnc"
 version = "0.0.17"
 dependencies = [
