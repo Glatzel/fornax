@@ -148,6 +148,24 @@ mod tests {
         Ok(())
     }
 
+    #[rstest]
+    fn native_lmmse_meets_reference_limits(
+        cropped_real_128: &crate::reference::ActiveArea,
+    ) -> mischief::Result<()> {
+        let case = crate::cases::case_for("lmmse", "darktable")
+            .expect("the darktable LMMSE reference case must be registered");
+        let evaluation = crate::run::evaluate_case(case, cropped_real_128, BayerPattern::GBRG, 16)?;
+        assert!(
+            matches!(
+                evaluation.verdict,
+                crate::metrics::Verdict::Exact | crate::metrics::Verdict::Pass
+            ),
+            "LMMSE versus darktable failed limits: {:?}",
+            evaluation.failed_limits
+        );
+        Ok(())
+    }
+
     #[test]
     fn algorithm_ids_are_unique_and_unknown_ids_are_rejected() -> mischief::Result<()> {
         let mut ids = crate::cases::CASES

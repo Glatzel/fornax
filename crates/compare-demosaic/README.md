@@ -152,7 +152,7 @@ and are consistency checks against the same image.
 | DCB | libraw | ❌ | GBRG ❌ |
 | DHT | libraw | ❌ | GBRG ❌ |
 | Linear | libraw | 🟢 | GBRG 🟢 |
-| LMMSE | darktable | ❌ | GBRG ❌ |
+| LMMSE | darktable | ✅ | GBRG ✅ |
 | PPG | darktable | ✅ | GBRG ✅ |
 | PPG | libraw | ⚖️ | GBRG ⚖️ |
 | RCD | darktable | ⚖️ | GBRG ⚖️ |
@@ -332,24 +332,25 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 <!-- compare-demosaic:begin algo:lmmse -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | BGGR | [1, 0] | no | ❌ | 44.785192 | 104.000798 | 9522 | 1.146402 | 464 | 885 | 27140 (4408) | 0.657319 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | [0, 0] | yes | ❌ | 44.776609 | 103.955914 | 9522 | 1.144272 | 463 | 884 | 27014 (4421) | 0.657319 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | [1, 1] | no | ❌ | 44.780937 | 104.020885 | 8779 | 1.196977 | 464 | 886 | 27443 (4791) | 0.657324 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | [0, 1] | no | ❌ | 44.772275 | 103.976072 | 8779 | 1.195146 | 463 | 885 | 27314 (4797) | 0.657324 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | BGGR | [1, 0] | no | ✅ | 0.000434 | 0.020821 | 1 | -0.000001 | 0 | 0 | 0 (0) | 0.000434 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | [0, 0] | yes | ✅ | 0.000433 | 0.020814 | 1 | -0.000001 | 0 | 0 | 0 (0) | 0.000433 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | [1, 1] | no | ✅ | 0.000432 | 0.020790 | 1 | -0.000004 | 0 | 0 | 0 (0) | 0.000432 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | [0, 1] | no | ✅ | 0.000432 | 0.020785 | 1 | -0.000003 | 0 | 0 | 0 (0) | 0.000432 |
 <!-- compare-demosaic:end algo:lmmse -->
 
 > [!NOTE]
 > **Reference:** darktable, `lmmse_demosaic`.
 > **Why this reference:** darktable is the maintained LMMSE implementation
 > used for the reference comparison.
-> **Why we match:** both estimate green in horizontal and vertical directions,
-> blend the local color differences, and perform a refinement pass that keeps
-> measured CFA values fixed.
-> **Known differences:** Fornax uses its shared directional kernel with an
-> edge-weight exponent of one, a two-pixel chroma radius and one refinement
-> pass. darktable LMMSE uses 136-pixel tiles and its own linear MMSE and gamma
-> lookup stages. Fornax uses normalized floating point and nearest quantization
-> at the harness boundary.
+> **Why we match:** both seed from PPG, transform the CFA through the same
+> linear/gamma tables, estimate horizontal and vertical color differences,
+> apply the nine-tap low-pass and directional MMSE blend, reconstruct red and
+> blue from green differences, and run one median pass. Both use 136-pixel
+> tiles with a four-pixel border, eight-pixel overlap, and a 112-pixel valid
+> stride.
+> **Known differences:** Fornax keeps the kernel in Rust `f32` and quantizes
+> once at the comparison boundary. Compiler contraction can leave one-code
+> differences from the C reference; measured Bayer sites remain exact.
 
 ## PPG
 
