@@ -127,10 +127,13 @@ Reference functions by name, not path. Remove Open issues when fixed.
 
 ## CI
 
-The `compare-demosaic` job in `.github/workflows/ci.yml` runs the crate tests,
-`readme --check`, `run --artifacts`, and a diff against the baseline. On failure
-the `compare-demosaic` artifact holds `canonical.json`, `diff.txt`, and any
-artifacts; if nothing differs, nothing is uploaded.
+The Ubuntu `test-build` matrix in `.github/workflows/ci.yml` runs the crate
+tests. The `compare-demosaic` job builds the release binary once, then runs
+`readme --check`, a full `run`, and a diff against the baseline. A clean run
+does not generate artifacts. If the diff fails, CI reruns `run --artifacts`
+before returning the diff status. On failure the `compare-demosaic` artifact
+holds `canonical.json`, `diff.txt`, and any generated artifacts; if nothing
+differs, nothing is uploaded.
 
 ## Rules for changing this crate
 

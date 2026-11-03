@@ -163,17 +163,40 @@ jobs:
           run-install: false
       - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
-      - name: Test, run, compare
+      - name: Build, run, compare
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
         shell: bash
         run: |
           source scripts/setup.sh
-          cargo test -p compare-demosaic --all-features
-          cmp="cargo run --release -q -p compare-demosaic --"
-          $cmp readme --check
-          $cmp run --artifacts
-          $cmp diff crates/compare-demosaic/baseline/canonical.json \
-            target/compare-demosaic/canonical.json | tee target/compare-demosaic/diff.txt
+          cmp="$PWD/target/release/compare-demosaic"
+
+          started=$SECONDS
+          cargo build --release -p compare-demosaic
+          echo "Release build: $((SECONDS - started))s"
+
+          started=$SECONDS
+          "$cmp" readme --check
+          echo "README check: $((SECONDS - started))s"
+
+          started=$SECONDS
+          "$cmp" run
+          echo "Comparison run: $((SECONDS - started))s"
+
+          started=$SECONDS
+          set +e
+          "$cmp" diff crates/compare-demosaic/baseline/canonical.json \
+            target/compare-demosaic/canonical.json > target/compare-demosaic/diff.txt
+          diff_status=$?
+          set -e
+          cat target/compare-demosaic/diff.txt
+          echo "Baseline diff: $((SECONDS - started))s"
+
+          if (( diff_status != 0 )); then
+            started=$SECONDS
+            "$cmp" run --artifacts
+            echo "Regression artifacts: $((SECONDS - started))s"
+          fi
+          exit "$diff_status"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:

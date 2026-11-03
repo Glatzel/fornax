@@ -34,13 +34,14 @@ Out of scope:
 
 ## Task checklist
 
-- [ ] Write the expanded jobs=1 versus jobs=4 concurrency test and observe it
+- [x] Write the expanded jobs=1 versus jobs=4 concurrency test and observe it
   fail or expose the correctness risk before narrowing reference locking.
-- [ ] Narrow reference serialization to LibRaw AAHD and make the concurrency
+- [x] Narrow reference serialization to LibRaw AAHD and darktable LMMSE where
+  mutable static tables require it, and make the concurrency
   regression test pass.
-- [ ] Update CI to build once, invoke the release binary directly, emit phase
+- [x] Update CI to build once, invoke the release binary directly, emit phase
   timings, and generate artifacts only after a failed baseline diff.
-- [ ] Update the compare-demosaic agent guide with the new CI ownership and
+- [x] Update the compare-demosaic agent guide with the new CI ownership and
   artifact behavior.
 - [ ] Run the full required validation and record outcomes.
 - [ ] Open one semantic pull request with this plan.
@@ -85,7 +86,12 @@ comparison step is below the 5m08s baseline.
 - Clean runs skip artifact PNGs. A failed diff reruns the comparison with
   `--artifacts`, preserving the existing failure upload and developer
   diagnostics at the cost of a second run only on regression.
-- LibRaw links `raw_r`, whose separate instances are thread-safe, and darktable
-  wrappers use per-call buffers. LibRaw AAHD has a mutable static gamma lookup
-  table and remains serialized.
+- LibRaw links `raw_r`, whose separate instances are thread-safe, and most
+  darktable wrappers use per-call buffers. LibRaw AAHD and darktable LMMSE have
+  mutable static gamma lookup tables and remain serialized.
 - No CLI or schema changes are needed.
+- Local measurement after the changes: release build 151s, README check below
+  1s, clean comparison run 106s, and baseline diff below 1s. A forced failed
+  diff regenerated artifacts in 108s and returned status 1. Artifact generation
+  itself was not a major runtime cost, but clean runs still avoid producing
+  files that cannot be used for diagnostics or uploaded on success.
