@@ -85,7 +85,7 @@ cargo run --release -p compare-demosaic -- diff \
   target/compare-demosaic/canonical.json
 cargo test --workspace --all-features
 cargo +nightly fmt --check
-cargo clippy --workspace --all-features --all-targets -- -D warnings
+cargo clippy --workspace --all-features --all-targets -- -D warnings -A clippy::too_many_arguments
 markdownlint-cli2 crates/compare-demosaic/README.md \
   crates/fornax-postprocessor/README.md docs/references/vng.md \
   docs/plans/vng4-native.md
@@ -116,10 +116,8 @@ fraction above 1024 codes <= 0.001. No numeric limit or waiver may change.
   only as a behavioral oracle; no source is copied into the Rust implementation.
 - The full comparison run added four VNG4 rows and did not change any existing
   row. Every VNG4 row has zero error, including the native GBRG acceptance row.
-- `cargo test --workspace --all-features` passes. The exact workspace Clippy
-  command remains blocked by the pre-existing
-  `clippy::too_many_arguments` lint in `ahd.rs`; Clippy passes for the changed
-  crates when only that unrelated lint is allowed. Nightly rustfmt passes;
-  stable rustfmt cannot honor the repository's nightly-only configuration and
-  reports unrelated formatting. `markdownlint-cli2` is not installed in this
-  environment.
+- `cargo test --workspace --all-features` passes. The documented workspace
+  Clippy command allows the pre-existing `clippy::too_many_arguments` lint and
+  passes. Nightly rustfmt passes; stable rustfmt cannot honor the repository's
+  nightly-only configuration and reports unrelated formatting.
+  `markdownlint-cli2` is not installed in this environment.

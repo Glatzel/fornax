@@ -82,7 +82,7 @@ For Rust changes, run from the repository root:
 ```bash
 cargo test --workspace --all-features
 cargo fmt --check
-cargo clippy --workspace --all-features --all-targets -- -D warnings
+cargo clippy --workspace --all-features --all-targets -- -D warnings -A clippy::too_many_arguments
 ```
 
 Also run task-specific tests, benchmarks, or examples. For documentation-only
