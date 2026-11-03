@@ -11,7 +11,7 @@ from pathlib import Path
 from book.scripts import check_assets
 
 
-class AssetCheckTest(unittest.TestCase):
+class AssetCheckTest(unittest.TestCase):  # numpydoc ignore=PR01,RT01
     """Exercise the checker against real Git diffs."""
 
     def setUp(self) -> None:

@@ -43,8 +43,8 @@ def safe(s: str) -> str:
     return BAD_CHARS.sub("_", s).strip(" .")
 
 
-# Download the repository listing once; revalidate with ETag afterwards.
 def fetch_repository(cache_dir: Path, refresh: bool) -> Path:
+    """Download the repository listing once; revalidate with ETag afterwards."""
     cache_dir.mkdir(parents=True, exist_ok=True)
     data, etag = cache_dir / "repository.json", cache_dir / "repository.etag"
 
