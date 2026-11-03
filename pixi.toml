@@ -30,6 +30,17 @@ typer = "*"
 [feature.data.tasks]
 get-raw-samples = "python $PIXI_WORKSPACE_ROOT/scripts/get_raw_samples.py"
 
+[feature.book.dependencies]
+matplotlib = "3.11.*"
+python = "3.13.*"
+
+[feature.book.activation.env]
+MPLBACKEND = "Agg"
+MPLCONFIGDIR = "$PIXI_WORKSPACE_ROOT/temp/book/matplotlib"
+
+[feature.book.tasks]
+book-figures = "python -m book.figures"
+
 [environments]
 default = []
 dev = {
@@ -38,3 +49,4 @@ dev = {
 }
 python = ["dev", "python"]
 data = ["data"]
+book = ["book"]
