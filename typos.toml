@@ -1,5 +1,5 @@
 [files]
-extend-exclude = ["changelog.md", "**/bindings*.rs", "agent-work/**"]
+extend-exclude = ["changelog.md", "**/bindings*.rs"]
 
 [default]
 extend-ignore-identifiers-re = [
