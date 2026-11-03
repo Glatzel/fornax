@@ -301,7 +301,6 @@ fn mmse_value(mut filtered: [f32; 9], raw: [f32; 9]) -> (f32, f32) {
     )
 }
 
-
 fn copy_cfa_samples(
     qix: &mut [f32],
     row_start: usize,
@@ -370,7 +369,6 @@ fn interpolate_red_blue(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern
         }
     }
 }
-
 
 fn median_pass(
     qix: &mut [f32],
