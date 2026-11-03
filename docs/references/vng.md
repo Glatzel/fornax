@@ -14,6 +14,10 @@ a copied implementation.
   This is the authoritative acceptance reference for the Fornax port.
 - LibRaw 0.22.3, `vng_interpolate`:
   [src/demosaic/misc_demosaic.cpp](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199).
+- LibRaw 0.22.3, four-color `pre_interpolate` mode:
+  [src/demosaic/misc_demosaic.cpp](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84).
+- LibRaw 0.22.3, post-interpolation green mixing:
+  [src/postprocessing/dcraw_process.cpp](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/postprocessing/dcraw_process.cpp#L204).
 - darktable notes that its implementation was adapted from dcraw 9.20. The
   original dcraw distribution remains the historical source for the published
   algorithm:
@@ -56,10 +60,16 @@ templates. Collapsing both greens produces 544 terms and only 96 flags. The
 split-green regression tests in `crates/fornax-postprocessor/src/demosaic/vng.rs`
 protect those invariants.
 
-LibRaw is intentionally different for the comparison harness: the adapter sets
-`four_color_rgb = 0`, retaining one green plane. Its output is recorded as
-informational evidence and must not be used as an acceptance gate for the
-darktable-compatible Fornax implementation.
+LibRaw has two relevant modes. With `four_color_rgb = 0`, `pre_interpolate`
+collapses the second green phase into one green plane and VNG operates on three
+colors. That output is recorded as informational evidence and must not be used
+as an acceptance gate for the darktable-compatible Fornax VNG implementation.
+
+With `four_color_rgb = 1`, LibRaw raises `colors` to four so VNG interpolates
+the two green phases separately, then `dcraw_process` averages channels 1 and 3
+when `mix_green` is set. This is the VNG4 mode exposed by `Demosaic::Vng4`.
+Fornax reuses the split-green VNG kernel for this selector because its internal
+four-channel state already matches that interpolation convention.
 
 ## Expected comparison behavior
 
@@ -78,6 +88,11 @@ sparse interpolated-green saturation/clipping difference before final packing:
 one green plane is 64069 and the other is clamped to 65535 at `(2402, 441)`.
 Final-average rounding can account for at most one code, so it is not the root
 cause.
+
+VNG4 is compared against LibRaw's `four_color_rgb = 1` path rather than
+darktable. On the pinned fixture it is expected to agree exactly in all four
+Bayer phases; this comparison independently verifies the post-interpolation
+green average and final RGB packing.
 
 ## Licensing
 
