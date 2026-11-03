@@ -5,7 +5,7 @@ use fornax_postprocessor::Demosaic;
 const ALGORITHMS_JSON: &str = include_str!("../algorithms.json");
 
 static ALGORITHM_IDS: LazyLock<Vec<String>> = LazyLock::new(|| {
-    serde_json::from_str(ALGORITHMS_JSON).expect("bench-demosaic algorithm registry must be valid")
+    serde_json::from_str(ALGORITHMS_JSON).expect("demosaic benchmark algorithm registry must be valid")
 });
 
 /// Returns the stable algorithm identifiers registered for demosaic benchmarks.
