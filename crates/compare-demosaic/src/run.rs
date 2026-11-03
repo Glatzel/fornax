@@ -483,6 +483,7 @@ pub fn repo_path(relative_path: &str) -> PathBuf { fornax_devtool::root_dir().jo
 #[cfg(test)]
 mod tests {
     use fornax_devtool::synthetic_mono_image;
+    use sha2::{Digest, Sha256};
 
     use super::*;
 
@@ -556,12 +557,29 @@ mod tests {
     }
 
     #[test]
-    fn jobs_one_and_four_are_byte_identical() -> mischief::Result<()> {
+    fn all_comparisons_are_byte_identical_with_one_and_four_jobs() -> mischief::Result<()> {
         let first = tempfile::tempdir().expect("temporary directory");
         let second = tempfile::tempdir().expect("temporary directory");
-        let one = execute_with_inputs(&request(first.path(), 1), vec![input()])?;
-        let four = execute_with_inputs(&request(second.path(), 4), vec![input()])?;
-        assert_eq!(std::fs::read(one.path)?, std::fs::read(four.path)?);
+        let mut one_request = request(first.path(), 1);
+        one_request.algorithms.clear();
+        one_request.references.clear();
+        one_request.patterns.clear();
+        let mut four_request = one_request.clone();
+        four_request.out = second.path().to_owned();
+        four_request.jobs = 4;
+
+        let one = execute_with_inputs(&one_request, vec![input()])?;
+        let four = execute_with_inputs(&four_request, vec![input()])?;
+        assert_eq!(
+            one.report.rows.len(),
+            cases::CASES.len() * BayerPattern::ALL.len()
+        );
+        let one_digest = Sha256::digest(std::fs::read(one.path)?);
+        let four_digest = Sha256::digest(std::fs::read(four.path)?);
+        assert_eq!(
+            one_digest, four_digest,
+            "canonical JSON differed between one and four jobs"
+        );
         Ok(())
     }
 

@@ -11,7 +11,9 @@ use crate::cases::ReferenceBackend;
 
 include!(concat!(env!("OUT_DIR"), "/status_codes.rs"));
 
-static REFERENCE_LOCK: Mutex<()> = Mutex::new(());
+const LIBRAW_AAHD_ALGORITHM: u32 = 6;
+const DARKTABLE_LMMSE_ALGORITHM: u32 = 4;
+static EXCLUSIVE_REFERENCE_LOCK: Mutex<()> = Mutex::new(());
 
 #[derive(Clone, Debug)]
 pub struct ActiveArea {
@@ -204,9 +206,14 @@ pub fn run(
         .ok_or_else(|| mischief::mischief!("RGB output dimensions overflow"))?;
     let mut output = vec![0_u16; samples];
 
-    let _guard = REFERENCE_LOCK
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    // LibRaw is linked through its thread-safe `raw_r` library. AAHD and
+    // darktable LMMSE are exceptions because both keep mutable gamma lookup
+    // tables in shared state.
+    let _guard = requires_exclusive_reference(reference, algorithm).then(|| {
+        EXCLUSIVE_REFERENCE_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+    });
 
     // SAFETY: both buffers are valid for the dimensions checked above, and the
     // C++ function writes exactly `pixels * 3` samples.
@@ -232,6 +239,14 @@ pub fn run(
     }
 }
 
+fn requires_exclusive_reference(reference: ReferenceBackend, algorithm: u32) -> bool {
+    matches!(
+        (reference, algorithm),
+        (ReferenceBackend::LibRaw, LIBRAW_AAHD_ALGORITHM)
+            | (ReferenceBackend::Darktable, DARKTABLE_LMMSE_ALGORITHM)
+    )
+}
+
 pub fn libraw_filters(pattern: BayerPattern) -> u32 {
     let mut filters = 0_u32;
     for y in 0..8 {
@@ -251,6 +266,20 @@ pub fn libraw_filters(pattern: BayerPattern) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn references_with_mutable_global_tables_require_exclusive_execution() {
+        for case in crate::cases::CASES {
+            let expected = case.name == "AAHD" || case.name == "LMMSE";
+            assert_eq!(
+                requires_exclusive_reference(case.reference_backend, case.algorithm),
+                expected,
+                "{} should{} require the reference lock",
+                case.name,
+                if expected { "" } else { " not" }
+            );
+        }
+    }
 
     #[test]
     fn filter_masks_match_all_bayer_tiles() {
