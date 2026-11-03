@@ -14,3 +14,17 @@
 - misc
   - [PY] python bindings: implement `fornax-py`
 - document
+  - [BOOK-01] Bootstrap the human-facing `book/`: skeleton, `book/AGENTS.md` with the chapter workflow (implemented-and-merged prerequisite; agent draft, maintainer rewrite, agent review, teach-back), template, notation/glossary/bibliography, `book/scripts/check_assets.py` plus its CI step, generated-SVG ignores in `.gitignore`, and `temp/book` as the temporary work directory; add the two required root `AGENTS.md` lines. Plan: `docs/plans/book-01-bootstrap.md`.
+  - [BOOK-02] Procedural figure tooling: matplotlib in a pixi `book` environment, shared helper, two sample figures, and generated SVG output ignored by Git with no size optimization required. Needs BOOK-01. Plan: `docs/plans/book-02-figures.md`.
+  - [BOOK-03] Shareable PDF build: pandoc with the Typst engine through pixi, spike first. Needs BOOK-01. Plan: `docs/plans/book-03-build.md`.
+  - [BOOK-10] L00 Pipeline overview: stage flow and the map from stage to crate.
+  - [BOOK-11] L01 From photons to numbers: sensor, ADC, Bayer CFA and its pattern variants.
+  - [BOOK-12] L02 Preprocess: black level, white level, saturation, normalization, clipping (ready when the preprocess stage and level metadata are merged).
+  - [BOOK-20] L10 The demosaicing problem: undersampling, the mask model, aliasing, the frequency-domain view.
+  - [BOOK-21] L11 Interpolation basics: nearest and bilinear, and why edges break (ready when the bilinear implementation is merged).
+  - [BOOK-22] L12 Using channel correlation: colour-difference interpolation, Hamilton-Adams, Malvar-He-Cutler (one section per merged algorithm).
+  - [BOOK-23] L13 Direction-adaptive methods: VNG and PPG (the VNG section is ready now; add the PPG section when merged).
+  - [BOOK-24] L14 Homogeneity-directed methods: AHD and variants (when merged).
+  - [BOOK-25] L15 Statistical and iterative methods: LMMSE, DCB, AMaZE (one section per merged algorithm).
+  - [BOOK-26] L16 Artifacts and evaluation: zipper, false colour, moire; PSNR/CPSNR, colour difference; how `compare-demosaic` measures against LibRaw.
+  - [BOOK-30] Post-process chapters (white balance, colour matrices, tone and encoding): split into items after reading what the post-processor actually implements.
