@@ -155,12 +155,19 @@ fn color_differences(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern: B
         let mut cc = 2 + (tile_channel(pattern, rr, 2) & 1);
         while cc < last_cc - 2 {
             let center = q(qix, 5, rr, cc);
-            let value = 0.25_f32.mul_add(center, 0.0625 * (q(qix, 5, rr - 1, cc - 1)
-                    + q(qix, 5, rr - 1, cc + 1)
-                    + q(qix, 5, rr + 1, cc - 1)
-                    + q(qix, 5, rr + 1, cc + 1)));
+            let value = 0.25_f32.mul_add(
+                center,
+                0.0625
+                    * (q(qix, 5, rr - 1, cc - 1)
+                        + q(qix, 5, rr - 1, cc + 1)
+                        + q(qix, 5, rr + 1, cc - 1)
+                        + q(qix, 5, rr + 1, cc + 1)),
+            );
 
-            let mut horizontal = 0.5_f32.mul_add(q(qix, 5, rr, cc - 1) + center + q(qix, 5, rr, cc + 1), -0.25 * (q(qix, 5, rr, cc - 2) + q(qix, 5, rr, cc + 2)));
+            let mut horizontal = 0.5_f32.mul_add(
+                q(qix, 5, rr, cc - 1) + center + q(qix, 5, rr, cc + 1),
+                -0.25 * (q(qix, 5, rr, cc - 2) + q(qix, 5, rr, cc + 2)),
+            );
             let horizontal_luma = 0.5_f32.mul_add(horizontal, value);
             horizontal = if center > 1.75 * horizontal_luma {
                 median3(horizontal, q(qix, 5, rr, cc - 1), q(qix, 5, rr, cc + 1))
@@ -168,7 +175,10 @@ fn color_differences(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern: B
                 horizontal.clamp(0.0, 1.0)
             } - center;
 
-            let mut vertical = 0.5_f32.mul_add(q(qix, 5, rr - 1, cc) + center + q(qix, 5, rr + 1, cc), -0.25 * (q(qix, 5, rr - 2, cc) + q(qix, 5, rr + 2, cc)));
+            let mut vertical = 0.5_f32.mul_add(
+                q(qix, 5, rr - 1, cc) + center + q(qix, 5, rr + 1, cc),
+                -0.25 * (q(qix, 5, rr - 2, cc) + q(qix, 5, rr + 2, cc)),
+            );
             let vertical_luma = 0.5_f32.mul_add(vertical, value);
             vertical = if center > 1.75 * vertical_luma {
                 median3(vertical, q(qix, 5, rr - 1, cc), q(qix, 5, rr + 1, cc))
@@ -184,11 +194,19 @@ fn color_differences(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern: B
         let mut cc = 2 + (tile_channel(pattern, rr, 3) & 1);
         while cc < last_cc - 2 {
             let center = q(qix, 5, rr, cc);
-            let horizontal = 0.5_f32.mul_add(-(q(qix, 5, rr, cc - 1) + center + q(qix, 5, rr, cc + 1)), 0.25 * (q(qix, 5, rr, cc - 2) + q(qix, 5, rr, cc + 2)))
-            .clamp(-1.0, 0.0)
+            let horizontal = 0.5_f32
+                .mul_add(
+                    -(q(qix, 5, rr, cc - 1) + center + q(qix, 5, rr, cc + 1)),
+                    0.25 * (q(qix, 5, rr, cc - 2) + q(qix, 5, rr, cc + 2)),
+                )
+                .clamp(-1.0, 0.0)
                 + center;
-            let vertical = 0.5_f32.mul_add(-(q(qix, 5, rr - 1, cc) + center + q(qix, 5, rr + 1, cc)), 0.25 * (q(qix, 5, rr - 2, cc) + q(qix, 5, rr + 2, cc)))
-            .clamp(-1.0, 0.0)
+            let vertical = 0.5_f32
+                .mul_add(
+                    -(q(qix, 5, rr - 1, cc) + center + q(qix, 5, rr + 1, cc)),
+                    0.25 * (q(qix, 5, rr - 2, cc) + q(qix, 5, rr + 2, cc)),
+                )
+                .clamp(-1.0, 0.0)
                 + center;
             qix[tile_index(0, rr, cc)] = horizontal;
             qix[tile_index(1, rr, cc)] = vertical;
@@ -201,8 +219,40 @@ fn low_pass(qix: &mut [f32], last_rr: usize, last_cc: usize, h: [f32; 5]) {
     let [h0, h1, h2, h3, h4] = h;
     for rr in 4..last_rr - 4 {
         for cc in 4..last_cc - 4 {
-            let horizontal = f32::mul_add(h4, q(qix, 0, rr, cc - 4) + q(qix, 0, rr, cc + 4), f32::mul_add(h3, q(qix, 0, rr, cc - 3) + q(qix, 0, rr, cc + 3), f32::mul_add(h2, q(qix, 0, rr, cc - 2) + q(qix, 0, rr, cc + 2), f32::mul_add(h1, q(qix, 0, rr, cc - 1) + q(qix, 0, rr, cc + 1), h0 * q(qix, 0, rr, cc)))));
-            let vertical = f32::mul_add(h4, q(qix, 1, rr - 4, cc) + q(qix, 1, rr + 4, cc), f32::mul_add(h3, q(qix, 1, rr - 3, cc) + q(qix, 1, rr + 3, cc), f32::mul_add(h2, q(qix, 1, rr - 2, cc) + q(qix, 1, rr + 2, cc), f32::mul_add(h1, q(qix, 1, rr - 1, cc) + q(qix, 1, rr + 1, cc), h0 * q(qix, 1, rr, cc)))));
+            let horizontal = f32::mul_add(
+                h4,
+                q(qix, 0, rr, cc - 4) + q(qix, 0, rr, cc + 4),
+                f32::mul_add(
+                    h3,
+                    q(qix, 0, rr, cc - 3) + q(qix, 0, rr, cc + 3),
+                    f32::mul_add(
+                        h2,
+                        q(qix, 0, rr, cc - 2) + q(qix, 0, rr, cc + 2),
+                        f32::mul_add(
+                            h1,
+                            q(qix, 0, rr, cc - 1) + q(qix, 0, rr, cc + 1),
+                            h0 * q(qix, 0, rr, cc),
+                        ),
+                    ),
+                ),
+            );
+            let vertical = f32::mul_add(
+                h4,
+                q(qix, 1, rr - 4, cc) + q(qix, 1, rr + 4, cc),
+                f32::mul_add(
+                    h3,
+                    q(qix, 1, rr - 3, cc) + q(qix, 1, rr + 3, cc),
+                    f32::mul_add(
+                        h2,
+                        q(qix, 1, rr - 2, cc) + q(qix, 1, rr + 2, cc),
+                        f32::mul_add(
+                            h1,
+                            q(qix, 1, rr - 1, cc) + q(qix, 1, rr + 1, cc),
+                            h0 * q(qix, 1, rr, cc),
+                        ),
+                    ),
+                ),
+            );
             qix[tile_index(2, rr, cc)] = horizontal;
             qix[tile_index(3, rr, cc)] = vertical;
         }
@@ -322,10 +372,18 @@ fn interpolate_red_blue(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern
         while cc < last_cc - 1 {
             let mut c = tile_channel(pattern, rr, cc + 1);
             let green = q(qix, 1, rr, cc);
-            let value = 0.5_f32.mul_add(q(qix, c, rr, cc - 1) - q(qix, 1, rr, cc - 1) + q(qix, c, rr, cc + 1) - q(qix, 1, rr, cc + 1), green);
+            let value = 0.5_f32.mul_add(
+                q(qix, c, rr, cc - 1) - q(qix, 1, rr, cc - 1) + q(qix, c, rr, cc + 1)
+                    - q(qix, 1, rr, cc + 1),
+                green,
+            );
             qix[tile_index(c, rr, cc)] = value;
             c = 2 - c;
-            let value = 0.5_f32.mul_add(q(qix, c, rr - 1, cc) - q(qix, 1, rr - 1, cc) + q(qix, c, rr + 1, cc) - q(qix, 1, rr + 1, cc), green);
+            let value = 0.5_f32.mul_add(
+                q(qix, c, rr - 1, cc) - q(qix, 1, rr - 1, cc) + q(qix, c, rr + 1, cc)
+                    - q(qix, 1, rr + 1, cc),
+                green,
+            );
             qix[tile_index(c, rr, cc)] = value;
             cc += 2;
         }
@@ -336,11 +394,15 @@ fn interpolate_red_blue(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern
         while cc < last_cc - 1 {
             let c = 2 - tile_channel(pattern, rr, cc);
             let green = q(qix, 1, rr, cc);
-            let value = 0.25_f32.mul_add(q(qix, c, rr - 1, cc) - q(qix, 1, rr - 1, cc) + q(qix, c, rr, cc - 1)
-                        - q(qix, 1, rr, cc - 1)
-                        + q(qix, c, rr, cc + 1)
-                        - q(qix, 1, rr, cc + 1)
-                        + q(qix, c, rr + 1, cc) - q(qix, 1, rr + 1, cc), green);
+            let value = 0.25_f32.mul_add(
+                q(qix, c, rr - 1, cc) - q(qix, 1, rr - 1, cc) + q(qix, c, rr, cc - 1)
+                    - q(qix, 1, rr, cc - 1)
+                    + q(qix, c, rr, cc + 1)
+                    - q(qix, 1, rr, cc + 1)
+                    + q(qix, c, rr + 1, cc)
+                    - q(qix, 1, rr + 1, cc),
+                green,
+            );
             qix[tile_index(c, rr, cc)] = value;
             cc += 2;
         }
@@ -523,7 +585,9 @@ const fn tile_index(channel: usize, rr: usize, cc: usize) -> usize {
 }
 
 #[inline]
-const fn q(qix: &[f32], channel: usize, rr: usize, cc: usize) -> f32 { qix[tile_index(channel, rr, cc)] }
+const fn q(qix: &[f32], channel: usize, rr: usize, cc: usize) -> f32 {
+    qix[tile_index(channel, rr, cc)]
+}
 
 #[inline]
 const fn tile_channel(pattern: BayerPattern, rr: usize, cc: usize) -> usize {
