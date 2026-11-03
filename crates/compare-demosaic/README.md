@@ -332,10 +332,10 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 <!-- compare-demosaic:begin algo:lmmse -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | BGGR | [1, 0] | no | ✅ | 0.000345 | 0.018585 | 1 | 0.000002 | 0 | 0 | 0 (0) | 0.000345 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | [0, 0] | yes | ✅ | 0.000345 | 0.018568 | 1 | 0.000002 | 0 | 0 | 0 (0) | 0.000345 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | [1, 1] | no | ✅ | 0.000345 | 0.018573 | 1 | 0.000000 | 0 | 0 | 0 (0) | 0.000345 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | [0, 1] | no | ✅ | 0.000345 | 0.018565 | 1 | 0.000000 | 0 | 0 | 0 (0) | 0.000345 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | BGGR | [1, 0] | no | ✅ | 0.000434 | 0.020821 | 1 | -0.000001 | 0 | 0 | 0 (0) | 0.000434 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | [0, 0] | yes | ✅ | 0.000433 | 0.020814 | 1 | -0.000001 | 0 | 0 | 0 (0) | 0.000433 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | [1, 1] | no | ✅ | 0.000432 | 0.020790 | 1 | -0.000004 | 0 | 0 | 0 (0) | 0.000432 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | [0, 1] | no | ✅ | 0.000432 | 0.020785 | 1 | -0.000003 | 0 | 0 | 0 (0) | 0.000432 |
 <!-- compare-demosaic:end algo:lmmse -->
 
 > [!NOTE]
