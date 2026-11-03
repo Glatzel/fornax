@@ -1,10 +1,7 @@
-#![allow(dead_code, reason = "DCB stages are wired incrementally")]
-
 use fornax_core::error::DemosaicError;
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 
-use super::buffer::DenseLazy;
-use super::directional::{self, Profile};
+use super::buffer::{DenseLazy, codes, dense_from_codes};
 
 type DcbPixel = [u16; 4];
 
@@ -20,7 +17,19 @@ impl DemosaicDcb {
     where
         T: Primitive + Send + Sync,
     {
-        directional::lazy(image, pattern, Profile::Dcb)
+        if image.width() < 3 || image.height() < 3 {
+            return Err(DemosaicError::InvalidInput(
+                "DCB requires an image at least 3x3".into(),
+            ));
+        }
+        let width = image.width() as usize;
+        let height = image.height() as usize;
+        let output = run(&codes(image), width, height, pattern);
+        Ok(DenseLazy::new(dense_from_codes(
+            image.width(),
+            image.height(),
+            output,
+        )))
     }
 }
 
@@ -58,12 +67,15 @@ fn border_interpolate(
     for row in 0..height {
         let mut col = 0;
         while col < width {
-            let process_col =
-                if col == border && row >= border && row < height.saturating_sub(border) {
-                    width - border
-                } else {
-                    col
-                };
+            let process_col = if col == border
+                && width > 2 * border
+                && row >= border
+                && row < height.saturating_sub(border)
+            {
+                width - border
+            } else {
+                col
+            };
             let mut sums = [0_u32; 8];
             let y_start = row.saturating_sub(1);
             let y_end = (row + 1).min(height - 1);
@@ -294,8 +306,11 @@ fn clip_i32(value: i32) -> u16 {
     value.clamp(0, i32::from(u16::MAX)) as u16
 }
 
+#[allow(
+    dead_code,
+    reason = "the fixed dcb(0, 1) reference path keeps the Nyquist stage disabled"
+)]
 fn nyquist_pass(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: BayerPattern) {
-    let u = width;
     let v = 2 * width;
     for row in 2..height.saturating_sub(2) {
         let mut col = 2 + (cfa_channel(pattern, 2, row as isize) & 1);
@@ -318,7 +333,6 @@ fn nyquist_pass(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: B
             col += 2;
         }
     }
-    let _ = u;
 }
 
 fn direction_map(pixels: &mut [DcbPixel], width: usize, height: usize) {
@@ -492,8 +506,299 @@ fn smooth(pixels: &mut [DcbPixel], width: usize, height: usize) {
     }
 }
 
+fn refinement(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: BayerPattern) {
+    let u = width;
+    let v = 2 * width;
+    let w = 3 * width;
+    for row in 4..height.saturating_sub(4) {
+        let mut col = 4 + (cfa_channel(pattern, 2, row as isize) & 1);
+        while col < width.saturating_sub(4) {
+            let index = row * width + col;
+            let color = cfa_channel(pattern, col as isize, row as isize);
+            let current = 4 * i32::from(pixels[index][3])
+                + 2 * (i32::from(pixels[index + u][3])
+                    + i32::from(pixels[index - u][3])
+                    + i32::from(pixels[index + 1][3])
+                    + i32::from(pixels[index - 1][3]))
+                + i32::from(pixels[index + v][3])
+                + i32::from(pixels[index - v][3])
+                + i32::from(pixels[index + 2][3])
+                + i32::from(pixels[index - 2][3]);
+
+            if pixels[index][color] > 1 {
+                let center = pixels[index][color] as f32;
+                let mut f = [0.0_f32; 5];
+                f[0] = (pixels[index - u][1] as f32 + pixels[index + u][1] as f32) / (2.0 * center);
+                f[1] = if pixels[index - v][color] > 0 {
+                    2.0 * pixels[index - u][1] as f32 / (pixels[index - v][color] as f32 + center)
+                } else {
+                    f[0]
+                };
+                f[2] = if pixels[index - v][color] > 0 {
+                    (pixels[index - u][1] as f32 + pixels[index - w][1] as f32)
+                        / (2.0 * pixels[index - v][color] as f32)
+                } else {
+                    f[0]
+                };
+                f[3] = if pixels[index + v][color] > 0 {
+                    2.0 * pixels[index + u][1] as f32 / (pixels[index + v][color] as f32 + center)
+                } else {
+                    f[0]
+                };
+                f[4] = if pixels[index + v][color] > 0 {
+                    (pixels[index + u][1] as f32 + pixels[index + w][1] as f32)
+                        / (2.0 * pixels[index + v][color] as f32)
+                } else {
+                    f[0]
+                };
+                let vertical_ratio = (5.0 * f[0] + 3.0 * f[1] + f[2] + 3.0 * f[3] + f[4]) / 13.0;
+
+                f[0] = (pixels[index - 1][1] as f32 + pixels[index + 1][1] as f32) / (2.0 * center);
+                f[1] = if pixels[index - 2][color] > 0 {
+                    2.0 * pixels[index - 1][1] as f32 / (pixels[index - 2][color] as f32 + center)
+                } else {
+                    f[0]
+                };
+                f[2] = if pixels[index - 2][color] > 0 {
+                    (pixels[index - 1][1] as f32 + pixels[index - 3][1] as f32)
+                        / (2.0 * pixels[index - 2][color] as f32)
+                } else {
+                    f[0]
+                };
+                f[3] = if pixels[index + 2][color] > 0 {
+                    2.0 * pixels[index + 1][1] as f32 / (pixels[index + 2][color] as f32 + center)
+                } else {
+                    f[0]
+                };
+                f[4] = if pixels[index + 2][color] > 0 {
+                    (pixels[index + 1][1] as f32 + pixels[index + 3][1] as f32)
+                        / (2.0 * pixels[index + 2][color] as f32)
+                } else {
+                    f[0]
+                };
+                let horizontal_ratio = (5.0 * f[0] + 3.0 * f[1] + f[2] + 3.0 * f[3] + f[4]) / 13.0;
+                pixels[index][1] = clip_f32(
+                    center
+                        * (current as f32 * vertical_ratio
+                            + (16 - current) as f32 * horizontal_ratio)
+                        / 16.0,
+                );
+            } else {
+                pixels[index][1] = pixels[index][color];
+            }
+
+            let neighbors = [
+                index + 1 + u,
+                index + 1 - u,
+                index - 1 + u,
+                index - 1 - u,
+                index - 1,
+                index + 1,
+                index - u,
+                index + u,
+            ];
+            let minimum = neighbors
+                .iter()
+                .map(|neighbor| pixels[*neighbor][1])
+                .min()
+                .unwrap();
+            let maximum = neighbors
+                .iter()
+                .map(|neighbor| pixels[*neighbor][1])
+                .max()
+                .unwrap();
+            pixels[index][1] =
+                upper_limit(pixels[index][1] as f32, maximum as f32, minimum as f32) as u16;
+            col += 2;
+        }
+    }
+}
+
+fn color_full(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: BayerPattern) {
+    let u = width;
+    let w = 3 * width;
+    let mut chroma = vec![[0.0_f32; 2]; width * height];
+
+    for row in 1..height.saturating_sub(1) {
+        let mut col = 1 + (cfa_channel(pattern, 1, row as isize) & 1);
+        while col < width.saturating_sub(1) {
+            let index = row * width + col;
+            let color = cfa_channel(pattern, col as isize, row as isize);
+            chroma[index][color / 2] = pixels[index][color] as f32 - pixels[index][1] as f32;
+            col += 2;
+        }
+    }
+
+    for row in 3..height.saturating_sub(3) {
+        let mut col = 3 + (cfa_channel(pattern, 1, row as isize) & 1);
+        while col < width.saturating_sub(3) {
+            let index = row * width + col;
+            let color = 1 - cfa_channel(pattern, col as isize, row as isize) / 2;
+            let mut f = [0.0_f32; 4];
+            let mut g = [0.0_f32; 4];
+            f[0] = 1.0
+                / (1.0
+                    + (chroma[index - u - 1][color] - chroma[index + u + 1][color]).abs()
+                    + (chroma[index - u - 1][color] - chroma[index - w - 3][color]).abs()
+                    + (chroma[index + u + 1][color] - chroma[index - w - 3][color]).abs());
+            f[1] = 1.0
+                / (1.0
+                    + (chroma[index - u + 1][color] - chroma[index + u - 1][color]).abs()
+                    + (chroma[index - u + 1][color] - chroma[index - w + 3][color]).abs()
+                    + (chroma[index + u - 1][color] - chroma[index - w + 3][color]).abs());
+            f[2] = 1.0
+                / (1.0
+                    + (chroma[index + u - 1][color] - chroma[index - u + 1][color]).abs()
+                    + (chroma[index + u - 1][color] - chroma[index + w + 3][color]).abs()
+                    + (chroma[index - u + 1][color] - chroma[index + w + 3][color]).abs());
+            f[3] = 1.0
+                / (1.0
+                    + (chroma[index + u + 1][color] - chroma[index - u - 1][color]).abs()
+                    + (chroma[index + u + 1][color] - chroma[index + w - 3][color]).abs()
+                    + (chroma[index - u - 1][color] - chroma[index + w - 3][color]).abs());
+            g[0] = 1.325 * chroma[index - u - 1][color]
+                - 0.175 * chroma[index - w - 3][color]
+                - 0.075 * chroma[index - w - 1][color]
+                - 0.075 * chroma[index - u - 3][color];
+            g[1] = 1.325 * chroma[index - u + 1][color]
+                - 0.175 * chroma[index - w + 3][color]
+                - 0.075 * chroma[index - w + 1][color]
+                - 0.075 * chroma[index - u + 3][color];
+            g[2] = 1.325 * chroma[index + u - 1][color]
+                - 0.175 * chroma[index + w - 3][color]
+                - 0.075 * chroma[index + w - 1][color]
+                - 0.075 * chroma[index + u - 3][color];
+            g[3] = 1.325 * chroma[index + u + 1][color]
+                - 0.175 * chroma[index + w + 3][color]
+                - 0.075 * chroma[index + w + 1][color]
+                - 0.075 * chroma[index + u + 3][color];
+            chroma[index][color] = (f[0] * g[0] + f[1] * g[1] + f[2] * g[2] + f[3] * g[3])
+                / (f[0] + f[1] + f[2] + f[3]);
+            col += 2;
+        }
+    }
+
+    for row in 3..height.saturating_sub(3) {
+        let mut col = 3 + (cfa_channel(pattern, 2, row as isize) & 1);
+        while col < width.saturating_sub(3) {
+            let index = row * width + col;
+            let mut color = cfa_channel(pattern, col as isize + 1, row as isize) / 2;
+            for _ in 0..2 {
+                let mut f = [0.0_f32; 4];
+                let mut g = [0.0_f32; 4];
+                f[0] = 1.0
+                    / (1.0
+                        + (chroma[index - u][color] - chroma[index + u][color]).abs()
+                        + (chroma[index - u][color] - chroma[index - w][color]).abs()
+                        + (chroma[index + u][color] - chroma[index - w][color]).abs());
+                f[1] = 1.0
+                    / (1.0
+                        + (chroma[index + 1][color] - chroma[index - 1][color]).abs()
+                        + (chroma[index + 1][color] - chroma[index + 3][color]).abs()
+                        + (chroma[index - 1][color] - chroma[index + 3][color]).abs());
+                f[2] = 1.0
+                    / (1.0
+                        + (chroma[index - 1][color] - chroma[index + 1][color]).abs()
+                        + (chroma[index - 1][color] - chroma[index - 3][color]).abs()
+                        + (chroma[index + 1][color] - chroma[index - 3][color]).abs());
+                f[3] = 1.0
+                    / (1.0
+                        + (chroma[index + u][color] - chroma[index - u][color]).abs()
+                        + (chroma[index + u][color] - chroma[index + w][color]).abs()
+                        + (chroma[index - u][color] - chroma[index + w][color]).abs());
+                g[0] = 0.875 * chroma[index - u][color] + 0.125 * chroma[index - w][color];
+                g[1] = 0.875 * chroma[index + 1][color] + 0.125 * chroma[index + 3][color];
+                g[2] = 0.875 * chroma[index - 1][color] + 0.125 * chroma[index - 3][color];
+                g[3] = 0.875 * chroma[index + u][color] + 0.125 * chroma[index + w][color];
+                chroma[index][color] = (f[0] * g[0] + f[1] * g[1] + f[2] * g[2] + f[3] * g[3])
+                    / (f[0] + f[1] + f[2] + f[3]);
+                color = 1 - color;
+            }
+            col += 2;
+        }
+    }
+
+    for row in 6..height.saturating_sub(6) {
+        for col in 6..width.saturating_sub(6) {
+            let index = row * width + col;
+            pixels[index][0] = clip_f32(chroma[index][0] + pixels[index][1] as f32);
+            pixels[index][2] = clip_f32(chroma[index][1] + pixels[index][1] as f32);
+            for color in [0, 2] {
+                let neighbors = [
+                    index + 1 + u,
+                    index + 1 - u,
+                    index - 1 + u,
+                    index - 1 - u,
+                    index - 1,
+                    index + 1,
+                    index - u,
+                    index + u,
+                ];
+                let minimum = neighbors
+                    .iter()
+                    .map(|neighbor| pixels[*neighbor][color])
+                    .min()
+                    .unwrap();
+                let maximum = neighbors
+                    .iter()
+                    .map(|neighbor| pixels[*neighbor][color])
+                    .max()
+                    .unwrap();
+                pixels[index][color] =
+                    upper_limit(pixels[index][color] as f32, maximum as f32, minimum as f32) as u16;
+            }
+        }
+    }
+}
+
+fn upper_limit(value: f32, upper: f32, lower: f32) -> f32 {
+    if upper < lower {
+        value.clamp(upper, lower)
+    } else {
+        value.clamp(lower, upper)
+    }
+}
+
+fn run(input: &[u16], width: usize, height: usize, pattern: BayerPattern) -> Vec<u16> {
+    let mut pixels = insert_measured(input, width, height, pattern);
+    border_interpolate(&mut pixels, width, height, pattern, 6);
+    let horizontal = horizontal_candidates(&pixels, width, height, pattern);
+    let vertical = vertical_candidates(&pixels, width, height, pattern);
+    apply_direction(&mut pixels, &horizontal, &vertical, width, height, pattern);
+
+    let mut saved = horizontal;
+    for (buffer, pixel) in saved.iter_mut().zip(&pixels) {
+        buffer[0] = pixel[0] as f32;
+        buffer[2] = pixel[2] as f32;
+    }
+
+    color(&mut pixels, width, height, pattern);
+    smooth(&mut pixels, width, height);
+    direction_map(&mut pixels, width, height);
+    correction2(&mut pixels, width, height, pattern);
+    for _ in 0..4 {
+        direction_map(&mut pixels, width, height);
+        correction(&mut pixels, width, height, pattern);
+    }
+    direction_map(&mut pixels, width, height);
+    for (buffer, pixel) in saved.iter().zip(&mut pixels) {
+        pixel[0] = buffer[0] as u16;
+        pixel[2] = buffer[2] as u16;
+    }
+    color(&mut pixels, width, height, pattern);
+    refinement(&mut pixels, width, height, pattern);
+    color_full(&mut pixels, width, height, pattern);
+
+    pixels
+        .into_iter()
+        .flat_map(|pixel| [pixel[0], pixel[1], pixel[2]])
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::protocol::LazyDemosaic;
+
     use super::*;
 
     #[test]
@@ -626,5 +931,90 @@ mod tests {
         }
         smooth(&mut pixels, 15, 15);
         assert_eq!(pixels[target], [200, 100, 300, 0]);
+    }
+
+    #[test]
+    fn refinement_preserves_a_uniform_cfa_to_green_ratio() {
+        let pattern = BayerPattern::GBRG;
+        let mut pixels = vec![[20_000_u16, 10_000, 20_000, 0]; 15 * 15];
+        refinement(&mut pixels, 15, 15, pattern);
+        for y in 5..10 {
+            for x in 5..10 {
+                assert_eq!(pixels[y * 15 + x][1], 10_000);
+            }
+        }
+    }
+
+    #[test]
+    fn color_full_interpolates_uniform_chroma_without_changing_channels() {
+        let pattern = BayerPattern::GBRG;
+        let mut pixels = vec![[10_000_u16, 20_000, 30_000, 0]; 15 * 15];
+        color_full(&mut pixels, 15, 15, pattern);
+        for y in 6..9 {
+            for x in 6..9 {
+                assert_eq!(&pixels[y * 15 + x][..3], &[10_000, 20_000, 30_000]);
+            }
+        }
+    }
+
+    #[test]
+    fn uniform_channel_codes_survive_the_public_dcb_path_for_all_patterns() {
+        for pattern in BayerPattern::ALL {
+            let input = (0..15 * 15)
+                .map(|index| {
+                    let channel =
+                        cfa_channel(pattern, (index % 15) as isize, (index / 15) as isize);
+                    [10_000_u16, 20_000, 30_000][channel]
+                })
+                .collect::<Vec<_>>();
+            let output = run(&input, 15, 15, pattern);
+            assert!(
+                output
+                    .as_chunks::<3>()
+                    .0
+                    .iter()
+                    .all(|pixel| pixel == &[10_000, 20_000, 30_000])
+            );
+        }
+    }
+
+    #[test]
+    fn full_color_limit_can_modify_a_sampled_value() {
+        let pattern = BayerPattern::GBRG;
+        let mut input = (0..15 * 15)
+            .map(|index| {
+                let channel = cfa_channel(pattern, (index % 15) as isize, (index / 15) as isize);
+                [10_000_u16, 20_000, 30_000][channel]
+            })
+            .collect::<Vec<_>>();
+        let target = 7 * 15 + 8;
+        input[target] = 60_000;
+        assert_ne!(run(&input, 15, 15, pattern)[target * 3], 60_000);
+    }
+
+    #[test]
+    fn public_dcb_rejects_images_smaller_than_three_pixels() {
+        for (width, height) in [(2, 3), (3, 2)] {
+            let mosaic = MonoImage::from_raw(
+                width,
+                height,
+                vec![0.0_f32; width as usize * height as usize],
+            )
+            .unwrap();
+            assert!(matches!(
+                DemosaicDcb.lazy(&mosaic, BayerPattern::GBRG),
+                Err(DemosaicError::InvalidInput(_))
+            ));
+        }
+    }
+
+    #[test]
+    fn public_dcb_accepts_the_three_pixel_bridge_minimum() {
+        let mosaic = MonoImage::from_raw(3_u32, 3_u32, vec![0.0_f32; 9]).unwrap();
+        let output = DemosaicDcb
+            .lazy(&mosaic, BayerPattern::GBRG)
+            .unwrap()
+            .collect();
+        assert!(output.as_raw().iter().all(|sample| *sample == 0.0));
     }
 }
