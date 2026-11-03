@@ -1,4 +1,4 @@
-"""Check the book diff for newly committed binary assets."""
+# Check the book diff for newly committed binary assets.
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import sys
 
 
 def binary_assets(base_ref: str) -> list[str]:
-    """Return binary paths added or changed relative to ``base_ref``."""
+    # Return binary paths added or changed relative to ``base_ref``.
     diff = subprocess.run(
         [
             "git",
@@ -26,7 +26,7 @@ def binary_assets(base_ref: str) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run the binary asset check and return a process exit code."""
+    # Run the binary asset check and return a process exit code.
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "base_ref",
