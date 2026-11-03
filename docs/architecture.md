@@ -28,7 +28,8 @@ tooling.
 | `fornax` | Public facade and feature-gated decoder exports. | `fornax-core`, both Rust decoders, `libraw`, both processors |
 | `fornax-py` | PyO3/Maturin Python binding source. | `fornax`, `libraw`, Python-facing crates |
 | `fornax-devtool` | Shared fixtures, synthetic images, tracing setup, and image helpers. | `fornax-core` |
-| `bench-decoder`, `bench-preprocessor`, `bench-demosaic` | Criterion benchmark targets for their named stages. | Corresponding stage crates and `fornax-devtool` |
+| `bench-decoder` | Criterion benchmark target for decoding. | Decoder crates and `fornax-devtool` |
+| `fornax-preprocessor`, `fornax-postprocessor` | Production stage crates that also contain their Criterion benchmark targets. | Core stage types and `fornax-devtool` |
 | `compare-demosaic` | Separate reference-versus-Fornax demosaic harness and CLI. | Core, processors, Rawler decoder, devtool, `libraw-sys` build dependency |
 
 `Cargo.toml` includes every crate under `crates/` in the workspace except
@@ -61,7 +62,8 @@ single-channel mosaic. It returns `RawImage<T>`.
 
 The boundary between decode and preprocess is therefore
 `DecodedRawActive<T> -> RawImage<T>`. The preprocessor implementation lives in
-`crates/fornax-preprocessor/src/lib.rs`.
+`crates/fornax-preprocessor/src/lib.rs`, with its benchmark target in
+`crates/fornax-preprocessor/benches/`.
 
 ### Demosaic and post-process
 
@@ -78,7 +80,8 @@ and LMMSE reconstruction. `PostProcessor::default()` selects Linear
 demosaicing and applies green-normalized white balance when metadata provides
 it. The boundary between preprocessing and demosaicing is
 `RawImage<T> -> RgbImage<T>`; implementations live in
-`crates/fornax-postprocessor/src/`.
+`crates/fornax-postprocessor/src/`, with the benchmark target in
+`crates/fornax-postprocessor/benches/`.
 
 `Metadata::default_crop` is carried through the stages as a recommendation.
 The current stage methods do not apply it automatically.

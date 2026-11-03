@@ -267,28 +267,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bench-demosaic"
-version = "0.0.17"
-dependencies = [
- "codspeed-criterion-compat",
- "fornax-core",
- "fornax-devtool",
- "fornax-postprocessor",
- "rayon",
- "serde_json",
-]
-
-[[package]]
-name = "bench-preprocessor"
-version = "0.0.17"
-dependencies = [
- "codspeed-criterion-compat",
- "fornax-core",
- "fornax-devtool",
- "fornax-preprocessor",
-]
-
-[[package]]
 name = "bindgen"
 version = "0.73.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -994,18 +972,23 @@ dependencies = [
 name = "fornax-postprocessor"
 version = "0.0.17"
 dependencies = [
+ "codspeed-criterion-compat",
  "fornax-core",
+ "fornax-devtool",
  "generic-num",
  "image 0.25.9",
  "mischief",
  "rayon",
+ "serde_json",
 ]
 
 [[package]]
 name = "fornax-preprocessor"
 version = "0.0.17"
 dependencies = [
+ "codspeed-criterion-compat",
  "fornax-core",
+ "fornax-devtool",
  "image 0.25.9",
  "rayon",
 ]

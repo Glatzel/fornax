@@ -23,7 +23,7 @@ This task builds the skeleton, rules and a CI asset check. It writes no chapters
 In:
 
 - `book/` skeleton, `book/AGENTS.md`, chapter template, notation, glossary, bibliography
-- `scripts/check_assets.py` and its CI step
+- `book/scripts/check_assets.py` and its CI step
 - two lines in root `AGENTS.md`
 
 Out:
@@ -54,23 +54,13 @@ No empty chapter stubs. A chapter file appears only when its readiness rule is m
 
 Nothing binary is committed: no PNG, JPG, GIF, WebP, TIFF, PDF, raw files, fonts, archives or video. The repo must stay small. This overrides every other rule.
 
-- Allowed: Markdown, SVG, Mermaid blocks, small text files (scripts, CSV/JSON).
+- Allowed in Git: Markdown, Mermaid blocks, small text files (scripts, CSV/JSON).
+- Generated SVG is allowed on disk but must stay ignored by Git; it has no size limit.
 - SVG is pure vector text. No embedded raster: no `<image>` element, no `data:image/...`, no base64.
 - Show pixel behaviour with synthetic SVG (drawn grids, plots, spectra, arrows).
-- Real photos and raw comparisons: link to externally hosted images, or generate locally into the ignored `agent-work/`. Never commit the output.
+- Real photos and raw comparisons: link to externally hosted images, or generate locally into the ignored `temp/book/`. Never commit the output.
 - Every chapter must read correctly with no raster image at all.
 - If a binary seems unavoidable, stop and ask.
-
-SVG size: soft limit 100 KB per file, aim for under 30 KB. Over the limit CI only warns, and the PR description must carry:
-
-```markdown
-> [!WARNING]
-> Large SVG: `book/src/figures/<chapter>/<name>.svg` is <size> KB (soft limit 100 KB).
-> Why it is needed: <what the figure shows and why it cannot be smaller>.
-> Reduction tried: <lower coordinate precision / repetition via <use> or <pattern> / fewer samples>.
-```
-
-Why 100 KB: git compresses SVG text several-fold, and typical generated figures are far smaller. A figure over the limit is usually a dense grid or an over-sampled plot, which the reduction steps normally fix.
 
 ### Working agreement: agent drafts, maintainer rewrites
 
@@ -102,43 +92,41 @@ Why 100 KB: git compresses SVG text several-fold, and typical generated figures 
 7. Go deeper: papers, code, websites and wikis, standards
 8. Check yourself: 3 to 5 questions, answers inside `<details>`
 
-## Asset check (`scripts/check_assets.py`)
+## Asset check (`book/scripts/check_assets.py`)
 
 Minimal, Python stdlib only. First read `scripts/` (it has `setup.sh` and `setup.ps1` at least) and the repo's ruff setup (`ruff.toml`) and match their conventions. Behavior:
 
 - Fail if any file added or changed versus the base ref is binary: `git diff --numstat <base>...HEAD`, lines starting `-<TAB>-<TAB>`. Diff-based, so existing binaries elsewhere do not fail CI.
-- Fail if any `book/**/*.svg` contains `<image` or `data:image`.
-- Warn, with a GitHub `::warning file=...::` line and unchanged exit code, if any `book/**/*.svg` is over 100 KB.
 - Base ref is an argument, default `origin/main`.
 
-CI step: read `.github/workflows/` (a `ci.yml` exists) and add a minimal step or small workflow in the existing style, on pull requests, with enough checkout depth for the base diff. The maintainer approved this one `.github/` change for this check only. Do not run the script in later agent sessions; CI owns it. Run it once here to prove it works.
+CI step: read `.github/workflows/` (a `ci.yml` exists) and add a minimal step or small workflow in the existing style, on pull requests, with enough checkout depth for the base diff. The maintainer approved this one `.github/` change for this check only. Do not run the script in later agent sessions; CI owns it. Run `python book/scripts/check_assets.py` once here to prove it works.
 
 ## Task checklist
 
 - [ ] Read root `AGENTS.md`, `docs/architecture.md`, `docs/references/`, crate READMEs, `crates/compare-demosaic/`, `scripts/`, `.github/workflows/`, `.markdownlint-cli2.jsonc`, `ruff.toml`; note the patterns to match
 - [ ] Create the `book/` files above; README includes the chapter status table (planned / ready / draft / rewrite / done) and one Mermaid diagram of the separate stages (decode, preprocess, demosaic, post-process)
 - [ ] Write `book/AGENTS.md` from the section above, hard rule first
-- [ ] Create `scripts/check_assets.py` and the CI step; run the script once
-- [ ] Add `book/build/` to `.gitignore` (output of `book-03-build`, never committed)
-- [ ] Edit root `AGENTS.md`: one Boundaries bullet (no binary files, enforced by CI through `scripts/check_assets.py`) and one "Where to look next" pointer to `book/` (human-facing; agents edit it only when asked, following `book/AGENTS.md`). Show the diff.
+- [ ] Create `book/scripts/check_assets.py` and the CI step; run the script once
+- [ ] Add `book/build/` and `*.svg` to `.gitignore`; generated figures and build output are never committed
+- [ ] Edit root `AGENTS.md`: one Boundaries bullet (no binary files, enforced by CI through `book/scripts/check_assets.py`) and one "Where to look next" pointer to `book/` (human-facing; agents edit it only when asked, following `book/AGENTS.md`). Show the diff.
 - [ ] Remove the `BOOK-01` item from `TODO.md`; do not add items (the chapter items are proposed in the maintainer's own TODO update)
 
 ## Files expected to change
 
-- new: `book/AGENTS.md`, `book/README.md`, `book/template.md`, `book/src/{SUMMARY,notation,glossary,bibliography}.md`, `scripts/check_assets.py`, `docs/plans/book-01-bootstrap.md`
+- new: `book/AGENTS.md`, `book/README.md`, `book/template.md`, `book/src/{SUMMARY,notation,glossary,bibliography}.md`, `book/scripts/check_assets.py`, `docs/plans/book-01-bootstrap.md`
 - edit: root `AGENTS.md`, `.gitignore`, one workflow under `.github/workflows/`, `TODO.md` (remove `BOOK-01` only)
 
 ## Validation
 
 - `git diff --check` and the repository-configured Markdown lint on changed Markdown
-- Ruff on `scripts/check_assets.py`, run the way the repo runs it
-- `python scripts/check_assets.py` once (record output); CI runs it from then on
+- Ruff on `book/scripts/check_assets.py`, run the way the repo runs it
+- `python book/scripts/check_assets.py` once (record output); CI runs it from then on
 - No Rust changes, so the cargo checks do not apply; say so in the PR
 - Maintainer opens the PR preview on GitHub to confirm math, Mermaid and the README render, light and dark (the agent cannot verify rendering)
 
 ## Decisions and notes
 
-Resolved: location `book/`; draft-then-rewrite; readiness follows code; SVG soft limit 100 KB with a PR warning block; enforcement by CI script; root `AGENTS.md` pointer approved.
+Resolved: location `book/`; draft-then-rewrite; readiness follows code; generated SVG stays ignored with no size limit; `temp/book/` is the temporary work directory; the asset check lives at `book/scripts/check_assets.py`; enforcement by CI script; root `AGENTS.md` pointer approved.
 
 Open: none.
 

@@ -38,7 +38,7 @@ Out:
 
 ## Spike (do first, report before the rest)
 
-Build a PDF from a temporary sample under `agent-work/` (not committed) that contains: a numbered heading structure across two files, inline and display math (use `\dfrac`, sums, subscripts), a table, a GitHub alert block (`> [!WARNING]`), a relative link between two chapter files, a link to `bibliography.md#<key>`, a committed-style SVG figure, and a Mermaid block. Record for each item whether it works, how it looks, and the fix if not.
+Build a PDF from a temporary sample under the ignored `temp/book/` directory that contains: a numbered heading structure across two files, inline and display math (use `\dfrac`, sums, subscripts), a table, a GitHub alert block (`> [!WARNING]`), a relative link between two chapter files, a link to `bibliography.md#<key>`, a generated SVG figure, and a Mermaid block. Record for each item whether it works, how it looks, and the fix if not.
 
 Known risks to test, not assume:
 
@@ -57,7 +57,7 @@ Known risks to test, not assume:
 - [ ] Read `pixi.toml` (features, environments, platforms, existing tasks) and `scripts/`; match their conventions
 - [ ] Spike as above; write findings into "Decisions and notes" and stop for the maintainer if option (a) is needed or a fallback route is required
 - [ ] Add the proven dependencies to the `book` feature; update `pixi.lock`
-- [ ] `scripts/book_build.py` (stdlib; follow existing `scripts/` conventions): read `book/src/SUMMARY.md`, build the ordered file list, call pandoc with the chosen filters and metadata (title, version from the repo, date), write `book/build/fornax-book.pdf`
+- [ ] `book/scripts/book_build.py` (stdlib; follow existing `scripts/` conventions): read `book/src/SUMMARY.md`, build the ordered file list, call pandoc with the chosen filters and metadata (title, version from the repo, date), write `book/build/fornax-book.pdf`
 - [ ] Pixi task `book-pdf` in the `book` environment
 - [ ] Build the PDF from the real `book/src/` content as it exists; it may be nearly empty, and that is fine. Record file size and page count
 - [ ] Confirm `book/build/` is ignored and `git status` shows no PDF
@@ -65,7 +65,7 @@ Known risks to test, not assume:
 
 ## Files expected to change
 
-- new: `scripts/book_build.py`, possibly one Lua filter under `scripts/`, `docs/plans/book-03-build.md`
+- new: `book/scripts/book_build.py`, possibly one Lua filter under `book/scripts/`, `docs/plans/book-03-build.md`
 - edit: `pixi.toml`, `pixi.lock`, `TODO.md` (remove `BOOK-03` only)
 
 ## Validation
@@ -75,7 +75,7 @@ Known risks to test, not assume:
 - `pixi run -e book book-pdf` succeeds from a clean worktree; report page count and size
 - PDF checked by eye: math renders, SVG figures appear, internal links jump, fonts embedded
 - No Rust changes, so the cargo checks do not apply; say so in the PR
-- Do not hand-run `scripts/check_assets.py`; CI owns it
+- Do not hand-run `book/scripts/check_assets.py`; CI owns it
 
 ## Decisions and notes
 
