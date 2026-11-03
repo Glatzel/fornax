@@ -46,7 +46,8 @@ Out of scope:
   artifact behavior.
 - [x] Run all locally available validation and record outcomes.
 - [ ] Confirm the first clean hosted `compare-demosaic` step is below 5m08s.
-- [ ] Open one semantic pull request with this plan.
+- [x] Open one semantic pull request with this plan:
+  [#632](https://github.com/Glatzel/fornax/pull/632).
 
 ## Files expected to change
 
