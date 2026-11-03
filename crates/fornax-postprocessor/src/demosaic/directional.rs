@@ -4,7 +4,6 @@ use super::buffer::{DenseLazy, channel, dense_from_f32, normalized};
 
 #[derive(Debug, Clone, Copy)]
 pub(super) enum Profile {
-    Dcb,
     Dht,
     Aahd,
     Amaze,
@@ -47,7 +46,6 @@ fn run(
     let mut green = vec![0.0_f32; width * height];
     let mut rgb = vec![[0.0_f32; 3]; width * height];
     let (green_power, chroma_radius, refinement) = match profile {
-        Profile::Dcb => (2.0, 2, 0),
         Profile::Dht => (1.0, 2, 0),
         Profile::Aahd => (4.0, 3, 0),
         Profile::Amaze => (3.0, 3, 0),
@@ -185,7 +183,6 @@ fn run(
                     let refined = green[index] + color_difference;
                     rgb[index][target] = match profile {
                         Profile::Amaze => refined.mul_add(0.25, previous[index][target] * 0.75),
-                        Profile::Dcb => refined.mul_add(0.4, previous[index][target] * 0.6),
                         Profile::Dht | Profile::Aahd => {
                             refined.mul_add(0.2, previous[index][target] * 0.8)
                         }
