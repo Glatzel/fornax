@@ -5,7 +5,7 @@
 ## Container structure
 
 CR3 and CRM are ISO Base Media File Format/QuickTime-style BMFF files. The
-reader parses box sizes and types, `ftyp` compatibility (`crx `), `moov`,
+reader parses box sizes and types, `ftyp` compatibility (`crx`), `moov`,
 `trak`, media/sample tables, `CRAW` sample entries, `mdat`, CTMD metadata, CMT
 metadata IFDs, and the Canon-specific CMP1 and IAD1 boxes.
 
