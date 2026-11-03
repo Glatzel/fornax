@@ -103,8 +103,6 @@ linked issue. Only the user merges or abandons a pull request.
 - Project skills live in `.agents/skills/`. Add or improve them by pull
   request. Skills installed by pixi are managed by pixi; never edit them by
   hand.
-- `agent-work/` is ignored scratch space. Never use it for task state,
-  instructions, or plans.
 - Do not add items to `TODO.md`; propose them in the report or pull request
   description.
 - Keep the repository root clean: the only agent-related root files are
