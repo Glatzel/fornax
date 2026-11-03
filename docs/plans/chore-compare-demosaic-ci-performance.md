@@ -43,7 +43,7 @@ Out of scope:
   timings, and generate artifacts only after a failed baseline diff.
 - [x] Update the compare-demosaic agent guide with the new CI ownership and
   artifact behavior.
-- [ ] Run the full required validation and record outcomes.
+- [x] Run the full required validation and record outcomes.
 - [ ] Open one semantic pull request with this plan.
 
 ## Files expected to change
@@ -77,6 +77,25 @@ Record local phase times. Confirm the clean run produces a byte-identical
 canonical report and does not create artifacts. Confirm a mismatched diff
 takes the artifact-regeneration path. Confirm the first clean GitHub Actions
 comparison step is below the 5m08s baseline.
+
+Validation results:
+
+- `cargo test --workspace --all-features`: 188 passed across 23 suites.
+- `cargo test -p compare-demosaic --all-features`: 109 passed across 3
+  suites.
+- Concurrent all-comparison regression test run alone: 1 passed.
+- `cargo +nightly fmt --all -- --check`: passed.
+- Workspace clippy with `-D warnings`: blocked by the pre-existing
+  `clippy::too_many_arguments` error in
+  `crates/fornax-postprocessor/src/demosaic/ahd.rs`.
+- Workspace clippy with `-A clippy::too_many_arguments -D warnings`: passed.
+- `cargo build --release -p compare-demosaic`: 151s.
+- `readme --check`: passed.
+- Clean comparison run: 106s; baseline diff: no differences.
+- Forced failed diff: returned status 1 and regenerated artifacts in 108s.
+- `yq eval` and `bash -n` validation of the changed workflow: passed.
+- `git diff --check`: passed.
+- Markdown lint intentionally not run per the user's repository instruction.
 
 ## Decisions and notes
 

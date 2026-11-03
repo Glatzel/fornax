@@ -86,10 +86,9 @@ cargo clippy --workspace --all-features --all-targets -- -D warnings -A clippy::
 ```
 
 Also run task-specific tests, benchmarks, or examples. For documentation-only
-changes, run `git diff --check` and the repository-configured Markdown lint on
-the changed Markdown. Record commands and outcomes in the pull request. Report
-failures and skipped checks explicitly; never describe an unrun check as
-passing.
+changes, run `git diff --check`. Do not run Markdown lint. Record commands and
+outcomes in the pull request. Report failures and skipped checks explicitly;
+never describe an unrun check as passing.
 
 ## Pull request handoff
 
