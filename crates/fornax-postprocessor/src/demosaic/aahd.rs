@@ -6,6 +6,7 @@
 //! See the [AAHD reference notes](https://github.com/Glatzel/fornax/blob/main/docs/references/aahd.md)
 //! for the pinned source and compatibility conventions.
 
+use std::cmp::Ordering;
 use std::sync::LazyLock;
 
 use fornax_core::error::DemosaicError;
@@ -399,9 +400,18 @@ impl Aahd {
             for index in 0..self.rgb[direction].len() {
                 let rgb = self.rgb[direction][index].map(|value| GAMMA_LUT[value as usize]);
                 self.yuv[direction][index] = [
-                    0.0593_f32.mul_add(f32::from(rgb[2]), 0.6780_f32.mul_add(f32::from(rgb[1]), 0.2627 * f32::from(rgb[0]))) as i32,
-                    0.5_f32.mul_add(f32::from(rgb[2]), 0.36037_f32.mul_add(-f32::from(rgb[1]), -0.13963 * f32::from(rgb[0]))) as i32,
-                    0.0405_f32.mul_add(-f32::from(rgb[2]), 0.4629_f32.mul_add(-f32::from(rgb[1]), 0.5034 * f32::from(rgb[0]))) as i32,
+                    0.0593_f32.mul_add(
+                        f32::from(rgb[2]),
+                        0.6780_f32.mul_add(f32::from(rgb[1]), 0.2627 * f32::from(rgb[0])),
+                    ) as i32,
+                    0.5_f32.mul_add(
+                        f32::from(rgb[2]),
+                        0.36037_f32.mul_add(-f32::from(rgb[1]), -0.13963 * f32::from(rgb[0])),
+                    ) as i32,
+                    0.0405_f32.mul_add(
+                        -f32::from(rgb[2]),
+                        0.4629_f32.mul_add(-f32::from(rgb[1]), 0.5034 * f32::from(rgb[0])),
+                    ) as i32,
                 ];
             }
         }
@@ -473,51 +483,57 @@ impl Aahd {
                         }
                     }
                 }
-                let direction = if scores[0] == scores[1] {
-                    let vertical = interp_error(
-                        self.yuv[1][index],
-                        self.yuv[1][add(index, pn)],
-                        self.yuv[1][add(index, ps)],
-                    )
-                    .wrapping_add(
-                        interp_error(
+                let direction = match scores[0].cmp(&scores[1]) {
+                    Ordering::Equal => {
+                        let vertical = interp_error(
+                            self.yuv[1][index],
                             self.yuv[1][add(index, pn)],
-                            self.yuv[1][add(index, pn + pn)],
-                            self.yuv[1][add(index, pn + ps)],
-                        )
-                        .wrapping_div(2),
-                    )
-                    .wrapping_add(
-                        interp_error(
                             self.yuv[1][add(index, ps)],
-                            self.yuv[1][add(index, ps + pn)],
-                            self.yuv[1][add(index, ps + ps)],
                         )
-                        .wrapping_div(2),
-                    );
-                    let horizontal = interp_error(
-                        self.yuv[0][index],
-                        self.yuv[0][add(index, pw)],
-                        self.yuv[0][add(index, pe)],
-                    )
-                    .wrapping_add(
-                        interp_error(
+                        .wrapping_add(
+                            interp_error(
+                                self.yuv[1][add(index, pn)],
+                                self.yuv[1][add(index, pn + pn)],
+                                self.yuv[1][add(index, pn + ps)],
+                            )
+                            .wrapping_div(2),
+                        )
+                        .wrapping_add(
+                            interp_error(
+                                self.yuv[1][add(index, ps)],
+                                self.yuv[1][add(index, ps + pn)],
+                                self.yuv[1][add(index, ps + ps)],
+                            )
+                            .wrapping_div(2),
+                        );
+
+                        let horizontal = interp_error(
+                            self.yuv[0][index],
                             self.yuv[0][add(index, pw)],
-                            self.yuv[0][add(index, pw + pw)],
-                            self.yuv[0][add(index, pw + pe)],
-                        )
-                        .wrapping_div(2),
-                    )
-                    .wrapping_add(
-                        interp_error(
                             self.yuv[0][add(index, pe)],
-                            self.yuv[0][add(index, pe + pw)],
-                            self.yuv[0][add(index, pe + pe)],
                         )
-                        .wrapping_div(2),
-                    );
-                    if vertical > horizontal { HOR } else { VER }
-                } else if scores[1] > scores[0] { VERSH } else { HORSH };
+                        .wrapping_add(
+                            interp_error(
+                                self.yuv[0][add(index, pw)],
+                                self.yuv[0][add(index, pw + pw)],
+                                self.yuv[0][add(index, pw + pe)],
+                            )
+                            .wrapping_div(2),
+                        )
+                        .wrapping_add(
+                            interp_error(
+                                self.yuv[0][add(index, pe)],
+                                self.yuv[0][add(index, pe + pw)],
+                                self.yuv[0][add(index, pe + pe)],
+                            )
+                            .wrapping_div(2),
+                        );
+
+                        if vertical > horizontal { HOR } else { VER }
+                    }
+                    Ordering::Greater => VERSH,
+                    Ordering::Less => HORSH,
+                };
                 self.ndir[index] |= direction;
             }
         }
