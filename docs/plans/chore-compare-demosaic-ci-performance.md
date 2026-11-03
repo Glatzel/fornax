@@ -21,7 +21,8 @@ In scope:
 - Build the release binary once and invoke it directly in CI.
 - Generate artifacts only when the canonical baseline diff fails.
 - Record build, README, run, and diff wall times in CI logs.
-- Permit concurrent reference execution except for LibRaw AAHD.
+- Permit concurrent reference execution except for implementations with
+  mutable shared tables: LibRaw AAHD and darktable LMMSE.
 - Add a regression test covering concurrent execution of every comparison.
 - Document the revised CI behavior and record the measurement.
 
@@ -43,12 +44,14 @@ Out of scope:
   timings, and generate artifacts only after a failed baseline diff.
 - [x] Update the compare-demosaic agent guide with the new CI ownership and
   artifact behavior.
-- [x] Run the full required validation and record outcomes.
+- [x] Run all locally available validation and record outcomes.
+- [ ] Confirm the first clean hosted `compare-demosaic` step is below 5m08s.
 - [ ] Open one semantic pull request with this plan.
 
 ## Files expected to change
 
 - `.github/workflows/ci.yml`
+- `AGENTS.md`
 - `crates/compare-demosaic/AGENTS.md`
 - `crates/compare-demosaic/src/reference.rs`
 - `crates/compare-demosaic/src/run.rs`
@@ -96,6 +99,9 @@ Validation results:
 - `yq eval` and `bash -n` validation of the changed workflow: passed.
 - `git diff --check`: passed.
 - Markdown lint intentionally not run per the user's repository instruction.
+- Hosted CI timing remains pending: local measurements cannot account for the
+  hosted runner, cache state, or workflow setup overhead, and repository policy
+  forbids polling the pull request.
 
 ## Decisions and notes
 
@@ -114,3 +120,6 @@ Validation results:
   diff regenerated artifacts in 108s and returned status 1. Artifact generation
   itself was not a major runtime cost, but clean runs still avoid producing
   files that cannot be used for diagnostics or uploaded on success.
+- Review follow-up: keeping AAHD and LMMSE on one exclusive lock leaves an
+  optional concurrency improvement on the table, but the conservative shared
+  lock is retained in this change to minimize unsafe lock combinations.
