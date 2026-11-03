@@ -531,8 +531,8 @@ impl Aahd {
 
                         if vertical > horizontal { HOR } else { VER }
                     }
-                    Ordering::Greater => VERSH,
-                    Ordering::Less => HORSH,
+                    Ordering::Greater => HORSH,
+                    Ordering::Less => VERSH,
                 };
                 self.ndir[index] |= direction;
             }
