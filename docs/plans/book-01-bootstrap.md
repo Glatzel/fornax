@@ -103,23 +103,24 @@ CI step: read `.github/workflows/` (a `ci.yml` exists) and add a minimal step or
 
 ## Task checklist
 
-- [ ] Read root `AGENTS.md`, `docs/architecture.md`, `docs/references/`, crate READMEs, `crates/compare-demosaic/`, `scripts/`, `.github/workflows/`, `.markdownlint-cli2.jsonc`, `ruff.toml`; note the patterns to match
-- [ ] Create the `book/` files above; README includes the chapter status table (planned / ready / draft / rewrite / done) and one Mermaid diagram of the separate stages (decode, preprocess, demosaic, post-process)
-- [ ] Write `book/AGENTS.md` from the section above, hard rule first
-- [ ] Create `book/scripts/check_assets.py` and the CI step; run the script once
-- [ ] Add `book/build/` and `*.svg` to `.gitignore`; generated figures and build output are never committed
-- [ ] Edit root `AGENTS.md`: one Boundaries bullet (no binary files, enforced by CI through `book/scripts/check_assets.py`) and one "Where to look next" pointer to `book/` (human-facing; agents edit it only when asked, following `book/AGENTS.md`). Show the diff.
-- [ ] Remove the `BOOK-01` item from `TODO.md`; do not add items (the chapter items are proposed in the maintainer's own TODO update)
+- [x] Read root `AGENTS.md`, `docs/architecture.md`, `docs/references/`, crate READMEs, `crates/compare-demosaic/`, `scripts/`, `.github/workflows/`, `.markdownlint-cli2.jsonc`, `ruff.toml`; note the patterns to match
+- [x] Create the `book/` files above; README includes the chapter status table (planned / ready / draft / rewrite / done) and one Mermaid diagram of the separate stages (decode, preprocess, demosaic, post-process)
+- [x] Write `book/AGENTS.md` from the section above, hard rule first
+- [x] Create `book/scripts/check_assets.py`, its tests, and the CI step; run the script once
+- [x] Add `book/build/` and `*.svg` to `.gitignore`; generated figures and build output are never committed
+- [x] Edit root `AGENTS.md`: one Boundaries bullet (no binary files, enforced by CI through `book/scripts/check_assets.py`) and one "Where to look next" pointer to `book/` (human-facing; agents edit it only when asked, following `book/AGENTS.md`). Show the diff.
+- [x] Remove the `BOOK-01` item from `TODO.md`; do not add items (the chapter items are proposed in the maintainer's own TODO update)
 
 ## Files expected to change
 
-- new: `book/AGENTS.md`, `book/README.md`, `book/template.md`, `book/src/{SUMMARY,notation,glossary,bibliography}.md`, `book/scripts/check_assets.py`, `docs/plans/book-01-bootstrap.md`
+- new: `book/AGENTS.md`, `book/README.md`, `book/template.md`, `book/src/{SUMMARY,notation,glossary,bibliography}.md`, `book/scripts/{check_assets,test_check_assets}.py`, `docs/plans/book-01-bootstrap.md`
 - edit: root `AGENTS.md`, `.gitignore`, one workflow under `.github/workflows/`, `TODO.md` (remove `BOOK-01` only)
 
 ## Validation
 
 - `git diff --check` and the repository-configured Markdown lint on changed Markdown
 - Ruff on `book/scripts/check_assets.py`, run the way the repo runs it
+- `python -m unittest book.scripts.test_check_assets`
 - `python book/scripts/check_assets.py` once (record output); CI runs it from then on
 - No Rust changes, so the cargo checks do not apply; say so in the PR
 - Maintainer opens the PR preview on GitHub to confirm math, Mermaid and the README render, light and dark (the agent cannot verify rendering)
@@ -131,3 +132,18 @@ Resolved: location `book/`; draft-then-rewrite; readiness follows code; generate
 Open: none.
 
 Not read when this plan was written: `docs/architecture.md`, `docs/references/`, `scripts/`, `.github/workflows/`, `pixi.toml`, `TODO.md` (GitHub blocked directory and some file access). Follow the repo, not this plan, where they differ.
+
+## Progress log
+
+- 2026-11-03: Read the repository architecture, reference notes, crate
+  documentation, scripts, CI workflows, Ruff configuration, and Markdown lint
+  configuration.
+- 2026-11-03: Added real-Git tests for binary additions, binary modifications,
+  text additions, and binary deletions. The checker compares committed changes
+  with the supplied base and excludes deletions.
+- 2026-11-03: Added a pull-request CI job with a full-history checkout and the
+  exact pull-request base SHA. The job runs the checker tests before enforcing
+  the asset rule.
+- 2026-11-03: The local environment has `python3` but no `python` command;
+  tests use `python3`. CI uses the Ubuntu runner's `python` command as written
+  in the workflow.
