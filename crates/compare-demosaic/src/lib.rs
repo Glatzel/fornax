@@ -171,6 +171,38 @@ mod tests {
         }
     }
 
+    #[test]
+    fn snapshot_filenames_are_unique_on_case_insensitive_filesystems() -> mischief::Result<()> {
+        let snapshot_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/snapshots");
+        let mut names = std::collections::BTreeMap::<String, Vec<String>>::new();
+        for entry in std::fs::read_dir(snapshot_dir)? {
+            let path = entry?.path();
+            if path
+                .extension()
+                .is_some_and(|extension| extension == "snap")
+            {
+                let filename = path
+                    .file_name()
+                    .expect("snapshot path has a filename")
+                    .to_string_lossy()
+                    .into_owned();
+                names
+                    .entry(filename.to_ascii_lowercase())
+                    .or_default()
+                    .push(filename);
+            }
+        }
+        let collisions = names
+            .into_values()
+            .filter(|filenames| filenames.len() > 1)
+            .collect::<Vec<_>>();
+        assert!(
+            collisions.is_empty(),
+            "snapshot filenames must be unique ignoring ASCII case: {collisions:#?}"
+        );
+        Ok(())
+    }
+
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[rstest]
     fn algorithm_checksum(
