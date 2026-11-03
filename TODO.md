@@ -7,7 +7,6 @@
   - [LMMSE] Make LMMSE reproduce darktable 5.6.2 LMMSE and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [AAHD] Make AAHD reproduce LibRaw 0.22.3 AAHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [DHT] Make DHT reproduce LibRaw 0.22.3 DHT and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
-  - [DCB] Make DCB reproduce LibRaw 0.22.3 DCB and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [AMASE] Make AMaZE reproduce darktable 5.6.2 AMaZE and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
 - perf
   - [P-SIMD] use fearless simd to optimize demosaic and preprocessor, in separate crates.

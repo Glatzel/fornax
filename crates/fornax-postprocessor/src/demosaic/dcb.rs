@@ -1,3 +1,9 @@
+//! Directional color balance demosaicing.
+//!
+//! This port follows LibRaw 0.22.3's fixed `dcb(0, 1)` path. The original DCB
+//! implementation is copyright (C) 2010 Jacek Gozdz and is distributed under
+//! the BSD-3-Clause license reproduced in `docs/references/dcb.md`.
+
 use fornax_core::error::DemosaicError;
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 
@@ -636,26 +642,9 @@ fn color_full(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
             let color = 1 - cfa_channel(pattern, col as isize, row as isize) / 2;
             let mut f = [0.0_f32; 4];
             let mut g = [0.0_f32; 4];
-            f[0] = 1.0
-                / (1.0
-                    + (chroma[index - u - 1][color] - chroma[index + u + 1][color]).abs()
-                    + (chroma[index - u - 1][color] - chroma[index - w - 3][color]).abs()
-                    + (chroma[index + u + 1][color] - chroma[index - w - 3][color]).abs());
-            f[1] = 1.0
-                / (1.0
-                    + (chroma[index - u + 1][color] - chroma[index + u - 1][color]).abs()
-                    + (chroma[index - u + 1][color] - chroma[index - w + 3][color]).abs()
-                    + (chroma[index + u - 1][color] - chroma[index - w + 3][color]).abs());
-            f[2] = 1.0
-                / (1.0
-                    + (chroma[index + u - 1][color] - chroma[index - u + 1][color]).abs()
-                    + (chroma[index + u - 1][color] - chroma[index + w + 3][color]).abs()
-                    + (chroma[index - u + 1][color] - chroma[index + w + 3][color]).abs());
-            f[3] = 1.0
-                / (1.0
-                    + (chroma[index + u + 1][color] - chroma[index - u - 1][color]).abs()
-                    + (chroma[index + u + 1][color] - chroma[index + w - 3][color]).abs()
-                    + (chroma[index - u - 1][color] - chroma[index + w - 3][color]).abs());
+            for (direction, weight) in f.iter_mut().enumerate() {
+                *weight = diagonal_chroma_weight(&chroma, index, width, color, direction);
+            }
             g[0] = 1.325 * chroma[index - u - 1][color]
                 - 0.175 * chroma[index - w - 3][color]
                 - 0.075 * chroma[index - w - 1][color]
@@ -751,11 +740,44 @@ fn color_full(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: Bay
     }
 }
 
+fn diagonal_chroma_weight(
+    chroma: &[[f32; 2]],
+    index: usize,
+    width: usize,
+    color: usize,
+    direction: usize,
+) -> f32 {
+    let u = width;
+    let w = 3 * width;
+    let (near_a, near_b, far_a, far_b) = match direction {
+        0 => (index - u - 1, index + u + 1, index - w - 3, index - w - 3),
+        1 => (index - u + 1, index + u - 1, index - w + 3, index - w + 3),
+        2 => (index + u - 1, index - u + 1, index + w + 3, index + w - 3),
+        _ => (index + u + 1, index - u - 1, index + w - 3, index + w + 3),
+    };
+    1.0 / (1.0
+        + (chroma[near_a][color] - chroma[near_b][color]).abs()
+        + (chroma[near_a][color] - chroma[far_a][color]).abs()
+        + (chroma[near_b][color] - chroma[far_b][color]).abs())
+}
+
 fn upper_limit(value: f32, upper: f32, lower: f32) -> f32 {
     if upper < lower {
         value.clamp(upper, lower)
     } else {
         value.clamp(lower, upper)
+    }
+}
+
+fn apply_post_correction_passes(
+    pixels: &mut [DcbPixel],
+    width: usize,
+    height: usize,
+    pattern: BayerPattern,
+) {
+    for _ in 0..3 {
+        direction_map(pixels, width, height);
+        correction(pixels, width, height, pattern);
     }
 }
 
@@ -776,10 +798,7 @@ fn run(input: &[u16], width: usize, height: usize, pattern: BayerPattern) -> Vec
     smooth(&mut pixels, width, height);
     direction_map(&mut pixels, width, height);
     correction2(&mut pixels, width, height, pattern);
-    for _ in 0..4 {
-        direction_map(&mut pixels, width, height);
-        correction(&mut pixels, width, height, pattern);
-    }
+    apply_post_correction_passes(&mut pixels, width, height, pattern);
     direction_map(&mut pixels, width, height);
     for (buffer, pixel) in saved.iter().zip(&mut pixels) {
         pixel[0] = buffer[0] as u16;
@@ -789,8 +808,12 @@ fn run(input: &[u16], width: usize, height: usize, pattern: BayerPattern) -> Vec
     refinement(&mut pixels, width, height, pattern);
     color_full(&mut pixels, width, height, pattern);
 
+    pack(&pixels)
+}
+
+fn pack(pixels: &[DcbPixel]) -> Vec<u16> {
     pixels
-        .into_iter()
+        .iter()
         .flat_map(|pixel| [pixel[0], pixel[1], pixel[2]])
         .collect()
 }
@@ -943,6 +966,39 @@ mod tests {
                 assert_eq!(pixels[y * 15 + x][1], 10_000);
             }
         }
+    }
+
+    #[test]
+    fn diagonal_chroma_weight_uses_the_matching_far_neighbor() {
+        let width = 15;
+        let index = 7 * width + 7;
+        let mut chroma = vec![[0.0_f32; 2]; 15 * 15];
+        chroma[index + width - 1][0] = 10.0;
+        chroma[index - width + 1][0] = 20.0;
+        chroma[index + 3 * width + 3][0] = 100.0;
+        chroma[index + 3 * width - 3][0] = 50.0;
+
+        assert_eq!(
+            diagonal_chroma_weight(&chroma, index, width, 0, 2),
+            1.0 / 131.0
+        );
+    }
+
+    #[test]
+    fn post_correction_sequence_runs_exactly_three_passes() {
+        let pattern = BayerPattern::GBRG;
+        let mut source = vec![[1_000_u16, 2_000, 3_000, 0]; 15 * 15];
+        source[7 * 15 + 7][1] = 50_000;
+
+        let mut expected = source.clone();
+        for _ in 0..3 {
+            direction_map(&mut expected, 15, 15);
+            correction(&mut expected, 15, 15, pattern);
+        }
+
+        let mut actual = source;
+        apply_post_correction_passes(&mut actual, 15, 15, pattern);
+        assert_eq!(actual, expected);
     }
 
     #[test]
