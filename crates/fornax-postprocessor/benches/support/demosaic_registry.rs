@@ -5,7 +5,8 @@ use fornax_postprocessor::Demosaic;
 const ALGORITHMS_JSON: &str = include_str!("../algorithms.json");
 
 static ALGORITHM_IDS: LazyLock<Vec<String>> = LazyLock::new(|| {
-    serde_json::from_str(ALGORITHMS_JSON).expect("bench-demosaic algorithm registry must be valid")
+    serde_json::from_str(ALGORITHMS_JSON)
+        .expect("demosaic benchmark algorithm registry must be valid")
 });
 
 /// Returns the stable algorithm identifiers registered for demosaic benchmarks.
@@ -43,11 +44,12 @@ pub fn demosaic(algorithm: &str) -> Demosaic {
 /// # Panics
 ///
 /// Panics when the value is not present in `algorithms.json`.
+#[allow(dead_code)]
 pub fn selected_algorithm() -> Option<String> {
     parse_selected(std::env::var("FORNAX_BENCH_ALGORITHM").ok().as_deref())
 }
 
-fn parse_selected(value: Option<&str>) -> Option<String> {
+pub fn parse_selected(value: Option<&str>) -> Option<String> {
     let selected = value.unwrap_or_default();
     let selected = selected.trim();
     if selected.is_empty() {
@@ -61,32 +63,4 @@ fn parse_selected(value: Option<&str>) -> Option<String> {
         algorithm_ids().join(", ")
     );
     Some(selected.to_owned())
-}
-
-#[cfg(test)]
-mod tests {
-    use std::collections::BTreeSet;
-
-    use super::*;
-
-    #[test]
-    fn registry_is_sorted_unique_and_maps_to_every_algorithm() {
-        let algorithms = algorithm_ids();
-        assert_eq!(
-            algorithms.iter().cloned().collect::<BTreeSet<_>>().len(),
-            algorithms.len()
-        );
-        assert!(algorithms.windows(2).all(|pair| pair[0] < pair[1]));
-        for algorithm in algorithms {
-            let _ = demosaic(algorithm);
-        }
-    }
-
-    #[test]
-    fn algorithm_filter_accepts_registry_ids_and_rejects_unknown_values() {
-        assert_eq!(parse_selected(None), None);
-        assert_eq!(parse_selected(Some("")), None);
-        assert_eq!(parse_selected(Some(" ahd ")).as_deref(), Some("ahd"));
-        assert!(std::panic::catch_unwind(|| parse_selected(Some("unknown"))).is_err());
-    }
 }

@@ -104,19 +104,17 @@ jobs:
               ./crates/fornax-devtool/**
               ./crates/libraw/**
               ./crates/libraw-sys/**
-          - package: bench-demosaic
+          - package: fornax-postprocessor
             paths: |
               ./Cargo.toml
               ./Cargo.lock
-              ./crates/bench-demosaic/**
               ./crates/fornax-core/**
               ./crates/fornax-devtool/**
               ./crates/fornax-postprocessor/**
-          - package: bench-preprocessor
+          - package: fornax-preprocessor
             paths: |
               ./Cargo.toml
               ./Cargo.lock
-              ./crates/bench-preprocessor/**
               ./crates/fornax-core/**
               ./crates/fornax-devtool/**
               ./crates/fornax-preprocessor/**
