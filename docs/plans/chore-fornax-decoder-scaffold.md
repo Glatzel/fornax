@@ -62,8 +62,8 @@ other CFA layout with a typed handoff error.
 - [x] Run formatting, tests, clippy, documentation tests, and dependency-tree
   checks.
 - [ ] Run Markdown lint when a repository-declared tool is available.
-- [ ] Inspect the complete diff and commit the branch.
-- [ ] Push the branch and open one semantic pull request.
+- [x] Inspect the complete diff and commit the branch.
+- [x] Push the branch and open one semantic pull request.
 
 ## Files Expected to Change
 
@@ -125,6 +125,9 @@ Observed on this branch:
 - `git diff --check` needs `core.whitespace=cr-at-eol` because the repository
   stores `TODO.md` with CRLF endings; with that setting there are no whitespace
   errors.
+
+The pull request is
+[#631](https://github.com/Glatzel/fornax/pull/631).
 
 ## Decisions and Notes
 
