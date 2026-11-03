@@ -149,6 +149,24 @@ mod tests {
     }
 
     #[rstest]
+    fn native_aahd_meets_reference_limits(
+        cropped_real_128: &crate::reference::ActiveArea,
+    ) -> mischief::Result<()> {
+        let case = crate::cases::case_for("aahd", "libraw")
+            .expect("the LibRaw AAHD reference case must be registered");
+        let evaluation = crate::run::evaluate_case(case, cropped_real_128, BayerPattern::GBRG, 16)?;
+        assert!(
+            matches!(
+                evaluation.verdict,
+                crate::metrics::Verdict::Exact | crate::metrics::Verdict::Pass
+            ),
+            "AAHD versus LibRaw failed limits: {:?}",
+            evaluation.failed_limits
+        );
+        Ok(())
+    }
+
+    #[rstest]
     fn native_lmmse_meets_reference_limits(
         cropped_real_128: &crate::reference::ActiveArea,
     ) -> mischief::Result<()> {

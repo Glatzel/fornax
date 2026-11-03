@@ -4,7 +4,6 @@
   - [DEC-RSP] rawspeed(the backend of darktable)
   - [DEC-FR] flashraw(https://crates.io/crates/flashraw)
 - demosaic
-  - [AAHD] Make AAHD reproduce LibRaw 0.22.3 AAHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [DHT] Make DHT reproduce LibRaw 0.22.3 DHT and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [AMAZE] Make AMaZE reproduce darktable 5.6.2 AMaZE and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
 
