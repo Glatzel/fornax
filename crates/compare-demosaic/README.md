@@ -158,6 +158,7 @@ and are consistency checks against the same image.
 | RCD | darktable | ⚖️ | GBRG ⚖️ |
 | VNG | darktable | ✅ | GBRG ✅ |
 | VNG | libraw | ❌ | GBRG ❌ |
+| VNG4 | libraw | ✅ | GBRG ✅ |
 <!-- compare-demosaic:end summary -->
 
 ## Legend
@@ -450,3 +451,27 @@ Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024
 > high-value differences even when the aggregate error is small. See
 > [the VNG reference notes](../../docs/references/vng.md) for source links and
 > implementation details.
+
+## VNG4
+
+<!-- compare-demosaic:begin algo:vng4 -->
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | BGGR | [1, 0] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | GBRG | [0, 0] | yes | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | GRBG | [1, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | RGGB | [0, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+<!-- compare-demosaic:end algo:vng4 -->
+
+> [!NOTE]
+> **Reference:** LibRaw, `vng_interpolate` after `pre_interpolate` with
+> `four_color_rgb = 1`.
+> **Why this reference:** this is LibRaw's explicit four-color VNG mode, which
+> keeps the two green CFA phases separate through interpolation.
+> **Why we match:** both implementations run VNG with split green planes and
+> average those planes into the final green channel only after interpolation.
+> **Known differences:** Fornax shares its integer split-green VNG kernel with
+> the `Demosaic::Vng` selector and exposes VNG4 as a distinct algorithm choice.
+> The comparison adapter sets LibRaw's four-color option before
+> `pre_interpolate` and performs the documented post-interpolation green mix;
+> no source code is copied into the postprocessor.

@@ -4,7 +4,6 @@
   - [DEC-RSP] rawspeed(the backend of darktable)
   - [DEC-FR] flashraw(https://crates.io/crates/flashraw)
 - demosaic
-  - [VNG4] Add and validate VNG4 using the same native GBRG error limits as VNG.
   - [LMMSE] Make LMMSE reproduce darktable 5.6.2 LMMSE and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [AAHD] Make AAHD reproduce LibRaw 0.22.3 AAHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [DHT] Make DHT reproduce LibRaw 0.22.3 DHT and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.

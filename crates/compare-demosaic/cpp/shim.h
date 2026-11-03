@@ -14,6 +14,7 @@ class ReferenceDemosaicer final : public LibRaw {
     std::int32_t run_ppg();
     std::int32_t run_ahd();
     std::int32_t run_vng();
+    std::int32_t run_vng4();
     std::int32_t run_dcb();
     std::int32_t run_dht();
     std::int32_t run_aahd();

@@ -39,6 +39,7 @@ pub enum Demosaic {
     #[default]
     Rcd,
     Vng,
+    Vng4,
 }
 
 pub enum AnyLazy<'a, T: Primitive> {
@@ -52,6 +53,7 @@ pub enum AnyLazy<'a, T: Primitive> {
     Ppg(PpgLazy<'a, T>),
     Rcd(RcdLazy<T>),
     Vng(buffer::DenseLazy<T>),
+    Vng4(buffer::DenseLazy<T>),
 }
 
 impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
@@ -66,7 +68,8 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             | Self::Amaze(d)
             | Self::Dcb(d)
             | Self::Dht(d)
-            | Self::Lmmse(d) => d.dimensions(),
+            | Self::Lmmse(d)
+            | Self::Vng4(d) => d.dimensions(),
         }
     }
 
@@ -82,7 +85,8 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             | Self::Dcb(d)
             | Self::Dht(d)
             | Self::Lmmse(d)
-            | Self::Vng(d) => d.fill_rows(y0, out),
+            | Self::Vng(d)
+            | Self::Vng4(d) => d.fill_rows(y0, out),
         }
     }
 }
@@ -108,6 +112,7 @@ impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
             Self::Ppg => AnyLazy::Ppg(DemosaicPpg.lazy(bayer, pattern)?),
             Self::Rcd => AnyLazy::Rcd(DemosaicRcd.lazy(bayer, pattern)?),
             Self::Vng => AnyLazy::Vng(DemosaicVng.lazy(bayer, pattern)?),
+            Self::Vng4 => AnyLazy::Vng4(DemosaicVng.lazy(bayer, pattern)?),
         })
     }
 }
@@ -118,14 +123,29 @@ mod rust_algorithm_tests {
 
     use super::*;
 
-    const RUST_ALGORITHMS: [Demosaic; 6] = [
+    const RUST_ALGORITHMS: [Demosaic; 7] = [
         Demosaic::Vng,
+        Demosaic::Vng4,
         Demosaic::Dcb,
         Demosaic::Dht,
         Demosaic::Aahd,
         Demosaic::Amaze,
         Demosaic::Lmmse,
     ];
+
+    #[test]
+    fn vng4_selects_split_green_vng_behavior() -> mischief::Result<()> {
+        let samples = (0..64 * 64)
+            .map(|sample| sample as f64 / f64::from(64 * 64 - 1))
+            .collect::<Vec<_>>();
+        let image = MonoImage::from_raw(64, 64, samples).unwrap();
+        for pattern in BayerPattern::ALL {
+            let vng = Demosaic::Vng.demosaic(&image, pattern)?.collect();
+            let vng4 = Demosaic::Vng4.demosaic(&image, pattern)?.collect();
+            assert_eq!(vng, vng4, "{pattern}");
+        }
+        Ok(())
+    }
 
     #[test]
     fn reference_algorithms_preserve_uniform_mosaics() -> mischief::Result<()> {

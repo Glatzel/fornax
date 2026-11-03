@@ -74,6 +74,11 @@ const LIBRAW_VNG_URL: &str = concat!(
     env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
     "/src/demosaic/misc_demosaic.cpp#L199"
 );
+const LIBRAW_VNG4_URL: &str = concat!(
+    "https://github.com/LibRaw/LibRaw/blob/",
+    env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
+    "/src/demosaic/misc_demosaic.cpp#L84"
+);
 const DARKTABLE_AMAZE_URL: &str = concat!(
     "https://github.com/darktable-org/darktable/blob/",
     env!("COMPARE_DEMOSAIC_DARKTABLE_COMMIT"),
@@ -211,6 +216,14 @@ const VNG_LIBRAW: Case = Case {
     tolerance: ROBUST,
     run_fornax: run_vng,
 };
+const VNG4_LIBRAW: Case = Case {
+    name: "VNG4",
+    source_url: LIBRAW_VNG4_URL,
+    reference_backend: ReferenceBackend::LibRaw,
+    algorithm: 7,
+    tolerance: ROBUST,
+    run_fornax: run_vng4,
+};
 
 pub const CASES: &[Case] = &[
     AHD,
@@ -225,6 +238,7 @@ pub const CASES: &[Case] = &[
     RCD_DARKTABLE,
     VNG_DARKTABLE,
     VNG_LIBRAW,
+    VNG4_LIBRAW,
 ];
 
 #[derive(Clone, Copy, Debug)]
@@ -384,6 +398,7 @@ runner!(run_lmmse, Demosaic::Lmmse);
 runner!(run_ppg, Demosaic::Ppg);
 runner!(run_rcd, Demosaic::Rcd);
 runner!(run_vng, Demosaic::Vng);
+runner!(run_vng4, Demosaic::Vng4);
 
 #[cfg(test)]
 mod tests {
