@@ -17,7 +17,7 @@ BLACK_LEVEL = 512
 WHITE_LEVEL = 4095
 
 
-def draw() -> None:
+def draw() -> None:  # numpydoc ignore=PR01,RT01
     """Render an example of clipped level normalization."""
     configure_matplotlib()
     digital = np.linspace(0, 4608, 500)

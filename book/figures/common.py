@@ -23,7 +23,7 @@ EDGE = "#8a8a8a"
 GRID = "#9a9a9a"
 
 
-def configure_matplotlib() -> None:
+def configure_matplotlib() -> None:  # numpydoc ignore=PR01,RT01
     """Apply consistent SVG, typography, and color defaults."""
     rcParams.update(
         {
@@ -45,7 +45,7 @@ def configure_matplotlib() -> None:
     )
 
 
-def save_svg(figure: Figure, chapter: str, name: str) -> Path:
+def save_svg(figure: Figure, chapter: str, name: str) -> Path:  # numpydoc ignore=PR01,RT01
     """Save a figure as a transparent SVG under the generated output tree."""
     configure_matplotlib()
     root = Path(os.environ.get(FIGURE_ROOT_ENV, DEFAULT_FIGURE_ROOT))

@@ -22,7 +22,7 @@ PATTERNS = {
 COLORS = {"R": RED, "G": GREEN, "B": BLUE}
 
 
-def draw() -> None:
+def draw() -> None:  # numpydoc ignore=PR01,RT01
     """Render the four supported Bayer patterns."""
     configure_matplotlib()
     figure, axes = plt.subplots(1, len(PATTERNS), figsize=(9, 2.8))
