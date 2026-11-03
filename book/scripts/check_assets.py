@@ -7,8 +7,8 @@ import subprocess
 import sys
 
 
-def binary_assets(base_ref: str) -> list[str]:
-    # Return binary paths added or changed relative to ``base_ref``.
+def binary_assets(base_ref: str) -> list[str]:  # numpydoc ignore=PR01,RT01
+    """Return binary paths added or changed relative to ``base_ref``."""
     diff = subprocess.run(
         [
             "git",
@@ -25,8 +25,8 @@ def binary_assets(base_ref: str) -> list[str]:
     return [line.split("\t", maxsplit=2)[2] for line in diff.stdout.splitlines() if line.startswith("-\t-\t")]
 
 
-def main(argv: list[str] | None = None) -> int:
-    # Run the binary asset check and return a process exit code.
+def main(argv: list[str] | None = None) -> int:  # numpydoc ignore=PR01,RT01
+    """Run the binary asset check and return a process exit code."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "base_ref",

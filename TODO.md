@@ -15,7 +15,6 @@
 - misc
   - [PY] python bindings: implement `fornax-py`
 - document
-  - [BOOK-02] Procedural figure tooling: matplotlib in a pixi `book` environment, shared helper, two sample figures, and generated SVG output ignored by Git with no size optimization required. Needs BOOK-01. Plan: `docs/plans/book-02-figures.md`.
   - [BOOK-03] Shareable PDF build: pandoc with the Typst engine through pixi, spike first. Needs BOOK-01. Plan: `docs/plans/book-03-build.md`.
   - [BOOK-10] L00 Pipeline overview: stage flow and the map from stage to crate.
   - [BOOK-11] L01 From photons to numbers: sensor, ADC, Bayer CFA and its pattern variants.
