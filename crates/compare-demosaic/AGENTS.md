@@ -93,10 +93,11 @@ reviewed and accepted them. It is never derived from the numbers alone.
 - Remove a waiver as soon as it is unused; `readme` reports unused waivers.
 - Write what was checked as evidence, not merely that the result looks fine.
 
-## Adding a comparison
+## Adding or updating a comparison
 
 Follow the
-[add-demosaic-comparison skill](../../.agents/skills/add-demosaic-comparison/SKILL.md).
+[demosaic-comparison skill](../../.agents/skills/demosaic-comparison/SKILL.md)
+to add a new case or update an existing one.
 
 ## Failure investigation order
 
