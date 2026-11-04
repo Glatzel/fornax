@@ -4,8 +4,9 @@ use std::path::Path;
 
 use fornax_core::MonoImage;
 
+use crate::dng_write_option::{DngCompression, DngWriteOptions};
 use crate::error::{DecodeError, DngWriteError};
-use crate::{DngCompression, DngMetadata, DngTag, DngValue, DngWriteOptions};
+use crate::{DngMetadata, DngTag, DngValue};
 
 /// Typed single-plane mosaic backed by image-rs buffers.
 ///
@@ -67,14 +68,6 @@ impl MosaicData {
 pub struct DecodedRaw {
     pixels: MosaicData,
     pub(crate) metadata: DngMetadata,
-    pub(crate) source: Option<DngSource>,
-}
-
-/// Original container retained for byte-identical default DNG export.
-#[derive(Clone, Debug, PartialEq)]
-pub struct DngSource {
-    pub(crate) bytes: Vec<u8>,
-    pub(crate) compression: DngCompression,
 }
 
 impl DecodedRaw {
@@ -100,24 +93,7 @@ impl DecodedRaw {
     /// ```
     pub fn new(pixels: MosaicData, metadata: DngMetadata) -> Result<Self, DecodeError> {
         validate_dimensions(&pixels, &metadata)?;
-        Ok(Self {
-            pixels,
-            metadata,
-            source: None,
-        })
-    }
-
-    pub(crate) fn from_decoded(
-        pixels: MosaicData,
-        metadata: DngMetadata,
-        source: Option<DngSource>,
-    ) -> Result<Self, DecodeError> {
-        validate_dimensions(&pixels, &metadata)?;
-        Ok(Self {
-            pixels,
-            metadata,
-            source,
-        })
+        Ok(Self { pixels, metadata })
     }
 
     /// Returns the full decoded width and height in pixels.
@@ -186,36 +162,27 @@ impl DecodedRaw {
     /// is requested without a matching source container.
     pub fn write_dng_with<W>(
         &self,
-        mut writer: W,
+        writer: W,
         options: DngWriteOptions,
     ) -> Result<(), DngWriteError>
     where
         W: Write + Seek,
     {
-        if let Some(source) = &self.source
-            && source.compression == options.compression()
-        {
-            writer
-                .write_all(&source.bytes)
-                .and_then(|()| writer.flush())
-                .map_err(|error| DngWriteError::Io {
-                    operation: "writing preserved DNG".into(),
-                    detail: error.to_string().into(),
-                })?;
-            return Ok(());
-        }
-
-        if options.compression() == DngCompression::Uncompressed {
-            return crate::write_option::write_uncompressed(self, writer, options);
-        }
-
-        Err(DngWriteError::Unsupported {
-            operation: format!(
-                "{:?} DNG export without matching source encoding",
-                options.compression()
-            )
-            .into(),
-        })
+        match options.compression() {
+            DngCompression::Uncompressed => {
+                crate::dng_write_option::write_uncompressed(self, writer, options);
+            }
+            DngCompression::LosslessJpeg => {
+                return Err(DngWriteError::Unsupported {
+                    operation: format!(
+                        "{:?} DNG export without matching source encoding",
+                        options.compression()
+                    )
+                    .into(),
+                });
+            }
+        };
+        Ok(())
     }
 }
 

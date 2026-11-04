@@ -26,7 +26,7 @@ pub mod error;
 mod format;
 mod metadata;
 mod protocol;
-mod write_option;
+mod dng_write_option;
 
 use std::path::Path;
 

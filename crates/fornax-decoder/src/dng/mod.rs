@@ -10,7 +10,8 @@ mod tests;
 use ::tiff::decoder::ifd::Value;
 use fornax_core::MonoImage;
 
-use crate::{DecodedRaw, DngCompression, DngMetadata, DngSource, DngTag, MosaicData, SourceFormat, error::DecodeError};
+use crate::error::DecodeError;
+use crate::{DecodedRaw, DngMetadata, DngTag, MosaicData, SourceFormat};
 
 const PHOTOMETRIC_CFA: u64 = 32_803;
 const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
@@ -41,15 +42,8 @@ pub fn decode(source: &[u8]) -> Result<DecodedRaw, DecodeError> {
             .map(|(tag, value)| (*tag, value.clone())),
     );
 
-    let (pixels, compression) = decode_samples(source, &raw_metadata)?;
-    DecodedRaw::from_decoded(
-        pixels,
-        metadata,
-        Some(DngSource {
-            bytes: source.to_vec(),
-            compression,
-        }),
-    )
+    let pixels = decode_samples(source, &raw_metadata)?;
+    DecodedRaw::new(pixels, metadata)
 }
 
 fn is_raw_ifd(metadata: &DngMetadata) -> bool {
@@ -65,10 +59,7 @@ fn raw_area(metadata: &DngMetadata) -> u64 {
     width.saturating_mul(height)
 }
 
-fn decode_samples(
-    source: &[u8],
-    metadata: &DngMetadata,
-) -> Result<(MosaicData, DngCompression), DecodeError> {
+fn decode_samples(source: &[u8], metadata: &DngMetadata) -> Result<MosaicData, DecodeError> {
     let width = required_u32(metadata, DngTag::ImageWidth)?;
     let height = required_u32(metadata, DngTag::ImageLength)?;
     if width == 0 || height == 0 {
@@ -83,10 +74,12 @@ fn decode_samples(
     }
 
     match compression {
-        COMPRESSION_UNCOMPRESSED => decode_uncompressed(source, metadata, width, height)
-            .map(|pixels| (pixels, DngCompression::Uncompressed)),
-        COMPRESSION_LOSSLESS_JPEG => decode_lossless_jpeg(source, metadata, width, height)
-            .map(|pixels| (pixels, DngCompression::LosslessJpeg)),
+        COMPRESSION_UNCOMPRESSED => {
+            decode_uncompressed(source, metadata, width, height).map(|pixels| pixels)
+        }
+        COMPRESSION_LOSSLESS_JPEG => {
+            decode_lossless_jpeg(source, metadata, width, height).map(|pixels| pixels)
+        }
         _ => Err(unsupported_variant(format!(
             "DNG compression {compression} is unsupported"
         ))),

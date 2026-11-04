@@ -266,10 +266,6 @@ const fn is_regenerated_tag(tag: DngTag) -> bool {
     )
 }
 
-#[allow(
-    clippy::missing_const_for_fn,
-    reason = "the tiff Tag conversion is not a const function"
-)]
 fn metadata_tag(tag: DngTag) -> Tag { tag.into() }
 
 fn write_metadata_value<W>(

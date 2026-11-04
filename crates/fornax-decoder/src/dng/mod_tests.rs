@@ -1,7 +1,7 @@
 use tiff::decoder::ifd::Value;
 
 use super::decode_samples;
-use crate::{DngCompression, DngMetadata, DngTag, MosaicData};
+use crate::{DngMetadata, DngTag, MosaicData};
 
 fn u16_source(samples: &[u16]) -> Vec<u8> {
     let mut source = b"II".to_vec();
@@ -68,10 +68,8 @@ fn uncompressed_multistrip_last_partial_strip_decodes_in_bounds() {
     let source = u16_source(&expected);
     let metadata = storage_metadata(2, vec![2, 18], vec![16, 8]);
 
-    let (decoded, compression) =
-        decode_samples(&source, &metadata).expect("valid multi-strip DNG should decode");
+    let decoded = decode_samples(&source, &metadata).expect("valid multi-strip DNG should decode");
 
-    assert_eq!(compression, DngCompression::Uncompressed);
     let MosaicData::U16(decoded) = decoded else {
         panic!("16-bit samples should decode as U16");
     };
@@ -84,10 +82,9 @@ fn uncompressed_multitile_image_decodes_each_tile() {
     let tile_samples = [1, 2, 5, 6, 3, 4, 7, 8, 9, 10, 0, 0, 11, 12, 0, 0];
     let source = u16_source(&tile_samples);
 
-    let (decoded, compression) =
+    let decoded =
         decode_samples(&source, &tile_metadata()).expect("valid multi-tile DNG should decode");
 
-    assert_eq!(compression, DngCompression::Uncompressed);
     let MosaicData::U16(decoded) = decoded else {
         panic!("16-bit samples should decode as U16");
     };
