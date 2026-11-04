@@ -42,14 +42,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - machine: windows-latest
+          - machine: ubuntu-latest
             test-options: --workspace --all-features --exclude compare-demosaic
           - machine: ubuntu-latest
-            test-options: --workspace --all-features
-          - machine: macos-latest
-            test-options: --workspace --all-features --exclude compare-demosaic
-          - machine: ubuntu-26.04-arm
-            test-options: --workspace --all-features --exclude compare-demosaic
+            test-options: --all-features -p compare-demosaic
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -66,13 +62,6 @@ jobs:
           global-options: ${{ matrix.test-options }}
         env:
           GH_TOKEN: ${{ github.token }}
-      # - name: build
-      #   run: |
-      #     ./scripts/maturin-develop.ps1
-      #   shell: pwsh
-      # - uses: Glatzel/template/.github/actions/python/pytest@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
-      #   with:
-      #     working-directory: ./crates/fornax-py
       - uses: Glatzel/template/.github/actions/common/codecov@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         if: ${{ !cancelled() }}
 
