@@ -116,8 +116,8 @@ markdownlint-cli2 docs/decoder/architecture.md docs/decoder/corpus.md docs/decod
 
 Observed on this branch:
 
-- `cargo test -p fornax-decoder`: 32 passed after the API revision.
-- `cargo test --workspace --all-features`: 248 passed.
+- `cargo test -p fornax-decoder`: 33 passed after the API revision.
+- `cargo test --workspace --all-features`: 249 passed.
 - `cargo +nightly fmt --check`: passed.
 - `cargo +nightly clippy -p fornax-decoder --all-targets -- -D warnings`:
   passed.
@@ -143,6 +143,9 @@ The pull request is
 - `DecodedRaw` owns image-buffer-backed `MosaicData` plus the metadata map.
   `ImageWidth` and `ImageLength` remain DNG tags and are validated against the
   image buffer during construction.
+- `IDecoder<Path, T>` integration and the preprocessor Bayer handoff live in a
+  private `protocol` module. `DecodedRaw::metadata_by_tag` provides direct
+  lookup without operating on the complete map.
 - CFA is stored only through its four DNG metadata tags. `DecodedRaw` exposes
   typed tag getters and rejects malformed metadata with `CfaPatternError`.
 - DNG output is exposed as `DecodedRaw::write_dng(path, options)` and

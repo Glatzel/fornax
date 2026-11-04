@@ -104,6 +104,7 @@ The scaffold contains these responsibilities:
 | `error` | Stable decode categories, CFA validation, handoff failure, and writer failure. |
 | `format` | RAW container family names and strum conversions. |
 | `metadata` | DNG tag enum plus the `BTreeMap<DngTag, DngValue>` model backed by tiff values. |
+| `protocol` | `fornax-core` `IDecoder<Path, T>` integration and the 2x2 Bayer preprocessor handoff. |
 | `writer` | DNG writer options and compression selection. |
 | `lib` | Public `Decoder` entry points and current `IDecoder` adapter. |
 
@@ -115,6 +116,7 @@ src/
   error.rs
   format.rs
   metadata.rs
+  protocol.rs
   writer/
     mod.rs
     tiff.rs
@@ -170,6 +172,8 @@ impl DecodedRaw {
     ) -> Result<(), DngWriteError>;
 
     pub fn preprocessor_pattern(&self) -> Result<BayerPattern, HandoffError>;
+
+    pub fn metadata_by_tag(&self, tag: DngTag) -> Option<&DngValue>;
 }
 ```
 
@@ -179,9 +183,9 @@ than decoding an input again, while `write_dng_with` accepts any `Write + Seek`
 sink for tests and callers. `DngWriteOptions` selects a DNG version and a
 writer compression mode.
 
-The current `IDecoder<Path, T>` implementation is retained so the future
-native decoder can be used by the existing Fornax facade. Its methods are
-stubs in this change.
+The current `IDecoder<Path, T>` implementation is retained in the private
+`protocol` module so the future native decoder can be used by the existing
+Fornax facade. Its methods are stubs in this change.
 
 ## Core data model
 
@@ -206,8 +210,9 @@ CFA is represented only by `CFARepeatPatternDim`, `CFAPattern`,
 allows X-Trans, four-color, monochrome, and other repeating layouts to survive
 decode and export. `DecodedRaw` validates CFA tag combinations on demand.
 
-The generic `DecodedRaw::metadata().get(DngTag)` accessor is available for
-tags without a dedicated getter. Dedicated getters are proposed for:
+`DecodedRaw::metadata_by_tag(DngTag)` returns one value directly, while
+`DecodedRaw::metadata()` exposes the complete map. Dedicated getters are
+proposed for:
 
 | Getter | DNG tag | Purpose |
 | --- | --- | --- |

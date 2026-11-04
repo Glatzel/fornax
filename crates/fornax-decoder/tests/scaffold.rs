@@ -77,6 +77,21 @@ fn metadata_is_a_btreemap_of_tiff_values() {
 }
 
 #[test]
+fn metadata_can_be_accessed_directly_by_tag() {
+    let decoded = DecodedRaw::new(
+        MosaicData::U16(MonoImage::from_raw(1, 1, vec![0]).expect("valid mosaic")),
+        image_metadata(1, 1),
+    )
+    .expect("valid image");
+
+    assert_eq!(
+        decoded.metadata_by_tag(DngTag::ImageWidth),
+        Some(&DngValue::Unsigned(1))
+    );
+    assert_eq!(decoded.metadata_by_tag(DngTag::BlackLevel), None);
+}
+
+#[test]
 fn black_level_has_a_tag_specific_getter() {
     let mut metadata = image_metadata(1, 1);
     metadata.insert(DngTag::BlackLevel, DngValue::Short(512));
