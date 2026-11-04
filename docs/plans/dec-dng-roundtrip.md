@@ -96,7 +96,7 @@ Out of scope:
 - [x] Verify production dependency trees do not include removed legacy
   decoder crates.
 - [x] Inspect the full diff and commit on `task/dec-dng-roundtrip`.
-- [ ] Push the branch and create or report the semantic pull request.
+- [x] Push the branch and create or report the semantic pull request.
 
 ## Files expected to change
 
@@ -186,6 +186,8 @@ Observed on this worktree:
   bindgen, or `clang-sys` dependency.
 - `markdownlint-cli2` is not installed in this environment; the configured
   lint could not be run locally.
+- Branch pushed to `origin/task/dec-dng-roundtrip`; existing PR updated at
+  <https://github.com/Glatzel/fornax/pull/642>.
 
 ## Decisions and notes
 
@@ -212,3 +214,4 @@ Observed on this worktree:
 - [x] Integration coverage, code checks, comparison refresh, and active
   documentation cleanup completed.
 - [x] Full validation completed and recorded.
+- [x] Branch pushed and PR #642 updated.
