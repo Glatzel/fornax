@@ -1,9 +1,11 @@
 use image::{ImageBuffer, Luma, Rgb};
+use std::fmt::Debug;
+
 use num_traits::Float;
 
 /// The type of each channel in a pixel.
 /// Including `u8`, `u16`, `f32`, `f64`.
-pub trait Primitive: image::Primitive + image::Enlargeable + Float + Send + Sync {}
+pub trait Primitive: image::Primitive + image::Enlargeable + Float + Send + Sync + Debug {}
 
 // impl Primitive for f16 {}
 impl Primitive for f32 {}
