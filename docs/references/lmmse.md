@@ -24,8 +24,10 @@ The LMMSE path works in darktable's gamma-corrected domain. It builds two
 vertical green-minus-red-or-blue differences, normalizes them with a
 `exp(-i^2 / 8)` nine-tap low-pass kernel, and combines the local color
 estimate with the low-pass estimate using their directional variances. Red
-and blue are then reconstructed from green and color-difference planes, followed
-by one nine-sample median correction pass.
+and blue are then reconstructed from green and color-difference planes,
+followed by the requested nine-sample median correction passes. Refinement
+modes also rebuild the RGB channels with darktable's directional refinement
+passes.
 
 The processing geometry is part of the reference behavior:
 
@@ -33,7 +35,11 @@ The processing geometry is part of the reference behavior:
 - border: four pixels;
 - overlap: eight pixels;
 - valid tile stride: 112 pixels;
-- comparison mode: one median pass and no refinement passes.
+- comparison mode: one median pass and no refinement passes;
+- `LmmseMode::Basic`: no median or refinement passes;
+- `LmmseMode::Median`: one median pass;
+- `LmmseMode::ThreeMedians`: three median passes;
+- `LmmseMode::Refine(n)`: three median passes and `n` refinement passes.
 
 darktable initializes its six-plane scratch area once and reuses it across all
 tiles. Fornax mirrors that lifetime because edge tiles read padding values that
@@ -47,9 +53,12 @@ visible chroma lattice, so the unit and comparison tests protect that detail.
 
 ## Fornax differences and conventions
 
-The comparison bridge pins the darktable arguments to mode `1`,
+The comparison bridge pins its rows to darktable mode `1`,
 `scaler = 1.0`, a PPG threshold of `0.0`, and no white-balance multipliers.
-Those pipeline-level settings are outside the Fornax demosaic stage.
+Fornax exposes the mode as `Demosaic::Lmmse { mode }`; `scaler` and the PPG
+threshold remain fixed representation details outside the mode API. Other
+modes are covered by postprocessor unit tests rather than additional
+comparison rows.
 
 Fornax accepts normalized floating-point mosaics, converts them to the same
 16-bit code range used by the comparison harness, performs the tiled kernel in
