@@ -1,8 +1,7 @@
 use fornax_core::error::DemosaicError;
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 
-use super::buffer::DenseLazy;
-use super::directional::{self, Profile};
+use super::buffer::{DenseLazy, codes, dense_from_codes};
 
 const MARGIN: usize = 4;
 const HVSH: u8 = 1;
@@ -22,6 +21,22 @@ const DIAGONAL_THRESHOLD: f32 = 1.4;
 
 fn calc_dist(c1: f32, c2: f32) -> f32 {
     if c1 > c2 { c1 / c2 } else { c2 / c1 }
+}
+
+fn scale_over(value: f32, base: f32) -> f32 {
+    let scale = base * 0.4;
+    let offset = value - base;
+    base + (scale * (offset + scale)).sqrt() - scale
+}
+
+fn scale_under(value: f32, base: f32) -> f32 {
+    let scale = base * 0.6;
+    let offset = base - value;
+    base - (scale * (offset + scale)).sqrt() + scale
+}
+
+fn to_code(value: f32) -> u16 {
+    value.clamp(0.0, f32::from(u16::MAX)) as u16
 }
 
 const fn cfa_channel(pattern: BayerPattern, x: isize, y: isize) -> usize {
@@ -85,8 +100,16 @@ impl Dht {
         (y + MARGIN) * self.stride + x + MARGIN
     }
 
+    fn sample_at(&self, x: isize, y: isize, channel: usize) -> f32 {
+        let x = (x + MARGIN as isize) as usize;
+        let y = (y + MARGIN as isize) as usize;
+        self.nraw[y * self.stride + x][channel]
+    }
+
     fn get_hv_grb(&self, x: usize, y: usize, known: usize) -> u8 {
-        let sample = |x: usize, y: usize, channel: usize| self.nraw[self.offset(x, y)][channel];
+        let x = x as isize;
+        let y = y as isize;
+        let sample = |x: isize, y: isize, channel| self.sample_at(x, y, channel);
         let center = sample(x, y, known);
         let hv1 = 2.0 * sample(x, y - 1, 1) / (sample(x, y - 2, known) + center);
         let hv2 = 2.0 * sample(x, y + 1, 1) / (sample(x, y + 2, known) + center);
@@ -131,7 +154,9 @@ impl Dht {
     }
 
     fn get_hv_rbg(&self, x: usize, y: usize, known: usize) -> u8 {
-        let sample = |x: usize, y: usize, channel: usize| self.nraw[self.offset(x, y)][channel];
+        let x = x as isize;
+        let y = y as isize;
+        let sample = |x: isize, y: isize, channel| self.sample_at(x, y, channel);
         let center = sample(x, y, 1);
         let opposite = known ^ 2;
         let hv1 = 2.0 * sample(x, y - 1, opposite) / (sample(x, y - 2, 1) + sample(x, y, 1));
@@ -171,7 +196,9 @@ impl Dht {
     }
 
     fn get_diag_grb(&self, x: usize, y: usize, known: usize) -> u8 {
-        let sample = |x: usize, y: usize, channel: usize| self.nraw[self.offset(x, y)][channel];
+        let x = x as isize;
+        let y = y as isize;
+        let sample = |x: isize, y: isize, channel| self.sample_at(x, y, channel);
         let center = sample(x, y, 1) * sample(x, y, 1);
         let hlu = sample(x - 1, y - 1, 1) / sample(x - 1, y - 1, known);
         let hrd = sample(x + 1, y + 1, 1) / sample(x + 1, y + 1, known);
@@ -194,7 +221,9 @@ impl Dht {
     }
 
     fn get_diag_rbg(&self, x: usize, y: usize) -> u8 {
-        let sample = |x: usize, y: usize, channel: usize| self.nraw[self.offset(x, y)][channel];
+        let x = x as isize;
+        let y = y as isize;
+        let sample = |x: isize, y: isize, channel| self.sample_at(x, y, channel);
         let center = sample(x, y, 1) * sample(x, y, 1);
         let lurd = calc_dist(sample(x - 1, y - 1, 1) * sample(x + 1, y + 1, 1), center);
         let ruld = calc_dist(sample(x + 1, y - 1, 1) * sample(x - 1, y + 1, 1), center);
@@ -322,24 +351,26 @@ impl Dht {
             if self.ndir[index] & DIASH != 0 {
                 continue;
             }
-            let lurd = (self.ndir[index - self.stride] & LURD)
-                + (self.ndir[index + self.stride] & LURD)
-                + (self.ndir[index - 1] & LURD)
-                + (self.ndir[index + 1] & LURD)
-                + (self.ndir[index - self.stride - 1] & LURD)
-                + (self.ndir[index - self.stride + 1] & LURD)
-                + (self.ndir[index + self.stride - 1] & LURD)
-                + (self.ndir[index + self.stride + 1] & LURD);
-            let ruld = (self.ndir[index - self.stride] & RULD)
-                + (self.ndir[index + self.stride] & RULD)
-                + (self.ndir[index - 1] & RULD)
-                + (self.ndir[index + 1] & RULD)
-                + (self.ndir[index - self.stride - 1] & RULD)
-                + (self.ndir[index - self.stride + 1] & RULD)
-                + (self.ndir[index + self.stride - 1] & RULD)
-                + (self.ndir[index + self.stride + 1] & RULD);
-            let lurd = lurd / LURD;
-            let ruld = ruld / RULD;
+            let neighbors = [
+                index - self.stride,
+                index + self.stride,
+                index - 1,
+                index + 1,
+                index - self.stride - 1,
+                index - self.stride + 1,
+                index + self.stride - 1,
+                index + self.stride + 1,
+            ];
+            let lurd = neighbors
+                .iter()
+                .map(|neighbor| usize::from(self.ndir[*neighbor] & LURD))
+                .sum::<usize>()
+                / usize::from(LURD);
+            let ruld = neighbors
+                .iter()
+                .map(|neighbor| usize::from(self.ndir[*neighbor] & RULD))
+                .sum::<usize>()
+                / usize::from(RULD);
             if self.ndir[index] & LURD != 0 && ruld > 7 {
                 self.ndir[index] &= !LURD;
                 self.ndir[index] |= RULD;
@@ -349,6 +380,178 @@ impl Dht {
                 self.ndir[index] |= LURD;
             }
         }
+    }
+
+    fn make_greens(&mut self) {
+        for y in 0..self.height {
+            let js = cfa_channel(self.pattern, 0, y as isize) & 1;
+            let known = cfa_channel(self.pattern, js as isize, y as isize);
+            let stride = self.stride as isize;
+            for x in (js..self.width).step_by(2) {
+                let index = self.offset(x, y);
+                let (dx, dy, dx2, dy2) = if self.ndir[index] & VER != 0 {
+                    (0, -1, 0, 1)
+                } else {
+                    (1, 0, -1, 0)
+                };
+                let h1 = 2.0 * self.sample_add(index, dy * stride + dx, 1)
+                    / (self.sample_add(index, 2 * dy * stride + 2 * dx, known)
+                        + self.nraw[index][known]);
+                let h2 = 2.0 * self.sample_add(index, dy2 * stride + dx2, 1)
+                    / (self.sample_add(index, 2 * dy2 * stride + 2 * dx2, known)
+                        + self.nraw[index][known]);
+                let mut b1 = 1.0
+                    / calc_dist(
+                        self.nraw[index][known],
+                        self.sample_add(index, 2 * dy * stride + 2 * dx, known),
+                    );
+                let mut b2 = 1.0
+                    / calc_dist(
+                        self.nraw[index][known],
+                        self.sample_add(index, 2 * dy2 * stride + 2 * dx2, known),
+                    );
+                b1 *= b1;
+                b2 *= b2;
+                let mut green = self.nraw[index][known] * (b1 * h1 + b2 * h2) / (b1 + b2);
+                let mut minimum = self
+                    .sample_add(index, dy * stride + dx, 1)
+                    .min(self.sample_add(index, dy2 * stride + dx2, 1));
+                let mut maximum = self
+                    .sample_add(index, dy * stride + dx, 1)
+                    .max(self.sample_add(index, dy2 * stride + dx2, 1));
+                minimum /= 1.2;
+                maximum *= 1.2;
+                if green < minimum {
+                    green = scale_under(green, minimum);
+                } else if green > maximum {
+                    green = scale_over(green, maximum);
+                }
+                if green > f32::from(self.channel_maximum[1]) {
+                    green = f32::from(self.channel_maximum[1]);
+                } else if green < self.channel_minimum[1] {
+                    green = self.channel_minimum[1];
+                }
+                self.nraw[index][1] = green;
+            }
+        }
+    }
+
+    fn make_rb(&mut self) {
+        for y in 0..self.height {
+            self.make_rb_diag_row(y);
+        }
+        for y in 0..self.height {
+            self.make_rb_hv_row(y);
+        }
+    }
+
+    fn make_rb_diag_row(&mut self, y: usize) {
+        let js = cfa_channel(self.pattern, 0, y as isize) & 1;
+        let known = cfa_channel(self.pattern, js as isize, y as isize);
+        let missing = known ^ 2;
+        let stride = self.stride as isize;
+        for x in (js..self.width).step_by(2) {
+            let index = self.offset(x, y);
+            let (dx, dy, dx2, dy2) = if self.ndir[index] & LURD != 0 {
+                (-1, -1, 1, 1)
+            } else {
+                (-1, 1, 1, -1)
+            };
+            let first = dy * stride + dx;
+            let second = dy2 * stride + dx2;
+            let mut g1 = 1.0 / calc_dist(self.nraw[index][1], self.sample_add(index, first, 1));
+            let mut g2 = 1.0 / calc_dist(self.nraw[index][1], self.sample_add(index, second, 1));
+            g1 *= g1 * g1;
+            g2 *= g2 * g2;
+            let mut color = self.nraw[index][1]
+                * (g1 * self.sample_add(index, first, missing) / self.sample_add(index, first, 1)
+                    + g2 * self.sample_add(index, second, missing)
+                        / self.sample_add(index, second, 1))
+                / (g1 + g2);
+            let mut minimum = self
+                .sample_add(index, first, missing)
+                .min(self.sample_add(index, second, missing));
+            let mut maximum = self
+                .sample_add(index, first, missing)
+                .max(self.sample_add(index, second, missing));
+            minimum /= 1.2;
+            maximum *= 1.2;
+            if color < minimum {
+                color = scale_under(color, minimum);
+            } else if color > maximum {
+                color = scale_over(color, maximum);
+            }
+            if color > f32::from(self.channel_maximum[missing]) {
+                color = f32::from(self.channel_maximum[missing]);
+            } else if color < self.channel_minimum[missing] {
+                color = self.channel_minimum[missing];
+            }
+            self.nraw[index][missing] = color;
+        }
+    }
+
+    fn make_rb_hv_row(&mut self, y: usize) {
+        let js = (cfa_channel(self.pattern, 0, y as isize) & 1) ^ 1;
+        let stride = self.stride as isize;
+        for x in (js..self.width).step_by(2) {
+            let index = self.offset(x, y);
+            let (dx, dy, dx2, dy2) = if self.ndir[index] & VER != 0 {
+                (0, -1, 0, 1)
+            } else {
+                (1, 0, -1, 0)
+            };
+            let first = dy * stride + dx;
+            let second = dy2 * stride + dx2;
+            let mut g1 = 1.0 / calc_dist(self.nraw[index][1], self.sample_add(index, first, 1));
+            let mut g2 = 1.0 / calc_dist(self.nraw[index][1], self.sample_add(index, second, 1));
+            g1 *= g1;
+            g2 *= g2;
+            for channel in [0, 2] {
+                let mut color = self.nraw[index][1]
+                    * (g1 * self.sample_add(index, first, channel)
+                        / self.sample_add(index, first, 1)
+                        + g2 * self.sample_add(index, second, channel)
+                            / self.sample_add(index, second, 1))
+                    / (g1 + g2);
+                let mut minimum = self
+                    .sample_add(index, first, channel)
+                    .min(self.sample_add(index, second, channel));
+                let mut maximum = self
+                    .sample_add(index, first, channel)
+                    .max(self.sample_add(index, second, channel));
+                minimum /= 1.2;
+                maximum *= 1.2;
+                if color < minimum {
+                    color = scale_under(color, minimum);
+                } else if color > maximum {
+                    color = scale_over(color, maximum);
+                }
+                if color > f32::from(self.channel_maximum[channel]) {
+                    color = f32::from(self.channel_maximum[channel]);
+                } else if color < self.channel_minimum[channel] {
+                    color = self.channel_minimum[channel];
+                }
+                self.nraw[index][channel] = color;
+            }
+        }
+    }
+
+    fn process(&mut self, input: &[u16]) -> Vec<u16> {
+        self.hide_hots();
+        self.make_hv_dirs();
+        self.make_greens();
+        self.make_diag_dirs();
+        self.make_rb();
+        self.restore_hots(input);
+
+        let mut output = Vec::with_capacity(self.width * self.height * 3);
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let index = self.offset(x, y);
+                output.extend(self.nraw[index].map(to_code));
+            }
+        }
+        output
     }
 
     fn hide_hots(&mut self) {
@@ -490,7 +693,32 @@ impl DemosaicDht {
     where
         T: Primitive + Send + Sync,
     {
-        directional::lazy(image, pattern, Profile::Dht)
+        let width = image.width() as usize;
+        let height = image.height() as usize;
+        if width < 3 || height < 3 {
+            return Err(DemosaicError::InvalidInput(
+                "DHT requires an image at least 3x3".into(),
+            ));
+        }
+        let stride = width
+            .checked_add(2 * MARGIN)
+            .ok_or_else(|| DemosaicError::InvalidInput("DHT image width overflow".into()))?;
+        let plane_height = height
+            .checked_add(2 * MARGIN)
+            .ok_or_else(|| DemosaicError::InvalidInput("DHT image height overflow".into()))?;
+        if stride.checked_mul(plane_height).is_none() {
+            return Err(DemosaicError::InvalidInput(
+                "DHT image dimensions overflow".into(),
+            ));
+        }
+
+        let input = codes(image);
+        let output = Dht::new(&input, width, height, pattern).process(&input);
+        Ok(DenseLazy::new(dense_from_codes(
+            image.width(),
+            image.height(),
+            output,
+        )))
     }
 }
 
@@ -499,6 +727,7 @@ mod tests {
     use fornax_core::BayerPattern;
 
     use super::*;
+    use crate::protocol::LazyDemosaic;
 
     const HOT: u8 = 64;
     const HVSH: u8 = 1;
@@ -624,5 +853,107 @@ mod tests {
         dht.refine_hv_row(4, 0);
 
         assert_eq!(dht.ndir[center] & (HOR | VER), HOR);
+    }
+
+    fn unbounded(dht: &mut Dht) {
+        dht.channel_minimum = [0.5; 3];
+        dht.channel_maximum = [1_000; 3];
+    }
+
+    #[test]
+    fn make_greens_uses_the_selected_axis_and_channel_bounds() {
+        let pattern = BayerPattern::GBRG;
+        let mut horizontal = uniform_dht(9, 9, pattern);
+        unbounded(&mut horizontal);
+        horizontal.nraw.fill([100.0; 3]);
+        let center = horizontal.offset(4, 5);
+        horizontal.ndir[center] = HOR;
+        let north = horizontal.offset(4, 4);
+        let south = horizontal.offset(4, 6);
+        horizontal.nraw[north][1] = 1_000.0;
+        horizontal.nraw[south][1] = 1_000.0;
+        horizontal.make_greens();
+        assert_eq!(horizontal.nraw[center][1], 100.0);
+
+        let mut vertical = uniform_dht(9, 9, pattern);
+        unbounded(&mut vertical);
+        vertical.nraw.fill([100.0; 3]);
+        let center = vertical.offset(3, 6);
+        vertical.ndir[center] = VER;
+        let west = vertical.offset(2, 6);
+        let east = vertical.offset(4, 6);
+        vertical.nraw[west][1] = 1_000.0;
+        vertical.nraw[east][1] = 1_000.0;
+        vertical.make_greens();
+        assert_eq!(vertical.nraw[center][1], 100.0);
+
+        let center = horizontal.offset(4, 5);
+        horizontal.nraw[center - 1][1] = 5_000.0;
+        horizontal.nraw[center + 1][1] = 5_000.0;
+        horizontal.make_greens();
+        assert_eq!(horizontal.nraw[center][1], 1_000.0);
+    }
+
+    #[test]
+    fn make_rb_reconstructs_diagonal_and_hv_missing_samples() {
+        let pattern = BayerPattern::GBRG;
+        let mut dht = uniform_dht(9, 9, pattern);
+        unbounded(&mut dht);
+        dht.nraw.fill([100.0; 3]);
+
+        let red = dht.offset(4, 5);
+        dht.ndir[red] = LURD;
+        let northwest = dht.offset(3, 4);
+        let southeast = dht.offset(5, 6);
+        dht.nraw[northwest] = [100.0, 100.0, 200.0];
+        dht.nraw[southeast] = [100.0, 100.0, 300.0];
+        dht.make_rb_diag_row(5);
+        assert_eq!(dht.nraw[red][2], 250.0);
+
+        let green = dht.offset(4, 4);
+        dht.ndir[green] = HOR;
+        dht.nraw[green - 1] = [200.0, 100.0, 400.0];
+        dht.nraw[green + 1] = [300.0, 100.0, 500.0];
+        dht.make_rb_hv_row(4);
+        assert_eq!(dht.nraw[green][0], 250.0);
+        assert_eq!(dht.nraw[green][2], 450.0);
+    }
+
+    #[test]
+    fn output_codes_truncate_toward_zero_and_clip() {
+        assert_eq!(to_code(100.9), 100);
+        assert_eq!(to_code(-1.0), 0);
+        assert_eq!(to_code(70_000.0), u16::MAX);
+    }
+
+    #[test]
+    fn process_restores_hot_samples_and_preserves_measured_sites() {
+        let pattern = BayerPattern::GBRG;
+        let width = 9;
+        let height = 9;
+        let mut input = vec![1_000; width * height];
+        let hot = 5 * width + 5;
+        input[hot] = 60_000;
+        let mut dht = Dht::new(&input, width, height, pattern);
+
+        let output = dht.process(&input);
+
+        assert_eq!(output.len(), width * height * 3);
+        assert_eq!(output[hot * 3 + 1], 60_000);
+        for y in 0..height {
+            for x in 0..width {
+                let input_index = y * width + x;
+                let output_index = input_index * 3 + cfa_channel(pattern, x as isize, y as isize);
+                assert_eq!(output[output_index], input[input_index], "({x}, {y})");
+            }
+        }
+    }
+
+    #[test]
+    fn lazy_accepts_the_comparison_bridge_minimum_dimensions() -> mischief::Result<()> {
+        let image = MonoImage::from_raw(3, 3, vec![0.25_f32; 9]).unwrap();
+        let output = DemosaicDht.lazy(&image, BayerPattern::GBRG)?.collect();
+        assert_eq!(output.dimensions(), (3, 3));
+        Ok(())
     }
 }
