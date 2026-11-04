@@ -513,6 +513,4 @@ fn unsupported_variant(detail: impl Into<Box<str>>) -> DecodeError {
     DecodeError::Unsupported(detail.into())
 }
 
-fn corrupt(detail: impl Into<Box<str>>) -> DecodeError {
-    DecodeError::InvalidInput(detail.into())
-}
+fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInput(detail.into()) }

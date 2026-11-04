@@ -1,10 +1,8 @@
 use std::path::{Path, PathBuf};
 
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use fornax_core::Primitive;
 use fornax_core::protocol::IDecoder;
-use fornax_decoder_rawler::RawlerDecoder;
-use libraw::LibrawDecoder;
+use fornax_core::{Decoder, Primitive};
 
 fn raw_path() -> PathBuf {
     let path = std::env::var_os("FORNAX_BENCH_RAW")
@@ -18,22 +16,20 @@ fn raw_path() -> PathBuf {
     path
 }
 
-fn bench_decoder<D, T>(c: &mut Criterion, name: &str, decoder: D, path: &Path)
+fn bench_decoder<'a, D, T>(c: &mut Criterion, name: &str, decoder: D, path: &'a Path)
 where
-    D: IDecoder<Path, T>,
+    D: IDecoder<&'a Path, T>,
     T: Primitive + Send + Sync,
 {
     c.bench_function(name, |b| {
-        b.iter(|| black_box(decoder.decode_full(black_box(path)).unwrap()));
+        b.iter(|| black_box(decoder.decode(black_box(path)).unwrap()));
     });
 }
 
 fn benches(c: &mut Criterion) {
     let path = raw_path();
-    bench_decoder::<_, f32>(c, "rawler/full/f32", RawlerDecoder, &path);
-    bench_decoder::<_, f64>(c, "rawler/full/f64", RawlerDecoder, &path);
-    bench_decoder::<_, f32>(c, "libraw/full/f32", LibrawDecoder, &path);
-    bench_decoder::<_, f64>(c, "libraw/full/f64", LibrawDecoder, &path);
+    bench_decoder::<_, f32>(c, "full/f32", Decoder, &path);
+    bench_decoder::<_, f64>(c, "full/f64", Decoder, &path);
 }
 
 criterion_group!(benches_group, benches);
