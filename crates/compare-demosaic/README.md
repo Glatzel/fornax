@@ -197,25 +197,28 @@ and are consistency checks against the same image.
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 1] | no | ⚖️ | 0.304623 | 17.566732 | 5941 | 0.037053 | 0 | 20 | 4026 (88) | 0.001190 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 1] | no | ⚖️ | 0.295955 | 17.177471 | 5941 | -0.040052 | 0 | 19 | 3780 (92) | 0.001178 |
 
-Accepted outliers (aahd vs LibRaw, all patterns): at most 4026 samples above 1024, maximum error at most 5941. Reason: Independent floating-point homogeneity and gradient comparisons can select the other AAHD directional candidate at sparse, high-frequency and clipped chart details. Evidence: The full-resolution error map was reviewed in all four CFA phases: every robust limit passes, sampled Bayer sites are exact, all high-error values are interpolated-site outliers, and the map is sparse point noise without a border strip or full-frame structure. The reviewed maxima are 4026 samples above 1024 and maximum error 5941, with at most 32 high-error samples in any 64x64 tile (GRBG).
 <!-- compare-demosaic:end algo:aahd -->
 
-> [!NOTE]
-> **Reference:** LibRaw, `aahd_interpolate`.
-> **Why this reference:** it is a widely used advanced AHD implementation
-> with an independently maintained interpolation pipeline.
-> **Why we match:** Fornax ports AAHD's four-pixel padded working planes,
-> hot-pixel masking, horizontal and vertical green candidates, directional
-> red/blue reconstruction, 16-bit gamma and YUV homogeneity scoring, direction
-> refinement, and per-pixel candidate selection. Both use LibRaw's channel
-> extrema, integer clamps, and truncating `ushort` output.
-> **Known differences:** the comparison bridge supplies an identity
-> camera-to-RGB matrix and no white balance, so only the demosaic stage is
-> compared. Fornax accepts conventional 2x2 RGB Bayer input only and does not
-> reproduce LibRaw's camera metadata or output-color pipeline. Sparse
-> high-frequency and clipped-chart decisions can remain different when an
-> independent floating-point evaluation lands on the other side of a
-> homogeneity or gradient comparison.
+### LibRaw `aahd_interpolate`
+
+**Why this reference:** it is a widely used advanced AHD implementation
+with an independently maintained interpolation pipeline.
+
+**Why we match:** Fornax ports AAHD's four-pixel padded working planes,
+hot-pixel masking, horizontal and vertical green candidates, directional
+red/blue reconstruction, 16-bit gamma and YUV homogeneity scoring, direction
+refinement, and per-pixel candidate selection. Both use LibRaw's channel
+extrema, integer clamps, and truncating `ushort` output.
+
+**Known differences:** the comparison bridge supplies an identity
+camera-to-RGB matrix and no white balance, so only the demosaic stage is
+compared. Fornax accepts conventional 2x2 RGB Bayer input only and does not
+reproduce LibRaw's camera metadata or output-color pipeline. Sparse
+high-frequency and clipped-chart decisions can remain different when an
+independent floating-point evaluation lands on the other side of a
+homogeneity or gradient comparison.
+
+Accepted outliers (aahd vs LibRaw, all patterns): at most 4026 samples above 1024, maximum error at most 5941. Reason: Independent floating-point homogeneity and gradient comparisons can select the other AAHD directional candidate at sparse, high-frequency and clipped chart details. Evidence: The full-resolution error map was reviewed in all four CFA phases: every robust limit passes, sampled Bayer sites are exact, all high-error values are interpolated-site outliers, and the map is sparse point noise without a border strip or full-frame structure. The reviewed maxima are 4026 samples above 1024 and maximum error 5941, with at most 32 high-error samples in any 64x64 tile (GRBG).
 
 ## AHD
 
@@ -231,27 +234,40 @@ Accepted outliers (aahd vs LibRaw, all patterns): at most 4026 samples above 102
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GRBG | [1, 1] | no | ❌ | 6.720516 | 62.159150 | 5841 | -0.122432 | 154 | 925 | 41296 (841) | 0.196038 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | RGGB | [0, 1] | no | ❌ | 6.720053 | 62.154262 | 5841 | -0.122369 | 154 | 925 | 41296 (841) | 0.196037 |
 
-Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024, maximum error at most 5222. Reason: Independent AHD tile, clipping, matrix, and quantization conventions change local directional decisions at high-contrast chart edges. Evidence: PR #602's valid-crop experiment has the same outlier tail in all four CFA phases with exact sampled Bayer values; the former BGGR and RGGB failures were invalid green-phase test input.
 <!-- compare-demosaic:end algo:ahd -->
 
-> [!NOTE]
-> **Reference:** LibRaw, `ahd_interpolate`, and RawTherapee 5.13,
-> `ahd_demosaic`.
-> **Why this reference:** it is the established AHD implementation used by
-> other RAW processors and has a stable pinned source revision.
-> **Why we match:** Fornax builds horizontal and vertical green candidates,
-> evaluates both in Lab with the same homogeneity idea and neighbor threshold
-> comparisons, then selects the locally consistent direction.
-> **Known differences:** Fornax uses the published camera-to-XYZ matrix,
-> 512-pixel working tiles, floor intermediates and nearest-neighbor output
-> quantization. LibRaw owns its tile, clipping and final quantization
-> conventions, while RawTherapee uses its own tile and Lab conventions.
-> RawTherapee normally receives channel-scaled working data after `scaleColors`;
-> the comparison supplies the common active mosaic without white balance.
-> PR #602's valid-crop experiment shows the remaining outlier tail is stable
-> across all four CFA phases and sampled Bayer values are exact. The former
-> BGGR/RGGB failures were invalid green-phase test input; the remaining
-> high-contrast outliers are accepted under the bounded waiver below the table.
+### LibRaw `ahd_interpolate`
+
+**Why this reference:** it is the established AHD implementation used by
+other RAW processors and has a stable pinned source revision.
+
+**Why we match:** Fornax builds horizontal and vertical green candidates,
+evaluates both in Lab with the same homogeneity idea and neighbor threshold
+comparisons, then selects the locally consistent direction.
+
+**Known differences:** Fornax uses the published camera-to-XYZ matrix,
+512-pixel working tiles, floor intermediates and nearest-neighbor output
+quantization. LibRaw owns its tile, clipping and final quantization
+conventions.
+PR #602's valid-crop experiment shows the remaining outlier tail is stable
+across all four CFA phases and sampled Bayer values are exact. The former
+BGGR/RGGB failures were invalid green-phase test input.
+
+Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024, maximum error at most 5222. Reason: Independent AHD tile, clipping, matrix, and quantization conventions change local directional decisions at high-contrast chart edges. Evidence: PR #602's valid-crop experiment has the same outlier tail in all four CFA phases with exact sampled Bayer values; the former BGGR and RGGB failures were invalid green-phase test input.
+
+### RawTherapee `ahd_demosaic`
+
+**Why this reference:** it provides an independently maintained AHD pipeline
+with RawTherapee's own tile and Lab conventions.
+
+**Why we match:** both reconstruct horizontal and vertical green candidates,
+evaluate directional homogeneity in Lab, and select the locally consistent
+direction for the remaining channels.
+
+**Known differences:** RawTherapee normally receives channel-scaled working
+data after `scaleColors`, while the comparison supplies the common active
+mosaic without white balance. Its tile boundaries, matrix handling, clipping,
+and final quantization also differ from Fornax.
 
 ## AMaZE
 
@@ -268,20 +284,33 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | RGGB | [0, 1] | no | ❌ | 6660.392138 | 17133.840330 | 65535 | -4852.128179 | 65086 | 65362 | 20149232 (283697) | 0.663657 |
 <!-- compare-demosaic:end algo:amaze -->
 
-> [!NOTE]
-> **Reference:** darktable, `amaze_demosaic`, and RawTherapee 5.13,
-> `amaze_demosaic_RT`.
-> **Why this reference:** darktable is the primary open-source AMaZE
-> implementation used for reproducing this published algorithm.
-> **Why we match:** both retain measured CFA values, choose green from
-> directional edge evidence, and interpolate the remaining channels from
-> local color differences.
-> **Known differences:** Fornax uses the shared directional kernel with an
-> edge-weight exponent of three and a three-pixel chroma radius instead of
-> darktable's full AMaZE tile processing. Fornax also clamps in normalized
-> space and quantizes to nearest. RawTherapee normally receives channel-scaled
-> data after `scaleColors`; the comparison deliberately omits white balance, so
-> its edge decisions can differ more strongly on the uncorrected mosaic.
+### darktable `amaze_demosaic`
+
+**Why this reference:** darktable is the primary open-source AMaZE
+implementation used for reproducing this published algorithm.
+
+**Why we match:** both retain measured CFA values, choose green from
+directional edge evidence, and interpolate the remaining channels from
+local color differences.
+
+**Known differences:** Fornax uses the shared directional kernel with an
+edge-weight exponent of three and a three-pixel chroma radius instead of
+darktable's full AMaZE tile processing. Fornax also clamps in normalized
+space and quantizes to nearest.
+
+### RawTherapee `amaze_demosaic_RT`
+
+**Why this reference:** it exercises RawTherapee's independently optimized
+AMaZE implementation and its own tile and clipping decisions.
+
+**Why we match:** both preserve measured CFA samples and reconstruct green
+and the remaining channels from directional edge evidence and color
+differences.
+
+**Known differences:** RawTherapee normally receives channel-scaled data from
+`scaleColors`. The shared comparison deliberately omits white balance, so
+RawTherapee's edge decisions can differ strongly on the uncorrected mosaic
+even though sampled Bayer values remain exact.
 
 ## DCB
 
@@ -298,19 +327,34 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | RGGB | [0, 1] | no | ❌ | 66.576286 | 209.673892 | 6728 | -4.431613 | 1017 | 2117 | 531807 (17627) | 0.650416 |
 <!-- compare-demosaic:end algo:dcb -->
 
-> [!NOTE]
-> **Reference:** LibRaw, `dcb`, and RawTherapee 5.13, `dcb_demosaic`.
-> **Why this reference:** it is the maintained implementation of directional
-> color balance demosaicing and exposes the complete LibRaw pipeline.
-> **Why we match:** Fornax follows LibRaw's `pre_interpolate()` plus
-> `dcb(0, 1)` sequence: six-pixel CFA border interpolation, horizontal and
-> vertical candidate reconstruction, direction selection, green corrections,
-> refinement, and full-color chroma interpolation.
-> **Known differences:** Fornax omits camera metadata handling, callbacks, and
-> LibRaw's surrounding processing pipeline. The comparison starts from the same
-> normalized active Bayer mosaic and copies the resulting RGB channels
-> directly. The RawTherapee bridge pins the compatible zero-iteration enhanced
-> DCB path and omits its preprocess/output pipeline.
+### LibRaw `dcb`
+
+**Why this reference:** it is the maintained implementation of directional
+color balance demosaicing and exposes the complete LibRaw pipeline.
+
+**Why we match:** Fornax follows LibRaw's `pre_interpolate()` plus
+`dcb(0, 1)` sequence: six-pixel CFA border interpolation, horizontal and
+vertical candidate reconstruction, direction selection, green corrections,
+refinement, and full-color chroma interpolation.
+
+**Known differences:** Fornax omits camera metadata handling, callbacks, and
+LibRaw's surrounding processing pipeline. The comparison starts from the same
+normalized active Bayer mosaic and copies the resulting RGB channels
+directly.
+
+### RawTherapee `dcb_demosaic`
+
+**Why this reference:** it provides a second maintained DCB implementation
+with independent border and color-difference handling.
+
+**Why we match:** both interpolate directional green candidates, build a
+correction map, and reconstruct red and blue from green-referenced color
+differences.
+
+**Known differences:** The comparison bridge pins RawTherapee's compatible
+zero-iteration enhanced path and omits its preprocessing and output stages.
+Fornax targets LibRaw's fixed DCB variant, so RawTherapee records its distinct
+directional decisions rather than serving as the acceptance reference.
 
 ## DHT
 
@@ -323,17 +367,19 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | RGGB | [0, 1] | no | ❌ | 95.759780 | 212.259519 | 15912 | 1.223951 | 901 | 1598 | 347343 (28742) | 0.662053 |
 <!-- compare-demosaic:end algo:dht -->
 
-> [!NOTE]
-> **Reference:** LibRaw, `dht_interpolate`.
-> **Why this reference:** it provides the directional homogeneity transform
-> implementation targeted by Fornax.
-> **Why we match:** both preserve sampled Bayer values, derive candidate green
-> values in both directions, and use green-referenced color differences for
-> red and blue reconstruction.
-> **Known differences:** Fornax's shared directional profile uses an
-> edge-weight exponent of one and a two-pixel chroma radius. LibRaw DHT runs
-> its own directional transform and refinement stages. Intermediate clipping,
-> border fill and final quantization are therefore not shared.
+### LibRaw `dht_interpolate`
+
+**Why this reference:** it provides the directional homogeneity transform
+implementation targeted by Fornax.
+
+**Why we match:** both preserve sampled Bayer values, derive candidate green
+values in both directions, and use green-referenced color differences for
+red and blue reconstruction.
+
+**Known differences:** Fornax's shared directional profile uses an
+edge-weight exponent of one and a two-pixel chroma radius. LibRaw DHT runs
+its own directional transform and refinement stages. Intermediate clipping,
+border fill and final quantization are therefore not shared.
 
 ## Linear
 
@@ -346,17 +392,19 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L146) | RGGB | [0, 1] | no | 🟢 | 0.294068 | 0.542280 | 1 | 0.294068 | 1 | 1 | 0 (0) | 0.294068 |
 <!-- compare-demosaic:end algo:linear -->
 
-> [!NOTE]
-> **Reference:** LibRaw, `lin_interpolate`.
-> **Why this reference:** it isolates the basic bilinear interpolation that
-> provides a simple convention check for the comparison harness.
-> **Why we match:** both preserve the measured sample, average horizontal and
-> vertical green neighbors at red or blue sites, and average diagonals for the
-> missing opposite color.
-> **Known differences:** Fornax produces typed floating-point samples, clamps
-> them to `[0, 1]`, and rounds to nearest before 16-bit quantization. LibRaw's
-> reference path truncates its final integer conversion; its border handling
-> also comes from the LibRaw pipeline.
+### LibRaw `lin_interpolate`
+
+**Why this reference:** it isolates the basic bilinear interpolation that
+provides a simple convention check for the comparison harness.
+
+**Why we match:** both preserve the measured sample, average horizontal and
+vertical green neighbors at red or blue sites, and average diagonals for the
+missing opposite color.
+
+**Known differences:** Fornax produces typed floating-point samples, clamps
+them to `[0, 1]`, and rounds to nearest before 16-bit quantization. LibRaw's
+reference path truncates its final integer conversion; its border handling
+also comes from the LibRaw pipeline.
 
 ## LMMSE
 
@@ -373,22 +421,34 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | RGGB | [0, 1] | no | ❌ | 12.812612 | 89.291776 | 16228 | -0.761280 | 157 | 564 | 16709 (12003) | 0.493143 |
 <!-- compare-demosaic:end algo:lmmse -->
 
-> [!NOTE]
-> **Reference:** darktable, `lmmse_demosaic`, and RawTherapee 5.13,
-> `lmmse_interpolate_omp`.
-> **Why this reference:** darktable is the maintained LMMSE implementation
-> used for the reference comparison.
-> **Why we match:** both seed from PPG, transform the CFA through the same
-> linear/gamma tables, estimate horizontal and vertical color differences,
-> apply the nine-tap low-pass and directional MMSE blend, reconstruct red and
-> blue from green differences, and run one median pass. Both use 136-pixel
-> tiles with a four-pixel border, eight-pixel overlap, and a 112-pixel valid
-> stride.
-> **Known differences:** Fornax keeps the kernel in Rust `f32` and quantizes
-> once at the comparison boundary. RawTherapee uses its own gamma LUT and one
-> iteration in the comparison bridge. Compiler contraction and these table
-> conventions can leave small differences from the C references; measured
-> Bayer sites remain exact.
+### darktable `lmmse_demosaic`
+
+**Why this reference:** darktable is the maintained LMMSE implementation
+used for the reference comparison.
+
+**Why we match:** both seed from PPG, transform the CFA through the same
+linear/gamma tables, estimate horizontal and vertical color differences,
+apply the nine-tap low-pass and directional MMSE blend, reconstruct red and
+blue from green differences, and run one median pass. Both use 136-pixel
+tiles with a four-pixel border, eight-pixel overlap, and a 112-pixel valid
+stride.
+
+**Known differences:** Fornax keeps the kernel in Rust `f32` and quantizes
+once at the comparison boundary. Compiler contraction can leave one-code
+differences from darktable; measured Bayer sites remain exact.
+
+### RawTherapee `lmmse_interpolate_omp`
+
+**Why this reference:** it provides a second maintained LMMSE implementation
+with an independently structured gamma-table and tile pipeline.
+
+**Why we match:** both seed from PPG, estimate directional color differences,
+apply the nine-tap MMSE blend, and reconstruct red and blue from green.
+
+**Known differences:** RawTherapee uses its own gamma LUT and one comparison
+iteration without white balance or its preprocess/output stages. These table
+and pipeline conventions can leave larger differences than darktable while
+sampled Bayer sites remain exact.
 
 ## PPG
 
@@ -404,27 +464,37 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | [1, 1] | no | ⚖️ | 0.186698 | 3.106884 | 2221 | 0.108933 | 1 | 1 | 53 (0) | 0.146911 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | [0, 1] | no | ⚖️ | 0.186694 | 3.107317 | 2221 | 0.108922 | 1 | 1 | 53 (0) | 0.146910 |
 
-Accepted outliers (ppg vs LibRaw, all patterns): at most 53 samples above 1024, maximum error at most 2221. Reason: LibRaw selects PPG directions with integer shifts and truncating arithmetic while Fornax follows darktable's normalized f32 path; near ties at high-contrast chart edges flip a small local set of directional choices. Evidence: The committed baseline matches darktable exactly in all CFA phases, preserves sampled Bayer sites exactly, and has the same 53 interior high-error samples and maximum error 2221 in every phase; each row's top-20 worst samples align after its crop offset, and the error map is sparse. LibRaw 0.22.3 ppg_interpolate uses right shifts and integer division for its predictions and diagonal tie.
 <!-- compare-demosaic:end algo:ppg -->
 
-> [!NOTE]
-> **Reference:** darktable, `demosaic_ppg`, with LibRaw `ppg_interpolate` as a
-> secondary reference.
-> **Why this reference:** both expose the patterned pixel-grouping algorithm
-> that Fornax implements and are common production references.
-> **Why we match:** the green estimate uses the same horizontal and vertical
-> gradient differences, candidate clamping and color-difference correction
-> used to reconstruct red and blue at green and opposite-color sites.
-> **Known differences:** Fornax computes a three-pixel border fallback from the
-> nearest matching color samples and consumes the Bayer pattern directly.
-> darktable bridges normalize both green CFA codes and run its own border
-> margin; LibRaw applies its pipeline around `ppg_interpolate`. Final integer
-> rounding can therefore differ at code boundaries. LibRaw also uses right
-> shifts and truncating integer arithmetic for its PPG predictions and
-> diagonal tie, while Fornax follows darktable's normalized `f32` path. Near
-> ties at high-contrast chart edges can therefore select different local
-> directions. The same bounded outlier tail appears in all four CFA phases and
-> is accepted below the table.
+### darktable `demosaic_ppg`
+
+**Why this reference:** it exposes the patterned pixel-grouping algorithm
+that Fornax implements and is the acceptance reference.
+
+**Why we match:** the green estimate uses the same horizontal and vertical
+gradient differences, candidate clamping and color-difference correction
+used to reconstruct red and blue at green and opposite-color sites.
+
+**Known differences:** Fornax computes a three-pixel border fallback from the
+nearest matching color samples and consumes the Bayer pattern directly.
+darktable bridges normalize both green CFA codes and run its own border
+margin. Final integer rounding can therefore differ at code boundaries.
+
+### LibRaw `ppg_interpolate`
+
+**Why this reference:** it is a second widely used PPG implementation and
+serves as an informational convention check rather than the acceptance gate.
+
+**Why we match:** both use horizontal and vertical green gradients, candidate
+clamping, and green-referenced color differences to reconstruct red and blue.
+
+**Known differences:** LibRaw applies its pipeline around `ppg_interpolate`
+and uses right shifts and truncating integer arithmetic for predictions and
+diagonal ties, while Fornax follows darktable's normalized `f32` path. Near
+ties at high-contrast chart edges can therefore select different directions;
+the bounded outlier tail is accepted as follows.
+
+Accepted outliers (ppg vs LibRaw, all patterns): at most 53 samples above 1024, maximum error at most 2221. Reason: LibRaw selects PPG directions with integer shifts and truncating arithmetic while Fornax follows darktable's normalized f32 path; near ties at high-contrast chart edges flip a small local set of directional choices. Evidence: The committed baseline matches darktable exactly in all CFA phases, preserves sampled Bayer sites exactly, and has the same 53 interior high-error samples and maximum error 2221 in every phase; each row's top-20 worst samples align after its crop offset, and the error map is sparse. LibRaw 0.22.3 ppg_interpolate uses right shifts and integer division for its predictions and diagonal tie.
 
 ## RCD
 
@@ -440,26 +510,41 @@ Accepted outliers (ppg vs LibRaw, all patterns): at most 53 samples above 1024, 
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/rcd_demosaic.cc#L53) | GRBG | [1, 1] | no | ⚠️ | 0.873075 | 23.445153 | 3727 | 0.000155 | 3 | 197 | 7266 (7265) | 0.038554 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/rcd_demosaic.cc#L53) | RGGB | [0, 1] | no | ⚠️ | 0.874198 | 23.458456 | 3727 | 0.003023 | 3 | 197 | 7270 (7269) | 0.038579 |
 
-Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024, maximum error at most 1359. Reason: A near-tie RCD interpolation decision flips under independent floating-point evaluation at one high-contrast chart edge. Evidence: Every CFA phase has one interior high-error sample at the same shifted red-site edge; sampled Bayer values are exact.
 <!-- compare-demosaic:end algo:rcd -->
 
-> [!NOTE]
-> **Reference:** darktable, `rcd_demosaic`, and RawTherapee 5.13,
-> `rcd_demosaic`.
-> **Why this reference:** darktable provides the pinned RCD 2.3 implementation
-> against which the independently structured Fornax version is compared.
-> **Why we match:** both seed with PPG, use the same 112-pixel tile geometry,
-> compute directional high-pass gradient confidence, interpolate ratio-corrected
-> green, and then reconstruct diagonal color differences.
-> **Known differences:** Fornax evaluates the formulas through normalized
-> floating-point Rust and clamps final output to `[0, 1]`; the reference bridges
-> quantize after the same clamp. Border fill and the surrounding metadata
-> pipeline are not shared. RawTherapee uses a compatible tiled RCD path without
-> white balance or its preprocess/output stages. The remaining outlier tail is
-> confined to interpolated samples near high-contrast chart features; sampled
-> Bayer values match the reference exactly. The sole high-error sample in each
-> CFA phase is the same shifted red-site chart edge, accepted as floating-point
-> evaluation sensitivity in a near-tie interpolation decision.
+### darktable `rcd_demosaic`
+
+**Why this reference:** darktable provides the pinned RCD 2.3 implementation
+against which the independently structured Fornax version is compared.
+
+**Why we match:** both seed with PPG, use the same 112-pixel tile geometry,
+compute directional high-pass gradient confidence, interpolate ratio-corrected
+green, and then reconstruct diagonal color differences.
+
+**Known differences:** Fornax evaluates the formulas through normalized
+floating-point Rust and clamps final output to `[0, 1]`; the darktable bridge
+quantizes after the same clamp. Border fill and the surrounding metadata
+pipeline are not shared. The remaining outlier tail is confined to
+interpolated samples near high-contrast chart features; sampled Bayer values
+match the reference exactly. The sole high-error sample in each CFA phase is
+the same shifted red-site chart edge, accepted as floating-point evaluation
+sensitivity in a near-tie interpolation decision.
+
+Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024, maximum error at most 1359. Reason: A near-tie RCD interpolation decision flips under independent floating-point evaluation at one high-contrast chart edge. Evidence: Every CFA phase has one interior high-error sample at the same shifted red-site edge; sampled Bayer values are exact.
+
+### RawTherapee `rcd_demosaic`
+
+**Why this reference:** it provides an independently optimized RCD pipeline
+for comparison against Fornax's darktable-compatible implementation.
+
+**Why we match:** both seed with PPG, estimate directional gradient
+confidence, reconstruct ratio-corrected green, and then interpolate diagonal
+color differences.
+
+**Known differences:** RawTherapee uses its own tile processing without white
+balance or its preprocess/output stages. Fornax targets darktable's normalized
+`f32` RCD path, so RawTherapee's near-tie decisions can produce a larger
+interpolated-sample outlier tail.
 
 ## VNG
 
@@ -476,26 +561,36 @@ Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | RGGB | [0, 1] | no | ❌ | 62.936663 | 151.305885 | 6698 | 0.154326 | 692 | 1104 | 86874 (4704) | 0.752462 |
 <!-- compare-demosaic:end algo:vng -->
 
-> [!NOTE]
-> **Reference:** darktable `vng_interpolate` is authoritative. LibRaw
-> `vng_interpolate` is retained as informational evidence for the original
-> dcraw-family algorithm.
-> **Why this reference:** darktable defines the split-green VNG behavior that
-> Fornax targets. LibRaw provides a second widely used implementation for
-> understanding shared algorithmic structure, but not an acceptance gate.
-> **Why we match:** both references begin with linear interpolation, score
-> eight directional gradients, retain lower-gradient neighbors, and correct
-> missing colors through green-referenced neighbor differences.
-> **Known differences:** darktable keeps the two green CFA phases in separate
-> planes through interpolation and averages them only when packing RGB.
-> LibRaw's comparison adapter sets `four_color_rgb = 0`, so it retains one
-> green plane and intentionally produces a materially different result.
-> Fornax follows darktable's split-green convention with a three-row rolling
-> result in generic `u16` channels; the bridge uses four-channel float pixels.
-> Border windows and fixed-point clipping can therefore produce sparse
-> high-value differences even when the aggregate error is small. See
-> [the VNG reference notes](../../docs/references/vng.md) for source links and
-> implementation details.
+### darktable `vng_interpolate`
+
+**Why this reference:** darktable defines the split-green VNG behavior that
+Fornax targets.
+
+**Why we match:** both begin with linear interpolation, score eight
+directional gradients, retain lower-gradient neighbors, and correct missing
+colors through green-referenced neighbor differences.
+
+**Known differences:** darktable keeps the two green CFA phases in separate
+planes through interpolation and averages them only when packing RGB. Fornax
+follows that convention with a three-row rolling result in generic `u16`
+channels; the bridge uses four-channel float pixels. Border windows and
+fixed-point clipping can therefore produce sparse high-value differences
+even when the aggregate error is small. See
+[the VNG reference notes](../../docs/references/vng.md) for source links and
+implementation details.
+
+### LibRaw `vng_interpolate`
+
+**Why this reference:** it is retained as informational evidence for the
+original dcraw-family algorithm, not as an acceptance gate.
+
+**Why we match:** both score eight directional gradients, retain
+lower-gradient neighbors, and reconstruct missing colors through
+green-referenced neighbor differences.
+
+**Known differences:** LibRaw's comparison adapter sets `four_color_rgb = 0`,
+so it retains one green plane and intentionally produces a materially
+different result from Fornax's split-green darktable-compatible path.
 
 ## VNG4
 
@@ -512,17 +607,29 @@ Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | RGGB | [0, 1] | no | ❌ | 17.026189 | 48.060010 | 7967 | 0.251119 | 179 | 452 | 10152 (563) | 0.634082 |
 <!-- compare-demosaic:end algo:vng4 -->
 
-> [!NOTE]
-> **Reference:** LibRaw, `vng_interpolate` after `pre_interpolate` with
-> `four_color_rgb = 1`, and RawTherapee 5.13, `vng4_demosaic`.
-> **Why this reference:** this is LibRaw's explicit four-color VNG mode, which
-> keeps the two green CFA phases separate through interpolation.
-> **Why we match:** both implementations run VNG with split green planes and
-> average those planes into the final green channel only after interpolation.
-> **Known differences:** Fornax shares its integer split-green VNG kernel with
-> the `Demosaic::Vng` selector and exposes VNG4 as a distinct algorithm choice.
-> The comparison adapter sets LibRaw's four-color option before
-> `pre_interpolate` and performs the documented post-interpolation green mix.
-> The RawTherapee bridge preserves its split-green `prefilters` mask and omits
-> its preprocess/output pipeline; no source code is copied into the
-> postprocessor.
+### LibRaw `vng_interpolate`
+
+**Why this reference:** this is LibRaw's explicit four-color VNG mode, which
+keeps the two green CFA phases separate through interpolation.
+
+**Why we match:** both implementations run VNG with split green planes and
+average those planes into the final green channel only after interpolation.
+
+**Known differences:** Fornax shares its integer split-green VNG kernel with
+the `Demosaic::Vng` selector and exposes VNG4 as a distinct algorithm choice.
+The comparison adapter sets LibRaw's four-color option before
+`pre_interpolate` and performs the documented post-interpolation green mix.
+No source code is copied into the postprocessor.
+
+### RawTherapee `vng4_demosaic`
+
+**Why this reference:** it provides a second split-green VNG implementation
+with RawTherapee's own four-plane indexing and tile boundaries.
+
+**Why we match:** both retain separate green CFA phases through
+interpolation and combine them only when producing final RGB.
+
+**Known differences:** The bridge preserves RawTherapee's original
+split-green `prefilters` mask and omits its preprocessing and output stages.
+Border interpolation and pixel-neighborhood indexing remain
+RawTherapee-specific.

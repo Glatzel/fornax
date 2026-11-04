@@ -89,6 +89,8 @@ reviewed and accepted them. It is never derived from the numbers alone.
 - Declare accepted outliers in the waiver table in `src/waivers.rs` with
   algorithm, reference, optional pattern and input, `max_count_gt1024`,
   `max_error`, mechanism, and evidence.
+- Put the generated Accepted outliers paragraph under the matching reference
+  section, immediately after its `Known differences` field.
 - Waive only rows that pass every limit. Fix a failing row or correct its test
   input; never waive a failure.
 - Use the reviewed values as exact bounds. If a row gets worse, the symbol
@@ -122,12 +124,15 @@ cargo run --release -p compare-demosaic -- readme
 Review `git diff`, fill in any TODO notes, commit. If local numbers differ from
 CI, copy `canonical.json` from the CI artifact instead.
 
-## Writing note blocks
+## Writing reference sections
 
-Every algorithm needs a note with Reference, Why this reference, Why we match,
-Known differences, and optionally Open issues. Explain causes and conventions
-(shared steps, constants, rounding, borders), never current results or numbers.
-Reference functions by name, not path. Remove Open issues when fixed.
+Every algorithm/reference pair needs its own heading such as
+`### darktable \`demosaic_ppg\``, followed by Why this reference, Why we match,
+Known differences, and optionally Open issues. Do not combine multiple
+references in one section. Explain causes and conventions (shared steps,
+constants, rounding, borders), never current results or numbers. Reference
+functions by name, not path. Place any matching Accepted outliers paragraph
+under that reference section. Remove Open issues when fixed.
 
 ## CI
 

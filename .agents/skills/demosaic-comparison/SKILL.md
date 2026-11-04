@@ -97,13 +97,15 @@ last, and only if the result needs to be recorded.
    cargo insta accept
    ```
 
-5. Update the algorithm's hand-written note when its assumptions, reference,
-   matches, or known differences change. A new algorithm needs a complete note
-   (Reference, Why this reference, Why we match, Known differences; Open issues
-   only while open). Explain causes and conventions, not current numbers, and
-   name functions rather than paths. Do not edit text inside generated markers.
-   Update or remove the entry in `src/waivers.rs` when the reviewed outliers
-   change; `readme` reports unused waivers.
+5. Update the algorithm's hand-written reference sections when its assumptions,
+   reference, matches, or known differences change. Use one heading per
+   reference, such as `### darktable \`demosaic_ppg\``, followed by Why this
+   reference, Why we match, Known differences, and optionally Open issues. Do
+   not combine references in one section. Explain causes and conventions, not
+   current numbers, and name functions rather than paths. Put any matching
+   Accepted outliers paragraph under its reference heading. Do not edit text
+   inside generated markers. Update or remove the entry in `src/waivers.rs`
+   when the reviewed outliers change; `readme` reports unused waivers.
 
 6. If the table says the baseline must change, refresh it with the one full
    run. Skip this step otherwise.
