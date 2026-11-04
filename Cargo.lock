@@ -220,15 +220,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bench-decoder"
-version = "0.0.17"
-dependencies = [
- "codspeed-criterion-compat",
- "fornax-core",
- "fornax-devtool",
-]
-
-[[package]]
 name = "bit_field"
 version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -767,6 +758,8 @@ dependencies = [
 name = "fornax-core"
 version = "0.0.17"
 dependencies = [
+ "codspeed-criterion-compat",
+ "fornax-devtool",
  "image",
  "num-traits",
  "num_enum",
