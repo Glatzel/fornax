@@ -28,28 +28,28 @@ Out of scope:
 
 ## Task checklist
 
-- [ ] **Task 1:** Add backend metadata and reference-selection tests.
-- [ ] **Task 2:** Add pinned source provisioning and RawTherapee adapters.
-- [ ] **Task 3:** Register shared-algorithm comparisons.
-- [ ] **Task 4:** Add reference documentation and TODO entries.
-- [ ] **Task 5:** Refresh generated artifacts and run full validation.
-- [ ] Pin RawTherapee release 5.13 at commit
+- [x] **Task 1:** Add backend metadata and reference-selection tests.
+- [x] **Task 2:** Add pinned source provisioning and RawTherapee adapters.
+- [x] **Task 3:** Register shared-algorithm comparisons.
+- [x] **Task 4:** Add reference documentation and TODO entries.
+- [x] **Task 5:** Refresh generated artifacts and run full validation.
+- [x] Pin RawTherapee release 5.13 at commit
   `1924179107995b01b73cdc7f4fe91e44fc8227a7` in the platform setup scripts and
   `build.rs`.
-- [ ] Add a RawTherapee compatibility facade and adapters for AHD, AMaZE, DCB,
+- [x] Add a RawTherapee compatibility facade and adapters for AHD, AMaZE, DCB,
   LMMSE, RCD, VNG4, IGV, EAHD, and HPHD.
-- [ ] Add the RawTherapee backend and stable algorithm IDs to the C++ shim and
+- [x] Add the RawTherapee backend and stable algorithm IDs to the C++ shim and
   Rust FFI dispatch.
-- [ ] Register RawTherapee cases for every shared Fornax/RawTherapee algorithm.
-- [ ] Add direct reference tests and checksum snapshots for IGV, EAHD, and HPHD.
-- [ ] Add RawTherapee reference and version metadata to canonical JSON and the
+- [x] Register RawTherapee cases for every shared Fornax/RawTherapee algorithm.
+- [x] Add direct reference tests and checksum snapshots for IGV, EAHD, and HPHD.
+- [x] Add RawTherapee reference and version metadata to canonical JSON and the
   generated README.
-- [ ] Document RawTherapee source, parameters, compatibility differences, and
+- [x] Document RawTherapee source, parameters, compatibility differences, and
   GPL-3.0-or-later constraints.
-- [ ] Add `[IGV]`, `[EAHD]`, and `[HPHD]` to `TODO.md`; update `[AMAZE]` to
+- [x] Add `[IGV]`, `[EAHD]`, and `[HPHD]` to `TODO.md`; update `[AMAZE]` to
   include both darktable and RawTherapee.
-- [ ] Refresh snapshots, the canonical baseline, and generated README regions.
-- [ ] Run all required validation and inspect the final diff.
+- [x] Refresh snapshots, the canonical baseline, and generated README regions.
+- [x] Run all required validation and inspect the final diff.
 
 ## Task 1: Backend metadata and selection
 
@@ -169,7 +169,143 @@ cargo run --release -p compare-demosaic -- diff \
   target/compare-demosaic/canonical.json
 cargo test --workspace --all-features
 cargo fmt --check
-cargo clippy --workspace --all-features --all-targets -- -D warnings -A clippy::too_many_arguments
+cargo clippy --workspace --all-features --all-targets -- \
+  -A clippy::too_many_arguments \
+  -D clippy::alloc_instead_of_core \
+  -D clippy::allow_attributes_without_reason \
+  -D clippy::as_underscore \
+  -D clippy::bool_to_int_with_if \
+  -D clippy::borrow_as_ptr \
+  -D clippy::branches_sharing_code \
+  -D clippy::clear_with_drain \
+  -D clippy::cloned_instead_of_copied \
+  -D clippy::collapsible_else_if \
+  -D clippy::collection_is_never_read \
+  -D clippy::comparison_chain \
+  -D clippy::dbg_macro \
+  -D clippy::debug_assert_with_mut_call \
+  -D clippy::default_trait_access \
+  -D clippy::deref_by_slicing \
+  -D clippy::doc_comment_double_space_linebreaks \
+  -D clippy::doc_include_without_cfg \
+  -D clippy::duration_suboptimal_units \
+  -D clippy::elidable_lifetime_names \
+  -D clippy::empty_enum_variants_with_brackets \
+  -D clippy::empty_enums \
+  -D clippy::enum_glob_use \
+  -D clippy::equatable_if_let \
+  -D clippy::explicit_deref_methods \
+  -D clippy::explicit_into_iter_loop \
+  -D clippy::explicit_iter_loop \
+  -D clippy::filter_map_next \
+  -D clippy::flat_map_option \
+  -D clippy::if_not_else \
+  -D clippy::if_then_some_else_none \
+  -D clippy::ignored_unit_patterns \
+  -D clippy::impl_trait_in_params \
+  -D clippy::implicit_clone \
+  -D clippy::imprecise_flops \
+  -D clippy::inconsistent_struct_constructor \
+  -D clippy::inefficient_to_string \
+  -D clippy::inline_trait_bounds \
+  -D clippy::invalid_upcast_comparisons \
+  -D clippy::ip_constant \
+  -D clippy::iter_filter_is_ok \
+  -D clippy::iter_filter_is_some \
+  -D clippy::iter_with_drain \
+  -D clippy::large_types_passed_by_value \
+  -D clippy::lossy_float_literal \
+  -D clippy::manual_assert \
+  -D clippy::manual_assert_eq \
+  -D clippy::manual_ilog2 \
+  -D clippy::manual_instant_elapsed \
+  -D clippy::manual_is_power_of_two \
+  -D clippy::manual_is_variant_and \
+  -D clippy::manual_let_else \
+  -D clippy::manual_midpoint \
+  -D clippy::manual_string_new \
+  -D clippy::map_unwrap_or \
+  -D clippy::match_bool \
+  -D clippy::match_same_arms \
+  -D clippy::match_wild_err_arm \
+  -D clippy::missing_const_for_fn \
+  -D clippy::mixed_read_write_in_expression \
+  -D clippy::mut_mut \
+  -D clippy::mutex_integer \
+  -D clippy::needless_bitwise_bool \
+  -D clippy::needless_collect \
+  -D clippy::needless_for_each \
+  -D clippy::needless_raw_string_hashes \
+  -D clippy::needless_raw_strings \
+  -D clippy::needless_type_cast \
+  -D clippy::negative_feature_names \
+  -D clippy::non_std_lazy_statics \
+  -D clippy::nonminimal_bool \
+  -D clippy::nonstandard_macro_braces \
+  -D clippy::option_as_ref_cloned \
+  -D clippy::option_if_let_else \
+  -D clippy::option_option \
+  -D clippy::or_fun_call \
+  -D clippy::pathbuf_init_then_push \
+  -D clippy::ptr_offset_by_literal \
+  -D clippy::pub_underscore_fields \
+  -D clippy::range_minus_one \
+  -D clippy::range_plus_one \
+  -D clippy::rc_mutex \
+  -D clippy::redundant_clone \
+  -D clippy::redundant_closure_for_method_calls \
+  -D clippy::redundant_else \
+  -D clippy::redundant_feature_names \
+  -D clippy::redundant_pub_crate \
+  -D clippy::ref_binding_to_reference \
+  -D clippy::ref_option \
+  -D clippy::ref_option_ref \
+  -D clippy::rest_pat_in_fully_bound_structs \
+  -D clippy::return_and_then \
+  -D clippy::same_length_and_capacity \
+  -D clippy::search_is_some \
+  -D clippy::semicolon_if_nothing_returned \
+  -D clippy::semicolon_outside_block \
+  -D clippy::set_contains_or_insert \
+  -D clippy::should_panic_without_expect \
+  -D clippy::single_char_pattern \
+  -D clippy::single_match_else \
+  -D clippy::single_option_map \
+  -D clippy::stable_sort_primitive \
+  -D clippy::str_split_at_newline \
+  -D clippy::string_lit_as_bytes \
+  -D clippy::suboptimal_flops \
+  -D clippy::trailing_empty_array \
+  -D clippy::trait_duplication_in_bounds \
+  -D clippy::try_err \
+  -D clippy::uninlined_format_args \
+  -D clippy::unnecessary_box_returns \
+  -D clippy::unnecessary_debug_formatting \
+  -D clippy::unnecessary_join \
+  -D clippy::unnecessary_literal_bound \
+  -D clippy::unnecessary_self_imports \
+  -D clippy::unnecessary_semicolon \
+  -D clippy::unnecessary_struct_initialization \
+  -D clippy::unnecessary_trailing_comma \
+  -D clippy::unnested_or_patterns \
+  -D clippy::unseparated_literal_suffix \
+  -D clippy::unused_peekable \
+  -D clippy::unused_rounding \
+  -D clippy::use_self \
+  -D clippy::useless_let_if_seq \
+  -D clippy::verbose_bit_mask \
+  -D clippy::wildcard_dependencies \
+  -D clippy::wildcard_imports \
+  -D clippy::zero_sized_map_values \
+  -D explicit_outlives_requirements \
+  -D future_incompatible \
+  -D rust_2018_idioms \
+  -D rust-2024-compatibility \
+  -D unsafe_op_in_unsafe_fn \
+  -D unused_extern_crates \
+  -D unused_import_braces \
+  -D unused_lifetimes \
+  -D warnings
 git diff --check
 ```
 
@@ -186,3 +322,12 @@ git diff --check
   correspond to the existing LibRaw/darktable reference semantics.
 - IGV, EAHD, and HPHD remain adapter-only until matching Fornax implementations
   exist.
+- The compatibility output planes include two guard rows and columns because
+  RawTherapee 5.13's AMaZE scalar path can write one pixel past odd-width GRBG
+  output. Only the requested image plane is copied back.
+- RawTherapee's LMMSE and color LUT facade clamps floating-point indices to the
+  table bounds, matching the upstream LUT clipping convention.
+- Workspace clippy currently reports pre-existing lints in untouched
+  `fornax-preprocessor` and `fornax-postprocessor` files. The same strict lint
+  invocation on `compare-demosaic` reaches two pre-existing redundant-clone
+  findings in `diff.rs` and `metrics.rs`; no new RawTherapee finding is present.

@@ -6,6 +6,7 @@ use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
 pub enum ReferenceBackend {
     LibRaw,
     Darktable,
+    RawTherapee,
 }
 
 impl ReferenceBackend {
@@ -13,6 +14,7 @@ impl ReferenceBackend {
         match self {
             Self::LibRaw => "LibRaw",
             Self::Darktable => "darktable",
+            Self::RawTherapee => "RawTherapee",
         }
     }
 }
@@ -119,6 +121,36 @@ const LIBRAW_DHT_URL: &str = concat!(
     env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
     "/src/demosaic/dht_demosaic.cpp#L1012"
 );
+const RAWTHERAPEE_AHD_URL: &str = concat!(
+    "https://github.com/RawTherapee/RawTherapee/blob/",
+    env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
+    "/rtengine/ahd_demosaic_RT.cc#L44"
+);
+const RAWTHERAPEE_AMAZE_URL: &str = concat!(
+    "https://github.com/RawTherapee/RawTherapee/blob/",
+    env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
+    "/rtengine/amaze_demosaic_RT.cc#L48"
+);
+const RAWTHERAPEE_DCB_URL: &str = concat!(
+    "https://github.com/RawTherapee/RawTherapee/blob/",
+    env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
+    "/rtengine/demosaic_algos.cc#L1406"
+);
+const RAWTHERAPEE_LMMSE_URL: &str = concat!(
+    "https://github.com/RawTherapee/RawTherapee/blob/",
+    env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
+    "/rtengine/lmmse_demosaic.cc#L42"
+);
+const RAWTHERAPEE_RCD_URL: &str = concat!(
+    "https://github.com/RawTherapee/RawTherapee/blob/",
+    env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
+    "/rtengine/rcd_demosaic.cc#L53"
+);
+const RAWTHERAPEE_VNG4_URL: &str = concat!(
+    "https://github.com/RawTherapee/RawTherapee/blob/",
+    env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
+    "/rtengine/vng4_demosaic_RT.cc#L64"
+);
 
 const AHD: Case = Case {
     name: "AHD",
@@ -224,6 +256,54 @@ const VNG4_LIBRAW: Case = Case {
     tolerance: ROBUST,
     run_fornax: run_vng4,
 };
+const AHD_RAWTHERAPEE: Case = Case {
+    name: "AHD",
+    source_url: RAWTHERAPEE_AHD_URL,
+    reference_backend: ReferenceBackend::RawTherapee,
+    algorithm: 1,
+    tolerance: ROBUST,
+    run_fornax: run_ahd,
+};
+const AMAZE_RAWTHERAPEE: Case = Case {
+    name: "AMaZE",
+    source_url: RAWTHERAPEE_AMAZE_URL,
+    reference_backend: ReferenceBackend::RawTherapee,
+    algorithm: 0,
+    tolerance: ROBUST,
+    run_fornax: run_amaze,
+};
+const DCB_RAWTHERAPEE: Case = Case {
+    name: "DCB",
+    source_url: RAWTHERAPEE_DCB_URL,
+    reference_backend: ReferenceBackend::RawTherapee,
+    algorithm: 2,
+    tolerance: ROBUST,
+    run_fornax: run_dcb,
+};
+const LMMSE_RAWTHERAPEE: Case = Case {
+    name: "LMMSE",
+    source_url: RAWTHERAPEE_LMMSE_URL,
+    reference_backend: ReferenceBackend::RawTherapee,
+    algorithm: 3,
+    tolerance: ROBUST,
+    run_fornax: run_lmmse,
+};
+const RCD_RAWTHERAPEE: Case = Case {
+    name: "RCD",
+    source_url: RAWTHERAPEE_RCD_URL,
+    reference_backend: ReferenceBackend::RawTherapee,
+    algorithm: 4,
+    tolerance: ROBUST,
+    run_fornax: run_rcd,
+};
+const VNG4_RAWTHERAPEE: Case = Case {
+    name: "VNG4",
+    source_url: RAWTHERAPEE_VNG4_URL,
+    reference_backend: ReferenceBackend::RawTherapee,
+    algorithm: 5,
+    tolerance: ROBUST,
+    run_fornax: run_vng4,
+};
 
 pub const CASES: &[Case] = &[
     AHD,
@@ -239,6 +319,12 @@ pub const CASES: &[Case] = &[
     VNG_DARKTABLE,
     VNG_LIBRAW,
     VNG4_LIBRAW,
+    AHD_RAWTHERAPEE,
+    AMAZE_RAWTHERAPEE,
+    DCB_RAWTHERAPEE,
+    LMMSE_RAWTHERAPEE,
+    RCD_RAWTHERAPEE,
+    VNG4_RAWTHERAPEE,
 ];
 
 #[derive(Clone, Copy, Debug)]
@@ -283,7 +369,7 @@ pub fn algorithm_names() -> Vec<&'static str> {
     names
 }
 
-pub fn reference_names() -> Vec<&'static str> { vec!["darktable", "libraw"] }
+pub fn reference_names() -> Vec<&'static str> { vec!["darktable", "libraw", "rawtherapee"] }
 
 pub fn case_for(algorithm: &str, reference: &str) -> Option<&'static Case> {
     CASES.iter().find(|case| {
@@ -413,6 +499,21 @@ mod tests {
             BayerPattern::ALL
                 .iter()
                 .all(|pattern| rows.iter().any(|row| row.pattern == *pattern))
+        );
+    }
+
+    #[test]
+    fn rawtherapee_covers_shared_algorithms_without_dual() {
+        for algorithm in ["ahd", "amaze", "dcb", "lmmse", "rcd", "vng4"] {
+            assert!(
+                case_for(algorithm, "rawtherapee").is_some(),
+                "missing RawTherapee comparison for {algorithm}"
+            );
+        }
+        assert!(
+            algorithm_names()
+                .iter()
+                .all(|name| !name.to_ascii_lowercase().contains("dual"))
         );
     }
 }

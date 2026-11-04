@@ -468,6 +468,7 @@ mod tests {
                 references: References {
                     libraw: "0.22.3".to_owned(),
                     darktable: "5.6.2".to_owned(),
+                    rawtherapee: "5.13".to_owned(),
                 },
                 limits: Limits {
                     mae: 2.0,

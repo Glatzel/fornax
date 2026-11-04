@@ -1,8 +1,9 @@
 # compare-demosaic: agent guide
 
-Compares Fornax demosaic output with LibRaw and darktable. The baseline JSON is
-the only source of truth for results. Repository-wide workflow lives in the
-[root agent guide](../../AGENTS.md); this file covers only comparison work.
+Compares Fornax demosaic output with LibRaw, darktable, and RawTherapee. The
+baseline JSON is the only source of truth for results. Repository-wide workflow
+lives in the [root agent guide](../../AGENTS.md); this file covers only
+comparison work.
 
 ## Commands
 
@@ -47,8 +48,10 @@ LibRaw 0.22.3 reference headers and routines come from the repository-managed
 darktable reference code is pinned to the `5.6.2` release. Run
 `scripts/setup.sh` on Linux/macOS or `scripts/setup.ps1` on Windows. The setup
 scripts use `gh api` to materialize only the required darktable source files.
-Keep the versions and commit URLs in `build.rs` and `src/cases.rs` synchronized
-with those sources.
+RawTherapee reference code is pinned to the `5.13` release; the same setup
+scripts materialize its required algorithm and support sources. Keep the
+versions and commit URLs in `build.rs`, `src/cases.rs`, and both setup scripts
+synchronized with those sources.
 
 ## Investigating one algorithm or case
 

@@ -16,6 +16,8 @@ use crate::waivers::WAIVERS;
 pub const LIBRAW_COMMIT: &str = env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT");
 pub const DARKTABLE_RELEASE: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_RELEASE");
 pub const DARKTABLE_COMMIT: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_COMMIT");
+pub const RAWTHERAPEE_RELEASE: &str = env!("COMPARE_DEMOSAIC_RAWTHERAPEE_RELEASE");
+pub const RAWTHERAPEE_COMMIT: &str = env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT");
 pub const LIBRAW_VERSION: &str = env!("COMPARE_DEMOSAIC_LIBRAW_VERSION");
 
 #[derive(Clone, Debug)]
@@ -175,6 +177,7 @@ pub(crate) fn execute_with_inputs(
             references: References {
                 libraw: LIBRAW_VERSION.to_owned(),
                 darktable: DARKTABLE_RELEASE.to_owned(),
+                rawtherapee: RAWTHERAPEE_RELEASE.to_owned(),
             },
             limits: report::LIMITS,
             border_px: request.border_px,

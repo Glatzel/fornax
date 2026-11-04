@@ -215,6 +215,7 @@ pub fn run(
             match reference {
                 ReferenceBackend::LibRaw => 0,
                 ReferenceBackend::Darktable => 1,
+                ReferenceBackend::RawTherapee => 2,
             },
             algorithm,
             codes.as_ptr(),

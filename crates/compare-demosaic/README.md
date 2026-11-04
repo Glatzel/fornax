@@ -1,8 +1,8 @@
 # compare-demosaic
 
-Compares Fornax demosaic output with LibRaw and darktable at the same stage:
-the active Bayer mosaic enters each implementation and reconstructed RGB leaves
-it. White balance and the default output crop are not applied.
+Compares Fornax demosaic output with LibRaw, darktable, and RawTherapee at the
+same stage: the active Bayer mosaic enters each implementation and reconstructed
+RGB leaves it. White balance and the default output crop are not applied.
 
 `baseline/canonical.json` is the source of truth for results. The blocks marked
 as generated below are derived from that JSON. Text outside the markers and the
@@ -148,17 +148,23 @@ and are consistency checks against the same image.
 | --- | --- | --- | --- |
 | AAHD | libraw | ⚖️ | GBRG ⚖️ |
 | AHD | libraw | ⚖️ | GBRG ⚖️ |
+| AHD | rawtherapee | ❌ | GBRG ❌ |
 | AMaZE | darktable | ❌ | GBRG ❌ |
+| AMaZE | rawtherapee | ❌ | GBRG ❌ |
 | DCB | libraw | ✅ | GBRG ✅ |
+| DCB | rawtherapee | ❌ | GBRG ❌ |
 | DHT | libraw | ❌ | GBRG ❌ |
 | Linear | libraw | 🟢 | GBRG 🟢 |
 | LMMSE | darktable | ✅ | GBRG ✅ |
+| LMMSE | rawtherapee | ❌ | GBRG ❌ |
 | PPG | darktable | ✅ | GBRG ✅ |
 | PPG | libraw | ⚖️ | GBRG ⚖️ |
 | RCD | darktable | ⚖️ | GBRG ⚖️ |
+| RCD | rawtherapee | ⚠️ | GBRG ⚠️ |
 | VNG | darktable | ✅ | GBRG ✅ |
 | VNG | libraw | ❌ | GBRG ❌ |
 | VNG4 | libraw | ✅ | GBRG ✅ |
+| VNG4 | rawtherapee | ❌ | GBRG ❌ |
 <!-- compare-demosaic:end summary -->
 
 ## Legend
@@ -220,12 +226,17 @@ Accepted outliers (aahd vs LibRaw, all patterns): at most 4026 samples above 102
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | [0, 0] | yes | ⚖️ | 0.875973 | 24.651269 | 5222 | 0.019917 | 1 | 296 | 6767 (193) | 0.022486 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | [1, 1] | no | ⚖️ | 0.875274 | 24.637366 | 5222 | 0.019827 | 1 | 295 | 6754 (190) | 0.022486 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | [0, 1] | no | ⚖️ | 0.875219 | 24.635455 | 5222 | 0.019824 | 1 | 295 | 6754 (190) | 0.022486 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | BGGR | [1, 0] | no | ❌ | 6.723789 | 62.199928 | 5841 | -0.122462 | 154 | 926 | 41372 (854) | 0.196035 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GBRG | [0, 0] | yes | ❌ | 6.723326 | 62.195036 | 5841 | -0.122399 | 154 | 926 | 41372 (854) | 0.196034 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GRBG | [1, 1] | no | ❌ | 6.720516 | 62.159150 | 5841 | -0.122432 | 154 | 925 | 41296 (841) | 0.196038 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | RGGB | [0, 1] | no | ❌ | 6.720053 | 62.154262 | 5841 | -0.122369 | 154 | 925 | 41296 (841) | 0.196037 |
 
 Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024, maximum error at most 5222. Reason: Independent AHD tile, clipping, matrix, and quantization conventions change local directional decisions at high-contrast chart edges. Evidence: PR #602's valid-crop experiment has the same outlier tail in all four CFA phases with exact sampled Bayer values; the former BGGR and RGGB failures were invalid green-phase test input.
 <!-- compare-demosaic:end algo:ahd -->
 
 > [!NOTE]
-> **Reference:** LibRaw, `ahd_interpolate`.
+> **Reference:** LibRaw, `ahd_interpolate`, and RawTherapee 5.13,
+> `ahd_demosaic`.
 > **Why this reference:** it is the established AHD implementation used by
 > other RAW processors and has a stable pinned source revision.
 > **Why we match:** Fornax builds horizontal and vertical green candidates,
@@ -234,7 +245,9 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 > **Known differences:** Fornax uses the published camera-to-XYZ matrix,
 > 512-pixel working tiles, floor intermediates and nearest-neighbor output
 > quantization. LibRaw owns its tile, clipping and final quantization
-> conventions, so decision boundaries can differ even with the same AHD rules.
+> conventions, while RawTherapee uses its own tile and Lab conventions.
+> RawTherapee normally receives channel-scaled working data after `scaleColors`;
+> the comparison supplies the common active mosaic without white balance.
 > PR #602's valid-crop experiment shows the remaining outlier tail is stable
 > across all four CFA phases and sampled Bayer values are exact. The former
 > BGGR/RGGB failures were invalid green-phase test input; the remaining
@@ -249,10 +262,15 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GBRG | [0, 0] | yes | ❌ | 79.498569 | 186.002581 | 9623 | 17.574803 | 808 | 1442 | 239862 (10535) | 0.659406 |
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GRBG | [1, 1] | no | ❌ | 79.472438 | 185.943699 | 9623 | 17.631790 | 808 | 1441 | 239711 (11161) | 0.659409 |
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | RGGB | [0, 1] | no | ❌ | 79.464767 | 185.929591 | 9623 | 17.626376 | 808 | 1441 | 239741 (11160) | 0.659410 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | BGGR | [1, 0] | no | ❌ | 6628.008481 | 17087.809969 | 65535 | -4822.942373 | 65085 | 65363 | 20099315 (279705) | 0.663642 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | GBRG | [0, 0] | yes | ❌ | 6629.719095 | 17090.488577 | 65535 | -4824.339348 | 65085 | 65363 | 20105521 (280907) | 0.663643 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | GRBG | [1, 1] | no | ❌ | 6659.144777 | 17132.098110 | 65535 | -4851.093860 | 65086 | 65363 | 20143320 (282653) | 0.663656 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | RGGB | [0, 1] | no | ❌ | 6660.392138 | 17133.840330 | 65535 | -4852.128179 | 65086 | 65362 | 20149232 (283697) | 0.663657 |
 <!-- compare-demosaic:end algo:amaze -->
 
 > [!NOTE]
-> **Reference:** darktable, `amaze_demosaic`.
+> **Reference:** darktable, `amaze_demosaic`, and RawTherapee 5.13,
+> `amaze_demosaic_RT`.
 > **Why this reference:** darktable is the primary open-source AMaZE
 > implementation used for reproducing this published algorithm.
 > **Why we match:** both retain measured CFA values, choose green from
@@ -261,8 +279,9 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 > **Known differences:** Fornax uses the shared directional kernel with an
 > edge-weight exponent of three and a three-pixel chroma radius instead of
 > darktable's full AMaZE tile processing. Fornax also clamps in normalized
-> space and quantizes to nearest; darktable's reference bridge performs the
-> same final normalization from its tile result.
+> space and quantizes to nearest. RawTherapee normally receives channel-scaled
+> data after `scaleColors`; the comparison deliberately omits white balance, so
+> its edge decisions can differ more strongly on the uncorrected mosaic.
 
 ## DCB
 
@@ -273,10 +292,14 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GBRG | [0, 0] | yes | ✅ | 0.000258 | 0.016073 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000257 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GRBG | [1, 1] | no | ✅ | 0.000258 | 0.016074 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000257 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | RGGB | [0, 1] | no | ✅ | 0.000257 | 0.016064 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000257 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | BGGR | [1, 0] | no | ❌ | 66.609247 | 209.744859 | 6728 | -4.416030 | 1018 | 2118 | 532343 (17329) | 0.650392 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | GBRG | [0, 0] | yes | ❌ | 66.600871 | 209.719330 | 6728 | -4.421547 | 1017 | 2117 | 532258 (17324) | 0.650393 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | GRBG | [1, 1] | no | ❌ | 66.584711 | 209.700425 | 6728 | -4.425208 | 1017 | 2117 | 531894 (17634) | 0.650415 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | RGGB | [0, 1] | no | ❌ | 66.576286 | 209.673892 | 6728 | -4.431613 | 1017 | 2117 | 531807 (17627) | 0.650416 |
 <!-- compare-demosaic:end algo:dcb -->
 
 > [!NOTE]
-> **Reference:** LibRaw, `dcb`.
+> **Reference:** LibRaw, `dcb`, and RawTherapee 5.13, `dcb_demosaic`.
 > **Why this reference:** it is the maintained implementation of directional
 > color balance demosaicing and exposes the complete LibRaw pipeline.
 > **Why we match:** Fornax follows LibRaw's `pre_interpolate()` plus
@@ -286,7 +309,8 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 > **Known differences:** Fornax omits camera metadata handling, callbacks, and
 > LibRaw's surrounding processing pipeline. The comparison starts from the same
 > normalized active Bayer mosaic and copies the resulting RGB channels
-> directly.
+> directly. The RawTherapee bridge pins the compatible zero-iteration enhanced
+> DCB path and omits its preprocess/output pipeline.
 
 ## DHT
 
@@ -343,10 +367,15 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | [0, 0] | yes | ✅ | 0.000433 | 0.020814 | 1 | -0.000001 | 0 | 0 | 0 (0) | 0.000433 |
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | [1, 1] | no | ✅ | 0.000432 | 0.020790 | 1 | -0.000004 | 0 | 0 | 0 (0) | 0.000432 |
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | [0, 1] | no | ✅ | 0.000432 | 0.020785 | 1 | -0.000003 | 0 | 0 | 0 (0) | 0.000432 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | BGGR | [1, 0] | no | ❌ | 12.900820 | 94.391841 | 16954 | -0.847148 | 158 | 567 | 17216 (12342) | 0.493142 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | GBRG | [0, 0] | yes | ❌ | 12.897497 | 94.205491 | 16954 | -0.850165 | 157 | 570 | 17354 (12506) | 0.493153 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | GRBG | [1, 1] | no | ❌ | 12.814166 | 89.458150 | 16228 | -0.758003 | 157 | 561 | 16524 (11807) | 0.493129 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | RGGB | [0, 1] | no | ❌ | 12.812612 | 89.291776 | 16228 | -0.761280 | 157 | 564 | 16709 (12003) | 0.493143 |
 <!-- compare-demosaic:end algo:lmmse -->
 
 > [!NOTE]
-> **Reference:** darktable, `lmmse_demosaic`.
+> **Reference:** darktable, `lmmse_demosaic`, and RawTherapee 5.13,
+> `lmmse_interpolate_omp`.
 > **Why this reference:** darktable is the maintained LMMSE implementation
 > used for the reference comparison.
 > **Why we match:** both seed from PPG, transform the CFA through the same
@@ -356,8 +385,10 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 > tiles with a four-pixel border, eight-pixel overlap, and a 112-pixel valid
 > stride.
 > **Known differences:** Fornax keeps the kernel in Rust `f32` and quantizes
-> once at the comparison boundary. Compiler contraction can leave one-code
-> differences from the C reference; measured Bayer sites remain exact.
+> once at the comparison boundary. RawTherapee uses its own gamma LUT and one
+> iteration in the comparison bridge. Compiler contraction and these table
+> conventions can leave small differences from the C references; measured
+> Bayer sites remain exact.
 
 ## PPG
 
@@ -404,21 +435,27 @@ Accepted outliers (ppg vs LibRaw, all patterns): at most 53 samples above 1024, 
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | GBRG | [0, 0] | yes | ⚖️ | 0.083077 | 1.015566 | 1359 | -0.000212 | 2 | 11 | 1 (0) | 0.033374 |
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | GRBG | [1, 1] | no | ⚖️ | 0.083046 | 1.012371 | 1072 | -0.000215 | 2 | 11 | 1 (0) | 0.033355 |
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/rcd.c#L119) | RGGB | [0, 1] | no | ⚖️ | 0.083101 | 1.015712 | 1359 | -0.000212 | 2 | 11 | 1 (0) | 0.033384 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/rcd_demosaic.cc#L53) | BGGR | [1, 0] | no | ⚠️ | 0.870757 | 23.378354 | 3727 | 0.022365 | 3 | 196 | 7180 (7179) | 0.038540 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/rcd_demosaic.cc#L53) | GBRG | [0, 0] | yes | ⚠️ | 0.871883 | 23.391745 | 3727 | 0.025217 | 3 | 196 | 7184 (7183) | 0.038567 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/rcd_demosaic.cc#L53) | GRBG | [1, 1] | no | ⚠️ | 0.873075 | 23.445153 | 3727 | 0.000155 | 3 | 197 | 7266 (7265) | 0.038554 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/rcd_demosaic.cc#L53) | RGGB | [0, 1] | no | ⚠️ | 0.874198 | 23.458456 | 3727 | 0.003023 | 3 | 197 | 7270 (7269) | 0.038579 |
 
 Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024, maximum error at most 1359. Reason: A near-tie RCD interpolation decision flips under independent floating-point evaluation at one high-contrast chart edge. Evidence: Every CFA phase has one interior high-error sample at the same shifted red-site edge; sampled Bayer values are exact.
 <!-- compare-demosaic:end algo:rcd -->
 
 > [!NOTE]
-> **Reference:** darktable, `rcd_demosaic`.
+> **Reference:** darktable, `rcd_demosaic`, and RawTherapee 5.13,
+> `rcd_demosaic`.
 > **Why this reference:** darktable provides the pinned RCD 2.3 implementation
 > against which the independently structured Fornax version is compared.
 > **Why we match:** both seed with PPG, use the same 112-pixel tile geometry,
 > compute directional high-pass gradient confidence, interpolate ratio-corrected
 > green, and then reconstruct diagonal color differences.
 > **Known differences:** Fornax evaluates the formulas through normalized
-> floating-point Rust and clamps final output to `[0, 1]`; the reference bridge
-> quantizes the darktable result after the same clamp. Border fill and the
-> surrounding metadata pipeline are not shared. The remaining outlier tail is
+> floating-point Rust and clamps final output to `[0, 1]`; the reference bridges
+> quantize after the same clamp. Border fill and the surrounding metadata
+> pipeline are not shared. RawTherapee uses a compatible tiled RCD path without
+> white balance or its preprocess/output stages. The remaining outlier tail is
 > confined to interpolated samples near high-contrast chart features; sampled
 > Bayer values match the reference exactly. The sole high-error sample in each
 > CFA phase is the same shifted red-site chart edge, accepted as floating-point
@@ -469,11 +506,15 @@ Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | GBRG | [0, 0] | yes | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | GRBG | [1, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | RGGB | [0, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | BGGR | [1, 0] | no | ❌ | 17.032370 | 48.069389 | 7967 | 0.295775 | 179 | 452 | 10183 (594) | 0.634070 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | GBRG | [0, 0] | yes | ❌ | 17.030921 | 48.063943 | 7967 | 0.298141 | 179 | 452 | 10183 (594) | 0.634068 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | GRBG | [1, 1] | no | ❌ | 17.027638 | 48.065447 | 7967 | 0.248746 | 179 | 452 | 10152 (563) | 0.634084 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | RGGB | [0, 1] | no | ❌ | 17.026189 | 48.060010 | 7967 | 0.251119 | 179 | 452 | 10152 (563) | 0.634082 |
 <!-- compare-demosaic:end algo:vng4 -->
 
 > [!NOTE]
 > **Reference:** LibRaw, `vng_interpolate` after `pre_interpolate` with
-> `four_color_rgb = 1`.
+> `four_color_rgb = 1`, and RawTherapee 5.13, `vng4_demosaic`.
 > **Why this reference:** this is LibRaw's explicit four-color VNG mode, which
 > keeps the two green CFA phases separate through interpolation.
 > **Why we match:** both implementations run VNG with split green planes and
@@ -481,5 +522,7 @@ Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024
 > **Known differences:** Fornax shares its integer split-green VNG kernel with
 > the `Demosaic::Vng` selector and exposes VNG4 as a distinct algorithm choice.
 > The comparison adapter sets LibRaw's four-color option before
-> `pre_interpolate` and performs the documented post-interpolation green mix;
-> no source code is copied into the postprocessor.
+> `pre_interpolate` and performs the documented post-interpolation green mix.
+> The RawTherapee bridge preserves its split-green `prefilters` mask and omits
+> its preprocess/output pipeline; no source code is copied into the
+> postprocessor.

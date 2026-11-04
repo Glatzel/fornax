@@ -5,6 +5,35 @@ const LIBRAW_SOURCE_VERSION: &str = "0.22.3";
 const LIBRAW_SOURCE_COMMIT: &str = "cf02d66eb5c19d4e46df7aee0582e47a4918509a";
 const DARKTABLE_SOURCE_RELEASE: &str = "5.6.2";
 const DARKTABLE_SOURCE_COMMIT: &str = "20891f6c6fa7be995e5bf9dff9d1ee5062051773";
+const RAWTHERAPEE_SOURCE_RELEASE: &str = "5.13";
+const RAWTHERAPEE_SOURCE_COMMIT: &str = "1924179107995b01b73cdc7f4fe91e44fc8227a7";
+const RAWTHERAPEE_SOURCE_FILES: &[&str] = &[
+    "ahd_demosaic_RT.cc",
+    "amaze_demosaic_RT.cc",
+    "demosaic_algos.cc",
+    "eahd_demosaic.cc",
+    "hphd_demosaic_RT.cc",
+    "lmmse_demosaic.cc",
+    "rcd_demosaic.cc",
+    "vng4_demosaic_RT.cc",
+    "iccmatrices.h",
+    "jaggedarray.h",
+    "median.h",
+    "opthelper.h",
+    "rawimagesource_i.h",
+    "rt_math.h",
+];
+const RAWTHERAPEE_SHIM_SOURCES: &[&str] = &[
+    "cpp/algos/rawtherapee_ahd.cpp",
+    "cpp/algos/rawtherapee_amaze.cpp",
+    "cpp/algos/rawtherapee_dcb.cpp",
+    "cpp/algos/rawtherapee_eahd.cpp",
+    "cpp/algos/rawtherapee_hphd.cpp",
+    "cpp/algos/rawtherapee_igv.cpp",
+    "cpp/algos/rawtherapee_lmmse.cpp",
+    "cpp/algos/rawtherapee_rcd.cpp",
+    "cpp/algos/rawtherapee_vng4.cpp",
+];
 const SHIM_SOURCES: &[&str] = &[
     "cpp/algos/darktable_ppg.cpp",
     "cpp/algos/libraw_aahd.cpp",
@@ -33,6 +62,15 @@ fn main() {
         );
         println!("cargo:rerun-if-changed={}", darktable_source.display());
     }
+    let rawtherapee_dir = workspace_root.join("external/rawtherapee/rtengine");
+    for source in RAWTHERAPEE_SOURCE_FILES {
+        let path = rawtherapee_dir.join(source);
+        assert!(
+            path.is_file(),
+            "run the platform setup script to materialize RawTherapee {source}"
+        );
+        println!("cargo:rerun-if-changed={}", path.display());
+    }
     let libraw_root =
         workspace_root.join(env::var("LIBRAW_ROOT").expect("LIBRAW_ROOT must be set"));
     let include_dir = libraw_root.join("include");
@@ -51,6 +89,8 @@ fn main() {
     println!("cargo:rustc-env=COMPARE_DEMOSAIC_LIBRAW_COMMIT={LIBRAW_SOURCE_COMMIT}");
     println!("cargo:rustc-env=COMPARE_DEMOSAIC_DARKTABLE_RELEASE={DARKTABLE_SOURCE_RELEASE}");
     println!("cargo:rustc-env=COMPARE_DEMOSAIC_DARKTABLE_COMMIT={DARKTABLE_SOURCE_COMMIT}");
+    println!("cargo:rustc-env=COMPARE_DEMOSAIC_RAWTHERAPEE_RELEASE={RAWTHERAPEE_SOURCE_RELEASE}");
+    println!("cargo:rustc-env=COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT={RAWTHERAPEE_SOURCE_COMMIT}");
     write_status_codes(&manifest_dir);
 
     let mut build = cc::Build::new();
@@ -104,6 +144,31 @@ fn main() {
         .flag_if_supported("-Wno-unused-parameter")
         .file(manifest_dir.join("cpp/algos/darktable_lmmse.c"));
     darktable_lmmse.compile("compare_demosaic_darktable_lmmse");
+
+    let mut rawtherapee = cc::Build::new();
+    rawtherapee
+        .cpp(true)
+        .warnings(true)
+        .include(manifest_dir.join("cpp/algos/rawtherapee/stubs"))
+        .include(manifest_dir.join("cpp/algos"))
+        .include(&rawtherapee_dir)
+        .include(&workspace_root)
+        .flag_if_supported("/std:c++17")
+        .flag_if_supported("-std=c++17")
+        .flag_if_supported("-U__SSE2__")
+        .flag_if_supported("-Wno-unused-function")
+        .flag_if_supported("-Wno-unused-parameter")
+        .flag_if_supported("-Wno-unused-variable")
+        .flag_if_supported("-Wno-deprecated-declarations");
+    for source in RAWTHERAPEE_SOURCE_FILES {
+        if source.ends_with(".cc") {
+            rawtherapee.file(rawtherapee_dir.join(source));
+        }
+    }
+    for source in RAWTHERAPEE_SHIM_SOURCES {
+        rawtherapee.file(manifest_dir.join(source));
+    }
+    rawtherapee.compile("compare_demosaic_rawtherapee_reference");
 
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
     println!("cargo:rustc-link-lib=raw_r");

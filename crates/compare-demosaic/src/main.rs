@@ -109,7 +109,7 @@ struct ReadmeArgs {
 #[derive(Debug, Parser)]
 #[command(
     version,
-    about = "Compare Fornax demosaic implementations with LibRaw and darktable"
+    about = "Compare Fornax demosaic implementations with LibRaw, darktable, and RawTherapee"
 )]
 struct Args {
     #[command(subcommand)]

@@ -110,6 +110,30 @@ extern "C" std::int32_t compare_demosaic_reference(
                 return COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM;
         }
     }
+    if (reference == COMPARE_DEMOSAIC_REFERENCE_RAWTHERAPEE) {
+        switch (algorithm) {
+            case 0:
+                return run_rawtherapee_amaze(mosaic, width, height, filters, output);
+            case 1:
+                return run_rawtherapee_ahd(mosaic, width, height, filters, output);
+            case 2:
+                return run_rawtherapee_dcb(mosaic, width, height, filters, output);
+            case 3:
+                return run_rawtherapee_lmmse(mosaic, width, height, filters, output);
+            case 4:
+                return run_rawtherapee_rcd(mosaic, width, height, filters, output);
+            case 5:
+                return run_rawtherapee_vng4(mosaic, width, height, filters, output);
+            case 6:
+                return run_rawtherapee_igv(mosaic, width, height, filters, output);
+            case 7:
+                return run_rawtherapee_eahd(mosaic, width, height, filters, output);
+            case 8:
+                return run_rawtherapee_hphd(mosaic, width, height, filters, output);
+            default:
+                return COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM;
+        }
+    }
     if (reference != COMPARE_DEMOSAIC_REFERENCE_LIBRAW) {
         return COMPARE_DEMOSAIC_STATUS_UNKNOWN_ALGORITHM;
     }
