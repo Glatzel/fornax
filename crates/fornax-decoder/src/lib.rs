@@ -22,17 +22,16 @@
 
 mod decoded;
 mod dng;
-pub mod write_option;
 pub mod error;
 mod format;
-mod metadata;
+pub mod metadata;
 mod protocol;
+pub mod write_option;
 
 use std::path::Path;
 
 pub use decoded::{DecodedRaw, MosaicData};
 pub use format::SourceFormat;
-pub use metadata::{DngMetadata, DngTag, DngValue};
 
 /// DNG-centred decoder entry point.
 ///

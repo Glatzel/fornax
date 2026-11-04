@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::{DngTag, SourceFormat};
+use crate::{SourceFormat, metadata::DngTag};
 
 /// Decode failure with a stable category for corpus tracking.
 ///
