@@ -1,10 +1,13 @@
-use std::io::{Seek, Write};
+use std::fs::File;
+use std::io::{BufWriter, Seek, Write};
+use std::path::Path;
 
 use tiff::encoder::{DirectoryEncoder, Rational, SRational, TiffEncoder, TiffKindStandard};
 use tiff::tags::{SampleFormat, Tag};
 
+use crate::MosaicData;
 use crate::error::DngWriteError;
-use crate::{DecodedRaw, DngTag, DngValue, MosaicData};
+use crate::metadata::dng::{DngMetadata, DngTag, DngValue};
 
 /// DNG compression modes written in the first implementation stage.
 ///
@@ -71,28 +74,17 @@ impl Default for DngVersion {
     fn default() -> Self { Self::latest() }
 }
 
-/// DNG writer configuration.
-///
-/// # Examples
-///
-/// ```
-/// use fornax_decoder::{DngCompression, DngVersion, DngWriteOptions};
-///
-/// let options = DngWriteOptions::default();
-/// assert_eq!(options.compression(), DngCompression::LosslessJpeg);
-/// assert_eq!(options.version(), DngVersion::latest());
-/// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct DngWriteOptions {
+pub struct DngWriter {
     version: DngVersion,
     compression: DngCompression,
 }
 
-impl Default for DngWriteOptions {
+impl Default for DngWriter {
     fn default() -> Self { Self::new(DngCompression::default()) }
 }
 
-impl DngWriteOptions {
+impl DngWriter {
     /// Creates writer options for the current DNG specification and requested
     /// compression mode.
     pub const fn new(compression: DngCompression) -> Self {
@@ -116,21 +108,63 @@ impl DngWriteOptions {
 
     /// Returns the selected version used for regenerated output.
     pub const fn version(self) -> DngVersion { self.version }
+
+    pub fn write<P>(
+        &self,
+        path: P,
+        mosaic: &MosaicData,
+        metadata: &DngMetadata,
+    ) -> Result<(), DngWriteError>
+    where
+        P: AsRef<Path>,
+    {
+        let file = File::create(path.as_ref()).map_err(|error| DngWriteError::Io {
+            operation: format!("creating {}", path.as_ref().display()).into(),
+            detail: error.to_string().into(),
+        })?;
+        self.write_dng_with(BufWriter::new(file), mosaic, metadata)
+    }
+    pub fn write_dng_with<W>(
+        &self,
+        writer: W,
+        mosaic: &MosaicData,
+        metadata: &DngMetadata,
+    ) -> Result<(), DngWriteError>
+    where
+        W: Write + Seek,
+    {
+        match self.compression() {
+            DngCompression::Uncompressed => {
+                write_uncompressed(writer, mosaic, metadata, self.version())?;
+            }
+            DngCompression::LosslessJpeg => {
+                return Err(DngWriteError::Unsupported {
+                    operation: format!(
+                        "{:?} DNG export without matching source encoding",
+                        self.compression()
+                    )
+                    .into(),
+                });
+            }
+        };
+        Ok(())
+    }
 }
 
-pub fn write_uncompressed<W>(
-    decoded: &DecodedRaw,
+fn write_uncompressed<W>(
     writer: W,
-    options: DngWriteOptions,
+    mosaic: &MosaicData,
+    metadata: &DngMetadata,
+    version: DngVersion,
 ) -> Result<(), DngWriteError>
 where
     W: Write + Seek,
 {
-    let (width, height) = decoded.dimensions();
+    let (width, height) = mosaic.dimensions();
     let mut encoder = TiffEncoder::new(writer).map_err(tiff_write_error)?;
     let mut directory = encoder.image_directory().map_err(tiff_write_error)?;
 
-    let (strip_offset, strip_byte_count, bits_per_sample, sample_format) = match decoded.pixels() {
+    let (strip_offset, strip_byte_count, bits_per_sample, sample_format) = match mosaic {
         MosaicData::U8(image) => {
             let data = image.as_raw();
             (
@@ -219,7 +253,6 @@ where
         .write_tag(Tag::SampleFormat, sample_format)
         .map_err(tiff_write_error)?;
 
-    let version = options.version();
     let dng_version = [version.major, version.minor, version.patch, version.build];
     directory
         .write_tag(Tag::Unknown(DngTag::DngVersion.into()), dng_version)
@@ -228,7 +261,7 @@ where
         .write_tag(Tag::Unknown(DngTag::DngBackwardVersion.into()), dng_version)
         .map_err(tiff_write_error)?;
 
-    for (tag, value) in decoded.metadata() {
+    for (tag, value) in metadata {
         if is_regenerated_tag(*tag) {
             continue;
         }

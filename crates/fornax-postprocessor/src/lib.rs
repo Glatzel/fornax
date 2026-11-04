@@ -64,6 +64,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use fornax_core::metadata::{Levels, Metadata, WhiteBalance};
     use fornax_core::{BayerPattern, MonoImage};
     use image::math::Rect;
@@ -94,6 +96,7 @@ mod tests {
             },
             bayer_pattern: BayerPattern::RGGB,
             white_balance: Some(WhiteBalance::AsShotNeutral(0.5, 1.0, 0.25)),
+            dng_metadata: BTreeMap::default(),
         };
         let processor = PostProcessor::<f32, _> {
             demosaic: Demosaic::Linear,

@@ -11,8 +11,8 @@ use ::tiff::decoder::ifd::Value;
 use fornax_core::MonoImage;
 
 use crate::error::DecodeError;
-use crate::{DecodedRaw, DngMetadata, DngTag, MosaicData, SourceFormat};
-
+use crate::metadata::{DngMetadata, DngTag};
+use crate::{DecodedRaw, MosaicData, SourceFormat};
 const PHOTOMETRIC_CFA: u64 = 32_803;
 const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
 const COMPRESSION_UNCOMPRESSED: u16 = 1;

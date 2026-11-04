@@ -1,18 +1,3 @@
-use std::path::Path;
-
-use fornax_core::error::DecodeError as CoreDecodeError;
-use fornax_core::metadata::{Levels, Metadata, WhiteBalance};
-use fornax_core::protocol::IDecoder;
-use fornax_core::{
-    BayerChannel, BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive,
-};
-use image::math::Rect;
-use num_traits::{NumCast, ToPrimitive};
-use tiff::decoder::ifd::Value;
-
-use crate::error::DecodeError;
-use crate::{DecodedRaw, Decoder, DngMetadata, DngTag, MosaicData};
-
 impl<T> IDecoder<Path, T> for Decoder
 where
     T: Primitive,

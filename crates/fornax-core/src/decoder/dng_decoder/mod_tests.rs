@@ -1,7 +1,6 @@
 use tiff::decoder::ifd::Value;
 
 use super::decode_samples;
-use crate::{DngMetadata, DngTag, MosaicData};
 
 fn u16_source(samples: &[u16]) -> Vec<u8> {
     let mut source = b"II".to_vec();

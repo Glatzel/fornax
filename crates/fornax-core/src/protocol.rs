@@ -1,14 +1,12 @@
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
 use crate::metadata::{Levels, Metadata, WhiteBalance};
-use crate::{
-    BayerPattern, DecodedRawActive, DecodedRawFull, MonoImage, Primitive, RawImage, RgbImage,
-};
-pub trait IDecoder<I: ?Sized, T>: Send + Sync
+use crate::{BayerPattern, DecodedRaw, MonoImage, MosaicData, Primitive, RawImage, RgbImage};
+pub trait IDecoder<I, T>: Send + Sync
 where
     T: Primitive,
 {
-    fn decode_full(&self, input: &I) -> Result<(DecodedRawFull<T>, Metadata<T>), DecodeError>;
-    fn decode_active(&self, input: &I) -> Result<(DecodedRawActive<T>, Metadata<T>), DecodeError>;
+    fn decode(&self, input: I) -> Result<(MosaicData, Metadata<T>), DecodeError>;
+    fn decode_active(&self, input: I) -> Result<(DecodedRaw<T>, Metadata<T>), DecodeError>;
 }
 
 pub trait IPreprocessor<T>: Sized
@@ -17,7 +15,7 @@ where
 {
     fn process(
         &self,
-        decoded: DecodedRawActive<T>,
+        decoded: DecodedRaw<T>,
         levels: &Levels<T>,
     ) -> Result<RawImage<T>, PreprocessError>;
 }
