@@ -6,6 +6,21 @@
 2023, linked from Adobe's Digital Negative page. DNG extends TIFF 6.0/TIFF-EP,
 and DNG 1.7 includes BigTIFF.
 
+## Implementation status
+
+The first `fornax-decoder` implementation reads classic TIFF headers, root IFD
+chains, SubIFDs, typed tag values, uncompressed strips/tiles, and lossless
+JPEG-92 strips/tiles. It selects the full-resolution CFA image, preserves root
+and raw-IFD metadata, and hands conventional 2x2 RGB Bayer data to the shared
+preprocessor metadata boundary. The lossless-JPEG writer path preserves a
+decoded source container byte for byte; uncompressed export regenerates a
+single-strip CFA IFD.
+
+The remaining compression, opcode, linearization, corpus, and pre-1.1
+lossless-JPEG compatibility targets in this plan are not yet implemented.
+Implementation evidence and limitations are recorded in
+[`docs/references/dng-lossless-jpeg.md`](../../references/dng-lossless-jpeg.md).
+
 ## Scope
 
 In scope:
@@ -58,7 +73,8 @@ Reader targets:
 
 Writer targets:
 
-1. Lossless JPEG-92 integer strips, the default output mode.
+1. Source-preserving lossless JPEG-92 export, the default output mode for a
+   decoded DNG. Recompression from arbitrary samples is not yet implemented.
 2. Uncompressed strips with exact `MosaicData` samples as the correctness
    fallback.
 

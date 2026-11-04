@@ -936,8 +936,11 @@ name = "fornax-decoder"
 version = "0.0.17"
 dependencies = [
  "fornax-core",
+ "image 0.25.9",
+ "num-traits",
  "num_enum",
  "strum",
+ "tempfile",
  "thiserror",
  "tiff",
 ]

@@ -22,6 +22,8 @@ pub type DngMetadata = BTreeMap<DngTag, DngValue>;
 #[repr(u16)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, AsRefStr, FromPrimitive, IntoPrimitive)]
 pub enum DngTag {
+    /// `NewSubfileType`.
+    NewSubfileType = 254,
     /// `ImageWidth`.
     ImageWidth = 256,
     /// `ImageLength`.
@@ -48,6 +50,16 @@ pub enum DngTag {
     Model = 272,
     /// `Orientation`.
     Orientation = 274,
+    /// `TileWidth`.
+    TileWidth = 322,
+    /// `TileLength`.
+    TileLength = 323,
+    /// `TileOffsets`.
+    TileOffsets = 324,
+    /// `TileByteCounts`.
+    TileByteCounts = 325,
+    /// `SubIFDs`.
+    SubIfds = 330,
     /// `CFARepeatPatternDim`.
     CfaRepeatPatternDim = 33_421,
     /// `CFAPattern`.
@@ -141,6 +153,7 @@ impl From<Tag> for DngTag {
 impl From<DngTag> for Tag {
     fn from(value: DngTag) -> Self {
         match value {
+            DngTag::NewSubfileType => Self::NewSubfileType,
             DngTag::ImageWidth => Self::ImageWidth,
             DngTag::ImageLength => Self::ImageLength,
             DngTag::BitsPerSample => Self::BitsPerSample,
@@ -154,6 +167,11 @@ impl From<DngTag> for Tag {
             DngTag::Make => Self::Make,
             DngTag::Model => Self::Model,
             DngTag::Orientation => Self::Orientation,
+            DngTag::TileWidth => Self::TileWidth,
+            DngTag::TileLength => Self::TileLength,
+            DngTag::TileOffsets => Self::TileOffsets,
+            DngTag::TileByteCounts => Self::TileByteCounts,
+            DngTag::SubIfds => Self::SubIfd,
             tag => Self::Unknown(tag.into()),
         }
     }

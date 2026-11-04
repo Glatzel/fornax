@@ -1,23 +1,27 @@
 //! Pure-Rust, DNG-centred RAW decoding.
 //!
-//! This crate currently contains only the public data model and unsupported
-//! stubs for the first implementation stage. Decoding and DNG writing are
-//! intentionally absent.
+//! The current implementation reads classic TIFF DNG files with uncompressed
+//! or lossless JPEG-92 strips and tiles, preserves typed metadata, and hands a
+//! conventional 2x2 RGB Bayer mosaic to the shared preprocessing pipeline.
+//! Default lossless-JPEG export preserves the source container byte for byte;
+//! uncompressed export regenerates a DNG from the decoded samples.
 //!
 //! # Examples
 //!
-//! Decode attempts report an unsupported operation:
+//! Decode a DNG and retain its typed metadata:
 //!
 //! ``` no_run
 //! use std::path::Path;
 //!
-//! use fornax_decoder::{DecodeError, Decoder};
+//! use fornax_decoder::Decoder;
 //!
-//! let error = Decoder.decode(Path::new("input.dng")).unwrap_err();
-//! assert!(matches!(error, DecodeError::UnsupportedFormat { .. }));
+//! let decoded = Decoder.decode(Path::new("input.dng"))?;
+//! assert!(decoded.dimensions().0 > 0);
+//! # Ok::<(), fornax_decoder::DecodeError>(())
 //! ```
 
 mod decoded;
+mod dng;
 mod error;
 mod format;
 mod metadata;
@@ -26,6 +30,7 @@ mod writer;
 
 use std::path::Path;
 
+pub(crate) use decoded::DngSource;
 pub use decoded::{DecodedRaw, MosaicData};
 pub use error::{CfaPatternError, DecodeError, DngWriteError, HandoffError};
 pub use format::SourceFormat;
@@ -57,8 +62,8 @@ impl Decoder {
     ///
     /// # Errors
     ///
-    /// Returns [`DecodeError::UnsupportedFormat`] until format decoding is
-    /// implemented.
+    /// Returns a typed error when the input is not a supported DNG container,
+    /// when its raw layout is unsupported, or when metadata is malformed.
     ///
     /// # Examples
     ///
@@ -67,16 +72,14 @@ impl Decoder {
     ///
     /// use fornax_decoder::{DecodeError, Decoder};
     ///
-    /// let error = Decoder.decode(Path::new("input.dng")).unwrap_err();
-    /// assert!(matches!(error, DecodeError::UnsupportedFormat { .. }));
+    /// let decoded = Decoder.decode(Path::new("input.dng"))?;
+    /// let _dimensions = decoded.dimensions();
+    /// # Ok::<(), DecodeError>(())
     /// ```
-    pub fn decode(&self, _input: &Path) -> Result<DecodedRaw, DecodeError> {
-        Err(unsupported_decode())
-    }
-}
-
-fn unsupported_decode() -> DecodeError {
-    DecodeError::UnsupportedFormat {
-        detail: "fornax-decoder scaffolding: RAW decoding is unsupported".into(),
+    pub fn decode(&self, input: &Path) -> Result<DecodedRaw, DecodeError> {
+        let source = std::fs::read(input).map_err(|error| DecodeError::InvalidInput {
+            detail: format!("failed to read {}: {error}", input.display()).into(),
+        })?;
+        dng::decode(&source)
     }
 }
