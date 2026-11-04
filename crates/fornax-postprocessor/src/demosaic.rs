@@ -138,7 +138,15 @@ impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
             Self::Aahd => AnyLazy::Aahd(DemosaicAahd.lazy(bayer, pattern)?),
             Self::Ahd => AnyLazy::Ahd(DemosaicAhd.lazy(bayer, pattern)?),
             Self::Amaze => AnyLazy::Amaze(DemosaicAmaze.lazy(bayer, pattern)?),
-            Self::Dcb { .. } => AnyLazy::Dcb(DemosaicDcb.lazy(bayer, pattern)?),
+            Self::Dcb {
+                iterations,
+                enhance,
+            } => AnyLazy::Dcb(DemosaicDcb.lazy_with_options(
+                bayer,
+                pattern,
+                *iterations,
+                *enhance,
+            )?),
             Self::Dht => AnyLazy::Dht(DemosaicDht.lazy(bayer, pattern)?),
             Self::Linear => AnyLazy::Linear(DemosaicLinear.lazy(bayer, pattern)?),
             Self::Lmmse { .. } => AnyLazy::Lmmse(DemosaicLmmse.lazy(bayer, pattern)?),

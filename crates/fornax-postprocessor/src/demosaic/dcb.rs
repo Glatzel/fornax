@@ -23,6 +23,19 @@ impl DemosaicDcb {
     where
         T: Primitive + Send + Sync,
     {
+        self.lazy_with_options(image, pattern, 0, true)
+    }
+
+    pub fn lazy_with_options<T>(
+        &self,
+        image: &MonoImage<T>,
+        pattern: BayerPattern,
+        iterations: u8,
+        enhance: bool,
+    ) -> Result<DenseLazy<T>, DemosaicError>
+    where
+        T: Primitive + Send + Sync,
+    {
         if image.width() < 3 || image.height() < 3 {
             return Err(DemosaicError::InvalidInput(
                 "DCB requires an image at least 3x3".into(),
@@ -30,7 +43,7 @@ impl DemosaicDcb {
         }
         let width = image.width() as usize;
         let height = image.height() as usize;
-        let output = run(&codes(image), width, height, pattern);
+        let output = run_with_options(&codes(image), width, height, pattern, iterations, enhance);
         Ok(DenseLazy::new(dense_from_codes(
             image.width(),
             image.height(),
@@ -308,10 +321,6 @@ fn clip_f32(value: f32) -> u16 { (value as i32).clamp(0, i32::from(u16::MAX)) as
 
 fn clip_i32(value: i32) -> u16 { value.clamp(0, i32::from(u16::MAX)) as u16 }
 
-#[allow(
-    dead_code,
-    reason = "the fixed dcb(0, 1) reference path keeps the Nyquist stage disabled"
-)]
 fn nyquist_pass(pixels: &mut [DcbPixel], width: usize, height: usize, pattern: BayerPattern) {
     let v = 2 * width;
     for row in 2..height.saturating_sub(2) {
@@ -809,6 +818,17 @@ fn apply_post_correction_passes(
 }
 
 fn run(input: &[u16], width: usize, height: usize, pattern: BayerPattern) -> Vec<u16> {
+    run_with_options(input, width, height, pattern, 0, true)
+}
+
+fn run_with_options(
+    input: &[u16],
+    width: usize,
+    height: usize,
+    pattern: BayerPattern,
+    iterations: u8,
+    enhance: bool,
+) -> Vec<u16> {
     let mut pixels = insert_measured(input, width, height, pattern);
     border_interpolate(&mut pixels, width, height, pattern, 6);
     let horizontal = horizontal_candidates(&pixels, width, height, pattern);
@@ -819,6 +839,14 @@ fn run(input: &[u16], width: usize, height: usize, pattern: BayerPattern) -> Vec
     for (buffer, pixel) in saved.iter_mut().zip(&pixels) {
         buffer[0] = pixel[0] as f32;
         buffer[2] = pixel[2] as f32;
+    }
+
+    for _ in 0..iterations {
+        for _ in 0..3 {
+            nyquist_pass(&mut pixels, width, height, pattern);
+        }
+        direction_map(&mut pixels, width, height);
+        correction(&mut pixels, width, height, pattern);
     }
 
     color(&mut pixels, width, height, pattern);
@@ -832,8 +860,10 @@ fn run(input: &[u16], width: usize, height: usize, pattern: BayerPattern) -> Vec
         pixel[2] = buffer[2] as u16;
     }
     color(&mut pixels, width, height, pattern);
-    refinement(&mut pixels, width, height, pattern);
-    color_full(&mut pixels, width, height, pattern);
+    if enhance {
+        refinement(&mut pixels, width, height, pattern);
+        color_full(&mut pixels, width, height, pattern);
+    }
 
     pack(&pixels)
 }
@@ -1025,6 +1055,43 @@ mod tests {
         let mut actual = source;
         apply_post_correction_passes(&mut actual, 15, 15, pattern);
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn nyquist_iterations_change_nonuniform_output() {
+        let width = 32;
+        let height = 32;
+        let input = (0..width * height)
+            .map(|index| {
+                let hash = (index as u32).wrapping_mul(0x9e37_79b9).rotate_left(13)
+                    ^ (index as u32).wrapping_mul(0x85eb_ca6b);
+                1_000 + (hash ^ (hash >> 16)) as u16 % 50_000
+            })
+            .collect::<Vec<_>>();
+
+        let baseline = run_with_options(&input, width, height, BayerPattern::GBRG, 0, true);
+        let corrected = run_with_options(&input, width, height, BayerPattern::GBRG, 1, true);
+
+        assert_ne!(baseline, corrected);
+    }
+
+    #[test]
+    fn enhancement_flag_controls_final_refinement() {
+        let width = 32;
+        let height = 32;
+        let input = (0..width * height)
+            .map(|index| 2_000_u16.wrapping_add((index as u16).wrapping_mul(97)))
+            .collect::<Vec<_>>();
+
+        let enhanced = run_with_options(&input, width, height, BayerPattern::GBRG, 0, true);
+        let plain = run_with_options(&input, width, height, BayerPattern::GBRG, 0, false);
+
+        assert_eq!(
+            run(&input, width, height, BayerPattern::GBRG),
+            enhanced,
+            "the legacy convenience path must use dcb(0, true)"
+        );
+        assert_ne!(enhanced, plain);
     }
 
     #[test]
