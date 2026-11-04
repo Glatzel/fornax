@@ -5,7 +5,7 @@ use fornax_core::BayerPattern;
 use rayon::prelude::*;
 
 use crate::cases::{self, Case, SampleType, Tolerance};
-use crate::metrics::{self, Evaluation, Verdict as DetailedVerdict};
+use crate::metrics::{self, Evaluation, FailedLimit, Verdict as DetailedVerdict};
 use crate::report::{
     self, Channels, InputMeta, Kind, Meta, PatternSource, References, Report, Row, Selection,
     Sites, Verdict, WorstSample,
@@ -56,7 +56,6 @@ struct CaseComputation {
     reference: Vec<u16>,
     evaluation: Evaluation,
     verdict: DetailedVerdict,
-    #[cfg(test)]
     failed_limits: Vec<FailedLimit>,
 }
 
@@ -249,7 +248,7 @@ fn compute_case(
         border_px,
         pattern,
     )?;
-    let (verdict, _failed_limits) = metrics::verdict(&evaluation.metrics, case.tolerance);
+    let (verdict, failed_limits) = metrics::verdict(&evaluation.metrics, case.tolerance);
     Ok(CaseComputation {
         case,
         pattern,
@@ -257,7 +256,6 @@ fn compute_case(
         reference,
         evaluation,
         verdict,
-        #[cfg(test)]
         failed_limits,
     })
 }
