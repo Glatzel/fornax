@@ -41,7 +41,7 @@ where
             return Ok(result.collect_with(|_y, row| {
                 for px in row.as_chunks_mut::<3>().0 {
                     px[0] = px[0] * r_mul;
-                    px[2] = px[0] * b_mul;
+                    px[2] = px[2] * b_mul;
                 }
             }));
         }
@@ -59,5 +59,54 @@ where
             use_as_shot_neutral: true,
             _mark: PhantomData,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use fornax_core::metadata::{Levels, Metadata, WhiteBalance};
+    use fornax_core::{BayerPattern, MonoImage};
+    use image::math::Rect;
+
+    use super::*;
+
+    #[test]
+    fn white_balance_multiplies_blue_from_its_own_sample() -> mischief::Result<()> {
+        let image = MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap();
+        let metadata = Metadata {
+            active_area: Rect {
+                x: 0,
+                y: 0,
+                width: 8,
+                height: 8,
+            },
+            default_crop: Rect {
+                x: 0,
+                y: 0,
+                width: 8,
+                height: 8,
+            },
+            levels: Levels {
+                black: MonoImage::from_raw(1, 1, vec![0.0_f32]).unwrap(),
+                black_delta_h: Vec::new(),
+                black_delta_v: Vec::new(),
+                white: 1.0,
+            },
+            bayer_pattern: BayerPattern::RGGB,
+            white_balance: Some(WhiteBalance::AsShotNeutral(0.5, 1.0, 0.25)),
+        };
+        let processor = PostProcessor::<f32, _> {
+            demosaic: Demosaic::Linear,
+            use_as_shot_neutral: true,
+            _mark: PhantomData,
+        };
+
+        let output = processor.process(&image, &metadata)?;
+        let pixel = output.get_pixel(4, 4);
+
+        assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");
+        assert!((pixel[1] - 0.1).abs() < 1.0e-6, "{pixel:?}");
+        assert!((pixel[2] - 0.4).abs() < 1.0e-6, "{pixel:?}");
+        Ok(())
     }
 }
