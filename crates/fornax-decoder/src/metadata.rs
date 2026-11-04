@@ -1,4 +1,5 @@
-use std::{collections::BTreeMap, fmt};
+use std::collections::BTreeMap;
+use std::fmt;
 
 use num_enum::{FromPrimitive, IntoPrimitive};
 use strum::AsRefStr;
