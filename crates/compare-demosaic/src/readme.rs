@@ -357,7 +357,7 @@ fn new_section(algorithm: &str, table: &str, rows: &[&Row], waivers: &[Waiver]) 
     )
 }
 
-fn reference_display_name(reference: &str) -> &str {
+const fn reference_display_name(reference: &str) -> &str {
     if reference.eq_ignore_ascii_case("libraw") {
         "LibRaw"
     } else if reference.eq_ignore_ascii_case("darktable") {
@@ -496,7 +496,7 @@ fn check_note(
         }
     }
 
-    let expected = reference_names_in_region(&body);
+    let expected = reference_names_in_region(body);
     for reference in expected
         .iter()
         .filter(|reference| !documented.contains_key(*reference))
