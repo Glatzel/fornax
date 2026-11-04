@@ -59,6 +59,7 @@ pub enum PatternSource {
 pub struct References {
     pub libraw: String,
     pub darktable: String,
+    pub rawtherapee: String,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
@@ -598,6 +599,7 @@ mod tests {
                 references: References {
                     libraw: "0.22.3".to_owned(),
                     darktable: "5.6.2".to_owned(),
+                    rawtherapee: "5.13".to_owned(),
                 },
                 limits: LIMITS,
                 border_px: 0,

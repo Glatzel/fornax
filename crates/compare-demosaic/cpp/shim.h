@@ -7,6 +7,7 @@
 #include "status.h"
 #define COMPARE_DEMOSAIC_REFERENCE_LIBRAW 0
 #define COMPARE_DEMOSAIC_REFERENCE_DARKTABLE 1
+#define COMPARE_DEMOSAIC_REFERENCE_RAWTHERAPEE 2
 class ReferenceDemosaicer final : public LibRaw {
   public:
     std::int32_t prepare(const std::uint16_t* mosaic, std::uint32_t width, std::uint32_t height, std::uint32_t filters);
@@ -62,6 +63,78 @@ std::int32_t run_darktable_amaze(
 );
 
 std::int32_t run_darktable_lmmse(
+    const std::uint16_t* mosaic,
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output
+);
+
+std::int32_t run_rawtherapee_ahd(
+    const std::uint16_t* mosaic,
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output
+);
+
+std::int32_t run_rawtherapee_amaze(
+    const std::uint16_t* mosaic,
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output
+);
+
+std::int32_t run_rawtherapee_dcb(
+    const std::uint16_t* mosaic,
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output
+);
+
+std::int32_t run_rawtherapee_eahd(
+    const std::uint16_t* mosaic,
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output
+);
+
+std::int32_t run_rawtherapee_hphd(
+    const std::uint16_t* mosaic,
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output
+);
+
+std::int32_t run_rawtherapee_igv(
+    const std::uint16_t* mosaic,
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output
+);
+
+std::int32_t run_rawtherapee_lmmse(
+    const std::uint16_t* mosaic,
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output
+);
+
+std::int32_t run_rawtherapee_rcd(
+    const std::uint16_t* mosaic,
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output
+);
+
+std::int32_t run_rawtherapee_vng4(
     const std::uint16_t* mosaic,
     std::uint32_t        width,
     std::uint32_t        height,

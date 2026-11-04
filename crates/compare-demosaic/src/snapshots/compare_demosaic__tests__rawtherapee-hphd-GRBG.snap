@@ -1,0 +1,5 @@
+---
+source: crates/compare-demosaic/src/lib.rs
+expression: "format!(\"{checksum:016x}\")"
+---
+59549728cb55a1fb

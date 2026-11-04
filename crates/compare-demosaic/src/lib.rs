@@ -79,7 +79,8 @@ mod tests {
     #[rstest]
     fn every_algorithm_accepts_synthetic_128(
         synthetic_128: &crate::reference::ActiveArea,
-        #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)] case_index: usize,
+        #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)]
+        case_index: usize,
     ) -> mischief::Result<()> {
         crate::run::evaluate_case(
             &crate::cases::CASES[case_index],
@@ -125,6 +126,9 @@ mod tests {
                     "VNG versus LibRaw: MAE {}, max {}",
                     evaluation.evaluation.metrics.mae, evaluation.evaluation.metrics.max
                 );
+            }
+            ReferenceBackend::RawTherapee => {
+                unreachable!("RawTherapee does not provide a VNG reference")
             }
         }
         Ok(())
@@ -184,6 +188,118 @@ mod tests {
         Ok(())
     }
 
+    #[rstest]
+    fn rawtherapee_adapter_only_algorithms_return_deterministic_rgb(
+        synthetic_128: &crate::reference::ActiveArea,
+    ) -> mischief::Result<()> {
+        use fornax_core::BayerChannel;
+
+        for algorithm in [6_u32, 7, 8] {
+            let first = crate::reference::run(
+                ReferenceBackend::RawTherapee,
+                algorithm,
+                &synthetic_128.codes,
+                synthetic_128.width,
+                synthetic_128.height,
+                crate::reference::libraw_filters(BayerPattern::GBRG),
+            )?;
+            let second = crate::reference::run(
+                ReferenceBackend::RawTherapee,
+                algorithm,
+                &synthetic_128.codes,
+                synthetic_128.width,
+                synthetic_128.height,
+                crate::reference::libraw_filters(BayerPattern::GBRG),
+            )?;
+
+            assert_eq!(
+                first.len(),
+                synthetic_128.codes.len() * 3,
+                "RawTherapee adapter {algorithm} returned the wrong RGB size"
+            );
+            assert_eq!(
+                first, second,
+                "RawTherapee adapter {algorithm} was not deterministic"
+            );
+            for y in 16..synthetic_128.height - 16 {
+                for x in 16..synthetic_128.width - 16 {
+                    let channel = match BayerPattern::GBRG.channel_at(x, y) {
+                        BayerChannel::R => 0,
+                        BayerChannel::GRedRow | BayerChannel::GBlueRow => 1,
+                        BayerChannel::B => 2,
+                    };
+                    let input = synthetic_128.codes[(y * synthetic_128.width + x) as usize];
+                    let output = first[((y * synthetic_128.width + x) * 3 + channel) as usize];
+                    assert_eq!(
+                        output, input,
+                        "RawTherapee adapter {algorithm} changed sampled site ({x}, {y})"
+                    );
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[rstest]
+    fn rawtherapee_adapters_preserve_a_constant_mosaic() -> mischief::Result<()> {
+        let width = 64;
+        let height = 64;
+        let input = vec![12_000_u16; width * height];
+        for algorithm in 0_u32..=8 {
+            let output = crate::reference::run(
+                ReferenceBackend::RawTherapee,
+                algorithm,
+                &input,
+                width as u32,
+                height as u32,
+                crate::reference::libraw_filters(BayerPattern::GBRG),
+            )?;
+            for y in 16..48 {
+                for x in 16..48 {
+                    for channel in 0..3 {
+                        let actual = output[(y * width + x) * 3 + channel];
+                        assert!(
+                            actual.abs_diff(12_000) <= 16,
+                            "RawTherapee adapter {algorithm} changed constant ({x}, {y}, {channel}) to {actual}"
+                        );
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[rstest]
+    fn rawtherapee_adapter_only_outputs_are_stable(
+        cropped_real_128: &crate::reference::ActiveArea,
+    ) -> mischief::Result<()> {
+        for (algorithm, name) in [(6_u32, "igv"), (7, "eahd"), (8, "hphd")] {
+            for pattern in BayerPattern::ALL {
+                let input = crate::reference::shifted_to_pattern(cropped_real_128, pattern)?;
+                let output = crate::reference::run(
+                    ReferenceBackend::RawTherapee,
+                    algorithm,
+                    &input.codes,
+                    input.width,
+                    input.height,
+                    crate::reference::libraw_filters(pattern),
+                )?;
+                let checksum = output
+                    .iter()
+                    .fold(0xcbf2_9ce4_8422_2325_u64, |hash, value| {
+                        value.to_le_bytes().into_iter().fold(hash, |hash, byte| {
+                            (hash ^ u64::from(byte)).wrapping_mul(0x0000_0100_0000_01b3)
+                        })
+                    });
+                insta::assert_snapshot!(
+                    format!("rawtherapee-{name}-{pattern}"),
+                    format!("{checksum:016x}")
+                );
+            }
+        }
+        Ok(())
+    }
+
     #[test]
     fn algorithm_ids_are_unique_and_unknown_ids_are_rejected() -> mischief::Result<()> {
         let mut ids = crate::cases::CASES
@@ -208,6 +324,20 @@ mod tests {
                 .to_string()
                 .contains("reference returned unknown algorithm")
         );
+        let error = crate::reference::run(
+            ReferenceBackend::RawTherapee,
+            9,
+            &[0_u16; 32 * 32],
+            32,
+            32,
+            crate::reference::libraw_filters(BayerPattern::RGGB),
+        )
+        .expect_err("unassigned RawTherapee algorithm IDs, including Dual, must fail");
+        assert!(
+            error
+                .to_string()
+                .contains("reference returned unknown algorithm")
+        );
         Ok(())
     }
 
@@ -215,10 +345,18 @@ mod tests {
     fn source_links_match_packaged_versions() {
         assert_eq!(LIBRAW_VERSION, "0.22.3");
         assert_eq!(crate::run::DARKTABLE_RELEASE, "5.6.2");
+        assert_eq!(crate::run::RAWTHERAPEE_RELEASE, "5.13");
+        assert!(
+            crate::cases::reference_names()
+                .iter()
+                .any(|name| name.eq_ignore_ascii_case("rawtherapee"))
+        );
+        assert_eq!(ReferenceBackend::RawTherapee.library(), "RawTherapee");
         for case in crate::cases::CASES {
             let commit = match case.reference_backend {
                 ReferenceBackend::LibRaw => LIBRAW_COMMIT,
                 ReferenceBackend::Darktable => crate::run::DARKTABLE_COMMIT,
+                ReferenceBackend::RawTherapee => crate::run::RAWTHERAPEE_COMMIT,
             };
             assert!(case.source_url.contains(commit));
             assert!(case.source_url.contains("#L"));
@@ -268,7 +406,8 @@ mod tests {
             BayerPattern::GBRG
         )]
         pattern: BayerPattern,
-        #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)] case_index: usize,
+        #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)]
+        case_index: usize,
     ) -> mischief::Result<()> {
         let evaluation = crate::run::evaluate_case(
             &crate::cases::CASES[case_index],

@@ -27,6 +27,35 @@ for file in "${files[@]}"; do
         base64 -d > "$destination" || exit 1
 done
 
+rawtherapee_files=(
+    "rtengine/ahd_demosaic_RT.cc"
+    "rtengine/amaze_demosaic_RT.cc"
+    "rtengine/demosaic_algos.cc"
+    "rtengine/eahd_demosaic.cc"
+    "rtengine/hphd_demosaic_RT.cc"
+    "rtengine/lmmse_demosaic.cc"
+    "rtengine/rcd_demosaic.cc"
+    "rtengine/vng4_demosaic_RT.cc"
+    "rtengine/iccmatrices.h"
+    "rtengine/jaggedarray.h"
+    "rtengine/median.h"
+    "rtengine/opthelper.h"
+    "rtengine/rawimagesource_i.h"
+    "rtengine/rt_math.h"
+)
+
+for file in "${rawtherapee_files[@]}"; do
+    destination="external/rawtherapee/$file"
+
+    [[ -f "$destination" ]] && continue
+
+    mkdir -p "$(dirname "$destination")"
+
+    gh api "repos/RawTherapee/RawTherapee/contents/$file?ref=1924179107995b01b73cdc7f4fe91e44fc8227a7" \
+        --jq .content |
+        base64 -d > "$destination" || exit 1
+done
+
 pixi_env_dir="$(realpath .pixi/envs/dev)"
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
