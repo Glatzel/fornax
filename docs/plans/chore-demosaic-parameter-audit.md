@@ -18,8 +18,7 @@ outputs and comparison baselines.
   refinement modes.
 - Default-preserving constructors `Demosaic::dcb()` and `Demosaic::lmmse()`.
 - DCB iteration/enhancement sequencing, LMMSE median/refinement sequencing,
-  DCB/LMMSE reference-adapter test hooks, public API documentation, and
-  corrected white balance.
+  public API documentation, and corrected white balance.
 - Migration of every in-repository call site, example, benchmark, test, and
   comparison runner to the new enum shape.
 
@@ -33,17 +32,15 @@ outputs and comparison baselines.
 
 ## Task checklist
 
-- [ ] Add failing tests for linear boundary preservation, default
+- [x] Add failing tests for linear boundary preservation, default
   `Demosaic::dcb()`/`Demosaic::lmmse()` behavior, configurable DCB sequencing,
   configurable LMMSE sequencing, and independent red/blue white balance.
-- [ ] Change `Demosaic` to carry DCB iterations/enhancement and LMMSE mode
+- [x] Change `Demosaic` to carry DCB iterations/enhancement and LMMSE mode
   inline; update all internal callers and public examples.
-- [ ] Implement parameter-aware DCB and LMMSE paths with default behavior
+- [x] Implement parameter-aware DCB and LMMSE paths with default behavior
   identical to the current comparison output.
-- [ ] Extend comparison reference adapters with test-only parameter hooks and
-  verify non-default modes against their pinned references.
-- [ ] Update the postprocessor and DCB/LMMSE reference documentation.
-- [ ] Run focused tests, comparison checks, workspace validation, and inspect
+- [x] Update the postprocessor and DCB/LMMSE reference documentation.
+- [x] Run focused tests, comparison checks, workspace validation, and inspect
   the final diff.
 
 ## Tasks
@@ -63,15 +60,15 @@ outputs and comparison baselines.
 - Produces: `LmmseMode::{Basic, Median, ThreeMedians, Refine(NonZeroU8)}`
 - Produces: default-preserving `Demosaic::dcb()` and `Demosaic::lmmse()`
 
-- [ ] Write a failing all-algorithm linear-boundary test using low-level
+- [x] Write a failing all-algorithm linear-boundary test using low-level
   uniform mosaics in both `f32` and `f64`.
-- [ ] Run `cargo test -p fornax-postprocessor all_algorithms_preserve_linear_boundary`;
+- [x] Run `cargo test -p fornax-postprocessor all_algorithms_preserve_linear_boundary`;
   expect failure because the struct variants do not exist.
-- [ ] Change `Demosaic` and update dispatch, defaults, constructors, and the
+- [x] Change `Demosaic` and update dispatch, defaults, constructors, and the
   benchmark registry.
-- [ ] Run the focused test and then `cargo test -p fornax-postprocessor`;
+- [x] Run the focused test and then `cargo test -p fornax-postprocessor`;
   expect all tests to pass.
-- [ ] Commit the task.
+- [x] Commit the task.
 
 ### Task 2: Configurable DCB
 
@@ -84,14 +81,14 @@ outputs and comparison baselines.
 - Consumes: `Demosaic::Dcb { iterations, enhance }`
 - Produces: `DemosaicDcb::lazy_with_options(..., iterations: u8, enhance: bool)`
 
-- [ ] Add failing tests proving multiple Nyquist rounds run before color
+- [x] Add failing tests proving multiple Nyquist rounds run before color
   reconstruction and that disabling enhancement skips refinement/full color.
-- [ ] Run the focused tests; expect failure because the options are not wired.
-- [ ] Thread the options through `run` in the same order as LibRaw's `dcb()`
+- [x] Run the focused tests; expect failure because the options are not wired.
+- [x] Thread the options through `run` in the same order as LibRaw's `dcb()`
   while preserving the `(0, true)` default path.
-- [ ] Run the focused tests and then `cargo test -p fornax-postprocessor`;
+- [x] Run the focused tests and then `cargo test -p fornax-postprocessor`;
   expect all tests to pass.
-- [ ] Commit the task.
+- [x] Commit the task.
 
 ### Task 3: Configurable LMMSE
 
@@ -104,13 +101,13 @@ outputs and comparison baselines.
 - Consumes: `Demosaic::Lmmse { mode }` and `LmmseMode`
 - Produces: `DemosaicLmmse::lazy_with_mode(...)`
 
-- [ ] Add failing tests proving `Basic`, `ThreeMedians`, and `Refine(1)` select
+- [x] Add failing tests proving `Basic`, `ThreeMedians`, and `Refine(1)` select
   the darktable median/refinement counts while `Median` preserves current output.
-- [ ] Run the focused tests; expect failure because mode dispatch is absent.
-- [ ] Implement median loops and the pinned darktable refinement pass.
-- [ ] Run the focused tests and then `cargo test -p fornax-postprocessor`;
+- [x] Run the focused tests; expect failure because mode dispatch is absent.
+- [x] Implement median loops and the pinned darktable refinement pass.
+- [x] Run the focused tests and then `cargo test -p fornax-postprocessor`;
   expect all tests to pass.
-- [ ] Commit the task.
+- [x] Commit the task.
 
 ### Task 4: White balance boundary fix
 
@@ -122,19 +119,17 @@ outputs and comparison baselines.
 
 - Produces: independent red and blue channel multipliers in `PostProcessor`.
 
-- [ ] Add a failing white-balance test with unequal red and blue multipliers.
-- [ ] Run it; expect the blue sample to be incorrectly tied to red.
-- [ ] Multiply each color by its own pre-multiplied sample.
-- [ ] Run the focused test and then `cargo test -p fornax-postprocessor`;
+- [x] Add a failing white-balance test with unequal red and blue multipliers.
+- [x] Run it; expect the blue sample to be incorrectly tied to red.
+- [x] Multiply each color by its own pre-multiplied sample.
+- [x] Run the focused test and then `cargo test -p fornax-postprocessor`;
   expect all tests to pass.
-- [ ] Commit the task.
+- [x] Commit the task.
 
-### Task 5: Reference checks and documentation
+### Task 5: Default comparison preservation and documentation
 
 **Files:**
 
-- Modify: `crates/compare-demosaic/src/reference.rs`
-- Modify: comparison C/C++ adapters under `crates/compare-demosaic/cpp/`
 - Modify: `docs/references/dcb.md`
 - Modify: `docs/references/lmmse.md`
 - Modify: `crates/fornax-postprocessor/README.md`
@@ -142,18 +137,13 @@ outputs and comparison baselines.
 **Interfaces:**
 
 - Consumes: parameterized DCB and LMMSE implementations from Tasks 2 and 3.
-- Produces: test-only reference calls for non-default DCB/LMMSE settings.
 
-- [ ] Add failing synthetic comparisons for non-default DCB and LMMSE settings
-  against their pinned references.
-- [ ] Run the focused comparison tests; expect failure because reference option
-  dispatch is absent.
-- [ ] Extend the C bridge and adapters with explicit options while keeping all
-  table-driven default cases unchanged.
-- [ ] Document the public API, linear boundary, mode mapping, and fixed
+- [x] Verify the table-driven cases still use default DCB and LMMSE settings.
+- [x] Run the DCB and LMMSE comparison rows and confirm no baseline differences.
+- [x] Document the public API, linear boundary, mode mapping, and fixed
   comparison defaults.
-- [ ] Run the full validation section and inspect the final diff.
-- [ ] Commit the task.
+- [x] Run the full validation section and inspect the final diff.
+- [x] Commit the task.
 
 ## Files expected to change
 
@@ -164,13 +154,6 @@ outputs and comparison baselines.
 - `crates/fornax-postprocessor/README.md`
 - `crates/fornax-postprocessor/benches/support/demosaic_registry.rs`
 - `crates/compare-demosaic/src/cases.rs`
-- `crates/compare-demosaic/src/reference.rs`
-- `crates/compare-demosaic/cpp/shim.h`
-- `crates/compare-demosaic/cpp/shim.cpp`
-- `crates/compare-demosaic/cpp/algos/libraw_dcb.cpp`
-- `crates/compare-demosaic/cpp/algos/rawtherapee_dcb.cpp`
-- `crates/compare-demosaic/cpp/algos/darktable_lmmse.c`
-- `crates/compare-demosaic/cpp/algos/rawtherapee_lmmse.cpp`
 - `docs/references/dcb.md`
 - `docs/references/lmmse.md`
 - `docs/plans/chore-demosaic-parameter-audit.md`
@@ -180,16 +163,16 @@ outputs and comparison baselines.
 ```bash
 cargo test -p fornax-postprocessor
 cargo test -p compare-demosaic
-cargo run --release -p compare-demosaic -- run --algorithm dcb --out target/demosaic-params
+cargo run --release -p compare-demosaic -- run --algorithm dcb --out target/demosaic-params-dcb
 cargo run --release -p compare-demosaic -- diff \
   crates/compare-demosaic/baseline/canonical.json \
-  target/demosaic-params/canonical.json
-cargo run --release -p compare-demosaic -- run --algorithm lmmse --out target/demosaic-params
+  target/demosaic-params-dcb/canonical.json
+cargo run --release -p compare-demosaic -- run --algorithm lmmse --out target/demosaic-params-lmmse
 cargo run --release -p compare-demosaic -- diff \
   crates/compare-demosaic/baseline/canonical.json \
-  target/demosaic-params/canonical.json
+  target/demosaic-params-lmmse/canonical.json
 cargo test --workspace --all-features
-cargo fmt --check
+cargo +nightly fmt --all -- --check
 cargo clippy --workspace --all-features --all-targets -- \
     -A clippy::too_many_arguments \
     -D clippy::alloc_instead_of_core \
@@ -327,11 +310,6 @@ cargo clippy --workspace --all-features --all-targets -- \
     -D unused_import_braces \
     -D unused_lifetimes \
     -D warnings
-pixi exec -s markdownlint-cli2 markdownlint-cli2 \
-  crates/fornax-postprocessor/README.md \
-  docs/references/dcb.md \
-  docs/references/lmmse.md \
-  docs/plans/chore-demosaic-parameter-audit.md
 git -c core.whitespace=cr-at-eol diff --check
 ```
 
@@ -344,5 +322,11 @@ git -c core.whitespace=cr-at-eol diff --check
 - The user requested the controls inline on `Demosaic`; no `DemosaicConfig`
   compatibility wrapper is introduced, and the source-breaking enum change is
   intentional.
+- The user restricted `compare-demosaic` to default parameters; non-default
+  DCB and LMMSE behavior is covered by postprocessor unit tests.
 - Defaults remain DCB `(iterations = 0, enhance = true)` and LMMSE mode 1, so
   existing comparison rows should not move.
+- Markdown lint was skipped at the user's request.
+- The full clippy command was run and reported only pre-existing warnings in
+  untouched decoder, preprocessor benchmark, linear-demosaic test, and existing
+  LMMSE test code.

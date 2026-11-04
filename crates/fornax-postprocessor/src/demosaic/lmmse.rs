@@ -1,7 +1,7 @@
 //! Tiled linear minimum mean-square-error Bayer demosaicing.
 //!
 //! This path follows the published LMMSE algorithm and darktable 5.6.2's
-//! mode-1 implementation conventions. See the
+//! mode conventions. See the
 //! [LMMSE reference notes](https://github.com/Glatzel/fornax/blob/main/docs/references/lmmse.md).
 
 use std::sync::OnceLock;
@@ -198,10 +198,14 @@ fn refine_tile(
                 1.0 / (1.0 + (q(qix, c, rr, cc + 2) - center_color).abs() + horizontal_green);
             let up = 1.0 / (1.0 + (q(qix, c, rr - 2, cc) - center_color).abs() + vertical_green);
             let down = 1.0 / (1.0 + (q(qix, c, rr + 2, cc) - center_color).abs() + vertical_green);
-            let numerator = (q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1)) * left
-                + (q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1)) * right
-                + (q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc)) * up
-                + (q(qix, GREEN, rr + 1, cc) - q(qix, c, rr + 1, cc)) * down;
+            let left_difference = q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1);
+            let right_difference = q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1);
+            let up_difference = q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc);
+            let down_difference = q(qix, GREEN, rr + 1, cc) - q(qix, c, rr + 1, cc);
+            let numerator = left_difference.mul_add(
+                left,
+                right_difference.mul_add(right, up_difference.mul_add(up, down_difference * down)),
+            );
             qix[tile_index(GREEN, rr, cc)] = center_color + numerator / (left + right + up + down);
             cc += 2;
         }
@@ -223,10 +227,15 @@ fn refine_tile(
                 let right = 1.0 / (1.0 + right_green + horizontal_color);
                 let up = 1.0 / (1.0 + up_green + vertical_color);
                 let down = 1.0 / (1.0 + down_green + vertical_color);
-                let numerator = (q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1)) * left
-                    + (q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1)) * right
-                    + (q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc)) * up
-                    + (q(qix, GREEN, rr + 1, cc) - q(qix, c, rr + 1, cc)) * down;
+                let left_difference = q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1);
+                let right_difference = q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1);
+                let up_difference = q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc);
+                let down_difference = q(qix, GREEN, rr + 1, cc) - q(qix, c, rr + 1, cc);
+                let numerator = left_difference.mul_add(
+                    left,
+                    right_difference
+                        .mul_add(right, up_difference.mul_add(up, down_difference * down)),
+                );
                 qix[tile_index(c, rr, cc)] = center_green - numerator / (left + right + up + down);
                 c = 2 - c;
             }
@@ -252,10 +261,14 @@ fn refine_tile(
                 1.0 / (1.0 + (q(qix, d, rr - 2, cc) - center_integrated).abs() + vertical_green);
             let down =
                 1.0 / (1.0 + (q(qix, d, rr + 2, cc) - center_integrated).abs() + vertical_green);
-            let numerator = (q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1)) * left
-                + (q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1)) * right
-                + (q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc)) * up
-                + (q(qix, GREEN, rr + 1, cc) - q(qix, c, rr + 1, cc)) * down;
+            let left_difference = q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1);
+            let right_difference = q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1);
+            let up_difference = q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc);
+            let down_difference = q(qix, GREEN, rr + 1, cc) - q(qix, c, rr + 1, cc);
+            let numerator = left_difference.mul_add(
+                left,
+                right_difference.mul_add(right, up_difference.mul_add(up, down_difference * down)),
+            );
             qix[tile_index(c, rr, cc)] = center_green - numerator / (left + right + up + down);
             cc += 2;
         }

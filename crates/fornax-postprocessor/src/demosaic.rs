@@ -27,40 +27,96 @@ use vng::DemosaicVng;
 
 use crate::protocol::{IDemosaic, LazyDemosaic};
 
+/// Selects a Bayer demosaic implementation and its behavioral parameters.
+///
+/// Every implementation accepts normalized scene-linear samples and returns
+/// normalized linear RGB. AAHD and LMMSE use nonlinear working domains only
+/// internally and convert back before returning.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_postprocessor::Demosaic;
+///
+/// let demosaic = Demosaic::Dcb {
+///     iterations: 1,
+///     enhance: false,
+/// };
+/// assert!(matches!(demosaic, Demosaic::Dcb { iterations: 1, .. }));
+/// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Demosaic {
+    /// Adaptive homogeneity-directed demosaicing using LibRaw's integer path.
     Aahd,
+    /// Adaptive homogeneity-directed demosaicing.
     Ahd,
+    /// Aliasing minimization and zipper elimination.
     Amaze,
+    /// Directional color balance.
     Dcb {
+        /// Number of Nyquist correction rounds; zero disables them.
         iterations: u8,
+        /// Whether to run final refinement and full-color reconstruction.
         enhance: bool,
     },
+    /// Directional homogeneity transform.
     Dht,
+    /// Bilinear interpolation.
     Linear,
+    /// Linear minimum mean-square-error demosaicing.
     Lmmse {
+        /// Median and refinement passes from darktable's mode parameter.
         mode: LmmseMode,
     },
+    /// Patterned pixel grouping.
     Ppg,
+    /// Ratio-corrected demosaicing.
     #[default]
     Rcd,
+    /// Variable-number-of-gradients demosaicing.
     Vng,
+    /// Split-green VNG demosaicing.
     Vng4,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+/// Selects darktable-compatible LMMSE median and refinement passes.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_postprocessor::LmmseMode;
+///
+/// assert_eq!(LmmseMode::default(), LmmseMode::Median);
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum LmmseMode {
+    /// Uses the PPG seed and interpolation without a median or refinement pass.
     Basic,
+    /// Applies one median pass, matching darktable mode 1.
+    #[default]
     Median,
+    /// Applies three median passes without refinement.
     ThreeMedians,
+    /// Applies three median passes followed by the given refinement passes.
     Refine(NonZeroU8),
 }
 
-impl Default for LmmseMode {
-    fn default() -> Self { Self::Median }
-}
-
 impl Demosaic {
+    /// Returns DCB with the default `(iterations, enhance)` values `(0, true)`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_postprocessor::Demosaic;
+    ///
+    /// assert_eq!(
+    ///     Demosaic::dcb(),
+    ///     Demosaic::Dcb {
+    ///         iterations: 0,
+    ///         enhance: true,
+    ///     }
+    /// );
+    /// ```
     pub const fn dcb() -> Self {
         Self::Dcb {
             iterations: 0,
@@ -68,6 +124,20 @@ impl Demosaic {
         }
     }
 
+    /// Returns LMMSE with its default one-median-pass mode.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_postprocessor::{Demosaic, LmmseMode};
+    ///
+    /// assert_eq!(
+    ///     Demosaic::lmmse(),
+    ///     Demosaic::Lmmse {
+    ///         mode: LmmseMode::Median,
+    ///     }
+    /// );
+    /// ```
     pub const fn lmmse() -> Self {
         Self::Lmmse {
             mode: LmmseMode::Median,
@@ -186,7 +256,10 @@ mod rust_algorithm_tests {
 
     #[test]
     fn all_algorithms_preserve_linear_boundary() -> mischief::Result<()> {
-        fn check<T: Primitive + Send + Sync + std::fmt::Debug>(value: T) -> mischief::Result<()> {
+        fn check<T>(value: T) -> mischief::Result<()>
+        where
+            T: Primitive + Send + Sync + std::fmt::Debug,
+        {
             let image = MonoImage::from_raw(64, 64, vec![value; 64 * 64]).unwrap();
             let algorithms = [
                 Demosaic::Aahd,
