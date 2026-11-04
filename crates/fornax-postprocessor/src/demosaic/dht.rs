@@ -5,8 +5,20 @@ use super::buffer::DenseLazy;
 use super::directional::{self, Profile};
 
 const MARGIN: usize = 4;
+const HVSH: u8 = 1;
+const HOR: u8 = 2;
+const VER: u8 = 4;
+const HORSH: u8 = HOR | HVSH;
+const VERSH: u8 = VER | HVSH;
+const DIASH: u8 = 8;
+const LURD: u8 = 16;
+const RULD: u8 = 32;
+const LURDSH: u8 = LURD | DIASH;
+const RULDSH: u8 = RULD | DIASH;
 const HOT: u8 = 64;
 const THOT: f32 = 64.0;
+const TG: f32 = 256.0;
+const DIAGONAL_THRESHOLD: f32 = 1.4;
 
 fn calc_dist(c1: f32, c2: f32) -> f32 {
     if c1 > c2 { c1 / c2 } else { c2 / c1 }
@@ -71,6 +83,272 @@ impl Dht {
 
     const fn offset(&self, x: usize, y: usize) -> usize {
         (y + MARGIN) * self.stride + x + MARGIN
+    }
+
+    fn get_hv_grb(&self, x: usize, y: usize, known: usize) -> u8 {
+        let sample = |x: usize, y: usize, channel: usize| self.nraw[self.offset(x, y)][channel];
+        let center = sample(x, y, known);
+        let hv1 = 2.0 * sample(x, y - 1, 1) / (sample(x, y - 2, known) + center);
+        let hv2 = 2.0 * sample(x, y + 1, 1) / (sample(x, y + 2, known) + center);
+        let mut kv = calc_dist(hv1, hv2)
+            * calc_dist(
+                center * center,
+                sample(x, y - 2, known) * sample(x, y + 2, known),
+            );
+        kv *= kv;
+        kv *= kv;
+        kv *= kv;
+        let dv = kv
+            * calc_dist(
+                sample(x, y - 3, 1) * sample(x, y + 3, 1),
+                sample(x, y - 1, 1) * sample(x, y + 1, 1),
+            );
+
+        let hh1 = 2.0 * sample(x - 1, y, 1) / (sample(x - 2, y, known) + center);
+        let hh2 = 2.0 * sample(x + 1, y, 1) / (sample(x + 2, y, known) + center);
+        let mut kh = calc_dist(hh1, hh2)
+            * calc_dist(
+                center * center,
+                sample(x - 2, y, known) * sample(x + 2, y, known),
+            );
+        kh *= kh;
+        kh *= kh;
+        kh *= kh;
+        let dh = kh
+            * calc_dist(
+                sample(x - 3, y, 1) * sample(x + 3, y, 1),
+                sample(x - 1, y, 1) * sample(x + 1, y, 1),
+            );
+
+        let strength = calc_dist(dh, dv);
+        if dh < dv {
+            if strength > TG { HORSH } else { HOR }
+        } else if strength > TG {
+            VERSH
+        } else {
+            VER
+        }
+    }
+
+    fn get_hv_rbg(&self, x: usize, y: usize, known: usize) -> u8 {
+        let sample = |x: usize, y: usize, channel: usize| self.nraw[self.offset(x, y)][channel];
+        let center = sample(x, y, 1);
+        let opposite = known ^ 2;
+        let hv1 = 2.0 * sample(x, y - 1, opposite) / (sample(x, y - 2, 1) + sample(x, y, 1));
+        let hv2 = 2.0 * sample(x, y + 1, opposite) / (sample(x, y + 2, 1) + sample(x, y, 1));
+        let mut kv = calc_dist(hv1, hv2)
+            * calc_dist(center * center, sample(x, y - 2, 1) * sample(x, y + 2, 1));
+        kv *= kv;
+        kv *= kv;
+        kv *= kv;
+        let dv = kv
+            * calc_dist(
+                sample(x, y - 3, opposite) * sample(x, y + 3, opposite),
+                sample(x, y - 1, opposite) * sample(x, y + 1, opposite),
+            );
+
+        let hh1 = 2.0 * sample(x - 1, y, known) / (sample(x - 2, y, 1) + center);
+        let hh2 = 2.0 * sample(x + 1, y, known) / (sample(x + 2, y, 1) + center);
+        let mut kh = calc_dist(hh1, hh2)
+            * calc_dist(center * center, sample(x - 2, y, 1) * sample(x + 2, y, 1));
+        kh *= kh;
+        kh *= kh;
+        kh *= kh;
+        let dh = kh
+            * calc_dist(
+                sample(x - 3, y, known) * sample(x + 3, y, known),
+                sample(x - 1, y, known) * sample(x + 1, y, known),
+            );
+
+        let strength = calc_dist(dh, dv);
+        if dh < dv {
+            if strength > TG { HORSH } else { HOR }
+        } else if strength > TG {
+            VERSH
+        } else {
+            VER
+        }
+    }
+
+    fn get_diag_grb(&self, x: usize, y: usize, known: usize) -> u8 {
+        let sample = |x: usize, y: usize, channel: usize| self.nraw[self.offset(x, y)][channel];
+        let center = sample(x, y, 1) * sample(x, y, 1);
+        let hlu = sample(x - 1, y - 1, 1) / sample(x - 1, y - 1, known);
+        let hrd = sample(x + 1, y + 1, 1) / sample(x + 1, y + 1, known);
+        let lurd = calc_dist(hlu, hrd)
+            * calc_dist(sample(x - 1, y - 1, 1) * sample(x + 1, y + 1, 1), center);
+        let ruld = calc_dist(hlu, hrd)
+            * calc_dist(sample(x + 1, y - 1, 1) * sample(x - 1, y + 1, 1), center);
+        let strength = calc_dist(lurd, ruld);
+        if ruld < lurd {
+            if strength > DIAGONAL_THRESHOLD {
+                RULDSH
+            } else {
+                RULD
+            }
+        } else if strength > DIAGONAL_THRESHOLD {
+            LURDSH
+        } else {
+            LURD
+        }
+    }
+
+    fn get_diag_rbg(&self, x: usize, y: usize) -> u8 {
+        let sample = |x: usize, y: usize, channel: usize| self.nraw[self.offset(x, y)][channel];
+        let center = sample(x, y, 1) * sample(x, y, 1);
+        let lurd = calc_dist(sample(x - 1, y - 1, 1) * sample(x + 1, y + 1, 1), center);
+        let ruld = calc_dist(sample(x + 1, y - 1, 1) * sample(x - 1, y + 1, 1), center);
+        let strength = calc_dist(lurd, ruld);
+        if ruld < lurd {
+            if strength > DIAGONAL_THRESHOLD {
+                RULDSH
+            } else {
+                RULD
+            }
+        } else if strength > DIAGONAL_THRESHOLD {
+            LURDSH
+        } else {
+            LURD
+        }
+    }
+
+    fn make_hv_dirs(&mut self) {
+        for y in 0..self.height {
+            let js = cfa_channel(self.pattern, 0, y as isize) & 1;
+            let known = cfa_channel(self.pattern, js as isize, y as isize);
+            for x in 0..self.width {
+                let direction = if x & 1 == js {
+                    self.get_hv_grb(x, y, known)
+                } else {
+                    self.get_hv_rbg(x, y, known)
+                };
+                let index = self.offset(x, y);
+                self.ndir[index] |= direction;
+            }
+        }
+        for y in 0..self.height {
+            self.refine_hv_row(y, y & 1);
+        }
+        for y in 0..self.height {
+            self.refine_hv_row(y, (y & 1) ^ 1);
+        }
+        for y in 0..self.height {
+            self.refine_hv_all_columns(y);
+        }
+    }
+
+    fn refine_hv_row(&mut self, y: usize, parity: usize) {
+        for x in (parity..self.width).step_by(2) {
+            let index = self.offset(x, y);
+            if self.ndir[index] & HVSH != 0 {
+                continue;
+            }
+            let vertical = (self.ndir[index - self.stride] & VER)
+                + (self.ndir[index + self.stride] & VER)
+                + (self.ndir[index - 1] & VER)
+                + (self.ndir[index + 1] & VER);
+            let horizontal = (self.ndir[index - self.stride] & HOR)
+                + (self.ndir[index + self.stride] & HOR)
+                + (self.ndir[index - 1] & HOR)
+                + (self.ndir[index + 1] & HOR);
+            let codirectional = if self.ndir[index] & VER != 0 {
+                self.ndir[index - self.stride] & VER != 0
+                    || self.ndir[index + self.stride] & VER != 0
+            } else {
+                self.ndir[index - 1] & HOR != 0 || self.ndir[index + 1] & HOR != 0
+            };
+            let vertical = vertical / VER;
+            let horizontal = horizontal / HOR;
+            if self.ndir[index] & VER != 0 && horizontal > 2 && !codirectional {
+                self.ndir[index] &= !VER;
+                self.ndir[index] |= HOR;
+            }
+            if self.ndir[index] & HOR != 0 && vertical > 2 && !codirectional {
+                self.ndir[index] &= !HOR;
+                self.ndir[index] |= VER;
+            }
+        }
+    }
+
+    fn refine_hv_all_columns(&mut self, y: usize) {
+        for x in 0..self.width {
+            let index = self.offset(x, y);
+            if self.ndir[index] & HVSH != 0 {
+                continue;
+            }
+            let vertical = (self.ndir[index - self.stride] & VER)
+                + (self.ndir[index + self.stride] & VER)
+                + (self.ndir[index - 1] & VER)
+                + (self.ndir[index + 1] & VER);
+            let horizontal = (self.ndir[index - self.stride] & HOR)
+                + (self.ndir[index + self.stride] & HOR)
+                + (self.ndir[index - 1] & HOR)
+                + (self.ndir[index + 1] & HOR);
+            let vertical = vertical / VER;
+            let horizontal = horizontal / HOR;
+            if self.ndir[index] & VER != 0 && horizontal > 3 {
+                self.ndir[index] &= !VER;
+                self.ndir[index] |= HOR;
+            }
+            if self.ndir[index] & HOR != 0 && vertical > 3 {
+                self.ndir[index] &= !HOR;
+                self.ndir[index] |= VER;
+            }
+        }
+    }
+
+    fn make_diag_dirs(&mut self) {
+        for y in 0..self.height {
+            let js = cfa_channel(self.pattern, 0, y as isize) & 1;
+            let known = cfa_channel(self.pattern, js as isize, y as isize);
+            for x in 0..self.width {
+                let direction = if x & 1 == js {
+                    self.get_diag_grb(x, y, known)
+                } else {
+                    self.get_diag_rbg(x, y)
+                };
+                let index = self.offset(x, y);
+                self.ndir[index] |= direction;
+            }
+        }
+        for y in 0..self.height {
+            self.refine_diag_all_columns(y);
+        }
+    }
+
+    fn refine_diag_all_columns(&mut self, y: usize) {
+        for x in 0..self.width {
+            let index = self.offset(x, y);
+            if self.ndir[index] & DIASH != 0 {
+                continue;
+            }
+            let lurd = (self.ndir[index - self.stride] & LURD)
+                + (self.ndir[index + self.stride] & LURD)
+                + (self.ndir[index - 1] & LURD)
+                + (self.ndir[index + 1] & LURD)
+                + (self.ndir[index - self.stride - 1] & LURD)
+                + (self.ndir[index - self.stride + 1] & LURD)
+                + (self.ndir[index + self.stride - 1] & LURD)
+                + (self.ndir[index + self.stride + 1] & LURD);
+            let ruld = (self.ndir[index - self.stride] & RULD)
+                + (self.ndir[index + self.stride] & RULD)
+                + (self.ndir[index - 1] & RULD)
+                + (self.ndir[index + 1] & RULD)
+                + (self.ndir[index - self.stride - 1] & RULD)
+                + (self.ndir[index - self.stride + 1] & RULD)
+                + (self.ndir[index + self.stride - 1] & RULD)
+                + (self.ndir[index + self.stride + 1] & RULD);
+            let lurd = lurd / LURD;
+            let ruld = ruld / RULD;
+            if self.ndir[index] & LURD != 0 && ruld > 7 {
+                self.ndir[index] &= !LURD;
+                self.ndir[index] |= RULD;
+            }
+            if self.ndir[index] & RULD != 0 && lurd > 7 {
+                self.ndir[index] &= !RULD;
+                self.ndir[index] |= LURD;
+            }
+        }
     }
 
     fn hide_hots(&mut self) {
@@ -223,6 +501,12 @@ mod tests {
     use super::*;
 
     const HOT: u8 = 64;
+    const HVSH: u8 = 1;
+    const HOR: u8 = 2;
+    const VER: u8 = 4;
+    const HORSH: u8 = HOR | HVSH;
+    const LURD: u8 = 16;
+    const RULD: u8 = 32;
 
     fn measured_mosaic(width: usize, height: usize, pattern: BayerPattern, value: u16) -> Vec<u16> {
         let mut samples = vec![value; width * height];
@@ -290,5 +574,55 @@ mod tests {
         assert_eq!(dht.nraw[index][1], 500.0);
         dht.restore_hots(&input);
         assert_eq!(dht.nraw[index][1], 60_000.0);
+    }
+
+    fn uniform_dht(width: usize, height: usize, pattern: BayerPattern) -> Dht {
+        let mut dht = Dht::new(&[1_000; 81], width, height, pattern);
+        dht.nraw.fill([1.0; 3]);
+        dht
+    }
+
+    #[test]
+    fn hv_direction_marks_strong_and_regular_horizontal_edges() {
+        let pattern = BayerPattern::GBRG;
+        let mut regular = uniform_dht(9, 9, pattern);
+        let index = regular.offset(4, 2);
+        regular.nraw[index][1] = 4.0;
+        assert_eq!(regular.get_hv_grb(4, 5, 0), HOR);
+
+        let mut strong = uniform_dht(9, 9, pattern);
+        let index = strong.offset(4, 2);
+        strong.nraw[index][1] = 1_024.0;
+        assert_eq!(strong.get_hv_grb(4, 5, 0), HORSH);
+    }
+
+    #[test]
+    fn diag_direction_marks_strong_and_regular_diagonal_edges() {
+        let pattern = BayerPattern::GBRG;
+        let mut regular = uniform_dht(9, 9, pattern);
+        let index = regular.offset(3, 2);
+        regular.nraw[index][1] = 0.91;
+        assert_eq!(regular.get_diag_grb(4, 3, 0), RULD);
+
+        let mut strong = uniform_dht(9, 9, pattern);
+        let index = strong.offset(5, 2);
+        strong.nraw[index][1] = 0.5;
+        assert_eq!(strong.get_diag_grb(4, 3, 0), LURDSH);
+    }
+
+    #[test]
+    fn hv_refinement_flips_an_unsupported_direction() {
+        let pattern = BayerPattern::GBRG;
+        let mut dht = uniform_dht(9, 9, pattern);
+        let center = dht.offset(4, 4);
+        dht.ndir[center] = VER;
+        dht.ndir[center - 1] = HOR;
+        dht.ndir[center + 1] = HOR;
+        dht.ndir[center - dht.stride] = HOR;
+        dht.ndir[center + dht.stride] = HOR;
+
+        dht.refine_hv_row(4, 0);
+
+        assert_eq!(dht.ndir[center] & (HOR | VER), HOR);
     }
 }
