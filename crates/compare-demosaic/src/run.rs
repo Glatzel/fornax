@@ -39,12 +39,8 @@ pub struct RunOutput {
     pub report: Report,
     pub artifacts: bool,
 }
-
+#[cfg(test)]
 #[derive(Clone, Debug)]
-#[allow(
-    dead_code,
-    reason = "fields feed the unchanged comparison snapshot tests"
-)]
 pub(crate) struct CaseEvaluation {
     pub case: &'static Case,
     pub pattern: BayerPattern,
@@ -195,10 +191,7 @@ pub(crate) fn execute_with_inputs(
     })
 }
 
-#[cfg_attr(
-    not(test),
-    allow(dead_code, reason = "used by comparison crate integration tests")
-)]
+#[cfg(test)]
 pub(crate) fn selected_evaluations(
     input: &crate::reference::ActiveArea,
     algorithms: &[String],
@@ -209,11 +202,7 @@ pub(crate) fn selected_evaluations(
         .map(|selection| evaluate_case(selection.case, input, selection.pattern, border_px))
         .collect()
 }
-
-#[cfg_attr(
-    not(test),
-    allow(dead_code, reason = "used by comparison crate integration tests")
-)]
+#[cfg(test)]
 pub(crate) fn evaluate_case(
     case: &'static Case,
     input: &crate::reference::ActiveArea,
