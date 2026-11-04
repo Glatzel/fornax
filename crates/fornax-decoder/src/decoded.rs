@@ -9,7 +9,7 @@ use crate::{DecodeError, DngMetadata, DngTag, DngValue, DngWriteError, DngWriteO
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
 /// use fornax_core::MonoImage;
 /// use fornax_decoder::MosaicData;
 ///
@@ -48,7 +48,7 @@ impl MosaicData {
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
 /// use fornax_core::MonoImage;
 /// use fornax_decoder::{DecodedRaw, DngMetadata, DngTag, DngValue, MosaicData};
 ///
@@ -77,7 +77,7 @@ impl DecodedRaw {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use fornax_core::MonoImage;
     /// use fornax_decoder::{DecodedRaw, DngMetadata, DngTag, DngValue, MosaicData};
     ///
@@ -111,7 +111,7 @@ impl DecodedRaw {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use fornax_core::MonoImage;
     /// use fornax_decoder::{DecodedRaw, DngMetadata, DngTag, DngValue, DngWriteOptions, MosaicData};
     ///

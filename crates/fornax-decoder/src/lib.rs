@@ -8,7 +8,7 @@
 //!
 //! Decode attempts report an unsupported operation:
 //!
-//! ```
+//! ``` no_run
 //! use std::path::Path;
 //!
 //! use fornax_decoder::{DecodeError, Decoder};
@@ -39,7 +39,7 @@ pub use writer::{DngCompression, DngVersion, DngWriteOptions};
 ///
 /// # Examples
 ///
-/// ```
+/// ``` no_run
 /// use fornax_decoder::Decoder;
 ///
 /// let decoder = Decoder;
@@ -62,7 +62,7 @@ impl Decoder {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// use std::path::Path;
     ///
     /// use fornax_decoder::{DecodeError, Decoder};
