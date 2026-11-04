@@ -56,7 +56,7 @@ struct CaseComputation {
     reference: Vec<u16>,
     evaluation: Evaluation,
     verdict: DetailedVerdict,
-    failed_limits: Vec<FailedLimit>,
+    _failed_limits: Vec<FailedLimit>,
 }
 
 #[derive(Clone, Copy)]
@@ -215,7 +215,7 @@ pub(crate) fn evaluate_case(
         pattern,
         evaluation: computation.evaluation,
         verdict: computation.verdict,
-        failed_limits: computation.failed_limits,
+        failed_limits: computation._failed_limits,
     })
 }
 
@@ -256,7 +256,7 @@ fn compute_case(
         reference,
         evaluation,
         verdict,
-        failed_limits,
+        _failed_limits: failed_limits,
     })
 }
 
