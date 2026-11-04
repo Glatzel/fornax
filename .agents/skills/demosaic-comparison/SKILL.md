@@ -104,7 +104,7 @@ last, and only if the result needs to be recorded.
    not combine references in one section. Explain causes and conventions, not
    current numbers, and name functions rather than paths. Put any matching
    Accepted outliers paragraph under its reference heading. Do not edit text
-   inside generated markers. Update or remove the entry in `src/waivers.rs`
+   inside generated markers. Update or remove the entry in`src/waivers.rs`
    when the reviewed outliers change; `readme` reports unused waivers.
 
 6. If the table says the baseline must change, refresh it with the one full

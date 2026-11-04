@@ -9,11 +9,11 @@
 template <typename Algorithm>
 std::int32_t run_rawtherapee(
     const std::uint16_t* mosaic,
-    std::uint32_t width,
-    std::uint32_t height,
-    std::uint32_t filters,
-    std::uint16_t* output,
-    Algorithm algorithm
+    std::uint32_t        width,
+    std::uint32_t        height,
+    std::uint32_t        filters,
+    std::uint16_t*       output,
+    Algorithm            algorithm
 ) noexcept {
     if (width < 32 || height < 32) {
         return COMPARE_DEMOSAIC_STATUS_INVALID_DIMENSIONS;

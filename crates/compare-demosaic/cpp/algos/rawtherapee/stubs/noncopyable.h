@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-namespace rtengine
-{
+namespace rtengine {
 
-class NonCopyable
-{
+class NonCopyable {
   protected:
     NonCopyable() = default;
     ~NonCopyable() = default;

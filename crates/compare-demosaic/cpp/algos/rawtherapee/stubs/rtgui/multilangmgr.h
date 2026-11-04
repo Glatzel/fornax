@@ -3,19 +3,14 @@
 
 #include <string>
 
-namespace Glib
-{
+namespace Glib {
 
-class ustring
-{
+class ustring {
   public:
     ustring() = default;
     ustring(const char*) {}
 
-    template <typename... Args>
-    static ustring compose(const char*, Args&&...) {
-        return {};
-    }
+    template <typename... Args> static ustring compose(const char*, Args&&...) { return {}; }
 };
 
 } // namespace Glib

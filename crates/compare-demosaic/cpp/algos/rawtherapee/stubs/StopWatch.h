@@ -9,8 +9,7 @@
 #define BENCHFUNMICRO
 #endif
 
-class StopWatch
-{
+class StopWatch {
   public:
     explicit StopWatch(const char*, bool = false) {}
 };

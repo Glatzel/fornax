@@ -2,5 +2,5 @@
 #pragma once
 
 #include "opthelper.h"
-#include "rt_math.h"
 #include "rawtherapee_compat.h"
+#include "rt_math.h"
