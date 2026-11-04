@@ -94,16 +94,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - package: bench-decoder
+          - package: fornax-core
             paths: |
               ./Cargo.toml
               ./Cargo.lock
-              ./crates/bench-decoder/**
               ./crates/fornax-core/**
-              ./crates/fornax-decoder-rawler/**
-              ./crates/fornax-devtool/**
-              ./crates/libraw/**
-              ./crates/libraw-sys/**
           - package: fornax-postprocessor
             paths: |
               ./Cargo.toml
