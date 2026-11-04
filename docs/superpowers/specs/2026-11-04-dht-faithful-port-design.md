@@ -93,8 +93,8 @@ green CFA phases are unified as LibRaw's three-color `pre_interpolate()` does.
 The internal direction map is a byte per padded sample with the same flags and
 bit values as LibRaw: horizontal, vertical, diagonal variants, strong
 directions, and hot-pixel state. Direction discovery uses the src DSP's
-one-stop luminance distance, including its fourth-power horizontal/vertical
-score and 1.4 diagonal threshold.
+one-stop luminance distance, including its three repeated squarings of the
+horizontal/vertical confidence and 1.4 diagonal threshold.
 
 The implementation follows the reference sequence:
 

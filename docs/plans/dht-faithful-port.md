@@ -69,10 +69,12 @@ shrink, half-size, four-color RGB, X-Trans, or non-Bayer input.
 ### Task 1: Padded state, bounds, and hot handling
 
 **Files:**
+
 - Modify: `crates/fornax-postprocessor/src/demosaic/dht.rs`
 - Test: same file
 
 **Interfaces:**
+
 - Consumes: `buffer::{DenseLazy, codes, dense_from_codes}` and
   `BayerPattern::channel_at`.
 - Produces:
@@ -83,27 +85,27 @@ shrink, half-size, four-color RGB, X-Trans, or non-Bayer input.
   - `fn hide_hots(&mut self)`
   - `fn restore_hots(&mut self, input: &[u16])`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add tests named
 `calc_dist_is_invariant_to_one_stop_scaling`,
 `new_preserves_measured_samples_in_a_padded_neutral_plane`, and
 `hide_hots_marks_and_repairs_an_isolated_sample`.
 
-- [ ] **Step 2: Run the tests and verify RED**
+- [x] **Step 2: Run the tests and verify RED**
 
 Run: `cargo test -p fornax-postprocessor dht::tests -- --nocapture`
 
 Expected: compilation fails because `Dht` and its helpers do not exist.
 
-- [ ] **Step 3: Implement the state and hot stage**
+- [x] **Step 3: Implement the state and hot stage**
 
 Initialize all padded samples to `[[0.5; 3]; area]`, copy measured samples,
 retain `channel_maximum` and `channel_minimum` using LibRaw's zero-initialized
 unmeasured channels plus the `0.5` lower delta, then port `hide_hots` with the
 source's eight-neighbor, one-stop, and axis-choice comparisons.
 
-- [ ] **Step 4: Run the tests and verify GREEN**
+- [x] **Step 4: Run the tests and verify GREEN**
 
 Run: `cargo test -p fornax-postprocessor dht::tests -- --nocapture`
 
@@ -112,10 +114,12 @@ Expected: the new focused tests pass.
 ### Task 2: Direction discovery and refinement
 
 **Files:**
+
 - Modify: `crates/fornax-postprocessor/src/demosaic/dht.rs`
 - Test: same file
 
 **Interfaces:**
+
 - Consumes: `Dht` state from Task 1.
 - Produces:
   - `fn make_hv_dirs(&mut self)`
@@ -125,27 +129,27 @@ Expected: the new focused tests pass.
   - `fn get_diag_grb(&self, x: usize, y: usize, kc: usize) -> u8`
   - `fn get_diag_rbg(&self, x: usize, y: usize) -> u8`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add tests named
 `hv_direction_marks_strong_and_regular_horizontal_edges`,
 `diag_direction_marks_strong_and_regular_diagonal_edges`, and
 `hv_refinement_flips_an_unsupported_direction`.
 
-- [ ] **Step 2: Run the tests and verify RED**
+- [x] **Step 2: Run the tests and verify RED**
 
 Run: `cargo test -p fornax-postprocessor dht::tests -- --nocapture`
 
 Expected: compilation fails because direction stages and flags do not exist.
 
-- [ ] **Step 3: Implement direction calculation and refinement**
+- [x] **Step 3: Implement direction calculation and refinement**
 
 Port `get_hv_grb`, `get_hv_rbg`, `get_diag_grb`, `get_diag_rbg`,
 `make_hv_dirs`, and `make_diag_dirs`, preserving the `1.4` diagonal threshold,
-the squared fourth-power HV confidence, row-parity refinement order, and the
-column-wide refinement.
+the three repeated squarings of HV confidence, row-parity refinement order, and
+the column-wide refinement.
 
-- [ ] **Step 4: Run the tests and verify GREEN**
+- [x] **Step 4: Run the tests and verify GREEN**
 
 Run: `cargo test -p fornax-postprocessor dht::tests -- --nocapture`
 
@@ -154,10 +158,12 @@ Expected: all focused tests pass.
 ### Task 3: Green and red/blue reconstruction
 
 **Files:**
+
 - Modify: `crates/fornax-postprocessor/src/demosaic/dht.rs`
 - Test: same file
 
 **Interfaces:**
+
 - Consumes: directions and bounded state from Tasks 1-2.
 - Produces:
   - `fn make_greens(&mut self)`
@@ -166,32 +172,32 @@ Expected: all focused tests pass.
   - `fn scale_under(ec: f32, base: f32) -> f32`
   - `fn process(&mut self, input: &[u16]) -> Vec<u16>`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add tests named
 `make_greens_uses_the_selected_axis_and_channel_bounds`,
 `make_rb_reconstructs_diagonal_and_hv_missing_samples`, and
 `process_restores_hot_samples_and_truncates_output`.
 
-- [ ] **Step 2: Run the tests and verify RED**
+- [x] **Step 2: Run the tests and verify RED**
 
 Run: `cargo test -p fornax-postprocessor dht::tests -- --nocapture`
 
 Expected: compilation fails because reconstruction and processing do not exist.
 
-- [ ] **Step 3: Implement the pass sequence**
+- [x] **Step 3: Implement the pass sequence**
 
 Port `make_gline`, `make_rbdiag`, `make_rbhv`, `scale_over`, `scale_under`,
 `restore_hots`, and the final float-to-`u16` packing in the reference order:
 hot handling, HV directions, greens, diagonal directions, red/blue, hot
 restoration, copy.
 
-- [ ] **Step 4: Wire the public backend**
+- [x] **Step 4: Wire the public backend**
 
 Replace `directional::lazy(...)` in `DemosaicDht::lazy` with the dedicated
 3x3-validated pipeline using `codes` and `dense_from_codes`.
 
-- [ ] **Step 5: Run focused and crate tests**
+- [x] **Step 5: Run focused and crate tests**
 
 Run: `cargo test -p fornax-postprocessor dht`
 Run: `cargo test -p fornax-postprocessor`
@@ -201,6 +207,7 @@ Expected: focused tests and all postprocessor tests pass.
 ### Task 4: Comparison, documentation, and backlog
 
 **Files:**
+
 - Modify: `crates/compare-demosaic/src/snapshots/*-DHT-libraw.snap`
 - Modify: `crates/compare-demosaic/README.md`
 - Modify: `crates/compare-demosaic/baseline/canonical.json`
@@ -208,10 +215,11 @@ Expected: focused tests and all postprocessor tests pass.
 - Modify: `TODO.md`
 
 **Interfaces:**
+
 - Consumes: the production DHT backend from Task 3.
 - Produces: accepted canonical DHT rows and complete reference documentation.
 
-- [ ] **Step 1: Run the native diagnostic row**
+- [x] **Step 1: Run the native diagnostic row**
 
 Run:
 `cargo run --release -p compare-demosaic -- run --algorithm dht --pattern GBRG --artifacts --out target/dht`
@@ -219,7 +227,7 @@ Run:
 Expected: MAE at most 2, P99 at most 64, and at most 0.1% above 1024 codes.
 Investigate the earliest failing stage instead of changing limits if it fails.
 
-- [ ] **Step 2: Run all DHT rows and update reviewed snapshots**
+- [x] **Step 2: Run all DHT rows and update reviewed snapshots**
 
 Run: `cargo run --release -p compare-demosaic -- run --algorithm dht`
 Run: `cargo insta test -p compare-demosaic`
@@ -227,7 +235,7 @@ Run: `cargo insta accept`
 
 Expected: all four LibRaw DHT rows pass; only DHT snapshots change.
 
-- [ ] **Step 3: Refresh the full baseline and generated README**
+- [x] **Step 3: Refresh the full baseline and generated README**
 
 Run: `cargo run --release -p compare-demosaic -- run`
 Copy `target/compare-demosaic/canonical.json` to
@@ -240,14 +248,14 @@ Run: `cargo run --release -p compare-demosaic -- diff crates/compare-demosaic/ba
 Expected: full run differs only in reviewed DHT rows; diff and README check
 pass.
 
-- [ ] **Step 4: Write the reference and remove the completed backlog item**
+- [x] **Step 4: Write the reference and remove the completed backlog item**
 
 Document the pinned source, algorithm stages, numeric invariants, stage
 boundary, and dual-license notice in `docs/references/dht.md`. Rewrite the DHT
 README note to describe the faithful match and known comparison boundary.
 Remove `[DHT]` from `TODO.md`.
 
-- [ ] **Step 5: Run repository validation**
+- [x] **Step 5: Run repository validation**
 
 Run:
 
@@ -277,3 +285,16 @@ be reported exactly rather than described as passing.
 - The native GBRG row is the independent acceptance test.
 - Numeric discrepancies are localized to stage fixtures before comparison
   tuning.
+- The implementation accepts the comparison bridge's 3x3 minimum; the initial
+  direction helper exposed and fixed negative padded-coordinate handling.
+- The native GBRG row passes with MAE `0.000064`, P99 `0`, and zero samples
+  above 1024 codes.
+- All four DHT rows pass with MAE at most `0.000065`, P99 `0`, maximum `124`,
+  and zero samples above 1024 codes.
+- The full baseline changed only the four DHT rows. Reviewed DHT snapshots,
+  generated README, and the baseline diff were accepted.
+- `cargo test --workspace --all-features` passed 264 tests across 23 suites;
+  `cargo +nightly fmt --check`, Markdown lint, and `git diff --check` passed.
+- The exact repository Clippy command reports pre-existing failures in the
+  preprocessor benchmark, Rawler test helper, `linear.rs`, and `lmmse.rs`; no
+  DHT diagnostics remain.
