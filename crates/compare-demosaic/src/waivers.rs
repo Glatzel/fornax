@@ -14,6 +14,16 @@ pub struct Waiver {
 
 pub const WAIVERS: &[Waiver] = &[
     Waiver {
+        algorithm: "aahd",
+        reference: ReferenceBackend::LibRaw,
+        pattern: None,
+        input: None,
+        max_count_gt1024: 4_026,
+        max_error: 5_941,
+        reason: "Independent floating-point homogeneity and gradient comparisons can select the other AAHD directional candidate at sparse, high-frequency and clipped chart details.",
+        evidence: "The full-resolution error map was reviewed in all four CFA phases: every robust limit passes, sampled Bayer sites are exact, all high-error values are interpolated-site outliers, and the map is sparse point noise without a border strip or full-frame structure. The reviewed maxima are 4026 samples above 1024 and maximum error 5941, with at most 32 high-error samples in any 64x64 tile (GRBG).",
+    },
+    Waiver {
         algorithm: "ahd",
         reference: ReferenceBackend::LibRaw,
         pattern: None,

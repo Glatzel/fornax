@@ -1,14 +1,14 @@
 # fornax-postprocessor
 
 Post-processes normalized Bayer data into RGB output. The `Demosaic` selector
-supports linear, PPG, RCD, AHD, VNG, DCB, DHT, AAHD, AMaZE, and LMMSE
-reconstruction for conventional 2x2 Bayer images.
+supports linear, PPG, RCD, AHD, VNG, four-color VNG4, DCB, DHT, AAHD, AMaZE,
+and LMMSE reconstruction for conventional 2x2 Bayer images.
 
 The crate owns the `IDemosaic` and `LazyDemosaic` protocol traits in
 `fornax_postprocessor::protocol`. `DemosaicError` remains in
 `fornax_core::error`.
 
-All ten demosaic variants are implemented in Rust. LibRaw and darktable are
+All eleven demosaic variants are implemented in Rust. LibRaw and darktable are
 used only by the separate comparison crate as behavioral references.
 
 ```rust

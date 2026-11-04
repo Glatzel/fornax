@@ -4,11 +4,8 @@ use super::buffer::{DenseLazy, channel, dense_from_f32, normalized};
 
 #[derive(Debug, Clone, Copy)]
 pub(super) enum Profile {
-    Dcb,
     Dht,
-    Aahd,
     Amaze,
-    Lmmse,
 }
 
 pub(super) fn lazy<T>(
@@ -48,11 +45,8 @@ fn run(
     let mut green = vec![0.0_f32; width * height];
     let mut rgb = vec![[0.0_f32; 3]; width * height];
     let (green_power, chroma_radius, refinement) = match profile {
-        Profile::Dcb => (2.0, 2, 0),
         Profile::Dht => (1.0, 2, 0),
-        Profile::Aahd => (4.0, 3, 0),
         Profile::Amaze => (3.0, 3, 0),
-        Profile::Lmmse => (1.0, 2, 1),
     };
 
     for y in 0..height {
@@ -107,10 +101,6 @@ fn run(
                     let vertical_ratio = center * f32::midpoint(north, south)
                         / (f32::midpoint(north2, south2) + 1.0e-5);
                     vertical_ratio.mul_add(vertical_weight, horizontal_ratio * horizontal_weight)
-                        / (horizontal_weight + vertical_weight)
-                }
-                Profile::Lmmse => {
-                    vertical.mul_add(vertical_weight, horizontal * horizontal_weight)
                         / (horizontal_weight + vertical_weight)
                 }
                 _ => {
@@ -190,12 +180,8 @@ fn run(
                     let color_difference = f32::midpoint(differences[1], differences[2]);
                     let refined = green[index] + color_difference;
                     rgb[index][target] = match profile {
-                        Profile::Lmmse => refined.mul_add(0.5, previous[index][target] * 0.5),
                         Profile::Amaze => refined.mul_add(0.25, previous[index][target] * 0.75),
-                        Profile::Dcb => refined.mul_add(0.4, previous[index][target] * 0.6),
-                        Profile::Dht | Profile::Aahd => {
-                            refined.mul_add(0.2, previous[index][target] * 0.8)
-                        }
+                        Profile::Dht => refined.mul_add(0.2, previous[index][target] * 0.8),
                     }
                     .clamp(0.0, 1.0);
                 }

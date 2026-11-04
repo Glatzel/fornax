@@ -146,18 +146,19 @@ and are consistency checks against the same image.
 <!-- compare-demosaic:begin summary -->
 | Algorithm | Reference | Worst verdict | Native-pattern result |
 | --- | --- | --- | --- |
-| AAHD | libraw | ❌ | GBRG ❌ |
+| AAHD | libraw | ⚖️ | GBRG ⚖️ |
 | AHD | libraw | ⚖️ | GBRG ⚖️ |
 | AMaZE | darktable | ❌ | GBRG ❌ |
-| DCB | libraw | ❌ | GBRG ❌ |
+| DCB | libraw | ✅ | GBRG ✅ |
 | DHT | libraw | ❌ | GBRG ❌ |
 | Linear | libraw | 🟢 | GBRG 🟢 |
-| LMMSE | darktable | ❌ | GBRG ❌ |
+| LMMSE | darktable | ✅ | GBRG ✅ |
 | PPG | darktable | ✅ | GBRG ✅ |
 | PPG | libraw | ⚖️ | GBRG ⚖️ |
 | RCD | darktable | ⚖️ | GBRG ⚖️ |
 | VNG | darktable | ✅ | GBRG ✅ |
 | VNG | libraw | ❌ | GBRG ❌ |
+| VNG4 | libraw | ✅ | GBRG ✅ |
 <!-- compare-demosaic:end summary -->
 
 ## Legend
@@ -185,24 +186,30 @@ and are consistency checks against the same image.
 <!-- compare-demosaic:begin algo:aahd -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 0] | no | ❌ | 103.110399 | 288.014295 | 18089 | 15.741260 | 1327 | 2119 | 1100592 (34793) | 0.629555 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 0] | yes | ❌ | 103.105439 | 287.955685 | 18089 | 15.733126 | 1327 | 2118 | 1101122 (35228) | 0.629560 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 1] | no | ❌ | 102.968181 | 282.967937 | 12529 | 15.936816 | 1327 | 2117 | 1101178 (37286) | 0.629571 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 1] | no | ❌ | 102.954954 | 282.896321 | 12529 | 15.925241 | 1327 | 2116 | 1101523 (37725) | 0.629567 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 0] | no | ⚖️ | 0.274773 | 16.228683 | 5349 | 0.035014 | 0 | 17 | 3399 (69) | 0.001157 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 0] | yes | ⚖️ | 0.283189 | 16.624567 | 5385 | -0.038198 | 0 | 18 | 3645 (67) | 0.001168 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 1] | no | ⚖️ | 0.304623 | 17.566732 | 5941 | 0.037053 | 0 | 20 | 4026 (88) | 0.001190 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 1] | no | ⚖️ | 0.295955 | 17.177471 | 5941 | -0.040052 | 0 | 19 | 3780 (92) | 0.001178 |
+
+Accepted outliers (aahd vs LibRaw, all patterns): at most 4026 samples above 1024, maximum error at most 5941. Reason: Independent floating-point homogeneity and gradient comparisons can select the other AAHD directional candidate at sparse, high-frequency and clipped chart details. Evidence: The full-resolution error map was reviewed in all four CFA phases: every robust limit passes, sampled Bayer sites are exact, all high-error values are interpolated-site outliers, and the map is sparse point noise without a border strip or full-frame structure. The reviewed maxima are 4026 samples above 1024 and maximum error 5941, with at most 32 high-error samples in any 64x64 tile (GRBG).
 <!-- compare-demosaic:end algo:aahd -->
 
 > [!NOTE]
 > **Reference:** LibRaw, `aahd_interpolate`.
 > **Why this reference:** it is a widely used advanced AHD implementation
 > with an independently maintained interpolation pipeline.
-> **Why we match:** both preserve the measured CFA samples, estimate missing
-> green from horizontal and vertical candidates, and reconstruct red and blue
-> from color differences around the estimated green plane.
-> **Known differences:** Fornax uses its shared directional kernel with an
-> edge-weight exponent of four and a three-pixel chroma radius; LibRaw AAHD
-> applies its own homogeneity and refinement stages. Fornax clamps normalized
-> output and quantizes to nearest, while the reference controls its own
-> intermediate and output conventions.
+> **Why we match:** Fornax ports AAHD's four-pixel padded working planes,
+> hot-pixel masking, horizontal and vertical green candidates, directional
+> red/blue reconstruction, 16-bit gamma and YUV homogeneity scoring, direction
+> refinement, and per-pixel candidate selection. Both use LibRaw's channel
+> extrema, integer clamps, and truncating `ushort` output.
+> **Known differences:** the comparison bridge supplies an identity
+> camera-to-RGB matrix and no white balance, so only the demosaic stage is
+> compared. Fornax accepts conventional 2x2 RGB Bayer input only and does not
+> reproduce LibRaw's camera metadata or output-color pipeline. Sparse
+> high-frequency and clipped-chart decisions can remain different when an
+> independent floating-point evaluation lands on the other side of a
+> homogeneity or gradient comparison.
 
 ## AHD
 
@@ -262,23 +269,24 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 <!-- compare-demosaic:begin algo:dcb -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | BGGR | [1, 0] | no | ❌ | 88.015023 | 228.152732 | 7094 | 18.166627 | 1105 | 1902 | 665983 (21079) | 0.668584 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GBRG | [0, 0] | yes | ❌ | 88.009547 | 228.137404 | 7094 | 18.157793 | 1105 | 1902 | 665986 (21082) | 0.668585 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GRBG | [1, 1] | no | ❌ | 87.970957 | 228.041357 | 7866 | 18.306786 | 1104 | 1902 | 664573 (20758) | 0.668591 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | RGGB | [0, 1] | no | ❌ | 87.965500 | 228.026068 | 7866 | 18.297917 | 1104 | 1902 | 664576 (20761) | 0.668592 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | BGGR | [1, 0] | no | ✅ | 0.000258 | 0.016083 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000258 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GBRG | [0, 0] | yes | ✅ | 0.000258 | 0.016073 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000257 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GRBG | [1, 1] | no | ✅ | 0.000258 | 0.016074 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000257 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | RGGB | [0, 1] | no | ✅ | 0.000257 | 0.016064 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000257 |
 <!-- compare-demosaic:end algo:dcb -->
 
 > [!NOTE]
 > **Reference:** LibRaw, `dcb`.
 > **Why this reference:** it is the maintained implementation of directional
 > color balance demosaicing and exposes the complete LibRaw pipeline.
-> **Why we match:** both start from measured CFA samples, estimate green with
-> horizontal and vertical confidence, and reconstruct red and blue by carrying
-> green-normalized color differences into neighboring sites.
-> **Known differences:** Fornax uses the shared directional kernel with an
-> edge-weight exponent of two and a two-pixel chroma radius. LibRaw DCB uses
-> its own confidence and color-balance refinement sequence; Fornax also clamps
-> normalized output and quantizes to nearest.
+> **Why we match:** Fornax follows LibRaw's `pre_interpolate()` plus
+> `dcb(0, 1)` sequence: six-pixel CFA border interpolation, horizontal and
+> vertical candidate reconstruction, direction selection, green corrections,
+> refinement, and full-color chroma interpolation.
+> **Known differences:** Fornax omits camera metadata handling, callbacks, and
+> LibRaw's surrounding processing pipeline. The comparison starts from the same
+> normalized active Bayer mosaic and copies the resulting RGB channels
+> directly.
 
 ## DHT
 
@@ -331,24 +339,25 @@ Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024
 <!-- compare-demosaic:begin algo:lmmse -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | BGGR | [1, 0] | no | ❌ | 44.785192 | 104.000798 | 9522 | 1.146402 | 464 | 885 | 27140 (4408) | 0.657319 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | [0, 0] | yes | ❌ | 44.776609 | 103.955914 | 9522 | 1.144272 | 463 | 884 | 27014 (4421) | 0.657319 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | [1, 1] | no | ❌ | 44.780937 | 104.020885 | 8779 | 1.196977 | 464 | 886 | 27443 (4791) | 0.657324 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | [0, 1] | no | ❌ | 44.772275 | 103.976072 | 8779 | 1.195146 | 463 | 885 | 27314 (4797) | 0.657324 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | BGGR | [1, 0] | no | ✅ | 0.000434 | 0.020821 | 1 | -0.000001 | 0 | 0 | 0 (0) | 0.000434 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | [0, 0] | yes | ✅ | 0.000433 | 0.020814 | 1 | -0.000001 | 0 | 0 | 0 (0) | 0.000433 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | [1, 1] | no | ✅ | 0.000432 | 0.020790 | 1 | -0.000004 | 0 | 0 | 0 (0) | 0.000432 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | [0, 1] | no | ✅ | 0.000432 | 0.020785 | 1 | -0.000003 | 0 | 0 | 0 (0) | 0.000432 |
 <!-- compare-demosaic:end algo:lmmse -->
 
 > [!NOTE]
 > **Reference:** darktable, `lmmse_demosaic`.
 > **Why this reference:** darktable is the maintained LMMSE implementation
 > used for the reference comparison.
-> **Why we match:** both estimate green in horizontal and vertical directions,
-> blend the local color differences, and perform a refinement pass that keeps
-> measured CFA values fixed.
-> **Known differences:** Fornax uses its shared directional kernel with an
-> edge-weight exponent of one, a two-pixel chroma radius and one refinement
-> pass. darktable LMMSE uses 136-pixel tiles and its own linear MMSE and gamma
-> lookup stages. Fornax uses normalized floating point and nearest quantization
-> at the harness boundary.
+> **Why we match:** both seed from PPG, transform the CFA through the same
+> linear/gamma tables, estimate horizontal and vertical color differences,
+> apply the nine-tap low-pass and directional MMSE blend, reconstruct red and
+> blue from green differences, and run one median pass. Both use 136-pixel
+> tiles with a four-pixel border, eight-pixel overlap, and a 112-pixel valid
+> stride.
+> **Known differences:** Fornax keeps the kernel in Rust `f32` and quantizes
+> once at the comparison boundary. Compiler contraction can leave one-code
+> differences from the C reference; measured Bayer sites remain exact.
 
 ## PPG
 
@@ -450,3 +459,27 @@ Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024
 > high-value differences even when the aggregate error is small. See
 > [the VNG reference notes](../../docs/references/vng.md) for source links and
 > implementation details.
+
+## VNG4
+
+<!-- compare-demosaic:begin algo:vng4 -->
+| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | BGGR | [1, 0] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | GBRG | [0, 0] | yes | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | GRBG | [1, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | RGGB | [0, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+<!-- compare-demosaic:end algo:vng4 -->
+
+> [!NOTE]
+> **Reference:** LibRaw, `vng_interpolate` after `pre_interpolate` with
+> `four_color_rgb = 1`.
+> **Why this reference:** this is LibRaw's explicit four-color VNG mode, which
+> keeps the two green CFA phases separate through interpolation.
+> **Why we match:** both implementations run VNG with split green planes and
+> average those planes into the final green channel only after interpolation.
+> **Known differences:** Fornax shares its integer split-green VNG kernel with
+> the `Demosaic::Vng` selector and exposes VNG4 as a distinct algorithm choice.
+> The comparison adapter sets LibRaw's four-color option before
+> `pre_interpolate` and performs the documented post-interpolation green mix;
+> no source code is copied into the postprocessor.

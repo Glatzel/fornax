@@ -144,6 +144,9 @@ extern "C" std::int32_t compare_demosaic_reference(
             case 6:
                 status = reference.run_aahd();
                 break;
+            case 7:
+                status = reference.run_vng4();
+                break;
             default:
                 break;
         }

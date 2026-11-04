@@ -2,13 +2,14 @@
 extend-exclude = ["changelog.md", "**/bindings*.rs"]
 
 [default]
+# tombi: format.rules.array-values-order = "ascending"
 extend-ignore-identifiers-re = [
   "AHD",
-  "_thr",
-  "UnsufficientMemory",
-  "correc",
-  "UNSUFFICIENT",
   "Ahd",
+  "UNSUFFICIENT",
+  "UnsufficientMemory",
+  "_thr",
   "ahd",
-  "trak"
+  "correc",
+  "pn"
 ]

@@ -75,8 +75,8 @@ rows and then an `RgbImage<T>`. `DemosaicError` remains
 `fornax_core::error::DemosaicError` because `PostProcessError` and the core
 post-processor interfaces are defined in `fornax-core`.
 
-The postprocessor supports Linear, PPG, RCD, AHD, VNG, DCB, DHT, AAHD, AMaZE,
-and LMMSE reconstruction. `PostProcessor::default()` selects Linear
+The postprocessor supports Linear, PPG, RCD, AHD, VNG, VNG4, DCB, DHT, AAHD,
+AMaZE, and LMMSE reconstruction. `PostProcessor::default()` selects Linear
 demosaicing and applies green-normalized white balance when metadata provides
 it. The boundary between preprocessing and demosaicing is
 `RawImage<T> -> RgbImage<T>`; implementations live in

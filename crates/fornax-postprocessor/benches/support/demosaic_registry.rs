@@ -33,6 +33,7 @@ pub fn demosaic(algorithm: &str) -> Demosaic {
         "ppg" => Demosaic::Ppg,
         "rcd" => Demosaic::Rcd,
         "vng" => Demosaic::Vng,
+        "vng4" => Demosaic::Vng4,
         other => panic!("benchmark registry contains unknown algorithm {other:?}"),
     }
 }

@@ -14,19 +14,15 @@
   - [DEC-BENCH] Add the fixed-set Fornax-versus-Rawler decode benchmark. Plan: `docs/decoder/benchmark.md`.
   - [DEC-MIGRATE] Switch production defaults to `fornax-decoder` and remove legacy decoder crates after the tier-1 gates pass. Plan: `docs/decoder/architecture.md#migration`.
 - demosaic
-  - [VNG4] Add and validate VNG4 using the same native GBRG error limits as VNG.
-  - [LMMSE] Make LMMSE reproduce darktable 5.6.2 LMMSE and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
-  - [AAHD] Make AAHD reproduce LibRaw 0.22.3 AAHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [DHT] Make DHT reproduce LibRaw 0.22.3 DHT and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
-  - [DCB] Make DCB reproduce LibRaw 0.22.3 DCB and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
-  - [AMASE] Make AMaZE reproduce darktable 5.6.2 AMaZE and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
+  - [AMAZE] Make AMaZE reproduce darktable 5.6.2 AMaZE and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
+
 - perf
   - [P-SIMD] use fearless simd to optimize demosaic and preprocessor, in separate crates.
   - [P-CUDA] try cutiles-rs to improve perf
 - misc
   - [PY] python bindings: implement `fornax-py`
 - document
-  - [BOOK-02] Procedural figure tooling: matplotlib in a pixi `book` environment, shared helper, two sample figures, and generated SVG output ignored by Git with no size optimization required. Needs BOOK-01. Plan: `docs/plans/book-02-figures.md`.
   - [BOOK-03] Shareable PDF build: pandoc with the Typst engine through pixi, spike first. Needs BOOK-01. Plan: `docs/plans/book-03-build.md`.
   - [BOOK-10] L00 Pipeline overview: stage flow and the map from stage to crate.
   - [BOOK-11] L01 From photons to numbers: sensor, ADC, Bayer CFA and its pattern variants.
