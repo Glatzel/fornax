@@ -1,45 +1,52 @@
-impl<T> IDecoder<Path, T> for Decoder
+use std::fs;
+use std::path::Path;
+
+use image::math::Rect;
+use num_traits::{NumCast, ToPrimitive};
+use tiff::decoder::ifd::Value;
+
+use crate::error::DecodeError;
+use crate::metadata::dng::{DngMetadata, DngTag};
+use crate::metadata::{Levels, Metadata, WhiteBalance};
+use crate::protocol::IDecoder;
+use crate::{BayerChannel, BayerPattern, DecodedRaw, MonoImage, MosaicData, Primitive};
+
+use super::Decoder;
+use super::dng_decoder;
+
+impl<T> IDecoder<&Path, T> for Decoder
 where
     T: Primitive,
 {
-    fn decode_full(
-        &self,
-        input: &Path,
-    ) -> Result<(DecodedRawFull<T>, Metadata<T>), CoreDecodeError> {
-        let decoded = self.decode(input).map_err(core_decode_error)?;
-        let metadata = metadata_from_dng(&decoded)?;
-        let image = mosaic_to_mono::<T>(&decoded)?;
-        Ok((DecodedRawFull::new(image), metadata))
+    fn decode(&self, input: &Path) -> Result<(MosaicData, Metadata<T>), DecodeError> {
+        let (pixels, dng_metadata) = decode_file(input)?;
+        let metadata = metadata_from_dng(&pixels, &dng_metadata)?;
+        Ok((pixels, metadata))
     }
 
-    fn decode_active(
-        &self,
-        input: &Path,
-    ) -> Result<(DecodedRawActive<T>, Metadata<T>), CoreDecodeError> {
-        let (full, mut metadata) = self.decode_full(input)?;
+    fn decode_active(&self, input: &Path) -> Result<(DecodedRaw<T>, Metadata<T>), DecodeError> {
+        let (pixels, mut metadata) = <Self as IDecoder<&Path, T>>::decode(self, input)?;
         let active_area = metadata.active_area;
         metadata.bayer_pattern = metadata.bayer_pattern.shifted(active_area.x, active_area.y);
-        Ok((full.active_area(active_area), metadata))
+        let mut image = mosaic_to_mono::<T>(&pixels)?;
+        image.crop_in_place(active_area);
+        Ok((DecodedRaw::new(image), metadata))
     }
 }
 
-fn core_decode_error(error: DecodeError) -> CoreDecodeError {
-    match error {
-        DecodeError::InvalidInput { detail } => CoreDecodeError::InvalidInput(detail),
-        DecodeError::CorruptData { detail, .. } => CoreDecodeError::Backend(detail),
-        DecodeError::InvalidCfa(error) => CoreDecodeError::Unsupported(error.to_string().into()),
-        DecodeError::UnsupportedFormat { detail }
-        | DecodeError::UnsupportedVariant { detail, .. }
-        | DecodeError::UnsupportedCamera { detail, .. } => CoreDecodeError::Unsupported(detail),
-    }
+fn decode_file(input: &Path) -> Result<(MosaicData, DngMetadata), DecodeError> {
+    let source = fs::read(input).map_err(|error| {
+        DecodeError::InvalidInput(format!("failed to read {}: {error}", input.display()).into())
+    })?;
+    dng_decoder::decode(&source)
 }
 
-fn mosaic_to_mono<T>(decoded: &DecodedRaw) -> Result<MonoImage<T>, CoreDecodeError>
+fn mosaic_to_mono<T>(decoded: &MosaicData) -> Result<MonoImage<T>, DecodeError>
 where
     T: Primitive,
 {
     let (width, height) = decoded.dimensions();
-    let samples: Vec<Option<T>> = match decoded.pixels() {
+    let samples: Vec<Option<T>> = match decoded {
         MosaicData::U8(image) => image.as_raw().iter().map(|&value| cast(value)).collect(),
         MosaicData::U16(image) => image.as_raw().iter().map(|&value| cast(value)).collect(),
         MosaicData::U32(image) => image.as_raw().iter().map(|&value| cast(value)).collect(),
@@ -48,9 +55,9 @@ where
     let samples = samples
         .into_iter()
         .collect::<Option<Vec<T>>>()
-        .ok_or_else(|| CoreDecodeError::Backend("sample does not fit target type".into()))?;
+        .ok_or_else(|| DecodeError::Backend("sample does not fit target type".into()))?;
     MonoImage::from_raw(width, height, samples)
-        .ok_or_else(|| CoreDecodeError::Backend("decoded mosaic dimensions are invalid".into()))
+        .ok_or_else(|| DecodeError::Backend("decoded mosaic dimensions are invalid".into()))
 }
 
 fn cast<T, U>(value: U) -> Option<T>
@@ -61,30 +68,32 @@ where
     num_traits::cast(value)
 }
 
-fn metadata_from_dng<T>(decoded: &DecodedRaw) -> Result<Metadata<T>, CoreDecodeError>
+fn metadata_from_dng<T>(
+    pixels: &MosaicData,
+    dng_metadata: &DngMetadata,
+) -> Result<Metadata<T>, DecodeError>
 where
     T: Primitive,
 {
-    let metadata = decoded.metadata();
-    let (full_width, full_height) = decoded.dimensions();
-    let active_area = active_area(metadata, full_width, full_height)?;
-    let default_crop = default_crop(metadata, active_area)?;
-    let black = black_levels(metadata)?;
-    let black_delta_h = scalar_values(metadata.get(&DngTag::BlackLevelDeltaH))?
+    let (full_width, full_height) = pixels.dimensions();
+    let active_area = active_area(dng_metadata, full_width, full_height)?;
+    let default_crop = default_crop(dng_metadata, active_area)?;
+    let black = black_levels(dng_metadata)?;
+    let black_delta_h = scalar_values(dng_metadata.get(&DngTag::BlackLevelDeltaH))?
         .into_iter()
         .map(cast_number)
         .collect::<Option<Vec<T>>>()
         .ok_or_else(|| metadata_error("BlackLevelDeltaH does not fit the output type"))?;
-    let black_delta_v = scalar_values(metadata.get(&DngTag::BlackLevelDeltaV))?
+    let black_delta_v = scalar_values(dng_metadata.get(&DngTag::BlackLevelDeltaV))?
         .into_iter()
         .map(cast_number)
         .collect::<Option<Vec<T>>>()
         .ok_or_else(|| metadata_error("BlackLevelDeltaV does not fit the output type"))?;
-    let white = scalar_number(metadata.get(&DngTag::WhiteLevel))?
+    let white = scalar_number(dng_metadata.get(&DngTag::WhiteLevel))?
         .and_then(cast_number)
         .ok_or_else(|| metadata_error("WhiteLevel is missing or invalid"))?;
-    let bayer_pattern = bayer_pattern(metadata, active_area)?;
-    let white_balance = white_balance(metadata)?;
+    let bayer_pattern = bayer_pattern(dng_metadata, active_area)?;
+    let white_balance = white_balance(dng_metadata)?;
 
     Ok(Metadata {
         active_area,
@@ -97,6 +106,7 @@ where
         },
         bayer_pattern,
         white_balance,
+        dng_metadata: dng_metadata.clone(),
     })
 }
 
@@ -104,7 +114,7 @@ fn active_area(
     metadata: &DngMetadata,
     full_width: u32,
     full_height: u32,
-) -> Result<Rect, CoreDecodeError> {
+) -> Result<Rect, DecodeError> {
     let values = unsigned_values(metadata.get(&DngTag::ActiveArea))?
         .ok_or_else(|| metadata_error("ActiveArea is missing"))?;
     let [top, left, bottom, right]: [u32; 4] = values
@@ -123,7 +133,7 @@ fn active_area(
     })
 }
 
-fn default_crop(metadata: &DngMetadata, active: Rect) -> Result<Rect, CoreDecodeError> {
+fn default_crop(metadata: &DngMetadata, active: Rect) -> Result<Rect, DecodeError> {
     let origin = unsigned_values(metadata.get(&DngTag::DefaultCropOrigin))?
         .ok_or_else(|| metadata_error("DefaultCropOrigin is missing"))?;
     let size = unsigned_values(metadata.get(&DngTag::DefaultCropSize))?
@@ -152,7 +162,7 @@ fn default_crop(metadata: &DngMetadata, active: Rect) -> Result<Rect, CoreDecode
     })
 }
 
-fn black_levels<T>(metadata: &DngMetadata) -> Result<MonoImage<T>, CoreDecodeError>
+fn black_levels<T>(metadata: &DngMetadata) -> Result<MonoImage<T>, DecodeError>
 where
     T: Primitive,
 {
@@ -183,21 +193,21 @@ where
         .ok_or_else(|| metadata_error("black-level image dimensions are invalid"))
 }
 
-fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, CoreDecodeError> {
+fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, DecodeError> {
     let repeat = unsigned_values(metadata.get(&DngTag::CfaRepeatPatternDim))?
         .ok_or_else(|| metadata_error("CFARepeatPatternDim is missing"))?;
     let [width, height]: [u32; 2] = repeat
         .try_into()
         .map_err(|_| metadata_error("CFARepeatPatternDim must contain two values"))?;
     if width != 2 || height != 2 {
-        return Err(CoreDecodeError::Unsupported(
+        return Err(DecodeError::Unsupported(
             format!("CFA layout {width}x{height} is not conventional 2x2 Bayer").into(),
         ));
     }
     let plane_colors =
         scalar_values(metadata.get(&DngTag::CfaPlaneColor)).unwrap_or_else(|_| vec![0.0, 1.0, 2.0]);
     if plane_colors != [0.0, 1.0, 2.0] {
-        return Err(CoreDecodeError::Unsupported(
+        return Err(DecodeError::Unsupported(
             "CFA plane colors are not RGB".into(),
         ));
     }
@@ -205,7 +215,7 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, C
         .and_then(|values| values.first().copied())
         .is_some_and(|layout| layout != 1)
     {
-        return Err(CoreDecodeError::Unsupported(
+        return Err(DecodeError::Unsupported(
             "non-rectangular CFA layouts are unsupported".into(),
         ));
     }
@@ -218,7 +228,7 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, C
         )));
     }
 
-    let color_at = |x: u32, y: u32| -> Result<u32, CoreDecodeError> {
+    let color_at = |x: u32, y: u32| -> Result<u32, DecodeError> {
         let pattern_x = (x + active.x) & 1;
         let pattern_y = (y + active.y) & 1;
         let color = pattern[(pattern_y * 2 + pattern_x) as usize];
@@ -229,7 +239,7 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, C
             ))),
         }
     };
-    let channel = |x: u32, y: u32| -> Result<BayerChannel, CoreDecodeError> {
+    let channel = |x: u32, y: u32| -> Result<BayerChannel, DecodeError> {
         match color_at(x, y)? {
             0 => Ok(BayerChannel::R),
             2 => Ok(BayerChannel::B),
@@ -254,10 +264,10 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, C
     BayerPattern::ALL
         .into_iter()
         .find(|pattern| pattern.as_mask() == &mask)
-        .ok_or_else(|| CoreDecodeError::Unsupported("unsupported RGB Bayer pattern".into()))
+        .ok_or_else(|| DecodeError::Unsupported("unsupported RGB Bayer pattern".into()))
 }
 
-fn white_balance<T>(metadata: &DngMetadata) -> Result<Option<WhiteBalance<T>>, CoreDecodeError>
+fn white_balance<T>(metadata: &DngMetadata) -> Result<Option<WhiteBalance<T>>, DecodeError>
 where
     T: Primitive,
 {
@@ -279,7 +289,7 @@ where
     Ok(Some(WhiteBalance::AsShotNeutral(red, green, blue)))
 }
 
-fn scalar_number(value: Option<&Value>) -> Result<Option<f64>, CoreDecodeError> {
+fn scalar_number(value: Option<&Value>) -> Result<Option<f64>, DecodeError> {
     match value {
         None => Ok(None),
         Some(Value::Byte(value)) => Ok(Some(*value as f64)),
@@ -305,7 +315,7 @@ fn scalar_number(value: Option<&Value>) -> Result<Option<f64>, CoreDecodeError> 
     }
 }
 
-fn rational<T>(numerator: T, denominator: T) -> Result<Option<f64>, CoreDecodeError>
+fn rational<T>(numerator: T, denominator: T) -> Result<Option<f64>, DecodeError>
 where
     T: ToPrimitive,
 {
@@ -321,7 +331,7 @@ where
     Ok(Some(numerator / denominator))
 }
 
-fn scalar_values(value: Option<&Value>) -> Result<Vec<f64>, CoreDecodeError> {
+fn scalar_values(value: Option<&Value>) -> Result<Vec<f64>, DecodeError> {
     let Some(value) = value else {
         return Ok(Vec::new());
     };
@@ -337,7 +347,7 @@ fn scalar_values(value: Option<&Value>) -> Result<Vec<f64>, CoreDecodeError> {
     }
 }
 
-fn unsigned_values(value: Option<&Value>) -> Result<Option<Vec<u32>>, CoreDecodeError> {
+fn unsigned_values(value: Option<&Value>) -> Result<Option<Vec<u32>>, DecodeError> {
     let Some(value) = value else {
         return Ok(None);
     };
@@ -351,7 +361,7 @@ fn unsigned_values(value: Option<&Value>) -> Result<Option<Vec<u32>>, CoreDecode
     Ok(Some(values))
 }
 
-fn unsigned_scalar(value: &Value) -> Result<u32, CoreDecodeError> {
+fn unsigned_scalar(value: &Value) -> Result<u32, DecodeError> {
     let number = match value {
         Value::Byte(value) => *value as u32,
         Value::Short(value) => *value as u32,
@@ -375,6 +385,6 @@ where
     num_traits::cast(value)
 }
 
-fn metadata_error(detail: impl Into<Box<str>>) -> CoreDecodeError {
-    CoreDecodeError::Backend(detail.into())
+fn metadata_error(detail: impl Into<Box<str>>) -> DecodeError {
+    DecodeError::Backend(detail.into())
 }

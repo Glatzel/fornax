@@ -8,33 +8,29 @@ mod tiff;
 mod tests;
 
 use ::tiff::decoder::ifd::Value;
-use fornax_core::MonoImage;
 
 use crate::error::DecodeError;
-use crate::metadata::{DngMetadata, DngTag};
-use crate::{DecodedRaw, MosaicData, SourceFormat};
+use crate::metadata::dng::{DngMetadata, DngTag};
+use crate::{MonoImage, MosaicData};
 const PHOTOMETRIC_CFA: u64 = 32_803;
 const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
 const COMPRESSION_UNCOMPRESSED: u16 = 1;
 const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
 
-pub fn decode(source: &[u8]) -> Result<DecodedRaw, DecodeError> {
+pub fn decode(source: &[u8]) -> Result<(MosaicData, DngMetadata), DecodeError> {
     let parsed = tiff::parse(source)?;
     let root_metadata = parsed.root;
     if !root_metadata.contains_key(&DngTag::DngVersion) {
-        return Err(DecodeError::UnsupportedFormat {
-            detail: "TIFF container does not declare a DNGVersion".into(),
-        });
+        return Err(unsupported_variant(
+            "TIFF container does not declare a DNGVersion",
+        ));
     }
     let raw_metadata = parsed
         .directories
         .into_iter()
         .filter(is_raw_ifd)
         .max_by_key(raw_area)
-        .ok_or_else(|| DecodeError::UnsupportedVariant {
-            format: SourceFormat::Dng,
-            detail: "no full-resolution CFA image IFD was found".into(),
-        })?;
+        .ok_or_else(|| unsupported_variant("no full-resolution CFA image IFD was found"))?;
     let mut metadata = root_metadata;
     metadata.extend(
         raw_metadata
@@ -43,7 +39,21 @@ pub fn decode(source: &[u8]) -> Result<DecodedRaw, DecodeError> {
     );
 
     let pixels = decode_samples(source, &raw_metadata)?;
-    DecodedRaw::new(pixels, metadata)
+    validate_dimensions(&pixels, &metadata)?;
+    Ok((pixels, metadata))
+}
+
+fn validate_dimensions(pixels: &MosaicData, metadata: &DngMetadata) -> Result<(), DecodeError> {
+    let width = required_u32(metadata, DngTag::ImageWidth)?;
+    let height = required_u32(metadata, DngTag::ImageLength)?;
+    let (actual_width, actual_height) = pixels.dimensions();
+    if (width, height) != (actual_width, actual_height) {
+        return Err(corrupt(format!(
+            "DNG metadata dimensions are {width}x{height}, mosaic dimensions are \
+             {actual_width}x{actual_height}"
+        )));
+    }
+    Ok(())
 }
 
 fn is_raw_ifd(metadata: &DngMetadata) -> bool {
@@ -74,12 +84,8 @@ fn decode_samples(source: &[u8], metadata: &DngMetadata) -> Result<MosaicData, D
     }
 
     match compression {
-        COMPRESSION_UNCOMPRESSED => {
-            decode_uncompressed(source, metadata, width, height).map(|pixels| pixels)
-        }
-        COMPRESSION_LOSSLESS_JPEG => {
-            decode_lossless_jpeg(source, metadata, width, height).map(|pixels| pixels)
-        }
+        COMPRESSION_UNCOMPRESSED => decode_uncompressed(source, metadata, width, height),
+        COMPRESSION_LOSSLESS_JPEG => decode_lossless_jpeg(source, metadata, width, height),
         _ => Err(unsupported_variant(format!(
             "DNG compression {compression} is unsupported"
         ))),
@@ -504,15 +510,9 @@ fn unsigned_vec(metadata: &DngMetadata, tag: DngTag) -> Result<Vec<usize>, Decod
 }
 
 fn unsupported_variant(detail: impl Into<Box<str>>) -> DecodeError {
-    DecodeError::UnsupportedVariant {
-        format: SourceFormat::Dng,
-        detail: detail.into(),
-    }
+    DecodeError::Unsupported(detail.into())
 }
 
 fn corrupt(detail: impl Into<Box<str>>) -> DecodeError {
-    DecodeError::CorruptData {
-        format: SourceFormat::Dng,
-        detail: detail.into(),
-    }
+    DecodeError::InvalidInput(detail.into())
 }

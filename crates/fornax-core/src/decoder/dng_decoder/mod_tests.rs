@@ -1,5 +1,8 @@
 use tiff::decoder::ifd::Value;
 
+use crate::MosaicData;
+use crate::metadata::dng::{DngMetadata, DngTag};
+
 use super::decode_samples;
 
 fn u16_source(samples: &[u16]) -> Vec<u8> {

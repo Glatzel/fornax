@@ -2,9 +2,8 @@ use std::collections::{HashSet, VecDeque};
 
 use ::tiff::decoder::ifd::Value;
 
-use crate::SourceFormat;
 use crate::error::DecodeError;
-use crate::metadata::{DngMetadata, DngTag};
+use crate::metadata::dng::{DngMetadata, DngTag};
 
 const TAG_SUB_IFDS: u16 = 330;
 
@@ -351,10 +350,7 @@ fn read_u64(bytes: &[u8], offset: usize, byte_order: ByteOrder) -> Option<u64> {
 }
 
 fn corrupt(detail: impl Into<Box<str>>) -> DecodeError {
-    DecodeError::CorruptData {
-        format: SourceFormat::Dng,
-        detail: detail.into(),
-    }
+    DecodeError::InvalidInput(detail.into())
 }
 
 #[cfg(test)]
