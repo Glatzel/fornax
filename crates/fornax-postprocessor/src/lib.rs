@@ -3,7 +3,7 @@ pub mod protocol;
 
 use std::marker::PhantomData;
 
-pub use demosaic::Demosaic;
+pub use demosaic::{Demosaic, LmmseMode};
 use fornax_core::Primitive;
 use fornax_core::error::PostProcessError;
 use fornax_core::protocol::{IPostProcessMetadata, IPostProcessor};
