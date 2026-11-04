@@ -251,6 +251,10 @@ pub fn libraw_filters(pattern: BayerPattern) -> u32 {
 
 #[cfg(test)]
 mod tests {
+    use fornax_core::MonoImage;
+    use fornax_postprocessor::Demosaic;
+    use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
+
     use super::*;
 
     #[test]
@@ -302,6 +306,78 @@ mod tests {
             pattern_offset(BayerPattern::GBRG, BayerPattern::GRBG),
             Some((1, 1))
         );
+    }
+
+    #[test]
+    fn amaze_matches_both_references_across_partial_tiles() {
+        let width = 300_u32;
+        let height = 300_u32;
+        let codes = (0..height)
+            .flat_map(|y| {
+                (0..width).map(move |x| {
+                    if (64..192).contains(&x) && (64..192).contains(&y) {
+                        return u16::MAX;
+                    }
+                    let hash =
+                        x.wrapping_mul(0x9e37_79b9).rotate_left(13) ^ y.wrapping_mul(0x85eb_ca6b);
+                    (hash ^ (hash >> 16)) as u16
+                })
+            })
+            .collect::<Vec<_>>();
+        let filters = libraw_filters(BayerPattern::GBRG);
+        let darktable = run(
+            ReferenceBackend::Darktable,
+            3,
+            &codes,
+            width,
+            height,
+            filters,
+        )
+        .unwrap();
+        let rawtherapee = run(
+            ReferenceBackend::RawTherapee,
+            0,
+            &codes,
+            width,
+            height,
+            filters,
+        )
+        .unwrap();
+        let samples = codes
+            .iter()
+            .map(|value| f32::from(*value) / f32::from(u16::MAX))
+            .collect::<Vec<_>>();
+        let image = MonoImage::from_raw(width, height, samples).unwrap();
+        let actual = Demosaic::Amaze
+            .demosaic(&image, BayerPattern::GBRG)
+            .unwrap()
+            .collect();
+        let actual = actual
+            .as_raw()
+            .iter()
+            .map(|value| (value.clamp(0.0, 1.0) * f32::from(u16::MAX)).round() as u16)
+            .collect::<Vec<_>>();
+        for (name, reference) in [("darktable", darktable), ("RawTherapee", rawtherapee)] {
+            let total = reference
+                .iter()
+                .zip(&actual)
+                .map(|(expected, got)| u64::from(expected.abs_diff(*got)))
+                .sum::<u64>();
+            let maximum = reference
+                .iter()
+                .zip(&actual)
+                .map(|(expected, got)| expected.abs_diff(*got))
+                .max()
+                .unwrap();
+            assert!(
+                total as f64 / reference.len() as f64 <= 0.01,
+                "AMaZE synthetic {name} MAE is too large"
+            );
+            assert!(
+                maximum <= 2,
+                "AMaZE synthetic {name} maximum error is {maximum}"
+            );
+        }
     }
 
     #[test]

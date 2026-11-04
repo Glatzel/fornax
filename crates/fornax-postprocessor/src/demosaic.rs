@@ -4,7 +4,6 @@ mod amaze;
 mod buffer;
 mod dcb;
 mod dht;
-mod directional;
 mod linear;
 mod lmmse;
 mod ppg;
