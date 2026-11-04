@@ -19,9 +19,7 @@ const THOT: f32 = 64.0;
 const TG: f32 = 256.0;
 const DIAGONAL_THRESHOLD: f32 = 1.4;
 
-fn calc_dist(c1: f32, c2: f32) -> f32 {
-    if c1 > c2 { c1 / c2 } else { c2 / c1 }
-}
+fn calc_dist(c1: f32, c2: f32) -> f32 { if c1 > c2 { c1 / c2 } else { c2 / c1 } }
 
 fn scale_over(value: f32, base: f32) -> f32 {
     let scale = base * 0.4;
@@ -35,9 +33,7 @@ fn scale_under(value: f32, base: f32) -> f32 {
     base - (scale * (offset + scale)).sqrt() + scale
 }
 
-fn to_code(value: f32) -> u16 {
-    value.clamp(0.0, f32::from(u16::MAX)) as u16
-}
+fn to_code(value: f32) -> u16 { value.clamp(0.0, f32::from(u16::MAX)) as u16 }
 
 const fn cfa_channel(pattern: BayerPattern, x: isize, y: isize) -> usize {
     match pattern.channel_at(x.rem_euclid(2) as u32, y.rem_euclid(2) as u32) {
@@ -96,9 +92,7 @@ impl Dht {
         }
     }
 
-    const fn offset(&self, x: usize, y: usize) -> usize {
-        (y + MARGIN) * self.stride + x + MARGIN
-    }
+    const fn offset(&self, x: usize, y: usize) -> usize { (y + MARGIN) * self.stride + x + MARGIN }
 
     fn sample_at(&self, x: isize, y: isize, channel: usize) -> f32 {
         let x = (x + MARGIN as isize) as usize;
@@ -382,6 +376,10 @@ impl Dht {
         }
     }
 
+    #[allow(
+        clippy::suboptimal_flops,
+        reason = "preserve LibRaw's separate multiply-add evaluation for reference fidelity"
+    )]
     fn make_greens(&mut self) {
         for y in 0..self.height {
             let js = cfa_channel(self.pattern, 0, y as isize) & 1;
@@ -461,8 +459,8 @@ impl Dht {
             let second = dy2 * stride + dx2;
             let mut g1 = 1.0 / calc_dist(self.nraw[index][1], self.sample_add(index, first, 1));
             let mut g2 = 1.0 / calc_dist(self.nraw[index][1], self.sample_add(index, second, 1));
-            g1 *= g1 * g1;
-            g2 *= g2 * g2;
+            g1 = g1 * (g1 * g1);
+            g2 = g2 * (g2 * g2);
             let mut color = self.nraw[index][1]
                 * (g1 * self.sample_add(index, first, missing) / self.sample_add(index, first, 1)
                     + g2 * self.sample_add(index, second, missing)
