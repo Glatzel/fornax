@@ -206,7 +206,7 @@ impl DecodedRaw {
         }
 
         if options.compression() == DngCompression::Uncompressed {
-            return crate::writer::write_uncompressed(self, writer, options);
+            return crate::dng_write_option::write_uncompressed(self, writer, options);
         }
 
         Err(DngWriteError::Unsupported {
