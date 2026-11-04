@@ -26,7 +26,7 @@ pub mod error;
 mod format;
 mod metadata;
 mod protocol;
-mod dng_write_option;
+mod write_option;
 
 use std::path::Path;
 
@@ -34,7 +34,7 @@ pub(crate) use decoded::DngSource;
 pub use decoded::{DecodedRaw, MosaicData};
 pub use format::SourceFormat;
 pub use metadata::{DngMetadata, DngTag, DngValue};
-pub use dng_write_option::{DngCompression, DngVersion, DngWriteOptions};
+pub use write_option::{DngCompression, DngVersion, DngWriteOptions};
 
 /// DNG-centred decoder entry point.
 ///
