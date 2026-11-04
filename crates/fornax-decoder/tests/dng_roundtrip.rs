@@ -3,7 +3,8 @@ use std::path::{Path, PathBuf};
 
 use fornax_core::BayerPattern;
 use fornax_core::protocol::IDecoder;
-use fornax_decoder::{Decoder, DngCompression, DngTag, DngValue, DngWriteOptions, MosaicData};
+use fornax_decoder::write_option::{DngCompression, DngWriteOptions};
+use fornax_decoder::{Decoder, DngTag, DngValue, MosaicData};
 
 fn fixture_path() -> PathBuf {
     PathBuf::from(env!("CARGO_WORKSPACE_DIR"))

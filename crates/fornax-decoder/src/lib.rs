@@ -22,15 +22,14 @@
 
 mod decoded;
 mod dng;
+pub mod write_option;
 pub mod error;
 mod format;
 mod metadata;
 mod protocol;
-mod dng_write_option;
 
 use std::path::Path;
 
-pub(crate) use decoded::DngSource;
 pub use decoded::{DecodedRaw, MosaicData};
 pub use format::SourceFormat;
 pub use metadata::{DngMetadata, DngTag, DngValue};

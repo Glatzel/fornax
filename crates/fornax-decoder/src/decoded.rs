@@ -4,7 +4,7 @@ use std::path::Path;
 
 use fornax_core::MonoImage;
 
-use crate::dng_write_option::{DngCompression, DngWriteOptions};
+use crate::write_option::{DngCompression, DngWriteOptions};
 use crate::error::{DecodeError, DngWriteError};
 use crate::{DngMetadata, DngTag, DngValue};
 
@@ -170,7 +170,7 @@ impl DecodedRaw {
     {
         match options.compression() {
             DngCompression::Uncompressed => {
-                crate::dng_write_option::write_uncompressed(self, writer, options);
+                crate::write_option::write_uncompressed(self, writer, options)?;
             }
             DngCompression::LosslessJpeg => {
                 return Err(DngWriteError::Unsupported {
