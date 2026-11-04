@@ -7,9 +7,7 @@ use fornax_core::{Decoder, Primitive};
 fn raw_path() -> PathBuf {
     let path = std::env::var_os("FORNAX_BENCH_RAW")
         .map(PathBuf::from)
-        .unwrap_or_else(|| {
-            fornax_devtool::root_dir().join("external/raw-images/images/colorchart-5D2-6000K.dng")
-        });
+        .unwrap_or_else(fornax_devtool::raw_file);
     assert!(
         path.is_file(),
         "RAW benchmark fixture does not exist: {}; set FORNAX_BENCH_RAW or run python3 scripts/setup.py",
