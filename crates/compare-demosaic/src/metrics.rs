@@ -67,10 +67,6 @@ pub struct TileSummary {
 }
 
 #[derive(Clone, Debug)]
-#[allow(
-    dead_code,
-    reason = "detailed fields remain available to the investigation example"
-)]
 pub struct Evaluation {
     pub metrics: Metrics,
     pub metrics_interior: Metrics,
@@ -531,7 +527,7 @@ mod tests {
             verdict(
                 &Metrics {
                     count_below_reference: 1,
-                    ..rounding.clone()
+                    ..rounding
                 },
                 Tolerance::RoundingUp
             ),

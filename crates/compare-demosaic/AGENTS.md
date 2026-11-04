@@ -21,11 +21,16 @@ Exit codes: 0 ok, 1 differences or out of date, 2 error.
 Common commands from the repository root:
 
 ```bash
+export OMP_NUM_THREADS=1
 cargo run --release -p compare-demosaic -- run
 cargo run --release -p compare-demosaic -- run --algorithm ahd
 cargo run --release -p compare-demosaic -- readme --check
 cargo run --release -p compare-demosaic -- run --artifacts
 ```
+
+Canonical runs pin `OMP_NUM_THREADS=1`. LibRaw DHT uses OpenMP and can change
+small numeric details with the thread count, so unpinned baseline generation or
+CI comparison is not deterministic.
 
 A full `run` writes `target/compare-demosaic/canonical.json`. A full `diff`
 exits 1 for any difference, including a regression, missing or new row, or
@@ -36,10 +41,12 @@ the exit code.
 
 - `baseline/canonical.json`: accepted results, one line per row. Never edit by
   hand.
+- `external/raw-images/images/colorchart-5D2-6000K.dng`: the default
+  fixture-backed comparison input, reached through `fornax_devtool::raw_file()`.
 - `README.md`: hand-written text, generated regions between compare-demosaic
   markers, and note blocks. Never edit text between markers by hand.
 - `target/compare-demosaic/`: latest run (not committed). `--out` changes it.
-- From the repository root, query the 120 KB baseline with `jq -r '.rows[] | select(.verdict == "fail") | [.algorithm, .reference, .pattern, (.failed_limits | join(","))] | @tsv' crates/compare-demosaic/baseline/canonical.json` instead of reading it whole; read `README.md` by algorithm or marker section.
+- From the repository root, query the baseline with `jq -r '.rows[] | select(.verdict == "fail") | [.algorithm, .reference, .pattern, (.failed_limits | join(","))] | @tsv' crates/compare-demosaic/baseline/canonical.json` instead of reading it whole; read `README.md` by algorithm or marker section.
 
 ## Reference sources
 

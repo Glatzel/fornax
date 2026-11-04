@@ -8,7 +8,6 @@ publish = false
 [dependencies]
 clap.workspace = true
 fornax-core.workspace = true
-fornax-decoder-rawler.workspace = true
 fornax-devtool.workspace = true
 fornax-postprocessor.workspace = true
 fornax-preprocessor.workspace = true
@@ -28,4 +27,3 @@ tempfile.workspace = true
 
 [build-dependencies]
 cc.workspace = true
-libraw-sys.workspace = true

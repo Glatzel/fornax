@@ -345,7 +345,7 @@ mod tests {
     }
 
     #[test]
-    fn committed_ppg_libraw_rows_are_accepted_outliers() -> mischief::Result<()> {
+    fn committed_ppg_libraw_rows_pass_without_waivers() -> mischief::Result<()> {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
         let report = Report::read(&path)?;
         let rows = report
@@ -353,6 +353,32 @@ mod tests {
             .iter()
             .filter(|row| {
                 row.algorithm.eq_ignore_ascii_case("ppg")
+                    && row.reference.eq_ignore_ascii_case("libraw")
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(rows.len(), 4);
+        for row in rows {
+            assert_eq!(
+                evaluate(row, crate::waivers::WAIVERS),
+                Status::Pass,
+                "{}",
+                row.pattern
+            );
+        }
+        assert!(waiver_findings(&report, crate::waivers::WAIVERS).is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn committed_aahd_libraw_rows_are_accepted_dng_outliers() -> mischief::Result<()> {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
+        let report = Report::read(&path)?;
+        let rows = report
+            .rows
+            .iter()
+            .filter(|row| {
+                row.algorithm.eq_ignore_ascii_case("aahd")
                     && row.reference.eq_ignore_ascii_case("libraw")
             })
             .collect::<Vec<_>>();
@@ -371,14 +397,14 @@ mod tests {
     }
 
     #[test]
-    fn committed_aahd_libraw_rows_are_accepted_outliers() -> mischief::Result<()> {
+    fn committed_ahd_libraw_rows_are_accepted_dng_outliers() -> mischief::Result<()> {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
         let report = Report::read(&path)?;
         let rows = report
             .rows
             .iter()
             .filter(|row| {
-                row.algorithm.eq_ignore_ascii_case("aahd")
+                row.algorithm.eq_ignore_ascii_case("ahd")
                     && row.reference.eq_ignore_ascii_case("libraw")
             })
             .collect::<Vec<_>>();

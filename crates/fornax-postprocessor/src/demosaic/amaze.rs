@@ -162,10 +162,6 @@ fn run(input: &[f32], width: usize, height: usize, pattern: BayerPattern) -> Vec
     output
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "tile processing mirrors the fixed reference geometry without allocation"
-)]
 fn process_tile(
     input: &[f32],
     output: &mut [f32],

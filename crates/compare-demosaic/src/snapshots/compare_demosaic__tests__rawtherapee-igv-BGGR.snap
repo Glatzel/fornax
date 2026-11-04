@@ -2,4 +2,4 @@
 source: crates/compare-demosaic/src/lib.rs
 expression: "format!(\"{checksum:016x}\")"
 ---
-63aaf4f750711c30
+908ffff56b03138f

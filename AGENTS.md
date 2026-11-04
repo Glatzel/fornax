@@ -13,6 +13,13 @@ Read [docs/architecture.md](docs/architecture.md) for crate roles, interfaces,
 and pipeline data flow. These invariants always apply:
 
 - Keep decoding, preprocessing, and demosaicing as separate stages.
+- `fornax_core::Decoder` is the current production decoder. It implements the
+  DNG MVP in `crates/fornax-core/src/decoder/` and hands conventional 2x2
+  RGB Bayer data to the shared preprocessor.
+- The legacy Rawler, Adobe DNG Converter, and LibRaw decoder crates have been
+  removed. LibRaw, darktable, and RawTherapee remain development-only
+  references for `compare-demosaic`; do not reintroduce them as production
+  decoder dependencies.
 - The active demosaic target is conventional 2x2 RGB Bayer input. Do not claim
   support for X-Trans, four-color, monochrome, or other CFA layouts.
 
