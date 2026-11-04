@@ -14,7 +14,6 @@
   - [DEC-BENCH] Add the fixed-set Fornax-versus-Rawler decode benchmark. Plan: `docs/decoder/benchmark.md`.
   - [DEC-MIGRATE] Switch production defaults to `fornax-decoder` and remove legacy decoder crates after the tier-1 gates pass. Plan: `docs/decoder/architecture.md#migration`.
 - demosaic
-  - [DHT] Make DHT reproduce LibRaw 0.22.3 DHT and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [AMAZE] Make AMaZE reproduce darktable 5.6.2 AMaZE and RawTherapee 5.13 AMaZE and pass each native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [IGV] Make IGV reproduce RawTherapee 5.13 IGV and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [EAHD] Make EAHD reproduce RawTherapee 5.13 EAHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.

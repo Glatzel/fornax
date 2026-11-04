@@ -4,7 +4,6 @@ use super::buffer::{DenseLazy, channel, dense_from_f32, normalized};
 
 #[derive(Debug, Clone, Copy)]
 pub(super) enum Profile {
-    Dht,
     Amaze,
 }
 
@@ -44,10 +43,8 @@ fn run(
 ) -> Vec<f32> {
     let mut green = vec![0.0_f32; width * height];
     let mut rgb = vec![[0.0_f32; 3]; width * height];
-    let (green_power, chroma_radius, refinement) = match profile {
-        Profile::Dht => (1.0, 2, 0),
-        Profile::Amaze => (3.0, 3, 0),
-    };
+    let Profile::Amaze = profile;
+    let (chroma_radius, refinement) = (3, 0);
 
     for y in 0..height {
         for x in 0..width {
@@ -92,26 +89,12 @@ fn run(
                 + (center - south2).abs()
                 + (north - center).abs()
                 + (south - center).abs();
-            let horizontal_weight = 1.0 / (1.0e-5 + horizontal_gradient).powf(green_power);
-            let vertical_weight = 1.0 / (1.0e-5 + vertical_gradient).powf(green_power);
-            green[index] = match profile {
-                Profile::Dht => {
-                    let horizontal_ratio =
-                        center * f32::midpoint(west, east) / (f32::midpoint(west2, east2) + 1.0e-5);
-                    let vertical_ratio = center * f32::midpoint(north, south)
-                        / (f32::midpoint(north2, south2) + 1.0e-5);
-                    vertical_ratio.mul_add(vertical_weight, horizontal_ratio * horizontal_weight)
-                        / (horizontal_weight + vertical_weight)
-                }
-                _ => {
-                    if horizontal_gradient < vertical_gradient {
-                        horizontal
-                    } else if vertical_gradient < horizontal_gradient {
-                        vertical
-                    } else {
-                        f32::midpoint(horizontal, vertical)
-                    }
-                }
+            green[index] = if horizontal_gradient < vertical_gradient {
+                horizontal
+            } else if vertical_gradient < horizontal_gradient {
+                vertical
+            } else {
+                f32::midpoint(horizontal, vertical)
             }
             .clamp(0.0, 1.0);
         }
@@ -179,11 +162,9 @@ fn run(
                     differences.sort_by(f32::total_cmp);
                     let color_difference = f32::midpoint(differences[1], differences[2]);
                     let refined = green[index] + color_difference;
-                    rgb[index][target] = match profile {
-                        Profile::Amaze => refined.mul_add(0.25, previous[index][target] * 0.75),
-                        Profile::Dht => refined.mul_add(0.2, previous[index][target] * 0.8),
-                    }
-                    .clamp(0.0, 1.0);
+                    rgb[index][target] = refined
+                        .mul_add(0.25, previous[index][target] * 0.75)
+                        .clamp(0.0, 1.0);
                 }
             }
         }
