@@ -34,7 +34,6 @@ pub(crate) use decoded::DngSource;
 pub use decoded::{DecodedRaw, MosaicData};
 pub use format::SourceFormat;
 pub use metadata::{DngMetadata, DngTag, DngValue};
-pub use write_option::{DngCompression, DngVersion, DngWriteOptions};
 
 /// DNG-centred decoder entry point.
 ///
