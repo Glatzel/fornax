@@ -277,7 +277,7 @@ where
         }
     }
     .shifted(active_area.x, active_area.y);
-    let as_shot_neutral = 'neutral: {
+    let white_balance = 'neutral: {
         let finite_pos = |v: f32| v.is_finite() && v > 0.0;
 
         // 1. The file's own AsShotNeutral tag (50728): [R, G, B], already
@@ -314,7 +314,7 @@ where
             g
         };
 
-        Some(WhiteBalance::AsShotNeutral(num!(r), num!(g), num!(b)))
+        Some(WhiteBalance::Coefficients(num!(r), num!(g), num!(b)))
     };
     Ok(Metadata {
         active_area,
@@ -326,7 +326,7 @@ where
             white,
         },
         bayer_pattern,
-        white_balance: as_shot_neutral,
+        white_balance,
     })
 }
 

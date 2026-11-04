@@ -71,13 +71,13 @@ where
     T: Primitive,
 {
     AsShotNeutral(T, T, T),
-    CamMul(T, T, T),
+    Coefficients(T, T, T),
 }
 impl<T: Primitive> WhiteBalance<T> {
     /// Multipliers to apply to raw R, B (green-normalized).
     pub fn multipliers(&self) -> (T, T) {
         match *self {
-            Self::CamMul(r, g, b) => (r / g, b / g),
+            Self::Coefficients(r, g, b) => (r / g, b / g),
             Self::AsShotNeutral(r, g, b) => (g / r, g / b),
         }
     }
