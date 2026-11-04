@@ -10,8 +10,9 @@ The crate owns the `IDemosaic` and `LazyDemosaic` protocol traits in
 
 All eleven demosaic variants are implemented in Rust. LibRaw and darktable are
 used only by the separate comparison crate as behavioral references. Every
-demosaic accepts and returns normalized scene-linear data; AAHD and LMMSE use
-gamma-encoded working values internally and decode them before returning.
+demosaic accepts and returns normalized scene-linear data. AAHD gamma-encodes
+samples only for homogeneity scoring, while LMMSE performs interpolation in a
+gamma-encoded workspace and decodes the result before returning.
 
 DCB and LMMSE parameters are carried directly by the `Demosaic` enum:
 

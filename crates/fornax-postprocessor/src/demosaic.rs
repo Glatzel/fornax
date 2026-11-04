@@ -30,8 +30,8 @@ use crate::protocol::{IDemosaic, LazyDemosaic};
 /// Selects a Bayer demosaic implementation and its behavioral parameters.
 ///
 /// Every implementation accepts normalized scene-linear samples and returns
-/// normalized linear RGB. AAHD and LMMSE use nonlinear working domains only
-/// internally and convert back before returning.
+/// normalized linear RGB. AAHD gamma-encodes samples only for scoring; LMMSE
+/// interpolates in a gamma-encoded workspace and decodes its output.
 ///
 /// # Examples
 ///
