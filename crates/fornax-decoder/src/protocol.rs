@@ -10,7 +10,8 @@ use image::math::Rect;
 use num_traits::{NumCast, ToPrimitive};
 use tiff::decoder::ifd::Value;
 
-use crate::{DecodeError, DecodedRaw, Decoder, DngMetadata, DngTag, MosaicData};
+use crate::error::DecodeError;
+use crate::{DecodedRaw, Decoder, DngMetadata, DngTag, MosaicData};
 
 impl<T> IDecoder<Path, T> for Decoder
 where

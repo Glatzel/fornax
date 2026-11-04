@@ -4,9 +4,8 @@ use std::path::Path;
 
 use fornax_core::MonoImage;
 
-use crate::{
-    DecodeError, DngCompression, DngMetadata, DngTag, DngValue, DngWriteError, DngWriteOptions,
-};
+use crate::error::{DecodeError, DngWriteError};
+use crate::{DngCompression, DngMetadata, DngTag, DngValue, DngWriteOptions};
 
 /// Typed single-plane mosaic backed by image-rs buffers.
 ///

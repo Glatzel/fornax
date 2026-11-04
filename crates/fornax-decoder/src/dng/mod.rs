@@ -10,10 +10,7 @@ mod tests;
 use ::tiff::decoder::ifd::Value;
 use fornax_core::MonoImage;
 
-use crate::{
-    DecodeError, DecodedRaw, DngCompression, DngMetadata, DngSource, DngTag, MosaicData,
-    SourceFormat,
-};
+use crate::{DecodedRaw, DngCompression, DngMetadata, DngSource, DngTag, MosaicData, SourceFormat, error::DecodeError};
 
 const PHOTOMETRIC_CFA: u64 = 32_803;
 const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;

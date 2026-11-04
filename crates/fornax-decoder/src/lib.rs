@@ -22,7 +22,7 @@
 
 mod decoded;
 mod dng;
-mod error;
+pub mod error;
 mod format;
 mod metadata;
 mod protocol;
@@ -32,7 +32,6 @@ use std::path::Path;
 
 pub(crate) use decoded::DngSource;
 pub use decoded::{DecodedRaw, MosaicData};
-pub use error::{CfaPatternError, DecodeError, DngWriteError, HandoffError};
 pub use format::SourceFormat;
 pub use metadata::{DngMetadata, DngTag, DngValue};
 pub use writer::{DngCompression, DngVersion, DngWriteOptions};
@@ -76,8 +75,8 @@ impl Decoder {
     /// let _dimensions = decoded.dimensions();
     /// # Ok::<(), DecodeError>(())
     /// ```
-    pub fn decode(&self, input: &Path) -> Result<DecodedRaw, DecodeError> {
-        let source = std::fs::read(input).map_err(|error| DecodeError::InvalidInput {
+    pub fn decode(&self, input: &Path) -> Result<DecodedRaw, error::DecodeError> {
+        let source = std::fs::read(input).map_err(|error| error::DecodeError::InvalidInput {
             detail: format!("failed to read {}: {error}", input.display()).into(),
         })?;
         dng::decode(&source)

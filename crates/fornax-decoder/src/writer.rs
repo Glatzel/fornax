@@ -3,7 +3,8 @@ use std::io::{Seek, Write};
 use tiff::encoder::{DirectoryEncoder, Rational, SRational, TiffEncoder, TiffKindStandard};
 use tiff::tags::{SampleFormat, Tag};
 
-use crate::{DecodedRaw, DngTag, DngValue, DngWriteError, MosaicData};
+use crate::error::DngWriteError;
+use crate::{DecodedRaw, DngTag, DngValue, MosaicData};
 
 /// DNG compression modes written in the first implementation stage.
 ///

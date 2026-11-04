@@ -2,7 +2,8 @@ use std::collections::{HashSet, VecDeque};
 
 use ::tiff::decoder::ifd::Value;
 
-use crate::{DecodeError, DngMetadata, DngTag, SourceFormat};
+use crate::error::DecodeError;
+use crate::{DngMetadata, DngTag, SourceFormat};
 
 const TAG_SUB_IFDS: u16 = 330;
 
