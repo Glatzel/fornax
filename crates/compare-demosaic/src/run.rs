@@ -46,7 +46,6 @@ pub(crate) struct CaseEvaluation {
     pub pattern: BayerPattern,
     pub evaluation: Evaluation,
     pub verdict: DetailedVerdict,
-    #[allow(dead_code, reason = "used by the unchanged snapshot regression tests")]
     pub failed_limits: Vec<FailedLimit>,
 }
 
@@ -57,6 +56,7 @@ struct CaseComputation {
     reference: Vec<u16>,
     evaluation: Evaluation,
     verdict: DetailedVerdict,
+    #[cfg(test)]
     failed_limits: Vec<FailedLimit>,
 }
 
@@ -257,6 +257,7 @@ fn compute_case(
         reference,
         evaluation,
         verdict,
+        #[cfg(test)]
         failed_limits,
     })
 }
