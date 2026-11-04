@@ -39,18 +39,13 @@ pub struct RunOutput {
     pub report: Report,
     pub artifacts: bool,
 }
-
+#[cfg(test)]
 #[derive(Clone, Debug)]
-#[allow(
-    dead_code,
-    reason = "fields feed the unchanged comparison snapshot tests"
-)]
 pub(crate) struct CaseEvaluation {
     pub case: &'static Case,
     pub pattern: BayerPattern,
     pub evaluation: Evaluation,
     pub verdict: DetailedVerdict,
-    #[allow(dead_code, reason = "used by the unchanged snapshot regression tests")]
     pub failed_limits: Vec<FailedLimit>,
 }
 
@@ -61,7 +56,7 @@ struct CaseComputation {
     reference: Vec<u16>,
     evaluation: Evaluation,
     verdict: DetailedVerdict,
-    failed_limits: Vec<FailedLimit>,
+    _failed_limits: Vec<FailedLimit>,
 }
 
 #[derive(Clone, Copy)]
@@ -195,10 +190,7 @@ pub(crate) fn execute_with_inputs(
     })
 }
 
-#[cfg_attr(
-    not(test),
-    allow(dead_code, reason = "used by comparison crate integration tests")
-)]
+#[cfg(test)]
 pub(crate) fn selected_evaluations(
     input: &crate::reference::ActiveArea,
     algorithms: &[String],
@@ -209,11 +201,7 @@ pub(crate) fn selected_evaluations(
         .map(|selection| evaluate_case(selection.case, input, selection.pattern, border_px))
         .collect()
 }
-
-#[cfg_attr(
-    not(test),
-    allow(dead_code, reason = "used by comparison crate integration tests")
-)]
+#[cfg(test)]
 pub(crate) fn evaluate_case(
     case: &'static Case,
     input: &crate::reference::ActiveArea,
@@ -227,7 +215,7 @@ pub(crate) fn evaluate_case(
         pattern,
         evaluation: computation.evaluation,
         verdict: computation.verdict,
-        failed_limits: computation.failed_limits,
+        failed_limits: computation._failed_limits,
     })
 }
 
@@ -268,7 +256,7 @@ fn compute_case(
         reference,
         evaluation,
         verdict,
-        failed_limits,
+        _failed_limits: failed_limits,
     })
 }
 

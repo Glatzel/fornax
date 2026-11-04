@@ -249,7 +249,7 @@ where
     };
     let as_shot_neutral = {
         if color.cam_mul[0] > 0.0 && color.cam_mul[1] > 0.0 && color.cam_mul[2] > 0.0 {
-            Some(WhiteBalance::CamMul(
+            Some(WhiteBalance::Coefficients(
                 num!(color.cam_mul[0]),
                 num!(color.cam_mul[1]),
                 num!(color.cam_mul[2]),
