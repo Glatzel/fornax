@@ -477,10 +477,10 @@ macro_rules! runner {
 runner!(run_ahd, Demosaic::Ahd);
 runner!(run_amaze, Demosaic::Amaze);
 runner!(run_aahd, Demosaic::Aahd);
-runner!(run_dcb, Demosaic::Dcb);
+runner!(run_dcb, Demosaic::dcb());
 runner!(run_dht, Demosaic::Dht);
 runner!(run_linear, Demosaic::Linear);
-runner!(run_lmmse, Demosaic::Lmmse);
+runner!(run_lmmse, Demosaic::lmmse());
 runner!(run_ppg, Demosaic::Ppg);
 runner!(run_rcd, Demosaic::Rcd);
 runner!(run_vng, Demosaic::Vng);

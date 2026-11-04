@@ -9,7 +9,30 @@ The crate owns the `IDemosaic` and `LazyDemosaic` protocol traits in
 `fornax_core::error`.
 
 All eleven demosaic variants are implemented in Rust. LibRaw and darktable are
-used only by the separate comparison crate as behavioral references.
+used only by the separate comparison crate as behavioral references. Every
+demosaic accepts and returns normalized scene-linear data. AAHD gamma-encodes
+samples only for homogeneity scoring, while LMMSE performs interpolation in a
+gamma-encoded workspace and decodes the result before returning.
+
+DCB and LMMSE parameters are carried directly by the `Demosaic` enum:
+
+```rust
+use fornax_postprocessor::{Demosaic, LmmseMode};
+
+let dcb = Demosaic::Dcb {
+    iterations: 1,
+    enhance: true,
+};
+let lmmse = Demosaic::Lmmse {
+    mode: LmmseMode::ThreeMedians,
+};
+assert!(matches!(dcb, Demosaic::Dcb { iterations: 1, .. }));
+assert!(matches!(lmmse, Demosaic::Lmmse { .. }));
+```
+
+`Demosaic::dcb()` preserves the comparison default `(0, true)`.
+`Demosaic::lmmse()` preserves darktable mode 1: one median pass and no
+refinement.
 
 ```rust
 use fornax_core::protocol::IPostProcessor;

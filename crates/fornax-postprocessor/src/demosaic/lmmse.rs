@@ -1,7 +1,7 @@
 //! Tiled linear minimum mean-square-error Bayer demosaicing.
 //!
 //! This path follows the published LMMSE algorithm and darktable 5.6.2's
-//! mode-1 implementation conventions. See the
+//! mode conventions. See the
 //! [LMMSE reference notes](https://github.com/Glatzel/fornax/blob/main/docs/references/lmmse.md).
 
 use std::sync::OnceLock;
@@ -9,6 +9,7 @@ use std::sync::OnceLock;
 use fornax_core::error::DemosaicError;
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 
+use super::LmmseMode;
 use super::buffer::{DenseLazy, channel, codes, dense_from_codes};
 use super::ppg::DemosaicPpg;
 use crate::protocol::LazyDemosaic;
@@ -28,10 +29,23 @@ const BLUE: usize = 2;
 pub struct DemosaicLmmse;
 
 impl DemosaicLmmse {
+    #[cfg(test)]
     pub fn lazy<T>(
         &self,
         image: &MonoImage<T>,
         pattern: BayerPattern,
+    ) -> Result<DenseLazy<T>, DemosaicError>
+    where
+        T: Primitive + Send + Sync,
+    {
+        self.lazy_with_mode(image, pattern, LmmseMode::Median)
+    }
+
+    pub fn lazy_with_mode<T>(
+        &self,
+        image: &MonoImage<T>,
+        pattern: BayerPattern,
+        mode: LmmseMode,
     ) -> Result<DenseLazy<T>, DemosaicError>
     where
         T: Primitive + Send + Sync,
@@ -55,7 +69,7 @@ impl DemosaicLmmse {
             .collect();
 
         if width >= 2 * BORDER && height >= 2 * BORDER {
-            interpolate(&input, &mut output, width, height, pattern);
+            interpolate(&input, &mut output, width, height, pattern, mode);
         }
 
         Ok(DenseLazy::new(dense_from_codes(
@@ -72,7 +86,14 @@ fn interpolate(
     width: usize,
     height: usize,
     pattern: BayerPattern,
+    mode: LmmseMode,
 ) {
+    let (median_passes, refinement_passes) = match mode {
+        LmmseMode::Basic => (0, 0),
+        LmmseMode::Median => (1, 0),
+        LmmseMode::ThreeMedians => (3, 0),
+        LmmseMode::Refine(passes) => (3, usize::from(passes.get())),
+    };
     let gamma = gamma_tables();
     let h0 = 1.0_f32;
     let h1 = (-1.0_f32 / 8.0).exp();
@@ -121,15 +142,21 @@ fn interpolate(
             let rr_max = last_rr - usize::from(tile_vertical == num_vertical - 1) * 6;
             let cc_min = if tile_horizontal == 0 { 6 } else { 0 };
             let cc_max = last_cc - usize::from(tile_horizontal == num_horizontal - 1) * 6;
-            median_pass(
-                &mut qix, last_rr, last_cc, rr_min, rr_max, cc_min, cc_max, pattern,
-            );
+            for _ in 0..median_passes {
+                median_pass(
+                    &mut qix, last_rr, last_cc, rr_min, rr_max, cc_min, cc_max, pattern,
+                );
+            }
 
             for rrr in BORDER..last_rr - BORDER {
                 for ccc in BORDER..last_cc - BORDER {
                     let c = tile_channel(pattern, rrr, ccc);
                     qix[tile_index(c, rrr, ccc)] = q(&qix, 5, rrr, ccc);
                 }
+            }
+
+            for _ in 0..refinement_passes {
+                refine_tile(&mut qix, rr_min, rr_max, cc_min, cc_max, pattern);
             }
 
             write_tile(
@@ -146,6 +173,104 @@ fn interpolate(
                 col_end,
                 &gamma.output,
             );
+        }
+    }
+}
+
+fn refine_tile(
+    qix: &mut [f32],
+    rr_min: usize,
+    rr_max: usize,
+    cc_min: usize,
+    cc_max: usize,
+    pattern: BayerPattern,
+) {
+    for rr in rr_min + 2..rr_max - 2 {
+        let mut cc = cc_min + 2 + (tile_channel(pattern, rr, 2) & 1);
+        let c = tile_channel(pattern, rr, cc);
+        while cc < cc_max - 2 {
+            let center_color = q(qix, c, rr, cc);
+            let horizontal_green = (q(qix, GREEN, rr, cc + 1) - q(qix, GREEN, rr, cc - 1)).abs();
+            let vertical_green = (q(qix, GREEN, rr + 1, cc) - q(qix, GREEN, rr - 1, cc)).abs();
+            let left =
+                1.0 / (1.0 + (q(qix, c, rr, cc - 2) - center_color).abs() + horizontal_green);
+            let right =
+                1.0 / (1.0 + (q(qix, c, rr, cc + 2) - center_color).abs() + horizontal_green);
+            let up = 1.0 / (1.0 + (q(qix, c, rr - 2, cc) - center_color).abs() + vertical_green);
+            let down = 1.0 / (1.0 + (q(qix, c, rr + 2, cc) - center_color).abs() + vertical_green);
+            let left_difference = q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1);
+            let right_difference = q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1);
+            let up_difference = q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc);
+            let down_difference = q(qix, GREEN, rr + 1, cc) - q(qix, c, rr + 1, cc);
+            let numerator = left_difference.mul_add(
+                left,
+                right_difference.mul_add(right, up_difference.mul_add(up, down_difference * down)),
+            );
+            qix[tile_index(GREEN, rr, cc)] = center_color + numerator / (left + right + up + down);
+            cc += 2;
+        }
+    }
+
+    for rr in rr_min + 2..rr_max - 2 {
+        let mut cc = cc_min + 2 + (tile_channel(pattern, rr, 3) & 1);
+        let mut c = tile_channel(pattern, rr, cc + 1);
+        while cc < cc_max - 2 {
+            for _ in 0..2 {
+                let center_green = q(qix, GREEN, rr, cc);
+                let left_green = (q(qix, GREEN, rr, cc - 2) - center_green).abs();
+                let right_green = (q(qix, GREEN, rr, cc + 2) - center_green).abs();
+                let up_green = (q(qix, GREEN, rr - 2, cc) - center_green).abs();
+                let down_green = (q(qix, GREEN, rr + 2, cc) - center_green).abs();
+                let horizontal_color = (q(qix, c, rr, cc + 1) - q(qix, c, rr, cc - 1)).abs();
+                let vertical_color = (q(qix, c, rr + 1, cc) - q(qix, c, rr - 1, cc)).abs();
+                let left = 1.0 / (1.0 + left_green + horizontal_color);
+                let right = 1.0 / (1.0 + right_green + horizontal_color);
+                let up = 1.0 / (1.0 + up_green + vertical_color);
+                let down = 1.0 / (1.0 + down_green + vertical_color);
+                let left_difference = q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1);
+                let right_difference = q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1);
+                let up_difference = q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc);
+                let down_difference = q(qix, GREEN, rr + 1, cc) - q(qix, c, rr + 1, cc);
+                let numerator = left_difference.mul_add(
+                    left,
+                    right_difference
+                        .mul_add(right, up_difference.mul_add(up, down_difference * down)),
+                );
+                qix[tile_index(c, rr, cc)] = center_green - numerator / (left + right + up + down);
+                c = 2 - c;
+            }
+            cc += 2;
+        }
+    }
+
+    for rr in rr_min + 2..rr_max - 2 {
+        let mut cc = cc_min + 2 + (tile_channel(pattern, rr, 2) & 1);
+        while cc < cc_max - 2 {
+            let sampled = tile_channel(pattern, rr, cc);
+            let c = 2 - sampled;
+            let d = sampled;
+            let center_green = q(qix, GREEN, rr, cc);
+            let center_integrated = q(qix, d, rr, cc);
+            let horizontal_green = (q(qix, GREEN, rr, cc + 1) - q(qix, GREEN, rr, cc - 1)).abs();
+            let vertical_green = (q(qix, GREEN, rr + 1, cc) - q(qix, GREEN, rr - 1, cc)).abs();
+            let left =
+                1.0 / (1.0 + (q(qix, d, rr, cc - 2) - center_integrated).abs() + horizontal_green);
+            let right =
+                1.0 / (1.0 + (q(qix, d, rr, cc + 2) - center_integrated).abs() + horizontal_green);
+            let up =
+                1.0 / (1.0 + (q(qix, d, rr - 2, cc) - center_integrated).abs() + vertical_green);
+            let down =
+                1.0 / (1.0 + (q(qix, d, rr + 2, cc) - center_integrated).abs() + vertical_green);
+            let left_difference = q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1);
+            let right_difference = q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1);
+            let up_difference = q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc);
+            let down_difference = q(qix, GREEN, rr + 1, cc) - q(qix, c, rr + 1, cc);
+            let numerator = left_difference.mul_add(
+                left,
+                right_difference.mul_add(right, up_difference.mul_add(up, down_difference * down)),
+            );
+            qix[tile_index(c, rr, cc)] = center_green - numerator / (left + right + up + down);
+            cc += 2;
         }
     }
 }
@@ -609,6 +734,8 @@ fn square(value: f32) -> f32 { value * value }
 
 #[cfg(test)]
 mod tests {
+    use std::num::NonZeroU8;
+
     use fornax_core::MonoImage;
 
     use super::*;
@@ -620,6 +747,44 @@ mod tests {
         let image = MonoImage::from_raw(4, 4, samples).unwrap();
         let output = DemosaicLmmse.lazy(&image, BayerPattern::RGGB)?.collect();
         assert_eq!(output.dimensions(), (4, 4));
+        Ok(())
+    }
+
+    #[test]
+    fn lmmse_modes_select_median_and_refinement_passes() -> mischief::Result<()> {
+        let width = 64;
+        let height = 64;
+        let samples = (0..width * height)
+            .map(|index| {
+                let hash = (index as u32).wrapping_mul(0x9e37_79b9).rotate_left(13)
+                    ^ (index as u32).wrapping_mul(0x85eb_ca6b);
+                f64::from((hash ^ (hash >> 16)) as u16) / f64::from(u16::MAX)
+            })
+            .collect();
+        let image = MonoImage::from_raw(width as u32, height as u32, samples).unwrap();
+
+        let legacy = DemosaicLmmse.lazy(&image, BayerPattern::GBRG)?.collect();
+        let basic = DemosaicLmmse
+            .lazy_with_mode(&image, BayerPattern::GBRG, LmmseMode::Basic)?
+            .collect();
+        let median = DemosaicLmmse
+            .lazy_with_mode(&image, BayerPattern::GBRG, LmmseMode::Median)?
+            .collect();
+        let three_medians = DemosaicLmmse
+            .lazy_with_mode(&image, BayerPattern::GBRG, LmmseMode::ThreeMedians)?
+            .collect();
+        let refined = DemosaicLmmse
+            .lazy_with_mode(
+                &image,
+                BayerPattern::GBRG,
+                LmmseMode::Refine(NonZeroU8::new(1).unwrap()),
+            )?
+            .collect();
+
+        assert_eq!(median, legacy);
+        assert_ne!(median, basic);
+        assert_ne!(median, three_medians);
+        assert_ne!(three_medians, refined);
         Ok(())
     }
 

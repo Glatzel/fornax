@@ -13,9 +13,9 @@ that work.
 - LibRaw 0.22.3, comparison adapter entry point:
   [`crates/compare-demosaic/cpp/algos/libraw_dcb.cpp`](../../crates/compare-demosaic/cpp/algos/libraw_dcb.cpp).
 
-The reference call is `pre_interpolate()` followed by `dcb(0, 1)`. The
-iteration argument is zero, so the optional three-call `dcb_nyquist` sequence
-is retained as a tested helper but is not executed by the production path.
+The comparison calls `pre_interpolate()` followed by the default
+`dcb(0, 1)`. Fornax exposes both behavioral arguments as
+`Demosaic::Dcb { iterations, enhance }`.
 
 ## Algorithm shape
 
@@ -28,11 +28,13 @@ full-frame horizontal and vertical candidates:
    candidate at each non-green site.
 3. Save the current red and blue planes, reconstruct the missing colors, and
    smooth them using green contrast.
-4. Apply one contrast-aware correction and three direction-map/correction
-   passes.
-5. Restore the saved red and blue planes, reconstruct color again, refine
-   green with directional ratios and neighbor limits, then perform the final
-   chroma-map interpolation and red/blue neighbor limit.
+4. For each requested iteration, apply three Nyquist corrections followed by a
+   direction map and correction. Then apply one contrast-aware correction and
+   three direction-map/correction passes.
+5. Restore the saved red and blue planes and reconstruct color again. If
+   enhancement is enabled, refine green with directional ratios and neighbor
+   limits, then perform final chroma-map interpolation and red/blue neighbor
+   limiting.
 
 Fornax stores the working image as `[u16; 4]`: red at channel 0, unified green
 at channel 1, blue at channel 2, and the direction map at channel 3. The
@@ -52,6 +54,10 @@ result is packed back to 16-bit RGB at the `DenseLazy` boundary.
 On the pinned `colorchart-eos-7d.cr2` fixture, all four Bayer phases match
 LibRaw 0.22.3 exactly after the comparison harness converts between sample
 types.
+
+The comparison remains pinned to `(0, 1)` so its baseline is stable.
+Non-default parameter combinations are covered by postprocessor unit tests
+rather than additional comparison rows.
 
 ## License
 
