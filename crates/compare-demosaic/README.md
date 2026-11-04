@@ -149,8 +149,8 @@ and are consistency checks against the same image.
 | AAHD | libraw | ⚖️ | GBRG ⚖️ |
 | AHD | libraw | ⚖️ | GBRG ⚖️ |
 | AHD | rawtherapee | ❌ | GBRG ❌ |
-| AMaZE | darktable | ❌ | GBRG ❌ |
-| AMaZE | rawtherapee | ❌ | GBRG ❌ |
+| AMaZE | darktable | ✅ | GBRG ✅ |
+| AMaZE | rawtherapee | ✅ | GBRG ✅ |
 | DCB | libraw | ✅ | GBRG ✅ |
 | DCB | rawtherapee | ❌ | GBRG ❌ |
 | DHT | libraw | ❌ | GBRG ❌ |
@@ -196,7 +196,6 @@ and are consistency checks against the same image.
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 0] | yes | ⚖️ | 0.283189 | 16.624567 | 5385 | -0.038198 | 0 | 18 | 3645 (67) | 0.001168 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 1] | no | ⚖️ | 0.304623 | 17.566732 | 5941 | 0.037053 | 0 | 20 | 4026 (88) | 0.001190 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 1] | no | ⚖️ | 0.295955 | 17.177471 | 5941 | -0.040052 | 0 | 19 | 3780 (92) | 0.001178 |
-
 <!-- compare-demosaic:end algo:aahd -->
 
 ### LibRaw `aahd_interpolate`
@@ -233,7 +232,6 @@ homogeneity or gradient comparison.
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GBRG | [0, 0] | yes | ❌ | 6.723326 | 62.195036 | 5841 | -0.122399 | 154 | 926 | 41372 (854) | 0.196034 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GRBG | [1, 1] | no | ❌ | 6.720516 | 62.159150 | 5841 | -0.122432 | 154 | 925 | 41296 (841) | 0.196038 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | RGGB | [0, 1] | no | ❌ | 6.720053 | 62.154262 | 5841 | -0.122369 | 154 | 925 | 41296 (841) | 0.196037 |
-
 <!-- compare-demosaic:end algo:ahd -->
 
 ### LibRaw `ahd_interpolate`
@@ -274,14 +272,14 @@ and final quantization also differ from Fornax.
 <!-- compare-demosaic:begin algo:amaze -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | BGGR | [1, 0] | no | ❌ | 79.506490 | 186.017209 | 9623 | 17.580096 | 808 | 1442 | 239832 (10535) | 0.659406 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GBRG | [0, 0] | yes | ❌ | 79.498569 | 186.002581 | 9623 | 17.574803 | 808 | 1442 | 239862 (10535) | 0.659406 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GRBG | [1, 1] | no | ❌ | 79.472438 | 185.943699 | 9623 | 17.631790 | 808 | 1441 | 239711 (11161) | 0.659409 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | RGGB | [0, 1] | no | ❌ | 79.464767 | 185.929591 | 9623 | 17.626376 | 808 | 1441 | 239741 (11160) | 0.659410 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | BGGR | [1, 0] | no | ❌ | 6628.008481 | 17087.809969 | 65535 | -4822.942373 | 65085 | 65363 | 20099315 (279705) | 0.663642 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | GBRG | [0, 0] | yes | ❌ | 6629.719095 | 17090.488577 | 65535 | -4824.339348 | 65085 | 65363 | 20105521 (280907) | 0.663643 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | GRBG | [1, 1] | no | ❌ | 6659.144777 | 17132.098110 | 65535 | -4851.093860 | 65086 | 65363 | 20143320 (282653) | 0.663656 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | RGGB | [0, 1] | no | ❌ | 6660.392138 | 17133.840330 | 65535 | -4852.128179 | 65086 | 65362 | 20149232 (283697) | 0.663657 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | BGGR | [1, 0] | no | ✅ | 0.230944 | 3.815430 | 890 | -0.001803 | 1 | 53 | 0 (0) | 0.011564 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GBRG | [0, 0] | yes | ✅ | 0.230396 | 3.806977 | 890 | -0.001913 | 1 | 53 | 0 (0) | 0.011536 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | GRBG | [1, 1] | no | ✅ | 0.195362 | 3.501375 | 878 | -0.001293 | 1 | 48 | 0 (0) | 0.010065 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/amaze.cc#L129) | RGGB | [0, 1] | no | ✅ | 0.194886 | 3.493895 | 878 | -0.001508 | 1 | 48 | 0 (0) | 0.010034 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | BGGR | [1, 0] | no | ✅ | 0.230944 | 3.815430 | 890 | -0.001803 | 1 | 53 | 0 (0) | 0.011564 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | GBRG | [0, 0] | yes | ✅ | 0.230396 | 3.806977 | 890 | -0.001913 | 1 | 53 | 0 (0) | 0.011536 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | GRBG | [1, 1] | no | ✅ | 0.195362 | 3.501375 | 878 | -0.001293 | 1 | 48 | 0 (0) | 0.010065 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | RGGB | [0, 1] | no | ✅ | 0.194886 | 3.493895 | 878 | -0.001508 | 1 | 48 | 0 (0) | 0.010034 |
 <!-- compare-demosaic:end algo:amaze -->
 
 ### darktable `amaze_demosaic`
@@ -289,28 +287,31 @@ and final quantization also differ from Fornax.
 **Why this reference:** darktable is the primary open-source AMaZE
 implementation used for reproducing this published algorithm.
 
-**Why we match:** both retain measured CFA values, choose green from
-directional edge evidence, and interpolate the remaining channels from
-local color differences.
+**Why we match:** both preserve measured CFA values and use the same 160-pixel
+tiles, adaptive green ratios, directional variance weighting, Nyquist texture
+refinement, diagonal red/blue correction, and final chroma interpolation.
 
-**Known differences:** Fornax uses the shared directional kernel with an
-edge-weight exponent of three and a three-pixel chroma radius instead of
-darktable's full AMaZE tile processing. Fornax also clamps in normalized
-space and quantizes to nearest.
+**Known differences:** darktable runs this stage inside its pixelpipe, while
+Fornax accepts normalized active Bayer data directly. The comparison pins an
+identity scale and clipping point so both implementations receive the same
+mosaic. Floating-point operation ordering and the final nearest-code
+conversion account for the remaining one-code differences.
 
 ### RawTherapee `amaze_demosaic_RT`
 
 **Why this reference:** it exercises RawTherapee's independently optimized
 AMaZE implementation and its own tile and clipping decisions.
 
-**Why we match:** both preserve measured CFA samples and reconstruct green
-and the remaining channels from directional edge evidence and color
-differences.
+**Why we match:** both implement the complete AMaZE tile pipeline and preserve
+measured CFA samples. The comparison facade uses RawTherapee's scalar path,
+exponent-shift division helper, identity matrix, and normalized 16-bit working
+scale.
 
-**Known differences:** RawTherapee normally receives channel-scaled data from
-`scaleColors`. The shared comparison deliberately omits white balance, so
-RawTherapee's edge decisions can differ strongly on the uncorrected mosaic
-even though sampled Bayer values remain exact.
+**Known differences:** RawTherapee normally receives channel-scaled working
+data from `scaleColors`; the comparison deliberately omits white balance.
+Fornax clamps in normalized space and quantizes to nearest. Floating-point
+operation ordering and that final conversion account for the remaining
+one-code differences.
 
 ## DCB
 
@@ -463,7 +464,6 @@ sampled Bayer sites remain exact.
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GBRG | [0, 0] | yes | ⚖️ | 0.186701 | 3.106662 | 2221 | 0.108924 | 1 | 1 | 53 (0) | 0.146916 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | GRBG | [1, 1] | no | ⚖️ | 0.186698 | 3.106884 | 2221 | 0.108933 | 1 | 1 | 53 (0) | 0.146911 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L363) | RGGB | [0, 1] | no | ⚖️ | 0.186694 | 3.107317 | 2221 | 0.108922 | 1 | 1 | 53 (0) | 0.146910 |
-
 <!-- compare-demosaic:end algo:ppg -->
 
 ### darktable `demosaic_ppg`
@@ -509,7 +509,6 @@ the bounded outlier tail is accepted as follows.
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/rcd_demosaic.cc#L53) | GBRG | [0, 0] | yes | ⚠️ | 0.871883 | 23.391745 | 3727 | 0.025217 | 3 | 196 | 7184 (7183) | 0.038567 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/rcd_demosaic.cc#L53) | GRBG | [1, 1] | no | ⚠️ | 0.873075 | 23.445153 | 3727 | 0.000155 | 3 | 197 | 7266 (7265) | 0.038554 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/rcd_demosaic.cc#L53) | RGGB | [0, 1] | no | ⚠️ | 0.874198 | 23.458456 | 3727 | 0.003023 | 3 | 197 | 7270 (7269) | 0.038579 |
-
 <!-- compare-demosaic:end algo:rcd -->
 
 ### darktable `rcd_demosaic`

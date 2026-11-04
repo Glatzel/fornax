@@ -5,7 +5,6 @@ use super::buffer::{DenseLazy, channel, dense_from_f32, normalized};
 #[derive(Debug, Clone, Copy)]
 pub(super) enum Profile {
     Dht,
-    Amaze,
 }
 
 pub(super) fn lazy<T>(
@@ -46,7 +45,6 @@ fn run(
     let mut rgb = vec![[0.0_f32; 3]; width * height];
     let (green_power, chroma_radius, refinement) = match profile {
         Profile::Dht => (1.0, 2, 0),
-        Profile::Amaze => (3.0, 3, 0),
     };
 
     for y in 0..height {
@@ -76,12 +74,6 @@ fn run(
             let north2 = at(input, width, x, y.saturating_sub(2));
             let south2 = at(input, width, x, (y + 2).min(height - 1));
 
-            let horizontal = (2.0_f32.mul_add(center, -west2) - east2)
-                .mul_add(0.25, f32::midpoint(west, east))
-                .clamp(west.min(east), west.max(east));
-            let vertical = (2.0_f32.mul_add(center, -north2) - south2)
-                .mul_add(0.25, f32::midpoint(north, south))
-                .clamp(north.min(south), north.max(south));
             let horizontal_gradient = (west - east).abs()
                 + (center - west2).abs()
                 + (center - east2).abs()
@@ -94,26 +86,14 @@ fn run(
                 + (south - center).abs();
             let horizontal_weight = 1.0 / (1.0e-5 + horizontal_gradient).powf(green_power);
             let vertical_weight = 1.0 / (1.0e-5 + vertical_gradient).powf(green_power);
-            green[index] = match profile {
-                Profile::Dht => {
-                    let horizontal_ratio =
-                        center * f32::midpoint(west, east) / (f32::midpoint(west2, east2) + 1.0e-5);
-                    let vertical_ratio = center * f32::midpoint(north, south)
-                        / (f32::midpoint(north2, south2) + 1.0e-5);
-                    vertical_ratio.mul_add(vertical_weight, horizontal_ratio * horizontal_weight)
-                        / (horizontal_weight + vertical_weight)
-                }
-                _ => {
-                    if horizontal_gradient < vertical_gradient {
-                        horizontal
-                    } else if vertical_gradient < horizontal_gradient {
-                        vertical
-                    } else {
-                        f32::midpoint(horizontal, vertical)
-                    }
-                }
-            }
-            .clamp(0.0, 1.0);
+            let horizontal_ratio =
+                center * f32::midpoint(west, east) / (f32::midpoint(west2, east2) + 1.0e-5);
+            let vertical_ratio =
+                center * f32::midpoint(north, south) / (f32::midpoint(north2, south2) + 1.0e-5);
+            green[index] = (vertical_ratio
+                .mul_add(vertical_weight, horizontal_ratio * horizontal_weight)
+                / (horizontal_weight + vertical_weight))
+                .clamp(0.0, 1.0);
         }
     }
     fill_green_border(&mut green, input, width, height, pattern);
@@ -179,11 +159,9 @@ fn run(
                     differences.sort_by(f32::total_cmp);
                     let color_difference = f32::midpoint(differences[1], differences[2]);
                     let refined = green[index] + color_difference;
-                    rgb[index][target] = match profile {
-                        Profile::Amaze => refined.mul_add(0.25, previous[index][target] * 0.75),
-                        Profile::Dht => refined.mul_add(0.2, previous[index][target] * 0.8),
-                    }
-                    .clamp(0.0, 1.0);
+                    rgb[index][target] = refined
+                        .mul_add(0.2, previous[index][target] * 0.8)
+                        .clamp(0.0, 1.0);
                 }
             }
         }

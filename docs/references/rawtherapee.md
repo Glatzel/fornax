@@ -57,6 +57,9 @@ for odd-width GRBG crops. The compatibility object allocates two guard
 rows/columns for RGB output and the bridge copies only the requested dimensions.
 This preserves the reference result while making non-native Bayer crops safe.
 
+The compatibility `xdivf(value, exponent)` follows RawTherapee's exponent-shift
+semantics. `xdivf(value, 2)` divides by four rather than by two.
+
 ## Known differences
 
 RawTherapee normally runs demosaicing after `scaleColors`, which applies camera
