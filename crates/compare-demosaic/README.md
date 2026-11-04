@@ -218,7 +218,7 @@ high-frequency and clipped-chart decisions can remain different when an
 independent floating-point evaluation lands on the other side of a
 homogeneity or gradient comparison.
 
-Accepted outliers (aahd vs LibRaw, all patterns): at most 4026 samples above 1024, maximum error at most 5941. Reason: Independent floating-point homogeneity and gradient comparisons can select the other AAHD directional candidate at sparse, high-frequency and clipped chart details. Evidence: The full-resolution error map was reviewed in all four CFA phases: every robust limit passes, sampled Bayer sites are exact, all high-error values are interpolated-site outliers, and the map is sparse point noise without a border strip or full-frame structure. The reviewed maxima are 4026 samples above 1024 and maximum error 5941, with at most 32 high-error samples in any 64x64 tile (GRBG).
+**Accepted outliers:** aahd vs LibRaw, all patterns: at most 4026 samples above 1024, maximum error at most 5941. Reason: Independent floating-point homogeneity and gradient comparisons can select the other AAHD directional candidate at sparse, high-frequency and clipped chart details. Evidence: The full-resolution error map was reviewed in all four CFA phases: every robust limit passes, sampled Bayer sites are exact, all high-error values are interpolated-site outliers, and the map is sparse point noise without a border strip or full-frame structure. The reviewed maxima are 4026 samples above 1024 and maximum error 5941, with at most 32 high-error samples in any 64x64 tile (GRBG).
 
 ## AHD
 
@@ -253,7 +253,7 @@ PR #602's valid-crop experiment shows the remaining outlier tail is stable
 across all four CFA phases and sampled Bayer values are exact. The former
 BGGR/RGGB failures were invalid green-phase test input.
 
-Accepted outliers (ahd vs LibRaw, all patterns): at most 6767 samples above 1024, maximum error at most 5222. Reason: Independent AHD tile, clipping, matrix, and quantization conventions change local directional decisions at high-contrast chart edges. Evidence: PR #602's valid-crop experiment has the same outlier tail in all four CFA phases with exact sampled Bayer values; the former BGGR and RGGB failures were invalid green-phase test input.
+**Accepted outliers:** ahd vs LibRaw, all patterns: at most 6767 samples above 1024, maximum error at most 5222. Reason: Independent AHD tile, clipping, matrix, and quantization conventions change local directional decisions at high-contrast chart edges. Evidence: PR #602's valid-crop experiment has the same outlier tail in all four CFA phases with exact sampled Bayer values; the former BGGR and RGGB failures were invalid green-phase test input.
 
 ### RawTherapee `ahd_demosaic`
 
@@ -494,7 +494,7 @@ diagonal ties, while Fornax follows darktable's normalized `f32` path. Near
 ties at high-contrast chart edges can therefore select different directions;
 the bounded outlier tail is accepted as follows.
 
-Accepted outliers (ppg vs LibRaw, all patterns): at most 53 samples above 1024, maximum error at most 2221. Reason: LibRaw selects PPG directions with integer shifts and truncating arithmetic while Fornax follows darktable's normalized f32 path; near ties at high-contrast chart edges flip a small local set of directional choices. Evidence: The committed baseline matches darktable exactly in all CFA phases, preserves sampled Bayer sites exactly, and has the same 53 interior high-error samples and maximum error 2221 in every phase; each row's top-20 worst samples align after its crop offset, and the error map is sparse. LibRaw 0.22.3 ppg_interpolate uses right shifts and integer division for its predictions and diagonal tie.
+**Accepted outliers:** ppg vs LibRaw, all patterns: at most 53 samples above 1024, maximum error at most 2221. Reason: LibRaw selects PPG directions with integer shifts and truncating arithmetic while Fornax follows darktable's normalized f32 path; near ties at high-contrast chart edges flip a small local set of directional choices. Evidence: The committed baseline matches darktable exactly in all CFA phases, preserves sampled Bayer sites exactly, and has the same 53 interior high-error samples and maximum error 2221 in every phase; each row's top-20 worst samples align after its crop offset, and the error map is sparse. LibRaw 0.22.3 ppg_interpolate uses right shifts and integer division for its predictions and diagonal tie.
 
 ## RCD
 
@@ -530,7 +530,7 @@ match the reference exactly. The sole high-error sample in each CFA phase is
 the same shifted red-site chart edge, accepted as floating-point evaluation
 sensitivity in a near-tie interpolation decision.
 
-Accepted outliers (rcd vs darktable, all patterns): at most 1 samples above 1024, maximum error at most 1359. Reason: A near-tie RCD interpolation decision flips under independent floating-point evaluation at one high-contrast chart edge. Evidence: Every CFA phase has one interior high-error sample at the same shifted red-site edge; sampled Bayer values are exact.
+**Accepted outliers:** rcd vs darktable, all patterns: at most 1 samples above 1024, maximum error at most 1359. Reason: A near-tie RCD interpolation decision flips under independent floating-point evaluation at one high-contrast chart edge. Evidence: Every CFA phase has one interior high-error sample at the same shifted red-site edge; sampled Bayer values are exact.
 
 ### RawTherapee `rcd_demosaic`
 

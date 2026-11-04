@@ -298,7 +298,7 @@ fn render_waiver(waiver: &Waiver) -> String {
         scope.push_str(&format!(", input `{input}`"));
     }
     format!(
-        "Accepted outliers ({} vs {}, {scope}): at most {} samples above 1024, maximum error at most {}. Reason: {} Evidence: {}",
+        "**Accepted outliers:** {} vs {}, {scope}: at most {} samples above 1024, maximum error at most {}. Reason: {} Evidence: {}",
         waiver.algorithm,
         waiver.reference.library(),
         waiver.max_count_gt1024,
@@ -747,7 +747,7 @@ mod tests {
         assert!(first.contains("| ⚖️ |"));
         assert!(!table.contains("Accepted outliers"));
         assert!(first.contains(
-            "Accepted outliers (ahd vs LibRaw, all patterns): at most 1 samples above 1024, maximum error at most 1500."
+            "**Accepted outliers:** ahd vs LibRaw, all patterns: at most 1 samples above 1024, maximum error at most 1500."
         ));
         assert!(first.contains("Reason: Near-tie direction decisions differ"));
         assert!(first.contains("Evidence: The stage diff first diverges"));
