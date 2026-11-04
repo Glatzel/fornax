@@ -15,6 +15,7 @@ type DcbPixel = [u16; 4];
 pub struct DemosaicDcb;
 
 impl DemosaicDcb {
+    #[cfg(test)]
     pub fn lazy<T>(
         &self,
         image: &MonoImage<T>,
@@ -817,6 +818,7 @@ fn apply_post_correction_passes(
     }
 }
 
+#[cfg(test)]
 fn run(input: &[u16], width: usize, height: usize, pattern: BayerPattern) -> Vec<u16> {
     run_with_options(input, width, height, pattern, 0, true)
 }
