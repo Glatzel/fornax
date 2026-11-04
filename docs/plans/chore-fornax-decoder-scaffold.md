@@ -38,8 +38,9 @@ other CFA layout with a typed handoff error.
   dedicated, matchable error.
 - DNG metadata must retain the tag's value type rather than converting every
   field to a string or float.
-- The scaffold's public stubs must fail as explicit unsupported operations,
-  never with `todo!()`, panic, or a misleading corrupt-input result.
+- Unimplemented construction, protocol, and DNG-writing paths are explicit
+  `todo!()` placeholders in this scaffold. Public doctests that exercise them
+  use `no_run` until implementation exists.
 - Rawler/LibRaw/darktable references must not leak into production dependencies
   or be copied without a licence review.
 
@@ -55,10 +56,10 @@ other CFA layout with a typed handoff error.
   to referenced implementations.
 - [x] Write the architecture, per-format tier plans, corpus design, and
   benchmark plan.
-- [x] Add the compiling `fornax-decoder` public model, errors, CFA handoff
-  check, and unsupported stubs.
-- [x] Add tests for unsupported stubs, typed metadata storage, and CFA
-  handoff behavior.
+- [x] Add the compiling `fornax-decoder` public model and errors with explicit
+  `todo!()` placeholders for deferred construction and protocol behavior.
+- [x] Replace temporary behavior tests with intentional `todo!()` paths and
+  `no_run` public examples while the implementation is deferred.
 - [x] Revise the public model around image-buffer-backed `MosaicData`, a
   `BTreeMap<DngTag, DngValue>` metadata map, tag-only CFA, strum-backed format
   names, and decoded-image DNG writer methods.
@@ -77,7 +78,7 @@ other CFA layout with a typed handoff error.
 - `crates/fornax-decoder/Cargo.toml`
 - `crates/fornax-decoder/README.md`
 - `crates/fornax-decoder/src/*.rs`
-- `crates/fornax-decoder/tests/scaffold.rs`
+- `crates/fornax-decoder/tests/scaffold.rs` (removed)
 - `docs/decoder/architecture.md`
 - `docs/decoder/corpus.md`
 - `docs/decoder/benchmark.md`
@@ -89,7 +90,7 @@ other CFA layout with a typed handoff error.
 Run from the repository root:
 
 ```bash
-cargo test -p fornax-decoder --test scaffold
+cargo test -p fornax-decoder
 cargo test -p fornax-decoder --doc
 cargo check -p fornax-decoder --locked
 cargo +nightly fmt -p fornax-decoder --check
@@ -116,8 +117,8 @@ markdownlint-cli2 docs/decoder/architecture.md docs/decoder/corpus.md docs/decod
 
 Observed on this branch:
 
-- `cargo test -p fornax-decoder`: 33 passed after the API revision.
-- `cargo test --workspace --all-features`: 249 passed.
+- `cargo test -p fornax-decoder`: 16 passed.
+- `cargo test --workspace --all-features`: 269 passed.
 - `cargo +nightly fmt --check`: passed.
 - `cargo +nightly clippy -p fornax-decoder --all-targets -- -D warnings`:
   passed.
@@ -141,17 +142,18 @@ The pull request is
   re-exports tiff's decoded value type; `DngTag` adds stable names, unknown-tag
   preservation, num_enum primitive conversions, and tiff tag conversions.
 - `DecodedRaw` owns image-buffer-backed `MosaicData` plus the metadata map.
-  `ImageWidth` and `ImageLength` remain DNG tags and are validated against the
-  image buffer during construction.
+  `DecodedRaw::new` is an intentional `todo!()`; matching `ImageWidth` and
+  `ImageLength` validation remains required when construction is implemented.
 - `IDecoder<Path, T>` integration and the preprocessor Bayer handoff live in a
   private `protocol` module. `DecodedRaw::metadata_by_tag` provides direct
   lookup without operating on the complete map.
-- CFA is stored only through its four DNG metadata tags. `DecodedRaw` exposes
-  typed tag getters and rejects malformed metadata with `CfaPatternError`.
+- CFA is stored only through its four DNG metadata tags. Typed CFA getters and
+  malformed-metadata rejection remain implementation work.
 - DNG output is exposed as `DecodedRaw::write_dng(path, options)` and
   `DecodedRaw::write_dng_with(writer, options)`. The tiff encoder will own
   container encoding because it requires `Write + Seek`; no custom writer
-  trait is needed. Both methods remain stubs in this scaffold.
+  trait is needed. Both methods are intentional `todo!()` placeholders in this
+  scaffold.
 - `DngVersion::latest()` returns DNG 1.7.1.0 and lossless JPEG-92 is the
   default writer compression.
 - The current `Metadata<T>` type cannot represent a CFA larger than 2x2. The

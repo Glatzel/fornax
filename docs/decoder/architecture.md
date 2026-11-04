@@ -3,9 +3,9 @@
 ## Status
 
 This document defines the initial architecture for the `fornax-decoder` crate.
-The crate in this change is scaffolding only. It implements the public data
-model and unsupported stubs; it does not parse, decompress, map metadata, or
-write any RAW or DNG file.
+The crate in this change is scaffolding only. It defines the public data model
+and intentional `todo!()` placeholders; it does not parse, decompress, map
+metadata, construct a validated model, or write any RAW or DNG file.
 
 The target format specification is Adobe Digital Negative (DNG) Specification
 version 1.7.1.0, September 2023. Adobe's
@@ -84,8 +84,8 @@ The resolution is:
   layout is converted into `Metadata<T>` and `DecodedRawActive<T>`.
 - Every other layout returns `HandoffError::UnsupportedCfa` before a
   `fornax-core` active image is constructed.
-- The scaffold's current protocol adapter returns
-  `fornax_core::error::DecodeError::Unsupported` because no decode exists yet.
+- The scaffold's current `IDecoder<Path, T>` methods are `todo!()` placeholders
+  because no native decode or Bayer conversion exists yet.
 
 No immediate `fornax-core` protocol change is required. The existing protocol
 remains the Bayer-only pipeline boundary, and the native API owns the richer
@@ -100,13 +100,13 @@ The scaffold contains these responsibilities:
 
 | Module | Responsibility |
 | --- | --- |
-| `decoded` | `DecodedRaw`, image-buffer-backed `MosaicData`, important DNG getters, and the preprocessor handoff. |
+| `decoded` | `DecodedRaw`, image-buffer-backed `MosaicData`, and direct metadata access. |
 | `error` | Stable decode categories, CFA validation, handoff failure, and writer failure. |
 | `format` | RAW container family names and strum conversions. |
 | `metadata` | DNG tag enum plus the `BTreeMap<DngTag, DngValue>` model backed by tiff values. |
 | `protocol` | `fornax-core` `IDecoder<Path, T>` integration and the 2x2 Bayer preprocessor handoff. |
 | `writer` | DNG writer options and compression selection. |
-| `lib` | Public `Decoder` entry points and current `IDecoder` adapter. |
+| `lib` | Public `Decoder` entry point and crate re-exports. |
 
 Future implementation modules should be split by responsibility:
 
@@ -159,19 +159,22 @@ impl Decoder {
 }
 
 impl DecodedRaw {
+    pub fn new(
+        pixels: MosaicData,
+        metadata: DngMetadata,
+    ) -> Result<Self, DecodeError>; // currently todo!()
+
     pub fn write_dng<P: AsRef<Path>>(
         &self,
         path: P,
         options: DngWriteOptions,
-    ) -> Result<(), DngWriteError>;
+    ) -> Result<(), DngWriteError>; // currently todo!()
 
     pub fn write_dng_with<W: Write + Seek>(
         &self,
         writer: W,
         options: DngWriteOptions,
-    ) -> Result<(), DngWriteError>;
-
-    pub fn preprocessor_pattern(&self) -> Result<BayerPattern, HandoffError>;
+    ) -> Result<(), DngWriteError>; // currently todo!()
 
     pub fn metadata_by_tag(&self, tag: DngTag) -> Option<&DngValue>;
 }
@@ -185,7 +188,9 @@ writer compression mode.
 
 The current `IDecoder<Path, T>` implementation is retained in the private
 `protocol` module so the future native decoder can be used by the existing
-Fornax facade. Its methods are stubs in this change.
+Fornax facade. Its `decode_full` and `decode_active` methods are `todo!()` in
+this change. Public rustdoc examples touching deferred paths are marked
+`no_run`.
 
 ## Core data model
 
@@ -208,7 +213,8 @@ signed, float, and BigTIFF value families.
 CFA is represented only by `CFARepeatPatternDim`, `CFAPattern`,
 `CFAPlaneColor`, and `CFALayout` metadata. This avoids duplicate CFA state and
 allows X-Trans, four-color, monochrome, and other repeating layouts to survive
-decode and export. `DecodedRaw` validates CFA tag combinations on demand.
+decode and export once implemented. CFA getter and handoff validation are
+deferred along with `DecodedRaw::new`.
 
 `DecodedRaw::metadata_by_tag(DngTag)` returns one value directly, while
 `DecodedRaw::metadata()` exposes the complete map. Dedicated getters are
@@ -331,9 +337,10 @@ merged. Reference licences and their consequences are recorded below.
 
 ## Preprocessor handoff
 
-The native decode result is not automatically a Bayer pipeline image.
+The native decode result will not automatically be a Bayer pipeline image.
 
-`DecodedRaw::preprocessor_pattern` accepts only these CFA tag combinations:
+The planned `DecodedRaw::preprocessor_pattern` helper will accept only these
+CFA tag combinations:
 
 | 2x2 entries | `CFAPlaneColor` interpretation | Fornax pattern |
 | --- | --- | --- |
@@ -357,8 +364,8 @@ The adapter must then:
 7. Construct `DecodedRawFull<T>` and `DecodedRawActive<T>` only after all
    validation succeeds.
 
-X-Trans, four-color, monochrome, staggered, and any other non-2x2 layout stops
-at `DecodedRaw::preprocessor_pattern()` and returns
+X-Trans, four-color, monochrome, staggered, and any other non-2x2 layout will
+stop at `DecodedRaw::preprocessor_pattern()` and return
 `HandoffError::UnsupportedCfa { width, height }`. Malformed tag types or
 lengths return `HandoffError::InvalidCfa(CfaPatternError)`.
 
@@ -439,7 +446,8 @@ plan that consults them.
 
 No sample RAW, DNG, preview, or image is committed.
 
-Unit tests build tiny byte arrays and temporary files in Rust:
+The deferred unit-test suite will build tiny byte arrays and temporary files
+in Rust:
 
 - TIFF/IFD and BMFF bounds, offsets, endianness, and malformed nesting;
 - each codec against hand-authored bitstreams with known samples;
