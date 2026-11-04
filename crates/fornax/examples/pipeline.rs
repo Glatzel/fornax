@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use fornax::Decoder;
 use fornax::metadata::Metadata;
 use fornax::postprocessor::PostProcessor;
 use fornax::preprocessor::Preprocessor;
 use fornax::protocol::IDecoder;
+use fornax::{DecodedRaw, Decoder};
 use fornax_devtool::save_image;
 use image::{Luma, Rgb};
 
