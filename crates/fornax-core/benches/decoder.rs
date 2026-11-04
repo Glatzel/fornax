@@ -27,8 +27,8 @@ where
 
 fn benches(c: &mut Criterion) {
     let path = raw_path();
-    bench_decoder::<_, f32>(c, "full/f32", Decoder, &path);
-    bench_decoder::<_, f64>(c, "full/f64", Decoder, &path);
+    bench_decoder::<_, f32>(c, "fornax/full/f32", Decoder, &path);
+    bench_decoder::<_, f64>(c, "fornax/full/f64", Decoder, &path);
 }
 
 criterion_group!(benches_group, benches);
