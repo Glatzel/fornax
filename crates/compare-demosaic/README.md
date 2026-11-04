@@ -359,10 +359,10 @@ directional decisions rather than serving as the acceptance reference.
 <!-- compare-demosaic:begin algo:dht -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | BGGR | [1, 0] | no | ✅ | 0.000065 | 0.059427 | 124 | -0.000014 | 0 | 0 | 0 (0) | 0.000003 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GBRG | [0, 0] | yes | ✅ | 0.000064 | 0.059237 | 124 | -0.000014 | 0 | 0 | 0 (0) | 0.000003 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GRBG | [1, 1] | no | ✅ | 0.000064 | 0.059251 | 124 | -0.000014 | 0 | 0 | 0 (0) | 0.000003 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | RGGB | [0, 1] | no | ✅ | 0.000065 | 0.059430 | 124 | -0.000014 | 0 | 0 | 0 (0) | 0.000003 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | BGGR | [1, 0] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GBRG | [0, 0] | yes | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GRBG | [1, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | RGGB | [0, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
 <!-- compare-demosaic:end algo:dht -->
 
 ### LibRaw `dht_interpolate`
@@ -378,9 +378,8 @@ truncating 16-bit output in the same order. Measured Bayer values remain exact.
 
 **Known differences:** The comparison bridge supplies an identity
 camera-to-RGB matrix without white balance, while Fornax supports only the four
-conventional 2x2 RGB Bayer patterns. Independent floating-point evaluation can
-occasionally place an interpolated-site direction on the other side of a
-comparison boundary; sampled CFA values are unaffected.
+conventional 2x2 RGB Bayer patterns. No output differences are observed on the
+canonical comparison fixture.
 
 ## Linear
 

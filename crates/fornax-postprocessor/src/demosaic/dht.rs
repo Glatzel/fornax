@@ -610,8 +610,12 @@ impl Dht {
 
         let offsets = [
             -2 * self.stride as isize - 2,
+            -2 * self.stride as isize,
             -2 * self.stride as isize + 2,
+            -2,
+            2,
             2 * self.stride as isize - 2,
+            2 * self.stride as isize,
             2 * self.stride as isize + 2,
         ];
         let average = offsets
@@ -801,6 +805,34 @@ mod tests {
         assert_eq!(dht.nraw[index][1], 500.0);
         dht.restore_hots(&input);
         assert_eq!(dht.nraw[index][1], 60_000.0);
+    }
+
+    #[test]
+    fn hide_hots_uses_axis_and_diagonal_neighbors_for_its_average() {
+        let pattern = BayerPattern::GBRG;
+        let width = 9;
+        let height = 9;
+        let input = measured_mosaic(width, height, pattern, 500);
+        let mut dht = Dht::new(&input, width, height, pattern);
+        let center = dht.offset(4, 4);
+        let stride = dht.stride as isize;
+        dht.nraw[center][1] = 65_535.0;
+        for offset in [
+            -2 * stride - 2,
+            -2 * stride + 2,
+            2 * stride - 2,
+            2 * stride + 2,
+        ] {
+            dht.nraw[center.wrapping_add_signed(offset)][1] = 1_000.0;
+        }
+        for offset in [-2 * stride, -2, 2, 2 * stride] {
+            dht.nraw[center.wrapping_add_signed(offset)][1] = 6_000.0;
+        }
+
+        dht.hide_hots();
+
+        assert_eq!(dht.ndir[center] & HOT, 0);
+        assert_eq!(dht.nraw[center][1], 65_535.0);
     }
 
     fn uniform_dht(width: usize, height: usize, pattern: BayerPattern) -> Dht {

@@ -287,10 +287,10 @@ be reported exactly rather than described as passing.
   tuning.
 - The implementation accepts the comparison bridge's 3x3 minimum; the initial
   direction helper exposed and fixed negative padded-coordinate handling.
-- The native GBRG row passes with MAE `0.000064`, P99 `0`, and zero samples
-  above 1024 codes.
-- All four DHT rows pass with MAE at most `0.000065`, P99 `0`, maximum `124`,
+- The native GBRG row matches LibRaw exactly: MAE `0`, P99 `0`, maximum `0`,
   and zero samples above 1024 codes.
+- All four DHT rows match LibRaw exactly. Final review found and fixed the
+  hot-pixel average to include all eight same-channel neighbors as LibRaw does.
 - The full baseline changed only the four DHT rows. Reviewed DHT snapshots,
   generated README, and the baseline diff were accepted.
 - `cargo test --workspace --all-features` passed 264 tests across 23 suites;

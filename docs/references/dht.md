@@ -66,10 +66,10 @@ balance. Fornax supports only RGGB, BGGR, GRBG, and GBRG. Camera metadata,
 LibRaw callbacks, shrink, half-size, four-color RGB, output color processing,
 and the AHD fallback are outside this implementation.
 
-Rare interpolated-site differences remain when independent float evaluation
-places a local direction on the other side of a comparison boundary. The
-native GBRG row and all cropped consistency rows remain well inside the robust
-limits, with sampled Bayer sites exact.
+The canonical comparison matches LibRaw exactly across the native GBRG row and
+all cropped consistency rows. The bridge still tests only the demosaic stage:
+camera metadata, white balance, and output-color behavior are outside its
+boundary.
 
 ## Licensing
 
