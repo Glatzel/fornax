@@ -535,7 +535,7 @@ mod tests {
                 .is_empty()
         );
 
-        let mut partial_baseline = baseline.clone();
+        let mut partial_baseline = baseline;
         partial_baseline.meta.selection.algorithm = vec!["ahd".to_owned()];
         assert!(compare(&partial_baseline, &partial, false).is_err());
     }

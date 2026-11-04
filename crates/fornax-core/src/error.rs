@@ -63,3 +63,38 @@ pub enum DemosaicError {
     #[error("unsupported Bayer pattern: {0}")]
     UnsupportedPattern(Box<str>),
 }
+/// Failure while writing the DNG-shaped model.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_core::error::DngWriteError;
+///
+/// let error = DngWriteError::Unsupported {
+///     operation: "DNG writing".into(),
+/// };
+/// assert!(error.to_string().contains("unsupported"));
+/// ```
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum DngWriteError {
+    /// The selected source and output combination is not implemented.
+    #[error("unsupported decoder operation: {operation}")]
+    Unsupported {
+        /// Name of the unsupported operation.
+        operation: Box<str>,
+    },
+    /// The output file or sink could not be written.
+    #[error("{operation} failed: {detail}")]
+    Io {
+        /// Operation that failed.
+        operation: Box<str>,
+        /// Underlying I/O failure.
+        detail: Box<str>,
+    },
+    /// Metadata required to write a valid DNG is missing or invalid.
+    #[error("invalid DNG metadata: {detail}")]
+    InvalidMetadata {
+        /// Metadata validation failure.
+        detail: Box<str>,
+    },
+}

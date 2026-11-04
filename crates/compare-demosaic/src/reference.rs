@@ -2,8 +2,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use fornax_core::protocol::{IDecoder, IPreprocessor};
-use fornax_core::{BayerChannel, BayerPattern};
-use fornax_decoder_rawler::RawlerDecoder;
+use fornax_core::{BayerChannel, BayerPattern, Decoder};
 use fornax_preprocessor::Preprocessor;
 use sha2::{Digest, Sha256};
 
@@ -91,9 +90,8 @@ pub fn active_area_from(path: &Path) -> mischief::Result<ActiveArea> {
     let source_bytes = std::fs::read(path)
         .map_err(|error| mischief::mischief!("cannot read {}: {error}", path.display()))?;
     let sha256 = hex::encode(Sha256::digest(&source_bytes));
-    let (decoded, metadata) =
-        <RawlerDecoder as IDecoder<Path, f32>>::decode_active(&RawlerDecoder, path)
-            .map_err(|error| mischief::mischief!("cannot decode {}: {error}", path.display()))?;
+    let (decoded, metadata) = <Decoder as IDecoder<&Path, f32>>::decode_active(&Decoder, path)
+        .map_err(|error| mischief::mischief!("cannot decode {}: {error}", path.display()))?;
     let image = Preprocessor
         .process(decoded, &metadata.levels)
         .map_err(|error| mischief::mischief!("cannot preprocess {}: {error}", path.display()))?

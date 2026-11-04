@@ -42,28 +42,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - machine: windows-latest
+          - machine: ubuntu-latest
             test-options: --workspace --all-features --exclude compare-demosaic
           - machine: ubuntu-latest
-            test-options: --workspace --all-features
-          - machine: macos-latest
-            test-options: --workspace --all-features --exclude compare-demosaic
-          - machine: ubuntu-26.04-arm
-            test-options: --workspace --all-features --exclude compare-demosaic
-    env:
-      dnc_version: 18_7
+            test-options: --all-features -p compare-demosaic
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: restore dnc
-        if: ${{runner.os != 'Linux'}}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ./temp/dnc${{env.dnc_version}}*
-          key: dnc-${{ runner.os }}-${{env.dnc_version}}
-      - if: ${{runner.os != 'Linux'}}
-        run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
-        shell: pwsh
       - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         with:
           toolchain: nightly
@@ -77,13 +62,6 @@ jobs:
           global-options: ${{ matrix.test-options }}
         env:
           GH_TOKEN: ${{ github.token }}
-      # - name: build
-      #   run: |
-      #     ./scripts/maturin-develop.ps1
-      #   shell: pwsh
-      # - uses: Glatzel/template/.github/actions/python/pytest@49c379830041573dc0c1e8d508e4cc9d247a05e1 # v2026.10.9
-      #   with:
-      #     working-directory: ./crates/fornax-py
       - uses: Glatzel/template/.github/actions/common/codecov@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         if: ${{ !cancelled() }}
 
@@ -94,16 +72,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - package: bench-decoder
+          - package: fornax-core
             paths: |
               ./Cargo.toml
               ./Cargo.lock
-              ./crates/bench-decoder/**
               ./crates/fornax-core/**
-              ./crates/fornax-decoder-rawler/**
-              ./crates/fornax-devtool/**
-              ./crates/libraw/**
-              ./crates/libraw-sys/**
           - package: fornax-postprocessor
             paths: |
               ./Cargo.toml
@@ -144,6 +117,7 @@ jobs:
       contents: read
     env:
       GH_TOKEN: ${{ github.token }}
+      OMP_NUM_THREADS: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: changed-files

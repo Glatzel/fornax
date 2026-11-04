@@ -12,7 +12,7 @@ let raw_image = Preprocessor.process(decoded_active, &metadata.levels)?;
 
 ## Preprocessor benchmarks
 
-Measures preprocessing from `DecodedRawActive` input to `RawImage` output on
+Measures preprocessing from `DecodedRaw` input to `RawImage` output on
 deterministic synthetic Bayer images. The input image and levels are prepared
 outside the timed section, and a fresh decoded input is cloned for each
 iteration.

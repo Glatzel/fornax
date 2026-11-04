@@ -285,7 +285,7 @@ mod tests {
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .map(|chunk| chunk.chunks(3).map(<[f32]>::to_vec).collect())
             .collect();
         println!("{:?}", out_vec[0]);
         println!("{:?}", out_vec[1]);
@@ -327,7 +327,7 @@ mod tests {
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .map(|chunk| chunk.chunks(3).map(<[f32]>::to_vec).collect())
             .collect();
         println!("{:?}", out_vec[0]);
         println!("{:?}", out_vec[1]);
@@ -369,7 +369,7 @@ mod tests {
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .map(|chunk| chunk.chunks(3).map(<[f32]>::to_vec).collect())
             .collect();
         println!("{:?}", out_vec[0]);
         println!("{:?}", out_vec[1]);
@@ -411,7 +411,7 @@ mod tests {
         let out_vec: Vec<Vec<Vec<f32>>> = output_img
             .as_raw()
             .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(|c| c.to_vec()).collect())
+            .map(|chunk| chunk.chunks(3).map(<[f32]>::to_vec).collect())
             .collect();
         println!("{:?}", out_vec[0]);
         println!("{:?}", out_vec[1]);

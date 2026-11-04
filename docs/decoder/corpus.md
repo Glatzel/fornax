@@ -128,12 +128,11 @@ regression diffs meaningless.
    - black levels are finite and below the corresponding white level;
    - white levels are positive;
    - required identity/camera and orientation values are well-typed.
-3. While `fornax-decoder-rawler` or LibRaw remains available, pixel agreement
-   is checked after aligning the full image, active area, CFA phase, endianness,
+3. When a reviewed external reference result is available, pixel agreement is
+   checked after aligning the full image, active area, CFA phase, endianness,
    and sample interpretation. The comparison must be exact for stored integer
-   samples. If neither reference can represent the file, the condition is
-   recorded as `reference=unavailable` and treated as not applicable, not as a
-   failure.
+   samples. Without a comparable reference, the condition is recorded as
+   `reference=unavailable` and treated as not applicable, not as a failure.
 4. The native 2x2 Bayer handoff succeeds for a conventional Bayer input. For
    any non-2x2 input, the handoff instead must return
    `HandoffError::UnsupportedCfa`; that typed rejection is a pass for corpus

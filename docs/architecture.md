@@ -2,118 +2,118 @@
 
 ## Purpose
 
-Fornax is a Rust raw-image processing workspace for decoding camera RAW files,
-normalizing the active sensor mosaic, and reconstructing RGB output. It exposes
-typed stage boundaries so users can select a built-in backend or implement a
-decoder, preprocessor, or postprocessor. The output stage types are
-`image::ImageBuffer` aliases: `MonoImage<T>` for single-channel mosaics and
-`RgbImage<T>` for three-channel output.
+Fornax is a Rust RAW-image processing workspace with separate decode,
+preprocess, demosaic, and post-process stages. The production decoder is the
+pure-Rust classic-TIFF DNG implementation in `fornax-core`. The public facade
+and stage crates do not depend on Rawler, LibRaw, Adobe DNG Converter, or a
+decoder C/C++ binding.
 
-The workspace uses Rust edition 2024. The `fornax` crate is the public facade;
-the other library crates provide shared types, concrete stages, decoder
-backends, low-level bindings, development helpers, benchmarks, and comparison
-tooling.
+The workspace uses Rust edition 2024. Pipeline images use `image` buffer aliases
+through `fornax-core`: `MonoImage<T>`, `MosaicData`, `RawImage<T>`, and
+`RgbImage<T>`.
 
 ## Crate map
 
 | Crate | Role | Internal dependencies |
 | --- | --- | --- |
-| `fornax-core` | Shared image aliases, Bayer types, metadata, errors, decoded-image wrappers, and decoder, preprocessor, and post-processor traits. | None |
-| `fornax-decoder-rawler` | Decodes conventional 2x2 RGB Bayer RAW files with Rawler. | `fornax-core` |
-| `fornax-decoder-dnc` | Converts RAW with Adobe DNG Converter, then decodes through Rawler; available on Windows and macOS. | `fornax-core`, `fornax-decoder-rawler` |
-| `libraw-sys` | Low-level Rust FFI for the LibRaw C API. | None |
-| `libraw` | Safe LibRaw data types, decoder adapter, and processed-image interface. | `fornax-core`, `libraw-sys` |
-| `fornax-preprocessor` | Normalizes decoded active-area mosaics using black and white levels. | `fornax-core` |
-| `fornax-postprocessor` | Owns the demosaic protocol traits, implements demosaic algorithms, and converts mosaics to RGB. | `fornax-core` |
-| `fornax` | Public facade and feature-gated decoder exports. | `fornax-core`, both Rust decoders, `libraw`, both processors |
-| `fornax-py` | PyO3/Maturin Python binding source. | `fornax`, `libraw`, Python-facing crates |
-| `fornax-devtool` | Shared fixtures, synthetic images, tracing setup, and image helpers. | `fornax-core` |
-| `bench-decoder` | Criterion benchmark target for decoding. | Decoder crates and `fornax-devtool` |
-| `fornax-preprocessor`, `fornax-postprocessor` | Production stage crates that also contain their Criterion benchmark targets. | Core stage types and `fornax-devtool` |
-| `compare-demosaic` | Separate reference-versus-Fornax demosaic harness and CLI. | Core, processors, Rawler decoder, devtool, `libraw-sys` build dependency |
+| `fornax-core` | Pipeline types and traits, DNG decoding, typed metadata, and DNG writing. | None |
+| `fornax-preprocessor` | Normalizes active Bayer mosaics with black and white levels. | `fornax-core` |
+| `fornax-postprocessor` | Demosaic protocol and algorithms from Bayer mosaic to RGB. | `fornax-core` |
+| `fornax` | Public facade over the production pipeline. | `fornax-core`, preprocessor, postprocessor |
+| `fornax-devtool` | Pinned fixture paths and synthetic development helpers. | `fornax-core` |
+| `compare-demosaic` | Reference-versus-Fornax comparison harness for demosaic algorithms. | Core, processors, devtool, pinned C/C++ references |
+| `fornax-py` | PyO3/Maturin Python binding source. | Excluded from the Rust workspace while its API is stabilized |
 
-`Cargo.toml` includes every crate under `crates/` in the workspace except
-`fornax-py`, which is temporarily excluded while its public API is stabilized.
+Criterion benchmarks live with the crates they measure:
+`fornax-core/benches/decoder.rs`, `fornax-preprocessor/benches/`, and
+`fornax-postprocessor/benches/`.
 
-## Pipeline
+## Decode
 
-The pipeline boundaries are expressed by distinct types and traits in
-`fornax-core`, not only by convention.
+`fornax_core::protocol::IDecoder<I, T>` defines the shared decoder boundary:
 
-### Decode
+```rust
+fn decode(&self, input: I) -> Result<(MosaicData, Metadata<T>), DecodeError>;
+fn decode_active(&self, input: I)
+    -> Result<(DecodedRaw<T>, Metadata<T>), DecodeError>;
+```
 
-`IDecoder<I, T>` in `crates/fornax-core/src/protocol.rs` accepts an input such
-as a path or byte slice and returns a decoded mosaic plus `Metadata<T>`.
-`decode_full` returns `DecodedRawFull<T>`; `decode_active` returns
-`DecodedRawActive<T>` after cropping to `Metadata::active_area`.
+`fornax_core::Decoder` implements `IDecoder<&Path, T>` for floating-point
+pipeline output. It currently accepts classic-TIFF DNG files with uncompressed
+or lossless JPEG-92 strips and tiles. Decoding selects the full-resolution CFA
+IFD, preserves root and raw-IFD values in `DngMetadata`, validates geometry and
+levels, and returns the full `MosaicData`.
 
-`Metadata<T>` carries the active area, recommended default crop, black and
-white levels, Bayer pattern, and optional white balance. Decoder-specific code
-converts backend metadata into this common form. The Rawler decoder rejects
-non-CFA payloads and CFA layouts other than 2x2 RGB Bayer.
+`decode_active` crops to `Metadata::active_area`, shifts the Bayer phase by the
+active-area origin, and returns `DecodedRaw<T>`. The current metadata conversion
+accepts only conventional RGB 2x2 CFA arrays; other layouts return a typed
+unsupported error.
 
-### Preprocess
+`Metadata<T>` carries:
 
-`DecodedRawActive<T>::process` delegates to `IPreprocessor<T>` with
-`Metadata::levels`. The default `Preprocessor` subtracts the repeating black
-level pattern and optional row/column deltas, divides by the remaining
-white-level range, and clamps negative values to zero while retaining a
-single-channel mosaic. It returns `RawImage<T>`.
+- active and default-crop rectangles;
+- black-level pattern, row/column deltas, and white level;
+- the full-frame Bayer pattern;
+- optional green-normalized white balance;
+- the original typed `DngMetadata`.
 
-The boundary between decode and preprocess is therefore
-`DecodedRawActive<T> -> RawImage<T>`. The preprocessor implementation lives in
-`crates/fornax-preprocessor/src/lib.rs`, with its benchmark target in
-`crates/fornax-preprocessor/benches/`.
+## Preprocess
 
-### Demosaic and post-process
+`DecodedRaw<T>::process` delegates to `IPreprocessor<T>`. The production
+`Preprocessor` subtracts the repeating black-level pattern and optional
+row/column deltas, normalizes by the remaining white-level range, and preserves
+a single-channel mosaic.
 
-`RawImage<T>::process` delegates to `IPostProcessor<T, M>` with metadata.
-`PostProcessor` calls an `fornax_postprocessor::protocol::IDemosaic<T>`
-implementation with the mosaic and `Metadata::bayer_pattern`. `IDemosaic`
-returns a `fornax_postprocessor::protocol::LazyDemosaic<T>`, which produces RGB
-rows and then an `RgbImage<T>`. `DemosaicError` remains
-`fornax_core::error::DemosaicError` because `PostProcessError` and the core
-post-processor interfaces are defined in `fornax-core`.
+The decode-to-preprocess boundary is:
+
+```text
+DecodedRaw<T> -> RawImage<T>
+```
+
+## Demosaic and post-process
+
+`RawImage<T>::process` delegates to `IPostProcessor<T, M>`. The production
+postprocessor calls an `IDemosaic<T>` implementation with the normalized mosaic
+and Bayer pattern. `LazyDemosaic<T>` produces RGB rows and is collected into an
+`RgbImage<T>`.
+
+The preprocess-to-demosaic boundary is:
+
+```text
+RawImage<T> -> RgbImage<T>
+```
 
 The postprocessor supports Linear, PPG, RCD, AHD, VNG, VNG4, DCB, DHT, AAHD,
-AMaZE, and LMMSE reconstruction. `PostProcessor::default()` selects Linear
-demosaicing and applies green-normalized white balance when metadata provides
-it. The boundary between preprocessing and demosaicing is
-`RawImage<T> -> RgbImage<T>`; implementations live in
-`crates/fornax-postprocessor/src/`, with the benchmark target in
-`crates/fornax-postprocessor/benches/`.
+AMaZE, and LMMSE. `PostProcessor::default()` selects Linear and applies
+green-normalized white balance when metadata provides it.
 
-`Metadata::default_crop` is carried through the stages as a recommendation.
-The current stage methods do not apply it automatically.
+`Metadata::default_crop` is carried as a recommendation; stage methods do not
+apply it automatically.
+
+## DNG writing
+
+`fornax_core::writer::DngWriter` currently regenerates an uncompressed DNG from
+`MosaicData` and `DngMetadata`. Lossless-JPEG output remains a typed
+unsupported operation because the current decoded-data API does not retain the
+source container required for byte-identical export.
 
 ## Supported scope
 
-The active demosaic target is conventional 2x2 RGB Bayer input using one of
-the four `BayerPattern` values: RGGB, BGGR, GRBG, or GBRG. X-Trans, four-color,
-monochrome, and other CFA layouts are not supported and must not be claimed as
-supported.
+The active production decoder supports the implemented classic-TIFF DNG path.
+The active pipeline handoff and demosaic target are conventional 2x2 RGB Bayer
+layouts: RGGB, BGGR, GRBG, and GBRG. X-Trans, four-color, monochrome, BigTIFF,
+and unsupported DNG compression modes are not claimed as supported.
 
-## Interfaces
-
-- Rust callers use decoder, preprocessor, and post-processor traits from
-  `fornax-core`, and demosaic protocol traits from `fornax-postprocessor`, or
-  the corresponding re-exports in the `fornax` facade.
-  `crates/fornax/examples/pipeline.rs` demonstrates decode-active, preprocess,
-  and demosaic calls.
-- `libraw-sys` exposes unsafe LibRaw FFI declarations, and `libraw` provides
-  safe wrappers plus `LibrawDecoder`. This is a binding to LibRaw, not a
-  general-purpose Fornax C API.
-- `crates/fornax-py` contains a PyO3/Maturin binding targeting Python 3.13.
-  It is excluded from the Rust workspace, so its public Python API is not
-  presented here as stable.
-- `compare-demosaic` provides the repository's comparison CLI. The benchmark
-  crates are development interfaces rather than application APIs.
+Binary RAW fixtures and generated DNG/TIFF output remain outside Git. The
+accepted DNG fixture is supplied through the `external/raw-images` submodule.
 
 ## Comparison tooling
 
-`compare-demosaic` compares Fornax demosaic output with LibRaw and darktable
-at the same stage: a normalized active Bayer mosaic enters each
-implementation and reconstructed RGB leaves it. Its committed baseline is the
-source of truth for reviewed results. Algorithm-independent comparison rules,
-including waivers, CLI behavior, source pinning, and CI, are documented in the
-[comparison agent guide](../crates/compare-demosaic/AGENTS.md).
+`compare-demosaic` passes the normalized active Bayer mosaic into Fornax and
+pinned LibRaw, darktable, and RawTherapee reference adapters at the same stage.
+The committed `canonical.json` baseline uses
+`colorchart-5D2-6000K.dng`. Reference C/C++ code is build-time development
+tooling only and must not enter the production decoder dependency tree.
+
+See [the comparison agent guide](../crates/compare-demosaic/AGENTS.md) for
+baseline, waiver, and artifact rules.
