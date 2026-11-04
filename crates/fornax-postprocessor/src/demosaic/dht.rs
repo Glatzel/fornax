@@ -741,7 +741,6 @@ mod tests {
 
     fn measured_mosaic(width: usize, height: usize, pattern: BayerPattern, value: u16) -> Vec<u16> {
         let mut samples = vec![value; width * height];
-        samples[0] = value.saturating_sub(1);
         samples[0] = match cfa_channel(pattern, 0, 0) {
             0 => value,
             1 => value - 1,
