@@ -75,12 +75,7 @@ fn main() {
         workspace_root.join(env::var("LIBRAW_ROOT").expect("LIBRAW_ROOT must be set"));
     let include_dir = libraw_root.join("include");
     let lib_dir = libraw_root.join("lib");
-    let version = format!(
-        "{}.{}.{}",
-        libraw_sys::LIBRAW_MAJOR_VERSION,
-        libraw_sys::LIBRAW_MINOR_VERSION,
-        libraw_sys::LIBRAW_PATCH_VERSION
-    );
+    let version = libraw_version(&include_dir);
     assert_eq!(
         version, LIBRAW_SOURCE_VERSION,
         "update the comparison source link when the Pixi LibRaw package changes"
@@ -172,6 +167,29 @@ fn main() {
 
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
     println!("cargo:rustc-link-lib=raw_r");
+}
+
+fn libraw_version(include_dir: &Path) -> String {
+    let path = include_dir.join("libraw/libraw_version.h");
+    let header = fs::read_to_string(&path)
+        .unwrap_or_else(|error| panic!("reading {}: {error}", path.display()));
+    println!("cargo:rerun-if-changed={}", path.display());
+    let component = |name: &str| {
+        let prefix = format!("#define {name} ");
+        header
+            .lines()
+            .find_map(|line| line.strip_prefix(&prefix))
+            .unwrap_or_else(|| panic!("{name} is missing from {}", path.display()))
+            .trim()
+            .parse::<u16>()
+            .unwrap_or_else(|error| panic!("parsing {name} from {}: {error}", path.display()))
+    };
+    format!(
+        "{}.{}.{}",
+        component("LIBRAW_MAJOR_VERSION"),
+        component("LIBRAW_MINOR_VERSION"),
+        component("LIBRAW_PATCH_VERSION")
+    )
 }
 
 fn write_status_codes(manifest_dir: &Path) {
