@@ -174,8 +174,8 @@ otherwise report that the repository-configured local lint was unavailable.
 
 Observed on this worktree:
 
-- `cargo test --workspace --all-features`: 261 passed across 16 suites.
-- `cargo test -p compare-demosaic --all-features`: 149 passed across 3 suites.
+- `cargo test --workspace --all-features`: 262 passed across 16 suites.
+- `cargo test -p compare-demosaic --all-features`: 150 passed across 3 suites.
 - `cargo clippy` with the exact repository lint list: no issues.
 - `cargo +nightly fmt --check`, `git diff --check`, and the docs build with
   warnings denied: passed.
@@ -198,8 +198,9 @@ Observed on this worktree:
 - Existing accepted-outlier bounds are not transferable to the DNG without
   remeasurement. New unreviewed outliers remain warnings rather than being
   waived.
-- All four old waivers were removed: PPG and darktable RCD now pass without
-  outliers, while AAHD/AHD and RawTherapee RCD retain unwaived warnings.
+- The old CR2 waivers were removed. PPG and darktable RCD now pass without
+  outliers; reviewed DNG-specific AAHD/LibRaw and AHD/LibRaw waivers restore
+  their accepted-outlier status. RawTherapee RCD remains an unwaived warning.
 - Canonical comparison runs pin `OMP_NUM_THREADS=1`. LibRaw DHT produced
   different one-code tails with one versus eight OpenMP threads, so the thread
   count is fixed at the process boundary rather than changing reference math.

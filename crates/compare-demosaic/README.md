@@ -150,8 +150,8 @@ and are consistency checks against the same image.
 <!-- compare-demosaic:begin summary -->
 | Algorithm | Reference | Worst verdict | Native-pattern result |
 | --- | --- | --- | --- |
-| AAHD | libraw | ⚠️ | RGGB ⚠️ |
-| AHD | libraw | ⚠️ | RGGB ⚠️ |
+| AAHD | libraw | ⚖️ | RGGB ⚖️ |
+| AHD | libraw | ⚖️ | RGGB ⚖️ |
 | AHD | rawtherapee | ❌ | RGGB ❌ |
 | AMaZE | darktable | ✅ | RGGB ✅ |
 | AMaZE | rawtherapee | ✅ | RGGB ✅ |
@@ -196,10 +196,10 @@ and are consistency checks against the same image.
 <!-- compare-demosaic:begin algo:aahd -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 1] | no | ⚠️ | 0.102921 | 3.697554 | 1246 | 0.000056 | 0 | 30 | 4 (0) | 0.001896 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 1] | no | ⚠️ | 0.104815 | 3.713635 | 1073 | -0.006387 | 0 | 30 | 1 (0) | 0.001919 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 0] | no | ⚠️ | 0.105236 | 3.718774 | 1231 | 0.000097 | 0 | 31 | 1 (0) | 0.001928 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 0] | yes | ⚠️ | 0.103509 | 3.705760 | 1246 | -0.006448 | 0 | 30 | 4 (0) | 0.001907 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 1] | no | ⚖️ | 0.102921 | 3.697554 | 1246 | 0.000056 | 0 | 30 | 4 (0) | 0.001896 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 1] | no | ⚖️ | 0.104815 | 3.713635 | 1073 | -0.006387 | 0 | 30 | 1 (0) | 0.001919 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 0] | no | ⚖️ | 0.105236 | 3.718774 | 1231 | 0.000097 | 0 | 31 | 1 (0) | 0.001928 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 0] | yes | ⚖️ | 0.103509 | 3.705760 | 1246 | -0.006448 | 0 | 30 | 4 (0) | 0.001907 |
 <!-- compare-demosaic:end algo:aahd -->
 
 ### LibRaw `aahd_interpolate`
@@ -221,15 +221,17 @@ high-frequency and clipped-chart decisions can remain different when an
 independent floating-point evaluation lands on the other side of a
 homogeneity or gradient comparison.
 
+**Accepted outliers:** aahd vs LibRaw, all patterns, input `colorchart-5D2-6000K.dng`: at most 4 samples above 1024, maximum error at most 1246. Reason: Independent floating-point homogeneity and gradient comparisons can select the other AAHD directional candidate at sparse high-contrast chart details. Evidence: The full-resolution DNG error maps contain at most four interior high-error samples in any CFA phase, with a maximum error of 1246. Sampled Bayer sites are exact, every high-error sample is interpolated, each 64x64 tile contains at most one such sample, and the same physical chart sites recur after pattern-crop alignment without border or full-frame structure.
+
 ## AHD
 
 <!-- compare-demosaic:begin algo:ahd -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | BGGR | [1, 1] | no | ⚠️ | 0.244837 | 4.431476 | 1220 | 0.020173 | 1 | 67 | 1 (0) | 0.025801 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | [0, 1] | no | ⚠️ | 0.244816 | 4.431196 | 1220 | 0.020172 | 1 | 67 | 1 (0) | 0.025801 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | [1, 0] | no | ⚠️ | 0.244823 | 4.431266 | 1220 | 0.020167 | 1 | 67 | 1 (0) | 0.025803 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | [0, 0] | yes | ⚠️ | 0.244802 | 4.430985 | 1220 | 0.020166 | 1 | 67 | 1 (0) | 0.025802 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | BGGR | [1, 1] | no | ⚖️ | 0.244837 | 4.431476 | 1220 | 0.020173 | 1 | 67 | 1 (0) | 0.025801 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | [0, 1] | no | ⚖️ | 0.244816 | 4.431196 | 1220 | 0.020172 | 1 | 67 | 1 (0) | 0.025801 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | [1, 0] | no | ⚖️ | 0.244823 | 4.431266 | 1220 | 0.020167 | 1 | 67 | 1 (0) | 0.025803 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | [0, 0] | yes | ⚖️ | 0.244802 | 4.430985 | 1220 | 0.020166 | 1 | 67 | 1 (0) | 0.025802 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | BGGR | [1, 1] | no | ❌ | 2.899416 | 15.331679 | 1796 | -0.096697 | 73 | 183 | 12 (0) | 0.210986 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GBRG | [0, 1] | no | ❌ | 2.899407 | 15.331436 | 1796 | -0.096676 | 73 | 183 | 12 (0) | 0.210987 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GRBG | [1, 0] | no | ❌ | 2.899421 | 15.331436 | 1796 | -0.096755 | 73 | 183 | 12 (0) | 0.210987 |
@@ -248,7 +250,9 @@ comparisons, then selects the locally consistent direction.
 **Known differences:** Fornax uses the published camera-to-XYZ matrix,
 512-pixel working tiles, floor intermediates and nearest-neighbor output
 quantization. LibRaw owns its tile, clipping and final quantization
-conventions. The remaining sparse outlier tail is unwaived.
+conventions. Sparse high-error decisions can remain different at chart edges.
+
+**Accepted outliers:** ahd vs LibRaw, all patterns, input `colorchart-5D2-6000K.dng`: at most 1 samples above 1024, maximum error at most 1220. Reason: Independent AHD tile, clipping, matrix, and quantization conventions can change a local directional decision at a high-contrast chart edge. Evidence: Each DNG CFA phase has one interior high-error sample with a maximum error of 1220. Sampled Bayer sites are exact, the high-error sample is interpolated, the same physical chart site recurs after pattern-crop alignment, and the full error map has no border strip or global structure.
 
 ### RawTherapee `ahd_demosaic`
 
