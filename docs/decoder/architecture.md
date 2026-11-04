@@ -194,10 +194,12 @@ The DNG tags `ImageWidth` and `ImageLength` remain in metadata and must agree
 with the image buffer dimensions. Pixel data is not a tag: TIFF `Value`
 represents metadata scalars and lists, not large raw planes.
 
-`DngTag` is a strum-enabled enum with known TIFF/DNG variants and
-`Unknown(u16)`, and converts to and from `tiff::tags::Tag`. `DngValue`
-re-exports `tiff::decoder::ifd::Value`, preserving BYTE, ASCII, SHORT, LONG,
-RATIONAL, signed, float, and BigTIFF value families.
+`DngTag` is a `u16`-backed enum with explicit TIFF/DNG variants and a
+`num_enum(catch_all)` `Unknown(u16)` variant. `num_enum` generates
+`From<u16>`/`Into<u16>`, strum supplies variant names, and conversions to and
+from `tiff::tags::Tag` are explicit. `DngValue` re-exports
+`tiff::decoder::ifd::Value`, preserving BYTE, ASCII, SHORT, LONG, RATIONAL,
+signed, float, and BigTIFF value families.
 
 CFA is represented only by `CFARepeatPatternDim`, `CFAPattern`,
 `CFAPlaneColor`, and `CFALayout` metadata. This avoids duplicate CFA state and

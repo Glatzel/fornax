@@ -11,7 +11,8 @@ returns a general CFA-preserving `DecodedRaw` model. Keep the existing
 `IDecoder<Path, T>` boundary for conventional 2x2 Bayer input and reject every
 other CFA layout with a typed handoff error.
 
-**Tech Stack:** Rust 2024, `fornax-core`, `strum`, `thiserror`, and `tiff`.
+**Tech Stack:** Rust 2024, `fornax-core`, `num_enum`, `strum`, `thiserror`, and
+`tiff`.
 
 **Spec:** This task's user request and
 [the decoder architecture](../decoder/architecture.md).
@@ -138,7 +139,7 @@ The pull request is
 - The revised scaffold keeps metadata in an ordinary
   `BTreeMap<DngTag, DngValue>` rather than a `DngMetadata` wrapper. `DngValue`
   re-exports tiff's decoded value type; `DngTag` adds stable names, unknown-tag
-  preservation, and tiff tag conversions.
+  preservation, num_enum primitive conversions, and tiff tag conversions.
 - `DecodedRaw` owns image-buffer-backed `MosaicData` plus the metadata map.
   `ImageWidth` and `ImageLength` remain DNG tags and are validated against the
   image buffer during construction.
