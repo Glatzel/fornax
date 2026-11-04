@@ -153,7 +153,7 @@ and are consistency checks against the same image.
 | AMaZE | rawtherapee | ✅ | GBRG ✅ |
 | DCB | libraw | ✅ | GBRG ✅ |
 | DCB | rawtherapee | ❌ | GBRG ❌ |
-| DHT | libraw | ❌ | GBRG ❌ |
+| DHT | libraw | ✅ | GBRG ✅ |
 | Linear | libraw | 🟢 | GBRG 🟢 |
 | LMMSE | darktable | ✅ | GBRG ✅ |
 | LMMSE | rawtherapee | ❌ | GBRG ❌ |
@@ -362,25 +362,27 @@ directional decisions rather than serving as the acceptance reference.
 <!-- compare-demosaic:begin algo:dht -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | BGGR | [1, 0] | no | ❌ | 96.188576 | 219.842766 | 15912 | 1.314828 | 902 | 1616 | 350562 (31447) | 0.662048 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GBRG | [0, 0] | yes | ❌ | 96.496395 | 220.513723 | 15912 | 1.320177 | 906 | 1620 | 356469 (31484) | 0.662065 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GRBG | [1, 1] | no | ❌ | 96.024958 | 212.912355 | 15912 | 1.219283 | 905 | 1604 | 353294 (28814) | 0.662069 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | RGGB | [0, 1] | no | ❌ | 95.759780 | 212.259519 | 15912 | 1.223951 | 901 | 1598 | 347343 (28742) | 0.662053 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | BGGR | [1, 0] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GBRG | [0, 0] | yes | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GRBG | [1, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | RGGB | [0, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
 <!-- compare-demosaic:end algo:dht -->
 
 ### LibRaw `dht_interpolate`
 
-**Why this reference:** it provides the directional homogeneity transform
+**Why this reference:** it is the maintained directional homogeneity transform
 implementation targeted by Fornax.
 
-**Why we match:** both preserve sampled Bayer values, derive candidate green
-values in both directions, and use green-referenced color differences for
-red and blue reconstruction.
+**Why we match:** Fornax ports LibRaw's four-pixel neutral working margin,
+hot/dead-sample handling, one-stop luminance distance, horizontal/vertical and
+diagonal direction discovery, two parity refinement passes, directional green
+interpolation, diagonal and HV color reconstruction, channel bounds, and
+truncating 16-bit output in the same order. Measured Bayer values remain exact.
 
-**Known differences:** Fornax's shared directional profile uses an
-edge-weight exponent of one and a two-pixel chroma radius. LibRaw DHT runs
-its own directional transform and refinement stages. Intermediate clipping,
-border fill and final quantization are therefore not shared.
+**Known differences:** The comparison bridge supplies an identity
+camera-to-RGB matrix without white balance, while Fornax supports only the four
+conventional 2x2 RGB Bayer patterns. No output differences are observed on the
+canonical comparison fixture.
 
 ## Linear
 
