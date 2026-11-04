@@ -11,7 +11,7 @@ returns a general CFA-preserving `DecodedRaw` model. Keep the existing
 `IDecoder<Path, T>` boundary for conventional 2x2 Bayer input and reject every
 other CFA layout with a typed handoff error.
 
-**Tech Stack:** Rust 2024, `fornax-core`, and `thiserror`.
+**Tech Stack:** Rust 2024, `fornax-core`, `strum`, `thiserror`, and `tiff`.
 
 **Spec:** This task's user request and
 [the decoder architecture](../decoder/architecture.md).
@@ -58,6 +58,9 @@ other CFA layout with a typed handoff error.
   check, and unsupported stubs.
 - [x] Add tests for unsupported stubs, typed metadata storage, and CFA
   handoff behavior.
+- [x] Revise the public model around image-buffer-backed `MosaicData`, a
+  `BTreeMap<DngTag, DngValue>` metadata map, tag-only CFA, strum-backed format
+  names, and decoded-image DNG writer methods.
 - [x] Add one backlog entry per planned format/tooling/migration work item.
 - [x] Run formatting, tests, clippy, documentation tests, and dependency-tree
   checks.
@@ -68,6 +71,7 @@ other CFA layout with a typed handoff error.
 ## Files Expected to Change
 
 - `TODO.md`
+- `Cargo.toml`
 - `Cargo.lock`
 - `crates/fornax-decoder/Cargo.toml`
 - `crates/fornax-decoder/README.md`
@@ -99,7 +103,8 @@ Run the repository-wide Rust checks from the configured Pixi environment:
 ```bash
 source scripts/setup.sh
 cargo test --workspace --all-features
-cargo +nightly clippy --workspace --all-features --all-targets -- -D warnings
+cargo +nightly clippy --workspace --all-features --all-targets -- \
+  <exact lint flags in AGENTS.md>
 ```
 
 Run Markdown lint through the repository-configured tool if available:
@@ -110,16 +115,15 @@ markdownlint-cli2 docs/decoder/architecture.md docs/decoder/corpus.md docs/decod
 
 Observed on this branch:
 
-- `cargo test -p fornax-decoder`: 33 passed.
-- `cargo test --workspace --all-features`: 213 passed.
+- `cargo test -p fornax-decoder`: 32 passed after the API revision.
+- `cargo test --workspace --all-features`: 248 passed.
 - `cargo +nightly fmt --check`: passed.
 - `cargo +nightly clippy -p fornax-decoder --all-targets -- -D warnings`:
   passed.
-- Full workspace clippy stops on pre-existing
-  `clippy::too_many_arguments` failures in
-  `crates/fornax-postprocessor/src/demosaic/ahd.rs` and
-  `crates/libraw/src/c_api/data_loading.rs`; neither file is changed by this
-  task.
+- The exact workspace clippy gate in `AGENTS.md` reports pre-existing failures
+  in `fornax-decoder-rawler`, `fornax-preprocessor` benchmarks, and
+  `fornax-postprocessor` benchmark support; none is changed by this task.
+  `fornax-decoder` passes clippy separately.
 - `markdownlint-cli2` is not installed or declared by this repository, so the
   Markdown lint was not run. This is recorded as a skipped check, not a pass.
 - `git diff --check` needs `core.whitespace=cr-at-eol` because the repository
@@ -131,6 +135,21 @@ The pull request is
 
 ## Decisions and Notes
 
+- The revised scaffold keeps metadata in an ordinary
+  `BTreeMap<DngTag, DngValue>` rather than a `DngMetadata` wrapper. `DngValue`
+  re-exports tiff's decoded value type; `DngTag` adds stable names, unknown-tag
+  preservation, and tiff tag conversions.
+- `DecodedRaw` owns image-buffer-backed `MosaicData` plus the metadata map.
+  `ImageWidth` and `ImageLength` remain DNG tags and are validated against the
+  image buffer during construction.
+- CFA is stored only through its four DNG metadata tags. `DecodedRaw` exposes
+  typed tag getters and rejects malformed metadata with `CfaPatternError`.
+- DNG output is exposed as `DecodedRaw::write_dng(path, options)` and
+  `DecodedRaw::write_dng_with(writer, options)`. The tiff encoder will own
+  container encoding because it requires `Write + Seek`; no custom writer
+  trait is needed. Both methods remain stubs in this scaffold.
+- `DngVersion::latest()` returns DNG 1.7.1.0 and lossless JPEG-92 is the
+  default writer compression.
 - The current `Metadata<T>` type cannot represent a CFA larger than 2x2. The
   native DNG-shaped API carries the general CFA, and the current protocol
   remains the Bayer-only handoff. This avoids an unapproved core protocol

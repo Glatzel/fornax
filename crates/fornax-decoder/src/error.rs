@@ -1,52 +1,6 @@
-use std::fmt;
-
 use thiserror::Error;
 
-use crate::CfaPattern;
-
-/// RAW container family recognized by the decoder.
-///
-/// # Examples
-///
-/// ```
-/// use fornax_decoder::SourceFormat;
-///
-/// assert_eq!(SourceFormat::Dng.to_string(), "DNG");
-/// ```
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum SourceFormat {
-    /// Adobe Digital Negative.
-    Dng,
-    /// Canon CR3 or CRM.
-    Cr3,
-    /// Sony Alpha RAW.
-    Arw,
-    /// Nikon Electronic Format.
-    Nef,
-    /// Fujifilm RAW.
-    Raf,
-    /// Hasselblad 3FR.
-    Hasselblad3fr,
-    /// Panasonic RAW.
-    Rw2,
-    /// Phase One or Leaf IIQ.
-    Iiq,
-}
-
-impl fmt::Display for SourceFormat {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(match self {
-            Self::Dng => "DNG",
-            Self::Cr3 => "CR3",
-            Self::Arw => "ARW",
-            Self::Nef => "NEF",
-            Self::Raf => "RAF",
-            Self::Hasselblad3fr => "3FR",
-            Self::Rw2 => "RW2",
-            Self::Iiq => "IIQ",
-        })
-    }
-}
+use crate::{DngTag, SourceFormat};
 
 /// Decode failure with a stable category for corpus tracking.
 ///
@@ -100,9 +54,52 @@ pub enum DecodeError {
         /// Corrupt structure or invariant.
         detail: Box<str>,
     },
-    /// The CFA descriptor itself is invalid.
+    /// The CFA metadata itself is invalid.
     #[error(transparent)]
-    InvalidCfa(#[from] crate::CfaPatternError),
+    InvalidCfa(#[from] CfaPatternError),
+}
+
+/// Invalid CFA metadata.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_decoder::CfaPatternError;
+///
+/// let error = CfaPatternError::LengthMismatch {
+///     expected: 4,
+///     actual: 3,
+/// };
+/// assert!(error.to_string().contains("3"));
+/// ```
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum CfaPatternError {
+    /// One or both CFA repeat dimensions are zero.
+    #[error("CFA repeat dimensions must not be zero")]
+    Empty,
+    /// `CFARepeatPatternDim` is absent.
+    #[error("CFARepeatPatternDim is missing")]
+    MissingRepeatPatternDim,
+    /// `CFAPattern` is absent.
+    #[error("CFAPattern is missing")]
+    MissingPattern,
+    /// A tag uses a value type that is not valid for that tag.
+    #[error("{tag} has an invalid TIFF value type")]
+    InvalidValueType {
+        /// Tag with the invalid value type.
+        tag: DngTag,
+    },
+    /// The product of the repeat dimensions exceeds the platform address space.
+    #[error("CFA repeat dimensions exceed the platform address space")]
+    DimensionsOverflow,
+    /// The number of plane entries does not match the repeat dimensions.
+    #[error("CFA pattern has {actual} entries, expected {expected}")]
+    LengthMismatch {
+        /// Required number of entries.
+        expected: usize,
+        /// Supplied number of entries.
+        actual: usize,
+    },
 }
 
 /// Failure while converting the DNG-shaped model for the preprocessor.
@@ -110,18 +107,27 @@ pub enum DecodeError {
 /// # Examples
 ///
 /// ```
-/// use fornax_decoder::{CfaPattern, HandoffError};
+/// use fornax_decoder::HandoffError;
 ///
-/// let cfa = CfaPattern::new(6, 6, vec![1; 36])?;
-/// let error = HandoffError::UnsupportedCfa(cfa);
+/// let error = HandoffError::UnsupportedCfa {
+///     width: 6,
+///     height: 6,
+/// };
 /// assert!(error.to_string().contains("6x6"));
-/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum HandoffError {
+    /// CFA metadata cannot be interpreted.
+    #[error(transparent)]
+    InvalidCfa(#[from] CfaPatternError),
     /// The decoded CFA cannot be represented by `fornax_core::BayerPattern`.
-    #[error("CFA layout {0} is unsupported by the 2x2 Bayer preprocessor")]
-    UnsupportedCfa(CfaPattern),
+    #[error("CFA layout {width}x{height} is unsupported by the 2x2 Bayer preprocessor")]
+    UnsupportedCfa {
+        /// CFA repeat width.
+        width: u16,
+        /// CFA repeat height.
+        height: u16,
+    },
 }
 
 /// Failure while writing the DNG-shaped model.

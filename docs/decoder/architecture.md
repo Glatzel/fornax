@@ -78,7 +78,7 @@ non-standard CFA layouts, retain their full pattern, and export them as DNG.
 The resolution is:
 
 - `fornax-decoder::Decoder::decode` is the native DNG-shaped API. It returns
-  `DecodedRaw`, whose `CfaPattern` may be any non-empty repeating layout.
+  `DecodedRaw`, whose CFA tags may describe any non-empty repeating layout.
 - A future `IDecoder<Path, T>` adapter decodes the native model first, then
   calls `DecodedRaw::preprocessor_pattern()`. Only a conventional RGB 2x2
   layout is converted into `Metadata<T>` and `DecodedRawActive<T>`.
@@ -100,10 +100,10 @@ The scaffold contains these responsibilities:
 
 | Module | Responsibility |
 | --- | --- |
-| `cfa` | General repeating CFA descriptor and strict 2x2 RGB Bayer conversion. |
-| `decoded` | `DecodedRaw`, typed `MosaicData`, dimensions, CFA, and metadata. |
-| `error` | Stable decode categories, handoff failure, and writer failure. |
-| `metadata` | Typed DNG tag/value storage, tag constants, and important getters. |
+| `decoded` | `DecodedRaw`, image-buffer-backed `MosaicData`, important DNG getters, and the preprocessor handoff. |
+| `error` | Stable decode categories, CFA validation, handoff failure, and writer failure. |
+| `format` | RAW container family names and strum conversions. |
+| `metadata` | DNG tag enum plus the `BTreeMap<DngTag, DngValue>` model backed by tiff values. |
 | `writer` | DNG writer options and compression selection. |
 | `lib` | Public `Decoder` entry points and current `IDecoder` adapter. |
 
@@ -111,9 +111,9 @@ Future implementation modules should be split by responsibility:
 
 ```text
 src/
-  cfa.rs
   decoded.rs
   error.rs
+  format.rs
   metadata.rs
   writer/
     mod.rs
@@ -154,22 +154,29 @@ The stable public surface starts as:
 ```rust
 impl Decoder {
     pub fn decode(&self, input: &Path) -> Result<DecodedRaw, DecodeError>;
-    pub fn write_dng<W: Write>(
-        &self,
-        decoded: &DecodedRaw,
-        writer: &mut W,
-        options: DngWriteOptions,
-    ) -> Result<(), DngWriteError>;
 }
 
 impl DecodedRaw {
+    pub fn write_dng<P: AsRef<Path>>(
+        &self,
+        path: P,
+        options: DngWriteOptions,
+    ) -> Result<(), DngWriteError>;
+
+    pub fn write_dng_with<W: Write + Seek>(
+        &self,
+        writer: W,
+        options: DngWriteOptions,
+    ) -> Result<(), DngWriteError>;
+
     pub fn preprocessor_pattern(&self) -> Result<BayerPattern, HandoffError>;
 }
 ```
 
 `Decoder::decode` owns format sniffing and may later gain a byte-slice input
-only when a caller needs it. `Decoder::write_dng` consumes the model rather
-than decoding an input again. `DngWriteOptions` selects a DNG version and a
+only when a caller needs it. `DecodedRaw::write_dng` consumes the model rather
+than decoding an input again, while `write_dng_with` accepts any `Write + Seek`
+sink for tests and callers. `DngWriteOptions` selects a DNG version and a
 writer compression mode.
 
 The current `IDecoder<Path, T>` implementation is retained so the future
@@ -178,31 +185,27 @@ stubs in this change.
 
 ## Core data model
 
-`DecodedRaw` contains:
+`DecodedRaw` contains one `MosaicData` image plus
+`DngMetadata = BTreeMap<DngTag, DngValue>`. `MosaicData` wraps typed
+`MonoImage<u8>`, `MonoImage<u16>`, `MonoImage<u32>`, or `MonoImage<f32>`
+buffers, so dimensions and samples share image-rs's existing container.
 
-- full image width and height in pixels;
-- one `MosaicData` plane using `U8`, `U16`, `U32`, or `F32` samples;
-- a `CfaPattern` with repeat width, repeat height, and row-major
-  `CFAPlaneColor` indices;
-- a `DngMetadata` container.
+The DNG tags `ImageWidth` and `ImageLength` remain in metadata and must agree
+with the image buffer dimensions. Pixel data is not a tag: TIFF `Value`
+represents metadata scalars and lists, not large raw planes.
 
-`CfaPattern` can represent X-Trans (6x6), four-color, monochrome, and other
-repeating layouts. `CFALayout`, phase offsets, and any non-rectangular layout
-stay in `DngMetadata`, because the CFAPlaneColor pattern alone cannot express
-them.
+`DngTag` is a strum-enabled enum with known TIFF/DNG variants and
+`Unknown(u16)`, and converts to and from `tiff::tags::Tag`. `DngValue`
+re-exports `tiff::decoder::ifd::Value`, preserving BYTE, ASCII, SHORT, LONG,
+RATIONAL, signed, float, and BigTIFF value families.
 
-`DngMetadata` is a deterministic `BTreeMap<DngTag, DngValue>`. A deterministic
-container is intentional: output ordering and round-trip tests stay stable.
-`DngTag` is a typed wrapper around the TIFF tag number. `DngValue` preserves
-the TIFF field family:
+CFA is represented only by `CFARepeatPatternDim`, `CFAPattern`,
+`CFAPlaneColor`, and `CFALayout` metadata. This avoids duplicate CFA state and
+allows X-Trans, four-color, monochrome, and other repeating layouts to survive
+decode and export. `DecodedRaw` validates CFA tag combinations on demand.
 
-- `BYTE`, `ASCII`, `SHORT`, `LONG`, `RATIONAL`;
-- signed and undefined TIFF types;
-- `FLOAT` and `DOUBLE`;
-- `IFD`, `LONG8`, `SLONG8`, and `IFD8` for BigTIFF.
-
-The generic `get(DngTag)` accessor is available for tags without a dedicated
-getter. Dedicated getters are proposed for:
+The generic `DecodedRaw::metadata().get(DngTag)` accessor is available for
+tags without a dedicated getter. Dedicated getters are proposed for:
 
 | Getter | DNG tag | Purpose |
 | --- | --- | --- |
@@ -250,7 +253,7 @@ flowchart LR
     I --> J[Single-plane MosaicData]
     F --> K[Metadata source]
     G --> K
-    K --> L[Map into DngMetadata]
+    K --> L[Map into tag/value BTreeMap]
     J --> M[Validate DecodedRaw]
     L --> M
     M --> N[Export DNG]
@@ -267,7 +270,7 @@ flowchart LR
    and depth IFDs are not raw payloads.
 4. Decode compressed strips, tiles, or BMFF samples into a read-only
    single-plane mosaic with a known bit depth.
-5. Build `DngMetadata` from native DNG tags or vendor metadata mapping.
+5. Build the DNG tag/value map from native tags or vendor metadata mapping.
 6. Validate image geometry, sample count, CFA shape, crop bounds, and levels.
 7. Return `DecodedRaw`; export and preprocessor conversion are separate calls.
 
@@ -275,9 +278,11 @@ Format modules must not invoke the preprocessor or demosaicer.
 
 ## DNG export
 
-The writer is pure Rust and does not call Adobe DNG SDK. Its first output format
-is classic TIFF with little-endian or big-endian tags, one raw CFA IFD, and
-strip storage. BigTIFF writing follows only if corpus files require it.
+The writer is pure Rust and does not call Adobe DNG SDK. It wraps
+`tiff::encoder::TiffEncoder`, uses a low-level image directory for the CFA raw
+IFD because tiff's high-level image encoders do not expose DNG
+`PhotometricInterpretation = 32803`, and starts with strip storage. BigTIFF
+writing follows only if corpus files require it.
 
 The default declarations are `DNGVersion = 1.7.1.0` and the lowest
 `DNGBackwardVersion` that supports the feature set actually written. The writer
@@ -287,8 +292,8 @@ Writer compression modes:
 
 | Mode | Initial writer support | Notes |
 | --- | --- | --- |
-| Uncompressed | Yes, first | `Compression = 1`; simplest correctness baseline. |
-| Lossless JPEG-92 | Yes, second | DNG `Compression = 7` with the DNG predictor rules; integer samples only. |
+| Uncompressed | Yes | `Compression = 1`; correctness fallback. |
+| Lossless JPEG-92 | Yes, default | DNG `Compression = 7` with the DNG predictor rules; integer samples only. |
 | Deflate | No | Read support is useful, but it is not a first writer mode. |
 | JPEG XL | No | Read support follows the DNG 1.7.1 corpus; write support is not required initially. |
 | Lossy JPEG / JPEG XL | No | Preserve only when explicitly requested later. |
@@ -321,7 +326,7 @@ merged. Reference licences and their consequences are recorded below.
 
 The native decode result is not automatically a Bayer pipeline image.
 
-`CfaPattern::bayer_pattern` accepts only:
+`DecodedRaw::preprocessor_pattern` accepts only these CFA tag combinations:
 
 | 2x2 entries | `CFAPlaneColor` interpretation | Fornax pattern |
 | --- | --- | --- |
@@ -347,7 +352,8 @@ The adapter must then:
 
 X-Trans, four-color, monochrome, staggered, and any other non-2x2 layout stops
 at `DecodedRaw::preprocessor_pattern()` and returns
-`HandoffError::UnsupportedCfa(CfaPattern)`.
+`HandoffError::UnsupportedCfa { width, height }`. Malformed tag types or
+lengths return `HandoffError::InvalidCfa(CfaPatternError)`.
 
 ## Error design
 
@@ -356,7 +362,7 @@ Errors are data for corpus tracking, not only display strings.
 | Layer | Type | Stable cases |
 | --- | --- | --- |
 | Native decode | `DecodeError` | `InvalidInput`, `UnsupportedFormat`, `UnsupportedCamera`, `UnsupportedVariant`, `CorruptData`, `InvalidCfa` |
-| Preprocessor handoff | `HandoffError` | `UnsupportedCfa` |
+| Preprocessor handoff | `HandoffError` | `InvalidCfa`, `UnsupportedCfa` |
 | DNG writer | `DngWriteError` | `Unsupported` initially; later invalid geometry and I/O categories |
 | Current core protocol adapter | `fornax_core::error::DecodeError` | Existing `Unsupported`, `InvalidInput`, `Backend`, validation variants |
 

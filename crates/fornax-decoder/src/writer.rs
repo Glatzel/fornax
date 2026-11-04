@@ -5,14 +5,14 @@
 /// ```
 /// use fornax_decoder::DngCompression;
 ///
-/// assert_eq!(DngCompression::default(), DngCompression::Uncompressed);
+/// assert_eq!(DngCompression::default(), DngCompression::LosslessJpeg);
 /// ```
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum DngCompression {
     /// Uncompressed strip storage.
-    #[default]
     Uncompressed,
     /// DNG lossless JPEG-92 strip or tile storage.
+    #[default]
     LosslessJpeg,
 }
 
@@ -23,9 +23,9 @@ pub enum DngCompression {
 /// ```
 /// use fornax_decoder::DngVersion;
 ///
-/// assert_eq!(DngVersion::V1_7_1_0.minor, 7);
+/// assert_eq!(DngVersion::latest().minor, 7);
 /// ```
-#[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct DngVersion {
     /// Major version.
     pub major: u8,
@@ -38,13 +38,15 @@ pub struct DngVersion {
 }
 
 impl DngVersion {
-    /// DNG specification 1.7.1.0, September 2023.
-    pub const V1_7_1_0: Self = Self {
-        major: 1,
-        minor: 7,
-        patch: 1,
-        build: 0,
-    };
+    /// Returns DNG specification 1.7.1.0, September 2023.
+    pub const fn latest() -> Self {
+        Self {
+            major: 1,
+            minor: 7,
+            patch: 1,
+            build: 0,
+        }
+    }
 
     /// Creates a DNG specification version.
     pub const fn new(major: u8, minor: u8, patch: u8, build: u8) -> Self {
@@ -57,6 +59,10 @@ impl DngVersion {
     }
 }
 
+impl Default for DngVersion {
+    fn default() -> Self { Self::latest() }
+}
+
 /// DNG writer configuration.
 ///
 /// # Examples
@@ -64,9 +70,9 @@ impl DngVersion {
 /// ```
 /// use fornax_decoder::{DngCompression, DngVersion, DngWriteOptions};
 ///
-/// let options = DngWriteOptions::new(DngCompression::LosslessJpeg);
+/// let options = DngWriteOptions::default();
 /// assert_eq!(options.compression(), DngCompression::LosslessJpeg);
-/// assert_eq!(options.version(), DngVersion::V1_7_1_0);
+/// assert_eq!(options.version(), DngVersion::latest());
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DngWriteOptions {
@@ -83,7 +89,7 @@ impl DngWriteOptions {
     /// compression mode.
     pub const fn new(compression: DngCompression) -> Self {
         Self {
-            version: DngVersion::V1_7_1_0,
+            version: DngVersion::latest(),
             compression,
         }
     }

@@ -17,23 +17,22 @@
 //! assert!(matches!(error, DecodeError::UnsupportedFormat { .. }));
 //! ```
 
-mod cfa;
 mod decoded;
 mod error;
+mod format;
 mod metadata;
 mod writer;
 
-use std::io::Write;
 use std::path::Path;
 
-pub use cfa::{CfaPattern, CfaPatternError};
 pub use decoded::{DecodedRaw, MosaicData};
-pub use error::{DecodeError, DngWriteError, HandoffError, SourceFormat};
+pub use error::{CfaPatternError, DecodeError, DngWriteError, HandoffError};
+pub use format::SourceFormat;
 use fornax_core::error::DecodeError as CoreDecodeError;
 use fornax_core::metadata::Metadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{DecodedRawActive, DecodedRawFull, Primitive};
-pub use metadata::{DngMetadata, DngTag, DngValue, Rational, SignedRational};
+pub use metadata::{DngMetadata, DngTag, DngValue};
 pub use writer::{DngCompression, DngVersion, DngWriteOptions};
 
 /// DNG-centred decoder entry point.
@@ -76,53 +75,6 @@ impl Decoder {
     /// ```
     pub fn decode(&self, _input: &Path) -> Result<DecodedRaw, DecodeError> {
         Err(unsupported_decode())
-    }
-
-    /// Writes a decoded RAW image as DNG.
-    ///
-    /// # Arguments
-    ///
-    /// * `_decoded` - DNG-shaped image to serialize.
-    /// * `_writer` - Destination for the DNG byte stream.
-    /// * `_options` - DNG version and compression selection.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`DngWriteError::Unsupported`] until DNG writing is
-    /// implemented.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_decoder::{
-    ///     CfaPattern, DecodedRaw, Decoder, DngCompression, DngMetadata, DngWriteOptions, MosaicData,
-    /// };
-    ///
-    /// let decoded = DecodedRaw::new(
-    ///     2,
-    ///     2,
-    ///     MosaicData::U16(vec![0; 4]),
-    ///     CfaPattern::new(2, 2, vec![0, 1, 1, 2])?,
-    ///     DngMetadata::new(),
-    /// )?;
-    /// let mut output = Vec::new();
-    /// let result = Decoder.write_dng(
-    ///     &decoded,
-    ///     &mut output,
-    ///     DngWriteOptions::new(DngCompression::Uncompressed),
-    /// );
-    /// assert!(result.is_err());
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
-    /// ```
-    pub fn write_dng<W: Write>(
-        &self,
-        _decoded: &DecodedRaw,
-        _writer: &mut W,
-        _options: DngWriteOptions,
-    ) -> Result<(), DngWriteError> {
-        Err(DngWriteError::Unsupported {
-            operation: "DNG writing".into(),
-        })
     }
 }
 

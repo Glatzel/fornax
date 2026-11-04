@@ -936,7 +936,9 @@ name = "fornax-decoder"
 version = "0.0.17"
 dependencies = [
  "fornax-core",
+ "strum",
  "thiserror",
+ "tiff",
 ]
 
 [[package]]

@@ -14,7 +14,8 @@ In scope:
   in the accepted DNG corpus;
 - preserving all DNG raw metadata needed by Fornax and round-tripping unknown
   well-formed tags where safe;
-- exporting uncompressed DNG first and lossless JPEG-92 DNG second;
+- defaulting to lossless JPEG-92 DNG with uncompressed output as the
+  correctness fallback;
 - arbitrary CFA layouts through the native model and DNG writer;
 - conventional 2x2 RGB Bayer through the current preprocessor handoff.
 
@@ -57,15 +58,21 @@ Reader targets:
 
 Writer targets:
 
-1. Uncompressed strips with exact `MosaicData` samples.
-2. Lossless JPEG-92 integer strips after the uncompressed path is proven.
+1. Lossless JPEG-92 integer strips, the default output mode.
+2. Uncompressed strips with exact `MosaicData` samples as the correctness
+   fallback.
+
+The writer wraps the pure-Rust `tiff` crate's `TiffEncoder` and writes the raw
+CFA IFD through its low-level directory API because tiff's high-level image
+types do not expose DNG `PhotometricInterpretation = 32803`.
 
 The writer does not silently convert float samples to integer or change
 `WhiteLevel` to make compression possible.
 
 ## Metadata to DNG tags
 
-Native DNG values are copied into `DngMetadata` with their original TIFF type.
+Native DNG values are copied into `DngMetadata = BTreeMap<DngTag, DngValue>`
+with tiff's original value type.
 At minimum, preserve:
 
 - identity: `Make`, `Model`, `UniqueCameraModel`, `CameraSerialNumber`;
