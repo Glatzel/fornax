@@ -45,7 +45,7 @@ book-figures = "python -m book.figures"
 default = []
 dev = {
   features = ["dev"],
-  tasks = { pipeline = "cargo run --example pipeline" }
+  tasks = { pipeline = "cargo run -p fornax-core --example pipeline" }
 }
 python = ["dev", "python"]
 data = ["data"]

@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
-use fornax::DecodedRawActive;
-use fornax::decoder::{LibrawDecoder, RawlerDecoder};
+use fornax::Decoder;
 use fornax::metadata::Metadata;
 use fornax::postprocessor::PostProcessor;
 use fornax::preprocessor::Preprocessor;
@@ -11,7 +10,7 @@ use image::{Luma, Rgb};
 
 fn process(
     name: &str,
-    decoded: DecodedRawActive<f32>,
+    decoded: DecodedRaw<f32>,
     metadata: Metadata<f32>,
     output_dir: PathBuf,
 ) -> mischief::Result<()> {
@@ -35,23 +34,10 @@ fn process(
 fn run(input: Option<PathBuf>) -> mischief::Result<()> {
     let output_dir = fornax_devtool::temp_dir().join("pipeline");
     let raw_path = input.unwrap_or_else(fornax_devtool::raw_file);
-    //libraw
-    {
-        let (image, metadata) = LibrawDecoder.decode_active(raw_path.as_path())?;
-        process("libraw", image, metadata, output_dir.join("libraw"))?;
-    }
-    //rawler
-    {
-        let (image, metadata) = RawlerDecoder.decode_active(raw_path.as_path())?;
-        process("rawler", image, metadata, output_dir.join("rawler"))?;
-    }
-    //dnc
-    #[cfg(not(target_os = "linux"))]
-    {
-        let (image, metadata) =
-            fornax::decoder::DncDecoder::default().decode_active(raw_path.as_path())?;
-        process("dnc", image, metadata, output_dir.join("dnc"))?;
-    }
+
+    let (image, metadata) = Decoder::default().decode_active(raw_path.as_path())?;
+    process("dnc", image, metadata, output_dir.join("dnc"))?;
+
     Ok(())
 }
 fn main() -> mischief::Result<()> {
