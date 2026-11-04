@@ -345,7 +345,7 @@ mod tests {
     }
 
     #[test]
-    fn committed_ppg_libraw_rows_are_accepted_outliers() -> mischief::Result<()> {
+    fn committed_ppg_libraw_rows_pass_without_waivers() -> mischief::Result<()> {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
         let report = Report::read(&path)?;
         let rows = report
@@ -361,7 +361,7 @@ mod tests {
         for row in rows {
             assert_eq!(
                 evaluate(row, crate::waivers::WAIVERS),
-                Status::AcceptedOutliers,
+                Status::Pass,
                 "{}",
                 row.pattern
             );
@@ -371,7 +371,7 @@ mod tests {
     }
 
     #[test]
-    fn committed_aahd_libraw_rows_are_accepted_outliers() -> mischief::Result<()> {
+    fn committed_aahd_libraw_rows_remain_unreviewed_outliers() -> mischief::Result<()> {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
         let report = Report::read(&path)?;
         let rows = report
@@ -387,7 +387,7 @@ mod tests {
         for row in rows {
             assert_eq!(
                 evaluate(row, crate::waivers::WAIVERS),
-                Status::AcceptedOutliers,
+                Status::UnreviewedOutliers,
                 "{}",
                 row.pattern
             );

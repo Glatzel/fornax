@@ -1,6 +1,6 @@
-use image::{ImageBuffer, Luma, Rgb};
 use std::fmt::Debug;
 
+use image::{ImageBuffer, Luma, Rgb};
 use num_traits::Float;
 
 /// The type of each channel in a pixel.
@@ -26,10 +26,10 @@ pub enum MosaicData {
 impl MosaicData {
     pub fn dimensions(&self) -> (u32, u32) {
         match self {
-            MosaicData::U8(image_buffer) => image_buffer.dimensions(),
-            MosaicData::U16(image_buffer) => image_buffer.dimensions(),
-            MosaicData::U32(image_buffer) => image_buffer.dimensions(),
-            MosaicData::F32(image_buffer) => image_buffer.dimensions(),
+            Self::U8(image_buffer) => image_buffer.dimensions(),
+            Self::U16(image_buffer) => image_buffer.dimensions(),
+            Self::U32(image_buffer) => image_buffer.dimensions(),
+            Self::F32(image_buffer) => image_buffer.dimensions(),
         }
     }
 }

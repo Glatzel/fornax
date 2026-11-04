@@ -27,11 +27,10 @@ fn bench_methods<D, T>(
     });
 }
 
-fn bench_sizes<T: Primitive + Send + Sync>(
-    c: &mut Criterion,
-    params: &BenchParams,
-    bits: BenchSampleBits,
-) {
+fn bench_sizes<T>(c: &mut Criterion, params: &BenchParams, bits: BenchSampleBits)
+where
+    T: Primitive + Send + Sync,
+{
     let selected = selected_algorithm();
     for (threads, pool) in params.pools() {
         for size in &params.sizes {

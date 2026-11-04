@@ -45,7 +45,10 @@ pub fn demosaic(algorithm: &str) -> Demosaic {
 /// # Panics
 ///
 /// Panics when the value is not present in `algorithms.json`.
-#[allow(dead_code)]
+#[allow(
+    dead_code,
+    reason = "only benchmarks that filter algorithms call this helper"
+)]
 pub fn selected_algorithm() -> Option<String> {
     parse_selected(std::env::var("FORNAX_BENCH_ALGORITHM").ok().as_deref())
 }

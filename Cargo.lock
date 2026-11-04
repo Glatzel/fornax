@@ -764,6 +764,7 @@ dependencies = [
  "num-traits",
  "num_enum",
  "strum",
+ "tempfile",
  "thiserror",
  "tiff",
 ]

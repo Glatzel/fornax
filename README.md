@@ -15,19 +15,21 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 - 🖼 **Flexible decoding pipeline** — Choose built-in or custom decoders.
 - ⚙️ **Extensible post-processing** — Plug in your own algorithms.
 - 🦀 **Rust + Python support** — Native performance with Python accessibility.
-- 🔒 **Safe abstractions** — Rust bindings to LibRaw with memory safety in mind.
+- 🔒 **Pure-Rust decoding** — No C/C++ decoder dependency in the production
+  image pipeline.
 
 ## Components
 
-- **fornax-core**: Foundational image aliases, Bayer types, and primitives.
-- **fornax-decoder-dnc**: A wrapper of Adobe DNG Converter.
-- **fornax-decoder-libraw**: Safe wrapper around the native LibRaw library.
-- **fornax-decoder-protocol**: Shared decoder trait, errors, and decoded output types.
-- **fornax**: Simple high-level raw processing manager.
-- **fornax-dalim**: Rust native raw image post processor.
-- **fornax-metadata**: Universal RAW metadata and level information.
-- **fornax-py**: Python package for raw processing manager with Rust backend.
-- **libraw-sys**: Libraw rust bindings.
+- **fornax-core**: Shared pipeline types, the DNG decoder, typed DNG metadata,
+  and the uncompressed DNG writer.
+- **fornax-preprocessor**: Black/white-level normalization for active Bayer
+  mosaics.
+- **fornax-postprocessor**: Demosaic algorithms and RGB reconstruction.
+- **fornax**: High-level facade tying the stages together.
+- **fornax-devtool**: Pinned fixtures and development helpers.
+- **compare-demosaic**: Reference-versus-Fornax demosaic comparison harness.
+- **fornax-py**: Python binding source, currently excluded from the Rust
+  workspace while its public API is stabilized.
 
 ## Development
 

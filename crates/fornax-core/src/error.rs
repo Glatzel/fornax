@@ -68,7 +68,7 @@ pub enum DemosaicError {
 /// # Examples
 ///
 /// ```
-/// use fornax_decoder::DngWriteError;
+/// use fornax_core::error::DngWriteError;
 ///
 /// let error = DngWriteError::Unsupported {
 ///     operation: "DNG writing".into(),

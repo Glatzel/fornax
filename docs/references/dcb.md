@@ -51,9 +51,9 @@ result is packed back to 16-bit RGB at the `DenseLazy` boundary.
   values through its eight-neighbor limits; Fornax does not restore CFA samples
   after that pass.
 
-On the pinned `colorchart-eos-7d.cr2` fixture, all four Bayer phases match
-LibRaw 0.22.3 exactly after the comparison harness converts between sample
-types.
+On the pinned `colorchart-5D2-6000K.dng` fixture, all four Bayer phases differ
+from LibRaw 0.22.3 by at most two 16-bit codes after the comparison harness
+converts between sample types.
 
 The comparison remains pinned to `(0, 1)` so its baseline is stable.
 Non-default parameter combinations are covered by postprocessor unit tests

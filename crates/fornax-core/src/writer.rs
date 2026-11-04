@@ -14,7 +14,7 @@ use crate::metadata::dng::{DngMetadata, DngTag, DngValue};
 /// # Examples
 ///
 /// ```
-/// use fornax_decoder::DngCompression;
+/// use fornax_core::writer::DngCompression;
 ///
 /// assert_eq!(DngCompression::default(), DngCompression::LosslessJpeg);
 /// ```
@@ -32,7 +32,7 @@ pub enum DngCompression {
 /// # Examples
 ///
 /// ```
-/// use fornax_decoder::DngVersion;
+/// use fornax_core::writer::DngVersion;
 ///
 /// assert_eq!(DngVersion::latest().minor, 7);
 /// ```
@@ -146,7 +146,7 @@ impl DngWriter {
                     .into(),
                 });
             }
-        };
+        }
         Ok(())
     }
 }

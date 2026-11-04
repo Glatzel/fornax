@@ -789,6 +789,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(
+        clippy::suboptimal_flops,
+        reason = "the inverse-gamma check must retain the same separate operations as the reference"
+    )]
     fn gamma_tables_are_inverse_at_table_endpoints_and_interior_codes() {
         let gamma = gamma_tables();
         for code in [0_u16, 1, 122, 123, 2_080, 2_081, 32_768, 65_534, 65_535] {
@@ -806,6 +810,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(
+        clippy::suboptimal_flops,
+        reason = "the synthetic tile pattern must retain the same floating-point construction"
+    )]
     fn tile_boundaries_do_not_introduce_large_steps() -> mischief::Result<()> {
         let width = 260_u32;
         let height = 260_u32;

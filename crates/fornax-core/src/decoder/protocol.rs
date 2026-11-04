@@ -5,14 +5,12 @@ use image::math::Rect;
 use num_traits::{NumCast, ToPrimitive};
 use tiff::decoder::ifd::Value;
 
+use super::{Decoder, dng_decoder};
 use crate::error::DecodeError;
 use crate::metadata::dng::{DngMetadata, DngTag};
 use crate::metadata::{Levels, Metadata, WhiteBalance};
 use crate::protocol::IDecoder;
 use crate::{BayerChannel, BayerPattern, DecodedRaw, MonoImage, MosaicData, Primitive};
-
-use super::Decoder;
-use super::dng_decoder;
 
 impl<T> IDecoder<&Path, T> for Decoder
 where

@@ -12,45 +12,4 @@ pub struct Waiver {
     pub evidence: &'static str,
 }
 
-pub const WAIVERS: &[Waiver] = &[
-    Waiver {
-        algorithm: "aahd",
-        reference: ReferenceBackend::LibRaw,
-        pattern: None,
-        input: None,
-        max_count_gt1024: 4_026,
-        max_error: 5_941,
-        reason: "Independent floating-point homogeneity and gradient comparisons can select the other AAHD directional candidate at sparse, high-frequency and clipped chart details.",
-        evidence: "The full-resolution error map was reviewed in all four CFA phases: every robust limit passes, sampled Bayer sites are exact, all high-error values are interpolated-site outliers, and the map is sparse point noise without a border strip or full-frame structure. The reviewed maxima are 4026 samples above 1024 and maximum error 5941, with at most 32 high-error samples in any 64x64 tile (GRBG).",
-    },
-    Waiver {
-        algorithm: "ahd",
-        reference: ReferenceBackend::LibRaw,
-        pattern: None,
-        input: None,
-        max_count_gt1024: 6767,
-        max_error: 5222,
-        reason: "Independent AHD tile, clipping, matrix, and quantization conventions change local directional decisions at high-contrast chart edges.",
-        evidence: "PR #602's valid-crop experiment has the same outlier tail in all four CFA phases with exact sampled Bayer values; the former BGGR and RGGB failures were invalid green-phase test input.",
-    },
-    Waiver {
-        algorithm: "ppg",
-        reference: ReferenceBackend::LibRaw,
-        pattern: None,
-        input: None,
-        max_count_gt1024: 53,
-        max_error: 2221,
-        reason: "LibRaw selects PPG directions with integer shifts and truncating arithmetic while Fornax follows darktable's normalized f32 path; near ties at high-contrast chart edges flip a small local set of directional choices.",
-        evidence: "The committed baseline matches darktable exactly in all CFA phases, preserves sampled Bayer sites exactly, and has the same 53 interior high-error samples and maximum error 2221 in every phase; each row's top-20 worst samples align after its crop offset, and the error map is sparse. LibRaw 0.22.3 ppg_interpolate uses right shifts and integer division for its predictions and diagonal tie.",
-    },
-    Waiver {
-        algorithm: "rcd",
-        reference: ReferenceBackend::Darktable,
-        pattern: None,
-        input: None,
-        max_count_gt1024: 1,
-        max_error: 1359,
-        reason: "A near-tie RCD interpolation decision flips under independent floating-point evaluation at one high-contrast chart edge.",
-        evidence: "Every CFA phase has one interior high-error sample at the same shifted red-site edge; sampled Bayer values are exact.",
-    },
-];
+pub const WAIVERS: &[Waiver] = &[];

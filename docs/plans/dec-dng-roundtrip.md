@@ -1,142 +1,214 @@
-# Implement DEC-DNG round-trip decoding and export
+# DEC-MIGRATE and DEC-DNG finalization
 
-**Task:** `DEC-DNG`
+**Tasks:** `DEC-MIGRATE`, `DEC-DNG`
 
 ## Goal
 
-Implement the first working `fornax-decoder` DNG path for the accepted
-`external/raw-images/images/colorchart-5D2-6000K.dng` fixture. Decoding must
-produce the full 5,792 x 3,804 mosaic (GBRG at the full-frame origin; RGGB in
-tag coordinates relative to `ActiveArea`) and preserve its root and raw-IFD
-metadata. Writing with the default lossless-JPEG options must reproduce the
-input file byte for byte.
+Finalize the branch around the implemented pure-Rust DNG MVP: decoding,
+typed metadata preservation, conventional 2x2 Bayer handoff, and uncompressed
+DNG export. Refresh all active documentation and comparison fixtures for the
+DNG-only architecture, add fixture-backed regression coverage, and leave every
+repository check green or explicitly reported.
 
 ## Scope
 
 In scope:
 
-- Classic TIFF DNG directory discovery through root IFDs and `SubIFDs`.
-- Selection of the full-resolution CFA image IFD rather than the first preview.
-- Lossless JPEG-92 tiled CFA decoding for the accepted fixture, including
-  restart-free Huffman decoding and all seven JPEG-92 predictors.
-- Typed metadata extraction from root and raw IFDs into the existing
-  `DngMetadata` map while retaining tiff value types.
-- CFA metadata validation and conversion to a conventional 2x2
-  `fornax_core::BayerPattern`.
-- Default lossless-JPEG export by preserving the original DNG container bytes
-  and encoded tile payloads.
-- Uncompressed DNG export from the decoded mosaic as a semantic fallback.
-- Explicit errors for unsupported compression, storage, sample types, and
-  malformed metadata.
+- Existing `fornax_core::Decoder` and `fornax_core::writer` behavior only; no
+  public API changes and no new code documentation.
+- Integration coverage for the accepted
+  `external/raw-images/images/colorchart-5D2-6000K.dng` fixture.
+- DNG-based demosaic comparison baseline, README output, snapshots, and
+  waivers.
+- Active agent, architecture, decoder, README, TODO, and plan documentation.
+- Removal of orphaned DNC/libraw-bindgen migration tooling.
 
 Out of scope:
 
-- BigTIFF and non-DNG containers.
-- Deflate, JPEG XL, lossy JPEG, opcode lists, linearization tables, and
-  interleave factors beyond the accepted fixture.
-- General lossless-JPEG recompression when the source encoding is unavailable.
-- Preview, thumbnail, and Exif image decoding.
-- X-Trans, four-color, monochrome, and other non-2x2 Bayer handoff.
-- Committing the external RAW fixture or any generated binary output.
+- Byte-identical source-preserving lossless export; it requires decoded-source
+  state that the current public API does not expose.
+- BigTIFF, Deflate, JPEG XL, opcode, linearization, corpus, and non-2x2 CFA
+  support beyond the code already present.
+- Changes to the excluded `fornax-py` API or implementation.
+- Human-facing book content and historical changelog entries.
 
 ## Task checklist
 
-- [x] Add an integration test that decodes the accepted fixture, checks its
-      dimensions, CFA, levels, and representative metadata, writes it with
-      `DngWriteOptions::default()`, and compares every output byte with the
-      input.
-- [x] Run the test and confirm it fails at the current unimplemented decode
-      path for the expected reason.
-- [x] Implement `DecodedRaw::new` dimension validation and CFA validation at
-      the handoff boundary.
-- [x] Implement classic TIFF directory traversal and raw-IFD selection.
-- [x] Implement typed root/raw metadata preservation.
-- [x] Implement lossless JPEG-92 tile decoding.
-- [x] Preserve the original container for default lossless-JPEG export.
-- [x] Add uncompressed DNG export and verify it decodes back to identical
-      samples and required tags.
-- [x] Implement the 2x2 Bayer preprocessor handoff and reject other CFA sizes.
-- [x] Keep `DEC-DNG` in `TODO.md` because the broader DNG 1.7.1.0 definition of
-      done remains incomplete, update the crate documentation, and record
-      validation results in this plan.
+### Task 1: Add fixture-backed DNG integration coverage
+
+- [x] Add `tempfile.workspace = true` to `fornax-core` dev dependencies.
+- [x] Add `crates/fornax-core/tests/dng_roundtrip.rs`.
+- [x] Assert full-frame dimensions, active/default crop geometry, full GBRG
+  and active RGGB patterns, black/white levels, representative metadata, and
+  the accepted sample hash.
+- [x] Export uncompressed DNG and assert exact sample and selected-tag
+  round-trip.
+- [x] Assert default lossless export returns the existing typed `Unsupported`
+  error.
+- [x] Run the integration test and fix only defects it exposes.
+
+### Task 2: Repair branch checks without API or code-doc additions
+
+- [x] Correct the five existing doctest imports from `fornax_decoder` to their
+  current `fornax_core` paths.
+- [x] Replace repeated `MosaicData` variant names with `Self` in
+  `MosaicData::dimensions`.
+- [x] Remove the unnecessary semicolon after the compression match.
+- [x] Run nightly rustfmt.
+- [x] Normalize trailing whitespace and CRLF artifacts reported by
+  `git diff --check`.
+- [x] Run doctests, exact clippy, and formatting checks.
+
+### Task 3: Refresh demosaic comparisons for the DNG fixture
+
+- [x] Run the full comparison using the accepted DNG and inspect verdict
+  changes.
+- [x] Replace `crates/compare-demosaic/baseline/canonical.json` with the new
+  deterministic full-run output.
+- [x] Update existing waivers only where the same DNG rows still pass all
+  limits and the measured bounds/evidence can be updated. Remove unused
+  waivers. Do not add a new accepted outlier without human review.
+- [x] Regenerate marker-controlled `crates/compare-demosaic/README.md`
+  sections and update the input prose.
+- [x] Accept DNG-derived Insta checksum snapshots after confirming only
+  expected checksum values changed.
+- [x] Run comparison tests, `readme --check`, full run, and baseline diff.
+
+### Task 4: Reconcile active documentation and migration cleanup
+
+- [x] Update `AGENTS.md` and `crates/compare-demosaic/AGENTS.md` for the
+  `fornax-core` decoder ownership, DNG fixture, and legacy-backend removal.
+- [x] Update active architecture, decoder format/status, benchmark, corpus,
+  reference-note, root README, and crate README guidance.
+- [x] Rewrite this plan's progress, files, validation, and decisions as work
+  completes.
+- [x] Remove `DEC-DNG` and `DEC-MIGRATE` from `TODO.md`.
+- [x] Remove the orphaned libraw bindgen workflow/script and DNC
+  installer/CI steps.
+- [x] Remove the unused workspace `bindgen` dependency and refresh the lock
+  file.
+
+### Task 5: Full verification and handoff
+
+- [x] Run the complete validation matrix below with LibRaw environment
+  variables set.
+- [x] Run task-specific benchmark compilation and the pipeline example.
+- [x] Verify production dependency trees do not include removed legacy
+  decoder crates.
+- [x] Inspect the full diff and commit on `task/dec-dng-roundtrip`.
+- [ ] Push the branch and create or report the semantic pull request.
 
 ## Files expected to change
 
+- `AGENTS.md`
+- `README.md`
 - `TODO.md`
-- `Cargo.lock`
-- `crates/fornax-decoder/Cargo.toml`
-- `crates/fornax-decoder/README.md`
-- `crates/fornax-decoder/src/decoded.rs`
-- `crates/fornax-decoder/src/error.rs`
-- `crates/fornax-decoder/src/lib.rs`
-- `crates/fornax-decoder/src/metadata.rs`
-- `crates/fornax-decoder/src/protocol.rs`
-- `crates/fornax-decoder/src/writer.rs`
-- `crates/fornax-decoder/src/dng/*.rs`
-- `crates/fornax-decoder/tests/dng_roundtrip.rs`
+- `.github/workflows/ci.yml`
+- `.github/workflows/libraw-bindgen.yml` (delete)
+- `Cargo.toml`, `Cargo.lock`
+- `crates/fornax-core/Cargo.toml`
+- `crates/fornax-core/src/error.rs`
+- `crates/fornax-core/src/format.rs`
+- `crates/fornax-core/src/metadata/dng.rs`
+- `crates/fornax-core/src/primitive.rs`
+- `crates/fornax-core/src/writer.rs`
+- `crates/fornax-core/tests/dng_roundtrip.rs`
+- `crates/fornax-core/README.md`
+- `crates/fornax-core/benches/decoder.rs`
+- `crates/fornax-preprocessor/README.md`
+- `crates/fornax-preprocessor/benches/preprocessor.rs`
+- `crates/fornax-postprocessor/benches/demosaic.rs`
+- `crates/fornax-postprocessor/benches/support/demosaic_registry.rs`
+- `crates/fornax-postprocessor/src/demosaic/linear.rs`
+- `crates/fornax-postprocessor/src/demosaic/lmmse.rs`
+- `crates/fornax/examples/pipeline.rs`
+- `crates/fornax/README.md`
+- `crates/compare-demosaic/AGENTS.md`
+- `crates/compare-demosaic/README.md`
+- `crates/compare-demosaic/baseline/canonical.json`
+- `crates/compare-demosaic/src/snapshots/*.snap`
+- `crates/compare-demosaic/src/status.rs`
+- `crates/compare-demosaic/src/waivers.rs`
+- `docs/architecture.md`
+- `docs/decoder/architecture.md`
+- `docs/decoder/benchmark.md`
+- `docs/decoder/corpus.md`
+- `docs/decoder/formats/*.md`
+- `docs/references/dcb.md`
+- `docs/references/dng-lossless-jpeg.md`
 - `docs/plans/dec-dng-roundtrip.md`
+- `scripts/install-dnc.ps1` (delete)
+- `scripts/libraw-bindings.ps1` (delete)
 
 ## Validation
 
-Run from this worktree:
+Use:
 
 ```bash
-cargo test -p fornax-decoder --test dng_roundtrip
-cargo test -p fornax-decoder
+export LIBRAW_ROOT=/home/glatzel/.pixi/envs/base
+export LD_LIBRARY_PATH=/home/glatzel/.pixi/envs/base/lib
+export OMP_NUM_THREADS=1
+```
+
+Then run:
+
+```bash
+cargo test -p fornax-core --test dng_roundtrip
 cargo test --workspace --all-features
-cargo fmt --check
-cargo clippy --workspace --all-features --all-targets -- \
-    -A clippy::too_many_arguments \
-    -D warnings
-cargo tree -p fornax-decoder
+cargo +nightly fmt --check
+cargo clippy --workspace --all-features --all-targets -- <exact AGENTS.md lint list>
+RUSTFLAGS=-Dwarnings cargo doc --workspace --all-features --no-deps
+cargo bench -p fornax-core --no-run
+cargo run -p fornax --example pipeline
+cargo test -p compare-demosaic --all-features
+cargo run --release -p compare-demosaic -- readme --check
+cargo run --release -p compare-demosaic -- run --artifacts
+cargo run --release -p compare-demosaic -- diff \
+  crates/compare-demosaic/baseline/canonical.json \
+  target/compare-demosaic/canonical.json
 git diff --check
 ```
 
-The exact workspace clippy gate from the repository `AGENTS.md` is run before
-handoff. Any pre-existing failure is reported explicitly rather than treated as
-a pass.
+Run `markdownlint-cli2` on changed Markdown if the executable is available;
+otherwise report that the repository-configured local lint was unavailable.
 
-Observed in this worktree:
+Observed on this worktree:
 
-- `cargo test -p fornax-decoder`: 25 passed across 3 suites.
-- `cargo test --workspace --all-features`: 297 passed across 26 suites.
-- `cargo +nightly fmt --check`: passed.
-- `cargo clippy -p fornax-decoder --all-targets -- <repository lint flags>`:
-  passed.
-- The exact workspace clippy command still reports pre-existing findings in
-  `fornax-decoder-rawler`, `fornax-preprocessor` benchmarks, and
-  `fornax-postprocessor`; none is in code changed by this task.
-- `cargo tree -p fornax-decoder`: pure Rust, with no C/C++ or `-sys` direct
-  dependency.
-- `git diff --check`: passed.
+- `cargo test --workspace --all-features`: 261 passed across 16 suites.
+- `cargo test -p compare-demosaic --all-features`: 149 passed across 3 suites.
+- `cargo clippy` with the exact repository lint list: no issues.
+- `cargo +nightly fmt --check`, `git diff --check`, and the docs build with
+  warnings denied: passed.
+- `cargo bench -p fornax-core --no-run` and the DNG pipeline example: passed.
+- `compare-demosaic run --artifacts` followed by `diff`: no differences with
+  `OMP_NUM_THREADS=1`.
+- Production dependency-tree scan: no `fornax-decoder`, Rawler, LibRaw,
+  bindgen, or `clang-sys` dependency.
+- `markdownlint-cli2` is not installed in this environment; the configured
+  lint could not be run locally.
 
 ## Decisions and notes
 
-- Byte-identical lossless-JPEG export requires retaining the source container.
-  The decoded sample model alone cannot reconstruct tile boundaries, entropy
-  coding choices, metadata ordering, or preview IFDs byte for byte.
-- The source-preserving path is valid only while the decoded samples and
-  metadata are unchanged. The current public API exposes immutable decoded
-  samples, so default export can safely reuse the source bytes.
-- Uncompressed output is regenerated from samples and regenerates offsets for
-  its new layout. It is not expected to be byte-identical to a compressed
-  source, but it must round-trip sample values and required CFA metadata.
-- The accepted fixture has 345 256 x 256 lossless-JPEG tiles and a 2x2 RGGB
-  pattern relative to its active area. It uses root preview and Exif IFDs, so
-  first-IFD decoding is not acceptable.
-- Lossless-JPEG support is limited initially to integer CFA tiles with one
-  output sample per pixel and no restart markers. The entropy decoder accepts
-  the one-to-four interleaved JPEG components used to represent CFA samples.
-  Predictors 1 through 7 are implemented so the core JPEG-92 predictor variants
-  share one checked decoder.
-- The writer remains pure Rust and uses the existing `tiff` crate for the
-  regenerated uncompressed container.
-- The full `DEC-DNG` plan still requires deflate, JPEG XL, lossy JPEG,
-  linearization/opcode handling, pre-1.1 lossless-JPEG compatibility, corpus
-  coverage, and general lossless-JPEG recompression. The backlog item therefore
-  remains open rather than being marked complete by this first vertical slice.
-- Active-area decode shifts the full-frame Bayer pattern by the crop origin.
-  For this fixture that changes the full-frame GBRG pattern back to RGGB after
-  cropping at `(158, 51)`.
-- Multi-strip and multi-tile uncompressed tests cover partial final strips,
-  full-image scratch indexing, zero dimensions, and offset-overflow rejection.
+- The current DNG MVP is the completion boundary. The existing default
+  lossless writer intentionally returns `Unsupported`; no source-preserving
+  behavior is introduced because it would require an API change.
+- The accepted DNG replaces the CR2 as the authoritative comparison input.
+- Existing accepted-outlier bounds are not transferable to the DNG without
+  remeasurement. New unreviewed outliers remain warnings rather than being
+  waived.
+- All four old waivers were removed: PPG and darktable RCD now pass without
+  outliers, while AAHD/AHD and RawTherapee RCD retain unwaived warnings.
+- Canonical comparison runs pin `OMP_NUM_THREADS=1`. LibRaw DHT produced
+  different one-code tails with one versus eight OpenMP threads, so the thread
+  count is fixed at the process boundary rather than changing reference math.
+- `fornax-py` remains excluded and untouched while its public API is
+  stabilized.
+- External LibRaw/darktable/RawTherapee references remain development-only;
+  `libraw-dev` remains required to build `compare-demosaic`.
+
+## Progress
+
+- [x] Initial branch and failure audit completed.
+- [x] Integration coverage, code checks, comparison refresh, and active
+  documentation cleanup completed.
+- [x] Full validation completed and recorded.

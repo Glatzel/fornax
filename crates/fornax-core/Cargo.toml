@@ -18,3 +18,4 @@ tiff.workspace = true
 [dev-dependencies]
 criterion.workspace = true
 fornax-devtool.workspace = true
+tempfile.workspace = true

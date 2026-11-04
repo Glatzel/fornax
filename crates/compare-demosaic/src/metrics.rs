@@ -527,7 +527,7 @@ mod tests {
             verdict(
                 &Metrics {
                     count_below_reference: 1,
-                    ..rounding.clone()
+                    ..rounding
                 },
                 Tolerance::RoundingUp
             ),

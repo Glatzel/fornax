@@ -14,7 +14,7 @@ pub type DngMetadata = BTreeMap<DngTag, DngValue>;
 /// # Examples
 ///
 /// ```
-/// use fornax_decoder::DngTag;
+/// use fornax_core::metadata::dng::DngTag;
 ///
 /// assert_eq!(DngTag::from(274), DngTag::Orientation);
 /// assert_eq!(u16::from(DngTag::Orientation), 274);

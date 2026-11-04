@@ -6,7 +6,10 @@ use fornax_core::{DecodedRaw, MonoImage, Primitive};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
 use fornax_preprocessor::Preprocessor;
 
-fn bench_sizes<T: Primitive>(c: &mut Criterion, params: &BenchParams, bits: BenchSampleBits) {
+fn bench_sizes<T>(c: &mut Criterion, params: &BenchParams, bits: BenchSampleBits)
+where
+    T: Primitive,
+{
     let levels = Levels {
         black: MonoImage::from_raw(2, 2, vec![T::zero(); 4]).expect("2x2 black-level pattern"),
         black_delta_h: Vec::new(),
@@ -24,7 +27,7 @@ fn bench_sizes<T: Primitive>(c: &mut Criterion, params: &BenchParams, bits: Benc
                     Preprocessor.process(decoded, black_box(&levels))
                 },
                 BatchSize::LargeInput,
-            )
+            );
         });
     }
 }
