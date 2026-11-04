@@ -21,6 +21,16 @@ links to the repository reference below.
   verdicts, and accepted-outlier rules.
 - Note: `baseline/canonical.json` is the source of truth for measured results.
 
+### [DNG1710]
+
+- Source:
+  [Adobe Digital Negative Specification 1.7.1.0](https://download.adobe.com/pub/adobe/dng/DNG_Spec_1_7_1_0.pdf)
+- Supports: raw-image structure and the metadata concepts represented by
+  Fornax's active area, default crop, levels, CFA pattern, and white balance.
+- Accessed: 2026-11-04.
+- Note: the specification states its own licence terms; consult them before
+  reusing specification text or implementing covered technology.
+
 ### [VNGNotes]
 
 - Source: [docs/references/vng.md](../../docs/references/vng.md)
