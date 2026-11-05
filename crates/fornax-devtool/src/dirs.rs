@@ -1,6 +1,17 @@
 use std::path::PathBuf;
-pub fn raw_file() -> PathBuf {
-    root_dir().join("external/raw-images/images/colorchart-5D2-6000K.dng")
+
+use fornax_core::RawFormat;
+pub fn raw_file(format: RawFormat) -> PathBuf {
+    match format {
+        RawFormat::Dng => root_dir().join("external/raw-images/images/colorchart-5D2-6000K.dng"),
+        RawFormat::Cr3
+        | RawFormat::Arw
+        | RawFormat::Nef
+        | RawFormat::Raf
+        | RawFormat::Hasselblad3fr
+        | RawFormat::Rw2
+        | RawFormat::Iiq => panic!("Format doesn't support: {}", format),
+    }
 }
 pub fn temp_dir() -> PathBuf { root_dir().join("temp") }
 pub fn root_dir() -> PathBuf {
