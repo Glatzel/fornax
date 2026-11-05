@@ -264,10 +264,6 @@ dependencies = [
  "fornax-decoder",
  "fornax-decoder-rawler",
  "fornax-devtool",
- "image 0.25.9",
- "num-traits",
- "tempfile",
- "tiff",
 ]
 
 [[package]]
@@ -886,12 +882,10 @@ name = "fornax-decoder"
 version = "0.0.17"
 dependencies = [
  "fornax-core",
- "fornax-devtool",
  "generic-num",
  "image 0.25.9",
  "num-traits",
  "rayon",
- "tempfile",
  "tiff",
 ]
 
@@ -911,11 +905,9 @@ name = "fornax-decoder-rawler"
 version = "0.0.17"
 dependencies = [
  "fornax-core",
- "fornax-devtool",
  "generic-num",
  "image 0.25.9",
  "rawler",
- "tiff",
 ]
 
 [[package]]
