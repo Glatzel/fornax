@@ -15,3 +15,5 @@ fornax-decoder-rawler.workspace = true
 fornax-devtool.workspace = true
 image.workspace = true
 mischief.workspace = true
+clap.workspace = true
+strum.workspace = true

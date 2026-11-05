@@ -28,7 +28,7 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 # other
 cc = "1.10.0"
-clap = { version = "4.6.7", features = ["derive"] }
+clap = { version = "4.6.7", features = ["derive", "string"] }
 criterion = { package = "codspeed-criterion-compat", version = "6.0.0" }
 hex = "0.4.3"
 insta = { version = "1.49.0", features = ["json"] }
