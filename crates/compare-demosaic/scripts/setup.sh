@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+caller_dir="$PWD"
 cd "$(dirname "${BASH_SOURCE[0]}")/../../.."
 
 pixi install -e dev
@@ -68,4 +69,4 @@ elif [[ "$(uname -s)" == "Linux" ]]; then
     export LIBRAW_ROOT="$pixi_env_dir"
 fi
 
-cd "$(dirname "${BASH_SOURCE[0]}")/.."
+cd "$caller_dir"

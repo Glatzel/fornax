@@ -12,7 +12,7 @@ use fornax_decoder_dnc::{DncDecoder, DncParams};
 use fornax_decoder_rawler::RawlerDecoder;
 use fornax_devtool::save_image;
 use image::{Luma, Rgb};
-use strum::{AsRefStr, EnumIter, EnumString};
+use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 
 #[derive(Debug, EnumString, Default, Clone, AsRefStr, EnumIter)]
 #[strum(ascii_case_insensitive)]
