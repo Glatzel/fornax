@@ -36,6 +36,9 @@ jobs:
           - machine: ubuntu-latest
             test-options: --all-features -p compare-demosaic
             pwd: ./crates/compare-demosaic
+          - machine: macos-latest
+            test-options: --workspace --all-features --exclude compare-demosaic
+            pwd: ./
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -43,6 +46,9 @@ jobs:
         with:
           toolchain: nightly
           components: clippy
+      - if: ${{runner.os != 'Linux'}}
+        run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
+        shell: pwsh
       - uses: Glatzel/template/.github/actions/rust/cargo-doc@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         env:
           GH_TOKEN: ${{ github.token }}
