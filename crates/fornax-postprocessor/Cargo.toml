@@ -17,4 +17,3 @@ rayon.workspace = true
 criterion.workspace = true
 fornax-devtool.workspace = true
 mischief.workspace = true
-serde_json.workspace = true
