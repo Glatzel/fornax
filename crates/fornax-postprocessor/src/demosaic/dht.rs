@@ -729,7 +729,7 @@ mod tests {
     use fornax_core::BayerPattern;
 
     use super::*;
-    use crate::protocol::LazyDemosaic;
+    use crate::LazyDemosaic;
 
     const HOT: u8 = 64;
     const HVSH: u8 = 1;

@@ -44,8 +44,11 @@ jobs:
         include:
           - machine: ubuntu-latest
             test-options: --workspace --all-features --exclude compare-demosaic
+            pwd: ./
           - machine: ubuntu-latest
             test-options: --all-features -p compare-demosaic
+            setup: ./scripts/setup-compare-demosaic.sh
+            pwd: ./crates/compare-demosaic
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -54,12 +57,15 @@ jobs:
           toolchain: nightly
           components: clippy
       - uses: Glatzel/template/.github/actions/rust/cargo-clippy@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+        with:
+          working-directory: ${{matrix.pwd}}
         env:
           GH_TOKEN: ${{ github.token }}
       - uses: Glatzel/template/.github/actions/rust/cargo-test@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         if: ${{!cancelled()}}
         with:
           global-options: ${{ matrix.test-options }}
+          working-directory: ${{matrix.pwd}}
         env:
           GH_TOKEN: ${{ github.token }}
       - uses: Glatzel/template/.github/actions/common/codecov@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
@@ -126,11 +132,7 @@ jobs:
         with:
           files: |
             ./crates/compare-demosaic/**
-            ./crates/fornax-postprocessor/**
-            ./crates/fornax-core/**
-            ./Cargo.toml
-            ./Cargo.lock
-            ./.github/workflows/ci.yml
+            ./crates/fornax-postprocessor/demosaic/**
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
         with:
@@ -141,7 +143,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
         shell: bash
         run: |
-          source scripts/setup.sh
+          source ./scripts/setup-compare-demosaic.sh
           cargo test -p compare-demosaic --all-features
           cmp="cargo run --release -q -p compare-demosaic --"
           $cmp readme --check

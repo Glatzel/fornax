@@ -7,6 +7,7 @@ mod dht;
 mod linear;
 mod lmmse;
 mod ppg;
+mod protocol;
 mod rcd;
 mod vng;
 
@@ -22,10 +23,9 @@ use fornax_core::{BayerPattern, MonoImage, Primitive};
 use linear::{DemosaicLinear, LinearLazy};
 use lmmse::DemosaicLmmse;
 use ppg::{DemosaicPpg, PpgLazy};
+pub use protocol::{IDemosaic, LazyDemosaic};
 use rcd::{DemosaicRcd, RcdLazy};
 use vng::DemosaicVng;
-
-use crate::protocol::{IDemosaic, LazyDemosaic};
 
 /// Selects a Bayer demosaic implementation and its behavioral parameters.
 ///

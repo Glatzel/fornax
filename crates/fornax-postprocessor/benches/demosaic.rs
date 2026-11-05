@@ -5,7 +5,7 @@ use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use demosaic_registry::{algorithm_ids, demosaic, selected_algorithm};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
-use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
+use fornax_postprocessor::{IDemosaic, LazyDemosaic};
 
 fn bench_methods<D, T>(
     c: &mut Criterion,

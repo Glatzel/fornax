@@ -1,14 +1,11 @@
 mod demosaic;
-pub mod protocol;
 
 use std::marker::PhantomData;
 
-pub use demosaic::{Demosaic, LmmseMode};
+pub use demosaic::{Demosaic, IDemosaic, LazyDemosaic, LmmseMode};
 use fornax_core::Primitive;
 use fornax_core::error::PostProcessError;
 use fornax_core::protocol::{IPostProcessMetadata, IPostProcessor};
-
-use crate::protocol::{IDemosaic, LazyDemosaic};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PostProcessor<T, D>
