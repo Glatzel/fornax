@@ -60,7 +60,7 @@ fn run(arg: Args) -> mischief::Result<()> {
     println!("Decoded output: {}", decoded_path.display());
     println!("Preprocessed output: {}", preprocessed_path.display());
     println!("Demosaiced output: {}", demosaiced_path.display());
-
+    dbg!(metadata);
     Ok(())
 }
 

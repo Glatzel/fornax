@@ -85,26 +85,19 @@ fn default_crop(metadata: &DngMetadata, active: Rect) -> Result<Rect, DecodeErro
         .ok_or_else(|| metadata_error("DefaultCropOrigin is missing"))?;
     let size = unsigned_values(metadata.get(&DngTag::DefaultCropSize))?
         .ok_or_else(|| metadata_error("DefaultCropSize is missing"))?;
-    let [x, y]: [u32; 2] = origin.try_into().map_err(|_| {
-        metadata_error(
-            "DefaultCropOrigin must contain two
-values",
-        )
-    })?;
-    let [width, height]: [u32; 2] = size.try_into().map_err(|_| {
-        metadata_error(
-            "DefaultCropSize must contain two
-values",
-        )
-    })?;
+    let [x, y]: [u32; 2] = origin
+        .try_into()
+        .map_err(|_| metadata_error("DefaultCropOrigin must contain two values"))?;
+    let [width, height]: [u32; 2] = size
+        .try_into()
+        .map_err(|_| metadata_error("DefaultCropSize must contain two values"))?;
     if width == 0
         || height == 0
         || x.saturating_add(width) > active.width
         || y.saturating_add(height) > active.height
     {
         return Err(metadata_error(format!(
-            "DefaultCrop {width}x{height} at ({x}, {y}) is outside active
-area {}x{}",
+            "DefaultCrop {width}x{height} at ({x}, {y}) is outside active area {}x{}",
             active.width, active.height
         )));
     }
@@ -169,19 +162,12 @@ invalid",
 fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, DecodeError> {
     let repeat = unsigned_values(metadata.get(&DngTag::CfaRepeatPatternDim))?
         .ok_or_else(|| metadata_error("CFARepeatPatternDim is missing"))?;
-    let [width, height]: [u32; 2] = repeat.try_into().map_err(|_| {
-        metadata_error(
-            "CFARepeatPatternDim must contain two
-values",
-        )
-    })?;
+    let [width, height]: [u32; 2] = repeat
+        .try_into()
+        .map_err(|_| metadata_error("CFARepeatPatternDim must contain two values"))?;
     if width != 2 || height != 2 {
         return Err(DecodeError::Unsupported(
-            format!(
-                "CFA layout {width}x{height} is not conventional 2x2
-Bayer"
-            )
-            .into(),
+            format!("CFA layout {width}x{height} is not conventional 2x2 Bayer").into(),
         ));
     }
     let plane_colors =
@@ -244,13 +230,7 @@ Bayer"
     BayerPattern::ALL
         .into_iter()
         .find(|pattern| pattern.as_mask() == &mask)
-        .ok_or_else(|| {
-            DecodeError::Unsupported(
-                "unsupported RGB Bayer
-pattern"
-                    .into(),
-            )
-        })
+        .ok_or_else(|| DecodeError::Unsupported("unsupported RGB Bayer pattern".into()))
 }
 
 fn wb_coeffs<T>(metadata: &DngMetadata) -> Result<Option<(T, T)>, DecodeError>

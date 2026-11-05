@@ -94,7 +94,13 @@ impl BayerPattern {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    #[test]
+    fn pattern_string() {
+        assert_eq!(BayerPattern::RGGB.to_string(), "RGGB");
+        assert_eq!(BayerPattern::BGGR.to_string(), "BGGR");
+        assert_eq!(BayerPattern::GRBG.to_string(), "GRBG");
+        assert_eq!(BayerPattern::GBRG.to_string(), "GBRG");
+    }
     #[test]
     fn channel_indices_are_stable() {
         assert_eq!(u8::from(BayerChannel::R), 0);

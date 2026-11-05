@@ -289,24 +289,24 @@ where
     };
 
     let bayer_pattern = BayerPattern::from_str(&cfa.name)
-        .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?
-        .shifted(active_area.x, active_area.y);
-    let wb_coefficients = {
-        // 1. The file's own AsShotNeutral tag (50728): [R, G, B], already
-        //    neutral.
+        .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?;
+    let wb_coeffs = {
         if let Some(tag) = raw.dng_tags.get(&50728_u16) {
             let v: Vec<f32> = (0..3).map(|i| tag.force_f32(i)).collect();
 
             Some((num!(v[1]) / num!(v[0]), num!(v[1]) / num!(v[2])))
-        } else if raw.neutralwb()[..3].iter().all(|v| *v != 0.0) {
+        } else if raw.neutralwb()[..3]
+            .iter()
+            .all(|v| *v != 0.0 && !v.is_nan())
+        {
             Some((
                 num!(raw.neutralwb()[1]) / num!(raw.neutralwb()[0]),
                 num!(raw.neutralwb()[1]) / num!(raw.neutralwb()[2]),
             ))
-        } else if raw.wb_coeffs[..3].iter().all(|v| *v != 0.0) {
+        } else if raw.wb_coeffs[..3].iter().all(|v| *v != 0.0 && !v.is_nan()) {
             // 3. Invert the WB multipliers. G2 is NaN on 3-channel sensors.
             let [r, g, b, _] = raw.wb_coeffs;
-            Some((num!(g) / num!(r), num!(g) / num!(b)))
+            Some((num!(r) / num!(g), num!(b) / num!(g)))
         } else {
             None
         }
@@ -322,7 +322,7 @@ where
             white,
         },
         bayer_pattern,
-        wb_coeffs: wb_coefficients,
+        wb_coeffs,
     })
 }
 
