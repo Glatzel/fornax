@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::Metadata;
+use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{DecodedRaw, MosaicData, Primitive};
 use fornax_decoder_rawler::RawlerDecoder;
@@ -361,12 +361,12 @@ impl<T> IDecoder<&Path, T> for DncDecoder
 where
     T: Primitive,
 {
-    fn decode(&self, input: &Path) -> Result<(MosaicData, Metadata<T>), DecodeError> {
+    fn decode(&self, input: &Path) -> Result<(MosaicData, ProcessMetadata<T>), DecodeError> {
         let dng_file = self.convert(input)?;
         RawlerDecoder.decode(&dng_file as &Path)
     }
 
-    fn decode_active(&self, input: &Path) -> Result<(DecodedRaw<T>, Metadata<T>), DecodeError> {
+    fn decode_active(&self, input: &Path) -> Result<(DecodedRaw<T>, ProcessMetadata<T>), DecodeError> {
         let dng_file = self.convert(input)?;
         RawlerDecoder.decode_active(&dng_file as &Path)
     }

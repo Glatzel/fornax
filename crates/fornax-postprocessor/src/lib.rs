@@ -63,7 +63,7 @@ where
 mod tests {
     use std::collections::BTreeMap;
 
-    use fornax_core::metadata::{Levels, Metadata, WhiteBalance};
+    use fornax_core::metadata::{Levels, ProcessMetadata, WhiteBalance};
     use fornax_core::{BayerPattern, MonoImage};
     use image::math::Rect;
 
@@ -72,7 +72,7 @@ mod tests {
     #[test]
     fn white_balance_multiplies_blue_from_its_own_sample() -> mischief::Result<()> {
         let image = MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap();
-        let metadata = Metadata {
+        let metadata = ProcessMetadata {
             active_area: Rect {
                 x: 0,
                 y: 0,

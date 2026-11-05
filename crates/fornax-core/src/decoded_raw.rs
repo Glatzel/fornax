@@ -1,5 +1,5 @@
 use crate::error::PreprocessError;
-use crate::metadata::Levels;
+use crate::metadata::process::Levels;
 use crate::protocol::IPreprocessor;
 use crate::{MonoImage, Primitive, RawImage};
 

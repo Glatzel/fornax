@@ -1,5 +1,5 @@
 use fornax_core::error::PreprocessError;
-use fornax_core::metadata::Levels;
+use fornax_core::metadata::process::Levels;
 use fornax_core::protocol::IPreprocessor;
 use fornax_core::{DecodedRaw, MonoImage, Primitive, RawImage};
 use rayon::prelude::*;
