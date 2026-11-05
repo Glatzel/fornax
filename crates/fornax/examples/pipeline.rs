@@ -7,6 +7,8 @@ use fornax::postprocessor::PostProcessor;
 use fornax::preprocessor::Preprocessor;
 use fornax::protocol::IDecoder;
 use fornax_core::RawFormat;
+use fornax_decoder_dnc::DncDecoder;
+use fornax_decoder_rawler::RawlerDecoder;
 use fornax_devtool::save_image;
 use image::{Luma, Rgb};
 use strum::{AsRefStr, EnumIter, EnumString};
@@ -33,8 +35,11 @@ struct Args {
 fn run(arg: Args) -> mischief::Result<()> {
     let raw_path = arg.input;
 
-    let (image, _, metadata) =
-        <Decoder as IDecoder<&Path, f32>>::decode_active(&Decoder, raw_path.as_path())?;
+    let (image, _, metadata) = match arg.decoder {
+        DecoderOption::Fornax => Decoder.decode_active(raw_path.as_path())?,
+        DecoderOption::Dnc => DncDecoder::default().decode_active(raw_path.as_path())?,
+        DecoderOption::Rawler => RawlerDecoder.decode_active(raw_path.as_path())?,
+    };
 
     let output_dir = fornax_devtool::temp_dir()
         .join("pipeline")
