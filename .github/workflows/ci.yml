@@ -70,8 +70,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - package: fornax-core
-            paths: ./crates/fornax-core/**
+          - package: fornax-decoder
+            paths: ./crates/fornax-decoder/**
+
           - package: fornax-postprocessor
             paths: ./crates/fornax-postprocessor/**
             algorithm: aahd
@@ -105,6 +106,7 @@ jobs:
           - package: fornax-postprocessor
             paths: ./crates/fornax-postprocessor/**
             algorithm: vng4
+
           - package: fornax-preprocessor
             paths: ./crates/fornax-preprocessor/**
     runs-on: ubuntu-latest

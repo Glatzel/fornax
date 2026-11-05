@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 fornax-core.workspace = true
+fornax-decoder.workspace = true
 fornax-postprocessor.workspace = true
 fornax-preprocessor.workspace = true
 
