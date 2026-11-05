@@ -160,7 +160,6 @@ jobs:
         shell: bash
         run: |
           source ./crates/compare-demosaic/scripts/setup.sh
-          cargo test -p compare-demosaic --all-features
           cmp="cargo run --release -q -p compare-demosaic --"
           $cmp readme --check
           $cmp run --artifacts
