@@ -3,11 +3,12 @@ use std::fmt;
 
 use num_enum::{FromPrimitive, IntoPrimitive};
 use strum::AsRefStr;
-pub use tiff::decoder::ifd::Value as DngValue;
+
 use tiff::tags::Tag;
 
 /// Deterministically ordered DNG metadata values keyed by TIFF/DNG tag.
 pub type DngMetadata = BTreeMap<DngTag, DngValue>;
+pub type DngValue=tiff::decoder::ifd::Value;
 
 /// TIFF or DNG tag identifier.
 ///

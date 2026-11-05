@@ -8,6 +8,8 @@ fornax-core.workspace = true
 fornax-decoder.workspace = true
 fornax-postprocessor.workspace = true
 fornax-preprocessor.workspace = true
+fornax-decoder-dnc.workspace = true
+fornax-decoder-rawler.workspace = true
 
 [dev-dependencies]
 fornax-devtool.workspace = true

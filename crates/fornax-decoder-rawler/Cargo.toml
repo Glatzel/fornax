@@ -1,0 +1,14 @@
+[package]
+name = "fornax-decoder-rawler"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+fornax-core.workspace = true
+generic-num.workspace = true
+image.workspace = true
+rawler.workspace = true
+tiff.workspace = true
+
+[dev-dependencies]
+fornax-devtool.workspace = true

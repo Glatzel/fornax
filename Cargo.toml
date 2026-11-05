@@ -11,6 +11,8 @@ edition = "2024"
 # local
 fornax-core = { path = "./crates/fornax-core" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
+fornax-decoder-dnc = { path = "./crates/fornax-decoder-dnc" }
+fornax-decoder-rawler = { path = "./crates/fornax-decoder-rawler" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-postprocessor = { path = "./crates/fornax-postprocessor" }
 fornax-preprocessor = { path = "./crates/fornax-preprocessor" }
@@ -33,6 +35,7 @@ insta = { version = "1.49.0", features = ["json"] }
 num_enum = "0.7.6"
 num-traits = "0.2.19"
 rand = "0.10.3"
+rawler = "0.8.0"
 rayon = "1.12.0"
 rstest = "0.28.0"
 serde = { version = "1.0.229", features = ["derive"] }

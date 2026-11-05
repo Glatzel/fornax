@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use fornax::Decoder;
+use fornax::decoder::Decoder;
 use fornax::postprocessor::PostProcessor;
 use fornax::preprocessor::Preprocessor;
 use fornax::protocol::IDecoder;
