@@ -125,9 +125,11 @@ Run the decoder benchmark with the colorchart fixture and compare
 ### Task 1: Workspace and Baseline
 
 **Files:**
+
 - Create: `docs/plans/chore-dng-raw-ifd-compat-performance.md`
 
 **Interfaces:**
+
 - Consumes: current `origin/main`.
 - Produces: branch/worktree and the implementation contract.
 
@@ -140,11 +142,13 @@ Run the decoder benchmark with the colorchart fixture and compare
 ### Task 2: Parsed Raw Decode Plan
 
 **Files:**
+
 - Modify: `crates/fornax-decoder/src/dng_decoder/tiff.rs`
 - Modify: `crates/fornax-decoder/src/dng_decoder/mod.rs`
 - Modify: `crates/fornax-decoder/src/lib.rs`
 
 **Interfaces:**
+
 - Consumes: current TIFF parser and `DngMetadata`.
 - Produces: private parsed raw-directory state cached in `ParsedTiff`.
 
@@ -158,11 +162,13 @@ Run the decoder benchmark with the colorchart fixture and compare
 ### Task 3: Parallel Chunk Decode and Uncompressed Samples
 
 **Files:**
+
 - Modify: `crates/fornax-decoder/src/dng_decoder/mod.rs`
 - Create: focused compression/decode modules under
   `crates/fornax-decoder/src/dng_decoder/`
 
 **Interfaces:**
+
 - Consumes: parsed raw decode plan from Task 2.
 - Produces: strip/tile execution and `RawMosaic` sample decoding.
 
@@ -176,10 +182,12 @@ Run the decoder benchmark with the colorchart fixture and compare
 ### Task 4: Lossless JPEG-92 Decoder
 
 **Files:**
+
 - Modify: `crates/fornax-decoder/src/dng_decoder/ljpeg.rs`
 - Modify: tile dispatch in `crates/fornax-decoder/src/dng_decoder/mod.rs`
 
 **Interfaces:**
+
 - Consumes: encoded tile/strip slices from Task 3.
 - Produces: caller-buffer `u16` JPEG-92 samples.
 
@@ -194,10 +202,12 @@ Run the decoder benchmark with the colorchart fixture and compare
 ### Task 5: Other DNG Compression Backends
 
 **Files:**
+
 - Modify: `Cargo.toml`, decoder manifest/lockfile
 - Create: Deflate, lossy JPEG, and JPEG XL decoder modules
 
 **Interfaces:**
+
 - Consumes: parsed chunk geometry and compression metadata.
 - Produces: `RawMosaic` outputs for compression 8, 34892, and 52546.
 
@@ -209,10 +219,12 @@ Run the decoder benchmark with the colorchart fixture and compare
 ### Task 6: Raw-Domain Transforms
 
 **Files:**
+
 - Create: focused raw transform/opcode module
 - Modify: raw sample completion in `dng_decoder/mod.rs`
 
 **Interfaces:**
+
 - Consumes: decoded stored samples.
 - Produces: transformed `RawMosaic` and preserved later-domain metadata.
 
@@ -226,11 +238,13 @@ Run the decoder benchmark with the colorchart fixture and compare
 ### Task 7: Lossless DNG Writer
 
 **Files:**
+
 - Modify: `crates/fornax-core/src/writer.rs`
 - Modify: `crates/fornax-core/Cargo.toml`, root manifest/lockfile
 - Create: focused writer JPEG-92/Deflate module
 
 **Interfaces:**
+
 - Consumes: existing `DngWriter::write_dng_with` signature.
 - Produces: lossless tiled JPEG-92 or Deflate output without API changes.
 
@@ -245,10 +259,12 @@ Run the decoder benchmark with the colorchart fixture and compare
 ### Task 8: Fixture and Regression Coverage
 
 **Files:**
+
 - Modify: decoder/core test modules
 - Modify: `crates/bench-decoder/benches/decoder.rs` only if needed
 
 **Interfaces:**
+
 - Consumes: Tasks 2-7.
 - Produces: end-to-end correctness and malformed-input evidence.
 
@@ -267,12 +283,14 @@ Run the decoder benchmark with the colorchart fixture and compare
 ### Task 9: Documentation and Deferred Scope
 
 **Files:**
+
 - Modify: `docs/architecture.md`
 - Modify: `docs/decoder/architecture.md`
 - Modify: `docs/decoder/formats/dng.md`
 - Modify: `docs/references/dng-lossless-jpeg.md`
 
 **Interfaces:**
+
 - Consumes: final implementation behavior.
 - Produces: accurate support matrix and explicit deferred auxiliary TIFF work.
 
@@ -286,9 +304,11 @@ Run the decoder benchmark with the colorchart fixture and compare
 ### Task 10: Full Validation and Pull Request
 
 **Files:**
+
 - No expected source changes unless validation finds a defect.
 
 **Interfaces:**
+
 - Consumes: all prior tasks.
 - Produces: committed, pushed branch and one pull request.
 

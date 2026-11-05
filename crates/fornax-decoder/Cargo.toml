@@ -4,9 +4,9 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-fornax-core.workspace = true
-flate2.workspace = true
 flashraw-codecs.workspace = true
+flate2.workspace = true
+fornax-core.workspace = true
 generic-num.workspace = true
 image.workspace = true
 jxl-oxide.workspace = true
