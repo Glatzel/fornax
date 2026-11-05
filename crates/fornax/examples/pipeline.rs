@@ -7,6 +7,7 @@ use fornax::postprocessor::PostProcessor;
 use fornax::preprocessor::Preprocessor;
 use fornax::protocol::IDecoder;
 use fornax_core::RawFormat;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 use fornax_decoder_dnc::{DncDecoder, DncParams};
 use fornax_decoder_rawler::RawlerDecoder;
 use fornax_devtool::save_image;
