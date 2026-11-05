@@ -8,8 +8,8 @@ use tiff::tags::Tag;
 
 pub type DngValue = tiff::decoder::ifd::Value;
 /// Deterministically ordered DNG metadata values keyed by TIFF/DNG tag.
-#[derive(Debug, Default)]
-pub struct DngMetadata(BTreeMap<DngTag, DngValue>);
+#[derive(Debug, Default, Clone)]
+pub struct DngMetadata(pub BTreeMap<DngTag, DngValue>);
 impl Deref for DngMetadata {
     type Target = BTreeMap<DngTag, DngValue>;
 

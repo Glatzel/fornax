@@ -82,7 +82,7 @@ impl<'a> Reader<'a> {
             .get(position..position.saturating_add(entries_bytes))
             .ok_or_else(|| corrupt("IFD entries are truncated"))?;
 
-        let mut metadata = DngMetadata::new();
+        let mut metadata = DngMetadata::default();
         let mut child_pointers = Vec::new();
         for _ in 0..entry_count {
             let tag = self.u16(position)?;
@@ -295,10 +295,10 @@ pub(super) fn parse(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
         }
         directories.push(metadata);
     }
-    let root = directories
+    let root = (*directories
         .first()
-        .cloned()
-        .ok_or_else(|| corrupt("TIFF contains no readable image file directory"))?;
+        .ok_or_else(|| corrupt("TIFF contains no readable image file directory"))?)
+    .clone();
     Ok(ParsedTiff { root, directories })
 }
 

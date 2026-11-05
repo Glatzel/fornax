@@ -887,8 +887,10 @@ version = "0.0.17"
 dependencies = [
  "fornax-core",
  "fornax-devtool",
+ "generic-num",
  "image 0.25.9",
  "num-traits",
+ "rayon",
  "tempfile",
  "tiff",
 ]

@@ -1,5 +1,50 @@
 mod dng_decoder;
-mod protocol;
+
+use std::fs;
+use std::path::Path;
+
+use fornax_core::error::DecodeError;
+use fornax_core::metadata::dng::DngMetadata;
+use fornax_core::metadata::process::ProcessMetadata;
+use fornax_core::protocol::IDecoder;
+use fornax_core::{DecodedRaw, MosaicData, Primitive, RawFormat};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Decoder;
+impl<P, T> IDecoder<P, T> for Decoder
+where
+    T: Primitive,
+    P: AsRef<Path>,
+{
+    fn decode(
+        &self,
+        input: P,
+    ) -> Result<(MosaicData, DngMetadata, ProcessMetadata<T>), DecodeError> {
+        if let Some(extension) = input.as_ref().extension() {
+            match RawFormat::try_from(extension.to_str().unwrap()) {
+                Ok(RawFormat::Dng) => dng_decoder::decode(&fs::read(input).unwrap()),
+                _ => Err(DecodeError::Unsupported(
+                    format!("{}", extension.display()).into(),
+                )),
+            }
+        } else {
+            Err(DecodeError::Unsupported("Unknown extension.".into()))
+        }
+    }
+
+    fn decode_active(
+        &self,
+        input: P,
+    ) -> Result<(DecodedRaw<T>, DngMetadata, ProcessMetadata<T>), DecodeError> {
+        if let Some(extension) = input.as_ref().extension() {
+            match RawFormat::try_from(extension.to_str().unwrap()) {
+                Ok(RawFormat::Dng) => dng_decoder::decode_active(&fs::read(input).unwrap()),
+                _ => Err(DecodeError::Unsupported(
+                    format!("{}", extension.display()).into(),
+                )),
+            }
+        } else {
+            Err(DecodeError::Unsupported("Unknown extension.".into()))
+        }
+    }
+}

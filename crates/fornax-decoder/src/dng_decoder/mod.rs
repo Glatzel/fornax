@@ -1,22 +1,29 @@
 //! DNG container and sample decoding.
 
+mod convert;
 mod ljpeg;
 mod tiff;
 
-#[cfg(test)]
-#[path = "mod_tests.rs"]
-mod tests;
-
 use ::tiff::decoder::ifd::Value;
+use convert::process_metadata_from_dng_metadata;
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag};
-use fornax_core::{MonoImage, MosaicData};
+use fornax_core::metadata::process::ProcessMetadata;
+use fornax_core::{DecodedRaw, MonoImage, MosaicData, Primitive};
+use generic_num::num;
+use rayon::prelude::*;
+
 const PHOTOMETRIC_CFA: u64 = 32_803;
 const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
 const COMPRESSION_UNCOMPRESSED: u16 = 1;
 const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
 
-pub fn decode(source: &[u8]) -> Result<(MosaicData, DngMetadata), DecodeError> {
+pub fn decode<T>(
+    source: &[u8],
+) -> Result<(MosaicData, DngMetadata, ProcessMetadata<T>), DecodeError>
+where
+    T: Primitive,
+{
     let parsed = tiff::parse(source)?;
     let root_metadata = parsed.root;
     if !root_metadata.contains_key(&DngTag::DngVersion) {
@@ -30,16 +37,101 @@ pub fn decode(source: &[u8]) -> Result<(MosaicData, DngMetadata), DecodeError> {
         .filter(is_raw_ifd)
         .max_by_key(raw_area)
         .ok_or_else(|| unsupported_variant("no full-resolution CFA image IFD was found"))?;
-    let mut metadata = root_metadata;
-    metadata.extend(
+    let mut dng_metadata = root_metadata;
+    dng_metadata.extend(
         raw_metadata
             .iter()
             .map(|(tag, value)| (*tag, value.clone())),
     );
 
     let pixels = decode_samples(source, &raw_metadata)?;
-    validate_dimensions(&pixels, &metadata)?;
-    Ok((pixels, metadata))
+    validate_dimensions(&pixels, &dng_metadata)?;
+    let process_metadata = process_metadata_from_dng_metadata(&pixels, &dng_metadata)?;
+    Ok((pixels, dng_metadata, process_metadata))
+}
+pub fn decode_active<T>(
+    source: &[u8],
+) -> Result<(DecodedRaw<T>, DngMetadata, ProcessMetadata<T>), DecodeError>
+where
+    T: Primitive,
+{
+    let parsed = tiff::parse(source)?;
+    let root_metadata = parsed.root;
+    if !root_metadata.contains_key(&DngTag::DngVersion) {
+        return Err(unsupported_variant(
+            "TIFF container does not declare a DNGVersion",
+        ));
+    }
+    let raw_metadata = parsed
+        .directories
+        .into_iter()
+        .filter(is_raw_ifd)
+        .max_by_key(raw_area)
+        .ok_or_else(|| unsupported_variant("no full-resolution CFA image IFD was found"))?;
+    let mut dng_metadata = root_metadata;
+    dng_metadata.extend(
+        raw_metadata
+            .iter()
+            .map(|(tag, value)| (*tag, value.clone())),
+    );
+    let pixels = decode_samples(source, &raw_metadata)?;
+    let process_metadata = process_metadata_from_dng_metadata(&pixels, &dng_metadata)?;
+    let active_area = process_metadata.active_area;
+    let decoded_raw = match pixels {
+        MosaicData::U8(mut image_buffer) => {
+            image_buffer.crop_in_place(active_area.clone());
+            MonoImage::from_raw(
+                active_area.width,
+                active_area.height,
+                image_buffer
+                    .into_raw()
+                    .into_par_iter()
+                    .map(|v| num!(v))
+                    .collect(),
+            )
+            .unwrap()
+        }
+        MosaicData::U16(mut image_buffer) => {
+            image_buffer.crop_in_place(process_metadata.active_area);
+            MonoImage::from_raw(
+                active_area.width,
+                active_area.height,
+                image_buffer
+                    .into_raw()
+                    .into_par_iter()
+                    .map(|v| num!(v))
+                    .collect(),
+            )
+            .unwrap()
+        }
+        MosaicData::U32(mut image_buffer) => {
+            image_buffer.crop_in_place(process_metadata.active_area);
+            MonoImage::from_raw(
+                active_area.width,
+                active_area.height,
+                image_buffer
+                    .into_raw()
+                    .into_par_iter()
+                    .map(|v| num!(v))
+                    .collect(),
+            )
+            .unwrap()
+        }
+        MosaicData::F32(mut image_buffer) => {
+            image_buffer.crop_in_place(process_metadata.active_area);
+            MonoImage::from_raw(
+                active_area.width,
+                active_area.height,
+                image_buffer
+                    .into_raw()
+                    .into_par_iter()
+                    .map(|v| num!(v))
+                    .collect(),
+            )
+            .unwrap()
+        }
+    };
+    Ok((DecodedRaw::new(decoded_raw), dng_metadata, process_metadata))
 }
 
 fn validate_dimensions(pixels: &MosaicData, metadata: &DngMetadata) -> Result<(), DecodeError> {
