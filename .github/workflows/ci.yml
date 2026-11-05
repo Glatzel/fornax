@@ -79,24 +79,42 @@ jobs:
       matrix:
         include:
           - package: fornax-core
-            paths: |
-              ./Cargo.toml
-              ./Cargo.lock
-              ./crates/fornax-core/**
+            paths: ./crates/fornax-core/**
           - package: fornax-postprocessor
-            paths: |
-              ./Cargo.toml
-              ./Cargo.lock
-              ./crates/fornax-core/**
-              ./crates/fornax-devtool/**
-              ./crates/fornax-postprocessor/**
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: aahd
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: ahd
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: amaze
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: dcb
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: dht
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: linear
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: lmmse
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: ppg
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: rcd
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: vng
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: vng4
           - package: fornax-preprocessor
-            paths: |
-              ./Cargo.toml
-              ./Cargo.lock
-              ./crates/fornax-core/**
-              ./crates/fornax-devtool/**
-              ./crates/fornax-preprocessor/**
+            paths: ./crates/fornax-preprocessor/**
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -171,7 +189,15 @@ jobs:
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook, cargo-doc, test-build, benchmark, compare-demosaic, book-assets]
+    needs:
+      [
+        lefthook,
+        cargo-doc,
+        test-build,
+        benchmark,
+        compare-demosaic,
+        book-assets,
+      ]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1
