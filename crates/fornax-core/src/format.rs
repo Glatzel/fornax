@@ -5,10 +5,10 @@ use strum::{AsRefStr, Display, EnumString, IntoStaticStr};
 /// # Examples
 ///
 /// ```
-/// use fornax_core::SourceFormat;
+/// use fornax_core::RawFormat;
 ///
-/// assert_eq!(SourceFormat::Dng.to_string(), "DNG");
-/// assert_eq!("CR3".parse(), Ok(SourceFormat::Cr3));
+/// assert_eq!(RawFormat::Dng.to_string(), "DNG");
+/// assert_eq!("CR3".parse(), Ok(RawFormat::Cr3));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq, AsRefStr, Display, EnumString, IntoStaticStr)]
 #[strum(ascii_case_insensitive, serialize_all = "UPPERCASE")]
