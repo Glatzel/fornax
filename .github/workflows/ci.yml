@@ -73,7 +73,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - package: fornax-decoder
+          - package: bench-decoder
             paths: |
               ./crates/fornax-decoder/**
               ./crates/fornax-decoder-rawler/**
