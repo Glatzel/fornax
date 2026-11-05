@@ -20,9 +20,7 @@ const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
 const COMPRESSION_UNCOMPRESSED: u16 = 1;
 const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
 
-pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
-    tiff::parse(source)
-}
+pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> { tiff::parse(source) }
 
 pub fn raw_mosaic(parsed: &ParsedTiff) -> Result<RawMosaic, DecodeError> {
     let metadata = dng_metadata(parsed)?;
