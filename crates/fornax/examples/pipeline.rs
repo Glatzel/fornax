@@ -9,9 +9,9 @@ use fornax::protocol::IDecoder;
 use fornax_core::RawFormat;
 use fornax_devtool::save_image;
 use image::{Luma, Rgb};
-use strum::{AsRefStr, EnumString};
+use strum::{AsRefStr, EnumIter, EnumString};
 
-#[derive(Debug, EnumString, Default, Clone, AsRefStr)]
+#[derive(Debug, EnumString, Default, Clone, AsRefStr, EnumIter)]
 #[strum(ascii_case_insensitive)]
 enum DecoderOption {
     #[default]
@@ -65,8 +65,11 @@ fn main() -> mischief::Result<()> { run(Args::parse()) }
 #[test]
 fn dng_pipeline_example_writes_grouped_outputs() -> mischief::Result<()> {
     fornax_devtool::setup();
-    run(Args {
-        input: fornax_devtool::raw_file(RawFormat::Dng),
-        decoder: DecoderOption::default(),
-    })
+    for d in RawFormat.iter() {
+        run(Args {
+            input: fornax_devtool::raw_file(RawFormat::Dng),
+            decoder: d,
+        });
+    }
+    Ok(())
 }

@@ -74,7 +74,10 @@ jobs:
       matrix:
         include:
           - package: fornax-decoder
-            paths: ./crates/fornax-decoder/**
+            paths: |
+              ./crates/fornax-decoder/**
+              ./crates/fornax-decoder-rawler/**
+              ./crates/bench-decoder/**
 
           - package: fornax-postprocessor
             paths: ./crates/fornax-postprocessor/**
