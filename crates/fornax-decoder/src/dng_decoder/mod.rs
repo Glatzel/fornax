@@ -10,6 +10,7 @@ use fornax_core::metadata::dng::{DngMetadata, DngTag};
 use fornax_core::metadata::process::ProcessMetadata;
 use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use generic_num::num;
+use image::math::Rect;
 use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
 pub use tiff::ParsedTiff;
@@ -19,41 +20,78 @@ const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
 const COMPRESSION_UNCOMPRESSED: u16 = 1;
 const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
 
-pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> { tiff::parse(source) }
-pub fn raw_mosaic(_parsed: &ParsedTiff) -> Result<RawMosaic, DecodeError> { todo!() }
-pub fn cropped_mosaic<T>(_parsed: &ParsedTiff) -> Result<CroppedMosaic<T>, DecodeError>
+pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
+    tiff::parse(source)
+}
+
+pub fn raw_mosaic(parsed: &ParsedTiff) -> Result<RawMosaic, DecodeError> {
+    let metadata = dng_metadata(parsed)?;
+    let pixels = decode_samples(&parsed.source, &metadata)?;
+    validate_dimensions(&pixels, &metadata)?;
+    Ok(pixels)
+}
+
+pub fn cropped_mosaic<T>(parsed: &ParsedTiff) -> Result<CroppedMosaic<T>, DecodeError>
 where
     T: Primitive,
 {
-    todo!()
+    let pixels = raw_mosaic(parsed)?;
+    let metadata = dng_metadata(parsed)?;
+    let process_metadata = process_metadata_from_dng_metadata::<T>(&pixels, &metadata)?;
+    let active_area = process_metadata.active_area;
+    let image = match pixels {
+        RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
+        RawMosaic::U16(image) => crop_and_cast(image, active_area)?,
+        RawMosaic::U32(image) => crop_and_cast(image, active_area)?,
+        RawMosaic::F32(image) => crop_and_cast(image, active_area)?,
+    };
+    Ok(CroppedMosaic::new(image))
 }
+
 pub fn dng_metadata(parsed: &ParsedTiff) -> Result<DngMetadata, DecodeError> {
-    let root_metadata = parsed.root.clone();
-    if !root_metadata.contains_key(&DngTag::DngVersion) {
+    if !parsed.root.contains_key(&DngTag::DngVersion) {
         return Err(unsupported_variant(
             "TIFF container does not declare a DNGVersion",
         ));
     }
     let raw_metadata = parsed
-        .clone()
         .directories
-        .into_iter()
-        .filter(is_raw_ifd)
-        .max_by_key(raw_area)
+        .iter()
+        .filter(|metadata| is_raw_ifd(metadata))
+        .max_by_key(|metadata| raw_area(metadata))
         .ok_or_else(|| unsupported_variant("no full-resolution CFA image IFD was found"))?;
-    let mut dng_metadata = root_metadata;
+    let mut dng_metadata = parsed.root.clone();
     dng_metadata.extend(
         raw_metadata
             .iter()
             .map(|(tag, value)| (*tag, value.clone())),
     );
-    Ok(dng_metadata.clone())
+    Ok(dng_metadata)
 }
-pub fn process_metadata<T>(_parsed: &ParsedTiff) -> Result<ProcessMetadata<T>, DecodeError>
+
+pub fn process_metadata<T>(parsed: &ParsedTiff) -> Result<ProcessMetadata<T>, DecodeError>
 where
     T: Primitive,
 {
-    todo!()
+    let pixels = raw_mosaic(parsed)?;
+    let metadata = dng_metadata(parsed)?;
+    process_metadata_from_dng_metadata(&pixels, &metadata)
+}
+
+fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
+where
+    S: image::Primitive + Send + Sync,
+    T: Primitive,
+{
+    image.crop_in_place(area);
+    let (width, height) = image.dimensions();
+    let samples = image
+        .into_raw()
+        .into_par_iter()
+        .map(|value| num!(value))
+        .collect();
+    MonoImage::from_raw(width, height, samples)
+        .ok_or_else(|| corrupt("cropped DNG dimensions are invalid"))
 }
 
 fn validate_dimensions(pixels: &RawMosaic, metadata: &DngMetadata) -> Result<(), DecodeError> {

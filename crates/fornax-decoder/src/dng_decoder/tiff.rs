@@ -1,4 +1,5 @@
 use std::collections::{HashSet, VecDeque};
+use std::sync::Arc;
 
 use ::tiff::decoder::ifd::Value;
 use fornax_core::error::DecodeError;
@@ -9,6 +10,7 @@ const TAG_SUB_IFDS: u16 = 330;
 pub struct ParsedTiff {
     pub root: DngMetadata,
     pub directories: Vec<DngMetadata>,
+    pub(super) source: Arc<[u8]>,
 }
 
 #[derive(Clone, Copy)]
@@ -299,7 +301,11 @@ pub(super) fn parse(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
         .first()
         .ok_or_else(|| corrupt("TIFF contains no readable image file directory"))?)
     .clone();
-    Ok(ParsedTiff { root, directories })
+    Ok(ParsedTiff {
+        root,
+        directories,
+        source: Arc::from(source),
+    })
 }
 
 fn pointers(value: &Value) -> Vec<u64> {

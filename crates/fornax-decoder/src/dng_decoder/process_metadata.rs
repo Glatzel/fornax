@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag, DngValue};
 use fornax_core::metadata::process::{Levels, ProcessMetadata};
@@ -53,7 +51,7 @@ fn active_area(
     full_width: u32,
     full_height: u32,
 ) -> Result<Rect, DecodeError> {
-    let values = unsigned_values(metadata.deref().get(&DngTag::ActiveArea))?
+    let values = unsigned_values(metadata.get(&DngTag::ActiveArea))?
         .ok_or_else(|| DecodeError::Backend("ActiveArea is missing".into()))?;
     let [top, left, bottom, right]: [u32; 4] = values
         .try_into()
@@ -122,13 +120,12 @@ where
         .ok_or_else(|| metadata_error("BlackLevelRepeatDim exceeds the platform address space"))?;
     if width == 0 || height == 0 || levels.len() != expected {
         return Err(metadata_error(format!(
-            "BlackLevel contains {} values for repeat dimensions
-{width}x{height}",
+            "BlackLevel contains {} values for repeat dimensions {width}x{height}",
             levels.len()
         )));
     }
     MonoImage::from_raw(width, height, levels)
-        .ok_or_else(|| metadata_error("black-level image dimensions are  invalid"))
+        .ok_or_else(|| metadata_error("black-level image dimensions are invalid"))
 }
 
 fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, DecodeError> {
