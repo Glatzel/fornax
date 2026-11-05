@@ -3,7 +3,8 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::ProcessMetadata;
+use fornax_core::metadata::dng::DngMetadata;
+use fornax_core::metadata::process::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{DecodedRaw, MosaicData, Primitive};
 use fornax_decoder_rawler::RawlerDecoder;
@@ -357,17 +358,24 @@ impl Default for DncDecoder {
         }
     }
 }
-impl<T> IDecoder<&Path, T> for DncDecoder
+impl<P, T> IDecoder<P, T> for DncDecoder
 where
     T: Primitive,
+    P: AsRef<Path>,
 {
-    fn decode(&self, input: &Path) -> Result<(MosaicData, ProcessMetadata<T>), DecodeError> {
-        let dng_file = self.convert(input)?;
+    fn decode(
+        &self,
+        input: P,
+    ) -> Result<(MosaicData, DngMetadata, ProcessMetadata<T>), DecodeError> {
+        let dng_file = self.convert(input.as_ref())?;
         RawlerDecoder.decode(&dng_file as &Path)
     }
 
-    fn decode_active(&self, input: &Path) -> Result<(DecodedRaw<T>, ProcessMetadata<T>), DecodeError> {
-        let dng_file = self.convert(input)?;
+    fn decode_active(
+        &self,
+        input: P,
+    ) -> Result<(DecodedRaw<T>, DngMetadata, ProcessMetadata<T>), DecodeError> {
+        let dng_file = self.convert(input.as_ref())?;
         RawlerDecoder.decode_active(&dng_file as &Path)
     }
 }

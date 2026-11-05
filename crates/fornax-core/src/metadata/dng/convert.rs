@@ -45,8 +45,6 @@ use crate::metadata::dng::{DngMetadata, DngTag};
 //     })
 // }
 
-
-
 // fn default_crop(metadata: &DngMetadata, active: Rect) -> Result<Rect,
 // DecodeError> {     let origin =
 // unsigned_values(metadata.get(&DngTag::DefaultCropOrigin))?
@@ -279,8 +277,6 @@ use crate::metadata::dng::{DngMetadata, DngTag};
 //     Ok(Some(values))
 // }
 
-
-
 // fn cast_number<T>(value: f64) -> Option<T>
 // where
 //     T: Primitive,
@@ -291,3 +287,53 @@ use crate::metadata::dng::{DngMetadata, DngTag};
 // fn metadata_error(detail: impl Into<Box<str>>) -> DecodeError {
 //     DecodeError::Backend(detail.into())
 // }
+pub fn active_area(&self) -> Result<Rect, DecodeError> {
+    let values = self
+        .unsigned_values(self.get(&DngTag::ActiveArea))?
+        .ok_or_else(|| DecodeError::Backend("ActiveArea is missing".into()))?;
+    let [top, left, bottom, right]: [u32; 4] = values
+        .try_into()
+        .map_err(|_| DecodeError::Backend("ActiveArea must contain four values".into()))?;
+    if top >= bottom || left >= right || bottom > full_height || right > full_width {
+        return Err(DecodeError::Backend(format!(
+            "ActiveArea ({top}, {left}, {bottom}, {right}) is outside {full_width}x{full_height}"
+        ).into()));
+    }
+    Ok(Rect {
+        x: left,
+        y: top,
+        width: right - left,
+        height: bottom - top,
+    })
+}
+fn unsigned_values(&self, value: Option<&DngValue>) -> Result<Option<Vec<u32>>, DecodeError> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    let values = match value {
+        DngValue::List(values) => values
+            .iter()
+            .map(|v| self.unsigned_scalar(v))
+            .collect::<Result<Vec<_>, _>>()?,
+        value => vec![self.unsigned_scalar(value)?],
+    };
+    Ok(Some(values))
+}
+fn unsigned_scalar(&self, value: &DngValue) -> Result<u32, DecodeError> {
+    let number = match value {
+        DngValue::Byte(value) => *value as u32,
+        DngValue::Short(value) => *value as u32,
+        DngValue::Unsigned(value) | DngValue::Ifd(value) => *value,
+        DngValue::UnsignedBig(value) => u32::try_from(*value)
+            .map_err(|_| DecodeError::Backend("tag value does not fit u32".into()))?,
+        DngValue::IfdBig(value) => u32::try_from(*value)
+            .map_err(|_| DecodeError::Backend("IFD pointer does not fit u32".into()))?,
+        DngValue::Rational(numerator, denominator) if *denominator == 1 => *numerator,
+        _ => {
+            return Err(DecodeError::Backend(
+                "tag does not contain unsigned integers".into(),
+            ));
+        }
+    };
+    Ok(number)
+}

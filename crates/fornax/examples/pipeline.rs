@@ -33,7 +33,7 @@ struct Args {
 fn run(arg: Args) -> mischief::Result<()> {
     let raw_path = arg.input;
 
-    let (image, metadata) =
+    let (image, _, metadata) =
         <Decoder as IDecoder<&Path, f32>>::decode_active(&Decoder, raw_path.as_path())?;
 
     let output_dir = fornax_devtool::temp_dir()

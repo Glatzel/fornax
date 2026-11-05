@@ -31,14 +31,13 @@ where
         let result = self
             .demosaic
             .demosaic(bayer_image, metadata.bayer_pattern())?;
-        if let Some(wb) = metadata.white_balance()
+        if let Some((r_mul, b_mul)) = metadata.wb_coeffs()
             && self.use_as_shot_neutral
         {
-            let (r_mul, b_mul) = wb.multipliers();
             return Ok(result.collect_with(|_y, row| {
                 for px in row.as_chunks_mut::<3>().0 {
-                    px[0] = px[0] * r_mul;
-                    px[2] = px[2] * b_mul;
+                    px[0] = px[0] * *r_mul;
+                    px[2] = px[2] * *b_mul;
                 }
             }));
         }
@@ -61,9 +60,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
 
-    use fornax_core::metadata::{Levels, ProcessMetadata, WhiteBalance};
+    use fornax_core::metadata::process::{Levels, ProcessMetadata};
     use fornax_core::{BayerPattern, MonoImage};
     use image::math::Rect;
 
@@ -92,8 +90,7 @@ mod tests {
                 white: 1.0,
             },
             bayer_pattern: BayerPattern::RGGB,
-            white_balance: Some(WhiteBalance::AsShotNeutral(0.5, 1.0, 0.25)),
-            dng_metadata: BTreeMap::default(),
+            wb_coeffs: Some((0.5, 0.25)),
         };
         let processor = PostProcessor::<f32, _> {
             demosaic: Demosaic::Linear,

@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{BufWriter, Seek, Write};
+use std::ops::Deref;
 use std::path::Path;
 
 use tiff::encoder::{DirectoryEncoder, Rational, SRational, TiffEncoder, TiffKindStandard};
@@ -261,42 +262,12 @@ where
         .write_tag(Tag::Unknown(DngTag::DngBackwardVersion.into()), dng_version)
         .map_err(tiff_write_error)?;
 
-    for (tag, value) in metadata {
-        if is_regenerated_tag(*tag) {
-            continue;
-        }
+    for (tag, value) in metadata.deref() {
         write_metadata_value(&mut directory, metadata_tag(*tag), value)?;
     }
 
     directory.finish().map_err(tiff_write_error)?;
     Ok(())
-}
-
-const fn is_regenerated_tag(tag: DngTag) -> bool {
-    matches!(
-        tag,
-        DngTag::NewSubfileType
-            | DngTag::ImageWidth
-            | DngTag::ImageLength
-            | DngTag::BitsPerSample
-            | DngTag::Compression
-            | DngTag::PhotometricInterpretation
-            | DngTag::SamplesPerPixel
-            | DngTag::RowsPerStrip
-            | DngTag::StripOffsets
-            | DngTag::StripByteCounts
-            | DngTag::PlanarConfiguration
-            | DngTag::TileWidth
-            | DngTag::TileLength
-            | DngTag::TileOffsets
-            | DngTag::TileByteCounts
-            | DngTag::SubIfds
-            | DngTag::DngVersion
-            | DngTag::DngBackwardVersion
-    ) || matches!(
-        tag,
-        DngTag::Unknown(339 | 34_665 | 34_853 | 40_965 | 50_941)
-    )
 }
 
 fn metadata_tag(tag: DngTag) -> Tag { tag.into() }

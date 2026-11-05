@@ -34,7 +34,7 @@ where
     pub bayer_pattern: BayerPattern,
 
     ///green normalized
-    pub wb_coefficients: Option<(T, T)>,
+    pub wb_coeffs: Option<(T, T)>,
 }
 
 /// Black and white levels for a single-sample Bayer RAW image.
@@ -73,5 +73,5 @@ where
 {
     fn bayer_pattern(&self) -> BayerPattern { self.bayer_pattern }
 
-    fn white_balance(&self) -> &Option<(T, T)> { &self.wb_coefficients }
+    fn wb_coeffs(&self) -> &Option<(T, T)> { &self.wb_coeffs }
 }
