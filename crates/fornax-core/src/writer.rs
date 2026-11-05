@@ -26,7 +26,7 @@ mod ljpeg;
 pub enum DngCompression {
     /// Uncompressed strip storage.
     Uncompressed,
-    /// DNG lossless JPEG-92 strip or tile storage.
+    /// Lossless DNG storage: JPEG-92 for U8/U16 and Deflate for wider samples.
     #[default]
     LosslessJpeg,
 }
@@ -406,9 +406,9 @@ where
         .map_err(|_| invalid_metadata("DNG width exceeds the platform address space"))?;
     let height = usize::try_from(height)
         .map_err(|_| invalid_metadata("DNG height exceeds the platform address space"))?;
-    let (bits, sample_format) = match mosaic {
-        RawMosaic::U32(_) => (32_u16, SampleFormat::Uint.to_u16()),
-        RawMosaic::F32(_) => (32_u16, SampleFormat::IEEEFP.to_u16()),
+    let (bits, sample_format, predictor) = match mosaic {
+        RawMosaic::U32(_) => (32_u16, SampleFormat::Uint.to_u16(), 1_u16),
+        RawMosaic::F32(_) => (32_u16, SampleFormat::IEEEFP.to_u16(), 3_u16),
         _ => unreachable!("the caller selects Deflate only for wider samples"),
     };
     let across = width.div_ceil(TILE);
@@ -448,10 +448,19 @@ where
                                     .iter_mut(),
                             )
                         {
-                            target.copy_from_slice(&value.to_bits().to_le_bytes());
+                            target.copy_from_slice(&value.to_bits().to_be_bytes());
                         }
                     }
                     _ => unreachable!("the caller selects Deflate only for wider samples"),
+                }
+            }
+            if predictor == 3 {
+                for row in bytes
+                    .as_chunks_mut::<{ TILE * size_of::<u32>() }>()
+                    .0
+                    .iter_mut()
+                {
+                    float_horizontal_predictor(row, TILE);
                 }
             }
             let mut compressor = ZlibEncoder::new(Vec::new(), Compression::fast());
@@ -510,9 +519,24 @@ where
     directory
         .write_tag(Tag::TileByteCounts, tile_byte_counts.as_slice())
         .map_err(tiff_write_error)?;
+    directory
+        .write_tag(Tag::Predictor, predictor)
+        .map_err(tiff_write_error)?;
     write_preserved_metadata(&mut directory, metadata)?;
     directory.finish().map_err(tiff_write_error)?;
     Ok(())
+}
+
+fn float_horizontal_predictor(row: &mut [u8], width: usize) {
+    let interleaved = row.to_vec();
+    for sample in 0..width {
+        for byte in 0..size_of::<u32>() {
+            row[sample + byte * width] = interleaved[sample * size_of::<u32>() + byte];
+        }
+    }
+    for index in (1..row.len()).rev() {
+        row[index] = row[index].wrapping_sub(row[index - 1]);
+    }
 }
 
 #[allow(

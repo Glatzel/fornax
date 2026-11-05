@@ -51,8 +51,8 @@
   deviation, sub-tile blocks, and geometric opcodes remain future work.
 - Deflate, single-channel lossy JPEG, JPEG XL, linearization, 2x2 interleave,
   and raw-domain `OpcodeList1` are implemented.
-- Classic and BigTIFF headers and both byte orders are parsed, but only classic
-  little-endian DNG is covered by the accepted integration fixture.
+- Classic and BigTIFF headers and both byte orders are parsed. The ignored
+  corpus covers classic little- and big-endian DNGs from multiple cameras.
 - Preview, thumbnail, mask, depth, and Exif image decoding are outside the raw
   decode path. Exif pointer tags are not copied to regenerated raw IFDs.
 

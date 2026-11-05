@@ -92,6 +92,9 @@ pub(super) fn reverse_predictor(
                         row[sample * bytes_per_sample + byte] =
                             shuffled[sample + byte * tile_width];
                     }
+                    if little_endian {
+                        row[sample * bytes_per_sample..(sample + 1) * bytes_per_sample].reverse();
+                    }
                 }
             }
         }

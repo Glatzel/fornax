@@ -107,8 +107,8 @@ Run the decoder benchmark with the colorchart fixture and compare
   `raw_mosaic`, 519 ms for `cropped_mosaic`, and 497 ms for
   `process_metadata`. Parallel tile decode, avoiding pixel work in metadata
   access, and a faster entropy decoder are the primary performance changes.
-- The branch measures 51.4 ms for `raw_mosaic`, 78.9 ms for
-  `cropped_mosaic`, and 190 us for `process_metadata` with the same local
+- The branch measures 54.2 ms for `raw_mosaic`, 84.0 ms for
+  `cropped_mosaic`, and 188 us for `process_metadata` with the same local
   command.
 - The in-tree JPEG codec is retained to preserve checked malformed-input
   handling and avoid the LGPL obligation of the standalone `ljpeg` crate.
@@ -260,7 +260,8 @@ Run the decoder benchmark with the colorchart fixture and compare
 - [x] Add no-panic malformed-input tests for every supported codec.
 - [x] Verify writer output decodes through Fornax for every mosaic storage
   type.
-- [x] Verify generated JPEG-92 DNG output through the Rawler adapter.
+- [x] Verify generated JPEG-92 U16 and float Deflate DNG output through the
+  Rawler adapter.
 - [x] Run tests and commit.
 
 ### Task 9: Documentation and Deferred Scope
@@ -293,6 +294,7 @@ Run the decoder benchmark with the colorchart fixture and compare
 
 - [x] Run all repository-required Rust checks and compile the decoder benchmark.
 - [x] Run the colorchart benchmark locally against `main`.
-- [ ] Inspect the full diff and dependency tree.
-- [ ] Commit any fixes, push the branch, and open one semantic pull request.
+- [x] Inspect the full diff and dependency tree.
+- [x] Commit validated fixes.
+- [ ] Push the branch and open one semantic pull request.
   Add the `perf` label to the pull request.

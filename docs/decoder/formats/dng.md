@@ -116,7 +116,9 @@ The active pipeline accepts only conventional RGB 2x2 Bayer layouts:
 
 Other repeat sizes, plane colors, layouts, or CFA patterns return a typed
 unsupported error. The decoder does not claim X-Trans, four-color, monochrome,
-or arbitrary-CFA pipeline support.
+or arbitrary-CFA pipeline support. Multi-channel `LinearRaw` DNG images also
+remain outside the mono mosaic contract even when their compression is
+recognized.
 
 ## References
 

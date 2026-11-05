@@ -139,7 +139,7 @@ benchmarks in their stage crates.
 - `DngCompression::Uncompressed` regenerates a classic-TIFF single-strip CFA
   DNG from current `RawMosaic` samples and `DngMetadata`.
 - `DngCompression::LosslessJpeg` writes 256x256 tiled JPEG-92 for U8/U16
-  mosaics and lossless Deflate strips for U32/F32 mosaics.
+  mosaics and tiled lossless Deflate for U32/F32 mosaics.
 - Structural and chunk-layout tags are regenerated; consumed frontend tags are
   omitted so they are not applied twice.
 - The writer does not silently change sample types, levels, or CFA tags.
