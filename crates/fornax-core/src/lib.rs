@@ -1,5 +1,4 @@
 mod bayer;
-mod decoded_raw;
 pub mod error;
 mod format;
 pub mod metadata;
@@ -9,7 +8,5 @@ mod raw_image;
 pub mod writer;
 
 pub use bayer::{BayerChannel, BayerPattern};
-pub use decoded_raw::DecodedRaw;
 pub use format::RawFormat;
-pub use primitive::{MonoImage, MosaicData, Primitive, RgbImage};
-pub use raw_image::RawImage;
+pub use primitive::{DecodedRaw, MonoImage, MosaicData, Primitive, RawImage, RgbImage};

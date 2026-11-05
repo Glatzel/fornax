@@ -1,16 +1,16 @@
 //! DNG container and sample decoding.
 
-mod process_metadata;
 mod ljpeg;
+mod process_metadata;
 mod tiff;
 
 use ::tiff::decoder::ifd::Value;
-use process_metadata::process_metadata_from_dng_metadata;
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag};
 use fornax_core::metadata::process::ProcessMetadata;
 use fornax_core::{DecodedRaw, MonoImage, MosaicData, Primitive};
 use generic_num::num;
+use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
 
 const PHOTOMETRIC_CFA: u64 = 32_803;

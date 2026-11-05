@@ -23,22 +23,12 @@ where
         .into_iter()
         .map(cast_number)
         .collect::<Option<Vec<T>>>()
-        .ok_or_else(|| {
-            metadata_error(
-                "BlackLevelDeltaH does not fit the
-output type",
-            )
-        })?;
+        .ok_or_else(|| metadata_error("BlackLevelDeltaH does not fit the output type"))?;
     let black_delta_v = scalar_values(dng_metadata.get(&DngTag::BlackLevelDeltaV))?
         .into_iter()
         .map(cast_number)
         .collect::<Option<Vec<T>>>()
-        .ok_or_else(|| {
-            metadata_error(
-                "BlackLevelDeltaV does not fit the
-output type",
-            )
-        })?;
+        .ok_or_else(|| metadata_error("BlackLevelDeltaV does not fit the output type"))?;
     let white = scalar_number(dng_metadata.get(&DngTag::WhiteLevel))?
         .and_then(cast_number)
         .ok_or_else(|| metadata_error("WhiteLevel is missing or invalid"))?;
@@ -115,35 +105,21 @@ where
 {
     let repeat =
         unsigned_values(metadata.get(&DngTag::BlackLevelRepeatDim))?.unwrap_or_else(|| vec![1, 1]);
-    let [width, height]: [u32; 2] = repeat.try_into().map_err(|_| {
-        metadata_error(
-            "BlackLevelRepeatDim must contain two
-values",
-        )
-    })?;
+    let [width, height]: [u32; 2] = repeat
+        .try_into()
+        .map_err(|_| metadata_error("BlackLevelRepeatDim must contain two values"))?;
     let levels = scalar_values(metadata.get(&DngTag::BlackLevel))?
         .into_iter()
         .map(cast_number)
         .collect::<Option<Vec<T>>>()
         .ok_or_else(|| metadata_error("BlackLevel is missing or invalid"))?;
-    let width_usize = usize::try_from(width).map_err(|_| {
-        metadata_error(
-            "BlackLevelRepeatDim exceeds the platform
-address space",
-        )
-    })?;
-    let height_usize = usize::try_from(height).map_err(|_| {
-        metadata_error(
-            "BlackLevelRepeatDim exceeds the platform
-address space",
-        )
-    })?;
-    let expected = width_usize.checked_mul(height_usize).ok_or_else(|| {
-        metadata_error(
-            "BlackLevelRepeatDim exceeds the
-platform address space",
-        )
-    })?;
+    let width_usize = usize::try_from(width)
+        .map_err(|_| metadata_error("BlackLevelRepeatDim exceeds the platform address space"))?;
+    let height_usize = usize::try_from(height)
+        .map_err(|_| metadata_error("BlackLevelRepeatDim exceeds the platform address space"))?;
+    let expected = width_usize
+        .checked_mul(height_usize)
+        .ok_or_else(|| metadata_error("BlackLevelRepeatDim exceeds the platform address space"))?;
     if width == 0 || height == 0 || levels.len() != expected {
         return Err(metadata_error(format!(
             "BlackLevel contains {} values for repeat dimensions
@@ -151,12 +127,8 @@ platform address space",
             levels.len()
         )));
     }
-    MonoImage::from_raw(width, height, levels).ok_or_else(|| {
-        metadata_error(
-            "black-level image dimensions are
-invalid",
-        )
-    })
+    MonoImage::from_raw(width, height, levels)
+        .ok_or_else(|| metadata_error("black-level image dimensions are  invalid"))
 }
 
 fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, DecodeError> {

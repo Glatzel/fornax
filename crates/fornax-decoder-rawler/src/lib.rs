@@ -289,7 +289,8 @@ where
     };
 
     let bayer_pattern = BayerPattern::from_str(&cfa.name)
-        .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?;
+        .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?
+        .shifted(active_area.x, active_area.y);
     let wb_coeffs = {
         if let Some(tag) = raw.dng_tags.get(&50728_u16) {
             let v: Vec<f32> = (0..3).map(|i| tag.force_f32(i)).collect();
