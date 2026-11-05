@@ -19,22 +19,36 @@ fn raw_path() -> PathBuf {
     path
 }
 
-fn bench_decoder<'a, D, T>(c: &mut Criterion, name: &str, decoder: D, path: &'a Path)
+fn bench_decoder<'a, D, T>(c: &mut Criterion, name: &str, path: &'a Path)
 where
     D: IDecoder<&'a Path, T>,
     T: Primitive + Send + Sync,
 {
-    c.bench_function(name, |b| {
-        b.iter(|| black_box(decoder.decode(black_box(path)).unwrap()));
+    c.bench_function(&format!("{name}/decode"), |b| {
+        b.iter(|| black_box(D::decode(black_box(path)).unwrap()));
+    });
+
+    let decoder = D::decode(path).unwrap();
+    c.bench_function(&format!("{name}/raw_mosaic"), |b| {
+        b.iter(|| black_box(decoder.raw_mosaic().unwrap()));
+    });
+    c.bench_function(&format!("{name}/cropped_mosaic"), |b| {
+        b.iter(|| black_box(decoder.cropped_mosaic().unwrap()));
+    });
+    c.bench_function(&format!("{name}/dng_metadata"), |b| {
+        b.iter(|| black_box(decoder.dng_metadata().unwrap()));
+    });
+    c.bench_function(&format!("{name}/process_metadata"), |b| {
+        b.iter(|| black_box(decoder.process_metadata().unwrap()));
     });
 }
 
 fn benches(c: &mut Criterion) {
     let path = raw_path();
-    bench_decoder::<_, f32>(c, "fornax/decode/f32", Decoder, &path);
-    bench_decoder::<_, f64>(c, "fornax/decode/f64", Decoder, &path);
-    bench_decoder::<_, f32>(c, "rawler/decode/f32", RawlerDecoder, &path);
-    bench_decoder::<_, f64>(c, "rawler/decode/f64", RawlerDecoder, &path);
+    bench_decoder::<Decoder<f32>, f32>(c, "fornax/f32", &path);
+    bench_decoder::<Decoder<f64>, f64>(c, "fornax/f64", &path);
+    bench_decoder::<RawlerDecoder<f32>, f32>(c, "rawler/f32", &path);
+    bench_decoder::<RawlerDecoder<f64>, f64>(c, "rawler/f64", &path);
 }
 
 criterion_group!(benches_group, benches);
