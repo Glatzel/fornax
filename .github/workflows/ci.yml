@@ -127,6 +127,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
+          FORNAX_BENCH_ALGORITHM: ${{ matrix.algorithm }}
 
   compare-demosaic:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
