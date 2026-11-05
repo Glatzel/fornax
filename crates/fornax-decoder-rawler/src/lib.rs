@@ -5,7 +5,7 @@ use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationErro
 use fornax_core::metadata::dng::DngMetadata;
 use fornax_core::metadata::process::{Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
-use fornax_core::{BayerPattern, DecodedRaw, MonoImage, MosaicData, Primitive};
+use fornax_core::{BayerPattern, CroppedMosaic, MonoImage, RawMosaic, Primitive};
 use generic_num::num;
 use image::math::Rect;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
@@ -21,7 +21,7 @@ where
     fn decode(
         &self,
         input: P,
-    ) -> Result<(MosaicData, DngMetadata, ProcessMetadata<T>), DecodeError> {
+    ) -> Result<(RawMosaic, DngMetadata, ProcessMetadata<T>), DecodeError> {
         let input = input.as_ref();
         if !input.is_file() {
             return Err(DecodeError::InvalidInput(
@@ -30,11 +30,11 @@ where
         }
         let raw = rawler::decode_file(input).map_err(backend_error)?;
         let mosaic = match &raw.data {
-            RawImageData::Integer(items) => MosaicData::U16(
+            RawImageData::Integer(items) => RawMosaic::U16(
                 MonoImage::from_raw(raw.width as _, raw.height as _, items.clone())
                     .ok_or_else(|| DecodeError::from(RawValidationError::InvalidImage))?,
             ),
-            RawImageData::Float(items) => MosaicData::F32(
+            RawImageData::Float(items) => RawMosaic::F32(
                 MonoImage::from_raw(raw.width as _, raw.height as _, items.clone())
                     .ok_or_else(|| DecodeError::from(RawValidationError::InvalidImage))?,
             ),
@@ -46,7 +46,7 @@ where
     fn decode_active(
         &self,
         input: P,
-    ) -> Result<(DecodedRaw<T>, DngMetadata, ProcessMetadata<T>), DecodeError> {
+    ) -> Result<(CroppedMosaic<T>, DngMetadata, ProcessMetadata<T>), DecodeError> {
         let input = input.as_ref();
         if !input.is_file() {
             return Err(DecodeError::InvalidInput(
@@ -58,7 +58,7 @@ where
         let process_metadata = get_process_metadata(&raw)?;
         image.crop_in_place(process_metadata.active_area);
         Ok((
-            DecodedRaw::new(image),
+            CroppedMosaic::new(image),
             DngMetadata::default(),
             process_metadata,
         ))

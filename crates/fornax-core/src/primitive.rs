@@ -21,7 +21,7 @@ pub type MonoImage<T> = ImageBuffer<Luma<T>, Vec<T>>;
 pub type RgbImage<T> = ImageBuffer<Rgb<T>, Vec<T>>;
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum MosaicData {
+pub enum RawMosaic {
     /// 8-bit unsigned samples.
     U8(MonoImage<u8>),
     /// 16-bit unsigned samples.
@@ -31,7 +31,7 @@ pub enum MosaicData {
     /// 32-bit floating-point samples.
     F32(MonoImage<f32>),
 }
-impl MosaicData {
+impl RawMosaic {
     pub fn dimensions(&self) -> (u32, u32) {
         match self {
             Self::U8(image_buffer) => image_buffer.dimensions(),
@@ -43,9 +43,9 @@ impl MosaicData {
 }
 
 #[derive(Clone, Debug)]
-pub struct DecodedRaw<T: Primitive>(MonoImage<T>);
+pub struct CroppedMosaic<T: Primitive>(MonoImage<T>);
 
-impl<T: Primitive> DecodedRaw<T> {
+impl<T: Primitive> CroppedMosaic<T> {
     pub const fn new(image: MonoImage<T>) -> Self { Self(image) }
 
     pub const fn image(&self) -> &MonoImage<T> { &self.0 }
@@ -56,7 +56,7 @@ impl<T: Primitive> DecodedRaw<T> {
         self,
         preprocessor: &P,
         levels: &Levels<T>,
-    ) -> Result<RawImage<T>, PreprocessError>
+    ) -> Result<NormalizedMosaic<T>, PreprocessError>
     where
         P: IPreprocessor<T>,
     {
@@ -65,11 +65,11 @@ impl<T: Primitive> DecodedRaw<T> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct RawImage<T>(MonoImage<T>)
+pub struct NormalizedMosaic<T>(MonoImage<T>)
 where
     T: Primitive;
 
-impl<T> RawImage<T>
+impl<T> NormalizedMosaic<T>
 where
     T: Primitive,
 {

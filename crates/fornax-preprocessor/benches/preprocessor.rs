@@ -2,7 +2,7 @@ use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main
 use fornax_core::error::PreprocessError;
 use fornax_core::metadata::process::Levels;
 use fornax_core::protocol::IPreprocessor;
-use fornax_core::{DecodedRaw, MonoImage, Primitive};
+use fornax_core::{CroppedMosaic, MonoImage, Primitive};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
 use fornax_preprocessor::Preprocessor;
 
@@ -22,7 +22,7 @@ where
         let name = format!("preprocess/{}/{}", size.label, bits.as_ref());
         c.bench_function(&name, |b| {
             b.iter_batched(
-                || DecodedRaw::new(black_box(source.clone())),
+                || CroppedMosaic::new(black_box(source.clone())),
                 |decoded| -> Result<_, PreprocessError> {
                     Preprocessor.process(decoded, black_box(&levels))
                 },

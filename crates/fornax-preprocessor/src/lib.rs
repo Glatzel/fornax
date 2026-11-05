@@ -1,7 +1,7 @@
 use fornax_core::error::PreprocessError;
 use fornax_core::metadata::process::Levels;
 use fornax_core::protocol::IPreprocessor;
-use fornax_core::{DecodedRaw, MonoImage, Primitive, RawImage};
+use fornax_core::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive};
 use rayon::prelude::*;
 pub struct Preprocessor;
 impl<T> IPreprocessor<T> for Preprocessor
@@ -10,9 +10,9 @@ where
 {
     fn process(
         &self,
-        decoded: DecodedRaw<T>,
+        decoded: CroppedMosaic<T>,
         levels: &Levels<T>,
-    ) -> Result<RawImage<T>, PreprocessError> {
+    ) -> Result<NormalizedMosaic<T>, PreprocessError> {
         let image = decoded.into_image();
         let (width, height) = image.dimensions();
         let w = width as usize;
@@ -76,7 +76,7 @@ where
         let normalized =
             MonoImage::from_raw(width, height, raw).expect("pixel count matches image dimensions");
 
-        Ok(RawImage::new(normalized))
+        Ok(NormalizedMosaic::new(normalized))
     }
 }
 
@@ -129,7 +129,7 @@ mod tests {
             .expect("image dimensions");
         let black =
             MonoImage::from_raw(2, 2, vec![0.0, 0.1, 0.2, 0.3]).expect("black-level dimensions");
-        let output = Preprocessor.process(DecodedRaw::new(image), &levels(black))?;
+        let output = Preprocessor.process(CroppedMosaic::new(image), &levels(black))?;
         assert_eq!(output.image().dimensions(), (3, 2));
         assert!(output.image().as_raw().iter().all(|value| *value > 0.0));
         Ok(())
@@ -141,7 +141,7 @@ mod tests {
         let image = MonoImage::from_raw(1, 1, vec![1.0]).expect("image dimensions");
         let black = MonoImage::new(0, 0);
         let error = Preprocessor
-            .process(DecodedRaw::new(image), &levels(black))
+            .process(CroppedMosaic::new(image), &levels(black))
             .expect_err("empty black pattern must fail");
         assert_eq!(error, PreprocessError::InvalidBlackPattern);
     }
@@ -154,7 +154,7 @@ mod tests {
         let mut level_data = levels(black);
         level_data.black_delta_h = vec![0.0];
         let error = Preprocessor
-            .process(DecodedRaw::new(image), &level_data)
+            .process(CroppedMosaic::new(image), &level_data)
             .expect_err("mismatched horizontal delta must fail");
         assert_eq!(
             error,
@@ -169,7 +169,7 @@ mod tests {
         let mut level_data = levels(black);
         level_data.black_delta_v = vec![0.0];
         let error = Preprocessor
-            .process(DecodedRaw::new(image), &level_data)
+            .process(CroppedMosaic::new(image), &level_data)
             .expect_err("mismatched vertical delta must fail");
         assert_eq!(
             error,
@@ -191,7 +191,7 @@ mod tests {
             height: 2,
         });
         let black = MonoImage::from_raw(2, 2, vec![0.0; 4]).expect("black-level dimensions");
-        let output = Preprocessor.process(DecodedRaw::new(image), &levels(black))?;
+        let output = Preprocessor.process(CroppedMosaic::new(image), &levels(black))?;
         assert_eq!(output.image().dimensions(), (3, 2));
         Ok(())
     }

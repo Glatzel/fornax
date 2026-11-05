@@ -1,19 +1,19 @@
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
 use crate::metadata::dng::DngMetadata;
 use crate::metadata::process::{Levels, ProcessMetadata};
-use crate::{BayerPattern, DecodedRaw, MonoImage, MosaicData, Primitive, RawImage, RgbImage};
+use crate::{
+    BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
+};
 pub trait IDecoder<I, T>: Send + Sync
 where
     T: Primitive,
 {
-    fn decode(
-        &self,
-        input: I,
-    ) -> Result<(MosaicData, DngMetadata, ProcessMetadata<T>), DecodeError>;
+    fn decode(&self, input: I)
+    -> Result<(RawMosaic, DngMetadata, ProcessMetadata<T>), DecodeError>;
     fn decode_active(
         &self,
         input: I,
-    ) -> Result<(DecodedRaw<T>, DngMetadata, ProcessMetadata<T>), DecodeError>;
+    ) -> Result<(CroppedMosaic<T>, DngMetadata, ProcessMetadata<T>), DecodeError>;
 }
 
 pub trait IPreprocessor<T>: Sized
@@ -22,9 +22,9 @@ where
 {
     fn process(
         &self,
-        decoded: DecodedRaw<T>,
+        decoded: CroppedMosaic<T>,
         levels: &Levels<T>,
-    ) -> Result<RawImage<T>, PreprocessError>;
+    ) -> Result<NormalizedMosaic<T>, PreprocessError>;
 }
 pub trait IPostProcessMetadata<T>: Sync
 where

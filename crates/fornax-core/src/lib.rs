@@ -9,4 +9,4 @@ pub mod writer;
 
 pub use bayer::{BayerChannel, BayerPattern};
 pub use format::RawFormat;
-pub use primitive::{DecodedRaw, MonoImage, MosaicData, Primitive, RawImage, RgbImage};
+pub use primitive::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage};

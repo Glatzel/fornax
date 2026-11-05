@@ -3,13 +3,13 @@ use std::ops::Deref;
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag, DngValue};
 use fornax_core::metadata::process::{Levels, ProcessMetadata};
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, MosaicData, Primitive};
+use fornax_core::{BayerChannel, BayerPattern, MonoImage, RawMosaic, Primitive};
 use generic_num::num;
 use image::math::Rect;
 use tiff::decoder::ifd::Value;
 
 pub fn process_metadata_from_dng_metadata<T>(
-    pixels: &MosaicData,
+    pixels: &RawMosaic,
     dng_metadata: &DngMetadata,
 ) -> Result<ProcessMetadata<T>, DecodeError>
 where

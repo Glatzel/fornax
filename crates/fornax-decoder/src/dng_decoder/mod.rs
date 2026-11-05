@@ -8,7 +8,7 @@ use ::tiff::decoder::ifd::Value;
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag};
 use fornax_core::metadata::process::ProcessMetadata;
-use fornax_core::{DecodedRaw, MonoImage, MosaicData, Primitive};
+use fornax_core::{CroppedMosaic, MonoImage, RawMosaic, Primitive};
 use generic_num::num;
 use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
@@ -20,7 +20,7 @@ const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
 
 pub fn decode<T>(
     source: &[u8],
-) -> Result<(MosaicData, DngMetadata, ProcessMetadata<T>), DecodeError>
+) -> Result<(RawMosaic, DngMetadata, ProcessMetadata<T>), DecodeError>
 where
     T: Primitive,
 {
@@ -51,7 +51,7 @@ where
 }
 pub fn decode_active<T>(
     source: &[u8],
-) -> Result<(DecodedRaw<T>, DngMetadata, ProcessMetadata<T>), DecodeError>
+) -> Result<(CroppedMosaic<T>, DngMetadata, ProcessMetadata<T>), DecodeError>
 where
     T: Primitive,
 {
@@ -78,7 +78,7 @@ where
     let process_metadata = process_metadata_from_dng_metadata(&pixels, &dng_metadata)?;
     let active_area = process_metadata.active_area;
     let decoded_raw = match pixels {
-        MosaicData::U8(mut image_buffer) => {
+        RawMosaic::U8(mut image_buffer) => {
             image_buffer.crop_in_place(active_area.clone());
             MonoImage::from_raw(
                 active_area.width,
@@ -91,7 +91,7 @@ where
             )
             .unwrap()
         }
-        MosaicData::U16(mut image_buffer) => {
+        RawMosaic::U16(mut image_buffer) => {
             image_buffer.crop_in_place(process_metadata.active_area);
             MonoImage::from_raw(
                 active_area.width,
@@ -104,7 +104,7 @@ where
             )
             .unwrap()
         }
-        MosaicData::U32(mut image_buffer) => {
+        RawMosaic::U32(mut image_buffer) => {
             image_buffer.crop_in_place(process_metadata.active_area);
             MonoImage::from_raw(
                 active_area.width,
@@ -117,7 +117,7 @@ where
             )
             .unwrap()
         }
-        MosaicData::F32(mut image_buffer) => {
+        RawMosaic::F32(mut image_buffer) => {
             image_buffer.crop_in_place(process_metadata.active_area);
             MonoImage::from_raw(
                 active_area.width,
@@ -131,10 +131,10 @@ where
             .unwrap()
         }
     };
-    Ok((DecodedRaw::new(decoded_raw), dng_metadata, process_metadata))
+    Ok((CroppedMosaic::new(decoded_raw), dng_metadata, process_metadata))
 }
 
-fn validate_dimensions(pixels: &MosaicData, metadata: &DngMetadata) -> Result<(), DecodeError> {
+fn validate_dimensions(pixels: &RawMosaic, metadata: &DngMetadata) -> Result<(), DecodeError> {
     let width = required_u32(metadata, DngTag::ImageWidth)?;
     let height = required_u32(metadata, DngTag::ImageLength)?;
     let (actual_width, actual_height) = pixels.dimensions();
@@ -160,7 +160,7 @@ fn raw_area(metadata: &DngMetadata) -> u64 {
     width.saturating_mul(height)
 }
 
-fn decode_samples(source: &[u8], metadata: &DngMetadata) -> Result<MosaicData, DecodeError> {
+fn decode_samples(source: &[u8], metadata: &DngMetadata) -> Result<RawMosaic, DecodeError> {
     let width = required_u32(metadata, DngTag::ImageWidth)?;
     let height = required_u32(metadata, DngTag::ImageLength)?;
     if width == 0 || height == 0 {
@@ -188,7 +188,7 @@ fn decode_lossless_jpeg(
     metadata: &DngMetadata,
     width: u32,
     height: u32,
-) -> Result<MosaicData, DecodeError> {
+) -> Result<RawMosaic, DecodeError> {
     let bits = required_u16(metadata, DngTag::BitsPerSample)?;
     if bits != 16 {
         return Err(unsupported_variant(format!(
@@ -249,7 +249,7 @@ fn decode_uncompressed(
     metadata: &DngMetadata,
     width: u32,
     height: u32,
-) -> Result<MosaicData, DecodeError> {
+) -> Result<RawMosaic, DecodeError> {
     let bits = required_u16(metadata, DngTag::BitsPerSample)?;
     let (tile_width, tile_height, offsets, byte_counts) = layout(metadata)?;
     let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
@@ -283,7 +283,7 @@ fn decode_uncompressed(
                 &mut output,
             )?;
             MonoImage::from_raw(width as u32, height as u32, output)
-                .map(MosaicData::U8)
+                .map(RawMosaic::U8)
                 .ok_or_else(|| corrupt("uncompressed DNG dimensions are invalid"))
         }
         16 => {
@@ -317,7 +317,7 @@ fn decode_uncompressed(
                     &mut output,
                 )?;
                 MonoImage::from_raw(width as u32, height as u32, output)
-                    .map(MosaicData::F32)
+                    .map(RawMosaic::F32)
                     .ok_or_else(|| {
                         corrupt("uncompressed floating-point DNG dimensions are invalid")
                     })
@@ -336,7 +336,7 @@ fn decode_uncompressed(
                     &mut output,
                 )?;
                 MonoImage::from_raw(width as u32, height as u32, output)
-                    .map(MosaicData::U32)
+                    .map(RawMosaic::U32)
                     .ok_or_else(|| corrupt("uncompressed DNG dimensions are invalid"))
             }
         }
@@ -534,13 +534,13 @@ fn layout(metadata: &DngMetadata) -> Result<(usize, usize, Vec<usize>, Vec<usize
     ))
 }
 
-fn to_mosaic(width: usize, height: usize, samples: Vec<u16>) -> Result<MosaicData, DecodeError> {
+fn to_mosaic(width: usize, height: usize, samples: Vec<u16>) -> Result<RawMosaic, DecodeError> {
     MonoImage::from_raw(
         u32::try_from(width).expect("source width came from u32"),
         u32::try_from(height).expect("source height came from u32"),
         samples,
     )
-    .map(MosaicData::U16)
+    .map(RawMosaic::U16)
     .ok_or_else(|| corrupt("decoded DNG dimensions are invalid"))
 }
 

@@ -6,7 +6,7 @@ use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::DngMetadata;
 use fornax_core::metadata::process::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
-use fornax_core::{DecodedRaw, MosaicData, Primitive};
+use fornax_core::{CroppedMosaic, RawMosaic, Primitive};
 use fornax_decoder_rawler::RawlerDecoder;
 use strum::{AsRefStr, Display, EnumString};
 
@@ -366,7 +366,7 @@ where
     fn decode(
         &self,
         input: P,
-    ) -> Result<(MosaicData, DngMetadata, ProcessMetadata<T>), DecodeError> {
+    ) -> Result<(RawMosaic, DngMetadata, ProcessMetadata<T>), DecodeError> {
         let dng_file = self.convert(input.as_ref())?;
         RawlerDecoder.decode(&dng_file as &Path)
     }
@@ -374,7 +374,7 @@ where
     fn decode_active(
         &self,
         input: P,
-    ) -> Result<(DecodedRaw<T>, DngMetadata, ProcessMetadata<T>), DecodeError> {
+    ) -> Result<(CroppedMosaic<T>, DngMetadata, ProcessMetadata<T>), DecodeError> {
         let dng_file = self.convert(input.as_ref())?;
         RawlerDecoder.decode_active(&dng_file as &Path)
     }
