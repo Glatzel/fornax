@@ -6,7 +6,7 @@ use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::DngMetadata;
 use fornax_core::metadata::process::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
-use fornax_core::{CroppedMosaic, RawMosaic, Primitive};
+use fornax_core::{CroppedMosaic, Primitive, RawMosaic};
 use fornax_decoder_rawler::RawlerDecoder;
 use strum::{AsRefStr, Display, EnumString};
 
@@ -114,10 +114,9 @@ static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
         PathBuf::from(r"C:\Program Files\Adobe\Adobe DNG Converter\Adobe DNG Converter.exe")
     }
 });
-
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct DncDecoder {
+pub struct DncParams {
     /// Output lossless compressed DNG files.
     pub compressed: bool,
     /// Output linear DNG files.
@@ -145,14 +144,34 @@ pub struct DncDecoder {
     /// Overwrite an existing DNG file.
     pub overwrite: bool,
 }
+impl Default for DncParams {
+    fn default() -> Self {
+        Self {
+            compressed: true,
+            linear: false,
+            embed: false,
+            preview: DncPreview::Medium,
+            fast_load: false,
+            side: None,
+            count: None,
+            compatibility: DncCompatibility::CR16_0,
+            directory: None,
+            filename: None,
+            overwrite: false,
+        }
+    }
+}
+#[derive(Debug, Clone)]
+pub struct DncDecoder(RawlerDecoder);
+
 impl DncDecoder {
-    fn command_args(&self, raw_file: &Path) -> Result<Vec<String>, DecodeError> {
+    fn command_args(raw_file: &Path, params: &DncParams) -> Result<Vec<String>, DecodeError> {
         let raw_file = std::path::absolute(raw_file).map_err(|error| {
             DecodeError::InvalidInput(
                 format!("cannot resolve RAW path {}: {error}", raw_file.display()).into(),
             )
         })?;
-        let output_file = self.output_file(&raw_file)?;
+        let output_file = Self::output_file(&raw_file, &params)?;
         let directory = output_file.parent().ok_or_else(|| {
             DecodeError::InvalidInput(
                 format!("output path has no parent: {}", output_file.display()).into(),
@@ -165,23 +184,23 @@ impl DncDecoder {
         })?;
 
         let mut cmd = Vec::new();
-        cmd.push(if self.compressed { "-c" } else { "-u" }.into());
-        if self.linear {
+        cmd.push(if params.compressed { "-c" } else { "-u" }.into());
+        if params.linear {
             cmd.push("-l".into());
         }
-        cmd.push(self.preview.to_string());
-        if self.fast_load {
+        cmd.push(params.preview.to_string());
+        if params.fast_load {
             cmd.push("-fl".into());
         }
-        if let Some(side) = self.side {
+        if let Some(side) = params.side {
             cmd.push("-side".into());
             cmd.push(side.to_string());
         }
-        if let Some(count) = self.count {
+        if let Some(count) = params.count {
             cmd.push("-count".into());
             cmd.push(count.to_string());
         }
-        cmd.push(self.compatibility.to_string());
+        cmd.push(params.compatibility.to_string());
         cmd.push("-d".into());
         cmd.push(directory.to_string_lossy().into());
         cmd.push("-o".into());
@@ -190,8 +209,8 @@ impl DncDecoder {
         Ok(cmd)
     }
 
-    fn output_file(&self, raw_file: &Path) -> Result<PathBuf, DecodeError> {
-        let mut directory = match &self.directory {
+    fn output_file(raw_file: &Path, params: &DncParams) -> Result<PathBuf, DecodeError> {
+        let mut directory = match &params.directory {
             None => raw_file
                 .parent()
                 .map_or_else(|| PathBuf::from("."), Path::to_path_buf),
@@ -206,7 +225,7 @@ impl DncDecoder {
             })?,
         };
 
-        let filename = match &self.filename {
+        let filename = match &params.filename {
             Some(filename) if filename.is_empty() => {
                 return Err(DecodeError::InvalidInput(
                     "DNC output filename must not be empty".into(),
@@ -233,7 +252,7 @@ impl DncDecoder {
         Ok(directory)
     }
 
-    fn convert(&self, raw_file: &Path) -> Result<PathBuf, DecodeError> {
+    fn convert(raw_file: &Path, params: &DncParams) -> Result<PathBuf, DecodeError> {
         let raw_file = std::path::absolute(raw_file).map_err(|error| {
             DecodeError::InvalidInput(
                 format!("cannot resolve RAW path {}: {error}", raw_file.display()).into(),
@@ -253,7 +272,7 @@ impl DncDecoder {
             return Ok(raw_file);
         }
 
-        let dng_file = self.output_file(&raw_file)?;
+        let dng_file = Self::output_file(&raw_file, &params)?;
         let output_directory = dng_file.parent().ok_or_else(|| {
             DecodeError::InvalidInput(
                 format!("DNG output path has no parent: {}", dng_file.display()).into(),
@@ -269,7 +288,7 @@ impl DncDecoder {
             )
         })?;
 
-        if self.overwrite {
+        if params.overwrite {
             match std::fs::remove_file(&dng_file) {
                 Ok(()) => {
                     clerk::info!(
@@ -295,7 +314,7 @@ impl DncDecoder {
             clerk::info!("DNG file already exists: {}", dng_file_absolute.display());
         } else {
             let program = &*DNC_EXECUTABLE;
-            let args = self.command_args(&raw_file)?;
+            let args = Self::command_args(&raw_file, &params)?;
             let output = std::process::Command::new(program)
                 .args(&args)
                 .output()
@@ -341,42 +360,31 @@ impl DncDecoder {
     }
 }
 
-impl Default for DncDecoder {
-    fn default() -> Self {
-        Self {
-            compressed: true,
-            linear: false,
-            embed: false,
-            preview: DncPreview::Medium,
-            fast_load: false,
-            side: None,
-            count: None,
-            compatibility: DncCompatibility::CR16_0,
-            directory: None,
-            filename: None,
-            overwrite: false,
-        }
-    }
-}
-impl<P, T> IDecoder<P, T> for DncDecoder
+impl<P, T> IDecoder<(P, DncParams), T> for DncDecoder
 where
     T: Primitive,
     P: AsRef<Path>,
 {
-    fn decode(
-        &self,
-        input: P,
-    ) -> Result<(RawMosaic, DngMetadata, ProcessMetadata<T>), DecodeError> {
-        let dng_file = self.convert(input.as_ref())?;
-        RawlerDecoder.decode(&dng_file as &Path)
+    fn decode(input: (P, DncParams)) -> Result<Self, DecodeError> {
+        let dng_file = Self::convert(input.0.as_ref(), &input.1)?;
+        let decoder = <RawlerDecoder as IDecoder<PathBuf, T>>::decode(dng_file)?;
+        Ok(Self(decoder))
     }
 
-    fn decode_active(
-        &self,
-        input: P,
-    ) -> Result<(CroppedMosaic<T>, DngMetadata, ProcessMetadata<T>), DecodeError> {
-        let dng_file = self.convert(input.as_ref())?;
-        RawlerDecoder.decode_active(&dng_file as &Path)
+    fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
+        <RawlerDecoder as IDecoder<PathBuf, T>>::raw_mosaic(&self.0)
+    }
+
+    fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> {
+        <RawlerDecoder as IDecoder<PathBuf, T>>::cropped_mosaic(&self.0)
+    }
+
+    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> {
+        <RawlerDecoder as IDecoder<PathBuf, T>>::dng_metadata(&self.0)
+    }
+
+    fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
+        <RawlerDecoder as IDecoder<PathBuf, T>>::process_metadata(&self.0)
     }
 }
 
@@ -386,23 +394,23 @@ mod tests {
 
     #[test]
     fn default_configuration_matches_adobe_converter_defaults() {
-        let decoder = DncDecoder::default();
-        assert!(decoder.compressed);
-        assert_eq!(decoder.preview, DncPreview::Medium);
-        assert_eq!(decoder.compatibility, DncCompatibility::CR16_0);
-        assert!(!decoder.linear);
-        assert!(!decoder.overwrite);
+        let params = DncParams::default();
+        assert!(params.compressed);
+        assert_eq!(params.preview, DncPreview::Medium);
+        assert_eq!(params.compatibility, DncCompatibility::CR16_0);
+        assert!(!params.linear);
+        assert!(!params.overwrite);
     }
 
     #[test]
     fn command_arguments_preserve_paths_and_separate_values() -> Result<(), DecodeError> {
         let raw = std::env::temp_dir().join("fornax input.CR2");
-        let decoder = DncDecoder {
+        let params = DncParams {
             side: Some(4_000),
             count: Some(20_000_000),
-            ..DncDecoder::default()
+            ..DncParams::default()
         };
-        let args = decoder.command_args(&raw)?;
+        let args = DncDecoder::command_args(&raw, &params)?;
 
         assert!(args.windows(2).any(|args| args == ["-side", "4000"]));
         assert!(args.windows(2).any(|args| args == ["-count", "20000000"]));
@@ -413,12 +421,11 @@ mod tests {
 
     #[test]
     fn empty_output_filename_is_rejected() {
-        let decoder = DncDecoder {
+        let params = DncParams {
             filename: Some(String::new()),
-            ..DncDecoder::default()
+            ..DncParams::default()
         };
-        let error = decoder
-            .command_args(Path::new("input.cr2"))
+        let error = DncDecoder::command_args(Path::new("input.cr2"), &params)
             .expect_err("empty filename must fail");
         assert!(matches!(error, DecodeError::InvalidInput(_)));
     }

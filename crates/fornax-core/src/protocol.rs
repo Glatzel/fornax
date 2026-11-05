@@ -7,13 +7,13 @@ use crate::{
 pub trait IDecoder<I, T>: Send + Sync
 where
     T: Primitive,
+    Self: Sized,
 {
-    fn decode(&self, input: I)
-    -> Result<(RawMosaic, DngMetadata, ProcessMetadata<T>), DecodeError>;
-    fn decode_active(
-        &self,
-        input: I,
-    ) -> Result<(CroppedMosaic<T>, DngMetadata, ProcessMetadata<T>), DecodeError>;
+    fn decode(input: I) -> Result<Self, DecodeError>;
+    fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
+    fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError>;
+    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError>;
+    fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError>;
 }
 
 pub trait IPreprocessor<T>: Sized
