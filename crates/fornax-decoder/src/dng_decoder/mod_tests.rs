@@ -1,8 +1,8 @@
+use fornax_core::MosaicData;
+use fornax_core::metadata::dng::{DngMetadata, DngTag};
 use tiff::decoder::ifd::Value;
 
 use super::decode_samples;
-use crate::MosaicData;
-use crate::metadata::dng::{DngMetadata, DngTag};
 
 fn u16_source(samples: &[u16]) -> Vec<u8> {
     let mut source = b"II".to_vec();

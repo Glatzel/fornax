@@ -485,6 +485,7 @@ dependencies = [
  "cc",
  "clap",
  "fornax-core",
+ "fornax-decoder",
  "fornax-devtool",
  "fornax-postprocessor",
  "fornax-preprocessor",
@@ -747,6 +748,7 @@ name = "fornax"
 version = "0.0.17"
 dependencies = [
  "fornax-core",
+ "fornax-decoder",
  "fornax-devtool",
  "fornax-postprocessor",
  "fornax-preprocessor",
@@ -759,6 +761,22 @@ name = "fornax-core"
 version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
+ "fornax-devtool",
+ "image",
+ "num-traits",
+ "num_enum",
+ "strum",
+ "tempfile",
+ "thiserror",
+ "tiff",
+]
+
+[[package]]
+name = "fornax-decoder"
+version = "0.0.17"
+dependencies = [
+ "codspeed-criterion-compat",
+ "fornax-core",
  "fornax-devtool",
  "image",
  "num-traits",

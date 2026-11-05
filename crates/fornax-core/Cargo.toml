@@ -3,10 +3,6 @@ name = "fornax-core"
 version.workspace = true
 edition.workspace = true
 
-[[bench]]
-harness = false
-name = "decoder"
-
 [dependencies]
 image.workspace = true
 num_enum.workspace = true

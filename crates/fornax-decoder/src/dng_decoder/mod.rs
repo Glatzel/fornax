@@ -7,11 +7,10 @@ mod tiff;
 #[path = "mod_tests.rs"]
 mod tests;
 
-use tiff::decoder::ifd::Value;
-
-use crate::error::DecodeError;
-use crate::metadata::dng::{DngMetadata, DngTag};
-use crate::{MonoImage, MosaicData};
+use ::tiff::decoder::ifd::Value;
+use fornax_core::error::DecodeError;
+use fornax_core::metadata::dng::{DngMetadata, DngTag};
+use fornax_core::{MonoImage, MosaicData};
 const PHOTOMETRIC_CFA: u64 = 32_803;
 const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
 const COMPRESSION_UNCOMPRESSED: u16 = 1;

@@ -1,8 +1,9 @@
 use std::path::{Path, PathBuf};
 
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use fornax_core::Primitive;
 use fornax_core::protocol::IDecoder;
-use fornax_core::{Decoder, Primitive};
+use fornax_decoder::Decoder;
 
 fn raw_path() -> PathBuf {
     let path =

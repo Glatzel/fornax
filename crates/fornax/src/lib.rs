@@ -4,4 +4,4 @@ pub use fornax_core::{
     metadata, protocol,
 };
 pub mod postprocessor;
-pub use fornax_core::Decoder;
+pub use fornax_decoder::Decoder;

@@ -4,7 +4,8 @@ use fornax_core::error::DngWriteError;
 use fornax_core::metadata::dng::{DngTag, DngValue};
 use fornax_core::protocol::IDecoder;
 use fornax_core::writer::{DngCompression, DngWriter};
-use fornax_core::{BayerPattern, Decoder, MosaicData};
+use fornax_core::{BayerPattern, MosaicData};
+use fornax_decoder::Decoder;
 
 fn fixture_path() -> PathBuf {
     PathBuf::from(env!("CARGO_WORKSPACE_DIR"))

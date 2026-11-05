@@ -1,9 +1,8 @@
 use std::collections::{HashSet, VecDeque};
 
 use ::tiff::decoder::ifd::Value;
-
-use crate::error::DecodeError;
-use crate::metadata::dng::{DngMetadata, DngTag};
+use fornax_core::error::DecodeError;
+use fornax_core::metadata::dng::{DngMetadata, DngTag};
 
 const TAG_SUB_IFDS: u16 = 330;
 
