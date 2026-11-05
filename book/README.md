@@ -48,7 +48,7 @@ rewrite, and done. Only the maintainer marks a chapter done.
 
 | ID | Chapter | Prerequisite | Status |
 | --- | --- | --- | --- |
-| L00 | Pipeline overview | Decode and later stages exist | Ready |
+| L00 | Pipeline overview | Decode and later stages exist | Draft |
 | L01 | From photons to numbers | A decoder and Bayer metadata exist | Ready |
 | L02 | Preprocess | Preprocessor and level metadata are merged | Ready |
 | L10 | The demosaicing problem | One demosaic implementation exists | Ready |

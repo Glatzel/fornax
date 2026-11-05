@@ -7,7 +7,7 @@
 
 ## Planned chapter order
 
-1. L00 - Pipeline overview
+1. [L00 - Pipeline overview](l00-pipeline-overview.md)
 2. L01 - From photons to numbers
 3. L02 - Preprocess
 4. L10 - The demosaicing problem
