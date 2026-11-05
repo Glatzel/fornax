@@ -12,7 +12,7 @@ foreach ($file in @(
     "src/iop/demosaicing/vng.c"
 ))
 {
-    $destination = Join-Path "$root/external/darktable/$file"
+    $destination = "$root/external/darktable/$file"
 
     if (Test-Path $destination) {
         continue
