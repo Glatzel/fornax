@@ -194,10 +194,10 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: parsed chunk geometry and compression metadata.
 - Produces: `RawMosaic` outputs for compression 8, 34892, and 52546.
 
-- [ ] Add failing backend tests using minimal valid compressed payloads.
-- [ ] Implement Deflate with supported predictors and sample formats.
-- [ ] Implement lossy JPEG and JPEG XL decoding with checked conversions.
-- [ ] Run decoder tests and commit.
+- [x] Add backend tests using minimal valid Deflate and lossy-JPEG payloads.
+- [x] Implement Deflate with supported predictors and sample formats.
+- [x] Implement lossy JPEG and JPEG XL decoding with checked conversions.
+- [x] Run decoder tests and commit.
 
 ### Task 6: Raw-Domain Transforms
 

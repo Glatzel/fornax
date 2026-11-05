@@ -30,8 +30,10 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 cc = "1.10.0"
 clap = { version = "4.6.7", features = ["derive", "string"] }
 criterion = { package = "codspeed-criterion-compat", version = "6.0.0" }
+flate2 = "1.1.10"
 hex = "0.4.3"
 insta = { version = "1.49.0", features = ["json"] }
+jxl-oxide = "0.12.6"
 num_enum = "0.7.6"
 num-traits = "0.2.19"
 rand = "0.10.3"
@@ -45,3 +47,4 @@ strum = { version = "0.28.0", features = ["derive"] }
 tempfile = "3.27.0"
 thiserror = "2.0.21"
 tiff = "0.11.3"
+zune-jpeg = "0.5.15"

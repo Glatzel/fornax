@@ -881,12 +881,15 @@ dependencies = [
 name = "fornax-decoder"
 version = "0.0.17"
 dependencies = [
+ "flate2",
  "fornax-core",
  "generic-num",
  "image 0.25.9",
+ "jxl-oxide",
  "num-traits",
  "rayon",
  "tiff",
+ "zune-jpeg",
 ]
 
 [[package]]
