@@ -388,7 +388,17 @@ fn decode_lossless_jpeg(
             Ok::<(), DecodeError>(())
         })?;
 
-    to_mosaic(width, height, output)
+    if bits <= 8 {
+        let samples = output
+            .into_iter()
+            .map(|value| u8::try_from(value).expect("lossless JPEG samples fit eight bits"))
+            .collect();
+        MonoImage::from_raw(width as u32, height as u32, samples)
+            .map(RawMosaic::U8)
+            .ok_or_else(|| corrupt("lossless JPEG DNG dimensions are invalid"))
+    } else {
+        to_mosaic(width, height, output)
+    }
 }
 
 fn decode_uncompressed(
@@ -1081,8 +1091,9 @@ mod tests {
 
     use flate2::Compression;
     use flate2::write::ZlibEncoder;
-    use fornax_core::RawMosaic;
     use fornax_core::metadata::dng::{DngMetadata, DngTag};
+    use fornax_core::writer::{DngCompression, DngWriter};
+    use fornax_core::{MonoImage, RawMosaic};
     use image::ImageEncoder;
     use tiff::decoder::ifd::Value;
     use tiff::encoder::TiffEncoder;
@@ -1361,6 +1372,83 @@ mod tests {
         assert_eq!(image.dimensions(), (4, 4));
     }
 
+    #[test]
+    fn lossless_writer_round_trips_u16_samples() {
+        let samples = vec![1, 2, 3, 4, 5, 6, 7, 8];
+        let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
+        let metadata = writable_metadata(4, 2);
+        let mut output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::LosslessJpeg)
+            .write_dng_with(&mut output, &mosaic, &metadata)
+            .unwrap();
+
+        let parsed = decode(output.get_ref()).unwrap();
+        let decoded = super::raw_mosaic(&parsed).unwrap();
+        let RawMosaic::U16(image) = decoded else {
+            panic!("written 16-bit samples must decode as u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), samples.as_slice());
+    }
+
+    #[test]
+    fn lossless_writer_round_trips_u8_samples() {
+        let samples = vec![1, 2, 3, 4, 5, 6, 7, 8];
+        let mosaic = RawMosaic::U8(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
+        let metadata = writable_metadata(4, 2);
+        let mut output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::LosslessJpeg)
+            .write_dng_with(&mut output, &mosaic, &metadata)
+            .unwrap();
+
+        let parsed = decode(output.get_ref()).unwrap();
+        let decoded = super::raw_mosaic(&parsed).unwrap();
+        let RawMosaic::U8(image) = decoded else {
+            panic!("written 8-bit samples must decode as u8");
+        };
+        assert_eq!(image.as_raw().as_slice(), samples.as_slice());
+    }
+
+    #[test]
+    fn lossless_writer_round_trips_wide_integer_and_float_samples() {
+        let integers = vec![1_u32, 70_000, 4_000_000_000];
+        let integer_mosaic = RawMosaic::U32(MonoImage::from_raw(3, 1, integers.clone()).unwrap());
+        let mut integer_output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::LosslessJpeg)
+            .write_dng_with(
+                &mut integer_output,
+                &integer_mosaic,
+                &writable_metadata(3, 1),
+            )
+            .unwrap();
+        let integer_parsed = decode(integer_output.get_ref()).unwrap();
+        let RawMosaic::U32(decoded_integers) = super::raw_mosaic(&integer_parsed).unwrap() else {
+            panic!("wide integers must remain u32");
+        };
+        assert_eq!(decoded_integers.as_raw().as_slice(), integers.as_slice());
+
+        let floats = vec![-1.5_f32, 0.25, f32::from_bits(0x7fc0_1234)];
+        let float_mosaic = RawMosaic::F32(MonoImage::from_raw(3, 1, floats.clone()).unwrap());
+        let mut float_output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::LosslessJpeg)
+            .write_dng_with(&mut float_output, &float_mosaic, &writable_metadata(3, 1))
+            .unwrap();
+        let float_parsed = decode(float_output.get_ref()).unwrap();
+        let RawMosaic::F32(decoded_floats) = super::raw_mosaic(&float_parsed).unwrap() else {
+            panic!("floating-point samples must remain f32");
+        };
+        assert_eq!(
+            decoded_floats
+                .as_raw()
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>(),
+            floats
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>()
+        );
+    }
+
     fn metadata(
         width: u32,
         height: u32,
@@ -1381,6 +1469,60 @@ mod tests {
         for (tag, value) in extra {
             metadata.insert(tag, value);
         }
+        metadata
+    }
+
+    fn writable_metadata(width: u32, height: u32) -> DngMetadata {
+        let mut metadata = DngMetadata::default();
+        metadata.insert(
+            DngTag::ActiveArea,
+            Value::List(vec![
+                Value::Unsigned(0),
+                Value::Unsigned(0),
+                Value::Unsigned(height),
+                Value::Unsigned(width),
+            ]),
+        );
+        metadata.insert(
+            DngTag::DefaultCropOrigin,
+            Value::List(vec![Value::Unsigned(0), Value::Unsigned(0)]),
+        );
+        metadata.insert(
+            DngTag::DefaultCropSize,
+            Value::List(vec![Value::Unsigned(width), Value::Unsigned(height)]),
+        );
+        metadata.insert(
+            DngTag::BlackLevelRepeatDim,
+            Value::List(vec![Value::Short(2), Value::Short(2)]),
+        );
+        metadata.insert(
+            DngTag::BlackLevel,
+            Value::List(vec![
+                Value::Short(0),
+                Value::Short(0),
+                Value::Short(0),
+                Value::Short(0),
+            ]),
+        );
+        metadata.insert(DngTag::WhiteLevel, Value::Unsigned(65_535));
+        metadata.insert(
+            DngTag::CfaRepeatPatternDim,
+            Value::List(vec![Value::Short(2), Value::Short(2)]),
+        );
+        metadata.insert(
+            DngTag::CfaPattern,
+            Value::List(vec![
+                Value::Byte(0),
+                Value::Byte(1),
+                Value::Byte(1),
+                Value::Byte(2),
+            ]),
+        );
+        metadata.insert(
+            DngTag::CfaPlaneColor,
+            Value::List(vec![Value::Byte(0), Value::Byte(1), Value::Byte(2)]),
+        );
+        metadata.insert(DngTag::CfaLayout, Value::Short(1));
         metadata
     }
 }

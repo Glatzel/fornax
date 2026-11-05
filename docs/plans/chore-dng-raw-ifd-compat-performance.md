@@ -226,10 +226,12 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: existing `DngWriter::write_dng_with` signature.
 - Produces: lossless tiled JPEG-92 or Deflate output without API changes.
 
-- [ ] Add failing round-trip tests for U8/U16 JPEG-92 and U32/F32 Deflate.
-- [ ] Implement deterministic tiled JPEG-92 encoding.
-- [ ] Implement Deflate fallback and automatic classic/BigTIFF selection.
-- [ ] Filter consumed/layout-dependent metadata and run core tests.
+- [x] Add failing round-trip tests for U8/U16 JPEG-92 and U32/F32 Deflate.
+- [x] Implement deterministic tiled JPEG-92 encoding.
+- [x] Implement the lossless Deflate fallback.
+- [ ] Add automatic classic/BigTIFF selection for outputs that exceed classic
+  TIFF limits.
+- [x] Filter consumed/layout-dependent metadata and run core tests.
 - [ ] Commit.
 
 ### Task 8: Fixture and Regression Coverage
