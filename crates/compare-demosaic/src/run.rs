@@ -68,7 +68,7 @@ struct Job<'a> {
 
 pub fn execute(request: &RunRequest) -> mischief::Result<RunOutput> {
     let input_paths = if request.inputs.is_empty() {
-        vec![fornax_devtool::raw_file()]
+        vec![fornax_devtool::raw_file(fornax_core::RawFormat::Dng)]
     } else {
         request.inputs.clone()
     };

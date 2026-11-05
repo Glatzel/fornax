@@ -29,9 +29,10 @@ Keep cases table-driven; never add a second comparison framework.
    pinned external source without copying its full tree into the comparison
    crate.
 3. Wire new C/C++ sources into `crates/compare-demosaic/build.rs`. For a new
-   darktable source, also add it to both `scripts/setup.sh` and
-   `scripts/setup.ps1`; keep reference versions and commit URLs synchronized
-   with `build.rs` and `src/cases.rs`.
+   darktable source, also add it to both
+   `crates/compare-demosaic/scripts/setup.sh` and
+   `crates/compare-demosaic/scripts/setup.ps1`; keep reference versions and
+   commit URLs synchronized with `build.rs` and `src/cases.rs`.
 4. Add the backend and stable algorithm ID dispatch to
    `crates/compare-demosaic/cpp/shim.cpp` and its header. Add a
    `ReferenceBackend` value only when the comparison uses a new reference
@@ -50,7 +51,8 @@ Keep cases table-driven; never add a second comparison framework.
 2. Make the change in the smallest place that owns it: the Fornax code or
    runner, the adapter under `cpp/algos/`, the waiver in `src/waivers.rs`, or
    the note. If a reference pin moves, update `build.rs`, `src/cases.rs`,
-   `scripts/setup.sh`, and `scripts/setup.ps1` together.
+   `crates/compare-demosaic/scripts/setup.sh`, and
+   `crates/compare-demosaic/scripts/setup.ps1` together.
 3. Continue with [Check the change](#check-the-change).
 
 ## Check the change

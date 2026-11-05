@@ -1,5 +1,5 @@
 use num_enum::IntoPrimitive;
-use strum::Display;
+use strum::{Display, EnumString};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, IntoPrimitive)]
 #[repr(u8)]
@@ -26,15 +26,12 @@ impl BayerChannel {
 /// - `BGGR`: Blue, Green, Green, Red,
 /// - `GRBG`: Green, Red, Blue, Green,
 /// - `GBRG`: Green, Blue, Red, Green.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Display)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Display, EnumString)]
+#[strum(ascii_case_insensitive)]
 pub enum BayerPattern {
-    #[strum(serialize = "RGGB")]
     RGGB,
-    #[strum(serialize = "BGGR")]
     BGGR,
-    #[strum(serialize = "GRBG")]
     GRBG,
-    #[strum(serialize = "GBRG")]
     GBRG,
 }
 impl BayerPattern {
@@ -97,7 +94,13 @@ impl BayerPattern {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    #[test]
+    fn pattern_string() {
+        assert_eq!(BayerPattern::RGGB.to_string(), "RGGB");
+        assert_eq!(BayerPattern::BGGR.to_string(), "BGGR");
+        assert_eq!(BayerPattern::GRBG.to_string(), "GRBG");
+        assert_eq!(BayerPattern::GBRG.to_string(), "GBRG");
+    }
     #[test]
     fn channel_indices_are_stable() {
         assert_eq!(u8::from(BayerChannel::R), 0);

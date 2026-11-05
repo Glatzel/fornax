@@ -880,7 +880,7 @@ fn pack(pixels: &[DcbPixel]) -> Vec<u16> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::protocol::LazyDemosaic;
+    use crate::LazyDemosaic;
 
     #[test]
     fn border_interpolate_fills_corner_channels_from_their_cfa_neighbors() {

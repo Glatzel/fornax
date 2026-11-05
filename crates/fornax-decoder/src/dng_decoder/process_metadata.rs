@@ -1,75 +1,15 @@
-use std::fs;
-use std::path::Path;
-
+use fornax_core::error::DecodeError;
+use fornax_core::metadata::dng::{DngMetadata, DngTag, DngValue};
+use fornax_core::metadata::process::{Levels, ProcessMetadata};
+use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RawMosaic};
+use generic_num::num;
 use image::math::Rect;
-use num_traits::{NumCast, ToPrimitive};
 use tiff::decoder::ifd::Value;
 
-use super::{Decoder, dng_decoder};
-use crate::error::DecodeError;
-use crate::metadata::dng::{DngMetadata, DngTag};
-use crate::metadata::{Levels, Metadata, WhiteBalance};
-use crate::protocol::IDecoder;
-use crate::{BayerChannel, BayerPattern, DecodedRaw, MonoImage, MosaicData, Primitive};
-
-impl<T> IDecoder<&Path, T> for Decoder
-where
-    T: Primitive,
-{
-    fn decode(&self, input: &Path) -> Result<(MosaicData, Metadata<T>), DecodeError> {
-        let (pixels, dng_metadata) = decode_file(input)?;
-        let metadata = metadata_from_dng(&pixels, &dng_metadata)?;
-        Ok((pixels, metadata))
-    }
-
-    fn decode_active(&self, input: &Path) -> Result<(DecodedRaw<T>, Metadata<T>), DecodeError> {
-        let (pixels, mut metadata) = <Self as IDecoder<&Path, T>>::decode(self, input)?;
-        let active_area = metadata.active_area;
-        metadata.bayer_pattern = metadata.bayer_pattern.shifted(active_area.x, active_area.y);
-        let mut image = mosaic_to_mono::<T>(&pixels)?;
-        image.crop_in_place(active_area);
-        Ok((DecodedRaw::new(image), metadata))
-    }
-}
-
-fn decode_file(input: &Path) -> Result<(MosaicData, DngMetadata), DecodeError> {
-    let source = fs::read(input).map_err(|error| {
-        DecodeError::InvalidInput(format!("failed to read {}: {error}", input.display()).into())
-    })?;
-    dng_decoder::decode(&source)
-}
-
-fn mosaic_to_mono<T>(decoded: &MosaicData) -> Result<MonoImage<T>, DecodeError>
-where
-    T: Primitive,
-{
-    let (width, height) = decoded.dimensions();
-    let samples: Vec<Option<T>> = match decoded {
-        MosaicData::U8(image) => image.as_raw().iter().map(|&value| cast(value)).collect(),
-        MosaicData::U16(image) => image.as_raw().iter().map(|&value| cast(value)).collect(),
-        MosaicData::U32(image) => image.as_raw().iter().map(|&value| cast(value)).collect(),
-        MosaicData::F32(image) => image.as_raw().iter().map(|&value| cast(value)).collect(),
-    };
-    let samples = samples
-        .into_iter()
-        .collect::<Option<Vec<T>>>()
-        .ok_or_else(|| DecodeError::Backend("sample does not fit target type".into()))?;
-    MonoImage::from_raw(width, height, samples)
-        .ok_or_else(|| DecodeError::Backend("decoded mosaic dimensions are invalid".into()))
-}
-
-fn cast<T, U>(value: U) -> Option<T>
-where
-    T: Primitive,
-    U: NumCast,
-{
-    num_traits::cast(value)
-}
-
-fn metadata_from_dng<T>(
-    pixels: &MosaicData,
+pub fn process_metadata_from_dng_metadata<T>(
+    pixels: &RawMosaic,
     dng_metadata: &DngMetadata,
-) -> Result<Metadata<T>, DecodeError>
+) -> Result<ProcessMetadata<T>, DecodeError>
 where
     T: Primitive,
 {
@@ -91,9 +31,9 @@ where
         .and_then(cast_number)
         .ok_or_else(|| metadata_error("WhiteLevel is missing or invalid"))?;
     let bayer_pattern = bayer_pattern(dng_metadata, active_area)?;
-    let white_balance = white_balance(dng_metadata)?;
+    let wb_coeffs = wb_coeffs(dng_metadata)?;
 
-    Ok(Metadata {
+    Ok(ProcessMetadata {
         active_area,
         default_crop,
         levels: Levels {
@@ -103,25 +43,23 @@ where
             white,
         },
         bayer_pattern,
-        white_balance,
-        dng_metadata: dng_metadata.clone(),
+        wb_coeffs,
     })
 }
-
 fn active_area(
     metadata: &DngMetadata,
     full_width: u32,
     full_height: u32,
 ) -> Result<Rect, DecodeError> {
     let values = unsigned_values(metadata.get(&DngTag::ActiveArea))?
-        .ok_or_else(|| metadata_error("ActiveArea is missing"))?;
+        .ok_or_else(|| DecodeError::Backend("ActiveArea is missing".into()))?;
     let [top, left, bottom, right]: [u32; 4] = values
         .try_into()
-        .map_err(|_| metadata_error("ActiveArea must contain four values"))?;
+        .map_err(|_| DecodeError::Backend("ActiveArea must contain four values".into()))?;
     if top >= bottom || left >= right || bottom > full_height || right > full_width {
-        return Err(metadata_error(format!(
+        return Err(DecodeError::Backend(format!(
             "ActiveArea ({top}, {left}, {bottom}, {right}) is outside {full_width}x{full_height}"
-        )));
+        ).into()));
     }
     Ok(Rect {
         x: left,
@@ -130,7 +68,6 @@ fn active_area(
         height: bottom - top,
     })
 }
-
 fn default_crop(metadata: &DngMetadata, active: Rect) -> Result<Rect, DecodeError> {
     let origin = unsigned_values(metadata.get(&DngTag::DefaultCropOrigin))?
         .ok_or_else(|| metadata_error("DefaultCropOrigin is missing"))?;
@@ -263,9 +200,10 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, D
         .into_iter()
         .find(|pattern| pattern.as_mask() == &mask)
         .ok_or_else(|| DecodeError::Unsupported("unsupported RGB Bayer pattern".into()))
+        .map(|p| p.shifted(active.x, active.y))
 }
 
-fn white_balance<T>(metadata: &DngMetadata) -> Result<Option<WhiteBalance<T>>, DecodeError>
+fn wb_coeffs<T>(metadata: &DngMetadata) -> Result<Option<(T, T)>, DecodeError>
 where
     T: Primitive,
 {
@@ -273,39 +211,45 @@ where
         return Ok(None);
     }
     let values = scalar_values(metadata.get(&DngTag::AsShotNeutral))?;
-    let [red, green, blue]: [f64; 3] = values
+    let [r, g, b]: [T; 3] = values
         .try_into()
         .map_err(|_| metadata_error("AsShotNeutral must contain three values"))?;
-    if red <= 0.0 || green <= 0.0 || blue <= 0.0 {
+    if r <= T::zero() || g <= T::zero() || b <= T::zero() {
         return Err(metadata_error("AsShotNeutral values must be positive"));
     }
-    let (Some(red), Some(green), Some(blue)) =
-        (cast_number(red), cast_number(green), cast_number(blue))
-    else {
-        return Err(metadata_error("AsShotNeutral does not fit the output type"));
-    };
-    Ok(Some(WhiteBalance::AsShotNeutral(red, green, blue)))
+    Ok(Some((num!(g) / num!(r), num!(g) / num!(b))))
 }
 
-fn scalar_number(value: Option<&Value>) -> Result<Option<f64>, DecodeError> {
+fn scalar_number<T>(value: Option<&Value>) -> Result<Option<T>, DecodeError>
+where
+    T: Primitive,
+{
     match value {
         None => Ok(None),
-        Some(Value::Byte(value)) => Ok(Some(*value as f64)),
-        Some(Value::SignedByte(value)) => Ok(Some(*value as f64)),
-        Some(Value::Short(value)) => Ok(Some(*value as f64)),
-        Some(Value::SignedShort(value)) => Ok(Some(*value as f64)),
-        Some(Value::Unsigned(value)) => Ok(Some(*value as f64)),
-        Some(Value::Signed(value)) => Ok(Some(*value as f64)),
-        Some(Value::UnsignedBig(value)) => Ok(Some(*value as f64)),
-        Some(Value::SignedBig(value)) => Ok(Some(*value as f64)),
-        Some(Value::Float(value)) => Ok(Some(*value as f64)),
-        Some(Value::Double(value)) => Ok(Some(*value)),
-        Some(Value::Rational(numerator, denominator)) => rational(*numerator, *denominator),
-        Some(Value::SRational(numerator, denominator)) => rational(*numerator, *denominator),
+        Some(Value::Byte(value)) => Ok(Some(num!(*value))),
+        Some(Value::SignedByte(value)) => Ok(Some(num!(*value))),
+        Some(Value::Short(value)) => Ok(Some(num!(*value))),
+        Some(Value::SignedShort(value)) => Ok(Some(num!(*value))),
+        Some(Value::Unsigned(value)) => Ok(Some(num!(*value))),
+        Some(Value::Signed(value)) => Ok(Some(num!(*value))),
+        Some(Value::UnsignedBig(value)) => Ok(Some(num!(*value))),
+        Some(Value::SignedBig(value)) => Ok(Some(num!(*value))),
+        Some(Value::Float(value)) => Ok(Some(num!(*value))),
+        Some(Value::Double(value)) => Ok(Some(num!(*value))),
+        Some(Value::Rational(numerator, denominator)) => {
+            Ok(Some(num!(*numerator) / num!(*denominator)))
+        }
+        Some(Value::SRational(numerator, denominator)) => {
+            Ok(Some(num!(*numerator) / num!(*denominator)))
+        }
         #[expect(deprecated, reason = "tiff exposes legacy BigTIFF rational variants")]
-        Some(Value::RationalBig(numerator, denominator)) => rational(*numerator, *denominator),
+        Some(Value::RationalBig(numerator, denominator)) => {
+            Ok(Some(num!(*numerator) / num!(*denominator)))
+        }
         #[expect(deprecated, reason = "tiff exposes legacy BigTIFF rational variants")]
-        Some(Value::SRationalBig(numerator, denominator)) => rational(*numerator, *denominator),
+        Some(Value::SRationalBig(numerator, denominator)) => {
+            Ok(Some(num!(*numerator) / num!(*denominator)))
+        }
         Some(Value::List(values)) => values
             .first()
             .map_or(Ok(None), |value| scalar_number(Some(value))),
@@ -313,23 +257,10 @@ fn scalar_number(value: Option<&Value>) -> Result<Option<f64>, DecodeError> {
     }
 }
 
-fn rational<T>(numerator: T, denominator: T) -> Result<Option<f64>, DecodeError>
+fn scalar_values<T>(value: Option<&Value>) -> Result<Vec<T>, DecodeError>
 where
-    T: ToPrimitive,
+    T: Primitive,
 {
-    let numerator = numerator
-        .to_f64()
-        .ok_or_else(|| metadata_error("rational numerator is too large"))?;
-    let denominator = denominator
-        .to_f64()
-        .ok_or_else(|| metadata_error("rational denominator is too large"))?;
-    if denominator == 0.0 {
-        return Err(metadata_error("rational denominator is zero"));
-    }
-    Ok(Some(numerator / denominator))
-}
-
-fn scalar_values(value: Option<&Value>) -> Result<Vec<f64>, DecodeError> {
     let Some(value) = value else {
         return Ok(Vec::new());
     };
@@ -359,23 +290,6 @@ fn unsigned_values(value: Option<&Value>) -> Result<Option<Vec<u32>>, DecodeErro
     Ok(Some(values))
 }
 
-fn unsigned_scalar(value: &Value) -> Result<u32, DecodeError> {
-    let number = match value {
-        Value::Byte(value) => *value as u32,
-        Value::Short(value) => *value as u32,
-        Value::Unsigned(value) | Value::Ifd(value) => *value,
-        Value::UnsignedBig(value) => {
-            u32::try_from(*value).map_err(|_| metadata_error("tag value does not fit u32"))?
-        }
-        Value::IfdBig(value) => {
-            u32::try_from(*value).map_err(|_| metadata_error("IFD pointer does not fit u32"))?
-        }
-        Value::Rational(numerator, denominator) if *denominator == 1 => *numerator,
-        _ => return Err(metadata_error("tag does not contain unsigned integers")),
-    };
-    Ok(number)
-}
-
 fn cast_number<T>(value: f64) -> Option<T>
 where
     T: Primitive,
@@ -385,4 +299,23 @@ where
 
 fn metadata_error(detail: impl Into<Box<str>>) -> DecodeError {
     DecodeError::Backend(detail.into())
+}
+
+fn unsigned_scalar(value: &DngValue) -> Result<u32, DecodeError> {
+    let number = match value {
+        DngValue::Byte(value) => *value as u32,
+        DngValue::Short(value) => *value as u32,
+        DngValue::Unsigned(value) | DngValue::Ifd(value) => *value,
+        DngValue::UnsignedBig(value) => u32::try_from(*value)
+            .map_err(|_| DecodeError::Backend("tag value does not fit u32".into()))?,
+        DngValue::IfdBig(value) => u32::try_from(*value)
+            .map_err(|_| DecodeError::Backend("IFD pointer does not fit u32".into()))?,
+        DngValue::Rational(numerator, denominator) if *denominator == 1 => *numerator,
+        _ => {
+            return Err(DecodeError::Backend(
+                "tag does not contain unsigned integers".into(),
+            ));
+        }
+    };
+    Ok(number)
 }

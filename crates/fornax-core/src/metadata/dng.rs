@@ -1,13 +1,23 @@
 use std::collections::BTreeMap;
 use std::fmt;
+use std::ops::{Deref, DerefMut};
 
 use num_enum::{FromPrimitive, IntoPrimitive};
 use strum::AsRefStr;
-pub use tiff::decoder::ifd::Value as DngValue;
 use tiff::tags::Tag;
 
+pub type DngValue = tiff::decoder::ifd::Value;
 /// Deterministically ordered DNG metadata values keyed by TIFF/DNG tag.
-pub type DngMetadata = BTreeMap<DngTag, DngValue>;
+#[derive(Debug, Default, Clone)]
+pub struct DngMetadata(pub BTreeMap<DngTag, DngValue>);
+impl Deref for DngMetadata {
+    type Target = BTreeMap<DngTag, DngValue>;
+
+    fn deref(&self) -> &Self::Target { &self.0 }
+}
+impl DerefMut for DngMetadata {
+    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
+}
 
 /// TIFF or DNG tag identifier.
 ///

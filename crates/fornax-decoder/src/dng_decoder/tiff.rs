@@ -1,15 +1,16 @@
 use std::collections::{HashSet, VecDeque};
+use std::sync::Arc;
 
 use ::tiff::decoder::ifd::Value;
-
-use crate::error::DecodeError;
-use crate::metadata::dng::{DngMetadata, DngTag};
+use fornax_core::error::DecodeError;
+use fornax_core::metadata::dng::{DngMetadata, DngTag};
 
 const TAG_SUB_IFDS: u16 = 330;
-
-pub(super) struct ParsedTiff {
-    pub(super) root: DngMetadata,
-    pub(super) directories: Vec<DngMetadata>,
+#[derive(Clone, Debug)]
+pub struct ParsedTiff {
+    pub root: DngMetadata,
+    pub directories: Vec<DngMetadata>,
+    pub(super) source: Arc<[u8]>,
 }
 
 #[derive(Clone, Copy)]
@@ -83,7 +84,7 @@ impl<'a> Reader<'a> {
             .get(position..position.saturating_add(entries_bytes))
             .ok_or_else(|| corrupt("IFD entries are truncated"))?;
 
-        let mut metadata = DngMetadata::new();
+        let mut metadata = DngMetadata::default();
         let mut child_pointers = Vec::new();
         for _ in 0..entry_count {
             let tag = self.u16(position)?;
@@ -296,11 +297,15 @@ pub(super) fn parse(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
         }
         directories.push(metadata);
     }
-    let root = directories
+    let root = (*directories
         .first()
-        .cloned()
-        .ok_or_else(|| corrupt("TIFF contains no readable image file directory"))?;
-    Ok(ParsedTiff { root, directories })
+        .ok_or_else(|| corrupt("TIFF contains no readable image file directory"))?)
+    .clone();
+    Ok(ParsedTiff {
+        root,
+        directories,
+        source: Arc::from(source),
+    })
 }
 
 fn pointers(value: &Value) -> Vec<u64> {

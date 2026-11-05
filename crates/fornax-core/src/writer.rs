@@ -5,7 +5,7 @@ use std::path::Path;
 use tiff::encoder::{DirectoryEncoder, Rational, SRational, TiffEncoder, TiffKindStandard};
 use tiff::tags::{SampleFormat, Tag};
 
-use crate::MosaicData;
+use crate::RawMosaic;
 use crate::error::DngWriteError;
 use crate::metadata::dng::{DngMetadata, DngTag, DngValue};
 
@@ -112,7 +112,7 @@ impl DngWriter {
     pub fn write<P>(
         &self,
         path: P,
-        mosaic: &MosaicData,
+        mosaic: &RawMosaic,
         metadata: &DngMetadata,
     ) -> Result<(), DngWriteError>
     where
@@ -127,7 +127,7 @@ impl DngWriter {
     pub fn write_dng_with<W>(
         &self,
         writer: W,
-        mosaic: &MosaicData,
+        mosaic: &RawMosaic,
         metadata: &DngMetadata,
     ) -> Result<(), DngWriteError>
     where
@@ -153,7 +153,7 @@ impl DngWriter {
 
 fn write_uncompressed<W>(
     writer: W,
-    mosaic: &MosaicData,
+    mosaic: &RawMosaic,
     metadata: &DngMetadata,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
@@ -165,7 +165,7 @@ where
     let mut directory = encoder.image_directory().map_err(tiff_write_error)?;
 
     let (strip_offset, strip_byte_count, bits_per_sample, sample_format) = match mosaic {
-        MosaicData::U8(image) => {
+        RawMosaic::U8(image) => {
             let data = image.as_raw();
             (
                 directory
@@ -176,7 +176,7 @@ where
                 SampleFormat::Uint.to_u16(),
             )
         }
-        MosaicData::U16(image) => {
+        RawMosaic::U16(image) => {
             let data = image.as_raw();
             (
                 directory
@@ -187,7 +187,7 @@ where
                 SampleFormat::Uint.to_u16(),
             )
         }
-        MosaicData::U32(image) => {
+        RawMosaic::U32(image) => {
             let data = image.as_raw();
             (
                 directory
@@ -198,7 +198,7 @@ where
                 SampleFormat::Uint.to_u16(),
             )
         }
-        MosaicData::F32(image) => {
+        RawMosaic::F32(image) => {
             let data = image.as_raw();
             (
                 directory
@@ -261,42 +261,12 @@ where
         .write_tag(Tag::Unknown(DngTag::DngBackwardVersion.into()), dng_version)
         .map_err(tiff_write_error)?;
 
-    for (tag, value) in metadata {
-        if is_regenerated_tag(*tag) {
-            continue;
-        }
+    for (tag, value) in &**metadata {
         write_metadata_value(&mut directory, metadata_tag(*tag), value)?;
     }
 
     directory.finish().map_err(tiff_write_error)?;
     Ok(())
-}
-
-const fn is_regenerated_tag(tag: DngTag) -> bool {
-    matches!(
-        tag,
-        DngTag::NewSubfileType
-            | DngTag::ImageWidth
-            | DngTag::ImageLength
-            | DngTag::BitsPerSample
-            | DngTag::Compression
-            | DngTag::PhotometricInterpretation
-            | DngTag::SamplesPerPixel
-            | DngTag::RowsPerStrip
-            | DngTag::StripOffsets
-            | DngTag::StripByteCounts
-            | DngTag::PlanarConfiguration
-            | DngTag::TileWidth
-            | DngTag::TileLength
-            | DngTag::TileOffsets
-            | DngTag::TileByteCounts
-            | DngTag::SubIfds
-            | DngTag::DngVersion
-            | DngTag::DngBackwardVersion
-    ) || matches!(
-        tag,
-        DngTag::Unknown(339 | 34_665 | 34_853 | 40_965 | 50_941)
-    )
 }
 
 fn metadata_tag(tag: DngTag) -> Tag { tag.into() }

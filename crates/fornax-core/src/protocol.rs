@@ -1,12 +1,19 @@
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
-use crate::metadata::{Levels, Metadata, WhiteBalance};
-use crate::{BayerPattern, DecodedRaw, MonoImage, MosaicData, Primitive, RawImage, RgbImage};
+use crate::metadata::dng::DngMetadata;
+use crate::metadata::process::{Levels, ProcessMetadata};
+use crate::{
+    BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
+};
 pub trait IDecoder<I, T>: Send + Sync
 where
     T: Primitive,
+    Self: Sized,
 {
-    fn decode(&self, input: I) -> Result<(MosaicData, Metadata<T>), DecodeError>;
-    fn decode_active(&self, input: I) -> Result<(DecodedRaw<T>, Metadata<T>), DecodeError>;
+    fn decode(input: I) -> Result<Self, DecodeError>;
+    fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
+    fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError>;
+    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError>;
+    fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError>;
 }
 
 pub trait IPreprocessor<T>: Sized
@@ -15,16 +22,16 @@ where
 {
     fn process(
         &self,
-        decoded: DecodedRaw<T>,
+        decoded: CroppedMosaic<T>,
         levels: &Levels<T>,
-    ) -> Result<RawImage<T>, PreprocessError>;
+    ) -> Result<NormalizedMosaic<T>, PreprocessError>;
 }
 pub trait IPostProcessMetadata<T>: Sync
 where
     T: Primitive,
 {
     fn bayer_pattern(&self) -> BayerPattern;
-    fn white_balance(&self) -> &Option<WhiteBalance<T>>;
+    fn wb_coeffs(&self) -> &Option<(T, T)>;
 }
 pub trait IPostProcessor<T, M>
 where

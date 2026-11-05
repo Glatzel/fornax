@@ -1,6 +1,6 @@
 use fornax_core::error::DemosaicError;
 use fornax_core::{BayerPattern, MonoImage, Primitive};
-use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
+use fornax_postprocessor::{IDemosaic, LazyDemosaic};
 
 struct IdentityLazy;
 

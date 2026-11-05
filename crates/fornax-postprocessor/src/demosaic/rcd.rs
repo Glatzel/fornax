@@ -9,7 +9,7 @@ use fornax_core::{BayerPattern, MonoImage, Primitive, RgbImage};
 use generic_num::num;
 
 use super::ppg::DemosaicPpg;
-use crate::protocol::LazyDemosaic;
+use crate::LazyDemosaic;
 
 const TILE_SIZE: usize = 112;
 const TILE_CORE: usize = 92;

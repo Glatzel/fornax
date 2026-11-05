@@ -2,7 +2,8 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use fornax_core::protocol::{IDecoder, IPreprocessor};
-use fornax_core::{BayerChannel, BayerPattern, Decoder};
+use fornax_core::{BayerChannel, BayerPattern};
+use fornax_decoder::Decoder;
 use fornax_preprocessor::Preprocessor;
 use sha2::{Digest, Sha256};
 
@@ -90,8 +91,9 @@ pub fn active_area_from(path: &Path) -> mischief::Result<ActiveArea> {
     let source_bytes = std::fs::read(path)
         .map_err(|error| mischief::mischief!("cannot read {}: {error}", path.display()))?;
     let sha256 = hex::encode(Sha256::digest(&source_bytes));
-    let (decoded, metadata) = <Decoder as IDecoder<&Path, f32>>::decode_active(&Decoder, path)
-        .map_err(|error| mischief::mischief!("cannot decode {}: {error}", path.display()))?;
+    let decoder: Decoder<f32> = Decoder::decode(path)?;
+    let decoded = decoder.cropped_mosaic()?;
+    let metadata = decoder.process_metadata()?;
     let image = Preprocessor
         .process(decoded, &metadata.levels)
         .map_err(|error| mischief::mischief!("cannot preprocess {}: {error}", path.display()))?
@@ -250,8 +252,7 @@ pub fn libraw_filters(pattern: BayerPattern) -> u32 {
 #[cfg(test)]
 mod tests {
     use fornax_core::MonoImage;
-    use fornax_postprocessor::Demosaic;
-    use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
+    use fornax_postprocessor::{Demosaic, IDemosaic, LazyDemosaic};
 
     use super::*;
 

@@ -25,27 +25,22 @@ jobs:
       contents: write
       pull-requests: write
 
-  cargo-doc:
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - parallel:
-          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
-      - uses: Glatzel/template/.github/actions/rust/cargo-doc@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-  test-build:
+  main:
     strategy:
       fail-fast: false
       matrix:
         include:
           - machine: ubuntu-latest
             test-options: --workspace --all-features --exclude compare-demosaic
+            pwd: ./
           - machine: ubuntu-latest
             test-options: --all-features -p compare-demosaic
+            pwd: ./crates/compare-demosaic
+          - machine: macos-latest
+            test-options: --workspace --all-features --exclude compare-demosaic
+            pwd: ./
+    env:
+      dnc_version: 18_7
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -53,13 +48,33 @@ jobs:
         with:
           toolchain: nightly
           components: clippy
+      - name: restore dnc
+        if: ${{runner.os != 'Linux'}}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ./temp/dnc${{env.dnc_version}}*
+          key: dnc-${{ runner.os }}-${{env.dnc_version}}
+      - if: ${{runner.os != 'Linux'}}
+        run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
+        shell: pwsh
+      - uses: Glatzel/template/.github/actions/rust/cargo-doc@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          options: ${{ matrix.test-options }}
+          working-directory: ${{matrix.pwd}}
       - uses: Glatzel/template/.github/actions/rust/cargo-clippy@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+        if: ${{!cancelled()}}
+        with:
+          options: ${{ matrix.test-options }}
+          working-directory: ${{matrix.pwd}}
         env:
           GH_TOKEN: ${{ github.token }}
       - uses: Glatzel/template/.github/actions/rust/cargo-test@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         if: ${{!cancelled()}}
         with:
           global-options: ${{ matrix.test-options }}
+          working-directory: ${{matrix.pwd}}
         env:
           GH_TOKEN: ${{ github.token }}
       - uses: Glatzel/template/.github/actions/common/codecov@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
@@ -72,25 +87,48 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - package: fornax-core
+          - package: bench-decoder
             paths: |
-              ./Cargo.toml
-              ./Cargo.lock
-              ./crates/fornax-core/**
+              ./crates/fornax-decoder/**
+              ./crates/fornax-decoder-rawler/**
+              ./crates/bench-decoder/**
+
           - package: fornax-postprocessor
-            paths: |
-              ./Cargo.toml
-              ./Cargo.lock
-              ./crates/fornax-core/**
-              ./crates/fornax-devtool/**
-              ./crates/fornax-postprocessor/**
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: aahd
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: ahd
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: amaze
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: dcb
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: dht
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: linear
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: lmmse
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: ppg
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: rcd
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: vng
+          - package: fornax-postprocessor
+            paths: ./crates/fornax-postprocessor/**
+            algorithm: vng4
+
           - package: fornax-preprocessor
-            paths: |
-              ./Cargo.toml
-              ./Cargo.lock
-              ./crates/fornax-core/**
-              ./crates/fornax-devtool/**
-              ./crates/fornax-preprocessor/**
+            paths: ./crates/fornax-preprocessor/**
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -109,6 +147,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
+          FORNAX_BENCH_ALGORITHM: ${{ matrix.algorithm }}
 
   compare-demosaic:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
@@ -126,11 +165,7 @@ jobs:
         with:
           files: |
             ./crates/compare-demosaic/**
-            ./crates/fornax-postprocessor/**
-            ./crates/fornax-core/**
-            ./Cargo.toml
-            ./Cargo.lock
-            ./.github/workflows/ci.yml
+            ./crates/fornax-postprocessor/demosaic/**
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
         with:
@@ -141,8 +176,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
         shell: bash
         run: |
-          source scripts/setup.sh
-          cargo test -p compare-demosaic --all-features
+          source ./crates/compare-demosaic/scripts/setup.sh
           cmp="cargo run --release -q -p compare-demosaic --"
           $cmp readme --check
           $cmp run --artifacts
@@ -169,7 +203,7 @@ jobs:
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook, cargo-doc, test-build, benchmark, compare-demosaic, book-assets]
+    needs: [lefthook, main, benchmark, compare-demosaic, book-assets]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1
