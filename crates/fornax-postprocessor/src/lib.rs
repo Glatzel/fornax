@@ -14,7 +14,7 @@ where
     D: IDemosaic<T>,
 {
     pub demosaic: D,
-    pub use_as_shot_neutral: bool,
+    pub use_wb_coeffs: bool,
     pub _mark: PhantomData<T>,
 }
 impl<T, D, M> IPostProcessor<T, M> for PostProcessor<T, D>
@@ -32,7 +32,7 @@ where
             .demosaic
             .demosaic(bayer_image, metadata.bayer_pattern())?;
         if let Some((r_mul, b_mul)) = metadata.wb_coeffs()
-            && self.use_as_shot_neutral
+            && self.use_wb_coeffs
         {
             return Ok(result.collect_with(|_y, row| {
                 for px in row.as_chunks_mut::<3>().0 {
@@ -52,7 +52,7 @@ where
     fn default() -> Self {
         Self {
             demosaic: Demosaic::Linear,
-            use_as_shot_neutral: true,
+            use_wb_coeffs: true,
             _mark: PhantomData,
         }
     }
@@ -94,7 +94,7 @@ mod tests {
         };
         let processor = PostProcessor::<f32, _> {
             demosaic: Demosaic::Linear,
-            use_as_shot_neutral: true,
+            use_wb_coeffs: true,
             _mark: PhantomData,
         };
 

@@ -1,11 +1,11 @@
 //! DNG container and sample decoding.
 
-mod convert;
+mod process_metadata;
 mod ljpeg;
 mod tiff;
 
 use ::tiff::decoder::ifd::Value;
-use convert::process_metadata_from_dng_metadata;
+use process_metadata::process_metadata_from_dng_metadata;
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag};
 use fornax_core::metadata::process::ProcessMetadata;

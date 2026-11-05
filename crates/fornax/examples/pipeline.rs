@@ -52,7 +52,7 @@ fn run(arg: Args) -> mischief::Result<()> {
 
     let demosaiced_path = output_dir.join("3.demosaic_linear.tiff");
     save_image::<_, _, Rgb<u16>, _>(&demosaiced, &demosaiced_path, f32::from(u16::MAX))?;
-
+    dbg!(metadata.wb_coeffs);
     println!("Decoded output: {}", decoded_path.display());
     println!("Preprocessed output: {}", preprocessed_path.display());
     println!("Demosaiced output: {}", demosaiced_path.display());

@@ -43,7 +43,7 @@ output type",
         .and_then(cast_number)
         .ok_or_else(|| metadata_error("WhiteLevel is missing or invalid"))?;
     let bayer_pattern = bayer_pattern(dng_metadata, active_area)?;
-    let wb_coeffs = white_balance(dng_metadata)?;
+    let wb_coeffs = wb_coeffs(dng_metadata)?;
 
     Ok(ProcessMetadata {
         active_area,
@@ -253,7 +253,7 @@ pattern"
         })
 }
 
-fn white_balance<T>(metadata: &DngMetadata) -> Result<Option<(T, T)>, DecodeError>
+fn wb_coeffs<T>(metadata: &DngMetadata) -> Result<Option<(T, T)>, DecodeError>
 where
     T: Primitive,
 {
@@ -261,17 +261,13 @@ where
         return Ok(None);
     }
     let values = scalar_values(metadata.get(&DngTag::AsShotNeutral))?;
-    let [red, green, blue]: [f64; 3] = values.try_into().map_err(|_| {
-        metadata_error(
-            "AsShotNeutral must contain three
-values",
-        )
-    })?;
-    if red <= 0.0 || green <= 0.0 || blue <= 0.0 {
+    let [r, g, b]: [T; 3] = values
+        .try_into()
+        .map_err(|_| metadata_error("AsShotNeutral must contain three values"))?;
+    if r <= T::zero() || g <= T::zero() || b <= T::zero() {
         return Err(metadata_error("AsShotNeutral values must be positive"));
     }
-
-    Ok(Some((num!(green) / num!(red), num!(green) / num!(blue))))
+    Ok(Some((num!(g) / num!(r), num!(g) / num!(b))))
 }
 
 fn scalar_number<T>(value: Option<&Value>) -> Result<Option<T>, DecodeError>
