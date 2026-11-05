@@ -18,6 +18,7 @@ const PHOTOMETRIC_CFA: u64 = 32_803;
 const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
 const COMPRESSION_UNCOMPRESSED: u16 = 1;
 const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
+
 pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> { tiff::parse(source) }
 pub fn raw_mosaic(_parsed: &ParsedTiff) -> Result<RawMosaic, DecodeError> { todo!() }
 pub fn cropped_mosaic<T>(_parsed: &ParsedTiff) -> Result<CroppedMosaic<T>, DecodeError>
