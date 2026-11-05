@@ -760,13 +760,10 @@ dependencies = [
 name = "fornax-core"
 version = "0.0.17"
 dependencies = [
- "codspeed-criterion-compat",
- "fornax-devtool",
  "image",
  "num-traits",
  "num_enum",
  "strum",
- "tempfile",
  "thiserror",
  "tiff",
 ]
@@ -780,10 +777,7 @@ dependencies = [
  "fornax-devtool",
  "image",
  "num-traits",
- "num_enum",
- "strum",
  "tempfile",
- "thiserror",
  "tiff",
 ]
 
@@ -813,7 +807,6 @@ dependencies = [
  "image",
  "mischief",
  "rayon",
- "serde_json",
 ]
 
 [[package]]
