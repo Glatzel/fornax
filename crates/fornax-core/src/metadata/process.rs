@@ -24,7 +24,7 @@ where
     /// Recommended output crop from DNG `DefaultCropOrigin` and
     /// `DefaultCropSize`.
     ///
-    /// The origin and size are relative to [`Metadata::active_area`].
+    /// The origin and size are relative to [`ProcessMetadata::active_area`].
     pub default_crop: Rect,
 
     pub levels: Levels<T>,
