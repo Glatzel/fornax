@@ -47,9 +47,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         with:
+          options: ${{ matrix.test-options }}
           working-directory: ${{matrix.pwd}}
       - uses: Glatzel/template/.github/actions/rust/cargo-clippy@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+        if: ${{!cancelled()}}
         with:
+          options: ${{ matrix.test-options }}
           working-directory: ${{matrix.pwd}}
         env:
           GH_TOKEN: ${{ github.token }}
