@@ -4,11 +4,12 @@ use fornax::decoder::Decoder;
 use fornax::postprocessor::PostProcessor;
 use fornax::preprocessor::Preprocessor;
 use fornax::protocol::IDecoder;
+use fornax_core::RawFormat;
 use fornax_devtool::save_image;
 use image::{Luma, Rgb};
 
 fn run(input: Option<PathBuf>) -> mischief::Result<()> {
-    let raw_path = input.unwrap_or_else(fornax_devtool::raw_file);
+    let raw_path = input.unwrap_or_else(|| fornax_devtool::raw_file(RawFormat::Dng));
 
     let (image, metadata) =
         <Decoder as IDecoder<&Path, f32>>::decode_active(&Decoder, raw_path.as_path())?;
