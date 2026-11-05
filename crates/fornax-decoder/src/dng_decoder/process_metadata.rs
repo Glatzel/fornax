@@ -1,19 +1,19 @@
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag, DngValue};
 use fornax_core::metadata::process::{Levels, ProcessMetadata};
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RawMosaic};
+use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use generic_num::num;
 use image::math::Rect;
 use tiff::decoder::ifd::Value;
 
 pub fn process_metadata_from_dng_metadata<T>(
-    pixels: &RawMosaic,
+    full_width: u32,
+    full_height: u32,
     dng_metadata: &DngMetadata,
 ) -> Result<ProcessMetadata<T>, DecodeError>
 where
     T: Primitive,
 {
-    let (full_width, full_height) = pixels.dimensions();
     let active_area = active_area(dng_metadata, full_width, full_height)?;
     let default_crop = default_crop(dng_metadata, active_area)?;
     let black = black_levels(dng_metadata)?;
@@ -51,8 +51,14 @@ fn active_area(
     full_width: u32,
     full_height: u32,
 ) -> Result<Rect, DecodeError> {
-    let values = unsigned_values(metadata.get(&DngTag::ActiveArea))?
-        .ok_or_else(|| DecodeError::Backend("ActiveArea is missing".into()))?;
+    let Some(values) = unsigned_values(metadata.get(&DngTag::ActiveArea))? else {
+        return Ok(Rect {
+            x: 0,
+            y: 0,
+            width: full_width,
+            height: full_height,
+        });
+    };
     let [top, left, bottom, right]: [u32; 4] = values
         .try_into()
         .map_err(|_| DecodeError::Backend("ActiveArea must contain four values".into()))?;
@@ -69,10 +75,16 @@ fn active_area(
     })
 }
 fn default_crop(metadata: &DngMetadata, active: Rect) -> Result<Rect, DecodeError> {
-    let origin = unsigned_values(metadata.get(&DngTag::DefaultCropOrigin))?
-        .ok_or_else(|| metadata_error("DefaultCropOrigin is missing"))?;
-    let size = unsigned_values(metadata.get(&DngTag::DefaultCropSize))?
-        .ok_or_else(|| metadata_error("DefaultCropSize is missing"))?;
+    let origin = unsigned_values(metadata.get(&DngTag::DefaultCropOrigin))?;
+    let size = unsigned_values(metadata.get(&DngTag::DefaultCropSize))?;
+    let (Some(origin), Some(size)) = (origin, size) else {
+        return Ok(Rect {
+            x: 0,
+            y: 0,
+            width: active.width,
+            height: active.height,
+        });
+    };
     let [x, y]: [u32; 2] = origin
         .try_into()
         .map_err(|_| metadata_error("DefaultCropOrigin must contain two values"))?;
@@ -139,8 +151,10 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, D
             format!("CFA layout {width}x{height} is not conventional 2x2 Bayer").into(),
         ));
     }
-    let plane_colors =
-        scalar_values(metadata.get(&DngTag::CfaPlaneColor)).unwrap_or_else(|_| vec![0.0, 1.0, 2.0]);
+    let mut plane_colors = scalar_values(metadata.get(&DngTag::CfaPlaneColor))?;
+    if plane_colors.is_empty() {
+        plane_colors = vec![0.0, 1.0, 2.0];
+    }
     if plane_colors != [0.0, 1.0, 2.0] {
         return Err(DecodeError::Unsupported(
             "CFA plane colors are not RGB".into(),

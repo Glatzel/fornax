@@ -10,32 +10,52 @@
 The current MVP lives in `fornax-decoder` and supports:
 
 - classic TIFF little- and big-endian headers;
+- classic BigTIFF headers;
 - root IFD chains and `SubIFDs`;
 - full-resolution CFA IFD selection rather than first-IFD selection;
 - typed root and raw-IFD metadata preservation;
-- uncompressed integer and floating-point strips/tiles;
-- lossless JPEG-92 strips/tiles with predictors 1 through 7;
+- uncompressed packed-integer and floating-point strips/tiles;
+- lossless JPEG-92 strips/tiles with predictors 1 through 7 and 2- to 16-bit
+  precision;
+- Deflate, lossy JPEG, and JPEG XL raw chunks;
+- 2x2 row/column interleave, linearization, and `OpcodeList1` pixel transforms;
+- parallel strip/tile decode with bounded per-band scratch storage;
 - conventional 2x2 RGB Bayer metadata conversion and active-area handoff;
-- uncompressed DNG generation with exact sample and selected-tag readback.
+- uncompressed DNG generation with exact sample and selected-tag readback;
+- tiled lossless JPEG-92 generation for U8/U16 and lossless Deflate generation
+  for U32/F32.
 
 The accepted `colorchart-5D2-6000K.dng` fixture decodes to the full
 `5792x3804` mosaic, crops to a `5634x3753` active area, and shifts from GBRG
 at the full-frame origin to RGGB relative to the active area. Its metadata
 reports a `2x2` black-level pattern of 1024 and a white level of 15600.
 
-Default lossless-JPEG export currently returns
-`DngWriteError::Unsupported`. Byte-identical export requires retaining the
-source container, which the current public decoded-data model does not expose.
+The ignored `raw.pixls.us` corpus is used for wider manual validation:
+
+- Canon EOS 5D Mark III DNG compression variants;
+- Nikon D80 DNG with `LinearizationTable`;
+- Sigma fp 14-bit DNG with two-component lossless JPEG tiles;
+- Ricoh GR III 14-bit DNG;
+- Sony ILCE-1M2 and Nikon Z 7 II DNGs generated once from their native raws
+  through the Rawler reference converter.
+
+The Canon CFA, Nikon D80, Sigma fp, Ricoh GR III, Sony ILCE-1M2, and Nikon
+Z 7 II decoded samples match Rawler exactly after applying each file's active
+area. Native Sony/Nikon raws are not treated as default-decoder coverage.
+
+Lossless export is regenerated rather than byte-identical. Byte-identical
+export requires retaining the source container, which the current public
+decoded-data model does not expose.
 
 Remaining DNG work:
 
-- BigTIFF inputs;
-- Deflate and JPEG XL compression;
-- lossy JPEG raw CFA inputs;
 - pre-DNG-1.1 lossless-JPEG compatibility mode;
-- row/column interleave factors, sub-tile blocks, linearization tables, and
-  opcode lists;
-- general lossless-JPEG recompression;
+- multi-component subsampled/restart-interval JPEG variants;
+- `SubTileBlockSize` and non-2x2 interleave factors;
+- geometric/frontend opcodes outside the raw pixel domain;
+- `OpcodeList2` and `OpcodeList3` execution in their downstream stages;
+- automatic BigTIFF output for regenerated files exceeding classic TIFF limits;
+- preview, thumbnail, mask, depth, and nested Exif/GPS preservation;
 - corpus coverage for accepted DNG cameras.
 
 ## Container handling
@@ -54,14 +74,16 @@ geometry.
 
 | TIFF compression | Storage | Current behavior |
 | --- | --- | --- |
-| Uncompressed (`1`) | Strips/tiles | 8-, 16-, and 32-bit integer plus 32-bit float samples |
-| Lossless JPEG-92 (`7`) | Strips/tiles | 16-bit CFA tiles, restart-free, predictors 1-7 |
-| Deflate (`8`) | Strips/tiles | Unsupported |
-| JPEG XL (`52546`) | Strips/tiles | Unsupported |
-| Lossy JPEG (`34892`) | Strips/tiles | Unsupported |
+| Uncompressed (`1`) | Strips/tiles | Packed 1-32-bit integer and 16/24/32-bit float samples |
+| Lossless JPEG-92 (`7`) | Strips/tiles | 2-16-bit precision, predictors 1-7, single-component or 1x1 interleaved components |
+| Deflate (`8`) | Strips/tiles | Integer and float payloads with standard horizontal/float predictors |
+| JPEG XL (`52546`) | Strips/tiles | Single-channel 8-16-bit mosaics |
+| Lossy JPEG (`34892`) | Strips/tiles | Single-component 8-bit mosaics |
 
-Unsupported compression returns `DecodeError::Unsupported`; malformed values
-return `DecodeError::InvalidInput`.
+Malformed values and layouts outside the active Bayer contract return
+`DecodeError::InvalidInput` or the existing CFA boundary error. Unknown
+compression identifiers are invalid input rather than stale unsupported
+placeholders.
 
 ## Metadata
 
@@ -75,9 +97,14 @@ The decoder retains typed DNG values in
 - `AsShotNeutral`, `AsShotWhiteXY`, and calibration/render hints;
 - `Make`, `Model`, `UniqueCameraModel`, and `CameraSerialNumber`.
 
-Unknown well-formed tags remain in the metadata map. When regenerating an
-uncompressed container, offsets and layout-dependent image tags are regenerated
-or omitted; values that cannot be serialized return a typed writer error.
+Unknown well-formed tags remain in the metadata map. `OpcodeList1` and
+`LinearizationTable` affect `raw_mosaic`; `OpcodeList2` and `OpcodeList3`
+remain available as metadata for their downstream stages. When regenerating a
+container, offsets and layout-dependent image tags are regenerated or omitted.
+
+`ActiveArea` defaults to the full decoded frame when absent, as seen in some
+mobile DNGs. `DefaultCropOrigin`/`DefaultCropSize` default to that active area
+when absent. A missing `CFAPlaneColor` defaults to RGB plane IDs.
 
 ## CFA handoff
 
@@ -89,7 +116,9 @@ The active pipeline accepts only conventional RGB 2x2 Bayer layouts:
 
 Other repeat sizes, plane colors, layouts, or CFA patterns return a typed
 unsupported error. The decoder does not claim X-Trans, four-color, monochrome,
-or arbitrary-CFA pipeline support.
+or arbitrary-CFA pipeline support. Multi-channel `LinearRaw` DNG images also
+remain outside the mono mosaic contract even when their compression is
+recognized.
 
 ## References
 

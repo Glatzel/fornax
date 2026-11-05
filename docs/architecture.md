@@ -90,15 +90,19 @@ white-balance coefficients when metadata provides them.
 
 ## DNG support
 
-The default decoder reads TIFF/DNG directories, selects the full-resolution CFA
-or LinearRaw image, preserves typed root and raw-IFD metadata, and decodes
-uncompressed and lossless JPEG-92 strips/tiles. Its process-metadata conversion
-accepts only conventional 2x2 RGB Bayer layouts.
+The default decoder reads classic TIFF and BigTIFF directories, selects the
+full-resolution CFA or LinearRaw image, preserves typed root and raw-IFD
+metadata, and decodes uncompressed, lossless JPEG-92, Deflate, lossy JPEG, and
+JPEG XL raw chunks. Independent strips and tiles are decoded with Rayon. Raw
+storage transforms, linearization, and `OpcodeList1` are applied before
+returning the mosaic. Its process-metadata conversion accepts only conventional
+2x2 RGB Bayer layouts.
 
-`fornax_core::writer::DngWriter` regenerates an uncompressed DNG from
-`RawMosaic` and `DngMetadata`. Lossless-JPEG output remains a typed unsupported
-operation because the decoded-data model does not retain a source container for
-byte-identical export.
+`fornax_core::writer::DngWriter` regenerates uncompressed or lossless DNG data
+from `RawMosaic` and `DngMetadata`. The lossless option writes tiled JPEG-92 for
+U8/U16 samples and a lossless Deflate representation for U32/F32 samples.
+Regeneration is not byte-identical to the source because the public model does
+not retain the original container or auxiliary directories.
 
 ## Benchmarks and comparisons
 

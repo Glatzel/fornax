@@ -20,18 +20,22 @@ where
     T: Primitive,
 {
     fn decode(input: &Path) -> Result<Self, DecodeError> {
-        if let Some(extension) = input.extension() {
-            let decoder = match RawFormat::try_from(extension.to_str().unwrap()) {
-                Ok(RawFormat::Dng) => Self::Dng(dng_decoder::decode(&fs::read(input).unwrap())?),
-                _ => {
-                    return Err(DecodeError::Unsupported(
-                        format!("{}", extension.display()).into(),
-                    ));
-                }
-            };
-            Ok(decoder)
-        } else {
-            Err(DecodeError::Unsupported("Unknown extension.".into()))
+        let extension = input
+            .extension()
+            .ok_or_else(|| DecodeError::Unsupported("DNG input has no file extension".into()))?;
+        let extension = extension
+            .to_str()
+            .ok_or_else(|| DecodeError::InvalidInput("file extension is not UTF-8".into()))?;
+        match RawFormat::try_from(extension) {
+            Ok(RawFormat::Dng) => {
+                let source = fs::read(input).map_err(|error| {
+                    DecodeError::Other(
+                        format!("reading {} failed: {error}", input.display()).into(),
+                    )
+                })?;
+                Ok(Self::Dng(dng_decoder::decode(&source)?))
+            }
+            _ => Err(DecodeError::Unsupported(extension.into())),
         }
     }
 

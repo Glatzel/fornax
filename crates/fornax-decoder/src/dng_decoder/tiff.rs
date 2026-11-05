@@ -6,10 +6,14 @@ use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag};
 
 const TAG_SUB_IFDS: u16 = 330;
+const PHOTOMETRIC_CFA: u64 = 32_803;
+const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
+
 #[derive(Clone, Debug)]
 pub struct ParsedTiff {
     pub root: DngMetadata,
     pub directories: Vec<DngMetadata>,
+    pub(super) raw_ifd: usize,
     pub(super) source: Arc<[u8]>,
 }
 
@@ -301,11 +305,45 @@ pub(super) fn parse(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
         .first()
         .ok_or_else(|| corrupt("TIFF contains no readable image file directory"))?)
     .clone();
+    let raw_ifd = directories
+        .iter()
+        .enumerate()
+        .filter(|(_, metadata)| is_raw_ifd(metadata))
+        .max_by_key(|(_, metadata)| raw_area(metadata))
+        .map(|(index, _)| index)
+        .ok_or_else(|| {
+            DecodeError::Unsupported("no full-resolution CFA image IFD was found".into())
+        })?;
     Ok(ParsedTiff {
         root,
         directories,
+        raw_ifd,
         source: Arc::from(source),
     })
+}
+
+fn is_raw_ifd(metadata: &DngMetadata) -> bool {
+    let photometric = unsigned_scalar(metadata.get(&DngTag::PhotometricInterpretation));
+    let reduced_resolution =
+        unsigned_scalar(metadata.get(&DngTag::NewSubfileType)).is_some_and(|value| value & 1 != 0);
+    !reduced_resolution && matches!(photometric, Some(PHOTOMETRIC_CFA | PHOTOMETRIC_LINEAR_RAW))
+}
+
+fn raw_area(metadata: &DngMetadata) -> u64 {
+    let width = unsigned_scalar(metadata.get(&DngTag::ImageWidth)).unwrap_or(0);
+    let height = unsigned_scalar(metadata.get(&DngTag::ImageLength)).unwrap_or(0);
+    width.saturating_mul(height)
+}
+
+fn unsigned_scalar(value: Option<&Value>) -> Option<u64> {
+    match value? {
+        Value::Byte(value) => Some(u64::from(*value)),
+        Value::Short(value) => Some(u64::from(*value)),
+        Value::Unsigned(value) | Value::Ifd(value) => Some(u64::from(*value)),
+        Value::UnsignedBig(value) | Value::IfdBig(value) => Some(*value),
+        Value::List(values) => unsigned_scalar(values.first()),
+        _ => None,
+    }
 }
 
 fn pointers(value: &Value) -> Vec<u64> {
@@ -358,12 +396,153 @@ fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInp
 
 #[cfg(test)]
 mod tests {
-    use super::{ByteOrder, read_u16, read_u32, read_u64};
+    use super::{ByteOrder, parse, read_u16, read_u32, read_u64};
 
     #[test]
     fn read_helpers_reject_overflowing_offsets() {
         assert_eq!(read_u16(&[], usize::MAX, ByteOrder::Little), None);
         assert_eq!(read_u32(&[], usize::MAX, ByteOrder::Little), None);
         assert_eq!(read_u64(&[], usize::MAX, ByteOrder::Little), None);
+    }
+
+    #[test]
+    fn parser_reads_classic_and_big_tiff_in_both_byte_orders() {
+        for little_endian in [true, false] {
+            let classic = one_ifd_tiff(little_endian, false, 32_803);
+            let parsed = parse(&classic).expect("classic TIFF should parse");
+            assert_eq!(parsed.raw_ifd, 0);
+            assert_eq!(
+                parsed.directories[0]
+                    .get(&fornax_core::metadata::dng::DngTag::ImageWidth)
+                    .unwrap(),
+                &::tiff::decoder::ifd::Value::Unsigned(4)
+            );
+
+            let big = one_ifd_tiff(little_endian, true, 32_803);
+            let parsed = parse(&big).expect("BigTIFF should parse");
+            assert_eq!(parsed.raw_ifd, 0);
+        }
+    }
+
+    #[test]
+    fn parser_rejects_tiffs_without_a_raw_ifd() {
+        let bytes = one_ifd_tiff(true, false, 6);
+        let error = parse(&bytes).expect_err("YCbCr TIFF is not a raw DNG image");
+        assert!(matches!(
+            error,
+            fornax_core::error::DecodeError::Unsupported(_)
+        ));
+    }
+
+    fn one_ifd_tiff(little_endian: bool, big_tiff: bool, photometric: u16) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(if little_endian { b"II" } else { b"MM" });
+        push_u16(&mut bytes, if big_tiff { 43 } else { 42 }, little_endian);
+        if big_tiff {
+            push_u16(&mut bytes, 8, little_endian);
+            push_u16(&mut bytes, 0, little_endian);
+            push_u64(&mut bytes, 16, little_endian);
+        } else {
+            push_u32(&mut bytes, 8, little_endian);
+        }
+
+        let entry_count = 3_u64;
+        if big_tiff {
+            push_u64(&mut bytes, entry_count, little_endian);
+        } else {
+            push_u16(
+                &mut bytes,
+                u16::try_from(entry_count).unwrap(),
+                little_endian,
+            );
+        }
+
+        push_entry(&mut bytes, little_endian, big_tiff, 256, 4, 1, 4);
+        push_entry(&mut bytes, little_endian, big_tiff, 257, 4, 1, 4);
+        push_entry(
+            &mut bytes,
+            little_endian,
+            big_tiff,
+            262,
+            3,
+            1,
+            u64::from(photometric),
+        );
+        if big_tiff {
+            push_u64(&mut bytes, 0, little_endian);
+        } else {
+            push_u32(&mut bytes, 0, little_endian);
+        }
+        bytes
+    }
+
+    fn push_entry(
+        bytes: &mut Vec<u8>,
+        little_endian: bool,
+        big_tiff: bool,
+        tag: u16,
+        field_type: u16,
+        count: u64,
+        value: u64,
+    ) {
+        push_u16(bytes, tag, little_endian);
+        push_u16(bytes, field_type, little_endian);
+        if big_tiff {
+            push_u64(bytes, count, little_endian);
+            if field_type == 3 {
+                push_u16(
+                    bytes,
+                    u16::try_from(value).expect("SHORT fits"),
+                    little_endian,
+                );
+                bytes.extend_from_slice(&[0; 6]);
+            } else {
+                push_u64(bytes, value, little_endian);
+            }
+        } else {
+            push_u32(
+                bytes,
+                u32::try_from(count).expect("classic entry count fits"),
+                little_endian,
+            );
+            if field_type == 3 {
+                push_u16(
+                    bytes,
+                    u16::try_from(value).expect("SHORT fits"),
+                    little_endian,
+                );
+                bytes.extend_from_slice(&[0; 2]);
+            } else {
+                push_u32(
+                    bytes,
+                    u32::try_from(value).expect("classic inline value fits"),
+                    little_endian,
+                );
+            }
+        }
+    }
+
+    fn push_u16(bytes: &mut Vec<u8>, value: u16, little_endian: bool) {
+        if little_endian {
+            bytes.extend_from_slice(&value.to_le_bytes());
+        } else {
+            bytes.extend_from_slice(&value.to_be_bytes());
+        }
+    }
+
+    fn push_u32(bytes: &mut Vec<u8>, value: u32, little_endian: bool) {
+        if little_endian {
+            bytes.extend_from_slice(&value.to_le_bytes());
+        } else {
+            bytes.extend_from_slice(&value.to_be_bytes());
+        }
+    }
+
+    fn push_u64(bytes: &mut Vec<u8>, value: u64, little_endian: bool) {
+        if little_endian {
+            bytes.extend_from_slice(&value.to_le_bytes());
+        } else {
+            bytes.extend_from_slice(&value.to_be_bytes());
+        }
     }
 }

@@ -1,8 +1,12 @@
 //! DNG container and sample decoding.
 
+mod deflate_codec;
+mod jpeg_codec;
+mod jpegxl_codec;
 mod ljpeg;
 mod process_metadata;
 mod tiff;
+mod transforms;
 
 use ::tiff::decoder::ifd::Value;
 use fornax_core::error::DecodeError;
@@ -15,16 +19,17 @@ use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
 pub use tiff::ParsedTiff;
 
-const PHOTOMETRIC_CFA: u64 = 32_803;
-const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
 const COMPRESSION_UNCOMPRESSED: u16 = 1;
 const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
+const COMPRESSION_DEFLATE: u16 = 8;
+const COMPRESSION_LOSSY_JPEG: u16 = 34_892;
+const COMPRESSION_JPEG_XL: u16 = 52_546;
 
 pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> { tiff::parse(source) }
 
 pub fn raw_mosaic(parsed: &ParsedTiff) -> Result<RawMosaic, DecodeError> {
     let metadata = dng_metadata(parsed)?;
-    let pixels = decode_samples(&parsed.source, &metadata)?;
+    let pixels = transforms::apply(decode_samples(&parsed.source, &metadata)?, &metadata)?;
     validate_dimensions(&pixels, &metadata)?;
     Ok(pixels)
 }
@@ -35,7 +40,8 @@ where
 {
     let pixels = raw_mosaic(parsed)?;
     let metadata = dng_metadata(parsed)?;
-    let process_metadata = process_metadata_from_dng_metadata::<T>(&pixels, &metadata)?;
+    let (width, height) = pixels.dimensions();
+    let process_metadata = process_metadata_from_dng_metadata::<T>(width, height, &metadata)?;
     let active_area = process_metadata.active_area;
     let image = match pixels {
         RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
@@ -54,10 +60,8 @@ pub fn dng_metadata(parsed: &ParsedTiff) -> Result<DngMetadata, DecodeError> {
     }
     let raw_metadata = parsed
         .directories
-        .iter()
-        .filter(|metadata| is_raw_ifd(metadata))
-        .max_by_key(|metadata| raw_area(metadata))
-        .ok_or_else(|| unsupported_variant("no full-resolution CFA image IFD was found"))?;
+        .get(parsed.raw_ifd)
+        .ok_or_else(|| corrupt("selected raw IFD is missing"))?;
     let mut dng_metadata = parsed.root.clone();
     dng_metadata.extend(
         raw_metadata
@@ -71,9 +75,10 @@ pub fn process_metadata<T>(parsed: &ParsedTiff) -> Result<ProcessMetadata<T>, De
 where
     T: Primitive,
 {
-    let pixels = raw_mosaic(parsed)?;
     let metadata = dng_metadata(parsed)?;
-    process_metadata_from_dng_metadata(&pixels, &metadata)
+    let width = required_u32(&metadata, DngTag::ImageWidth)?;
+    let height = required_u32(&metadata, DngTag::ImageLength)?;
+    process_metadata_from_dng_metadata(width, height, &metadata)
 }
 
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
@@ -105,19 +110,6 @@ fn validate_dimensions(pixels: &RawMosaic, metadata: &DngMetadata) -> Result<(),
     Ok(())
 }
 
-fn is_raw_ifd(metadata: &DngMetadata) -> bool {
-    let photometric = unsigned_scalar(metadata.get(&DngTag::PhotometricInterpretation));
-    let reduced_resolution =
-        unsigned_scalar(metadata.get(&DngTag::NewSubfileType)).is_some_and(|value| value & 1 != 0);
-    !reduced_resolution && matches!(photometric, Some(PHOTOMETRIC_CFA | PHOTOMETRIC_LINEAR_RAW))
-}
-
-fn raw_area(metadata: &DngMetadata) -> u64 {
-    let width = unsigned_scalar(metadata.get(&DngTag::ImageWidth)).unwrap_or(0);
-    let height = unsigned_scalar(metadata.get(&DngTag::ImageLength)).unwrap_or(0);
-    width.saturating_mul(height)
-}
-
 fn decode_samples(source: &[u8], metadata: &DngMetadata) -> Result<RawMosaic, DecodeError> {
     let width = required_u32(metadata, DngTag::ImageWidth)?;
     let height = required_u32(metadata, DngTag::ImageLength)?;
@@ -135,9 +127,202 @@ fn decode_samples(source: &[u8], metadata: &DngMetadata) -> Result<RawMosaic, De
     match compression {
         COMPRESSION_UNCOMPRESSED => decode_uncompressed(source, metadata, width, height),
         COMPRESSION_LOSSLESS_JPEG => decode_lossless_jpeg(source, metadata, width, height),
-        _ => Err(unsupported_variant(format!(
-            "DNG compression {compression} is unsupported"
-        ))),
+        COMPRESSION_DEFLATE => decode_deflate(source, metadata, width, height),
+        COMPRESSION_LOSSY_JPEG => decode_lossy_jpeg(source, metadata, width, height),
+        COMPRESSION_JPEG_XL => decode_jpeg_xl(source, metadata, width, height),
+        _ => Err(corrupt(format!("invalid DNG compression {compression}"))),
+    }
+}
+
+fn decode_deflate(
+    source: &[u8],
+    metadata: &DngMetadata,
+    width: u32,
+    height: u32,
+) -> Result<RawMosaic, DecodeError> {
+    let bits = required_u16(metadata, DngTag::BitsPerSample)?;
+    let (tile_width, tile_height, offsets, byte_counts) = layout(metadata)?;
+    let little_endian = matches!(byte_order(source), ByteOrder::Little);
+    let predictor = unsigned_scalar(metadata.get(&DngTag::Unknown(317))).unwrap_or(1);
+    let predictor =
+        u16::try_from(predictor).map_err(|_| corrupt("Deflate predictor is out of range"))?;
+    let mut inflated = Vec::new();
+    inflated.extend_from_slice(if little_endian { b"II" } else { b"MM" });
+    let mut inflated_offsets = Vec::with_capacity(offsets.len());
+    let mut inflated_counts = Vec::with_capacity(byte_counts.len());
+    for (index, (&offset, &byte_count)) in offsets.iter().zip(&byte_counts).enumerate() {
+        let encoded = checked_slice(source, offset, byte_count)?;
+        let mut payload = deflate_codec::inflate(encoded)
+            .map_err(|detail| corrupt(format!("Deflate chunk {index}: {detail}")))?;
+        deflate_codec::reverse_predictor(
+            &mut payload,
+            predictor,
+            tile_width,
+            tile_height,
+            bits,
+            sample_format(metadata),
+            little_endian,
+        )
+        .map_err(|detail| corrupt(format!("Deflate chunk {index}: {detail}")))?;
+        inflated_offsets.push(
+            u32::try_from(inflated.len())
+                .map_err(|_| corrupt("inflated Deflate source exceeds classic offsets"))?,
+        );
+        inflated_counts.push(
+            u32::try_from(payload.len())
+                .map_err(|_| corrupt("inflated Deflate chunk exceeds u32"))?,
+        );
+        inflated.extend_from_slice(&payload);
+    }
+
+    let mut metadata = metadata.clone();
+    if metadata.contains_key(&DngTag::TileOffsets) {
+        metadata.insert(DngTag::TileOffsets, dng_values(inflated_offsets));
+        metadata.insert(DngTag::TileByteCounts, dng_values(inflated_counts));
+    } else {
+        metadata.insert(DngTag::StripOffsets, dng_values(inflated_offsets));
+        metadata.insert(DngTag::StripByteCounts, dng_values(inflated_counts));
+    }
+    decode_uncompressed(&inflated, &metadata, width, height)
+}
+
+fn decode_lossy_jpeg(
+    source: &[u8],
+    metadata: &DngMetadata,
+    width: u32,
+    height: u32,
+) -> Result<RawMosaic, DecodeError> {
+    let bits = required_u16(metadata, DngTag::BitsPerSample)?;
+    if bits != 8 {
+        return Err(corrupt(format!(
+            "lossy JPEG DNG samples require 8 bits, found {bits}"
+        )));
+    }
+    let (tile_width, tile_height, offsets, byte_counts) = layout(metadata)?;
+    let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
+    let height = usize::try_from(height).expect("u32 fits usize on supported platforms");
+    validate_chunk_count(
+        width,
+        height,
+        tile_width,
+        tile_height,
+        &offsets,
+        &byte_counts,
+    )?;
+    let mut output = vec![0_u8; width * height];
+    output
+        .par_chunks_mut(tile_height * width)
+        .enumerate()
+        .try_for_each(|(tile_y_index, band)| {
+            let tile_y = tile_y_index * tile_height;
+            let copy_height = tile_height.min(height - tile_y);
+            for tile_x_index in 0..width.div_ceil(tile_width) {
+                let index = tile_y_index * width.div_ceil(tile_width) + tile_x_index;
+                let encoded = checked_slice(source, offsets[index], byte_counts[index])?;
+                let decoded = jpeg_codec::decode_luma(encoded)
+                    .map_err(|detail| corrupt(format!("lossy JPEG tile {index}: {detail}")))?;
+                let expected = tile_width
+                    .checked_mul(tile_height)
+                    .ok_or_else(|| corrupt("lossy JPEG tile size overflow"))?;
+                if decoded.len() != expected {
+                    return Err(corrupt(format!(
+                        "lossy JPEG tile {index} decoded {} samples, expected {expected}",
+                        decoded.len()
+                    )));
+                }
+                let tile_x = tile_x_index * tile_width;
+                let copy_width = tile_width.min(width - tile_x);
+                for row in 0..copy_height {
+                    let source_start = row * tile_width;
+                    let target_start = row * width + tile_x;
+                    band[target_start..target_start + copy_width]
+                        .copy_from_slice(&decoded[source_start..source_start + copy_width]);
+                }
+            }
+            Ok::<(), DecodeError>(())
+        })?;
+    MonoImage::from_raw(width as u32, height as u32, output)
+        .map(RawMosaic::U8)
+        .ok_or_else(|| corrupt("lossy JPEG DNG dimensions are invalid"))
+}
+
+fn decode_jpeg_xl(
+    source: &[u8],
+    metadata: &DngMetadata,
+    width: u32,
+    height: u32,
+) -> Result<RawMosaic, DecodeError> {
+    let bits = required_u16(metadata, DngTag::BitsPerSample)?;
+    if !(8..=16).contains(&bits) {
+        return Err(corrupt(format!(
+            "JPEG XL Bayer samples with {bits} bits are invalid"
+        )));
+    }
+    let (tile_width, tile_height, offsets, byte_counts) = layout(metadata)?;
+    let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
+    let height = usize::try_from(height).expect("u32 fits usize on supported platforms");
+    validate_chunk_count(
+        width,
+        height,
+        tile_width,
+        tile_height,
+        &offsets,
+        &byte_counts,
+    )?;
+    let across = width.div_ceil(tile_width);
+
+    if bits == 8 {
+        let mut output = vec![0_u8; width * height];
+        output
+            .par_chunks_mut(tile_height * width)
+            .enumerate()
+            .try_for_each(|(tile_y_index, band)| {
+                let tile_y = tile_y_index * tile_height;
+                let copy_height = tile_height.min(height - tile_y);
+                for tile_x_index in 0..across {
+                    let index = tile_y_index * across + tile_x_index;
+                    let encoded = checked_slice(source, offsets[index], byte_counts[index])?;
+                    let decoded = jpegxl_codec::decode_u8(encoded, tile_width, tile_height)
+                        .map_err(|detail| corrupt(format!("JPEG XL tile {index}: {detail}")))?;
+                    let tile_x = tile_x_index * tile_width;
+                    let copy_width = tile_width.min(width - tile_x);
+                    for row in 0..copy_height {
+                        let source_start = row * tile_width;
+                        let target_start = row * width + tile_x;
+                        band[target_start..target_start + copy_width]
+                            .copy_from_slice(&decoded[source_start..source_start + copy_width]);
+                    }
+                }
+                Ok::<(), DecodeError>(())
+            })?;
+        MonoImage::from_raw(width as u32, height as u32, output)
+            .map(RawMosaic::U8)
+            .ok_or_else(|| corrupt("JPEG XL DNG dimensions are invalid"))
+    } else {
+        let mut output = vec![0_u16; width * height];
+        output
+            .par_chunks_mut(tile_height * width)
+            .enumerate()
+            .try_for_each(|(tile_y_index, band)| {
+                let tile_y = tile_y_index * tile_height;
+                let copy_height = tile_height.min(height - tile_y);
+                for tile_x_index in 0..across {
+                    let index = tile_y_index * across + tile_x_index;
+                    let encoded = checked_slice(source, offsets[index], byte_counts[index])?;
+                    let decoded = jpegxl_codec::decode_u16(encoded, tile_width, tile_height, bits)
+                        .map_err(|detail| corrupt(format!("JPEG XL tile {index}: {detail}")))?;
+                    let tile_x = tile_x_index * tile_width;
+                    let copy_width = tile_width.min(width - tile_x);
+                    for row in 0..copy_height {
+                        let source_start = row * tile_width;
+                        let target_start = row * width + tile_x;
+                        band[target_start..target_start + copy_width]
+                            .copy_from_slice(&decoded[source_start..source_start + copy_width]);
+                    }
+                }
+                Ok::<(), DecodeError>(())
+            })?;
+        to_mosaic(width, height, output)
     }
 }
 
@@ -148,11 +333,12 @@ fn decode_lossless_jpeg(
     height: u32,
 ) -> Result<RawMosaic, DecodeError> {
     let bits = required_u16(metadata, DngTag::BitsPerSample)?;
-    if bits != 16 {
-        return Err(unsupported_variant(format!(
-            "lossless JPEG CFA samples with {bits} bits are unsupported"
+    if !(2..=16).contains(&bits) {
+        return Err(corrupt(format!(
+            "lossless JPEG CFA sample depth {bits} is invalid"
         )));
     }
+    let precision = u8::try_from(bits).expect("lossless JPEG precision is at most 16");
 
     let (tile_width, tile_height, offsets, byte_counts) = layout(metadata)?;
     let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
@@ -173,33 +359,45 @@ fn decode_lossless_jpeg(
         )));
     }
 
-    for (index, (&offset, &byte_count)) in offsets.iter().zip(&byte_counts).enumerate() {
-        let encoded = checked_slice(source, offset, byte_count)?;
-        let decoded = ljpeg::decode(encoded, tile_width, tile_height)
-            .map_err(|detail| corrupt(format!("lossless JPEG tile {index}: {detail}")))?;
-        let expected_samples = tile_width
-            .checked_mul(tile_height)
-            .ok_or_else(|| corrupt("lossless JPEG tile sample count overflow"))?;
-        if decoded.len() != expected_samples {
-            return Err(corrupt(format!(
-                "lossless JPEG tile {index} decoded {} samples, expected {expected_samples}",
-                decoded.len()
-            )));
-        }
+    let expected_samples = tile_width
+        .checked_mul(tile_height)
+        .ok_or_else(|| corrupt("lossless JPEG tile sample count overflow"))?;
+    output
+        .par_chunks_mut(tile_height * width)
+        .enumerate()
+        .try_for_each(|(tile_y_index, band)| {
+            let mut decoded = vec![0_u16; expected_samples];
+            for tile_x_index in 0..across {
+                let index = tile_y_index * across + tile_x_index;
+                let encoded = checked_slice(source, offsets[index], byte_counts[index])?;
+                ljpeg::decode_into(encoded, tile_width, tile_height, precision, &mut decoded)
+                    .map_err(|detail| corrupt(format!("lossless JPEG tile {index}: {detail}")))?;
 
-        let tile_x = (index % across) * tile_width;
-        let tile_y = (index / across) * tile_height;
-        let copy_width = tile_width.min(width - tile_x);
-        let copy_height = tile_height.min(height - tile_y);
-        for row in 0..copy_height {
-            let source_start = row * tile_width;
-            let target_start = (tile_y + row) * width + tile_x;
-            output[target_start..target_start + copy_width]
-                .copy_from_slice(&decoded[source_start..source_start + copy_width]);
-        }
+                let tile_x = tile_x_index * tile_width;
+                let tile_y = tile_y_index * tile_height;
+                let copy_width = tile_width.min(width - tile_x);
+                let copy_height = tile_height.min(height - tile_y);
+                for row in 0..copy_height {
+                    let source_start = row * tile_width;
+                    let target_start = row * width + tile_x;
+                    band[target_start..target_start + copy_width]
+                        .copy_from_slice(&decoded[source_start..source_start + copy_width]);
+                }
+            }
+            Ok::<(), DecodeError>(())
+        })?;
+
+    if bits <= 8 {
+        let samples = output
+            .into_iter()
+            .map(|value| u8::try_from(value).expect("lossless JPEG samples fit eight bits"))
+            .collect();
+        MonoImage::from_raw(width as u32, height as u32, samples)
+            .map(RawMosaic::U8)
+            .ok_or_else(|| corrupt("lossless JPEG DNG dimensions are invalid"))
+    } else {
+        to_mosaic(width, height, output)
     }
-
-    to_mosaic(width, height, output)
 }
 
 fn decode_uncompressed(
@@ -220,6 +418,29 @@ fn decode_uncompressed(
             across * down,
             offsets.len(),
             byte_counts.len()
+        )));
+    }
+
+    let sample_format = sample_format(metadata);
+    if sample_format == 3 {
+        let samples = decode_float_samples(
+            source,
+            &offsets,
+            &byte_counts,
+            width,
+            height,
+            tile_width,
+            tile_height,
+            bits,
+            byte_order(source),
+        )?;
+        return MonoImage::from_raw(width as u32, height as u32, samples)
+            .map(RawMosaic::F32)
+            .ok_or_else(|| corrupt("uncompressed DNG dimensions are invalid"));
+    }
+    if sample_format != 1 {
+        return Err(corrupt(format!(
+            "invalid uncompressed DNG sample format {sample_format}"
         )));
     }
 
@@ -261,47 +482,345 @@ fn decode_uncompressed(
             to_mosaic(width, height, output)
         }
         32 => {
-            if sample_format(metadata) == 3 {
-                let mut output = vec![0_f32; width * height];
-                copy_float_samples(
-                    source,
-                    &offsets,
-                    &byte_counts,
-                    width,
-                    height,
-                    tile_width,
-                    tile_height,
-                    byte_order(source),
-                    &mut output,
-                )?;
-                MonoImage::from_raw(width as u32, height as u32, output)
-                    .map(RawMosaic::F32)
-                    .ok_or_else(|| {
-                        corrupt("uncompressed floating-point DNG dimensions are invalid")
-                    })
-            } else {
-                let mut output = vec![0_u32; width * height];
-                copy_samples(
-                    source,
-                    &offsets,
-                    &byte_counts,
-                    width,
-                    height,
-                    tile_width,
-                    tile_height,
-                    4,
-                    byte_order(source),
-                    &mut output,
-                )?;
-                MonoImage::from_raw(width as u32, height as u32, output)
-                    .map(RawMosaic::U32)
-                    .ok_or_else(|| corrupt("uncompressed DNG dimensions are invalid"))
-            }
+            let mut output = vec![0_u32; width * height];
+            copy_samples(
+                source,
+                &offsets,
+                &byte_counts,
+                width,
+                height,
+                tile_width,
+                tile_height,
+                4,
+                byte_order(source),
+                &mut output,
+            )?;
+            MonoImage::from_raw(width as u32, height as u32, output)
+                .map(RawMosaic::U32)
+                .ok_or_else(|| corrupt("uncompressed DNG dimensions are invalid"))
         }
-        _ => Err(unsupported_variant(format!(
-            "uncompressed DNG samples with {bits} bits are unsupported"
+        9..=15 => {
+            let samples = decode_packed_samples(
+                source,
+                &offsets,
+                &byte_counts,
+                width,
+                height,
+                tile_width,
+                tile_height,
+                bits,
+            )?;
+            to_mosaic(width, height, samples)
+        }
+        1..=7 => {
+            let samples = decode_packed_samples(
+                source,
+                &offsets,
+                &byte_counts,
+                width,
+                height,
+                tile_width,
+                tile_height,
+                bits,
+            )?;
+            let samples = samples
+                .into_iter()
+                .map(|value| u8::try_from(value).expect("packed values fit their declared depth"))
+                .collect();
+            MonoImage::from_raw(width as u32, height as u32, samples)
+                .map(RawMosaic::U8)
+                .ok_or_else(|| corrupt("uncompressed DNG dimensions are invalid"))
+        }
+        17..=31 => {
+            let samples = decode_packed_u32_samples(
+                source,
+                &offsets,
+                &byte_counts,
+                width,
+                height,
+                tile_width,
+                tile_height,
+                bits,
+            )?;
+            MonoImage::from_raw(width as u32, height as u32, samples)
+                .map(RawMosaic::U32)
+                .ok_or_else(|| corrupt("uncompressed DNG dimensions are invalid"))
+        }
+        _ => Err(corrupt(format!(
+            "invalid uncompressed DNG sample depth {bits}"
         ))),
     }
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the float decoder mirrors the validated TIFF chunk layout"
+)]
+fn decode_float_samples(
+    source: &[u8],
+    offsets: &[usize],
+    byte_counts: &[usize],
+    width: usize,
+    height: usize,
+    tile_width: usize,
+    tile_height: usize,
+    bits: u16,
+    byte_order: ByteOrder,
+) -> Result<Vec<f32>, DecodeError> {
+    let bytes_per_sample = match bits {
+        16 => 2,
+        24 => 3,
+        32 => 4,
+        _ => {
+            return Err(corrupt(format!(
+                "IEEE floating-point DNG samples with {bits} bits are invalid"
+            )));
+        }
+    };
+    let across = width.div_ceil(tile_width);
+    let down = height.div_ceil(tile_height);
+    if offsets.len() != byte_counts.len() || offsets.len() != across * down {
+        return Err(corrupt(format!(
+            "expected {} chunks, found {} offsets and {} byte counts",
+            across * down,
+            offsets.len(),
+            byte_counts.len()
+        )));
+    }
+
+    let mut output = vec![0_f32; width * height];
+    output
+        .par_chunks_mut(tile_height * width)
+        .enumerate()
+        .try_for_each(|(tile_y_index, band)| {
+            let tile_y = tile_y_index * tile_height;
+            let copy_height = tile_height.min(height - tile_y);
+            for tile_x_index in 0..across {
+                let index = tile_y_index * across + tile_x_index;
+                let encoded = checked_slice(source, offsets[index], byte_counts[index])?;
+                let tile_x = tile_x_index * tile_width;
+                let copy_width = tile_width.min(width - tile_x);
+                let required_samples = (copy_height - 1)
+                    .checked_mul(tile_width)
+                    .and_then(|count| count.checked_add(copy_width))
+                    .ok_or_else(|| corrupt("floating-point DNG chunk size overflow"))?;
+                let required_bytes = required_samples
+                    .checked_mul(bytes_per_sample)
+                    .ok_or_else(|| corrupt("floating-point DNG chunk size overflow"))?;
+                if encoded.len() < required_bytes {
+                    return Err(corrupt(format!(
+                        "uncompressed DNG chunk {index} is truncated"
+                    )));
+                }
+
+                for row in 0..copy_height {
+                    let source_start = row * tile_width * bytes_per_sample;
+                    let target_start = row * width + tile_x;
+                    for (sample_index, target) in band[target_start..target_start + copy_width]
+                        .iter_mut()
+                        .enumerate()
+                    {
+                        let offset = source_start + sample_index * bytes_per_sample;
+                        let bytes = &encoded[offset..offset + bytes_per_sample];
+                        *target = match bits {
+                            16 => {
+                                let raw = match byte_order {
+                                    ByteOrder::Little => u16::from_le_bytes([bytes[0], bytes[1]]),
+                                    ByteOrder::Big => u16::from_be_bytes([bytes[0], bytes[1]]),
+                                };
+                                extend_float(u32::from(raw), 10, 5)
+                            }
+                            24 => {
+                                let raw = match byte_order {
+                                    ByteOrder::Little => {
+                                        u32::from_le_bytes([bytes[0], bytes[1], bytes[2], 0])
+                                    }
+                                    ByteOrder::Big => {
+                                        u32::from_be_bytes([0, bytes[0], bytes[1], bytes[2]])
+                                    }
+                                };
+                                extend_float(raw, 16, 7)
+                            }
+                            32 => {
+                                let raw = match byte_order {
+                                    ByteOrder::Little => {
+                                        u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])
+                                    }
+                                    ByteOrder::Big => {
+                                        u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])
+                                    }
+                                };
+                                f32::from_bits(raw)
+                            }
+                            _ => unreachable!("the sample width is validated above"),
+                        };
+                    }
+                }
+            }
+            Ok::<(), DecodeError>(())
+        })?;
+    Ok(output)
+}
+
+fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
+    let storage_bits = 1 + exponent_bits + fraction_bits;
+    let sign = (raw >> (storage_bits - 1)) & 1;
+    let exponent_mask = (1_u32 << exponent_bits) - 1;
+    let exponent = (raw >> fraction_bits) & exponent_mask;
+    let fraction = raw & ((1_u32 << fraction_bits) - 1);
+    let bias = i32::try_from(exponent_mask >> 1).expect("float exponent bias fits i32");
+
+    let (wide_exponent, wide_fraction) = if exponent == exponent_mask {
+        (u32::from(u8::MAX), fraction << (23 - fraction_bits))
+    } else if exponent == 0 {
+        if fraction == 0 {
+            (0, 0)
+        } else {
+            let mut wide_exponent = 1 - bias + 127;
+            let mut wide_fraction = fraction << (23 - fraction_bits);
+            while wide_fraction & (1 << 23) == 0 {
+                wide_exponent -= 1;
+                wide_fraction <<= 1;
+            }
+            (
+                u32::try_from(wide_exponent).expect("widened exponent fits u32"),
+                wide_fraction & ((1 << 23) - 1),
+            )
+        }
+    } else {
+        (
+            u32::try_from(i32::try_from(exponent).unwrap() - bias + 127)
+                .expect("widened exponent fits u32"),
+            fraction << (23 - fraction_bits),
+        )
+    };
+    f32::from_bits((sign << 31) | (wide_exponent << 23) | wide_fraction)
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the packed decoder mirrors the validated TIFF chunk layout"
+)]
+fn decode_packed_samples(
+    source: &[u8],
+    offsets: &[usize],
+    byte_counts: &[usize],
+    width: usize,
+    height: usize,
+    tile_width: usize,
+    tile_height: usize,
+    bits: u16,
+) -> Result<Vec<u16>, DecodeError> {
+    let values = decode_packed_u32_samples(
+        source,
+        offsets,
+        byte_counts,
+        width,
+        height,
+        tile_width,
+        tile_height,
+        bits,
+    )?;
+    values
+        .into_iter()
+        .map(|value| {
+            u16::try_from(value)
+                .map_err(|_| corrupt(format!("packed sample exceeds {bits}-bit storage")))
+        })
+        .collect()
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the packed decoder mirrors the validated TIFF chunk layout"
+)]
+fn decode_packed_u32_samples(
+    source: &[u8],
+    offsets: &[usize],
+    byte_counts: &[usize],
+    width: usize,
+    height: usize,
+    tile_width: usize,
+    tile_height: usize,
+    bits: u16,
+) -> Result<Vec<u32>, DecodeError> {
+    let bits = usize::from(bits);
+    if !(1..=32).contains(&bits) {
+        return Err(corrupt("packed sample depth must be between 1 and 32"));
+    }
+    let across = width.div_ceil(tile_width);
+    let down = height.div_ceil(tile_height);
+    if offsets.len() != byte_counts.len() || offsets.len() != across * down {
+        return Err(corrupt(format!(
+            "expected {} chunks, found {} offsets and {} byte counts",
+            across * down,
+            offsets.len(),
+            byte_counts.len()
+        )));
+    }
+    let mut output = vec![0_u32; width * height];
+    output
+        .par_chunks_mut(tile_height * width)
+        .enumerate()
+        .try_for_each(|(tile_y_index, band)| {
+            let tile_y = tile_y_index * tile_height;
+            let copy_height = tile_height.min(height - tile_y);
+            let mut unpacked = vec![0_u32; tile_width * tile_height];
+            for tile_x_index in 0..across {
+                let index = tile_y_index * across + tile_x_index;
+                let encoded = checked_slice(source, offsets[index], byte_counts[index])?;
+                let needed = (tile_width * tile_height * bits).div_ceil(8);
+                if encoded.len() < needed {
+                    return Err(corrupt(format!(
+                        "uncompressed DNG chunk {index} is truncated"
+                    )));
+                }
+                unpack_bits(encoded, &mut unpacked, bits)?;
+
+                let tile_x = tile_x_index * tile_width;
+                let copy_width = tile_width.min(width - tile_x);
+                for row in 0..copy_height {
+                    let source_start = row * tile_width;
+                    let target_start = row * width + tile_x;
+                    for (target, value) in band[target_start..target_start + copy_width]
+                        .iter_mut()
+                        .zip(&unpacked[source_start..source_start + copy_width])
+                    {
+                        *target = *value;
+                    }
+                }
+            }
+            Ok(())
+        })?;
+    Ok(output)
+}
+
+fn unpack_bits(source: &[u8], output: &mut [u32], bits: usize) -> Result<(), DecodeError> {
+    let needed = output
+        .len()
+        .checked_mul(bits)
+        .ok_or_else(|| corrupt("packed sample bit count overflow"))?
+        .div_ceil(8);
+    if source.len() < needed {
+        return Err(corrupt("packed sample payload is truncated"));
+    }
+
+    let mask = (1_u64 << bits) - 1;
+    let mut buffer = 0_u64;
+    let mut buffered_bits = 0_usize;
+    let mut position = 0_usize;
+    for value in output {
+        while buffered_bits < bits {
+            buffer = (buffer << 8) | u64::from(source[position]);
+            position += 1;
+            buffered_bits += 8;
+        }
+        buffered_bits -= bits;
+        *value = u32::try_from((buffer >> buffered_bits) & mask)
+            .map_err(|_| corrupt("packed sample exceeds u32"))?;
+        buffer &= (1_u64 << buffered_bits) - 1;
+    }
+    Ok(())
 }
 
 #[allow(
@@ -388,35 +907,6 @@ where
     Ok(())
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "the float wrapper forwards the complete validated tile layout"
-)]
-fn copy_float_samples(
-    source: &[u8],
-    offsets: &[usize],
-    byte_counts: &[usize],
-    width: usize,
-    height: usize,
-    tile_width: usize,
-    tile_height: usize,
-    byte_order: ByteOrder,
-    output: &mut [f32],
-) -> Result<(), DecodeError> {
-    copy_samples(
-        source,
-        offsets,
-        byte_counts,
-        width,
-        height,
-        tile_width,
-        tile_height,
-        4,
-        byte_order,
-        output,
-    )
-}
-
 #[derive(Clone, Copy)]
 enum ByteOrder {
     Little,
@@ -492,6 +982,33 @@ fn layout(metadata: &DngMetadata) -> Result<(usize, usize, Vec<usize>, Vec<usize
     ))
 }
 
+fn validate_chunk_count(
+    width: usize,
+    height: usize,
+    tile_width: usize,
+    tile_height: usize,
+    offsets: &[usize],
+    byte_counts: &[usize],
+) -> Result<(), DecodeError> {
+    let expected = width.div_ceil(tile_width) * height.div_ceil(tile_height);
+    if offsets.len() != byte_counts.len() || offsets.len() != expected {
+        return Err(corrupt(format!(
+            "expected {expected} chunks, found {} offsets and {} byte counts",
+            offsets.len(),
+            byte_counts.len()
+        )));
+    }
+    Ok(())
+}
+
+fn dng_values(values: Vec<u32>) -> Value {
+    if values.len() == 1 {
+        Value::Unsigned(values[0])
+    } else {
+        Value::List(values.into_iter().map(Value::Unsigned).collect())
+    }
+}
+
 fn to_mosaic(width: usize, height: usize, samples: Vec<u16>) -> Result<RawMosaic, DecodeError> {
     MonoImage::from_raw(
         u32::try_from(width).expect("source width came from u32"),
@@ -563,3 +1080,561 @@ fn unsupported_variant(detail: impl Into<Box<str>>) -> DecodeError {
 }
 
 fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInput(detail.into()) }
+
+#[cfg(test)]
+mod tests {
+    use std::io::{Cursor, Write};
+
+    use flate2::Compression;
+    use flate2::write::ZlibEncoder;
+    use fornax_core::metadata::dng::{DngMetadata, DngTag};
+    use fornax_core::writer::{DngCompression, DngWriter};
+    use fornax_core::{MonoImage, RawMosaic};
+    use image::ImageEncoder;
+    use tiff::decoder::ifd::Value;
+    use tiff::encoder::TiffEncoder;
+    use tiff::tags::Tag;
+
+    use super::{decode, decode_uncompressed, process_metadata};
+
+    #[test]
+    fn process_metadata_does_not_decode_invalid_pixel_payload() {
+        let mut cursor = Cursor::new(Vec::new());
+        {
+            let mut encoder = TiffEncoder::new(&mut cursor).unwrap();
+            let mut directory = encoder.image_directory().unwrap();
+            let data_offset = directory.write_data(b"invalid lossless JPEG").unwrap();
+            let data_offset =
+                u32::try_from(data_offset).expect("the synthetic TIFF fits classic offsets");
+            let byte_count =
+                u32::try_from(b"invalid lossless JPEG".len()).expect("the tile size fits u32");
+
+            directory
+                .write_tag(Tag::Unknown(50_706), [1_u8, 7, 1, 0])
+                .unwrap();
+            directory.write_tag(Tag::Unknown(254), 0_u32).unwrap();
+            directory.write_tag(Tag::Unknown(256), 4_u32).unwrap();
+            directory.write_tag(Tag::Unknown(257), 4_u32).unwrap();
+            directory.write_tag(Tag::Unknown(258), 16_u16).unwrap();
+            directory.write_tag(Tag::Unknown(259), 7_u16).unwrap();
+            directory.write_tag(Tag::Unknown(262), 32_803_u16).unwrap();
+            directory.write_tag(Tag::Unknown(277), 1_u16).unwrap();
+            directory.write_tag(Tag::Unknown(284), 1_u16).unwrap();
+            directory.write_tag(Tag::Unknown(322), 4_u32).unwrap();
+            directory.write_tag(Tag::Unknown(323), 4_u32).unwrap();
+            directory
+                .write_tag(Tag::Unknown(324), [data_offset])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(325), [byte_count])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_829), [0_u32, 0, 4, 4])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_719), [0_u32, 0])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_720), [4_u32, 4])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_713), [2_u16, 2])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_714), [0_u16, 0, 0, 0])
+                .unwrap();
+            directory.write_tag(Tag::Unknown(50_717), 1_u32).unwrap();
+            directory
+                .write_tag(Tag::Unknown(33_421), [2_u16, 2])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(33_422), [0_u8, 1, 1, 2])
+                .unwrap();
+            directory.write_tag(Tag::Unknown(50_711), 1_u16).unwrap();
+            directory.finish().unwrap();
+        };
+
+        let parsed = decode(cursor.get_ref()).expect("the synthetic TIFF should parse");
+        let metadata = process_metadata::<f32>(&parsed)
+            .expect("metadata access must not depend on the pixel payload");
+        assert_eq!(metadata.active_area.width, 4);
+        assert_eq!(metadata.active_area.height, 4);
+    }
+
+    #[test]
+    fn uncompressed_ten_bit_tile_is_unpacked_msb_first() {
+        let metadata = metadata(4, 1, 10, 5, [(DngTag::TileWidth, Value::Unsigned(4))]);
+        let source = [0_u8, 0, 0x10, 0x08, 0x03];
+        let mosaic = decode_uncompressed(&source, &metadata, 4, 1).unwrap();
+        let RawMosaic::U16(image) = mosaic else {
+            panic!("ten-bit samples must widen to u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn uncompressed_big_endian_strips_copy_the_final_partial_row() {
+        let mut metadata = metadata(2, 3, 16, 12, []);
+        metadata.remove(&DngTag::TileOffsets);
+        metadata.remove(&DngTag::TileByteCounts);
+        metadata.remove(&DngTag::TileLength);
+        metadata.remove(&DngTag::TileWidth);
+        metadata.insert(DngTag::ImageLength, Value::Unsigned(3));
+        metadata.insert(DngTag::RowsPerStrip, Value::Unsigned(2));
+        metadata.insert(
+            DngTag::StripOffsets,
+            Value::List(vec![Value::Unsigned(2), Value::Unsigned(10)]),
+        );
+        metadata.insert(
+            DngTag::StripByteCounts,
+            Value::List(vec![Value::Unsigned(8), Value::Unsigned(4)]),
+        );
+        let source = [b'M', b'M', 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6];
+        let mosaic = decode_uncompressed(&source, &metadata, 2, 3).unwrap();
+        let RawMosaic::U16(image) = mosaic else {
+            panic!("sixteen-bit samples must decode as u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[1, 2, 3, 4, 5, 6]);
+    }
+
+    #[test]
+    fn uncompressed_float16_tile_widens_to_f32() {
+        let metadata = metadata(
+            4,
+            1,
+            16,
+            8,
+            [
+                (DngTag::TileWidth, Value::Unsigned(4)),
+                (DngTag::Unknown(339), Value::Short(3)),
+            ],
+        );
+        let source = [0x3c, 0x00, 0x40, 0x00, 0x38, 0x00, 0xbc, 0x00];
+        let mosaic = decode_uncompressed(&source, &metadata, 4, 1).unwrap();
+        let RawMosaic::F32(image) = mosaic else {
+            panic!("IEEE half samples must decode as f32");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[1.0, 2.0, 0.5, -1.0]);
+    }
+
+    #[test]
+    fn lossless_jpeg_decodes_parallel_tile_rows() {
+        let tile = [
+            0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x10, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11,
+            0x00, 0xff, 0xc4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xda, 0x00, 0x08, 0x01,
+            0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0xff, 0xd9,
+        ];
+        let mut source = Vec::new();
+        source.extend_from_slice(&tile);
+        let second_offset = source.len();
+        source.extend_from_slice(&tile);
+
+        let mut metadata = metadata(
+            2,
+            4,
+            16,
+            0,
+            [
+                (DngTag::TileWidth, Value::Unsigned(2)),
+                (DngTag::TileLength, Value::Unsigned(2)),
+            ],
+        );
+        metadata.insert(
+            DngTag::TileOffsets,
+            Value::List(vec![
+                Value::Unsigned(0),
+                Value::Unsigned(u32::try_from(second_offset).unwrap()),
+            ]),
+        );
+        metadata.insert(
+            DngTag::TileByteCounts,
+            Value::List(vec![
+                Value::Unsigned(u32::try_from(tile.len()).unwrap()),
+                Value::Unsigned(u32::try_from(tile.len()).unwrap()),
+            ]),
+        );
+
+        let mosaic = super::decode_lossless_jpeg(&source, &metadata, 2, 4).unwrap();
+        let RawMosaic::U16(image) = mosaic else {
+            panic!("lossless JPEG samples must decode as u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[32_768; 8]);
+    }
+
+    #[test]
+    fn lossless_jpeg_decodes_twelve_bit_tiles() {
+        let tile = [
+            0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x0c, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11,
+            0x00, 0xff, 0xc4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xda, 0x00, 0x08, 0x01,
+            0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0xff, 0xd9,
+        ];
+        let metadata = metadata(
+            2,
+            2,
+            16,
+            u32::try_from(tile.len()).unwrap(),
+            [
+                (DngTag::TileWidth, Value::Unsigned(2)),
+                (DngTag::TileLength, Value::Unsigned(2)),
+            ],
+        );
+        let mosaic = super::decode_lossless_jpeg(&tile, &metadata, 2, 2).unwrap();
+        let RawMosaic::U16(image) = mosaic else {
+            panic!("lossless JPEG samples must decode as u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[2_048; 4]);
+    }
+
+    #[test]
+    fn lossless_jpeg_applies_point_transform() {
+        let mut tile = [
+            0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x10, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11,
+            0x00, 0xff, 0xc4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xda, 0x00, 0x08, 0x01,
+            0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0xff, 0xd9,
+        ];
+        tile[46] = 1;
+        let metadata = metadata(
+            2,
+            2,
+            16,
+            u32::try_from(tile.len()).unwrap(),
+            [
+                (DngTag::TileWidth, Value::Unsigned(2)),
+                (DngTag::TileLength, Value::Unsigned(2)),
+            ],
+        );
+        let mosaic = super::decode_lossless_jpeg(&tile, &metadata, 2, 2).unwrap();
+        let RawMosaic::U16(image) = mosaic else {
+            panic!("lossless JPEG samples must decode as u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[32_768; 4]);
+    }
+
+    #[test]
+    fn deflate_predictor_restores_horizontal_integer_differences() {
+        let values = [1_u8, 2, 4, 8];
+        let differences = [1_u8, 1, 2, 4];
+        let mut encoder = ZlibEncoder::new(Vec::new(), Compression::fast());
+        encoder.write_all(&differences).unwrap();
+        let compressed = encoder.finish().unwrap();
+        let metadata = metadata(
+            4,
+            1,
+            8,
+            u32::try_from(compressed.len()).unwrap(),
+            [
+                (DngTag::TileWidth, Value::Unsigned(4)),
+                (DngTag::Unknown(317), Value::Short(2)),
+            ],
+        );
+
+        let mosaic = super::decode_deflate(&compressed, &metadata, 4, 1).unwrap();
+        let RawMosaic::U8(image) = mosaic else {
+            panic!("8-bit deflate samples must remain u8");
+        };
+        assert_eq!(image.as_raw().as_slice(), &values);
+    }
+
+    #[test]
+    fn lossy_jpeg_decodes_a_single_component_tile() {
+        let pixels = [
+            0_u8, 32, 64, 96, 96, 64, 32, 0, 16, 48, 80, 112, 112, 80, 48, 16,
+        ];
+        let mut encoded = Vec::new();
+        image::codecs::jpeg::JpegEncoder::new_with_quality(&mut encoded, 100)
+            .write_image(&pixels, 4, 4, image::ExtendedColorType::L8)
+            .unwrap();
+        let metadata = metadata(
+            4,
+            4,
+            8,
+            u32::try_from(encoded.len()).unwrap(),
+            [
+                (DngTag::TileWidth, Value::Unsigned(4)),
+                (DngTag::TileLength, Value::Unsigned(4)),
+            ],
+        );
+
+        let mosaic = super::decode_lossy_jpeg(&encoded, &metadata, 4, 4).unwrap();
+        let RawMosaic::U8(image) = mosaic else {
+            panic!("lossy JPEG samples must decode as u8");
+        };
+        assert_eq!(image.dimensions(), (4, 4));
+    }
+
+    #[test]
+    fn lossless_writer_round_trips_u16_samples() {
+        let samples = vec![0, 65_535, 30_000, 32_768, 1, 2, 40_000, 12_345];
+        let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
+        let metadata = writable_metadata(4, 2);
+        let mut output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::LosslessJpeg)
+            .write_dng_with(&mut output, &mosaic, &metadata)
+            .unwrap();
+
+        let parsed = decode(output.get_ref()).unwrap();
+        let decoded = super::raw_mosaic(&parsed).unwrap();
+        let RawMosaic::U16(image) = decoded else {
+            panic!("written 16-bit samples must decode as u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), samples.as_slice());
+    }
+
+    #[test]
+    fn lossless_writer_round_trips_u8_samples() {
+        let samples = vec![0, 255, 128, 1, 254, 64, 200, 7];
+        let mosaic = RawMosaic::U8(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
+        let metadata = writable_metadata(4, 2);
+        let mut output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::LosslessJpeg)
+            .write_dng_with(&mut output, &mosaic, &metadata)
+            .unwrap();
+
+        let parsed = decode(output.get_ref()).unwrap();
+        let decoded = super::raw_mosaic(&parsed).unwrap();
+        let RawMosaic::U8(image) = decoded else {
+            panic!("written 8-bit samples must decode as u8");
+        };
+        assert_eq!(image.as_raw().as_slice(), samples.as_slice());
+    }
+
+    #[test]
+    fn lossless_writer_omits_consumed_raw_transforms() {
+        let samples = vec![100, 200, 300, 400];
+        let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 1, samples.clone()).unwrap());
+        let mut metadata = writable_metadata(4, 1);
+        metadata.insert(
+            DngTag::LinearizationTable,
+            Value::List(vec![
+                Value::Short(100),
+                Value::Short(200),
+                Value::Short(300),
+                Value::Short(400),
+            ]),
+        );
+        metadata.insert(DngTag::Unknown(50_975), Value::Short(2));
+        metadata.insert(DngTag::Unknown(50_976), Value::Short(2));
+
+        let mut output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::LosslessJpeg)
+            .write_dng_with(&mut output, &mosaic, &metadata)
+            .unwrap();
+        let parsed = decode(output.get_ref()).unwrap();
+        let generated = super::dng_metadata(&parsed).unwrap();
+        assert!(!generated.contains_key(&DngTag::LinearizationTable));
+        assert!(!generated.contains_key(&DngTag::Unknown(50_975)));
+        assert!(!generated.contains_key(&DngTag::Unknown(50_976)));
+        let RawMosaic::U16(image) = super::raw_mosaic(&parsed).unwrap() else {
+            panic!("written samples must remain u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), samples.as_slice());
+    }
+
+    #[test]
+    fn lossless_writer_round_trips_wide_integer_and_float_samples() {
+        let integers = vec![1_u32, 70_000, 4_000_000_000];
+        let integer_mosaic = RawMosaic::U32(MonoImage::from_raw(3, 1, integers.clone()).unwrap());
+        let mut integer_output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::LosslessJpeg)
+            .write_dng_with(
+                &mut integer_output,
+                &integer_mosaic,
+                &writable_metadata(3, 1),
+            )
+            .unwrap();
+        let integer_parsed = decode(integer_output.get_ref()).unwrap();
+        let RawMosaic::U32(decoded_integers) = super::raw_mosaic(&integer_parsed).unwrap() else {
+            panic!("wide integers must remain u32");
+        };
+        assert_eq!(decoded_integers.as_raw().as_slice(), integers.as_slice());
+
+        let floats = vec![-1.5_f32, 0.25, f32::from_bits(0x7fc0_1234)];
+        let float_mosaic = RawMosaic::F32(MonoImage::from_raw(3, 1, floats.clone()).unwrap());
+        let mut float_output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::LosslessJpeg)
+            .write_dng_with(&mut float_output, &float_mosaic, &writable_metadata(3, 1))
+            .unwrap();
+        let float_parsed = decode(float_output.get_ref()).unwrap();
+        let RawMosaic::F32(decoded_floats) = super::raw_mosaic(&float_parsed).unwrap() else {
+            panic!("floating-point samples must remain f32");
+        };
+        assert_eq!(
+            decoded_floats
+                .as_raw()
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>(),
+            floats
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn linearization_table_replaces_stored_values() {
+        let pixels = RawMosaic::U16(MonoImage::from_raw(4, 1, vec![0, 1, 2, 3]).unwrap());
+        let mut metadata = DngMetadata::default();
+        metadata.insert(DngTag::BitsPerSample, Value::Short(2));
+        metadata.insert(
+            DngTag::LinearizationTable,
+            Value::List(vec![
+                Value::Short(100),
+                Value::Short(200),
+                Value::Short(300),
+                Value::Short(400),
+            ]),
+        );
+        let transformed = super::transforms::apply(pixels, &metadata).unwrap();
+        let RawMosaic::U16(image) = transformed else {
+            panic!("linearization output must be u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[75, 150, 316, 397]);
+    }
+
+    #[test]
+    fn row_and_column_interleave_restore_two_by_two_storage() {
+        let pixels = RawMosaic::U16(
+            MonoImage::from_raw(
+                4,
+                4,
+                vec![1, 3, 2, 4, 9, 11, 10, 12, 5, 7, 6, 8, 13, 15, 14, 16],
+            )
+            .unwrap(),
+        );
+        let mut metadata = DngMetadata::default();
+        metadata.insert(DngTag::Unknown(50_975), Value::Short(2));
+        metadata.insert(DngTag::Unknown(50_976), Value::Short(2));
+        let transformed = super::transforms::apply(pixels, &metadata).unwrap();
+        let RawMosaic::U16(image) = transformed else {
+            panic!("interleave output must remain u16");
+        };
+        assert_eq!(
+            image.as_raw().as_slice(),
+            &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+        );
+    }
+
+    #[test]
+    fn opcode_list_one_maps_stored_sample_values() {
+        let pixels = RawMosaic::U16(MonoImage::from_raw(4, 1, vec![0, 1, 2, 3]).unwrap());
+        let mut metadata = DngMetadata::default();
+        metadata.insert(
+            DngTag::Unknown(51_008),
+            Value::List(
+                map_table_opcode_list(&[10, 20, 30, 40])
+                    .into_iter()
+                    .map(Value::Byte)
+                    .collect(),
+            ),
+        );
+        let transformed = super::transforms::apply(pixels, &metadata).unwrap();
+        let RawMosaic::U16(image) = transformed else {
+            panic!("opcode output must remain u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[10, 20, 30, 40]);
+    }
+
+    #[test]
+    fn supported_codecs_reject_truncated_payloads_without_panicking() {
+        assert!(super::ljpeg::decode_into(&[0xff, 0xd8], 1, 1, 16, &mut [0]).is_err());
+        assert!(super::deflate_codec::inflate(&[0x78]).is_err());
+        assert!(super::jpeg_codec::decode_luma(&[0xff, 0xd8]).is_err());
+        assert!(super::jpegxl_codec::decode_u16(&[0xff], 1, 1, 16).is_err());
+    }
+
+    fn metadata(
+        width: u32,
+        height: u32,
+        bits: u16,
+        byte_count: u32,
+        extra: impl IntoIterator<Item = (DngTag, Value)>,
+    ) -> DngMetadata {
+        let mut metadata = DngMetadata::default();
+        metadata.insert(DngTag::ImageWidth, Value::Unsigned(width));
+        metadata.insert(DngTag::ImageLength, Value::Unsigned(height));
+        metadata.insert(DngTag::BitsPerSample, Value::Short(bits));
+        metadata.insert(DngTag::Compression, Value::Short(1));
+        metadata.insert(DngTag::SamplesPerPixel, Value::Short(1));
+        metadata.insert(DngTag::PhotometricInterpretation, Value::Short(32_803));
+        metadata.insert(DngTag::TileLength, Value::Unsigned(height));
+        metadata.insert(DngTag::TileOffsets, Value::Unsigned(0));
+        metadata.insert(DngTag::TileByteCounts, Value::Unsigned(byte_count));
+        for (tag, value) in extra {
+            metadata.insert(tag, value);
+        }
+        metadata
+    }
+
+    fn writable_metadata(width: u32, height: u32) -> DngMetadata {
+        let mut metadata = DngMetadata::default();
+        metadata.insert(
+            DngTag::ActiveArea,
+            Value::List(vec![
+                Value::Unsigned(0),
+                Value::Unsigned(0),
+                Value::Unsigned(height),
+                Value::Unsigned(width),
+            ]),
+        );
+        metadata.insert(
+            DngTag::DefaultCropOrigin,
+            Value::List(vec![Value::Unsigned(0), Value::Unsigned(0)]),
+        );
+        metadata.insert(
+            DngTag::DefaultCropSize,
+            Value::List(vec![Value::Unsigned(width), Value::Unsigned(height)]),
+        );
+        metadata.insert(
+            DngTag::BlackLevelRepeatDim,
+            Value::List(vec![Value::Short(2), Value::Short(2)]),
+        );
+        metadata.insert(
+            DngTag::BlackLevel,
+            Value::List(vec![
+                Value::Short(0),
+                Value::Short(0),
+                Value::Short(0),
+                Value::Short(0),
+            ]),
+        );
+        metadata.insert(DngTag::WhiteLevel, Value::Unsigned(65_535));
+        metadata.insert(
+            DngTag::CfaRepeatPatternDim,
+            Value::List(vec![Value::Short(2), Value::Short(2)]),
+        );
+        metadata.insert(
+            DngTag::CfaPattern,
+            Value::List(vec![
+                Value::Byte(0),
+                Value::Byte(1),
+                Value::Byte(1),
+                Value::Byte(2),
+            ]),
+        );
+        metadata.insert(
+            DngTag::CfaPlaneColor,
+            Value::List(vec![Value::Byte(0), Value::Byte(1), Value::Byte(2)]),
+        );
+        metadata.insert(DngTag::CfaLayout, Value::Short(1));
+        metadata
+    }
+
+    fn map_table_opcode_list(table: &[u16]) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        for value in [1_u32, 7, 1, 0, 44] {
+            bytes.extend_from_slice(&value.to_be_bytes());
+        }
+        for value in [0_u32, 0, 1, u32::try_from(table.len()).unwrap(), 0, 1, 1, 1] {
+            bytes.extend_from_slice(&value.to_be_bytes());
+        }
+        bytes.extend_from_slice(&u32::try_from(table.len()).unwrap().to_be_bytes());
+        for value in table {
+            bytes.extend_from_slice(&value.to_be_bytes());
+        }
+        bytes
+    }
+}

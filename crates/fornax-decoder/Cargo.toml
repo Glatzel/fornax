@@ -4,9 +4,13 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+flashraw-codecs.workspace = true
+flate2.workspace = true
 fornax-core.workspace = true
 generic-num.workspace = true
 image.workspace = true
+jxl-oxide.workspace = true
 num-traits.workspace = true
 rayon.workspace = true
 tiff.workspace = true
+zune-jpeg.workspace = true
