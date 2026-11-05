@@ -32,11 +32,11 @@ where
         let raw = &self.0;
         let mosaic = match &raw.data {
             RawImageData::Integer(items) => RawMosaic::U16(
-                MonoImage::from_raw(raw.width as _, raw.height as _, items.clone())
+                MonoImage::from_raw(raw.width as u32, raw.height as u32, items.clone())
                     .ok_or_else(|| DecodeError::from(RawValidationError::InvalidImage))?,
             ),
             RawImageData::Float(items) => RawMosaic::F32(
-                MonoImage::from_raw(raw.width as _, raw.height as _, items.clone())
+                MonoImage::from_raw(raw.width as u32, raw.height as u32, items.clone())
                     .ok_or_else(|| DecodeError::from(RawValidationError::InvalidImage))?,
             ),
         };
@@ -76,7 +76,7 @@ where
                     return Err(RawValidationError::InvalidImage.into());
                 }
                 MonoImage::from_raw(width, height, samples.iter().map(|v| num!(*v)).collect())
-                    .ok_or_else(|| RawValidationError::InvalidImage)
+                    .ok_or(RawValidationError::InvalidImage)
             }
             RawImageData::Float(samples) => {
                 if samples.len() != expected {
@@ -86,7 +86,7 @@ where
                     return Err(RawValidationError::NonFiniteSample.into());
                 }
                 MonoImage::from_raw(width, height, samples.iter().map(|v| num!(*v)).collect())
-                    .ok_or_else(|| RawValidationError::InvalidImage.into())
+                    .ok_or_else(|| RawValidationError::InvalidImage)
             }
         }?;
         Ok(CroppedMosaic::new(cropped))

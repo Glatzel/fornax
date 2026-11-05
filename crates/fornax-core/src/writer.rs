@@ -262,7 +262,7 @@ where
         .write_tag(Tag::Unknown(DngTag::DngBackwardVersion.into()), dng_version)
         .map_err(tiff_write_error)?;
 
-    for (tag, value) in metadata.deref() {
+    for (tag, value) in &**metadata {
         write_metadata_value(&mut directory, metadata_tag(*tag), value)?;
     }
 

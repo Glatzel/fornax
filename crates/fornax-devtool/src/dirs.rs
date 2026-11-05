@@ -10,7 +10,7 @@ pub fn raw_file(format: RawFormat) -> PathBuf {
         | RawFormat::Raf
         | RawFormat::Hasselblad3fr
         | RawFormat::Rw2
-        | RawFormat::Iiq => panic!("Format doesn't support: {}", format),
+        | RawFormat::Iiq => panic!("Format doesn't support: {format}"),
     }
 }
 pub fn temp_dir() -> PathBuf { root_dir().join("temp") }

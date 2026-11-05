@@ -37,29 +37,29 @@ where
 
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
         match self {
-            Decoder::Dng(parsed) => dng_decoder::raw_mosaic(parsed),
-            Decoder::_Mark(_) => unreachable!(),
+            Self::Dng(parsed) => dng_decoder::raw_mosaic(parsed),
+            Self::_Mark(_) => unreachable!(),
         }
     }
 
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> {
         match self {
-            Decoder::Dng(parsed) => dng_decoder::cropped_mosaic(parsed),
-            Decoder::_Mark(_) => unreachable!(),
+            Self::Dng(parsed) => dng_decoder::cropped_mosaic(parsed),
+            Self::_Mark(_) => unreachable!(),
         }
     }
 
     fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> {
         match self {
-            Decoder::Dng(parsed) => dng_decoder::dng_metadata(parsed),
-            Decoder::_Mark(_) => unreachable!(),
+            Self::Dng(parsed) => dng_decoder::dng_metadata(parsed),
+            Self::_Mark(_) => unreachable!(),
         }
     }
 
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
         match self {
-            Decoder::Dng(parsed) => dng_decoder::process_metadata(parsed),
-            Decoder::_Mark(_) => unreachable!(),
+            Self::Dng(parsed) => dng_decoder::process_metadata(parsed),
+            Self::_Mark(_) => unreachable!(),
         }
     }
 }
