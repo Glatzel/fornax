@@ -200,7 +200,7 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, D
         .into_iter()
         .find(|pattern| pattern.as_mask() == &mask)
         .ok_or_else(|| DecodeError::Unsupported("unsupported RGB Bayer pattern".into()))
-        .map(|p| p.shifted(active_area.x, active_area.y))
+        .map(|p| p.shifted(active.x, active.y))
 }
 
 fn wb_coeffs<T>(metadata: &DngMetadata) -> Result<Option<(T, T)>, DecodeError>
