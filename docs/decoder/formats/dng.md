@@ -7,7 +7,7 @@
 
 ## Implementation status
 
-The current MVP lives in `fornax-core` and supports:
+The current MVP lives in `fornax-decoder` and supports:
 
 - classic TIFF little- and big-endian headers;
 - root IFD chains and `SubIFDs`;
@@ -83,8 +83,9 @@ or omitted; values that cannot be serialized return a typed writer error.
 
 The active pipeline accepts only conventional RGB 2x2 Bayer layouts:
 `RGGB`, `BGGR`, `GRBG`, and `GBRG`. `CFAPattern` is interpreted relative to
-`ActiveArea`. The active-area origin shifts the full-frame Bayer phase before
-the preprocessor receives `DecodedRaw<T>`.
+`ActiveArea`. `cropped_mosaic<T>` crops the full `RawMosaic` and returns
+`CroppedMosaic<T>` with the active-area-relative Bayer pattern in
+`ProcessMetadata<T>`.
 
 Other repeat sizes, plane colors, layouts, or CFA patterns return a typed
 unsupported error. The decoder does not claim X-Trans, four-color, monochrome,
@@ -118,5 +119,5 @@ Implementation evidence and known lossless-JPEG differences are recorded in
   reference implementation can provide a comparable image.
 - Unsupported CFA layouts return typed errors without leaking into the active
   preprocessor handoff.
-- Production `fornax-core` dependencies remain free of C/C++ and `-sys`
+- Production `fornax-decoder` dependencies remain free of C/C++ and `-sys`
   crates.

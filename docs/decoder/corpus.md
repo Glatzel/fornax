@@ -117,8 +117,9 @@ regression diffs meaningless.
 
 `pass = 1` if and only if all applicable conditions hold:
 
-1. The native decoder returns `Ok(DecodedRaw)` and the process completes
-   within the corpus runner's fixed timeout.
+1. `IDecoder::decode` returns a decoder value, `raw_mosaic` and `dng_metadata`
+   succeed, and the requested handoff completes within the corpus runner's
+   fixed timeout.
 2. Metadata and geometry are sane:
    - dimensions are non-zero and equal to the sample count;
    - the CFA repeat dimensions are non-zero and match the pattern length;
@@ -133,10 +134,10 @@ regression diffs meaningless.
    and sample interpretation. The comparison must be exact for stored integer
    samples. Without a comparable reference, the condition is recorded as
    `reference=unavailable` and treated as not applicable, not as a failure.
-4. The native 2x2 Bayer handoff succeeds for a conventional Bayer input. For
-   any non-2x2 input, the handoff instead must return
-   `HandoffError::UnsupportedCfa`; that typed rejection is a pass for corpus
-   purposes and must not be recorded as a decode failure.
+4. `cropped_mosaic<T>` and `process_metadata` succeed for a conventional 2x2
+   Bayer input. For any non-2x2 input, the handoff instead must return a typed
+   unsupported-CFA error; that rejection is a pass for corpus purposes and
+   must not be recorded as a decode failure.
 
 `pass = 0` on any decode error, metadata sanity failure, comparable pixel
 mismatch, missing required output field, or untyped/unexpected panic. An

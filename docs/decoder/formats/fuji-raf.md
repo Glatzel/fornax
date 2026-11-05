@@ -32,8 +32,10 @@ Map or preserve:
 - `AsShotNeutral`/Fujifilm white-balance levels;
 - `Orientation` and safe EXIF values.
 
-X-Trans uses a 6x6 repeat. It must remain a general CFA through decode and DNG
-export and must fail only at `DecodedRaw::preprocessor_pattern`.
+X-Trans uses a 6x6 repeat. It must remain a general CFA through raw-mosaic
+decoding and DNG export, and must fail only when `IDecoder::cropped_mosaic` or
+process-metadata conversion tries to construct conventional Bayer pipeline
+input.
 
 ## Known variants and pitfalls
 
@@ -59,6 +61,6 @@ export and must fail only at `DecodedRaw::preprocessor_pattern`.
 
 - The corpus defines the accepted RAF camera/compression set.
 - X-Trans decode plus DNG export passes sample/tag round-trip tests.
-- Every X-Trans handoff returns `HandoffError::UnsupportedCfa`; no X-Trans
-  image reaches the preprocessor.
+- Every X-Trans handoff returns a typed unsupported-CFA error; no X-Trans image
+  reaches the preprocessor.
 - Supported conventional 2x2 Fujifilm files pass the Bayer handoff.

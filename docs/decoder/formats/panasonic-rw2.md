@@ -58,4 +58,4 @@ Map or preserve:
   offset, and CFA alignment.
 - Multi-shot unsupported variants return the typed variant error.
 - Conventional Bayer files pass the handoff; any nonstandard CFA is rejected
-  with `HandoffError::UnsupportedCfa`.
+  with a typed unsupported-CFA error.

@@ -13,21 +13,33 @@ Read [docs/architecture.md](docs/architecture.md) for crate roles, interfaces,
 and pipeline data flow. These invariants always apply:
 
 - Keep decoding, preprocessing, and demosaicing as separate stages.
-- `fornax_core::Decoder` is the current production decoder. It implements the
-  DNG MVP in `crates/fornax-core/src/decoder/` and hands conventional 2x2
-  RGB Bayer data to the shared preprocessor.
-- The legacy Rawler, Adobe DNG Converter, and LibRaw decoder crates have been
-  removed. LibRaw, darktable, and RawTherapee remain development-only
-  references for `compare-demosaic`; do not reintroduce them as production
-  decoder dependencies.
+- `fornax-core` owns shared image wrappers, metadata, errors, stage traits, the
+  DNG metadata model, and DNG writing. It does not own a decoder
+  implementation.
+- `fornax-decoder::Decoder<T>` is the default pure-Rust DNG decoder. The
+  `fornax` facade re-exports it as `fornax::decoder::Decoder`.
+- `fornax-decoder-rawler` is an alternate Rawler-backed decoder for supported
+  conventional 2x2 RGB Bayer files. `fornax-decoder-dnc` converts with Adobe
+  DNG Converter before decoding with Rawler; its facade export is limited to
+  Windows and macOS and it also requires that external converter.
+- Decoder implementations return a decoder value from `IDecoder::decode`; the
+  returned value exposes `raw_mosaic`, `cropped_mosaic`, `dng_metadata`, and
+  `process_metadata`. Decoder-specific parsing state must stay behind that
+  interface.
+- `bench-decoder` owns decoder benchmarks. Demosaic and preprocessor benchmarks
+  stay in their production stage crates.
+- LibRaw, darktable, and RawTherapee remain development-only references for
+  `compare-demosaic`; do not add them to production decoder dependencies.
 - The active demosaic target is conventional 2x2 RGB Bayer input. Do not claim
   support for X-Trans, four-color, monochrome, or other CFA layouts.
 
 ## Choosing work
 
 Read `TODO.md`, the human-owned backlog and completion record, before selecting
-a bracketed task ID. Branch every request from the current `origin/main`. One
-request maps to one branch, one worktree, and one pull request.
+a bracketed task ID. Start new requests from the current `origin/main`; keep
+requested changes to an open pull request on that pull request's branch and
+worktree. One new request maps to one branch, one worktree, and one pull
+request.
 
 | Request                                  | Branch                       | Worktree                           | Pull request requirements                                                                                                        |
 | ---------------------------------------- | ---------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
@@ -84,12 +96,13 @@ and that file must be able to carry out the work.
 
 ## Validation
 
-For Rust changes, run from the repository root:
+For Rust changes, run the workspace checks from the repository root:
 
 ```bash
-cargo test --workspace --all-features
+cargo test --workspace --all-features --exclude compare-demosaic
 cargo fmt --check
-cargo clippy --workspace --all-features --all-targets -- \
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features --exclude compare-demosaic
+cargo clippy --workspace --all-features --all-targets --exclude compare-demosaic -- \
     -A clippy::too_many_arguments \
     -D clippy::alloc_instead_of_core \
     -D clippy::allow_attributes_without_reason \
@@ -228,11 +241,22 @@ cargo clippy --workspace --all-features --all-targets -- \
     -D warnings
 ```
 
-Also run task-specific tests, benchmarks, or examples. For documentation-only
-changes, run `git diff --check` and the repository-configured Markdown lint on
-the changed Markdown. Record commands and outcomes in the pull request. Report
-failures and skipped checks explicitly; never describe an unrun check as
-passing.
+For changes to `compare-demosaic`, run its package documentation, clippy, and
+tests from `crates/compare-demosaic`, using the same clippy lint flags. Its
+baseline and generated README data have separate rules in
+[crates/compare-demosaic/AGENTS.md](crates/compare-demosaic/AGENTS.md).
+
+Also run task-specific tests, benchmarks, or examples. Compile decoder benchmark
+changes without executing timings with:
+
+```bash
+cargo bench -p bench-decoder --no-run
+```
+
+For documentation-only changes, run `git diff --check` and the
+repository-configured Markdown lint on the changed Markdown. Record commands
+and outcomes in the pull request. Report failures and skipped checks
+explicitly; never describe an unrun check as passing.
 
 ## Pull request handoff
 
@@ -270,6 +294,9 @@ linked issue. Only the user merges or abandons a pull request.
 ## Where to look next
 
 - Architecture and pipeline boundaries: [docs/architecture.md](docs/architecture.md)
+- Decoder ownership and validation: [docs/decoder/architecture.md](docs/decoder/architecture.md)
+- Decoder benchmarks and corpus plans: [docs/decoder/benchmark.md](docs/decoder/benchmark.md),
+  [docs/decoder/corpus.md](docs/decoder/corpus.md)
 - Per-work plans: [docs/plans/](docs/plans/)
 - Algorithm and reference notes: [docs/references/](docs/references/)
 - Comparison-crate rules:

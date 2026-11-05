@@ -85,4 +85,4 @@ and observed bitstreams.
 - The selected CRAW track, sample index, CMP1 geometry, IAD1 crop, black level,
   white level, and WB are covered by synthetic or tiny metadata tests.
 - A standard 2x2 CR3 succeeds at the handoff; a non-2x2 CR3 would be rejected
-  with `HandoffError::UnsupportedCfa`, never passed to the preprocessor.
+  with a typed unsupported-CFA error, never passed to the preprocessor.
