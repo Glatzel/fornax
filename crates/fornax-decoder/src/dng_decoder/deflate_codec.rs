@@ -23,8 +23,7 @@ pub(super) fn reverse_predictor(
     if predictor == 1 {
         return Ok(());
     }
-    let bytes_per_sample = usize::try_from(bits.div_ceil(8))
-        .map_err(|_| "Deflate sample width exceeds the platform address space".to_owned())?;
+    let bytes_per_sample = usize::from(bits.div_ceil(8));
     let row_bytes = tile_width
         .checked_mul(bytes_per_sample)
         .ok_or_else(|| "Deflate row size overflow".to_owned())?;

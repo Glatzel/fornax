@@ -138,9 +138,13 @@ benchmarks in their stage crates.
 
 - `DngCompression::Uncompressed` regenerates a classic-TIFF single-strip CFA
   DNG from current `RawMosaic` samples and `DngMetadata`.
-- `DngCompression::LosslessJpeg` is the default option but currently returns
-  `DngWriteError::Unsupported` when no source container is available.
-- The writer does not silently change sample types, white levels, or CFA tags.
+- `DngCompression::LosslessJpeg` writes 256x256 tiled JPEG-92 for U8/U16
+  mosaics and lossless Deflate strips for U32/F32 mosaics.
+- Structural and chunk-layout tags are regenerated; consumed frontend tags are
+  omitted so they are not applied twice.
+- The writer does not silently change sample types, levels, or CFA tags.
+- Output remains regenerated rather than byte-identical because the public
+  model does not own the source container or auxiliary directories.
 
 ## References and licensing
 

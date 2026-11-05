@@ -81,7 +81,9 @@ where
             let first = first.ok_or_else(|| corrupt("interleaved image channel is truncated"))?;
             let second = second.ok_or_else(|| corrupt("interleaved image channel is truncated"))?;
             for ((target, first), second) in target
-                .chunks_exact_mut(2)
+                .as_chunks_mut::<2>()
+                .0
+                .iter_mut()
                 .zip(first.iter().copied())
                 .zip(second.iter().copied())
             {

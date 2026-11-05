@@ -1281,7 +1281,7 @@ mod tests {
         let metadata = metadata(
             2,
             2,
-            12,
+            16,
             u32::try_from(tile.len()).unwrap(),
             [
                 (DngTag::TileWidth, Value::Unsigned(2)),

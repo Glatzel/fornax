@@ -178,8 +178,9 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: encoded tile/strip slices from Task 3.
 - Produces: caller-buffer `u16` JPEG-92 samples.
 
-- [x] Add failing tests for precision 2-16, 1-4 components, predictors 1-7,
-  point transforms, restart markers, padding, and truncation.
+- [x] Add tests for 12-bit precision in a 16-bit container, predictors 1-7,
+  point transforms, parallel padded tiles, and truncation.
+- [ ] Add multi-component subsampling and restart-marker coverage.
 - [x] Replace the per-sample bit path with a fused lookahead entropy decoder.
 - [x] Decode directly into caller-owned tile scratch buffers.
 - [x] Run decoder tests and commit.
@@ -209,8 +210,9 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: decoded stored samples.
 - Produces: transformed `RawMosaic` and preserved later-domain metadata.
 
-- [x] Add failing tests for linearization, row/column interleave, sub-tile
-  blocks, `OpcodeList1`, and preservation/non-application of Lists 2/3.
+- [x] Add failing tests for linearization, row/column interleave, and
+  `OpcodeList1`.
+- [ ] Add `SubTileBlockSize` coverage and explicit Lists 2/3 regression tests.
 - [x] Apply transforms in DNG order with checked bounds.
 - [x] Preserve unconsumed tags in `DngMetadata`.
 - [x] Run decoder tests and commit.
@@ -244,11 +246,13 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: Tasks 2-7.
 - Produces: end-to-end correctness and malformed-input evidence.
 
-- [ ] Decode both local DNG fixtures with `FORNAX_BENCH_RAW` overrides.
-- [ ] Compare samples or stable digests with Rawler where supported.
+- [x] Decode both local DNG fixtures end to end.
+- [x] Compare decoded and preprocessed samples with Rawler where supported;
+  the iPhone fixture hashes match byte-for-byte.
 - [ ] Add no-panic malformed-input tests for every supported codec.
-- [ ] Verify writer output decodes through both Fornax and Rawler where
-  supported.
+- [x] Verify writer output decodes through Fornax for every mosaic storage
+  type.
+- [ ] Verify generated DNG files through the Rawler adapter.
 - [ ] Run tests and commit.
 
 ### Task 9: Documentation and Deferred Scope
@@ -263,11 +267,12 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: final implementation behavior.
 - Produces: accurate support matrix and explicit deferred auxiliary TIFF work.
 
-- [ ] Document the supported compression/layout/bit-depth matrix.
-- [ ] Document raw-domain opcode order and lossless writer fallback.
-- [ ] Record auxiliary TIFF directories, source-byte export, and OpcodeList2/3
+- [x] Document the supported compression/layout/bit-depth matrix.
+- [x] Document raw-domain opcode order and lossless writer fallback.
+- [x] Record auxiliary TIFF directories, source-byte export, and OpcodeList2/3
   execution as deferred.
-- [ ] Run Markdown checks available in the environment and commit.
+- [x] Run `git diff --check` and commit; a Markdown-lint executable is not
+  installed in the active environment.
 
 ### Task 10: Full Validation and Pull Request
 

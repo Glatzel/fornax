@@ -252,9 +252,9 @@ pub(super) fn decode_into(
     };
 
     let frame = frame.expect("SOF3 is parsed before the scan starts");
-    if frame.precision != expected_precision {
+    if frame.precision > expected_precision {
         return Err(format!(
-            "lossless JPEG precision is {}, expected {expected_precision}",
+            "lossless JPEG precision is {}, exceeding the {expected_precision}-bit container",
             frame.precision
         ));
     }
@@ -459,7 +459,7 @@ fn decode_scan_into(
             for (component_index, table) in components.iter().enumerate() {
                 let index = row * output_width + column * component_count + component_index;
                 let prediction = predict(
-                    &output,
+                    output,
                     output_width,
                     row,
                     column,

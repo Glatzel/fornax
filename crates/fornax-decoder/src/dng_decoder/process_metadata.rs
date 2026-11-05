@@ -51,8 +51,14 @@ fn active_area(
     full_width: u32,
     full_height: u32,
 ) -> Result<Rect, DecodeError> {
-    let values = unsigned_values(metadata.get(&DngTag::ActiveArea))?
-        .ok_or_else(|| DecodeError::Backend("ActiveArea is missing".into()))?;
+    let Some(values) = unsigned_values(metadata.get(&DngTag::ActiveArea))? else {
+        return Ok(Rect {
+            x: 0,
+            y: 0,
+            width: full_width,
+            height: full_height,
+        });
+    };
     let [top, left, bottom, right]: [u32; 4] = values
         .try_into()
         .map_err(|_| DecodeError::Backend("ActiveArea must contain four values".into()))?;
@@ -69,10 +75,16 @@ fn active_area(
     })
 }
 fn default_crop(metadata: &DngMetadata, active: Rect) -> Result<Rect, DecodeError> {
-    let origin = unsigned_values(metadata.get(&DngTag::DefaultCropOrigin))?
-        .ok_or_else(|| metadata_error("DefaultCropOrigin is missing"))?;
-    let size = unsigned_values(metadata.get(&DngTag::DefaultCropSize))?
-        .ok_or_else(|| metadata_error("DefaultCropSize is missing"))?;
+    let origin = unsigned_values(metadata.get(&DngTag::DefaultCropOrigin))?;
+    let size = unsigned_values(metadata.get(&DngTag::DefaultCropSize))?;
+    let (Some(origin), Some(size)) = (origin, size) else {
+        return Ok(Rect {
+            x: 0,
+            y: 0,
+            width: active.width,
+            height: active.height,
+        });
+    };
     let [x, y]: [u32; 2] = origin
         .try_into()
         .map_err(|_| metadata_error("DefaultCropOrigin must contain two values"))?;
