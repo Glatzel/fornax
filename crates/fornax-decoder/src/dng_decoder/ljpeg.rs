@@ -110,9 +110,20 @@ impl<'a> BitReader<'a> {
 
     fn peek(&mut self, count: u8) -> u16 {
         while self.buffered_bits < count {
-            let byte = self.next_byte();
-            self.buffer = (self.buffer << 8) | u64::from(byte);
-            self.buffered_bits += 8;
+            let fast = self
+                .bytes
+                .get(self.position..self.position.saturating_add(4))
+                .filter(|bytes| bytes.iter().all(|byte| *byte != MARKER_PREFIX));
+            if let Some(bytes) = fast {
+                let word = u32::from_be_bytes(bytes.try_into().expect("four bytes are checked"));
+                self.buffer = (self.buffer << 32) | u64::from(word);
+                self.position += 4;
+                self.buffered_bits += 32;
+            } else {
+                let byte = self.next_byte();
+                self.buffer = (self.buffer << 8) | u64::from(byte);
+                self.buffered_bits += 8;
+            }
         }
         let shift = self.buffered_bits - count;
         let mask = (1_u64 << count) - 1;
@@ -201,6 +212,7 @@ pub(super) fn decode_into(
     source: &[u8],
     expected_width: usize,
     expected_height: usize,
+    expected_precision: u8,
     output: &mut [u16],
 ) -> Result<(), String> {
     let mut header = HeaderReader::new(source);
@@ -240,6 +252,12 @@ pub(super) fn decode_into(
     };
 
     let frame = frame.expect("SOF3 is parsed before the scan starts");
+    if frame.precision != expected_precision {
+        return Err(format!(
+            "lossless JPEG precision is {}, expected {expected_precision}",
+            frame.precision
+        ));
+    }
     let output_width = frame
         .width
         .checked_mul(frame.components.len())
@@ -272,6 +290,11 @@ pub(super) fn decode_into(
         output_width,
         output,
     )?;
+    if point_transform != 0 {
+        for value in output {
+            *value = value.wrapping_shl(u32::from(point_transform));
+        }
+    }
     Ok(())
 }
 

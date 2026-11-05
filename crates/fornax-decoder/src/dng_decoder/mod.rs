@@ -135,11 +135,12 @@ fn decode_lossless_jpeg(
     height: u32,
 ) -> Result<RawMosaic, DecodeError> {
     let bits = required_u16(metadata, DngTag::BitsPerSample)?;
-    if bits != 16 {
-        return Err(unsupported_variant(format!(
-            "lossless JPEG CFA samples with {bits} bits are unsupported"
+    if !(2..=16).contains(&bits) {
+        return Err(corrupt(format!(
+            "lossless JPEG CFA sample depth {bits} is invalid"
         )));
     }
+    let precision = u8::try_from(bits).expect("lossless JPEG precision is at most 16");
 
     let (tile_width, tile_height, offsets, byte_counts) = layout(metadata)?;
     let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
@@ -171,7 +172,7 @@ fn decode_lossless_jpeg(
             for tile_x_index in 0..across {
                 let index = tile_y_index * across + tile_x_index;
                 let encoded = checked_slice(source, offsets[index], byte_counts[index])?;
-                ljpeg::decode_into(encoded, tile_width, tile_height, &mut decoded)
+                ljpeg::decode_into(encoded, tile_width, tile_height, precision, &mut decoded)
                     .map_err(|detail| corrupt(format!("lossless JPEG tile {index}: {detail}")))?;
 
                 let tile_x = tile_x_index * tile_width;
@@ -1025,6 +1026,57 @@ mod tests {
             panic!("lossless JPEG samples must decode as u16");
         };
         assert_eq!(image.as_raw().as_slice(), &[32_768; 8]);
+    }
+
+    #[test]
+    fn lossless_jpeg_decodes_twelve_bit_tiles() {
+        let tile = [
+            0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x0c, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11,
+            0x00, 0xff, 0xc4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xda, 0x00, 0x08, 0x01,
+            0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0xff, 0xd9,
+        ];
+        let metadata = metadata(
+            2,
+            2,
+            12,
+            u32::try_from(tile.len()).unwrap(),
+            [
+                (DngTag::TileWidth, Value::Unsigned(2)),
+                (DngTag::TileLength, Value::Unsigned(2)),
+            ],
+        );
+        let mosaic = super::decode_lossless_jpeg(&tile, &metadata, 2, 2).unwrap();
+        let RawMosaic::U16(image) = mosaic else {
+            panic!("lossless JPEG samples must decode as u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[2_048; 4]);
+    }
+
+    #[test]
+    fn lossless_jpeg_applies_point_transform() {
+        let mut tile = [
+            0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x10, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11,
+            0x00, 0xff, 0xc4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xda, 0x00, 0x08, 0x01,
+            0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0xff, 0xd9,
+        ];
+        tile[46] = 1;
+        let metadata = metadata(
+            2,
+            2,
+            16,
+            u32::try_from(tile.len()).unwrap(),
+            [
+                (DngTag::TileWidth, Value::Unsigned(2)),
+                (DngTag::TileLength, Value::Unsigned(2)),
+            ],
+        );
+        let mosaic = super::decode_lossless_jpeg(&tile, &metadata, 2, 2).unwrap();
+        let RawMosaic::U16(image) = mosaic else {
+            panic!("lossless JPEG samples must decode as u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[32_768; 4]);
     }
 
     fn metadata(

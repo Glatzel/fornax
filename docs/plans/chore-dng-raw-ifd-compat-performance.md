@@ -178,11 +178,11 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: encoded tile/strip slices from Task 3.
 - Produces: caller-buffer `u16` JPEG-92 samples.
 
-- [ ] Add failing tests for precision 2-16, 1-4 components, predictors 1-7,
+- [x] Add failing tests for precision 2-16, 1-4 components, predictors 1-7,
   point transforms, restart markers, padding, and truncation.
-- [ ] Replace the per-sample bit path with a fused lookahead entropy decoder.
-- [ ] Decode directly into caller-owned tile scratch buffers.
-- [ ] Run decoder tests and commit.
+- [x] Replace the per-sample bit path with a fused lookahead entropy decoder.
+- [x] Decode directly into caller-owned tile scratch buffers.
+- [x] Run decoder tests and commit.
 
 ### Task 5: Other DNG Compression Backends
 
