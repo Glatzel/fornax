@@ -143,12 +143,12 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: current TIFF parser and `DngMetadata`.
 - Produces: private parsed raw-directory state cached in `ParsedTiff`.
 
-- [ ] Add a failing test proving `process_metadata` does not decode pixel data.
-- [ ] Add parser tests for classic/BigTIFF, both endiannesses, field types,
+- [x] Add a failing test proving `process_metadata` does not decode pixel data.
+- [x] Add parser tests for classic/BigTIFF, both endiannesses, field types,
   malformed offsets, and raw-IFD selection.
-- [ ] Cache selected raw metadata and geometry once during parsing.
-- [ ] Replace decoder-path unwraps with existing typed errors.
-- [ ] Run decoder tests and commit.
+- [x] Cache selected raw metadata and geometry once during parsing.
+- [x] Replace decoder-path unwraps with existing typed errors.
+- [x] Run decoder tests and commit.
 
 ### Task 3: Parallel Chunk Decode and Uncompressed Samples
 

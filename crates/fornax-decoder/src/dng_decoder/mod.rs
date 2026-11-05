@@ -15,12 +15,12 @@ use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
 pub use tiff::ParsedTiff;
 
-const PHOTOMETRIC_CFA: u64 = 32_803;
-const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
 const COMPRESSION_UNCOMPRESSED: u16 = 1;
 const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
 
-pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> { tiff::parse(source) }
+pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
+    tiff::parse(source)
+}
 
 pub fn raw_mosaic(parsed: &ParsedTiff) -> Result<RawMosaic, DecodeError> {
     let metadata = dng_metadata(parsed)?;
@@ -35,7 +35,8 @@ where
 {
     let pixels = raw_mosaic(parsed)?;
     let metadata = dng_metadata(parsed)?;
-    let process_metadata = process_metadata_from_dng_metadata::<T>(&pixels, &metadata)?;
+    let (width, height) = pixels.dimensions();
+    let process_metadata = process_metadata_from_dng_metadata::<T>(width, height, &metadata)?;
     let active_area = process_metadata.active_area;
     let image = match pixels {
         RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
@@ -54,10 +55,8 @@ pub fn dng_metadata(parsed: &ParsedTiff) -> Result<DngMetadata, DecodeError> {
     }
     let raw_metadata = parsed
         .directories
-        .iter()
-        .filter(|metadata| is_raw_ifd(metadata))
-        .max_by_key(|metadata| raw_area(metadata))
-        .ok_or_else(|| unsupported_variant("no full-resolution CFA image IFD was found"))?;
+        .get(parsed.raw_ifd)
+        .ok_or_else(|| corrupt("selected raw IFD is missing"))?;
     let mut dng_metadata = parsed.root.clone();
     dng_metadata.extend(
         raw_metadata
@@ -71,9 +70,10 @@ pub fn process_metadata<T>(parsed: &ParsedTiff) -> Result<ProcessMetadata<T>, De
 where
     T: Primitive,
 {
-    let pixels = raw_mosaic(parsed)?;
     let metadata = dng_metadata(parsed)?;
-    process_metadata_from_dng_metadata(&pixels, &metadata)
+    let width = required_u32(&metadata, DngTag::ImageWidth)?;
+    let height = required_u32(&metadata, DngTag::ImageLength)?;
+    process_metadata_from_dng_metadata(width, height, &metadata)
 }
 
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
@@ -103,19 +103,6 @@ fn validate_dimensions(pixels: &RawMosaic, metadata: &DngMetadata) -> Result<(),
         )));
     }
     Ok(())
-}
-
-fn is_raw_ifd(metadata: &DngMetadata) -> bool {
-    let photometric = unsigned_scalar(metadata.get(&DngTag::PhotometricInterpretation));
-    let reduced_resolution =
-        unsigned_scalar(metadata.get(&DngTag::NewSubfileType)).is_some_and(|value| value & 1 != 0);
-    !reduced_resolution && matches!(photometric, Some(PHOTOMETRIC_CFA | PHOTOMETRIC_LINEAR_RAW))
-}
-
-fn raw_area(metadata: &DngMetadata) -> u64 {
-    let width = unsigned_scalar(metadata.get(&DngTag::ImageWidth)).unwrap_or(0);
-    let height = unsigned_scalar(metadata.get(&DngTag::ImageLength)).unwrap_or(0);
-    width.saturating_mul(height)
 }
 
 fn decode_samples(source: &[u8], metadata: &DngMetadata) -> Result<RawMosaic, DecodeError> {
@@ -562,4 +549,83 @@ fn unsupported_variant(detail: impl Into<Box<str>>) -> DecodeError {
     DecodeError::Unsupported(detail.into())
 }
 
-fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInput(detail.into()) }
+fn corrupt(detail: impl Into<Box<str>>) -> DecodeError {
+    DecodeError::InvalidInput(detail.into())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use tiff::encoder::TiffEncoder;
+    use tiff::tags::Tag;
+
+    use super::{decode, process_metadata};
+
+    #[test]
+    fn process_metadata_does_not_decode_invalid_pixel_payload() {
+        let mut cursor = Cursor::new(Vec::new());
+        {
+            let mut encoder = TiffEncoder::new(&mut cursor).unwrap();
+            let mut directory = encoder.image_directory().unwrap();
+            let data_offset = directory.write_data(b"invalid lossless JPEG").unwrap();
+            let data_offset =
+                u32::try_from(data_offset).expect("the synthetic TIFF fits classic offsets");
+            let byte_count =
+                u32::try_from(b"invalid lossless JPEG".len()).expect("the tile size fits u32");
+
+            directory
+                .write_tag(Tag::Unknown(50_706), [1_u8, 7, 1, 0])
+                .unwrap();
+            directory.write_tag(Tag::Unknown(254), 0_u32).unwrap();
+            directory.write_tag(Tag::Unknown(256), 4_u32).unwrap();
+            directory.write_tag(Tag::Unknown(257), 4_u32).unwrap();
+            directory.write_tag(Tag::Unknown(258), 16_u16).unwrap();
+            directory.write_tag(Tag::Unknown(259), 7_u16).unwrap();
+            directory.write_tag(Tag::Unknown(262), 32_803_u16).unwrap();
+            directory.write_tag(Tag::Unknown(277), 1_u16).unwrap();
+            directory.write_tag(Tag::Unknown(284), 1_u16).unwrap();
+            directory.write_tag(Tag::Unknown(322), 4_u32).unwrap();
+            directory.write_tag(Tag::Unknown(323), 4_u32).unwrap();
+            directory
+                .write_tag(Tag::Unknown(324), [data_offset])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(325), [byte_count])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_829), [0_u32, 0, 4, 4])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_719), [0_u32, 0])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_720), [4_u32, 4])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_713), [2_u16, 2])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_714), [0_u16, 0, 0, 0])
+                .unwrap();
+            directory.write_tag(Tag::Unknown(50_717), 1_u32).unwrap();
+            directory
+                .write_tag(Tag::Unknown(33_421), [2_u16, 2])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(33_422), [0_u8, 1, 1, 2])
+                .unwrap();
+            directory
+                .write_tag(Tag::Unknown(50_710), [0_u8, 1, 2])
+                .unwrap();
+            directory.write_tag(Tag::Unknown(50_711), 1_u16).unwrap();
+            directory.finish().unwrap();
+        }
+
+        let parsed = decode(cursor.get_ref()).expect("the synthetic TIFF should parse");
+        let metadata = process_metadata::<f32>(&parsed)
+            .expect("metadata access must not depend on the pixel payload");
+        assert_eq!(metadata.active_area.width, 4);
+        assert_eq!(metadata.active_area.height, 4);
+    }
+}

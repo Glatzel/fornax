@@ -1,19 +1,19 @@
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag, DngValue};
 use fornax_core::metadata::process::{Levels, ProcessMetadata};
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RawMosaic};
+use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use generic_num::num;
 use image::math::Rect;
 use tiff::decoder::ifd::Value;
 
 pub fn process_metadata_from_dng_metadata<T>(
-    pixels: &RawMosaic,
+    full_width: u32,
+    full_height: u32,
     dng_metadata: &DngMetadata,
 ) -> Result<ProcessMetadata<T>, DecodeError>
 where
     T: Primitive,
 {
-    let (full_width, full_height) = pixels.dimensions();
     let active_area = active_area(dng_metadata, full_width, full_height)?;
     let default_crop = default_crop(dng_metadata, active_area)?;
     let black = black_levels(dng_metadata)?;
