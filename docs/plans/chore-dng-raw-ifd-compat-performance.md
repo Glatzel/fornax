@@ -209,11 +209,11 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: decoded stored samples.
 - Produces: transformed `RawMosaic` and preserved later-domain metadata.
 
-- [ ] Add failing tests for linearization, row/column interleave, sub-tile
+- [x] Add failing tests for linearization, row/column interleave, sub-tile
   blocks, `OpcodeList1`, and preservation/non-application of Lists 2/3.
-- [ ] Apply transforms in DNG order with checked bounds.
-- [ ] Preserve unconsumed tags in `DngMetadata`.
-- [ ] Run decoder tests and commit.
+- [x] Apply transforms in DNG order with checked bounds.
+- [x] Preserve unconsumed tags in `DngMetadata`.
+- [x] Run decoder tests and commit.
 
 ### Task 7: Lossless DNG Writer
 

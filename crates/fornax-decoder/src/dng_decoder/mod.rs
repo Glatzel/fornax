@@ -6,6 +6,7 @@ mod jpegxl_codec;
 mod ljpeg;
 mod process_metadata;
 mod tiff;
+mod transforms;
 
 use ::tiff::decoder::ifd::Value;
 use fornax_core::error::DecodeError;
@@ -30,7 +31,7 @@ pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
 
 pub fn raw_mosaic(parsed: &ParsedTiff) -> Result<RawMosaic, DecodeError> {
     let metadata = dng_metadata(parsed)?;
-    let pixels = decode_samples(&parsed.source, &metadata)?;
+    let pixels = transforms::apply(decode_samples(&parsed.source, &metadata)?, &metadata)?;
     validate_dimensions(&pixels, &metadata)?;
     Ok(pixels)
 }
@@ -1449,6 +1450,69 @@ mod tests {
         );
     }
 
+    #[test]
+    fn linearization_table_replaces_stored_values() {
+        let pixels = RawMosaic::U16(MonoImage::from_raw(4, 1, vec![0, 1, 2, 3]).unwrap());
+        let mut metadata = DngMetadata::default();
+        metadata.insert(
+            DngTag::LinearizationTable,
+            Value::List(vec![
+                Value::Short(100),
+                Value::Short(200),
+                Value::Short(300),
+                Value::Short(400),
+            ]),
+        );
+        let transformed = super::transforms::apply(pixels, &metadata).unwrap();
+        let RawMosaic::U16(image) = transformed else {
+            panic!("linearization output must be u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[100, 200, 300, 400]);
+    }
+
+    #[test]
+    fn row_and_column_interleave_restore_two_by_two_storage() {
+        let pixels = RawMosaic::U16(
+            MonoImage::from_raw(
+                4,
+                4,
+                vec![1, 3, 2, 4, 9, 11, 10, 12, 5, 7, 6, 8, 13, 15, 14, 16],
+            )
+            .unwrap(),
+        );
+        let mut metadata = DngMetadata::default();
+        metadata.insert(DngTag::Unknown(50_975), Value::Short(2));
+        metadata.insert(DngTag::Unknown(50_976), Value::Short(2));
+        let transformed = super::transforms::apply(pixels, &metadata).unwrap();
+        let RawMosaic::U16(image) = transformed else {
+            panic!("interleave output must remain u16");
+        };
+        assert_eq!(
+            image.as_raw().as_slice(),
+            &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+        );
+    }
+
+    #[test]
+    fn opcode_list_one_maps_stored_sample_values() {
+        let pixels = RawMosaic::U16(MonoImage::from_raw(4, 1, vec![0, 1, 2, 3]).unwrap());
+        let mut metadata = DngMetadata::default();
+        metadata.insert(
+            DngTag::Unknown(51_008),
+            Value::List(
+                map_table_opcode_list(&[10, 20, 30, 40])
+                    .into_iter()
+                    .map(Value::Byte)
+                    .collect(),
+            ),
+        );
+        let transformed = super::transforms::apply(pixels, &metadata).unwrap();
+        let RawMosaic::U16(image) = transformed else {
+            panic!("opcode output must remain u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), &[10, 20, 30, 40]);
+    }
+
     fn metadata(
         width: u32,
         height: u32,
@@ -1524,5 +1588,20 @@ mod tests {
         );
         metadata.insert(DngTag::CfaLayout, Value::Short(1));
         metadata
+    }
+
+    fn map_table_opcode_list(table: &[u16]) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        for value in [1_u32, 7, 1, 0, 44] {
+            bytes.extend_from_slice(&value.to_be_bytes());
+        }
+        for value in [0_u32, 0, 1, u32::try_from(table.len()).unwrap(), 0, 1, 1, 1] {
+            bytes.extend_from_slice(&value.to_be_bytes());
+        }
+        bytes.extend_from_slice(&u32::try_from(table.len()).unwrap().to_be_bytes());
+        for value in table {
+            bytes.extend_from_slice(&value.to_be_bytes());
+        }
+        bytes
     }
 }
