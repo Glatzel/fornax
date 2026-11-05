@@ -1,5 +1,6 @@
 $ErrorActionPreference = "Stop"
-Set-Location $PSScriptRoot/../../..
+$root = (Resolve-Path "$PSScriptRoot/../../..").Path
+Set-Location $root
 pixi install -e dev
 git submodule update --init external/libraw external/raw-images
 
@@ -11,7 +12,7 @@ foreach ($file in @(
     "src/iop/demosaicing/vng.c"
 ))
 {
-    $destination = "./external/darktable/$file"
+    $destination = Join-Path "$root/external/darktable/$file"
 
     if (Test-Path $destination) {
         continue
@@ -47,7 +48,7 @@ foreach ($file in @(
     "rtengine/rt_math.h"
 ))
 {
-    $destination = "./external/rawtherapee/$file"
+    $destination = "$root/external/rawtherapee/$file"
     if (Test-Path $destination) {
         continue
     }
@@ -88,4 +89,3 @@ if ($IsLinux -and ($(uname -m) -eq 'aarch64' ))
     $env:LD_LIBRARY_PATH = "$(Resolve-Path ./.pixi/envs/dev/lib)`:$env:LD_LIBRARY_PATH"
     $env:LIBRAW_ROOT = "$(Resolve-Path ./.pixi/envs/dev)"
 }
-Set-Location $PSScriptRoot/..
