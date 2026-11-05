@@ -161,12 +161,12 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: parsed raw decode plan from Task 2.
 - Produces: strip/tile execution and `RawMosaic` sample decoding.
 
-- [ ] Add failing uncompressed tests for packed depths, floats, strips, tiles,
+- [x] Add failing uncompressed tests for packed depths, floats, strips, tiles,
   predictors, and final partial chunks.
-- [ ] Parallelize disjoint destination bands with Rayon while reusing bounded
+- [x] Parallelize disjoint destination bands with Rayon while reusing bounded
   scratch storage.
-- [ ] Implement uncompressed integer/float decoding and validation.
-- [ ] Run decoder tests and commit.
+- [x] Implement uncompressed integer/float decoding and validation.
+- [x] Run decoder tests and commit.
 
 ### Task 4: Lossless JPEG-92 Decoder
 

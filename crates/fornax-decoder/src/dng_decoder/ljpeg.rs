@@ -154,7 +154,9 @@ struct HeaderReader<'a> {
 }
 
 impl<'a> HeaderReader<'a> {
-    const fn new(bytes: &'a [u8]) -> Self { Self { bytes, position: 0 } }
+    const fn new(bytes: &'a [u8]) -> Self {
+        Self { bytes, position: 0 }
+    }
 
     fn u8(&mut self) -> Result<u8, String> {
         let byte = *self
@@ -195,11 +197,12 @@ impl<'a> HeaderReader<'a> {
     }
 }
 
-pub(super) fn decode(
+pub(super) fn decode_into(
     source: &[u8],
     expected_width: usize,
     expected_height: usize,
-) -> Result<Vec<u16>, String> {
+    output: &mut [u16],
+) -> Result<(), String> {
     let mut header = HeaderReader::new(source);
     if header.marker()? != MARKER_SOI {
         return Err("lossless JPEG stream does not start with SOI".to_owned());
@@ -260,14 +263,16 @@ pub(super) fn decode(
         .bytes
         .get(header.position..)
         .ok_or_else(|| "lossless JPEG entropy stream is missing".to_owned())?;
-    decode_scan(
+    decode_scan_into(
         entropy,
         &frame,
         &tables,
         predictor,
         point_transform,
         output_width,
-    )
+        output,
+    )?;
+    Ok(())
 }
 
 fn parse_frame(header: &mut HeaderReader<'_>) -> Result<Frame, String> {
@@ -390,14 +395,15 @@ fn parse_scan(header: &mut HeaderReader<'_>, frame: &mut Frame) -> Result<(u8, u
     Ok((predictor, point_transform & 0x0f))
 }
 
-fn decode_scan(
+fn decode_scan_into(
     entropy: &[u8],
     frame: &Frame,
     tables: &[Option<HuffmanTable>; 4],
     predictor: u8,
     point_transform: u8,
     output_width: usize,
-) -> Result<Vec<u16>, String> {
+    output: &mut [u16],
+) -> Result<(), String> {
     let mut components = Vec::with_capacity(frame.components.len());
     for component in &frame.components {
         components.push(
@@ -410,7 +416,12 @@ fn decode_scan(
     let sample_count = output_width
         .checked_mul(frame.height)
         .ok_or_else(|| "lossless JPEG sample count overflow".to_owned())?;
-    let mut output = vec![0_u16; sample_count];
+    if output.len() != sample_count {
+        return Err(format!(
+            "lossless JPEG output has {} samples, expected {sample_count}",
+            output.len()
+        ));
+    }
     let mut bits = BitReader::new(entropy);
     let initial = 1_i32 << (frame.precision - point_transform - 1);
     let component_count = frame.components.len();
@@ -438,7 +449,7 @@ fn decode_scan(
         }
     }
 
-    Ok(output)
+    Ok(())
 }
 
 fn predict(
