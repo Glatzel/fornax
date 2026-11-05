@@ -86,7 +86,7 @@ where
                     return Err(RawValidationError::NonFiniteSample.into());
                 }
                 MonoImage::from_raw(width, height, samples.iter().map(|v| num!(*v)).collect())
-                    .ok_or_else(|| RawValidationError::InvalidImage)
+                    .ok_or(RawValidationError::InvalidImage)
             }
         }?;
         Ok(CroppedMosaic::new(cropped))

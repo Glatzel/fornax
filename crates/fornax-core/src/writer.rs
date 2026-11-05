@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::{BufWriter, Seek, Write};
-use std::ops::Deref;
 use std::path::Path;
 
 use tiff::encoder::{DirectoryEncoder, Rational, SRational, TiffEncoder, TiffKindStandard};

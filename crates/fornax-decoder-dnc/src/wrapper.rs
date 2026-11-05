@@ -171,7 +171,7 @@ impl<T> DncDecoder<T> {
                 format!("cannot resolve RAW path {}: {error}", raw_file.display()).into(),
             )
         })?;
-        let output_file = Self::output_file(&raw_file, &params)?;
+        let output_file = Self::output_file(&raw_file, params)?;
         let directory = output_file.parent().ok_or_else(|| {
             DecodeError::InvalidInput(
                 format!("output path has no parent: {}", output_file.display()).into(),
@@ -272,7 +272,7 @@ impl<T> DncDecoder<T> {
             return Ok(raw_file);
         }
 
-        let dng_file = Self::output_file(&raw_file, &params)?;
+        let dng_file = Self::output_file(&raw_file, params)?;
         let output_directory = dng_file.parent().ok_or_else(|| {
             DecodeError::InvalidInput(
                 format!("DNG output path has no parent: {}", dng_file.display()).into(),
@@ -314,7 +314,7 @@ impl<T> DncDecoder<T> {
             clerk::info!("DNG file already exists: {}", dng_file_absolute.display());
         } else {
             let program = &*DNC_EXECUTABLE;
-            let args = Self::command_args(&raw_file, &params)?;
+            let args = Self::command_args(&raw_file, params)?;
             let output = std::process::Command::new(program)
                 .args(&args)
                 .output()
@@ -365,7 +365,7 @@ where
     T: Primitive,
 {
     fn decode(input: &(&Path, &DncParams)) -> Result<Self, DecodeError> {
-        let dng_file = Self::convert(input.0.as_ref(), input.1)?;
+        let dng_file = Self::convert(input.0, input.1)?;
         let decoder = RawlerDecoder::decode(&dng_file)?;
         Ok(Self(decoder))
     }
