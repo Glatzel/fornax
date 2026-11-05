@@ -5,10 +5,10 @@ use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag};
 
 const TAG_SUB_IFDS: u16 = 330;
-
-pub(super) struct ParsedTiff {
-    pub(super) root: DngMetadata,
-    pub(super) directories: Vec<DngMetadata>,
+#[derive(Clone, Debug)]
+pub struct ParsedTiff {
+    pub root: DngMetadata,
+    pub directories: Vec<DngMetadata>,
 }
 
 #[derive(Clone, Copy)]

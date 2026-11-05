@@ -8,24 +8,25 @@ use ::tiff::decoder::ifd::Value;
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag};
 use fornax_core::metadata::process::ProcessMetadata;
-use fornax_core::{CroppedMosaic, MonoImage, RawMosaic, Primitive};
+use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use generic_num::num;
 use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
+pub use tiff::ParsedTiff;
 
 const PHOTOMETRIC_CFA: u64 = 32_803;
 const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
 const COMPRESSION_UNCOMPRESSED: u16 = 1;
 const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
-
-pub fn decode<T>(
-    source: &[u8],
-) -> Result<(RawMosaic, DngMetadata, ProcessMetadata<T>), DecodeError>
-where
-    T: Primitive,
-{
-    let parsed = tiff::parse(source)?;
-    let root_metadata = parsed.root;
+pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> { tiff::parse(source) }
+pub fn raw_mosaic(parsed: &ParsedTiff, metadata: &DngMetadata) -> Result<RawMosaic, DecodeError> {
+    let pixels = decode_samples(source, &metadata)?;
+    validate_dimensions(&pixels, &dng_metadata)?;
+    let process_metadata = process_metadata_from_dng_metadata(&pixels, &dng_metadata)?;
+    Ok((pixels, dng_metadata, process_metadata))
+}
+pub fn dng_metadata(parsed: &ParsedTiff) -> Result<DngMetadata, DecodeError> {
+    let root_metadata = &parsed.root;
     if !root_metadata.contains_key(&DngTag::DngVersion) {
         return Err(unsupported_variant(
             "TIFF container does not declare a DNGVersion",
@@ -43,12 +44,9 @@ where
             .iter()
             .map(|(tag, value)| (*tag, value.clone())),
     );
-
-    let pixels = decode_samples(source, &raw_metadata)?;
-    validate_dimensions(&pixels, &dng_metadata)?;
-    let process_metadata = process_metadata_from_dng_metadata(&pixels, &dng_metadata)?;
-    Ok((pixels, dng_metadata, process_metadata))
+    Ok(dng_metadata.clone())
 }
+
 pub fn decode_active<T>(
     source: &[u8],
 ) -> Result<(CroppedMosaic<T>, DngMetadata, ProcessMetadata<T>), DecodeError>
@@ -131,7 +129,11 @@ where
             .unwrap()
         }
     };
-    Ok((CroppedMosaic::new(decoded_raw), dng_metadata, process_metadata))
+    Ok((
+        CroppedMosaic::new(decoded_raw),
+        dng_metadata,
+        process_metadata,
+    ))
 }
 
 fn validate_dimensions(pixels: &RawMosaic, metadata: &DngMetadata) -> Result<(), DecodeError> {
