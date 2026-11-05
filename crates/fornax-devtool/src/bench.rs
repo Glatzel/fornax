@@ -1,10 +1,9 @@
 use strum::AsRefStr;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, AsRefStr)]
+#[strum(ascii_case_insensitive, serialize_all = "snake_case")]
 pub enum BenchSampleBits {
-    #[strum(serialize = "f32")]
     F32,
-    #[strum(serialize = "f64")]
     F64,
 }
 

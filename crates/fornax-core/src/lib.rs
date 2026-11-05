@@ -10,6 +10,6 @@ pub mod writer;
 
 pub use bayer::{BayerChannel, BayerPattern};
 pub use decoded_raw::DecodedRaw;
-pub use format::SourceFormat;
+pub use format::RawFormat;
 pub use primitive::{MonoImage, MosaicData, Primitive, RgbImage};
 pub use raw_image::RawImage;

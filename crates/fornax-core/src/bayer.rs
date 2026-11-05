@@ -27,14 +27,11 @@ impl BayerChannel {
 /// - `GRBG`: Green, Red, Blue, Green,
 /// - `GBRG`: Green, Blue, Red, Green.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Display)]
+#[strum(ascii_case_insensitive)]
 pub enum BayerPattern {
-    #[strum(serialize = "RGGB")]
     RGGB,
-    #[strum(serialize = "BGGR")]
     BGGR,
-    #[strum(serialize = "GRBG")]
     GRBG,
-    #[strum(serialize = "GBRG")]
     GBRG,
 }
 impl BayerPattern {
