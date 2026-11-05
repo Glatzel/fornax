@@ -151,8 +151,10 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, D
             format!("CFA layout {width}x{height} is not conventional 2x2 Bayer").into(),
         ));
     }
-    let plane_colors =
-        scalar_values(metadata.get(&DngTag::CfaPlaneColor)).unwrap_or_else(|_| vec![0.0, 1.0, 2.0]);
+    let mut plane_colors = scalar_values(metadata.get(&DngTag::CfaPlaneColor))?;
+    if plane_colors.is_empty() {
+        plane_colors = vec![0.0, 1.0, 2.0];
+    }
     if plane_colors != [0.0, 1.0, 2.0] {
         return Err(DecodeError::Unsupported(
             "CFA plane colors are not RGB".into(),

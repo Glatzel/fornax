@@ -243,7 +243,14 @@ fn apply_linearization(
     let (width, height) = pixels.dimensions();
     let mapped = match pixels {
         RawMosaic::U8(image) => map_linearization(image.as_raw(), &table)?,
-        RawMosaic::U16(image) => map_linearization(image.as_raw(), &table)?,
+        RawMosaic::U16(image) => {
+            let bits = u32::try_from(
+                unsigned_scalar(metadata.get(&DngTag::BitsPerSample))
+                    .ok_or_else(|| corrupt("BitsPerSample is missing or invalid"))?,
+            )
+            .map_err(|_| corrupt("LinearizationTable bit depth exceeds u32"))?;
+            map_u16_linearization(image.as_raw(), width, &table, bits)?
+        }
         RawMosaic::U32(image) => {
             let samples = image
                 .as_raw()
@@ -264,6 +271,91 @@ fn apply_linearization(
     MonoImage::from_raw(width, height, mapped)
         .map(RawMosaic::U16)
         .ok_or_else(|| corrupt("linearized image dimensions are invalid"))
+}
+
+fn map_u16_linearization(
+    samples: &[u16],
+    width: u32,
+    table: &[u16],
+    bits: u32,
+) -> Result<Vec<u16>, DecodeError> {
+    if bits > 16 {
+        return Err(corrupt(
+            "LinearizationTable requires at most sixteen-bit sample indexes",
+        ));
+    }
+    let table_size = 1_usize << bits;
+    if table.len() < table_size {
+        let mut expanded = Vec::with_capacity(table_size);
+        expanded.extend_from_slice(table);
+        expanded.resize(
+            table_size,
+            *table
+                .last()
+                .ok_or_else(|| corrupt("LinearizationTable must not be empty"))?,
+        );
+        return apply_u16_linearization(samples, width, &expanded);
+    }
+    apply_u16_linearization(samples, width, table)
+}
+
+fn apply_u16_linearization(
+    samples: &[u16],
+    width: u32,
+    table: &[u16],
+) -> Result<Vec<u16>, DecodeError> {
+    if table.is_empty() {
+        return Err(corrupt("LinearizationTable must not be empty"));
+    }
+    let width = usize::try_from(width)
+        .map_err(|_| corrupt("linearized image width exceeds the address space"))?;
+    if width == 0 {
+        return Err(corrupt("linearized image width must not be zero"));
+    }
+    let table = table
+        .iter()
+        .enumerate()
+        .map(|(index, center)| {
+            let lower = table[index.saturating_sub(1)];
+            let upper = table[(index + 1).min(table.len() - 1)];
+            let base = if *center == 0 {
+                0
+            } else {
+                let spread = upper
+                    .checked_sub(lower)
+                    .ok_or_else(|| corrupt("LinearizationTable must be non-decreasing"))?;
+                let correction = u16::try_from((u32::from(spread) + 2) / 4)
+                    .expect("linearization table delta fits u16");
+                center
+                    .checked_sub(correction)
+                    .ok_or_else(|| corrupt("LinearizationTable base underflows"))?
+            };
+            let spread = upper
+                .checked_sub(lower)
+                .ok_or_else(|| corrupt("LinearizationTable must be non-decreasing"))?;
+            Ok((base, spread))
+        })
+        .collect::<Result<Vec<_>, DecodeError>>()?;
+
+    let mut mapped = Vec::with_capacity(samples.len());
+    for row in samples.chunks(width) {
+        let mut random = row.first().copied().map(u32::from).unwrap_or_default();
+        if let Some(second) = row.get(1) {
+            random |= u32::from(*second) << 16;
+        }
+        for &sample in row {
+            let (base, delta) = *table
+                .get(usize::from(sample))
+                .ok_or_else(|| corrupt(format!("LinearizationTable has no entry for {sample}")))?;
+            let value = u32::from(base) + ((u32::from(delta) * (random & 2047) + 1024) >> 12);
+            mapped.push(
+                u16::try_from(value)
+                    .map_err(|_| corrupt("LinearizationTable output exceeds u16"))?,
+            );
+            random = 15_700 * (random & 65_535) + (random >> 16);
+        }
+    }
+    Ok(mapped)
 }
 
 fn map_linearization<T>(samples: &[T], table: &[u16]) -> Result<Vec<u16>, DecodeError>

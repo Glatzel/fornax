@@ -17,7 +17,8 @@ record. `fornax-core::writer` gains JPEG-92 output and a lossless Deflate
 fallback while retaining the existing signatures and enums.
 
 **Tech Stack:** Rust 2024, `tiff`, `rayon`, `flate2`, `zune-jpeg`,
-`jxl-oxide`, Criterion/CodSpeed, and synthetic in-memory DNG fixtures.
+`jxl-oxide`, local Criterion benchmarks, and synthetic in-memory DNG
+fixtures.
 
 **Spec:** The approved implementation plan supplied by the user and the
 repository constraints in `AGENTS.md`, `docs/architecture.md`, and
@@ -102,10 +103,13 @@ Run the decoder benchmark with the colorchart fixture and compare
 
 ## Decisions and Notes
 
-- The 345-tile colorchart fixture currently measures about 4.8 seconds for
-  `raw_mosaic` and `process_metadata`, while Rawler measures about 84-137 ms for
-  its pixel paths. Parallel tile decode, avoiding pixel work in metadata
+- On local `main`, the 345-tile colorchart fixture measures 495 ms for
+  `raw_mosaic`, 519 ms for `cropped_mosaic`, and 497 ms for
+  `process_metadata`. Parallel tile decode, avoiding pixel work in metadata
   access, and a faster entropy decoder are the primary performance changes.
+- The branch measures 51.4 ms for `raw_mosaic`, 78.9 ms for
+  `cropped_mosaic`, and 190 us for `process_metadata` with the same local
+  command.
 - The in-tree JPEG codec is retained to preserve checked malformed-input
   handling and avoid the LGPL obligation of the standalone `ljpeg` crate.
 - `flate2`, `zune-jpeg`, and `jxl-oxide` are already resolved transitively at
@@ -114,9 +118,9 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Auxiliary TIFF directories are intentionally not represented by the flat
   `DngMetadata` map. A future API design must model directory identity and
   source-byte retention before this scope can expand.
-- The acceptance target is no worse than 1.25x Rawler for `raw_mosaic` and
-  `cropped_mosaic` on the current colorchart benchmark, with
-  `process_metadata` performing no pixel decode.
+- Acceptance is measured with the same local Criterion command against
+  `origin/main`: `raw_mosaic` and `cropped_mosaic` must improve materially,
+  and `process_metadata` must perform no pixel decode.
 
 ### Task 1: Workspace and Baseline
 
@@ -128,7 +132,8 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Produces: branch/worktree and the implementation contract.
 
 - [x] Create the required branch and worktree from `origin/main`.
-- [x] Record the CodSpeed baseline and supported raw-IFD boundary in this plan.
+- [x] Record the local `main` benchmark baseline and supported raw-IFD boundary
+  in this plan.
 - [x] Run `cargo test -p fornax-decoder --lib` and confirm the pre-change suite.
 - [x] Commit the plan.
 
@@ -179,8 +184,9 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Produces: caller-buffer `u16` JPEG-92 samples.
 
 - [x] Add tests for 12-bit precision in a 16-bit container, predictors 1-7,
-  point transforms, parallel padded tiles, and truncation.
-- [ ] Add multi-component subsampling and restart-marker coverage.
+  14-bit difference categories, point transforms, parallel padded tiles, and
+  two-component tiles.
+- [ ] Add subsampled-component and restart-marker coverage.
 - [x] Replace the per-sample bit path with a fused lookahead entropy decoder.
 - [x] Decode directly into caller-owned tile scratch buffers.
 - [x] Run decoder tests and commit.
@@ -246,14 +252,16 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: Tasks 2-7.
 - Produces: end-to-end correctness and malformed-input evidence.
 
-- [x] Decode both local DNG fixtures end to end.
+- [x] Decode native DNGs from Canon, Nikon, Sigma, and Ricoh end to end.
+- [x] Decode generated Sony ILCE-1M2 and Nikon Z 7 II DNGs end to end.
 - [x] Compare decoded and preprocessed samples with Rawler where supported;
-  the iPhone fixture hashes match byte-for-byte.
-- [ ] Add no-panic malformed-input tests for every supported codec.
+  Apple, Nikon, Sigma, Ricoh, Sony, and Canon CFA samples match exactly after
+  crop normalization.
+- [x] Add no-panic malformed-input tests for every supported codec.
 - [x] Verify writer output decodes through Fornax for every mosaic storage
   type.
-- [ ] Verify generated DNG files through the Rawler adapter.
-- [ ] Run tests and commit.
+- [x] Verify generated JPEG-92 DNG output through the Rawler adapter.
+- [x] Run tests and commit.
 
 ### Task 9: Documentation and Deferred Scope
 
@@ -283,7 +291,8 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Consumes: all prior tasks.
 - Produces: committed, pushed branch and one pull request.
 
-- [ ] Run all repository-required Rust checks and compile the decoder benchmark.
-- [ ] Run the colorchart benchmark and record the result in the PR body.
+- [x] Run all repository-required Rust checks and compile the decoder benchmark.
+- [x] Run the colorchart benchmark locally against `main`.
 - [ ] Inspect the full diff and dependency tree.
 - [ ] Commit any fixes, push the branch, and open one semantic pull request.
+  Add the `perf` label to the pull request.

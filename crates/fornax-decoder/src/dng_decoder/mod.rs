@@ -1150,9 +1150,6 @@ mod tests {
             directory
                 .write_tag(Tag::Unknown(33_422), [0_u8, 1, 1, 2])
                 .unwrap();
-            directory
-                .write_tag(Tag::Unknown(50_710), [0_u8, 1, 2])
-                .unwrap();
             directory.write_tag(Tag::Unknown(50_711), 1_u16).unwrap();
             directory.finish().unwrap();
         };
@@ -1370,7 +1367,7 @@ mod tests {
 
     #[test]
     fn lossless_writer_round_trips_u16_samples() {
-        let samples = vec![1, 2, 3, 4, 5, 6, 7, 8];
+        let samples = vec![0, 65_535, 30_000, 32_768, 1, 2, 40_000, 12_345];
         let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
         let metadata = writable_metadata(4, 2);
         let mut output = Cursor::new(Vec::new());
@@ -1388,7 +1385,7 @@ mod tests {
 
     #[test]
     fn lossless_writer_round_trips_u8_samples() {
-        let samples = vec![1, 2, 3, 4, 5, 6, 7, 8];
+        let samples = vec![0, 255, 128, 1, 254, 64, 200, 7];
         let mosaic = RawMosaic::U8(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
         let metadata = writable_metadata(4, 2);
         let mut output = Cursor::new(Vec::new());
@@ -1400,6 +1397,38 @@ mod tests {
         let decoded = super::raw_mosaic(&parsed).unwrap();
         let RawMosaic::U8(image) = decoded else {
             panic!("written 8-bit samples must decode as u8");
+        };
+        assert_eq!(image.as_raw().as_slice(), samples.as_slice());
+    }
+
+    #[test]
+    fn lossless_writer_omits_consumed_raw_transforms() {
+        let samples = vec![100, 200, 300, 400];
+        let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 1, samples.clone()).unwrap());
+        let mut metadata = writable_metadata(4, 1);
+        metadata.insert(
+            DngTag::LinearizationTable,
+            Value::List(vec![
+                Value::Short(100),
+                Value::Short(200),
+                Value::Short(300),
+                Value::Short(400),
+            ]),
+        );
+        metadata.insert(DngTag::Unknown(50_975), Value::Short(2));
+        metadata.insert(DngTag::Unknown(50_976), Value::Short(2));
+
+        let mut output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::LosslessJpeg)
+            .write_dng_with(&mut output, &mosaic, &metadata)
+            .unwrap();
+        let parsed = decode(output.get_ref()).unwrap();
+        let generated = super::dng_metadata(&parsed).unwrap();
+        assert!(!generated.contains_key(&DngTag::LinearizationTable));
+        assert!(!generated.contains_key(&DngTag::Unknown(50_975)));
+        assert!(!generated.contains_key(&DngTag::Unknown(50_976)));
+        let RawMosaic::U16(image) = super::raw_mosaic(&parsed).unwrap() else {
+            panic!("written samples must remain u16");
         };
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
     }
@@ -1449,6 +1478,7 @@ mod tests {
     fn linearization_table_replaces_stored_values() {
         let pixels = RawMosaic::U16(MonoImage::from_raw(4, 1, vec![0, 1, 2, 3]).unwrap());
         let mut metadata = DngMetadata::default();
+        metadata.insert(DngTag::BitsPerSample, Value::Short(2));
         metadata.insert(
             DngTag::LinearizationTable,
             Value::List(vec![
@@ -1462,7 +1492,7 @@ mod tests {
         let RawMosaic::U16(image) = transformed else {
             panic!("linearization output must be u16");
         };
-        assert_eq!(image.as_raw().as_slice(), &[100, 200, 300, 400]);
+        assert_eq!(image.as_raw().as_slice(), &[75, 150, 316, 397]);
     }
 
     #[test]
@@ -1506,6 +1536,14 @@ mod tests {
             panic!("opcode output must remain u16");
         };
         assert_eq!(image.as_raw().as_slice(), &[10, 20, 30, 40]);
+    }
+
+    #[test]
+    fn supported_codecs_reject_truncated_payloads_without_panicking() {
+        assert!(super::ljpeg::decode_into(&[0xff, 0xd8], 1, 1, 16, &mut [0]).is_err());
+        assert!(super::deflate_codec::inflate(&[0x78]).is_err());
+        assert!(super::jpeg_codec::decode_luma(&[0xff, 0xd8]).is_err());
+        assert!(super::jpegxl_codec::decode_u16(&[0xff], 1, 1, 16).is_err());
     }
 
     fn metadata(

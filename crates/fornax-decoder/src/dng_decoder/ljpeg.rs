@@ -40,31 +40,29 @@ impl HuffmanTable {
     ) -> Result<Self, String> {
         lookup.fill(HuffmanEntry::INVALID);
 
-        let mut code = 0_u32;
         let mut symbol_index = 0;
+        let mut lookup_index = 0_usize;
         for (length_index, &count) in counts.iter().enumerate() {
-            let length = length_index + 1;
+            let length = u8::try_from(length_index + 1)
+                .expect("lossless JPEG Huffman lengths are at most 16");
             for _ in 0..count {
-                if code >= (1_u32 << length) {
-                    return Err("lossless JPEG Huffman code lengths are invalid".to_owned());
-                }
                 let symbol = *symbols
                     .get(symbol_index)
                     .ok_or_else(|| "lossless JPEG Huffman symbol table is truncated".to_owned())?;
-                let shift = HUFFMAN_LOOKAHEAD_BITS - length;
-                let start = usize::try_from(code)
-                    .map_err(|_| "lossless JPEG Huffman code is too large".to_owned())?
-                    << shift;
-                let end = start + (1 << shift);
-                lookup[start..end].fill(HuffmanEntry {
+                let width = 1_usize << (HUFFMAN_LOOKAHEAD_BITS - usize::from(length));
+                let end = lookup_index
+                    .checked_add(width)
+                    .ok_or_else(|| "lossless JPEG Huffman table overflow".to_owned())?;
+                let entries = lookup
+                    .get_mut(lookup_index..end)
+                    .ok_or_else(|| "lossless JPEG Huffman code lengths are invalid".to_owned())?;
+                entries.fill(HuffmanEntry {
                     symbol,
-                    bits: u8::try_from(length)
-                        .map_err(|_| "lossless JPEG Huffman code is too long".to_owned())?,
+                    bits: length,
                 });
-                code += 1;
+                lookup_index = end;
                 symbol_index += 1;
             }
-            code <<= 1;
         }
 
         Ok(Self {
@@ -448,7 +446,10 @@ fn decode_scan_into(
     let component_count = frame.components.len();
 
     for (component_index, table) in components.iter().enumerate() {
-        output[component_index] = add_prediction(initial, table.decode(&mut bits)?, &mut bits)?;
+        let symbol = table
+            .decode(&mut bits)
+            .map_err(|detail| format!("{detail} at row 0, column 0"))?;
+        output[component_index] = add_prediction(initial, symbol, &mut bits, frame.precision)?;
     }
 
     for row in 0..frame.height {
@@ -465,7 +466,10 @@ fn decode_scan_into(
                     component_count,
                     predictor,
                 );
-                output[index] = add_prediction(prediction, table.decode(&mut bits)?, &mut bits)?;
+                let symbol = table.decode(&mut bits).map_err(|detail| {
+                    format!("{detail} at row {row}, column {column}, component {component_index}")
+                })?;
+                output[index] = add_prediction(prediction, symbol, &mut bits, frame.precision)?;
             }
         }
     }
@@ -507,10 +511,16 @@ fn predict(
     }
 }
 
-fn add_prediction(prediction: i32, symbol: u8, bits: &mut BitReader<'_>) -> Result<u16, String> {
+fn add_prediction(
+    prediction: i32,
+    symbol: u8,
+    bits: &mut BitReader<'_>,
+    precision: u8,
+) -> Result<u16, String> {
     let difference = match symbol {
         0 => 0,
-        1..=16 => {
+        16 => -32_768,
+        1..=15 => {
             let bit_count = symbol;
             let raw = i32::from(bits.peek(bit_count));
             bits.skip(usize::from(bit_count));
@@ -527,12 +537,22 @@ fn add_prediction(prediction: i32, symbol: u8, bits: &mut BitReader<'_>) -> Resu
             ));
         }
     };
-    Ok((prediction.wrapping_add(difference) & 0xffff) as u16)
+    let mask = (1_u32 << precision) - 1;
+    Ok(
+        u16::try_from((prediction.wrapping_add(difference) as u32) & mask)
+            .expect("the precision mask limits samples to u16"),
+    )
 }
 
 #[cfg(test)]
 mod tests {
-    use super::predict;
+    use super::{BitReader, add_prediction, predict};
+
+    #[test]
+    fn fourteen_bit_difference_class_consumes_amplitude_bits() {
+        let mut bits = BitReader::new(&[0x8c, 0xa0]);
+        assert_eq!(add_prediction(100, 14, &mut bits, 14).unwrap(), 9_100);
+    }
 
     #[test]
     fn all_lossless_jpeg_predictors_use_the_expected_neighbors() {

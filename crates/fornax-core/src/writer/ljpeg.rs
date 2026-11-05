@@ -67,7 +67,7 @@ pub(super) fn encode(
             };
             let category = u8::try_from(category).expect("lossless JPEG category is at most 16");
             writer.write(u32::from(category), HUFFMAN_BITS);
-            if category != 0 && category != bits {
+            if category != 0 && category != 16 {
                 let value = if difference < 0 {
                     difference + ((1_i32 << category) - 1)
                 } else {

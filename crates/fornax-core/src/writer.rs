@@ -400,62 +400,115 @@ fn write_lossless_deflate<W>(
 where
     W: Write + Seek,
 {
+    const TILE: usize = 256;
     let (width, height) = mosaic.dimensions();
-    let (bytes, bits, sample_format) = match mosaic {
-        RawMosaic::U32(image) => (
-            image
-                .as_raw()
-                .iter()
-                .flat_map(|value| value.to_le_bytes())
-                .collect::<Vec<_>>(),
-            32_u16,
-            SampleFormat::Uint.to_u16(),
-        ),
-        RawMosaic::F32(image) => (
-            image
-                .as_raw()
-                .iter()
-                .flat_map(|value| value.to_bits().to_le_bytes())
-                .collect::<Vec<_>>(),
-            32_u16,
-            SampleFormat::IEEEFP.to_u16(),
-        ),
+    let width = usize::try_from(width)
+        .map_err(|_| invalid_metadata("DNG width exceeds the platform address space"))?;
+    let height = usize::try_from(height)
+        .map_err(|_| invalid_metadata("DNG height exceeds the platform address space"))?;
+    let (bits, sample_format) = match mosaic {
+        RawMosaic::U32(_) => (32_u16, SampleFormat::Uint.to_u16()),
+        RawMosaic::F32(_) => (32_u16, SampleFormat::IEEEFP.to_u16()),
         _ => unreachable!("the caller selects Deflate only for wider samples"),
     };
-    let mut compressor = ZlibEncoder::new(Vec::new(), Compression::fast());
-    compressor
-        .write_all(&bytes)
-        .map_err(|error| invalid_metadata(format!("deflate setup failed: {error}")))?;
-    let compressed = compressor
-        .finish()
-        .map_err(|error| invalid_metadata(format!("deflate encoding failed: {error}")))?;
+    let across = width.div_ceil(TILE);
+    let down = height.div_ceil(TILE);
+    let mut tiles = Vec::with_capacity(across * down);
+    for tile_y in 0..down {
+        for tile_x in 0..across {
+            let mut bytes = vec![0_u8; TILE * TILE * size_of::<u32>()];
+            let copy_width = TILE.min(width - tile_x * TILE);
+            let copy_height = TILE.min(height - tile_y * TILE);
+            for row in 0..copy_height {
+                let source_start = (tile_y * TILE + row) * width + tile_x * TILE;
+                let target_start = row * TILE * size_of::<u32>();
+                match mosaic {
+                    RawMosaic::U32(image) => {
+                        for (value, target) in image.as_raw()
+                            [source_start..source_start + copy_width]
+                            .iter()
+                            .zip(
+                                bytes[target_start..]
+                                    .as_chunks_mut::<{ size_of::<u32>() }>()
+                                    .0
+                                    .iter_mut(),
+                            )
+                        {
+                            target.copy_from_slice(&value.to_le_bytes());
+                        }
+                    }
+                    RawMosaic::F32(image) => {
+                        for (value, target) in image.as_raw()
+                            [source_start..source_start + copy_width]
+                            .iter()
+                            .zip(
+                                bytes[target_start..]
+                                    .as_chunks_mut::<{ size_of::<u32>() }>()
+                                    .0
+                                    .iter_mut(),
+                            )
+                        {
+                            target.copy_from_slice(&value.to_bits().to_le_bytes());
+                        }
+                    }
+                    _ => unreachable!("the caller selects Deflate only for wider samples"),
+                }
+            }
+            let mut compressor = ZlibEncoder::new(Vec::new(), Compression::fast());
+            compressor
+                .write_all(&bytes)
+                .map_err(|error| invalid_metadata(format!("deflate setup failed: {error}")))?;
+            tiles.push(
+                compressor.finish().map_err(|error| {
+                    invalid_metadata(format!("deflate encoding failed: {error}"))
+                })?,
+            );
+        }
+    }
 
     let mut encoder = TiffEncoder::new(writer).map_err(tiff_write_error)?;
     let mut directory = encoder.image_directory().map_err(tiff_write_error)?;
-    let offset = directory
-        .write_data(compressed.as_slice())
-        .map_err(tiff_write_error)?;
-    let offset = u32::try_from(offset)
-        .map_err(|_| invalid_metadata("lossless DNG strip offset exceeds u32"))?;
-    let byte_count = u32::try_from(compressed.len())
-        .map_err(|_| invalid_metadata("lossless DNG strip exceeds u32 bytes"))?;
+    let mut tile_offsets = Vec::with_capacity(tiles.len());
+    let mut tile_byte_counts = Vec::with_capacity(tiles.len());
+    for tile in &tiles {
+        let offset = directory
+            .write_data(tile.as_slice())
+            .map_err(tiff_write_error)?;
+        tile_offsets.push(
+            u32::try_from(offset)
+                .map_err(|_| invalid_metadata("lossless DNG tile offset exceeds u32"))?,
+        );
+        tile_byte_counts.push(
+            u32::try_from(tile.len())
+                .map_err(|_| invalid_metadata("lossless DNG tile exceeds u32 bytes"))?,
+        );
+    }
     write_common_directory(
         &mut directory,
-        width,
-        height,
+        u32::try_from(width).expect("source width fits u32"),
+        u32::try_from(height).expect("source height fits u32"),
         bits,
         sample_format,
         8,
         version,
     )?;
     directory
-        .write_tag(Tag::StripOffsets, [offset])
+        .write_tag(
+            Tag::TileWidth,
+            u32::try_from(TILE).expect("tile width fits u32"),
+        )
         .map_err(tiff_write_error)?;
     directory
-        .write_tag(Tag::RowsPerStrip, height)
+        .write_tag(
+            Tag::TileLength,
+            u32::try_from(TILE).expect("tile length fits u32"),
+        )
         .map_err(tiff_write_error)?;
     directory
-        .write_tag(Tag::StripByteCounts, [byte_count])
+        .write_tag(Tag::TileOffsets, tile_offsets.as_slice())
+        .map_err(tiff_write_error)?;
+    directory
+        .write_tag(Tag::TileByteCounts, tile_byte_counts.as_slice())
         .map_err(tiff_write_error)?;
     write_preserved_metadata(&mut directory, metadata)?;
     directory.finish().map_err(tiff_write_error)?;
@@ -552,6 +605,8 @@ const fn structural_metadata(tag: DngTag) -> bool {
             | DngTag::SubIfds
             | DngTag::DngVersion
             | DngTag::DngBackwardVersion
+            | DngTag::LinearizationTable
+            | DngTag::Unknown((50_974..=50_976) | 51_008)
     )
 }
 

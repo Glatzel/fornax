@@ -30,6 +30,19 @@ The accepted `colorchart-5D2-6000K.dng` fixture decodes to the full
 at the full-frame origin to RGGB relative to the active area. Its metadata
 reports a `2x2` black-level pattern of 1024 and a white level of 15600.
 
+The ignored `raw.pixls.us` corpus is used for wider manual validation:
+
+- Canon EOS 5D Mark III DNG compression variants;
+- Nikon D80 DNG with `LinearizationTable`;
+- Sigma fp 14-bit DNG with two-component lossless JPEG tiles;
+- Ricoh GR III 14-bit DNG;
+- Sony ILCE-1M2 and Nikon Z 7 II DNGs generated once from their native raws
+  through the Rawler reference converter.
+
+The Canon CFA, Nikon D80, Sigma fp, Ricoh GR III, Sony ILCE-1M2, and Nikon
+Z 7 II decoded samples match Rawler exactly after applying each file's active
+area. Native Sony/Nikon raws are not treated as default-decoder coverage.
+
 Lossless export is regenerated rather than byte-identical. Byte-identical
 export requires retaining the source container, which the current public
 decoded-data model does not expose.
@@ -91,7 +104,7 @@ container, offsets and layout-dependent image tags are regenerated or omitted.
 
 `ActiveArea` defaults to the full decoded frame when absent, as seen in some
 mobile DNGs. `DefaultCropOrigin`/`DefaultCropSize` default to that active area
-when absent.
+when absent. A missing `CFAPlaneColor` defaults to RGB plane IDs.
 
 ## CFA handoff
 
