@@ -18,6 +18,7 @@ use strum::{AsRefStr, EnumIter, EnumString};
 enum DecoderOption {
     #[default]
     Fornax,
+    #[cfg(any(target_os = "windows", target_os = "macos"))]
     Dnc,
     Rawler,
 }
@@ -64,6 +65,7 @@ where
 fn run_with(args: &Args) -> mischief::Result<()> {
     match args.decoder {
         DecoderOption::Fornax => run(Decoder::decode(&args.input)?, args),
+        #[cfg(any(target_os = "windows", target_os = "macos"))]
         DecoderOption::Dnc => run(
             DncDecoder::decode(&(&args.input, &DncParams::default()))?,
             args,
