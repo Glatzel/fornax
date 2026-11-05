@@ -296,5 +296,7 @@ Run the decoder benchmark with the colorchart fixture and compare
 - [x] Run the colorchart benchmark locally against `main`.
 - [x] Inspect the full diff and dependency tree.
 - [x] Commit validated fixes.
-- [ ] Push the branch and open one semantic pull request.
+- [x] Push the branch and open one semantic pull request.
   Add the `perf` label to the pull request.
+
+**Pull request:** <https://github.com/Glatzel/fornax/pull/647>
