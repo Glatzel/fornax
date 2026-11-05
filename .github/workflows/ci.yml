@@ -25,19 +25,7 @@ jobs:
       contents: write
       pull-requests: write
 
-  cargo-doc:
-    runs-on: ubuntu-latest
-    env:
-      RUSTFLAGS: "-Dwarnings"
-    steps:
-      - parallel:
-          - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-          - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
-      - uses: Glatzel/template/.github/actions/rust/cargo-doc@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-  test-build:
+  main:
     strategy:
       fail-fast: false
       matrix:
@@ -56,6 +44,11 @@ jobs:
         with:
           toolchain: nightly
           components: clippy
+      - uses: Glatzel/template/.github/actions/rust/cargo-doc@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          working-directory: ${{matrix.pwd}}
       - uses: Glatzel/template/.github/actions/rust/cargo-clippy@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         with:
           working-directory: ${{matrix.pwd}}
@@ -189,15 +182,7 @@ jobs:
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs:
-      [
-        lefthook,
-        cargo-doc,
-        test-build,
-        benchmark,
-        compare-demosaic,
-        book-assets,
-      ]
+    needs: [lefthook, main, benchmark, compare-demosaic, book-assets]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1
