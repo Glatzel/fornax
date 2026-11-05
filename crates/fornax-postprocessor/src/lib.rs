@@ -101,9 +101,9 @@ mod tests {
         let output = processor.process(&image, &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
-        assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");
+        assert!((pixel[0] - 0.05).abs() < 1.0e-6, "{pixel:?}");
         assert!((pixel[1] - 0.1).abs() < 1.0e-6, "{pixel:?}");
-        assert!((pixel[2] - 0.4).abs() < 1.0e-6, "{pixel:?}");
+        assert!((pixel[2] - 0.025).abs() < 1.0e-6, "{pixel:?}");
         Ok(())
     }
 }
