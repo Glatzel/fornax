@@ -392,9 +392,7 @@ fn read_u64(bytes: &[u8], offset: usize, byte_order: ByteOrder) -> Option<u64> {
     })
 }
 
-fn corrupt(detail: impl Into<Box<str>>) -> DecodeError {
-    DecodeError::InvalidInput(detail.into())
-}
+fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInput(detail.into()) }
 
 #[cfg(test)]
 mod tests {

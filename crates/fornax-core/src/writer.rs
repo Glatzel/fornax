@@ -75,9 +75,7 @@ impl DngVersion {
 }
 
 impl Default for DngVersion {
-    fn default() -> Self {
-        Self::latest()
-    }
+    fn default() -> Self { Self::latest() }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -87,9 +85,7 @@ pub struct DngWriter {
 }
 
 impl Default for DngWriter {
-    fn default() -> Self {
-        Self::new(DngCompression::default())
-    }
+    fn default() -> Self { Self::new(DngCompression::default()) }
 }
 
 impl DngWriter {
@@ -112,14 +108,10 @@ impl DngWriter {
     }
 
     /// Returns the selected compression mode.
-    pub const fn compression(self) -> DngCompression {
-        self.compression
-    }
+    pub const fn compression(self) -> DngCompression { self.compression }
 
     /// Returns the selected version used for regenerated output.
-    pub const fn version(self) -> DngVersion {
-        self.version
-    }
+    pub const fn version(self) -> DngVersion { self.version }
 
     pub fn write<P>(
         &self,
@@ -326,7 +318,7 @@ where
             .iter()
             .map(|value| u16::from(*value))
             .collect(),
-        RawMosaic::U16(image) => image.as_raw().to_vec(),
+        RawMosaic::U16(image) => image.as_raw().clone(),
         _ => unreachable!("the caller selects JPEG-92 only for 8/16-bit integers"),
     };
     let mut tiles = Vec::with_capacity(across * down);
@@ -539,7 +531,7 @@ where
     Ok(())
 }
 
-fn structural_metadata(tag: DngTag) -> bool {
+const fn structural_metadata(tag: DngTag) -> bool {
     matches!(
         tag,
         DngTag::NewSubfileType
@@ -563,9 +555,7 @@ fn structural_metadata(tag: DngTag) -> bool {
     )
 }
 
-fn metadata_tag(tag: DngTag) -> Tag {
-    tag.into()
-}
+fn metadata_tag(tag: DngTag) -> Tag { tag.into() }
 
 fn write_metadata_value<W>(
     directory: &mut DirectoryEncoder<'_, W, TiffKindStandard>,

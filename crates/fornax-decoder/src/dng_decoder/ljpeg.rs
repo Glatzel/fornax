@@ -165,9 +165,7 @@ struct HeaderReader<'a> {
 }
 
 impl<'a> HeaderReader<'a> {
-    const fn new(bytes: &'a [u8]) -> Self {
-        Self { bytes, position: 0 }
-    }
+    const fn new(bytes: &'a [u8]) -> Self { Self { bytes, position: 0 } }
 
     fn u8(&mut self) -> Result<u8, String> {
         let byte = *self

@@ -89,9 +89,7 @@ fn write_marker(encoded: &mut Vec<u8>, marker: u8) {
     encoded.extend_from_slice(&[MARKER_PREFIX, marker]);
 }
 
-fn push_u16(encoded: &mut Vec<u8>, value: u16) {
-    encoded.extend_from_slice(&value.to_be_bytes());
-}
+fn push_u16(encoded: &mut Vec<u8>, value: u16) { encoded.extend_from_slice(&value.to_be_bytes()); }
 
 struct BitWriter<'a> {
     encoded: &'a mut Vec<u8>,

@@ -100,7 +100,7 @@ pub(super) fn reverse_predictor(
     Ok(())
 }
 
-fn read_u16(bytes: &[u8], offset: usize, little_endian: bool) -> u16 {
+const fn read_u16(bytes: &[u8], offset: usize, little_endian: bool) -> u16 {
     let value = [bytes[offset], bytes[offset + 1]];
     if little_endian {
         u16::from_le_bytes(value)
@@ -118,7 +118,7 @@ fn write_u16(bytes: &mut [u8], offset: usize, value: u16, little_endian: bool) {
     bytes[offset..offset + 2].copy_from_slice(&value);
 }
 
-fn read_u32(bytes: &[u8], offset: usize, little_endian: bool) -> u32 {
+const fn read_u32(bytes: &[u8], offset: usize, little_endian: bool) -> u32 {
     let value = [
         bytes[offset],
         bytes[offset + 1],

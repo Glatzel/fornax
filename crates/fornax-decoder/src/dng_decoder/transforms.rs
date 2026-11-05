@@ -56,7 +56,7 @@ where
     let half_width = width / 2;
     let source_row_bytes = width;
     let half_len = source.len() / 2;
-    let top_left = &source[..];
+    let top_left = &*source;
     let top_right = &source[half_width..];
     let bottom_left = &source[half_len..];
     let bottom_right = &source[half_len + half_width..];
@@ -144,7 +144,7 @@ fn apply_opcode_list1(pixels: RawMosaic, metadata: &DngMetadata) -> Result<RawMo
             .iter()
             .map(|value| value.to_f32().expect("u32 converts to f32"))
             .collect::<Vec<_>>(),
-        RawMosaic::F32(image) => image.as_raw().to_vec(),
+        RawMosaic::F32(image) => image.as_raw().clone(),
     };
     let mut plane = PlaneImage::new(&mut samples, width, height, 1);
     let skipped = apply_opcodes(&opcodes, &mut plane, 2, 1.0, true);

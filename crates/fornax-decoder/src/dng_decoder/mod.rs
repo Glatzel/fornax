@@ -25,9 +25,7 @@ const COMPRESSION_DEFLATE: u16 = 8;
 const COMPRESSION_LOSSY_JPEG: u16 = 34_892;
 const COMPRESSION_JPEG_XL: u16 = 52_546;
 
-pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
-    tiff::parse(source)
-}
+pub fn decode(source: &[u8]) -> Result<ParsedTiff, DecodeError> { tiff::parse(source) }
 
 pub fn raw_mosaic(parsed: &ParsedTiff) -> Result<RawMosaic, DecodeError> {
     let metadata = dng_metadata(parsed)?;
@@ -1081,14 +1079,11 @@ fn unsupported_variant(detail: impl Into<Box<str>>) -> DecodeError {
     DecodeError::Unsupported(detail.into())
 }
 
-fn corrupt(detail: impl Into<Box<str>>) -> DecodeError {
-    DecodeError::InvalidInput(detail.into())
-}
+fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInput(detail.into()) }
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
-    use std::io::Write;
+    use std::io::{Cursor, Write};
 
     use flate2::Compression;
     use flate2::write::ZlibEncoder;
@@ -1160,7 +1155,7 @@ mod tests {
                 .unwrap();
             directory.write_tag(Tag::Unknown(50_711), 1_u16).unwrap();
             directory.finish().unwrap();
-        }
+        };
 
         let parsed = decode(cursor.get_ref()).expect("the synthetic TIFF should parse");
         let metadata = process_metadata::<f32>(&parsed)
