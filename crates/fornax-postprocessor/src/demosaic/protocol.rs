@@ -8,8 +8,7 @@ use rayon::prelude::*;
 ///
 /// ```
 /// use fornax_core::{BayerPattern, MonoImage};
-/// use fornax_postprocessor::Demosaic;
-/// use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
+/// use fornax_postprocessor::{Demosaic, IDemosaic, LazyDemosaic};
 ///
 /// let mosaic = MonoImage::from_raw(2, 2, vec![0.25_f32; 4]).unwrap();
 /// let lazy = Demosaic::Linear
@@ -71,8 +70,7 @@ pub trait LazyDemosaic<T: Primitive + Send + Sync>: Sync {
 ///
 /// ```
 /// use fornax_core::{BayerPattern, MonoImage};
-/// use fornax_postprocessor::Demosaic;
-/// use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
+/// use fornax_postprocessor::{Demosaic, IDemosaic, LazyDemosaic};
 ///
 /// let mosaic = MonoImage::from_raw(2, 2, vec![0.25_f32; 4]).unwrap();
 /// let lazy = Demosaic::Linear
