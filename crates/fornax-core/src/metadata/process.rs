@@ -30,7 +30,7 @@ where
     pub levels: Levels<T>,
 
     /// CFA layout described by DNG `CFARepeatPatternDim`, `CFAPattern`, and
-    /// `CFAPlaneColor`.
+    /// `CFAPlaneColor`. Cropped.
     pub bayer_pattern: BayerPattern,
 
     ///green normalized
