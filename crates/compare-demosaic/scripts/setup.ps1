@@ -11,7 +11,7 @@ foreach ($file in @(
     "src/iop/demosaicing/vng.c"
 ))
 {
-    $destination = Join-Path "external/darktable" $file
+    $destination = Join-Path "./external/darktable" $file
 
     if (Test-Path $destination) {
         continue
@@ -47,7 +47,7 @@ foreach ($file in @(
     "rtengine/rt_math.h"
 ))
 {
-    $destination = Join-Path "external/rawtherapee" $file
+    $destination = Join-Path "./external/rawtherapee" $file
 
     if (Test-Path $destination) {
         continue
