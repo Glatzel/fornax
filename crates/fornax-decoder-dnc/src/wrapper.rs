@@ -162,9 +162,9 @@ impl Default for DncParams {
     }
 }
 #[derive(Debug, Clone)]
-pub struct DncDecoder(RawlerDecoder);
+pub struct DncDecoder<T>(RawlerDecoder<T>);
 
-impl DncDecoder {
+impl<T> DncDecoder<T> {
     fn command_args(raw_file: &Path, params: &DncParams) -> Result<Vec<String>, DecodeError> {
         let raw_file = std::path::absolute(raw_file).map_err(|error| {
             DecodeError::InvalidInput(
@@ -360,31 +360,24 @@ impl DncDecoder {
     }
 }
 
-impl<P, T> IDecoder<(P, DncParams), T> for DncDecoder
+impl<T> IDecoder<&(&Path, &DncParams), T> for DncDecoder<T>
 where
     T: Primitive,
-    P: AsRef<Path>,
 {
-    fn decode(input: (P, DncParams)) -> Result<Self, DecodeError> {
-        let dng_file = Self::convert(input.0.as_ref(), &input.1)?;
-        let decoder = <RawlerDecoder as IDecoder<PathBuf, T>>::decode(dng_file)?;
+    fn decode(input: &(&Path, &DncParams)) -> Result<Self, DecodeError> {
+        let dng_file = Self::convert(input.0.as_ref(), input.1)?;
+        let decoder = RawlerDecoder::decode(&dng_file)?;
         Ok(Self(decoder))
     }
 
-    fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
-        <RawlerDecoder as IDecoder<PathBuf, T>>::raw_mosaic(&self.0)
-    }
+    fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> { self.0.raw_mosaic() }
 
-    fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> {
-        <RawlerDecoder as IDecoder<PathBuf, T>>::cropped_mosaic(&self.0)
-    }
+    fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> { self.0.cropped_mosaic() }
 
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> {
-        <RawlerDecoder as IDecoder<PathBuf, T>>::dng_metadata(&self.0)
-    }
+    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> { self.0.dng_metadata() }
 
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
-        <RawlerDecoder as IDecoder<PathBuf, T>>::process_metadata(&self.0)
+        self.0.process_metadata()
     }
 }
 
@@ -410,7 +403,7 @@ mod tests {
             count: Some(20_000_000),
             ..DncParams::default()
         };
-        let args = DncDecoder::command_args(&raw, &params)?;
+        let args = DncDecoder::<f32>::command_args(&raw, &params)?;
 
         assert!(args.windows(2).any(|args| args == ["-side", "4000"]));
         assert!(args.windows(2).any(|args| args == ["-count", "20000000"]));
@@ -425,7 +418,7 @@ mod tests {
             filename: Some(String::new()),
             ..DncParams::default()
         };
-        let error = DncDecoder::command_args(Path::new("input.cr2"), &params)
+        let error = DncDecoder::<f32>::command_args(Path::new("input.cr2"), &params)
             .expect_err("empty filename must fail");
         assert!(matches!(error, DecodeError::InvalidInput(_)));
     }

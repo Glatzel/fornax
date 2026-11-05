@@ -7,7 +7,7 @@ use fornax::postprocessor::PostProcessor;
 use fornax::preprocessor::Preprocessor;
 use fornax::protocol::IDecoder;
 use fornax_core::RawFormat;
-use fornax_decoder_dnc::DncDecoder;
+use fornax_decoder_dnc::{DncDecoder, DncParams};
 use fornax_decoder_rawler::RawlerDecoder;
 use fornax_devtool::save_image;
 use image::{Luma, Rgb};
@@ -32,14 +32,12 @@ struct Args {
     input: PathBuf,
 }
 
-fn run(arg: Args) -> mischief::Result<()> {
-    let raw_path = arg.input;
-
-    let (image, _, metadata) = match arg.decoder {
-        DecoderOption::Fornax => Decoder.decode_active(raw_path.as_path())?,
-        DecoderOption::Dnc => DncDecoder::default().decode_active(raw_path.as_path())?,
-        DecoderOption::Rawler => RawlerDecoder.decode_active(raw_path.as_path())?,
-    };
+fn run<D, I>(decoder: D, arg: &Args) -> mischief::Result<()>
+where
+    D: IDecoder<I, f32>,
+{
+    let image = decoder.cropped_mosaic()?;
+    let metadata = decoder.process_metadata()?;
 
     let output_dir = fornax_devtool::temp_dir()
         .join("pipeline")
@@ -60,20 +58,30 @@ fn run(arg: Args) -> mischief::Result<()> {
     println!("Decoded output: {}", decoded_path.display());
     println!("Preprocessed output: {}", preprocessed_path.display());
     println!("Demosaiced output: {}", demosaiced_path.display());
-    dbg!(metadata);
     Ok(())
 }
 
-fn main() -> mischief::Result<()> { run(Args::parse()) }
+fn run_with(args: &Args) -> mischief::Result<()> {
+    match args.decoder {
+        DecoderOption::Fornax => run(Decoder::decode(&args.input)?, args),
+        DecoderOption::Dnc => run(
+            DncDecoder::decode(&(&args.input, &DncParams::default()))?,
+            args,
+        ),
+        DecoderOption::Rawler => run(RawlerDecoder::decode(&args.input)?, args),
+    }
+}
+
+fn main() -> mischief::Result<()> { run_with(&Args::parse()) }
 
 #[test]
 fn dng_pipeline_example_writes_grouped_outputs() -> mischief::Result<()> {
     fornax_devtool::setup();
-    for d in RawFormat.iter() {
-        run(Args {
+    for decoder in DecoderOption::iter() {
+        run_with(&Args {
+            decoder,
             input: fornax_devtool::raw_file(RawFormat::Dng),
-            decoder: d,
-        });
+        })?;
     }
     Ok(())
 }

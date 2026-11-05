@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::path::Path;
 use std::str::FromStr;
 
@@ -11,15 +12,13 @@ use image::math::Rect;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
 
 #[derive(Clone, Debug)]
-pub struct RawlerDecoder(RawImage);
+pub struct RawlerDecoder<T>(RawImage, PhantomData<T>);
 
-impl<P, T> IDecoder<P, T> for RawlerDecoder
+impl<T> IDecoder<&Path, T> for RawlerDecoder<T>
 where
     T: Primitive,
-    P: AsRef<Path>,
 {
-    fn decode(input: P) -> Result<Self, DecodeError> {
-        let input = input.as_ref();
+    fn decode(input: &Path) -> Result<Self, DecodeError> {
         if !input.is_file() {
             return Err(DecodeError::InvalidInput(
                 format!("RAW input is not a file: {}", input.display()).into(),
@@ -27,7 +26,7 @@ where
         }
         let raw = rawler::decode_file(input).map_err(backend_error)?;
 
-        Ok(Self(raw))
+        Ok(Self(raw, PhantomData))
     }
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
         let raw = &self.0;
