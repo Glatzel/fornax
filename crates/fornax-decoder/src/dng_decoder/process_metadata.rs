@@ -1,7 +1,7 @@
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag, DngValue};
 use fornax_core::metadata::process::{Levels, ProcessMetadata};
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, RawMosaic, Primitive};
+use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RawMosaic};
 use generic_num::num;
 use image::math::Rect;
 use tiff::decoder::ifd::Value;
@@ -200,6 +200,7 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, D
         .into_iter()
         .find(|pattern| pattern.as_mask() == &mask)
         .ok_or_else(|| DecodeError::Unsupported("unsupported RGB Bayer pattern".into()))
+        .map(|p| p.shifted(active_area.x, active_area.y))
 }
 
 fn wb_coeffs<T>(metadata: &DngMetadata) -> Result<Option<(T, T)>, DecodeError>
