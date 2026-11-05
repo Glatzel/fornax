@@ -6,8 +6,10 @@ use fornax_core::protocol::IDecoder;
 use fornax_decoder::Decoder;
 
 fn raw_path() -> PathBuf {
-    let path =
-        std::env::var_os("FORNAX_BENCH_RAW").map_or_else(fornax_devtool::raw_file, PathBuf::from);
+    let path = std::env::var_os("FORNAX_BENCH_RAW").map_or_else(
+        || fornax_devtool::raw_file(fornax_core::RawFormat::Dng),
+        PathBuf::from,
+    );
     assert!(
         path.is_file(),
         "RAW benchmark fixture does not exist: {}; set FORNAX_BENCH_RAW or run python3 scripts/setup.py",
