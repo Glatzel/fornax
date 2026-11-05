@@ -1,10 +1,11 @@
 use std::path::Path;
+use std::str::FromStr;
 
 use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationError};
 use fornax_core::metadata::dng::DngMetadata;
 use fornax_core::metadata::process::{Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
-use fornax_core::{DecodedRaw, MonoImage, MosaicData, Primitive};
+use fornax_core::{BayerPattern, DecodedRaw, MonoImage, MosaicData, Primitive};
 use generic_num::num;
 use image::math::Rect;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
@@ -286,11 +287,10 @@ where
         }
         white
     };
-    dbg!(&cfa.name);
-    let bayer_pattern = cfa
-        .name
-        .parse()
-        .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?;
+
+    let bayer_pattern = BayerPattern::from_str(&cfa.name)
+        .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?
+        .shifted(active_area.x, active_area.y);
     let wb_coefficients = {
         // 1. The file's own AsShotNeutral tag (50728): [R, G, B], already
         //    neutral.
