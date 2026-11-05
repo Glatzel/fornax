@@ -1,5 +1,5 @@
 use num_enum::IntoPrimitive;
-use strum::Display;
+use strum::{Display, EnumString};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, IntoPrimitive)]
 #[repr(u8)]
@@ -26,7 +26,7 @@ impl BayerChannel {
 /// - `BGGR`: Blue, Green, Green, Red,
 /// - `GRBG`: Green, Red, Blue, Green,
 /// - `GBRG`: Green, Blue, Red, Green.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Display)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Display, EnumString)]
 #[strum(ascii_case_insensitive)]
 pub enum BayerPattern {
     RGGB,

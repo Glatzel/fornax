@@ -4,7 +4,7 @@ use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationErro
 use fornax_core::metadata::dng::DngMetadata;
 use fornax_core::metadata::process::{Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
-use fornax_core::{BayerPattern, DecodedRaw, MonoImage, MosaicData, Primitive};
+use fornax_core::{DecodedRaw, MonoImage, MosaicData, Primitive};
 use generic_num::num;
 use image::math::Rect;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
@@ -220,8 +220,7 @@ where
                 _ => {
                     return Err(MetadataValidationError::InvalidDefaultCrop(
                         format!(
-                            "{}x{} at ({}, {}) outside active area {}x{} at
-    ({}, {})",
+                            "{}x{} at ({}, {}) outside active area {}x{} at ({}, {})",
                             crop.d.w,
                             crop.d.h,
                             crop.p.x,
@@ -241,28 +240,16 @@ where
 
     let black = {
         let black_width = u32::try_from(raw.blacklevel.width).map_err(|_| {
-            MetadataValidationError::InvalidLevels(
-                "black-level width exceeds
-    u32"
-                .into(),
-            )
+            MetadataValidationError::InvalidLevels("black-level width exceeds u32".into())
         })?;
         let black_height = u32::try_from(raw.blacklevel.height).map_err(|_| {
-            MetadataValidationError::InvalidLevels(
-                "black-level height
-    exceeds u32"
-                    .into(),
-            )
+            MetadataValidationError::InvalidLevels("black-level height exceeds u32".into())
         })?;
         let black_values = raw.blacklevel.as_vec();
         let expected_black = (black_width as usize)
             .checked_mul(black_height as usize)
             .ok_or_else(|| {
-                MetadataValidationError::InvalidLevels(
-                    "black-level shape
-    overflows"
-                        .into(),
-                )
+                MetadataValidationError::InvalidLevels("black-level shape overflows".into())
             })?;
         if black_width == 0
             || black_height == 0
@@ -271,8 +258,7 @@ where
         {
             return Err(MetadataValidationError::InvalidLevels(
                 format!(
-                    "black-level shape is {black_width}x{black_height} with
-    {} samples",
+                    "black-level shape is {black_width}x{black_height} with {} samples",
                     black_values.len()
                 )
                 .into(),
@@ -284,22 +270,12 @@ where
             black_height,
             black_values.into_iter().map(|v| num!(v)).collect(),
         )
-        .ok_or_else(|| {
-            MetadataValidationError::InvalidLevels(
-                "invalid
-    black-level image"
-                    .into(),
-            )
-        })?
+        .ok_or_else(|| MetadataValidationError::InvalidLevels("invalid black-level image".into()))?
     };
 
     let white = {
         let white_value = raw.whitelevel.0.first().copied().ok_or_else(|| {
-            MetadataValidationError::InvalidLevels(
-                "white level is
-    missing"
-                    .into(),
-            )
+            MetadataValidationError::InvalidLevels("white level is missing".into())
         })?;
         let white = num!(white_value);
         if white <= T::zero() {
@@ -310,19 +286,11 @@ where
         }
         white
     };
-
-    let bayer_pattern = match cfa.name.to_ascii_uppercase().as_str() {
-        "RGGB" => BayerPattern::RGGB,
-        "BGGR" => BayerPattern::BGGR,
-        "GRBG" => BayerPattern::GRBG,
-        "GBRG" => BayerPattern::GBRG,
-        _ => {
-            return Err(DecodeError::Unsupported(
-                format!("unsupported CFA pattern {cfa}").into(),
-            ));
-        }
-    }
-    .shifted(active_area.x, active_area.y);
+    dbg!(&cfa.name);
+    let bayer_pattern = cfa
+        .name
+        .parse()
+        .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?;
     let wb_coefficients = {
         // 1. The file's own AsShotNeutral tag (50728): [R, G, B], already
         //    neutral.
