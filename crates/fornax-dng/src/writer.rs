@@ -680,6 +680,25 @@ where
             "empty metadata lists cannot be serialized",
         ));
     }
+    match values.first() {
+        Some(DngValue::RationalBig(_, _) | DngValue::SRationalBig(_, _)) => {
+            return Err(invalid_metadata(
+                "BigTIFF rational lists are not supported by the classic writer",
+            ));
+        }
+        Some(DngValue::Ascii(_) | DngValue::Ifd(_) | DngValue::IfdBig(_)) => {
+            return Err(invalid_metadata(
+                "layout-dependent or string list metadata cannot be serialized",
+            ));
+        }
+        Some(DngValue::List(_)) => {
+            return Err(invalid_metadata(
+                "nested TIFF metadata lists are unsupported",
+            ));
+        }
+        Some(_) => {}
+        None => unreachable!("the list was checked as non-empty"),
+    }
     directory.write_tag(tag, DngValue::List(values.to_vec()))
 }
 
@@ -693,5 +712,30 @@ fn tiff_write_error(error: fornax_tiff::TiffError) -> DngWriteError {
     DngWriteError::Io {
         operation: "encoding DNG".into(),
         detail: error.to_string().into(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use fornax_tiff::TiffWriter;
+
+    use super::*;
+
+    #[test]
+    fn classic_writer_rejects_big_rational_metadata_lists() {
+        let mut cursor = Cursor::new(Vec::new());
+        let mut container = TiffWriter::new(&mut cursor).unwrap();
+        let mut directory = DngDirectory::new(&mut container);
+
+        let error = write_list(
+            &mut directory,
+            Tag(1),
+            &[DngValue::RationalBig(1, 2), DngValue::RationalBig(3, 4)],
+        )
+        .expect_err("classic TIFF cannot represent BigTIFF rationals");
+
+        assert!(matches!(error, DngWriteError::InvalidMetadata { .. }));
     }
 }

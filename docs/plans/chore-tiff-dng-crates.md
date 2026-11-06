@@ -61,7 +61,7 @@ Out of scope:
 
 ## Validation Results
 
-- `cargo test --workspace --all-features --exclude compare-demosaic`: 130
+- `cargo test --workspace --all-features --exclude compare-demosaic`: 131
   passed across 21 suites.
 - `cargo test -p fornax-dng --all-features`: 25 passed.
 - `cargo +nightly fmt --check`: passed.
@@ -71,6 +71,9 @@ Out of scope:
 - Production dependency trees for `fornax-core`, `fornax-dng`, and
   `fornax-decoder` contain no external `tiff` crate.
 - `git diff --check`: passed.
+- `compare-demosaic` package validation could not run because its checkout
+  lacks the setup-generated `darktable amaze.cc` reference source. The changed
+  dependency only enables the package's existing `image` PNG feature.
 
 ## Files Expected to Change
 
