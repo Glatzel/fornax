@@ -25,6 +25,7 @@ part of the current preprocessor/demosaic handoff.
 | `fornax-preprocessor` | Black/white-level normalization of cropped Bayer mosaics. | `fornax-core` |
 | `fornax-postprocessor` | Demosaic protocol, algorithms, and RGB reconstruction. | `fornax-core` |
 | `fornax` | Public facade over decoders and pipeline stages. | Core, decoder crates, preprocessor, postprocessor |
+| `fornax-cli` | Standalone batch converter for raw DNG, rendered TIFF/JPEG, and metadata JSON output. | Facade stages, DNG writer, Rawler adapter |
 | `bench-decoder` | Decoder comparison benchmarks. | Core, decoder crates, devtool |
 | `fornax-devtool` | Pinned fixture paths, synthetic data, and benchmark configuration. | `fornax-core` |
 | `compare-demosaic` | Reference-versus-Fornax demosaic comparison harness. | Core, decoder, processors, devtool, pinned C/C++ references |
