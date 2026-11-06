@@ -82,7 +82,7 @@ jobs:
 
   benchmark:
     name: benchmark (${{ matrix.package }})
-    if: ${{ !github.event_name == 'schedule' }}
+    if: ${{ github.event_name != 'schedule' }}
     strategy:
       fail-fast: false
       matrix:
