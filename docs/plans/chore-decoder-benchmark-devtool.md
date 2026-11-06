@@ -129,10 +129,10 @@ in the pull request; no timing baseline is committed.
 **Files:** `crates/bench-decoder/benches/decoder.rs`,
 `crates/bench-decoder/README.md`
 
-- [ ] Add failing parser tests for `FORNAX_BENCH_DECODER`.
-- [ ] Consume `BenchParams::bits`.
-- [ ] Add composite cases and metadata coverage reporting.
-- [ ] Document every environment variable and command.
+- [x] Add failing parser tests for `FORNAX_BENCH_DECODER`.
+- [x] Consume `BenchParams::bits`.
+- [x] Add composite cases and metadata coverage reporting.
+- [x] Document every environment variable and command.
 
 ### Task 4: CI and Architecture Documentation
 
