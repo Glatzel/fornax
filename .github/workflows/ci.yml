@@ -31,7 +31,7 @@ jobs:
       matrix:
         include:
           - machine: ubuntu-latest
-            test-options: --all-features --exclude compare-demosaic --exclude fornax-cli --exclude fornax-decoder-dnc
+            test-options: --workspace --all-features --exclude compare-demosaic --exclude fornax-cli --exclude fornax-decoder-dnc
             pwd: ./
           - machine: ubuntu-latest
             test-options: --all-features -p compare-demosaic
