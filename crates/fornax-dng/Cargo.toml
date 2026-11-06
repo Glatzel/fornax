@@ -7,11 +7,6 @@ edition.workspace = true
 harness = false
 name = "writer"
 
-[features]
-default = []
-metadata-json = ["dep:serde", "dep:serde_json"]
-zstd = ["dep:structured-zstd"]
-
 [dependencies]
 flashraw-codecs.workspace = true
 flate2.workspace = true
@@ -25,11 +20,16 @@ num-traits.workspace = true
 rayon.workspace = true
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
+structured-zstd = { version = "0.2.6", optional = true }
 strum.workspace = true
 thiserror.workspace = true
 zune-jpeg.workspace = true
-structured-zstd = { version = "0.2.6", optional = true }
 
 [dev-dependencies]
 criterion.workspace = true
 fornax-devtool.workspace = true
+
+[features]
+default = []
+metadata-json = ["dep:serde", "dep:serde_json"]
+zstd = ["dep:structured-zstd"]
