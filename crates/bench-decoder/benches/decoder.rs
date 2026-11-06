@@ -1,12 +1,31 @@
 use std::path::{Path, PathBuf};
 
-use bench_decoder::{DecoderBenchSelection, DecoderKind};
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_core::Primitive;
 use fornax_core::protocol::IDecoder;
 use fornax_decoder::Decoder;
 use fornax_decoder_rawler::RawlerDecoder;
 use fornax_devtool::{BenchParams, BenchSampleBits};
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum DecoderKind {
+    Fornax,
+    Rawler,
+}
+
+fn selected_decoders() -> Vec<DecoderKind> {
+    let value = std::env::var("FORNAX_BENCH_DECODER").unwrap_or_else(|_| "fornax,rawler".into());
+    value
+        .split(',')
+        .map(str::trim)
+        .filter(|name| !name.is_empty())
+        .map(|name| match name {
+            "fornax" => DecoderKind::Fornax,
+            "rawler" => DecoderKind::Rawler,
+            _ => panic!("unknown FORNAX_BENCH_DECODER value {name:?}; expected fornax or rawler"),
+        })
+        .collect()
+}
 
 fn raw_path() -> PathBuf {
     let path = std::env::var_os("FORNAX_BENCH_RAW").map_or_else(
@@ -49,18 +68,6 @@ where
     c.bench_function(&format!("{prefix}/process_metadata"), |b| {
         b.iter(|| black_box(decoder.process_metadata().unwrap()));
     });
-    c.bench_function(&format!("{prefix}/decode+raw_mosaic"), |b| {
-        b.iter(|| {
-            let decoder = D::decode(black_box(path)).unwrap();
-            black_box(decoder.raw_mosaic().unwrap())
-        });
-    });
-    c.bench_function(&format!("{prefix}/decode+cropped_mosaic"), |b| {
-        b.iter(|| {
-            let decoder = D::decode(black_box(path)).unwrap();
-            black_box(decoder.cropped_mosaic().unwrap())
-        });
-    });
 }
 
 fn bench_bit<D, T>(c: &mut Criterion, decoder_name: &str, bits: BenchSampleBits, path: &Path)
@@ -73,7 +80,7 @@ where
 
 fn benches(c: &mut Criterion) {
     let params = BenchParams::from_env();
-    let decoders = DecoderBenchSelection::from_env().unwrap();
+    let decoders = selected_decoders();
     let path = raw_path();
 
     for bits in params.bits {

@@ -3,19 +3,13 @@
 Compares the default pure-Rust DNG decoder with the Rawler adapter through the
 shared `IDecoder` contract.
 
-The benchmark measures each accessor and two composite cases:
+The benchmark measures the five `IDecoder` methods:
 
 - `decode`;
 - `raw_mosaic`;
 - `cropped_mosaic`;
 - `dng_metadata`;
-- `process_metadata`;
-- `decode+raw_mosaic`;
-- `decode+cropped_mosaic`.
-
-The composite cases are the fair end-to-end comparison because Fornax defers
-pixel decoding until a mosaic accessor is called, while Rawler decodes pixels
-during decoder construction.
+- `process_metadata`.
 
 ```bash
 cargo bench -p bench-decoder

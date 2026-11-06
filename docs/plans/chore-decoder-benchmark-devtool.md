@@ -41,8 +41,8 @@ Out of scope:
 - [ ] Switch `BenchParams` to default to `32` and update stage READMEs.
 - [ ] Add Rawler crop and metadata regression tests.
 - [ ] Implement Rawler cropping and cached synthesized metadata.
-- [ ] Refactor decoder benchmarks to use `BenchParams`, decoder selection, and
-      composite cases.
+- [x] Refactor decoder benchmarks to use `BenchParams`, decoder selection, and
+      exactly the five `IDecoder` methods.
 - [ ] Add `bench-decoder/README.md`.
 - [ ] Update CI path filters.
 - [ ] Run validation and record measured results.
@@ -67,8 +67,7 @@ Out of scope:
   `32,64` ordering.
 - `bench-decoder` reads `FORNAX_BENCH_DECODER` as a comma-separated subset of
   `fornax` and `rawler`; an unset or empty value selects both.
-- Composite benchmark names are `<decoder>/<sample>/decode+raw_mosaic` and
-  `<decoder>/<sample>/decode+cropped_mosaic`.
+- Benchmark names follow `<decoder>/<sample>/<IDecoder method>`.
 - `RawlerDecoder::cropped_mosaic()` returns samples cropped to
   `ProcessMetadata::active_area` and converts the Bayer pattern relative to
   that crop.
@@ -102,8 +101,8 @@ in the pull request; no timing baseline is committed.
   benchmark visible rather than comparing against an empty map.
 - Rawler currently returns the full frame from `cropped_mosaic`. Cropping is
   required before comparing decoder accessor performance.
-- `FORNAX_BENCH_DECODER` is benchmark-local policy; `fornax-devtool` only owns
-  the generic sample-type and size controls used by every stage.
+- `FORNAX_BENCH_DECODER` is parsed by a benchmark-local function; no separate
+  support library is needed.
 
 ### Task 1: Shared Sample-Type Default
 
@@ -124,14 +123,14 @@ in the pull request; no timing baseline is committed.
 - [x] Cache synthesized metadata in `RawlerDecoder`.
 - [x] Crop and cast only the active area in `cropped_mosaic`.
 
-### Task 3: Decoder Selection and Composite Cases
+### Task 3: Decoder Selection and Five IDecoder Cases
 
 **Files:** `crates/bench-decoder/benches/decoder.rs`,
 `crates/bench-decoder/README.md`
 
 - [x] Add failing parser tests for `FORNAX_BENCH_DECODER`.
 - [x] Consume `BenchParams::bits`.
-- [x] Add composite cases and metadata coverage reporting.
+- [x] Add exactly five IDecoder method cases and metadata coverage reporting.
 - [x] Document every environment variable and command.
 
 ### Task 4: CI and Architecture Documentation
@@ -151,13 +150,17 @@ in the pull request; no timing baseline is committed.
 
 ## Validation Results
 
-- `cargo test --workspace --all-features --exclude compare-demosaic`: 132
-  passed across 19 suites.
+- `cargo test --workspace --all-features --exclude compare-demosaic`: 130
+  passed across 17 suites.
 - `cargo +nightly fmt --check`: passed.
 - `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features
   --exclude compare-demosaic --no-deps`: passed.
 - The root clippy flag set: no issues.
 - `cargo bench -p bench-decoder --bench decoder --no-run`: passed.
+- Source validation confirms exactly five benchmark functions and no
+  `bench-decoder/src/lib.rs`.
+- An invalid `FORNAX_BENCH_DECODER` value fails at benchmark startup with the
+  documented error.
 - `git diff --check` and YAML parsing of `.github/workflows/ci.yml`: passed.
 - The ignored colorchart fixture is absent from this worktree, so no timing
   run was possible locally. The benchmark remains executable when setup

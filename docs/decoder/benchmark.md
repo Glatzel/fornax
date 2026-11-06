@@ -19,11 +19,6 @@ The instance-method benchmarks construct one decoder outside the timed region,
 so they measure the requested accessor rather than reparsing the file. The
 `decode` benchmark includes file read and decoder construction.
 
-The target also measures `decode+raw_mosaic` and `decode+cropped_mosaic`.
-These composite cases are the fair end-to-end comparison because Fornax defers
-pixel decoding until a mosaic accessor is called while Rawler decodes pixels
-during construction.
-
 `f32` is the default sample type. Select `f64` or both with
 `FORNAX_BENCH_BITS=64` or `FORNAX_BENCH_BITS=32,64`.
 `FORNAX_BENCH_DECODER` selects `fornax`, `rawler`, or a comma-separated list;
