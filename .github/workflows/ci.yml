@@ -94,6 +94,7 @@ jobs:
               ./crates/fornax-decoder-rawler/**
               ./crates/fornax-devtool/**
               ./crates/bench-decoder/**
+            files_ignore: '**.md'
 
           - package: fornax-postprocessor
             paths: ./crates/fornax-postprocessor/**
@@ -170,6 +171,7 @@ jobs:
           files: |
             ./crates/compare-demosaic/**
             ./crates/fornax-postprocessor/demosaic/**
+          files_ignore: '**.md'
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
         with:
