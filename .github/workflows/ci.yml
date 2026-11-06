@@ -31,13 +31,13 @@ jobs:
       matrix:
         include:
           - machine: ubuntu-latest
-            test-options: --workspace --all-features --exclude compare-demosaic
+            test-options: --workspace --all-features --exclude compare-demosaic --exclude fornax-cli --exclude fornax-decoder-dnc
             pwd: ./
           - machine: ubuntu-latest
             test-options: --all-features -p compare-demosaic
             pwd: ./crates/compare-demosaic
           - machine: macos-latest
-            test-options: --workspace --all-features --exclude compare-demosaic
+            test-options: --all-features -p fornax-decoder-dnc -p fornax-cli
             pwd: ./
     env:
       dnc_version: 18_7
