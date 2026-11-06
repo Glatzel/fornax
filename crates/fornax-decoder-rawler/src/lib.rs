@@ -110,9 +110,7 @@ where
         Ok(CroppedMosaic::new(cropped))
     }
 
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> {
-        Ok(self.metadata.clone())
-    }
+    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> { Ok(self.metadata.clone()) }
 
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
         let raw = &self.raw;
@@ -324,12 +322,15 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
     let mut metadata = DngMetadata::default();
     let width = u32::try_from(raw.width).unwrap_or(u32::MAX);
     let height = u32::try_from(raw.height).unwrap_or(u32::MAX);
-    metadata.insert(DngTag::DngVersion, DngValue::List(vec![
-        DngValue::Byte(1),
-        DngValue::Byte(4),
-        DngValue::Byte(0),
-        DngValue::Byte(0),
-    ]));
+    metadata.insert(
+        DngTag::DngVersion,
+        DngValue::List(vec![
+            DngValue::Byte(1),
+            DngValue::Byte(4),
+            DngValue::Byte(0),
+            DngValue::Byte(0),
+        ]),
+    );
     metadata.insert(DngTag::ImageWidth, DngValue::Unsigned(width));
     metadata.insert(DngTag::ImageLength, DngValue::Unsigned(height));
     metadata.insert(
@@ -365,25 +366,21 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
             active_area.x.saturating_add(active_area.width),
         ]),
     );
-    let (crop_x, crop_y, crop_width, crop_height) = raw.crop_area.map_or(
-        (0, 0, active_area.width, active_area.height),
-        |crop| {
-            (
-                u32::try_from(crop.x())
-                    .unwrap_or(u32::MAX)
-                    .saturating_sub(active_area.x),
-                u32::try_from(crop.y())
-                    .unwrap_or(u32::MAX)
-                    .saturating_sub(active_area.y),
-                u32::try_from(crop.width()).unwrap_or(u32::MAX),
-                u32::try_from(crop.height()).unwrap_or(u32::MAX),
-            )
-        },
-    );
-    metadata.insert(
-        DngTag::DefaultCropOrigin,
-        unsigned_values([crop_x, crop_y]),
-    );
+    let (crop_x, crop_y, crop_width, crop_height) =
+        raw.crop_area
+            .map_or((0, 0, active_area.width, active_area.height), |crop| {
+                (
+                    u32::try_from(crop.x())
+                        .unwrap_or(u32::MAX)
+                        .saturating_sub(active_area.x),
+                    u32::try_from(crop.y())
+                        .unwrap_or(u32::MAX)
+                        .saturating_sub(active_area.y),
+                    u32::try_from(crop.width()).unwrap_or(u32::MAX),
+                    u32::try_from(crop.height()).unwrap_or(u32::MAX),
+                )
+            });
+    metadata.insert(DngTag::DefaultCropOrigin, unsigned_values([crop_x, crop_y]));
     metadata.insert(
         DngTag::DefaultCropSize,
         unsigned_values([crop_width, crop_height]),
@@ -412,14 +409,8 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
                 u32::try_from(config.cfa.height).unwrap_or(u32::MAX),
             ]),
         );
-        metadata.insert(
-            DngTag::CfaPattern,
-            byte_values(config.cfa.flat_pattern()),
-        );
-        metadata.insert(
-            DngTag::CfaPlaneColor,
-            unsigned_values([0_u32, 1, 2]),
-        );
+        metadata.insert(DngTag::CfaPattern, byte_values(config.cfa.flat_pattern()));
+        metadata.insert(DngTag::CfaPlaneColor, unsigned_values([0_u32, 1, 2]));
         metadata.insert(DngTag::CfaLayout, DngValue::Short(1));
     }
 
@@ -578,11 +569,13 @@ mod tests {
     use super::*;
 
     fn configured_raw() -> RawImage {
-        let mut camera = Camera::default();
-        camera.cfa = CFA::new("RGGB");
-        camera.active_area = Some([0, 0, 1, 1]);
-        camera.blacklevel = Some(vec![0; 4]);
-        camera.whitelevel = Some(vec![65_535]);
+        let camera = Camera {
+            cfa: CFA::new("RGGB"),
+            active_area: Some([0, 0, 1, 1]),
+            blacklevel: Some(vec![0; 4]),
+            whitelevel: Some(vec![65_535]),
+            ..Camera::default()
+        };
         let photometric = RawPhotometricInterpretation::Cfa(CFAConfig::new_from_camera(&camera));
         RawImage::new(
             camera,
@@ -615,7 +608,9 @@ mod tests {
         let decoder: RawlerDecoder<f32> =
             RawlerDecoder::from_raw(configured_raw()).expect("metadata should synthesize");
 
-        let metadata = decoder.dng_metadata().expect("metadata should be available");
+        let metadata = decoder
+            .dng_metadata()
+            .expect("metadata should be available");
 
         assert_eq!(
             metadata.get(&DngTag::ImageWidth),

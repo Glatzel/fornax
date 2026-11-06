@@ -145,6 +145,21 @@ in the pull request; no timing baseline is committed.
 
 **Files:** no expected source changes.
 
-- [ ] Run package tests, benchmark compilation, and the repository validation
+- [x] Run package tests, benchmark compilation, and the repository validation
       suite.
-- [ ] Record results in this plan.
+- [x] Record results in this plan.
+
+## Validation Results
+
+- `cargo test --workspace --all-features --exclude compare-demosaic`: 132
+  passed across 19 suites.
+- `cargo +nightly fmt --check`: passed.
+- `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features
+  --exclude compare-demosaic --no-deps`: passed.
+- The root clippy flag set: no issues.
+- `cargo bench -p bench-decoder --bench decoder --no-run`: passed.
+- `git diff --check` and YAML parsing of `.github/workflows/ci.yml`: passed.
+- The ignored colorchart fixture is absent from this worktree, so no timing
+  run was possible locally. The benchmark remains executable when setup
+  supplies `FORNAX_BENCH_RAW`.
+- No Markdown lint executable is installed in the active environment.
