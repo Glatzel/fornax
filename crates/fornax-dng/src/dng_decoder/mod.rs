@@ -6,6 +6,8 @@ mod jpegxl_codec;
 mod ljpeg;
 mod process_metadata;
 mod transforms;
+#[cfg(feature = "zstd")]
+pub mod zstd_codec;
 
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::ProcessMetadata;
@@ -183,9 +185,7 @@ fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, Deco
         CompressionMethod::Deflate => decode_deflate(source, metadata, width, height),
         CompressionMethod::LossyJpeg => decode_lossy_jpeg(source, metadata, width, height),
         CompressionMethod::JpegXl => decode_jpeg_xl(source, metadata, width, height),
-        CompressionMethod::Zstd => Err(unsupported_variant(
-            "Zstandard compression requires the fornax-dng zstd feature",
-        )),
+        CompressionMethod::Zstd => decode_zstd(source, metadata, width, height),
         CompressionMethod::Unknown(value) => {
             Err(corrupt(format!("invalid DNG compression {value}")))
         }
@@ -254,6 +254,86 @@ fn decode_deflate(
         );
     }
     decode_uncompressed(&inflated, &metadata, width, height)
+}
+
+#[cfg(feature = "zstd")]
+fn decode_zstd(
+    source: &[u8],
+    metadata: &Directory,
+    width: u32,
+    height: u32,
+) -> Result<RawMosaic, DecodeError> {
+    let bits = required_u16(metadata, TiffTag::BitsPerSample)?;
+    let (tile_width, tile_height, offsets, byte_counts) = layout(metadata)?;
+    let little_endian = matches!(byte_order(source), ByteOrder::Little);
+    let predictor = unsigned_scalar(metadata.get(&Tag::from(TiffTag::Predictor))).unwrap_or(1);
+    let predictor =
+        u16::try_from(predictor).map_err(|_| corrupt("Zstandard predictor is out of range"))?;
+    let max_output = tile_width
+        .checked_mul(tile_height)
+        .and_then(|samples| samples.checked_mul(usize::from(bits.div_ceil(8))))
+        .ok_or_else(|| corrupt("Zstandard tile size overflow"))?;
+    let mut inflated = Vec::new();
+    inflated.extend_from_slice(if little_endian { b"II" } else { b"MM" });
+    let mut inflated_offsets = Vec::with_capacity(offsets.len());
+    let mut inflated_counts = Vec::with_capacity(byte_counts.len());
+    for (index, (&offset, &byte_count)) in offsets.iter().zip(&byte_counts).enumerate() {
+        let encoded = checked_slice(source, offset, byte_count)?;
+        let mut payload = zstd_codec::decompress(encoded, max_output)
+            .map_err(|detail| corrupt(format!("Zstandard chunk {index}: {detail}")))?;
+        deflate_codec::reverse_predictor(
+            &mut payload,
+            predictor,
+            tile_width,
+            tile_height,
+            bits,
+            sample_format(metadata),
+            little_endian,
+        )
+        .map_err(|detail| corrupt(format!("Zstandard chunk {index}: {detail}")))?;
+        inflated_offsets.push(
+            u32::try_from(inflated.len())
+                .map_err(|_| corrupt("inflated Zstandard source exceeds classic offsets"))?,
+        );
+        inflated_counts.push(
+            u32::try_from(payload.len())
+                .map_err(|_| corrupt("inflated Zstandard chunk exceeds u32"))?,
+        );
+        inflated.extend_from_slice(&payload);
+    }
+    let mut metadata = metadata.clone();
+    if metadata.contains_key(&Tag::from(TiffTag::TileOffsets)) {
+        metadata.insert(
+            Tag::from(TiffTag::TileOffsets),
+            dng_values(inflated_offsets),
+        );
+        metadata.insert(
+            Tag::from(TiffTag::TileByteCounts),
+            dng_values(inflated_counts),
+        );
+    } else {
+        metadata.insert(
+            Tag::from(TiffTag::StripOffsets),
+            dng_values(inflated_offsets),
+        );
+        metadata.insert(
+            Tag::from(TiffTag::StripByteCounts),
+            dng_values(inflated_counts),
+        );
+    }
+    decode_uncompressed(&inflated, &metadata, width, height)
+}
+
+#[cfg(not(feature = "zstd"))]
+fn decode_zstd(
+    _source: &[u8],
+    _metadata: &Directory,
+    _width: u32,
+    _height: u32,
+) -> Result<RawMosaic, DecodeError> {
+    Err(unsupported_variant(
+        "Zstandard compression requires the fornax-dng zstd feature",
+    ))
 }
 
 fn decode_lossy_jpeg(
@@ -1149,6 +1229,8 @@ mod tests {
 
     use flate2::Compression;
     use flate2::write::ZlibEncoder;
+    #[cfg(not(feature = "zstd"))]
+    use fornax_core::error::DecodeError;
     use fornax_core::{MonoImage, RawMosaic};
     use fornax_tiff::constants::TiffTag;
     use fornax_tiff::{Tag, TiffWriter, Value};
@@ -1487,6 +1569,89 @@ mod tests {
             panic!("written 16-bit samples must decode as u16");
         };
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
+    }
+
+    #[cfg(feature = "zstd")]
+    #[test]
+    fn zstd_writer_round_trips_u16_samples() {
+        let samples = vec![0, 65_535, 30_000, 32_768, 1, 2, 40_000, 12_345];
+        let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
+        let mut output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::Zstd)
+            .with_zstd_level(3)
+            .write_dng_with(&mut output, &mosaic, &writable_metadata(4, 2))
+            .unwrap();
+
+        let parsed = DngImage::parse(output.get_ref()).unwrap();
+        let RawMosaic::U16(image) = super::raw_mosaic(&parsed).unwrap() else {
+            panic!("zstd samples must decode as u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), samples.as_slice());
+    }
+
+    #[cfg(feature = "zstd")]
+    #[test]
+    fn zstd_writer_round_trips_u8_u32_and_f32_samples() {
+        let u8_samples = vec![0, 1, 2, 255];
+        let u32_samples = vec![0, 70_000, 4_000_000_000, 12];
+        let f32_samples = vec![-1.5_f32, 0.25, 100.0, f32::from_bits(0x7fc0_1234)];
+        for (mosaic, expected) in [
+            (
+                RawMosaic::U8(MonoImage::from_raw(4, 1, u8_samples).unwrap()),
+                "u8",
+            ),
+            (
+                RawMosaic::U32(MonoImage::from_raw(4, 1, u32_samples).unwrap()),
+                "u32",
+            ),
+            (
+                RawMosaic::F32(MonoImage::from_raw(4, 1, f32_samples).unwrap()),
+                "f32",
+            ),
+        ] {
+            let mut output = Cursor::new(Vec::new());
+            DngWriter::new(DngCompression::Zstd)
+                .write_dng_with(&mut output, &mosaic, &writable_metadata(4, 1))
+                .unwrap();
+            let parsed = DngImage::parse(output.get_ref()).unwrap();
+            match (mosaic, super::raw_mosaic(&parsed).unwrap()) {
+                (RawMosaic::U8(expected), RawMosaic::U8(decoded)) => {
+                    assert_eq!(decoded, expected, "{expected:?}");
+                }
+                (RawMosaic::U32(expected), RawMosaic::U32(decoded)) => {
+                    assert_eq!(decoded, expected, "{expected:?}");
+                }
+                (RawMosaic::F32(expected), RawMosaic::F32(decoded)) => {
+                    assert_eq!(
+                        decoded
+                            .as_raw()
+                            .iter()
+                            .map(|value| value.to_bits())
+                            .collect::<Vec<_>>(),
+                        expected
+                            .as_raw()
+                            .iter()
+                            .map(|value| value.to_bits())
+                            .collect::<Vec<_>>(),
+                        "{expected:?}"
+                    );
+                }
+                (_, decoded) => panic!("{expected} decoded as an unexpected type: {decoded:?}"),
+            }
+        }
+    }
+
+    #[cfg(not(feature = "zstd"))]
+    #[test]
+    fn zstd_decode_without_feature_returns_unsupported() {
+        let mut metadata = writable_metadata(1, 1);
+        metadata.insert(Tag::from(TiffTag::ImageWidth), Value::Unsigned(1));
+        metadata.insert(Tag::from(TiffTag::ImageLength), Value::Unsigned(1));
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(50_000));
+
+        let error = super::decode_samples(&[], &metadata).expect_err("zstd feature is disabled");
+
+        assert!(matches!(error, DecodeError::Unsupported(_)), "{error:?}");
     }
 
     #[test]

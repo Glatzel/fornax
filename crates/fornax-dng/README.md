@@ -26,10 +26,26 @@ fields and constants remain in `fornax-tiff`.
 | --- | --- | --- |
 | Uncompressed (`1`) | Packed integers and floats | U8/U16/U32/F32 |
 | Lossless JPEG-92 (`7`) | Strips/tiles, predictors 1-7 | U8/U16 tiles |
-| Deflate (`8`) | Integer and float predictors | U32/F32 tiles |
+| Deflate (`8`) | Integer and float predictors | U8/U16/U32/F32 tiles |
 | Lossy JPEG (`34892`) | Single-component 8-bit | No |
 | JPEG XL (`52546`) | Single-channel 8-16-bit mosaics | No |
+| Zstandard (`50000`, experimental) | Integer and float payloads | Integer and float tiles |
 
 Unknown compression IDs are reported as unsupported. DNG output is regenerated
 rather than byte-identical because source container bytes and auxiliary
 directories are not retained.
+
+Zstandard support is disabled by default. Enable the `zstd` feature and select
+`DngCompression::Zstd` explicitly. Compression 50000 is the libtiff/GDAL
+de-facto extension, not an Adobe-registered DNG compression code.
+
+## DNG writer benchmarks
+
+```bash
+cargo bench -p fornax-dng --features zstd --bench writer
+```
+
+`FORNAX_BENCH_DNG_COMPRESSION` selects `uncompressed`, `lossless-jpeg`,
+`deflate`, and `zstd` cases. `FORNAX_BENCH_ZSTD_LEVEL` defaults to `3`.
+Synthetic sizes reuse `FORNAX_BENCH_SIZE`. The benchmark prints encoded bytes
+and the ratio to raw U16 storage before timing starts.

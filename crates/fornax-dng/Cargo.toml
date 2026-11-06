@@ -3,6 +3,15 @@ name = "fornax-dng"
 version.workspace = true
 edition.workspace = true
 
+[[bench]]
+harness = false
+name = "writer"
+
+[features]
+default = []
+metadata-json = ["dep:serde", "dep:serde_json"]
+zstd = ["dep:structured-zstd"]
+
 [dependencies]
 flashraw-codecs.workspace = true
 flate2.workspace = true
@@ -19,7 +28,8 @@ serde_json = { workspace = true, optional = true }
 strum.workspace = true
 thiserror.workspace = true
 zune-jpeg.workspace = true
+structured-zstd = { version = "0.2.6", optional = true }
 
-[features]
-default = []
-metadata-json = ["dep:serde", "dep:serde_json"]
+[dev-dependencies]
+criterion.workspace = true
+fornax-devtool.workspace = true
