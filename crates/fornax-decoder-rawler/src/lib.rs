@@ -7,7 +7,9 @@ use fornax_core::metadata::{Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
 use fornax_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_dng::metadata::IDecoderDng;
-use fornax_dng::{DngMetadata, DngTag, Value};
+use fornax_dng::{Directory, DngTag, Value};
+use fornax_tiff::Tag;
+use fornax_tiff::constants::TiffTag;
 use generic_num::num;
 use image::math::Rect;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
@@ -311,17 +313,17 @@ impl<T> IDecoderDng<&Path, T> for RawlerDecoder<T>
 where
     T: Primitive,
 {
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> {
+    fn dng_metadata(&self) -> Result<Directory, DecodeError> {
         Ok(synthesize_dng_metadata(&self.raw))
     }
 }
 
-fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
-    let mut metadata = DngMetadata::default();
+fn synthesize_dng_metadata(raw: &RawImage) -> Directory {
+    let mut metadata = Directory::default();
     let width = u32::try_from(raw.width).unwrap_or(u32::MAX);
     let height = u32::try_from(raw.height).unwrap_or(u32::MAX);
     metadata.insert(
-        DngTag::DngVersion,
+        DngTag::DngVersion.into(),
         Value::List(vec![
             Value::Byte(1),
             Value::Byte(4),
@@ -329,14 +331,14 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
             Value::Byte(0),
         ]),
     );
-    metadata.insert(DngTag::ImageWidth, Value::Unsigned(width));
-    metadata.insert(DngTag::ImageLength, Value::Unsigned(height));
+    metadata.insert(Tag::from(TiffTag::ImageWidth), Value::Unsigned(width));
+    metadata.insert(Tag::from(TiffTag::ImageLength), Value::Unsigned(height));
     metadata.insert(
-        DngTag::BitsPerSample,
+        TiffTag::BitsPerSample.into(),
         Value::Short(u16::try_from(raw.bps).unwrap_or(u16::MAX)),
     );
     metadata.insert(
-        DngTag::SamplesPerPixel,
+        TiffTag::SamplesPerPixel.into(),
         Value::Short(u16::try_from(raw.cpp).unwrap_or(u16::MAX)),
     );
 
@@ -356,7 +358,7 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
     );
     let active_area = align_to_bayer_tile(active_area);
     metadata.insert(
-        DngTag::ActiveArea,
+        DngTag::ActiveArea.into(),
         unsigned_values([
             active_area.y,
             active_area.x,
@@ -378,58 +380,70 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
                     u32::try_from(crop.height()).unwrap_or(u32::MAX),
                 )
             });
-    metadata.insert(DngTag::DefaultCropOrigin, unsigned_values([crop_x, crop_y]));
     metadata.insert(
-        DngTag::DefaultCropSize,
+        Tag::from(DngTag::DefaultCropOrigin),
+        unsigned_values([crop_x, crop_y]),
+    );
+    metadata.insert(
+        DngTag::DefaultCropSize.into(),
         unsigned_values([crop_width, crop_height]),
     );
 
     let black_width = u32::try_from(raw.blacklevel.width).unwrap_or(u32::MAX);
     let black_height = u32::try_from(raw.blacklevel.height).unwrap_or(u32::MAX);
     metadata.insert(
-        DngTag::BlackLevelRepeatDim,
+        DngTag::BlackLevelRepeatDim.into(),
         unsigned_values([black_width, black_height]),
     );
     metadata.insert(
-        DngTag::BlackLevel,
+        DngTag::BlackLevel.into(),
         rational_values(raw.blacklevel.as_vec().into_iter().map(f64::from)),
     );
     metadata.insert(
-        DngTag::WhiteLevel,
+        DngTag::WhiteLevel.into(),
         unsigned_values(raw.whitelevel.0.iter().copied()),
     );
 
     if let RawPhotometricInterpretation::Cfa(config) = &raw.photometric {
         metadata.insert(
-            DngTag::CfaRepeatPatternDim,
+            TiffTag::CfaRepeatPatternDim.into(),
             unsigned_values([
                 u32::try_from(config.cfa.width).unwrap_or(u32::MAX),
                 u32::try_from(config.cfa.height).unwrap_or(u32::MAX),
             ]),
         );
-        metadata.insert(DngTag::CfaPattern, byte_values(config.cfa.flat_pattern()));
-        metadata.insert(DngTag::CfaPlaneColor, unsigned_values([0_u32, 1, 2]));
-        metadata.insert(DngTag::CfaLayout, Value::Short(1));
+        metadata.insert(
+            Tag::from(TiffTag::CfaPattern),
+            byte_values(config.cfa.flat_pattern()),
+        );
+        metadata.insert(
+            Tag::from(DngTag::CfaPlaneColor),
+            unsigned_values([0_u32, 1, 2]),
+        );
+        metadata.insert(Tag::from(DngTag::CfaLayout), Value::Short(1));
     }
 
     if !raw.make.is_empty() {
-        metadata.insert(DngTag::Make, Value::Ascii(raw.make.clone()));
+        metadata.insert(Tag::from(TiffTag::Make), Value::Ascii(raw.make.clone()));
     }
     if !raw.model.is_empty() {
-        metadata.insert(DngTag::Model, Value::Ascii(raw.model.clone()));
+        metadata.insert(Tag::from(TiffTag::Model), Value::Ascii(raw.model.clone()));
     }
     let unique_model = format!("{} {}", raw.clean_make, raw.clean_model)
         .trim()
         .to_owned();
     if !unique_model.is_empty() {
-        metadata.insert(DngTag::UniqueCameraModel, Value::Ascii(unique_model));
+        metadata.insert(
+            Tag::from(DngTag::UniqueCameraModel),
+            Value::Ascii(unique_model),
+        );
     }
     if raw.wb_coeffs[..3]
         .iter()
         .all(|value| value.is_finite() && *value > 0.0)
     {
         metadata.insert(
-            DngTag::AsShotNeutral,
+            DngTag::AsShotNeutral.into(),
             rational_values([
                 1.0 / f64::from(raw.wb_coeffs[0]),
                 1.0,
@@ -440,9 +454,9 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
     if let Some(matrix) = raw.color_matrix.values().next()
         && matrix.len() == 9
     {
-        metadata.insert(DngTag::CalibrationIlluminant1, Value::Short(21));
+        metadata.insert(Tag::from(DngTag::CalibrationIlluminant1), Value::Short(21));
         metadata.insert(
-            DngTag::ColorMatrix1,
+            DngTag::ColorMatrix1.into(),
             rational_values(matrix.iter().copied().map(f64::from)),
         );
     }
@@ -450,7 +464,7 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
     metadata.extend(
         raw.dng_tags
             .iter()
-            .map(|(&tag, value)| (DngTag::from(tag), dng_value(value))),
+            .map(|(&tag, value)| (Tag(tag), dng_value(value))),
     );
     metadata
 }
@@ -613,13 +627,16 @@ mod tests {
             .dng_metadata()
             .expect("metadata should be available");
 
-        assert_eq!(metadata.get(&DngTag::ImageWidth), Some(&Value::Unsigned(4)));
         assert_eq!(
-            metadata.get(&DngTag::ImageLength),
+            metadata.get(&Tag::from(TiffTag::ImageWidth)),
             Some(&Value::Unsigned(4))
         );
         assert_eq!(
-            metadata.get(&DngTag::ActiveArea),
+            metadata.get(&Tag::from(TiffTag::ImageLength)),
+            Some(&Value::Unsigned(4))
+        );
+        assert_eq!(
+            metadata.get(&Tag::from(DngTag::ActiveArea)),
             Some(&Value::List(vec![
                 Value::Unsigned(0),
                 Value::Unsigned(0),
@@ -628,11 +645,11 @@ mod tests {
             ]))
         );
         assert_eq!(
-            metadata.get(&DngTag::CfaRepeatPatternDim),
+            metadata.get(&Tag::from(TiffTag::CfaRepeatPatternDim)),
             Some(&Value::List(vec![Value::Unsigned(2), Value::Unsigned(2),]))
         );
         assert_eq!(
-            metadata.get(&DngTag::CfaPattern),
+            metadata.get(&Tag::from(TiffTag::CfaPattern)),
             Some(&Value::List(vec![
                 Value::Byte(0),
                 Value::Byte(1),
@@ -641,7 +658,7 @@ mod tests {
             ]))
         );
         assert_eq!(
-            metadata.get(&DngTag::WhiteLevel),
+            metadata.get(&Tag::from(DngTag::WhiteLevel)),
             Some(&Value::Unsigned(65_535))
         );
     }

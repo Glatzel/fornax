@@ -778,6 +778,7 @@ version = "0.0.17"
 dependencies = [
  "fornax-core",
  "fornax-dng",
+ "fornax-tiff",
  "generic-num",
  "image 0.25.9",
  "rawler",
@@ -846,6 +847,10 @@ dependencies = [
 [[package]]
 name = "fornax-tiff"
 version = "0.0.17"
+dependencies = [
+ "num_enum",
+ "strum",
+]
 
 [[package]]
 name = "futures-core"

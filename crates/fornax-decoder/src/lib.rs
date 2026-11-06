@@ -7,7 +7,7 @@ use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
 use fornax_dng::metadata::IDecoderDng;
-use fornax_dng::{DngImage, DngMetadata};
+use fornax_dng::{Directory, DngImage};
 
 #[derive(Clone, Debug)]
 pub enum Decoder<T> {
@@ -63,7 +63,7 @@ impl<T> IDecoderDng<&Path, T> for Decoder<T>
 where
     T: Primitive,
 {
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> {
+    fn dng_metadata(&self) -> Result<Directory, DecodeError> {
         match self {
             Self::Dng(parsed) => fornax_dng::dng_metadata(parsed),
             Self::_Mark(_) => unreachable!(),

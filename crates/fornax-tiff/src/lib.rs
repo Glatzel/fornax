@@ -4,12 +4,13 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::Arc;
 
+pub mod constants;
 mod parser;
 mod value;
 mod writer;
 
 pub use value::{Tag, Value, ValueConversionError};
-pub use writer::TiffWriter;
+pub use writer::{IntoValue, TiffDirectory, TiffWriter};
 
 /// A TIFF image file directory.
 pub type Directory = BTreeMap<Tag, Value>;

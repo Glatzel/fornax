@@ -88,8 +88,9 @@ placeholders.
 
 ## Metadata
 
-The decoder retains typed DNG values in
-`BTreeMap<DngTag, DngValue>`. The pipeline consumes at least:
+The decoder retains typed values in a `fornax_tiff::Directory`, an ordered
+`BTreeMap<Tag, Value>`. Standard TIFF/TIFF-EP fields use `TiffTag`; DNG-only
+fields use `DngTag`. The pipeline consumes at least:
 
 - `ActiveArea`, `DefaultCropOrigin`, and `DefaultCropSize`;
 - `CFARepeatPatternDim`, `CFAPattern`, `CFAPlaneColor`, and `CFALayout`;

@@ -69,8 +69,8 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-core/src/protocol.rs` | `IDecoder` and cross-stage processor traits |
 | `fornax-core/src/primitive.rs` | `RawMosaic`, `CroppedMosaic`, `NormalizedMosaic`, and image aliases |
 | `fornax-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
-| `fornax-tiff/src` | TIFF values, directories, checked parsing, and classic-TIFF writing |
-| `fornax-dng/src/metadata.rs` | `DngTag`, `DngValue`, and deterministic `DngMetadata` |
+| `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
+| `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
 | `fornax-decoder/src/lib.rs` | Default DNG decoder and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
 | `fornax-decoder-rawler/src/lib.rs` | Rawler decoding and metadata adaptation |
@@ -101,10 +101,11 @@ not applied automatically.
 
 ## Metadata and validation
 
-The DNG decoder preserves supported values in an `Arc`-backed
-`BTreeMap<DngTag, DngValue>` while retaining their TIFF value type. Unknown
-well-formed tags remain in the map. The Rawler adapter converts Rawler's DNG
-override tags into the same typed model.
+The DNG decoder preserves supported values in a `fornax_tiff::Directory`, the
+ordered `BTreeMap<Tag, Value>` that retains each TIFF field type. `TiffTag`
+names standard TIFF/TIFF-EP fields and `DngTag` names DNG-only fields; both
+convert to the dynamic `Tag` key. Unknown well-formed tags remain in the map.
+The Rawler adapter synthesizes and forwards the same directory model.
 
 Validation covers:
 
@@ -139,11 +140,13 @@ benchmarks in their stage crates.
 ## Writer behavior
 
 - `DngCompression::Uncompressed` regenerates a classic-TIFF single-strip CFA
-  DNG from current `RawMosaic` samples and `DngMetadata`.
+  DNG from current `RawMosaic` samples and a `Directory`.
 - `DngCompression::LosslessJpeg` writes 256x256 tiled JPEG-92 for U8/U16
   mosaics and tiled lossless Deflate for U32/F32 mosaics.
 - Structural and chunk-layout tags are regenerated; consumed frontend tags are
   omitted so they are not applied twice.
+- `TiffDirectory` in `fornax-tiff` owns shared entry accumulation and writer
+  finalization; DNG code owns which structural fields to emit and omit.
 - The writer does not silently change sample types, levels, or CFA tags.
 - Output remains regenerated rather than byte-identical because the public
   model does not own the source container or auxiliary directories.

@@ -5,11 +5,12 @@ use std::path::Path;
 use flate2::Compression;
 use flate2::write::ZlibEncoder;
 use fornax_core::RawMosaic;
-use fornax_tiff::{Tag, TiffWriter as ContainerWriter, Value};
+use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
+use fornax_tiff::{Tag, TiffDirectory, TiffWriter as ContainerWriter, Value};
 use thiserror::Error;
 
 use crate::ljpeg_writer as ljpeg;
-use crate::metadata::{DngMetadata, DngTag};
+use crate::metadata::{Directory, DngTag};
 
 /// Failure while writing DNG data.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
@@ -25,78 +26,8 @@ pub enum DngWriteError {
     InvalidMetadata { detail: Box<str> },
 }
 
-struct DngDirectory<'a, W> {
-    writer: &'a mut ContainerWriter<W>,
-    entries: Vec<(Tag, Value)>,
-}
-
-impl<'a, W> DngDirectory<'a, W>
-where
-    W: Write + Seek,
-{
-    const fn new(writer: &'a mut ContainerWriter<W>) -> Self {
-        Self {
-            writer,
-            entries: Vec::new(),
-        }
-    }
-
-    fn write_data(&mut self, data: &[u8]) -> Result<u64, DngWriteError> {
-        self.writer.write_data(data).map_err(tiff_write_error)
-    }
-
-    fn write_tag(&mut self, tag: Tag, value: impl IntoValue) -> Result<(), DngWriteError> {
-        self.entries.push((tag, value.into_dng_value()));
-        Ok(())
-    }
-
-    fn finish(self) -> Result<(), DngWriteError> {
-        self.writer.finish(self.entries).map_err(tiff_write_error)
-    }
-}
-
-trait IntoValue {
-    fn into_dng_value(self) -> Value;
-}
-
-impl IntoValue for u8 {
-    fn into_dng_value(self) -> Value { Value::Byte(self) }
-}
-
-impl IntoValue for u16 {
-    fn into_dng_value(self) -> Value { Value::Short(self) }
-}
-
-impl IntoValue for u32 {
-    fn into_dng_value(self) -> Value { Value::Unsigned(self) }
-}
-
-impl IntoValue for f32 {
-    fn into_dng_value(self) -> Value { Value::Float(self) }
-}
-
-impl IntoValue for &str {
-    fn into_dng_value(self) -> Value { Value::Ascii(self.to_owned()) }
-}
-
-impl IntoValue for [u8; 4] {
-    fn into_dng_value(self) -> Value { Value::List(self.into_iter().map(Value::Byte).collect()) }
-}
-
-impl IntoValue for &[u16] {
-    fn into_dng_value(self) -> Value {
-        Value::List(self.iter().copied().map(Value::Short).collect())
-    }
-}
-
-impl IntoValue for &[u32] {
-    fn into_dng_value(self) -> Value {
-        Value::List(self.iter().copied().map(Value::Unsigned).collect())
-    }
-}
-
-impl IntoValue for Value {
-    fn into_dng_value(self) -> Value { self }
+impl From<fornax_tiff::TiffError> for DngWriteError {
+    fn from(error: fornax_tiff::TiffError) -> Self { tiff_write_error(error) }
 }
 
 /// DNG compression modes written in the first implementation stage.
@@ -203,7 +134,7 @@ impl DngWriter {
         &self,
         path: P,
         mosaic: &RawMosaic,
-        metadata: &DngMetadata,
+        metadata: &Directory,
     ) -> Result<(), DngWriteError>
     where
         P: AsRef<Path>,
@@ -218,7 +149,7 @@ impl DngWriter {
         &self,
         writer: W,
         mosaic: &RawMosaic,
-        metadata: &DngMetadata,
+        metadata: &Directory,
     ) -> Result<(), DngWriteError>
     where
         W: Write + Seek,
@@ -238,7 +169,7 @@ impl DngWriter {
 fn write_uncompressed<W>(
     writer: W,
     mosaic: &RawMosaic,
-    metadata: &DngMetadata,
+    metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
 where
@@ -246,7 +177,7 @@ where
 {
     let (width, height) = mosaic.dimensions();
     let mut encoder = ContainerWriter::new(writer).map_err(tiff_write_error)?;
-    let mut directory = DngDirectory::new(&mut encoder);
+    let mut directory = TiffDirectory::new(&mut encoder);
 
     let (strip_offset, strip_byte_count, bits_per_sample, sample_format) = match mosaic {
         RawMosaic::U8(image) => {
@@ -289,28 +220,31 @@ where
     let strip_byte_count = u32::try_from(strip_byte_count)
         .map_err(|_| invalid_metadata("uncompressed DNG strip exceeds classic TIFF limits"))?;
 
-    directory.write_tag(Tag::NEW_SUBFILE_TYPE, 0_u32)?;
-    directory.write_tag(Tag::IMAGE_WIDTH, width)?;
-    directory.write_tag(Tag::IMAGE_LENGTH, height)?;
-    directory.write_tag(Tag::BITS_PER_SAMPLE, bits_per_sample)?;
-    directory.write_tag(Tag::COMPRESSION, 1_u16)?;
-    directory.write_tag(Tag::PHOTOMETRIC_INTERPRETATION, 32_803_u16)?;
-    directory.write_tag(Tag::STRIP_OFFSETS, &[strip_offset][..])?;
-    directory.write_tag(Tag::SAMPLES_PER_PIXEL, 1_u16)?;
-    directory.write_tag(Tag::ROWS_PER_STRIP, height)?;
-    directory.write_tag(Tag::STRIP_BYTE_COUNTS, &[strip_byte_count][..])?;
-    directory.write_tag(Tag::PLANAR_CONFIGURATION, 1_u16)?;
-    directory.write_tag(Tag::SAMPLE_FORMAT, sample_format)?;
+    directory.write_tag(Tag::from(TiffTag::NewSubfileType), 0_u32)?;
+    directory.write_tag(Tag::from(TiffTag::ImageWidth), width)?;
+    directory.write_tag(Tag::from(TiffTag::ImageLength), height)?;
+    directory.write_tag(Tag::from(TiffTag::BitsPerSample), bits_per_sample)?;
+    directory.write_tag(Tag::from(TiffTag::Compression), 1_u16)?;
+    directory.write_tag(
+        TiffTag::PhotometricInterpretation,
+        u16::from(PhotometricInterpretation::Cfa),
+    )?;
+    directory.write_tag(Tag::from(TiffTag::StripOffsets), &[strip_offset][..])?;
+    directory.write_tag(Tag::from(TiffTag::SamplesPerPixel), 1_u16)?;
+    directory.write_tag(Tag::from(TiffTag::RowsPerStrip), height)?;
+    directory.write_tag(Tag::from(TiffTag::StripByteCounts), &[strip_byte_count][..])?;
+    directory.write_tag(Tag::from(TiffTag::PlanarConfiguration), 1_u16)?;
+    directory.write_tag(Tag::from(TiffTag::SampleFormat), sample_format)?;
 
     let dng_version = [version.major, version.minor, version.patch, version.build];
     directory.write_tag(Tag(u16::from(DngTag::DngVersion)), dng_version)?;
     directory.write_tag(Tag(u16::from(DngTag::DngBackwardVersion)), dng_version)?;
 
-    for (tag, value) in &**metadata {
+    for (tag, value) in metadata {
         if structural_metadata(*tag) {
             continue;
         }
-        write_metadata_value(&mut directory, metadata_tag(*tag), value)?;
+        write_metadata_value(&mut directory, *tag, value)?;
     }
 
     directory.finish()?;
@@ -320,7 +254,7 @@ where
 fn write_lossless<W>(
     writer: W,
     mosaic: &RawMosaic,
-    metadata: &DngMetadata,
+    metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
 where
@@ -339,7 +273,7 @@ where
 fn write_lossless_jpeg<W>(
     writer: W,
     mosaic: &RawMosaic,
-    metadata: &DngMetadata,
+    metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
 where
@@ -389,7 +323,7 @@ where
     }
 
     let mut encoder = ContainerWriter::new(writer).map_err(tiff_write_error)?;
-    let mut directory = DngDirectory::new(&mut encoder);
+    let mut directory = TiffDirectory::new(&mut encoder);
     let mut tile_offsets = Vec::with_capacity(tiles.len());
     let mut tile_byte_counts = Vec::with_capacity(tiles.len());
     for tile in &tiles {
@@ -414,15 +348,18 @@ where
         version,
     )?;
     directory.write_tag(
-        Tag::TILE_WIDTH,
+        Tag::from(TiffTag::TileWidth),
         u32::try_from(TILE).expect("tile width fits u32"),
     )?;
     directory.write_tag(
-        Tag::TILE_LENGTH,
+        Tag::from(TiffTag::TileLength),
         u32::try_from(TILE).expect("tile length fits u32"),
     )?;
-    directory.write_tag(Tag::TILE_OFFSETS, tile_offsets.as_slice())?;
-    directory.write_tag(Tag::TILE_BYTE_COUNTS, tile_byte_counts.as_slice())?;
+    directory.write_tag(Tag::from(TiffTag::TileOffsets), tile_offsets.as_slice())?;
+    directory.write_tag(
+        Tag::from(TiffTag::TileByteCounts),
+        tile_byte_counts.as_slice(),
+    )?;
     write_preserved_metadata(&mut directory, metadata)?;
     directory.finish()?;
     Ok(())
@@ -431,7 +368,7 @@ where
 fn write_lossless_deflate<W>(
     writer: W,
     mosaic: &RawMosaic,
-    metadata: &DngMetadata,
+    metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
 where
@@ -513,7 +450,7 @@ where
     }
 
     let mut encoder = ContainerWriter::new(writer).map_err(tiff_write_error)?;
-    let mut directory = DngDirectory::new(&mut encoder);
+    let mut directory = TiffDirectory::new(&mut encoder);
     let mut tile_offsets = Vec::with_capacity(tiles.len());
     let mut tile_byte_counts = Vec::with_capacity(tiles.len());
     for tile in &tiles {
@@ -537,16 +474,19 @@ where
         version,
     )?;
     directory.write_tag(
-        Tag::TILE_WIDTH,
+        Tag::from(TiffTag::TileWidth),
         u32::try_from(TILE).expect("tile width fits u32"),
     )?;
     directory.write_tag(
-        Tag::TILE_LENGTH,
+        Tag::from(TiffTag::TileLength),
         u32::try_from(TILE).expect("tile length fits u32"),
     )?;
-    directory.write_tag(Tag::TILE_OFFSETS, tile_offsets.as_slice())?;
-    directory.write_tag(Tag::TILE_BYTE_COUNTS, tile_byte_counts.as_slice())?;
-    directory.write_tag(Tag::PREDICTOR, predictor)?;
+    directory.write_tag(Tag::from(TiffTag::TileOffsets), tile_offsets.as_slice())?;
+    directory.write_tag(
+        Tag::from(TiffTag::TileByteCounts),
+        tile_byte_counts.as_slice(),
+    )?;
+    directory.write_tag(Tag::from(TiffTag::Predictor), predictor)?;
     write_preserved_metadata(&mut directory, metadata)?;
     directory.finish()?;
     Ok(())
@@ -565,7 +505,7 @@ fn float_horizontal_predictor(row: &mut [u8], width: usize) {
 }
 
 fn write_common_directory<W>(
-    directory: &mut DngDirectory<'_, W>,
+    directory: &mut TiffDirectory<'_, W>,
     width: u32,
     height: u32,
     bits: u16,
@@ -576,15 +516,18 @@ fn write_common_directory<W>(
 where
     W: Write + Seek,
 {
-    directory.write_tag(Tag::NEW_SUBFILE_TYPE, 0_u32)?;
-    directory.write_tag(Tag::IMAGE_WIDTH, width)?;
-    directory.write_tag(Tag::IMAGE_LENGTH, height)?;
-    directory.write_tag(Tag::BITS_PER_SAMPLE, bits)?;
-    directory.write_tag(Tag::COMPRESSION, compression)?;
-    directory.write_tag(Tag::PHOTOMETRIC_INTERPRETATION, 32_803_u16)?;
-    directory.write_tag(Tag::SAMPLES_PER_PIXEL, 1_u16)?;
-    directory.write_tag(Tag::PLANAR_CONFIGURATION, 1_u16)?;
-    directory.write_tag(Tag::SAMPLE_FORMAT, sample_format)?;
+    directory.write_tag(Tag::from(TiffTag::NewSubfileType), 0_u32)?;
+    directory.write_tag(Tag::from(TiffTag::ImageWidth), width)?;
+    directory.write_tag(Tag::from(TiffTag::ImageLength), height)?;
+    directory.write_tag(Tag::from(TiffTag::BitsPerSample), bits)?;
+    directory.write_tag(Tag::from(TiffTag::Compression), compression)?;
+    directory.write_tag(
+        TiffTag::PhotometricInterpretation,
+        u16::from(PhotometricInterpretation::Cfa),
+    )?;
+    directory.write_tag(Tag::from(TiffTag::SamplesPerPixel), 1_u16)?;
+    directory.write_tag(Tag::from(TiffTag::PlanarConfiguration), 1_u16)?;
+    directory.write_tag(Tag::from(TiffTag::SampleFormat), sample_format)?;
     let dng_version = [version.major, version.minor, version.patch, version.build];
     directory.write_tag(Tag(u16::from(DngTag::DngVersion)), dng_version)?;
     directory.write_tag(Tag(u16::from(DngTag::DngBackwardVersion)), dng_version)?;
@@ -592,51 +535,53 @@ where
 }
 
 fn write_preserved_metadata<W>(
-    directory: &mut DngDirectory<'_, W>,
-    metadata: &DngMetadata,
+    directory: &mut TiffDirectory<'_, W>,
+    metadata: &Directory,
 ) -> Result<(), DngWriteError>
 where
     W: Write + Seek,
 {
-    for (tag, value) in &**metadata {
+    for (tag, value) in metadata {
         if structural_metadata(*tag) {
             continue;
         }
-        write_metadata_value(directory, metadata_tag(*tag), value)?;
+        write_metadata_value(directory, *tag, value)?;
     }
     Ok(())
 }
 
-const fn structural_metadata(tag: DngTag) -> bool {
+fn structural_metadata(tag: Tag) -> bool {
     matches!(
-        tag,
-        DngTag::NewSubfileType
-            | DngTag::ImageWidth
-            | DngTag::ImageLength
-            | DngTag::BitsPerSample
-            | DngTag::Compression
-            | DngTag::PhotometricInterpretation
-            | DngTag::SamplesPerPixel
-            | DngTag::RowsPerStrip
-            | DngTag::StripOffsets
-            | DngTag::StripByteCounts
-            | DngTag::PlanarConfiguration
-            | DngTag::TileWidth
-            | DngTag::TileLength
-            | DngTag::TileOffsets
-            | DngTag::TileByteCounts
-            | DngTag::SubIfds
-            | DngTag::DngVersion
+        TiffTag::from(tag),
+        TiffTag::NewSubfileType
+            | TiffTag::ImageWidth
+            | TiffTag::ImageLength
+            | TiffTag::BitsPerSample
+            | TiffTag::Compression
+            | TiffTag::PhotometricInterpretation
+            | TiffTag::SamplesPerPixel
+            | TiffTag::RowsPerStrip
+            | TiffTag::StripOffsets
+            | TiffTag::StripByteCounts
+            | TiffTag::PlanarConfiguration
+            | TiffTag::Predictor
+            | TiffTag::TileWidth
+            | TiffTag::TileLength
+            | TiffTag::TileOffsets
+            | TiffTag::TileByteCounts
+            | TiffTag::SubIfds
+            | TiffTag::SampleFormat
+    ) || matches!(
+        DngTag::from(tag),
+        DngTag::DngVersion
             | DngTag::DngBackwardVersion
             | DngTag::LinearizationTable
             | DngTag::Unknown((50_974..=50_976) | 51_008)
     )
 }
 
-fn metadata_tag(tag: DngTag) -> Tag { tag.into() }
-
 fn write_metadata_value<W>(
-    directory: &mut DngDirectory<'_, W>,
+    directory: &mut TiffDirectory<'_, W>,
     tag: Tag,
     value: &Value,
 ) -> Result<(), DngWriteError>
@@ -656,7 +601,9 @@ where
         | Value::Double(_)
         | Value::Rational(_, _)
         | Value::SRational(_, _)
-        | Value::Ascii(_) => directory.write_tag(tag, value.clone()),
+        | Value::Ascii(_) => directory
+            .write_tag(tag, value.clone())
+            .map_err(DngWriteError::from),
         Value::RationalBig(_, _) | Value::SRationalBig(_, _) | Value::Ifd(_) | Value::IfdBig(_) => {
             Ok(())
         }
@@ -665,7 +612,7 @@ where
 }
 
 fn write_list<W>(
-    directory: &mut DngDirectory<'_, W>,
+    directory: &mut TiffDirectory<'_, W>,
     tag: Tag,
     values: &[Value],
 ) -> Result<(), DngWriteError>
@@ -696,7 +643,9 @@ where
         Some(_) => {}
         None => unreachable!("the list was checked as non-empty"),
     }
-    directory.write_tag(tag, Value::List(values.to_vec()))
+    directory
+        .write_tag(tag, Value::List(values.to_vec()))
+        .map_err(DngWriteError::from)
 }
 
 fn invalid_metadata(detail: impl Into<Box<str>>) -> DngWriteError {
@@ -724,7 +673,7 @@ mod tests {
     fn classic_writer_rejects_big_rational_metadata_lists() {
         let mut cursor = Cursor::new(Vec::new());
         let mut container = TiffWriter::new(&mut cursor).unwrap();
-        let mut directory = DngDirectory::new(&mut container);
+        let mut directory = TiffDirectory::new(&mut container);
 
         let error = write_list(
             &mut directory,

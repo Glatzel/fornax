@@ -83,7 +83,7 @@ run_validation 'AGENTS.md\n'
 assert_logged 'setup:root'
 assert_logged 'cargo:test --workspace --all-features --exclude compare-demosaic'
 assert_logged 'cargo:+nightly fmt --check'
-assert_logged 'cargo:doc --workspace --all-features --exclude compare-demosaic'
+assert_logged 'cargo:doc --workspace --all-features --exclude compare-demosaic --no-deps'
 assert_logged_prefix \
     'cargo:clippy --workspace --all-features --all-targets --exclude compare-demosaic -- '
 assert_logged 'cargo:bench -p bench-decoder --no-run'
@@ -99,7 +99,7 @@ fi
 run_validation 'AGENTS.md\ncrates/compare-demosaic/src/lib.rs\n'
 
 assert_logged 'setup:compare'
-assert_logged 'cargo:doc --all-features -p compare-demosaic'
+assert_logged 'cargo:doc --all-features -p compare-demosaic --no-deps'
 assert_logged_prefix \
     'cargo:clippy --all-features --all-targets -p compare-demosaic -- '
 assert_logged 'cargo:test --all-features -p compare-demosaic'

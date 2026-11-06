@@ -194,7 +194,7 @@ if [[ "$docs_only" == false ]]; then
     cargo test --workspace --all-features --exclude compare-demosaic
     cargo +nightly fmt --check
     RUSTDOCFLAGS="-D warnings" \
-        cargo doc --workspace --all-features --exclude compare-demosaic
+        cargo doc --workspace --all-features --exclude compare-demosaic --no-deps
     cargo clippy --workspace --all-features --all-targets \
         --exclude compare-demosaic -- "${clippy_flags[@]}"
     cargo bench -p bench-decoder --no-run
@@ -213,7 +213,7 @@ if grep -Eq '^crates/compare-demosaic/' <<<"$changed_files"; then
             cargo +nightly fmt
         fi
 
-        RUSTDOCFLAGS="-D warnings" cargo doc --all-features -p compare-demosaic
+        RUSTDOCFLAGS="-D warnings" cargo doc --all-features -p compare-demosaic --no-deps
         cargo clippy --all-features --all-targets -p compare-demosaic \
             -- "${clippy_flags[@]}"
         cargo test --all-features -p compare-demosaic

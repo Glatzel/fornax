@@ -1,25 +1,26 @@
 use flashraw_codecs::dng_opcodes::{PlaneImage, apply as apply_opcodes, parse as parse_opcodes};
 use fornax_core::error::DecodeError;
 use fornax_core::{MonoImage, RawMosaic};
-use fornax_tiff::Value;
+use fornax_tiff::constants::TiffTag;
+use fornax_tiff::{Tag, Value};
 use num_traits::ToPrimitive;
 use rayon::prelude::*;
 
 use super::{corrupt, unsigned_scalar, unsigned_vec};
-use crate::metadata::{DngMetadata, DngTag};
+use crate::metadata::{Directory, DngTag};
 
-const TAG_ROW_INTERLEAVE_FACTOR: DngTag = DngTag::Unknown(50_975);
-const TAG_COLUMN_INTERLEAVE_FACTOR: DngTag = DngTag::Unknown(50_976);
-const TAG_OPCODE_LIST1: DngTag = DngTag::Unknown(51_008);
+const TAG_ROW_INTERLEAVE_FACTOR: Tag = Tag(50_975);
+const TAG_COLUMN_INTERLEAVE_FACTOR: Tag = Tag(50_976);
+const TAG_OPCODE_LIST1: Tag = Tag(51_008);
 const MAX_EXACT_F32_INTEGER: u32 = 1 << 24;
 
-pub(super) fn apply(pixels: RawMosaic, metadata: &DngMetadata) -> Result<RawMosaic, DecodeError> {
+pub(super) fn apply(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
     let pixels = deinterleave(pixels, metadata)?;
     let pixels = apply_opcode_list1(pixels, metadata)?;
     apply_linearization(pixels, metadata)
 }
 
-fn deinterleave(pixels: RawMosaic, metadata: &DngMetadata) -> Result<RawMosaic, DecodeError> {
+fn deinterleave(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
     let row_factor = unsigned_scalar(metadata.get(&TAG_ROW_INTERLEAVE_FACTOR)).unwrap_or(1);
     let column_factor = unsigned_scalar(metadata.get(&TAG_COLUMN_INTERLEAVE_FACTOR)).unwrap_or(1);
     if row_factor == 1 && column_factor == 1 {
@@ -96,7 +97,7 @@ where
         .ok_or_else(|| corrupt("deinterleaved image dimensions are invalid"))
 }
 
-fn apply_opcode_list1(pixels: RawMosaic, metadata: &DngMetadata) -> Result<RawMosaic, DecodeError> {
+fn apply_opcode_list1(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
     let Some(value) = metadata.get(&TAG_OPCODE_LIST1) else {
         return Ok(pixels);
     };
@@ -224,11 +225,8 @@ where
         .collect()
 }
 
-fn apply_linearization(
-    pixels: RawMosaic,
-    metadata: &DngMetadata,
-) -> Result<RawMosaic, DecodeError> {
-    if !metadata.contains_key(&DngTag::LinearizationTable) {
+fn apply_linearization(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
+    if !metadata.contains_key(&Tag::from(DngTag::LinearizationTable)) {
         return Ok(pixels);
     }
     let table = unsigned_vec(metadata, DngTag::LinearizationTable)?
@@ -245,7 +243,7 @@ fn apply_linearization(
         RawMosaic::U8(image) => map_linearization(image.as_raw(), &table)?,
         RawMosaic::U16(image) => {
             let bits = u32::try_from(
-                unsigned_scalar(metadata.get(&DngTag::BitsPerSample))
+                unsigned_scalar(metadata.get(&Tag::from(TiffTag::BitsPerSample)))
                     .ok_or_else(|| corrupt("BitsPerSample is missing or invalid"))?,
             )
             .map_err(|_| corrupt("LinearizationTable bit depth exceeds u32"))?;

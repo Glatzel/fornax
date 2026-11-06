@@ -3,6 +3,10 @@
 Pure-Rust DNG parsing, metadata conversion, raw codecs, transforms, and DNG
 writing.
 
+Decoded metadata is a `fornax_tiff::Directory`, keyed by the dynamic `Tag`
+type. `DngTag` names DNG-only fields and converts into those keys; generic TIFF
+fields and constants remain in `fornax-tiff`.
+
 ## Container and Layout Support
 
 | Feature | Support |

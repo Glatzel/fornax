@@ -2,6 +2,52 @@ use std::io::{Seek, SeekFrom, Write};
 
 use crate::{Tag, TiffError, Value};
 
+/// A value convertible into a TIFF field.
+pub trait IntoValue {
+    /// Converts this value into a TIFF field.
+    fn into_tiff_value(self) -> Value;
+}
+
+impl IntoValue for u8 {
+    fn into_tiff_value(self) -> Value { Value::Byte(self) }
+}
+
+impl IntoValue for u16 {
+    fn into_tiff_value(self) -> Value { Value::Short(self) }
+}
+
+impl IntoValue for u32 {
+    fn into_tiff_value(self) -> Value { Value::Unsigned(self) }
+}
+
+impl IntoValue for f32 {
+    fn into_tiff_value(self) -> Value { Value::Float(self) }
+}
+
+impl IntoValue for &str {
+    fn into_tiff_value(self) -> Value { Value::Ascii(self.to_owned()) }
+}
+
+impl IntoValue for [u8; 4] {
+    fn into_tiff_value(self) -> Value { Value::List(self.into_iter().map(Value::Byte).collect()) }
+}
+
+impl IntoValue for &[u16] {
+    fn into_tiff_value(self) -> Value {
+        Value::List(self.iter().copied().map(Value::Short).collect())
+    }
+}
+
+impl IntoValue for &[u32] {
+    fn into_tiff_value(self) -> Value {
+        Value::List(self.iter().copied().map(Value::Unsigned).collect())
+    }
+}
+
+impl IntoValue for Value {
+    fn into_tiff_value(self) -> Value { self }
+}
+
 /// A classic little-endian TIFF writer.
 pub struct TiffWriter<W> {
     writer: W,
@@ -91,6 +137,43 @@ where
             .map_err(write_error)?;
         self.writer.flush().map_err(write_error)
     }
+}
+
+/// Builder for the root directory of a [`TiffWriter`].
+pub struct TiffDirectory<'a, W> {
+    writer: &'a mut TiffWriter<W>,
+    entries: Vec<(Tag, Value)>,
+}
+
+impl<'a, W> TiffDirectory<'a, W>
+where
+    W: Write + Seek,
+{
+    /// Creates a directory builder for `writer`.
+    pub const fn new(writer: &'a mut TiffWriter<W>) -> Self {
+        Self {
+            writer,
+            entries: Vec::new(),
+        }
+    }
+
+    /// Appends image data and returns its absolute file offset.
+    pub fn write_data(&mut self, data: &[u8]) -> Result<u64, TiffError> {
+        self.writer.write_data(data)
+    }
+
+    /// Adds a directory entry.
+    pub fn write_tag<T, V>(&mut self, tag: T, value: V) -> Result<(), TiffError>
+    where
+        T: Into<Tag>,
+        V: IntoValue,
+    {
+        self.entries.push((tag.into(), value.into_tiff_value()));
+        Ok(())
+    }
+
+    /// Writes the accumulated entries and finalizes the TIFF header.
+    pub fn finish(self) -> Result<(), TiffError> { self.writer.finish(self.entries) }
 }
 
 struct EncodedEntry {

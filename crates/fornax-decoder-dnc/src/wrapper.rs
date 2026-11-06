@@ -7,7 +7,7 @@ use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{CroppedMosaic, Primitive, RawMosaic};
 use fornax_decoder_rawler::RawlerDecoder;
-use fornax_dng::DngMetadata;
+use fornax_dng::Directory;
 use fornax_dng::metadata::IDecoderDng;
 use strum::{AsRefStr, Display, EnumString};
 
@@ -383,7 +383,7 @@ impl<T> IDecoderDng<&(&Path, &DncParams), T> for DncDecoder<T>
 where
     T: Primitive,
 {
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> { self.0.dng_metadata() }
+    fn dng_metadata(&self) -> Result<Directory, DecodeError> { self.0.dng_metadata() }
 }
 
 #[cfg(test)]

@@ -12,24 +12,10 @@ impl From<Tag> for u16 {
     fn from(value: Tag) -> Self { value.0 }
 }
 
-impl Tag {
-    pub const NEW_SUBFILE_TYPE: Self = Self(254);
-    pub const IMAGE_WIDTH: Self = Self(256);
-    pub const IMAGE_LENGTH: Self = Self(257);
-    pub const BITS_PER_SAMPLE: Self = Self(258);
-    pub const COMPRESSION: Self = Self(259);
-    pub const PHOTOMETRIC_INTERPRETATION: Self = Self(262);
-    pub const STRIP_OFFSETS: Self = Self(273);
-    pub const SAMPLES_PER_PIXEL: Self = Self(277);
-    pub const ROWS_PER_STRIP: Self = Self(278);
-    pub const STRIP_BYTE_COUNTS: Self = Self(279);
-    pub const PLANAR_CONFIGURATION: Self = Self(284);
-    pub const PREDICTOR: Self = Self(317);
-    pub const TILE_WIDTH: Self = Self(322);
-    pub const TILE_LENGTH: Self = Self(323);
-    pub const TILE_OFFSETS: Self = Self(324);
-    pub const TILE_BYTE_COUNTS: Self = Self(325);
-    pub const SAMPLE_FORMAT: Self = Self(339);
+impl fmt::Display for Tag {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "TIFF tag 0x{:04x}", self.0)
+    }
 }
 
 /// A typed TIFF field value.
