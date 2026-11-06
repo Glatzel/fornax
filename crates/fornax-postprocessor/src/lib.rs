@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 pub use demosaic::{Demosaic, IDemosaic, LazyDemosaic, LmmseMode};
 use fornax_core::Primitive;
 use fornax_core::error::PostProcessError;
-use fornax_core::protocol::{IPostProcessMetadata, IPostProcessor};
+use fornax_core::protocol::{IPostProcessMetadata, IPostProcessor, NormalizedMosaicSource};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PostProcessor<T, D>
@@ -17,6 +17,30 @@ where
     pub use_wb_coeffs: bool,
     pub _mark: PhantomData<T>,
 }
+
+impl<T, D> PostProcessor<T, D>
+where
+    T: Primitive,
+    D: IDemosaic<T>,
+{
+    /// Processes a deferred normalized mosaic.
+    ///
+    /// Row-oriented consumers can use the source directly in the future;
+    /// dense algorithms materialize it before demosaicing.
+    pub fn process_lazy<S, M>(
+        &self,
+        source: &S,
+        metadata: &M,
+    ) -> Result<fornax_core::RgbImage<T>, PostProcessError>
+    where
+        S: NormalizedMosaicSource<T>,
+        M: IPostProcessMetadata<T>,
+    {
+        let normalized = source.collect_source()?;
+        self.process(normalized.image(), metadata)
+    }
+}
+
 impl<T, D, M> IPostProcessor<T, M> for PostProcessor<T, D>
 where
     T: Primitive,
@@ -67,6 +91,17 @@ mod tests {
 
     use super::*;
 
+    struct StaticSource(MonoImage<f32>);
+
+    impl NormalizedMosaicSource<f32> for StaticSource {
+        fn dimensions(&self) -> (u32, u32) { self.0.dimensions() }
+
+        fn fill_row(&self, y: usize, out: &mut [f32]) {
+            let start = y * self.0.width() as usize;
+            out.copy_from_slice(&self.0.as_raw()[start..start + out.len()]);
+        }
+    }
+
     #[test]
     fn white_balance_multiplies_blue_from_its_own_sample() -> mischief::Result<()> {
         let image = MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap();
@@ -104,6 +139,44 @@ mod tests {
         assert!((pixel[0] - 0.05).abs() < 1.0e-6, "{pixel:?}");
         assert!((pixel[1] - 0.1).abs() < 1.0e-6, "{pixel:?}");
         assert!((pixel[2] - 0.025).abs() < 1.0e-6, "{pixel:?}");
+        Ok(())
+    }
+
+    #[test]
+    fn lazy_processing_matches_direct_processing() -> mischief::Result<()> {
+        let image = MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap();
+        let metadata = ProcessMetadata {
+            active_area: Rect {
+                x: 0,
+                y: 0,
+                width: 8,
+                height: 8,
+            },
+            default_crop: Rect {
+                x: 0,
+                y: 0,
+                width: 8,
+                height: 8,
+            },
+            levels: Levels {
+                black: MonoImage::from_raw(1, 1, vec![0.0_f32]).unwrap(),
+                black_delta_h: Vec::new(),
+                black_delta_v: Vec::new(),
+                white: 1.0,
+            },
+            bayer_pattern: BayerPattern::RGGB,
+            wb_coeffs: Some((0.5, 0.25)),
+        };
+        let processor = PostProcessor::<f32, _> {
+            demosaic: Demosaic::Linear,
+            use_wb_coeffs: true,
+            _mark: PhantomData,
+        };
+
+        let direct = processor.process(&image, &metadata)?;
+        let lazy = processor.process_lazy(&StaticSource(image), &metadata)?;
+
+        assert_eq!(direct, lazy);
         Ok(())
     }
 }

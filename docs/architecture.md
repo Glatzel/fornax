@@ -78,6 +78,10 @@ RAW file
 preprocessor subtracts repeating black levels and optional row/column deltas,
 then normalizes by the remaining white-level range.
 
+`Preprocessor::lazy` exposes normalized rows without allocating a full
+normalized image. `PostProcessor::process_lazy` consumes that deferred source
+and materializes it only when a demosaic implementation requires dense access.
+
 `NormalizedMosaic<T>::process` delegates to `IPostProcessor<T, M>`.
 `fornax-postprocessor` owns `IDemosaic<T>` and `LazyDemosaic<T>`.
 `PostProcessor::default()` uses Linear demosaicing and applies green-normalized

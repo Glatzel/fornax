@@ -7,6 +7,8 @@ mod ljpeg;
 mod process_metadata;
 mod transforms;
 
+use std::sync::OnceLock;
+
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::process::ProcessMetadata;
 use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
@@ -61,7 +63,8 @@ impl CompressionMethod {
 #[derive(Clone, Debug)]
 pub struct DngImage {
     parsed: ParsedTiff,
-    raw_ifd: usize,
+    metadata: DngMetadata,
+    process_metadata: OnceLock<Result<ProcessMetadata<f64>, DecodeError>>,
 }
 
 impl DngImage {
@@ -69,7 +72,12 @@ impl DngImage {
         let parsed = fornax_tiff::parse(source)
             .map_err(|error| DecodeError::InvalidInput(error.to_string().into()))?;
         let raw_ifd = select_raw_ifd(&parsed)?;
-        Ok(Self { parsed, raw_ifd })
+        let metadata = merge_metadata(&parsed, raw_ifd)?;
+        Ok(Self {
+            parsed,
+            metadata,
+            process_metadata: OnceLock::new(),
+        })
     }
 }
 
@@ -136,8 +144,11 @@ where
 }
 
 pub fn dng_metadata(parsed: &DngImage) -> Result<DngMetadata, DecodeError> {
+    Ok(parsed.metadata.clone())
+}
+
+fn merge_metadata(parsed: &ParsedTiff, raw_ifd: usize) -> Result<DngMetadata, DecodeError> {
     if !parsed
-        .parsed
         .root
         .contains_key(&Tag(u16::from(DngTag::DngVersion)))
     {
@@ -146,14 +157,12 @@ pub fn dng_metadata(parsed: &DngImage) -> Result<DngMetadata, DecodeError> {
         ));
     }
     let raw_metadata = parsed
-        .parsed
         .directories
-        .get(parsed.raw_ifd)
+        .get(raw_ifd)
         .ok_or_else(|| corrupt("selected raw IFD is missing"))?;
     let mut dng_metadata = DngMetadata::default();
     dng_metadata.extend(
         parsed
-            .parsed
             .root
             .iter()
             .map(|(tag, value)| (DngTag::from(tag.0), value.clone())),
@@ -170,25 +179,109 @@ pub fn process_metadata<T>(parsed: &DngImage) -> Result<ProcessMetadata<T>, Deco
 where
     T: Primitive,
 {
-    let metadata = dng_metadata(parsed)?;
-    let width = required_u32(&metadata, DngTag::ImageWidth)?;
-    let height = required_u32(&metadata, DngTag::ImageLength)?;
-    process_metadata_from_dng_metadata(width, height, &metadata)
+    let plan = parsed
+        .process_metadata
+        .get_or_init(|| {
+            let metadata = dng_metadata(parsed)?;
+            let width = required_u32(&metadata, DngTag::ImageWidth)?;
+            let height = required_u32(&metadata, DngTag::ImageLength)?;
+            process_metadata_from_dng_metadata(width, height, &metadata)
+        })
+        .clone()?;
+    cast_process_metadata(&plan)
 }
 
-fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
+fn cast_process_metadata<T>(
+    metadata: &ProcessMetadata<f64>,
+) -> Result<ProcessMetadata<T>, DecodeError>
+where
+    T: Primitive,
+{
+    let cast = |value: f64| {
+        num_traits::cast(value).ok_or_else(|| corrupt("process metadata exceeds output precision"))
+    };
+    Ok(ProcessMetadata {
+        active_area: metadata.active_area,
+        default_crop: metadata.default_crop,
+        levels: fornax_core::metadata::process::Levels {
+            black: MonoImage::from_raw(
+                metadata.levels.black.width(),
+                metadata.levels.black.height(),
+                metadata
+                    .levels
+                    .black
+                    .as_raw()
+                    .iter()
+                    .copied()
+                    .map(cast)
+                    .collect::<Result<Vec<_>, _>>()?,
+            )
+            .ok_or_else(|| corrupt("black-level dimensions are invalid"))?,
+            black_delta_h: metadata
+                .levels
+                .black_delta_h
+                .iter()
+                .copied()
+                .map(cast)
+                .collect::<Result<Vec<_>, _>>()?,
+            black_delta_v: metadata
+                .levels
+                .black_delta_v
+                .iter()
+                .copied()
+                .map(cast)
+                .collect::<Result<Vec<_>, _>>()?,
+            white: cast(metadata.levels.white)?,
+        },
+        bayer_pattern: metadata.bayer_pattern,
+        wb_coeffs: metadata
+            .wb_coeffs
+            .map(|(red, blue)| Ok::<_, DecodeError>((cast(red)?, cast(blue)?)))
+            .transpose()?,
+    })
+}
+
+fn crop_and_cast<S, T>(image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
 where
     S: image::Primitive + Send + Sync,
     T: Primitive,
 {
-    image.crop_in_place(area);
-    let (width, height) = image.dimensions();
-    let samples = image
-        .into_raw()
-        .into_par_iter()
-        .map(|value| num!(value))
-        .collect();
-    MonoImage::from_raw(width, height, samples)
+    let (full_width, full_height) = image.dimensions();
+    let end_x = area
+        .x
+        .checked_add(area.width)
+        .ok_or_else(|| corrupt("active-area width overflows"))?;
+    let end_y = area
+        .y
+        .checked_add(area.height)
+        .ok_or_else(|| corrupt("active-area height overflows"))?;
+    if area.width == 0 || area.height == 0 || end_x > full_width || end_y > full_height {
+        return Err(corrupt("active area is outside the decoded mosaic"));
+    }
+    let sample_count = usize::try_from(area.width)
+        .ok()
+        .zip(usize::try_from(area.height).ok())
+        .and_then(|(width, height)| width.checked_mul(height))
+        .ok_or_else(|| corrupt("cropped sample count overflow"))?;
+    let mut samples = vec![T::zero(); sample_count];
+    let source = image.into_raw();
+    let row_width = usize::try_from(area.width)
+        .map_err(|_| corrupt("active-area width exceeds the address space"))?;
+    samples
+        .par_chunks_mut(row_width)
+        .enumerate()
+        .for_each(|(row, target)| {
+            let source_start = (usize::try_from(area.y).expect("u32 fits usize") + row)
+                * usize::try_from(full_width).expect("u32 fits usize")
+                + usize::try_from(area.x).expect("u32 fits usize");
+            for (target, source) in target.iter_mut().zip(
+                &source[source_start
+                    ..source_start + usize::try_from(area.width).expect("u32 fits usize")],
+            ) {
+                *target = num!(*source);
+            }
+        });
+    MonoImage::from_raw(area.width, area.height, samples)
         .ok_or_else(|| corrupt("cropped DNG dimensions are invalid"))
 }
 
@@ -600,7 +693,7 @@ fn decode_uncompressed(
                 .ok_or_else(|| corrupt("uncompressed DNG dimensions are invalid"))
         }
         9..=15 => {
-            let samples = decode_packed_samples(
+            let samples = decode_packed_samples::<u16>(
                 source,
                 &offsets,
                 &byte_counts,
@@ -613,7 +706,7 @@ fn decode_uncompressed(
             to_mosaic(width, height, samples)
         }
         1..=7 => {
-            let samples = decode_packed_samples(
+            let samples = decode_packed_samples::<u8>(
                 source,
                 &offsets,
                 &byte_counts,
@@ -623,16 +716,12 @@ fn decode_uncompressed(
                 tile_height,
                 bits,
             )?;
-            let samples = samples
-                .into_iter()
-                .map(|value| u8::try_from(value).expect("packed values fit their declared depth"))
-                .collect();
             MonoImage::from_raw(width as u32, height as u32, samples)
                 .map(RawMosaic::U8)
                 .ok_or_else(|| corrupt("uncompressed DNG dimensions are invalid"))
         }
         17..=31 => {
-            let samples = decode_packed_u32_samples(
+            let samples = decode_packed_samples::<u32>(
                 source,
                 &offsets,
                 &byte_counts,
@@ -793,36 +882,27 @@ fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
     f32::from_bits((sign << 31) | (wide_exponent << 23) | wide_fraction)
 }
 
-fn decode_packed_samples(
-    source: &[u8],
-    offsets: &[usize],
-    byte_counts: &[usize],
-    width: usize,
-    height: usize,
-    tile_width: usize,
-    tile_height: usize,
-    bits: u16,
-) -> Result<Vec<u16>, DecodeError> {
-    let values = decode_packed_u32_samples(
-        source,
-        offsets,
-        byte_counts,
-        width,
-        height,
-        tile_width,
-        tile_height,
-        bits,
-    )?;
-    values
-        .into_iter()
-        .map(|value| {
-            u16::try_from(value)
-                .map_err(|_| corrupt(format!("packed sample exceeds {bits}-bit storage")))
-        })
-        .collect()
+trait PackedSample: Copy + Default {
+    fn from_u32(value: u32) -> Result<Self, DecodeError>;
 }
 
-fn decode_packed_u32_samples(
+impl PackedSample for u8 {
+    fn from_u32(value: u32) -> Result<Self, DecodeError> {
+        Self::try_from(value).map_err(|_| corrupt("packed sample exceeds u8 storage"))
+    }
+}
+
+impl PackedSample for u16 {
+    fn from_u32(value: u32) -> Result<Self, DecodeError> {
+        Self::try_from(value).map_err(|_| corrupt("packed sample exceeds u16 storage"))
+    }
+}
+
+impl PackedSample for u32 {
+    fn from_u32(value: u32) -> Result<Self, DecodeError> { Ok(value) }
+}
+
+fn decode_packed_samples<T>(
     source: &[u8],
     offsets: &[usize],
     byte_counts: &[usize],
@@ -831,7 +911,10 @@ fn decode_packed_u32_samples(
     tile_width: usize,
     tile_height: usize,
     bits: u16,
-) -> Result<Vec<u32>, DecodeError> {
+) -> Result<Vec<T>, DecodeError>
+where
+    T: PackedSample + Send,
+{
     let bits = usize::from(bits);
     if !(1..=32).contains(&bits) {
         return Err(corrupt("packed sample depth must be between 1 and 32"));
@@ -846,14 +929,14 @@ fn decode_packed_u32_samples(
             byte_counts.len()
         )));
     }
-    let mut output = vec![0_u32; width * height];
+    let mut output = vec![T::default(); width * height];
     output
         .par_chunks_mut(tile_height * width)
         .enumerate()
         .try_for_each(|(tile_y_index, band)| {
             let tile_y = tile_y_index * tile_height;
             let copy_height = tile_height.min(height - tile_y);
-            let mut unpacked = vec![0_u32; tile_width * tile_height];
+            let mut unpacked = vec![T::default(); tile_width * tile_height];
             for tile_x_index in 0..across {
                 let index = tile_y_index * across + tile_x_index;
                 let encoded = checked_slice(source, offsets[index], byte_counts[index])?;
@@ -883,7 +966,10 @@ fn decode_packed_u32_samples(
     Ok(output)
 }
 
-fn unpack_bits(source: &[u8], output: &mut [u32], bits: usize) -> Result<(), DecodeError> {
+fn unpack_bits<T>(source: &[u8], output: &mut [T], bits: usize) -> Result<(), DecodeError>
+where
+    T: PackedSample,
+{
     let needed = output
         .len()
         .checked_mul(bits)
@@ -904,8 +990,9 @@ fn unpack_bits(source: &[u8], output: &mut [u32], bits: usize) -> Result<(), Dec
             buffered_bits += 8;
         }
         buffered_bits -= bits;
-        *value = u32::try_from((buffer >> buffered_bits) & mask)
+        let sample = u32::try_from((buffer >> buffered_bits) & mask)
             .map_err(|_| corrupt("packed sample exceeds u32"))?;
+        *value = T::from_u32(sample)?;
         buffer &= (1_u64 << buffered_bits) - 1;
     }
     Ok(())
@@ -965,24 +1052,32 @@ fn copy_samples<T>(
 where
     T: FromSampleBytes,
 {
-    let byte_count = width
-        .checked_mul(height)
-        .and_then(|count| count.checked_mul(bytes_per_sample))
-        .ok_or_else(|| corrupt("uncompressed DNG sample buffer size overflow"))?;
-    let mut bytes = vec![0_u8; byte_count];
-    copy_bytes(
-        source,
-        offsets,
-        byte_counts,
-        width,
-        height,
-        tile_width,
-        tile_height,
-        bytes_per_sample,
-        &mut bytes,
-    )?;
-    for (source, target) in bytes.chunks_exact(bytes_per_sample).zip(output.iter_mut()) {
-        *target = T::from_bytes(source, byte_order);
+    let across = width.div_ceil(tile_width);
+    for (index, (&offset, &byte_count)) in offsets.iter().zip(byte_counts).enumerate() {
+        let encoded = checked_slice(source, offset, byte_count)?;
+        let tile_x = (index % across) * tile_width;
+        let tile_y = (index / across) * tile_height;
+        let copy_width = tile_width.min(width - tile_x);
+        let copy_height = tile_height.min(height - tile_y);
+        let copy_bytes = copy_width
+            .checked_mul(bytes_per_sample)
+            .ok_or_else(|| corrupt("uncompressed DNG row size overflow"))?;
+        for row in 0..copy_height {
+            let source_start = row * tile_width * bytes_per_sample;
+            let source_end = source_start
+                .checked_add(copy_bytes)
+                .ok_or_else(|| corrupt("uncompressed DNG row offset overflow"))?;
+            let source_row = encoded
+                .get(source_start..source_end)
+                .ok_or_else(|| corrupt(format!("uncompressed DNG chunk {index} is truncated")))?;
+            let target_start = (tile_y + row) * width + tile_x;
+            for (target, bytes) in output[target_start..target_start + copy_width]
+                .iter_mut()
+                .zip(source_row.chunks_exact(bytes_per_sample))
+            {
+                *target = T::from_bytes(bytes, byte_order);
+            }
+        }
     }
     Ok(())
 }
@@ -1588,6 +1683,54 @@ mod tests {
                 .iter()
                 .map(|value| value.to_bits())
                 .collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn repeated_metadata_access_reuses_cached_storage() {
+        let mosaic = RawMosaic::U8(MonoImage::from_raw(4, 4, vec![0; 16]).unwrap());
+        let mut output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::Uncompressed)
+            .write_dng_with(&mut output, &mosaic, &writable_metadata(4, 4))
+            .unwrap();
+        let image = DngImage::parse(output.get_ref()).expect("synthetic DNG should parse");
+
+        let first = super::dng_metadata(&image).unwrap();
+        let second = super::dng_metadata(&image).unwrap();
+
+        assert!(first.shares_storage_with(&second));
+    }
+
+    #[test]
+    fn cropped_mosaic_converts_only_active_area_samples() {
+        let samples = (0_u8..16).collect();
+        let mosaic = RawMosaic::U8(MonoImage::from_raw(4, 4, samples).unwrap());
+        let mut metadata = writable_metadata(4, 4);
+        metadata.insert(
+            DngTag::ActiveArea,
+            Value::List(vec![
+                Value::Unsigned(0),
+                Value::Unsigned(2),
+                Value::Unsigned(4),
+                Value::Unsigned(4),
+            ]),
+        );
+        metadata.insert(
+            DngTag::DefaultCropSize,
+            Value::List(vec![Value::Unsigned(2), Value::Unsigned(4)]),
+        );
+        let mut output = Cursor::new(Vec::new());
+        DngWriter::new(DngCompression::Uncompressed)
+            .write_dng_with(&mut output, &mosaic, &metadata)
+            .unwrap();
+
+        let image = DngImage::parse(output.get_ref()).unwrap();
+        let cropped = super::cropped_mosaic::<f32>(&image).unwrap();
+
+        assert_eq!(cropped.image().dimensions(), (2, 4));
+        assert_eq!(
+            cropped.image().as_raw(),
+            &[2.0, 3.0, 6.0, 7.0, 10.0, 11.0, 14.0, 15.0]
         );
     }
 

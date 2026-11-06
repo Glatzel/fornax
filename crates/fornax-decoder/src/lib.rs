@@ -10,7 +10,7 @@ use fornax_dng::{DngImage, DngMetadata};
 
 #[derive(Clone, Debug)]
 pub enum Decoder<T> {
-    Dng(DngImage),
+    Dng(Box<DngImage>),
     _Mark(PhantomData<T>),
 }
 impl<T> IDecoder<&Path, T> for Decoder<T>
@@ -33,7 +33,7 @@ where
                         format!("reading {} failed: {error}", input.display()).into(),
                     )
                 })?;
-                Ok(Self::Dng(DngImage::parse(&source)?))
+                Ok(Self::Dng(Box::new(DngImage::parse(&source)?)))
             }
             _ => Err(DecodeError::Unsupported(extension.into())),
         }
