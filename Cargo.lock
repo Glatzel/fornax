@@ -354,6 +354,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap-style"
+version = "2026.10.11"
+source = "git+https://github.com/Glatzel/toolbox?tag=v2026.10.11#787c33708712713ad9bc149180291950decab039"
+dependencies = [
+ "clap",
+]
+
+[[package]]
+name = "clap-verbosity-flag"
+version = "3.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d92b1fab272fe943881b77cc6e920d6543e5b1bfadbd5ed81c7c5a755742394"
+dependencies = [
+ "clap",
+ "log",
+ "tracing-core",
+]
+
+[[package]]
 name = "clap_builder"
 version = "4.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -759,18 +778,13 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 name = "fornax"
 version = "0.0.17"
 dependencies = [
- "clap",
  "fornax-core",
  "fornax-decoder",
  "fornax-decoder-dnc",
  "fornax-decoder-rawler",
- "fornax-devtool",
  "fornax-dng",
  "fornax-postprocessor",
  "fornax-preprocessor",
- "image 0.25.9",
- "mischief",
- "strum",
 ]
 
 [[package]]
@@ -779,6 +793,9 @@ version = "0.0.17"
 dependencies = [
  "assert_cmd",
  "clap",
+ "clap-style",
+ "clap-verbosity-flag",
+ "clerk",
  "fornax-core",
  "fornax-decoder",
  "fornax-decoder-rawler",

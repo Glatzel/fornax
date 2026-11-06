@@ -19,6 +19,7 @@ fornax-postprocessor = { path = "./crates/fornax-postprocessor" }
 fornax-preprocessor = { path = "./crates/fornax-preprocessor" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 
+clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 # glatzel
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 generic-num = {
@@ -35,6 +36,7 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 assert_cmd = "2.0.16"
 cc = "1.10.0"
 clap = { version = "4.6.7", features = ["derive", "string"] }
+clap-verbosity-flag = { version = "3.0.4", features = ["tracing"] }
 criterion = { package = "codspeed-criterion-compat", version = "6.0.0" }
 flashraw-codecs = "0.1.1"
 flate2 = "1.1.10"

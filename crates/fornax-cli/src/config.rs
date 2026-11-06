@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use clap::{Parser, ValueEnum};
+use clap_verbosity_flag::InfoLevel;
 use fornax_dng::DngCompression;
 use fornax_postprocessor::Demosaic;
 use serde::Deserialize;
@@ -70,6 +71,9 @@ pub struct CliArgs {
     pub zstd_level: Option<i32>,
     /// Input RAW files or directories.
     pub inputs: Vec<PathBuf>,
+    
+    #[command(flatten)]
+    pub verbose: clap_verbosity_flag::Verbosity<InfoLevel>,
 }
 
 /// Output image format.
