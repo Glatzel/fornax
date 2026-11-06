@@ -87,6 +87,9 @@ file; explicit CLI paths resolve relative to the current directory.
 - Fixture-backed external RAW conversion remains unrun because the ignored RAW
   fixtures are absent; integration tests use generated synthetic DNG data,
   including a non-DNG-extension DNG payload through Rawler.
+- Post-rebase conflict validation: `cargo test -p fornax-cli` passed 8 tests,
+  the workspace all-feature suite passed 160 tests across 28 suites, and
+  `scripts/agent-validation.sh` passed with the raw-image fixture initialized.
 
 ## Files Expected to Change
 
@@ -121,3 +124,9 @@ fixtures exist. Otherwise tests use an internal fixture decoder.
   demosaic.
 - Directory mapping is `<output>/<input-root-name>/<relative-path>`.
 - Explicit duplicate output targets fail before any file is processed.
+- After rebasing onto the repaired PR 654 stack, metadata sidecars use the
+  merged TIFF `Directory` plus `directory_to_json_value`.
+- The existing `color_matrix = true` contract maps to
+  `OutputColorSpace::Srgb`; disabling it maps to `OutputColorSpace::Raw`.
+- Rendered output uses `Preprocessor::process` followed by
+  `IPostProcessor::process`.

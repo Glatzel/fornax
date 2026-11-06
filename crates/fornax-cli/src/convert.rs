@@ -3,12 +3,13 @@ use std::path::{Path, PathBuf};
 use std::{fmt, fs};
 
 use fornax_core::error::{DecodeError, PostProcessError};
-use fornax_core::protocol::IDecoder;
+use fornax_core::protocol::{IDecoder, IPostProcessor, IPreprocessor};
 use fornax_core::{RawFormat, RgbImage};
 use fornax_decoder::Decoder;
 use fornax_decoder_rawler::RawlerDecoder;
-use fornax_dng::{DngMetadata, DngWriter};
-use fornax_postprocessor::PostProcessor;
+use fornax_dng::metadata::{IDecoderDng, directory_to_json_value};
+use fornax_dng::{Directory, DngWriter};
+use fornax_postprocessor::{OutputColorSpace, PostProcessor};
 use fornax_preprocessor::Preprocessor;
 use image::codecs::jpeg::JpegEncoder;
 use image::{ExtendedColorType, ImageEncoder};
@@ -206,18 +207,22 @@ fn render_with<D>(
     config: &ResolvedConfig,
 ) -> Result<ConversionOutcome, ConvertError>
 where
-    D: for<'a> IDecoder<&'a Path, f32, Metadata = DngMetadata>,
+    D: for<'a> IDecoderDng<&'a Path, f32>,
 {
     let cropped = decoder.cropped_mosaic()?;
     let metadata = decoder.process_metadata()?;
-    let lazy = Preprocessor.lazy(&cropped, &metadata.levels)?;
+    let normalized = Preprocessor.process(cropped, &metadata.levels)?;
     let processor = PostProcessor {
         demosaic: config.demosaic,
         use_wb_coeffs: config.white_balance,
-        use_camera_matrix: config.color_matrix,
+        output_color: if config.color_matrix {
+            OutputColorSpace::Srgb
+        } else {
+            OutputColorSpace::Raw
+        },
         _mark: PhantomData,
     };
-    let rgb = processor.process_lazy(&lazy, &metadata)?;
+    let rgb = processor.process(normalized.image(), &metadata)?;
     create_parent(&job.output)?;
     match config.format {
         OutputFormat::Tiff => write_tiff(&rgb, &job.output)?,
@@ -296,14 +301,15 @@ fn create_parent(path: &Path) -> Result<(), ConvertError> {
     Ok(())
 }
 
-fn write_metadata_json(output: &Path, metadata: &DngMetadata) -> Result<(), ConvertError> {
+fn write_metadata_json(output: &Path, metadata: &Directory) -> Result<(), ConvertError> {
     let path = output.with_extension("json");
-    let bytes = serde_json::to_vec_pretty(&metadata.to_json_value()).map_err(|source| {
-        ConvertError::Output {
-            path: path.clone(),
-            source: Box::new(source),
-        }
-    })?;
+    let bytes =
+        serde_json::to_vec_pretty(&directory_to_json_value(metadata)).map_err(|source| {
+            ConvertError::Output {
+                path: path.clone(),
+                source: Box::new(source),
+            }
+        })?;
     fs::write(&path, bytes).map_err(|source| ConvertError::Output {
         path: path.clone(),
         source: Box::new(source),

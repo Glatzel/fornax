@@ -786,6 +786,7 @@ dependencies = [
  "fornax-dng",
  "fornax-postprocessor",
  "fornax-preprocessor",
+ "fornax-tiff",
  "image 0.25.9",
  "num-traits",
  "rayon",

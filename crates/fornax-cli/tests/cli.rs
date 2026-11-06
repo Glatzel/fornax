@@ -4,75 +4,72 @@ use assert_cmd::Command;
 use clap::Parser;
 use fornax_cli::{CliArgs, ConversionOutcome, plan_inputs, resolve_config, run};
 use fornax_core::{MonoImage, RawMosaic};
-use fornax_dng::metadata::{DngMetadata, DngTag, DngValue};
-use fornax_dng::{DngCompression, DngWriter};
+use fornax_dng::metadata::{DngTag, Tag, Value};
+use fornax_dng::{Directory, DngCompression, DngWriter};
+use fornax_tiff::constants::TiffTag;
 use image::GenericImageView;
 use tempfile::tempdir;
 
-fn metadata(width: u32, height: u32) -> DngMetadata {
-    let mut metadata = DngMetadata::default();
+fn metadata(width: u32, height: u32) -> Directory {
+    let mut metadata = Directory::default();
     metadata.insert(
-        DngTag::DngVersion,
-        DngValue::List(vec![
-            DngValue::Byte(1),
-            DngValue::Byte(4),
-            DngValue::Byte(0),
-            DngValue::Byte(0),
+        Tag::from(DngTag::DngVersion),
+        Value::List(vec![
+            Value::Byte(1),
+            Value::Byte(4),
+            Value::Byte(0),
+            Value::Byte(0),
         ]),
     );
     metadata.insert(
-        DngTag::ActiveArea,
-        DngValue::List(vec![
-            DngValue::Unsigned(0),
-            DngValue::Unsigned(0),
-            DngValue::Unsigned(height),
-            DngValue::Unsigned(width),
+        Tag::from(DngTag::ActiveArea),
+        Value::List(vec![
+            Value::Unsigned(0),
+            Value::Unsigned(0),
+            Value::Unsigned(height),
+            Value::Unsigned(width),
         ]),
     );
     metadata.insert(
-        DngTag::DefaultCropOrigin,
-        DngValue::List(vec![DngValue::Unsigned(0), DngValue::Unsigned(0)]),
+        Tag::from(DngTag::DefaultCropOrigin),
+        Value::List(vec![Value::Unsigned(0), Value::Unsigned(0)]),
     );
     metadata.insert(
-        DngTag::DefaultCropSize,
-        DngValue::List(vec![DngValue::Unsigned(width), DngValue::Unsigned(height)]),
+        Tag::from(DngTag::DefaultCropSize),
+        Value::List(vec![Value::Unsigned(width), Value::Unsigned(height)]),
     );
     metadata.insert(
-        DngTag::BlackLevelRepeatDim,
-        DngValue::List(vec![DngValue::Short(2), DngValue::Short(2)]),
+        Tag::from(DngTag::BlackLevelRepeatDim),
+        Value::List(vec![Value::Short(2), Value::Short(2)]),
     );
     metadata.insert(
-        DngTag::BlackLevel,
-        DngValue::List(vec![
-            DngValue::Short(0),
-            DngValue::Short(0),
-            DngValue::Short(0),
-            DngValue::Short(0),
+        Tag::from(DngTag::BlackLevel),
+        Value::List(vec![
+            Value::Short(0),
+            Value::Short(0),
+            Value::Short(0),
+            Value::Short(0),
         ]),
     );
-    metadata.insert(DngTag::WhiteLevel, DngValue::Unsigned(65_535));
+    metadata.insert(Tag::from(DngTag::WhiteLevel), Value::Unsigned(65_535));
     metadata.insert(
-        DngTag::CfaRepeatPatternDim,
-        DngValue::List(vec![DngValue::Short(2), DngValue::Short(2)]),
+        Tag::from(TiffTag::CfaRepeatPatternDim),
+        Value::List(vec![Value::Short(2), Value::Short(2)]),
     );
     metadata.insert(
-        DngTag::CfaPattern,
-        DngValue::List(vec![
-            DngValue::Byte(0),
-            DngValue::Byte(1),
-            DngValue::Byte(1),
-            DngValue::Byte(2),
+        Tag::from(TiffTag::CfaPattern),
+        Value::List(vec![
+            Value::Byte(0),
+            Value::Byte(1),
+            Value::Byte(1),
+            Value::Byte(2),
         ]),
     );
     metadata.insert(
-        DngTag::CfaPlaneColor,
-        DngValue::List(vec![
-            DngValue::Byte(0),
-            DngValue::Byte(1),
-            DngValue::Byte(2),
-        ]),
+        Tag::from(DngTag::CfaPlaneColor),
+        Value::List(vec![Value::Byte(0), Value::Byte(1), Value::Byte(2)]),
     );
-    metadata.insert(DngTag::CfaLayout, DngValue::Short(1));
+    metadata.insert(Tag::from(DngTag::CfaLayout), Value::Short(1));
     metadata
 }
 
