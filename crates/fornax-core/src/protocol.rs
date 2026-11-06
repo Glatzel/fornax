@@ -1,5 +1,5 @@
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
-use crate::metadata::{ Levels, Matrix3x3, ProcessMetadata};
+use crate::metadata::{Levels, Matrix3x3, ProcessMetadata};
 use crate::{
     BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
 };
