@@ -6,12 +6,7 @@ const MARKER_EOI: u8 = 0xd9;
 const MARKER_SOS: u8 = 0xda;
 const HUFFMAN_BITS: u8 = 5;
 
-pub(super) fn encode(
-    samples: &[u16],
-    width: u16,
-    height: u16,
-    bits: u8,
-) -> Result<Vec<u8>, String> {
+pub fn encode(samples: &[u16], width: u16, height: u16, bits: u8) -> Result<Vec<u8>, String> {
     if !(2..=16).contains(&bits) {
         return Err(format!("lossless JPEG bit depth {bits} is invalid"));
     }

@@ -61,7 +61,7 @@ where
 #[cfg(test)]
 mod tests {
 
-    use fornax_core::metadata::process::{Levels, ProcessMetadata};
+    use fornax_core::metadata::{Levels, ProcessMetadata};
     use fornax_core::{BayerPattern, MonoImage};
     use image::math::Rect;
 

@@ -1,27 +1,9 @@
 use std::collections::{HashSet, VecDeque};
 use std::sync::Arc;
 
-use ::tiff::decoder::ifd::Value;
-use fornax_core::error::DecodeError;
-use fornax_core::metadata::dng::{DngMetadata, DngTag};
+use crate::{ByteOrder, Directory, ParsedTiff, Tag, TiffError, Value};
 
 const TAG_SUB_IFDS: u16 = 330;
-const PHOTOMETRIC_CFA: u64 = 32_803;
-const PHOTOMETRIC_LINEAR_RAW: u64 = 34_892;
-
-#[derive(Clone, Debug)]
-pub struct ParsedTiff {
-    pub root: DngMetadata,
-    pub directories: Vec<DngMetadata>,
-    pub(super) raw_ifd: usize,
-    pub(super) source: Arc<[u8]>,
-}
-
-#[derive(Clone, Copy)]
-enum ByteOrder {
-    Little,
-    Big,
-}
 
 struct Reader<'a> {
     bytes: &'a [u8],
@@ -30,7 +12,7 @@ struct Reader<'a> {
 }
 
 impl<'a> Reader<'a> {
-    fn new(bytes: &'a [u8]) -> Result<Self, DecodeError> {
+    fn new(bytes: &'a [u8]) -> Result<Self, TiffError> {
         let byte_order = match bytes.get(..2) {
             Some(b"II") => ByteOrder::Little,
             Some(b"MM") => ByteOrder::Big,
@@ -59,7 +41,7 @@ impl<'a> Reader<'a> {
         })
     }
 
-    fn first_ifd(&self) -> Result<u64, DecodeError> {
+    fn first_ifd(&self) -> Result<u64, TiffError> {
         if self.big_tiff {
             self.u64(8)
         } else {
@@ -67,7 +49,7 @@ impl<'a> Reader<'a> {
         }
     }
 
-    fn parse_ifd(&self, offset: u64) -> Result<(DngMetadata, Option<u64>, Vec<u64>), DecodeError> {
+    fn parse_ifd(&self, offset: u64) -> Result<(Directory, Option<u64>, Vec<u64>), TiffError> {
         let mut position = usize::try_from(offset)
             .map_err(|_| corrupt("IFD offset exceeds the platform address space"))?;
         let entry_count = if self.big_tiff {
@@ -88,7 +70,7 @@ impl<'a> Reader<'a> {
             .get(position..position.saturating_add(entries_bytes))
             .ok_or_else(|| corrupt("IFD entries are truncated"))?;
 
-        let mut metadata = DngMetadata::default();
+        let mut metadata = Directory::default();
         let mut child_pointers = Vec::new();
         for _ in 0..entry_count {
             let tag = self.u16(position)?;
@@ -126,7 +108,7 @@ impl<'a> Reader<'a> {
                 if tag == TAG_SUB_IFDS {
                     child_pointers.extend(pointers(&value));
                 }
-                metadata.insert(DngTag::from(tag), value);
+                metadata.insert(Tag(tag), value);
             }
             position += entry_size;
         }
@@ -144,7 +126,7 @@ impl<'a> Reader<'a> {
         field_type: u16,
         count: u64,
         bytes: &[u8],
-    ) -> Result<Option<Value>, DecodeError> {
+    ) -> Result<Option<Value>, TiffError> {
         if field_type == 2 {
             return Ok(Some(Value::Ascii(
                 String::from_utf8_lossy(bytes)
@@ -182,7 +164,7 @@ impl<'a> Reader<'a> {
                         .ok_or_else(|| corrupt("RATIONAL denominator is truncated"))?;
                     Ok(Value::Rational(numerator, denominator))
                 })
-                .collect::<Result<Vec<_>, DecodeError>>()?,
+                .collect::<Result<Vec<_>, TiffError>>()?,
             6 => bytes
                 .iter()
                 .map(|value| Value::SignedByte(*value as i8))
@@ -210,7 +192,7 @@ impl<'a> Reader<'a> {
                         .ok_or_else(|| corrupt("SRATIONAL denominator is truncated"))?;
                     Ok(Value::SRational(numerator as i32, denominator as i32))
                 })
-                .collect::<Result<Vec<_>, DecodeError>>()?,
+                .collect::<Result<Vec<_>, TiffError>>()?,
             11 => (0..count)
                 .map(|index| {
                     read_u32(bytes, index * 4, self.byte_order)
@@ -264,23 +246,23 @@ impl<'a> Reader<'a> {
         Ok(Some(Value::List(values)))
     }
 
-    fn u16(&self, offset: usize) -> Result<u16, DecodeError> {
+    fn u16(&self, offset: usize) -> Result<u16, TiffError> {
         read_u16(self.bytes, offset, self.byte_order)
             .ok_or_else(|| corrupt("TIFF read is out of bounds"))
     }
 
-    fn u32(&self, offset: usize) -> Result<u32, DecodeError> {
+    fn u32(&self, offset: usize) -> Result<u32, TiffError> {
         read_u32(self.bytes, offset, self.byte_order)
             .ok_or_else(|| corrupt("TIFF read is out of bounds"))
     }
 
-    fn u64(&self, offset: usize) -> Result<u64, DecodeError> {
+    fn u64(&self, offset: usize) -> Result<u64, TiffError> {
         read_u64(self.bytes, offset, self.byte_order)
             .ok_or_else(|| corrupt("TIFF read is out of bounds"))
     }
 }
 
-pub(super) fn parse(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
+pub fn parse(source: &[u8]) -> Result<ParsedTiff, TiffError> {
     let reader = Reader::new(source)?;
     let first_ifd = reader.first_ifd()?;
     if first_ifd == 0 {
@@ -305,45 +287,11 @@ pub(super) fn parse(source: &[u8]) -> Result<ParsedTiff, DecodeError> {
         .first()
         .ok_or_else(|| corrupt("TIFF contains no readable image file directory"))?)
     .clone();
-    let raw_ifd = directories
-        .iter()
-        .enumerate()
-        .filter(|(_, metadata)| is_raw_ifd(metadata))
-        .max_by_key(|(_, metadata)| raw_area(metadata))
-        .map(|(index, _)| index)
-        .ok_or_else(|| {
-            DecodeError::Unsupported("no full-resolution CFA image IFD was found".into())
-        })?;
     Ok(ParsedTiff {
         root,
         directories,
-        raw_ifd,
         source: Arc::from(source),
     })
-}
-
-fn is_raw_ifd(metadata: &DngMetadata) -> bool {
-    let photometric = unsigned_scalar(metadata.get(&DngTag::PhotometricInterpretation));
-    let reduced_resolution =
-        unsigned_scalar(metadata.get(&DngTag::NewSubfileType)).is_some_and(|value| value & 1 != 0);
-    !reduced_resolution && matches!(photometric, Some(PHOTOMETRIC_CFA | PHOTOMETRIC_LINEAR_RAW))
-}
-
-fn raw_area(metadata: &DngMetadata) -> u64 {
-    let width = unsigned_scalar(metadata.get(&DngTag::ImageWidth)).unwrap_or(0);
-    let height = unsigned_scalar(metadata.get(&DngTag::ImageLength)).unwrap_or(0);
-    width.saturating_mul(height)
-}
-
-fn unsigned_scalar(value: Option<&Value>) -> Option<u64> {
-    match value? {
-        Value::Byte(value) => Some(u64::from(*value)),
-        Value::Short(value) => Some(u64::from(*value)),
-        Value::Unsigned(value) | Value::Ifd(value) => Some(u64::from(*value)),
-        Value::UnsignedBig(value) | Value::IfdBig(value) => Some(*value),
-        Value::List(values) => unsigned_scalar(values.first()),
-        _ => None,
-    }
 }
 
 fn pointers(value: &Value) -> Vec<u64> {
@@ -392,11 +340,12 @@ fn read_u64(bytes: &[u8], offset: usize, byte_order: ByteOrder) -> Option<u64> {
     })
 }
 
-fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInput(detail.into()) }
+fn corrupt(detail: impl Into<Box<str>>) -> TiffError { TiffError::new(detail) }
 
 #[cfg(test)]
 mod tests {
-    use super::{ByteOrder, parse, read_u16, read_u32, read_u64};
+    use super::{parse, read_u16, read_u32, read_u64};
+    use crate::{ByteOrder, Tag, Value};
 
     #[test]
     fn read_helpers_reject_overflowing_offsets() {
@@ -410,28 +359,22 @@ mod tests {
         for little_endian in [true, false] {
             let classic = one_ifd_tiff(little_endian, false, 32_803);
             let parsed = parse(&classic).expect("classic TIFF should parse");
-            assert_eq!(parsed.raw_ifd, 0);
             assert_eq!(
-                parsed.directories[0]
-                    .get(&fornax_core::metadata::dng::DngTag::ImageWidth)
-                    .unwrap(),
-                &::tiff::decoder::ifd::Value::Unsigned(4)
+                parsed.directories[0].get(&Tag(256)).unwrap(),
+                &Value::Unsigned(4)
             );
 
             let big = one_ifd_tiff(little_endian, true, 32_803);
             let parsed = parse(&big).expect("BigTIFF should parse");
-            assert_eq!(parsed.raw_ifd, 0);
+            assert_eq!(parsed.directories.len(), 1);
         }
     }
 
     #[test]
-    fn parser_rejects_tiffs_without_a_raw_ifd() {
+    fn parser_accepts_non_raw_tiff_directories() {
         let bytes = one_ifd_tiff(true, false, 6);
-        let error = parse(&bytes).expect_err("YCbCr TIFF is not a raw DNG image");
-        assert!(matches!(
-            error,
-            fornax_core::error::DecodeError::Unsupported(_)
-        ));
+        let parsed = parse(&bytes).expect("generic TIFF directories should parse");
+        assert_eq!(parsed.directories.len(), 1);
     }
 
     fn one_ifd_tiff(little_endian: bool, big_tiff: bool, photometric: u16) -> Vec<u8> {

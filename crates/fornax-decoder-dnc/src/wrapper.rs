@@ -3,11 +3,12 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::dng::DngMetadata;
-use fornax_core::metadata::process::ProcessMetadata;
+use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{CroppedMosaic, Primitive, RawMosaic};
 use fornax_decoder_rawler::RawlerDecoder;
+use fornax_dng::Directory;
+use fornax_dng::metadata::IDecoderDng;
 use strum::{AsRefStr, Display, EnumString};
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -374,11 +375,15 @@ where
 
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> { self.0.cropped_mosaic() }
 
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> { self.0.dng_metadata() }
-
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
         self.0.process_metadata()
     }
+}
+impl<T> IDecoderDng<&(&Path, &DncParams), T> for DncDecoder<T>
+where
+    T: Primitive,
+{
+    fn dng_metadata(&self) -> Result<Directory, DecodeError> { self.0.dng_metadata() }
 }
 
 #[cfg(test)]

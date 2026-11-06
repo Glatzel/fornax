@@ -16,9 +16,11 @@ part of the current preprocessor/demosaic handoff.
 
 | Crate | Role | Internal dependencies |
 | --- | --- | --- |
-| `fornax-core` | Shared image wrappers, metadata, errors, stage traits, DNG tags/values, and DNG writing. | None |
-| `fornax-decoder` | Default pure-Rust DNG decoder and decoder metadata conversion. | `fornax-core` |
-| `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-core` |
+| `fornax-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
+| `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, classic/BigTIFF parsing, and classic-TIFF writing. | None |
+| `fornax-dng` | DNG-only tags, codecs, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-core`, `fornax-tiff` |
+| `fornax-decoder` | Default pure-Rust DNG decoder adapter over `fornax-dng`. | `fornax-core`, `fornax-dng` |
+| `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-core`, `fornax-decoder-rawler` |
 | `fornax-preprocessor` | Black/white-level normalization of cropped Bayer mosaics. | `fornax-core` |
 | `fornax-postprocessor` | Demosaic protocol, algorithms, and RGB reconstruction. | `fornax-core` |
@@ -38,8 +40,11 @@ pub trait IDecoder<I, T> {
     fn decode(input: I) -> Result<Self, DecodeError>;
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError>;
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError>;
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError>;
+}
+
+pub trait IDecoderDng<I, T>: IDecoder<I, T> {
+    fn dng_metadata(&self) -> Result<fornax_tiff::Directory, DecodeError>;
 }
 ```
 
@@ -98,8 +103,8 @@ storage transforms, linearization, and `OpcodeList1` are applied before
 returning the mosaic. Its process-metadata conversion accepts only conventional
 2x2 RGB Bayer layouts.
 
-`fornax_core::writer::DngWriter` regenerates uncompressed or lossless DNG data
-from `RawMosaic` and `DngMetadata`. The lossless option writes tiled JPEG-92 for
+`fornax_dng::DngWriter` regenerates uncompressed or lossless DNG data from
+`RawMosaic` and a `fornax_tiff::Directory`. The lossless option writes tiled JPEG-92 for
 U8/U16 samples and a lossless Deflate representation for U32/F32 samples.
 Regeneration is not byte-identical to the source because the public model does
 not retain the original container or auxiliary directories.

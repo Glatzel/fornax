@@ -6,6 +6,7 @@ use fornax_core::protocol::IDecoder;
 use fornax_decoder::Decoder;
 use fornax_decoder_rawler::RawlerDecoder;
 use fornax_devtool::{BenchParams, BenchSampleBits};
+use fornax_dng::metadata::IDecoderDng;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum DecoderKind {
@@ -42,7 +43,7 @@ fn raw_path() -> PathBuf {
 
 fn bench_decoder<D, T>(c: &mut Criterion, decoder_name: &str, sample_name: &str, path: &Path)
 where
-    D: for<'a> IDecoder<&'a Path, T>,
+    D: for<'a> IDecoder<&'a Path, T> + for<'a> IDecoderDng<&'a Path, T>,
     T: Primitive + Send + Sync,
 {
     let prefix = format!("{decoder_name}/{sample_name}");
@@ -72,7 +73,7 @@ where
 
 fn bench_bit<D, T>(c: &mut Criterion, decoder_name: &str, bits: BenchSampleBits, path: &Path)
 where
-    D: for<'a> IDecoder<&'a Path, T>,
+    D: for<'a> IDecoder<&'a Path, T> + for<'a> IDecoderDng<&'a Path, T>,
     T: Primitive + Send + Sync,
 {
     bench_decoder::<D, T>(c, decoder_name, bits.as_ref(), path);

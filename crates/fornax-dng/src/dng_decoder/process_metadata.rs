@@ -1,15 +1,17 @@
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::dng::{DngMetadata, DngTag, DngValue};
-use fornax_core::metadata::process::{Levels, ProcessMetadata};
+use fornax_core::metadata::{Levels, ProcessMetadata};
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_tiff::constants::TiffTag;
+use fornax_tiff::{Tag, Value};
 use generic_num::num;
 use image::math::Rect;
-use tiff::decoder::ifd::Value;
+
+use crate::metadata::{Directory, DngTag};
 
 pub fn process_metadata_from_dng_metadata<T>(
     full_width: u32,
     full_height: u32,
-    dng_metadata: &DngMetadata,
+    dng_metadata: &Directory,
 ) -> Result<ProcessMetadata<T>, DecodeError>
 where
     T: Primitive,
@@ -17,17 +19,17 @@ where
     let active_area = active_area(dng_metadata, full_width, full_height)?;
     let default_crop = default_crop(dng_metadata, active_area)?;
     let black = black_levels(dng_metadata)?;
-    let black_delta_h = scalar_values(dng_metadata.get(&DngTag::BlackLevelDeltaH))?
+    let black_delta_h = scalar_values(dng_metadata.get(&Tag::from(DngTag::BlackLevelDeltaH)))?
         .into_iter()
         .map(cast_number)
         .collect::<Option<Vec<T>>>()
         .ok_or_else(|| metadata_error("BlackLevelDeltaH does not fit the output type"))?;
-    let black_delta_v = scalar_values(dng_metadata.get(&DngTag::BlackLevelDeltaV))?
+    let black_delta_v = scalar_values(dng_metadata.get(&Tag::from(DngTag::BlackLevelDeltaV)))?
         .into_iter()
         .map(cast_number)
         .collect::<Option<Vec<T>>>()
         .ok_or_else(|| metadata_error("BlackLevelDeltaV does not fit the output type"))?;
-    let white = scalar_number(dng_metadata.get(&DngTag::WhiteLevel))?
+    let white = scalar_number(dng_metadata.get(&Tag::from(DngTag::WhiteLevel)))?
         .and_then(cast_number)
         .ok_or_else(|| metadata_error("WhiteLevel is missing or invalid"))?;
     let bayer_pattern = bayer_pattern(dng_metadata, active_area)?;
@@ -47,11 +49,11 @@ where
     })
 }
 fn active_area(
-    metadata: &DngMetadata,
+    metadata: &Directory,
     full_width: u32,
     full_height: u32,
 ) -> Result<Rect, DecodeError> {
-    let Some(values) = unsigned_values(metadata.get(&DngTag::ActiveArea))? else {
+    let Some(values) = unsigned_values(metadata.get(&Tag::from(DngTag::ActiveArea)))? else {
         return Ok(Rect {
             x: 0,
             y: 0,
@@ -74,9 +76,9 @@ fn active_area(
         height: bottom - top,
     })
 }
-fn default_crop(metadata: &DngMetadata, active: Rect) -> Result<Rect, DecodeError> {
-    let origin = unsigned_values(metadata.get(&DngTag::DefaultCropOrigin))?;
-    let size = unsigned_values(metadata.get(&DngTag::DefaultCropSize))?;
+fn default_crop(metadata: &Directory, active: Rect) -> Result<Rect, DecodeError> {
+    let origin = unsigned_values(metadata.get(&Tag::from(DngTag::DefaultCropOrigin)))?;
+    let size = unsigned_values(metadata.get(&Tag::from(DngTag::DefaultCropSize)))?;
     let (Some(origin), Some(size)) = (origin, size) else {
         return Ok(Rect {
             x: 0,
@@ -109,16 +111,16 @@ fn default_crop(metadata: &DngMetadata, active: Rect) -> Result<Rect, DecodeErro
     })
 }
 
-fn black_levels<T>(metadata: &DngMetadata) -> Result<MonoImage<T>, DecodeError>
+fn black_levels<T>(metadata: &Directory) -> Result<MonoImage<T>, DecodeError>
 where
     T: Primitive,
 {
-    let repeat =
-        unsigned_values(metadata.get(&DngTag::BlackLevelRepeatDim))?.unwrap_or_else(|| vec![1, 1]);
+    let repeat = unsigned_values(metadata.get(&Tag::from(DngTag::BlackLevelRepeatDim)))?
+        .unwrap_or_else(|| vec![1, 1]);
     let [width, height]: [u32; 2] = repeat
         .try_into()
         .map_err(|_| metadata_error("BlackLevelRepeatDim must contain two values"))?;
-    let levels = scalar_values(metadata.get(&DngTag::BlackLevel))?
+    let levels = scalar_values(metadata.get(&Tag::from(DngTag::BlackLevel)))?
         .into_iter()
         .map(cast_number)
         .collect::<Option<Vec<T>>>()
@@ -140,8 +142,8 @@ where
         .ok_or_else(|| metadata_error("black-level image dimensions are invalid"))
 }
 
-fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, DecodeError> {
-    let repeat = unsigned_values(metadata.get(&DngTag::CfaRepeatPatternDim))?
+fn bayer_pattern(metadata: &Directory, active: Rect) -> Result<BayerPattern, DecodeError> {
+    let repeat = unsigned_values(metadata.get(&Tag::from(TiffTag::CfaRepeatPatternDim)))?
         .ok_or_else(|| metadata_error("CFARepeatPatternDim is missing"))?;
     let [width, height]: [u32; 2] = repeat
         .try_into()
@@ -151,7 +153,7 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, D
             format!("CFA layout {width}x{height} is not conventional 2x2 Bayer").into(),
         ));
     }
-    let mut plane_colors = scalar_values(metadata.get(&DngTag::CfaPlaneColor))?;
+    let mut plane_colors = scalar_values(metadata.get(&Tag::from(DngTag::CfaPlaneColor)))?;
     if plane_colors.is_empty() {
         plane_colors = vec![0.0, 1.0, 2.0];
     }
@@ -160,7 +162,7 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, D
             "CFA plane colors are not RGB".into(),
         ));
     }
-    if unsigned_values(metadata.get(&DngTag::CfaLayout))?
+    if unsigned_values(metadata.get(&Tag::from(DngTag::CfaLayout)))?
         .and_then(|values| values.first().copied())
         .is_some_and(|layout| layout != 1)
     {
@@ -168,7 +170,7 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, D
             "non-rectangular CFA layouts are unsupported".into(),
         ));
     }
-    let pattern = unsigned_values(metadata.get(&DngTag::CfaPattern))?
+    let pattern = unsigned_values(metadata.get(&Tag::from(TiffTag::CfaPattern)))?
         .ok_or_else(|| metadata_error("CFAPattern is missing"))?;
     if pattern.len() != 4 {
         return Err(metadata_error(format!(
@@ -217,14 +219,14 @@ fn bayer_pattern(metadata: &DngMetadata, active: Rect) -> Result<BayerPattern, D
         .map(|p| p.shifted(active.x, active.y))
 }
 
-fn wb_coeffs<T>(metadata: &DngMetadata) -> Result<Option<(T, T)>, DecodeError>
+fn wb_coeffs<T>(metadata: &Directory) -> Result<Option<(T, T)>, DecodeError>
 where
     T: Primitive,
 {
-    if metadata.get(&DngTag::AsShotNeutral).is_none() {
+    if metadata.get(&Tag::from(DngTag::AsShotNeutral)).is_none() {
         return Ok(None);
     }
-    let values = scalar_values(metadata.get(&DngTag::AsShotNeutral))?;
+    let values = scalar_values(metadata.get(&Tag::from(DngTag::AsShotNeutral)))?;
     let [r, g, b]: [T; 3] = values
         .try_into()
         .map_err(|_| metadata_error("AsShotNeutral must contain three values"))?;
@@ -256,14 +258,10 @@ where
         Some(Value::SRational(numerator, denominator)) => {
             Ok(Some(num!(*numerator) / num!(*denominator)))
         }
-        #[expect(deprecated, reason = "tiff exposes legacy BigTIFF rational variants")]
-        Some(Value::RationalBig(numerator, denominator)) => {
-            Ok(Some(num!(*numerator) / num!(*denominator)))
-        }
-        #[expect(deprecated, reason = "tiff exposes legacy BigTIFF rational variants")]
-        Some(Value::SRationalBig(numerator, denominator)) => {
-            Ok(Some(num!(*numerator) / num!(*denominator)))
-        }
+        Some(
+            Value::RationalBig(numerator, denominator)
+            | Value::SRationalBig(numerator, denominator),
+        ) => Ok(Some(num!(*numerator) / num!(*denominator))),
         Some(Value::List(values)) => values
             .first()
             .map_or(Ok(None), |value| scalar_number(Some(value))),
@@ -315,16 +313,16 @@ fn metadata_error(detail: impl Into<Box<str>>) -> DecodeError {
     DecodeError::Backend(detail.into())
 }
 
-fn unsigned_scalar(value: &DngValue) -> Result<u32, DecodeError> {
+fn unsigned_scalar(value: &Value) -> Result<u32, DecodeError> {
     let number = match value {
-        DngValue::Byte(value) => *value as u32,
-        DngValue::Short(value) => *value as u32,
-        DngValue::Unsigned(value) | DngValue::Ifd(value) => *value,
-        DngValue::UnsignedBig(value) => u32::try_from(*value)
+        Value::Byte(value) => *value as u32,
+        Value::Short(value) => *value as u32,
+        Value::Unsigned(value) | Value::Ifd(value) => *value,
+        Value::UnsignedBig(value) => u32::try_from(*value)
             .map_err(|_| DecodeError::Backend("tag value does not fit u32".into()))?,
-        DngValue::IfdBig(value) => u32::try_from(*value)
+        Value::IfdBig(value) => u32::try_from(*value)
             .map_err(|_| DecodeError::Backend("IFD pointer does not fit u32".into()))?,
-        DngValue::Rational(numerator, denominator) if *denominator == 1 => *numerator,
+        Value::Rational(numerator, denominator) if *denominator == 1 => *numerator,
         _ => {
             return Err(DecodeError::Backend(
                 "tag does not contain unsigned integers".into(),

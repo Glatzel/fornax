@@ -1,6 +1,5 @@
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
-use crate::metadata::dng::DngMetadata;
-use crate::metadata::process::{Levels, ProcessMetadata};
+use crate::metadata::{Levels, ProcessMetadata};
 use crate::{
     BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
 };
@@ -12,7 +11,6 @@ where
     fn decode(input: I) -> Result<Self, DecodeError>;
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError>;
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError>;
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError>;
 }
 

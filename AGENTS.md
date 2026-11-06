@@ -13,19 +13,24 @@ Read [docs/architecture.md](docs/architecture.md) for crate roles, interfaces,
 and pipeline data flow. These invariants always apply:
 
 - Keep decoding, preprocessing, and demosaicing as separate stages.
-- `fornax-core` owns shared image wrappers, metadata, errors, stage traits, the
-  DNG metadata model, and DNG writing. It does not own a decoder
-  implementation.
+- `fornax-core` owns shared image wrappers, process metadata, errors, and stage
+  traits. It does not own TIFF/DNG parsing, decoded directory metadata, DNG
+  writing, or a decoder implementation.
+- `fornax-tiff` owns generic TIFF tags (`Tag` and `TiffTag`), typed TIFF field
+  constants, `Directory` values, parsing, and the reusable directory writer.
+- `fornax-dng` owns DNG-only tags (`DngTag`), a `Directory` keyed by `Tag`,
+  codecs, transforms, and DNG writing.
 - `fornax-decoder::Decoder<T>` is the default pure-Rust DNG decoder. The
-  `fornax` facade re-exports it as `fornax::decoder::Decoder`.
+  `fornax` facade re-exports it as `fornax::decoder::Decoder` and the DNG
+  format layer as `fornax::dng`.
 - `fornax-decoder-rawler` is an alternate Rawler-backed decoder for supported
   conventional 2x2 RGB Bayer files. `fornax-decoder-dnc` converts with Adobe
   DNG Converter before decoding with Rawler; its facade export is limited to
   Windows and macOS and it also requires that external converter.
 - Decoder implementations return a decoder value from `IDecoder::decode`; the
   returned value exposes `raw_mosaic`, `cropped_mosaic`, `dng_metadata`, and
-  `process_metadata`. Decoder-specific parsing state must stay behind that
-  interface.
+  `process_metadata`. `dng_metadata` returns a `fornax_tiff::Directory`;
+  decoder-specific parsing state must stay behind that interface.
 - `bench-decoder` owns decoder benchmarks. Demosaic and preprocessor benchmarks
   stay in their production stage crates.
 - LibRaw, darktable, and RawTherapee remain development-only references for
