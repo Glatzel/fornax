@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 use std::fmt;
 use std::ops::Deref;
-use std::sync::Arc;
 
 use fornax_core::Primitive;
 use fornax_core::error::DecodeError;
@@ -19,22 +18,20 @@ where
 
 /// Deterministically ordered DNG metadata values keyed by TIFF/DNG tag.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct DngMetadata(Arc<BTreeMap<DngTag, DngValue>>);
+pub struct DngMetadata(BTreeMap<DngTag, DngValue>);
 
 impl DngMetadata {
     pub fn insert(&mut self, tag: DngTag, value: DngValue) -> Option<DngValue> {
-        Arc::make_mut(&mut self.0).insert(tag, value)
+        self.0.insert(tag, value)
     }
 
-    pub fn remove(&mut self, tag: &DngTag) -> Option<DngValue> {
-        Arc::make_mut(&mut self.0).remove(tag)
-    }
+    pub fn remove(&mut self, tag: &DngTag) -> Option<DngValue> { self.0.remove(tag) }
 
     pub fn extend<I>(&mut self, values: I)
     where
         I: IntoIterator<Item = (DngTag, DngValue)>,
     {
-        Arc::make_mut(&mut self.0).extend(values);
+        self.0.extend(values);
     }
 
     #[cfg(feature = "metadata-json")]
@@ -263,23 +260,10 @@ fn value_to_json(value: &DngValue) -> serde_json::Value {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
-    use super::*;
-
-    #[test]
-    fn cloning_metadata_shares_the_underlying_map() {
-        let mut metadata = DngMetadata::default();
-        metadata.insert(DngTag::ImageWidth, DngValue::Unsigned(4));
-
-        let clone = metadata.clone();
-
-        assert!(Arc::ptr_eq(&metadata.0, &clone.0));
-    }
-
     #[cfg(feature = "metadata-json")]
     #[test]
     fn metadata_json_preserves_tag_types_and_order() {
+        use super::*;
         let mut metadata = DngMetadata::default();
         metadata.insert(DngTag::ImageWidth, DngValue::Unsigned(4));
         metadata.insert(DngTag::Make, DngValue::Ascii("Fornax".into()));
