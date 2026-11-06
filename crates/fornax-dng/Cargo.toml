@@ -3,10 +3,6 @@ name = "fornax-dng"
 version.workspace = true
 edition.workspace = true
 
-[features]
-default = []
-metadata-json = ["dep:serde", "dep:serde_json"]
-
 [dependencies]
 flashraw-codecs.workspace = true
 flate2.workspace = true
@@ -15,11 +11,15 @@ fornax-tiff.workspace = true
 generic-num.workspace = true
 image = { workspace = true, features = ["jpeg"] }
 jxl-oxide.workspace = true
-num-traits.workspace = true
 num_enum.workspace = true
+num-traits.workspace = true
 rayon.workspace = true
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
-thiserror.workspace = true
 strum.workspace = true
+thiserror.workspace = true
 zune-jpeg.workspace = true
+
+[features]
+default = []
+metadata-json = ["dep:serde", "dep:serde_json"]
