@@ -1,5 +1,5 @@
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::process::{Levels, ProcessMetadata};
+use fornax_core::metadata::{Levels, ProcessMetadata};
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use fornax_tiff::Value;
 use generic_num::num;

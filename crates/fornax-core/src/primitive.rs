@@ -4,7 +4,7 @@ use image::{ImageBuffer, Luma, Rgb};
 use num_traits::Float;
 
 use crate::error::{PostProcessError, PreprocessError};
-use crate::metadata::process::Levels;
+use crate::metadata::Levels;
 use crate::protocol::{IPostProcessMetadata, IPostProcessor, IPreprocessor};
 
 /// The type of each channel in a pixel.

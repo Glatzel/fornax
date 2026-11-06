@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::process::ProcessMetadata;
+use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{CroppedMosaic, Primitive, RawMosaic};
 use fornax_decoder_rawler::RawlerDecoder;

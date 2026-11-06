@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use std::path::Path;
 
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::process::ProcessMetadata;
+use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
 use fornax_dng::{DngImage, DngMetadata};

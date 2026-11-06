@@ -8,7 +8,7 @@ mod process_metadata;
 mod transforms;
 
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::process::ProcessMetadata;
+use fornax_core::metadata::ProcessMetadata;
 use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::{ParsedTiff, Tag, Value};
 use generic_num::num;

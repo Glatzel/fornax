@@ -3,7 +3,7 @@ use std::path::Path;
 use std::str::FromStr;
 
 use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationError};
-use fornax_core::metadata::process::{Levels, ProcessMetadata};
+use fornax_core::metadata::{Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
 use fornax_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_dng::{DngMetadata, DngTag, DngValue};
@@ -561,8 +561,6 @@ const fn align_to_bayer_tile(mut area: Rect) -> Rect {
 
 #[cfg(test)]
 mod tests {
-    use std::marker::PhantomData;
-
     use fornax_dng::{DngTag, DngValue};
     use rawler::CFA;
     use rawler::decoders::Camera;
