@@ -4,6 +4,14 @@ use std::fmt;
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Tag(pub u16);
 
+impl From<u16> for Tag {
+    fn from(value: u16) -> Self { Self(value) }
+}
+
+impl From<Tag> for u16 {
+    fn from(value: Tag) -> Self { value.0 }
+}
+
 impl Tag {
     pub const NEW_SUBFILE_TYPE: Self = Self(254);
     pub const IMAGE_WIDTH: Self = Self(256);
@@ -22,14 +30,6 @@ impl Tag {
     pub const TILE_OFFSETS: Self = Self(324);
     pub const TILE_BYTE_COUNTS: Self = Self(325);
     pub const SAMPLE_FORMAT: Self = Self(339);
-}
-
-impl From<u16> for Tag {
-    fn from(value: u16) -> Self { Self(value) }
-}
-
-impl From<Tag> for u16 {
-    fn from(value: Tag) -> Self { value.0 }
 }
 
 /// A typed TIFF field value.
