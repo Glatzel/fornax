@@ -94,7 +94,14 @@ jobs:
               ./crates/fornax-decoder-rawler/**
               ./crates/fornax-devtool/**
               ./crates/bench-decoder/**
-            files_ignore: '**.md'
+
+          - package: fornax-dng
+            paths: |
+              ./crates/fornax-core/**
+              ./crates/fornax-devtool/**
+              ./crates/fornax-dng/**
+              ./crates/fornax-tiff/**
+            extra-options: --features zstd
 
           - package: fornax-dng
             paths: |
@@ -149,6 +156,7 @@ jobs:
         uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         with:
           files: ${{ matrix.paths }}
+          files_ignore: '**.md'
       - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
       - name: Initialize RAW fixtures

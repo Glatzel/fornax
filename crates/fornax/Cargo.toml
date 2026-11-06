@@ -12,6 +12,13 @@ fornax-dng.workspace = true
 fornax-postprocessor.workspace = true
 fornax-preprocessor.workspace = true
 
+[dev-dependencies]
+clap.workspace = true
+fornax-devtool.workspace = true
+image.workspace = true
+mischief.workspace = true
+strum.workspace = true
+
 [features]
 default = []
 metadata-json = ["fornax-dng/metadata-json"]
