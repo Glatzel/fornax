@@ -46,6 +46,10 @@ pub enum DngCompression {
     /// Lossless DNG storage: JPEG-92 for U8/U16 and Deflate for wider samples.
     #[default]
     LosslessJpeg,
+    /// Deflate for every supported mosaic sample type.
+    Deflate,
+    /// Experimental TIFF compression 50000 using pure-Rust Zstandard tiles.
+    Zstd,
 }
 
 /// Four-component DNG specification version stored in `DNGVersion`.
@@ -99,6 +103,7 @@ impl Default for DngVersion {
 pub struct DngWriter {
     version: DngVersion,
     compression: DngCompression,
+    zstd_level: i32,
 }
 
 impl Default for DngWriter {
@@ -112,6 +117,7 @@ impl DngWriter {
         Self {
             version: DngVersion::latest(),
             compression,
+            zstd_level: 3,
         }
     }
 
@@ -126,6 +132,12 @@ impl DngWriter {
 
     /// Returns the selected compression mode.
     pub const fn compression(self) -> DngCompression { self.compression }
+
+    /// Selects the experimental Zstandard compression level.
+    pub const fn with_zstd_level(mut self, level: i32) -> Self {
+        self.zstd_level = level;
+        self
+    }
 
     /// Returns the selected version used for regenerated output.
     pub const fn version(self) -> DngVersion { self.version }
@@ -160,6 +172,12 @@ impl DngWriter {
             }
             DngCompression::LosslessJpeg => {
                 write_lossless(writer, mosaic, metadata, self.version())?;
+            }
+            DngCompression::Deflate => {
+                write_deflate_all(writer, mosaic, metadata, self.version())?;
+            }
+            DngCompression::Zstd => {
+                write_zstd(writer, mosaic, metadata, self.version(), self.zstd_level)?;
             }
         }
         Ok(())
@@ -504,6 +522,169 @@ fn float_horizontal_predictor(row: &mut [u8], width: usize) {
     }
 }
 
+#[cfg(feature = "zstd")]
+fn write_zstd<W>(
+    writer: W,
+    mosaic: &RawMosaic,
+    metadata: &Directory,
+    version: DngVersion,
+    level: i32,
+) -> Result<(), DngWriteError>
+where
+    W: Write + Seek,
+{
+    write_compressed_tiles(writer, mosaic, metadata, version, 50_000, |tile| {
+        crate::dng_decoder::zstd_codec::compress(tile, level)
+            .map_err(|detail| invalid_metadata(format!("Zstandard encoding: {detail}")))
+    })
+}
+
+#[cfg(not(feature = "zstd"))]
+fn write_zstd<W>(
+    _writer: W,
+    _mosaic: &RawMosaic,
+    _metadata: &Directory,
+    _version: DngVersion,
+    _level: i32,
+) -> Result<(), DngWriteError>
+where
+    W: Write + Seek,
+{
+    Err(DngWriteError::Unsupported {
+        operation: "Zstandard DNG writing requires the fornax-dng zstd feature".into(),
+    })
+}
+
+fn write_deflate_all<W>(
+    writer: W,
+    mosaic: &RawMosaic,
+    metadata: &Directory,
+    version: DngVersion,
+) -> Result<(), DngWriteError>
+where
+    W: Write + Seek,
+{
+    write_compressed_tiles(writer, mosaic, metadata, version, 8, |tile| {
+        let mut compressor = ZlibEncoder::new(Vec::new(), Compression::fast());
+        compressor
+            .write_all(tile)
+            .map_err(|error| invalid_metadata(format!("Deflate setup failed: {error}")))?;
+        compressor
+            .finish()
+            .map_err(|error| invalid_metadata(format!("Deflate encoding failed: {error}")))
+    })
+}
+
+fn write_compressed_tiles<W>(
+    writer: W,
+    mosaic: &RawMosaic,
+    metadata: &Directory,
+    version: DngVersion,
+    compression_tag: u16,
+    compress: impl Fn(&[u8]) -> Result<Vec<u8>, DngWriteError>,
+) -> Result<(), DngWriteError>
+where
+    W: Write + Seek,
+{
+    const TILE: usize = 256;
+    let (width, height) = mosaic.dimensions();
+    let width = usize::try_from(width)
+        .map_err(|_| invalid_metadata("DNG width exceeds the platform address space"))?;
+    let height = usize::try_from(height)
+        .map_err(|_| invalid_metadata("DNG height exceeds the platform address space"))?;
+    let (source, bits, sample_format) = match mosaic {
+        RawMosaic::U8(image) => (image.as_raw().clone(), 8_u16, 1_u16),
+        RawMosaic::U16(image) => (
+            image
+                .as_raw()
+                .iter()
+                .flat_map(|value| value.to_le_bytes())
+                .collect(),
+            16_u16,
+            1_u16,
+        ),
+        RawMosaic::U32(image) => (
+            image
+                .as_raw()
+                .iter()
+                .flat_map(|value| value.to_le_bytes())
+                .collect(),
+            32_u16,
+            1_u16,
+        ),
+        RawMosaic::F32(image) => (
+            image
+                .as_raw()
+                .iter()
+                .flat_map(|value| value.to_bits().to_le_bytes())
+                .collect(),
+            32_u16,
+            3_u16,
+        ),
+    };
+    let bytes_per_sample = usize::from(bits.div_ceil(8));
+    let across = width.div_ceil(TILE);
+    let down = height.div_ceil(TILE);
+    let mut tiles = Vec::with_capacity(across * down);
+    for tile_y in 0..down {
+        for tile_x in 0..across {
+            let mut tile = vec![0_u8; TILE * TILE * bytes_per_sample];
+            let copy_width = TILE.min(width - tile_x * TILE);
+            let copy_height = TILE.min(height - tile_y * TILE);
+            for row in 0..copy_height {
+                let source_start =
+                    ((tile_y * TILE + row) * width + tile_x * TILE) * bytes_per_sample;
+                let target_start = row * TILE * bytes_per_sample;
+                let copy_bytes = copy_width * bytes_per_sample;
+                tile[target_start..target_start + copy_bytes]
+                    .copy_from_slice(&source[source_start..source_start + copy_bytes]);
+            }
+            tiles.push(compress(&tile)?);
+        }
+    }
+
+    let mut encoder = ContainerWriter::new(writer).map_err(tiff_write_error)?;
+    let mut directory = TiffDirectory::new(&mut encoder);
+    let mut tile_offsets = Vec::with_capacity(tiles.len());
+    let mut tile_byte_counts = Vec::with_capacity(tiles.len());
+    for tile in &tiles {
+        let offset = directory.write_data(tile)?;
+        tile_offsets.push(
+            u32::try_from(offset)
+                .map_err(|_| invalid_metadata("Zstandard DNG tile offset exceeds u32"))?,
+        );
+        tile_byte_counts.push(
+            u32::try_from(tile.len())
+                .map_err(|_| invalid_metadata("Zstandard DNG tile exceeds u32 bytes"))?,
+        );
+    }
+    write_common_directory(
+        &mut directory,
+        u32::try_from(width).expect("source width fits u32"),
+        u32::try_from(height).expect("source height fits u32"),
+        bits,
+        sample_format,
+        compression_tag,
+        version,
+    )?;
+    directory.write_tag(
+        Tag::from(TiffTag::TileWidth),
+        u32::try_from(TILE).expect("tile width fits u32"),
+    )?;
+    directory.write_tag(
+        Tag::from(TiffTag::TileLength),
+        u32::try_from(TILE).expect("tile length fits u32"),
+    )?;
+    directory.write_tag(Tag::from(TiffTag::TileOffsets), tile_offsets.as_slice())?;
+    directory.write_tag(
+        Tag::from(TiffTag::TileByteCounts),
+        tile_byte_counts.as_slice(),
+    )?;
+    directory.write_tag(Tag::from(TiffTag::Predictor), 1_u16)?;
+    write_preserved_metadata(&mut directory, metadata)?;
+    directory.finish().map_err(DngWriteError::from)
+}
+
 fn write_common_directory<W>(
     directory: &mut TiffDirectory<'_, W>,
     width: u32,
@@ -665,6 +846,8 @@ fn tiff_write_error(error: fornax_tiff::TiffError) -> DngWriteError {
 mod tests {
     use std::io::Cursor;
 
+    #[cfg(not(feature = "zstd"))]
+    use fornax_core::MonoImage;
     use fornax_tiff::TiffWriter;
 
     use super::*;
@@ -683,5 +866,18 @@ mod tests {
         .expect_err("classic TIFF cannot represent BigTIFF rationals");
 
         assert!(matches!(error, DngWriteError::InvalidMetadata { .. }));
+    }
+
+    #[cfg(not(feature = "zstd"))]
+    #[test]
+    fn zstd_write_without_feature_returns_unsupported() {
+        let mosaic = RawMosaic::U8(MonoImage::from_raw(1, 1, vec![0]).unwrap());
+        let mut output = Cursor::new(Vec::new());
+
+        let error = DngWriter::new(DngCompression::Zstd)
+            .write_dng_with(&mut output, &mosaic, &Directory::default())
+            .expect_err("zstd feature is disabled");
+
+        assert!(matches!(error, DngWriteError::Unsupported { .. }));
     }
 }

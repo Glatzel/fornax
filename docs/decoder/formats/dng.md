@@ -80,6 +80,7 @@ geometry.
 | Deflate (`8`) | Strips/tiles | Integer and float payloads with standard horizontal/float predictors |
 | JPEG XL (`52546`) | Strips/tiles | Single-channel 8-16-bit mosaics |
 | Lossy JPEG (`34892`) | Strips/tiles | Single-component 8-bit mosaics |
+| Zstandard (`50000`, experimental) | Strips/tiles | Integer and float payloads |
 
 Malformed values and layouts outside the active Bayer contract return
 `DecodeError::InvalidInput` or the existing CFA boundary error. Unknown

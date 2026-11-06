@@ -18,3 +18,8 @@ fornax-devtool.workspace = true
 image.workspace = true
 mischief.workspace = true
 strum.workspace = true
+
+[features]
+default = []
+metadata-json = ["fornax-dng/metadata-json"]
+zstd = ["fornax-dng/zstd"]
