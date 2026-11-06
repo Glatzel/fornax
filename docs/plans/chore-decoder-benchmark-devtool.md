@@ -119,10 +119,10 @@ in the pull request; no timing baseline is committed.
 
 **Files:** `crates/fornax-decoder-rawler/src/lib.rs`
 
-- [ ] Add failing tests for active-area cropping and non-empty synthesized DNG
+- [x] Add failing tests for active-area cropping and non-empty synthesized DNG
       metadata.
-- [ ] Cache synthesized metadata in `RawlerDecoder`.
-- [ ] Crop and cast only the active area in `cropped_mosaic`.
+- [x] Cache synthesized metadata in `RawlerDecoder`.
+- [x] Crop and cast only the active area in `cropped_mosaic`.
 
 ### Task 3: Decoder Selection and Composite Cases
 
