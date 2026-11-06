@@ -2,19 +2,9 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::ops::Deref;
 
-use fornax_core::Primitive;
-use fornax_core::error::DecodeError;
-use fornax_core::protocol::IDecoder;
 pub use fornax_tiff::Value;
 use num_enum::{FromPrimitive, IntoPrimitive};
 use strum::AsRefStr;
-
-pub trait IDecoderDng<I, T>: Send + Sync + IDecoder<I, T>
-where
-    T: Primitive,
-{
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError>;
-}
 
 /// Deterministically ordered DNG metadata values keyed by TIFF/DNG tag.
 #[derive(Clone, Debug, Default, PartialEq)]
