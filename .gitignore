@@ -27,6 +27,7 @@ output
 *.png
 *.dng
 *.svg
+converted
 
 # book build output
 /book/build/

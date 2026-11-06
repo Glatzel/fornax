@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use std::path::{Path, PathBuf};
+use std::path::{self, Path, PathBuf};
 use std::{fmt, fs};
 
 use fornax_core::error::{DecodeError, PostProcessError};
@@ -37,28 +37,28 @@ impl fmt::Display for ConversionOutcome {
                 write!(
                     formatter,
                     "converted {} -> {}",
-                    input.display(),
-                    output.display()
+                    path::absolute(input).unwrap().display(),
+                    path::absolute(output).unwrap().display(),
                 )
             }
             Self::SkippedExisting { input, output } => write!(
                 formatter,
                 "skipped existing {} -> {}",
-                input.display(),
-                output.display()
+                path::absolute(input).unwrap().display(),
+                path::absolute(output).unwrap().display(),
             ),
             Self::SkippedDngToDng { input, output } => write!(
                 formatter,
                 "skipped DNG-to-DNG {} -> {}",
-                input.display(),
-                output.display()
+                path::absolute(input).unwrap().display(),
+                path::absolute(output).unwrap().display(),
             ),
             Self::MetadataOnly { input, output } => {
                 write!(
                     formatter,
                     "wrote metadata for {} -> {}",
-                    input.display(),
-                    output.display()
+                    path::absolute(input).unwrap().display(),
+                    path::absolute(output).unwrap().display(),
                 )
             }
             Self::Failed { input, error } => {
