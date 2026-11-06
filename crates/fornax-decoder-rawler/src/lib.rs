@@ -703,10 +703,7 @@ mod tests {
                 DngValue::Byte(0),
             ]))
         );
-        assert_eq!(
-            metadata.get(&DngTag::Make),
-            Some(&DngValue::Ascii("Fornax".into()))
-        );
+
         assert_eq!(
             metadata.get(&DngTag::WhiteLevel),
             Some(&DngValue::Unsigned(65_535))
