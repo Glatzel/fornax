@@ -71,7 +71,7 @@ The default is `1000,2000`, producing `1.50MP` and `6.00MP` images.
 FORNAX_BENCH_BITS=32 cargo bench -p fornax-postprocessor
 ```
 
-The default is `32,64`.
+The default is `32`.
 
 `FORNAX_BENCH_ALGORITHM` selects one algorithm from
 `crates/fornax-postprocessor/benches/algorithms.json`. The value is an ID such

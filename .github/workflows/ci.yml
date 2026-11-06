@@ -89,8 +89,10 @@ jobs:
         include:
           - package: bench-decoder
             paths: |
+              ./crates/fornax-core/**
               ./crates/fornax-decoder/**
               ./crates/fornax-decoder-rawler/**
+              ./crates/fornax-devtool/**
               ./crates/bench-decoder/**
 
           - package: fornax-postprocessor
@@ -149,6 +151,7 @@ jobs:
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
           FORNAX_BENCH_ALGORITHM: ${{ matrix.algorithm }}
           FORNAX_BENCH_BITS: 32
+          FORNAX_BENCH_DECODER: fornax,rawler
 
   compare-demosaic:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
