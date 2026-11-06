@@ -11,7 +11,7 @@ its encode speed and size against uncompressed, JPEG-92, and Deflate output.
 tiles, and `fornax-dng` owns Criterion writer measurements. The default
 interoperable DNG compression remains LosslessJPEG.
 
-**Base branch:** `chore/pipeline-preview-color`.
+**Base branch:** `main`.
 
 ## Scope
 
@@ -42,16 +42,15 @@ Out of scope:
 
 ## Validation Results
 
-- `cargo test -p fornax-dng`: 32 passed with the feature disabled.
-- `cargo test -p fornax-dng --all-features`: 33 passed.
-- A 0.38MP U16 synthetic writer run measured Zstandard at about 1.19 ms and
-  751,321 bytes versus Deflate at about 3.85 ms and 752,866 bytes. This input
-  is deliberately noisy, so the size result is useful only as a harness check;
+- `cargo test -p fornax-dng`: 33 passed with the feature disabled.
+- `cargo test -p fornax-dng --all-features`: 35 passed.
+- `cargo bench -p fornax-dng --all-features --bench writer --no-run`: passed.
+- `scripts/agent-validation.sh`: passed after initializing the raw-image
+  fixture and validating this PR branch.
+- A pre-rebase 0.38MP U16 synthetic run measured Zstandard at about 1.19 ms
+  and 751,321 bytes versus Deflate at about 3.85 ms and 752,866 bytes. This
+  input is deliberately noisy, so the size result is only a harness check;
   representative RAW sizes remain a local fixture task.
-- `cargo test --workspace --all-features --exclude compare-demosaic`: 142
-  passed.
-- Rustdoc, nightly formatting, the root clippy flag set, writer benchmark
-  compilation, and `git diff --check` all passed.
 
 ## Public Interfaces
 
@@ -89,3 +88,6 @@ git diff --check
 - The implementation must not introduce `zstd-sys` or a system library.
 - Zstandard uses the same predictor rules as Deflate; each tile is an
   independent frame so tiles remain parallel and independently recoverable.
+- Conflict resolution ports the writer to the merged `fornax-tiff`
+  `TiffDirectory` and `TiffTag` API and drops the superseded TIFF/DNG split and
+  preview-color commits now present on main.
