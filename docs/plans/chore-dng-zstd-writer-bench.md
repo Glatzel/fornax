@@ -37,6 +37,7 @@ Out of scope:
 - [x] Implement Zstandard tile decode.
 - [x] Implement Zstandard tile encode with a level option.
 - [x] Add writer benchmark diagnostics and environment controls.
+- [x] Benchmark both synthetic noise and a real DNG in CI.
 - [x] Update DNG and reference support tables.
 - [x] Run full validation, including all features and feature-off builds.
 
@@ -44,7 +45,10 @@ Out of scope:
 
 - `cargo test -p fornax-dng`: 33 passed with the feature disabled.
 - `cargo test -p fornax-dng --all-features`: 35 passed.
+- `cargo test -p fornax-devtool`: 11 passed.
 - `cargo bench -p fornax-dng --all-features --bench writer --no-run`: passed.
+- A reduced-sample CI-mode smoke run exercised both noise and the default DNG;
+  both Criterion reports contained the output size in `throughput.Bytes`.
 - `scripts/agent-validation.sh`: passed after initializing the raw-image
   fixture and validating this PR branch.
 - A pre-rebase 0.38MP U16 synthetic run measured Zstandard at about 1.19 ms
@@ -66,7 +70,14 @@ Out of scope:
 - `FORNAX_BENCH_DNG_COMPRESSION=uncompressed,lossless-jpeg,deflate,zstd`
 - `FORNAX_BENCH_ZSTD_LEVEL=3`
 - `FORNAX_BENCH_SIZE` reuses `fornax-devtool`.
+- `FORNAX_BENCH_DNG_RAW` selects one real DNG for local-only benchmarking.
+- CI benchmarks synthetic noise and the default RAW fixture.
 - Output size and ratio are printed once per case, outside timed iterations.
+- Criterion records the output DNG byte count in `benchmark.json` as
+  `throughput.Bytes`.
+- Real DNG benchmarks use the decoded mosaic with canonical minimal metadata
+  so all compression modes process the same samples without source metadata
+  variability.
 
 ## Validation
 

@@ -1,3 +1,6 @@
+use std::path::PathBuf;
+
+use fornax_core::RawMosaic;
 use strum::AsRefStr;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, AsRefStr)]
@@ -18,6 +21,42 @@ pub struct BenchParams {
     pub sizes: Vec<BenchSize>,
     pub bits: Vec<BenchSampleBits>,
     pub threads: Vec<usize>,
+}
+
+/// An input selected for DNG writer benchmarks.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum DngBenchmarkInput {
+    /// Deterministic high-entropy U16 samples.
+    Noise,
+    /// A mosaic decoded from a DNG file.
+    Real(PathBuf),
+}
+
+/// Selects DNG writer benchmark inputs for CI and local runs.
+pub fn dng_benchmark_inputs(
+    ci: bool,
+    explicit_real: Option<PathBuf>,
+    default_real: PathBuf,
+) -> Vec<DngBenchmarkInput> {
+    if ci {
+        vec![
+            DngBenchmarkInput::Noise,
+            DngBenchmarkInput::Real(default_real),
+        ]
+    } else {
+        vec![explicit_real.map_or(DngBenchmarkInput::Noise, DngBenchmarkInput::Real)]
+    }
+}
+
+/// Returns the native in-memory byte count for a raw mosaic.
+pub fn raw_mosaic_bytes(mosaic: &RawMosaic) -> u64 {
+    let (width, height) = mosaic.dimensions();
+    let bytes_per_sample = match mosaic {
+        RawMosaic::U8(_) => size_of::<u8>(),
+        RawMosaic::U16(_) => size_of::<u16>(),
+        RawMosaic::U32(_) | RawMosaic::F32(_) => size_of::<u32>(),
+    };
+    u64::from(width) * u64::from(height) * u64::try_from(bytes_per_sample).unwrap()
 }
 
 impl BenchParams {
@@ -216,5 +255,74 @@ mod tests {
             .map(|(configured, pool)| (configured, pool.current_num_threads()))
             .collect::<Vec<_>>();
         assert_eq!(pools, vec![(1, 1), (2, 2)]);
+    }
+
+    #[test]
+    fn ci_dng_bench_inputs_include_noise_and_default_real() {
+        let default_real = std::path::PathBuf::from("fixtures/default.dng");
+
+        assert_eq!(
+            dng_benchmark_inputs(
+                true,
+                Some(std::path::PathBuf::from("ignored.dng")),
+                default_real.clone(),
+            ),
+            vec![
+                DngBenchmarkInput::Noise,
+                DngBenchmarkInput::Real(default_real)
+            ]
+        );
+    }
+
+    #[test]
+    fn local_dng_bench_inputs_default_to_noise() {
+        assert_eq!(
+            dng_benchmark_inputs(false, None, std::path::PathBuf::from("unused.dng")),
+            vec![DngBenchmarkInput::Noise]
+        );
+    }
+
+    #[test]
+    fn local_dng_bench_inputs_use_explicit_real() {
+        let real = std::path::PathBuf::from("samples/input.dng");
+
+        assert_eq!(
+            dng_benchmark_inputs(
+                false,
+                Some(real.clone()),
+                std::path::PathBuf::from("unused.dng"),
+            ),
+            vec![DngBenchmarkInput::Real(real)]
+        );
+    }
+
+    #[test]
+    fn raw_mosaic_bytes_uses_native_sample_width() {
+        use fornax_core::{MonoImage, RawMosaic};
+
+        assert_eq!(
+            raw_mosaic_bytes(&RawMosaic::U8(
+                MonoImage::from_raw(2, 3, vec![0; 6]).unwrap()
+            )),
+            6
+        );
+        assert_eq!(
+            raw_mosaic_bytes(&RawMosaic::U16(
+                MonoImage::from_raw(2, 3, vec![0; 6]).unwrap()
+            )),
+            12
+        );
+        assert_eq!(
+            raw_mosaic_bytes(&RawMosaic::U32(
+                MonoImage::from_raw(2, 3, vec![0; 6]).unwrap()
+            )),
+            24
+        );
+        assert_eq!(
+            raw_mosaic_bytes(&RawMosaic::F32(
+                MonoImage::from_raw(2, 3, vec![0.0; 6]).unwrap()
+            )),
+            24
+        );
     }
 }

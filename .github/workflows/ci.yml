@@ -96,6 +96,15 @@ jobs:
               ./crates/bench-decoder/**
             files_ignore: '**.md'
 
+          - package: fornax-dng
+            paths: |
+              ./crates/fornax-core/**
+              ./crates/fornax-devtool/**
+              ./crates/fornax-dng/**
+              ./crates/fornax-tiff/**
+            files_ignore: '**.md'
+            extra-options: --features zstd
+
           - package: fornax-postprocessor
             paths: ./crates/fornax-postprocessor/**
             algorithm: aahd
@@ -142,10 +151,13 @@ jobs:
           files: ${{ matrix.paths }}
       - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
+      - name: Initialize RAW fixtures
+        if: ${{ matrix.package == 'fornax-dng' && (github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true') }}
+        run: bash scripts/setup.sh
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
         with:
-          options: -p ${{ matrix.package }}
+          options: -p ${{ matrix.package }} ${{ matrix['extra-options'] }}
         env:
           GH_TOKEN: ${{ github.token }}
           LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}

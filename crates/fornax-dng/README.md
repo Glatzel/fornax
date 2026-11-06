@@ -47,5 +47,11 @@ cargo bench -p fornax-dng --features zstd --bench writer
 
 `FORNAX_BENCH_DNG_COMPRESSION` selects `uncompressed`, `lossless-jpeg`,
 `deflate`, and `zstd` cases. `FORNAX_BENCH_ZSTD_LEVEL` defaults to `3`.
-Synthetic sizes reuse `FORNAX_BENCH_SIZE`. The benchmark prints encoded bytes
-and the ratio to raw U16 storage before timing starts.
+Synthetic sizes reuse `FORNAX_BENCH_SIZE`. Local runs use deterministic
+high-entropy noise by default. Set `FORNAX_BENCH_DNG_RAW` to an absolute DNG
+path to benchmark that image's decoded mosaic instead. CI benchmarks both the
+noise cases and the default RAW fixture.
+
+The benchmark prints encoded bytes and the ratio to raw sample storage before
+timing starts. Each Criterion `benchmark.json` records the exact output DNG
+size in `throughput.Bytes`.

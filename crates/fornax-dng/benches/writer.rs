@@ -1,11 +1,21 @@
+use std::fs;
 use std::io::Cursor;
+use std::path::{Path, PathBuf};
 
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use fornax_core::{MonoImage, RawMosaic};
-use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
+use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
+use fornax_core::{MonoImage, RawFormat, RawMosaic};
+use fornax_devtool::{
+    BenchParams, BenchSampleBits, DngBenchmarkInput, dng_benchmark_inputs, raw_mosaic_bytes,
+    synthetic_mono_image,
+};
 use fornax_dng::metadata::{DngTag, Tag, Value};
-use fornax_dng::{Directory, DngCompression, DngWriter};
+use fornax_dng::{Directory, DngCompression, DngImage, DngWriter};
 use fornax_tiff::constants::TiffTag;
+
+struct BenchmarkMosaic {
+    label: String,
+    mosaic: RawMosaic,
+}
 
 fn metadata(width: u32, height: u32) -> Directory {
     let mut metadata = Directory::default();
@@ -90,6 +100,73 @@ fn zstd_level() -> i32 {
     })
 }
 
+fn real_mosaic(path: &Path) -> RawMosaic {
+    let source = fs::read(path).unwrap_or_else(|error| {
+        panic!(
+            "reading DNG writer benchmark input {} failed: {error}",
+            path.display()
+        )
+    });
+    let image = DngImage::parse(&source).unwrap_or_else(|error| {
+        panic!(
+            "parsing DNG writer benchmark input {} failed: {error}",
+            path.display()
+        )
+    });
+    fornax_dng::raw_mosaic(&image).unwrap_or_else(|error| {
+        panic!(
+            "decoding DNG writer benchmark input {} failed: {error}",
+            path.display()
+        )
+    })
+}
+
+fn benchmark_mosaics(params: &BenchParams) -> Vec<BenchmarkMosaic> {
+    let explicit_real = std::env::var_os("FORNAX_BENCH_DNG_RAW")
+        .filter(|path| !path.is_empty())
+        .map(PathBuf::from);
+    let selected = dng_benchmark_inputs(
+        std::env::var_os("CI").is_some(),
+        explicit_real,
+        fornax_devtool::raw_file(RawFormat::Dng),
+    );
+    let mut mosaics = Vec::new();
+    for input in selected {
+        match input {
+            DngBenchmarkInput::Noise => {
+                for size in &params.sizes {
+                    let source = synthetic_mono_image::<f32>(size.dims, 1.0);
+                    let image = MonoImage::from_raw(
+                        size.dims.0,
+                        size.dims.1,
+                        source
+                            .into_raw()
+                            .into_iter()
+                            .map(|value| (value * f32::from(u16::MAX)).round() as u16)
+                            .collect(),
+                    )
+                    .unwrap();
+                    mosaics.push(BenchmarkMosaic {
+                        label: format!("noise/{}", size.label),
+                        mosaic: RawMosaic::U16(image),
+                    });
+                }
+            }
+            DngBenchmarkInput::Real(path) => {
+                let label = path
+                    .file_stem()
+                    .and_then(|stem| stem.to_str())
+                    .unwrap_or("input");
+                mosaics.push(BenchmarkMosaic {
+                    label: format!("real/{label}"),
+                    mosaic: real_mosaic(&path),
+                });
+            }
+        }
+    }
+    mosaics
+}
+
 fn bench_writer(c: &mut Criterion) {
     let params = BenchParams::from_env();
     assert!(
@@ -98,43 +175,32 @@ fn bench_writer(c: &mut Criterion) {
     );
     let compressions = selected_compressions();
     let level = zstd_level();
-    for size in &params.sizes {
-        let source = synthetic_mono_image::<f32>(size.dims, 1.0);
-        let image = MonoImage::from_raw(
-            size.dims.0,
-            size.dims.1,
-            source
-                .into_raw()
-                .into_iter()
-                .map(|value| (value * f32::from(u16::MAX)).round() as u16)
-                .collect(),
-        )
-        .unwrap();
-        let mosaic = RawMosaic::U16(image);
-        let metadata = metadata(size.dims.0, size.dims.1);
+    for benchmark in benchmark_mosaics(&params) {
+        let (width, height) = benchmark.mosaic.dimensions();
+        let metadata = metadata(width, height);
+        let raw = raw_mosaic_bytes(&benchmark.mosaic);
+        let mut group = c.benchmark_group(format!("writer/{}", benchmark.label));
         for (name, compression) in &compressions {
             let mut output = Cursor::new(Vec::new());
             DngWriter::new(*compression)
                 .with_zstd_level(level)
-                .write_dng_with(&mut output, &mosaic, &metadata)
+                .write_dng_with(&mut output, &benchmark.mosaic, &metadata)
                 .unwrap();
             let bytes = output.into_inner().len();
-            let raw = usize::try_from(size.dims.0).unwrap()
-                * usize::try_from(size.dims.1).unwrap()
-                * size_of::<u16>();
+            group.throughput(Throughput::Bytes(u64::try_from(bytes).unwrap()));
             eprintln!(
                 "writer/{}/{name}: {bytes} bytes, ratio {:.3}",
-                size.label,
+                benchmark.label,
                 bytes as f64 / raw as f64
             );
-            c.bench_function(&format!("writer/{}/{name}", size.label), |b| {
+            group.bench_function(name, |b| {
                 b.iter(|| {
                     let mut output = Cursor::new(Vec::new());
                     DngWriter::new(*compression)
                         .with_zstd_level(level)
                         .write_dng_with(
                             black_box(&mut output),
-                            black_box(&mosaic),
+                            black_box(&benchmark.mosaic),
                             black_box(&metadata),
                         )
                         .unwrap();
@@ -142,6 +208,7 @@ fn bench_writer(c: &mut Criterion) {
                 });
             });
         }
+        group.finish();
     }
 }
 
