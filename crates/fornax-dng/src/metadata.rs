@@ -5,10 +5,10 @@ use std::ops::Deref;
 use fornax_core::Primitive;
 use fornax_core::error::DecodeError;
 use fornax_core::protocol::IDecoder;
+pub use fornax_tiff::Value;
 use num_enum::{FromPrimitive, IntoPrimitive};
 use strum::AsRefStr;
 
-pub type DngValue = fornax_tiff::Value;
 pub trait IDecoderDng<I, T>: Send + Sync + IDecoder<I, T>
 where
     T: Primitive,
@@ -18,18 +18,18 @@ where
 
 /// Deterministically ordered DNG metadata values keyed by TIFF/DNG tag.
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct DngMetadata(BTreeMap<DngTag, DngValue>);
+pub struct DngMetadata(BTreeMap<DngTag, Value>);
 
 impl DngMetadata {
-    pub fn insert(&mut self, tag: DngTag, value: DngValue) -> Option<DngValue> {
+    pub fn insert(&mut self, tag: DngTag, value: Value) -> Option<Value> {
         self.0.insert(tag, value)
     }
 
-    pub fn remove(&mut self, tag: &DngTag) -> Option<DngValue> { self.0.remove(tag) }
+    pub fn remove(&mut self, tag: &DngTag) -> Option<Value> { self.0.remove(tag) }
 
     pub fn extend<I>(&mut self, values: I)
     where
-        I: IntoIterator<Item = (DngTag, DngValue)>,
+        I: IntoIterator<Item = (DngTag, Value)>,
     {
         self.0.extend(values);
     }
@@ -61,7 +61,7 @@ impl DngMetadata {
 }
 
 impl Deref for DngMetadata {
-    type Target = BTreeMap<DngTag, DngValue>;
+    type Target = BTreeMap<DngTag, Value>;
 
     fn deref(&self) -> &Self::Target { &self.0 }
 }
@@ -229,32 +229,30 @@ fn float_to_json(value: f64) -> serde_json::Value {
 }
 
 #[cfg(feature = "metadata-json")]
-fn value_to_json(value: &DngValue) -> serde_json::Value {
+fn value_to_json(value: &Value) -> serde_json::Value {
     use serde_json::Value as JsonValue;
 
     match value {
-        DngValue::Byte(value) => JsonValue::from(*value),
-        DngValue::SignedByte(value) => JsonValue::from(*value),
-        DngValue::Short(value) => JsonValue::from(*value),
-        DngValue::SignedShort(value) => JsonValue::from(*value),
-        DngValue::Unsigned(value) | DngValue::Ifd(value) => JsonValue::from(*value),
-        DngValue::Signed(value) => JsonValue::from(*value),
-        DngValue::UnsignedBig(value) | DngValue::IfdBig(value) => JsonValue::from(*value),
-        DngValue::SignedBig(value) => JsonValue::from(*value),
-        DngValue::Float(value) => float_to_json(f64::from(*value)),
-        DngValue::Double(value) => float_to_json(*value),
-        DngValue::Rational(numerator, denominator) => {
+        Value::Byte(value) => JsonValue::from(*value),
+        Value::SignedByte(value) => JsonValue::from(*value),
+        Value::Short(value) => JsonValue::from(*value),
+        Value::SignedShort(value) => JsonValue::from(*value),
+        Value::Unsigned(value) | Value::Ifd(value) => JsonValue::from(*value),
+        Value::Signed(value) => JsonValue::from(*value),
+        Value::UnsignedBig(value) | Value::IfdBig(value) => JsonValue::from(*value),
+        Value::SignedBig(value) => JsonValue::from(*value),
+        Value::Float(value) => float_to_json(f64::from(*value)),
+        Value::Double(value) => float_to_json(*value),
+        Value::Rational(numerator, denominator) => {
             rational_to_json(i64::from(*numerator), i64::from(*denominator))
         }
-        DngValue::SRational(numerator, denominator) => {
+        Value::SRational(numerator, denominator) => {
             rational_to_json(i64::from(*numerator), i64::from(*denominator))
         }
-        DngValue::RationalBig(numerator, denominator)
-        | DngValue::SRationalBig(numerator, denominator) => {
-            rational_to_json(*numerator, *denominator)
-        }
-        DngValue::Ascii(value) => JsonValue::String(value.clone()),
-        DngValue::List(values) => JsonValue::Array(values.iter().map(value_to_json).collect()),
+        Value::RationalBig(numerator, denominator)
+        | Value::SRationalBig(numerator, denominator) => rational_to_json(*numerator, *denominator),
+        Value::Ascii(value) => JsonValue::String(value.clone()),
+        Value::List(values) => JsonValue::Array(values.iter().map(value_to_json).collect()),
     }
 }
 
@@ -265,15 +263,15 @@ mod tests {
     fn metadata_json_preserves_tag_types_and_order() {
         use super::*;
         let mut metadata = DngMetadata::default();
-        metadata.insert(DngTag::ImageWidth, DngValue::Unsigned(4));
-        metadata.insert(DngTag::Make, DngValue::Ascii("Fornax".into()));
+        metadata.insert(DngTag::ImageWidth, Value::Unsigned(4));
+        metadata.insert(DngTag::Make, Value::Ascii("Fornax".into()));
         metadata.insert(
             DngTag::ColorMatrix1,
-            DngValue::List(vec![DngValue::SRational(-1, 2), DngValue::SRational(1, 3)]),
+            Value::List(vec![Value::SRational(-1, 2), Value::SRational(1, 3)]),
         );
         metadata.insert(
             DngTag::Unknown(60_001),
-            DngValue::List(vec![DngValue::Byte(1), DngValue::Byte(2)]),
+            Value::List(vec![Value::Byte(1), Value::Byte(2)]),
         );
 
         let json = metadata.to_json_value();

@@ -9,7 +9,7 @@ use fornax_tiff::{Tag, TiffWriter as ContainerWriter, Value};
 use thiserror::Error;
 
 use crate::ljpeg_writer as ljpeg;
-use crate::metadata::{DngMetadata, DngTag, DngValue};
+use crate::metadata::{DngMetadata, DngTag};
 
 /// Failure while writing DNG data.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
@@ -45,7 +45,7 @@ where
         self.writer.write_data(data).map_err(tiff_write_error)
     }
 
-    fn write_tag(&mut self, tag: Tag, value: impl IntoDngValue) -> Result<(), DngWriteError> {
+    fn write_tag(&mut self, tag: Tag, value: impl IntoValue) -> Result<(), DngWriteError> {
         self.entries.push((tag, value.into_dng_value()));
         Ok(())
     }
@@ -55,50 +55,48 @@ where
     }
 }
 
-trait IntoDngValue {
-    fn into_dng_value(self) -> DngValue;
+trait IntoValue {
+    fn into_dng_value(self) -> Value;
 }
 
-impl IntoDngValue for u8 {
-    fn into_dng_value(self) -> DngValue { DngValue::Byte(self) }
+impl IntoValue for u8 {
+    fn into_dng_value(self) -> Value { Value::Byte(self) }
 }
 
-impl IntoDngValue for u16 {
-    fn into_dng_value(self) -> DngValue { DngValue::Short(self) }
+impl IntoValue for u16 {
+    fn into_dng_value(self) -> Value { Value::Short(self) }
 }
 
-impl IntoDngValue for u32 {
-    fn into_dng_value(self) -> DngValue { DngValue::Unsigned(self) }
+impl IntoValue for u32 {
+    fn into_dng_value(self) -> Value { Value::Unsigned(self) }
 }
 
-impl IntoDngValue for f32 {
-    fn into_dng_value(self) -> DngValue { DngValue::Float(self) }
+impl IntoValue for f32 {
+    fn into_dng_value(self) -> Value { Value::Float(self) }
 }
 
-impl IntoDngValue for &str {
-    fn into_dng_value(self) -> DngValue { DngValue::Ascii(self.to_owned()) }
+impl IntoValue for &str {
+    fn into_dng_value(self) -> Value { Value::Ascii(self.to_owned()) }
 }
 
-impl IntoDngValue for [u8; 4] {
-    fn into_dng_value(self) -> DngValue {
-        DngValue::List(self.into_iter().map(DngValue::Byte).collect())
+impl IntoValue for [u8; 4] {
+    fn into_dng_value(self) -> Value { Value::List(self.into_iter().map(Value::Byte).collect()) }
+}
+
+impl IntoValue for &[u16] {
+    fn into_dng_value(self) -> Value {
+        Value::List(self.iter().copied().map(Value::Short).collect())
     }
 }
 
-impl IntoDngValue for &[u16] {
-    fn into_dng_value(self) -> DngValue {
-        DngValue::List(self.iter().copied().map(DngValue::Short).collect())
+impl IntoValue for &[u32] {
+    fn into_dng_value(self) -> Value {
+        Value::List(self.iter().copied().map(Value::Unsigned).collect())
     }
 }
 
-impl IntoDngValue for &[u32] {
-    fn into_dng_value(self) -> DngValue {
-        DngValue::List(self.iter().copied().map(DngValue::Unsigned).collect())
-    }
-}
-
-impl IntoDngValue for DngValue {
-    fn into_dng_value(self) -> DngValue { self }
+impl IntoValue for Value {
+    fn into_dng_value(self) -> Value { self }
 }
 
 /// DNG compression modes written in the first implementation stage.
@@ -640,37 +638,36 @@ fn metadata_tag(tag: DngTag) -> Tag { tag.into() }
 fn write_metadata_value<W>(
     directory: &mut DngDirectory<'_, W>,
     tag: Tag,
-    value: &DngValue,
+    value: &Value,
 ) -> Result<(), DngWriteError>
 where
     W: Write + Seek,
 {
     match value {
-        DngValue::Byte(_)
-        | DngValue::SignedByte(_)
-        | DngValue::Short(_)
-        | DngValue::SignedShort(_)
-        | DngValue::Unsigned(_)
-        | DngValue::Signed(_)
-        | DngValue::UnsignedBig(_)
-        | DngValue::SignedBig(_)
-        | DngValue::Float(_)
-        | DngValue::Double(_)
-        | DngValue::Rational(_, _)
-        | DngValue::SRational(_, _)
-        | DngValue::Ascii(_) => directory.write_tag(tag, value.clone()),
-        DngValue::RationalBig(_, _)
-        | DngValue::SRationalBig(_, _)
-        | DngValue::Ifd(_)
-        | DngValue::IfdBig(_) => Ok(()),
-        DngValue::List(values) => write_list(directory, tag, values),
+        Value::Byte(_)
+        | Value::SignedByte(_)
+        | Value::Short(_)
+        | Value::SignedShort(_)
+        | Value::Unsigned(_)
+        | Value::Signed(_)
+        | Value::UnsignedBig(_)
+        | Value::SignedBig(_)
+        | Value::Float(_)
+        | Value::Double(_)
+        | Value::Rational(_, _)
+        | Value::SRational(_, _)
+        | Value::Ascii(_) => directory.write_tag(tag, value.clone()),
+        Value::RationalBig(_, _) | Value::SRationalBig(_, _) | Value::Ifd(_) | Value::IfdBig(_) => {
+            Ok(())
+        }
+        Value::List(values) => write_list(directory, tag, values),
     }
 }
 
 fn write_list<W>(
     directory: &mut DngDirectory<'_, W>,
     tag: Tag,
-    values: &[DngValue],
+    values: &[Value],
 ) -> Result<(), DngWriteError>
 where
     W: Write + Seek,
@@ -681,17 +678,17 @@ where
         ));
     }
     match values.first() {
-        Some(DngValue::RationalBig(_, _) | DngValue::SRationalBig(_, _)) => {
+        Some(Value::RationalBig(_, _) | Value::SRationalBig(_, _)) => {
             return Err(invalid_metadata(
                 "BigTIFF rational lists are not supported by the classic writer",
             ));
         }
-        Some(DngValue::Ascii(_) | DngValue::Ifd(_) | DngValue::IfdBig(_)) => {
+        Some(Value::Ascii(_) | Value::Ifd(_) | Value::IfdBig(_)) => {
             return Err(invalid_metadata(
                 "layout-dependent or string list metadata cannot be serialized",
             ));
         }
-        Some(DngValue::List(_)) => {
+        Some(Value::List(_)) => {
             return Err(invalid_metadata(
                 "nested TIFF metadata lists are unsupported",
             ));
@@ -699,7 +696,7 @@ where
         Some(_) => {}
         None => unreachable!("the list was checked as non-empty"),
     }
-    directory.write_tag(tag, DngValue::List(values.to_vec()))
+    directory.write_tag(tag, Value::List(values.to_vec()))
 }
 
 fn invalid_metadata(detail: impl Into<Box<str>>) -> DngWriteError {
@@ -732,7 +729,7 @@ mod tests {
         let error = write_list(
             &mut directory,
             Tag(1),
-            &[DngValue::RationalBig(1, 2), DngValue::RationalBig(3, 4)],
+            &[Value::RationalBig(1, 2), Value::RationalBig(3, 4)],
         )
         .expect_err("classic TIFF cannot represent BigTIFF rationals");
 

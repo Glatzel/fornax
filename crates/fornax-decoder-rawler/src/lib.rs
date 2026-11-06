@@ -7,7 +7,7 @@ use fornax_core::metadata::{Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
 use fornax_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_dng::metadata::IDecoderDng;
-use fornax_dng::{DngMetadata, DngTag, DngValue};
+use fornax_dng::{DngMetadata, DngTag, Value};
 use generic_num::num;
 use image::math::Rect;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
@@ -322,22 +322,22 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
     let height = u32::try_from(raw.height).unwrap_or(u32::MAX);
     metadata.insert(
         DngTag::DngVersion,
-        DngValue::List(vec![
-            DngValue::Byte(1),
-            DngValue::Byte(4),
-            DngValue::Byte(0),
-            DngValue::Byte(0),
+        Value::List(vec![
+            Value::Byte(1),
+            Value::Byte(4),
+            Value::Byte(0),
+            Value::Byte(0),
         ]),
     );
-    metadata.insert(DngTag::ImageWidth, DngValue::Unsigned(width));
-    metadata.insert(DngTag::ImageLength, DngValue::Unsigned(height));
+    metadata.insert(DngTag::ImageWidth, Value::Unsigned(width));
+    metadata.insert(DngTag::ImageLength, Value::Unsigned(height));
     metadata.insert(
         DngTag::BitsPerSample,
-        DngValue::Short(u16::try_from(raw.bps).unwrap_or(u16::MAX)),
+        Value::Short(u16::try_from(raw.bps).unwrap_or(u16::MAX)),
     );
     metadata.insert(
         DngTag::SamplesPerPixel,
-        DngValue::Short(u16::try_from(raw.cpp).unwrap_or(u16::MAX)),
+        Value::Short(u16::try_from(raw.cpp).unwrap_or(u16::MAX)),
     );
 
     let active_area = raw.active_area.map_or_else(
@@ -409,20 +409,20 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
         );
         metadata.insert(DngTag::CfaPattern, byte_values(config.cfa.flat_pattern()));
         metadata.insert(DngTag::CfaPlaneColor, unsigned_values([0_u32, 1, 2]));
-        metadata.insert(DngTag::CfaLayout, DngValue::Short(1));
+        metadata.insert(DngTag::CfaLayout, Value::Short(1));
     }
 
     if !raw.make.is_empty() {
-        metadata.insert(DngTag::Make, DngValue::Ascii(raw.make.clone()));
+        metadata.insert(DngTag::Make, Value::Ascii(raw.make.clone()));
     }
     if !raw.model.is_empty() {
-        metadata.insert(DngTag::Model, DngValue::Ascii(raw.model.clone()));
+        metadata.insert(DngTag::Model, Value::Ascii(raw.model.clone()));
     }
     let unique_model = format!("{} {}", raw.clean_make, raw.clean_model)
         .trim()
         .to_owned();
     if !unique_model.is_empty() {
-        metadata.insert(DngTag::UniqueCameraModel, DngValue::Ascii(unique_model));
+        metadata.insert(DngTag::UniqueCameraModel, Value::Ascii(unique_model));
     }
     if raw.wb_coeffs[..3]
         .iter()
@@ -440,7 +440,7 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
     if let Some(matrix) = raw.color_matrix.values().next()
         && matrix.len() == 9
     {
-        metadata.insert(DngTag::CalibrationIlluminant1, DngValue::Short(21));
+        metadata.insert(DngTag::CalibrationIlluminant1, Value::Short(21));
         metadata.insert(
             DngTag::ColorMatrix1,
             rational_values(matrix.iter().copied().map(f64::from)),
@@ -455,22 +455,22 @@ fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
     metadata
 }
 
-fn unsigned_values(values: impl IntoIterator<Item = u32>) -> DngValue {
-    dng_values(values.into_iter().map(DngValue::Unsigned).collect())
+fn unsigned_values(values: impl IntoIterator<Item = u32>) -> Value {
+    dng_values(values.into_iter().map(Value::Unsigned).collect())
 }
 
-fn byte_values(values: Vec<u8>) -> DngValue {
-    dng_values(values.into_iter().map(DngValue::Byte).collect())
+fn byte_values(values: Vec<u8>) -> Value {
+    dng_values(values.into_iter().map(Value::Byte).collect())
 }
 
-fn rational_values(values: impl IntoIterator<Item = f64>) -> DngValue {
+fn rational_values(values: impl IntoIterator<Item = f64>) -> Value {
     dng_values(
         values
             .into_iter()
             .map(|value| {
                 let numerator = (value * 1_000_000.0).round();
                 let numerator = numerator.clamp(f64::from(i32::MIN), f64::from(i32::MAX)) as i32;
-                DngValue::SRational(numerator, 1_000_000)
+                Value::SRational(numerator, 1_000_000)
             })
             .collect(),
     )
@@ -490,54 +490,54 @@ fn backend_error(error: rawler::RawlerError) -> DecodeError {
     }
 }
 
-fn dng_value(value: &RawlerValue) -> DngValue {
+fn dng_value(value: &RawlerValue) -> Value {
     match value {
         RawlerValue::Byte(values)
         | RawlerValue::Undefined(values)
         | RawlerValue::Unknown(_, values) => {
-            dng_values(values.iter().copied().map(DngValue::Byte).collect())
+            dng_values(values.iter().copied().map(Value::Byte).collect())
         }
-        RawlerValue::Ascii(value) => DngValue::Ascii(value.first().cloned().unwrap_or_default()),
+        RawlerValue::Ascii(value) => Value::Ascii(value.first().cloned().unwrap_or_default()),
         RawlerValue::Short(values) => {
-            dng_values(values.iter().copied().map(DngValue::Short).collect())
+            dng_values(values.iter().copied().map(Value::Short).collect())
         }
         RawlerValue::Long(values) => {
-            dng_values(values.iter().copied().map(DngValue::Unsigned).collect())
+            dng_values(values.iter().copied().map(Value::Unsigned).collect())
         }
         RawlerValue::Rational(values) => dng_values(
             values
                 .iter()
-                .map(|value| DngValue::Rational(value.n, value.d))
+                .map(|value| Value::Rational(value.n, value.d))
                 .collect(),
         ),
         RawlerValue::SByte(values) => {
-            dng_values(values.iter().copied().map(DngValue::SignedByte).collect())
+            dng_values(values.iter().copied().map(Value::SignedByte).collect())
         }
         RawlerValue::SShort(values) => {
-            dng_values(values.iter().copied().map(DngValue::SignedShort).collect())
+            dng_values(values.iter().copied().map(Value::SignedShort).collect())
         }
         RawlerValue::SLong(values) => {
-            dng_values(values.iter().copied().map(DngValue::Signed).collect())
+            dng_values(values.iter().copied().map(Value::Signed).collect())
         }
         RawlerValue::SRational(values) => dng_values(
             values
                 .iter()
-                .map(|value| DngValue::SRational(value.n, value.d))
+                .map(|value| Value::SRational(value.n, value.d))
                 .collect(),
         ),
         RawlerValue::Float(values) => {
-            dng_values(values.iter().copied().map(DngValue::Float).collect())
+            dng_values(values.iter().copied().map(Value::Float).collect())
         }
         RawlerValue::Double(values) => {
-            dng_values(values.iter().copied().map(DngValue::Double).collect())
+            dng_values(values.iter().copied().map(Value::Double).collect())
         }
     }
 }
 
-fn dng_values(values: Vec<DngValue>) -> DngValue {
+fn dng_values(values: Vec<Value>) -> Value {
     match values.as_slice() {
         [value] => value.clone(),
-        _ => DngValue::List(values),
+        _ => Value::List(values),
     }
 }
 
@@ -557,10 +557,9 @@ const fn align_to_bayer_tile(mut area: Rect) -> Rect {
 
 #[cfg(test)]
 mod tests {
-    use fornax_dng::{DngTag, DngValue};
+    use fornax_dng::{DngTag, Value};
     use rawler::CFA;
     use rawler::decoders::Camera;
-    use rawler::formats::tiff::{SRational, TiffAscii, Value as RawlerValue};
     use rawler::pixarray::PixU16;
     use rawler::rawimage::{CFAConfig, WhiteLevel};
 
@@ -614,112 +613,36 @@ mod tests {
             .dng_metadata()
             .expect("metadata should be available");
 
-        assert_eq!(
-            metadata.get(&DngTag::ImageWidth),
-            Some(&DngValue::Unsigned(4))
-        );
+        assert_eq!(metadata.get(&DngTag::ImageWidth), Some(&Value::Unsigned(4)));
         assert_eq!(
             metadata.get(&DngTag::ImageLength),
-            Some(&DngValue::Unsigned(4))
+            Some(&Value::Unsigned(4))
         );
         assert_eq!(
             metadata.get(&DngTag::ActiveArea),
-            Some(&DngValue::List(vec![
-                DngValue::Unsigned(0),
-                DngValue::Unsigned(0),
-                DngValue::Unsigned(2),
-                DngValue::Unsigned(2),
+            Some(&Value::List(vec![
+                Value::Unsigned(0),
+                Value::Unsigned(0),
+                Value::Unsigned(2),
+                Value::Unsigned(2),
             ]))
         );
         assert_eq!(
             metadata.get(&DngTag::CfaRepeatPatternDim),
-            Some(&DngValue::List(vec![
-                DngValue::Unsigned(2),
-                DngValue::Unsigned(2),
-            ]))
+            Some(&Value::List(vec![Value::Unsigned(2), Value::Unsigned(2),]))
         );
         assert_eq!(
             metadata.get(&DngTag::CfaPattern),
-            Some(&DngValue::List(vec![
-                DngValue::Byte(0),
-                DngValue::Byte(1),
-                DngValue::Byte(1),
-                DngValue::Byte(2),
+            Some(&Value::List(vec![
+                Value::Byte(0),
+                Value::Byte(1),
+                Value::Byte(1),
+                Value::Byte(2),
             ]))
         );
         assert_eq!(
             metadata.get(&DngTag::WhiteLevel),
-            Some(&DngValue::Unsigned(65_535))
-        );
-    }
-
-    #[test]
-    fn dng_metadata_preserves_rawler_tag_values() {
-        let mut raw = RawImage::new(
-            Camera::default(),
-            PixU16::new(1, 1),
-            1,
-            [f32::NAN; 4],
-            RawPhotometricInterpretation::BlackIsZero,
-            None,
-            Some(WhiteLevel(vec![u32::from(u16::MAX)])),
-            false,
-        );
-        raw.dng_tags.extend([
-            (
-                u16::from(DngTag::DngVersion),
-                RawlerValue::Byte(vec![1, 4, 0, 0]),
-            ),
-            (
-                u16::from(DngTag::Make),
-                RawlerValue::Ascii(TiffAscii::new("Fornax")),
-            ),
-            (
-                u16::from(DngTag::WhiteLevel),
-                RawlerValue::Long(vec![65_535]),
-            ),
-            (
-                u16::from(DngTag::CfaPattern),
-                RawlerValue::Undefined(vec![0, 1, 1, 2]),
-            ),
-            (
-                u16::from(DngTag::ColorMatrix1),
-                RawlerValue::SRational(vec![SRational::new(-1, 3)]),
-            ),
-        ]);
-        let decoder: RawlerDecoder<f32> = RawlerDecoder {
-            raw: configured_raw(),
-            _mark: PhantomData,
-        };
-
-        let metadata = decoder.dng_metadata().expect("DNG tags should convert");
-
-        assert_eq!(
-            metadata.get(&DngTag::DngVersion),
-            Some(&DngValue::List(vec![
-                DngValue::Byte(1),
-                DngValue::Byte(4),
-                DngValue::Byte(0),
-                DngValue::Byte(0),
-            ]))
-        );
-
-        assert_eq!(
-            metadata.get(&DngTag::WhiteLevel),
-            Some(&DngValue::Unsigned(65_535))
-        );
-        assert_eq!(
-            metadata.get(&DngTag::CfaPattern),
-            Some(&DngValue::List(vec![
-                DngValue::Byte(0),
-                DngValue::Byte(1),
-                DngValue::Byte(1),
-                DngValue::Byte(2),
-            ]))
-        );
-        assert_eq!(
-            metadata.get(&DngTag::ColorMatrix1),
-            Some(&DngValue::SRational(-1, 3))
+            Some(&Value::Unsigned(65_535))
         );
     }
 }

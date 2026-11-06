@@ -5,7 +5,7 @@ use fornax_tiff::Value;
 use generic_num::num;
 use image::math::Rect;
 
-use crate::metadata::{DngMetadata, DngTag, DngValue};
+use crate::metadata::{DngMetadata, DngTag};
 
 pub fn process_metadata_from_dng_metadata<T>(
     full_width: u32,
@@ -312,16 +312,16 @@ fn metadata_error(detail: impl Into<Box<str>>) -> DecodeError {
     DecodeError::Backend(detail.into())
 }
 
-fn unsigned_scalar(value: &DngValue) -> Result<u32, DecodeError> {
+fn unsigned_scalar(value: &Value) -> Result<u32, DecodeError> {
     let number = match value {
-        DngValue::Byte(value) => *value as u32,
-        DngValue::Short(value) => *value as u32,
-        DngValue::Unsigned(value) | DngValue::Ifd(value) => *value,
-        DngValue::UnsignedBig(value) => u32::try_from(*value)
+        Value::Byte(value) => *value as u32,
+        Value::Short(value) => *value as u32,
+        Value::Unsigned(value) | Value::Ifd(value) => *value,
+        Value::UnsignedBig(value) => u32::try_from(*value)
             .map_err(|_| DecodeError::Backend("tag value does not fit u32".into()))?,
-        DngValue::IfdBig(value) => u32::try_from(*value)
+        Value::IfdBig(value) => u32::try_from(*value)
             .map_err(|_| DecodeError::Backend("IFD pointer does not fit u32".into()))?,
-        DngValue::Rational(numerator, denominator) if *denominator == 1 => *numerator,
+        Value::Rational(numerator, denominator) if *denominator == 1 => *numerator,
         _ => {
             return Err(DecodeError::Backend(
                 "tag does not contain unsigned integers".into(),
