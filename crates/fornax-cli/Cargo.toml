@@ -25,7 +25,5 @@ toml.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true
-fornax-devtool.workspace = true
 fornax-tiff.workspace = true
-rstest.workspace = true
 tempfile.workspace = true
