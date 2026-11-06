@@ -21,12 +21,8 @@ fn raw_path() -> PathBuf {
     path
 }
 
-fn bench_decoder<D, T>(
-    c: &mut Criterion,
-    decoder_name: &str,
-    sample_name: &str,
-    path: &Path,
-) where
+fn bench_decoder<D, T>(c: &mut Criterion, decoder_name: &str, sample_name: &str, path: &Path)
+where
     D: for<'a> IDecoder<&'a Path, T>,
     T: Primitive + Send + Sync,
 {
@@ -67,12 +63,8 @@ fn bench_decoder<D, T>(
     });
 }
 
-fn bench_bit<D, T>(
-    c: &mut Criterion,
-    decoder_name: &str,
-    bits: BenchSampleBits,
-    path: &Path,
-) where
+fn bench_bit<D, T>(c: &mut Criterion, decoder_name: &str, bits: BenchSampleBits, path: &Path)
+where
     D: for<'a> IDecoder<&'a Path, T>,
     T: Primitive + Send + Sync,
 {
