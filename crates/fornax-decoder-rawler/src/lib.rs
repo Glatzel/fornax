@@ -31,8 +31,8 @@ where
         }
         let raw = rawler::decode_file(input).map_err(backend_error)?;
 
-        Ok(RawlerDecoder {
-            raw: raw,
+        Ok(Self {
+            raw,
             _mark: PhantomData,
         })
     }
