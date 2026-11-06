@@ -15,20 +15,19 @@ pub struct CliArgs {
     /// TOML or JSON configuration file.
     #[arg(long, help_heading = "General")]
     pub config: Option<PathBuf>,
-
     /// Input RAW files or directories.
     #[arg(help_heading = "General")]
     pub inputs: Vec<PathBuf>,
 
-    /// Decoder selection.
+    /// Decoder selection [default: auto]
     #[arg(long, value_enum, help_heading = "Processing")]
     pub decoder: Option<DecoderChoice>,
 
-    /// Demosaic algorithm with its default parameters.
+    /// Demosaic algorithm with its default parameters [default: rcd]
     #[arg(long, help_heading = "Processing")]
     pub demosaic: Option<String>,
 
-    /// Enforce white balance during postprocessing.
+    /// Enforce white balance during postprocessing [default: true]
     #[arg(long, conflicts_with = "no_white_balance", help_heading = "Color")]
     pub white_balance: bool,
 
@@ -36,7 +35,7 @@ pub struct CliArgs {
     #[arg(long, conflicts_with = "white_balance", help_heading = "Color")]
     pub no_white_balance: bool,
 
-    /// Apply the derived camera-to-linear-sRGB matrix.
+    /// Apply the derived camera-to-linear-sRGB matrix [default: true]
     #[arg(long, conflicts_with = "no_color_matrix", help_heading = "Color")]
     pub color_matrix: bool,
 
@@ -44,15 +43,15 @@ pub struct CliArgs {
     #[arg(long, conflicts_with = "color_matrix", help_heading = "Color")]
     pub no_color_matrix: bool,
 
-    /// Output directory.
+    /// Output directory [default: converted]
     #[arg(long, short, help_heading = "Output")]
     pub output: Option<PathBuf>,
 
-    /// Output image format.
+    /// Output image format [default: dng]
     #[arg(long, value_enum, help_heading = "Output")]
     pub format: Option<OutputFormat>,
 
-    /// Overwrite an existing output file.
+    /// Overwrite an existing output file [default: false]
     #[arg(long, conflicts_with = "no_overwrite", help_heading = "Output")]
     pub overwrite: bool,
 
@@ -60,7 +59,7 @@ pub struct CliArgs {
     #[arg(long, conflicts_with = "overwrite", help_heading = "Output")]
     pub no_overwrite: bool,
 
-    /// Write `<output-stem>.json` beside each output.
+    /// Write `<output-stem>.json` beside each output [default: false]
     #[arg(long, conflicts_with = "no_metadata_json", help_heading = "Output")]
     pub metadata_json: bool,
 
@@ -68,23 +67,23 @@ pub struct CliArgs {
     #[arg(long, conflicts_with = "metadata_json", help_heading = "Output")]
     pub no_metadata_json: bool,
 
-    /// JPEG preview quality.
+    /// JPEG preview quality [default: 90]
     #[arg(long, help_heading = "Output")]
     pub jpeg_quality: Option<u8>,
 
-    /// DNG compression strategy.
+    /// DNG compression strategy [default: lossless-jpeg]
     #[arg(long, value_enum, help_heading = "Output")]
     pub dng_compression: Option<DngCompressionChoice>,
 
-    /// Experimental Zstandard compression level.
+    /// Experimental Zstandard compression level [default: 3]
     #[arg(long, help_heading = "Output")]
     pub zstd_level: Option<i32>,
 
-    /// Maximum simultaneous file conversions.
+    /// Maximum simultaneous file conversions [default: 1]
     #[arg(long, help_heading = "Performance")]
     pub jobs: Option<usize>,
 
-    /// Recurse into directory inputs.
+    /// Recurse into directory inputs [default: true]
     #[arg(long, conflicts_with = "no_recursive", help_heading = "Input")]
     pub recursive: bool,
 

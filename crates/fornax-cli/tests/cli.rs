@@ -88,12 +88,35 @@ fn args(values: &[&std::ffi::OsStr]) -> CliArgs {
 }
 
 #[test]
-fn binary_exposes_help() {
-    Command::cargo_bin("fornax")
+fn binary_help_shows_default_values() {
+    let output = Command::cargo_bin("fornax")
         .unwrap()
         .arg("--help")
-        .assert()
-        .success();
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+
+    let help = String::from_utf8(output.stdout).unwrap();
+    for expected in [
+        "Output directory [default: converted]",
+        "Output image format [default: dng]",
+        "Decoder selection [default: auto]",
+        "Maximum simultaneous file conversions [default: 1]",
+        "Recurse into directory inputs [default: true]",
+        "Overwrite an existing output file [default: false]",
+        "Write `<output-stem>.json` beside each output [default: false]",
+        "Demosaic algorithm with its default parameters [default: rcd]",
+        "Enforce white balance during postprocessing [default: true]",
+        "Apply the derived camera-to-linear-sRGB matrix [default: true]",
+        "JPEG preview quality [default: 90]",
+        "DNG compression strategy [default: lossless-jpeg]",
+        "Experimental Zstandard compression level [default: 3]",
+    ] {
+        assert!(
+            help.contains(expected),
+            "missing {expected:?} in help:\n{help}"
+        );
+    }
 }
 
 #[test]

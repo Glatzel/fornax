@@ -73,6 +73,7 @@ file; explicit CLI paths resolve relative to the current directory.
 - [x] Implement DNG synthesis/writing and metadata JSON.
 - [x] Implement TIFF/JPEG encoders and bounded job execution.
 - [x] Remove the pipeline example and update Pixi/facade documentation.
+- [x] Show resolved defaults in `fornax --help`.
 - [x] Run full validation and record results.
 
 ## Validation Results
@@ -90,6 +91,9 @@ file; explicit CLI paths resolve relative to the current directory.
 - Post-rebase conflict validation: `cargo test -p fornax-cli` passed 8 tests,
   the workspace all-feature suite passed 160 tests across 28 suites, and
   `scripts/agent-validation.sh` passed with the raw-image fixture initialized.
+- Help-defaults follow-up: `cargo test -p fornax-cli` passed 8 tests, and
+  `cargo run -p fornax-cli -- --help` showed every resolved default.
+  `scripts/agent-validation.sh --fix` passed the full workspace validation.
 
 ## Files Expected to Change
 
@@ -130,3 +134,6 @@ fixtures exist. Otherwise tests use an internal fixture decoder.
   `OutputColorSpace::Srgb`; disabling it maps to `OutputColorSpace::Raw`.
 - Rendered output uses `Preprocessor::process` followed by
   `IPostProcessor::process`.
+- Help text documents defaults without setting Clap defaults on the optional
+  CLI fields, preserving explicit CLI > file configuration > built-in
+  precedence.
