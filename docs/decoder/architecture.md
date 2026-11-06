@@ -130,9 +130,9 @@ and macOS; tests and documentation must not make the DNC path a requirement on
 other platforms or on machines without that executable.
 
 `bench-decoder` compiles one benchmark target covering `decode`, `raw_mosaic`,
-`cropped_mosaic`, `dng_metadata`, and `process_metadata` for the default DNG
-and Rawler decoders. It is separate from the preprocessor and demosaic
-benchmarks in their stage crates.
+`cropped_mosaic`, `dng_metadata`, `process_metadata`, `decode+raw_mosaic`, and
+`decode+cropped_mosaic` for the default DNG and Rawler decoders. It is
+separate from the preprocessor and demosaic benchmarks in their stage crates.
 
 ## Writer behavior
 

@@ -139,7 +139,7 @@ in the pull request; no timing baseline is committed.
 **Files:** `.github/workflows/ci.yml`, `docs/architecture.md`,
 `docs/decoder/architecture.md`, `docs/decoder/benchmark.md`
 
-- [ ] Update decoder benchmark path filters and documented behavior.
+- [x] Update decoder benchmark path filters and documented behavior.
 
 ### Task 5: Full Validation
 
