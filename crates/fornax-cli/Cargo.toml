@@ -9,6 +9,9 @@ path = "src/main.rs"
 
 [dependencies]
 clap.workspace = true
+clap-style.workspace = true
+clap-verbosity-flag.workspace = true
+clerk = { workspace = true, features = ["tracing"] }
 fornax-core.workspace = true
 fornax-decoder.workspace = true
 fornax-decoder-rawler.workspace = true
@@ -22,9 +25,6 @@ serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 toml.workspace = true
-clap-verbosity-flag.workspace = true
-clap-style.workspace = true
-clerk = { workspace = true, features = ["tracing"] }
 
 [dev-dependencies]
 assert_cmd.workspace = true
