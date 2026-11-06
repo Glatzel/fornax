@@ -27,6 +27,39 @@ where
         levels: &Levels<T>,
     ) -> Result<NormalizedMosaic<T>, PreprocessError>;
 }
+
+/// A normalized mosaic that can be consumed one row at a time.
+pub trait NormalizedMosaicSource<T>: Sync
+where
+    T: Primitive,
+{
+    fn dimensions(&self) -> (u32, u32);
+    fn fill_row(&self, y: usize, out: &mut [T]);
+
+    /// Materializes the source when a consumer needs random access.
+    fn collect_source(&self) -> Result<NormalizedMosaic<T>, PreprocessError> {
+        let (width, height) = self.dimensions();
+        let width_usize = usize::try_from(width).expect("u32 fits usize");
+        let height_usize = usize::try_from(height).expect("u32 fits usize");
+        let sample_count =
+            width_usize
+                .checked_mul(height_usize)
+                .ok_or(PreprocessError::ImageTooLarge {
+                    width: width_usize,
+                    height: height_usize,
+                })?;
+        let mut samples = vec![T::zero(); sample_count];
+        for (y, row) in samples.chunks_exact_mut(width_usize).enumerate() {
+            self.fill_row(y, row);
+        }
+        let image =
+            MonoImage::from_raw(width, height, samples).ok_or(PreprocessError::ImageTooLarge {
+                width: width_usize,
+                height: height_usize,
+            })?;
+        Ok(NormalizedMosaic::new(image))
+    }
+}
 pub trait IPostProcessMetadata<T>: Sync
 where
     T: Primitive,

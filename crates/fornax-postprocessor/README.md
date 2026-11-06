@@ -34,6 +34,11 @@ assert!(matches!(lmmse, Demosaic::Lmmse { .. }));
 `Demosaic::lmmse()` preserves darktable mode 1: one median pass and no
 refinement.
 
+`PostProcessor::process_lazy` accepts a deferred normalized-mosaic source.
+Dense demosaic implementations materialize that source before interpolation;
+the API removes a mandatory eager stage boundary without claiming every
+algorithm is row-streaming.
+
 ```rust
 use fornax_core::protocol::IPostProcessor;
 use fornax_postprocessor::PostProcessor;

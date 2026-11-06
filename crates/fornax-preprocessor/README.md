@@ -10,6 +10,10 @@ use fornax_preprocessor::Preprocessor;
 let raw_image = Preprocessor.process(decoded_active, &metadata.levels)?;
 ```
 
+`Preprocessor::lazy` returns a `LazyNormalizedMosaic` that normalizes rows on
+demand. Call `collect()` when a downstream stage needs random access to the
+whole normalized image.
+
 ## Preprocessor benchmarks
 
 Measures preprocessing from `DecodedRaw` input to `RawImage` output on

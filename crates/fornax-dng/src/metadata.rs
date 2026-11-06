@@ -27,6 +27,11 @@ impl DngMetadata {
         Arc::make_mut(&mut self.0).extend(values);
     }
 
+    #[cfg(test)]
+    pub(crate) fn shares_storage_with(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
     #[cfg(feature = "metadata-json")]
     pub fn to_json_value(&self) -> serde_json::Value {
         use serde_json::{Map, Value as JsonValue};

@@ -54,6 +54,8 @@ pub enum PreprocessError {
 pub enum PostProcessError {
     #[error(transparent)]
     Demosaic(#[from] DemosaicError),
+    #[error(transparent)]
+    Preprocess(#[from] PreprocessError),
 }
 
 #[derive(Clone, Debug, Error, PartialEq, Eq)]
