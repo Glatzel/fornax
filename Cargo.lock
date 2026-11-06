@@ -759,13 +759,18 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 name = "fornax"
 version = "0.0.17"
 dependencies = [
+ "clap",
  "fornax-core",
  "fornax-decoder",
  "fornax-decoder-dnc",
  "fornax-decoder-rawler",
+ "fornax-devtool",
  "fornax-dng",
  "fornax-postprocessor",
  "fornax-preprocessor",
+ "image 0.25.9",
+ "mischief",
+ "strum",
 ]
 
 [[package]]
