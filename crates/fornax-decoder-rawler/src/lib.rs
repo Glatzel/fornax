@@ -3,10 +3,10 @@ use std::path::Path;
 use std::str::FromStr;
 
 use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationError};
-use fornax_core::metadata::dng::{DngMetadata, DngTag, DngValue};
 use fornax_core::metadata::process::{Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
 use fornax_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_dng::{DngMetadata, DngTag, DngValue};
 use generic_num::num;
 use image::math::Rect;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
@@ -19,6 +19,8 @@ impl<T> IDecoder<&Path, T> for RawlerDecoder<T>
 where
     T: Primitive,
 {
+    type Metadata = DngMetadata;
+
     fn decode(input: &Path) -> Result<Self, DecodeError> {
         if !input.is_file() {
             return Err(DecodeError::InvalidInput(
@@ -393,7 +395,7 @@ const fn align_to_bayer_tile(mut area: Rect) -> Rect {
 mod tests {
     use std::marker::PhantomData;
 
-    use fornax_core::metadata::dng::{DngTag, DngValue};
+    use fornax_dng::{DngTag, DngValue};
     use rawler::decoders::Camera;
     use rawler::formats::tiff::{SRational, TiffAscii, Value as RawlerValue};
     use rawler::pixarray::PixU16;

@@ -1,0 +1,4 @@
+[package]
+name = "fornax-tiff"
+version.workspace = true
+edition.workspace = true

@@ -14,8 +14,10 @@ fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-decoder-dnc = { path = "./crates/fornax-decoder-dnc" }
 fornax-decoder-rawler = { path = "./crates/fornax-decoder-rawler" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
+fornax-dng = { path = "./crates/fornax-dng" }
 fornax-postprocessor = { path = "./crates/fornax-postprocessor" }
 fornax-preprocessor = { path = "./crates/fornax-preprocessor" }
+fornax-tiff = { path = "./crates/fornax-tiff" }
 
 # glatzel
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
@@ -23,7 +25,7 @@ generic-num = {
   git = "https://github.com/Glatzel/toolbox",
   tag = "v2026.10.11"
 }
-image = { git = "https://github.com/Glatzel/image-rs" }
+image = { git = "https://github.com/Glatzel/image-rs", default-features = false }
 mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 # other
@@ -47,5 +49,4 @@ sha2 = "0.11.1"
 strum = { version = "0.28.0", features = ["derive"] }
 tempfile = "3.27.0"
 thiserror = "2.0.21"
-tiff = "0.11.3"
 zune-jpeg = "0.5.15"

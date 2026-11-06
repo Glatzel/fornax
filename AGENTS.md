@@ -13,11 +13,14 @@ Read [docs/architecture.md](docs/architecture.md) for crate roles, interfaces,
 and pipeline data flow. These invariants always apply:
 
 - Keep decoding, preprocessing, and demosaicing as separate stages.
-- `fornax-core` owns shared image wrappers, metadata, errors, stage traits, the
-  DNG metadata model, and DNG writing. It does not own a decoder
-  implementation.
+- `fornax-core` owns shared image wrappers, process metadata, errors, and stage
+  traits. It does not own TIFF/DNG parsing, DNG metadata, DNG writing, or a
+  decoder implementation.
+- `fornax-tiff` owns generic TIFF values, directories, parsing, and writing.
+  `fornax-dng` owns DNG metadata, codecs, transforms, and DNG writing.
 - `fornax-decoder::Decoder<T>` is the default pure-Rust DNG decoder. The
-  `fornax` facade re-exports it as `fornax::decoder::Decoder`.
+  `fornax` facade re-exports it as `fornax::decoder::Decoder` and the DNG
+  format layer as `fornax::dng`.
 - `fornax-decoder-rawler` is an alternate Rawler-backed decoder for supported
   conventional 2x2 RGB Bayer files. `fornax-decoder-dnc` converts with Adobe
   DNG Converter before decoding with Rawler; its facade export is limited to

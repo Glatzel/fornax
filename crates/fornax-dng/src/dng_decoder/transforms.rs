@@ -1,12 +1,12 @@
 use flashraw_codecs::dng_opcodes::{PlaneImage, apply as apply_opcodes, parse as parse_opcodes};
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::dng::{DngMetadata, DngTag};
 use fornax_core::{MonoImage, RawMosaic};
+use fornax_tiff::Value;
 use num_traits::ToPrimitive;
 use rayon::prelude::*;
-use tiff::decoder::ifd::Value;
 
 use super::{corrupt, unsigned_scalar, unsigned_vec};
+use crate::metadata::{DngMetadata, DngTag};
 
 const TAG_ROW_INTERLEAVE_FACTOR: DngTag = DngTag::Unknown(50_975);
 const TAG_COLUMN_INTERLEAVE_FACTOR: DngTag = DngTag::Unknown(50_976);

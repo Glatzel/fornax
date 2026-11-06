@@ -7,7 +7,8 @@
 
 ## Implementation status
 
-The current MVP lives in `fornax-decoder` and supports:
+The current MVP lives in `fornax-dng`, with `fornax-decoder` as its
+`IDecoder` adapter, and supports:
 
 - classic TIFF little- and big-endian headers;
 - classic BigTIFF headers;
@@ -148,5 +149,5 @@ Implementation evidence and known lossless-JPEG differences are recorded in
   reference implementation can provide a comparable image.
 - Unsupported CFA layouts return typed errors without leaking into the active
   preprocessor handoff.
-- Production `fornax-decoder` dependencies remain free of C/C++ and `-sys`
-  crates.
+- Production `fornax-tiff`, `fornax-dng`, and `fornax-decoder` dependencies
+  remain free of C/C++ and `-sys` crates.

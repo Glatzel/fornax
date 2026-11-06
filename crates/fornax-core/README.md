@@ -1,9 +1,9 @@
 # fornax-core
 
-Shared RAW pipeline types, errors, metadata, Bayer layouts, and decoder,
-preprocessor, and post-processor traits for Fornax. The crate currently owns
-the pure-Rust DNG decoder and writer. Demosaic protocol traits and
-implementations live in `fornax-postprocessor`.
+Shared RAW pipeline types, errors, process metadata, Bayer layouts, and decoder,
+preprocessor, and post-processor traits for Fornax. TIFF container mechanics
+live in `fornax-tiff`; DNG metadata, codecs, and writing live in `fornax-dng`.
+Demosaic protocol traits and implementations live in `fornax-postprocessor`.
 
 ```rust
 use fornax_core::{BayerPattern, MonoImage};

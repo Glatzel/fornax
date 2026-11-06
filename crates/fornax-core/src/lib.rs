@@ -4,7 +4,6 @@ mod format;
 pub mod metadata;
 mod primitive;
 pub mod protocol;
-pub mod writer;
 
 pub use bayer::{BayerChannel, BayerPattern};
 pub use format::RawFormat;

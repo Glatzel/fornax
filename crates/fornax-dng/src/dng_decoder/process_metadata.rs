@@ -1,10 +1,11 @@
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::dng::{DngMetadata, DngTag, DngValue};
 use fornax_core::metadata::process::{Levels, ProcessMetadata};
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_tiff::Value;
 use generic_num::num;
 use image::math::Rect;
-use tiff::decoder::ifd::Value;
+
+use crate::metadata::{DngMetadata, DngTag, DngValue};
 
 pub fn process_metadata_from_dng_metadata<T>(
     full_width: u32,
@@ -256,14 +257,10 @@ where
         Some(Value::SRational(numerator, denominator)) => {
             Ok(Some(num!(*numerator) / num!(*denominator)))
         }
-        #[expect(deprecated, reason = "tiff exposes legacy BigTIFF rational variants")]
-        Some(Value::RationalBig(numerator, denominator)) => {
-            Ok(Some(num!(*numerator) / num!(*denominator)))
-        }
-        #[expect(deprecated, reason = "tiff exposes legacy BigTIFF rational variants")]
-        Some(Value::SRationalBig(numerator, denominator)) => {
-            Ok(Some(num!(*numerator) / num!(*denominator)))
-        }
+        Some(
+            Value::RationalBig(numerator, denominator)
+            | Value::SRationalBig(numerator, denominator),
+        ) => Ok(Some(num!(*numerator) / num!(*denominator))),
         Some(Value::List(values)) => values
             .first()
             .map_or(Ok(None), |value| scalar_number(Some(value))),

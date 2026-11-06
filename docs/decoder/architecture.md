@@ -42,10 +42,12 @@ The decoder boundary is:
 
 ```rust
 pub trait IDecoder<I, T> {
+    type Metadata;
+
     fn decode(input: I) -> Result<Self, DecodeError>;
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError>;
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError>;
+    fn dng_metadata(&self) -> Result<Self::Metadata, DecodeError>;
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError>;
 }
 ```
@@ -67,15 +69,15 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-core/src/protocol.rs` | `IDecoder` and cross-stage processor traits |
 | `fornax-core/src/primitive.rs` | `RawMosaic`, `CroppedMosaic`, `NormalizedMosaic`, and image aliases |
 | `fornax-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
-| `fornax-core/src/metadata/dng.rs` | `DngTag`, `DngValue`, and deterministic `DngMetadata` |
+| `fornax-tiff/src` | TIFF values, directories, checked parsing, and classic-TIFF writing |
+| `fornax-dng/src/metadata.rs` | `DngTag`, `DngValue`, and deterministic `DngMetadata` |
 | `fornax-decoder/src/lib.rs` | Default DNG decoder and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
 | `fornax-decoder-rawler/src/lib.rs` | Rawler decoding and metadata adaptation |
-| `fornax-decoder/src/dng_decoder/tiff.rs` | TIFF header, IFD, SubIFD, and typed metadata parsing |
-| `fornax-decoder/src/dng_decoder/mod.rs` | Raw IFD selection, strip/tile assembly, sample decoding, and active crop |
-| `fornax-decoder/src/dng_decoder/ljpeg.rs` | Restart-free lossless JPEG-92 component decoding |
-| `fornax-decoder/src/dng_decoder/process_metadata.rs` | DNG geometry, levels, CFA, and white-balance conversion |
-| `fornax-core/src/writer.rs` | Uncompressed DNG generation and writer options |
+| `fornax-dng/src/dng_decoder/mod.rs` | Raw IFD selection, strip/tile assembly, sample decoding, and active crop |
+| `fornax-dng/src/dng_decoder/ljpeg.rs` | Restart-free lossless JPEG-92 component decoding |
+| `fornax-dng/src/dng_decoder/process_metadata.rs` | DNG geometry, levels, CFA, and white-balance conversion |
+| `fornax-dng/src/writer.rs` | Uncompressed and lossless DNG generation |
 | `bench-decoder/benches/decoder.rs` | Decoder-method benchmarks for DNG and Rawler adapters |
 
 ## DNG data flow
@@ -99,7 +101,7 @@ not applied automatically.
 
 ## Metadata and validation
 
-The DNG decoder preserves supported values in
+The DNG decoder preserves supported values in an `Arc`-backed
 `BTreeMap<DngTag, DngValue>` while retaining their TIFF value type. Unknown
 well-formed tags remain in the map. The Rawler adapter converts Rawler's DNG
 override tags into the same typed model.
