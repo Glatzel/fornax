@@ -34,20 +34,20 @@ Out of scope:
 - [x] **Task 4:** Add reference documentation and TODO entries.
 - [x] **Task 5:** Refresh generated artifacts and run full validation.
 - [x] Pin RawTherapee release 5.13 at commit
-  `1924179107995b01b73cdc7f4fe91e44fc8227a7` in the platform setup scripts and
-  `build.rs`.
+      `1924179107995b01b73cdc7f4fe91e44fc8227a7` in the platform setup scripts and
+      `build.rs`.
 - [x] Add a RawTherapee compatibility facade and adapters for AHD, AMaZE, DCB,
-  LMMSE, RCD, VNG4, IGV, EAHD, and HPHD.
+      LMMSE, RCD, VNG4, IGV, EAHD, and HPHD.
 - [x] Add the RawTherapee backend and stable algorithm IDs to the C++ shim and
-  Rust FFI dispatch.
+      Rust FFI dispatch.
 - [x] Register RawTherapee cases for every shared Fornax/RawTherapee algorithm.
 - [x] Add direct reference tests and checksum snapshots for IGV, EAHD, and HPHD.
 - [x] Add RawTherapee reference and version metadata to canonical JSON and the
-  generated README.
+      generated README.
 - [x] Document RawTherapee source, parameters, compatibility differences, and
-  GPL-3.0-or-later constraints.
+      GPL-3.0-or-later constraints.
 - [x] Add `[IGV]`, `[EAHD]`, and `[HPHD]` to `TODO.md`; update `[AMAZE]` to
-  include both darktable and RawTherapee.
+      include both darktable and RawTherapee.
 - [x] Refresh snapshots, the canonical baseline, and generated README regions.
 - [x] Run all required validation and inspect the final diff.
 

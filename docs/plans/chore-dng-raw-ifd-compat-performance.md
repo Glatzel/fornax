@@ -49,22 +49,22 @@ repository constraints in `AGENTS.md`, `docs/architecture.md`, and
 ## Task Checklist
 
 - [ ] Establish the worktree, record the baseline, and document the selected
-  raw-IFD support boundary.
+      raw-IFD support boundary.
 - [ ] Refactor TIFF parsing into a validated raw decode plan, cache metadata,
-  and make `process_metadata` independent of pixel decoding.
+      and make `process_metadata` independent of pixel decoding.
 - [ ] Add the Rayon-backed strip/tile execution path and complete uncompressed
-  sample decoding, prediction, and pixel layout handling.
+      sample decoding, prediction, and pixel layout handling.
 - [ ] Optimize in-tree lossless JPEG-92 and cover its DNG profiles.
 - [ ] Add Deflate, lossy JPEG, and JPEG XL raw payload decoding.
 - [ ] Add linearization, interleave, sub-tile, and raw opcode transforms.
 - [ ] Implement JPEG-92 writing and lossless fallback writing in
-  `fornax-core`.
+      `fornax-core`.
 - [ ] Add regression, malformed-input, fixture, round-trip, and benchmark
-  coverage.
+      coverage.
 - [ ] Update architecture/format/reference documentation, including deferred
-  auxiliary TIFF work.
+      auxiliary TIFF work.
 - [ ] Run all required validation, inspect the diff, commit, push, and open the
-  pull request.
+      pull request.
 
 ## Files Expected to Change
 
@@ -135,7 +135,7 @@ Run the decoder benchmark with the colorchart fixture and compare
 
 - [x] Create the required branch and worktree from `origin/main`.
 - [x] Record the local `main` benchmark baseline and supported raw-IFD boundary
-  in this plan.
+      in this plan.
 - [x] Run `cargo test -p fornax-decoder --lib` and confirm the pre-change suite.
 - [x] Commit the plan.
 
@@ -154,7 +154,7 @@ Run the decoder benchmark with the colorchart fixture and compare
 
 - [x] Add a failing test proving `process_metadata` does not decode pixel data.
 - [x] Add parser tests for classic/BigTIFF, both endiannesses, field types,
-  malformed offsets, and raw-IFD selection.
+      malformed offsets, and raw-IFD selection.
 - [x] Cache selected raw metadata and geometry once during parsing.
 - [x] Replace decoder-path unwraps with existing typed errors.
 - [x] Run decoder tests and commit.
@@ -173,9 +173,9 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Produces: strip/tile execution and `RawMosaic` sample decoding.
 
 - [x] Add failing uncompressed tests for packed depths, floats, strips, tiles,
-  predictors, and final partial chunks.
+      predictors, and final partial chunks.
 - [x] Parallelize disjoint destination bands with Rayon while reusing bounded
-  scratch storage.
+      scratch storage.
 - [x] Implement uncompressed integer/float decoding and validation.
 - [x] Run decoder tests and commit.
 
@@ -192,8 +192,8 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Produces: caller-buffer `u16` JPEG-92 samples.
 
 - [x] Add tests for 12-bit precision in a 16-bit container, predictors 1-7,
-  14-bit difference categories, point transforms, parallel padded tiles, and
-  two-component tiles.
+      14-bit difference categories, point transforms, parallel padded tiles, and
+      two-component tiles.
 - [ ] Add subsampled-component and restart-marker coverage.
 - [x] Replace the per-sample bit path with a fused lookahead entropy decoder.
 - [x] Decode directly into caller-owned tile scratch buffers.
@@ -229,7 +229,7 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Produces: transformed `RawMosaic` and preserved later-domain metadata.
 
 - [x] Add failing tests for linearization, row/column interleave, and
-  `OpcodeList1`.
+      `OpcodeList1`.
 - [ ] Add `SubTileBlockSize` coverage and explicit Lists 2/3 regression tests.
 - [x] Apply transforms in DNG order with checked bounds.
 - [x] Preserve unconsumed tags in `DngMetadata`.
@@ -252,7 +252,7 @@ Run the decoder benchmark with the colorchart fixture and compare
 - [x] Implement deterministic tiled JPEG-92 encoding.
 - [x] Implement the lossless Deflate fallback.
 - [ ] Add automatic classic/BigTIFF selection for outputs that exceed classic
-  TIFF limits.
+      TIFF limits.
 - [x] Filter consumed/layout-dependent metadata and run core tests.
 - [ ] Commit.
 
@@ -271,13 +271,13 @@ Run the decoder benchmark with the colorchart fixture and compare
 - [x] Decode native DNGs from Canon, Nikon, Sigma, and Ricoh end to end.
 - [x] Decode generated Sony ILCE-1M2 and Nikon Z 7 II DNGs end to end.
 - [x] Compare decoded and preprocessed samples with Rawler where supported;
-  Apple, Nikon, Sigma, Ricoh, Sony, and Canon CFA samples match exactly after
-  crop normalization.
+      Apple, Nikon, Sigma, Ricoh, Sony, and Canon CFA samples match exactly after
+      crop normalization.
 - [x] Add no-panic malformed-input tests for every supported codec.
 - [x] Verify writer output decodes through Fornax for every mosaic storage
-  type.
+      type.
 - [x] Verify generated JPEG-92 U16 and float Deflate DNG output through the
-  Rawler adapter.
+      Rawler adapter.
 - [x] Run tests and commit.
 
 ### Task 9: Documentation and Deferred Scope
@@ -297,9 +297,9 @@ Run the decoder benchmark with the colorchart fixture and compare
 - [x] Document the supported compression/layout/bit-depth matrix.
 - [x] Document raw-domain opcode order and lossless writer fallback.
 - [x] Record auxiliary TIFF directories, source-byte export, and OpcodeList2/3
-  execution as deferred.
+      execution as deferred.
 - [x] Run `git diff --check` and commit; a Markdown-lint executable is not
-  installed in the active environment.
+      installed in the active environment.
 
 ### Task 10: Full Validation and Pull Request
 
@@ -317,6 +317,6 @@ Run the decoder benchmark with the colorchart fixture and compare
 - [x] Inspect the full diff and dependency tree.
 - [x] Commit validated fixes.
 - [x] Push the branch and open one semantic pull request.
-  Add the `perf` label to the pull request.
+      Add the `perf` label to the pull request.
 
 **Pull request:** <https://github.com/Glatzel/fornax/pull/647>

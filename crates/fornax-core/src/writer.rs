@@ -539,10 +539,6 @@ fn float_horizontal_predictor(row: &mut [u8], width: usize) {
     }
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "the directory writer mirrors the TIFF fields shared by both encodings"
-)]
 fn write_common_directory<W>(
     directory: &mut DirectoryEncoder<'_, W, TiffKindStandard>,
     width: u32,

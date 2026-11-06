@@ -82,7 +82,7 @@ jobs:
 
   benchmark:
     name: benchmark (${{ matrix.package }})
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'pull_request' && contains(join(github.event.pull_request.labels.*.name, ','), 'perf')) }}
+    if: ${{ !github.event_name == 'schedule' }}
     strategy:
       fail-fast: false
       matrix:
@@ -148,6 +148,7 @@ jobs:
           LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
           FORNAX_BENCH_ALGORITHM: ${{ matrix.algorithm }}
+          FORNAX_BENCH_BITS: 32
 
   compare-demosaic:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}

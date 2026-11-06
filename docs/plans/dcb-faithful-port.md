@@ -73,15 +73,15 @@ waivers.
 ## Task Checklist
 
 - [x] Add failing tests for border interpolation, directional candidates, and
-  the DCB direction decision; implement those stages.
+      the DCB direction decision; implement those stages.
 - [x] Add failing tests for Nyquist, map, correction, second correction, base
-  color reconstruction, and green smoothing; implement those stages.
+      color reconstruction, and green smoothing; implement those stages.
 - [x] Add failing tests for refinement, full-color reconstruction, public API
-  integration, all patterns, and measured-sample mutation; complete the
-  pipeline.
+      integration, all patterns, and measured-sample mutation; complete the
+      pipeline.
 - [x] Run the comparison, accept only intended DCB snapshots, refresh the
-  baseline and generated README, document the reference, and remove `[DCB]`
-  from `TODO.md`.
+      baseline and generated README, document the reference, and remove `[DCB]`
+      from `TODO.md`.
 - [x] Run all workspace validation and record outcomes in the pull request.
 
 ## Files Expected to Change

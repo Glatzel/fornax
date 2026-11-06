@@ -48,21 +48,21 @@ therefore leave generated README data and conclusions unchanged.
 ## Task Checklist
 
 - [x] Inventory agent instruction files, project skills, referenced
-  architecture documents, crate manifests, decoder APIs, CI, and setup paths.
+      architecture documents, crate manifests, decoder APIs, CI, and setup paths.
 - [x] Confirm the latest PR head and leave `book/AGENTS.md` unchanged because
-  its book-specific rules still match the repository.
+      its book-specific rules still match the repository.
 - [x] Update root `AGENTS.md` crate map, decoder invariants, validation, and
-  reference links.
+      reference links.
 - [x] Update workspace and decoder architecture documents for the new decoder
-  crates, image wrappers, metadata types, and pipeline data flow.
+      crates, image wrappers, metadata types, and pipeline data flow.
 - [x] Update decoder benchmark and corpus guidance for `bench-decoder` and the
-  current `IDecoder` lifecycle while preserving the open fixed-corpus work.
+      current `IDecoder` lifecycle while preserving the open fixed-corpus work.
 - [x] Update the DNG and other format notes where they still name removed
-  core decoder types.
+      core decoder types.
 - [x] Update compare-demosaic agent and skill setup/CI guidance without running
-  comparison generation or editing result data.
+      comparison generation or editing result data.
 - [x] Validate links, stale API names, Markdown formatting, YAML, skill
-  frontmatter, and `bench-decoder` target compilation.
+      frontmatter, and `bench-decoder` target compilation.
 - [x] Record outcomes, inspect the diff, commit, and push to PR 646.
 
 ## Files Expected to Change

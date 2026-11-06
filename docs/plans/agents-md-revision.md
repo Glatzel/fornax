@@ -59,18 +59,18 @@ Out of scope:
 
 - [x] 1. Create the branch and worktree from `origin/main` (2026-11-01).
 - [x] 2. Inventory the current files and record findings in Notes
-  (2026-11-01).
+      (2026-11-01).
 - [x] 3. Build the disposition table (every old rule: keep, move, or drop)
-  (2026-11-01).
+      (2026-11-01).
 - [x] 4. Write `docs/architecture.md` (2026-11-01).
 - [x] 5. Move comparison-specific rules into
-  `crates/compare-demosaic/AGENTS.md` and create the project skill(s).
+      `crates/compare-demosaic/AGENTS.md` and create the project skill(s).
 - [x] 6. Write the new root `AGENTS.md` (2026-11-01; 118 lines).
 - [x] 7. Check `.gitignore` for `agent-work/` and for accidental ignoring of
-  new files (2026-11-01).
+      new files (2026-11-01).
 - [x] 8. Run validation and fix problems (2026-11-01).
 - [x] 9. Commit (this plan included), push, open the pull request, report the
-  URL, and stop (2026-11-01; PR #613).
+      URL, and stop (2026-11-01; PR #613).
 
 ## Steps
 
