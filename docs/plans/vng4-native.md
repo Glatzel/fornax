@@ -22,18 +22,18 @@ VNG behavior or LibRaw non-four-color comparison.
 ## Task checklist
 
 - [x] Add a failing postprocessor test proving `Demosaic::Vng4` is a distinct
-  selector that preserves measured Bayer samples.
+      selector that preserves measured Bayer samples.
 - [x] Implement `Demosaic::Vng4` by reusing the existing split-green VNG kernel.
 - [x] Add a failing comparison test proving LibRaw's VNG4 adapter uses
-  `four_color_rgb = 1` and that the native GBRG row passes every unchanged
-  robust limit.
+      `four_color_rgb = 1` and that the native GBRG row passes every unchanged
+      robust limit.
 - [x] Extend the LibRaw shim with VNG4 algorithm dispatch and a table-driven
-  comparison case.
+      comparison case.
 - [x] Register VNG4 in the postprocessor benchmark registry.
 - [x] Run focused tests, then the VNG4 comparison with artifacts and inspect
-  verdict, channels, sampled sites, and the worst pixels.
+      verdict, channels, sampled sites, and the worst pixels.
 - [x] Refresh only intended comparison snapshots, canonical baseline rows, and
-  generated README content; write the algorithm note.
+      generated README content; write the algorithm note.
 - [x] Document the VNG versus VNG4 green-plane distinction and pinned sources.
 - [x] Remove `[VNG4]` from `TODO.md` after all acceptance checks pass.
 - [x] Run the repository validation suite and inspect the final diff.

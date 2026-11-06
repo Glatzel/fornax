@@ -8,7 +8,6 @@ mod process_metadata;
 mod tiff;
 mod transforms;
 
-use ::tiff::decoder::ifd::Value;
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag};
 use fornax_core::metadata::process::ProcessMetadata;
@@ -18,6 +17,7 @@ use image::math::Rect;
 use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
 pub use tiff::ParsedTiff;
+use ::tiff::decoder::ifd::Value;
 
 const COMPRESSION_UNCOMPRESSED: u16 = 1;
 const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
@@ -552,10 +552,6 @@ fn decode_uncompressed(
     }
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "the float decoder mirrors the validated TIFF chunk layout"
-)]
 fn decode_float_samples(
     source: &[u8],
     offsets: &[usize],
@@ -697,10 +693,6 @@ fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
     f32::from_bits((sign << 31) | (wide_exponent << 23) | wide_fraction)
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "the packed decoder mirrors the validated TIFF chunk layout"
-)]
 fn decode_packed_samples(
     source: &[u8],
     offsets: &[usize],
@@ -730,10 +722,6 @@ fn decode_packed_samples(
         .collect()
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "the packed decoder mirrors the validated TIFF chunk layout"
-)]
 fn decode_packed_u32_samples(
     source: &[u8],
     offsets: &[usize],
@@ -823,10 +811,6 @@ fn unpack_bits(source: &[u8], output: &mut [u32], bits: usize) -> Result<(), Dec
     Ok(())
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "the checked tile-copy parameters mirror the validated TIFF layout"
-)]
 fn copy_bytes(
     source: &[u8],
     offsets: &[usize],
@@ -866,10 +850,6 @@ fn copy_bytes(
     Ok(())
 }
 
-#[allow(
-    clippy::too_many_arguments,
-    reason = "the typed copy wrapper forwards the complete validated tile layout"
-)]
 fn copy_samples<T>(
     source: &[u8],
     offsets: &[usize],

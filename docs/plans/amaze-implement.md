@@ -32,20 +32,20 @@ Out of scope:
 
 - [x] Start from current `origin/main` in `.worktrees/amaze-implement`.
 - [x] Watch the existing native `GBRG` darktable and RawTherapee comparisons
-  fail before implementation.
+      fail before implementation.
 - [x] Add failing stage tests for tile coverage and 16-pixel reflection,
-  directional ratio selection, local variance selection, Nyquist refinement,
-  and diagonal red/blue selection.
+      directional ratio selection, local variance selection, Nyquist refinement,
+      and diagonal red/blue selection.
 - [x] Implement dedicated AMaZE tiling and green/color-difference
-  reconstruction.
+      reconstruction.
 - [x] Implement Nyquist area interpolation/refinement, diagonal red/blue
-  reconstruction, and final chroma interpolation.
+      reconstruction, and final chroma interpolation.
 - [x] Preserve measured CFA samples and support all four conventional Bayer
-  phases.
+      phases.
 - [x] Remove `Amaze` from `directional.rs`, retaining the module for the
-  separate DHT migration.
+      separate DHT migration.
 - [x] Iterate the two native `GBRG` comparison rows with partial runs and
-  inspect the full-frame texture error map.
+      inspect the full-frame texture error map.
 - [x] Update AMaZE snapshots, notes, baseline, generated README, and `TODO.md`.
 - [x] Run crate-specific and workspace validation from the repository root.
 - [x] Inspect the final diff, commit, push, and open the task pull request.

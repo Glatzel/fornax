@@ -51,15 +51,15 @@ The error maps and tile summaries were inspected together with the JSON
 channel, sampled/interpolated-site, all/interior, and worst-pixel statistics.
 All 64x64 tiles reported below are nonzero-high-error tiles.
 
-| Algorithm | Reference | MAE | P99 | Max | >1024 count | Changed | Interior MAE | Interpolated-site MAE | Sampled-site MAE |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| AAHD | LibRaw | 103.105439 | 1327 | 18089 | 1101122 | 0.629560 | 101.868229 | 154.658158 | 0.000000 |
-| AMaZE | darktable | 79.498569 | 808 | 9623 | 239862 | 0.659406 | 79.188272 | 119.247854 | 0.000000 |
-| DCB | LibRaw | 88.009547 | 1105 | 7094 | 665986 | 0.668585 | 87.717931 | 130.763942 | 2.500758 |
-| DHT | LibRaw | 96.496395 | 906 | 15912 | 356469 | 0.662065 | 94.691852 | 144.744592 | 0.000000 |
-| LMMSE | darktable | 44.776609 | 463 | 9522 | 27014 | 0.657319 | 44.385435 | 67.164914 | 0.000000 |
-| VNG | LibRaw | 2762.780291 | 30351 | 65535 | 20978050 | 0.665211 | 2757.419036 | 4144.170436 | 0.000000 |
-| VNG | darktable | 2782.662776 | 30349 | 65535 | 20998328 | 0.827285 | 2777.233600 | 4144.778187 | 58.431955 |
+| Algorithm | Reference |         MAE |   P99 |   Max | >1024 count |  Changed | Interior MAE | Interpolated-site MAE | Sampled-site MAE |
+| --------- | --------- | ----------: | ----: | ----: | ----------: | -------: | -----------: | --------------------: | ---------------: |
+| AAHD      | LibRaw    |  103.105439 |  1327 | 18089 |     1101122 | 0.629560 |   101.868229 |            154.658158 |         0.000000 |
+| AMaZE     | darktable |   79.498569 |   808 |  9623 |      239862 | 0.659406 |    79.188272 |            119.247854 |         0.000000 |
+| DCB       | LibRaw    |   88.009547 |  1105 |  7094 |      665986 | 0.668585 |    87.717931 |            130.763942 |         2.500758 |
+| DHT       | LibRaw    |   96.496395 |   906 | 15912 |      356469 | 0.662065 |    94.691852 |            144.744592 |         0.000000 |
+| LMMSE     | darktable |   44.776609 |   463 |  9522 |       27014 | 0.657319 |    44.385435 |             67.164914 |         0.000000 |
+| VNG       | LibRaw    | 2762.780291 | 30351 | 65535 |    20978050 | 0.665211 |  2757.419036 |           4144.170436 |         0.000000 |
+| VNG       | darktable | 2782.662776 | 30349 | 65535 |    20998328 | 0.827285 |  2777.233600 |           4144.778187 |        58.431955 |
 
 ## Review focus
 
@@ -149,19 +149,19 @@ comparison adapter pins the supported Bayer branch and direct RGB copy-out.
 ### Task checklist
 
 - [ ] Add a failing 8x8 Bayer phase-table unit test that asserts the exact
-  LibRaw term offsets, shift weights, and gradient masks for at least one
-  phase at every odd/even row parity and both column parities.
+      LibRaw term offsets, shift weights, and gradient masks for at least one
+      phase at every odd/even row parity and both column parities.
 - [ ] Add a failing linear-interpolation fixture with known border values and
-  assert the one-pixel border result above, below, left, and right.
+      assert the one-pixel border result above, below, left, and right.
 - [ ] Add a failing VNG fixture with a small hand-computable directional
-  pattern and an explicit expected 16-bit RGB buffer.
+      pattern and an explicit expected 16-bit RGB buffer.
 - [ ] Replace `TERMS`, phase generation, gradient accumulation, neighbor sums,
-  and ring-buffer copy order with the LibRaw 0.22.3 conventions.
+      and ring-buffer copy order with the LibRaw 0.22.3 conventions.
 - [ ] Keep the existing measured-sample invariant for both green phases under
-  LibRaw's unified-green representation.
+      LibRaw's unified-green representation.
 - [ ] Add `rows_can_be_filled_independently` and small-image rejection tests.
 - [ ] Run the native LibRaw and darktable comparisons with artifacts and
-  inspect both error maps.
+      inspect both error maps.
 
 ### Files expected to change
 
@@ -302,15 +302,15 @@ waiver.
 ### Task checklist
 
 - [ ] Add a failing PPG-seed test with a nonuniform Bayer fixture that pins
-  the exact green and opposite-color values used by LMMSE.
+      the exact green and opposite-color values used by LMMSE.
 - [ ] Add a failing gamma-table interpolation test at the linear/gamma
-  thresholds, table endpoints, and between-entry values.
+      thresholds, table endpoints, and between-entry values.
 - [ ] Add a failing 136x136/odd-size tile test that expects identical center
-  pixels across adjacent tiles and deterministic seam output.
+      pixels across adjacent tiles and deterministic seam output.
 - [ ] Add a failing mode-1 fixture with one median stage and no refinement
-  stage.
+      stage.
 - [ ] Implement the dedicated LMMSE path while retaining the `DemosaicLmmse`
-  and `DenseLazy` public interfaces.
+      and `DenseLazy` public interfaces.
 - [ ] Add all-pattern tests and an image smaller than twice the border.
 - [ ] Run the native comparison and inspect the periodic lattice.
 
@@ -435,28 +435,28 @@ helpers:
   `ushort` conversion.
 - Reuse the existing AHD `CBRT` table or extract a shared tested LUT only if
   AAHD needs the same LUT; keep AHD behavior unchanged.
-LibRaw's outer processing metadata, progress callbacks, and camera-specific
-matrix pipeline are not part of the Fornax demosaic boundary and cannot be
-reproduced there. The comparison bridge deliberately supplies an identity
-`rgb_cam` and no white balance, so the port targets that exact reference path
-and the reference's own integer output conventions.
+  LibRaw's outer processing metadata, progress callbacks, and camera-specific
+  matrix pipeline are not part of the Fornax demosaic boundary and cannot be
+  reproduced there. The comparison bridge deliberately supplies an identity
+  `rgb_cam` and no white balance, so the port targets that exact reference path
+  and the reference's own integer output conventions.
 
 ### Task checklist
 
 - [x] Add a failing gamma-LUT test at dark values, the linear/gamma threshold,
-  and white.
+      and white.
 - [x] Add a failing two-direction fixture that distinguishes horizontal and
-  vertical green candidates and asserts the homogeneity decision.
+      vertical green candidates and asserts the homogeneity decision.
 - [x] Add a failing hot-pixel fixture that verifies the original CFA sample is
-  restored before directional combination.
+      restored before directional combination.
 - [x] Add a failing final-`ushort` truncation/clipping fixture, including
-  negative and over-white intermediates.
+      negative and over-white intermediates.
 - [x] Implement the dedicated AAHD path and remove `Aahd` from the shared
-  profile only after the comparison passes; keep `DemosaicAahd` and
-  `DenseLazy`.
+      profile only after the comparison passes; keep `DemosaicAahd` and
+      `DenseLazy`.
 - [x] Add all-pattern, measured-sample, uniform-field, and row-boundary tests.
 - [x] Run the native comparison and inspect the error map for full-frame
-  structure and chart-edge tails.
+      structure and chart-edge tails.
 
 ### Files expected to change
 
@@ -575,24 +575,24 @@ Port LibRaw 0.22.3 `LibRaw::dht_interpolate()` and the private `DHT` helpers:
   `unsigned short` conversion.
 - Use the current Bayer pattern at the boundary and normalize green row phase
   only where LibRaw does.
-LibRaw's progress callbacks and AHD fallback for unsupported filter masks are
-not applicable at the Fornax boundary: the pipeline rejects non-2x2-Bayer
-input before demosaicing. LibRaw's surrounding raw metadata and output
-pipeline also cannot be reproduced as part of this stage, so the adapter's
-pre-interpolated green normalization and direct `ushort[4]` copy-out are the
-contract to match.
+  LibRaw's progress callbacks and AHD fallback for unsupported filter masks are
+  not applicable at the Fornax boundary: the pipeline rejects non-2x2-Bayer
+  input before demosaicing. LibRaw's surrounding raw metadata and output
+  pipeline also cannot be reproduced as part of this stage, so the adapter's
+  pre-interpolated green normalization and direct `ushort[4]` copy-out are the
+  contract to match.
 
 ### Task checklist
 
 - [ ] Add a failing hot-pixel test that verifies a marked sample is excluded
-  during direction selection and restored unchanged at output.
+      during direction selection and restored unchanged at output.
 - [ ] Add a failing horizon/vertical edge fixture whose direction map and green
-  line must choose different directions.
+      line must choose different directions.
 - [ ] Add a failing diagonal red/blue fixture that pins the `make_rbdiag` and
-  `make_rbhv` decision.
+      `make_rbhv` decision.
 - [ ] Add a failing float-to-`ushort` truncation test at half-code boundaries.
 - [ ] Implement the dedicated DHT path and remove `Dht` from the shared profile
-  after comparison passes; keep `DemosaicDht` and `DenseLazy`.
+      after comparison passes; keep `DemosaicDht` and `DenseLazy`.
 - [ ] Add all-pattern, uniform-field, measured-sample, and border-margin tests.
 - [ ] Run the native comparison and inspect the error map and decision flips.
 
@@ -704,24 +704,24 @@ Port LibRaw 0.22.3 `LibRaw::dcb(0, 1)` and its called helpers:
   identical averaging and bounds.
 - Preserve reference-modified measured samples; do not force the CFAs back to
   input after the final stage unless LibRaw does.
-LibRaw's outer camera metadata, white balance, progress callbacks, and
-post-demosaic processing are unavailable inside the isolated Fornax stage and
-are not part of the comparison adapter. The port targets the reference
-`pre_interpolate()` plus `dcb(0, 1)` path with the adapter's direct integer
-copy-out; any remaining differences must fit the numeric limits.
+  LibRaw's outer camera metadata, white balance, progress callbacks, and
+  post-demosaic processing are unavailable inside the isolated Fornax stage and
+  are not part of the comparison adapter. The port targets the reference
+  `pre_interpolate()` plus `dcb(0, 1)` path with the adapter's direct integer
+  copy-out; any remaining differences must fit the numeric limits.
 
 ### Task checklist
 
 - [ ] Add a failing two-direction fixture that distinguishes the horizontal
-  and vertical DCB candidates and the `dcb_decide` result.
+      and vertical DCB candidates and the `dcb_decide` result.
 - [ ] Add a failing Nyquist-pattern fixture that requires all three
-  `dcb_nyquist()` passes before mapping.
+      `dcb_nyquist()` passes before mapping.
 - [ ] Add a failing color-map/correction fixture with a local edge and an
-  expected mixed green value.
+      expected mixed green value.
 - [ ] Add a failing enhancement fixture that reaches `dcb_refinement` and
-  `dcb_color_full`.
+      `dcb_color_full`.
 - [ ] Implement the dedicated DCB path and remove `Dcb` from the shared profile
-  after comparison passes; keep `DemosaicDcb` and `DenseLazy`.
+      after comparison passes; keep `DemosaicDcb` and `DenseLazy`.
 - [ ] Add all-pattern, uniform-field, six-pixel-border, and small-image tests.
 - [ ] Run the native comparison and inspect the error map and worst samples.
 
@@ -834,30 +834,30 @@ Port darktable 5.6.2 `amaze_demosaic()`:
   refinement, diagonal red/blue correction, and final clamped output.
 - Keep the one-channel CFA plus computed green/color-difference planes; do not
   add camera-matrix or white-balance stages absent from the harness.
-The darktable pixelpipe, its metadata, and the surrounding demosaic module
-orchestration cannot be represented by Fornax's typed demosaic interface. The
-adapter pins the normalized input, identity scaling, `clip_pt = 1`, and final
-clamp/nearest-code conversion, so those are the reference-specific conventions
-the port can match. Any compiler-dependent floating-point differences remain
-subject to the same numeric limits.
+  The darktable pixelpipe, its metadata, and the surrounding demosaic module
+  orchestration cannot be represented by Fornax's typed demosaic interface. The
+  adapter pins the normalized input, identity scaling, `clip_pt = 1`, and final
+  clamp/nearest-code conversion, so those are the reference-specific conventions
+  the port can match. Any compiler-dependent floating-point differences remain
+  subject to the same numeric limits.
 
 ### Task checklist
 
 - [ ] Add a failing tile-geometry test for `5202` width and a smaller odd/even
-  matrix, asserting each destination pixel is written exactly once and tile
-  starts/ends match the 16-pixel halo rules.
+      matrix, asserting each destination pixel is written exactly once and tile
+      starts/ends match the 16-pixel halo rules.
 - [ ] Add a failing directional-gradient fixture that distinguishes
-  horizontal and vertical adaptive ratio choices.
+      horizontal and vertical adaptive ratio choices.
 - [ ] Add a failing local-variance fixture that changes the selected green
-  interpolation direction.
+      interpolation direction.
 - [ ] Add a failing Nyquist-pattern fixture that requires area interpolation
-  and curvature refinement.
+      and curvature refinement.
 - [ ] Add a failing diagonal red/blue ratio fixture.
 - [ ] Implement the dedicated AMaZE path and remove `Amaze` from the shared
-  profile after comparison passes; this should be the final user of
-  `directional.rs`.
+      profile after comparison passes; this should be the final user of
+      `directional.rs`.
 - [ ] Delete `directional.rs` and its `Profile` enum after the last migrated
-  algorithm passes, and update `demosaic.rs`.
+      algorithm passes, and update `demosaic.rs`.
 - [ ] Add all-pattern, uniform-field, border-reflection, and row-lazy tests.
 - [ ] Run the native comparison and inspect the full-frame texture map.
 
@@ -928,12 +928,12 @@ Each implementation pull request must:
 
 - [ ] Start from current `origin/main` in its required task worktree.
 - [ ] Include only one algorithm's implementation plus required tests and
-  documentation.
+      documentation.
 - [ ] Update that algorithm's hand-written note, snapshots, and complete
-  baseline with the commands below.
+      baseline with the commands below.
 - [ ] Remove only the completed bracketed item from `TODO.md`.
 - [ ] Report installed LibRaw/darktable versions, all command outcomes, and any
-  skipped check.
+      skipped check.
 
 For an algorithm `<id>`, run:
 
@@ -983,14 +983,14 @@ request for that task and report its URL; do not watch, merge, or close it.
 6. **AMASE**: largest port and final shared-kernel user, allowing
    `directional.rs` to be deleted at completion.
 
-| Order | TODO | Branch | Worktree | Dependency |
-| ---: | --- | --- | --- | --- |
-| 1 | `[VNG]` | `task/vng-faithful-port` | `.worktrees/vng-faithful-port` | None |
-| 2 | `[LMMSE]` | `task/lmmse-faithful-port` | `.worktrees/lmmse-faithful-port` | Exact PPG seed |
-| 3 | `[AAHD]` | `task/aahd-faithful-port` | `.worktrees/aahd-faithful-port` | Existing AHD LUT concepts |
-| 4 | `[DHT]` | `task/dht-faithful-port` | `.worktrees/dht-faithful-port` | AAHD hot-pixel/float-plane idiom |
-| 5 | `[DCB]` | `task/dcb-faithful-port` | `.worktrees/dcb-faithful-port` | None |
-| 6 | `[AMASE]` | `task/amase-faithful-port` | `.worktrees/amase-faithful-port` | Earlier migrations; deletes shared kernel |
+| Order | TODO      | Branch                     | Worktree                         | Dependency                                |
+| ----: | --------- | -------------------------- | -------------------------------- | ----------------------------------------- |
+|     1 | `[VNG]`   | `task/vng-faithful-port`   | `.worktrees/vng-faithful-port`   | None                                      |
+|     2 | `[LMMSE]` | `task/lmmse-faithful-port` | `.worktrees/lmmse-faithful-port` | Exact PPG seed                            |
+|     3 | `[AAHD]`  | `task/aahd-faithful-port`  | `.worktrees/aahd-faithful-port`  | Existing AHD LUT concepts                 |
+|     4 | `[DHT]`   | `task/dht-faithful-port`   | `.worktrees/dht-faithful-port`   | AAHD hot-pixel/float-plane idiom          |
+|     5 | `[DCB]`   | `task/dcb-faithful-port`   | `.worktrees/dcb-faithful-port`   | None                                      |
+|     6 | `[AMASE]` | `task/amase-faithful-port` | `.worktrees/amase-faithful-port` | Earlier migrations; deletes shared kernel |
 
 ## Licensing gate
 

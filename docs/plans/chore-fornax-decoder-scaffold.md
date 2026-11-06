@@ -47,25 +47,25 @@ other CFA layout with a typed handoff error.
 ## Task Checklist
 
 - [x] Read the root/project guidance, existing decoder protocol, Rawler,
-  DNC, LibRaw adapter, preprocessor input, `compare-demosaic`, and sample
-  downloader.
+      DNC, LibRaw adapter, preprocessor input, `compare-demosaic`, and sample
+      downloader.
 - [x] Verify the current DNG specification version from Adobe's published
-  page.
+      page.
 - [x] Inspect the existing `external/dnglab` and `external/libraw` pinned
-  references and read the LGPL-2.1, CDDL-1.0, and GPL-3.0 licences relevant
-  to referenced implementations.
+      references and read the LGPL-2.1, CDDL-1.0, and GPL-3.0 licences relevant
+      to referenced implementations.
 - [x] Write the architecture, per-format tier plans, corpus design, and
-  benchmark plan.
+      benchmark plan.
 - [x] Add the compiling `fornax-decoder` public model and errors with explicit
-  `todo!()` placeholders for deferred construction and protocol behavior.
+      `todo!()` placeholders for deferred construction and protocol behavior.
 - [x] Replace temporary behavior tests with intentional `todo!()` paths and
-  `no_run` public examples while the implementation is deferred.
+      `no_run` public examples while the implementation is deferred.
 - [x] Revise the public model around image-buffer-backed `MosaicData`, a
-  `BTreeMap<DngTag, DngValue>` metadata map, tag-only CFA, strum-backed format
-  names, and decoded-image DNG writer methods.
+      `BTreeMap<DngTag, DngValue>` metadata map, tag-only CFA, strum-backed format
+      names, and decoded-image DNG writer methods.
 - [x] Add one backlog entry per planned format/tooling/migration work item.
 - [x] Run formatting, tests, clippy, documentation tests, and dependency-tree
-  checks.
+      checks.
 - [ ] Run Markdown lint when a repository-declared tool is available.
 - [x] Inspect the complete diff and commit the branch.
 - [x] Push the branch and open one semantic pull request.

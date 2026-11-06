@@ -39,62 +39,62 @@ Out of scope:
 - [x] Add `tempfile.workspace = true` to `fornax-core` dev dependencies.
 - [x] Add `crates/fornax-core/tests/dng_roundtrip.rs`.
 - [x] Assert full-frame dimensions, active/default crop geometry, full GBRG
-  and active RGGB patterns, black/white levels, representative metadata, and
-  the accepted sample hash.
+      and active RGGB patterns, black/white levels, representative metadata, and
+      the accepted sample hash.
 - [x] Export uncompressed DNG and assert exact sample and selected-tag
-  round-trip.
+      round-trip.
 - [x] Assert default lossless export returns the existing typed `Unsupported`
-  error.
+      error.
 - [x] Run the integration test and fix only defects it exposes.
 
 ### Task 2: Repair branch checks without API or code-doc additions
 
 - [x] Correct the five existing doctest imports from `fornax_decoder` to their
-  current `fornax_core` paths.
+      current `fornax_core` paths.
 - [x] Replace repeated `MosaicData` variant names with `Self` in
-  `MosaicData::dimensions`.
+      `MosaicData::dimensions`.
 - [x] Remove the unnecessary semicolon after the compression match.
 - [x] Run nightly rustfmt.
 - [x] Normalize trailing whitespace and CRLF artifacts reported by
-  `git diff --check`.
+      `git diff --check`.
 - [x] Run doctests, exact clippy, and formatting checks.
 
 ### Task 3: Refresh demosaic comparisons for the DNG fixture
 
 - [x] Run the full comparison using the accepted DNG and inspect verdict
-  changes.
+      changes.
 - [x] Replace `crates/compare-demosaic/baseline/canonical.json` with the new
-  deterministic full-run output.
+      deterministic full-run output.
 - [x] Update existing waivers only where the same DNG rows still pass all
-  limits and the measured bounds/evidence can be updated. Remove unused
-  waivers. Do not add a new accepted outlier without human review.
+      limits and the measured bounds/evidence can be updated. Remove unused
+      waivers. Do not add a new accepted outlier without human review.
 - [x] Regenerate marker-controlled `crates/compare-demosaic/README.md`
-  sections and update the input prose.
+      sections and update the input prose.
 - [x] Accept DNG-derived Insta checksum snapshots after confirming only
-  expected checksum values changed.
+      expected checksum values changed.
 - [x] Run comparison tests, `readme --check`, full run, and baseline diff.
 
 ### Task 4: Reconcile active documentation and migration cleanup
 
 - [x] Update `AGENTS.md` and `crates/compare-demosaic/AGENTS.md` for the
-  `fornax-core` decoder ownership, DNG fixture, and legacy-backend removal.
+      `fornax-core` decoder ownership, DNG fixture, and legacy-backend removal.
 - [x] Update active architecture, decoder format/status, benchmark, corpus,
-  reference-note, root README, and crate README guidance.
+      reference-note, root README, and crate README guidance.
 - [x] Rewrite this plan's progress, files, validation, and decisions as work
-  completes.
+      completes.
 - [x] Remove `DEC-DNG` and `DEC-MIGRATE` from `TODO.md`.
 - [x] Remove the orphaned libraw bindgen workflow/script and DNC
-  installer/CI steps.
+      installer/CI steps.
 - [x] Remove the unused workspace `bindgen` dependency and refresh the lock
-  file.
+      file.
 
 ### Task 5: Full verification and handoff
 
 - [x] Run the complete validation matrix below with LibRaw environment
-  variables set.
+      variables set.
 - [x] Run task-specific benchmark compilation and the pipeline example.
 - [x] Verify production dependency trees do not include removed legacy
-  decoder crates.
+      decoder crates.
 - [x] Inspect the full diff and commit on `task/dec-dng-roundtrip`.
 - [x] Push the branch and create or report the semantic pull request.
 
@@ -213,6 +213,6 @@ Observed on this worktree:
 
 - [x] Initial branch and failure audit completed.
 - [x] Integration coverage, code checks, comparison refresh, and active
-  documentation cleanup completed.
+      documentation cleanup completed.
 - [x] Full validation completed and recorded.
 - [x] Branch pushed and PR #642 updated.

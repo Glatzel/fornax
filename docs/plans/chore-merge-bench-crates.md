@@ -313,7 +313,7 @@ git diff --check
   FAIL on the pre-existing `clippy::too_many_arguments` finding in
   `crates/fornax-postprocessor/src/demosaic/ahd.rs`.
   `cargo clippy -p fornax-postprocessor -p fornax-preprocessor --all-features
-  --all-targets -- -D warnings -A clippy::too_many_arguments`: PASS with no
+--all-targets -- -D warnings -A clippy::too_many_arguments`: PASS with no
   issues in the changed packages.
 - `cargo bench -p fornax-postprocessor --bench demosaic --no-run`: PASS.
 - `cargo bench -p fornax-preprocessor --bench preprocessor --no-run`: PASS.

@@ -13,8 +13,7 @@ In scope:
 
 - PPG-seeded borders and darktable-compatible LMMSE reconstruction.
 - Gamma encode/decode lookup tables with interpolated access.
-- 136-pixel tiles, four-pixel borders, eight-pixel overlap, and valid stride
-  112.
+- 136-pixel tiles, four-pixel borders, eight-pixel overlap, and valid stride 112.
 - Directional color differences, nine-tap low-pass filtering, directional
   variance weighting, red/blue interpolation, and one median pass.
 - Unit and comparison regressions for all Bayer phases.
