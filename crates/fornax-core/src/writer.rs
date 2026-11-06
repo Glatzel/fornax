@@ -539,7 +539,6 @@ fn float_horizontal_predictor(row: &mut [u8], width: usize) {
     }
 }
 
-
 fn write_common_directory<W>(
     directory: &mut DirectoryEncoder<'_, W, TiffKindStandard>,
     width: u32,

@@ -8,6 +8,7 @@ mod process_metadata;
 mod tiff;
 mod transforms;
 
+use ::tiff::decoder::ifd::Value;
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::dng::{DngMetadata, DngTag};
 use fornax_core::metadata::process::ProcessMetadata;
@@ -17,7 +18,6 @@ use image::math::Rect;
 use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
 pub use tiff::ParsedTiff;
-use ::tiff::decoder::ifd::Value;
 
 const COMPRESSION_UNCOMPRESSED: u16 = 1;
 const COMPRESSION_LOSSLESS_JPEG: u16 = 7;
