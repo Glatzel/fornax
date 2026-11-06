@@ -6,6 +6,7 @@ use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationErro
 use fornax_core::metadata::{Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
 use fornax_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_dng::metadata::IDecoderDng;
 use fornax_dng::{DngMetadata, DngTag, DngValue};
 use generic_num::num;
 use image::math::Rect;
@@ -15,27 +16,13 @@ use rawler::formats::tiff::Value as RawlerValue;
 #[derive(Clone, Debug)]
 pub struct RawlerDecoder<T> {
     raw: RawImage,
-    metadata: DngMetadata,
     _mark: PhantomData<T>,
-}
-
-impl<T> RawlerDecoder<T> {
-    fn from_raw(raw: RawImage) -> Result<Self, DecodeError> {
-        let metadata = synthesize_dng_metadata(&raw);
-        Ok(Self {
-            raw,
-            metadata,
-            _mark: PhantomData,
-        })
-    }
 }
 
 impl<T> IDecoder<&Path, T> for RawlerDecoder<T>
 where
     T: Primitive,
 {
-    type Metadata = DngMetadata;
-
     fn decode(input: &Path) -> Result<Self, DecodeError> {
         if !input.is_file() {
             return Err(DecodeError::InvalidInput(
@@ -44,7 +31,10 @@ where
         }
         let raw = rawler::decode_file(input).map_err(backend_error)?;
 
-        Self::from_raw(raw)
+        Ok(RawlerDecoder {
+            raw: raw,
+            _mark: PhantomData,
+        })
     }
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
         let raw = &self.raw;
@@ -111,8 +101,6 @@ where
         cropped.crop_in_place(metadata.active_area);
         Ok(CroppedMosaic::new(cropped))
     }
-
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> { Ok(self.metadata.clone()) }
 
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
         let raw = &self.raw;
@@ -317,6 +305,14 @@ where
             bayer_pattern,
             wb_coeffs,
         })
+    }
+}
+impl<T> IDecoderDng<&Path, T> for RawlerDecoder<T>
+where
+    T: Primitive,
+{
+    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> {
+        Ok(synthesize_dng_metadata(&self.raw))
     }
 }
 
@@ -593,8 +589,10 @@ mod tests {
 
     #[test]
     fn cropped_mosaic_returns_only_the_active_area() {
-        let decoder: RawlerDecoder<f32> =
-            RawlerDecoder::from_raw(configured_raw()).expect("metadata should synthesize");
+        let decoder: RawlerDecoder<f32> = RawlerDecoder {
+            raw: configured_raw(),
+            _mark: PhantomData,
+        };
 
         let cropped = decoder.cropped_mosaic().expect("active area should crop");
 
@@ -607,8 +605,10 @@ mod tests {
 
     #[test]
     fn dng_metadata_synthesizes_decoded_geometry_levels_and_cfa() {
-        let decoder: RawlerDecoder<f32> =
-            RawlerDecoder::from_raw(configured_raw()).expect("metadata should synthesize");
+        let decoder: RawlerDecoder<f32> = RawlerDecoder {
+            raw: configured_raw(),
+            _mark: PhantomData,
+        };
 
         let metadata = decoder
             .dng_metadata()
@@ -687,8 +687,10 @@ mod tests {
                 RawlerValue::SRational(vec![SRational::new(-1, 3)]),
             ),
         ]);
-        let decoder: RawlerDecoder<f32> =
-            RawlerDecoder::from_raw(raw).expect("metadata should synthesize");
+        let decoder: RawlerDecoder<f32> = RawlerDecoder {
+            raw: configured_raw(),
+            _mark: PhantomData,
+        };
 
         let metadata = decoder.dng_metadata().expect("DNG tags should convert");
 

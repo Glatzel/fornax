@@ -3,10 +3,20 @@ use std::fmt;
 use std::ops::Deref;
 use std::sync::Arc;
 
+use fornax_core::Primitive;
+use fornax_core::error::DecodeError;
+use fornax_core::protocol::IDecoder;
 use num_enum::{FromPrimitive, IntoPrimitive};
 use strum::AsRefStr;
 
 pub type DngValue = fornax_tiff::Value;
+pub trait IDecoderDng<I, T>: Send + Sync + IDecoder<I, T>
+where
+    T: Primitive,
+{
+    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError>;
+}
+
 /// Deterministically ordered DNG metadata values keyed by TIFF/DNG tag.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct DngMetadata(Arc<BTreeMap<DngTag, DngValue>>);

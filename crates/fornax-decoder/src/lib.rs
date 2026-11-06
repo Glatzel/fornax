@@ -6,6 +6,7 @@ use fornax_core::error::DecodeError;
 use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
+use fornax_dng::metadata::IDecoderDng;
 use fornax_dng::{DngImage, DngMetadata};
 
 #[derive(Clone, Debug)]
@@ -17,8 +18,6 @@ impl<T> IDecoder<&Path, T> for Decoder<T>
 where
     T: Primitive,
 {
-    type Metadata = DngMetadata;
-
     fn decode(input: &Path) -> Result<Self, DecodeError> {
         let extension = input
             .extension()
@@ -53,16 +52,20 @@ where
         }
     }
 
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> {
-        match self {
-            Self::Dng(parsed) => fornax_dng::dng_metadata(parsed),
-            Self::_Mark(_) => unreachable!(),
-        }
-    }
-
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
         match self {
             Self::Dng(parsed) => fornax_dng::process_metadata(parsed),
+            Self::_Mark(_) => unreachable!(),
+        }
+    }
+}
+impl<T> IDecoderDng<&Path, T> for Decoder<T>
+where
+    T: Primitive,
+{
+    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> {
+        match self {
+            Self::Dng(parsed) => fornax_dng::dng_metadata(parsed),
             Self::_Mark(_) => unreachable!(),
         }
     }

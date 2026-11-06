@@ -8,12 +8,9 @@ where
     T: Primitive,
     Self: Sized,
 {
-    type Metadata;
-
     fn decode(input: I) -> Result<Self, DecodeError>;
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError>;
-    fn dng_metadata(&self) -> Result<Self::Metadata, DecodeError>;
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError>;
 }
 
