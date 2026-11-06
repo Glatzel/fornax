@@ -1,5 +1,5 @@
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
-use crate::metadata::{CameraCalibration, Levels, Matrix3x3, ProcessMetadata};
+use crate::metadata::{ Levels, Matrix3x3, ProcessMetadata};
 use crate::{
     BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
 };
@@ -34,8 +34,8 @@ where
     fn color_matrix_2(&self) -> Option<&Matrix3x3> { None }
     fn forward_matrix_1(&self) -> Option<&Matrix3x3> { None }
     fn forward_matrix_2(&self) -> Option<&Matrix3x3> { None }
-    fn camera_calibration_1(&self) -> CameraCalibration { CameraCalibration::Identity }
-    fn camera_calibration_2(&self) -> CameraCalibration { CameraCalibration::Identity }
+    fn camera_calibration_1(&self) -> Option<&Matrix3x3> { None }
+    fn camera_calibration_2(&self) -> Option<&Matrix3x3> { None }
 }
 pub trait IPostProcessor<T, M>
 where

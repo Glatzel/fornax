@@ -3,7 +3,7 @@ use std::path::Path;
 use std::str::FromStr;
 
 use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationError};
-use fornax_core::metadata::{CameraCalibration, Levels, ProcessMetadata};
+use fornax_core::metadata::{Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
 use fornax_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_dng::metadata::IDecoderDng;
@@ -310,8 +310,8 @@ where
             color_matrix_2: None,
             forward_matrix_1: None,
             forward_matrix_2: None,
-            camera_calibration_1: CameraCalibration::Identity,
-            camera_calibration_2: CameraCalibration::Identity,
+            camera_calibration_1: None,
+            camera_calibration_2: None,
         })
     }
 }

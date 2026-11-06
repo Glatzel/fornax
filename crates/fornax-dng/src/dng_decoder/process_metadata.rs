@@ -1,5 +1,5 @@
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::{CameraCalibration, Levels, Matrix3x3, ProcessMetadata};
+use fornax_core::metadata::{Levels, Matrix3x3, ProcessMetadata};
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, Value};
@@ -38,8 +38,8 @@ where
     let color_matrix_2 = matrix(dng_metadata, DngTag::ColorMatrix2)?;
     let forward_matrix_1 = matrix(dng_metadata, DngTag::ForwardMatrix1)?;
     let forward_matrix_2 = matrix(dng_metadata, DngTag::ForwardMatrix2)?;
-    let camera_calibration_1 = camera_calibration(dng_metadata, DngTag::CameraCalibration1)?;
-    let camera_calibration_2 = camera_calibration(dng_metadata, DngTag::CameraCalibration2)?;
+    let camera_calibration_1 = matrix(dng_metadata, DngTag::CameraCalibration1)?;
+    let camera_calibration_2 = matrix(dng_metadata, DngTag::CameraCalibration2)?;
 
     Ok(ProcessMetadata {
         active_area,
@@ -77,10 +77,6 @@ fn matrix(metadata: &Directory, tag: DngTag) -> Result<Option<Matrix3x3>, Decode
         [values[3], values[4], values[5]],
         [values[6], values[7], values[8]],
     ]))
-}
-
-fn camera_calibration(metadata: &Directory, tag: DngTag) -> Result<CameraCalibration, DecodeError> {
-    Ok(matrix(metadata, tag)?.map_or(CameraCalibration::Identity, CameraCalibration::Matrix))
 }
 
 fn active_area(
@@ -436,22 +432,16 @@ mod tests {
 
         let process = process_metadata_from_dng_metadata::<f64>(2, 2, &metadata).unwrap();
 
-        assert_eq!(
-            process.camera_calibration_1,
-            CameraCalibration::Matrix(calibration1)
-        );
-        assert_eq!(
-            process.camera_calibration_2,
-            CameraCalibration::Matrix(calibration2)
-        );
+        assert_eq!(process.camera_calibration_1, Some(calibration1));
+        assert_eq!(process.camera_calibration_2, Some(calibration2));
     }
 
     #[test]
     fn absent_camera_calibrations_are_identity() {
         let process = process_metadata_from_dng_metadata::<f64>(2, 2, &valid_metadata()).unwrap();
 
-        assert_eq!(process.camera_calibration_1, CameraCalibration::Identity);
-        assert_eq!(process.camera_calibration_2, CameraCalibration::Identity);
+        assert_eq!(process.camera_calibration_1, None);
+        assert_eq!(process.camera_calibration_2, None);
     }
 
     #[test]

@@ -235,9 +235,7 @@ where
     } else {
         return Ok(None);
     };
-    let calibrated = calibration
-        .matrix()
-        .map_or(*matrix, |calibration| multiply_3x3(calibration, *matrix));
+    let calibrated = calibration.map_or(*matrix, |calibration| multiply_3x3(*calibration, *matrix));
     invert_3x3(calibrated).map(Some)
 }
 
@@ -304,7 +302,7 @@ fn invert_3x3(matrix: Matrix3x3) -> Result<Matrix3x3, PostProcessError> {
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::metadata::{CameraCalibration, Levels, ProcessMetadata};
+    use fornax_core::metadata::{Levels, ProcessMetadata};
     use fornax_core::{BayerPattern, MonoImage};
     use image::math::Rect;
 
@@ -336,8 +334,8 @@ mod tests {
             color_matrix_2: None,
             forward_matrix_1: None,
             forward_matrix_2: None,
-            camera_calibration_1: CameraCalibration::Identity,
-            camera_calibration_2: CameraCalibration::Identity,
+            camera_calibration_1: None,
+            camera_calibration_2: None,
         }
     }
 
@@ -454,8 +452,7 @@ mod tests {
         let image = MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap();
         let mut metadata = metadata();
         metadata.color_matrix_1 = Some([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]);
-        metadata.camera_calibration_1 =
-            CameraCalibration::Matrix([[2.0, 0.0, 0.0], [0.0, 4.0, 0.0], [0.0, 0.0, 5.0]]);
+        metadata.camera_calibration_1 = Some([[2.0, 0.0, 0.0], [0.0, 4.0, 0.0], [0.0, 0.0, 5.0]]);
         let processor = PostProcessor::<f32, _> {
             demosaic: Demosaic::Linear,
             use_wb_coeffs: false,
