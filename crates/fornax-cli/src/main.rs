@@ -1,9 +1,12 @@
 use clap::Parser;
+use clerk::tracing_subscriber::layer::SubscriberExt;
+use clerk::tracing_subscriber::util::SubscriberInitExt;
+use clerk::tracing_subscriber::{EnvFilter, Layer, Registry};
 use fornax_cli::{CliArgs, run};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = CliArgs::parse();
-    clerk::tracing_subscriber::registry()
+    Registry::default()
         .with(
             clerk::terminal_layer(true).with_filter(
                 EnvFilter::builder()
