@@ -4,6 +4,30 @@ use crate::primitive::MonoImage;
 use crate::protocol::IPostProcessMetadata;
 use crate::{BayerPattern, Primitive};
 
+/// A row-major 3x3 color matrix.
+pub type Matrix3x3 = [[f64; 3]; 3];
+
+/// Camera calibration matrix from a DNG `CameraCalibration` tag.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub enum CameraCalibration {
+    /// DNG's default identity calibration when the tag is absent.
+    #[default]
+    Identity,
+
+    /// A matrix stored by the corresponding `CameraCalibration` tag.
+    Matrix(Matrix3x3),
+}
+
+impl CameraCalibration {
+    /// Returns the calibration matrix, or `None` for DNG's identity default.
+    pub const fn matrix(self) -> Option<Matrix3x3> {
+        match self {
+            Self::Identity => None,
+            Self::Matrix(matrix) => Some(matrix),
+        }
+    }
+}
+
 /// Normalized metadata for a single-sample Bayer RAW image.
 ///
 /// The geometry and level fields correspond to the same concepts as the
@@ -35,6 +59,24 @@ where
 
     ///green normalized
     pub wb_coeffs: Option<(T, T)>,
+
+    /// DNG `ColorMatrix1`, mapping XYZ to camera-native RGB.
+    pub color_matrix_1: Option<Matrix3x3>,
+
+    /// DNG `ColorMatrix2`, mapping XYZ to camera-native RGB.
+    pub color_matrix_2: Option<Matrix3x3>,
+
+    /// DNG `ForwardMatrix1`, mapping white-balanced camera RGB to XYZ.
+    pub forward_matrix_1: Option<Matrix3x3>,
+
+    /// DNG `ForwardMatrix2`, mapping white-balanced camera RGB to XYZ.
+    pub forward_matrix_2: Option<Matrix3x3>,
+
+    /// DNG `CameraCalibration1`.
+    pub camera_calibration_1: CameraCalibration,
+
+    /// DNG `CameraCalibration2`.
+    pub camera_calibration_2: CameraCalibration,
 }
 
 /// Black and white levels for a single-sample Bayer RAW image.
@@ -74,4 +116,16 @@ where
     fn bayer_pattern(&self) -> BayerPattern { self.bayer_pattern }
 
     fn wb_coeffs(&self) -> &Option<(T, T)> { &self.wb_coeffs }
+
+    fn color_matrix_1(&self) -> Option<&Matrix3x3> { self.color_matrix_1.as_ref() }
+
+    fn color_matrix_2(&self) -> Option<&Matrix3x3> { self.color_matrix_2.as_ref() }
+
+    fn forward_matrix_1(&self) -> Option<&Matrix3x3> { self.forward_matrix_1.as_ref() }
+
+    fn forward_matrix_2(&self) -> Option<&Matrix3x3> { self.forward_matrix_2.as_ref() }
+
+    fn camera_calibration_1(&self) -> CameraCalibration { self.camera_calibration_1 }
+
+    fn camera_calibration_2(&self) -> CameraCalibration { self.camera_calibration_2 }
 }

@@ -11,6 +11,7 @@ name = "demosaic"
 fornax-core.workspace = true
 generic-num.workspace = true
 image.workspace = true
+num-traits.workspace = true
 rayon.workspace = true
 
 [dev-dependencies]
