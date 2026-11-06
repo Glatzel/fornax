@@ -562,7 +562,7 @@ const fn align_to_bayer_tile(mut area: Rect) -> Rect {
 #[cfg(test)]
 mod tests {
     use std::marker::PhantomData;
-
+use rawler::CFA;
     use fornax_dng::{DngTag, DngValue};
     use rawler::decoders::Camera;
     use rawler::formats::tiff::{SRational, TiffAscii, Value as RawlerValue};
