@@ -92,8 +92,7 @@ white-balance coefficients when metadata provides them.
 - optional green-normalized white-balance coefficients;
 - optional DNG `ColorMatrix1`, `ColorMatrix2`, `ForwardMatrix1`, and
   `ForwardMatrix2` values;
-- DNG `CameraCalibration1` and `CameraCalibration2`, represented as identity or
-  a 3x3 matrix.
+- DNG `CameraCalibration1` and `CameraCalibration2`, represented as 3x3 matrix.
 
 Postprocessing can emit camera-native RGB or convert scene-linear samples to
 sRGB, Adobe RGB, Wide Gamut RGB, ProPhoto RGB, XYZ, ACES2065-1, ACEScg, DCI-P3,
