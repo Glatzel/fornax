@@ -397,7 +397,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[rstest]
     fn algorithm_checksum(
         cropped_real_128: &crate::reference::ActiveArea,
