@@ -306,6 +306,12 @@ where
             },
             bayer_pattern,
             wb_coeffs,
+            color_matrix_1: None,
+            color_matrix_2: None,
+            forward_matrix_1: None,
+            forward_matrix_2: None,
+            camera_calibration_1: None,
+            camera_calibration_2: None,
         })
     }
 }

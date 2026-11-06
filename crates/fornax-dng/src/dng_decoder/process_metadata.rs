@@ -1,5 +1,5 @@
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::{Levels, ProcessMetadata};
+use fornax_core::metadata::{Levels, Matrix3x3, ProcessMetadata};
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, Value};
@@ -34,6 +34,12 @@ where
         .ok_or_else(|| metadata_error("WhiteLevel is missing or invalid"))?;
     let bayer_pattern = bayer_pattern(dng_metadata, active_area)?;
     let wb_coeffs = wb_coeffs(dng_metadata)?;
+    let color_matrix_1 = matrix(dng_metadata, DngTag::ColorMatrix1)?;
+    let color_matrix_2 = matrix(dng_metadata, DngTag::ColorMatrix2)?;
+    let forward_matrix_1 = matrix(dng_metadata, DngTag::ForwardMatrix1)?;
+    let forward_matrix_2 = matrix(dng_metadata, DngTag::ForwardMatrix2)?;
+    let camera_calibration_1 = matrix(dng_metadata, DngTag::CameraCalibration1)?;
+    let camera_calibration_2 = matrix(dng_metadata, DngTag::CameraCalibration2)?;
 
     Ok(ProcessMetadata {
         active_area,
@@ -46,8 +52,33 @@ where
         },
         bayer_pattern,
         wb_coeffs,
+        color_matrix_1,
+        color_matrix_2,
+        forward_matrix_1,
+        forward_matrix_2,
+        camera_calibration_1,
+        camera_calibration_2,
     })
 }
+
+fn matrix(metadata: &Directory, tag: DngTag) -> Result<Option<Matrix3x3>, DecodeError> {
+    let Some(value) = metadata.get(&Tag::from(tag)) else {
+        return Ok(None);
+    };
+    let values = scalar_values::<f64>(Some(value))?;
+    let values: [f64; 9] = values.try_into().map_err(|_| {
+        metadata_error(format!(
+            "{tag} must contain nine values, found {}",
+            value.count()
+        ))
+    })?;
+    Ok(Some([
+        [values[0], values[1], values[2]],
+        [values[3], values[4], values[5]],
+        [values[6], values[7], values[8]],
+    ]))
+}
+
 fn active_area(
     metadata: &Directory,
     full_width: u32,
@@ -330,4 +361,97 @@ fn unsigned_scalar(value: &Value) -> Result<u32, DecodeError> {
         }
     };
     Ok(number)
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn matrix_values(matrix: [[f64; 3]; 3]) -> Value {
+        Value::List(
+            matrix
+                .into_iter()
+                .flatten()
+                .map(|value| Value::SRational((value * 1_000_000.0) as i32, 1_000_000))
+                .collect(),
+        )
+    }
+
+    fn valid_metadata() -> Directory {
+        let mut metadata = Directory::default();
+        metadata.insert(Tag::from(DngTag::BlackLevel), Value::Short(0));
+        metadata.insert(Tag::from(DngTag::WhiteLevel), Value::Short(1));
+        metadata.insert(
+            Tag::from(TiffTag::CfaRepeatPatternDim),
+            Value::List(vec![Value::Short(2), Value::Short(2)]),
+        );
+        metadata.insert(
+            Tag::from(TiffTag::CfaPattern),
+            Value::List(vec![
+                Value::Byte(0),
+                Value::Byte(1),
+                Value::Byte(1),
+                Value::Byte(2),
+            ]),
+        );
+        metadata
+    }
+
+    #[test]
+    fn process_metadata_preserves_all_dng_color_matrices() {
+        let mut metadata = valid_metadata();
+        let color1 = [[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]];
+        let color2 = [[4.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]];
+        let forward1 = [[7.0, 0.0, 0.0], [0.0, 8.0, 0.0], [0.0, 0.0, 9.0]];
+        let forward2 = [[10.0, 0.0, 0.0], [0.0, 11.0, 0.0], [0.0, 0.0, 12.0]];
+        metadata.insert(Tag::from(DngTag::ColorMatrix1), matrix_values(color1));
+        metadata.insert(Tag::from(DngTag::ColorMatrix2), matrix_values(color2));
+        metadata.insert(Tag::from(DngTag::ForwardMatrix1), matrix_values(forward1));
+        metadata.insert(Tag::from(DngTag::ForwardMatrix2), matrix_values(forward2));
+
+        let process = process_metadata_from_dng_metadata::<f64>(2, 2, &metadata).unwrap();
+
+        assert_eq!(process.color_matrix_1, Some(color1));
+        assert_eq!(process.color_matrix_2, Some(color2));
+        assert_eq!(process.forward_matrix_1, Some(forward1));
+        assert_eq!(process.forward_matrix_2, Some(forward2));
+    }
+
+    #[test]
+    fn process_metadata_preserves_camera_calibrations() {
+        let mut metadata = valid_metadata();
+        let calibration1 = [[1.0, 0.1, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]];
+        let calibration2 = [[4.0, 0.0, 0.0], [0.1, 5.0, 0.0], [0.0, 0.0, 6.0]];
+        metadata.insert(
+            Tag::from(DngTag::CameraCalibration1),
+            matrix_values(calibration1),
+        );
+        metadata.insert(
+            Tag::from(DngTag::CameraCalibration2),
+            matrix_values(calibration2),
+        );
+
+        let process = process_metadata_from_dng_metadata::<f64>(2, 2, &metadata).unwrap();
+
+        assert_eq!(process.camera_calibration_1, Some(calibration1));
+        assert_eq!(process.camera_calibration_2, Some(calibration2));
+    }
+
+    #[test]
+    fn absent_camera_calibrations_are_identity() {
+        let process = process_metadata_from_dng_metadata::<f64>(2, 2, &valid_metadata()).unwrap();
+
+        assert_eq!(process.camera_calibration_1, None);
+        assert_eq!(process.camera_calibration_2, None);
+    }
+
+    #[test]
+    fn malformed_color_matrix_returns_metadata_error() {
+        let mut metadata = valid_metadata();
+        metadata.insert(
+            Tag::from(DngTag::ColorMatrix1),
+            Value::List(vec![Value::Short(1), Value::Short(2)]),
+        );
+
+        assert!(process_metadata_from_dng_metadata::<f64>(2, 2, &metadata).is_err());
+    }
 }

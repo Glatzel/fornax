@@ -109,6 +109,10 @@ pub enum DngTag {
     ColorMatrix1 = 50_721,
     /// `ColorMatrix2`.
     ColorMatrix2 = 50_722,
+    /// `ForwardMatrix1`.
+    ForwardMatrix1 = 50_964,
+    /// `ForwardMatrix2`.
+    ForwardMatrix2 = 50_965,
     /// `CameraCalibration1`.
     CameraCalibration1 = 50_723,
     /// `CameraCalibration2`.

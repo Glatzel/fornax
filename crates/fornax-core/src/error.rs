@@ -54,6 +54,8 @@ pub enum PreprocessError {
 pub enum PostProcessError {
     #[error(transparent)]
     Demosaic(#[from] DemosaicError),
+    #[error("invalid color transform: {0}")]
+    InvalidColorTransform(Box<str>),
 }
 
 #[derive(Clone, Debug, Error, PartialEq, Eq)]

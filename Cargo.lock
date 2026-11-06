@@ -830,6 +830,7 @@ dependencies = [
  "generic-num",
  "image 0.25.9",
  "mischief",
+ "num-traits",
  "rayon",
 ]
 

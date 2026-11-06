@@ -89,7 +89,14 @@ white-balance coefficients when metadata provides them.
 - active and default-crop rectangles;
 - black-level pattern, row/column deltas, and white level;
 - the Bayer pattern relative to the cropped mosaic;
-- optional green-normalized white-balance coefficients.
+- optional green-normalized white-balance coefficients;
+- optional DNG `ColorMatrix1`, `ColorMatrix2`, `ForwardMatrix1`, and
+  `ForwardMatrix2` values;
+- DNG `CameraCalibration1` and `CameraCalibration2`, represented as 3x3 matrix.
+
+Postprocessing can emit camera-native RGB or convert scene-linear samples to
+sRGB, Adobe RGB, Wide Gamut RGB, ProPhoto RGB, XYZ, ACES2065-1, ACEScg, DCI-P3,
+or Rec. 2020. The default remains camera-native RGB.
 
 `default_crop` is a recommendation. Stage methods do not apply it automatically.
 
