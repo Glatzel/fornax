@@ -103,15 +103,6 @@ jobs:
               ./crates/fornax-tiff/**
             extra-options: --features zstd
 
-          - package: fornax-dng
-            paths: |
-              ./crates/fornax-core/**
-              ./crates/fornax-devtool/**
-              ./crates/fornax-dng/**
-              ./crates/fornax-tiff/**
-            files_ignore: '**.md'
-            extra-options: --features zstd
-
           - package: fornax-postprocessor
             paths: ./crates/fornax-postprocessor/**
             algorithm: aahd
