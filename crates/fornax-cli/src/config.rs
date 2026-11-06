@@ -10,68 +10,88 @@ use thiserror::Error;
 
 /// Command-line arguments for the Fornax converter.
 #[derive(Debug, Parser)]
-#[command(about = "Convert RAW images with the Fornax pipeline")]
+#[command(about = "Convert RAW images with the Fornax pipeline",author = "Glatzel", styles=clap_style::styles())]
 pub struct CliArgs {
     /// TOML or JSON configuration file.
-    #[arg(long)]
+    #[arg(long, help_heading = "General")]
     pub config: Option<PathBuf>,
-    /// Output directory.
-    #[arg(long, short)]
-    pub output: Option<PathBuf>,
-    /// Output image format.
-    #[arg(long, value_enum)]
-    pub format: Option<OutputFormat>,
-    /// Decoder selection.
-    #[arg(long, value_enum)]
-    pub decoder: Option<DecoderChoice>,
-    /// Maximum simultaneous file conversions.
-    #[arg(long)]
-    pub jobs: Option<usize>,
-    /// Recurse into directory inputs.
-    #[arg(long, conflicts_with = "no_recursive")]
-    pub recursive: bool,
-    /// Do not recurse into directory inputs.
-    #[arg(long, conflicts_with = "recursive")]
-    pub no_recursive: bool,
-    /// Overwrite an existing output file.
-    #[arg(long, conflicts_with = "no_overwrite")]
-    pub overwrite: bool,
-    /// Skip an existing output file.
-    #[arg(long, conflicts_with = "overwrite")]
-    pub no_overwrite: bool,
-    /// Write `<output-stem>.json` beside each output.
-    #[arg(long, conflicts_with = "no_metadata_json")]
-    pub metadata_json: bool,
-    /// Do not write metadata sidecars.
-    #[arg(long, conflicts_with = "metadata_json")]
-    pub no_metadata_json: bool,
-    /// Demosaic algorithm with its default parameters.
-    #[arg(long)]
-    pub demosaic: Option<String>,
-    /// Enforce white balance during postprocessing.
-    #[arg(long, conflicts_with = "no_white_balance")]
-    pub white_balance: bool,
-    /// Disable white balance during postprocessing.
-    #[arg(long, conflicts_with = "white_balance")]
-    pub no_white_balance: bool,
-    /// Apply the derived camera-to-linear-sRGB matrix.
-    #[arg(long, conflicts_with = "no_color_matrix")]
-    pub color_matrix: bool,
-    /// Disable the camera color matrix.
-    #[arg(long, conflicts_with = "color_matrix")]
-    pub no_color_matrix: bool,
-    /// JPEG preview quality.
-    #[arg(long)]
-    pub jpeg_quality: Option<u8>,
-    /// DNG compression strategy.
-    #[arg(long, value_enum)]
-    pub dng_compression: Option<DngCompressionChoice>,
-    /// Experimental Zstandard compression level.
-    #[arg(long)]
-    pub zstd_level: Option<i32>,
+
     /// Input RAW files or directories.
+    #[arg(help_heading = "General")]
     pub inputs: Vec<PathBuf>,
-    
+
+    /// Decoder selection.
+    #[arg(long, value_enum, help_heading = "Processing")]
+    pub decoder: Option<DecoderChoice>,
+
+    /// Demosaic algorithm with its default parameters.
+    #[arg(long, help_heading = "Processing")]
+    pub demosaic: Option<String>,
+
+    /// Enforce white balance during postprocessing.
+    #[arg(long, conflicts_with = "no_white_balance", help_heading = "Color")]
+    pub white_balance: bool,
+
+    /// Disable white balance during postprocessing.
+    #[arg(long, conflicts_with = "white_balance", help_heading = "Color")]
+    pub no_white_balance: bool,
+
+    /// Apply the derived camera-to-linear-sRGB matrix.
+    #[arg(long, conflicts_with = "no_color_matrix", help_heading = "Color")]
+    pub color_matrix: bool,
+
+    /// Disable the camera color matrix.
+    #[arg(long, conflicts_with = "color_matrix", help_heading = "Color")]
+    pub no_color_matrix: bool,
+
+    /// Output directory.
+    #[arg(long, short, help_heading = "Output")]
+    pub output: Option<PathBuf>,
+
+    /// Output image format.
+    #[arg(long, value_enum, help_heading = "Output")]
+    pub format: Option<OutputFormat>,
+
+    /// Overwrite an existing output file.
+    #[arg(long, conflicts_with = "no_overwrite", help_heading = "Output")]
+    pub overwrite: bool,
+
+    /// Skip an existing output file.
+    #[arg(long, conflicts_with = "overwrite", help_heading = "Output")]
+    pub no_overwrite: bool,
+
+    /// Write `<output-stem>.json` beside each output.
+    #[arg(long, conflicts_with = "no_metadata_json", help_heading = "Output")]
+    pub metadata_json: bool,
+
+    /// Do not write metadata sidecars.
+    #[arg(long, conflicts_with = "metadata_json", help_heading = "Output")]
+    pub no_metadata_json: bool,
+
+    /// JPEG preview quality.
+    #[arg(long, help_heading = "Output")]
+    pub jpeg_quality: Option<u8>,
+
+    /// DNG compression strategy.
+    #[arg(long, value_enum, help_heading = "Output")]
+    pub dng_compression: Option<DngCompressionChoice>,
+
+    /// Experimental Zstandard compression level.
+    #[arg(long, help_heading = "Output")]
+    pub zstd_level: Option<i32>,
+
+    /// Maximum simultaneous file conversions.
+    #[arg(long, help_heading = "Performance")]
+    pub jobs: Option<usize>,
+
+    /// Recurse into directory inputs.
+    #[arg(long, conflicts_with = "no_recursive", help_heading = "Input")]
+    pub recursive: bool,
+
+    /// Do not recurse into directory inputs.
+    #[arg(long, conflicts_with = "recursive", help_heading = "Input")]
+    pub no_recursive: bool,
+
     #[command(flatten)]
     pub verbose: clap_verbosity_flag::Verbosity<InfoLevel>,
 }
