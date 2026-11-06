@@ -13,7 +13,22 @@ use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
 use rawler::formats::tiff::Value as RawlerValue;
 
 #[derive(Clone, Debug)]
-pub struct RawlerDecoder<T>(RawImage, PhantomData<T>);
+pub struct RawlerDecoder<T> {
+    raw: RawImage,
+    metadata: DngMetadata,
+    _mark: PhantomData<T>,
+}
+
+impl<T> RawlerDecoder<T> {
+    fn from_raw(raw: RawImage) -> Result<Self, DecodeError> {
+        let metadata = synthesize_dng_metadata(&raw);
+        Ok(Self {
+            raw,
+            metadata,
+            _mark: PhantomData,
+        })
+    }
+}
 
 impl<T> IDecoder<&Path, T> for RawlerDecoder<T>
 where
@@ -27,10 +42,10 @@ where
         }
         let raw = rawler::decode_file(input).map_err(backend_error)?;
 
-        Ok(Self(raw, PhantomData))
+        Self::from_raw(raw)
     }
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
-        let raw = &self.0;
+        let raw = &self.raw;
         let mosaic = match &raw.data {
             RawImageData::Integer(items) => RawMosaic::U16(
                 MonoImage::from_raw(raw.width as u32, raw.height as u32, items.clone())
@@ -44,7 +59,7 @@ where
         Ok(mosaic)
     }
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> {
-        let raw = &self.0;
+        let raw = &self.raw;
         let cfa = match &raw.photometric {
             RawPhotometricInterpretation::Cfa(config) => &config.cfa,
             RawPhotometricInterpretation::BlackIsZero | RawPhotometricInterpretation::LinearRaw => {
@@ -71,7 +86,7 @@ where
             .width
             .checked_mul(raw.height)
             .ok_or(RawValidationError::InvalidImage)?;
-        let cropped = match &raw.data {
+        let mut cropped = match &raw.data {
             RawImageData::Integer(samples) => {
                 if samples.len() != expected {
                     return Err(RawValidationError::InvalidImage.into());
@@ -90,22 +105,15 @@ where
                     .ok_or(RawValidationError::InvalidImage)
             }
         }?;
+        let metadata = self.process_metadata()?;
+        cropped.crop_in_place(metadata.active_area);
         Ok(CroppedMosaic::new(cropped))
     }
 
-    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> {
-        let mut metadata = DngMetadata::default();
-        metadata.extend(
-            self.0
-                .dng_tags
-                .iter()
-                .map(|(&tag, value)| (DngTag::from(tag), dng_value(value))),
-        );
-        Ok(metadata)
-    }
+    fn dng_metadata(&self) -> Result<DngMetadata, DecodeError> { Ok(self.metadata.clone()) }
 
     fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
-        let raw = &self.0;
+        let raw = &self.raw;
         let cfa = match &raw.photometric {
             RawPhotometricInterpretation::Cfa(config) => &config.cfa,
             RawPhotometricInterpretation::BlackIsZero | RawPhotometricInterpretation::LinearRaw => {
@@ -310,6 +318,166 @@ where
     }
 }
 
+fn synthesize_dng_metadata(raw: &RawImage) -> DngMetadata {
+    let mut metadata = DngMetadata::default();
+    let width = u32::try_from(raw.width).unwrap_or(u32::MAX);
+    let height = u32::try_from(raw.height).unwrap_or(u32::MAX);
+    metadata.insert(
+        DngTag::DngVersion,
+        DngValue::List(vec![
+            DngValue::Byte(1),
+            DngValue::Byte(4),
+            DngValue::Byte(0),
+            DngValue::Byte(0),
+        ]),
+    );
+    metadata.insert(DngTag::ImageWidth, DngValue::Unsigned(width));
+    metadata.insert(DngTag::ImageLength, DngValue::Unsigned(height));
+    metadata.insert(
+        DngTag::BitsPerSample,
+        DngValue::Short(u16::try_from(raw.bps).unwrap_or(u16::MAX)),
+    );
+    metadata.insert(
+        DngTag::SamplesPerPixel,
+        DngValue::Short(u16::try_from(raw.cpp).unwrap_or(u16::MAX)),
+    );
+
+    let active_area = raw.active_area.map_or_else(
+        || Rect {
+            x: 0,
+            y: 0,
+            width,
+            height,
+        },
+        |rect| Rect {
+            x: u32::try_from(rect.x()).unwrap_or(u32::MAX),
+            y: u32::try_from(rect.y()).unwrap_or(u32::MAX),
+            width: u32::try_from(rect.width()).unwrap_or(u32::MAX),
+            height: u32::try_from(rect.height()).unwrap_or(u32::MAX),
+        },
+    );
+    let active_area = align_to_bayer_tile(active_area);
+    metadata.insert(
+        DngTag::ActiveArea,
+        unsigned_values([
+            active_area.y,
+            active_area.x,
+            active_area.y.saturating_add(active_area.height),
+            active_area.x.saturating_add(active_area.width),
+        ]),
+    );
+    let (crop_x, crop_y, crop_width, crop_height) =
+        raw.crop_area
+            .map_or((0, 0, active_area.width, active_area.height), |crop| {
+                (
+                    u32::try_from(crop.x())
+                        .unwrap_or(u32::MAX)
+                        .saturating_sub(active_area.x),
+                    u32::try_from(crop.y())
+                        .unwrap_or(u32::MAX)
+                        .saturating_sub(active_area.y),
+                    u32::try_from(crop.width()).unwrap_or(u32::MAX),
+                    u32::try_from(crop.height()).unwrap_or(u32::MAX),
+                )
+            });
+    metadata.insert(DngTag::DefaultCropOrigin, unsigned_values([crop_x, crop_y]));
+    metadata.insert(
+        DngTag::DefaultCropSize,
+        unsigned_values([crop_width, crop_height]),
+    );
+
+    let black_width = u32::try_from(raw.blacklevel.width).unwrap_or(u32::MAX);
+    let black_height = u32::try_from(raw.blacklevel.height).unwrap_or(u32::MAX);
+    metadata.insert(
+        DngTag::BlackLevelRepeatDim,
+        unsigned_values([black_width, black_height]),
+    );
+    metadata.insert(
+        DngTag::BlackLevel,
+        rational_values(raw.blacklevel.as_vec().into_iter().map(f64::from)),
+    );
+    metadata.insert(
+        DngTag::WhiteLevel,
+        unsigned_values(raw.whitelevel.0.iter().copied()),
+    );
+
+    if let RawPhotometricInterpretation::Cfa(config) = &raw.photometric {
+        metadata.insert(
+            DngTag::CfaRepeatPatternDim,
+            unsigned_values([
+                u32::try_from(config.cfa.width).unwrap_or(u32::MAX),
+                u32::try_from(config.cfa.height).unwrap_or(u32::MAX),
+            ]),
+        );
+        metadata.insert(DngTag::CfaPattern, byte_values(config.cfa.flat_pattern()));
+        metadata.insert(DngTag::CfaPlaneColor, unsigned_values([0_u32, 1, 2]));
+        metadata.insert(DngTag::CfaLayout, DngValue::Short(1));
+    }
+
+    if !raw.make.is_empty() {
+        metadata.insert(DngTag::Make, DngValue::Ascii(raw.make.clone()));
+    }
+    if !raw.model.is_empty() {
+        metadata.insert(DngTag::Model, DngValue::Ascii(raw.model.clone()));
+    }
+    let unique_model = format!("{} {}", raw.clean_make, raw.clean_model)
+        .trim()
+        .to_owned();
+    if !unique_model.is_empty() {
+        metadata.insert(DngTag::UniqueCameraModel, DngValue::Ascii(unique_model));
+    }
+    if raw.wb_coeffs[..3]
+        .iter()
+        .all(|value| value.is_finite() && *value > 0.0)
+    {
+        metadata.insert(
+            DngTag::AsShotNeutral,
+            rational_values([
+                1.0 / f64::from(raw.wb_coeffs[0]),
+                1.0,
+                1.0 / f64::from(raw.wb_coeffs[2]),
+            ]),
+        );
+    }
+    if let Some(matrix) = raw.color_matrix.values().next()
+        && matrix.len() == 9
+    {
+        metadata.insert(DngTag::CalibrationIlluminant1, DngValue::Short(21));
+        metadata.insert(
+            DngTag::ColorMatrix1,
+            rational_values(matrix.iter().copied().map(f64::from)),
+        );
+    }
+
+    metadata.extend(
+        raw.dng_tags
+            .iter()
+            .map(|(&tag, value)| (DngTag::from(tag), dng_value(value))),
+    );
+    metadata
+}
+
+fn unsigned_values(values: impl IntoIterator<Item = u32>) -> DngValue {
+    dng_values(values.into_iter().map(DngValue::Unsigned).collect())
+}
+
+fn byte_values(values: Vec<u8>) -> DngValue {
+    dng_values(values.into_iter().map(DngValue::Byte).collect())
+}
+
+fn rational_values(values: impl IntoIterator<Item = f64>) -> DngValue {
+    dng_values(
+        values
+            .into_iter()
+            .map(|value| {
+                let numerator = (value * 1_000_000.0).round();
+                let numerator = numerator.clamp(f64::from(i32::MIN), f64::from(i32::MAX)) as i32;
+                DngValue::SRational(numerator, 1_000_000)
+            })
+            .collect(),
+    )
+}
+
 fn backend_error(error: rawler::RawlerError) -> DecodeError {
     match error {
         rawler::RawlerError::Unsupported {
@@ -391,19 +559,101 @@ const fn align_to_bayer_tile(mut area: Rect) -> Rect {
 
 #[cfg(test)]
 mod tests {
-    use std::marker::PhantomData;
-
     use fornax_core::metadata::dng::{DngTag, DngValue};
+    use rawler::CFA;
     use rawler::decoders::Camera;
     use rawler::formats::tiff::{SRational, TiffAscii, Value as RawlerValue};
     use rawler::pixarray::PixU16;
-    use rawler::rawimage::WhiteLevel;
+    use rawler::rawimage::{CFAConfig, WhiteLevel};
 
     use super::*;
 
+    fn configured_raw() -> RawImage {
+        let camera = Camera {
+            cfa: CFA::new("RGGB"),
+            active_area: Some([0, 0, 1, 1]),
+            blacklevel: Some(vec![0; 4]),
+            whitelevel: Some(vec![65_535]),
+            ..Camera::default()
+        };
+        let photometric = RawPhotometricInterpretation::Cfa(CFAConfig::new_from_camera(&camera));
+        RawImage::new(
+            camera,
+            PixU16::new_with((0..16).collect(), 4, 4),
+            1,
+            [1.0, 1.0, 1.0, f32::NAN],
+            photometric,
+            None,
+            Some(WhiteLevel(vec![65_535])),
+            false,
+        )
+    }
+
+    #[test]
+    fn cropped_mosaic_returns_only_the_active_area() {
+        let decoder: RawlerDecoder<f32> =
+            RawlerDecoder::from_raw(configured_raw()).expect("metadata should synthesize");
+
+        let cropped = decoder.cropped_mosaic().expect("active area should crop");
+
+        assert_eq!(cropped.image().dimensions(), (2, 2));
+        assert_eq!(cropped.image().get_pixel(0, 0), &image::Luma([0.0]));
+        assert_eq!(cropped.image().get_pixel(1, 0), &image::Luma([1.0]));
+        assert_eq!(cropped.image().get_pixel(0, 1), &image::Luma([4.0]));
+        assert_eq!(cropped.image().get_pixel(1, 1), &image::Luma([5.0]));
+    }
+
+    #[test]
+    fn dng_metadata_synthesizes_decoded_geometry_levels_and_cfa() {
+        let decoder: RawlerDecoder<f32> =
+            RawlerDecoder::from_raw(configured_raw()).expect("metadata should synthesize");
+
+        let metadata = decoder
+            .dng_metadata()
+            .expect("metadata should be available");
+
+        assert_eq!(
+            metadata.get(&DngTag::ImageWidth),
+            Some(&DngValue::Unsigned(4))
+        );
+        assert_eq!(
+            metadata.get(&DngTag::ImageLength),
+            Some(&DngValue::Unsigned(4))
+        );
+        assert_eq!(
+            metadata.get(&DngTag::ActiveArea),
+            Some(&DngValue::List(vec![
+                DngValue::Unsigned(0),
+                DngValue::Unsigned(0),
+                DngValue::Unsigned(2),
+                DngValue::Unsigned(2),
+            ]))
+        );
+        assert_eq!(
+            metadata.get(&DngTag::CfaRepeatPatternDim),
+            Some(&DngValue::List(vec![
+                DngValue::Unsigned(2),
+                DngValue::Unsigned(2),
+            ]))
+        );
+        assert_eq!(
+            metadata.get(&DngTag::CfaPattern),
+            Some(&DngValue::List(vec![
+                DngValue::Byte(0),
+                DngValue::Byte(1),
+                DngValue::Byte(1),
+                DngValue::Byte(2),
+            ]))
+        );
+        assert_eq!(
+            metadata.get(&DngTag::WhiteLevel),
+            Some(&DngValue::Unsigned(65_535))
+        );
+    }
+
     #[test]
     fn dng_metadata_preserves_rawler_tag_values() {
-        let raw = RawImage::new(
+        let mut raw = RawImage::new(
             Camera::default(),
             PixU16::new(1, 1),
             1,
@@ -413,8 +663,7 @@ mod tests {
             Some(WhiteLevel(vec![u32::from(u16::MAX)])),
             false,
         );
-        let mut decoder = RawlerDecoder(raw, PhantomData::<f32>);
-        decoder.0.dng_tags.extend([
+        raw.dng_tags.extend([
             (
                 u16::from(DngTag::DngVersion),
                 RawlerValue::Byte(vec![1, 4, 0, 0]),
@@ -436,6 +685,8 @@ mod tests {
                 RawlerValue::SRational(vec![SRational::new(-1, 3)]),
             ),
         ]);
+        let decoder: RawlerDecoder<f32> =
+            RawlerDecoder::from_raw(raw).expect("metadata should synthesize");
 
         let metadata = decoder.dng_metadata().expect("DNG tags should convert");
 

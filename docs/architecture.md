@@ -106,10 +106,11 @@ not retain the original container or auxiliary directories.
 
 ## Benchmarks and comparisons
 
-Decoder benchmarks live in `bench-decoder/benches/decoder.rs`. The default
-benchmark compares the DNG decoder and Rawler adapter over each `IDecoder`
-method for `f32` and `f64`. Preprocessor and demosaic benchmarks remain in
-their stage crates.
+Decoder benchmarks live in `bench-decoder/benches/decoder.rs`. The benchmark
+compares the DNG decoder and Rawler adapter over each `IDecoder` method and
+over composite decode-plus-mosaic cases. `f32` is the default sample type;
+`f64` and decoder subsets are opt-in. Preprocessor and demosaic benchmarks
+remain in their stage crates.
 
 `compare-demosaic` normalizes the active Bayer mosaic before passing it to
 Fornax and pinned LibRaw, darktable, and RawTherapee adapters. Reference C/C++

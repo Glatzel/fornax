@@ -6,7 +6,7 @@
 `decoder` target measures the default DNG decoder in `fornax-decoder` against
 the Rawler adapter in `fornax-decoder-rawler`.
 
-For each decoder and for `f32` and `f64`, the target benchmarks every method in
+For each selected decoder, the target benchmarks every method in
 `fornax_core::protocol::IDecoder`:
 
 - `decode`;
@@ -19,12 +19,20 @@ The instance-method benchmarks construct one decoder outside the timed region,
 so they measure the requested accessor rather than reparsing the file. The
 `decode` benchmark includes file read and decoder construction.
 
+`f32` is the default sample type. Select `f64` or both with
+`FORNAX_BENCH_BITS=64` or `FORNAX_BENCH_BITS=32,64`.
+`FORNAX_BENCH_DECODER` selects `fornax`, `rawler`, or a comma-separated list;
+the default is both.
+
 The default fixture is
 `external/raw-images/images/colorchart-5D2-6000K.dng`. Override it with:
 
 ```bash
 FORNAX_BENCH_RAW=path/to/input.dng cargo bench -p bench-decoder
 ```
+
+Each decoder prints its metadata tag count before the metadata timings.
+Compare those timings only when both decoders expose equivalent metadata.
 
 Run it from the repository root:
 

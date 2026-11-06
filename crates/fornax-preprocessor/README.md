@@ -39,7 +39,7 @@ The default is `1000,2000`, producing `1.50MP` and `6.00MP` images.
 FORNAX_BENCH_BITS=32 cargo bench -p fornax-preprocessor
 ```
 
-The default is `32,64`. Preprocessing is currently single-threaded, so these
+The default is `32`. Preprocessing is currently single-threaded, so these
 benchmarks do not sweep Rayon thread counts.
 
 Each case name includes the stage, image size, and sample type. Criterion

@@ -22,14 +22,14 @@ pub struct BenchParams {
 
 impl BenchParams {
     /// Reads `FORNAX_BENCH_SIZE` (default `1000,2000`),
-    /// `FORNAX_BENCH_BITS` (default `32,64`). Thread counts come from the
+    /// `FORNAX_BENCH_BITS` (default `32`). Thread counts come from the
     /// global rayon pool size.
     pub fn from_env() -> Self {
         let sizes = std::env::var("FORNAX_BENCH_SIZE").unwrap_or_else(|_| "1000,2000".to_owned());
-        let bits = std::env::var("FORNAX_BENCH_BITS").unwrap_or_else(|_| "32,64".to_owned());
+        let bits = std::env::var("FORNAX_BENCH_BITS").ok();
         Self {
             sizes: Self::parse_sizes(&sizes),
-            bits: Self::parse_bits(&bits),
+            bits: Self::bits_from_value(bits.as_deref()),
             threads: Self::default_threads(),
         }
     }
@@ -67,6 +67,10 @@ impl BenchParams {
                 _ => panic!("unknown FORNAX_BENCH_BITS value {bits:?}; expected 32, 64, or a comma-separated list"),
             })
             .collect()
+    }
+
+    fn bits_from_value(value: Option<&str>) -> Vec<BenchSampleBits> {
+        Self::parse_bits(value.unwrap_or("32"))
     }
 
     /// 1, 2, 4, ... up to the global pool size (always includes the max).
@@ -167,6 +171,14 @@ mod tests {
                 "{value:?} should be rejected"
             );
         }
+    }
+
+    #[test]
+    fn bits_default_to_f32_when_the_environment_value_is_absent() {
+        assert_eq!(
+            BenchParams::bits_from_value(None),
+            vec![BenchSampleBits::F32]
+        );
     }
 
     #[test]
