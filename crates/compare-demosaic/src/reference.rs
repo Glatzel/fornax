@@ -114,10 +114,7 @@ pub fn active_area_from(path: &Path) -> mischief::Result<ActiveArea> {
             .iter()
             .map(|sample| (sample.clamp(0.0, 1.0) * f32::from(u16::MAX)).round() as u16)
             .collect(),
-        black: metadata
-            .levels
-            .black
-            .as_raw().clone(),
+        black: metadata.levels.black.as_raw().clone(),
         black_width,
         black_height,
         white: metadata.levels.white,
