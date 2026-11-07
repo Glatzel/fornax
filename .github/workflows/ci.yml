@@ -5,11 +5,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    types:
-      - labeled
-      - opened
-      - synchronize
-      - ready_for_review
   schedule:
     - cron: 0 16 * * *
 
@@ -38,75 +33,28 @@ jobs:
             main:
               - ./Cargo.toml
               - ./Cargo.lock
-              - ./.cargo/**
-              - ./.gitmodules
               - ./crates/**
-              - ./external/**
-              - ./pixi.toml
-              - ./pixi.lock
-              - ./scripts/**
-              - ./.github/workflows/ci.yml
             benchmark_decoder:
-              - ./Cargo.toml
-              - ./Cargo.lock
-              - ./.cargo/**
               - ./crates/bench-decoder/**
               - ./crates/fornax-core/**
               - ./crates/fornax-decoder/**
-              - ./crates/fornax-decoder-rawler/**
               - ./crates/fornax-devtool/**
-              - ./pixi.toml
-              - ./pixi.lock
-              - ./.github/workflows/ci.yml
+              - ./crates/fornax-decoder-rawler/**
             benchmark_dng:
-              - ./Cargo.toml
-              - ./Cargo.lock
-              - ./.cargo/**
               - ./crates/fornax-core/**
               - ./crates/fornax-devtool/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
-              - ./external/raw-images/**
-              - ./pixi.toml
-              - ./pixi.lock
-              - ./scripts/setup.sh
-              - ./.github/workflows/ci.yml
             benchmark_postprocessor:
-              - ./Cargo.toml
-              - ./Cargo.lock
-              - ./.cargo/**
-              - ./crates/fornax-core/**
-              - ./crates/fornax-devtool/**
               - ./crates/fornax-postprocessor/**
-              - ./pixi.toml
-              - ./pixi.lock
-              - ./.github/workflows/ci.yml
             benchmark_preprocessor:
-              - ./Cargo.toml
-              - ./Cargo.lock
-              - ./.cargo/**
-              - ./crates/fornax-core/**
-              - ./crates/fornax-devtool/**
               - ./crates/fornax-preprocessor/**
-              - ./pixi.toml
-              - ./pixi.lock
-              - ./.github/workflows/ci.yml
             compare_demosaic:
-              - ./Cargo.toml
-              - ./Cargo.lock
-              - ./.cargo/**
-              - ./.gitmodules
               - ./crates/compare-demosaic/**
               - ./crates/fornax-core/**
-              - ./crates/fornax-devtool/**
               - ./crates/fornax-postprocessor/**
-              - ./external/**
-              - ./pixi.toml
-              - ./pixi.lock
-              - ./.github/workflows/ci.yml
             book_assets:
               - ./book/**
-              - ./.github/workflows/ci.yml
           files_ignore_yaml: |
             main:
               - '**.md'
