@@ -3,9 +3,9 @@ use std::path::Path;
 use std::str::FromStr;
 
 use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationError};
-use fornax_core::metadata::{Levels, ProcessMetadata};
+use fornax_core::metadata::{ColorCalibration, Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
-use fornax_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_dng::metadata::IDecoderDng;
 use fornax_dng::{Directory, DngTag, Value};
 use fornax_tiff::Tag;
@@ -104,7 +104,7 @@ where
         Ok(CroppedMosaic::new(cropped))
     }
 
-    fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
         let raw = &self.raw;
         let cfa = match &raw.photometric {
             RawPhotometricInterpretation::Cfa(config) => &config.cfa,
@@ -243,7 +243,7 @@ where
             MonoImage::from_raw(
                 black_width,
                 black_height,
-                black_values.into_iter().map(|v| num!(v)).collect(),
+                black_values.into_iter().map(f64::from).collect(),
             )
             .ok_or_else(|| {
                 MetadataValidationError::InvalidLevels("invalid black-level image".into())
@@ -254,8 +254,8 @@ where
             let white_value = raw.whitelevel.0.first().copied().ok_or_else(|| {
                 MetadataValidationError::InvalidLevels("white level is missing".into())
             })?;
-            let white = num!(white_value);
-            if white <= T::zero() {
+            let white = f64::from(white_value);
+            if white <= 0.0 {
                 return Err(MetadataValidationError::InvalidLevels(
                     "white level must be greater than zero".into(),
                 )
@@ -264,36 +264,39 @@ where
             white
         };
 
-        let bayer_pattern = BayerPattern::from_str(&cfa.name)
+        let bayer_pattern = fornax_core::BayerPattern::from_str(&cfa.name)
             .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?
             .shifted(active_area.x, active_area.y);
-        let wb_coeffs = {
-            raw.dng_tags.get(&50728_u16).map_or_else(
-                || {
-                    if raw.neutralwb()[..3]
-                        .iter()
-                        .all(|v| *v != 0.0 && !v.is_nan())
-                    {
-                        Some((
-                            num!(raw.neutralwb()[1]) / num!(raw.neutralwb()[0]),
-                            num!(raw.neutralwb()[1]) / num!(raw.neutralwb()[2]),
-                        ))
-                    } else if raw.wb_coeffs[..3].iter().all(|v| *v != 0.0 && !v.is_nan()) {
-                        // Invert the WB multipliers. G2 is NaN on 3-channel
-                        // sensors.
-                        let [r, g, b, _] = raw.wb_coeffs;
-                        Some((num!(r) / num!(g), num!(b) / num!(g)))
-                    } else {
-                        None
-                    }
-                },
-                |tag| {
-                    let v: Vec<f32> = (0..3).map(|i| tag.force_f32(i)).collect();
-
-                    Some((num!(v[1]) / num!(v[0]), num!(v[1]) / num!(v[2])))
-                },
-            )
-        };
+        let mut raw_color = fornax_dng::raw_color_metadata(&synthesize_dng_metadata(raw))?;
+        let has_dng_as_shot_neutral = raw.dng_tags.contains_key(&u16::from(DngTag::AsShotNeutral));
+        let valid_as_shot_neutral = raw_color.as_shot_neutral.is_some_and(|neutral| {
+            neutral
+                .iter()
+                .all(|value| value.is_finite() && *value > 0.0)
+        });
+        if !has_dng_as_shot_neutral || !valid_as_shot_neutral {
+            raw_color.as_shot_neutral = None;
+            let neutral = raw.neutralwb();
+            if neutral[..3]
+                .iter()
+                .all(|value| value.is_finite() && *value > 0.0)
+            {
+                raw_color.as_shot_neutral = Some([
+                    f64::from(neutral[0]),
+                    f64::from(neutral[1]),
+                    f64::from(neutral[2]),
+                ]);
+            } else {
+                let [r, g, b, _] = raw.wb_coeffs;
+                if [r, g, b]
+                    .iter()
+                    .all(|value| value.is_finite() && *value > 0.0)
+                {
+                    raw_color.maker_gains = Some((f64::from(r / g), f64::from(b / g)));
+                }
+            }
+        }
+        let color_calibration = ColorCalibration::new(raw_color);
 
         Ok(ProcessMetadata {
             active_area,
@@ -305,13 +308,7 @@ where
                 white,
             },
             bayer_pattern,
-            wb_coeffs,
-            color_matrix_1: None,       // todo
-            color_matrix_2: None,       // todo
-            forward_matrix_1: None,     // todo
-            forward_matrix_2: None,     // todo
-            camera_calibration_1: None, // todo
-            camera_calibration_2: None, // todo
+            color_calibration,
         })
     }
 }
@@ -577,6 +574,7 @@ const fn align_to_bayer_tile(mut area: Rect) -> Rect {
 
 #[cfg(test)]
 mod tests {
+    use fornax_core::metadata::WhiteSource;
     use fornax_dng::{DngTag, Value};
     use rawler::CFA;
     use rawler::decoders::Camera;
@@ -667,5 +665,38 @@ mod tests {
             metadata.get(&Tag::from(DngTag::WhiteLevel)),
             Some(&Value::Unsigned(65_535))
         );
+    }
+
+    #[test]
+    fn process_metadata_uses_rawler_dng_color_tags() {
+        let mut raw = configured_raw();
+        raw.dng_tags.extend([
+            (
+                u16::from(DngTag::AsShotNeutral),
+                RawlerValue::Float(vec![0.5, 1.0, 0.25]),
+            ),
+            (
+                u16::from(DngTag::CalibrationIlluminant1),
+                RawlerValue::Short(vec![u16::from(fornax_core::metadata::LightSource::D65)]),
+            ),
+            (
+                u16::from(DngTag::ColorMatrix1),
+                RawlerValue::Float(vec![1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]),
+            ),
+        ]);
+        let decoder: RawlerDecoder<f32> = RawlerDecoder {
+            raw,
+            _mark: PhantomData,
+        };
+
+        let metadata = decoder
+            .process_metadata()
+            .expect("process metadata should be available");
+
+        assert_eq!(
+            metadata.color_calibration.as_shot_source(),
+            WhiteSource::AsShotNeutral
+        );
+        assert!(!metadata.color_calibration.is_fallback());
     }
 }
