@@ -213,7 +213,6 @@ where
     let normalized = Preprocessor.process(cropped, &metadata.levels)?;
     let processor = PostProcessor {
         demosaic: config.demosaic,
-        use_wb_coeffs: config.white_balance,
         output_color: if config.color_matrix {
             OutputColorSpace::Srgb
         } else {

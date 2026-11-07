@@ -27,10 +27,6 @@ pub struct CliArgs {
     #[arg(long, help_heading = "Processing")]
     pub demosaic: Option<String>,
 
-    /// Enforce white balance during postprocessing [default: true]
-    #[arg(long, conflicts_with = "no_white_balance", help_heading = "Color")]
-    pub white_balance: bool,
-
     /// Disable white balance during postprocessing.
     #[arg(long, conflicts_with = "white_balance", help_heading = "Color")]
     pub no_white_balance: bool,
@@ -159,7 +155,6 @@ struct FileConfig {
     overwrite: Option<bool>,
     metadata_json: Option<bool>,
     demosaic: Option<String>,
-    white_balance: Option<bool>,
     color_matrix: Option<bool>,
     jpeg_quality: Option<u8>,
     dng_compression: Option<DngCompressionChoice>,
@@ -178,7 +173,6 @@ pub struct ResolvedConfig {
     pub overwrite: bool,
     pub metadata_json: bool,
     pub demosaic: Demosaic,
-    pub white_balance: bool,
     pub color_matrix: bool,
     pub jpeg_quality: u8,
     pub dng_compression: DngCompressionChoice,
@@ -301,12 +295,6 @@ pub fn resolve_config(args: &CliArgs) -> Result<ResolvedConfig, ConfigError> {
             false,
         ),
         demosaic,
-        white_balance: merge_bool(
-            args.white_balance,
-            args.no_white_balance,
-            file.white_balance,
-            true,
-        ),
         color_matrix: merge_bool(
             args.color_matrix,
             args.no_color_matrix,
@@ -388,7 +376,6 @@ mod tests {
         assert!(!config.overwrite);
         assert!(!config.metadata_json);
         assert_eq!(config.demosaic, Demosaic::default());
-        assert!(config.white_balance);
         assert!(config.color_matrix);
         assert_eq!(config.jpeg_quality, 90);
         assert_eq!(config.dng_compression, DngCompressionChoice::LosslessJpeg);
@@ -424,7 +411,6 @@ mod tests {
         assert_eq!(config.format, OutputFormat::Tiff);
         assert_eq!(config.jobs, 1);
         assert_eq!(config.demosaic, Demosaic::Ppg);
-        assert!(!config.white_balance);
     }
 
     #[test]
