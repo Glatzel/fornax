@@ -6,6 +6,7 @@
 
 mod error;
 pub mod deflate;
+mod encode;
 pub mod jpeg;
 pub mod jpegxl;
 pub mod ljpeg;
@@ -26,6 +27,27 @@ pub use request::{
 };
 pub use uncompressed::UncompressedCodec;
 pub use zstd::ZstdCodec;
+
+/// Encodes a raw image using the selected compression scheme.
+///
+/// # Errors
+///
+/// Returns [`CodecError`] when the selected codec does not support encoding
+/// or rejects the sample layout.
+pub fn encode(
+    compression: Compression,
+    request: &EncodeRequest<'_>,
+) -> Result<EncodedChunks, CodecError> {
+    match compression {
+        Compression::Uncompressed => UncompressedCodec.encode(request),
+        Compression::LosslessJpeg => LosslessJpegCodec.encode(request),
+        Compression::Deflate => DeflateCodec.encode(request),
+        Compression::Zstd => ZstdCodec.encode(request),
+        Compression::LossyJpeg | Compression::JpegXl => Err(error::unsupported(
+            "the selected codec is decode-only",
+        )),
+    }
+}
 
 /// Decodes an encoded raw image into storage-typed samples.
 pub trait ICodecDecode {

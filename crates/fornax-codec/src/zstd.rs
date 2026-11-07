@@ -1,8 +1,9 @@
 use fornax_core::RawMosaic;
 
-use crate::request::DecodeRequest;
+use crate::encode::encode_image;
+use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
 use crate::samples::{Geometry, chunk, decode_payloads};
-use crate::{CodecError, ICodecDecode, error::invalid, predictor};
+use crate::{CodecError, ICodecDecode, ICodecEncode, error::invalid, predictor};
 
 /// TIFF's experimental Zstandard raw chunk decoder.
 #[derive(Clone, Copy, Debug, Default)]
@@ -51,6 +52,41 @@ impl ICodecDecode for ZstdCodec {
     }
 }
 
+#[cfg(feature = "zstd")]
+impl ICodecEncode for ZstdCodec {
+    fn encode(&self, request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+        let mut encoded = encode_image(
+            request.image,
+            request.chunk_width,
+            request.chunk_height,
+            request.byte_order,
+        )?;
+        let mut chunks = Vec::with_capacity(encoded.chunks.len());
+        for chunk in &mut encoded.chunks {
+            predictor::apply(
+                chunk,
+                request.predictor,
+                request.chunk_width,
+                request.chunk_height,
+                encoded.bits_per_sample,
+                encoded.sample_format,
+                request.byte_order,
+            )?;
+            chunks.push(compress(chunk, 3)?);
+        }
+        Ok(EncodedChunks { chunks })
+    }
+}
+
+#[cfg(not(feature = "zstd"))]
+impl ICodecEncode for ZstdCodec {
+    fn encode(&self, _request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+        Err(crate::error::unsupported(
+            "Zstandard encoding requires the fornax-codec zstd feature",
+        ))
+    }
+}
+
 #[cfg(not(feature = "zstd"))]
 impl ICodecDecode for ZstdCodec {
     fn decode(&self, _request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
@@ -77,4 +113,12 @@ pub(crate) fn decompress(encoded: &[u8], max_output: usize) -> Result<Vec<u8>, S
         return Err("payload exceeds the declared tile size".into());
     }
     Ok(decoded)
+}
+
+#[cfg(feature = "zstd")]
+pub(crate) fn compress(data: &[u8], level: i32) -> Result<Vec<u8>, CodecError> {
+    Ok(structured_zstd::encoding::compress_to_vec(
+        data,
+        structured_zstd::encoding::CompressionLevel::from_level(level),
+    ))
 }

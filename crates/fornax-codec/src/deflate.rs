@@ -1,11 +1,15 @@
 use std::io::Read;
+use std::io::Write;
 
+use flate2::Compression as FlateCompression;
 use flate2::read::ZlibDecoder;
+use flate2::write::ZlibEncoder;
 use fornax_core::RawMosaic;
 
-use crate::request::DecodeRequest;
+use crate::encode::encode_image;
+use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
 use crate::samples::{Geometry, chunk, decode_payloads};
-use crate::{CodecError, ICodecDecode, error::invalid, predictor};
+use crate::{CodecError, ICodecDecode, ICodecEncode, error::invalid, predictor};
 
 /// TIFF Deflate decoder using zlib framing.
 #[derive(Clone, Copy, Debug, Default)]
@@ -48,6 +52,31 @@ impl ICodecDecode for DeflateCodec {
     }
 }
 
+impl ICodecEncode for DeflateCodec {
+    fn encode(&self, request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+        let mut encoded = encode_image(
+            request.image,
+            request.chunk_width,
+            request.chunk_height,
+            request.byte_order,
+        )?;
+        let mut chunks = Vec::with_capacity(encoded.chunks.len());
+        for chunk in &mut encoded.chunks {
+            predictor::apply(
+                chunk,
+                request.predictor,
+                request.chunk_width,
+                request.chunk_height,
+                encoded.bits_per_sample,
+                encoded.sample_format,
+                request.byte_order,
+            )?;
+            chunks.push(deflate(chunk)?);
+        }
+        Ok(EncodedChunks { chunks })
+    }
+}
+
 pub(crate) fn inflate(encoded: &[u8]) -> Result<Vec<u8>, String> {
     let mut decoder = ZlibDecoder::new(encoded);
     let mut decoded = Vec::new();
@@ -55,4 +84,14 @@ pub(crate) fn inflate(encoded: &[u8]) -> Result<Vec<u8>, String> {
         .read_to_end(&mut decoded)
         .map_err(|error| format!("payload is invalid: {error}"))?;
     Ok(decoded)
+}
+
+pub(crate) fn deflate(data: &[u8]) -> Result<Vec<u8>, CodecError> {
+    let mut encoder = ZlibEncoder::new(Vec::new(), FlateCompression::fast());
+    encoder
+        .write_all(data)
+        .map_err(|error| invalid(format!("Deflate setup failed: {error}")))?;
+    encoder
+        .finish()
+        .map_err(|error| invalid(format!("Deflate encoding failed: {error}")))
 }

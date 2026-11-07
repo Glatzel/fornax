@@ -100,6 +100,93 @@ pub(crate) fn reverse(
     Ok(())
 }
 
+pub(crate) fn apply(
+    payload: &mut [u8],
+    predictor: Predictor,
+    width: usize,
+    height: usize,
+    bits: u16,
+    sample_format: SampleFormat,
+    byte_order: ByteOrder,
+) -> Result<(), CodecError> {
+    if predictor == Predictor::None {
+        return Ok(());
+    }
+    let bytes_per_sample = usize::from(bits.div_ceil(8));
+    let row_bytes = width
+        .checked_mul(bytes_per_sample)
+        .ok_or_else(|| invalid("predictor row size overflow"))?;
+    let needed = row_bytes
+        .checked_mul(height)
+        .ok_or_else(|| invalid("predictor payload size overflow"))?;
+    if payload.len() != needed {
+        return Err(invalid("predictor payload size does not match the tile"));
+    }
+
+    match predictor {
+        Predictor::None => {}
+        Predictor::HorizontalInteger => {
+            if sample_format != SampleFormat::Integer || !matches!(bits, 8 | 16 | 32) {
+                return Err(invalid(
+                    "horizontal prediction requires 8/16/32-bit integers",
+                ));
+            }
+            for row in payload.chunks_exact_mut(row_bytes) {
+                for sample in (1..width).rev() {
+                    let previous = (sample - 1) * bytes_per_sample;
+                    let current = sample * bytes_per_sample;
+                    match bytes_per_sample {
+                        1 => row[current] = row[current].wrapping_sub(row[previous]),
+                        2 => write_u16(
+                            row,
+                            current,
+                            read_u16(row, current, byte_order)
+                                .wrapping_sub(read_u16(row, previous, byte_order)),
+                            byte_order,
+                        ),
+                        4 => write_u32(
+                            row,
+                            current,
+                            read_u32(row, current, byte_order)
+                                .wrapping_sub(read_u32(row, previous, byte_order)),
+                            byte_order,
+                        ),
+                        _ => unreachable!("the sample width is validated above"),
+                    }
+                }
+            }
+        }
+        Predictor::FloatingPoint { byte_stride } => {
+            if sample_format != SampleFormat::Float
+                || !matches!(bits, 16 | 24 | 32)
+                || !matches!(byte_stride, 1 | 2 | 4)
+            {
+                return Err(invalid(
+                    "floating-point prediction requires 16/24/32-bit floats and stride 1, 2, or 4",
+                ));
+            }
+            for row in payload.chunks_exact_mut(row_bytes) {
+                if byte_order == ByteOrder::Little {
+                    for sample in row.chunks_exact_mut(bytes_per_sample) {
+                        sample.reverse();
+                    }
+                }
+                let interleaved = row.to_vec();
+                for sample in 0..width {
+                    for byte in 0..bytes_per_sample {
+                        row[sample + byte * width] =
+                            interleaved[sample * bytes_per_sample + byte];
+                    }
+                }
+                for index in (byte_stride..row_bytes).rev() {
+                    row[index] = row[index].wrapping_sub(row[index - byte_stride]);
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 const fn read_u16(bytes: &[u8], offset: usize, byte_order: ByteOrder) -> u16 {
     let value = [bytes[offset], bytes[offset + 1]];
     match byte_order {

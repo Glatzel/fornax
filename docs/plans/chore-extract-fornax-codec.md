@@ -113,7 +113,7 @@ functions dispatch by `Compression`. Chunk order is row-major.
 - [x] Task 1: Create the crate, shared request types, error type, traits, and
       uncompressed sample decoder.
 - [x] Task 2: Move compressed decoders and predictors behind `ICodecDecode`.
-- [ ] Task 3: Move supported encoders behind `ICodecEncode`.
+- [x] Task 3: Move supported encoders behind `ICodecEncode`.
 - [ ] Task 4: Route `fornax-dng` decode and write paths through
       `fornax-codec`, then remove superseded modules and dependencies.
 - [ ] Task 5: Update crate documentation, architecture, and agent ownership
