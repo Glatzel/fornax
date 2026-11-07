@@ -1,10 +1,10 @@
 use std::path::{Path, PathBuf};
 
+use bench_decoder::rawler_wrapper::RawlerDecoder;
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_core::Primitive;
 use fornax_core::protocol::IDecoder;
 use fornax_decoder::Decoder;
-use fornax_decoder_rawler::RawlerDecoder;
 use fornax_devtool::{BenchParams, BenchSampleBits};
 use fornax_dng::metadata::IDecoderDng;
 
@@ -43,7 +43,7 @@ fn raw_path() -> PathBuf {
 
 fn bench_decoder<D, T>(c: &mut Criterion, decoder_name: &str, sample_name: &str, path: &Path)
 where
-    D: for<'a> IDecoder<&'a Path, T> + for<'a> IDecoderDng<&'a Path, T>,
+    D: for<'a> IDecoder<&'a Path, T>,
     T: Primitive + Send + Sync,
 {
     let prefix = format!("{decoder_name}/{sample_name}");
@@ -58,27 +58,40 @@ where
     c.bench_function(&format!("{prefix}/cropped_mosaic"), |b| {
         b.iter(|| black_box(decoder.cropped_mosaic().unwrap()));
     });
-    let metadata = decoder.dng_metadata().unwrap();
-    eprintln!(
-        "{decoder_name}/{sample_name}: dng_metadata tags={}",
-        metadata.len()
-    );
-    c.bench_function(&format!("{prefix}/dng_metadata"), |b| {
-        b.iter(|| black_box(decoder.dng_metadata().unwrap()));
-    });
-    c.bench_function(&format!("{prefix}/process_metadata"), |b| {
-        b.iter(|| black_box(decoder.process_metadata().unwrap()));
-    });
 }
-
-fn bench_bit<D, T>(c: &mut Criterion, decoder_name: &str, bits: BenchSampleBits, path: &Path)
+fn bench_metadata<D, T>(c: &mut Criterion, decoder_name: &str, path: &Path)
 where
     D: for<'a> IDecoder<&'a Path, T> + for<'a> IDecoderDng<&'a Path, T>,
     T: Primitive + Send + Sync,
 {
+    let decoder = D::decode(path).unwrap();
+    let metadata = decoder.dng_metadata().unwrap();
+    eprintln!("{decoder_name}: dng_metadata tags={}", metadata.len());
+    c.bench_function(&format!("{decoder_name}/dng_metadata"), |b| {
+        b.iter(|| black_box(decoder.dng_metadata().unwrap()));
+    });
+    c.bench_function(&format!("{decoder_name}/process_metadata"), |b| {
+        b.iter(|| black_box(decoder.process_metadata().unwrap()));
+    });
+}
+fn bench_bit_decoder<D, T>(
+    c: &mut Criterion,
+    decoder_name: &str,
+    bits: BenchSampleBits,
+    path: &Path,
+) where
+    D: for<'a> IDecoder<&'a Path, T>,
+    T: Primitive + Send + Sync,
+{
     bench_decoder::<D, T>(c, decoder_name, bits.as_ref(), path);
 }
-
+fn bench_bit_metadata<D, T>(c: &mut Criterion, decoder_name: &str, path: &Path)
+where
+    D: for<'a> IDecoder<&'a Path, T> + for<'a> IDecoderDng<&'a Path, T>,
+    T: Primitive + Send + Sync,
+{
+    bench_metadata::<D, T>(c, decoder_name, path);
+}
 fn benches(c: &mut Criterion) {
     let params = BenchParams::from_env();
     let decoders = selected_decoders();
@@ -86,18 +99,21 @@ fn benches(c: &mut Criterion) {
 
     for bits in params.bits {
         for decoder in &decoders {
+            if decoder == &DecoderKind::Fornax {
+                bench_bit_metadata::<Decoder<f32>, f32>(c, "fornax", &path);
+            }
             match (decoder, bits) {
                 (DecoderKind::Fornax, BenchSampleBits::F32) => {
-                    bench_bit::<Decoder<f32>, f32>(c, "fornax", bits, &path);
+                    bench_bit_decoder::<Decoder<f32>, f32>(c, "fornax", bits, &path);
                 }
                 (DecoderKind::Fornax, BenchSampleBits::F64) => {
-                    bench_bit::<Decoder<f64>, f64>(c, "fornax", bits, &path);
+                    bench_bit_decoder::<Decoder<f64>, f64>(c, "fornax", bits, &path);
                 }
                 (DecoderKind::Rawler, BenchSampleBits::F32) => {
-                    bench_bit::<RawlerDecoder<f32>, f32>(c, "rawler", bits, &path);
+                    bench_bit_decoder::<RawlerDecoder<f32>, f32>(c, "rawler", bits, &path);
                 }
                 (DecoderKind::Rawler, BenchSampleBits::F64) => {
-                    bench_bit::<RawlerDecoder<f64>, f64>(c, "rawler", bits, &path);
+                    bench_bit_decoder::<RawlerDecoder<f64>, f64>(c, "rawler", bits, &path);
                 }
             }
         }
