@@ -7,7 +7,7 @@ use rayon::prelude::*;
 use crate::error::invalid;
 use crate::request::{DecodeRequest, SampleFormat};
 use crate::samples::{Geometry, chunk, mono};
-use crate::{CodecError, ICodecDecode};
+use crate::{CodecError, ICodecDecode, Predictor};
 
 /// Single-channel JPEG XL raw tile decoder.
 ///
@@ -21,6 +21,9 @@ pub struct JpegXlCodec;
 
 impl ICodecDecode for JpegXlCodec {
     fn decode(&self, request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+        if request.predictor != Predictor::None {
+            return Err(invalid("JPEG XL samples do not support prediction"));
+        }
         if request.sample_format != SampleFormat::Integer
             || !(8..=16).contains(&request.bits_per_sample)
         {

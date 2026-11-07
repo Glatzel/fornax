@@ -21,6 +21,9 @@ pub struct UncompressedCodec;
 
 impl ICodecDecode for UncompressedCodec {
     fn decode(&self, request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+        if request.predictor != Predictor::None {
+            return Err(invalid("uncompressed samples do not support prediction"));
+        }
         let geometry = Geometry::new(
             request.width,
             request.height,

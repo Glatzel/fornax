@@ -10,7 +10,7 @@ use zune_jpeg::zune_core::options::DecoderOptions;
 use crate::error::invalid;
 use crate::request::{DecodeRequest, SampleFormat};
 use crate::samples::{Geometry, chunk, mono};
-use crate::{CodecError, ICodecDecode};
+use crate::{CodecError, ICodecDecode, Predictor};
 
 /// TIFF lossy JPEG decoder for a single luma component.
 ///
@@ -24,6 +24,9 @@ pub struct LossyJpegCodec;
 
 impl ICodecDecode for LossyJpegCodec {
     fn decode(&self, request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+        if request.predictor != Predictor::None {
+            return Err(invalid("lossy JPEG samples do not support prediction"));
+        }
         if request.bits_per_sample != 8 || request.sample_format != SampleFormat::Integer {
             return Err(invalid("lossy JPEG samples require unsigned 8-bit storage"));
         }

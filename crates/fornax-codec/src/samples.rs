@@ -28,6 +28,8 @@ impl Geometry {
         if chunk_width == 0 || chunk_height == 0 {
             return Err(invalid("chunk dimensions must not be zero"));
         }
+        checked_product([chunk_width, chunk_height])
+            .ok_or_else(|| invalid("chunk sample count overflow"))?;
         let across = width.div_ceil(chunk_width);
         let down = height.div_ceil(chunk_height);
         let expected = across
@@ -56,6 +58,11 @@ impl Geometry {
     pub fn band_stride(&self) -> Result<usize, CodecError> {
         checked_product([self.chunk_height, self.width])
             .ok_or_else(|| invalid("decoded band size overflow"))
+    }
+
+    pub fn chunk_sample_count(&self) -> Result<usize, CodecError> {
+        checked_product([self.chunk_width, self.chunk_height])
+            .ok_or_else(|| invalid("chunk sample count overflow"))
     }
 }
 
@@ -227,7 +234,7 @@ where
         .try_for_each(|(tile_y_index, band)| {
             let tile_y = tile_y_index * geometry.chunk_height;
             let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
-            let mut unpacked = vec![0_u32; geometry.chunk_width * geometry.chunk_height];
+            let mut unpacked = vec![0_u32; geometry.chunk_sample_count()?];
             for tile_x_index in 0..geometry.across {
                 let index = tile_y_index * geometry.across + tile_x_index;
                 unpack_bits(payloads[index], &mut unpacked, bits)?;

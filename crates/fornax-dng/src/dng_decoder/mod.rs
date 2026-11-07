@@ -227,6 +227,13 @@ fn codec_plan(source: &[u8], metadata: &Directory) -> Result<CodecPlan, DecodeEr
         }
     };
     let (chunk_width, chunk_height, offsets, byte_counts) = layout(metadata)?;
+    if offsets.len() != byte_counts.len() {
+        return Err(corrupt(format!(
+            "DNG chunk offsets and byte counts differ: {} offsets, {} byte counts",
+            offsets.len(),
+            byte_counts.len()
+        )));
+    }
     let chunks = offsets
         .into_iter()
         .zip(byte_counts)
@@ -462,6 +469,34 @@ mod tests {
             ]
         );
     }
+
+    #[test]
+    fn dng_metadata_rejects_mismatched_chunk_offsets_and_byte_counts() {
+        let source = b"MMxxxxxxxx";
+        let mut metadata = metadata(
+            4,
+            2,
+            12,
+            8,
+            [
+                (TiffTag::TileWidth.into(), Value::Unsigned(4)),
+                (TiffTag::TileLength.into(), Value::Unsigned(1)),
+            ],
+        );
+        metadata.insert(
+            Tag::from(TiffTag::TileOffsets),
+            Value::List(vec![Value::Unsigned(2), Value::Unsigned(6)]),
+        );
+        metadata.insert(Tag::from(TiffTag::TileByteCounts), Value::Unsigned(4));
+
+        let error = super::codec_plan(source, &metadata).unwrap_err();
+
+        assert!(matches!(
+            error,
+            fornax_core::error::DecodeError::InvalidInput(_)
+        ));
+    }
+
     use crate::metadata::{Directory, DngTag};
     use crate::writer::{DngCompression, DngWriter};
 

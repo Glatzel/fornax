@@ -194,6 +194,55 @@ fn uncompressed_rejects_overflowing_chunk_ranges_without_panicking() {
 }
 
 #[test]
+fn uncompressed_rejects_overflowing_chunk_geometry_without_panicking() {
+    let source = [];
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: 0,
+    }];
+    let request = request(
+        &source,
+        &chunks,
+        1,
+        1,
+        usize::MAX,
+        2,
+        10,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+    );
+
+    let error = UncompressedCodec.decode(&request).unwrap_err();
+
+    assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
+}
+
+#[test]
+fn uncompressed_rejects_predictors_it_cannot_reverse() {
+    let source = [1_u8, 2, 4, 8];
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: source.len(),
+    }];
+    let request = request_with_predictor(
+        &source,
+        &chunks,
+        4,
+        1,
+        4,
+        1,
+        8,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        Predictor::HorizontalInteger,
+    );
+
+    let error = UncompressedCodec.decode(&request).unwrap_err();
+
+    assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
+}
+
+#[test]
 fn deflate_reverses_horizontal_integer_prediction() {
     let differences = [1_u8, 1, 2, 4];
     let mut encoder = ZlibEncoder::new(Vec::new(), FlateCompression::fast());
