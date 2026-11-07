@@ -1,12 +1,13 @@
+mod rawler_wrapper;
 use std::path::{Path, PathBuf};
 
-use bench_decoder::rawler_wrapper::RawlerDecoder;
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_core::Primitive;
 use fornax_core::protocol::IDecoder;
 use fornax_decoder::Decoder;
 use fornax_devtool::{BenchParams, BenchSampleBits};
 use fornax_dng::metadata::IDecoderDng;
+use rawler_wrapper::RawlerDecoder;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum DecoderKind {

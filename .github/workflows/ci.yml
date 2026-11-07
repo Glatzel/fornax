@@ -35,7 +35,6 @@ jobs:
               - '!**/*.md'
             benchmark_decoder:
               - '!**/*.md'
-              - ./crates/bench-decoder/**
               - ./crates/fornax-codec/**
               - ./crates/fornax-decoder/**
               - ./crates/fornax-dng/**
@@ -149,7 +148,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - package: bench-decoder
+          - package: fornax-decoder
             changed: ${{ needs.changed.outputs.benchmark_decoder }}
 
           - package: fornax-dng
