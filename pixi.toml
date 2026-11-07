@@ -54,4 +54,4 @@ dev = {
 python = ["dev", "python"]
 data = ["data"]
 book = ["book"]
-agent=["agent"]
+agent = ["agent"]
