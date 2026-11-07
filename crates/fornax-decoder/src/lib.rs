@@ -16,7 +16,7 @@ pub enum Decoder {
     Dng(DngImage),
 }
 impl IDecoder for Decoder {
-    fn decode<&'_ Path>(input: &'_ Path) -> Result<Self, DecodeError> where
+    fn decode(input: &Path) -> Result<Self, DecodeError> where
         Self: Sized {
         let extension = input
             .extension()

@@ -1,10 +1,12 @@
+use std::path::Path;
+
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
 use crate::metadata::{ColorCalibration, ColorTransform, Levels, ProcessMetadata};
 use crate::{
     BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
 };
 pub trait IDecoder: Send + Sync {
-    fn decode<I>(input: I) -> Result<Self, DecodeError>
+    fn decode(input: &Path) -> Result<Self, DecodeError>
     where
         Self: Sized;
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
