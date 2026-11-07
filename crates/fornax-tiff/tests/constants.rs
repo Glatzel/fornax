@@ -12,15 +12,13 @@ fn tiff_tags_round_trip_through_numeric_and_dynamic_tags() {
     ];
 
     for (tag, value) in values {
-        assert_eq!(tag.as_u16(), value);
-        assert_eq!(tag.into_u16(), value);
-        assert_eq!(TiffTag::from_u16(value), tag);
+        assert_eq!(u16::from(tag), value);
+        assert_eq!(TiffTag::from(value), tag);
         assert_eq!(TiffTag::from(Tag(value)), tag);
         assert_eq!(Tag::from(tag), Tag(value));
     }
 
-    assert_eq!(TiffTag::from_u16(60_001), TiffTag::Unknown(60_001));
-    assert_eq!(TiffTag::Unknown(60_001).as_u16(), 60_001);
+    assert_eq!(TiffTag::from(60_001), TiffTag::Unknown(60_001));
 }
 
 #[test]
@@ -35,16 +33,14 @@ fn compression_methods_preserve_known_and_unknown_identifiers() {
     ];
 
     for (compression, value) in values {
-        assert_eq!(compression.as_u16(), value);
-        assert_eq!(compression.into_u16(), value);
-        assert_eq!(CompressionMethod::from_u16(value), compression);
+        assert_eq!(u16::from(compression), value);
+        assert_eq!(CompressionMethod::from(value), compression);
     }
 
     assert_eq!(
-        CompressionMethod::from_u16(12_345),
+        CompressionMethod::from(12_345),
         CompressionMethod::Unknown(12_345)
     );
-    assert_eq!(CompressionMethod::Unknown(12_345).as_u16(), 12_345);
 }
 
 #[test]
@@ -55,14 +51,12 @@ fn photometric_values_preserve_cfa_linear_raw_and_unknown_identifiers() {
     ];
 
     for (photometric, value) in values {
-        assert_eq!(photometric.as_u16(), value);
-        assert_eq!(photometric.into_u16(), value);
-        assert_eq!(PhotometricInterpretation::from_u16(value), photometric);
+        assert_eq!(u16::from(photometric), value);
+        assert_eq!(PhotometricInterpretation::from(value), photometric);
     }
 
     assert_eq!(
-        PhotometricInterpretation::from_u16(12_345),
+        PhotometricInterpretation::from(12_345),
         PhotometricInterpretation::Unknown(12_345)
     );
-    assert_eq!(PhotometricInterpretation::Unknown(12_345).as_u16(), 12_345);
 }

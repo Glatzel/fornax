@@ -7,21 +7,6 @@ use strum::AsRefStr;
 
 use crate::Tag;
 
-macro_rules! u16_conversions {
-    ($type:ty) => {
-        impl $type {
-            /// Converts a raw TIFF identifier into its typed representation.
-            pub fn from_u16(value: u16) -> Self { Self::from(value) }
-
-            /// Converts this value into its raw TIFF identifier.
-            pub fn into_u16(self) -> u16 { self.into() }
-
-            /// Returns this value as a raw TIFF identifier.
-            pub fn as_u16(&self) -> u16 { u16::from(*self) }
-        }
-    };
-}
-
 /// A typed standard TIFF or TIFF/EP tag identifier.
 #[repr(u16)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, AsRefStr, FromPrimitive, IntoPrimitive)]
@@ -77,8 +62,6 @@ pub enum TiffTag {
     Unknown(u16),
 }
 
-u16_conversions!(TiffTag);
-
 impl Ord for TiffTag {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering { u16::from(*self).cmp(&u16::from(*other)) }
 }
@@ -125,8 +108,6 @@ pub enum CompressionMethod {
     Unknown(u16),
 }
 
-u16_conversions!(CompressionMethod);
-
 /// TIFF photometric interpretation identifiers used by DNG images.
 #[repr(u16)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, FromPrimitive, IntoPrimitive)]
@@ -156,4 +137,28 @@ pub enum PhotometricInterpretation {
     Unknown(u16),
 }
 
-u16_conversions!(PhotometricInterpretation);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum CalibrationIlluminant {
+    Unknown = 0,
+    Daylight = 1,
+    Fluorescent = 2,
+    Tungsten = 3,
+    Flash = 4,
+    FineWeather = 9,
+    CloudyWeather = 10,
+    Shade = 11,
+    DaylightFluorescent = 12,
+    DayWhiteFluorescent = 13,
+    CoolWhiteFluorescent = 14,
+    WhiteFluorescent = 15,
+    StandardLightA = 17,
+    StandardLightB = 18,
+    StandardLightC = 19,
+    D55 = 20,
+    D65 = 21,
+    D75 = 22,
+    D50 = 23,
+    ISOStudioTungsten = 24,
+    Other = 255,
+}
