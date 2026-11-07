@@ -4,7 +4,7 @@ mod process_metadata;
 mod transforms;
 
 use fornax_codec::{
-    ByteOrder as CodecByteOrder, Chunk as CodecChunk, DecodeRequest as CodecDecodeRequest,
+    ByteOrder as CodecByteOrder, Chunk as CodecChunk, Codec, DecodeRequest as CodecDecodeRequest,
     Predictor as CodecPredictor, SampleFormat as CodecSampleFormat,
 };
 use fornax_core::error::DecodeError;
@@ -164,7 +164,7 @@ fn validate_dimensions(pixels: &RawMosaic, metadata: &Directory) -> Result<(), D
 
 #[derive(Clone, Debug)]
 struct CodecPlan {
-    compression: fornax_codec::Compression,
+    codec: Codec,
     width: usize,
     height: usize,
     chunk_width: usize,
@@ -199,18 +199,17 @@ fn codec_plan(source: &[u8], metadata: &Directory) -> Result<CodecPlan, DecodeEr
     if width == 0 || height == 0 {
         return Err(corrupt("DNG image dimensions must not be zero"));
     }
-    let compression =
-        match CompressionMethod::from_u16(required_u16(metadata, TiffTag::Compression)?) {
-            CompressionMethod::Uncompressed => fornax_codec::Compression::Uncompressed,
-            CompressionMethod::LosslessJpeg => fornax_codec::Compression::LosslessJpeg,
-            CompressionMethod::Deflate => fornax_codec::Compression::Deflate,
-            CompressionMethod::LossyJpeg => fornax_codec::Compression::LossyJpeg,
-            CompressionMethod::JpegXl => fornax_codec::Compression::JpegXl,
-            CompressionMethod::Zstd => fornax_codec::Compression::Zstd,
-            CompressionMethod::Unknown(value) => {
-                return Err(corrupt(format!("invalid DNG compression {value}")));
-            }
-        };
+    let codec = match CompressionMethod::from_u16(required_u16(metadata, TiffTag::Compression)?) {
+        CompressionMethod::Uncompressed => Codec::Uncompressed,
+        CompressionMethod::LosslessJpeg => Codec::LosslessJpeg,
+        CompressionMethod::Deflate => Codec::Deflate,
+        CompressionMethod::LossyJpeg => Codec::LossyJpeg,
+        CompressionMethod::JpegXl => Codec::JpegXl,
+        CompressionMethod::Zstd => Codec::Zstd { level: 3 },
+        CompressionMethod::Unknown(value) => {
+            return Err(corrupt(format!("invalid DNG compression {value}")));
+        }
+    };
     let samples_per_pixel =
         unsigned_scalar(metadata.get(&Tag::from(TiffTag::SamplesPerPixel))).unwrap_or(1);
     if samples_per_pixel != 1 {
@@ -239,8 +238,8 @@ fn codec_plan(source: &[u8], metadata: &Directory) -> Result<CodecPlan, DecodeEr
         .zip(byte_counts)
         .map(|(offset, byte_count)| CodecChunk { offset, byte_count })
         .collect();
-    let predictor = match compression {
-        fornax_codec::Compression::Deflate | fornax_codec::Compression::Zstd => {
+    let predictor = match codec {
+        Codec::Deflate | Codec::Zstd { .. } => {
             match unsigned_scalar(metadata.get(&Tag::from(TiffTag::Predictor))).unwrap_or(1) {
                 1 => CodecPredictor::None,
                 2 => CodecPredictor::HorizontalInteger,
@@ -255,7 +254,7 @@ fn codec_plan(source: &[u8], metadata: &Directory) -> Result<CodecPlan, DecodeEr
         _ => CodecPredictor::None,
     };
     Ok(CodecPlan {
-        compression,
+        codec,
         width: usize::try_from(width).expect("u32 fits usize on supported platforms"),
         height: usize::try_from(height).expect("u32 fits usize on supported platforms"),
         chunk_width,
@@ -278,7 +277,9 @@ fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, Deco
         ));
     }
     let plan = codec_plan(source, metadata)?;
-    fornax_codec::decode(plan.compression, &plan.request(source)).map_err(codec_decode_error)
+    plan.codec
+        .decode(&plan.request(source))
+        .map_err(codec_decode_error)
 }
 
 fn codec_decode_error(error: fornax_codec::CodecError) -> DecodeError {
@@ -448,7 +449,7 @@ mod tests {
 
         let plan = super::codec_plan(source, &metadata).unwrap();
 
-        assert_eq!(plan.compression, fornax_codec::Compression::Deflate);
+        assert_eq!(plan.codec, fornax_codec::Codec::Deflate);
         assert_eq!((plan.width, plan.height), (4, 2));
         assert_eq!((plan.chunk_width, plan.chunk_height), (4, 1));
         assert_eq!(plan.bits_per_sample, 12);

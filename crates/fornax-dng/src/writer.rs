@@ -2,9 +2,7 @@ use std::fs::File;
 use std::io::{BufWriter, Seek, Write};
 use std::path::Path;
 
-use fornax_codec::{ByteOrder, Compression, EncodeRequest, Predictor, encode};
-#[cfg(feature = "zstd")]
-use fornax_codec::{ICodecEncode, ZstdCodec};
+use fornax_codec::{ByteOrder, Codec, EncodeRequest, Predictor};
 use fornax_core::RawMosaic;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
@@ -202,7 +200,7 @@ where
         mosaic,
         usize::try_from(width).expect("u32 fits usize on supported platforms"),
         usize::try_from(height).expect("u32 fits usize on supported platforms"),
-        Compression::Uncompressed,
+        Codec::Uncompressed,
         Predictor::None,
     )?;
     let [data] = encoded.as_slice() else {
@@ -280,13 +278,7 @@ where
     const TILE: usize = 256;
     let (width, height) = mosaic.dimensions();
     let (bits, sample_format) = sample_layout(mosaic);
-    let chunks = encode_for_chunks(
-        mosaic,
-        TILE,
-        TILE,
-        Compression::LosslessJpeg,
-        Predictor::None,
-    )?;
+    let chunks = encode_for_chunks(mosaic, TILE, TILE, Codec::LosslessJpeg, Predictor::None)?;
     write_tiled_payload(
         writer,
         width,
@@ -318,7 +310,7 @@ where
         RawMosaic::F32(_) => (Predictor::FloatingPoint { byte_stride: 1 }, 3_u16),
         _ => unreachable!("the caller selects Deflate only for wider samples"),
     };
-    let chunks = encode_for_chunks(mosaic, TILE, TILE, Compression::Deflate, predictor)?;
+    let chunks = encode_for_chunks(mosaic, TILE, TILE, Codec::Deflate, predictor)?;
     write_tiled_payload(
         writer,
         width,
@@ -348,7 +340,7 @@ where
     let (bits, sample_format) = sample_layout(mosaic);
     const TILE: usize = 256;
     let request = encode_request(mosaic, TILE, TILE, Predictor::None);
-    let chunks = ZstdCodec::new(level)
+    let chunks = Codec::Zstd { level }
         .encode(&request)
         .map_err(codec_write_error)?
         .chunks;
@@ -393,7 +385,7 @@ where
 {
     let (width, height) = mosaic.dimensions();
     let (bits, sample_format) = sample_layout(mosaic);
-    let chunks = encode_for_chunks(mosaic, 256, 256, Compression::Deflate, Predictor::None)?;
+    let chunks = encode_for_chunks(mosaic, 256, 256, Codec::Deflate, Predictor::None)?;
     write_tiled_payload(
         writer,
         width,
@@ -412,11 +404,12 @@ fn encode_for_chunks(
     mosaic: &RawMosaic,
     chunk_width: usize,
     chunk_height: usize,
-    compression: Compression,
+    codec: Codec,
     predictor: Predictor,
 ) -> Result<Vec<Vec<u8>>, DngWriteError> {
     let request = encode_request(mosaic, chunk_width, chunk_height, predictor);
-    encode(compression, &request)
+    codec
+        .encode(&request)
         .map(|encoded| encoded.chunks)
         .map_err(codec_write_error)
 }
