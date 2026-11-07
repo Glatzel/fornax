@@ -53,19 +53,7 @@ jobs:
               - ./crates/fornax-postprocessor/src/demosaic/**
             book_assets:
               - ./book/**
-          files_ignore_yaml: |
-            main:
-              - '**.md'
-            benchmark_decoder:
-              - '**.md'
-            benchmark_dng:
-              - '**.md'
-            benchmark_postprocessor:
-              - '**.md'
-            benchmark_preprocessor:
-              - '**.md'
-            compare_demosaic:
-              - '**.md'
+          files_ignore: '**/*.md'
 
   lefthook:
     if: ${{ github.event_name == 'pull_request' }}
