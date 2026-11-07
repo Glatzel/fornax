@@ -5,11 +5,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    types:
-      - labeled
-      - opened
-      - synchronize
-      - ready_for_review
   schedule:
     - cron: 0 16 * * *
 
@@ -18,6 +13,62 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changed:
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+    runs-on: ubuntu-slim
+    outputs:
+      main: ${{ steps.changed-files.outputs.main_any_changed }}
+      benchmark_decoder: ${{ steps.changed-files.outputs.benchmark_decoder_any_changed }}
+      benchmark_dng: ${{ steps.changed-files.outputs.benchmark_dng_any_changed }}
+      benchmark_postprocessor: ${{ steps.changed-files.outputs.benchmark_postprocessor_any_changed }}
+      benchmark_preprocessor: ${{ steps.changed-files.outputs.benchmark_preprocessor_any_changed }}
+      compare_demosaic: ${{ steps.changed-files.outputs.compare_demosaic_any_changed }}
+      book_assets: ${{ steps.changed-files.outputs.book_assets_any_changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: changed-files
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+        with:
+          files_yaml: |
+            main:
+              - ./Cargo.toml
+              - ./Cargo.lock
+              - ./crates/**
+            benchmark_decoder:
+              - ./crates/bench-decoder/**
+              - ./crates/fornax-core/**
+              - ./crates/fornax-decoder/**
+              - ./crates/fornax-devtool/**
+              - ./crates/fornax-decoder-rawler/**
+            benchmark_dng:
+              - ./crates/fornax-core/**
+              - ./crates/fornax-devtool/**
+              - ./crates/fornax-dng/**
+              - ./crates/fornax-tiff/**
+            benchmark_postprocessor:
+              - ./crates/fornax-postprocessor/**
+            benchmark_preprocessor:
+              - ./crates/fornax-preprocessor/**
+            compare_demosaic:
+              - ./crates/compare-demosaic/**
+              - ./crates/fornax-core/**
+              - ./crates/fornax-postprocessor/**
+            book_assets:
+              - ./book/**
+          files_ignore_yaml: |
+            main:
+              - '**.md'
+            benchmark_decoder:
+              - '**.md'
+            benchmark_dng:
+              - '**.md'
+            benchmark_postprocessor:
+              - '**.md'
+            benchmark_preprocessor:
+              - '**.md'
+            compare_demosaic:
+              - '**.md'
+
   lefthook:
     if: ${{ github.event_name == 'pull_request' }}
     uses: ./.github/workflows/ci-lefthook.yml
@@ -26,6 +77,14 @@ jobs:
       pull-requests: write
 
   main:
+    needs: changed
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        (github.event_name != 'pull_request' ||
+         needs.changed.outputs.main == 'true')
+      }}
     strategy:
       fail-fast: false
       matrix:
@@ -82,79 +141,76 @@ jobs:
 
   benchmark:
     name: benchmark (${{ matrix.package }})
-    if: ${{ github.event_name != 'schedule' }}
+    needs: changed
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        (github.event_name == 'workflow_dispatch' ||
+         ((github.event_name == 'push' || github.event_name == 'pull_request') &&
+          (needs.changed.outputs.benchmark_decoder == 'true' ||
+           needs.changed.outputs.benchmark_dng == 'true' ||
+           needs.changed.outputs.benchmark_postprocessor == 'true' ||
+           needs.changed.outputs.benchmark_preprocessor == 'true')))
+      }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - package: bench-decoder
-            paths: |
-              ./crates/fornax-core/**
-              ./crates/fornax-decoder/**
-              ./crates/fornax-decoder-rawler/**
-              ./crates/fornax-devtool/**
-              ./crates/bench-decoder/**
+            changed: ${{ needs.changed.outputs.benchmark_decoder }}
 
           - package: fornax-dng
-            paths: |
-              ./crates/fornax-core/**
-              ./crates/fornax-devtool/**
-              ./crates/fornax-dng/**
-              ./crates/fornax-tiff/**
+            changed: ${{ needs.changed.outputs.benchmark_dng }}
             extra-options: --features zstd
 
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: aahd
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: ahd
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: amaze
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: dcb
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: dht
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: linear
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: lmmse
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: ppg
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: rcd
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: vng
           - package: fornax-postprocessor
-            paths: ./crates/fornax-postprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
             algorithm: vng4
 
           - package: fornax-preprocessor
-            paths: ./crates/fornax-preprocessor/**
+            changed: ${{ needs.changed.outputs.benchmark_preprocessor }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - id: changed-files
-        if: ${{ github.event_name != 'workflow_dispatch' }}
-        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
-        with:
-          files: ${{ matrix.paths }}
-          files_ignore: '**.md'
+        if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
       - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
-        if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
       - name: Initialize RAW fixtures
-        if: ${{ matrix.package == 'fornax-dng' && (github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true') }}
+        if: ${{ matrix.package == 'fornax-dng' && (github.event_name == 'workflow_dispatch' || matrix.changed == 'true') }}
         run: bash scripts/setup.sh
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
-        if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
+        if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
         with:
           options: -p ${{ matrix.package }} ${{ matrix['extra-options'] }}
         env:
@@ -166,7 +222,15 @@ jobs:
           FORNAX_BENCH_DECODER: fornax,rawler
 
   compare-demosaic:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
+    needs: changed
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        (github.event_name == 'workflow_dispatch' ||
+         (github.event_name == 'pull_request' &&
+          needs.changed.outputs.compare_demosaic == 'true'))
+      }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -175,22 +239,11 @@ jobs:
       OMP_NUM_THREADS: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - id: changed-files
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
-        with:
-          files: |
-            ./crates/compare-demosaic/**
-            ./crates/fornax-postprocessor/demosaic/**
-          files_ignore: '**.md'
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
-        if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
         with:
           run-install: false
       - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
-        if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
       - name: Test, run, compare
-        if: ${{ github.event_name == 'workflow_dispatch' || steps.changed-files.outputs.any_changed == 'true' }}
         shell: bash
         run: |
           source ./crates/compare-demosaic/scripts/setup.sh
@@ -207,7 +260,14 @@ jobs:
           if-no-files-found: ignore
 
   book-assets:
-    if: ${{ github.event_name == 'pull_request' }}
+    needs: changed
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        github.event_name == 'pull_request' &&
+        needs.changed.outputs.book_assets == 'true'
+      }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -220,7 +280,7 @@ jobs:
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [lefthook, main, benchmark, compare-demosaic, book-assets]
+    needs: [changed, lefthook, main, benchmark, compare-demosaic, book-assets]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1
