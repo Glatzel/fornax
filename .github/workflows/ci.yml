@@ -52,7 +52,7 @@ jobs:
             compare_demosaic:
               - ./crates/compare-demosaic/**
               - ./crates/fornax-core/**
-              - ./crates/fornax-postprocessor/**
+              - ./crates/fornax-postprocessor/src/demosaic/**
             book_assets:
               - ./book/**
           files_ignore_yaml: |
