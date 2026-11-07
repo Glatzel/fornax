@@ -21,3 +21,8 @@ finalizes writer entries.
 
 The crate intentionally owns container mechanics only. DNG-only tag semantics
 belong to `fornax-dng`; format-neutral raw codecs belong to `fornax-codec`.
+
+## References
+
+- [TIFF 6.0 Specification](https://www.adobe.io/open/standards/TIFF.html) — Adobe TIFF 6.0 specification.
+- [BigTIFF Design](https://libtiff.gitlab.io/libtiff/specification/bigtiff.html) — BigTIFF extensions and 64-bit offsets.

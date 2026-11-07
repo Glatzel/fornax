@@ -9,9 +9,6 @@ use rayon::prelude::*;
 use super::{corrupt, unsigned_scalar, unsigned_vec};
 use crate::metadata::{Directory, DngTag};
 
-const TAG_ROW_INTERLEAVE_FACTOR: Tag = Tag(50_975);
-const TAG_COLUMN_INTERLEAVE_FACTOR: Tag = Tag(50_976);
-const TAG_OPCODE_LIST1: Tag = Tag(51_008);
 const MAX_EXACT_F32_INTEGER: u32 = 1 << 24;
 
 pub(super) fn apply(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
@@ -21,8 +18,10 @@ pub(super) fn apply(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic
 }
 
 fn deinterleave(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
-    let row_factor = unsigned_scalar(metadata.get(&TAG_ROW_INTERLEAVE_FACTOR)).unwrap_or(1);
-    let column_factor = unsigned_scalar(metadata.get(&TAG_COLUMN_INTERLEAVE_FACTOR)).unwrap_or(1);
+    let row_factor =
+        unsigned_scalar(metadata.get(&DngTag::RowInterleaveFactor.into())).unwrap_or(1);
+    let column_factor =
+        unsigned_scalar(metadata.get(&DngTag::ColumnInterleaveFactor.into())).unwrap_or(1);
     if row_factor == 1 && column_factor == 1 {
         return Ok(pixels);
     }
@@ -98,7 +97,7 @@ where
 }
 
 fn apply_opcode_list1(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
-    let Some(value) = metadata.get(&TAG_OPCODE_LIST1) else {
+    let Some(value) = metadata.get(&DngTag::OpcodeList1.into()) else {
         return Ok(pixels);
     };
     let bytes = opcode_bytes(value)?;
