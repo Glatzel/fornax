@@ -3,10 +3,7 @@
 mod process_metadata;
 mod transforms;
 
-use fornax_codec::{
-    ByteOrder as CodecByteOrder, Chunk as CodecChunk, Codec, DecodeRequest as CodecDecodeRequest,
-    Predictor as CodecPredictor, SampleFormat as CodecSampleFormat,
-};
+use fornax_codec::{ByteOrder, Chunk, DecodeCompression, DecodeRequest, Predictor, SampleFormat};
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::ProcessMetadata;
 use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
@@ -163,23 +160,24 @@ fn validate_dimensions(pixels: &RawMosaic, metadata: &Directory) -> Result<(), D
 }
 
 #[derive(Clone, Debug)]
-struct CodecPlan {
-    codec: Codec,
+struct DecodePlan {
+    compression: DecodeCompression,
     width: usize,
     height: usize,
     chunk_width: usize,
     chunk_height: usize,
-    chunks: Vec<CodecChunk>,
+    chunks: Vec<Chunk>,
     bits_per_sample: u16,
-    sample_format: CodecSampleFormat,
-    byte_order: CodecByteOrder,
-    predictor: CodecPredictor,
+    sample_format: SampleFormat,
+    byte_order: ByteOrder,
+    predictor: Predictor,
 }
 
-impl CodecPlan {
-    fn request<'a>(&'a self, source: &'a [u8]) -> CodecDecodeRequest<'a> {
-        CodecDecodeRequest {
+impl DecodePlan {
+    fn request<'a>(&'a self, source: &'a [u8]) -> DecodeRequest<'a> {
+        DecodeRequest {
             source,
+            compression: self.compression,
             width: self.width,
             height: self.height,
             chunk_width: self.chunk_width,
@@ -193,23 +191,24 @@ impl CodecPlan {
     }
 }
 
-fn codec_plan(source: &[u8], metadata: &Directory) -> Result<CodecPlan, DecodeError> {
+fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, DecodeError> {
     let width = required_u32(metadata, TiffTag::ImageWidth)?;
     let height = required_u32(metadata, TiffTag::ImageLength)?;
     if width == 0 || height == 0 {
         return Err(corrupt("DNG image dimensions must not be zero"));
     }
-    let codec = match CompressionMethod::from_u16(required_u16(metadata, TiffTag::Compression)?) {
-        CompressionMethod::Uncompressed => Codec::Uncompressed,
-        CompressionMethod::LosslessJpeg => Codec::LosslessJpeg,
-        CompressionMethod::Deflate => Codec::Deflate,
-        CompressionMethod::LossyJpeg => Codec::LossyJpeg,
-        CompressionMethod::JpegXl => Codec::JpegXl,
-        CompressionMethod::Zstd => Codec::Zstd { level: 3 },
-        CompressionMethod::Unknown(value) => {
-            return Err(corrupt(format!("invalid DNG compression {value}")));
-        }
-    };
+    let compression =
+        match CompressionMethod::from_u16(required_u16(metadata, TiffTag::Compression)?) {
+            CompressionMethod::Uncompressed => DecodeCompression::Uncompressed,
+            CompressionMethod::LosslessJpeg => DecodeCompression::LosslessJpeg,
+            CompressionMethod::Deflate => DecodeCompression::Deflate,
+            CompressionMethod::LossyJpeg => DecodeCompression::LossyJpeg,
+            CompressionMethod::JpegXl => DecodeCompression::JpegXl,
+            CompressionMethod::Zstd => DecodeCompression::Zstd,
+            CompressionMethod::Unknown(value) => {
+                return Err(corrupt(format!("invalid DNG compression {value}")));
+            }
+        };
     let samples_per_pixel =
         unsigned_scalar(metadata.get(&Tag::from(TiffTag::SamplesPerPixel))).unwrap_or(1);
     if samples_per_pixel != 1 {
@@ -219,8 +218,8 @@ fn codec_plan(source: &[u8], metadata: &Directory) -> Result<CodecPlan, DecodeEr
     }
     let bits_per_sample = required_u16(metadata, TiffTag::BitsPerSample)?;
     let sample_format = match sample_format(metadata) {
-        1 => CodecSampleFormat::Integer,
-        3 => CodecSampleFormat::Float,
+        1 => SampleFormat::Integer,
+        3 => SampleFormat::Float,
         value => {
             return Err(corrupt(format!("invalid DNG sample format {value}")));
         }
@@ -236,25 +235,25 @@ fn codec_plan(source: &[u8], metadata: &Directory) -> Result<CodecPlan, DecodeEr
     let chunks = offsets
         .into_iter()
         .zip(byte_counts)
-        .map(|(offset, byte_count)| CodecChunk { offset, byte_count })
+        .map(|(offset, byte_count)| Chunk { offset, byte_count })
         .collect();
-    let predictor = match codec {
-        Codec::Deflate | Codec::Zstd { .. } => {
+    let predictor = match compression {
+        DecodeCompression::Deflate | DecodeCompression::Zstd => {
             match unsigned_scalar(metadata.get(&Tag::from(TiffTag::Predictor))).unwrap_or(1) {
-                1 => CodecPredictor::None,
-                2 => CodecPredictor::HorizontalInteger,
-                3 => CodecPredictor::FloatingPoint { byte_stride: 1 },
-                34_894 => CodecPredictor::FloatingPoint { byte_stride: 2 },
-                34_895 => CodecPredictor::FloatingPoint { byte_stride: 4 },
+                1 => Predictor::None,
+                2 => Predictor::HorizontalInteger,
+                3 => Predictor::FloatingPoint { byte_stride: 1 },
+                34_894 => Predictor::FloatingPoint { byte_stride: 2 },
+                34_895 => Predictor::FloatingPoint { byte_stride: 4 },
                 value => {
                     return Err(corrupt(format!("DNG predictor {value} is unsupported")));
                 }
             }
         }
-        _ => CodecPredictor::None,
+        _ => Predictor::None,
     };
-    Ok(CodecPlan {
-        codec,
+    Ok(DecodePlan {
+        compression,
         width: usize::try_from(width).expect("u32 fits usize on supported platforms"),
         height: usize::try_from(height).expect("u32 fits usize on supported platforms"),
         chunk_width,
@@ -276,10 +275,8 @@ fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, Deco
             "Zstandard compression requires the fornax-dng zstd feature",
         ));
     }
-    let plan = codec_plan(source, metadata)?;
-    plan.codec
-        .decode(&plan.request(source))
-        .map_err(codec_decode_error)
+    let plan = decode_plan(source, metadata)?;
+    fornax_codec::decode(&plan.request(source)).map_err(codec_decode_error)
 }
 
 fn codec_decode_error(error: fornax_codec::CodecError) -> DecodeError {
@@ -325,10 +322,10 @@ fn sample_format(metadata: &Directory) -> u64 {
     unsigned_scalar(metadata.get(&Tag::from(TiffTag::SampleFormat))).unwrap_or(1)
 }
 
-fn byte_order(source: &[u8]) -> CodecByteOrder {
+fn byte_order(source: &[u8]) -> ByteOrder {
     match source.get(..2) {
-        Some(b"II") => CodecByteOrder::Little,
-        _ => CodecByteOrder::Big,
+        Some(b"II") => ByteOrder::Little,
+        _ => ByteOrder::Big,
     }
 }
 
@@ -447,9 +444,9 @@ mod tests {
             Value::Short(super::CompressionMethod::Deflate.as_u16()),
         );
 
-        let plan = super::codec_plan(source, &metadata).unwrap();
+        let plan = super::decode_plan(source, &metadata).unwrap();
 
-        assert_eq!(plan.codec, fornax_codec::Codec::Deflate);
+        assert_eq!(plan.compression, fornax_codec::DecodeCompression::Deflate);
         assert_eq!((plan.width, plan.height), (4, 2));
         assert_eq!((plan.chunk_width, plan.chunk_height), (4, 1));
         assert_eq!(plan.bits_per_sample, 12);
@@ -472,6 +469,29 @@ mod tests {
     }
 
     #[test]
+    fn zstd_metadata_maps_to_level_free_decode_compression() {
+        let source = b"MM";
+        let mut metadata = metadata(
+            1,
+            1,
+            8,
+            1,
+            [
+                (TiffTag::TileWidth.into(), Value::Unsigned(1)),
+                (TiffTag::TileLength.into(), Value::Unsigned(1)),
+            ],
+        );
+        metadata.insert(
+            Tag::from(TiffTag::Compression),
+            Value::Short(super::CompressionMethod::Zstd.as_u16()),
+        );
+
+        let plan = super::decode_plan(source, &metadata).unwrap();
+
+        assert_eq!(plan.compression, fornax_codec::DecodeCompression::Zstd);
+    }
+
+    #[test]
     fn dng_metadata_rejects_mismatched_chunk_offsets_and_byte_counts() {
         let source = b"MMxxxxxxxx";
         let mut metadata = metadata(
@@ -490,7 +510,7 @@ mod tests {
         );
         metadata.insert(Tag::from(TiffTag::TileByteCounts), Value::Unsigned(4));
 
-        let error = super::codec_plan(source, &metadata).unwrap_err();
+        let error = super::decode_plan(source, &metadata).unwrap_err();
 
         assert!(matches!(
             error,

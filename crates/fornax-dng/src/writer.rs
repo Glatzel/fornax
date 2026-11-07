@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{BufWriter, Seek, Write};
 use std::path::Path;
 
-use fornax_codec::{ByteOrder, Codec, EncodeRequest, Predictor};
+use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor};
 use fornax_core::RawMosaic;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
@@ -200,7 +200,7 @@ where
         mosaic,
         usize::try_from(width).expect("u32 fits usize on supported platforms"),
         usize::try_from(height).expect("u32 fits usize on supported platforms"),
-        Codec::Uncompressed,
+        EncodeCompression::Uncompressed,
         Predictor::None,
     )?;
     let [data] = encoded.as_slice() else {
@@ -278,7 +278,13 @@ where
     const TILE: usize = 256;
     let (width, height) = mosaic.dimensions();
     let (bits, sample_format) = sample_layout(mosaic);
-    let chunks = encode_for_chunks(mosaic, TILE, TILE, Codec::LosslessJpeg, Predictor::None)?;
+    let chunks = encode_for_chunks(
+        mosaic,
+        TILE,
+        TILE,
+        EncodeCompression::LosslessJpeg,
+        Predictor::None,
+    )?;
     write_tiled_payload(
         writer,
         width,
@@ -310,7 +316,7 @@ where
         RawMosaic::F32(_) => (Predictor::FloatingPoint { byte_stride: 1 }, 3_u16),
         _ => unreachable!("the caller selects Deflate only for wider samples"),
     };
-    let chunks = encode_for_chunks(mosaic, TILE, TILE, Codec::Deflate, predictor)?;
+    let chunks = encode_for_chunks(mosaic, TILE, TILE, EncodeCompression::Deflate, predictor)?;
     write_tiled_payload(
         writer,
         width,
@@ -339,9 +345,14 @@ where
     let (width, height) = mosaic.dimensions();
     let (bits, sample_format) = sample_layout(mosaic);
     const TILE: usize = 256;
-    let request = encode_request(mosaic, TILE, TILE, Predictor::None);
-    let chunks = Codec::Zstd { level }
-        .encode(&request)
+    let request = encode_request(
+        mosaic,
+        TILE,
+        TILE,
+        EncodeCompression::Zstd { level },
+        Predictor::None,
+    );
+    let chunks = fornax_codec::encode(&request)
         .map_err(codec_write_error)?
         .chunks;
     write_tiled_payload(
@@ -385,7 +396,13 @@ where
 {
     let (width, height) = mosaic.dimensions();
     let (bits, sample_format) = sample_layout(mosaic);
-    let chunks = encode_for_chunks(mosaic, 256, 256, Codec::Deflate, Predictor::None)?;
+    let chunks = encode_for_chunks(
+        mosaic,
+        256,
+        256,
+        EncodeCompression::Deflate,
+        Predictor::None,
+    )?;
     write_tiled_payload(
         writer,
         width,
@@ -404,12 +421,11 @@ fn encode_for_chunks(
     mosaic: &RawMosaic,
     chunk_width: usize,
     chunk_height: usize,
-    codec: Codec,
+    compression: EncodeCompression,
     predictor: Predictor,
 ) -> Result<Vec<Vec<u8>>, DngWriteError> {
-    let request = encode_request(mosaic, chunk_width, chunk_height, predictor);
-    codec
-        .encode(&request)
+    let request = encode_request(mosaic, chunk_width, chunk_height, compression, predictor);
+    fornax_codec::encode(&request)
         .map(|encoded| encoded.chunks)
         .map_err(codec_write_error)
 }
@@ -418,10 +434,12 @@ const fn encode_request(
     mosaic: &RawMosaic,
     chunk_width: usize,
     chunk_height: usize,
+    compression: EncodeCompression,
     predictor: Predictor,
 ) -> EncodeRequest<'_> {
     EncodeRequest {
         image: mosaic,
+        compression,
         chunk_width,
         chunk_height,
         byte_order: ByteOrder::Little,
@@ -667,11 +685,28 @@ fn tiff_write_error(error: fornax_tiff::TiffError) -> DngWriteError {
 mod tests {
     use std::io::Cursor;
 
-    #[cfg(not(feature = "zstd"))]
     use fornax_core::MonoImage;
     use fornax_tiff::TiffWriter;
 
     use super::*;
+
+    #[test]
+    fn encode_request_preserves_selected_compression() {
+        let mosaic = RawMosaic::U8(MonoImage::from_raw(2, 1, vec![1, 2]).unwrap());
+
+        let request = encode_request(
+            &mosaic,
+            2,
+            1,
+            fornax_codec::EncodeCompression::Zstd { level: 7 },
+            Predictor::None,
+        );
+
+        assert_eq!(
+            request.compression,
+            fornax_codec::EncodeCompression::Zstd { level: 7 }
+        );
+    }
 
     #[test]
     fn classic_writer_rejects_big_rational_metadata_lists() {
