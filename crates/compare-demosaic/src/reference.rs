@@ -117,10 +117,7 @@ pub fn active_area_from(path: &Path) -> mischief::Result<ActiveArea> {
         black: metadata
             .levels
             .black
-            .as_raw()
-            .iter()
-            .map(|value| (*value))
-            .collect(),
+            .as_raw().clone(),
         black_width,
         black_height,
         white: metadata.levels.white,

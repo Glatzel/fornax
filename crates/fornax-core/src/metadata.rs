@@ -125,7 +125,12 @@ impl LightSource {
     /// Conventional CCT in kelvin. Used for ordering and interpolation weights
     /// only. `None` for `Unknown`, `Other` and reserved values.
     pub const fn cct(self) -> Option<f64> {
-        use LightSource::{Tungsten, StandardLightA, ISOStudioTungsten, WhiteFluorescent, CoolWhiteFluorescent, Fluorescent, StandardLightB, DayWhiteFluorescent, D50, Daylight, FineWeather, Flash, D55, DaylightFluorescent, CloudyWeather, D65, StandardLightC, Shade, D75, Unknown, Other, Reserved};
+        use LightSource::{
+            CloudyWeather, CoolWhiteFluorescent, D50, D55, D65, D75, DayWhiteFluorescent, Daylight,
+            DaylightFluorescent, FineWeather, Flash, Fluorescent, ISOStudioTungsten, Other,
+            Reserved, Shade, StandardLightA, StandardLightB, StandardLightC, Tungsten, Unknown,
+            WhiteFluorescent,
+        };
         Some(match self {
             Tungsten => 2850.0,
             StandardLightA => 2856.0,
@@ -305,22 +310,22 @@ impl ColorCalibration {
             !profiles.is_empty() && profiles.iter().all(|p| p.color_matrix.is_some());
 
         // As-shot white: first valid source wins.
-        let (as_shot, as_shot_source) =
-            if let Some(nv) = raw.as_shot_neutral.filter(valid_positive) {
-                (
-                    WhiteSpec::Neutral(normalize_neutral(nv)),
-                    WhiteSource::AsShotNeutral,
-                )
-            } else if let Some(xy) = raw.as_shot_white_xy.filter(|xy| xy[0] > 0.0 && xy[1] > 0.0) {
-                (WhiteSpec::Xy(xy), WhiteSource::AsShotWhiteXy)
-            } else if let Some((r, b)) = raw.maker_gains.filter(|(r, b)| *r > 0.0 && *b > 0.0) {
-                (
-                    WhiteSpec::Neutral(normalize_neutral([1.0 / r, 1.0, 1.0 / b])),
-                    WhiteSource::MakerGains,
-                )
-            } else {
-                (WhiteSpec::Xy(D65_XY), WhiteSource::AssumedD65)
-            };
+        let (as_shot, as_shot_source) = if let Some(nv) = raw.as_shot_neutral.filter(valid_positive)
+        {
+            (
+                WhiteSpec::Neutral(normalize_neutral(nv)),
+                WhiteSource::AsShotNeutral,
+            )
+        } else if let Some(xy) = raw.as_shot_white_xy.filter(|xy| xy[0] > 0.0 && xy[1] > 0.0) {
+            (WhiteSpec::Xy(xy), WhiteSource::AsShotWhiteXy)
+        } else if let Some((r, b)) = raw.maker_gains.filter(|(r, b)| *r > 0.0 && *b > 0.0) {
+            (
+                WhiteSpec::Neutral(normalize_neutral([1.0 / r, 1.0, 1.0 / b])),
+                WhiteSource::MakerGains,
+            )
+        } else {
+            (WhiteSpec::Xy(D65_XY), WhiteSource::AssumedD65)
+        };
 
         Self {
             use_forward,
@@ -434,7 +439,7 @@ impl ColorCalibration {
             };
             let xyz = mat::mul_vec(&c2x, neutral);
             let sum: f64 = xyz.iter().sum();
-            if !(sum > 0.0) {
+            if sum <= 0.0 {
                 break;
             }
             let next = xy_to_cct(xyz[0] / sum, xyz[1] / sum).clamp(1500.0, 25000.0);
@@ -514,9 +519,8 @@ const SRGB_TO_XYZ_D50: Matrix3x3 = [
 /// Default CCT for a profile whose illuminant tag is missing.
 const fn default_cct(slot: usize, count: usize) -> f64 {
     match (count, slot) {
-        (1, _) => 6500.0,
+        (1, _) | (_, 1) => 6500.0,
         (_, 0) => 2856.0,
-        (_, 1) => 6500.0,
         _ => 5000.0,
     }
 }
@@ -550,11 +554,18 @@ pub fn cct_to_xy(t: f64) -> [f64; 2] {
         -3.0258469e9 / t3 + 2.1070379e6 / t2 + 0.2226347e3 / t + 0.240390
     };
     let y = if t <= 2222.0 {
-        2.18555832_f64.mul_add(x, 1.34811020_f64.mul_add(-x.powi(2), -1.1063814 * x.powi(3))) - 0.20219683
+        2.18555832_f64.mul_add(
+            x,
+            1.34811020_f64.mul_add(-x.powi(2), -1.1063814 * x.powi(3)),
+        ) - 0.20219683
     } else if t <= 4000.0 {
-        2.09137015_f64.mul_add(x, 1.37418593_f64.mul_add(-x.powi(2), -0.9549476 * x.powi(3))) - 0.16748867
+        2.09137015_f64.mul_add(
+            x,
+            1.37418593_f64.mul_add(-x.powi(2), -0.9549476 * x.powi(3)),
+        ) - 0.16748867
     } else {
-        3.75112997_f64.mul_add(x, 5.87338670_f64.mul_add(-x.powi(2), 3.0817580 * x.powi(3))) - 0.37001483
+        3.75112997_f64.mul_add(x, 5.87338670_f64.mul_add(-x.powi(2), 3.0817580 * x.powi(3)))
+            - 0.37001483
     };
     [x, y]
 }
@@ -603,7 +614,9 @@ mod mat {
         ]
     }
 
-    pub const fn diag(v: Array3) -> Matrix3x3 { [[v[0], 0.0, 0.0], [0.0, v[1], 0.0], [0.0, 0.0, v[2]]] }
+    pub const fn diag(v: Array3) -> Matrix3x3 {
+        [[v[0], 0.0, 0.0], [0.0, v[1], 0.0], [0.0, 0.0, v[2]]]
+    }
 
     pub fn scale(a: &Matrix3x3, s: f64) -> Matrix3x3 { a.map(|r| r.map(|v| v * s)) }
 
