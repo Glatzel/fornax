@@ -2,7 +2,9 @@
 name = "fornax-decoder"
 version.workspace = true
 edition.workspace = true
-
+[[bench]]
+name="decoder"
+harness=false
 [dependencies]
 clerk.workspace = true
 fornax-core.workspace = true
