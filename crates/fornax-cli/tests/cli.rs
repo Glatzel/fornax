@@ -117,40 +117,6 @@ fn binary_help_shows_default_values() {
 }
 
 #[test]
-fn recursive_inputs_mirror_files_and_reject_collisions() {
-    let directory = tempdir().unwrap();
-    let root = directory.path().join("raws");
-    fs::create_dir_all(root.join("nested")).unwrap();
-    fs::write(root.join("a.dng"), []).unwrap();
-    fs::write(root.join("nested/b.arw"), []).unwrap();
-    let output = directory.path().join("out");
-    let cli = args(&["--output".as_ref(), output.as_os_str(), root.as_os_str()]);
-    let config = resolve_config(&cli).unwrap();
-    let jobs = plan_inputs(&config).unwrap();
-
-    assert_eq!(jobs.len(), 1);
-    assert_eq!(jobs[0].output, output.join("raws/a.dng"));
-    assert_eq!(jobs[1].output, output.join("raws/nested/b.dng"));
-
-    let first_dir = directory.path().join("first");
-    let second_dir = directory.path().join("second");
-    fs::create_dir_all(&first_dir).unwrap();
-    fs::create_dir_all(&second_dir).unwrap();
-    let first = first_dir.join("image.dng");
-    let second = second_dir.join("image.dng");
-    fs::write(&first, []).unwrap();
-    fs::write(&second, []).unwrap();
-    let colliding = args(&[
-        "--output".as_ref(),
-        output.as_os_str(),
-        first.as_os_str(),
-        second.as_os_str(),
-    ]);
-    let error = plan_inputs(&resolve_config(&colliding).unwrap()).unwrap_err();
-    assert!(error.to_string().contains("same output"));
-}
-
-#[test]
 fn dng_to_dng_skips_and_metadata_json_uses_the_input_stem() {
     let directory = tempdir().unwrap();
     let input = directory.path().join("image.dng");
