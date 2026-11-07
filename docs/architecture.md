@@ -22,11 +22,11 @@ part of the current preprocessor/demosaic handoff.
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-core`, `fornax-tiff`, `fornax-codec` |
 | `fornax-decoder` | Default pure-Rust DNG decoder adapter over `fornax-dng`. | `fornax-core`, `fornax-dng` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-core`, `fornax-dng`, `fornax-tiff` |
-| `fornax-decoder-dnc` | Converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-core`, `fornax-decoder-rawler` |
+| `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-core`, `fornax-decoder-rawler` |
 | `fornax-preprocessor` | Black/white-level normalization of cropped Bayer mosaics. | `fornax-core` |
 | `fornax-postprocessor` | Demosaic protocol, algorithms, and RGB reconstruction. | `fornax-core` |
 | `fornax` | Public facade over decoders and pipeline stages. | Core, decoder crates, preprocessor, postprocessor |
-| `fornax-cli` | Standalone batch converter for raw DNG, rendered TIFF/JPEG, and metadata JSON output. | Facade stages, DNG writer, Rawler adapter |
+| `fornax-cli` | Standalone batch converter for raw DNG, rendered TIFF/JPEG, and metadata JSON output. | `fornax` facade |
 | `bench-decoder` | Decoder comparison benchmarks. | Core, decoder crates, devtool |
 | `fornax-devtool` | Pinned fixture paths, synthetic data, and benchmark configuration. | `fornax-core` |
 | `compare-demosaic` | Reference-versus-Fornax demosaic comparison harness. | Core, decoder, processors, devtool, pinned C/C++ references |
@@ -64,14 +64,16 @@ implementation.
 
 ## Codec API
 
-`fornax_codec::Codec` is the public selector for format-neutral sample codecs.
-Its `decode` and `encode` methods dispatch directly to the selected
-implementation. `Codec::Zstd { level }` carries the Zstandard encoding level;
-decoding ignores the level because it is encoded in the stream.
+`fornax_codec::DecodeCompression` and
+`fornax_codec::EncodeCompression` select algorithms inside `DecodeRequest` and
+`EncodeRequest`, respectively. The free `fornax_codec::decode` and
+`fornax_codec::encode` functions dispatch directly to the selected
+implementation. Zstandard decoding has no level because the level is stored in
+the stream; `EncodeCompression::Zstd { level }` configures encoding.
 
 `fornax-tiff::CompressionMethod` remains the typed TIFF field value. `fornax-dng`
-maps that container identifier to `Codec`, so `fornax-codec` does not depend on
-TIFF or DNG types.
+maps that container identifier to `DecodeCompression`, so `fornax-codec` does
+not depend on TIFF or DNG types.
 
 ## Pipeline flow
 

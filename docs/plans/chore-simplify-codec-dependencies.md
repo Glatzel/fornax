@@ -83,11 +83,11 @@ public writer configuration mechanism.
 
 ## Task Checklist
 
-- [ ] Task 1: Add the implementation plan and worktree ledger.
-- [ ] Task 2: Migrate the `fornax-codec` API and contract tests.
-- [ ] Task 3: Migrate DNG decoding and writing to request-owned compression.
-- [ ] Task 4: Simplify the facade, CLI, and workspace dependency graph.
-- [ ] Task 5: Update documentation and run final validation.
+- [x] Task 1: Add the implementation plan and worktree ledger.
+- [x] Task 2: Migrate the `fornax-codec` API and contract tests.
+- [x] Task 3: Migrate DNG decoding and writing to request-owned compression.
+- [x] Task 4: Simplify the facade, CLI, and workspace dependency graph.
+- [x] Task 5: Update documentation and run final validation.
 
 ### Task 1: Plan and Worktree Record
 
@@ -138,6 +138,8 @@ public writer configuration mechanism.
 
 ## Files Expected to Change
 
+- `Cargo.toml`
+- `Cargo.lock`
 - `crates/fornax-codec/src/lib.rs`
 - `crates/fornax-codec/src/request.rs`
 - `crates/fornax-codec/tests/{decode_contract,encode_contract}.rs`
@@ -149,8 +151,10 @@ public writer configuration mechanism.
 - `crates/fornax/src/postprocessor.rs`
 - `crates/fornax-decoder-dnc/Cargo.toml`
 - `crates/fornax-cli/Cargo.toml`
+- `crates/fornax-cli/README.md`
 - `crates/fornax-cli/src/{config,convert,discover}.rs`
 - `crates/fornax-cli/tests/cli.rs`
+- `crates/fornax/src/lib.rs`
 - `docs/architecture.md`
 - `docs/plans/chore-simplify-codec-dependencies.md`
 
@@ -177,6 +181,18 @@ Acceptance criteria:
 - `fornax` is the only direct internal workspace dependency of `fornax-cli`.
 - The host dependency tree does not contain `fornax-decoder-dnc` on Linux.
 - CLI integration tests and workspace validation pass.
+
+## Validation Results
+
+- `scripts/agent-validation.sh`: passed all workspace tests and doctests,
+  formatting, documentation, Clippy, benchmark compilation, and diff checks.
+- Default features for `fornax-codec`, `fornax-dng`, `fornax-cli`, and
+  `fornax`: 74 tests passed across 13 suites.
+- All features for `fornax-codec` and `fornax-dng`: passed after focused runs.
+- `cargo tree -p fornax-cli --depth 1 --edges normal`: `fornax` is the only
+  direct internal workspace dependency.
+- Host-target trees for `fornax` and `fornax-decoder-dnc` contain no DNC edge
+  on Linux.
 
 ## Decisions and Notes
 
