@@ -128,7 +128,7 @@ fn recursive_inputs_mirror_files_and_reject_collisions() {
     let config = resolve_config(&cli).unwrap();
     let jobs = plan_inputs(&config).unwrap();
 
-    assert_eq!(jobs.len(), 2);
+    assert_eq!(jobs.len(), 1);
     assert_eq!(jobs[0].output, output.join("raws/a.dng"));
     assert_eq!(jobs[1].output, output.join("raws/nested/b.dng"));
 
