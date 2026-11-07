@@ -101,7 +101,7 @@ fn color_profile(
     })
 }
 
-fn profile_is_empty(profile: &RawProfile) -> bool {
+const fn profile_is_empty(profile: &RawProfile) -> bool {
     profile.illuminant.is_none()
         && profile.illuminant_data.is_none()
         && profile.color_matrix.is_none()

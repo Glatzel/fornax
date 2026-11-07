@@ -119,11 +119,11 @@ pub fn active_area_from(path: &Path) -> mischief::Result<ActiveArea> {
             .black
             .as_raw()
             .iter()
-            .map(|value| f64::from(*value))
+            .map(|value| (*value))
             .collect(),
         black_width,
         black_height,
-        white: f64::from(metadata.levels.white),
+        white: metadata.levels.white,
         native_pattern: metadata.bayer_pattern,
     })
 }
