@@ -12,15 +12,12 @@ use fornax_dng::metadata::IDecoderDng;
 use fornax_dng::{Directory, DngImage};
 
 #[derive(Clone, Debug)]
-pub enum Decoder<T> {
+pub enum Decoder {
     Dng(DngImage),
-    _Mark(PhantomData<T>),
 }
-impl<T> IDecoder<&Path, T> for Decoder<T>
-where
-    T: Primitive,
-{
-    fn decode(input: &Path) -> Result<Self, DecodeError> {
+impl IDecoder for Decoder {
+    fn decode<&'_ Path>(input: &'_ Path) -> Result<Self, DecodeError> where
+        Self: Sized {
         let extension = input
             .extension()
             .ok_or_else(|| DecodeError::Unsupported("DNG input has no file extension".into()))?;
@@ -62,32 +59,28 @@ where
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
         match self {
             Self::Dng(parsed) => fornax_dng::raw_mosaic(parsed),
-            Self::_Mark(_) => unreachable!(),
         }
     }
 
-    fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> {
+    fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
+    where
+        T: Primitive,
+    {
         match self {
             Self::Dng(parsed) => fornax_dng::cropped_mosaic(parsed),
-            Self::_Mark(_) => unreachable!(),
         }
     }
 
     fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
         match self {
             Self::Dng(parsed) => fornax_dng::process_metadata(parsed),
-            Self::_Mark(_) => unreachable!(),
         }
     }
 }
-impl<T> IDecoderDng<&Path, T> for Decoder<T>
-where
-    T: Primitive,
-{
+impl IDecoderDng for Decoder {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> {
         match self {
             Self::Dng(parsed) => fornax_dng::dng_metadata(parsed),
-            Self::_Mark(_) => unreachable!(),
         }
     }
 }

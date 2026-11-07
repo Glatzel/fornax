@@ -3,14 +3,14 @@ use crate::metadata::{ColorCalibration, ColorTransform, Levels, ProcessMetadata}
 use crate::{
     BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
 };
-pub trait IDecoder<I, T>: Send + Sync
-where
-    T: Primitive,
-    Self: Sized,
-{
-    fn decode(input: I) -> Result<Self, DecodeError>;
+pub trait IDecoder: Send + Sync {
+    fn decode<I>(input: I) -> Result<Self, DecodeError>
+    where
+        Self: Sized;
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
-    fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError>;
+    fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
+    where
+        T: Primitive;
     fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError>;
 }
 
