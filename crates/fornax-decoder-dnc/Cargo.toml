@@ -3,7 +3,7 @@ name = "fornax-decoder-dnc"
 version.workspace = true
 edition.workspace = true
 
-[dependencies]
+[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 clerk.workspace = true
 fornax-core.workspace = true
 fornax-decoder-rawler.workspace = true

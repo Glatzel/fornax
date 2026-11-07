@@ -3,6 +3,7 @@ use std::fmt;
 use fornax_core::Primitive;
 use fornax_core::error::DecodeError;
 use fornax_core::protocol::IDecoder;
+pub use fornax_tiff::constants::TiffTag;
 pub use fornax_tiff::{Directory, Tag, Value};
 use num_enum::{FromPrimitive, IntoPrimitive};
 use strum::AsRefStr;

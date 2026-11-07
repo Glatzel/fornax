@@ -1,1 +1,3 @@
-pub use fornax_postprocessor::{Demosaic, IDemosaic, LazyDemosaic, PostProcessor};
+pub use fornax_postprocessor::{
+    Demosaic, IDemosaic, LazyDemosaic, OutputColorSpace, PostProcessor,
+};

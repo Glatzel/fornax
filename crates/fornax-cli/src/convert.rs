@@ -2,15 +2,14 @@ use std::marker::PhantomData;
 use std::path::{self, Path, PathBuf};
 use std::{fmt, fs};
 
-use fornax_core::error::{DecodeError, PostProcessError};
-use fornax_core::protocol::{IDecoder, IPostProcessor, IPreprocessor};
-use fornax_core::{RawFormat, RgbImage};
-use fornax_decoder::Decoder;
-use fornax_decoder_rawler::RawlerDecoder;
-use fornax_dng::metadata::{IDecoderDng, directory_to_json_value};
-use fornax_dng::{Directory, DngWriter};
-use fornax_postprocessor::{OutputColorSpace, PostProcessor};
-use fornax_preprocessor::Preprocessor;
+use fornax::decoder::{Decoder, RawlerDecoder};
+use fornax::dng::metadata::{IDecoderDng, directory_to_json_value};
+use fornax::dng::{Directory, DngWriter};
+use fornax::error::{DecodeError, PostProcessError, PreprocessError};
+use fornax::postprocessor::{OutputColorSpace, PostProcessor};
+use fornax::preprocessor::Preprocessor;
+use fornax::protocol::{IDecoder, IPostProcessor, IPreprocessor};
+use fornax::{RawFormat, RgbImage};
 use image::codecs::jpeg::JpegEncoder;
 use image::{ExtendedColorType, ImageEncoder};
 use num_traits::ToPrimitive;
@@ -86,9 +85,9 @@ enum ConvertError {
     #[error(transparent)]
     PostProcess(#[from] PostProcessError),
     #[error(transparent)]
-    Preprocess(#[from] fornax_core::error::PreprocessError),
+    Preprocess(#[from] PreprocessError),
     #[error(transparent)]
-    DngWrite(#[from] fornax_dng::writer::DngWriteError),
+    DngWrite(#[from] fornax::dng::writer::DngWriteError),
     #[error("creating output directory {path} failed: {source}")]
     OutputDirectory {
         path: PathBuf,
