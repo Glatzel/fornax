@@ -1,7 +1,6 @@
 use generic_num::num;
 use image::math::Rect;
 use num_enum::{FromPrimitive, IntoPrimitive};
-use num_traits::one;
 
 use crate::primitive::MonoImage;
 use crate::protocol::IPostProcessMetadata;
