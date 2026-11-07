@@ -30,7 +30,6 @@ pub fn process_metadata_from_dng_metadata(
         .and_then(cast_number)
         .ok_or_else(|| metadata_error("WhiteLevel is missing or invalid"))?;
     let bayer_pattern = bayer_pattern(dng_metadata, active_area)?;
-    let wb_coeffs = wb_coeffs(dng_metadata)?;
 
     let color_matrix_1 = matrix(dng_metadata, DngTag::ColorMatrix1)?;
     let color_matrix_2 = matrix(dng_metadata, DngTag::ColorMatrix2)?;

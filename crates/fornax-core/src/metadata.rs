@@ -46,12 +46,12 @@ pub struct ProcessMetadata {
 
     /// Normalized color calibration: white balance, per-illuminant profiles
     /// and the camera -> XYZ D50 transform.
-    pub color: ColorCalibration,
+    pub color_calibration: ColorCalibration,
 }
 
 impl IPostProcessMetadata for ProcessMetadata {
     fn bayer_pattern(&self) -> BayerPattern { self.bayer_pattern }
-    fn color_calibration(&self) -> &ColorCalibration { &self.color }
+    fn color_calibration(&self) -> &ColorCalibration { &self.color_calibration }
     fn levels(&self) -> &Levels { &self.levels }
 }
 
