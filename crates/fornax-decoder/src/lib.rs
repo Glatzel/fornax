@@ -41,20 +41,16 @@ where
         } else {
             cfg_select! {
                 any(target_os = "windows", target_os = "macos") => {
-                    clerk::info!("Converting RAW image to DNG: {}", input.display());
-
+                    clerk::info!(
+                        "Fallback to use `Adobe DNG Converter` to convert RAW image to DNG: {}",
+                        input.display()
+                    );
                     let dng_file = Dnc::convert(input)?;
-
-                    clerk::debug!("Reading converted DNG: {}", dng_file.display());
-
                     let source = fs::read(&dng_file).map_err(|error| {
                         DecodeError::Other(
                             format!("reading {} failed: {error}", dng_file.display()).into(),
                         )
                     })?;
-
-                    clerk::info!("RAW-to-DNG conversion completed");
-
                     Ok(Self::Dng(DngImage::parse(&source)?))
                 }
                 _ => {
