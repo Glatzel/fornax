@@ -41,7 +41,7 @@ Out of scope:
 
 - [x] Task 1: Introduce `Codec` and migrate `fornax-codec` internals and tests.
 - [x] Task 2: Migrate `fornax-dng` decode and writer paths to `Codec`.
-- [ ] Task 3: Update documentation, run focused tests, run workspace validation,
+- [x] Task 3: Update documentation, run focused tests, run workspace validation,
   inspect the diff, commit, and push to PR #660.
 
 ## Files expected to change
@@ -213,14 +213,14 @@ Clippy, decoder benchmark compilation, and diff checks passing.
 - [x] **Step 3: Inspect the final diff for removed public traits, unchanged DNG
   behavior, and absence of a `fornax-codec -> fornax-tiff` dependency.**
 
-- [ ] **Step 4: Commit documentation and validation updates.**
+- [x] **Step 4: Commit documentation and validation updates.**
 
 ```bash
 git add docs/architecture.md docs/plans/chore-codec-enum-api.md
 git commit -m "docs: document codec enum API"
 ```
 
-- [ ] **Step 5: Push the existing PR branch.**
+- [x] **Step 5: Push the existing PR branch.**
 
 ```bash
 git push origin HEAD
