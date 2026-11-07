@@ -24,12 +24,8 @@ pub struct CliArgs {
     pub demosaic: Option<String>,
 
     /// Apply the derived camera-to-linear-sRGB matrix [default: true]
-    #[arg(long, conflicts_with = "no_color_matrix", help_heading = "Color")]
+    #[arg(long, help_heading = "Color")]
     pub color_matrix: bool,
-
-    /// Disable the camera color matrix.
-    #[arg(long, conflicts_with = "color_matrix", help_heading = "Color")]
-    pub no_color_matrix: bool,
 
     /// Output directory [default: converted]
     #[arg(long, short, help_heading = "Output")]
@@ -40,20 +36,12 @@ pub struct CliArgs {
     pub format: Option<OutputFormat>,
 
     /// Overwrite an existing output file [default: false]
-    #[arg(long, conflicts_with = "no_overwrite", help_heading = "Output")]
+    #[arg(long, help_heading = "Output")]
     pub overwrite: bool,
 
-    /// Skip an existing output file.
-    #[arg(long, conflicts_with = "overwrite", help_heading = "Output")]
-    pub no_overwrite: bool,
-
     /// Write `<output-stem>.json` beside each output [default: false]
-    #[arg(long, conflicts_with = "no_metadata_json", help_heading = "Output")]
+    #[arg(long, help_heading = "Output")]
     pub metadata_json: bool,
-
-    /// Do not write metadata sidecars.
-    #[arg(long, conflicts_with = "metadata_json", help_heading = "Output")]
-    pub no_metadata_json: bool,
 
     /// JPEG preview quality [default: 90]
     #[arg(long, help_heading = "Output")]
@@ -74,10 +62,6 @@ pub struct CliArgs {
     /// Recurse into directory inputs [default: true]
     #[arg(long, conflicts_with = "no_recursive", help_heading = "Input")]
     pub recursive: bool,
-
-    /// Do not recurse into directory inputs.
-    #[arg(long, conflicts_with = "recursive", help_heading = "Input")]
-    pub no_recursive: bool,
 
     #[command(flatten)]
     pub verbose: clap_verbosity_flag::Verbosity<InfoLevel>,
@@ -265,21 +249,11 @@ pub fn resolve_config(args: &CliArgs) -> Result<ResolvedConfig, ConfigError> {
         output,
         format: args.format.or(file.format).unwrap_or_default(),
         jobs,
-        recursive: merge_bool(args.recursive, args.no_recursive, file.recursive, true),
-        overwrite: merge_bool(args.overwrite, args.no_overwrite, file.overwrite, false),
-        metadata_json: merge_bool(
-            args.metadata_json,
-            args.no_metadata_json,
-            file.metadata_json,
-            false,
-        ),
+        recursive: merge_bool(args.recursive, file.recursive),
+        overwrite: merge_bool(args.overwrite, file.overwrite),
+        metadata_json: merge_bool(args.metadata_json, file.metadata_json),
         demosaic,
-        color_matrix: merge_bool(
-            args.color_matrix,
-            args.no_color_matrix,
-            file.color_matrix,
-            true,
-        ),
+        color_matrix: merge_bool(args.color_matrix, file.color_matrix),
         jpeg_quality,
         dng_compression: args
             .dng_compression
@@ -297,20 +271,13 @@ fn resolve_path(base: &Path, path: PathBuf, cli_path: bool) -> PathBuf {
     }
 }
 
-const fn merge_bool(
-    cli_true: bool,
-    cli_false: bool,
-    configured: Option<bool>,
-    default: bool,
-) -> bool {
+const fn merge_bool(cli_true: bool, configured: Option<bool>) -> bool {
     if cli_true {
         true
-    } else if cli_false {
-        false
     } else {
         match configured {
             Some(value) => value,
-            None => default,
+            None => false,
         }
     }
 }
