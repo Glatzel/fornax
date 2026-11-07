@@ -12,11 +12,13 @@ codec requests.
 
 ## Interfaces
 
-`Codec` selects a raw sample codec and exposes `decode` and `encode` methods.
-Decoding accepts a `DecodeRequest` containing the image geometry, chunk
-locations, sample layout, byte order, predictor, and source bytes. Encoding
-accepts an `EncodeRequest` and returns row-major `EncodedChunks`. Lossy JPEG and
-JPEG XL return `CodecError::Unsupported` when encoding is requested.
+`DecodeCompression` and `EncodeCompression` select the algorithm inside their
+respective request types. `decode(&DecodeRequest)` and
+`encode(&EncodeRequest)` dispatch directly to the selected implementation.
+Decoding accepts the image geometry, chunk locations, sample layout, byte
+order, predictor, and source bytes. Encoding returns row-major
+`EncodedChunks`. Lossy JPEG and JPEG XL are absent from `EncodeCompression`, so
+they cannot be selected for encoding.
 
 `fornax_dng` translates TIFF/DNG tags into these requests. Container parsing,
 format tags, raw transforms, crop metadata, and DNG writer policy remain in the
@@ -42,5 +44,7 @@ Unknown TIFF compression identifiers are reported as unsupported.
 | Default | JPEG, JPEG XL, Deflate, and lossless JPEG-92 |
 | `zstd` | Adds Zstandard decoding and encoding |
 
-Use `Codec::Zstd { level }` to select a Zstandard encoding level. Without
-`zstd`, both Zstandard directions return `CodecError::Unsupported`.
+Use `EncodeCompression::Zstd { level }` to select a Zstandard encoding level.
+Decoding uses `DecodeCompression::Zstd` because the level is stored in the
+stream. Without `zstd`, both Zstandard directions return
+`CodecError::Unsupported`.

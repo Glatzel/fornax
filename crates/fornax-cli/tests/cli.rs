@@ -2,11 +2,10 @@ use std::fs;
 
 use assert_cmd::Command;
 use clap::Parser;
+use fornax::dng::metadata::{DngTag, Tag, TiffTag, Value};
+use fornax::dng::{Directory, DngCompression, DngImage, DngWriter};
+use fornax::{MonoImage, RawMosaic};
 use fornax_cli::{CliArgs, ConversionOutcome, plan_inputs, resolve_config, run};
-use fornax_core::{MonoImage, RawMosaic};
-use fornax_dng::metadata::{DngTag, Tag, Value};
-use fornax_dng::{Directory, DngCompression, DngWriter};
-use fornax_tiff::constants::TiffTag;
 use image::GenericImageView;
 use tempfile::tempdir;
 
@@ -228,5 +227,5 @@ fn non_dng_input_converts_to_raw_dng() {
     ));
     let generated = output.join("image.dng");
     assert!(generated.is_file());
-    assert!(fornax_dng::DngImage::parse(&fs::read(generated).unwrap()).is_ok());
+    assert!(DngImage::parse(&fs::read(generated).unwrap()).is_ok());
 }

@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, ValueEnum};
 use clap_verbosity_flag::InfoLevel;
-use fornax_dng::DngCompression;
-use fornax_postprocessor::Demosaic;
+use fornax::dng::DngCompression;
+use fornax::postprocessor::Demosaic;
 use serde::Deserialize;
 use thiserror::Error;
 
@@ -370,7 +370,7 @@ mod tests {
     use std::io::Write;
 
     use clap::Parser;
-    use fornax_postprocessor::Demosaic;
+    use fornax::postprocessor::Demosaic;
     use tempfile::tempdir;
 
     use super::*;

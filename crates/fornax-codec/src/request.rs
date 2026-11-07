@@ -2,16 +2,16 @@ use fornax_core::RawMosaic;
 
 use crate::Predictor;
 
-/// A raw sample codec.
+/// A raw sample decoding algorithm.
 ///
 /// # Examples
 ///
 /// ```
-/// let codec = fornax_codec::Codec::Zstd { level: 3 };
-/// assert_eq!(codec, fornax_codec::Codec::Zstd { level: 3 });
+/// let compression = fornax_codec::DecodeCompression::Zstd;
+/// assert_eq!(compression, fornax_codec::DecodeCompression::Zstd);
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Codec {
+pub enum DecodeCompression {
     /// Samples are stored directly in the chunk payloads.
     Uncompressed,
     /// TIFF lossless JPEG-92.
@@ -22,6 +22,29 @@ pub enum Codec {
     LossyJpeg,
     /// JPEG XL with one sample channel.
     JpegXl,
+    /// TIFF's experimental Zstandard compression.
+    Zstd,
+}
+
+/// A raw sample encoding algorithm.
+///
+/// # Examples
+///
+/// ```
+/// let compression = fornax_codec::EncodeCompression::Zstd { level: 3 };
+/// assert_eq!(
+///     compression,
+///     fornax_codec::EncodeCompression::Zstd { level: 3 }
+/// );
+/// ```
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum EncodeCompression {
+    /// Samples are stored directly in the chunk payloads.
+    Uncompressed,
+    /// TIFF lossless JPEG-92.
+    LosslessJpeg,
+    /// TIFF Deflate using zlib framing.
+    Deflate,
     /// TIFF's experimental Zstandard compression with an encoding level.
     Zstd {
         /// Compression level passed to the Zstandard encoder.
@@ -91,6 +114,7 @@ pub struct Chunk {
 /// ```
 /// let request = fornax_codec::DecodeRequest {
 ///     source: &[],
+///     compression: fornax_codec::DecodeCompression::Uncompressed,
 ///     width: 1,
 ///     height: 1,
 ///     chunk_width: 1,
@@ -106,6 +130,8 @@ pub struct Chunk {
 pub struct DecodeRequest<'a> {
     /// Complete source buffer containing the chunk payloads.
     pub source: &'a [u8],
+    /// Compression algorithm used to decode the chunk payloads.
+    pub compression: DecodeCompression,
     /// Full image width in samples.
     pub width: usize,
     /// Full image height in samples.
@@ -131,11 +157,13 @@ pub struct DecodeRequest<'a> {
 /// # Examples
 ///
 /// ```
+/// use fornax_codec::EncodeCompression;
 /// use fornax_core::{MonoImage, RawMosaic};
 ///
 /// let image = RawMosaic::U8(MonoImage::from_raw(1, 1, vec![0]).unwrap());
 /// let request = fornax_codec::EncodeRequest {
 ///     image: &image,
+///     compression: EncodeCompression::Uncompressed,
 ///     chunk_width: 1,
 ///     chunk_height: 1,
 ///     byte_order: fornax_codec::ByteOrder::Little,
@@ -146,6 +174,8 @@ pub struct DecodeRequest<'a> {
 pub struct EncodeRequest<'a> {
     /// Mosaic to encode.
     pub image: &'a RawMosaic,
+    /// Compression algorithm used to encode the chunk payloads.
+    pub compression: EncodeCompression,
     /// Output chunk width in samples.
     pub chunk_width: usize,
     /// Output chunk height in samples.

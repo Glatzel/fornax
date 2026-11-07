@@ -25,6 +25,7 @@ where
     CodecError::InvalidInput(detail.into())
 }
 
+#[cfg(not(feature = "zstd"))]
 pub fn unsupported<T>(detail: T) -> CodecError
 where
     T: Into<Box<str>>,

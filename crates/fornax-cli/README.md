@@ -59,5 +59,5 @@ zstd_level = 3
 ```
 
 Directory inputs are scanned recursively for extensions recognized by
-`fornax_core::RawFormat` and mirrored beneath
+`fornax::RawFormat` and mirrored beneath
 `<output>/<input-root>/<relative-path>`.

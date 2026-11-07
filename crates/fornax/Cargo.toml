@@ -6,11 +6,13 @@ edition.workspace = true
 [dependencies]
 fornax-core.workspace = true
 fornax-decoder.workspace = true
-fornax-decoder-dnc.workspace = true
 fornax-decoder-rawler.workspace = true
 fornax-dng.workspace = true
 fornax-postprocessor.workspace = true
 fornax-preprocessor.workspace = true
+
+[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
+fornax-decoder-dnc.workspace = true
 
 [features]
 default = []
