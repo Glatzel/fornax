@@ -825,6 +825,7 @@ dependencies = [
 name = "fornax-core"
 version = "0.0.17"
 dependencies = [
+ "generic-num",
  "image 0.25.9",
  "num-traits",
  "num_enum",

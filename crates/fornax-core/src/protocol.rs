@@ -1,5 +1,5 @@
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
-use crate::metadata::{Levels, Matrix3x3, ProcessMetadata};
+use crate::metadata::{ColorCalibration, ColorTransform, Levels, ProcessMetadata, WhiteSpec};
 use crate::{
     BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
 };
@@ -29,13 +29,19 @@ where
     T: Primitive,
 {
     fn bayer_pattern(&self) -> BayerPattern;
-    fn wb_coeffs(&self) -> &Option<(T, T)>;
-    fn color_matrix_1(&self) -> Option<&Matrix3x3> { None }
-    fn color_matrix_2(&self) -> Option<&Matrix3x3> { None }
-    fn forward_matrix_1(&self) -> Option<&Matrix3x3> { None }
-    fn forward_matrix_2(&self) -> Option<&Matrix3x3> { None }
-    fn camera_calibration_1(&self) -> Option<&Matrix3x3> { None }
-    fn camera_calibration_2(&self) -> Option<&Matrix3x3> { None }
+
+    /// Normalized color calibration (white balance, profiles, camera -> XYZ
+    /// D50).
+    fn color(&self) -> &ColorCalibration<T>;
+
+    /// Black/white levels; drop this method (and `T`) if the trait is
+    /// color-only.
+    fn levels(&self) -> &Levels<T>;
+
+    /// Convenience: build the transforms for a white point.
+    fn resolve_color(&self, white: WhiteSpec<T>) -> ColorTransform<T> {
+        self.color().resolve(white)
+    }
 }
 pub trait IPostProcessor<T, M>
 where
