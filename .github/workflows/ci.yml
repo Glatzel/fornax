@@ -32,6 +32,7 @@ jobs:
           files_yaml: |
             main:
               - ./**
+              - '!**/*.md'
             benchmark_decoder:
               - ./crates/bench-decoder/**
               - ./crates/fornax-core/**
