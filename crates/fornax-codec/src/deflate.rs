@@ -13,7 +13,7 @@ use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
 use crate::samples::{Geometry, chunk, decode_payloads};
 use crate::{CodecError, predictor};
 
-pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
     let geometry = Geometry::new(
         request.width,
         request.height,
@@ -48,7 +48,7 @@ pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecErro
     )
 }
 
-pub(crate) fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
     let mut encoded = encode_image(
         request.image,
         request.chunk_width,
@@ -71,7 +71,7 @@ pub(crate) fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, Codec
     Ok(EncodedChunks { chunks })
 }
 
-pub(crate) fn inflate(encoded: &[u8]) -> Result<Vec<u8>, String> {
+pub fn inflate(encoded: &[u8]) -> Result<Vec<u8>, String> {
     let mut decoder = ZlibDecoder::new(encoded);
     let mut decoded = Vec::new();
     decoder
@@ -80,7 +80,7 @@ pub(crate) fn inflate(encoded: &[u8]) -> Result<Vec<u8>, String> {
     Ok(decoded)
 }
 
-pub(crate) fn deflate(data: &[u8]) -> Result<Vec<u8>, CodecError> {
+pub fn deflate(data: &[u8]) -> Result<Vec<u8>, CodecError> {
     let mut encoder = ZlibEncoder::new(Vec::new(), FlateCompression::fast());
     encoder
         .write_all(data)

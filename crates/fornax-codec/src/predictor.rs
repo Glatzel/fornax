@@ -24,7 +24,7 @@ pub enum Predictor {
     },
 }
 
-pub(crate) fn reverse(
+pub fn reverse(
     payload: &mut [u8],
     predictor: Predictor,
     width: usize,
@@ -108,7 +108,7 @@ pub(crate) fn reverse(
     Ok(())
 }
 
-pub(crate) fn apply(
+pub fn apply(
     payload: &mut [u8],
     predictor: Predictor,
     width: usize,

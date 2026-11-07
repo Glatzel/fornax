@@ -12,7 +12,7 @@ use crate::request::{DecodeRequest, SampleFormat};
 use crate::samples::{Geometry, chunk, mono};
 use crate::{CodecError, Predictor};
 
-pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
     if request.predictor != Predictor::None {
         return Err(invalid("lossy JPEG samples do not support prediction"));
     }

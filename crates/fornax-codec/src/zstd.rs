@@ -13,7 +13,7 @@ use crate::{
 };
 
 #[cfg(feature = "zstd")]
-pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
     let geometry = Geometry::new(
         request.width,
         request.height,
@@ -54,7 +54,7 @@ pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecErro
 }
 
 #[cfg(feature = "zstd")]
-pub(crate) fn encode(request: &EncodeRequest<'_>, level: i32) -> Result<EncodedChunks, CodecError> {
+pub fn encode(request: &EncodeRequest<'_>, level: i32) -> Result<EncodedChunks, CodecError> {
     let mut encoded = encode_image(
         request.image,
         request.chunk_width,
@@ -78,24 +78,21 @@ pub(crate) fn encode(request: &EncodeRequest<'_>, level: i32) -> Result<EncodedC
 }
 
 #[cfg(not(feature = "zstd"))]
-pub(crate) fn encode(
-    _request: &EncodeRequest<'_>,
-    _level: i32,
-) -> Result<EncodedChunks, CodecError> {
+pub fn encode(_request: &EncodeRequest<'_>, _level: i32) -> Result<EncodedChunks, CodecError> {
     Err(crate::error::unsupported(
         "Zstandard encoding requires the fornax-codec zstd feature",
     ))
 }
 
 #[cfg(not(feature = "zstd"))]
-pub(crate) fn decode(_request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(_request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
     Err(crate::error::unsupported(
         "Zstandard compression requires the fornax-codec zstd feature",
     ))
 }
 
 #[cfg(feature = "zstd")]
-pub(crate) fn decompress(encoded: &[u8], max_output: usize) -> Result<Vec<u8>, String> {
+pub fn decompress(encoded: &[u8], max_output: usize) -> Result<Vec<u8>, String> {
     use std::io::Read;
 
     let decoder = structured_zstd::decoding::StreamingDecoder::new(encoded);
@@ -114,7 +111,7 @@ pub(crate) fn decompress(encoded: &[u8], max_output: usize) -> Result<Vec<u8>, S
 }
 
 #[cfg(feature = "zstd")]
-pub(crate) fn compress(data: &[u8], level: i32) -> Result<Vec<u8>, CodecError> {
+pub fn compress(data: &[u8], level: i32) -> Result<Vec<u8>, CodecError> {
     Ok(structured_zstd::encoding::compress_to_vec(
         data,
         structured_zstd::encoding::CompressionLevel::from_level(level),

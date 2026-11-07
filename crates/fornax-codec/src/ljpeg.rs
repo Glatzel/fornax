@@ -20,7 +20,7 @@ const MARKER_SOS: u8 = 0xda;
 const HUFFMAN_LOOKAHEAD_BITS: usize = 16;
 const HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << HUFFMAN_LOOKAHEAD_BITS;
 
-pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
     if request.sample_format != SampleFormat::Integer
         || !(2..=16).contains(&request.bits_per_sample)
     {
@@ -92,7 +92,7 @@ pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecErro
     }
 }
 
-pub(crate) fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
     if request.predictor != Predictor::None {
         return Err(invalid(
             "lossless JPEG prediction is selected by the encoder",

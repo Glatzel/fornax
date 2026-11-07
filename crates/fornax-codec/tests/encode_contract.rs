@@ -299,6 +299,17 @@ fn zstd_round_trips_integer_and_float_chunks() {
     }
 }
 
+#[cfg(not(feature = "zstd"))]
+#[test]
+fn zstd_encoding_reports_missing_feature() {
+    let image = RawMosaic::U8(MonoImage::from_raw(1, 1, vec![0]).unwrap());
+    let error = Codec::Zstd { level: 3 }
+        .encode(&request(&image, 1, 1, Predictor::None))
+        .unwrap_err();
+
+    assert!(matches!(error, fornax_codec::CodecError::Unsupported(_)));
+}
+
 #[test]
 fn decode_only_compression_rejects_encoding() {
     let image = RawMosaic::U8(MonoImage::from_raw(1, 1, vec![0]).unwrap());

@@ -8,7 +8,7 @@ use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
 use crate::samples::{Geometry, chunk, decode_payloads};
 use crate::{CodecError, Predictor};
 
-pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
     if request.predictor != Predictor::None {
         return Err(invalid("uncompressed samples do not support prediction"));
     }
@@ -34,7 +34,7 @@ pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecErro
     )
 }
 
-pub(crate) fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
     if request.predictor != Predictor::None {
         return Err(invalid("uncompressed samples do not support prediction"));
     }
