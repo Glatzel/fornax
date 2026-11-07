@@ -38,22 +38,27 @@ jobs:
               - ./crates/fornax-decoder/**
               - ./crates/fornax-devtool/**
               - ./crates/fornax-decoder-rawler/**
+              - '!**/*.md'
             benchmark_dng:
               - ./crates/fornax-core/**
               - ./crates/fornax-devtool/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
+              - '!**/*.md'
             benchmark_postprocessor:
               - ./crates/fornax-postprocessor/**
+              - '!**/*.md'
             benchmark_preprocessor:
               - ./crates/fornax-preprocessor/**
+              - '!**/*.md'
             compare_demosaic:
               - ./crates/compare-demosaic/**
               - ./crates/fornax-core/**
               - ./crates/fornax-postprocessor/src/demosaic/**
+              - '!**/*.md'
             book_assets:
               - ./book/**
-          files_ignore: '**/*.md'
+
 
   lefthook:
     if: ${{ github.event_name == 'pull_request' }}
