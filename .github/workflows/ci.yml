@@ -37,7 +37,6 @@ jobs:
               - '!**/*.md'
               - ./crates/bench-decoder/**
               - ./crates/fornax-codec/**
-              - ./crates/fornax-core/**
               - ./crates/fornax-decoder/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
