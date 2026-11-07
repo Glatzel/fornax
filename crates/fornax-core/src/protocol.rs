@@ -36,9 +36,7 @@ pub trait IPostProcessMetadata: Sync {
     fn levels(&self) -> &Levels;
 
     /// Convenience: build the transforms for a white point.
-    fn resolve_color(&self) -> ColorTransform {
-        self.color_calibration().resolve()
-    }
+    fn resolve_color(&self) -> ColorTransform { self.color_calibration().resolve() }
 }
 pub trait IPostProcessor<T, M>
 where
