@@ -29,26 +29,45 @@ where
         let extension = extension
             .to_str()
             .ok_or_else(|| DecodeError::InvalidInput("file extension is not UTF-8".into()))?;
+
         match RawFormat::try_from(extension) {
             Ok(RawFormat::Dng) => {
+                clerk::debug!("Reading DNG: {}", input.display());
+
                 let source = fs::read(input).map_err(|error| {
                     DecodeError::Other(
                         format!("reading {} failed: {error}", input.display()).into(),
                     )
                 })?;
+
                 Ok(Self::Dng(DngImage::parse(&source)?))
             }
-            #[cfg(any(target_os = "windows", target_os = "macos"))]
-            Ok(_) => {
-                let dng_file = Dnc::convert(input)?;
-                let source = fs::read(&dng_file).map_err(|error| {
-                    DecodeError::Other(
-                        format!("reading {} failed: {error}", dng_file.display()).into(),
-                    )
-                })?;
-                Ok(Self::Dng(DngImage::parse(&source)?))
+
+            _ => {
+                cfg_select! {
+                    any(target_os = "windows", target_os = "macos") => {
+                        clerk::info!("Converting RAW image to DNG: {}", input.display());
+
+                        let dng_file = Dnc::convert(input)?;
+
+                        clerk::debug!("Reading converted DNG: {}", dng_file.display());
+
+                        let source = fs::read(&dng_file).map_err(|error| {
+                            DecodeError::Other(
+                                format!("reading {} failed: {error}", dng_file.display()).into(),
+                            )
+                        })?;
+
+                        clerk::info!("RAW-to-DNG conversion completed");
+
+                        Ok(Self::Dng(DngImage::parse(&source)?))
+                    }
+                    _ => {
+                        clerk::error!("Unsupported RAW format: {}", extension);
+                        Err(DecodeError::Unsupported(extension.into()))
+                    }
+                }
             }
-            _ => Err(DecodeError::Unsupported(extension.into())),
         }
     }
 
