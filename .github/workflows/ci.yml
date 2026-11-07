@@ -37,14 +37,17 @@ jobs:
               - ./crates/bench-decoder/**
               - ./crates/fornax-core/**
               - ./crates/fornax-decoder/**
-              - ./crates/fornax-devtool/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-dng/**
+              - ./crates/fornax-tiff/**
               - ./crates/fornax-decoder-rawler/**
               - '!**/*.md'
             benchmark_dng:
               - ./crates/fornax-core/**
-              - ./crates/fornax-devtool/**
+              - ./crates/fornax-dng/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
+              - ./crates/fornax-codec/**
               - '!**/*.md'
             benchmark_postprocessor:
               - ./crates/fornax-postprocessor/**
