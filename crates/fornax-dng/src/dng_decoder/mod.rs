@@ -12,6 +12,7 @@ use fornax_tiff::{Directory, ParsedTiff, Tag, Value};
 use generic_num::num;
 use image::math::Rect;
 use process_metadata::process_metadata_from_dng_metadata;
+pub use process_metadata::raw_color_metadata;
 use rayon::prelude::*;
 
 use crate::metadata::DngTag;
@@ -88,7 +89,7 @@ where
     let pixels = raw_mosaic(parsed)?;
     let metadata = dng_metadata(parsed)?;
     let (width, height) = pixels.dimensions();
-    let process_metadata = process_metadata_from_dng_metadata::<T>(width, height, &metadata)?;
+    let process_metadata = process_metadata_from_dng_metadata(width, height, &metadata)?;
     let active_area = process_metadata.active_area;
     let image = match pixels {
         RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
@@ -264,7 +265,7 @@ fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, Decode
 
 fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, DecodeError> {
     #[cfg(not(feature = "zstd"))]
-    if CompressionMethod::from_u16(required_u16(metadata, TiffTag::Compression)?)
+    if CompressionMethod::from(required_u16(metadata, TiffTag::Compression)?)
         == CompressionMethod::Zstd
     {
         return Err(unsupported_variant(
@@ -600,7 +601,7 @@ mod tests {
         };
 
         let parsed = DngImage::parse(cursor.get_ref()).expect("the synthetic TIFF should parse");
-        let metadata = process_metadata::<f32>(&parsed)
+        let metadata = process_metadata(&parsed)
             .expect("metadata access must not depend on the pixel payload");
         assert_eq!(metadata.active_area.width, 4);
         assert_eq!(metadata.active_area.height, 4);

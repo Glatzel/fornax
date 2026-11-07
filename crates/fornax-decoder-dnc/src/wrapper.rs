@@ -375,7 +375,7 @@ where
 
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> { self.0.cropped_mosaic() }
 
-    fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
         self.0.process_metadata()
     }
 }

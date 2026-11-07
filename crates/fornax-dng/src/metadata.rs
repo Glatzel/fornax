@@ -156,7 +156,7 @@ pub enum DngTag {
     IlluminantData2 = 52534,
     IlluminantData3 = 52535,
     ReductionMatrix3 = 52538,
-    ColumnInterleaveFactor = 52547,
+    ColumnInterleaveFactor = 50_976,
     /// A private or extension tag.
     #[num_enum(catch_all)]
     Unknown(u16),
