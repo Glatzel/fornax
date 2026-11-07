@@ -2,12 +2,7 @@ use std::io::Write;
 
 use flate2::Compression as FlateCompression;
 use flate2::write::ZlibEncoder;
-use fornax_codec::{
-    ByteOrder, Chunk, DecodeRequest, DeflateCodec, ICodecDecode, JpegXlCodec, LosslessJpegCodec,
-    LossyJpegCodec, Predictor, SampleFormat, UncompressedCodec,
-};
-#[cfg(not(feature = "zstd"))]
-use fornax_codec::{Compression, decode};
+use fornax_codec::{ByteOrder, Chunk, Codec, DecodeRequest, Predictor, SampleFormat};
 use fornax_core::RawMosaic;
 
 const fn request<'a>(
@@ -80,7 +75,7 @@ fn uncompressed_ten_bit_rows_unpack_msb_first() {
         ByteOrder::Little,
     );
 
-    let RawMosaic::U16(image) = UncompressedCodec.decode(&request).unwrap() else {
+    let RawMosaic::U16(image) = Codec::Uncompressed.decode(&request).unwrap() else {
         panic!("ten-bit samples must widen to u16");
     };
 
@@ -112,7 +107,7 @@ fn uncompressed_big_endian_partial_strip_copies_the_last_row() {
         ByteOrder::Big,
     );
 
-    let RawMosaic::U16(image) = UncompressedCodec.decode(&request).unwrap() else {
+    let RawMosaic::U16(image) = Codec::Uncompressed.decode(&request).unwrap() else {
         panic!("sixteen-bit samples must decode as u16");
     };
 
@@ -138,7 +133,7 @@ fn uncompressed_float16_widens_to_f32() {
         ByteOrder::Big,
     );
 
-    let RawMosaic::F32(image) = UncompressedCodec.decode(&request).unwrap() else {
+    let RawMosaic::F32(image) = Codec::Uncompressed.decode(&request).unwrap() else {
         panic!("float16 samples must widen to f32");
     };
 
@@ -164,7 +159,7 @@ fn uncompressed_rejects_missing_chunks() {
         ByteOrder::Little,
     );
 
-    let error = UncompressedCodec.decode(&request).unwrap_err();
+    let error = Codec::Uncompressed.decode(&request).unwrap_err();
 
     assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
 }
@@ -188,7 +183,7 @@ fn uncompressed_rejects_overflowing_chunk_ranges_without_panicking() {
         ByteOrder::Little,
     );
 
-    let error = UncompressedCodec.decode(&request).unwrap_err();
+    let error = Codec::Uncompressed.decode(&request).unwrap_err();
 
     assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
 }
@@ -212,7 +207,7 @@ fn uncompressed_rejects_overflowing_chunk_geometry_without_panicking() {
         ByteOrder::Little,
     );
 
-    let error = UncompressedCodec.decode(&request).unwrap_err();
+    let error = Codec::Uncompressed.decode(&request).unwrap_err();
 
     assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
 }
@@ -237,7 +232,7 @@ fn uncompressed_rejects_predictors_it_cannot_reverse() {
         Predictor::HorizontalInteger,
     );
 
-    let error = UncompressedCodec.decode(&request).unwrap_err();
+    let error = Codec::Uncompressed.decode(&request).unwrap_err();
 
     assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
 }
@@ -265,7 +260,7 @@ fn deflate_reverses_horizontal_integer_prediction() {
         Predictor::HorizontalInteger,
     );
 
-    let RawMosaic::U8(image) = DeflateCodec.decode(&request).unwrap() else {
+    let RawMosaic::U8(image) = Codec::Deflate.decode(&request).unwrap() else {
         panic!("8-bit Deflate samples must decode as u8");
     };
 
@@ -296,7 +291,7 @@ fn lossless_jpeg_decodes_twelve_bit_tiles() {
         ByteOrder::Little,
     );
 
-    let RawMosaic::U16(image) = LosslessJpegCodec.decode(&request).unwrap() else {
+    let RawMosaic::U16(image) = Codec::LosslessJpeg.decode(&request).unwrap() else {
         panic!("lossless JPEG samples must decode as u16");
     };
 
@@ -328,7 +323,7 @@ fn lossless_jpeg_applies_point_transform() {
         ByteOrder::Little,
     );
 
-    let RawMosaic::U16(image) = LosslessJpegCodec.decode(&request).unwrap() else {
+    let RawMosaic::U16(image) = Codec::LosslessJpeg.decode(&request).unwrap() else {
         panic!("lossless JPEG samples must decode as u16");
     };
 
@@ -362,7 +357,7 @@ fn lossy_jpeg_decodes_a_single_component_tile() {
         ByteOrder::Little,
     );
 
-    let RawMosaic::U8(image) = LossyJpegCodec.decode(&request).unwrap() else {
+    let RawMosaic::U8(image) = Codec::LossyJpeg.decode(&request).unwrap() else {
         panic!("lossy JPEG samples must decode as u8");
     };
 
@@ -388,7 +383,7 @@ fn jpeg_xl_rejects_malformed_payloads_without_panicking() {
         ByteOrder::Little,
     );
 
-    let error = JpegXlCodec.decode(&request).unwrap_err();
+    let error = Codec::JpegXl.decode(&request).unwrap_err();
 
     assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
 }
@@ -410,7 +405,7 @@ fn zstd_dispatch_reports_missing_feature() {
         ByteOrder::Little,
     );
 
-    let error = decode(Compression::Zstd, &request).unwrap_err();
+    let error = Codec::Zstd { level: 3 }.decode(&request).unwrap_err();
 
     assert!(matches!(error, fornax_codec::CodecError::Unsupported(_)));
 }

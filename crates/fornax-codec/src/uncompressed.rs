@@ -6,72 +6,57 @@ use crate::encode::encode_image;
 use crate::error::invalid;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
 use crate::samples::{Geometry, chunk, decode_payloads};
-use crate::{CodecError, ICodecDecode, ICodecEncode, Predictor};
+use crate::{CodecError, Predictor};
 
-/// Decoder and future encoder for directly stored sample chunks.
-///
-/// # Examples
-///
-/// ```
-/// let codec = fornax_codec::UncompressedCodec;
-/// assert_eq!(codec, fornax_codec::UncompressedCodec);
-/// ```
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct UncompressedCodec;
-
-impl ICodecDecode for UncompressedCodec {
-    fn decode(&self, request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
-        if request.predictor != Predictor::None {
-            return Err(invalid("uncompressed samples do not support prediction"));
-        }
-        let geometry = Geometry::new(
-            request.width,
-            request.height,
-            request.chunk_width,
-            request.chunk_height,
-            request.chunks.len(),
-        )?;
-        let payloads = request
-            .chunks
-            .iter()
-            .copied()
-            .map(|range| chunk(request.source, range))
-            .collect::<Result<Vec<_>, _>>()?;
-        decode_payloads(
-            &geometry,
-            request.bits_per_sample,
-            request.sample_format,
-            request.byte_order,
-            &payloads,
-        )
+pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+    if request.predictor != Predictor::None {
+        return Err(invalid("uncompressed samples do not support prediction"));
     }
+    let geometry = Geometry::new(
+        request.width,
+        request.height,
+        request.chunk_width,
+        request.chunk_height,
+        request.chunks.len(),
+    )?;
+    let payloads = request
+        .chunks
+        .iter()
+        .copied()
+        .map(|range| chunk(request.source, range))
+        .collect::<Result<Vec<_>, _>>()?;
+    decode_payloads(
+        &geometry,
+        request.bits_per_sample,
+        request.sample_format,
+        request.byte_order,
+        &payloads,
+    )
 }
 
-impl ICodecEncode for UncompressedCodec {
-    fn encode(&self, request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
-        if request.predictor != Predictor::None {
-            return Err(invalid("uncompressed samples do not support prediction"));
-        }
-        let (width, height) = request.image.dimensions();
-        if usize::try_from(width).ok() == Some(request.chunk_width)
-            && usize::try_from(height).ok() == Some(request.chunk_height)
-            && width != 0
-            && height != 0
-        {
-            return Ok(EncodedChunks {
-                chunks: vec![serialize_full_image(request.image, request.byte_order)?],
-            });
-        }
-        Ok(EncodedChunks {
-            chunks: encode_image(
-                request.image,
-                request.chunk_width,
-                request.chunk_height,
-                request.byte_order,
-            )?
-            .chunks,
-        })
+pub(crate) fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+    if request.predictor != Predictor::None {
+        return Err(invalid("uncompressed samples do not support prediction"));
     }
+    let (width, height) = request.image.dimensions();
+    if usize::try_from(width).ok() == Some(request.chunk_width)
+        && usize::try_from(height).ok() == Some(request.chunk_height)
+        && width != 0
+        && height != 0
+    {
+        return Ok(EncodedChunks {
+            chunks: vec![serialize_full_image(request.image, request.byte_order)?],
+        });
+    }
+    Ok(EncodedChunks {
+        chunks: encode_image(
+            request.image,
+            request.chunk_width,
+            request.chunk_height,
+            request.byte_order,
+        )?
+        .chunks,
+    })
 }
 
 fn serialize_full_image(

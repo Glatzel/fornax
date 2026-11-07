@@ -7,64 +7,52 @@ use rayon::prelude::*;
 use crate::error::invalid;
 use crate::request::{DecodeRequest, SampleFormat};
 use crate::samples::{Geometry, chunk, mono};
-use crate::{CodecError, ICodecDecode, Predictor};
+use crate::{CodecError, Predictor};
 
-/// Single-channel JPEG XL raw tile decoder.
-///
-/// # Examples
-///
-/// ```
-/// assert_eq!(fornax_codec::JpegXlCodec, fornax_codec::JpegXlCodec);
-/// ```
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct JpegXlCodec;
-
-impl ICodecDecode for JpegXlCodec {
-    fn decode(&self, request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
-        if request.predictor != Predictor::None {
-            return Err(invalid("JPEG XL samples do not support prediction"));
-        }
-        if request.sample_format != SampleFormat::Integer
-            || !(8..=16).contains(&request.bits_per_sample)
-        {
-            return Err(invalid(
-                "JPEG XL raw tiles require unsigned 8-16-bit storage",
-            ));
-        }
-        let geometry = Geometry::new(
-            request.width,
-            request.height,
-            request.chunk_width,
-            request.chunk_height,
-            request.chunks.len(),
+pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+    if request.predictor != Predictor::None {
+        return Err(invalid("JPEG XL samples do not support prediction"));
+    }
+    if request.sample_format != SampleFormat::Integer
+        || !(8..=16).contains(&request.bits_per_sample)
+    {
+        return Err(invalid(
+            "JPEG XL raw tiles require unsigned 8-16-bit storage",
+        ));
+    }
+    let geometry = Geometry::new(
+        request.width,
+        request.height,
+        request.chunk_width,
+        request.chunk_height,
+        request.chunks.len(),
+    )?;
+    if request.bits_per_sample == 8 {
+        let mut output = vec![
+            0_u8;
+            geometry
+                .width
+                .checked_mul(geometry.height)
+                .ok_or_else(|| invalid("JPEG XL sample count overflow"))?
+        ];
+        decode_into(request, &geometry, &mut output, decode_u8)?;
+        mono(geometry.width, geometry.height, output).map(RawMosaic::U8)
+    } else {
+        let mut output = vec![
+            0_u16;
+            geometry
+                .width
+                .checked_mul(geometry.height)
+                .ok_or_else(|| invalid("JPEG XL sample count overflow"))?
+        ];
+        let bits = request.bits_per_sample;
+        decode_into(
+            request,
+            &geometry,
+            &mut output,
+            move |encoded, width, height| decode_u16(encoded, width, height, bits),
         )?;
-        if request.bits_per_sample == 8 {
-            let mut output = vec![
-                0_u8;
-                geometry
-                    .width
-                    .checked_mul(geometry.height)
-                    .ok_or_else(|| invalid("JPEG XL sample count overflow"))?
-            ];
-            decode_into(request, &geometry, &mut output, decode_u8)?;
-            mono(geometry.width, geometry.height, output).map(RawMosaic::U8)
-        } else {
-            let mut output = vec![
-                0_u16;
-                geometry
-                    .width
-                    .checked_mul(geometry.height)
-                    .ok_or_else(|| invalid("JPEG XL sample count overflow"))?
-            ];
-            let bits = request.bits_per_sample;
-            decode_into(
-                request,
-                &geometry,
-                &mut output,
-                move |encoded, width, height| decode_u16(encoded, width, height, bits),
-            )?;
-            mono(geometry.width, geometry.height, output).map(RawMosaic::U16)
-        }
+        mono(geometry.width, geometry.height, output).map(RawMosaic::U16)
     }
 }
 

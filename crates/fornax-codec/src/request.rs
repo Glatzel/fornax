@@ -2,18 +2,16 @@ use fornax_core::RawMosaic;
 
 use crate::Predictor;
 
-/// A raw compression scheme understood by the codec dispatcher.
+/// A raw sample codec.
 ///
 /// # Examples
 ///
 /// ```
-/// assert_eq!(
-///     fornax_codec::Compression::Deflate,
-///     fornax_codec::Compression::Deflate
-/// );
+/// let codec = fornax_codec::Codec::Zstd { level: 3 };
+/// assert_eq!(codec, fornax_codec::Codec::Zstd { level: 3 });
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Compression {
+pub enum Codec {
     /// Samples are stored directly in the chunk payloads.
     Uncompressed,
     /// TIFF lossless JPEG-92.
@@ -24,8 +22,11 @@ pub enum Compression {
     LossyJpeg,
     /// JPEG XL with one sample channel.
     JpegXl,
-    /// TIFF's experimental Zstandard compression identifier.
-    Zstd,
+    /// TIFF's experimental Zstandard compression with an encoding level.
+    Zstd {
+        /// Compression level passed to the Zstandard encoder.
+        level: i32,
+    },
 }
 
 /// The encoded sample's numeric representation.

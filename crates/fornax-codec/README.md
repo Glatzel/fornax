@@ -9,11 +9,11 @@ container types.
 
 ## Interfaces
 
-`ICodecDecode` accepts a `DecodeRequest` containing the image geometry, chunk
-locations, sample layout, byte order, predictor, and source bytes. `ICodecEncode`
-accepts an `EncodeRequest` and returns row-major `EncodedChunks`. The traits are
-separate so decode-only JPEG and JPEG XL codecs do not expose meaningless encode
-operations.
+`Codec` selects a raw sample codec and exposes `decode` and `encode` methods.
+Decoding accepts a `DecodeRequest` containing the image geometry, chunk
+locations, sample layout, byte order, predictor, and source bytes. Encoding
+accepts an `EncodeRequest` and returns row-major `EncodedChunks`. Lossy JPEG and
+JPEG XL return `CodecError::Unsupported` when encoding is requested.
 
 `fornax_dng` translates TIFF/DNG tags into these requests. Container parsing,
 format tags, raw transforms, crop metadata, and DNG writer policy remain in the
@@ -26,5 +26,5 @@ format crates.
 | Default | JPEG, JPEG XL, Deflate, and lossless JPEG-92 |
 | `zstd` | Adds Zstandard decoding and encoding |
 
-Without `zstd`, dispatching `Compression::Zstd` returns
-`CodecError::Unsupported`.
+Use `Codec::Zstd { level }` to select a Zstandard encoding level. Without
+`zstd`, both Zstandard directions return `CodecError::Unsupported`.

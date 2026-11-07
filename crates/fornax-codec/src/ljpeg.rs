@@ -9,7 +9,7 @@ use rayon::prelude::*;
 use crate::error::invalid;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
 use crate::samples::{Geometry, chunk, mono};
-use crate::{CodecError, ICodecDecode, ICodecEncode, Predictor};
+use crate::{CodecError, Predictor};
 
 const MARKER_PREFIX: u8 = 0xff;
 const MARKER_SOF3: u8 = 0xc3;
@@ -20,153 +20,134 @@ const MARKER_SOS: u8 = 0xda;
 const HUFFMAN_LOOKAHEAD_BITS: usize = 16;
 const HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << HUFFMAN_LOOKAHEAD_BITS;
 
-/// TIFF lossless JPEG-92 decoder for one image of strips or tiles.
-///
-/// # Examples
-///
-/// ```
-/// assert_eq!(
-///     fornax_codec::LosslessJpegCodec,
-///     fornax_codec::LosslessJpegCodec
-/// );
-/// ```
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct LosslessJpegCodec;
-
-impl ICodecDecode for LosslessJpegCodec {
-    fn decode(&self, request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
-        if request.sample_format != SampleFormat::Integer
-            || !(2..=16).contains(&request.bits_per_sample)
-        {
-            return Err(invalid("lossless JPEG requires 2-16-bit integer samples"));
-        }
-        if request.predictor != Predictor::None {
-            return Err(invalid(
-                "lossless JPEG prediction is encoded in the JPEG stream",
-            ));
-        }
-        let geometry = Geometry::new(
-            request.width,
-            request.height,
-            request.chunk_width,
-            request.chunk_height,
-            request.chunks.len(),
-        )?;
-        let sample_count = geometry
-            .width
-            .checked_mul(geometry.height)
-            .ok_or_else(|| invalid("lossless JPEG sample count overflow"))?;
-        let mut output = vec![0_u16; sample_count];
-        let expected_samples = geometry
-            .chunk_width
-            .checked_mul(geometry.chunk_height)
-            .ok_or_else(|| invalid("lossless JPEG tile sample count overflow"))?;
-        output
-            .par_chunks_mut(geometry.band_stride()?)
-            .enumerate()
-            .try_for_each(|(tile_y_index, band)| {
-                let mut decoded = vec![0_u16; expected_samples];
-                let tile_y = tile_y_index * geometry.chunk_height;
-                let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
-                for tile_x_index in 0..geometry.across {
-                    let index = tile_y_index * geometry.across + tile_x_index;
-                    let encoded = chunk(request.source, request.chunks[index])?;
-                    let precision = u8::try_from(request.bits_per_sample)
-                        .expect("lossless JPEG precision is at most 16");
-                    decode_into(
-                        encoded,
-                        geometry.chunk_width,
-                        geometry.chunk_height,
-                        precision,
-                        &mut decoded,
-                    )
-                    .map_err(|detail| invalid(format!("lossless JPEG tile {index}: {detail}")))?;
-                    let tile_x = tile_x_index * geometry.chunk_width;
-                    let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
-                    for row in 0..copy_height {
-                        let source_start = row * geometry.chunk_width;
-                        let target_start = row * geometry.width + tile_x;
-                        band[target_start..target_start + copy_width]
-                            .copy_from_slice(&decoded[source_start..source_start + copy_width]);
-                    }
+pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+    if request.sample_format != SampleFormat::Integer
+        || !(2..=16).contains(&request.bits_per_sample)
+    {
+        return Err(invalid("lossless JPEG requires 2-16-bit integer samples"));
+    }
+    if request.predictor != Predictor::None {
+        return Err(invalid(
+            "lossless JPEG prediction is encoded in the JPEG stream",
+        ));
+    }
+    let geometry = Geometry::new(
+        request.width,
+        request.height,
+        request.chunk_width,
+        request.chunk_height,
+        request.chunks.len(),
+    )?;
+    let sample_count = geometry
+        .width
+        .checked_mul(geometry.height)
+        .ok_or_else(|| invalid("lossless JPEG sample count overflow"))?;
+    let mut output = vec![0_u16; sample_count];
+    let expected_samples = geometry
+        .chunk_width
+        .checked_mul(geometry.chunk_height)
+        .ok_or_else(|| invalid("lossless JPEG tile sample count overflow"))?;
+    output
+        .par_chunks_mut(geometry.band_stride()?)
+        .enumerate()
+        .try_for_each(|(tile_y_index, band)| {
+            let mut decoded = vec![0_u16; expected_samples];
+            let tile_y = tile_y_index * geometry.chunk_height;
+            let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
+            for tile_x_index in 0..geometry.across {
+                let index = tile_y_index * geometry.across + tile_x_index;
+                let encoded = chunk(request.source, request.chunks[index])?;
+                let precision = u8::try_from(request.bits_per_sample)
+                    .expect("lossless JPEG precision is at most 16");
+                decode_into(
+                    encoded,
+                    geometry.chunk_width,
+                    geometry.chunk_height,
+                    precision,
+                    &mut decoded,
+                )
+                .map_err(|detail| invalid(format!("lossless JPEG tile {index}: {detail}")))?;
+                let tile_x = tile_x_index * geometry.chunk_width;
+                let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
+                for row in 0..copy_height {
+                    let source_start = row * geometry.chunk_width;
+                    let target_start = row * geometry.width + tile_x;
+                    band[target_start..target_start + copy_width]
+                        .copy_from_slice(&decoded[source_start..source_start + copy_width]);
                 }
-                Ok::<(), CodecError>(())
-            })?;
+            }
+            Ok::<(), CodecError>(())
+        })?;
 
-        if request.bits_per_sample <= 8 {
-            let samples = output
-                .into_iter()
-                .map(|value| {
-                    u8::try_from(value)
-                        .map_err(|_| invalid("lossless JPEG sample exceeds u8 storage"))
-                })
-                .collect::<Result<Vec<_>, _>>()?;
-            mono(geometry.width, geometry.height, samples).map(RawMosaic::U8)
-        } else {
-            mono(geometry.width, geometry.height, output).map(RawMosaic::U16)
-        }
+    if request.bits_per_sample <= 8 {
+        let samples = output
+            .into_iter()
+            .map(|value| {
+                u8::try_from(value).map_err(|_| invalid("lossless JPEG sample exceeds u8 storage"))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        mono(geometry.width, geometry.height, samples).map(RawMosaic::U8)
+    } else {
+        mono(geometry.width, geometry.height, output).map(RawMosaic::U16)
     }
 }
 
-impl ICodecEncode for LosslessJpegCodec {
-    fn encode(&self, request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
-        if request.predictor != Predictor::None {
-            return Err(invalid(
-                "lossless JPEG prediction is selected by the encoder",
-            ));
-        }
-        let (width, height) = request.image.dimensions();
-        let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
-        let height = usize::try_from(height).expect("u32 fits usize on supported platforms");
-        let across = width.div_ceil(request.chunk_width.max(1));
-        let down = height.div_ceil(request.chunk_height.max(1));
-        let chunk_count = across
-            .checked_mul(down)
-            .ok_or_else(|| invalid("lossless JPEG chunk count overflow"))?;
-        let geometry = Geometry::new(
-            width,
-            height,
-            request.chunk_width,
-            request.chunk_height,
-            chunk_count,
-        )?;
-        let bits = match request.image {
-            RawMosaic::U8(_) => 8_u8,
-            RawMosaic::U16(_) => 16_u8,
-            _ => {
-                return Err(invalid("lossless JPEG encoding requires U8 or U16 samples"));
-            }
-        };
-        let width = u16::try_from(request.chunk_width)
-            .map_err(|_| invalid("lossless JPEG chunk width exceeds u16"))?;
-        let height = u16::try_from(request.chunk_height)
-            .map_err(|_| invalid("lossless JPEG chunk height exceeds u16"))?;
-        let mut tile = vec![0_u16; geometry.chunk_sample_count()?];
-        let mut chunks = Vec::with_capacity(chunk_count);
-        for tile_y_index in 0..geometry.down {
-            let tile_y = tile_y_index * geometry.chunk_height;
-            for tile_x_index in 0..geometry.across {
-                let tile_x = tile_x_index * geometry.chunk_width;
-                copy_tile_into(
-                    request.image,
-                    geometry.width,
-                    geometry.height,
-                    tile_x,
-                    tile_y,
-                    geometry.chunk_width,
-                    geometry.chunk_height,
-                    &mut tile,
-                );
-                let index = tile_y_index * geometry.across + tile_x_index;
-                chunks.push(
-                    encode(&tile, width, height, bits).map_err(|detail| {
-                        invalid(format!("lossless JPEG chunk {index}: {detail}"))
-                    })?,
-                );
-            }
-        }
-        Ok(EncodedChunks { chunks })
+pub(crate) fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+    if request.predictor != Predictor::None {
+        return Err(invalid(
+            "lossless JPEG prediction is selected by the encoder",
+        ));
     }
+    let (width, height) = request.image.dimensions();
+    let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
+    let height = usize::try_from(height).expect("u32 fits usize on supported platforms");
+    let across = width.div_ceil(request.chunk_width.max(1));
+    let down = height.div_ceil(request.chunk_height.max(1));
+    let chunk_count = across
+        .checked_mul(down)
+        .ok_or_else(|| invalid("lossless JPEG chunk count overflow"))?;
+    let geometry = Geometry::new(
+        width,
+        height,
+        request.chunk_width,
+        request.chunk_height,
+        chunk_count,
+    )?;
+    let bits = match request.image {
+        RawMosaic::U8(_) => 8_u8,
+        RawMosaic::U16(_) => 16_u8,
+        _ => {
+            return Err(invalid("lossless JPEG encoding requires U8 or U16 samples"));
+        }
+    };
+    let width = u16::try_from(request.chunk_width)
+        .map_err(|_| invalid("lossless JPEG chunk width exceeds u16"))?;
+    let height = u16::try_from(request.chunk_height)
+        .map_err(|_| invalid("lossless JPEG chunk height exceeds u16"))?;
+    let mut tile = vec![0_u16; geometry.chunk_sample_count()?];
+    let mut chunks = Vec::with_capacity(chunk_count);
+    for tile_y_index in 0..geometry.down {
+        let tile_y = tile_y_index * geometry.chunk_height;
+        for tile_x_index in 0..geometry.across {
+            let tile_x = tile_x_index * geometry.chunk_width;
+            copy_tile_into(
+                request.image,
+                geometry.width,
+                geometry.height,
+                tile_x,
+                tile_y,
+                geometry.chunk_width,
+                geometry.chunk_height,
+                &mut tile,
+            );
+            let index = tile_y_index * geometry.across + tile_x_index;
+            chunks.push(
+                encode_tile(&tile, width, height, bits)
+                    .map_err(|detail| invalid(format!("lossless JPEG chunk {index}: {detail}")))?,
+            );
+        }
+    }
+    Ok(EncodedChunks { chunks })
 }
 
 fn copy_tile_into(
@@ -749,7 +730,7 @@ fn add_prediction(
 
 const HUFFMAN_BITS: u8 = 5;
 
-fn encode(samples: &[u16], width: u16, height: u16, bits: u8) -> Result<Vec<u8>, String> {
+fn encode_tile(samples: &[u16], width: u16, height: u16, bits: u8) -> Result<Vec<u8>, String> {
     if !(2..=16).contains(&bits) {
         return Err(format!("lossless JPEG bit depth {bits} is invalid"));
     }

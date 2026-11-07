@@ -10,72 +10,60 @@ use zune_jpeg::zune_core::options::DecoderOptions;
 use crate::error::invalid;
 use crate::request::{DecodeRequest, SampleFormat};
 use crate::samples::{Geometry, chunk, mono};
-use crate::{CodecError, ICodecDecode, Predictor};
+use crate::{CodecError, Predictor};
 
-/// TIFF lossy JPEG decoder for a single luma component.
-///
-/// # Examples
-///
-/// ```
-/// assert_eq!(fornax_codec::LossyJpegCodec, fornax_codec::LossyJpegCodec);
-/// ```
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct LossyJpegCodec;
-
-impl ICodecDecode for LossyJpegCodec {
-    fn decode(&self, request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
-        if request.predictor != Predictor::None {
-            return Err(invalid("lossy JPEG samples do not support prediction"));
-        }
-        if request.bits_per_sample != 8 || request.sample_format != SampleFormat::Integer {
-            return Err(invalid("lossy JPEG samples require unsigned 8-bit storage"));
-        }
-        let geometry = Geometry::new(
-            request.width,
-            request.height,
-            request.chunk_width,
-            request.chunk_height,
-            request.chunks.len(),
-        )?;
-        let sample_count = geometry
-            .width
-            .checked_mul(geometry.height)
-            .ok_or_else(|| invalid("lossy JPEG sample count overflow"))?;
-        let mut output = vec![0_u8; sample_count];
-        output
-            .par_chunks_mut(geometry.band_stride()?)
-            .enumerate()
-            .try_for_each(|(tile_y_index, band)| {
-                let tile_y = tile_y_index * geometry.chunk_height;
-                let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
-                for tile_x_index in 0..geometry.across {
-                    let index = tile_y_index * geometry.across + tile_x_index;
-                    let encoded = chunk(request.source, request.chunks[index])?;
-                    let decoded = decode_luma(encoded)
-                        .map_err(|detail| invalid(format!("lossy JPEG tile {index}: {detail}")))?;
-                    let expected = geometry
-                        .chunk_width
-                        .checked_mul(geometry.chunk_height)
-                        .ok_or_else(|| invalid("lossy JPEG tile size overflow"))?;
-                    if decoded.len() != expected {
-                        return Err(invalid(format!(
-                            "lossy JPEG tile {index} decoded {} samples, expected {expected}",
-                            decoded.len()
-                        )));
-                    }
-                    let tile_x = tile_x_index * geometry.chunk_width;
-                    let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
-                    for row in 0..copy_height {
-                        let source_start = row * geometry.chunk_width;
-                        let target_start = row * geometry.width + tile_x;
-                        band[target_start..target_start + copy_width]
-                            .copy_from_slice(&decoded[source_start..source_start + copy_width]);
-                    }
-                }
-                Ok::<(), CodecError>(())
-            })?;
-        mono(geometry.width, geometry.height, output).map(RawMosaic::U8)
+pub(crate) fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+    if request.predictor != Predictor::None {
+        return Err(invalid("lossy JPEG samples do not support prediction"));
     }
+    if request.bits_per_sample != 8 || request.sample_format != SampleFormat::Integer {
+        return Err(invalid("lossy JPEG samples require unsigned 8-bit storage"));
+    }
+    let geometry = Geometry::new(
+        request.width,
+        request.height,
+        request.chunk_width,
+        request.chunk_height,
+        request.chunks.len(),
+    )?;
+    let sample_count = geometry
+        .width
+        .checked_mul(geometry.height)
+        .ok_or_else(|| invalid("lossy JPEG sample count overflow"))?;
+    let mut output = vec![0_u8; sample_count];
+    output
+        .par_chunks_mut(geometry.band_stride()?)
+        .enumerate()
+        .try_for_each(|(tile_y_index, band)| {
+            let tile_y = tile_y_index * geometry.chunk_height;
+            let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
+            for tile_x_index in 0..geometry.across {
+                let index = tile_y_index * geometry.across + tile_x_index;
+                let encoded = chunk(request.source, request.chunks[index])?;
+                let decoded = decode_luma(encoded)
+                    .map_err(|detail| invalid(format!("lossy JPEG tile {index}: {detail}")))?;
+                let expected = geometry
+                    .chunk_width
+                    .checked_mul(geometry.chunk_height)
+                    .ok_or_else(|| invalid("lossy JPEG tile size overflow"))?;
+                if decoded.len() != expected {
+                    return Err(invalid(format!(
+                        "lossy JPEG tile {index} decoded {} samples, expected {expected}",
+                        decoded.len()
+                    )));
+                }
+                let tile_x = tile_x_index * geometry.chunk_width;
+                let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
+                for row in 0..copy_height {
+                    let source_start = row * geometry.chunk_width;
+                    let target_start = row * geometry.width + tile_x;
+                    band[target_start..target_start + copy_width]
+                        .copy_from_slice(&decoded[source_start..source_start + copy_width]);
+                }
+            }
+            Ok::<(), CodecError>(())
+        })?;
+    mono(geometry.width, geometry.height, output).map(RawMosaic::U8)
 }
 
 fn decode_luma(encoded: &[u8]) -> Result<Vec<u8>, String> {
