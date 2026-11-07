@@ -99,13 +99,11 @@ fn binary_help_shows_default_values() {
     for expected in [
         "Output directory [default: converted]",
         "Output image format [default: dng]",
-        "Decoder selection [default: auto]",
         "Maximum simultaneous file conversions [default: 1]",
         "Recurse into directory inputs [default: true]",
         "Overwrite an existing output file [default: false]",
         "Write `<output-stem>.json` beside each output [default: false]",
         "Demosaic algorithm with its default parameters [default: rcd]",
-        "Enforce white balance during postprocessing [default: true]",
         "Apply the derived camera-to-linear-sRGB matrix [default: true]",
         "JPEG preview quality [default: 90]",
         "DNG compression strategy [default: lossless-jpeg]",

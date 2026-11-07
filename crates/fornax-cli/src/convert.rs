@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 use std::path::{self, Path, PathBuf};
 use std::{fmt, fs};
 
-use fornax::decoder::{Decoder, RawlerDecoder};
+use fornax::Decoder;
 use fornax::dng::metadata::{IDecoderDng, directory_to_json_value};
 use fornax::dng::{Directory, DngWriter};
 use fornax::error::{DecodeError, PostProcessError, PreprocessError};
@@ -16,7 +16,7 @@ use num_traits::ToPrimitive;
 use rayon::prelude::*;
 use thiserror::Error;
 
-use crate::config::{CliArgs, DecoderChoice, OutputFormat, ResolvedConfig, resolve_config};
+use crate::config::{CliArgs, OutputFormat, ResolvedConfig, resolve_config};
 use crate::discover::{DiscoveryError, InputJob, plan_inputs};
 
 /// Outcome of one input job.
@@ -100,8 +100,6 @@ enum ConvertError {
         #[source]
         source: Box<dyn std::error::Error + Send + Sync>,
     },
-    #[error("unsupported decoder/format combination: {0}")]
-    Decoder(String),
 }
 
 /// Executes a CLI invocation.
@@ -156,7 +154,9 @@ fn convert_job_inner(
             })
         }
         OutputFormat::Dng => convert_raw_dng(job, config),
-        OutputFormat::Tiff | OutputFormat::Jpeg => convert_rendered(job, config),
+        OutputFormat::Tiff | OutputFormat::Jpeg => {
+            render_with(Decoder::<f32>::decode(&job.input)?, job, config)
+        }
     }
 }
 
@@ -164,13 +164,8 @@ fn convert_raw_dng(
     job: &InputJob,
     config: &ResolvedConfig,
 ) -> Result<ConversionOutcome, ConvertError> {
-    if config.decoder == DecoderChoice::Fornax {
-        return Err(ConvertError::Decoder(
-            "the Fornax DNG decoder only accepts DNG input".into(),
-        ));
-    }
     create_parent(&job.output)?;
-    let decoder = RawlerDecoder::<f32>::decode(&job.input)?;
+    let decoder = Decoder::<f32>::decode(&job.input)?;
     let mosaic = decoder.raw_mosaic()?;
     let metadata = decoder.dng_metadata()?;
     DngWriter::new(config.dng_compression.writer())
@@ -183,21 +178,6 @@ fn convert_raw_dng(
         input: job.input.clone(),
         output: job.output.clone(),
     })
-}
-
-fn convert_rendered(
-    job: &InputJob,
-    config: &ResolvedConfig,
-) -> Result<ConversionOutcome, ConvertError> {
-    match config.decoder {
-        DecoderChoice::Auto if job.format == RawFormat::Dng => {
-            render_with(Decoder::<f32>::decode(&job.input)?, job, config)
-        }
-        DecoderChoice::Auto | DecoderChoice::Rawler => {
-            render_with(RawlerDecoder::<f32>::decode(&job.input)?, job, config)
-        }
-        DecoderChoice::Fornax => render_with(Decoder::<f32>::decode(&job.input)?, job, config),
-    }
 }
 
 fn render_with<D>(

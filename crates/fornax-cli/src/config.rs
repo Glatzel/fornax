@@ -19,17 +19,9 @@ pub struct CliArgs {
     #[arg(help_heading = "General")]
     pub inputs: Vec<PathBuf>,
 
-    /// Decoder selection [default: auto]
-    #[arg(long, value_enum, help_heading = "Processing")]
-    pub decoder: Option<DecoderChoice>,
-
     /// Demosaic algorithm with its default parameters [default: rcd]
     #[arg(long, help_heading = "Processing")]
     pub demosaic: Option<String>,
-
-    /// Disable white balance during postprocessing.
-    #[arg(long, conflicts_with = "white_balance", help_heading = "Color")]
-    pub no_white_balance: bool,
 
     /// Apply the derived camera-to-linear-sRGB matrix [default: true]
     #[arg(long, conflicts_with = "no_color_matrix", help_heading = "Color")]
@@ -111,16 +103,6 @@ impl OutputFormat {
     }
 }
 
-/// Decoder selection.
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, ValueEnum)]
-#[serde(rename_all = "kebab-case")]
-pub enum DecoderChoice {
-    #[default]
-    Auto,
-    Fornax,
-    Rawler,
-}
-
 /// DNG writer compression selection.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
@@ -149,7 +131,6 @@ struct FileConfig {
     inputs: Option<Vec<PathBuf>>,
     output: Option<PathBuf>,
     format: Option<OutputFormat>,
-    decoder: Option<DecoderChoice>,
     jobs: Option<usize>,
     recursive: Option<bool>,
     overwrite: Option<bool>,
@@ -167,7 +148,6 @@ pub struct ResolvedConfig {
     pub inputs: Vec<PathBuf>,
     pub output: PathBuf,
     pub format: OutputFormat,
-    pub decoder: DecoderChoice,
     pub jobs: usize,
     pub recursive: bool,
     pub overwrite: bool,
@@ -284,7 +264,6 @@ pub fn resolve_config(args: &CliArgs) -> Result<ResolvedConfig, ConfigError> {
         inputs,
         output,
         format: args.format.or(file.format).unwrap_or_default(),
-        decoder: args.decoder.or(file.decoder).unwrap_or_default(),
         jobs,
         recursive: merge_bool(args.recursive, args.no_recursive, file.recursive, true),
         overwrite: merge_bool(args.overwrite, args.no_overwrite, file.overwrite, false),
@@ -370,7 +349,6 @@ mod tests {
 
         assert_eq!(config.output, PathBuf::from("converted"));
         assert_eq!(config.format, OutputFormat::Dng);
-        assert_eq!(config.decoder, DecoderChoice::Auto);
         assert_eq!(config.jobs, 1);
         assert!(config.recursive);
         assert!(!config.overwrite);
@@ -390,7 +368,7 @@ mod tests {
         let mut file = std::fs::File::create(&config_path).unwrap();
         writeln!(
             file,
-            "inputs = [\"input.dng\"]\noutput = \"out\"\nformat = \"jpeg\"\njobs = 2\ndemosaic = \"ppg\"\nwhite_balance = false"
+            "inputs = [\"input.dng\"]\noutput = \"out\"\nformat = \"jpeg\"\njobs = 2\ndemosaic = \"ppg\""
         )
         .unwrap();
 
