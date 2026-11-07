@@ -891,22 +891,19 @@ version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
  "flashraw-codecs",
- "flate2",
+ "fornax-codec",
  "fornax-core",
  "fornax-devtool",
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
- "jxl-oxide",
  "num-traits",
  "num_enum",
  "rayon",
  "serde",
  "serde_json",
- "structured-zstd",
  "strum",
  "thiserror",
- "zune-jpeg 0.5.15",
 ]
 
 [[package]]

@@ -114,7 +114,7 @@ functions dispatch by `Compression`. Chunk order is row-major.
       uncompressed sample decoder.
 - [x] Task 2: Move compressed decoders and predictors behind `ICodecDecode`.
 - [x] Task 3: Move supported encoders behind `ICodecEncode`.
-- [ ] Task 4: Route `fornax-dng` decode and write paths through
+- [x] Task 4: Route `fornax-dng` decode and write paths through
       `fornax-codec`, then remove superseded modules and dependencies.
 - [ ] Task 5: Update crate documentation, architecture, and agent ownership
       notes, then run full validation.

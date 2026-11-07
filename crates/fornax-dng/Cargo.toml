@@ -9,21 +9,18 @@ name = "writer"
 
 [dependencies]
 flashraw-codecs.workspace = true
-flate2.workspace = true
+fornax-codec.workspace = true
 fornax-core.workspace = true
 fornax-tiff.workspace = true
 generic-num.workspace = true
-image = { workspace = true, features = ["jpeg"] }
-jxl-oxide.workspace = true
+image.workspace = true
 num_enum.workspace = true
 num-traits.workspace = true
 rayon.workspace = true
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
-structured-zstd = { version = "0.2.6", optional = true }
 strum.workspace = true
 thiserror.workspace = true
-zune-jpeg.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
@@ -32,4 +29,4 @@ fornax-devtool.workspace = true
 [features]
 default = []
 metadata-json = ["dep:serde", "dep:serde_json"]
-zstd = ["dep:structured-zstd"]
+zstd = ["fornax-codec/zstd"]
