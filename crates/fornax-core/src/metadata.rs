@@ -8,7 +8,7 @@ use crate::protocol::IPostProcessMetadata;
 /// A row-major 3x3 color matrix.
 pub type Matrix3x3 = [[f64; 3]; 3];
 /// A 3-channel vector (R, G, B or X, Y, Z).
-pub type Vec3 = [f64; 3];
+pub type Array3 = [f64; 3];
 
 // ---------------------------------------------------------------------------
 // ProcessMetadata
@@ -165,9 +165,9 @@ pub struct IlluminantData {
 #[derive(Clone, Debug, Default)]
 pub struct RawColorMeta {
     /// DNG `AnalogBalance`.
-    pub analog_balance: Option<Vec3>,
+    pub analog_balance: Option<Array3>,
     /// DNG `AsShotNeutral`: camera response to the scene white.
-    pub as_shot_neutral: Option<Vec3>,
+    pub as_shot_neutral: Option<Array3>,
     /// DNG `AsShotWhiteXY`.
     pub as_shot_white_xy: Option<[f64; 2]>,
     /// Maker-note style gains `(red, blue)`, green = 1. This is the reciprocal
@@ -203,10 +203,8 @@ pub enum WhiteSource {
 /// White point request for [`ColorCalibration::resolve`].
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum WhiteSpec {
-    /// The normalized as-shot white.
-    AsShot,
     /// Camera response to the white (camera-native, post-AB space).
-    Neutral(Vec3),
+    Neutral(Array3),
     /// Scene white chromaticity.
     Xy([f64; 2]),
     /// Scene white as a correlated color temperature in kelvin.
@@ -217,9 +215,9 @@ pub enum WhiteSpec {
 #[derive(Clone, Debug)]
 pub struct ColorTransform {
     /// Neutral normalized to max = 1.
-    pub neutral: Vec3,
+    pub neutral: Array3,
     /// `1 / neutral`, for white balancing before or after demosaic.
-    pub gains: Vec3,
+    pub gains: Array3,
     /// Temperature used to interpolate profiles (kelvin).
     pub cct: f64,
     /// Applies to raw (not white balanced) camera values -> XYZ D50.
@@ -341,11 +339,8 @@ impl ColorCalibration {
 
     /// Build the transforms for a white point. Cheap enough to call per edit
     /// (as-shot, user CCT, click-to-gray).
-    pub fn resolve(&self, white: WhiteSpec) -> ColorTransform {
-        let white = match white {
-            WhiteSpec::AsShot => self.as_shot,
-            w => w,
-        };
+    pub fn resolve(&self) -> ColorTransform {
+        let white = self.as_shot;
 
         if self.profiles.is_empty() {
             return self.resolve_fallback(white);
@@ -353,7 +348,6 @@ impl ColorCalibration {
 
         // 1. neutral + temperature
         let (neutral, mired) = match white {
-            WhiteSpec::AsShot => unreachable!(),
             WhiteSpec::Neutral(n) => {
                 let n = normalize_neutral(n);
                 let mired = if self.has_color_matrix {
@@ -425,7 +419,7 @@ impl ColorCalibration {
 
     /// Iterate T until the white XYZ implied by `neutral` agrees with the
     /// interpolated matrices. Returns mired.
-    fn solve_mired(&self, neutral: &Vec3) -> f64 {
+    fn solve_mired(&self, neutral: &Array3) -> f64 {
         let mut t = 5000.0_f64;
         for _ in 0..30 {
             let mired = 1e6 / t;
@@ -457,7 +451,7 @@ impl ColorCalibration {
     ///
     /// With a ForwardMatrix-only file there is no way to derive a neutral from
     /// a chromaticity, so this returns (1,1,1) (no white balance).
-    fn neutral_from_xy(&self, xy: [f64; 2], mired: f64) -> Vec3 {
+    fn neutral_from_xy(&self, xy: [f64; 2], mired: f64) -> Array3 {
         if !self.has_color_matrix {
             return [1.0; 3];
         }
@@ -492,7 +486,7 @@ impl ColorCalibration {
     }
 }
 
-fn finish(neutral: Vec3, cct: f64, cam_to_xyz_d50: Matrix3x3) -> ColorTransform {
+fn finish(neutral: Array3, cct: f64, cam_to_xyz_d50: Matrix3x3) -> ColorTransform {
     ColorTransform {
         neutral,
         gains: neutral.map(|v| 1.0 / v),
@@ -507,7 +501,7 @@ fn finish(neutral: Vec3, cct: f64, cam_to_xyz_d50: Matrix3x3) -> ColorTransform 
 // ---------------------------------------------------------------------------
 
 const D65_XY: [f64; 2] = [0.3127, 0.3290];
-const D50_XYZ: Vec3 = [0.96422, 1.0, 0.82521];
+const D50_XYZ: Array3 = [0.96422, 1.0, 0.82521];
 
 /// Linear sRGB (D50-adapted) -> XYZ D50. Used only for the "camera is sRGB"
 /// fallback.
@@ -527,9 +521,9 @@ fn default_cct(slot: usize, count: usize) -> f64 {
     }
 }
 
-fn valid_positive(v: &Vec3) -> bool { v.iter().all(|x| x.is_finite() && *x > 0.0) }
+fn valid_positive(v: &Array3) -> bool { v.iter().all(|x| x.is_finite() && *x > 0.0) }
 
-fn normalize_neutral(n: Vec3) -> Vec3 {
+fn normalize_neutral(n: Array3) -> Array3 {
     let max = n.iter().cloned().fold(f64::MIN, f64::max);
     if max.is_finite() && max > 0.0 && valid_positive(&n) {
         n.map(|v| v / max)
@@ -538,7 +532,7 @@ fn normalize_neutral(n: Vec3) -> Vec3 {
     }
 }
 
-fn xy_to_xyz([x, y]: [f64; 2]) -> Vec3 { [x / y, 1.0, (1.0 - x - y) / y] }
+fn xy_to_xyz([x, y]: [f64; 2]) -> Array3 { [x / y, 1.0, (1.0 - x - y) / y] }
 
 /// McCamy's approximation (good to a few K for 2856-6500 K).
 pub fn xy_to_cct(x: f64, y: f64) -> f64 {
@@ -566,7 +560,7 @@ pub fn cct_to_xy(t: f64) -> [f64; 2] {
 }
 
 /// Bradford chromatic adaptation matrix from `src` white to `dst` white (XYZ).
-fn bradford(src: Vec3, dst: Vec3) -> Matrix3x3 {
+fn bradford(src: Array3, dst: Array3) -> Matrix3x3 {
     const M_A: Matrix3x3 = [
         [0.8951, 0.2664, -0.1614],
         [-0.7502, 1.7135, 0.0367],
@@ -585,7 +579,7 @@ fn bradford(src: Vec3, dst: Vec3) -> Matrix3x3 {
 }
 
 mod mat {
-    use super::{Matrix3x3, Vec3};
+    use super::{Array3, Matrix3x3};
 
     pub const IDENTITY: Matrix3x3 = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
 
@@ -601,7 +595,7 @@ mod mat {
         o
     }
 
-    pub fn mul_vec(a: &Matrix3x3, v: &Vec3) -> Vec3 {
+    pub fn mul_vec(a: &Matrix3x3, v: &Array3) -> Array3 {
         [
             a[0][0] * v[0] + a[0][1] * v[1] + a[0][2] * v[2],
             a[1][0] * v[0] + a[1][1] * v[1] + a[1][2] * v[2],
@@ -609,7 +603,7 @@ mod mat {
         ]
     }
 
-    pub fn diag(v: Vec3) -> Matrix3x3 { [[v[0], 0.0, 0.0], [0.0, v[1], 0.0], [0.0, 0.0, v[2]]] }
+    pub fn diag(v: Array3) -> Matrix3x3 { [[v[0], 0.0, 0.0], [0.0, v[1], 0.0], [0.0, 0.0, v[2]]] }
 
     pub fn scale(a: &Matrix3x3, s: f64) -> Matrix3x3 { a.map(|r| r.map(|v| v * s)) }
 
@@ -656,7 +650,7 @@ mod mat {
 mod tests {
     use super::*;
 
-    fn close(a: Vec3, b: Vec3, eps: f64) -> bool {
+    fn close(a: Array3, b: Array3, eps: f64) -> bool {
         a.iter().zip(b).all(|(x, y)| (x - y).abs() < eps)
     }
 
@@ -676,7 +670,7 @@ mod tests {
             }],
             ..Default::default()
         });
-        let t = cal.resolve(WhiteSpec::AsShot);
+        let t = cal.resolve();
         let w = mat::mul_vec(&t.cam_to_xyz_d50, &t.neutral);
         assert!(close(w, D50_XYZ, 2e-3), "{w:?}");
         let wb = mat::mul_vec(&t.cam_to_xyz_d50_post_wb, &[1.0; 3]);
@@ -702,7 +696,7 @@ mod tests {
             }],
             ..Default::default()
         });
-        let t = cal.resolve(WhiteSpec::AsShot);
+        let t = cal.resolve();
         let w = mat::mul_vec(&t.cam_to_xyz_d50_post_wb, &[1.0; 3]);
         assert!(close(w, D50_XYZ, 1e-6), "{w:?}");
     }
@@ -712,7 +706,7 @@ mod tests {
         let cal = ColorCalibration::new(RawColorMeta::default());
         assert!(cal.is_fallback());
         assert_eq!(cal.as_shot_source(), WhiteSource::AssumedD65);
-        let t = cal.resolve(WhiteSpec::AsShot);
+        let t = cal.resolve();
         let w = mat::mul_vec(&t.cam_to_xyz_d50_post_wb, &[1.0; 3]);
         assert!(close(w, D50_XYZ, 2e-3));
     }
@@ -736,8 +730,6 @@ mod tests {
             ..Default::default()
         });
         assert_eq!(cal.as_shot_source(), WhiteSource::MakerGains);
-        let t = cal.resolve(WhiteSpec::Cct(4500.0));
-        assert!(t.cct > 4000.0 && t.cct < 5000.0);
     }
 
     #[test]

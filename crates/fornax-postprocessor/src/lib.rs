@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 pub use demosaic::{Demosaic, IDemosaic, LazyDemosaic, LmmseMode};
 use fornax_core::Primitive;
 use fornax_core::error::PostProcessError;
-use fornax_core::metadata::{Matrix3x3, Vec3, WhiteSpec};
+use fornax_core::metadata::{Array3, Matrix3x3};
 use fornax_core::protocol::{IPostProcessMetadata, IPostProcessor};
 
 /// Color space written by [`PostProcessor`].
@@ -50,9 +50,6 @@ where
     D: IDemosaic<T>,
 {
     pub demosaic: D,
-    /// `true`: balance to the as-shot white. `false`: no white balance
-    /// (camera `[1, 1, 1]` is treated as the scene white).
-    pub use_wb_coeffs: bool,
     pub output_color: OutputColorSpace,
     pub _mark: PhantomData<T>,
 }
@@ -74,12 +71,7 @@ where
 
         // Everything white-point dependent comes from the normalized
         // calibration: gains, and camera -> XYZ D50 on raw values.
-        let white = if self.use_wb_coeffs {
-            WhiteSpec::AsShot
-        } else {
-            WhiteSpec::Neutral([1.0; 3])
-        };
-        let transform = metadata.color_calibration().resolve(white);
+        let transform = metadata.color_calibration().resolve();
 
         if self.output_color == OutputColorSpace::Raw {
             if gains_are_identity(&transform.gains) {
@@ -119,7 +111,6 @@ where
     fn default() -> Self {
         Self {
             demosaic: Demosaic::Linear,
-            use_wb_coeffs: true,
             output_color: OutputColorSpace::Raw,
             _mark: PhantomData,
         }
@@ -206,7 +197,9 @@ fn multiply_3x3(left: Matrix3x3, right: Matrix3x3) -> Matrix3x3 {
     result
 }
 
-fn gains_are_identity(gains: &Vec3) -> bool { gains.iter().all(|g| (g - 1.0).abs() < f64::EPSILON) }
+fn gains_are_identity(gains: &Array3) -> bool {
+    gains.iter().all(|g| (g - 1.0).abs() < f64::EPSILON)
+}
 
 fn cast_value<T>(value: f64) -> Result<T, PostProcessError>
 where
@@ -217,7 +210,7 @@ where
     })
 }
 
-fn cast_vec3<T>(vector: Vec3) -> Result<[T; 3], PostProcessError>
+fn cast_vec3<T>(vector: Array3) -> Result<[T; 3], PostProcessError>
 where
     T: Primitive,
 {
@@ -296,13 +289,9 @@ mod tests {
         })
     }
 
-    fn processor(
-        output_color: OutputColorSpace,
-        use_wb_coeffs: bool,
-    ) -> PostProcessor<f32, Demosaic> {
+    fn processor(output_color: OutputColorSpace) -> PostProcessor<f32, Demosaic> {
         PostProcessor {
             demosaic: Demosaic::Linear,
-            use_wb_coeffs,
             output_color,
             _mark: PhantomData,
         }
@@ -354,7 +343,7 @@ mod tests {
             ..Default::default()
         }));
 
-        let output = processor(OutputColorSpace::Raw, false).process(&gray(), &metadata)?;
+        let output = processor(OutputColorSpace::Raw).process(&gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         assert!((pixel[0] - 0.1).abs() < 1.0e-6, "{pixel:?}");
@@ -391,7 +380,7 @@ mod tests {
         ];
 
         for (output_color, expected) in cases {
-            let output = processor(output_color, false).process(&gray(), &metadata)?;
+            let output = processor(output_color).process(&gray(), &metadata)?;
             let pixel = output.get_pixel(4, 4);
 
             for (actual, expected) in pixel.0.into_iter().zip(expected) {
@@ -414,7 +403,7 @@ mod tests {
             ..Default::default()
         }));
 
-        let output = processor(OutputColorSpace::Xyz, false).process(&gray(), &metadata)?;
+        let output = processor(OutputColorSpace::Xyz).process(&gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         for (actual, expected) in pixel.0.into_iter().zip(D50) {
@@ -434,7 +423,7 @@ mod tests {
             ..Default::default()
         }));
 
-        let output = processor(OutputColorSpace::Xyz, false).process(&gray(), &metadata)?;
+        let output = processor(OutputColorSpace::Xyz).process(&gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");
@@ -452,7 +441,7 @@ mod tests {
             ..Default::default()
         });
 
-        let output = processor(OutputColorSpace::Raw, true).process(&gray(), &metadata)?;
+        let output = processor(OutputColorSpace::Raw).process(&gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");
@@ -469,7 +458,7 @@ mod tests {
         color.as_shot_neutral = Some([0.5, 1.0, 0.5]);
         let metadata = metadata(color);
 
-        let output = processor(OutputColorSpace::Xyz, true).process(&gray(), &metadata)?;
+        let output = processor(OutputColorSpace::Xyz).process(&gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");
