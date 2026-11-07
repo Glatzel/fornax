@@ -55,7 +55,7 @@ impl<T: Primitive> CroppedMosaic<T> {
     pub fn process<P>(
         self,
         preprocessor: &P,
-        levels: &Levels<T>,
+        levels: &Levels,
     ) -> Result<NormalizedMosaic<T>, PreprocessError>
     where
         P: IPreprocessor<T>,
@@ -79,7 +79,7 @@ where
     pub fn process<P, M>(self, processor: &P, metadata: &M) -> Result<RgbImage<T>, PostProcessError>
     where
         P: IPostProcessor<T, M>,
-        M: IPostProcessMetadata<T>,
+        M: IPostProcessMetadata,
     {
         processor.process(self.image(), metadata)
     }

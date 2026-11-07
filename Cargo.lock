@@ -922,6 +922,7 @@ dependencies = [
  "codspeed-criterion-compat",
  "fornax-core",
  "fornax-devtool",
+ "generic-num",
  "image 0.25.9",
  "rayon",
 ]

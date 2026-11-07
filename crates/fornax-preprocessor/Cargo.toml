@@ -10,6 +10,7 @@ name = "preprocessor"
 [dependencies]
 fornax-core.workspace = true
 rayon.workspace = true
+generic-num.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

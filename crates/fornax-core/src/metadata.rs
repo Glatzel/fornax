@@ -3,7 +3,7 @@ use num_enum::{FromPrimitive, IntoPrimitive};
 
 use crate::primitive::MonoImage;
 use crate::protocol::IPostProcessMetadata;
-use crate::{BayerPattern, Primitive};
+use crate::{BayerPattern};
 
 /// A row-major 3x3 color matrix.
 pub type Matrix3x3 = [[f64; 3]; 3];
@@ -24,10 +24,7 @@ pub type Vec3 = [f64; 3];
 /// [`RawColorMeta`] with whatever the file provides and
 /// [`ColorCalibration::new`] normalizes it.
 #[derive(Clone, Debug)]
-pub struct ProcessMetadata<T>
-where
-    T: Primitive,
-{
+pub struct ProcessMetadata {
     /// Usable sensor area, corresponding to DNG `ActiveArea`.
     ///
     /// The origin is relative to the full raw frame. In DNG tag order this is
@@ -41,7 +38,7 @@ where
     /// The origin and size are relative to [`ProcessMetadata::active_area`].
     pub default_crop: Rect,
 
-    pub levels: Levels<T>,
+    pub levels: Levels,
 
     /// CFA layout described by DNG `CFARepeatPatternDim`, `CFAPattern`, and
     /// `CFAPlaneColor`. Cropped.
@@ -52,40 +49,37 @@ where
     pub color: ColorCalibration,
 }
 
-impl<T: Primitive + Sync> IPostProcessMetadata<T> for ProcessMetadata<T> {
+impl IPostProcessMetadata for ProcessMetadata {
     fn bayer_pattern(&self) -> BayerPattern { self.bayer_pattern }
-    fn color(&self) -> &ColorCalibration { &self.color }
-    fn levels(&self) -> &Levels<T> { &self.levels }
+    fn color_calibration(&self) -> &ColorCalibration { &self.color }
+    fn levels(&self) -> &Levels { &self.levels }
 }
 
 /// Black and white levels for a single-sample Bayer RAW image.
 #[derive(Clone, Debug)]
-pub struct Levels<T>
-where
-    T: Primitive,
-{
+pub struct Levels {
     /// Repeating black-level pattern from DNG `BlackLevel`, with its repeat
     /// shape given by `BlackLevelRepeatDim`.
     ///
     /// The pattern is applied tile-by-tile from the top-left raw pixel.
-    pub black: MonoImage<T>,
+    pub black: MonoImage<f64>,
 
     /// Per-column black-level adjustments from DNG `BlackLevelDeltaH`.
     ///
     /// LibRaw folds these deltas into its scalar black level and does not
     /// retain the individual tag values, so decoders using LibRaw leave this
     /// vector empty.
-    pub black_delta_h: Vec<T>,
+    pub black_delta_h: Vec<f64>,
 
     /// Per-row black-level adjustments from DNG `BlackLevelDeltaV`.
     ///
     /// LibRaw folds these deltas into its scalar black level and does not
     /// retain the individual tag values, so decoders using LibRaw leave this
     /// vector empty.
-    pub black_delta_v: Vec<T>,
+    pub black_delta_v: Vec<f64>,
 
     /// White level from DNG `WhiteLevel` for single-sample Bayer RAW.
-    pub white: T,
+    pub white: f64,
 }
 
 // ---------------------------------------------------------------------------

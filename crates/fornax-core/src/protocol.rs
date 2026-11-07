@@ -11,7 +11,7 @@ where
     fn decode(input: I) -> Result<Self, DecodeError>;
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError>;
-    fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError>;
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError>;
 }
 
 pub trait IPreprocessor<T>: Sized
@@ -21,30 +21,29 @@ where
     fn process(
         &self,
         decoded: CroppedMosaic<T>,
-        levels: &Levels<T>,
+        levels: &Levels,
     ) -> Result<NormalizedMosaic<T>, PreprocessError>;
 }
-pub trait IPostProcessMetadata<T>: Sync
-where
-    T: Primitive,
-{
+pub trait IPostProcessMetadata: Sync {
     fn bayer_pattern(&self) -> BayerPattern;
 
     /// Normalized color calibration (white balance, profiles, camera -> XYZ
     /// D50).
-    fn color(&self) -> &ColorCalibration;
+    fn color_calibration(&self) -> &ColorCalibration;
 
     /// Black/white levels; drop this method (and `T`) if the trait is
     /// color-only.
-    fn levels(&self) -> &Levels<T>;
+    fn levels(&self) -> &Levels;
 
     /// Convenience: build the transforms for a white point.
-    fn resolve_color(&self, white: WhiteSpec) -> ColorTransform { self.color().resolve(white) }
+    fn resolve_color(&self, white: WhiteSpec) -> ColorTransform {
+        self.color_calibration().resolve(white)
+    }
 }
 pub trait IPostProcessor<T, M>
 where
     T: Primitive,
-    M: IPostProcessMetadata<T>,
+    M: IPostProcessMetadata,
 {
     fn process(
         &self,

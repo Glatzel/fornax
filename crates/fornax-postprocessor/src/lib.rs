@@ -60,7 +60,7 @@ where
 impl<T, D, M> IPostProcessor<T, M> for PostProcessor<T, D>
 where
     T: Primitive,
-    M: IPostProcessMetadata<T>,
+    M: IPostProcessMetadata,
     D: IDemosaic<T>,
 {
     fn process(
@@ -79,7 +79,7 @@ where
         } else {
             WhiteSpec::Neutral([1.0; 3])
         };
-        let transform = metadata.color().resolve(white);
+        let transform = metadata.color_calibration().resolve(white);
 
         if self.output_color == OutputColorSpace::Raw {
             if gains_are_identity(&transform.gains) {
@@ -206,9 +206,7 @@ fn multiply_3x3(left: Matrix3x3, right: Matrix3x3) -> Matrix3x3 {
     result
 }
 
-fn gains_are_identity(gains: &Vec3) -> bool {
-    gains.iter().all(|g| (g - 1.0).abs() < f64::EPSILON)
-}
+fn gains_are_identity(gains: &Vec3) -> bool { gains.iter().all(|g| (g - 1.0).abs() < f64::EPSILON) }
 
 fn cast_value<T>(value: f64) -> Result<T, PostProcessError>
 where
@@ -244,7 +242,7 @@ where
 #[cfg(test)]
 mod tests {
     use fornax_core::metadata::{
-        ColorCalibration, LightSource, Levels, ProcessMetadata, RawColorMeta, RawProfile,
+        ColorCalibration, Levels, LightSource, ProcessMetadata, RawColorMeta, RawProfile,
     };
     use fornax_core::{BayerPattern, MonoImage};
     use image::math::Rect;
@@ -253,7 +251,7 @@ mod tests {
 
     const D50: [f64; 3] = [0.964_22, 1.0, 0.825_21];
 
-    fn metadata(color: RawColorMeta) -> ProcessMetadata<f32> {
+    fn metadata(color: RawColorMeta) -> ProcessMetadata {
         ProcessMetadata {
             active_area: Rect {
                 x: 0,
@@ -268,7 +266,7 @@ mod tests {
                 height: 8,
             },
             levels: Levels {
-                black: MonoImage::from_raw(1, 1, vec![0.0_f32]).unwrap(),
+                black: MonoImage::from_raw(1, 1, vec![0.0]).unwrap(),
                 black_delta_h: Vec::new(),
                 black_delta_v: Vec::new(),
                 white: 1.0,
@@ -298,7 +296,10 @@ mod tests {
         })
     }
 
-    fn processor(output_color: OutputColorSpace, use_wb_coeffs: bool) -> PostProcessor<f32, Demosaic> {
+    fn processor(
+        output_color: OutputColorSpace,
+        use_wb_coeffs: bool,
+    ) -> PostProcessor<f32, Demosaic> {
         PostProcessor {
             demosaic: Demosaic::Linear,
             use_wb_coeffs,
@@ -307,9 +308,7 @@ mod tests {
         }
     }
 
-    fn gray() -> MonoImage<f32> {
-        MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap()
-    }
+    fn gray() -> MonoImage<f32> { MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap() }
 
     #[test]
     fn default_output_color_is_raw() {
@@ -419,7 +418,10 @@ mod tests {
         let pixel = output.get_pixel(4, 4);
 
         for (actual, expected) in pixel.0.into_iter().zip(D50) {
-            assert!((f64::from(actual) - 0.1 * expected).abs() < 1.0e-5, "{pixel:?}");
+            assert!(
+                (f64::from(actual) - 0.1 * expected).abs() < 1.0e-5,
+                "{pixel:?}"
+            );
         }
         Ok(())
     }
