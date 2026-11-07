@@ -34,21 +34,20 @@ jobs:
               - ./**
               - '!**/*.md'
             benchmark_decoder:
+              - '!**/*.md'
               - ./crates/bench-decoder/**
-              - ./crates/fornax-core/**
-              - ./crates/fornax-decoder/**
               - ./crates/fornax-codec/**
-              - ./crates/fornax-dng/**
-              - ./crates/fornax-tiff/**
+              - ./crates/fornax-core/**
               - ./crates/fornax-decoder-rawler/**
-              - '!**/*.md'
-            benchmark_dng:
-              - ./crates/fornax-core/**
-              - ./crates/fornax-dng/**
+              - ./crates/fornax-decoder/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
-              - ./crates/fornax-codec/**
+            benchmark_dng:
               - '!**/*.md'
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-core/**
+              - ./crates/fornax-dng/**
+              - ./crates/fornax-tiff/**
             benchmark_postprocessor:
               - ./crates/fornax-postprocessor/**
               - '!**/*.md'
