@@ -1,5 +1,5 @@
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::{Levels, Matrix3x3, ProcessMetadata};
+use fornax_core::metadata::{ColorCalibration, Levels, Matrix3x3, ProcessMetadata};
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, Value};
@@ -8,39 +8,37 @@ use image::math::Rect;
 
 use crate::metadata::{Directory, DngTag};
 
-pub fn process_metadata_from_dng_metadata<T>(
+pub fn process_metadata_from_dng_metadata(
     full_width: u32,
     full_height: u32,
     dng_metadata: &Directory,
-) -> Result<ProcessMetadata<T>, DecodeError>
-where
-    T: Primitive,
-{
+) -> Result<ProcessMetadata, DecodeError> {
     let active_area = active_area(dng_metadata, full_width, full_height)?;
     let default_crop = default_crop(dng_metadata, active_area)?;
     let black = black_levels(dng_metadata)?;
     let black_delta_h = scalar_values(dng_metadata.get(&Tag::from(DngTag::BlackLevelDeltaH)))?
         .into_iter()
         .map(cast_number)
-        .collect::<Option<Vec<T>>>()
+        .collect::<Option<Vec<_>>>()
         .ok_or_else(|| metadata_error("BlackLevelDeltaH does not fit the output type"))?;
     let black_delta_v = scalar_values(dng_metadata.get(&Tag::from(DngTag::BlackLevelDeltaV)))?
         .into_iter()
         .map(cast_number)
-        .collect::<Option<Vec<T>>>()
+        .collect::<Option<Vec<_>>>()
         .ok_or_else(|| metadata_error("BlackLevelDeltaV does not fit the output type"))?;
     let white = scalar_number(dng_metadata.get(&Tag::from(DngTag::WhiteLevel)))?
         .and_then(cast_number)
         .ok_or_else(|| metadata_error("WhiteLevel is missing or invalid"))?;
     let bayer_pattern = bayer_pattern(dng_metadata, active_area)?;
     let wb_coeffs = wb_coeffs(dng_metadata)?;
+
     let color_matrix_1 = matrix(dng_metadata, DngTag::ColorMatrix1)?;
     let color_matrix_2 = matrix(dng_metadata, DngTag::ColorMatrix2)?;
     let forward_matrix_1 = matrix(dng_metadata, DngTag::ForwardMatrix1)?;
     let forward_matrix_2 = matrix(dng_metadata, DngTag::ForwardMatrix2)?;
     let camera_calibration_1 = matrix(dng_metadata, DngTag::CameraCalibration1)?;
     let camera_calibration_2 = matrix(dng_metadata, DngTag::CameraCalibration2)?;
-
+    let color_calibration = ColorCalibration {};
     Ok(ProcessMetadata {
         active_area,
         default_crop,
@@ -51,13 +49,7 @@ where
             white,
         },
         bayer_pattern,
-        wb_coeffs,
-        color_matrix_1,
-        color_matrix_2,
-        forward_matrix_1,
-        forward_matrix_2,
-        camera_calibration_1,
-        camera_calibration_2,
+        color_calibration,
     })
 }
 
@@ -408,7 +400,7 @@ mod tests {
         metadata.insert(Tag::from(DngTag::ForwardMatrix1), matrix_values(forward1));
         metadata.insert(Tag::from(DngTag::ForwardMatrix2), matrix_values(forward2));
 
-        let process = process_metadata_from_dng_metadata::<f64>(2, 2, &metadata).unwrap();
+        let process = process_metadata_from_dng_metadata(2, 2, &metadata).unwrap();
 
         assert_eq!(process.color_matrix_1, Some(color1));
         assert_eq!(process.color_matrix_2, Some(color2));
@@ -430,7 +422,7 @@ mod tests {
             matrix_values(calibration2),
         );
 
-        let process = process_metadata_from_dng_metadata::<f64>(2, 2, &metadata).unwrap();
+        let process = process_metadata_from_dng_metadata(2, 2, &metadata).unwrap();
 
         assert_eq!(process.camera_calibration_1, Some(calibration1));
         assert_eq!(process.camera_calibration_2, Some(calibration2));
@@ -438,7 +430,7 @@ mod tests {
 
     #[test]
     fn absent_camera_calibrations_are_identity() {
-        let process = process_metadata_from_dng_metadata::<f64>(2, 2, &valid_metadata()).unwrap();
+        let process = process_metadata_from_dng_metadata(2, 2, &valid_metadata()).unwrap();
 
         assert_eq!(process.camera_calibration_1, None);
         assert_eq!(process.camera_calibration_2, None);
@@ -452,6 +444,6 @@ mod tests {
             Value::List(vec![Value::Short(1), Value::Short(2)]),
         );
 
-        assert!(process_metadata_from_dng_metadata::<f64>(2, 2, &metadata).is_err());
+        assert!(process_metadata_from_dng_metadata(2, 2, &metadata).is_err());
     }
 }

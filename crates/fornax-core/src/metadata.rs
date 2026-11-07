@@ -1,9 +1,9 @@
 use image::math::Rect;
 use num_enum::{FromPrimitive, IntoPrimitive};
 
+use crate::BayerPattern;
 use crate::primitive::MonoImage;
 use crate::protocol::IPostProcessMetadata;
-use crate::{BayerPattern};
 
 /// A row-major 3x3 color matrix.
 pub type Matrix3x3 = [[f64; 3]; 3];

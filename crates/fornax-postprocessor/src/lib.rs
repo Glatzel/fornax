@@ -272,7 +272,7 @@ mod tests {
                 white: 1.0,
             },
             bayer_pattern: BayerPattern::RGGB,
-            color: ColorCalibration::new(color),
+            color_calibration: ColorCalibration::new(color),
         }
     }
 

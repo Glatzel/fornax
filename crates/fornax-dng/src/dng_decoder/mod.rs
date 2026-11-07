@@ -120,10 +120,7 @@ pub fn dng_metadata(parsed: &DngImage) -> Result<Directory, DecodeError> {
     Ok(dng_metadata)
 }
 
-pub fn process_metadata<T>(parsed: &DngImage) -> Result<ProcessMetadata<T>, DecodeError>
-where
-    T: Primitive,
-{
+pub fn process_metadata(parsed: &DngImage) -> Result<ProcessMetadata, DecodeError> {
     let metadata = dng_metadata(parsed)?;
     let width = required_u32(&metadata, TiffTag::ImageWidth)?;
     let height = required_u32(&metadata, TiffTag::ImageLength)?;
