@@ -103,6 +103,6 @@ impl IDecoder for RawlerDecoder {
     }
 
     fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
-        Err(DecodeError::Unsupported("unimplemented"))
+        Err(DecodeError::Unsupported("unimplemented".into())
     }
 }
