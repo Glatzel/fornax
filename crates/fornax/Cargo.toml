@@ -10,9 +10,6 @@ fornax-dng.workspace = true
 fornax-postprocessor.workspace = true
 fornax-preprocessor.workspace = true
 
-[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
-fornax-decoder-dnc.workspace = true
-
 [features]
 default = []
 metadata-json = ["fornax-dng/metadata-json"]

@@ -1,6 +1,8 @@
 use std::fs;
 use std::marker::PhantomData;
 use std::path::Path;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
+mod dnc;
 
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::ProcessMetadata;
@@ -8,6 +10,8 @@ use fornax_core::protocol::IDecoder;
 use fornax_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
 use fornax_dng::metadata::IDecoderDng;
 use fornax_dng::{Directory, DngImage};
+
+use crate::dnc::Dnc;
 
 #[derive(Clone, Debug)]
 pub enum Decoder<T> {
@@ -30,6 +34,16 @@ where
                 let source = fs::read(input).map_err(|error| {
                     DecodeError::Other(
                         format!("reading {} failed: {error}", input.display()).into(),
+                    )
+                })?;
+                Ok(Self::Dng(DngImage::parse(&source)?))
+            }
+            #[cfg(any(target_os = "windows", target_os = "macos"))]
+            Ok(_) => {
+                let dng_file = Dnc::convert(input)?;
+                let source = fs::read(&dng_file).map_err(|error| {
+                    DecodeError::Other(
+                        format!("reading {} failed: {error}", dng_file.display()).into(),
                     )
                 })?;
                 Ok(Self::Dng(DngImage::parse(&source)?))

@@ -3,91 +3,82 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::ProcessMetadata;
-use fornax_core::protocol::IDecoder;
-use fornax_core::{CroppedMosaic, Primitive, RawMosaic};
-use fornax_decoder::Decoder;
-use fornax_dng::Directory;
-use fornax_dng::metadata::IDecoderDng;
 use strum::{AsRefStr, Display, EnumString};
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, AsRefStr, EnumString, Display,
+    Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, AsRefStr, EnumString, Display, Default,
 )]
 pub enum DncPreview {
-    #[cfg_attr(feature = "serde", serde(rename = "-p0"))]
     #[strum(serialize = "-p0")]
     None,
-    #[cfg_attr(feature = "serde", serde(rename = "-p1"))]
+
+    #[default]
     #[strum(serialize = "-p1")]
     Medium,
-    #[cfg_attr(feature = "serde", serde(rename = "-p2"))]
+
     #[strum(serialize = "-p2")]
     Full,
 }
 
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, AsRefStr, EnumString, Display,
+    Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, AsRefStr, EnumString, Display, Default,
 )]
 pub enum DncCompatibility {
-    #[cfg_attr(feature = "serde", serde(rename = "-cr2.4"))]
     #[strum(serialize = "-cr2.4")]
     CR2_4,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr4.1"))]
+
     #[strum(serialize = "-cr4.1")]
     CR4_1,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr4.6"))]
+
     #[strum(serialize = "-cr4.6")]
     CR4_6,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr5.4"))]
+
     #[strum(serialize = "-cr5.4")]
     CR5_4,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr6.6"))]
+
     #[strum(serialize = "-cr6.6")]
     CR6_6,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr7.1"))]
+
     #[strum(serialize = "-cr7.1")]
     CR7_1,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr11.2"))]
+
     #[strum(serialize = "-cr11.2")]
     CR11_2,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr12.4"))]
+
     #[strum(serialize = "-cr12.4")]
     CR12_4,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr13.2"))]
+
     #[strum(serialize = "-cr13.2")]
     CR13_2,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr14.0"))]
+
     #[strum(serialize = "-cr14.0")]
     CR14_0,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr15.3"))]
+
     #[strum(serialize = "-cr15.3")]
     CR15_3,
-    #[cfg_attr(feature = "serde", serde(rename = "-cr16.0"))]
+
     #[strum(serialize = "-cr16.0")]
     CR16_0,
 
-    #[cfg_attr(feature = "serde", serde(rename = "-dng1.1"))]
     #[strum(serialize = "-dng1.1")]
     DNG1_1,
-    #[cfg_attr(feature = "serde", serde(rename = "-dng1.3"))]
+
     #[strum(serialize = "-dng1.3")]
     DNG1_3,
-    #[cfg_attr(feature = "serde", serde(rename = "-dng1.4"))]
+
     #[strum(serialize = "-dng1.4")]
     DNG1_4,
-    #[cfg_attr(feature = "serde", serde(rename = "-dng1.5"))]
+
     #[strum(serialize = "-dng1.5")]
     DNG1_5,
-    #[cfg_attr(feature = "serde", serde(rename = "-dng1.6"))]
+
     #[strum(serialize = "-dng1.6")]
     DNG1_6,
-    #[cfg_attr(feature = "serde", serde(rename = "-dng1.7"))]
+
     #[strum(serialize = "-dng1.7")]
     DNG1_7,
-    #[cfg_attr(feature = "serde", serde(rename = "-dng1.7.1"))]
+
+    #[default]
     #[strum(serialize = "-dng1.7.1")]
     DNG1_7_1,
 }
@@ -115,7 +106,7 @@ static DNC_EXECUTABLE: LazyLock<PathBuf> = LazyLock::new(|| {
         PathBuf::from(r"C:\Program Files\Adobe\Adobe DNG Converter\Adobe DNG Converter.exe")
     }
 });
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DncParams {
     /// Output lossless compressed DNG files.
@@ -151,21 +142,21 @@ impl Default for DncParams {
             compressed: true,
             linear: false,
             embed: false,
-            preview: DncPreview::Medium,
-            fast_load: false,
+            preview: DncPreview::default(),
+            fast_load: true,
             side: None,
             count: None,
-            compatibility: DncCompatibility::CR16_0,
+            compatibility: DncCompatibility::default(),
             directory: None,
             filename: None,
             overwrite: false,
         }
     }
 }
-#[derive(Debug, Clone)]
-pub struct DncDecoder<T>(Decoder<T>);
+#[derive(Debug, Clone, Copy)]
+pub struct Dnc;
 
-impl<T> DncDecoder<T> {
+impl Dnc {
     fn command_args(raw_file: &Path, params: &DncParams) -> Result<Vec<String>, DecodeError> {
         let raw_file = std::path::absolute(raw_file).map_err(|error| {
             DecodeError::InvalidInput(
@@ -253,7 +244,8 @@ impl<T> DncDecoder<T> {
         Ok(directory)
     }
 
-    fn convert(raw_file: &Path, params: &DncParams) -> Result<PathBuf, DecodeError> {
+    pub fn convert(raw_file: &Path) -> Result<PathBuf, DecodeError> {
+        let params = DncParams::default();
         let raw_file = std::path::absolute(raw_file).map_err(|error| {
             DecodeError::InvalidInput(
                 format!("cannot resolve RAW path {}: {error}", raw_file.display()).into(),
@@ -273,7 +265,7 @@ impl<T> DncDecoder<T> {
             return Ok(raw_file);
         }
 
-        let dng_file = Self::output_file(&raw_file, params)?;
+        let dng_file = Self::output_file(&raw_file, &params)?;
         let output_directory = dng_file.parent().ok_or_else(|| {
             DecodeError::InvalidInput(
                 format!("DNG output path has no parent: {}", dng_file.display()).into(),
@@ -315,7 +307,7 @@ impl<T> DncDecoder<T> {
             clerk::info!("DNG file already exists: {}", dng_file_absolute.display());
         } else {
             let program = &*DNC_EXECUTABLE;
-            let args = Self::command_args(&raw_file, params)?;
+            let args = Self::command_args(&raw_file, &params)?;
             let output = std::process::Command::new(program)
                 .args(&args)
                 .output()
@@ -361,29 +353,6 @@ impl<T> DncDecoder<T> {
     }
 }
 
-impl<T> IDecoder<&(&Path, &DncParams), T> for DncDecoder<T>
-where
-    T: Primitive,
-{
-    fn decode(input: &(&Path, &DncParams)) -> Result<Self, DecodeError> {
-        let dng_file = Self::convert(input.0, input.1)?;
-        let decoder = Decoder::decode(&dng_file)?;
-        Ok(Self(decoder))
-    }
-
-    fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> { self.0.raw_mosaic() }
-
-    fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> { self.0.cropped_mosaic() }
-
-    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> { self.0.process_metadata() }
-}
-impl<T> IDecoderDng<&(&Path, &DncParams), T> for DncDecoder<T>
-where
-    T: Primitive,
-{
-    fn dng_metadata(&self) -> Result<Directory, DecodeError> { self.0.dng_metadata() }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -406,7 +375,7 @@ mod tests {
             count: Some(20_000_000),
             ..DncParams::default()
         };
-        let args = DncDecoder::<f32>::command_args(&raw, &params)?;
+        let args = Dnc::command_args(&raw, &params)?;
 
         assert!(args.windows(2).any(|args| args == ["-side", "4000"]));
         assert!(args.windows(2).any(|args| args == ["-count", "20000000"]));
@@ -421,7 +390,7 @@ mod tests {
             filename: Some(String::new()),
             ..DncParams::default()
         };
-        let error = DncDecoder::<f32>::command_args(Path::new("input.cr2"), &params)
+        let error = Dnc::command_args(Path::new("input.cr2"), &params)
             .expect_err("empty filename must fail");
         assert!(matches!(error, DecodeError::InvalidInput(_)));
     }

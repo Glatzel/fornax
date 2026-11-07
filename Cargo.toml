@@ -12,7 +12,6 @@ fornax = { path = "./crates/fornax" }
 fornax-codec = { path = "./crates/fornax-codec" }
 fornax-core = { path = "./crates/fornax-core" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
-fornax-decoder-dnc = { path = "./crates/fornax-decoder-dnc" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
 fornax-postprocessor = { path = "./crates/fornax-postprocessor" }

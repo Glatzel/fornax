@@ -6,14 +6,17 @@ edition.workspace = true
 [dependencies]
 fornax-core.workspace = true
 fornax-dng.workspace = true
+clerk.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
-fornax-decoder.workspace = true
-fornax-devtool.workspace = true
 fornax-core.workspace = true
+fornax-devtool.workspace = true
+fornax-dng.workspace = true
+fornax-tiff.workspace = true
 generic-num.workspace = true
 image.workspace = true
 rawler.workspace = true
-fornax-dng.workspace = true
-fornax-tiff.workspace = true
+
+[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
+strum.workspace = true

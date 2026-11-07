@@ -768,7 +768,6 @@ version = "0.0.17"
 dependencies = [
  "fornax-core",
  "fornax-decoder",
- "fornax-decoder-dnc",
  "fornax-dng",
  "fornax-postprocessor",
  "fornax-preprocessor",
@@ -823,26 +822,15 @@ dependencies = [
 name = "fornax-decoder"
 version = "0.0.17"
 dependencies = [
+ "clerk",
  "codspeed-criterion-compat",
  "fornax-core",
- "fornax-decoder",
  "fornax-devtool",
  "fornax-dng",
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
  "rawler",
-]
-
-[[package]]
-name = "fornax-decoder-dnc"
-version = "0.0.17"
-dependencies = [
- "clerk",
- "fornax-core",
- "fornax-decoder",
- "fornax-dng",
- "serde",
  "strum",
 ]
 
