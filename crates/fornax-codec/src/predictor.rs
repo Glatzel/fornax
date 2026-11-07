@@ -1,7 +1,16 @@
+//! Reversible sample predictors used by compressed chunks.
+
+use crate::CodecError;
+use crate::error::invalid;
 use crate::request::{ByteOrder, SampleFormat};
-use crate::{CodecError, error::invalid};
 
 /// Reversible per-chunk predictor applied before sample reconstruction.
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(fornax_codec::Predictor::None, fornax_codec::Predictor::None);
+/// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Predictor {
     /// Samples are not predicted.
@@ -87,8 +96,7 @@ pub(crate) fn reverse(
                 let shuffled = row.to_vec();
                 for sample in 0..width {
                     for byte in 0..bytes_per_sample {
-                        row[sample * bytes_per_sample + byte] =
-                            shuffled[sample + byte * width];
+                        row[sample * bytes_per_sample + byte] = shuffled[sample + byte * width];
                     }
                     if byte_order == ByteOrder::Little {
                         row[sample * bytes_per_sample..(sample + 1) * bytes_per_sample].reverse();
@@ -174,8 +182,7 @@ pub(crate) fn apply(
                 let interleaved = row.to_vec();
                 for sample in 0..width {
                     for byte in 0..bytes_per_sample {
-                        row[sample + byte * width] =
-                            interleaved[sample * bytes_per_sample + byte];
+                        row[sample + byte * width] = interleaved[sample * bytes_per_sample + byte];
                     }
                 }
                 for index in (byte_stride..row_bytes).rev() {

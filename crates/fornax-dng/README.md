@@ -1,7 +1,8 @@
 # fornax-dng
 
-Pure-Rust DNG parsing, metadata conversion, raw codecs, transforms, and DNG
-writing.
+Pure-Rust DNG parsing, metadata conversion, raw transforms, and DNG writing.
+Format-neutral sample decoding and supported codec encoders live in
+`fornax-codec`.
 
 Decoded metadata is a `fornax_tiff::Directory`, keyed by the dynamic `Tag`
 type. `DngTag` names DNG-only fields and converts into those keys; generic TIFF

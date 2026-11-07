@@ -1,13 +1,22 @@
+//! Single-channel JPEG XL decoding.
+
 use fornax_core::RawMosaic;
 use jxl_oxide::JxlImage;
 use rayon::prelude::*;
 
+use crate::error::invalid;
 use crate::request::{DecodeRequest, SampleFormat};
 use crate::samples::{Geometry, chunk, mono};
-use crate::{CodecError, ICodecDecode, error::invalid};
+use crate::{CodecError, ICodecDecode};
 
 /// Single-channel JPEG XL raw tile decoder.
-#[derive(Clone, Copy, Debug, Default)]
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(fornax_codec::JpegXlCodec, fornax_codec::JpegXlCodec);
+/// ```
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct JpegXlCodec;
 
 impl ICodecDecode for JpegXlCodec {
@@ -34,12 +43,7 @@ impl ICodecDecode for JpegXlCodec {
                     .checked_mul(geometry.height)
                     .ok_or_else(|| invalid("JPEG XL sample count overflow"))?
             ];
-            decode_into(
-                request,
-                &geometry,
-                &mut output,
-                decode_u8,
-            )?;
+            decode_into(request, &geometry, &mut output, decode_u8)?;
             mono(geometry.width, geometry.height, output).map(RawMosaic::U8)
         } else {
             let mut output = vec![
@@ -61,12 +65,15 @@ impl ICodecDecode for JpegXlCodec {
     }
 }
 
-fn decode_into<T: Copy + Send>(
+fn decode_into<T>(
     request: &DecodeRequest<'_>,
     geometry: &Geometry,
     output: &mut [T],
     decode: impl Fn(&[u8], usize, usize) -> Result<Vec<T>, String> + Sync,
-) -> Result<(), CodecError> {
+) -> Result<(), CodecError>
+where
+    T: Copy + Send,
+{
     output
         .par_chunks_mut(geometry.band_stride()?)
         .enumerate()
@@ -131,12 +138,7 @@ fn decode_u8(encoded: &[u8], width: usize, height: usize) -> Result<Vec<u8>, Str
     Ok(output)
 }
 
-fn decode_u16(
-    encoded: &[u8],
-    width: usize,
-    height: usize,
-    bits: u16,
-) -> Result<Vec<u16>, String> {
+fn decode_u16(encoded: &[u8], width: usize, height: usize, bits: u16) -> Result<Vec<u16>, String> {
     let image = JxlImage::builder()
         .read(encoded)
         .map_err(|error| format!("header is invalid: {error:?}"))?;

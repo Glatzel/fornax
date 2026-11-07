@@ -1,7 +1,7 @@
 # fornax-decoder
 
-Thin default DNG decoder adapter. TIFF parsing, DNG codecs, metadata, and
-writing are implemented by `fornax-tiff` and `fornax-dng`.
+Thin default DNG decoder adapter. TIFF parsing, raw codecs, DNG metadata, and
+writing are implemented by `fornax-tiff`, `fornax-codec`, and `fornax-dng`.
 
 ```rust
 use fornax_core::{BayerPattern, MonoImage};

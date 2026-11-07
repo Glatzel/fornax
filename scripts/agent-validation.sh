@@ -185,19 +185,19 @@ if [[ "$docs_only" == false ]]; then
     fi
 
     if [[ "$fix" == true ]]; then
-        cargo clippy --workspace --all-features --all-targets --fix \
+        cargo -q clippy --workspace --all-features --all-targets --fix \
             --allow-dirty --allow-staged --exclude compare-demosaic \
             -- "${clippy_flags[@]}"
-        cargo +nightly fmt
+        cargo +nightly fmt -q
     fi
 
-    cargo test --workspace --all-features --exclude compare-demosaic
-    cargo +nightly fmt --check
+    cargo -q test --workspace --all-features --exclude compare-demosaic
+    cargo +nightly fmt --check -q
     RUSTDOCFLAGS="-D warnings" \
-        cargo doc --workspace --all-features --exclude compare-demosaic --no-deps
-    cargo clippy --workspace --all-features --all-targets \
+        cargo -q doc --workspace --all-features --exclude compare-demosaic --no-deps
+    cargo -q clippy --workspace --all-features --all-targets \
         --exclude compare-demosaic -- "${clippy_flags[@]}"
-    cargo bench -p bench-decoder --no-run
+    cargo -q bench -p bench-decoder --no-run
 fi
 
 if grep -Eq '^crates/compare-demosaic/' <<<"$changed_files"; then
@@ -207,15 +207,15 @@ if grep -Eq '^crates/compare-demosaic/' <<<"$changed_files"; then
         cd crates/compare-demosaic
 
         if [[ "$fix" == true ]]; then
-            cargo clippy --all-features --all-targets --fix \
+            cargo -q clippy --all-features --all-targets --fix \
                 --allow-dirty --allow-staged -p compare-demosaic \
                 -- "${clippy_flags[@]}"
-            cargo +nightly fmt
+            cargo +nightly fmt -q
         fi
 
-        RUSTDOCFLAGS="-D warnings" cargo doc --all-features -p compare-demosaic --no-deps
-        cargo clippy --all-features --all-targets -p compare-demosaic \
+        RUSTDOCFLAGS="-D warnings" cargo -q doc --all-features -p compare-demosaic --no-deps
+        cargo -q clippy --all-features --all-targets -p compare-demosaic \
             -- "${clippy_flags[@]}"
-        cargo test --all-features -p compare-demosaic
+        cargo -q test --all-features -p compare-demosaic
     )
 fi

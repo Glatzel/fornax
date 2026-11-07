@@ -1,3 +1,5 @@
+//! Single-component lossy JPEG decoding.
+
 use fornax_core::RawMosaic;
 use rayon::prelude::*;
 use zune_jpeg::JpegDecoder;
@@ -5,20 +7,25 @@ use zune_jpeg::zune_core::bytestream::ZCursor;
 use zune_jpeg::zune_core::colorspace::ColorSpace;
 use zune_jpeg::zune_core::options::DecoderOptions;
 
+use crate::error::invalid;
 use crate::request::{DecodeRequest, SampleFormat};
 use crate::samples::{Geometry, chunk, mono};
-use crate::{CodecError, ICodecDecode, error::invalid};
+use crate::{CodecError, ICodecDecode};
 
 /// TIFF lossy JPEG decoder for a single luma component.
-#[derive(Clone, Copy, Debug, Default)]
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(fornax_codec::LossyJpegCodec, fornax_codec::LossyJpegCodec);
+/// ```
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct LossyJpegCodec;
 
 impl ICodecDecode for LossyJpegCodec {
     fn decode(&self, request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
         if request.bits_per_sample != 8 || request.sample_format != SampleFormat::Integer {
-            return Err(invalid(
-                "lossy JPEG samples require unsigned 8-bit storage",
-            ));
+            return Err(invalid("lossy JPEG samples require unsigned 8-bit storage"));
         }
         let geometry = Geometry::new(
             request.width,

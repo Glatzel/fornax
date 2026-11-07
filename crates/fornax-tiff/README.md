@@ -20,4 +20,4 @@ field constants in `fornax_tiff::constants`. `TiffDirectory` accumulates and
 finalizes writer entries.
 
 The crate intentionally owns container mechanics only. DNG-only tag semantics
-and raw codecs belong to `fornax-dng`.
+belong to `fornax-dng`; format-neutral raw codecs belong to `fornax-codec`.

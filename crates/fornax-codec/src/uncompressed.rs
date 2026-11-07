@@ -1,12 +1,22 @@
+//! Directly stored sample decoding and encoding.
+
 use fornax_core::RawMosaic;
 
 use crate::encode::encode_image;
+use crate::error::invalid;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
 use crate::samples::{Geometry, chunk, decode_payloads};
-use crate::{CodecError, ICodecDecode, ICodecEncode, Predictor, error::invalid};
+use crate::{CodecError, ICodecDecode, ICodecEncode, Predictor};
 
 /// Decoder and future encoder for directly stored sample chunks.
-#[derive(Clone, Copy, Debug, Default)]
+///
+/// # Examples
+///
+/// ```
+/// let codec = fornax_codec::UncompressedCodec;
+/// assert_eq!(codec, fornax_codec::UncompressedCodec);
+/// ```
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct UncompressedCodec;
 
 impl ICodecDecode for UncompressedCodec {
@@ -50,4 +60,3 @@ impl ICodecEncode for UncompressedCodec {
         })
     }
 }
-

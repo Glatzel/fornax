@@ -7,9 +7,10 @@ use fornax_core::RawMosaic;
 use rayon::prelude::*;
 
 use crate::encode::encode_image;
+use crate::error::invalid;
 use crate::request::{ByteOrder, DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
 use crate::samples::{Geometry, chunk, mono};
-use crate::{CodecError, ICodecDecode, ICodecEncode, Predictor, error::invalid};
+use crate::{CodecError, ICodecDecode, ICodecEncode, Predictor};
 
 const MARKER_PREFIX: u8 = 0xff;
 const MARKER_SOF3: u8 = 0xc3;
@@ -21,7 +22,16 @@ const HUFFMAN_LOOKAHEAD_BITS: usize = 16;
 const HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << HUFFMAN_LOOKAHEAD_BITS;
 
 /// TIFF lossless JPEG-92 decoder for one image of strips or tiles.
-#[derive(Clone, Copy, Debug, Default)]
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(
+///     fornax_codec::LosslessJpegCodec,
+///     fornax_codec::LosslessJpegCodec
+/// );
+/// ```
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct LosslessJpegCodec;
 
 impl ICodecDecode for LosslessJpegCodec {
@@ -29,9 +39,7 @@ impl ICodecDecode for LosslessJpegCodec {
         if request.sample_format != SampleFormat::Integer
             || !(2..=16).contains(&request.bits_per_sample)
         {
-            return Err(invalid(
-                "lossless JPEG requires 2-16-bit integer samples",
-            ));
+            return Err(invalid("lossless JPEG requires 2-16-bit integer samples"));
         }
         if request.predictor != Predictor::None {
             return Err(invalid(
@@ -73,9 +81,7 @@ impl ICodecDecode for LosslessJpegCodec {
                         precision,
                         &mut decoded,
                     )
-                    .map_err(|detail| {
-                        invalid(format!("lossless JPEG tile {index}: {detail}"))
-                    })?;
+                    .map_err(|detail| invalid(format!("lossless JPEG tile {index}: {detail}")))?;
                     let tile_x = tile_x_index * geometry.chunk_width;
                     let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
                     for row in 0..copy_height {
@@ -120,9 +126,7 @@ impl ICodecEncode for LosslessJpegCodec {
             RawMosaic::U8(_) => 8_u8,
             RawMosaic::U16(_) => 16_u8,
             _ => {
-                return Err(invalid(
-                    "lossless JPEG encoding requires U8 or U16 samples",
-                ));
+                return Err(invalid("lossless JPEG encoding requires U8 or U16 samples"));
             }
         };
         let width = u16::try_from(request.chunk_width)
@@ -134,7 +138,9 @@ impl ICodecEncode for LosslessJpegCodec {
             let samples: Vec<u16> = match request.image {
                 RawMosaic::U8(_) => bytes.iter().map(|value| u16::from(*value)).collect(),
                 RawMosaic::U16(_) => bytes
-                    .chunks_exact(2)
+                    .as_chunks::<2>()
+                    .0
+                    .iter()
                     .map(|bytes| match request.byte_order {
                         ByteOrder::Little => u16::from_le_bytes([bytes[0], bytes[1]]),
                         ByteOrder::Big => u16::from_be_bytes([bytes[0], bytes[1]]),
@@ -763,9 +769,7 @@ fn write_marker(encoded: &mut Vec<u8>, marker: u8) {
     encoded.extend_from_slice(&[MARKER_PREFIX, marker]);
 }
 
-fn push_u16(encoded: &mut Vec<u8>, value: u16) {
-    encoded.extend_from_slice(&value.to_be_bytes());
-}
+fn push_u16(encoded: &mut Vec<u8>, value: u16) { encoded.extend_from_slice(&value.to_be_bytes()); }
 
 struct BitWriter<'a> {
     encoded: &'a mut Vec<u8>,

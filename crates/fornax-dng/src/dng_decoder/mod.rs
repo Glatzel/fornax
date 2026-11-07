@@ -3,13 +3,13 @@
 mod process_metadata;
 mod transforms;
 
-use fornax_core::error::DecodeError;
-use fornax_core::metadata::ProcessMetadata;
-use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_codec::{
     ByteOrder as CodecByteOrder, Chunk as CodecChunk, DecodeRequest as CodecDecodeRequest,
     Predictor as CodecPredictor, SampleFormat as CodecSampleFormat,
 };
+use fornax_core::error::DecodeError;
+use fornax_core::metadata::ProcessMetadata;
+use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Directory, ParsedTiff, Tag, Value};
 use generic_num::num;
@@ -199,20 +199,18 @@ fn codec_plan(source: &[u8], metadata: &Directory) -> Result<CodecPlan, DecodeEr
     if width == 0 || height == 0 {
         return Err(corrupt("DNG image dimensions must not be zero"));
     }
-    let compression = match CompressionMethod::from_u16(required_u16(
-        metadata,
-        TiffTag::Compression,
-    )?) {
-        CompressionMethod::Uncompressed => fornax_codec::Compression::Uncompressed,
-        CompressionMethod::LosslessJpeg => fornax_codec::Compression::LosslessJpeg,
-        CompressionMethod::Deflate => fornax_codec::Compression::Deflate,
-        CompressionMethod::LossyJpeg => fornax_codec::Compression::LossyJpeg,
-        CompressionMethod::JpegXl => fornax_codec::Compression::JpegXl,
-        CompressionMethod::Zstd => fornax_codec::Compression::Zstd,
-        CompressionMethod::Unknown(value) => {
-            return Err(corrupt(format!("invalid DNG compression {value}")));
-        }
-    };
+    let compression =
+        match CompressionMethod::from_u16(required_u16(metadata, TiffTag::Compression)?) {
+            CompressionMethod::Uncompressed => fornax_codec::Compression::Uncompressed,
+            CompressionMethod::LosslessJpeg => fornax_codec::Compression::LosslessJpeg,
+            CompressionMethod::Deflate => fornax_codec::Compression::Deflate,
+            CompressionMethod::LossyJpeg => fornax_codec::Compression::LossyJpeg,
+            CompressionMethod::JpegXl => fornax_codec::Compression::JpegXl,
+            CompressionMethod::Zstd => fornax_codec::Compression::Zstd,
+            CompressionMethod::Unknown(value) => {
+                return Err(corrupt(format!("invalid DNG compression {value}")));
+            }
+        };
     let samples_per_pixel =
         unsigned_scalar(metadata.get(&Tag::from(TiffTag::SamplesPerPixel))).unwrap_or(1);
     if samples_per_pixel != 1 {
@@ -225,19 +223,14 @@ fn codec_plan(source: &[u8], metadata: &Directory) -> Result<CodecPlan, DecodeEr
         1 => CodecSampleFormat::Integer,
         3 => CodecSampleFormat::Float,
         value => {
-            return Err(corrupt(format!(
-                "invalid DNG sample format {value}"
-            )));
+            return Err(corrupt(format!("invalid DNG sample format {value}")));
         }
     };
     let (chunk_width, chunk_height, offsets, byte_counts) = layout(metadata)?;
     let chunks = offsets
         .into_iter()
         .zip(byte_counts)
-        .map(|(offset, byte_count)| CodecChunk {
-            offset,
-            byte_count,
-        })
+        .map(|(offset, byte_count)| CodecChunk { offset, byte_count })
         .collect();
     let predictor = match compression {
         fornax_codec::Compression::Deflate | fornax_codec::Compression::Zstd => {
@@ -248,9 +241,7 @@ fn codec_plan(source: &[u8], metadata: &Directory) -> Result<CodecPlan, DecodeEr
                 34_894 => CodecPredictor::FloatingPoint { byte_stride: 2 },
                 34_895 => CodecPredictor::FloatingPoint { byte_stride: 4 },
                 value => {
-                    return Err(corrupt(format!(
-                        "DNG predictor {value} is unsupported"
-                    )));
+                    return Err(corrupt(format!("DNG predictor {value} is unsupported")));
                 }
             }
         }
@@ -563,7 +554,7 @@ mod tests {
         assert_eq!(metadata.active_area.height, 4);
     }
 
-        #[test]
+    #[test]
     fn lossless_writer_round_trips_u16_samples() {
         let samples = vec![0, 65_535, 30_000, 32_768, 1, 2, 40_000, 12_345];
         let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
@@ -836,7 +827,7 @@ mod tests {
         assert_eq!(image.as_raw().as_slice(), &[10, 20, 30, 40]);
     }
 
-        fn metadata(
+    fn metadata(
         width: u32,
         height: u32,
         bits: u16,

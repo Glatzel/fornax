@@ -3,6 +3,15 @@ use fornax_core::RawMosaic;
 use crate::Predictor;
 
 /// A raw compression scheme understood by the codec dispatcher.
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(
+///     fornax_codec::Compression::Deflate,
+///     fornax_codec::Compression::Deflate
+/// );
+/// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Compression {
     /// Samples are stored directly in the chunk payloads.
@@ -20,6 +29,15 @@ pub enum Compression {
 }
 
 /// The encoded sample's numeric representation.
+///
+/// # Examples
+///
+/// ```
+/// assert_ne!(
+///     fornax_codec::SampleFormat::Integer,
+///     fornax_codec::SampleFormat::Float
+/// );
+/// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SampleFormat {
     /// Unsigned integer samples.
@@ -29,6 +47,15 @@ pub enum SampleFormat {
 }
 
 /// Byte order used by direct sample storage.
+///
+/// # Examples
+///
+/// ```
+/// assert_ne!(
+///     fornax_codec::ByteOrder::Little,
+///     fornax_codec::ByteOrder::Big
+/// );
+/// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ByteOrder {
     /// Least-significant byte first.
@@ -38,6 +65,16 @@ pub enum ByteOrder {
 }
 
 /// One encoded strip or tile within [`DecodeRequest::source`].
+///
+/// # Examples
+///
+/// ```
+/// let chunk = fornax_codec::Chunk {
+///     offset: 8,
+///     byte_count: 4,
+/// };
+/// assert_eq!(chunk.offset + chunk.byte_count, 12);
+/// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Chunk {
     /// Byte offset from the start of the source.
@@ -47,6 +84,24 @@ pub struct Chunk {
 }
 
 /// Format-neutral description of one raw image decode.
+///
+/// # Examples
+///
+/// ```
+/// let request = fornax_codec::DecodeRequest {
+///     source: &[],
+///     width: 1,
+///     height: 1,
+///     chunk_width: 1,
+///     chunk_height: 1,
+///     chunks: &[],
+///     bits_per_sample: 8,
+///     sample_format: fornax_codec::SampleFormat::Integer,
+///     byte_order: fornax_codec::ByteOrder::Little,
+///     predictor: fornax_codec::Predictor::None,
+/// };
+/// assert_eq!((request.width, request.height), (1, 1));
+/// ```
 pub struct DecodeRequest<'a> {
     /// Complete source buffer containing the chunk payloads.
     pub source: &'a [u8],
@@ -71,6 +126,22 @@ pub struct DecodeRequest<'a> {
 }
 
 /// Format-neutral description of one raw image encode.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_core::{MonoImage, RawMosaic};
+///
+/// let image = RawMosaic::U8(MonoImage::from_raw(1, 1, vec![0]).unwrap());
+/// let request = fornax_codec::EncodeRequest {
+///     image: &image,
+///     chunk_width: 1,
+///     chunk_height: 1,
+///     byte_order: fornax_codec::ByteOrder::Little,
+///     predictor: fornax_codec::Predictor::None,
+/// };
+/// assert_eq!((request.chunk_width, request.chunk_height), (1, 1));
+/// ```
 pub struct EncodeRequest<'a> {
     /// Mosaic to encode.
     pub image: &'a RawMosaic,
@@ -85,9 +156,17 @@ pub struct EncodeRequest<'a> {
 }
 
 /// Independently stored encoded chunks in row-major order.
+///
+/// # Examples
+///
+/// ```
+/// let encoded = fornax_codec::EncodedChunks {
+///     chunks: vec![vec![1, 2]],
+/// };
+/// assert_eq!(encoded.chunks[0], [1, 2]);
+/// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EncodedChunks {
     /// Encoded bytes for each strip or tile.
     pub chunks: Vec<Vec<u8>>,
 }
-

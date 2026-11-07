@@ -1,13 +1,40 @@
+//! Optional TIFF Zstandard decoding and encoding.
+
 use fornax_core::RawMosaic;
 
-use crate::encode::encode_image;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
-use crate::samples::{Geometry, chunk, decode_payloads};
-use crate::{CodecError, ICodecDecode, ICodecEncode, error::invalid, predictor};
+use crate::{CodecError, ICodecDecode, ICodecEncode};
+#[cfg(feature = "zstd")]
+use crate::{
+    encode::encode_image,
+    error::invalid,
+    predictor,
+    samples::{Geometry, chunk, decode_payloads},
+};
 
 /// TIFF's experimental Zstandard raw chunk decoder.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct ZstdCodec;
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(fornax_codec::ZstdCodec::new(3).level(), 3);
+/// ```
+#[derive(Clone, Copy, Debug)]
+pub struct ZstdCodec {
+    level: i32,
+}
+
+impl Default for ZstdCodec {
+    fn default() -> Self { Self::new(3) }
+}
+
+impl ZstdCodec {
+    /// Creates a codec with the requested Zstandard compression level.
+    pub const fn new(level: i32) -> Self { Self { level } }
+
+    /// Returns the configured Zstandard compression level.
+    pub const fn level(self) -> i32 { self.level }
+}
 
 #[cfg(feature = "zstd")]
 impl ICodecDecode for ZstdCodec {
@@ -22,7 +49,9 @@ impl ICodecDecode for ZstdCodec {
         let max_output = geometry
             .chunk_width
             .checked_mul(geometry.chunk_height)
-            .and_then(|samples| samples.checked_mul(usize::from(request.bits_per_sample.div_ceil(8))))
+            .and_then(|samples| {
+                samples.checked_mul(usize::from(request.bits_per_sample.div_ceil(8)))
+            })
             .ok_or_else(|| invalid("Zstandard tile size overflow"))?;
         let mut decoded = Vec::with_capacity(request.chunks.len());
         for (index, range) in request.chunks.iter().copied().enumerate() {
@@ -72,7 +101,7 @@ impl ICodecEncode for ZstdCodec {
                 encoded.sample_format,
                 request.byte_order,
             )?;
-            chunks.push(compress(chunk, 3)?);
+            chunks.push(compress(chunk, self.level)?);
         }
         Ok(EncodedChunks { chunks })
     }

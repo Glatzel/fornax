@@ -70,12 +70,12 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-core/src/primitive.rs` | `RawMosaic`, `CroppedMosaic`, `NormalizedMosaic`, and image aliases |
 | `fornax-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
 | `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
+| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, and supported codec encoders |
 | `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
 | `fornax-decoder/src/lib.rs` | Default DNG decoder and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
 | `fornax-decoder-rawler/src/lib.rs` | Rawler decoding and metadata adaptation |
-| `fornax-dng/src/dng_decoder/mod.rs` | Raw IFD selection, strip/tile assembly, sample decoding, and active crop |
-| `fornax-dng/src/dng_decoder/ljpeg.rs` | Restart-free lossless JPEG-92 component decoding |
+| `fornax-dng/src/dng_decoder/mod.rs` | Raw IFD selection, DNG-to-codec request mapping, transforms, and active crop |
 | `fornax-dng/src/dng_decoder/process_metadata.rs` | DNG geometry, levels, CFA, and white-balance conversion |
 | `fornax-dng/src/writer.rs` | Uncompressed and lossless DNG generation |
 | `bench-decoder/benches/decoder.rs` | Decoder-method benchmarks for DNG and Rawler adapters |

@@ -18,7 +18,8 @@ part of the current preprocessor/demosaic handoff.
 | --- | --- | --- |
 | `fornax-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, classic/BigTIFF parsing, and classic-TIFF writing. | None |
-| `fornax-dng` | DNG-only tags, codecs, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-core`, `fornax-tiff` |
+| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, and supported codec encoding. | `fornax-core` |
+| `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-core`, `fornax-tiff`, `fornax-codec` |
 | `fornax-decoder` | Default pure-Rust DNG decoder adapter over `fornax-dng`. | `fornax-core`, `fornax-dng` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-core`, `fornax-decoder-rawler` |

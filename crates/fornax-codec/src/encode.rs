@@ -1,16 +1,17 @@
 use fornax_core::RawMosaic;
 
+use crate::CodecError;
+use crate::error::invalid;
 use crate::request::{ByteOrder, SampleFormat};
 use crate::samples::Geometry;
-use crate::{CodecError, error::invalid};
 
-pub(crate) struct EncodedSamples {
-    pub(crate) chunks: Vec<Vec<u8>>,
-    pub(crate) bits_per_sample: u16,
-    pub(crate) sample_format: SampleFormat,
+pub struct EncodedSamples {
+    pub chunks: Vec<Vec<u8>>,
+    pub bits_per_sample: u16,
+    pub sample_format: SampleFormat,
 }
 
-pub(crate) fn encode_image(
+pub fn encode_image(
     image: &RawMosaic,
     chunk_width: usize,
     chunk_height: usize,
@@ -62,7 +63,7 @@ pub(crate) fn encode_image(
                         for (sample, target) in samples.as_raw()
                             [source_start..source_start + copy_width]
                             .iter()
-                            .zip(chunk[target_start..].chunks_exact_mut(2))
+                            .zip(chunk[target_start..].as_chunks_mut::<2>().0)
                         {
                             let bytes = match byte_order {
                                 ByteOrder::Little => sample.to_le_bytes(),
@@ -76,7 +77,7 @@ pub(crate) fn encode_image(
                         for (sample, target) in samples.as_raw()
                             [source_start..source_start + copy_width]
                             .iter()
-                            .zip(chunk[target_start..].chunks_exact_mut(4))
+                            .zip(chunk[target_start..].as_chunks_mut::<4>().0)
                         {
                             let bytes = match byte_order {
                                 ByteOrder::Little => sample.to_le_bytes(),
@@ -90,7 +91,7 @@ pub(crate) fn encode_image(
                         for (sample, target) in samples.as_raw()
                             [source_start..source_start + copy_width]
                             .iter()
-                            .zip(chunk[target_start..].chunks_exact_mut(4))
+                            .zip(chunk[target_start..].as_chunks_mut::<4>().0)
                         {
                             let raw = sample.to_bits();
                             let bytes = match byte_order {

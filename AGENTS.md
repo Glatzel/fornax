@@ -18,8 +18,10 @@ and pipeline data flow. These invariants always apply:
   writing, or a decoder implementation.
 - `fornax-tiff` owns generic TIFF tags (`Tag` and `TiffTag`), typed TIFF field
   constants, `Directory` values, parsing, and the reusable directory writer.
+- `fornax-codec` owns format-neutral raw sample decoding, chunk assembly,
+  predictors, and supported codec encoding.
 - `fornax-dng` owns DNG-only tags (`DngTag`), a `Directory` keyed by `Tag`,
-  codecs, transforms, and DNG writing.
+  DNG-specific transforms, and DNG writing.
 - `fornax-decoder::Decoder<T>` is the default pure-Rust DNG decoder. The
   `fornax` facade re-exports it as `fornax::decoder::Decoder` and the DNG
   format layer as `fornax::dng`.

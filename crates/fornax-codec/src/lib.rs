@@ -3,10 +3,40 @@
 //! The crate decodes format-neutral sample layouts into
 //! [`fornax_core::RawMosaic`] values. Container metadata mapping remains in
 //! each format crate.
+//!
+//! # Examples
+//!
+//! ```
+//! use fornax_codec::{ByteOrder, Chunk, DecodeRequest, Predictor, SampleFormat};
+//!
+//! let source = [0_u8, 1, 2, 3];
+//! let chunks = [Chunk {
+//!     offset: 0,
+//!     byte_count: source.len(),
+//! }];
+//! let request = DecodeRequest {
+//!     source: &source,
+//!     width: 2,
+//!     height: 2,
+//!     chunk_width: 2,
+//!     chunk_height: 2,
+//!     chunks: &chunks,
+//!     bits_per_sample: 8,
+//!     sample_format: SampleFormat::Integer,
+//!     byte_order: ByteOrder::Little,
+//!     predictor: Predictor::None,
+//! };
+//! assert_eq!(
+//!     fornax_codec::decode(fornax_codec::Compression::Uncompressed, &request)
+//!         .unwrap()
+//!         .dimensions(),
+//!     (2, 2)
+//! );
+//! ```
 
-mod error;
 pub mod deflate;
 mod encode;
+mod error;
 pub mod jpeg;
 pub mod jpegxl;
 pub mod ljpeg;
@@ -34,6 +64,28 @@ pub use zstd::ZstdCodec;
 ///
 /// Returns [`CodecError`] when the selected codec does not support encoding
 /// or rejects the sample layout.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_codec::{ByteOrder, Compression, EncodeRequest, Predictor};
+/// use fornax_core::{MonoImage, RawMosaic};
+///
+/// let image = RawMosaic::U8(MonoImage::from_raw(2, 1, vec![1, 2]).unwrap());
+/// let request = EncodeRequest {
+///     image: &image,
+///     chunk_width: 2,
+///     chunk_height: 1,
+///     byte_order: ByteOrder::Little,
+///     predictor: Predictor::None,
+/// };
+/// assert_eq!(
+///     fornax_codec::encode(Compression::Uncompressed, &request)
+///         .unwrap()
+///         .chunks,
+///     vec![vec![1, 2]]
+/// );
+/// ```
 pub fn encode(
     compression: Compression,
     request: &EncodeRequest<'_>,
@@ -42,14 +94,47 @@ pub fn encode(
         Compression::Uncompressed => UncompressedCodec.encode(request),
         Compression::LosslessJpeg => LosslessJpegCodec.encode(request),
         Compression::Deflate => DeflateCodec.encode(request),
-        Compression::Zstd => ZstdCodec.encode(request),
-        Compression::LossyJpeg | Compression::JpegXl => Err(error::unsupported(
-            "the selected codec is decode-only",
-        )),
+        Compression::Zstd => ZstdCodec::default().encode(request),
+        Compression::LossyJpeg | Compression::JpegXl => {
+            Err(error::unsupported("the selected codec is decode-only"))
+        }
     }
 }
 
 /// Decodes an encoded raw image into storage-typed samples.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_codec::{ByteOrder, Chunk, DecodeRequest, Predictor, SampleFormat};
+///
+/// fn assert_decoder<T: fornax_codec::ICodecDecode>() {}
+/// assert_decoder::<fornax_codec::UncompressedCodec>();
+///
+/// let source = [7_u8; 4];
+/// let chunks = [Chunk {
+///     offset: 0,
+///     byte_count: source.len(),
+/// }];
+/// let request = DecodeRequest {
+///     source: &source,
+///     width: 2,
+///     height: 2,
+///     chunk_width: 2,
+///     chunk_height: 2,
+///     chunks: &chunks,
+///     bits_per_sample: 8,
+///     sample_format: SampleFormat::Integer,
+///     byte_order: ByteOrder::Little,
+///     predictor: Predictor::None,
+/// };
+/// assert_eq!(
+///     fornax_codec::decode(fornax_codec::Compression::Uncompressed, &request)
+///         .unwrap()
+///         .dimensions(),
+///     (2, 2)
+/// );
+/// ```
 pub trait ICodecDecode {
     /// Decodes one complete image described by `request`.
     ///
@@ -61,6 +146,13 @@ pub trait ICodecDecode {
 }
 
 /// Encodes a raw image into independently stored chunks.
+///
+/// # Examples
+///
+/// ```
+/// fn assert_encoder<T: fornax_codec::ICodecEncode>() {}
+/// assert_encoder::<fornax_codec::DeflateCodec>();
+/// ```
 pub trait ICodecEncode {
     /// Encodes `request` into row-major chunks.
     ///
@@ -79,6 +171,36 @@ use fornax_core::RawMosaic;
 ///
 /// Returns [`CodecError`] when the selected codec rejects the payload or the
 /// requested operation is unavailable.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_codec::{ByteOrder, Chunk, DecodeRequest, Predictor, SampleFormat};
+///
+/// let source = [42_u8; 4];
+/// let chunks = [Chunk {
+///     offset: 0,
+///     byte_count: source.len(),
+/// }];
+/// let request = DecodeRequest {
+///     source: &source,
+///     width: 2,
+///     height: 2,
+///     chunk_width: 2,
+///     chunk_height: 2,
+///     chunks: &chunks,
+///     bits_per_sample: 8,
+///     sample_format: SampleFormat::Integer,
+///     byte_order: ByteOrder::Little,
+///     predictor: Predictor::None,
+/// };
+/// assert_eq!(
+///     fornax_codec::decode(fornax_codec::Compression::Uncompressed, &request)
+///         .unwrap()
+///         .dimensions(),
+///     (2, 2)
+/// );
+/// ```
 pub fn decode(
     compression: Compression,
     request: &DecodeRequest<'_>,
@@ -89,6 +211,6 @@ pub fn decode(
         Compression::Deflate => DeflateCodec.decode(request),
         Compression::LossyJpeg => LossyJpegCodec.decode(request),
         Compression::JpegXl => JpegXlCodec.decode(request),
-        Compression::Zstd => ZstdCodec.decode(request),
+        Compression::Zstd => ZstdCodec::default().decode(request),
     }
 }

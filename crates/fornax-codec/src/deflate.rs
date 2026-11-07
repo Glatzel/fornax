@@ -1,5 +1,6 @@
-use std::io::Read;
-use std::io::Write;
+//! TIFF Deflate decoding and encoding.
+
+use std::io::{Read, Write};
 
 use flate2::Compression as FlateCompression;
 use flate2::read::ZlibDecoder;
@@ -7,12 +8,19 @@ use flate2::write::ZlibEncoder;
 use fornax_core::RawMosaic;
 
 use crate::encode::encode_image;
+use crate::error::invalid;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
 use crate::samples::{Geometry, chunk, decode_payloads};
-use crate::{CodecError, ICodecDecode, ICodecEncode, error::invalid, predictor};
+use crate::{CodecError, ICodecDecode, ICodecEncode, predictor};
 
 /// TIFF Deflate decoder using zlib framing.
-#[derive(Clone, Copy, Debug, Default)]
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(fornax_codec::DeflateCodec, fornax_codec::DeflateCodec);
+/// ```
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct DeflateCodec;
 
 impl ICodecDecode for DeflateCodec {

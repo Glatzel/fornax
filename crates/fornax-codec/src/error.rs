@@ -1,6 +1,13 @@
 use thiserror::Error;
 
 /// Failure while decoding or encoding raw samples.
+///
+/// # Examples
+///
+/// ```
+/// let error = fornax_codec::CodecError::InvalidInput("bad payload".into());
+/// assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
+/// ```
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum CodecError {
     /// The encoded payload or requested sample layout is malformed.
@@ -11,10 +18,16 @@ pub enum CodecError {
     Unsupported(Box<str>),
 }
 
-pub(crate) fn invalid(detail: impl Into<Box<str>>) -> CodecError {
+pub fn invalid<T>(detail: T) -> CodecError
+where
+    T: Into<Box<str>>,
+{
     CodecError::InvalidInput(detail.into())
 }
 
-pub(crate) fn unsupported(detail: impl Into<Box<str>>) -> CodecError {
+pub fn unsupported<T>(detail: T) -> CodecError
+where
+    T: Into<Box<str>>,
+{
     CodecError::Unsupported(detail.into())
 }

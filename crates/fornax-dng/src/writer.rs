@@ -4,8 +4,10 @@ use std::path::Path;
 
 use fornax_codec::{
     ByteOrder as CodecByteOrder, Compression as CodecCompression, EncodeRequest,
-    ICodecEncode, Predictor as CodecPredictor, ZstdCodec, encode as encode_codec,
+    Predictor as CodecPredictor, encode as encode_codec,
 };
+#[cfg(feature = "zstd")]
+use fornax_codec::{ICodecEncode, ZstdCodec};
 use fornax_core::RawMosaic;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter as ContainerWriter, Value};
@@ -316,19 +318,10 @@ where
     let (bits, sample_format) = sample_layout(mosaic);
     let (predictor, predictor_tag) = match mosaic {
         RawMosaic::U32(_) => (CodecPredictor::None, 1_u16),
-        RawMosaic::F32(_) => (
-            CodecPredictor::FloatingPoint { byte_stride: 1 },
-            3_u16,
-        ),
+        RawMosaic::F32(_) => (CodecPredictor::FloatingPoint { byte_stride: 1 }, 3_u16),
         _ => unreachable!("the caller selects Deflate only for wider samples"),
     };
-    let chunks = encode_for_chunks(
-        mosaic,
-        TILE,
-        TILE,
-        CodecCompression::Deflate,
-        predictor,
-    )?;
+    let chunks = encode_for_chunks(mosaic, TILE, TILE, CodecCompression::Deflate, predictor)?;
     write_tiled_payload(
         writer,
         width,
@@ -437,7 +430,7 @@ fn encode_for_chunks(
         .map_err(codec_write_error)
 }
 
-fn encode_request(
+const fn encode_request(
     mosaic: &RawMosaic,
     chunk_width: usize,
     chunk_height: usize,
@@ -475,8 +468,7 @@ where
     for tile in chunks {
         let offset = directory.write_data(tile)?;
         tile_offsets.push(
-            u32::try_from(offset)
-                .map_err(|_| invalid_metadata("DNG tile offset exceeds u32"))?,
+            u32::try_from(offset).map_err(|_| invalid_metadata("DNG tile offset exceeds u32"))?,
         );
         tile_byte_counts.push(
             u32::try_from(tile.len())
@@ -542,7 +534,7 @@ where
     Ok(())
 }
 
-fn sample_layout(mosaic: &RawMosaic) -> (u16, u16) {
+const fn sample_layout(mosaic: &RawMosaic) -> (u16, u16) {
     match mosaic {
         RawMosaic::U8(_) => (8, 1),
         RawMosaic::U16(_) => (16, 1),
@@ -553,12 +545,10 @@ fn sample_layout(mosaic: &RawMosaic) -> (u16, u16) {
 
 fn codec_write_error(error: fornax_codec::CodecError) -> DngWriteError {
     match error {
-        fornax_codec::CodecError::InvalidInput(detail) => DngWriteError::InvalidMetadata {
-            detail,
-        },
-        fornax_codec::CodecError::Unsupported(detail) => DngWriteError::Unsupported {
-            operation: detail,
-        },
+        fornax_codec::CodecError::InvalidInput(detail) => DngWriteError::InvalidMetadata { detail },
+        fornax_codec::CodecError::Unsupported(detail) => {
+            DngWriteError::Unsupported { operation: detail }
+        }
     }
 }
 

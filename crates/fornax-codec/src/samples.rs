@@ -1,20 +1,21 @@
 use fornax_core::{MonoImage, RawMosaic};
 use rayon::prelude::*;
 
+use crate::CodecError;
+use crate::error::invalid;
 use crate::request::{ByteOrder, Chunk, SampleFormat};
-use crate::{CodecError, error::invalid};
 
-pub(crate) struct Geometry {
-    pub(crate) width: usize,
-    pub(crate) height: usize,
-    pub(crate) chunk_width: usize,
-    pub(crate) chunk_height: usize,
-    pub(crate) across: usize,
-    pub(crate) down: usize,
+pub struct Geometry {
+    pub width: usize,
+    pub height: usize,
+    pub chunk_width: usize,
+    pub chunk_height: usize,
+    pub across: usize,
+    pub down: usize,
 }
 
 impl Geometry {
-    pub(crate) fn new(
+    pub fn new(
         width: usize,
         height: usize,
         chunk_width: usize,
@@ -52,13 +53,13 @@ impl Geometry {
             .ok_or_else(|| invalid("decoded sample count overflow"))
     }
 
-    pub(crate) fn band_stride(&self) -> Result<usize, CodecError> {
+    pub fn band_stride(&self) -> Result<usize, CodecError> {
         checked_product([self.chunk_height, self.width])
             .ok_or_else(|| invalid("decoded band size overflow"))
     }
 }
 
-pub(crate) fn chunk(source: &[u8], chunk: Chunk) -> Result<&[u8], CodecError> {
+pub fn chunk(source: &[u8], chunk: Chunk) -> Result<&[u8], CodecError> {
     let end = chunk
         .offset
         .checked_add(chunk.byte_count)
@@ -68,7 +69,7 @@ pub(crate) fn chunk(source: &[u8], chunk: Chunk) -> Result<&[u8], CodecError> {
         .ok_or_else(|| invalid("chunk offset or byte count is out of bounds"))
 }
 
-pub(crate) fn decode_payloads(
+pub fn decode_payloads(
     geometry: &Geometry,
     bits_per_sample: u16,
     sample_format: SampleFormat,
@@ -81,12 +82,7 @@ pub(crate) fn decode_payloads(
 
     match sample_format {
         SampleFormat::Float => decode_float(geometry, bits_per_sample, byte_order, payloads),
-        SampleFormat::Integer => decode_integer(
-            geometry,
-            bits_per_sample,
-            byte_order,
-            payloads,
-        ),
+        SampleFormat::Integer => decode_integer(geometry, bits_per_sample, byte_order, payloads),
     }
 }
 
@@ -99,14 +95,21 @@ fn decode_integer(
     let sample_count = geometry.sample_count()?;
     match bits {
         1..=8 => {
-            let mut output = vec![0_u8; sample_count];
-            if bits == 8 {
-                output = copy_buffer(geometry, 1, payloads)?;
+            let output = if bits == 8 {
+                copy_buffer(geometry, 1, payloads)?
             } else {
-                decode_packed(geometry, bits, payloads, |value| {
-                    u8::try_from(value).map_err(|_| invalid("packed sample exceeds u8 storage"))
-                }, &mut output)?;
-            }
+                let mut output = vec![0_u8; sample_count];
+                decode_packed(
+                    geometry,
+                    bits,
+                    payloads,
+                    |value| {
+                        u8::try_from(value).map_err(|_| invalid("packed sample exceeds u8 storage"))
+                    },
+                    &mut output,
+                )?;
+                output
+            };
             mono(geometry.width, geometry.height, output).map(RawMosaic::U8)
         }
         9..=16 => {
@@ -114,9 +117,16 @@ fn decode_integer(
             if bits == 16 {
                 copy_samples(geometry, 2, byte_order, payloads, &mut output)?;
             } else {
-                decode_packed(geometry, bits, payloads, |value| {
-                    u16::try_from(value).map_err(|_| invalid("packed sample exceeds u16 storage"))
-                }, &mut output)?;
+                decode_packed(
+                    geometry,
+                    bits,
+                    payloads,
+                    |value| {
+                        u16::try_from(value)
+                            .map_err(|_| invalid("packed sample exceeds u16 storage"))
+                    },
+                    &mut output,
+                )?;
             }
             mono(geometry.width, geometry.height, output).map(RawMosaic::U16)
         }
@@ -130,9 +140,7 @@ fn decode_integer(
             copy_samples(geometry, 4, byte_order, payloads, &mut output)?;
             mono(geometry.width, geometry.height, output).map(RawMosaic::U32)
         }
-        _ => Err(invalid(format!(
-            "integer sample depth {bits} is invalid"
-        ))),
+        _ => Err(invalid(format!("integer sample depth {bits} is invalid"))),
     }
 }
 
@@ -173,9 +181,7 @@ fn decode_float(
                     .checked_mul(bytes_per_sample)
                     .ok_or_else(|| invalid("floating-point chunk size overflow"))?;
                 if encoded.len() < required_bytes {
-                    return Err(invalid(format!(
-                        "uncompressed chunk {index} is truncated"
-                    )));
+                    return Err(invalid(format!("uncompressed chunk {index} is truncated")));
                 }
 
                 for row in 0..copy_height {
@@ -354,7 +360,7 @@ impl FromSampleBytes for u32 {
     }
 }
 
-fn read_u16(bytes: &[u8], byte_order: ByteOrder) -> u16 {
+const fn read_u16(bytes: &[u8], byte_order: ByteOrder) -> u16 {
     let bytes = [bytes[0], bytes[1]];
     match byte_order {
         ByteOrder::Little => u16::from_le_bytes(bytes),
@@ -362,14 +368,14 @@ fn read_u16(bytes: &[u8], byte_order: ByteOrder) -> u16 {
     }
 }
 
-fn read_u24(bytes: &[u8], byte_order: ByteOrder) -> u32 {
+const fn read_u24(bytes: &[u8], byte_order: ByteOrder) -> u32 {
     match byte_order {
         ByteOrder::Little => u32::from_le_bytes([bytes[0], bytes[1], bytes[2], 0]),
         ByteOrder::Big => u32::from_be_bytes([0, bytes[0], bytes[1], bytes[2]]),
     }
 }
 
-fn read_u32(bytes: &[u8], byte_order: ByteOrder) -> u32 {
+const fn read_u32(bytes: &[u8], byte_order: ByteOrder) -> u32 {
     let bytes = [bytes[0], bytes[1], bytes[2], bytes[3]];
     match byte_order {
         ByteOrder::Little => u32::from_le_bytes(bytes),
@@ -412,11 +418,7 @@ fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
     f32::from_bits((sign << 31) | (wide_exponent << 23) | wide_fraction)
 }
 
-pub(crate) fn mono<T>(
-    width: usize,
-    height: usize,
-    samples: Vec<T>,
-) -> Result<MonoImage<T>, CodecError>
+pub fn mono<T>(width: usize, height: usize, samples: Vec<T>) -> Result<MonoImage<T>, CodecError>
 where
     T: image::Primitive,
 {
