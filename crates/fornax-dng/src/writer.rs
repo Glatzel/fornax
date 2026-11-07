@@ -596,7 +596,10 @@ fn structural_metadata(tag: Tag) -> bool {
         DngTag::DngVersion
             | DngTag::DngBackwardVersion
             | DngTag::LinearizationTable
-            | DngTag::Unknown((50_974..=50_976) | 51_008)
+            | DngTag::RowInterleaveFactor
+            | DngTag::ColumnInterleaveFactor
+            | DngTag::OpcodeList1
+            | DngTag::Unknown(50_974)
     )
 }
 

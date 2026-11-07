@@ -6,7 +6,7 @@ edition.workspace = true
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 clerk.workspace = true
 fornax-core.workspace = true
-fornax-decoder-rawler.workspace = true
+fornax-decoder.workspace = true
 fornax-dng.workspace = true
 serde = { workspace = true, optional = true }
 strum.workspace = true

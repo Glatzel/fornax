@@ -19,21 +19,9 @@ pub struct CliArgs {
     #[arg(help_heading = "General")]
     pub inputs: Vec<PathBuf>,
 
-    /// Decoder selection [default: auto]
-    #[arg(long, value_enum, help_heading = "Processing")]
-    pub decoder: Option<DecoderChoice>,
-
     /// Demosaic algorithm with its default parameters [default: rcd]
     #[arg(long, help_heading = "Processing")]
     pub demosaic: Option<String>,
-
-    /// Enforce white balance during postprocessing [default: true]
-    #[arg(long, conflicts_with = "no_white_balance", help_heading = "Color")]
-    pub white_balance: bool,
-
-    /// Disable white balance during postprocessing.
-    #[arg(long, conflicts_with = "white_balance", help_heading = "Color")]
-    pub no_white_balance: bool,
 
     /// Apply the derived camera-to-linear-sRGB matrix [default: true]
     #[arg(long, conflicts_with = "no_color_matrix", help_heading = "Color")]
@@ -115,16 +103,6 @@ impl OutputFormat {
     }
 }
 
-/// Decoder selection.
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, ValueEnum)]
-#[serde(rename_all = "kebab-case")]
-pub enum DecoderChoice {
-    #[default]
-    Auto,
-    Fornax,
-    Rawler,
-}
-
 /// DNG writer compression selection.
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
@@ -153,13 +131,11 @@ struct FileConfig {
     inputs: Option<Vec<PathBuf>>,
     output: Option<PathBuf>,
     format: Option<OutputFormat>,
-    decoder: Option<DecoderChoice>,
     jobs: Option<usize>,
     recursive: Option<bool>,
     overwrite: Option<bool>,
     metadata_json: Option<bool>,
     demosaic: Option<String>,
-    white_balance: Option<bool>,
     color_matrix: Option<bool>,
     jpeg_quality: Option<u8>,
     dng_compression: Option<DngCompressionChoice>,
@@ -172,13 +148,11 @@ pub struct ResolvedConfig {
     pub inputs: Vec<PathBuf>,
     pub output: PathBuf,
     pub format: OutputFormat,
-    pub decoder: DecoderChoice,
     pub jobs: usize,
     pub recursive: bool,
     pub overwrite: bool,
     pub metadata_json: bool,
     pub demosaic: Demosaic,
-    pub white_balance: bool,
     pub color_matrix: bool,
     pub jpeg_quality: u8,
     pub dng_compression: DngCompressionChoice,
@@ -290,7 +264,6 @@ pub fn resolve_config(args: &CliArgs) -> Result<ResolvedConfig, ConfigError> {
         inputs,
         output,
         format: args.format.or(file.format).unwrap_or_default(),
-        decoder: args.decoder.or(file.decoder).unwrap_or_default(),
         jobs,
         recursive: merge_bool(args.recursive, args.no_recursive, file.recursive, true),
         overwrite: merge_bool(args.overwrite, args.no_overwrite, file.overwrite, false),
@@ -301,12 +274,6 @@ pub fn resolve_config(args: &CliArgs) -> Result<ResolvedConfig, ConfigError> {
             false,
         ),
         demosaic,
-        white_balance: merge_bool(
-            args.white_balance,
-            args.no_white_balance,
-            file.white_balance,
-            true,
-        ),
         color_matrix: merge_bool(
             args.color_matrix,
             args.no_color_matrix,
@@ -382,13 +349,11 @@ mod tests {
 
         assert_eq!(config.output, PathBuf::from("converted"));
         assert_eq!(config.format, OutputFormat::Dng);
-        assert_eq!(config.decoder, DecoderChoice::Auto);
         assert_eq!(config.jobs, 1);
         assert!(config.recursive);
         assert!(!config.overwrite);
         assert!(!config.metadata_json);
         assert_eq!(config.demosaic, Demosaic::default());
-        assert!(config.white_balance);
         assert!(config.color_matrix);
         assert_eq!(config.jpeg_quality, 90);
         assert_eq!(config.dng_compression, DngCompressionChoice::LosslessJpeg);
@@ -403,7 +368,7 @@ mod tests {
         let mut file = std::fs::File::create(&config_path).unwrap();
         writeln!(
             file,
-            "inputs = [\"input.dng\"]\noutput = \"out\"\nformat = \"jpeg\"\njobs = 2\ndemosaic = \"ppg\"\nwhite_balance = false"
+            "inputs = [\"input.dng\"]\noutput = \"out\"\nformat = \"jpeg\"\njobs = 2\ndemosaic = \"ppg\""
         )
         .unwrap();
 
@@ -424,7 +389,6 @@ mod tests {
         assert_eq!(config.format, OutputFormat::Tiff);
         assert_eq!(config.jobs, 1);
         assert_eq!(config.demosaic, Demosaic::Ppg);
-        assert!(!config.white_balance);
     }
 
     #[test]

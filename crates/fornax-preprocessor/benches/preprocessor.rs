@@ -11,10 +11,10 @@ where
     T: Primitive,
 {
     let levels = Levels {
-        black: MonoImage::from_raw(2, 2, vec![T::zero(); 4]).expect("2x2 black-level pattern"),
+        black: MonoImage::from_raw(2, 2, vec![0.0; 4]).expect("2x2 black-level pattern"),
         black_delta_h: Vec::new(),
         black_delta_v: Vec::new(),
-        white: T::one(),
+        white: 2.0,
     };
 
     for size in &params.sizes {

@@ -1,5 +1,7 @@
 use fornax_core::error::DecodeError;
-use fornax_core::metadata::{Levels, Matrix3x3, ProcessMetadata};
+use fornax_core::metadata::{
+    ColorCalibration, Levels, LightSource, Matrix3x3, ProcessMetadata, RawColorMeta, RawProfile,
+};
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, Value};
@@ -8,39 +10,30 @@ use image::math::Rect;
 
 use crate::metadata::{Directory, DngTag};
 
-pub fn process_metadata_from_dng_metadata<T>(
+pub fn process_metadata_from_dng_metadata(
     full_width: u32,
     full_height: u32,
     dng_metadata: &Directory,
-) -> Result<ProcessMetadata<T>, DecodeError>
-where
-    T: Primitive,
-{
+) -> Result<ProcessMetadata, DecodeError> {
     let active_area = active_area(dng_metadata, full_width, full_height)?;
     let default_crop = default_crop(dng_metadata, active_area)?;
     let black = black_levels(dng_metadata)?;
     let black_delta_h = scalar_values(dng_metadata.get(&Tag::from(DngTag::BlackLevelDeltaH)))?
         .into_iter()
         .map(cast_number)
-        .collect::<Option<Vec<T>>>()
+        .collect::<Option<Vec<_>>>()
         .ok_or_else(|| metadata_error("BlackLevelDeltaH does not fit the output type"))?;
     let black_delta_v = scalar_values(dng_metadata.get(&Tag::from(DngTag::BlackLevelDeltaV)))?
         .into_iter()
         .map(cast_number)
-        .collect::<Option<Vec<T>>>()
+        .collect::<Option<Vec<_>>>()
         .ok_or_else(|| metadata_error("BlackLevelDeltaV does not fit the output type"))?;
     let white = scalar_number(dng_metadata.get(&Tag::from(DngTag::WhiteLevel)))?
         .and_then(cast_number)
         .ok_or_else(|| metadata_error("WhiteLevel is missing or invalid"))?;
     let bayer_pattern = bayer_pattern(dng_metadata, active_area)?;
-    let wb_coeffs = wb_coeffs(dng_metadata)?;
-    let color_matrix_1 = matrix(dng_metadata, DngTag::ColorMatrix1)?;
-    let color_matrix_2 = matrix(dng_metadata, DngTag::ColorMatrix2)?;
-    let forward_matrix_1 = matrix(dng_metadata, DngTag::ForwardMatrix1)?;
-    let forward_matrix_2 = matrix(dng_metadata, DngTag::ForwardMatrix2)?;
-    let camera_calibration_1 = matrix(dng_metadata, DngTag::CameraCalibration1)?;
-    let camera_calibration_2 = matrix(dng_metadata, DngTag::CameraCalibration2)?;
 
+    let color_calibration = ColorCalibration::new(raw_color_metadata(dng_metadata)?);
     Ok(ProcessMetadata {
         active_area,
         default_crop,
@@ -51,14 +44,96 @@ where
             white,
         },
         bayer_pattern,
-        wb_coeffs,
-        color_matrix_1,
-        color_matrix_2,
-        forward_matrix_1,
-        forward_matrix_2,
-        camera_calibration_1,
-        camera_calibration_2,
+        color_calibration,
     })
+}
+
+/// Maps raw DNG color tags into the decoder-facing color model.
+fn raw_color_metadata(dng_metadata: &Directory) -> Result<RawColorMeta, DecodeError> {
+    let mut profiles = vec![
+        color_profile(
+            dng_metadata,
+            DngTag::ColorMatrix1,
+            DngTag::ForwardMatrix1,
+            DngTag::CameraCalibration1,
+            DngTag::CalibrationIlluminant1,
+        )?,
+        color_profile(
+            dng_metadata,
+            DngTag::ColorMatrix2,
+            DngTag::ForwardMatrix2,
+            DngTag::CameraCalibration2,
+            DngTag::CalibrationIlluminant2,
+        )?,
+        color_profile(
+            dng_metadata,
+            DngTag::ColorMatrix3,
+            DngTag::ForwardMatrix3,
+            DngTag::CameraCalibration3,
+            DngTag::CalibrationIlluminant3,
+        )?,
+    ];
+    while profiles.last().is_some_and(profile_is_empty) {
+        profiles.pop();
+    }
+    Ok(RawColorMeta {
+        analog_balance: color_vector(dng_metadata, DngTag::AnalogBalance)?,
+        as_shot_neutral: color_vector(dng_metadata, DngTag::AsShotNeutral)?,
+        as_shot_white_xy: color_vector(dng_metadata, DngTag::AsShotWhiteXY)?,
+        maker_gains: None,
+        profiles,
+    })
+}
+
+fn color_profile(
+    metadata: &Directory,
+    color_matrix: DngTag,
+    forward_matrix: DngTag,
+    camera_calibration: DngTag,
+    illuminant: DngTag,
+) -> Result<RawProfile, DecodeError> {
+    Ok(RawProfile {
+        illuminant: light_source(metadata, illuminant)?,
+        illuminant_data: None,
+        color_matrix: matrix(metadata, color_matrix)?,
+        forward_matrix: matrix(metadata, forward_matrix)?,
+        camera_calibration: matrix(metadata, camera_calibration)?,
+    })
+}
+
+fn profile_is_empty(profile: &RawProfile) -> bool {
+    profile.illuminant.is_none()
+        && profile.illuminant_data.is_none()
+        && profile.color_matrix.is_none()
+        && profile.forward_matrix.is_none()
+        && profile.camera_calibration.is_none()
+}
+
+fn color_vector<const N: usize>(
+    metadata: &Directory,
+    tag: DngTag,
+) -> Result<Option<[f64; N]>, DecodeError> {
+    let values = scalar_values::<f64>(metadata.get(&Tag::from(tag)))?;
+    if values.is_empty() {
+        return Ok(None);
+    }
+    values.try_into().map(Some).map_err(|values: Vec<f64>| {
+        metadata_error(format!(
+            "{tag} must contain {N} values, found {}",
+            values.len()
+        ))
+    })
+}
+
+fn light_source(metadata: &Directory, tag: DngTag) -> Result<Option<LightSource>, DecodeError> {
+    let Some(value) =
+        unsigned_values(metadata.get(&Tag::from(tag)))?.and_then(|values| values.first().copied())
+    else {
+        return Ok(None);
+    };
+    let value =
+        u16::try_from(value).map_err(|_| metadata_error(format!("{tag} is out of range")))?;
+    Ok(Some(LightSource::from(value)))
 }
 
 fn matrix(metadata: &Directory, tag: DngTag) -> Result<Option<Matrix3x3>, DecodeError> {
@@ -250,23 +325,6 @@ fn bayer_pattern(metadata: &Directory, active: Rect) -> Result<BayerPattern, Dec
         .map(|p| p.shifted(active.x, active.y))
 }
 
-fn wb_coeffs<T>(metadata: &Directory) -> Result<Option<(T, T)>, DecodeError>
-where
-    T: Primitive,
-{
-    if metadata.get(&Tag::from(DngTag::AsShotNeutral)).is_none() {
-        return Ok(None);
-    }
-    let values = scalar_values(metadata.get(&Tag::from(DngTag::AsShotNeutral)))?;
-    let [r, g, b]: [T; 3] = values
-        .try_into()
-        .map_err(|_| metadata_error("AsShotNeutral must contain three values"))?;
-    if r <= T::zero() || g <= T::zero() || b <= T::zero() {
-        return Err(metadata_error("AsShotNeutral values must be positive"));
-    }
-    Ok(Some((num!(g) / num!(r), num!(g) / num!(b))))
-}
-
 fn scalar_number<T>(value: Option<&Value>) -> Result<Option<T>, DecodeError>
 where
     T: Primitive,
@@ -364,6 +422,8 @@ fn unsigned_scalar(value: &Value) -> Result<u32, DecodeError> {
 }
 #[cfg(test)]
 mod tests {
+    use fornax_core::metadata::{LightSource, WhiteSource};
+
     use super::*;
 
     fn matrix_values(matrix: [[f64; 3]; 3]) -> Value {
@@ -397,27 +457,61 @@ mod tests {
     }
 
     #[test]
-    fn process_metadata_preserves_all_dng_color_matrices() {
+    fn raw_color_metadata_maps_all_dng_color_profiles() {
         let mut metadata = valid_metadata();
         let color1 = [[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]];
         let color2 = [[4.0, 0.0, 0.0], [0.0, 5.0, 0.0], [0.0, 0.0, 6.0]];
+        let color3 = [[13.0, 0.0, 0.0], [0.0, 14.0, 0.0], [0.0, 0.0, 15.0]];
         let forward1 = [[7.0, 0.0, 0.0], [0.0, 8.0, 0.0], [0.0, 0.0, 9.0]];
         let forward2 = [[10.0, 0.0, 0.0], [0.0, 11.0, 0.0], [0.0, 0.0, 12.0]];
+        let forward3 = [[16.0, 0.0, 0.0], [0.0, 17.0, 0.0], [0.0, 0.0, 18.0]];
+        metadata.insert(DngTag::AnalogBalance.into(), vector_values([2.0, 1.0, 0.5]));
+        metadata.insert(
+            DngTag::AsShotNeutral.into(),
+            vector_values([0.5, 1.0, 0.25]),
+        );
+        metadata.insert(DngTag::AsShotWhiteXY.into(), vector_values([0.3127, 0.329]));
         metadata.insert(Tag::from(DngTag::ColorMatrix1), matrix_values(color1));
         metadata.insert(Tag::from(DngTag::ColorMatrix2), matrix_values(color2));
+        metadata.insert(Tag::from(DngTag::ColorMatrix3), matrix_values(color3));
         metadata.insert(Tag::from(DngTag::ForwardMatrix1), matrix_values(forward1));
         metadata.insert(Tag::from(DngTag::ForwardMatrix2), matrix_values(forward2));
+        metadata.insert(Tag::from(DngTag::ForwardMatrix3), matrix_values(forward3));
+        metadata.insert(
+            Tag::from(DngTag::CalibrationIlluminant1),
+            Value::Short(u16::from(LightSource::StandardLightA)),
+        );
+        metadata.insert(
+            Tag::from(DngTag::CalibrationIlluminant2),
+            Value::Short(u16::from(LightSource::D65)),
+        );
+        metadata.insert(
+            Tag::from(DngTag::CalibrationIlluminant3),
+            Value::Short(u16::from(LightSource::D75)),
+        );
 
-        let process = process_metadata_from_dng_metadata::<f64>(2, 2, &metadata).unwrap();
+        let raw = raw_color_metadata(&metadata).unwrap();
 
-        assert_eq!(process.color_matrix_1, Some(color1));
-        assert_eq!(process.color_matrix_2, Some(color2));
-        assert_eq!(process.forward_matrix_1, Some(forward1));
-        assert_eq!(process.forward_matrix_2, Some(forward2));
+        assert_eq!(raw.analog_balance, Some([2.0, 1.0, 0.5]));
+        assert_eq!(raw.as_shot_neutral, Some([0.5, 1.0, 0.25]));
+        assert_eq!(raw.as_shot_white_xy, Some([0.3127, 0.329]));
+        assert_eq!(raw.profiles.len(), 3);
+        assert_eq!(
+            raw.profiles[0].illuminant,
+            Some(LightSource::StandardLightA)
+        );
+        assert_eq!(raw.profiles[1].illuminant, Some(LightSource::D65));
+        assert_eq!(raw.profiles[2].illuminant, Some(LightSource::D75));
+        assert_eq!(raw.profiles[0].color_matrix, Some(color1));
+        assert_eq!(raw.profiles[1].color_matrix, Some(color2));
+        assert_eq!(raw.profiles[2].color_matrix, Some(color3));
+        assert_eq!(raw.profiles[0].forward_matrix, Some(forward1));
+        assert_eq!(raw.profiles[1].forward_matrix, Some(forward2));
+        assert_eq!(raw.profiles[2].forward_matrix, Some(forward3));
     }
 
     #[test]
-    fn process_metadata_preserves_camera_calibrations() {
+    fn raw_color_metadata_preserves_camera_calibrations() {
         let mut metadata = valid_metadata();
         let calibration1 = [[1.0, 0.1, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]];
         let calibration2 = [[4.0, 0.0, 0.0], [0.1, 5.0, 0.0], [0.0, 0.0, 6.0]];
@@ -430,18 +524,33 @@ mod tests {
             matrix_values(calibration2),
         );
 
-        let process = process_metadata_from_dng_metadata::<f64>(2, 2, &metadata).unwrap();
+        let raw = raw_color_metadata(&metadata).unwrap();
 
-        assert_eq!(process.camera_calibration_1, Some(calibration1));
-        assert_eq!(process.camera_calibration_2, Some(calibration2));
+        assert_eq!(raw.profiles[0].camera_calibration, Some(calibration1));
+        assert_eq!(raw.profiles[1].camera_calibration, Some(calibration2));
     }
 
     #[test]
-    fn absent_camera_calibrations_are_identity() {
-        let process = process_metadata_from_dng_metadata::<f64>(2, 2, &valid_metadata()).unwrap();
+    fn absent_profiles_are_not_synthesized() {
+        let raw = raw_color_metadata(&valid_metadata()).unwrap();
 
-        assert_eq!(process.camera_calibration_1, None);
-        assert_eq!(process.camera_calibration_2, None);
+        assert!(raw.profiles.is_empty());
+    }
+
+    #[test]
+    fn process_metadata_uses_as_shot_neutral() {
+        let mut metadata = valid_metadata();
+        metadata.insert(
+            DngTag::AsShotNeutral.into(),
+            vector_values([0.5, 1.0, 0.25]),
+        );
+
+        let process = process_metadata_from_dng_metadata(2, 2, &metadata).unwrap();
+
+        assert_eq!(
+            process.color_calibration.as_shot_source(),
+            WhiteSource::AsShotNeutral
+        );
     }
 
     #[test]
@@ -452,6 +561,15 @@ mod tests {
             Value::List(vec![Value::Short(1), Value::Short(2)]),
         );
 
-        assert!(process_metadata_from_dng_metadata::<f64>(2, 2, &metadata).is_err());
+        assert!(process_metadata_from_dng_metadata(2, 2, &metadata).is_err());
+    }
+
+    fn vector_values(values: impl IntoIterator<Item = f64>) -> Value {
+        Value::List(
+            values
+                .into_iter()
+                .map(|value| Value::SRational((value * 1_000_000.0) as i32, 1_000_000))
+                .collect(),
+        )
     }
 }

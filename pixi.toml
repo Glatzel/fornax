@@ -41,10 +41,6 @@ MPLCONFIGDIR = "$PIXI_WORKSPACE_ROOT/temp/book/matplotlib"
 [feature.book.tasks]
 book-figures = "python -m book.figures"
 
-[feature.agent.dependencies]
-codex-glatzel = "*"
-skill-glatzel = "*"
-
 [environments]
 default = []
 dev = {
@@ -54,4 +50,3 @@ dev = {
 python = ["dev", "python"]
 data = ["data"]
 book = ["book"]
-agent = ["agent"]

@@ -5,7 +5,7 @@ mod convert;
 mod discover;
 
 pub use config::{
-    CliArgs, ConfigError, DecoderChoice, DngCompressionChoice, OutputFormat, ResolvedConfig,
+    CliArgs, ConfigError, DngCompressionChoice, OutputFormat, ResolvedConfig,
     load_config, resolve_config,
 };
 pub use convert::{ConversionOutcome, run};

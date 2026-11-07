@@ -3,7 +3,7 @@ use std::fs;
 use assert_cmd::Command;
 use clap::Parser;
 use fornax::dng::metadata::{DngTag, Tag, TiffTag, Value};
-use fornax::dng::{Directory, DngCompression, DngImage, DngWriter};
+use fornax::dng::{Directory, DngCompression, DngWriter};
 use fornax::{MonoImage, RawMosaic};
 use fornax_cli::{CliArgs, ConversionOutcome, plan_inputs, resolve_config, run};
 use image::GenericImageView;
@@ -99,13 +99,11 @@ fn binary_help_shows_default_values() {
     for expected in [
         "Output directory [default: converted]",
         "Output image format [default: dng]",
-        "Decoder selection [default: auto]",
         "Maximum simultaneous file conversions [default: 1]",
         "Recurse into directory inputs [default: true]",
         "Overwrite an existing output file [default: false]",
         "Write `<output-stem>.json` beside each output [default: false]",
         "Demosaic algorithm with its default parameters [default: rcd]",
-        "Enforce white balance during postprocessing [default: true]",
         "Apply the derived camera-to-linear-sRGB matrix [default: true]",
         "JPEG preview quality [default: 90]",
         "DNG compression strategy [default: lossless-jpeg]",
@@ -209,23 +207,4 @@ fn renders_16bit_tiff_and_preview_jpeg() {
     assert_eq!(tiff.dimensions(), (8, 8));
     let jpeg_bytes = fs::read(output.join("image.jpg")).unwrap();
     assert!(jpeg_bytes.starts_with(&[0xff, 0xd8]));
-}
-
-#[test]
-fn non_dng_input_converts_to_raw_dng() {
-    let directory = tempdir().unwrap();
-    let input = directory.path().join("image.cr3");
-    synthetic_dng(&input);
-    let output = directory.path().join("out");
-    let cli = args(&["--output".as_ref(), output.as_os_str(), input.as_os_str()]);
-
-    let outcomes = run(&cli).unwrap();
-
-    assert!(matches!(
-        outcomes.as_slice(),
-        [ConversionOutcome::Converted { .. }]
-    ));
-    let generated = output.join("image.dng");
-    assert!(generated.is_file());
-    assert!(DngImage::parse(&fs::read(generated).unwrap()).is_ok());
 }

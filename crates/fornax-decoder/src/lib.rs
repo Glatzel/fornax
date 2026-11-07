@@ -52,7 +52,7 @@ where
         }
     }
 
-    fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
         match self {
             Self::Dng(parsed) => fornax_dng::process_metadata(parsed),
             Self::_Mark(_) => unreachable!(),

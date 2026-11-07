@@ -5,13 +5,13 @@ use std::marker::PhantomData;
 pub use demosaic::{Demosaic, IDemosaic, LazyDemosaic, LmmseMode};
 use fornax_core::Primitive;
 use fornax_core::error::PostProcessError;
-use fornax_core::metadata::Matrix3x3;
+use fornax_core::metadata::{Array3, Matrix3x3};
 use fornax_core::protocol::{IPostProcessMetadata, IPostProcessor};
 
 /// Color space written by [`PostProcessor`].
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub enum OutputColorSpace {
-    /// Camera-native RGB; no output color-space conversion.
+    /// Camera-native RGB; white balance only, no output color-space conversion.
     #[default]
     Raw,
 
@@ -27,7 +27,7 @@ pub enum OutputColorSpace {
     /// ProPhoto RGB (ROMM RGB).
     ProPhotoRgb,
 
-    /// CIE XYZ tristimulus color space.
+    /// CIE XYZ tristimulus color space (D50 PCS).
     Xyz,
 
     /// ACES2065-1 (AP0, linear, D60).
@@ -50,14 +50,14 @@ where
     D: IDemosaic<T>,
 {
     pub demosaic: D,
-    pub use_wb_coeffs: bool,
     pub output_color: OutputColorSpace,
     pub _mark: PhantomData<T>,
 }
+
 impl<T, D, M> IPostProcessor<T, M> for PostProcessor<T, D>
 where
     T: Primitive,
-    M: IPostProcessMetadata<T>,
+    M: IPostProcessMetadata,
     D: IDemosaic<T>,
 {
     fn process(
@@ -68,36 +68,39 @@ where
         let result = self
             .demosaic
             .demosaic(bayer_image, metadata.bayer_pattern())?;
-        let wb = if self.use_wb_coeffs {
-            *metadata.wb_coeffs()
-        } else {
-            None
-        };
-        let matrix: Option<[[T; 3]; 3]> = output_transform(metadata, self.output_color)?
-            .map(cast_matrix)
-            .transpose()?;
-        if wb.is_some() || matrix.is_some() {
+
+        // Everything white-point dependent comes from the normalized
+        // calibration: gains, and camera -> XYZ D50 on raw values.
+        let transform = metadata.color_calibration().resolve();
+
+        if self.output_color == OutputColorSpace::Raw {
+            if gains_are_identity(&transform.gains) {
+                return Ok(result.collect());
+            }
+            let gains = cast_vec3::<T>(transform.gains)?;
             return Ok(result.collect_with(|_y, row| {
-                if let Some((r_mul, b_mul)) = wb {
-                    for px in row.as_chunks_mut::<3>().0 {
-                        px[0] = px[0] * r_mul;
-                        px[2] = px[2] * b_mul;
-                    }
-                }
-                if let Some(matrix) = matrix {
-                    for px in row.as_chunks_mut::<3>().0 {
-                        let red =
-                            matrix[0][0] * px[0] + matrix[0][1] * px[1] + matrix[0][2] * px[2];
-                        let green =
-                            matrix[1][0] * px[0] + matrix[1][1] * px[1] + matrix[1][2] * px[2];
-                        let blue =
-                            matrix[2][0] * px[0] + matrix[2][1] * px[1] + matrix[2][2] * px[2];
-                        *px = [red, green, blue];
-                    }
+                for px in row.as_chunks_mut::<3>().0 {
+                    px[0] = px[0] * gains[0];
+                    px[1] = px[1] * gains[1];
+                    px[2] = px[2] * gains[2];
                 }
             }));
         }
-        Ok(result.collect())
+
+        // One 3x3 per pixel. `cam_to_xyz_d50` already includes the white
+        // balance, so no separate gain pass (that would balance twice).
+        let matrix = cast_matrix::<T>(multiply_3x3(
+            xyz_to_output(self.output_color),
+            transform.cam_to_xyz_d50,
+        ))?;
+        Ok(result.collect_with(|_y, row| {
+            for px in row.as_chunks_mut::<3>().0 {
+                let red = matrix[0][0] * px[0] + matrix[0][1] * px[1] + matrix[0][2] * px[2];
+                let green = matrix[1][0] * px[0] + matrix[1][1] * px[1] + matrix[1][2] * px[2];
+                let blue = matrix[2][0] * px[0] + matrix[2][1] * px[1] + matrix[2][2] * px[2];
+                *px = [red, green, blue];
+            }
+        }))
     }
 }
 
@@ -108,12 +111,15 @@ where
     fn default() -> Self {
         Self {
             demosaic: Demosaic::Linear,
-            use_wb_coeffs: true,
             output_color: OutputColorSpace::Raw,
             _mark: PhantomData,
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Output color spaces: XYZ D50 -> linear RGB (Bradford-adapted where needed)
+// ---------------------------------------------------------------------------
 
 const XYZ_TO_SRGB: Matrix3x3 = [
     [3.133_856_1, -1.616_866_7, -0.490_614_6],
@@ -163,81 +169,7 @@ const XYZ_TO_REC2020: Matrix3x3 = [
     [0.029_662_711_4, -0.062_916_697_8, 1.253_396_490_9],
 ];
 
-fn output_transform<T, M>(
-    metadata: &M,
-    output_color: OutputColorSpace,
-) -> Result<Option<Matrix3x3>, PostProcessError>
-where
-    T: Primitive,
-    M: IPostProcessMetadata<T>,
-{
-    if output_color == OutputColorSpace::Raw {
-        return Ok(None);
-    }
-    let Some(camera_to_xyz) = camera_to_xyz(metadata)? else {
-        return Ok(None);
-    };
-    if output_color == OutputColorSpace::Xyz {
-        return Ok(Some(camera_to_xyz));
-    }
-    Ok(Some(multiply_3x3(
-        xyz_to_output(output_color),
-        camera_to_xyz,
-    )))
-}
-
-fn cast_matrix<T>(matrix: Matrix3x3) -> Result<[[T; 3]; 3], PostProcessError>
-where
-    T: Primitive,
-{
-    let cast = |value| {
-        num_traits::cast(value).ok_or_else(|| {
-            PostProcessError::InvalidColorTransform(
-                "color transform exceeds output precision".into(),
-            )
-        })
-    };
-    Ok([
-        [
-            cast(matrix[0][0])?,
-            cast(matrix[0][1])?,
-            cast(matrix[0][2])?,
-        ],
-        [
-            cast(matrix[1][0])?,
-            cast(matrix[1][1])?,
-            cast(matrix[1][2])?,
-        ],
-        [
-            cast(matrix[2][0])?,
-            cast(matrix[2][1])?,
-            cast(matrix[2][2])?,
-        ],
-    ])
-}
-
-fn camera_to_xyz<T, M>(metadata: &M) -> Result<Option<Matrix3x3>, PostProcessError>
-where
-    T: Primitive,
-    M: IPostProcessMetadata<T>,
-{
-    if let Some(matrix) = metadata
-        .forward_matrix_1()
-        .or_else(|| metadata.forward_matrix_2())
-    {
-        return Ok(Some(*matrix));
-    }
-
-    let (matrix, calibration) = if let Some(matrix) = metadata.color_matrix_1() {
-        (matrix, metadata.camera_calibration_1())
-    } else if let Some(matrix) = metadata.color_matrix_2() {
-        (matrix, metadata.camera_calibration_2())
-    } else {
-        return Ok(None);
-    };
-    let calibrated = calibration.map_or(*matrix, |calibration| multiply_3x3(*calibration, *matrix));
-    invert_3x3(calibrated).map(Some)
-}
+const IDENTITY: Matrix3x3 = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
 
 const fn xyz_to_output(output_color: OutputColorSpace) -> Matrix3x3 {
     match output_color {
@@ -253,8 +185,6 @@ const fn xyz_to_output(output_color: OutputColorSpace) -> Matrix3x3 {
     }
 }
 
-const IDENTITY: Matrix3x3 = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
-
 fn multiply_3x3(left: Matrix3x3, right: Matrix3x3) -> Matrix3x3 {
     let mut result = [[0.0; 3]; 3];
     for (row, output) in result.iter_mut().enumerate() {
@@ -267,48 +197,54 @@ fn multiply_3x3(left: Matrix3x3, right: Matrix3x3) -> Matrix3x3 {
     result
 }
 
-#[allow(
-    clippy::suboptimal_flops,
-    reason = "explicit cofactors keep the matrix algebra auditable"
-)]
-fn invert_3x3(matrix: Matrix3x3) -> Result<Matrix3x3, PostProcessError> {
-    let determinant = matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1])
-        - matrix[0][1] * (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0])
-        + matrix[0][2] * (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]);
-    if !determinant.is_finite() || determinant.abs() < 1.0e-12 {
-        return Err(PostProcessError::InvalidColorTransform(
-            "camera color matrix is singular".into(),
-        ));
-    }
-    let inverse = 1.0 / determinant;
+fn gains_are_identity(gains: &Array3) -> bool {
+    gains.iter().all(|g| (g - 1.0).abs() < f64::EPSILON)
+}
+
+fn cast_value<T>(value: f64) -> Result<T, PostProcessError>
+where
+    T: Primitive,
+{
+    num_traits::cast(value).ok_or_else(|| {
+        PostProcessError::InvalidColorTransform("color transform exceeds output precision".into())
+    })
+}
+
+fn cast_vec3<T>(vector: Array3) -> Result<[T; 3], PostProcessError>
+where
+    T: Primitive,
+{
     Ok([
-        [
-            (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) * inverse,
-            (matrix[0][2] * matrix[2][1] - matrix[0][1] * matrix[2][2]) * inverse,
-            (matrix[0][1] * matrix[1][2] - matrix[0][2] * matrix[1][1]) * inverse,
-        ],
-        [
-            (matrix[1][2] * matrix[2][0] - matrix[1][0] * matrix[2][2]) * inverse,
-            (matrix[0][0] * matrix[2][2] - matrix[0][2] * matrix[2][0]) * inverse,
-            (matrix[0][2] * matrix[1][0] - matrix[0][0] * matrix[1][2]) * inverse,
-        ],
-        [
-            (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]) * inverse,
-            (matrix[0][1] * matrix[2][0] - matrix[0][0] * matrix[2][1]) * inverse,
-            (matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]) * inverse,
-        ],
+        cast_value(vector[0])?,
+        cast_value(vector[1])?,
+        cast_value(vector[2])?,
+    ])
+}
+
+fn cast_matrix<T>(matrix: Matrix3x3) -> Result<[[T; 3]; 3], PostProcessError>
+where
+    T: Primitive,
+{
+    Ok([
+        cast_vec3(matrix[0])?,
+        cast_vec3(matrix[1])?,
+        cast_vec3(matrix[2])?,
     ])
 }
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::metadata::{Levels, ProcessMetadata};
+    use fornax_core::metadata::{
+        ColorCalibration, Levels, LightSource, ProcessMetadata, RawColorMeta, RawProfile,
+    };
     use fornax_core::{BayerPattern, MonoImage};
     use image::math::Rect;
 
     use super::*;
 
-    fn metadata() -> ProcessMetadata<f32> {
+    const D50: [f64; 3] = [0.964_22, 1.0, 0.825_21];
+
+    fn metadata(color: RawColorMeta) -> ProcessMetadata {
         ProcessMetadata {
             active_area: Rect {
                 x: 0,
@@ -323,21 +259,49 @@ mod tests {
                 height: 8,
             },
             levels: Levels {
-                black: MonoImage::from_raw(1, 1, vec![0.0_f32]).unwrap(),
+                black: MonoImage::from_raw(1, 1, vec![0.0]).unwrap(),
                 black_delta_h: Vec::new(),
                 black_delta_v: Vec::new(),
                 white: 1.0,
             },
             bayer_pattern: BayerPattern::RGGB,
-            wb_coeffs: None,
-            color_matrix_1: None,
-            color_matrix_2: None,
-            forward_matrix_1: None,
-            forward_matrix_2: None,
-            camera_calibration_1: None,
-            camera_calibration_2: None,
+            color_calibration: ColorCalibration::new(color),
         }
     }
+
+    /// `as_shot_neutral = [1, 1, 1]` means "no white balance": the camera's
+    /// (1, 1, 1) is the scene white. Without it the as-shot white falls back
+    /// to an assumed D65, and the pipeline (correctly) balances to that.
+    fn single_profile(profile: RawProfile) -> RawColorMeta {
+        RawColorMeta {
+            as_shot_neutral: Some([1.0; 3]),
+            profiles: vec![RawProfile {
+                illuminant: Some(LightSource::D65),
+                ..profile
+            }],
+            ..Default::default()
+        }
+    }
+
+    /// FM = CM = identity: camera RGB is XYZ, so the output is just the
+    /// XYZ D50 -> output matrix applied to the camera pixel.
+    fn identity_profile() -> RawColorMeta {
+        single_profile(RawProfile {
+            color_matrix: Some(IDENTITY),
+            forward_matrix: Some(IDENTITY),
+            ..Default::default()
+        })
+    }
+
+    fn processor(output_color: OutputColorSpace) -> PostProcessor<f32, Demosaic> {
+        PostProcessor {
+            demosaic: Demosaic::Linear,
+            output_color,
+            _mark: PhantomData,
+        }
+    }
+
+    fn gray() -> MonoImage<f32> { MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap() }
 
     #[test]
     fn default_output_color_is_raw() {
@@ -349,7 +313,6 @@ mod tests {
 
     #[test]
     fn d50_pcs_maps_to_neutral_in_each_rgb_output_space() {
-        const D50: [f64; 3] = [0.964_22, 1.0, 0.825_21];
         let output_spaces = [
             OutputColorSpace::Srgb,
             OutputColorSpace::AdobeRgb,
@@ -379,17 +342,12 @@ mod tests {
 
     #[test]
     fn raw_output_preserves_demosaicked_camera_rgb() -> mischief::Result<()> {
-        let image = MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap();
-        let mut metadata = metadata();
-        metadata.color_matrix_1 = Some([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]]);
-        let processor = PostProcessor::<f32, _> {
-            demosaic: Demosaic::Linear,
-            use_wb_coeffs: false,
-            output_color: OutputColorSpace::Raw,
-            _mark: PhantomData,
-        };
+        let metadata = metadata(single_profile(RawProfile {
+            color_matrix: Some([[2.0, 0.0, 0.0], [0.0, 3.0, 0.0], [0.0, 0.0, 4.0]]),
+            ..Default::default()
+        }));
 
-        let output = processor.process(&image, &metadata)?;
+        let output = processor(OutputColorSpace::Raw).process(&gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         assert!((pixel[0] - 0.1).abs() < 1.0e-6, "{pixel:?}");
@@ -400,9 +358,7 @@ mod tests {
 
     #[test]
     fn each_output_color_space_uses_its_xyz_transform() -> mischief::Result<()> {
-        let image = MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap();
-        let mut metadata = metadata();
-        metadata.color_matrix_1 = Some([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]);
+        let metadata = metadata(identity_profile());
         let cases = [
             (OutputColorSpace::Srgb, [1.0263748, 0.9708271, 1.2481966]),
             (
@@ -428,13 +384,7 @@ mod tests {
         ];
 
         for (output_color, expected) in cases {
-            let processor = PostProcessor::<f32, _> {
-                demosaic: Demosaic::Linear,
-                use_wb_coeffs: false,
-                output_color,
-                _mark: PhantomData,
-            };
-            let output = processor.process(&image, &metadata)?;
+            let output = processor(output_color).process(&gray(), &metadata)?;
             let pixel = output.get_pixel(4, 4);
 
             for (actual, expected) in pixel.0.into_iter().zip(expected) {
@@ -447,42 +397,37 @@ mod tests {
         Ok(())
     }
 
+    /// ColorMatrix path: whatever AB/CC/CM are, the neutral must land on the
+    /// D50 white (Y = 1), so a gray camera pixel becomes 0.1 * D50.
     #[test]
-    fn color_matrix_is_inverted_and_calibration_is_applied() -> mischief::Result<()> {
-        let image = MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap();
-        let mut metadata = metadata();
-        metadata.color_matrix_1 = Some([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]);
-        metadata.camera_calibration_1 = Some([[2.0, 0.0, 0.0], [0.0, 4.0, 0.0], [0.0, 0.0, 5.0]]);
-        let processor = PostProcessor::<f32, _> {
-            demosaic: Demosaic::Linear,
-            use_wb_coeffs: false,
-            output_color: OutputColorSpace::Xyz,
-            _mark: PhantomData,
-        };
+    fn color_matrix_path_maps_neutral_to_d50() -> mischief::Result<()> {
+        let metadata = metadata(single_profile(RawProfile {
+            color_matrix: Some(IDENTITY),
+            camera_calibration: Some([[2.0, 0.0, 0.0], [0.0, 4.0, 0.0], [0.0, 0.0, 5.0]]),
+            ..Default::default()
+        }));
 
-        let output = processor.process(&image, &metadata)?;
+        let output = processor(OutputColorSpace::Xyz).process(&gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
-        assert!((pixel[0] - 0.05).abs() < 1.0e-6, "{pixel:?}");
-        assert!((pixel[1] - 0.025).abs() < 1.0e-6, "{pixel:?}");
-        assert!((pixel[2] - 0.02).abs() < 1.0e-6, "{pixel:?}");
+        for (actual, expected) in pixel.0.into_iter().zip(D50) {
+            assert!(
+                (f64::from(actual) - 0.1 * expected).abs() < 1.0e-5,
+                "{pixel:?}"
+            );
+        }
         Ok(())
     }
 
     #[test]
-    fn forward_matrix_takes_precedence_over_color_matrix() -> mischief::Result<()> {
-        let image = MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap();
-        let mut metadata = metadata();
-        metadata.forward_matrix_2 = Some([[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]]);
-        metadata.color_matrix_1 = Some([[0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]]);
-        let processor = PostProcessor::<f32, _> {
-            demosaic: Demosaic::Linear,
-            use_wb_coeffs: false,
-            output_color: OutputColorSpace::Xyz,
-            _mark: PhantomData,
-        };
+    fn forward_matrix_is_used_when_every_profile_has_one() -> mischief::Result<()> {
+        let metadata = metadata(single_profile(RawProfile {
+            forward_matrix: Some([[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0]]),
+            color_matrix: Some([[0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]]),
+            ..Default::default()
+        }));
 
-        let output = processor.process(&image, &metadata)?;
+        let output = processor(OutputColorSpace::Xyz).process(&gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");
@@ -491,24 +436,38 @@ mod tests {
         Ok(())
     }
 
+    /// Maker gains (R, B; G = 1) become a neutral, and the raw output
+    /// multiplies every channel by 1 / neutral.
     #[test]
-    fn white_balance_multiplies_blue_from_its_own_sample() -> mischief::Result<()> {
-        let image = MonoImage::from_raw(8, 8, vec![0.1_f32; 8 * 8]).unwrap();
-        let mut metadata = metadata();
-        metadata.wb_coeffs = Some((0.5, 0.25));
-        let processor = PostProcessor::<f32, _> {
-            demosaic: Demosaic::Linear,
-            use_wb_coeffs: true,
-            output_color: OutputColorSpace::Raw,
-            _mark: PhantomData,
-        };
+    fn white_balance_multiplies_each_channel_by_its_gain() -> mischief::Result<()> {
+        let metadata = metadata(RawColorMeta {
+            maker_gains: Some((2.0, 1.5)),
+            ..Default::default()
+        });
 
-        let output = processor.process(&image, &metadata)?;
+        let output = processor(OutputColorSpace::Raw).process(&gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
-        assert!((pixel[0] - 0.05).abs() < 1.0e-6, "{pixel:?}");
+        assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");
         assert!((pixel[1] - 0.1).abs() < 1.0e-6, "{pixel:?}");
-        assert!((pixel[2] - 0.025).abs() < 1.0e-6, "{pixel:?}");
+        assert!((pixel[2] - 0.15).abs() < 1.0e-6, "{pixel:?}");
+        Ok(())
+    }
+
+    /// With color output the white balance lives inside the matrix, applied
+    /// once: FM = I and neutral (0.5, 1, 0.5) give a diagonal (2, 1, 2).
+    #[test]
+    fn white_balance_is_applied_once_with_color_output() -> mischief::Result<()> {
+        let mut color = identity_profile();
+        color.as_shot_neutral = Some([0.5, 1.0, 0.5]);
+        let metadata = metadata(color);
+
+        let output = processor(OutputColorSpace::Xyz).process(&gray(), &metadata)?;
+        let pixel = output.get_pixel(4, 4);
+
+        assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");
+        assert!((pixel[1] - 0.1).abs() < 1.0e-6, "{pixel:?}");
+        assert!((pixel[2] - 0.2).abs() < 1.0e-6, "{pixel:?}");
         Ok(())
     }
 }

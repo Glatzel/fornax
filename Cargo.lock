@@ -184,9 +184,12 @@ dependencies = [
  "codspeed-criterion-compat",
  "fornax-core",
  "fornax-decoder",
- "fornax-decoder-rawler",
  "fornax-devtool",
  "fornax-dng",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rawler",
 ]
 
 [[package]]
@@ -781,7 +784,6 @@ dependencies = [
  "fornax-core",
  "fornax-decoder",
  "fornax-decoder-dnc",
- "fornax-decoder-rawler",
  "fornax-dng",
  "fornax-postprocessor",
  "fornax-preprocessor",
@@ -846,22 +848,10 @@ version = "0.0.17"
 dependencies = [
  "clerk",
  "fornax-core",
- "fornax-decoder-rawler",
+ "fornax-decoder",
  "fornax-dng",
  "serde",
  "strum",
-]
-
-[[package]]
-name = "fornax-decoder-rawler"
-version = "0.0.17"
-dependencies = [
- "fornax-core",
- "fornax-dng",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "rawler",
 ]
 
 [[package]]
@@ -921,6 +911,7 @@ dependencies = [
  "codspeed-criterion-compat",
  "fornax-core",
  "fornax-devtool",
+ "generic-num",
  "image 0.25.9",
  "rayon",
 ]
@@ -2628,9 +2619,9 @@ checksum = "3a3b425286980a367278453f3b6d28cdcb134b574e5a35824a6ff5eebad50bb6"
 
 [[package]]
 name = "uuid"
-version = "1.29.0"
+version = "1.29.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a0e2d11620c50695fe12bbbfde96b3477fe606e7284c22d505c12ce51214514"
+checksum = "4a06f08a856b009bc7bbaf7d3e79808595d032dd19074c0c2ef26e49e03e6bdc"
 dependencies = [
  "getrandom",
  "js-sys",

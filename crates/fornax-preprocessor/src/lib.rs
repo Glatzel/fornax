@@ -2,6 +2,7 @@ use fornax_core::error::PreprocessError;
 use fornax_core::metadata::Levels;
 use fornax_core::protocol::IPreprocessor;
 use fornax_core::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive};
+use generic_num::num;
 use rayon::prelude::*;
 pub struct Preprocessor;
 impl<T> IPreprocessor<T> for Preprocessor
@@ -11,7 +12,7 @@ where
     fn process(
         &self,
         decoded: CroppedMosaic<T>,
-        levels: &Levels<T>,
+        levels: &Levels,
     ) -> Result<NormalizedMosaic<T>, PreprocessError> {
         let image = decoded.into_image();
         let (width, height) = image.dimensions();
@@ -23,18 +24,19 @@ where
 
         let pattern_w = levels.black.width() as usize;
         let pattern_h = levels.black.height() as usize;
-        let pattern = levels.black.as_raw();
+        let pattern: Vec<T> = levels.black.as_raw().iter().map(|v| num!(*v)).collect();
+        let white = num!(levels.white);
 
         let zeros = |n: usize| vec![T::zero(); n];
         let delta_h = if levels.black_delta_h.is_empty() {
-            &zeros(w)
+            zeros(w)
         } else {
-            &levels.black_delta_h
+            levels.black_delta_h.iter().map(|v| num!(*v)).collect()
         };
         let delta_v = if levels.black_delta_v.is_empty() {
-            &zeros(h)
+            zeros(h)
         } else {
-            &levels.black_delta_v
+            levels.black_delta_v.iter().map(|v| num!(*v)).collect()
         };
         let mut raw = image.into_raw();
         let expected = w.checked_mul(h).ok_or(PreprocessError::ImageTooLarge {
@@ -62,7 +64,7 @@ where
                     .zip(pattern_row.iter().cycle())
                 {
                     let black_level = pat + dh + dv;
-                    let range = levels.white - black_level;
+                    let range = white - black_level;
 
                     *px = if range <= T::zero() {
                         T::zero()
@@ -81,14 +83,7 @@ where
 }
 
 #[cfg(debug_assertions)]
-fn validate_levels<T>(
-    width: usize,
-    height: usize,
-    levels: &Levels<T>,
-) -> Result<(), PreprocessError>
-where
-    T: Primitive,
-{
+fn validate_levels(width: usize, height: usize, levels: &Levels) -> Result<(), PreprocessError> {
     if width == 0 || height == 0 {
         return Err(PreprocessError::EmptyImage);
     }
@@ -114,7 +109,7 @@ where
 mod tests {
     use super::*;
 
-    fn levels(black: MonoImage<f32>) -> Levels<f32> {
+    fn levels(black: MonoImage<f64>) -> Levels {
         Levels {
             black,
             black_delta_h: Vec::new(),

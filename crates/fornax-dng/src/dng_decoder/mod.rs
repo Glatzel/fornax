@@ -45,7 +45,7 @@ fn select_raw_ifd(parsed: &ParsedTiff) -> Result<usize, DecodeError> {
 fn is_raw_ifd(directory: &fornax_tiff::Directory) -> bool {
     let photometric = dng_value(directory.get(&Tag::from(TiffTag::PhotometricInterpretation)))
         .and_then(|value| u16::try_from(value).ok())
-        .map(PhotometricInterpretation::from_u16);
+        .map(PhotometricInterpretation::from);
     let reduced_resolution = dng_value(directory.get(&Tag::from(TiffTag::NewSubfileType)))
         .is_some_and(|value| value & 1 != 0);
     !reduced_resolution
@@ -88,7 +88,7 @@ where
     let pixels = raw_mosaic(parsed)?;
     let metadata = dng_metadata(parsed)?;
     let (width, height) = pixels.dimensions();
-    let process_metadata = process_metadata_from_dng_metadata::<T>(width, height, &metadata)?;
+    let process_metadata = process_metadata_from_dng_metadata(width, height, &metadata)?;
     let active_area = process_metadata.active_area;
     let image = match pixels {
         RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
@@ -120,10 +120,7 @@ pub fn dng_metadata(parsed: &DngImage) -> Result<Directory, DecodeError> {
     Ok(dng_metadata)
 }
 
-pub fn process_metadata<T>(parsed: &DngImage) -> Result<ProcessMetadata<T>, DecodeError>
-where
-    T: Primitive,
-{
+pub fn process_metadata(parsed: &DngImage) -> Result<ProcessMetadata, DecodeError> {
     let metadata = dng_metadata(parsed)?;
     let width = required_u32(&metadata, TiffTag::ImageWidth)?;
     let height = required_u32(&metadata, TiffTag::ImageLength)?;
@@ -197,18 +194,17 @@ fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, Decode
     if width == 0 || height == 0 {
         return Err(corrupt("DNG image dimensions must not be zero"));
     }
-    let compression =
-        match CompressionMethod::from_u16(required_u16(metadata, TiffTag::Compression)?) {
-            CompressionMethod::Uncompressed => DecodeCompression::Uncompressed,
-            CompressionMethod::LosslessJpeg => DecodeCompression::LosslessJpeg,
-            CompressionMethod::Deflate => DecodeCompression::Deflate,
-            CompressionMethod::LossyJpeg => DecodeCompression::LossyJpeg,
-            CompressionMethod::JpegXl => DecodeCompression::JpegXl,
-            CompressionMethod::Zstd => DecodeCompression::Zstd,
-            CompressionMethod::Unknown(value) => {
-                return Err(corrupt(format!("invalid DNG compression {value}")));
-            }
-        };
+    let compression = match CompressionMethod::from(required_u16(metadata, TiffTag::Compression)?) {
+        CompressionMethod::Uncompressed => DecodeCompression::Uncompressed,
+        CompressionMethod::LosslessJpeg => DecodeCompression::LosslessJpeg,
+        CompressionMethod::Deflate => DecodeCompression::Deflate,
+        CompressionMethod::LossyJpeg => DecodeCompression::LossyJpeg,
+        CompressionMethod::JpegXl => DecodeCompression::JpegXl,
+        CompressionMethod::Zstd => DecodeCompression::Zstd,
+        CompressionMethod::Unknown(value) => {
+            return Err(corrupt(format!("invalid DNG compression {value}")));
+        }
+    };
     let samples_per_pixel =
         unsigned_scalar(metadata.get(&Tag::from(TiffTag::SamplesPerPixel))).unwrap_or(1);
     if samples_per_pixel != 1 {
@@ -268,7 +264,7 @@ fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, Decode
 
 fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, DecodeError> {
     #[cfg(not(feature = "zstd"))]
-    if CompressionMethod::from_u16(required_u16(metadata, TiffTag::Compression)?)
+    if CompressionMethod::from(required_u16(metadata, TiffTag::Compression)?)
         == CompressionMethod::Zstd
     {
         return Err(unsupported_variant(
@@ -405,15 +401,15 @@ mod tests {
     #[test]
     fn compression_methods_preserve_known_and_unknown_identifiers() {
         assert_eq!(
-            super::CompressionMethod::from_u16(7),
+            super::CompressionMethod::from(7),
             super::CompressionMethod::LosslessJpeg
         );
-        assert_eq!(super::CompressionMethod::from_u16(7).as_u16(), 7);
+        assert_eq!(u16::from(super::CompressionMethod::from(7)), 7);
         assert_eq!(
-            super::CompressionMethod::from_u16(12_345),
+            super::CompressionMethod::from(12_345),
             super::CompressionMethod::Unknown(12_345)
         );
-        assert_eq!(super::CompressionMethod::from_u16(12_345).as_u16(), 12_345);
+        assert_eq!(u16::from(super::CompressionMethod::from(12_345)), 12_345);
     }
 
     #[test]
@@ -441,7 +437,7 @@ mod tests {
         );
         metadata.insert(
             Tag::from(TiffTag::Compression),
-            Value::Short(super::CompressionMethod::Deflate.as_u16()),
+            Value::Short(u16::from(super::CompressionMethod::Deflate)),
         );
 
         let plan = super::decode_plan(source, &metadata).unwrap();
@@ -483,7 +479,7 @@ mod tests {
         );
         metadata.insert(
             Tag::from(TiffTag::Compression),
-            Value::Short(super::CompressionMethod::Zstd.as_u16()),
+            Value::Short(u16::from(super::CompressionMethod::Zstd)),
         );
 
         let plan = super::decode_plan(source, &metadata).unwrap();
@@ -604,7 +600,7 @@ mod tests {
         };
 
         let parsed = DngImage::parse(cursor.get_ref()).expect("the synthetic TIFF should parse");
-        let metadata = process_metadata::<f32>(&parsed)
+        let metadata = process_metadata(&parsed)
             .expect("metadata access must not depend on the pixel payload");
         assert_eq!(metadata.active_area.width, 4);
         assert_eq!(metadata.active_area.height, 4);
@@ -990,7 +986,7 @@ mod tests {
         (0..count)
             .filter(|index| {
                 let entry = offset + 2 + index * 12;
-                u16::from_le_bytes(source[entry..entry + 2].try_into().unwrap()) == tag.as_u16()
+                u16::from_le_bytes(source[entry..entry + 2].try_into().unwrap()) == u16::from(tag)
             })
             .count()
     }

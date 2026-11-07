@@ -6,7 +6,7 @@ use fornax_core::error::DecodeError;
 use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{CroppedMosaic, Primitive, RawMosaic};
-use fornax_decoder_rawler::RawlerDecoder;
+use fornax_decoder::Decoder;
 use fornax_dng::Directory;
 use fornax_dng::metadata::IDecoderDng;
 use strum::{AsRefStr, Display, EnumString};
@@ -163,7 +163,7 @@ impl Default for DncParams {
     }
 }
 #[derive(Debug, Clone)]
-pub struct DncDecoder<T>(RawlerDecoder<T>);
+pub struct DncDecoder<T>(Decoder<T>);
 
 impl<T> DncDecoder<T> {
     fn command_args(raw_file: &Path, params: &DncParams) -> Result<Vec<String>, DecodeError> {
@@ -367,7 +367,7 @@ where
 {
     fn decode(input: &(&Path, &DncParams)) -> Result<Self, DecodeError> {
         let dng_file = Self::convert(input.0, input.1)?;
-        let decoder = RawlerDecoder::decode(&dng_file)?;
+        let decoder = Decoder::decode(&dng_file)?;
         Ok(Self(decoder))
     }
 
@@ -375,9 +375,7 @@ where
 
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> { self.0.cropped_mosaic() }
 
-    fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError> {
-        self.0.process_metadata()
-    }
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> { self.0.process_metadata() }
 }
 impl<T> IDecoderDng<&(&Path, &DncParams), T> for DncDecoder<T>
 where

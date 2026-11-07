@@ -1,5 +1,5 @@
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
-use crate::metadata::{Levels, Matrix3x3, ProcessMetadata};
+use crate::metadata::{ColorCalibration, ColorTransform, Levels, ProcessMetadata};
 use crate::{
     BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
 };
@@ -11,7 +11,7 @@ where
     fn decode(input: I) -> Result<Self, DecodeError>;
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError>;
-    fn process_metadata(&self) -> Result<ProcessMetadata<T>, DecodeError>;
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError>;
 }
 
 pub trait IPreprocessor<T>: Sized
@@ -21,26 +21,27 @@ where
     fn process(
         &self,
         decoded: CroppedMosaic<T>,
-        levels: &Levels<T>,
+        levels: &Levels,
     ) -> Result<NormalizedMosaic<T>, PreprocessError>;
 }
-pub trait IPostProcessMetadata<T>: Sync
-where
-    T: Primitive,
-{
+pub trait IPostProcessMetadata: Sync {
     fn bayer_pattern(&self) -> BayerPattern;
-    fn wb_coeffs(&self) -> &Option<(T, T)>;
-    fn color_matrix_1(&self) -> Option<&Matrix3x3> { None }
-    fn color_matrix_2(&self) -> Option<&Matrix3x3> { None }
-    fn forward_matrix_1(&self) -> Option<&Matrix3x3> { None }
-    fn forward_matrix_2(&self) -> Option<&Matrix3x3> { None }
-    fn camera_calibration_1(&self) -> Option<&Matrix3x3> { None }
-    fn camera_calibration_2(&self) -> Option<&Matrix3x3> { None }
+
+    /// Normalized color calibration (white balance, profiles, camera -> XYZ
+    /// D50).
+    fn color_calibration(&self) -> &ColorCalibration;
+
+    /// Black/white levels; drop this method (and `T`) if the trait is
+    /// color-only.
+    fn levels(&self) -> &Levels;
+
+    /// Convenience: build the transforms for a white point.
+    fn resolve_color(&self) -> ColorTransform { self.color_calibration().resolve() }
 }
 pub trait IPostProcessor<T, M>
 where
     T: Primitive,
-    M: IPostProcessMetadata<T>,
+    M: IPostProcessMetadata,
 {
     fn process(
         &self,
