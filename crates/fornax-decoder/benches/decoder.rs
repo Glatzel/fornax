@@ -44,7 +44,7 @@ fn raw_path() -> PathBuf {
 
 fn bench_decoder<D, T>(c: &mut Criterion, decoder_name: &str, sample_name: &str, path: &Path)
 where
-    D: for<'a> IDecoder<&'a Path, T>,
+    D: IDecoder,
     T: Primitive + Send + Sync,
 {
     let prefix = format!("{decoder_name}/{sample_name}");
@@ -57,12 +57,12 @@ where
         b.iter(|| black_box(decoder.raw_mosaic().unwrap()));
     });
     c.bench_function(&format!("{prefix}/cropped_mosaic"), |b| {
-        b.iter(|| black_box(decoder.cropped_mosaic().unwrap()));
+        b.iter(|| black_box(decoder.cropped_mosaic::<T>().unwrap()));
     });
 }
 fn bench_metadata<D, T>(c: &mut Criterion, decoder_name: &str, path: &Path)
 where
-    D: for<'a> IDecoder<&'a Path, T> + for<'a> IDecoderDng<&'a Path, T>,
+    D: IDecoder + IDecoderDng,
     T: Primitive + Send + Sync,
 {
     let decoder = D::decode(path).unwrap();
@@ -81,14 +81,14 @@ fn bench_bit_decoder<D, T>(
     bits: BenchSampleBits,
     path: &Path,
 ) where
-    D: for<'a> IDecoder<&'a Path, T>,
+    D: IDecoder,
     T: Primitive + Send + Sync,
 {
     bench_decoder::<D, T>(c, decoder_name, bits.as_ref(), path);
 }
 fn bench_bit_metadata<D, T>(c: &mut Criterion, decoder_name: &str, path: &Path)
 where
-    D: for<'a> IDecoder<&'a Path, T> + for<'a> IDecoderDng<&'a Path, T>,
+    D: IDecoder + IDecoderDng,
     T: Primitive + Send + Sync,
 {
     bench_metadata::<D, T>(c, decoder_name, path);
@@ -101,20 +101,20 @@ fn benches(c: &mut Criterion) {
     for bits in params.bits {
         for decoder in &decoders {
             if decoder == &DecoderKind::Fornax {
-                bench_bit_metadata::<Decoder<f32>, f32>(c, "fornax", &path);
+                bench_bit_metadata::<Decoder, f32>(c, "fornax", &path);
             }
             match (decoder, bits) {
                 (DecoderKind::Fornax, BenchSampleBits::F32) => {
-                    bench_bit_decoder::<Decoder<f32>, f32>(c, "fornax", bits, &path);
+                    bench_bit_decoder::<Decoder, f32>(c, "fornax", bits, &path);
                 }
                 (DecoderKind::Fornax, BenchSampleBits::F64) => {
-                    bench_bit_decoder::<Decoder<f64>, f64>(c, "fornax", bits, &path);
+                    bench_bit_decoder::<Decoder, f64>(c, "fornax", bits, &path);
                 }
                 (DecoderKind::Rawler, BenchSampleBits::F32) => {
-                    bench_bit_decoder::<RawlerDecoder<f32>, f32>(c, "rawler", bits, &path);
+                    bench_bit_decoder::<RawlerDecoder, f32>(c, "rawler", bits, &path);
                 }
                 (DecoderKind::Rawler, BenchSampleBits::F64) => {
-                    bench_bit_decoder::<RawlerDecoder<f64>, f64>(c, "rawler", bits, &path);
+                    bench_bit_decoder::<RawlerDecoder, f64>(c, "rawler", bits, &path);
                 }
             }
         }

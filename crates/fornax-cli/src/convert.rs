@@ -139,7 +139,7 @@ fn convert_job_inner(
     match config.format {
         OutputFormat::Dng if job.format == RawFormat::Dng => {
             if config.metadata_json {
-                let decoder = Decoder::<f32>::decode(&job.input)?;
+                let decoder = Decoder::decode(&job.input)?;
                 create_parent(&job.output)?;
                 write_metadata_json(&job.output, &decoder.dng_metadata()?)?;
                 return Ok(ConversionOutcome::MetadataOnly {
@@ -154,7 +154,7 @@ fn convert_job_inner(
         }
         OutputFormat::Dng => convert_raw_dng(job, config),
         OutputFormat::Tiff | OutputFormat::Jpeg => {
-            render_with(Decoder::<f32>::decode(&job.input)?, job, config)
+            render_with(Decoder::decode(&job.input)?, job, config)
         }
     }
 }
@@ -164,7 +164,7 @@ fn convert_raw_dng(
     config: &ResolvedConfig,
 ) -> Result<ConversionOutcome, ConvertError> {
     create_parent(&job.output)?;
-    let decoder = Decoder::<f32>::decode(&job.input)?;
+    let decoder = Decoder::decode(&job.input)?;
     let mosaic = decoder.raw_mosaic()?;
     let metadata = decoder.dng_metadata()?;
     DngWriter::new(config.dng_compression.writer())
@@ -185,7 +185,7 @@ fn render_with<D>(
     config: &ResolvedConfig,
 ) -> Result<ConversionOutcome, ConvertError>
 where
-    D: for<'a> IDecoderDng<&'a Path, f32>,
+    D: IDecoderDng,
 {
     let cropped = decoder.cropped_mosaic()?;
     let metadata = decoder.process_metadata()?;

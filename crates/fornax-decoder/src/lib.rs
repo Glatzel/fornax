@@ -1,5 +1,4 @@
 use std::fs;
-use std::marker::PhantomData;
 use std::path::Path;
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 mod dnc;
@@ -16,8 +15,10 @@ pub enum Decoder {
     Dng(DngImage),
 }
 impl IDecoder for Decoder {
-    fn decode(input: &Path) -> Result<Self, DecodeError> where
-        Self: Sized {
+    fn decode(input: &Path) -> Result<Self, DecodeError>
+    where
+        Self: Sized,
+    {
         let extension = input
             .extension()
             .ok_or_else(|| DecodeError::Unsupported("DNG input has no file extension".into()))?;

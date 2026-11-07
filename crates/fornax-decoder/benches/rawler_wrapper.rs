@@ -1,4 +1,3 @@
-use std::marker::PhantomData;
 use std::path::Path;
 
 use fornax_core::error::{DecodeError, RawValidationError};
@@ -9,15 +8,11 @@ use generic_num::num;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
 
 #[derive(Clone, Debug)]
-pub struct RawlerDecoder<T> {
+pub struct RawlerDecoder {
     raw: RawImage,
-    _mark: PhantomData<T>,
 }
 
-impl<T> IDecoder<&Path, T> for RawlerDecoder<T>
-where
-    T: Primitive,
-{
+impl IDecoder for RawlerDecoder {
     fn decode(input: &Path) -> Result<Self, DecodeError> {
         if !input.is_file() {
             return Err(DecodeError::InvalidInput(
@@ -36,10 +31,7 @@ where
             rawler::RawlerError::DecoderFailed(message) => DecodeError::Backend(message.into()),
         })?;
 
-        Ok(Self {
-            raw,
-            _mark: PhantomData,
-        })
+        Ok(Self { raw })
     }
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
         let raw = &self.raw;
@@ -55,7 +47,10 @@ where
         };
         Ok(mosaic)
     }
-    fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> {
+    fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
+    where
+        T: Primitive,
+    {
         let raw = &self.raw;
         let cfa = match &raw.photometric {
             RawPhotometricInterpretation::Cfa(config) => &config.cfa,
