@@ -39,7 +39,7 @@ Out of scope:
 - [x] Re-run focused tests and alternating post-fix benchmarks; require every
   post-fix median to be at most `1.05 * baseline` and each previously regressed
   case to be at most `0.90 * pre-fix`.
-- [ ] Run `scripts/agent-validation.sh`, inspect the final diff, commit, and
+- [x] Run `scripts/agent-validation.sh`, inspect the final diff, commit, and
   push the same branch to PR #660.
 
 ## Files expected to change
