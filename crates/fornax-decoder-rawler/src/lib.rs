@@ -5,7 +5,7 @@ use std::str::FromStr;
 use fornax_core::error::{DecodeError, MetadataValidationError, RawValidationError};
 use fornax_core::metadata::{ColorCalibration, Levels, ProcessMetadata};
 use fornax_core::protocol::IDecoder;
-use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_dng::metadata::IDecoderDng;
 use fornax_dng::{Directory, DngTag, Value};
 use fornax_tiff::Tag;
@@ -264,39 +264,42 @@ where
             white
         };
 
-        let bayer_pattern = fornax_core::BayerPattern::from_str(&cfa.name)
+        let bayer_pattern = BayerPattern::from_str(&cfa.name)
             .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?
             .shifted(active_area.x, active_area.y);
-        let mut raw_color = fornax_dng::raw_color_metadata(&synthesize_dng_metadata(raw))?;
-        let has_dng_as_shot_neutral = raw.dng_tags.contains_key(&u16::from(DngTag::AsShotNeutral));
-        let valid_as_shot_neutral = raw_color.as_shot_neutral.is_some_and(|neutral| {
-            neutral
-                .iter()
-                .all(|value| value.is_finite() && *value > 0.0)
-        });
-        if !has_dng_as_shot_neutral || !valid_as_shot_neutral {
-            raw_color.as_shot_neutral = None;
-            let neutral = raw.neutralwb();
-            if neutral[..3]
-                .iter()
-                .all(|value| value.is_finite() && *value > 0.0)
-            {
-                raw_color.as_shot_neutral = Some([
-                    f64::from(neutral[0]),
-                    f64::from(neutral[1]),
-                    f64::from(neutral[2]),
-                ]);
-            } else {
-                let [r, g, b, _] = raw.wb_coeffs;
-                if [r, g, b]
+        let color_calibration = {
+            let mut raw_color = fornax_dng::raw_color_metadata(&synthesize_dng_metadata(raw))?;
+            let has_dng_as_shot_neutral =
+                raw.dng_tags.contains_key(&u16::from(DngTag::AsShotNeutral));
+            let valid_as_shot_neutral = raw_color.as_shot_neutral.is_some_and(|neutral| {
+                neutral
+                    .iter()
+                    .all(|value| value.is_finite() && *value > 0.0)
+            });
+            if !has_dng_as_shot_neutral || !valid_as_shot_neutral {
+                raw_color.as_shot_neutral = None;
+                let neutral = raw.neutralwb();
+                if neutral[..3]
                     .iter()
                     .all(|value| value.is_finite() && *value > 0.0)
                 {
-                    raw_color.maker_gains = Some((f64::from(r / g), f64::from(b / g)));
+                    raw_color.as_shot_neutral = Some([
+                        f64::from(neutral[0]),
+                        f64::from(neutral[1]),
+                        f64::from(neutral[2]),
+                    ]);
+                } else {
+                    let [r, g, b, _] = raw.wb_coeffs;
+                    if [r, g, b]
+                        .iter()
+                        .all(|value| value.is_finite() && *value > 0.0)
+                    {
+                        raw_color.maker_gains = Some((f64::from(r / g), f64::from(b / g)));
+                    }
                 }
             }
-        }
-        let color_calibration = ColorCalibration::new(raw_color);
+            ColorCalibration::new(raw_color)
+        };
 
         Ok(ProcessMetadata {
             active_area,
