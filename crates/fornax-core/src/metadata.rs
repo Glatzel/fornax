@@ -1,4 +1,7 @@
+use std::collections::BTreeMap;
+
 use image::math::Rect;
+use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 use crate::primitive::MonoImage;
 use crate::protocol::IPostProcessMetadata;
@@ -6,7 +9,7 @@ use crate::{BayerPattern, Primitive};
 
 /// A row-major 3x3 color matrix.
 pub type Matrix3x3 = [[f64; 3]; 3];
-
+pub type M3 = [[f64; 3]; 3];
 /// Normalized metadata for a single-sample Bayer RAW image.
 ///
 /// The geometry and level fields correspond to the same concepts as the
@@ -86,6 +89,47 @@ where
 
     /// White level from DNG `WhiteLevel` for single-sample Bayer RAW.
     pub white: T,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, TryFromPrimitive, IntoPrimitive)]
+#[repr(u8)]
+pub enum CalibrationIlluminant {
+    Unknown = 0,
+    Daylight = 1,
+    Fluorescent = 2,
+    Tungsten = 3,
+    Flash = 4,
+    FineWeather = 9,
+    CloudyWeather = 10,
+    Shade = 11,
+    DaylightFluorescent = 12,
+    DayWhiteFluorescent = 13,
+    CoolWhiteFluorescent = 14,
+    WhiteFluorescent = 15,
+    StandardLightA = 17,
+    StandardLightB = 18,
+    StandardLightC = 19,
+    D55 = 20,
+    D65 = 21,
+    D75 = 22,
+    D50 = 23,
+    ISOStudioTungsten = 24,
+    Other = 255,
+}
+pub struct CalibrationData {
+    pub color_matrix: Option<M3>,
+    pub forward_matrix: Option<M3>,
+    pub camera_calibration: Option<M3>,
+}
+pub struct ColorCalibration<T>
+where
+    T: Primitive,
+{
+    pub analog_balance: Option<[f32; 3]>,
+    //green normalized,(red,blue)
+    pub wb_coeffs: Option<(T, T)>,
+    pub white_xy: Option<(T, T)>,
+    pub calibration_illuminant: BTreeMap<CalibrationIlluminant, CalibrationData>,
 }
 
 impl<T> IPostProcessMetadata<T> for ProcessMetadata<T>
