@@ -5,17 +5,27 @@
 //! each format crate.
 
 mod error;
+pub mod deflate;
+pub mod jpeg;
+pub mod jpegxl;
+pub mod ljpeg;
 pub mod predictor;
 mod request;
 mod samples;
 pub mod uncompressed;
+pub mod zstd;
 
+pub use deflate::DeflateCodec;
 pub use error::CodecError;
+pub use jpeg::LossyJpegCodec;
+pub use jpegxl::JpegXlCodec;
+pub use ljpeg::LosslessJpegCodec;
 pub use predictor::Predictor;
 pub use request::{
     ByteOrder, Chunk, Compression, DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat,
 };
 pub use uncompressed::UncompressedCodec;
+pub use zstd::ZstdCodec;
 
 /// Decodes an encoded raw image into storage-typed samples.
 pub trait ICodecDecode {
@@ -40,3 +50,23 @@ pub trait ICodecEncode {
 }
 
 use fornax_core::RawMosaic;
+
+/// Decodes a raw image using the selected compression scheme.
+///
+/// # Errors
+///
+/// Returns [`CodecError`] when the selected codec rejects the payload or the
+/// requested operation is unavailable.
+pub fn decode(
+    compression: Compression,
+    request: &DecodeRequest<'_>,
+) -> Result<RawMosaic, CodecError> {
+    match compression {
+        Compression::Uncompressed => UncompressedCodec.decode(request),
+        Compression::LosslessJpeg => LosslessJpegCodec.decode(request),
+        Compression::Deflate => DeflateCodec.decode(request),
+        Compression::LossyJpeg => LossyJpegCodec.decode(request),
+        Compression::JpegXl => JpegXlCodec.decode(request),
+        Compression::Zstd => ZstdCodec.decode(request),
+    }
+}

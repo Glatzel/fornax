@@ -817,10 +817,14 @@ dependencies = [
 name = "fornax-codec"
 version = "0.0.17"
 dependencies = [
+ "flate2",
  "fornax-core",
  "image 0.25.9",
+ "jxl-oxide",
  "rayon",
+ "structured-zstd",
  "thiserror",
+ "zune-jpeg 0.5.15",
 ]
 
 [[package]]

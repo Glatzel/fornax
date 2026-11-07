@@ -52,7 +52,7 @@ impl Geometry {
             .ok_or_else(|| invalid("decoded sample count overflow"))
     }
 
-    fn band_stride(&self) -> Result<usize, CodecError> {
+    pub(crate) fn band_stride(&self) -> Result<usize, CodecError> {
         checked_product([self.chunk_height, self.width])
             .ok_or_else(|| invalid("decoded band size overflow"))
     }
@@ -412,7 +412,7 @@ fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
     f32::from_bits((sign << 31) | (wide_exponent << 23) | wide_fraction)
 }
 
-fn mono<T>(
+pub(crate) fn mono<T>(
     width: usize,
     height: usize,
     samples: Vec<T>,

@@ -1,5 +1,10 @@
+use std::io::Write;
+
+use flate2::Compression as FlateCompression;
+use flate2::write::ZlibEncoder;
 use fornax_codec::{
-    ByteOrder, Chunk, DecodeRequest, ICodecDecode, SampleFormat, UncompressedCodec,
+    ByteOrder, Chunk, Compression, DecodeRequest, DeflateCodec, ICodecDecode, JpegXlCodec,
+    LosslessJpegCodec, LossyJpegCodec, Predictor, SampleFormat, UncompressedCodec, decode,
 };
 use fornax_core::RawMosaic;
 
@@ -24,7 +29,34 @@ fn request<'a>(
         bits_per_sample,
         sample_format,
         byte_order,
-        predictor: fornax_codec::Predictor::None,
+        predictor: Predictor::None,
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn request_with_predictor<'a>(
+    source: &'a [u8],
+    chunks: &'a [Chunk],
+    width: usize,
+    height: usize,
+    chunk_width: usize,
+    chunk_height: usize,
+    bits_per_sample: u16,
+    sample_format: SampleFormat,
+    byte_order: ByteOrder,
+    predictor: Predictor,
+) -> DecodeRequest<'a> {
+    DecodeRequest {
+        source,
+        width,
+        height,
+        chunk_width,
+        chunk_height,
+        chunks,
+        bits_per_sample,
+        sample_format,
+        byte_order,
+        predictor,
     }
 }
 
@@ -158,4 +190,177 @@ fn uncompressed_rejects_overflowing_chunk_ranges_without_panicking() {
     let error = UncompressedCodec.decode(&request).unwrap_err();
 
     assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
+}
+
+#[test]
+fn deflate_reverses_horizontal_integer_prediction() {
+    let differences = [1_u8, 1, 2, 4];
+    let mut encoder = ZlibEncoder::new(Vec::new(), FlateCompression::fast());
+    encoder.write_all(&differences).unwrap();
+    let encoded = encoder.finish().unwrap();
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: encoded.len(),
+    }];
+    let request = request_with_predictor(
+        &encoded,
+        &chunks,
+        4,
+        1,
+        4,
+        1,
+        8,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        Predictor::HorizontalInteger,
+    );
+
+    let RawMosaic::U8(image) = DeflateCodec.decode(&request).unwrap() else {
+        panic!("8-bit Deflate samples must decode as u8");
+    };
+
+    assert_eq!(image.as_raw().as_slice(), &[1, 2, 4, 8]);
+}
+
+#[test]
+fn lossless_jpeg_decodes_twelve_bit_tiles() {
+    let tile = [
+        0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x0c, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11,
+        0x00, 0xff, 0xc4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xda, 0x00, 0x08, 0x01,
+        0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0xff, 0xd9,
+    ];
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        &tile,
+        &chunks,
+        2,
+        2,
+        2,
+        2,
+        12,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+    );
+
+    let RawMosaic::U16(image) = LosslessJpegCodec.decode(&request).unwrap() else {
+        panic!("lossless JPEG samples must decode as u16");
+    };
+
+    assert_eq!(image.as_raw().as_slice(), &[2_048; 4]);
+}
+
+#[test]
+fn lossless_jpeg_applies_point_transform() {
+    let mut tile = [
+        0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x10, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11,
+        0x00, 0xff, 0xc4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xda, 0x00, 0x08, 0x01,
+        0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0xff, 0xd9,
+    ];
+    tile[46] = 1;
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        &tile,
+        &chunks,
+        2,
+        2,
+        2,
+        2,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+    );
+
+    let RawMosaic::U16(image) = LosslessJpegCodec.decode(&request).unwrap() else {
+        panic!("lossless JPEG samples must decode as u16");
+    };
+
+    assert_eq!(image.as_raw().as_slice(), &[32_768; 4]);
+}
+
+#[test]
+fn lossy_jpeg_decodes_a_single_component_tile() {
+    use image::ImageEncoder;
+
+    let pixels = [
+        0_u8, 32, 64, 96, 96, 64, 32, 0, 16, 48, 80, 112, 112, 80, 48, 16,
+    ];
+    let mut encoded = Vec::new();
+    image::codecs::jpeg::JpegEncoder::new_with_quality(&mut encoded, 100)
+        .write_image(&pixels, 4, 4, image::ExtendedColorType::L8)
+        .unwrap();
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: encoded.len(),
+    }];
+    let request = request(
+        &encoded,
+        &chunks,
+        4,
+        4,
+        4,
+        4,
+        8,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+    );
+
+    let RawMosaic::U8(image) = LossyJpegCodec.decode(&request).unwrap() else {
+        panic!("lossy JPEG samples must decode as u8");
+    };
+
+    assert_eq!(image.dimensions(), (4, 4));
+}
+
+#[test]
+fn jpeg_xl_rejects_malformed_payloads_without_panicking() {
+    let source = [0xff];
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: source.len(),
+    }];
+    let request = request(
+        &source,
+        &chunks,
+        1,
+        1,
+        1,
+        1,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+    );
+
+    let error = JpegXlCodec.decode(&request).unwrap_err();
+
+    assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
+}
+
+#[cfg(not(feature = "zstd"))]
+#[test]
+fn zstd_dispatch_reports_missing_feature() {
+    let source = [];
+    let chunks = [];
+    let request = request(
+        &source,
+        &chunks,
+        1,
+        1,
+        1,
+        1,
+        8,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+    );
+
+    let error = decode(Compression::Zstd, &request).unwrap_err();
+
+    assert!(matches!(error, fornax_codec::CodecError::Unsupported(_)));
 }
