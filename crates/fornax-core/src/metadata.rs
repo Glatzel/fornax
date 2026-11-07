@@ -1,4 +1,3 @@
-use generic_num::num;
 use image::math::Rect;
 use num_enum::{FromPrimitive, IntoPrimitive};
 
@@ -7,9 +6,9 @@ use crate::protocol::IPostProcessMetadata;
 use crate::{BayerPattern, Primitive};
 
 /// A row-major 3x3 color matrix.
-pub type Matrix3x3<T> = [[T; 3]; 3];
+pub type Matrix3x3 = [[f64; 3]; 3];
 /// A 3-channel vector (R, G, B or X, Y, Z).
-pub type Vec3<T> = [T; 3];
+pub type Vec3 = [f64; 3];
 
 // ---------------------------------------------------------------------------
 // ProcessMetadata
@@ -158,11 +157,8 @@ impl LightSource {
 /// `raw` keeps the original bytes until the encoding is fully parsed;
 /// decoders fill `xy` when they can derive a chromaticity.
 #[derive(Clone, Debug, PartialEq)]
-pub struct IlluminantData<T>
-where
-    T: Primitive,
-{
-    pub xy: Option<[T; 2]>,
+pub struct IlluminantData {
+    pub xy: Option<[f64; 2]>,
     pub raw: Vec<u8>,
 }
 
@@ -173,34 +169,28 @@ where
 /// Color metadata exactly as a decoder found it. Everything is optional and no
 /// logic lives here. Convert with [`ColorCalibration::new`].
 #[derive(Clone, Debug, Default)]
-pub struct RawColorMeta<T>
-where
-    T: Primitive,
-{
+pub struct RawColorMeta {
     /// DNG `AnalogBalance`.
-    pub analog_balance: Option<Vec3<T>>,
+    pub analog_balance: Option<Vec3>,
     /// DNG `AsShotNeutral`: camera response to the scene white.
-    pub as_shot_neutral: Option<Vec3<T>>,
+    pub as_shot_neutral: Option<Vec3>,
     /// DNG `AsShotWhiteXY`.
-    pub as_shot_white_xy: Option<[T; 2]>,
+    pub as_shot_white_xy: Option<[f64; 2]>,
     /// Maker-note style gains `(red, blue)`, green = 1. This is the reciprocal
     /// of a neutral; used only as a fallback.
-    pub maker_gains: Option<(T, T)>,
+    pub maker_gains: Option<(f64, f64)>,
     /// Slot-ordered profiles (1..=3), as in the file.
-    pub profiles: Vec<RawProfile<T>>,
+    pub profiles: Vec<RawProfile>,
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct RawProfile<T>
-where
-    T: Primitive,
-{
+pub struct RawProfile {
     /// `None` = tag missing.
     pub illuminant: Option<LightSource>,
-    pub illuminant_data: Option<IlluminantData<T>>,
-    pub color_matrix: Option<Matrix3x3<T>>,
-    pub forward_matrix: Option<Matrix3x3<T>>,
-    pub camera_calibration: Option<Matrix3x3<T>>,
+    pub illuminant_data: Option<IlluminantData>,
+    pub color_matrix: Option<Matrix3x3>,
+    pub forward_matrix: Option<Matrix3x3>,
+    pub camera_calibration: Option<Matrix3x3>,
 }
 
 // ---------------------------------------------------------------------------
@@ -218,73 +208,58 @@ pub enum WhiteSource {
 
 /// White point request for [`ColorCalibration::resolve`].
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum WhiteSpec<T>
-where
-    T: Primitive,
-{
+pub enum WhiteSpec {
     /// The normalized as-shot white.
     AsShot,
     /// Camera response to the white (camera-native, post-AB space).
-    Neutral(Vec3<T>),
+    Neutral(Vec3),
     /// Scene white chromaticity.
-    Xy([T; 2]),
+    Xy([f64; 2]),
     /// Scene white as a correlated color temperature in kelvin.
-    Cct(T),
+    Cct(f64),
 }
 
 /// Result of [`ColorCalibration::resolve`].
 #[derive(Clone, Debug)]
-pub struct ColorTransform<T>
-where
-    T: Primitive,
-{
+pub struct ColorTransform {
     /// Neutral normalized to max = 1.
-    pub neutral: Vec3<T>,
+    pub neutral: Vec3,
     /// `1 / neutral`, for white balancing before or after demosaic.
-    pub gains: Vec3<T>,
+    pub gains: Vec3,
     /// Temperature used to interpolate profiles (kelvin).
     pub cct: f64,
     /// Applies to raw (not white balanced) camera values -> XYZ D50.
-    pub cam_to_xyz_d50: Matrix3x3<T>,
+    pub cam_to_xyz_d50: Matrix3x3,
     /// Applies to camera values already multiplied by `gains` -> XYZ D50.
-    pub cam_to_xyz_d50_post_wb: Matrix3x3<T>,
+    pub cam_to_xyz_d50_post_wb: Matrix3x3,
 }
 
 #[derive(Clone, Debug)]
-struct Profile<T>
-where
-    T: Primitive,
-{
+struct Profile {
     /// 1e6 / CCT: sort key and interpolation axis.
-    mired: T,
+    mired: f64,
     /// `AnalogBalance * CameraCalibration`, folded.
-    ab_cc: Matrix3x3<T>,
-    color_matrix: Option<Matrix3x3<T>>,
-    forward_matrix: Option<Matrix3x3<T>>,
+    ab_cc: Matrix3x3,
+    color_matrix: Option<Matrix3x3>,
+    forward_matrix: Option<Matrix3x3>,
 }
 
 /// Normalized color calibration. Built once by [`ColorCalibration::new`];
 /// the pipeline never handles missing tags.
 #[derive(Clone, Debug)]
-pub struct ColorCalibration<T>
-where
-    T: Primitive,
-{
+pub struct ColorCalibration {
     /// 0..=3 entries, sorted by mired ascending, deduplicated.
-    profiles: Vec<Profile<T>>,
+    profiles: Vec<Profile>,
     /// Decided once: every profile has a ForwardMatrix, use that path.
     use_forward: bool,
     /// Every profile has a ColorMatrix (needed to derive the temperature).
     has_color_matrix: bool,
-    as_shot: WhiteSpec<T>,
+    as_shot: WhiteSpec,
     as_shot_source: WhiteSource,
 }
 
-impl<T> ColorCalibration<T>
-where
-    T: Primitive,
-{
-    pub fn new(raw: RawColorMeta<T>) -> Self {
+impl ColorCalibration {
+    pub fn new(raw: RawColorMeta) -> Self {
         let n = raw.profiles.len();
         let ab = mat::diag(
             raw.analog_balance
@@ -293,7 +268,7 @@ where
         );
 
         // Profiles: resolve illuminant -> CCT, fold AB*CC, drop empty ones.
-        let mut profiles: Vec<Profile<T>> = raw
+        let mut profiles: Vec<Profile> = raw
             .profiles
             .iter()
             .enumerate()
@@ -372,7 +347,7 @@ where
 
     /// Build the transforms for a white point. Cheap enough to call per edit
     /// (as-shot, user CCT, click-to-gray).
-    pub fn resolve(&self, white: WhiteSpec<T>) -> ColorTransform<T> {
+    pub fn resolve(&self, white: WhiteSpec) -> ColorTransform {
         let white = match white {
             WhiteSpec::AsShot => self.as_shot,
             w => w,
@@ -439,7 +414,7 @@ where
         finish(neutral, 1e6 / mired, cam_to_xyz)
     }
 
-    fn resolve_fallback(&self, white: WhiteSpec<T>) -> ColorTransform<T> {
+    fn resolve_fallback(&self, white: WhiteSpec) -> ColorTransform {
         let neutral = match white {
             WhiteSpec::Neutral(n) => normalize_neutral(n),
             _ => [1.0; 3],
@@ -569,67 +544,50 @@ fn normalize_neutral(n: Vec3) -> Vec3 {
     }
 }
 
-fn xy_to_xyz<T>([x, y]: [T; 2]) -> Vec3<T>
-where
-    T: Primitive,
-{
-    [x / y, T::one(), (T::one() - x - y) / y]
-}
+fn xy_to_xyz([x, y]: [f64; 2]) -> Vec3 { [x / y, 1.0, (1.0 - x - y) / y] }
 
 /// McCamy's approximation (good to a few K for 2856-6500 K).
-pub fn xy_to_cct<T>(x: T, y: T) -> T
-where
-    T: Primitive,
-{
-    let n = (x - num!(0.3320)) / (num!(0.1858) - y);
-    num!(449.0) * n.powi(3) + num!(3525.0) * n.powi(2) + num!(6823.3) * n + num!(5520.33)
+pub fn xy_to_cct(x: f64, y: f64) -> f64 {
+    let n = (x - 0.3320) / (0.1858 - y);
+    449.0 * n.powi(3) + 3525.0 * n.powi(2) + 6823.3 * n + 5520.33
 }
 
 /// Kim et al. Planckian locus approximation, 1667-25000 K.
-pub fn cct_to_xy<T>(t: T) -> [T; 2]
-where
-    T: Primitive,
-{
-    let t = t.clamp(num!(1667.0), num!(25000.0));
+pub fn cct_to_xy(t: f64) -> [f64; 2] {
+    let t = t.clamp(1667.0, 25000.0);
     let (t2, t3) = (t * t, t * t * t);
-    let x = if t <= num!(4000.0) {
-        num!(-0.2661239e9) / t3 - num!(0.2343589e6) / t2 + num!(0.8776956e3) / t + num!(0.179910)
+    let x = if t <= 4000.0 {
+        -0.2661239e9 / t3 - 0.2343589e6 / t2 + 0.8776956e3 / t + 0.179910
     } else {
-        num!(-3.0258469e9) / t3 + num!(2.1070379e6) / t2 + num!(0.2226347e3) / t + num!(0.240390)
+        -3.0258469e9 / t3 + 2.1070379e6 / t2 + 0.2226347e3 / t + 0.240390
     };
-    let y = if t <= num!(2222.0) {
-        -1.1063814 * x.powi(3) - num!(1.34811020) * x.powi(2) + num!(2.18555832) * x
-            - num!(0.20219683)
-    } else if t <= num!(4000.0) {
-        num!(-0.9549476) * x.powi(3) - num!(1.37418593) * x.powi(2) + num!(2.09137015) * x
-            - num!(0.16748867)
+    let y = if t <= 2222.0 {
+        -1.1063814 * x.powi(3) - 1.34811020 * x.powi(2) + 2.18555832 * x - 0.20219683
+    } else if t <= 4000.0 {
+        -0.9549476 * x.powi(3) - 1.37418593 * x.powi(2) + 2.09137015 * x - 0.16748867
     } else {
-        3.0817580 * x.powi(3) - num!(5.87338670) * x.powi(2) + num!(3.75112997) * x
-            - num!(0.37001483)
+        3.0817580 * x.powi(3) - 5.87338670 * x.powi(2) + 3.75112997 * x - 0.37001483
     };
     [x, y]
 }
 
 /// Bradford chromatic adaptation matrix from `src` white to `dst` white (XYZ).
-fn bradford<T>(src: Vec3<T>, dst: Vec3<T>) -> Matrix3x3<T>
-where
-    T: Primitive,
-{
-    let m_a: Matrix3x3<T> = [
-        [num!(0.8951), num!(0.2664), num!(-0.1614)],
-        [num!(-0.7502), num!(1.7135), num!(0.0367)],
-        [num!(0.0389), num!(-0.0685), num!(1.0296)],
+fn bradford(src: Vec3, dst: Vec3) -> Matrix3x3 {
+    const M_A: Matrix3x3 = [
+        [0.8951, 0.2664, -0.1614],
+        [-0.7502, 1.7135, 0.0367],
+        [0.0389, -0.0685, 1.0296],
     ];
-    let Some(m_a_inv) = mat::inv(&m_a) else {
+    let Some(m_a_inv) = mat::inv(&M_A) else {
         return mat::IDENTITY;
     };
-    let s = mat::mul_vec(&m_a, &src);
-    let d = mat::mul_vec(&m_a, &dst);
-    if s.iter().any(|v| v.abs() < num!(1e-12)) {
+    let s = mat::mul_vec(&M_A, &src);
+    let d = mat::mul_vec(&M_A, &dst);
+    if s.iter().any(|v| v.abs() < 1e-12) {
         return mat::IDENTITY;
     }
     let ratio = [d[0] / s[0], d[1] / s[1], d[2] / s[2]];
-    mat::mul(&m_a_inv, &mat::mul(&mat::diag(ratio), &m_a))
+    mat::mul(&m_a_inv, &mat::mul(&mat::diag(ratio), &M_A))
 }
 
 mod mat {

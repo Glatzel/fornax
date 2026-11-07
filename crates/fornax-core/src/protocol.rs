@@ -32,16 +32,14 @@ where
 
     /// Normalized color calibration (white balance, profiles, camera -> XYZ
     /// D50).
-    fn color(&self) -> &ColorCalibration<T>;
+    fn color(&self) -> &ColorCalibration;
 
     /// Black/white levels; drop this method (and `T`) if the trait is
     /// color-only.
     fn levels(&self) -> &Levels<T>;
 
     /// Convenience: build the transforms for a white point.
-    fn resolve_color(&self, white: WhiteSpec<T>) -> ColorTransform<T> {
-        self.color().resolve(white)
-    }
+    fn resolve_color(&self, white: WhiteSpec) -> ColorTransform { self.color().resolve(white) }
 }
 pub trait IPostProcessor<T, M>
 where
