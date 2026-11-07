@@ -26,7 +26,7 @@ impl IDecoder for Decoder {
             .to_str()
             .ok_or_else(|| DecodeError::InvalidInput("file extension is not UTF-8".into()))?;
 
-        if let Ok(RawFormat::Dng) = RawFormat::try_from(extension) {
+        if RawFormat::try_from(extension) == Ok(RawFormat::Dng) {
             clerk::debug!("Reading DNG: {}", input.display());
 
             let source = fs::read(input).map_err(|error| {
