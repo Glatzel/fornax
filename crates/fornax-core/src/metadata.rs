@@ -124,8 +124,8 @@ pub enum LightSource {
 impl LightSource {
     /// Conventional CCT in kelvin. Used for ordering and interpolation weights
     /// only. `None` for `Unknown`, `Other` and reserved values.
-    pub fn cct(self) -> Option<f64> {
-        use LightSource::*;
+    pub const fn cct(self) -> Option<f64> {
+        use LightSource::{Tungsten, StandardLightA, ISOStudioTungsten, WhiteFluorescent, CoolWhiteFluorescent, Fluorescent, StandardLightB, DayWhiteFluorescent, D50, Daylight, FineWeather, Flash, D55, DaylightFluorescent, CloudyWeather, D65, StandardLightC, Shade, D75, Unknown, Other, Reserved};
         Some(match self {
             Tungsten => 2850.0,
             StandardLightA => 2856.0,
@@ -255,7 +255,7 @@ impl ColorCalibration {
         let n = raw.profiles.len();
         let ab = mat::diag(
             raw.analog_balance
-                .filter(|v| valid_positive(v))
+                .filter(valid_positive)
                 .unwrap_or([1.0; 3]),
         );
 
@@ -306,7 +306,7 @@ impl ColorCalibration {
 
         // As-shot white: first valid source wins.
         let (as_shot, as_shot_source) =
-            if let Some(nv) = raw.as_shot_neutral.filter(|v| valid_positive(v)) {
+            if let Some(nv) = raw.as_shot_neutral.filter(valid_positive) {
                 (
                     WhiteSpec::Neutral(normalize_neutral(nv)),
                     WhiteSource::AsShotNeutral,
@@ -323,19 +323,19 @@ impl ColorCalibration {
             };
 
         Self {
-            profiles,
             use_forward,
             has_color_matrix,
             as_shot,
             as_shot_source,
+            profiles,
         }
     }
 
-    pub fn as_shot_source(&self) -> WhiteSource { self.as_shot_source }
+    pub const fn as_shot_source(&self) -> WhiteSource { self.as_shot_source }
 
     /// True when no usable matrices exist and `resolve` falls back to
     /// "camera is sRGB-primaries".
-    pub fn is_fallback(&self) -> bool { self.profiles.is_empty() }
+    pub const fn is_fallback(&self) -> bool { self.profiles.is_empty() }
 
     /// Build the transforms for a white point. Cheap enough to call per edit
     /// (as-shot, user CCT, click-to-gray).
@@ -512,7 +512,7 @@ const SRGB_TO_XYZ_D50: Matrix3x3 = [
 ];
 
 /// Default CCT for a profile whose illuminant tag is missing.
-fn default_cct(slot: usize, count: usize) -> f64 {
+const fn default_cct(slot: usize, count: usize) -> f64 {
     match (count, slot) {
         (1, _) => 6500.0,
         (_, 0) => 2856.0,
@@ -524,7 +524,7 @@ fn default_cct(slot: usize, count: usize) -> f64 {
 fn valid_positive(v: &Array3) -> bool { v.iter().all(|x| x.is_finite() && *x > 0.0) }
 
 fn normalize_neutral(n: Array3) -> Array3 {
-    let max = n.iter().cloned().fold(f64::MIN, f64::max);
+    let max = n.iter().copied().fold(f64::MIN, f64::max);
     if max.is_finite() && max > 0.0 && valid_positive(&n) {
         n.map(|v| v / max)
     } else {
@@ -537,7 +537,7 @@ fn xy_to_xyz([x, y]: [f64; 2]) -> Array3 { [x / y, 1.0, (1.0 - x - y) / y] }
 /// McCamy's approximation (good to a few K for 2856-6500 K).
 pub fn xy_to_cct(x: f64, y: f64) -> f64 {
     let n = (x - 0.3320) / (0.1858 - y);
-    449.0 * n.powi(3) + 3525.0 * n.powi(2) + 6823.3 * n + 5520.33
+    6823.3_f64.mul_add(n, 3525.0_f64.mul_add(n.powi(2), 449.0 * n.powi(3))) + 5520.33
 }
 
 /// Kim et al. Planckian locus approximation, 1667-25000 K.
@@ -550,11 +550,11 @@ pub fn cct_to_xy(t: f64) -> [f64; 2] {
         -3.0258469e9 / t3 + 2.1070379e6 / t2 + 0.2226347e3 / t + 0.240390
     };
     let y = if t <= 2222.0 {
-        -1.1063814 * x.powi(3) - 1.34811020 * x.powi(2) + 2.18555832 * x - 0.20219683
+        2.18555832_f64.mul_add(x, 1.34811020_f64.mul_add(-x.powi(2), -1.1063814 * x.powi(3))) - 0.20219683
     } else if t <= 4000.0 {
-        -0.9549476 * x.powi(3) - 1.37418593 * x.powi(2) + 2.09137015 * x - 0.16748867
+        2.09137015_f64.mul_add(x, 1.37418593_f64.mul_add(-x.powi(2), -0.9549476 * x.powi(3))) - 0.16748867
     } else {
-        3.0817580 * x.powi(3) - 5.87338670 * x.powi(2) + 3.75112997 * x - 0.37001483
+        3.75112997_f64.mul_add(x, 5.87338670_f64.mul_add(-x.powi(2), 3.0817580 * x.powi(3))) - 0.37001483
     };
     [x, y]
 }
@@ -588,7 +588,7 @@ mod mat {
         for i in 0..3 {
             for j in 0..3 {
                 for k in 0..3 {
-                    o[i][j] += a[i][k] * b[k][j];
+                    o[i][j] = a[i][k].mul_add(b[k][j], o[i][j]);
                 }
             }
         }
@@ -597,13 +597,13 @@ mod mat {
 
     pub fn mul_vec(a: &Matrix3x3, v: &Array3) -> Array3 {
         [
-            a[0][0] * v[0] + a[0][1] * v[1] + a[0][2] * v[2],
-            a[1][0] * v[0] + a[1][1] * v[1] + a[1][2] * v[2],
-            a[2][0] * v[0] + a[2][1] * v[1] + a[2][2] * v[2],
+            a[0][2].mul_add(v[2], a[0][1].mul_add(v[1], a[0][0] * v[0])),
+            a[1][2].mul_add(v[2], a[1][1].mul_add(v[1], a[1][0] * v[0])),
+            a[2][2].mul_add(v[2], a[2][1].mul_add(v[1], a[2][0] * v[0])),
         ]
     }
 
-    pub fn diag(v: Array3) -> Matrix3x3 { [[v[0], 0.0, 0.0], [0.0, v[1], 0.0], [0.0, 0.0, v[2]]] }
+    pub const fn diag(v: Array3) -> Matrix3x3 { [[v[0], 0.0, 0.0], [0.0, v[1], 0.0], [0.0, 0.0, v[2]]] }
 
     pub fn scale(a: &Matrix3x3, s: f64) -> Matrix3x3 { a.map(|r| r.map(|v| v * s)) }
 
@@ -611,17 +611,17 @@ mod mat {
         let mut o = [[0.0; 3]; 3];
         for i in 0..3 {
             for j in 0..3 {
-                o[i][j] = a[i][j] * (1.0 - w) + b[i][j] * w;
+                o[i][j] = b[i][j].mul_add(w, a[i][j] * (1.0 - w));
             }
         }
         o
     }
 
     pub fn inv(m: &Matrix3x3) -> Option<Matrix3x3> {
-        let c00 = m[1][1] * m[2][2] - m[1][2] * m[2][1];
-        let c01 = m[1][2] * m[2][0] - m[1][0] * m[2][2];
-        let c02 = m[1][0] * m[2][1] - m[1][1] * m[2][0];
-        let det = m[0][0] * c00 + m[0][1] * c01 + m[0][2] * c02;
+        let c00 = m[1][2].mul_add(-m[2][1], m[1][1] * m[2][2]);
+        let c01 = m[1][0].mul_add(-m[2][2], m[1][2] * m[2][0]);
+        let c02 = m[1][1].mul_add(-m[2][0], m[1][0] * m[2][1]);
+        let det = m[0][2].mul_add(c02, m[0][1].mul_add(c01, m[0][0] * c00));
         if !det.is_finite() || det.abs() < 1e-12 {
             return None;
         }
@@ -629,18 +629,18 @@ mod mat {
         Some([
             [
                 c00 * id,
-                (m[0][2] * m[2][1] - m[0][1] * m[2][2]) * id,
-                (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * id,
+                m[0][1].mul_add(-m[2][2], m[0][2] * m[2][1]) * id,
+                m[0][2].mul_add(-m[1][1], m[0][1] * m[1][2]) * id,
             ],
             [
                 c01 * id,
-                (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * id,
-                (m[0][2] * m[1][0] - m[0][0] * m[1][2]) * id,
+                m[0][2].mul_add(-m[2][0], m[0][0] * m[2][2]) * id,
+                m[0][0].mul_add(-m[1][2], m[0][2] * m[1][0]) * id,
             ],
             [
                 c02 * id,
-                (m[0][1] * m[2][0] - m[0][0] * m[2][1]) * id,
-                (m[0][0] * m[1][1] - m[0][1] * m[1][0]) * id,
+                m[0][0].mul_add(-m[2][1], m[0][1] * m[2][0]) * id,
+                m[0][1].mul_add(-m[1][0], m[0][0] * m[1][1]) * id,
             ],
         ])
     }
