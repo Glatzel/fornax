@@ -2,15 +2,12 @@ use std::fs::File;
 use std::io::{BufWriter, Seek, Write};
 use std::path::Path;
 
-use fornax_codec::{
-    ByteOrder as CodecByteOrder, Compression as CodecCompression, EncodeRequest,
-    Predictor as CodecPredictor, encode as encode_codec,
-};
+use fornax_codec::{ByteOrder, Compression, EncodeRequest, Predictor, encode};
 #[cfg(feature = "zstd")]
 use fornax_codec::{ICodecEncode, ZstdCodec};
 use fornax_core::RawMosaic;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{Tag, TiffDirectory, TiffWriter as ContainerWriter, Value};
+use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
 use thiserror::Error;
 
 use crate::metadata::{Directory, DngTag};
@@ -197,7 +194,7 @@ where
     W: Write + Seek,
 {
     let (width, height) = mosaic.dimensions();
-    let mut encoder = ContainerWriter::new(writer).map_err(tiff_write_error)?;
+    let mut encoder = TiffWriter::new(writer).map_err(tiff_write_error)?;
     let mut directory = TiffDirectory::new(&mut encoder);
 
     let (bits_per_sample, sample_format) = sample_layout(mosaic);
@@ -205,8 +202,8 @@ where
         mosaic,
         usize::try_from(width).expect("u32 fits usize on supported platforms"),
         usize::try_from(height).expect("u32 fits usize on supported platforms"),
-        CodecCompression::Uncompressed,
-        CodecPredictor::None,
+        Compression::Uncompressed,
+        Predictor::None,
     )?;
     let [data] = encoded.as_slice() else {
         return Err(invalid_metadata(
@@ -287,8 +284,8 @@ where
         mosaic,
         TILE,
         TILE,
-        CodecCompression::LosslessJpeg,
-        CodecPredictor::None,
+        Compression::LosslessJpeg,
+        Predictor::None,
     )?;
     write_tiled_payload(
         writer,
@@ -317,11 +314,11 @@ where
     let (width, height) = mosaic.dimensions();
     let (bits, sample_format) = sample_layout(mosaic);
     let (predictor, predictor_tag) = match mosaic {
-        RawMosaic::U32(_) => (CodecPredictor::None, 1_u16),
-        RawMosaic::F32(_) => (CodecPredictor::FloatingPoint { byte_stride: 1 }, 3_u16),
+        RawMosaic::U32(_) => (Predictor::None, 1_u16),
+        RawMosaic::F32(_) => (Predictor::FloatingPoint { byte_stride: 1 }, 3_u16),
         _ => unreachable!("the caller selects Deflate only for wider samples"),
     };
-    let chunks = encode_for_chunks(mosaic, TILE, TILE, CodecCompression::Deflate, predictor)?;
+    let chunks = encode_for_chunks(mosaic, TILE, TILE, Compression::Deflate, predictor)?;
     write_tiled_payload(
         writer,
         width,
@@ -350,7 +347,7 @@ where
     let (width, height) = mosaic.dimensions();
     let (bits, sample_format) = sample_layout(mosaic);
     const TILE: usize = 256;
-    let request = encode_request(mosaic, TILE, TILE, CodecPredictor::None);
+    let request = encode_request(mosaic, TILE, TILE, Predictor::None);
     let chunks = ZstdCodec::new(level)
         .encode(&request)
         .map_err(codec_write_error)?
@@ -396,13 +393,7 @@ where
 {
     let (width, height) = mosaic.dimensions();
     let (bits, sample_format) = sample_layout(mosaic);
-    let chunks = encode_for_chunks(
-        mosaic,
-        256,
-        256,
-        CodecCompression::Deflate,
-        CodecPredictor::None,
-    )?;
+    let chunks = encode_for_chunks(mosaic, 256, 256, Compression::Deflate, Predictor::None)?;
     write_tiled_payload(
         writer,
         width,
@@ -421,11 +412,11 @@ fn encode_for_chunks(
     mosaic: &RawMosaic,
     chunk_width: usize,
     chunk_height: usize,
-    compression: CodecCompression,
-    predictor: CodecPredictor,
+    compression: Compression,
+    predictor: Predictor,
 ) -> Result<Vec<Vec<u8>>, DngWriteError> {
     let request = encode_request(mosaic, chunk_width, chunk_height, predictor);
-    encode_codec(compression, &request)
+    encode(compression, &request)
         .map(|encoded| encoded.chunks)
         .map_err(codec_write_error)
 }
@@ -434,13 +425,13 @@ const fn encode_request(
     mosaic: &RawMosaic,
     chunk_width: usize,
     chunk_height: usize,
-    predictor: CodecPredictor,
+    predictor: Predictor,
 ) -> EncodeRequest<'_> {
     EncodeRequest {
         image: mosaic,
         chunk_width,
         chunk_height,
-        byte_order: CodecByteOrder::Little,
+        byte_order: ByteOrder::Little,
         predictor,
     }
 }
@@ -461,7 +452,7 @@ where
     W: Write + Seek,
 {
     const TILE: usize = 256;
-    let mut encoder = ContainerWriter::new(writer).map_err(tiff_write_error)?;
+    let mut encoder = TiffWriter::new(writer).map_err(tiff_write_error)?;
     let mut directory = TiffDirectory::new(&mut encoder);
     let mut tile_offsets = Vec::with_capacity(chunks.len());
     let mut tile_byte_counts = Vec::with_capacity(chunks.len());
