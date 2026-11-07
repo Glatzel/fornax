@@ -27,7 +27,8 @@ Out of scope:
 - [x] Gate existing jobs and benchmark matrix rows.
 - [x] Validate YAML, workflow expressions, and event scenarios.
 - [x] Run documentation-only repository validation and inspect the diff.
-- [ ] Commit, push, and open one semantic pull request.
+- [x] Commit, push, and open pull request
+  [#659](https://github.com/Glatzel/fornax/pull/659).
 
 ## Files Expected to Change
 
