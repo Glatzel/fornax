@@ -362,7 +362,7 @@ mod tests {
         let params = DncParams::default();
         assert!(params.compressed);
         assert_eq!(params.preview, DncPreview::Medium);
-        assert_eq!(params.compatibility, DncCompatibility::CR16_0);
+        assert_eq!(params.compatibility, DncCompatibility::DNG1_7_1);
         assert!(!params.linear);
         assert!(!params.overwrite);
     }
