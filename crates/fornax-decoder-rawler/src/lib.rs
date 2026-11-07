@@ -291,6 +291,182 @@ where
         Ok(synthesize_dng_metadata(&self.raw))
     }
 }
+/// Merge rawler's normalized camera attributes with the original DNG tags.
+///
+/// DNG tags take precedence when present. Rawler's white-balance coefficients
+/// and color matrices are retained as fallbacks for non-DNG files and for
+/// metadata that rawler did not expose as a DNG tag.
+fn raw_color_metadata(raw: &RawImage) -> fornax_core::metadata::RawColorMeta {
+    use fornax_core::metadata::{IlluminantData, LightSource, RawColorMeta, RawProfile};
+
+    const ANALOG_BALANCE: u16 = 50727;
+    const AS_SHOT_NEUTRAL: u16 = 50728;
+    const AS_SHOT_WHITE_XY: u16 = 50729;
+
+    let tag_numbers = |tag| raw.dng_tags.get(&tag).and_then(rawler_numbers);
+    let analog_balance = tag_numbers(ANALOG_BALANCE).and_then(|v| vec3(&v));
+    let as_shot_neutral = tag_numbers(AS_SHOT_NEUTRAL).and_then(|v| vec3(&v));
+    let as_shot_white_xy = tag_numbers(AS_SHOT_WHITE_XY).and_then(|v| <[f64; 2]>::try_from(v).ok());
+
+    // Rawler stores multipliers in RGBE order; this model consumes reciprocal
+    // neutral values, so the fallback is represented as red/blue gains.
+    let maker_gains = {
+        let [r, _, b, _] = raw.wb_coeffs;
+        let (r, b) = (f64::from(r), f64::from(b));
+        (r.is_finite() && b.is_finite() && r > 0.0 && b > 0.0).then_some((r, b))
+    };
+
+    let mut profiles = Vec::with_capacity(3 + raw.color_matrix.len());
+
+    for slot in 0..3 {
+        let (illuminant_tag, color_tag, camera_tag, forward_tag, data_tag) = match slot {
+            0 => (50778, 50721, 50723, 50964, 51109),
+            1 => (50779, 50722, 50724, 50965, 51110),
+            _ => (50780, 50730, 50725, 50966, 51111),
+        };
+
+        let illuminant = raw
+            .dng_tags
+            .get(&illuminant_tag)
+            .and_then(rawler_numbers)
+            .and_then(|v| v.first().copied())
+            .filter(|v| v.is_finite() && *v >= 0.0 && *v <= f64::from(u16::MAX))
+            .map(|v| LightSource::from(v as u16));
+
+        let illuminant_data = raw.dng_tags.get(&data_tag).map(|value| IlluminantData {
+            xy: None,
+            raw: rawler_bytes(value),
+        });
+        let color_matrix = raw
+            .dng_tags
+            .get(&color_tag)
+            .and_then(rawler_numbers)
+            .and_then(matrix3x3);
+        let camera_calibration = raw
+            .dng_tags
+            .get(&camera_tag)
+            .and_then(rawler_numbers)
+            .and_then(matrix3x3);
+        let forward_matrix = raw
+            .dng_tags
+            .get(&forward_tag)
+            .and_then(rawler_numbers)
+            .and_then(matrix3x3);
+
+        if illuminant.is_some()
+            || illuminant_data.is_some()
+            || color_matrix.is_some()
+            || camera_calibration.is_some()
+            || forward_matrix.is_some()
+        {
+            profiles.push(RawProfile {
+                illuminant,
+                illuminant_data,
+                color_matrix,
+                forward_matrix,
+                camera_calibration,
+            });
+        }
+    }
+
+    // Preserve rawler's camera-database matrices when no DNG profile for the
+    // same illuminant was supplied by the file.
+    for (illuminant, flat) in &raw.color_matrix {
+        let values: Vec<f64> = flat.iter().copied().map(f64::from).collect();
+        let Some(color_matrix) = matrix3x3(values) else {
+            continue;
+        };
+        let light_source = light_source_from_rawler(illuminant);
+        if profiles.iter().any(|p| p.illuminant == Some(light_source)) {
+            continue;
+        }
+        profiles.push(RawProfile {
+            illuminant: Some(light_source),
+            color_matrix: Some(color_matrix),
+            ..RawProfile::default()
+        });
+    }
+
+    RawColorMeta {
+        analog_balance,
+        as_shot_neutral,
+        as_shot_white_xy,
+        maker_gains,
+        profiles,
+    }
+}
+fn rawler_numbers(value: &RawlerValue) -> Option<Vec<f64>> {
+    let values = match value {
+        RawlerValue::Byte(v) | RawlerValue::Undefined(v) | RawlerValue::Unknown(_, v) => {
+            v.iter().map(|&x| f64::from(x)).collect()
+        }
+        RawlerValue::Short(v) => v.iter().map(|&x| f64::from(x)).collect(),
+        RawlerValue::Long(v) => v.iter().map(|&x| f64::from(x)).collect(),
+        RawlerValue::Rational(v) => v
+            .iter()
+            .map(|x| (x.d != 0).then_some(f64::from(x.n) / f64::from(x.d)))
+            .collect::<Option<Vec<_>>>()?,
+        RawlerValue::SByte(v) => v.iter().map(|&x| f64::from(x)).collect(),
+        RawlerValue::SShort(v) => v.iter().map(|&x| f64::from(x)).collect(),
+        RawlerValue::SLong(v) => v.iter().map(|&x| f64::from(x)).collect(),
+        RawlerValue::SRational(v) => v
+            .iter()
+            .map(|x| (x.d != 0).then_some(f64::from(x.n) / f64::from(x.d)))
+            .collect::<Option<Vec<_>>>()?,
+        RawlerValue::Float(v) => v.iter().map(|&x| f64::from(x)).collect(),
+        RawlerValue::Double(v) => v.clone(),
+        RawlerValue::Ascii(_) => return None,
+    };
+    values.iter().all(|v| v.is_finite()).then_some(values)
+}
+
+fn rawler_bytes(value: &RawlerValue) -> Vec<u8> {
+    match value {
+        RawlerValue::Byte(v) | RawlerValue::Undefined(v) | RawlerValue::Unknown(_, v) => v.clone(),
+        _ => Vec::new(),
+    }
+}
+fn vec3(values: &[f64]) -> Option<[f64; 3]> {
+    let value: [f64; 3] = values.get(..3)?.try_into().ok()?;
+    value
+        .iter()
+        .all(|v| v.is_finite() && *v > 0.0)
+        .then_some(value)
+}
+
+fn matrix3x3(values: Vec<f64>) -> Option<fornax_core::metadata::Matrix3x3> {
+    let values: [f64; 9] = values.try_into().ok()?;
+    if values.iter().any(|v| !v.is_finite()) {
+        return None;
+    }
+    Some([
+        [values[0], values[1], values[2]],
+        [values[3], values[4], values[5]],
+        [values[6], values[7], values[8]],
+    ])
+}
+
+fn light_source_from_rawler(
+    illuminant: &rawler::imgop::xyz::Illuminant,
+) -> fornax_core::metadata::LightSource {
+    use fornax_core::metadata::LightSource;
+
+    match format!("{illuminant:?}").to_ascii_lowercase().as_str() {
+        "a" | "standardlighta" => LightSource::StandardLightA,
+        "b" | "standardlightb" => LightSource::StandardLightB,
+        "c" | "standardlightc" => LightSource::StandardLightC,
+        "d50" => LightSource::D50,
+        "d55" => LightSource::D55,
+        "d65" => LightSource::D65,
+        "d75" => LightSource::D75,
+        "daylight" => LightSource::Daylight,
+        "cloudy" | "cloudyweather" => LightSource::CloudyWeather,
+        "shade" => LightSource::Shade,
+        "tungsten" => LightSource::Tungsten,
+        "fluorescent" => LightSource::Fluorescent,
+        _ => LightSource::Unknown,
+    }
+}
 
 fn synthesize_dng_metadata(raw: &RawImage) -> Directory {
     let mut metadata = Directory::default();
