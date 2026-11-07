@@ -81,12 +81,12 @@ assert_logged_prefix() {
 run_validation 'AGENTS.md\n'
 
 assert_logged 'setup:root'
-assert_logged 'cargo:test --workspace --all-features --exclude compare-demosaic'
-assert_logged 'cargo:+nightly fmt --check'
-assert_logged 'cargo:doc --workspace --all-features --exclude compare-demosaic --no-deps'
+assert_logged 'cargo:-q test --workspace --all-features --exclude compare-demosaic'
+assert_logged 'cargo:+nightly fmt --check -q'
+assert_logged 'cargo:-q doc --workspace --all-features --exclude compare-demosaic --no-deps'
 assert_logged_prefix \
-    'cargo:clippy --workspace --all-features --all-targets --exclude compare-demosaic -- '
-assert_logged 'cargo:bench -p bench-decoder --no-run'
+    'cargo:-q clippy --workspace --all-features --all-targets --exclude compare-demosaic -- '
+assert_logged 'cargo:-q bench -p bench-decoder --no-run'
 assert_logged 'git:diff --check base --'
 
 if grep -Fq 'compare-demosaic' "$log_file" |
@@ -99,10 +99,10 @@ fi
 run_validation 'AGENTS.md\ncrates/compare-demosaic/src/lib.rs\n'
 
 assert_logged 'setup:compare'
-assert_logged 'cargo:doc --all-features -p compare-demosaic --no-deps'
+assert_logged 'cargo:-q doc --all-features -p compare-demosaic --no-deps'
 assert_logged_prefix \
-    'cargo:clippy --all-features --all-targets -p compare-demosaic -- '
-assert_logged 'cargo:test --all-features -p compare-demosaic'
+    'cargo:-q clippy --all-features --all-targets -p compare-demosaic -- '
+assert_logged 'cargo:-q test --all-features -p compare-demosaic'
 
 mkdir -p "$test_root/external/raw-images/images"
 touch "$test_root/external/raw-images/images/colorchart-5D2-6000K.dng"
@@ -110,7 +110,7 @@ touch "$test_root/external/raw-images/images/colorchart-5D2-6000K.dng"
 : >"$log_file"
 run_validation 'scripts/agent-validation.sh\n'
 
-assert_logged 'cargo:test --workspace --all-features --exclude compare-demosaic'
+assert_logged 'cargo:-q test --workspace --all-features --exclude compare-demosaic'
 
 if grep -Fxq 'setup:root' "$log_file"; then
     printf 'validation reran setup with an existing raw-image fixture\n' >&2
@@ -121,15 +121,15 @@ fi
 run_validation 'AGENTS.md\ncrates/compare-demosaic/src/lib.rs\n' --fix
 
 assert_logged_prefix \
-    'cargo:clippy --workspace --all-features --all-targets --fix --allow-dirty --allow-staged --exclude compare-demosaic -- '
+    'cargo:-q clippy --workspace --all-features --all-targets --fix --allow-dirty --allow-staged --exclude compare-demosaic -- '
 assert_logged_prefix \
-    'cargo:clippy --all-features --all-targets --fix --allow-dirty --allow-staged -p compare-demosaic -- '
-assert_logged 'cargo:+nightly fmt'
-assert_logged 'cargo:test --workspace --all-features --exclude compare-demosaic'
-assert_logged 'cargo:+nightly fmt --check'
+    'cargo:-q clippy --all-features --all-targets --fix --allow-dirty --allow-staged -p compare-demosaic -- '
+assert_logged 'cargo:+nightly fmt -q'
+assert_logged 'cargo:-q test --workspace --all-features --exclude compare-demosaic'
+assert_logged 'cargo:+nightly fmt --check -q'
 assert_logged_prefix \
-    'cargo:clippy --workspace --all-features --all-targets --exclude compare-demosaic -- '
-assert_logged 'cargo:test --all-features -p compare-demosaic'
+    'cargo:-q clippy --workspace --all-features --all-targets --exclude compare-demosaic -- '
+assert_logged 'cargo:-q test --all-features -p compare-demosaic'
 
 : >"$log_file"
 run_validation 'AGENTS.md\n' --docs-only

@@ -3,6 +3,14 @@
 //! The DNG-specific tile assembly and metadata decisions are documented in
 //! `docs/references/dng-lossless-jpeg.md`.
 
+use fornax_core::RawMosaic;
+use rayon::prelude::*;
+
+use crate::error::invalid;
+use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
+use crate::samples::{Geometry, chunk, mono};
+use crate::{CodecError, Predictor};
+
 const MARKER_PREFIX: u8 = 0xff;
 const MARKER_SOF3: u8 = 0xc3;
 const MARKER_DHT: u8 = 0xc4;
@@ -11,6 +19,182 @@ const MARKER_EOI: u8 = 0xd9;
 const MARKER_SOS: u8 = 0xda;
 const HUFFMAN_LOOKAHEAD_BITS: usize = 16;
 const HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << HUFFMAN_LOOKAHEAD_BITS;
+
+pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+    if request.sample_format != SampleFormat::Integer
+        || !(2..=16).contains(&request.bits_per_sample)
+    {
+        return Err(invalid("lossless JPEG requires 2-16-bit integer samples"));
+    }
+    if request.predictor != Predictor::None {
+        return Err(invalid(
+            "lossless JPEG prediction is encoded in the JPEG stream",
+        ));
+    }
+    let geometry = Geometry::new(
+        request.width,
+        request.height,
+        request.chunk_width,
+        request.chunk_height,
+        request.chunks.len(),
+    )?;
+    let sample_count = geometry
+        .width
+        .checked_mul(geometry.height)
+        .ok_or_else(|| invalid("lossless JPEG sample count overflow"))?;
+    let mut output = vec![0_u16; sample_count];
+    let expected_samples = geometry
+        .chunk_width
+        .checked_mul(geometry.chunk_height)
+        .ok_or_else(|| invalid("lossless JPEG tile sample count overflow"))?;
+    output
+        .par_chunks_mut(geometry.band_stride()?)
+        .enumerate()
+        .try_for_each(|(tile_y_index, band)| {
+            let mut decoded = vec![0_u16; expected_samples];
+            let tile_y = tile_y_index * geometry.chunk_height;
+            let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
+            for tile_x_index in 0..geometry.across {
+                let index = tile_y_index * geometry.across + tile_x_index;
+                let encoded = chunk(request.source, request.chunks[index])?;
+                let precision = u8::try_from(request.bits_per_sample)
+                    .expect("lossless JPEG precision is at most 16");
+                decode_into(
+                    encoded,
+                    geometry.chunk_width,
+                    geometry.chunk_height,
+                    precision,
+                    &mut decoded,
+                )
+                .map_err(|detail| invalid(format!("lossless JPEG tile {index}: {detail}")))?;
+                let tile_x = tile_x_index * geometry.chunk_width;
+                let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
+                for row in 0..copy_height {
+                    let source_start = row * geometry.chunk_width;
+                    let target_start = row * geometry.width + tile_x;
+                    band[target_start..target_start + copy_width]
+                        .copy_from_slice(&decoded[source_start..source_start + copy_width]);
+                }
+            }
+            Ok::<(), CodecError>(())
+        })?;
+
+    if request.bits_per_sample <= 8 {
+        let samples = output
+            .into_iter()
+            .map(|value| {
+                u8::try_from(value).map_err(|_| invalid("lossless JPEG sample exceeds u8 storage"))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        mono(geometry.width, geometry.height, samples).map(RawMosaic::U8)
+    } else {
+        mono(geometry.width, geometry.height, output).map(RawMosaic::U16)
+    }
+}
+
+pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+    if request.predictor != Predictor::None {
+        return Err(invalid(
+            "lossless JPEG prediction is selected by the encoder",
+        ));
+    }
+    let (width, height) = request.image.dimensions();
+    let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
+    let height = usize::try_from(height).expect("u32 fits usize on supported platforms");
+    let across = width.div_ceil(request.chunk_width.max(1));
+    let down = height.div_ceil(request.chunk_height.max(1));
+    let chunk_count = across
+        .checked_mul(down)
+        .ok_or_else(|| invalid("lossless JPEG chunk count overflow"))?;
+    let geometry = Geometry::new(
+        width,
+        height,
+        request.chunk_width,
+        request.chunk_height,
+        chunk_count,
+    )?;
+    let bits = match request.image {
+        RawMosaic::U8(_) => 8_u8,
+        RawMosaic::U16(_) => 16_u8,
+        _ => {
+            return Err(invalid("lossless JPEG encoding requires U8 or U16 samples"));
+        }
+    };
+    let width = u16::try_from(request.chunk_width)
+        .map_err(|_| invalid("lossless JPEG chunk width exceeds u16"))?;
+    let height = u16::try_from(request.chunk_height)
+        .map_err(|_| invalid("lossless JPEG chunk height exceeds u16"))?;
+    let mut tile = vec![0_u16; geometry.chunk_sample_count()?];
+    let mut chunks = Vec::with_capacity(chunk_count);
+    for tile_y_index in 0..geometry.down {
+        let tile_y = tile_y_index * geometry.chunk_height;
+        for tile_x_index in 0..geometry.across {
+            let tile_x = tile_x_index * geometry.chunk_width;
+            copy_tile_into(
+                request.image,
+                geometry.width,
+                geometry.height,
+                tile_x,
+                tile_y,
+                geometry.chunk_width,
+                geometry.chunk_height,
+                &mut tile,
+            );
+            let index = tile_y_index * geometry.across + tile_x_index;
+            chunks.push(
+                encode_tile(&tile, width, height, bits)
+                    .map_err(|detail| invalid(format!("lossless JPEG chunk {index}: {detail}")))?,
+            );
+        }
+    }
+    Ok(EncodedChunks { chunks })
+}
+
+fn copy_tile_into(
+    image: &RawMosaic,
+    source_width: usize,
+    source_height: usize,
+    tile_x: usize,
+    tile_y: usize,
+    tile_width: usize,
+    tile_height: usize,
+    output: &mut [u16],
+) {
+    debug_assert_eq!(output.len(), tile_width * tile_height);
+    let copy_width = tile_width.min(source_width - tile_x);
+    let copy_height = tile_height.min(source_height - tile_y);
+    if copy_width != tile_width || copy_height != tile_height {
+        output.fill(0);
+    }
+
+    match image {
+        RawMosaic::U8(samples) => {
+            let samples = samples.as_raw();
+            for row in 0..copy_height {
+                let source_start = (tile_y + row) * source_width + tile_x;
+                let target_start = row * tile_width;
+                for (target, sample) in output[target_start..target_start + copy_width]
+                    .iter_mut()
+                    .zip(&samples[source_start..source_start + copy_width])
+                {
+                    *target = u16::from(*sample);
+                }
+            }
+        }
+        RawMosaic::U16(samples) => {
+            let samples = samples.as_raw();
+            for row in 0..copy_height {
+                let source_start = (tile_y + row) * source_width + tile_x;
+                let target_start = row * tile_width;
+                output[target_start..target_start + copy_width]
+                    .copy_from_slice(&samples[source_start..source_start + copy_width]);
+            }
+        }
+        RawMosaic::U32(_) | RawMosaic::F32(_) => {
+            unreachable!("the encoder validates that samples are U8 or U16")
+        }
+    }
+}
 
 #[derive(Clone, Copy)]
 struct Component {
@@ -204,7 +388,7 @@ impl<'a> HeaderReader<'a> {
     }
 }
 
-pub(super) fn decode_into(
+fn decode_into(
     source: &[u8],
     expected_width: usize,
     expected_height: usize,
@@ -544,9 +728,140 @@ fn add_prediction(
     )
 }
 
+const HUFFMAN_BITS: u8 = 5;
+
+fn encode_tile(samples: &[u16], width: u16, height: u16, bits: u8) -> Result<Vec<u8>, String> {
+    if !(2..=16).contains(&bits) {
+        return Err(format!("lossless JPEG bit depth {bits} is invalid"));
+    }
+    let expected = usize::from(width)
+        .checked_mul(usize::from(height))
+        .ok_or_else(|| "lossless JPEG tile size overflow".to_owned())?;
+    if samples.len() != expected {
+        return Err(format!(
+            "lossless JPEG input has {} samples, expected {expected}",
+            samples.len()
+        ));
+    }
+
+    let mut encoded = Vec::with_capacity(samples.len() * 2);
+    write_marker(&mut encoded, MARKER_SOI);
+    write_marker(&mut encoded, MARKER_SOF3);
+    push_u16(&mut encoded, 11);
+    encoded.push(bits);
+    push_u16(&mut encoded, height);
+    push_u16(&mut encoded, width);
+    encoded.extend_from_slice(&[1, 1, 0x11, 0]);
+
+    write_marker(&mut encoded, MARKER_DHT);
+    push_u16(&mut encoded, 36);
+    encoded.push(0);
+    encoded.extend_from_slice(&[0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    encoded.extend(0_u8..=16);
+
+    write_marker(&mut encoded, MARKER_SOS);
+    push_u16(&mut encoded, 8);
+    encoded.extend_from_slice(&[1, 1, 0, 1, 0, 0]);
+
+    let modulus = 1_i32 << bits;
+    let half = modulus >> 1;
+    let initial = half as u16;
+    let mut writer = BitWriter::new(&mut encoded);
+    for row in 0..usize::from(height) {
+        for column in 0..usize::from(width) {
+            let index = row * usize::from(width) + column;
+            let prediction = if index == 0 {
+                initial
+            } else if column == 0 {
+                samples[index - usize::from(width)]
+            } else {
+                samples[index - 1]
+            };
+            let raw_difference = i32::from(samples[index]) - i32::from(prediction);
+            let difference = (raw_difference + half).rem_euclid(modulus) - half;
+            let category = if difference == 0 {
+                0
+            } else {
+                difference.unsigned_abs().ilog2() + 1
+            };
+            let category = u8::try_from(category).expect("lossless JPEG category is at most 16");
+            writer.write(u32::from(category), HUFFMAN_BITS);
+            if category != 0 && category != 16 {
+                let value = if difference < 0 {
+                    difference + ((1_i32 << category) - 1)
+                } else {
+                    difference
+                };
+                writer.write(
+                    u32::try_from(value).expect("lossless JPEG amplitude is non-negative"),
+                    category,
+                );
+            }
+        }
+    }
+    writer.finish();
+    write_marker(&mut encoded, MARKER_EOI);
+    Ok(encoded)
+}
+
+fn write_marker(encoded: &mut Vec<u8>, marker: u8) {
+    encoded.extend_from_slice(&[MARKER_PREFIX, marker]);
+}
+
+fn push_u16(encoded: &mut Vec<u8>, value: u16) { encoded.extend_from_slice(&value.to_be_bytes()); }
+
+struct BitWriter<'a> {
+    encoded: &'a mut Vec<u8>,
+    buffer: u64,
+    used: u8,
+}
+
+impl<'a> BitWriter<'a> {
+    const fn new(encoded: &'a mut Vec<u8>) -> Self {
+        Self {
+            encoded,
+            buffer: 0,
+            used: 0,
+        }
+    }
+
+    fn write(&mut self, value: u32, bits: u8) {
+        if bits == 0 {
+            return;
+        }
+        let mask = (1_u64 << bits) - 1;
+        self.buffer = (self.buffer << bits) | (u64::from(value) & mask);
+        self.used += bits;
+        while self.used >= 8 {
+            self.used -= 8;
+            self.flush_byte((self.buffer >> self.used) as u8);
+        }
+        if self.used == 0 {
+            self.buffer = 0;
+        } else {
+            self.buffer &= (1_u64 << self.used) - 1;
+        }
+    }
+
+    fn finish(&mut self) {
+        while self.used != 0 {
+            self.write(1, 1);
+        }
+    }
+
+    fn flush_byte(&mut self, byte: u8) {
+        self.encoded.push(byte);
+        if byte == MARKER_PREFIX {
+            self.encoded.push(0);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{BitReader, add_prediction, predict};
+    use fornax_core::{MonoImage, RawMosaic};
+
+    use super::{BitReader, BitWriter, add_prediction, copy_tile_into, predict};
 
     #[test]
     fn fourteen_bit_difference_class_consumes_amplitude_bits() {
@@ -568,5 +883,36 @@ mod tests {
         assert_eq!(predict(&output, 3, 1, 1, 0, 1, 5), 18);
         assert_eq!(predict(&output, 3, 1, 1, 0, 1, 6), 23);
         assert_eq!(predict(&output, 3, 1, 1, 0, 1, 7), 15);
+    }
+
+    #[test]
+    fn tile_copy_extracts_u8_and_u16_partial_edges() {
+        let u8_image = RawMosaic::U8(MonoImage::from_raw(5, 3, (0_u8..15).collect()).unwrap());
+        let mut u8_tile = vec![0_u16; 8];
+        copy_tile_into(&u8_image, 5, 3, 4, 1, 4, 2, &mut u8_tile);
+        assert_eq!(u8_tile, vec![9, 0, 0, 0, 14, 0, 0, 0]);
+
+        let u16_image = RawMosaic::U16(
+            MonoImage::from_raw(5, 3, (0_u16..15).map(|value| value * 1_000).collect()).unwrap(),
+        );
+        let mut u16_tile = vec![0_u16; 8];
+        copy_tile_into(&u16_image, 5, 3, 4, 1, 4, 2, &mut u16_tile);
+        assert_eq!(u16_tile, vec![9_000, 0, 0, 0, 14_000, 0, 0, 0]);
+    }
+
+    #[test]
+    fn bit_writer_preserves_packed_bytes_padding_and_stuffing() {
+        let mut encoded = Vec::new();
+        let mut writer = BitWriter::new(&mut encoded);
+        writer.write(0b101, 3);
+        writer.write(0x1ff, 9);
+        writer.finish();
+        assert_eq!(encoded, [0xbf, 0xff, 0x00]);
+
+        let mut encoded = Vec::new();
+        let mut writer = BitWriter::new(&mut encoded);
+        writer.write(0x1234, 16);
+        writer.finish();
+        assert_eq!(encoded, [0x12, 0x34]);
     }
 }

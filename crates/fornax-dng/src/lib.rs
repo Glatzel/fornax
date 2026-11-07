@@ -1,7 +1,6 @@
-//! DNG container, metadata, codecs, transforms, and writing.
+//! DNG container, metadata, transforms, and writing.
 
 pub(crate) mod dng_decoder;
-mod ljpeg_writer;
 pub mod metadata;
 pub mod writer;
 
