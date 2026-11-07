@@ -2,19 +2,19 @@ version: 7
 platforms:
 - name: linux-64
   virtual-packages:
-  - __unix=0
+  - __unix=0=0
   - __linux=4.18
   - __glibc=2.28
   - __archspec=0=x86_64
 - name: linux-aarch64
   virtual-packages:
-  - __unix=0
+  - __unix=0=0
   - __linux=4.18
   - __glibc=2.28
   - __archspec=0=aarch64
 - name: osx-arm64
   virtual-packages:
-  - __unix=0
+  - __unix=0=0
   - __osx=13.0
   - __archspec=0=m1
 - name: win-64
@@ -22,94 +22,6 @@ platforms:
   - __win=10.0
   - __archspec=0=x86_64
 environments:
-  agent:
-    channels:
-    - url: https://prefix.dev/glatzel/
-    - url: https://conda.anaconda.org/conda-forge/
-    packages:
-      linux-64:
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/fontconfig-2.18.3-h4db4eae_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.9.0-hd2095e1_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libfreetype-2.14.3-ha770c72_2.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libfreetype6-2.14.3-h5e6c136_2.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-16.2.0-ha9f2e26_7.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-16.2.0-he0feb66_7.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libpng-1.6.59-h922cc85_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-16.2.0-h934c35e_7.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libuuid-2.42.4-hcfc3c73_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/libzlib-1.3.2-h25fd6f3_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/font-ttf-dejavu-sans-mono-2.37-hab24e00_0.tar.bz2
-      - conda: https://conda.anaconda.org/conda-forge/noarch/font-ttf-inconsolata-3.000-h77eed37_0.tar.bz2
-      - conda: https://conda.anaconda.org/conda-forge/noarch/font-ttf-source-code-pro-2.038-h77eed37_0.tar.bz2
-      - conda: https://conda.anaconda.org/conda-forge/noarch/font-ttf-ubuntu-0.83-h77eed37_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-ecosystem-1-0.tar.bz2
-      - conda: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-hc364b38_1.conda
-      - conda: https://prefix.dev/glatzel/linux-64/codex-glatzel-0.0.11-hb0f4dca_0.conda
-      - conda: https://prefix.dev/glatzel/linux-64/moli-1.1.22-h9443d4b_0.conda
-      - conda: https://prefix.dev/glatzel/linux-64/rtk-1.1.0-hf804674_1.conda
-      - conda: https://prefix.dev/glatzel/linux-64/xerj-1.0.0-h9443d4b_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-ast-grep-0.51.1-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-duckdb-2.0.0-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.4-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-moli-1.1.22-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-superpowers-7.0.2-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-xerj-1.0.0-h4616a5c_0.conda
-      linux-aarch64:
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/fontconfig-2.18.3-ha4b22b4_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libexpat-2.9.0-h4154aff_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libfreetype-2.14.3-h8af1aa0_2.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libfreetype6-2.14.3-h9cc7050_2.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgcc-16.2.0-h205dda4_7.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgomp-16.2.0-h8acb6b2_7.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libpng-1.6.59-hf9b7768_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libstdcxx-16.2.0-hef695bb_7.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libuuid-2.42.4-hd6fdeab_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libzlib-1.3.2-hdc9db2a_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/font-ttf-dejavu-sans-mono-2.37-hab24e00_0.tar.bz2
-      - conda: https://conda.anaconda.org/conda-forge/noarch/font-ttf-inconsolata-3.000-h77eed37_0.tar.bz2
-      - conda: https://conda.anaconda.org/conda-forge/noarch/font-ttf-source-code-pro-2.038-h77eed37_0.tar.bz2
-      - conda: https://conda.anaconda.org/conda-forge/noarch/font-ttf-ubuntu-0.83-h77eed37_3.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-ecosystem-1-0.tar.bz2
-      - conda: https://conda.anaconda.org/conda-forge/noarch/fonts-conda-forge-1-hc364b38_1.conda
-      - conda: https://prefix.dev/glatzel/linux-aarch64/codex-glatzel-0.0.11-he8cfe8b_0.conda
-      - conda: https://prefix.dev/glatzel/linux-aarch64/moli-1.1.22-hea2659c_0.conda
-      - conda: https://prefix.dev/glatzel/linux-aarch64/rtk-1.1.0-hded5707_1.conda
-      - conda: https://prefix.dev/glatzel/linux-aarch64/xerj-1.0.0-hea2659c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-ast-grep-0.51.1-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-duckdb-2.0.0-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.4-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-moli-1.1.22-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-superpowers-7.0.2-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-xerj-1.0.0-h4616a5c_0.conda
-      osx-arm64:
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-23.1.5-h55c6f16_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-ast-grep-0.51.1-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-duckdb-2.0.0-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.4-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-moli-1.1.22-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-superpowers-7.0.2-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-xerj-1.0.0-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/osx-arm64/codex-glatzel-0.0.11-ha646cdb_0.conda
-      - conda: https://prefix.dev/glatzel/osx-arm64/moli-1.1.22-h4d88d0a_0.conda
-      - conda: https://prefix.dev/glatzel/osx-arm64/rtk-1.1.0-h8f394ba_1.conda
-      - conda: https://prefix.dev/glatzel/osx-arm64/xerj-1.0.0-h4d88d0a_0.conda
-      win-64:
-      - conda: https://conda.anaconda.org/conda-forge/win-64/ucrt-10.0.26100.0-h57928b3_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/vc-14.5-ha367084_42.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/vc14_runtime-14.51.36247-habf1de7_42.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/vcomp14-14.51.36247-habf1de7_42.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-ast-grep-0.51.1-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-duckdb-2.0.0-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.4-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-moli-1.1.22-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-superpowers-7.0.2-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/noarch/skill-xerj-1.0.0-h4616a5c_0.conda
-      - conda: https://prefix.dev/glatzel/win-64/codex-glatzel-0.0.11-h9490d1a_0.conda
-      - conda: https://prefix.dev/glatzel/win-64/moli-1.1.22-h74705b7_0.conda
-      - conda: https://prefix.dev/glatzel/win-64/rtk-1.1.0-hf6e5eb2_1.conda
-      - conda: https://prefix.dev/glatzel/win-64/xerj-1.0.0-h74705b7_0.conda
   book:
     channels:
     - url: https://prefix.dev/glatzel/
@@ -7561,16 +7473,6 @@ packages:
     - zstd >=1.5.7,<1.6.0a0
   size: 387535
   timestamp: 1786599623274
-- conda: https://prefix.dev/glatzel/linux-64/codex-glatzel-0.0.11-hb0f4dca_0.conda
-  sha256: 6ee7557eff9049d54d00deeb3bc990b4168207cda519824728a8e28ce9719024
-  md5: be460b309a9fc1212f6081834ead686d
-  depends:
-  - rtk
-  - xerj
-  - moli
-  run_exports: {}
-  size: 20184
-  timestamp: 1794042420230
 - conda: https://prefix.dev/glatzel/linux-64/libraw-dev-0.22.3-h873e7db_0.conda
   sha256: f19eab38cc95862b3bbeb6e793e6676af6e460fb1176da1cbbba8f249fd6563f
   md5: e6aeb83b23286ec0ee2b4dedb629ac01
@@ -7606,56 +7508,6 @@ packages:
     - libraw-rt >=0.22.3,<0.23.0a0
   size: 515850
   timestamp: 1793026702755
-- conda: https://prefix.dev/glatzel/linux-64/moli-1.1.22-h9443d4b_0.conda
-  sha256: 0f812f6395809f2edbb60054d76ca6cb9d04f954bcad720b751f6c2b5ffd756d
-  md5: f4e14adaf4c38acc22290de87174ec84
-  depends:
-  - libstdcxx >=14
-  - libgcc >=14
-  - __glibc >=2.28,<3.0.a0
-  - libfreetype >=2.14.3
-  - libfreetype6 >=2.14.3
-  - libexpat >=2.9.0,<3.0a0
-  - fontconfig >=2.18.3,<3.0a0
-  - fonts-conda-ecosystem
-  constrains:
-  - __glibc >=2.17
-  run_exports: {}
-  size: 35475884
-  timestamp: 1794008624603
-- conda: https://prefix.dev/glatzel/linux-64/rtk-1.1.0-hf804674_1.conda
-  sha256: 64f78f62cf98c6dad6467015a3ebc881803620507bc16d3e7735c8a43a893fc5
-  md5: c969e23b87813f3bb9d7aea90054b100
-  depends:
-  - libgcc >=14
-  - __glibc >=2.28,<3.0.a0
-  constrains:
-  - __glibc >=2.17
-  run_exports: {}
-  size: 5228354
-  timestamp: 1793507174886
-- conda: https://prefix.dev/glatzel/linux-64/xerj-1.0.0-h9443d4b_0.conda
-  sha256: e1745a271e2a8fdc84eeab845d35772057937c20bfa4120240b722257f9f4275
-  md5: 09bd67f0c6ad3b4be88b253839f9494c
-  depends:
-  - libgcc >=14
-  - libstdcxx >=14
-  - __glibc >=2.28,<3.0.a0
-  constrains:
-  - __glibc >=2.17
-  run_exports: {}
-  size: 22647991
-  timestamp: 1793594386353
-- conda: https://prefix.dev/glatzel/linux-aarch64/codex-glatzel-0.0.11-he8cfe8b_0.conda
-  sha256: 731aa4ad53528703a6a70f32c44bb8deddb404e933ff9990fb23eb1bc21707a3
-  md5: dcf6cae9b54a151e39ea45f36f7c5b3b
-  depends:
-  - rtk
-  - xerj
-  - moli
-  run_exports: {}
-  size: 20171
-  timestamp: 1794042424257
 - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-dev-0.22.3-h47ec6e6_0.conda
   sha256: facd4ef6c24942c068bed972c8e853c7ee88f768a5f83b537d0cef43fcd78885
   md5: af01c0d259938b8535c33f3a96615f95
@@ -7691,98 +7543,6 @@ packages:
     - libraw-rt >=0.22.3,<0.23.0a0
   size: 496064
   timestamp: 1793026699774
-- conda: https://prefix.dev/glatzel/linux-aarch64/moli-1.1.22-hea2659c_0.conda
-  sha256: 64d73eba45eedaa15c4420df7f39986f5e960c9d3f284bf24a2c0009f25d1037
-  md5: e7c662f797772c66fa1c14875d662352
-  depends:
-  - __glibc >=2.28,<3.0.a0
-  - libstdcxx >=14
-  - libgcc >=14
-  - libexpat >=2.9.0,<3.0a0
-  - fontconfig >=2.18.3,<3.0a0
-  - fonts-conda-ecosystem
-  - libfreetype >=2.14.3
-  - libfreetype6 >=2.14.3
-  constrains:
-  - __glibc >=2.17
-  run_exports: {}
-  size: 33989616
-  timestamp: 1794008621579
-- conda: https://prefix.dev/glatzel/linux-aarch64/rtk-1.1.0-hded5707_1.conda
-  sha256: 00aa99ebaceebf7e0b6fc51b6f0a74dc9426f1ade281df46fb1f5e25f3cb22f4
-  md5: 997e63afc3baeed683d6c3124dff6695
-  depends:
-  - __glibc >=2.28,<3.0.a0
-  - libgcc >=14
-  constrains:
-  - __glibc >=2.17
-  run_exports: {}
-  size: 5112066
-  timestamp: 1793507177675
-- conda: https://prefix.dev/glatzel/linux-aarch64/xerj-1.0.0-hea2659c_0.conda
-  sha256: 36f8c03c2871891164b85437c7dcb00a87f67a9bb1e91e7d92b9358f507de58b
-  md5: ce6533bd7a72e42bd1283fbe1dd3d806
-  depends:
-  - libstdcxx >=14
-  - libgcc >=14
-  - __glibc >=2.28,<3.0.a0
-  constrains:
-  - __glibc >=2.17
-  run_exports: {}
-  size: 22390509
-  timestamp: 1793594385645
-- conda: https://prefix.dev/glatzel/noarch/skill-ast-grep-0.51.1-h4616a5c_0.conda
-  sha256: 79edf88945befecfad7c59ebcc2db88cd6e3ea4207d671b253516a5c2e0d0853
-  md5: 88b0940453bb9fb5f7cff9ff6a7df5a8
-  run_exports: {}
-  size: 10610
-  timestamp: 1793613583820
-- conda: https://prefix.dev/glatzel/noarch/skill-duckdb-2.0.0-h4616a5c_0.conda
-  sha256: ff593a3ba977bc0b6b53699a777852a09c9966f11fda002db69dca7ae7133287
-  md5: 33b59594eb513e6a32be5b4d6fa8be1a
-  run_exports: {}
-  size: 19822
-  timestamp: 1793613586587
-- conda: https://prefix.dev/glatzel/noarch/skill-glatzel-0.0.4-h4616a5c_0.conda
-  sha256: fe6a65b3553ee7f6482cd897e5ffd4485e0423f2d21fd613cfdadd70e650b562
-  md5: 891c5197a0aaad5f045e420ef45dbc61
-  depends:
-  - skill-ast-grep
-  - skill-duckdb
-  - skill-moli
-  - skill-superpowers
-  - skill-xerj
-  run_exports: {}
-  size: 19870
-  timestamp: 1793613583510
-- conda: https://prefix.dev/glatzel/noarch/skill-moli-1.1.22-h4616a5c_0.conda
-  sha256: 5428e49c56b5c2e7679dc8dbd703023882303a9726a116fb0df02976e40f1df4
-  md5: d656c071a50acd34eec08b948c3f1257
-  run_exports: {}
-  size: 35918
-  timestamp: 1794008805461
-- conda: https://prefix.dev/glatzel/noarch/skill-superpowers-7.0.2-h4616a5c_0.conda
-  sha256: b0492e87dae4955ca8006b541de89270cadc1912654846228c8a8e16e2135552
-  md5: 10793f83eb7a4da18ba5b88631a66295
-  run_exports: {}
-  size: 137292
-  timestamp: 1793753964036
-- conda: https://prefix.dev/glatzel/noarch/skill-xerj-1.0.0-h4616a5c_0.conda
-  sha256: 3d9b1954fef5fbbddf2fbfb294ea36c4b99fadb6af68d247e8e779b4e092e99e
-  md5: d81b0ad6b346781d6f698e6d48587722
-  run_exports: {}
-  size: 30750
-  timestamp: 1793613583673
-- conda: https://prefix.dev/glatzel/osx-arm64/codex-glatzel-0.0.11-ha646cdb_0.conda
-  sha256: 9f5c9f38fe92e56135c39ddcc874e60c94fbf3037a514dc2916beadb0a2d5ae1
-  md5: 762984ec93e40bf811a2bcd4a0c59e7c
-  depends:
-  - rtk
-  - xerj
-  - moli
-  run_exports: {}
-  size: 19633
-  timestamp: 1794042424735
 - conda: https://prefix.dev/glatzel/osx-arm64/libraw-dev-0.22.3-hb33852e_0.conda
   sha256: 614e3a9421fcc89b0644646c4846e1dfdccbe4ff371df19fbf45a8390f48ee14
   md5: 22f7613473f25b9cf41af3c37cf832a0
@@ -7818,54 +7578,12 @@ packages:
     - libraw-rt >=0.22.3,<0.23.0a0
   size: 442299
   timestamp: 1793026691881
-- conda: https://prefix.dev/glatzel/osx-arm64/moli-1.1.22-h4d88d0a_0.conda
-  sha256: 596bfacac909334f8c1d17295da5129cfe5906c7dfb88d9a9e4014ff371a1a78
-  md5: 9b415254696f38e721569325b3a66efc
-  depends:
-  - __osx >=11.0
-  - libcxx >=19
-  constrains:
-  - __osx >=11.0
-  run_exports: {}
-  size: 30236013
-  timestamp: 1794008614172
-- conda: https://prefix.dev/glatzel/osx-arm64/rtk-1.1.0-h8f394ba_1.conda
-  sha256: 2beaa96efc7e4f725da41da7385b6454dae03b844ff71049dae5b590ae689de2
-  md5: f65b700ee6a2b75e672dff64a440f9f7
-  depends:
-  - __osx >=11.0
-  constrains:
-  - __osx >=11.0
-  run_exports: {}
-  size: 4652134
-  timestamp: 1793507167434
-- conda: https://prefix.dev/glatzel/osx-arm64/xerj-1.0.0-h4d88d0a_0.conda
-  sha256: a3d6f9aaed2b6aee06ec4130b3b82a6ef626b16aeedc65cb3218f3340359a9be
-  md5: 4aba49848cc113825688c7bc06150084
-  depends:
-  - libcxx >=19
-  - __osx >=11.0
-  constrains:
-  - __osx >=11.0
-  run_exports: {}
-  size: 19988900
-  timestamp: 1793594372115
 - conda: https://prefix.dev/glatzel/win-64/aria2-1.37.0-h9490d1a_7.conda
   sha256: 610ee935ecf18170555e1deaeb1b171b57a968f9a15d8b265c5da6240cf70c1f
   license: GPL-2.0-or-later
   run_exports: {}
   size: 2262694
   timestamp: 1759287796171
-- conda: https://prefix.dev/glatzel/win-64/codex-glatzel-0.0.11-h9490d1a_0.conda
-  sha256: 8266f667fdfccedee200dceecdf111e28453678326dc8f336eb10d446b0bb8a1
-  md5: 0ffa4e54eb781314841f904310654e0b
-  depends:
-  - rtk
-  - xerj
-  - moli
-  run_exports: {}
-  size: 20341
-  timestamp: 1794042431059
 - conda: https://prefix.dev/glatzel/win-64/libraw-dev-0.22.3-h7e360f0_0.conda
   sha256: 97ca7e4b9021feeda94db1c235ffe4d38d1e8ec188d052f1d8c35d4f650ea347
   md5: be2a2b8a8bcdb690e4f4b11ab39b0986
@@ -7901,33 +7619,3 @@ packages:
     - libraw-rt >=0.22.3,<0.23.0a0
   size: 439957
   timestamp: 1793026695593
-- conda: https://prefix.dev/glatzel/win-64/moli-1.1.22-h74705b7_0.conda
-  sha256: 424d373800688fe9f4aa8b9a9a034a1cb74642ac39da0782dc5b247164fb7983
-  md5: e04cf4a3a1bff5a1c7f8cf6c658c007b
-  depends:
-  - vc >=14.5,<15
-  - vc14_runtime >=14.51.36247
-  - ucrt >=10.0.20348.0
-  run_exports: {}
-  size: 33624176
-  timestamp: 1794008619817
-- conda: https://prefix.dev/glatzel/win-64/rtk-1.1.0-hf6e5eb2_1.conda
-  sha256: a3c879f9ef1c69d0457f6b859abc5c722b7eea2fe22b6c45c587ec5664da4d7a
-  md5: 49392bc2f4dcf5b2c91cf509f672ebac
-  depends:
-  - vc >=14.5,<15
-  - vc14_runtime >=14.51.36247
-  - ucrt >=10.0.20348.0
-  run_exports: {}
-  size: 5545625
-  timestamp: 1793507170241
-- conda: https://prefix.dev/glatzel/win-64/xerj-1.0.0-h74705b7_0.conda
-  sha256: e86a093e50e490e218b1e580dcdf4e52b101e3e64de0182bf90d3322083d51f3
-  md5: 0716f3b2b4f358b2c7d0e11d0cfdc2a0
-  depends:
-  - vc >=14.5,<15
-  - vc14_runtime >=14.51.36247
-  - ucrt >=10.0.20348.0
-  run_exports: {}
-  size: 21906318
-  timestamp: 1793594377311
