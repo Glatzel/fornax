@@ -269,8 +269,12 @@ mod tests {
         }
     }
 
+    /// `as_shot_neutral = [1, 1, 1]` means "no white balance": the camera's
+    /// (1, 1, 1) is the scene white. Without it the as-shot white falls back
+    /// to an assumed D65, and the pipeline (correctly) balances to that.
     fn single_profile(profile: RawProfile) -> RawColorMeta {
         RawColorMeta {
+            as_shot_neutral: Some([1.0; 3]),
             profiles: vec![RawProfile {
                 illuminant: Some(LightSource::D65),
                 ..profile
