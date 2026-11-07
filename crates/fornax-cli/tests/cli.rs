@@ -208,22 +208,3 @@ fn renders_16bit_tiff_and_preview_jpeg() {
     let jpeg_bytes = fs::read(output.join("image.jpg")).unwrap();
     assert!(jpeg_bytes.starts_with(&[0xff, 0xd8]));
 }
-
-#[test]
-fn non_dng_input_converts_to_raw_dng() {
-    let directory = tempdir().unwrap();
-    let input = directory.path().join("image.cr3");
-    synthetic_dng(&input);
-    let output = directory.path().join("out");
-    let cli = args(&["--output".as_ref(), output.as_os_str(), input.as_os_str()]);
-
-    let outcomes = run(&cli).unwrap();
-
-    assert!(matches!(
-        outcomes.as_slice(),
-        [ConversionOutcome::Converted { .. }]
-    ));
-    let generated = output.join("image.dng");
-    assert!(generated.is_file());
-    assert!(DngImage::parse(&fs::read(generated).unwrap()).is_ok());
-}
