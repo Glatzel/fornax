@@ -12,7 +12,6 @@ use fornax_tiff::{Directory, ParsedTiff, Tag, Value};
 use generic_num::num;
 use image::math::Rect;
 use process_metadata::process_metadata_from_dng_metadata;
-pub use process_metadata::raw_color_metadata;
 use rayon::prelude::*;
 
 use crate::metadata::DngTag;

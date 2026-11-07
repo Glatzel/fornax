@@ -49,8 +49,7 @@ pub fn process_metadata_from_dng_metadata(
 }
 
 /// Maps raw DNG color tags into the decoder-facing color model.
-#[doc(hidden)]
-pub fn raw_color_metadata(dng_metadata: &Directory) -> Result<RawColorMeta, DecodeError> {
+fn raw_color_metadata(dng_metadata: &Directory) -> Result<RawColorMeta, DecodeError> {
     let mut profiles = vec![
         color_profile(
             dng_metadata,

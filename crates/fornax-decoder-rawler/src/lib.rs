@@ -267,38 +267,10 @@ where
         let bayer_pattern = BayerPattern::from_str(&cfa.name)
             .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?
             .shifted(active_area.x, active_area.y);
-        let color_calibration = {
-            let mut raw_color = fornax_dng::raw_color_metadata(&synthesize_dng_metadata(raw))?;
-            let has_dng_as_shot_neutral =
-                raw.dng_tags.contains_key(&u16::from(DngTag::AsShotNeutral));
-            let valid_as_shot_neutral = raw_color.as_shot_neutral.is_some_and(|neutral| {
-                neutral
-                    .iter()
-                    .all(|value| value.is_finite() && *value > 0.0)
-            });
-            if !has_dng_as_shot_neutral || !valid_as_shot_neutral {
-                raw_color.as_shot_neutral = None;
-                let neutral = raw.neutralwb();
-                if neutral[..3]
-                    .iter()
-                    .all(|value| value.is_finite() && *value > 0.0)
-                {
-                    raw_color.as_shot_neutral = Some([
-                        f64::from(neutral[0]),
-                        f64::from(neutral[1]),
-                        f64::from(neutral[2]),
-                    ]);
-                } else {
-                    let [r, g, b, _] = raw.wb_coeffs;
-                    if [r, g, b]
-                        .iter()
-                        .all(|value| value.is_finite() && *value > 0.0)
-                    {
-                        raw_color.maker_gains = Some((f64::from(r / g), f64::from(b / g)));
-                    }
-                }
-            }
-            ColorCalibration::new(raw_color)
+        let color_calibration = { 
+            
+            todo!() 
+            
         };
 
         Ok(ProcessMetadata {
