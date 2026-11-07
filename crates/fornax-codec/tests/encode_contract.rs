@@ -89,6 +89,21 @@ fn uncompressed_u16_round_trips_partial_chunks() {
 }
 
 #[test]
+fn uncompressed_full_image_returns_one_exact_chunk() {
+    let image =
+        RawMosaic::U16(MonoImage::from_raw(2, 2, vec![0x0102, 0x0304, 0xabcd, 0xff00]).unwrap());
+    let mut request = request(&image, 2, 2, Predictor::None);
+    request.byte_order = ByteOrder::Big;
+
+    let encoded = encode(Compression::Uncompressed, &request).unwrap();
+
+    assert_eq!(
+        encoded.chunks,
+        vec![vec![0x01, 0x02, 0x03, 0x04, 0xab, 0xcd, 0xff, 0x00]]
+    );
+}
+
+#[test]
 fn uncompressed_float_round_trips_exact_bits() {
     let expected = vec![-1.5_f32, 0.25, 100.0, f32::from_bits(0x7fc0_1234)];
     let image = RawMosaic::F32(MonoImage::from_raw(2, 2, expected.clone()).unwrap());
@@ -218,6 +233,36 @@ fn lossless_jpeg_round_trips_u8_and_u16() {
         .unwrap();
         let (source, chunks) = source_and_chunks(encoded);
         let request = decode_request(&source, &chunks, 4, 2, 4, 2, bits, format, Predictor::None);
+        assert_eq!(decode(Compression::LosslessJpeg, &request).unwrap(), image);
+    }
+}
+
+#[test]
+fn lossless_jpeg_round_trips_partial_edge_tiles() {
+    for (image, bits, format) in [
+        (
+            RawMosaic::U8(MonoImage::from_raw(5, 3, (0_u8..15).collect()).unwrap()),
+            8,
+            SampleFormat::Integer,
+        ),
+        (
+            RawMosaic::U16(
+                MonoImage::from_raw(5, 3, (0_u16..15).map(|value| value * 1_000).collect())
+                    .unwrap(),
+            ),
+            16,
+            SampleFormat::Integer,
+        ),
+    ] {
+        let encoded = encode(
+            Compression::LosslessJpeg,
+            &request(&image, 4, 2, Predictor::None),
+        )
+        .unwrap();
+        assert_eq!(encoded.chunks.len(), 4);
+
+        let (source, chunks) = source_and_chunks(encoded);
+        let request = decode_request(&source, &chunks, 5, 3, 4, 2, bits, format, Predictor::None);
         assert_eq!(decode(Compression::LosslessJpeg, &request).unwrap(), image);
     }
 }

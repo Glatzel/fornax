@@ -6,9 +6,8 @@
 use fornax_core::RawMosaic;
 use rayon::prelude::*;
 
-use crate::encode::encode_image;
 use crate::error::invalid;
-use crate::request::{ByteOrder, DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
+use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
 use crate::samples::{Geometry, chunk, mono};
 use crate::{CodecError, ICodecDecode, ICodecEncode, Predictor};
 
@@ -116,11 +115,20 @@ impl ICodecEncode for LosslessJpegCodec {
                 "lossless JPEG prediction is selected by the encoder",
             ));
         }
-        let encoded = encode_image(
-            request.image,
+        let (width, height) = request.image.dimensions();
+        let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
+        let height = usize::try_from(height).expect("u32 fits usize on supported platforms");
+        let across = width.div_ceil(request.chunk_width.max(1));
+        let down = height.div_ceil(request.chunk_height.max(1));
+        let chunk_count = across
+            .checked_mul(down)
+            .ok_or_else(|| invalid("lossless JPEG chunk count overflow"))?;
+        let geometry = Geometry::new(
+            width,
+            height,
             request.chunk_width,
             request.chunk_height,
-            request.byte_order,
+            chunk_count,
         )?;
         let bits = match request.image {
             RawMosaic::U8(_) => 8_u8,
@@ -133,27 +141,77 @@ impl ICodecEncode for LosslessJpegCodec {
             .map_err(|_| invalid("lossless JPEG chunk width exceeds u16"))?;
         let height = u16::try_from(request.chunk_height)
             .map_err(|_| invalid("lossless JPEG chunk height exceeds u16"))?;
-        let mut chunks = Vec::with_capacity(encoded.chunks.len());
-        for (index, bytes) in encoded.chunks.iter().enumerate() {
-            let samples: Vec<u16> = match request.image {
-                RawMosaic::U8(_) => bytes.iter().map(|value| u16::from(*value)).collect(),
-                RawMosaic::U16(_) => bytes
-                    .as_chunks::<2>()
-                    .0
-                    .iter()
-                    .map(|bytes| match request.byte_order {
-                        ByteOrder::Little => u16::from_le_bytes([bytes[0], bytes[1]]),
-                        ByteOrder::Big => u16::from_be_bytes([bytes[0], bytes[1]]),
-                    })
-                    .collect(),
-                _ => unreachable!("the sample type is validated above"),
-            };
-            chunks.push(
-                encode(&samples, width, height, bits)
-                    .map_err(|detail| invalid(format!("lossless JPEG chunk {index}: {detail}")))?,
-            );
+        let mut tile = vec![0_u16; geometry.chunk_sample_count()?];
+        let mut chunks = Vec::with_capacity(chunk_count);
+        for tile_y_index in 0..geometry.down {
+            let tile_y = tile_y_index * geometry.chunk_height;
+            for tile_x_index in 0..geometry.across {
+                let tile_x = tile_x_index * geometry.chunk_width;
+                copy_tile_into(
+                    request.image,
+                    geometry.width,
+                    geometry.height,
+                    tile_x,
+                    tile_y,
+                    geometry.chunk_width,
+                    geometry.chunk_height,
+                    &mut tile,
+                );
+                let index = tile_y_index * geometry.across + tile_x_index;
+                chunks.push(
+                    encode(&tile, width, height, bits).map_err(|detail| {
+                        invalid(format!("lossless JPEG chunk {index}: {detail}"))
+                    })?,
+                );
+            }
         }
         Ok(EncodedChunks { chunks })
+    }
+}
+
+fn copy_tile_into(
+    image: &RawMosaic,
+    source_width: usize,
+    source_height: usize,
+    tile_x: usize,
+    tile_y: usize,
+    tile_width: usize,
+    tile_height: usize,
+    output: &mut [u16],
+) {
+    debug_assert_eq!(output.len(), tile_width * tile_height);
+    let copy_width = tile_width.min(source_width - tile_x);
+    let copy_height = tile_height.min(source_height - tile_y);
+    if copy_width != tile_width || copy_height != tile_height {
+        output.fill(0);
+    }
+
+    match image {
+        RawMosaic::U8(samples) => {
+            let samples = samples.as_raw();
+            for row in 0..copy_height {
+                let source_start = (tile_y + row) * source_width + tile_x;
+                let target_start = row * tile_width;
+                for (target, sample) in output[target_start..target_start + copy_width]
+                    .iter_mut()
+                    .zip(&samples[source_start..source_start + copy_width])
+                {
+                    *target = u16::from(*sample);
+                }
+            }
+        }
+        RawMosaic::U16(samples) => {
+            let samples = samples.as_raw();
+            for row in 0..copy_height {
+                let source_start = (tile_y + row) * source_width + tile_x;
+                let target_start = row * tile_width;
+                output[target_start..target_start + copy_width]
+                    .copy_from_slice(&samples[source_start..source_start + copy_width]);
+            }
+        }
+        RawMosaic::U32(_) | RawMosaic::F32(_) => {
+            unreachable!("the encoder validates that samples are U8 or U16")
+        }
     }
 }
 
@@ -773,7 +831,7 @@ fn push_u16(encoded: &mut Vec<u8>, value: u16) { encoded.extend_from_slice(&valu
 
 struct BitWriter<'a> {
     encoded: &'a mut Vec<u8>,
-    current: u8,
+    buffer: u64,
     used: u8,
 }
 
@@ -781,18 +839,26 @@ impl<'a> BitWriter<'a> {
     const fn new(encoded: &'a mut Vec<u8>) -> Self {
         Self {
             encoded,
-            current: 0,
+            buffer: 0,
             used: 0,
         }
     }
 
     fn write(&mut self, value: u32, bits: u8) {
-        for shift in (0..bits).rev() {
-            self.current = (self.current << 1) | (((value >> shift) & 1) as u8);
-            self.used += 1;
-            if self.used == 8 {
-                self.flush_byte();
-            }
+        if bits == 0 {
+            return;
+        }
+        let mask = (1_u64 << bits) - 1;
+        self.buffer = (self.buffer << bits) | (u64::from(value) & mask);
+        self.used += bits;
+        while self.used >= 8 {
+            self.used -= 8;
+            self.flush_byte((self.buffer >> self.used) as u8);
+        }
+        if self.used == 0 {
+            self.buffer = 0;
+        } else {
+            self.buffer &= (1_u64 << self.used) - 1;
         }
     }
 
@@ -802,19 +868,19 @@ impl<'a> BitWriter<'a> {
         }
     }
 
-    fn flush_byte(&mut self) {
-        self.encoded.push(self.current);
-        if self.current == MARKER_PREFIX {
+    fn flush_byte(&mut self, byte: u8) {
+        self.encoded.push(byte);
+        if byte == MARKER_PREFIX {
             self.encoded.push(0);
         }
-        self.current = 0;
-        self.used = 0;
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{BitReader, add_prediction, predict};
+    use fornax_core::{MonoImage, RawMosaic};
+
+    use super::{BitReader, BitWriter, add_prediction, copy_tile_into, predict};
 
     #[test]
     fn fourteen_bit_difference_class_consumes_amplitude_bits() {
@@ -836,5 +902,36 @@ mod tests {
         assert_eq!(predict(&output, 3, 1, 1, 0, 1, 5), 18);
         assert_eq!(predict(&output, 3, 1, 1, 0, 1, 6), 23);
         assert_eq!(predict(&output, 3, 1, 1, 0, 1, 7), 15);
+    }
+
+    #[test]
+    fn tile_copy_extracts_u8_and_u16_partial_edges() {
+        let u8_image = RawMosaic::U8(MonoImage::from_raw(5, 3, (0_u8..15).collect()).unwrap());
+        let mut u8_tile = vec![0_u16; 8];
+        copy_tile_into(&u8_image, 5, 3, 4, 1, 4, 2, &mut u8_tile);
+        assert_eq!(u8_tile, vec![9, 0, 0, 0, 14, 0, 0, 0]);
+
+        let u16_image = RawMosaic::U16(
+            MonoImage::from_raw(5, 3, (0_u16..15).map(|value| value * 1_000).collect()).unwrap(),
+        );
+        let mut u16_tile = vec![0_u16; 8];
+        copy_tile_into(&u16_image, 5, 3, 4, 1, 4, 2, &mut u16_tile);
+        assert_eq!(u16_tile, vec![9_000, 0, 0, 0, 14_000, 0, 0, 0]);
+    }
+
+    #[test]
+    fn bit_writer_preserves_packed_bytes_padding_and_stuffing() {
+        let mut encoded = Vec::new();
+        let mut writer = BitWriter::new(&mut encoded);
+        writer.write(0b101, 3);
+        writer.write(0x1ff, 9);
+        writer.finish();
+        assert_eq!(encoded, [0xbf, 0xff, 0x00]);
+
+        let mut encoded = Vec::new();
+        let mut writer = BitWriter::new(&mut encoded);
+        writer.write(0x1234, 16);
+        writer.finish();
+        assert_eq!(encoded, [0x12, 0x34]);
     }
 }
