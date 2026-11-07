@@ -62,6 +62,17 @@ exports it as `fornax::decoder::Decoder`, alongside `RawlerDecoder` and, on
 Windows and macOS, the DNC decoder types. `fornax_core` contains no decoder
 implementation.
 
+## Codec API
+
+`fornax_codec::Codec` is the public selector for format-neutral sample codecs.
+Its `decode` and `encode` methods dispatch directly to the selected
+implementation. `Codec::Zstd { level }` carries the Zstandard encoding level;
+decoding ignores the level because it is encoded in the stream.
+
+`fornax-tiff::CompressionMethod` remains the typed TIFF field value. `fornax-dng`
+maps that container identifier to `Codec`, so `fornax-codec` does not depend on
+TIFF or DNG types.
+
 ## Pipeline flow
 
 ```text
