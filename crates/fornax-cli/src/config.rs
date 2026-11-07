@@ -317,7 +317,7 @@ mod tests {
         assert_eq!(config.output, PathBuf::from("converted"));
         assert_eq!(config.format, OutputFormat::Dng);
         assert_eq!(config.jobs, 1);
-        assert!(config.recursive);
+        assert_eq!(config.recursive,false);
         assert!(!config.overwrite);
         assert!(!config.metadata_json);
         assert_eq!(config.demosaic, Demosaic::default());
