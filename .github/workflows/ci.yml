@@ -31,9 +31,7 @@ jobs:
         with:
           files_yaml: |
             main:
-              - ./Cargo.toml
-              - ./Cargo.lock
-              - ./crates/**
+              - **
             benchmark_decoder:
               - ./crates/bench-decoder/**
               - ./crates/fornax-core/**
