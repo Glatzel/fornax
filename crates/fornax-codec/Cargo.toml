@@ -13,9 +13,9 @@ structured-zstd = { version = "0.2.6", optional = true }
 thiserror.workspace = true
 zune-jpeg.workspace = true
 
+[dev-dependencies]
+image = { workspace = true, features = ["jpeg"] }
+
 [features]
 default = []
 zstd = ["dep:structured-zstd"]
-
-[dev-dependencies]
-image = { workspace = true, features = ["jpeg"] }
