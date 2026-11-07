@@ -98,11 +98,12 @@ fn benches(c: &mut Criterion) {
     let decoders = selected_decoders();
     let path = raw_path();
 
+    if decoders.contains(&DecoderKind::Fornax) {
+        bench_bit_metadata::<Decoder, f32>(c, "fornax", &path);
+    }
+
     for bits in params.bits {
         for decoder in &decoders {
-            if decoder == &DecoderKind::Fornax {
-                bench_bit_metadata::<Decoder, f32>(c, "fornax", &path);
-            }
             match (decoder, bits) {
                 (DecoderKind::Fornax, BenchSampleBits::F32) => {
                     bench_bit_decoder::<Decoder, f32>(c, "fornax", bits, &path);
