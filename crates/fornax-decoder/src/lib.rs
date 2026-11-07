@@ -11,8 +11,6 @@ use fornax_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
 use fornax_dng::metadata::IDecoderDng;
 use fornax_dng::{Directory, DngImage};
 
-use crate::dnc::Dnc;
-
 #[derive(Clone, Debug)]
 pub enum Decoder<T> {
     Dng(DngImage),
@@ -45,7 +43,7 @@ where
                         "Fallback to use `Adobe DNG Converter` to convert RAW image to DNG: {}",
                         input.display()
                     );
-                    let dng_file = Dnc::convert(input)?;
+                    let dng_file = dnc::Dnc::convert(input)?;
                     let source = fs::read(&dng_file).map_err(|error| {
                         DecodeError::Other(
                             format!("reading {} failed: {error}", dng_file.display()).into(),
