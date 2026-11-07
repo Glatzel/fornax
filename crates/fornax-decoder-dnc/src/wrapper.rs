@@ -375,9 +375,7 @@ where
 
     fn cropped_mosaic(&self) -> Result<CroppedMosaic<T>, DecodeError> { self.0.cropped_mosaic() }
 
-    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
-        self.0.process_metadata()
-    }
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> { self.0.process_metadata() }
 }
 impl<T> IDecoderDng<&(&Path, &DncParams), T> for DncDecoder<T>
 where
