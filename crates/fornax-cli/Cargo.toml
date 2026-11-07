@@ -12,12 +12,7 @@ clap.workspace = true
 clap-style.workspace = true
 clap-verbosity-flag.workspace = true
 clerk = { workspace = true, features = ["tracing"] }
-fornax-core.workspace = true
-fornax-decoder.workspace = true
-fornax-decoder-rawler.workspace = true
-fornax-dng = { workspace = true, features = ["metadata-json", "zstd"] }
-fornax-postprocessor.workspace = true
-fornax-preprocessor.workspace = true
+fornax.workspace = true
 image = { workspace = true, features = ["jpeg", "tiff"] }
 num-traits.workspace = true
 rayon.workspace = true
