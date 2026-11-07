@@ -242,14 +242,14 @@ struct Profile {
 /// the pipeline never handles missing tags.
 #[derive(Clone, Debug)]
 pub struct ColorCalibration {
-    /// 0..=3 entries, sorted by mired ascending, deduplicated.
-    profiles: Vec<Profile>,
     /// Decided once: every profile has a ForwardMatrix, use that path.
     use_forward: bool,
     /// Every profile has a ColorMatrix (needed to derive the temperature).
     has_color_matrix: bool,
     as_shot: WhiteSpec,
     as_shot_source: WhiteSource,
+    /// 0..=3 entries, sorted by mired ascending, deduplicated.
+    profiles: Vec<Profile>,
 }
 
 impl ColorCalibration {

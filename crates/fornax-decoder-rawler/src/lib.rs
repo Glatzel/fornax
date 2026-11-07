@@ -267,11 +267,7 @@ where
         let bayer_pattern = BayerPattern::from_str(&cfa.name)
             .map_err(|_| DecodeError::Unsupported(format!("unsupported CFA pattern {cfa}").into()))?
             .shifted(active_area.x, active_area.y);
-        let color_calibration = { 
-            
-            todo!() 
-            
-        };
+        let color_calibration = ColorCalibration::new(raw_color_metadata(raw));
 
         Ok(ProcessMetadata {
             active_area,
