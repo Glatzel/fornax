@@ -814,6 +814,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-codec"
+version = "0.0.17"
+dependencies = [
+ "fornax-core",
+ "image 0.25.9",
+ "rayon",
+ "thiserror",
+]
+
+[[package]]
 name = "fornax-core"
 version = "0.0.17"
 dependencies = [
