@@ -34,11 +34,10 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 ## Crate Dependency Graph
 
 This graph shows the direct dependencies between Fornax workspace crates,
-grouped by architectural responsibility. It uses `flowchart BT`, so
-foundational crates appear toward the bottom and higher-level consumers toward
-the top. Each arrow starts at a dependency and points to its dependent:
-`B --> A` means that `A` depends on `B`. External crates, dev-dependencies, and
-the separately built `fornax-py` binding are intentionally excluded.
+grouped by architectural responsibility. It uses `flowchart BT`. Each arrow
+starts at a dependent and points to a crate it depends on: `B --> A` means that
+`B` depends on `A`. External crates, dev-dependencies, and the separately built
+`fornax-py` binding are intentionally excluded.
 
 ```mermaid
 flowchart BT
@@ -77,44 +76,44 @@ flowchart BT
         COMPARE_DEMOSAIC["compare-demosaic<br/><small>Reference-versus-Fornax demosaic comparison</small>"]
     end
 
-    FORNAX_CORE --> FORNAX_CODEC
-    FORNAX_CORE --> FORNAX_DNG
-    FORNAX_CODEC --> FORNAX_DNG
-    FORNAX_TIFF --> FORNAX_DNG
+    FORNAX_CODEC --> FORNAX_CORE
+    FORNAX_DNG --> FORNAX_CORE
+    FORNAX_DNG --> FORNAX_CODEC
+    FORNAX_DNG --> FORNAX_TIFF
 
-    FORNAX_CORE --> FORNAX_DECODER
-    FORNAX_DNG --> FORNAX_DECODER
-    FORNAX_CORE --> FORNAX_DECODER_RAWLER
-    FORNAX_DNG --> FORNAX_DECODER_RAWLER
-    FORNAX_TIFF --> FORNAX_DECODER_RAWLER
-    FORNAX_CORE --> FORNAX_DECODER_DNC
-    FORNAX_DNG --> FORNAX_DECODER_DNC
-    FORNAX_DECODER_RAWLER --> FORNAX_DECODER_DNC
+    FORNAX_DECODER --> FORNAX_CORE
+    FORNAX_DECODER --> FORNAX_DNG
+    FORNAX_DECODER_RAWLER --> FORNAX_CORE
+    FORNAX_DECODER_RAWLER --> FORNAX_DNG
+    FORNAX_DECODER_RAWLER --> FORNAX_TIFF
+    FORNAX_DECODER_DNC --> FORNAX_CORE
+    FORNAX_DECODER_DNC --> FORNAX_DNG
+    FORNAX_DECODER_DNC --> FORNAX_DECODER_RAWLER
 
-    FORNAX_CORE --> FORNAX_PREPROCESSOR
-    FORNAX_CORE --> FORNAX_POSTPROCESSOR
-    FORNAX_CORE --> FORNAX_DEVTOOL
+    FORNAX_PREPROCESSOR --> FORNAX_CORE
+    FORNAX_POSTPROCESSOR --> FORNAX_CORE
+    FORNAX_DEVTOOL --> FORNAX_CORE
 
-    FORNAX_CORE --> FORNAX
-    FORNAX_DNG --> FORNAX
-    FORNAX_DECODER --> FORNAX
-    FORNAX_DECODER_RAWLER --> FORNAX
-    FORNAX_DECODER_DNC --> FORNAX
-    FORNAX_PREPROCESSOR --> FORNAX
-    FORNAX_POSTPROCESSOR --> FORNAX
+    FORNAX --> FORNAX_CORE
+    FORNAX --> FORNAX_DNG
+    FORNAX --> FORNAX_DECODER
+    FORNAX --> FORNAX_DECODER_RAWLER
+    FORNAX --> FORNAX_DECODER_DNC
+    FORNAX --> FORNAX_PREPROCESSOR
+    FORNAX --> FORNAX_POSTPROCESSOR
 
-    FORNAX_CORE --> FORNAX_CLI
-    FORNAX_DNG --> FORNAX_CLI
-    FORNAX_DECODER --> FORNAX_CLI
-    FORNAX_DECODER_RAWLER --> FORNAX_CLI
-    FORNAX_PREPROCESSOR --> FORNAX_CLI
-    FORNAX_POSTPROCESSOR --> FORNAX_CLI
+    FORNAX_CLI --> FORNAX_CORE
+    FORNAX_CLI --> FORNAX_DNG
+    FORNAX_CLI --> FORNAX_DECODER
+    FORNAX_CLI --> FORNAX_DECODER_RAWLER
+    FORNAX_CLI --> FORNAX_PREPROCESSOR
+    FORNAX_CLI --> FORNAX_POSTPROCESSOR
 
-    FORNAX_CORE --> COMPARE_DEMOSAIC
-    FORNAX_DECODER --> COMPARE_DEMOSAIC
-    FORNAX_DEVTOOL --> COMPARE_DEMOSAIC
-    FORNAX_PREPROCESSOR --> COMPARE_DEMOSAIC
-    FORNAX_POSTPROCESSOR --> COMPARE_DEMOSAIC
+    COMPARE_DEMOSAIC --> FORNAX_CORE
+    COMPARE_DEMOSAIC --> FORNAX_DECODER
+    COMPARE_DEMOSAIC --> FORNAX_DEVTOOL
+    COMPARE_DEMOSAIC --> FORNAX_PREPROCESSOR
+    COMPARE_DEMOSAIC --> FORNAX_POSTPROCESSOR
 
     classDef shared fill:#e8f1f8,stroke:#7894ad,color:#203040,stroke-width:1px
     classDef codec fill:#e8f5ec,stroke:#6f9a7c,color:#20362a,stroke-width:1px
