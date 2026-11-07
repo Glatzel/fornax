@@ -60,7 +60,7 @@ pub struct CliArgs {
     pub jobs: Option<usize>,
 
     /// Recurse into directory inputs [default: true]
-    #[arg(long, conflicts_with = "no_recursive", help_heading = "Input")]
+    #[arg(long, help_heading = "Input")]
     pub recursive: bool,
 
     #[command(flatten)]
