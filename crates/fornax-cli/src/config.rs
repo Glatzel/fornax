@@ -321,7 +321,7 @@ mod tests {
         assert!(!config.overwrite);
         assert!(!config.metadata_json);
         assert_eq!(config.demosaic, Demosaic::default());
-        assert!(config.color_matrix);
+        assert!(!config.color_matrix);
         assert_eq!(config.jpeg_quality, 90);
         assert_eq!(config.dng_compression, DngCompressionChoice::LosslessJpeg);
     }
