@@ -7,7 +7,11 @@
   "lsp": {
     "rust-analyzer": {
       "initialization_options": {
+        "check": {
+          "features": "all"
+        },
         "cargo": {
+          "features": "all",
           "extraEnv": {
             "Path": "./.pixi/envs/dev/Library/bin;${PATH}",
             "LIBRAW_ROOT": "./.pixi/envs/dev/Library",

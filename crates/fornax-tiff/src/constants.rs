@@ -62,14 +62,6 @@ pub enum TiffTag {
     Unknown(u16),
 }
 
-impl Ord for TiffTag {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering { u16::from(*self).cmp(&u16::from(*other)) }
-}
-
-impl PartialOrd for TiffTag {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> { Some(self.cmp(other)) }
-}
-
 impl fmt::Display for TiffTag {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -137,7 +129,7 @@ pub enum PhotometricInterpretation {
     Unknown(u16),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum CalibrationIlluminant {
     Unknown = 0,
@@ -160,5 +152,6 @@ pub enum CalibrationIlluminant {
     D75 = 22,
     D50 = 23,
     ISOStudioTungsten = 24,
-    Other = 255,
+    #[num_enum(catch_all)]
+    Other(u8),
 }
