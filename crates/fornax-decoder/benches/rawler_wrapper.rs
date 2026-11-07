@@ -102,5 +102,7 @@ impl IDecoder for RawlerDecoder {
         Ok(CroppedMosaic::new(cropped))
     }
 
-    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> { unimplemented!() }
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> { 
+        Err(DecodeError::Unsupported("unimplemented"))
+    }
 }
