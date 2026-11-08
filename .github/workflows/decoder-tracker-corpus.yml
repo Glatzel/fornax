@@ -45,11 +45,12 @@ jobs:
         with:
           run-install: false
       - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+        if: ${{ inputs.run_duckdb_tests }}
       - name: Install tracker tools
         run: pixi install -e tracker
       - name: Test DuckDB aggregation
         if: ${{ inputs.run_duckdb_tests }}
-        run: pixi run -e tracker cargo test -q -p decoder-tracker --lib duckdb_
+        run: pixi run -e tracker cargo test -q -p decoder-tracker duckdb_
       - id: plan
         shell: bash
         env:
@@ -57,8 +58,8 @@ jobs:
         run: |
           filter="${REQUESTED_FILTER:-**/*.[dD][nN][gG]}"
           result="$(
-            pixi run -e tracker cargo run -q -p decoder-tracker -- select \
-              --glob "$filter" \
+            pixi run -e tracker bash scripts/decoder-tracker-select.sh \
+              --filter "$filter" \
               --out target/decoder-tracker/selected-manifest.csv
           )"
           printf '%s\n' "$result"

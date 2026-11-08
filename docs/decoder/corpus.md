@@ -153,8 +153,9 @@ rows. The diff command exits 1 when any category is non-empty.
 
 `.github/workflows/decoder-tracker-corpus.yml` is manual-only after bootstrap.
 It accepts one `filter` path glob and an optional `run_duckdb_tests` boolean
-(default `false`). The plan job writes and uploads `selected-manifest.csv`, then
-computes:
+(default `false`). The plan job uses
+`scripts/decoder-tracker-select.sh` to filter `manifest.csv` directly with
+DuckDB, writes and uploads `selected-manifest.csv`, then computes:
 
 ```text
 runner_count = min(20, max(1, ceil(selected_count / 10)))
@@ -163,6 +164,10 @@ runner_count = min(20, max(1, ceil(selected_count / 10)))
 Rows are balanced across those runners by `position % runner_count`. Examples:
 5 files use one runner, 16 use two runners of 8, and 210 use 20 runners of
 10/11. Zero matches fail planning.
+
+Workflow concurrency is scoped to the branch and cancels superseded runs. Failed
+jobs should be retried in place with `gh run rerun --failed` after transient
+GitHub/Pixi download failures.
 
 Each shard downloads the selected manifest, initializes the pointer-only corpus,
 runs `manifest --check`, executes its assigned files, and uploads CSV only. The

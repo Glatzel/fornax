@@ -172,3 +172,50 @@ fn select_emits_clerk_info_logs() {
         .success()
         .stderr(predicates::str::contains("selected 2 corpus files"));
 }
+
+#[test]
+fn duckdb_select_script_filters_without_the_rust_binary() {
+    if !std::process::Command::new("duckdb")
+        .arg("--version")
+        .output()
+        .is_ok_and(|output| output.status.success())
+    {
+        return;
+    }
+    let temp = tempdir().unwrap();
+    let rows = [
+        manifest_row(&"aa".repeat(32), "Canon/Cam/A.DNG"),
+        manifest_row(&"bb".repeat(32), "Canon/Nested/B.DNG"),
+        manifest_row(&"cc".repeat(32), "Sony/Cam/C.DNG"),
+    ];
+    let manifest = temp.path().join("manifest.csv");
+    let selected = temp.path().join("selected.csv");
+    fs::write(&manifest, write_manifest_csv(&rows).unwrap()).unwrap();
+    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../scripts/decoder-tracker-select.sh");
+
+    let output = std::process::Command::new("bash")
+        .arg(script)
+        .args([
+            "--manifest",
+            manifest.to_str().unwrap(),
+            "--filter",
+            "Canon/**/*.DNG",
+            "--out",
+            selected.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), "selected=2");
+    assert_eq!(
+        read_manifest_csv(fs::read(selected).unwrap())
+            .unwrap()
+            .len(),
+        2
+    );
+}

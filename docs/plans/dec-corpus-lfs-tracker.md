@@ -47,8 +47,8 @@ Out of scope:
 - [x] Replace the data Pixi environment and downloader.
 - [x] Update validation and architecture/corpus documentation.
 - [x] Run local one-file failure and known-good fixture smoke tests.
-- [ ] Bootstrap the full DNG corpus, review the candidate baseline, commit it,
-  and verify an empty diff.
+- [x] Bootstrap the full DNG corpus, review the candidate baseline, and commit
+  it.
 - [ ] Remove the temporary trigger and `[DEC-CORPUS]` after verification.
 - [ ] Run `scripts/agent-validation.sh`.
 - [ ] Commit, push, open one PR, and report its URL and validation evidence.
@@ -90,9 +90,9 @@ Out of scope:
 - Payload materialization happens before per-file timers start.
 - The final workflow has only `workflow_dispatch`; a temporary branch push
   trigger exists solely for bootstrap review and is removed before handoff.
-- Bootstrap uses one shard and no `max-parallel` cap because simultaneous Pixi
-  installer downloads produced transient HTTP 504 failures. The workflow still
-  accepts deliberate shard counts from 2 through 20.
+- CI dynamically allocates up to 20 balanced runners and retries failed jobs in
+  place after transient GitHub/Pixi 504 failures. Workflow concurrency cancels
+  superseded branch runs.
 - The planned commit `174acd7...` was no longer present when implementation
   started. raw.pixls.us advertises one daily snapshot commit and replaces its
   history, so fresh checkouts follow the remote `master` branch with LFS
@@ -156,3 +156,5 @@ Out of scope:
   then fails the workflow for review.
 - `prefix-dev/setup-pixi` remains the Pixi bootstrap mechanism despite transient
   GitHub 504 responses.
+- DuckDB SQL self-tests are optional through the manual `run_duckdb_tests`
+  workflow input and default to disabled.
