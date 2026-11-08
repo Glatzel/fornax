@@ -351,7 +351,7 @@ fn manifest_check_validates_pointer_against_filelist_sha() {
     )
     .unwrap();
     write_pointer(&corpus.join("Canon/Camera/IMG_1.DNG"), &listed, 42).unwrap();
-    let rows = generate_manifest(corpus, &["DNG".into()]).unwrap();
+    let rows = generate_manifest(corpus).unwrap();
     assert_eq!(rows.len(), 1);
     assert_eq!(rows[0].size, 42);
 
@@ -367,6 +367,29 @@ fn manifest_check_validates_pointer_against_filelist_sha() {
         validate_pointer(corpus, &rows[0]),
         Err(error) if error.to_string().contains("listed SHA-256")
     ));
+}
+
+#[test]
+fn manifest_includes_formats_without_decoder_support() {
+    let temp = tempdir().unwrap();
+    let corpus = temp.path();
+    fs::create_dir_all(corpus.join("Canon/Camera")).unwrap();
+    fs::create_dir_all(corpus.join("Sony/ILCE-7M5")).unwrap();
+    let dng_sha = "aa".repeat(32);
+    let arw_sha = "bb".repeat(32);
+    fs::write(
+        corpus.join("filelist.sha256"),
+        format!("{dng_sha} *Canon/Camera/IMG_1.DNG\n{arw_sha} *Sony/ILCE-7M5/IMG_2.ARW\n"),
+    )
+    .unwrap();
+    write_pointer(&corpus.join("Canon/Camera/IMG_1.DNG"), &dng_sha, 42).unwrap();
+    write_pointer(&corpus.join("Sony/ILCE-7M5/IMG_2.ARW"), &arw_sha, 84).unwrap();
+
+    let rows = generate_manifest(corpus).unwrap();
+    assert_eq!(
+        rows.iter().map(|row| row.path.as_str()).collect::<Vec<_>>(),
+        ["Canon/Camera/IMG_1.DNG", "Sony/ILCE-7M5/IMG_2.ARW"]
+    );
 }
 
 #[test]
@@ -403,10 +426,9 @@ fn manifest_check_reports_snapshot_drift() {
     )
     .unwrap();
     write_pointer(&corpus.join("Canon/Camera/IMG_1.DNG"), &listed, 42).unwrap();
-    let manifest =
-        write_manifest_csv(&generate_manifest(corpus, &["DNG".into()]).unwrap()).unwrap();
+    let manifest = write_manifest_csv(&generate_manifest(corpus).unwrap()).unwrap();
     assert_eq!(
-        ManifestCheck::against(corpus, &["DNG".into()], manifest.as_slice()).unwrap(),
+        ManifestCheck::against(corpus, manifest.as_slice()).unwrap(),
         ManifestCheck::Current
     );
 
@@ -416,7 +438,7 @@ fn manifest_check_reports_snapshot_drift() {
     )
     .unwrap();
     write_pointer(&corpus.join("Canon/Camera/IMG_1.DNG"), &"cc".repeat(32), 42).unwrap();
-    assert!(ManifestCheck::against(corpus, &["DNG".into()], manifest.as_slice()).is_err());
+    assert!(ManifestCheck::against(corpus, manifest.as_slice()).is_err());
 }
 
 #[test]

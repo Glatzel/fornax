@@ -2,11 +2,45 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![DNG corpus: 209/262 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-209%2F262-orange)](baseline.csv)
+[![RAW corpus: 209/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-209%2F2020-orange)](baseline.csv)
 
 | Format | Status |
 | --- | ---: |
+| 3FR | 0/11 |
+| ARI | 0/1 |
+| ARQ | 0/1 |
+| ARW | 0/206 |
+| CAM | 0/2 |
+| CR2 | 0/142 |
+| CR3 | 0/110 |
+| CRW | 0/51 |
+| DCR | 0/5 |
 | DNG | 209/262 |
+| ERF | 0/3 |
+| FFF | 0/11 |
+| GPR | 0/17 |
+| IIQ | 0/35 |
+| KDC | 0/9 |
+| LRI | 0/1 |
+| MDC | 0/1 |
+| MEF | 0/1 |
+| MOS | 0/4 |
+| MRW | 0/14 |
+| NEF | 0/277 |
+| NRW | 0/12 |
+| ORF | 0/93 |
+| ORI | 0/19 |
+| PEF | 0/42 |
+| RAF | 0/151 |
+| RAW | 0/49 |
+| RW2 | 0/402 |
+| RWL | 0/20 |
+| SR2 | 0/1 |
+| SRF | 0/1 |
+| SRW | 0/27 |
+| STI | 0/1 |
+| TIF | 0/20 |
+| X3F | 0/18 |
 
 <!-- decoder-tracker-badge:end -->
 
@@ -32,7 +66,9 @@ The committed corpus metadata manifest is `manifest.csv`; decoder pass columns
 and outcomes are in `baseline.csv`. DuckDB CLI owns plan-time manifest filtering
 and the shell-driven merge, selected-key diff, and baseline upsert path. Stage
 columns remain numeric for SQL; a leading emoji
-`status` column makes pass/fail visually scannable. `update-badge.sh` writes the
-accumulated badge and per-format `passed/total` table between the README markers.
-The complete schema, stage semantics, glob/sharding rules, workflow, and update
-procedure are documented in [docs/decoder/corpus.md](../../docs/decoder/corpus.md).
+`status` column makes pass/fail visually scannable. `update-badge.sh` joins the
+full manifest to the baseline and writes the accumulated badge and per-format
+`passed/total` table between the README markers; formats without baseline rows
+report `0/total`. The complete schema, stage semantics, glob/sharding rules,
+workflow, and update procedure are documented in
+[docs/decoder/corpus.md](../../docs/decoder/corpus.md).

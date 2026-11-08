@@ -35,7 +35,7 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Generate or verify the supported-format corpus manifest.
+    /// Generate or verify the full corpus manifest.
     Manifest(ManifestArgs),
     /// Write and count the files matched by the requested filters.
     Select(SelectArgs),
@@ -56,8 +56,6 @@ enum Command {
 struct ManifestArgs {
     #[arg(long, default_value = DEFAULT_CORPUS)]
     corpus: PathBuf,
-    #[arg(long = "format", action = clap::ArgAction::Append)]
-    formats: Vec<String>,
     #[arg(long)]
     out: Option<PathBuf>,
     #[arg(long)]
@@ -212,7 +210,7 @@ fn select(args: SelectArgs) -> Result<ExitCode> {
 }
 
 fn manifest(args: ManifestArgs) -> Result<ExitCode> {
-    let rows = generate_manifest(&args.corpus, &args.formats)?;
+    let rows = generate_manifest(&args.corpus)?;
     let bytes = write_manifest_csv(&rows)?;
     let out = args.out.unwrap_or_else(|| PathBuf::from(DEFAULT_MANIFEST));
     if args.check {
@@ -222,7 +220,7 @@ fn manifest(args: ManifestArgs) -> Result<ExitCode> {
                 out.display()
             ))
         })?;
-        ManifestCheck::against(&args.corpus, &args.formats, &committed)?;
+        ManifestCheck::against(&args.corpus, &committed)?;
         clerk::info!("manifest is current with {} rows", rows.len());
         println!("manifest: current ({} rows)", rows.len());
     } else {

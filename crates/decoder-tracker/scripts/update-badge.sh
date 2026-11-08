@@ -4,6 +4,7 @@ set -euo pipefail
 
 crate_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 baseline="$crate_root/baseline.csv"
+manifest="$crate_root/manifest.csv"
 readme="$crate_root/README.md"
 start_marker='<!-- decoder-tracker-badge:start -->'
 end_marker='<!-- decoder-tracker-badge:end -->'
@@ -14,12 +15,16 @@ while (($# > 0)); do
             baseline="$2"
             shift 2
             ;;
+        --manifest)
+            manifest="$2"
+            shift 2
+            ;;
         --readme)
             readme="$2"
             shift 2
             ;;
         *)
-            printf 'usage: %s [--baseline FILE] [--readme FILE]\n' "$0" >&2
+            printf 'usage: %s [--baseline FILE] [--manifest FILE] [--readme FILE]\n' "$0" >&2
             exit 2
             ;;
     esac
@@ -28,17 +33,26 @@ done
 format_counts="$(
     duckdb -no-agent -csv -noheader -separator ',' :memory: -c "
         SELECT
-            format,
-            count() FILTER (WHERE status = '✅') AS passed,
+            upper(regexp_extract(manifest.path, '\.([^.]+)$', 1)) AS format,
+            count() FILTER (WHERE baseline.status = '✅') AS passed,
             count() AS total
-        FROM read_csv('$(printf '%s' "$baseline" | sed "s/'/''/g")', header = true)
-        GROUP BY format
+        FROM read_csv(
+            '$(printf '%s' "$manifest" | sed "s/'/''/g")',
+            header = true,
+            all_varchar = true
+        ) AS manifest
+        LEFT JOIN read_csv(
+            '$(printf '%s' "$baseline" | sed "s/'/''/g")',
+            header = true
+        ) AS baseline
+            ON manifest.path = baseline.path
+        GROUP BY upper(regexp_extract(manifest.path, '\.([^.]+)$', 1))
         ORDER BY format;
     "
 )"
 
 if [[ -z "$format_counts" ]]; then
-    printf 'could not derive format counts from %s\n' "$baseline" >&2
+    printf 'could not derive format counts from %s\n' "$manifest" >&2
     exit 1
 fi
 
@@ -50,7 +64,7 @@ table=$'| Format | Status |\n| --- | ---: |'
 while IFS=, read -r format format_passed format_total; do
     if [[ -z "$format" || ! "$format_passed" =~ ^[0-9]+$ || ! "$format_total" =~ ^[0-9]+$ ]] ||
         ((format_total == 0 || format_passed > format_total)); then
-        printf 'invalid format counts from %s: %s\n' "$baseline" \
+        printf 'invalid format counts from %s: %s\n' "$manifest" \
             "$format,$format_passed,$format_total" >&2
         exit 1
     fi
@@ -64,7 +78,7 @@ while IFS=, read -r format format_passed format_total; do
 done <<<"$format_counts"
 
 if ((format_count == 0 || total == 0)); then
-    printf 'could not derive pass counts from %s\n' "$baseline" >&2
+    printf 'could not derive pass counts from %s\n' "$manifest" >&2
     exit 1
 fi
 
