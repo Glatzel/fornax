@@ -784,6 +784,7 @@ dependencies = [
  "clerk",
  "fornax",
  "image 0.25.9",
+ "mischief",
  "num-traits",
  "rayon",
  "serde",
