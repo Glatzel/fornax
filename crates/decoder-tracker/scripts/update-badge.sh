@@ -76,11 +76,11 @@ else
     color=orange
 fi
 
-badge_label='raw.pixls.us corpus pass'
+badge_slug='raw.pixls.us_corpus_pass'
 if ((format_count == 1)) && [[ "$first_format" == 'DNG' ]]; then
-    badge_slug='DNG_corpus'
+    badge_label='DNG corpus'
 else
-    badge_slug='RAW_corpus'
+    badge_label='RAW corpus'
 fi
 
 badge="[![${badge_label}: ${passed}/${total} passed](https://img.shields.io/badge/${badge_slug}-${passed}%2F${total}-${color})](baseline.csv)"

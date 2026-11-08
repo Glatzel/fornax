@@ -143,7 +143,8 @@ codecs.
 `update-badge.sh` derives the accumulated pass count across all baseline rows
 and writes one badge plus a per-format table into the decoder-tracker README.
 Each table row reports `passed/total`; the badge always reports the accumulated
-total and is labeled `raw.pixls.us corpus pass`.
+total. Its slug is `raw.pixls.us_corpus_pass`, which renders the label
+`raw.pixls.us corpus pass`.
 
 ## Isolation and LFS
 

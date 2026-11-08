@@ -103,8 +103,9 @@ Validation record:
   raw sample per pixel.
 - Missing `RowsPerStrip`, truncated chunks, and chunk-count mismatches are TIFF
   layout or parser gaps, not evidence of missing compression decoders.
-- The badge label is `raw.pixls.us corpus pass`; the badge always reports the
-  accumulated pass count while the table reports each format separately.
+- The badge slug is `raw.pixls.us_corpus_pass`, rendering the badge label
+  `raw.pixls.us corpus pass`; the badge always reports the accumulated pass
+  count while the table reports each format separately.
 
 ## Task 1: Document Compression Coverage
 

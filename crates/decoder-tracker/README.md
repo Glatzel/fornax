@@ -2,7 +2,7 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![raw.pixls.us corpus pass: 209/262 passed](https://img.shields.io/badge/DNG_corpus-209%2F262-orange)](baseline.csv)
+[![DNG corpus: 209/262 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-209%2F262-orange)](baseline.csv)
 
 | Format | Status |
 | --- | ---: |
