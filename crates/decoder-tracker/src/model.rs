@@ -22,7 +22,12 @@ pub const BASELINE_HEADER: [&str; 12] = [
 pub struct TrackerError(pub String);
 
 impl TrackerError {
-    pub fn new(message: impl Into<String>) -> Self { Self(message.into()) }
+    pub fn new<S>(message: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Self(message.into())
+    }
 }
 
 impl fmt::Display for TrackerError {

@@ -27,18 +27,10 @@ impl ManifestCheck {
                 .iter()
                 .map(|row| (row.path.as_str(), row.sha256.as_str()))
                 .collect::<BTreeSet<_>>();
-            let missing = committed_keys
-                .difference(&generated_keys)
-                .map(|(path, _)| *path)
-                .collect::<Vec<_>>();
-            let added = generated_keys
-                .difference(&committed_keys)
-                .map(|(path, _)| *path)
-                .collect::<Vec<_>>();
+            let missing = committed_keys.difference(&generated_keys).count();
+            let added = generated_keys.difference(&committed_keys).count();
             return Err(TrackerError::new(format!(
-                "manifest snapshot drift: {} committed entries are gone, {} entries are new; regenerate and review the manifest",
-                missing.len(),
-                added.len()
+                "manifest snapshot drift: {missing} committed entries are gone, {added} entries are new; regenerate and review the manifest"
             )));
         }
         for row in &generated {

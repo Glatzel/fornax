@@ -68,7 +68,7 @@ where
     row
 }
 
-pub fn classify_decode_error(error: &DecodeError) -> &'static str {
+pub const fn classify_decode_error(error: &DecodeError) -> &'static str {
     match error {
         DecodeError::InvalidInput(_) => "invalid_input",
         DecodeError::Unsupported(_) => "unsupported",
@@ -79,7 +79,10 @@ pub fn classify_decode_error(error: &DecodeError) -> &'static str {
     }
 }
 
-pub fn run_guarded(operation: impl FnOnce() -> std::result::Result<StageRow, String>) -> StageRow {
+pub fn run_guarded<F>(operation: F) -> StageRow
+where
+    F: FnOnce() -> std::result::Result<StageRow, String>,
+{
     match catch_unwind(AssertUnwindSafe(operation)) {
         Ok(Ok(row)) => row,
         Ok(Err(error)) => runner_row(&error),
@@ -212,9 +215,9 @@ pub fn sanity_check_metadata(
     process: &ProcessMetadata,
 ) -> std::result::Result<(), String> {
     let image_width = required_u32(dng, TiffTag::ImageWidth)
-        .map_err(|_| "process_metadata:bad_geometry".to_owned())?;
+        .map_err(|()| "process_metadata:bad_geometry".to_owned())?;
     let image_height = required_u32(dng, TiffTag::ImageLength)
-        .map_err(|_| "process_metadata:bad_geometry".to_owned())?;
+        .map_err(|()| "process_metadata:bad_geometry".to_owned())?;
     if image_width != full_width || image_height != full_height {
         return Err("process_metadata:bad_geometry".to_owned());
     }

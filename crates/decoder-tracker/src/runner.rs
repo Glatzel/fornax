@@ -1,4 +1,3 @@
-use std::io::Read;
 use std::process::{Child, Command, Output, Stdio};
 use std::time::{Duration, Instant};
 use std::{fs, thread};
@@ -164,8 +163,7 @@ fn run_lfs(corpus: &std::path::Path, action: &str, paths: &[&str]) -> Result<()>
             || lower.contains("network")
         {
             eprintln!(
-                "git-lfs {action} attempt {attempt}/{FETCH_ATTEMPTS} hit a network or rate-limit error: {}",
-                last_error
+                "git-lfs {action} attempt {attempt}/{FETCH_ATTEMPTS} hit a network or rate-limit error: {last_error}"
             );
         }
         if attempt < FETCH_ATTEMPTS {
@@ -193,11 +191,4 @@ pub fn timeout_from_env() -> Duration {
         .ok()
         .and_then(|value| value.parse::<u64>().ok())
         .map_or(DEFAULT_TIMEOUT, Duration::from_secs)
-}
-
-#[allow(dead_code)]
-fn read_available(reader: &mut impl Read) -> std::io::Result<Vec<u8>> {
-    let mut bytes = Vec::new();
-    reader.read_to_end(&mut bytes)?;
-    Ok(bytes)
 }

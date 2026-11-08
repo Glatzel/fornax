@@ -32,10 +32,15 @@ pub fn write_manifest_csv(rows: &[ManifestRow]) -> Result<Vec<u8>> {
             sha256: row.sha256.clone(),
         })?;
     }
-    Ok(writer.into_inner().map_err(|error| error.into_error())?)
+    Ok(writer
+        .into_inner()
+        .map_err(csv::IntoInnerError::into_error)?)
 }
 
-pub fn read_manifest_csv(input: impl AsRef<[u8]>) -> Result<Vec<ManifestRow>> {
+pub fn read_manifest_csv<A>(input: A) -> Result<Vec<ManifestRow>>
+where
+    A: AsRef<[u8]>,
+{
     let mut reader = ReaderBuilder::new()
         .has_headers(true)
         .flexible(false)
@@ -80,10 +85,15 @@ pub fn write_baseline_csv(rows: &[BaselineRow]) -> Result<Vec<u8>> {
     for row in rows {
         writer.serialize(row)?;
     }
-    Ok(writer.into_inner().map_err(|error| error.into_error())?)
+    Ok(writer
+        .into_inner()
+        .map_err(csv::IntoInnerError::into_error)?)
 }
 
-pub fn read_baseline_csv(input: impl AsRef<[u8]>) -> Result<BaselineCsv> {
+pub fn read_baseline_csv<A>(input: A) -> Result<BaselineCsv>
+where
+    A: AsRef<[u8]>,
+{
     let mut reader = ReaderBuilder::new()
         .has_headers(true)
         .flexible(false)
