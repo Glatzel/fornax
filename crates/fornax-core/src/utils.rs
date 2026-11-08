@@ -71,8 +71,7 @@ pub fn detect_l2() -> Option<usize> {
         .or_else(|| get("hw.l2cachesize"));
     }
 
-    #[allow(unreachable_code)]
-    None
+    unreachable!()
 }
 
 /// Cached, clamped, with fallback.
