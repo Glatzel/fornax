@@ -335,7 +335,7 @@ fn baseline_row(manifest: &ManifestRow, stage: StageRow) -> BaselineRow {
         stage.handoff_pass,
     ];
     BaselineRow {
-        vendor: manifest.vendor.clone(),
+        status: status_for_stages(passes).to_owned(),
         camera: manifest.camera.clone(),
         format: normalize_repo_path(&manifest.format),
         path: manifest.path.clone(),
@@ -347,7 +347,6 @@ fn baseline_row(manifest: &ManifestRow, stage: StageRow) -> BaselineRow {
         width: stage.width,
         height: stage.height,
         cfa: stage.cfa,
-        status: status_for_stages(passes).to_owned(),
     }
 }
 

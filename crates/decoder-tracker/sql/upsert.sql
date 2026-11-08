@@ -1,6 +1,6 @@
 CREATE TEMP TABLE baseline AS
 SELECT
-    baseline.vendor::VARCHAR AS vendor,
+    baseline.status::VARCHAR AS status,
     baseline.camera::VARCHAR AS camera,
     baseline.format::VARCHAR AS format,
     baseline.path::VARCHAR AS path,
@@ -11,13 +11,12 @@ SELECT
     baseline.error_kind::VARCHAR AS error_kind,
     baseline.width::INTEGER AS width,
     baseline.height::INTEGER AS height,
-    baseline.cfa::VARCHAR AS cfa,
-    baseline.status::VARCHAR AS status
+    baseline.cfa::VARCHAR AS cfa
 FROM read_csv('@BASELINE@', header = true, all_varchar = true) AS baseline;
 
 CREATE TEMP TABLE updates AS
 SELECT
-    updates.vendor::VARCHAR AS vendor,
+    updates.status::VARCHAR AS status,
     updates.camera::VARCHAR AS camera,
     updates.format::VARCHAR AS format,
     updates.path::VARCHAR AS path,
@@ -28,15 +27,14 @@ SELECT
     updates.error_kind::VARCHAR AS error_kind,
     updates.width::INTEGER AS width,
     updates.height::INTEGER AS height,
-    updates.cfa::VARCHAR AS cfa,
-    updates.status::VARCHAR AS status
+    updates.cfa::VARCHAR AS cfa
 FROM read_csv('@CANDIDATE@', header = true, all_varchar = true) AS updates;
 
 CREATE TEMP TABLE merged AS
 SELECT *
 FROM (
     SELECT
-        vendor,
+        status,
         camera,
         format,
         path,
@@ -48,12 +46,11 @@ FROM (
         width,
         height,
         cfa,
-        status,
         0 AS source_priority
     FROM baseline
     UNION ALL
     SELECT
-        vendor,
+        status,
         camera,
         format,
         path,
@@ -65,19 +62,17 @@ FROM (
         width,
         height,
         cfa,
-        status,
         1 AS source_priority
     FROM updates
 )
 QUALIFY row_number() OVER (
-    PARTITION BY vendor, camera, format, path
+    PARTITION BY camera, format, path
     ORDER BY source_priority DESC
 ) = 1;
 
 COPY (
     SELECT
         status,
-        vendor,
         camera,
         format,
         path,
@@ -90,7 +85,7 @@ COPY (
         height,
         cfa
     FROM merged
-    ORDER BY vendor, camera, format, path
+    ORDER BY camera, format, path
 ) TO '@OUTPUT@' (
     FORMAT CSV,
     HEADER,

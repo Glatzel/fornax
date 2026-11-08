@@ -27,9 +27,6 @@ pub fn write_manifest_csv(rows: &[ManifestRow]) -> Result<Vec<u8>> {
     writer.write_record(MANIFEST_HEADER)?;
     for row in rows {
         writer.serialize(ManifestCsvRecord {
-            vendor: row.vendor.clone(),
-            camera: row.camera.clone(),
-            format: row.format.clone(),
             path: row.path.clone(),
             size: row.size,
             sha256: row.sha256.clone(),
@@ -51,12 +48,10 @@ pub fn read_manifest_csv(input: impl AsRef<[u8]>) -> Result<Vec<ManifestRow>> {
         .into_iter()
         .map(|row| {
             let (vendor, camera, model, filename) = crate::manifest::derive_identity(&row.path)?;
-            if (row.vendor.as_str(), row.camera.as_str()) != (vendor.as_str(), camera.as_str()) {
-                return Err(TrackerError::new(format!(
-                    "manifest identity columns disagree with path {:?}",
-                    row.path
-                )));
-            }
+            let format = row
+                .path
+                .rsplit_once('.')
+                .map_or_else(String::new, |(_, extension)| extension.to_ascii_uppercase());
             Ok(ManifestRow {
                 sha256: row.sha256,
                 size: row.size,
@@ -64,7 +59,7 @@ pub fn read_manifest_csv(input: impl AsRef<[u8]>) -> Result<Vec<ManifestRow>> {
                 vendor,
                 camera,
                 model,
-                format: row.format,
+                format,
                 filename,
             })
         })

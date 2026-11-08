@@ -80,7 +80,8 @@ Out of scope:
 
 - Supported formats are filtered before deterministic SHA-256 ordering and
   sharding.
-- The baseline row key is `(vendor, camera, format, path)`.
+- The baseline row key is `(camera, format, path)`; `camera` already includes
+  the vendor name when needed.
 - Decoder stages are evaluated once each in order. Child-process timeout and
   panic handling turns decoder failures into baseline rows rather than
   infrastructure failures.

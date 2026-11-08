@@ -2,10 +2,9 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-pub const MANIFEST_HEADER: [&str; 6] = ["vendor", "camera", "format", "path", "size", "sha256"];
-pub const BASELINE_HEADER: [&str; 13] = [
+pub const MANIFEST_HEADER: [&str; 3] = ["path", "size", "sha256"];
+pub const BASELINE_HEADER: [&str; 12] = [
     "status",
-    "vendor",
     "camera",
     "format",
     "path",
@@ -62,9 +61,6 @@ pub struct ManifestRow {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub(crate) struct ManifestCsvRecord {
-    pub vendor: String,
-    pub camera: String,
-    pub format: String,
     pub path: String,
     pub size: u64,
     pub sha256: String,
@@ -73,7 +69,6 @@ pub(crate) struct ManifestCsvRecord {
 impl ManifestRow {
     pub fn key(&self) -> BaselineKey {
         BaselineKey {
-            vendor: self.vendor.clone(),
             camera: self.camera.clone(),
             format: self.format.clone(),
             path: self.path.clone(),
@@ -83,7 +78,6 @@ impl ManifestRow {
 
 #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct BaselineKey {
-    pub vendor: String,
     pub camera: String,
     pub format: String,
     pub path: String,
@@ -91,18 +85,13 @@ pub struct BaselineKey {
 
 impl fmt::Display for BaselineKey {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            formatter,
-            "{}/{}/{}/{}",
-            self.vendor, self.camera, self.format, self.path
-        )
+        write!(formatter, "{}/{}/{}", self.camera, self.format, self.path)
     }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BaselineRow {
     pub status: String,
-    pub vendor: String,
     pub camera: String,
     pub format: String,
     pub path: String,
@@ -119,7 +108,6 @@ pub struct BaselineRow {
 impl BaselineRow {
     pub fn key(&self) -> BaselineKey {
         BaselineKey {
-            vendor: self.vendor.clone(),
             camera: self.camera.clone(),
             format: self.format.clone(),
             path: self.path.clone(),

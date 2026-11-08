@@ -1,263 +1,263 @@
-status,vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa
-✅,Adobe DNG Converter,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9394-compressed-lossless.DNG,1,1,1,1,,5920,3950,RGGB
-❌,Adobe DNG Converter,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9394-compressed-lossy.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-✅,Adobe DNG Converter,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9394-uncompressed.DNG,1,1,1,1,,5920,3950,RGGB
-❌,Adobe DNG Converter,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9395-compressed-lossless.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Adobe DNG Converter,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9395-compressed-lossy.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Adobe DNG Converter,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9395-uncompressed.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Apple,Apple iPhone 12 Pro,DNG,Apple/iPhone 12 Pro/IMG_1361.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-✅,Apple,Apple iPhone 6s Plus,DNG,Apple/iPhone 6s Plus/IMG_0853.DNG,1,1,1,1,,4032,3024,RGGB
-✅,Apple,Apple iPhone 7 Plus,DNG,Apple/iPhone 7 Plus/IMG_0739.DNG,1,1,1,1,,4032,3024,RGGB
-✅,Apple,Apple iPhone 8,DNG,Apple/iPhone 8/RAW_2018_11_07_14_43_14_820_noflash.dng,1,1,1,1,,4032,3024,RGGB
-✅,Apple,Apple iPhone SE,DNG,Apple/iPhone SE/A4973FFB-9CBD-4ED8-805D-E30F4AE08A95.dng,1,1,1,1,,4032,3024,BGGR
-✅,Apple,Apple iPhone XS,DNG,Apple/iPhone XS/IMG_1105.dng,1,1,1,1,,4032,3024,RGGB
-✅,Arashi Vision,Arashi Vision Insta360 One X,DNG,Arashi Vision/Insta360 One X/IMG_20201122_142733_00_015.dng,1,1,1,1,,3040,6080,GRBG
-❌,Autel,Autel Model 323,DNG,Autel/Model 323/MAX_0005.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,Autel Robotics,Autel Robotics XB015,DNG,Autel Robotics/XB015/MAX_0001.DNG,1,1,1,1,,4000,2250,RGGB
-❌,Blackmagic,Blackmagic Micro Cinema Camera,DNG,Blackmagic/Micro Cinema Camera/CAM1_2000-01-01_1659_C0002_000100.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-❌,Blackmagic,Blackmagic Micro Cinema Camera,DNG,Blackmagic/Micro Cinema Camera/CAM1_2000-01-01_1707_C0003_000100.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-❌,Blackmagic,Blackmagic Pocket Cinema Camera,DNG,Blackmagic/Pocket Cinema Camera/Blackmagic_Pocket_Cinema_Camera_1_2016-09-17_0053_C0022_000007.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,Blackmagic,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/4k_DCI_uncompressed.dng,1,1,1,1,,4128,2176,RGGB
-❌,Blackmagic,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_3-1.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-❌,Blackmagic,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_4-1.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-❌,Blackmagic,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_lossless.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,Blackmagic,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_uncompressed.dng,1,1,1,1,,4128,2176,RGGB
-❌,Blackmagic,Blackmagic URSA 4K,DNG,Blackmagic/URSA 4K/Blackmagic URSA_1_1999-12-31_2153_C0003_000001.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,Blackmagic Design,Blackmagic Design Pocket Cinema Camera 6k Pro,DNG,Blackmagic Design/Pocket Cinema Camera 6k Pro/A010_04101355_S068.dng,1,1,1,1,,6144,3456,RGGB
-✅,Canon,Canon DIGITAL IXUS 60,DNG,Canon/Canon DIGITAL IXUS 60/CRW_2069.DNG,1,1,1,1,,2888,2136,RGGB
-✅,Canon,Canon DIGITAL IXUS 95 IS,DNG,Canon/Canon DIGITAL IXUS 95 IS/CRW_2593_01.DNG,1,1,1,1,,3720,2772,RGGB
-✅,Canon,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/M24-1221_000202.dng,1,1,1,1,,1920,1080,RGGB
-❌,Canon,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/compress.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,Canon,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-uncompressed.dng,1,1,1,1,,5920,3950,RGGB
-✅,Canon,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-w-pred-deflate.dng,1,1,1,1,,5920,3950,RGGB
-✅,Canon,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-uncompressed.dng,1,1,1,1,,5920,3950,RGGB
-✅,Canon,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-w-pred-deflate.dng,1,1,1,1,,5920,3950,RGGB
-✅,Canon,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-uncompressed.dng,1,1,1,1,,5920,3950,RGGB
-✅,Canon,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-w-pred-deflate.dng,1,1,1,1,,5920,3950,RGGB
-❌,Canon,Canon EOS 60D,DNG,Canon/EOS 60D/M14-1451_000085_cDNG_compressed.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,Canon,Canon EOS 7D Mark II,DNG,Canon/EOS 7D Mark II/0P9A0410-Enhanced-NR.dng,1,1,1,1,,5568,3708,RGGB
-❌,Canon,Canon EOS-1D X,DNG,Canon/EOS-1D X/CROPGX2R4019-topaz-denoiseraw.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-✅,Canon,Canon IXY 220F,DNG,Canon/IXY 220F/canon_ixy_220f.DNG,1,1,1,1,,4784,3516,RGGB
-✅,Canon,Canon PowerShot A3100 IS,DNG,Canon/Canon PowerShot A3100 IS/CRW_3338.DNG,1,1,1,1,,4080,3048,RGGB
-✅,Canon,Canon PowerShot A3200 IS,DNG,Canon/PowerShot A3200 IS/RAW_CANON_POWERSHOT_A3200IS_CHDK.DNG,1,1,1,1,,4416,3296,RGGB
-✅,Canon,Canon PowerShot A3300 IS,DNG,Canon/Canon PowerShot A3300 IS/CRW_1140.DNG,1,1,1,1,,4704,3504,RGGB
-✅,Canon,Canon PowerShot A410,DNG,Canon/Canon PowerShot A410/CANON_A410_CHDK_CRW_0741.DNG,1,1,1,1,,2144,1560,RGGB
-✅,Canon,Canon PowerShot A480,DNG,Canon/Canon PowerShot A480/CRW_0010.DNG,1,1,1,1,,3720,2772,RGGB
-✅,Canon,Canon PowerShot A540,DNG,Canon/Canon PowerShot A540/CANON_A540_CHDK_CRW_0010.DNG,1,1,1,1,,2888,2136,RGGB
-✅,Canon,Canon PowerShot A550,DNG,Canon/Canon PowerShot A550/CRW_0006.DNG,1,1,1,1,,3152,2340,RGGB
-✅,Canon,Canon PowerShot A560,DNG,Canon/Canon PowerShot A560/IMG_2641.DNG,1,1,1,1,,3152,2340,RGGB
-✅,Canon,Canon PowerShot A570 IS,DNG,Canon/Canon PowerShot A570 IS/CRW_1918.DNG,1,1,1,1,,3152,2340,RGGB
-✅,Canon,Canon PowerShot A640,DNG,Canon/Canon PowerShot A640/CRW_0440.DNG,1,1,1,1,,3736,2772,RGGB
-✅,Canon,Canon PowerShot A720 IS,DNG,Canon/PowerShot A720 IS/IMG_8329.DNG,1,1,1,1,,3336,2480,GBRG
-✅,Canon,Canon PowerShot D10,DNG,Canon/Canon PowerShot D10/CANON_D10_CHDK_CRW_0626.DNG,1,1,1,1,,4104,3048,GBRG
-✅,Canon,Canon PowerShot ELPH 130 IS,DNG,Canon/Canon PowerShot ELPH 130 IS/CANON_IXUS140_ELPH130_CHDK_CRW_5645.DNG,1,1,1,1,,4704,3504,GBRG
-✅,Canon,Canon PowerShot ELPH 160,DNG,Canon/Canon PowerShot ELPH 160/RAW_CANON_POWERSHOT_IXUS160_CHDK.DNG,1,1,1,1,,5248,3920,RGGB
-✅,Canon,Canon PowerShot ELPH 180,DNG,Canon/Canon PowerShot ELPH 180/CANON_IXUS175_ELPH180_CHDK_CRW_0194.DNG,1,1,1,1,,5248,3920,RGGB
-✅,Canon,Canon PowerShot ELPH 180,DNG,Canon/Canon PowerShot ELPH 180/CRW_0334.DNG,1,1,1,1,,5248,3920,RGGB
-✅,Canon,Canon PowerShot ELPH 310 HS,DNG,Canon/Canon PowerShot ELPH 310 HS/CRW_9720.DNG,1,1,1,1,,4168,3060,RGGB
-✅,Canon,Canon PowerShot G1 X,DNG,Canon/PowerShot G1 X/CRW_0004.DNG,1,1,1,1,,4496,3366,RGGB
-✅,Canon,Canon PowerShot G7 X,DNG,Canon/PowerShot G7 X/CANON_G7X_CHDK_CRW_6740.DNG,1,1,1,1,,5632,3710,RGGB
-✅,Canon,Canon PowerShot S100,DNG,Canon/PowerShot S100/CRW_1369.DNG,1,1,1,1,,4160,3124,GBRG
-✅,Canon,Canon PowerShot S2 IS,DNG,Canon/Canon PowerShot S2 IS/IMG_1739.DNG,1,1,1,1,,2672,1968,RGGB
-✅,Canon,Canon PowerShot S3IS,DNG,Canon/Canon PowerShot S3IS/CRW_8531.DNG,1,1,1,1,,2888,2136,RGGB
-✅,Canon,Canon PowerShot SD450,DNG,Canon/PowerShot SD450/RAW_CANON_POWERSHOT_SD450_CHDK_V0.9.7-725.DNG,1,1,1,1,,2672,1968,RGGB
-✅,Canon,Canon PowerShot SX10 IS,DNG,Canon/PowerShot SX10 IS/CRW_1627.DNG,1,1,1,1,,3720,2772,RGGB
-✅,Canon,Canon PowerShot SX100 IS,DNG,Canon/PowerShot SX100 IS/CRW_0964_01.DNG,1,1,1,1,,3336,2480,GBRG
-✅,Canon,Canon PowerShot SX130 IS,DNG,Canon/PowerShot SX130 IS/CRW_8815.DNG,1,1,1,1,,4080,3048,RGGB
-✅,Canon,Canon PowerShot SX160 IS,DNG,Canon/PowerShot SX160 IS/CANON_SX160IS_CHDK_CRW_5152.DNG,1,1,1,1,,4704,3504,GBRG
-✅,Canon,Canon PowerShot SX20 IS,DNG,Canon/PowerShot SX20 IS/CRW_6489.DNG,1,1,1,1,,4080,3048,RGGB
-✅,Canon,Canon PowerShot SX220 HS,DNG,Canon/PowerShot SX220 HS/CRW_7733.DNG,1,1,1,1,,4168,3060,RGGB
-✅,Canon,Canon PowerShot SX230 HS,DNG,Canon/PowerShot SX230 HS/CRW_5894.DNG,1,1,1,1,,4168,3060,RGGB
-✅,Canon,Canon PowerShot SX240 HS,DNG,Canon/PowerShot SX240 HS/CRW_5797.DNG,1,1,1,1,,4176,3060,RGGB
-✅,Canon,Canon PowerShot SX260 HS,DNG,Canon/PowerShot SX260 HS/CRW_3027.DNG,1,1,1,1,,4176,3060,RGGB
-✅,Canon,Canon PowerShot SX30 IS,DNG,Canon/PowerShot SX30 IS/CRW_0763.DNG,1,1,1,1,,4464,3276,GBRG
-✅,Canon,Canon PowerShot SX40 HS,DNG,Canon/PowerShot SX40 HS/CRW_6037.DNG,1,1,1,1,,4176,3060,RGGB
-✅,Canon,Canon PowerShot SX50 HS,DNG,Canon/PowerShot SX50 HS/CRW_4061.DNG,1,1,1,1,,4176,3062,RGGB
-✅,Canon,Canon PowerShot SX510 HS,DNG,Canon/PowerShot SX510 HS/RAW_CANON_POWERSHOT_SX510HS.DNG,1,1,1,1,,4168,3062,RGGB
-✅,Canon,Canon PowerShot SX530 HS,DNG,Canon/PowerShot SX530 HS/CRW_4494.DNG,1,1,1,1,,4768,3516,RGGB
-✅,Canon,Canon PowerShot SX60 HS,DNG,Canon/PowerShot SX60 HS/Canon-SX60HS-CHDK-RAW.DNG,1,1,1,1,,4768,3516,RGGB
-✅,Canon,Canon PowerShot SX710 HS,DNG,Canon/PowerShot SX710 HS/CANON_SX710HS_CHDK_CRW_0716.DNG,1,1,1,1,,5344,3950,RGGB
-✅,DJI,DJI FC220,DNG,DJI/FC220/DJI_0004.DNG,1,1,1,1,,4000,3000,RGGB
-✅,DJI,DJI FC350,DNG,DJI/FC350/DJI_0040.DNG,1,1,1,1,,4000,2250,RGGB
-❌,DJI,DJI FC4382,DNG,DJI/FC4382/DJI_20250506184749_0011_D.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,DJI,DJI FC6310,DNG,DJI/FC6310/DJI_0220.DNG,1,1,1,1,,5472,3648,RGGB
-✅,DJI,DJI FC7303,DNG,DJI/FC7303/DJI_0109.DNG,1,1,1,1,,4000,3000,RGGB
-✅,DJI,DJI FC7303,DNG,DJI/FC7303/DJI_0765.DNG,1,1,1,1,,4000,2250,RGGB
-❌,DJI,DJI FC9287,DNG,DJI/FC9287/DJI_20250528104510_0025_D.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,DJI,DJI Osmo Action,DNG,DJI/DJI Osmo Action/DJI_0254.DNG,1,1,1,1,,4000,3000,RGGB
-✅,Eyedeas,Eyedeas E1,DNG,Eyedeas/E1/EYED0651.DNG,1,1,1,1,,4640,3480,GRBG
-❌,FIMI,FIMI X8SE,DNG,FIMI/X8SE/IMG_20180808_081040_0001.DNG,0,0,0,0,decode:invalid_input,0,0,unknown
-❌,Fujifilm,Fujifilm X100S,DNG,Fujifilm/X100S/fujifilm-x100s-daylight-DSCF9505.dng,1,1,0,0,process_metadata:unsupported,4936,3296,XTrans-6x6
-✅,Google,Google Pixel 2 XL,DNG,Google/Pixel 2 XL/IMG_20180109_080629.dng,1,1,1,1,,4032,3032,BGGR
-✅,Google,Google Pixel 3a,DNG,Google/Pixel 3a/IMG_20190918_164153.dng,1,1,1,1,,4032,3024,BGGR
-✅,Google,Google Pixel 4 XL,DNG,Google/Pixel 4 XL/IMG_20191023_125156.dng,1,1,1,1,,3700,2774,RGGB
-✅,Google,Google Pixel 4a,DNG,Google/Pixel 4a/PXL_20201121_100251397.dng,1,1,1,1,,4032,3024,RGGB
-✅,Google,Google Pixel 6 Pro,DNG,Google/Pixel 6 Pro/PXL_20220910_093206982.dng,1,1,1,1,,4080,3072,GBRG
-✅,Google,Google Pixel 7 Pro,DNG,Google/Pixel 7 Pro/PXL_20221204_063131635.dng,1,1,1,1,,3882,2924,BGGR
-✅,Google,Google Pixel 8 Pro,DNG,Google/Pixel 8 Pro/PXL_20240415_103400204.RAW-02.ORIGINAL.dng,1,1,1,1,,8160,6144,RGGB
-✅,HMD Global,HMD Global Nokia 7 plus,DNG,HMD Global/Nokia 7 plus/IMG_20190612_120131.dng,1,1,1,1,,4032,3024,GBRG
-✅,HTC,HTC 10,DNG,HTC/HTC 10/IMAG1305.dng,1,1,1,1,,4104,3046,RGGB
-✅,HUAWEI,HUAWEI ANE-LX1,DNG,HUAWEI/ANE-LX1/IMG_20200920_112515.dng,1,1,1,1,,4608,3456,RGGB
-✅,HUAWEI,HUAWEI AUM-L29,DNG,HUAWEI/AUM-L29/IMG_20181222_154757.dng,1,1,1,1,,4208,3120,GBRG
-✅,HUAWEI,HUAWEI BLA-L29,DNG,HUAWEI/BLA-L29/IMG_20180119_175851.dng,1,1,1,1,,3968,2976,BGGR
-✅,HUAWEI,HUAWEI CLT-L09,DNG,HUAWEI/CLT-L09/IMG_20191010_085409.dng,1,1,1,1,,7296,5472,RGGB
-✅,HUAWEI,HUAWEI DLI-L22,DNG,HUAWEI/DLI-L22/IMG_20171028_150510.dng,1,1,1,1,,4208,3120,GRBG
-✅,HUAWEI,HUAWEI EML-L09,DNG,HUAWEI/EML-L09/IMG_20190316_130857_(2).dng,1,1,1,1,,3968,2976,BGGR
-✅,HUAWEI,HUAWEI EML-L29,DNG,HUAWEI/EML-L29/IMG_20190507_233457.dng,1,1,1,1,,3968,2976,BGGR
-✅,HUAWEI,HUAWEI EVA-AL00,DNG,HUAWEI/EVA-AL00/IMG_20171015_200142.dng,1,1,1,1,,3968,2976,RGGB
-✅,HUAWEI,HUAWEI EVA-L09,DNG,HUAWEI/EVA-L09/Huawai_P9_Leica.dng,1,1,1,1,,3968,2976,RGGB
-✅,HUAWEI,HUAWEI FRD-L09,DNG,HUAWEI/FRD-L09/IMG_20180520_132951.dng,1,1,1,1,,3968,2976,RGGB
-✅,HUAWEI,HUAWEI HRY-LX1,DNG,HUAWEI/HRY-LX1/IMG_20190427_200711.dng,1,1,1,1,,4160,3120,GBRG
-✅,HUAWEI,HUAWEI NXT-L29,DNG,HUAWEI/HUAWEI NXT-L29/IMG_20190508_113343.dng,1,1,1,1,,4608,3456,BGGR
-✅,HUAWEI,HUAWEI PRA-LX1,DNG,HUAWEI/PRA-LX1/IMG_20180330_171432.dng,1,1,1,1,,3968,2976,BGGR
-✅,HUAWEI,HUAWEI SNE-LX1,DNG,HUAWEI/SNE-LX1/IMG_20191221_095657.dng,1,1,1,1,,5120,3840,BGGR
-✅,HUAWEI,HUAWEI VKY-L09,DNG,HUAWEI/VKY-L09/IMG_20180429_160450.dng,1,1,1,1,,3968,2976,BGGR
-✅,HUAWEI,HUAWEI VOG-L29,DNG,HUAWEI/VOG-L29/IMG_20190330_123314.dng,1,1,1,1,,3264,2448,GRBG
-✅,HUAWEI,HUAWEI VTR-L09,DNG,HUAWEI/VTR-L09/IMG_20180307_120152.dng,1,1,1,1,,3968,2976,BGGR
-✅,HUAWEI,HUAWEI WAS-LX1A,DNG,HUAWEI/WAS-LX1A/IMG_20180416_193350.dng,1,1,1,1,,3968,2976,BGGR
-✅,Hasselblad,Hasselblad L1D-20c,DNG,Hasselblad/L1D-20c/DJI_0017.DNG,1,1,1,1,,5568,3648,RGGB
-❌,Hasselblad,Hasselblad L2D-20c,DNG,Hasselblad/L2D-20c/DJI_0023.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,KanDao,KanDao QooCam,DNG,KanDao/QooCam/KD3D_20190310_123825_000001.DNG,1,1,1,1,,4320,2160,RGGB
-❌,KanDao,KanDao QooCam,DNG,KanDao/QooCam/KDRaw_Q360_20190310_125715_000001.dng,1,1,0,0,process_metadata:backend,4320,2160,RGGB
-✅,KanDao,KanDao QooCam,DNG,KanDao/QooCam/Q360_20190310_123437_000001.DNG,1,1,1,1,,4320,2160,RGGB
-✅,Kandao,Kandao QooCam 8K,DNG,Kandao/QooCam 8K/Q360_20210330_100513_00000D.DNG,1,1,1,1,,3840,7680,GBRG
-✅,LEICA CAMERA AG,LEICA CAMERA AG LEICA SL2,DNG,LEICA CAMERA AG/LEICA SL2/L1020010.DNG,1,1,1,1,,8424,5632,GBRG
-❌,LG,LG D855,DNG,LG/D855/IMG_2017_07_16_13_10_47.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,LG,LG H815,DNG,LG/H815/20161227_150823.dng,1,1,1,1,,5312,2988,BGGR
-✅,LG,LG LG-F800K,DNG,LG/LG-F800K/20171028_174609.dng,1,1,1,1,,4656,3492,RGGB
-✅,LG,LG LG-H850,DNG,LG/LG-H850/LGG5_Camera_Front.dng,1,1,1,1,,3264,2448,GRBG
-✅,LG,LG LG-H870,DNG,LG/LG-H870/20180705_215945.dng,1,1,1,1,,4160,3120,RGGB
-✅,LG,LG LG-H910,DNG,LG/LG-H910/opn_20190921_065338_0.dng,1,1,1,1,,4656,3492,RGGB
-✅,LG,LG Nexus 5X,DNG,LG/Nexus 5X/IMG_20170214_170637_637.dng,1,1,1,1,,4080,3028,RGGB
-✅,LG,LG US996,DNG,LG/US996/IMG_20170821_025047.dng,1,1,1,1,,4656,3492,RGGB
-✅,LG,LG VS995,DNG,LG/VS995/0313171232.dng,1,1,1,1,,4656,3492,RGGB
-✅,Leica,Leica CL,DNG,Leica/CL/L1080510_2018_CL-35-135-Chateau_Thy__Chateau_Ham.DNG,1,1,1,1,,6120,4016,GBRG
-✅,Leica,Leica M (Typ 240),DNG,Leica/M (Typ 240)/ADG_RPUsubmit_compressed_L1006373.DNG,1,1,1,1,,5984,4000,BGGR
-✅,Leica,Leica M (Typ 240),DNG,Leica/M (Typ 240)/ADG_RPUsubmit_uncompressed_L1006374.DNG,1,1,1,1,,5984,4000,BGGR
-❌,Leica,Leica M Monochrom,DNG,Leica/M Monochrom/L1000622.DNG,1,1,0,0,process_metadata:backend,5216,3472,unknown
-❌,Leica,Leica M Monochrom (Typ 246),DNG,Leica/M Monochrom (Typ 246)/M2462362.DNG,1,1,0,0,process_metadata:backend,5984,4000,unknown
-✅,Leica,Leica M10,DNG,Leica/M10/f5381888.dng,1,1,1,1,,5984,3992,RGGB
-❌,Leica,Leica M8,DNG,Leica/M8/L1030132.DNG,1,1,0,0,process_metadata:backend,3920,2638,RGGB
-✅,Leica,Leica M9,DNG,Leica/M9/L1049390.DNG,1,1,1,1,,5216,3472,RGGB
-✅,Leica,Leica M9 Digital Camera,DNG,Leica/M9 Digital Camera/L1049391.DNG,1,1,1,1,,5216,3472,RGGB
-✅,Leica,Leica Q (Typ 116),DNG,Leica/Q (Typ 116)/L1070048.DNG,1,1,1,1,,6120,4016,BGGR
-✅,Leica,Leica Q2,DNG,Leica/Q2/L1000750.DNG,1,1,1,1,,8424,5632,GBRG
-✅,Leica,Leica SL (Typ 601),DNG,Leica/SL (Typ 601)/20160915_Lechtaler_001.DNG,1,1,1,1,,6120,4016,BGGR
-❌,Leica,Leica X2,DNG,Leica/X2/L1021324.DNG,1,1,0,0,process_metadata:backend,4944,3272,RGGB
-✅,Leica Camera AG,Leica Camera AG LEICA M10-R,DNG,Leica Camera AG/LEICA M10-R/M10R0324.DNG,1,1,1,1,,7872,5208,GBRG
-❌,Light,Light L16,DNG,Light/L16/L16_00148.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-✅,MADV,MADV QJXJ01FJ,DNG,MADV/QJXJ01FJ/IMG_20190326_134416.DNG,1,1,1,1,,6912,3456,RGGB
-✅,Microsoft,Microsoft Lumia 950 XL Dual SIM,DNG,Microsoft/Lumia 950 XL Dual SIM/Microsoft_-_Lumia_950XL.dng,1,1,1,1,,4992,3744,GRBG
-✅,Nikon,Nikon D80,DNG,Nikon/D80/DSC_0143.dng,1,1,1,1,,3900,2611,GBRG
-❌,Nikon,Nikon LS-5000,DNG,Nikon/LS-5000/F014-07.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-✅,Nokia,Nokia Lumia 1020,DNG,Nokia/Lumia 1020/RAW_NOKIA_LUMIA_1020.DNG,1,1,1,1,,7152,5360,GRBG
-✅,Nokia,Nokia Lumia 930,DNG,Nokia/Lumia 930/WP_20180612_19_16_03_Raw__highres.dng,1,1,1,1,,5376,3024,GRBG
-✅,OnePlus,ONEPLUS A3003,DNG,OnePlus/ONEPLUS A3003/IMG_20170316_134557.dng,1,1,1,1,,4656,3496,RGGB
-✅,OnePlus,ONEPLUS A5000,DNG,OnePlus/ONEPLUS A5000/IMG_20171224_201301.dng,1,1,1,1,,4656,3496,RGGB
-✅,OnePlus,ONEPLUS A6003,DNG,OnePlus/ONEPLUS A6003/IMG_20201019_093659.dng,1,1,1,1,,4656,3496,RGGB
-✅,OnePlus,OnePlus One,DNG,OnePlus/One/IMG_20150729_201116.dng,1,1,1,1,,4212,3120,RGGB
-❌,PARROT,PARROT Bebop 2,DNG,PARROT/Bebop 2/Bebop2_20170330115857+0200.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-❌,PARROT,PARROT Bebop Drone,DNG,PARROT/Bebop Drone/Bebop_Drone_2015-11-07T180428+0000_C10611.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,PENTAX,PENTAX K-r,DNG,PENTAX/PENTAX K-r/IMGP4425.DNG,1,1,1,1,,4352,2868,BGGR
-✅,Panasonic,Panasonic DMC-LX1,DNG,Panasonic/DMC-LX1/P1080763.dng,1,1,1,1,,3857,2170,RGGB
-✅,Parrot,Parrot Anafi,DNG,Parrot/Anafi/100000190019.DNG,1,1,1,1,,5344,4016,BGGR
-✅,Pentax,Pentax 645D,DNG,Pentax/645D/645D2839.DNG,1,1,1,1,,7424,5552,BGGR
-✅,Pentax,Pentax 645Z,DNG,Pentax/645Z/IMGP2836.DNG,1,1,1,1,,8384,6208,RGGB
-✅,Pentax,Pentax K-01,DNG,Pentax/K-01/_IGP2068.DNG,1,1,1,1,,4960,3300,RGGB
-✅,Pentax,Pentax K-1,DNG,Pentax/K-1/IMGP8551.DNG,1,1,1,1,,7392,4950,RGGB
-✅,Pentax,Pentax K-1,DNG,Pentax/K-1/IMGP8555.DNG,1,1,1,1,,7392,4950,RGGB
-✅,Pentax,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_IMG2387.DNG,1,1,1,1,,7392,4950,RGGB
-✅,Pentax,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_IMG2390.DNG,1,1,1,1,,7392,4950,RGGB
-✅,Pentax,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9779.DNG,1,1,1,1,,7392,4950,RGGB
-✅,Pentax,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9783.DNG,1,1,1,1,,7392,4950,RGGB
-✅,Pentax,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9784.DNG,1,1,1,1,,7392,4950,RGGB
-✅,Pentax,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9786.DNG,1,1,1,1,,4832,3238,RGGB
-✅,Pentax,Pentax K-3,DNG,Pentax/K-3/IMGP6916.DNG,1,1,1,1,,6080,4032,RGGB
-✅,Pentax,Pentax K-3 II,DNG,Pentax/K-3 II/20170430-121325.dng,1,1,1,1,,6080,4032,RGGB
-✅,Pentax,Pentax K-3 II,DNG,Pentax/K-3 II/IMGP0668.DNG,1,1,1,1,,6080,4032,RGGB
-✅,Pentax,Pentax K-3 Mark III,DNG,Pentax/K-3 Mark III/_IMG0114.DNG,1,1,1,1,,6304,4224,RGGB
-❌,Pentax,Pentax K-3 Mark III Monochrome,DNG,Pentax/K-3 Mark III Monochrome/K3III.DNG,1,1,0,0,process_metadata:backend,6304,4224,unknown
-✅,Pentax,Pentax K-30,DNG,Pentax/K-30/_IGP4042.DNG,1,1,1,1,,4960,3300,RGGB
-✅,Pentax,Pentax K-5,DNG,Pentax/K-5/_MAR0543.DNG,1,1,1,1,,4992,3284,BGGR
-✅,Pentax,Pentax K-5 II,DNG,Pentax/K-5 II/IMGP2032.DNG,1,1,1,1,,4992,3284,BGGR
-✅,Pentax,Pentax K-5 II s,DNG,Pentax/K-5 II s/_JAK3776.DNG,1,1,1,1,,4992,3284,BGGR
-✅,Pentax,Pentax K-50,DNG,Pentax/K-50/IMGP1385.DNG,1,1,1,1,,4960,3300,RGGB
-✅,Pentax,Pentax K-500,DNG,Pentax/K-500/Pentax_-_K-500.DNG,1,1,1,1,,4960,3300,RGGB
-✅,Pentax,Pentax K-7,DNG,Pentax/K-7/IMGP6297.DNG,1,1,1,1,,4736,3136,BGGR
-✅,Pentax,Pentax K-70,DNG,Pentax/K-70/IMGP0771.DNG,1,1,1,1,,6080,4064,RGGB
-✅,Pentax,Pentax K-70,DNG,Pentax/K-70/IMGP6855.DNG,1,1,1,1,,6080,4064,RGGB
-✅,Pentax,Pentax K-S1,DNG,Pentax/K-S1/IMGP4743.DNG,1,1,1,1,,5504,3664,RGGB
-✅,Pentax,Pentax K-S2,DNG,Pentax/K-S2/IMGP3368.DNG,1,1,1,1,,5504,3664,RGGB
-✅,Pentax,Pentax K-x,DNG,Pentax/K-x/IMGP6431.DNG,1,1,1,1,,4352,2868,BGGR
-✅,Pentax,Pentax K10D,DNG,Pentax/K10D/IMGP5398.DNG,1,1,1,1,,3936,2624,RGGB
-✅,Pentax,Pentax K200D,DNG,Pentax/K200D/IMGP2292.DNG,1,1,1,1,,3936,2624,RGGB
-✅,Pentax,Pentax K20D,DNG,Pentax/K20D/RAW_Pentax_K20.DNG,1,1,1,1,,4864,3136,BGGR
-✅,Pentax,Pentax KP,DNG,Pentax/KP/IMGP0236.DNG,1,1,1,1,,6112,4060,RGGB
-✅,Pentax,Pentax MX-1,DNG,Pentax/MX-1/pentax_mx1_raw2.dng,1,1,1,1,,4016,3010,RGGB
-✅,Pentax,Pentax Q,DNG,Pentax/Q/IMGP0647.DNG,1,1,1,1,,4064,3000,GRBG
-✅,Pentax,Pentax Q7,DNG,Pentax/Q7/IMGP1691.DNG,1,1,1,1,,4064,3000,RGGB
-❌,Plustek,Plustek OpticFilm 8100,DNG,Plustek/OpticFilm 8100/SF8_processed_-_Mon_Jun_17_19-45-39_2019.dng,1,1,0,0,process_metadata:backend,2592,1800,unknown
-❌,Plustek,Plustek OpticFilm 8200i SE,DNG,Plustek/OpticFilm 8200i SE/AristaUltra_400_Test1.dng,1,1,0,0,process_metadata:backend,5040,3384,unknown
-✅,RICOH,RICOH GX200,DNG,RICOH/RICOH GX200/R0014336-20180515-ss620-ap4.6-fl5-iso64.DNG,1,1,1,1,,4096,3014,GRBG
-✅,RICOH,RICOH GXR,DNG,RICOH/GXR/R0017428.DNG,1,1,1,1,,3672,2748,RGGB
-✅,RaspberryPi,RaspberryPi RP_imx477,DNG,RaspberryPi/RP_imx477/pi.dng,1,1,1,1,,4056,3040,BGGR
-✅,RaspberryPi,RaspberryPi RP_imx477,DNG,RaspberryPi/RP_imx477/pi_hq_picamera.dng,1,1,1,1,,4056,3040,BGGR
-✅,RaspberryPi,RaspberryPi RP_imx477,DNG,RaspberryPi/RP_imx477/pi_hq_raspistill.dng,1,1,1,1,,4056,3040,BGGR
-✅,Realme,Realme RMX1851,DNG,Realme/RMX1851/IMG_OCT_20191005_163311.dng,1,1,1,1,,4656,3496,BGGR
-✅,Ricoh,Ricoh GR,DNG,Ricoh/GR/R0003611.DNG,1,1,1,1,,4960,3280,RGGB
-✅,Ricoh,Ricoh GR DIGITAL 2,DNG,Ricoh/GR DIGITAL 2/RAW_RICOH_GR2.DNG,1,1,1,1,,3656,2744,BGGR
-✅,Ricoh,Ricoh GR II,DNG,Ricoh/GR II/R0000443.DNG,1,1,1,1,,4960,3280,RGGB
-✅,Ricoh,Ricoh GR III,DNG,Ricoh/GR III/R0000357.DNG,1,1,1,1,,6112,4064,RGGB
-✅,Ricoh,Ricoh GR IIIx,DNG,Ricoh/GR IIIx/R0001005.DNG,1,1,1,1,,6112,4064,RGGB
-✅,Samsung,Samsung G920F,DNG,Samsung/G920F/LRM_20170316_152407.dng,1,1,1,1,,5328,3000,GRBG
-✅,Samsung,Samsung G935F,DNG,Samsung/G935F/20170403_104110.dng,1,1,1,1,,4032,2268,GRBG
-✅,Samsung,Samsung GX10,DNG,Samsung/GX10/_G107701.DNG,1,1,1,1,,3936,2624,RGGB
-✅,Samsung,Samsung GX20,DNG,Samsung/GX20/_G205027.DNG,1,1,1,1,,4864,3136,BGGR
-❌,Samsung,Samsung Galaxy S21 Ultra,DNG,Samsung/Galaxy S21 Ultra/20230712_115041.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Samsung,Samsung Galaxy S22 Ulra,DNG,Samsung/Galaxy S22 Ulra/20221225_114402.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Samsung,Samsung Galaxy S22 Ultra,DNG,Samsung/Galaxy S22 Ultra/20230531_111518.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Samsung,Samsung Galaxy S23,DNG,Samsung/Galaxy S23/20230414_115131.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Samsung,Samsung Galaxy S23,DNG,Samsung/Galaxy S23/20230715_154550.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Samsung,Samsung Galaxy S23 Ultra,DNG,Samsung/Galaxy S23 Ultra/20230817_120455.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Samsung,Samsung Galaxy S23 Ultra,DNG,Samsung/Galaxy S23 Ultra/20231214_130645.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Samsung,Samsung Galaxy S23+,DNG,Samsung/Galaxy S23+/20231227_172938.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-✅,Samsung,Samsung SAMSUNG-SM-G930A,DNG,Samsung/SAMSUNG-SM-G930A/20180105_103031.dng,1,1,1,1,,4032,2268,GRBG
-✅,Samsung,Samsung SM-G930F,DNG,Samsung/SM-G930F/20200125_130015.dng,1,1,1,1,,4032,3024,GRBG
-✅,Samsung,Samsung SM-G930T,DNG,Samsung/SM-G930T/20180602_132834.dng,1,1,1,1,,4032,3024,GRBG
-✅,Samsung,Samsung SM-G950F,DNG,Samsung/SM-G950F/2018-06-08_12.48.51.dng,1,1,1,1,,4032,3024,GRBG
-✅,Samsung,Samsung SM-G950U,DNG,Samsung/SM-G950U/20170828_141409.dng,1,1,1,1,,4032,2268,GRBG
-✅,Samsung,Samsung SM-G955F,DNG,Samsung/SM-G955F/20180202_091722.dng,1,1,1,1,,4032,3024,GRBG
-✅,Samsung,Samsung SM-G960F,DNG,Samsung/SM-G960F/20191119_101508.dng,1,1,1,1,,4032,3024,GRBG
-✅,Samsung,Samsung SM-G965F,DNG,Samsung/SM-G965F/Samsung_SM-G965F_4-3_ratio_f2.4.dng,1,1,1,1,,4032,3024,GRBG
-✅,Samsung,Samsung SM-G973F,DNG,Samsung/SM-G973F/20191114_225157.dng,1,1,1,1,,4032,3024,GRBG
-❌,Samsung,Samsung SM-G973U,DNG,Samsung/SM-G973U/20200402_181931.dng,0,0,0,0,decode:invalid_input,0,0,unknown
-✅,Sigma,Sigma fp,DNG,Sigma/fp/A002_647_20240229_000001_4k_12bit.DNG,1,1,1,1,,3856,2170,RGGB
-✅,Sigma,Sigma fp,DNG,Sigma/fp/A002_648_20240229_000001_4k_10bit.DNG,1,1,1,1,,3856,2170,RGGB
-✅,Sigma,Sigma fp,DNG,Sigma/fp/A002_650_20240229_000001_4k_8bit.DNG,1,1,1,1,,3856,2170,RGGB
-✅,Sigma,Sigma fp,DNG,Sigma/fp/A002_651_20240229_000001_2k_12bit.DNG,1,1,1,1,,1936,1090,RGGB
-✅,Sigma,Sigma fp,DNG,Sigma/fp/A002_652_20240229_000001_2k_10bit.DNG,1,1,1,1,,1936,1090,RGGB
-✅,Sigma,Sigma fp,DNG,Sigma/fp/A002_653_20240229_000001_2k_8bit.DNG,1,1,1,1,,1936,1090,RGGB
-✅,Sigma,Sigma fp,DNG,Sigma/fp/SDIM4591.DNG,1,1,1,1,,6064,4042,RGGB
-✅,Sigma,Sigma fp L,DNG,Sigma/fp L/SDIM0915.DNG,1,1,1,1,,9536,6344,RGGB
-❌,Sigma,Sigma sd Quattro,DNG,Sigma/sd Quattro/sample3.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,XIAOYI,XIAOYI YDXJ 2,DNG,XIAOYI/YDXJ 2/ydxj0065.dng,1,1,0,0,process_metadata:backend,4000,3000,RGGB
-❌,XIAOYI,XIAOYI YI 4K,DNG,XIAOYI/YI 4K/YDXJ0026.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-❌,XIAOYI,XIAOYI YIAC 3,DNG,XIAOYI/YIAC 3/YIAC0075.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-❌,Xiaomi,Xiaomi HM NOTE 1LTE,DNG,Xiaomi/HM NOTE 1LTE/IMG_2016.07.31_15.48.08.dng,0,0,0,0,decode:invalid_input,0,0,unknown
-✅,Xiaomi,Xiaomi M2010J19CG,DNG,Xiaomi/M2010J19CG/IMG_20201224_141323.dng,1,1,1,1,,4000,3000,GBRG
-✅,Xiaomi,Xiaomi MI 8,DNG,Xiaomi/MI 8/IMG_20200101_174326.dng,1,1,1,1,,4032,2268,RGGB
-❌,Xiaomi,Xiaomi MI MAX,DNG,Xiaomi/MI MAX/IMG_2019_10_27_14_47_40.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,Xiaomi,Xiaomi Mi 9 Lite,DNG,Xiaomi/Mi 9 Lite/IMG_20200324_073611.dng,1,1,1,1,,4000,3000,RGGB
-✅,Xiaomi,Xiaomi Redmi Note 7,DNG,Xiaomi/Redmi Note 7/IMG_20190615_155524.dng,1,1,1,1,,4000,3000,GRBG
-✅,Xiaomi,Xiaomi Redmi Note 8T,DNG,Xiaomi/Redmi Note 8T/IMG_20200715_094601.dng,1,1,1,1,,4000,3000,GRBG
-✅,YI TECHNOLOGY,YI TECHNOLOGY M1,DNG,YI TECHNOLOGY/M1/PC070001.DNG,1,1,1,1,,5200,3902,RGGB
-❌,Yuneec,Yuneec CGO3,DNG,Yuneec/CGO3/YUN00038.dng,1,1,0,0,process_metadata:backend,4000,3000,BGGR
-❌,Yuneec,Yuneec CGO3P,DNG,Yuneec/CGO3P/YUN00007.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
-✅,asus,asus ASUS_I01WD,DNG,asus/ASUS_I01WD/P_20190922_161212.dng,1,1,1,1,,4224,3136,BGGR
-✅,asus,asus ASUS_Z01KD,DNG,asus/ASUS_Z01KD/2018-12-02_07.39.26-1.dng,1,1,1,1,,3916,2936,BGGR
-✅,bq,bq Aquaris U Plus,DNG,bq/Aquaris U Plus/IMG_20180217_111328_894.dng,1,1,1,1,,4640,3480,GRBG
-❌,moto g8plus,moto g8plus,DNG,moto g8plus/moto g8plus/IMG_20200621_212547364.dng,0,0,0,0,decode:invalid_input,0,0,unknown
-✅,motorola,motorola Moto G (5S) Plus,DNG,motorola/Moto G (5S) Plus/IMG_20180328_152254.dng,1,1,1,1,,4208,3120,GRBG
-✅,motorola,motorola Nexus 6,DNG,motorola/Nexus 6/DSC_0017.DNG,1,1,1,1,,4208,3120,BGGR
-✅,motorola,motorola moto g(7) play,DNG,motorola/moto g(7) play/IMG_20191114_091702382.dng,1,1,1,1,,4208,3120,GRBG
-❌,samsung,samsung SM-S901E,DNG,samsung/SM-S901E/20250305_173647.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa
+✅,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9394-compressed-lossless.DNG,1,1,1,1,,5920,3950,RGGB
+❌,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9394-compressed-lossy.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9394-uncompressed.DNG,1,1,1,1,,5920,3950,RGGB
+❌,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9395-compressed-lossless.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9395-compressed-lossy.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Adobe DNG Converter Canon EOS 5D Mark III,DNG,Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9395-uncompressed.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Apple iPhone 12 Pro,DNG,Apple/iPhone 12 Pro/IMG_1361.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,Apple iPhone 6s Plus,DNG,Apple/iPhone 6s Plus/IMG_0853.DNG,1,1,1,1,,4032,3024,RGGB
+✅,Apple iPhone 7 Plus,DNG,Apple/iPhone 7 Plus/IMG_0739.DNG,1,1,1,1,,4032,3024,RGGB
+✅,Apple iPhone 8,DNG,Apple/iPhone 8/RAW_2018_11_07_14_43_14_820_noflash.dng,1,1,1,1,,4032,3024,RGGB
+✅,Apple iPhone SE,DNG,Apple/iPhone SE/A4973FFB-9CBD-4ED8-805D-E30F4AE08A95.dng,1,1,1,1,,4032,3024,BGGR
+✅,Apple iPhone XS,DNG,Apple/iPhone XS/IMG_1105.dng,1,1,1,1,,4032,3024,RGGB
+✅,Arashi Vision Insta360 One X,DNG,Arashi Vision/Insta360 One X/IMG_20201122_142733_00_015.dng,1,1,1,1,,3040,6080,GRBG
+❌,Autel Model 323,DNG,Autel/Model 323/MAX_0005.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Autel Robotics XB015,DNG,Autel Robotics/XB015/MAX_0001.DNG,1,1,1,1,,4000,2250,RGGB
+✅,Blackmagic Design Pocket Cinema Camera 6k Pro,DNG,Blackmagic Design/Pocket Cinema Camera 6k Pro/A010_04101355_S068.dng,1,1,1,1,,6144,3456,RGGB
+❌,Blackmagic Micro Cinema Camera,DNG,Blackmagic/Micro Cinema Camera/CAM1_2000-01-01_1659_C0002_000100.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+❌,Blackmagic Micro Cinema Camera,DNG,Blackmagic/Micro Cinema Camera/CAM1_2000-01-01_1707_C0003_000100.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+❌,Blackmagic Pocket Cinema Camera,DNG,Blackmagic/Pocket Cinema Camera/Blackmagic_Pocket_Cinema_Camera_1_2016-09-17_0053_C0022_000007.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/4k_DCI_uncompressed.dng,1,1,1,1,,4128,2176,RGGB
+❌,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_3-1.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+❌,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_4-1.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+❌,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_lossless.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_uncompressed.dng,1,1,1,1,,4128,2176,RGGB
+❌,Blackmagic URSA 4K,DNG,Blackmagic/URSA 4K/Blackmagic URSA_1_1999-12-31_2153_C0003_000001.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Canon DIGITAL IXUS 60,DNG,Canon/Canon DIGITAL IXUS 60/CRW_2069.DNG,1,1,1,1,,2888,2136,RGGB
+✅,Canon DIGITAL IXUS 95 IS,DNG,Canon/Canon DIGITAL IXUS 95 IS/CRW_2593_01.DNG,1,1,1,1,,3720,2772,RGGB
+✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/M24-1221_000202.dng,1,1,1,1,,1920,1080,RGGB
+❌,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/compress.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-uncompressed.dng,1,1,1,1,,5920,3950,RGGB
+✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-w-pred-deflate.dng,1,1,1,1,,5920,3950,RGGB
+✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-uncompressed.dng,1,1,1,1,,5920,3950,RGGB
+✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-w-pred-deflate.dng,1,1,1,1,,5920,3950,RGGB
+✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-uncompressed.dng,1,1,1,1,,5920,3950,RGGB
+✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-w-pred-deflate.dng,1,1,1,1,,5920,3950,RGGB
+❌,Canon EOS 60D,DNG,Canon/EOS 60D/M14-1451_000085_cDNG_compressed.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Canon EOS 7D Mark II,DNG,Canon/EOS 7D Mark II/0P9A0410-Enhanced-NR.dng,1,1,1,1,,5568,3708,RGGB
+❌,Canon EOS-1D X,DNG,Canon/EOS-1D X/CROPGX2R4019-topaz-denoiseraw.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,Canon IXY 220F,DNG,Canon/IXY 220F/canon_ixy_220f.DNG,1,1,1,1,,4784,3516,RGGB
+✅,Canon PowerShot A3100 IS,DNG,Canon/Canon PowerShot A3100 IS/CRW_3338.DNG,1,1,1,1,,4080,3048,RGGB
+✅,Canon PowerShot A3200 IS,DNG,Canon/PowerShot A3200 IS/RAW_CANON_POWERSHOT_A3200IS_CHDK.DNG,1,1,1,1,,4416,3296,RGGB
+✅,Canon PowerShot A3300 IS,DNG,Canon/Canon PowerShot A3300 IS/CRW_1140.DNG,1,1,1,1,,4704,3504,RGGB
+✅,Canon PowerShot A410,DNG,Canon/Canon PowerShot A410/CANON_A410_CHDK_CRW_0741.DNG,1,1,1,1,,2144,1560,RGGB
+✅,Canon PowerShot A480,DNG,Canon/Canon PowerShot A480/CRW_0010.DNG,1,1,1,1,,3720,2772,RGGB
+✅,Canon PowerShot A540,DNG,Canon/Canon PowerShot A540/CANON_A540_CHDK_CRW_0010.DNG,1,1,1,1,,2888,2136,RGGB
+✅,Canon PowerShot A550,DNG,Canon/Canon PowerShot A550/CRW_0006.DNG,1,1,1,1,,3152,2340,RGGB
+✅,Canon PowerShot A560,DNG,Canon/Canon PowerShot A560/IMG_2641.DNG,1,1,1,1,,3152,2340,RGGB
+✅,Canon PowerShot A570 IS,DNG,Canon/Canon PowerShot A570 IS/CRW_1918.DNG,1,1,1,1,,3152,2340,RGGB
+✅,Canon PowerShot A640,DNG,Canon/Canon PowerShot A640/CRW_0440.DNG,1,1,1,1,,3736,2772,RGGB
+✅,Canon PowerShot A720 IS,DNG,Canon/PowerShot A720 IS/IMG_8329.DNG,1,1,1,1,,3336,2480,GBRG
+✅,Canon PowerShot D10,DNG,Canon/Canon PowerShot D10/CANON_D10_CHDK_CRW_0626.DNG,1,1,1,1,,4104,3048,GBRG
+✅,Canon PowerShot ELPH 130 IS,DNG,Canon/Canon PowerShot ELPH 130 IS/CANON_IXUS140_ELPH130_CHDK_CRW_5645.DNG,1,1,1,1,,4704,3504,GBRG
+✅,Canon PowerShot ELPH 160,DNG,Canon/Canon PowerShot ELPH 160/RAW_CANON_POWERSHOT_IXUS160_CHDK.DNG,1,1,1,1,,5248,3920,RGGB
+✅,Canon PowerShot ELPH 180,DNG,Canon/Canon PowerShot ELPH 180/CANON_IXUS175_ELPH180_CHDK_CRW_0194.DNG,1,1,1,1,,5248,3920,RGGB
+✅,Canon PowerShot ELPH 180,DNG,Canon/Canon PowerShot ELPH 180/CRW_0334.DNG,1,1,1,1,,5248,3920,RGGB
+✅,Canon PowerShot ELPH 310 HS,DNG,Canon/Canon PowerShot ELPH 310 HS/CRW_9720.DNG,1,1,1,1,,4168,3060,RGGB
+✅,Canon PowerShot G1 X,DNG,Canon/PowerShot G1 X/CRW_0004.DNG,1,1,1,1,,4496,3366,RGGB
+✅,Canon PowerShot G7 X,DNG,Canon/PowerShot G7 X/CANON_G7X_CHDK_CRW_6740.DNG,1,1,1,1,,5632,3710,RGGB
+✅,Canon PowerShot S100,DNG,Canon/PowerShot S100/CRW_1369.DNG,1,1,1,1,,4160,3124,GBRG
+✅,Canon PowerShot S2 IS,DNG,Canon/Canon PowerShot S2 IS/IMG_1739.DNG,1,1,1,1,,2672,1968,RGGB
+✅,Canon PowerShot S3IS,DNG,Canon/Canon PowerShot S3IS/CRW_8531.DNG,1,1,1,1,,2888,2136,RGGB
+✅,Canon PowerShot SD450,DNG,Canon/PowerShot SD450/RAW_CANON_POWERSHOT_SD450_CHDK_V0.9.7-725.DNG,1,1,1,1,,2672,1968,RGGB
+✅,Canon PowerShot SX10 IS,DNG,Canon/PowerShot SX10 IS/CRW_1627.DNG,1,1,1,1,,3720,2772,RGGB
+✅,Canon PowerShot SX100 IS,DNG,Canon/PowerShot SX100 IS/CRW_0964_01.DNG,1,1,1,1,,3336,2480,GBRG
+✅,Canon PowerShot SX130 IS,DNG,Canon/PowerShot SX130 IS/CRW_8815.DNG,1,1,1,1,,4080,3048,RGGB
+✅,Canon PowerShot SX160 IS,DNG,Canon/PowerShot SX160 IS/CANON_SX160IS_CHDK_CRW_5152.DNG,1,1,1,1,,4704,3504,GBRG
+✅,Canon PowerShot SX20 IS,DNG,Canon/PowerShot SX20 IS/CRW_6489.DNG,1,1,1,1,,4080,3048,RGGB
+✅,Canon PowerShot SX220 HS,DNG,Canon/PowerShot SX220 HS/CRW_7733.DNG,1,1,1,1,,4168,3060,RGGB
+✅,Canon PowerShot SX230 HS,DNG,Canon/PowerShot SX230 HS/CRW_5894.DNG,1,1,1,1,,4168,3060,RGGB
+✅,Canon PowerShot SX240 HS,DNG,Canon/PowerShot SX240 HS/CRW_5797.DNG,1,1,1,1,,4176,3060,RGGB
+✅,Canon PowerShot SX260 HS,DNG,Canon/PowerShot SX260 HS/CRW_3027.DNG,1,1,1,1,,4176,3060,RGGB
+✅,Canon PowerShot SX30 IS,DNG,Canon/PowerShot SX30 IS/CRW_0763.DNG,1,1,1,1,,4464,3276,GBRG
+✅,Canon PowerShot SX40 HS,DNG,Canon/PowerShot SX40 HS/CRW_6037.DNG,1,1,1,1,,4176,3060,RGGB
+✅,Canon PowerShot SX50 HS,DNG,Canon/PowerShot SX50 HS/CRW_4061.DNG,1,1,1,1,,4176,3062,RGGB
+✅,Canon PowerShot SX510 HS,DNG,Canon/PowerShot SX510 HS/RAW_CANON_POWERSHOT_SX510HS.DNG,1,1,1,1,,4168,3062,RGGB
+✅,Canon PowerShot SX530 HS,DNG,Canon/PowerShot SX530 HS/CRW_4494.DNG,1,1,1,1,,4768,3516,RGGB
+✅,Canon PowerShot SX60 HS,DNG,Canon/PowerShot SX60 HS/Canon-SX60HS-CHDK-RAW.DNG,1,1,1,1,,4768,3516,RGGB
+✅,Canon PowerShot SX710 HS,DNG,Canon/PowerShot SX710 HS/CANON_SX710HS_CHDK_CRW_0716.DNG,1,1,1,1,,5344,3950,RGGB
+✅,DJI FC220,DNG,DJI/FC220/DJI_0004.DNG,1,1,1,1,,4000,3000,RGGB
+✅,DJI FC350,DNG,DJI/FC350/DJI_0040.DNG,1,1,1,1,,4000,2250,RGGB
+❌,DJI FC4382,DNG,DJI/FC4382/DJI_20250506184749_0011_D.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,DJI FC6310,DNG,DJI/FC6310/DJI_0220.DNG,1,1,1,1,,5472,3648,RGGB
+✅,DJI FC7303,DNG,DJI/FC7303/DJI_0109.DNG,1,1,1,1,,4000,3000,RGGB
+✅,DJI FC7303,DNG,DJI/FC7303/DJI_0765.DNG,1,1,1,1,,4000,2250,RGGB
+❌,DJI FC9287,DNG,DJI/FC9287/DJI_20250528104510_0025_D.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,DJI Osmo Action,DNG,DJI/DJI Osmo Action/DJI_0254.DNG,1,1,1,1,,4000,3000,RGGB
+✅,Eyedeas E1,DNG,Eyedeas/E1/EYED0651.DNG,1,1,1,1,,4640,3480,GRBG
+❌,FIMI X8SE,DNG,FIMI/X8SE/IMG_20180808_081040_0001.DNG,0,0,0,0,decode:invalid_input,0,0,unknown
+❌,Fujifilm X100S,DNG,Fujifilm/X100S/fujifilm-x100s-daylight-DSCF9505.dng,1,1,0,0,process_metadata:unsupported,4936,3296,XTrans-6x6
+✅,Google Pixel 2 XL,DNG,Google/Pixel 2 XL/IMG_20180109_080629.dng,1,1,1,1,,4032,3032,BGGR
+✅,Google Pixel 3a,DNG,Google/Pixel 3a/IMG_20190918_164153.dng,1,1,1,1,,4032,3024,BGGR
+✅,Google Pixel 4 XL,DNG,Google/Pixel 4 XL/IMG_20191023_125156.dng,1,1,1,1,,3700,2774,RGGB
+✅,Google Pixel 4a,DNG,Google/Pixel 4a/PXL_20201121_100251397.dng,1,1,1,1,,4032,3024,RGGB
+✅,Google Pixel 6 Pro,DNG,Google/Pixel 6 Pro/PXL_20220910_093206982.dng,1,1,1,1,,4080,3072,GBRG
+✅,Google Pixel 7 Pro,DNG,Google/Pixel 7 Pro/PXL_20221204_063131635.dng,1,1,1,1,,3882,2924,BGGR
+✅,Google Pixel 8 Pro,DNG,Google/Pixel 8 Pro/PXL_20240415_103400204.RAW-02.ORIGINAL.dng,1,1,1,1,,8160,6144,RGGB
+✅,HMD Global Nokia 7 plus,DNG,HMD Global/Nokia 7 plus/IMG_20190612_120131.dng,1,1,1,1,,4032,3024,GBRG
+✅,HTC 10,DNG,HTC/HTC 10/IMAG1305.dng,1,1,1,1,,4104,3046,RGGB
+✅,HUAWEI ANE-LX1,DNG,HUAWEI/ANE-LX1/IMG_20200920_112515.dng,1,1,1,1,,4608,3456,RGGB
+✅,HUAWEI AUM-L29,DNG,HUAWEI/AUM-L29/IMG_20181222_154757.dng,1,1,1,1,,4208,3120,GBRG
+✅,HUAWEI BLA-L29,DNG,HUAWEI/BLA-L29/IMG_20180119_175851.dng,1,1,1,1,,3968,2976,BGGR
+✅,HUAWEI CLT-L09,DNG,HUAWEI/CLT-L09/IMG_20191010_085409.dng,1,1,1,1,,7296,5472,RGGB
+✅,HUAWEI DLI-L22,DNG,HUAWEI/DLI-L22/IMG_20171028_150510.dng,1,1,1,1,,4208,3120,GRBG
+✅,HUAWEI EML-L09,DNG,HUAWEI/EML-L09/IMG_20190316_130857_(2).dng,1,1,1,1,,3968,2976,BGGR
+✅,HUAWEI EML-L29,DNG,HUAWEI/EML-L29/IMG_20190507_233457.dng,1,1,1,1,,3968,2976,BGGR
+✅,HUAWEI EVA-AL00,DNG,HUAWEI/EVA-AL00/IMG_20171015_200142.dng,1,1,1,1,,3968,2976,RGGB
+✅,HUAWEI EVA-L09,DNG,HUAWEI/EVA-L09/Huawai_P9_Leica.dng,1,1,1,1,,3968,2976,RGGB
+✅,HUAWEI FRD-L09,DNG,HUAWEI/FRD-L09/IMG_20180520_132951.dng,1,1,1,1,,3968,2976,RGGB
+✅,HUAWEI HRY-LX1,DNG,HUAWEI/HRY-LX1/IMG_20190427_200711.dng,1,1,1,1,,4160,3120,GBRG
+✅,HUAWEI NXT-L29,DNG,HUAWEI/HUAWEI NXT-L29/IMG_20190508_113343.dng,1,1,1,1,,4608,3456,BGGR
+✅,HUAWEI PRA-LX1,DNG,HUAWEI/PRA-LX1/IMG_20180330_171432.dng,1,1,1,1,,3968,2976,BGGR
+✅,HUAWEI SNE-LX1,DNG,HUAWEI/SNE-LX1/IMG_20191221_095657.dng,1,1,1,1,,5120,3840,BGGR
+✅,HUAWEI VKY-L09,DNG,HUAWEI/VKY-L09/IMG_20180429_160450.dng,1,1,1,1,,3968,2976,BGGR
+✅,HUAWEI VOG-L29,DNG,HUAWEI/VOG-L29/IMG_20190330_123314.dng,1,1,1,1,,3264,2448,GRBG
+✅,HUAWEI VTR-L09,DNG,HUAWEI/VTR-L09/IMG_20180307_120152.dng,1,1,1,1,,3968,2976,BGGR
+✅,HUAWEI WAS-LX1A,DNG,HUAWEI/WAS-LX1A/IMG_20180416_193350.dng,1,1,1,1,,3968,2976,BGGR
+✅,Hasselblad L1D-20c,DNG,Hasselblad/L1D-20c/DJI_0017.DNG,1,1,1,1,,5568,3648,RGGB
+❌,Hasselblad L2D-20c,DNG,Hasselblad/L2D-20c/DJI_0023.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,KanDao QooCam,DNG,KanDao/QooCam/KD3D_20190310_123825_000001.DNG,1,1,1,1,,4320,2160,RGGB
+❌,KanDao QooCam,DNG,KanDao/QooCam/KDRaw_Q360_20190310_125715_000001.dng,1,1,0,0,process_metadata:backend,4320,2160,RGGB
+✅,KanDao QooCam,DNG,KanDao/QooCam/Q360_20190310_123437_000001.DNG,1,1,1,1,,4320,2160,RGGB
+✅,Kandao QooCam 8K,DNG,Kandao/QooCam 8K/Q360_20210330_100513_00000D.DNG,1,1,1,1,,3840,7680,GBRG
+✅,LEICA CAMERA AG LEICA SL2,DNG,LEICA CAMERA AG/LEICA SL2/L1020010.DNG,1,1,1,1,,8424,5632,GBRG
+❌,LG D855,DNG,LG/D855/IMG_2017_07_16_13_10_47.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,LG H815,DNG,LG/H815/20161227_150823.dng,1,1,1,1,,5312,2988,BGGR
+✅,LG LG-F800K,DNG,LG/LG-F800K/20171028_174609.dng,1,1,1,1,,4656,3492,RGGB
+✅,LG LG-H850,DNG,LG/LG-H850/LGG5_Camera_Front.dng,1,1,1,1,,3264,2448,GRBG
+✅,LG LG-H870,DNG,LG/LG-H870/20180705_215945.dng,1,1,1,1,,4160,3120,RGGB
+✅,LG LG-H910,DNG,LG/LG-H910/opn_20190921_065338_0.dng,1,1,1,1,,4656,3492,RGGB
+✅,LG Nexus 5X,DNG,LG/Nexus 5X/IMG_20170214_170637_637.dng,1,1,1,1,,4080,3028,RGGB
+✅,LG US996,DNG,LG/US996/IMG_20170821_025047.dng,1,1,1,1,,4656,3492,RGGB
+✅,LG VS995,DNG,LG/VS995/0313171232.dng,1,1,1,1,,4656,3492,RGGB
+✅,Leica CL,DNG,Leica/CL/L1080510_2018_CL-35-135-Chateau_Thy__Chateau_Ham.DNG,1,1,1,1,,6120,4016,GBRG
+✅,Leica Camera AG LEICA M10-R,DNG,Leica Camera AG/LEICA M10-R/M10R0324.DNG,1,1,1,1,,7872,5208,GBRG
+✅,Leica M (Typ 240),DNG,Leica/M (Typ 240)/ADG_RPUsubmit_compressed_L1006373.DNG,1,1,1,1,,5984,4000,BGGR
+✅,Leica M (Typ 240),DNG,Leica/M (Typ 240)/ADG_RPUsubmit_uncompressed_L1006374.DNG,1,1,1,1,,5984,4000,BGGR
+❌,Leica M Monochrom,DNG,Leica/M Monochrom/L1000622.DNG,1,1,0,0,process_metadata:backend,5216,3472,unknown
+❌,Leica M Monochrom (Typ 246),DNG,Leica/M Monochrom (Typ 246)/M2462362.DNG,1,1,0,0,process_metadata:backend,5984,4000,unknown
+✅,Leica M10,DNG,Leica/M10/f5381888.dng,1,1,1,1,,5984,3992,RGGB
+❌,Leica M8,DNG,Leica/M8/L1030132.DNG,1,1,0,0,process_metadata:backend,3920,2638,RGGB
+✅,Leica M9,DNG,Leica/M9/L1049390.DNG,1,1,1,1,,5216,3472,RGGB
+✅,Leica M9 Digital Camera,DNG,Leica/M9 Digital Camera/L1049391.DNG,1,1,1,1,,5216,3472,RGGB
+✅,Leica Q (Typ 116),DNG,Leica/Q (Typ 116)/L1070048.DNG,1,1,1,1,,6120,4016,BGGR
+✅,Leica Q2,DNG,Leica/Q2/L1000750.DNG,1,1,1,1,,8424,5632,GBRG
+✅,Leica SL (Typ 601),DNG,Leica/SL (Typ 601)/20160915_Lechtaler_001.DNG,1,1,1,1,,6120,4016,BGGR
+❌,Leica X2,DNG,Leica/X2/L1021324.DNG,1,1,0,0,process_metadata:backend,4944,3272,RGGB
+❌,Light L16,DNG,Light/L16/L16_00148.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,MADV QJXJ01FJ,DNG,MADV/QJXJ01FJ/IMG_20190326_134416.DNG,1,1,1,1,,6912,3456,RGGB
+✅,Microsoft Lumia 950 XL Dual SIM,DNG,Microsoft/Lumia 950 XL Dual SIM/Microsoft_-_Lumia_950XL.dng,1,1,1,1,,4992,3744,GRBG
+✅,Nikon D80,DNG,Nikon/D80/DSC_0143.dng,1,1,1,1,,3900,2611,GBRG
+❌,Nikon LS-5000,DNG,Nikon/LS-5000/F014-07.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,Nokia Lumia 1020,DNG,Nokia/Lumia 1020/RAW_NOKIA_LUMIA_1020.DNG,1,1,1,1,,7152,5360,GRBG
+✅,Nokia Lumia 930,DNG,Nokia/Lumia 930/WP_20180612_19_16_03_Raw__highres.dng,1,1,1,1,,5376,3024,GRBG
+✅,ONEPLUS A3003,DNG,OnePlus/ONEPLUS A3003/IMG_20170316_134557.dng,1,1,1,1,,4656,3496,RGGB
+✅,ONEPLUS A5000,DNG,OnePlus/ONEPLUS A5000/IMG_20171224_201301.dng,1,1,1,1,,4656,3496,RGGB
+✅,ONEPLUS A6003,DNG,OnePlus/ONEPLUS A6003/IMG_20201019_093659.dng,1,1,1,1,,4656,3496,RGGB
+✅,OnePlus One,DNG,OnePlus/One/IMG_20150729_201116.dng,1,1,1,1,,4212,3120,RGGB
+❌,PARROT Bebop 2,DNG,PARROT/Bebop 2/Bebop2_20170330115857+0200.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+❌,PARROT Bebop Drone,DNG,PARROT/Bebop Drone/Bebop_Drone_2015-11-07T180428+0000_C10611.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,PENTAX K-r,DNG,PENTAX/PENTAX K-r/IMGP4425.DNG,1,1,1,1,,4352,2868,BGGR
+✅,Panasonic DMC-LX1,DNG,Panasonic/DMC-LX1/P1080763.dng,1,1,1,1,,3857,2170,RGGB
+✅,Parrot Anafi,DNG,Parrot/Anafi/100000190019.DNG,1,1,1,1,,5344,4016,BGGR
+✅,Pentax 645D,DNG,Pentax/645D/645D2839.DNG,1,1,1,1,,7424,5552,BGGR
+✅,Pentax 645Z,DNG,Pentax/645Z/IMGP2836.DNG,1,1,1,1,,8384,6208,RGGB
+✅,Pentax K-01,DNG,Pentax/K-01/_IGP2068.DNG,1,1,1,1,,4960,3300,RGGB
+✅,Pentax K-1,DNG,Pentax/K-1/IMGP8551.DNG,1,1,1,1,,7392,4950,RGGB
+✅,Pentax K-1,DNG,Pentax/K-1/IMGP8555.DNG,1,1,1,1,,7392,4950,RGGB
+✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_IMG2387.DNG,1,1,1,1,,7392,4950,RGGB
+✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_IMG2390.DNG,1,1,1,1,,7392,4950,RGGB
+✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9779.DNG,1,1,1,1,,7392,4950,RGGB
+✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9783.DNG,1,1,1,1,,7392,4950,RGGB
+✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9784.DNG,1,1,1,1,,7392,4950,RGGB
+✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9786.DNG,1,1,1,1,,4832,3238,RGGB
+✅,Pentax K-3,DNG,Pentax/K-3/IMGP6916.DNG,1,1,1,1,,6080,4032,RGGB
+✅,Pentax K-3 II,DNG,Pentax/K-3 II/20170430-121325.dng,1,1,1,1,,6080,4032,RGGB
+✅,Pentax K-3 II,DNG,Pentax/K-3 II/IMGP0668.DNG,1,1,1,1,,6080,4032,RGGB
+✅,Pentax K-3 Mark III,DNG,Pentax/K-3 Mark III/_IMG0114.DNG,1,1,1,1,,6304,4224,RGGB
+❌,Pentax K-3 Mark III Monochrome,DNG,Pentax/K-3 Mark III Monochrome/K3III.DNG,1,1,0,0,process_metadata:backend,6304,4224,unknown
+✅,Pentax K-30,DNG,Pentax/K-30/_IGP4042.DNG,1,1,1,1,,4960,3300,RGGB
+✅,Pentax K-5,DNG,Pentax/K-5/_MAR0543.DNG,1,1,1,1,,4992,3284,BGGR
+✅,Pentax K-5 II,DNG,Pentax/K-5 II/IMGP2032.DNG,1,1,1,1,,4992,3284,BGGR
+✅,Pentax K-5 II s,DNG,Pentax/K-5 II s/_JAK3776.DNG,1,1,1,1,,4992,3284,BGGR
+✅,Pentax K-50,DNG,Pentax/K-50/IMGP1385.DNG,1,1,1,1,,4960,3300,RGGB
+✅,Pentax K-500,DNG,Pentax/K-500/Pentax_-_K-500.DNG,1,1,1,1,,4960,3300,RGGB
+✅,Pentax K-7,DNG,Pentax/K-7/IMGP6297.DNG,1,1,1,1,,4736,3136,BGGR
+✅,Pentax K-70,DNG,Pentax/K-70/IMGP0771.DNG,1,1,1,1,,6080,4064,RGGB
+✅,Pentax K-70,DNG,Pentax/K-70/IMGP6855.DNG,1,1,1,1,,6080,4064,RGGB
+✅,Pentax K-S1,DNG,Pentax/K-S1/IMGP4743.DNG,1,1,1,1,,5504,3664,RGGB
+✅,Pentax K-S2,DNG,Pentax/K-S2/IMGP3368.DNG,1,1,1,1,,5504,3664,RGGB
+✅,Pentax K-x,DNG,Pentax/K-x/IMGP6431.DNG,1,1,1,1,,4352,2868,BGGR
+✅,Pentax K10D,DNG,Pentax/K10D/IMGP5398.DNG,1,1,1,1,,3936,2624,RGGB
+✅,Pentax K200D,DNG,Pentax/K200D/IMGP2292.DNG,1,1,1,1,,3936,2624,RGGB
+✅,Pentax K20D,DNG,Pentax/K20D/RAW_Pentax_K20.DNG,1,1,1,1,,4864,3136,BGGR
+✅,Pentax KP,DNG,Pentax/KP/IMGP0236.DNG,1,1,1,1,,6112,4060,RGGB
+✅,Pentax MX-1,DNG,Pentax/MX-1/pentax_mx1_raw2.dng,1,1,1,1,,4016,3010,RGGB
+✅,Pentax Q,DNG,Pentax/Q/IMGP0647.DNG,1,1,1,1,,4064,3000,GRBG
+✅,Pentax Q7,DNG,Pentax/Q7/IMGP1691.DNG,1,1,1,1,,4064,3000,RGGB
+❌,Plustek OpticFilm 8100,DNG,Plustek/OpticFilm 8100/SF8_processed_-_Mon_Jun_17_19-45-39_2019.dng,1,1,0,0,process_metadata:backend,2592,1800,unknown
+❌,Plustek OpticFilm 8200i SE,DNG,Plustek/OpticFilm 8200i SE/AristaUltra_400_Test1.dng,1,1,0,0,process_metadata:backend,5040,3384,unknown
+✅,RICOH GX200,DNG,RICOH/RICOH GX200/R0014336-20180515-ss620-ap4.6-fl5-iso64.DNG,1,1,1,1,,4096,3014,GRBG
+✅,RICOH GXR,DNG,RICOH/GXR/R0017428.DNG,1,1,1,1,,3672,2748,RGGB
+✅,RaspberryPi RP_imx477,DNG,RaspberryPi/RP_imx477/pi.dng,1,1,1,1,,4056,3040,BGGR
+✅,RaspberryPi RP_imx477,DNG,RaspberryPi/RP_imx477/pi_hq_picamera.dng,1,1,1,1,,4056,3040,BGGR
+✅,RaspberryPi RP_imx477,DNG,RaspberryPi/RP_imx477/pi_hq_raspistill.dng,1,1,1,1,,4056,3040,BGGR
+✅,Realme RMX1851,DNG,Realme/RMX1851/IMG_OCT_20191005_163311.dng,1,1,1,1,,4656,3496,BGGR
+✅,Ricoh GR,DNG,Ricoh/GR/R0003611.DNG,1,1,1,1,,4960,3280,RGGB
+✅,Ricoh GR DIGITAL 2,DNG,Ricoh/GR DIGITAL 2/RAW_RICOH_GR2.DNG,1,1,1,1,,3656,2744,BGGR
+✅,Ricoh GR II,DNG,Ricoh/GR II/R0000443.DNG,1,1,1,1,,4960,3280,RGGB
+✅,Ricoh GR III,DNG,Ricoh/GR III/R0000357.DNG,1,1,1,1,,6112,4064,RGGB
+✅,Ricoh GR IIIx,DNG,Ricoh/GR IIIx/R0001005.DNG,1,1,1,1,,6112,4064,RGGB
+✅,Samsung G920F,DNG,Samsung/G920F/LRM_20170316_152407.dng,1,1,1,1,,5328,3000,GRBG
+✅,Samsung G935F,DNG,Samsung/G935F/20170403_104110.dng,1,1,1,1,,4032,2268,GRBG
+✅,Samsung GX10,DNG,Samsung/GX10/_G107701.DNG,1,1,1,1,,3936,2624,RGGB
+✅,Samsung GX20,DNG,Samsung/GX20/_G205027.DNG,1,1,1,1,,4864,3136,BGGR
+❌,Samsung Galaxy S21 Ultra,DNG,Samsung/Galaxy S21 Ultra/20230712_115041.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Samsung Galaxy S22 Ulra,DNG,Samsung/Galaxy S22 Ulra/20221225_114402.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Samsung Galaxy S22 Ultra,DNG,Samsung/Galaxy S22 Ultra/20230531_111518.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Samsung Galaxy S23,DNG,Samsung/Galaxy S23/20230414_115131.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Samsung Galaxy S23,DNG,Samsung/Galaxy S23/20230715_154550.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Samsung Galaxy S23 Ultra,DNG,Samsung/Galaxy S23 Ultra/20230817_120455.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Samsung Galaxy S23 Ultra,DNG,Samsung/Galaxy S23 Ultra/20231214_130645.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Samsung Galaxy S23+,DNG,Samsung/Galaxy S23+/20231227_172938.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,Samsung SAMSUNG-SM-G930A,DNG,Samsung/SAMSUNG-SM-G930A/20180105_103031.dng,1,1,1,1,,4032,2268,GRBG
+✅,Samsung SM-G930F,DNG,Samsung/SM-G930F/20200125_130015.dng,1,1,1,1,,4032,3024,GRBG
+✅,Samsung SM-G930T,DNG,Samsung/SM-G930T/20180602_132834.dng,1,1,1,1,,4032,3024,GRBG
+✅,Samsung SM-G950F,DNG,Samsung/SM-G950F/2018-06-08_12.48.51.dng,1,1,1,1,,4032,3024,GRBG
+✅,Samsung SM-G950U,DNG,Samsung/SM-G950U/20170828_141409.dng,1,1,1,1,,4032,2268,GRBG
+✅,Samsung SM-G955F,DNG,Samsung/SM-G955F/20180202_091722.dng,1,1,1,1,,4032,3024,GRBG
+✅,Samsung SM-G960F,DNG,Samsung/SM-G960F/20191119_101508.dng,1,1,1,1,,4032,3024,GRBG
+✅,Samsung SM-G965F,DNG,Samsung/SM-G965F/Samsung_SM-G965F_4-3_ratio_f2.4.dng,1,1,1,1,,4032,3024,GRBG
+✅,Samsung SM-G973F,DNG,Samsung/SM-G973F/20191114_225157.dng,1,1,1,1,,4032,3024,GRBG
+❌,Samsung SM-G973U,DNG,Samsung/SM-G973U/20200402_181931.dng,0,0,0,0,decode:invalid_input,0,0,unknown
+✅,Sigma fp,DNG,Sigma/fp/A002_647_20240229_000001_4k_12bit.DNG,1,1,1,1,,3856,2170,RGGB
+✅,Sigma fp,DNG,Sigma/fp/A002_648_20240229_000001_4k_10bit.DNG,1,1,1,1,,3856,2170,RGGB
+✅,Sigma fp,DNG,Sigma/fp/A002_650_20240229_000001_4k_8bit.DNG,1,1,1,1,,3856,2170,RGGB
+✅,Sigma fp,DNG,Sigma/fp/A002_651_20240229_000001_2k_12bit.DNG,1,1,1,1,,1936,1090,RGGB
+✅,Sigma fp,DNG,Sigma/fp/A002_652_20240229_000001_2k_10bit.DNG,1,1,1,1,,1936,1090,RGGB
+✅,Sigma fp,DNG,Sigma/fp/A002_653_20240229_000001_2k_8bit.DNG,1,1,1,1,,1936,1090,RGGB
+✅,Sigma fp,DNG,Sigma/fp/SDIM4591.DNG,1,1,1,1,,6064,4042,RGGB
+✅,Sigma fp L,DNG,Sigma/fp L/SDIM0915.DNG,1,1,1,1,,9536,6344,RGGB
+❌,Sigma sd Quattro,DNG,Sigma/sd Quattro/sample3.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,XIAOYI YDXJ 2,DNG,XIAOYI/YDXJ 2/ydxj0065.dng,1,1,0,0,process_metadata:backend,4000,3000,RGGB
+❌,XIAOYI YI 4K,DNG,XIAOYI/YI 4K/YDXJ0026.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+❌,XIAOYI YIAC 3,DNG,XIAOYI/YIAC 3/YIAC0075.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+❌,Xiaomi HM NOTE 1LTE,DNG,Xiaomi/HM NOTE 1LTE/IMG_2016.07.31_15.48.08.dng,0,0,0,0,decode:invalid_input,0,0,unknown
+✅,Xiaomi M2010J19CG,DNG,Xiaomi/M2010J19CG/IMG_20201224_141323.dng,1,1,1,1,,4000,3000,GBRG
+✅,Xiaomi MI 8,DNG,Xiaomi/MI 8/IMG_20200101_174326.dng,1,1,1,1,,4032,2268,RGGB
+❌,Xiaomi MI MAX,DNG,Xiaomi/MI MAX/IMG_2019_10_27_14_47_40.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Xiaomi Mi 9 Lite,DNG,Xiaomi/Mi 9 Lite/IMG_20200324_073611.dng,1,1,1,1,,4000,3000,RGGB
+✅,Xiaomi Redmi Note 7,DNG,Xiaomi/Redmi Note 7/IMG_20190615_155524.dng,1,1,1,1,,4000,3000,GRBG
+✅,Xiaomi Redmi Note 8T,DNG,Xiaomi/Redmi Note 8T/IMG_20200715_094601.dng,1,1,1,1,,4000,3000,GRBG
+✅,YI TECHNOLOGY M1,DNG,YI TECHNOLOGY/M1/PC070001.DNG,1,1,1,1,,5200,3902,RGGB
+❌,Yuneec CGO3,DNG,Yuneec/CGO3/YUN00038.dng,1,1,0,0,process_metadata:backend,4000,3000,BGGR
+❌,Yuneec CGO3P,DNG,Yuneec/CGO3P/YUN00007.dng,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,asus ASUS_I01WD,DNG,asus/ASUS_I01WD/P_20190922_161212.dng,1,1,1,1,,4224,3136,BGGR
+✅,asus ASUS_Z01KD,DNG,asus/ASUS_Z01KD/2018-12-02_07.39.26-1.dng,1,1,1,1,,3916,2936,BGGR
+✅,bq Aquaris U Plus,DNG,bq/Aquaris U Plus/IMG_20180217_111328_894.dng,1,1,1,1,,4640,3480,GRBG
+❌,moto g8plus,DNG,moto g8plus/moto g8plus/IMG_20200621_212547364.dng,0,0,0,0,decode:invalid_input,0,0,unknown
+✅,motorola Moto G (5S) Plus,DNG,motorola/Moto G (5S) Plus/IMG_20180328_152254.dng,1,1,1,1,,4208,3120,GRBG
+✅,motorola Nexus 6,DNG,motorola/Nexus 6/DSC_0017.DNG,1,1,1,1,,4208,3120,BGGR
+✅,motorola moto g(7) play,DNG,motorola/moto g(7) play/IMG_20191114_091702382.dng,1,1,1,1,,4208,3120,GRBG
+❌,samsung SM-S901E,DNG,samsung/SM-S901E/20250305_173647.dng,0,0,0,0,raw_mosaic:unsupported,0,0,unknown

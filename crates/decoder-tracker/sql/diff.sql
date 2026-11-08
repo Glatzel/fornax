@@ -1,8 +1,5 @@
 CREATE TEMP TABLE selected AS
 SELECT
-    vendor::VARCHAR AS vendor,
-    camera::VARCHAR AS camera,
-    format::VARCHAR AS format,
     path::VARCHAR AS path
 FROM read_csv('@SELECTED@', header = true, all_varchar = true);
 
@@ -10,11 +7,11 @@ CREATE TEMP TABLE baseline AS
 SELECT
     baseline.*
 FROM read_csv('@BASELINE@', header = true, all_varchar = true) AS baseline
-SEMI JOIN selected USING (vendor, camera, format, path);
+SEMI JOIN selected USING (path);
 
 CREATE TEMP TABLE candidate AS
 SELECT
-    candidate.vendor::VARCHAR AS vendor,
+    candidate.status::VARCHAR AS status,
     candidate.camera::VARCHAR AS camera,
     candidate.format::VARCHAR AS format,
     candidate.path::VARCHAR AS path,
@@ -25,14 +22,12 @@ SELECT
     candidate.error_kind::VARCHAR AS error_kind,
     candidate.width::INTEGER AS width,
     candidate.height::INTEGER AS height,
-    candidate.cfa::VARCHAR AS cfa,
-    candidate.status::VARCHAR AS status
+    candidate.cfa::VARCHAR AS cfa
 FROM read_csv('@CANDIDATE@', header = true, all_varchar = true) AS candidate;
 
 CREATE TEMP TABLE diff_rows AS
 SELECT
     'missing'::VARCHAR AS classification,
-    baseline.vendor,
     baseline.camera,
     baseline.format,
     baseline.path,
@@ -53,13 +48,12 @@ SELECT
     NULL::INTEGER AS after_height,
     NULL::VARCHAR AS after_cfa
 FROM baseline
-ANTI JOIN candidate USING (vendor, camera, format, path)
+ANTI JOIN candidate USING (path)
 
 UNION ALL
 
 SELECT
     'extra'::VARCHAR AS classification,
-    candidate.vendor,
     candidate.camera,
     candidate.format,
     candidate.path,
@@ -80,13 +74,12 @@ SELECT
     candidate.height AS after_height,
     candidate.cfa AS after_cfa
 FROM candidate
-ANTI JOIN baseline USING (vendor, camera, format, path)
+ANTI JOIN baseline USING (path)
 
 UNION ALL
 
 SELECT
     'changed'::VARCHAR AS classification,
-    baseline.vendor,
     baseline.camera,
     baseline.format,
     baseline.path,
@@ -107,7 +100,7 @@ SELECT
     candidate.height AS after_height,
     candidate.cfa AS after_cfa
 FROM baseline
-JOIN candidate USING (vendor, camera, format, path)
+JOIN candidate USING (path)
 WHERE
     baseline.decode_pass::INTEGER IS DISTINCT FROM candidate.decode_pass
     OR baseline.raw_mosaic_pass::INTEGER IS DISTINCT FROM candidate.raw_mosaic_pass
@@ -122,7 +115,7 @@ WHERE
 COPY (
     SELECT *
     FROM diff_rows
-    ORDER BY classification, vendor, camera, format, path
+    ORDER BY classification, camera, format, path
 ) TO '@OUTPUT@' (
     FORMAT CSV,
     HEADER,

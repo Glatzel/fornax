@@ -37,7 +37,6 @@ fn manifest_row(sha: &str, path: &str, format: &str) -> ManifestRow {
 fn baseline_row(key: &BaselineKey, handoff: u8) -> BaselineRow {
     let mut row = BaselineRow {
         status: String::new(),
-        vendor: key.vendor.clone(),
         camera: key.camera.clone(),
         format: key.format.clone(),
         path: key.path.clone(),
@@ -316,7 +315,6 @@ fn decode_errors_use_stable_error_kinds() {
 fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     let row = BaselineRow {
         status: "✅".into(),
-        vendor: "Canon".into(),
         camera: "Canon, EOS \"R5\"".into(),
         format: "DNG".into(),
         path: "Canon/EOS R5/IMG,001.DNG".into(),
@@ -332,7 +330,7 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     let bytes = write_baseline_csv(std::slice::from_ref(&row)).unwrap();
     let text = std::str::from_utf8(&bytes).unwrap();
     assert!(text.starts_with(
-        "status,vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
+        "status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
     ));
     assert!(text.contains("\n✅,"));
     assert!(text.contains("\"Canon, EOS \"\"R5\"\"\""));
@@ -381,7 +379,7 @@ fn manifest_csv_is_sorted_by_sha_and_round_trips() {
     assert!(
         std::str::from_utf8(&bytes)
             .unwrap()
-            .starts_with("vendor,camera,format,path,size,sha256\n")
+            .starts_with("path,size,sha256\n")
     );
     let parsed = crate::csvio::read_manifest_csv(bytes.as_slice()).unwrap();
     assert_eq!(
@@ -423,14 +421,13 @@ fn manifest_check_reports_snapshot_drift() {
 
 #[test]
 fn baseline_reader_rejects_non_boolean_stage_values() {
-    let csv = "status,vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n❌,Canon,Cam,DNG,Canon/Cam/IMG.DNG,2,0,0,0,decode:bad,0,0,\n";
+    let csv = "status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n❌,Canon Cam,DNG,Canon/Cam/IMG.DNG,2,0,0,0,decode:bad,0,0,\n";
     assert!(read_baseline_csv(csv.as_bytes()).is_err());
 }
 
 #[test]
 fn baseline_rejects_status_that_disagrees_with_stages() {
     let key = BaselineKey {
-        vendor: "Canon".into(),
         camera: "Canon Cam".into(),
         format: "DNG".into(),
         path: "Canon/Cam/IMG.DNG".into(),
@@ -495,7 +492,6 @@ fn lfs_paths_escape_gitignore_glob_metacharacters() {
 #[test]
 fn baseline_roundtrip_keeps_models_and_rows_stable() {
     let key = BaselineKey {
-        vendor: "Canon".into(),
         camera: "Canon EOS".into(),
         format: "DNG".into(),
         path: "Canon/Cam/IMG_1.DNG".into(),
@@ -528,7 +524,6 @@ fn duckdb_merge_rejects_duplicate_shard_rows() {
     }
     let temp = tempdir().unwrap();
     let key = BaselineKey {
-        vendor: "Canon".into(),
         camera: "Canon EOS".into(),
         format: "DNG".into(),
         path: "Canon/Cam/IMG_1.DNG".into(),
@@ -558,7 +553,6 @@ fn duckdb_merge_rejects_missing_selected_rows() {
     }
     let temp = tempdir().unwrap();
     let key_a = BaselineKey {
-        vendor: "Canon".into(),
         camera: "Canon Cam".into(),
         format: "DNG".into(),
         path: "Canon/Cam/A.DNG".into(),
@@ -589,7 +583,6 @@ fn duckdb_diff_classifies_selected_missing_extra_and_changed_rows() {
     }
     let temp = tempdir().unwrap();
     let key_a = BaselineKey {
-        vendor: "Canon".into(),
         camera: "Canon Cam".into(),
         format: "DNG".into(),
         path: "Canon/Cam/A.DNG".into(),
@@ -639,7 +632,6 @@ fn duckdb_upsert_preserves_unselected_rows_and_uses_canonical_order() {
     }
     let temp = tempdir().unwrap();
     let key_a = BaselineKey {
-        vendor: "Canon".into(),
         camera: "Canon EOS".into(),
         format: "DNG".into(),
         path: "Canon/Cam/A.DNG".into(),
