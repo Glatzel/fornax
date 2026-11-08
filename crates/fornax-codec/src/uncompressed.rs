@@ -66,7 +66,10 @@ const fn native_order() -> crate::ByteOrder {
     }
 }
 
-fn serialize_samples<T: Pod>(samples: &[T], byte_order: crate::ByteOrder) -> Vec<u8> {
+fn serialize_samples<T>(samples: &[T], byte_order: crate::ByteOrder) -> Vec<u8>
+where
+    T: Pod,
+{
     // One memcpy, no per-element work.
     let mut out: Vec<u8> = bytemuck::cast_slice(samples).to_vec();
     if byte_order != native_order() {

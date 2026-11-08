@@ -274,13 +274,15 @@ fn integer_rows<const ADD: bool>(
 /// Running prefix sum over one row (decode). The first sample has a virtual
 /// predecessor of 0.
 #[inline(always)]
-fn undiff_row<T: Copy, const N: usize>(
+fn undiff_row<T, const N: usize>(
     row: &mut [u8],
     zero: T,
     from: impl Fn([u8; N]) -> T,
     to: impl Fn(T) -> [u8; N],
     add: impl Fn(T, T) -> T,
-) {
+) where
+    T: Copy,
+{
     let mut acc = zero;
     for chunk in row.chunks_exact_mut(N) {
         acc = add(acc, from(<[u8; N]>::try_from(&*chunk).unwrap()));
@@ -291,13 +293,15 @@ fn undiff_row<T: Copy, const N: usize>(
 /// Forward difference over one row (encode), carrying the previous original
 /// value in a local.
 #[inline(always)]
-fn diff_row<T: Copy, const N: usize>(
+fn diff_row<T, const N: usize>(
     row: &mut [u8],
     zero: T,
     from: impl Fn([u8; N]) -> T,
     to: impl Fn(T) -> [u8; N],
     sub: impl Fn(T, T) -> T,
-) {
+) where
+    T: Copy,
+{
     let mut previous = zero;
     for chunk in row.as_chunks_mut::<N>().0 {
         let current = from(*chunk);
