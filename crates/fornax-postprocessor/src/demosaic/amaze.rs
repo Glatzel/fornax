@@ -14,7 +14,7 @@ use fornax_core::{BayerPattern, MonoImage, Primitive};
 
 use super::buffer::{DenseLazy, channel, dense_from_f32, normalized};
 use super::ppg::DemosaicPpg;
-use crate::protocol::LazyDemosaic;
+use crate::LazyDemosaic;
 
 const RED: usize = 0;
 const GREEN: usize = 1;

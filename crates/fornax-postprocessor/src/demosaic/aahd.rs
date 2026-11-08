@@ -649,7 +649,7 @@ mod tests {
     use fornax_core::{BayerChannel, BayerPattern, MonoImage};
 
     use super::*;
-    use crate::protocol::LazyDemosaic;
+    use crate::LazyDemosaic;
 
     fn normalize(code: u16) -> f32 { f32::from(code) / f32::from(u16::MAX) }
 

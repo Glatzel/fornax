@@ -46,8 +46,10 @@ mod tests {
     #[once]
     fn cropped_real_128() -> crate::reference::ActiveArea {
         crop_128(
-            &crate::reference::active_area_from(&fornax_devtool::raw_file())
-                .expect("pinned CR2 fixture decodes"),
+            &crate::reference::active_area_from(&fornax_devtool::raw_file(
+                fornax_core::RawFormat::Dng,
+            ))
+            .expect("pinned CR2 fixture decodes"),
         )
     }
 
@@ -395,7 +397,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[rstest]
     fn algorithm_checksum(
         cropped_real_128: &crate::reference::ActiveArea,

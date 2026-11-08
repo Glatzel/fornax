@@ -198,8 +198,8 @@ and are consistency checks against the same image.
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 1] | no | ⚖️ | 0.102921 | 3.697554 | 1246 | 0.000056 | 0 | 30 | 4 (0) | 0.001896 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 1] | no | ⚖️ | 0.104815 | 3.713635 | 1073 | -0.006387 | 0 | 30 | 1 (0) | 0.001919 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 0] | no | ⚖️ | 0.105236 | 3.718774 | 1231 | 0.000097 | 0 | 31 | 1 (0) | 0.001928 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 0] | yes | ⚖️ | 0.103509 | 3.705760 | 1246 | -0.006448 | 0 | 30 | 4 (0) | 0.001907 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 0] | no | ⚖️ | 0.105236 | 3.718776 | 1231 | 0.000097 | 0 | 31 | 1 (0) | 0.001928 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 0] | yes | ⚖️ | 0.103509 | 3.705762 | 1246 | -0.006448 | 0 | 30 | 4 (0) | 0.001907 |
 <!-- compare-demosaic:end algo:aahd -->
 
 ### LibRaw `aahd_interpolate`
@@ -228,14 +228,14 @@ homogeneity or gradient comparison.
 <!-- compare-demosaic:begin algo:ahd -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | BGGR | [1, 1] | no | ⚖️ | 0.244837 | 4.431476 | 1220 | 0.020173 | 1 | 67 | 1 (0) | 0.025801 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | [0, 1] | no | ⚖️ | 0.244816 | 4.431196 | 1220 | 0.020172 | 1 | 67 | 1 (0) | 0.025801 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | [1, 0] | no | ⚖️ | 0.244823 | 4.431266 | 1220 | 0.020167 | 1 | 67 | 1 (0) | 0.025803 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | [0, 0] | yes | ⚖️ | 0.244802 | 4.430985 | 1220 | 0.020166 | 1 | 67 | 1 (0) | 0.025802 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | BGGR | [1, 1] | no | ❌ | 2.899416 | 15.331679 | 1796 | -0.096697 | 73 | 183 | 12 (0) | 0.210986 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GBRG | [0, 1] | no | ❌ | 2.899407 | 15.331436 | 1796 | -0.096676 | 73 | 183 | 12 (0) | 0.210987 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GRBG | [1, 0] | no | ❌ | 2.899421 | 15.331436 | 1796 | -0.096755 | 73 | 183 | 12 (0) | 0.210987 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | RGGB | [0, 0] | yes | ❌ | 2.899412 | 15.331193 | 1796 | -0.096735 | 73 | 183 | 12 (0) | 0.210989 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | BGGR | [1, 1] | no | ⚖️ | 0.244838 | 4.431481 | 1220 | 0.020171 | 1 | 67 | 1 (0) | 0.025801 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | [0, 1] | no | ⚖️ | 0.244817 | 4.431201 | 1220 | 0.020170 | 1 | 67 | 1 (0) | 0.025801 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | [1, 0] | no | ⚖️ | 0.244824 | 4.431271 | 1220 | 0.020166 | 1 | 67 | 1 (0) | 0.025803 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | [0, 0] | yes | ⚖️ | 0.244802 | 4.430990 | 1220 | 0.020165 | 1 | 67 | 1 (0) | 0.025802 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | BGGR | [1, 1] | no | ❌ | 2.899419 | 15.331739 | 1796 | -0.096686 | 73 | 183 | 12 (0) | 0.210986 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GBRG | [0, 1] | no | ❌ | 2.899410 | 15.331496 | 1796 | -0.096665 | 73 | 183 | 12 (0) | 0.210987 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GRBG | [1, 0] | no | ❌ | 2.899425 | 15.331497 | 1796 | -0.096745 | 73 | 183 | 12 (0) | 0.210987 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | RGGB | [0, 0] | yes | ❌ | 2.899416 | 15.331253 | 1796 | -0.096724 | 73 | 183 | 12 (0) | 0.210989 |
 <!-- compare-demosaic:end algo:ahd -->
 
 ### LibRaw `ahd_interpolate`
@@ -319,14 +319,14 @@ one-code differences.
 <!-- compare-demosaic:begin algo:dcb -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | BGGR | [1, 1] | no | ✅ | 0.000137 | 0.011702 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000136 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GBRG | [0, 1] | no | ✅ | 0.000137 | 0.011701 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000136 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GRBG | [1, 0] | no | ✅ | 0.000136 | 0.011697 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000136 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | RGGB | [0, 0] | yes | ✅ | 0.000136 | 0.011695 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000136 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | BGGR | [1, 1] | no | ❌ | 14.861551 | 33.798576 | 3756 | -0.708238 | 146 | 300 | 219 (6) | 0.648116 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | GBRG | [0, 1] | no | ❌ | 14.861414 | 33.797520 | 3756 | -0.707625 | 146 | 300 | 219 (6) | 0.648114 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | GRBG | [1, 0] | no | ❌ | 14.860519 | 33.796161 | 3756 | -0.710199 | 146 | 299 | 219 (6) | 0.648113 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | RGGB | [0, 0] | yes | ❌ | 14.860341 | 33.795018 | 3756 | -0.709596 | 146 | 299 | 219 (6) | 0.648111 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | BGGR | [1, 1] | no | ✅ | 0.000137 | 0.011704 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000136 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GBRG | [0, 1] | no | ✅ | 0.000137 | 0.011702 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000136 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GRBG | [1, 0] | no | ✅ | 0.000136 | 0.011698 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000136 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | RGGB | [0, 0] | yes | ✅ | 0.000136 | 0.011696 | 2 | -0.000001 | 0 | 0 | 0 (0) | 0.000136 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | BGGR | [1, 1] | no | ❌ | 14.861552 | 33.798575 | 3756 | -0.708235 | 146 | 300 | 219 (6) | 0.648116 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | GBRG | [0, 1] | no | ❌ | 14.861415 | 33.797519 | 3756 | -0.707623 | 146 | 300 | 219 (6) | 0.648115 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | GRBG | [1, 0] | no | ❌ | 14.860519 | 33.796159 | 3756 | -0.710197 | 146 | 299 | 219 (6) | 0.648113 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | RGGB | [0, 0] | yes | ❌ | 14.860341 | 33.795017 | 3756 | -0.709594 | 146 | 299 | 219 (6) | 0.648111 |
 <!-- compare-demosaic:end algo:dcb -->
 
 ### LibRaw `dcb`
@@ -419,10 +419,10 @@ also comes from the LibRaw pipeline.
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GBRG | [0, 1] | no | ✅ | 0.000189 | 0.013761 | 1 | 0.000002 | 0 | 0 | 0 (0) | 0.000189 |
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | GRBG | [1, 0] | no | ✅ | 0.000188 | 0.013727 | 1 | 0.000003 | 0 | 0 | 0 (0) | 0.000188 |
 | [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/lmmse.c#L120) | RGGB | [0, 0] | yes | ✅ | 0.000189 | 0.013759 | 1 | 0.000003 | 0 | 0 | 0 (0) | 0.000189 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | BGGR | [1, 1] | no | ❌ | 4.655629 | 17.906428 | 3028 | -0.039552 | 40 | 110 | 3981 (3841) | 0.476042 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | BGGR | [1, 1] | no | ❌ | 4.655629 | 17.906428 | 3028 | -0.039551 | 40 | 110 | 3981 (3841) | 0.476042 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | GBRG | [0, 1] | no | ❌ | 4.628258 | 15.952154 | 3028 | -0.015067 | 40 | 110 | 3278 (3138) | 0.476022 |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | GRBG | [1, 0] | no | ❌ | 4.648753 | 17.583996 | 3028 | -0.033050 | 40 | 110 | 3470 (3329) | 0.476031 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | RGGB | [0, 0] | yes | ❌ | 4.621488 | 15.590486 | 3028 | -0.008584 | 40 | 110 | 2767 (2626) | 0.476013 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/lmmse_demosaic.cc#L42) | RGGB | [0, 0] | yes | ❌ | 4.621489 | 15.590486 | 3028 | -0.008584 | 40 | 110 | 2767 (2626) | 0.476013 |
 <!-- compare-demosaic:end algo:lmmse -->
 
 ### darktable `lmmse_demosaic`
@@ -544,14 +544,14 @@ interpolated-sample outlier tail.
 <!-- compare-demosaic:begin algo:vng -->
 | Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |
 | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | BGGR | [1, 1] | no | ✅ | 0.380470 | 0.824263 | 894 | 0.018451 | 1 | 8 | 0 (0) | 0.361410 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GBRG | [0, 1] | no | ✅ | 0.380469 | 0.824256 | 894 | 0.018438 | 1 | 8 | 0 (0) | 0.361408 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GRBG | [1, 0] | no | ✅ | 0.380465 | 0.824235 | 894 | 0.018439 | 1 | 8 | 0 (0) | 0.361405 |
-| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | RGGB | [0, 0] | yes | ✅ | 0.380463 | 0.824227 | 894 | 0.018426 | 1 | 8 | 0 (0) | 0.361404 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | BGGR | [1, 1] | no | ❌ | 17.641782 | 41.462700 | 2958 | 0.065925 | 117 | 407 | 14118 (2) | 0.759202 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GBRG | [0, 1] | no | ❌ | 17.641210 | 41.460270 | 2958 | 0.066808 | 117 | 407 | 14118 (2) | 0.759203 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GRBG | [1, 0] | no | ❌ | 17.640452 | 41.458635 | 2958 | 0.064322 | 117 | 407 | 14118 (2) | 0.759201 |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | RGGB | [0, 0] | yes | ❌ | 17.639880 | 41.456205 | 2958 | 0.065205 | 117 | 407 | 14118 (2) | 0.759202 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | BGGR | [1, 1] | no | ✅ | 0.380470 | 0.824245 | 894 | 0.018450 | 1 | 8 | 0 (0) | 0.361410 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GBRG | [0, 1] | no | ✅ | 0.380469 | 0.824238 | 894 | 0.018437 | 1 | 8 | 0 (0) | 0.361408 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | GRBG | [1, 0] | no | ✅ | 0.380464 | 0.824217 | 894 | 0.018438 | 1 | 8 | 0 (0) | 0.361405 |
+| [darktable](https://github.com/darktable-org/darktable/blob/20891f6c6fa7be995e5bf9dff9d1ee5062051773/src/iop/demosaicing/vng.c#L171) | RGGB | [0, 0] | yes | ✅ | 0.380463 | 0.824210 | 894 | 0.018425 | 1 | 8 | 0 (0) | 0.361404 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | BGGR | [1, 1] | no | ❌ | 17.641782 | 41.462699 | 2958 | 0.065925 | 117 | 407 | 14118 (2) | 0.759202 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GBRG | [0, 1] | no | ❌ | 17.641210 | 41.460269 | 2958 | 0.066807 | 117 | 407 | 14118 (2) | 0.759203 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | GRBG | [1, 0] | no | ❌ | 17.640452 | 41.458634 | 2958 | 0.064322 | 117 | 407 | 14118 (2) | 0.759201 |
+| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L199) | RGGB | [0, 0] | yes | ❌ | 17.639879 | 41.456204 | 2958 | 0.065205 | 117 | 407 | 14118 (2) | 0.759202 |
 <!-- compare-demosaic:end algo:vng -->
 
 ### darktable `vng_interpolate`
@@ -594,10 +594,10 @@ different result from Fornax's split-green darktable-compatible path.
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | GBRG | [0, 1] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | GRBG | [1, 0] | no | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
 | [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L84) | RGGB | [0, 0] | yes | ✅ | 0.000000 | 0.000000 | 0 | 0.000000 | 0 | 0 | 0 (0) | 0.000000 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | BGGR | [1, 1] | no | ❌ | 9.562997 | 40.779972 | 3233 | 0.155915 | 75 | 545 | 24400 (5) | 0.630405 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | GBRG | [0, 1] | no | ❌ | 9.562398 | 40.776680 | 3233 | 0.156245 | 75 | 544 | 24400 (5) | 0.630404 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | GRBG | [1, 0] | no | ❌ | 9.562077 | 40.775000 | 3233 | 0.154219 | 75 | 544 | 24400 (5) | 0.630406 |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | RGGB | [0, 0] | yes | ❌ | 9.561478 | 40.771708 | 3233 | 0.154548 | 75 | 544 | 24400 (5) | 0.630404 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | BGGR | [1, 1] | no | ❌ | 9.562998 | 40.779974 | 3233 | 0.155914 | 75 | 545 | 24400 (5) | 0.630406 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | GBRG | [0, 1] | no | ❌ | 9.562398 | 40.776681 | 3233 | 0.156244 | 75 | 544 | 24400 (5) | 0.630404 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | GRBG | [1, 0] | no | ❌ | 9.562078 | 40.775001 | 3233 | 0.154218 | 75 | 544 | 24400 (5) | 0.630406 |
+| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/vng4_demosaic_RT.cc#L64) | RGGB | [0, 0] | yes | ❌ | 9.561479 | 40.771710 | 3233 | 0.154547 | 75 | 544 | 24400 (5) | 0.630405 |
 <!-- compare-demosaic:end algo:vng4 -->
 
 ### LibRaw `vng_interpolate`

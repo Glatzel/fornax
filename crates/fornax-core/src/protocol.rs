@@ -1,12 +1,19 @@
+use std::path::Path;
+
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
-use crate::metadata::{Levels, Metadata, WhiteBalance};
-use crate::{BayerPattern, DecodedRaw, MonoImage, MosaicData, Primitive, RawImage, RgbImage};
-pub trait IDecoder<I, T>: Send + Sync
-where
-    T: Primitive,
-{
-    fn decode(&self, input: I) -> Result<(MosaicData, Metadata<T>), DecodeError>;
-    fn decode_active(&self, input: I) -> Result<(DecodedRaw<T>, Metadata<T>), DecodeError>;
+use crate::metadata::{ColorCalibration, ColorTransform, Levels, ProcessMetadata};
+use crate::{
+    BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
+};
+pub trait IDecoder: Send + Sync {
+    fn decode(input: &Path) -> Result<Self, DecodeError>
+    where
+        Self: Sized;
+    fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
+    fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
+    where
+        T: Primitive;
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError>;
 }
 
 pub trait IPreprocessor<T>: Sized
@@ -15,21 +22,28 @@ where
 {
     fn process(
         &self,
-        decoded: DecodedRaw<T>,
-        levels: &Levels<T>,
-    ) -> Result<RawImage<T>, PreprocessError>;
+        decoded: CroppedMosaic<T>,
+        levels: &Levels,
+    ) -> Result<NormalizedMosaic<T>, PreprocessError>;
 }
-pub trait IPostProcessMetadata<T>: Sync
-where
-    T: Primitive,
-{
+pub trait IPostProcessMetadata: Sync {
     fn bayer_pattern(&self) -> BayerPattern;
-    fn white_balance(&self) -> &Option<WhiteBalance<T>>;
+
+    /// Normalized color calibration (white balance, profiles, camera -> XYZ
+    /// D50).
+    fn color_calibration(&self) -> &ColorCalibration;
+
+    /// Black/white levels; drop this method (and `T`) if the trait is
+    /// color-only.
+    fn levels(&self) -> &Levels;
+
+    /// Convenience: build the transforms for a white point.
+    fn resolve_color(&self) -> ColorTransform { self.color_calibration().resolve() }
 }
 pub trait IPostProcessor<T, M>
 where
     T: Primitive,
-    M: IPostProcessMetadata<T>,
+    M: IPostProcessMetadata,
 {
     fn process(
         &self,

@@ -8,30 +8,41 @@ version = "0.0.17"
 edition = "2024"
 
 [workspace.dependencies]
-# local
+fornax = { path = "./crates/fornax" }
+fornax-codec = { path = "./crates/fornax-codec" }
 fornax-core = { path = "./crates/fornax-core" }
+fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
+fornax-dng = { path = "./crates/fornax-dng" }
 fornax-postprocessor = { path = "./crates/fornax-postprocessor" }
 fornax-preprocessor = { path = "./crates/fornax-preprocessor" }
+fornax-tiff = { path = "./crates/fornax-tiff" }
 
+clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 # glatzel
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-generic-num = {
-  git = "https://github.com/Glatzel/toolbox",
-  tag = "v2026.10.11"
-}
-image = { git = "https://github.com/Glatzel/image-rs" }
+generic-num = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
+image = { git = "https://github.com/Glatzel/image-rs", default-features = false }
 mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 # other
+assert_cmd = "2.0.16"
+bytemuck = "1.25.2"
 cc = "1.10.0"
-clap = { version = "4.6.7", features = ["derive"] }
+clap = { version = "4.6.7", features = ["derive", "string"] }
+clap-verbosity-flag = { version = "3.0.4", features = ["tracing"] }
 criterion = { package = "codspeed-criterion-compat", version = "6.0.0" }
+flashraw-codecs = "0.1.1"
+flate2 = "1.1.10"
 hex = "0.4.3"
 insta = { version = "1.49.0", features = ["json"] }
+jxl-oxide = "0.12.6"
+libc = "0.2.191"
 num_enum = "0.7.6"
 num-traits = "0.2.19"
 rand = "0.10.3"
+raw-cpuid = "11.6.0"
+rawler = "0.8.0"
 rayon = "1.12.0"
 rstest = "0.28.0"
 serde = { version = "1.0.229", features = ["derive"] }
@@ -40,11 +51,5 @@ sha2 = "0.11.1"
 strum = { version = "0.28.0", features = ["derive"] }
 tempfile = "3.27.0"
 thiserror = "2.0.21"
-tiff = "0.11.3"
-
-[profile.release]
-opt-level = 3
-debug = false
-strip = true
-lto = "fat"
-codegen-units = 1
+toml = "0.8.23"
+zune-jpeg = "0.5.15"

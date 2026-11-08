@@ -33,15 +33,15 @@ outputs and comparison baselines.
 ## Task checklist
 
 - [x] Add failing tests for linear boundary preservation, default
-  `Demosaic::dcb()`/`Demosaic::lmmse()` behavior, configurable DCB sequencing,
-  configurable LMMSE sequencing, and independent red/blue white balance.
+      `Demosaic::dcb()`/`Demosaic::lmmse()` behavior, configurable DCB sequencing,
+      configurable LMMSE sequencing, and independent red/blue white balance.
 - [x] Change `Demosaic` to carry DCB iterations/enhancement and LMMSE mode
-  inline; update all internal callers and public examples.
+      inline; update all internal callers and public examples.
 - [x] Implement parameter-aware DCB and LMMSE paths with default behavior
-  identical to the current comparison output.
+      identical to the current comparison output.
 - [x] Update the postprocessor and DCB/LMMSE reference documentation.
 - [x] Run focused tests, comparison checks, workspace validation, and inspect
-  the final diff.
+      the final diff.
 
 ## Tasks
 
@@ -61,13 +61,13 @@ outputs and comparison baselines.
 - Produces: default-preserving `Demosaic::dcb()` and `Demosaic::lmmse()`
 
 - [x] Write a failing all-algorithm linear-boundary test using low-level
-  uniform mosaics in both `f32` and `f64`.
+      uniform mosaics in both `f32` and `f64`.
 - [x] Run `cargo test -p fornax-postprocessor all_algorithms_preserve_linear_boundary`;
-  expect failure because the struct variants do not exist.
+      expect failure because the struct variants do not exist.
 - [x] Change `Demosaic` and update dispatch, defaults, constructors, and the
-  benchmark registry.
+      benchmark registry.
 - [x] Run the focused test and then `cargo test -p fornax-postprocessor`;
-  expect all tests to pass.
+      expect all tests to pass.
 - [x] Commit the task.
 
 ### Task 2: Configurable DCB
@@ -82,12 +82,12 @@ outputs and comparison baselines.
 - Produces: `DemosaicDcb::lazy_with_options(..., iterations: u8, enhance: bool)`
 
 - [x] Add failing tests proving multiple Nyquist rounds run before color
-  reconstruction and that disabling enhancement skips refinement/full color.
+      reconstruction and that disabling enhancement skips refinement/full color.
 - [x] Run the focused tests; expect failure because the options are not wired.
 - [x] Thread the options through `run` in the same order as LibRaw's `dcb()`
-  while preserving the `(0, true)` default path.
+      while preserving the `(0, true)` default path.
 - [x] Run the focused tests and then `cargo test -p fornax-postprocessor`;
-  expect all tests to pass.
+      expect all tests to pass.
 - [x] Commit the task.
 
 ### Task 3: Configurable LMMSE
@@ -102,11 +102,11 @@ outputs and comparison baselines.
 - Produces: `DemosaicLmmse::lazy_with_mode(...)`
 
 - [x] Add failing tests proving `Basic`, `ThreeMedians`, and `Refine(1)` select
-  the darktable median/refinement counts while `Median` preserves current output.
+      the darktable median/refinement counts while `Median` preserves current output.
 - [x] Run the focused tests; expect failure because mode dispatch is absent.
 - [x] Implement median loops and the pinned darktable refinement pass.
 - [x] Run the focused tests and then `cargo test -p fornax-postprocessor`;
-  expect all tests to pass.
+      expect all tests to pass.
 - [x] Commit the task.
 
 ### Task 4: White balance boundary fix
@@ -123,7 +123,7 @@ outputs and comparison baselines.
 - [x] Run it; expect the blue sample to be incorrectly tied to red.
 - [x] Multiply each color by its own pre-multiplied sample.
 - [x] Run the focused test and then `cargo test -p fornax-postprocessor`;
-  expect all tests to pass.
+      expect all tests to pass.
 - [x] Commit the task.
 
 ### Task 5: Default comparison preservation and documentation
@@ -141,7 +141,7 @@ outputs and comparison baselines.
 - [x] Verify the table-driven cases still use default DCB and LMMSE settings.
 - [x] Run the DCB and LMMSE comparison rows and confirm no baseline differences.
 - [x] Document the public API, linear boundary, mode mapping, and fixed
-  comparison defaults.
+      comparison defaults.
 - [x] Run the full validation section and inspect the final diff.
 - [x] Commit the task.
 

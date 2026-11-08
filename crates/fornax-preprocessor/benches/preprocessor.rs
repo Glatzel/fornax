@@ -2,7 +2,7 @@ use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main
 use fornax_core::error::PreprocessError;
 use fornax_core::metadata::Levels;
 use fornax_core::protocol::IPreprocessor;
-use fornax_core::{DecodedRaw, MonoImage, Primitive};
+use fornax_core::{CroppedMosaic, MonoImage, Primitive};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
 use fornax_preprocessor::Preprocessor;
 
@@ -11,10 +11,10 @@ where
     T: Primitive,
 {
     let levels = Levels {
-        black: MonoImage::from_raw(2, 2, vec![T::zero(); 4]).expect("2x2 black-level pattern"),
+        black: MonoImage::from_raw(2, 2, vec![0.0; 4]).expect("2x2 black-level pattern"),
         black_delta_h: Vec::new(),
         black_delta_v: Vec::new(),
-        white: T::one(),
+        white: 2.0,
     };
 
     for size in &params.sizes {
@@ -22,7 +22,7 @@ where
         let name = format!("preprocess/{}/{}", size.label, bits.as_ref());
         c.bench_function(&name, |b| {
             b.iter_batched(
-                || DecodedRaw::new(black_box(source.clone())),
+                || CroppedMosaic::new(black_box(source.clone())),
                 |decoded| -> Result<_, PreprocessError> {
                     Preprocessor.process(decoded, black_box(&levels))
                 },

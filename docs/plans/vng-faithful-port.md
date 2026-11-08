@@ -19,23 +19,23 @@ changes to comparison limits, and waivers for VNG failures.
 ## Task checklist
 
 - [x] Add focused tests for phase invariants, border interpolation, a small
-  directional reconstruction, measured-sample preservation, independent row
-  reads, and minimum dimensions.
+      directional reconstruction, measured-sample preservation, independent row
+      reads, and minimum dimensions.
 - [x] Replace the mixed gradient convention with same-CFA terms using shift
-  weights 0 or 1 and darktable-compatible split green phases.
+      weights 0 or 1 and darktable-compatible split green phases.
 - [x] Replace coordinate-clamped border interpolation with in-bounds CFA
-  interpolation and retain the three-row VNG reconstruction.
+      interpolation and retain the three-row VNG reconstruction.
 - [x] Make darktable the native comparison acceptance oracle and record LibRaw
-  distance without failing on its different green-plane convention.
+      distance without failing on its different green-plane convention.
 - [x] Run `GBRG`, `RGGB`, `GRBG`, and `BGGR` against darktable and confirm the
-  split-green behavior is not pattern-specific.
+      split-green behavior is not pattern-specific.
 - [x] Inspect the remaining maximum error numerically, including channel, site,
-  neighborhood, and pre-pack green values.
+      neighborhood, and pre-pack green values.
 - [x] Review and accept only the intended VNG snapshots.
 - [x] Refresh the full canonical baseline and generated README, then update
-  the hand-written VNG note.
+      the hand-written VNG note.
 - [x] Remove `[VNG]` from `TODO.md` after acceptance checks pass and unrelated
-  environment limitations are documented.
+      environment limitations are documented.
 
 ## Files expected to change
 

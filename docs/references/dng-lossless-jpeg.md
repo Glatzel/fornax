@@ -39,17 +39,20 @@
 - Byte-identical lossless export requires retaining the original TIFF
   container. Re-encoding samples loses tile boundaries, Huffman construction,
   metadata ordering, and non-raw preview directories.
+- `flashraw-codecs` 0.1.1 (MIT OR Apache-2.0) is used only for DNG opcode
+  parsing/pixel transformation. Its `OpcodeList1` engine operates in stored
+  sample coordinates; Fornax keeps container selection and typed errors.
 
 ## Known implementation differences
 
-- The lossless-JPEG writer does not recompress arbitrary samples. A decoded
-  lossless-JPEG source is copied byte for byte when lossless options are
-  requested; uncompressed export is regenerated from samples.
-- Restart markers, the pre-DNG-1.1 16-bit deviation, opcode lists,
-  linearization tables, deflate, JPEG XL, lossy JPEG, and interleave factors
-  are not implemented.
-- Classic and BigTIFF headers and both byte orders are parsed, but only classic
-  little-endian DNG is covered by the accepted integration fixture.
+- The writer generates tiled JPEG-92 for U8/U16 samples using a deterministic
+  static Huffman table and predictor 1. U32/F32 samples use lossless Deflate.
+- Restart markers, multi-component subsampling, the pre-DNG-1.1 16-bit
+  deviation, sub-tile blocks, and geometric opcodes remain future work.
+- Deflate, single-channel lossy JPEG, JPEG XL, linearization, 2x2 interleave,
+  and raw-domain `OpcodeList1` are implemented.
+- Classic and BigTIFF headers and both byte orders are parsed. The ignored
+  corpus covers classic little- and big-endian DNGs from multiple cameras.
 - Preview, thumbnail, mask, depth, and Exif image decoding are outside the raw
   decode path. Exif pointer tags are not copied to regenerated raw IFDs.
 

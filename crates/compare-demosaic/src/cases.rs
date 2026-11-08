@@ -1,6 +1,5 @@
-use fornax_core::{BayerPattern, MonoImage, Primitive};
-use fornax_postprocessor::Demosaic;
-use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
+use fornax_core::{BayerPattern, MonoImage, Primitive, RgbImage};
+use fornax_postprocessor::{Demosaic, IDemosaic, LazyDemosaic};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub enum ReferenceBackend {
@@ -446,18 +445,18 @@ where
         .collect::<mischief::Result<Vec<T>>>()?;
     let image = MonoImage::from_raw(width, height, samples)
         .ok_or_else(|| mischief::mischief!("synthetic image dimensions are inconsistent"))?;
-    Ok(demosaic
-        .demosaic(&image, pattern)?
-        .collect()
+    let demosaiced: RgbImage<T> = demosaic.demosaic(&image, pattern)?.collect();
+    Ok(demosaiced
         .as_raw()
         .iter()
         .map(|sample| {
-            let maximum =
-                num_traits::cast(f64::from(u16::MAX)).expect("sample supports 16-bit range");
+            let maximum = num_traits::cast::<f64, T>(f64::from(u16::MAX))
+                .expect("sample supports 16-bit range");
             let normalized = sample.clamp(T::zero(), T::one());
-            num_traits::cast((normalized * maximum).round()).expect("rounded sample fits u16")
+            num_traits::cast::<T, u16>((normalized * maximum).round())
+                .expect("rounded sample fits u16")
         })
-        .collect())
+        .collect::<Vec<u16>>())
 }
 
 macro_rules! runner {

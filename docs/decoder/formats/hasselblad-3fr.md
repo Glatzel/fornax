@@ -48,4 +48,4 @@ Map or preserve:
 - Uncompressed and accepted lossless samples decode with sane geometry and
   tags.
 - Each accepted conventional Bayer image has an exact pixel comparison and a
-  successful handoff; all other CFAs return `HandoffError::UnsupportedCfa`.
+  successful handoff; all other CFAs return a typed unsupported-CFA error.

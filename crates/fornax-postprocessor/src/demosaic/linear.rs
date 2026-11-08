@@ -2,7 +2,7 @@ use fornax_core::error::DemosaicError;
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use generic_num::num;
 
-use crate::protocol::LazyDemosaic;
+use crate::LazyDemosaic;
 const CH_R: u8 = BayerChannel::R as u8;
 const CH_G: u8 = BayerChannel::GRedRow as u8;
 const CH_B: u8 = BayerChannel::B as u8;

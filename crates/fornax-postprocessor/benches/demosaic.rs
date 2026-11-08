@@ -1,12 +1,38 @@
-#[path = "support/demosaic_registry.rs"]
-mod demosaic_registry;
-
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use demosaic_registry::{algorithm_ids, demosaic, selected_algorithm};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
-use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
+use fornax_postprocessor::{Demosaic, IDemosaic, LazyDemosaic};
+fn selected_algorithm() -> Vec<(String, Demosaic)> {
+    const ALL: &[&str] = &[
+        "aahd", "ahd", "amaze", "dcb", "dht", "linear", "lmmse", "ppg", "rcd", "vng", "vng4",
+    ];
 
+    let algorithms = std::env::var("FORNAX_BENCH_ALGORITHM").unwrap_or_else(|_| ALL.join(","));
+
+    algorithms
+        .split(',')
+        .map(str::trim)
+        .filter(|name| !name.is_empty())
+        .map(|name| {
+            let algorithm = match name {
+                "aahd" => Demosaic::Aahd,
+                "ahd" => Demosaic::Ahd,
+                "amaze" => Demosaic::Amaze,
+                "dcb" => Demosaic::dcb(),
+                "dht" => Demosaic::Dht,
+                "linear" => Demosaic::Linear,
+                "lmmse" => Demosaic::lmmse(),
+                "ppg" => Demosaic::Ppg,
+                "rcd" => Demosaic::Rcd,
+                "vng" => Demosaic::Vng,
+                "vng4" => Demosaic::Vng4,
+                _ => panic!("Unknown demosaic algorithm: {name}"),
+            };
+
+            (name.to_owned(), algorithm)
+        })
+        .collect()
+}
 fn bench_methods<D, T>(
     c: &mut Criterion,
     pool: &rayon::ThreadPool,
@@ -31,19 +57,12 @@ fn bench_sizes<T>(c: &mut Criterion, params: &BenchParams, bits: BenchSampleBits
 where
     T: Primitive + Send + Sync,
 {
-    let selected = selected_algorithm();
     for (threads, pool) in params.pools() {
         for size in &params.sizes {
             let image = synthetic_mono_image::<T>(size.dims, 1.0);
-            for algorithm in algorithm_ids() {
-                if selected
-                    .as_ref()
-                    .is_some_and(|selected| selected != algorithm)
-                {
-                    continue;
-                }
-                let name = params.case_name(algorithm, size, bits, threads);
-                bench_methods::<_, T>(c, &pool, &name, demosaic(algorithm), image.clone());
+            for (algorithm_name, algorithm) in selected_algorithm() {
+                let name = params.case_name(&algorithm_name, size, bits, threads);
+                bench_methods::<_, T>(c, &pool, &name, algorithm, image.clone());
             }
         }
     }

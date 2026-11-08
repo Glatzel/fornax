@@ -9,7 +9,7 @@ use fornax_core::error::DemosaicError;
 use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use generic_num::num;
 
-use crate::protocol::LazyDemosaic;
+use crate::LazyDemosaic;
 
 const RED: usize = 0;
 const GREEN: usize = 1;

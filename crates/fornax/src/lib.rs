@@ -1,7 +1,8 @@
 pub mod preprocessor;
 pub use fornax_core::{
-    BayerChannel, BayerPattern, DecodedRaw, MonoImage, Primitive, RawImage, RgbImage, error,
-    metadata, protocol,
+    BayerChannel, BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawFormat,
+    RawMosaic, RgbImage, error, metadata, protocol,
 };
+pub use fornax_dng as dng;
 pub mod postprocessor;
-pub use fornax_core::Decoder;
+pub use fornax_decoder::Decoder;

@@ -1,0 +1,32 @@
+[package]
+name = "fornax-dng"
+version.workspace = true
+edition.workspace = true
+
+[[bench]]
+harness = false
+name = "writer"
+
+[dependencies]
+flashraw-codecs.workspace = true
+fornax-codec.workspace = true
+fornax-core.workspace = true
+fornax-tiff.workspace = true
+generic-num.workspace = true
+image.workspace = true
+num_enum.workspace = true
+num-traits.workspace = true
+rayon.workspace = true
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+strum.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+fornax-devtool.workspace = true
+
+[features]
+default = []
+metadata-json = ["dep:serde", "dep:serde_json"]
+zstd = ["fornax-codec/zstd"]

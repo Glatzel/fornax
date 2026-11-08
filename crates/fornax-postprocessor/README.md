@@ -34,11 +34,25 @@ assert!(matches!(lmmse, Demosaic::Lmmse { .. }));
 `Demosaic::lmmse()` preserves darktable mode 1: one median pass and no
 refinement.
 
+`PostProcessor::output_color` defaults to `OutputColorSpace::Raw`, which leaves
+demosaiced camera RGB unchanged. Setting it to `Srgb`, `AdobeRgb`,
+`WideGamutRgb`, `ProPhotoRgb`, `Xyz`, `Aces2065_1`, `AcesCg`, `DciP3`, or
+`Rec2020` applies a camera-to-XYZ matrix and then the selected XYZ-to-output
+matrix after white balance in the same output-row pass.
+
+DNG `ForwardMatrix1` is preferred, followed by `ForwardMatrix2`. If neither is
+available, `ColorMatrix1` or `ColorMatrix2` is combined with its matching
+`CameraCalibration` and inverted. The conversion is scene-linear; it does not
+apply a display transfer function.
+
 ```rust
 use fornax_core::protocol::IPostProcessor;
-use fornax_postprocessor::PostProcessor;
+use fornax_postprocessor::{OutputColorSpace, PostProcessor};
 
-let processor = PostProcessor::default();
+let processor = PostProcessor {
+    output_color: OutputColorSpace::Srgb,
+    ..PostProcessor::default()
+};
 let rgb = processor.process(&raw_image, &metadata)?;
 ```
 
@@ -71,7 +85,7 @@ The default is `1000,2000`, producing `1.50MP` and `6.00MP` images.
 FORNAX_BENCH_BITS=32 cargo bench -p fornax-postprocessor
 ```
 
-The default is `32,64`.
+The default is `32`.
 
 `FORNAX_BENCH_ALGORITHM` selects one algorithm from
 `crates/fornax-postprocessor/benches/algorithms.json`. The value is an ID such

@@ -1,0 +1,22 @@
+[package]
+name = "fornax-codec"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bytemuck.workspace = true
+flate2.workspace = true
+fornax-core.workspace = true
+image.workspace = true
+jxl-oxide.workspace = true
+rayon.workspace = true
+structured-zstd = { version = "0.2.6", optional = true }
+thiserror.workspace = true
+zune-jpeg.workspace = true
+
+[dev-dependencies]
+image = { workspace = true, features = ["jpeg"] }
+
+[features]
+default = []
+zstd = ["dep:structured-zstd"]

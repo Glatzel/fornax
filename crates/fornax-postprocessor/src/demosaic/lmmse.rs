@@ -12,7 +12,7 @@ use fornax_core::{BayerPattern, MonoImage, Primitive};
 use super::LmmseMode;
 use super::buffer::{DenseLazy, channel, codes, dense_from_codes};
 use super::ppg::DemosaicPpg;
-use crate::protocol::LazyDemosaic;
+use crate::LazyDemosaic;
 
 const TILE_SIZE: usize = 136;
 const BORDER: usize = 4;
@@ -739,7 +739,7 @@ mod tests {
     use fornax_core::MonoImage;
 
     use super::*;
-    use crate::protocol::LazyDemosaic;
+    use crate::LazyDemosaic;
 
     #[test]
     fn images_smaller_than_the_lmmse_border_still_return_ppg_output() -> mischief::Result<()> {

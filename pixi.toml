@@ -43,10 +43,7 @@ book-figures = "python -m book.figures"
 
 [environments]
 default = []
-dev = {
-  features = ["dev"],
-  tasks = { pipeline = "cargo run -p fornax --example pipeline" }
-}
+dev = { features = ["dev"], tasks = { pipeline = "cargo run -p fornax-cli --" } }
 python = ["dev", "python"]
 data = ["data"]
 book = ["book"]

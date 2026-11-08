@@ -1,7 +1,8 @@
 use fornax_core::error::PreprocessError;
 use fornax_core::metadata::Levels;
 use fornax_core::protocol::IPreprocessor;
-use fornax_core::{DecodedRaw, MonoImage, Primitive, RawImage};
+use fornax_core::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive};
+use generic_num::num;
 use rayon::prelude::*;
 pub struct Preprocessor;
 impl<T> IPreprocessor<T> for Preprocessor
@@ -10,32 +11,22 @@ where
 {
     fn process(
         &self,
-        decoded: DecodedRaw<T>,
-        levels: &Levels<T>,
-    ) -> Result<RawImage<T>, PreprocessError> {
+        decoded: CroppedMosaic<T>,
+        levels: &Levels,
+    ) -> Result<NormalizedMosaic<T>, PreprocessError> {
         let image = decoded.into_image();
         let (width, height) = image.dimensions();
-        let w = width as usize;
-        let h = height as usize;
+        let (w, h) = (width as usize, height as usize);
 
         #[cfg(debug_assertions)]
         validate_levels(w, h, levels)?;
 
-        let pattern_w = levels.black.width() as usize;
-        let pattern_h = levels.black.height() as usize;
-        let pattern = levels.black.as_raw();
+        let pw = levels.black.width() as usize;
+        let ph = levels.black.height() as usize;
+        let pattern: Vec<T> = levels.black.as_raw().iter().map(|v| num!(*v)).collect();
+        let white: T = num!(levels.white);
+        let zero = T::zero();
 
-        let zeros = |n: usize| vec![T::zero(); n];
-        let delta_h = if levels.black_delta_h.is_empty() {
-            &zeros(w)
-        } else {
-            &levels.black_delta_h
-        };
-        let delta_v = if levels.black_delta_v.is_empty() {
-            &zeros(h)
-        } else {
-            &levels.black_delta_v
-        };
         let mut raw = image.into_raw();
         let expected = w.checked_mul(h).ok_or(PreprocessError::ImageTooLarge {
             width: w,
@@ -49,46 +40,95 @@ where
         }
         raw.truncate(expected);
 
-        raw.par_chunks_exact_mut(w)
-            .enumerate()
-            .for_each(|(y, row)| {
-                let py = y % pattern_h;
-                let pattern_row = &pattern[py * pattern_w..(py + 1) * pattern_w];
-                let dv = delta_v[y];
+        let delta_h: Option<Vec<T>> = (!levels.black_delta_h.is_empty())
+            .then(|| levels.black_delta_h.iter().map(|v| num!(*v)).collect());
+        let delta_v: Option<Vec<T>> = (!levels.black_delta_v.is_empty())
+            .then(|| levels.black_delta_v.iter().map(|v| num!(*v)).collect());
+        let rows_per_band = band_rows(w, h, std::mem::size_of::<T>());
+        // Full-width black row per pattern phase (ph rows, usually 2).
+        // Folds in delta_h, so the inner loop has no modulo/cycle.
+        let base: Vec<Vec<T>> = (0..ph)
+            .map(|py| {
+                (0..w)
+                    .map(|x| {
+                        let b = pattern[py * pw + x % pw];
+                        delta_h.as_ref().map_or(b, |d| b + d[x])
+                    })
+                    .collect()
+            })
+            .collect();
 
-                for ((px, &dh), &pat) in row
-                    .iter_mut()
-                    .zip(delta_h.iter())
-                    .zip(pattern_row.iter().cycle())
-                {
-                    let black_level = pat + dh + dv;
-                    let range = levels.white - black_level;
+        match delta_v {
+            None => {
+                // Fast path: black and 1/range are periodic -> precompute, no
+                // division in loop. Invalid range => black=0, inv=0 => result
+                // is 0 without a branch.
+                let tables: Vec<(Vec<T>, Vec<T>)> = base
+                    .iter()
+                    .map(|row| {
+                        let mut blk = Vec::with_capacity(w);
+                        let mut inv = Vec::with_capacity(w);
+                        for &b in row {
+                            let range = white - b;
+                            if range > zero {
+                                blk.push(b);
+                                inv.push(T::one() / range);
+                            } else {
+                                blk.push(zero);
+                                inv.push(zero);
+                            }
+                        }
+                        (blk, inv)
+                    })
+                    .collect();
 
-                    *px = if range <= T::zero() {
-                        T::zero()
-                    } else {
-                        let value = (*px - black_level) / range;
-                        if value > T::zero() { value } else { T::zero() }
-                    };
-                }
-            });
-
+                raw.par_chunks_mut(w * rows_per_band)
+                    .enumerate()
+                    .for_each(|(band, rows)| {
+                        for (r, row) in rows.chunks_exact_mut(w).enumerate() {
+                            let (blk, inv) = &tables[(band * rows_per_band + r) % ph];
+                            for ((p, &b), &k) in row.iter_mut().zip(blk).zip(inv) {
+                                let v = (*p - b) * k;
+                                *p = if v > zero { v } else { zero };
+                            }
+                        }
+                    });
+            }
+            Some(dv_all) => {
+                raw.par_chunks_mut(w * rows_per_band)
+                    .enumerate()
+                    .for_each(|(band, rows)| {
+                        for (r, row) in rows.chunks_exact_mut(w).enumerate() {
+                            let y = band * rows_per_band + r;
+                            let dv = dv_all[y];
+                            for (p, &b0) in row.iter_mut().zip(&base[y % ph]) {
+                                let b = b0 + dv;
+                                let range = white - b;
+                                let v = (*p - b) / range;
+                                *p = if range > zero && v > zero { v } else { zero };
+                            }
+                        }
+                    });
+            }
+        }
         let normalized =
             MonoImage::from_raw(width, height, raw).expect("pixel count matches image dimensions");
-
-        Ok(RawImage::new(normalized))
+        Ok(NormalizedMosaic::new(normalized))
     }
 }
 
+fn band_rows(w: usize, h: usize, elem_size: usize) -> usize {
+    let target_bytes = fornax_core::utils::l2_cache_bytes() / 4; // headroom for tables, shared L2, hybrid cores
+    let by_bytes = (target_bytes / (w * elem_size).max(1)).max(1);
+
+    // Aim for several bands per thread so rayon can load-balance.
+    let threads = rayon::current_num_threads();
+    let by_threads = h.div_ceil(threads * 4).max(1);
+
+    by_bytes.min(by_threads)
+}
 #[cfg(debug_assertions)]
-fn validate_levels<T>(
-    width: usize,
-    height: usize,
-    levels: &Levels<T>,
-) -> Result<(), PreprocessError>
-where
-    T: Primitive,
-{
+fn validate_levels(width: usize, height: usize, levels: &Levels) -> Result<(), PreprocessError> {
     if width == 0 || height == 0 {
         return Err(PreprocessError::EmptyImage);
     }
@@ -114,7 +154,7 @@ where
 mod tests {
     use super::*;
 
-    fn levels(black: MonoImage<f32>) -> Levels<f32> {
+    fn levels(black: MonoImage<f64>) -> Levels {
         Levels {
             black,
             black_delta_h: Vec::new(),
@@ -129,7 +169,7 @@ mod tests {
             .expect("image dimensions");
         let black =
             MonoImage::from_raw(2, 2, vec![0.0, 0.1, 0.2, 0.3]).expect("black-level dimensions");
-        let output = Preprocessor.process(DecodedRaw::new(image), &levels(black))?;
+        let output = Preprocessor.process(CroppedMosaic::new(image), &levels(black))?;
         assert_eq!(output.image().dimensions(), (3, 2));
         assert!(output.image().as_raw().iter().all(|value| *value > 0.0));
         Ok(())
@@ -141,7 +181,7 @@ mod tests {
         let image = MonoImage::from_raw(1, 1, vec![1.0]).expect("image dimensions");
         let black = MonoImage::new(0, 0);
         let error = Preprocessor
-            .process(DecodedRaw::new(image), &levels(black))
+            .process(CroppedMosaic::new(image), &levels(black))
             .expect_err("empty black pattern must fail");
         assert_eq!(error, PreprocessError::InvalidBlackPattern);
     }
@@ -154,7 +194,7 @@ mod tests {
         let mut level_data = levels(black);
         level_data.black_delta_h = vec![0.0];
         let error = Preprocessor
-            .process(DecodedRaw::new(image), &level_data)
+            .process(CroppedMosaic::new(image), &level_data)
             .expect_err("mismatched horizontal delta must fail");
         assert_eq!(
             error,
@@ -169,7 +209,7 @@ mod tests {
         let mut level_data = levels(black);
         level_data.black_delta_v = vec![0.0];
         let error = Preprocessor
-            .process(DecodedRaw::new(image), &level_data)
+            .process(CroppedMosaic::new(image), &level_data)
             .expect_err("mismatched vertical delta must fail");
         assert_eq!(
             error,
@@ -191,7 +231,7 @@ mod tests {
             height: 2,
         });
         let black = MonoImage::from_raw(2, 2, vec![0.0; 4]).expect("black-level dimensions");
-        let output = Preprocessor.process(DecodedRaw::new(image), &levels(black))?;
+        let output = Preprocessor.process(CroppedMosaic::new(image), &levels(black))?;
         assert_eq!(output.image().dimensions(), (3, 2));
         Ok(())
     }

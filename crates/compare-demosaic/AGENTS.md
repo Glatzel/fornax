@@ -42,7 +42,8 @@ the exit code.
 - `baseline/canonical.json`: accepted results, one line per row. Never edit by
   hand.
 - `external/raw-images/images/colorchart-5D2-6000K.dng`: the default
-  fixture-backed comparison input, reached through `fornax_devtool::raw_file()`.
+  fixture-backed comparison input, reached through
+  `fornax_devtool::raw_file(RawFormat::Dng)`.
 - `README.md`: hand-written text, generated regions between compare-demosaic
   markers, and note blocks. Never edit text between markers by hand.
 - `target/compare-demosaic/`: latest run (not committed). `--out` changes it.
@@ -52,9 +53,10 @@ the exit code.
 
 LibRaw 0.22.3 reference headers and routines come from the repository-managed
 `libraw-dev` Pixi package; do not compile LibRaw from the external checkout.
-darktable reference code is pinned to the `5.6.2` release. Run
-`scripts/setup.sh` on Linux/macOS or `scripts/setup.ps1` on Windows. The setup
-scripts use `gh api` to materialize only the required darktable source files.
+darktable reference code is pinned to the `5.6.2` release. From the repository
+root, run `source ./crates/compare-demosaic/scripts/setup.sh` on Linux/macOS or
+`./crates/compare-demosaic/scripts/setup.ps1` on Windows. The setup scripts use
+`gh api` to materialize only the required darktable source files.
 RawTherapee reference code is pinned to the `5.13` release; the same setup
 scripts materialize its required algorithm and support sources. Keep the
 versions and commit URLs in `build.rs`, `src/cases.rs`, and both setup scripts
@@ -143,10 +145,12 @@ under that reference section. Remove Open issues when fixed.
 
 ## CI
 
-The `compare-demosaic` job in `.github/workflows/ci.yml` runs the crate tests,
-`readme --check`, `run --artifacts`, and a diff against the baseline. On failure
-the `compare-demosaic` artifact holds `canonical.json`, `diff.txt`, and any
-artifacts; if nothing differs, nothing is uploaded.
+The `main` job in `.github/workflows/ci.yml` runs the `compare-demosaic` docs,
+clippy, and tests from `crates/compare-demosaic`. The separate
+`compare-demosaic` job runs the source setup, `readme --check`,
+`run --artifacts`, and a diff against the baseline. On failure that job uploads
+`canonical.json`, `diff.txt`, and any artifacts; if nothing differs, nothing is
+uploaded.
 
 ## Rules for changing this crate
 

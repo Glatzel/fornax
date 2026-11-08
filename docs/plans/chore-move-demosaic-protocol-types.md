@@ -236,7 +236,7 @@ Commit with `chore: move demosaic protocol traits to postprocessor`, push the br
   `crates/compare-demosaic/baseline/canonical.json`: PASS with no differences.
 - `cargo test --doc -p fornax-postprocessor`: PASS, 2 doctests.
 - `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p fornax-postprocessor -p
-  fornax-core -p fornax`: PASS with no broken intra-doc links.
+fornax-core -p fornax`: PASS with no broken intra-doc links.
 - `git diff --check`: PASS.
 
 ## Decisions and notes
