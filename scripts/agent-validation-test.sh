@@ -81,6 +81,9 @@ assert_logged_prefix() {
 run_validation 'AGENTS.md\n'
 
 assert_logged 'setup:root'
+assert_logged_prefix 'git:-c filter.lfs.required=false'
+assert_logged_prefix 'submodule update --init --remote external/raw.pixls.us'
+assert_logged 'cargo:-q run -p decoder-tracker -- manifest --check'
 assert_logged 'cargo:-q test --workspace --all-features --exclude compare-demosaic'
 assert_logged 'cargo:+nightly fmt --check -q'
 assert_logged 'cargo:-q doc --workspace --all-features --exclude compare-demosaic --no-deps'
@@ -106,6 +109,8 @@ assert_logged 'cargo:-q test --all-features -p compare-demosaic'
 
 mkdir -p "$test_root/external/raw-images/images"
 touch "$test_root/external/raw-images/images/colorchart-5D2-6000K.dng"
+mkdir -p "$test_root/external/raw.pixls.us"
+touch "$test_root/external/raw.pixls.us/filelist.sha256"
 
 : >"$log_file"
 run_validation 'scripts/agent-validation.sh\n'
@@ -114,6 +119,10 @@ assert_logged 'cargo:-q test --workspace --all-features --exclude compare-demosa
 
 if grep -Fxq 'setup:root' "$log_file"; then
     printf 'validation reran setup with an existing raw-image fixture\n' >&2
+    exit 1
+fi
+if grep -Fq 'submodule update --init --remote external/raw.pixls.us' "$log_file"; then
+    printf 'validation reran corpus setup with an existing pointer tree\n' >&2
     exit 1
 fi
 

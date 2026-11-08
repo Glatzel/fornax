@@ -1,186 +1,181 @@
 # RAW corpus and regression tracking
 
-## Decision status
+## Status
 
-The acquisition choice is not approved yet. The recommendation in this
-document is to extend `scripts/get_raw_samples.py`; do not add a corpus
-submodule until the repository owner approves that choice.
+`decoder-tracker` owns the manual raw.pixls.us decoder regression workflow. Its
+first supported format is DNG. Each future native decoder adds its uppercase
+format to the workspace's supported-format selection and bootstraps its rows
+into the same text baseline.
 
-No full corpus was downloaded while preparing this design.
+The corpus checkout is `external/raw.pixls.us`, a Git LFS submodule backed by
+`https://raw.pixls.us/data.lfs.git`. It is initialized with
+`GIT_LFS_SKIP_SMUDGE=1`, so a normal checkout contains only LFS pointer metadata
+and `filelist.sha256`. RAW payloads are fetched only for the selected shard and
+are never committed, cached, or uploaded as artifacts.
 
-## Findings
+raw.pixls.us replaces its Git LFS repository with a new daily snapshot instead
+of retaining a permanent commit history. The submodule therefore follows the
+remote's `master` branch for setup, while
+`crates/decoder-tracker/baseline.csv` records the accepted snapshot's
+paths, sizes, identities, and LFS SHA-256 values. `manifest --check` fails if the
+current `filelist.sha256` or pointer set no longer matches that committed
+manifest.
 
-`raw.pixls.us` exposes a searchable repository and three full-data access
-forms:
+## Commands
 
-- HTTPS under `/data/`;
-- a Git LFS mirror at `https://raw.pixls.us/data.lfs.git`;
-- a Git-annex mirror at `https://raw.pixls.us/data.annex.git`.
+Run from the repository root through the Pixi dev environment so `git-lfs` is
+available:
 
-The corpus is binary RAW data. Adding either Git mirror as a normal submodule
-would couple every checkout or CI preparation step to Git LFS or git-annex,
-and still fetches the same RAW payloads. It does not satisfy the repository
-rule against committing binary files, adds a large external dependency, and is
-unnecessary because the site already provides a checksum-bearing listing.
+```text
+pixi run -e dev cargo run -q -p decoder-tracker -- manifest [--check] [--format F]...
+pixi run -e dev cargo run -q -p decoder-tracker -- run [--manifest F] [--format F]...
+    [--camera TEXT]... [--filename TEXT]... [--shard INDEX/COUNT]
+    [--out FILE] [--max-files N] [--allow-full]
+pixi run -e dev cargo run -q -p decoder-tracker -- merge [--manifest F] [--out FILE] SHARD...
+pixi run -e dev cargo run -q -p decoder-tracker -- diff BASELINE CANDIDATE
+```
 
-The existing `scripts/get_raw_samples.py` already:
+`run` defaults to DNG and refuses selections larger than two files unless
+`CI=true` or `--allow-full` is present. Use camera and filename filters for
+local investigation:
 
-- downloads the repository listing from the site's JSON API and caches its
-  ETag;
-- uses DuckDB to extract URL, SHA-256, and added date from the listing;
-- filters by case-insensitive filename wildcards;
-- builds aria2 input with one connection per file and a SHA-256 checksum;
-- writes under `external/raw.pixls.us` by default, where `external/` is
-  ignored.
+```bash
+pixi run -e dev cargo run -q -p decoder-tracker -- run \
+  --camera 'Canon EOS' --filename IMG_0001 \
+  --out target/decoder-tracker/investigate.csv
+```
 
-The Pixi `data` environment already declares `python-duckdb`, `httpx`, `typer`,
-and `aria2`. No global tool installation is needed.
+Format and filename filters are case-insensitive exact matches. Camera filters
+are case-insensitive substring matches. Filters are applied before the
+selection is sorted by LFS SHA-256 and assigned with zero-based
+`position % COUNT`.
 
-The site states that newer samples are CC0 and that some older samples retain
-more restrictive licences. The acquisition tool must retain the listing's
-licence metadata rather than assuming every sample is CC0.
+## Manifest
 
-## Acquisition options
+`manifest` reads `filelist.sha256`, selects supported formats, parses each
+corresponding LFS pointer, verifies that its object ID equals the listed
+SHA-256, derives identity fields, and writes the canonical CSV under
+`crates/decoder-tracker/baseline.csv`.
 
-| Option | Advantages | Costs and risks | Recommendation |
-| --- | --- | --- | --- |
-| Add raw.pixls.us as a submodule | One pinned checkout; familiar Git tracking. | Binary corpus, very large checkout, Git LFS/annex requirement, platform-specific filenames, poor CI incrementality, conflicts with the no-binaries policy. | Reject by default. |
-| Extend `scripts/get_raw_samples.py` | Uses the existing checksum-verified path; downloads only selected cameras/formats; works on Linux CI and Windows locals; no binary history in Fornax. | The script needs format/camera selection and manifest export; upstream listing changes are an external dependency. | Recommended, pending owner approval. |
+The manifest header is:
 
-Recommended extension:
+```csv
+vendor,camera,format,path,size,sha256
+```
 
-1. Keep the existing JSON cache, DuckDB extraction, and aria2 checksum path.
-2. Add explicit `--format` and `--camera` filters alongside filename
-   wildcards.
-3. Emit a canonical manifest with vendor, camera name, model, format,
-   checksum, original filename, relative path, URL, added date, and licence.
-4. Make `--list` and `--manifest-only` mutually usable so CI can plan a shard
-   without downloading its files.
-5. Add deterministic `--shard INDEX/COUNT` selection after sorting by SHA-256.
-6. Default downloads to an ignored directory and fail if `--out` resolves
-   inside a tracked repository path.
-7. Never write RAW, DNG, preview, or image files into the Git worktree except
-   through an explicitly ignored output directory.
+Repository paths use `/`, retain case and UTF-8 content, and are interpreted
+relative to the corpus root. `camera` is normally `<vendor> <model>`; when the
+model already starts with the vendor, the model is used without duplicating the
+vendor. `filename` is derived as the original stem without its extension and is
+stored in the separate results baseline.
 
-The corpus baseline does not depend on a submodule. The committed data is a
-small CSV baseline plus metadata-only manifest.
-
-## Tracking CLI
-
-Follow the `compare-demosaic` architecture:
-
-- a small workspace crate, provisionally `compare-decoder`;
-- subcommands `run`, `diff`, and optional `readme`;
-- local filters `--format`, `--camera`, and `--filename`;
-- deterministic `--shard INDEX/COUNT`;
-- a committed baseline CSV;
-- generated output under `target/compare-decoder/`;
-- output written only to an explicit ignored path;
-- the same binary and filters used locally and in CI.
-
-The CLI must not contain a separate ad-hoc corpus traversal path. Local
-debugging runs through `compare-decoder run`, normally with one camera or
-filename filter.
+Manifest rows are sorted by `(sha256, path)`. `model` is derived from `path` when
+the manifest is loaded rather than duplicated in the file. The unique baseline
+key is `(vendor, camera, format, filename)`. Duplicate keys are an error.
 
 ## Baseline schema
 
-The minimum required columns are:
+The canonical baseline header is:
 
 ```csv
-vendor,camera,model,format,filename,pass,error_kind,width,height,cfa
+vendor,camera,model,format,filename,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa
 ```
 
-Definitions:
+Rows use UTF-8 with LF endings and RFC 4180 quoting, sort by the unique key, and
+store stage passes as `0` or `1`. There are no timestamps, timings, host data, or
+floating-point values.
 
-| Column | Definition |
-| --- | --- |
-| `vendor` | The listing make/manufacturer. |
-| `camera` | Stable display name, normally `<vendor> <model>`. |
-| `model` | The listing model, without the vendor prefix. |
-| `format` | Uppercase source format: `DNG`, `CR3`, `ARW`, `NEF`, `RAF`, `3FR`, `RW2`, or `IIQ`. |
-| `filename` | Original filename without its extension. When the downloaded file is checksum-named, record the source stem and keep the SHA in the manifest. |
-| `pass` | `1` or `0`, exactly as defined below. |
-| `error_kind` | Stable `ErrorKind` value, or empty on success. |
-| `width`, `height` | Full decoded dimensions; `0` only when decoding failed before geometry was available. |
-| `cfa` | Canonical CFA description, for example `RGGB`, `XTrans-6x6`, or `unknown`. |
+The stages run once each in this order:
 
-These extra columns are justified because they make failures actionable
-without a local RAW file: `error_kind` identifies unsupported camera versus
-variant/corruption/handoff, dimensions catch geometry drift, and `cfa`
-distinguishes a decode success from a successful Bayer handoff.
+1. `decode_pass`: decoder construction succeeds.
+2. `raw_mosaic_pass`: raw mosaic retrieval succeeds with non-zero dimensions
+   and a matching sample count.
+3. `process_metadata_pass`: DNG metadata and process metadata succeed, then
+   geometry, active area, default crop, levels, and 2x2 CFA conversion pass
+   sanity checks.
+4. `handoff_pass`: `cropped_mosaic::<f32>` succeeds with the active-area
+   dimensions and sample count.
 
-Do not include decode time, host, commit, timestamp, or noisy floating-point
-metrics in the committed baseline. Those values are volatile and make
-regression diffs meaningless.
+Later stages are not attempted after an earlier failure. `error_kind` is empty
+only when all four stages pass; otherwise it is `<stage>:<kind>`, such as
+`raw_mosaic:bad_dimensions`, `process_metadata:unsupported`, or
+`handoff:invalid_output`. Child panics, crashes, and timeouts are rows with
+`runner:panic`, `runner:crash`, or `runner:timeout`.
 
-## Proposed `pass` definition
+The runner retains the best geometry and CFA label available after partial
+failure. A non-2x2 CFA gets a descriptive label such as `XTrans-6x6` before the
+typed unsupported CFA error is recorded.
 
-`pass = 1` if and only if all applicable conditions hold:
+## Isolation and LFS
 
-1. `IDecoder::decode` returns a decoder value, `raw_mosaic` and `dng_metadata`
-   succeed, and the requested handoff completes within the corpus runner's
-   fixed timeout.
-2. Metadata and geometry are sane:
-   - dimensions are non-zero and equal to the sample count;
-   - the CFA repeat dimensions are non-zero and match the pattern length;
-   - every CFA plane index is valid for `CFAPlaneColor`;
-   - `ActiveArea` is within the full image;
-   - `DefaultCropOrigin` plus `DefaultCropSize` is within `ActiveArea`;
-   - black levels are finite and below the corresponding white level;
-   - white levels are positive;
-   - required identity/camera and orientation values are well-typed.
-3. When a reviewed external reference result is available, pixel agreement is
-   checked after aligning the full image, active area, CFA phase, endianness,
-   and sample interpretation. The comparison must be exact for stored integer
-   samples. Without a comparable reference, the condition is recorded as
-   `reference=unavailable` and treated as not applicable, not as a failure.
-4. `cropped_mosaic<T>` and `process_metadata` succeed for a conventional 2x2
-   Bayer input. For any non-2x2 input, the handoff instead must return a typed
-   unsupported-CFA error; that rejection is a pass for corpus purposes and
-   must not be recorded as a decode failure.
+`run` parses the manifest, selects rows, initializes Git LFS in the pointer-only
+submodule, and fetches only the selected object paths before any decoder work.
+Transfers use four bounded Git LFS workers, three retries, and explicit
+diagnostics for rate-limit and network failures.
 
-`pass = 0` on any decode error, metadata sanity failure, comparable pixel
-mismatch, missing required output field, or untyped/unexpected panic. An
-explicit unsupported-camera row is still a valid baseline row with `pass=0`,
-`error_kind=unsupported_camera`; it is not silently omitted.
+Each file is evaluated by a hidden `run-one` child process with a 300-second
+timeout. Materialization time is outside that timeout. The parent converts
+panics and crashes to rows, kills hangs, and treats malformed successful child
+output, child launch failures, LFS failures, and I/O failures as infrastructure
+errors. Decoder failures that were successfully recorded do not fail `run`.
 
-The `pass` definition needs owner approval before the first committed
-baseline.
+## Merge and diff
 
-## CI design
+`merge` reads all shard CSVs, rejects schema mismatches and duplicate keys,
+checks the complete expected key set from the manifest, and writes a canonical
+full baseline. This is how the workflow prevents a missing shard from appearing
+as an accepted baseline.
 
-Full corpus runs happen in CI only. Local runs are filtered investigations.
+`diff` reports:
 
-The CI job is a matrix over format or tier shards:
+- `missing`: a baseline key absent from the candidate;
+- `extra`: a candidate key absent from the baseline;
+- `changed`: a key present in both with any field difference.
 
-1. Fetch the cached listing and generate the metadata manifest.
-2. Select the shard deterministically by SHA-256.
-3. Download only that shard's files via the same
-   `scripts/get_raw_samples.py` path used locally.
-4. Run `compare-decoder run` with the shard and compare its rows with the
-   matching committed baseline rows.
-5. Fail on any missing, new, or changed row, with `pass` changes as
-   regressions.
-6. Upload `target/compare-decoder/` and the text diff only when the comparison
-   finds a difference.
-7. Do not cache or upload RAW files as long-lived artifacts. A failed job may
-   retain them only under the CI workspace's normal ephemeral retention if
-   debugging requires it; the uploaded diagnostic is the CSV/diff, not the RAW.
+It exits 1 when any category is non-empty. Reordering rows is not a difference.
 
-Each format shard may run multiple camera jobs. Camera rows are never
-collapsed into a format-only result because cameras sharing a container can
-use different compression, CFA, and metadata variants.
+## Manual CI
 
-The first baseline is generated from a CI run and reviewed before commit.
-Local numeric differences are not accepted as baseline edits without evidence
-and review.
+`.github/workflows/decoder-tracker-corpus.yml` is manual-only after bootstrap.
+It accepts:
 
-## Open approval requests
+- `mode`: `bootstrap` or `verify`;
+- `shard_count`: an integer from 1 through 20, default 20.
 
-- Approve extending `scripts/get_raw_samples.py` instead of adding a
-  raw.pixls.us submodule.
-- Approve the `pass` definition above.
-- Confirm whether the committed manifest should include the source licence
-  column and whether non-CC0 samples may be used in CI.
-- Confirm whether `compare-decoder` should be its own crate or folded into the
-  existing devtool/benchmark tooling after the scaffold lands.
+The plan job generates a dynamic zero-based matrix. Each shard initializes the
+pointer-only corpus, installs the Pixi dev environment, runs
+`manifest --check`, runs its deterministic shard, and uploads CSV only. The
+aggregate job merges every shard:
+
+- `bootstrap` uploads
+  `target/decoder-tracker/candidate.csv` as a short-lived candidate artifact;
+- `verify` diffs the merged candidate against
+  `crates/decoder-tracker/baseline/corpus.csv` and requires an empty diff.
+
+RAW payloads are never cached or uploaded.
+
+## Corpus updates
+
+A corpus update is deliberate:
+
+1. Initialize the pointer-only submodule at the current advertised snapshot.
+2. Run `manifest` and review every manifest change.
+3. Run the manual workflow in `bootstrap` mode at 20 shards.
+4. Download and review the complete candidate against the manifest.
+5. Commit the manifest and baseline.
+6. Run the manual workflow in `verify` mode and require an empty diff.
+
+Transient full-mirror use is approved for this workflow. The baseline does not
+redistribute RAW payloads. Some older corpus samples may retain non-CC0 licence
+terms, so payloads remain in raw.pixls.us storage and are not published as
+Fornax artifacts.
+
+## Testing
+
+`cargo test -p decoder-tracker` covers path normalization, identity derivation,
+filters, deterministic sharding and bounds, stage transitions, metadata sanity,
+child timeout and panic mapping, canonical CSV, merge completeness, diff
+classification, and manifest pointer checks.
+
+`scripts/agent-validation.sh` initializes only the corpus pointer metadata when
+needed and runs `manifest --check`; it never fetches a RAW payload.

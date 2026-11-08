@@ -35,6 +35,8 @@ and pipeline data flow. These invariants always apply:
   decoder-specific parsing state must stay behind that interface.
 - `bench-decoder` owns decoder benchmarks. Demosaic and preprocessor benchmarks
   stay in their production stage crates.
+- `decoder-tracker` owns the manual raw.pixls.us decoder regression tracker,
+  pointer-only corpus manifest, sharded CI workflow, and text baseline.
 - LibRaw, darktable, and RawTherapee remain development-only references for
   `compare-demosaic`; do not add them to production decoder dependencies.
 - The active demosaic target is conventional 2x2 RGB Bayer input. Do not claim
@@ -110,10 +112,11 @@ scripts/agent-validation.sh
 ```
 
 The script initializes `external/raw-images` with `scripts/setup.sh` when its
-test fixture is missing, then runs workspace tests, nightly formatting,
-documentation, clippy, decoder benchmark compilation, and diff checks. It also
-runs `compare-demosaic` package checks when that crate changed. Its baseline and
-generated README data have separate rules in
+test fixture is missing, initializes the pointer-only raw.pixls.us submodule
+when needed, verifies the corpus manifest, then runs workspace tests, nightly
+formatting, documentation, clippy, decoder benchmark compilation, and diff
+checks. It also runs `compare-demosaic` package checks when that crate changed.
+Its baseline and generated README data have separate rules in
 [crates/compare-demosaic/AGENTS.md](crates/compare-demosaic/AGENTS.md).
 
 Pass `--fix` to apply nightly rustfmt and machine-applicable clippy fixes before
@@ -174,6 +177,8 @@ linked issue. Only the user merges or abandons a pull request.
 - Decoder ownership and validation: [docs/decoder/architecture.md](docs/decoder/architecture.md)
 - Decoder benchmarks and corpus plans: [docs/decoder/benchmark.md](docs/decoder/benchmark.md),
   [docs/decoder/corpus.md](docs/decoder/corpus.md)
+- Manual corpus tracker: `cargo run -p decoder-tracker -- --help`; full runs are
+  manual-only and RAW payloads are never committed or uploaded.
 - Per-work plans: [docs/plans/](docs/plans/)
 - Algorithm and reference notes: [docs/references/](docs/references/)
 - Comparison-crate rules:

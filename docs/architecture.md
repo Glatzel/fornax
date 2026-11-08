@@ -28,6 +28,7 @@ part of the current preprocessor/demosaic handoff.
 | `fornax` | Public facade over decoders and pipeline stages. | Core, decoder crates, preprocessor, postprocessor |
 | `fornax-cli` | Standalone batch converter for raw DNG, rendered TIFF/JPEG, and metadata JSON output. | `fornax` facade |
 | `bench-decoder` | Decoder comparison benchmarks. | Core, decoder crates, devtool |
+| `decoder-tracker` | Manual sharded raw.pixls.us decoder regression tracker and baseline generator. | Core, decoder, TIFF/DNG metadata |
 | `fornax-devtool` | Pinned fixture paths, synthetic data, and benchmark configuration. | `fornax-core` |
 | `compare-demosaic` | Reference-versus-Fornax demosaic comparison harness. | Core, decoder, processors, devtool, pinned C/C++ references |
 | `fornax-py` | PyO3/Maturin binding source, excluded from the Rust workspace while its API is stabilized. | External Python environment |
@@ -138,6 +139,10 @@ compares the DNG decoder and Rawler adapter over each `IDecoder` method and
 over composite decode-plus-mosaic cases. `f32` is the default sample type;
 `f64` and decoder subsets are opt-in. Preprocessor and demosaic benchmarks
 remain in their stage crates.
+
+`decoder-tracker` validates the pointer-only raw.pixls.us submodule manifest and
+runs manual, deterministically sharded decoder regressions against a committed
+CSV baseline. RAW payloads are transient and never uploaded or committed.
 
 `compare-demosaic` normalizes the active Bayer mosaic before passing it to
 Fornax and pinned LibRaw, darktable, and RawTherapee adapters. Reference C/C++

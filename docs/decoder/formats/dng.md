@@ -31,7 +31,8 @@ The accepted `colorchart-5D2-6000K.dng` fixture decodes to the full
 at the full-frame origin to RGGB relative to the active area. Its metadata
 reports a `2x2` black-level pattern of 1024 and a white level of 15600.
 
-The ignored `raw.pixls.us` corpus is used for wider manual validation:
+The pointer-only `raw.pixls.us` submodule and `decoder-tracker` are used for
+wider manual validation:
 
 - Canon EOS 5D Mark III DNG compression variants;
 - Nikon D80 DNG with `LinearizationTable`;
@@ -57,7 +58,8 @@ Remaining DNG work:
 - `OpcodeList2` and `OpcodeList3` execution in their downstream stages;
 - automatic BigTIFF output for regenerated files exceeding classic TIFF limits;
 - preview, thumbnail, mask, depth, and nested Exif/GPS preservation;
-- corpus coverage for accepted DNG cameras.
+- accepted DNG corpus rows, identity metadata, geometry, stage errors, and CFA
+  labels remain stable against the reviewed CSV baseline.
 
 ## Container handling
 
