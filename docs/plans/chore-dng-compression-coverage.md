@@ -41,8 +41,8 @@ Out of scope:
 - [x] Update `update-badge.sh` to derive accumulated and per-format counts from
   `baseline.csv`.
 - [x] Regenerate the `decoder-tracker` README badge and status table.
-- [ ] Run focused shell, DuckDB, tracker-test, and Markdown checks.
-- [ ] Run repository validation and inspect the final diff.
+- [x] Run focused shell, DuckDB, tracker-test, and Markdown checks.
+- [x] Run repository validation and inspect the final diff.
 - [ ] Commit, push, open one pull request, and report its URL and validation.
 
 ## Files Expected to Change
@@ -73,6 +73,18 @@ Out of scope:
 - `git diff --check`
 
 Do not run Markdown lint locally; CI owns it.
+
+Validation record:
+
+- `bash -n crates/decoder-tracker/scripts/update-badge.sh`, the existing badge
+  regression test, actual-baseline idempotence, and a mixed-format temporary
+  baseline passed.
+- `scripts/agent-validation.sh --docs-only` passed.
+- `scripts/agent-validation.sh` passed tracker tests, workspace tests,
+  doctests, formatting, and rustdoc, then failed in clippy on pre-existing
+  `unseparated_literal_suffix` warnings at
+  `crates/fornax-core/src/metadata.rs:750-751`. This branch does not modify
+  `fornax-core`.
 
 ## Decisions and Notes
 
