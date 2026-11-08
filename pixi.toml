@@ -7,6 +7,9 @@ platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 git-lfs = "*"
 libraw-dev = "==0.22.3"
 
+[feature.duckdb.dependencies]
+duckdb-cli = "*"
+
 [feature.python.dependencies]
 maturin = "==1.16.0"
 pip = "==26.2.2"
@@ -34,6 +37,7 @@ book-figures = "python -m book.figures"
 
 [environments]
 default = []
-dev = { features = ["dev"], tasks = { pipeline = "cargo run -p fornax-cli --" } }
+dev = { features = ["dev", "duckdb"], tasks = { pipeline = "cargo run -p fornax-cli --" } }
+tracker = ["duckdb"]
 python = ["dev", "python"]
 book = ["book"]

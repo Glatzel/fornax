@@ -1,7 +1,7 @@
 use std::fs;
 
 use assert_cmd::Command;
-use decoder_tracker::csvio::write_manifest_csv;
+use decoder_tracker::csvio::{read_manifest_csv, write_manifest_csv};
 use decoder_tracker::manifest::{derive_identity, generate_manifest};
 use decoder_tracker::model::ManifestRow;
 use tempfile::tempdir;
@@ -108,4 +108,38 @@ fn manifest_check_cli_accepts_current_snapshot_and_rejects_drift() {
         .assert()
         .failure()
         .stderr(predicates::str::contains("manifest snapshot drift"));
+}
+
+#[test]
+fn select_writes_only_glob_matches_and_prints_the_count() {
+    let temp = tempdir().unwrap();
+    let rows = [
+        manifest_row(&"aa".repeat(32), "Canon/Cam/A.DNG"),
+        manifest_row(&"bb".repeat(32), "Canon/Nested/B.DNG"),
+        manifest_row(&"cc".repeat(32), "Sony/Cam/C.DNG"),
+    ];
+    let manifest = temp.path().join("manifest.csv");
+    let selected = temp.path().join("selected.csv");
+    fs::write(&manifest, write_manifest_csv(&rows).unwrap()).unwrap();
+
+    Command::cargo_bin("decoder-tracker")
+        .unwrap()
+        .args([
+            "select",
+            "--manifest",
+            manifest.to_str().unwrap(),
+            "--glob",
+            "Canon/**/*.DNG",
+            "--out",
+            selected.to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("selected=2"));
+    assert_eq!(
+        read_manifest_csv(fs::read(selected).unwrap())
+            .unwrap()
+            .len(),
+        2
+    );
 }

@@ -198,6 +198,7 @@ if [[ "$docs_only" == false ]]; then
     fi
 
     cargo -q run -p decoder-tracker -- manifest --check
+    pixi run -e tracker cargo -q test -p decoder-tracker --lib duckdb_
     cargo -q test --workspace --all-features --exclude compare-demosaic
     cargo +nightly fmt --check -q
     RUSTDOCFLAGS="-D warnings" \

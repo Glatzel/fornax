@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use csv::{ReaderBuilder, StringRecord, Terminator, WriterBuilder};
 
@@ -10,48 +10,6 @@ use crate::model::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BaselineCsv {
     pub rows: Vec<BaselineRow>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct DiffReport {
-    pub missing: Vec<BaselineKey>,
-    pub extra: Vec<BaselineKey>,
-    pub changed: Vec<(BaselineRow, BaselineRow)>,
-}
-
-impl DiffReport {
-    pub fn between(baseline: &[BaselineRow], candidate: &[BaselineRow]) -> Result<Self> {
-        let baseline = index_rows(baseline)?;
-        let candidate = index_rows(candidate)?;
-        let missing = baseline
-            .keys()
-            .filter(|key| !candidate.contains_key(*key))
-            .cloned()
-            .collect();
-        let extra = candidate
-            .keys()
-            .filter(|key| !baseline.contains_key(*key))
-            .cloned()
-            .collect();
-        let changed = baseline
-            .iter()
-            .filter_map(|(key, before)| {
-                candidate
-                    .get(key)
-                    .filter(|after| *after != before)
-                    .map(|after| (before.clone(), after.clone()))
-            })
-            .collect();
-        Ok(Self {
-            missing,
-            extra,
-            changed,
-        })
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.missing.is_empty() && self.extra.is_empty() && self.changed.is_empty()
-    }
 }
 
 pub fn write_manifest_csv(rows: &[ManifestRow]) -> Result<Vec<u8>> {
@@ -139,51 +97,8 @@ pub fn read_baseline_csv(input: impl AsRef<[u8]>) -> Result<BaselineCsv> {
     let rows = reader
         .deserialize::<BaselineRow>()
         .collect::<std::result::Result<Vec<_>, _>>()?;
-    let index = index_rows(&rows)?;
-    if let Some(key) = index.keys().next() {
-        let _ = key;
-    }
+    index_rows(&rows)?;
     Ok(BaselineCsv { rows })
-}
-
-pub fn merge_baseline_rows<I, J>(
-    shards: I,
-    expected: &BTreeSet<BaselineKey>,
-) -> Result<Vec<BaselineRow>>
-where
-    I: IntoIterator<Item = J>,
-    J: IntoIterator<Item = BaselineRow>,
-{
-    let mut merged = BTreeMap::new();
-    for shard in shards {
-        for row in shard {
-            row.validate()?;
-            let key = row.key();
-            if !expected.contains(&key) {
-                return Err(TrackerError::new(format!(
-                    "merged baseline contains unexpected row {key}"
-                )));
-            }
-            if merged.insert(key.clone(), row).is_some() {
-                return Err(TrackerError::new(format!(
-                    "merged baseline contains duplicate row {key}"
-                )));
-            }
-        }
-    }
-    let actual = merged.keys().cloned().collect::<BTreeSet<_>>();
-    if &actual != expected {
-        let missing = expected
-            .difference(&actual)
-            .map(ToString::to_string)
-            .collect::<Vec<_>>();
-        return Err(TrackerError::new(format!(
-            "merged baseline is missing {} rows: {}",
-            missing.len(),
-            missing.join(", ")
-        )));
-    }
-    Ok(merged.into_values().collect())
 }
 
 fn index_rows(rows: &[BaselineRow]) -> Result<BTreeMap<BaselineKey, BaselineRow>> {

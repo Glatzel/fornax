@@ -97,3 +97,61 @@ Out of scope:
   history, so fresh checkouts follow the remote `master` branch with LFS
   smudging disabled. `manifest.csv` is the durable snapshot pin and
   `manifest --check` rejects uncommitted upstream changes.
+
+## Adaptive revision tasks
+
+### Task 1: Glob Filters And Dynamic Runner Sizing
+
+- Add failing tests for `*`, `**`, `?`, repeated-glob OR behavior, combined
+  filters, zero matches, and runner sizing at 5, 10, 11, 16, and 210 files.
+- Add repeatable `--glob` to selection and CLI plumbing.
+- Add a `select` command that writes a filtered manifest and prints its count.
+- Compute `min(20, max(1, ceil(count / 10)))` runners and verify balanced
+  modulo sharding.
+
+### Task 2: DuckDB CSV Aggregation
+
+- Add failing SQL integration tests for duplicate detection, selected-key
+  completeness, selected-row diff, unchanged output, and partial upsert.
+- Add `duckdb` to a tracker Pixi feature/environment and dev environment.
+- Replace Rust merge/diff maps with checked-in SQL invoked through a small
+  DuckDB command wrapper.
+- Validate canonical CSV after DuckDB output.
+
+### Task 3: Adaptive Manual Workflow
+
+- Replace `mode` and `shard_count` inputs with one `filter` glob input whose
+  case-safe default is `**/*.[dD][nN][gG]`.
+- Plan from `selected-manifest.csv`, generate the dynamic matrix, and upload
+  the selected manifest.
+- Merge, diff, and upsert selected keys with DuckDB.
+- Upload updated baseline/diff and fail when selected results differ; upload a
+  bootstrap baseline when none exists; upload nothing when unchanged.
+
+### Task 4: Corpus Refresh And Documentation
+
+- Refresh the daily raw.pixls.us pointer snapshot and regenerate `manifest.csv`.
+- Update corpus, architecture, validation, and operator documentation.
+- Keep `prefix-dev/setup-pixi` as the Pixi installation path.
+
+### Task 5: Full Bootstrap And Verification
+
+- Run focused tests and the local filtered smoke test.
+- Run the adaptive workflow to bootstrap the full accepted baseline.
+- Review and commit the baseline, rerun for an unchanged result, then remove
+  the temporary branch push trigger and `[DEC-CORPUS]`.
+- Run `scripts/agent-validation.sh`; report GitHub/Pixi infrastructure failures
+  separately from code failures.
+
+### Adaptive revision decisions
+
+- Glob matching is case-sensitive and segment-aware. The default uses character
+  classes so it selects both `.DNG` and `.dng` paths.
+- Runner count is `min(20, max(1, ceil(selected_count / 10)))`; modulo sharding
+  balances rows across the resulting count.
+- DuckDB CLI is supplied by the `duckdb-cli` Pixi package in the dev and tracker
+  environments. Rust validates schemas and DuckDB output around the SQL calls.
+- A selected-row difference writes a full updated baseline and diff artifact,
+  then fails the workflow for review.
+- `prefix-dev/setup-pixi` remains the Pixi bootstrap mechanism despite transient
+  GitHub 504 responses.

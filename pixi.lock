@@ -402,6 +402,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/xorg-libxi-1.8.4-h7cc23a3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/xorg-libxxf86vm-1.1.7-hb03c661_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_7.conda
+      - conda: https://prefix.dev/glatzel/linux-64/duckdb-cli-2.0.0-h873e7db_0.conda
       - conda: https://prefix.dev/glatzel/linux-64/libraw-dev-0.22.3-h873e7db_0.conda
       - conda: https://prefix.dev/glatzel/linux-64/libraw-rt-0.22.3-h873e7db_0.conda
       linux-aarch64:
@@ -438,6 +439,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/xorg-libxi-1.8.4-h5bc82ec_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/xorg-libxxf86vm-1.1.7-he30d5cf_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/zstd-1.5.7-h9d15635_7.conda
+      - conda: https://prefix.dev/glatzel/linux-aarch64/duckdb-cli-2.0.0-h47ec6e6_0.conda
       - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-dev-0.22.3-h47ec6e6_0.conda
       - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-rt-0.22.3-h47ec6e6_0.conda
       osx-arm64:
@@ -456,6 +458,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/llvm-openmp-23.1.5-hdb3d66b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/openjpeg-2.5.4-h4d1e80c_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
+      - conda: https://prefix.dev/glatzel/osx-arm64/duckdb-cli-2.0.0-hb33852e_0.conda
       - conda: https://prefix.dev/glatzel/osx-arm64/libraw-dev-0.22.3-hb33852e_0.conda
       - conda: https://prefix.dev/glatzel/osx-arm64/libraw-rt-0.22.3-hb33852e_0.conda
       win-64:
@@ -476,6 +479,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/vc14_runtime-14.51.36247-habf1de7_42.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/vcomp14-14.51.36247-habf1de7_42.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
+      - conda: https://prefix.dev/glatzel/win-64/duckdb-cli-2.0.0-h7e360f0_0.conda
       - conda: https://prefix.dev/glatzel/win-64/libraw-dev-0.22.3-h7e360f0_0.conda
       - conda: https://prefix.dev/glatzel/win-64/libraw-rt-0.22.3-h7e360f0_0.conda
   python:
@@ -901,6 +905,32 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-h534d264_7.conda
       - conda: https://prefix.dev/glatzel/win-64/libraw-dev-0.22.3-h7e360f0_0.conda
       - conda: https://prefix.dev/glatzel/win-64/libraw-rt-0.22.3-h7e360f0_0.conda
+  tracker:
+    channels:
+    - url: https://prefix.dev/glatzel/
+    - url: https://conda.anaconda.org/conda-forge/
+    packages:
+      linux-64:
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libgcc-16.2.0-ha9f2e26_7.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libgomp-16.2.0-he0feb66_7.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libstdcxx-16.2.0-h934c35e_7.conda
+      - conda: https://prefix.dev/glatzel/linux-64/duckdb-cli-2.0.0-h873e7db_0.conda
+      linux-aarch64:
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgcc-16.2.0-h205dda4_7.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgomp-16.2.0-h8acb6b2_7.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libstdcxx-16.2.0-hef695bb_7.conda
+      - conda: https://prefix.dev/glatzel/linux-aarch64/duckdb-cli-2.0.0-h47ec6e6_0.conda
+      osx-arm64:
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-23.1.5-h55c6f16_0.conda
+      - conda: https://prefix.dev/glatzel/osx-arm64/duckdb-cli-2.0.0-hb33852e_0.conda
+      win-64:
+      - conda: https://conda.anaconda.org/conda-forge/win-64/ucrt-10.0.26100.0-h57928b3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/vc-14.5-ha367084_42.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/vc14_runtime-14.51.36247-habf1de7_42.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/vcomp14-14.51.36247-habf1de7_42.conda
+      - conda: https://prefix.dev/glatzel/win-64/duckdb-cli-2.0.0-h7e360f0_0.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -6532,6 +6562,16 @@ packages:
     - zstd >=1.5.7,<1.6.0a0
   size: 387535
   timestamp: 1786599623274
+- conda: https://prefix.dev/glatzel/linux-64/duckdb-cli-2.0.0-h873e7db_0.conda
+  sha256: a1c1952793e94c73071a083f6248067eb976931dd97929a675cbfd5c706779f3
+  md5: 4d43421d95949ce17ab7a9b04d85298b
+  depends:
+  - libstdcxx >=14
+  - libgcc >=14
+  - __glibc >=2.28,<3.0.a0
+  run_exports: {}
+  size: 18868802
+  timestamp: 1792648957213
 - conda: https://prefix.dev/glatzel/linux-64/libraw-dev-0.22.3-h873e7db_0.conda
   sha256: f19eab38cc95862b3bbeb6e793e6676af6e460fb1176da1cbbba8f249fd6563f
   md5: e6aeb83b23286ec0ee2b4dedb629ac01
@@ -6567,6 +6607,16 @@ packages:
     - libraw-rt >=0.22.3,<0.23.0a0
   size: 515850
   timestamp: 1793026702755
+- conda: https://prefix.dev/glatzel/linux-aarch64/duckdb-cli-2.0.0-h47ec6e6_0.conda
+  sha256: 03d1e70c4c8288e0a65b5bf53f36b0a231804d54eaa8409194beefb8c1a2179d
+  md5: 261506b53aa30283ddef0cf4f774537d
+  depends:
+  - libgcc >=14
+  - libstdcxx >=14
+  - __glibc >=2.28,<3.0.a0
+  run_exports: {}
+  size: 17696022
+  timestamp: 1792648968202
 - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-dev-0.22.3-h47ec6e6_0.conda
   sha256: facd4ef6c24942c068bed972c8e853c7ee88f768a5f83b537d0cef43fcd78885
   md5: af01c0d259938b8535c33f3a96615f95
@@ -6602,6 +6652,15 @@ packages:
     - libraw-rt >=0.22.3,<0.23.0a0
   size: 496064
   timestamp: 1793026699774
+- conda: https://prefix.dev/glatzel/osx-arm64/duckdb-cli-2.0.0-hb33852e_0.conda
+  sha256: 1ab6ceaf222080b1f19647a30bc6bf6fb505ec07b455563bf80904552b5e7c13
+  md5: 47eedb678617c2b961809f113db89c72
+  depends:
+  - __osx >=11.0
+  - libcxx >=19
+  run_exports: {}
+  size: 13262532
+  timestamp: 1792648947069
 - conda: https://prefix.dev/glatzel/osx-arm64/libraw-dev-0.22.3-hb33852e_0.conda
   sha256: 614e3a9421fcc89b0644646c4846e1dfdccbe4ff371df19fbf45a8390f48ee14
   md5: 22f7613473f25b9cf41af3c37cf832a0
@@ -6637,6 +6696,16 @@ packages:
     - libraw-rt >=0.22.3,<0.23.0a0
   size: 442299
   timestamp: 1793026691881
+- conda: https://prefix.dev/glatzel/win-64/duckdb-cli-2.0.0-h7e360f0_0.conda
+  sha256: 9b30bee8317d867b37530a2b0e9e3f70be127acb224843ca04b3fd425501575d
+  md5: e1a6b64585fc566ab75f02e59c98abbf
+  depends:
+  - vc >=14.5,<15
+  - vc14_runtime >=14.51.36247
+  - ucrt >=10.0.20348.0
+  run_exports: {}
+  size: 10920111
+  timestamp: 1792653701536
 - conda: https://prefix.dev/glatzel/win-64/libraw-dev-0.22.3-h7e360f0_0.conda
   sha256: 97ca7e4b9021feeda94db1c235ffe4d38d1e8ec188d052f1d8c35d4f650ea347
   md5: be2a2b8a8bcdb690e4f4b11ab39b0986

@@ -1,4 +1,3 @@
-use std::collections::BTreeSet;
 use std::fs;
 
 use fornax_core::metadata::{ColorCalibration, Levels, ProcessMetadata, RawColorMeta};
@@ -9,15 +8,13 @@ use image::math::Rect;
 use rstest::rstest;
 use tempfile::tempdir;
 
-use crate::csvio::{
-    BaselineCsv, DiffReport, merge_baseline_rows, read_baseline_csv, write_baseline_csv,
-    write_manifest_csv,
-};
+use crate::csvio::{BaselineCsv, read_baseline_csv, write_baseline_csv, write_manifest_csv};
+use crate::duckdb::{DiffSummary, diff, merge, upsert};
 use crate::manifest::{
     ManifestCheck, generate_manifest, normalize_repo_path, validate_pointer, write_pointer,
 };
 use crate::model::{BaselineKey, BaselineRow, ManifestRow};
-use crate::selection::{Selection, Shard, select_manifest};
+use crate::selection::{Selection, Shard, runner_count_for, select_manifest};
 use crate::stages::{
     StageRow, classify_decode_error, run_guarded, sanity_check_metadata, transition_row,
 };
@@ -138,6 +135,7 @@ fn filters_formats_first_then_selects_by_sha_before_sharding() {
         formats: vec!["dng".into()],
         cameras: Vec::new(),
         filenames: Vec::new(),
+        globs: Vec::new(),
         shard: Some(Shard { index: 1, count: 2 }),
     };
     let selected = select_manifest(&rows, &selection).unwrap();
@@ -160,9 +158,76 @@ fn filename_filter_is_exact_and_case_insensitive() {
         formats: vec!["DNG".into()],
         cameras: Vec::new(),
         filenames: vec!["image".into()],
+        globs: Vec::new(),
         shard: None,
     };
     assert_eq!(select_manifest(&rows, &selection).unwrap()[0].sha256, "aa");
+}
+
+#[test]
+fn glob_filters_use_standard_segment_aware_matching() {
+    let rows = vec![
+        manifest_row("aa", "Canon/Cam/a.DNG", "DNG"),
+        manifest_row("bb", "Canon/Nested/Cam/b.DNG", "DNG"),
+        manifest_row("cc", "Canon/Cam/c.ARW", "ARW"),
+    ];
+    let selection = Selection {
+        formats: Vec::new(),
+        cameras: Vec::new(),
+        filenames: Vec::new(),
+        globs: vec!["Canon/*/a.DNG".into(), "Canon/**/b.DNG".into()],
+        shard: None,
+    };
+    assert_eq!(
+        select_manifest(&rows, &selection)
+            .unwrap()
+            .iter()
+            .map(|row| row.sha256.as_str())
+            .collect::<Vec<_>>(),
+        ["aa", "bb"]
+    );
+}
+
+#[test]
+fn runner_count_targets_ten_files_and_caps_at_twenty() {
+    assert_eq!(
+        [5, 10, 11, 16, 210]
+            .into_iter()
+            .map(runner_count_for)
+            .collect::<Vec<_>>(),
+        [1, 1, 2, 2, 20]
+    );
+}
+
+#[test]
+fn balanced_modulo_shards_keep_a_210_file_selection_within_ten_or_eleven() {
+    let rows = (0..210)
+        .map(|index| {
+            manifest_row(
+                &format!("{index:064x}"),
+                &format!("Canon/Cam/{index:03}.DNG"),
+                "DNG",
+            )
+        })
+        .collect::<Vec<_>>();
+    let counts = (0..20)
+        .map(|index| {
+            select_manifest(
+                &rows,
+                &Selection {
+                    formats: Vec::new(),
+                    cameras: Vec::new(),
+                    filenames: Vec::new(),
+                    globs: Vec::new(),
+                    shard: Some(Shard { index, count: 20 }),
+                },
+            )
+            .unwrap()
+            .len()
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(counts.iter().filter(|count| **count == 11).count(), 10);
+    assert_eq!(counts.iter().filter(|count| **count == 10).count(), 10);
 }
 
 #[rstest]
@@ -261,86 +326,6 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     ));
     assert!(text.contains("\"Canon, EOS \"\"R5\"\"\""));
     assert!(!text.contains('\r'));
-}
-
-#[test]
-fn merge_rejects_duplicate_rows_across_shards() {
-    let key = BaselineKey {
-        vendor: "Canon".into(),
-        camera: "Canon EOS".into(),
-        format: "DNG".into(),
-        path: "Canon/Cam/IMG_1.DNG".into(),
-    };
-    let row = baseline_row(&key, 1);
-    let expected = BTreeSet::from([key]);
-    assert!(
-        merge_baseline_rows([vec![row.clone()], vec![row]], &expected)
-            .unwrap_err()
-            .to_string()
-            .contains("duplicate")
-    );
-}
-
-#[test]
-fn merge_rejects_gaps_and_schema_mismatch() {
-    let key = BaselineKey {
-        vendor: "Canon".into(),
-        camera: "Canon EOS".into(),
-        format: "DNG".into(),
-        path: "Canon/Cam/IMG_1.DNG".into(),
-    };
-    let expected = BTreeSet::from([key]);
-    assert!(
-        merge_baseline_rows([Vec::new()], &expected)
-            .unwrap_err()
-            .to_string()
-            .contains("missing")
-    );
-
-    let mut csv = write_baseline_csv(&[baseline_row(
-        &BaselineKey {
-            vendor: "Canon".into(),
-            camera: "Canon EOS".into(),
-            format: "DNG".into(),
-            path: "Canon/Cam/IMG_1.DNG".into(),
-        },
-        1,
-    )])
-    .unwrap();
-    let position = csv.iter().position(|byte| *byte == b'h').unwrap();
-    csv[position] = b'H';
-    assert!(
-        read_baseline_csv(csv.as_slice())
-            .unwrap_err()
-            .to_string()
-            .contains("header")
-    );
-}
-
-#[test]
-fn diff_classifies_missing_extra_and_changed_rows() {
-    let base = BaselineKey {
-        vendor: "Canon".into(),
-        camera: "Canon EOS".into(),
-        format: "DNG".into(),
-        path: "Canon/Cam/base.DNG".into(),
-    };
-    let missing = BaselineKey {
-        path: "Canon/Cam/missing.DNG".into(),
-        ..base.clone()
-    };
-    let extra = BaselineKey {
-        path: "Canon/Cam/extra.DNG".into(),
-        ..base.clone()
-    };
-    let before = vec![baseline_row(&base, 1), baseline_row(&missing, 1)];
-    let mut changed = baseline_row(&base, 0);
-    changed.width = 99;
-    let after = vec![changed, baseline_row(&extra, 1)];
-    let report = DiffReport::between(&before, &after).unwrap();
-    assert_eq!(report.missing, vec![missing]);
-    assert_eq!(report.extra, vec![extra]);
-    assert_eq!(report.changed.len(), 1);
 }
 
 #[test]
@@ -488,4 +473,166 @@ fn baseline_roundtrip_keeps_models_and_rows_stable() {
     let bytes = write_baseline_csv(&rows).unwrap();
     let parsed = read_baseline_csv(bytes.as_slice()).unwrap();
     assert_eq!(parsed, BaselineCsv { rows });
+}
+
+fn write_manifest(path: &std::path::Path, rows: &[ManifestRow]) {
+    fs::write(path, write_manifest_csv(rows).unwrap()).unwrap();
+}
+
+fn write_baseline(path: &std::path::Path, rows: &[BaselineRow]) {
+    fs::write(path, write_baseline_csv(rows).unwrap()).unwrap();
+}
+
+fn duckdb_test_guard() -> bool {
+    std::process::Command::new("duckdb")
+        .arg("--version")
+        .output()
+        .is_ok_and(|output| output.status.success())
+}
+
+#[test]
+fn duckdb_merge_rejects_duplicate_shard_rows() {
+    if !duckdb_test_guard() {
+        return;
+    }
+    let temp = tempdir().unwrap();
+    let key = BaselineKey {
+        vendor: "Canon".into(),
+        camera: "Canon EOS".into(),
+        format: "DNG".into(),
+        path: "Canon/Cam/IMG_1.DNG".into(),
+    };
+    let manifest = temp.path().join("selected.csv");
+    let shard_a = temp.path().join("a.csv");
+    let shard_b = temp.path().join("b.csv");
+    let output = temp.path().join("merged.csv");
+    write_manifest(
+        &manifest,
+        &[manifest_row("aa", "Canon/Cam/IMG_1.DNG", "DNG")],
+    );
+    write_baseline(&shard_a, &[baseline_row(&key, 1)]);
+    write_baseline(&shard_b, &[baseline_row(&key, 1)]);
+    assert!(
+        merge(&manifest, &[shard_a, shard_b], &output)
+            .unwrap_err()
+            .to_string()
+            .contains("duplicate")
+    );
+}
+
+#[test]
+fn duckdb_merge_rejects_missing_selected_rows() {
+    if !duckdb_test_guard() {
+        return;
+    }
+    let temp = tempdir().unwrap();
+    let key_a = BaselineKey {
+        vendor: "Canon".into(),
+        camera: "Canon Cam".into(),
+        format: "DNG".into(),
+        path: "Canon/Cam/A.DNG".into(),
+    };
+    let manifest = temp.path().join("selected.csv");
+    let shard = temp.path().join("shard.csv");
+    let output = temp.path().join("merged.csv");
+    write_manifest(
+        &manifest,
+        &[
+            manifest_row("aa", "Canon/Cam/A.DNG", "DNG"),
+            manifest_row("bb", "Canon/Cam/B.DNG", "DNG"),
+        ],
+    );
+    write_baseline(&shard, &[baseline_row(&key_a, 1)]);
+    assert!(
+        merge(&manifest, &[shard], &output)
+            .unwrap_err()
+            .to_string()
+            .contains("missing")
+    );
+}
+
+#[test]
+fn duckdb_diff_classifies_selected_missing_extra_and_changed_rows() {
+    if !duckdb_test_guard() {
+        return;
+    }
+    let temp = tempdir().unwrap();
+    let key_a = BaselineKey {
+        vendor: "Canon".into(),
+        camera: "Canon Cam".into(),
+        format: "DNG".into(),
+        path: "Canon/Cam/A.DNG".into(),
+    };
+    let key_b = BaselineKey {
+        path: "Canon/Cam/B.DNG".into(),
+        ..key_a.clone()
+    };
+    let key_c = BaselineKey {
+        path: "Canon/Cam/C.DNG".into(),
+        ..key_a.clone()
+    };
+    let baseline = temp.path().join("baseline.csv");
+    let candidate = temp.path().join("candidate.csv");
+    let selected = temp.path().join("selected.csv");
+    let report = temp.path().join("diff.csv");
+    write_baseline(
+        &baseline,
+        &[baseline_row(&key_a, 1), baseline_row(&key_b, 1)],
+    );
+    let mut changed_a = baseline_row(&key_a, 0);
+    changed_a.width = 99;
+    write_baseline(&candidate, &[changed_a, baseline_row(&key_c, 1)]);
+    write_manifest(
+        &selected,
+        &[
+            manifest_row("aa", "Canon/Cam/A.DNG", "DNG"),
+            manifest_row("bb", "Canon/Cam/B.DNG", "DNG"),
+            manifest_row("cc", "Canon/Cam/C.DNG", "DNG"),
+        ],
+    );
+    assert_eq!(
+        diff(&baseline, &candidate, &selected, &report).unwrap(),
+        DiffSummary {
+            missing: 1,
+            extra: 1,
+            changed: 1,
+        }
+    );
+    assert!(fs::read_to_string(report).unwrap().contains("changed"));
+}
+
+#[test]
+fn duckdb_upsert_preserves_unselected_rows_and_uses_canonical_order() {
+    if !duckdb_test_guard() {
+        return;
+    }
+    let temp = tempdir().unwrap();
+    let key_a = BaselineKey {
+        vendor: "Canon".into(),
+        camera: "Canon EOS".into(),
+        format: "DNG".into(),
+        path: "Canon/Cam/A.DNG".into(),
+    };
+    let key_b = BaselineKey {
+        path: "Canon/Cam/B.DNG".into(),
+        ..key_a.clone()
+    };
+    let baseline = temp.path().join("baseline.csv");
+    let candidate = temp.path().join("candidate.csv");
+    let output = temp.path().join("updated.csv");
+    write_baseline(
+        &baseline,
+        &[baseline_row(&key_b, 1), baseline_row(&key_a, 1)],
+    );
+    let mut changed_a = baseline_row(&key_a, 0);
+    changed_a.error_kind = "handoff:unsupported".into();
+    write_baseline(&candidate, &[changed_a]);
+
+    upsert(Some(&baseline), &candidate, &output).unwrap();
+    let text = fs::read_to_string(output).unwrap();
+    assert!(text.starts_with(&format!("{}\n", crate::model::BASELINE_HEADER.join(","))));
+    assert_eq!(text.matches("Canon/Cam/A.DNG").count(), 1);
+    assert_eq!(text.matches("Canon/Cam/B.DNG").count(), 1);
+    assert!(!text.contains('\r'));
+    assert!(text.find("Canon/Cam/A.DNG").unwrap() < text.find("Canon/Cam/B.DNG").unwrap());
 }

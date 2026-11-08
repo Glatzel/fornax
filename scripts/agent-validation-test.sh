@@ -25,6 +25,11 @@ cat >"$test_root/bin/cargo" <<'EOF'
 printf 'cargo:%s\n' "$*" >>"$VALIDATION_TEST_LOG"
 EOF
 
+cat >"$test_root/bin/pixi" <<'EOF'
+#!/usr/bin/env bash
+printf 'pixi:%s\n' "$*" >>"$VALIDATION_TEST_LOG"
+EOF
+
 cat >"$test_root/bin/git" <<'EOF'
 #!/usr/bin/env bash
 printf 'git:%s\n' "$*" >>"$VALIDATION_TEST_LOG"
@@ -49,6 +54,7 @@ EOF
 chmod +x \
     "$test_root/bin/cargo" \
     "$test_root/bin/git" \
+    "$test_root/bin/pixi" \
     "$test_root/scripts/setup.sh" \
     "$test_root/scripts/agent-validation.sh"
 
@@ -84,6 +90,7 @@ assert_logged 'setup:root'
 assert_logged_prefix 'git:-c filter.lfs.required=false'
 assert_logged_prefix 'submodule update --init --remote external/raw.pixls.us'
 assert_logged 'cargo:-q run -p decoder-tracker -- manifest --check'
+assert_logged 'pixi:run -e tracker cargo -q test -p decoder-tracker --lib duckdb_'
 assert_logged 'cargo:-q test --workspace --all-features --exclude compare-demosaic'
 assert_logged 'cargo:+nightly fmt --check -q'
 assert_logged 'cargo:-q doc --workspace --all-features --exclude compare-demosaic --no-deps'
@@ -145,7 +152,7 @@ run_validation 'AGENTS.md\n' --docs-only
 
 assert_logged 'git:diff --check base --'
 
-if grep -Eq '^(cargo|setup):' "$log_file"; then
+if grep -Eq '^(cargo|pixi|setup):' "$log_file"; then
     printf 'docs-only validation ran Rust or setup commands\n' >&2
     exit 1
 fi

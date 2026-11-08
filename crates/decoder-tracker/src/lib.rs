@@ -1,6 +1,7 @@
 //! Decoder corpus manifest, execution, merge, and regression comparison.
 
 pub mod csvio;
+pub mod duckdb;
 pub mod manifest;
 pub mod model;
 pub mod runner;

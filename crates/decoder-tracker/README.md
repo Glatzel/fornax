@@ -10,12 +10,15 @@ require `--allow-full` or `CI=true`; the default local guard permits two files.
 
 ```bash
 pixi run -e dev cargo run -p decoder-tracker -- manifest --check
+pixi run -e dev cargo run -p decoder-tracker -- select --glob 'Canon/**/*.DNG'
 pixi run -e dev cargo run -p decoder-tracker -- run --filename IMG_0001
-pixi run -e dev cargo run -p decoder-tracker -- merge SHARD...
-pixi run -e dev cargo run -p decoder-tracker -- diff BASELINE CANDIDATE
+pixi run -e dev cargo run -p decoder-tracker -- merge --manifest MANIFEST SHARD...
+pixi run -e dev cargo run -p decoder-tracker -- diff --selected MANIFEST BASELINE CANDIDATE
+pixi run -e dev cargo run -p decoder-tracker -- update --baseline BASELINE --candidate CANDIDATE
 ```
 
 The committed corpus metadata manifest is `manifest.csv`; decoder pass columns
-and outcomes are in `baseline.csv`. The complete schema, stage semantics,
-sharding rules, workflow, and update procedure are documented in
+and outcomes are in `baseline.csv`. DuckDB CLI owns merge, selected-key diff,
+and baseline upsert. The complete schema, stage semantics, glob/sharding rules,
+workflow, and update procedure are documented in
 [docs/decoder/corpus.md](../../docs/decoder/corpus.md).

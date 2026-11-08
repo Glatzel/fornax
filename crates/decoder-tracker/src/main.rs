@@ -1,13 +1,10 @@
-use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Args, Parser, Subcommand};
-use decoder_tracker::csvio::{
-    DiffReport, merge_baseline_rows, read_baseline_csv, read_manifest_csv, write_baseline_csv,
-    write_manifest_csv,
-};
+use decoder_tracker::csvio::{read_manifest_csv, write_baseline_csv, write_manifest_csv};
+use decoder_tracker::duckdb::{diff as duckdb_diff, merge as duckdb_merge};
 use decoder_tracker::manifest::{
     ManifestCheck, corpus_path, generate_manifest, normalize_repo_path,
 };
@@ -34,12 +31,16 @@ struct Cli {
 enum Command {
     /// Generate or verify the supported-format corpus manifest.
     Manifest(ManifestArgs),
+    /// Write and count the files matched by the requested filters.
+    Select(SelectArgs),
     /// Materialize and run selected corpus files in isolated children.
     Run(RunArgs),
     /// Merge shard CSVs and reject missing or duplicate rows.
     Merge(MergeArgs),
     /// Compare two canonical baseline CSVs.
     Diff(DiffArgs),
+    /// Update selected records in a full baseline.
+    Update(UpdateArgs),
     /// Evaluate one materialized file for the run parent process.
     #[command(hide = true)]
     RunOne(RunOneArgs),
@@ -57,6 +58,16 @@ struct ManifestArgs {
     check: bool,
 }
 
+#[derive(Debug, Args)]
+struct SelectArgs {
+    #[command(flatten)]
+    filter: FilterArgs,
+    #[arg(long, default_value = DEFAULT_MANIFEST)]
+    manifest: PathBuf,
+    #[arg(long, default_value = "target/decoder-tracker/selected-manifest.csv")]
+    out: PathBuf,
+}
+
 #[derive(Clone, Debug, Args)]
 struct FilterArgs {
     #[arg(long, default_value = DEFAULT_CORPUS)]
@@ -67,6 +78,8 @@ struct FilterArgs {
     cameras: Vec<String>,
     #[arg(long = "filename", action = clap::ArgAction::Append)]
     filenames: Vec<String>,
+    #[arg(long = "glob", action = clap::ArgAction::Append)]
+    globs: Vec<String>,
 }
 
 impl FilterArgs {
@@ -75,6 +88,7 @@ impl FilterArgs {
             formats: self.formats.clone(),
             cameras: self.cameras.clone(),
             filenames: self.filenames.clone(),
+            globs: self.globs.clone(),
             shard,
         }
     }
@@ -98,8 +112,6 @@ struct RunArgs {
 
 #[derive(Debug, Args)]
 struct MergeArgs {
-    #[command(flatten)]
-    filter: FilterArgs,
     #[arg(long, default_value = DEFAULT_MANIFEST)]
     manifest: PathBuf,
     #[arg(long, default_value = DEFAULT_OUTPUT)]
@@ -112,6 +124,20 @@ struct MergeArgs {
 struct DiffArgs {
     baseline: PathBuf,
     candidate: PathBuf,
+    #[arg(long)]
+    selected: PathBuf,
+    #[arg(long, default_value = "target/decoder-tracker/diff.csv")]
+    out: PathBuf,
+}
+
+#[derive(Debug, Args)]
+struct UpdateArgs {
+    #[arg(long)]
+    baseline: Option<PathBuf>,
+    #[arg(long)]
+    candidate: PathBuf,
+    #[arg(long, default_value = "target/decoder-tracker/baseline.csv")]
+    out: PathBuf,
 }
 
 #[derive(Debug, Args)]
@@ -133,14 +159,28 @@ fn main() -> ExitCode {
 fn execute(cli: Cli) -> Result<ExitCode> {
     match cli.command {
         Command::Manifest(args) => manifest(args),
+        Command::Select(args) => select(args),
         Command::Run(args) => run(args),
         Command::Merge(args) => merge(args),
         Command::Diff(args) => diff(args),
+        Command::Update(args) => update(args),
         Command::RunOne(args) => {
             println!("{}", serde_json::to_string(&evaluate_one(&args.input))?);
             Ok(ExitCode::SUCCESS)
         }
     }
+}
+
+fn select(args: SelectArgs) -> Result<ExitCode> {
+    let rows = read_manifest_csv(read_file(&args.manifest)?)?;
+    let selected = select_manifest(&rows, &args.filter.selection(None))?;
+    if selected.is_empty() {
+        return Err(TrackerError::new("filters matched no corpus files"));
+    }
+    let bytes = write_manifest_csv(&selected)?;
+    write_file(&args.out, &bytes)?;
+    println!("selected={}", selected.len());
+    Ok(ExitCode::SUCCESS)
 }
 
 fn manifest(args: ManifestArgs) -> Result<ExitCode> {
@@ -210,86 +250,32 @@ fn run(args: RunArgs) -> Result<ExitCode> {
 }
 
 fn merge(args: MergeArgs) -> Result<ExitCode> {
-    let manifest = read_manifest_csv(fs::read(&args.manifest).map_err(|error| {
-        TrackerError::new(format!(
-            "reading manifest {} failed: {error}",
-            args.manifest.display()
-        ))
-    })?)?;
-    let expected_rows = select_manifest(&manifest, &args.filter.selection(None))?;
-    let expected = expected_rows
-        .iter()
-        .map(ManifestRow::key)
-        .collect::<BTreeSet<_>>();
-    let shards = args
-        .shards
-        .iter()
-        .map(|path| {
-            fs::read(path)
-                .map_err(|error| {
-                    TrackerError::new(format!("reading shard {} failed: {error}", path.display()))
-                })
-                .and_then(read_baseline_csv)
-                .map(|csv| csv.rows)
-        })
-        .collect::<Result<Vec<_>>>()?;
-    let rows = merge_baseline_rows(shards, &expected)?;
-    let bytes = write_baseline_csv(&rows)?;
-    write_file(&args.out, &bytes)?;
+    let rows = duckdb_merge(&args.manifest, &args.shards, &args.out)?;
     println!(
-        "merge: wrote {} complete rows to {}",
-        rows.len(),
+        "merge: wrote {rows} complete rows to {}",
         args.out.display()
     );
     Ok(ExitCode::SUCCESS)
 }
 
 fn diff(args: DiffArgs) -> Result<ExitCode> {
-    let baseline = read_baseline_csv(read_file(&args.baseline)?)?;
-    let candidate = read_baseline_csv(read_file(&args.candidate)?)?;
-    let report = DiffReport::between(&baseline.rows, &candidate.rows)?;
-    for key in &report.missing {
-        println!("missing {key}");
-    }
-    for key in &report.extra {
-        println!("extra {key}");
-    }
-    for (before, after) in &report.changed {
-        println!("changed {}", before.key());
-        println!(
-            "  before: passes={}{}{}{} error={:?} size={}x{} cfa={:?}",
-            before.decode_pass,
-            before.raw_mosaic_pass,
-            before.process_metadata_pass,
-            before.handoff_pass,
-            before.error_kind,
-            before.width,
-            before.height,
-            before.cfa
-        );
-        println!(
-            "  after:  passes={}{}{}{} error={:?} size={}x{} cfa={:?}",
-            after.decode_pass,
-            after.raw_mosaic_pass,
-            after.process_metadata_pass,
-            after.handoff_pass,
-            after.error_kind,
-            after.width,
-            after.height,
-            after.cfa
-        );
-    }
+    let report = duckdb_diff(&args.baseline, &args.candidate, &args.selected, &args.out)?;
     println!(
         "diff: {} missing, {} extra, {} changed",
-        report.missing.len(),
-        report.extra.len(),
-        report.changed.len()
+        report.missing, report.extra, report.changed
     );
     Ok(if report.is_empty() {
         ExitCode::SUCCESS
     } else {
         ExitCode::FAILURE
     })
+}
+
+fn update(args: UpdateArgs) -> Result<ExitCode> {
+    let rows =
+        decoder_tracker::duckdb::upsert(args.baseline.as_deref(), &args.candidate, &args.out)?;
+    println!("update: wrote {rows} rows to {}", args.out.display());
+    Ok(ExitCode::SUCCESS)
 }
 
 fn baseline_row(manifest: &ManifestRow, stage: StageRow) -> BaselineRow {

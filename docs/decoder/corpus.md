@@ -28,11 +28,13 @@ available:
 
 ```text
 pixi run -e dev cargo run -q -p decoder-tracker -- manifest [--check] [--format F]...
+pixi run -e dev cargo run -q -p decoder-tracker -- select [--glob G]... [--out FILE]
 pixi run -e dev cargo run -q -p decoder-tracker -- run [--manifest F] [--format F]...
-    [--camera TEXT]... [--filename TEXT]... [--shard INDEX/COUNT]
+    [--camera TEXT]... [--filename TEXT]... [--glob G]... [--shard INDEX/COUNT]
     [--out FILE] [--max-files N] [--allow-full]
-pixi run -e dev cargo run -q -p decoder-tracker -- merge [--manifest F] [--out FILE] SHARD...
-pixi run -e dev cargo run -q -p decoder-tracker -- diff BASELINE CANDIDATE
+pixi run -e dev cargo run -q -p decoder-tracker -- merge --manifest F --out FILE SHARD...
+pixi run -e dev cargo run -q -p decoder-tracker -- diff --selected F --out FILE BASELINE CANDIDATE
+pixi run -e dev cargo run -q -p decoder-tracker -- update --baseline F --candidate F --out FILE
 ```
 
 `run` defaults to DNG and refuses selections larger than two files unless
@@ -46,7 +48,16 @@ pixi run -e dev cargo run -q -p decoder-tracker -- run \
 ```
 
 Format and filename filters are case-insensitive exact matches. Camera filters
-are case-insensitive substring matches. Filters are applied before the
+are case-insensitive substring matches. Path globs are case-sensitive:
+
+- `*` matches within one path segment;
+- `**` crosses directory separators;
+- `?` matches one non-separator character;
+- repeated `--glob` values use OR; format, camera, filename, and glob classes
+  combine with AND.
+
+The workflow default glob is `**/*.[dD][nN][gG]` because the corpus mixes
+uppercase and lowercase DNG extensions. Filters are applied before the
 selection is sorted by LFS SHA-256 and assigned with zero-based
 `position % COUNT`.
 
@@ -119,38 +130,46 @@ panics and crashes to rows, kills hangs, and treats malformed successful child
 output, child launch failures, LFS failures, and I/O failures as infrastructure
 errors. Decoder failures that were successfully recorded do not fail `run`.
 
-## Merge and diff
+## DuckDB aggregation
 
-`merge` reads all shard CSVs, rejects schema mismatches and duplicate keys,
-checks the complete expected key set from the manifest, and writes a canonical
-full baseline. This is how the workflow prevents a missing shard from appearing
-as an accepted baseline.
+DuckDB CLI owns relational CSV aggregation. Rust validates input schemas and
+typed rows, invokes checked-in SQL from `crates/decoder-tracker/sql/`, and then
+revalidates the canonical output.
 
-`diff` reports:
+`merge` combines shard CSVs, rejects duplicates, and verifies that every key in
+the selected manifest appears exactly once. `diff --selected` compares only the
+selected keys against the full committed baseline. It writes a canonical diff
+with:
 
 - `missing`: a baseline key absent from the candidate;
 - `extra`: a candidate key absent from the baseline;
 - `changed`: a key present in both with any field difference.
 
-It exits 1 when any category is non-empty. Reordering rows is not a difference.
+`update` upserts candidate rows into the full baseline and preserves unselected
+rows. The diff command exits 1 when any category is non-empty.
 
 ## Manual CI
 
 `.github/workflows/decoder-tracker-corpus.yml` is manual-only after bootstrap.
-It accepts:
+It accepts one `filter` path glob. The plan job writes and uploads
+`selected-manifest.csv`, then computes:
 
-- `mode`: `bootstrap` or `verify`;
-- `shard_count`: a number from 1 through 20, default 1 for the first baseline.
+```text
+runner_count = min(20, max(1, ceil(selected_count / 10)))
+```
 
-The plan job generates a dynamic zero-based matrix. Each shard initializes the
-pointer-only corpus, installs the Pixi dev environment, runs
-`manifest --check`, runs its deterministic shard, and uploads CSV only. The
-aggregate job merges every shard:
+Rows are balanced across those runners by `position % runner_count`. Examples:
+5 files use one runner, 16 use two runners of 8, and 210 use 20 runners of
+10/11. Zero matches fail planning.
 
-- `bootstrap` uploads
-  `target/decoder-tracker/candidate.csv` as a short-lived candidate artifact;
-- `verify` diffs the merged candidate against
-  `crates/decoder-tracker/baseline.csv` and requires an empty diff.
+Each shard downloads the selected manifest, initializes the pointer-only corpus,
+runs `manifest --check`, executes its assigned files, and uploads CSV only. The
+aggregate job merges every shard and:
+
+- uploads a bootstrap baseline when no committed baseline exists;
+- uploads nothing when selected rows are unchanged;
+- uploads the complete updated baseline and `diff.csv`, then fails, when rows
+  changed.
 
 RAW payloads are never cached or uploaded.
 
@@ -160,10 +179,10 @@ A corpus update is deliberate:
 
 1. Initialize the pointer-only submodule at the current advertised snapshot.
 2. Run `manifest` and review every manifest change.
-3. Run the manual workflow in `bootstrap` mode at 20 shards.
+3. Run the manual workflow with the full default DNG glob.
 4. Download and review the complete candidate against the manifest.
 5. Commit the manifest and baseline.
-6. Run the manual workflow in `verify` mode and require an empty diff.
+6. Run the workflow again and require no update artifact.
 
 Transient full-mirror use is approved for this workflow. The baseline does not
 redistribute RAW payloads. Some older corpus samples may retain non-CC0 licence
@@ -173,9 +192,11 @@ Fornax artifacts.
 ## Testing
 
 `cargo test -p decoder-tracker` covers path normalization, identity derivation,
-filters, deterministic sharding and bounds, stage transitions, metadata sanity,
-child timeout and panic mapping, canonical CSV, merge completeness, diff
-classification, and manifest pointer checks.
+glob and legacy filters, adaptive runner sizing, deterministic sharding and
+bounds, stage transitions, metadata sanity, child timeout and panic mapping,
+canonical CSV, DuckDB merge completeness, DuckDB diff classification, partial
+upsert, and manifest pointer checks.
 
 `scripts/agent-validation.sh` initializes only the corpus pointer metadata when
-needed and runs `manifest --check`; it never fetches a RAW payload.
+needed, runs `manifest --check`, and runs the DuckDB aggregation tests through
+the tracker environment; it never fetches a RAW payload.
