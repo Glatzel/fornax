@@ -3,7 +3,8 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 pub const MANIFEST_HEADER: [&str; 6] = ["vendor", "camera", "format", "path", "size", "sha256"];
-pub const BASELINE_HEADER: [&str; 12] = [
+pub const BASELINE_HEADER: [&str; 13] = [
+    "status",
     "vendor",
     "camera",
     "format",
@@ -100,6 +101,7 @@ impl fmt::Display for BaselineKey {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BaselineRow {
+    pub status: String,
     pub vendor: String,
     pub camera: String,
     pub format: String,
@@ -159,6 +161,22 @@ impl BaselineRow {
                 self.key()
             )));
         }
+        let expected_status = if all_passed { "✅" } else { "❌" };
+        if self.status != expected_status {
+            return Err(TrackerError::new(format!(
+                "{} has status {:?}, expected {expected_status:?}",
+                self.key(),
+                self.status
+            )));
+        }
         Ok(())
+    }
+}
+
+pub fn status_for_stages(passes: [u8; 4]) -> &'static str {
+    if passes.iter().all(|pass| *pass == 1) {
+        "✅"
+    } else {
+        "❌"
     }
 }

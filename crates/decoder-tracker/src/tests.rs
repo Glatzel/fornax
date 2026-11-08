@@ -35,7 +35,8 @@ fn manifest_row(sha: &str, path: &str, format: &str) -> ManifestRow {
 }
 
 fn baseline_row(key: &BaselineKey, handoff: u8) -> BaselineRow {
-    BaselineRow {
+    let mut row = BaselineRow {
+        status: String::new(),
         vendor: key.vendor.clone(),
         camera: key.camera.clone(),
         format: key.format.clone(),
@@ -52,7 +53,15 @@ fn baseline_row(key: &BaselineKey, handoff: u8) -> BaselineRow {
         width: 16,
         height: 8,
         cfa: "RGGB".into(),
-    }
+    };
+    row.status = crate::model::status_for_stages([
+        row.decode_pass,
+        row.raw_mosaic_pass,
+        row.process_metadata_pass,
+        row.handoff_pass,
+    ])
+    .to_owned();
+    row
 }
 
 fn process_metadata(pattern: BayerPattern) -> ProcessMetadata {
@@ -306,6 +315,7 @@ fn decode_errors_use_stable_error_kinds() {
 #[test]
 fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     let row = BaselineRow {
+        status: "✅".into(),
         vendor: "Canon".into(),
         camera: "Canon, EOS \"R5\"".into(),
         format: "DNG".into(),
@@ -322,9 +332,12 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     let bytes = write_baseline_csv(std::slice::from_ref(&row)).unwrap();
     let text = std::str::from_utf8(&bytes).unwrap();
     assert!(text.starts_with(
-        "vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
+        "status,vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
     ));
+    assert!(text.contains("\n✅,"));
     assert!(text.contains("\"Canon, EOS \"\"R5\"\"\""));
+    assert!(text.contains(",1,1,1,1,"));
+    assert!(text.ends_with(",RGGB\n"));
     assert!(!text.contains('\r'));
 }
 
@@ -410,8 +423,26 @@ fn manifest_check_reports_snapshot_drift() {
 
 #[test]
 fn baseline_reader_rejects_non_boolean_stage_values() {
-    let csv = b"vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\nCanon,Cam,DNG,Canon/Cam/IMG.DNG,2,0,0,0,decode:bad,0,0,\n";
-    assert!(read_baseline_csv(csv.as_slice()).is_err());
+    let csv = "status,vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n❌,Canon,Cam,DNG,Canon/Cam/IMG.DNG,2,0,0,0,decode:bad,0,0,\n";
+    assert!(read_baseline_csv(csv.as_bytes()).is_err());
+}
+
+#[test]
+fn baseline_rejects_status_that_disagrees_with_stages() {
+    let key = BaselineKey {
+        vendor: "Canon".into(),
+        camera: "Canon Cam".into(),
+        format: "DNG".into(),
+        path: "Canon/Cam/IMG.DNG".into(),
+    };
+    let mut row = baseline_row(&key, 1);
+    row.status = "❌".into();
+    assert!(
+        write_baseline_csv(&[row])
+            .unwrap_err()
+            .to_string()
+            .contains("status")
+    );
 }
 
 #[test]

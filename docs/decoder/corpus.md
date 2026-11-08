@@ -89,12 +89,14 @@ key is `(vendor, camera, format, path)`. Duplicate keys are an error.
 The canonical baseline header is:
 
 ```csv
-vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa
+status,vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa
 ```
 
 Rows use UTF-8 with LF endings and RFC 4180 quoting, sort by the unique key, and
 store stage passes as `0` or `1`. There are no timestamps, timings, host data, or
-floating-point values.
+floating-point values. The leading `status` column is a derived visual summary:
+`✅` when all four stage passes are `1`, otherwise `❌`. Readers reject a status
+that disagrees with the numeric stages.
 
 The stages run once each in this order:
 

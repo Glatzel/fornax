@@ -19,11 +19,25 @@ SELECT
     error_kind::VARCHAR AS error_kind,
     width::INTEGER AS width,
     height::INTEGER AS height,
-    cfa::VARCHAR AS cfa
+    cfa::VARCHAR AS cfa,
+    status::VARCHAR AS status
 FROM read_csv([@SHARDS@], header = true, all_varchar = true, union_by_name = true);
 
 COPY (
-    SELECT *
+    SELECT
+        status,
+        vendor,
+        camera,
+        format,
+        path,
+        decode_pass,
+        raw_mosaic_pass,
+        process_metadata_pass,
+        handoff_pass,
+        error_kind,
+        width,
+        height,
+        cfa
     FROM updates
     ORDER BY vendor, camera, format, path
 ) TO '@OUTPUT@' (

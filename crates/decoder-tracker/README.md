@@ -19,6 +19,7 @@ pixi run -e dev cargo run -p decoder-tracker -- update --baseline BASELINE --can
 
 The committed corpus metadata manifest is `manifest.csv`; decoder pass columns
 and outcomes are in `baseline.csv`. DuckDB CLI owns merge, selected-key diff,
-and baseline upsert. The complete schema, stage semantics, glob/sharding rules,
-workflow, and update procedure are documented in
+and baseline upsert. Stage columns remain numeric for SQL; a trailing emoji
+`status` column makes pass/fail visually scannable. The complete schema, stage
+semantics, glob/sharding rules, workflow, and update procedure are documented in
 [docs/decoder/corpus.md](../../docs/decoder/corpus.md).

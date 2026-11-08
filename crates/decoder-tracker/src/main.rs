@@ -12,7 +12,7 @@ use decoder_tracker::duckdb::{diff as duckdb_diff, merge as duckdb_merge};
 use decoder_tracker::manifest::{
     ManifestCheck, corpus_path, generate_manifest, normalize_repo_path,
 };
-use decoder_tracker::model::{BaselineRow, ManifestRow, Result, TrackerError};
+use decoder_tracker::model::{BaselineRow, ManifestRow, Result, TrackerError, status_for_stages};
 use decoder_tracker::runner::{materialize, run_isolation, timeout_from_env};
 use decoder_tracker::selection::{Selection, Shard, select_manifest};
 use decoder_tracker::stages::{StageRow, evaluate_one};
@@ -328,6 +328,12 @@ fn update(args: UpdateArgs) -> Result<ExitCode> {
 }
 
 fn baseline_row(manifest: &ManifestRow, stage: StageRow) -> BaselineRow {
+    let passes = [
+        stage.decode_pass,
+        stage.raw_mosaic_pass,
+        stage.process_metadata_pass,
+        stage.handoff_pass,
+    ];
     BaselineRow {
         vendor: manifest.vendor.clone(),
         camera: manifest.camera.clone(),
@@ -341,6 +347,7 @@ fn baseline_row(manifest: &ManifestRow, stage: StageRow) -> BaselineRow {
         width: stage.width,
         height: stage.height,
         cfa: stage.cfa,
+        status: status_for_stages(passes).to_owned(),
     }
 }
 

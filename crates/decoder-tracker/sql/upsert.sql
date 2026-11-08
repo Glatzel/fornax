@@ -11,7 +11,8 @@ SELECT
     baseline.error_kind::VARCHAR AS error_kind,
     baseline.width::INTEGER AS width,
     baseline.height::INTEGER AS height,
-    baseline.cfa::VARCHAR AS cfa
+    baseline.cfa::VARCHAR AS cfa,
+    baseline.status::VARCHAR AS status
 FROM read_csv('@BASELINE@', header = true, all_varchar = true) AS baseline;
 
 CREATE TEMP TABLE updates AS
@@ -27,7 +28,8 @@ SELECT
     updates.error_kind::VARCHAR AS error_kind,
     updates.width::INTEGER AS width,
     updates.height::INTEGER AS height,
-    updates.cfa::VARCHAR AS cfa
+    updates.cfa::VARCHAR AS cfa,
+    updates.status::VARCHAR AS status
 FROM read_csv('@CANDIDATE@', header = true, all_varchar = true) AS updates;
 
 CREATE TEMP TABLE merged AS
@@ -46,6 +48,7 @@ FROM (
         width,
         height,
         cfa,
+        status,
         0 AS source_priority
     FROM baseline
     UNION ALL
@@ -62,6 +65,7 @@ FROM (
         width,
         height,
         cfa,
+        status,
         1 AS source_priority
     FROM updates
 )
@@ -72,6 +76,7 @@ QUALIFY row_number() OVER (
 
 COPY (
     SELECT
+        status,
         vendor,
         camera,
         format,

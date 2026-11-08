@@ -25,7 +25,8 @@ SELECT
     candidate.error_kind::VARCHAR AS error_kind,
     candidate.width::INTEGER AS width,
     candidate.height::INTEGER AS height,
-    candidate.cfa::VARCHAR AS cfa
+    candidate.cfa::VARCHAR AS cfa,
+    candidate.status::VARCHAR AS status
 FROM read_csv('@CANDIDATE@', header = true, all_varchar = true) AS candidate;
 
 CREATE TEMP TABLE diff_rows AS
@@ -115,7 +116,8 @@ WHERE
     OR baseline.error_kind::VARCHAR IS DISTINCT FROM candidate.error_kind
     OR baseline.width::INTEGER IS DISTINCT FROM candidate.width
     OR baseline.height::INTEGER IS DISTINCT FROM candidate.height
-    OR baseline.cfa::VARCHAR IS DISTINCT FROM candidate.cfa;
+    OR baseline.cfa::VARCHAR IS DISTINCT FROM candidate.cfa
+    OR baseline.status::VARCHAR IS DISTINCT FROM candidate.status;
 
 COPY (
     SELECT *
