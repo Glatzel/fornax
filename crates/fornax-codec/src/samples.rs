@@ -370,7 +370,10 @@ fn copy_samples<T>(
     byte_order: ByteOrder,
     payloads: &[&[u8]],
     output: &mut [T],
-) -> Result<(), CodecError> where T: Sample {
+) -> Result<(), CodecError>
+where
+    T: Sample,
+{
     par_tiles(geometry, T::BYTES, payloads, output, |source, target| {
         T::read_row(source, target, byte_order);
     })
