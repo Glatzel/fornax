@@ -25,16 +25,45 @@ while (($# > 0)); do
     esac
 done
 
-counts="$(
+format_counts="$(
     duckdb -no-agent -csv -noheader -separator ',' :memory: -c "
         SELECT
+            format,
             count() FILTER (WHERE status = '✅') AS passed,
             count() AS total
-        FROM read_csv('$(printf '%s' "$baseline" | sed "s/'/''/g")', header = true);
+        FROM read_csv('$(printf '%s' "$baseline" | sed "s/'/''/g")', header = true)
+        GROUP BY format
+        ORDER BY format;
     "
 )"
-IFS=, read -r passed total <<<"$counts"
-if [[ ! "$passed" =~ ^[0-9]+$ || ! "$total" =~ ^[0-9]+$ ]] || ((total == 0)); then
+
+if [[ -z "$format_counts" ]]; then
+    printf 'could not derive format counts from %s\n' "$baseline" >&2
+    exit 1
+fi
+
+passed=0
+total=0
+format_count=0
+first_format=''
+table=$'| Format | Status |\n| --- | ---: |'
+while IFS=, read -r format format_passed format_total; do
+    if [[ -z "$format" || ! "$format_passed" =~ ^[0-9]+$ || ! "$format_total" =~ ^[0-9]+$ ]] ||
+        ((format_total == 0 || format_passed > format_total)); then
+        printf 'invalid format counts from %s: %s\n' "$baseline" \
+            "$format,$format_passed,$format_total" >&2
+        exit 1
+    fi
+    format_count=$((format_count + 1))
+    if [[ -z "$first_format" ]]; then
+        first_format="$format"
+    fi
+    passed=$((passed + format_passed))
+    total=$((total + format_total))
+    table+=$'\n| '"$format"' | '"$format_passed"'/'"$format_total"' |'
+done <<<"$format_counts"
+
+if ((format_count == 0 || total == 0)); then
     printf 'could not derive pass counts from %s\n' "$baseline" >&2
     exit 1
 fi
@@ -47,7 +76,15 @@ else
     color=orange
 fi
 
-badge="[![DNG corpus: ${passed}/${total} passed](https://img.shields.io/badge/DNG_corpus-${passed}%2F${total}-${color})](baseline.csv)"
+if ((format_count == 1)) && [[ "$first_format" == 'DNG' ]]; then
+    badge_label='DNG corpus'
+    badge_slug='DNG_corpus'
+else
+    badge_label='RAW corpus'
+    badge_slug='RAW_corpus'
+fi
+
+badge="[![${badge_label}: ${passed}/${total} passed](https://img.shields.io/badge/${badge_slug}-${passed}%2F${total}-${color})](baseline.csv)"
 starts="$(grep -Fxc "$start_marker" "$readme" || true)"
 ends="$(grep -Fxc "$end_marker" "$readme" || true)"
 if [[ "$starts" != 1 || "$ends" != 1 ]]; then
@@ -57,11 +94,13 @@ fi
 
 tmp="$(mktemp "${readme}.XXXXXX")"
 trap 'rm -f "$tmp"' EXIT
-awk -v start="$start_marker" -v end="$end_marker" -v badge="$badge" '
+awk -v start="$start_marker" -v end="$end_marker" -v badge="$badge" -v table="$table" '
     $0 == start {
         print start
         print ""
         print badge
+        print ""
+        print table
         print ""
         skip = 1
         next
@@ -76,4 +115,4 @@ awk -v start="$start_marker" -v end="$end_marker" -v badge="$badge" '
 mv "$tmp" "$readme"
 trap - EXIT
 
-printf 'badge: %s/%s passed\n' "$passed" "$total"
+printf 'badge: %s/%s passed across %s format(s)\n' "$passed" "$total" "$format_count"

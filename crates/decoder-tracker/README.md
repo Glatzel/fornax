@@ -4,6 +4,10 @@
 
 [![DNG corpus: 209/262 passed](https://img.shields.io/badge/DNG_corpus-209%2F262-orange)](baseline.csv)
 
+| Format | Status |
+| --- | ---: |
+| DNG | 209/262 |
+
 <!-- decoder-tracker-badge:end -->
 
 Manual regression tracking for Fornax decoders over the pinned raw.pixls.us
@@ -28,6 +32,7 @@ The committed corpus metadata manifest is `manifest.csv`; decoder pass columns
 and outcomes are in `baseline.csv`. DuckDB CLI owns plan-time manifest filtering
 and the shell-driven merge, selected-key diff, and baseline upsert path. Stage
 columns remain numeric for SQL; a leading emoji
-`status` column makes pass/fail visually scannable. The complete schema, stage
-semantics, glob/sharding rules, workflow, and update procedure are documented in
-[docs/decoder/corpus.md](../../docs/decoder/corpus.md).
+`status` column makes pass/fail visually scannable. `update-badge.sh` writes the
+accumulated badge and per-format `passed/total` table between the README markers.
+The complete schema, stage semantics, glob/sharding rules, workflow, and update
+procedure are documented in [docs/decoder/corpus.md](../../docs/decoder/corpus.md).

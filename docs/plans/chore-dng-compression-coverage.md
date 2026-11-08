@@ -36,11 +36,11 @@ Out of scope:
 ## Task Checklist
 
 - [x] Create the branch and worktree from `origin/main`.
-- [ ] Update DNG, TIFF, codec, architecture, reference, and corpus Markdown
+- [x] Update DNG, TIFF, codec, architecture, reference, and corpus Markdown
   with compression coverage and failure taxonomy.
-- [ ] Update `update-badge.sh` to derive accumulated and per-format counts from
+- [x] Update `update-badge.sh` to derive accumulated and per-format counts from
   `baseline.csv`.
-- [ ] Regenerate the `decoder-tracker` README badge and status table.
+- [x] Regenerate the `decoder-tracker` README badge and status table.
 - [ ] Run focused shell, DuckDB, tracker-test, and Markdown checks.
 - [ ] Run repository validation and inspect the final diff.
 - [ ] Commit, push, open one pull request, and report its URL and validation.
