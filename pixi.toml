@@ -16,7 +16,7 @@ msgspec = "==0.22.0"
 nomkl = "*"
 numpy = "2.3.*"
 numpydoc = "==1.11.0"
-pydantic = "==2.14.2"
+pydantic = "==2.14.3"
 pytest = "==9.2.0"
 pytest-cov = "==7.1.0"
 
