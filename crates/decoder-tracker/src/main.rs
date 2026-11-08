@@ -3,6 +3,10 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Args, Parser, Subcommand};
+use clap_verbosity_flag::InfoLevel;
+use clerk::tracing_subscriber::layer::SubscriberExt;
+use clerk::tracing_subscriber::util::SubscriberInitExt;
+use clerk::tracing_subscriber::{EnvFilter, Layer, Registry};
 use decoder_tracker::csvio::{read_manifest_csv, write_baseline_csv, write_manifest_csv};
 use decoder_tracker::duckdb::{diff as duckdb_diff, merge as duckdb_merge};
 use decoder_tracker::manifest::{
@@ -25,6 +29,8 @@ const DEFAULT_OUTPUT: &str = "target/decoder-tracker/corpus.csv";
 struct Cli {
     #[command(subcommand)]
     command: Command,
+    #[command(flatten)]
+    verbose: clap_verbosity_flag::Verbosity<InfoLevel>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -147,13 +153,34 @@ struct RunOneArgs {
 }
 
 fn main() -> ExitCode {
-    match execute(Cli::parse()) {
+    let cli = Cli::parse();
+    if let Err(error) = init_logging(&cli.verbose) {
+        eprintln!("error: {error}");
+        return ExitCode::FAILURE;
+    }
+    match execute(cli) {
         Ok(code) => code,
         Err(error) => {
             eprintln!("error: {error}");
             ExitCode::FAILURE
         }
     }
+}
+
+fn init_logging(verbose: &clap_verbosity_flag::Verbosity<InfoLevel>) -> Result<()> {
+    let directive = format!("decoder_tracker={}", verbose.filter())
+        .parse()
+        .map_err(|error| TrackerError::new(format!("invalid log filter: {error}")))?;
+    Registry::default()
+        .with(
+            clerk::terminal_layer(true).with_filter(
+                EnvFilter::builder()
+                    .with_default_directive(directive)
+                    .from_env_lossy(),
+            ),
+        )
+        .init();
+    Ok(())
 }
 
 fn execute(cli: Cli) -> Result<ExitCode> {
@@ -179,6 +206,7 @@ fn select(args: SelectArgs) -> Result<ExitCode> {
     }
     let bytes = write_manifest_csv(&selected)?;
     write_file(&args.out, &bytes)?;
+    clerk::info!("selected {} corpus files", selected.len());
     println!("selected={}", selected.len());
     Ok(ExitCode::SUCCESS)
 }
@@ -195,9 +223,11 @@ fn manifest(args: ManifestArgs) -> Result<ExitCode> {
             ))
         })?;
         ManifestCheck::against(&args.corpus, &args.formats, &committed)?;
+        clerk::info!("manifest is current with {} rows", rows.len());
         println!("manifest: current ({} rows)", rows.len());
     } else {
         write_file(&out, &bytes)?;
+        clerk::info!("wrote {} manifest rows to {}", rows.len(), out.display());
         println!("manifest: wrote {} rows to {}", rows.len(), out.display());
     }
     Ok(ExitCode::SUCCESS)
@@ -221,6 +251,7 @@ fn run(args: RunArgs) -> Result<ExitCode> {
     }
 
     materialize(&args.filter.corpus, &selected)?;
+    clerk::info!("executing {} selected corpus files", selected.len());
     let executable = std::env::current_exe().map_err(|error| {
         TrackerError::new(format!(
             "resolving decoder-tracker executable failed: {error}"
@@ -237,10 +268,20 @@ fn run(args: RunArgs) -> Result<ExitCode> {
                 ))
             })?;
         let stage = run_isolation(&executable, &path, timeout)?;
+        if stage.error_kind.is_empty() {
+            clerk::info!("decoder tracked {} successfully", row.path);
+        } else {
+            clerk::warn!("decoder tracked {} as {}", row.path, stage.error_kind);
+        }
         output.push(baseline_row(row, stage));
     }
     let bytes = write_baseline_csv(&output)?;
     write_file(&args.out, &bytes)?;
+    clerk::info!(
+        "recorded {} shard rows in {}",
+        output.len(),
+        args.out.display()
+    );
     println!(
         "run: recorded {} rows in {}",
         output.len(),
@@ -251,6 +292,7 @@ fn run(args: RunArgs) -> Result<ExitCode> {
 
 fn merge(args: MergeArgs) -> Result<ExitCode> {
     let rows = duckdb_merge(&args.manifest, &args.shards, &args.out)?;
+    clerk::info!("DuckDB merged {rows} shard rows");
     println!(
         "merge: wrote {rows} complete rows to {}",
         args.out.display()
@@ -260,6 +302,12 @@ fn merge(args: MergeArgs) -> Result<ExitCode> {
 
 fn diff(args: DiffArgs) -> Result<ExitCode> {
     let report = duckdb_diff(&args.baseline, &args.candidate, &args.selected, &args.out)?;
+    clerk::info!(
+        "DuckDB diff found {} missing, {} extra, {} changed rows",
+        report.missing,
+        report.extra,
+        report.changed
+    );
     println!(
         "diff: {} missing, {} extra, {} changed",
         report.missing, report.extra, report.changed
@@ -274,6 +322,7 @@ fn diff(args: DiffArgs) -> Result<ExitCode> {
 fn update(args: UpdateArgs) -> Result<ExitCode> {
     let rows =
         decoder_tracker::duckdb::upsert(args.baseline.as_deref(), &args.candidate, &args.out)?;
+    clerk::info!("DuckDB upserted {rows} baseline rows");
     println!("update: wrote {rows} rows to {}", args.out.display());
     Ok(ExitCode::SUCCESS)
 }

@@ -98,6 +98,7 @@ pub fn evaluate_decoder<D>(path: &Path) -> std::result::Result<StageRow, String>
 where
     D: IDecoder + IDecoderDng,
 {
+    clerk::info!("evaluating {}", path.display());
     let decoder =
         D::decode(path).map_err(|error| format!("decode:{}", classify_decode_error(&error)))?;
     let raw = decoder

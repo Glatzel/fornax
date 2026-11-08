@@ -143,3 +143,32 @@ fn select_writes_only_glob_matches_and_prints_the_count() {
         2
     );
 }
+
+#[test]
+fn select_emits_clerk_info_logs() {
+    let temp = tempdir().unwrap();
+    let rows = [
+        manifest_row(&"aa".repeat(32), "Canon/Cam/A.DNG"),
+        manifest_row(&"bb".repeat(32), "Canon/Nested/B.DNG"),
+        manifest_row(&"cc".repeat(32), "Sony/Cam/C.DNG"),
+    ];
+    let manifest = temp.path().join("manifest.csv");
+    let selected = temp.path().join("selected.csv");
+    fs::write(&manifest, write_manifest_csv(&rows).unwrap()).unwrap();
+
+    Command::cargo_bin("decoder-tracker")
+        .unwrap()
+        .args([
+            "select",
+            "-v",
+            "--manifest",
+            manifest.to_str().unwrap(),
+            "--glob",
+            "Canon/**/*.DNG",
+            "--out",
+            selected.to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stderr(predicates::str::contains("selected 2 corpus files"));
+}

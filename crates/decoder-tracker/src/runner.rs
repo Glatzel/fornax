@@ -54,6 +54,9 @@ pub fn run_isolation(
             Ok(runner_row("runner:timeout"))
         }
         ChildOutcome::Exited(output) if output.status.success() => {
+            if !output.stderr.is_empty() {
+                eprint!("{}", String::from_utf8_lossy(&output.stderr));
+            }
             serde_json::from_slice::<StageRow>(&output.stdout).map_err(|error| {
                 TrackerError::new(format!(
                     "run-one produced malformed JSON for {}: {error}; stderr: {}",
@@ -78,6 +81,7 @@ pub fn materialize(corpus: &std::path::Path, rows: &[ManifestRow]) -> Result<()>
     if rows.is_empty() {
         return Ok(());
     }
+    clerk::info!("materializing {} selected LFS objects", rows.len());
     let install = Command::new("git")
         .arg("-C")
         .arg(corpus)
@@ -117,6 +121,7 @@ pub fn materialize(corpus: &std::path::Path, rows: &[ManifestRow]) -> Result<()>
             )));
         }
     }
+    clerk::info!("materialized {} selected LFS objects", rows.len());
     Ok(())
 }
 

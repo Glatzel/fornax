@@ -623,6 +623,8 @@ version = "0.0.17"
 dependencies = [
  "assert_cmd",
  "clap",
+ "clap-verbosity-flag",
+ "clerk",
  "csv",
  "fornax-core",
  "fornax-decoder",

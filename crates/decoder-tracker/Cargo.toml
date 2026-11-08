@@ -10,6 +10,8 @@ path = "src/main.rs"
 
 [dependencies]
 clap.workspace = true
+clap-verbosity-flag.workspace = true
+clerk = { workspace = true, features = ["tracing"] }
 csv.workspace = true
 fornax-core.workspace = true
 fornax-decoder.workspace = true
