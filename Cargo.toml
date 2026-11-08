@@ -55,4 +55,3 @@ toml = "1.2.1"
 zune-jpeg = "0.5.15"
 raw-cpuid = "11.6.0"
 libc = "0.2.191"
-

@@ -11,7 +11,7 @@ strum.workspace = true
 thiserror.workspace = true
 
 [target.'cfg(any(target_arch = "x86", target_arch = "x86_64"))'.dependencies]
-raw-cpuid .workspace = true
+raw-cpuid.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
-libc .workspace = true
+libc.workspace = true
