@@ -16,28 +16,17 @@ where
     ) -> Result<NormalizedMosaic<T>, PreprocessError> {
         let image = decoded.into_image();
         let (width, height) = image.dimensions();
-        let w = width as usize;
-        let h = height as usize;
+        let (w, h) = (width as usize, height as usize);
 
         #[cfg(debug_assertions)]
         validate_levels(w, h, levels)?;
 
-        let pattern_w = levels.black.width() as usize;
-        let pattern_h = levels.black.height() as usize;
+        let pw = levels.black.width() as usize;
+        let ph = levels.black.height() as usize;
         let pattern: Vec<T> = levels.black.as_raw().iter().map(|v| num!(*v)).collect();
-        let white = num!(levels.white);
+        let white: T = num!(levels.white);
+        let zero = T::zero();
 
-        let zeros = |n: usize| vec![T::zero(); n];
-        let delta_h = if levels.black_delta_h.is_empty() {
-            zeros(w)
-        } else {
-            levels.black_delta_h.iter().map(|v| num!(*v)).collect()
-        };
-        let delta_v = if levels.black_delta_v.is_empty() {
-            zeros(h)
-        } else {
-            levels.black_delta_v.iter().map(|v| num!(*v)).collect()
-        };
         let mut raw = image.into_raw();
         let expected = w.checked_mul(h).ok_or(PreprocessError::ImageTooLarge {
             width: w,
@@ -51,37 +40,93 @@ where
         }
         raw.truncate(expected);
 
-        raw.par_chunks_exact_mut(w)
-            .enumerate()
-            .for_each(|(y, row)| {
-                let py = y % pattern_h;
-                let pattern_row = &pattern[py * pattern_w..(py + 1) * pattern_w];
-                let dv = delta_v[y];
+        let delta_h: Option<Vec<T>> = (!levels.black_delta_h.is_empty())
+            .then(|| levels.black_delta_h.iter().map(|v| num!(*v)).collect());
+        let delta_v: Option<Vec<T>> = (!levels.black_delta_v.is_empty())
+            .then(|| levels.black_delta_v.iter().map(|v| num!(*v)).collect());
+        let rows_per_band = band_rows(w, h, std::mem::size_of::<T>());
+        // Full-width black row per pattern phase (ph rows, usually 2).
+        // Folds in delta_h, so the inner loop has no modulo/cycle.
+        let base: Vec<Vec<T>> = (0..ph)
+            .map(|py| {
+                (0..w)
+                    .map(|x| {
+                        let b = pattern[py * pw + x % pw];
+                        delta_h.as_ref().map_or(b, |d| b + d[x])
+                    })
+                    .collect()
+            })
+            .collect();
 
-                for ((px, &dh), &pat) in row
-                    .iter_mut()
-                    .zip(delta_h.iter())
-                    .zip(pattern_row.iter().cycle())
-                {
-                    let black_level = pat + dh + dv;
-                    let range = white - black_level;
+        match delta_v {
+            None => {
+                // Fast path: black and 1/range are periodic -> precompute, no
+                // division in loop. Invalid range => black=0, inv=0 => result
+                // is 0 without a branch.
+                let tables: Vec<(Vec<T>, Vec<T>)> = base
+                    .iter()
+                    .map(|row| {
+                        let mut blk = Vec::with_capacity(w);
+                        let mut inv = Vec::with_capacity(w);
+                        for &b in row {
+                            let range = white - b;
+                            if range > zero {
+                                blk.push(b);
+                                inv.push(T::one() / range);
+                            } else {
+                                blk.push(zero);
+                                inv.push(zero);
+                            }
+                        }
+                        (blk, inv)
+                    })
+                    .collect();
 
-                    *px = if range <= T::zero() {
-                        T::zero()
-                    } else {
-                        let value = (*px - black_level) / range;
-                        if value > T::zero() { value } else { T::zero() }
-                    };
-                }
-            });
-
+                raw.par_chunks_mut(w * rows_per_band)
+                    .enumerate()
+                    .for_each(|(band, rows)| {
+                        for (r, row) in rows.chunks_exact_mut(w).enumerate() {
+                            let (blk, inv) = &tables[(band * rows_per_band + r) % ph];
+                            for ((p, &b), &k) in row.iter_mut().zip(blk).zip(inv) {
+                                let v = (*p - b) * k;
+                                *p = if v > zero { v } else { zero };
+                            }
+                        }
+                    });
+            }
+            Some(dv_all) => {
+                raw.par_chunks_mut(w * rows_per_band)
+                    .enumerate()
+                    .for_each(|(band, rows)| {
+                        for (r, row) in rows.chunks_exact_mut(w).enumerate() {
+                            let y = band * rows_per_band + r;
+                            let dv = dv_all[y];
+                            for (p, &b0) in row.iter_mut().zip(&base[y % ph]) {
+                                let b = b0 + dv;
+                                let range = white - b;
+                                let v = (*p - b) / range;
+                                *p = if range > zero && v > zero { v } else { zero };
+                            }
+                        }
+                    });
+            }
+        }
         let normalized =
             MonoImage::from_raw(width, height, raw).expect("pixel count matches image dimensions");
-
         Ok(NormalizedMosaic::new(normalized))
     }
 }
 
+fn band_rows(w: usize, h: usize, elem_size: usize) -> usize {
+    let target_bytes = fornax_core::utils::l2_cache_bytes() / 4; // headroom for tables, shared L2, hybrid cores
+    let by_bytes = (target_bytes / (w * elem_size).max(1)).max(1);
+
+    // Aim for several bands per thread so rayon can load-balance.
+    let threads = rayon::current_num_threads();
+    let by_threads = h.div_ceil(threads * 4).max(1);
+
+    by_bytes.min(by_threads)
+}
 #[cfg(debug_assertions)]
 fn validate_levels(width: usize, height: usize, levels: &Levels) -> Result<(), PreprocessError> {
     if width == 0 || height == 0 {

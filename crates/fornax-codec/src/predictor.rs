@@ -24,6 +24,53 @@ pub enum Predictor {
     },
 }
 
+/// Row geometry shared by `reverse` and `apply`.
+struct Layout {
+    bytes_per_sample: usize,
+    row_bytes: usize,
+    needed: usize,
+}
+
+fn layout(width: usize, height: usize, bits: u16) -> Result<Layout, CodecError> {
+    let bytes_per_sample = usize::from(bits.div_ceil(8));
+    let row_bytes = width
+        .checked_mul(bytes_per_sample)
+        .ok_or_else(|| invalid("predictor row size overflow"))?;
+    let needed = row_bytes
+        .checked_mul(height)
+        .ok_or_else(|| invalid("predictor payload size overflow"))?;
+    Ok(Layout {
+        bytes_per_sample,
+        row_bytes,
+        needed,
+    })
+}
+
+fn check_horizontal(sample_format: SampleFormat, bits: u16) -> Result<(), CodecError> {
+    if sample_format != SampleFormat::Integer || !matches!(bits, 8 | 16 | 32) {
+        return Err(invalid(
+            "horizontal prediction requires 8/16/32-bit integers",
+        ));
+    }
+    Ok(())
+}
+
+fn check_floating_point(
+    sample_format: SampleFormat,
+    bits: u16,
+    byte_stride: usize,
+) -> Result<(), CodecError> {
+    if sample_format != SampleFormat::Float
+        || !matches!(bits, 16 | 24 | 32)
+        || !matches!(byte_stride, 1 | 2 | 4)
+    {
+        return Err(invalid(
+            "floating-point prediction requires 16/24/32-bit floats and stride 1, 2, or 4",
+        ));
+    }
+    Ok(())
+}
+
 pub fn reverse(
     payload: &mut [u8],
     predictor: Predictor,
@@ -36,13 +83,11 @@ pub fn reverse(
     if predictor == Predictor::None {
         return Ok(());
     }
-    let bytes_per_sample = usize::from(bits.div_ceil(8));
-    let row_bytes = width
-        .checked_mul(bytes_per_sample)
-        .ok_or_else(|| invalid("predictor row size overflow"))?;
-    let needed = row_bytes
-        .checked_mul(height)
-        .ok_or_else(|| invalid("predictor payload size overflow"))?;
+    let Layout {
+        bytes_per_sample,
+        row_bytes,
+        needed,
+    } = layout(width, height, bits)?;
     if payload.len() < needed {
         return Err(invalid("predicted payload is truncated"));
     }
@@ -50,56 +95,43 @@ pub fn reverse(
     match predictor {
         Predictor::None => {}
         Predictor::HorizontalInteger => {
-            if sample_format != SampleFormat::Integer || !matches!(bits, 8 | 16 | 32) {
-                return Err(invalid(
-                    "horizontal prediction requires 8/16/32-bit integers",
-                ));
+            check_horizontal(sample_format, bits)?;
+            if needed == 0 {
+                return Ok(());
             }
-            for row in payload[..needed].chunks_exact_mut(row_bytes) {
-                for sample in 1..width {
-                    let previous = (sample - 1) * bytes_per_sample;
-                    let current = sample * bytes_per_sample;
-                    match bytes_per_sample {
-                        1 => row[current] = row[current].wrapping_add(row[previous]),
-                        2 => write_u16(
-                            row,
-                            current,
-                            read_u16(row, previous, byte_order)
-                                .wrapping_add(read_u16(row, current, byte_order)),
-                            byte_order,
-                        ),
-                        4 => write_u32(
-                            row,
-                            current,
-                            read_u32(row, previous, byte_order)
-                                .wrapping_add(read_u32(row, current, byte_order)),
-                            byte_order,
-                        ),
-                        _ => unreachable!("the sample width is validated above"),
-                    }
-                }
-            }
+            integer_rows::<true>(
+                &mut payload[..needed],
+                row_bytes,
+                bytes_per_sample,
+                byte_order,
+            );
         }
         Predictor::FloatingPoint { byte_stride } => {
-            if sample_format != SampleFormat::Float
-                || !matches!(bits, 16 | 24 | 32)
-                || !matches!(byte_stride, 1 | 2 | 4)
-            {
-                return Err(invalid(
-                    "floating-point prediction requires 16/24/32-bit floats and stride 1, 2, or 4",
-                ));
+            check_floating_point(sample_format, bits, byte_stride)?;
+            if needed == 0 {
+                return Ok(());
             }
+            let little = byte_order == ByteOrder::Little;
+            // One scratch buffer for the whole payload instead of one per row.
+            let mut scratch = vec![0_u8; row_bytes];
             for row in payload[..needed].chunks_exact_mut(row_bytes) {
+                // Undo the byte-wise delta (inherently serial).
                 for index in byte_stride..row_bytes {
                     row[index] = row[index].wrapping_add(row[index - byte_stride]);
                 }
-                let shuffled = row.to_vec();
-                for sample in 0..width {
-                    for byte in 0..bytes_per_sample {
-                        row[sample * bytes_per_sample + byte] = shuffled[sample + byte * width];
-                    }
-                    if byte_order == ByteOrder::Little {
-                        row[sample * bytes_per_sample..(sample + 1) * bytes_per_sample].reverse();
+                // Un-shuffle byte planes into interleaved samples. The outer
+                // loop walks planes so reads are sequential; the endian swap is
+                // folded into `dst`.
+                scratch.copy_from_slice(row);
+                for byte in 0..bytes_per_sample {
+                    let dst = if little {
+                        bytes_per_sample - 1 - byte
+                    } else {
+                        byte
+                    };
+                    let plane = &scratch[byte * width..][..width];
+                    for (sample, &value) in row.chunks_exact_mut(bytes_per_sample).zip(plane) {
+                        sample[dst] = value;
                     }
                 }
             }
@@ -120,13 +152,11 @@ pub fn apply(
     if predictor == Predictor::None {
         return Ok(());
     }
-    let bytes_per_sample = usize::from(bits.div_ceil(8));
-    let row_bytes = width
-        .checked_mul(bytes_per_sample)
-        .ok_or_else(|| invalid("predictor row size overflow"))?;
-    let needed = row_bytes
-        .checked_mul(height)
-        .ok_or_else(|| invalid("predictor payload size overflow"))?;
+    let Layout {
+        bytes_per_sample,
+        row_bytes,
+        needed,
+    } = layout(width, height, bits)?;
     if payload.len() != needed {
         return Err(invalid("predictor payload size does not match the tile"));
     }
@@ -134,59 +164,44 @@ pub fn apply(
     match predictor {
         Predictor::None => {}
         Predictor::HorizontalInteger => {
-            if sample_format != SampleFormat::Integer || !matches!(bits, 8 | 16 | 32) {
-                return Err(invalid(
-                    "horizontal prediction requires 8/16/32-bit integers",
-                ));
+            check_horizontal(sample_format, bits)?;
+            if needed == 0 {
+                return Ok(());
             }
-            for row in payload.chunks_exact_mut(row_bytes) {
-                for sample in (1..width).rev() {
-                    let previous = (sample - 1) * bytes_per_sample;
-                    let current = sample * bytes_per_sample;
-                    match bytes_per_sample {
-                        1 => row[current] = row[current].wrapping_sub(row[previous]),
-                        2 => write_u16(
-                            row,
-                            current,
-                            read_u16(row, current, byte_order)
-                                .wrapping_sub(read_u16(row, previous, byte_order)),
-                            byte_order,
-                        ),
-                        4 => write_u32(
-                            row,
-                            current,
-                            read_u32(row, current, byte_order)
-                                .wrapping_sub(read_u32(row, previous, byte_order)),
-                            byte_order,
-                        ),
-                        _ => unreachable!("the sample width is validated above"),
-                    }
-                }
-            }
+            integer_rows::<false>(payload, row_bytes, bytes_per_sample, byte_order);
         }
         Predictor::FloatingPoint { byte_stride } => {
-            if sample_format != SampleFormat::Float
-                || !matches!(bits, 16 | 24 | 32)
-                || !matches!(byte_stride, 1 | 2 | 4)
-            {
-                return Err(invalid(
-                    "floating-point prediction requires 16/24/32-bit floats and stride 1, 2, or 4",
-                ));
+            check_floating_point(sample_format, bits, byte_stride)?;
+            if needed == 0 {
+                return Ok(());
             }
+            let little = byte_order == ByteOrder::Little;
+            let head = byte_stride.min(row_bytes);
+            let mut scratch = vec![0_u8; row_bytes];
             for row in payload.chunks_exact_mut(row_bytes) {
-                if byte_order == ByteOrder::Little {
-                    for sample in row.chunks_exact_mut(bytes_per_sample) {
-                        sample.reverse();
+                // Shuffle interleaved samples into byte planes (endian swap
+                // folded in).
+                for byte in 0..bytes_per_sample {
+                    let src = if little {
+                        bytes_per_sample - 1 - byte
+                    } else {
+                        byte
+                    };
+                    let plane = &mut scratch[byte * width..][..width];
+                    for (out, sample) in plane.iter_mut().zip(row.chunks_exact(bytes_per_sample)) {
+                        *out = sample[src];
                     }
                 }
-                let interleaved = row.to_vec();
-                for sample in 0..width {
-                    for byte in 0..bytes_per_sample {
-                        row[sample + byte * width] = interleaved[sample * bytes_per_sample + byte];
+                // Byte-wise delta as a pure element-wise subtract from
+                // read-only scratch, so there is no loop-carried dependency.
+                row[..head].copy_from_slice(&scratch[..head]);
+                if row_bytes > byte_stride {
+                    for (out, (&current, &previous)) in row[byte_stride..]
+                        .iter_mut()
+                        .zip(scratch[byte_stride..].iter().zip(scratch.iter()))
+                    {
+                        *out = current.wrapping_sub(previous);
                     }
-                }
-                for index in (byte_stride..row_bytes).rev() {
-                    row[index] = row[index].wrapping_sub(row[index - byte_stride]);
                 }
             }
         }
@@ -194,39 +209,106 @@ pub fn apply(
     Ok(())
 }
 
-const fn read_u16(bytes: &[u8], offset: usize, byte_order: ByteOrder) -> u16 {
-    let value = [bytes[offset], bytes[offset + 1]];
-    match byte_order {
-        ByteOrder::Little => u16::from_le_bytes(value),
-        ByteOrder::Big => u16::from_be_bytes(value),
+/// Dispatches once on sample width and byte order, then runs a tight per-row
+/// loop.
+///
+/// `ADD = true` reverses horizontal differencing, `ADD = false` applies it.
+fn integer_rows<const ADD: bool>(
+    payload: &mut [u8],
+    row_bytes: usize,
+    bytes_per_sample: usize,
+    byte_order: ByteOrder,
+) {
+    macro_rules! run {
+        ($zero:expr, $from:expr, $to:expr, $add:expr, $sub:expr) => {
+            for row in payload.chunks_exact_mut(row_bytes) {
+                if ADD {
+                    undiff_row(row, $zero, $from, $to, $add);
+                } else {
+                    diff_row(row, $zero, $from, $to, $sub);
+                }
+            }
+        };
+    }
+
+    match (bytes_per_sample, byte_order) {
+        (1, _) => run!(
+            0_u8,
+            u8::from_le_bytes,
+            u8::to_le_bytes,
+            u8::wrapping_add,
+            u8::wrapping_sub
+        ),
+        (2, ByteOrder::Little) => run!(
+            0_u16,
+            u16::from_le_bytes,
+            u16::to_le_bytes,
+            u16::wrapping_add,
+            u16::wrapping_sub
+        ),
+        (2, ByteOrder::Big) => run!(
+            0_u16,
+            u16::from_be_bytes,
+            u16::to_be_bytes,
+            u16::wrapping_add,
+            u16::wrapping_sub
+        ),
+        (4, ByteOrder::Little) => run!(
+            0_u32,
+            u32::from_le_bytes,
+            u32::to_le_bytes,
+            u32::wrapping_add,
+            u32::wrapping_sub
+        ),
+        (4, ByteOrder::Big) => run!(
+            0_u32,
+            u32::from_be_bytes,
+            u32::to_be_bytes,
+            u32::wrapping_add,
+            u32::wrapping_sub
+        ),
+        _ => unreachable!("the sample width is validated by the caller"),
     }
 }
 
-fn write_u16(bytes: &mut [u8], offset: usize, value: u16, byte_order: ByteOrder) {
-    let value = match byte_order {
-        ByteOrder::Little => value.to_le_bytes(),
-        ByteOrder::Big => value.to_be_bytes(),
-    };
-    bytes[offset..offset + 2].copy_from_slice(&value);
-}
+/// Running prefix sum over one row (decode). The first sample has a virtual
+/// predecessor of 0.
+#[inline(always)]
+fn undiff_row<T, const N: usize>(
+    row: &mut [u8],
+    zero: T,
+    from: impl Fn([u8; N]) -> T,
+    to: impl Fn(T) -> [u8; N],
+    add: impl Fn(T, T) -> T,
+) where
+    T: Copy,
+{
+    let mut acc = zero;
+    for chunk in row.as_chunks_mut::<N>().0 {
+        let mut bytes = [0_u8; N];
+        bytes.copy_from_slice(chunk);
 
-const fn read_u32(bytes: &[u8], offset: usize, byte_order: ByteOrder) -> u32 {
-    let value = [
-        bytes[offset],
-        bytes[offset + 1],
-        bytes[offset + 2],
-        bytes[offset + 3],
-    ];
-    match byte_order {
-        ByteOrder::Little => u32::from_le_bytes(value),
-        ByteOrder::Big => u32::from_be_bytes(value),
+        acc = add(acc, from(bytes));
+        chunk.copy_from_slice(&to(acc));
     }
 }
 
-fn write_u32(bytes: &mut [u8], offset: usize, value: u32, byte_order: ByteOrder) {
-    let value = match byte_order {
-        ByteOrder::Little => value.to_le_bytes(),
-        ByteOrder::Big => value.to_be_bytes(),
-    };
-    bytes[offset..offset + 4].copy_from_slice(&value);
+/// Forward difference over one row (encode), carrying the previous original
+/// value in a local.
+#[inline(always)]
+fn diff_row<T, const N: usize>(
+    row: &mut [u8],
+    zero: T,
+    from: impl Fn([u8; N]) -> T,
+    to: impl Fn(T) -> [u8; N],
+    sub: impl Fn(T, T) -> T,
+) where
+    T: Copy,
+{
+    let mut previous = zero;
+    for chunk in row.as_chunks_mut::<N>().0 {
+        let current = from(*chunk);
+        chunk.copy_from_slice(&to(sub(current, previous)));
+        previous = current;
+    }
 }

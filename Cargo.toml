@@ -27,6 +27,7 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 # other
 assert_cmd = "2.0.16"
+bytemuck = "1.25.2"
 cc = "1.10.0"
 clap = { version = "4.6.7", features = ["derive", "string"] }
 clap-verbosity-flag = { version = "3.0.4", features = ["tracing"] }
@@ -36,9 +37,11 @@ flate2 = "1.1.10"
 hex = "0.4.3"
 insta = { version = "1.49.0", features = ["json"] }
 jxl-oxide = "0.12.6"
+libc = "0.2.191"
 num_enum = "0.7.6"
 num-traits = "0.2.19"
 rand = "0.10.3"
+raw-cpuid = "11.6.0"
 rawler = "0.8.0"
 rayon = "1.12.0"
 rstest = "0.28.0"

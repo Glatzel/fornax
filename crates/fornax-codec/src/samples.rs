@@ -102,49 +102,33 @@ fn decode_integer(
     let sample_count = geometry.sample_count()?;
     match bits {
         1..=8 => {
-            let output = if bits == 8 {
-                copy_buffer(geometry, 1, payloads)?
+            let mut output = vec![0_u8; sample_count];
+            if bits == 8 {
+                copy_samples(geometry, byte_order, payloads, &mut output)?;
             } else {
-                let mut output = vec![0_u8; sample_count];
-                decode_packed(
-                    geometry,
-                    bits,
-                    payloads,
-                    |value| {
-                        u8::try_from(value).map_err(|_| invalid("packed sample exceeds u8 storage"))
-                    },
-                    &mut output,
-                )?;
-                output
-            };
+                // `bits <= 8`, so the unpacked value always fits.
+                decode_packed(geometry, bits, payloads, low_u8, &mut output)?;
+            }
             mono(geometry.width, geometry.height, output).map(RawMosaic::U8)
         }
         9..=16 => {
             let mut output = vec![0_u16; sample_count];
             if bits == 16 {
-                copy_samples(geometry, 2, byte_order, payloads, &mut output)?;
+                copy_samples(geometry, byte_order, payloads, &mut output)?;
             } else {
-                decode_packed(
-                    geometry,
-                    bits,
-                    payloads,
-                    |value| {
-                        u16::try_from(value)
-                            .map_err(|_| invalid("packed sample exceeds u16 storage"))
-                    },
-                    &mut output,
-                )?;
+                // `bits <= 16`, so the unpacked value always fits.
+                decode_packed(geometry, bits, payloads, low_u16, &mut output)?;
             }
             mono(geometry.width, geometry.height, output).map(RawMosaic::U16)
         }
         17..=31 => {
             let mut output = vec![0_u32; sample_count];
-            decode_packed(geometry, bits, payloads, Ok, &mut output)?;
+            decode_packed(geometry, bits, payloads, |value| value, &mut output)?;
             mono(geometry.width, geometry.height, output).map(RawMosaic::U32)
         }
         32 => {
             let mut output = vec![0_u32; sample_count];
-            copy_samples(geometry, 4, byte_order, payloads, &mut output)?;
+            copy_samples(geometry, byte_order, payloads, &mut output)?;
             mono(geometry.width, geometry.height, output).map(RawMosaic::U32)
         }
         _ => Err(invalid(format!("integer sample depth {bits} is invalid"))),
@@ -169,12 +153,76 @@ fn decode_float(
     };
     let sample_count = geometry.sample_count()?;
     let mut output = vec![0_f32; sample_count];
+
+    // Width and byte order are resolved once here, not per sample.
+    macro_rules! go {
+        ($read:expr) => {
+            decode_float_with(geometry, bytes_per_sample, payloads, &mut output, $read)?
+        };
+    }
+    match (bits, byte_order) {
+        (16, ByteOrder::Little) => {
+            go!(|b| extend_float(u32::from(read_u16(b, ByteOrder::Little)), 10, 5));
+        }
+        (16, ByteOrder::Big) => {
+            go!(|b| extend_float(u32::from(read_u16(b, ByteOrder::Big)), 10, 5));
+        }
+        (24, ByteOrder::Little) => go!(|b| extend_float(read_u24(b, ByteOrder::Little), 16, 7)),
+        (24, ByteOrder::Big) => go!(|b| extend_float(read_u24(b, ByteOrder::Big), 16, 7)),
+        (32, ByteOrder::Little) => go!(|b| f32::from_bits(read_u32(b, ByteOrder::Little))),
+        (32, ByteOrder::Big) => go!(|b| f32::from_bits(read_u32(b, ByteOrder::Big))),
+        _ => unreachable!("the sample width is validated above"),
+    }
+    mono(geometry.width, geometry.height, output).map(RawMosaic::F32)
+}
+
+fn decode_float_with<F>(
+    geometry: &Geometry,
+    bytes_per_sample: usize,
+    payloads: &[&[u8]],
+    output: &mut [f32],
+    read: F,
+) -> Result<(), CodecError>
+where
+    F: Fn(&[u8]) -> f32 + Sync,
+{
+    par_tiles(
+        geometry,
+        bytes_per_sample,
+        payloads,
+        output,
+        |source, target| {
+            for (target, bytes) in target.iter_mut().zip(source.chunks_exact(bytes_per_sample)) {
+                *target = read(bytes);
+            }
+        },
+    )
+}
+
+/// Walks every tile row of the image in parallel (one rayon task per tile
+/// band), validates the chunk size, and hands the matching source bytes and
+/// destination samples of each row to `row`.
+///
+/// `source` and `target` passed to `row` always cover exactly `copy_width`
+/// samples.
+fn par_tiles<T, F>(
+    geometry: &Geometry,
+    bytes_per_sample: usize,
+    payloads: &[&[u8]],
+    output: &mut [T],
+    row: F,
+) -> Result<(), CodecError>
+where
+    T: Send,
+    F: Fn(&[u8], &mut [T]) + Sync,
+{
     output
         .par_chunks_mut(geometry.band_stride()?)
         .enumerate()
         .try_for_each(|(tile_y_index, band)| {
             let tile_y = tile_y_index * geometry.chunk_height;
             let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
+            let source_stride = geometry.chunk_width * bytes_per_sample;
             for tile_x_index in 0..geometry.across {
                 let index = tile_y_index * geometry.across + tile_x_index;
                 let encoded = payloads[index];
@@ -183,45 +231,30 @@ fn decode_float(
                 let required_samples = (copy_height - 1)
                     .checked_mul(geometry.chunk_width)
                     .and_then(|count| count.checked_add(copy_width))
-                    .ok_or_else(|| invalid("floating-point chunk size overflow"))?;
+                    .ok_or_else(|| invalid("uncompressed chunk size overflow"))?;
                 let required_bytes = required_samples
                     .checked_mul(bytes_per_sample)
-                    .ok_or_else(|| invalid("floating-point chunk size overflow"))?;
+                    .ok_or_else(|| invalid("uncompressed chunk size overflow"))?;
                 if encoded.len() < required_bytes {
                     return Err(invalid(format!("uncompressed chunk {index} is truncated")));
                 }
 
-                for row in 0..copy_height {
-                    let source_start = row * geometry.chunk_width * bytes_per_sample;
-                    let target_start = row * geometry.width + tile_x;
-                    for (sample_index, target) in band[target_start..target_start + copy_width]
-                        .iter_mut()
-                        .enumerate()
-                    {
-                        let offset = source_start + sample_index * bytes_per_sample;
-                        let bytes = &encoded[offset..offset + bytes_per_sample];
-                        *target = match bits {
-                            16 => {
-                                let raw = read_u16(bytes, byte_order);
-                                extend_float(u32::from(raw), 10, 5)
-                            }
-                            24 => extend_float(read_u24(bytes, byte_order), 16, 7),
-                            32 => f32::from_bits(read_u32(bytes, byte_order)),
-                            _ => unreachable!("the sample width is validated above"),
-                        };
-                    }
+                let copy_bytes = copy_width * bytes_per_sample;
+                for y in 0..copy_height {
+                    let source = &encoded[y * source_stride..][..copy_bytes];
+                    let target = &mut band[y * geometry.width + tile_x..][..copy_width];
+                    row(source, target);
                 }
             }
             Ok::<(), CodecError>(())
-        })?;
-    mono(geometry.width, geometry.height, output).map(RawMosaic::F32)
+        })
 }
 
 fn decode_packed<T>(
     geometry: &Geometry,
     bits: u16,
     payloads: &[&[u8]],
-    convert: impl Fn(u32) -> Result<T, CodecError> + Sync,
+    convert: impl Fn(u32) -> T + Sync,
     output: &mut [T],
 ) -> Result<(), CodecError>
 where
@@ -234,6 +267,7 @@ where
         .try_for_each(|(tile_y_index, band)| {
             let tile_y = tile_y_index * geometry.chunk_height;
             let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
+            // One scratch buffer per band, reused for every tile in it.
             let mut unpacked = vec![0_u32; geometry.chunk_sample_count()?];
             for tile_x_index in 0..geometry.across {
                 let index = tile_y_index * geometry.across + tile_x_index;
@@ -241,14 +275,11 @@ where
 
                 let tile_x = tile_x_index * geometry.chunk_width;
                 let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
-                for row in 0..copy_height {
-                    let source_start = row * geometry.chunk_width;
-                    let target_start = row * geometry.width + tile_x;
-                    for (target, value) in band[target_start..target_start + copy_width]
-                        .iter_mut()
-                        .zip(&unpacked[source_start..source_start + copy_width])
-                    {
-                        *target = convert(*value)?;
+                for y in 0..copy_height {
+                    let source = &unpacked[y * geometry.chunk_width..][..copy_width];
+                    let target = &mut band[y * geometry.width + tile_x..][..copy_width];
+                    for (target, &value) in target.iter_mut().zip(source) {
+                        *target = convert(value);
                     }
                 }
             }
@@ -270,101 +301,94 @@ fn unpack_bits(source: &[u8], output: &mut [u32], bits: usize) -> Result<(), Cod
     }
 
     let mask = (1_u64 << bits) - 1;
+    // Old bits shift out of the top of the accumulator; only the low
+    // `buffered_bits + 8` (at most 39) bits are ever read, so no per-sample
+    // masking of the buffer is needed.
     let mut buffer = 0_u64;
     let mut buffered_bits = 0_usize;
-    let mut position = 0_usize;
+    let mut bytes = source.iter();
     for value in output {
         while buffered_bits < bits {
-            buffer = (buffer << 8) | u64::from(source[position]);
-            position += 1;
+            // The length check above guarantees enough bytes for every sample.
+            let byte = bytes.next().copied().unwrap_or(0);
+            buffer = (buffer << 8) | u64::from(byte);
             buffered_bits += 8;
         }
         buffered_bits -= bits;
-        *value = u32::try_from((buffer >> buffered_bits) & mask)
-            .map_err(|_| invalid("packed sample exceeds u32"))?;
-        buffer &= (1_u64 << buffered_bits) - 1;
+        *value = low_u32((buffer >> buffered_bits) & mask);
     }
     Ok(())
 }
 
-fn copy_buffer(
-    geometry: &Geometry,
-    bytes_per_sample: usize,
-    payloads: &[&[u8]],
-) -> Result<Vec<u8>, CodecError> {
-    let expected = geometry
-        .sample_count()?
-        .checked_mul(bytes_per_sample)
-        .ok_or_else(|| invalid("sample byte count overflow"))?;
-    let mut output = vec![0_u8; expected];
+/// Samples that can be read straight from a tile row of raw bytes.
+trait Sample: Copy + Send {
+    const BYTES: usize;
 
-    for (index, encoded) in payloads.iter().enumerate() {
-        let tile_x = (index % geometry.across) * geometry.chunk_width;
-        let tile_y = (index / geometry.across) * geometry.chunk_height;
-        let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
-        let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
-        let required_samples = (copy_height - 1)
-            .checked_mul(geometry.chunk_width)
-            .and_then(|count| count.checked_add(copy_width))
-            .ok_or_else(|| invalid("uncompressed chunk size overflow"))?;
-        let required = required_samples
-            .checked_mul(bytes_per_sample)
-            .ok_or_else(|| invalid("uncompressed chunk size overflow"))?;
-        if encoded.len() < required {
-            return Err(invalid(format!("uncompressed chunk {index} is truncated")));
-        }
-        let copy_bytes = copy_width * bytes_per_sample;
-        for row in 0..copy_height {
-            let source_start = row * geometry.chunk_width * bytes_per_sample;
-            let target_start =
-                (tile_y + row) * geometry.width * bytes_per_sample + tile_x * bytes_per_sample;
-            let source = &encoded[source_start..source_start + copy_bytes];
-            let target = &mut output[target_start..target_start + copy_bytes];
-            target.copy_from_slice(source);
-        }
-    }
-    Ok(output)
+    /// `source.len() == target.len() * Self::BYTES`.
+    fn read_row(source: &[u8], target: &mut [Self], byte_order: ByteOrder);
 }
 
+impl Sample for u8 {
+    const BYTES: usize = 1;
+
+    fn read_row(source: &[u8], target: &mut [Self], _byte_order: ByteOrder) {
+        target.copy_from_slice(source);
+    }
+}
+
+macro_rules! impl_sample {
+    ($ty:ty, $bytes:expr) => {
+        impl Sample for $ty {
+            const BYTES: usize = $bytes;
+
+            fn read_row(source: &[u8], target: &mut [Self], byte_order: ByteOrder) {
+                let chunks = source.chunks_exact($bytes);
+                match byte_order {
+                    ByteOrder::Little => {
+                        for (target, bytes) in target.iter_mut().zip(chunks) {
+                            *target = <$ty>::from_le_bytes(bytes.try_into().expect("fixed width"));
+                        }
+                    }
+                    ByteOrder::Big => {
+                        for (target, bytes) in target.iter_mut().zip(chunks) {
+                            *target = <$ty>::from_be_bytes(bytes.try_into().expect("fixed width"));
+                        }
+                    }
+                }
+            }
+        }
+    };
+}
+
+impl_sample!(u16, 2);
+impl_sample!(u32, 4);
+
+/// Copies tiles straight into the typed output, with no intermediate byte
+/// buffer.
 fn copy_samples<T>(
     geometry: &Geometry,
-    bytes_per_sample: usize,
     byte_order: ByteOrder,
     payloads: &[&[u8]],
     output: &mut [T],
 ) -> Result<(), CodecError>
 where
-    T: FromSampleBytes + Send + Sync,
+    T: Sample,
 {
-    let bytes = copy_buffer(geometry, bytes_per_sample, payloads)?;
-    for (source, target) in bytes.chunks_exact(bytes_per_sample).zip(output.iter_mut()) {
-        *target = T::from_bytes(source, byte_order);
-    }
-    Ok(())
+    par_tiles(geometry, T::BYTES, payloads, output, |source, target| {
+        T::read_row(source, target, byte_order);
+    })
 }
 
-trait FromSampleBytes: Copy {
-    fn from_bytes(bytes: &[u8], byte_order: ByteOrder) -> Self;
+const fn low_u8(value: u32) -> u8 { value.to_le_bytes()[0] }
+
+const fn low_u16(value: u32) -> u16 {
+    let bytes = value.to_le_bytes();
+    u16::from_le_bytes([bytes[0], bytes[1]])
 }
 
-impl FromSampleBytes for u16 {
-    fn from_bytes(bytes: &[u8], byte_order: ByteOrder) -> Self {
-        let bytes: [u8; 2] = bytes.try_into().expect("sample width is fixed");
-        match byte_order {
-            ByteOrder::Little => Self::from_le_bytes(bytes),
-            ByteOrder::Big => Self::from_be_bytes(bytes),
-        }
-    }
-}
-
-impl FromSampleBytes for u32 {
-    fn from_bytes(bytes: &[u8], byte_order: ByteOrder) -> Self {
-        let bytes: [u8; 4] = bytes.try_into().expect("sample width is fixed");
-        match byte_order {
-            ByteOrder::Little => Self::from_le_bytes(bytes),
-            ByteOrder::Big => Self::from_be_bytes(bytes),
-        }
-    }
+const fn low_u32(value: u64) -> u32 {
+    let bytes = value.to_le_bytes();
+    u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])
 }
 
 const fn read_u16(bytes: &[u8], byte_order: ByteOrder) -> u16 {
