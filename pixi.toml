@@ -6,6 +6,9 @@ platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 [feature.dev.dependencies]
 libraw-dev = "==0.22.3"
 
+[feature.duckdb.dependencies]
+duckdb-cli = "*"
+
 [feature.python.dependencies]
 maturin = "==1.16.0"
 pip = "==26.2.2"
@@ -20,16 +23,6 @@ pydantic = "==2.14.3"
 pytest = "==9.2.0"
 pytest-cov = "==7.1.0"
 
-[feature.data.dependencies]
-aria2 = "*"
-python-duckdb = "*"
-httpx = "*"
-nomkl = "*"
-typer = "*"
-
-[feature.data.tasks]
-get-raw-samples = "python $PIXI_WORKSPACE_ROOT/scripts/get_raw_samples.py"
-
 [feature.book.dependencies]
 matplotlib-base = "3.11.*"
 python = "3.13.*"
@@ -43,7 +36,7 @@ book-figures = "python -m book.figures"
 
 [environments]
 default = []
-dev = { features = ["dev"], tasks = { pipeline = "cargo run -p fornax-cli --" } }
+dev = { features = ["dev", "duckdb"], tasks = { pipeline = "cargo run -p fornax-cli --" } }
+tracker = ["duckdb"]
 python = ["dev", "python"]
-data = ["data"]
 book = ["book"]

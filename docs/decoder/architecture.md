@@ -79,6 +79,7 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-dng/src/dng_decoder/process_metadata.rs` | DNG geometry, levels, CFA, and white-balance conversion |
 | `fornax-dng/src/writer.rs` | Uncompressed and lossless DNG generation |
 | `bench-decoder/benches/decoder.rs` | Decoder-method benchmarks for DNG and Rawler adapters |
+| `decoder-tracker/src` | Manual raw.pixls.us manifest, isolated decoder runs, shard merge, and baseline diff |
 
 ## DNG data flow
 
@@ -172,8 +173,10 @@ at minimum compile with `cargo bench -p bench-decoder --no-run`. Fixture-backed
 DNG, Rawler, and DNC checks depend on the ignored external RAW fixtures and
 platform tools available in the development environment.
 
-The full corpus tracker remains a backlog item. Binary RAW fixtures stay in
-ignored external storage; only text baselines and metadata are committed.
+`decoder-tracker` holds the manual full-corpus regression workflow. The
+raw.pixls.us submodule is checked out as pointer metadata only; selected LFS
+payloads remain transient, and only text manifests, baselines, and metadata are
+committed.
 
 ## Migration
 

@@ -183,6 +183,12 @@ if [[ "$docs_only" == false ]]; then
     if [[ ! -f external/raw-images/images/colorchart-5D2-6000K.dng ]]; then
         bash scripts/setup.sh
     fi
+    if [[ ! -f external/raw.pixls.us/filelist.sha256 ]]; then
+        GIT_LFS_SKIP_SMUDGE=1 \
+            git -c filter.lfs.required=false \
+            -c submodule.external/raw.pixls.us.branch=master \
+            submodule update --init --remote external/raw.pixls.us
+    fi
 
     if [[ "$fix" == true ]]; then
         cargo -q clippy --workspace --all-features --all-targets --fix \
@@ -191,6 +197,8 @@ if [[ "$docs_only" == false ]]; then
         cargo +nightly fmt -q
     fi
 
+    cargo -q run -p decoder-tracker -- manifest --check
+    pixi run -e tracker cargo -q test -p decoder-tracker --lib duckdb_
     cargo -q test --workspace --all-features --exclude compare-demosaic
     cargo +nightly fmt --check -q
     RUSTDOCFLAGS="-D warnings" \

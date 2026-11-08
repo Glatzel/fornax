@@ -6,3 +6,7 @@
 	path = external/raw-images
 	url = https://github.com/syoyo/raw-images.git
 	shallow = true
+[submodule "external/raw.pixls.us"]
+	path = external/raw.pixls.us
+	url = https://raw.pixls.us/data.lfs.git
+	branch = master
