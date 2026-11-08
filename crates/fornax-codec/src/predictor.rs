@@ -299,8 +299,8 @@ fn diff_row<T: Copy, const N: usize>(
     sub: impl Fn(T, T) -> T,
 ) {
     let mut previous = zero;
-    for chunk in row.chunks_exact_mut(N) {
-        let current = from(<[u8; N]>::try_from(&*chunk).unwrap());
+    for chunk in row.as_chunks_mut::<N>().0 {
+        let current = from(*chunk);
         chunk.copy_from_slice(&to(sub(current, previous)));
         previous = current;
     }
