@@ -113,7 +113,7 @@ pub fn reverse(
             }
             let little = byte_order == ByteOrder::Little;
             // One scratch buffer for the whole payload instead of one per row.
-            let mut scratch = vec![0u8; row_bytes];
+            let mut scratch = vec![0_u8; row_bytes];
             for row in payload[..needed].chunks_exact_mut(row_bytes) {
                 // Undo the byte-wise delta (inherently serial).
                 for index in byte_stride..row_bytes {
@@ -233,35 +233,35 @@ fn integer_rows<const ADD: bool>(
 
     match (bytes_per_sample, byte_order) {
         (1, _) => run!(
-            0u8,
+            0_u8,
             u8::from_le_bytes,
             u8::to_le_bytes,
             u8::wrapping_add,
             u8::wrapping_sub
         ),
         (2, ByteOrder::Little) => run!(
-            0u16,
+            0_u16,
             u16::from_le_bytes,
             u16::to_le_bytes,
             u16::wrapping_add,
             u16::wrapping_sub
         ),
         (2, ByteOrder::Big) => run!(
-            0u16,
+            0_u16,
             u16::from_be_bytes,
             u16::to_be_bytes,
             u16::wrapping_add,
             u16::wrapping_sub
         ),
         (4, ByteOrder::Little) => run!(
-            0u32,
+            0_u32,
             u32::from_le_bytes,
             u32::to_le_bytes,
             u32::wrapping_add,
             u32::wrapping_sub
         ),
         (4, ByteOrder::Big) => run!(
-            0u32,
+            0_u32,
             u32::from_be_bytes,
             u32::to_be_bytes,
             u32::wrapping_add,
@@ -284,8 +284,11 @@ fn undiff_row<T, const N: usize>(
     T: Copy,
 {
     let mut acc = zero;
-    for chunk in row.chunks_exact_mut(N) {
-        acc = add(acc, from(<[u8; N]>::try_from(&*chunk).unwrap()));
+    for chunk in row.as_chunks_mut::<N>().0 {
+        let mut bytes = [0_u8; N];
+        bytes.copy_from_slice(chunk);
+
+        acc = add(acc, from(bytes));
         chunk.copy_from_slice(&to(acc));
     }
 }
