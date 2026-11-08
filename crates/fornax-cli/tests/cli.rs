@@ -5,7 +5,7 @@ use clap::Parser;
 use fornax::dng::metadata::{DngTag, Tag, TiffTag, Value};
 use fornax::dng::{Directory, DngCompression, DngWriter};
 use fornax::{MonoImage, RawMosaic};
-use fornax_cli::{CliArgs, ConversionOutcome, plan_inputs, resolve_config, run};
+use fornax_cli::{CliArgs, ConversionOutcome, run};
 use image::GenericImageView;
 use tempfile::tempdir;
 
