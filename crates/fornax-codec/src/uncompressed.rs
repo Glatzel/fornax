@@ -58,7 +58,7 @@ pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> 
         .chunks,
     })
 }
-fn native_order() -> crate::ByteOrder {
+const fn native_order() -> crate::ByteOrder {
     if cfg!(target_endian = "little") {
         crate::ByteOrder::Little
     } else {

@@ -177,7 +177,7 @@ pub fn apply(
             }
             let little = byte_order == ByteOrder::Little;
             let head = byte_stride.min(row_bytes);
-            let mut scratch = vec![0u8; row_bytes];
+            let mut scratch = vec![0_u8; row_bytes];
             for row in payload.chunks_exact_mut(row_bytes) {
                 // Shuffle interleaved samples into byte planes (endian swap
                 // folded in).

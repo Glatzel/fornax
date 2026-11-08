@@ -52,10 +52,7 @@ where
                 (0..w)
                     .map(|x| {
                         let b = pattern[py * pw + x % pw];
-                        match &delta_h {
-                            Some(d) => b + d[x],
-                            None => b,
-                        }
+                        delta_h.as_ref().map_or(b, |d| b + d[x])
                     })
                     .collect()
             })
