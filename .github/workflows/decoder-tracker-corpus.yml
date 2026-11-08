@@ -16,6 +16,10 @@ on:
       - crates/decoder-tracker/manifest.csv
       - crates/decoder-tracker/baseline.csv
 
+concurrency:
+  group: decoder-tracker-corpus-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
