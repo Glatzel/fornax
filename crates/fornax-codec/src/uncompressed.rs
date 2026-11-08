@@ -45,7 +45,7 @@ pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> 
         && height != 0
     {
         return Ok(EncodedChunks {
-            chunks: vec![serialize_full_image(request.image, request.byte_order)?],
+            chunks: vec![serialize_full_image(request.image, request.byte_order)],
         });
     }
     Ok(EncodedChunks {
