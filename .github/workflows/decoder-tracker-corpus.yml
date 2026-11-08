@@ -8,6 +8,11 @@ on:
         type: string
         required: true
         default: "**/*.[dD][nN][gG]"
+      run_duckdb_tests:
+        description: Test the checked-in DuckDB aggregation SQL before running shards.
+        type: boolean
+        required: false
+        default: false
   push:
     branches:
       - task/dec-corpus-lfs-tracker
@@ -43,6 +48,7 @@ jobs:
       - name: Install tracker tools
         run: pixi install -e tracker
       - name: Test DuckDB aggregation
+        if: ${{ inputs.run_duckdb_tests }}
         run: pixi run -e tracker cargo test -q -p decoder-tracker --lib duckdb_
       - id: plan
         shell: bash

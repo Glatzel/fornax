@@ -152,8 +152,9 @@ rows. The diff command exits 1 when any category is non-empty.
 ## Manual CI
 
 `.github/workflows/decoder-tracker-corpus.yml` is manual-only after bootstrap.
-It accepts one `filter` path glob. The plan job writes and uploads
-`selected-manifest.csv`, then computes:
+It accepts one `filter` path glob and an optional `run_duckdb_tests` boolean
+(default `false`). The plan job writes and uploads `selected-manifest.csv`, then
+computes:
 
 ```text
 runner_count = min(20, max(1, ceil(selected_count / 10)))
