@@ -16,8 +16,8 @@ In scope:
   committed manifest.
 - Add the `decoder-tracker` crate with `manifest`, `run`, `merge`, and `diff`
   subcommands.
-- Add a canonical manifest at `crates/decoder-tracker/baseline.csv` and the DNG
-  result baseline under `crates/decoder-tracker/baseline/`.
+- Add a canonical manifest at `crates/decoder-tracker/manifest.csv` and the DNG
+  result baseline at `crates/decoder-tracker/baseline.csv`.
 - Add a manual, matrix-sharded GitHub Actions workflow.
 - Add `git-lfs` to the Pixi development environment.
 - Validate corpus pointer metadata in `scripts/agent-validation.sh`.
@@ -40,7 +40,7 @@ Out of scope:
   sharding bounds, stage transitions, metadata sanity, timeout/panic mapping,
   canonical CSV, merge completeness, diff classifications, and manifest checks.
 - [x] Implement the Rust CLI and supporting modules until those tests pass.
-- [x] Pin the LFS submodule contents in `baseline.csv` and generate the DNG
+- [x] Pin the LFS submodule contents in `manifest.csv` and generate the DNG
   manifest from
   `filelist.sha256`.
 - [x] Add the manual sharded workflow and temporary branch bootstrap trigger.
@@ -57,7 +57,7 @@ Out of scope:
 
 - `.gitmodules`, `external/raw.pixls.us`
 - `Cargo.toml`, `Cargo.lock`, `pixi.toml`, `pixi.lock`
-- `crates/decoder-tracker/baseline.csv`, `crates/decoder-tracker/baseline/**`,
+- `crates/decoder-tracker/manifest.csv`, `crates/decoder-tracker/baseline.csv`,
   `crates/decoder-tracker/src/**`
 - `.github/workflows/decoder-tracker-corpus.yml`
 - `scripts/agent-validation.sh`, `scripts/agent-validation-test.sh`
@@ -92,5 +92,5 @@ Out of scope:
 - The planned commit `174acd7...` was no longer present when implementation
   started. raw.pixls.us advertises one daily snapshot commit and replaces its
   history, so fresh checkouts follow the remote `master` branch with LFS
-  smudging disabled. `baseline.csv` is the durable snapshot pin and
+  smudging disabled. `manifest.csv` is the durable snapshot pin and
   `manifest --check` rejects uncommitted upstream changes.

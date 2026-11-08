@@ -21,8 +21,8 @@ on:
       - task/dec-corpus-lfs-tracker
     paths:
       - .github/workflows/decoder-tracker-corpus.yml
+      - crates/decoder-tracker/manifest.csv
       - crates/decoder-tracker/baseline.csv
-      - crates/decoder-tracker/baseline/corpus.csv
 
 permissions:
   contents: read
@@ -54,7 +54,7 @@ jobs:
 
           if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
             mode="$REQUESTED_MODE"
-          elif [[ -f crates/decoder-tracker/baseline/corpus.csv ]]; then
+          elif [[ -f crates/decoder-tracker/baseline.csv ]]; then
             mode=verify
           else
             mode=bootstrap
@@ -98,7 +98,6 @@ jobs:
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
         with:
           run-install: false
-          frozen: true
       - name: Install development tools
         run: pixi install -e dev
       - name: Check corpus manifest and run shard
@@ -135,7 +134,6 @@ jobs:
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
         with:
           run-install: false
-          frozen: true
       - name: Install development tools
         run: pixi install -e dev
       - name: Merge shards
@@ -159,5 +157,5 @@ jobs:
         shell: bash
         run: |
           pixi run -e dev cargo run -q -p decoder-tracker -- diff \
-            crates/decoder-tracker/baseline/corpus.csv \
+            crates/decoder-tracker/baseline.csv \
             target/decoder-tracker/candidate.csv

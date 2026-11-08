@@ -16,7 +16,7 @@ are never committed, cached, or uploaded as artifacts.
 raw.pixls.us replaces its Git LFS repository with a new daily snapshot instead
 of retaining a permanent commit history. The submodule therefore follows the
 remote's `master` branch for setup, while
-`crates/decoder-tracker/baseline.csv` records the accepted snapshot's
+`crates/decoder-tracker/manifest.csv` records the accepted snapshot's
 paths, sizes, identities, and LFS SHA-256 values. `manifest --check` fails if the
 current `filelist.sha256` or pointer set no longer matches that committed
 manifest.
@@ -55,7 +55,7 @@ selection is sorted by LFS SHA-256 and assigned with zero-based
 `manifest` reads `filelist.sha256`, selects supported formats, parses each
 corresponding LFS pointer, verifies that its object ID equals the listed
 SHA-256, derives identity fields, and writes the canonical CSV under
-`crates/decoder-tracker/baseline.csv`.
+`crates/decoder-tracker/manifest.csv`.
 
 The manifest header is:
 
@@ -150,7 +150,7 @@ aggregate job merges every shard:
 - `bootstrap` uploads
   `target/decoder-tracker/candidate.csv` as a short-lived candidate artifact;
 - `verify` diffs the merged candidate against
-  `crates/decoder-tracker/baseline/corpus.csv` and requires an empty diff.
+  `crates/decoder-tracker/baseline.csv` and requires an empty diff.
 
 RAW payloads are never cached or uploaded.
 

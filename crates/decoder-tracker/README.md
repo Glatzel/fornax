@@ -15,7 +15,7 @@ pixi run -e dev cargo run -p decoder-tracker -- merge SHARD...
 pixi run -e dev cargo run -p decoder-tracker -- diff BASELINE CANDIDATE
 ```
 
-The committed corpus metadata manifest is `baseline.csv`; decoder pass columns
-and outcomes are in `baseline/corpus.csv`. The complete schema, stage semantics,
+The committed corpus metadata manifest is `manifest.csv`; decoder pass columns
+and outcomes are in `baseline.csv`. The complete schema, stage semantics,
 sharding rules, workflow, and update procedure are documented in
 [docs/decoder/corpus.md](../../docs/decoder/corpus.md).
