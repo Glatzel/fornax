@@ -12,7 +12,7 @@ clap.workspace = true
 clap-style.workspace = true
 clap-verbosity-flag.workspace = true
 clerk = { workspace = true, features = ["tracing"] }
-fornax = { workspace = true, features = ["metadata-json", "zstd"] }
+fornax = { workspace = true, features = ["metadata-json"] }
 image = { workspace = true, features = ["jpeg", "tiff"] }
 mischief.workspace = true
 num-traits.workspace = true

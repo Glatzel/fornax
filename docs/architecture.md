@@ -76,10 +76,8 @@ the stream; `EncodeCompression::Zstd { level }` configures encoding.
 maps that container identifier to `DecodeCompression`, so `fornax-codec` does
 not depend on TIFF or DNG types.
 
-Codec availability is intended to be mandatory. Zstandard and all future codecs
-must be compiled unconditionally without per-codec features or runtime fallback
-errors. The current zstd feature gate is a pending implementation gap rather
-than part of the target architecture.
+Codec availability is mandatory. Zstandard and all future codecs are compiled
+unconditionally without per-codec features or runtime fallback errors.
 
 ## Pipeline flow
 
@@ -131,19 +129,17 @@ storage transforms, linearization, and `OpcodeList1` are applied before
 returning the mosaic. Its process-metadata conversion accepts only conventional
 2x2 RGB Bayer layouts.
 
-Compression `52546` is the DNG 1.7 JPEG XL identifier and maps to the
-single-channel decoder. Legacy TIFF JPEG XL identifier `50002` is not yet
-recognized. Multi-channel `LinearRaw` and three-component lossy JPEG remain
-outside the current mono mosaic decoder contract. Multi-component
-lossless-JPEG tile variants remain an unsupported codec layout within that
-contract.
+Compression `52546` is the DNG 1.7 JPEG XL identifier and compression `50002`
+is the legacy TIFF JPEG XL identifier. Both map to the single-channel decoder.
+Multi-channel `LinearRaw` and three-component lossy JPEG remain outside the
+current mono mosaic decoder contract. Multi-component lossless-JPEG tile
+variants remain an unsupported codec layout within that contract.
 
 `fornax_dng::DngWriter` regenerates uncompressed or lossless DNG data from
 `RawMosaic` and a `fornax_tiff::Directory`. The lossless option writes tiled JPEG-92 for
 U8/U16 samples and a lossless Deflate representation for U32/F32 samples.
 Regeneration is not byte-identical to the source because the public model does
-not retain the original container or auxiliary directories. Zstandard writing
-currently requires the `zstd` feature.
+not retain the original container or auxiliary directories.
 
 ## Benchmarks and comparisons
 

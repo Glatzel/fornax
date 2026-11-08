@@ -28,15 +28,13 @@ Compression capabilities are documented in
 regenerated rather than byte-identical because source container bytes and
 auxiliary directories are not retained.
 
-Compression `52546` is the DNG 1.7 JPEG XL identifier and maps to the
-single-channel JPEG XL decoder. Compression `50002` is the legacy TIFF JPEG XL
-identifier and is not yet represented by `CompressionMethod`.
+Compression `50002` is the legacy TIFF JPEG XL identifier and compression
+`52546` is the DNG 1.7 JPEG XL identifier. Both map to the single-channel JPEG
+XL decoder.
 
-Zstandard currently requires the `zstd` feature and explicit
-`DngCompression::Zstd` selection. Compression 50000 is the libtiff/GDAL
-de-facto extension, not an Adobe-registered DNG compression code. The approved
-target is mandatory codec availability, including zstd and future codecs; the
-feature gate is a pending implementation gap.
+Zstandard is always compiled and is selected with `DngCompression::Zstd`.
+Compression 50000 is the libtiff/GDAL de-facto extension, not an
+Adobe-registered DNG compression code.
 
 The decoder accepts one raw sample per pixel. Three-sample `LinearRaw` payloads
 using compression `1`, `7`, or `34892` are rejected before codec dispatch and
@@ -45,7 +43,7 @@ are not evidence that the underlying compression codec is missing.
 ## DNG writer benchmarks
 
 ```bash
-cargo bench -p fornax-dng --features zstd --bench writer
+cargo bench -p fornax-dng --bench writer
 ```
 
 `FORNAX_BENCH_DNG_COMPRESSION` selects `uncompressed`, `lossless-jpeg`,

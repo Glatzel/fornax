@@ -93,6 +93,8 @@ pub enum CompressionMethod {
     LossyJpeg = 34_892,
     /// Zstandard.
     Zstd = 50_000,
+    /// Legacy TIFF identifier for JPEG XL.
+    JpegXlLegacy = 50_002,
     /// JPEG XL.
     JpegXl = 52_546,
     /// An unsupported or private compression identifier.

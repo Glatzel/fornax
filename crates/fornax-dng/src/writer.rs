@@ -331,7 +331,6 @@ where
     )
 }
 
-#[cfg(feature = "zstd")]
 fn write_zstd<W>(
     writer: W,
     mosaic: &RawMosaic,
@@ -367,22 +366,6 @@ where
         Some(1),
         &chunks,
     )
-}
-
-#[cfg(not(feature = "zstd"))]
-fn write_zstd<W>(
-    _writer: W,
-    _mosaic: &RawMosaic,
-    _metadata: &Directory,
-    _version: DngVersion,
-    _level: i32,
-) -> Result<(), DngWriteError>
-where
-    W: Write + Seek,
-{
-    Err(DngWriteError::Unsupported {
-        operation: "Zstandard DNG writing requires the fornax-dng zstd feature".into(),
-    })
 }
 
 fn write_deflate_all<W>(
@@ -725,18 +708,5 @@ mod tests {
         .expect_err("classic TIFF cannot represent BigTIFF rationals");
 
         assert!(matches!(error, DngWriteError::InvalidMetadata { .. }));
-    }
-
-    #[cfg(not(feature = "zstd"))]
-    #[test]
-    fn zstd_write_without_feature_returns_unsupported() {
-        let mosaic = RawMosaic::U8(MonoImage::from_raw(1, 1, vec![0]).unwrap());
-        let mut output = Cursor::new(Vec::new());
-
-        let error = DngWriter::new(DngCompression::Zstd)
-            .write_dng_with(&mut output, &mosaic, &Directory::default())
-            .expect_err("zstd feature is disabled");
-
-        assert!(matches!(error, DngWriteError::Unsupported { .. }));
     }
 }

@@ -405,26 +405,3 @@ fn jpeg_xl_rejects_malformed_payloads_without_panicking() {
 
     assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
 }
-
-#[cfg(not(feature = "zstd"))]
-#[test]
-fn zstd_dispatch_reports_missing_feature() {
-    let source = [];
-    let chunks = [];
-    let request = request(
-        &source,
-        &chunks,
-        1,
-        1,
-        1,
-        1,
-        8,
-        SampleFormat::Integer,
-        ByteOrder::Little,
-        DecodeCompression::Zstd,
-    );
-
-    let error = decode(&request).unwrap_err();
-
-    assert!(matches!(error, fornax_codec::CodecError::Unsupported(_)));
-}

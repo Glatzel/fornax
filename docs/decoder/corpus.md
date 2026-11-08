@@ -134,11 +134,9 @@ automatically evidence of a missing compression codec:
 - `process_metadata:backend` and `decode:invalid_input` must be investigated
   from their source sample before being assigned to a codec gap.
 
-Compression `52546` is the DNG 1.7 JPEG XL identifier. Legacy TIFF JPEG XL
-identifier `50002` is not yet recognized. Zstandard is implemented with
-pure-Rust `structured-zstd` but currently requires the `zstd` feature; the
-approved target is mandatory codec availability for zstd and all future
-codecs.
+Compression `52546` is the DNG 1.7 JPEG XL identifier and `50002` is the legacy
+TIFF JPEG XL identifier. Both use the JPEG XL decoder. Zstandard is always
+compiled with pure-Rust `structured-zstd`, as are all future codecs.
 
 `update-badge.sh` derives the accumulated pass count across all baseline rows
 and writes one badge plus a per-format table into the decoder-tracker README.

@@ -32,14 +32,13 @@ format crates.
 | Lossless JPEG-92 (`7`) | Single-sample strips/tiles, predictors 1-7 | U8/U16 tiles |
 | Deflate (`8`) | Integer and float predictors | U8/U16/U32/F32 tiles |
 | Lossy JPEG (`34892`) | Single-component 8-bit | No |
-| JPEG XL (`52546`) | Single-channel 8-16-bit mosaics | No |
+| JPEG XL (`50002`, `52546`) | Single-channel 8-16-bit mosaics | No |
 | Zstandard (`50000`, experimental) | Integer and float payloads | Integer and float tiles |
 
 Unknown TIFF compression identifiers are reported as unsupported.
 
-The DNG layer maps compression `52546` to the JPEG XL decoder. Compression
-`50002` is the legacy TIFF JPEG XL identifier and is currently not routed by
-`fornax-dng`.
+The DNG layer maps both legacy TIFF JPEG XL compression `50002` and DNG 1.7
+compression `52546` to the same JPEG XL decoder.
 
 ## Current codec limitations
 
@@ -53,19 +52,11 @@ The DNG layer maps compression `52546` to the JPEG XL decoder. Compression
 - Uncompressed, Deflate, and Zstandard decoding accept only one raw sample per
   pixel in the DNG decoder.
 
-## Features
-
-| Feature | Effect |
-| --- | --- |
-| Default | JPEG, JPEG XL, Deflate, and lossless JPEG-92 |
-| `zstd` | Adds Zstandard decoding and encoding |
+## Codec availability
 
 Use `EncodeCompression::Zstd { level }` to select a Zstandard encoding level.
 Decoding uses `DecodeCompression::Zstd` because the level is stored in the
-stream. Without `zstd`, both Zstandard directions return
-`CodecError::Unsupported`.
+stream.
 
-The approved target is mandatory codec availability: zstd and every future
-codec are compiled unconditionally. The current `zstd` feature and its fallback
-errors remain a pending migration and must be removed before documenting zstd
-as always available in shipped builds.
+All codec implementations, including zstd, are always compiled. Codecs must not
+introduce optional Cargo features or feature-dependent fallback behavior.

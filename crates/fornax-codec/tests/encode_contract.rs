@@ -321,7 +321,6 @@ fn lossless_jpeg_round_trips_partial_edge_tiles() {
     }
 }
 
-#[cfg(feature = "zstd")]
 #[test]
 fn zstd_round_trips_integer_and_float_chunks() {
     for (image, bits, format) in [
@@ -374,20 +373,4 @@ fn zstd_round_trips_integer_and_float_chunks() {
             _ => assert_eq!(image, decoded),
         }
     }
-}
-
-#[cfg(not(feature = "zstd"))]
-#[test]
-fn zstd_encoding_reports_missing_feature() {
-    let image = RawMosaic::U8(MonoImage::from_raw(1, 1, vec![0]).unwrap());
-    let error = encode(&request(
-        &image,
-        1,
-        1,
-        Predictor::None,
-        EncodeCompression::Zstd { level: 3 },
-    ))
-    .unwrap_err();
-
-    assert!(matches!(error, fornax_codec::CodecError::Unsupported(_)));
 }

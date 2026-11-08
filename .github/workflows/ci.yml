@@ -152,7 +152,6 @@ jobs:
 
           - package: fornax-dng
             changed: ${{ needs.changed.outputs.benchmark_dng }}
-            extra-options: --features zstd
 
           - package: fornax-postprocessor
             changed: ${{ needs.changed.outputs.benchmark_postprocessor }}

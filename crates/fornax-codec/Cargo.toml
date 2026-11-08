@@ -10,13 +10,9 @@ fornax-core.workspace = true
 image.workspace = true
 jxl-oxide.workspace = true
 rayon.workspace = true
-structured-zstd = { version = "0.2.6", optional = true }
+structured-zstd = "0.2.6"
 thiserror.workspace = true
 zune-jpeg.workspace = true
 
 [dev-dependencies]
 image = { workspace = true, features = ["jpeg"] }
-
-[features]
-default = []
-zstd = ["dep:structured-zstd"]

@@ -56,7 +56,6 @@ Remaining DNG work:
   subsampled or half-height tile variants;
 - multi-channel `LinearRaw` decoding outside the current mono `RawMosaic`
   contract;
-- legacy TIFF JPEG XL compression identifier `50002`;
 - `SubTileBlockSize` and non-2x2 interleave factors;
 - geometric/frontend opcodes outside the raw pixel domain;
 - `OpcodeList2` and `OpcodeList3` execution in their downstream stages;
@@ -84,18 +83,15 @@ geometry.
 | Uncompressed (`1`) | Strips/tiles | Packed 1-32-bit integer and 16/24/32-bit float samples |
 | Lossless JPEG-92 (`7`) | Strips/tiles | 2-16-bit precision, predictors 1-7, single-component or 1x1 interleaved components |
 | Deflate (`8`) | Strips/tiles | Integer and float payloads with standard horizontal/float predictors |
-| JPEG XL (`52546`) | Strips/tiles | Single-channel 8-16-bit mosaics |
+| JPEG XL (`50002`, `52546`) | Strips/tiles | Single-channel 8-16-bit mosaics |
 | Lossy JPEG (`34892`) | Strips/tiles | Single-component 8-bit mosaics |
 | Zstandard (`50000`, experimental) | Strips/tiles | Integer and float payloads |
 
-Compression `50002` is the legacy TIFF JPEG XL identifier. It is not yet
-represented by `fornax_tiff::CompressionMethod`, while `52546` is the DNG 1.7
-identifier mapped to the single-channel JPEG XL decoder.
+Compression `50002` is the legacy TIFF JPEG XL identifier and `52546` is the
+DNG 1.7 identifier. Both map to the single-channel JPEG XL decoder.
 
-The approved codec policy is mandatory availability: zstd and all future codecs
-must be compiled unconditionally without per-codec features. The current zstd
-feature gate is a pending implementation gap, so current builds still require
-the feature for compression `50000`.
+Codec availability is mandatory: zstd and all future codecs are compiled
+unconditionally without per-codec features.
 
 Malformed values and layouts outside the active Bayer contract return
 `DecodeError::InvalidInput` or the existing CFA boundary error. Unknown

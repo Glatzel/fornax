@@ -29,6 +29,7 @@ fn compression_methods_preserve_known_and_unknown_identifiers() {
         (CompressionMethod::Deflate, 8),
         (CompressionMethod::LossyJpeg, 34_892),
         (CompressionMethod::Zstd, 50_000),
+        (CompressionMethod::JpegXlLegacy, 50_002),
         (CompressionMethod::JpegXl, 52_546),
     ];
 

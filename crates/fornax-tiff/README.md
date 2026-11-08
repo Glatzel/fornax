@@ -29,16 +29,16 @@ DNG raw compression identifiers currently represented by
 | `8` | Deflate | Recognized |
 | `34892` | Lossy JPEG | Recognized |
 | `50000` | Experimental Zstandard | Recognized |
+| `50002` | Legacy TIFF JPEG XL | Recognized |
 | `52546` | DNG 1.7 JPEG XL | Recognized |
 
-Compression `50002` is the legacy TIFF JPEG XL identifier and is not yet
-represented by `CompressionMethod`. Other TIFF compression identifiers remain
-available through `CompressionMethod::Unknown`; recognizing an identifier here
-does not by itself imply that a codec can decode every payload layout.
+Compression `50002` is the legacy TIFF JPEG XL identifier and `52546` is the DNG
+1.7 JPEG XL identifier. Other TIFF compression identifiers remain available
+through `CompressionMethod::Unknown`; recognizing an identifier here does not by
+itself imply that a codec can decode every payload layout.
 
-Codec support is intended to be mandatory. Zstandard and future codecs must not
-introduce optional codec features once the current feature-gated implementation
-is migrated.
+Codec support is mandatory. Zstandard and future codecs are mandatory
+dependencies without optional codec features.
 
 The crate intentionally owns container mechanics only. DNG-only tag semantics
 belong to `fornax-dng`; format-neutral raw codecs belong to `fornax-codec`.
