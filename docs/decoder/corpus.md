@@ -35,6 +35,7 @@ pixi run -e dev cargo run -q -p decoder-tracker -- run [--manifest F] [--format 
 pixi run -e dev cargo run -q -p decoder-tracker -- merge --manifest F --out FILE SHARD...
 pixi run -e dev cargo run -q -p decoder-tracker -- diff --selected F --out FILE BASELINE CANDIDATE
 pixi run -e dev cargo run -q -p decoder-tracker -- update --baseline F --candidate F --out FILE
+pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
 `run` defaults to DNG and refuses selections larger than two files unless
@@ -154,7 +155,7 @@ rows. The diff command exits 1 when any category is non-empty.
 `.github/workflows/decoder-tracker-corpus.yml` is manual-only after bootstrap.
 It accepts one `filter` path glob and an optional `run_duckdb_tests` boolean
 (default `false`). The plan job uses
-`scripts/decoder-tracker-select.sh` to filter `manifest.csv` directly with
+`crates/decoder-tracker/scripts/select.sh` to filter `manifest.csv` directly with
 DuckDB, writes and uploads `selected-manifest.csv`, then computes:
 
 ```text
@@ -171,7 +172,7 @@ GitHub/Pixi download failures.
 
 Each shard downloads the selected manifest, initializes the pointer-only corpus,
 runs `manifest --check`, executes its assigned files, and uploads CSV only. The
-aggregate job uses `scripts/decoder-tracker-aggregate.sh` to merge, validate,
+aggregate job uses `crates/decoder-tracker/scripts/aggregate.sh` to merge, validate,
 diff, and upsert entirely through DuckDB, then:
 
 - uploads a bootstrap baseline when no committed baseline exists;

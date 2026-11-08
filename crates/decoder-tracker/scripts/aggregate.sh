@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 selected=""
 baseline="$repo_root/crates/decoder-tracker/baseline.csv"
 work_dir="$repo_root/target/decoder-tracker/update"

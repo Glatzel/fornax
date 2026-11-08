@@ -191,8 +191,7 @@ fn duckdb_select_script_filters_without_the_rust_binary() {
     let manifest = temp.path().join("manifest.csv");
     let selected = temp.path().join("selected.csv");
     fs::write(&manifest, write_manifest_csv(&rows).unwrap()).unwrap();
-    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../scripts/decoder-tracker-select.sh");
+    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/select.sh");
 
     let output = std::process::Command::new("bash")
         .arg(&script)
@@ -261,8 +260,7 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
     fs::write(&baseline, write_baseline_csv(&baseline_rows).unwrap()).unwrap();
     let output_file = temp.path().join("github-output");
     fs::write(&output_file, "").unwrap();
-    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../scripts/decoder-tracker-aggregate.sh");
+    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/aggregate.sh");
 
     let output = std::process::Command::new("bash")
         .arg(&script)
@@ -331,4 +329,74 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
             .unwrap()
             .contains("decode:invalid_input")
     );
+}
+
+#[test]
+fn duckdb_badge_script_updates_pass_and_total_counts() {
+    if !std::process::Command::new("duckdb")
+        .arg("--version")
+        .output()
+        .is_ok_and(|output| output.status.success())
+    {
+        return;
+    }
+    let temp = tempdir().unwrap();
+    let baseline = temp.path().join("baseline.csv");
+    let readme = temp.path().join("README.md");
+    let rows = vec![
+        BaselineRow {
+            status: status_for_stages([1, 1, 1, 1]).into(),
+            camera: "Canon Cam".into(),
+            format: "DNG".into(),
+            path: "Canon/Cam/A.DNG".into(),
+            decode_pass: 1,
+            raw_mosaic_pass: 1,
+            process_metadata_pass: 1,
+            handoff_pass: 1,
+            error_kind: String::new(),
+            width: 16,
+            height: 8,
+            cfa: "RGGB".into(),
+        },
+        BaselineRow {
+            status: status_for_stages([0, 0, 0, 0]).into(),
+            camera: "Canon Cam".into(),
+            format: "DNG".into(),
+            path: "Canon/Cam/B.DNG".into(),
+            decode_pass: 0,
+            raw_mosaic_pass: 0,
+            process_metadata_pass: 0,
+            handoff_pass: 0,
+            error_kind: "decode:invalid_input".into(),
+            width: 0,
+            height: 0,
+            cfa: "unknown".into(),
+        },
+    ];
+    fs::write(&baseline, write_baseline_csv(&rows).unwrap()).unwrap();
+    fs::write(
+        &readme,
+        "# decoder-tracker\n\n<!-- decoder-tracker-badge:start -->\nold\n<!-- decoder-tracker-badge:end -->\n",
+    )
+    .unwrap();
+    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/update-badge.sh");
+
+    let output = std::process::Command::new("bash")
+        .arg(script)
+        .args([
+            "--baseline",
+            baseline.to_str().unwrap(),
+            "--readme",
+            readme.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let text = fs::read_to_string(readme).unwrap();
+    assert!(text.contains("DNG_corpus-1%2F2"));
+    assert!(!text.contains("\nold\n"));
 }

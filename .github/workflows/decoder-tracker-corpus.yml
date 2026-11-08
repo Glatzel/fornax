@@ -9,10 +9,11 @@ on:
         required: true
         default: "**/*.[dD][nN][gG]"
       run_duckdb_tests:
-        description: Test the checked-in DuckDB aggregation SQL before running shards.
+        description: Test DuckDB selection, aggregation, and badge shell scripts before running shards.
         type: boolean
         required: false
         default: false
+
 concurrency:
   group: decoder-tracker-corpus-${{ github.ref }}
   cancel-in-progress: true
@@ -50,7 +51,7 @@ jobs:
         run: |
           filter="${REQUESTED_FILTER:-**/*.[dD][nN][gG]}"
           result="$(
-            pixi run -e tracker bash scripts/decoder-tracker-select.sh \
+            pixi run -e tracker bash crates/decoder-tracker/scripts/select.sh \
               --filter "$filter" \
               --out target/decoder-tracker/selected-manifest.csv
           )"
@@ -165,7 +166,7 @@ jobs:
       - id: aggregate
         shell: bash
         run: |
-          pixi run -e tracker bash scripts/decoder-tracker-aggregate.sh \
+          pixi run -e tracker bash crates/decoder-tracker/scripts/aggregate.sh \
             --selected target/decoder-tracker/selected-manifest.csv \
             --baseline crates/decoder-tracker/baseline.csv \
             --work-dir target/decoder-tracker/update \

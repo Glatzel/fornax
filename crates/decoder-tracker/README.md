@@ -1,5 +1,11 @@
 # decoder-tracker
 
+<!-- decoder-tracker-badge:start -->
+
+[![DNG corpus: 209/262 passed](https://img.shields.io/badge/DNG_corpus-209%2F262-orange)](baseline.csv)
+
+<!-- decoder-tracker-badge:end -->
+
 Manual regression tracking for Fornax decoders over the pinned raw.pixls.us
 corpus.
 
@@ -15,6 +21,7 @@ pixi run -e dev cargo run -p decoder-tracker -- run --filename IMG_0001
 pixi run -e dev cargo run -p decoder-tracker -- merge --manifest MANIFEST SHARD...
 pixi run -e dev cargo run -p decoder-tracker -- diff --selected MANIFEST BASELINE CANDIDATE
 pixi run -e dev cargo run -p decoder-tracker -- update --baseline BASELINE --candidate CANDIDATE
+pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
 The committed corpus metadata manifest is `manifest.csv`; decoder pass columns
