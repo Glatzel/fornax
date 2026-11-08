@@ -81,7 +81,7 @@ jobs:
       contents: read
     strategy:
       fail-fast: false
-      max-parallel: ${{ fromJSON(needs.plan.outputs.shard_count) }}
+      max-parallel: 5
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
