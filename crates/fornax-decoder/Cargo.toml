@@ -11,7 +11,7 @@ name = "decoder"
 clerk.workspace = true
 fornax-core.workspace = true
 fornax-dng.workspace = true
-
+image.workspace = true
 [dev-dependencies]
 criterion.workspace = true
 fornax-core.workspace = true

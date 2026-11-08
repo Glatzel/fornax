@@ -5,6 +5,7 @@ use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use generic_num::num;
+use image::math::Rect;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
 
 #[derive(Clone, Debug)]
@@ -97,8 +98,13 @@ impl IDecoder for RawlerDecoder {
                     .ok_or(RawValidationError::InvalidImage)
             }
         }?;
-        let metadata = self.process_metadata()?;
-        cropped.crop_in_place(metadata.active_area);
+        let active_area = raw.active_area.unwrap();
+        cropped.crop_in_place(Rect {
+            x: active_area.x() as _,
+            y: active_area.y() as _,
+            width: active_area.width() as _,
+            height: active_area.height() as _,
+        });
         Ok(CroppedMosaic::new(cropped))
     }
 

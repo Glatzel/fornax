@@ -828,6 +828,7 @@ dependencies = [
  "fornax-devtool",
  "fornax-dng",
  "generic-num",
+ "image 0.25.9",
  "rawler",
  "strum",
 ]
