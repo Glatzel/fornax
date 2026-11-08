@@ -168,50 +168,17 @@ jobs:
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
         with:
           run-install: false
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
       - name: Install tracker tools
         run: pixi install -e tracker
       - id: aggregate
         shell: bash
         run: |
-          pixi run -e tracker cargo run -q -p decoder-tracker -- merge \
-            --manifest target/decoder-tracker/selected-manifest.csv \
-            --out target/decoder-tracker/candidate.csv \
-            target/decoder-tracker/shards/*.csv
-
-          mkdir -p target/decoder-tracker/update
-          if [[ ! -f crates/decoder-tracker/baseline.csv ]]; then
-            cp target/decoder-tracker/candidate.csv \
-              target/decoder-tracker/update/baseline.csv
-            printf 'outcome=bootstrap\n' >>"$GITHUB_OUTPUT"
-            printf 'changed=true\n' >>"$GITHUB_OUTPUT"
-            printf 'Bootstrap baseline captured.\n' >>"$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          set +e
-          pixi run -e tracker cargo run -q -p decoder-tracker -- diff \
+          pixi run -e tracker bash scripts/decoder-tracker-aggregate.sh \
             --selected target/decoder-tracker/selected-manifest.csv \
-            --out target/decoder-tracker/update/diff.csv \
-            crates/decoder-tracker/baseline.csv \
-            target/decoder-tracker/candidate.csv
-          diff_status=$?
-          set -e
-
-          if ((diff_status == 0)); then
-            printf 'outcome=unchanged\n' >>"$GITHUB_OUTPUT"
-            printf 'changed=false\n' >>"$GITHUB_OUTPUT"
-            printf 'Selected decoder rows are unchanged.\n' >>"$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
-          pixi run -e tracker cargo run -q -p decoder-tracker -- update \
             --baseline crates/decoder-tracker/baseline.csv \
-            --candidate target/decoder-tracker/candidate.csv \
-            --out target/decoder-tracker/update/baseline.csv
-          printf 'outcome=changed\n' >>"$GITHUB_OUTPUT"
-          printf 'changed=true\n' >>"$GITHUB_OUTPUT"
-          printf 'Selected decoder rows changed; review the uploaded baseline update.\n' >>"$GITHUB_STEP_SUMMARY"
+            --work-dir target/decoder-tracker/update \
+            --github-output "$GITHUB_OUTPUT" \
+            -- target/decoder-tracker/shards/*.csv
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ steps.aggregate.outputs.changed == 'true' }}
         with:

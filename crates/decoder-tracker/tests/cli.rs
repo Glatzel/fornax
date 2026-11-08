@@ -1,9 +1,9 @@
 use std::fs;
 
 use assert_cmd::Command;
-use decoder_tracker::csvio::{read_manifest_csv, write_manifest_csv};
+use decoder_tracker::csvio::{read_manifest_csv, write_baseline_csv, write_manifest_csv};
 use decoder_tracker::manifest::{derive_identity, generate_manifest};
-use decoder_tracker::model::ManifestRow;
+use decoder_tracker::model::{BaselineRow, ManifestRow, status_for_stages};
 use tempfile::tempdir;
 
 fn manifest_row(sha: &str, path: &str) -> ManifestRow {
@@ -195,7 +195,7 @@ fn duckdb_select_script_filters_without_the_rust_binary() {
         .join("../../scripts/decoder-tracker-select.sh");
 
     let output = std::process::Command::new("bash")
-        .arg(script)
+        .arg(&script)
         .args([
             "--manifest",
             manifest.to_str().unwrap(),
@@ -217,5 +217,118 @@ fn duckdb_select_script_filters_without_the_rust_binary() {
             .unwrap()
             .len(),
         2
+    );
+}
+
+#[test]
+fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
+    if !std::process::Command::new("duckdb")
+        .arg("--version")
+        .output()
+        .is_ok_and(|output| output.status.success())
+    {
+        return;
+    }
+    let temp = tempdir().unwrap();
+    let rows = [
+        manifest_row(&"aa".repeat(32), "Canon/Cam/A.DNG"),
+        manifest_row(&"bb".repeat(32), "Canon/Cam/B.DNG"),
+    ];
+    let manifest = temp.path().join("selected.csv");
+    fs::write(&manifest, write_manifest_csv(&rows).unwrap()).unwrap();
+    let baseline_rows = rows
+        .iter()
+        .map(|row| BaselineRow {
+            status: status_for_stages([1, 1, 1, 1]).into(),
+            camera: row.camera.clone(),
+            format: row.format.clone(),
+            path: row.path.clone(),
+            decode_pass: 1,
+            raw_mosaic_pass: 1,
+            process_metadata_pass: 1,
+            handoff_pass: 1,
+            error_kind: String::new(),
+            width: 16,
+            height: 8,
+            cfa: "RGGB".into(),
+        })
+        .collect::<Vec<_>>();
+    let shard_a = temp.path().join("a.csv");
+    let shard_b = temp.path().join("b.csv");
+    fs::write(&shard_a, write_baseline_csv(&baseline_rows[..1]).unwrap()).unwrap();
+    fs::write(&shard_b, write_baseline_csv(&baseline_rows[1..]).unwrap()).unwrap();
+    let baseline = temp.path().join("baseline.csv");
+    fs::write(&baseline, write_baseline_csv(&baseline_rows).unwrap()).unwrap();
+    let output_file = temp.path().join("github-output");
+    fs::write(&output_file, "").unwrap();
+    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../scripts/decoder-tracker-aggregate.sh");
+
+    let output = std::process::Command::new("bash")
+        .arg(&script)
+        .args([
+            "--selected",
+            manifest.to_str().unwrap(),
+            "--baseline",
+            baseline.to_str().unwrap(),
+            "--work-dir",
+            temp.path().join("update").to_str().unwrap(),
+            "--github-output",
+            output_file.to_str().unwrap(),
+            "--",
+            shard_a.to_str().unwrap(),
+            shard_b.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("outcome=unchanged"));
+
+    let changed_a = temp.path().join("changed-a.csv");
+    let mut changed_row = baseline_rows[0].clone();
+    changed_row.status = "❌".into();
+    changed_row.decode_pass = 0;
+    changed_row.raw_mosaic_pass = 0;
+    changed_row.process_metadata_pass = 0;
+    changed_row.handoff_pass = 0;
+    changed_row.error_kind = "decode:invalid_input".into();
+    fs::write(
+        &changed_a,
+        write_baseline_csv(std::slice::from_ref(&changed_row)).unwrap(),
+    )
+    .unwrap();
+    let changed_output = temp.path().join("github-output-changed");
+    fs::write(&changed_output, "").unwrap();
+    let changed = std::process::Command::new("bash")
+        .arg(script)
+        .args([
+            "--selected",
+            manifest.to_str().unwrap(),
+            "--baseline",
+            baseline.to_str().unwrap(),
+            "--work-dir",
+            temp.path().join("update-changed").to_str().unwrap(),
+            "--github-output",
+            changed_output.to_str().unwrap(),
+            "--",
+            changed_a.to_str().unwrap(),
+            shard_b.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        changed.status.success(),
+        "{}",
+        String::from_utf8_lossy(&changed.stderr)
+    );
+    assert!(String::from_utf8_lossy(&changed.stdout).contains("outcome=changed"));
+    assert!(
+        fs::read_to_string(temp.path().join("update-changed/baseline.csv"))
+            .unwrap()
+            .contains("decode:invalid_input")
     );
 }

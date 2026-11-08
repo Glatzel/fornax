@@ -158,3 +158,6 @@ Out of scope:
   GitHub 504 responses.
 - DuckDB SQL self-tests are optional through the manual `run_duckdb_tests`
   workflow input and default to disabled.
+- Plan-time selection and aggregate merge/diff/upsert run through checked-in
+  shell scripts backed directly by DuckDB CLI, avoiding Rust builds in those
+  jobs.

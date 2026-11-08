@@ -69,4 +69,46 @@ SELECT
             SELECT path FROM expected
         )
     ) AS unexpected,
-    (SELECT count() FROM updates) AS rows_merged;
+    (SELECT count() FROM updates) AS rows_merged,
+    (
+        SELECT count()
+        FROM updates
+        WHERE NOT (
+            decode_pass IN (0, 1)
+            AND raw_mosaic_pass IN (0, 1)
+            AND process_metadata_pass IN (0, 1)
+            AND handoff_pass IN (0, 1)
+        )
+    ) AS invalid_stage_values,
+    (
+        SELECT count()
+        FROM updates
+        WHERE
+            (decode_pass = 0 AND (raw_mosaic_pass = 1 OR process_metadata_pass = 1 OR handoff_pass = 1))
+            OR (raw_mosaic_pass = 0 AND (process_metadata_pass = 1 OR handoff_pass = 1))
+            OR (process_metadata_pass = 0 AND handoff_pass = 1)
+    ) AS invalid_stage_order,
+    (
+        SELECT count()
+        FROM updates
+        WHERE
+            (
+                decode_pass = 1
+                AND raw_mosaic_pass = 1
+                AND process_metadata_pass = 1
+                AND handoff_pass = 1
+            ) != (coalesce(error_kind, '') = '')
+    ) AS invalid_error_kind,
+    (
+        SELECT count()
+        FROM updates
+        WHERE
+            status != CASE
+                WHEN decode_pass = 1
+                    AND raw_mosaic_pass = 1
+                    AND process_metadata_pass = 1
+                    AND handoff_pass = 1
+                THEN '✅'
+                ELSE '❌'
+            END
+    ) AS invalid_status;

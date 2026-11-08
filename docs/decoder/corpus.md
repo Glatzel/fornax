@@ -171,7 +171,8 @@ GitHub/Pixi download failures.
 
 Each shard downloads the selected manifest, initializes the pointer-only corpus,
 runs `manifest --check`, executes its assigned files, and uploads CSV only. The
-aggregate job merges every shard and:
+aggregate job uses `scripts/decoder-tracker-aggregate.sh` to merge, validate,
+diff, and upsert entirely through DuckDB, then:
 
 - uploads a bootstrap baseline when no committed baseline exists;
 - uploads nothing when selected rows are unchanged;
