@@ -3,12 +3,11 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 pub const MANIFEST_HEADER: [&str; 6] = ["vendor", "camera", "format", "path", "size", "sha256"];
-pub const BASELINE_HEADER: [&str; 13] = [
+pub const BASELINE_HEADER: [&str; 12] = [
     "vendor",
     "camera",
-    "model",
     "format",
-    "filename",
+    "path",
     "decode_pass",
     "raw_mosaic_pass",
     "process_metadata_pass",
@@ -76,7 +75,7 @@ impl ManifestRow {
             vendor: self.vendor.clone(),
             camera: self.camera.clone(),
             format: self.format.clone(),
-            filename: self.filename.clone(),
+            path: self.path.clone(),
         }
     }
 }
@@ -86,7 +85,7 @@ pub struct BaselineKey {
     pub vendor: String,
     pub camera: String,
     pub format: String,
-    pub filename: String,
+    pub path: String,
 }
 
 impl fmt::Display for BaselineKey {
@@ -94,7 +93,7 @@ impl fmt::Display for BaselineKey {
         write!(
             formatter,
             "{}/{}/{}/{}",
-            self.vendor, self.camera, self.format, self.filename
+            self.vendor, self.camera, self.format, self.path
         )
     }
 }
@@ -103,9 +102,8 @@ impl fmt::Display for BaselineKey {
 pub struct BaselineRow {
     pub vendor: String,
     pub camera: String,
-    pub model: String,
     pub format: String,
-    pub filename: String,
+    pub path: String,
     pub decode_pass: u8,
     pub raw_mosaic_pass: u8,
     pub process_metadata_pass: u8,
@@ -122,7 +120,7 @@ impl BaselineRow {
             vendor: self.vendor.clone(),
             camera: self.camera.clone(),
             format: self.format.clone(),
-            filename: self.filename.clone(),
+            path: self.path.clone(),
         }
     }
 

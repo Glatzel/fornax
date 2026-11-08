@@ -66,19 +66,19 @@ vendor,camera,format,path,size,sha256
 Repository paths use `/`, retain case and UTF-8 content, and are interpreted
 relative to the corpus root. `camera` is normally `<vendor> <model>`; when the
 model already starts with the vendor, the model is used without duplicating the
-vendor. `filename` is derived as the original stem without its extension and is
-stored in the separate results baseline.
+vendor. `filename` is derived as the original stem without its extension for
+the `--filename` filter and is not duplicated in either committed CSV.
 
 Manifest rows are sorted by `(sha256, path)`. `model` is derived from `path` when
 the manifest is loaded rather than duplicated in the file. The unique baseline
-key is `(vendor, camera, format, filename)`. Duplicate keys are an error.
+key is `(vendor, camera, format, path)`. Duplicate keys are an error.
 
 ## Baseline schema
 
 The canonical baseline header is:
 
 ```csv
-vendor,camera,model,format,filename,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa
+vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa
 ```
 
 Rows use UTF-8 with LF endings and RFC 4180 quoting, sort by the unique key, and

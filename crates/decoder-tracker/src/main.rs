@@ -257,7 +257,7 @@ fn diff(args: DiffArgs) -> Result<ExitCode> {
     for (before, after) in &report.changed {
         println!("changed {}", before.key());
         println!(
-            "  before: passes={}{}{}{} error={:?} size={}x{} cfa={:?} model={:?}",
+            "  before: passes={}{}{}{} error={:?} size={}x{} cfa={:?}",
             before.decode_pass,
             before.raw_mosaic_pass,
             before.process_metadata_pass,
@@ -265,11 +265,10 @@ fn diff(args: DiffArgs) -> Result<ExitCode> {
             before.error_kind,
             before.width,
             before.height,
-            before.cfa,
-            before.model
+            before.cfa
         );
         println!(
-            "  after:  passes={}{}{}{} error={:?} size={}x{} cfa={:?} model={:?}",
+            "  after:  passes={}{}{}{} error={:?} size={}x{} cfa={:?}",
             after.decode_pass,
             after.raw_mosaic_pass,
             after.process_metadata_pass,
@@ -277,8 +276,7 @@ fn diff(args: DiffArgs) -> Result<ExitCode> {
             after.error_kind,
             after.width,
             after.height,
-            after.cfa,
-            after.model
+            after.cfa
         );
     }
     println!(
@@ -298,9 +296,8 @@ fn baseline_row(manifest: &ManifestRow, stage: StageRow) -> BaselineRow {
     BaselineRow {
         vendor: manifest.vendor.clone(),
         camera: manifest.camera.clone(),
-        model: manifest.model.clone(),
         format: normalize_repo_path(&manifest.format),
-        filename: manifest.filename.clone(),
+        path: manifest.path.clone(),
         decode_pass: stage.decode_pass,
         raw_mosaic_pass: stage.raw_mosaic_pass,
         process_metadata_pass: stage.process_metadata_pass,

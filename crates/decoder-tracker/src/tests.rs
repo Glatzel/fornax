@@ -41,9 +41,8 @@ fn baseline_row(key: &BaselineKey, handoff: u8) -> BaselineRow {
     BaselineRow {
         vendor: key.vendor.clone(),
         camera: key.camera.clone(),
-        model: "Model".into(),
         format: key.format.clone(),
-        filename: key.filename.clone(),
+        path: key.path.clone(),
         decode_pass: 1,
         raw_mosaic_pass: 1,
         process_metadata_pass: 1,
@@ -244,9 +243,8 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     let row = BaselineRow {
         vendor: "Canon".into(),
         camera: "Canon, EOS \"R5\"".into(),
-        model: "EOS R5".into(),
         format: "DNG".into(),
-        filename: "IMG,001".into(),
+        path: "Canon/EOS R5/IMG,001.DNG".into(),
         decode_pass: 1,
         raw_mosaic_pass: 1,
         process_metadata_pass: 1,
@@ -259,7 +257,7 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     let bytes = write_baseline_csv(std::slice::from_ref(&row)).unwrap();
     let text = std::str::from_utf8(&bytes).unwrap();
     assert!(text.starts_with(
-        "vendor,camera,model,format,filename,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
+        "vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
     ));
     assert!(text.contains("\"Canon, EOS \"\"R5\"\"\""));
     assert!(!text.contains('\r'));
@@ -271,7 +269,7 @@ fn merge_rejects_duplicate_rows_across_shards() {
         vendor: "Canon".into(),
         camera: "Canon EOS".into(),
         format: "DNG".into(),
-        filename: "IMG_1".into(),
+        path: "Canon/Cam/IMG_1.DNG".into(),
     };
     let row = baseline_row(&key, 1);
     let expected = BTreeSet::from([key]);
@@ -289,7 +287,7 @@ fn merge_rejects_gaps_and_schema_mismatch() {
         vendor: "Canon".into(),
         camera: "Canon EOS".into(),
         format: "DNG".into(),
-        filename: "IMG_1".into(),
+        path: "Canon/Cam/IMG_1.DNG".into(),
     };
     let expected = BTreeSet::from([key]);
     assert!(
@@ -304,7 +302,7 @@ fn merge_rejects_gaps_and_schema_mismatch() {
             vendor: "Canon".into(),
             camera: "Canon EOS".into(),
             format: "DNG".into(),
-            filename: "IMG_1".into(),
+            path: "Canon/Cam/IMG_1.DNG".into(),
         },
         1,
     )])
@@ -325,14 +323,14 @@ fn diff_classifies_missing_extra_and_changed_rows() {
         vendor: "Canon".into(),
         camera: "Canon EOS".into(),
         format: "DNG".into(),
-        filename: "base".into(),
+        path: "Canon/Cam/base.DNG".into(),
     };
     let missing = BaselineKey {
-        filename: "missing".into(),
+        path: "Canon/Cam/missing.DNG".into(),
         ..base.clone()
     };
     let extra = BaselineKey {
-        filename: "extra".into(),
+        path: "Canon/Cam/extra.DNG".into(),
         ..base.clone()
     };
     let before = vec![baseline_row(&base, 1), baseline_row(&missing, 1)];
@@ -427,7 +425,7 @@ fn manifest_check_reports_snapshot_drift() {
 
 #[test]
 fn baseline_reader_rejects_non_boolean_stage_values() {
-    let csv = b"vendor,camera,model,format,filename,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\nCanon,Cam,Model,DNG,IMG,2,0,0,0,decode:bad,0,0,\n";
+    let csv = b"vendor,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\nCanon,Cam,DNG,Canon/Cam/IMG.DNG,2,0,0,0,decode:bad,0,0,\n";
     assert!(read_baseline_csv(csv.as_slice()).is_err());
 }
 
@@ -435,7 +433,7 @@ fn baseline_reader_rejects_non_boolean_stage_values() {
 fn manifest_rows_have_unique_baseline_keys() {
     let rows = vec![
         manifest_row("aa", "Canon/Cam/IMG.DNG", "DNG"),
-        manifest_row("bb", "Canon/Cam/IMG.dng", "DNG"),
+        manifest_row("bb", "Canon/Cam/IMG.DNG", "DNG"),
     ];
     assert!(crate::manifest::validate_manifest_keys(&rows).is_err());
 }
@@ -476,7 +474,7 @@ fn baseline_roundtrip_keeps_models_and_rows_stable() {
         vendor: "Canon".into(),
         camera: "Canon EOS".into(),
         format: "DNG".into(),
-        filename: "IMG_1".into(),
+        path: "Canon/Cam/IMG_1.DNG".into(),
     };
     let rows = vec![baseline_row(&key, 1)];
     let bytes = write_baseline_csv(&rows).unwrap();
