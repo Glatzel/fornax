@@ -49,7 +49,7 @@ Out of scope:
 - [x] Run focused shell, DuckDB, tracker-test, and Markdown checks.
 - [x] Run repository validation and inspect the final diff.
 - [x] Commit, push, open one pull request, and report its URL and validation.
-- [ ] Run the manual corpus workflow and let it update the baseline.
+- [x] Run the manual corpus workflow and let it update the baseline.
 
 ## Files Expected to Change
 
@@ -133,6 +133,9 @@ Validation record:
 - Legacy and DNG 1.7 JPEG XL identifiers share one decode path.
 - `structured-zstd` is a mandatory dependency. There is no `zstd` crate
   feature, feature-gated fallback, or feature-specific benchmark option.
+- The default-input corpus workflow completed successfully with
+  `outcome=unchanged`, so no baseline update was required for the current
+  snapshot. The run did not enable the optional DuckDB test.
 
 ## Task 1: Document Compression Coverage
 
@@ -214,3 +217,10 @@ Completion evidence:
 Do not edit `baseline.csv` locally. Run the manual decoder-tracker corpus
 workflow after the implementation is pushed, then commit the generated
 baseline/diff review changes through the workflow's normal review process.
+
+Completion evidence:
+
+- [Decoder corpus run 42489860172](https://github.com/Glatzel/fornax/actions/runs/42489860172)
+  succeeded with default inputs.
+- The aggregate job reported `outcome=unchanged` and `changed=false`; the
+  baseline-update artifact upload and changed-row failure steps were skipped.
