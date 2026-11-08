@@ -171,7 +171,7 @@ mod tests {
 
         for (image, byte_order, expected) in cases {
             assert_eq!(
-                serialize_full_image(&image, byte_order).unwrap(),
+                serialize_full_image(&image, byte_order),
                 expected,
                 "{image:?} in {byte_order:?} order"
             );
