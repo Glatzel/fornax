@@ -18,9 +18,20 @@ Fornax recognizes DNG compression 1 (uncompressed), 7 (lossless JPEG-92),
 compression 50000 when the `zstd` feature is enabled. Unknown values remain
 representable in `CompressionMethod::Unknown` and produce typed decode errors.
 
+Compression 50002 is the legacy TIFF JPEG XL identifier. It is not yet
+represented by `CompressionMethod`; supporting it requires mapping the same
+JPEG XL payload decoder without treating `52546` as the only JPEG XL
+identifier. Compression 52546 is the identifier defined by DNG 1.7.
+
 TIFF compression 50000 is the de-facto libtiff/GDAL assignment for Zstandard,
-not an Adobe-registered DNG compression identifier. Any Fornax writing support
-for it remains opt-in, feature-gated, and documented as experimental.
+not an Adobe-registered DNG compression identifier. Current Fornax writing
+support remains feature-gated and is documented as experimental.
+
+Codec availability is not an optional capability. Zstandard and every future
+codec must be mandatory build dependencies without per-codec Cargo features or
+runtime fallback errors. The current `zstd` feature, optional
+`structured-zstd` dependency, `cfg` fallbacks, and feature-specific CI/build
+flags are a pending migration, not the target architecture.
 
 The production DNG path must not add `zstd-sys` or another C-backed codec.
 LibRaw, darktable, and RawTherapee remain development-only comparison

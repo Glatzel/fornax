@@ -17,7 +17,7 @@ The current MVP lives in `fornax-dng`, with `fornax-decoder` as its
 - typed root and raw-IFD metadata preservation;
 - uncompressed packed-integer and floating-point strips/tiles;
 - lossless JPEG-92 strips/tiles with predictors 1 through 7 and 2- to 16-bit
-  precision;
+  precision for supported sample layouts;
 - Deflate, lossy JPEG, and JPEG XL raw chunks;
 - 2x2 row/column interleave, linearization, and `OpcodeList1` pixel transforms;
 - parallel strip/tile decode with bounded per-band scratch storage;
@@ -52,7 +52,11 @@ decoded-data model does not expose.
 Remaining DNG work:
 
 - pre-DNG-1.1 lossless-JPEG compatibility mode;
-- multi-component subsampled/restart-interval JPEG variants;
+- lossless-JPEG restart intervals, Huffman selector `0x10`, and multi-component
+  subsampled or half-height tile variants;
+- multi-channel `LinearRaw` decoding outside the current mono `RawMosaic`
+  contract;
+- legacy TIFF JPEG XL compression identifier `50002`;
 - `SubTileBlockSize` and non-2x2 interleave factors;
 - geometric/frontend opcodes outside the raw pixel domain;
 - `OpcodeList2` and `OpcodeList3` execution in their downstream stages;
@@ -83,6 +87,15 @@ geometry.
 | JPEG XL (`52546`) | Strips/tiles | Single-channel 8-16-bit mosaics |
 | Lossy JPEG (`34892`) | Strips/tiles | Single-component 8-bit mosaics |
 | Zstandard (`50000`, experimental) | Strips/tiles | Integer and float payloads |
+
+Compression `50002` is the legacy TIFF JPEG XL identifier. It is not yet
+represented by `fornax_tiff::CompressionMethod`, while `52546` is the DNG 1.7
+identifier mapped to the single-channel JPEG XL decoder.
+
+The approved codec policy is mandatory availability: zstd and all future codecs
+must be compiled unconditionally without per-codec features. The current zstd
+feature gate is a pending implementation gap, so current builds still require
+the feature for compression `50000`.
 
 Malformed values and layouts outside the active Bayer contract return
 `DecodeError::InvalidInput` or the existing CFA boundary error. Unknown
