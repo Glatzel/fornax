@@ -103,9 +103,8 @@ Validation record:
   raw sample per pixel.
 - Missing `RowsPerStrip`, truncated chunks, and chunk-count mismatches are TIFF
   layout or parser gaps, not evidence of missing compression decoders.
-- The badge label remains `DNG corpus` while DNG is the only tracked format and
-  becomes `RAW corpus` when more formats are present. This keeps the existing
-  tracker test valid without modifying test code.
+- The badge label is `raw.pixls.us corpus pass`; the badge always reports the
+  accumulated pass count while the table reports each format separately.
 
 ## Task 1: Document Compression Coverage
 

@@ -76,11 +76,10 @@ else
     color=orange
 fi
 
+badge_label='raw.pixls.us corpus pass'
 if ((format_count == 1)) && [[ "$first_format" == 'DNG' ]]; then
-    badge_label='DNG corpus'
     badge_slug='DNG_corpus'
 else
-    badge_label='RAW corpus'
     badge_slug='RAW_corpus'
 fi
 
