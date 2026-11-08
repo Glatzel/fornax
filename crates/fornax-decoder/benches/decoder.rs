@@ -60,10 +60,9 @@ where
         b.iter(|| black_box(decoder.cropped_mosaic::<T>().unwrap()));
     });
 }
-fn bench_metadata<D, T>(c: &mut Criterion, decoder_name: &str, path: &Path)
+fn bench_metadata<D>(c: &mut Criterion, decoder_name: &str, path: &Path)
 where
     D: IDecoder + IDecoderDng,
-    T: Primitive + Send + Sync,
 {
     let decoder = D::decode(path).unwrap();
     let metadata = decoder.dng_metadata().unwrap();
@@ -86,20 +85,14 @@ fn bench_bit_decoder<D, T>(
 {
     bench_decoder::<D, T>(c, decoder_name, bits.as_ref(), path);
 }
-fn bench_bit_metadata<D, T>(c: &mut Criterion, decoder_name: &str, path: &Path)
-where
-    D: IDecoder + IDecoderDng,
-    T: Primitive + Send + Sync,
-{
-    bench_metadata::<D, T>(c, decoder_name, path);
-}
+
 fn benches(c: &mut Criterion) {
     let params = BenchParams::from_env();
     let decoders = selected_decoders();
     let path = raw_path();
 
     if decoders.contains(&DecoderKind::Fornax) {
-        bench_bit_metadata::<Decoder, f32>(c, "fornax", &path);
+        bench_metadata::<Decoder>(c, "fornax", &path);
     }
 
     for bits in params.bits {
