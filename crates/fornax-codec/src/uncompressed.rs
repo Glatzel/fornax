@@ -1,5 +1,6 @@
 //! Directly stored sample decoding and encoding.
 
+use bytemuck::Pod;
 use fornax_core::RawMosaic;
 
 use crate::encode::encode_image;
@@ -7,7 +8,6 @@ use crate::error::invalid;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
 use crate::samples::{Geometry, chunk, decode_payloads};
 use crate::{CodecError, Predictor};
-
 pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
     if request.predictor != Predictor::None {
         return Err(invalid("uncompressed samples do not support prediction"));
@@ -58,55 +58,34 @@ pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> 
         .chunks,
     })
 }
-
-fn serialize_full_image(
-    image: &RawMosaic,
-    byte_order: crate::ByteOrder,
-) -> Result<Vec<u8>, CodecError> {
-    match image {
-        RawMosaic::U8(samples) => Ok(samples.as_raw().clone()),
-        RawMosaic::U16(samples) => serialize_samples(samples.as_raw(), |sample| match byte_order {
-            crate::ByteOrder::Little => sample.to_le_bytes(),
-            crate::ByteOrder::Big => sample.to_be_bytes(),
-        }),
-        RawMosaic::U32(samples) => serialize_samples(samples.as_raw(), |sample| match byte_order {
-            crate::ByteOrder::Little => sample.to_le_bytes(),
-            crate::ByteOrder::Big => sample.to_be_bytes(),
-        }),
-        RawMosaic::F32(samples) => serialize_samples(samples.as_raw(), |sample| match byte_order {
-            crate::ByteOrder::Little => sample.to_bits().to_le_bytes(),
-            crate::ByteOrder::Big => sample.to_bits().to_be_bytes(),
-        }),
+fn native_order() -> crate::ByteOrder {
+    if cfg!(target_endian = "little") {
+        crate::ByteOrder::Little
+    } else {
+        crate::ByteOrder::Big
     }
 }
 
-fn serialize_samples<T, const N: usize>(
-    samples: &[T],
-    to_bytes: impl Fn(T) -> [u8; N],
-) -> Result<Vec<u8>, CodecError>
-where
-    T: Copy,
-{
-    let capacity = samples
-        .len()
-        .checked_mul(N)
-        .ok_or_else(|| invalid("encoded image byte count overflow"))?;
-    let mut encoded: Vec<u8> = Vec::with_capacity(capacity);
-    let target = encoded.as_mut_ptr();
-    for (index, sample) in samples.iter().copied().enumerate() {
-        let bytes = to_bytes(sample);
-        let offset = index * N;
-        // SAFETY: `capacity` reserves exactly `samples.len() * N` bytes, and
-        // each iteration initializes the unique range `offset..offset + N`.
-        unsafe {
-            std::ptr::copy_nonoverlapping(bytes.as_ptr(), target.add(offset), N);
+fn serialize_samples<T: Pod>(samples: &[T], byte_order: crate::ByteOrder) -> Vec<u8> {
+    // One memcpy, no per-element work.
+    let mut out: Vec<u8> = bytemuck::cast_slice(samples).to_vec();
+    if byte_order != native_order() {
+        // Reversing the bytes of each sample is a byte swap for u16/u32/f32
+        // alike.
+        for sample in out.chunks_exact_mut(std::mem::size_of::<T>()) {
+            sample.reverse();
         }
     }
-    // SAFETY: every byte in the reserved range was initialized above.
-    unsafe { encoded.set_len(capacity) };
-    Ok(encoded)
+    out
 }
-
+fn serialize_full_image(image: &RawMosaic, byte_order: crate::ByteOrder) -> Vec<u8> {
+    match image {
+        RawMosaic::U8(s) => s.as_raw().clone(),
+        RawMosaic::U16(s) => serialize_samples(s.as_raw(), byte_order),
+        RawMosaic::U32(s) => serialize_samples(s.as_raw(), byte_order),
+        RawMosaic::F32(s) => serialize_samples(s.as_raw(), byte_order),
+    }
+}
 #[cfg(test)]
 mod tests {
     use fornax_core::{MonoImage, RawMosaic};

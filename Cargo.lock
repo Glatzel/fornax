@@ -798,6 +798,7 @@ dependencies = [
 name = "fornax-codec"
 version = "0.0.17"
 dependencies = [
+ "bytemuck",
  "flate2",
  "fornax-core",
  "image 0.25.9",
