@@ -2,9 +2,10 @@
 
 ## Status
 
-`decoder-tracker` owns the manual raw.pixls.us decoder regression workflow. Its
-first supported format is DNG. Each future native decoder adds its uppercase
-format to the workspace's supported-format selection and bootstraps its rows
+`decoder-tracker` owns the manual raw.pixls.us decoder regression workflow. The
+manifest records the complete pinned corpus independently of decoder support or
+baseline coverage. Its first supported format is DNG. Each future native
+decoder adds its uppercase format to the run selection and bootstraps its rows
 into the same text baseline.
 
 The corpus checkout is `external/raw.pixls.us`, a Git LFS submodule backed by
@@ -27,7 +28,7 @@ Run from the repository root with globally installed `git-lfs` and through the
 Pixi environments for DuckDB and decoder tooling:
 
 ```text
-pixi run -e dev cargo run -q -p decoder-tracker -- manifest [--check] [--format F]...
+pixi run -e dev cargo run -q -p decoder-tracker -- manifest [--check]
 pixi run -e dev cargo run -q -p decoder-tracker -- select [--glob G]... [--out FILE]
 pixi run -e dev cargo run -q -p decoder-tracker -- run [--manifest F] [--format F]...
     [--camera TEXT]... [--filename TEXT]... [--glob G]... [--shard INDEX/COUNT]
@@ -64,10 +65,11 @@ selection is sorted by LFS SHA-256 and assigned with zero-based
 
 ## Manifest
 
-`manifest` reads `filelist.sha256`, selects supported formats, parses each
-corresponding LFS pointer, verifies that its object ID equals the listed
-SHA-256, derives identity fields, and writes the canonical CSV under
-`crates/decoder-tracker/manifest.csv`.
+`manifest` reads `filelist.sha256`, parses every corresponding LFS pointer,
+verifies that its object ID equals the listed SHA-256, derives identity fields,
+and writes the canonical CSV under `crates/decoder-tracker/manifest.csv`. The
+manifest always covers every format in the corpus, including formats without a
+decoder implementation or baseline rows.
 
 The manifest header is:
 
@@ -138,11 +140,12 @@ Compression `52546` is the DNG 1.7 JPEG XL identifier and `50002` is the legacy
 TIFF JPEG XL identifier. Both use the JPEG XL decoder. Zstandard is always
 compiled with pure-Rust `structured-zstd`, as are all future codecs.
 
-`update-badge.sh` derives the accumulated pass count across all baseline rows
-and writes one badge plus a per-format table into the decoder-tracker README.
-Each table row reports `passed/total`; the badge always reports the accumulated
-total. Its slug is `raw.pixls.us_corpus_pass`, which renders the label
-`raw.pixls.us corpus pass`.
+`update-badge.sh` joins the full manifest to the baseline and writes one badge
+plus a per-vendor-format table into the decoder-tracker README. Vendor is the
+first path segment, such as `Canon` or `Sony`. The table includes every
+vendor-format pair in the manifest; pairs without baseline rows report
+`0/total`. The badge always reports the accumulated manifest total. Its slug is
+`raw.pixls.us_corpus_pass`, which renders the label `raw.pixls.us corpus pass`.
 
 ## Isolation and LFS
 

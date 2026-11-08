@@ -66,7 +66,7 @@ fn manifest_check_cli_accepts_current_snapshot_and_rejects_drift() {
     let manifest = temp.path().join("manifest.csv");
     fs::write(
         &manifest,
-        write_manifest_csv(&generate_manifest(&corpus, &["DNG".into()]).unwrap()).unwrap(),
+        write_manifest_csv(&generate_manifest(&corpus).unwrap()).unwrap(),
     )
     .unwrap();
 
@@ -332,7 +332,7 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
 }
 
 #[test]
-fn duckdb_badge_script_updates_pass_and_total_counts() {
+fn duckdb_badge_script_groups_missing_baseline_formats_by_vendor() {
     if !std::process::Command::new("duckdb")
         .arg("--version")
         .output()
@@ -342,6 +342,7 @@ fn duckdb_badge_script_updates_pass_and_total_counts() {
     }
     let temp = tempdir().unwrap();
     let baseline = temp.path().join("baseline.csv");
+    let manifest = temp.path().join("manifest.csv");
     let readme = temp.path().join("README.md");
     let rows = vec![
         BaselineRow {
@@ -374,6 +375,13 @@ fn duckdb_badge_script_updates_pass_and_total_counts() {
         },
     ];
     fs::write(&baseline, write_baseline_csv(&rows).unwrap()).unwrap();
+    let manifest_rows = vec![
+        manifest_row(&"aa".repeat(32), "Canon/Cam/A.DNG"),
+        manifest_row(&"bb".repeat(32), "Canon/Cam/B.DNG"),
+        manifest_row(&"cc".repeat(32), "Sony/Cam/C.ARW"),
+        manifest_row(&"dd".repeat(32), "Minolta Co., Ltd./Cam/D.MRW"),
+    ];
+    fs::write(&manifest, write_manifest_csv(&manifest_rows).unwrap()).unwrap();
     fs::write(
         &readme,
         "# decoder-tracker\n\n<!-- decoder-tracker-badge:start -->\nold\n<!-- decoder-tracker-badge:end -->\n",
@@ -386,6 +394,8 @@ fn duckdb_badge_script_updates_pass_and_total_counts() {
         .args([
             "--baseline",
             baseline.to_str().unwrap(),
+            "--manifest",
+            manifest.to_str().unwrap(),
             "--readme",
             readme.to_str().unwrap(),
         ])
@@ -397,7 +407,10 @@ fn duckdb_badge_script_updates_pass_and_total_counts() {
         String::from_utf8_lossy(&output.stderr)
     );
     let text = fs::read_to_string(readme).unwrap();
-    assert!(text.contains("raw.pixls.us_corpus_pass-1%2F2"));
-    assert!(text.contains("| DNG | 1/2 |"));
+    assert!(text.contains("raw.pixls.us_corpus_pass-1%2F4"));
+    assert!(text.contains("| Vendor | Format | Status |"));
+    assert!(text.contains("| Canon | DNG | 1/2 |"));
+    assert!(text.contains("| Minolta Co., Ltd. | MRW | 0/1 |"));
+    assert!(text.contains("| Sony | ARW | 0/1 |"));
     assert!(!text.contains("\nold\n"));
 }

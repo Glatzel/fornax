@@ -14,8 +14,8 @@ pub enum ManifestCheck {
 }
 
 impl ManifestCheck {
-    pub fn against(corpus: &Path, formats: &[String], committed: &[u8]) -> Result<Self> {
-        let generated = generate_manifest(corpus, formats)?;
+    pub fn against(corpus: &Path, committed: &[u8]) -> Result<Self> {
+        let generated = generate_manifest(corpus)?;
         let generated_bytes = write_manifest_csv(&generated)?;
         if generated_bytes != committed {
             let committed_rows = read_manifest_csv(committed)?;
@@ -69,8 +69,7 @@ pub fn derive_identity(path: &str) -> Result<(String, String, String, String)> {
     Ok((vendor, camera, model, filename.to_owned()))
 }
 
-pub fn generate_manifest(corpus: &Path, formats: &[String]) -> Result<Vec<ManifestRow>> {
-    let formats = selected_formats(formats);
+pub fn generate_manifest(corpus: &Path) -> Result<Vec<ManifestRow>> {
     let filelist = fs::read_to_string(corpus.join("filelist.sha256"))?;
     let mut rows = Vec::new();
     for (line_number, line) in filelist.lines().enumerate() {
@@ -85,9 +84,6 @@ pub fn generate_manifest(corpus: &Path, formats: &[String]) -> Result<Vec<Manife
         })?;
         let path = normalize_repo_path(raw_path);
         let format = path_extension(&path).to_ascii_uppercase();
-        if !formats.contains(&format) {
-            continue;
-        }
         let (vendor, camera, model, filename) = derive_identity(&path)?;
         let row = ManifestRow {
             sha256: sha256.to_owned(),
