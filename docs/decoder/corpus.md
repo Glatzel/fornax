@@ -145,8 +145,9 @@ It accepts:
 The plan job generates a dynamic zero-based matrix. Each shard initializes the
 pointer-only corpus, installs the Pixi dev environment, runs
 `manifest --check`, runs its deterministic shard, and uploads CSV only. The
-matrix limits concurrent jobs to five so simultaneous Pixi downloads do not
-exhaust the installer endpoint. The aggregate job merges every shard:
+matrix currently limits concurrent jobs to one while the bootstrap baseline is
+captured, avoiding Pixi installer contention. The aggregate job merges every
+shard:
 
 - `bootstrap` uploads
   `target/decoder-tracker/candidate.csv` as a short-lived candidate artifact;
