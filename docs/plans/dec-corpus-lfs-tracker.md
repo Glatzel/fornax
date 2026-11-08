@@ -49,9 +49,9 @@ Out of scope:
 - [x] Run local one-file failure and known-good fixture smoke tests.
 - [x] Bootstrap the full DNG corpus, review the candidate baseline, and commit
   it.
-- [ ] Remove the temporary trigger and `[DEC-CORPUS]` after verification.
-- [ ] Run `scripts/agent-validation.sh`.
-- [ ] Commit, push, open one PR, and report its URL and validation evidence.
+- [x] Remove the temporary trigger and `[DEC-CORPUS]` after verification.
+- [ ] Run `scripts/agent-validation.sh` to a clean result.
+- [x] Commit, push, open one PR, and report its URL and validation evidence.
 
 ## Files Expected to Change
 
@@ -88,8 +88,7 @@ Out of scope:
 - The local full-run guard defaults to two files unless `CI=true` or
   `--allow-full` is present.
 - Payload materialization happens before per-file timers start.
-- The final workflow has only `workflow_dispatch`; a temporary branch push
-  trigger exists solely for bootstrap review and is removed before handoff.
+- The final workflow has only `workflow_dispatch`.
 - CI dynamically allocates up to 20 balanced runners and retries failed jobs in
   place after transient GitHub/Pixi 504 failures. Workflow concurrency cancels
   superseded branch runs.
@@ -161,3 +160,16 @@ Out of scope:
 - Plan-time selection and aggregate merge/diff/upsert run through checked-in
   shell scripts backed directly by DuckDB CLI, avoiding Rust builds in those
   jobs.
+
+### Verification evidence
+
+- Bootstrap workflow `42477649926` completed successfully after retrying failed
+  Pixi download jobs in place.
+- Candidate baseline: 262 unique rows covering all 262 manifest paths; 220
+  decoded and 209 passed handoff.
+- Final manual-equivalent verification `42481636207` completed successfully,
+  logged `outcome=unchanged`, and produced no `decoder-baseline-update`
+  artifact.
+- `cargo test -p decoder-tracker`: 37 tests passed.
+- `pixi run -e tracker cargo test -q -p decoder-tracker duckdb_`: DuckDB SQL,
+  selection, and aggregate shell tests passed.

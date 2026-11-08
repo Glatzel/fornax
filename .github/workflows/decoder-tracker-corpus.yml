@@ -13,14 +13,6 @@ on:
         type: boolean
         required: false
         default: false
-  push:
-    branches:
-      - task/dec-corpus-lfs-tracker
-    paths:
-      - .github/workflows/decoder-tracker-corpus.yml
-      - crates/decoder-tracker/manifest.csv
-      - crates/decoder-tracker/baseline.csv
-
 concurrency:
   group: decoder-tracker-corpus-${{ github.ref }}
   cancel-in-progress: true
