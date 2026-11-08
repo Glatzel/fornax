@@ -30,9 +30,10 @@ while (($# > 0)); do
     esac
 done
 
-format_counts="$(
-    duckdb -no-agent -csv -noheader -separator ',' :memory: -c "
+vendor_format_counts="$(
+    duckdb -no-agent -csv -noheader -separator $'\t' :memory: -c "
         SELECT
+            split_part(manifest.path, '/', 1) AS vendor,
             upper(regexp_extract(manifest.path, '\.([^.]+)$', 1)) AS format,
             count() FILTER (WHERE baseline.status = '✅') AS passed,
             count() AS total
@@ -46,38 +47,41 @@ format_counts="$(
             header = true
         ) AS baseline
             ON manifest.path = baseline.path
-        GROUP BY upper(regexp_extract(manifest.path, '\.([^.]+)$', 1))
-        ORDER BY format;
+        GROUP BY
+            split_part(manifest.path, '/', 1),
+            upper(regexp_extract(manifest.path, '\.([^.]+)$', 1))
+        ORDER BY vendor, format;
     "
 )"
 
-if [[ -z "$format_counts" ]]; then
-    printf 'could not derive format counts from %s\n' "$manifest" >&2
+if [[ -z "$vendor_format_counts" ]]; then
+    printf 'could not derive vendor format counts from %s\n' "$manifest" >&2
     exit 1
 fi
 
 passed=0
 total=0
-format_count=0
+vendor_format_count=0
 first_format=''
-table=$'| Format | Status |\n| --- | ---: |'
-while IFS=, read -r format format_passed format_total; do
-    if [[ -z "$format" || ! "$format_passed" =~ ^[0-9]+$ || ! "$format_total" =~ ^[0-9]+$ ]] ||
+table=$'| Vendor | Format | Status |\n| --- | --- | ---: |'
+while IFS=$'\t' read -r vendor format format_passed format_total; do
+    if [[ -z "$vendor" || -z "$format" ||
+        ! "$format_passed" =~ ^[0-9]+$ || ! "$format_total" =~ ^[0-9]+$ ]] ||
         ((format_total == 0 || format_passed > format_total)); then
-        printf 'invalid format counts from %s: %s\n' "$manifest" \
-            "$format,$format_passed,$format_total" >&2
+        printf 'invalid vendor format counts from %s: %s\n' "$manifest" \
+            "$vendor,$format,$format_passed,$format_total" >&2
         exit 1
     fi
-    format_count=$((format_count + 1))
+    vendor_format_count=$((vendor_format_count + 1))
     if [[ -z "$first_format" ]]; then
         first_format="$format"
     fi
     passed=$((passed + format_passed))
     total=$((total + format_total))
-    table+=$'\n| '"$format"' | '"$format_passed"'/'"$format_total"' |'
-done <<<"$format_counts"
+    table+=$'\n| '"$vendor"' | '"$format"' | '"$format_passed"'/'"$format_total"' |'
+done <<<"$vendor_format_counts"
 
-if ((format_count == 0 || total == 0)); then
+if ((vendor_format_count == 0 || total == 0)); then
     printf 'could not derive pass counts from %s\n' "$manifest" >&2
     exit 1
 fi
@@ -91,7 +95,7 @@ else
 fi
 
 badge_slug='raw.pixls.us_corpus_pass'
-if ((format_count == 1)) && [[ "$first_format" == 'DNG' ]]; then
+if ((vendor_format_count == 1)) && [[ "$first_format" == 'DNG' ]]; then
     badge_label='DNG corpus'
 else
     badge_label='RAW corpus'
@@ -128,4 +132,5 @@ awk -v start="$start_marker" -v end="$end_marker" -v badge="$badge" -v table="$t
 mv "$tmp" "$readme"
 trap - EXIT
 
-printf 'badge: %s/%s passed across %s format(s)\n' "$passed" "$total" "$format_count"
+printf 'badge: %s/%s passed across %s vendor format row(s)\n' \
+    "$passed" "$total" "$vendor_format_count"

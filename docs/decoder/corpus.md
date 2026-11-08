@@ -141,9 +141,10 @@ TIFF JPEG XL identifier. Both use the JPEG XL decoder. Zstandard is always
 compiled with pure-Rust `structured-zstd`, as are all future codecs.
 
 `update-badge.sh` joins the full manifest to the baseline and writes one badge
-plus a per-format table into the decoder-tracker README. The table includes every
-format in the manifest; formats without baseline rows report `0/total`. The
-badge always reports the accumulated manifest total. Its slug is
+plus a per-vendor-format table into the decoder-tracker README. Vendor is the
+first path segment, such as `Canon` or `Sony`. The table includes every
+vendor-format pair in the manifest; pairs without baseline rows report
+`0/total`. The badge always reports the accumulated manifest total. Its slug is
 `raw.pixls.us_corpus_pass`, which renders the label `raw.pixls.us corpus pass`.
 
 ## Isolation and LFS
