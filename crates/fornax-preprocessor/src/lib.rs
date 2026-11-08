@@ -61,58 +61,59 @@ where
             })
             .collect();
 
-        if delta_v.is_none() {
-            // Fast path: black and 1/range are periodic -> precompute, no
-            // division in loop. Invalid range => black=0, inv=0 => result is 0
-            // without a branch.
-            let tables: Vec<(Vec<T>, Vec<T>)> = base
-                .iter()
-                .map(|row| {
-                    let mut blk = Vec::with_capacity(w);
-                    let mut inv = Vec::with_capacity(w);
-                    for &b in row {
-                        let range = white - b;
-                        if range > zero {
-                            blk.push(b);
-                            inv.push(T::one() / range);
-                        } else {
-                            blk.push(zero);
-                            inv.push(zero);
-                        }
-                    }
-                    (blk, inv)
-                })
-                .collect();
-
-            raw.par_chunks_mut(w * rows_per_band)
-                .enumerate()
-                .for_each(|(band, rows)| {
-                    for (r, row) in rows.chunks_exact_mut(w).enumerate() {
-                        let (blk, inv) = &tables[(band * rows_per_band + r) % ph];
-                        for ((p, &b), &k) in row.iter_mut().zip(blk).zip(inv) {
-                            let v = (*p - b) * k;
-                            *p = if v > zero { v } else { zero };
-                        }
-                    }
-                });
-        } else {
-            let dv_all = delta_v.unwrap();
-            raw.par_chunks_mut(w * rows_per_band)
-                .enumerate()
-                .for_each(|(band, rows)| {
-                    for (r, row) in rows.chunks_exact_mut(w).enumerate() {
-                        let y = band * rows_per_band + r;
-                        let dv = dv_all[y];
-                        for (p, &b0) in row.iter_mut().zip(&base[y % ph]) {
-                            let b = b0 + dv;
+        match delta_v {
+            None => {
+                // Fast path: black and 1/range are periodic -> precompute, no
+                // division in loop. Invalid range => black=0, inv=0 => result
+                // is 0 without a branch.
+                let tables: Vec<(Vec<T>, Vec<T>)> = base
+                    .iter()
+                    .map(|row| {
+                        let mut blk = Vec::with_capacity(w);
+                        let mut inv = Vec::with_capacity(w);
+                        for &b in row {
                             let range = white - b;
-                            let v = (*p - b) / range;
-                            *p = if range > zero && v > zero { v } else { zero };
+                            if range > zero {
+                                blk.push(b);
+                                inv.push(T::one() / range);
+                            } else {
+                                blk.push(zero);
+                                inv.push(zero);
+                            }
                         }
-                    }
-                });
-        }
+                        (blk, inv)
+                    })
+                    .collect();
 
+                raw.par_chunks_mut(w * rows_per_band)
+                    .enumerate()
+                    .for_each(|(band, rows)| {
+                        for (r, row) in rows.chunks_exact_mut(w).enumerate() {
+                            let (blk, inv) = &tables[(band * rows_per_band + r) % ph];
+                            for ((p, &b), &k) in row.iter_mut().zip(blk).zip(inv) {
+                                let v = (*p - b) * k;
+                                *p = if v > zero { v } else { zero };
+                            }
+                        }
+                    });
+            }
+            Some(dv_all) => {
+                raw.par_chunks_mut(w * rows_per_band)
+                    .enumerate()
+                    .for_each(|(band, rows)| {
+                        for (r, row) in rows.chunks_exact_mut(w).enumerate() {
+                            let y = band * rows_per_band + r;
+                            let dv = dv_all[y];
+                            for (p, &b0) in row.iter_mut().zip(&base[y % ph]) {
+                                let b = b0 + dv;
+                                let range = white - b;
+                                let v = (*p - b) / range;
+                                *p = if range > zero && v > zero { v } else { zero };
+                            }
+                        }
+                    });
+            }
+        }
         let normalized =
             MonoImage::from_raw(width, height, raw).expect("pixel count matches image dimensions");
         Ok(NormalizedMosaic::new(normalized))
