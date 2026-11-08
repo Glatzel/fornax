@@ -13,9 +13,9 @@ on:
         default: verify
       shard_count:
         description: Number of deterministic decoder shards (1-20).
-        type: string
+        type: number
         required: true
-        default: "20"
+        default: 1
   push:
     branches:
       - task/dec-corpus-lfs-tracker
@@ -81,7 +81,6 @@ jobs:
       contents: read
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

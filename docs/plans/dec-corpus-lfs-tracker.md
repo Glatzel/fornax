@@ -89,9 +89,9 @@ Out of scope:
 - Payload materialization happens before per-file timers start.
 - The final workflow has only `workflow_dispatch`; a temporary branch push
   trigger exists solely for bootstrap review and is removed before handoff.
-- Matrix concurrency is temporarily capped at one because simultaneous Pixi
-  installer downloads produced transient HTTP 504 failures. Raise or remove the
-  cap after bootstrap and verification.
+- Bootstrap uses one shard and no `max-parallel` cap because simultaneous Pixi
+  installer downloads produced transient HTTP 504 failures. The workflow still
+  accepts deliberate shard counts from 2 through 20.
 - The planned commit `174acd7...` was no longer present when implementation
   started. raw.pixls.us advertises one daily snapshot commit and replaces its
   history, so fresh checkouts follow the remote `master` branch with LFS

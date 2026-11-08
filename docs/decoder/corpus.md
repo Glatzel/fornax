@@ -140,14 +140,12 @@ It exits 1 when any category is non-empty. Reordering rows is not a difference.
 It accepts:
 
 - `mode`: `bootstrap` or `verify`;
-- `shard_count`: an integer from 1 through 20, default 20.
+- `shard_count`: a number from 1 through 20, default 1 for the first baseline.
 
 The plan job generates a dynamic zero-based matrix. Each shard initializes the
 pointer-only corpus, installs the Pixi dev environment, runs
 `manifest --check`, runs its deterministic shard, and uploads CSV only. The
-matrix currently limits concurrent jobs to one while the bootstrap baseline is
-captured, avoiding Pixi installer contention. The aggregate job merges every
-shard:
+aggregate job merges every shard:
 
 - `bootstrap` uploads
   `target/decoder-tracker/candidate.csv` as a short-lived candidate artifact;
