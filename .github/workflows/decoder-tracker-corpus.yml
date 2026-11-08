@@ -46,7 +46,7 @@ jobs:
           REQUESTED_COUNT: ${{ inputs.shard_count }}
           REQUESTED_MODE: ${{ inputs.mode }}
         run: |
-          shard_count="${REQUESTED_COUNT:-20}"
+          shard_count="${REQUESTED_COUNT:-1}"
           if [[ ! "$shard_count" =~ ^([1-9]|1[0-9]|20)$ ]]; then
             printf 'shard_count must be an integer from 1 through 20\n' >&2
             exit 2
