@@ -35,10 +35,7 @@ jobs:
               - '!**/*.md'
             benchmark_decoder:
               - '!**/*.md'
-              - ./crates/bench-decoder/**
               - ./crates/fornax-codec/**
-              - ./crates/fornax-core/**
-              - ./crates/fornax-decoder-rawler/**
               - ./crates/fornax-decoder/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
@@ -62,7 +59,6 @@ jobs:
             book_assets:
               - ./book/**
 
-
   lefthook:
     if: ${{ github.event_name == 'pull_request' }}
     uses: ./.github/workflows/ci-lefthook.yml
@@ -84,13 +80,13 @@ jobs:
       matrix:
         include:
           - machine: ubuntu-latest
-            test-options: --workspace --all-features --exclude compare-demosaic --exclude fornax-cli --exclude fornax-decoder-dnc
-            pwd: ./
-          - machine: ubuntu-latest
             test-options: --all-features -p compare-demosaic
             pwd: ./crates/compare-demosaic
           - machine: macos-latest
-            test-options: --all-features -p fornax-decoder-dnc -p fornax-cli
+            test-options: --workspace --all-features --exclude compare-demosaic
+            pwd: ./
+          - machine: ubuntu-latest
+            test-options: --workspace --all-features --exclude compare-demosaic
             pwd: ./
     env:
       dnc_version: 18_7
@@ -151,8 +147,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - package: bench-decoder
+          - package: fornax-decoder
             changed: ${{ needs.changed.outputs.benchmark_decoder }}
+            extra-options: --bench decoder
 
           - package: fornax-dng
             changed: ${{ needs.changed.outputs.benchmark_dng }}

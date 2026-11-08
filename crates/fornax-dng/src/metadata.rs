@@ -1,6 +1,5 @@
 use std::fmt;
 
-use fornax_core::Primitive;
 use fornax_core::error::DecodeError;
 use fornax_core::protocol::IDecoder;
 pub use fornax_tiff::constants::TiffTag;
@@ -8,10 +7,7 @@ pub use fornax_tiff::{Directory, Tag, Value};
 use num_enum::{FromPrimitive, IntoPrimitive};
 use strum::AsRefStr;
 
-pub trait IDecoderDng<I, T>: Send + Sync + IDecoder<I, T>
-where
-    T: Primitive,
-{
+pub trait IDecoderDng: Send + Sync + IDecoder {
     fn dng_metadata(&self) -> Result<Directory, DecodeError>;
 }
 
@@ -118,6 +114,10 @@ pub enum DngTag {
     CameraCalibration1 = 50_723,
     /// `CameraCalibration2`.
     CameraCalibration2 = 50_724,
+    ///`ReductionMatrix1`
+    ReductionMatrix1 = 50_725,
+    ///`ReductionMatrix2`
+    ReductionMatrix2 = 50_726,
     /// `AnalogBalance`.
     AnalogBalance = 50_727,
     /// `AsShotNeutral`.
@@ -142,20 +142,20 @@ pub enum DngTag {
     ActiveArea = 50_829,
     /// `MaskedAreas`.
     MaskedAreas = 50_830,
+    RowInterleaveFactor = 50_975,
+    OpcodeList1 = 51_008,
+    CalibrationIlluminant3 = 52529,
+    CameraCalibration3 = 52530,
+    ColorMatrix3 = 52531,
+    ForwardMatrix3 = 52532,
+    IlluminantData1 = 52533,
+    IlluminantData2 = 52534,
+    IlluminantData3 = 52535,
+    ReductionMatrix3 = 52538,
+    ColumnInterleaveFactor = 50_976,
     /// A private or extension tag.
     #[num_enum(catch_all)]
     Unknown(u16),
-}
-
-impl DngTag {
-    /// Converts a raw DNG tag into its typed representation.
-    pub fn from_u16(value: u16) -> Self { Self::from(value) }
-
-    /// Converts this tag into its raw numeric identifier.
-    pub fn into_u16(self) -> u16 { self.into() }
-
-    /// Returns this tag as a raw numeric identifier.
-    pub fn as_u16(&self) -> u16 { u16::from(*self) }
 }
 
 impl Ord for DngTag {
@@ -234,15 +234,10 @@ mod tests {
     fn dng_tags_round_trip_through_numeric_and_dynamic_tags() {
         use super::*;
 
-        assert_eq!(DngTag::from_u16(50_706), DngTag::DngVersion);
-        assert_eq!(DngTag::DngVersion.as_u16(), 50_706);
-        assert_eq!(DngTag::DngVersion.into_u16(), 50_706);
+        assert_eq!(DngTag::from(50_706), DngTag::DngVersion);
+        assert_eq!(u16::from(DngTag::DngVersion), 50_706u16);
         assert_eq!(Tag::from(DngTag::DngVersion), Tag(50_706));
         assert_eq!(DngTag::from(Tag(50_706)), DngTag::DngVersion);
-        assert_eq!(
-            DngTag::Unknown(60_001).into_u16(),
-            DngTag::Unknown(60_001).as_u16()
-        );
     }
 
     #[cfg(feature = "metadata-json")]

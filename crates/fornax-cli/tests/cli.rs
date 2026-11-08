@@ -3,9 +3,9 @@ use std::fs;
 use assert_cmd::Command;
 use clap::Parser;
 use fornax::dng::metadata::{DngTag, Tag, TiffTag, Value};
-use fornax::dng::{Directory, DngCompression, DngImage, DngWriter};
+use fornax::dng::{Directory, DngCompression, DngWriter};
 use fornax::{MonoImage, RawMosaic};
-use fornax_cli::{CliArgs, ConversionOutcome, plan_inputs, resolve_config, run};
+use fornax_cli::{CliArgs, ConversionOutcome, run};
 use image::GenericImageView;
 use tempfile::tempdir;
 
@@ -99,13 +99,11 @@ fn binary_help_shows_default_values() {
     for expected in [
         "Output directory [default: converted]",
         "Output image format [default: dng]",
-        "Decoder selection [default: auto]",
         "Maximum simultaneous file conversions [default: 1]",
         "Recurse into directory inputs [default: true]",
         "Overwrite an existing output file [default: false]",
         "Write `<output-stem>.json` beside each output [default: false]",
         "Demosaic algorithm with its default parameters [default: rcd]",
-        "Enforce white balance during postprocessing [default: true]",
         "Apply the derived camera-to-linear-sRGB matrix [default: true]",
         "JPEG preview quality [default: 90]",
         "DNG compression strategy [default: lossless-jpeg]",
@@ -116,40 +114,6 @@ fn binary_help_shows_default_values() {
             "missing {expected:?} in help:\n{help}"
         );
     }
-}
-
-#[test]
-fn recursive_inputs_mirror_files_and_reject_collisions() {
-    let directory = tempdir().unwrap();
-    let root = directory.path().join("raws");
-    fs::create_dir_all(root.join("nested")).unwrap();
-    fs::write(root.join("a.dng"), []).unwrap();
-    fs::write(root.join("nested/b.arw"), []).unwrap();
-    let output = directory.path().join("out");
-    let cli = args(&["--output".as_ref(), output.as_os_str(), root.as_os_str()]);
-    let config = resolve_config(&cli).unwrap();
-    let jobs = plan_inputs(&config).unwrap();
-
-    assert_eq!(jobs.len(), 2);
-    assert_eq!(jobs[0].output, output.join("raws/a.dng"));
-    assert_eq!(jobs[1].output, output.join("raws/nested/b.dng"));
-
-    let first_dir = directory.path().join("first");
-    let second_dir = directory.path().join("second");
-    fs::create_dir_all(&first_dir).unwrap();
-    fs::create_dir_all(&second_dir).unwrap();
-    let first = first_dir.join("image.dng");
-    let second = second_dir.join("image.dng");
-    fs::write(&first, []).unwrap();
-    fs::write(&second, []).unwrap();
-    let colliding = args(&[
-        "--output".as_ref(),
-        output.as_os_str(),
-        first.as_os_str(),
-        second.as_os_str(),
-    ]);
-    let error = plan_inputs(&resolve_config(&colliding).unwrap()).unwrap_err();
-    assert!(error.to_string().contains("same output"));
 }
 
 #[test]
@@ -209,23 +173,4 @@ fn renders_16bit_tiff_and_preview_jpeg() {
     assert_eq!(tiff.dimensions(), (8, 8));
     let jpeg_bytes = fs::read(output.join("image.jpg")).unwrap();
     assert!(jpeg_bytes.starts_with(&[0xff, 0xd8]));
-}
-
-#[test]
-fn non_dng_input_converts_to_raw_dng() {
-    let directory = tempdir().unwrap();
-    let input = directory.path().join("image.cr3");
-    synthetic_dng(&input);
-    let output = directory.path().join("out");
-    let cli = args(&["--output".as_ref(), output.as_os_str(), input.as_os_str()]);
-
-    let outcomes = run(&cli).unwrap();
-
-    assert!(matches!(
-        outcomes.as_slice(),
-        [ConversionOutcome::Converted { .. }]
-    ));
-    let generated = output.join("image.dng");
-    assert!(generated.is_file());
-    assert!(DngImage::parse(&fs::read(generated).unwrap()).is_ok());
 }

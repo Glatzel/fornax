@@ -2,7 +2,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use fornax_core::protocol::{IDecoder, IPreprocessor};
-use fornax_core::{BayerChannel, BayerPattern};
+use fornax_core::{BayerChannel, BayerPattern, CroppedMosaic};
 use fornax_decoder::Decoder;
 use fornax_preprocessor::Preprocessor;
 use sha2::{Digest, Sha256};
@@ -91,8 +91,8 @@ pub fn active_area_from(path: &Path) -> mischief::Result<ActiveArea> {
     let source_bytes = std::fs::read(path)
         .map_err(|error| mischief::mischief!("cannot read {}: {error}", path.display()))?;
     let sha256 = hex::encode(Sha256::digest(&source_bytes));
-    let decoder: Decoder<f32> = Decoder::decode(path)?;
-    let decoded = decoder.cropped_mosaic()?;
+    let decoder: Decoder = Decoder::decode(path)?;
+    let decoded: CroppedMosaic<f32> = decoder.cropped_mosaic()?;
     let metadata = decoder.process_metadata()?;
     let image = Preprocessor
         .process(decoded, &metadata.levels)
@@ -114,16 +114,10 @@ pub fn active_area_from(path: &Path) -> mischief::Result<ActiveArea> {
             .iter()
             .map(|sample| (sample.clamp(0.0, 1.0) * f32::from(u16::MAX)).round() as u16)
             .collect(),
-        black: metadata
-            .levels
-            .black
-            .as_raw()
-            .iter()
-            .map(|value| f64::from(*value))
-            .collect(),
+        black: metadata.levels.black.as_raw().clone(),
         black_width,
         black_height,
-        white: f64::from(metadata.levels.white),
+        white: metadata.levels.white,
         native_pattern: metadata.bayer_pattern,
     })
 }

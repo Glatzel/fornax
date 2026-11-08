@@ -12,8 +12,6 @@ fornax = { path = "./crates/fornax" }
 fornax-codec = { path = "./crates/fornax-codec" }
 fornax-core = { path = "./crates/fornax-core" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
-fornax-decoder-dnc = { path = "./crates/fornax-decoder-dnc" }
-fornax-decoder-rawler = { path = "./crates/fornax-decoder-rawler" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
 fornax-postprocessor = { path = "./crates/fornax-postprocessor" }
@@ -23,14 +21,8 @@ fornax-tiff = { path = "./crates/fornax-tiff" }
 clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 # glatzel
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-generic-num = {
-  git = "https://github.com/Glatzel/toolbox",
-  tag = "v2026.10.11"
-}
-image = {
-  git = "https://github.com/Glatzel/image-rs",
-  default-features = false
-}
+generic-num = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
+image = { git = "https://github.com/Glatzel/image-rs", default-features = false }
 mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 # other

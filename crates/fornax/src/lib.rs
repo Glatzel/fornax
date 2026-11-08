@@ -4,5 +4,5 @@ pub use fornax_core::{
     RawMosaic, RgbImage, error, metadata, protocol,
 };
 pub use fornax_dng as dng;
-pub mod decoder;
 pub mod postprocessor;
+pub use fornax_decoder::Decoder;

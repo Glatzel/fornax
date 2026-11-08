@@ -2,21 +2,20 @@ use std::marker::PhantomData;
 use std::path::{self, Path, PathBuf};
 use std::{fmt, fs};
 
-use fornax::decoder::{Decoder, RawlerDecoder};
 use fornax::dng::metadata::{IDecoderDng, directory_to_json_value};
 use fornax::dng::{Directory, DngWriter};
 use fornax::error::{DecodeError, PostProcessError, PreprocessError};
 use fornax::postprocessor::{OutputColorSpace, PostProcessor};
 use fornax::preprocessor::Preprocessor;
 use fornax::protocol::{IDecoder, IPostProcessor, IPreprocessor};
-use fornax::{RawFormat, RgbImage};
+use fornax::{Decoder, RawFormat, RgbImage};
 use image::codecs::jpeg::JpegEncoder;
 use image::{ExtendedColorType, ImageEncoder};
 use num_traits::ToPrimitive;
 use rayon::prelude::*;
 use thiserror::Error;
 
-use crate::config::{CliArgs, DecoderChoice, OutputFormat, ResolvedConfig, resolve_config};
+use crate::config::{CliArgs, OutputFormat, ResolvedConfig, resolve_config};
 use crate::discover::{DiscoveryError, InputJob, plan_inputs};
 
 /// Outcome of one input job.
@@ -100,8 +99,6 @@ enum ConvertError {
         #[source]
         source: Box<dyn std::error::Error + Send + Sync>,
     },
-    #[error("unsupported decoder/format combination: {0}")]
-    Decoder(String),
 }
 
 /// Executes a CLI invocation.
@@ -142,7 +139,7 @@ fn convert_job_inner(
     match config.format {
         OutputFormat::Dng if job.format == RawFormat::Dng => {
             if config.metadata_json {
-                let decoder = Decoder::<f32>::decode(&job.input)?;
+                let decoder = Decoder::decode(&job.input)?;
                 create_parent(&job.output)?;
                 write_metadata_json(&job.output, &decoder.dng_metadata()?)?;
                 return Ok(ConversionOutcome::MetadataOnly {
@@ -156,7 +153,9 @@ fn convert_job_inner(
             })
         }
         OutputFormat::Dng => convert_raw_dng(job, config),
-        OutputFormat::Tiff | OutputFormat::Jpeg => convert_rendered(job, config),
+        OutputFormat::Tiff | OutputFormat::Jpeg => {
+            render_with(Decoder::decode(&job.input)?, job, config)
+        }
     }
 }
 
@@ -164,13 +163,8 @@ fn convert_raw_dng(
     job: &InputJob,
     config: &ResolvedConfig,
 ) -> Result<ConversionOutcome, ConvertError> {
-    if config.decoder == DecoderChoice::Fornax {
-        return Err(ConvertError::Decoder(
-            "the Fornax DNG decoder only accepts DNG input".into(),
-        ));
-    }
     create_parent(&job.output)?;
-    let decoder = RawlerDecoder::<f32>::decode(&job.input)?;
+    let decoder = Decoder::decode(&job.input)?;
     let mosaic = decoder.raw_mosaic()?;
     let metadata = decoder.dng_metadata()?;
     DngWriter::new(config.dng_compression.writer())
@@ -185,35 +179,19 @@ fn convert_raw_dng(
     })
 }
 
-fn convert_rendered(
-    job: &InputJob,
-    config: &ResolvedConfig,
-) -> Result<ConversionOutcome, ConvertError> {
-    match config.decoder {
-        DecoderChoice::Auto if job.format == RawFormat::Dng => {
-            render_with(Decoder::<f32>::decode(&job.input)?, job, config)
-        }
-        DecoderChoice::Auto | DecoderChoice::Rawler => {
-            render_with(RawlerDecoder::<f32>::decode(&job.input)?, job, config)
-        }
-        DecoderChoice::Fornax => render_with(Decoder::<f32>::decode(&job.input)?, job, config),
-    }
-}
-
 fn render_with<D>(
     decoder: D,
     job: &InputJob,
     config: &ResolvedConfig,
 ) -> Result<ConversionOutcome, ConvertError>
 where
-    D: for<'a> IDecoderDng<&'a Path, f32>,
+    D: IDecoderDng,
 {
     let cropped = decoder.cropped_mosaic()?;
     let metadata = decoder.process_metadata()?;
     let normalized = Preprocessor.process(cropped, &metadata.levels)?;
     let processor = PostProcessor {
         demosaic: config.demosaic,
-        use_wb_coeffs: config.white_balance,
         output_color: if config.color_matrix {
             OutputColorSpace::Srgb
         } else {

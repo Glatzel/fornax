@@ -46,3 +46,7 @@ noise cases and the default RAW fixture.
 The benchmark prints encoded bytes and the ratio to raw sample storage before
 timing starts. Each Criterion `benchmark.json` records the exact output DNG
 size in `throughput.Bytes`.
+
+## References
+
+- [Digital Negative (DNG) Specification](https://helpx.adobe.com/camera-raw/digital-negative.html) — Adobe DNG format specification.

@@ -19,29 +19,13 @@ pub struct CliArgs {
     #[arg(help_heading = "General")]
     pub inputs: Vec<PathBuf>,
 
-    /// Decoder selection [default: auto]
-    #[arg(long, value_enum, help_heading = "Processing")]
-    pub decoder: Option<DecoderChoice>,
-
     /// Demosaic algorithm with its default parameters [default: rcd]
     #[arg(long, help_heading = "Processing")]
     pub demosaic: Option<String>,
 
-    /// Enforce white balance during postprocessing [default: true]
-    #[arg(long, conflicts_with = "no_white_balance", help_heading = "Color")]
-    pub white_balance: bool,
-
-    /// Disable white balance during postprocessing.
-    #[arg(long, conflicts_with = "white_balance", help_heading = "Color")]
-    pub no_white_balance: bool,
-
     /// Apply the derived camera-to-linear-sRGB matrix [default: true]
-    #[arg(long, conflicts_with = "no_color_matrix", help_heading = "Color")]
+    #[arg(long, help_heading = "Color")]
     pub color_matrix: bool,
-
-    /// Disable the camera color matrix.
-    #[arg(long, conflicts_with = "color_matrix", help_heading = "Color")]
-    pub no_color_matrix: bool,
 
     /// Output directory [default: converted]
     #[arg(long, short, help_heading = "Output")]
@@ -52,20 +36,12 @@ pub struct CliArgs {
     pub format: Option<OutputFormat>,
 
     /// Overwrite an existing output file [default: false]
-    #[arg(long, conflicts_with = "no_overwrite", help_heading = "Output")]
+    #[arg(long, help_heading = "Output")]
     pub overwrite: bool,
 
-    /// Skip an existing output file.
-    #[arg(long, conflicts_with = "overwrite", help_heading = "Output")]
-    pub no_overwrite: bool,
-
     /// Write `<output-stem>.json` beside each output [default: false]
-    #[arg(long, conflicts_with = "no_metadata_json", help_heading = "Output")]
+    #[arg(long, help_heading = "Output")]
     pub metadata_json: bool,
-
-    /// Do not write metadata sidecars.
-    #[arg(long, conflicts_with = "metadata_json", help_heading = "Output")]
-    pub no_metadata_json: bool,
 
     /// JPEG preview quality [default: 90]
     #[arg(long, help_heading = "Output")]
@@ -84,12 +60,8 @@ pub struct CliArgs {
     pub jobs: Option<usize>,
 
     /// Recurse into directory inputs [default: true]
-    #[arg(long, conflicts_with = "no_recursive", help_heading = "Input")]
+    #[arg(long, help_heading = "Input")]
     pub recursive: bool,
-
-    /// Do not recurse into directory inputs.
-    #[arg(long, conflicts_with = "recursive", help_heading = "Input")]
-    pub no_recursive: bool,
 
     #[command(flatten)]
     pub verbose: clap_verbosity_flag::Verbosity<InfoLevel>,
@@ -113,16 +85,6 @@ impl OutputFormat {
             Self::Jpeg => "jpg",
         }
     }
-}
-
-/// Decoder selection.
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, ValueEnum)]
-#[serde(rename_all = "kebab-case")]
-pub enum DecoderChoice {
-    #[default]
-    Auto,
-    Fornax,
-    Rawler,
 }
 
 /// DNG writer compression selection.
@@ -153,13 +115,11 @@ struct FileConfig {
     inputs: Option<Vec<PathBuf>>,
     output: Option<PathBuf>,
     format: Option<OutputFormat>,
-    decoder: Option<DecoderChoice>,
     jobs: Option<usize>,
     recursive: Option<bool>,
     overwrite: Option<bool>,
     metadata_json: Option<bool>,
     demosaic: Option<String>,
-    white_balance: Option<bool>,
     color_matrix: Option<bool>,
     jpeg_quality: Option<u8>,
     dng_compression: Option<DngCompressionChoice>,
@@ -172,13 +132,11 @@ pub struct ResolvedConfig {
     pub inputs: Vec<PathBuf>,
     pub output: PathBuf,
     pub format: OutputFormat,
-    pub decoder: DecoderChoice,
     pub jobs: usize,
     pub recursive: bool,
     pub overwrite: bool,
     pub metadata_json: bool,
     pub demosaic: Demosaic,
-    pub white_balance: bool,
     pub color_matrix: bool,
     pub jpeg_quality: u8,
     pub dng_compression: DngCompressionChoice,
@@ -290,29 +248,12 @@ pub fn resolve_config(args: &CliArgs) -> Result<ResolvedConfig, ConfigError> {
         inputs,
         output,
         format: args.format.or(file.format).unwrap_or_default(),
-        decoder: args.decoder.or(file.decoder).unwrap_or_default(),
         jobs,
-        recursive: merge_bool(args.recursive, args.no_recursive, file.recursive, true),
-        overwrite: merge_bool(args.overwrite, args.no_overwrite, file.overwrite, false),
-        metadata_json: merge_bool(
-            args.metadata_json,
-            args.no_metadata_json,
-            file.metadata_json,
-            false,
-        ),
+        recursive: merge_bool(args.recursive, file.recursive),
+        overwrite: merge_bool(args.overwrite, file.overwrite),
+        metadata_json: merge_bool(args.metadata_json, file.metadata_json),
         demosaic,
-        white_balance: merge_bool(
-            args.white_balance,
-            args.no_white_balance,
-            file.white_balance,
-            true,
-        ),
-        color_matrix: merge_bool(
-            args.color_matrix,
-            args.no_color_matrix,
-            file.color_matrix,
-            true,
-        ),
+        color_matrix: merge_bool(args.color_matrix, file.color_matrix),
         jpeg_quality,
         dng_compression: args
             .dng_compression
@@ -330,20 +271,13 @@ fn resolve_path(base: &Path, path: PathBuf, cli_path: bool) -> PathBuf {
     }
 }
 
-const fn merge_bool(
-    cli_true: bool,
-    cli_false: bool,
-    configured: Option<bool>,
-    default: bool,
-) -> bool {
+const fn merge_bool(cli_true: bool, configured: Option<bool>) -> bool {
     if cli_true {
         true
-    } else if cli_false {
-        false
     } else {
         match configured {
             Some(value) => value,
-            None => default,
+            None => false,
         }
     }
 }
@@ -382,14 +316,12 @@ mod tests {
 
         assert_eq!(config.output, PathBuf::from("converted"));
         assert_eq!(config.format, OutputFormat::Dng);
-        assert_eq!(config.decoder, DecoderChoice::Auto);
         assert_eq!(config.jobs, 1);
-        assert!(config.recursive);
+        assert_eq!(config.recursive, false);
         assert!(!config.overwrite);
         assert!(!config.metadata_json);
         assert_eq!(config.demosaic, Demosaic::default());
-        assert!(config.white_balance);
-        assert!(config.color_matrix);
+        assert!(!config.color_matrix);
         assert_eq!(config.jpeg_quality, 90);
         assert_eq!(config.dng_compression, DngCompressionChoice::LosslessJpeg);
     }
@@ -403,7 +335,7 @@ mod tests {
         let mut file = std::fs::File::create(&config_path).unwrap();
         writeln!(
             file,
-            "inputs = [\"input.dng\"]\noutput = \"out\"\nformat = \"jpeg\"\njobs = 2\ndemosaic = \"ppg\"\nwhite_balance = false"
+            "inputs = [\"input.dng\"]\noutput = \"out\"\nformat = \"jpeg\"\njobs = 2\ndemosaic = \"ppg\""
         )
         .unwrap();
 
@@ -424,7 +356,6 @@ mod tests {
         assert_eq!(config.format, OutputFormat::Tiff);
         assert_eq!(config.jobs, 1);
         assert_eq!(config.demosaic, Demosaic::Ppg);
-        assert!(!config.white_balance);
     }
 
     #[test]
