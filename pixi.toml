@@ -4,7 +4,6 @@ name = "fornax"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
 [feature.dev.dependencies]
-git-lfs = "*"
 libraw-dev = "==0.22.3"
 
 [feature.duckdb.dependencies]

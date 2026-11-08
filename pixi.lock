@@ -371,7 +371,6 @@ environments:
       linux-64:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/freeglut-3.2.2-h215f996_4.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/git-lfs-3.8.1-h2c09266_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/jasper-4.2.9-hd038ad9_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/lcms2-2.20-h9073bf1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/lerc-4.3.0-he78707d_0.conda
@@ -408,7 +407,6 @@ environments:
       linux-aarch64:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/freeglut-3.2.2-hddf9bb5_4.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/git-lfs-3.8.1-hcf061c0_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/jasper-4.2.9-h8d4df48_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/lcms2-2.20-h137c43b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/lerc-4.3.0-h0e9b339_0.conda
@@ -443,7 +441,6 @@ environments:
       - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-dev-0.22.3-h47ec6e6_0.conda
       - conda: https://prefix.dev/glatzel/linux-aarch64/libraw-rt-0.22.3-h47ec6e6_0.conda
       osx-arm64:
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/git-lfs-3.8.1-hc1ac0ee_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/jasper-4.2.9-hc111fee_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/lcms2-2.20-hce41798_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/lerc-4.3.0-h0699d0c_0.conda
@@ -463,7 +460,6 @@ environments:
       - conda: https://prefix.dev/glatzel/osx-arm64/libraw-rt-0.22.3-hb33852e_0.conda
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/freeglut-3.2.2-hac47afa_4.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/git-lfs-3.8.1-ha70c05e_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/jasper-4.2.9-h1339676_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/lcms2-2.20-hf2c6c5f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/lerc-4.3.0-hd936e49_0.conda
@@ -495,7 +491,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/charset-normalizer-3.5.2-h1114479_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/coverage-7.17.2-py313h2af15c8_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/freeglut-3.2.2-h215f996_4.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/git-lfs-3.8.1-h2c09266_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/jasper-4.2.9-hd038ad9_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/lcms2-2.20-h9073bf1_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ld_impl_linux-64-2.46.1-default_hbd61a6d_103.conda
@@ -608,7 +603,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/bzip2-1.0.8-h4777abc_10.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/coverage-7.17.2-py313hd50f550_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/freeglut-3.2.2-hddf9bb5_4.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/git-lfs-3.8.1-hcf061c0_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/jasper-4.2.9-h8d4df48_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/lcms2-2.20-h137c43b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ld_impl_linux-aarch64-2.46.1-default_h1979696_103.conda
@@ -763,7 +757,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/brotli-python-1.2.1-py313h3c37e74_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/bzip2-1.0.8-h4e30115_10.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/coverage-7.17.2-py313h0984dbd_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/git-lfs-3.8.1-hc1ac0ee_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/jasper-4.2.9-hc111fee_2.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/lcms2-2.20-hce41798_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/lerc-4.3.0-h0699d0c_0.conda
@@ -865,7 +858,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/charset-normalizer-3.5.2-h308a848_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/coverage-7.17.2-py313h868807b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/freeglut-3.2.2-hac47afa_4.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/git-lfs-3.8.1-ha70c05e_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/jasper-4.2.9-h1339676_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/lcms2-2.20-hf2c6c5f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/lerc-4.3.0-hd936e49_0.conda
@@ -1175,14 +1167,6 @@ packages:
     - fribidi >=1.0.18,<2.0a0
   size: 64767
   timestamp: 1793323486599
-- conda: https://conda.anaconda.org/conda-forge/linux-64/git-lfs-3.8.1-h2c09266_0.conda
-  sha256: 0989aa942a936cc8e51febb2fcc9dbe7825c53b7b0304aa3976f1b95c29cae58
-  md5: 2b653ac8fe3ecfeadddc76e526487dae
-  license: MIT
-  license_family: MIT
-  run_exports: {}
-  size: 5253503
-  timestamp: 1792702148617
 - conda: https://conda.anaconda.org/conda-forge/linux-64/graphite2-1.3.15-h54a6638_1.conda
   sha256: 7fa3b6a9c081fa3e545573152a788d061a0a0ba57df7251cc0f4f75225fc93e7
   md5: f9fe2984587fa8235a6af6004760cd18
@@ -2514,14 +2498,6 @@ packages:
     - fribidi >=1.0.18,<2.0a0
   size: 65841
   timestamp: 1793323474852
-- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/git-lfs-3.8.1-hcf061c0_0.conda
-  sha256: c7af8e55c906cb3bf9eb5c649c30c08bd754451b122ec2826f62dc3ab1c57e38
-  md5: 99eb5a6a74a57aeb7200c87abb49511d
-  license: MIT
-  license_family: MIT
-  run_exports: {}
-  size: 4746137
-  timestamp: 1792702162165
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/graphite2-1.3.15-h7ac5ae9_1.conda
   sha256: 5be01914b445dfbde85a4751b1d12b331740e7af68a86e4ef6313ab38a870fdd
   md5: c5835ff5788e0d772d67a97bd5fe001b
@@ -4449,14 +4425,6 @@ packages:
     - fribidi >=1.0.18,<2.0a0
   size: 64404
   timestamp: 1793323489033
-- conda: https://conda.anaconda.org/conda-forge/osx-arm64/git-lfs-3.8.1-hc1ac0ee_0.conda
-  sha256: 1d71c201e98664eb2989b590c7a83708bf090845e894aca5f0dc04ee31813dcd
-  md5: c526db1eeb67698bee5b723e45c28d22
-  license: MIT
-  license_family: MIT
-  run_exports: {}
-  size: 4789498
-  timestamp: 1792702208023
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/graphite2-1.3.15-h784d473_1.conda
   sha256: 471f34a187fdb4f2df33e26f2e471b16c239a5b277903f643d9c3a8c9a9f44ec
   md5: 0c7b78d9ffff4f5a6ca28d346f734d8f
@@ -5553,14 +5521,6 @@ packages:
     - fribidi >=1.0.18,<2.0a0
   size: 67992
   timestamp: 1793323544368
-- conda: https://conda.anaconda.org/conda-forge/win-64/git-lfs-3.8.1-ha70c05e_0.conda
-  sha256: 3111a1de58aa5699d7b0222f1bd5df0f55f398ae428a72c160d24e5a9e3bf452
-  md5: 2d5b0576d02290c9e02fb459861d939b
-  license: MIT
-  license_family: MIT
-  run_exports: {}
-  size: 4947825
-  timestamp: 1792702162471
 - conda: https://conda.anaconda.org/conda-forge/win-64/graphite2-1.3.15-h5112557_1.conda
   sha256: 93a59bdf944fb6f947bd7ad2f293d5d80db3a90f8ff8dfabc591e3752141e46f
   md5: 79538e7a7bc024084eda5989f73fde35

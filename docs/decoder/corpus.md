@@ -23,8 +23,8 @@ manifest.
 
 ## Commands
 
-Run from the repository root through the Pixi dev environment so `git-lfs` is
-available:
+Run from the repository root with globally installed `git-lfs` and through the
+Pixi environments for DuckDB and decoder tooling:
 
 ```text
 pixi run -e dev cargo run -q -p decoder-tracker -- manifest [--check] [--format F]...
