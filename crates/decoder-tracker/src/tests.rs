@@ -469,6 +469,14 @@ fn child_timeout_kills_the_process_and_returns_timeout() {
 }
 
 #[test]
+fn lfs_paths_escape_gitignore_glob_metacharacters() {
+    assert_eq!(
+        crate::runner::escape_lfs_glob("Canon/Cam/IMG_[1].DNG"),
+        "Canon/Cam/IMG_\\[1\\].DNG"
+    );
+}
+
+#[test]
 fn baseline_roundtrip_keeps_models_and_rows_stable() {
     let key = BaselineKey {
         vendor: "Canon".into(),

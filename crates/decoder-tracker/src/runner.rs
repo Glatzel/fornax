@@ -1,7 +1,7 @@
 use std::io::Read;
 use std::process::{Child, Command, Output, Stdio};
-use std::thread;
 use std::time::{Duration, Instant};
+use std::{fs, thread};
 
 use crate::manifest::corpus_path;
 use crate::model::{ManifestRow, Result, TrackerError};
@@ -106,6 +106,16 @@ pub fn materialize(corpus: &std::path::Path, rows: &[ManifestRow]) -> Result<()>
                 path.display()
             )));
         }
+        let prefix = fs::read(&path)?
+            .into_iter()
+            .take(crate::manifest::VERSION.len())
+            .collect::<Vec<_>>();
+        if prefix == crate::manifest::VERSION.as_bytes() {
+            return Err(TrackerError::new(format!(
+                "LFS materialization left pointer metadata at {}",
+                path.display()
+            )));
+        }
     }
     Ok(())
 }
@@ -120,10 +130,14 @@ fn run_lfs(corpus: &std::path::Path, action: &str, paths: &[&str]) -> Result<()>
             .args(["-c", "lfs.concurrenttransfers=4"])
             .args(["lfs", action]);
         if action == "fetch" {
-            let include = paths.join(",");
+            let include = paths
+                .iter()
+                .map(|path| escape_lfs_glob(path))
+                .collect::<Vec<_>>()
+                .join(",");
             command.arg("origin").arg("--include").arg(include);
         } else {
-            command.args(paths);
+            command.args(paths.iter().map(|path| escape_lfs_glob(path)));
         }
         command.env("GIT_TERMINAL_PROMPT", "0");
         let output = command.output().map_err(|error| {
@@ -156,6 +170,17 @@ fn run_lfs(corpus: &std::path::Path, action: &str, paths: &[&str]) -> Result<()>
     Err(TrackerError::new(format!(
         "git-lfs {action} failed after {FETCH_ATTEMPTS} attempts: {last_error}"
     )))
+}
+
+pub(crate) fn escape_lfs_glob(path: &str) -> String {
+    let mut escaped = String::with_capacity(path.len());
+    for character in path.chars() {
+        if matches!(character, '\\' | '*' | '?' | '[' | ']') {
+            escaped.push('\\');
+        }
+        escaped.push(character);
+    }
+    escaped
 }
 
 pub fn timeout_from_env() -> Duration {
