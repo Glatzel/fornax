@@ -29,4 +29,3 @@ fornax-devtool.workspace = true
 [features]
 default = []
 metadata-json = ["dep:serde", "dep:serde_json"]
-zstd = ["fornax-codec/zstd"]

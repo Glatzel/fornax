@@ -397,6 +397,7 @@ fn duckdb_badge_script_updates_pass_and_total_counts() {
         String::from_utf8_lossy(&output.stderr)
     );
     let text = fs::read_to_string(readme).unwrap();
-    assert!(text.contains("DNG_corpus-1%2F2"));
+    assert!(text.contains("raw.pixls.us_corpus_pass-1%2F2"));
+    assert!(text.contains("| DNG | 1/2 |"));
     assert!(!text.contains("\nold\n"));
 }

@@ -81,6 +81,10 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `bench-decoder/benches/decoder.rs` | Decoder-method benchmarks for DNG and Rawler adapters |
 | `decoder-tracker/src` | Manual raw.pixls.us manifest, isolated decoder runs, shard merge, and baseline diff |
 
+Codec availability is a mandatory build capability, not a per-codec option.
+Zstandard and future codecs compile unconditionally without feature-dependent
+fallback paths.
+
 ## DNG data flow
 
 ```text
@@ -117,8 +121,14 @@ Validation covers:
 - `CFARepeatPatternDim`, `CFAPlaneColor`, `CFALayout`, and `CFAPattern`;
 - conventional 2x2 RGB Bayer conversion.
 
-Unsupported compression, sample layouts, and malformed metadata return typed
-decode errors rather than panics.
+Unsupported sample layouts and malformed metadata return typed decode errors
+rather than panics. Unknown compression identifiers are invalid input, while a
+recognized codec can still reject an unsupported payload layout.
+
+Legacy TIFF JPEG XL identifier `50002` and DNG 1.7 identifier `52546` map to the
+single-channel JPEG XL decoder. Three-sample `LinearRaw` payloads, including
+compression `1`, `7`, and `34892` examples in the corpus, are rejected before
+codec dispatch because the raw mosaic contract accepts one sample per pixel.
 
 ## Alternates and tooling
 
@@ -144,6 +154,8 @@ benchmarks in their stage crates.
   DNG from current `RawMosaic` samples and a `Directory`.
 - `DngCompression::LosslessJpeg` writes 256x256 tiled JPEG-92 for U8/U16
   mosaics and tiled lossless Deflate for U32/F32 mosaics.
+- `DngCompression::Zstd` is implemented with pure-Rust `structured-zstd` and is
+  always available.
 - Structural and chunk-layout tags are regenerated; consumed frontend tags are
   omitted so they are not applied twice.
 - `TiffDirectory` in `fornax-tiff` owns shared entry accumulation and writer

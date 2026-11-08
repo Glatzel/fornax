@@ -199,7 +199,7 @@ fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, Decode
         CompressionMethod::LosslessJpeg => DecodeCompression::LosslessJpeg,
         CompressionMethod::Deflate => DecodeCompression::Deflate,
         CompressionMethod::LossyJpeg => DecodeCompression::LossyJpeg,
-        CompressionMethod::JpegXl => DecodeCompression::JpegXl,
+        CompressionMethod::JpegXlLegacy | CompressionMethod::JpegXl => DecodeCompression::JpegXl,
         CompressionMethod::Zstd => DecodeCompression::Zstd,
         CompressionMethod::Unknown(value) => {
             return Err(corrupt(format!("invalid DNG compression {value}")));
@@ -263,14 +263,6 @@ fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, Decode
 }
 
 fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, DecodeError> {
-    #[cfg(not(feature = "zstd"))]
-    if CompressionMethod::from(required_u16(metadata, TiffTag::Compression)?)
-        == CompressionMethod::Zstd
-    {
-        return Err(unsupported_variant(
-            "Zstandard compression requires the fornax-dng zstd feature",
-        ));
-    }
     let plan = decode_plan(source, metadata)?;
     fornax_codec::decode(&plan.request(source)).map_err(codec_decode_error)
 }
@@ -390,8 +382,6 @@ fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInp
 mod tests {
     use std::io::Cursor;
 
-    #[cfg(not(feature = "zstd"))]
-    use fornax_core::error::DecodeError;
     use fornax_core::{MonoImage, RawMosaic};
     use fornax_tiff::constants::TiffTag;
     use fornax_tiff::{Tag, TiffWriter, Value};
@@ -485,6 +475,26 @@ mod tests {
         let plan = super::decode_plan(source, &metadata).unwrap();
 
         assert_eq!(plan.compression, fornax_codec::DecodeCompression::Zstd);
+    }
+
+    #[test]
+    fn legacy_jpeg_xl_metadata_maps_to_jpeg_xl_decode_compression() {
+        let source = b"MM";
+        let mut metadata = metadata(
+            1,
+            1,
+            8,
+            1,
+            [
+                (TiffTag::TileWidth.into(), Value::Unsigned(1)),
+                (TiffTag::TileLength.into(), Value::Unsigned(1)),
+            ],
+        );
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(50_002));
+
+        let plan = super::decode_plan(source, &metadata).unwrap();
+
+        assert_eq!(plan.compression, fornax_codec::DecodeCompression::JpegXl);
     }
 
     #[test]
@@ -624,7 +634,6 @@ mod tests {
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
     }
 
-    #[cfg(feature = "zstd")]
     #[test]
     fn zstd_writer_round_trips_u16_samples() {
         let samples = vec![0, 65_535, 30_000, 32_768, 1, 2, 40_000, 12_345];
@@ -642,7 +651,6 @@ mod tests {
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
     }
 
-    #[cfg(feature = "zstd")]
     #[test]
     fn zstd_writer_round_trips_u8_u32_and_f32_samples() {
         let u8_samples = vec![0, 1, 2, 255];
@@ -692,19 +700,6 @@ mod tests {
                 (_, decoded) => panic!("{expected} decoded as an unexpected type: {decoded:?}"),
             }
         }
-    }
-
-    #[cfg(not(feature = "zstd"))]
-    #[test]
-    fn zstd_decode_without_feature_returns_unsupported() {
-        let mut metadata = writable_metadata(1, 1);
-        metadata.insert(Tag::from(TiffTag::ImageWidth), Value::Unsigned(1));
-        metadata.insert(Tag::from(TiffTag::ImageLength), Value::Unsigned(1));
-        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(50_000));
-
-        let error = super::decode_samples(&[], &metadata).expect_err("zstd feature is disabled");
-
-        assert!(matches!(error, DecodeError::Unsupported(_)), "{error:?}");
     }
 
     #[test]

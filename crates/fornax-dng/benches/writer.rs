@@ -68,11 +68,7 @@ fn metadata(width: u32, height: u32) -> Directory {
 }
 
 fn selected_compressions() -> Vec<(String, DngCompression)> {
-    let default = if cfg!(feature = "zstd") {
-        "uncompressed,lossless-jpeg,deflate,zstd"
-    } else {
-        "uncompressed,lossless-jpeg,deflate"
-    };
+    let default = "uncompressed,lossless-jpeg,deflate,zstd";
     let selected =
         std::env::var("FORNAX_BENCH_DNG_COMPRESSION").unwrap_or_else(|_| default.to_owned());
     selected
@@ -84,7 +80,7 @@ fn selected_compressions() -> Vec<(String, DngCompression)> {
                 "uncompressed" => DngCompression::Uncompressed,
                 "lossless-jpeg" => DngCompression::LosslessJpeg,
                 "deflate" => DngCompression::Deflate,
-                "zstd" if cfg!(feature = "zstd") => DngCompression::Zstd,
+                "zstd" => DngCompression::Zstd,
                 _ => panic!("unknown FORNAX_BENCH_DNG_COMPRESSION value {value:?}"),
             };
             (value.to_owned(), compression)

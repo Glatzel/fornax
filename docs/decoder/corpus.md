@@ -119,6 +119,31 @@ The runner retains the best geometry and CFA label available after partial
 failure. A non-2x2 CFA gets a descriptive label such as `XTrans-6x6` before the
 typed unsupported CFA error is recorded.
 
+## Reading failures
+
+The baseline records outcomes, not decoder internals. A failed row is not
+automatically evidence of a missing compression codec:
+
+- `raw_mosaic:unsupported` currently includes three-sample `LinearRaw` DNGs
+  that cannot enter the mono `RawMosaic` contract.
+- `raw_mosaic:invalid_input` includes unsupported lossless-JPEG tile variants,
+  missing TIFF layout tags such as `RowsPerStrip`, and truncated or mismatched
+  strip/tile chunks.
+- `process_metadata:unsupported` includes CFA layouts outside the conventional
+  2x2 RGB Bayer handoff, such as X-Trans.
+- `process_metadata:backend` and `decode:invalid_input` must be investigated
+  from their source sample before being assigned to a codec gap.
+
+Compression `52546` is the DNG 1.7 JPEG XL identifier and `50002` is the legacy
+TIFF JPEG XL identifier. Both use the JPEG XL decoder. Zstandard is always
+compiled with pure-Rust `structured-zstd`, as are all future codecs.
+
+`update-badge.sh` derives the accumulated pass count across all baseline rows
+and writes one badge plus a per-format table into the decoder-tracker README.
+Each table row reports `passed/total`; the badge always reports the accumulated
+total. Its slug is `raw.pixls.us_corpus_pass`, which renders the label
+`raw.pixls.us corpus pass`.
+
 ## Isolation and LFS
 
 `run` parses the manifest, selects rows, initializes Git LFS in the pointer-only
