@@ -43,7 +43,7 @@ Out of scope:
 - [x] Regenerate the `decoder-tracker` README badge and status table.
 - [x] Run focused shell, DuckDB, tracker-test, and Markdown checks.
 - [x] Run repository validation and inspect the final diff.
-- [ ] Commit, push, open one pull request, and report its URL and validation.
+- [x] Commit, push, open one pull request, and report its URL and validation.
 
 ## Files Expected to Change
 
@@ -85,6 +85,7 @@ Validation record:
   `unseparated_literal_suffix` warnings at
   `crates/fornax-core/src/metadata.rs:750-751`. This branch does not modify
   `fornax-core`.
+- Pull request: <https://github.com/Glatzel/fornax/pull/675>.
 
 ## Decisions and Notes
 
