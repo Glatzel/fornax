@@ -88,52 +88,53 @@ not use the generic codec.
 
 ## Task checklist
 
-- [ ] **Task 1: Add failing `SampleBuffer` contract tests.**
-  - [ ] Add tests for construction and dimensions for U8, U16, U32, and F32.
-  - [ ] Add tests for short and long input buffers.
-  - [ ] Add tests for consuming raw extraction for every sample type and for
+- [x] **Task 1: Add failing `SampleBuffer` contract tests.**
+  - [x] Add tests for construction and dimensions for U8, U16, U32, and F32.
+  - [x] Add tests for short and long input buffers.
+  - [x] Add tests for consuming raw extraction for every sample type and for
         mismatched extraction returning `None`.
-  - [ ] Run the focused tests and confirm they fail because `SampleBuffer` does
+  - [x] Run the focused tests and confirm they fail because `SampleBuffer` does
         not exist.
 
-- [ ] **Task 2: Implement the approved `SampleBuffer`.**
-  - [ ] Add `sample_buffer.rs` with the exact enum, constructors, accessors,
+- [x] **Task 2: Implement the approved `SampleBuffer`.**
+  - [x] Add `sample_buffer.rs` with the exact enum, constructors, accessors,
         consuming extraction, and a documented `SampleBufferError`.
-  - [ ] Use checked sample-count calculation and `ImageBuffer::from_raw`.
-  - [ ] Export the public API and add rustdoc examples.
-  - [ ] Run the focused tests to GREEN.
+  - [x] Use checked sample-count calculation and `ImageBuffer::from_raw`.
+  - [x] Export the public API and add rustdoc examples.
+  - [x] Run the focused tests to GREEN.
 
-- [ ] **Task 3: Move codec decode and encode APIs to `SampleBuffer`.**
-  - [ ] First update codec contract tests to expect `SampleBuffer`.
-  - [ ] Watch the tests fail against the old `RawMosaic` API.
-  - [ ] Change codec requests, result constructors, encoder input, internals,
+- [x] **Task 3: Move codec decode and encode APIs to `SampleBuffer`.**
+  - [x] First update codec contract tests to expect `SampleBuffer`.
+  - [x] Watch the tests fail against the old `RawMosaic` API.
+  - [x] Change codec requests, result constructors, encoder input, internals,
         examples, and documentation to use `SampleBuffer`.
-  - [ ] Remove `fornax-core` from `fornax-codec` dependencies.
-  - [ ] Add a codec round-trip covering all four approved storage types.
-  - [ ] Run `cargo test -p fornax-codec` to GREEN.
+  - [x] Remove `fornax-core` from `fornax-codec` dependencies.
+  - [x] Add a codec round-trip covering all four approved storage types.
+  - [x] Run `cargo test -p fornax-codec` to GREEN.
 
-- [ ] **Task 4: Add `RawMosaic` compatibility adapters in DNG.**
-  - [ ] Add tests for `RawMosaic` to `SampleBuffer` conversion for all four
+- [x] **Task 4: Add `RawMosaic` compatibility adapters in DNG.**
+  - [x] Add tests for `RawMosaic` to `SampleBuffer` conversion for all four
         variants and exact F32 bit preservation.
-  - [ ] Add tests for `SampleBuffer` to `RawMosaic` conversion for all four
+  - [x] Add tests for `SampleBuffer` to `RawMosaic` conversion for all four
         variants.
-  - [ ] Watch the adapter tests fail before adding the adapter.
-  - [ ] Convert codec decode output in DNG before existing raw transforms.
-  - [ ] Convert `DngWriter` input once before codec encoding.
-  - [ ] Keep the decoder and writer public signatures source-compatible.
-  - [ ] Run `cargo test -p fornax-dng` to GREEN.
+  - [x] Watch the adapter tests fail before adding the adapter.
+  - [x] Convert codec decode output in DNG before existing raw transforms.
+  - [x] Convert `DngWriter` input once before codec encoding.
+  - [x] Keep the decoder and writer public signatures source-compatible.
+  - [x] Run `cargo test -p fornax-dng` to GREEN.
 
-- [ ] **Task 5: Documentation and downstream verification.**
-  - [ ] Update the codec README and crate-level documentation for the neutral
+- [x] **Task 5: Documentation and downstream verification.**
+  - [x] Update the codec README and crate-level documentation for the neutral
         buffer and DNG adapter boundary.
-  - [ ] Update every affected codec example and test fixture.
-  - [ ] Run all task-mandated tests and validation commands.
-  - [ ] Run the golden decoder hash check and compare it with the committed
+  - [x] Update every affected codec example and test fixture.
+  - [x] Run all task-mandated tests and validation commands.
+  - [x] Run the golden decoder hash check and compare it with the committed
         baseline.
-  - [ ] Inspect the complete diff, commit, push, and open one PR.
+  - [x] Inspect the complete diff, commit, push, and open one PR.
 
 ## Files expected to change
 
+- `Cargo.lock`
 - `crates/fornax-codec/Cargo.toml`
 - `crates/fornax-codec/README.md`
 - `crates/fornax-codec/src/lib.rs`
@@ -150,8 +151,11 @@ not use the generic codec.
 - `crates/fornax-codec/tests/decode_contract.rs`
 - `crates/fornax-codec/tests/encode_contract.rs`
 - `crates/fornax-codec/tests/sample_buffer.rs`
+- `crates/fornax-dng/README.md`
 - `crates/fornax-dng/src/dng_decoder/mod.rs`
+- `crates/fornax-dng/src/sample_buffer.rs`
 - `crates/fornax-dng/src/writer.rs`
+- `docs/architecture.md`
 - `docs/plans/chore-codec-sample-buffer.md`
 
 ## Validation
@@ -180,6 +184,15 @@ fornax-codec` after adding public rustdoc examples.
   future variants explicitly.
 - The DNG adapter boundary avoids both duplicating codec types in core and
   reintroducing a `fornax-codec -> fornax-core` dependency.
+- `DngWriter` retains its `RawMosaic` API and clones that borrowed mosaic once
+  into `SampleBuffer` before encoding. The approved no-borrowed-wrapper
+  constraint makes a copy unavoidable at this compatibility boundary.
 - No interleaved or planar invalid tests are added because the approved shape
   has no band or layout representation.
 - `TODO.md` is not modified.
+- Validation results: `fornax-codec` 56 tests, `fornax-dng` 30 tests,
+  `decoder-tracker` 47 tests, and the workspace 290 tests before
+  `compare-demosaic` exclusion. `scripts/agent-validation.sh` passed, including
+  nightly formatting, rustdoc, Clippy, and decoder benchmark compilation.
+- Golden hash result: `golden: unchanged (9 rows)`.
+- Final review: self-review (no subagent dispatch authorized).

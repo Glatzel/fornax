@@ -167,7 +167,6 @@ impl SampleBuffer {
         match self {
             Self::U8(image) => Some(image.into_raw()),
             Self::U16(_) | Self::U32(_) | Self::F32(_) => None,
-            _ => None,
         }
     }
 
@@ -188,7 +187,6 @@ impl SampleBuffer {
         match self {
             Self::U16(image) => Some(image.into_raw()),
             Self::U8(_) | Self::U32(_) | Self::F32(_) => None,
-            _ => None,
         }
     }
 
@@ -209,7 +207,6 @@ impl SampleBuffer {
         match self {
             Self::U32(image) => Some(image.into_raw()),
             Self::U8(_) | Self::U16(_) | Self::F32(_) => None,
-            _ => None,
         }
     }
 
@@ -230,7 +227,6 @@ impl SampleBuffer {
         match self {
             Self::F32(image) => Some(image.into_raw()),
             Self::U8(_) | Self::U16(_) | Self::U32(_) => None,
-            _ => None,
         }
     }
 }
@@ -257,9 +253,7 @@ pub enum SampleBufferError {
         height: u32,
     },
     /// The number of provided samples does not match the dimensions.
-    #[error(
-        "sample buffer has {actual} samples; {width}x{height} requires {expected} samples"
-    )]
+    #[error("sample buffer has {actual} samples; {width}x{height} requires {expected} samples")]
     SampleCountMismatch {
         /// Requested image width.
         width: u32,
@@ -284,13 +278,12 @@ fn create<T>(width: u32, height: u32, data: Vec<T>) -> Result<Mono<T>, SampleBuf
 where
     T: image::Primitive,
 {
-    let expected = usize::try_from(width)
-        .ok()
-        .and_then(|width| {
-            usize::try_from(height)
-                .ok()
-                .and_then(|height| width.checked_mul(height))
-        })
+    let width_usize = usize::try_from(width)
+        .map_err(|_| SampleBufferError::SampleCountOverflow { width, height })?;
+    let height_usize = usize::try_from(height)
+        .map_err(|_| SampleBufferError::SampleCountOverflow { width, height })?;
+    let expected = width_usize
+        .checked_mul(height_usize)
         .ok_or(SampleBufferError::SampleCountOverflow { width, height })?;
     let actual = data.len();
     if actual != expected {

@@ -6,7 +6,6 @@ edition.workspace = true
 [dependencies]
 bytemuck.workspace = true
 flate2.workspace = true
-fornax-core.workspace = true
 image.workspace = true
 jxl-oxide.workspace = true
 rayon.workspace = true

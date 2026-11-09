@@ -1,9 +1,9 @@
-use fornax_core::{MonoImage, RawMosaic};
 use rayon::prelude::*;
 
 use crate::CodecError;
 use crate::error::invalid;
 use crate::request::{ByteOrder, Chunk, SampleFormat};
+use crate::sample_buffer::SampleBuffer;
 
 pub struct Geometry {
     pub width: usize,
@@ -82,7 +82,7 @@ pub fn decode_payloads(
     sample_format: SampleFormat,
     byte_order: ByteOrder,
     payloads: &[&[u8]],
-) -> Result<RawMosaic, CodecError> {
+) -> Result<SampleBuffer, CodecError> {
     if payloads.len() != geometry.across * geometry.down {
         return Err(invalid("decoded chunk count does not match image geometry"));
     }
@@ -98,7 +98,7 @@ fn decode_integer(
     bits: u16,
     byte_order: ByteOrder,
     payloads: &[&[u8]],
-) -> Result<RawMosaic, CodecError> {
+) -> Result<SampleBuffer, CodecError> {
     let sample_count = geometry.sample_count()?;
     match bits {
         1..=8 => {
@@ -109,7 +109,7 @@ fn decode_integer(
                 // `bits <= 8`, so the unpacked value always fits.
                 decode_packed(geometry, bits, payloads, low_u8, &mut output)?;
             }
-            mono(geometry.width, geometry.height, output).map(RawMosaic::U8)
+            buffer_u8(geometry.width, geometry.height, output)
         }
         9..=16 => {
             let mut output = vec![0_u16; sample_count];
@@ -119,17 +119,17 @@ fn decode_integer(
                 // `bits <= 16`, so the unpacked value always fits.
                 decode_packed(geometry, bits, payloads, low_u16, &mut output)?;
             }
-            mono(geometry.width, geometry.height, output).map(RawMosaic::U16)
+            buffer_u16(geometry.width, geometry.height, output)
         }
         17..=31 => {
             let mut output = vec![0_u32; sample_count];
             decode_packed(geometry, bits, payloads, |value| value, &mut output)?;
-            mono(geometry.width, geometry.height, output).map(RawMosaic::U32)
+            buffer_u32(geometry.width, geometry.height, output)
         }
         32 => {
             let mut output = vec![0_u32; sample_count];
             copy_samples(geometry, byte_order, payloads, &mut output)?;
-            mono(geometry.width, geometry.height, output).map(RawMosaic::U32)
+            buffer_u32(geometry.width, geometry.height, output)
         }
         _ => Err(invalid(format!("integer sample depth {bits} is invalid"))),
     }
@@ -140,7 +140,7 @@ fn decode_float(
     bits: u16,
     byte_order: ByteOrder,
     payloads: &[&[u8]],
-) -> Result<RawMosaic, CodecError> {
+) -> Result<SampleBuffer, CodecError> {
     let bytes_per_sample = match bits {
         16 => 2,
         24 => 3,
@@ -173,7 +173,7 @@ fn decode_float(
         (32, ByteOrder::Big) => go!(|b| f32::from_bits(read_u32(b, ByteOrder::Big))),
         _ => unreachable!("the sample width is validated above"),
     }
-    mono(geometry.width, geometry.height, output).map(RawMosaic::F32)
+    buffer_f32(geometry.width, geometry.height, output)
 }
 
 fn decode_float_with<F>(
@@ -449,14 +449,38 @@ fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
     f32::from_bits((sign << 31) | (wide_exponent << 23) | wide_fraction)
 }
 
-pub fn mono<T>(width: usize, height: usize, samples: Vec<T>) -> Result<MonoImage<T>, CodecError>
-where
-    T: image::Primitive,
-{
+fn dimensions(width: usize, height: usize) -> Result<(u32, u32), CodecError> {
     let width = u32::try_from(width).map_err(|_| invalid("image width exceeds u32"))?;
     let height = u32::try_from(height).map_err(|_| invalid("image height exceeds u32"))?;
-    MonoImage::from_raw(width, height, samples)
-        .ok_or_else(|| invalid("decoded sample count does not match dimensions"))
+    Ok((width, height))
+}
+
+pub fn buffer_u8(
+    width: usize,
+    height: usize,
+    samples: Vec<u8>,
+) -> Result<SampleBuffer, CodecError> {
+    let (width, height) = dimensions(width, height)?;
+    SampleBuffer::from_u8(width, height, samples).map_err(Into::into)
+}
+
+pub fn buffer_u16(
+    width: usize,
+    height: usize,
+    samples: Vec<u16>,
+) -> Result<SampleBuffer, CodecError> {
+    let (width, height) = dimensions(width, height)?;
+    SampleBuffer::from_u16(width, height, samples).map_err(Into::into)
+}
+
+fn buffer_u32(width: usize, height: usize, samples: Vec<u32>) -> Result<SampleBuffer, CodecError> {
+    let (width, height) = dimensions(width, height)?;
+    SampleBuffer::from_u32(width, height, samples).map_err(Into::into)
+}
+
+fn buffer_f32(width: usize, height: usize, samples: Vec<f32>) -> Result<SampleBuffer, CodecError> {
+    let (width, height) = dimensions(width, height)?;
+    SampleBuffer::from_f32(width, height, samples).map_err(Into::into)
 }
 
 fn checked_product<const N: usize>(values: [usize; N]) -> Option<usize> {

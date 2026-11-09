@@ -2,6 +2,7 @@
 
 pub(crate) mod dng_decoder;
 pub mod metadata;
+mod sample_buffer;
 pub mod writer;
 
 pub use dng_decoder::{

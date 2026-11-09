@@ -5,15 +5,14 @@ use std::io::{Read, Write};
 use flate2::Compression as FlateCompression;
 use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;
-use fornax_core::RawMosaic;
 
 use crate::encode::encode_image;
 use crate::error::invalid;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
 use crate::samples::{Geometry, chunk, decode_payloads};
-use crate::{CodecError, predictor};
+use crate::{CodecError, SampleBuffer, predictor};
 
-pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     let geometry = Geometry::new(
         request.width,
         request.height,

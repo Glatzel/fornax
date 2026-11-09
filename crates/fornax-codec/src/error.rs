@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::SampleBufferError;
+
 /// Failure while decoding or encoding raw samples.
 ///
 /// # Examples
@@ -16,6 +18,10 @@ pub enum CodecError {
     /// The codec does not support the requested operation or layout.
     #[error("{0}")]
     Unsupported(Box<str>),
+}
+
+impl From<SampleBufferError> for CodecError {
+    fn from(error: SampleBufferError) -> Self { invalid(error.to_string()) }
 }
 
 pub fn invalid<T>(detail: T) -> CodecError

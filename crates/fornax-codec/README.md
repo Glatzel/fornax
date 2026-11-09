@@ -4,8 +4,8 @@ Format-neutral raw sample codecs for Fornax decoder implementations.
 
 `fornax-codec` owns uncompressed sample assembly, TIFF-compatible predictors,
 lossless and lossy JPEG, JPEG XL, Deflate, and optional Zstandard handling. It
-returns `fornax_core::RawMosaic` values and has no dependency on TIFF or DNG
-container types. TIFF compression identifiers belong to
+returns `SampleBuffer` values and has no dependency on TIFF, DNG, or raw
+workflow types. TIFF compression identifiers belong to
 [`fornax-tiff`](../fornax-tiff/README.md), while
 [`fornax-dng`](../fornax-dng/README.md) translates container metadata into
 codec requests.
@@ -13,8 +13,10 @@ codec requests.
 ## Interfaces
 
 `DecodeCompression` and `EncodeCompression` select the algorithm inside their
-respective request types. `decode(&DecodeRequest)` and
-`encode(&EncodeRequest)` dispatch directly to the selected implementation.
+respective request types. `decode(&DecodeRequest)` returns a single-band
+`SampleBuffer`, and `encode(&EncodeRequest)` accepts one. The buffer stores
+U8, U16, U32, or F32 samples in an `image::ImageBuffer<Luma<T>, Vec<T>>`.
+`Luma` denotes one scalar channel rather than necessarily luminance.
 Decoding accepts the image geometry, chunk locations, sample layout, byte
 order, predictor, and source bytes. Encoding returns row-major
 `EncodedChunks`. Lossy JPEG and JPEG XL are absent from `EncodeCompression`, so
@@ -46,9 +48,9 @@ compression `52546` to the same JPEG XL decoder.
   intervals, Huffman selector `0x10`, or multi-component subsampled and
   half-height tile layouts.
 - Lossy JPEG decoding accepts only one 8-bit component. Three-component
-  `LinearRaw` payloads are outside the mono `RawMosaic` contract.
+  `LinearRaw` payloads are outside the single-band `SampleBuffer` contract.
 - JPEG XL decoding accepts only one 8-16-bit channel. Multi-channel `LinearRaw`
-  payloads are outside the mono `RawMosaic` contract.
+  payloads are outside the single-band `SampleBuffer` contract.
 - Uncompressed, Deflate, and Zstandard decoding accept only one raw sample per
   pixel in the DNG decoder.
 
