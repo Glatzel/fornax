@@ -3,14 +3,14 @@
 mod process_metadata;
 mod transforms;
 
-use fornax_codec::{ByteOrder, Chunk, DecodeCompression, DecodeRequest, Predictor, SampleFormat};
+use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::ProcessMetadata;
 use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
-    Directory, ParsedTiff, Tag, ValueAccessError, unsigned_scalar,
-    unsigned_vec as tiff_unsigned_vec,
+    Directory, ParsedTiff, RasterRequest, Tag, ValueAccessError, resolve_tiff_compression,
+    unsigned_scalar, unsigned_vec as tiff_unsigned_vec,
 };
 use generic_num::num;
 use image::math::Rect;
@@ -150,55 +150,16 @@ fn validate_dimensions(pixels: &RawMosaic, metadata: &Directory) -> Result<(), D
     Ok(())
 }
 
-#[derive(Clone, Debug)]
-struct DecodePlan {
-    compression: DecodeCompression,
-    width: usize,
-    height: usize,
-    chunk_width: usize,
-    chunk_height: usize,
-    chunks: Vec<Chunk>,
-    bits_per_sample: u16,
-    sample_format: SampleFormat,
-    byte_order: ByteOrder,
-    predictor: Predictor,
-}
-
-impl DecodePlan {
-    fn request<'a>(&'a self, source: &'a [u8]) -> DecodeRequest<'a> {
-        DecodeRequest {
-            source,
-            compression: self.compression,
-            width: self.width,
-            height: self.height,
-            chunk_width: self.chunk_width,
-            chunk_height: self.chunk_height,
-            chunks: &self.chunks,
-            bits_per_sample: self.bits_per_sample,
-            sample_format: self.sample_format,
-            byte_order: self.byte_order,
-            predictor: self.predictor,
-        }
-    }
-}
-
-fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, DecodeError> {
+fn decode_plan<'a>(
+    source: &'a [u8],
+    metadata: &Directory,
+) -> Result<RasterRequest<'a>, DecodeError> {
     let width = required_u32(metadata, TiffTag::ImageWidth)?;
     let height = required_u32(metadata, TiffTag::ImageLength)?;
     if width == 0 || height == 0 {
         return Err(corrupt("DNG image dimensions must not be zero"));
     }
-    let compression = match CompressionMethod::from(required_u16(metadata, TiffTag::Compression)?) {
-        CompressionMethod::Uncompressed => DecodeCompression::Uncompressed,
-        CompressionMethod::LosslessJpeg => DecodeCompression::LosslessJpeg,
-        CompressionMethod::Deflate => DecodeCompression::Deflate,
-        CompressionMethod::LossyJpeg => DecodeCompression::LossyJpeg,
-        CompressionMethod::JpegXlLegacy | CompressionMethod::JpegXl => DecodeCompression::JpegXl,
-        CompressionMethod::Zstd => DecodeCompression::Zstd,
-        CompressionMethod::Unknown(value) => {
-            return Err(corrupt(format!("invalid DNG compression {value}")));
-        }
-    };
+    let compression = resolve_dng_compression(required_u16(metadata, TiffTag::Compression)?)?;
     let samples_per_pixel =
         unsigned_scalar(metadata.get(&Tag::from(TiffTag::SamplesPerPixel))).unwrap_or(1);
     if samples_per_pixel != 1 {
@@ -214,19 +175,6 @@ fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, Decode
             return Err(corrupt(format!("invalid DNG sample format {value}")));
         }
     };
-    let (chunk_width, chunk_height, offsets, byte_counts) = layout(metadata)?;
-    if offsets.len() != byte_counts.len() {
-        return Err(corrupt(format!(
-            "DNG chunk offsets and byte counts differ: {} offsets, {} byte counts",
-            offsets.len(),
-            byte_counts.len()
-        )));
-    }
-    let chunks = offsets
-        .into_iter()
-        .zip(byte_counts)
-        .map(|(offset, byte_count)| Chunk { offset, byte_count })
-        .collect();
     let predictor = match compression {
         DecodeCompression::Deflate | DecodeCompression::Zstd => {
             match unsigned_scalar(metadata.get(&Tag::from(TiffTag::Predictor))).unwrap_or(1) {
@@ -242,23 +190,33 @@ fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, Decode
         }
         _ => Predictor::None,
     };
-    Ok(DecodePlan {
+    RasterRequest::new(
+        source,
+        metadata,
         compression,
-        width: usize::try_from(width).expect("u32 fits usize on supported platforms"),
-        height: usize::try_from(height).expect("u32 fits usize on supported platforms"),
-        chunk_width,
-        chunk_height,
-        chunks,
         bits_per_sample,
         sample_format,
-        byte_order: byte_order(source),
+        byte_order(source),
         predictor,
-    })
+    )
+    .map_err(|error| corrupt(error.to_string()))
+}
+
+fn resolve_dng_compression(id: u16) -> Result<DecodeCompression, DecodeError> {
+    match CompressionMethod::from(id) {
+        CompressionMethod::LossyJpeg => Ok(DecodeCompression::LossyJpeg),
+        CompressionMethod::Zstd => Ok(DecodeCompression::Zstd),
+        CompressionMethod::JpegXlLegacy | CompressionMethod::JpegXl => {
+            Ok(DecodeCompression::JpegXl)
+        }
+        _ => resolve_tiff_compression(id)
+            .ok_or_else(|| corrupt(format!("invalid DNG compression {id}"))),
+    }
 }
 
 fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, DecodeError> {
     let plan = decode_plan(source, metadata)?;
-    let samples = fornax_codec::decode(&plan.request(source)).map_err(codec_decode_error)?;
+    let samples = fornax_codec::decode(&plan.codec_request()).map_err(codec_decode_error)?;
     into_raw_mosaic(samples)
 }
 
@@ -267,38 +225,6 @@ fn codec_decode_error(error: fornax_codec::CodecError) -> DecodeError {
         fornax_codec::CodecError::InvalidInput(detail) => DecodeError::InvalidInput(detail),
         fornax_codec::CodecError::Unsupported(detail) => DecodeError::Unsupported(detail),
     }
-}
-
-fn layout(metadata: &Directory) -> Result<(usize, usize, Vec<usize>, Vec<usize>), DecodeError> {
-    if metadata.contains_key(&Tag::from(TiffTag::TileOffsets)) {
-        let width = usize::try_from(required_u32(metadata, TiffTag::TileWidth)?)
-            .expect("u32 fits usize on supported platforms");
-        let height = usize::try_from(required_u32(metadata, TiffTag::TileLength)?)
-            .expect("u32 fits usize on supported platforms");
-        if width == 0 || height == 0 {
-            return Err(corrupt("DNG tile dimensions must not be zero"));
-        }
-        return Ok((
-            width,
-            height,
-            unsigned_vec(metadata, TiffTag::TileOffsets)?,
-            unsigned_vec(metadata, TiffTag::TileByteCounts)?,
-        ));
-    }
-
-    let width = usize::try_from(required_u32(metadata, TiffTag::ImageWidth)?)
-        .expect("u32 fits usize on supported platforms");
-    let height = usize::try_from(required_u32(metadata, TiffTag::RowsPerStrip)?)
-        .expect("u32 fits usize on supported platforms");
-    if width == 0 || height == 0 {
-        return Err(corrupt("DNG strip dimensions must not be zero"));
-    }
-    Ok((
-        width,
-        height,
-        unsigned_vec(metadata, TiffTag::StripOffsets)?,
-        unsigned_vec(metadata, TiffTag::StripByteCounts)?,
-    ))
 }
 
 fn sample_format(metadata: &Directory) -> u64 {
@@ -377,7 +303,7 @@ mod tests {
     }
 
     #[test]
-    fn dng_metadata_maps_to_a_codec_decode_request() {
+    fn dng_raster_request_preserves_tile_predictor_and_chunks() {
         let source = b"MMxxxxxxxx";
         let mut metadata = metadata(
             4,
@@ -404,17 +330,32 @@ mod tests {
             Value::Short(u16::from(super::CompressionMethod::Deflate)),
         );
 
-        let plan = super::decode_plan(source, &metadata).unwrap();
+        let request = super::decode_plan(source, &metadata).unwrap();
 
-        assert_eq!(plan.compression, fornax_codec::DecodeCompression::Deflate);
-        assert_eq!((plan.width, plan.height), (4, 2));
-        assert_eq!((plan.chunk_width, plan.chunk_height), (4, 1));
-        assert_eq!(plan.bits_per_sample, 12);
-        assert_eq!(plan.sample_format, fornax_codec::SampleFormat::Integer);
-        assert_eq!(plan.byte_order, fornax_codec::ByteOrder::Big);
-        assert_eq!(plan.predictor, fornax_codec::Predictor::HorizontalInteger);
         assert_eq!(
-            plan.chunks,
+            request.compression(),
+            fornax_codec::DecodeCompression::Deflate
+        );
+        assert_eq!(
+            (request.layout().width(), request.layout().height()),
+            (4, 2)
+        );
+        assert_eq!(
+            (
+                request.layout().chunk_width(),
+                request.layout().chunk_height()
+            ),
+            (4, 1)
+        );
+        assert_eq!(request.bits_per_sample(), 12);
+        assert_eq!(request.sample_format(), fornax_codec::SampleFormat::Integer);
+        assert_eq!(request.byte_order(), fornax_codec::ByteOrder::Big);
+        assert_eq!(
+            request.predictor(),
+            fornax_codec::Predictor::HorizontalInteger
+        );
+        assert_eq!(
+            request.layout().chunks(),
             vec![
                 fornax_codec::Chunk {
                     offset: 2,
@@ -426,6 +367,36 @@ mod tests {
                 },
             ]
         );
+    }
+
+    #[test]
+    fn dng_compression_resolution_prefers_dng_ids_and_falls_back_to_tiff() {
+        for (id, expected) in [
+            (1, fornax_codec::DecodeCompression::Uncompressed),
+            (7, fornax_codec::DecodeCompression::LosslessJpeg),
+            (8, fornax_codec::DecodeCompression::Deflate),
+            (34_892, fornax_codec::DecodeCompression::LossyJpeg),
+            (50_000, fornax_codec::DecodeCompression::Zstd),
+            (50_002, fornax_codec::DecodeCompression::JpegXl),
+            (52_546, fornax_codec::DecodeCompression::JpegXl),
+        ] {
+            assert_eq!(
+                super::resolve_dng_compression(id).unwrap(),
+                expected,
+                "compression {id}"
+            );
+        }
+    }
+
+    #[test]
+    fn unknown_dng_compression_remains_invalid_input() {
+        let error = super::resolve_dng_compression(12_345).unwrap_err();
+
+        assert!(matches!(
+            error,
+            fornax_core::error::DecodeError::InvalidInput(_)
+        ));
+        assert!(error.to_string().contains("invalid DNG compression 12345"));
     }
 
     #[test]
@@ -448,7 +419,7 @@ mod tests {
 
         let plan = super::decode_plan(source, &metadata).unwrap();
 
-        assert_eq!(plan.compression, fornax_codec::DecodeCompression::Zstd);
+        assert_eq!(plan.compression(), fornax_codec::DecodeCompression::Zstd);
     }
 
     #[test]
@@ -468,7 +439,7 @@ mod tests {
 
         let plan = super::decode_plan(source, &metadata).unwrap();
 
-        assert_eq!(plan.compression, fornax_codec::DecodeCompression::JpegXl);
+        assert_eq!(plan.compression(), fornax_codec::DecodeCompression::JpegXl);
     }
 
     #[test]
