@@ -96,8 +96,9 @@ Recorded outcomes:
 - five selected Sony fixtures: ARW1, ARW2, uncompressed, and LJPEG samples
   match Rawler sample-for-sample; ARW6 decodes through the native codec and
   passes active-area handoff;
-- decoder tracker upserted the five selected Sony rows with all four stages
-  passing;
+- decoder tracker CI evaluated all 206 ARW corpus rows after the workflow was
+  updated to pass `formats=ARW` through to each shard; the updated baseline adds
+  201 rows, with 186 ARW passes and 20 typed unsupported/invalid failures;
 - generated ARW-to-DNG and DNG-to-TIFF CLI conversions completed successfully;
 - `scripts/agent-validation.sh` completed successfully after updating its stale
   benchmark package name from `bench-decoder` to `fornax-decoder`.
