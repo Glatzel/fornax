@@ -179,6 +179,9 @@ linked issue. Only the user merges or abandons a pull request.
   [docs/decoder/corpus.md](docs/decoder/corpus.md)
 - Manual corpus tracker: `cargo run -p decoder-tracker -- --help`; full runs are
   manual-only and RAW payloads are never committed or uploaded.
+- When dispatching the `Decoder corpus` workflow, leave
+  `run_duckdb_tests` disabled at its default unless explicitly requested, and
+  set `formats` to match the requested corpus filter.
 - Per-work plans: [docs/plans/](docs/plans/)
 - Algorithm and reference notes: [docs/references/](docs/references/)
 - Comparison-crate rules:
