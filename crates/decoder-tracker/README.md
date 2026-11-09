@@ -129,6 +129,10 @@
 Manual regression tracking for Fornax decoders over the pinned raw.pixls.us
 corpus.
 
+Maintainers and agents should read the [decoder-tracker agent guide](AGENTS.md)
+before initializing the corpus, updating the baseline, or regenerating the
+README.
+
 The corpus submodule is checked out as Git LFS pointer metadata. `run` fetches
 only the selected shard's payloads, executes each file in an isolated child with
 a 300-second timeout, and writes a canonical no-timings CSV. Full local runs
