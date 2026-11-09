@@ -3,4 +3,16 @@ extend-exclude = ["changelog.md", "**/bindings*.rs", "**/*.csv"]
 
 [default]
 # tombi: format.rules.array-values-order = "ascending"
-extend-ignore-identifiers-re = ["AHD", "Ahd", "Flate", "UNSUFFICIENT", "UnsufficientMemory", "_thr", "ahd", "correc", "flate", "pn", "trak"]
+extend-ignore-identifiers-re = [
+  "AHD",
+  "Ahd",
+  "Flate",
+  "UNSUFFICIENT",
+  "UnsufficientMemory",
+  "_thr",
+  "ahd",
+  "correc",
+  "flate",
+  "pn",
+  "trak"
+]
