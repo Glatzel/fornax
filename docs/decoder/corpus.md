@@ -210,6 +210,71 @@ diff, and upsert entirely through DuckDB, then:
 
 RAW payloads are never cached or uploaded.
 
+## Running the manual workflow
+
+Run the workflow from the branch under review, then use the printed run ID for
+the review commands:
+
+```bash
+gh workflow run decoder-tracker-corpus.yml --ref <branch> \
+  -f filter='**/*.[dD][nN][gG]' \
+  -f run_duckdb_tests=false
+gh run list --workflow decoder-tracker-corpus.yml --branch <branch>
+gh run view <run-id>
+```
+
+Each shard advances the pointer-only submodule to current raw.pixls.us `master`
+before running `manifest --check`. If the check reports a manifest mismatch,
+use the corpus snapshot update procedure below before applying any baseline
+rows from the run.
+
+Commit and push the decoder change first. Before dispatching, confirm the
+remote branch is the revision to test because the workflow cannot see local
+uncommitted commits or files.
+
+Treat `gh run rerun <run-id> --failed` as an infrastructure retry only. A
+changed-row failure is the review gate described below.
+
+## Applying a manual workflow result
+
+An unchanged run uploads no `decoder-baseline-update` artifact. A changed run
+intentionally fails after uploading that artifact with three CSV files:
+
+- `diff.csv` classifies selected keys as missing, extra, or changed;
+- `candidate.csv` contains the merged selected rows;
+- `baseline.csv` is the complete baseline after the selected-key upsert.
+
+Download and inspect the artifact:
+
+```bash
+gh run download <run-id> --name decoder-baseline-update \
+  --dir target/decoder-tracker/update
+```
+
+Review every entry in `diff.csv` against the decoder change. Verify that
+`candidate.csv` has no unexplained additions, and review the upserted rows in
+the complete `baseline.csv`. Copy only the complete reviewed baseline; a
+candidate from a partial selection must never replace the committed baseline:
+
+```bash
+cp target/decoder-tracker/update/baseline.csv \
+  crates/decoder-tracker/baseline.csv
+pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
+```
+
+`update-badge.sh` owns the regions between the decoder-tracker badge markers.
+Review the README diff and never edit those regions by hand.
+
+For a corpus snapshot update, commit the reviewed `manifest.csv` with the full
+baseline and regenerated README. Commit only the baseline and README for a
+decoder-result update with an unchanged manifest.
+
+Finally, rerun the same workflow from the updated branch. Require an
+`unchanged` outcome and no `decoder-baseline-update` artifact before accepting
+the baseline. Commit and push the reviewed baseline and README first, because
+`gh workflow run --ref <branch>` tests the remote branch rather than local
+uncommitted files.
+
 ## Corpus updates
 
 A corpus update is deliberate:
@@ -218,7 +283,8 @@ A corpus update is deliberate:
 2. Run `manifest` and review every manifest change.
 3. Run the manual workflow with the full default DNG glob.
 4. Download and review the complete candidate against the manifest.
-5. Commit the manifest and baseline.
+5. Commit the submodule pointer (`external/raw.pixls.us`), manifest, complete
+   baseline, and regenerated README.
 6. Run the workflow again and require no update artifact.
 
 Transient full-mirror use is approved for this workflow. The baseline does not
