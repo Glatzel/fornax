@@ -3,16 +3,9 @@ name = "fornax-preprocessor"
 version.workspace = true
 edition.workspace = true
 
-[[bench]]
-harness = false
-name = "preprocessor"
-
 [dependencies]
-fornax-core.workspace = true
-generic-num.workspace = true
-rayon.workspace = true
+fornax-raw-pipeline.workspace = true
 
 [dev-dependencies]
-criterion.workspace = true
-fornax-devtool.workspace = true
-image.workspace = true
+fornax-core.workspace = true
+mischief.workspace = true

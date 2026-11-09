@@ -36,7 +36,7 @@ use vng::DemosaicVng;
 /// # Examples
 ///
 /// ```
-/// use fornax_postprocessor::Demosaic;
+/// use fornax_raw_pipeline::Demosaic;
 ///
 /// let demosaic = Demosaic::Dcb {
 ///     iterations: 1,
@@ -84,7 +84,7 @@ pub enum Demosaic {
 /// # Examples
 ///
 /// ```
-/// use fornax_postprocessor::LmmseMode;
+/// use fornax_raw_pipeline::LmmseMode;
 ///
 /// assert_eq!(LmmseMode::default(), LmmseMode::Median);
 /// ```
@@ -107,7 +107,7 @@ impl Demosaic {
     /// # Examples
     ///
     /// ```
-    /// use fornax_postprocessor::Demosaic;
+    /// use fornax_raw_pipeline::Demosaic;
     ///
     /// assert_eq!(
     ///     Demosaic::dcb(),
@@ -129,7 +129,7 @@ impl Demosaic {
     /// # Examples
     ///
     /// ```
-    /// use fornax_postprocessor::{Demosaic, LmmseMode};
+    /// use fornax_raw_pipeline::{Demosaic, LmmseMode};
     ///
     /// assert_eq!(
     ///     Demosaic::lmmse(),

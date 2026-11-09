@@ -20,8 +20,7 @@ jobs:
       main: ${{ steps.changed-files.outputs.main_any_changed }}
       benchmark_decoder: ${{ steps.changed-files.outputs.benchmark_decoder_any_changed }}
       benchmark_dng: ${{ steps.changed-files.outputs.benchmark_dng_any_changed }}
-      benchmark_postprocessor: ${{ steps.changed-files.outputs.benchmark_postprocessor_any_changed }}
-      benchmark_preprocessor: ${{ steps.changed-files.outputs.benchmark_preprocessor_any_changed }}
+      benchmark_raw_pipeline: ${{ steps.changed-files.outputs.benchmark_raw_pipeline_any_changed }}
       compare_demosaic: ${{ steps.changed-files.outputs.compare_demosaic_any_changed }}
       book_assets: ${{ steps.changed-files.outputs.book_assets_any_changed }}
     steps:
@@ -44,16 +43,13 @@ jobs:
               - ./crates/fornax-codec/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
-            benchmark_postprocessor:
-              - ./crates/fornax-postprocessor/**
-              - '!**/*.md'
-            benchmark_preprocessor:
-              - ./crates/fornax-preprocessor/**
+            benchmark_raw_pipeline:
+              - ./crates/fornax-raw-pipeline/**
               - '!**/*.md'
             compare_demosaic:
               - ./crates/compare-demosaic/**
               - ./crates/fornax-core/**
-              - ./crates/fornax-postprocessor/src/demosaic/**
+              - ./crates/fornax-raw-pipeline/src/demosaic/**
               - '!**/*.md'
             book_assets:
               - ./book/**
@@ -139,8 +135,7 @@ jobs:
          ((github.event_name == 'push' || github.event_name == 'pull_request') &&
           (needs.changed.outputs.benchmark_decoder == 'true' ||
            needs.changed.outputs.benchmark_dng == 'true' ||
-           needs.changed.outputs.benchmark_postprocessor == 'true' ||
-           needs.changed.outputs.benchmark_preprocessor == 'true')))
+           needs.changed.outputs.benchmark_raw_pipeline == 'true')))
       }}
     strategy:
       fail-fast: false
@@ -153,42 +148,54 @@ jobs:
           - package: fornax-dng
             changed: ${{ needs.changed.outputs.benchmark_dng }}
 
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: aahd
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: ahd
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: amaze
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: dcb
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: dht
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: linear
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: lmmse
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: ppg
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: rcd
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: vng
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: vng4
 
-          - package: fornax-preprocessor
-            changed: ${{ needs.changed.outputs.benchmark_preprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench preprocessor
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

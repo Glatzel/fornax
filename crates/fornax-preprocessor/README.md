@@ -1,46 +1,13 @@
 # fornax-preprocessor
 
-Normalizes an active Bayer mosaic using black and white levels while preserving
-the single-channel RAW layout.
+Compatibility package for the preprocessing stage. The implementation and
+benchmarks live in `fornax-raw-pipeline`.
 
 ```rust
 use fornax_core::protocol::IPreprocessor;
 use fornax_preprocessor::Preprocessor;
 
-let raw_image = Preprocessor.process(decoded_active, &metadata.levels)?;
+let normalized = Preprocessor.process(decoded_active, &metadata.levels)?;
 ```
 
-## Preprocessor benchmarks
-
-Measures preprocessing from `DecodedRaw` input to `RawImage` output on
-deterministic synthetic Bayer images. The input image and levels are prepared
-outside the timed section, and a fresh decoded input is cloned for each
-iteration.
-
-Run it from the repository root:
-
-```bash
-cargo bench -p fornax-preprocessor
-```
-
-`FORNAX_BENCH_SIZE` sets one short edge or a comma-separated list of short
-edges. Each image uses a landscape 3:2 aspect ratio, and sizes are reported in
-megapixels:
-
-```bash
-FORNAX_BENCH_SIZE=1000,2000 cargo bench -p fornax-preprocessor
-```
-
-The default is `1000,2000`, producing `1.50MP` and `6.00MP` images.
-
-`FORNAX_BENCH_BITS` selects `f32`, `f64`, or both:
-
-```bash
-FORNAX_BENCH_BITS=32 cargo bench -p fornax-preprocessor
-```
-
-The default is `32`. Preprocessing is currently single-threaded, so these
-benchmarks do not sweep Rayon thread counts.
-
-Each case name includes the stage, image size, and sample type. Criterion
-accepts its normal filtering, baseline, and output arguments after `--`.
+New code should import `fornax_raw_pipeline::Preprocessor` directly.

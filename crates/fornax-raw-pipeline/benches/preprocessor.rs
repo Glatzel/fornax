@@ -4,7 +4,7 @@ use fornax_core::metadata::Levels;
 use fornax_core::protocol::IPreprocessor;
 use fornax_core::{CroppedMosaic, MonoImage, Primitive};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
-use fornax_preprocessor::Preprocessor;
+use fornax_raw_pipeline::Preprocessor;
 
 fn bench_sizes<T>(c: &mut Criterion, params: &BenchParams, bits: BenchSampleBits)
 where
