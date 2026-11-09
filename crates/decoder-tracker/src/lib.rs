@@ -2,6 +2,7 @@
 
 pub mod csvio;
 pub mod duckdb;
+pub mod golden;
 pub mod manifest;
 pub mod model;
 pub mod runner;

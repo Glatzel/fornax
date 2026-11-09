@@ -145,6 +145,7 @@ pixi run -e dev cargo run -p decoder-tracker -- run --filename IMG_0001
 pixi run -e dev cargo run -p decoder-tracker -- merge --manifest MANIFEST SHARD...
 pixi run -e dev cargo run -p decoder-tracker -- diff --selected MANIFEST BASELINE CANDIDATE
 pixi run -e dev cargo run -p decoder-tracker -- update --baseline BASELINE --candidate CANDIDATE
+pixi run -e dev cargo run -p decoder-tracker -- hash --check GOLDEN
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
@@ -159,3 +160,9 @@ vendor-format pairs without baseline rows report `0/total`. The complete
 schema, stage semantics, glob/sharding rules, workflow, and update procedure
 are documented in
 [docs/decoder/corpus.md](../../docs/decoder/corpus.md).
+
+`golden/selected-manifest.csv` and `golden/decode-hashes.csv` form a small
+deterministic decode-output gate. `hash --check` materializes only those
+selected payloads and verifies raw samples, cropped samples, process metadata,
+and DNG metadata against the committed hashes. These files are generated and
+must not be hand-edited.

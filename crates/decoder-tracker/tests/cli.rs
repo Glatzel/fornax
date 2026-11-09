@@ -47,6 +47,17 @@ fn run_rejects_more_than_two_files_without_ci_or_allow_full() {
 }
 
 #[test]
+fn hash_command_exposes_write_and_check_modes() {
+    Command::cargo_bin("decoder-tracker")
+        .unwrap()
+        .args(["hash", "--help"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("--check"))
+        .stdout(predicates::str::contains("--out"));
+}
+
+#[test]
 fn manifest_check_cli_accepts_current_snapshot_and_rejects_drift() {
     let temp = tempdir().unwrap();
     let corpus = temp.path().join("corpus");

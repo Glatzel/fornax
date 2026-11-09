@@ -9,6 +9,7 @@ use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::tracing_subscriber::{EnvFilter, Layer, Registry};
 use decoder_tracker::csvio::{read_manifest_csv, write_baseline_csv, write_manifest_csv};
 use decoder_tracker::duckdb::{diff as duckdb_diff, merge as duckdb_merge};
+use decoder_tracker::golden::{check_golden_csv, decode_golden, read_golden_csv, write_golden_csv};
 use decoder_tracker::manifest::{
     ManifestCheck, corpus_path, generate_manifest, normalize_repo_path,
 };
@@ -47,6 +48,8 @@ enum Command {
     Diff(DiffArgs),
     /// Update selected records in a full baseline.
     Update(UpdateArgs),
+    /// Write or verify canonical decoder-output hashes.
+    Hash(HashArgs),
     /// Evaluate one materialized file for the run parent process.
     #[command(hide = true)]
     RunOne(RunOneArgs),
@@ -145,6 +148,21 @@ struct UpdateArgs {
 }
 
 #[derive(Debug, Args)]
+struct HashArgs {
+    #[arg(long, default_value = DEFAULT_CORPUS)]
+    corpus: PathBuf,
+    #[arg(
+        long,
+        default_value = "crates/decoder-tracker/golden/selected-manifest.csv"
+    )]
+    manifest: PathBuf,
+    #[arg(long, conflicts_with = "check")]
+    out: Option<PathBuf>,
+    #[arg(long, conflicts_with = "out")]
+    check: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
 struct RunOneArgs {
     #[arg(long)]
     input: PathBuf,
@@ -189,6 +207,7 @@ fn execute(cli: Cli) -> Result<ExitCode> {
         Command::Merge(args) => merge(args),
         Command::Diff(args) => diff(args),
         Command::Update(args) => update(args),
+        Command::Hash(args) => hash(args),
         Command::RunOne(args) => {
             println!("{}", serde_json::to_string(&evaluate_one(&args.input))?);
             Ok(ExitCode::SUCCESS)
@@ -322,6 +341,38 @@ fn update(args: UpdateArgs) -> Result<ExitCode> {
         decoder_tracker::duckdb::upsert(args.baseline.as_deref(), &args.candidate, &args.out)?;
     clerk::info!("DuckDB upserted {rows} baseline rows");
     println!("update: wrote {rows} rows to {}", args.out.display());
+    Ok(ExitCode::SUCCESS)
+}
+
+fn hash(args: HashArgs) -> Result<ExitCode> {
+    let rows = read_manifest_csv(read_file(&args.manifest)?)?;
+    materialize(&args.corpus, &rows)?;
+    let rows = rows
+        .iter()
+        .map(|row| {
+            let path = fs::canonicalize(corpus_path(&args.corpus, &row.path)).map_err(|error| {
+                TrackerError::new(format!(
+                    "resolving golden corpus file {} failed: {error}",
+                    row.path
+                ))
+            })?;
+            decode_golden(&row.path, &path)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let bytes = write_golden_csv(&rows)?;
+
+    if let Some(expected) = args.check {
+        let expected = read_golden_csv(read_file(&expected)?)?;
+        check_golden_csv(&rows, &expected)?;
+        clerk::info!("decoder golden hashes are unchanged");
+        println!("golden: unchanged ({} rows)", rows.len());
+    } else if let Some(output) = args.out {
+        write_file(&output, &bytes)?;
+        clerk::info!("wrote decoder golden hashes to {}", output.display());
+        println!("golden: wrote {} rows to {}", rows.len(), output.display());
+    } else {
+        print!("{}", String::from_utf8_lossy(&bytes));
+    }
     Ok(ExitCode::SUCCESS)
 }
 

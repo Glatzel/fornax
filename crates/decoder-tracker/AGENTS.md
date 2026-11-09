@@ -23,6 +23,7 @@ decoder-tracker run [filters] [--manifest F] [--shard I/N] [--out F]
 decoder-tracker merge [--manifest F] [--out F] SHARD...
 decoder-tracker diff --selected F [--out F] BASELINE CANDIDATE
 decoder-tracker update [--baseline F] --candidate F [--out F]
+decoder-tracker hash [--manifest F] [--out F | --check F]
 ```
 
 Use `pixi run -e dev cargo run -q -p decoder-tracker -- <subcommand>` for the
@@ -33,6 +34,8 @@ Common checks:
 ```bash
 pixi run -e dev cargo run -q -p decoder-tracker -- manifest --check
 pixi run -e dev cargo run -q -p decoder-tracker -- run --filename IMG_0001
+pixi run -e dev cargo run -q -p decoder-tracker -- hash --check \
+  crates/decoder-tracker/golden/decode-hashes.csv
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
@@ -160,6 +163,11 @@ Follow the deliberately bounded procedure in
 
 - `manifest.csv` identifies every corpus path, size, and LFS SHA-256.
 - `baseline.csv` is the accepted full result set. Do not hand-edit it.
+- `golden/selected-manifest.csv` is the pointer-only selected fixture set for
+  deterministic decode-output checks.
+- `golden/decode-hashes.csv` contains SHA-256 values for raw samples, cropped
+  samples, process metadata, and DNG metadata. Generate it with `hash --out`;
+  never hand-edit it.
 - `README.md` owns the badge and vendor-format table only between
   `decoder-tracker-badge` markers. Regenerate that region with
   `update-badge.sh`; never edit it manually.
@@ -168,6 +176,8 @@ Follow the deliberately bounded procedure in
 - RAW payloads are never committed, cached, or uploaded as artifacts.
 - Failed rows are results, not runner failures. Distinguish typed stage errors
   from `runner:*` status before changing the baseline.
+- Golden cases must be known passing rows. A failed decode is not a valid
+  golden case and must not cause partial output.
 
 ## Validate tracker changes
 
