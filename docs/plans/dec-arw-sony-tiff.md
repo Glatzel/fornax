@@ -119,3 +119,7 @@ Recorded outcomes:
 - Reduced-resolution YCbCr, multi-sample ARQ, and unknown compression families
   return `DecodeError::Unsupported`; contradictory offsets or truncated data
   return `DecodeError::InvalidInput`.
+- The ILCE-7M4, ILCE-7CR, ILCE-9M3, ILCE-1M2, and DSC-RX1RM3 corpus failures
+  are all three-component 15-bit YCbCr reduced RAW modes. They remain expected
+  unsupported failures; no synthetic Bayer conversion or linear-RGB pipeline
+  expansion is part of this task.

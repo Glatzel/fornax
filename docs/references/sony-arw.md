@@ -60,9 +60,39 @@
 
 - ARQ pixel-shift samples, reduced-resolution YCbCr `LinearRaw`, unknown
   compression families, and non-Bayer layouts return `DecodeError::Unsupported`.
+- Recent Sony medium and small lossless-compressed RAW modes can use
+  three-component, 15-bit YCbCr lossless JPEG tiles. Rawler exposes these as
+  `LinearRaw` with `cpp = 3`, black level `1024`, white level `15360`, and
+  identity white balance. Fornax deliberately keeps them unsupported because
+  the current mosaic interface cannot represent multi-component output.
 - Camera color matrices are not part of the ARW container. Fornax does not copy
   the LGPL Rawler camera database, so no matrix is synthesized when the source
   omits one.
 - Crop fallbacks currently cover the validated DSLR-A700, NEX-5, and ILCE-7M3
   profiles. Other cameras use their full active area when the file has no
   explicit default-crop tags.
+
+## Expected reduced-resolution YCbCr failures
+
+The following corpus files are intentionally tracked as
+`decode:unsupported`; they are not compression-decoder regressions:
+
+- Sony ILCE-7M4:
+  - `Sony/ILCE-7M4/ILCE-7M4_DSC06675_FullFrame-LossLess-Compressed-Medium.ARW`
+  - `Sony/ILCE-7M4/ILCE-7M4_DSC06676_FullFrame-LossLess-Compressed-Small.ARW`
+  - `Sony/ILCE-7M4/ILCE-7M4_DSC06680_APS-C-LossLess-Small.ARW`
+- Sony ILCE-7CR:
+  - `Sony/ILCE-7CR/DSC00796.ARW`
+  - `Sony/ILCE-7CR/DSC00797.ARW`
+  - `Sony/ILCE-7CR/DSC00800.ARW`
+- Sony ILCE-9M3:
+  - `Sony/ILCE-9M3/DSC00113.ARW`
+  - `Sony/ILCE-9M3/DSC00114.ARW`
+  - `Sony/ILCE-9M3/DSC00118.ARW`
+- SONY ILCE-1M2:
+  - `SONY/ILCE-1M2/A1_07628_lossless_compressed_medium_full_frame.ARW`
+  - `SONY/ILCE-1M2/A1_07629_lossless_compressed_small_full_frame.ARW`
+  - `SONY/ILCE-1M2/A1_07633_lossless_compressed_small_apsc.ARW`
+- SONY DSC-RX1RM3:
+  - `SONY/DSC-RX1RM3/DSC00255.ARW`
+  - `SONY/DSC-RX1RM3/DSC00256.ARW`

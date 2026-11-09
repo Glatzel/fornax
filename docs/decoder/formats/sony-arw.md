@@ -4,7 +4,7 @@
 
 **Status:** Implemented for uncompressed, ARW1, ARW2, ARW6, and
 single-component tiled LJPEG CFA images. ARQ and reduced-resolution YCbCr
-variants remain unsupported.
+variants remain deliberately unsupported.
 
 ## Container structure
 
@@ -67,6 +67,28 @@ same interpretation.
   even within one ARW compression family.
 - ARQ files may contain multiple raw samples; support only the unambiguous
   primary mosaic initially.
+
+### Reduced-resolution YCbCr RAW
+
+Sony's lossless-compressed medium and small RAW modes on recent cameras can be
+stored as three-component, 15-bit-per-sample YCbCr lossless JPEG rather than a
+single-sample CFA. These files use compression `7`,
+`PhotometricInterpretation::YCbCr`, `SamplesPerPixel = 3`, and 512x512 LJPEG
+tiles. They decode to `LinearRaw` RGB, not a Bayer mosaic.
+
+Fornax does not synthesize a Bayer mosaic from these RGB samples and does not
+broaden the current decoder contract for multi-component RAW. They therefore
+return `DecodeError::Unsupported` during decoder construction and remain
+expected `❌ decode:unsupported` corpus failures until an explicit linear-RGB
+pipeline is designed and approved.
+
+The corpus entries currently in this category cover:
+
+- Sony ILCE-7M4 lossless-compressed medium/small full-frame and small APS-C;
+- Sony ILCE-7CR medium and small RAW;
+- Sony ILCE-9M3 medium and small RAW;
+- SONY ILCE-1M2 lossless-compressed medium/small full-frame and small APS-C;
+- SONY DSC-RX1RM3 medium and small RAW.
 
 ## References to consult
 
