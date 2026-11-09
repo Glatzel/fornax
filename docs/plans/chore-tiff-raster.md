@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > superpowers:executing-plans to implement this plan task-by-task. Steps use
-> checkbox (`- [ ]`) syntax for tracking.
+> checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Move generic TIFF strip/tile raster planning and TIFF-registered
 compression resolution into `fornax-tiff`, while DNG retains its format-specific
@@ -107,11 +107,11 @@ limitation, not an ownership ambiguity.
   - `pub fn resolve_tiff_compression(id: u16) -> Option<DecodeCompression>`
   - `pub enum RasterError`
 
-- [ ] **Step 1: Add the TIFF dependency on the neutral codec crate**
+- [x] **Step 1: Add the TIFF dependency on the neutral codec crate**
 
 Add `fornax-codec.workspace = true` to `crates/fornax-tiff/Cargo.toml`.
 
-- [ ] **Step 2: Write failing strip and tile layout tests**
+- [x] **Step 2: Write failing strip and tile layout tests**
 
 In `crates/fornax-tiff/tests/raster.rs`, add
 `strips_preserve_rows_per_strip_and_chunk_order` and
@@ -125,7 +125,7 @@ In `crates/fornax-tiff/tests/raster.rs`, add
 Assert storage kind, full dimensions, chunk dimensions, chunk count, and exact
 `Chunk` values in tag order.
 
-- [ ] **Step 3: Run the new tests and watch them fail**
+- [x] **Step 3: Run the new tests and watch them fail**
 
 Run:
 
@@ -136,7 +136,7 @@ cargo test -p fornax-tiff --test raster strips_preserve_rows_per_strip_and_chunk
 Expected: compile failure because `RasterLayout`, `RasterStorage`, and the
 `raster` module do not exist.
 
-- [ ] **Step 4: Add the minimal `RasterLayout` implementation**
+- [x] **Step 4: Add the minimal `RasterLayout` implementation**
 
 Implement `RasterStorage`, `RasterLayout`, and `RasterError`. Select tiles when
 `TileOffsets` is present, matching current DNG behavior; otherwise read strips.
@@ -146,11 +146,11 @@ the full image width and chunk height is `RowsPerStrip`; for tiles, use
 offset/count length mismatches, computed chunk-count mismatches, and chunk
 range overflow. Preserve offsets and counts in input order.
 
-- [ ] **Step 5: Run the layout tests and watch them pass**
+- [x] **Step 5: Run the layout tests and watch them pass**
 
 Run the command from Step 3. Expected: both tests pass.
 
-- [ ] **Step 6: Write failing partial-geometry and validation tests**
+- [x] **Step 6: Write failing partial-geometry and validation tests**
 
 Add these tests:
 
@@ -171,7 +171,7 @@ Add these tests:
 - `zero_dimensions_are_rejected_with_the_source_tag`: provide zero
   `TileWidth` and assert `RasterError::ZeroDimension`.
 
-- [ ] **Step 7: Run the new tests and watch them fail**
+- [x] **Step 7: Run the new tests and watch them fail**
 
 Run:
 
@@ -182,7 +182,7 @@ cargo test -p fornax-tiff --test raster
 Expected: failures for missing `RasterRequest` or missing validation variants,
 not syntax errors.
 
-- [ ] **Step 8: Implement `RasterRequest` and validation**
+- [x] **Step 8: Implement `RasterRequest` and validation**
 
 `RasterRequest::new` parses `RasterLayout`, checks every `offset +
 byte_count` with checked arithmetic against `source.len()`, and stores the
@@ -190,11 +190,11 @@ already-resolved codec compression plus sample layout fields.
 `codec_request()` returns a `fornax_codec::DecodeRequest` borrowing the stored
 chunk vector. Do not inspect the TIFF `Compression` tag here.
 
-- [ ] **Step 9: Run all TIFF raster tests**
+- [x] **Step 9: Run all TIFF raster tests**
 
 Run `cargo test -p fornax-tiff --test raster`. Expected: all pass.
 
-- [ ] **Step 10: Write failing TIFF-default resolver tests**
+- [x] **Step 10: Write failing TIFF-default resolver tests**
 
 Add `tiff_registered_compression_ids_use_tiff_defaults` asserting:
 
@@ -206,7 +206,7 @@ Add `tiff_registered_compression_ids_use_tiff_defaults` asserting:
 Add `non_tiff_compression_ids_do_not_use_tiff_defaults` asserting `None` for
 `34892`, `50000`, `50002`, `52546`, `32766`, `32767`.
 
-- [ ] **Step 11: Run resolver tests and watch them fail**
+- [x] **Step 11: Run resolver tests and watch them fail**
 
 Run:
 
@@ -216,17 +216,17 @@ cargo test -p fornax-tiff --test raster compression_ids
 
 Expected: compile failure because `resolve_tiff_compression` is absent.
 
-- [ ] **Step 12: Implement the default resolver**
+- [x] **Step 12: Implement the default resolver**
 
 Implement `resolve_tiff_compression(id: u16) -> Option<DecodeCompression>` with
 only the approved TIFF defaults `1`, `7`, and `8`. Keep DNG, self-assigned, and
 vendor IDs out of this function.
 
-- [ ] **Step 13: Run the complete TIFF crate tests**
+- [x] **Step 13: Run the complete TIFF crate tests**
 
 Run `cargo test -p fornax-tiff`. Expected: all tests pass.
 
-- [ ] **Step 14: Document and commit Task 1**
+- [x] **Step 14: Document and commit Task 1**
 
 Document the new model and ownership boundary in `crates/fornax-tiff/README.md`.
 Commit:
@@ -255,7 +255,7 @@ git commit -m "refactor: add TIFF raster layout model"
   and `decode_plan(...) -> Result<RasterRequest<'_>, DecodeError>`. Public DNG
   decoder APIs remain unchanged.
 
-- [ ] **Step 1: Write failing DNG boundary tests**
+- [x] **Step 1: Write failing DNG boundary tests**
 
 Replace or extend the existing decode-plan tests in
 `crates/fornax-dng/src/dng_decoder/mod.rs` with:
@@ -272,7 +272,7 @@ Replace or extend the existing decode-plan tests in
 
 Keep the existing legacy JPEG XL and zstd mapping tests.
 
-- [ ] **Step 2: Run the DNG tests and watch them fail**
+- [x] **Step 2: Run the DNG tests and watch them fail**
 
 Run:
 
@@ -283,7 +283,7 @@ cargo test -p fornax-dng dng_compression_resolution_prefers_dng_ids_and_falls_ba
 Expected: compile failure because DNG still returns its private `DecodePlan`
 and has no `resolve_dng_compression` boundary.
 
-- [ ] **Step 3: Implement DNG-specific resolution before TIFF fallback**
+- [x] **Step 3: Implement DNG-specific resolution before TIFF fallback**
 
 Read the compression tag once as `u16`. Map `34892`, `50000`, `50002`, and
 `52546` in `fornax-dng`; otherwise call
@@ -291,7 +291,7 @@ Read the compression tag once as `u16`. Map `34892`, `50000`, `50002`, and
 `corrupt("invalid DNG compression {id}")` category. Do not infer TIFF ownership
 from `CompressionMethod` variant names.
 
-- [ ] **Step 4: Replace the private layout planner with `RasterRequest`**
+- [x] **Step 4: Replace the private layout planner with `RasterRequest`**
 
 Keep DNG policy in `fornax-dng`: image dimensions, sample count, sample format,
 byte order, and predictor selection. Delegate strip/tile tag parsing, chunk
@@ -300,19 +300,19 @@ list validation, chunk-count checks, and source range checks to
 `decode_samples` calls `fornax_codec::decode(&plan.codec_request())` and still
 adapts through `into_raw_mosaic`.
 
-- [ ] **Step 5: Run focused DNG tests**
+- [x] **Step 5: Run focused DNG tests**
 
 Run `cargo test -p fornax-dng`. Expected: all tests pass, including writer
 round trips and transforms.
 
-- [ ] **Step 6: Update ownership documentation**
+- [x] **Step 6: Update ownership documentation**
 
 Add the complete gate table and TIFF-versus-DNG resolution rule to
 `docs/references/dng-compression.md`. Update `crates/fornax-dng/README.md` and
 `docs/architecture.md` so `fornax-tiff -> fornax-codec` is explicit and DNG is
 documented as the override/fallback owner. Do not move constants.
 
-- [ ] **Step 7: Commit Task 2**
+- [x] **Step 7: Commit Task 2**
 
 Run `cargo test -p fornax-tiff` and `cargo test -p fornax-dng`, then commit:
 
@@ -335,7 +335,7 @@ git commit -m "refactor: migrate DNG raster planning"
 - Consumes: completed Task 1 and Task 2 interfaces.
 - Produces: one pushed branch and one pull request against `main`.
 
-- [ ] **Step 1: Inspect local layout and compression call sites**
+- [x] **Step 1: Inspect local layout and compression call sites**
 
 Run:
 
@@ -350,7 +350,7 @@ git diff origin/main -- crates/fornax-tiff crates/fornax-dng docs
 Expected: generic DNG strip/tile planning is gone; ARW vendor layout remains;
 no Step 6 constant move or workspace change is present.
 
-- [ ] **Step 2: Run focused tests**
+- [x] **Step 2: Run focused tests**
 
 ```bash
 cargo test -p fornax-tiff
@@ -361,7 +361,7 @@ cargo test -p decoder-tracker
 
 Expected: every command exits 0 with no failures.
 
-- [ ] **Step 3: Run the full workspace tests**
+- [x] **Step 3: Run the full workspace tests**
 
 ```bash
 cargo test --workspace --all-features --exclude compare-demosaic
@@ -369,7 +369,7 @@ cargo test --workspace --all-features --exclude compare-demosaic
 
 Expected: exit 0 with no failures.
 
-- [ ] **Step 4: Run repository validation**
+- [x] **Step 4: Run repository validation**
 
 ```bash
 scripts/agent-validation.sh
@@ -377,7 +377,7 @@ scripts/agent-validation.sh
 
 Expected: exit 0. Record each failed or skipped check explicitly if not.
 
-- [ ] **Step 5: Run the golden decode hash gate**
+- [x] **Step 5: Run the golden decode hash gate**
 
 ```bash
 cargo run -q -p decoder-tracker -- hash \
@@ -387,7 +387,7 @@ cargo run -q -p decoder-tracker -- hash \
 
 Expected: exit 0 with all selected golden hashes unchanged.
 
-- [ ] **Step 6: Run whitespace validation**
+- [x] **Step 6: Run whitespace validation**
 
 ```bash
 git diff --check
@@ -395,7 +395,7 @@ git diff --check
 
 Expected: no output and exit 0.
 
-- [ ] **Step 7: Commit the finished tree if needed and push**
+- [x] **Step 7: Commit the finished tree if needed and push**
 
 If Task 2 did not commit the final documentation changes, commit them now.
 Then:
@@ -407,7 +407,7 @@ git push -u origin HEAD
 
 Expected: clean worktree and a new remote branch `chore/tiff-raster`.
 
-- [ ] **Step 8: Open one PR against `main`**
+- [x] **Step 8: Open one PR against `main`**
 
 Title:
 
@@ -425,7 +425,7 @@ The body must include:
 - golden-hash result;
 - deviations, or `None`.
 
-- [ ] **Step 9: Stop**
+- [x] **Step 9: Stop**
 
 Report the PR URL, validation outcomes, golden-hash result, and deviations.
 Do not watch, poll, merge, or close the PR.
@@ -445,6 +445,19 @@ cargo run -q -p decoder-tracker -- hash \
 git diff --check
 ```
 
+Validation record:
+
+- `cargo test -p fornax-tiff`: 50 passed across 7 suites.
+- `cargo test -p fornax-dng`: 32 passed across 3 suites.
+- `cargo test -p fornax-arw`: 12 passed across 2 suites.
+- `cargo test -p decoder-tracker`: 47 passed across 5 suites.
+- `cargo test --workspace --all-features --exclude compare-demosaic`:
+  325 passed across 44 suites.
+- `scripts/agent-validation.sh`: passed, including tests, doctests, nightly
+  formatting, rustdoc, Clippy, decoder benchmark compilation, and diff checks.
+- Decoder golden hash check: unchanged, 9 rows.
+- `git diff --check`: passed.
+
 ## Decisions and Notes
 
 - No maintainer ruling is required: every mapped ID has an identified owner and
@@ -455,3 +468,8 @@ git diff --check
 - The generic raster request accepts resolved codec compression; it does not
   own DNG, self-assigned, or vendor ID policy.
 - DNG constants remain in `fornax-tiff` until Step 6.
+- Independent subagent review was attempted, but the review task payload was
+  not delivered to either reviewer process. The required whole-branch review
+  was therefore performed as the documented no-subagent self-review fallback.
+  It found no Critical or Important issues and added regression coverage for
+  decoded partial final strips and Sony-private compression classification.

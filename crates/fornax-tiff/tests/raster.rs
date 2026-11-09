@@ -144,6 +144,38 @@ fn decode_tiles_with_partial_final_geometry_preserves_row_major_copy() {
 }
 
 #[test]
+fn decode_strips_with_partial_final_strip_preserves_row_major_copy() {
+    let source = (0_u8..15).collect::<Vec<_>>();
+    let directory = directory(
+        3,
+        5,
+        [
+            (TiffTag::RowsPerStrip, Value::Unsigned(2)),
+            (TiffTag::StripOffsets, unsigned([0, 6, 12])),
+            (TiffTag::StripByteCounts, unsigned([6, 6, 3])),
+        ],
+    );
+    let request = RasterRequest::new(
+        &source,
+        &directory,
+        DecodeCompression::Uncompressed,
+        8,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        Predictor::None,
+    )
+    .unwrap();
+
+    let decoded = fornax_codec::decode(&request.codec_request()).unwrap();
+    let SampleBuffer::U8(image) = decoded else {
+        panic!("uncompressed 8-bit strips must decode as u8");
+    };
+
+    assert_eq!(image.dimensions(), (3, 5));
+    assert_eq!(image.into_raw(), source);
+}
+
+#[test]
 fn missing_byte_counts_reports_the_layout_tag() {
     let directory = directory(
         4,

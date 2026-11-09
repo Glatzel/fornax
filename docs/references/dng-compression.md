@@ -6,10 +6,17 @@
   <https://download.adobe.com/pub/adobe/dng/DNG_Spec_1_7_1_0.pdf>.
 - Adobe, *TIFF 6.0 Specification*, 1992:
   <https://download.osgeo.org/libtiff/doc/TIFF6.pdf>.
+- Adobe, *TIFF Technical Note #2*, 17 March 1995:
+  <https://libtiff.gitlab.io/libtiff/specification/technote2.html>.
 - LibTIFF 4.0.10 release notes:
   <http://libtiff.maptools.org/v4.0.10.html>.
+- GDAL maintainer discussion of TIFF JPEG XL identifier `50002` and DNG
+  identifier `52546`:
+  <https://www.mail-archive.com/gdal-dev@lists.osgeo.org/msg42055.html>.
 - RFC 8878, *Zstandard Compression and the `application/zstd` Media Type*:
   <https://www.rfc-editor.org/rfc/rfc8878>.
+- Sony ARW/NRW behavior and pinned vendor-reference notes:
+  [sony-arw.md](sony-arw.md).
 
 ## Decisions
 
