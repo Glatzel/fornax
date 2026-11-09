@@ -100,10 +100,10 @@ impl IDecoder for RawlerDecoder {
         }?;
         let active_area = raw.active_area.unwrap();
         cropped.crop_in_place(Rect {
-            x: active_area.x() as _,
-            y: active_area.y() as _,
-            width: active_area.width() as _,
-            height: active_area.height() as _,
+            x: active_area.x() as u32,
+            y: active_area.y() as u32,
+            width: active_area.width() as u32,
+            height: active_area.height() as u32,
         });
         Ok(CroppedMosaic::new(cropped))
     }

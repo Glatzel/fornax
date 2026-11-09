@@ -9,6 +9,7 @@ use strum::{AsRefStr, Display, EnumString, IntoStaticStr};
 ///
 /// assert_eq!(RawFormat::Dng.to_string(), "DNG");
 /// assert_eq!("CR3".parse(), Ok(RawFormat::Cr3));
+/// assert_eq!("nrw".parse(), Ok(RawFormat::Nrw));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq, AsRefStr, Display, EnumString, IntoStaticStr)]
 #[strum(ascii_case_insensitive, serialize_all = "UPPERCASE")]
@@ -19,6 +20,8 @@ pub enum RawFormat {
     Cr3,
     /// Sony Alpha RAW.
     Arw,
+    /// Sony/Zeiss NRW variant of Alpha RAW.
+    Nrw,
     /// Nikon Electronic Format.
     Nef,
     /// Fujifilm RAW.

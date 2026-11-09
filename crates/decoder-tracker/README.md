@@ -2,7 +2,7 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![RAW corpus: 209/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-209%2F2020-orange)](baseline.csv)
+[![RAW corpus: 395/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-395%2F2020-orange)](baseline.csv)
 
 | Vendor | Format | Status |
 | --- | --- | ---: |
@@ -31,7 +31,7 @@
 | Gitup | RAW | 0/1 |
 | GoPro | GPR | 0/17 |
 | Google | DNG | 7/7 |
-| HASSELBLAD | ARW | 0/1 |
+| HASSELBLAD | ARW | 1/1 |
 | HMD Global | DNG | 1/1 |
 | HTC | DNG | 1/1 |
 | HUAWEI | DNG | 18/18 |
@@ -102,14 +102,14 @@
 | SAMSUNG TECHWIN | PEF | 0/1 |
 | SJCAM | RAW | 0/4 |
 | SJCam | RAW | 0/2 |
-| SONY | ARW | 0/31 |
+| SONY | ARW | 24/31 |
 | Samsung | DNG | 13/22 |
 | Samsung | SRW | 0/27 |
 | Sigma | DNG | 8/9 |
 | Sigma | X3F | 0/17 |
 | Sinarback | STI | 0/1 |
 | Sony | ARQ | 0/1 |
-| Sony | ARW | 0/174 |
+| Sony | ARW | 161/174 |
 | Sony | SR2 | 0/1 |
 | Sony | SRF | 0/1 |
 | XIAOYI | DNG | 0/3 |

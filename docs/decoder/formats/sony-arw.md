@@ -2,6 +2,10 @@
 
 **Tier:** 1
 
+**Status:** Implemented for uncompressed, ARW1, ARW2, ARW6, and
+single-component tiled LJPEG CFA images. ARQ and reduced-resolution YCbCr
+variants remain deliberately unsupported.
+
 ## Container structure
 
 ARW and NRW files are TIFF containers with EXIF and Sony maker-note IFDs. The
@@ -14,19 +18,23 @@ offsets, and uncompressed versus tiled compressed layouts.
 
 ## Compression schemes
 
-Reader targets:
+Accepted families:
 
 - uncompressed 12- or 16-bit samples;
 - ARW1 (`32767`) and ARW2 (`32767`) nonlinear/bit-packed compression with
   camera curves;
 - ARW6 (`32766`) wavelet-style compression;
 - LJPEG (`7`) tiles used by newer cameras such as the Alpha 1;
-- ARQ pixel-shift/multi-sample variants only when the primary raw sample can
-  be reduced safely to one CFA mosaic.
+- ARQ pixel-shift/multi-sample variants are rejected until an unambiguous
+  primary CFA reduction is implemented.
 
 The ARW2 8-bit path needs camera-specific curve and black/white rescaling.
 The newer LJPEG tiled path packs two Bayer lines into each decoded row and may
 use a 4-component 256x256 stream for a 512x512 output tile.
+
+Fornax uses `flashraw-codecs` for ARW1, ARW2, ARW6, and lossless-JPEG entropy
+decoding. `fornax-arw` owns container selection, Sony private-data decryption,
+ARW2 dithering, sample/white-level mapping, and the LJPEG two-row unpack.
 
 ## Metadata to DNG tags
 
@@ -60,6 +68,28 @@ same interpretation.
 - ARQ files may contain multiple raw samples; support only the unambiguous
   primary mosaic initially.
 
+### Reduced-resolution YCbCr RAW
+
+Sony's lossless-compressed medium and small RAW modes on recent cameras can be
+stored as three-component, 15-bit-per-sample YCbCr lossless JPEG rather than a
+single-sample CFA. These files use compression `7`,
+`PhotometricInterpretation::YCbCr`, `SamplesPerPixel = 3`, and 512x512 LJPEG
+tiles. They decode to `LinearRaw` RGB, not a Bayer mosaic.
+
+Fornax does not synthesize a Bayer mosaic from these RGB samples and does not
+broaden the current decoder contract for multi-component RAW. They therefore
+return `DecodeError::Unsupported` during decoder construction and remain
+expected `❌ decode:unsupported` corpus failures until an explicit linear-RGB
+pipeline is designed and approved.
+
+The corpus entries currently in this category cover:
+
+- Sony ILCE-7M4 lossless-compressed medium/small full-frame and small APS-C;
+- Sony ILCE-7CR medium and small RAW;
+- Sony ILCE-9M3 medium and small RAW;
+- SONY ILCE-1M2 lossless-compressed medium/small full-frame and small APS-C;
+- SONY DSC-RX1RM3 medium and small RAW.
+
 ## References to consult
 
 - `external/dnglab` at `62b77de1a206d467e910d55199191068b45a9cc1`:
@@ -68,16 +98,17 @@ same interpretation.
 - `external/libraw` at `cf02d66eb5c19d4e46df7aee0582e47a4918509a`:
   Sony levels, curves, and ARW2 behavior.
 
-Both references are copyleft; use them only as behavior references under the
-architecture's licence policy.
+Both references are copyleft and remain behavior-only references. Production
+codec reuse is limited to `flashraw-codecs` 0.1.1, which is `MIT OR
+Apache-2.0`. See [the Sony ARW reference note](../../references/sony-arw.md).
 
 ## Definition of done
 
-- Each accepted ARW compression family and supported camera family has a
-  corpus row with `pass=1`.
+- The accepted corpus families have fixture-backed tests and tracker rows with
+  `pass=1` where fixtures are available.
 - Integer samples match Rawler or LibRaw exactly after active-area, curve, CFA,
   and endianness alignment.
 - Unsupported HE/reduced-resolution/ARQ variants return
-  `DecodeError::UnsupportedVariant`, not corruption or panic.
+  `DecodeError::Unsupported`, not corruption or panic.
 - Synthetic tests cover TIFF private offsets, packed rows, tile geometry,
   LJPEG two-row unpacking, and the CFA handoff.

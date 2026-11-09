@@ -205,7 +205,7 @@ if [[ "$docs_only" == false ]]; then
         cargo -q doc --workspace --all-features --exclude compare-demosaic --no-deps
     cargo -q clippy --workspace --all-features --all-targets \
         --exclude compare-demosaic -- "${clippy_flags[@]}"
-    cargo -q bench -p bench-decoder --no-run
+    cargo -q bench -p fornax-decoder --no-run
 fi
 
 if grep -Eq '^crates/compare-demosaic/' <<<"$changed_files"; then

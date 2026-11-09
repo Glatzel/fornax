@@ -11,6 +11,7 @@ classic-TIFF writing used by Fornax RAW decoders.
 | BigTIFF | Yes | No |
 | Root IFD chain | Yes | One image directory |
 | `SubIFDs` | Yes | No |
+| Inner IFDs at absolute offsets with optional offset correction | Yes | No |
 | Strips and tiles | Metadata model | Caller-defined offsets |
 | Unknown well-formed tags | Preserved when the field type is understood | Typed values only |
 
@@ -18,6 +19,11 @@ classic-TIFF writing used by Fornax RAW decoders.
 identifiers. `CompressionMethod` and `PhotometricInterpretation` are typed
 field constants in `fornax_tiff::constants`. `TiffDirectory` accumulates and
 finalizes writer entries.
+
+`parse_ifd_at` reads a classic-TIFF IFD that is not linked through the root
+chain. An offset correction maps out-of-line values stored relative to a larger
+container into an extracted or decrypted sub-buffer; Sony private metadata uses
+that path.
 
 DNG raw compression identifiers currently represented by
 `CompressionMethod` are:

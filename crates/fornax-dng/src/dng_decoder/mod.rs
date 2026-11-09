@@ -11,7 +11,7 @@ use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffT
 use fornax_tiff::{Directory, ParsedTiff, Tag, Value};
 use generic_num::num;
 use image::math::Rect;
-use process_metadata::process_metadata_from_dng_metadata;
+pub use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
 
 use crate::metadata::DngTag;

@@ -412,7 +412,7 @@ mod tests {
 
         for (actual, expected) in pixel.0.into_iter().zip(D50) {
             assert!(
-                (f64::from(actual) - 0.1 * expected).abs() < 1.0e-5,
+                0.1_f64.mul_add(-expected, f64::from(actual)).abs() < 1.0e-5,
                 "{pixel:?}"
             );
         }
