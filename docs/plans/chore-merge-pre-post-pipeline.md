@@ -212,7 +212,7 @@ Record deviations and validation results in this plan before final validation.
 
 - Verify only; do not add generated baseline files.
 
-- [ ] **Step 1: Verify golden decoder hashes**
+- [x] **Step 1: Verify golden decoder hashes**
 
 Run:
 
@@ -222,7 +222,7 @@ cargo run -q -p decoder-tracker -- hash --manifest crates/decoder-tracker/golden
 
 Expected: the check succeeds and reports unchanged hashes.
 
-- [ ] **Step 2: Run required package and workspace tests**
+- [x] **Step 2: Run required package and workspace tests**
 
 Run:
 
@@ -235,19 +235,19 @@ cargo test --workspace --all-features --exclude compare-demosaic
 
 Expected: every command exits 0.
 
-- [ ] **Step 3: Run repository validation**
+- [x] **Step 3: Run repository validation**
 
 Run: `scripts/agent-validation.sh`
 
 Expected: manifest checks, workspace tests, formatting, docs, clippy, and decoder benchmark compilation pass. Because `compare-demosaic` is changed, run its validation only if its native setup is available; otherwise record it as skipped.
 
-- [ ] **Step 4: Run diff and whitespace checks**
+- [x] **Step 4: Run diff and whitespace checks**
 
 Run: `git diff --check`
 
 Expected: no output and exit 0.
 
-- [ ] **Step 5: Inspect and commit the complete diff**
+- [x] **Step 5: Inspect and commit the complete diff**
 
 Review the diff for only the intended Step 2 changes, then commit with a semantic message.
 
@@ -278,6 +278,11 @@ git diff --check
 - The new crate's public API test passed with 95 package tests, and both Criterion targets compiled.
 - The facade/consumer update passed 103 tests across `fornax-preprocessor`, `fornax-postprocessor`, `fornax-raw-pipeline`, and `fornax-cli`.
 - The old package names remain unchanged; no additional crate renames are introduced.
+- The branch was rebased onto `81aca76` after the workspace-refactor trigger documents were published; the trigger and baseline confirm Step 2 scope.
+- Required package tests passed: preprocessor 1, postprocessor 1, CLI 6; workspace tests passed 262 tests across 41 suites.
+- `scripts/agent-validation.sh` passed completely, including native `compare-demosaic` docs, clippy, and 150 tests.
+- Both `fornax-raw-pipeline` benchmark targets compiled.
+- The golden decoder check reported `golden: unchanged (9 rows)`.
 - `TODO.md` remains untouched.
 - Neutral buffer shape, vendor codec placement, codec output, TIFF ownership, DNG constants, format crates, and publication remain untouched.
 - Step 3 is not started by this plan.
