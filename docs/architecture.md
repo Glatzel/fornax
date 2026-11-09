@@ -167,6 +167,9 @@ remain in their stage crates.
 runs manual, deterministically sharded decoder regressions against a committed
 CSV baseline. RAW payloads are transient and never uploaded or committed.
 
+See [the decoder-tracker agent guide](../crates/decoder-tracker/AGENTS.md) for
+corpus setup, run, baseline-update, and README rules.
+
 `compare-demosaic` normalizes the active Bayer mosaic before passing it to
 Fornax and pinned LibRaw, darktable, and RawTherapee adapters. Reference C/C++
 code is build-time development tooling only and must not enter production
