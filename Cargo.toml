@@ -21,8 +21,14 @@ fornax-tiff = { path = "./crates/fornax-tiff" }
 clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 # glatzel
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-generic-num = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-image = { git = "https://github.com/Glatzel/image-rs", default-features = false }
+generic-num = {
+  git = "https://github.com/Glatzel/toolbox",
+  tag = "v2026.10.11"
+}
+image = {
+  git = "https://github.com/Glatzel/image-rs",
+  default-features = false
+}
 mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 # other
