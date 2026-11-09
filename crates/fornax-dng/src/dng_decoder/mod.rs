@@ -8,7 +8,10 @@ use fornax_core::error::DecodeError;
 use fornax_core::metadata::ProcessMetadata;
 use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffTag};
-use fornax_tiff::{Directory, ParsedTiff, Tag, Value};
+use fornax_tiff::{
+    Directory, ParsedTiff, Tag, ValueAccessError, unsigned_scalar,
+    unsigned_vec as tiff_unsigned_vec,
+};
 use generic_num::num;
 use image::math::Rect;
 pub use process_metadata::process_metadata_from_dng_metadata;
@@ -43,10 +46,11 @@ fn select_raw_ifd(parsed: &ParsedTiff) -> Result<usize, DecodeError> {
 }
 
 fn is_raw_ifd(directory: &fornax_tiff::Directory) -> bool {
-    let photometric = dng_value(directory.get(&Tag::from(TiffTag::PhotometricInterpretation)))
-        .and_then(|value| u16::try_from(value).ok())
-        .map(PhotometricInterpretation::from);
-    let reduced_resolution = dng_value(directory.get(&Tag::from(TiffTag::NewSubfileType)))
+    let photometric =
+        unsigned_scalar(directory.get(&Tag::from(TiffTag::PhotometricInterpretation)))
+            .and_then(|value| u16::try_from(value).ok())
+            .map(PhotometricInterpretation::from);
+    let reduced_resolution = unsigned_scalar(directory.get(&Tag::from(TiffTag::NewSubfileType)))
         .is_some_and(|value| value & 1 != 0);
     !reduced_resolution
         && photometric.is_some_and(|value| {
@@ -58,20 +62,9 @@ fn is_raw_ifd(directory: &fornax_tiff::Directory) -> bool {
 }
 
 fn raw_area(directory: &fornax_tiff::Directory) -> u64 {
-    let width = dng_value(directory.get(&Tag::from(TiffTag::ImageWidth))).unwrap_or(0);
-    let height = dng_value(directory.get(&Tag::from(TiffTag::ImageLength))).unwrap_or(0);
+    let width = unsigned_scalar(directory.get(&Tag::from(TiffTag::ImageWidth))).unwrap_or(0);
+    let height = unsigned_scalar(directory.get(&Tag::from(TiffTag::ImageLength))).unwrap_or(0);
     width.saturating_mul(height)
-}
-
-fn dng_value(value: Option<&Value>) -> Option<u64> {
-    match value? {
-        Value::Byte(value) => Some(u64::from(*value)),
-        Value::Short(value) => Some(u64::from(*value)),
-        Value::Unsigned(value) | Value::Ifd(value) => Some(u64::from(*value)),
-        Value::UnsignedBig(value) | Value::IfdBig(value) => Some(*value),
-        Value::List(values) => dng_value(values.first()),
-        _ => None,
-    }
 }
 
 pub fn raw_mosaic(parsed: &DngImage) -> Result<RawMosaic, DecodeError> {
@@ -337,39 +330,18 @@ where
     u32::try_from(value).map_err(|_| corrupt(format!("{tag} is out of range")))
 }
 
-fn unsigned_scalar(value: Option<&Value>) -> Option<u64> {
-    match value? {
-        Value::Byte(value) => Some(u64::from(*value)),
-        Value::Short(value) => Some(u64::from(*value)),
-        Value::Unsigned(value) | Value::Ifd(value) => Some(u64::from(*value)),
-        Value::UnsignedBig(value) | Value::IfdBig(value) => Some(*value),
-        Value::List(values) => unsigned_scalar(Some(values.first()?)),
-        _ => None,
-    }
-}
-
 fn unsigned_vec<T>(metadata: &Directory, tag: T) -> Result<Vec<usize>, DecodeError>
 where
     T: Into<Tag>,
 {
     let tag = tag.into();
-    let value = metadata
-        .get(&tag)
-        .ok_or_else(|| corrupt(format!("{tag} is missing")))?;
-    let values = value
-        .clone()
-        .into_u64_vec()
-        .map_err(|_| corrupt(format!("{tag} has an invalid value type")))?;
-    values
-        .into_iter()
-        .map(|value| {
-            usize::try_from(value).map_err(|_| {
-                corrupt(format!(
-                    "{tag} contains a value too large for this platform"
-                ))
-            })
-        })
-        .collect()
+    tiff_unsigned_vec(metadata, tag).map_err(|error| match error {
+        ValueAccessError::Missing => corrupt(format!("{tag} is missing")),
+        ValueAccessError::InvalidType => corrupt(format!("{tag} has an invalid value type")),
+        ValueAccessError::Overflow => corrupt(format!(
+            "{tag} contains a value too large for this platform"
+        )),
+    })
 }
 
 fn unsupported_variant(detail: impl Into<Box<str>>) -> DecodeError {

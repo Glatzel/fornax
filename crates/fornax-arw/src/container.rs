@@ -1,6 +1,9 @@
 use fornax_core::error::DecodeError;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{Directory, ParsedTiff, Tag, Value};
+use fornax_tiff::{
+    Directory, ParsedTiff, Tag, Value, ValueAccessError, unsigned_scalar,
+    unsigned_vec as tiff_unsigned_vec,
+};
 
 pub const DNG_PRIVATE_DATA: Tag = Tag(50_740);
 pub const SONY_CURVE: Tag = Tag(0x7010);
@@ -164,7 +167,7 @@ fn select_raw_ifd(parsed: &ParsedTiff) -> Result<(usize, &Directory), DecodeErro
         .iter()
         .enumerate()
         .filter(|(_, directory)| {
-            let reduced = optional_u64(directory.get(&Tag::from(TiffTag::NewSubfileType)))
+            let reduced = unsigned_scalar(directory.get(&Tag::from(TiffTag::NewSubfileType)))
                 .is_some_and(|value| value & 1 != 0);
             let has_pixels = directory.contains_key(&Tag::from(TiffTag::StripOffsets))
                 || directory.contains_key(&Tag::from(TiffTag::TileOffsets));
@@ -233,35 +236,16 @@ where
     u16::try_from(value).ok()
 }
 
-pub fn unsigned_scalar(value: Option<&Value>) -> Option<u64> {
-    match value? {
-        Value::Byte(value) => Some(u64::from(*value)),
-        Value::Short(value) => Some(u64::from(*value)),
-        Value::Unsigned(value) | Value::Ifd(value) => Some(u64::from(*value)),
-        Value::UnsignedBig(value) | Value::IfdBig(value) => Some(*value),
-        Value::List(values) => unsigned_scalar(values.first()),
-        _ => None,
-    }
-}
-
 pub fn unsigned_vec<T>(directory: &Directory, tag: T) -> Result<Vec<usize>, DecodeError>
 where
     T: Into<Tag>,
 {
     let tag = tag.into();
-    let value = directory
-        .get(&tag)
-        .ok_or_else(|| invalid(format!("{tag} is missing")))?;
-    value
-        .clone()
-        .into_u64_vec()
-        .map_err(|_| invalid(format!("{tag} has an invalid numeric type")))?
-        .into_iter()
-        .map(|value| {
-            usize::try_from(value)
-                .map_err(|_| invalid(format!("{tag} exceeds the platform address space")))
-        })
-        .collect()
+    tiff_unsigned_vec(directory, tag).map_err(|error| match error {
+        ValueAccessError::Missing => invalid(format!("{tag} is missing")),
+        ValueAccessError::InvalidType => invalid(format!("{tag} has an invalid numeric type")),
+        ValueAccessError::Overflow => invalid(format!("{tag} exceeds the platform address space")),
+    })
 }
 
 pub fn bytes(value: &Value) -> Option<Vec<u8>> {
@@ -288,5 +272,3 @@ where
 {
     DecodeError::Unsupported(detail.into())
 }
-
-fn optional_u64(value: Option<&Value>) -> Option<u64> { unsigned_scalar(value) }

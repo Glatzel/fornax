@@ -137,6 +137,78 @@ impl fmt::Display for Value {
     }
 }
 
+/// Returns the first unsigned integer represented by a TIFF value.
+///
+/// This accepts [`Value::Byte`], [`Value::Short`], [`Value::Unsigned`],
+/// [`Value::Ifd`], [`Value::UnsignedBig`], and [`Value::IfdBig`]. Nested
+/// [`Value::List`] values are followed recursively at index zero. Signed,
+/// floating-point, rational, ASCII, and empty values return `None`.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_tiff::{Value, unsigned_scalar};
+///
+/// let value = Value::List(vec![Value::Short(7), Value::Short(9)]);
+/// assert_eq!(unsigned_scalar(Some(&value)), Some(7));
+/// ```
+pub fn unsigned_scalar(value: Option<&Value>) -> Option<u64> {
+    match value? {
+        Value::Byte(value) => Some(u64::from(*value)),
+        Value::Short(value) => Some(u64::from(*value)),
+        Value::Unsigned(value) | Value::Ifd(value) => Some(u64::from(*value)),
+        Value::UnsignedBig(value) | Value::IfdBig(value) => Some(*value),
+        Value::List(values) => unsigned_scalar(values.first()),
+        _ => None,
+    }
+}
+
+/// Converts a TIFF directory field into unsigned integers.
+///
+/// A scalar becomes a one-element vector and a flat list is converted in order.
+/// List elements use [`Value::into_u64_vec`] semantics, so non-negative signed
+/// integers are accepted while negative, rational, floating-point, nested-list,
+/// and other non-convertible values are rejected.
+///
+/// # Errors
+///
+/// Returns [`ValueAccessError::Missing`] when `tag` is absent,
+/// [`ValueAccessError::InvalidType`] when a value cannot be converted to an
+/// unsigned integer, or [`ValueAccessError::Overflow`] when a converted value
+/// does not fit `T`.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_tiff::{Directory, Tag, Value, unsigned_vec};
+///
+/// let mut directory = Directory::default();
+/// directory.insert(
+///     Tag(1),
+///     Value::List(vec![Value::Byte(2), Value::Unsigned(3)]),
+/// );
+/// assert_eq!(
+///     unsigned_vec::<_, usize>(&directory, Tag(1)).unwrap(),
+///     vec![2, 3],
+/// );
+/// ```
+pub fn unsigned_vec<T, U>(directory: &crate::Directory, tag: T) -> Result<Vec<U>, ValueAccessError>
+where
+    T: Into<Tag>,
+    U: TryFrom<u64>,
+{
+    let tag = tag.into();
+    let value = directory.get(&tag).ok_or(ValueAccessError::Missing)?;
+    let values = value
+        .clone()
+        .into_u64_vec()
+        .map_err(|_| ValueAccessError::InvalidType)?;
+    values
+        .into_iter()
+        .map(|value| U::try_from(value).map_err(|_| ValueAccessError::Overflow))
+        .collect()
+}
+
 /// Failure to convert a TIFF scalar into an unsigned integer.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ValueConversionError;
@@ -148,3 +220,26 @@ impl fmt::Display for ValueConversionError {
 }
 
 impl std::error::Error for ValueConversionError {}
+
+/// Failure to access unsigned integers from a TIFF directory field.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ValueAccessError {
+    /// The requested tag is absent.
+    Missing,
+    /// The tag value cannot be converted to unsigned integers.
+    InvalidType,
+    /// A converted value does not fit the requested target integer type.
+    Overflow,
+}
+
+impl fmt::Display for ValueAccessError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(match self {
+            Self::Missing => "TIFF tag is missing",
+            Self::InvalidType => "TIFF value is not an unsigned integer list",
+            Self::Overflow => "TIFF value does not fit the target integer type",
+        })
+    }
+}
+
+impl std::error::Error for ValueAccessError {}
