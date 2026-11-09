@@ -1,5 +1,6 @@
 //! DNG container, metadata, transforms, and writing.
 
+pub mod constants;
 pub(crate) mod dng_decoder;
 pub mod metadata;
 mod sample_buffer;

@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use fornax_core::RawMosaic;
 use fornax_core::protocol::IDecoder;
+use fornax_dng::constants::DngPhotometricInterpretation;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffWriter, Value};
 use rawler::decoders::RawImageData;
@@ -21,7 +22,7 @@ fn malformed_tiff_is_invalid_input() {
 
 #[test]
 fn arq_multi_sample_layout_is_unsupported() {
-    let source = synthetic_tiff(1, PhotometricInterpretation::Cfa, 16, 4, 8);
+    let source = synthetic_tiff(1, u16::from(PhotometricInterpretation::Cfa), 16, 4, 8);
     let error = ArwImage::parse(&source).unwrap_err();
     assert!(matches!(
         error,
@@ -31,7 +32,13 @@ fn arq_multi_sample_layout_is_unsupported() {
 
 #[test]
 fn reduced_resolution_linear_raw_is_unsupported() {
-    let source = synthetic_tiff(1, PhotometricInterpretation::LinearRaw, 16, 1, 8);
+    let source = synthetic_tiff(
+        1,
+        u16::from(DngPhotometricInterpretation::LinearRaw),
+        16,
+        1,
+        8,
+    );
     let error = ArwImage::parse(&source).unwrap_err();
     assert!(matches!(
         error,
@@ -41,7 +48,7 @@ fn reduced_resolution_linear_raw_is_unsupported() {
 
 #[test]
 fn unknown_sony_compression_is_unsupported() {
-    let source = synthetic_tiff(12_345, PhotometricInterpretation::Cfa, 16, 1, 8);
+    let source = synthetic_tiff(12_345, u16::from(PhotometricInterpretation::Cfa), 16, 1, 8);
     let error = ArwImage::parse(&source).unwrap_err();
     assert!(matches!(
         error,
@@ -58,7 +65,13 @@ fn sony_private_compression_ids_remain_vendor_owned() {
         (32_767, 1, CompressionFamily::Arw2),
         (32_767, 8, CompressionFamily::Arw1),
     ] {
-        let source = synthetic_tiff(compression, PhotometricInterpretation::Cfa, 16, 1, bytes);
+        let source = synthetic_tiff(
+            compression,
+            u16::from(PhotometricInterpretation::Cfa),
+            16,
+            1,
+            bytes,
+        );
         let parsed = fornax_tiff::parse(&source).unwrap();
         let (_, layout) = RawLayout::parse(&parsed).unwrap();
 
@@ -209,7 +222,7 @@ fn fixture(variable: &str) -> Option<PathBuf> {
 
 fn synthetic_tiff(
     compression: u16,
-    photometric: PhotometricInterpretation,
+    photometric: u16,
     bits: u16,
     samples_per_pixel: u16,
     bytes: usize,
@@ -229,7 +242,7 @@ fn synthetic_tiff(
                 (Tag::from(TiffTag::Compression), Value::Short(compression)),
                 (
                     Tag::from(TiffTag::PhotometricInterpretation),
-                    Value::Short(u16::from(photometric)),
+                    Value::Short(photometric),
                 ),
                 (Tag::from(TiffTag::StripOffsets), Value::Unsigned(data)),
                 (Tag::from(TiffTag::StripByteCounts), Value::Unsigned(bytes)),

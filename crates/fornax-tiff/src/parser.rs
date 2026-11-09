@@ -1,9 +1,8 @@
 use std::collections::{HashSet, VecDeque};
 use std::sync::Arc;
 
+use crate::constants::TiffTag;
 use crate::{ByteOrder, Directory, ParsedTiff, Tag, TiffError, Value};
-
-const TAG_SUB_IFDS: u16 = 330;
 
 struct Reader<'a> {
     bytes: &'a [u8],
@@ -112,7 +111,7 @@ impl<'a> Reader<'a> {
                 .and_then(|end| self.bytes.get(value_offset..end))
                 .ok_or_else(|| corrupt(format!("TIFF tag 0x{tag:04x} data is out of bounds")))?;
             if let Some(value) = self.parse_value(field_type, count, value_bytes)? {
-                if tag == TAG_SUB_IFDS {
+                if tag == u16::from(TiffTag::SubIfds) {
                     for pointer in pointers(&value) {
                         if pointer != 0 {
                             child_pointers.push(apply_correction(pointer, offset_correction)?);

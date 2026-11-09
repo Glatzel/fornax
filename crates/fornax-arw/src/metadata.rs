@@ -4,10 +4,9 @@ use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value, unsigned_scalar};
 
 use crate::container::{
-    CompressionFamily, DNG_PRIVATE_DATA, RawLayout, SONY_BLACK_LEVEL_1, SONY_CURVE,
-    SONY_GRBG_WHITE_BALANCE, SONY_KEY, SONY_LENGTH, SONY_OFFSET, SONY_RAW_IMAGE_SIZE,
-    SONY_RGGB_BLACK_LEVEL, SONY_RGGB_WHITE_BALANCE, SONY_WHITE_LEVEL, bytes, invalid,
-    optional_usize, unsigned_vec,
+    CompressionFamily, RawLayout, SONY_BLACK_LEVEL_1, SONY_CURVE, SONY_GRBG_WHITE_BALANCE,
+    SONY_KEY, SONY_LENGTH, SONY_OFFSET, SONY_RAW_IMAGE_SIZE, SONY_RGGB_BLACK_LEVEL,
+    SONY_RGGB_WHITE_BALANCE, SONY_WHITE_LEVEL, bytes, invalid, optional_usize, unsigned_vec,
 };
 use crate::sony;
 
@@ -23,7 +22,7 @@ pub fn map(
     let private = private_ifd(parsed)?;
     let mut metadata = parsed.root.clone();
     metadata.extend(raw.clone());
-    metadata.remove(&DNG_PRIVATE_DATA);
+    metadata.remove(&Tag::from(DngTag::DngPrivateData));
 
     let cfa = cfa_pattern(raw);
     let active = active_area(raw, layout)?;
@@ -131,7 +130,7 @@ pub fn map(
 }
 
 fn private_ifd(parsed: &ParsedTiff) -> Result<Option<Directory>, DecodeError> {
-    let Some(value) = parsed.root.get(&DNG_PRIVATE_DATA) else {
+    let Some(value) = parsed.root.get(&Tag::from(DngTag::DngPrivateData)) else {
         return Ok(None);
     };
     let raw = bytes(value).ok_or_else(|| invalid("DNGPrivateData is not a byte string"))?;

@@ -11,7 +11,9 @@ storage-native decoder and writer APIs.
 
 Decoded metadata is a `fornax_tiff::Directory`, keyed by the dynamic `Tag`
 type. `DngTag` names DNG-only fields and converts into those keys; generic TIFF
-fields and constants remain in `fornax-tiff`.
+fields and constants remain in `fornax-tiff`. `fornax_dng::constants` owns the
+DNG compression and photometric values, including the non-DNG compatibility
+compression IDs interpreted only by this format layer.
 
 ## Container and Layout Support
 
@@ -47,6 +49,10 @@ Strip/tile geometry and encoded chunk validation come from
 crate resolves DNG and compatibility IDs `34892`, `50000`, `50002`, and `52546`
 before falling back. The TIFF raster request receives the resolved codec
 compression and does not interpret DNG tags.
+
+TIFF/EP CFA `32803` remains a TIFF-family photometric value. DNG
+`LinearRaw` `34892`, `Depth` `51177`, and `PhotometricMask` `52527` are owned by
+`fornax_dng::constants`.
 
 The decoder accepts one raw sample per pixel. Three-sample `LinearRaw` payloads
 using compression `1`, `7`, or `34892` are rejected before codec dispatch and

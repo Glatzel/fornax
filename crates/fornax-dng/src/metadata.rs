@@ -134,6 +134,8 @@ pub enum DngTag {
     BayerGreenSplit = 50_733,
     /// `CameraSerialNumber`.
     CameraSerialNumber = 50_735,
+    /// `DNGPrivateData`.
+    DngPrivateData = 50_740,
     /// `CalibrationIlluminant1`.
     CalibrationIlluminant1 = 50_778,
     /// `CalibrationIlluminant2`.

@@ -4,10 +4,11 @@ use std::path::Path;
 
 use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor, SampleBuffer};
 use fornax_core::RawMosaic;
-use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
+use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
 use thiserror::Error;
 
+use crate::constants::DngCompressionMethod;
 use crate::metadata::{Directory, DngTag};
 use crate::sample_buffer::from_raw_mosaic;
 
@@ -222,7 +223,10 @@ where
     directory.write_tag(Tag::from(TiffTag::ImageWidth), width)?;
     directory.write_tag(Tag::from(TiffTag::ImageLength), height)?;
     directory.write_tag(Tag::from(TiffTag::BitsPerSample), bits_per_sample)?;
-    directory.write_tag(Tag::from(TiffTag::Compression), 1_u16)?;
+    directory.write_tag(
+        Tag::from(TiffTag::Compression),
+        u16::from(CompressionMethod::Uncompressed),
+    )?;
     directory.write_tag(
         TiffTag::PhotometricInterpretation,
         u16::from(PhotometricInterpretation::Cfa),
@@ -296,7 +300,7 @@ where
         height,
         metadata,
         version,
-        7,
+        u16::from(CompressionMethod::LosslessJpeg),
         bits,
         sample_format,
         None,
@@ -328,7 +332,7 @@ where
         height,
         metadata,
         version,
-        8,
+        u16::from(CompressionMethod::Deflate),
         bits,
         sample_format,
         Some(predictor_tag),
@@ -365,7 +369,7 @@ where
         height,
         metadata,
         version,
-        50_000,
+        u16::from(DngCompressionMethod::Zstd),
         bits,
         sample_format,
         Some(1),
@@ -397,7 +401,7 @@ where
         height,
         metadata,
         version,
-        8,
+        u16::from(CompressionMethod::Deflate),
         bits,
         sample_format,
         Some(1),

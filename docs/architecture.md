@@ -81,11 +81,12 @@ encoding.
 `fornax_tiff::RasterLayout` owns strip/tile geometry and chunk ordering, while
 `fornax_tiff::RasterRequest` accepts an already-resolved codec compression.
 `resolve_tiff_compression` supplies TIFF defaults `1`, `7`, and `8`.
-`fornax-dng` resolves DNG and compatibility IDs before falling back to those
-defaults. `fornax-codec` therefore does not depend on TIFF, DNG, or raw
-workflow types. `fornax-dng` adapts codec `SampleBuffer` values to and from
-`fornax_core::RawMosaic` at its decode and write boundaries, keeping
-`RawMosaic` ownership unchanged.
+`fornax_dng::constants` owns DNG compression and photometric values, including
+the compatibility IDs interpreted only by the DNG format layer. `fornax-dng`
+resolves those values before falling back to the TIFF defaults. `fornax-codec`
+therefore does not depend on TIFF, DNG, or raw workflow types. `fornax-dng`
+adapts codec `SampleBuffer` values to and from `fornax_core::RawMosaic` at its
+decode and write boundaries, keeping `RawMosaic` ownership unchanged.
 
 Codec availability is mandatory. Zstandard and all future codecs are compiled
 unconditionally without per-codec features or runtime fallback errors.

@@ -18,7 +18,7 @@ fornax-dng = { path = "./crates/fornax-dng" }
 fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 
-
+clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 # glatzel
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 generic-num = {
@@ -30,7 +30,6 @@ image = {
   default-features = false
 }
 mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
-clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 # other
 assert_cmd = "2.2.2"

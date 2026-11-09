@@ -27,10 +27,6 @@ fn compression_methods_preserve_known_and_unknown_identifiers() {
         (CompressionMethod::Uncompressed, 1),
         (CompressionMethod::LosslessJpeg, 7),
         (CompressionMethod::Deflate, 8),
-        (CompressionMethod::LossyJpeg, 34_892),
-        (CompressionMethod::Zstd, 50_000),
-        (CompressionMethod::JpegXlLegacy, 50_002),
-        (CompressionMethod::JpegXl, 52_546),
     ];
 
     for (compression, value) in values {
@@ -45,11 +41,19 @@ fn compression_methods_preserve_known_and_unknown_identifiers() {
 }
 
 #[test]
-fn photometric_values_preserve_cfa_linear_raw_and_unknown_identifiers() {
-    let values = [
-        (PhotometricInterpretation::Cfa, 32_803),
-        (PhotometricInterpretation::LinearRaw, 34_892),
-    ];
+fn compression_methods_do_not_claim_dng_or_self_assigned_identifiers() {
+    for value in [34_892, 50_000, 50_002, 52_546] {
+        assert_eq!(
+            CompressionMethod::from(value),
+            CompressionMethod::Unknown(value),
+            "compression {value}"
+        );
+    }
+}
+
+#[test]
+fn photometric_values_preserve_tiff_ep_cfa_and_unknown_identifiers() {
+    let values = [(PhotometricInterpretation::Cfa, 32_803)];
 
     for (photometric, value) in values {
         assert_eq!(u16::from(photometric), value);
@@ -59,5 +63,13 @@ fn photometric_values_preserve_cfa_linear_raw_and_unknown_identifiers() {
     assert_eq!(
         PhotometricInterpretation::from(12_345),
         PhotometricInterpretation::Unknown(12_345)
+    );
+}
+
+#[test]
+fn photometric_values_do_not_claim_dng_linear_raw() {
+    assert_eq!(
+        PhotometricInterpretation::from(34_892),
+        PhotometricInterpretation::Unknown(34_892)
     );
 }
