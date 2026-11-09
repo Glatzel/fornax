@@ -36,6 +36,7 @@ pixi run -e dev cargo run -q -p decoder-tracker -- run [--manifest F] [--format 
 pixi run -e dev cargo run -q -p decoder-tracker -- merge --manifest F --out FILE SHARD...
 pixi run -e dev cargo run -q -p decoder-tracker -- diff --selected F --out FILE BASELINE CANDIDATE
 pixi run -e dev cargo run -q -p decoder-tracker -- update --baseline F --candidate F --out FILE
+pixi run -e dev cargo run -q -p decoder-tracker -- hash [--manifest F] [--out FILE | --check FILE]
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
@@ -120,6 +121,36 @@ only when all four stages pass; otherwise it is `<stage>:<kind>`, such as
 The runner retains the best geometry and CFA label available after partial
 failure. A non-2x2 CFA gets a descriptive label such as `XTrans-6x6` before the
 typed unsupported CFA error is recorded.
+
+## Golden decode outputs
+
+`golden/selected-manifest.csv` is a small, pointer-only subset of the committed
+manifest chosen to cover integer and floating-point DNG storage plus Sony ARW
+compression families. `golden/decode-hashes.csv` is the canonical output gate
+for refactors that must not change decoder results.
+
+Each row records the path, raw sample type and dimensions, cropped `f32`
+dimensions, and four SHA-256 digests:
+
+- `raw_sha256` covers the storage-native samples, sample type, and dimensions;
+- `cropped_sha256` covers active-area cropped `f32` sample bits;
+- `process_sha256` covers geometry, levels, Bayer pattern, and resolved color;
+- `dng_sha256` covers the normalized TIFF/DNG-style metadata directory.
+
+Write or verify the golden set with:
+
+```bash
+pixi run -e dev cargo run -q -p decoder-tracker -- hash \
+  --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+  --out crates/decoder-tracker/golden/decode-hashes.csv
+pixi run -e dev cargo run -q -p decoder-tracker -- hash \
+  --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+  --check crates/decoder-tracker/golden/decode-hashes.csv
+```
+
+`hash` materializes only the selected LFS payloads. A failed decode aborts
+without writing a partial CSV. The golden manifest and hashes are generated
+data and must not be hand-edited.
 
 ## Reading failures
 
@@ -300,7 +331,8 @@ Fornax artifacts.
 glob and legacy filters, adaptive runner sizing, deterministic sharding and
 bounds, stage transitions, metadata sanity, child timeout and panic mapping,
 canonical CSV, DuckDB merge completeness, DuckDB diff classification, partial
-upsert, and manifest pointer checks.
+upsert, canonical golden hashes, golden diff reporting, and manifest pointer
+checks.
 
 `scripts/agent-validation.sh` initializes only the corpus pointer metadata when
 needed, runs `manifest --check`, and runs the DuckDB aggregation tests through

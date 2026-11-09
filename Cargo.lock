@@ -631,11 +631,13 @@ dependencies = [
  "fornax-dng",
  "fornax-tiff",
  "globset",
+ "hex",
  "image 0.25.9",
  "predicates",
  "rstest",
  "serde",
  "serde_json",
+ "sha2",
  "tempfile",
 ]
 
