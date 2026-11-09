@@ -9,6 +9,7 @@ edition = "2024"
 
 [workspace.dependencies]
 fornax = { path = "./crates/fornax" }
+fornax-arw = { path = "./crates/fornax-arw" }
 fornax-codec = { path = "./crates/fornax-codec" }
 fornax-core = { path = "./crates/fornax-core" }
 fornax-decoder = { path = "./crates/fornax-decoder" }

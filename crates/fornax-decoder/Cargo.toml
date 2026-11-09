@@ -9,6 +9,7 @@ name = "decoder"
 
 [dependencies]
 clerk.workspace = true
+fornax-arw.workspace = true
 fornax-core.workspace = true
 fornax-dng.workspace = true
 

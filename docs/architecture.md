@@ -20,14 +20,15 @@ part of the current preprocessor/demosaic handoff.
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, classic/BigTIFF parsing, and classic-TIFF writing. | None |
 | `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, and supported codec encoding. | `fornax-core` |
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-core`, `fornax-tiff`, `fornax-codec` |
-| `fornax-decoder` | Default pure-Rust DNG decoder adapter over `fornax-dng`. | `fornax-core`, `fornax-dng` |
+| `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA sample decoding, and DNG-compatible metadata mapping. | `fornax-core`, `fornax-tiff`, `fornax-dng`, `flashraw-codecs` |
+| `fornax-decoder` | Default pure-Rust DNG and Sony ARW/NRW decoder facade over the format crates. | `fornax-core`, `fornax-dng`, `fornax-arw` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-core`, `fornax-decoder-rawler` |
 | `fornax-preprocessor` | Black/white-level normalization of cropped Bayer mosaics. | `fornax-core` |
 | `fornax-postprocessor` | Demosaic protocol, algorithms, and RGB reconstruction. | `fornax-core` |
 | `fornax` | Public facade over decoders and pipeline stages. | Core, decoder crates, preprocessor, postprocessor |
 | `fornax-cli` | Standalone batch converter for raw DNG, rendered TIFF/JPEG, and metadata JSON output. | `fornax` facade |
-| `bench-decoder` | Decoder comparison benchmarks. | Core, decoder crates, devtool |
+| `fornax-decoder` benches | Decoder comparison benchmarks. | Core, decoder crates, devtool |
 | `decoder-tracker` | Manual sharded raw.pixls.us decoder regression tracker and baseline generator. | Core, decoder, TIFF/DNG metadata |
 | `fornax-devtool` | Pinned fixture paths, synthetic data, and benchmark configuration. | `fornax-core` |
 | `compare-demosaic` | Reference-versus-Fornax demosaic comparison harness. | Core, decoder, processors, devtool, pinned C/C++ references |
@@ -58,10 +59,9 @@ returns a `CroppedMosaic<T>`. `process_metadata` returns geometry, levels, the
 active-area-relative Bayer pattern, and optional green-normalized white-balance
 coefficients.
 
-The default DNG implementation is `fornax_decoder::Decoder<T>`. The facade
-exports it as `fornax::decoder::Decoder`, alongside `RawlerDecoder` and, on
-Windows and macOS, the DNC decoder types. `fornax_core` contains no decoder
-implementation.
+The default implementation is `fornax_decoder::Decoder`. The facade exports it
+as `fornax::Decoder`; it dispatches DNG containers to `fornax-dng` and ARW/NRW
+containers to `fornax-arw`. `fornax_core` contains no decoder implementation.
 
 ## Codec API
 
@@ -141,9 +141,23 @@ U8/U16 samples and a lossless Deflate representation for U32/F32 samples.
 Regeneration is not byte-identical to the source because the public model does
 not retain the original container or auxiliary directories.
 
+## Sony ARW/NRW support
+
+`fornax-arw` selects the full-resolution CFA IFD from classic TIFF or BigTIFF,
+parses and decrypts Sony `DNGPrivateData`, and maps geometry, CFA, black/white
+levels, white balance, and crop data into the shared DNG metadata model. It
+supports uncompressed 12-bit packed and 14/16-bit word samples, ARW1, ARW2,
+ARW6, and single-component tiled LJPEG. Four-component Sony LJPEG tiles are
+unpacked into two Bayer output rows per JPEG row.
+
+Reduced-resolution YCbCr/`LinearRaw` images, multi-sample ARQ files, unknown
+compression families, and non-Bayer CFAs return typed unsupported errors.
+Camera-specific color matrices are not synthesized when the source container
+does not provide them.
+
 ## Benchmarks and comparisons
 
-Decoder benchmarks live in `bench-decoder/benches/decoder.rs`. The benchmark
+Decoder benchmarks live in `crates/fornax-decoder/benches/decoder.rs`. The benchmark
 compares the DNG decoder and Rawler adapter over each `IDecoder` method and
 over composite decode-plus-mosaic cases. `f32` is the default sample type;
 `f64` and decoder subsets are opt-in. Preprocessor and demosaic benchmarks

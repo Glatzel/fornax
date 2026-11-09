@@ -96,7 +96,7 @@ assert_logged 'cargo:+nightly fmt --check -q'
 assert_logged 'cargo:-q doc --workspace --all-features --exclude compare-demosaic --no-deps'
 assert_logged_prefix \
     'cargo:-q clippy --workspace --all-features --all-targets --exclude compare-demosaic -- '
-assert_logged 'cargo:-q bench -p bench-decoder --no-run'
+assert_logged 'cargo:-q bench -p fornax-decoder --no-run'
 assert_logged 'git:diff --check base --'
 
 if grep -Fq 'compare-demosaic' "$log_file" |

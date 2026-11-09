@@ -48,3 +48,18 @@ impl std::error::Error for TiffError {}
 
 /// Parses classic TIFF or BigTIFF directories.
 pub fn parse(source: &[u8]) -> Result<ParsedTiff, TiffError> { parser::parse(source) }
+
+/// Parses one classic-TIFF image file directory at an absolute offset.
+///
+/// `offset_correction` is added to every out-of-line value and child-IFD
+/// offset. Use zero when offsets are absolute file offsets, or the negative
+/// source offset when `source` is an extracted sub-buffer whose values still
+/// point into the original container.
+pub fn parse_ifd_at(
+    source: &[u8],
+    offset: u64,
+    byte_order: ByteOrder,
+    offset_correction: i64,
+) -> Result<Directory, TiffError> {
+    parser::parse_ifd_at(source, offset, byte_order, offset_correction)
+}

@@ -1,0 +1,68 @@
+# Sony ARW/NRW reference notes
+
+## Sources
+
+- [`flashraw-codecs` 0.1.1](https://crates.io/crates/flashraw-codecs/0.1.1),
+  `sony_arw1`, `sony_arw2`, `sony_arw6`, and `ljpeg` modules. License:
+  MIT OR Apache-2.0.
+- dnglab/Rawler at commit
+  `62b77de1a206d467e910d55199191068b45a9cc1`, especially
+  `rawler/src/decoders/arw.rs`,
+  `rawler/src/decompressors/packed.rs`, and Sony camera metadata. License:
+  LGPL-2.1; used as a behavioral reference only.
+- LibRaw at commit `cf02d66eb5c19d4e46df7aee0582e47a4918509a`, especially
+  `src/decoders/decoders_dcraw.cpp` and `src/metadata/tiff.cpp`. License:
+  LGPL-2.1 or CDDL-1.0; used as a behavioral reference only.
+- TIFF 6.0, for classic TIFF directory and strip/tile mechanics.
+
+## Container behavior
+
+- `DNGPrivateData` contains a four-byte little-endian offset to the outer Sony
+  private IFD. The outer IFD points through `0x7200`/`0x7201`/`0x7221` to an
+  encrypted private TIFF. Decrypted value offsets remain relative to the
+  original container, so `fornax_tiff::parse_ifd_at` applies a negative source
+  offset correction when parsing the extracted buffer.
+- The full-resolution CFA IFD is selected by image area, excluding reduced
+  subfiles. `LinearRaw` and multi-sample payloads do not enter the Bayer
+  handoff.
+- ARW1 adds eight stored rows when the compressed byte count covers
+  `width * (height + 8)`. Active-area metadata trims those rows.
+- ARW2 is recognized by a `32767` strip whose byte count is exactly
+  `width * height`, even when the TIFF `BitsPerSample` tag contains a historical
+  16-bit value.
+
+## Sample behavior
+
+- ARW1 is one column-major JPEG-style difference stream decoded from right to
+  left. Even rows precede odd rows within each column.
+- ARW2 stores 16 same-colour samples per block. Values come from 11-bit
+  extrema and 7-bit deltas, are doubled into a 4096-entry curve, then receive
+  the deterministic per-row Sony dither. Rawler and Fornax match exactly on
+  the selected ARW2 corpus fixtures.
+- ARW6 is decoded by the LLVC3 wavelet implementation in
+  `flashraw-codecs`; the output is already mapped through Sony's fixed 12-to-16
+  bit curve.
+- Sony lossless-JPEG CFA tiles commonly carry four components at `256x256`.
+  Components `0/1/2/3` for each sample become `R/G` on the first 512-wide
+  output row and `G/B` on the second.
+
+## Metadata mapping
+
+- `SonyRawImageSize` supplies the active area when present.
+- Private tags `0x7303` and `0x7313` supply Sony white-balance gains; `0x7310`
+  or `0x7300` supplies black levels; `0x787f` supplies the white level.
+- `SonyRawCurve` (`0x7010`) supplies ARW2 curve knots.
+- The source Make, Model, orientation, and non-structural tags are retained.
+  `DNGPrivateData`, structural strip/tile tags, and stale offsets are omitted
+  from regenerated metadata.
+
+## Known differences and limits
+
+- ARQ pixel-shift samples, reduced-resolution YCbCr `LinearRaw`, unknown
+  compression families, and non-Bayer layouts return `DecodeError::Unsupported`.
+- Camera color matrices are not part of the ARW container. Fornax does not copy
+  the LGPL Rawler camera database, so no matrix is synthesized when the source
+  omits one.
+- Crop fallbacks currently cover the validated DSLR-A700, NEX-5, and ILCE-7M3
+  profiles. Other cameras use their full active area when the file has no
+  explicit default-crop tags.

@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+fornax-arw.workspace = true
 fornax-core.workspace = true
 fornax-decoder.workspace = true
 fornax-dng.workspace = true

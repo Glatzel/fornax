@@ -3,6 +3,7 @@ use std::path::Path;
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 mod dnc;
 
+use fornax_arw::ArwImage;
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
@@ -13,6 +14,7 @@ use fornax_dng::{Directory, DngImage};
 #[derive(Clone, Debug)]
 pub enum Decoder {
     Dng(DngImage),
+    Arw(ArwImage),
 }
 impl IDecoder for Decoder {
     fn decode(input: &Path) -> Result<Self, DecodeError>
@@ -26,32 +28,39 @@ impl IDecoder for Decoder {
             .to_str()
             .ok_or_else(|| DecodeError::InvalidInput("file extension is not UTF-8".into()))?;
 
-        if RawFormat::try_from(extension) == Ok(RawFormat::Dng) {
-            clerk::debug!("Reading DNG: {}", input.display());
-
-            let source = fs::read(input).map_err(|error| {
-                DecodeError::Other(format!("reading {} failed: {error}", input.display()).into())
-            })?;
-
-            Ok(Self::Dng(DngImage::parse(&source)?))
-        } else {
-            cfg_select! {
-                any(target_os = "windows", target_os = "macos") => {
-                    clerk::info!(
-                        "Fallback to use `Adobe DNG Converter` to convert RAW image to DNG: {}",
-                        input.display()
-                    );
-                    let dng_file = dnc::Dnc::convert(input)?;
-                    let source = fs::read(&dng_file).map_err(|error| {
-                        DecodeError::Other(
-                            format!("reading {} failed: {error}", dng_file.display()).into(),
-                        )
-                    })?;
-                    Ok(Self::Dng(DngImage::parse(&source)?))
-                }
-                _ => {
-                    clerk::error!("Unsupported RAW format: {}", extension);
-                    Err(DecodeError::Unsupported(extension.into()))
+        match RawFormat::try_from(extension) {
+            Ok(RawFormat::Dng) => {
+                clerk::debug!("Reading DNG: {}", input.display());
+                let source = fs::read(input).map_err(|error| {
+                    DecodeError::Other(
+                        format!("reading {} failed: {error}", input.display()).into(),
+                    )
+                })?;
+                Ok(Self::Dng(DngImage::parse(&source)?))
+            }
+            Ok(RawFormat::Arw | RawFormat::Nrw) => {
+                clerk::debug!("Reading Sony RAW: {}", input.display());
+                Ok(Self::Arw(ArwImage::decode(input)?))
+            }
+            _ => {
+                cfg_select! {
+                    any(target_os = "windows", target_os = "macos") => {
+                        clerk::info!(
+                            "Fallback to use `Adobe DNG Converter` to convert RAW image to DNG: {}",
+                            input.display()
+                        );
+                        let dng_file = dnc::Dnc::convert(input)?;
+                        let source = fs::read(&dng_file).map_err(|error| {
+                            DecodeError::Other(
+                                format!("reading {} failed: {error}", dng_file.display()).into(),
+                            )
+                        })?;
+                        Ok(Self::Dng(DngImage::parse(&source)?))
+                    }
+                    _ => {
+                        clerk::error!("Unsupported RAW format: {}", extension);
+                        Err(DecodeError::Unsupported(extension.into()))
+                    }
                 }
             }
         }
@@ -60,6 +69,7 @@ impl IDecoder for Decoder {
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
         match self {
             Self::Dng(parsed) => fornax_dng::raw_mosaic(parsed),
+            Self::Arw(parsed) => parsed.raw_mosaic(),
         }
     }
 
@@ -69,12 +79,14 @@ impl IDecoder for Decoder {
     {
         match self {
             Self::Dng(parsed) => fornax_dng::cropped_mosaic(parsed),
+            Self::Arw(parsed) => parsed.cropped_mosaic(),
         }
     }
 
     fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
         match self {
             Self::Dng(parsed) => fornax_dng::process_metadata(parsed),
+            Self::Arw(parsed) => parsed.process_metadata(),
         }
     }
 }
@@ -82,6 +94,7 @@ impl IDecoderDng for Decoder {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> {
         match self {
             Self::Dng(parsed) => fornax_dng::dng_metadata(parsed),
+            Self::Arw(parsed) => parsed.dng_metadata(),
         }
     }
 }

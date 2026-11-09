@@ -2,6 +2,10 @@
 
 **Tier:** 1
 
+**Status:** Implemented for uncompressed, ARW1, ARW2, ARW6, and
+single-component tiled LJPEG CFA images. ARQ and reduced-resolution YCbCr
+variants remain unsupported.
+
 ## Container structure
 
 ARW and NRW files are TIFF containers with EXIF and Sony maker-note IFDs. The
@@ -14,19 +18,23 @@ offsets, and uncompressed versus tiled compressed layouts.
 
 ## Compression schemes
 
-Reader targets:
+Accepted families:
 
 - uncompressed 12- or 16-bit samples;
 - ARW1 (`32767`) and ARW2 (`32767`) nonlinear/bit-packed compression with
   camera curves;
 - ARW6 (`32766`) wavelet-style compression;
 - LJPEG (`7`) tiles used by newer cameras such as the Alpha 1;
-- ARQ pixel-shift/multi-sample variants only when the primary raw sample can
-  be reduced safely to one CFA mosaic.
+- ARQ pixel-shift/multi-sample variants are rejected until an unambiguous
+  primary CFA reduction is implemented.
 
 The ARW2 8-bit path needs camera-specific curve and black/white rescaling.
 The newer LJPEG tiled path packs two Bayer lines into each decoded row and may
 use a 4-component 256x256 stream for a 512x512 output tile.
+
+Fornax uses `flashraw-codecs` for ARW1, ARW2, ARW6, and lossless-JPEG entropy
+decoding. `fornax-arw` owns container selection, Sony private-data decryption,
+ARW2 dithering, sample/white-level mapping, and the LJPEG two-row unpack.
 
 ## Metadata to DNG tags
 
@@ -68,16 +76,17 @@ same interpretation.
 - `external/libraw` at `cf02d66eb5c19d4e46df7aee0582e47a4918509a`:
   Sony levels, curves, and ARW2 behavior.
 
-Both references are copyleft; use them only as behavior references under the
-architecture's licence policy.
+Both references are copyleft and remain behavior-only references. Production
+codec reuse is limited to `flashraw-codecs` 0.1.1, which is `MIT OR
+Apache-2.0`. See [the Sony ARW reference note](../../references/sony-arw.md).
 
 ## Definition of done
 
-- Each accepted ARW compression family and supported camera family has a
-  corpus row with `pass=1`.
+- The accepted corpus families have fixture-backed tests and tracker rows with
+  `pass=1` where fixtures are available.
 - Integer samples match Rawler or LibRaw exactly after active-area, curve, CFA,
   and endianness alignment.
 - Unsupported HE/reduced-resolution/ARQ variants return
-  `DecodeError::UnsupportedVariant`, not corruption or panic.
+  `DecodeError::Unsupported`, not corruption or panic.
 - Synthetic tests cover TIFF private offsets, packed rows, tile geometry,
   LJPEG two-row unpacking, and the CFA handoff.

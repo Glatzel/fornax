@@ -86,7 +86,7 @@ fn manifest_check_cli_accepts_current_snapshot_and_rejects_drift() {
 
     fs::write(
         corpus.join("filelist.sha256"),
-        format!("{} *Canon/Camera/IMG_2.DNG\n", listed),
+        format!("{listed} *Canon/Camera/IMG_2.DNG\n"),
     )
     .unwrap();
     let new_path = corpus.join("Canon/Camera/IMG_2.DNG");

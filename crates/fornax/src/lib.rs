@@ -1,4 +1,5 @@
 pub mod preprocessor;
+pub use fornax_arw as arw;
 pub use fornax_core::{
     BayerChannel, BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawFormat,
     RawMosaic, RgbImage, error, metadata, protocol,

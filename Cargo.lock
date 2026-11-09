@@ -818,11 +818,26 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 name = "fornax"
 version = "0.0.17"
 dependencies = [
+ "fornax-arw",
  "fornax-core",
  "fornax-decoder",
  "fornax-dng",
  "fornax-postprocessor",
  "fornax-preprocessor",
+]
+
+[[package]]
+name = "fornax-arw"
+version = "0.0.17"
+dependencies = [
+ "flashraw-codecs",
+ "fornax-core",
+ "fornax-dng",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rawler",
+ "rayon",
 ]
 
 [[package]]
@@ -880,6 +895,7 @@ version = "0.0.17"
 dependencies = [
  "clerk",
  "codspeed-criterion-compat",
+ "fornax-arw",
  "fornax-core",
  "fornax-devtool",
  "fornax-dng",

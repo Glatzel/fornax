@@ -209,6 +209,7 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,hand
 ✅,Ricoh GR II,DNG,Ricoh/GR II/R0000443.DNG,1,1,1,1,,4960,3280,RGGB
 ✅,Ricoh GR III,DNG,Ricoh/GR III/R0000357.DNG,1,1,1,1,,6112,4064,RGGB
 ✅,Ricoh GR IIIx,DNG,Ricoh/GR IIIx/R0001005.DNG,1,1,1,1,,6112,4064,RGGB
+✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/full_compressed.ARW,1,1,1,1,,7040,4688,RGGB
 ✅,Samsung G920F,DNG,Samsung/G920F/LRM_20170316_152407.dng,1,1,1,1,,5328,3000,GRBG
 ✅,Samsung G935F,DNG,Samsung/G935F/20170403_104110.dng,1,1,1,1,,4032,2268,GRBG
 ✅,Samsung GX10,DNG,Samsung/GX10/_G107701.DNG,1,1,1,1,,3936,2624,RGGB
@@ -240,6 +241,10 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,hand
 ✅,Sigma fp,DNG,Sigma/fp/SDIM4591.DNG,1,1,1,1,,6064,4042,RGGB
 ✅,Sigma fp L,DNG,Sigma/fp L/SDIM0915.DNG,1,1,1,1,,9536,6344,RGGB
 ❌,Sigma sd Quattro,DNG,Sigma/sd Quattro/sample3.DNG,0,0,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,Sony DSLR-A700,ARW,Sony/DSLR-A700/DSC07249.ARW,1,1,1,1,,4288,2856,RGGB
+✅,Sony ILCE-1,ARW,Sony/ILCE-1/A1_full_lossless_compressed.ARW,1,1,1,1,,8704,6144,RGGB
+✅,Sony ILCE-9,ARW,Sony/ILCE-9/Sony_-_ILCE-9_-_uncompressed.ARW,1,1,1,1,,6048,4024,RGGB
+✅,Sony NEX-5,ARW,Sony/NEX-5/20150924T092802_Château_Schönbrunn_AT.ARW,1,1,1,1,,4608,3072,RGGB
 ❌,XIAOYI YDXJ 2,DNG,XIAOYI/YDXJ 2/ydxj0065.dng,1,1,0,0,process_metadata:backend,4000,3000,RGGB
 ❌,XIAOYI YI 4K,DNG,XIAOYI/YI 4K/YDXJ0026.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown
 ❌,XIAOYI YIAC 3,DNG,XIAOYI/YIAC 3/YIAC0075.DNG,0,0,0,0,raw_mosaic:invalid_input,0,0,unknown

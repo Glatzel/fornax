@@ -2,7 +2,6 @@
 
 - decoder
   - [DEC-CR3] Implement Canon CR3/CRM BMFF parsing and CRX decoding. Plan: `docs/decoder/formats/canon-cr3.md`.
-  - [DEC-ARW] Implement Sony ARW/NRW TIFF variants and compression families. Plan: `docs/decoder/formats/sony-arw.md`.
   - [DEC-NEF] Implement Nikon NEF compression families and metadata mapping. Plan: `docs/decoder/formats/nikon-nef.md`.
   - [DEC-RAF] Implement supported Fujifilm RAF decoding and X-Trans-preserving DNG export. Plan: `docs/decoder/formats/fuji-raf.md`.
   - [DEC-3FR] Implement supported Hasselblad 3FR decoding and DNG export. Plan: `docs/decoder/formats/hasselblad-3fr.md`.

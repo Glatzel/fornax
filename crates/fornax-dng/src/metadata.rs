@@ -235,7 +235,7 @@ mod tests {
         use super::*;
 
         assert_eq!(DngTag::from(50_706), DngTag::DngVersion);
-        assert_eq!(u16::from(DngTag::DngVersion), 50_706u16);
+        assert_eq!(u16::from(DngTag::DngVersion), 50_706_u16);
         assert_eq!(Tag::from(DngTag::DngVersion), Tag(50_706));
         assert_eq!(DngTag::from(Tag(50_706)), DngTag::DngVersion);
     }

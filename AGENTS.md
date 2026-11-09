@@ -33,8 +33,8 @@ and pipeline data flow. These invariants always apply:
   returned value exposes `raw_mosaic`, `cropped_mosaic`, `dng_metadata`, and
   `process_metadata`. `dng_metadata` returns a `fornax_tiff::Directory`;
   decoder-specific parsing state must stay behind that interface.
-- `bench-decoder` owns decoder benchmarks. Demosaic and preprocessor benchmarks
-  stay in their production stage crates.
+- `fornax-decoder` owns decoder benchmarks. Demosaic and preprocessor
+  benchmarks stay in their production stage crates.
 - `decoder-tracker` owns the manual raw.pixls.us decoder regression tracker,
   pointer-only corpus manifest, sharded CI workflow, and text baseline.
 - LibRaw, darktable, and RawTherapee remain development-only references for

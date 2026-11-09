@@ -747,8 +747,8 @@ mod tests {
 
     #[test]
     fn light_source_roundtrip() {
-        assert_eq!(LightSource::from(21u16), LightSource::D65);
-        assert_eq!(LightSource::from(999u16), LightSource::Reserved(999));
+        assert_eq!(LightSource::from(21_u16), LightSource::D65);
+        assert_eq!(LightSource::from(999_u16), LightSource::Reserved(999));
         assert_eq!(u16::from(LightSource::Reserved(999)), 999);
     }
 }

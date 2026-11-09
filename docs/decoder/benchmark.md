@@ -2,9 +2,9 @@
 
 ## Current benchmark
 
-`bench-decoder` is the workspace benchmark package for decoder comparisons. Its
-`decoder` target measures the default DNG decoder in `fornax-decoder` against
-the Rawler adapter in `fornax-decoder-rawler`.
+`fornax-decoder` is the workspace benchmark package for decoder comparisons. Its
+`decoder` target measures the default decoder in `fornax-decoder` (DNG and
+supported Sony ARW/NRW) against the Rawler adapter used by the benchmark.
 
 For each selected decoder, the target benchmarks every method in
 `fornax_core::protocol::IDecoder`:
@@ -28,7 +28,7 @@ The default fixture is
 `external/raw-images/images/colorchart-5D2-6000K.dng`. Override it with:
 
 ```bash
-FORNAX_BENCH_RAW=path/to/input.dng cargo bench -p bench-decoder
+FORNAX_BENCH_RAW=path/to/input.dng cargo bench -p fornax-decoder
 ```
 
 Each decoder prints its metadata tag count before the metadata timings.
@@ -37,18 +37,18 @@ Compare those timings only when both decoders expose equivalent metadata.
 Run it from the repository root:
 
 ```bash
-cargo bench -p bench-decoder
+cargo bench -p fornax-decoder
 ```
 
 Compile-only validation is useful when the fixture is unavailable or benchmark
 setup is changing:
 
 ```bash
-cargo bench -p bench-decoder --no-run
+cargo bench -p fornax-decoder --no-run
 ```
 
-The CI benchmark matrix invokes `-p bench-decoder`; do not point that job at
-`fornax-decoder`, whose library target has no declared benchmark.
+The CI benchmark matrix invokes `-p fornax-decoder`, whose `decoder` benchmark
+target owns decoder comparisons.
 
 ## Fixed-corpus comparison
 
