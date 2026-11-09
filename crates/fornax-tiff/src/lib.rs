@@ -6,9 +6,13 @@ use std::sync::Arc;
 
 pub mod constants;
 mod parser;
+mod raster;
 mod value;
 mod writer;
 
+pub use raster::{
+    RasterError, RasterLayout, RasterRequest, RasterStorage, resolve_tiff_compression,
+};
 pub use value::{
     Tag, Value, ValueAccessError, ValueConversionError, unsigned_scalar, unsigned_vec,
 };

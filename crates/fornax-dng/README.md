@@ -41,6 +41,13 @@ Zstandard is always compiled and is selected with `DngCompression::Zstd`.
 Compression 50000 is the libtiff/GDAL de-facto extension, not an
 Adobe-registered DNG compression code.
 
+Strip/tile geometry and encoded chunk validation come from
+`fornax_tiff::RasterLayout` and `fornax_tiff::RasterRequest`. TIFF defaults
+`1`, `7`, and `8` resolve through `fornax_tiff::resolve_tiff_compression`; this
+crate resolves DNG and compatibility IDs `34892`, `50000`, `50002`, and `52546`
+before falling back. The TIFF raster request receives the resolved codec
+compression and does not interpret DNG tags.
+
 The decoder accepts one raw sample per pixel. Three-sample `LinearRaw` payloads
 using compression `1`, `7`, or `34892` are rejected before codec dispatch and
 are not evidence that the underlying compression codec is missing.

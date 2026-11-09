@@ -12,13 +12,21 @@ classic-TIFF writing used by Fornax RAW decoders.
 | Root IFD chain | Yes | One image directory |
 | `SubIFDs` | Yes | No |
 | Inner IFDs at absolute offsets with optional offset correction | Yes | No |
-| Strips and tiles | Metadata model | Caller-defined offsets |
+| Strips and tiles | Validated raster layout | Caller-defined offsets |
 | Unknown well-formed tags | Preserved when the field type is understood | Typed values only |
 
 `TiffTag` names standard TIFF/TIFF-EP fields while `Tag` carries dynamic
 identifiers. `CompressionMethod` and `PhotometricInterpretation` are typed
 field constants in `fornax_tiff::constants`. `TiffDirectory` accumulates and
 finalizes writer entries.
+
+`RasterLayout` reads `ImageWidth`, `ImageLength`, strips/tiles, offsets, and
+byte counts into a validated row-major chunk list. `RasterRequest` accepts an
+already-resolved `fornax_codec::DecodeCompression`, validates every encoded
+range against the source, and converts to a format-neutral codec request.
+`resolve_tiff_compression` supplies the generic TIFF defaults for compression
+IDs `1`, `7`, and `8`. DNG, self-assigned, and vendor-specific IDs are resolved
+by their owning format crates before they construct a TIFF raster request.
 
 `parse_ifd_at` reads a classic-TIFF IFD that is not linked through the root
 chain. An offset correction maps out-of-line values stored relative to a larger

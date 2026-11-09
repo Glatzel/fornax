@@ -8,6 +8,7 @@ use fornax_tiff::{Tag, TiffWriter, Value};
 use rawler::decoders::RawImageData;
 
 use super::ArwImage;
+use crate::container::{CompressionFamily, RawLayout};
 
 #[test]
 fn malformed_tiff_is_invalid_input() {
@@ -46,6 +47,26 @@ fn unknown_sony_compression_is_unsupported() {
         error,
         fornax_core::error::DecodeError::Unsupported(_)
     ));
+}
+
+#[test]
+fn sony_private_compression_ids_remain_vendor_owned() {
+    for (compression, bytes, expected) in [
+        (1, 8, CompressionFamily::Uncompressed),
+        (7, 8, CompressionFamily::SonyLosslessJpeg),
+        (32_766, 8, CompressionFamily::Arw6),
+        (32_767, 1, CompressionFamily::Arw2),
+        (32_767, 8, CompressionFamily::Arw1),
+    ] {
+        let source = synthetic_tiff(compression, PhotometricInterpretation::Cfa, 16, 1, bytes);
+        let parsed = fornax_tiff::parse(&source).unwrap();
+        let (_, layout) = RawLayout::parse(&parsed).unwrap();
+
+        assert_eq!(
+            layout.compression, expected,
+            "compression {compression} with {bytes} stored bytes"
+        );
+    }
 }
 
 #[test]
