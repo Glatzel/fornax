@@ -104,11 +104,12 @@ caller behavior remains unchanged.
   270 tests across 42 suites; `scripts/agent-validation.sh` exited successfully;
   and the decoder golden check reported `golden: unchanged (9 rows)`.
 
-- [ ] **Step 9: Record outcomes and open the PR**
+- [x] **Step 9: Record outcomes and open the PR**
 
   Update this plan with validation results and decisions, inspect the final
   diff, commit the change, push the branch, and open one PR titled
-  `refactor: share generic TIFF accessors`.
+  `refactor: share generic TIFF accessors`. Result:
+  <https://github.com/Glatzel/fornax/pull/684>.
 
 ## Files Expected to Change
 
