@@ -41,6 +41,7 @@ mod jpegxl;
 mod ljpeg;
 mod predictor;
 mod request;
+mod sample_buffer;
 mod samples;
 mod uncompressed;
 mod zstd;
@@ -52,6 +53,7 @@ pub use request::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
     EncodedChunks, SampleFormat,
 };
+pub use sample_buffer::{SampleBuffer, SampleBufferError};
 
 /// Decodes one raw image using the request's compression algorithm.
 ///
