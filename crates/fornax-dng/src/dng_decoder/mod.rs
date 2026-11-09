@@ -7,7 +7,7 @@ use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
 use fornax_core::error::DecodeError;
 use fornax_core::metadata::ProcessMetadata;
 use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
-use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffTag};
+use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
     Directory, ParsedTiff, RasterRequest, Tag, ValueAccessError, resolve_tiff_compression,
     unsigned_scalar, unsigned_vec as tiff_unsigned_vec,
@@ -17,6 +17,7 @@ use image::math::Rect;
 pub use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
 
+use crate::constants::{DngCompressionMethod, DngPhotometricInterpretation};
 use crate::metadata::DngTag;
 use crate::sample_buffer::into_raw_mosaic;
 
@@ -49,17 +50,20 @@ fn select_raw_ifd(parsed: &ParsedTiff) -> Result<usize, DecodeError> {
 fn is_raw_ifd(directory: &fornax_tiff::Directory) -> bool {
     let photometric =
         unsigned_scalar(directory.get(&Tag::from(TiffTag::PhotometricInterpretation)))
-            .and_then(|value| u16::try_from(value).ok())
-            .map(PhotometricInterpretation::from);
+            .and_then(|value| u16::try_from(value).ok());
     let reduced_resolution = unsigned_scalar(directory.get(&Tag::from(TiffTag::NewSubfileType)))
         .is_some_and(|value| value & 1 != 0);
-    !reduced_resolution
-        && photometric.is_some_and(|value| {
-            matches!(
-                value,
-                PhotometricInterpretation::Cfa | PhotometricInterpretation::LinearRaw
-            )
-        })
+    !reduced_resolution && photometric.is_some_and(is_raw_photometric)
+}
+
+fn is_raw_photometric(id: u16) -> bool {
+    matches!(
+        PhotometricInterpretation::from(id),
+        PhotometricInterpretation::Cfa
+    ) || matches!(
+        DngPhotometricInterpretation::from(id),
+        DngPhotometricInterpretation::LinearRaw
+    )
 }
 
 fn raw_area(directory: &fornax_tiff::Directory) -> u64 {
@@ -203,10 +207,10 @@ fn decode_plan<'a>(
 }
 
 fn resolve_dng_compression(id: u16) -> Result<DecodeCompression, DecodeError> {
-    match CompressionMethod::from(id) {
-        CompressionMethod::LossyJpeg => Ok(DecodeCompression::LossyJpeg),
-        CompressionMethod::Zstd => Ok(DecodeCompression::Zstd),
-        CompressionMethod::JpegXlLegacy | CompressionMethod::JpegXl => {
+    match DngCompressionMethod::from(id) {
+        DngCompressionMethod::LossyJpeg => Ok(DecodeCompression::LossyJpeg),
+        DngCompressionMethod::Zstd => Ok(DecodeCompression::Zstd),
+        DngCompressionMethod::JpegXlLegacy | DngCompressionMethod::JpegXl => {
             Ok(DecodeCompression::JpegXl)
         }
         _ => resolve_tiff_compression(id)
@@ -283,23 +287,38 @@ mod tests {
     use std::io::Cursor;
 
     use fornax_core::{MonoImage, RawMosaic};
-    use fornax_tiff::constants::TiffTag;
+    use fornax_tiff::constants::{CompressionMethod, TiffTag};
     use fornax_tiff::{Tag, TiffWriter, Value};
 
     use super::{DngImage, process_metadata};
+    use crate::constants::DngCompressionMethod;
 
     #[test]
-    fn compression_methods_preserve_known_and_unknown_identifiers() {
+    fn dng_compression_methods_preserve_known_and_unknown_identifiers() {
         assert_eq!(
-            super::CompressionMethod::from(7),
-            super::CompressionMethod::LosslessJpeg
+            DngCompressionMethod::from(34_892),
+            DngCompressionMethod::LossyJpeg
         );
-        assert_eq!(u16::from(super::CompressionMethod::from(7)), 7);
+        assert_eq!(u16::from(DngCompressionMethod::from(34_892)), 34_892);
         assert_eq!(
-            super::CompressionMethod::from(12_345),
-            super::CompressionMethod::Unknown(12_345)
+            DngCompressionMethod::from(12_345),
+            DngCompressionMethod::Unknown(12_345)
         );
-        assert_eq!(u16::from(super::CompressionMethod::from(12_345)), 12_345);
+        assert_eq!(u16::from(DngCompressionMethod::from(12_345)), 12_345);
+    }
+
+    #[test]
+    fn raw_ifd_detection_accepts_tiff_ep_cfa_and_dng_linear_raw() {
+        for photometric in [32_803, 34_892] {
+            let mut metadata = Directory::default();
+            metadata.insert(Tag::from(TiffTag::NewSubfileType), Value::Unsigned(0));
+            metadata.insert(
+                Tag::from(TiffTag::PhotometricInterpretation),
+                Value::Short(photometric),
+            );
+
+            assert!(super::is_raw_ifd(&metadata), "photometric {photometric}");
+        }
     }
 
     #[test]
@@ -327,7 +346,7 @@ mod tests {
         );
         metadata.insert(
             Tag::from(TiffTag::Compression),
-            Value::Short(u16::from(super::CompressionMethod::Deflate)),
+            Value::Short(u16::from(CompressionMethod::Deflate)),
         );
 
         let request = super::decode_plan(source, &metadata).unwrap();
@@ -414,7 +433,7 @@ mod tests {
         );
         metadata.insert(
             Tag::from(TiffTag::Compression),
-            Value::Short(u16::from(super::CompressionMethod::Zstd)),
+            Value::Short(u16::from(DngCompressionMethod::Zstd)),
         );
 
         let plan = super::decode_plan(source, &metadata).unwrap();

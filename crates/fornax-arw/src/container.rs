@@ -1,11 +1,11 @@
 use fornax_core::error::DecodeError;
+use fornax_dng::constants::DngPhotometricInterpretation;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
     Directory, ParsedTiff, Tag, Value, ValueAccessError, unsigned_scalar,
     unsigned_vec as tiff_unsigned_vec,
 };
 
-pub const DNG_PRIVATE_DATA: Tag = Tag(50_740);
 pub const SONY_CURVE: Tag = Tag(0x7010);
 pub const SONY_RAW_IMAGE_SIZE: Tag = Tag(0x7038);
 pub const SONY_OFFSET: Tag = Tag(0x7200);
@@ -59,15 +59,15 @@ impl RawLayout {
         if width == 0 || height == 0 {
             return Err(invalid("ARW image dimensions must not be zero"));
         }
-        let photometric = PhotometricInterpretation::from(required_u16(
-            directory,
-            TiffTag::PhotometricInterpretation,
-        )?);
-        if photometric == PhotometricInterpretation::LinearRaw {
+        let photometric_id = required_u16(directory, TiffTag::PhotometricInterpretation)?;
+        if DngPhotometricInterpretation::from(photometric_id)
+            == DngPhotometricInterpretation::LinearRaw
+        {
             return Err(unsupported(
                 "reduced-resolution LinearRaw/YCbCr Sony images are unsupported",
             ));
         }
+        let photometric = PhotometricInterpretation::from(photometric_id);
         if photometric != PhotometricInterpretation::Cfa {
             return Err(unsupported(format!(
                 "Sony image uses unsupported photometric interpretation {photometric:?}"

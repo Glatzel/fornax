@@ -22,8 +22,10 @@
 
 Fornax recognizes DNG compression 1 (uncompressed), 7 (lossless JPEG-92),
 8 (Deflate), 34892 (lossy JPEG), and JPEG XL identifiers 50002 and 52546, plus
-experimental Zstandard compression 50000. Unknown values remain representable in
-`CompressionMethod::Unknown` and produce typed decode errors.
+experimental Zstandard compression 50000. Unknown DNG and compatibility IDs
+remain representable in `DngCompressionMethod::Unknown`; unknown generic TIFF
+IDs remain representable in `CompressionMethod::Unknown`. Both domains produce
+typed decode errors.
 
 Compression 50002 is the legacy TIFF JPEG XL identifier. Compression 52546 is
 the identifier defined by DNG 1.7. Both map to the same JPEG XL payload decoder.
@@ -67,3 +69,5 @@ comments.
 `8`. `fornax-dng` resolves `34892`, `50000`, `50002`, and `52546` first, then
 falls back to that resolver. TIFF `7` baseline-DCT is outside the supported
 single-band RAW subset. Sony-private IDs never enter either generic resolver.
+The corresponding typed DNG values are owned by
+`fornax_dng::constants::DngCompressionMethod`.

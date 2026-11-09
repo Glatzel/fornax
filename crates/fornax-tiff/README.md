@@ -15,10 +15,11 @@ classic-TIFF writing used by Fornax RAW decoders.
 | Strips and tiles | Validated raster layout | Caller-defined offsets |
 | Unknown well-formed tags | Preserved when the field type is understood | Typed values only |
 
-`TiffTag` names standard TIFF/TIFF-EP fields while `Tag` carries dynamic
+`TiffTag` names TIFF 6.0 and TIFF/EP fields while `Tag` carries dynamic
 identifiers. `CompressionMethod` and `PhotometricInterpretation` are typed
-field constants in `fornax_tiff::constants`. `TiffDirectory` accumulates and
-finalizes writer entries.
+TIFF-family field constants in `fornax_tiff::constants`; DNG-specific values
+are owned by `fornax-dng`. `TiffDirectory` accumulates and finalizes writer
+entries.
 
 `RasterLayout` reads `ImageWidth`, `ImageLength`, strips/tiles, offsets, and
 byte counts into a validated row-major chunk list. `RasterRequest` accepts an
@@ -33,23 +34,18 @@ chain. An offset correction maps out-of-line values stored relative to a larger
 container into an extracted or decrypted sub-buffer; Sony private metadata uses
 that path.
 
-DNG raw compression identifiers currently represented by
-`CompressionMethod` are:
+TIFF-family compression identifiers represented by `CompressionMethod` are:
 
 | Identifier | Meaning | Status |
 | ---: | --- | --- |
 | `1` | Uncompressed | Recognized |
 | `7` | Lossless JPEG-92 | Recognized |
 | `8` | Deflate | Recognized |
-| `34892` | Lossy JPEG | Recognized |
-| `50000` | Experimental Zstandard | Recognized |
-| `50002` | Legacy TIFF JPEG XL | Recognized |
-| `52546` | DNG 1.7 JPEG XL | Recognized |
 
-Compression `50002` is the legacy TIFF JPEG XL identifier and `52546` is the DNG
-1.7 JPEG XL identifier. Other TIFF compression identifiers remain available
-through `CompressionMethod::Unknown`; recognizing an identifier here does not by
-itself imply that a codec can decode every payload layout.
+DNG compression `34892`, `52546`, and compatibility identifiers `50000` and
+`50002` are owned by `fornax-dng`. Other TIFF compression identifiers remain
+available through `CompressionMethod::Unknown`; recognizing an identifier here
+does not by itself imply that a codec can decode every payload layout.
 
 Codec support is mandatory. Zstandard and future codecs are mandatory
 dependencies without optional codec features.

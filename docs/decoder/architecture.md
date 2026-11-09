@@ -73,6 +73,7 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
 | `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, and supported codec encoders |
 | `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
+| `fornax-dng/src/constants.rs` | DNG-owned compression and photometric interpretation values |
 | `fornax-arw/src` | Sony TIFF selection, private metadata, Sony codec dispatch, CFA decoding, and DNG metadata mapping |
 | `fornax-decoder/src/lib.rs` | Default DNG and Sony ARW/NRW dispatch and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
@@ -129,9 +130,11 @@ and non-Bayer CFA layouts remain outside the Bayer handoff.
 
 The DNG decoder preserves supported values in a `fornax_tiff::Directory`, the
 ordered `BTreeMap<Tag, Value>` that retains each TIFF field type. `TiffTag`
-names standard TIFF/TIFF-EP fields and `DngTag` names DNG-only fields; both
-convert to the dynamic `Tag` key. Unknown well-formed tags remain in the map.
-The Rawler adapter synthesizes and forwards the same directory model.
+names TIFF 6.0 and TIFF/EP fields, `DngTag` names DNG-only fields, and
+`fornax_dng::constants` owns DNG-specific field values; all convert to or index
+the dynamic `Tag`/numeric domains without narrowing unknown IDs. Unknown
+well-formed tags remain in the map. The Rawler adapter synthesizes and forwards
+the same directory model.
 
 Validation covers:
 
