@@ -9,7 +9,9 @@ mod parser;
 mod value;
 mod writer;
 
-pub use value::{Tag, Value, ValueConversionError};
+pub use value::{
+    Tag, Value, ValueAccessError, ValueConversionError, unsigned_scalar, unsigned_vec,
+};
 pub use writer::{IntoValue, TiffDirectory, TiffWriter};
 
 /// A TIFF image file directory.

@@ -1,13 +1,13 @@
 use fornax_core::error::DecodeError;
 use fornax_dng::metadata::DngTag;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value};
+use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value, unsigned_scalar};
 
 use crate::container::{
     CompressionFamily, DNG_PRIVATE_DATA, RawLayout, SONY_BLACK_LEVEL_1, SONY_CURVE,
     SONY_GRBG_WHITE_BALANCE, SONY_KEY, SONY_LENGTH, SONY_OFFSET, SONY_RAW_IMAGE_SIZE,
     SONY_RGGB_BLACK_LEVEL, SONY_RGGB_WHITE_BALANCE, SONY_WHITE_LEVEL, bytes, invalid,
-    optional_usize, unsigned_scalar, unsigned_vec,
+    optional_usize, unsigned_vec,
 };
 use crate::sony;
 
