@@ -18,6 +18,7 @@ pub use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
 
 use crate::metadata::DngTag;
+use crate::sample_buffer::into_raw_mosaic;
 
 #[derive(Clone, Debug)]
 pub struct DngImage {
@@ -257,7 +258,8 @@ fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, Decode
 
 fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, DecodeError> {
     let plan = decode_plan(source, metadata)?;
-    fornax_codec::decode(&plan.request(source)).map_err(codec_decode_error)
+    let samples = fornax_codec::decode(&plan.request(source)).map_err(codec_decode_error)?;
+    into_raw_mosaic(samples)
 }
 
 fn codec_decode_error(error: fornax_codec::CodecError) -> DecodeError {

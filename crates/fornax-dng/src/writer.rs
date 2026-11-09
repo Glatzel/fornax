@@ -2,13 +2,14 @@ use std::fs::File;
 use std::io::{BufWriter, Seek, Write};
 use std::path::Path;
 
-use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor};
+use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor, SampleBuffer};
 use fornax_core::RawMosaic;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
 use thiserror::Error;
 
 use crate::metadata::{Directory, DngTag};
+use crate::sample_buffer::from_raw_mosaic;
 
 /// Failure while writing DNG data.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
@@ -164,18 +165,19 @@ impl DngWriter {
     where
         W: Write + Seek,
     {
+        let samples = from_raw_mosaic(mosaic);
         match self.compression() {
             DngCompression::Uncompressed => {
-                write_uncompressed(writer, mosaic, metadata, self.version())?;
+                write_uncompressed(writer, &samples, metadata, self.version())?;
             }
             DngCompression::LosslessJpeg => {
-                write_lossless(writer, mosaic, metadata, self.version())?;
+                write_lossless(writer, &samples, metadata, self.version())?;
             }
             DngCompression::Deflate => {
-                write_deflate_all(writer, mosaic, metadata, self.version())?;
+                write_deflate_all(writer, &samples, metadata, self.version())?;
             }
             DngCompression::Zstd => {
-                write_zstd(writer, mosaic, metadata, self.version(), self.zstd_level)?;
+                write_zstd(writer, &samples, metadata, self.version(), self.zstd_level)?;
             }
         }
         Ok(())
@@ -184,14 +186,14 @@ impl DngWriter {
 
 fn write_uncompressed<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
 where
     W: Write + Seek,
 {
-    let (width, height) = mosaic.dimensions();
+    let (width, height) = (mosaic.width(), mosaic.height());
     let mut encoder = TiffWriter::new(writer).map_err(tiff_write_error)?;
     let mut directory = TiffDirectory::new(&mut encoder);
 
@@ -249,7 +251,7 @@ where
 
 fn write_lossless<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
@@ -257,18 +259,21 @@ where
     W: Write + Seek,
 {
     match mosaic {
-        RawMosaic::U8(_) | RawMosaic::U16(_) => {
+        SampleBuffer::U8(_) | SampleBuffer::U16(_) => {
             write_lossless_jpeg(writer, mosaic, metadata, version)
         }
-        RawMosaic::U32(_) | RawMosaic::F32(_) => {
+        SampleBuffer::U32(_) | SampleBuffer::F32(_) => {
             write_lossless_deflate(writer, mosaic, metadata, version)
         }
+        _ => Err(DngWriteError::Unsupported {
+            operation: "encoding an unknown sample buffer variant".into(),
+        }),
     }
 }
 
 fn write_lossless_jpeg<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
@@ -276,7 +281,7 @@ where
     W: Write + Seek,
 {
     const TILE: usize = 256;
-    let (width, height) = mosaic.dimensions();
+    let (width, height) = (mosaic.width(), mosaic.height());
     let (bits, sample_format) = sample_layout(mosaic);
     let chunks = encode_for_chunks(
         mosaic,
@@ -301,7 +306,7 @@ where
 
 fn write_lossless_deflate<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
@@ -309,11 +314,11 @@ where
     W: Write + Seek,
 {
     const TILE: usize = 256;
-    let (width, height) = mosaic.dimensions();
+    let (width, height) = (mosaic.width(), mosaic.height());
     let (bits, sample_format) = sample_layout(mosaic);
     let (predictor, predictor_tag) = match mosaic {
-        RawMosaic::U32(_) => (Predictor::None, 1_u16),
-        RawMosaic::F32(_) => (Predictor::FloatingPoint { byte_stride: 1 }, 3_u16),
+        SampleBuffer::U32(_) => (Predictor::None, 1_u16),
+        SampleBuffer::F32(_) => (Predictor::FloatingPoint { byte_stride: 1 }, 3_u16),
         _ => unreachable!("the caller selects Deflate only for wider samples"),
     };
     let chunks = encode_for_chunks(mosaic, TILE, TILE, EncodeCompression::Deflate, predictor)?;
@@ -333,7 +338,7 @@ where
 
 fn write_zstd<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
     level: i32,
@@ -341,7 +346,7 @@ fn write_zstd<W>(
 where
     W: Write + Seek,
 {
-    let (width, height) = mosaic.dimensions();
+    let (width, height) = (mosaic.width(), mosaic.height());
     let (bits, sample_format) = sample_layout(mosaic);
     const TILE: usize = 256;
     let request = encode_request(
@@ -370,14 +375,14 @@ where
 
 fn write_deflate_all<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
 where
     W: Write + Seek,
 {
-    let (width, height) = mosaic.dimensions();
+    let (width, height) = (mosaic.width(), mosaic.height());
     let (bits, sample_format) = sample_layout(mosaic);
     let chunks = encode_for_chunks(
         mosaic,
@@ -401,7 +406,7 @@ where
 }
 
 fn encode_for_chunks(
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     chunk_width: usize,
     chunk_height: usize,
     compression: EncodeCompression,
@@ -414,7 +419,7 @@ fn encode_for_chunks(
 }
 
 const fn encode_request(
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     chunk_width: usize,
     chunk_height: usize,
     compression: EncodeCompression,
@@ -519,12 +524,13 @@ where
     Ok(())
 }
 
-const fn sample_layout(mosaic: &RawMosaic) -> (u16, u16) {
+const fn sample_layout(mosaic: &SampleBuffer) -> (u16, u16) {
     match mosaic {
-        RawMosaic::U8(_) => (8, 1),
-        RawMosaic::U16(_) => (16, 1),
-        RawMosaic::U32(_) => (32, 1),
-        RawMosaic::F32(_) => (32, 3),
+        SampleBuffer::U8(_) => (8, 1),
+        SampleBuffer::U16(_) => (16, 1),
+        SampleBuffer::U32(_) => (32, 1),
+        SampleBuffer::F32(_) => (32, 3),
+        _ => unreachable!(),
     }
 }
 
@@ -679,9 +685,10 @@ mod tests {
     #[test]
     fn encode_request_preserves_selected_compression() {
         let mosaic = RawMosaic::U8(MonoImage::from_raw(2, 1, vec![1, 2]).unwrap());
+        let samples = from_raw_mosaic(&mosaic);
 
         let request = encode_request(
-            &mosaic,
+            &samples,
             2,
             1,
             fornax_codec::EncodeCompression::Zstd { level: 7 },

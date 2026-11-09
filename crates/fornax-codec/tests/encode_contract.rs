@@ -1,11 +1,10 @@
 use fornax_codec::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
-    EncodedChunks, Predictor, SampleFormat, decode, encode,
+    EncodedChunks, Predictor, SampleBuffer, SampleFormat, decode, encode,
 };
-use fornax_core::{MonoImage, RawMosaic};
 
 const fn request(
-    image: &RawMosaic,
+    image: &SampleBuffer,
     chunk_width: usize,
     chunk_height: usize,
     predictor: Predictor,
@@ -33,6 +32,24 @@ fn source_and_chunks(encoded: EncodedChunks) -> (Vec<u8>, Vec<Chunk>) {
         });
     }
     (source, chunks)
+}
+
+fn assert_sample_buffer_eq(actual: &SampleBuffer, expected: &SampleBuffer) {
+    match (actual, expected) {
+        (SampleBuffer::F32(actual), SampleBuffer::F32(expected)) => assert_eq!(
+            actual
+                .as_raw()
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>(),
+            expected
+                .as_raw()
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>()
+        ),
+        _ => assert_eq!(actual, expected),
+    }
 }
 
 const fn decode_request<'a>(
@@ -65,7 +82,7 @@ const fn decode_request<'a>(
 #[test]
 fn uncompressed_u16_round_trips_partial_chunks() {
     let expected = vec![1_u16, 2, 3, 4, 5, 6];
-    let image = RawMosaic::U16(MonoImage::from_raw(3, 2, expected.clone()).unwrap());
+    let image = SampleBuffer::from_u16(3, 2, expected.clone()).unwrap();
     let encoded = encode(&request(
         &image,
         2,
@@ -89,7 +106,7 @@ fn uncompressed_u16_round_trips_partial_chunks() {
         Predictor::None,
         DecodeCompression::Uncompressed,
     );
-    let RawMosaic::U16(decoded) = decode(&request).unwrap() else {
+    let SampleBuffer::U16(decoded) = decode(&request).unwrap() else {
         panic!("u16 input must decode as u16");
     };
 
@@ -98,8 +115,7 @@ fn uncompressed_u16_round_trips_partial_chunks() {
 
 #[test]
 fn uncompressed_full_image_returns_one_exact_chunk() {
-    let image =
-        RawMosaic::U16(MonoImage::from_raw(2, 2, vec![0x0102, 0x0304, 0xabcd, 0xff00]).unwrap());
+    let image = SampleBuffer::from_u16(2, 2, vec![0x0102, 0x0304, 0xabcd, 0xff00]).unwrap();
     let mut request = request(
         &image,
         2,
@@ -120,7 +136,7 @@ fn uncompressed_full_image_returns_one_exact_chunk() {
 #[test]
 fn uncompressed_float_round_trips_exact_bits() {
     let expected = vec![-1.5_f32, 0.25, 100.0, f32::from_bits(0x7fc0_1234)];
-    let image = RawMosaic::F32(MonoImage::from_raw(2, 2, expected.clone()).unwrap());
+    let image = SampleBuffer::from_f32(2, 2, expected.clone()).unwrap();
     let encoded = encode(&request(
         &image,
         2,
@@ -142,7 +158,7 @@ fn uncompressed_float_round_trips_exact_bits() {
         Predictor::None,
         DecodeCompression::Uncompressed,
     );
-    let RawMosaic::F32(decoded) = decode(&request).unwrap() else {
+    let SampleBuffer::F32(decoded) = decode(&request).unwrap() else {
         panic!("f32 input must decode as f32");
     };
 
@@ -162,7 +178,7 @@ fn uncompressed_float_round_trips_exact_bits() {
 #[test]
 fn deflate_horizontal_predictor_round_trips() {
     let expected = vec![1_u8, 2, 4, 8, 16, 32];
-    let image = RawMosaic::U8(MonoImage::from_raw(3, 2, expected.clone()).unwrap());
+    let image = SampleBuffer::from_u8(3, 2, expected.clone()).unwrap();
     let encoded = encode(&request(
         &image,
         3,
@@ -184,7 +200,7 @@ fn deflate_horizontal_predictor_round_trips() {
         Predictor::HorizontalInteger,
         DecodeCompression::Deflate,
     );
-    let RawMosaic::U8(decoded) = decode(&request).unwrap() else {
+    let SampleBuffer::U8(decoded) = decode(&request).unwrap() else {
         panic!("u8 input must decode as u8");
     };
 
@@ -194,7 +210,7 @@ fn deflate_horizontal_predictor_round_trips() {
 #[test]
 fn deflate_floating_point_predictor_round_trips() {
     let expected = vec![-1.5_f32, 0.25, 100.0, f32::from_bits(0x7fc0_1234)];
-    let image = RawMosaic::F32(MonoImage::from_raw(2, 2, expected.clone()).unwrap());
+    let image = SampleBuffer::from_f32(2, 2, expected.clone()).unwrap();
     let encoded = encode(&request(
         &image,
         2,
@@ -216,7 +232,7 @@ fn deflate_floating_point_predictor_round_trips() {
         Predictor::FloatingPoint { byte_stride: 1 },
         DecodeCompression::Deflate,
     );
-    let RawMosaic::F32(decoded) = decode(&request).unwrap() else {
+    let SampleBuffer::F32(decoded) = decode(&request).unwrap() else {
         panic!("f32 input must decode as f32");
     };
 
@@ -237,17 +253,13 @@ fn deflate_floating_point_predictor_round_trips() {
 fn lossless_jpeg_round_trips_u8_and_u16() {
     for (image, bits, format) in [
         (
-            RawMosaic::U8(
-                MonoImage::from_raw(4, 2, vec![0, 255, 128, 1, 254, 64, 200, 7]).unwrap(),
-            ),
+            SampleBuffer::from_u8(4, 2, vec![0, 255, 128, 1, 254, 64, 200, 7]).unwrap(),
             8,
             SampleFormat::Integer,
         ),
         (
-            RawMosaic::U16(
-                MonoImage::from_raw(4, 2, vec![0, 65_535, 30_000, 32_768, 1, 2, 40_000, 12_345])
-                    .unwrap(),
-            ),
+            SampleBuffer::from_u16(4, 2, vec![0, 65_535, 30_000, 32_768, 1, 2, 40_000, 12_345])
+                .unwrap(),
             16,
             SampleFormat::Integer,
         ),
@@ -273,7 +285,7 @@ fn lossless_jpeg_round_trips_u8_and_u16() {
             Predictor::None,
             DecodeCompression::LosslessJpeg,
         );
-        assert_eq!(decode(&request).unwrap(), image);
+        assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
     }
 }
 
@@ -281,15 +293,12 @@ fn lossless_jpeg_round_trips_u8_and_u16() {
 fn lossless_jpeg_round_trips_partial_edge_tiles() {
     for (image, bits, format) in [
         (
-            RawMosaic::U8(MonoImage::from_raw(5, 3, (0_u8..15).collect()).unwrap()),
+            SampleBuffer::from_u8(5, 3, (0_u8..15).collect()).unwrap(),
             8,
             SampleFormat::Integer,
         ),
         (
-            RawMosaic::U16(
-                MonoImage::from_raw(5, 3, (0_u16..15).map(|value| value * 1_000).collect())
-                    .unwrap(),
-            ),
+            SampleBuffer::from_u16(5, 3, (0_u16..15).map(|value| value * 1_000).collect()).unwrap(),
             16,
             SampleFormat::Integer,
         ),
@@ -317,7 +326,7 @@ fn lossless_jpeg_round_trips_partial_edge_tiles() {
             Predictor::None,
             DecodeCompression::LosslessJpeg,
         );
-        assert_eq!(decode(&request).unwrap(), image);
+        assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
     }
 }
 
@@ -325,12 +334,12 @@ fn lossless_jpeg_round_trips_partial_edge_tiles() {
 fn zstd_round_trips_integer_and_float_chunks() {
     for (image, bits, format) in [
         (
-            RawMosaic::U16(MonoImage::from_raw(3, 1, vec![0, 30_000, 65_535]).unwrap()),
+            SampleBuffer::from_u16(3, 1, vec![0, 30_000, 65_535]).unwrap(),
             16,
             SampleFormat::Integer,
         ),
         (
-            RawMosaic::F32(MonoImage::from_raw(3, 1, vec![-1.5, 0.25, 100.0]).unwrap()),
+            SampleBuffer::from_f32(3, 1, vec![-1.5, 0.25, 100.0]).unwrap(),
             32,
             SampleFormat::Float,
         ),
@@ -356,21 +365,48 @@ fn zstd_round_trips_integer_and_float_chunks() {
             Predictor::None,
             DecodeCompression::Zstd,
         );
-        let decoded = decode(&request).unwrap();
-        match (&image, &decoded) {
-            (RawMosaic::F32(expected), RawMosaic::F32(decoded)) => assert_eq!(
-                expected
-                    .as_raw()
-                    .iter()
-                    .map(|value| value.to_bits())
-                    .collect::<Vec<_>>(),
-                decoded
-                    .as_raw()
-                    .iter()
-                    .map(|value| value.to_bits())
-                    .collect::<Vec<_>>()
-            ),
-            _ => assert_eq!(image, decoded),
-        }
+        assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+    }
+}
+
+#[test]
+fn uncompressed_round_trips_every_sample_type() {
+    let images = [
+        SampleBuffer::from_u8(2, 1, vec![0, 255]).unwrap(),
+        SampleBuffer::from_u16(2, 1, vec![0, 65_535]).unwrap(),
+        SampleBuffer::from_u32(2, 1, vec![0, 4_000_000_000]).unwrap(),
+        SampleBuffer::from_f32(2, 1, vec![-1.5, f32::from_bits(0x7fc0_1234)]).unwrap(),
+    ];
+
+    for image in images {
+        let encoded = encode(&request(
+            &image,
+            2,
+            1,
+            Predictor::None,
+            EncodeCompression::Uncompressed,
+        ))
+        .unwrap();
+        let (source, chunks) = source_and_chunks(encoded);
+        let (bits, sample_format) = match &image {
+            SampleBuffer::U8(_) => (8, SampleFormat::Integer),
+            SampleBuffer::U16(_) => (16, SampleFormat::Integer),
+            SampleBuffer::U32(_) => (32, SampleFormat::Integer),
+            SampleBuffer::F32(_) => (32, SampleFormat::Float),
+            _ => unreachable!(),
+        };
+        let request = decode_request(
+            &source,
+            &chunks,
+            2,
+            1,
+            2,
+            1,
+            bits,
+            sample_format,
+            Predictor::None,
+            DecodeCompression::Uncompressed,
+        );
+        assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
     }
 }

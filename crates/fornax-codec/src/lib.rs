@@ -1,7 +1,7 @@
 //! Raw sample codecs shared by Fornax decoder implementations.
 //!
 //! [`decode`] converts format-neutral sample layouts into
-//! [`fornax_core::RawMosaic`] values. [`encode`] converts supported mosaics
+//! [`SampleBuffer`] values. [`encode`] converts supported sample buffers
 //! into independently stored chunks. Container metadata mapping remains in
 //! each format crate.
 //!
@@ -30,7 +30,8 @@
 //!     byte_order: ByteOrder::Little,
 //!     predictor: Predictor::None,
 //! };
-//! assert_eq!(fornax_codec::decode(&request).unwrap().dimensions(), (2, 2));
+//! let decoded = fornax_codec::decode(&request).unwrap();
+//! assert_eq!((decoded.width(), decoded.height()), (2, 2));
 //! ```
 
 mod deflate;
@@ -41,17 +42,18 @@ mod jpegxl;
 mod ljpeg;
 mod predictor;
 mod request;
+mod sample_buffer;
 mod samples;
 mod uncompressed;
 mod zstd;
 
 pub use error::CodecError;
-use fornax_core::RawMosaic;
 pub use predictor::Predictor;
 pub use request::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
     EncodedChunks, SampleFormat,
 };
+pub use sample_buffer::{SampleBuffer, SampleBufferError};
 
 /// Decodes one raw image using the request's compression algorithm.
 ///
@@ -85,9 +87,10 @@ pub use request::{
 ///     byte_order: ByteOrder::Little,
 ///     predictor: Predictor::None,
 /// };
-/// assert_eq!(fornax_codec::decode(&request).unwrap().dimensions(), (2, 2));
+/// let decoded = fornax_codec::decode(&request).unwrap();
+/// assert_eq!((decoded.width(), decoded.height()), (2, 2));
 /// ```
-pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     match request.compression {
         DecodeCompression::Uncompressed => uncompressed::decode(request),
         DecodeCompression::LosslessJpeg => ljpeg::decode(request),
@@ -108,10 +111,9 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
 /// # Examples
 ///
 /// ```
-/// use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor};
-/// use fornax_core::{MonoImage, RawMosaic};
+/// use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor, SampleBuffer};
 ///
-/// let image = RawMosaic::U8(MonoImage::from_raw(2, 1, vec![1, 2]).unwrap());
+/// let image = SampleBuffer::from_u8(2, 1, vec![1, 2]).unwrap();
 /// let request = EncodeRequest {
 ///     image: &image,
 ///     compression: EncodeCompression::Uncompressed,

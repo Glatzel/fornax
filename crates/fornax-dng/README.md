@@ -4,6 +4,11 @@ Pure-Rust DNG parsing, metadata conversion, raw transforms, and DNG writing.
 Format-neutral sample decoding and supported codec encoders live in
 `fornax-codec`.
 
+`fornax-codec` returns single-band `SampleBuffer` values. This crate adapts
+those buffers to `fornax_core::RawMosaic` before raw transforms and adapts
+`RawMosaic` inputs to `SampleBuffer` at the DNG writer boundary, preserving the
+storage-native decoder and writer APIs.
+
 Decoded metadata is a `fornax_tiff::Directory`, keyed by the dynamic `Tag`
 type. `DngTag` names DNG-only fields and converts into those keys; generic TIFF
 fields and constants remain in `fornax-tiff`.

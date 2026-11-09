@@ -18,7 +18,7 @@ part of the current preprocessor/demosaic handoff.
 | --- | --- | --- |
 | `fornax-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, classic/BigTIFF parsing, and classic-TIFF writing. | None |
-| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, and supported codec encoding. | `fornax-core` |
+| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, and supported codec encoding. | None |
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-core`, `fornax-tiff`, `fornax-codec` |
 | `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA sample decoding, and DNG-compatible metadata mapping. | `fornax-core`, `fornax-tiff`, `fornax-dng`, `flashraw-codecs` |
 | `fornax-decoder` | Default pure-Rust DNG and Sony ARW/NRW decoder facade over the format crates. | `fornax-core`, `fornax-dng`, `fornax-arw` |
@@ -70,12 +70,18 @@ containers to `fornax-arw`. `fornax_core` contains no decoder implementation.
 `fornax_codec::EncodeCompression` select algorithms inside `DecodeRequest` and
 `EncodeRequest`, respectively. The free `fornax_codec::decode` and
 `fornax_codec::encode` functions dispatch directly to the selected
-implementation. Zstandard decoding has no level because the level is stored in
-the stream; `EncodeCompression::Zstd { level }` configures encoding.
+implementation and exchange a single-band `fornax_codec::SampleBuffer`.
+`SampleBuffer` owns U8, U16, U32, or F32 samples in an
+`image::ImageBuffer<Luma<T>, Vec<T>>`; `Luma` denotes one scalar channel rather
+than necessarily luminance. Zstandard decoding has no level because the level
+is stored in the stream; `EncodeCompression::Zstd { level }` configures
+encoding.
 
 `fornax-tiff::CompressionMethod` remains the typed TIFF field value. `fornax-dng`
 maps that container identifier to `DecodeCompression`, so `fornax-codec` does
-not depend on TIFF or DNG types.
+not depend on TIFF, DNG, or raw workflow types. `fornax-dng` adapts codec
+`SampleBuffer` values to and from `fornax_core::RawMosaic` at its decode and
+write boundaries, keeping `RawMosaic` ownership unchanged.
 
 Codec availability is mandatory. Zstandard and all future codecs are compiled
 unconditionally without per-codec features or runtime fallback errors.

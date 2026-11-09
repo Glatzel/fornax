@@ -1,6 +1,5 @@
-use fornax_core::RawMosaic;
-
 use crate::Predictor;
+use crate::sample_buffer::SampleBuffer;
 
 /// A raw sample decoding algorithm.
 ///
@@ -157,10 +156,9 @@ pub struct DecodeRequest<'a> {
 /// # Examples
 ///
 /// ```
-/// use fornax_codec::EncodeCompression;
-/// use fornax_core::{MonoImage, RawMosaic};
+/// use fornax_codec::{EncodeCompression, SampleBuffer};
 ///
-/// let image = RawMosaic::U8(MonoImage::from_raw(1, 1, vec![0]).unwrap());
+/// let image = SampleBuffer::from_u8(1, 1, vec![0]).unwrap();
 /// let request = fornax_codec::EncodeRequest {
 ///     image: &image,
 ///     compression: EncodeCompression::Uncompressed,
@@ -173,7 +171,7 @@ pub struct DecodeRequest<'a> {
 /// ```
 pub struct EncodeRequest<'a> {
     /// Mosaic to encode.
-    pub image: &'a RawMosaic,
+    pub image: &'a SampleBuffer,
     /// Compression algorithm used to encode the chunk payloads.
     pub compression: EncodeCompression,
     /// Output chunk width in samples.

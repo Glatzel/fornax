@@ -3,13 +3,12 @@
 //! The DNG-specific tile assembly and metadata decisions are documented in
 //! `docs/references/dng-lossless-jpeg.md`.
 
-use fornax_core::RawMosaic;
 use rayon::prelude::*;
 
 use crate::error::invalid;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
-use crate::samples::{Geometry, chunk, mono};
-use crate::{CodecError, Predictor};
+use crate::samples::{Geometry, buffer_u8, buffer_u16, chunk};
+use crate::{CodecError, Predictor, SampleBuffer};
 
 const MARKER_PREFIX: u8 = 0xff;
 const MARKER_SOF3: u8 = 0xc3;
@@ -20,7 +19,7 @@ const MARKER_SOS: u8 = 0xda;
 const HUFFMAN_LOOKAHEAD_BITS: usize = 16;
 const HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << HUFFMAN_LOOKAHEAD_BITS;
 
-pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     if request.sample_format != SampleFormat::Integer
         || !(2..=16).contains(&request.bits_per_sample)
     {
@@ -86,9 +85,9 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
                 u8::try_from(value).map_err(|_| invalid("lossless JPEG sample exceeds u8 storage"))
             })
             .collect::<Result<Vec<_>, _>>()?;
-        mono(geometry.width, geometry.height, samples).map(RawMosaic::U8)
+        buffer_u8(geometry.width, geometry.height, samples)
     } else {
-        mono(geometry.width, geometry.height, output).map(RawMosaic::U16)
+        buffer_u16(geometry.width, geometry.height, output)
     }
 }
 
@@ -98,9 +97,10 @@ pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> 
             "lossless JPEG prediction is selected by the encoder",
         ));
     }
-    let (width, height) = request.image.dimensions();
-    let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
-    let height = usize::try_from(height).expect("u32 fits usize on supported platforms");
+    let width =
+        usize::try_from(request.image.width()).expect("u32 fits usize on supported platforms");
+    let height =
+        usize::try_from(request.image.height()).expect("u32 fits usize on supported platforms");
     let across = width.div_ceil(request.chunk_width.max(1));
     let down = height.div_ceil(request.chunk_height.max(1));
     let chunk_count = across
@@ -114,8 +114,8 @@ pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> 
         chunk_count,
     )?;
     let bits = match request.image {
-        RawMosaic::U8(_) => 8_u8,
-        RawMosaic::U16(_) => 16_u8,
+        SampleBuffer::U8(_) => 8_u8,
+        SampleBuffer::U16(_) => 16_u8,
         _ => {
             return Err(invalid("lossless JPEG encoding requires U8 or U16 samples"));
         }
@@ -151,7 +151,7 @@ pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> 
 }
 
 fn copy_tile_into(
-    image: &RawMosaic,
+    image: &SampleBuffer,
     source_width: usize,
     source_height: usize,
     tile_x: usize,
@@ -168,7 +168,7 @@ fn copy_tile_into(
     }
 
     match image {
-        RawMosaic::U8(samples) => {
+        SampleBuffer::U8(samples) => {
             let samples = samples.as_raw();
             for row in 0..copy_height {
                 let source_start = (tile_y + row) * source_width + tile_x;
@@ -181,7 +181,7 @@ fn copy_tile_into(
                 }
             }
         }
-        RawMosaic::U16(samples) => {
+        SampleBuffer::U16(samples) => {
             let samples = samples.as_raw();
             for row in 0..copy_height {
                 let source_start = (tile_y + row) * source_width + tile_x;
@@ -190,7 +190,7 @@ fn copy_tile_into(
                     .copy_from_slice(&samples[source_start..source_start + copy_width]);
             }
         }
-        RawMosaic::U32(_) | RawMosaic::F32(_) => {
+        SampleBuffer::U32(_) | SampleBuffer::F32(_) => {
             unreachable!("the encoder validates that samples are U8 or U16")
         }
     }
@@ -859,9 +859,8 @@ impl<'a> BitWriter<'a> {
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::{MonoImage, RawMosaic};
-
     use super::{BitReader, BitWriter, add_prediction, copy_tile_into, predict};
+    use crate::SampleBuffer;
 
     #[test]
     fn fourteen_bit_difference_class_consumes_amplitude_bits() {
@@ -887,14 +886,13 @@ mod tests {
 
     #[test]
     fn tile_copy_extracts_u8_and_u16_partial_edges() {
-        let u8_image = RawMosaic::U8(MonoImage::from_raw(5, 3, (0_u8..15).collect()).unwrap());
+        let u8_image = SampleBuffer::from_u8(5, 3, (0_u8..15).collect()).unwrap();
         let mut u8_tile = vec![0_u16; 8];
         copy_tile_into(&u8_image, 5, 3, 4, 1, 4, 2, &mut u8_tile);
         assert_eq!(u8_tile, vec![9, 0, 0, 0, 14, 0, 0, 0]);
 
-        let u16_image = RawMosaic::U16(
-            MonoImage::from_raw(5, 3, (0_u16..15).map(|value| value * 1_000).collect()).unwrap(),
-        );
+        let u16_image =
+            SampleBuffer::from_u16(5, 3, (0_u16..15).map(|value| value * 1_000).collect()).unwrap();
         let mut u16_tile = vec![0_u16; 8];
         copy_tile_into(&u16_image, 5, 3, 4, 1, 4, 2, &mut u16_tile);
         assert_eq!(u16_tile, vec![9_000, 0, 0, 0, 14_000, 0, 0, 0]);
