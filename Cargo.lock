@@ -976,6 +976,7 @@ dependencies = [
 name = "fornax-tiff"
 version = "0.0.17"
 dependencies = [
+ "fornax-codec",
  "num_enum",
  "strum",
 ]
