@@ -11,6 +11,7 @@ extend-ignore-identifiers-re = [
   "UnsufficientMemory",
   "_thr",
   "ahd",
+  "ba",
   "correc",
   "flate",
   "pn",
