@@ -1,7 +1,10 @@
 # This File is automatically synchronized from https://github.com/Glatzel/template
 
+toml-version = "v1.1.0"
+
 [files]
 exclude = ["**/external/**/*.toml"]
 
 [format.rules]
+line-width = 80
 trailing-comment-alignment = true
