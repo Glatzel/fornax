@@ -484,8 +484,7 @@ dependencies = [
  "fornax-core",
  "fornax-decoder",
  "fornax-devtool",
- "fornax-postprocessor",
- "fornax-preprocessor",
+ "fornax-raw-pipeline",
  "hex",
  "image 0.25.9",
  "insta",
@@ -824,8 +823,7 @@ dependencies = [
  "fornax-core",
  "fornax-decoder",
  "fornax-dng",
- "fornax-postprocessor",
- "fornax-preprocessor",
+ "fornax-raw-pipeline",
 ]
 
 [[package]]
@@ -947,18 +945,22 @@ dependencies = [
 name = "fornax-postprocessor"
 version = "0.0.17"
 dependencies = [
- "codspeed-criterion-compat",
  "fornax-core",
- "fornax-devtool",
- "generic-num",
- "image 0.25.9",
+ "fornax-raw-pipeline",
  "mischief",
- "num-traits",
- "rayon",
 ]
 
 [[package]]
 name = "fornax-preprocessor"
+version = "0.0.17"
+dependencies = [
+ "fornax-core",
+ "fornax-raw-pipeline",
+ "mischief",
+]
+
+[[package]]
+name = "fornax-raw-pipeline"
 version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
@@ -966,6 +968,8 @@ dependencies = [
  "fornax-devtool",
  "generic-num",
  "image 0.25.9",
+ "mischief",
+ "num-traits",
  "rayon",
 ]
 

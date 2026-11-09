@@ -10,8 +10,7 @@ clap.workspace = true
 fornax-core.workspace = true
 fornax-decoder.workspace = true
 fornax-devtool.workspace = true
-fornax-postprocessor.workspace = true
-fornax-preprocessor.workspace = true
+fornax-raw-pipeline.workspace = true
 hex.workspace = true
 image = { workspace = true, features = ["png"] }
 mischief.workspace = true

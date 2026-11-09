@@ -15,8 +15,7 @@ fornax-core = { path = "./crates/fornax-core" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
-fornax-postprocessor = { path = "./crates/fornax-postprocessor" }
-fornax-preprocessor = { path = "./crates/fornax-preprocessor" }
+fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 
 clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }

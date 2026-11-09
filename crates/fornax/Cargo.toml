@@ -8,8 +8,7 @@ fornax-arw.workspace = true
 fornax-core.workspace = true
 fornax-decoder.workspace = true
 fornax-dng.workspace = true
-fornax-postprocessor.workspace = true
-fornax-preprocessor.workspace = true
+fornax-raw-pipeline.workspace = true
 
 [features]
 default = []

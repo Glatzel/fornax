@@ -24,9 +24,10 @@ part of the current preprocessor/demosaic handoff.
 | `fornax-decoder` | Default pure-Rust DNG and Sony ARW/NRW decoder facade over the format crates. | `fornax-core`, `fornax-dng`, `fornax-arw` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-core`, `fornax-decoder-rawler` |
-| `fornax-preprocessor` | Black/white-level normalization of cropped Bayer mosaics. | `fornax-core` |
-| `fornax-postprocessor` | Demosaic protocol, algorithms, and RGB reconstruction. | `fornax-core` |
-| `fornax` | Public facade over decoders and pipeline stages. | Core, decoder crates, preprocessor, postprocessor |
+| `fornax-raw-pipeline` | Black/white normalization, demosaic protocol and algorithms, RGB reconstruction, and color processing. | `fornax-core` |
+| `fornax-preprocessor` | Compatibility re-export of the preprocessing stage. | `fornax-raw-pipeline` |
+| `fornax-postprocessor` | Compatibility re-export of demosaicing and postprocessing. | `fornax-raw-pipeline` |
+| `fornax` | Public facade over decoders and pipeline stages. | Core, decoder crates, raw pipeline |
 | `fornax-cli` | Standalone batch converter for raw DNG, rendered TIFF/JPEG, and metadata JSON output. | `fornax` facade |
 | `fornax-decoder` benches | Decoder comparison benchmarks. | Core, decoder crates, devtool |
 | `decoder-tracker` | Manual sharded raw.pixls.us decoder regression tracker and baseline generator. | Core, decoder, TIFF/DNG metadata |
@@ -99,7 +100,7 @@ preprocessor subtracts repeating black levels and optional row/column deltas,
 then normalizes by the remaining white-level range.
 
 `NormalizedMosaic<T>::process` delegates to `IPostProcessor<T, M>`.
-`fornax-postprocessor` owns `IDemosaic<T>` and `LazyDemosaic<T>`.
+`fornax-raw-pipeline` owns `IDemosaic<T>` and `LazyDemosaic<T>`.
 `PostProcessor::default()` uses Linear demosaicing and applies green-normalized
 white-balance coefficients when metadata provides them.
 
@@ -161,7 +162,7 @@ Decoder benchmarks live in `crates/fornax-decoder/benches/decoder.rs`. The bench
 compares the DNG decoder and Rawler adapter over each `IDecoder` method and
 over composite decode-plus-mosaic cases. `f32` is the default sample type;
 `f64` and decoder subsets are opt-in. Preprocessor and demosaic benchmarks
-remain in their stage crates.
+live in `fornax-raw-pipeline`.
 
 `decoder-tracker` validates the pointer-only raw.pixls.us submodule manifest and
 runs manual, deterministically sharded decoder regressions against a committed

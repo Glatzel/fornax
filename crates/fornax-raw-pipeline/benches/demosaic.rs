@@ -1,7 +1,7 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_core::{BayerPattern, MonoImage, Primitive};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
-use fornax_postprocessor::{Demosaic, IDemosaic, LazyDemosaic};
+use fornax_raw_pipeline::{Demosaic, IDemosaic, LazyDemosaic};
 fn selected_algorithm() -> Vec<(String, Demosaic)> {
     const ALL: &[&str] = &[
         "aahd", "ahd", "amaze", "dcb", "dht", "linear", "lmmse", "ppg", "rcd", "vng", "vng4",
