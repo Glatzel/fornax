@@ -7,6 +7,6 @@
     },
     "ignores": [
         "TODO.md",
-        "./docs/**/*.md"
+        "docs/**/*.md"
     ]
 }
