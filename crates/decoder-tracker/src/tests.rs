@@ -1,8 +1,8 @@
 use std::fs;
 
+use fornax_dng::Directory;
 use fornax_raw_core::metadata::{ColorCalibration, Levels, ProcessMetadata, RawColorMeta};
 use fornax_raw_core::{BayerPattern, MonoImage};
-use fornax_dng::Directory;
 use fornax_tiff::Value;
 use image::math::Rect;
 use rstest::rstest;

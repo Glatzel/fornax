@@ -11,8 +11,8 @@ pub mod waivers;
 
 #[cfg(test)]
 mod tests {
-    use fornax_raw_core::BayerPattern;
     use fornax_devtool::synthetic_mono_image;
+    use fornax_raw_core::BayerPattern;
     use rstest::{fixture, rstest};
     use serde::Serialize;
 

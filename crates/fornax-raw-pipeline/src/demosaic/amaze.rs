@@ -57,7 +57,8 @@ impl DemosaicAmaze {
                 MonoImage::from_raw(image.width(), image.height(), samples).ok_or_else(|| {
                     DemosaicError::InvalidInput("AMaZE could not copy the Bayer mosaic".into())
                 })?;
-            let rgb: fornax_raw_core::RgbImage<f32> = DemosaicPpg.lazy(&fallback, pattern)?.collect();
+            let rgb: fornax_raw_core::RgbImage<f32> =
+                DemosaicPpg.lazy(&fallback, pattern)?.collect();
             return Ok(DenseLazy::new(dense_from_f32(
                 image.width(),
                 image.height(),

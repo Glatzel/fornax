@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
-use fornax_raw_core::{MonoImage, RawMosaic};
+use fornax_dng::Directory;
 use fornax_dng::writer::{DngCompression, DngWriter};
-use fornax_dng::{Directory};
+use fornax_raw_core::{MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Value, parse};
 

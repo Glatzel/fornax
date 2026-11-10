@@ -1,9 +1,9 @@
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
 
+use fornax_dng::constants::DngPhotometricInterpretation;
 use fornax_raw_core::RawMosaic;
 use fornax_raw_core::protocol::IDecoder;
-use fornax_dng::constants::DngPhotometricInterpretation;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffWriter, Value};
 use rawler::decoders::RawImageData;

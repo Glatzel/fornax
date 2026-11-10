@@ -11,11 +11,11 @@ mod tests;
 use std::fs;
 use std::path::Path;
 
+use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::ProcessMetadata;
 use fornax_raw_core::protocol::IDecoder;
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
-use fornax_dng::metadata::IDecoderDng;
 use fornax_tiff::{Directory, ParsedTiff};
 use generic_num::num;
 use image::math::Rect;
