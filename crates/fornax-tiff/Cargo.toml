@@ -18,8 +18,8 @@ strum.workspace = true
 
 [features]
 default = ["lzw", "packbits"]
+jpegxl = ["fornax-codec/jpegxl", "raster"]
+lzw = ["fornax-codec/lzw", "raster"]
+packbits = ["fornax-codec/packbits", "raster"]
 raster = ["dep:fornax-codec"]
-jpegxl = ["raster", "fornax-codec/jpegxl"]
-lzw = ["raster", "fornax-codec/lzw"]
-packbits = ["raster", "fornax-codec/packbits"]
-zstd = ["raster", "fornax-codec/zstd"]
+zstd = ["fornax-codec/zstd", "raster"]
