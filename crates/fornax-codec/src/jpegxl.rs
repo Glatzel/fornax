@@ -1,15 +1,14 @@
 //! Single-channel JPEG XL decoding.
 
-use fornax_core::RawMosaic;
 use jxl_oxide::JxlImage;
 use rayon::prelude::*;
 
 use crate::error::invalid;
 use crate::request::{DecodeRequest, SampleFormat};
-use crate::samples::{Geometry, chunk, mono};
-use crate::{CodecError, Predictor};
+use crate::samples::{Geometry, buffer_u8, buffer_u16, chunk};
+use crate::{CodecError, Predictor, SampleBuffer};
 
-pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     if request.predictor != Predictor::None {
         return Err(invalid("JPEG XL samples do not support prediction"));
     }
@@ -36,7 +35,7 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
                 .ok_or_else(|| invalid("JPEG XL sample count overflow"))?
         ];
         decode_into(request, &geometry, &mut output, decode_u8)?;
-        mono(geometry.width, geometry.height, output).map(RawMosaic::U8)
+        buffer_u8(geometry.width, geometry.height, output)
     } else {
         let mut output = vec![
             0_u16;
@@ -52,7 +51,7 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
             &mut output,
             move |encoded, width, height| decode_u16(encoded, width, height, bits),
         )?;
-        mono(geometry.width, geometry.height, output).map(RawMosaic::U16)
+        buffer_u16(geometry.width, geometry.height, output)
     }
 }
 

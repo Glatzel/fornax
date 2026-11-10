@@ -11,6 +11,7 @@ use crate::Tag;
 #[repr(u16)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, AsRefStr, FromPrimitive, IntoPrimitive)]
 pub enum TiffTag {
+    // TIFF 6.0 tags.
     /// `NewSubfileType`.
     NewSubfileType = 254,
     /// `ImageWidth`.
@@ -49,10 +50,12 @@ pub enum TiffTag {
     TileOffsets = 324,
     /// `TileByteCounts`.
     TileByteCounts = 325,
-    /// `SubIFDs`.
-    SubIfds = 330,
     /// `SampleFormat`.
     SampleFormat = 339,
+    // TIFF Technical Note 1 extension adopted by TIFF/EP.
+    /// `SubIFDs`.
+    SubIfds = 330,
+    // TIFF/EP tags.
     /// `CFARepeatPatternDim`.
     CfaRepeatPatternDim = 33_421,
     /// `CFAPattern`.
@@ -79,28 +82,25 @@ impl From<TiffTag> for Tag {
     fn from(value: TiffTag) -> Self { Self(u16::from(value)) }
 }
 
-/// TIFF compression identifiers used by DNG images.
+/// TIFF-family compression identifiers handled by the generic raster path.
 #[repr(u16)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, FromPrimitive, IntoPrimitive)]
 pub enum CompressionMethod {
+    // TIFF 6.0.
     /// Uncompressed samples.
     Uncompressed = 1,
+    // TIFF Technical Note 2.
     /// Lossless JPEG-92.
     LosslessJpeg = 7,
+    // Adobe Deflate extension also used by DNG 1.4 and later.
     /// Deflate.
     Deflate = 8,
-    /// Lossy JPEG.
-    LossyJpeg = 34_892,
-    /// Zstandard.
-    Zstd = 50_000,
-    /// JPEG XL.
-    JpegXl = 52_546,
     /// An unsupported or private compression identifier.
     #[num_enum(catch_all)]
     Unknown(u16),
 }
 
-/// TIFF photometric interpretation identifiers used by DNG images.
+/// TIFF and TIFF/EP photometric interpretation identifiers.
 #[repr(u16)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, FromPrimitive, IntoPrimitive)]
 pub enum PhotometricInterpretation {
@@ -120,10 +120,9 @@ pub enum PhotometricInterpretation {
     YCbCr = 6,
     /// CIE L*a*b* color.
     CieLab = 8,
+    // TIFF/EP.
     /// Color filter array.
     Cfa = 32_803,
-    /// Linear raw samples.
-    LinearRaw = 34_892,
     /// An unsupported or private photometric interpretation.
     #[num_enum(catch_all)]
     Unknown(u16),

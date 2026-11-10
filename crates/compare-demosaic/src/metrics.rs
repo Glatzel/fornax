@@ -1,7 +1,7 @@
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 
-use fornax_core::{BayerChannel, BayerPattern};
+use fornax_raw_core::{BayerChannel, BayerPattern};
 use serde::{Deserialize, Serialize};
 
 use crate::cases::Tolerance;

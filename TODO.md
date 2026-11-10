@@ -2,14 +2,12 @@
 
 - decoder
   - [DEC-CR3] Implement Canon CR3/CRM BMFF parsing and CRX decoding. Plan: `docs/decoder/formats/canon-cr3.md`.
-  - [DEC-ARW] Implement Sony ARW/NRW TIFF variants and compression families. Plan: `docs/decoder/formats/sony-arw.md`.
   - [DEC-NEF] Implement Nikon NEF compression families and metadata mapping. Plan: `docs/decoder/formats/nikon-nef.md`.
   - [DEC-RAF] Implement supported Fujifilm RAF decoding and X-Trans-preserving DNG export. Plan: `docs/decoder/formats/fuji-raf.md`.
   - [DEC-3FR] Implement supported Hasselblad 3FR decoding and DNG export. Plan: `docs/decoder/formats/hasselblad-3fr.md`.
   - [DEC-RW2] Implement supported Panasonic RW2 variants and metadata mapping. Plan: `docs/decoder/formats/panasonic-rw2.md`.
   - [DEC-IIQ] Implement supported Phase One/Leaf IIQ modes and sensor-correction handling. Plan: `docs/decoder/formats/phase-one-iiq.md`.
   - [DEC-OTHER] Enforce the explicit unsupported-format policy for all untiered RAW containers. Plan: `docs/decoder/formats/other.md`.
-  - [DEC-CORPUS] Build the sharded raw.pixls.us regression tracker and first reviewed CSV baseline. Plan: `docs/decoder/corpus.md`.
 - demosaic
   - [IGV] Make IGV reproduce RawTherapee 5.13 IGV and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [EAHD] Make EAHD reproduce RawTherapee 5.13 EAHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.

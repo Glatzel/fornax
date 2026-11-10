@@ -49,9 +49,9 @@ outputs and comparison baselines.
 
 **Files:**
 
-- Modify: `crates/fornax-postprocessor/src/demosaic.rs`
-- Modify: `crates/fornax-postprocessor/src/lib.rs`
-- Modify: `crates/fornax-postprocessor/benches/support/demosaic_registry.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic.rs`
+- Modify: `crates/fornax-raw-pipeline/src/lib.rs`
+- Modify: `crates/fornax-raw-pipeline/benches/support/demosaic_registry.rs`
 
 **Interfaces:**
 
@@ -62,11 +62,11 @@ outputs and comparison baselines.
 
 - [x] Write a failing all-algorithm linear-boundary test using low-level
       uniform mosaics in both `f32` and `f64`.
-- [x] Run `cargo test -p fornax-postprocessor all_algorithms_preserve_linear_boundary`;
+- [x] Run `cargo test -p fornax-raw-pipeline all_algorithms_preserve_linear_boundary`;
       expect failure because the struct variants do not exist.
 - [x] Change `Demosaic` and update dispatch, defaults, constructors, and the
       benchmark registry.
-- [x] Run the focused test and then `cargo test -p fornax-postprocessor`;
+- [x] Run the focused test and then `cargo test -p fornax-raw-pipeline`;
       expect all tests to pass.
 - [x] Commit the task.
 
@@ -74,7 +74,7 @@ outputs and comparison baselines.
 
 **Files:**
 
-- Modify: `crates/fornax-postprocessor/src/demosaic/dcb.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
 
 **Interfaces:**
 
@@ -86,7 +86,7 @@ outputs and comparison baselines.
 - [x] Run the focused tests; expect failure because the options are not wired.
 - [x] Thread the options through `run` in the same order as LibRaw's `dcb()`
       while preserving the `(0, true)` default path.
-- [x] Run the focused tests and then `cargo test -p fornax-postprocessor`;
+- [x] Run the focused tests and then `cargo test -p fornax-raw-pipeline`;
       expect all tests to pass.
 - [x] Commit the task.
 
@@ -94,7 +94,7 @@ outputs and comparison baselines.
 
 **Files:**
 
-- Modify: `crates/fornax-postprocessor/src/demosaic/lmmse.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
 
 **Interfaces:**
 
@@ -105,7 +105,7 @@ outputs and comparison baselines.
       the darktable median/refinement counts while `Median` preserves current output.
 - [x] Run the focused tests; expect failure because mode dispatch is absent.
 - [x] Implement median loops and the pinned darktable refinement pass.
-- [x] Run the focused tests and then `cargo test -p fornax-postprocessor`;
+- [x] Run the focused tests and then `cargo test -p fornax-raw-pipeline`;
       expect all tests to pass.
 - [x] Commit the task.
 
@@ -113,7 +113,7 @@ outputs and comparison baselines.
 
 **Files:**
 
-- Modify: `crates/fornax-postprocessor/src/lib.rs`
+- Modify: `crates/fornax-raw-pipeline/src/lib.rs`
 
 **Interfaces:**
 
@@ -122,7 +122,7 @@ outputs and comparison baselines.
 - [x] Add a failing white-balance test with unequal red and blue multipliers.
 - [x] Run it; expect the blue sample to be incorrectly tied to red.
 - [x] Multiply each color by its own pre-multiplied sample.
-- [x] Run the focused test and then `cargo test -p fornax-postprocessor`;
+- [x] Run the focused test and then `cargo test -p fornax-raw-pipeline`;
       expect all tests to pass.
 - [x] Commit the task.
 
@@ -132,7 +132,7 @@ outputs and comparison baselines.
 
 - Modify: `docs/references/dcb.md`
 - Modify: `docs/references/lmmse.md`
-- Modify: `crates/fornax-postprocessor/README.md`
+- Modify: `crates/fornax-raw-pipeline/README.md`
 
 **Interfaces:**
 
@@ -147,12 +147,12 @@ outputs and comparison baselines.
 
 ## Files expected to change
 
-- `crates/fornax-postprocessor/src/demosaic.rs`
-- `crates/fornax-postprocessor/src/demosaic/dcb.rs`
-- `crates/fornax-postprocessor/src/demosaic/lmmse.rs`
-- `crates/fornax-postprocessor/src/lib.rs`
-- `crates/fornax-postprocessor/README.md`
-- `crates/fornax-postprocessor/benches/support/demosaic_registry.rs`
+- `crates/fornax-raw-pipeline/src/demosaic.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
+- `crates/fornax-raw-pipeline/src/lib.rs`
+- `crates/fornax-raw-pipeline/README.md`
+- `crates/fornax-raw-pipeline/benches/support/demosaic_registry.rs`
 - `crates/compare-demosaic/src/cases.rs`
 - `docs/references/dcb.md`
 - `docs/references/lmmse.md`
@@ -161,7 +161,7 @@ outputs and comparison baselines.
 ## Validation
 
 ```bash
-cargo test -p fornax-postprocessor
+cargo test -p fornax-raw-pipeline
 cargo test -p compare-demosaic
 cargo run --release -p compare-demosaic -- run --algorithm dcb --out target/demosaic-params-dcb
 cargo run --release -p compare-demosaic -- diff \

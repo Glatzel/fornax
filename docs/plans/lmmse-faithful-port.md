@@ -41,16 +41,16 @@ Out of scope:
 - `crates/compare-demosaic/src/snapshots/*-LMMSE-darktable.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
-- `crates/fornax-postprocessor/src/demosaic.rs`
-- `crates/fornax-postprocessor/src/demosaic/directional.rs`
-- `crates/fornax-postprocessor/src/demosaic/lmmse.rs`
+- `crates/fornax-raw-pipeline/src/demosaic.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/directional.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
 - `docs/references/lmmse.md`
 - `TODO.md`
 
 ## Validation
 
 ```bash
-cargo test -p fornax-postprocessor lmmse
+cargo test -p fornax-raw-pipeline lmmse
 cargo test -p compare-demosaic native_lmmse_meets_reference_limits
 cargo run --release -p compare-demosaic -- run --algorithm lmmse
 cargo run --release -p compare-demosaic -- readme --check

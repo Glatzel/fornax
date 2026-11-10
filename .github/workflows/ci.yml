@@ -20,10 +20,10 @@ jobs:
       main: ${{ steps.changed-files.outputs.main_any_changed }}
       benchmark_decoder: ${{ steps.changed-files.outputs.benchmark_decoder_any_changed }}
       benchmark_dng: ${{ steps.changed-files.outputs.benchmark_dng_any_changed }}
-      benchmark_postprocessor: ${{ steps.changed-files.outputs.benchmark_postprocessor_any_changed }}
-      benchmark_preprocessor: ${{ steps.changed-files.outputs.benchmark_preprocessor_any_changed }}
+      benchmark_raw_pipeline: ${{ steps.changed-files.outputs.benchmark_raw_pipeline_any_changed }}
       compare_demosaic: ${{ steps.changed-files.outputs.compare_demosaic_any_changed }}
       book_assets: ${{ steps.changed-files.outputs.book_assets_any_changed }}
+      golden: ${{ steps.changed-files.outputs.golden_any_changed }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: changed-files
@@ -34,29 +34,35 @@ jobs:
               - ./**
               - '!**/*.md'
             benchmark_decoder:
-              - '!**/*.md'
               - ./crates/fornax-codec/**
               - ./crates/fornax-decoder/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
-            benchmark_dng:
               - '!**/*.md'
+            benchmark_dng:
               - ./crates/fornax-codec/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
-            benchmark_postprocessor:
-              - ./crates/fornax-postprocessor/**
               - '!**/*.md'
-            benchmark_preprocessor:
-              - ./crates/fornax-preprocessor/**
+            benchmark_raw_pipeline:
+              - ./crates/fornax-raw-pipeline/**
               - '!**/*.md'
             compare_demosaic:
               - ./crates/compare-demosaic/**
-              - ./crates/fornax-core/**
-              - ./crates/fornax-postprocessor/src/demosaic/**
+              - ./crates/fornax-raw-core/**
+              - ./crates/fornax-raw-pipeline/src/demosaic/**
               - '!**/*.md'
             book_assets:
               - ./book/**
+            golden:
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-tiff/**
+              - ./crates/fornax-dng/**
+              - ./crates/fornax-arw/**
+              - ./crates/fornax-decoder/**
+              - ./crates/fornax-raw-core/**
+              - ./crates/fornax-raw-pipeline/**
+              - ./crates/decoder-tracker/**
 
   lefthook:
     if: ${{ github.event_name == 'pull_request' }}
@@ -64,6 +70,53 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+
+  golden:
+    name: golden decode hashes
+    needs: changed
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        (github.event_name == 'push' ||
+         github.event_name == 'schedule' ||
+         (github.event_name == 'pull_request' &&
+          needs.changed.outputs.golden == 'true'))
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Initialize pointer-only corpus
+        shell: bash
+        env:
+          GIT_LFS_SKIP_SMUDGE: "1"
+        run: |
+          git -c filter.lfs.required=false \
+            -c submodule.external/raw.pixls.us.branch=master \
+            submodule update --init --remote external/raw.pixls.us
+      - name: Resolve pinned corpus commit
+        id: corpus
+        shell: bash
+        run: |
+          echo "sha=$(git rev-parse HEAD:external/raw.pixls.us)" >>"$GITHUB_OUTPUT"
+      - name: Restore selected golden LFS objects
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .git/modules/external/raw.pixls.us/lfs/objects
+          key: golden-corpus-${{ steps.corpus.outputs.sha }}
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - name: Build decoder-tracker
+        run: cargo build --locked -p decoder-tracker
+      - name: Check golden decode hashes
+        run: |
+          target/debug/decoder-tracker hash \
+            --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+            --check crates/decoder-tracker/golden/decode-hashes.csv
 
   main:
     needs: changed
@@ -139,8 +192,7 @@ jobs:
          ((github.event_name == 'push' || github.event_name == 'pull_request') &&
           (needs.changed.outputs.benchmark_decoder == 'true' ||
            needs.changed.outputs.benchmark_dng == 'true' ||
-           needs.changed.outputs.benchmark_postprocessor == 'true' ||
-           needs.changed.outputs.benchmark_preprocessor == 'true')))
+           needs.changed.outputs.benchmark_raw_pipeline == 'true')))
       }}
     strategy:
       fail-fast: false
@@ -152,44 +204,55 @@ jobs:
 
           - package: fornax-dng
             changed: ${{ needs.changed.outputs.benchmark_dng }}
-            extra-options: --features zstd
 
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: aahd
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: ahd
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: amaze
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: dcb
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: dht
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: linear
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: lmmse
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: ppg
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: rcd
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: vng
-          - package: fornax-postprocessor
-            changed: ${{ needs.changed.outputs.benchmark_postprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench demosaic
             algorithm: vng4
 
-          - package: fornax-preprocessor
-            changed: ${{ needs.changed.outputs.benchmark_preprocessor }}
+          - package: fornax-raw-pipeline
+            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+            extra-options: --bench preprocessor
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -202,7 +265,7 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
         with:
-          options: -p ${{ matrix.package }} ${{ matrix['extra-options'] }}
+          options: -p ${{ matrix.package }} ${{ matrix['extra-options'] }} --all-features
         env:
           GH_TOKEN: ${{ github.token }}
           LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
@@ -237,7 +300,7 @@ jobs:
         shell: bash
         run: |
           source ./crates/compare-demosaic/scripts/setup.sh
-          cmp="cargo run --release -q -p compare-demosaic --"
+          cmp="cargo run --release -p compare-demosaic --"
           $cmp readme --check
           $cmp run --artifacts
           $cmp diff crates/compare-demosaic/baseline/canonical.json \
@@ -270,7 +333,8 @@ jobs:
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [changed, lefthook, main, benchmark, compare-demosaic, book-assets]
+    needs:
+      [changed, lefthook, golden, main, benchmark, compare-demosaic, book-assets]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1

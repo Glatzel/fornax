@@ -1,7 +1,7 @@
 //! Raw sample codecs shared by Fornax decoder implementations.
 //!
 //! [`decode`] converts format-neutral sample layouts into
-//! [`fornax_core::RawMosaic`] values. [`encode`] converts supported mosaics
+//! [`SampleBuffer`] values. [`encode`] converts supported sample buffers
 //! into independently stored chunks. Container metadata mapping remains in
 //! each format crate.
 //!
@@ -30,28 +30,36 @@
 //!     byte_order: ByteOrder::Little,
 //!     predictor: Predictor::None,
 //! };
-//! assert_eq!(fornax_codec::decode(&request).unwrap().dimensions(), (2, 2));
+//! let decoded = fornax_codec::decode(&request).unwrap();
+//! assert_eq!((decoded.width(), decoded.height()), (2, 2));
 //! ```
 
-mod deflate;
 mod encode;
 mod error;
-mod jpeg;
-mod jpegxl;
-mod ljpeg;
 mod predictor;
 mod request;
+mod sample_buffer;
 mod samples;
+
+#[cfg(feature = "deflate")]
+mod deflate;
+#[cfg(feature = "lossy-jpeg")]
+mod jpeg;
+#[cfg(feature = "jpegxl")]
+mod jpegxl;
+#[cfg(feature = "lossless-jpeg")]
+mod ljpeg;
 mod uncompressed;
+#[cfg(feature = "zstd")]
 mod zstd;
 
 pub use error::CodecError;
-use fornax_core::RawMosaic;
 pub use predictor::Predictor;
 pub use request::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
     EncodedChunks, SampleFormat,
 };
+pub use sample_buffer::{SampleBuffer, SampleBufferError};
 
 /// Decodes one raw image using the request's compression algorithm.
 ///
@@ -85,19 +93,24 @@ pub use request::{
 ///     byte_order: ByteOrder::Little,
 ///     predictor: Predictor::None,
 /// };
-/// assert_eq!(fornax_codec::decode(&request).unwrap().dimensions(), (2, 2));
+/// let decoded = fornax_codec::decode(&request).unwrap();
+/// assert_eq!((decoded.width(), decoded.height()), (2, 2));
 /// ```
-pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     match request.compression {
         DecodeCompression::Uncompressed => uncompressed::decode(request),
+        #[cfg(feature = "lossless-jpeg")]
         DecodeCompression::LosslessJpeg => ljpeg::decode(request),
+        #[cfg(feature = "deflate")]
         DecodeCompression::Deflate => deflate::decode(request),
+        #[cfg(feature = "lossy-jpeg")]
         DecodeCompression::LossyJpeg => jpeg::decode(request),
+        #[cfg(feature = "jpegxl")]
         DecodeCompression::JpegXl => jpegxl::decode(request),
+        #[cfg(feature = "zstd")]
         DecodeCompression::Zstd => zstd::decode(request),
     }
 }
-
 /// Encodes one raw image using the request's compression algorithm.
 ///
 /// # Errors
@@ -108,10 +121,9 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
 /// # Examples
 ///
 /// ```
-/// use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor};
-/// use fornax_core::{MonoImage, RawMosaic};
+/// use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor, SampleBuffer};
 ///
-/// let image = RawMosaic::U8(MonoImage::from_raw(2, 1, vec![1, 2]).unwrap());
+/// let image = SampleBuffer::from_u8(2, 1, vec![1, 2]).unwrap();
 /// let request = EncodeRequest {
 ///     image: &image,
 ///     compression: EncodeCompression::Uncompressed,
@@ -128,8 +140,11 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
 pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
     match request.compression {
         EncodeCompression::Uncompressed => uncompressed::encode(request),
+        #[cfg(feature = "lossless-jpeg")]
         EncodeCompression::LosslessJpeg => ljpeg::encode(request),
+        #[cfg(feature = "deflate")]
         EncodeCompression::Deflate => deflate::encode(request),
+        #[cfg(feature = "zstd")]
         EncodeCompression::Zstd { level } => zstd::encode(request, level),
     }
 }

@@ -17,7 +17,7 @@ The current MVP lives in `fornax-dng`, with `fornax-decoder` as its
 - typed root and raw-IFD metadata preservation;
 - uncompressed packed-integer and floating-point strips/tiles;
 - lossless JPEG-92 strips/tiles with predictors 1 through 7 and 2- to 16-bit
-  precision;
+  precision for supported sample layouts;
 - Deflate, lossy JPEG, and JPEG XL raw chunks;
 - 2x2 row/column interleave, linearization, and `OpcodeList1` pixel transforms;
 - parallel strip/tile decode with bounded per-band scratch storage;
@@ -31,7 +31,8 @@ The accepted `colorchart-5D2-6000K.dng` fixture decodes to the full
 at the full-frame origin to RGGB relative to the active area. Its metadata
 reports a `2x2` black-level pattern of 1024 and a white level of 15600.
 
-The ignored `raw.pixls.us` corpus is used for wider manual validation:
+The pointer-only `raw.pixls.us` submodule and `decoder-tracker` are used for
+wider manual validation:
 
 - Canon EOS 5D Mark III DNG compression variants;
 - Nikon D80 DNG with `LinearizationTable`;
@@ -51,13 +52,17 @@ decoded-data model does not expose.
 Remaining DNG work:
 
 - pre-DNG-1.1 lossless-JPEG compatibility mode;
-- multi-component subsampled/restart-interval JPEG variants;
+- lossless-JPEG restart intervals, Huffman selector `0x10`, and multi-component
+  subsampled or half-height tile variants;
+- multi-channel `LinearRaw` decoding outside the current mono `RawMosaic`
+  contract;
 - `SubTileBlockSize` and non-2x2 interleave factors;
 - geometric/frontend opcodes outside the raw pixel domain;
 - `OpcodeList2` and `OpcodeList3` execution in their downstream stages;
 - automatic BigTIFF output for regenerated files exceeding classic TIFF limits;
 - preview, thumbnail, mask, depth, and nested Exif/GPS preservation;
-- corpus coverage for accepted DNG cameras.
+- accepted DNG corpus rows, identity metadata, geometry, stage errors, and CFA
+  labels remain stable against the reviewed CSV baseline.
 
 ## Container handling
 
@@ -78,9 +83,15 @@ geometry.
 | Uncompressed (`1`) | Strips/tiles | Packed 1-32-bit integer and 16/24/32-bit float samples |
 | Lossless JPEG-92 (`7`) | Strips/tiles | 2-16-bit precision, predictors 1-7, single-component or 1x1 interleaved components |
 | Deflate (`8`) | Strips/tiles | Integer and float payloads with standard horizontal/float predictors |
-| JPEG XL (`52546`) | Strips/tiles | Single-channel 8-16-bit mosaics |
+| JPEG XL (`50002`, `52546`) | Strips/tiles | Single-channel 8-16-bit mosaics |
 | Lossy JPEG (`34892`) | Strips/tiles | Single-component 8-bit mosaics |
 | Zstandard (`50000`, experimental) | Strips/tiles | Integer and float payloads |
+
+Compression `50002` is the legacy TIFF JPEG XL identifier and `52546` is the
+DNG 1.7 identifier. Both map to the single-channel JPEG XL decoder.
+
+Codec availability is mandatory: zstd and all future codecs are compiled
+unconditionally without per-codec features.
 
 Malformed values and layouts outside the active Bayer contract return
 `DecodeError::InvalidInput` or the existing CFA boundary error. Unknown

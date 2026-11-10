@@ -49,6 +49,16 @@
   static Huffman table and predictor 1. U32/F32 samples use lossless Deflate.
 - Restart markers, multi-component subsampling, the pre-DNG-1.1 16-bit
   deviation, sub-tile blocks, and geometric opcodes remain future work.
+- Corpus DNGs used by Canon EOS 5D Mark III, Canon EOS 60D, Blackmagic Pocket
+  Cinema Camera 4K, Blackmagic Micro Cinema Camera, Blackmagic Pocket Cinema
+  Camera, and Blackmagic URSA 4K contain two-component half-height JPEG scans.
+  The decoder currently assumes scan height matches the TIFF tile height and
+  rejects these files before entropy decoding.
+- Some Blackmagic DNGs use DHT selector `0x10`. The decoder currently accepts
+  only table class 0 and reports the selector as unsupported.
+- Several XIAOYI lossless-JPEG failures occur while decoding entropy-coded
+  samples after component handling. They require reference comparison before
+  being classified as a separate codec variant.
 - Deflate, single-channel lossy JPEG, JPEG XL, linearization, 2x2 interleave,
   and raw-domain `OpcodeList1` are implemented.
 - Classic and BigTIFF headers and both byte orders are parsed. The ignored
@@ -59,6 +69,6 @@
 ## License constraints
 
 rawler is licensed LGPL-2.1. It was used as a behavioral reference only. The
-implementation in `fornax-core` is independently written against the DNG,
+implementation in `fornax-raw-core` is independently written against the DNG,
 TIFF, and JPEG specifications and does not add rawler to production
 dependencies.

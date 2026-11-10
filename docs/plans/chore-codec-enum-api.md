@@ -10,7 +10,7 @@ dispatches to decode/encode functions and carries the configurable Zstandard
 compression level. `fornax-tiff::CompressionMethod` remains the TIFF wire
 identifier, while `fornax-dng` maps it to `fornax-codec::Codec`.
 
-**Tech Stack:** Rust 2024, `fornax-core`, `fornax-codec`, `fornax-tiff`,
+**Tech Stack:** Rust 2024, `fornax-raw-core`, `fornax-codec`, `fornax-tiff`,
 `fornax-dng`, and the existing optional `structured-zstd` dependency.
 
 ## Scope

@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, ValueEnum};
 use clap_verbosity_flag::InfoLevel;
-use fornax::dng::DngCompression;
-use fornax::postprocessor::Demosaic;
+use fornax_dng::writer::DngCompression;
+use fornax_raw::raw_pipeline::Demosaic;
 use serde::Deserialize;
 use thiserror::Error;
 
@@ -304,7 +304,7 @@ mod tests {
     use std::io::Write;
 
     use clap::Parser;
-    use fornax::postprocessor::Demosaic;
+    use fornax_raw::raw_pipeline::Demosaic;
     use tempfile::tempdir;
 
     use super::*;
@@ -317,7 +317,7 @@ mod tests {
         assert_eq!(config.output, PathBuf::from("converted"));
         assert_eq!(config.format, OutputFormat::Dng);
         assert_eq!(config.jobs, 1);
-        assert_eq!(config.recursive, false);
+        assert!(!config.recursive);
         assert!(!config.overwrite);
         assert!(!config.metadata_json);
         assert_eq!(config.demosaic, Demosaic::default());

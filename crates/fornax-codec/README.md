@@ -4,8 +4,8 @@ Format-neutral raw sample codecs for Fornax decoder implementations.
 
 `fornax-codec` owns uncompressed sample assembly, TIFF-compatible predictors,
 lossless and lossy JPEG, JPEG XL, Deflate, and optional Zstandard handling. It
-returns `fornax_core::RawMosaic` values and has no dependency on TIFF or DNG
-container types. TIFF compression identifiers belong to
+returns `SampleBuffer` values and has no dependency on TIFF, DNG, or raw
+workflow types. TIFF compression identifiers belong to
 [`fornax-tiff`](../fornax-tiff/README.md), while
 [`fornax-dng`](../fornax-dng/README.md) translates container metadata into
 codec requests.
@@ -13,8 +13,10 @@ codec requests.
 ## Interfaces
 
 `DecodeCompression` and `EncodeCompression` select the algorithm inside their
-respective request types. `decode(&DecodeRequest)` and
-`encode(&EncodeRequest)` dispatch directly to the selected implementation.
+respective request types. `decode(&DecodeRequest)` returns a single-band
+`SampleBuffer`, and `encode(&EncodeRequest)` accepts one. The buffer stores
+U8, U16, U32, or F32 samples in an `image::ImageBuffer<Luma<T>, Vec<T>>`.
+`Luma` denotes one scalar channel rather than necessarily luminance.
 Decoding accepts the image geometry, chunk locations, sample layout, byte
 order, predictor, and source bytes. Encoding returns row-major
 `EncodedChunks`. Lossy JPEG and JPEG XL are absent from `EncodeCompression`, so
@@ -29,22 +31,34 @@ format crates.
 | TIFF compression | Decode | Encode |
 | --- | --- | --- |
 | Uncompressed (`1`) | Packed integers and floats | U8/U16/U32/F32 |
-| Lossless JPEG-92 (`7`) | Strips/tiles, predictors 1-7 | U8/U16 tiles |
+| Lossless JPEG-92 (`7`) | Single-sample strips/tiles, predictors 1-7 | U8/U16 tiles |
 | Deflate (`8`) | Integer and float predictors | U8/U16/U32/F32 tiles |
 | Lossy JPEG (`34892`) | Single-component 8-bit | No |
-| JPEG XL (`52546`) | Single-channel 8-16-bit mosaics | No |
+| JPEG XL (`50002`, `52546`) | Single-channel 8-16-bit mosaics | No |
 | Zstandard (`50000`, experimental) | Integer and float payloads | Integer and float tiles |
 
 Unknown TIFF compression identifiers are reported as unsupported.
 
-## Features
+The DNG layer maps both legacy TIFF JPEG XL compression `50002` and DNG 1.7
+compression `52546` to the same JPEG XL decoder.
 
-| Feature | Effect |
-| --- | --- |
-| Default | JPEG, JPEG XL, Deflate, and lossless JPEG-92 |
-| `zstd` | Adds Zstandard decoding and encoding |
+## Current codec limitations
+
+- Lossless JPEG-92 does not yet support pre-DNG-1.1 precision handling, restart
+  intervals, Huffman selector `0x10`, or multi-component subsampled and
+  half-height tile layouts.
+- Lossy JPEG decoding accepts only one 8-bit component. Three-component
+  `LinearRaw` payloads are outside the single-band `SampleBuffer` contract.
+- JPEG XL decoding accepts only one 8-16-bit channel. Multi-channel `LinearRaw`
+  payloads are outside the single-band `SampleBuffer` contract.
+- Uncompressed, Deflate, and Zstandard decoding accept only one raw sample per
+  pixel in the DNG decoder.
+
+## Codec availability
 
 Use `EncodeCompression::Zstd { level }` to select a Zstandard encoding level.
 Decoding uses `DecodeCompression::Zstd` because the level is stored in the
-stream. Without `zstd`, both Zstandard directions return
-`CodecError::Unsupported`.
+stream.
+
+All codec implementations, including zstd, are always compiled. Codecs must not
+introduce optional Cargo features or feature-dependent fallback behavior.

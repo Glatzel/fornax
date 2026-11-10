@@ -13,7 +13,7 @@ public API.
 directory discovery with an internal parsed raw-image plan, decode independent
 strips and tiles with Rayon, use focused in-tree codec/transform modules, and
 keep auxiliary TIFF directories deferred behind an explicit documentation
-record. `fornax-core::writer` gains JPEG-92 output and a lossless Deflate
+record. `fornax-raw-core::writer` gains JPEG-92 output and a lossless Deflate
 fallback while retaining the existing signatures and enums.
 
 **Tech Stack:** Rust 2024, `tiff`, `rayon`, `flate2`, `zune-jpeg`,
@@ -58,7 +58,7 @@ repository constraints in `AGENTS.md`, `docs/architecture.md`, and
 - [ ] Add Deflate, lossy JPEG, and JPEG XL raw payload decoding.
 - [ ] Add linearization, interleave, sub-tile, and raw opcode transforms.
 - [ ] Implement JPEG-92 writing and lossless fallback writing in
-      `fornax-core`.
+      `fornax-raw-core`.
 - [ ] Add regression, malformed-input, fixture, round-trip, and benchmark
       coverage.
 - [ ] Update architecture/format/reference documentation, including deferred
@@ -69,14 +69,14 @@ repository constraints in `AGENTS.md`, `docs/architecture.md`, and
 ## Files Expected to Change
 
 - `Cargo.toml`, `Cargo.lock`, `crates/fornax-decoder/Cargo.toml`, and
-  `crates/fornax-core/Cargo.toml`
+  `crates/fornax-raw-core/Cargo.toml`
 - `crates/fornax-decoder/src/lib.rs`
 - `crates/fornax-decoder/src/dng_decoder/mod.rs`
 - `crates/fornax-decoder/src/dng_decoder/tiff.rs`
 - `crates/fornax-decoder/src/dng_decoder/ljpeg.rs`
 - Focused decoder modules for compression, transforms, and decode planning
 - `crates/fornax-decoder/src/dng_decoder/process_metadata.rs`
-- `crates/fornax-core/src/writer.rs`
+- `crates/fornax-raw-core/src/writer.rs`
 - Focused writer JPEG-92/Deflate modules
 - `crates/bench-decoder/benches/decoder.rs` if additional benchmark coverage
   is required
@@ -239,8 +239,8 @@ Run the decoder benchmark with the colorchart fixture and compare
 
 **Files:**
 
-- Modify: `crates/fornax-core/src/writer.rs`
-- Modify: `crates/fornax-core/Cargo.toml`, root manifest/lockfile
+- Modify: `crates/fornax-raw-core/src/writer.rs`
+- Modify: `crates/fornax-raw-core/Cargo.toml`, root manifest/lockfile
 - Create: focused writer JPEG-92/Deflate module
 
 **Interfaces:**

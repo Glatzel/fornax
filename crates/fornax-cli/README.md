@@ -14,7 +14,7 @@ cargo run -p fornax-cli -- --format jpeg --jobs 1 --metadata-json photo.dng
 | --- | --- |
 | Output format | DNG |
 | Output directory | `converted` |
-| Decoder | Auto: Fornax for DNG, Rawler for other `RawFormat` inputs |
+| Decoder | Auto: native Fornax for DNG/ARW/NRW, Rawler for other `RawFormat` inputs |
 | Jobs | 1 |
 | Recursive directory scan | On |
 | Existing output | Skip |
@@ -59,5 +59,5 @@ zstd_level = 3
 ```
 
 Directory inputs are scanned recursively for extensions recognized by
-`fornax::RawFormat` and mirrored beneath
+`fornax_raw::RawFormat` and mirrored beneath
 `<output>/<input-root>/<relative-path>`.

@@ -1,11 +1,12 @@
 use std::path::PathBuf;
 
-use fornax_core::RawFormat;
+use fornax_raw_core::RawFormat;
 pub fn raw_file(format: RawFormat) -> PathBuf {
     match format {
         RawFormat::Dng => root_dir().join("external/raw-images/images/colorchart-5D2-6000K.dng"),
         RawFormat::Cr3
         | RawFormat::Arw
+        | RawFormat::Nrw
         | RawFormat::Nef
         | RawFormat::Raf
         | RawFormat::Hasselblad3fr

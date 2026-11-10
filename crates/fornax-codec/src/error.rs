@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::SampleBufferError;
+
 /// Failure while decoding or encoding raw samples.
 ///
 /// # Examples
@@ -18,17 +20,13 @@ pub enum CodecError {
     Unsupported(Box<str>),
 }
 
+impl From<SampleBufferError> for CodecError {
+    fn from(error: SampleBufferError) -> Self { invalid(error.to_string()) }
+}
+
 pub fn invalid<T>(detail: T) -> CodecError
 where
     T: Into<Box<str>>,
 {
     CodecError::InvalidInput(detail.into())
-}
-
-#[cfg(not(feature = "zstd"))]
-pub fn unsupported<T>(detail: T) -> CodecError
-where
-    T: Into<Box<str>>,
-{
-    CodecError::Unsupported(detail.into())
 }

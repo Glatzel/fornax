@@ -2,13 +2,16 @@ use std::fs::File;
 use std::io::{BufWriter, Seek, Write};
 use std::path::Path;
 
-use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor};
-use fornax_core::RawMosaic;
-use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
+use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor, SampleBuffer};
+use fornax_raw_core::RawMosaic;
+use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
 use thiserror::Error;
 
+#[cfg(feature = "zstd")]
+use crate::constants::DngCompressionMethod;
 use crate::metadata::{Directory, DngTag};
+use crate::sample_buffer::from_raw_mosaic;
 
 /// Failure while writing DNG data.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
@@ -47,6 +50,7 @@ pub enum DngCompression {
     /// Deflate for every supported mosaic sample type.
     Deflate,
     /// Experimental TIFF compression 50000 using pure-Rust Zstandard tiles.
+    #[cfg(feature = "zstd")]
     Zstd,
 }
 
@@ -164,18 +168,20 @@ impl DngWriter {
     where
         W: Write + Seek,
     {
+        let samples = from_raw_mosaic(mosaic);
         match self.compression() {
             DngCompression::Uncompressed => {
-                write_uncompressed(writer, mosaic, metadata, self.version())?;
+                write_uncompressed(writer, &samples, metadata, self.version())?;
             }
             DngCompression::LosslessJpeg => {
-                write_lossless(writer, mosaic, metadata, self.version())?;
+                write_lossless(writer, &samples, metadata, self.version())?;
             }
             DngCompression::Deflate => {
-                write_deflate_all(writer, mosaic, metadata, self.version())?;
+                write_deflate_all(writer, &samples, metadata, self.version())?;
             }
+            #[cfg(feature = "zstd")]
             DngCompression::Zstd => {
-                write_zstd(writer, mosaic, metadata, self.version(), self.zstd_level)?;
+                write_zstd(writer, &samples, metadata, self.version(), self.zstd_level)?;
             }
         }
         Ok(())
@@ -184,14 +190,14 @@ impl DngWriter {
 
 fn write_uncompressed<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
 where
     W: Write + Seek,
 {
-    let (width, height) = mosaic.dimensions();
+    let (width, height) = (mosaic.width(), mosaic.height());
     let mut encoder = TiffWriter::new(writer).map_err(tiff_write_error)?;
     let mut directory = TiffDirectory::new(&mut encoder);
 
@@ -220,7 +226,10 @@ where
     directory.write_tag(Tag::from(TiffTag::ImageWidth), width)?;
     directory.write_tag(Tag::from(TiffTag::ImageLength), height)?;
     directory.write_tag(Tag::from(TiffTag::BitsPerSample), bits_per_sample)?;
-    directory.write_tag(Tag::from(TiffTag::Compression), 1_u16)?;
+    directory.write_tag(
+        Tag::from(TiffTag::Compression),
+        u16::from(CompressionMethod::Uncompressed),
+    )?;
     directory.write_tag(
         TiffTag::PhotometricInterpretation,
         u16::from(PhotometricInterpretation::Cfa),
@@ -249,7 +258,7 @@ where
 
 fn write_lossless<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
@@ -257,18 +266,21 @@ where
     W: Write + Seek,
 {
     match mosaic {
-        RawMosaic::U8(_) | RawMosaic::U16(_) => {
+        SampleBuffer::U8(_) | SampleBuffer::U16(_) => {
             write_lossless_jpeg(writer, mosaic, metadata, version)
         }
-        RawMosaic::U32(_) | RawMosaic::F32(_) => {
+        SampleBuffer::U32(_) | SampleBuffer::F32(_) => {
             write_lossless_deflate(writer, mosaic, metadata, version)
         }
+        _ => Err(DngWriteError::Unsupported {
+            operation: "encoding an unknown sample buffer variant".into(),
+        }),
     }
 }
 
 fn write_lossless_jpeg<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
@@ -276,7 +288,7 @@ where
     W: Write + Seek,
 {
     const TILE: usize = 256;
-    let (width, height) = mosaic.dimensions();
+    let (width, height) = (mosaic.width(), mosaic.height());
     let (bits, sample_format) = sample_layout(mosaic);
     let chunks = encode_for_chunks(
         mosaic,
@@ -291,7 +303,7 @@ where
         height,
         metadata,
         version,
-        7,
+        u16::from(CompressionMethod::LosslessJpeg),
         bits,
         sample_format,
         None,
@@ -301,7 +313,7 @@ where
 
 fn write_lossless_deflate<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
@@ -309,11 +321,11 @@ where
     W: Write + Seek,
 {
     const TILE: usize = 256;
-    let (width, height) = mosaic.dimensions();
+    let (width, height) = (mosaic.width(), mosaic.height());
     let (bits, sample_format) = sample_layout(mosaic);
     let (predictor, predictor_tag) = match mosaic {
-        RawMosaic::U32(_) => (Predictor::None, 1_u16),
-        RawMosaic::F32(_) => (Predictor::FloatingPoint { byte_stride: 1 }, 3_u16),
+        SampleBuffer::U32(_) => (Predictor::None, 1_u16),
+        SampleBuffer::F32(_) => (Predictor::FloatingPoint { byte_stride: 1 }, 3_u16),
         _ => unreachable!("the caller selects Deflate only for wider samples"),
     };
     let chunks = encode_for_chunks(mosaic, TILE, TILE, EncodeCompression::Deflate, predictor)?;
@@ -323,18 +335,17 @@ where
         height,
         metadata,
         version,
-        8,
+        u16::from(CompressionMethod::Deflate),
         bits,
         sample_format,
         Some(predictor_tag),
         &chunks,
     )
 }
-
 #[cfg(feature = "zstd")]
 fn write_zstd<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
     level: i32,
@@ -342,7 +353,7 @@ fn write_zstd<W>(
 where
     W: Write + Seek,
 {
-    let (width, height) = mosaic.dimensions();
+    let (width, height) = (mosaic.width(), mosaic.height());
     let (bits, sample_format) = sample_layout(mosaic);
     const TILE: usize = 256;
     let request = encode_request(
@@ -361,7 +372,7 @@ where
         height,
         metadata,
         version,
-        50_000,
+        u16::from(DngCompressionMethod::Zstd),
         bits,
         sample_format,
         Some(1),
@@ -369,32 +380,16 @@ where
     )
 }
 
-#[cfg(not(feature = "zstd"))]
-fn write_zstd<W>(
-    _writer: W,
-    _mosaic: &RawMosaic,
-    _metadata: &Directory,
-    _version: DngVersion,
-    _level: i32,
-) -> Result<(), DngWriteError>
-where
-    W: Write + Seek,
-{
-    Err(DngWriteError::Unsupported {
-        operation: "Zstandard DNG writing requires the fornax-dng zstd feature".into(),
-    })
-}
-
 fn write_deflate_all<W>(
     writer: W,
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     metadata: &Directory,
     version: DngVersion,
 ) -> Result<(), DngWriteError>
 where
     W: Write + Seek,
 {
-    let (width, height) = mosaic.dimensions();
+    let (width, height) = (mosaic.width(), mosaic.height());
     let (bits, sample_format) = sample_layout(mosaic);
     let chunks = encode_for_chunks(
         mosaic,
@@ -409,7 +404,7 @@ where
         height,
         metadata,
         version,
-        8,
+        u16::from(CompressionMethod::Deflate),
         bits,
         sample_format,
         Some(1),
@@ -418,7 +413,7 @@ where
 }
 
 fn encode_for_chunks(
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     chunk_width: usize,
     chunk_height: usize,
     compression: EncodeCompression,
@@ -431,7 +426,7 @@ fn encode_for_chunks(
 }
 
 const fn encode_request(
-    mosaic: &RawMosaic,
+    mosaic: &SampleBuffer,
     chunk_width: usize,
     chunk_height: usize,
     compression: EncodeCompression,
@@ -536,12 +531,13 @@ where
     Ok(())
 }
 
-const fn sample_layout(mosaic: &RawMosaic) -> (u16, u16) {
+const fn sample_layout(mosaic: &SampleBuffer) -> (u16, u16) {
     match mosaic {
-        RawMosaic::U8(_) => (8, 1),
-        RawMosaic::U16(_) => (16, 1),
-        RawMosaic::U32(_) => (32, 1),
-        RawMosaic::F32(_) => (32, 3),
+        SampleBuffer::U8(_) => (8, 1),
+        SampleBuffer::U16(_) => (16, 1),
+        SampleBuffer::U32(_) => (32, 1),
+        SampleBuffer::F32(_) => (32, 3),
+        _ => unreachable!(),
     }
 }
 
@@ -688,7 +684,7 @@ fn tiff_write_error(error: fornax_tiff::TiffError) -> DngWriteError {
 mod tests {
     use std::io::Cursor;
 
-    use fornax_core::MonoImage;
+    use fornax_raw_core::MonoImage;
     use fornax_tiff::TiffWriter;
 
     use super::*;
@@ -696,9 +692,10 @@ mod tests {
     #[test]
     fn encode_request_preserves_selected_compression() {
         let mosaic = RawMosaic::U8(MonoImage::from_raw(2, 1, vec![1, 2]).unwrap());
+        let samples = from_raw_mosaic(&mosaic);
 
         let request = encode_request(
-            &mosaic,
+            &samples,
             2,
             1,
             fornax_codec::EncodeCompression::Zstd { level: 7 },
@@ -725,18 +722,5 @@ mod tests {
         .expect_err("classic TIFF cannot represent BigTIFF rationals");
 
         assert!(matches!(error, DngWriteError::InvalidMetadata { .. }));
-    }
-
-    #[cfg(not(feature = "zstd"))]
-    #[test]
-    fn zstd_write_without_feature_returns_unsupported() {
-        let mosaic = RawMosaic::U8(MonoImage::from_raw(1, 1, vec![0]).unwrap());
-        let mut output = Cursor::new(Vec::new());
-
-        let error = DngWriter::new(DngCompression::Zstd)
-            .write_dng_with(&mut output, &mosaic, &Directory::default())
-            .expect_err("zstd feature is disabled");
-
-        assert!(matches!(error, DngWriteError::Unsupported { .. }));
     }
 }

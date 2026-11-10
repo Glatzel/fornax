@@ -1,19 +1,12 @@
-//! Optional TIFF Zstandard decoding and encoding.
+//! TIFF Zstandard decoding and encoding.
 
-use fornax_core::RawMosaic;
-
-use crate::CodecError;
+use crate::encode::encode_image;
+use crate::error::invalid;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
-#[cfg(feature = "zstd")]
-use crate::{
-    encode::encode_image,
-    error::invalid,
-    predictor,
-    samples::{Geometry, chunk, decode_payloads},
-};
+use crate::samples::{Geometry, chunk, decode_payloads};
+use crate::{CodecError, SampleBuffer, predictor};
 
-#[cfg(feature = "zstd")]
-pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     let geometry = Geometry::new(
         request.width,
         request.height,
@@ -53,7 +46,6 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
     )
 }
 
-#[cfg(feature = "zstd")]
 pub fn encode(request: &EncodeRequest<'_>, level: i32) -> Result<EncodedChunks, CodecError> {
     let mut encoded = encode_image(
         request.image,
@@ -77,43 +69,31 @@ pub fn encode(request: &EncodeRequest<'_>, level: i32) -> Result<EncodedChunks, 
     Ok(EncodedChunks { chunks })
 }
 
-#[cfg(not(feature = "zstd"))]
-pub fn encode(_request: &EncodeRequest<'_>, _level: i32) -> Result<EncodedChunks, CodecError> {
-    Err(crate::error::unsupported(
-        "Zstandard encoding requires the fornax-codec zstd feature",
-    ))
-}
-
-#[cfg(not(feature = "zstd"))]
-pub fn decode(_request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
-    Err(crate::error::unsupported(
-        "Zstandard compression requires the fornax-codec zstd feature",
-    ))
-}
-
-#[cfg(feature = "zstd")]
 pub fn decompress(encoded: &[u8], max_output: usize) -> Result<Vec<u8>, String> {
     use std::io::Read;
 
-    let decoder = structured_zstd::decoding::StreamingDecoder::new(encoded);
+    let decoder = zstd::stream::read::Decoder::new(encoded)
+        .map_err(|error| format!("payload is invalid: {error}"))?;
+
     let limit = u64::try_from(max_output)
         .unwrap_or(u64::MAX)
         .saturating_add(1);
+
     let mut decoded = Vec::new();
+
     decoder
         .take(limit)
         .read_to_end(&mut decoded)
         .map_err(|error| format!("payload is invalid: {error}"))?;
+
     if decoded.len() > max_output {
         return Err("payload exceeds the declared tile size".into());
     }
+
     Ok(decoded)
 }
 
-#[cfg(feature = "zstd")]
 pub fn compress(data: &[u8], level: i32) -> Result<Vec<u8>, CodecError> {
-    Ok(structured_zstd::encoding::compress_to_vec(
-        data,
-        structured_zstd::encoding::CompressionLevel::from_level(level),
-    ))
+    zstd::bulk::compress(data, level)
+        .map_err(|error| CodecError::InvalidInput(error.to_string().into()))
 }

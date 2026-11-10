@@ -1,6 +1,5 @@
-use fornax_core::RawMosaic;
-
 use crate::Predictor;
+use crate::sample_buffer::SampleBuffer;
 
 /// A raw sample decoding algorithm.
 ///
@@ -15,14 +14,19 @@ pub enum DecodeCompression {
     /// Samples are stored directly in the chunk payloads.
     Uncompressed,
     /// TIFF lossless JPEG-92.
+    #[cfg(feature = "lossless-jpeg")]
     LosslessJpeg,
     /// TIFF Deflate using zlib framing.
+    #[cfg(feature = "deflate")]
     Deflate,
     /// TIFF lossy JPEG with one luma component.
+    #[cfg(feature = "lossy-jpeg")]
     LossyJpeg,
     /// JPEG XL with one sample channel.
+    #[cfg(feature = "jpegxl")]
     JpegXl,
     /// TIFF's experimental Zstandard compression.
+    #[cfg(feature = "zstd")]
     Zstd,
 }
 
@@ -42,10 +46,13 @@ pub enum EncodeCompression {
     /// Samples are stored directly in the chunk payloads.
     Uncompressed,
     /// TIFF lossless JPEG-92.
+    #[cfg(feature = "lossless-jpeg")]
     LosslessJpeg,
     /// TIFF Deflate using zlib framing.
+    #[cfg(feature = "deflate")]
     Deflate,
     /// TIFF's experimental Zstandard compression with an encoding level.
+    #[cfg(feature = "zstd")]
     Zstd {
         /// Compression level passed to the Zstandard encoder.
         level: i32,
@@ -157,10 +164,9 @@ pub struct DecodeRequest<'a> {
 /// # Examples
 ///
 /// ```
-/// use fornax_codec::EncodeCompression;
-/// use fornax_core::{MonoImage, RawMosaic};
+/// use fornax_codec::{EncodeCompression, SampleBuffer};
 ///
-/// let image = RawMosaic::U8(MonoImage::from_raw(1, 1, vec![0]).unwrap());
+/// let image = SampleBuffer::from_u8(1, 1, vec![0]).unwrap();
 /// let request = fornax_codec::EncodeRequest {
 ///     image: &image,
 ///     compression: EncodeCompression::Uncompressed,
@@ -173,7 +179,7 @@ pub struct DecodeRequest<'a> {
 /// ```
 pub struct EncodeRequest<'a> {
     /// Mosaic to encode.
-    pub image: &'a RawMosaic,
+    pub image: &'a SampleBuffer,
     /// Compression algorithm used to encode the chunk payloads.
     pub compression: EncodeCompression,
     /// Output chunk width in samples.

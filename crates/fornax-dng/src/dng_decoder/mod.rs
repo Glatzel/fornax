@@ -3,18 +3,23 @@
 mod process_metadata;
 mod transforms;
 
-use fornax_codec::{ByteOrder, Chunk, DecodeCompression, DecodeRequest, Predictor, SampleFormat};
-use fornax_core::error::DecodeError;
-use fornax_core::metadata::ProcessMetadata;
-use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
-use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffTag};
-use fornax_tiff::{Directory, ParsedTiff, Tag, Value};
+use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
+use fornax_raw_core::error::DecodeError;
+use fornax_raw_core::metadata::ProcessMetadata;
+use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
+use fornax_tiff::{
+    Directory, ParsedTiff, RasterRequest, Tag, ValueAccessError, resolve_tiff_compression,
+    unsigned_scalar, unsigned_vec as tiff_unsigned_vec,
+};
 use generic_num::num;
 use image::math::Rect;
-use process_metadata::process_metadata_from_dng_metadata;
+pub use process_metadata::process_metadata_from_dng_metadata;
 use rayon::prelude::*;
 
+use crate::constants::{DngCompressionMethod, DngPhotometricInterpretation};
 use crate::metadata::DngTag;
+use crate::sample_buffer::into_raw_mosaic;
 
 #[derive(Clone, Debug)]
 pub struct DngImage {
@@ -28,6 +33,57 @@ impl DngImage {
             .map_err(|error| DecodeError::InvalidInput(error.to_string().into()))?;
         let raw_ifd = select_raw_ifd(&parsed)?;
         Ok(Self { parsed, raw_ifd })
+    }
+    pub fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
+        let metadata = self.dng_metadata()?;
+        let pixels = transforms::apply(decode_samples(&self.parsed.source, &metadata)?, &metadata)?;
+        validate_dimensions(&pixels, &metadata)?;
+        Ok(pixels)
+    }
+    pub fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
+    where
+        T: Primitive,
+    {
+        let pixels = self.raw_mosaic()?;
+        let metadata = self.dng_metadata()?;
+        let (width, height) = pixels.dimensions();
+        let process_metadata = process_metadata_from_dng_metadata(width, height, &metadata)?;
+        let active_area = process_metadata.active_area;
+        let image = match pixels {
+            RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
+            RawMosaic::U16(image) => crop_and_cast(image, active_area)?,
+            RawMosaic::U32(image) => crop_and_cast(image, active_area)?,
+            RawMosaic::F32(image) => crop_and_cast(image, active_area)?,
+        };
+        Ok(CroppedMosaic::new(image))
+    }
+
+    pub fn dng_metadata(&self) -> Result<Directory, DecodeError> {
+        if !self
+            .parsed
+            .root
+            .contains_key(&Tag(u16::from(DngTag::DngVersion)))
+        {
+            return Err(unsupported_variant(
+                "TIFF container does not declare a DNGVersion",
+            ));
+        }
+        let raw_metadata = self
+            .parsed
+            .directories
+            .get(self.raw_ifd)
+            .ok_or_else(|| corrupt("selected raw IFD is missing"))?;
+        let mut dng_metadata = Directory::default();
+        dng_metadata.extend(self.parsed.root.clone());
+        dng_metadata.extend(raw_metadata.clone());
+        Ok(dng_metadata)
+    }
+
+    pub fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
+        let metadata = self.dng_metadata()?;
+        let width = required_u32(&metadata, TiffTag::ImageWidth)?;
+        let height = required_u32(&metadata, TiffTag::ImageLength)?;
+        process_metadata_from_dng_metadata(width, height, &metadata)
     }
 }
 
@@ -43,88 +99,28 @@ fn select_raw_ifd(parsed: &ParsedTiff) -> Result<usize, DecodeError> {
 }
 
 fn is_raw_ifd(directory: &fornax_tiff::Directory) -> bool {
-    let photometric = dng_value(directory.get(&Tag::from(TiffTag::PhotometricInterpretation)))
-        .and_then(|value| u16::try_from(value).ok())
-        .map(PhotometricInterpretation::from);
-    let reduced_resolution = dng_value(directory.get(&Tag::from(TiffTag::NewSubfileType)))
+    let photometric =
+        unsigned_scalar(directory.get(&Tag::from(TiffTag::PhotometricInterpretation)))
+            .and_then(|value| u16::try_from(value).ok());
+    let reduced_resolution = unsigned_scalar(directory.get(&Tag::from(TiffTag::NewSubfileType)))
         .is_some_and(|value| value & 1 != 0);
-    !reduced_resolution
-        && photometric.is_some_and(|value| {
-            matches!(
-                value,
-                PhotometricInterpretation::Cfa | PhotometricInterpretation::LinearRaw
-            )
-        })
+    !reduced_resolution && photometric.is_some_and(is_raw_photometric)
+}
+
+fn is_raw_photometric(id: u16) -> bool {
+    matches!(
+        PhotometricInterpretation::from(id),
+        PhotometricInterpretation::Cfa
+    ) || matches!(
+        DngPhotometricInterpretation::from(id),
+        DngPhotometricInterpretation::LinearRaw
+    )
 }
 
 fn raw_area(directory: &fornax_tiff::Directory) -> u64 {
-    let width = dng_value(directory.get(&Tag::from(TiffTag::ImageWidth))).unwrap_or(0);
-    let height = dng_value(directory.get(&Tag::from(TiffTag::ImageLength))).unwrap_or(0);
+    let width = unsigned_scalar(directory.get(&Tag::from(TiffTag::ImageWidth))).unwrap_or(0);
+    let height = unsigned_scalar(directory.get(&Tag::from(TiffTag::ImageLength))).unwrap_or(0);
     width.saturating_mul(height)
-}
-
-fn dng_value(value: Option<&Value>) -> Option<u64> {
-    match value? {
-        Value::Byte(value) => Some(u64::from(*value)),
-        Value::Short(value) => Some(u64::from(*value)),
-        Value::Unsigned(value) | Value::Ifd(value) => Some(u64::from(*value)),
-        Value::UnsignedBig(value) | Value::IfdBig(value) => Some(*value),
-        Value::List(values) => dng_value(values.first()),
-        _ => None,
-    }
-}
-
-pub fn raw_mosaic(parsed: &DngImage) -> Result<RawMosaic, DecodeError> {
-    let metadata = dng_metadata(parsed)?;
-    let pixels = transforms::apply(decode_samples(&parsed.parsed.source, &metadata)?, &metadata)?;
-    validate_dimensions(&pixels, &metadata)?;
-    Ok(pixels)
-}
-
-pub fn cropped_mosaic<T>(parsed: &DngImage) -> Result<CroppedMosaic<T>, DecodeError>
-where
-    T: Primitive,
-{
-    let pixels = raw_mosaic(parsed)?;
-    let metadata = dng_metadata(parsed)?;
-    let (width, height) = pixels.dimensions();
-    let process_metadata = process_metadata_from_dng_metadata(width, height, &metadata)?;
-    let active_area = process_metadata.active_area;
-    let image = match pixels {
-        RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
-        RawMosaic::U16(image) => crop_and_cast(image, active_area)?,
-        RawMosaic::U32(image) => crop_and_cast(image, active_area)?,
-        RawMosaic::F32(image) => crop_and_cast(image, active_area)?,
-    };
-    Ok(CroppedMosaic::new(image))
-}
-
-pub fn dng_metadata(parsed: &DngImage) -> Result<Directory, DecodeError> {
-    if !parsed
-        .parsed
-        .root
-        .contains_key(&Tag(u16::from(DngTag::DngVersion)))
-    {
-        return Err(unsupported_variant(
-            "TIFF container does not declare a DNGVersion",
-        ));
-    }
-    let raw_metadata = parsed
-        .parsed
-        .directories
-        .get(parsed.raw_ifd)
-        .ok_or_else(|| corrupt("selected raw IFD is missing"))?;
-    let mut dng_metadata = Directory::default();
-    dng_metadata.extend(parsed.parsed.root.clone());
-    dng_metadata.extend(raw_metadata.clone());
-    Ok(dng_metadata)
-}
-
-pub fn process_metadata(parsed: &DngImage) -> Result<ProcessMetadata, DecodeError> {
-    let metadata = dng_metadata(parsed)?;
-    let width = required_u32(&metadata, TiffTag::ImageWidth)?;
-    let height = required_u32(&metadata, TiffTag::ImageLength)?;
-    process_metadata_from_dng_metadata(width, height, &metadata)
 }
 
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
@@ -156,55 +152,16 @@ fn validate_dimensions(pixels: &RawMosaic, metadata: &Directory) -> Result<(), D
     Ok(())
 }
 
-#[derive(Clone, Debug)]
-struct DecodePlan {
-    compression: DecodeCompression,
-    width: usize,
-    height: usize,
-    chunk_width: usize,
-    chunk_height: usize,
-    chunks: Vec<Chunk>,
-    bits_per_sample: u16,
-    sample_format: SampleFormat,
-    byte_order: ByteOrder,
-    predictor: Predictor,
-}
-
-impl DecodePlan {
-    fn request<'a>(&'a self, source: &'a [u8]) -> DecodeRequest<'a> {
-        DecodeRequest {
-            source,
-            compression: self.compression,
-            width: self.width,
-            height: self.height,
-            chunk_width: self.chunk_width,
-            chunk_height: self.chunk_height,
-            chunks: &self.chunks,
-            bits_per_sample: self.bits_per_sample,
-            sample_format: self.sample_format,
-            byte_order: self.byte_order,
-            predictor: self.predictor,
-        }
-    }
-}
-
-fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, DecodeError> {
+fn decode_plan<'a>(
+    source: &'a [u8],
+    metadata: &Directory,
+) -> Result<RasterRequest<'a>, DecodeError> {
     let width = required_u32(metadata, TiffTag::ImageWidth)?;
     let height = required_u32(metadata, TiffTag::ImageLength)?;
     if width == 0 || height == 0 {
         return Err(corrupt("DNG image dimensions must not be zero"));
     }
-    let compression = match CompressionMethod::from(required_u16(metadata, TiffTag::Compression)?) {
-        CompressionMethod::Uncompressed => DecodeCompression::Uncompressed,
-        CompressionMethod::LosslessJpeg => DecodeCompression::LosslessJpeg,
-        CompressionMethod::Deflate => DecodeCompression::Deflate,
-        CompressionMethod::LossyJpeg => DecodeCompression::LossyJpeg,
-        CompressionMethod::JpegXl => DecodeCompression::JpegXl,
-        CompressionMethod::Zstd => DecodeCompression::Zstd,
-        CompressionMethod::Unknown(value) => {
-            return Err(corrupt(format!("invalid DNG compression {value}")));
-        }
-    };
+    let compression = resolve_dng_compression(required_u16(metadata, TiffTag::Compression)?)?;
     let samples_per_pixel =
         unsigned_scalar(metadata.get(&Tag::from(TiffTag::SamplesPerPixel))).unwrap_or(1);
     if samples_per_pixel != 1 {
@@ -220,21 +177,21 @@ fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, Decode
             return Err(corrupt(format!("invalid DNG sample format {value}")));
         }
     };
-    let (chunk_width, chunk_height, offsets, byte_counts) = layout(metadata)?;
-    if offsets.len() != byte_counts.len() {
-        return Err(corrupt(format!(
-            "DNG chunk offsets and byte counts differ: {} offsets, {} byte counts",
-            offsets.len(),
-            byte_counts.len()
-        )));
-    }
-    let chunks = offsets
-        .into_iter()
-        .zip(byte_counts)
-        .map(|(offset, byte_count)| Chunk { offset, byte_count })
-        .collect();
     let predictor = match compression {
-        DecodeCompression::Deflate | DecodeCompression::Zstd => {
+        DecodeCompression::Deflate => {
+            match unsigned_scalar(metadata.get(&Tag::from(TiffTag::Predictor))).unwrap_or(1) {
+                1 => Predictor::None,
+                2 => Predictor::HorizontalInteger,
+                3 => Predictor::FloatingPoint { byte_stride: 1 },
+                34_894 => Predictor::FloatingPoint { byte_stride: 2 },
+                34_895 => Predictor::FloatingPoint { byte_stride: 4 },
+                value => {
+                    return Err(corrupt(format!("DNG predictor {value} is unsupported")));
+                }
+            }
+        }
+        #[cfg(feature = "zstd")]
+        DecodeCompression::Zstd => {
             match unsigned_scalar(metadata.get(&Tag::from(TiffTag::Predictor))).unwrap_or(1) {
                 1 => Predictor::None,
                 2 => Predictor::HorizontalInteger,
@@ -248,31 +205,35 @@ fn decode_plan(source: &[u8], metadata: &Directory) -> Result<DecodePlan, Decode
         }
         _ => Predictor::None,
     };
-    Ok(DecodePlan {
+    RasterRequest::new(
+        source,
+        metadata,
         compression,
-        width: usize::try_from(width).expect("u32 fits usize on supported platforms"),
-        height: usize::try_from(height).expect("u32 fits usize on supported platforms"),
-        chunk_width,
-        chunk_height,
-        chunks,
         bits_per_sample,
         sample_format,
-        byte_order: byte_order(source),
+        byte_order(source),
         predictor,
-    })
+    )
+    .map_err(|error| corrupt(error.to_string()))
+}
+
+fn resolve_dng_compression(id: u16) -> Result<DecodeCompression, DecodeError> {
+    match DngCompressionMethod::from(id) {
+        DngCompressionMethod::LossyJpeg => Ok(DecodeCompression::LossyJpeg),
+        #[cfg(feature = "zstd")]
+        DngCompressionMethod::Zstd => Ok(DecodeCompression::Zstd),
+        DngCompressionMethod::JpegXlLegacy | DngCompressionMethod::JpegXl => {
+            Ok(DecodeCompression::JpegXl)
+        }
+        _ => resolve_tiff_compression(id)
+            .ok_or_else(|| corrupt(format!("invalid DNG compression {id}"))),
+    }
 }
 
 fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, DecodeError> {
-    #[cfg(not(feature = "zstd"))]
-    if CompressionMethod::from(required_u16(metadata, TiffTag::Compression)?)
-        == CompressionMethod::Zstd
-    {
-        return Err(unsupported_variant(
-            "Zstandard compression requires the fornax-dng zstd feature",
-        ));
-    }
     let plan = decode_plan(source, metadata)?;
-    fornax_codec::decode(&plan.request(source)).map_err(codec_decode_error)
+    let samples = fornax_codec::decode(&plan.codec_request()).map_err(codec_decode_error)?;
+    into_raw_mosaic(samples)
 }
 
 fn codec_decode_error(error: fornax_codec::CodecError) -> DecodeError {
@@ -280,38 +241,6 @@ fn codec_decode_error(error: fornax_codec::CodecError) -> DecodeError {
         fornax_codec::CodecError::InvalidInput(detail) => DecodeError::InvalidInput(detail),
         fornax_codec::CodecError::Unsupported(detail) => DecodeError::Unsupported(detail),
     }
-}
-
-fn layout(metadata: &Directory) -> Result<(usize, usize, Vec<usize>, Vec<usize>), DecodeError> {
-    if metadata.contains_key(&Tag::from(TiffTag::TileOffsets)) {
-        let width = usize::try_from(required_u32(metadata, TiffTag::TileWidth)?)
-            .expect("u32 fits usize on supported platforms");
-        let height = usize::try_from(required_u32(metadata, TiffTag::TileLength)?)
-            .expect("u32 fits usize on supported platforms");
-        if width == 0 || height == 0 {
-            return Err(corrupt("DNG tile dimensions must not be zero"));
-        }
-        return Ok((
-            width,
-            height,
-            unsigned_vec(metadata, TiffTag::TileOffsets)?,
-            unsigned_vec(metadata, TiffTag::TileByteCounts)?,
-        ));
-    }
-
-    let width = usize::try_from(required_u32(metadata, TiffTag::ImageWidth)?)
-        .expect("u32 fits usize on supported platforms");
-    let height = usize::try_from(required_u32(metadata, TiffTag::RowsPerStrip)?)
-        .expect("u32 fits usize on supported platforms");
-    if width == 0 || height == 0 {
-        return Err(corrupt("DNG strip dimensions must not be zero"));
-    }
-    Ok((
-        width,
-        height,
-        unsigned_vec(metadata, TiffTag::StripOffsets)?,
-        unsigned_vec(metadata, TiffTag::StripByteCounts)?,
-    ))
 }
 
 fn sample_format(metadata: &Directory) -> u64 {
@@ -345,39 +274,18 @@ where
     u32::try_from(value).map_err(|_| corrupt(format!("{tag} is out of range")))
 }
 
-fn unsigned_scalar(value: Option<&Value>) -> Option<u64> {
-    match value? {
-        Value::Byte(value) => Some(u64::from(*value)),
-        Value::Short(value) => Some(u64::from(*value)),
-        Value::Unsigned(value) | Value::Ifd(value) => Some(u64::from(*value)),
-        Value::UnsignedBig(value) | Value::IfdBig(value) => Some(*value),
-        Value::List(values) => unsigned_scalar(Some(values.first()?)),
-        _ => None,
-    }
-}
-
 fn unsigned_vec<T>(metadata: &Directory, tag: T) -> Result<Vec<usize>, DecodeError>
 where
     T: Into<Tag>,
 {
     let tag = tag.into();
-    let value = metadata
-        .get(&tag)
-        .ok_or_else(|| corrupt(format!("{tag} is missing")))?;
-    let values = value
-        .clone()
-        .into_u64_vec()
-        .map_err(|_| corrupt(format!("{tag} has an invalid value type")))?;
-    values
-        .into_iter()
-        .map(|value| {
-            usize::try_from(value).map_err(|_| {
-                corrupt(format!(
-                    "{tag} contains a value too large for this platform"
-                ))
-            })
-        })
-        .collect()
+    tiff_unsigned_vec(metadata, tag).map_err(|error| match error {
+        ValueAccessError::Missing => corrupt(format!("{tag} is missing")),
+        ValueAccessError::InvalidType => corrupt(format!("{tag} has an invalid value type")),
+        ValueAccessError::Overflow => corrupt(format!(
+            "{tag} contains a value too large for this platform"
+        )),
+    })
 }
 
 fn unsupported_variant(detail: impl Into<Box<str>>) -> DecodeError {
@@ -390,30 +298,43 @@ fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInp
 mod tests {
     use std::io::Cursor;
 
-    #[cfg(not(feature = "zstd"))]
-    use fornax_core::error::DecodeError;
-    use fornax_core::{MonoImage, RawMosaic};
-    use fornax_tiff::constants::TiffTag;
+    use fornax_raw_core::{MonoImage, RawMosaic};
+    use fornax_tiff::constants::{CompressionMethod, TiffTag};
     use fornax_tiff::{Tag, TiffWriter, Value};
 
-    use super::{DngImage, process_metadata};
+    use super::*;
+    use crate::constants::DngCompressionMethod;
 
     #[test]
-    fn compression_methods_preserve_known_and_unknown_identifiers() {
+    fn dng_compression_methods_preserve_known_and_unknown_identifiers() {
         assert_eq!(
-            super::CompressionMethod::from(7),
-            super::CompressionMethod::LosslessJpeg
+            DngCompressionMethod::from(34_892),
+            DngCompressionMethod::LossyJpeg
         );
-        assert_eq!(u16::from(super::CompressionMethod::from(7)), 7);
+        assert_eq!(u16::from(DngCompressionMethod::from(34_892)), 34_892);
         assert_eq!(
-            super::CompressionMethod::from(12_345),
-            super::CompressionMethod::Unknown(12_345)
+            DngCompressionMethod::from(12_345),
+            DngCompressionMethod::Unknown(12_345)
         );
-        assert_eq!(u16::from(super::CompressionMethod::from(12_345)), 12_345);
+        assert_eq!(u16::from(DngCompressionMethod::from(12_345)), 12_345);
     }
 
     #[test]
-    fn dng_metadata_maps_to_a_codec_decode_request() {
+    fn raw_ifd_detection_accepts_tiff_ep_cfa_and_dng_linear_raw() {
+        for photometric in [32_803, 34_892] {
+            let mut metadata = Directory::default();
+            metadata.insert(Tag::from(TiffTag::NewSubfileType), Value::Unsigned(0));
+            metadata.insert(
+                Tag::from(TiffTag::PhotometricInterpretation),
+                Value::Short(photometric),
+            );
+
+            assert!(super::is_raw_ifd(&metadata), "photometric {photometric}");
+        }
+    }
+
+    #[test]
+    fn dng_raster_request_preserves_tile_predictor_and_chunks() {
         let source = b"MMxxxxxxxx";
         let mut metadata = metadata(
             4,
@@ -437,20 +358,35 @@ mod tests {
         );
         metadata.insert(
             Tag::from(TiffTag::Compression),
-            Value::Short(u16::from(super::CompressionMethod::Deflate)),
+            Value::Short(u16::from(CompressionMethod::Deflate)),
         );
 
-        let plan = super::decode_plan(source, &metadata).unwrap();
+        let request = super::decode_plan(source, &metadata).unwrap();
 
-        assert_eq!(plan.compression, fornax_codec::DecodeCompression::Deflate);
-        assert_eq!((plan.width, plan.height), (4, 2));
-        assert_eq!((plan.chunk_width, plan.chunk_height), (4, 1));
-        assert_eq!(plan.bits_per_sample, 12);
-        assert_eq!(plan.sample_format, fornax_codec::SampleFormat::Integer);
-        assert_eq!(plan.byte_order, fornax_codec::ByteOrder::Big);
-        assert_eq!(plan.predictor, fornax_codec::Predictor::HorizontalInteger);
         assert_eq!(
-            plan.chunks,
+            request.compression(),
+            fornax_codec::DecodeCompression::Deflate
+        );
+        assert_eq!(
+            (request.layout().width(), request.layout().height()),
+            (4, 2)
+        );
+        assert_eq!(
+            (
+                request.layout().chunk_width(),
+                request.layout().chunk_height()
+            ),
+            (4, 1)
+        );
+        assert_eq!(request.bits_per_sample(), 12);
+        assert_eq!(request.sample_format(), fornax_codec::SampleFormat::Integer);
+        assert_eq!(request.byte_order(), fornax_codec::ByteOrder::Big);
+        assert_eq!(
+            request.predictor(),
+            fornax_codec::Predictor::HorizontalInteger
+        );
+        assert_eq!(
+            request.layout().chunks(),
             vec![
                 fornax_codec::Chunk {
                     offset: 2,
@@ -462,6 +398,36 @@ mod tests {
                 },
             ]
         );
+    }
+
+    #[test]
+    fn dng_compression_resolution_prefers_dng_ids_and_falls_back_to_tiff() {
+        for (id, expected) in [
+            (1, fornax_codec::DecodeCompression::Uncompressed),
+            (7, fornax_codec::DecodeCompression::LosslessJpeg),
+            (8, fornax_codec::DecodeCompression::Deflate),
+            (34_892, fornax_codec::DecodeCompression::LossyJpeg),
+            (50_000, fornax_codec::DecodeCompression::Zstd),
+            (50_002, fornax_codec::DecodeCompression::JpegXl),
+            (52_546, fornax_codec::DecodeCompression::JpegXl),
+        ] {
+            assert_eq!(
+                super::resolve_dng_compression(id).unwrap(),
+                expected,
+                "compression {id}"
+            );
+        }
+    }
+
+    #[test]
+    fn unknown_dng_compression_remains_invalid_input() {
+        let error = super::resolve_dng_compression(12_345).unwrap_err();
+
+        assert!(matches!(
+            error,
+            fornax_raw_core::error::DecodeError::InvalidInput(_)
+        ));
+        assert!(error.to_string().contains("invalid DNG compression 12345"));
     }
 
     #[test]
@@ -479,12 +445,32 @@ mod tests {
         );
         metadata.insert(
             Tag::from(TiffTag::Compression),
-            Value::Short(u16::from(super::CompressionMethod::Zstd)),
+            Value::Short(u16::from(DngCompressionMethod::Zstd)),
         );
 
         let plan = super::decode_plan(source, &metadata).unwrap();
 
-        assert_eq!(plan.compression, fornax_codec::DecodeCompression::Zstd);
+        assert_eq!(plan.compression(), fornax_codec::DecodeCompression::Zstd);
+    }
+
+    #[test]
+    fn legacy_jpeg_xl_metadata_maps_to_jpeg_xl_decode_compression() {
+        let source = b"MM";
+        let mut metadata = metadata(
+            1,
+            1,
+            8,
+            1,
+            [
+                (TiffTag::TileWidth.into(), Value::Unsigned(1)),
+                (TiffTag::TileLength.into(), Value::Unsigned(1)),
+            ],
+        );
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(50_002));
+
+        let plan = super::decode_plan(source, &metadata).unwrap();
+
+        assert_eq!(plan.compression(), fornax_codec::DecodeCompression::JpegXl);
     }
 
     #[test]
@@ -510,7 +496,7 @@ mod tests {
 
         assert!(matches!(
             error,
-            fornax_core::error::DecodeError::InvalidInput(_)
+            fornax_raw_core::error::DecodeError::InvalidInput(_)
         ));
     }
 
@@ -600,7 +586,8 @@ mod tests {
         };
 
         let parsed = DngImage::parse(cursor.get_ref()).expect("the synthetic TIFF should parse");
-        let metadata = process_metadata(&parsed)
+        let metadata = parsed
+            .process_metadata()
             .expect("metadata access must not depend on the pixel payload");
         assert_eq!(metadata.active_area.width, 4);
         assert_eq!(metadata.active_area.height, 4);
@@ -617,14 +604,13 @@ mod tests {
             .unwrap();
 
         let parsed = DngImage::parse(output.get_ref()).unwrap();
-        let decoded = super::raw_mosaic(&parsed).unwrap();
+        let decoded = parsed.raw_mosaic().unwrap();
         let RawMosaic::U16(image) = decoded else {
             panic!("written 16-bit samples must decode as u16");
         };
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
     }
 
-    #[cfg(feature = "zstd")]
     #[test]
     fn zstd_writer_round_trips_u16_samples() {
         let samples = vec![0, 65_535, 30_000, 32_768, 1, 2, 40_000, 12_345];
@@ -636,13 +622,12 @@ mod tests {
             .unwrap();
 
         let parsed = DngImage::parse(output.get_ref()).unwrap();
-        let RawMosaic::U16(image) = super::raw_mosaic(&parsed).unwrap() else {
+        let RawMosaic::U16(image) = parsed.raw_mosaic().unwrap() else {
             panic!("zstd samples must decode as u16");
         };
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
     }
 
-    #[cfg(feature = "zstd")]
     #[test]
     fn zstd_writer_round_trips_u8_u32_and_f32_samples() {
         let u8_samples = vec![0, 1, 2, 255];
@@ -667,7 +652,7 @@ mod tests {
                 .write_dng_with(&mut output, &mosaic, &writable_metadata(4, 1))
                 .unwrap();
             let parsed = DngImage::parse(output.get_ref()).unwrap();
-            match (mosaic, super::raw_mosaic(&parsed).unwrap()) {
+            match (mosaic, parsed.raw_mosaic().unwrap()) {
                 (RawMosaic::U8(expected), RawMosaic::U8(decoded)) => {
                     assert_eq!(decoded, expected, "{expected:?}");
                 }
@@ -694,19 +679,6 @@ mod tests {
         }
     }
 
-    #[cfg(not(feature = "zstd"))]
-    #[test]
-    fn zstd_decode_without_feature_returns_unsupported() {
-        let mut metadata = writable_metadata(1, 1);
-        metadata.insert(Tag::from(TiffTag::ImageWidth), Value::Unsigned(1));
-        metadata.insert(Tag::from(TiffTag::ImageLength), Value::Unsigned(1));
-        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(50_000));
-
-        let error = super::decode_samples(&[], &metadata).expect_err("zstd feature is disabled");
-
-        assert!(matches!(error, DecodeError::Unsupported(_)), "{error:?}");
-    }
-
     #[test]
     fn lossless_writer_round_trips_u8_samples() {
         let samples = vec![0, 255, 128, 1, 254, 64, 200, 7];
@@ -718,7 +690,7 @@ mod tests {
             .unwrap();
 
         let parsed = DngImage::parse(output.get_ref()).unwrap();
-        let decoded = super::raw_mosaic(&parsed).unwrap();
+        let decoded = parsed.raw_mosaic().unwrap();
         let RawMosaic::U8(image) = decoded else {
             panic!("written 8-bit samples must decode as u8");
         };
@@ -747,11 +719,11 @@ mod tests {
             .write_dng_with(&mut output, &mosaic, &metadata)
             .unwrap();
         let parsed = DngImage::parse(output.get_ref()).unwrap();
-        let generated = super::dng_metadata(&parsed).unwrap();
+        let generated = parsed.dng_metadata().unwrap();
         assert!(!generated.contains_key(&Tag::from(DngTag::LinearizationTable)));
         assert!(!generated.contains_key(&Tag::from(DngTag::Unknown(50_975))));
         assert!(!generated.contains_key(&Tag::from(DngTag::Unknown(50_976))));
-        let RawMosaic::U16(image) = super::raw_mosaic(&parsed).unwrap() else {
+        let RawMosaic::U16(image) = parsed.raw_mosaic().unwrap() else {
             panic!("written samples must remain u16");
         };
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
@@ -770,7 +742,7 @@ mod tests {
             )
             .unwrap();
         let integer_parsed = DngImage::parse(integer_output.get_ref()).unwrap();
-        let RawMosaic::U32(decoded_integers) = super::raw_mosaic(&integer_parsed).unwrap() else {
+        let RawMosaic::U32(decoded_integers) = integer_parsed.raw_mosaic().unwrap() else {
             panic!("wide integers must remain u32");
         };
         assert_eq!(decoded_integers.as_raw().as_slice(), integers.as_slice());
@@ -782,7 +754,7 @@ mod tests {
             .write_dng_with(&mut float_output, &float_mosaic, &writable_metadata(3, 1))
             .unwrap();
         let float_parsed = DngImage::parse(float_output.get_ref()).unwrap();
-        let RawMosaic::F32(decoded_floats) = super::raw_mosaic(&float_parsed).unwrap() else {
+        let RawMosaic::F32(decoded_floats) = float_parsed.raw_mosaic().unwrap() else {
             panic!("floating-point samples must remain f32");
         };
         assert_eq!(

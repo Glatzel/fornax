@@ -99,8 +99,8 @@ file; explicit CLI paths resolve relative to the current directory.
 
 - `Cargo.toml`
 - `crates/fornax-cli/**`
-- `crates/fornax/examples/pipeline.rs`
-- `crates/fornax/README.md`
+- `crates/fornax-raw/examples/pipeline.rs`
+- `crates/fornax-raw/README.md`
 - `pixi.toml`
 - `.github/workflows/ci.yml`
 - `docs/architecture.md`

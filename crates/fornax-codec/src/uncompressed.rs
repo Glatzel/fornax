@@ -1,14 +1,13 @@
 //! Directly stored sample decoding and encoding.
 
 use bytemuck::Pod;
-use fornax_core::RawMosaic;
 
 use crate::encode::encode_image;
 use crate::error::invalid;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks};
 use crate::samples::{Geometry, chunk, decode_payloads};
-use crate::{CodecError, Predictor};
-pub fn decode(request: &DecodeRequest<'_>) -> Result<RawMosaic, CodecError> {
+use crate::{CodecError, Predictor, SampleBuffer};
+pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     if request.predictor != Predictor::None {
         return Err(invalid("uncompressed samples do not support prediction"));
     }
@@ -38,7 +37,8 @@ pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> 
     if request.predictor != Predictor::None {
         return Err(invalid("uncompressed samples do not support prediction"));
     }
-    let (width, height) = request.image.dimensions();
+    let width = request.image.width();
+    let height = request.image.height();
     if usize::try_from(width).ok() == Some(request.chunk_width)
         && usize::try_from(height).ok() == Some(request.chunk_height)
         && width != 0
@@ -81,52 +81,44 @@ where
     }
     out
 }
-fn serialize_full_image(image: &RawMosaic, byte_order: crate::ByteOrder) -> Vec<u8> {
+fn serialize_full_image(image: &SampleBuffer, byte_order: crate::ByteOrder) -> Vec<u8> {
     match image {
-        RawMosaic::U8(s) => s.as_raw().clone(),
-        RawMosaic::U16(s) => serialize_samples(s.as_raw(), byte_order),
-        RawMosaic::U32(s) => serialize_samples(s.as_raw(), byte_order),
-        RawMosaic::F32(s) => serialize_samples(s.as_raw(), byte_order),
+        SampleBuffer::U8(s) => s.as_raw().clone(),
+        SampleBuffer::U16(s) => serialize_samples(s.as_raw(), byte_order),
+        SampleBuffer::U32(s) => serialize_samples(s.as_raw(), byte_order),
+        SampleBuffer::F32(s) => serialize_samples(s.as_raw(), byte_order),
     }
 }
 #[cfg(test)]
 mod tests {
-    use fornax_core::{MonoImage, RawMosaic};
-
     use super::serialize_full_image;
-    use crate::ByteOrder;
+    use crate::{ByteOrder, SampleBuffer};
 
     #[test]
     fn full_image_serialization_preserves_sample_types_and_byte_order() {
         let cases = [
             (
-                RawMosaic::U8(MonoImage::from_raw(2, 2, vec![1, 2, 3, 4]).unwrap()),
+                SampleBuffer::from_u8(2, 2, vec![1, 2, 3, 4]).unwrap(),
                 ByteOrder::Little,
                 vec![1, 2, 3, 4],
             ),
             (
-                RawMosaic::U16(
-                    MonoImage::from_raw(2, 2, vec![0x0102, 0x0304, 0xabcd, 0xff00]).unwrap(),
-                ),
+                SampleBuffer::from_u16(2, 2, vec![0x0102, 0x0304, 0xabcd, 0xff00]).unwrap(),
                 ByteOrder::Little,
                 vec![0x02, 0x01, 0x04, 0x03, 0xcd, 0xab, 0x00, 0xff],
             ),
             (
-                RawMosaic::U16(
-                    MonoImage::from_raw(2, 2, vec![0x0102, 0x0304, 0xabcd, 0xff00]).unwrap(),
-                ),
+                SampleBuffer::from_u16(2, 2, vec![0x0102, 0x0304, 0xabcd, 0xff00]).unwrap(),
                 ByteOrder::Big,
                 vec![0x01, 0x02, 0x03, 0x04, 0xab, 0xcd, 0xff, 0x00],
             ),
             (
-                RawMosaic::U32(
-                    MonoImage::from_raw(
-                        2,
-                        2,
-                        vec![0x0102_0304, 0x80ff_0011, 0x1122_3344, 0xdead_beef],
-                    )
-                    .unwrap(),
-                ),
+                SampleBuffer::from_u32(
+                    2,
+                    2,
+                    vec![0x0102_0304, 0x80ff_0011, 0x1122_3344, 0xdead_beef],
+                )
+                .unwrap(),
                 ByteOrder::Little,
                 vec![
                     0x04, 0x03, 0x02, 0x01, 0x11, 0x00, 0xff, 0x80, 0x44, 0x33, 0x22, 0x11, 0xef,
@@ -134,14 +126,12 @@ mod tests {
                 ],
             ),
             (
-                RawMosaic::U32(
-                    MonoImage::from_raw(
-                        2,
-                        2,
-                        vec![0x0102_0304, 0x80ff_0011, 0x1122_3344, 0xdead_beef],
-                    )
-                    .unwrap(),
-                ),
+                SampleBuffer::from_u32(
+                    2,
+                    2,
+                    vec![0x0102_0304, 0x80ff_0011, 0x1122_3344, 0xdead_beef],
+                )
+                .unwrap(),
                 ByteOrder::Big,
                 vec![
                     0x01, 0x02, 0x03, 0x04, 0x80, 0xff, 0x00, 0x11, 0x11, 0x22, 0x33, 0x44, 0xde,
@@ -149,10 +139,8 @@ mod tests {
                 ],
             ),
             (
-                RawMosaic::F32(
-                    MonoImage::from_raw(2, 2, vec![1.0, 0.25, -0.0, f32::from_bits(0x7fc0_1234)])
-                        .unwrap(),
-                ),
+                SampleBuffer::from_f32(2, 2, vec![1.0, 0.25, -0.0, f32::from_bits(0x7fc0_1234)])
+                    .unwrap(),
                 ByteOrder::Little,
                 vec![
                     0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x80, 0x3e, 0x00, 0x00, 0x00, 0x80, 0x34,
@@ -160,10 +148,8 @@ mod tests {
                 ],
             ),
             (
-                RawMosaic::F32(
-                    MonoImage::from_raw(2, 2, vec![1.0, 0.25, -0.0, f32::from_bits(0x7fc0_1234)])
-                        .unwrap(),
-                ),
+                SampleBuffer::from_f32(2, 2, vec![1.0, 0.25, -0.0, f32::from_bits(0x7fc0_1234)])
+                    .unwrap(),
                 ByteOrder::Big,
                 vec![
                     0x3f, 0x80, 0x00, 0x00, 0x3e, 0x80, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x7f,

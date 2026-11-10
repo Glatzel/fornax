@@ -2,7 +2,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
-use fornax_core::error::DecodeError;
+use fornax_raw_core::error::DecodeError;
 use strum::{AsRefStr, Display, EnumString};
 
 #[derive(

@@ -1,8 +1,9 @@
 use std::io::Cursor;
 
-use fornax_dng::{DngImage, DngTag, dng_metadata};
+use fornax_dng::DngTag;
+use fornax_dng::dng_decoder::DngImage;
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{Directory, TiffWriter, Value};
+use fornax_tiff::{Tag, TiffWriter, Value};
 
 #[test]
 fn dng_metadata_returns_directory_with_tag_keys() {
@@ -42,10 +43,14 @@ fn dng_metadata_returns_directory_with_tag_keys() {
                     Value::Unsigned(4),
                 ]),
             ),
+            (Tag(60_001), Value::Ascii("private metadata".into())),
         ])
         .unwrap();
 
-    let metadata: Directory = dng_metadata(&DngImage::parse(output.get_ref()).unwrap()).unwrap();
+    let metadata = DngImage::parse(output.get_ref())
+        .unwrap()
+        .dng_metadata()
+        .unwrap();
 
     assert_eq!(
         metadata.get(&TiffTag::ImageWidth.into()),
@@ -60,4 +65,10 @@ fn dng_metadata_returns_directory_with_tag_keys() {
             Value::Unsigned(4),
         ]))
     );
+    assert_eq!(
+        metadata.get(&Tag(60_001)),
+        Some(&Value::Ascii("private metadata".into()))
+    );
+    assert_eq!(DngTag::from(Tag(50_706)), DngTag::DngVersion);
+    assert_eq!(DngTag::from(Tag(60_001)), DngTag::Unknown(60_001));
 }

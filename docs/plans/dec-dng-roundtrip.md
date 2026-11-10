@@ -14,7 +14,7 @@ repository check green or explicitly reported.
 
 In scope:
 
-- Existing `fornax_core::Decoder` and `fornax_core::writer` behavior only; no
+- Existing `fornax_raw_core::Decoder` and `fornax_raw_core::writer` behavior only; no
   public API changes and no new code documentation.
 - Integration coverage for the accepted
   `external/raw-images/images/colorchart-5D2-6000K.dng` fixture.
@@ -36,8 +36,8 @@ Out of scope:
 
 ### Task 1: Add fixture-backed DNG integration coverage
 
-- [x] Add `tempfile.workspace = true` to `fornax-core` dev dependencies.
-- [x] Add `crates/fornax-core/tests/dng_roundtrip.rs`.
+- [x] Add `tempfile.workspace = true` to `fornax-raw-core` dev dependencies.
+- [x] Add `crates/fornax-raw-core/tests/dng_roundtrip.rs`.
 - [x] Assert full-frame dimensions, active/default crop geometry, full GBRG
       and active RGGB patterns, black/white levels, representative metadata, and
       the accepted sample hash.
@@ -50,7 +50,7 @@ Out of scope:
 ### Task 2: Repair branch checks without API or code-doc additions
 
 - [x] Correct the five existing doctest imports from `fornax_decoder` to their
-      current `fornax_core` paths.
+      current `fornax_raw_core` paths.
 - [x] Replace repeated `MosaicData` variant names with `Self` in
       `MosaicData::dimensions`.
 - [x] Remove the unnecessary semicolon after the compression match.
@@ -77,7 +77,7 @@ Out of scope:
 ### Task 4: Reconcile active documentation and migration cleanup
 
 - [x] Update `AGENTS.md` and `crates/compare-demosaic/AGENTS.md` for the
-      `fornax-core` decoder ownership, DNG fixture, and legacy-backend removal.
+      `fornax-raw-core` decoder ownership, DNG fixture, and legacy-backend removal.
 - [x] Update active architecture, decoder format/status, benchmark, corpus,
       reference-note, root README, and crate README guidance.
 - [x] Rewrite this plan's progress, files, validation, and decisions as work
@@ -106,23 +106,23 @@ Out of scope:
 - `.github/workflows/ci.yml`
 - `.github/workflows/libraw-bindgen.yml` (delete)
 - `Cargo.toml`, `Cargo.lock`
-- `crates/fornax-core/Cargo.toml`
-- `crates/fornax-core/src/error.rs`
-- `crates/fornax-core/src/format.rs`
-- `crates/fornax-core/src/metadata/dng.rs`
-- `crates/fornax-core/src/primitive.rs`
-- `crates/fornax-core/src/writer.rs`
-- `crates/fornax-core/tests/dng_roundtrip.rs`
-- `crates/fornax-core/README.md`
-- `crates/fornax-core/benches/decoder.rs`
-- `crates/fornax-preprocessor/README.md`
-- `crates/fornax-preprocessor/benches/preprocessor.rs`
-- `crates/fornax-postprocessor/benches/demosaic.rs`
-- `crates/fornax-postprocessor/benches/support/demosaic_registry.rs`
-- `crates/fornax-postprocessor/src/demosaic/linear.rs`
-- `crates/fornax-postprocessor/src/demosaic/lmmse.rs`
-- `crates/fornax/examples/pipeline.rs`
-- `crates/fornax/README.md`
+- `crates/fornax-raw-core/Cargo.toml`
+- `crates/fornax-raw-core/src/error.rs`
+- `crates/fornax-raw-core/src/format.rs`
+- `crates/fornax-raw-core/src/metadata/dng.rs`
+- `crates/fornax-raw-core/src/primitive.rs`
+- `crates/fornax-raw-core/src/writer.rs`
+- `crates/fornax-raw-core/tests/dng_roundtrip.rs`
+- `crates/fornax-raw-core/README.md`
+- `crates/fornax-raw-core/benches/decoder.rs`
+- `crates/fornax-raw-pipeline/README.md`
+- `crates/fornax-raw-pipeline/benches/preprocessor.rs`
+- `crates/fornax-raw-pipeline/benches/demosaic.rs`
+- `crates/fornax-raw-pipeline/benches/support/demosaic_registry.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/linear.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
+- `crates/fornax-raw/examples/pipeline.rs`
+- `crates/fornax-raw/README.md`
 - `crates/compare-demosaic/AGENTS.md`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
@@ -153,13 +153,13 @@ export OMP_NUM_THREADS=1
 Then run:
 
 ```bash
-cargo test -p fornax-core --test dng_roundtrip
+cargo test -p fornax-raw-core --test dng_roundtrip
 cargo test --workspace --all-features
 cargo +nightly fmt --check
 cargo clippy --workspace --all-features --all-targets -- <exact AGENTS.md lint list>
 RUSTFLAGS=-Dwarnings cargo doc --workspace --all-features --no-deps
-cargo bench -p fornax-core --no-run
-cargo run -p fornax --example pipeline
+cargo bench -p fornax-raw-core --no-run
+cargo run -p fornax-raw --example pipeline
 cargo test -p compare-demosaic --all-features
 cargo run --release -p compare-demosaic -- readme --check
 cargo run --release -p compare-demosaic -- run --artifacts
@@ -179,7 +179,7 @@ Observed on this worktree:
 - `cargo clippy` with the exact repository lint list: no issues.
 - `cargo +nightly fmt --check`, `git diff --check`, and the docs build with
   warnings denied: passed.
-- `cargo bench -p fornax-core --no-run` and the DNG pipeline example: passed.
+- `cargo bench -p fornax-raw-core --no-run` and the DNG pipeline example: passed.
 - `compare-demosaic run --artifacts` followed by `diff`: no differences with
   `OMP_NUM_THREADS=1`.
 - Production dependency-tree scan: no `fornax-decoder`, Rawler, LibRaw,

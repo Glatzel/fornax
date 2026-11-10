@@ -1,0 +1,199 @@
+name: Decoder corpus
+
+on:
+  workflow_dispatch:
+    inputs:
+      filter:
+        description: Repository-relative path glob. `*` stays within a segment; `**` crosses directories.
+        type: string
+        required: true
+        default: "**/*.[dD][nN][gG]"
+      formats:
+        description: Comma-separated corpus formats passed to decoder-tracker run.
+        type: string
+        required: true
+        default: "DNG"
+      run_duckdb_tests:
+        description: Test DuckDB selection, aggregation, and badge shell scripts before running shards.
+        type: boolean
+        required: false
+        default: false
+
+concurrency:
+  group: decoder-tracker-corpus-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      filter: ${{ steps.plan.outputs.filter }}
+      runner_count: ${{ steps.plan.outputs.runner_count }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
+        with:
+          run-install: false
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+        if: ${{ inputs.run_duckdb_tests }}
+      - name: Install tracker tools
+        run: pixi install -e tracker
+      - name: Test DuckDB aggregation
+        if: ${{ inputs.run_duckdb_tests }}
+        run: pixi run -e tracker cargo test -q -p decoder-tracker duckdb_
+      - id: plan
+        shell: bash
+        env:
+          REQUESTED_FILTER: ${{ inputs.filter }}
+        run: |
+          filter="${REQUESTED_FILTER:-**/*.[dD][nN][gG]}"
+          result="$(
+            pixi run -e tracker bash crates/decoder-tracker/scripts/select.sh \
+              --filter "$filter" \
+              --out target/decoder-tracker/selected-manifest.csv
+          )"
+          printf '%s\n' "$result"
+          case "$result" in
+            selected=*) selected="${result#selected=}" ;;
+            *)
+              printf 'unexpected select output: %s\n' "$result" >&2
+              exit 2
+              ;;
+          esac
+
+          runner_count=$(( (selected + 9) / 10 ))
+          if ((runner_count < 1)); then
+            runner_count=1
+          elif ((runner_count > 20)); then
+            runner_count=20
+          fi
+
+          matrix='{"include":['
+          for ((index = 0; index < runner_count; index++)); do
+            if ((index > 0)); then
+              matrix+=','
+            fi
+            matrix+="{\"index\":$index,\"count\":$runner_count}"
+          done
+          matrix+=']}'
+
+          printf 'filter=%s\n' "$filter" >>"$GITHUB_OUTPUT"
+          printf 'runner_count=%s\n' "$runner_count" >>"$GITHUB_OUTPUT"
+          printf 'matrix=%s\n' "$matrix" >>"$GITHUB_OUTPUT"
+          printf 'selected %s files across %s runners\n' "$selected" "$runner_count"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: decoder-selected-manifest
+          path: target/decoder-tracker/selected-manifest.csv
+          retention-days: 1
+          if-no-files-found: error
+
+  shard:
+    name: shard ${{ matrix.index }}/${{ matrix.count }}
+    needs: plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: decoder-selected-manifest
+          path: target/decoder-tracker
+      - name: Initialize pointer-only corpus
+        shell: bash
+        env:
+          GIT_LFS_SKIP_SMUDGE: "1"
+        run: |
+          git -c filter.lfs.required=false \
+            -c submodule.external/raw.pixls.us.branch=master \
+            submodule update --init --remote external/raw.pixls.us
+      - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
+        with:
+          run-install: false
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - name: Install development tools
+        run: pixi install -e dev
+      - name: Check corpus manifest and run shard
+        shell: bash
+        env:
+          CI: "true"
+          REQUESTED_FORMATS: ${{ inputs.formats }}
+        run: |
+          format_args=()
+          IFS=',' read -r -a formats <<< "${REQUESTED_FORMATS:-DNG}"
+          for format in "${formats[@]}"; do
+            format="${format//[[:space:]]/}"
+            if [[ -n "$format" ]]; then
+              format_args+=(--format "$format")
+            fi
+          done
+          pixi run -e dev cargo run -q -p decoder-tracker -- manifest --check
+          pixi run -e dev cargo run -q -p decoder-tracker -- run \
+            --manifest target/decoder-tracker/selected-manifest.csv \
+            "${format_args[@]}" \
+            --shard "${{ matrix.index }}/${{ matrix.count }}" \
+            --out "target/decoder-tracker/shards/shard-${{ matrix.index }}.csv"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: decoder-shard-${{ matrix.index }}
+          path: target/decoder-tracker/shards/shard-${{ matrix.index }}.csv
+          retention-days: 1
+          if-no-files-found: error
+
+  aggregate:
+    name: aggregate
+    needs: [plan, shard]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: decoder-selected-manifest
+          path: target/decoder-tracker
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: decoder-shard-*
+          path: target/decoder-tracker/shards
+          merge-multiple: true
+      - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
+        with:
+          run-install: false
+      - name: Install tracker tools
+        run: pixi install -e tracker
+      - id: aggregate
+        shell: bash
+        run: |
+          pixi run -e tracker bash crates/decoder-tracker/scripts/aggregate.sh \
+            --selected target/decoder-tracker/selected-manifest.csv \
+            --baseline crates/decoder-tracker/baseline.csv \
+            --work-dir target/decoder-tracker/update \
+            --github-output "$GITHUB_OUTPUT" \
+            -- target/decoder-tracker/shards/*.csv
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.aggregate.outputs.changed == 'true' }}
+        with:
+          name: decoder-baseline-update
+          path: target/decoder-tracker/update
+          retention-days: 3
+          if-no-files-found: error
+      - name: Fail when reviewed rows changed
+        if: ${{ steps.aggregate.outputs.outcome == 'changed' }}
+        run: exit 1

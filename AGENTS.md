@@ -13,7 +13,7 @@ Read [docs/architecture.md](docs/architecture.md) for crate roles, interfaces,
 and pipeline data flow. These invariants always apply:
 
 - Keep decoding, preprocessing, and demosaicing as separate stages.
-- `fornax-core` owns shared image wrappers, process metadata, errors, and stage
+- `fornax-raw-core` owns shared image wrappers, process metadata, errors, and stage
   traits. It does not own TIFF/DNG parsing, decoded directory metadata, DNG
   writing, or a decoder implementation.
 - `fornax-tiff` owns generic TIFF tags (`Tag` and `TiffTag`), typed TIFF field
@@ -23,8 +23,8 @@ and pipeline data flow. These invariants always apply:
 - `fornax-dng` owns DNG-only tags (`DngTag`), a `Directory` keyed by `Tag`,
   DNG-specific transforms, and DNG writing.
 - `fornax-decoder::Decoder<T>` is the default pure-Rust DNG decoder. The
-  `fornax` facade re-exports it as `fornax::decoder::Decoder` and the DNG
-  format layer as `fornax::dng`.
+  `fornax-raw` facade re-exports it as `fornax_raw::decoder::Decoder` and the
+  DNG format layer as `fornax_raw::dng`.
 - `fornax-decoder-rawler` is an alternate Rawler-backed decoder for supported
   conventional 2x2 RGB Bayer files. `fornax-decoder-dnc` converts with Adobe
   DNG Converter before decoding with Rawler; its facade export is limited to
@@ -33,8 +33,12 @@ and pipeline data flow. These invariants always apply:
   returned value exposes `raw_mosaic`, `cropped_mosaic`, `dng_metadata`, and
   `process_metadata`. `dng_metadata` returns a `fornax_tiff::Directory`;
   decoder-specific parsing state must stay behind that interface.
-- `bench-decoder` owns decoder benchmarks. Demosaic and preprocessor benchmarks
-  stay in their production stage crates.
+- `fornax-raw-pipeline` owns black/white normalization, demosaic protocols and
+  algorithms, RGB reconstruction, and postprocessing.
+- `fornax-decoder` owns decoder benchmarks. Demosaic and preprocessor
+  benchmarks live in `fornax-raw-pipeline`.
+- `decoder-tracker` owns the manual raw.pixls.us decoder regression tracker,
+  pointer-only corpus manifest, sharded CI workflow, and text baseline.
 - LibRaw, darktable, and RawTherapee remain development-only references for
   `compare-demosaic`; do not add them to production decoder dependencies.
 - The active demosaic target is conventional 2x2 RGB Bayer input. Do not claim
@@ -110,10 +114,11 @@ scripts/agent-validation.sh
 ```
 
 The script initializes `external/raw-images` with `scripts/setup.sh` when its
-test fixture is missing, then runs workspace tests, nightly formatting,
-documentation, clippy, decoder benchmark compilation, and diff checks. It also
-runs `compare-demosaic` package checks when that crate changed. Its baseline and
-generated README data have separate rules in
+test fixture is missing, initializes the pointer-only raw.pixls.us submodule
+when needed, verifies the corpus manifest, then runs workspace tests, nightly
+formatting, documentation, clippy, decoder benchmark compilation, and diff
+checks. It also runs `compare-demosaic` package checks when that crate changed.
+Its baseline and generated README data have separate rules in
 [crates/compare-demosaic/AGENTS.md](crates/compare-demosaic/AGENTS.md).
 
 Pass `--fix` to apply nightly rustfmt and machine-applicable clippy fixes before
@@ -174,6 +179,11 @@ linked issue. Only the user merges or abandons a pull request.
 - Decoder ownership and validation: [docs/decoder/architecture.md](docs/decoder/architecture.md)
 - Decoder benchmarks and corpus plans: [docs/decoder/benchmark.md](docs/decoder/benchmark.md),
   [docs/decoder/corpus.md](docs/decoder/corpus.md)
+- Manual corpus tracker: `cargo run -p decoder-tracker -- --help`; full runs are
+  manual-only and RAW payloads are never committed or uploaded.
+- When dispatching the `Decoder corpus` workflow, leave
+  `run_duckdb_tests` disabled at its default unless explicitly requested, and
+  set `formats` to match the requested corpus filter.
 - Per-work plans: [docs/plans/](docs/plans/)
 - Algorithm and reference notes: [docs/references/](docs/references/)
 - Comparison-crate rules:

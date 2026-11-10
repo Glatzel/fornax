@@ -9,17 +9,19 @@ name = "decoder"
 
 [dependencies]
 clerk.workspace = true
-fornax-core.workspace = true
+fornax-arw.workspace = true
 fornax-dng.workspace = true
+fornax-raw-core.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
-fornax-core.workspace = true
 fornax-devtool.workspace = true
-fornax-dng.workspace = true
 generic-num.workspace = true
 image.workspace = true
 rawler.workspace = true
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 strum.workspace = true
+
+[features]
+zstd = ["fornax-dng/zstd"]

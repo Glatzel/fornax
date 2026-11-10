@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use fornax_core::BayerPattern;
+use fornax_raw_core::BayerPattern;
 use serde::Serialize;
 
 use crate::metrics::{Evaluation, MAX_ERROR, TileSummary};

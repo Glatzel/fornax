@@ -1,12 +1,12 @@
 use flashraw_codecs::dng_opcodes::{PlaneImage, apply as apply_opcodes, parse as parse_opcodes};
-use fornax_core::error::DecodeError;
-use fornax_core::{MonoImage, RawMosaic};
+use fornax_raw_core::error::DecodeError;
+use fornax_raw_core::{MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{Tag, Value};
+use fornax_tiff::{Tag, Value, unsigned_scalar};
 use num_traits::ToPrimitive;
 use rayon::prelude::*;
 
-use super::{corrupt, unsigned_scalar, unsigned_vec};
+use super::{corrupt, unsigned_vec};
 use crate::metadata::{Directory, DngTag};
 
 const MAX_EXACT_F32_INTEGER: u32 = 1 << 24;

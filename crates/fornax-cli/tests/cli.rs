@@ -2,10 +2,10 @@ use std::fs;
 
 use assert_cmd::Command;
 use clap::Parser;
-use fornax::dng::metadata::{DngTag, Tag, TiffTag, Value};
-use fornax::dng::{Directory, DngCompression, DngWriter};
-use fornax::{MonoImage, RawMosaic};
 use fornax_cli::{CliArgs, ConversionOutcome, run};
+use fornax_dng::metadata::{Directory, DngTag, Tag, TiffTag, Value};
+use fornax_dng::writer::{DngCompression, DngWriter};
+use fornax_raw::{MonoImage, RawMosaic};
 use image::GenericImageView;
 use tempfile::tempdir;
 

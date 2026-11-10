@@ -51,7 +51,7 @@ Out of scope:
 
 - Focused RED before implementation: unresolved metadata fields and
   `OutputColorSpace`.
-- `cargo test -p fornax-postprocessor -p fornax-dng --lib`: 111 passed across
+- `cargo test -p fornax-raw-pipeline -p fornax-dng --lib`: 111 passed across
   2 suites after implementation.
 - `scripts/agent-validation.sh`: passed, including workspace tests, rustdoc
   with `--no-deps`, clippy, decoder benchmark compilation, and 147
@@ -72,15 +72,15 @@ Out of scope:
 
 ## Files Expected to Change
 
-- `crates/fornax-core/src/metadata/mod.rs`
-- `crates/fornax-core/src/protocol.rs`
-- `crates/fornax-core/src/error.rs`
+- `crates/fornax-raw-core/src/metadata/mod.rs`
+- `crates/fornax-raw-core/src/protocol.rs`
+- `crates/fornax-raw-core/src/error.rs`
 - `crates/fornax-dng/src/dng_decoder/process_metadata.rs`
 - `crates/fornax-dng/src/dng_decoder/mod.rs`
 - `crates/fornax-dng/src/metadata.rs`
-- `crates/fornax-postprocessor/Cargo.toml`
-- `crates/fornax-postprocessor/src/lib.rs`
-- `crates/fornax-postprocessor/README.md`
+- `crates/fornax-raw-pipeline/Cargo.toml`
+- `crates/fornax-raw-pipeline/src/lib.rs`
+- `crates/fornax-raw-pipeline/README.md`
 - `crates/fornax-decoder-rawler/src/lib.rs`
 - `docs/references/dng-preview-color.md`
 - `docs/architecture.md`

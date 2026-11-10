@@ -17,7 +17,7 @@ a border or normalization issue.
 ## Goals
 
 - Port the behavior of LibRaw's `pre_interpolate()` followed by
-  `dcb(iterations = 0, dcb_enhance = 1)` into the `fornax-postprocessor`
+  `dcb(iterations = 0, dcb_enhance = 1)` into the `fornax-raw-pipeline`
   crate.
 - Preserve LibRaw's six-pixel border interpolation, stage order, integer
   clipping, and explicit `ushort` conversion points.

@@ -1,9 +1,8 @@
 use std::collections::{HashSet, VecDeque};
 use std::sync::Arc;
 
+use crate::constants::TiffTag;
 use crate::{ByteOrder, Directory, ParsedTiff, Tag, TiffError, Value};
-
-const TAG_SUB_IFDS: u16 = 330;
 
 struct Reader<'a> {
     bytes: &'a [u8],
@@ -49,7 +48,11 @@ impl<'a> Reader<'a> {
         }
     }
 
-    fn parse_ifd(&self, offset: u64) -> Result<(Directory, Option<u64>, Vec<u64>), TiffError> {
+    fn parse_ifd(
+        &self,
+        offset: u64,
+        offset_correction: i64,
+    ) -> Result<(Directory, Option<u64>, Vec<u64>), TiffError> {
         let mut position = usize::try_from(offset)
             .map_err(|_| corrupt("IFD offset exceeds the platform address space"))?;
         let entry_count = if self.big_tiff {
@@ -91,11 +94,14 @@ impl<'a> Reader<'a> {
             let value_offset = if byte_count <= inline_size {
                 value_field
             } else {
-                let offset = if self.big_tiff {
-                    self.u64(value_field)?
-                } else {
-                    u64::from(self.u32(value_field)?)
-                };
+                let offset = apply_correction(
+                    if self.big_tiff {
+                        self.u64(value_field)?
+                    } else {
+                        u64::from(self.u32(value_field)?)
+                    },
+                    offset_correction,
+                )?;
                 usize::try_from(offset)
                     .map_err(|_| corrupt("TIFF value offset exceeds the platform address space"))?
             };
@@ -105,8 +111,12 @@ impl<'a> Reader<'a> {
                 .and_then(|end| self.bytes.get(value_offset..end))
                 .ok_or_else(|| corrupt(format!("TIFF tag 0x{tag:04x} data is out of bounds")))?;
             if let Some(value) = self.parse_value(field_type, count, value_bytes)? {
-                if tag == TAG_SUB_IFDS {
-                    child_pointers.extend(pointers(&value));
+                if tag == u16::from(TiffTag::SubIfds) {
+                    for pointer in pointers(&value) {
+                        if pointer != 0 {
+                            child_pointers.push(apply_correction(pointer, offset_correction)?);
+                        }
+                    }
                 }
                 metadata.insert(Tag(tag), value);
             }
@@ -117,6 +127,11 @@ impl<'a> Reader<'a> {
             self.u64(position)?
         } else {
             u64::from(self.u32(position)?)
+        };
+        let next = if next == 0 {
+            0
+        } else {
+            apply_correction(next, offset_correction)?
         };
         Ok((metadata, (next != 0).then_some(next), child_pointers))
     }
@@ -276,7 +291,7 @@ pub fn parse(source: &[u8]) -> Result<ParsedTiff, TiffError> {
         if !visited.insert(offset) {
             continue;
         }
-        let (metadata, next, children) = reader.parse_ifd(offset)?;
+        let (metadata, next, children) = reader.parse_ifd(offset, 0)?;
         pending.extend(children);
         if let Some(next) = next {
             pending.push_back(next);
@@ -292,6 +307,26 @@ pub fn parse(source: &[u8]) -> Result<ParsedTiff, TiffError> {
         directories,
         source: Arc::from(source),
     })
+}
+
+pub fn parse_ifd_at(
+    source: &[u8],
+    offset: u64,
+    byte_order: ByteOrder,
+    offset_correction: i64,
+) -> Result<Directory, TiffError> {
+    let reader = Reader {
+        bytes: source,
+        byte_order,
+        big_tiff: false,
+    };
+    let (metadata, _, _) = reader.parse_ifd(offset, offset_correction)?;
+    Ok(metadata)
+}
+
+fn apply_correction(offset: u64, correction: i64) -> Result<u64, TiffError> {
+    let corrected = i128::from(offset) + i128::from(correction);
+    u64::try_from(corrected).map_err(|_| corrupt("TIFF offset correction is out of bounds"))
 }
 
 fn pointers(value: &Value) -> Vec<u64> {

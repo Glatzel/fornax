@@ -52,9 +52,9 @@ Out of scope:
 
 ## Files expected to change
 
-- `crates/fornax-postprocessor/src/demosaic/amaze.rs`
-- `crates/fornax-postprocessor/src/demosaic.rs`
-- `crates/fornax-postprocessor/src/demosaic/directional.rs` (delete)
+- `crates/fornax-raw-pipeline/src/demosaic/amaze.rs`
+- `crates/fornax-raw-pipeline/src/demosaic.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` (delete)
 - `crates/compare-demosaic/src/snapshots/*-AMaZE-{darktable,rawtherapee}.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
@@ -67,7 +67,7 @@ Out of scope:
 Iterate with:
 
 ```bash
-cargo test -p fornax-postprocessor
+cargo test -p fornax-raw-pipeline
 cargo run --release -p compare-demosaic -- run \
   --algorithm amaze --pattern GBRG --artifacts --out target/amaze
 cargo run --release -p compare-demosaic -- diff \
@@ -255,12 +255,12 @@ git diff --check
     `890`, and zero samples above 1024 codes.
   - `cargo test --workspace --all-features`: 260 passed.
   - `cargo +nightly fmt --check`: passed.
-  - `cargo clippy -p fornax-postprocessor --all-features --all-targets` with
+  - `cargo clippy -p fornax-raw-pipeline --all-features --all-targets` with
     `-D warnings` and `too_many_arguments` allowed: passed.
   - `cargo clippy -p compare-demosaic --all-features --all-targets` with
     `-D warnings` and `too_many_arguments` allowed: passed.
   - The repository-wide strict clippy command still fails in untouched
-    pre-existing code in `fornax-preprocessor`, `fornax-decoder-rawler`,
+    pre-existing code in `fornax-raw-pipeline`, `fornax-decoder-rawler`,
     `bench-decoder`, `linear.rs`, and `lmmse.rs`.
   - `cargo insta test -p compare-demosaic`: 149 passed, no snapshots to review.
   - Full comparison run and baseline diff: no differences.

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use fornax_core::RawMosaic;
+use fornax_raw_core::RawMosaic;
 use strum::AsRefStr;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, AsRefStr)]
@@ -298,7 +298,7 @@ mod tests {
 
     #[test]
     fn raw_mosaic_bytes_uses_native_sample_width() {
-        use fornax_core::{MonoImage, RawMosaic};
+        use fornax_raw_core::{MonoImage, RawMosaic};
 
         assert_eq!(
             raw_mosaic_bytes(&RawMosaic::U8(

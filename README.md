@@ -20,12 +20,11 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 
 ## Components
 
-- **fornax-core**: Shared pipeline types, the DNG decoder, typed DNG metadata,
-  and the uncompressed DNG writer.
-- **fornax-preprocessor**: Black/white-level normalization for active Bayer
-  mosaics.
-- **fornax-postprocessor**: Demosaic algorithms and RGB reconstruction.
-- **fornax**: High-level facade tying the stages together.
+- **fornax-raw-core**: Shared pipeline types, errors, and decoder/processor
+  contracts.
+- **fornax-raw-pipeline**: Black/white-level normalization, demosaic
+  algorithms, RGB reconstruction, and color processing.
+- **fornax-raw**: High-level facade tying the stages together.
 - **fornax-devtool**: Pinned fixtures and development helpers.
 - **compare-demosaic**: Reference-versus-Fornax demosaic comparison harness.
 - **fornax-py**: Python binding source, currently excluded from the Rust

@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use fornax::RawFormat;
+use fornax_raw::RawFormat;
 use thiserror::Error;
 
 use crate::{OutputFormat, ResolvedConfig};

@@ -1,9 +1,7 @@
-use fornax_core::RawMosaic;
-
-use crate::CodecError;
 use crate::error::invalid;
 use crate::request::{ByteOrder, SampleFormat};
 use crate::samples::Geometry;
+use crate::{CodecError, SampleBuffer};
 
 pub struct EncodedSamples {
     pub chunks: Vec<Vec<u8>>,
@@ -12,14 +10,13 @@ pub struct EncodedSamples {
 }
 
 pub fn encode_image(
-    image: &RawMosaic,
+    image: &SampleBuffer,
     chunk_width: usize,
     chunk_height: usize,
     byte_order: ByteOrder,
 ) -> Result<EncodedSamples, CodecError> {
-    let (width, height) = image.dimensions();
-    let width = usize::try_from(width).expect("u32 fits usize on supported platforms");
-    let height = usize::try_from(height).expect("u32 fits usize on supported platforms");
+    let width = usize::try_from(image.width()).expect("u32 fits usize on supported platforms");
+    let height = usize::try_from(image.height()).expect("u32 fits usize on supported platforms");
     let across = width.div_ceil(chunk_width.max(1));
     let down = height.div_ceil(chunk_height.max(1));
     let chunk_count = across
@@ -28,10 +25,10 @@ pub fn encode_image(
     let geometry = Geometry::new(width, height, chunk_width, chunk_height, chunk_count)?;
 
     let (bits_per_sample, sample_format, bytes_per_sample) = match image {
-        RawMosaic::U8(_) => (8, SampleFormat::Integer, 1),
-        RawMosaic::U16(_) => (16, SampleFormat::Integer, 2),
-        RawMosaic::U32(_) => (32, SampleFormat::Integer, 4),
-        RawMosaic::F32(_) => (32, SampleFormat::Float, 4),
+        SampleBuffer::U8(_) => (8, SampleFormat::Integer, 1),
+        SampleBuffer::U16(_) => (16, SampleFormat::Integer, 2),
+        SampleBuffer::U32(_) => (32, SampleFormat::Integer, 4),
+        SampleBuffer::F32(_) => (32, SampleFormat::Float, 4),
     };
     let chunk_samples = geometry
         .chunk_width
@@ -52,13 +49,13 @@ pub fn encode_image(
             for row in 0..copy_height {
                 let target_start = row * geometry.chunk_width * bytes_per_sample;
                 match image {
-                    RawMosaic::U8(samples) => {
+                    SampleBuffer::U8(samples) => {
                         let source_start = (tile_y + row) * width + tile_x;
                         chunk[target_start..target_start + copy_width].copy_from_slice(
                             &samples.as_raw()[source_start..source_start + copy_width],
                         );
                     }
-                    RawMosaic::U16(samples) => {
+                    SampleBuffer::U16(samples) => {
                         let source_start = (tile_y + row) * width + tile_x;
                         for (sample, target) in samples.as_raw()
                             [source_start..source_start + copy_width]
@@ -72,7 +69,7 @@ pub fn encode_image(
                             target.copy_from_slice(&bytes);
                         }
                     }
-                    RawMosaic::U32(samples) => {
+                    SampleBuffer::U32(samples) => {
                         let source_start = (tile_y + row) * width + tile_x;
                         for (sample, target) in samples.as_raw()
                             [source_start..source_start + copy_width]
@@ -86,7 +83,7 @@ pub fn encode_image(
                             target.copy_from_slice(&bytes);
                         }
                     }
-                    RawMosaic::F32(samples) => {
+                    SampleBuffer::F32(samples) => {
                         let source_start = (tile_y + row) * width + tile_x;
                         for (sample, target) in samples.as_raw()
                             [source_start..source_start + copy_width]
