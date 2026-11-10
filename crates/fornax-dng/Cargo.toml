@@ -19,15 +19,15 @@ serde_json = { workspace = true, optional = true }
 strum.workspace = true
 thiserror.workspace = true
 
-[dependencies.fornax-tiff]
-workspace = true
-default-features = false
-features = ["jpegxl", "raster"]
-
 [dependencies.fornax-codec]
 workspace = true
 default-features = false
 features = ["jpegxl", "lossless-jpeg", "lossy-jpeg"]
+
+[dependencies.fornax-tiff]
+workspace = true
+default-features = false
+features = ["jpegxl", "raster"]
 
 [dev-dependencies]
 criterion.workspace = true
