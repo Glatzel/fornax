@@ -6,7 +6,7 @@ This directory contains one self-contained task prompt per approved refactor
 step. Give an implementing agent the relevant step file as its task prompt.
 The agent must execute only that step, validate it, open one PR, and stop.
 
-## Sequence
+## Original step sequence
 
 | Step | Trigger | Status at baseline |
 | --- | --- | --- |
@@ -16,6 +16,21 @@ The agent must execute only that step, validate it, open one PR, and stop.
 | 4 | [Add codec sample buffer](step-04-sample-buffer.md) | Blocked until buffer shape is decided |
 | 5 | [Move TIFF raster handling](step-05-tiff-raster.md) | Requires compression-ownership review |
 | 6 | [Move DNG constants](step-06-dng-constants.md) | Requires compression-ownership review |
+
+Phase A repaired the #690 leftovers after Steps 1-6 and is recorded in
+[chore-workspace-refactor-phase-a.md](../chore-workspace-refactor-phase-a.md).
+
+## Future work
+
+The remaining Phase B and Phase C requests are split into independently
+pickable plans. Start only the step the maintainer releases.
+
+- [Phase B-C handoff](phase-b-c-handoff.md)
+- [B1: optional TIFF raster](b1-optional-tiff-raster.md)
+- [B2: compression ID ownership audit](b2-compression-id-audit.md)
+- [B3: LZW and PackBits codecs](b3-lzw-packbits.md)
+- [B4: multi-band design note](b4-multiband-note.md)
+- [C: publish readiness report](c-publish-readiness.md)
 
 ## Global execution rules
 
@@ -52,6 +67,7 @@ maintainer ruling rather than selecting an answer.
 
 ## Stop boundary
 
-The approved scope ends after Step 6. Do not merge ARW and decoder into one
-format crate, split Cargo workspaces, rename the facade, move vendor codecs, or
-publish crates unless the maintainer explicitly starts a new task.
+The Steps 1-6 scope ended with Phase A. Phase B and Phase C remain explicitly
+gated by the maintainer. Do not merge ARW and decoder into one format crate,
+split Cargo workspaces, rename the facade, move vendor codecs, or publish
+crates unless the maintainer explicitly starts a new task.
