@@ -1,5 +1,5 @@
-use fornax_dng::DngTag;
 use fornax_dng::constants::{DngCompressionMethod, DngPhotometricInterpretation};
+use fornax_dng::metadata::DngTag;
 use fornax_tiff::Tag;
 
 #[test]

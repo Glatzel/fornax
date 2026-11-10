@@ -34,6 +34,57 @@ impl DngImage {
         let raw_ifd = select_raw_ifd(&parsed)?;
         Ok(Self { parsed, raw_ifd })
     }
+    pub fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
+        let metadata = self.dng_metadata()?;
+        let pixels = transforms::apply(decode_samples(&self.parsed.source, &metadata)?, &metadata)?;
+        validate_dimensions(&pixels, &metadata)?;
+        Ok(pixels)
+    }
+    pub fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
+    where
+        T: Primitive,
+    {
+        let pixels = self.raw_mosaic()?;
+        let metadata = self.dng_metadata()?;
+        let (width, height) = pixels.dimensions();
+        let process_metadata = process_metadata_from_dng_metadata(width, height, &metadata)?;
+        let active_area = process_metadata.active_area;
+        let image = match pixels {
+            RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
+            RawMosaic::U16(image) => crop_and_cast(image, active_area)?,
+            RawMosaic::U32(image) => crop_and_cast(image, active_area)?,
+            RawMosaic::F32(image) => crop_and_cast(image, active_area)?,
+        };
+        Ok(CroppedMosaic::new(image))
+    }
+
+    pub fn dng_metadata(&self) -> Result<Directory, DecodeError> {
+        if !self
+            .parsed
+            .root
+            .contains_key(&Tag(u16::from(DngTag::DngVersion)))
+        {
+            return Err(unsupported_variant(
+                "TIFF container does not declare a DNGVersion",
+            ));
+        }
+        let raw_metadata = self
+            .parsed
+            .directories
+            .get(self.raw_ifd)
+            .ok_or_else(|| corrupt("selected raw IFD is missing"))?;
+        let mut dng_metadata = Directory::default();
+        dng_metadata.extend(self.parsed.root.clone());
+        dng_metadata.extend(raw_metadata.clone());
+        Ok(dng_metadata)
+    }
+
+    pub fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
+        let metadata = self.dng_metadata()?;
+        let width = required_u32(&metadata, TiffTag::ImageWidth)?;
+        let height = required_u32(&metadata, TiffTag::ImageLength)?;
+        process_metadata_from_dng_metadata(width, height, &metadata)
+    }
 }
 
 fn select_raw_ifd(parsed: &ParsedTiff) -> Result<usize, DecodeError> {
@@ -70,59 +121,6 @@ fn raw_area(directory: &fornax_tiff::Directory) -> u64 {
     let width = unsigned_scalar(directory.get(&Tag::from(TiffTag::ImageWidth))).unwrap_or(0);
     let height = unsigned_scalar(directory.get(&Tag::from(TiffTag::ImageLength))).unwrap_or(0);
     width.saturating_mul(height)
-}
-
-pub fn raw_mosaic(parsed: &DngImage) -> Result<RawMosaic, DecodeError> {
-    let metadata = dng_metadata(parsed)?;
-    let pixels = transforms::apply(decode_samples(&parsed.parsed.source, &metadata)?, &metadata)?;
-    validate_dimensions(&pixels, &metadata)?;
-    Ok(pixels)
-}
-
-pub fn cropped_mosaic<T>(parsed: &DngImage) -> Result<CroppedMosaic<T>, DecodeError>
-where
-    T: Primitive,
-{
-    let pixels = raw_mosaic(parsed)?;
-    let metadata = dng_metadata(parsed)?;
-    let (width, height) = pixels.dimensions();
-    let process_metadata = process_metadata_from_dng_metadata(width, height, &metadata)?;
-    let active_area = process_metadata.active_area;
-    let image = match pixels {
-        RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
-        RawMosaic::U16(image) => crop_and_cast(image, active_area)?,
-        RawMosaic::U32(image) => crop_and_cast(image, active_area)?,
-        RawMosaic::F32(image) => crop_and_cast(image, active_area)?,
-    };
-    Ok(CroppedMosaic::new(image))
-}
-
-pub fn dng_metadata(parsed: &DngImage) -> Result<Directory, DecodeError> {
-    if !parsed
-        .parsed
-        .root
-        .contains_key(&Tag(u16::from(DngTag::DngVersion)))
-    {
-        return Err(unsupported_variant(
-            "TIFF container does not declare a DNGVersion",
-        ));
-    }
-    let raw_metadata = parsed
-        .parsed
-        .directories
-        .get(parsed.raw_ifd)
-        .ok_or_else(|| corrupt("selected raw IFD is missing"))?;
-    let mut dng_metadata = Directory::default();
-    dng_metadata.extend(parsed.parsed.root.clone());
-    dng_metadata.extend(raw_metadata.clone());
-    Ok(dng_metadata)
-}
-
-pub fn process_metadata(parsed: &DngImage) -> Result<ProcessMetadata, DecodeError> {
-    let metadata = dng_metadata(parsed)?;
-    let width = required_u32(&metadata, TiffTag::ImageWidth)?;
-    let height = required_u32(&metadata, TiffTag::ImageLength)?;
-    process_metadata_from_dng_metadata(width, height, &metadata)
 }
 
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
@@ -290,7 +288,7 @@ mod tests {
     use fornax_tiff::constants::{CompressionMethod, TiffTag};
     use fornax_tiff::{Tag, TiffWriter, Value};
 
-    use super::{DngImage, process_metadata};
+    use super::*;
     use crate::constants::DngCompressionMethod;
 
     #[test]
@@ -574,7 +572,8 @@ mod tests {
         };
 
         let parsed = DngImage::parse(cursor.get_ref()).expect("the synthetic TIFF should parse");
-        let metadata = process_metadata(&parsed)
+        let metadata = parsed
+            .process_metadata()
             .expect("metadata access must not depend on the pixel payload");
         assert_eq!(metadata.active_area.width, 4);
         assert_eq!(metadata.active_area.height, 4);
@@ -591,7 +590,7 @@ mod tests {
             .unwrap();
 
         let parsed = DngImage::parse(output.get_ref()).unwrap();
-        let decoded = super::raw_mosaic(&parsed).unwrap();
+        let decoded = parsed.raw_mosaic().unwrap();
         let RawMosaic::U16(image) = decoded else {
             panic!("written 16-bit samples must decode as u16");
         };
@@ -609,7 +608,7 @@ mod tests {
             .unwrap();
 
         let parsed = DngImage::parse(output.get_ref()).unwrap();
-        let RawMosaic::U16(image) = super::raw_mosaic(&parsed).unwrap() else {
+        let RawMosaic::U16(image) = parsed.raw_mosaic().unwrap() else {
             panic!("zstd samples must decode as u16");
         };
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
@@ -639,7 +638,7 @@ mod tests {
                 .write_dng_with(&mut output, &mosaic, &writable_metadata(4, 1))
                 .unwrap();
             let parsed = DngImage::parse(output.get_ref()).unwrap();
-            match (mosaic, super::raw_mosaic(&parsed).unwrap()) {
+            match (mosaic, parsed.raw_mosaic().unwrap()) {
                 (RawMosaic::U8(expected), RawMosaic::U8(decoded)) => {
                     assert_eq!(decoded, expected, "{expected:?}");
                 }
@@ -677,7 +676,7 @@ mod tests {
             .unwrap();
 
         let parsed = DngImage::parse(output.get_ref()).unwrap();
-        let decoded = super::raw_mosaic(&parsed).unwrap();
+        let decoded = parsed.raw_mosaic().unwrap();
         let RawMosaic::U8(image) = decoded else {
             panic!("written 8-bit samples must decode as u8");
         };
@@ -706,11 +705,11 @@ mod tests {
             .write_dng_with(&mut output, &mosaic, &metadata)
             .unwrap();
         let parsed = DngImage::parse(output.get_ref()).unwrap();
-        let generated = super::dng_metadata(&parsed).unwrap();
+        let generated = parsed.dng_metadata().unwrap();
         assert!(!generated.contains_key(&Tag::from(DngTag::LinearizationTable)));
         assert!(!generated.contains_key(&Tag::from(DngTag::Unknown(50_975))));
         assert!(!generated.contains_key(&Tag::from(DngTag::Unknown(50_976))));
-        let RawMosaic::U16(image) = super::raw_mosaic(&parsed).unwrap() else {
+        let RawMosaic::U16(image) = parsed.raw_mosaic().unwrap() else {
             panic!("written samples must remain u16");
         };
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
@@ -729,7 +728,7 @@ mod tests {
             )
             .unwrap();
         let integer_parsed = DngImage::parse(integer_output.get_ref()).unwrap();
-        let RawMosaic::U32(decoded_integers) = super::raw_mosaic(&integer_parsed).unwrap() else {
+        let RawMosaic::U32(decoded_integers) = integer_parsed.raw_mosaic().unwrap() else {
             panic!("wide integers must remain u32");
         };
         assert_eq!(decoded_integers.as_raw().as_slice(), integers.as_slice());
@@ -741,7 +740,7 @@ mod tests {
             .write_dng_with(&mut float_output, &float_mosaic, &writable_metadata(3, 1))
             .unwrap();
         let float_parsed = DngImage::parse(float_output.get_ref()).unwrap();
-        let RawMosaic::F32(decoded_floats) = super::raw_mosaic(&float_parsed).unwrap() else {
+        let RawMosaic::F32(decoded_floats) = float_parsed.raw_mosaic().unwrap() else {
             panic!("floating-point samples must remain f32");
         };
         assert_eq!(
