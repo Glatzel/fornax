@@ -51,7 +51,8 @@ Out of scope:
   opcode reference documentation.
 - [x] Run feature-matrix, fixture-backed, workspace, and dependency-graph
   validation; inspect the final diff.
-- [ ] Open the pull request and report its URL and validation results.
+- [x] Open pull request [#700](https://github.com/Glatzel/fornax/pull/700)
+  and report its URL and validation results.
 
 ## Files Expected to Change
 
