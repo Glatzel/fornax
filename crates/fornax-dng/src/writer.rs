@@ -8,6 +8,7 @@ use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffT
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
 use thiserror::Error;
 
+#[cfg(feature = "zstd")]
 use crate::constants::DngCompressionMethod;
 use crate::metadata::{Directory, DngTag};
 use crate::sample_buffer::from_raw_mosaic;
