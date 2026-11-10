@@ -13,7 +13,7 @@ fornax-raw-core.workspace = true
 fornax-tiff = {
   workspace = true,
   default-features = false,
-  features = ["raster", "jpegxl"]
+  features = ["jpegxl", "raster"]
 }
 generic-num.workspace = true
 image.workspace = true
