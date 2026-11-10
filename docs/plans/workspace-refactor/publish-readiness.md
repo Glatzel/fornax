@@ -129,6 +129,8 @@ replace a Git source in a published manifest:
 
 Queried crates.io on 2026-11-10 at 11:30 UTC. `404` meant no crate endpoint was
 found at query time; it is not a name reservation.
+The initial UA-less requests were rejected with `403`; the recorded results use
+the descriptive user agent shown in the command below and completed normally.
 
 | Crate | HTTP status | Result |
 | --- | --- | --- |
@@ -310,6 +312,13 @@ fornax-tiff v0.0.17
 - Sixteen normal Git dependencies use wildcard requirements without a registry
   version.
 - The repository root `LICENSE` is not included in the planned package lists.
+
+## Unresolved decisions
+
+- Crate names, versioning, workspace splitting, and whether or when to publish
+  remain maintainer-owned. This report makes no decision on any of them.
+- The maintainer states that Fornax has never been published and that there is
+  no publication plan; this report is evidence only and does not create one.
 
 ## `[UNVERIFIED]` items
 
