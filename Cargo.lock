@@ -784,6 +784,7 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 name = "fornax-arw"
 version = "0.0.17"
 dependencies = [
+ "bytemuck",
  "flashraw-codecs",
  "fornax-dng",
  "fornax-raw-core",
@@ -792,6 +793,7 @@ dependencies = [
  "image 0.25.9",
  "rawler",
  "rayon",
+ "sha2",
 ]
 
 [[package]]
@@ -866,6 +868,7 @@ dependencies = [
 name = "fornax-dng"
 version = "0.0.17"
 dependencies = [
+ "bytemuck",
  "codspeed-criterion-compat",
  "flashraw-codecs",
  "fornax-codec",
@@ -879,6 +882,7 @@ dependencies = [
  "rayon",
  "serde",
  "serde_json",
+ "sha2",
  "strum",
  "thiserror",
 ]

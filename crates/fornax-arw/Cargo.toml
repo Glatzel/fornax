@@ -13,4 +13,6 @@ image.workspace = true
 rayon.workspace = true
 
 [dev-dependencies]
+bytemuck.workspace = true
 rawler.workspace = true
+sha2.workspace = true

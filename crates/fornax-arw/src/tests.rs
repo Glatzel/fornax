@@ -7,6 +7,7 @@ use fornax_raw_core::protocol::IDecoder;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffWriter, Value};
 use rawler::decoders::RawImageData;
+use sha2::{Digest, Sha256};
 
 use super::ArwImage;
 use crate::container::{CompressionFamily, RawLayout};
@@ -208,6 +209,65 @@ fn selected_arw6_fixture_decodes_to_the_active_area() {
         cropped.image().dimensions(),
         (process.active_area.width, process.active_area.height)
     );
+}
+
+#[test]
+fn selected_fixtures_match_expected_raw_sample_hashes() {
+    for (variable, expected) in [
+        (
+            "FORNAX_SONY_ARW_FIXTURE",
+            (
+                (4288, 2856),
+                "41d68e2824b9ec3d6a590cbc0c83897467069fb988c4060aa28615493fc5fe58",
+            ),
+        ),
+        (
+            "FORNAX_SONY_ARW2_FIXTURE",
+            (
+                (6048, 4024),
+                "72ca99b65c342ce267104ed153ce66f52d2b30653dd3071e0fbeac0b05266a5f",
+            ),
+        ),
+        (
+            "FORNAX_SONY_ARW6_FIXTURE",
+            (
+                (7040, 4688),
+                "3a6d2903c8a442796135eb1482cbc8809e058da5fb889a6e1f341ce592a7221f",
+            ),
+        ),
+        (
+            "FORNAX_SONY_LJPEG_FIXTURE",
+            (
+                (8704, 6144),
+                "6653f2429954b8e29c03a863efedf5fcabb7d980cc21a7f1f8b2072b3e551acd",
+            ),
+        ),
+        (
+            "FORNAX_SONY_UNCOMPRESSED_FIXTURE",
+            (
+                (6048, 4024),
+                "946cd70f2bcb6a653cec8f3f4f05fd5b999d9d35f6c57c703ba76e823099092c",
+            ),
+        ),
+    ] {
+        let Some(path) = fixture(variable) else {
+            continue;
+        };
+        let decoder = ArwImage::decode(&path).unwrap();
+        let mosaic = decoder.raw_mosaic().unwrap();
+        assert_eq!(mosaic.dimensions(), expected.0, "{}", path.display());
+        let digest = match mosaic {
+            RawMosaic::U8(image) => Sha256::digest(image.as_raw()),
+            RawMosaic::U16(image) => Sha256::digest(bytemuck::cast_slice(image.as_raw())),
+            RawMosaic::U32(image) => Sha256::digest(bytemuck::cast_slice(image.as_raw())),
+            RawMosaic::F32(image) => Sha256::digest(bytemuck::cast_slice(image.as_raw())),
+        };
+        let actual = digest
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>();
+        assert_eq!(actual, expected.1, "{}", path.display());
+    }
 }
 
 fn fixture(variable: &str) -> Option<PathBuf> {
