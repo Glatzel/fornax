@@ -816,15 +816,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
-name = "fornax"
-version = "0.0.17"
-dependencies = [
- "fornax-decoder",
- "fornax-raw-core",
- "fornax-raw-pipeline",
-]
-
-[[package]]
 name = "fornax-arw"
 version = "0.0.17"
 dependencies = [
@@ -847,8 +838,8 @@ dependencies = [
  "clap-style",
  "clap-verbosity-flag",
  "clerk",
- "fornax",
  "fornax-dng",
+ "fornax-raw",
  "image 0.25.9",
  "mischief",
  "num-traits",
@@ -924,6 +915,15 @@ dependencies = [
  "serde_json",
  "strum",
  "thiserror",
+]
+
+[[package]]
+name = "fornax-raw"
+version = "0.0.17"
+dependencies = [
+ "fornax-decoder",
+ "fornax-raw-core",
+ "fornax-raw-pipeline",
 ]
 
 [[package]]
