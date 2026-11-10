@@ -214,10 +214,10 @@ rows. The diff command exits 1 when any category is non-empty.
 ## Manual CI
 
 `.github/workflows/decoder-tracker-corpus.yml` is manual-only after bootstrap.
-It accepts one `filter` path glob, a comma-separated `formats` input (default
-`DNG`), and an optional `run_duckdb_tests` boolean (default `false`). The
-format filters are passed through to every shard run; for an ARW baseline,
-dispatch with `formats=ARW` and an ARW path filter. The plan job uses
+It accepts one `filter` path glob and an optional `run_duckdb_tests` boolean
+(default `false`). The selected manifest determines the formats processed by
+each shard, so the filter alone selects a DNG, ARW, or mixed corpus subset. The
+plan job uses
 `crates/decoder-tracker/scripts/select.sh` to filter `manifest.csv` directly with
 DuckDB, writes and uploads `selected-manifest.csv`, then computes:
 

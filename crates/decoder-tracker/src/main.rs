@@ -15,7 +15,7 @@ use decoder_tracker::manifest::{
 };
 use decoder_tracker::model::{BaselineRow, ManifestRow, Result, TrackerError, status_for_stages};
 use decoder_tracker::runner::{materialize, run_isolation, timeout_from_env};
-use decoder_tracker::selection::{Selection, Shard, select_manifest};
+use decoder_tracker::selection::{Selection, Shard, select_manifest, with_manifest_formats};
 use decoder_tracker::stages::{StageRow, evaluate_one};
 
 const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
@@ -257,7 +257,11 @@ fn run(args: RunArgs) -> Result<ExitCode> {
             args.manifest.display()
         ))
     })?)?;
-    let selected = select_manifest(&rows, &args.filter.selection(args.shard))?;
+    let mut selection = args.filter.selection(args.shard);
+    if args.manifest != Path::new(DEFAULT_MANIFEST) {
+        selection = with_manifest_formats(selection, &rows);
+    }
+    let selected = select_manifest(&rows, &selection)?;
     let ci = std::env::var("CI").is_ok_and(|value| value == "true");
     if !args.allow_full && !ci && selected.len() > args.max_files {
         return Err(TrackerError::new(format!(

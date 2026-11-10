@@ -14,7 +14,9 @@ use crate::manifest::{
     ManifestCheck, generate_manifest, normalize_repo_path, validate_pointer, write_pointer,
 };
 use crate::model::{BaselineKey, BaselineRow, ManifestRow};
-use crate::selection::{Selection, Shard, runner_count_for, select_manifest};
+use crate::selection::{
+    Selection, Shard, runner_count_for, select_manifest, with_manifest_formats,
+};
 use crate::stages::{
     StageRow, classify_decode_error, run_guarded, sanity_check_metadata, transition_row,
 };
@@ -155,6 +157,27 @@ fn filters_formats_first_then_selects_by_sha_before_sharding() {
             .collect::<Vec<_>>(),
         ["bb"]
     );
+}
+
+#[test]
+fn custom_manifest_supplies_formats_when_none_are_requested() {
+    let rows = vec![
+        manifest_row("aa", "Canon/Cam/a.DNG", "DNG"),
+        manifest_row("bb", "Sony/Cam/b.ARW", "ARW"),
+    ];
+    let selection = with_manifest_formats(
+        Selection {
+            formats: Vec::new(),
+            cameras: Vec::new(),
+            filenames: Vec::new(),
+            globs: vec!["**/*".into()],
+            shard: None,
+        },
+        &rows,
+    );
+
+    assert_eq!(selection.formats, ["ARW", "DNG"]);
+    assert_eq!(select_manifest(&rows, &selection).unwrap().len(), 2);
 }
 
 #[test]
