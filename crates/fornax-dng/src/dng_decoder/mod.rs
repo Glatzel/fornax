@@ -178,7 +178,20 @@ fn decode_plan<'a>(
         }
     };
     let predictor = match compression {
-        DecodeCompression::Deflate | DecodeCompression::Zstd => {
+        DecodeCompression::Deflate => {
+            match unsigned_scalar(metadata.get(&Tag::from(TiffTag::Predictor))).unwrap_or(1) {
+                1 => Predictor::None,
+                2 => Predictor::HorizontalInteger,
+                3 => Predictor::FloatingPoint { byte_stride: 1 },
+                34_894 => Predictor::FloatingPoint { byte_stride: 2 },
+                34_895 => Predictor::FloatingPoint { byte_stride: 4 },
+                value => {
+                    return Err(corrupt(format!("DNG predictor {value} is unsupported")));
+                }
+            }
+        }
+        #[cfg(feature = "zstd")]
+        DecodeCompression::Zstd => {
             match unsigned_scalar(metadata.get(&Tag::from(TiffTag::Predictor))).unwrap_or(1) {
                 1 => Predictor::None,
                 2 => Predictor::HorizontalInteger,
@@ -207,6 +220,7 @@ fn decode_plan<'a>(
 fn resolve_dng_compression(id: u16) -> Result<DecodeCompression, DecodeError> {
     match DngCompressionMethod::from(id) {
         DngCompressionMethod::LossyJpeg => Ok(DecodeCompression::LossyJpeg),
+        #[cfg(feature = "zstd")]
         DngCompressionMethod::Zstd => Ok(DecodeCompression::Zstd),
         DngCompressionMethod::JpegXlLegacy | DngCompressionMethod::JpegXl => {
             Ok(DecodeCompression::JpegXl)

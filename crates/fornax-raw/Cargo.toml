@@ -7,3 +7,6 @@ edition.workspace = true
 fornax-decoder.workspace = true
 fornax-raw-core.workspace = true
 fornax-raw-pipeline.workspace = true
+
+[features]
+zstd = ["fornax-decoder/zstd"]

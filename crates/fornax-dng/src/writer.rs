@@ -8,7 +8,6 @@ use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffT
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
 use thiserror::Error;
 
-use crate::constants::DngCompressionMethod;
 use crate::metadata::{Directory, DngTag};
 use crate::sample_buffer::from_raw_mosaic;
 
@@ -49,6 +48,7 @@ pub enum DngCompression {
     /// Deflate for every supported mosaic sample type.
     Deflate,
     /// Experimental TIFF compression 50000 using pure-Rust Zstandard tiles.
+    #[cfg(feature = "zstd")]
     Zstd,
 }
 
@@ -177,6 +177,7 @@ impl DngWriter {
             DngCompression::Deflate => {
                 write_deflate_all(writer, &samples, metadata, self.version())?;
             }
+            #[cfg(feature = "zstd")]
             DngCompression::Zstd => {
                 write_zstd(writer, &samples, metadata, self.version(), self.zstd_level)?;
             }
@@ -339,7 +340,7 @@ where
         &chunks,
     )
 }
-
+#[cfg(feature = "zstd")]
 fn write_zstd<W>(
     writer: W,
     mosaic: &SampleBuffer,

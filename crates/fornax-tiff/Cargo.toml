@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-fornax-codec.workspace = true
+fornax-codec = { workspace = true, features = ["deflate", "lossless-jpeg"] }
 num_enum.workspace = true
 strum.workspace = true
+
