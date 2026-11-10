@@ -9,11 +9,6 @@ name = "writer"
 
 [dependencies]
 fornax-raw-core.workspace = true
-fornax-tiff = {
-  workspace = true,
-  default-features = false,
-  features = ["jpegxl", "raster"]
-}
 generic-num.workspace = true
 image.workspace = true
 num_enum.workspace = true
@@ -23,6 +18,11 @@ serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 strum.workspace = true
 thiserror.workspace = true
+
+[dependencies.fornax-tiff]
+workspace = true
+default-features = false
+features = ["jpegxl", "raster"]
 
 [dependencies.fornax-codec]
 workspace = true
