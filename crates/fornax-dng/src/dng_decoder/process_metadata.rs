@@ -422,7 +422,7 @@ fn unsigned_scalar(value: &Value) -> Result<u32, DecodeError> {
 }
 #[cfg(test)]
 mod tests {
-    use fornax_core::metadata::{LightSource, WhiteSource};
+    use fornax_raw_core::metadata::{LightSource, WhiteSource};
 
     use super::*;
 

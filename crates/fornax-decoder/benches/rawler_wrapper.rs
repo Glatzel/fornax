@@ -1,9 +1,9 @@
 use std::path::Path;
 
-use fornax_core::error::{DecodeError, RawValidationError};
-use fornax_core::metadata::ProcessMetadata;
-use fornax_core::protocol::IDecoder;
-use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_raw_core::error::{DecodeError, RawValidationError};
+use fornax_raw_core::metadata::ProcessMetadata;
+use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use generic_num::num;
 use image::math::Rect;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};

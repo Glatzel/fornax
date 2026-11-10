@@ -5,7 +5,7 @@ use strum::{AsRefStr, Display, EnumString, IntoStaticStr};
 /// # Examples
 ///
 /// ```
-/// use fornax_core::RawFormat;
+/// use fornax_raw_core::RawFormat;
 ///
 /// assert_eq!(RawFormat::Dng.to_string(), "DNG");
 /// assert_eq!("CR3".parse(), Ok(RawFormat::Cr3));

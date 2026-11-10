@@ -18,8 +18,8 @@ use ahd::{AhdLazy, DemosaicAhd};
 use amaze::DemosaicAmaze;
 use dcb::DemosaicDcb;
 use dht::DemosaicDht;
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 use linear::{DemosaicLinear, LinearLazy};
 use lmmse::DemosaicLmmse;
 use ppg::{DemosaicPpg, PpgLazy};
@@ -234,7 +234,7 @@ impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
 mod rust_algorithm_tests {
     use std::num::NonZeroU8;
 
-    use fornax_core::MonoImage;
+    use fornax_raw_core::MonoImage;
     use generic_num::num;
 
     use super::*;
@@ -365,10 +365,10 @@ mod rust_algorithm_tests {
             for y in 16..48 {
                 for x in 16..48 {
                     let channel = match image_channel(BayerPattern::GRBG, x, y) {
-                        fornax_core::BayerChannel::R => 0,
-                        fornax_core::BayerChannel::GRedRow
-                        | fornax_core::BayerChannel::GBlueRow => 1,
-                        fornax_core::BayerChannel::B => 2,
+                        fornax_raw_core::BayerChannel::R => 0,
+                        fornax_raw_core::BayerChannel::GRedRow
+                        | fornax_raw_core::BayerChannel::GBlueRow => 1,
+                        fornax_raw_core::BayerChannel::B => 2,
                     };
                     assert!(
                         (output.get_pixel(x, y)[channel] - image.get_pixel(x, y)[0]).abs() < 2.0e-5,
@@ -380,7 +380,7 @@ mod rust_algorithm_tests {
         Ok(())
     }
 
-    fn image_channel(pattern: BayerPattern, x: u32, y: u32) -> fornax_core::BayerChannel {
+    fn image_channel(pattern: BayerPattern, x: u32, y: u32) -> fornax_raw_core::BayerChannel {
         pattern.channel_at(x, y)
     }
 }

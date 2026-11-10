@@ -1,5 +1,5 @@
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use generic_num::num;
 
 use crate::LazyDemosaic;

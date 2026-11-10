@@ -1,8 +1,8 @@
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
 
-use fornax_core::RawMosaic;
-use fornax_core::protocol::IDecoder;
+use fornax_raw_core::RawMosaic;
+use fornax_raw_core::protocol::IDecoder;
 use fornax_dng::constants::DngPhotometricInterpretation;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffWriter, Value};
@@ -16,7 +16,7 @@ fn malformed_tiff_is_invalid_input() {
     let error = ArwImage::parse(b"not a tiff").unwrap_err();
     assert!(matches!(
         error,
-        fornax_core::error::DecodeError::InvalidInput(_)
+        fornax_raw_core::error::DecodeError::InvalidInput(_)
     ));
 }
 
@@ -26,7 +26,7 @@ fn arq_multi_sample_layout_is_unsupported() {
     let error = ArwImage::parse(&source).unwrap_err();
     assert!(matches!(
         error,
-        fornax_core::error::DecodeError::Unsupported(_)
+        fornax_raw_core::error::DecodeError::Unsupported(_)
     ));
 }
 
@@ -42,7 +42,7 @@ fn reduced_resolution_linear_raw_is_unsupported() {
     let error = ArwImage::parse(&source).unwrap_err();
     assert!(matches!(
         error,
-        fornax_core::error::DecodeError::Unsupported(_)
+        fornax_raw_core::error::DecodeError::Unsupported(_)
     ));
 }
 
@@ -52,7 +52,7 @@ fn unknown_sony_compression_is_unsupported() {
     let error = ArwImage::parse(&source).unwrap_err();
     assert!(matches!(
         error,
-        fornax_core::error::DecodeError::Unsupported(_)
+        fornax_raw_core::error::DecodeError::Unsupported(_)
     ));
 }
 

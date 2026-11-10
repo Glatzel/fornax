@@ -1,4 +1,4 @@
-use fornax_core::error::DecodeError;
+use fornax_raw_core::error::DecodeError;
 use fornax_dng::metadata::DngTag;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value, unsigned_scalar};

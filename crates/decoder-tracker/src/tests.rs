@@ -1,7 +1,7 @@
 use std::fs;
 
-use fornax_core::metadata::{ColorCalibration, Levels, ProcessMetadata, RawColorMeta};
-use fornax_core::{BayerPattern, MonoImage};
+use fornax_raw_core::metadata::{ColorCalibration, Levels, ProcessMetadata, RawColorMeta};
+use fornax_raw_core::{BayerPattern, MonoImage};
 use fornax_dng::Directory;
 use fornax_tiff::Value;
 use image::math::Rect;
@@ -298,13 +298,13 @@ fn panic_is_mapped_to_a_runner_row() {
 #[test]
 fn decode_errors_use_stable_error_kinds() {
     assert_eq!(
-        classify_decode_error(&fornax_core::error::DecodeError::Unsupported(
+        classify_decode_error(&fornax_raw_core::error::DecodeError::Unsupported(
             "layout".into()
         )),
         "unsupported"
     );
     assert_eq!(
-        classify_decode_error(&fornax_core::error::DecodeError::InvalidInput(
+        classify_decode_error(&fornax_raw_core::error::DecodeError::InvalidInput(
             "bytes".into()
         )),
         "invalid_input"

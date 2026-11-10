@@ -2,10 +2,10 @@ use std::fmt::Display;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::Path;
 
-use fornax_core::RawMosaic;
-use fornax_core::error::DecodeError;
-use fornax_core::metadata::ProcessMetadata;
-use fornax_core::protocol::IDecoder;
+use fornax_raw_core::RawMosaic;
+use fornax_raw_core::error::DecodeError;
+use fornax_raw_core::metadata::ProcessMetadata;
+use fornax_raw_core::protocol::IDecoder;
 use fornax_decoder::Decoder;
 use fornax_dng::Directory;
 use fornax_dng::metadata::IDecoderDng;

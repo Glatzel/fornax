@@ -1,5 +1,5 @@
 use flashraw_codecs::ljpeg::{LjpegHeader, LjpegOptions, decode_rows_par};
-use fornax_core::error::DecodeError;
+use fornax_raw_core::error::DecodeError;
 use rayon::prelude::*;
 
 use crate::container::{CompressionFamily, RawLayout, invalid, unsupported};

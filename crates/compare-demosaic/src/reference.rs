@@ -1,8 +1,8 @@
 use std::path::Path;
 use std::sync::Mutex;
 
-use fornax_core::protocol::{IDecoder, IPreprocessor};
-use fornax_core::{BayerChannel, BayerPattern, CroppedMosaic};
+use fornax_raw_core::protocol::{IDecoder, IPreprocessor};
+use fornax_raw_core::{BayerChannel, BayerPattern, CroppedMosaic};
 use fornax_decoder::Decoder;
 use fornax_raw_pipeline::Preprocessor;
 use sha2::{Digest, Sha256};
@@ -245,7 +245,7 @@ pub fn libraw_filters(pattern: BayerPattern) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::MonoImage;
+    use fornax_raw_core::MonoImage;
     use fornax_raw_pipeline::{Demosaic, IDemosaic, LazyDemosaic};
 
     use super::*;

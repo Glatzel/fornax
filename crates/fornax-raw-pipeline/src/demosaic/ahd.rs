@@ -6,8 +6,8 @@
 
 use std::sync::LazyLock;
 
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage};
 use generic_num::num;
 
 use super::linear::DemosaicLinear;
@@ -375,7 +375,7 @@ const fn color_index(channel: BayerChannel) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::BayerPattern;
+    use fornax_raw_core::BayerPattern;
 
     use super::*;
 

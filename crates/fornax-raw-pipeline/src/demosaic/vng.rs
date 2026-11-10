@@ -7,8 +7,8 @@
 //! [`DemosaicVng`] backs both the darktable-compatible VNG selector and the
 //! explicit four-color VNG4 selector.
 
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 
 use super::buffer::{DenseLazy, codes, dense_from_codes};
 
@@ -317,7 +317,7 @@ fn clip(value: i64) -> u16 { value.clamp(0, i64::from(u16::MAX)) as u16 }
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::BayerPattern;
+    use fornax_raw_core::BayerPattern;
 
     use super::*;
 

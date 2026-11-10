@@ -4,9 +4,9 @@ mod process_metadata;
 mod transforms;
 
 use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
-use fornax_core::error::DecodeError;
-use fornax_core::metadata::ProcessMetadata;
-use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_raw_core::error::DecodeError;
+use fornax_raw_core::metadata::ProcessMetadata;
+use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
     Directory, ParsedTiff, RasterRequest, Tag, ValueAccessError, resolve_tiff_compression,
@@ -284,7 +284,7 @@ fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInp
 mod tests {
     use std::io::Cursor;
 
-    use fornax_core::{MonoImage, RawMosaic};
+    use fornax_raw_core::{MonoImage, RawMosaic};
     use fornax_tiff::constants::{CompressionMethod, TiffTag};
     use fornax_tiff::{Tag, TiffWriter, Value};
 
@@ -411,7 +411,7 @@ mod tests {
 
         assert!(matches!(
             error,
-            fornax_core::error::DecodeError::InvalidInput(_)
+            fornax_raw_core::error::DecodeError::InvalidInput(_)
         ));
         assert!(error.to_string().contains("invalid DNG compression 12345"));
     }
@@ -482,7 +482,7 @@ mod tests {
 
         assert!(matches!(
             error,
-            fornax_core::error::DecodeError::InvalidInput(_)
+            fornax_raw_core::error::DecodeError::InvalidInput(_)
         ));
     }
 

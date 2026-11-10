@@ -6,8 +6,8 @@
 
 use std::sync::OnceLock;
 
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 
 use super::LmmseMode;
 use super::buffer::{DenseLazy, channel, codes, dense_from_codes};
@@ -61,7 +61,7 @@ impl DemosaicLmmse {
             .ok_or_else(|| {
                 DemosaicError::InvalidInput("LMMSE could not copy the Bayer mosaic".into())
             })?;
-        let seed: fornax_core::RgbImage<f32> = DemosaicPpg.lazy(&ppg_input, pattern)?.collect();
+        let seed: fornax_raw_core::RgbImage<f32> = DemosaicPpg.lazy(&ppg_input, pattern)?.collect();
         let mut output: Vec<u16> = seed
             .as_raw()
             .iter()
@@ -736,7 +736,7 @@ fn square(value: f32) -> f32 { value * value }
 mod tests {
     use std::num::NonZeroU8;
 
-    use fornax_core::MonoImage;
+    use fornax_raw_core::MonoImage;
 
     use super::*;
     use crate::LazyDemosaic;

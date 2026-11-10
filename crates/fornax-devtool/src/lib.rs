@@ -6,7 +6,7 @@ use std::path::Path;
 
 pub use bench::*;
 pub use dirs::*;
-use fornax_core::{MonoImage, Primitive};
+use fornax_raw_core::{MonoImage, Primitive};
 use generic_num::num;
 use image::{ImageBuffer, Pixel, PixelWithColorType, Primitive as ImagePrimitive};
 use num_traits::Float;

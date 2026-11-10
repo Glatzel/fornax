@@ -9,8 +9,8 @@
 use std::cmp::Ordering;
 use std::sync::LazyLock;
 
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 
 use super::buffer::{DenseLazy, codes, dense_from_codes};
 
@@ -646,7 +646,7 @@ const fn color_index(channel: BayerChannel) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::{BayerChannel, BayerPattern, MonoImage};
+    use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage};
 
     use super::*;
     use crate::LazyDemosaic;

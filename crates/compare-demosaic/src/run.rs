@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use fornax_core::BayerPattern;
+use fornax_raw_core::BayerPattern;
 use rayon::prelude::*;
 
 use crate::cases::{self, Case, SampleType, Tolerance};
@@ -68,7 +68,7 @@ struct Job<'a> {
 
 pub fn execute(request: &RunRequest) -> mischief::Result<RunOutput> {
     let input_paths = if request.inputs.is_empty() {
-        vec![fornax_devtool::raw_file(fornax_core::RawFormat::Dng)]
+        vec![fornax_devtool::raw_file(fornax_raw_core::RawFormat::Dng)]
     } else {
         request.inputs.clone()
     };

@@ -1,5 +1,5 @@
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerPattern, MonoImage, Primitive, RgbImage};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage};
 use rayon::prelude::*;
 
 /// Exposes demosaiced RGB rows without requiring a full output allocation.
@@ -7,7 +7,7 @@ use rayon::prelude::*;
 /// # Examples
 ///
 /// ```
-/// use fornax_core::{BayerPattern, MonoImage};
+/// use fornax_raw_core::{BayerPattern, MonoImage};
 /// use fornax_raw_pipeline::{Demosaic, IDemosaic, LazyDemosaic};
 ///
 /// let mosaic = MonoImage::from_raw(2, 2, vec![0.25_f32; 4]).unwrap();
@@ -69,7 +69,7 @@ pub trait LazyDemosaic<T: Primitive + Send + Sync>: Sync {
 /// # Examples
 ///
 /// ```
-/// use fornax_core::{BayerPattern, MonoImage};
+/// use fornax_raw_core::{BayerPattern, MonoImage};
 /// use fornax_raw_pipeline::{Demosaic, IDemosaic, LazyDemosaic};
 ///
 /// let mosaic = MonoImage::from_raw(2, 2, vec![0.25_f32; 4]).unwrap();

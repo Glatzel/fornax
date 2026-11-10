@@ -3,7 +3,7 @@ use std::io::Cursor;
 use std::path::{Path, PathBuf};
 
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
-use fornax_core::{MonoImage, RawFormat, RawMosaic};
+use fornax_raw_core::{MonoImage, RawFormat, RawMosaic};
 use fornax_devtool::{
     BenchParams, BenchSampleBits, DngBenchmarkInput, dng_benchmark_inputs, raw_mosaic_bytes,
     synthetic_mono_image,

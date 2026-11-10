@@ -1,8 +1,8 @@
 use criterion::{BatchSize, Criterion, black_box, criterion_group, criterion_main};
-use fornax_core::error::PreprocessError;
-use fornax_core::metadata::Levels;
-use fornax_core::protocol::IPreprocessor;
-use fornax_core::{CroppedMosaic, MonoImage, Primitive};
+use fornax_raw_core::error::PreprocessError;
+use fornax_raw_core::metadata::Levels;
+use fornax_raw_core::protocol::IPreprocessor;
+use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
 use fornax_raw_pipeline::Preprocessor;
 

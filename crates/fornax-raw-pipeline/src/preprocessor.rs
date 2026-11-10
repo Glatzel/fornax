@@ -1,7 +1,7 @@
-use fornax_core::error::PreprocessError;
-use fornax_core::metadata::Levels;
-use fornax_core::protocol::IPreprocessor;
-use fornax_core::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive};
+use fornax_raw_core::error::PreprocessError;
+use fornax_raw_core::metadata::Levels;
+use fornax_raw_core::protocol::IPreprocessor;
+use fornax_raw_core::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive};
 use generic_num::num;
 use rayon::prelude::*;
 pub struct Preprocessor;
@@ -118,7 +118,7 @@ where
 }
 
 fn band_rows(w: usize, h: usize, elem_size: usize) -> usize {
-    let target_bytes = fornax_core::utils::l2_cache_bytes() / 4; // headroom for tables, shared L2, hybrid cores
+    let target_bytes = fornax_raw_core::utils::l2_cache_bytes() / 4; // headroom for tables, shared L2, hybrid cores
     let by_bytes = (target_bytes / (w * elem_size).max(1)).max(1);
 
     // Aim for several bands per thread so rayon can load-balance.

@@ -2,8 +2,8 @@ mod rawler_wrapper;
 use std::path::{Path, PathBuf};
 
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use fornax_core::Primitive;
-use fornax_core::protocol::IDecoder;
+use fornax_raw_core::Primitive;
+use fornax_raw_core::protocol::IDecoder;
 use fornax_decoder::Decoder;
 use fornax_devtool::{BenchParams, BenchSampleBits};
 use fornax_dng::metadata::IDecoderDng;
@@ -31,7 +31,7 @@ fn selected_decoders() -> Vec<DecoderKind> {
 
 fn raw_path() -> PathBuf {
     let path = std::env::var_os("FORNAX_BENCH_RAW").map_or_else(
-        || fornax_devtool::raw_file(fornax_core::RawFormat::Dng),
+        || fornax_devtool::raw_file(fornax_raw_core::RawFormat::Dng),
         PathBuf::from,
     );
     assert!(
