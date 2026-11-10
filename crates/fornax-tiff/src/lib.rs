@@ -6,10 +6,12 @@ use std::sync::Arc;
 
 pub mod constants;
 mod parser;
+#[cfg(feature = "raster")]
 mod raster;
 mod value;
 mod writer;
 
+#[cfg(feature = "raster")]
 pub use raster::{
     RasterError, RasterLayout, RasterRequest, RasterStorage, resolve_tiff_compression,
 };

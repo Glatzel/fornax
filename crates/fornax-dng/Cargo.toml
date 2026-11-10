@@ -10,7 +10,7 @@ name = "writer"
 [dependencies]
 flashraw-codecs.workspace = true
 fornax-raw-core.workspace = true
-fornax-tiff.workspace = true
+fornax-tiff = { workspace = true, features = ["raster"] }
 generic-num.workspace = true
 image.workspace = true
 num_enum.workspace = true

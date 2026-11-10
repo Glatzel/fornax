@@ -34,6 +34,14 @@ chain. An offset correction maps out-of-line values stored relative to a larger
 container into an extracted or decrypted sub-buffer; Sony private metadata uses
 that path.
 
+## Raster Feature
+
+The default feature set provides TIFF tags, field constants, values, parsing,
+and writing without pulling in a raw codec implementation. Enable the `raster`
+feature to add `RasterLayout`, `RasterRequest`, `RasterStorage`, `RasterError`,
+and `resolve_tiff_compression`. This feature enables the optional
+`fornax-codec` dependency and its codec, image, and Rayon dependency stack.
+
 TIFF-family compression identifiers represented by `CompressionMethod` are:
 
 | Identifier | Meaning | Status |
@@ -47,8 +55,8 @@ DNG compression `34892`, `52546`, and compatibility identifiers `50000` and
 available through `CompressionMethod::Unknown`; recognizing an identifier here
 does not by itself imply that a codec can decode every payload layout.
 
-Codec support is mandatory. Zstandard and future codecs are mandatory
-dependencies without optional codec features.
+When the `raster` feature is enabled, codec support is mandatory. Zstandard and
+future codecs are mandatory dependencies without optional codec features.
 
 The crate intentionally owns container mechanics only. DNG-only tag semantics
 belong to `fornax-dng`; format-neutral raw codecs belong to `fornax-codec`.

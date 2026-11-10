@@ -86,6 +86,10 @@ encoding.
 `fornax_tiff::RasterLayout` owns strip/tile geometry and chunk ordering, while
 `fornax_tiff::RasterRequest` accepts an already-resolved codec compression.
 `resolve_tiff_compression` supplies TIFF defaults `1`, `7`, and `8`.
+These raster integration APIs are behind `fornax-tiff`'s non-default `raster`
+feature. The feature enables its optional `fornax-codec` dependency; TIFF-only
+consumers can use the parser, values, tags, and writer without codec, image, or
+Rayon dependencies. `fornax-dng` enables `raster` on its TIFF dependency.
 `fornax_dng::constants` owns DNG compression and photometric values, including
 the compatibility IDs interpreted only by the DNG format layer. `fornax-dng`
 resolves those values before falling back to the TIFF defaults. `fornax-codec`
