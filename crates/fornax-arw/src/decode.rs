@@ -43,13 +43,7 @@ pub fn samples(
                 .ok_or_else(|| invalid("Sony LJPEG image has no tile length"))?,
         ),
     };
-    let codec_bits = if layout.compression == CompressionFamily::Uncompressed
-        && matches!(layout.bits_per_sample, 14 | 16)
-    {
-        16
-    } else {
-        layout.bits_per_sample
-    };
+    let bits_per_sample = codec_bits(layout);
     let request = DecodeRequest {
         source,
         compression,
@@ -58,7 +52,7 @@ pub fn samples(
         chunk_width,
         chunk_height,
         chunks: &chunks,
-        bits_per_sample: codec_bits,
+        bits_per_sample,
         sample_format: SampleFormat::Integer,
         byte_order: ByteOrder::Little,
         predictor: Predictor::None,
@@ -72,3 +66,47 @@ pub fn samples(
 }
 
 fn codec_error(error: impl std::fmt::Display) -> DecodeError { invalid(error.to_string()) }
+
+fn codec_bits(layout: &RawLayout) -> u16 {
+    if layout.compression == CompressionFamily::SonyLosslessJpeg
+        || (layout.compression == CompressionFamily::Uncompressed
+            && matches!(layout.bits_per_sample, 14 | 16))
+    {
+        16
+    } else {
+        layout.bits_per_sample
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::codec_bits;
+    use crate::container::{CompressionFamily, RawLayout};
+
+    fn layout(compression: CompressionFamily, bits_per_sample: u16) -> RawLayout {
+        RawLayout {
+            compression,
+            width: 64,
+            stored_height: 32,
+            bits_per_sample,
+            offsets: vec![0],
+            byte_counts: vec![1],
+            tile_width: None,
+            tile_height: None,
+        }
+    }
+
+    #[test]
+    fn sony_ljpeg_uses_full_u16_precision_for_historical_container_tags() {
+        assert_eq!(
+            codec_bits(&layout(CompressionFamily::SonyLosslessJpeg, 12)),
+            16
+        );
+    }
+
+    #[test]
+    fn uncompressed_14_and_16_bit_paths_use_u16_word_precision() {
+        assert_eq!(codec_bits(&layout(CompressionFamily::Uncompressed, 14)), 16);
+        assert_eq!(codec_bits(&layout(CompressionFamily::Uncompressed, 16)), 16);
+    }
+}

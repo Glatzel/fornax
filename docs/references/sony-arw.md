@@ -45,6 +45,10 @@
   Components `0/1/2/3` for each sample become `R/G` on the first 512-wide
   output row and `G/B` on the second. The Sony adapter in `fornax-codec` expands
   those four components into two Bayer rows.
+- Some Sony lossless-JPEG streams store 14-bit samples while the TIFF
+  `BitsPerSample` tag retains the historical value `12`. The JPEG frame
+  precision is authoritative, so the Sony adapter gives LJPEG decoding the
+  full `u16` codec domain rather than capping it at the container tag.
 
 ## Metadata mapping
 
