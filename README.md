@@ -18,17 +18,118 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 - 🔒 **Pure-Rust decoding** — No C/C++ decoder dependency in the production
   image pipeline.
 
-## Components
+## Architecture
 
-- **fornax-raw-core**: Shared pipeline types, errors, and decoder/processor
-  contracts.
-- **fornax-raw-pipeline**: Black/white-level normalization, demosaic
-  algorithms, RGB reconstruction, and color processing.
-- **fornax-raw**: High-level facade tying the stages together.
-- **fornax-devtool**: Pinned fixtures and development helpers.
-- **compare-demosaic**: Reference-versus-Fornax demosaic comparison harness.
-- **fornax-py**: Python binding source, currently excluded from the Rust
-  workspace while its public API is stabilized.
+```mermaid
+flowchart TB
+  subgraph tools_group["Tools"]
+    cli["fornax-cli<br/>Batch RAW converter"]
+    tracker["decoder-tracker<br/>RAW decoder regression tracking"]
+    compare["compare-demosaic<br/>Demosaic comparison harness"]
+  end
+
+  subgraph facade_group["Facade"]
+    raw["fornax-raw<br/>High-level RAW pipeline façade"]
+  end
+
+  subgraph workflow_group["Raw workflow"]
+    decoder["fornax-decoder<br/>Thin default decoder facade"]
+    pipeline["fornax-raw-pipeline<br/>Preprocessing, demosaicing, and color processing"]
+  end
+
+  subgraph formats_group["Formats"]
+    dng["fornax-dng<br/>DNG parsing, transforms, and writing"]
+    arw["fornax-arw<br/>Sony ARW/NRW decoding"]
+  end
+
+  subgraph neutral_group["Format-neutral"]
+    tiff["fornax-tiff<br/>Generic TIFF parsing and writing"]
+    codec["fornax-codec<br/>Format-neutral raw sample codecs"]
+  end
+
+  subgraph core_group["Core"]
+    raw_core["fornax-raw-core<br/>Shared pipeline types and stage traits"]
+  end
+
+  subgraph dev_group["Dev support"]
+    devtool["fornax-devtool<br/>Deterministic fixtures and benchmark helpers"]
+  end
+
+  cli --> dng
+  cli --> raw
+  tracker --> decoder
+  tracker --> dng
+  tracker --> tiff
+  compare --> decoder
+  compare --> devtool
+  compare --> pipeline
+
+  raw --> decoder
+  raw --> pipeline
+
+  decoder --> arw
+  decoder --> dng
+
+  arw --> dng
+  arw --> tiff
+  dng --> codec
+  dng --> tiff
+
+  tiff --> codec
+
+  classDef toolsClass fill:#fde68a,stroke:#b45309,stroke-width:1.5px,color:#111827;
+  classDef facadeClass fill:#fbcfe8,stroke:#be185d,stroke-width:1.5px,color:#111827;
+  classDef workflowClass fill:#bfdbfe,stroke:#1d4ed8,stroke-width:1.5px,color:#111827;
+  classDef formatsClass fill:#bbf7d0,stroke:#15803d,stroke-width:1.5px,color:#111827;
+  classDef neutralClass fill:#ddd6fe,stroke:#6d28d9,stroke-width:1.5px,color:#111827;
+  classDef coreClass fill:#e5e7eb,stroke:#374151,stroke-width:1.5px,color:#111827;
+  classDef devClass fill:#f3f4f6,stroke:#6b7280,stroke-width:1.5px,stroke-dasharray: 4 3,color:#111827;
+
+  class cli,tracker,compare toolsClass;
+  class raw facadeClass;
+  class decoder,pipeline workflowClass;
+  class dng,arw formatsClass;
+  class tiff,codec neutralClass;
+  class raw_core coreClass;
+  class devtool devClass;
+
+  style tools_group fill:#fffbeb,stroke:#b45309,stroke-width:1.5px,color:#92400e;
+  style facade_group fill:#fdf2f8,stroke:#be185d,stroke-width:1.5px,color:#9d174d;
+  style workflow_group fill:#eff6ff,stroke:#1d4ed8,stroke-width:1.5px,color:#1e40af;
+  style formats_group fill:#f0fdf4,stroke:#15803d,stroke-width:1.5px,color:#166534;
+  style neutral_group fill:#f5f3ff,stroke:#6d28d9,stroke-width:1.5px,color:#5b21b6;
+  style core_group fill:#f9fafb,stroke:#374151,stroke-width:1.5px,color:#1f2937;
+  style dev_group fill:#f9fafb,stroke:#6b7280,stroke-width:1.5px,color:#374151;
+  linkStyle default stroke:#6b7280,stroke-width:1.5px;
+```
+
+Arrows point from a crate to a crate it depends on.
+Every crate except fornax-cli, fornax-codec, fornax-tiff, and fornax-raw-core itself also depends on fornax-raw-core; those edges are omitted.
+
+| Color | Group | Meaning |
+| --- | --- | --- |
+| Yellow | Tools | User-facing entry points and validation tools. |
+| Pink | Facade | High-level API surface. |
+| Blue | Raw workflow | Decode and post-decode processing stages. |
+| Green | Formats | DNG- and Sony-specific handling. |
+| Violet | Format-neutral | Reusable TIFF and sample-codec foundations. |
+| Gray | Core | Shared types, metadata, errors, and stage contracts. |
+| Light gray | Dev support | Fixtures, paths, and benchmark configuration. |
+
+| Crate | Group | Role |
+| --- | --- | --- |
+| `fornax-cli` | Tools | Batch RAW converter. |
+| `decoder-tracker` | Tools | Manual RAW decoder regression tracking. |
+| `compare-demosaic` | Tools | Demosaic comparison harness. |
+| `fornax-raw` | Facade | High-level façade for the RAW pipeline. |
+| `fornax-decoder` | Raw workflow | Thin default decoder facade. |
+| `fornax-raw-pipeline` | Raw workflow | Post-decode preprocessing, demosaicing, and color processing. |
+| `fornax-dng` | Formats | Pure-Rust DNG parsing, transforms, and writing. |
+| `fornax-arw` | Formats | Pure-Rust Sony ARW/NRW decoding. |
+| `fornax-tiff` | Format-neutral | Generic TIFF parsing, values, and writing. |
+| `fornax-codec` | Format-neutral | Format-neutral raw sample codecs. |
+| `fornax-raw-core` | Core | Shared RAW pipeline types and stage traits. |
+| `fornax-devtool` | Dev support | Deterministic fixtures and benchmark helpers. |
 
 ## Development
 
