@@ -44,7 +44,7 @@ Out of scope:
 - [x] Run baseline and current-main measurements and build timings.
 - [x] Re-run the golden hash check.
 - [x] Run workspace validation and dependency-tree checks.
-- [ ] Inspect the final diff, commit, push, and open one Phase A pull request.
+- [x] Inspect the final diff, commit, push, and open one Phase A pull request.
 
 ## Files expected to change
 
@@ -104,3 +104,4 @@ git diff --check
   target is a writer benchmark, and the baseline stage benchmarks lived in
   the preprocessor/postprocessor crates before moving to
   `fornax-raw-pipeline`. Measurements record that limitation explicitly.
+- Pull request: [#692](https://github.com/Glatzel/fornax/pull/692).
