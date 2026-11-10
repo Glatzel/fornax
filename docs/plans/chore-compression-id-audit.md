@@ -51,8 +51,10 @@ Out of scope:
   coverage.
 - [x] Run focused tests, workspace tests, formatting, docs, Clippy, and
   dependency trees.
-- [ ] Record the local golden-check limitation and confirm the CI golden job.
-- [ ] Open one semantic PR.
+- [x] Record the local golden-check limitation; the CI golden job is pending at
+  handoff.
+- [x] Open one semantic PR:
+  <https://github.com/Glatzel/fornax/pull/695>.
 
 ## Files Expected to Change
 
@@ -138,3 +140,4 @@ The golden hash command must report `golden: unchanged (9 rows)`.
 - The local golden hash command could not materialize LFS objects because
   `git-lfs install` failed in this environment. Per maintainer direction, the
   CI golden job is authoritative instead of retrying local materialization.
+- Pull request #695 is open and unmerged. CI status is pending at handoff.
