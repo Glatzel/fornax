@@ -13,7 +13,7 @@ Read [docs/architecture.md](docs/architecture.md) for crate roles, interfaces,
 and pipeline data flow. These invariants always apply:
 
 - Keep decoding, preprocessing, and demosaicing as separate stages.
-- `fornax-core` owns shared image wrappers, process metadata, errors, and stage
+- `fornax-raw-core` owns shared image wrappers, process metadata, errors, and stage
   traits. It does not own TIFF/DNG parsing, decoded directory metadata, DNG
   writing, or a decoder implementation.
 - `fornax-tiff` owns generic TIFF tags (`Tag` and `TiffTag`), typed TIFF field
@@ -23,8 +23,8 @@ and pipeline data flow. These invariants always apply:
 - `fornax-dng` owns DNG-only tags (`DngTag`), a `Directory` keyed by `Tag`,
   DNG-specific transforms, and DNG writing.
 - `fornax-decoder::Decoder<T>` is the default pure-Rust DNG decoder. The
-  `fornax` facade re-exports it as `fornax::decoder::Decoder` and the DNG
-  format layer as `fornax::dng`.
+  `fornax-raw` facade re-exports it as `fornax_raw::decoder::Decoder` and the
+  DNG format layer as `fornax_raw::dng`.
 - `fornax-decoder-rawler` is an alternate Rawler-backed decoder for supported
   conventional 2x2 RGB Bayer files. `fornax-decoder-dnc` converts with Adobe
   DNG Converter before decoding with Rawler; its facade export is limited to
@@ -34,8 +34,7 @@ and pipeline data flow. These invariants always apply:
   `process_metadata`. `dng_metadata` returns a `fornax_tiff::Directory`;
   decoder-specific parsing state must stay behind that interface.
 - `fornax-raw-pipeline` owns black/white normalization, demosaic protocols and
-  algorithms, RGB reconstruction, and postprocessing. `fornax-preprocessor`
-  and `fornax-postprocessor` are compatibility re-export packages.
+  algorithms, RGB reconstruction, and postprocessing.
 - `fornax-decoder` owns decoder benchmarks. Demosaic and preprocessor
   benchmarks live in `fornax-raw-pipeline`.
 - `decoder-tracker` owns the manual raw.pixls.us decoder regression tracker,

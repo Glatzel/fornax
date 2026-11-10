@@ -41,11 +41,11 @@ VNG behavior or LibRaw non-four-color comparison.
 ## Files expected to change
 
 - `TODO.md`
-- `crates/fornax-postprocessor/src/demosaic.rs`
-- `crates/fornax-postprocessor/src/demosaic/vng.rs`
-- `crates/fornax-postprocessor/README.md`
-- `crates/fornax-postprocessor/benches/algorithms.json`
-- `crates/fornax-postprocessor/benches/support/demosaic_registry.rs`
+- `crates/fornax-raw-pipeline/src/demosaic.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/vng.rs`
+- `crates/fornax-raw-pipeline/README.md`
+- `crates/fornax-raw-pipeline/benches/algorithms.json`
+- `crates/fornax-raw-pipeline/benches/support/demosaic_registry.rs`
 - `crates/compare-demosaic/cpp/shim.cpp`
 - `crates/compare-demosaic/cpp/shim.h`
 - `crates/compare-demosaic/cpp/algos/libraw_vng.cpp`
@@ -70,7 +70,7 @@ VNG behavior or LibRaw non-four-color comparison.
 ## Validation
 
 ```bash
-cargo test -p fornax-postprocessor vng
+cargo test -p fornax-raw-pipeline vng
 cargo test -p compare-demosaic native_vng4_meets_reference_limits
 cargo run --release -p compare-demosaic -- run \
   --algorithm vng4 --pattern GBRG --artifacts --out target/vng4
@@ -87,7 +87,7 @@ cargo test --workspace --all-features
 cargo +nightly fmt --check
 cargo clippy --workspace --all-features --all-targets -- -D warnings -A clippy::too_many_arguments
 markdownlint-cli2 crates/compare-demosaic/README.md \
-  crates/fornax-postprocessor/README.md docs/references/vng.md \
+  crates/fornax-raw-pipeline/README.md docs/references/vng.md \
   docs/plans/vng4-native.md
 git -c core.whitespace=cr-at-eol diff --check
 ```

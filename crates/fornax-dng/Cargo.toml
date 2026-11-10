@@ -9,10 +9,7 @@ name = "writer"
 
 [dependencies]
 flashraw-codecs.workspace = true
-fornax-codec = {
-  workspace = true,
-  features = ["jpegxl", "lossless-jpeg", "lossy-jpeg"]
-}
+fornax-codec = { workspace = true, features = ["jpegxl", "lossless-jpeg", "lossy-jpeg"] }
 fornax-raw-core.workspace = true
 fornax-tiff.workspace = true
 generic-num.workspace = true

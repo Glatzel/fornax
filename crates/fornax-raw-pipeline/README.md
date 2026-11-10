@@ -5,7 +5,7 @@ normalization, Bayer demosaicing, RGB reconstruction, and optional color-space
 processing.
 
 ```rust
-use fornax_core::protocol::{IPostProcessor, IPreprocessor};
+use fornax_raw_core::protocol::{IPostProcessor, IPreprocessor};
 use fornax_raw_pipeline::{OutputColorSpace, PostProcessor, Preprocessor};
 
 let normalized = Preprocessor.process(decoded_active, &metadata.levels)?;

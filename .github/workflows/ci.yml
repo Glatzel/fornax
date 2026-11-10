@@ -48,7 +48,7 @@ jobs:
               - '!**/*.md'
             compare_demosaic:
               - ./crates/compare-demosaic/**
-              - ./crates/fornax-core/**
+              - ./crates/fornax-raw-core/**
               - ./crates/fornax-raw-pipeline/src/demosaic/**
               - '!**/*.md'
             book_assets:

@@ -14,6 +14,10 @@ Implement only Step 6 of the approved Fornax refactor. Open one PR and stop.
 Move DNG-defined tag/value constants out of `fornax-tiff` while preserving
 unknown tag IDs and unknown field types.
 
+Before this step, `fornax-tiff` contained only the DNG photometric
+`LinearRaw` value. `Depth` (`51177`) and `PhotometricMask` (`52527`) were
+added by this step; they did not pre-exist in the TIFF crate.
+
 ## Mandatory ownership gate
 
 Re-verify every moved compression and photometric value against the DNG

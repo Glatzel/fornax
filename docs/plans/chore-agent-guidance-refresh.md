@@ -7,7 +7,7 @@
 **Goal:** Update agent-facing instructions, architecture notes, and decoder
 guides to match the decoder and pipeline crates in PR 646.
 
-**Architecture:** `fornax-core` owns shared types and traits. Dedicated DNG,
+**Architecture:** `fornax-raw-core` owns shared types and traits. Dedicated DNG,
 Rawler, and DNC decoder crates implement `IDecoder`; preprocessing and
 demosaicing remain separate stage crates. `bench-decoder` owns decoder
 benchmarks, while demosaic and preprocessor benchmarks stay with their stage
@@ -93,7 +93,7 @@ Also:
 
 - Check every relative Markdown link in changed instruction/reference files.
 - Search changed guidance for removed API terms:
-  `fornax_core::Decoder`, `decode_active`, `DecodedRaw`, `MosaicData`,
+  `fornax_raw_core::Decoder`, `decode_active`, `DecodedRaw`, `MosaicData`,
   `RawImage<T>`, and `Metadata<T>`.
 - Validate project-skill frontmatter with the skill validator.
 - Confirm no compare-demosaic baseline, generated README region, or result

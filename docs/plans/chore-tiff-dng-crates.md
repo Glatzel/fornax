@@ -4,13 +4,13 @@
 > `superpowers:executing-plans` to implement this plan task-by-task.
 
 **Goal:** Move TIFF container mechanics and DNG semantics out of
-`fornax-core`/`fornax-decoder` into focused reusable crates without changing
+`fornax-raw-core`/`fornax-decoder` into focused reusable crates without changing
 the decoder contract or the conventional 2x2 RGB Bayer boundary.
 
 **Architecture:** `fornax-tiff` owns generic TIFF tags, values, directories,
 parsing, constants, and writing primitives. `fornax-dng` owns DNG-only tags,
 codecs, raw transforms, process-metadata conversion, and DNG writing.
-`fornax-decoder` remains a thin `IDecoder` adapter. `fornax-core` keeps only
+`fornax-decoder` remains a thin `IDecoder` adapter. `fornax-raw-core` keeps only
 shared image wrappers, stage traits, process metadata, and errors.
 
 ## Scope
@@ -124,7 +124,7 @@ Run `scripts/agent-validation.sh`.
 - Repository rustdoc command with `--no-deps`: passed.
 - Root clippy flag set: no issues.
 - `cargo bench -p bench-decoder --no-run`: passed.
-- Production dependency trees for `fornax-core`, `fornax-dng`, and
+- Production dependency trees for `fornax-raw-core`, `fornax-dng`, and
   `fornax-decoder` contain no external `tiff` crate.
 - `git diff --check`: passed.
 - `compare-demosaic` rustdoc, clippy, and all 150 package tests passed.
@@ -134,11 +134,11 @@ Run `scripts/agent-validation.sh`.
 - `Cargo.toml`, `Cargo.lock`
 - `crates/fornax-tiff/**`
 - `crates/fornax-dng/**`
-- `crates/fornax-core/{Cargo.toml,src/**}`
+- `crates/fornax-raw-core/{Cargo.toml,src/**}`
 - `crates/fornax-decoder/{Cargo.toml,src/**}`
 - `crates/fornax-decoder-rawler/src/lib.rs`
 - `crates/fornax-decoder-dnc/src/wrapper.rs`
-- `crates/fornax-preprocessor/src/lib.rs`
+- `crates/fornax-raw-pipeline/src/lib.rs`
 - `scripts/agent-validation.sh`, `scripts/agent-validation-test.sh`
 - `docs/architecture.md`, `docs/decoder/architecture.md`,
   `docs/decoder/formats/dng.md`
@@ -157,7 +157,7 @@ git diff --check
 
 Additional checks:
 
-- `cargo tree -p fornax-core` has no direct `tiff` dependency.
+- `cargo tree -p fornax-raw-core` has no direct `tiff` dependency.
 - `cargo tree -p fornax-dng` has no `tiff` dependency.
 - `cargo tree -p fornax-decoder` has no direct `tiff` dependency.
 - Metadata JSON snapshots cover every scalar/list/ASCII/rational/byte family.

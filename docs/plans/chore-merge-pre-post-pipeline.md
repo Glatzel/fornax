@@ -2,11 +2,18 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Merge the production preprocessing and postprocessing implementations into `fornax-raw-pipeline` without changing pipeline behavior, while leaving `fornax-preprocessor` and `fornax-postprocessor` as reduced compatibility packages.
+**Goal:** Merge the production preprocessing and postprocessing implementations
+into `fornax-raw-pipeline` without changing pipeline behavior. PR #690 later
+deleted the reduced compatibility packages.
 
-**Architecture:** A new `fornax-raw-pipeline` crate owns normalization, demosaic protocols and algorithms, color processing, and both stage benchmarks. The `fornax` facade adds a `raw_pipeline` module and keeps its existing `preprocessor` and `postprocessor` module paths as re-exports; `fornax-cli` uses the new facade module, and `compare-demosaic` imports the new crate directly.
+**Architecture:** A new `fornax-raw-pipeline` crate owns normalization,
+demosaic protocols and algorithms, color processing, and both stage
+benchmarks. The `fornax-raw` facade adds a `raw_pipeline` module and keeps its
+`preprocessor` and `postprocessor` module paths as re-exports; `fornax-cli`
+uses the new facade module, and `compare-demosaic` imports the new crate
+directly.
 
-**Tech Stack:** Rust 2024, Cargo workspace, Rayon, Criterion, `fornax-core`
+**Tech Stack:** Rust 2024, Cargo workspace, Rayon, Criterion, `fornax-raw-core`
 
 **Spec:** `docs/references/workspace-refactor-baseline.md`, Step 2 only
 
@@ -15,12 +22,13 @@
 In scope:
 
 - Create `crates/fornax-raw-pipeline`.
-- Move the normalization implementation from `fornax-preprocessor`.
-- Move the demosaic protocol, all demosaic algorithms, `Demosaic`, `LmmseMode`, `OutputColorSpace`, and `PostProcessor` from `fornax-postprocessor`.
+- Move the normalization implementation from `fornax-raw-pipeline`.
+- Move the demosaic protocol, all demosaic algorithms, `Demosaic`, `LmmseMode`, `OutputColorSpace`, and `PostProcessor` from `fornax-raw-pipeline`.
 - Preserve the public item names `Preprocessor`, `Demosaic`, `LmmseMode`, `IDemosaic`, `LazyDemosaic`, `OutputColorSpace`, and `PostProcessor`.
 - Move both Criterion benchmark targets to the new production crate.
 - Update `fornax`, `fornax-cli`, and `compare-demosaic` to consume `fornax-raw-pipeline`.
-- Keep `fornax-preprocessor` and `fornax-postprocessor` as thin compatibility re-export packages because the required validation runs their package tests.
+- Keep the former compatibility re-export packages during this historical step
+  because its required validation ran their package tests.
 - Update architecture/component documentation and CI benchmark routing for the merged crate.
 
 Out of scope:
@@ -34,8 +42,9 @@ Out of scope:
 ## Review Focus
 
 - A consumer importing one of the required symbols from `fornax_raw_pipeline` must compile and retain its existing behavior.
-- Existing `fornax_preprocessor::Preprocessor` and `fornax_postprocessor::*` imports must remain usable through reduced compatibility packages.
-- `fornax::preprocessor`, `fornax::postprocessor`, and the new `fornax::raw_pipeline` facade must all resolve to the same moved types.
+- The former compatibility crate imports must remain usable through reduced
+  compatibility packages during this historical step.
+- `fornax_raw::preprocessor`, `fornax_raw::postprocessor`, and the new `fornax_raw::raw_pipeline` facade must all resolve to the same moved types.
 - Both moved Criterion targets must compile even though one package now contains the preprocessor and demosaic benchmarks.
 - The decoder golden hashes must remain byte-for-byte unchanged by the crate move.
 
@@ -48,16 +57,16 @@ Out of scope:
 - Create: `crates/fornax-raw-pipeline/src/preprocessor.rs`
 - Create: `crates/fornax-raw-pipeline/src/postprocessor.rs`
 - Create: `crates/fornax-raw-pipeline/src/demosaic.rs`
-- Move: `crates/fornax-postprocessor/src/demosaic/*` to `crates/fornax-raw-pipeline/src/demosaic/*`
-- Move: `crates/fornax-preprocessor/benches/preprocessor.rs` to `crates/fornax-raw-pipeline/benches/preprocessor.rs`
-- Move: `crates/fornax-postprocessor/benches/demosaic.rs` to `crates/fornax-raw-pipeline/benches/demosaic.rs`
-- Move: `crates/fornax-postprocessor/tests/protocol.rs` coverage into the new crate or retain it in the compatibility package
+- Move the demosaic module tree into `crates/fornax-raw-pipeline/src/demosaic/*`.
+- Move the preprocessing benchmark into `crates/fornax-raw-pipeline/benches/preprocessor.rs`.
+- Move the demosaic benchmark into `crates/fornax-raw-pipeline/benches/demosaic.rs`.
+- Move: `crates/fornax-raw-pipeline/tests/protocol.rs` coverage into the new crate or retain it in the compatibility package
 - Test: `crates/fornax-raw-pipeline/tests/public_api.rs`
 - Modify: `Cargo.toml`
 
 **Interfaces:**
 
-- Consumes: `fornax_core::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RgbImage}` and core stage traits/errors.
+- Consumes: `fornax_raw_core::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RgbImage}` and core stage traits/errors.
 - Produces: `fornax_raw_pipeline::{Preprocessor, Demosaic, LmmseMode, IDemosaic, LazyDemosaic, OutputColorSpace, PostProcessor}` with the same signatures and module-private implementation code as the source crates.
 
 - [x] **Step 1: Add a failing public API and behavior test**
@@ -65,9 +74,9 @@ Out of scope:
 Create `crates/fornax-raw-pipeline/tests/public_api.rs`:
 
 ```rust
-use fornax_core::metadata::Levels;
-use fornax_core::protocol::IPreprocessor;
-use fornax_core::{BayerPattern, CroppedMosaic, MonoImage};
+use fornax_raw_core::metadata::Levels;
+use fornax_raw_core::protocol::IPreprocessor;
+use fornax_raw_core::{BayerPattern, CroppedMosaic, MonoImage};
 use fornax_raw_pipeline::{
     Demosaic, IDemosaic, LazyDemosaic, LmmseMode, OutputColorSpace, PostProcessor, Preprocessor,
 };
@@ -102,7 +111,12 @@ Expected: Cargo fails because package `fornax-raw-pipeline` is not a workspace m
 
 - [x] **Step 3: Add the package and move the implementations unchanged**
 
-Create the crate manifest with the union of the old production dependencies and dev-dependencies. Move normalization into `src/preprocessor.rs`; split the old postprocessor `lib.rs` into `src/postprocessor.rs` plus a small `src/lib.rs`; move the demosaic module tree unchanged. Update only crate-local import paths and rustdoc examples from `fornax_postprocessor::...` to `fornax_raw_pipeline::...`. Move both benchmark files and update their imports.
+Create the crate manifest with the union of the old production dependencies
+and dev-dependencies. Move normalization into `src/preprocessor.rs`; split the
+former postprocessor `lib.rs` into `src/postprocessor.rs` plus a small
+`src/lib.rs`; move the demosaic module tree unchanged. Update only crate-local
+import paths and rustdoc examples to `fornax_raw_pipeline::...`. Move both
+benchmark files and update their imports.
 
 - [x] **Step 4: Run the focused API test and moved crate tests**
 
@@ -120,45 +134,42 @@ Expected: PASS with both `preprocessor` and `demosaic` benchmark executables bui
 
 **Files:**
 
-- Modify: `crates/fornax/Cargo.toml`
-- Modify: `crates/fornax/src/lib.rs`
-- Create: `crates/fornax/src/raw_pipeline.rs`
-- Modify: `crates/fornax/src/preprocessor.rs`
-- Modify: `crates/fornax/src/postprocessor.rs`
+- Modify: `crates/fornax-raw/Cargo.toml`
+- Modify: `crates/fornax-raw/src/lib.rs`
+- Create: `crates/fornax-raw/src/raw_pipeline.rs`
+- Modify: `crates/fornax-raw/src/preprocessor.rs`
+- Modify: `crates/fornax-raw/src/postprocessor.rs`
 - Modify: `crates/fornax-cli/src/config.rs`
 - Modify: `crates/fornax-cli/src/convert.rs`
 - Modify: `crates/compare-demosaic/Cargo.toml`
 - Modify: `crates/compare-demosaic/src/cases.rs`
 - Modify: `crates/compare-demosaic/src/reference.rs`
-- Modify: `crates/fornax-preprocessor/Cargo.toml`
-- Replace implementation in: `crates/fornax-preprocessor/src/lib.rs`
-- Modify: `crates/fornax-preprocessor/README.md`
-- Modify: `crates/fornax-postprocessor/Cargo.toml`
-- Replace implementation in: `crates/fornax-postprocessor/src/lib.rs`
-- Modify: `crates/fornax-postprocessor/README.md`
+- Modify: `crates/fornax-raw-pipeline/Cargo.toml`
+- Replace implementation in: `crates/fornax-raw-pipeline/src/lib.rs`
+- Modify: `crates/fornax-raw-pipeline/README.md`
 
 **Interfaces:**
 
 - Consumes: all symbols produced by Task 1.
-- Produces: `fornax::raw_pipeline::*`; existing `fornax::preprocessor::Preprocessor` and `fornax::postprocessor::{Demosaic, IDemosaic, LazyDemosaic, OutputColorSpace, PostProcessor}`; and compatibility re-exports from the two old crate names.
+- Produces: `fornax_raw::raw_pipeline::*`; existing `fornax_raw::preprocessor::Preprocessor` and `fornax_raw::postprocessor::{Demosaic, IDemosaic, LazyDemosaic, OutputColorSpace, PostProcessor}`; and compatibility re-exports from the two old crate names.
 
 - [x] **Step 1: Add a failing facade/compatibility test**
 
 Add compile-time usage in the existing facade or compatibility test coverage for:
 
 ```rust
-let _: fornax::raw_pipeline::Demosaic = fornax::postprocessor::Demosaic::default();
-let _: fornax_preprocessor::Preprocessor = fornax::Preprocessor;
-let _: fornax_postprocessor::Demosaic = fornax::raw_pipeline::Demosaic::default();
+let _: fornax_raw::raw_pipeline::Demosaic = fornax_raw::postprocessor::Demosaic::default();
+let _: fornax_raw_pipeline::Preprocessor = fornax_raw::Preprocessor;
+let _: fornax_raw_pipeline::Demosaic = fornax_raw::raw_pipeline::Demosaic::default();
 ```
 
-Run: `cargo test -p fornax -p fornax-preprocessor -p fornax-postprocessor`
+Run: `cargo test -p fornax-raw -p fornax-raw-pipeline`
 
-Expected: FAIL because `fornax::raw_pipeline` is not yet exported.
+Expected: FAIL because `fornax_raw::raw_pipeline` is not yet exported.
 
 - [x] **Step 2: Update the facade and consumers**
 
-Export `fornax_raw_pipeline` as `fornax::raw_pipeline`, preserve the existing facade modules as re-exports, and update the CLI and `compare-demosaic` imports. Keep all required public item names in `preprocessor` and `postprocessor`.
+Export `fornax_raw_pipeline` as `fornax_raw::raw_pipeline`, preserve the existing facade modules as re-exports, and update the CLI and `compare-demosaic` imports. Keep all required public item names in `preprocessor` and `postprocessor`.
 
 - [x] **Step 3: Reduce old packages to compatibility packages**
 
@@ -169,8 +180,8 @@ Remove their implementation modules and Criterion targets. Re-export the moved p
 Run:
 
 ```bash
-cargo test -p fornax-preprocessor
-cargo test -p fornax-postprocessor
+cargo test -p fornax-raw-pipeline
+cargo test -p fornax-raw-pipeline
 cargo test -p fornax-raw-pipeline
 cargo test -p fornax-cli
 cargo test --workspace --all-features --exclude compare-demosaic
@@ -184,7 +195,7 @@ Expected: every command exits 0 and the moved test count is preserved except tes
 
 - Modify: `AGENTS.md`
 - Modify: `README.md`
-- Modify: `crates/fornax-core/README.md`
+- Modify: `crates/fornax-raw-core/README.md`
 - Modify: `docs/architecture.md`
 - Modify: `.github/workflows/ci.yml`
 - Modify: `docs/plans/chore-merge-pre-post-pipeline.md`
@@ -227,8 +238,8 @@ Expected: the check succeeds and reports unchanged hashes.
 Run:
 
 ```bash
-cargo test -p fornax-preprocessor
-cargo test -p fornax-postprocessor
+cargo test -p fornax-raw-pipeline
+cargo test -p fornax-raw-pipeline
 cargo test -p fornax-cli
 cargo test --workspace --all-features --exclude compare-demosaic
 ```
@@ -260,8 +271,8 @@ Push `chore/merge-pre-post-pipeline` and open one PR against `main` titled `refa
 Required commands:
 
 ```bash
-cargo test -p fornax-preprocessor
-cargo test -p fornax-postprocessor
+cargo test -p fornax-raw-pipeline
+cargo test -p fornax-raw-pipeline
 cargo test -p fornax-cli
 cargo test --workspace --all-features --exclude compare-demosaic
 scripts/agent-validation.sh
@@ -274,9 +285,11 @@ git diff --check
 
 ## Decisions and notes
 
-- The old packages remain as reduced re-export packages because the request explicitly requires `cargo test -p fornax-preprocessor` and `cargo test -p fornax-postprocessor`.
+- The former packages remained as reduced re-export packages during this
+  historical step; PR #690 deleted them.
 - The new crate's public API test passed with 95 package tests, and both Criterion targets compiled.
-- The facade/consumer update passed 103 tests across `fornax-preprocessor`, `fornax-postprocessor`, `fornax-raw-pipeline`, and `fornax-cli`.
+- The facade/consumer update passed 103 tests across the pipeline, facade, and
+  CLI packages.
 - The old package names remain unchanged; no additional crate renames are introduced.
 - The branch was rebased onto `81aca76` after the workspace-refactor trigger documents were published; the trigger and baseline confirm Step 2 scope.
 - Required package tests passed: preprocessor 1, postprocessor 1, CLI 6; workspace tests passed 262 tests across 41 suites.

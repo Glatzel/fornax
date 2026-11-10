@@ -4,7 +4,7 @@
 
 The default production decoder is the pure-Rust implementation in
 `fornax-decoder`. It dispatches DNG containers to `fornax-dng` and Sony ARW/NRW
-containers to `fornax-arw`. `fornax-core` owns the shared decoder protocol and
+containers to `fornax-arw`. `fornax-raw-core` owns the shared decoder protocol and
 pipeline types but no decoder implementation.
 
 Rawler and Adobe DNG Converter adapters are also workspace crates:
@@ -67,9 +67,9 @@ non-2x2 CFA layouts before constructing active pipeline input.
 
 | Crate/module | Responsibility |
 | --- | --- |
-| `fornax-core/src/protocol.rs` | `IDecoder` and cross-stage processor traits |
-| `fornax-core/src/primitive.rs` | `RawMosaic`, `CroppedMosaic`, `NormalizedMosaic`, and image aliases |
-| `fornax-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
+| `fornax-raw-core/src/protocol.rs` | `IDecoder` and cross-stage processor traits |
+| `fornax-raw-core/src/primitive.rs` | `RawMosaic`, `CroppedMosaic`, `NormalizedMosaic`, and image aliases |
+| `fornax-raw-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
 | `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
 | `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, and supported codec encoders |
 | `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
@@ -222,7 +222,7 @@ The decoder migration is complete for the current DNG and Sony ARW/NRW stages:
 1. `fornax-decoder::Decoder` is the default pure-Rust DNG and Sony ARW/NRW
    decoder facade.
 2. Rawler and Adobe DNG Converter adapters are separate workspace crates.
-3. `fornax-core` contains shared interfaces and types, not decoder
+3. `fornax-raw-core` contains shared interfaces and types, not decoder
    implementations.
 4. `fornax-decoder` owns decoder benchmarks.
 5. LibRaw, darktable, and RawTherapee remain comparison-only references.

@@ -14,7 +14,7 @@ mosaic to 16-bit codes, run a padded full-frame DHT state machine with
 `[f32; 3]` samples and one direction byte per sample, then pack through the
 existing lazy boundary.
 
-**Tech Stack:** Rust 2024, `fornax-core`, `fornax-postprocessor`,
+**Tech Stack:** Rust 2024, `fornax-raw-core`, `fornax-raw-pipeline`,
 `compare-demosaic`, LibRaw 0.22.3, Insta, and Cargo.
 
 **Spec:**
@@ -70,7 +70,7 @@ shrink, half-size, four-color RGB, X-Trans, or non-Bayer input.
 
 **Files:**
 
-- Modify: `crates/fornax-postprocessor/src/demosaic/dht.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic/dht.rs`
 - Test: same file
 
 **Interfaces:**
@@ -94,7 +94,7 @@ Add tests named
 
 - [x] **Step 2: Run the tests and verify RED**
 
-Run: `cargo test -p fornax-postprocessor dht::tests -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dht::tests -- --nocapture`
 
 Expected: compilation fails because `Dht` and its helpers do not exist.
 
@@ -107,7 +107,7 @@ source's eight-neighbor, one-stop, and axis-choice comparisons.
 
 - [x] **Step 4: Run the tests and verify GREEN**
 
-Run: `cargo test -p fornax-postprocessor dht::tests -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dht::tests -- --nocapture`
 
 Expected: the new focused tests pass.
 
@@ -115,7 +115,7 @@ Expected: the new focused tests pass.
 
 **Files:**
 
-- Modify: `crates/fornax-postprocessor/src/demosaic/dht.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic/dht.rs`
 - Test: same file
 
 **Interfaces:**
@@ -138,7 +138,7 @@ Add tests named
 
 - [x] **Step 2: Run the tests and verify RED**
 
-Run: `cargo test -p fornax-postprocessor dht::tests -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dht::tests -- --nocapture`
 
 Expected: compilation fails because direction stages and flags do not exist.
 
@@ -151,7 +151,7 @@ the column-wide refinement.
 
 - [x] **Step 4: Run the tests and verify GREEN**
 
-Run: `cargo test -p fornax-postprocessor dht::tests -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dht::tests -- --nocapture`
 
 Expected: all focused tests pass.
 
@@ -159,7 +159,7 @@ Expected: all focused tests pass.
 
 **Files:**
 
-- Modify: `crates/fornax-postprocessor/src/demosaic/dht.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic/dht.rs`
 - Test: same file
 
 **Interfaces:**
@@ -181,7 +181,7 @@ Add tests named
 
 - [x] **Step 2: Run the tests and verify RED**
 
-Run: `cargo test -p fornax-postprocessor dht::tests -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dht::tests -- --nocapture`
 
 Expected: compilation fails because reconstruction and processing do not exist.
 
@@ -199,8 +199,8 @@ Replace `directional::lazy(...)` in `DemosaicDht::lazy` with the dedicated
 
 - [x] **Step 5: Run focused and crate tests**
 
-Run: `cargo test -p fornax-postprocessor dht`
-Run: `cargo test -p fornax-postprocessor`
+Run: `cargo test -p fornax-raw-pipeline dht`
+Run: `cargo test -p fornax-raw-pipeline`
 
 Expected: focused tests and all postprocessor tests pass.
 

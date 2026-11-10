@@ -9,7 +9,7 @@
 | `[DONE]` Baseline | `9b9c1b284ff5f4fe9ef1c8ff41eb6c3cff17b8d2` | `docs/references/workspace-refactor-baseline.md:8` |
 | `[DONE]` Current `main` | `74c8100692e56638f52f0c5430e5a1ab5dd8672b`, equal to `origin/main` | `.git/refs/heads/main:1`, `.git/refs/remotes/origin/main:1` |
 | `[DONE]` Working tree | Only `external/raw.pixls.us` is dirty at top level; its worktree is `bdef075de28da656976c7cf54f89c1214dbc65d4-dirty`, not the recorded gitlink `a96f50803e8c7b2923badc983cba80246b80eb1e`. Six Sony ARW files are modified inside it. | `.gitmodules:9`; `git status --porcelain=v2` and `git -C external/raw.pixls.us status` |
-| `[DEVIATION]` Out-of-band merge | PR #690, `refactor: clean up`, merged after Step 6. It renamed `fornax-core` to `fornax-raw-core`, renamed the facade to `fornax-raw`, and deleted the compatibility processor crates. | `.git/refs/heads/main:1`; `Cargo.toml:16`; `crates/fornax-raw/Cargo.toml:2` |
+| `[DEVIATION]` Out-of-band merge | PR #690, `refactor: clean up`, merged after Step 6. It renamed the former core crate to `fornax-raw-core`, renamed the facade to `fornax-raw`, and deleted the compatibility processor crates. | `.git/refs/heads/main:1`; `Cargo.toml:16`; `crates/fornax-raw/Cargo.toml:2` |
 | `[DONE]` Interleaved non-step merges | PR #682 added trigger documents; PR #685 only reordered a dependency declaration. | `docs/plans/workspace-refactor/README.md:1`; `Cargo.toml:22` |
 
 | Step | PR and title | Merge status |
@@ -35,7 +35,7 @@
 
 | Field | Result |
 | --- | --- |
-| Scope and symbols | `[DONE]` PR #683 touched `fornax-preprocessor`, `fornax-postprocessor`, new `fornax-raw-pipeline`, `fornax`, `fornax-cli`, and `compare-demosaic`. It moved `Preprocessor` and `{Demosaic, LmmseMode, IDemosaic, LazyDemosaic, OutputColorSpace, PostProcessor}` to `fornax_raw_pipeline::*` (`crates/fornax-raw-pipeline/src/lib.rs:10`). |
+| Scope and symbols | `[DONE]` PR #683 touched both former compatibility processor crates, the new `fornax-raw-pipeline`, the facade, `fornax-cli`, and `compare-demosaic`. It moved `Preprocessor` and `{Demosaic, LmmseMode, IDemosaic, LazyDemosaic, OutputColorSpace, PostProcessor}` to `fornax_raw_pipeline::*` (`crates/fornax-raw-pipeline/src/lib.rs:10`). |
 | Metrics | 8,496 non-blank LOC moved (238 preprocessor + 8,258 postprocessor); 8 consumer/facade files changed; test attributes `+15/-12` because suites moved. |
 | Deviation | `[DONE]` None at #683; its pre/post compatibility crates were retained. They were deleted later by #690. |
 
@@ -306,9 +306,9 @@ Counts below mean current Rust files outside the defining crate that mention the
 | New `unsigned_scalar`; new `unsigned_vec`; new `ValueAccessError` | 5; 4; 2 |
 | New `RasterStorage`, `RasterLayout`, `RasterRequest`, `RasterError`, `resolve_tiff_compression` | 0, 0, 1, 0, 1 |
 | DNG constants now use `DngCompressionMethod` / `DngPhotometricInterpretation` | 0 / 2 |
-| `[DEVIATION]` All public items under `fornax_core::*` -> `fornax_raw_core::*` after #690 (`crates/fornax-raw-core/Cargo.toml:2`) | 53 files / 157 references |
+| `[DEVIATION]` All public items in the former core crate changed namespace to `fornax_raw_core::*` after #690 (`crates/fornax-raw-core/Cargo.toml:2`) | 53 files / 157 references |
 | `[DEVIATION]` Facade moved from package `fornax` to `fornax-raw`; public exports now live under `fornax_raw::*` (`crates/fornax-raw/Cargo.toml:2`, `crates/fornax-raw/src/lib.rs:1`) | 5 Rust files |
-| `[DEVIATION]` `fornax-preprocessor` and `fornax-postprocessor` crates were deleted; `fornax_raw::preprocessor` and `fornax_raw::postprocessor` remain modules (`crates/fornax-raw/src/preprocessor.rs:1`, `crates/fornax-raw/src/postprocessor.rs:1`) | 0 in-workspace Rust users of old crate names |
+| `[DEVIATION]` The compatibility processor crates were deleted; `fornax_raw::preprocessor` and `fornax_raw::postprocessor` remain modules (`crates/fornax-raw/src/preprocessor.rs:1`, `crates/fornax-raw/src/postprocessor.rs:1`) | 0 in-workspace Rust users of old crate names |
 
 `[DONE]` `fornax-cli` uses `fornax-raw`/`fornax-dng` (`crates/fornax-cli/Cargo.toml:15`); `decoder-tracker` uses the renamed core (`crates/decoder-tracker/Cargo.toml:16`); both passed #690's Ubuntu/macOS workspace-test jobs. `compare-demosaic` uses the renamed raw crates (`crates/compare-demosaic/Cargo.toml:10`) and its #690 comparison check passed; it was not compiled locally.
 
@@ -318,22 +318,36 @@ Counts below mean current Rust files outside the defining crate that mention the
 
 ## 8. Quality evidence
 
-`[DONE]` Static `#[test]`/`#[rstest]` counts (baseline -> current) are: compare-demosaic 56 -> 56; decoder-tracker 36 -> 44; fornax-arw 10 -> 11; fornax-cli 6 -> 6; fornax-codec 25 -> 31; fornax-core/fornax-raw-core 10 -> 10; fornax-decoder 3 -> 3; fornax-devtool 11 -> 11; fornax-dng 26 -> 35; preprocessor 4 + postprocessor 85 -> raw-pipeline 89; facade 0 -> 1; fornax-tiff 10 -> 32. Total 282 -> 329. These are declarations, not expanded executions.
+`[DONE]` Static `#[test]`/`#[rstest]` counts (baseline -> current) are: compare-demosaic 56 -> 56; decoder-tracker 36 -> 44; fornax-arw 10 -> 11; fornax-cli 6 -> 6; fornax-codec 25 -> 31; core 10 -> 10; fornax-decoder 3 -> 3; fornax-devtool 11 -> 11; fornax-dng 26 -> 35; preprocessor 4 + postprocessor 85 -> raw-pipeline 89; facade 0 -> 1; fornax-tiff 10 -> 32. Total 282 -> 329. These are declarations, not expanded executions.
 
 `[DONE]` Recorded workspace executions were 251 at baseline, then 262 (#683), 270 (#684), 290 (#686), 325 (#687), and 334 (#688); Step 5 also recorded TIFF 50, DNG 32, ARW 12, and tracker 47.
 
-`[DONE]` Golden status was unchanged after Steps 2-6 with 9 rows; the files still contain nine data rows (`crates/decoder-tracker/golden/selected-manifest.csv:1`, `crates/decoder-tracker/golden/decode-hashes.csv:1`), and #690 changed no golden file. The hash command was not rerun.
+`[DONE]` Golden status was unchanged after Steps 2-6 with 9 rows; the files
+still contain nine data rows (`crates/decoder-tracker/golden/selected-manifest.csv:1`,
+`crates/decoder-tracker/golden/decode-hashes.csv:1`), and #690 changed no
+golden file. Phase A reran the hash check and reported
+`golden: unchanged (9 rows)`.
 
-`[DONE]` No numeric benchmark result was recorded. #683 recorded benchmark compilation; #690's `benchmark (fornax-dng)` check failed. Benchmarks were not rerun locally.
+`[DONE]` Phase A recorded benchmark numbers in
+`docs/references/workspace-refactor-measurements.md`. No `fornax-codec`
+benchmark target exists at the baseline or current main. The DNG target is a
+writer benchmark, and the older stage benchmarks moved from the preprocessor
+and postprocessor crates into `fornax-raw-pipeline`.
 
-`[DEVIATION]` CI was not uniformly green. #684, #686, #687, and #688 recorded `lefthook`/`check-point` failures despite passing core test/comparison jobs. In the #690 snapshot, workspace tests and the dedicated comparison job passed, `benchmark (fornax-dng)` failed, and several jobs remained in progress.
+`[DEVIATION]` CI was not uniformly green. #684, #686, #687, and #688 recorded
+`lefthook` failures despite passing core test/comparison jobs.
+`check-point` is an aggregate job that exits 1 when any needed job fails, and
+it is a required status check in the active main ruleset. #690's
+`benchmark (fornax-dng)` failure occurred after a successful bench build:
+CodSpeed could not parse the multiline inline `fornax-codec` dependency table.
+Phase A keeps the dependency feature set but writes it on one TOML line.
 
 ## 9. Original pain points, re-checked
 
 | # | Status | Current evidence |
 | ---: | --- | --- |
 | 1 | `[DEVIATION]` Partly resolved | The crate is now explicitly named `fornax-raw-core`, and codec no longer depends on it, but it still mixes Bayer/raw storage, process metadata, and all stage traits: `crates/fornax-raw-core/src/lib.rs:9`, `crates/fornax-raw-core/src/primitive.rs:23`, `crates/fornax-raw-core/src/protocol.rs:8`. |
-| 2 | `[DONE]` Resolved | Codec has no `fornax-core` dependency (`crates/fornax-codec/Cargo.toml:6`) and returns `SampleBuffer` (`crates/fornax-codec/src/lib.rs:99`). |
+| 2 | `[DONE]` Resolved | Codec has no `fornax-raw-core` dependency (`crates/fornax-codec/Cargo.toml:6`) and returns `SampleBuffer` (`crates/fornax-codec/src/lib.rs:99`). |
 | 3 | `[DEVIATION]` Partly resolved | Current `RawMosaic` count is 166 occurrences in 19 Rust files, down from the analyst's 234/27 but still broad; the type remains at `crates/fornax-raw-core/src/primitive.rs:24`. |
 | 4 | `[DEVIATION]` Unchanged | ARW still depends on DNG (`crates/fornax-arw/Cargo.toml:8`) and maps through DNG tags (`crates/fornax-arw/src/metadata.rs:1`, `:13`). |
 | 5 | `[DEVIATION]` Unchanged | Decoder dispatch is still a closed DNG/ARW enum (`crates/fornax-decoder/src/lib.rs:15`) and the facade explicitly re-exports selected types (`crates/fornax-raw/src/lib.rs:3`). |
@@ -341,7 +355,7 @@ Counts below mean current Rust files outside the defining crate that mention the
 | 7 | `[DEVIATION]` Unchanged | DNG and ARW still own separate active-area/default-crop interpretation (`crates/fornax-dng/src/dng_decoder/process_metadata.rs:157`, `crates/fornax-arw/src/metadata.rs:188`). |
 | 8 | `[DONE]` Resolved | DNG decode now returns `RasterRequest`; strip/tile layout and TIFF defaults live in `fornax-tiff` (`crates/fornax-dng/src/dng_decoder/mod.rs:155`, `crates/fornax-tiff/src/raster.rs:63`, `:694`). |
 | 9 | `[DONE]` Resolved | TIFF compression/photometric enums no longer claim DNG IDs; tests assert this (`crates/fornax-tiff/src/constants.rs:85`, `crates/fornax-tiff/tests/constants.rs:43`). |
-| 10 | `[DEVIATION]` Unchanged/worse | CI still hard-codes package/path lists, and line 51 targets the now-absent `crates/fornax-core/**` (`.github/workflows/ci.yml:35`, `scripts/agent-validation.sh:195`). |
+| 10 | `[DONE]` Resolved by Phase A | The comparison change filter now targets `crates/fornax-raw-core/**` (`.github/workflows/ci.yml:51`). |
 
 ## 10. Remaining coupling and new risks
 
@@ -353,21 +367,26 @@ Counts below mean current Rust files outside the defining crate that mention the
 
 `[DEVIATION]` New coupling risk: `fornax-tiff` unconditionally pulls `fornax-codec`, Rayon, `image`, and forced Deflate/lossless-JPEG features (`crates/fornax-tiff/Cargo.toml:7`), so a TIFF-only consumer cannot opt out.
 
-`[DEVIATION]` #690's rename was not propagated everywhere: CI watches absent `crates/fornax-core/**` (`.github/workflows/ci.yml:51`), while architecture/README files still use old paths (`docs/architecture.md:19`, `crates/fornax-raw-core/README.md:1`).
+`[DONE]` Phase A propagated the #690 names through CI, scripts, manifests,
+architecture, crate READMEs, plans, proposals, references, and book links.
 
-`[DEVIATION]` `fornax-raw` has a `zstd` feature (`crates/fornax-raw/Cargo.toml:11`), whereas the proposal required a feature-free facade; this came with #690.
+`[DONE]` The `fornax-raw` `zstd` feature is a maintainer decision and is
+documented in `docs/architecture.md`.
 
 ## 11. Decisions and gaps
 
-`[DECIDED-BY-AGENT]` None can be attributed from repository evidence. PR #686 calls the buffer shape approved, but stores no ruling.
-
-`[UNVERIFIED]` Maintainer ruling provenance for the exact `SampleBuffer` shape.
+`[DONE]` The approved `SampleBuffer` shape and its public compatibility
+constraint are recorded in
+`docs/plans/workspace-refactor/step-04-sample-buffer.md`.
 
 `[UNVERIFIED]` Normative origins of photometric 51177 and 52527, and a value-specific citation for 34892.
 
-`[UNVERIFIED]` Intended `fornax-py` API and post-rename buildability.
+`[DONE]` The current `fornax-py` dependency and import failures are documented
+in `crates/fornax-py/README.md` and `docs/architecture.md`. The intended API
+remains a reserved decision.
 
-`[DONE]` No benchmark or local `compare-demosaic` compilation was run. No workspace test run was started because recorded CI exists.
+`[DONE]` Phase A ran the allowed benchmark targets and full workspace
+validation. `compare-demosaic` was not compiled locally.
 
 `[DONE]` Markdown lint and full repository validation were not run; this is documentation-only and local Markdown lint is prohibited.
 
@@ -382,5 +401,5 @@ Counts below mean current Rust files outside the defining crate that mention the
 5. Is it safe to stop here, or should specific later steps be done before the geography repo uses fornax-tiff and fornax-codec?
 6. What should be checked before the first crates.io publish?
 
-7. Should the stale `fornax-core` CI path, removed processor crates, and broken
-   `fornax-py` references from #690 be fixed before any downstream adoption?
+7. Phase A fixed the stale CI path and processor-crate references. Which
+   `fornax-py` API should replace the removed facade imports?

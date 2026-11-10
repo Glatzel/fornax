@@ -15,7 +15,7 @@ TIFF/DNG metadata into format-neutral codec requests, then applies DNG
 transforms, crop metadata, and container writing. `fornax-tiff` remains
 container-only.
 
-**Tech Stack:** Rust 2024, `fornax-core`, `rayon`, `flate2`, `zune-jpeg`,
+**Tech Stack:** Rust 2024, `fornax-raw-core`, `rayon`, `flate2`, `zune-jpeg`,
 `jxl-oxide`, optional `structured-zstd`, and `thiserror`.
 
 ## Scope
@@ -304,7 +304,7 @@ git commit -m "refactor: route DNG sample coding through fornax-codec"
 
 - Create: `crates/fornax-codec/README.md`
 - Modify: `AGENTS.md`
-- Modify: `crates/fornax-core/README.md`
+- Modify: `crates/fornax-raw-core/README.md`
 - Modify: `crates/fornax-decoder/README.md`
 - Modify: `crates/fornax-dng/README.md`
 - Modify: `crates/fornax-tiff/README.md`
@@ -348,7 +348,7 @@ git commit -m "docs: document fornax-codec ownership"
 - `crates/fornax-dng/Cargo.toml`
 - `crates/fornax-dng/src/**`
 - `crates/fornax-dng/README.md`
-- `crates/fornax-core/README.md`
+- `crates/fornax-raw-core/README.md`
 - `crates/fornax-decoder/README.md`
 - `crates/fornax-tiff/README.md`
 - `docs/architecture.md`
@@ -370,7 +370,7 @@ scripts/agent-validation.sh
 
 ## Decisions and Notes
 
-- `fornax-codec` depends on `fornax-core` for `RawMosaic`; it does not depend
+- `fornax-codec` depends on `fornax-raw-core` for `RawMosaic`; it does not depend
   on `fornax-tiff` or `fornax-dng`.
 - `ICodecDecode` and `ICodecEncode` are separate so decode-only JPEG and JPEG XL
   do not expose meaningless encode operations.

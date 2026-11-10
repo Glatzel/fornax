@@ -2,13 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Move `IDemosaic` and `LazyDemosaic` from `fornax-core` to `fornax-postprocessor`, while keeping `DemosaicError` in `fornax-core` to avoid a dependency cycle.
+**Goal:** Move `IDemosaic` and `LazyDemosaic` from `fornax-raw-core` to `fornax-raw-pipeline`, while keeping `DemosaicError` in `fornax-raw-core` to avoid a dependency cycle.
 
-**Architecture:** The postprocessor will own a `protocol` module containing the demosaic traits. `fornax-postprocessor` already depends on `fornax-core`, so the traits can continue returning `fornax_core::error::DemosaicError`. The facade will re-export the new postprocessor protocol module, and all algorithm, benchmark, comparison, and documentation imports will use the new path.
+**Architecture:** The postprocessor will own a `protocol` module containing the demosaic traits. `fornax-raw-pipeline` already depends on `fornax-raw-core`, so the traits can continue returning `fornax_raw_core::error::DemosaicError`. The facade will re-export the new postprocessor protocol module, and all algorithm, benchmark, comparison, and documentation imports will use the new path.
 
-**Tech Stack:** Rust 2024, Cargo workspace, `rayon`, `fornax-core`, `fornax-postprocessor`.
+**Tech Stack:** Rust 2024, Cargo workspace, `rayon`, `fornax-raw-core`, `fornax-raw-pipeline`.
 
-**Spec:** The user requested moving the three demosaic protocol types, then selected option 1 after the dependency-cycle check: move only `IDemosaic` and `LazyDemosaic`, leaving `DemosaicError` in `fornax-core`.
+**Spec:** The user requested moving the three demosaic protocol types, then selected option 1 after the dependency-cycle check: move only `IDemosaic` and `LazyDemosaic`, leaving `DemosaicError` in `fornax-raw-core`.
 
 ## Scope
 
@@ -24,8 +24,8 @@ behavior, adding compatibility re-exports at the old trait paths, changing
 
 - Keep decoding, preprocessing, and demosaicing as separate stages.
 - Do not change behavior or public type and method signatures beyond module paths.
-- Do not add a `fornax-core -> fornax-postprocessor` dependency.
-- Keep `DemosaicError` at `fornax_core::error::DemosaicError`.
+- Do not add a `fornax-raw-core -> fornax-raw-pipeline` dependency.
+- Keep `DemosaicError` at `fornax_raw_core::error::DemosaicError`.
 - Do not leave compatibility re-exports at the old trait paths.
 - Do not change `TODO.md`.
 - Run the required workspace checks and the comparison baseline command from the repository root.
@@ -44,19 +44,19 @@ behavior, adding compatibility re-exports at the old trait paths, changing
 
 **Files:**
 
-- Create: `crates/fornax-postprocessor/tests/protocol.rs`
+- Create: `crates/fornax-raw-pipeline/tests/protocol.rs`
 
 **Interfaces:**
 
-- Consumes: `fornax_core::{BayerPattern, MonoImage, Primitive}`, `fornax_core::error::DemosaicError`
-- Produces: a regression test importing `IDemosaic` and `LazyDemosaic` from `fornax_postprocessor::protocol`
+- Consumes: `fornax_raw_core::{BayerPattern, MonoImage, Primitive}`, `fornax_raw_core::error::DemosaicError`
+- Produces: a regression test importing `IDemosaic` and `LazyDemosaic` from `fornax_raw_pipeline::protocol`
 
 - [x] **Step 1: Write the failing public-path test**
 
 ```rust
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerPattern, MonoImage, Primitive};
-use fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
+use fornax_raw_pipeline::protocol::{IDemosaic, LazyDemosaic};
 
 struct IdentityLazy;
 
@@ -94,51 +94,51 @@ fn protocol_paths_expose_lazy_and_demosaic_traits() -> mischief::Result<()> {
 
 - [x] **Step 2: Run the test to verify it fails**
 
-Run: `cargo test -p fornax-postprocessor --test protocol`
+Run: `cargo test -p fornax-raw-pipeline --test protocol`
 
-Expected: compilation fails because `fornax_postprocessor::protocol` does not exist.
+Expected: compilation fails because `fornax_raw_pipeline::protocol` does not exist.
 
 ### Task 2: Move the traits and update all consumers
 
 **Files:**
 
-- Create: `crates/fornax-postprocessor/src/protocol.rs`
-- Modify: `crates/fornax-core/Cargo.toml`
-- Modify: `crates/fornax-core/src/protocol.rs`
-- Modify: `crates/fornax-postprocessor/Cargo.toml`
-- Modify: `crates/fornax-postprocessor/src/lib.rs`
-- Modify: `crates/fornax-postprocessor/src/demosaic.rs`
-- Modify: `crates/fornax-postprocessor/src/demosaic/{ahd,buffer,linear,ppg,rcd}.rs`
+- Create: `crates/fornax-raw-pipeline/src/protocol.rs`
+- Modify: `crates/fornax-raw-core/Cargo.toml`
+- Modify: `crates/fornax-raw-core/src/protocol.rs`
+- Modify: `crates/fornax-raw-pipeline/Cargo.toml`
+- Modify: `crates/fornax-raw-pipeline/src/lib.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic/{ahd,buffer,linear,ppg,rcd}.rs`
 - Modify: `crates/bench-demosaic/benches/demosaic.rs`
 - Modify: `crates/compare-demosaic/src/cases.rs`
-- Modify: `crates/fornax/src/postprocessor.rs`
-- Modify: `crates/fornax-core/README.md`
-- Modify: `crates/fornax-postprocessor/README.md`
+- Modify: `crates/fornax-raw/src/postprocessor.rs`
+- Modify: `crates/fornax-raw-core/README.md`
+- Modify: `crates/fornax-raw-pipeline/README.md`
 - Modify: `docs/architecture.md`
 
 **Interfaces:**
 
 - Consumes: the failing test and existing `DemosaicError`
 - Produces:
-  - `fornax_postprocessor::protocol::LazyDemosaic<T>`
-  - `fornax_postprocessor::protocol::IDemosaic<T>`
-  - `fornax::postprocessor::protocol::{IDemosaic, LazyDemosaic}`
+  - `fornax_raw_pipeline::protocol::LazyDemosaic<T>`
+  - `fornax_raw_pipeline::protocol::IDemosaic<T>`
+  - `fornax_raw::postprocessor::protocol::{IDemosaic, LazyDemosaic}`
 
-- [x] **Step 1: Move the trait definitions and implementation unchanged into `crates/fornax-postprocessor/src/protocol.rs`**
+- [x] **Step 1: Move the trait definitions and implementation unchanged into `crates/fornax-raw-pipeline/src/protocol.rs`**
 
-Use `rayon`, `fornax_core::error::DemosaicError`, and `fornax_core::{BayerPattern, MonoImage, Primitive, RgbImage}`. Preserve `dimensions`, `fill_rows`, `collect_with`, `collect`, and `demosaic` signatures and bodies.
+Use `rayon`, `fornax_raw_core::error::DemosaicError`, and `fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage}`. Preserve `dimensions`, `fill_rows`, `collect_with`, `collect`, and `demosaic` signatures and bodies.
 
-- [x] **Step 2: Remove only the moved traits from `crates/fornax-core/src/protocol.rs`**
+- [x] **Step 2: Remove only the moved traits from `crates/fornax-raw-core/src/protocol.rs`**
 
-Keep `IDecoder`, `IPreprocessor`, `IPostProcessMetadata`, and `IPostProcessor` in core. Remove imports that become unused, but leave `DemosaicError` in `crates/fornax-core/src/error.rs`.
+Keep `IDecoder`, `IPreprocessor`, `IPostProcessMetadata`, and `IPostProcessor` in core. Remove imports that become unused, but leave `DemosaicError` in `crates/fornax-raw-core/src/error.rs`.
 
 - [x] **Step 3: Update postprocessor imports to `crate::protocol`**
 
-Add `pub mod protocol;` to the crate root. Keep `DemosaicError` imports from `fornax_core::error`.
+Add `pub mod protocol;` to the crate root. Keep `DemosaicError` imports from `fornax_raw_core::error`.
 
 - [x] **Step 4: Update benchmarks, comparison code, and the facade path**
 
-Use `fornax_postprocessor::protocol::{IDemosaic, LazyDemosaic}` in dependent crates. Re-export `fornax_postprocessor::protocol` from `crates/fornax/src/postprocessor.rs`.
+Use `fornax_raw_pipeline::protocol::{IDemosaic, LazyDemosaic}` in dependent crates. Re-export `fornax_raw_pipeline::protocol` from `crates/fornax-raw/src/postprocessor.rs`.
 
 - [x] **Step 5: Update ownership documentation**
 
@@ -146,17 +146,17 @@ State that core retains the cross-stage traits and `DemosaicError`, while postpr
 
 - [x] **Step 6: Run the focused test and package tests**
 
-Run: `cargo test -p fornax-postprocessor --test protocol`
+Run: `cargo test -p fornax-raw-pipeline --test protocol`
 
 Expected: PASS.
 
-Run: `cargo test -p fornax-postprocessor`
+Run: `cargo test -p fornax-raw-pipeline`
 
 Expected: PASS with all postprocessor unit and integration tests green.
 
 - [x] **Step 7: Confirm the old paths are absent**
 
-Run: `rg -n 'fornax_core::protocol::(IDemosaic|LazyDemosaic)|fornax::protocol::(IDemosaic|LazyDemosaic)' crates docs`
+Run: `rg -n 'fornax_raw_core::protocol::(IDemosaic|LazyDemosaic)|fornax_raw::protocol::(IDemosaic|LazyDemosaic)' crates docs`
 
 Expected: no matches.
 
@@ -197,11 +197,11 @@ Expected: exit 0 with no changed rows.
 
 - [x] **Step 5: Run documentation checks for moved public traits**
 
-Run: `cargo test --doc -p fornax-postprocessor`
+Run: `cargo test --doc -p fornax-raw-pipeline`
 
 Expected: exit 0.
 
-Run: `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p fornax-postprocessor -p fornax-core -p fornax`
+Run: `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p fornax-raw-pipeline -p fornax-raw-core -p fornax-raw`
 
 Expected: exit 0 with no broken intra-doc links.
 
@@ -224,7 +224,7 @@ Commit with `chore: move demosaic protocol traits to postprocessor`, push the br
   differences.
 - `cargo clippy --workspace --all-features --all-targets -- -D warnings`:
   FAIL on pre-existing `clippy::too_many_arguments` findings in
-  `fornax-postprocessor/src/demosaic/ahd.rs` and
+  `fornax-raw-pipeline/src/demosaic/ahd.rs` and
   `libraw/src/c_api/data_loading.rs`. The same CI-matching
   `cargo +nightly clippy` command reports the same two findings.
 - The same nightly clippy command with
@@ -234,15 +234,15 @@ Commit with `chore: move demosaic protocol traits to postprocessor`, push the br
   argument.
 - `cargo run --release -p compare-demosaic -- run`, followed by `diff` against
   `crates/compare-demosaic/baseline/canonical.json`: PASS with no differences.
-- `cargo test --doc -p fornax-postprocessor`: PASS, 2 doctests.
-- `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p fornax-postprocessor -p
-fornax-core -p fornax`: PASS with no broken intra-doc links.
+- `cargo test --doc -p fornax-raw-pipeline`: PASS, 2 doctests.
+- `RUSTDOCFLAGS="-D warnings" cargo doc --no-deps -p fornax-raw-pipeline -p
+fornax-raw-core -p fornax-raw`: PASS with no broken intra-doc links.
 - `git diff --check`: PASS.
 
 ## Decisions and notes
 
 - `DemosaicError` remains in core because `PostProcessError::Demosaic` and core postprocessor signatures use it; moving it into postprocessor would create a core/postprocessor cycle.
-- `IDemosaic::demosaic` continues returning `fornax_core::error::DemosaicError`.
+- `IDemosaic::demosaic` continues returning `fornax_raw_core::error::DemosaicError`.
 - The old trait paths will not be re-exported.
 - The direct `rayon` dependency moves from core to postprocessor with the trait implementation.
 - The comparison baseline must not be regenerated as part of this move.

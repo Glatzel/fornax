@@ -54,8 +54,7 @@ Out of scope:
 - `crates/bench-decoder/benches/decoder.rs`
 - `crates/bench-decoder/README.md`
 - `crates/fornax-decoder-rawler/src/lib.rs`
-- `crates/fornax-preprocessor/README.md`
-- `crates/fornax-postprocessor/README.md`
+- `crates/fornax-raw-pipeline/README.md`
 - `.github/workflows/ci.yml`
 - `docs/architecture.md`
 - `docs/decoder/architecture.md`
@@ -107,8 +106,7 @@ in the pull request; no timing baseline is committed.
 ### Task 1: Shared Sample-Type Default
 
 **Files:** `crates/fornax-devtool/src/bench.rs`,
-`crates/fornax-devtool/README.md`, `crates/fornax-preprocessor/README.md`,
-`crates/fornax-postprocessor/README.md`
+`crates/fornax-devtool/README.md`, `crates/fornax-raw-pipeline/README.md`
 
 - [x] Add a test proving an unset-equivalent default is `[F32]`.
 - [x] Change the default from `32,64` to `32`.

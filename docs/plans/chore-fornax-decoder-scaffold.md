@@ -11,7 +11,7 @@ returns a general CFA-preserving `DecodedRaw` model. Keep the existing
 `IDecoder<Path, T>` boundary for conventional 2x2 Bayer input and reject every
 other CFA layout with a typed handoff error.
 
-**Tech Stack:** Rust 2024, `fornax-core`, `num_enum`, `strum`, `thiserror`, and
+**Tech Stack:** Rust 2024, `fornax-raw-core`, `num_enum`, `strum`, `thiserror`, and
 `tiff`.
 
 **Spec:** This task's user request and
@@ -33,7 +33,7 @@ other CFA layout with a typed handoff error.
 ## Review Focus
 
 - A general CFA must remain expressible through decode and DNG export; collapsing
-  it into `fornax_core::BayerPattern` during decode is a defect.
+  it into `fornax_raw_core::BayerPattern` during decode is a defect.
 - Non-2x2 CFA rejection belongs at the preprocessor handoff and must carry a
   dedicated, matchable error.
 - DNG metadata must retain the tag's value type rather than converting every
@@ -123,8 +123,8 @@ Observed on this branch:
 - `cargo +nightly clippy -p fornax-decoder --all-targets -- -D warnings`:
   passed.
 - The exact workspace clippy gate in `AGENTS.md` reports pre-existing failures
-  in `fornax-decoder-rawler`, `fornax-preprocessor` benchmarks, and
-  `fornax-postprocessor` benchmark support; none is changed by this task.
+  in `fornax-decoder-rawler`, `fornax-raw-pipeline` benchmarks, and
+  `fornax-raw-pipeline` benchmark support; none is changed by this task.
   `fornax-decoder` passes clippy separately.
 - `markdownlint-cli2` is not installed or declared by this repository, so the
   Markdown lint was not run. This is recorded as a skipped check, not a pass.

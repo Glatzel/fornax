@@ -4,7 +4,7 @@
 
 Replace `fornax_codec::Codec` with direction-specific compression enums stored
 in decode and encode requests, expose free `decode` and `encode` functions,
-and make `fornax-cli` consume Fornax workspace APIs through the `fornax`
+and make `fornax-cli` consume Fornax workspace APIs through the `fornax-raw`
 facade. Audit workspace dependencies and gate the DNC decoder to its supported
 platforms.
 
@@ -18,7 +18,7 @@ In scope:
 - Expose free `fornax_codec::decode` and `fornax_codec::encode` functions.
 - Remove `Codec` and the runtime encode rejection for decode-only formats.
 - Update DNG decode and writer integration.
-- Move `fornax-cli` workspace APIs to the `fornax` facade.
+- Move `fornax-cli` workspace APIs to the `fornax-raw` facade.
 - Re-export the facade types needed by the CLI and its tests.
 - Target-gate `fornax-decoder-dnc` and its implementation dependencies.
 - Update current architecture and crate documentation.
@@ -116,8 +116,8 @@ public writer configuration mechanism.
 
 ### Task 4: Facade, CLI, and Dependencies
 
-- Re-export `OutputColorSpace` through `fornax::postprocessor`.
-- Re-export `TiffTag` through `fornax::dng::metadata`.
+- Re-export `OutputColorSpace` through `fornax_raw::postprocessor`.
+- Re-export `TiffTag` through `fornax_raw::dng::metadata`.
 - Replace the CLI's six direct Fornax dependencies with the facade enabled for
   `metadata-json` and `zstd`.
 - Update all CLI source and test imports to facade paths.
@@ -147,14 +147,14 @@ public writer configuration mechanism.
 - `crates/fornax-dng/src/dng_decoder/mod.rs`
 - `crates/fornax-dng/src/writer.rs`
 - `crates/fornax-dng/src/metadata.rs`
-- `crates/fornax/Cargo.toml`
-- `crates/fornax/src/postprocessor.rs`
+- `crates/fornax-raw/Cargo.toml`
+- `crates/fornax-raw/src/postprocessor.rs`
 - `crates/fornax-decoder-dnc/Cargo.toml`
 - `crates/fornax-cli/Cargo.toml`
 - `crates/fornax-cli/README.md`
 - `crates/fornax-cli/src/{config,convert,discover}.rs`
 - `crates/fornax-cli/tests/cli.rs`
-- `crates/fornax/src/lib.rs`
+- `crates/fornax-raw/src/lib.rs`
 - `docs/architecture.md`
 - `docs/plans/chore-simplify-codec-dependencies.md`
 
@@ -165,10 +165,10 @@ cargo test -p fornax-codec
 cargo test -p fornax-codec --all-features
 cargo test -p fornax-dng
 cargo test -p fornax-dng --all-features
-cargo test -p fornax --all-features
+cargo test -p fornax-raw --all-features
 cargo test -p fornax-cli
 cargo tree -p fornax-cli --depth 1 --edges normal
-cargo tree -p fornax --target "$(cargo -Vv | sed -n 's/^host: //p')" --edges normal
+cargo tree -p fornax-raw --target "$(cargo -Vv | sed -n 's/^host: //p')" --edges normal
 scripts/agent-validation.sh
 ```
 

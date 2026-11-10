@@ -16,28 +16,33 @@ part of the current preprocessor/demosaic handoff.
 
 | Crate | Role | Internal dependencies |
 | --- | --- | --- |
-| `fornax-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
+| `fornax-raw-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, raster strip/tile planning, classic/BigTIFF parsing, and classic-TIFF writing. | `fornax-codec` |
 | `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, and supported codec encoding. | None |
-| `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-core`, `fornax-tiff`, `fornax-codec` |
-| `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA sample decoding, and DNG-compatible metadata mapping. | `fornax-core`, `fornax-tiff`, `fornax-dng`, `flashraw-codecs` |
-| `fornax-decoder` | Default pure-Rust DNG and Sony ARW/NRW decoder facade over the format crates. | `fornax-core`, `fornax-dng`, `fornax-arw` |
-| `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-core`, `fornax-dng`, `fornax-tiff` |
-| `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-core`, `fornax-decoder-rawler` |
-| `fornax-raw-pipeline` | Black/white normalization, demosaic protocol and algorithms, RGB reconstruction, and color processing. | `fornax-core` |
-| `fornax-preprocessor` | Compatibility re-export of the preprocessing stage. | `fornax-raw-pipeline` |
-| `fornax-postprocessor` | Compatibility re-export of demosaicing and postprocessing. | `fornax-raw-pipeline` |
-| `fornax` | Public facade over decoders and pipeline stages. | Core, decoder crates, raw pipeline |
-| `fornax-cli` | Standalone batch converter for raw DNG, rendered TIFF/JPEG, and metadata JSON output. | `fornax` facade |
+| `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-raw-core`, `fornax-tiff`, `fornax-codec` |
+| `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA sample decoding, and DNG-compatible metadata mapping. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `flashraw-codecs` |
+| `fornax-decoder` | Default pure-Rust DNG and Sony ARW/NRW decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-arw` |
+| `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-raw-core`, `fornax-dng`, `fornax-tiff` |
+| `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-raw-core`, `fornax-decoder-rawler` |
+| `fornax-raw-pipeline` | Black/white normalization, demosaic protocol and algorithms, RGB reconstruction, and color processing. | `fornax-raw-core` |
+| `fornax-raw` | Public facade over decoders and pipeline stages. | Raw core, decoder crates, raw pipeline |
+| `fornax-cli` | Standalone batch converter for raw DNG, rendered TIFF/JPEG, and metadata JSON output. | `fornax-raw` facade |
 | `fornax-decoder` benches | Decoder comparison benchmarks. | Core, decoder crates, devtool |
 | `decoder-tracker` | Manual sharded raw.pixls.us decoder regression tracker and baseline generator. | Core, decoder, TIFF/DNG metadata |
-| `fornax-devtool` | Pinned fixture paths, synthetic data, and benchmark configuration. | `fornax-core` |
+| `fornax-devtool` | Pinned fixture paths, synthetic data, and benchmark configuration. | `fornax-raw-core` |
 | `compare-demosaic` | Reference-versus-Fornax demosaic comparison harness. | Core, decoder, processors, devtool, pinned C/C++ references |
-| `fornax-py` | PyO3/Maturin binding source, excluded from the Rust workspace while its API is stabilized. | External Python environment |
+| `fornax-py` | PyO3/Maturin binding source, excluded from the Rust workspace and currently not buildable pending its reserved API decision. | External Python environment |
+
+`fornax-py` requests the removed workspace dependency `fornax`,
+whose current replacement is `fornax-raw`. Its source still imports
+`fornax::dnc`, `fornax::fornax_dalim`, `fornax::libraw`, and
+`fornax::Fornax`, none of which the current facade exports. The intended
+Python API remains a
+[reserved decision](proposal/steps-1-6-review-summary.md#11-decisions-and-gaps).
 
 ## Decoder contract
 
-`fornax_core::protocol::IDecoder<I, T>` separates construction from access to
+`fornax_raw_core::protocol::IDecoder<I, T>` separates construction from access to
 decoded data:
 
 ```rust
@@ -61,8 +66,8 @@ active-area-relative Bayer pattern, and optional green-normalized white-balance
 coefficients.
 
 The default implementation is `fornax_decoder::Decoder`. The facade exports it
-as `fornax::Decoder`; it dispatches DNG containers to `fornax-dng` and ARW/NRW
-containers to `fornax-arw`. `fornax_core` contains no decoder implementation.
+as `fornax_raw::Decoder`; it dispatches DNG containers to `fornax-dng` and ARW/NRW
+containers to `fornax-arw`. `fornax_raw_core` contains no decoder implementation.
 
 ## Codec API
 
@@ -85,11 +90,13 @@ encoding.
 the compatibility IDs interpreted only by the DNG format layer. `fornax-dng`
 resolves those values before falling back to the TIFF defaults. `fornax-codec`
 therefore does not depend on TIFF, DNG, or raw workflow types. `fornax-dng`
-adapts codec `SampleBuffer` values to and from `fornax_core::RawMosaic` at its
+adapts codec `SampleBuffer` values to and from `fornax_raw_core::RawMosaic` at its
 decode and write boundaries, keeping `RawMosaic` ownership unchanged.
 
-Codec availability is mandatory. Zstandard and all future codecs are compiled
-unconditionally without per-codec features or runtime fallback errors.
+Codec availability is mandatory in the decoder path. Zstandard and all future
+codecs are compiled unconditionally without per-codec features or runtime
+fallback errors. The `fornax-raw` facade exposes a `zstd` feature that forwards
+to `fornax-decoder/zstd`; it is retained by maintainer decision.
 
 ## Pipeline flow
 

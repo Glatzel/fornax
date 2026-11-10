@@ -57,7 +57,7 @@ The split changes the accepted phase-term and special-neighbor plans. For each
 of the four Bayer patterns, darktable's split-green plan has 512 term
 associations and 128 special green-neighbor flags across the 16 phase
 templates. Collapsing both greens produces 544 terms and only 96 flags. The
-split-green regression tests in `crates/fornax-postprocessor/src/demosaic/vng.rs`
+split-green regression tests in `crates/fornax-raw-pipeline/src/demosaic/vng.rs`
 protect those invariants.
 
 LibRaw has two relevant modes. With `four_color_rgb = 0`, `pre_interpolate`

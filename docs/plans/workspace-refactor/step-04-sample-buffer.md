@@ -1,76 +1,81 @@
-# Trigger: Step 4 — add codec sample buffer
+# Step 4: codec sample buffer
 
-Implement only Step 4 of the Fornax workspace refactor. Open one PR and stop.
+## Status
 
-## Required state
+Approved and implemented. The multi-band or wider-sample container shape
+remains a reserved decision and is not part of this implementation.
 
-- Work from current `origin/main`.
-- Confirm Step 3 is merged.
-- Read `docs/references/workspace-refactor-baseline.md`.
+## Approved shape as implemented
 
-## Mandatory design gate
+The type is single-band and lives in
+`crates/fornax-codec/src/sample_buffer.rs`:
 
-The neutral buffer shape is an open maintainer decision. Do not choose it.
+```rust
+type Mono<T> = ImageBuffer<Luma<T>, Vec<T>>;
 
-Before implementation, report:
-
-- the required sample types;
-- band representation;
-- interleaving representation;
-- whether bands are compile-time or runtime;
-- how the existing mono `RawMosaic` adapts to and from the buffer;
-- effects on integer rasters versus `Primitive: Float`.
-
-Stop and request a ruling before writing production code if the maintainer has
-not supplied the exact shape.
-
-## Goal after the shape is decided
-
-Move neutral codec output into a codec-owned sample buffer so `fornax-codec`
-does not need raw workflow types, while keeping `RawMosaic` source-compatible
-through adapters.
-
-## Required change after approval
-
-- Add the approved sample buffer to `fornax-codec`.
-- Make generic codec decode/encode APIs use it.
-- Add conversion between a single-band buffer and `RawMosaic`.
-- Keep `RawMosaic` ownership stable unless the maintainer explicitly changes
-  it.
-- Add round-trip tests for every approved sample type and band layout.
-- Cover interleaved and planar invalid cases if the approved shape represents
-  both.
-
-## Forbidden
-
-- Do not move DNG constants.
-- Do not move TIFF raster policy.
-- Do not move vendor codecs.
-- Do not rename or split workspaces.
-- Do not decide vendor codec placement.
-
-## Branch and plan
-
-- Suggested branch: `chore/codec-sample-buffer`
-- Suggested worktree: `.worktrees/chore-codec-sample-buffer`
-- Plan: `docs/plans/chore-codec-sample-buffer.md`
-
-## Validation
-
-```bash
-cargo test -p fornax-codec
-cargo test -p fornax-dng
-cargo test -p decoder-tracker
-cargo test --workspace --all-features --exclude compare-demosaic
-scripts/agent-validation.sh
-cargo run -q -p decoder-tracker -- hash \
-  --manifest crates/decoder-tracker/golden/selected-manifest.csv \
-  --check crates/decoder-tracker/golden/decode-hashes.csv
-git diff --check
+#[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
+pub enum SampleBuffer {
+    U8(Mono<u8>),
+    U16(Mono<u16>),
+    U32(Mono<u32>),
+    F32(Mono<f32>),
+}
 ```
 
-## Pull request
+Each variant wraps `image::ImageBuffer<Luma<T>, Vec<T>>`. `Luma` denotes one
+scalar channel and does not imply that the samples are luminance values. There
+is no band-count API and there are no interleaved or planar variants.
 
-- Suggested title: `refactor: add neutral codec sample buffer`
-- Include the approved shape, adapter boundary, and golden-hash result.
-- Stop after reporting the PR URL and any deviations.
+Constructors:
+
+```rust
+pub fn from_u8(width: u32, height: u32, data: Vec<u8>) -> Result<Self, SampleBufferError>;
+pub fn from_u16(width: u32, height: u32, data: Vec<u16>) -> Result<Self, SampleBufferError>;
+pub fn from_u32(width: u32, height: u32, data: Vec<u32>) -> Result<Self, SampleBufferError>;
+pub fn from_f32(width: u32, height: u32, data: Vec<f32>) -> Result<Self, SampleBufferError>;
+```
+
+Accessors and consuming raw-vector accessors:
+
+```rust
+pub fn width(&self) -> u32;
+pub fn height(&self) -> u32;
+pub fn into_raw_u8(self) -> Option<Vec<u8>>;
+pub fn into_raw_u16(self) -> Option<Vec<u16>>;
+pub fn into_raw_u32(self) -> Option<Vec<u32>>;
+pub fn into_raw_f32(self) -> Option<Vec<f32>>;
+```
+
+Errors:
+
+```rust
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+#[non_exhaustive]
+pub enum SampleBufferError {
+    SampleCountOverflow { width: u32, height: u32 },
+    SampleCountMismatch { width: u32, height: u32, expected: usize, actual: usize },
+    InvalidDimensions { width: u32, height: u32 },
+}
+```
+
+Construction converts both dimensions to `usize`, checks multiplication
+overflow, requires the vector length to equal the image sample count, and then
+calls `ImageBuffer::from_raw`.
+
+`fornax-dng` privately owns the raw-workflow adapter in
+`crates/fornax-dng/src/sample_buffer.rs`:
+
+```rust
+pub fn from_raw_mosaic(mosaic: &RawMosaic) -> SampleBuffer;
+pub fn into_raw_mosaic(buffer: SampleBuffer) -> Result<RawMosaic, DecodeError>;
+```
+
+Codec decode returns an owned `SampleBuffer`. `fornax-dng` moves its variants
+into `RawMosaic` without copying the sample vector at that boundary.
+`EncodeRequest::image` borrows a `SampleBuffer`; the writer adapter therefore
+clones `RawMosaic` data before encoding.
+
+The public variants contain `image` 0.x types. An `image` 0.x version bump may
+be semver-breaking for Fornax users who construct, match, or name those public
+variant types, even when the nominal Patch version changes.

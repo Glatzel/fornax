@@ -328,6 +328,6 @@ git diff --check
 - RawTherapee's LMMSE and color LUT facade clamps floating-point indices to the
   table bounds, matching the upstream LUT clipping convention.
 - Workspace clippy currently reports pre-existing lints in untouched
-  `fornax-preprocessor` and `fornax-postprocessor` files. The same strict lint
-  invocation on `compare-demosaic` reaches two pre-existing redundant-clone
-  findings in `diff.rs` and `metrics.rs`; no new RawTherapee finding is present.
+  `fornax-raw-pipeline` files. The same strict lint invocation on
+  `compare-demosaic` reaches two pre-existing redundant-clone findings in
+  `diff.rs` and `metrics.rs`; no new RawTherapee finding is present.
