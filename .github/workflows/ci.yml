@@ -145,7 +145,6 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         with:
           toolchain: nightly
-          components: clippy
       - uses: Glatzel/template/.github/actions/rust/cargo-doc@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         env:
           GH_TOKEN: ${{ github.token }}
