@@ -8,8 +8,9 @@ use fornax_core::error::DecodeError;
 use fornax_core::metadata::ProcessMetadata;
 use fornax_core::protocol::IDecoder;
 use fornax_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
+use fornax_dng::Directory;
+use fornax_dng::dng_decoder::DngImage;
 use fornax_dng::metadata::IDecoderDng;
-use fornax_dng::{Directory, DngImage};
 
 #[derive(Clone, Debug)]
 pub enum Decoder {
@@ -68,7 +69,7 @@ impl IDecoder for Decoder {
 
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
         match self {
-            Self::Dng(parsed) => fornax_dng::raw_mosaic(parsed),
+            Self::Dng(parsed) => parsed.raw_mosaic(),
             Self::Arw(parsed) => parsed.raw_mosaic(),
         }
     }
@@ -78,14 +79,14 @@ impl IDecoder for Decoder {
         T: Primitive,
     {
         match self {
-            Self::Dng(parsed) => fornax_dng::cropped_mosaic(parsed),
+            Self::Dng(parsed) => parsed.cropped_mosaic(),
             Self::Arw(parsed) => parsed.cropped_mosaic(),
         }
     }
 
     fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
         match self {
-            Self::Dng(parsed) => fornax_dng::process_metadata(parsed),
+            Self::Dng(parsed) => parsed.process_metadata(),
             Self::Arw(parsed) => parsed.process_metadata(),
         }
     }
@@ -93,7 +94,7 @@ impl IDecoder for Decoder {
 impl IDecoderDng for Decoder {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> {
         match self {
-            Self::Dng(parsed) => fornax_dng::dng_metadata(parsed),
+            Self::Dng(parsed) => parsed.dng_metadata(),
             Self::Arw(parsed) => parsed.dng_metadata(),
         }
     }

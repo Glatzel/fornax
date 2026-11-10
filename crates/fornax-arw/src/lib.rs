@@ -119,7 +119,7 @@ impl ArwImage {
     /// Returns an error when CFA, levels, geometry, or crop tags are invalid or
     /// describe a non-conventional Bayer layout.
     pub fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
-        fornax_dng::process_metadata_from_dng_metadata(
+        fornax_dng::dng_decoder::process_metadata_from_dng_metadata(
             u32::try_from(self.layout.width)
                 .map_err(|_| container::invalid("ARW width exceeds u32"))?,
             u32::try_from(self.layout.stored_height)
