@@ -1,3 +1,5 @@
+#![cfg(feature = "raster")]
+
 use fornax_codec::{ByteOrder, Chunk, DecodeCompression, Predictor, SampleBuffer, SampleFormat};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{
