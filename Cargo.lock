@@ -868,9 +868,7 @@ dependencies = [
 name = "fornax-dng"
 version = "0.0.17"
 dependencies = [
- "bytemuck",
  "codspeed-criterion-compat",
- "flashraw-codecs",
  "fornax-codec",
  "fornax-devtool",
  "fornax-raw-core",
@@ -882,7 +880,6 @@ dependencies = [
  "rayon",
  "serde",
  "serde_json",
- "sha2",
  "strum",
  "thiserror",
 ]

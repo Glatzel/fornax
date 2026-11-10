@@ -1,5 +1,6 @@
 //! DNG container and sample decoding.
 
+mod opcodes;
 mod process_metadata;
 mod transforms;
 
@@ -871,6 +872,26 @@ mod tests {
             panic!("opcode output must remain u16");
         };
         assert_eq!(image.as_raw().as_slice(), &[10, 20, 30, 40]);
+    }
+
+    #[test]
+    fn opcode_lists_two_and_three_are_rejected() {
+        for tag in [51_009_u16, 51_010] {
+            let pixels = RawMosaic::U16(MonoImage::from_raw(1, 1, vec![1]).unwrap());
+            let mut metadata = Directory::default();
+            metadata.insert(
+                Tag::from(DngTag::Unknown(tag)),
+                Value::List(vec![Value::Byte(0)]),
+            );
+            assert!(metadata.contains_key(&Tag::from(DngTag::Unknown(tag))));
+
+            let error = super::transforms::apply(pixels, &metadata).unwrap_err();
+
+            assert!(
+                error.to_string().contains(&tag.to_string()),
+                "{tag}: {error}"
+            );
+        }
     }
 
     fn metadata(
