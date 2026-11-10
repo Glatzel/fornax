@@ -34,8 +34,16 @@
 //! assert_eq!((decoded.width(), decoded.height()), (2, 2));
 //! ```
 
+#[allow(
+    dead_code,
+    reason = "encoding helpers are used only by feature-gated codecs"
+)]
 mod encode;
 mod error;
+#[allow(
+    dead_code,
+    reason = "predictor helpers are used only by feature-gated codecs"
+)]
 mod predictor;
 mod request;
 mod sample_buffer;

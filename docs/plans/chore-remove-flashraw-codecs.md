@@ -49,8 +49,9 @@ Out of scope:
   path.
 - [x] Update active architecture, codec feature/provenance, Sony, and DNG
   opcode reference documentation.
-- [ ] Run feature-matrix, fixture-backed, workspace, and dependency-graph
-  validation; inspect the final diff and open the pull request.
+- [x] Run feature-matrix, fixture-backed, workspace, and dependency-graph
+  validation; inspect the final diff.
+- [ ] Open the pull request and report its URL and validation results.
 
 ## Files Expected to Change
 

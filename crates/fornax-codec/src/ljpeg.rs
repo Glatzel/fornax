@@ -391,6 +391,7 @@ impl<'a> HeaderReader<'a> {
 pub struct InterleavedJpeg {
     pub width: usize,
     pub height: usize,
+    #[cfg(feature = "arw")]
     pub components: usize,
     pub samples: Vec<u16>,
 }
@@ -480,6 +481,7 @@ pub fn decode_interleaved(
     Ok(InterleavedJpeg {
         width: output_width,
         height: frame.height,
+        #[cfg(feature = "arw")]
         components: frame.components.len(),
         samples: output,
     })
@@ -759,7 +761,7 @@ fn encode_tile(samples: &[u16], width: u16, height: u16, bits: u8) -> Result<Vec
     encode_interleaved(samples, width, height, 1, bits)
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "arw"))]
 pub fn encode_interleaved_for_test(
     samples: &[u16],
     width: u16,
