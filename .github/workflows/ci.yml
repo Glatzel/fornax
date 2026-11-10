@@ -243,7 +243,7 @@ jobs:
         shell: bash
         run: |
           source ./crates/compare-demosaic/scripts/setup.sh
-          cmp="cargo run --release -q -p compare-demosaic --"
+          cmp="cargo run --release -p compare-demosaic --"
           $cmp readme --check
           $cmp run --artifacts
           $cmp diff crates/compare-demosaic/baseline/canonical.json \
