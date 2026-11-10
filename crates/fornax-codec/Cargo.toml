@@ -10,6 +10,7 @@ image.workspace = true
 jxl-oxide = { workspace = true, optional = true }
 rayon.workspace = true
 thiserror.workspace = true
+weezl = { workspace = true, optional = true }
 zstd = { workspace = true, optional = true }
 zune-jpeg = { workspace = true, optional = true }
 
@@ -17,8 +18,11 @@ zune-jpeg = { workspace = true, optional = true }
 image = { workspace = true, features = ["jpeg"] }
 
 [features]
+default = ["lzw", "packbits"]
 deflate = ["dep:flate2"]
 jpegxl = ["dep:jxl-oxide"]
 lossless-jpeg = []
 lossy-jpeg = ["dep:zune-jpeg"]
+lzw = ["dep:weezl"]
+packbits = []
 zstd = ["dep:zstd"]

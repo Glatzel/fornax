@@ -32,10 +32,10 @@ unimplemented or disabled codec does not change who owns an identifier.
 | ID | Meaning | Defining source and version | DNG-defined? | Fornax owner |
 | ---: | --- | --- | --- | --- |
 | `1` | Uncompressed, byte-aligned packed data | TIFF 6.0 (3 June 1992), section 4 and Compression field | No | `fornax-tiff`; raster resolver to `Uncompressed` |
-| `5` | LZW adaptive lossless compression | TIFF 6.0 (3 June 1992), section 13 | No | `fornax-tiff` vocabulary; known codec unavailable until an `lzw` feature exists |
+| `5` | LZW adaptive lossless compression | TIFF 6.0 (3 June 1992), section 13 | No | `fornax-tiff`; optional `lzw` resolver to `Lzw` |
 | `7` | JPEG stream, including sequential lossy or lossless processes | TIFF Technical Note #2 (17 March 1995); TIFF/EP 1.0 section 4.6.1 uses it for baseline JPEG | No | `fornax-tiff` vocabulary and current lossless-JPEG raw subset |
 | `8` | Adobe Deflate/ZIP compression | Adobe TIFF-family assignment, identified as Adobe Deflate by LibTIFF 4.7.0; DNG 1.7.1.0 adopts it in DNG 1.4.0.0 | No | `fornax-tiff`; raster resolver to `Deflate` |
-| `32773` | PackBits byte-oriented run-length compression | TIFF 6.0 (3 June 1992), section 9 | No | `fornax-tiff` vocabulary; known codec unavailable until a `packbits` feature exists |
+| `32773` | PackBits byte-oriented run-length compression | TIFF 6.0 (3 June 1992), section 9 | No | `fornax-tiff`; optional `packbits` resolver to `PackBits` |
 | `32946` | Legacy LibTIFF Deflate/ZIP identifier | LibTIFF 3.9.7 and 4.7.0 `tiff.h` | No | `fornax-tiff` vocabulary; raster resolver to `Deflate` |
 | `34892` | DNG lossy JPEG | DNG 1.7.1.0 pages 20-21; introduced by DNG 1.4.0.0 | Yes | `fornax-dng`; DNG override to `LossyJpeg` |
 | `34925` | LZMA2-compressed data | LibTIFF 4.0.0 release notes added tag `34925`; LibTIFF 4.7.0 `tiff.h` names it LZMA2 | No | `fornax-tiff` vocabulary; known codec unavailable until an `lzma` feature exists |
@@ -56,3 +56,6 @@ unimplemented or disabled codec does not change who owns an identifier.
   generic TIFF resolver. See [sony-arw.md](sony-arw.md).
 - The resolver must report undocumented IDs as unknown and documented IDs
   without available codecs as unsupported with the relevant feature name.
+- `fornax-codec` and `fornax-tiff` enable the standard TIFF LZW and PackBits
+  codecs by default. DNG and ARW opt out of those defaults to preserve their
+  existing codec surfaces.

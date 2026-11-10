@@ -145,12 +145,21 @@ fn decode_float(
         16 => 2,
         24 => 3,
         32 => 4,
+        64 => 8,
         _ => {
             return Err(invalid(format!(
                 "floating-point sample depth {bits} is invalid"
             )));
         }
     };
+    if bits == 64 {
+        let sample_count = geometry.sample_count()?;
+        let mut output = vec![0_f64; sample_count];
+        decode_float_with(geometry, bytes_per_sample, payloads, &mut output, |bytes| {
+            f64::from_bits(read_u64(bytes, byte_order))
+        })?;
+        return buffer_f64(geometry.width, geometry.height, output);
+    }
     let sample_count = geometry.sample_count()?;
     let mut output = vec![0_f32; sample_count];
 
@@ -176,15 +185,16 @@ fn decode_float(
     buffer_f32(geometry.width, geometry.height, output)
 }
 
-fn decode_float_with<F>(
+fn decode_float_with<T, F>(
     geometry: &Geometry,
     bytes_per_sample: usize,
     payloads: &[&[u8]],
-    output: &mut [f32],
+    output: &mut [T],
     read: F,
 ) -> Result<(), CodecError>
 where
-    F: Fn(&[u8]) -> f32 + Sync,
+    T: Send,
+    F: Fn(&[u8]) -> T + Sync,
 {
     par_tiles(
         geometry,
@@ -414,6 +424,16 @@ const fn read_u32(bytes: &[u8], byte_order: ByteOrder) -> u32 {
     }
 }
 
+const fn read_u64(bytes: &[u8], byte_order: ByteOrder) -> u64 {
+    let bytes = [
+        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+    ];
+    match byte_order {
+        ByteOrder::Little => u64::from_le_bytes(bytes),
+        ByteOrder::Big => u64::from_be_bytes(bytes),
+    }
+}
+
 fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
     let storage_bits = 1 + exponent_bits + fraction_bits;
     let sign = (raw >> (storage_bits - 1)) & 1;
@@ -481,6 +501,11 @@ fn buffer_u32(width: usize, height: usize, samples: Vec<u32>) -> Result<SampleBu
 fn buffer_f32(width: usize, height: usize, samples: Vec<f32>) -> Result<SampleBuffer, CodecError> {
     let (width, height) = dimensions(width, height)?;
     SampleBuffer::from_f32(width, height, samples).map_err(Into::into)
+}
+
+fn buffer_f64(width: usize, height: usize, samples: Vec<f64>) -> Result<SampleBuffer, CodecError> {
+    let (width, height) = dimensions(width, height)?;
+    SampleBuffer::from_f64(width, height, samples).map_err(Into::into)
 }
 
 fn checked_product<const N: usize>(values: [usize; N]) -> Option<usize> {

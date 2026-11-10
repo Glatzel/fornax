@@ -6,8 +6,8 @@ use crate::sample_buffer::SampleBuffer;
 /// # Examples
 ///
 /// ```
-/// let compression = fornax_codec::DecodeCompression::Zstd;
-/// assert_eq!(compression, fornax_codec::DecodeCompression::Zstd);
+/// let compression = fornax_codec::DecodeCompression::Uncompressed;
+/// assert_eq!(compression, fornax_codec::DecodeCompression::Uncompressed);
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum DecodeCompression {
@@ -19,6 +19,12 @@ pub enum DecodeCompression {
     /// TIFF Deflate using zlib framing.
     #[cfg(feature = "deflate")]
     Deflate,
+    /// TIFF LZW with MSB-first codes.
+    #[cfg(feature = "lzw")]
+    Lzw,
+    /// TIFF PackBits run-length compression.
+    #[cfg(feature = "packbits")]
+    PackBits,
     /// TIFF lossy JPEG with one luma component.
     #[cfg(feature = "lossy-jpeg")]
     LossyJpeg,
@@ -35,11 +41,8 @@ pub enum DecodeCompression {
 /// # Examples
 ///
 /// ```
-/// let compression = fornax_codec::EncodeCompression::Zstd { level: 3 };
-/// assert_eq!(
-///     compression,
-///     fornax_codec::EncodeCompression::Zstd { level: 3 }
-/// );
+/// let compression = fornax_codec::EncodeCompression::Uncompressed;
+/// assert_eq!(compression, fornax_codec::EncodeCompression::Uncompressed);
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EncodeCompression {
@@ -51,6 +54,12 @@ pub enum EncodeCompression {
     /// TIFF Deflate using zlib framing.
     #[cfg(feature = "deflate")]
     Deflate,
+    /// TIFF LZW with MSB-first codes.
+    #[cfg(feature = "lzw")]
+    Lzw,
+    /// TIFF PackBits run-length compression.
+    #[cfg(feature = "packbits")]
+    PackBits,
     /// TIFF's experimental Zstandard compression with an encoding level.
     #[cfg(feature = "zstd")]
     Zstd {

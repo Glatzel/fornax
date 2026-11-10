@@ -26,15 +26,18 @@ Compression 50000, 50001, and 50002 are external TIFF-family
 self-assignments, not Adobe-defined DNG compression values. Zstandard support
 remains experimental in Fornax.
 
-Codec availability follows Cargo features. A known TIFF ID whose codec feature
-is unavailable returns `TiffCompressionError::UnsupportedCompression` and names
-the required feature. An undocumented ID returns
+Codec availability follows Cargo features. An implemented TIFF codec whose
+Cargo feature is disabled returns `TiffCompressionError::FeatureDisabled` and
+names the required feature. A known TIFF ID without a Fornax implementation
+returns `TiffCompressionError::UnsupportedCompression`. An undocumented ID returns
 `TiffCompressionError::UnknownCompression`. This distinction prevents codec
 configuration from being mistaken for an unknown format.
 
 Uncompressed, lossless JPEG-92, and Deflate remain available in the TIFF raster
-path. JPEG XL and Zstandard are feature-gated. LZW, PackBits, LZMA, and WebP are
-recognized vocabulary without implementations in this step.
+path used by DNG. LZW and PackBits are standard TIFF defaults in the TIFF and
+codec crates, but DNG explicitly opts out to preserve its existing codec
+surface. JPEG XL and Zstandard are feature-gated. LZMA and WebP remain
+recognized vocabulary without implementations.
 
 The production DNG path must not add `zstd-sys` or another C-backed codec.
 LibRaw, darktable, and RawTherapee remain development-only comparison

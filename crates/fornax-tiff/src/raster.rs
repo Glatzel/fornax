@@ -688,11 +688,18 @@ impl std::error::Error for RasterError {}
 pub enum TiffCompressionError {
     /// The identifier is not registered in the generic TIFF vocabulary.
     UnknownCompression(u16),
-    /// The identifier is known, but its codec feature is not enabled.
+    /// The identifier has an implemented codec, but its Cargo feature is off.
+    FeatureDisabled {
+        /// TIFF compression identifier.
+        id: u16,
+        /// Cargo feature that enables the implemented codec.
+        required_feature: &'static str,
+    },
+    /// The identifier is known, but Fornax has no codec implementation.
     UnsupportedCompression {
         /// TIFF compression identifier.
         id: u16,
-        /// Cargo feature that provides the codec.
+        /// Planned Cargo feature for the missing codec.
         required_feature: &'static str,
     },
 }
@@ -701,7 +708,11 @@ impl fmt::Display for TiffCompressionError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnknownCompression(id) => write!(formatter, "unknown TIFF compression {id}"),
-            Self::UnsupportedCompression {
+            Self::FeatureDisabled {
+                id,
+                required_feature,
+            }
+            | Self::UnsupportedCompression {
                 id,
                 required_feature,
             } => write!(
@@ -716,11 +727,12 @@ impl std::error::Error for TiffCompressionError {}
 
 /// Resolves TIFF-family compression identifiers to codec algorithms.
 ///
-/// Known identifiers whose codec is unavailable return
-/// [`TiffCompressionError::UnsupportedCompression`] with the required Cargo
-/// feature. DNG-owned and vendor-private identifiers are not part of the
-/// generic TIFF vocabulary and return
-/// [`TiffCompressionError::UnknownCompression`].
+/// Implemented optional codecs whose feature is off return
+/// [`TiffCompressionError::FeatureDisabled`]. Known identifiers without a
+/// Fornax implementation return
+/// [`TiffCompressionError::UnsupportedCompression`]. DNG-owned and
+/// vendor-private identifiers are not part of the generic TIFF vocabulary and
+/// return [`TiffCompressionError::UnknownCompression`].
 ///
 /// # Examples
 ///
@@ -733,13 +745,6 @@ impl std::error::Error for TiffCompressionError {}
 ///     Ok(DecodeCompression::Uncompressed),
 /// );
 /// assert_eq!(
-///     resolve_tiff_compression(5),
-///     Err(TiffCompressionError::UnsupportedCompression {
-///         id: 5,
-///         required_feature: "lzw",
-///     }),
-/// );
-/// assert_eq!(
 ///     resolve_tiff_compression(34_892),
 ///     Err(TiffCompressionError::UnknownCompression(34_892)),
 /// );
@@ -747,13 +752,19 @@ impl std::error::Error for TiffCompressionError {}
 pub const fn resolve_tiff_compression(id: u16) -> Result<DecodeCompression, TiffCompressionError> {
     match id {
         1 => Ok(DecodeCompression::Uncompressed),
-        5 => Err(TiffCompressionError::UnsupportedCompression {
+        #[cfg(feature = "lzw")]
+        5 => Ok(DecodeCompression::Lzw),
+        #[cfg(not(feature = "lzw"))]
+        5 => Err(TiffCompressionError::FeatureDisabled {
             id,
             required_feature: "lzw",
         }),
         7 => Ok(DecodeCompression::LosslessJpeg),
         8 | 32_946 => Ok(DecodeCompression::Deflate),
-        32_773 => Err(TiffCompressionError::UnsupportedCompression {
+        #[cfg(feature = "packbits")]
+        32_773 => Ok(DecodeCompression::PackBits),
+        #[cfg(not(feature = "packbits"))]
+        32_773 => Err(TiffCompressionError::FeatureDisabled {
             id,
             required_feature: "packbits",
         }),
@@ -764,7 +775,7 @@ pub const fn resolve_tiff_compression(id: u16) -> Result<DecodeCompression, Tiff
         #[cfg(feature = "zstd")]
         50_000 => Ok(DecodeCompression::Zstd),
         #[cfg(not(feature = "zstd"))]
-        50_000 => Err(TiffCompressionError::UnsupportedCompression {
+        50_000 => Err(TiffCompressionError::FeatureDisabled {
             id,
             required_feature: "zstd",
         }),
@@ -775,7 +786,7 @@ pub const fn resolve_tiff_compression(id: u16) -> Result<DecodeCompression, Tiff
         #[cfg(feature = "jpegxl")]
         50_002 => Ok(DecodeCompression::JpegXl),
         #[cfg(not(feature = "jpegxl"))]
-        50_002 => Err(TiffCompressionError::UnsupportedCompression {
+        50_002 => Err(TiffCompressionError::FeatureDisabled {
             id,
             required_feature: "jpegxl",
         }),

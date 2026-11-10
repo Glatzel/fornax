@@ -3,9 +3,9 @@
 Format-neutral raw sample codecs for Fornax decoder implementations.
 
 `fornax-codec` owns uncompressed sample assembly, TIFF-compatible predictors,
-lossless and lossy JPEG, JPEG XL, Deflate, and optional Zstandard handling. It
-returns `SampleBuffer` values and has no dependency on TIFF, DNG, or raw
-workflow types. TIFF compression identifiers belong to
+lossless and lossy JPEG, JPEG XL, LZW, PackBits, Deflate, and optional
+Zstandard handling. It returns `SampleBuffer` values and has no dependency on
+TIFF, DNG, or raw workflow types. TIFF compression identifiers belong to
 [`fornax-tiff`](../fornax-tiff/README.md), while
 [`fornax-dng`](../fornax-dng/README.md) translates container metadata into
 codec requests.
@@ -15,7 +15,7 @@ codec requests.
 `DecodeCompression` and `EncodeCompression` select the algorithm inside their
 respective request types. `decode(&DecodeRequest)` returns a single-band
 `SampleBuffer`, and `encode(&EncodeRequest)` accepts one. The buffer stores
-U8, U16, U32, or F32 samples in an `image::ImageBuffer<Luma<T>, Vec<T>>`.
+U8, U16, U32, F32, or F64 samples in an `image::ImageBuffer<Luma<T>, Vec<T>>`.
 `Luma` denotes one scalar channel rather than necessarily luminance.
 Decoding accepts the image geometry, chunk locations, sample layout, byte
 order, predictor, and source bytes. Encoding returns row-major
@@ -30,9 +30,11 @@ format crates.
 
 | TIFF compression | Decode | Encode |
 | --- | --- | --- |
-| Uncompressed (`1`) | Packed integers and floats | U8/U16/U32/F32 |
+| Uncompressed (`1`) | Packed integers and floats | U8/U16/U32/F32/F64 |
 | Lossless JPEG-92 (`7`) | Single-sample strips/tiles, predictors 1-7 | U8/U16 tiles |
-| Deflate (`8`) | Integer and float predictors | U8/U16/U32/F32 tiles |
+| LZW (`5`) | TIFF MSB-first words and size switches | U8/U16/U32/F32/F64 tiles |
+| Deflate (`8`) | Integer and float predictors | U8/U16/U32/F32/F64 tiles |
+| PackBits (`32773`) | Literal, repeat, and no-op controls | U8/U16/U32/F32/F64 tiles |
 | Lossy JPEG (`34892`) | Single-component 8-bit | No |
 | JPEG XL (`50002`, `52546`) | Single-channel 8-16-bit mosaics | No |
 | Zstandard (`50000`, experimental) | Integer and float payloads | Integer and float tiles |
@@ -61,6 +63,9 @@ Decoding uses `DecodeCompression::Zstd` because the level is stored in the
 stream.
 
 Codec implementations are independently feature-gated. The `deflate`,
-`jpegxl`, `lossless-jpeg`, `lossy-jpeg`, and `zstd` features enable their
-matching dispatch variants and implementation dependencies. Format crates name
-the required feature when a known compression ID cannot be resolved.
+`jpegxl`, `lossless-jpeg`, `lossy-jpeg`, `lzw`, `packbits`, and `zstd` features
+enable their matching dispatch variants and implementation dependencies.
+The default feature set includes `lzw` and `packbits`, the standard TIFF
+compression pair implemented here; disable defaults to omit them.
+Format crates distinguish an implemented codec whose feature is disabled from
+a documented compression ID with no Fornax implementation.

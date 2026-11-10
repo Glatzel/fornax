@@ -61,11 +61,11 @@ fn check_floating_point(
     byte_stride: usize,
 ) -> Result<(), CodecError> {
     if sample_format != SampleFormat::Float
-        || !matches!(bits, 16 | 24 | 32)
-        || !matches!(byte_stride, 1 | 2 | 4)
+        || !matches!(bits, 16 | 24 | 32 | 64)
+        || !matches!(byte_stride, 1 | 2 | 4 | 8)
     {
         return Err(invalid(
-            "floating-point prediction requires 16/24/32-bit floats and stride 1, 2, or 4",
+            "floating-point prediction requires 16/24/32/64-bit floats and stride 1, 2, 4, or 8",
         ));
     }
     Ok(())

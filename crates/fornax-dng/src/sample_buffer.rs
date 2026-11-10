@@ -26,6 +26,7 @@ pub fn into_raw_mosaic(buffer: SampleBuffer) -> Result<RawMosaic, DecodeError> {
 #[cfg(test)]
 mod tests {
     use fornax_codec::SampleBuffer;
+    use fornax_raw_core::error::DecodeError;
     use fornax_raw_core::{MonoImage, RawMosaic};
 
     use super::{from_raw_mosaic, into_raw_mosaic};
@@ -92,5 +93,15 @@ mod tests {
                 RawMosaic::U32(image) => assert_eq!(image.as_raw().as_slice(), &[1, 2]),
             }
         }
+    }
+
+    #[test]
+    fn f64_sample_buffer_is_rejected_by_the_raw_mosaic_boundary() {
+        let buffer = SampleBuffer::from_f64(2, 1, vec![1.0, -0.0]).unwrap();
+
+        assert!(matches!(
+            into_raw_mosaic(buffer),
+            Err(DecodeError::Unsupported(_))
+        ));
     }
 }

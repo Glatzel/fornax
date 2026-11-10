@@ -7,6 +7,7 @@ fn constructors_preserve_dimensions_for_every_sample_type() {
         SampleBuffer::from_u16(2, 1, vec![1, 2]).unwrap(),
         SampleBuffer::from_u32(2, 1, vec![1, 2]).unwrap(),
         SampleBuffer::from_f32(2, 1, vec![1.0, 2.0]).unwrap(),
+        SampleBuffer::from_f64(2, 1, vec![1.0, 2.0]).unwrap(),
     ];
 
     for buffer in buffers {
@@ -24,6 +25,8 @@ fn constructors_reject_short_and_long_sample_buffers() {
     assert!(SampleBuffer::from_u32(2, 2, vec![1, 2, 3, 4, 5]).is_err());
     assert!(SampleBuffer::from_f32(2, 2, vec![1.0, 2.0, 3.0]).is_err());
     assert!(SampleBuffer::from_f32(2, 2, vec![1.0, 2.0, 3.0, 4.0, 5.0]).is_err());
+    assert!(SampleBuffer::from_f64(2, 2, vec![1.0, 2.0, 3.0]).is_err());
+    assert!(SampleBuffer::from_f64(2, 2, vec![1.0, 2.0, 3.0, 4.0, 5.0]).is_err());
 }
 
 #[test]
@@ -95,6 +98,24 @@ fn raw_extraction_preserves_samples_and_allocation_for_every_type() {
             .collect::<Vec<_>>()
     );
     assert_eq!(extracted.as_ptr(), f32_pointer);
+
+    let f64_data = vec![1.0, -0.0, f64::from_bits(0x7ff8_0000_0000_1234), 4.0];
+    let f64_pointer = f64_data.as_ptr();
+    let extracted = SampleBuffer::from_f64(2, 2, f64_data)
+        .unwrap()
+        .into_raw_f64()
+        .unwrap();
+    assert_eq!(
+        extracted
+            .iter()
+            .map(|value| value.to_bits())
+            .collect::<Vec<_>>(),
+        [1.0_f64, -0.0, f64::from_bits(0x7ff8_0000_0000_1234), 4.0]
+            .iter()
+            .map(|value| value.to_bits())
+            .collect::<Vec<_>>()
+    );
+    assert_eq!(extracted.as_ptr(), f64_pointer);
 }
 
 #[test]
@@ -121,6 +142,12 @@ fn raw_extraction_returns_none_for_a_different_sample_type() {
         SampleBuffer::from_f32(1, 1, vec![1.0])
             .unwrap()
             .into_raw_u8()
+            .is_none()
+    );
+    assert!(
+        SampleBuffer::from_f64(1, 1, vec![1.0])
+            .unwrap()
+            .into_raw_f32()
             .is_none()
     );
 }

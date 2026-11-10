@@ -226,7 +226,8 @@ fn resolve_dng_compression(id: u16) -> Result<DecodeCompression, DecodeError> {
                 TiffCompressionError::UnknownCompression(_) => {
                     corrupt(format!("invalid DNG compression {id}"))
                 }
-                TiffCompressionError::UnsupportedCompression { .. } => {
+                TiffCompressionError::FeatureDisabled { .. }
+                | TiffCompressionError::UnsupportedCompression { .. } => {
                     unsupported_variant(error.to_string())
                 }
             })

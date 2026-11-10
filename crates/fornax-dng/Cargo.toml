@@ -10,7 +10,11 @@ name = "writer"
 [dependencies]
 flashraw-codecs.workspace = true
 fornax-raw-core.workspace = true
-fornax-tiff = { workspace = true, features = ["raster", "jpegxl"] }
+fornax-tiff = {
+  workspace = true,
+  default-features = false,
+  features = ["raster", "jpegxl"]
+}
 generic-num.workspace = true
 image.workspace = true
 num_enum.workspace = true
@@ -23,6 +27,7 @@ thiserror.workspace = true
 
 [dependencies.fornax-codec]
 workspace = true
+default-features = false
 features = ["jpegxl", "lossless-jpeg", "lossy-jpeg"]
 
 [dev-dependencies]

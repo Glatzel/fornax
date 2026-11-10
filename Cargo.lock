@@ -826,6 +826,7 @@ dependencies = [
  "jxl-oxide",
  "rayon",
  "thiserror",
+ "weezl",
  "zstd",
  "zune-jpeg 0.5.15",
 ]

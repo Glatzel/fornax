@@ -29,6 +29,7 @@ pub fn encode_image(
         SampleBuffer::U16(_) => (16, SampleFormat::Integer, 2),
         SampleBuffer::U32(_) => (32, SampleFormat::Integer, 4),
         SampleBuffer::F32(_) => (32, SampleFormat::Float, 4),
+        SampleBuffer::F64(_) => (64, SampleFormat::Float, 8),
     };
     let chunk_samples = geometry
         .chunk_width
@@ -89,6 +90,21 @@ pub fn encode_image(
                             [source_start..source_start + copy_width]
                             .iter()
                             .zip(chunk[target_start..].as_chunks_mut::<4>().0)
+                        {
+                            let raw = sample.to_bits();
+                            let bytes = match byte_order {
+                                ByteOrder::Little => raw.to_le_bytes(),
+                                ByteOrder::Big => raw.to_be_bytes(),
+                            };
+                            target.copy_from_slice(&bytes);
+                        }
+                    }
+                    SampleBuffer::F64(samples) => {
+                        let source_start = (tile_y + row) * width + tile_x;
+                        for (sample, target) in samples.as_raw()
+                            [source_start..source_start + copy_width]
+                            .iter()
+                            .zip(chunk[target_start..].as_chunks_mut::<8>().0)
                         {
                             let raw = sample.to_bits();
                             let bytes = match byte_order {

@@ -351,12 +351,7 @@ fn tiff_raster_compression_ids_resolve_to_their_codecs() {
 
 #[test]
 fn known_compression_ids_without_codecs_name_the_required_feature() {
-    for (id, required_feature) in [
-        (5, "lzw"),
-        (32_773, "packbits"),
-        (34_925, "lzma"),
-        (50_001, "webp"),
-    ] {
+    for (id, required_feature) in [(34_925, "lzma"), (50_001, "webp")] {
         assert_eq!(
             resolve_tiff_compression(id),
             Err(TiffCompressionError::UnsupportedCompression {
@@ -368,12 +363,60 @@ fn known_compression_ids_without_codecs_name_the_required_feature() {
     }
 }
 
+#[cfg(not(feature = "lzw"))]
+#[test]
+fn disabled_lzw_compression_names_the_feature() {
+    assert_eq!(
+        resolve_tiff_compression(5),
+        Err(TiffCompressionError::FeatureDisabled {
+            id: 5,
+            required_feature: "lzw",
+        })
+    );
+}
+
+#[cfg(feature = "lzw")]
+#[test]
+fn enabled_lzw_compression_resolves() {
+    assert_eq!(resolve_tiff_compression(5), Ok(DecodeCompression::Lzw));
+}
+
+#[cfg(not(feature = "packbits"))]
+#[test]
+fn disabled_packbits_compression_names_the_feature() {
+    assert_eq!(
+        resolve_tiff_compression(32_773),
+        Err(TiffCompressionError::FeatureDisabled {
+            id: 32_773,
+            required_feature: "packbits",
+        })
+    );
+}
+
+#[cfg(feature = "packbits")]
+#[test]
+fn enabled_packbits_compression_resolves() {
+    assert_eq!(
+        resolve_tiff_compression(32_773),
+        Ok(DecodeCompression::PackBits)
+    );
+}
+
+#[cfg(all(feature = "lzw", feature = "packbits"))]
+#[test]
+fn optional_codecs_preserve_the_legacy_deflate_alias() {
+    assert_eq!(
+        resolve_tiff_compression(32_946),
+        Ok(DecodeCompression::Deflate)
+    );
+}
+
 #[cfg(not(feature = "jpegxl"))]
 #[test]
 fn disabled_jpegxl_compression_names_the_feature() {
     assert_eq!(
         resolve_tiff_compression(50_002),
-        Err(TiffCompressionError::UnsupportedCompression {
+        Err(TiffCompressionError::FeatureDisabled {
             id: 50_002,
             required_feature: "jpegxl",
         })
@@ -394,7 +437,7 @@ fn enabled_jpegxl_compression_resolves() {
 fn disabled_zstd_compression_names_the_feature() {
     assert_eq!(
         resolve_tiff_compression(50_000),
-        Err(TiffCompressionError::UnsupportedCompression {
+        Err(TiffCompressionError::FeatureDisabled {
             id: 50_000,
             required_feature: "zstd",
         })
