@@ -2,7 +2,7 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![RAW corpus: 395/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-395%2F2020-orange)](baseline.csv)
+[![RAW corpus: 396/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-396%2F2020-orange)](baseline.csv)
 
 | Vendor | Format | Status |
 | --- | --- | ---: |
@@ -23,7 +23,7 @@
 | DJI | DNG | 6/8 |
 | Epson | ERF | 0/3 |
 | Eyedeas | DNG | 1/1 |
-| FIMI | DNG | 0/1 |
+| FIMI | DNG | 1/1 |
 | FUJIFILM | RAF | 0/25 |
 | Fujifilm | DNG | 0/1 |
 | Fujifilm | RAF | 0/126 |
