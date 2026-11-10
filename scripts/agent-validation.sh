@@ -200,6 +200,9 @@ if [[ "$docs_only" == false ]]; then
     cargo -q run -p decoder-tracker -- manifest --check
     pixi run -e tracker cargo -q test -p decoder-tracker --lib duckdb_
     cargo -q test --workspace --all-features --exclude compare-demosaic
+    cargo -q check -p fornax-codec --no-default-features
+    cargo -q test -p fornax-codec --features lossless-jpeg
+    cargo -q test -p fornax-codec --features arw
     cargo +nightly fmt --check -q
     RUSTDOCFLAGS="-D warnings" \
         cargo -q doc --workspace --all-features --exclude compare-demosaic --no-deps

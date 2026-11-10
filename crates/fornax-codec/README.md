@@ -4,8 +4,9 @@ Format-neutral raw sample codecs for Fornax decoder implementations.
 
 `fornax-codec` owns uncompressed sample assembly, TIFF-compatible predictors,
 lossless and lossy JPEG, JPEG XL, LZW, PackBits, Deflate, and optional
-Zstandard handling. It returns `SampleBuffer` values and has no dependency on
-TIFF, DNG, or raw workflow types. TIFF compression identifiers belong to
+Zstandard handling. The non-default `arw` feature also owns Sony ARW1, ARW2,
+ARW6, and lossless-JPEG tile decoding. It returns `SampleBuffer` values and has
+no dependency on TIFF, DNG, or raw workflow types. TIFF compression identifiers belong to
 [`fornax-tiff`](../fornax-tiff/README.md), while
 [`fornax-dng`](../fornax-dng/README.md) translates container metadata into
 codec requests.
@@ -38,6 +39,7 @@ format crates.
 | Lossy JPEG (`34892`) | Single-component 8-bit | No |
 | JPEG XL (`50002`, `52546`) | Single-channel 8-16-bit mosaics | No |
 | Zstandard (`50000`, experimental) | Integer and float payloads | Integer and float tiles |
+| Sony ARW (`arw` feature) | ARW1/ARW2/ARW6 and tiled LJPEG to one U16 mosaic | No |
 
 Unknown TIFF compression identifiers are reported as unsupported.
 
@@ -48,7 +50,8 @@ compression `52546` to the same JPEG XL decoder.
 
 - Lossless JPEG-92 does not yet support pre-DNG-1.1 precision handling, restart
   intervals, Huffman selector `0x10`, or multi-component subsampled and
-  half-height tile layouts.
+  half-height tile layouts. The Sony `arw` adapter separately handles its
+  full-resolution one- and four-component tile layouts.
 - Lossy JPEG decoding accepts only one 8-bit component. Three-component
   `LinearRaw` payloads are outside the single-band `SampleBuffer` contract.
 - JPEG XL decoding accepts only one 8-16-bit channel. Multi-channel `LinearRaw`
@@ -62,9 +65,21 @@ Use `EncodeCompression::Zstd { level }` to select a Zstandard encoding level.
 Decoding uses `DecodeCompression::Zstd` because the level is stored in the
 stream.
 
-Codec implementations are independently feature-gated. The `deflate`,
-`jpegxl`, `lossless-jpeg`, `lossy-jpeg`, `lzw`, `packbits`, and `zstd` features
-enable their matching dispatch variants and implementation dependencies.
+Codec implementations are independently feature-gated.
+
+| Feature | Codecs | Provenance |
+| --- | --- | --- |
+| `arw` | Sony ARW1, ARW2, ARW6, Sony LJPEG | Sony RAW behavior and pinned Rawler/LibRaw behavioral references; LLVC3 output table is fixed Sony format data. No reference implementation source is adapted. |
+| `deflate` | TIFF Deflate | TIFF 6.0 and `flate2` |
+| `jpegxl` | Single-channel JPEG XL | DNG 1.7 and `jxl-oxide` |
+| `lossless-jpeg` | JPEG-92 SOF3 predictors | ITU-T T.81 Annex H |
+| `lossy-jpeg` | Single-component baseline JPEG | TIFF/DNG and `zune-jpeg` |
+| `lzw` | TIFF LZW | TIFF 6.0 and `weezl` |
+| `packbits` | TIFF PackBits | TIFF 6.0, independently implemented |
+| `zstd` | Zstandard integer/float payloads | Zstandard framing and `zstd` |
+
+The `arw`, `deflate`, `jpegxl`, `lossless-jpeg`, `lossy-jpeg`, `lzw`,
+`packbits`, and `zstd` features enable their matching dispatch variants.
 The default feature set includes `lzw` and `packbits`, the standard TIFF
 compression pair implemented here; disable defaults to omit them.
 Format crates distinguish an implemented codec whose feature is disabled from

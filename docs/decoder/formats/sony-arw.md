@@ -32,9 +32,11 @@ The ARW2 8-bit path needs camera-specific curve and black/white rescaling.
 The newer LJPEG tiled path packs two Bayer lines into each decoded row and may
 use a 4-component 256x256 stream for a 512x512 output tile.
 
-Fornax uses `flashraw-codecs` for ARW1, ARW2, ARW6, and lossless-JPEG entropy
-decoding. `fornax-arw` owns container selection, Sony private-data decryption,
-ARW2 dithering, sample/white-level mapping, and the LJPEG two-row unpack.
+Fornax owns ARW1, ARW2, ARW6, and lossless-JPEG entropy decoding in
+`fornax-codec` behind its `arw` feature. `fornax-arw` owns container selection,
+Sony private-data decryption, codec request construction, sample/white-level
+mapping, and metadata conversion. The codec adapter owns the LJPEG two-row
+unpack.
 
 ## Metadata to DNG tags
 
@@ -98,9 +100,11 @@ The corpus entries currently in this category cover:
 - `external/libraw` at `cf02d66eb5c19d4e46df7aee0582e47a4918509a`:
   Sony levels, curves, and ARW2 behavior.
 
-Both references are copyleft and remain behavior-only references. Production
-codec reuse is limited to `flashraw-codecs` 0.1.1, which is `MIT OR
-Apache-2.0`. See [the Sony ARW reference note](../../references/sony-arw.md).
+Both references are copyleft and remain behavior-only references. The
+production codecs are independently implemented in Fornax. The fixed Sony
+LLVC3 output table is format data checked against the permissively licensed
+pre-migration dependency, as documented in
+[the Sony ARW reference note](../../references/sony-arw.md).
 
 ## Definition of done
 

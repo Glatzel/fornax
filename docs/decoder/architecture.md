@@ -71,10 +71,10 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-raw-core/src/primitive.rs` | `RawMosaic`, `CroppedMosaic`, `NormalizedMosaic`, and image aliases |
 | `fornax-raw-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
 | `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
-| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, and supported codec encoders |
+| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony ARW codecs |
 | `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
 | `fornax-dng/src/constants.rs` | DNG-owned compression and photometric interpretation values |
-| `fornax-arw/src` | Sony TIFF selection, private metadata, Sony codec dispatch, CFA decoding, and DNG metadata mapping |
+| `fornax-arw/src` | Sony TIFF selection, private metadata, codec request construction, CFA layout mapping, and DNG metadata mapping |
 | `fornax-decoder/src/lib.rs` | Default DNG and Sony ARW/NRW dispatch and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
 | `fornax-decoder-rawler/src/lib.rs` | Rawler decoding and metadata adaptation |
@@ -84,7 +84,9 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `crates/fornax-decoder/benches/decoder.rs` | Decoder-method benchmarks for default and Rawler adapters |
 | `decoder-tracker/src` | Manual raw.pixls.us manifest, isolated decoder runs, shard merge, and baseline diff |
 
-Codec availability is controlled by Cargo features. The TIFF raster resolver
+Codec availability is controlled by Cargo features. Fornax owns the Sony ARW1,
+ARW2, ARW6, and lossless-JPEG tile implementations behind the `fornax-codec`
+`arw` feature. The TIFF raster resolver
 distinguishes unknown compression IDs from known IDs whose required codec
 feature is disabled, and the DNG adapter preserves that distinction in its
 typed decode errors.
