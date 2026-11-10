@@ -23,6 +23,7 @@ jobs:
       benchmark_raw_pipeline: ${{ steps.changed-files.outputs.benchmark_raw_pipeline_any_changed }}
       compare_demosaic: ${{ steps.changed-files.outputs.compare_demosaic_any_changed }}
       book_assets: ${{ steps.changed-files.outputs.book_assets_any_changed }}
+      golden: ${{ steps.changed-files.outputs.golden_any_changed }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: changed-files
@@ -53,6 +54,15 @@ jobs:
               - '!**/*.md'
             book_assets:
               - ./book/**
+            golden:
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-tiff/**
+              - ./crates/fornax-dng/**
+              - ./crates/fornax-arw/**
+              - ./crates/fornax-decoder/**
+              - ./crates/fornax-raw-core/**
+              - ./crates/fornax-raw-pipeline/**
+              - ./crates/decoder-tracker/**
 
   lefthook:
     if: ${{ github.event_name == 'pull_request' }}
@@ -60,6 +70,53 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+
+  golden:
+    name: golden decode hashes
+    needs: changed
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        (github.event_name == 'push' ||
+         github.event_name == 'schedule' ||
+         (github.event_name == 'pull_request' &&
+          needs.changed.outputs.golden == 'true'))
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Initialize pointer-only corpus
+        shell: bash
+        env:
+          GIT_LFS_SKIP_SMUDGE: "1"
+        run: |
+          git -c filter.lfs.required=false \
+            -c submodule.external/raw.pixls.us.branch=master \
+            submodule update --init --remote external/raw.pixls.us
+      - name: Resolve pinned corpus commit
+        id: corpus
+        shell: bash
+        run: |
+          echo "sha=$(git rev-parse HEAD:external/raw.pixls.us)" >>"$GITHUB_OUTPUT"
+      - name: Restore selected golden LFS objects
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .git/modules/external/raw.pixls.us/lfs/objects
+          key: golden-corpus-${{ steps.corpus.outputs.sha }}
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - name: Build decoder-tracker
+        run: cargo build --locked -p decoder-tracker
+      - name: Check golden decode hashes
+        run: |
+          target/debug/decoder-tracker hash \
+            --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+            --check crates/decoder-tracker/golden/decode-hashes.csv
 
   main:
     needs: changed
@@ -276,7 +333,8 @@ jobs:
 
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
-    needs: [changed, lefthook, main, benchmark, compare-demosaic, book-assets]
+    needs:
+      [changed, lefthook, golden, main, benchmark, compare-demosaic, book-assets]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1
