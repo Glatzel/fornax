@@ -86,7 +86,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -140,8 +139,6 @@ jobs:
           - machine: ubuntu-latest
             test-options: --workspace --all-features --exclude compare-demosaic
             pwd: ./
-    env:
-      dnc_version: 18_7
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -149,15 +146,6 @@ jobs:
         with:
           toolchain: nightly
           components: clippy
-      - name: restore dnc
-        if: ${{runner.os != 'Linux'}}
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ./temp/dnc${{env.dnc_version}}*
-          key: dnc-${{ runner.os }}-${{env.dnc_version}}
-      - if: ${{runner.os != 'Linux'}}
-        run: ./scripts/install-dnc.ps1 -version ${{env.dnc_version}}
-        shell: pwsh
       - uses: Glatzel/template/.github/actions/rust/cargo-doc@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         env:
           GH_TOKEN: ${{ github.token }}
