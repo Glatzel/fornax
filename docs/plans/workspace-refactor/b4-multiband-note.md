@@ -46,7 +46,7 @@
 
 Document with repository-relative references:
 
-- `SampleBuffer` is single-band and supports only U8, U16, U32, and F32;
+- `SampleBuffer` is single-band and supports U8, U16, U32, F32, and F64;
 - each public variant wraps `image::ImageBuffer<Luma<T>, Vec<T>>`;
 - `image` 0.x upgrades can break users of the public variants;
 - codec requests carry one plane;

@@ -76,7 +76,7 @@ containers to `fornax-arw`. `fornax_raw_core` contains no decoder implementation
 `EncodeRequest`, respectively. The free `fornax_codec::decode` and
 `fornax_codec::encode` functions dispatch directly to the selected
 implementation and exchange a single-band `fornax_codec::SampleBuffer`.
-`SampleBuffer` owns U8, U16, U32, or F32 samples in an
+`SampleBuffer` owns U8, U16, U32, F32, or F64 samples in an
 `image::ImageBuffer<Luma<T>, Vec<T>>`; `Luma` denotes one scalar channel rather
 than necessarily luminance. Zstandard decoding has no level because the level
 is stored in the stream; `EncodeCompression::Zstd { level }` configures

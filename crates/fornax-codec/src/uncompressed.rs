@@ -87,6 +87,7 @@ fn serialize_full_image(image: &SampleBuffer, byte_order: crate::ByteOrder) -> V
         SampleBuffer::U16(s) => serialize_samples(s.as_raw(), byte_order),
         SampleBuffer::U32(s) => serialize_samples(s.as_raw(), byte_order),
         SampleBuffer::F32(s) => serialize_samples(s.as_raw(), byte_order),
+        SampleBuffer::F64(s) => serialize_samples(s.as_raw(), byte_order),
     }
 }
 #[cfg(test)]

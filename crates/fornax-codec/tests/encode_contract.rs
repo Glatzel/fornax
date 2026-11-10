@@ -48,6 +48,18 @@ fn assert_sample_buffer_eq(actual: &SampleBuffer, expected: &SampleBuffer) {
                 .map(|value| value.to_bits())
                 .collect::<Vec<_>>()
         ),
+        (SampleBuffer::F64(actual), SampleBuffer::F64(expected)) => assert_eq!(
+            actual
+                .as_raw()
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>(),
+            expected
+                .as_raw()
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>()
+        ),
         _ => assert_eq!(actual, expected),
     }
 }
@@ -176,6 +188,67 @@ fn uncompressed_float_round_trips_exact_bits() {
 }
 
 #[test]
+fn uncompressed_f64_round_trips_exact_bits() {
+    let expected = vec![-1.5_f64, 0.25, -0.0, f64::from_bits(0x7ff8_0000_0000_1234)];
+    let image = SampleBuffer::from_f64(2, 2, expected).unwrap();
+    let encoded = encode(&request(
+        &image,
+        2,
+        2,
+        Predictor::None,
+        EncodeCompression::Uncompressed,
+    ))
+    .unwrap();
+    let (source, chunks) = source_and_chunks(encoded);
+    let request = decode_request(
+        &source,
+        &chunks,
+        2,
+        2,
+        2,
+        2,
+        64,
+        SampleFormat::Float,
+        Predictor::None,
+        DecodeCompression::Uncompressed,
+    );
+
+    assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+}
+
+#[test]
+#[cfg(feature = "packbits")]
+fn packbits_float64_predictor_round_trips() {
+    let expected = vec![-1.5_f64, 0.25, -0.0, f64::from_bits(0x7ff8_0000_0000_1234)];
+    let image = SampleBuffer::from_f64(2, 2, expected).unwrap();
+    let predictor = Predictor::FloatingPoint { byte_stride: 1 };
+    let encoded = encode(&request(
+        &image,
+        2,
+        2,
+        predictor,
+        EncodeCompression::PackBits,
+    ))
+    .unwrap();
+    let (source, chunks) = source_and_chunks(encoded);
+    let request = decode_request(
+        &source,
+        &chunks,
+        2,
+        2,
+        2,
+        2,
+        64,
+        SampleFormat::Float,
+        predictor,
+        DecodeCompression::PackBits,
+    );
+
+    assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+}
+
+#[test]
+#[cfg(feature = "deflate")]
 fn deflate_horizontal_predictor_round_trips() {
     let expected = vec![1_u8, 2, 4, 8, 16, 32];
     let image = SampleBuffer::from_u8(3, 2, expected.clone()).unwrap();
@@ -208,6 +281,7 @@ fn deflate_horizontal_predictor_round_trips() {
 }
 
 #[test]
+#[cfg(feature = "deflate")]
 fn deflate_floating_point_predictor_round_trips() {
     let expected = vec![-1.5_f32, 0.25, 100.0, f32::from_bits(0x7fc0_1234)];
     let image = SampleBuffer::from_f32(2, 2, expected.clone()).unwrap();
@@ -250,6 +324,38 @@ fn deflate_floating_point_predictor_round_trips() {
 }
 
 #[test]
+#[cfg(feature = "deflate")]
+fn deflate_float64_predictor_round_trips() {
+    let expected = vec![-1.5_f64, 0.25, -0.0, f64::from_bits(0x7ff8_0000_0000_1234)];
+    let image = SampleBuffer::from_f64(2, 2, expected).unwrap();
+    let predictor = Predictor::FloatingPoint { byte_stride: 1 };
+    let encoded = encode(&request(
+        &image,
+        2,
+        2,
+        predictor,
+        EncodeCompression::Deflate,
+    ))
+    .unwrap();
+    let (source, chunks) = source_and_chunks(encoded);
+    let request = decode_request(
+        &source,
+        &chunks,
+        2,
+        2,
+        2,
+        2,
+        64,
+        SampleFormat::Float,
+        predictor,
+        DecodeCompression::Deflate,
+    );
+
+    assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+}
+
+#[test]
+#[cfg(feature = "lossless-jpeg")]
 fn lossless_jpeg_round_trips_u8_and_u16() {
     for (image, bits, format) in [
         (
@@ -290,6 +396,7 @@ fn lossless_jpeg_round_trips_u8_and_u16() {
 }
 
 #[test]
+#[cfg(feature = "lossless-jpeg")]
 fn lossless_jpeg_round_trips_partial_edge_tiles() {
     for (image, bits, format) in [
         (
@@ -331,6 +438,7 @@ fn lossless_jpeg_round_trips_partial_edge_tiles() {
 }
 
 #[test]
+#[cfg(feature = "zstd")]
 fn zstd_round_trips_integer_and_float_chunks() {
     for (image, bits, format) in [
         (
@@ -341,6 +449,11 @@ fn zstd_round_trips_integer_and_float_chunks() {
         (
             SampleBuffer::from_f32(3, 1, vec![-1.5, 0.25, 100.0]).unwrap(),
             32,
+            SampleFormat::Float,
+        ),
+        (
+            SampleBuffer::from_f64(3, 1, vec![-1.5, 0.25, 100.0]).unwrap(),
+            64,
             SampleFormat::Float,
         ),
     ] {
@@ -376,6 +489,7 @@ fn uncompressed_round_trips_every_sample_type() {
         SampleBuffer::from_u16(2, 1, vec![0, 65_535]).unwrap(),
         SampleBuffer::from_u32(2, 1, vec![0, 4_000_000_000]).unwrap(),
         SampleBuffer::from_f32(2, 1, vec![-1.5, f32::from_bits(0x7fc0_1234)]).unwrap(),
+        SampleBuffer::from_f64(2, 1, vec![-1.5, f64::from_bits(0x7ff8_0000_0000_1234)]).unwrap(),
     ];
 
     for image in images {
@@ -393,6 +507,7 @@ fn uncompressed_round_trips_every_sample_type() {
             SampleBuffer::U16(_) => (16, SampleFormat::Integer),
             SampleBuffer::U32(_) => (32, SampleFormat::Integer),
             SampleBuffer::F32(_) => (32, SampleFormat::Float),
+            SampleBuffer::F64(_) => (64, SampleFormat::Float),
             _ => unreachable!(),
         };
         let request = decode_request(

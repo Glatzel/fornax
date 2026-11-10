@@ -27,6 +27,8 @@ pub enum SampleBuffer {
     U32(Mono<u32>),
     /// 32-bit floating-point samples.
     F32(Mono<f32>),
+    /// 64-bit floating-point samples.
+    F64(Mono<f64>),
 }
 
 impl SampleBuffer {
@@ -112,6 +114,28 @@ impl SampleBuffer {
         create(width, height, data).map(Self::F32)
     }
 
+    /// Creates a 64-bit floating-point sample buffer.
+    ///
+    /// Sample values and their bit patterns are preserved.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SampleBufferError`] when the dimensions overflow the
+    /// platform's address space, the dimensions are invalid, or `data` does
+    /// not contain exactly `width * height` samples.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_codec::SampleBuffer;
+    ///
+    /// let buffer = SampleBuffer::from_f64(2, 1, vec![-1.5, 0.25]).unwrap();
+    /// assert_eq!(buffer.into_raw_f64(), Some(vec![-1.5, 0.25]));
+    /// ```
+    pub fn from_f64(width: u32, height: u32, data: Vec<f64>) -> Result<Self, SampleBufferError> {
+        create(width, height, data).map(Self::F64)
+    }
+
     /// Returns the image width in samples.
     ///
     /// # Examples
@@ -128,6 +152,7 @@ impl SampleBuffer {
             Self::U16(image) => image.width(),
             Self::U32(image) => image.width(),
             Self::F32(image) => image.width(),
+            Self::F64(image) => image.width(),
         }
     }
 
@@ -147,6 +172,7 @@ impl SampleBuffer {
             Self::U16(image) => image.height(),
             Self::U32(image) => image.height(),
             Self::F32(image) => image.height(),
+            Self::F64(image) => image.height(),
         }
     }
 
@@ -166,7 +192,7 @@ impl SampleBuffer {
     pub fn into_raw_u8(self) -> Option<Vec<u8>> {
         match self {
             Self::U8(image) => Some(image.into_raw()),
-            Self::U16(_) | Self::U32(_) | Self::F32(_) => None,
+            Self::U16(_) | Self::U32(_) | Self::F32(_) | Self::F64(_) => None,
         }
     }
 
@@ -186,7 +212,7 @@ impl SampleBuffer {
     pub fn into_raw_u16(self) -> Option<Vec<u16>> {
         match self {
             Self::U16(image) => Some(image.into_raw()),
-            Self::U8(_) | Self::U32(_) | Self::F32(_) => None,
+            Self::U8(_) | Self::U32(_) | Self::F32(_) | Self::F64(_) => None,
         }
     }
 
@@ -206,7 +232,7 @@ impl SampleBuffer {
     pub fn into_raw_u32(self) -> Option<Vec<u32>> {
         match self {
             Self::U32(image) => Some(image.into_raw()),
-            Self::U8(_) | Self::U16(_) | Self::F32(_) => None,
+            Self::U8(_) | Self::U16(_) | Self::F32(_) | Self::F64(_) => None,
         }
     }
 
@@ -226,7 +252,27 @@ impl SampleBuffer {
     pub fn into_raw_f32(self) -> Option<Vec<f32>> {
         match self {
             Self::F32(image) => Some(image.into_raw()),
-            Self::U8(_) | Self::U16(_) | Self::U32(_) => None,
+            Self::U8(_) | Self::U16(_) | Self::U32(_) | Self::F64(_) => None,
+        }
+    }
+
+    /// Consumes the buffer and returns its underlying 64-bit float samples.
+    ///
+    /// Returns `None` when the buffer contains another sample type. A
+    /// successful extraction does not copy the sample vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_codec::SampleBuffer;
+    ///
+    /// let buffer = SampleBuffer::from_f64(2, 1, vec![1.0, 2.0]).unwrap();
+    /// assert_eq!(buffer.into_raw_f64(), Some(vec![1.0, 2.0]));
+    /// ```
+    pub fn into_raw_f64(self) -> Option<Vec<f64>> {
+        match self {
+            Self::F64(image) => Some(image.into_raw()),
+            Self::U8(_) | Self::U16(_) | Self::U32(_) | Self::F32(_) => None,
         }
     }
 }

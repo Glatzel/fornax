@@ -190,7 +190,7 @@ fn copy_tile_into(
                     .copy_from_slice(&samples[source_start..source_start + copy_width]);
             }
         }
-        SampleBuffer::U32(_) | SampleBuffer::F32(_) => {
+        SampleBuffer::U32(_) | SampleBuffer::F32(_) | SampleBuffer::F64(_) => {
             unreachable!("the encoder validates that samples are U8 or U16")
         }
     }

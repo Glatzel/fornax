@@ -49,6 +49,10 @@ mod jpeg;
 mod jpegxl;
 #[cfg(feature = "lossless-jpeg")]
 mod ljpeg;
+#[cfg(feature = "lzw")]
+mod lzw;
+#[cfg(feature = "packbits")]
+mod packbits;
 mod uncompressed;
 #[cfg(feature = "zstd")]
 mod zstd;
@@ -103,6 +107,10 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         DecodeCompression::LosslessJpeg => ljpeg::decode(request),
         #[cfg(feature = "deflate")]
         DecodeCompression::Deflate => deflate::decode(request),
+        #[cfg(feature = "lzw")]
+        DecodeCompression::Lzw => lzw::decode(request),
+        #[cfg(feature = "packbits")]
+        DecodeCompression::PackBits => packbits::decode(request),
         #[cfg(feature = "lossy-jpeg")]
         DecodeCompression::LossyJpeg => jpeg::decode(request),
         #[cfg(feature = "jpegxl")]
@@ -144,6 +152,10 @@ pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> 
         EncodeCompression::LosslessJpeg => ljpeg::encode(request),
         #[cfg(feature = "deflate")]
         EncodeCompression::Deflate => deflate::encode(request),
+        #[cfg(feature = "lzw")]
+        EncodeCompression::Lzw => lzw::encode(request),
+        #[cfg(feature = "packbits")]
+        EncodeCompression::PackBits => packbits::encode(request),
         #[cfg(feature = "zstd")]
         EncodeCompression::Zstd { level } => zstd::encode(request, level),
     }

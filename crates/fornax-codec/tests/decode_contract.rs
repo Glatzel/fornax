@@ -1,6 +1,9 @@
+#[cfg(feature = "deflate")]
 use std::io::Write;
 
+#[cfg(feature = "deflate")]
 use flate2::Compression as FlateCompression;
+#[cfg(feature = "deflate")]
 use flate2::write::ZlibEncoder;
 use fornax_codec::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, Predictor, SampleBuffer, SampleFormat,
@@ -150,6 +153,47 @@ fn uncompressed_float16_widens_to_f32() {
 }
 
 #[test]
+fn uncompressed_float64_preserves_exact_bits() {
+    let expected = [1.0_f64, -0.0, f64::from_bits(0x7ff8_0000_0000_1234)];
+    let source = expected
+        .iter()
+        .flat_map(|value| value.to_le_bytes())
+        .collect::<Vec<_>>();
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: source.len(),
+    }];
+    let request = request(
+        &source,
+        &chunks,
+        3,
+        1,
+        3,
+        1,
+        64,
+        SampleFormat::Float,
+        ByteOrder::Little,
+        DecodeCompression::Uncompressed,
+    );
+
+    let SampleBuffer::F64(image) = decode(&request).unwrap() else {
+        panic!("64-bit float samples must decode as f64");
+    };
+
+    assert_eq!(
+        image
+            .as_raw()
+            .iter()
+            .map(|value| value.to_bits())
+            .collect::<Vec<_>>(),
+        expected
+            .iter()
+            .map(|value| value.to_bits())
+            .collect::<Vec<_>>()
+    );
+}
+
+#[test]
 fn uncompressed_rejects_missing_chunks() {
     let source = [0_u8; 4];
     let chunks = [Chunk {
@@ -251,6 +295,7 @@ fn uncompressed_rejects_predictors_it_cannot_reverse() {
 }
 
 #[test]
+#[cfg(feature = "deflate")]
 fn deflate_reverses_horizontal_integer_prediction() {
     let differences = [1_u8, 1, 2, 4];
     let mut encoder = ZlibEncoder::new(Vec::new(), FlateCompression::fast());
@@ -282,6 +327,7 @@ fn deflate_reverses_horizontal_integer_prediction() {
 }
 
 #[test]
+#[cfg(feature = "lossless-jpeg")]
 fn lossless_jpeg_decodes_twelve_bit_tiles() {
     let tile = [
         0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x0c, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11, 0x00,
@@ -314,6 +360,7 @@ fn lossless_jpeg_decodes_twelve_bit_tiles() {
 }
 
 #[test]
+#[cfg(feature = "lossless-jpeg")]
 fn lossless_jpeg_applies_point_transform() {
     let mut tile = [
         0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x10, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11, 0x00,
@@ -347,6 +394,7 @@ fn lossless_jpeg_applies_point_transform() {
 }
 
 #[test]
+#[cfg(feature = "lossy-jpeg")]
 fn lossy_jpeg_decodes_a_single_component_tile() {
     use image::ImageEncoder;
 
@@ -382,6 +430,7 @@ fn lossy_jpeg_decodes_a_single_component_tile() {
 }
 
 #[test]
+#[cfg(feature = "jpegxl")]
 fn jpeg_xl_rejects_malformed_payloads_without_panicking() {
     let source = [0xff];
     let chunks = [Chunk {
