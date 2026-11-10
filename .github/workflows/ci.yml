@@ -55,7 +55,6 @@ jobs:
             book_assets:
               - ./book/**
             golden:
-              - ./.github/workflows/ci.yml
               - ./crates/fornax-codec/**
               - ./crates/fornax-tiff/**
               - ./crates/fornax-dng/**
