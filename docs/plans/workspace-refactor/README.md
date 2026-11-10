@@ -30,6 +30,7 @@ pickable plans. Start only the step the maintainer releases.
 - [B2: compression ID ownership audit](b2-compression-id-audit.md)
 - [B3: LZW and PackBits codecs](b3-lzw-packbits.md)
 - [B4: multi-band design note](b4-multiband-note.md)
+- [B4 evidence: multi-band container options](multiband-note.md)
 - [C: publish readiness report](c-publish-readiness.md)
 
 ## Global execution rules
