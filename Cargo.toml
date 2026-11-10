@@ -8,12 +8,12 @@ version = "0.0.17"
 edition = "2024"
 
 [workspace.dependencies]
-fornax-raw = { path = "./crates/fornax-raw" }
 fornax-arw = { path = "./crates/fornax-arw" }
 fornax-codec = { path = "./crates/fornax-codec" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
+fornax-raw = { path = "./crates/fornax-raw" }
 fornax-raw-core = { path = "./crates/fornax-raw-core" }
 fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
@@ -61,4 +61,5 @@ strum = { version = "0.28.0", features = ["derive"] }
 tempfile = "3.27.0"
 thiserror = "2.0.21"
 toml = "1.2.1"
+zstd = "0.14.3"
 zune-jpeg = "0.5.15"

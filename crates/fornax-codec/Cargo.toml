@@ -9,8 +9,8 @@ flate2.workspace = true
 image.workspace = true
 jxl-oxide.workspace = true
 rayon.workspace = true
-structured-zstd = "0.2.6"
 thiserror.workspace = true
+zstd.workspace = true
 zune-jpeg.workspace = true
 
 [dev-dependencies]
