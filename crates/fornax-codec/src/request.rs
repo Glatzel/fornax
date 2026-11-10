@@ -14,14 +14,19 @@ pub enum DecodeCompression {
     /// Samples are stored directly in the chunk payloads.
     Uncompressed,
     /// TIFF lossless JPEG-92.
+    #[cfg(feature = "lossless-jpeg")]
     LosslessJpeg,
     /// TIFF Deflate using zlib framing.
+    #[cfg(feature = "deflate")]
     Deflate,
     /// TIFF lossy JPEG with one luma component.
+    #[cfg(feature = "lossy-jpeg")]
     LossyJpeg,
     /// JPEG XL with one sample channel.
+    #[cfg(feature = "jpegxl")]
     JpegXl,
     /// TIFF's experimental Zstandard compression.
+    #[cfg(feature = "zstd")]
     Zstd,
 }
 
@@ -41,10 +46,13 @@ pub enum EncodeCompression {
     /// Samples are stored directly in the chunk payloads.
     Uncompressed,
     /// TIFF lossless JPEG-92.
+    #[cfg(feature = "lossless-jpeg")]
     LosslessJpeg,
     /// TIFF Deflate using zlib framing.
+    #[cfg(feature = "deflate")]
     Deflate,
     /// TIFF's experimental Zstandard compression with an encoding level.
+    #[cfg(feature = "zstd")]
     Zstd {
         /// Compression level passed to the Zstandard encoder.
         level: i32,

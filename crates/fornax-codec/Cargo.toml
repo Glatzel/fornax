@@ -15,3 +15,10 @@ zune-jpeg.workspace = true
 
 [dev-dependencies]
 image = { workspace = true, features = ["jpeg"] }
+
+[features]
+deflate = []
+jpegxl = []
+lossless-jpeg = []
+lossy-jpeg = []
+zstd = []
