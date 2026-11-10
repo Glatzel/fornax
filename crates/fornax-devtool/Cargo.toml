@@ -5,7 +5,7 @@ edition.workspace = true
 
 [dependencies]
 clerk = { workspace = true, features = ["tracing"] }
-fornax-core.workspace = true
+fornax-raw-core.workspace = true
 generic-num.workspace = true
 image = { workspace = true, features = ["tiff"] }
 mischief.workspace = true

@@ -10,7 +10,7 @@ name = "writer"
 [dependencies]
 flashraw-codecs.workspace = true
 fornax-codec.workspace = true
-fornax-core.workspace = true
+fornax-raw-core.workspace = true
 fornax-tiff.workspace = true
 generic-num.workspace = true
 image.workspace = true

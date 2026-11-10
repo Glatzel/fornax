@@ -1,8 +1,8 @@
-use fornax_core::error::DecodeError;
-use fornax_core::metadata::{
+use fornax_raw_core::error::DecodeError;
+use fornax_raw_core::metadata::{
     ColorCalibration, Levels, LightSource, Matrix3x3, ProcessMetadata, RawColorMeta, RawProfile,
 };
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, Value};
 use generic_num::num;

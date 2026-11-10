@@ -481,9 +481,9 @@ version = "0.0.17"
 dependencies = [
  "cc",
  "clap",
- "fornax-core",
  "fornax-decoder",
  "fornax-devtool",
+ "fornax-raw-core",
  "fornax-raw-pipeline",
  "hex",
  "image 0.25.9",
@@ -625,9 +625,9 @@ dependencies = [
  "clap-verbosity-flag",
  "clerk",
  "csv",
- "fornax-core",
  "fornax-decoder",
  "fornax-dng",
+ "fornax-raw-core",
  "fornax-tiff",
  "globset",
  "hex",
@@ -819,8 +819,8 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 name = "fornax"
 version = "0.0.17"
 dependencies = [
- "fornax-core",
  "fornax-decoder",
+ "fornax-raw-core",
  "fornax-raw-pipeline",
 ]
 
@@ -829,8 +829,8 @@ name = "fornax-arw"
 version = "0.0.17"
 dependencies = [
  "flashraw-codecs",
- "fornax-core",
  "fornax-dng",
+ "fornax-raw-core",
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
@@ -875,28 +875,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "fornax-core"
-version = "0.0.17"
-dependencies = [
- "image 0.25.9",
- "libc",
- "num-traits",
- "num_enum",
- "raw-cpuid",
- "strum",
- "thiserror",
-]
-
-[[package]]
 name = "fornax-decoder"
 version = "0.0.17"
 dependencies = [
  "clerk",
  "codspeed-criterion-compat",
  "fornax-arw",
- "fornax-core",
  "fornax-devtool",
  "fornax-dng",
+ "fornax-raw-core",
  "generic-num",
  "image 0.25.9",
  "rawler",
@@ -908,7 +895,7 @@ name = "fornax-devtool"
 version = "0.0.17"
 dependencies = [
  "clerk",
- "fornax-core",
+ "fornax-raw-core",
  "generic-num",
  "image 0.25.9",
  "mischief",
@@ -925,8 +912,8 @@ dependencies = [
  "codspeed-criterion-compat",
  "flashraw-codecs",
  "fornax-codec",
- "fornax-core",
  "fornax-devtool",
+ "fornax-raw-core",
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
@@ -940,12 +927,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-raw-core"
+version = "0.0.17"
+dependencies = [
+ "image 0.25.9",
+ "libc",
+ "num-traits",
+ "num_enum",
+ "raw-cpuid",
+ "strum",
+ "thiserror",
+]
+
+[[package]]
 name = "fornax-raw-pipeline"
 version = "0.0.17"
 dependencies = [
  "codspeed-criterion-compat",
- "fornax-core",
  "fornax-devtool",
+ "fornax-raw-core",
  "generic-num",
  "image 0.25.9",
  "mischief",

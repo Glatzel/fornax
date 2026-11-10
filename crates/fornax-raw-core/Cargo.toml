@@ -1,5 +1,5 @@
 [package]
-name = "fornax-core"
+name = "fornax-raw-core"
 version.workspace = true
 edition.workspace = true
 

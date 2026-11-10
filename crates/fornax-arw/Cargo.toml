@@ -5,8 +5,8 @@ edition.workspace = true
 
 [dependencies]
 flashraw-codecs.workspace = true
-fornax-core.workspace = true
 fornax-dng.workspace = true
+fornax-raw-core.workspace = true
 fornax-tiff.workspace = true
 generic-num.workspace = true
 image.workspace = true

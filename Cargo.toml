@@ -11,10 +11,10 @@ edition = "2024"
 fornax = { path = "./crates/fornax" }
 fornax-arw = { path = "./crates/fornax-arw" }
 fornax-codec = { path = "./crates/fornax-codec" }
-fornax-core = { path = "./crates/fornax-core" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
+fornax-raw-core = { path = "./crates/fornax-raw-core" }
 fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 

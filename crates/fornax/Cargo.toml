@@ -4,6 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-fornax-core.workspace = true
 fornax-decoder.workspace = true
+fornax-raw-core.workspace = true
 fornax-raw-pipeline.workspace = true
