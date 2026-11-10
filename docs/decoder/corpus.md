@@ -92,7 +92,7 @@ key is `(camera, format, path)`. Duplicate keys are an error.
 The canonical baseline header is:
 
 ```csv
-status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa
+status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa
 ```
 
 Rows use UTF-8 with LF endings and RFC 4180 quoting, sort by the unique key, and
@@ -106,6 +106,8 @@ The stages run once each in this order:
 1. `decode_pass`: decoder construction succeeds.
 2. `raw_mosaic_pass`: raw mosaic retrieval succeeds with non-zero dimensions
    and a matching sample count.
+   `raw_sha256` records the domain-separated storage-native raw mosaic hash
+   when this stage passes; legacy rows may have an empty value until refreshed.
 3. `process_metadata_pass`: DNG metadata and process metadata succeed, then
    geometry, active area, default crop, levels, and 2x2 CFA conversion pass
    sanity checks.
@@ -212,10 +214,10 @@ rows. The diff command exits 1 when any category is non-empty.
 ## Manual CI
 
 `.github/workflows/decoder-tracker-corpus.yml` is manual-only after bootstrap.
-It accepts one `filter` path glob, a comma-separated `formats` input (default
-`DNG`), and an optional `run_duckdb_tests` boolean (default `false`). The
-format filters are passed through to every shard run; for an ARW baseline,
-dispatch with `formats=ARW` and an ARW path filter. The plan job uses
+It accepts one `filter` path glob and an optional `run_duckdb_tests` boolean
+(default `false`). The selected manifest determines the formats processed by
+each shard, so the filter alone selects a DNG, ARW, or mixed corpus subset. The
+plan job uses
 `crates/decoder-tracker/scripts/select.sh` to filter `manifest.csv` directly with
 DuckDB, writes and uploads `selected-manifest.csv`, then computes:
 

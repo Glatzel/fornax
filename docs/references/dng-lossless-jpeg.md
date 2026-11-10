@@ -39,9 +39,10 @@
 - Byte-identical lossless export requires retaining the original TIFF
   container. Re-encoding samples loses tile boundaries, Huffman construction,
   metadata ordering, and non-raw preview directories.
-- `flashraw-codecs` 0.1.1 (MIT OR Apache-2.0) is used only for DNG opcode
-  parsing/pixel transformation. Its `OpcodeList1` engine operates in stored
-  sample coordinates; Fornax keeps container selection and typed errors.
+- DNG opcode parsing and pixel transformation are independently implemented in
+  `fornax-dng`. `OpcodeList1` operates in stored sample coordinates; Fornax
+  keeps container selection, stage ordering, and typed errors. See
+  [DNG opcode reference notes](dng-opcodes.md).
 
 ## Known implementation differences
 

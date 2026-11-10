@@ -8,11 +8,6 @@ on:
         type: string
         required: true
         default: "**/*.[dD][nN][gG]"
-      formats:
-        description: Comma-separated corpus formats passed to decoder-tracker run.
-        type: string
-        required: true
-        default: "DNG"
       run_duckdb_tests:
         description: Test DuckDB selection, aggregation, and badge shell scripts before running shards.
         type: boolean
@@ -20,7 +15,7 @@ on:
         default: false
 
 concurrency:
-  group: decoder-tracker-corpus-${{ github.ref }}
+  group: decoder-tracker-corpus-${{ github.ref }}-${{ inputs.filter }}
   cancel-in-progress: true
 
 permissions:
@@ -131,20 +126,10 @@ jobs:
         shell: bash
         env:
           CI: "true"
-          REQUESTED_FORMATS: ${{ inputs.formats }}
         run: |
-          format_args=()
-          IFS=',' read -r -a formats <<< "${REQUESTED_FORMATS:-DNG}"
-          for format in "${formats[@]}"; do
-            format="${format//[[:space:]]/}"
-            if [[ -n "$format" ]]; then
-              format_args+=(--format "$format")
-            fi
-          done
           pixi run -e dev cargo run -q -p decoder-tracker -- manifest --check
           pixi run -e dev cargo run -q -p decoder-tracker -- run \
             --manifest target/decoder-tracker/selected-manifest.csv \
-            "${format_args[@]}" \
             --shard "${{ matrix.index }}/${{ matrix.count }}" \
             --out "target/decoder-tracker/shards/shard-${{ matrix.index }}.csv"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

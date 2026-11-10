@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::fmt;
 use std::str::FromStr;
 
@@ -47,6 +48,18 @@ pub struct Selection {
     pub filenames: Vec<String>,
     pub globs: Vec<String>,
     pub shard: Option<Shard>,
+}
+
+pub fn with_manifest_formats(mut selection: Selection, rows: &[ManifestRow]) -> Selection {
+    if selection.formats.is_empty() {
+        selection.formats = rows
+            .iter()
+            .map(|row| row.format.to_ascii_uppercase())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect();
+    }
+    selection
 }
 
 pub fn select_manifest(rows: &[ManifestRow], selection: &Selection) -> Result<Vec<ManifestRow>> {

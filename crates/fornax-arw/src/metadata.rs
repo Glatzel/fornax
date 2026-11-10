@@ -318,14 +318,8 @@ fn white_level(
         return u16::try_from(value).map_err(|_| invalid("Sony white level exceeds u16"));
     }
     Ok(match layout.compression {
-        CompressionFamily::Arw2 => {
-            let curve = curve_knots(raw).map_or_else(
-                || (0..4096).collect(),
-                |knots| flashraw_codecs::sony_arw2::build_curve(&knots),
-            );
-            curve.last().copied().unwrap_or(16_383)
-        }
-        CompressionFamily::Arw6 => flashraw_codecs::sony_arw6_curve::LLVC3_CURVE[4095],
+        CompressionFamily::Arw2 => fornax_codec::arw2_white_level(curve_knots(raw)),
+        CompressionFamily::Arw6 => fornax_codec::arw6_white_level(),
         CompressionFamily::Arw1 => 4095,
         CompressionFamily::Uncompressed => match layout.bits_per_sample {
             12 => 4095,

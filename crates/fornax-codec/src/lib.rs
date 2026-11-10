@@ -34,13 +34,23 @@
 //! assert_eq!((decoded.width(), decoded.height()), (2, 2));
 //! ```
 
+#[allow(
+    dead_code,
+    reason = "encoding helpers are used only by feature-gated codecs"
+)]
 mod encode;
 mod error;
+#[allow(
+    dead_code,
+    reason = "predictor helpers are used only by feature-gated codecs"
+)]
 mod predictor;
 mod request;
 mod sample_buffer;
 mod samples;
 
+#[cfg(feature = "arw")]
+mod arw;
 #[cfg(feature = "deflate")]
 mod deflate;
 #[cfg(feature = "lossy-jpeg")]
@@ -57,6 +67,8 @@ mod uncompressed;
 #[cfg(feature = "zstd")]
 mod zstd;
 
+#[cfg(feature = "arw")]
+pub use arw::{arw2_white_level, arw6_white_level};
 pub use error::CodecError;
 pub use predictor::Predictor;
 pub use request::{
@@ -115,6 +127,14 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         DecodeCompression::LossyJpeg => jpeg::decode(request),
         #[cfg(feature = "jpegxl")]
         DecodeCompression::JpegXl => jpegxl::decode(request),
+        #[cfg(feature = "arw")]
+        DecodeCompression::Arw1 => arw::decode_arw1(request),
+        #[cfg(feature = "arw")]
+        DecodeCompression::Arw2 { curve } => arw::decode_arw2(request, curve),
+        #[cfg(feature = "arw")]
+        DecodeCompression::Arw6 => arw::decode_arw6(request),
+        #[cfg(feature = "arw")]
+        DecodeCompression::SonyLosslessJpeg => arw::decode_ljpeg(request),
         #[cfg(feature = "zstd")]
         DecodeCompression::Zstd => zstd::decode(request),
     }

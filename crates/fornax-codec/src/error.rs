@@ -30,3 +30,11 @@ where
 {
     CodecError::InvalidInput(detail.into())
 }
+
+#[cfg(feature = "arw")]
+pub fn unsupported<T>(detail: T) -> CodecError
+where
+    T: Into<Box<str>>,
+{
+    CodecError::Unsupported(detail.into())
+}

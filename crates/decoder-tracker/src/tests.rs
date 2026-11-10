@@ -14,7 +14,9 @@ use crate::manifest::{
     ManifestCheck, generate_manifest, normalize_repo_path, validate_pointer, write_pointer,
 };
 use crate::model::{BaselineKey, BaselineRow, ManifestRow};
-use crate::selection::{Selection, Shard, runner_count_for, select_manifest};
+use crate::selection::{
+    Selection, Shard, runner_count_for, select_manifest, with_manifest_formats,
+};
 use crate::stages::{
     StageRow, classify_decode_error, run_guarded, sanity_check_metadata, transition_row,
 };
@@ -42,6 +44,7 @@ fn baseline_row(key: &BaselineKey, handoff: u8) -> BaselineRow {
         path: key.path.clone(),
         decode_pass: 1,
         raw_mosaic_pass: 1,
+        raw_sha256: "aa".repeat(32),
         process_metadata_pass: 1,
         handoff_pass: handoff,
         error_kind: if handoff == 1 {
@@ -154,6 +157,27 @@ fn filters_formats_first_then_selects_by_sha_before_sharding() {
             .collect::<Vec<_>>(),
         ["bb"]
     );
+}
+
+#[test]
+fn custom_manifest_supplies_formats_when_none_are_requested() {
+    let rows = vec![
+        manifest_row("aa", "Canon/Cam/a.DNG", "DNG"),
+        manifest_row("bb", "Sony/Cam/b.ARW", "ARW"),
+    ];
+    let selection = with_manifest_formats(
+        Selection {
+            formats: Vec::new(),
+            cameras: Vec::new(),
+            filenames: Vec::new(),
+            globs: vec!["**/*".into()],
+            shard: None,
+        },
+        &rows,
+    );
+
+    assert_eq!(selection.formats, ["ARW", "DNG"]);
+    assert_eq!(select_manifest(&rows, &selection).unwrap().len(), 2);
 }
 
 #[test]
@@ -320,6 +344,7 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
         path: "Canon/EOS R5/IMG,001.DNG".into(),
         decode_pass: 1,
         raw_mosaic_pass: 1,
+        raw_sha256: "11".repeat(32),
         process_metadata_pass: 1,
         handoff_pass: 1,
         error_kind: String::new(),
@@ -330,11 +355,11 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     let bytes = write_baseline_csv(std::slice::from_ref(&row)).unwrap();
     let text = std::str::from_utf8(&bytes).unwrap();
     assert!(text.starts_with(
-        "status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
+        "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
     ));
     assert!(text.contains("\n✅,"));
     assert!(text.contains("\"Canon, EOS \"\"R5\"\"\""));
-    assert!(text.contains(",1,1,1,1,"));
+    assert!(text.contains(&format!(",1,1,{},1,1,", "11".repeat(32))));
     assert!(text.ends_with(",RGGB\n"));
     assert!(!text.contains('\r'));
 }
@@ -443,7 +468,7 @@ fn manifest_check_reports_snapshot_drift() {
 
 #[test]
 fn baseline_reader_rejects_non_boolean_stage_values() {
-    let csv = "status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n❌,Canon Cam,DNG,Canon/Cam/IMG.DNG,2,0,0,0,decode:bad,0,0,\n";
+    let csv = "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n❌,Canon Cam,DNG,Canon/Cam/IMG.DNG,2,0,,0,0,decode:bad,0,0,\n";
     assert!(read_baseline_csv(csv.as_bytes()).is_err());
 }
 

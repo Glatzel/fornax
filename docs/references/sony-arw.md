@@ -2,9 +2,8 @@
 
 ## Sources
 
-- [`flashraw-codecs` 0.1.1](https://crates.io/crates/flashraw-codecs/0.1.1),
-  `sony_arw1`, `sony_arw2`, `sony_arw6`, and `ljpeg` modules. License:
-  MIT OR Apache-2.0.
+- In-tree implementations:
+  `fornax-codec/src/arw/{arw1.rs,arw2.rs,arw6.rs,ljpeg.rs}`.
 - dnglab/Rawler at commit
   `62b77de1a206d467e910d55199191068b45a9cc1`, especially
   `rawler/src/decoders/arw.rs`,
@@ -39,12 +38,17 @@
   extrema and 7-bit deltas, are doubled into a 4096-entry curve, then receive
   the deterministic per-row Sony dither. Rawler and Fornax match exactly on
   the selected ARW2 corpus fixtures.
-- ARW6 is decoded by the LLVC3 wavelet implementation in
-  `flashraw-codecs`; the output is already mapped through Sony's fixed 12-to-16
-  bit curve.
+- ARW6 is decoded by Fornax's independently written LLVC3 packet, wavelet, and
+  plane-reconstruction implementation. Decoded codes are mapped through Sony's
+  fixed 12-to-16-bit output curve.
 - Sony lossless-JPEG CFA tiles commonly carry four components at `256x256`.
   Components `0/1/2/3` for each sample become `R/G` on the first 512-wide
-  output row and `G/B` on the second.
+  output row and `G/B` on the second. The Sony adapter in `fornax-codec` expands
+  those four components into two Bayer rows.
+- Some Sony lossless-JPEG streams store 14-bit samples while the TIFF
+  `BitsPerSample` tag retains the historical value `12`. The JPEG frame
+  precision is authoritative, so the Sony adapter gives LJPEG decoding the
+  full `u16` codec domain rather than capping it at the container tag.
 
 ## Metadata mapping
 
@@ -71,6 +75,16 @@
 - Crop fallbacks currently cover the validated DSLR-A700, NEX-5, and ILCE-7M3
   profiles. Other cameras use their full active area when the file has no
   explicit default-crop tags.
+
+## LLVC3 curve provenance
+
+The 4096-entry LLVC3 output table is fixed Sony format data, not an algorithm
+implementation. Its values were checked against `flashraw-codecs` 0.1.1,
+published under `MIT OR Apache-2.0`, and against the pre-migration decoded
+sample hash for the ILCE-7M5 ARW6 fixture. Fornax carries the table as data and
+does not adapt code from that crate. The implementation logic is independently
+written from the documented packet and lifting behavior and validated against
+the fixture output.
 
 ## Expected reduced-resolution YCbCr failures
 

@@ -18,9 +18,9 @@ part of the current preprocessor/demosaic handoff.
 | --- | --- | --- |
 | `fornax-raw-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, raster strip/tile planning, classic/BigTIFF parsing, and classic-TIFF writing. | `fornax-codec` |
-| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, and supported codec encoding. | None |
+| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony ARW codecs. | None |
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-raw-core`, `fornax-tiff`, `fornax-codec` |
-| `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA sample decoding, and DNG-compatible metadata mapping. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `flashraw-codecs` |
+| `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA layout mapping, and DNG-compatible metadata mapping. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-decoder` | Default pure-Rust DNG and Sony ARW/NRW decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-arw` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-raw-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-raw-core`, `fornax-decoder-rawler` |
@@ -82,6 +82,13 @@ than necessarily luminance. Zstandard decoding has no level because the level
 is stored in the stream; `EncodeCompression::Zstd { level }` configures
 encoding.
 
+The non-default `arw` feature adds Sony `Arw1`, `Arw2`, `Arw6`, and
+`SonyLosslessJpeg` decode variants. ARW2 carries optional four-knot
+`SonyRawCurve` data; `None` selects the identity curve. The Sony variants use
+the same chunk, geometry, precision, and `SampleBuffer` contract as other
+codecs. `arw2_white_level` and `arw6_white_level` expose the curve-derived
+white levels needed by the Sony format layer.
+
 `fornax-tiff::CompressionMethod` remains the typed TIFF field value.
 `fornax_tiff::RasterLayout` owns strip/tile geometry and chunk ordering, while
 `fornax_tiff::RasterRequest` accepts an already-resolved codec compression.
@@ -98,12 +105,14 @@ TIFF, DNG, or raw workflow types. `fornax-dng` adapts codec `SampleBuffer`
 values to and from `fornax_raw_core::RawMosaic` at its decode and write
 boundaries, keeping `RawMosaic` ownership unchanged.
 
-Codec availability follows Cargo features. The TIFF `raster` feature provides
-uncompressed, lossless JPEG-92, and Deflate support; `jpegxl` and `zstd`
-forward their optional codecs. `fornax-dng` enables TIFF JPEG XL and forwards
-its `zstd` feature to both TIFF and codec layers. A known compression ID whose
-feature is disabled produces a typed unsupported error rather than an unknown-ID
-error. The `fornax-raw` facade retains its `zstd` feature forwarding path.
+Codec availability follows Cargo features. The non-default codec `arw` feature
+enables Sony ARW1, ARW2, ARW6, and lossless-JPEG tile decoding and implies
+`lossless-jpeg`. The TIFF `raster` feature provides uncompressed, lossless
+JPEG-92, and Deflate support; `jpegxl` and `zstd` forward their optional
+codecs. `fornax-dng` enables TIFF JPEG XL and forwards its `zstd` feature to
+both TIFF and codec layers. A known compression ID whose feature is disabled
+produces a typed unsupported error rather than an unknown-ID error. The
+`fornax-raw` facade retains its `zstd` feature forwarding path.
 
 ## Pipeline flow
 
@@ -151,9 +160,11 @@ The default decoder reads classic TIFF and BigTIFF directories, selects the
 full-resolution CFA or LinearRaw image, preserves typed root and raw-IFD
 metadata, and decodes uncompressed, lossless JPEG-92, Deflate, lossy JPEG, and
 JPEG XL raw chunks. Independent strips and tiles are decoded with Rayon. Raw
-storage transforms, linearization, and `OpcodeList1` are applied before
-returning the mosaic. Its process-metadata conversion accepts only conventional
-2x2 RGB Bayer layouts.
+storage transforms, independently implemented `OpcodeList1` pixel operations,
+and linearization are applied before returning the mosaic. Its
+process-metadata conversion accepts only conventional 2x2 RGB Bayer layouts.
+`OpcodeList2` and `OpcodeList3` are ignored by the raw mosaic decoder because
+their stage-specific transforms are not applied.
 
 Compression `52546` is the DNG 1.7 JPEG XL identifier and compression `50002`
 is the self-assigned TIFF JPEG XL identifier. Both map to the single-channel
@@ -171,11 +182,12 @@ not retain the original container or auxiliary directories.
 ## Sony ARW/NRW support
 
 `fornax-arw` selects the full-resolution CFA IFD from classic TIFF or BigTIFF,
-parses and decrypts Sony `DNGPrivateData`, and maps geometry, CFA, black/white
-levels, white balance, and crop data into the shared DNG metadata model. It
-supports uncompressed 12-bit packed and 14/16-bit word samples, ARW1, ARW2,
-ARW6, and single-component tiled LJPEG. Four-component Sony LJPEG tiles are
-unpacked into two Bayer output rows per JPEG row.
+parses and decrypts Sony `DNGPrivateData`, maps geometry, CFA, black/white
+levels, white balance, and crop data into the shared DNG metadata model, and
+adapts strips or tiles to `fornax-codec`. It supports uncompressed 12-bit
+packed and 14/16-bit word samples, ARW1, ARW2, ARW6, and tiled LJPEG.
+Four-component Sony LJPEG tiles are unpacked by the codec into two Bayer output
+rows per JPEG row.
 
 Reduced-resolution YCbCr/`LinearRaw` images, multi-sample ARQ files, unknown
 compression families, and non-Bayer CFAs return typed unsupported errors.

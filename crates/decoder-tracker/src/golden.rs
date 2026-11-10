@@ -227,7 +227,7 @@ const fn raw_sample_type(raw: &RawMosaic) -> &'static str {
     }
 }
 
-fn raw_sha256(raw: &RawMosaic) -> String {
+pub(crate) fn raw_sha256(raw: &RawMosaic) -> String {
     match raw {
         RawMosaic::U8(image) => hash_samples(
             RAW_DOMAIN,

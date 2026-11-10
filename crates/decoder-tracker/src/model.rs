@@ -3,13 +3,14 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 pub const MANIFEST_HEADER: [&str; 3] = ["path", "size", "sha256"];
-pub const BASELINE_HEADER: [&str; 12] = [
+pub const BASELINE_HEADER: [&str; 13] = [
     "status",
     "camera",
     "format",
     "path",
     "decode_pass",
     "raw_mosaic_pass",
+    "raw_sha256",
     "process_metadata_pass",
     "handoff_pass",
     "error_kind",
@@ -102,6 +103,7 @@ pub struct BaselineRow {
     pub path: String,
     pub decode_pass: u8,
     pub raw_mosaic_pass: u8,
+    pub raw_sha256: String,
     pub process_metadata_pass: u8,
     pub handoff_pass: u8,
     pub error_kind: String,
@@ -138,6 +140,14 @@ impl BaselineRow {
         {
             return Err(TrackerError::new(format!(
                 "{} continues a failed stage",
+                self.key()
+            )));
+        }
+        if !self.raw_sha256.is_empty()
+            && (self.raw_sha256.len() != 64 || hex::decode(&self.raw_sha256).is_err())
+        {
+            return Err(TrackerError::new(format!(
+                "{} has an invalid raw_sha256",
                 self.key()
             )));
         }

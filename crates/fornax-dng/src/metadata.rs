@@ -146,6 +146,10 @@ pub enum DngTag {
     MaskedAreas = 50_830,
     RowInterleaveFactor = 50_975,
     OpcodeList1 = 51_008,
+    /// `OpcodeList2`.
+    OpcodeList2 = 51_009,
+    /// `OpcodeList3`.
+    OpcodeList3 = 51_010,
     CalibrationIlluminant3 = 52529,
     CameraCalibration3 = 52530,
     ColorMatrix3 = 52531,

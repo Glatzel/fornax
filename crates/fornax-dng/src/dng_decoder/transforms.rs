@@ -1,4 +1,3 @@
-use flashraw_codecs::dng_opcodes::{PlaneImage, apply as apply_opcodes, parse as parse_opcodes};
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::{MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
@@ -104,8 +103,6 @@ fn apply_opcode_list1(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosa
     if bytes.is_empty() {
         return Ok(pixels);
     }
-    let opcodes = parse_opcodes(&bytes)
-        .map_err(|error| corrupt(format!("OpcodeList1 is invalid: {error:?}")))?;
     let (width_u32, height_u32) = pixels.dimensions();
     let width = usize::try_from(width_u32)
         .map_err(|_| corrupt("opcode image width exceeds the address space"))?;
@@ -146,14 +143,7 @@ fn apply_opcode_list1(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosa
             .collect::<Vec<_>>(),
         RawMosaic::F32(image) => image.as_raw().clone(),
     };
-    let mut plane = PlaneImage::new(&mut samples, width, height, 1);
-    let skipped = apply_opcodes(&opcodes, &mut plane, 2, 1.0, true);
-    if !skipped.is_empty() {
-        return Err(corrupt(format!(
-            "OpcodeList1 contains operations outside the Bayer raw domain: {}",
-            skipped.join(", ")
-        )));
-    }
+    super::opcodes::apply(&bytes, &mut samples, width, height)?;
 
     match kind {
         SampleKind::U8 => {
