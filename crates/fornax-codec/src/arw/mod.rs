@@ -46,7 +46,7 @@ pub fn arw2_white_level(curve: Option<[u16; 4]>) -> u16 { arw2::white_level(curv
 /// ```
 /// assert_eq!(fornax_codec::arw6_white_level(), 39002);
 /// ```
-pub fn arw6_white_level() -> u16 { *LLVC3_CURVE.last().expect("LLVC3 curve is non-empty") }
+pub const fn arw6_white_level() -> u16 { LLVC3_CURVE[4095] }
 
 #[cfg(test)]
 mod tests {

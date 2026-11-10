@@ -1,3 +1,8 @@
+#![allow(
+    clippy::suboptimal_flops,
+    reason = "DNG opcode parity requires the specified f32 operation order"
+)]
+
 use fornax_raw_core::error::DecodeError;
 
 use super::corrupt;
@@ -71,7 +76,7 @@ enum Opcode {
 }
 
 impl Opcode {
-    fn unsupported_name(&self) -> Option<&'static str> {
+    const fn unsupported_name(&self) -> Option<&'static str> {
         match self {
             Self::Unsupported(name) => Some(name),
             _ => None,
@@ -151,13 +156,14 @@ fn parse(bytes: &[u8]) -> Result<Vec<Opcode>, DecodeError> {
                 let _bayer_phase = body.u32()?;
                 let point_count = body.u32()? as usize;
                 let rectangle_count = body.u32()? as usize;
-                let required = point_count
+                let point_bytes = point_count
                     .checked_mul(8)
-                    .and_then(|bytes| {
-                        rectangle_count
-                            .checked_mul(16)
-                            .and_then(|rect_bytes| bytes.checked_add(rect_bytes))
-                    })
+                    .ok_or_else(|| corrupt("FixBadPixelsList element count overflows"))?;
+                let rectangle_bytes = rectangle_count
+                    .checked_mul(16)
+                    .ok_or_else(|| corrupt("FixBadPixelsList element count overflows"))?;
+                let required = point_bytes
+                    .checked_add(rectangle_bytes)
                     .ok_or_else(|| corrupt("FixBadPixelsList element count overflows"))?;
                 if required > body.remaining() {
                     return Err(corrupt("FixBadPixelsList counts exceed opcode size"));
@@ -413,7 +419,6 @@ fn apply_vignette(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 fn apply_gain_map(
     samples: &mut [f32],
     width: usize,
@@ -620,7 +625,7 @@ mod tests {
     fn region(top: u32, left: u32, bottom: u32, right: u32, pitch: u32) -> Vec<u8> {
         [top, left, bottom, right, 0, 1, pitch, pitch]
             .into_iter()
-            .flat_map(|value| value.to_be_bytes())
+            .flat_map(u32::to_be_bytes)
             .collect()
     }
 

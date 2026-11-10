@@ -67,13 +67,13 @@ impl Plane {
 }
 
 #[inline]
-fn floor_shift(value: i32, bits: u32) -> i32 { value >> bits }
+const fn floor_shift(value: i32, bits: u32) -> i32 { value >> bits }
 
 #[inline]
-fn sign_extend_16(value: i32) -> i32 { value as u16 as i16 as i32 }
+const fn sign_extend_16(value: i32) -> i32 { value as u16 as i16 as i32 }
 
 #[inline]
-fn edge_detail(value: i32, odd_mode: bool) -> i32 {
+const fn edge_detail(value: i32, odd_mode: bool) -> i32 {
     let half = value.signum();
     let odd = value % 2 != 0;
     let add_half = if odd_mode { odd } else { value != 0 && !odd };
@@ -113,7 +113,7 @@ struct CoeffBits<'a> {
 }
 
 impl<'a> CoeffBits<'a> {
-    fn new(bytes: &'a [u8], offset: usize, length: usize) -> Self {
+    const fn new(bytes: &'a [u8], offset: usize, length: usize) -> Self {
         let words = ((length.div_ceil(8)) + 1) & !1;
         Self {
             bytes,
@@ -223,10 +223,8 @@ fn update_width(bits: &mut CoeffBits<'_>, width: i32) -> i32 {
     if bits.bit() == 0 || bits.status != 0 {
         return width + bits.unary_plus_one();
     }
-    match bits.leading_one_within((width - 1).max(0) as u32) {
-        Some(zeros) => width - (zeros as i32 + 1),
-        None => 0,
-    }
+    bits.leading_one_within((width - 1).max(0) as u32)
+        .map_or(0, |zeros| width - (zeros as i32 + 1))
 }
 
 fn zero_run(bits: &mut CoeffBits<'_>, remaining: i32) -> i32 {
@@ -411,12 +409,11 @@ fn locate_streams(strip: &[u8], full_width: usize, full_height: usize) -> Vec<Ti
             let mut fields = [0_u32; 6];
             let mut valid = true;
             for (field, value) in fields.iter_mut().enumerate() {
-                match le32(strip, entry + field * 4) {
-                    Ok(field_value) => *value = field_value,
-                    Err(_) => {
-                        valid = false;
-                        break;
-                    }
+                if let Ok(field_value) = le32(strip, entry + field * 4) {
+                    *value = field_value;
+                } else {
+                    valid = false;
+                    break;
                 }
             }
             if !valid {
@@ -515,8 +512,7 @@ fn parse_directory(stream: &[u8]) -> Result<Vec<DirectoryEntry>, CodecError> {
         for (index, value) in values.iter_mut().take(5).enumerate() {
             *value = ((be32(stream, position + index * 3)? & 0x00ff_ffff) << 4) as usize;
         }
-        let mut consumed = 0x10;
-        if count >= 5 {
+        let consumed = if count >= 5 {
             require(
                 position + 0x20 <= stream.len(),
                 "packet directory exceeds stream",
@@ -525,8 +521,10 @@ fn parse_directory(stream: &[u8]) -> Result<Vec<DirectoryEntry>, CodecError> {
                 values[5 + index] =
                     ((be32(stream, position + 0x10 + index * 3)? & 0x00ff_ffff) << 4) as usize;
             }
-            consumed = 0x20;
-        }
+            0x20
+        } else {
+            0x10
+        };
         let mut local = 0;
         for (index, length) in values.into_iter().take(count).enumerate() {
             let start = 0x80 + group_start + local;
@@ -609,7 +607,7 @@ fn parse_packet(bytes: &[u8]) -> Result<Packet<'_>, CodecError> {
     })
 }
 
-fn row_multiplier(group: usize) -> usize {
+const fn row_multiplier(group: usize) -> usize {
     match group {
         4 => 8,
         0 => 1,

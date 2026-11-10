@@ -4,7 +4,7 @@ use fornax_codec::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, Predictor, SampleFormat, decode,
 };
 
-fn request<'a>(
+const fn request<'a>(
     source: &'a [u8],
     chunks: &'a [Chunk],
     compression: DecodeCompression,

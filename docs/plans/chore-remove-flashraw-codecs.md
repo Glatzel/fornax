@@ -15,6 +15,7 @@ In scope:
 - The format-neutral lossless-JPEG codec remains in `fornax-codec`; Sony codecs
   become public through the `fornax-codec` `arw` feature.
 - Independent DNG `OpcodeList1` parsing and pixel transforms in `fornax-dng`.
+- `raw_sha256` in the decoder-tracker baseline schema and generated rows.
 - Dependency graph, lockfile, architecture, reference, and feature documentation
   updates.
 - Synthetic and fixture-backed regression coverage, including exact parity
@@ -30,21 +31,23 @@ Out of scope:
 
 ## Task Checklist
 
-- [ ] Create the branch worktree and record baseline test results.
-- [ ] Capture pre-migration raw-sample SHA-256 hashes for the supported Sony
+- [x] Create the branch worktree and record baseline test results.
+- [x] Capture pre-migration raw-sample SHA-256 hashes for the supported Sony
   fixtures and a DNG fixture containing `OpcodeList1`.
-- [ ] Add independent DNG opcode parsing and application with unit tests for
+- [x] Add independent DNG opcode parsing and application with unit tests for
   every accepted pixel operation and rejection path.
-- [ ] Add the `arw` feature and Sony codec modules to `fornax-codec`; move ARW2
+- [x] Add the `arw` feature and Sony codec modules to `fornax-codec`; move ARW2
   curve handling behind the shared codec API.
-- [ ] Add Sony lossless-JPEG tile adaptation using the owned lossless-JPEG
+- [x] Add Sony lossless-JPEG tile adaptation using the owned lossless-JPEG
   decoder.
-- [ ] Implement ARW6 stream parsing, coefficient decoding, inverse lifting,
+- [x] Implement ARW6 stream parsing, coefficient decoding, inverse lifting,
   color reconstruction, Bayer expansion, and the LLVC3 output curve.
-- [ ] Route `fornax-arw` through `fornax-codec`, preserve its format-layer
+- [x] Route `fornax-arw` through `fornax-codec`, preserve its format-layer
   metadata behavior, and remove all `flashraw-codecs` imports.
-- [ ] Remove the workspace dependency and obsolete transitive lock entries.
-- [ ] Update active architecture, codec feature/provenance, Sony, and DNG
+- [x] Remove the workspace dependency and obsolete transitive lock entries.
+- [x] Add `raw_sha256` to the decoder-tracker baseline schema and generation
+  path.
+- [x] Update active architecture, codec feature/provenance, Sony, and DNG
   opcode reference documentation.
 - [ ] Run feature-matrix, fixture-backed, workspace, and dependency-graph
   validation; inspect the final diff and open the pull request.
@@ -57,8 +60,10 @@ Out of scope:
 - `crates/fornax-arw/Cargo.toml`, `crates/fornax-arw/src/{decode.rs,metadata.rs}`
 - `crates/fornax-dng/Cargo.toml`,
   `crates/fornax-dng/src/dng_decoder/{mod.rs,transforms.rs,opcodes.rs}`
+- `crates/decoder-tracker/{baseline.csv,scripts/aggregate.sh,sql/*.sql,src/*}`
 - `docs/architecture.md`, `docs/references/{sony-arw.md,dng-lossless-jpeg.md}`
 - `docs/references/dng-opcodes.md`
+- `docs/decoder/corpus.md`
 - `crates/fornax-codec/README.md`, `scripts/agent-validation.sh`
 - Focused test modules under the affected crates
 
@@ -90,3 +95,9 @@ Out of scope:
   must be recorded before commit.
 - Existing dirty RAW corpus payloads are local validation inputs and must not be
   committed or rewritten.
+- No real DNG with `OpcodeList1` is available in the local corpus, so opcode
+  coverage uses synthetic byte-level and differential tests.
+- Sony codec ownership landed in one semantic commit because splitting ARW6
+  from the shared `arw` feature surface would require non-compiling stubs.
+- Existing baseline rows accept an empty `raw_sha256` during legacy migration;
+  newly generated rows populate the hash whenever `raw_mosaic_pass` succeeds.

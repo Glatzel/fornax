@@ -150,7 +150,6 @@ pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> 
     Ok(EncodedChunks { chunks })
 }
 
-#[allow(clippy::too_many_arguments)]
 fn copy_tile_into(
     image: &SampleBuffer,
     source_width: usize,
@@ -389,14 +388,14 @@ impl<'a> HeaderReader<'a> {
     }
 }
 
-pub(crate) struct InterleavedJpeg {
+pub struct InterleavedJpeg {
     pub width: usize,
     pub height: usize,
     pub components: usize,
     pub samples: Vec<u16>,
 }
 
-pub(crate) fn decode_interleaved(
+pub fn decode_interleaved(
     source: &[u8],
     expected_precision: u8,
 ) -> Result<InterleavedJpeg, String> {
@@ -761,7 +760,7 @@ fn encode_tile(samples: &[u16], width: u16, height: u16, bits: u8) -> Result<Vec
 }
 
 #[cfg(test)]
-pub(crate) fn encode_interleaved_for_test(
+pub fn encode_interleaved_for_test(
     samples: &[u16],
     width: u16,
     height: u16,
