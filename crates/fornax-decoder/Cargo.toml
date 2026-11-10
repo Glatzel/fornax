@@ -22,3 +22,6 @@ rawler.workspace = true
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 strum.workspace = true
+
+[features]
+zstd = ["fornax-dng/zstd"]
