@@ -56,8 +56,8 @@ identifier.
   formatting, docs, and CI Clippy flags.
 - [x] Run dependency trees and inspect the final diff; local golden hashing was
   attempted and stopped at missing `git-lfs`, so CI remains authoritative.
-- [ ] Open one
-  semantic pull request.
+- [x] Open one semantic pull request:
+  <https://github.com/Glatzel/fornax/pull/696>.
 
 ## Files Expected To Change
 
@@ -149,3 +149,4 @@ identifier.
   compilation.
 - Local golden hash check materialized the nine-row manifest but failed because
   `git-lfs` is not installed. CI remains the authoritative golden check.
+- Pull request: <https://github.com/Glatzel/fornax/pull/696>.
