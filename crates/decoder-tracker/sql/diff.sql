@@ -17,6 +17,7 @@ SELECT
     candidate.path::VARCHAR AS path,
     candidate.decode_pass::INTEGER AS decode_pass,
     candidate.raw_mosaic_pass::INTEGER AS raw_mosaic_pass,
+    candidate.raw_sha256::VARCHAR AS raw_sha256,
     candidate.process_metadata_pass::INTEGER AS process_metadata_pass,
     candidate.handoff_pass::INTEGER AS handoff_pass,
     candidate.error_kind::VARCHAR AS error_kind,
@@ -33,6 +34,7 @@ SELECT
     baseline.path,
     baseline.decode_pass::INTEGER AS before_decode_pass,
     baseline.raw_mosaic_pass::INTEGER AS before_raw_mosaic_pass,
+    baseline.raw_sha256 AS before_raw_sha256,
     baseline.process_metadata_pass::INTEGER AS before_process_metadata_pass,
     baseline.handoff_pass::INTEGER AS before_handoff_pass,
     baseline.error_kind AS before_error_kind,
@@ -41,6 +43,7 @@ SELECT
     baseline.cfa AS before_cfa,
     NULL::INTEGER AS after_decode_pass,
     NULL::INTEGER AS after_raw_mosaic_pass,
+    NULL::VARCHAR AS after_raw_sha256,
     NULL::INTEGER AS after_process_metadata_pass,
     NULL::INTEGER AS after_handoff_pass,
     NULL::VARCHAR AS after_error_kind,
@@ -59,6 +62,7 @@ SELECT
     candidate.path,
     NULL::INTEGER AS before_decode_pass,
     NULL::INTEGER AS before_raw_mosaic_pass,
+    NULL::VARCHAR AS before_raw_sha256,
     NULL::INTEGER AS before_process_metadata_pass,
     NULL::INTEGER AS before_handoff_pass,
     NULL::VARCHAR AS before_error_kind,
@@ -67,6 +71,7 @@ SELECT
     NULL::VARCHAR AS before_cfa,
     candidate.decode_pass AS after_decode_pass,
     candidate.raw_mosaic_pass AS after_raw_mosaic_pass,
+    candidate.raw_sha256 AS after_raw_sha256,
     candidate.process_metadata_pass AS after_process_metadata_pass,
     candidate.handoff_pass AS after_handoff_pass,
     candidate.error_kind AS after_error_kind,
@@ -85,6 +90,7 @@ SELECT
     baseline.path,
     baseline.decode_pass::INTEGER AS before_decode_pass,
     baseline.raw_mosaic_pass::INTEGER AS before_raw_mosaic_pass,
+    baseline.raw_sha256 AS before_raw_sha256,
     baseline.process_metadata_pass::INTEGER AS before_process_metadata_pass,
     baseline.handoff_pass::INTEGER AS before_handoff_pass,
     baseline.error_kind AS before_error_kind,
@@ -93,6 +99,7 @@ SELECT
     baseline.cfa AS before_cfa,
     candidate.decode_pass AS after_decode_pass,
     candidate.raw_mosaic_pass AS after_raw_mosaic_pass,
+    candidate.raw_sha256 AS after_raw_sha256,
     candidate.process_metadata_pass AS after_process_metadata_pass,
     candidate.handoff_pass AS after_handoff_pass,
     candidate.error_kind AS after_error_kind,
@@ -104,6 +111,7 @@ JOIN candidate USING (path)
 WHERE
     baseline.decode_pass::INTEGER IS DISTINCT FROM candidate.decode_pass
     OR baseline.raw_mosaic_pass::INTEGER IS DISTINCT FROM candidate.raw_mosaic_pass
+    OR baseline.raw_sha256::VARCHAR IS DISTINCT FROM candidate.raw_sha256
     OR baseline.process_metadata_pass::INTEGER IS DISTINCT FROM candidate.process_metadata_pass
     OR baseline.handoff_pass::INTEGER IS DISTINCT FROM candidate.handoff_pass
     OR baseline.error_kind::VARCHAR IS DISTINCT FROM candidate.error_kind

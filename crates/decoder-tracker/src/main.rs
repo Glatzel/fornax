@@ -390,6 +390,7 @@ fn baseline_row(manifest: &ManifestRow, stage: StageRow) -> BaselineRow {
         path: manifest.path.clone(),
         decode_pass: stage.decode_pass,
         raw_mosaic_pass: stage.raw_mosaic_pass,
+        raw_sha256: stage.raw_sha256,
         process_metadata_pass: stage.process_metadata_pass,
         handoff_pass: stage.handoff_pass,
         error_kind: stage.error_kind,

@@ -63,7 +63,7 @@ render_sql() {
     printf '%s' "$sql"
 }
 
-expected_header='status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa'
+expected_header='status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa'
 for shard in "${shards[@]}"; do
     header="$(head -n 1 "$shard")"
     if [[ "$header" != "$expected_header" ]]; then

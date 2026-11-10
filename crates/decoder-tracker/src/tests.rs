@@ -42,6 +42,7 @@ fn baseline_row(key: &BaselineKey, handoff: u8) -> BaselineRow {
         path: key.path.clone(),
         decode_pass: 1,
         raw_mosaic_pass: 1,
+        raw_sha256: "aa".repeat(32),
         process_metadata_pass: 1,
         handoff_pass: handoff,
         error_kind: if handoff == 1 {
@@ -320,6 +321,7 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
         path: "Canon/EOS R5/IMG,001.DNG".into(),
         decode_pass: 1,
         raw_mosaic_pass: 1,
+        raw_sha256: "11".repeat(32),
         process_metadata_pass: 1,
         handoff_pass: 1,
         error_kind: String::new(),
@@ -330,11 +332,11 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     let bytes = write_baseline_csv(std::slice::from_ref(&row)).unwrap();
     let text = std::str::from_utf8(&bytes).unwrap();
     assert!(text.starts_with(
-        "status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
+        "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
     ));
     assert!(text.contains("\n✅,"));
     assert!(text.contains("\"Canon, EOS \"\"R5\"\"\""));
-    assert!(text.contains(",1,1,1,1,"));
+    assert!(text.contains(&format!(",1,1,{},1,1,", "11".repeat(32))));
     assert!(text.ends_with(",RGGB\n"));
     assert!(!text.contains('\r'));
 }
@@ -443,7 +445,7 @@ fn manifest_check_reports_snapshot_drift() {
 
 #[test]
 fn baseline_reader_rejects_non_boolean_stage_values() {
-    let csv = "status,camera,format,path,decode_pass,raw_mosaic_pass,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n❌,Canon Cam,DNG,Canon/Cam/IMG.DNG,2,0,0,0,decode:bad,0,0,\n";
+    let csv = "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n❌,Canon Cam,DNG,Canon/Cam/IMG.DNG,2,0,,0,0,decode:bad,0,0,\n";
     assert!(read_baseline_csv(csv.as_bytes()).is_err());
 }
 

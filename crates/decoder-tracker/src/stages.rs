@@ -16,6 +16,7 @@ use fornax_tiff::{Tag, Value};
 pub struct StageRow {
     pub decode_pass: u8,
     pub raw_mosaic_pass: u8,
+    pub raw_sha256: String,
     pub process_metadata_pass: u8,
     pub handoff_pass: u8,
     pub error_kind: String,
@@ -29,6 +30,7 @@ impl Default for StageRow {
         Self {
             decode_pass: 0,
             raw_mosaic_pass: 0,
+            raw_sha256: String::new(),
             process_metadata_pass: 0,
             handoff_pass: 0,
             error_kind: String::new(),
@@ -117,12 +119,14 @@ where
             ..StageRow::default()
         });
     }
+    let raw_sha256 = crate::golden::raw_sha256(&raw);
     let dng = match decoder.dng_metadata() {
         Ok(metadata) => metadata,
         Err(error) => {
             return Ok(StageRow {
                 decode_pass: 1,
                 raw_mosaic_pass: 1,
+                raw_sha256,
                 error_kind: format!("process_metadata:{}", classify_decode_error(&error)),
                 width,
                 height,
@@ -137,6 +141,7 @@ where
             return Ok(StageRow {
                 decode_pass: 1,
                 raw_mosaic_pass: 1,
+                raw_sha256,
                 error_kind: format!("process_metadata:{}", classify_decode_error(&error)),
                 width,
                 height,
@@ -149,6 +154,7 @@ where
         return Ok(StageRow {
             decode_pass: 1,
             raw_mosaic_pass: 1,
+            raw_sha256,
             error_kind: error,
             width,
             height,
@@ -183,6 +189,7 @@ where
     Ok(StageRow {
         decode_pass: 1,
         raw_mosaic_pass: 1,
+        raw_sha256,
         process_metadata_pass: 1,
         handoff_pass: u8::from(handoff.is_ok()),
         error_kind: handoff.err().unwrap_or_default().to_owned(),
