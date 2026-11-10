@@ -72,24 +72,28 @@ pub fn encode(request: &EncodeRequest<'_>, level: i32) -> Result<EncodedChunks, 
 pub fn decompress(encoded: &[u8], max_output: usize) -> Result<Vec<u8>, String> {
     use std::io::Read;
 
-    let decoder = structured_zstd::decoding::StreamingDecoder::new(encoded);
+    let decoder = zstd::stream::read::Decoder::new(encoded)
+        .map_err(|error| format!("payload is invalid: {error}"))?;
+
     let limit = u64::try_from(max_output)
         .unwrap_or(u64::MAX)
         .saturating_add(1);
+
     let mut decoded = Vec::new();
+
     decoder
         .take(limit)
         .read_to_end(&mut decoded)
         .map_err(|error| format!("payload is invalid: {error}"))?;
+
     if decoded.len() > max_output {
         return Err("payload exceeds the declared tile size".into());
     }
+
     Ok(decoded)
 }
 
 pub fn compress(data: &[u8], level: i32) -> Result<Vec<u8>, CodecError> {
-    Ok(structured_zstd::encoding::compress_to_vec(
-        data,
-        structured_zstd::encoding::CompressionLevel::from_level(level),
-    ))
+    zstd::bulk::compress(data, level)
+        .map_err(|error| CodecError::InvalidInput(error.to_string().into()))
 }

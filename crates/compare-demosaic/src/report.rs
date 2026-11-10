@@ -1,7 +1,7 @@
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
-use fornax_core::BayerPattern;
+use fornax_raw_core::BayerPattern;
 use serde::{Deserialize, Serialize};
 
 pub const CANONICAL_FILE: &str = "target/compare-demosaic/canonical.json";

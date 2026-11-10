@@ -1,7 +1,7 @@
 use std::fmt;
 
-use fornax_core::error::DecodeError;
-use fornax_core::protocol::IDecoder;
+use fornax_raw_core::error::DecodeError;
+use fornax_raw_core::protocol::IDecoder;
 pub use fornax_tiff::constants::TiffTag;
 pub use fornax_tiff::{Directory, Tag, Value};
 use num_enum::{FromPrimitive, IntoPrimitive};

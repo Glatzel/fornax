@@ -1,5 +1,5 @@
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 
 use super::buffer::{DenseLazy, codes, dense_from_codes};
 
@@ -37,9 +37,9 @@ fn to_code(value: f32) -> u16 { value.clamp(0.0, f32::from(u16::MAX)) as u16 }
 
 const fn cfa_channel(pattern: BayerPattern, x: isize, y: isize) -> usize {
     match pattern.channel_at(x.rem_euclid(2) as u32, y.rem_euclid(2) as u32) {
-        fornax_core::BayerChannel::R => 0,
-        fornax_core::BayerChannel::GRedRow | fornax_core::BayerChannel::GBlueRow => 1,
-        fornax_core::BayerChannel::B => 2,
+        fornax_raw_core::BayerChannel::R => 0,
+        fornax_raw_core::BayerChannel::GRedRow | fornax_raw_core::BayerChannel::GBlueRow => 1,
+        fornax_raw_core::BayerChannel::B => 2,
     }
 }
 
@@ -726,7 +726,7 @@ impl DemosaicDht {
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::BayerPattern;
+    use fornax_raw_core::BayerPattern;
 
     use super::*;
     use crate::LazyDemosaic;

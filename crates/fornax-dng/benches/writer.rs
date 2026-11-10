@@ -3,13 +3,15 @@ use std::io::Cursor;
 use std::path::{Path, PathBuf};
 
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
-use fornax_core::{MonoImage, RawFormat, RawMosaic};
 use fornax_devtool::{
     BenchParams, BenchSampleBits, DngBenchmarkInput, dng_benchmark_inputs, raw_mosaic_bytes,
     synthetic_mono_image,
 };
+use fornax_dng::Directory;
+use fornax_dng::dng_decoder::DngImage;
 use fornax_dng::metadata::{DngTag, Tag, Value};
-use fornax_dng::{Directory, DngCompression, DngImage, DngWriter};
+use fornax_dng::writer::{DngCompression, DngWriter};
+use fornax_raw_core::{MonoImage, RawFormat, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 
 struct BenchmarkMosaic {
@@ -109,7 +111,7 @@ fn real_mosaic(path: &Path) -> RawMosaic {
             path.display()
         )
     });
-    fornax_dng::raw_mosaic(&image).unwrap_or_else(|error| {
+    image.raw_mosaic().unwrap_or_else(|error| {
         panic!(
             "decoding DNG writer benchmark input {} failed: {error}",
             path.display()

@@ -1,6 +1,6 @@
 use fornax_codec::SampleBuffer;
-use fornax_core::RawMosaic;
-use fornax_core::error::DecodeError;
+use fornax_raw_core::RawMosaic;
+use fornax_raw_core::error::DecodeError;
 
 pub fn from_raw_mosaic(mosaic: &RawMosaic) -> SampleBuffer {
     match mosaic {
@@ -26,7 +26,7 @@ pub fn into_raw_mosaic(buffer: SampleBuffer) -> Result<RawMosaic, DecodeError> {
 #[cfg(test)]
 mod tests {
     use fornax_codec::SampleBuffer;
-    use fornax_core::{MonoImage, RawMosaic};
+    use fornax_raw_core::{MonoImage, RawMosaic};
 
     use super::{from_raw_mosaic, into_raw_mosaic};
 

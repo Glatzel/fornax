@@ -5,8 +5,8 @@
 //! from local color differences, and then reconstructs the remaining channel
 //! from diagonal color differences.
 
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use generic_num::num;
 
 use crate::LazyDemosaic;
@@ -242,7 +242,7 @@ impl DemosaicPpg {
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::MonoImage;
+    use fornax_raw_core::MonoImage;
 
     use super::*;
 

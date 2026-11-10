@@ -3,11 +3,12 @@ use std::io::{BufWriter, Seek, Write};
 use std::path::Path;
 
 use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor, SampleBuffer};
-use fornax_core::RawMosaic;
+use fornax_raw_core::RawMosaic;
 use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
 use thiserror::Error;
 
+#[cfg(feature = "zstd")]
 use crate::constants::DngCompressionMethod;
 use crate::metadata::{Directory, DngTag};
 use crate::sample_buffer::from_raw_mosaic;
@@ -49,6 +50,7 @@ pub enum DngCompression {
     /// Deflate for every supported mosaic sample type.
     Deflate,
     /// Experimental TIFF compression 50000 using pure-Rust Zstandard tiles.
+    #[cfg(feature = "zstd")]
     Zstd,
 }
 
@@ -177,6 +179,7 @@ impl DngWriter {
             DngCompression::Deflate => {
                 write_deflate_all(writer, &samples, metadata, self.version())?;
             }
+            #[cfg(feature = "zstd")]
             DngCompression::Zstd => {
                 write_zstd(writer, &samples, metadata, self.version(), self.zstd_level)?;
             }
@@ -339,7 +342,7 @@ where
         &chunks,
     )
 }
-
+#[cfg(feature = "zstd")]
 fn write_zstd<W>(
     writer: W,
     mosaic: &SampleBuffer,
@@ -681,7 +684,7 @@ fn tiff_write_error(error: fornax_tiff::TiffError) -> DngWriteError {
 mod tests {
     use std::io::Cursor;
 
-    use fornax_core::MonoImage;
+    use fornax_raw_core::MonoImage;
     use fornax_tiff::TiffWriter;
 
     use super::*;

@@ -5,13 +5,20 @@ edition.workspace = true
 
 [dependencies]
 bytemuck.workspace = true
-flate2.workspace = true
+flate2 = { workspace = true, optional = true }
 image.workspace = true
-jxl-oxide.workspace = true
+jxl-oxide = { workspace = true, optional = true }
 rayon.workspace = true
-structured-zstd = "0.2.6"
 thiserror.workspace = true
-zune-jpeg.workspace = true
+zstd = { workspace = true, optional = true }
+zune-jpeg = { workspace = true, optional = true }
 
 [dev-dependencies]
 image = { workspace = true, features = ["jpeg"] }
+
+[features]
+deflate = ["dep:flate2"]
+jpegxl = ["dep:jxl-oxide"]
+lossless-jpeg = []
+lossy-jpeg = ["dep:zune-jpeg"]
+zstd = ["dep:zstd"]

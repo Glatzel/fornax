@@ -1,9 +1,9 @@
 use std::marker::PhantomData;
 
-use fornax_core::Primitive;
-use fornax_core::error::PostProcessError;
-use fornax_core::metadata::{Array3, Matrix3x3};
-use fornax_core::protocol::{IPostProcessMetadata, IPostProcessor};
+use fornax_raw_core::Primitive;
+use fornax_raw_core::error::PostProcessError;
+use fornax_raw_core::metadata::{Array3, Matrix3x3};
+use fornax_raw_core::protocol::{IPostProcessMetadata, IPostProcessor};
 
 use crate::demosaic::{Demosaic, IDemosaic, LazyDemosaic};
 
@@ -61,9 +61,9 @@ where
 {
     fn process(
         &self,
-        bayer_image: &fornax_core::MonoImage<T>,
+        bayer_image: &fornax_raw_core::MonoImage<T>,
         metadata: &M,
-    ) -> Result<fornax_core::RgbImage<T>, PostProcessError> {
+    ) -> Result<fornax_raw_core::RgbImage<T>, PostProcessError> {
         let result = self
             .demosaic
             .demosaic(bayer_image, metadata.bayer_pattern())?;
@@ -233,10 +233,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::metadata::{
+    use fornax_raw_core::metadata::{
         ColorCalibration, Levels, LightSource, ProcessMetadata, RawColorMeta, RawProfile,
     };
-    use fornax_core::{BayerPattern, MonoImage};
+    use fornax_raw_core::{BayerPattern, MonoImage};
     use image::math::Rect;
 
     use super::*;

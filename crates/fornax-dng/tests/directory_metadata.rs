@@ -1,8 +1,9 @@
 use std::io::Cursor;
 
-use fornax_dng::{DngImage, DngTag, dng_metadata};
+use fornax_dng::DngTag;
+use fornax_dng::dng_decoder::DngImage;
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{Directory, Tag, TiffWriter, Value};
+use fornax_tiff::{Tag, TiffWriter, Value};
 
 #[test]
 fn dng_metadata_returns_directory_with_tag_keys() {
@@ -46,7 +47,10 @@ fn dng_metadata_returns_directory_with_tag_keys() {
         ])
         .unwrap();
 
-    let metadata: Directory = dng_metadata(&DngImage::parse(output.get_ref()).unwrap()).unwrap();
+    let metadata = DngImage::parse(output.get_ref())
+        .unwrap()
+        .dng_metadata()
+        .unwrap();
 
     assert_eq!(
         metadata.get(&TiffTag::ImageWidth.into()),

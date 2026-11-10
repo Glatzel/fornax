@@ -1,4 +1,4 @@
-use fornax_core::error::DecodeError;
+use fornax_raw_core::error::DecodeError;
 
 pub fn decrypt(
     source: &[u8],

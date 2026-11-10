@@ -8,18 +8,18 @@ version = "0.0.17"
 edition = "2024"
 
 [workspace.dependencies]
-fornax = { path = "./crates/fornax" }
 fornax-arw = { path = "./crates/fornax-arw" }
 fornax-codec = { path = "./crates/fornax-codec" }
-fornax-core = { path = "./crates/fornax-core" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
+fornax-raw = { path = "./crates/fornax-raw" }
+fornax-raw-core = { path = "./crates/fornax-raw-core" }
 fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 
-clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 # glatzel
+clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 generic-num = {
   git = "https://github.com/Glatzel/toolbox",
@@ -41,7 +41,7 @@ criterion = { package = "codspeed-criterion-compat", version = "6.0.0" }
 csv = "1.4.0"
 flashraw-codecs = "0.1.1"
 flate2 = "1.1.11"
-globset = "0.4.16"
+globset = "0.4.21"
 hex = "0.4.3"
 insta = { version = "1.49.0", features = ["json"] }
 jxl-oxide = "0.12.6"
@@ -61,4 +61,5 @@ strum = { version = "0.28.0", features = ["derive"] }
 tempfile = "3.27.0"
 thiserror = "2.0.21"
 toml = "1.2.1"
+zstd = "0.14.3"
 zune-jpeg = "0.5.15"

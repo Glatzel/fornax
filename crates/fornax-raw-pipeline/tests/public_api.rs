@@ -1,6 +1,6 @@
-use fornax_core::metadata::Levels;
-use fornax_core::protocol::IPreprocessor;
-use fornax_core::{BayerPattern, CroppedMosaic, MonoImage};
+use fornax_raw_core::metadata::Levels;
+use fornax_raw_core::protocol::IPreprocessor;
+use fornax_raw_core::{BayerPattern, CroppedMosaic, MonoImage};
 use fornax_raw_pipeline::{
     Demosaic, IDemosaic, LazyDemosaic, LmmseMode, OutputColorSpace, PostProcessor, Preprocessor,
 };

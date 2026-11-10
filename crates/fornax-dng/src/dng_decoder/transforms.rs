@@ -1,6 +1,6 @@
 use flashraw_codecs::dng_opcodes::{PlaneImage, apply as apply_opcodes, parse as parse_opcodes};
-use fornax_core::error::DecodeError;
-use fornax_core::{MonoImage, RawMosaic};
+use fornax_raw_core::error::DecodeError;
+use fornax_raw_core::{MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, Value, unsigned_scalar};
 use num_traits::ToPrimitive;

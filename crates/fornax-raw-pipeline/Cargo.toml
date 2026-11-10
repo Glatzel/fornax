@@ -12,7 +12,7 @@ harness = false
 name = "preprocessor"
 
 [dependencies]
-fornax-core.workspace = true
+fornax-raw-core.workspace = true
 generic-num.workspace = true
 num-traits.workspace = true
 rayon.workspace = true

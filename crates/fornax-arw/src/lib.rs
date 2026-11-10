@@ -11,11 +11,11 @@ mod tests;
 use std::fs;
 use std::path::Path;
 
-use fornax_core::error::DecodeError;
-use fornax_core::metadata::ProcessMetadata;
-use fornax_core::protocol::IDecoder;
-use fornax_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_dng::metadata::IDecoderDng;
+use fornax_raw_core::error::DecodeError;
+use fornax_raw_core::metadata::ProcessMetadata;
+use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::{Directory, ParsedTiff};
 use generic_num::num;
 use image::math::Rect;
@@ -31,11 +31,11 @@ use rayon::prelude::*;
 ///
 /// ```no_run
 /// use fornax_arw::ArwImage;
-/// use fornax_core::protocol::IDecoder;
+/// use fornax_raw_core::protocol::IDecoder;
 ///
 /// let decoder = ArwImage::decode(std::path::Path::new("photo.ARW"))?;
 /// let mosaic = decoder.raw_mosaic()?;
-/// # Ok::<(), fornax_core::error::DecodeError>(())
+/// # Ok::<(), fornax_raw_core::error::DecodeError>(())
 /// ```
 #[derive(Clone, Debug)]
 pub struct ArwImage {
@@ -119,7 +119,7 @@ impl ArwImage {
     /// Returns an error when CFA, levels, geometry, or crop tags are invalid or
     /// describe a non-conventional Bayer layout.
     pub fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
-        fornax_dng::process_metadata_from_dng_metadata(
+        fornax_dng::dng_decoder::process_metadata_from_dng_metadata(
             u32::try_from(self.layout.width)
                 .map_err(|_| container::invalid("ARW width exceeds u32"))?,
             u32::try_from(self.layout.stored_height)

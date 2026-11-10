@@ -1,5 +1,5 @@
-use fornax_core::error::DecodeError;
 use fornax_dng::constants::DngPhotometricInterpretation;
+use fornax_raw_core::error::DecodeError;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
     Directory, ParsedTiff, Tag, Value, ValueAccessError, unsigned_scalar,

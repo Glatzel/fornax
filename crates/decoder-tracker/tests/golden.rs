@@ -1,8 +1,8 @@
 use decoder_tracker::golden::{
     GoldenCsv, GoldenRow, check_golden_csv, decode_golden, read_golden_csv, write_golden_csv,
 };
-use fornax_core::metadata::{ColorCalibration, Levels, ProcessMetadata, RawColorMeta};
-use fornax_core::{BayerPattern, MonoImage, RawMosaic};
+use fornax_raw_core::metadata::{ColorCalibration, Levels, ProcessMetadata, RawColorMeta};
+use fornax_raw_core::{BayerPattern, MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Directory, Value};
 use image::math::Rect;

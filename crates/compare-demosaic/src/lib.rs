@@ -11,8 +11,8 @@ pub mod waivers;
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::BayerPattern;
     use fornax_devtool::synthetic_mono_image;
+    use fornax_raw_core::BayerPattern;
     use rstest::{fixture, rstest};
     use serde::Serialize;
 
@@ -47,7 +47,7 @@ mod tests {
     fn cropped_real_128() -> crate::reference::ActiveArea {
         crop_128(
             &crate::reference::active_area_from(&fornax_devtool::raw_file(
-                fornax_core::RawFormat::Dng,
+                fornax_raw_core::RawFormat::Dng,
             ))
             .expect("pinned CR2 fixture decodes"),
         )
@@ -194,7 +194,7 @@ mod tests {
     fn rawtherapee_adapter_only_algorithms_return_deterministic_rgb(
         synthetic_128: &crate::reference::ActiveArea,
     ) -> mischief::Result<()> {
-        use fornax_core::BayerChannel;
+        use fornax_raw_core::BayerChannel;
 
         for algorithm in [6_u32, 7, 8] {
             let first = crate::reference::run(

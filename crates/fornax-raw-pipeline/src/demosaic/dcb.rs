@@ -4,8 +4,8 @@
 //! implementation is copyright (C) 2010 Jacek Gozdz and is distributed under
 //! the BSD-3-Clause license reproduced in `docs/references/dcb.md`.
 
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 
 use super::buffer::{DenseLazy, codes, dense_from_codes};
 
@@ -71,9 +71,9 @@ fn insert_measured(
 
 const fn cfa_channel(pattern: BayerPattern, x: isize, y: isize) -> usize {
     match pattern.channel_at(x.rem_euclid(2) as u32, y.rem_euclid(2) as u32) {
-        fornax_core::BayerChannel::R => 0,
-        fornax_core::BayerChannel::GRedRow | fornax_core::BayerChannel::GBlueRow => 1,
-        fornax_core::BayerChannel::B => 2,
+        fornax_raw_core::BayerChannel::R => 0,
+        fornax_raw_core::BayerChannel::GRedRow | fornax_raw_core::BayerChannel::GBlueRow => 1,
+        fornax_raw_core::BayerChannel::B => 2,
     }
 }
 

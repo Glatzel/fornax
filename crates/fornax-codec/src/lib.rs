@@ -34,17 +34,23 @@
 //! assert_eq!((decoded.width(), decoded.height()), (2, 2));
 //! ```
 
-mod deflate;
 mod encode;
 mod error;
-mod jpeg;
-mod jpegxl;
-mod ljpeg;
 mod predictor;
 mod request;
 mod sample_buffer;
 mod samples;
+
+#[cfg(feature = "deflate")]
+mod deflate;
+#[cfg(feature = "lossy-jpeg")]
+mod jpeg;
+#[cfg(feature = "jpegxl")]
+mod jpegxl;
+#[cfg(feature = "lossless-jpeg")]
+mod ljpeg;
 mod uncompressed;
+#[cfg(feature = "zstd")]
 mod zstd;
 
 pub use error::CodecError;
@@ -93,14 +99,18 @@ pub use sample_buffer::{SampleBuffer, SampleBufferError};
 pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     match request.compression {
         DecodeCompression::Uncompressed => uncompressed::decode(request),
+        #[cfg(feature = "lossless-jpeg")]
         DecodeCompression::LosslessJpeg => ljpeg::decode(request),
+        #[cfg(feature = "deflate")]
         DecodeCompression::Deflate => deflate::decode(request),
+        #[cfg(feature = "lossy-jpeg")]
         DecodeCompression::LossyJpeg => jpeg::decode(request),
+        #[cfg(feature = "jpegxl")]
         DecodeCompression::JpegXl => jpegxl::decode(request),
+        #[cfg(feature = "zstd")]
         DecodeCompression::Zstd => zstd::decode(request),
     }
 }
-
 /// Encodes one raw image using the request's compression algorithm.
 ///
 /// # Errors
@@ -130,8 +140,11 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
 pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
     match request.compression {
         EncodeCompression::Uncompressed => uncompressed::encode(request),
+        #[cfg(feature = "lossless-jpeg")]
         EncodeCompression::LosslessJpeg => ljpeg::encode(request),
+        #[cfg(feature = "deflate")]
         EncodeCompression::Deflate => deflate::encode(request),
+        #[cfg(feature = "zstd")]
         EncodeCompression::Zstd { level } => zstd::encode(request, level),
     }
 }

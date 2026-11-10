@@ -4,8 +4,8 @@
 //! formulas by Luis Sanz Rodríguez. darktable 5.6.2 is used as the behavioral
 //! reference; no darktable source code is copied into this module.
 
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerPattern, MonoImage, Primitive, RgbImage};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage};
 use generic_num::num;
 
 use super::ppg::DemosaicPpg;
@@ -469,11 +469,11 @@ where
     value * value
 }
 
-const fn color_index(channel: fornax_core::BayerChannel) -> usize {
+const fn color_index(channel: fornax_raw_core::BayerChannel) -> usize {
     match channel {
-        fornax_core::BayerChannel::R => 0,
-        fornax_core::BayerChannel::GRedRow | fornax_core::BayerChannel::GBlueRow => 1,
-        fornax_core::BayerChannel::B => 2,
+        fornax_raw_core::BayerChannel::R => 0,
+        fornax_raw_core::BayerChannel::GRedRow | fornax_raw_core::BayerChannel::GBlueRow => 1,
+        fornax_raw_core::BayerChannel::B => 2,
     }
 }
 
@@ -487,7 +487,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use fornax_core::{BayerChannel, BayerPattern};
+    use fornax_raw_core::{BayerChannel, BayerPattern};
 
     use super::*;
 

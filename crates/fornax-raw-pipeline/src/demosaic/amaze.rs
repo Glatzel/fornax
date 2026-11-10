@@ -9,8 +9,8 @@
     reason = "the reference comparison requires its exact non-fused operation order"
 )]
 
-use fornax_core::error::DemosaicError;
-use fornax_core::{BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::error::DemosaicError;
+use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 
 use super::buffer::{DenseLazy, channel, dense_from_f32, normalized};
 use super::ppg::DemosaicPpg;
@@ -57,7 +57,8 @@ impl DemosaicAmaze {
                 MonoImage::from_raw(image.width(), image.height(), samples).ok_or_else(|| {
                     DemosaicError::InvalidInput("AMaZE could not copy the Bayer mosaic".into())
                 })?;
-            let rgb: fornax_core::RgbImage<f32> = DemosaicPpg.lazy(&fallback, pattern)?.collect();
+            let rgb: fornax_raw_core::RgbImage<f32> =
+                DemosaicPpg.lazy(&fallback, pattern)?.collect();
             return Ok(DenseLazy::new(dense_from_f32(
                 image.width(),
                 image.height(),

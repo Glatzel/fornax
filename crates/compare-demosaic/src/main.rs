@@ -5,7 +5,7 @@ use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use compare_demosaic::report::{self, Report};
 use compare_demosaic::run::{self, RunOutput, RunRequest};
 use compare_demosaic::{diff, readme};
-use fornax_core::BayerPattern;
+use fornax_raw_core::BayerPattern;
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
 enum PatternArg {

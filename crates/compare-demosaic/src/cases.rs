@@ -1,4 +1,4 @@
-use fornax_core::{BayerPattern, MonoImage, Primitive, RgbImage};
+use fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage};
 use fornax_raw_pipeline::{Demosaic, IDemosaic, LazyDemosaic};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]

@@ -208,7 +208,7 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
         with:
-          options: -p ${{ matrix.package }} ${{ matrix['extra-options'] }}
+          options: -p ${{ matrix.package }} ${{ matrix['extra-options'] }} --all-features
         env:
           GH_TOKEN: ${{ github.token }}
           LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
@@ -243,7 +243,7 @@ jobs:
         shell: bash
         run: |
           source ./crates/compare-demosaic/scripts/setup.sh
-          cmp="cargo run --release -q -p compare-demosaic --"
+          cmp="cargo run --release -p compare-demosaic --"
           $cmp readme --check
           $cmp run --artifacts
           $cmp diff crates/compare-demosaic/baseline/canonical.json \
