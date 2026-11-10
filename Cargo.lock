@@ -940,24 +940,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fornax-postprocessor"
-version = "0.0.17"
-dependencies = [
- "fornax-core",
- "fornax-raw-pipeline",
- "mischief",
-]
-
-[[package]]
-name = "fornax-preprocessor"
-version = "0.0.17"
-dependencies = [
- "fornax-core",
- "fornax-raw-pipeline",
- "mischief",
-]
-
-[[package]]
 name = "fornax-raw-pipeline"
 version = "0.0.17"
 dependencies = [

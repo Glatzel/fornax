@@ -18,8 +18,8 @@ fornax-dng = { path = "./crates/fornax-dng" }
 fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 
-clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 # glatzel
+clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 clerk = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 generic-num = {
   git = "https://github.com/Glatzel/toolbox",
