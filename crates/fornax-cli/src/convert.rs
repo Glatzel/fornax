@@ -2,13 +2,13 @@ use std::marker::PhantomData;
 use std::path::{self, Path, PathBuf};
 use std::{fmt, fs};
 
-use fornax::error::{DecodeError, PostProcessError, PreprocessError};
-use fornax::protocol::{IDecoder, IPostProcessor, IPreprocessor};
-use fornax::raw_pipeline::{OutputColorSpace, PostProcessor, Preprocessor};
-use fornax::{Decoder, RawFormat, RgbImage};
 use fornax_dng::Directory;
 use fornax_dng::metadata::{IDecoderDng, directory_to_json_value};
 use fornax_dng::writer::DngWriter;
+use fornax_raw::error::{DecodeError, PostProcessError, PreprocessError};
+use fornax_raw::protocol::{IDecoder, IPostProcessor, IPreprocessor};
+use fornax_raw::raw_pipeline::{OutputColorSpace, PostProcessor, Preprocessor};
+use fornax_raw::{Decoder, RawFormat, RgbImage};
 use image::codecs::jpeg::JpegEncoder;
 use image::{ExtendedColorType, ImageEncoder};
 use num_traits::ToPrimitive;
