@@ -38,7 +38,7 @@
 - Consumes: `cargo metadata --no-deps`, package manifests, crates.io crate endpoints.
 - Produces: inventory, publishability classification, required metadata audit, path-dependency audit, version compatibility note, and dated name-availability table.
 
-- [ ] **Step 1: Capture the package inventory and publishability**
+- [x] **Step 1: Capture the package inventory and publishability**
 
 Run:
 
@@ -49,11 +49,11 @@ jq -r '.packages[] | [.name, .version, (.publish | tostring), .manifest_path] | 
 
 Expected: 12 workspace members at `0.0.17`; `compare-demosaic` and `decoder-tracker` have `publish = false`; the other 10 are candidates for Cargo publishing. Record that `crates/fornax-py` is excluded by the root manifest.
 
-- [ ] **Step 2: Audit publishable package metadata**
+- [x] **Step 2: Audit publishable package metadata**
 
 Inspect each publishable manifest and metadata for description, license, repository, readme, `rust-version`, version, `[features]`, and `package.metadata.docs.rs`. Expected: absent required publication fields are blockers and are reported without editing manifests.
 
-- [ ] **Step 3: Audit normal and build path dependencies**
+- [x] **Step 3: Audit normal and build path dependencies**
 
 Run:
 
@@ -63,15 +63,15 @@ jq -r '.packages[] | select((.publish | length) == 0 or .publish == null) | .nam
 
 Expected: all workspace path dependencies currently have wildcard `*` requirements and no registry version pin. Separate path-only dependencies from path plus version entries and report blockers without fixing them.
 
-- [ ] **Step 4: Record the version compatibility caveat**
+- [x] **Step 4: Record the version compatibility caveat**
 
 State that the workspace is currently `0.0.17` and Cargo semver permits breaking changes between `0.0.x` patch releases.
 
-- [ ] **Step 5: Check crate-name availability**
+- [x] **Step 5: Check crate-name availability**
 
 Query `https://crates.io/api/v1/crates/<crate-name>` for all 10 publishable names, record the UTC query date, interpret `200` as existing and `404` as available, and mark rate limits or network failures `[UNVERIFIED]`.
 
-- [ ] **Step 6: Start the report**
+- [x] **Step 6: Start the report**
 
 Create the report with sections for scope/method, inventory, metadata completeness, path dependencies, name availability, package evidence placeholders, dry runs, docs.rs features, blockers, and `[UNVERIFIED]` items. Commit the inventory.
 
@@ -85,29 +85,29 @@ Create the report with sections for scope/method, inventory, metadata completene
 - Consumes: publishable crate list from Task 1.
 - Produces: file counts, uncompressed sizes, leak audit, archive bytes, dependency-ordered dry-run results, docs.rs feature sets, and completed validation evidence.
 
-- [ ] **Step 1: Capture package file lists and uncompressed sizes**
+- [x] **Step 1: Capture package file lists and uncompressed sizes**
 
 For each publishable crate, run `cargo package --list -p <crate>`, save the output under `/tmp`, count entries, sum existing file sizes, and scan for `external/`, `temp/`, RAW extensions, generated samples, or local-only development assets.
 
-- [ ] **Step 2: Capture archives**
+- [x] **Step 2: Capture archives**
 
 Run `cargo package --no-verify -p <crate>` and record each `target/package/<crate>-0.0.17.crate` byte size or the exact failure. Do not work around failures.
 
-- [ ] **Step 3: Run dependency-ordered publish dry runs**
+- [x] **Step 3: Run dependency-ordered publish dry runs**
 
 Use: `fornax-raw-core`, `fornax-codec`, `fornax-tiff`, `fornax-dng`, `fornax-arw`, `fornax-raw-pipeline`, `fornax-devtool`, `fornax-decoder`, `fornax-raw`, `fornax-cli`.
 
 Run `cargo publish --dry-run -p <crate>` and record pass/fail plus the first actionable error for each crate.
 
-- [ ] **Step 4: Derive docs.rs feature behavior**
+- [x] **Step 4: Derive docs.rs feature behavior**
 
 For each crate, record `[features]`, `package.metadata.docs.rs` values, `all-features`, and `no-default-features`. If docs.rs metadata is absent, cite docs.rs default behavior rather than assuming a feature set.
 
-- [ ] **Step 5: Complete the report and branch ledger**
+- [x] **Step 5: Complete the report and branch ledger**
 
 Fill every required report section and both dependency trees. Mark blockers and unresolved evidence accurately. Update this plan's checklist and decision notes with actual outcomes.
 
-- [ ] **Step 6: Validate**
+- [x] **Step 6: Validate**
 
 Run:
 
@@ -123,7 +123,7 @@ cargo run -q -p decoder-tracker -- hash \
 
 Expected: docs-only validation passes, diff check is clean, dependency trees retain their current direct dependencies, and the golden check reports `golden: unchanged (9 rows)`.
 
-- [ ] **Step 7: Commit and open one PR**
+- [x] **Step 7: Commit and open one PR**
 
 Commit documentation only, push the branch, and open `docs: report publish readiness` against `main`. Stop after creation without watching, polling, or merging.
 
@@ -148,3 +148,10 @@ Commit documentation only, push the branch, and open `docs: report publish readi
 - Expected failures from unpublished path dependencies are reported as evidence.
 - Network-dependent results are `[UNVERIFIED]` when they cannot be observed.
 - CI is authoritative for LFS-backed checks; local LFS materialization is not a gate.
+- Inventory evidence: 12 workspace members, 10 Cargo-publishable crates, and
+  `fornax-py` excluded from the workspace.
+- Name checks: all 10 candidate names returned HTTP 404 on 2026-11-10.
+- Package and dry-run checks: all 10 stopped before archive creation because
+  path or Git dependencies lacked registry version requirements.
+- Golden hash command stopped at local LFS materialization; CI remains the
+  authority for that check.
