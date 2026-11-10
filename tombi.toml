@@ -3,7 +3,7 @@
 toml-version = "v1.1.0"
 
 [files]
-exclude = ["**/external/**/*.toml"]
+exclude = ["**/external/**/*.toml", "docs/**"]
 
 [format.rules]
 line-width = 80
