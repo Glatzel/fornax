@@ -84,9 +84,10 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `crates/fornax-decoder/benches/decoder.rs` | Decoder-method benchmarks for default and Rawler adapters |
 | `decoder-tracker/src` | Manual raw.pixls.us manifest, isolated decoder runs, shard merge, and baseline diff |
 
-Codec availability is a mandatory build capability, not a per-codec option.
-Zstandard and future codecs compile unconditionally without feature-dependent
-fallback paths.
+Codec availability is controlled by Cargo features. The TIFF raster resolver
+distinguishes unknown compression IDs from known IDs whose required codec
+feature is disabled, and the DNG adapter preserves that distinction in its
+typed decode errors.
 
 ## DNG data flow
 
@@ -149,10 +150,11 @@ Unsupported sample layouts and malformed metadata return typed decode errors
 rather than panics. Unknown compression identifiers are invalid input, while a
 recognized codec can still reject an unsupported payload layout.
 
-Legacy TIFF JPEG XL identifier `50002` and DNG 1.7 identifier `52546` map to the
-single-channel JPEG XL decoder. Three-sample `LinearRaw` payloads, including
-compression `1`, `7`, and `34892` examples in the corpus, are rejected before
-codec dispatch because the raw mosaic contract accepts one sample per pixel.
+Self-assigned TIFF JPEG XL identifier `50002` and DNG 1.7 identifier `52546`
+map to the single-channel JPEG XL decoder. Three-sample `LinearRaw` payloads,
+including compression `1`, `7`, and `34892` examples in the corpus, are
+rejected before codec dispatch because the raw mosaic contract accepts one
+sample per pixel.
 
 ## Alternates and tooling
 

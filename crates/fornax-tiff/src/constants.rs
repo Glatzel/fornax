@@ -89,12 +89,30 @@ pub enum CompressionMethod {
     // TIFF 6.0.
     /// Uncompressed samples.
     Uncompressed = 1,
+    /// Lempel-Ziv-Welch compression.
+    Lzw = 5,
     // TIFF Technical Note 2.
     /// Lossless JPEG-92.
     LosslessJpeg = 7,
     // Adobe Deflate extension also used by DNG 1.4 and later.
     /// Deflate.
     Deflate = 8,
+    // TIFF 6.0.
+    /// PackBits run-length compression.
+    PackBits = 32_773,
+    // Legacy LibTIFF Deflate extension.
+    /// Legacy Deflate identifier.
+    DeflateLegacy = 32_946,
+    // LibTIFF LZMA extension.
+    /// LZMA2 compression.
+    Lzma = 34_925,
+    // LibTIFF self-assigned compression identifiers.
+    /// Zstandard compression.
+    Zstd = 50_000,
+    /// WebP compression.
+    WebP = 50_001,
+    /// JPEG XL compression.
+    JpegXl = 50_002,
     /// An unsupported or private compression identifier.
     #[num_enum(catch_all)]
     Unknown(u16),

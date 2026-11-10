@@ -12,8 +12,8 @@ storage-native decoder and writer APIs.
 Decoded metadata is a `fornax_tiff::Directory`, keyed by the dynamic `Tag`
 type. `DngTag` names DNG-only fields and converts into those keys; generic TIFF
 fields and constants remain in `fornax-tiff`. `fornax_dng::constants` owns the
-DNG compression and photometric values, including the non-DNG compatibility
-compression IDs interpreted only by this format layer.
+DNG-defined compression and photometric values. Generic TIFF-family
+compression IDs remain in `fornax_tiff::constants`.
 
 ## Container and Layout Support
 
@@ -35,20 +35,22 @@ Compression capabilities are documented in
 regenerated rather than byte-identical because source container bytes and
 auxiliary directories are not retained.
 
-Compression `50002` is the legacy TIFF JPEG XL identifier and compression
-`52546` is the DNG 1.7 JPEG XL identifier. Both map to the single-channel JPEG
-XL decoder.
+Compression `50002` is a self-assigned TIFF JPEG XL identifier owned by
+`fornax-tiff`; compression `52546` is the DNG 1.7 JPEG XL identifier owned by
+`fornax-dng`. Both map to the single-channel JPEG XL decoder.
 
-Zstandard is always compiled and is selected with `DngCompression::Zstd`.
-Compression 50000 is the libtiff/GDAL de-facto extension, not an
-Adobe-registered DNG compression code.
+Zstandard is available through `fornax-dng`'s `zstd` feature and is selected
+with `DngCompression::Zstd`. Compression `50000` is a LibTIFF self-assigned
+extension owned by `fornax-tiff`, not an Adobe-registered DNG compression code.
 
 Strip/tile geometry and encoded chunk validation come from
 `fornax_tiff::RasterLayout` and `fornax_tiff::RasterRequest`. TIFF defaults
-`1`, `7`, and `8` resolve through `fornax_tiff::resolve_tiff_compression`; this
-crate resolves DNG and compatibility IDs `34892`, `50000`, `50002`, and `52546`
-before falling back. The TIFF raster request receives the resolved codec
-compression and does not interpret DNG tags.
+and TIFF-family extension IDs resolve through
+`fornax_tiff::resolve_tiff_compression`; this crate resolves only DNG IDs
+`34892` and `52546` before falling back. A known TIFF ID with a disabled codec
+returns a typed unsupported error, while an undocumented ID remains invalid
+input. The TIFF raster request receives the resolved codec compression and does
+not interpret DNG tags.
 
 TIFF/EP CFA `32803` remains a TIFF-family photometric value. DNG
 `LinearRaw` `34892`, `Depth` `51177`, and `PhotometricMask` `52527` are owned by

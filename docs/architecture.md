@@ -85,22 +85,25 @@ encoding.
 `fornax-tiff::CompressionMethod` remains the typed TIFF field value.
 `fornax_tiff::RasterLayout` owns strip/tile geometry and chunk ordering, while
 `fornax_tiff::RasterRequest` accepts an already-resolved codec compression.
-`resolve_tiff_compression` supplies TIFF defaults `1`, `7`, and `8`.
+`resolve_tiff_compression` supplies source-confirmed TIFF-family IDs and
+distinguishes unknown IDs from known IDs whose codec feature is disabled.
 These raster integration APIs are behind `fornax-tiff`'s non-default `raster`
 feature. The feature enables its optional `fornax-codec` dependency; TIFF-only
 consumers can use the parser, values, tags, and writer without codec, image, or
-Rayon dependencies. `fornax-dng` enables `raster` on its TIFF dependency.
-`fornax_dng::constants` owns DNG compression and photometric values, including
-the compatibility IDs interpreted only by the DNG format layer. `fornax-dng`
-resolves those values before falling back to the TIFF defaults. `fornax-codec`
-therefore does not depend on TIFF, DNG, or raw workflow types. `fornax-dng`
-adapts codec `SampleBuffer` values to and from `fornax_raw_core::RawMosaic` at its
-decode and write boundaries, keeping `RawMosaic` ownership unchanged.
+Rayon dependencies. `fornax-dng` enables `raster` and `jpegxl` on its TIFF
+dependency. `fornax_dng::constants` owns only DNG compression IDs `34892` and
+`52546` plus DNG photometric values. `fornax-dng` resolves those values before
+falling back to the TIFF resolver. `fornax-codec` therefore does not depend on
+TIFF, DNG, or raw workflow types. `fornax-dng` adapts codec `SampleBuffer`
+values to and from `fornax_raw_core::RawMosaic` at its decode and write
+boundaries, keeping `RawMosaic` ownership unchanged.
 
-Codec availability is mandatory in the decoder path. Zstandard and all future
-codecs are compiled unconditionally without per-codec features or runtime
-fallback errors. The `fornax-raw` facade exposes a `zstd` feature that forwards
-to `fornax-decoder/zstd`; it is retained by maintainer decision.
+Codec availability follows Cargo features. The TIFF `raster` feature provides
+uncompressed, lossless JPEG-92, and Deflate support; `jpegxl` and `zstd`
+forward their optional codecs. `fornax-dng` enables TIFF JPEG XL and forwards
+its `zstd` feature to both TIFF and codec layers. A known compression ID whose
+feature is disabled produces a typed unsupported error rather than an unknown-ID
+error. The `fornax-raw` facade retains its `zstd` feature forwarding path.
 
 ## Pipeline flow
 
@@ -153,7 +156,8 @@ returning the mosaic. Its process-metadata conversion accepts only conventional
 2x2 RGB Bayer layouts.
 
 Compression `52546` is the DNG 1.7 JPEG XL identifier and compression `50002`
-is the legacy TIFF JPEG XL identifier. Both map to the single-channel decoder.
+is the self-assigned TIFF JPEG XL identifier. Both map to the single-channel
+decoder.
 Multi-channel `LinearRaw` and three-component lossy JPEG remain outside the
 current mono mosaic decoder contract. Multi-component lossless-JPEG tile
 variants remain an unsupported codec layout within that contract.

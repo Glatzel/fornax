@@ -672,31 +672,114 @@ impl fmt::Display for RasterError {
 
 impl std::error::Error for RasterError {}
 
-/// Resolves TIFF-registered compression identifiers to codec algorithms.
+/// Failure to resolve a TIFF compression identifier to an available codec.
 ///
-/// This default covers the TIFF-registered subset supported by Fornax's
-/// single-band RAW raster path: uncompressed, lossless JPEG, and Deflate.
-/// Format crates must resolve DNG, self-assigned, and vendor-specific IDs
-/// before falling back to this function.
+/// # Examples
+///
+/// ```
+/// use fornax_tiff::{TiffCompressionError, resolve_tiff_compression};
+///
+/// assert_eq!(
+///     resolve_tiff_compression(12_345),
+///     Err(TiffCompressionError::UnknownCompression(12_345)),
+/// );
+/// ```
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum TiffCompressionError {
+    /// The identifier is not registered in the generic TIFF vocabulary.
+    UnknownCompression(u16),
+    /// The identifier is known, but its codec feature is not enabled.
+    UnsupportedCompression {
+        /// TIFF compression identifier.
+        id: u16,
+        /// Cargo feature that provides the codec.
+        required_feature: &'static str,
+    },
+}
+
+impl fmt::Display for TiffCompressionError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnknownCompression(id) => write!(formatter, "unknown TIFF compression {id}"),
+            Self::UnsupportedCompression {
+                id,
+                required_feature,
+            } => write!(
+                formatter,
+                "TIFF compression {id} requires codec feature {required_feature}"
+            ),
+        }
+    }
+}
+
+impl std::error::Error for TiffCompressionError {}
+
+/// Resolves TIFF-family compression identifiers to codec algorithms.
+///
+/// Known identifiers whose codec is unavailable return
+/// [`TiffCompressionError::UnsupportedCompression`] with the required Cargo
+/// feature. DNG-owned and vendor-private identifiers are not part of the
+/// generic TIFF vocabulary and return
+/// [`TiffCompressionError::UnknownCompression`].
 ///
 /// # Examples
 ///
 /// ```
 /// use fornax_codec::DecodeCompression;
-/// use fornax_tiff::resolve_tiff_compression;
+/// use fornax_tiff::{TiffCompressionError, resolve_tiff_compression};
 ///
 /// assert_eq!(
 ///     resolve_tiff_compression(1),
-///     Some(DecodeCompression::Uncompressed),
+///     Ok(DecodeCompression::Uncompressed),
 /// );
-/// assert_eq!(resolve_tiff_compression(34_892), None);
+/// assert_eq!(
+///     resolve_tiff_compression(5),
+///     Err(TiffCompressionError::UnsupportedCompression {
+///         id: 5,
+///         required_feature: "lzw",
+///     }),
+/// );
+/// assert_eq!(
+///     resolve_tiff_compression(34_892),
+///     Err(TiffCompressionError::UnknownCompression(34_892)),
+/// );
 /// ```
-pub const fn resolve_tiff_compression(id: u16) -> Option<DecodeCompression> {
+pub const fn resolve_tiff_compression(id: u16) -> Result<DecodeCompression, TiffCompressionError> {
     match id {
-        1 => Some(DecodeCompression::Uncompressed),
-        7 => Some(DecodeCompression::LosslessJpeg),
-        8 => Some(DecodeCompression::Deflate),
-        _ => None,
+        1 => Ok(DecodeCompression::Uncompressed),
+        5 => Err(TiffCompressionError::UnsupportedCompression {
+            id,
+            required_feature: "lzw",
+        }),
+        7 => Ok(DecodeCompression::LosslessJpeg),
+        8 | 32_946 => Ok(DecodeCompression::Deflate),
+        32_773 => Err(TiffCompressionError::UnsupportedCompression {
+            id,
+            required_feature: "packbits",
+        }),
+        34_925 => Err(TiffCompressionError::UnsupportedCompression {
+            id,
+            required_feature: "lzma",
+        }),
+        #[cfg(feature = "zstd")]
+        50_000 => Ok(DecodeCompression::Zstd),
+        #[cfg(not(feature = "zstd"))]
+        50_000 => Err(TiffCompressionError::UnsupportedCompression {
+            id,
+            required_feature: "zstd",
+        }),
+        50_001 => Err(TiffCompressionError::UnsupportedCompression {
+            id,
+            required_feature: "webp",
+        }),
+        #[cfg(feature = "jpegxl")]
+        50_002 => Ok(DecodeCompression::JpegXl),
+        #[cfg(not(feature = "jpegxl"))]
+        50_002 => Err(TiffCompressionError::UnsupportedCompression {
+            id,
+            required_feature: "jpegxl",
+        }),
+        _ => Err(TiffCompressionError::UnknownCompression(id)),
     }
 }
 

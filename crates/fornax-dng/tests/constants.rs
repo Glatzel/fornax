@@ -6,8 +6,6 @@ use fornax_tiff::Tag;
 fn dng_compression_values_round_trip_through_numeric_values() {
     let values = [
         (DngCompressionMethod::LossyJpeg, 34_892),
-        (DngCompressionMethod::Zstd, 50_000),
-        (DngCompressionMethod::JpegXlLegacy, 50_002),
         (DngCompressionMethod::JpegXl, 52_546),
     ];
 
@@ -20,6 +18,17 @@ fn dng_compression_values_round_trip_through_numeric_values() {
         DngCompressionMethod::from(12_345),
         DngCompressionMethod::Unknown(12_345)
     );
+}
+
+#[test]
+fn dng_compression_values_reject_non_dng_ids() {
+    for value in [1, 5, 7, 8, 32_773, 32_946, 34_925, 50_000, 50_001, 50_002] {
+        assert_eq!(
+            DngCompressionMethod::from(value),
+            DngCompressionMethod::Unknown(value),
+            "compression {value}"
+        );
+    }
 }
 
 #[test]

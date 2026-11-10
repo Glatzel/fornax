@@ -9,8 +9,8 @@ use fornax_raw_core::metadata::ProcessMetadata;
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
-    Directory, ParsedTiff, RasterRequest, Tag, ValueAccessError, resolve_tiff_compression,
-    unsigned_scalar, unsigned_vec as tiff_unsigned_vec,
+    Directory, ParsedTiff, RasterRequest, Tag, TiffCompressionError, ValueAccessError,
+    resolve_tiff_compression, unsigned_scalar, unsigned_vec as tiff_unsigned_vec,
 };
 use generic_num::num;
 use image::math::Rect;
@@ -220,13 +220,17 @@ fn decode_plan<'a>(
 fn resolve_dng_compression(id: u16) -> Result<DecodeCompression, DecodeError> {
     match DngCompressionMethod::from(id) {
         DngCompressionMethod::LossyJpeg => Ok(DecodeCompression::LossyJpeg),
-        #[cfg(feature = "zstd")]
-        DngCompressionMethod::Zstd => Ok(DecodeCompression::Zstd),
-        DngCompressionMethod::JpegXlLegacy | DngCompressionMethod::JpegXl => {
-            Ok(DecodeCompression::JpegXl)
+        DngCompressionMethod::JpegXl => Ok(DecodeCompression::JpegXl),
+        DngCompressionMethod::Unknown(_) => {
+            resolve_tiff_compression(id).map_err(|error| match error {
+                TiffCompressionError::UnknownCompression(_) => {
+                    corrupt(format!("invalid DNG compression {id}"))
+                }
+                TiffCompressionError::UnsupportedCompression { .. } => {
+                    unsupported_variant(error.to_string())
+                }
+            })
         }
-        _ => resolve_tiff_compression(id)
-            .ok_or_else(|| corrupt(format!("invalid DNG compression {id}"))),
     }
 }
 
@@ -406,7 +410,9 @@ mod tests {
             (1, fornax_codec::DecodeCompression::Uncompressed),
             (7, fornax_codec::DecodeCompression::LosslessJpeg),
             (8, fornax_codec::DecodeCompression::Deflate),
+            (32_946, fornax_codec::DecodeCompression::Deflate),
             (34_892, fornax_codec::DecodeCompression::LossyJpeg),
+            #[cfg(feature = "zstd")]
             (50_000, fornax_codec::DecodeCompression::Zstd),
             (50_002, fornax_codec::DecodeCompression::JpegXl),
             (52_546, fornax_codec::DecodeCompression::JpegXl),
@@ -430,6 +436,19 @@ mod tests {
         assert!(error.to_string().contains("invalid DNG compression 12345"));
     }
 
+    #[cfg(not(feature = "zstd"))]
+    #[test]
+    fn known_dng_compression_with_disabled_codec_is_unsupported() {
+        let error = super::resolve_dng_compression(50_000).unwrap_err();
+
+        assert!(matches!(
+            error,
+            fornax_raw_core::error::DecodeError::Unsupported(_)
+        ));
+        assert!(error.to_string().contains("zstd"));
+    }
+
+    #[cfg(feature = "zstd")]
     #[test]
     fn zstd_metadata_maps_to_level_free_decode_compression() {
         let source = b"MM";
@@ -445,7 +464,7 @@ mod tests {
         );
         metadata.insert(
             Tag::from(TiffTag::Compression),
-            Value::Short(u16::from(DngCompressionMethod::Zstd)),
+            Value::Short(u16::from(CompressionMethod::Zstd)),
         );
 
         let plan = super::decode_plan(source, &metadata).unwrap();
@@ -611,6 +630,7 @@ mod tests {
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
     }
 
+    #[cfg(feature = "zstd")]
     #[test]
     fn zstd_writer_round_trips_u16_samples() {
         let samples = vec![0, 65_535, 30_000, 32_768, 1, 2, 40_000, 12_345];
@@ -628,6 +648,7 @@ mod tests {
         assert_eq!(image.as_raw().as_slice(), samples.as_slice());
     }
 
+    #[cfg(feature = "zstd")]
     #[test]
     fn zstd_writer_round_trips_u8_u32_and_f32_samples() {
         let u8_samples = vec![0, 1, 2, 255];

@@ -13,7 +13,8 @@ mod writer;
 
 #[cfg(feature = "raster")]
 pub use raster::{
-    RasterError, RasterLayout, RasterRequest, RasterStorage, resolve_tiff_compression,
+    RasterError, RasterLayout, RasterRequest, RasterStorage, TiffCompressionError,
+    resolve_tiff_compression,
 };
 pub use value::{
     Tag, Value, ValueAccessError, ValueConversionError, unsigned_scalar, unsigned_vec,

@@ -8,8 +8,6 @@ use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffT
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
 use thiserror::Error;
 
-#[cfg(feature = "zstd")]
-use crate::constants::DngCompressionMethod;
 use crate::metadata::{Directory, DngTag};
 use crate::sample_buffer::from_raw_mosaic;
 
@@ -372,7 +370,7 @@ where
         height,
         metadata,
         version,
-        u16::from(DngCompressionMethod::Zstd),
+        u16::from(CompressionMethod::Zstd),
         bits,
         sample_format,
         Some(1),
@@ -684,11 +682,13 @@ fn tiff_write_error(error: fornax_tiff::TiffError) -> DngWriteError {
 mod tests {
     use std::io::Cursor;
 
+    #[cfg(feature = "zstd")]
     use fornax_raw_core::MonoImage;
     use fornax_tiff::TiffWriter;
 
     use super::*;
 
+    #[cfg(feature = "zstd")]
     #[test]
     fn encode_request_preserves_selected_compression() {
         let mosaic = RawMosaic::U8(MonoImage::from_raw(2, 1, vec![1, 2]).unwrap());

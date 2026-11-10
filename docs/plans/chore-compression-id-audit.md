@@ -40,18 +40,19 @@ Out of scope:
 - [x] Apply the ambiguity gate. No contradictory or unestablished ownership was
   found.
 - [x] Update `docs/references/dng-compression.md` to match the audit.
-- [ ] Add failing TIFF resolver tests for supported, feature-disabled, and
+- [x] Add failing TIFF resolver tests for supported, feature-disabled, and
   unknown IDs.
-- [ ] Add all confirmed non-DNG IDs to TIFF vocabulary with conservative codec
+- [x] Add all confirmed non-DNG IDs to TIFF vocabulary with conservative codec
   feature gates.
-- [ ] Reduce `DngCompressionMethod` to DNG-owned `34892` and `52546`.
-- [ ] Route DNG compression resolution through the TIFF resolver and preserve
+- [x] Reduce `DngCompressionMethod` to DNG-owned `34892` and `52546`.
+- [x] Route DNG compression resolution through the TIFF resolver and preserve
   existing DNG error behavior.
-- [ ] Update TIFF/DNG constants, resolver, writer, README, and architecture
+- [x] Update TIFF/DNG constants, resolver, writer, README, and architecture
   coverage.
-- [ ] Run focused tests, workspace tests, formatting, docs, Clippy, dependency
-  trees, and golden hash verification.
-- [ ] Record validation outcomes and open one semantic PR.
+- [x] Run focused tests, workspace tests, formatting, docs, Clippy, and
+  dependency trees.
+- [ ] Record the local golden-check limitation and confirm the CI golden job.
+- [ ] Open one semantic PR.
 
 ## Files Expected to Change
 
@@ -65,6 +66,7 @@ Out of scope:
 - `crates/fornax-tiff/src/raster.rs`
 - `crates/fornax-tiff/tests/constants.rs`
 - `crates/fornax-tiff/tests/raster.rs`
+- `crates/fornax-codec/README.md`
 - `crates/fornax-dng/Cargo.toml`
 - `crates/fornax-dng/README.md`
 - `crates/fornax-dng/src/constants.rs`
@@ -73,6 +75,9 @@ Out of scope:
 - `crates/fornax-dng/tests/constants.rs`
 - `crates/fornax-dng/tests/writer_boundary.rs`
 - `docs/architecture.md`
+- `docs/decoder/architecture.md`
+- `docs/decoder/corpus.md`
+- `docs/decoder/formats/dng.md`
 
 ## Validation
 
@@ -92,6 +97,28 @@ cargo run -q -p decoder-tracker -- hash \
 Workspace validation is run with only the prohibited benchmark step skipped.
 The golden hash command must report `golden: unchanged (9 rows)`.
 
+## Validation Results
+
+- `cargo test -p fornax-tiff --no-default-features`: pass, 22 tests.
+- `cargo test -p fornax-tiff --all-features`: pass, 58 tests.
+- `cargo test -p fornax-dng --all-features`: pass, 40 tests.
+- `cargo test -p fornax-dng --no-default-features --lib`: pass, 26 tests.
+- `cargo test -p fornax-arw`: pass, 12 tests.
+- Workspace tests excluding `compare-demosaic`: pass, 337 tests in 41 suites.
+- Decoder manifest check: current, 2020 rows.
+- Decoder tracker DuckDB tests: pass, 4 tests.
+- `cargo +nightly fmt --check`: pass.
+- Workspace rustdoc with warnings denied: pass.
+- Workspace Clippy with the CI flag set: pass.
+- `cargo tree -p fornax-codec -e normal --depth 1`: only bytemuck, image,
+  rayon, and thiserror.
+- `cargo tree -p fornax-tiff -e normal --depth 1 --features
+  raster,jpegxl,zstd`: only fornax-codec, num_enum, and strum.
+- Local golden hash materialization failed at `git-lfs install`; this is
+  unverified locally. The check remains a required CI gate.
+- The decoder benchmark compilation and all other prohibited local actions were
+  skipped.
+
 ## Decisions and Notes
 
 - The audit gate found no reason to stop before production changes.
@@ -104,3 +131,10 @@ The golden hash command must report `golden: unchanged (9 rows)`.
 - Known IDs without an implemented codec return `UnsupportedCompression` with
   the required feature name. Unknown IDs return `UnknownCompression`.
 - No new codec implementation is part of B2.
+- The resolver remains a `const fn`; this preserves the B2 signature while
+  satisfying the repository's `missing_const_for_fn` Clippy gate.
+- LZW, PackBits, LZMA, and WebP are vocabulary entries only. Their resolver
+  results name future features and do not add codec implementations.
+- The local golden hash command could not materialize LFS objects because
+  `git-lfs install` failed in this environment. Per maintainer direction, the
+  CI golden job is authoritative instead of retrying local materialization.

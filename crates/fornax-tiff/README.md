@@ -25,9 +25,10 @@ entries.
 byte counts into a validated row-major chunk list. `RasterRequest` accepts an
 already-resolved `fornax_codec::DecodeCompression`, validates every encoded
 range against the source, and converts to a format-neutral codec request.
-`resolve_tiff_compression` supplies the generic TIFF defaults for compression
-IDs `1`, `7`, and `8`. DNG, self-assigned, and vendor-specific IDs are resolved
-by their owning format crates before they construct a TIFF raster request.
+`resolve_tiff_compression` supplies the generic TIFF-family mapping and
+distinguishes unknown IDs from known IDs whose codec feature is disabled. DNG
+IDs and Sony-private IDs are resolved by their owning format crates before they
+construct a TIFF raster request.
 
 `parse_ifd_at` reads a classic-TIFF IFD that is not linked through the root
 chain. An offset correction maps out-of-line values stored relative to a larger
@@ -44,19 +45,28 @@ and `resolve_tiff_compression`. This feature enables the optional
 
 TIFF-family compression identifiers represented by `CompressionMethod` are:
 
-| Identifier | Meaning | Status |
+| Identifier | Meaning | Raster resolver status |
 | ---: | --- | --- |
-| `1` | Uncompressed | Recognized |
-| `7` | Lossless JPEG-92 | Recognized |
-| `8` | Deflate | Recognized |
+| `1` | Uncompressed | Resolves to `Uncompressed` |
+| `5` | LZW | Known; requires the future `lzw` feature |
+| `7` | JPEG | Resolves to `LosslessJpeg` for the supported mono raw subset |
+| `8` | Adobe Deflate | Resolves to `Deflate` |
+| `32773` | PackBits | Known; requires the future `packbits` feature |
+| `32946` | Legacy Deflate | Resolves to `Deflate` |
+| `34925` | LZMA2 | Known; requires the future `lzma` feature |
+| `50000` | Zstandard | Resolves to `Zstd` with `zstd` enabled |
+| `50001` | WebP | Known; requires the future `webp` feature |
+| `50002` | JPEG XL | Resolves to `JpegXl` with `jpegxl` enabled |
 
-DNG compression `34892`, `52546`, and compatibility identifiers `50000` and
-`50002` are owned by `fornax-dng`. Other TIFF compression identifiers remain
-available through `CompressionMethod::Unknown`; recognizing an identifier here
-does not by itself imply that a codec can decode every payload layout.
+DNG compression `34892` and `52546` are owned by `fornax-dng`. Other TIFF
+compression identifiers remain available through `CompressionMethod::Unknown`;
+recognizing an identifier here does not imply that a codec can decode every
+payload layout.
 
-When the `raster` feature is enabled, codec support is mandatory. Zstandard and
-future codecs are mandatory dependencies without optional codec features.
+The `raster` feature enables uncompressed, lossless JPEG-92, and Deflate
+support. `jpegxl` and `zstd` enable their matching optional codecs. The source
+ownership and version evidence is recorded in
+[`compression-ids.md`](../../docs/references/compression-ids.md).
 
 The crate intentionally owns container mechanics only. DNG-only tag semantics
 belong to `fornax-dng`; format-neutral raw codecs belong to `fornax-codec`.

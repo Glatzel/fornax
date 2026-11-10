@@ -18,6 +18,8 @@ unimplemented or disabled codec does not change who owns an identifier.
   <https://libtiff.gitlab.io/libtiff/releases/v4.0.0.html>.
 - LibTIFF 4.0.10 release notes:
   <https://libtiff.gitlab.io/libtiff/releases/v4.0.10.html>.
+- LibTIFF 3.9.7 pinned `tiff.h`:
+  <https://gitlab.com/libtiff/libtiff/-/raw/v3.9.7/libtiff/tiff.h>.
 - LibTIFF 4.7.0 pinned `tiff.h`:
   <https://gitlab.com/libtiff/libtiff/-/raw/v4.7.0/libtiff/tiff.h>.
 - GDAL maintainer discussion on JPEG XL identifier `50002`, 6 January 2025:
@@ -34,7 +36,7 @@ unimplemented or disabled codec does not change who owns an identifier.
 | `7` | JPEG stream, including sequential lossy or lossless processes | TIFF Technical Note #2 (17 March 1995); TIFF/EP 1.0 section 4.6.1 uses it for baseline JPEG | No | `fornax-tiff` vocabulary and current lossless-JPEG raw subset |
 | `8` | Adobe Deflate/ZIP compression | Adobe TIFF-family assignment, identified as Adobe Deflate by LibTIFF 4.7.0; DNG 1.7.1.0 adopts it in DNG 1.4.0.0 | No | `fornax-tiff`; raster resolver to `Deflate` |
 | `32773` | PackBits byte-oriented run-length compression | TIFF 6.0 (3 June 1992), section 9 | No | `fornax-tiff` vocabulary; known codec unavailable until a `packbits` feature exists |
-| `32946` | Legacy LibTIFF Deflate/ZIP identifier | LibTIFF 4.7.0 `tiff.h`; older experimental LibTIFF documentation | No | `fornax-tiff` vocabulary; raster resolver to `Deflate` |
+| `32946` | Legacy LibTIFF Deflate/ZIP identifier | LibTIFF 3.9.7 and 4.7.0 `tiff.h` | No | `fornax-tiff` vocabulary; raster resolver to `Deflate` |
 | `34892` | DNG lossy JPEG | DNG 1.7.1.0 pages 20-21; introduced by DNG 1.4.0.0 | Yes | `fornax-dng`; DNG override to `LossyJpeg` |
 | `34925` | LZMA2-compressed data | LibTIFF 4.0.0 release notes added tag `34925`; LibTIFF 4.7.0 `tiff.h` names it LZMA2 | No | `fornax-tiff` vocabulary; known codec unavailable until an `lzma` feature exists |
 | `50000` | Zstandard-compressed data | LibTIFF 4.0.10 self-assigned `50000`, explicitly not Adobe-registered | No | `fornax-tiff` vocabulary; resolver to `Zstd` when `zstd` is enabled |
