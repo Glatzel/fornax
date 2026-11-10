@@ -9,10 +9,6 @@ name = "writer"
 
 [dependencies]
 flashraw-codecs.workspace = true
-fornax-codec = {
-  workspace = true,
-  features = ["jpegxl", "lossless-jpeg", "lossy-jpeg"]
-}
 fornax-raw-core.workspace = true
 fornax-tiff.workspace = true
 generic-num.workspace = true
@@ -24,6 +20,10 @@ serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 strum.workspace = true
 thiserror.workspace = true
+
+[dependencies.fornax-codec]
+workspace = true
+features = ["jpegxl", "lossless-jpeg", "lossy-jpeg"]
 
 [dev-dependencies]
 criterion.workspace = true

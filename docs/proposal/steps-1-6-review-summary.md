@@ -340,7 +340,8 @@ and postprocessor crates into `fornax-raw-pipeline`.
 it is a required status check in the active main ruleset. #690's
 `benchmark (fornax-dng)` failure occurred after a successful bench build:
 CodSpeed could not parse the multiline inline `fornax-codec` dependency table.
-Phase A keeps the dependency feature set but writes it on one TOML line.
+Phase A keeps the dependency feature set but uses a standard dependency
+subtable.
 
 ## 9. Original pain points, re-checked
 

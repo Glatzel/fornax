@@ -90,7 +90,8 @@ git diff --check
   documentation-only and the Python API is a reserved decision.
 - `benchmark (fornax-dng)` failed after a successful build because CodSpeed
   could not parse the multiline inline dependency table introduced in #690.
-  The dependency remains feature-complete but is written on one TOML line.
+  The dependency remains feature-complete but uses a standard dependency
+  subtable that the TOML formatter preserves and CodSpeed can parse.
 - `check-point` is an aggregate sentinel that exits 1 when a needed CI job
   fails or is cancelled. It is a required status check under the active main
   ruleset.
