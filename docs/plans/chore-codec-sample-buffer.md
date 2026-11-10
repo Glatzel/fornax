@@ -3,7 +3,7 @@
 ## Goal
 
 Move neutral codec output into a codec-owned `SampleBuffer`, remove
-`fornax-codec`'s dependency on `fornax-core`, and preserve `RawMosaic` as the
+`fornax-codec`'s dependency on `fornax-raw-core`, and preserve `RawMosaic` as the
 storage-native raw workflow type through adapters at the DNG codec boundary.
 
 ## Scope
@@ -72,7 +72,7 @@ band or interleaving abstraction is introduced.
 
 ## Adapter boundary
 
-`RawMosaic` remains owned by `fornax-core`, and `fornax-core` does not depend on
+`RawMosaic` remains owned by `fornax-raw-core`, and `fornax-raw-core` does not depend on
 `fornax-codec`. The compatibility adapters live in `fornax-dng`, which already
 depends on both crates:
 
@@ -108,7 +108,7 @@ not use the generic codec.
   - [x] Watch the tests fail against the old `RawMosaic` API.
   - [x] Change codec requests, result constructors, encoder input, internals,
         examples, and documentation to use `SampleBuffer`.
-  - [x] Remove `fornax-core` from `fornax-codec` dependencies.
+  - [x] Remove `fornax-raw-core` from `fornax-codec` dependencies.
   - [x] Add a codec round-trip covering all four approved storage types.
   - [x] Run `cargo test -p fornax-codec` to GREEN.
 
@@ -183,7 +183,7 @@ fornax-codec` after adding public rustdoc examples.
 - `SampleBuffer` remains `#[non_exhaustive]`; downstream matches must handle
   future variants explicitly.
 - The DNG adapter boundary avoids both duplicating codec types in core and
-  reintroducing a `fornax-codec -> fornax-core` dependency.
+  reintroducing a `fornax-codec -> fornax-raw-core` dependency.
 - `DngWriter` retains its `RawMosaic` API and clones that borrowed mosaic once
   into `SampleBuffer` before encoding. The approved no-borrowed-wrapper
   constraint makes a copy unavoidable at this compatibility boundary.

@@ -39,7 +39,7 @@ changes to comparison limits, and waivers for VNG failures.
 
 ## Files expected to change
 
-- `crates/fornax-postprocessor/src/demosaic/vng.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/vng.rs`
 - `crates/compare-demosaic/src/snapshots/*-VNG-*.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
@@ -51,7 +51,7 @@ changes to comparison limits, and waivers for VNG failures.
 ## Validation
 
 ```bash
-cargo test -p fornax-postprocessor vng
+cargo test -p fornax-raw-pipeline vng
 cargo run --release -p compare-demosaic -- run \
   --algorithm vng --pattern GBRG --artifacts --out target/vng
 cargo run --release -p compare-demosaic -- run --algorithm vng
@@ -79,7 +79,7 @@ fraction `<= 0.001` above 1024 codes. No numeric limit or waiver may change.
 ## Decisions and notes
 
 - The selected license direction is BSD-only. No LibRaw LGPL/CDDL or
-  darktable GPL source is translated or copied into `fornax-postprocessor`.
+  darktable GPL source is translated or copied into `fornax-raw-pipeline`.
 - The existing in-tree gradient descriptor and neighbor data remain
   project-owned BSD inputs. Reference adapters serve only as black-box
   acceptance oracles.

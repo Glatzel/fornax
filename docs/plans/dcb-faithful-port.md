@@ -14,7 +14,7 @@ mosaic to 16-bit codes, run a full-frame DCB state machine with `[u16; 4]`
 pixels and two `[f32; 3]` candidate planes, then pack RGB through the existing
 lazy boundary.
 
-**Tech Stack:** Rust 2024, `fornax-core`, `fornax-postprocessor`,
+**Tech Stack:** Rust 2024, `fornax-raw-core`, `fornax-raw-pipeline`,
 `compare-demosaic`, LibRaw 0.22.3, Insta, and Cargo.
 
 **Spec:**
@@ -86,9 +86,9 @@ waivers.
 
 ## Files Expected to Change
 
-- `crates/fornax-postprocessor/src/demosaic/dcb.rs`
-- `crates/fornax-postprocessor/src/demosaic.rs`
-- `crates/fornax-postprocessor/src/demosaic/directional.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
+- `crates/fornax-raw-pipeline/src/demosaic.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/directional.rs`
 - `crates/compare-demosaic/src/snapshots/*-DCB-libraw.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
@@ -99,7 +99,7 @@ waivers.
 ## Validation
 
 ```bash
-cargo test -p fornax-postprocessor dcb
+cargo test -p fornax-raw-pipeline dcb
 cargo run --release -p compare-demosaic -- run \
   --algorithm dcb --pattern GBRG --artifacts --out target/dcb
 cargo run --release -p compare-demosaic -- run --algorithm dcb
@@ -147,7 +147,7 @@ git -c core.whitespace=cr-at-eol diff --check
 - Workspace Clippy with the repository's requested lint flags passed.
 - `cargo fmt --check` fails on pre-existing workspace files because stable
   rustfmt ignores the repository's nightly-only configuration. The changed
-  `dcb.rs` itself was formatted by `cargo fmt --package fornax-postprocessor`
+  `dcb.rs` itself was formatted by `cargo fmt --package fornax-raw-pipeline`
   and does not appear in the `cargo fmt --check` diff.
 - `markdownlint-cli2` and `git diff --check` passed.
 
@@ -157,7 +157,7 @@ git -c core.whitespace=cr-at-eol diff --check
 
 **Files:**
 
-- Modify: `crates/fornax-postprocessor/src/demosaic/dcb.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
 
 **Interfaces:**
 
@@ -238,7 +238,7 @@ fn direction_decision_prefers_the_candidate_with_matching_local_rhythm() {
 
 - [ ] **Step 2: Run the focused tests and confirm they fail**
 
-Run: `cargo test -p fornax-postprocessor dcb -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dcb -- --nocapture`
 
 Expected: compilation fails because the new DCB helpers do not exist.
 
@@ -268,7 +268,7 @@ matching the reference's strict horizontal comparison.
 
 - [ ] **Step 5: Run the focused tests**
 
-Run: `cargo test -p fornax-postprocessor dcb -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dcb -- --nocapture`
 
 Expected: the three new tests pass.
 
@@ -278,7 +278,7 @@ Run:
 
 ```bash
 cargo fmt
-git add crates/fornax-postprocessor/src/demosaic/dcb.rs
+git add crates/fornax-raw-pipeline/src/demosaic/dcb.rs
 git commit -m "feat: add DCB directional candidates"
 ```
 
@@ -288,7 +288,7 @@ git commit -m "feat: add DCB directional candidates"
 
 **Files:**
 
-- Modify: `crates/fornax-postprocessor/src/demosaic/dcb.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
 
 **Interfaces:**
 
@@ -385,7 +385,7 @@ fn smooth_preserves_green_contrast_over_eight_neighbors() {
 
 - [ ] **Step 2: Run the tests and confirm they fail**
 
-Run: `cargo test -p fornax-postprocessor dcb -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dcb -- --nocapture`
 
 Expected: compilation fails because the correction helpers do not exist.
 
@@ -404,7 +404,7 @@ neighbors for red, green, and blue, then adds the current green contrast.
 
 - [ ] **Step 5: Run focused tests**
 
-Run: `cargo test -p fornax-postprocessor dcb -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dcb -- --nocapture`
 
 Expected: all Task 1 and Task 2 tests pass.
 
@@ -414,7 +414,7 @@ Run:
 
 ```bash
 cargo fmt
-git add crates/fornax-postprocessor/src/demosaic/dcb.rs
+git add crates/fornax-raw-pipeline/src/demosaic/dcb.rs
 git commit -m "feat: add DCB correction passes"
 ```
 
@@ -424,8 +424,8 @@ git commit -m "feat: add DCB correction passes"
 
 **Files:**
 
-- Modify: `crates/fornax-postprocessor/src/demosaic/dcb.rs`
-- Modify: `crates/fornax-postprocessor/src/demosaic/directional.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
+- Modify: `crates/fornax-raw-pipeline/src/demosaic/directional.rs`
 
 **Interfaces:**
 
@@ -557,7 +557,7 @@ fn public_dcb_accepts_the_three_pixel_bridge_minimum() {
 
 - [ ] **Step 2: Run the tests and confirm they fail**
 
-Run: `cargo test -p fornax-postprocessor dcb -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dcb -- --nocapture`
 
 Expected: compilation fails because refinement, full color, and `run` do not
 exist.
@@ -596,13 +596,13 @@ Convert input with `codes`, construct a three-channel result with
 
 - [ ] **Step 5: Run focused tests**
 
-Run: `cargo test -p fornax-postprocessor dcb -- --nocapture`
+Run: `cargo test -p fornax-raw-pipeline dcb -- --nocapture`
 
 Expected: every DCB stage and integration test passes.
 
 - [ ] **Step 6: Run the postprocessor test suite**
 
-Run: `cargo test -p fornax-postprocessor`
+Run: `cargo test -p fornax-raw-pipeline`
 
 Expected: all postprocessor tests pass.
 
@@ -612,8 +612,8 @@ Run:
 
 ```bash
 cargo fmt
-git add crates/fornax-postprocessor/src/demosaic/dcb.rs \
-  crates/fornax-postprocessor/src/demosaic/directional.rs
+git add crates/fornax-raw-pipeline/src/demosaic/dcb.rs \
+  crates/fornax-raw-pipeline/src/demosaic/directional.rs
 git commit -m "feat: port LibRaw DCB demosaicing"
 ```
 

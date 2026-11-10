@@ -16,7 +16,7 @@ reference algorithm is whole-frame, retaining row-copy behavior at the lazy
 boundary. Keep `directional.rs` until the last of its five profiles is replaced,
 so unfinished algorithms continue to work during incremental pulls.
 
-**Tech Stack:** Rust 2024, `fornax-core`, `fornax-postprocessor`,
+**Tech Stack:** Rust 2024, `fornax-raw-core`, `fornax-raw-pipeline`,
 `compare-demosaic`, LibRaw 0.22.3, and darktable 5.6.2.
 
 ## Global constraints
@@ -72,7 +72,7 @@ All 64x64 tiles reported below are nonzero-high-error tiles.
 - Integer `ushort`, fixed-point, truncation, and saturation conventions must
   be tested explicitly because changing them can move thousands of pixels by
   one or more codes.
-- A GPL implementation must not enter `fornax-postprocessor` before the
+- A GPL implementation must not enter `fornax-raw-pipeline` before the
   project's licensing question is resolved.
 
 ---
@@ -165,10 +165,10 @@ comparison adapter pins the supported Bayer branch and direct RGB copy-out.
 
 ### Files expected to change
 
-- `crates/fornax-postprocessor/src/demosaic/vng.rs`
-- `crates/fornax-postprocessor/src/demosaic.rs` only if the public lazy wrapper
+- `crates/fornax-raw-pipeline/src/demosaic/vng.rs`
+- `crates/fornax-raw-pipeline/src/demosaic.rs` only if the public lazy wrapper
   must change; the preferred result keeps `DenseLazy`
-- `crates/fornax-postprocessor/src/demosaic/buffer.rs` only for tested
+- `crates/fornax-raw-pipeline/src/demosaic/buffer.rs` only for tested
   code-domain helpers
 - `crates/compare-demosaic/src/snapshots/*-VNG-*.snap`
 - `crates/compare-demosaic/README.md` VNG note outside generated markers
@@ -187,7 +187,7 @@ comparison adapter pins the supported Bayer branch and direct RGB copy-out.
 ### Validation and updates
 
 ```bash
-cargo test -p fornax-postprocessor vng
+cargo test -p fornax-raw-pipeline vng
 cargo run --release -p compare-demosaic -- run \
   --algorithm vng --pattern GBRG --artifacts --out target/vng
 cargo run --release -p compare-demosaic -- run --algorithm vng
@@ -316,12 +316,12 @@ waiver.
 
 ### Files expected to change
 
-- `crates/fornax-postprocessor/src/demosaic/lmmse.rs`
-- `crates/fornax-postprocessor/src/demosaic/ppg.rs` if the seed helper is
+- `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/ppg.rs` if the seed helper is
   extracted
-- `crates/fornax-postprocessor/src/demosaic.rs` if the profile enum loses
+- `crates/fornax-raw-pipeline/src/demosaic.rs` if the profile enum loses
   `Lmmse` in this task
-- `crates/fornax-postprocessor/src/demosaic/directional.rs` only to remove
+- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` only to remove
   the LMMSE profile after the new implementation passes
 - `crates/compare-demosaic/src/snapshots/*-LMMSE-darktable.snap`
 - `crates/compare-demosaic/README.md` LMMSE note outside generated markers
@@ -340,7 +340,7 @@ waiver.
 ### Validation and updates
 
 ```bash
-cargo test -p fornax-postprocessor lmmse
+cargo test -p fornax-raw-pipeline lmmse
 cargo run --release -p compare-demosaic -- run \
   --algorithm lmmse --pattern GBRG --artifacts --out target/lmmse
 cargo run --release -p compare-demosaic -- run --algorithm lmmse
@@ -364,7 +364,7 @@ tables, one-median mode, and any residual floating-point/border differences.
 ### License implications
 
 darktable `lmmse.c` is GPLv3. Translating it into the BSD-3-Clause
-`fornax-postprocessor` library is likely a derivative-work licensing change.
+`fornax-raw-pipeline` library is likely a derivative-work licensing change.
 Flag this for human legal/project-license review before implementation. Do not
 decide whether to copy, relicense, isolate, or independently reimplement.
 
@@ -460,12 +460,12 @@ helpers:
 
 ### Files expected to change
 
-- `crates/fornax-postprocessor/src/demosaic/aahd.rs`
-- `crates/fornax-postprocessor/src/demosaic/ahd.rs` only if shared LUT helpers
+- `crates/fornax-raw-pipeline/src/demosaic/aahd.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/ahd.rs` only if shared LUT helpers
   are extracted
-- `crates/fornax-postprocessor/src/demosaic.rs` to remove the AAHD profile
+- `crates/fornax-raw-pipeline/src/demosaic.rs` to remove the AAHD profile
   variant
-- `crates/fornax-postprocessor/src/demosaic/directional.rs` to remove AAHD-only
+- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` to remove AAHD-only
   code after migration
 - `crates/compare-demosaic/src/snapshots/*-AAHD-libraw.snap`
 - `crates/compare-demosaic/README.md` AAHD note outside generated markers
@@ -485,7 +485,7 @@ helpers:
 ### Validation and updates
 
 ```bash
-cargo test -p fornax-postprocessor aahd
+cargo test -p fornax-raw-pipeline aahd
 cargo run --release -p compare-demosaic -- run \
   --algorithm aahd --pattern GBRG --artifacts --out target/aahd
 cargo run --release -p compare-demosaic -- run --algorithm aahd
@@ -598,10 +598,10 @@ Port LibRaw 0.22.3 `LibRaw::dht_interpolate()` and the private `DHT` helpers:
 
 ### Files expected to change
 
-- `crates/fornax-postprocessor/src/demosaic/dht.rs`
-- `crates/fornax-postprocessor/src/demosaic.rs` to remove the DHT profile
+- `crates/fornax-raw-pipeline/src/demosaic/dht.rs`
+- `crates/fornax-raw-pipeline/src/demosaic.rs` to remove the DHT profile
   variant
-- `crates/fornax-postprocessor/src/demosaic/directional.rs` to remove DHT-only
+- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` to remove DHT-only
   code after migration
 - `crates/compare-demosaic/src/snapshots/*-DHT-libraw.snap`
 - `crates/compare-demosaic/README.md` DHT note outside generated markers
@@ -619,7 +619,7 @@ Port LibRaw 0.22.3 `LibRaw::dht_interpolate()` and the private `DHT` helpers:
 ### Validation and updates
 
 ```bash
-cargo test -p fornax-postprocessor dht
+cargo test -p fornax-raw-pipeline dht
 cargo run --release -p compare-demosaic -- run \
   --algorithm dht --pattern GBRG --artifacts --out target/dht
 cargo run --release -p compare-demosaic -- run --algorithm dht
@@ -727,10 +727,10 @@ Port LibRaw 0.22.3 `LibRaw::dcb(0, 1)` and its called helpers:
 
 ### Files expected to change
 
-- `crates/fornax-postprocessor/src/demosaic/dcb.rs`
-- `crates/fornax-postprocessor/src/demosaic.rs` to remove the DCB profile
+- `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
+- `crates/fornax-raw-pipeline/src/demosaic.rs` to remove the DCB profile
   variant
-- `crates/fornax-postprocessor/src/demosaic/directional.rs` to remove DCB-only
+- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` to remove DCB-only
   code after migration
 - `crates/compare-demosaic/src/snapshots/*-DCB-libraw.snap`
 - `crates/compare-demosaic/README.md` DCB note outside generated markers
@@ -748,7 +748,7 @@ Port LibRaw 0.22.3 `LibRaw::dcb(0, 1)` and its called helpers:
 ### Validation and updates
 
 ```bash
-cargo test -p fornax-postprocessor dcb
+cargo test -p fornax-raw-pipeline dcb
 cargo run --release -p compare-demosaic -- run \
   --algorithm dcb --pattern GBRG --artifacts --out target/dcb
 cargo run --release -p compare-demosaic -- run --algorithm dcb
@@ -863,9 +863,9 @@ Port darktable 5.6.2 `amaze_demosaic()`:
 
 ### Files expected to change
 
-- `crates/fornax-postprocessor/src/demosaic/amaze.rs`
-- `crates/fornax-postprocessor/src/demosaic.rs`
-- `crates/fornax-postprocessor/src/demosaic/directional.rs` (delete when all
+- `crates/fornax-raw-pipeline/src/demosaic/amaze.rs`
+- `crates/fornax-raw-pipeline/src/demosaic.rs`
+- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` (delete when all
   five profiles have migrated)
 - `crates/compare-demosaic/src/snapshots/*-AMaZE-darktable.snap`
 - `crates/compare-demosaic/README.md` AMaZE note outside generated markers
@@ -883,7 +883,7 @@ Port darktable 5.6.2 `amaze_demosaic()`:
 ### Validation and updates
 
 ```bash
-cargo test -p fornax-postprocessor amaze
+cargo test -p fornax-raw-pipeline amaze
 cargo run --release -p compare-demosaic -- run \
   --algorithm amaze --pattern GBRG --artifacts --out target/amaze
 cargo run --release -p compare-demosaic -- run --algorithm amaze
@@ -909,7 +909,7 @@ conventions.
 
 darktable `amaze.cc` is GPLv3 and includes a RawTherapee/Emil Martinec GPLv3
 notice. A faithful Rust translation into the BSD-3-Clause
-`fornax-postprocessor` is likely a derivative work and a project licensing
+`fornax-raw-pipeline` is likely a derivative work and a project licensing
 decision. Human legal/project-license review is required before
 implementation; this plan does not decide whether to copy, relicense, isolate,
 or independently reimplement it.

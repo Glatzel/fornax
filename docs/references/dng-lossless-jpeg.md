@@ -69,6 +69,6 @@
 ## License constraints
 
 rawler is licensed LGPL-2.1. It was used as a behavioral reference only. The
-implementation in `fornax-core` is independently written against the DNG,
+implementation in `fornax-raw-core` is independently written against the DNG,
 TIFF, and JPEG specifications and does not add rawler to production
 dependencies.

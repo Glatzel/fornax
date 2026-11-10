@@ -33,22 +33,22 @@ jobs:
               - ./**
               - '!**/*.md'
             benchmark_decoder:
-              - '!**/*.md'
               - ./crates/fornax-codec/**
               - ./crates/fornax-decoder/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
-            benchmark_dng:
               - '!**/*.md'
+            benchmark_dng:
               - ./crates/fornax-codec/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
+              - '!**/*.md'
             benchmark_raw_pipeline:
               - ./crates/fornax-raw-pipeline/**
               - '!**/*.md'
             compare_demosaic:
               - ./crates/compare-demosaic/**
-              - ./crates/fornax-core/**
+              - ./crates/fornax-raw-core/**
               - ./crates/fornax-raw-pipeline/src/demosaic/**
               - '!**/*.md'
             book_assets:

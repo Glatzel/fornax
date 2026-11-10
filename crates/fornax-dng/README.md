@@ -5,7 +5,7 @@ Format-neutral sample decoding and supported codec encoders live in
 `fornax-codec`.
 
 `fornax-codec` returns single-band `SampleBuffer` values. This crate adapts
-those buffers to `fornax_core::RawMosaic` before raw transforms and adapts
+those buffers to `fornax_raw_core::RawMosaic` before raw transforms and adapts
 `RawMosaic` inputs to `SampleBuffer` at the DNG writer boundary, preserving the
 storage-native decoder and writer APIs.
 

@@ -65,14 +65,14 @@ Out of scope:
 - `crates/fornax-arw/src/metadata.rs`
 - `crates/fornax-arw/src/sony.rs`
 - `crates/fornax-arw/src/tests.rs`
-- `crates/fornax-core/src/format.rs`
+- `crates/fornax-raw-core/src/format.rs`
 - `crates/fornax-decoder/Cargo.toml`
 - `crates/fornax-decoder/src/lib.rs`
 - `crates/fornax-tiff/README.md`
 - `crates/fornax-tiff/src/lib.rs`
 - `crates/fornax-tiff/src/parser.rs`
 - `crates/fornax-tiff/tests/private_ifd.rs`
-- `crates/fornax/src/lib.rs`
+- `crates/fornax-raw/src/lib.rs`
 - `docs/architecture.md`
 - `docs/decoder/architecture.md`
 - `docs/decoder/formats/sony-arw.md`

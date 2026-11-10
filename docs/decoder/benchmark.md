@@ -7,7 +7,7 @@
 supported Sony ARW/NRW) against the Rawler adapter used by the benchmark.
 
 For each selected decoder, the target benchmarks every method in
-`fornax_core::protocol::IDecoder`:
+`fornax_raw_core::protocol::IDecoder`:
 
 - `decode`;
 - `raw_mosaic`;

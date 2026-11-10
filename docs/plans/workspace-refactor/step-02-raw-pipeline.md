@@ -11,16 +11,14 @@ Implement only Step 2 of the Fornax workspace refactor. Open one PR and stop.
 
 ## Goal
 
-Merge `fornax-preprocessor` and `fornax-postprocessor` into
-`fornax-raw-pipeline`.
+Merge the preprocessing and demosaicing stages into `fornax-raw-pipeline`.
 
 ## Read first
 
 - `AGENTS.md`
 - `docs/architecture.md`
 - `docs/references/workspace-refactor-baseline.md`
-- `crates/fornax-preprocessor`
-- `crates/fornax-postprocessor`
+- `crates/fornax-raw-pipeline`
 - `crates/fornax`
 - `crates/fornax-cli`
 - `crates/compare-demosaic`
@@ -36,8 +34,8 @@ Merge `fornax-preprocessor` and `fornax-postprocessor` into
 ## Required change
 
 - Create `fornax-raw-pipeline`.
-- Move normalization from `fornax-preprocessor`.
-- Move demosaic and color processing from `fornax-postprocessor`.
+- Move normalization into `fornax-raw-pipeline`.
+- Move demosaic and color processing into `fornax-raw-pipeline`.
 - Preserve behavior and existing public names where practical:
   `Preprocessor`, `Demosaic`, `LmmseMode`, `IDemosaic`, `LazyDemosaic`,
   `OutputColorSpace`, and `PostProcessor`.
@@ -59,8 +57,7 @@ Merge `fornax-preprocessor` and `fornax-postprocessor` into
 ## Validation
 
 ```bash
-cargo test -p fornax-preprocessor
-cargo test -p fornax-postprocessor
+cargo test -p fornax-raw-pipeline
 cargo test -p fornax-cli
 cargo test --workspace --all-features --exclude compare-demosaic
 scripts/agent-validation.sh

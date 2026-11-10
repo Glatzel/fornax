@@ -64,7 +64,7 @@ the baseline PR.
 | `crop_and_cast` interprets DNG tags | Incorrect. It crops a `Rect` and casts samples; it contains no DNG tag interpretation. |
 | Pre/post merge is mechanical and low risk | Confirmed dependencies and ownership are simple, but it still moves 8,496 source lines and 89 tests plus public paths. The maintainer correctly chose it as the first code step. |
 | Path plus version avoids `[patch]` | Confirmed by Cargo documentation: path is used locally and registry version is used when published. |
-| `Primitive: Float` is inappropriate for a neutral integer raster | Confirmed at `crates/fornax-core/src/primitive.rs:12`. Neutral buffer shape remains OPEN. |
+| `Primitive: Float` is inappropriate for a neutral integer raster | Confirmed at `crates/fornax-raw-core/src/primitive.rs:12`. Neutral buffer shape remains OPEN. |
 | TIFF raster should receive resolved codec compression | Sound design recommendation, not implemented or decided in this PR. |
 | DNG compression 34892 is DNG lossy JPEG | Confirmed by DNG 1.4/1.7 material. |
 | DNG compression 52546 is DNG 1.7 JPEG XL | Confirmed by DNG 1.7 and LibTIFF. |

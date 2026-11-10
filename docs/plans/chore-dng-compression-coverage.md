@@ -57,7 +57,7 @@ Out of scope:
 - `crates/decoder-tracker/README.md`
 - `.github/workflows/ci.yml`
 - `crates/fornax-cli/Cargo.toml`
-- `crates/fornax/Cargo.toml`
+- `crates/fornax-raw/Cargo.toml`
 - `crates/fornax-codec/Cargo.toml`
 - `crates/fornax-codec/src/error.rs`
 - `crates/fornax-codec/src/zstd.rs`
@@ -107,8 +107,8 @@ Validation record:
 - `scripts/agent-validation.sh` passed tracker tests, workspace tests,
   doctests, formatting, and rustdoc, then failed in clippy on pre-existing
   `unseparated_literal_suffix` warnings at
-  `crates/fornax-core/src/metadata.rs:750-751` and a pre-existing
-  `suboptimal_flops` warning at `crates/fornax-postprocessor/src/lib.rs:415`.
+  `crates/fornax-raw-core/src/metadata.rs:750-751` and a pre-existing
+  `suboptimal_flops` warning at `crates/fornax-raw-pipeline/src/lib.rs:415`.
   This branch does not modify those crates.
 - Pull request: <https://github.com/Glatzel/fornax/pull/675>.
 
@@ -204,13 +204,13 @@ Completion evidence:
 - `cargo test -p fornax-dng legacy_jpeg_xl_metadata_maps_to_jpeg_xl_decode_compression`
 - `cargo test -p fornax-codec zstd_round_trips_integer_and_float_chunks`
 - `cargo test -p fornax-dng zstd_writer_round_trips_u16_samples`
-- `cargo test -p fornax-tiff -p fornax-codec -p fornax-dng -p fornax-cli -p fornax`
+- `cargo test -p fornax-tiff -p fornax-codec -p fornax-dng -p fornax-cli -p fornax-raw`
 - `cargo test --workspace --all-features --exclude compare-demosaic`
 - `cargo bench -p fornax-dng --bench writer --no-run`
 - `cargo clippy -p fornax-tiff -p fornax-codec -p fornax-dng --all-targets
   --all-features -- -A clippy::too_many_arguments -D warnings`
 - `RUSTDOCFLAGS='-D warnings' cargo doc -p fornax-tiff -p fornax-codec
-  -p fornax-dng -p fornax-cli -p fornax --all-features --no-deps`
+  -p fornax-dng -p fornax-cli -p fornax-raw --all-features --no-deps`
 
 ## Task 5: Refresh the Corpus Through CI
 

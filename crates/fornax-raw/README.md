@@ -1,4 +1,4 @@
-# fornax
+# fornax-raw
 
 High-level façade for Fornax's decoding, preprocessing, demosaicing, and
 post-processing stages. The current decoder accepts DNG plus supported Sony

@@ -15,7 +15,7 @@ channel bounds, or truncating output conversion.
 ## Goals
 
 - Port the behavior of LibRaw's `pre_interpolate()` followed by
-  `dht_interpolate()` into `fornax-postprocessor`.
+  `dht_interpolate()` into `fornax-raw-pipeline`.
 - Preserve the four-pixel padded working plane, initialized neutral samples,
   directional thresholds, pass order, channel bounds, and truncating output
   conversion.
