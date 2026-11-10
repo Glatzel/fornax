@@ -87,16 +87,15 @@ geometry.
 | Lossy JPEG (`34892`) | Strips/tiles | Single-component 8-bit mosaics |
 | Zstandard (`50000`, experimental) | Strips/tiles | Integer and float payloads |
 
-Compression `50002` is the legacy TIFF JPEG XL identifier and `52546` is the
-DNG 1.7 identifier. Both map to the single-channel JPEG XL decoder.
-
-Codec availability is mandatory: zstd and all future codecs are compiled
-unconditionally without per-codec features.
+Compression `50002` is the self-assigned TIFF JPEG XL identifier owned by
+`fornax-tiff`; `52546` is the DNG 1.7 identifier owned by `fornax-dng`. Both map
+to the single-channel JPEG XL decoder. JPEG XL is enabled for DNG decoding, and
+Zstandard requires the `zstd` feature.
 
 Malformed values and layouts outside the active Bayer contract return
 `DecodeError::InvalidInput` or the existing CFA boundary error. Unknown
-compression identifiers are invalid input rather than stale unsupported
-placeholders.
+compression identifiers are invalid input. A known TIFF-family ID whose codec
+feature is disabled returns `DecodeError::Unsupported` with the feature name.
 
 ## Metadata
 

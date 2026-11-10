@@ -18,3 +18,5 @@ strum.workspace = true
 [features]
 default = []
 raster = ["dep:fornax-codec"]
+jpegxl = ["raster", "fornax-codec/jpegxl"]
+zstd = ["raster", "fornax-codec/zstd"]

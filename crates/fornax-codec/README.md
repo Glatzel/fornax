@@ -60,5 +60,7 @@ Use `EncodeCompression::Zstd { level }` to select a Zstandard encoding level.
 Decoding uses `DecodeCompression::Zstd` because the level is stored in the
 stream.
 
-All codec implementations, including zstd, are always compiled. Codecs must not
-introduce optional Cargo features or feature-dependent fallback behavior.
+Codec implementations are independently feature-gated. The `deflate`,
+`jpegxl`, `lossless-jpeg`, `lossy-jpeg`, and `zstd` features enable their
+matching dispatch variants and implementation dependencies. Format crates name
+the required feature when a known compression ID cannot be resolved.

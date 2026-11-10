@@ -3,8 +3,8 @@
 use fornax_codec::{ByteOrder, Chunk, DecodeCompression, Predictor, SampleBuffer, SampleFormat};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{
-    Directory, RasterError, RasterLayout, RasterRequest, RasterStorage, Tag, Value,
-    resolve_tiff_compression,
+    Directory, RasterError, RasterLayout, RasterRequest, RasterStorage, Tag, TiffCompressionError,
+    Value, resolve_tiff_compression,
 };
 
 fn directory(
@@ -334,25 +334,89 @@ fn zero_dimensions_are_rejected_with_the_source_tag() {
 }
 
 #[test]
-fn tiff_registered_compression_ids_use_tiff_defaults() {
-    assert_eq!(
-        resolve_tiff_compression(1),
-        Some(DecodeCompression::Uncompressed)
-    );
-    assert_eq!(
-        resolve_tiff_compression(7),
-        Some(DecodeCompression::LosslessJpeg)
-    );
-    assert_eq!(
-        resolve_tiff_compression(8),
-        Some(DecodeCompression::Deflate)
-    );
-    assert_eq!(resolve_tiff_compression(12_345), None);
+fn tiff_raster_compression_ids_resolve_to_their_codecs() {
+    for (id, expected) in [
+        (1, DecodeCompression::Uncompressed),
+        (7, DecodeCompression::LosslessJpeg),
+        (8, DecodeCompression::Deflate),
+        (32_946, DecodeCompression::Deflate),
+    ] {
+        assert_eq!(
+            resolve_tiff_compression(id),
+            Ok(expected),
+            "compression {id}"
+        );
+    }
 }
 
 #[test]
-fn non_tiff_compression_ids_do_not_use_tiff_defaults() {
-    for id in [34_892, 50_000, 50_002, 52_546, 32_766, 32_767] {
-        assert_eq!(resolve_tiff_compression(id), None, "compression {id}");
+fn known_compression_ids_without_codecs_name_the_required_feature() {
+    for (id, required_feature) in [
+        (5, "lzw"),
+        (32_773, "packbits"),
+        (34_925, "lzma"),
+        (50_001, "webp"),
+    ] {
+        assert_eq!(
+            resolve_tiff_compression(id),
+            Err(TiffCompressionError::UnsupportedCompression {
+                id,
+                required_feature,
+            }),
+            "compression {id}"
+        );
+    }
+}
+
+#[cfg(not(feature = "jpegxl"))]
+#[test]
+fn disabled_jpegxl_compression_names_the_feature() {
+    assert_eq!(
+        resolve_tiff_compression(50_002),
+        Err(TiffCompressionError::UnsupportedCompression {
+            id: 50_002,
+            required_feature: "jpegxl",
+        })
+    );
+}
+
+#[cfg(feature = "jpegxl")]
+#[test]
+fn enabled_jpegxl_compression_resolves() {
+    assert_eq!(
+        resolve_tiff_compression(50_002),
+        Ok(DecodeCompression::JpegXl)
+    );
+}
+
+#[cfg(not(feature = "zstd"))]
+#[test]
+fn disabled_zstd_compression_names_the_feature() {
+    assert_eq!(
+        resolve_tiff_compression(50_000),
+        Err(TiffCompressionError::UnsupportedCompression {
+            id: 50_000,
+            required_feature: "zstd",
+        })
+    );
+}
+
+#[cfg(feature = "zstd")]
+#[test]
+fn enabled_zstd_compression_resolves() {
+    assert_eq!(
+        resolve_tiff_compression(50_000),
+        Ok(DecodeCompression::Zstd)
+    );
+}
+
+#[test]
+fn unknown_and_non_tiff_compression_ids_remain_unknown() {
+    for id in [12_345, 32_766, 32_767, 34_892, 52_546] {
+        assert_eq!(
+            resolve_tiff_compression(id),
+            Err(TiffCompressionError::UnknownCompression(id)),
+            "compression {id}"
+        );
     }
 }

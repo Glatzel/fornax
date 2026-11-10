@@ -25,8 +25,15 @@ fn tiff_tags_round_trip_through_numeric_and_dynamic_tags() {
 fn compression_methods_preserve_known_and_unknown_identifiers() {
     let values = [
         (CompressionMethod::Uncompressed, 1),
+        (CompressionMethod::Lzw, 5),
         (CompressionMethod::LosslessJpeg, 7),
         (CompressionMethod::Deflate, 8),
+        (CompressionMethod::PackBits, 32_773),
+        (CompressionMethod::DeflateLegacy, 32_946),
+        (CompressionMethod::Lzma, 34_925),
+        (CompressionMethod::Zstd, 50_000),
+        (CompressionMethod::WebP, 50_001),
+        (CompressionMethod::JpegXl, 50_002),
     ];
 
     for (compression, value) in values {
@@ -41,8 +48,8 @@ fn compression_methods_preserve_known_and_unknown_identifiers() {
 }
 
 #[test]
-fn compression_methods_do_not_claim_dng_or_self_assigned_identifiers() {
-    for value in [34_892, 50_000, 50_002, 52_546] {
+fn compression_methods_do_not_claim_dng_owned_identifiers() {
+    for value in [34_892, 52_546] {
         assert_eq!(
             CompressionMethod::from(value),
             CompressionMethod::Unknown(value),

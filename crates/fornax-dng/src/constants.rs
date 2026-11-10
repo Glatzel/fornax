@@ -12,10 +12,6 @@ use num_enum::{FromPrimitive, IntoPrimitive};
 pub enum DngCompressionMethod {
     /// DNG lossy JPEG.
     LossyJpeg = 34_892,
-    /// LibTIFF's self-assigned Zstandard compatibility identifier.
-    Zstd = 50_000,
-    /// GDAL's legacy self-assigned JPEG XL compatibility identifier.
-    JpegXlLegacy = 50_002,
     /// DNG 1.7 JPEG XL.
     JpegXl = 52_546,
     /// An unsupported or private compression identifier.
