@@ -12,14 +12,6 @@ const MAX_EXACT_F32_INTEGER: u32 = 1 << 24;
 
 pub(super) fn apply(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
     let pixels = deinterleave(pixels, metadata)?;
-    for tag in [DngTag::OpcodeList2, DngTag::OpcodeList3] {
-        if metadata.contains_key(&Tag::from(tag)) {
-            return Err(corrupt(format!(
-                "{tag:?} ({}) is unsupported",
-                u16::from(tag)
-            )));
-        }
-    }
     let pixels = apply_opcode_list1(pixels, metadata)?;
     apply_linearization(pixels, metadata)
 }

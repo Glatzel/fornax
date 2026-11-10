@@ -49,8 +49,8 @@ rounded to the stored type only at the final boundary.
 
 Geometric operations (`WarpRectilinear`, `WarpFisheye`, and `TrimBounds`) and
 unknown operation IDs return a typed error instead of being silently ignored.
-`OpcodeList2` and `OpcodeList3` are rejected because they apply to
-linearization and demosaiced stages that Fornax does not model here.
+`OpcodeList2` and `OpcodeList3` are not applied by the raw mosaic decoder and
+are intentionally ignored, matching the pre-migration raw-stage behavior.
 
 Malformed list counts, truncated bodies, oversized element arrays, invalid
 pitch zero normalization, non-finite opcode output, and out-of-range typed

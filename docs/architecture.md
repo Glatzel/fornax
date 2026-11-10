@@ -163,8 +163,8 @@ JPEG XL raw chunks. Independent strips and tiles are decoded with Rayon. Raw
 storage transforms, independently implemented `OpcodeList1` pixel operations,
 and linearization are applied before returning the mosaic. Its
 process-metadata conversion accepts only conventional 2x2 RGB Bayer layouts.
-`OpcodeList2` and `OpcodeList3` are rejected because their stage-specific
-transforms are not applied.
+`OpcodeList2` and `OpcodeList3` are ignored by the raw mosaic decoder because
+their stage-specific transforms are not applied.
 
 Compression `52546` is the DNG 1.7 JPEG XL identifier and compression `50002`
 is the self-assigned TIFF JPEG XL identifier. Both map to the single-channel

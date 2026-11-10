@@ -875,7 +875,7 @@ mod tests {
     }
 
     #[test]
-    fn opcode_lists_two_and_three_are_rejected() {
+    fn opcode_lists_two_and_three_are_ignored_for_raw_mosaic_decode() {
         for tag in [51_009_u16, 51_010] {
             let pixels = RawMosaic::U16(MonoImage::from_raw(1, 1, vec![1]).unwrap());
             let mut metadata = Directory::default();
@@ -885,12 +885,12 @@ mod tests {
             );
             assert!(metadata.contains_key(&Tag::from(DngTag::Unknown(tag))));
 
-            let error = super::transforms::apply(pixels, &metadata).unwrap_err();
+            let transformed = super::transforms::apply(pixels, &metadata).unwrap();
 
-            assert!(
-                error.to_string().contains(&tag.to_string()),
-                "{tag}: {error}"
-            );
+            let RawMosaic::U16(image) = transformed else {
+                panic!("opcode output must remain u16");
+            };
+            assert_eq!(image.as_raw().as_slice(), &[1]);
         }
     }
 
