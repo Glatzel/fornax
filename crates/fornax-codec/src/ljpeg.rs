@@ -150,6 +150,7 @@ pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> 
     Ok(EncodedChunks { chunks })
 }
 
+#[allow(clippy::too_many_arguments)]
 fn copy_tile_into(
     image: &SampleBuffer,
     source_width: usize,
@@ -388,13 +389,17 @@ impl<'a> HeaderReader<'a> {
     }
 }
 
-fn decode_into(
+pub(crate) struct InterleavedJpeg {
+    pub width: usize,
+    pub height: usize,
+    pub components: usize,
+    pub samples: Vec<u16>,
+}
+
+pub(crate) fn decode_interleaved(
     source: &[u8],
-    expected_width: usize,
-    expected_height: usize,
     expected_precision: u8,
-    output: &mut [u16],
-) -> Result<(), String> {
+) -> Result<InterleavedJpeg, String> {
     let mut header = HeaderReader::new(source);
     if header.marker()? != MARKER_SOI {
         return Err("lossless JPEG stream does not start with SOI".to_owned());
@@ -442,12 +447,6 @@ fn decode_into(
         .width
         .checked_mul(frame.components.len())
         .ok_or_else(|| "lossless JPEG output width overflow".to_owned())?;
-    if output_width < expected_width || frame.height < expected_height {
-        return Err(format!(
-            "lossless JPEG frame is {}x{}, smaller than expected {expected_width}x{expected_height}",
-            output_width, frame.height
-        ));
-    }
     if !(1..=7).contains(&predictor) {
         return Err(format!(
             "lossless JPEG predictor {predictor} is unsupported"
@@ -461,6 +460,10 @@ fn decode_into(
         .bytes
         .get(header.position..)
         .ok_or_else(|| "lossless JPEG entropy stream is missing".to_owned())?;
+    let sample_count = output_width
+        .checked_mul(frame.height)
+        .ok_or_else(|| "lossless JPEG sample count overflow".to_owned())?;
+    let mut output = vec![0_u16; sample_count];
     decode_scan_into(
         entropy,
         &frame,
@@ -468,13 +471,36 @@ fn decode_into(
         predictor,
         point_transform,
         output_width,
-        output,
+        &mut output,
     )?;
     if point_transform != 0 {
-        for value in output {
+        for value in &mut output {
             *value = value.wrapping_shl(u32::from(point_transform));
         }
     }
+    Ok(InterleavedJpeg {
+        width: output_width,
+        height: frame.height,
+        components: frame.components.len(),
+        samples: output,
+    })
+}
+
+fn decode_into(
+    source: &[u8],
+    expected_width: usize,
+    expected_height: usize,
+    expected_precision: u8,
+    output: &mut [u16],
+) -> Result<(), String> {
+    let decoded = decode_interleaved(source, expected_precision)?;
+    if decoded.width != expected_width || decoded.height != expected_height {
+        return Err(format!(
+            "lossless JPEG frame is {}x{}, expected {expected_width}x{expected_height}",
+            decoded.width, decoded.height
+        ));
+    }
+    output.copy_from_slice(&decoded.samples);
     Ok(())
 }
 
@@ -731,11 +757,41 @@ fn add_prediction(
 const HUFFMAN_BITS: u8 = 5;
 
 fn encode_tile(samples: &[u16], width: u16, height: u16, bits: u8) -> Result<Vec<u8>, String> {
+    encode_interleaved(samples, width, height, 1, bits)
+}
+
+#[cfg(test)]
+pub(crate) fn encode_interleaved_for_test(
+    samples: &[u16],
+    width: u16,
+    height: u16,
+    components: u8,
+    bits: u8,
+) -> Vec<u8> {
+    encode_interleaved(samples, width, height, components, bits).unwrap()
+}
+
+fn encode_interleaved(
+    samples: &[u16],
+    width: u16,
+    height: u16,
+    components: u8,
+    bits: u8,
+) -> Result<Vec<u8>, String> {
     if !(2..=16).contains(&bits) {
         return Err(format!("lossless JPEG bit depth {bits} is invalid"));
     }
+    if !(1..=4).contains(&components) {
+        return Err(format!(
+            "lossless JPEG component count {components} is invalid"
+        ));
+    }
+    let width_usize = usize::from(width);
+    let height_usize = usize::from(height);
+    let components_usize = usize::from(components);
     let expected = usize::from(width)
         .checked_mul(usize::from(height))
+        .and_then(|samples| samples.checked_mul(components_usize))
         .ok_or_else(|| "lossless JPEG tile size overflow".to_owned())?;
     if samples.len() != expected {
         return Err(format!(
@@ -747,11 +803,14 @@ fn encode_tile(samples: &[u16], width: u16, height: u16, bits: u8) -> Result<Vec
     let mut encoded = Vec::with_capacity(samples.len() * 2);
     write_marker(&mut encoded, MARKER_SOI);
     write_marker(&mut encoded, MARKER_SOF3);
-    push_u16(&mut encoded, 11);
+    push_u16(&mut encoded, 8 + 3 * u16::from(components));
     encoded.push(bits);
     push_u16(&mut encoded, height);
     push_u16(&mut encoded, width);
-    encoded.extend_from_slice(&[1, 1, 0x11, 0]);
+    encoded.push(components);
+    for component in 1..=components {
+        encoded.extend_from_slice(&[component, 0x11, 0]);
+    }
 
     write_marker(&mut encoded, MARKER_DHT);
     push_u16(&mut encoded, 36);
@@ -760,42 +819,50 @@ fn encode_tile(samples: &[u16], width: u16, height: u16, bits: u8) -> Result<Vec
     encoded.extend(0_u8..=16);
 
     write_marker(&mut encoded, MARKER_SOS);
-    push_u16(&mut encoded, 8);
-    encoded.extend_from_slice(&[1, 1, 0, 1, 0, 0]);
+    push_u16(&mut encoded, 6 + 2 * u16::from(components));
+    encoded.push(components);
+    for component in 1..=components {
+        encoded.extend_from_slice(&[component, 0]);
+    }
+    encoded.extend_from_slice(&[1, 0, 0]);
 
     let modulus = 1_i32 << bits;
     let half = modulus >> 1;
     let initial = half as u16;
     let mut writer = BitWriter::new(&mut encoded);
-    for row in 0..usize::from(height) {
-        for column in 0..usize::from(width) {
-            let index = row * usize::from(width) + column;
-            let prediction = if index == 0 {
-                initial
-            } else if column == 0 {
-                samples[index - usize::from(width)]
-            } else {
-                samples[index - 1]
-            };
-            let raw_difference = i32::from(samples[index]) - i32::from(prediction);
-            let difference = (raw_difference + half).rem_euclid(modulus) - half;
-            let category = if difference == 0 {
-                0
-            } else {
-                difference.unsigned_abs().ilog2() + 1
-            };
-            let category = u8::try_from(category).expect("lossless JPEG category is at most 16");
-            writer.write(u32::from(category), HUFFMAN_BITS);
-            if category != 0 && category != 16 {
-                let value = if difference < 0 {
-                    difference + ((1_i32 << category) - 1)
+    let row_width = width_usize * components_usize;
+    for row in 0..height_usize {
+        for column in 0..width_usize {
+            for component in 0..components_usize {
+                let index = row * row_width + column * components_usize + component;
+                let prediction = if row == 0 && column == 0 {
+                    initial
+                } else if column == 0 {
+                    samples[index - row_width]
                 } else {
-                    difference
+                    samples[index - components_usize]
                 };
-                writer.write(
-                    u32::try_from(value).expect("lossless JPEG amplitude is non-negative"),
-                    category,
-                );
+                let raw_difference = i32::from(samples[index]) - i32::from(prediction);
+                let difference = (raw_difference + half).rem_euclid(modulus) - half;
+                let category = if difference == 0 {
+                    0
+                } else {
+                    difference.unsigned_abs().ilog2() + 1
+                };
+                let category =
+                    u8::try_from(category).expect("lossless JPEG category is at most 16");
+                writer.write(u32::from(category), HUFFMAN_BITS);
+                if category != 0 && category != 16 {
+                    let value = if difference < 0 {
+                        difference + ((1_i32 << category) - 1)
+                    } else {
+                        difference
+                    };
+                    writer.write(
+                        u32::try_from(value).expect("lossless JPEG amplitude is non-negative"),
+                        category,
+                    );
+                }
             }
         }
     }

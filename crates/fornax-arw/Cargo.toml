@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-flashraw-codecs.workspace = true
+fornax-codec = { workspace = true, features = ["arw"] }
 fornax-dng.workspace = true
 fornax-raw-core.workspace = true
 fornax-tiff = { workspace = true, default-features = false }

@@ -31,6 +31,21 @@ pub enum DecodeCompression {
     /// JPEG XL with one sample channel.
     #[cfg(feature = "jpegxl")]
     JpegXl,
+    /// Sony ARW1 difference-coded samples.
+    #[cfg(feature = "arw")]
+    Arw1,
+    /// Sony ARW2 lossy block-coded samples.
+    #[cfg(feature = "arw")]
+    Arw2 {
+        /// Four SonyRawCurve knots, or `None` for the identity curve.
+        curve: Option<[u16; 4]>,
+    },
+    /// Sony ARW6 LLVC3 wavelet-coded samples.
+    #[cfg(feature = "arw")]
+    Arw6,
+    /// Sony lossless-JPEG tiles packed as CFA sample rows.
+    #[cfg(feature = "arw")]
+    SonyLosslessJpeg,
     /// TIFF's experimental Zstandard compression.
     #[cfg(feature = "zstd")]
     Zstd,
