@@ -135,7 +135,7 @@ jobs:
             test-options: --all-features -p compare-demosaic
             pwd: ./crates/compare-demosaic
           - machine: macos-latest
-            test-options: --workspace --all-features --exclude compare-demosaic
+            test-options: -p fornax-decoder
             pwd: ./
           - machine: ubuntu-latest
             test-options: --workspace --all-features --exclude compare-demosaic
