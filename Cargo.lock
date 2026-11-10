@@ -821,7 +821,6 @@ version = "0.0.17"
 dependencies = [
  "fornax-core",
  "fornax-decoder",
- "fornax-dng",
  "fornax-raw-pipeline",
 ]
 
@@ -849,6 +848,7 @@ dependencies = [
  "clap-verbosity-flag",
  "clerk",
  "fornax",
+ "fornax-dng",
  "image 0.25.9",
  "mischief",
  "num-traits",

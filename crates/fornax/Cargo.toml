@@ -6,9 +6,4 @@ edition.workspace = true
 [dependencies]
 fornax-core.workspace = true
 fornax-decoder.workspace = true
-fornax-dng.workspace = true
 fornax-raw-pipeline.workspace = true
-
-[features]
-default = []
-metadata-json = ["fornax-dng/metadata-json"]
