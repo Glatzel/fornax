@@ -2,11 +2,6 @@
 
 - decoder
   - [DEC-CR3] Implement Canon CR3/CRM BMFF parsing and CRX decoding. Plan: `docs/decoder/formats/canon-cr3.md`.
-  - [DEC-NEF] Implement Nikon NEF compression families and metadata mapping. Plan: `docs/decoder/formats/nikon-nef.md`.
-  - [DEC-NEF-HUFFMAN] Nikon lossless Huffman mode 3 is implemented at 12 and 14 bits. Lossy modes 1 and 4 are deferred by policy.
-  - [DEC-NEF-HE] Implement Nikon HE/HE* NEF modes 13 and 14.
-  - [DEC-NEF-SMALL] Implement Nikon small-raw mode 8 and reduced-linear handling.
-  - [DEC-NEF-COOLPIX] Implement Coolpix interlacing, MSB32, and model-specific NEF layouts.
   - [DEC-RAF] Implement supported Fujifilm RAF decoding and X-Trans-preserving DNG export. Plan: `docs/decoder/formats/fuji-raf.md`.
   - [DEC-3FR] Implement supported Hasselblad 3FR decoding and DNG export. Plan: `docs/decoder/formats/hasselblad-3fr.md`.
   - [DEC-RW2] Implement supported Panasonic RW2 variants and metadata mapping. Plan: `docs/decoder/formats/panasonic-rw2.md`.
