@@ -20,7 +20,6 @@
   - [PY] python bindings: implement `fornax-py`
 - document
   - [BOOK-03] Shareable PDF build: pandoc with the Typst engine through pixi, spike first. Needs BOOK-01. Plan: `docs/plans/book-03-build.md`.
-  - [BOOK-10] L00 Pipeline overview: stage flow and the map from stage to crate.
   - [BOOK-11] L01 From photons to numbers: sensor, ADC, Bayer CFA and its pattern variants.
   - [BOOK-12] L02 Preprocess: black level, white level, saturation, normalization, clipping (ready when the preprocess stage and level metadata are merged).
   - [BOOK-20] L10 The demosaicing problem: undersampling, the mask model, aliasing, the frequency-domain view.
