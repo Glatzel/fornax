@@ -773,6 +773,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-bmff"
+version = "0.0.17"
+dependencies = [
+ "fornax-raw-core",
+]
+
+[[package]]
 name = "fornax-codec"
 version = "0.0.17"
 dependencies = [
