@@ -795,12 +795,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-cr3"
+version = "0.0.17"
+dependencies = [
+ "fornax-bmff",
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rayon",
+ "sha2",
+]
+
+[[package]]
 name = "fornax-decoder"
 version = "0.0.17"
 dependencies = [
  "clerk",
  "codspeed-criterion-compat",
  "fornax-arw",
+ "fornax-codec",
+ "fornax-cr3",
  "fornax-devtool",
  "fornax-dng",
  "fornax-nef",

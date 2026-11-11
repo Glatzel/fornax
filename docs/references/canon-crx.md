@@ -37,3 +37,18 @@ than assuming it is lossless.
 The full 110-file classification must be produced by the remote decoder
 corpus workflow. RAW payloads are transient and are never committed or
 uploaded.
+
+## Targeted reference digests
+
+The following integer mosaics were decoded once with Rawler 0.8.0 in an
+out-of-workspace tool. Fornax hashes the same little-endian `u16` sample
+sequence and matches exactly.
+
+| Corpus path | Dimensions | SHA-256 |
+| --- | ---: | --- |
+| `Canon/EOS R5/Canon_EOS_R5_RAW_ISO_100_nocrop_nodual.CR3` | 8352x5586 | `2660f27211bbe9322195ba1533e928c3f1de6b8bf654f7dd2c41e3839b007b10` |
+| `Canon/EOS R6 Mark II/canon-r6m2-img_0346-raw-normal-full.cr3` | 6188x4120 | `fa67690c7bdc448e146808f54176a456af25459c42cfcccb1539649333e00b83` |
+
+`Canon/EOS R5/Canon_EOS_R5_CRAW_ISO_100_nocrop_nodual.CR3` and
+`Canon/EOS R6 Mark II/canon-r6m2-img_0361-craw-normal-full.cr3` classify as
+`unsupported-lossy`.
