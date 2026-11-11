@@ -128,6 +128,31 @@ fn non_rectangular_active_area_is_invalid() {
 }
 
 #[test]
+fn malformed_camera_ifd_is_ignored_for_single_shot_files() {
+    let source = synthetic_rw2(&Synthetic {
+        camera_ifd: Some(vec![0x55; 2048]),
+        ..Synthetic::default()
+    });
+
+    let image = Rw2Image::parse(&source).unwrap();
+
+    assert!(matches!(image.raw_mosaic().unwrap(), RawMosaic::U16(_)));
+}
+
+#[test]
+fn high_resolution_composites_are_typed_unsupported() {
+    let source = synthetic_rw2(&Synthetic {
+        width: 10_000,
+        height: 7_000,
+        ..Synthetic::default()
+    });
+
+    let error = Rw2Image::parse(&source).unwrap_err();
+
+    assert!(matches!(error, DecodeError::Unsupported(_)), "{error}");
+}
+
+#[test]
 fn dng_round_trip_preserves_samples_geometry_cfa_levels_neutral_and_orientation() {
     let source = synthetic_rw2(&Synthetic::default());
     let image = Rw2Image::parse(&source).unwrap();
@@ -268,7 +293,7 @@ fn corpus_metadata_preserves_exif_serial_lens_and_orientation() {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct Synthetic {
     version: u16,
     compression: Option<u16>,
@@ -282,6 +307,7 @@ struct Synthetic {
     black: [u16; 3],
     neutral: (u16, u16, u16),
     multishot: u32,
+    camera_ifd: Option<Vec<u8>>,
     use_raw_data_offset: bool,
     include_strip_fallback: bool,
 }
@@ -301,6 +327,7 @@ impl Default for Synthetic {
             black: [100, 110, 120],
             neutral: (512, 256, 300),
             multishot: 0,
+            camera_ifd: None,
             use_raw_data_offset: true,
             include_strip_fallback: false,
         }
@@ -356,6 +383,14 @@ fn synthetic_rw2(spec: &Synthetic) -> Vec<u8> {
         directory.write_tag(STRIP_OFFSETS, payload_offset).unwrap();
         directory
             .write_tag(STRIP_BYTE_COUNTS, u32::try_from(payload.len()).unwrap())
+            .unwrap();
+    }
+    if let Some(camera_ifd) = &spec.camera_ifd {
+        directory
+            .write_tag(
+                Tag(0x0120),
+                Value::List(camera_ifd.iter().copied().map(Value::Byte).collect()),
+            )
             .unwrap();
     }
     directory.finish().unwrap();

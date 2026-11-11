@@ -3,7 +3,7 @@ use fornax_raw_core::error::DecodeError;
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value, parse_ifd_at, unsigned_scalar};
 
-const MAX_PIXELS: usize = 100_000_000;
+const MAX_SINGLE_SHOT_PIXELS: usize = 64_000_000;
 const PANASONIC_COMPRESSION: u16 = 34_316;
 
 const SENSOR_WIDTH: Tag = Tag(0x0002);
@@ -102,10 +102,11 @@ pub fn parse(source: &[u8]) -> Result<Container, DecodeError> {
     let pixels = usize::from(width)
         .checked_mul(usize::from(height))
         .ok_or_else(|| invalid("RW2 pixel count overflow"))?;
-    if pixels > MAX_PIXELS {
-        return Err(invalid(format!(
-            "RW2 dimensions {width}x{height} exceed the {MAX_PIXELS}-pixel limit"
-        )));
+    if pixels > MAX_SINGLE_SHOT_PIXELS {
+        return Err(DecodeError::Unsupported(format!(
+            "Panasonic {width}x{height} high-resolution composite exceeds the \
+             {MAX_SINGLE_SHOT_PIXELS}-pixel single-shot limit"
+        ).into()));
     }
     let bits = required_u16(raw, BITS_PER_SAMPLE, "Panasonic bits per sample")?;
     if !matches!(bits, 12 | 14 | 16) {
@@ -286,10 +287,15 @@ fn multishot(raw: &Directory) -> Result<bool, DecodeError> {
     let Some(blob) = bytes_value(raw.get(&CAMERA_IFD)) else {
         return Ok(false);
     };
-    let order = byte_order(&blob)?;
-    let first = first_ifd(&blob, order)?;
-    let camera = parse_ifd_at(&blob, first, order, 0)
-        .map_err(|error| invalid(format!("parsing Panasonic CameraIFD failed: {error}")))?;
+    let Ok(order) = byte_order(&blob) else {
+        return Ok(false);
+    };
+    let Ok(first) = first_ifd(&blob, order) else {
+        return Ok(false);
+    };
+    let Ok(camera) = parse_ifd_at(&blob, first, order, 0) else {
+        return Ok(false);
+    };
     Ok(unsigned_scalar(camera.get(&CAMERA_MULTISHOT)).unwrap_or(0) != 0)
 }
 
