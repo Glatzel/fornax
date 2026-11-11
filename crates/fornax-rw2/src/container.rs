@@ -524,11 +524,7 @@ fn required_u16(raw: &Directory, tag: Tag, name: &str) -> Result<u16, DecodeErro
     optional_u16(raw, tag, name)?.ok_or_else(|| invalid(format!("RW2 {name} is missing")))
 }
 
-pub fn optional_u16(
-    raw: &Directory,
-    tag: Tag,
-    name: &str,
-) -> Result<Option<u16>, DecodeError> {
+pub fn optional_u16(raw: &Directory, tag: Tag, name: &str) -> Result<Option<u16>, DecodeError> {
     raw.get(&tag)
         .map(|value| {
             unsigned_scalar(Some(value))
