@@ -1,10 +1,10 @@
 [package]
-name = "fornax-cli"
+name = "fornax-raw-cli"
 version.workspace = true
 edition.workspace = true
 
 [[bin]]
-name = "fornax"
+name = "fornax-raw"
 path = "src/main.rs"
 
 [dependencies]
