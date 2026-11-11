@@ -9,6 +9,7 @@ use strum::{AsRefStr, Display, EnumString, IntoStaticStr};
 ///
 /// assert_eq!(RawFormat::Dng.to_string(), "DNG");
 /// assert_eq!("CR3".parse(), Ok(RawFormat::Cr3));
+/// assert_eq!("crm".parse(), Ok(RawFormat::Crm));
 /// assert_eq!("nrw".parse(), Ok(RawFormat::Nrw));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq, AsRefStr, Display, EnumString, IntoStaticStr)]

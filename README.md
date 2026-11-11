@@ -22,6 +22,8 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 
 - **fornax-raw-core**: Shared pipeline types, errors, and decoder/processor
   contracts.
+- **fornax-bmff**: Bounded generic ISO-BMFF box and sample-table parsing.
+- **fornax-cr3**: Canon CR3/CRM parsing and the audited lossless CRX handoff.
 - **fornax-raw-pipeline**: Black/white-level normalization, demosaic
   algorithms, RGB reconstruction, and color processing.
 - **fornax-raw**: High-level facade tying the stages together.

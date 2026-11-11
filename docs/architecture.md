@@ -17,13 +17,15 @@ part of the current preprocessor/demosaic handoff.
 | Crate | Role | Internal dependencies |
 | --- | --- | --- |
 | `fornax-raw-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
+| `fornax-bmff` | Bounded generic ISO-BMFF boxes, FullBoxes, UUID payloads, and sample tables. | `fornax-raw-core` |
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, raster strip/tile planning, classic/BigTIFF parsing, and classic-TIFF writing. | `fornax-codec` |
-| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony, Nikon, and Fujifilm codecs. | None |
+| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony, Nikon, Fujifilm, and Canon codecs. | None |
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-raw-core`, `fornax-tiff`, `fornax-codec` |
 | `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA layout mapping, and DNG-compatible metadata mapping. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
+| `fornax-cr3` | Canon CR3/CRM BMFF, CMT/CTMD metadata, CRAW/CMP1/IAD1 parsing, and lossless CRX handoff. | `fornax-raw-core`, `fornax-bmff`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-nef` | Native Nikon NEF TIFF/maker-note parsing, standard packed CFA layouts, metadata mapping, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-raf` | Native Fujifilm RAF parsing, lossless Bayer/X-Trans decoding, metadata mapping, and DNG preservation. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-decoder` | Default pure-Rust DNG, Sony ARW/NRW, Nikon NEF, and Fujifilm RAF decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-arw`, `fornax-nef`, `fornax-raf` |
+| `fornax-decoder` | Default pure-Rust DNG, Canon CR3/CRM, Sony ARW/NRW, Nikon NEF, and Fujifilm RAF decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-cr3`, `fornax-arw`, `fornax-nef`, `fornax-raf` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-raw-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-raw-core`, `fornax-decoder-rawler` |
 | `fornax-raw-pipeline` | Black/white normalization, demosaic protocol and algorithms, RGB reconstruction, and color processing. | `fornax-raw-core` |
@@ -68,9 +70,10 @@ active-area-relative Bayer pattern, and optional green-normalized white-balance
 coefficients.
 
 The default implementation is `fornax_decoder::Decoder`. The facade exports it
-as `fornax_raw::Decoder`; it dispatches DNG containers to `fornax-dng`, Sony
-ARW/NRW containers to `fornax-arw`, and Nikon NEF containers to
-`fornax-nef`, and Fujifilm RAF containers to `fornax-raf`.
+as `fornax_raw::Decoder`; it dispatches DNG containers to `fornax-dng`, Canon
+CR3/CRM containers to `fornax-cr3`, Sony ARW/NRW containers to `fornax-arw`,
+Nikon NEF containers to `fornax-nef`, and Fujifilm RAF containers to
+`fornax-raf`.
 `fornax_raw_core` contains no decoder implementation.
 
 ## Codec API
@@ -100,6 +103,11 @@ vendor codec request.
 The non-default `raf` feature adds Fujifilm direct-packed and block-lossless
 decoding. `FujiCfa` selects the 2x2 or 6x6 CFA placement used when decoded
 six-line buffers are written to the output mosaic.
+
+The non-default `cr3` feature adds the lossless Canon CRX path. It accepts only
+the audited CMP1 tuple (version `0x0100`, four planes, encoding type zero, zero
+wavelet levels, MDAT header size `0x70`) and conventional 2x2 Bayer
+placements. C-RAW and every ambiguous shape return a typed unsupported error.
 
 `fornax-tiff::CompressionMethod` remains the typed TIFF field value.
 `fornax_tiff::RasterLayout` owns strip/tile geometry and chunk ordering, while
@@ -221,6 +229,19 @@ general 6x6 CFA through `raw_mosaic` and DNG writing. The shared
 unsupported error, so X-Trans never reaches preprocessing or demosaicing.
 Lossy RAF, SuperCCD rotation/staggering, FinePix DBP, unknown Bayer models, and
 unknown compression families are also rejected with typed unsupported errors.
+
+## Canon CR3/CRM support
+
+`fornax-cr3` parses CR3 and CRM BMFF containers, selects CRAW image type zero
+from CCTP or a unique CRAW track, parses CMT1-CMT4 through `fornax-tiff`, and
+reads ColorData from the CTMD sample. Lossless CRX samples decode to a storage-
+native U16 mosaic with IAD1 active area and crop, Bayer placement, black/white
+levels, and as-shot neutral metadata.
+
+C-RAW, preview and JPEG tracks, ambiguous raw tracks, non-2x2 layouts, unknown
+ColorData versions, and unsupported CRX header shapes return typed errors
+before preprocessing. CR3 and CRM both require the `crx` compatible brand; the
+filename extension selects `RawFormat::Cr3` or `RawFormat::Crm`.
 
 ## Benchmarks and comparisons
 
