@@ -1,3 +1,4 @@
+#[cfg(feature = "nef")]
 use std::sync::Arc;
 
 use crate::Predictor;

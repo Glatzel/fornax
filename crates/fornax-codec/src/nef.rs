@@ -115,7 +115,7 @@ fn decode_difference(
     }
 }
 
-fn tree_tables(tree: NikonTreeId) -> (&'static [u8; 16], &'static [u8]) {
+const fn tree_tables(tree: NikonTreeId) -> (&'static [u8; 16], &'static [u8]) {
     match tree {
         NikonTreeId::Lossless12 => (&LOSSLESS_12_COUNTS, &LOSSLESS_12_SYMBOLS),
         NikonTreeId::Lossless14 => (&LOSSLESS_14_COUNTS, &LOSSLESS_14_SYMBOLS),
@@ -670,7 +670,7 @@ mod lossless_tests {
             0
         } else {
             (1_u8..=14)
-                .find(|length| difference.unsigned_abs() <= (1_u32 << length) - 1)
+                .find(|length| difference.unsigned_abs() < (1_u32 << length))
                 .unwrap()
         };
         let (_, code, code_length) = codes

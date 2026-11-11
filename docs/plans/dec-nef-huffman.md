@@ -106,11 +106,14 @@ Out of scope:
 cargo test -p fornax-codec
 cargo test -p fornax-codec --features nef
 cargo test -p fornax-codec -p fornax-nef -p fornax-decoder
+cargo run --release -q -p decoder-tracker -- hash --check \
+  crates/decoder-tracker/golden/decode-hashes.csv
 scripts/agent-validation.sh
 git diff --check
 ```
 
 Fixture parity uses `FORNAX_RAW_SAMPLES` and must skip cleanly when unset.
+Golden corpus hash generation and verification must use the release profile.
 The decoder tracker corpus filter is `**/*.[nN][eE][fF]` with
 `run_duckdb_tests=false`. Only pointer metadata and generated text artifacts
 may be committed.
@@ -138,6 +141,11 @@ may be committed.
 - Mode 3 accepts exactly one strip until corpus evidence proves that Nikon
   lossless strips have independent state. Multi-strip mode 3 remains
   unsupported otherwise.
+- Rawler's identity curve applies a lossy dithering step, so real-file parity
+  is exact for Fornax predictors and accepts Rawler's value or one code below
+  it. Fornax does not adopt that reference-only dithering.
+- Golden corpus hashing uses the release profile. The manual corpus workflow
+  builds one release tracker binary and every shard downloads that artifact.
 
 ## Implementation Tasks
 
@@ -222,12 +230,12 @@ mode-3 metadata.
 
 ### Task 4: Fixtures, golden, and corpus
 
-- [ ] Add skip-when-unset fixture tests for surveyed mode-3 files, including
+- [x] Add skip-when-unset fixture tests for surveyed mode-3 files, including
   at least one accepted sample per available bit depth and a Z-series sample
   if one exists.
-- [ ] Compare raw samples, dimensions, and metadata handoff against Rawler
+- [x] Compare raw samples, dimensions, and metadata handoff against Rawler
   using decoder test tooling, not a `fornax-nef` dependency.
-- [ ] Add passing selected-manifest rows and regenerate decode hashes without
+- [x] Add passing selected-manifest rows and regenerate decode hashes without
   changing existing DNG, ARW, or packed-NEF hashes.
 - [ ] Run `scripts/agent-validation.sh`, inspect the diff, commit, push the
   branch, and open a semantic pull request with scope, survey table, and
@@ -235,6 +243,8 @@ mode-3 metadata.
 - [ ] Dispatch `decoder-tracker-corpus.yml` with filter
   `**/*.[nN][eE][fF]` and `run_duckdb_tests=false`; review every changed row.
   Require at least one pass per sampled bit depth.
+- [ ] Run the corpus workflow with one release-mode build job and shards that
+  download and execute the uploaded tracker binary.
 - [ ] Apply only the complete reviewed baseline artifact, regenerate the
   tracker README, commit and push, then rerun until unchanged.
 - [ ] Run final `scripts/agent-validation.sh` and `git diff --check`; report

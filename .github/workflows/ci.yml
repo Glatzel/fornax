@@ -110,10 +110,10 @@ jobs:
           key: golden-corpus-${{ steps.corpus.outputs.sha }}
       - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
       - name: Build decoder-tracker
-        run: cargo build --locked -p decoder-tracker
+        run: cargo build --locked --release -p decoder-tracker
       - name: Check golden decode hashes
         run: |
-          target/debug/decoder-tracker hash \
+          target/release/decoder-tracker hash \
             --manifest crates/decoder-tracker/golden/selected-manifest.csv \
             --check crates/decoder-tracker/golden/decode-hashes.csv
 

@@ -164,6 +164,12 @@ transcribed.
   linearization is identity. Its WhiteLevel is therefore
   `(1 << BitsPerSample) - 1`: 4095 for 12-bit files and 16383 for 14-bit
   files. No lower camera-specific saturation point is inferred.
+- Rawler applies its dithering lookup even to the identity curve. That lookup
+  emits either the exact predictor or one code below it. Fornax keeps the
+  lossless predictor exact; real-file comparisons therefore require Rawler's
+  reference value to equal the Fornax value or the value immediately below it.
+  The selected D850 12-bit and Z8 14-bit fixtures satisfy that relationship
+  sample-for-sample while preserving Fornax's exact lossless samples.
 - Versions whose metadata does not select the lossless identity path remain
   unsupported for mode 3. They are not reinterpreted through a lossy tree.
 

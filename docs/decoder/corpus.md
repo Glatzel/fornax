@@ -142,17 +142,18 @@ dimensions, and four SHA-256 digests:
 Write or verify the golden set with:
 
 ```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- hash \
+pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
   --manifest crates/decoder-tracker/golden/selected-manifest.csv \
   --out crates/decoder-tracker/golden/decode-hashes.csv
-pixi run -e dev cargo run -q -p decoder-tracker -- hash \
+pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
   --manifest crates/decoder-tracker/golden/selected-manifest.csv \
   --check crates/decoder-tracker/golden/decode-hashes.csv
 ```
 
-`hash` materializes only the selected LFS payloads. A failed decode aborts
-without writing a partial CSV. The golden manifest and hashes are generated
-data and must not be hand-edited.
+Golden corpus hashing must use the release profile; debug-mode decodes are too
+slow for routine local verification and CI. `hash` materializes only the
+selected LFS payloads. A failed decode aborts without writing a partial CSV.
+The golden manifest and hashes are generated data and must not be hand-edited.
 
 ## Reading failures
 
@@ -225,6 +226,10 @@ DuckDB, writes and uploads `selected-manifest.csv`, then computes:
 runner_count = min(20, max(1, ceil(selected_count / 10)))
 ```
 
+A separate build job compiles `decoder-tracker` once in release mode and
+uploads the binary. Shards download that artifact and execute it directly, so
+they do not compile the workspace independently.
+
 Rows are balanced across those runners by `position % runner_count`. Examples:
 5 files use one runner, 16 use two runners of 8, and 210 use 20 runners of
 10/11. Zero matches fail planning.
@@ -233,10 +238,11 @@ Workflow concurrency is scoped to the branch and cancels superseded runs. Failed
 jobs should be retried in place with `gh run rerun --failed` after transient
 GitHub/Pixi download failures.
 
-Each shard downloads the selected manifest, initializes the pointer-only corpus,
-runs `manifest --check`, executes its assigned files, and uploads CSV only. The
-aggregate job uses `crates/decoder-tracker/scripts/aggregate.sh` to merge, validate,
-diff, and upsert entirely through DuckDB, then:
+Each shard downloads the selected manifest and release tracker binary,
+initializes the pointer-only corpus, runs `manifest --check`, executes its
+assigned files, and uploads CSV only. The aggregate job uses
+`crates/decoder-tracker/scripts/aggregate.sh` to merge, validate, diff, and
+upsert entirely through DuckDB, then:
 
 - uploads a bootstrap baseline when no committed baseline exists;
 - uploads nothing when selected rows are unchanged;

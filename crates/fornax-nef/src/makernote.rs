@@ -84,7 +84,7 @@ fn file_byte_order(source: &[u8]) -> Result<ByteOrder, DecodeError> {
     }
 }
 
-pub(crate) fn bytes(value: &Value) -> Option<Vec<u8>> {
+pub fn bytes(value: &Value) -> Option<Vec<u8>> {
     match value {
         Value::Byte(value) => Some(vec![*value]),
         Value::List(values) => values.iter().try_fold(Vec::new(), |mut output, value| {
