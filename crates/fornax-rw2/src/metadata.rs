@@ -30,7 +30,7 @@ const EXIF_IFD: Tag = Tag(0x8769);
 const CAMERA_SERIAL: Tag = Tag(0xa431);
 const LENS_MODEL: Tag = Tag(0xa434);
 
-pub(crate) struct Mapped {
+pub struct Mapped {
     pub metadata: Directory,
     pub black_pattern: [u16; 4],
 }

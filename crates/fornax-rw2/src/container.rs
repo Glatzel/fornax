@@ -20,7 +20,7 @@ const MULTISHOT: Tag = Tag(0x0121);
 const CAMERA_MULTISHOT: Tag = Tag(0x1001);
 
 #[derive(Clone, Debug)]
-pub(crate) enum Family {
+pub enum Family {
     V4 { split_blocks: bool },
     V5,
     V6,
@@ -47,7 +47,7 @@ impl Family {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct RawLayout {
+pub struct RawLayout {
     pub width: usize,
     pub height: usize,
     pub bits: u16,
@@ -56,7 +56,7 @@ pub(crate) struct RawLayout {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct Container {
+pub struct Container {
     pub parsed: ParsedTiff,
     pub raw_ifd: usize,
     pub layout: RawLayout,
@@ -493,14 +493,14 @@ impl FromBlob for u8 {
 
 impl FromBlob for u16 {
     const SIZE: usize = 2;
-    fn read(blob: &[u8], at: usize) -> Self { u16::from_le_bytes([blob[at], blob[at + 1]]) }
+    fn read(blob: &[u8], at: usize) -> Self { Self::from_le_bytes([blob[at], blob[at + 1]]) }
 }
 
 fn required_bytes(raw: &Directory, tag: Tag, name: &str) -> Result<Vec<u8>, DecodeError> {
     bytes_value(raw.get(&tag)).ok_or_else(|| invalid(format!("RW2 {name} is missing")))
 }
 
-pub(crate) fn bytes_value(value: Option<&Value>) -> Option<Vec<u8>> {
+pub fn bytes_value(value: Option<&Value>) -> Option<Vec<u8>> {
     let Value::List(values) = value? else {
         return None;
     };
@@ -524,7 +524,7 @@ fn required_u16(raw: &Directory, tag: Tag, name: &str) -> Result<u16, DecodeErro
     optional_u16(raw, tag, name)?.ok_or_else(|| invalid(format!("RW2 {name} is missing")))
 }
 
-pub(crate) fn optional_u16(
+pub fn optional_u16(
     raw: &Directory,
     tag: Tag,
     name: &str,
@@ -552,6 +552,6 @@ fn tag_name(tag: Tag) -> String {
     }
 }
 
-pub(crate) fn invalid(detail: impl Into<Box<str>>) -> DecodeError {
+pub fn invalid(detail: impl Into<Box<str>>) -> DecodeError {
     DecodeError::InvalidInput(detail.into())
 }

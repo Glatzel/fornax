@@ -63,7 +63,7 @@ impl Rw2Image {
     }
 
     /// Returns the full sensor storage dimensions.
-    pub fn layout_dimensions(&self) -> (u32, u32) {
+    pub const fn layout_dimensions(&self) -> (u32, u32) {
         (
             self.container.layout.width as u32,
             self.container.layout.height as u32,
