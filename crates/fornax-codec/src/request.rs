@@ -353,7 +353,7 @@ impl PanasonicV8Params {
 }
 
 #[cfg(feature = "rw2")]
-fn rectangles_overlap(left: PanasonicV8Strip, right: PanasonicV8Strip) -> bool {
+const fn rectangles_overlap(left: PanasonicV8Strip, right: PanasonicV8Strip) -> bool {
     left.x < right.x + right.width
         && right.x < left.x + left.width
         && left.y < right.y + right.height

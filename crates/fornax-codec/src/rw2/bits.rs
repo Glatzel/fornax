@@ -170,7 +170,7 @@ impl<'a> PanasonicV4Bits<'a> {
     const BLOCK_BYTES: usize = 0x4000;
     const SPLIT_SHIFT: usize = 0x2008;
 
-    pub fn new(bytes: &'a [u8], split: bool) -> Self {
+    pub const fn new(bytes: &'a [u8], split: bool) -> Self {
         Self {
             bytes,
             consumed: 0,
