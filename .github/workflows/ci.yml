@@ -131,7 +131,7 @@ jobs:
       matrix:
         include:
           - machine: ubuntu-latest
-            test-options: --all-features -p compare-demosaic
+            test-options: --all-features -p compare-demosaic -r
             pwd: ./crates/compare-demosaic
           - machine: macos-latest
             test-options: -p fornax-decoder
