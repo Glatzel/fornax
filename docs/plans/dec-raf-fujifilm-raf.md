@@ -61,9 +61,9 @@ Out of scope:
 - [x] Add `fornax-raf` container, tag, camera-profile, metadata, and decoder
   tests; implement parsing, metadata mapping, and typed unsupported paths.
 - [x] Add facade dispatch, DNG round-trip coverage, fixture parity, and docs.
-- [ ] Add RAF golden rows, run the full RAF corpus workflow, review the
+- [x] Add RAF golden rows, run the full RAF corpus workflow, review the
   baseline, regenerate the tracker README, and rerun until unchanged.
-- [ ] Run workspace validation, review the complete diff, update `TODO.md`,
+- [x] Run workspace validation, review the complete diff, update `TODO.md`,
   commit, push, and open one semantic pull request.
 
 ## Files Expected to Change
@@ -130,6 +130,9 @@ mode. The manual corpus filter is `**/*.[rR][aA][fF]` with
   through to modern Fuji IFD parsing as invalid input. Unknown Bayer models now
   return typed unsupported before that parse, while X-Trans layouts continue
   through metadata-based recognition.
+- Final corpus workflow `43027065438` completed all 16 shards and aggregation
+  successfully with no update artifact, confirming the reviewed baseline was
+  unchanged. The accepted baseline has 539/2020 passing rows overall.
 - Local validation passed `scripts/agent-validation.sh` after adding the RAF
   golden rows and generated hashes. The full RAF corpus remains a manual CI
   stage because that is the repository's designated full-corpus environment.
