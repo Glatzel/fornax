@@ -48,6 +48,9 @@
   the 2x2 color plane.
 - The Rawler spline used for quadrant curves reduces to piecewise linear
   interpolation in the target behavior.
+- The P65+ corpus uses a short quadrant-linearization payload that is not the
+  1028-byte table consumed by the supported correction path; Fornax leaves
+  this variant typed unsupported.
 
 ## Metadata mapping
 

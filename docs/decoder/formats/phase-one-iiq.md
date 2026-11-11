@@ -74,6 +74,8 @@ synthesized when the source does not provide a validated DNG-compatible matrix.
 - The bitstream is read as little-endian 32-bit words but consumed MSB-first.
 - IIQ-S high values are unshifted while low values use the nonlinear U16 curve.
 - Flat-field CFA lookup is relative to the configured sensor margins.
+- P65+ files with a 260-byte quadrant-linearization payload use an unsupported
+  variant and return a typed error instead of applying a guessed curve.
 - Defect and flat-field correction are capture- or model-specific and must not
   be approximated with guessed data.
 - Leaf `.MOS`, Phase One `.TIF`, preview extraction, legacy Raw1/Raw2, and

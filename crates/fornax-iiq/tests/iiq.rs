@@ -125,6 +125,7 @@ fn selected_fixtures_match_rawler_after_correction() {
         return;
     };
     for relative in [
+        "Phase One/P45+/CF125839.IIQ",
         "Phase One/P20+/CF051545.IIQ",
         "Phase One/H 25/H25_Outdoor_.IIQ",
         "Leaf/Credo 40/0001_20_32.IIQ",
@@ -140,7 +141,10 @@ fn selected_fixtures_match_rawler_after_correction() {
         }
         let decoder = IiqImage::parse(&source)
             .unwrap_or_else(|error| panic!("{} failed to parse: {error}", path.display()));
-        let RawMosaic::U16(ours) = decoder.raw_mosaic().unwrap() else {
+        let raw = decoder
+            .raw_mosaic()
+            .unwrap_or_else(|error| panic!("{} raw mosaic failed: {error}", path.display()));
+        let RawMosaic::U16(ours) = raw else {
             panic!("{} decoded as non-U16", path.display());
         };
         let reference = rawler::decode_file(&path)
@@ -164,6 +168,28 @@ fn selected_fixtures_match_rawler_after_correction() {
             );
         }
     }
+}
+
+#[test]
+fn p65_short_quadrant_linearization_is_typed_unsupported() {
+    let Some(root) = fixture_root() else {
+        return;
+    };
+    let path = root.join("Phase One/P65+/CF027312.IIQ");
+    let Ok(source) = std::fs::read(&path) else {
+        return;
+    };
+    if source.starts_with(b"version https://git-lfs.github.com/spec/v1") {
+        return;
+    }
+    let decoder = IiqImage::parse(&source).unwrap();
+
+    let error = decoder.raw_mosaic().unwrap_err();
+
+    assert!(
+        matches!(error, DecodeError::Unsupported(ref message) if message.contains("quadrant linearization")),
+        "{error:?}"
+    );
 }
 
 #[test]

@@ -145,7 +145,7 @@ fn split_blacks(
                 split_row,
             }))
         }
-        _ => Err(invalid("IIQ split-black metadata is incomplete")),
+        _ => Ok(None),
     }
 }
 
@@ -282,7 +282,13 @@ fn apply_quadrant_linearization(
     data: &[u8],
 ) -> Result<(), DecodeError> {
     if data.len() < 256 * 4 {
-        return Err(invalid("IIQ quadrant linearization data is truncated"));
+        return Err(DecodeError::Unsupported(
+            format!(
+                "IIQ quadrant linearization payload has unsupported {} byte layout",
+                data.len()
+            )
+            .into(),
+        ));
     }
     let mut tables = [[[0_u16; 16]; 2]; 2];
     for (index, table) in tables.iter_mut().flatten().flatten().enumerate() {
