@@ -4,6 +4,7 @@ use std::path::Path;
 mod dnc;
 
 use fornax_arw::ArwImage;
+use fornax_cr3::Cr3Image;
 use fornax_dng::Directory;
 use fornax_dng::dng_decoder::DngImage;
 use fornax_dng::metadata::IDecoderDng;
@@ -17,6 +18,7 @@ use fornax_raw_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
 #[derive(Clone, Debug)]
 pub enum Decoder {
     Dng(DngImage),
+    Cr3(Cr3Image),
     Arw(ArwImage),
     Nef(NefImage),
     Raf(RafImage),
@@ -42,6 +44,15 @@ impl IDecoder for Decoder {
                     )
                 })?;
                 Ok(Self::Dng(DngImage::parse(&source)?))
+            }
+            Ok(RawFormat::Cr3 | RawFormat::Crm) => {
+                clerk::debug!("Reading Canon CR3/CRM: {}", input.display());
+                let source = fs::read(input).map_err(|error| {
+                    DecodeError::Other(
+                        format!("reading {} failed: {error}", input.display()).into(),
+                    )
+                })?;
+                Ok(Self::Cr3(Cr3Image::parse(&source)?))
             }
             Ok(RawFormat::Arw | RawFormat::Nrw) => {
                 clerk::debug!("Reading Sony RAW: {}", input.display());
@@ -82,6 +93,7 @@ impl IDecoder for Decoder {
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
         match self {
             Self::Dng(parsed) => parsed.raw_mosaic(),
+            Self::Cr3(parsed) => parsed.raw_mosaic(),
             Self::Arw(parsed) => parsed.raw_mosaic(),
             Self::Nef(parsed) => parsed.raw_mosaic(),
             Self::Raf(parsed) => parsed.raw_mosaic(),
@@ -94,6 +106,7 @@ impl IDecoder for Decoder {
     {
         match self {
             Self::Dng(parsed) => parsed.cropped_mosaic(),
+            Self::Cr3(parsed) => parsed.cropped_mosaic(),
             Self::Arw(parsed) => parsed.cropped_mosaic(),
             Self::Nef(parsed) => parsed.cropped_mosaic(),
             Self::Raf(parsed) => parsed.cropped_mosaic(),
@@ -103,6 +116,7 @@ impl IDecoder for Decoder {
     fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
         match self {
             Self::Dng(parsed) => parsed.process_metadata(),
+            Self::Cr3(parsed) => parsed.process_metadata(),
             Self::Arw(parsed) => parsed.process_metadata(),
             Self::Nef(parsed) => parsed.process_metadata(),
             Self::Raf(parsed) => parsed.process_metadata(),
@@ -113,6 +127,7 @@ impl IDecoderDng for Decoder {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> {
         match self {
             Self::Dng(parsed) => parsed.dng_metadata(),
+            Self::Cr3(parsed) => parsed.dng_metadata(),
             Self::Arw(parsed) => parsed.dng_metadata(),
             Self::Nef(parsed) => parsed.dng_metadata(),
             Self::Raf(parsed) => parsed.dng_metadata(),

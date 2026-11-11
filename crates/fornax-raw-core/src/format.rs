@@ -18,6 +18,8 @@ pub enum RawFormat {
     Dng,
     /// Canon CR3 or CRM.
     Cr3,
+    /// Canon CRM movie raw.
+    Crm,
     /// Sony Alpha RAW.
     Arw,
     /// Sony/Zeiss NRW variant of Alpha RAW.
