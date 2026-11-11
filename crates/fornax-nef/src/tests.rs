@@ -1,5 +1,6 @@
-use fornax_raw_core::RawMosaic;
 use fornax_raw_core::error::DecodeError;
+use fornax_raw_core::metadata::MetadataSource;
+use fornax_raw_core::{BayerPattern, RawMosaic};
 use fornax_tiff::{ByteOrder, Tag, Value};
 
 use crate::NefImage;
@@ -223,6 +224,95 @@ fn preview_only_or_missing_cfa_contains_no_raw_ifd() {
     assert!(matches!(error, DecodeError::Unsupported(_)));
 }
 
+#[test]
+fn maps_crop_black_cfa_white_and_odd_origin_phase() {
+    let source = raw_fixture_with_maker_entries(
+        Some(6),
+        34_713,
+        12,
+        8,
+        4,
+        &vec![0_u8; 48],
+        &[
+            (
+                0x0045,
+                Value::List(vec![
+                    Value::Short(2),
+                    Value::Short(1),
+                    Value::Short(6),
+                    Value::Short(3),
+                ]),
+            ),
+            (
+                0x003d,
+                Value::List(vec![
+                    Value::Short(100),
+                    Value::Short(200),
+                    Value::Short(300),
+                    Value::Short(400),
+                ]),
+            ),
+        ],
+    );
+    let metadata = NefImage::parse(&source)
+        .unwrap()
+        .process_metadata()
+        .unwrap();
+
+    assert_eq!(
+        (
+            metadata.active_area.x,
+            metadata.active_area.y,
+            metadata.active_area.width,
+            metadata.active_area.height
+        ),
+        (2, 1, 6, 3)
+    );
+    assert_eq!(metadata.levels.black.as_raw(), &[25.0, 50.0, 75.0, 100.0]);
+    assert_eq!(metadata.levels.white, 4095.0);
+    assert_eq!(metadata.bayer_pattern, BayerPattern::RGGB);
+    assert_eq!(
+        metadata.black_source,
+        MetadataSource::Tag {
+            tag: 0x003d,
+            version: None
+        }
+    );
+}
+
+#[test]
+fn process_metadata_exposes_wb0_source() {
+    let source = raw_fixture_with_maker_entries(
+        Some(6),
+        34_713,
+        12,
+        2,
+        1,
+        &[0x21, 0x43, 0x65],
+        &[(
+            0x000c,
+            Value::List(vec![
+                Value::Rational(2, 1),
+                Value::Rational(3, 1),
+                Value::Rational(4, 1),
+                Value::Rational(5, 1),
+            ]),
+        )],
+    );
+    let metadata = NefImage::parse(&source)
+        .unwrap()
+        .process_metadata()
+        .unwrap();
+
+    assert_eq!(
+        metadata.wb_source,
+        MetadataSource::Tag {
+            tag: 0x000c,
+            version: None
+        }
+    );
+}
+
 fn fixture(file_order: ByteOrder, maker_order: ByteOrder, entries: &[(u16, Value)]) -> Vec<u8> {
     fixture_with_maker_payload(file_order, maker_note(maker_order, entries))
 }
@@ -273,6 +363,50 @@ fn raw_fixture_inner(
     let maker_entries = mode
         .map(|mode| vec![(0x0093, Value::Short(mode))])
         .unwrap_or_default();
+    raw_fixture_with_entries_inner(
+        maker_entries,
+        compression,
+        bits,
+        width,
+        height,
+        pixels,
+        with_cfa,
+    )
+}
+
+fn raw_fixture_with_maker_entries(
+    mode: Option<u16>,
+    compression: u16,
+    bits: u16,
+    width: u32,
+    height: u32,
+    pixels: &[u8],
+    extra: &[(u16, Value)],
+) -> Vec<u8> {
+    let mut maker_entries = mode
+        .map(|mode| vec![(0x0093, Value::Short(mode))])
+        .unwrap_or_default();
+    maker_entries.extend_from_slice(extra);
+    raw_fixture_with_entries_inner(
+        maker_entries,
+        compression,
+        bits,
+        width,
+        height,
+        pixels,
+        true,
+    )
+}
+
+fn raw_fixture_with_entries_inner(
+    maker_entries: Vec<(u16, Value)>,
+    compression: u16,
+    bits: u16,
+    width: u32,
+    height: u32,
+    pixels: &[u8],
+    with_cfa: bool,
+) -> Vec<u8> {
     let maker_payload = maker_note(ByteOrder::Little, &maker_entries);
     let mut builder = TiffFixture::new(ByteOrder::Little);
     let pixels_offset = builder.data(pixels);
@@ -357,6 +491,11 @@ fn encode_value(order: ByteOrder, value: &Value) -> (u16, u32, Vec<u8>) {
         }
         Value::Short(value) => (3, 1, value.to_bytes(order)),
         Value::Unsigned(value) => (4, 1, value.to_bytes(order)),
+        Value::Rational(numerator, denominator) => {
+            let mut bytes = numerator.to_bytes(order);
+            bytes.extend_from_slice(&denominator.to_bytes(order));
+            (5, 1, bytes)
+        }
         Value::List(values) => {
             let first = values.first().expect("fixture lists are non-empty");
             let field_type = encode_value(order, first).0;

@@ -73,6 +73,14 @@ not production dependencies.
   `[green / red, 1, green / blue]`.
 - Missing serial or key data leaves `AsShotNeutral` absent. No camera fallback
   table is synthesized.
+- `CFAPattern` is interpreted in full-frame raw coordinates.
+  `ProcessMetadata::bayer_pattern` continues to use the existing DNG
+  conversion behavior, including its active-area phase handling.
+- Nikon black-level values are tiled from the full-frame raw origin. A
+  12-bit layout scales the four maker-note values down by two bits.
+- `ProcessMetadata` records white-balance and black-level provenance as typed
+  `MetadataSource` values. Provenance is diagnostic API only and is not part
+  of the golden process hash or tracker CSV schema.
 
 ## Corpus survey
 
