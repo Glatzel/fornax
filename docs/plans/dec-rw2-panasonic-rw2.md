@@ -93,7 +93,9 @@ Metadata decisions:
 
 ## Safety Rules
 
-- Reject payloads whose declared dimensions exceed 100,000,000 pixels.
+- Reject layouts whose declared dimensions exceed 64,000,000 pixels as
+  high-resolution composite candidates. Normal single-shot Panasonic sensors
+  remain below this bound.
 - Use checked arithmetic for sample counts, row sizes, bit ranges, strip
   offsets/sizes, and allocation lengths.
 - Validate payload/chunk bounds against declared dimensions before allocating
@@ -106,28 +108,28 @@ Metadata decisions:
 
 ## Task Checklist
 
-- [ ] Add and test classic-TIFF magic 85 parsing without weakening BigTIFF or
+- [x] Add and test classic-TIFF magic 85 parsing without weakening BigTIFF or
   malformed-header rejection.
-- [ ] Add `fornax-codec` `rw2` feature and independent Panasonic compression
+- [x] Add `fornax-codec` `rw2` feature and independent Panasonic compression
   variants.
-- [ ] Write synthetic V4 tests, then implement V4 block/split handling.
-- [ ] Write synthetic V5 tests, then implement V5 packet decoding.
-- [ ] Write synthetic V6 tests, then implement V6 packet/row decoding.
-- [ ] Write validating `PanasonicV8Params`/`PanasonicV8Strip` tests, then
+- [x] Write synthetic V4 tests, then implement V4 block/split handling.
+- [x] Write synthetic V5 tests, then implement V5 packet decoding.
+- [x] Write synthetic V6 tests, then implement V6 packet/row decoding.
+- [x] Write validating `PanasonicV8Params`/`PanasonicV8Strip` tests, then
   implement V8 Huffman, gamma, strip placement, and identity/nonlinear paths.
-- [ ] Write stamped 12-bit tests, then implement unpacked and packed-control
+- [x] Write stamped 12-bit tests, then implement unpacked and packed-control
   layouts.
-- [ ] Add truncation and byte-flip mutation coverage for every RW2 codec.
-- [ ] Add `fornax-rw2` container parsing, layout selection, version/compression
+- [x] Add truncation and byte-flip mutation coverage for every RW2 codec.
+- [x] Add `fornax-rw2` container parsing, layout selection, version/compression
   dispatch, multi-shot rejection, CFA/geometry/crop/level/neutral mapping, and
   DNG round-trip tests.
-- [ ] Implement `Rw2Image` accessor surface and `IDecoder`/`IDecoderDng`.
-- [ ] Add `Decoder::Rw2` routing without changing existing format routing.
-- [ ] Validate the four supported fixtures against committed Rawler reference
+- [x] Implement `Rw2Image` accessor surface and `IDecoder`/`IDecoderDng`.
+- [x] Add `Decoder::Rw2` routing without changing existing format routing.
+- [x] Validate the four supported fixtures against committed Rawler reference
   digests without linking Rawler into production targets.
-- [ ] Add supported RW2 rows to the golden manifest and generated decode-hash
+- [x] Add supported RW2 rows to the golden manifest and generated decode-hash
   file, and add expected-unsupported tests for the three named files.
-- [ ] Run the RW2 corpus workflow/selection, review baseline changes, regenerate
+- [x] Run the RW2 corpus workflow/selection, review baseline changes, regenerate
   the tracker README, and require a clean rerun.
 - [ ] Write Panasonic format/reference docs, update architecture and crate
   READMEs, remove DEC-RW2 from `TODO.md`, and run full validation.
@@ -192,7 +194,8 @@ Commit: `feat: add native RW2 container decoding`.
 1. Add failing tests for offset-versus-strip selection, version dispatch,
    compression dispatch, multi-shot rejection, V7 rejection, and unknown
    values.
-2. Add checked container/geometry parsing with the 100,000,000-pixel cap.
+2. Add checked container/geometry parsing with the 64,000,000-pixel
+   single-shot cap.
 3. Add failing metadata tests and mappings for border/active area, crop,
    CFA shifting, black/white levels, neutral, orientation, serial, and lens.
 4. Implement `Rw2Image` with the RAF-style accessors and trait impls.
@@ -268,3 +271,13 @@ Manual corpus validation uses `formats='**/*.[rR][wW]2'` with
 - Rawler 0.8.0 was inspected only as a development reference for Format
   behavior and V8 parameter structure. Fornax code and tests are derived from
   documented bitstream behavior and fixture evidence, not copied source.
+- Corpus review showed malformed optional CameraIFDs on older files and
+  unmarked 96-100 MP composite layouts. Malformed CameraIFDs are ignored;
+  layouts above 64 MP return typed unsupported errors.
+- The S1R2 multi-exposure fixture has no documented multishot marker, so its
+  pinned `[4144, 4008]` V8 strip split is also rejected structurally.
+- The reviewed RW2 corpus baseline contains 384 passing files and 18 typed
+  unsupported composite/pixel-shift/V7 files. The clean rerun succeeded and
+  uploaded no baseline-update artifact.
+- Older DMC-G7/G70 files store all-zero crop tags as placeholders; the loader
+  maps those to the full active area.

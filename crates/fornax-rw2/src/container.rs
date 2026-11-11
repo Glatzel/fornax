@@ -103,10 +103,13 @@ pub fn parse(source: &[u8]) -> Result<Container, DecodeError> {
         .checked_mul(usize::from(height))
         .ok_or_else(|| invalid("RW2 pixel count overflow"))?;
     if pixels > MAX_SINGLE_SHOT_PIXELS {
-        return Err(DecodeError::Unsupported(format!(
-            "Panasonic {width}x{height} high-resolution composite exceeds the \
+        return Err(DecodeError::Unsupported(
+            format!(
+                "Panasonic {width}x{height} high-resolution composite exceeds the \
              {MAX_SINGLE_SHOT_PIXELS}-pixel single-shot limit"
-        ).into()));
+            )
+            .into(),
+        ));
     }
     let bits = required_u16(raw, BITS_PER_SAMPLE, "Panasonic bits per sample")?;
     if !matches!(bits, 12 | 14 | 16) {
