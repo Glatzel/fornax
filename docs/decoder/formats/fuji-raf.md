@@ -1,6 +1,6 @@
 # Fujifilm RAF format plan
 
-**Tier:** 2, placeholder until this tier starts
+**Tier:** 2, implemented for uncompressed and Fujifilm block-lossless images
 
 ## Container structure
 
@@ -12,14 +12,14 @@ the parser must use a format-specific schema.
 
 ## Compression schemes
 
-Targets, contingent on corpus inventory:
+Implemented targets:
 
-- uncompressed packed 12-, 14-, or 16-bit samples;
-- Fujifilm block-based lossless compression;
-- older SuperCCD packed/rotated layouts.
+- uncompressed 12-bit little-endian packed samples;
+- uncompressed 14- and 16-bit word samples;
+- Fujifilm block-based lossless compression at 12, 14, and 16 bits.
 
-Some lossy RAF variants are outside the initial target and should return a
-typed unsupported-variant result.
+Lossy RAF variants, older SuperCCD packed/rotated layouts, and FinePix DBP
+layouts return typed unsupported-variant errors.
 
 ## Metadata to DNG tags
 
@@ -59,8 +59,9 @@ input.
 
 ## Definition of done
 
-- The corpus defines the accepted RAF camera/compression set.
-- X-Trans decode plus DNG export passes sample/tag round-trip tests.
-- Every X-Trans handoff returns a typed unsupported-CFA error; no X-Trans image
-  reaches the preprocessor.
-- Supported conventional 2x2 Fujifilm files pass the Bayer handoff.
+- The RAF corpus records supported lossless Bayer files and expected
+  X-Trans, lossy, and legacy outcomes.
+- X-Trans decode plus DNG export passes sample and 6x6 CFA round-trip tests.
+- Every X-Trans handoff returns a typed unsupported-CFA error before the
+  preprocessor.
+- Supported conventional 2x2 GFX files pass the Bayer handoff.

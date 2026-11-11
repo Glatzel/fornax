@@ -87,7 +87,158 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,DJI Osmo Action,DNG,DJI/DJI Osmo Action/DJI_0254.DNG,1,1,aa58d661f8bb886e96d891678f50ad69e4918adbdbe22ed442f1af0a617830d1,1,1,,4000,3000,RGGB
 ✅,Eyedeas E1,DNG,Eyedeas/E1/EYED0651.DNG,1,1,90b0ae78444205f3b7f9f0c60a9c431cc79dd8ca3457945094178eceacacf4ef,1,1,,4640,3480,GRBG
 ✅,FIMI X8SE,DNG,FIMI/X8SE/IMG_20180808_081040_0001.DNG,1,1,4f2eb054e2ec025126c8225ee60cdd7bb2c8aa7ada72b70351ce229893c7181a,1,1,,3840,2160,RGGB
+✅,FUJIFILM GFX100RF,RAF,FUJIFILM/GFX100RF/DSCF0075.RAF,1,1,effea9199e4f678771ba457e254b58c01deb06d8fafc9a6dc563970d72673d50,1,1,,11808,8754,RGGB
+❌,FUJIFILM GFX100RF,RAF,FUJIFILM/GFX100RF/DSCF0076.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,FUJIFILM GFX100RF,RAF,FUJIFILM/GFX100RF/DSCF0077.RAF,1,1,38f65fd96ab267dd50f74e4b6d15b78e7b526c42b665a4524fb1946c8902b4be,1,1,,11808,8754,RGGB
+✅,FUJIFILM GFX100RF,RAF,FUJIFILM/GFX100RF/DSCF0091.RAF,1,1,b5035450ec7d1c9ca231114be40893f0b7990d55f46de64116cc8e34af5aedeb,1,1,,11808,8754,RGGB
+❌,FUJIFILM GFX100RF,RAF,FUJIFILM/GFX100RF/DSCF0092.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,FUJIFILM GFX100RF,RAF,FUJIFILM/GFX100RF/DSCF0093.RAF,1,1,95af0cf6bf9f844a11b4241068e637134c3b9e0fdf041d1ffe3d664523c23595,1,1,,11808,8754,RGGB
+✅,FUJIFILM GFX100S II,RAF,FUJIFILM/GFX100S II/_DSF0001.RAF,1,1,fd1f803579fd851e421af255e41f0e52c2c4c239ed11192d25059b055324aa21,1,1,,11808,8754,RGGB
+❌,FUJIFILM GFX100S II,RAF,FUJIFILM/GFX100S II/_DSF0002.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,FUJIFILM GFX100S II,RAF,FUJIFILM/GFX100S II/_DSF0003.RAF,1,1,5f795f5789b4b6ab4bfea6a67b103bb9800cb45a04e7ea1852d41e2ffa907ba9,1,1,,11808,8754,RGGB
+✅,FUJIFILM GFX100S II,RAF,FUJIFILM/GFX100S II/_DSF0004.RAF,1,1,4361d982f6e2e00eb5deb72a4c683f0d905c1547711ef82f7f1ea303bbba7e2f,1,1,,11808,8754,RGGB
+✅,FUJIFILM GFX100S II,RAF,FUJIFILM/GFX100S II/_DSF0005.RAF,1,1,ecfa524528df775bb1458cb6845287d06e5530afad46d7f48bff4ca6eb3c104d,1,1,,11808,8754,RGGB
+❌,FUJIFILM GFX100S II,RAF,FUJIFILM/GFX100S II/_DSF0006.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,FUJIFILM X-E5,RAF,FUJIFILM/X-E5/DSCF0202.RAF,1,1,5ddc2bdebe039f260b3ec9f8cab04077cbe5a1ad9339ae546039685f818c7250,0,0,process_metadata:unsupported,7872,5196,XTrans-6x6
+❌,FUJIFILM X-E5,RAF,FUJIFILM/X-E5/DSCF0203.RAF,1,1,c72b6c1a0ee34c2216c1a54446a772531cfd3e3815c356e3837f23a8eedba0e7,0,0,process_metadata:unsupported,7872,5196,XTrans-6x6
+❌,FUJIFILM X-E5,RAF,FUJIFILM/X-E5/DSCF0204.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,FUJIFILM X-M5,RAF,FUJIFILM/X-M5/DSCF0620_-_uncompressed.RAF,1,1,cdf01225ea87642f2e3cc21e225c9c590b8913b55998feba07057d916c73f3b4,0,0,process_metadata:unsupported,6336,4182,XTrans-6x6
+❌,FUJIFILM X-M5,RAF,FUJIFILM/X-M5/DSCF0621_-_lossless.RAF,1,1,1d3617d3661130a7863260dc36cf309bd4e79ae3d9db04ceb4803cf50b2591de,0,0,process_metadata:unsupported,6336,4182,XTrans-6x6
+❌,FUJIFILM X-M5,RAF,FUJIFILM/X-M5/DSCF0622_-_compressed.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,FUJIFILM X-M5,RAF,"FUJIFILM/X-M5/DSCF0623_-_crop_1,25.RAF",1,1,79130cea09d76fe65afef02dfe0fcfbc3a3dc736f70d291806f0515f5085b846,0,0,process_metadata:unsupported,6336,3348,XTrans-6x6
+❌,FUJIFILM X-T30 III,RAF,FUJIFILM/X-T30 III/DSCF0131.RAF,1,1,4c721be6befcd1def9ff4936a5a745f849b7e1345d931d481a977c2501efa3c5,0,0,process_metadata:unsupported,6336,4182,XTrans-6x6
+❌,FUJIFILM X-T30 III,RAF,FUJIFILM/X-T30 III/DSCF0132.RAF,1,1,009408561927a9bf37a5312dc7db87907a4755c3cdd7cac87d6d5bae587fa922,0,0,process_metadata:unsupported,6336,4182,XTrans-6x6
+❌,FUJIFILM X-T30 III,RAF,FUJIFILM/X-T30 III/DSCF0133.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,FUJIFILM X-T50,RAF,FUJIFILM/X-T50/DSCF0118.RAF,1,1,49885a7cac8bb8f349dcfd29ae8c8d1e13f667f8e1760c1cc17e7a8bca37acad,0,0,process_metadata:unsupported,7872,5196,XTrans-6x6
+❌,FUJIFILM X-T50,RAF,FUJIFILM/X-T50/DSCF0119.RAF,1,1,c84b1bd8f3fa23f0884fd38595c370ad549737f04314140f73a2de894a81ea60,0,0,process_metadata:unsupported,7872,5196,XTrans-6x6
+❌,FUJIFILM X-T50,RAF,FUJIFILM/X-T50/DSCF0120.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm DBP for GX680,RAF,Fujifilm/DBP for GX680/DSCF0010.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix E550,RAF,Fujifilm/FinePix E550/RAW_FUJI_E550.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix E900,RAF,Fujifilm/FinePix E900/RAW_FUJI_E900.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix F550EXR,RAF,Fujifilm/FinePix F550EXR/DSCF6714.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix F600EXR,RAF,Fujifilm/FinePix F600EXR/RAW_FUJI_F600XR.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix F700,RAF,Fujifilm/FinePix F700/RAW_FUJI_F700.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix F770EXR,RAF,Fujifilm/FinePix F770EXR/DSCF0686.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix F900EXR,RAF,Fujifilm/FinePix F900EXR/RAW_FUJI_FINPIX_F900EXR.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix HS10 HS11,RAF,Fujifilm/FinePix HS10 HS11/RAW_FUJI_FINEPIX_HS10.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix HS20EXR,RAF,Fujifilm/FinePix HS20EXR/RAW_FUJIFILM_HS20EXR.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix HS30EXR,RAF,Fujifilm/FinePix HS30EXR/DSCF4080.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix HS33EXR,RAF,Fujifilm/FinePix HS33EXR/DSCF6464.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix HS50EXR,RAF,Fujifilm/FinePix HS50EXR/DSCF0016.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S1,RAF,Fujifilm/FinePix S1/DSCF0001.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S100FS,RAF,Fujifilm/FinePix S100FS/DSCF8410.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S200EXR,RAF,Fujifilm/FinePix S200EXR/DSCF4754.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S2Pro,RAF,Fujifilm/FinePix S2Pro/DSCF0002.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S3Pro,RAF,Fujifilm/FinePix S3Pro/DSCF3694.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S5000,RAF,Fujifilm/FinePix S5000/2007_0912Image0022.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S5200,RAF,Fujifilm/FinePix S5200/DSCF1523.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S5500,RAF,Fujifilm/FinePix S5500/DSCF6206.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S5600,RAF,Fujifilm/FinePix S5600/RAW_FUJI_S5600S5200.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S5Pro,RAF,Fujifilm/FinePix S5Pro/2018_06150003.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S6000fd,RAF,Fujifilm/FinePix S6000fd/DSCF1973.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S6500fd,RAF,Fujifilm/FinePix S6500fd/DSCF1333.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S7000,RAF,Fujifilm/FinePix S7000/dscf3648.raf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S9500,RAF,Fujifilm/FinePix S9500/20170430_0041.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix S9600,RAF,Fujifilm/FinePix S9600/2007-11-10--16-32-45-original.raf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix SL1000,RAF,Fujifilm/FinePix SL1000/RAW_file_from_Fijifilm_Finepix_SL1000.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix X10,RAF,Fujifilm/FinePix X10/DSCF0514.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm FinePix X100,RAF,Fujifilm/FinePix X100/DSCF1676.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Fujifilm GFX 100,RAF,Fujifilm/GFX 100/_DSF3977.RAF,1,1,69cdf241f76a889292d5bf9fdf175ca3a001d74a94340c92b50ed1d562ace310,1,1,,11808,8754,RGGB
+✅,Fujifilm GFX 100,RAF,Fujifilm/GFX 100/_DSF3978.RAF,1,1,74ab75e551b76d525a4e77911814caf6bc4add6d0bc93cc633d1517602185dc8,1,1,,11808,8754,RGGB
+✅,Fujifilm GFX 100,RAF,Fujifilm/GFX 100/_DSF3979.RAF,1,1,4f2628105ff7d59884be928fbd382b218051c96b86b89a28583f2703afe3e3a5,1,1,,11808,8754,RGGB
+✅,Fujifilm GFX 100,RAF,Fujifilm/GFX 100/_DSF3980.RAF,1,1,03214cd6c292b7600cd4730376f547a4a9a6e1b73677031de65ba08b2874662d,1,1,,11808,8754,RGGB
+✅,Fujifilm GFX 50R,RAF,Fujifilm/GFX 50R/2019-01-24-14-02-50_DSCF1316_e819634e46ecdb8ea241012ee70ae11e5c220c48.raf,1,1,6ba0a3035ed7fbd5d01a5b9d7ff0d19e6e80377d14e010bbb64f2ac6314a5aea,1,1,,9216,6210,RGGB
+✅,Fujifilm GFX 50R,RAF,Fujifilm/GFX 50R/2019-01-24-14-03-03_DSCF1317_c9ab436f1532b532976eec431f0e4db7e9f2b8e2.raf,1,1,fceef89e7916d68c0c1bc17f98a9d4495a7c7691a55dfcfe32c454b4aca2d41f,1,1,,9216,6210,RGGB
+✅,Fujifilm GFX 50S,RAF,Fujifilm/GFX 50S/20170525_0036TEST.RAF,1,1,a9a05a106f17e727c9eacb7da4797e19f35885307fcccdb1fae035517c78ab34,1,1,,9216,6210,RGGB
+✅,Fujifilm GFX 50S,RAF,Fujifilm/GFX 50S/20170525_0037TEST.RAF,1,1,150b682fa55690756feb6185d6505f410f6c2294acca5e595ab649306e2bd21c,1,1,,9216,6210,RGGB
+✅,Fujifilm GFX100 II,RAF,Fujifilm/GFX100 II/_DSF0264.RAF,1,1,475fba60dd3fc0ed9ef8ffc9a434f0c8f79b9d973daf9ed7a3aadd8985db1c5f,1,1,,11808,8754,RGGB
+❌,Fujifilm GFX100 II,RAF,Fujifilm/GFX100 II/_DSF0265.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm GFX100 II,RAF,Fujifilm/GFX100 II/_DSF0266.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,Fujifilm GFX100 II,RAF,Fujifilm/GFX100 II/_DSF0267.RAF,1,1,edc18e94ff412670075ac1bb4250c045115f0a41bca8d4897fedeadfdcba85ce,1,1,,11808,8754,RGGB
+✅,Fujifilm GFX100 II,RAF,Fujifilm/GFX100 II/_DSF0268.RAF,1,1,69d5e39453844ae3f85b5cde12ac8fba8871ae7e59f7a1d7c3a71ca8c6b77418,1,1,,11808,8754,RGGB
+❌,Fujifilm GFX100S,RAF,Fujifilm/GFX100S/Fujifilm-GFX100S-14bits-compress-4_3.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,Fujifilm GFX100S,RAF,Fujifilm/GFX100S/Fujifilm-GFX100S-14bits-losslescompressed-4_3.RAF,1,1,ff5963bc11602cb8ff6ccf2bf2c42be93a3222d55b7e3f135a9ac58c4d130848,1,1,,11808,8754,RGGB
+✅,Fujifilm GFX100S,RAF,Fujifilm/GFX100S/Fujifilm-GFX100S-14bits-uncompress-4_3.RAF,1,1,18722f766524fa370416da74b7c6447ae62401456fde4f64532176d58bad1031,1,1,,11808,8754,RGGB
+❌,Fujifilm GFX100S,RAF,Fujifilm/GFX100S/Fujifilm-GFX100S-16bits-compress-4_3.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,Fujifilm GFX100S,RAF,Fujifilm/GFX100S/Fujifilm-GFX100S-16bits-losslesscompressed-4_3.RAF,1,1,bc795742d6e6933420aadc3228e729303a829d74eeca5a608503f5454d3ff019,1,1,,11808,8754,RGGB
+✅,Fujifilm GFX100S,RAF,Fujifilm/GFX100S/Fujifilm-GFX100S-16bits-uncompress-4_3.RAF,1,1,5134496153ce1b650d6b7154e6f3a99f191752da7081efa6b986dc0d19d0b1eb,1,1,,11808,8754,RGGB
+❌,Fujifilm GFX50S II,RAF,Fujifilm/GFX50S II/Fuji_GFX50S_II_-_Compressed.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+✅,Fujifilm GFX50S II,RAF,Fujifilm/GFX50S II/Fuji_GFX50S_II_-_Lossless_Compressed.RAF,1,1,3d7511d69817f7231e424a0ff32c6f1a00ff33bb696dccd99860620ad3f512e4,1,1,,8472,6210,RGGB
+✅,Fujifilm GFX50S II,RAF,Fujifilm/GFX50S II/Fuji_GFX50S_II_-_Uncompressed.RAF,1,1,97146a72ee63d8415b9d33ce59bb9d00c30904f27206be0ff0fc0d6f55a89a63,1,1,,8472,6210,RGGB
+❌,Fujifilm X-A1,RAF,Fujifilm/X-A1/DSCF2482.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm X-A10,RAF,Fujifilm/X-A10/DSCF8207.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm X-A2,RAF,Fujifilm/X-A2/DSCF2073.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm X-A3,RAF,Fujifilm/X-A3/DSCF7241.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm X-A5,RAF,Fujifilm/X-A5/DSCF0617.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm X-A7,RAF,Fujifilm/X-A7/DSCF1595.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm X-E1,RAF,Fujifilm/X-E1/DSCF6490.RAF,1,1,5694658aec91b0616e5d79b047c22863c230646e5366a8c53c9d59c0c4bbbbc4,0,0,process_metadata:unsupported,5120,3288,XTrans-6x6
+❌,Fujifilm X-E2,RAF,Fujifilm/X-E2/DSCF9050.RAF,1,1,3514e9961d6beaa94019e455dd8d1c91bdb6bad5178bcb437b663fcf672fca1a,0,0,process_metadata:unsupported,4992,3296,XTrans-6x6
+❌,Fujifilm X-E2S,RAF,Fujifilm/X-E2S/_DSF0540.RAF,1,1,c263d00cfa5e9d57228a87ea18271ea24efa40c4af43c8f9eeb6f0911f5d8c44,0,0,process_metadata:unsupported,4992,3296,XTrans-6x6
+❌,Fujifilm X-E3,RAF,Fujifilm/X-E3/DSCF2175.RAF,1,1,211fe335ecb6fa687f49c28b9c0f5fe17adc8c904ba9fc46bb57a948d29a137a,0,0,process_metadata:unsupported,6160,4032,XTrans-6x6
+❌,Fujifilm X-E3,RAF,Fujifilm/X-E3/DSCF2176.RAF,1,1,e1055a46e4c403c26436bab83ad8b49aefb3b411162d32a5da9c0aed6230f3c3,0,0,process_metadata:unsupported,6048,4038,XTrans-6x6
+❌,Fujifilm X-E4,RAF,Fujifilm/X-E4/fuji_xe4_32_lossless.RAF,1,1,5ed70dba2f7733befedf4c779e7683c5c184cad475af46550beb42bb5398d5bc,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-E4,RAF,Fujifilm/X-E4/fuji_xe4_32_lossy.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm X-E4,RAF,Fujifilm/X-E4/fuji_xe4_32_uncompressed.RAF,1,1,ebdf8942ba310a122661fb1dd41ce357aafb30b912396f5cb5338ff0a5edaba8,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-H1,RAF,Fujifilm/X-H1/fuji_xh1_compressed.RAF,1,1,81522e0f6f31369967f72d80268504843a59aff21d796d5963771961d4648b30,0,0,process_metadata:unsupported,6048,4038,XTrans-6x6
+❌,Fujifilm X-H1,RAF,Fujifilm/X-H1/fuji_xh1_uncompressed.RAF,1,1,17fa775ea6a5a5de88db57e130b2e3131c8a7c7b03255800736d964daa5048c6,0,0,process_metadata:unsupported,6160,4032,XTrans-6x6
+❌,Fujifilm X-H2,RAF,Fujifilm/X-H2/Fuji-X-H2-Compressed-Raw.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm X-H2,RAF,Fujifilm/X-H2/Fuji-X-H2-Lossless-Compressed-Raw.RAF,1,1,e108357feff3de1af7eb0c5e8f64d88c9e1e2d3d679961bfeccddf6e931344b9,0,0,process_metadata:unsupported,7872,5196,XTrans-6x6
+❌,Fujifilm X-H2,RAF,Fujifilm/X-H2/Fuji-X-H2-Uncompressed-Raw.RAF,1,1,4b6816ce58ce0c241dca41306f7513bd8a22ad721dc42091282113c179beadea,0,0,process_metadata:unsupported,7872,5196,XTrans-6x6
+❌,Fujifilm X-H2S,RAF,Fujifilm/X-H2S/IMG-20221005-0665.raf,1,1,27affb1f2009d8b73996d265f83c2a1f88c1ddb4460512f5df3192376f4ec270,0,0,process_metadata:unsupported,6336,4188,XTrans-6x6
+❌,Fujifilm X-H2S,RAF,Fujifilm/X-H2S/IMG-20221005-0666.raf,1,1,249f13dae552f8ea26b7fcf1c8ddb5e612cce3abfc2eeabe3afa9fc89eb090f9,0,0,process_metadata:unsupported,6336,4188,XTrans-6x6
+❌,Fujifilm X-H2S,RAF,Fujifilm/X-H2S/IMG-20221005-0667.raf,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm X-M1,RAF,Fujifilm/X-M1/DSCF1442.RAF,1,1,9f9ca76c7fc717f8c4d91c675727add05fedf02ab1b41160451827af78b7171b,0,0,process_metadata:unsupported,5120,3288,XTrans-6x6
+❌,Fujifilm X-Pro1,RAF,Fujifilm/X-Pro1/DSCF2131.RAF,1,1,586813fc3ebb1f614ea8ed0048a143a6404e4fd2fa09788c131e8671404b4ffc,0,0,process_metadata:unsupported,5120,3288,XTrans-6x6
+❌,Fujifilm X-Pro2,RAF,Fujifilm/X-Pro2/_DSF3050.RAF,1,1,8d5f8108f30f3261413fcb7586d5cd8a5333314d1e787ef39629a696b9cd6fa9,0,0,process_metadata:unsupported,6160,4032,XTrans-6x6
+❌,Fujifilm X-Pro2,RAF,Fujifilm/X-Pro2/_DSF3051.RAF,1,1,5590237f61b2f9dcdd30880d0ef9db1f9395dd842f2344ac22b8adfa4ae6c614,0,0,process_metadata:unsupported,6048,4038,XTrans-6x6
+❌,Fujifilm X-Pro3,RAF,Fujifilm/X-Pro3/_DSF2384.RAF,1,1,da60ab40ae7dd81307e74cdf7f85e2fb342b4a66afd283b260ce295e1bfdf380,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-Pro3,RAF,Fujifilm/X-Pro3/_DSF2385.RAF,1,1,c51698c159b52a16f0d4433509171ab55e32a50d49456f652f5a657162f872c9,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-S1,RAF,Fujifilm/X-S1/DSCF9185.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm X-S10,RAF,Fujifilm/X-S10/Fujifilm-X-S10-compressed.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm X-S10,RAF,Fujifilm/X-S10/Fujifilm-X-S10-lossless-compressed.RAF,1,1,8aa96772bbc3d30195358b4442a011a56a0b733a7ead14946596fbaadce13109,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-S10,RAF,Fujifilm/X-S10/Fujifilm-X-S10-uncompressed.RAF,1,1,52316db640953a7508506fb258b867eeb358dca6ea5fc4cbfc0f32257b134aef,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-S20,RAF,Fujifilm/X-S20/DSCF2526.RAF,1,1,7d823bcb50351d0918f372b8d5f69955878b9776e2782356836ac1164a3270c2,0,0,process_metadata:unsupported,6336,4182,XTrans-6x6
+❌,Fujifilm X-S20,RAF,Fujifilm/X-S20/DSCF2528.RAF,1,1,dcc2803ab75213662fba4215ad9623bd5ebe39853fcccbd13db73de6a86d88cf,0,0,process_metadata:unsupported,6336,4182,XTrans-6x6
+❌,Fujifilm X-S20,RAF,Fujifilm/X-S20/DSCF2529.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm X-T1,RAF,Fujifilm/X-T1/20171229_110916.RAF,1,1,2cf5a636b188de93824c7b4e4691869121153161cffa0dbee9e7c1fcf40f04a6,0,0,process_metadata:unsupported,4992,3296,XTrans-6x6
+❌,Fujifilm X-T10,RAF,Fujifilm/X-T10/DSCF8146.RAF,1,1,4e8f8cf8a962c8d8b3b5bbd166d8b625b661bb16b8fa8eeaf8e938b8904979f5,0,0,process_metadata:unsupported,4992,3296,XTrans-6x6
+❌,Fujifilm X-T100,RAF,Fujifilm/X-T100/DSCF0627.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm X-T2,RAF,Fujifilm/X-T2/20170114_173532_TFW04723.RAF,1,1,25f26454ae27db5b310b3c5efa79a25399b17eaff02452c46b76a31af359bedb,0,0,process_metadata:unsupported,6160,4032,XTrans-6x6
+❌,Fujifilm X-T2,RAF,Fujifilm/X-T2/20170114_174341_TFW04727.RAF,1,1,40eef8184b8b5d39e81d2bc5c9a6c0405a4639270aba7aa426f6787cf298d77b,0,0,process_metadata:unsupported,6048,4038,XTrans-6x6
+❌,Fujifilm X-T20,RAF,Fujifilm/X-T20/DSCF0526.RAF,1,1,01d51ef8c9c9b310d48697615b7d4a7ad9c76972cb8117ded0ba24278a3c3d78,0,0,process_metadata:unsupported,6160,4032,XTrans-6x6
+❌,Fujifilm X-T20,RAF,Fujifilm/X-T20/DSCF0527.RAF,1,1,c3e6860d9b67058c2d50009bc7024a495aa64f6ea9769f21286c48d30bab5639,0,0,process_metadata:unsupported,6048,4038,XTrans-6x6
+❌,Fujifilm X-T200,RAF,Fujifilm/X-T200/DSCF0074.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm X-T3,RAF,Fujifilm/X-T3/AFXT2720.RAF,1,1,f5b5003564c135dd0fd5b29f74c44df28ddce8e80d0a2546b389a722a32d4200,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-T3,RAF,Fujifilm/X-T3/AFXT2721.RAF,1,1,c96bdbe0c54d1c1d6859890a9652671db075990d5648c601f8ac08759aa38997,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-T30,RAF,Fujifilm/X-T30/DSCF0065.RAF,1,1,a7c5b9451b98c303c18949c1cfe227ff232304ec8ba73ae3e81b3490814ea209,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-T30,RAF,Fujifilm/X-T30/DSCF0066.RAF,1,1,64cfc3b957523908b64ab444bb4527a17f44315a925f10eaf45d1502a94dd9ba,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-T30 II,RAF,Fujifilm/X-T30 II/compressed_X-T30II.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm X-T30 II,RAF,Fujifilm/X-T30 II/lossless-compressed_X-T30II.RAF,1,1,ad7195578fb219ccbe02721b97348ca9f45e0c902d6972acfa3f2e61dd742fbe,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-T30 II,RAF,Fujifilm/X-T30 II/lossless_X-T30II.RAF,1,1,84ced44b4afe1734570b13c6aae6405d758a8a58ce79d21ab82f14d045c41ca6,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-T4,RAF,Fujifilm/X-T4/DSCF0266.RAF,1,1,d35f70177346b4d51153b8fa0dca2ee095e1fd533d5c593796f8e3cde937cc27,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-T4,RAF,Fujifilm/X-T4/DSCF0267.RAF,1,1,d88fe8f0fa520e33ea98d1d41ba0b1fb740975d980b39a7ee1b3582cde5df864,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X-T4,RAF,Fujifilm/X-T4/DSCF0268.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm X-T5,RAF,Fujifilm/X-T5/DSCF0021.RAF,1,1,062d599373907359c8faba1189c3b04b5d5f11f8b441a92d8af129260391e864,0,0,process_metadata:unsupported,7872,5196,XTrans-6x6
+❌,Fujifilm X-T5,RAF,Fujifilm/X-T5/DSCF0022.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm X-T5,RAF,Fujifilm/X-T5/DSCF0023.RAF,1,1,2491f9e4e07380ac29308a12aa1808da1eb80a86ed86222d17a56f757b0290c5,0,0,process_metadata:unsupported,7872,5196,XTrans-6x6
+❌,Fujifilm X-T5,RAF,Fujifilm/X-T5/DSCF4964_70-300.RAF,1,1,946649f3a97b13e97113e63cd6db843d8feb28b35544b0ee96df942051a1cdbe,0,0,process_metadata:unsupported,7872,4044,XTrans-6x6
+❌,Fujifilm X100F,RAF,Fujifilm/X100F/DSCF5760_x100f_lossless_compressed_raw_Temple.RAF,1,1,ecef3c38bdd2236378472a175fa738df334270386212ed88fbf8bbdb1cb0b34b,0,0,process_metadata:unsupported,6048,4038,XTrans-6x6
+❌,Fujifilm X100F,RAF,Fujifilm/X100F/DSCF5761_x100f_uncompressed_raw_Temple.RAF,1,1,c795b3aa576dc17fe5886b602eb9a63470fccfe7709f528e5dfcadb8df92cad6,0,0,process_metadata:unsupported,6160,4032,XTrans-6x6
 ❌,Fujifilm X100S,DNG,Fujifilm/X100S/fujifilm-x100s-daylight-DSCF9505.dng,1,1,b909ffa2764dd997e690735f45ce63c6315217089efb3588b6544efe375043de,0,0,process_metadata:unsupported,4936,3296,XTrans-6x6
+❌,Fujifilm X100S,RAF,Fujifilm/X100S/fujifilm-x100s-daylight-DSCF9505.RAF,1,1,059cc0ff6f8deee475933d5cebe32370918a8352bddf95b47107fac5b4e9dd75,0,0,process_metadata:unsupported,4992,3296,XTrans-6x6
+❌,Fujifilm X100T,RAF,Fujifilm/X100T/DSCF0442.RAF,1,1,c83cec8b49132bdeeb10eca8889fb965cd76e46b2b2f8f0f1662aa941399f2fd,0,0,process_metadata:unsupported,4992,3296,XTrans-6x6
+❌,Fujifilm X100V,RAF,Fujifilm/X100V/DSCF0733.RAF,1,1,7af786c90404e0166faa9677bdcaf59366c74ebdc3e48dc12b274113cbab5b5e,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X100V,RAF,Fujifilm/X100V/DSCF0734.RAF,1,1,2cc5586721853cb7fdb708faf5a3804c765bc7d87bc19bed99d2903ca094781c,0,0,process_metadata:unsupported,6384,4182,XTrans-6x6
+❌,Fujifilm X100VI,RAF,Fujifilm/X100VI/DSCF0074.RAF,1,1,a60655efc8f123017edf7e01d7c5179c5585fe088443b97a953ccf402e21493f,0,0,process_metadata:unsupported,7872,5196,XTrans-6x6
+❌,Fujifilm X100VI,RAF,Fujifilm/X100VI/DSCF0075.RAF,1,1,d1f38290197a9e84bd3cef10f68188751ec795b098fc4f330763dc3db0fe7b1f,0,0,process_metadata:unsupported,7872,5196,XTrans-6x6
+❌,Fujifilm X100VI,RAF,Fujifilm/X100VI/DSCF0076.RAF,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Fujifilm X20,RAF,Fujifilm/X20/DSCF7451.RAF,1,1,e8b285157bdc2def38d84d78aff58a7ef5ee4eecbf8f77e149ab3b15bca337f6,0,0,process_metadata:unsupported,4096,3012,XTrans-6x6
+❌,Fujifilm X30,RAF,Fujifilm/X30/20160604_0009.RAF,1,1,44c8b02c0ef51f38e308cb0495a2527be210eca5be92af0408817298497e897a,0,0,process_metadata:unsupported,4096,3012,XTrans-6x6
+❌,Fujifilm X70,RAF,Fujifilm/X70/DSCF8848.RAF,1,1,c97634ad9818de193c9942aebac1c85efa7103f5d0a17823469bc7a745989783,0,0,process_metadata:unsupported,4992,3296,XTrans-6x6
+❌,Fujifilm XF1,RAF,Fujifilm/XF1/DSCF4005.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm XF10,RAF,Fujifilm/XF10/DSCF6466.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Fujifilm XQ1,RAF,Fujifilm/XQ1/DSCF2004.RAF,1,1,48637cf312768262f8eaaa57d7e174ca6a3b2551649c7643147081d7f4c38c54,0,0,process_metadata:unsupported,4096,3012,XTrans-6x6
+❌,Fujifilm XQ2,RAF,Fujifilm/XQ2/DSCF4186.RAF,1,1,3c63e155b79b90f1097514d11e92bdaa488581c1630c5f73ee8f2091142e3b04,0,0,process_metadata:unsupported,4096,3012,XTrans-6x6
 ✅,Google Pixel 2 XL,DNG,Google/Pixel 2 XL/IMG_20180109_080629.dng,1,1,2031743911aef2401d311342a0be2b182fdd2670c219db1695a1cce2a9c9ce43,1,1,,4032,3032,BGGR
 ✅,Google Pixel 3a,DNG,Google/Pixel 3a/IMG_20190918_164153.dng,1,1,f7e71773dfc851379dda56e961aec92d892e0323b02d5393dc320b8dd3f51cc3,1,1,,4032,3024,BGGR
 ✅,Google Pixel 4 XL,DNG,Google/Pixel 4 XL/IMG_20191023_125156.dng,1,1,c8fa28a215d8e44f2d78b403ca254c216c6e10ddb2d86a0a526c6650cd013614,1,1,,3700,2774,RGGB

@@ -797,6 +797,7 @@ dependencies = [
  "fornax-devtool",
  "fornax-dng",
  "fornax-nef",
+ "fornax-raf",
  "fornax-raw-core",
  "fornax-tiff",
  "generic-num",
@@ -850,6 +851,20 @@ dependencies = [
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
+ "rayon",
+]
+
+[[package]]
+name = "fornax-raf"
+version = "0.0.17"
+dependencies = [
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rawler",
  "rayon",
 ]
 

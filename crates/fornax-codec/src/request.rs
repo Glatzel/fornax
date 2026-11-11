@@ -82,9 +82,68 @@ pub enum DecodeCompression {
         /// Linearization curve indexed by decoded predictor value.
         curve: Arc<[u16]>,
     },
+    /// Fujifilm direct-packed CFA rows.
+    #[cfg(feature = "raf")]
+    FujiPacked {
+        /// Stored bits per sample.
+        bits: u8,
+        /// Byte order used by the packed words.
+        byte_order: ByteOrder,
+    },
+    /// Fujifilm block-based lossless CFA compression.
+    #[cfg(feature = "raf")]
+    FujiLossless {
+        /// CFA pattern used to place decoded line-buffer samples.
+        cfa: FujiCfa,
+    },
     /// TIFF's experimental Zstandard compression.
     #[cfg(feature = "zstd")]
     Zstd,
+}
+
+/// A rectangular RGB CFA accepted by the Fujifilm lossless codec.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_codec::FujiCfa;
+///
+/// assert_eq!(FujiCfa::Bayer([0, 1, 1, 2]).width(), 2);
+/// assert_eq!(FujiCfa::XTrans([1; 36]).height(), 6);
+/// ```
+#[cfg(feature = "raf")]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum FujiCfa {
+    /// Conventional 2x2 RGB Bayer pattern in row-major order.
+    Bayer([u8; 4]),
+    /// X-Trans 6x6 RGB pattern in row-major order.
+    XTrans([u8; 36]),
+}
+
+#[cfg(feature = "raf")]
+impl FujiCfa {
+    /// Returns the CFA repeat width.
+    pub const fn width(self) -> usize {
+        match self {
+            Self::Bayer(_) => 2,
+            Self::XTrans(_) => 6,
+        }
+    }
+
+    /// Returns the CFA repeat height.
+    pub const fn height(self) -> usize {
+        match self {
+            Self::Bayer(_) => 2,
+            Self::XTrans(_) => 6,
+        }
+    }
+
+    pub(crate) const fn color_at(self, row: usize, column: usize) -> u8 {
+        match self {
+            Self::Bayer(pattern) => pattern[(row % 2) * 2 + column % 2],
+            Self::XTrans(pattern) => pattern[(row % 6) * 6 + column % 6],
+        }
+    }
 }
 
 /// Nikon lossless Huffman tree identifiers.

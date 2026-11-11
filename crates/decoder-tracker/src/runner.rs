@@ -136,7 +136,7 @@ fn run_lfs(corpus: &std::path::Path, action: &str, paths: &[&str]) -> Result<()>
         if action == "fetch" {
             let include = paths
                 .iter()
-                .map(|path| escape_lfs_glob(path))
+                .map(|path| lfs_include_glob(path))
                 .collect::<Vec<_>>()
                 .join(",");
             command.arg("origin").arg("--include").arg(include);
@@ -185,6 +185,8 @@ pub(crate) fn escape_lfs_glob(path: &str) -> String {
     }
     escaped
 }
+
+pub(crate) fn lfs_include_glob(path: &str) -> String { escape_lfs_glob(path).replace(',', "?") }
 
 pub fn timeout_from_env() -> Duration {
     std::env::var("DECODER_TRACKER_TIMEOUT_SECS")

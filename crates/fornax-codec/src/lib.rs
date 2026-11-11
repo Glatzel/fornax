@@ -66,6 +66,8 @@ mod lzw;
 mod nef;
 #[cfg(feature = "packbits")]
 mod packbits;
+#[cfg(feature = "raf")]
+mod raf;
 mod uncompressed;
 #[cfg(feature = "zstd")]
 mod zstd;
@@ -74,6 +76,8 @@ mod zstd;
 pub use arw::{arw2_white_level, arw6_white_level};
 pub use error::CodecError;
 pub use predictor::Predictor;
+#[cfg(feature = "raf")]
+pub use request::FujiCfa;
 #[cfg(feature = "nef")]
 pub use request::NikonTreeId;
 pub use request::{
@@ -159,6 +163,12 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
             init,
             curve,
         } => nef::decode_huffman(request, *bits, *tree, *init, curve.as_ref()),
+        #[cfg(feature = "raf")]
+        DecodeCompression::FujiPacked { bits, byte_order } => {
+            raf::decode_packed(request, *bits, *byte_order)
+        }
+        #[cfg(feature = "raf")]
+        DecodeCompression::FujiLossless { cfa } => raf::decode_lossless(request, *cfa),
         #[cfg(feature = "zstd")]
         DecodeCompression::Zstd => zstd::decode(request),
     }

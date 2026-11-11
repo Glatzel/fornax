@@ -538,6 +538,14 @@ fn lfs_paths_escape_gitignore_glob_metacharacters() {
         crate::runner::escape_lfs_glob("Canon/Cam/IMG_[1].DNG"),
         "Canon/Cam/IMG_\\[1\\].DNG"
     );
+    assert_eq!(
+        crate::runner::escape_lfs_glob("FUJIFILM/X-M5/DSCF0623_-_crop_1,25.RAF"),
+        "FUJIFILM/X-M5/DSCF0623_-_crop_1,25.RAF"
+    );
+    assert_eq!(
+        crate::runner::lfs_include_glob("FUJIFILM/X-M5/DSCF0623_-_crop_1,25.RAF"),
+        "FUJIFILM/X-M5/DSCF0623_-_crop_1?25.RAF"
+    );
 }
 
 #[test]
