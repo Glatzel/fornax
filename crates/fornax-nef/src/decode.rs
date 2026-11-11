@@ -7,7 +7,7 @@ use fornax_tiff::Directory;
 
 use crate::container::{LayoutKind, RawLayout};
 
-pub(crate) fn samples(
+pub fn samples(
     source: &[u8],
     layout: &RawLayout,
     _raw: &Directory,

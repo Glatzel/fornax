@@ -13,9 +13,9 @@ use generic_num::num;
 use image::math::Rect;
 use rayon::prelude::*;
 
-pub(crate) mod container;
+mod container;
 mod decode;
-pub(crate) mod makernote;
+mod makernote;
 mod metadata;
 mod wb;
 
@@ -130,5 +130,4 @@ where
 }
 
 #[cfg(test)]
-#[allow(dead_code)]
 mod tests;

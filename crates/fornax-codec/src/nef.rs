@@ -3,7 +3,7 @@ use crate::request::{ByteOrder, DecodeRequest};
 use crate::samples::{buffer_u16, chunk};
 use crate::{CodecError, SampleBuffer};
 
-pub(crate) fn decode_packed(
+pub fn decode_packed(
     request: &DecodeRequest<'_>,
     row_stride: usize,
     bits: u8,
@@ -45,7 +45,7 @@ pub(crate) fn decode_packed(
     buffer_u16(request.width, request.height, output)
 }
 
-pub(crate) fn decode_unpacked_words(
+pub fn decode_unpacked_words(
     request: &DecodeRequest<'_>,
     bits: u8,
     byte_order: ByteOrder,
@@ -70,11 +70,10 @@ pub(crate) fn decode_unpacked_words(
         for row in 0..rows[tile] {
             let source = &payload[row * request.width * 2..][..request.width * 2];
             let target = &mut output[(start_row + row) * request.width..][..request.width];
-            for (target, bytes) in target.iter_mut().zip(source.chunks_exact(2)) {
-                let bytes = [bytes[0], bytes[1]];
+            for (target, bytes) in target.iter_mut().zip(source.as_chunks::<2>().0) {
                 *target = match byte_order {
-                    ByteOrder::Little => u16::from_le_bytes(bytes),
-                    ByteOrder::Big => u16::from_be_bytes(bytes),
+                    ByteOrder::Little => u16::from_le_bytes(*bytes),
+                    ByteOrder::Big => u16::from_be_bytes(*bytes),
                 } & mask;
             }
         }
@@ -82,10 +81,8 @@ pub(crate) fn decode_unpacked_words(
     buffer_u16(request.width, request.height, output)
 }
 
-pub(crate) fn decode_striped_packed_12(
-    request: &DecodeRequest<'_>,
-) -> Result<SampleBuffer, CodecError> {
-    if request.width == 0 || request.width % 8 != 0 {
+pub fn decode_striped_packed_12(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
+    if request.width == 0 || !request.width.is_multiple_of(8) {
         return Err(invalid(
             "Nikon mode-5 rows require a non-zero width divisible by eight",
         ));
@@ -167,17 +164,15 @@ fn unpack_row(
 }
 
 fn unpack_word_stream(source: &[u8], target: &mut [u16]) -> Result<(), CodecError> {
-    let mut words = source.chunks_exact(4);
+    let mut words = source.as_chunks::<4>().0.iter();
     let mut buffer = 0_u64;
     let mut buffered = 0_u32;
     for value in target {
         while buffered < 12 {
-            let bytes: [u8; 4] = words
+            let bytes = words
                 .next()
-                .ok_or_else(|| invalid("Nikon mode-5 row is truncated"))?
-                .try_into()
-                .expect("chunks_exact produced four bytes");
-            let word = u32::from_le_bytes(bytes);
+                .ok_or_else(|| invalid("Nikon mode-5 row is truncated"))?;
+            let word = u32::from_le_bytes(*bytes);
             buffer = (buffer << 32) | u64::from(word);
             buffered += 32;
         }

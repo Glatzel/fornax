@@ -232,7 +232,7 @@ fn maps_crop_black_cfa_white_and_odd_origin_phase() {
         12,
         8,
         4,
-        &vec![0_u8; 48],
+        &[0_u8; 48],
         &[
             (
                 0x0045,
@@ -527,7 +527,7 @@ impl TiffFixture {
     fn data(&mut self, data: &[u8]) -> u32 {
         let offset = self.bytes.len() as u32;
         self.bytes.extend_from_slice(data);
-        if self.bytes.len() % 2 != 0 {
+        if !self.bytes.len().is_multiple_of(2) {
             self.bytes.push(0);
         }
         offset

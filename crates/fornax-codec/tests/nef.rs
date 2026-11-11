@@ -75,7 +75,7 @@ fn packed_14_little_endian_preserves_padded_row_stride() {
     ];
     let packed = pack(&expected, 14, ByteOrder::Little);
     let mut source = Vec::new();
-    for row in packed.chunks_exact(7) {
+    for row in packed.as_chunks::<7>().0 {
         source.extend_from_slice(row);
         source.extend_from_slice(&[0xaa, 0xbb]);
     }

@@ -56,23 +56,20 @@ pub struct ProcessMetadata {
 }
 
 /// Origin of one normalized metadata decision.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum MetadataSource {
     /// A file or maker-note tag, optionally with a maker-note version.
     Tag { tag: u16, version: Option<u16> },
     /// A deterministic value derived from another file value.
     Derived(&'static str),
     /// A documented decoder fallback.
+    #[default]
     Default,
     /// Metadata was unavailable, with the reason retained for diagnostics.
     Unavailable {
         tag: Option<u16>,
         reason: &'static str,
     },
-}
-
-impl Default for MetadataSource {
-    fn default() -> Self { Self::Default }
 }
 
 impl IPostProcessMetadata for ProcessMetadata {

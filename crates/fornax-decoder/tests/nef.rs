@@ -29,15 +29,7 @@ fn nikon_nrw_stays_on_the_sony_route() {
         std::process::id()
     ));
     let mut output = Cursor::new(Vec::new());
-    {
-        let mut writer = TiffWriter::new(&mut output).unwrap();
-        writer
-            .finish([(
-                fornax_tiff::Tag::from(fornax_tiff::constants::TiffTag::Make),
-                fornax_tiff::Value::Ascii("NIKON CORPORATION".into()),
-            )])
-            .unwrap();
-    }
+    write_nikon_tiff(&mut output);
     std::fs::write(&path, output.into_inner()).unwrap();
     let error = Decoder::decode(&path).unwrap_err();
     std::fs::remove_file(path).unwrap();
@@ -46,4 +38,14 @@ fn nikon_nrw_stays_on_the_sony_route() {
         error.to_string().contains("not a Sony image"),
         "expected Sony route rejection, got {error:?}"
     );
+}
+
+fn write_nikon_tiff(output: &mut Cursor<Vec<u8>>) {
+    let mut writer = TiffWriter::new(output).unwrap();
+    writer
+        .finish([(
+            fornax_tiff::Tag::from(fornax_tiff::constants::TiffTag::Make),
+            fornax_tiff::Value::Ascii("NIKON CORPORATION".into()),
+        )])
+        .unwrap();
 }

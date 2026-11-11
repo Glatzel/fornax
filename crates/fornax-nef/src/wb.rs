@@ -7,9 +7,7 @@ const WB1: Tag = Tag(0x0097);
 const SERIAL: Tag = Tag(0x001d);
 const KEY: Tag = Tag(0x00a7);
 
-pub(crate) fn neutral(
-    directory: &Directory,
-) -> Result<(Option<[f64; 3]>, MetadataSource), DecodeError> {
+pub fn neutral(directory: &Directory) -> Result<(Option<[f64; 3]>, MetadataSource), DecodeError> {
     if let Some(value) = directory.get(&WB0) {
         let gains = rationals(value)?;
         if gains.len() < 4 {
@@ -49,7 +47,7 @@ pub(crate) fn neutral(
                 be_u16(&data, 22)?,
                 be_u16(&data, 24)?,
             ],
-            0x0204 | 0x0205 | 0x0206 => {
+            0x0204..=0x0206 => {
                 let Some((serial, key)) = decryption_inputs(directory)? else {
                     return Ok((
                         None,
@@ -136,12 +134,10 @@ fn decrypt(encrypted: &[u8], serial: &[u8], key: u32) -> Vec<u8> {
     let key_number = key_bytes.into_iter().fold(0_u8, |value, byte| value ^ byte) as usize;
     let ci = u32::from(WB_SERIALMAP[serial_number & 0xff]);
     let mut cj = u32::from(WB_KEYMAP[key_number & 0xff]);
-    let mut ck = 0x60_u32;
-    encrypted
-        .iter()
-        .map(|byte| {
+    (0x60_u32..)
+        .zip(encrypted)
+        .map(|(ck, byte)| {
             cj = cj.wrapping_add(ci.wrapping_mul(ck));
-            ck = ck.wrapping_add(1);
             byte ^ cj as u8
         })
         .collect()
@@ -200,7 +196,7 @@ fn bytes(value: &Value) -> Option<Vec<u8>> {
 
 fn invalid(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInput(detail.into()) }
 
-pub(crate) const WB_SERIALMAP: [u8; 256] = [
+pub const WB_SERIALMAP: [u8; 256] = [
     0xc1, 0xbf, 0x6d, 0x0d, 0x59, 0xc5, 0x13, 0x9d, 0x83, 0x61, 0x6b, 0x4f, 0xc7, 0x7f, 0x3d, 0x3d,
     0x53, 0x59, 0xe3, 0xc7, 0xe9, 0x2f, 0x95, 0xa7, 0x95, 0x1f, 0xdf, 0x7f, 0x2b, 0x29, 0xc7, 0x0d,
     0xdf, 0x07, 0xef, 0x71, 0x89, 0x3d, 0x13, 0x3d, 0x3b, 0x13, 0xfb, 0x0d, 0x89, 0xc1, 0x65, 0x1f,
@@ -219,7 +215,7 @@ pub(crate) const WB_SERIALMAP: [u8; 256] = [
     0xc5, 0xb5, 0x8b, 0xef, 0x2f, 0xd3, 0x07, 0x6b, 0x25, 0x49, 0x95, 0x25, 0x49, 0x6d, 0x71, 0xc7,
 ];
 
-pub(crate) const WB_KEYMAP: [u8; 256] = [
+pub const WB_KEYMAP: [u8; 256] = [
     0xa7, 0xbc, 0xc9, 0xad, 0x91, 0xdf, 0x85, 0xe5, 0xd4, 0x78, 0xd5, 0x17, 0x46, 0x7c, 0x29, 0x4c,
     0x4d, 0x03, 0xe9, 0x25, 0x68, 0x11, 0x86, 0xb3, 0xbd, 0xf7, 0x6f, 0x61, 0x22, 0xa2, 0x26, 0x34,
     0x2a, 0xbe, 0x1e, 0x46, 0x14, 0x68, 0x9d, 0x44, 0x18, 0xc2, 0x40, 0xf4, 0x7e, 0x5f, 0x1b, 0xad,
@@ -390,10 +386,8 @@ mod tests {
         let key_number = key_bytes.into_iter().fold(0_u8, |value, byte| value ^ byte) as usize;
         let ci = crate::wb::WB_SERIALMAP[serialmap & 0xff] as u32;
         let mut cj = crate::wb::WB_KEYMAP[key_number & 0xff] as u32;
-        let mut ck = 0x60_u32;
-        for byte in data {
+        for (ck, byte) in (0x60_u32..).zip(data.iter_mut()) {
             cj += ci * ck;
-            ck += 1;
             *byte ^= cj as u8;
         }
     }

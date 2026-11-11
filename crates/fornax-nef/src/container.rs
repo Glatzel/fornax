@@ -9,7 +9,7 @@ use fornax_tiff::{
 use crate::makernote::MakerNote;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum LayoutKind {
+pub enum LayoutKind {
     Packed {
         row_stride: usize,
         bits: u8,
@@ -23,7 +23,7 @@ pub(crate) enum LayoutKind {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct RawLayout {
+pub struct RawLayout {
     pub width: usize,
     pub height: usize,
     pub rows_per_strip: usize,
@@ -32,10 +32,7 @@ pub(crate) struct RawLayout {
 }
 
 impl RawLayout {
-    pub(crate) fn parse(
-        parsed: &ParsedTiff,
-        maker: &MakerNote,
-    ) -> Result<(usize, Self), DecodeError> {
+    pub fn parse(parsed: &ParsedTiff, maker: &MakerNote) -> Result<(usize, Self), DecodeError> {
         let (raw_ifd, raw) = select_raw_ifd(parsed)?;
         let width = required_usize(raw, TiffTag::ImageWidth)?;
         let height = required_usize(raw, TiffTag::ImageLength)?;
@@ -112,7 +109,7 @@ impl RawLayout {
     }
 }
 
-pub(crate) fn validate_make(parsed: &ParsedTiff) -> Result<(), DecodeError> {
+pub fn validate_make(parsed: &ParsedTiff) -> Result<(), DecodeError> {
     let make = parsed
         .root
         .get(&Tag::from(TiffTag::Make))
@@ -185,7 +182,6 @@ fn validate_cfa(raw: &Directory) -> Result<(), DecodeError> {
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
 fn dispatch(
     compression: u16,
     mode: Option<u16>,
@@ -230,7 +226,7 @@ fn dispatch(
     let mode =
         mode.ok_or_else(|| unsupported("Nikon compression 34713 has no 0x0093/0x0051 mode"))?;
     let packed = |required_padding_zero: bool| {
-        if total_bytes % height != 0 {
+        if !total_bytes.is_multiple_of(height) {
             return Err(unsupported(
                 "Nikon packed byte count is not divisible by image height",
             ));
@@ -262,7 +258,8 @@ fn dispatch(
     match mode {
         2 => {
             let word_layout = total_bytes == word_bytes;
-            let padded_layout = total_bytes % height == 0 && total_bytes / height >= packed_row;
+            let padded_layout =
+                total_bytes.is_multiple_of(height) && total_bytes / height >= packed_row;
             match (word_layout, padded_layout) {
                 (true, false) => words(),
                 (false, true) => packed(false),
@@ -271,7 +268,7 @@ fn dispatch(
                 ))),
             }
         }
-        5 if bits == 12 && width % 8 == 0 => Ok(LayoutKind::StripedPacked12),
+        5 if bits == 12 && width.is_multiple_of(8) => Ok(LayoutKind::StripedPacked12),
         5 => Err(unsupported(
             "Nikon mode 5 requires 12-bit rows with width divisible by eight",
         )),

@@ -12,13 +12,13 @@ const CROP_AREA: Tag = Tag(0x0045);
 const BLACK_LEVEL: Tag = Tag(0x003d);
 
 #[derive(Clone, Debug)]
-pub(crate) struct MappedMetadata {
+pub struct MappedMetadata {
     pub directory: Directory,
     pub wb_source: MetadataSource,
     pub black_source: MetadataSource,
 }
 
-pub(crate) fn map(
+pub fn map(
     parsed: &ParsedTiff,
     raw_ifd: usize,
     layout: &RawLayout,
@@ -145,7 +145,7 @@ pub(crate) fn map(
     })
 }
 
-pub(crate) fn process(
+pub fn process(
     metadata: &MappedMetadata,
     width: u32,
     height: u32,

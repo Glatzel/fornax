@@ -6,13 +6,13 @@ const NEF_COMPRESSION_OLD: Tag = Tag(0x0093);
 const NEF_COMPRESSION_NEW: Tag = Tag(0x0051);
 
 #[derive(Clone, Debug)]
-pub(crate) struct MakerNote {
+pub struct MakerNote {
     directory: Directory,
     byte_order: ByteOrder,
 }
 
 impl MakerNote {
-    pub(crate) fn parse(parsed: &ParsedTiff) -> Result<Self, DecodeError> {
+    pub fn parse(parsed: &ParsedTiff) -> Result<Self, DecodeError> {
         let byte_order = file_byte_order(&parsed.source)?;
         let exif_offset = unsigned_scalar(parsed.root.get(&Tag::from(TiffTag::ExifIfdPointer)))
             .ok_or_else(|| invalid("NEF root IFD has no valid ExifIFDPointer"))?;
@@ -46,11 +46,11 @@ impl MakerNote {
         })
     }
 
-    pub(crate) const fn byte_order(&self) -> ByteOrder { self.byte_order }
+    pub const fn byte_order(&self) -> ByteOrder { self.byte_order }
 
-    pub(crate) const fn directory(&self) -> &Directory { &self.directory }
+    pub const fn directory(&self) -> &Directory { &self.directory }
 
-    pub(crate) fn compression(&self) -> Result<Option<u16>, DecodeError> {
+    pub fn compression(&self) -> Result<Option<u16>, DecodeError> {
         let old = unsigned_scalar(self.directory.get(&NEF_COMPRESSION_OLD))
             .map(u16::try_from)
             .transpose()
