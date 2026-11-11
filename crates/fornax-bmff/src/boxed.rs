@@ -8,14 +8,10 @@ pub struct FourCc([u8; 4]);
 
 impl FourCc {
     /// Creates a four-character-code from its four bytes.
-    pub const fn new(bytes: [u8; 4]) -> Self {
-        Self(bytes)
-    }
+    pub const fn new(bytes: [u8; 4]) -> Self { Self(bytes) }
 
     /// Returns the underlying bytes.
-    pub const fn as_bytes(self) -> [u8; 4] {
-        self.0
-    }
+    pub const fn as_bytes(self) -> [u8; 4] { self.0 }
 }
 
 impl fmt::Display for FourCc {
@@ -57,39 +53,25 @@ pub struct BoxHeader {
 
 impl BoxHeader {
     /// Returns the byte offset of the box header.
-    pub const fn offset(self) -> u64 {
-        self.offset
-    }
+    pub const fn offset(self) -> u64 { self.offset }
 
     /// Returns the complete box size including its header.
-    pub const fn size(self) -> u64 {
-        self.size
-    }
+    pub const fn size(self) -> u64 { self.size }
 
     /// Returns the header size, including extended size and UUID fields.
-    pub const fn header_size(self) -> u64 {
-        self.header_size
-    }
+    pub const fn header_size(self) -> u64 { self.header_size }
 
     /// Returns the box type.
-    pub const fn typ(self) -> FourCc {
-        self.typ
-    }
+    pub const fn typ(self) -> FourCc { self.typ }
 
     /// Returns the UUID when `typ` is `uuid`.
-    pub const fn uuid(self) -> Option<[u8; 16]> {
-        self.uuid
-    }
+    pub const fn uuid(self) -> Option<[u8; 16]> { self.uuid }
 
     /// Returns the exclusive end offset.
-    pub const fn end(self) -> u64 {
-        self.offset + self.size
-    }
+    pub const fn end(self) -> u64 { self.offset + self.size }
 
     /// Returns the payload byte offset.
-    pub const fn payload_offset(self) -> u64 {
-        self.offset + self.header_size
-    }
+    pub const fn payload_offset(self) -> u64 { self.offset + self.header_size }
 }
 
 /// A box header and borrowed payload.
@@ -101,31 +83,23 @@ pub struct BoxRef<'a> {
 
 impl<'a> BoxRef<'a> {
     /// Returns the box header.
-    pub const fn header(self) -> BoxHeader {
-        self.header
-    }
+    pub const fn header(self) -> BoxHeader { self.header }
 
     /// Returns the box type.
-    pub const fn typ(self) -> FourCc {
-        self.header.typ
-    }
+    pub const fn typ(self) -> FourCc { self.header.typ }
 
     /// Returns the UUID bytes when this is a UUID box.
-    pub const fn uuid(self) -> Option<[u8; 16]> {
-        self.header.uuid
-    }
+    pub const fn uuid(self) -> Option<[u8; 16]> { self.header.uuid }
 
     /// Returns the payload after all headers.
-    pub const fn payload(self) -> &'a [u8] {
-        self.payload
-    }
+    pub const fn payload(self) -> &'a [u8] { self.payload }
 
     /// Parses the payload as a FullBox version and flags.
     ///
     /// # Errors
     ///
-    /// Returns [`BmffError::InvalidInput`] when the payload is shorter than four
-    /// bytes.
+    /// Returns [`BmffError::InvalidInput`] when the payload is shorter than
+    /// four bytes.
     pub fn full_box(self) -> Result<(u8, u32), BmffError> {
         let bytes = self
             .payload
@@ -180,14 +154,10 @@ impl<'a> Bmff<'a> {
     }
 
     /// Returns the complete source bytes.
-    pub const fn source(&self) -> &'a [u8] {
-        self.source
-    }
+    pub const fn source(&self) -> &'a [u8] { self.source }
 
     /// Returns the parsed top-level boxes.
-    pub fn boxes(&self) -> &[BoxRef<'a>] {
-        &self.boxes
-    }
+    pub fn boxes(&self) -> &[BoxRef<'a>] { &self.boxes }
 
     /// Finds the first box matching a top-down path.
     ///

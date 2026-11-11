@@ -20,6 +20,9 @@ fn main() -> ExitCode {
     }
     print!("{}", render_csv(&rows));
     let (lossless, other) = summarize(&rows);
-    eprintln!("lossless={lossless} unsupported={other} total={}", rows.len());
+    eprintln!(
+        "lossless={lossless} unsupported={other} total={}",
+        rows.len()
+    );
     ExitCode::SUCCESS
 }

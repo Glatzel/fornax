@@ -162,16 +162,14 @@ impl SampleTable {
     }
 
     /// Returns the number of samples.
-    pub const fn sample_count(&self) -> u32 {
-        self.sample_count
-    }
+    pub const fn sample_count(&self) -> u32 { self.sample_count }
 
     /// Resolves a zero-based sample index to a bounded source byte range.
     ///
     /// # Errors
     ///
-    /// Returns [`BmffError::InvalidInput`] when the index is out of range or the
-    /// resolved sample extends beyond `source_len`.
+    /// Returns [`BmffError::InvalidInput`] when the index is out of range or
+    /// the resolved sample extends beyond `source_len`.
     pub fn sample(&self, index: usize, source_len: usize) -> Result<Sample, BmffError> {
         let index = u64::try_from(index).map_err(|_| invalid("sample index exceeds u64"))?;
         if index >= u64::from(self.sample_count) {

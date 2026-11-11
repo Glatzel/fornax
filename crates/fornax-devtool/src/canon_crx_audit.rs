@@ -51,8 +51,7 @@ impl Cmp1Audit {
         let bit_depth = payload[24];
         let planes_cfa = payload[25];
         let encoding_levels = payload[26];
-        let mdat_header_size =
-            u32::from_be_bytes(payload[28..32].try_into().unwrap());
+        let mdat_header_size = u32::from_be_bytes(payload[28..32].try_into().unwrap());
         Ok(Self {
             version,
             width,
@@ -233,9 +232,8 @@ fn walk_boxes(
             .payload()
             .get(skip..)
             .ok_or_else(|| format!("{} payload is shorter than {skip} bytes", item.typ()))?;
-        let child = Bmff::parse(payload).map_err(|error| {
-            format!("parsing {} children: {error}", item.typ())
-        })?;
+        let child = Bmff::parse(payload)
+            .map_err(|error| format!("parsing {} children: {error}", item.typ()))?;
         walk_boxes(&child, depth + 1, visitor)?;
     }
     Ok(())
