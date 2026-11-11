@@ -64,7 +64,7 @@ jobs:
               ;;
           esac
 
-          runner_count=$(( (selected + 9) / 10 ))
+          runner_count=$(( (selected + 19) / 20 ))
           if ((runner_count < 1)); then
             runner_count=1
           elif ((runner_count > 20)); then
