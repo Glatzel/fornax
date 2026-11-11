@@ -31,7 +31,7 @@ where
     CodecError::InvalidInput(detail.into())
 }
 
-#[cfg(any(feature = "arw", feature = "nef"))]
+#[cfg(any(feature = "arw", feature = "nef", feature = "raf"))]
 pub fn unsupported<T>(detail: T) -> CodecError
 where
     T: Into<Box<str>>,

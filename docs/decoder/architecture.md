@@ -4,7 +4,8 @@
 
 The default production decoder is the pure-Rust implementation in
 `fornax-decoder`. It dispatches DNG containers to `fornax-dng`, Sony ARW/NRW
-containers to `fornax-arw`, and Nikon NEF containers to `fornax-nef`.
+containers to `fornax-arw`, Nikon NEF containers to `fornax-nef`, and Fujifilm
+RAF containers to `fornax-raf`.
 `fornax-raw-core` owns the shared decoder protocol and pipeline types but no
 decoder implementation.
 
@@ -28,7 +29,7 @@ pipeline input.
 | 1 | 2 | [Canon CR3](formats/canon-cr3.md) | Planned |
 | 1 | 3 | [Sony ARW](formats/sony-arw.md) | Implemented for uncompressed, ARW1, ARW2, ARW6, and tiled LJPEG |
 | 1 | 4 | [Nikon NEF](formats/nikon-nef.md) | Partially implemented for standard uncompressed/packed modes |
-| 2 | 5 | [Fujifilm RAF](formats/fuji-raf.md) | Planned |
+| 2 | 5 | [Fujifilm RAF](formats/fuji-raf.md) | Implemented for uncompressed and block-lossless Bayer/X-Trans |
 | 2 | 6 | [Hasselblad 3FR](formats/hasselblad-3fr.md) | Planned |
 | 2 | 7 | [Panasonic RW2](formats/panasonic-rw2.md) | Planned |
 | 2 | 8 | [Phase One IIQ](formats/phase-one-iiq.md) | Planned |
@@ -72,12 +73,13 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-raw-core/src/primitive.rs` | `RawMosaic`, `CroppedMosaic`, `NormalizedMosaic`, and image aliases |
 | `fornax-raw-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
 | `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
-| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony/Nikon codecs |
+| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony/Nikon/Fujifilm codecs |
 | `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
 | `fornax-dng/src/constants.rs` | DNG-owned compression and photometric interpretation values |
 | `fornax-arw/src` | Sony TIFF selection, private metadata, codec request construction, CFA layout mapping, and DNG metadata mapping |
 | `fornax-nef/src` | Nikon TIFF selection, type-2 maker notes, packed codec requests, metadata mapping, and Bayer handoff |
-| `fornax-decoder/src/lib.rs` | Default DNG, Sony ARW/NRW, and Nikon NEF dispatch and `IDecoder` implementation |
+| `fornax-raf/src` | RAF pointer/tag parsing, Fuji IFD selection, lossless codec requests, metadata mapping, and Bayer-only handoff |
+| `fornax-decoder/src/lib.rs` | Default DNG, Sony ARW/NRW, Nikon NEF, and Fujifilm RAF dispatch and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
 | `fornax-decoder-rawler/src/lib.rs` | Rawler decoding and metadata adaptation |
 | `fornax-dng/src/dng_decoder/mod.rs` | Raw IFD selection, DNG-to-codec request mapping, transforms, and active crop |
@@ -131,6 +133,30 @@ four-component LJPEG layout is transformed into its two Bayer output rows.
 Reduced-resolution YCbCr/`LinearRaw`, multi-sample ARQ, unknown compression,
 and non-Bayer CFA layouts remain outside the Bayer handoff.
 
+## Fujifilm RAF data flow
+
+```text
+RAF bytes
+  -> header pointer blocks
+  -> type-less RAF tag table
+  -> embedded Fuji TIFF/IFD
+  -> full-resolution Bayer/X-Trans CFA
+  -> packed, word, or Fujifilm-lossless decode
+  -> RawMosaic
+  -> mapped DNG directory
+  -> CroppedMosaic<T> for 2x2 Bayer only
+```
+
+Uncompressed 12-bit packed and 14/16-bit word storage are supported alongside
+Fujifilm 12/14/16-bit block-lossless compression. Explicit GFX profiles supply
+2x2 RGGB and active-area borders. X-Trans is derived from the 36-plane RAF tag
+and remains available through raw mosaic and DNG export. Its process metadata
+and cropped mosaic accessors return a typed unsupported-CFA error.
+
+Lossy block compression, SuperCCD rotation/staggering, FinePix DBP, unknown
+Bayer models, and unknown compression families remain outside the implemented
+tier.
+
 ## Metadata and validation
 
 The DNG decoder preserves supported values in a `fornax_tiff::Directory`, the
@@ -149,6 +175,10 @@ Validation covers:
 - black-level repeat shape and level values;
 - `CFARepeatPatternDim`, `CFAPlaneColor`, `CFALayout`, and `CFAPattern`;
 - conventional 2x2 RGB Bayer conversion.
+
+X-Trans metadata preserves a 6x6 `CFARepeatPatternDim` and all 36
+`CFAPattern` entries through raw decoding and DNG writing. The RAF handoff
+rejects that layout before preprocessing rather than reducing it to Bayer.
 
 Unsupported sample layouts and malformed metadata return typed decode errors
 rather than panics. Unknown compression identifiers are invalid input, while a
@@ -210,11 +240,12 @@ references.
 ## Testing
 
 Unit tests cover TIFF read-overflow checks, private-IFD offset correction,
-lossless-JPEG component decoding, Sony packing and row transforms, Rawler tag
-conversion, and DNC argument construction. Benchmark changes should at minimum
-compile with `cargo bench -p fornax-decoder --no-run`. Fixture-backed DNG, Sony,
-Rawler, and DNC checks depend on the ignored external RAW fixtures and platform
-tools available in the development environment.
+lossless-JPEG component decoding, Sony packing and row transforms, Fujifilm
+packed/block-lossless decoding, Rawler tag conversion, and DNC argument
+construction. Benchmark changes should at minimum compile with
+`cargo bench -p fornax-decoder --no-run`. Fixture-backed DNG, Sony, Nikon,
+Fujifilm, Rawler, and DNC checks depend on the ignored external RAW fixtures and
+platform tools available in the development environment.
 
 `decoder-tracker` holds the manual full-corpus regression workflow. The
 raw.pixls.us submodule is checked out as pointer metadata only; selected LFS
@@ -223,10 +254,11 @@ committed.
 
 ## Migration
 
-The decoder migration is complete for the current DNG and Sony ARW/NRW stages:
+The decoder migration is complete for the current DNG, Sony ARW/NRW, Nikon NEF,
+and Fujifilm RAF stages:
 
-1. `fornax-decoder::Decoder` is the default pure-Rust DNG and Sony ARW/NRW
-   decoder facade.
+1. `fornax-decoder::Decoder` is the default pure-Rust DNG, Sony ARW/NRW,
+   Nikon NEF, and Fujifilm RAF facade.
 2. Rawler and Adobe DNG Converter adapters are separate workspace crates.
 3. `fornax-raw-core` contains shared interfaces and types, not decoder
    implementations.

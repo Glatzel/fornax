@@ -6,9 +6,10 @@ Format-neutral raw sample codecs for Fornax decoder implementations.
 lossless and lossy JPEG, JPEG XL, LZW, PackBits, Deflate, and optional
 Zstandard handling. It also provides reusable canonical Huffman and MSB-first
 bit-reading primitives. The non-default `arw` feature owns Sony ARW1, ARW2,
-ARW6, and lossless-JPEG tile decoding, while `nef` owns Nikon mode-3 lossless
-Huffman decoding. It returns `SampleBuffer` values and has no dependency on
-TIFF, DNG, or raw workflow types. TIFF compression identifiers belong to
+ARW6, and lossless-JPEG tile decoding, `nef` owns Nikon mode-3 lossless
+Huffman decoding, and `raf` owns Fujifilm packed and block-lossless decoding.
+It returns `SampleBuffer` values and has no dependency on TIFF, DNG, or raw
+workflow types. TIFF compression identifiers belong to
 [`fornax-tiff`](../fornax-tiff/README.md), while
 [`fornax-dng`](../fornax-dng/README.md) translates container metadata into
 codec requests.
@@ -43,6 +44,7 @@ format crates.
 | Zstandard (`50000`, experimental) | Integer and float payloads | Integer and float tiles |
 | Sony ARW (`arw` feature) | ARW1/ARW2/ARW6 and tiled LJPEG to one U16 mosaic | No |
 | Nikon NEF (`nef` feature) | Mode-3 12/14-bit lossless Huffman | No |
+| Fujifilm RAF (`raf` feature) | 12-bit packed and Fujifilm 12/14/16-bit block lossless | No |
 
 Unknown TIFF compression identifiers are reported as unsupported.
 
@@ -82,11 +84,15 @@ Codec implementations are independently feature-gated.
 | `lzw` | TIFF LZW | TIFF 6.0 and `weezl` |
 | `nef` | Nikon mode-3 lossless Huffman | Numeric 12/14-bit lossless trees with Rawler/LibRaw behavioral references; no implementation source is adapted |
 | `packbits` | TIFF PackBits | TIFF 6.0, independently implemented |
+| `raf` | Fujifilm packed and block-lossless CFA samples | Rawler/LibRaw behavioral references; independently implemented |
 | `zstd` | Zstandard integer/float payloads | Zstandard framing and `zstd` |
 
 The `arw`, `deflate`, `jpegxl`, `lossless-jpeg`, `lossy-jpeg`, `lzw`, `nef`,
-`packbits`, and `zstd` features enable their matching dispatch variants.
+`packbits`, `raf`, and `zstd` features enable their matching dispatch variants.
 The default feature set includes `lzw` and `packbits`, the standard TIFF
 compression pair implemented here; disable defaults to omit them.
 Format crates distinguish an implemented codec whose feature is disabled from
 a documented compression ID with no Fornax implementation.
+
+Fujifilm's behavior and reference licenses are recorded in
+[Fujifilm RAF references](../../docs/references/fuji-raf.md).

@@ -18,11 +18,12 @@ part of the current preprocessor/demosaic handoff.
 | --- | --- | --- |
 | `fornax-raw-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, raster strip/tile planning, classic/BigTIFF parsing, and classic-TIFF writing. | `fornax-codec` |
-| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony and Nikon codecs. | None |
+| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony, Nikon, and Fujifilm codecs. | None |
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-raw-core`, `fornax-tiff`, `fornax-codec` |
 | `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA layout mapping, and DNG-compatible metadata mapping. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-nef` | Native Nikon NEF TIFF/maker-note parsing, standard packed CFA layouts, metadata mapping, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-decoder` | Default pure-Rust DNG, Sony ARW/NRW, and Nikon NEF decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-arw`, `fornax-nef` |
+| `fornax-raf` | Native Fujifilm RAF parsing, lossless Bayer/X-Trans decoding, metadata mapping, and DNG preservation. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
+| `fornax-decoder` | Default pure-Rust DNG, Sony ARW/NRW, Nikon NEF, and Fujifilm RAF decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-arw`, `fornax-nef`, `fornax-raf` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-raw-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-raw-core`, `fornax-decoder-rawler` |
 | `fornax-raw-pipeline` | Black/white normalization, demosaic protocol and algorithms, RGB reconstruction, and color processing. | `fornax-raw-core` |
@@ -69,7 +70,8 @@ coefficients.
 The default implementation is `fornax_decoder::Decoder`. The facade exports it
 as `fornax_raw::Decoder`; it dispatches DNG containers to `fornax-dng`, Sony
 ARW/NRW containers to `fornax-arw`, and Nikon NEF containers to
-`fornax-nef`. `fornax_raw_core` contains no decoder implementation.
+`fornax-nef`, and Fujifilm RAF containers to `fornax-raf`.
+`fornax_raw_core` contains no decoder implementation.
 
 ## Codec API
 
@@ -94,6 +96,10 @@ white levels needed by the Sony format layer.
 The non-default `nef` feature adds Nikon packed-row, unpacked-word, and
 mode-5 striped packed decoding. `fornax-nef` enables this feature for its
 vendor codec request.
+
+The non-default `raf` feature adds Fujifilm direct-packed and block-lossless
+decoding. `FujiCfa` selects the 2x2 or 6x6 CFA placement used when decoded
+six-line buffers are written to the output mosaic.
 
 `fornax-tiff::CompressionMethod` remains the typed TIFF field value.
 `fornax_tiff::RasterLayout` owns strip/tile geometry and chunk ordering, while
@@ -200,6 +206,21 @@ Reduced-resolution YCbCr/`LinearRaw` images, multi-sample ARQ files, unknown
 compression families, and non-Bayer CFAs return typed unsupported errors.
 Camera-specific color matrices are not synthesized when the source container
 does not provide them.
+
+## Fujifilm RAF support
+
+`fornax-raf` parses the RAF preview, proprietary tag, and Fuji TIFF pointers;
+the type-less RAF tag table; and the embedded Fuji IFD. It supports
+uncompressed 12-bit packed and 14/16-bit word samples plus Fujifilm 12/14/16-bit
+block-lossless compression.
+
+Standard 2x2 GFX Bayer files use explicit camera profiles for CFA and sensor
+active-area borders. X-Trans layouts use the 36-plane RAF tag and remain a
+general 6x6 CFA through `raw_mosaic` and DNG writing. The shared
+`process_metadata` and `cropped_mosaic` boundary rejects X-Trans with a typed
+unsupported error, so X-Trans never reaches preprocessing or demosaicing.
+Lossy RAF, SuperCCD rotation/staggering, FinePix DBP, unknown Bayer models, and
+unknown compression families are also rejected with typed unsupported errors.
 
 ## Benchmarks and comparisons
 

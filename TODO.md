@@ -2,7 +2,6 @@
 
 - decoder
   - [DEC-CR3] Implement Canon CR3/CRM BMFF parsing and CRX decoding. Plan: `docs/decoder/formats/canon-cr3.md`.
-  - [DEC-RAF] Implement supported Fujifilm RAF decoding and X-Trans-preserving DNG export. Plan: `docs/decoder/formats/fuji-raf.md`.
   - [DEC-3FR] Implement supported Hasselblad 3FR decoding and DNG export. Plan: `docs/decoder/formats/hasselblad-3fr.md`.
   - [DEC-RW2] Implement supported Panasonic RW2 variants and metadata mapping. Plan: `docs/decoder/formats/panasonic-rw2.md`.
   - [DEC-IIQ] Implement supported Phase One/Leaf IIQ modes and sensor-correction handling. Plan: `docs/decoder/formats/phase-one-iiq.md`.
