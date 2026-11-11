@@ -1,6 +1,8 @@
+use fornax_raw_core::RawMosaic;
 use fornax_raw_core::error::DecodeError;
 use fornax_tiff::{ByteOrder, Tag, Value};
 
+use crate::NefImage;
 use crate::makernote::MakerNote;
 
 #[test]
@@ -133,6 +135,94 @@ fn excessive_maker_entry_count_is_invalid_input_not_a_panic() {
     assert!(matches!(error, DecodeError::InvalidInput(_)));
 }
 
+#[test]
+fn mode_six_decodes_tightly_packed_twelve_bit_samples() {
+    let source = raw_fixture(Some(6), 34_713, 12, 2, 1, &[0x21, 0x43, 0x65]);
+    let image = NefImage::parse(&source).unwrap();
+    let raw = image.raw_mosaic().unwrap();
+    let RawMosaic::U16(raw) = raw else {
+        panic!("NEF returned non-u16 samples");
+    };
+
+    assert_eq!(raw.dimensions(), (2, 1));
+    assert_eq!(raw.as_raw(), &[0x321, 0x654]);
+}
+
+#[test]
+fn mode_ten_selects_unpacked_fourteen_bit_words_by_byte_count() {
+    let source = raw_fixture(Some(10), 34_713, 14, 2, 1, &[0x23, 0x01, 0x56, 0x04]);
+    let image = NefImage::parse(&source).unwrap();
+    let RawMosaic::U16(raw) = image.raw_mosaic().unwrap() else {
+        panic!("NEF returned non-u16 samples");
+    };
+
+    assert_eq!(raw.as_raw(), &[0x123, 0x456]);
+}
+
+#[test]
+fn tiff_uncompressed_fourteen_bit_words_are_accepted_without_maker_mode() {
+    let source = raw_fixture(None, 1, 14, 2, 1, &[0x23, 0x01, 0x56, 0x04]);
+    let image = NefImage::parse(&source).unwrap();
+    let RawMosaic::U16(raw) = image.raw_mosaic().unwrap() else {
+        panic!("NEF returned non-u16 samples");
+    };
+
+    assert_eq!(raw.as_raw(), &[0x123, 0x456]);
+}
+
+#[test]
+fn mode_five_decodes_striped_twelve_bit_words() {
+    let source = raw_fixture(
+        Some(5),
+        34_713,
+        12,
+        8,
+        1,
+        &[
+            0x21, 0x43, 0x65, 0x87, 0xba, 0xdc, 0xfe, 0x10, 0x32, 0x54, 0x76, 0x98,
+        ],
+    );
+    let image = NefImage::parse(&source).unwrap();
+    let RawMosaic::U16(raw) = image.raw_mosaic().unwrap() else {
+        panic!("NEF returned non-u16 samples");
+    };
+
+    assert_eq!(
+        raw.as_raw(),
+        &[
+            0x0876, 0x0543, 0x0211, 0x00fe, 0x0dcb, 0x0a98, 0x0765, 0x0432,
+        ]
+    );
+}
+
+#[test]
+fn deferred_huffman_and_he_modes_are_unsupported() {
+    for mode in [1, 3, 4, 8, 13, 14, 99] {
+        let source = raw_fixture(Some(mode), 34_713, 12, 2, 1, &[0; 3]);
+        let error = NefImage::parse(&source).unwrap_err();
+        assert!(
+            matches!(error, DecodeError::Unsupported(_)),
+            "mode {mode}: {error}"
+        );
+    }
+}
+
+#[test]
+fn tiff_and_maker_mode_conflicts_are_unsupported() {
+    let source = raw_fixture(Some(6), 1, 12, 2, 1, &[0; 4]);
+    let error = NefImage::parse(&source).unwrap_err();
+
+    assert!(matches!(error, DecodeError::Unsupported(_)));
+}
+
+#[test]
+fn preview_only_or_missing_cfa_contains_no_raw_ifd() {
+    let source = raw_fixture_without_cfa(Some(6), 34_713, 12, 2, 1, &[0x21, 0x43, 0x65]);
+    let error = NefImage::parse(&source).unwrap_err();
+
+    assert!(matches!(error, DecodeError::Unsupported(_)));
+}
+
 fn fixture(file_order: ByteOrder, maker_order: ByteOrder, entries: &[(u16, Value)]) -> Vec<u8> {
     fixture_with_maker_payload(file_order, maker_note(maker_order, entries))
 }
@@ -145,6 +235,82 @@ fn fixture_with_maker_payload(file_order: ByteOrder, maker_payload: Vec<u8>) -> 
     )]);
     builder.root(&[
         (0x010f, Value::Ascii("NIKON CORPORATION".into())),
+        (0x8769, Value::Unsigned(exif)),
+    ])
+}
+
+fn raw_fixture(
+    mode: Option<u16>,
+    compression: u16,
+    bits: u16,
+    width: u32,
+    height: u32,
+    pixels: &[u8],
+) -> Vec<u8> {
+    raw_fixture_inner(mode, compression, bits, width, height, pixels, true)
+}
+
+fn raw_fixture_without_cfa(
+    mode: Option<u16>,
+    compression: u16,
+    bits: u16,
+    width: u32,
+    height: u32,
+    pixels: &[u8],
+) -> Vec<u8> {
+    raw_fixture_inner(mode, compression, bits, width, height, pixels, false)
+}
+
+fn raw_fixture_inner(
+    mode: Option<u16>,
+    compression: u16,
+    bits: u16,
+    width: u32,
+    height: u32,
+    pixels: &[u8],
+    with_cfa: bool,
+) -> Vec<u8> {
+    let maker_entries = mode
+        .map(|mode| vec![(0x0093, Value::Short(mode))])
+        .unwrap_or_default();
+    let maker_payload = maker_note(ByteOrder::Little, &maker_entries);
+    let mut builder = TiffFixture::new(ByteOrder::Little);
+    let pixels_offset = builder.data(pixels);
+    let mut raw_entries = vec![
+        (0x00fe, Value::Unsigned(0)),
+        (0x0100, Value::Unsigned(width)),
+        (0x0101, Value::Unsigned(height)),
+        (0x0102, Value::Short(bits)),
+        (0x0103, Value::Short(compression)),
+        (0x0106, Value::Short(32_803)),
+        (0x0111, Value::Unsigned(pixels_offset)),
+        (0x0115, Value::Short(1)),
+        (0x0116, Value::Unsigned(height)),
+        (0x0117, Value::Unsigned(pixels.len() as u32)),
+    ];
+    if with_cfa {
+        raw_entries.extend([
+            (33_421, Value::List(vec![Value::Short(2), Value::Short(2)])),
+            (
+                33_422,
+                Value::List(vec![
+                    Value::Byte(0),
+                    Value::Byte(1),
+                    Value::Byte(1),
+                    Value::Byte(2),
+                ]),
+            ),
+        ]);
+    }
+    let raw_ifd = builder.ifd(&raw_entries);
+    let exif = builder.ifd(&[(
+        0x927c,
+        Value::List(maker_payload.into_iter().map(Value::Byte).collect()),
+    )]);
+    builder.root(&[
+        (0x010f, Value::Ascii("NIKON CORPORATION".into())),
+        (0x0110, Value::Ascii("NIKON D850".into())),
+        (0x014a, Value::Unsigned(raw_ifd)),
         (0x8769, Value::Unsigned(exif)),
     ])
 }
