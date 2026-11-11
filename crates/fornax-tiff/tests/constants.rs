@@ -59,6 +59,14 @@ fn compression_methods_do_not_claim_dng_owned_identifiers() {
 }
 
 #[test]
+fn exif_and_maker_note_tags_have_typed_names() {
+    assert_eq!(TiffTag::from(34_665), TiffTag::ExifIfdPointer);
+    assert_eq!(TiffTag::from(37_500), TiffTag::MakerNote);
+    assert_eq!(u16::from(TiffTag::ExifIfdPointer), 34_665);
+    assert_eq!(u16::from(TiffTag::MakerNote), 37_500);
+}
+
+#[test]
 fn photometric_values_preserve_tiff_ep_cfa_and_unknown_identifiers() {
     let values = [(PhotometricInterpretation::Cfa, 32_803)];
 

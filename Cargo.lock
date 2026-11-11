@@ -839,6 +839,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-nef"
+version = "0.0.17"
+dependencies = [
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rayon",
+]
+
+[[package]]
 name = "fornax-raw"
 version = "0.0.17"
 dependencies = [

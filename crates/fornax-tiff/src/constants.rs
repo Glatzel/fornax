@@ -34,6 +34,12 @@ pub enum TiffTag {
     Orientation = 274,
     /// `SamplesPerPixel`.
     SamplesPerPixel = 277,
+    // TIFF/EP Exif directory pointer.
+    /// `ExifIFDPointer`.
+    ExifIfdPointer = 34_665,
+    // TIFF/EP Exif tags retained by raw containers.
+    /// `MakerNote`.
+    MakerNote = 37_500,
     /// `RowsPerStrip`.
     RowsPerStrip = 278,
     /// `StripByteCounts`.
