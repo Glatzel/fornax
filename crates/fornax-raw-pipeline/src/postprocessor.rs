@@ -234,7 +234,8 @@ where
 #[cfg(test)]
 mod tests {
     use fornax_raw_core::metadata::{
-        ColorCalibration, Levels, LightSource, ProcessMetadata, RawColorMeta, RawProfile,
+        ColorCalibration, Levels, LightSource, MetadataSource, ProcessMetadata, RawColorMeta,
+        RawProfile,
     };
     use fornax_raw_core::{BayerPattern, MonoImage};
     use image::math::Rect;
@@ -265,6 +266,8 @@ mod tests {
             },
             bayer_pattern: BayerPattern::RGGB,
             color_calibration: ColorCalibration::new(color),
+            wb_source: MetadataSource::Default,
+            black_source: MetadataSource::Default,
         }
     }
 

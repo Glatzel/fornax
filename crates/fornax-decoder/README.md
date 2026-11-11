@@ -1,8 +1,9 @@
 # fornax-decoder
 
 Thin default decoder facade. DNG handling is implemented by `fornax-dng`;
-supported Sony ARW/NRW handling is implemented by `fornax-arw`. Generic TIFF
-parsing, shared codecs, DNG metadata conversion, and writing remain in their
+supported Sony ARW/NRW handling is implemented by `fornax-arw`; and supported
+Nikon NEF handling is implemented by `fornax-nef`. Generic TIFF parsing,
+shared codecs, DNG metadata conversion, and writing remain in their
 format-neutral or DNG-specific crates.
 
 ```rust

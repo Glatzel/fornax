@@ -2,6 +2,11 @@
 
 **Tier:** 1
 
+**Status:** Partially implemented for standard uncompressed/packed modes `2`,
+`5`, `6`, `7`, `9`, and `10`. Huffman lossless/lossy modes, HE/HE*, small raw,
+reduced-linear output, Coolpix-specific layouts, and headerless maker notes
+remain unsupported.
+
 ## Container structure
 
 NEF is a TIFF container with EXIF and Nikon maker-note IFDs. The raw image is
@@ -27,10 +32,9 @@ Known Nikon compression modes are:
 | `10` | Packed 14-bit. |
 | `13`, `14` | High Efficiency / HE*. |
 
-Initial support targets modes `2`, `3`, `5`, `6`, `7`, `9`, and `10`, plus
-lossy modes whose sample interpretation is stable. HE/HE* compressed variants
-return `DecodeError::UnsupportedVariant` until a separate implementation and
-corpus gate exist.
+The implemented first slice covers modes `2`, `5`, `6`, `7`, `9`, and `10`.
+Huffman modes `1`, `3`, and `4`; small raw mode `8`; and HE/HE* modes `13` and
+`14` return `DecodeError::Unsupported`.
 
 ## Metadata to DNG tags
 

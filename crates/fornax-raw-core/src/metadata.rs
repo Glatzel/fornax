@@ -47,6 +47,29 @@ pub struct ProcessMetadata {
     /// Normalized color calibration: white balance, per-illuminant profiles
     /// and the camera -> XYZ D50 transform.
     pub color_calibration: ColorCalibration,
+
+    /// Source of the selected as-shot white balance.
+    pub wb_source: MetadataSource,
+
+    /// Source of the black-level metadata.
+    pub black_source: MetadataSource,
+}
+
+/// Origin of one normalized metadata decision.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum MetadataSource {
+    /// A file or maker-note tag, optionally with a maker-note version.
+    Tag { tag: u16, version: Option<u16> },
+    /// A deterministic value derived from another file value.
+    Derived(&'static str),
+    /// A documented decoder fallback.
+    #[default]
+    Default,
+    /// Metadata was unavailable, with the reason retained for diagnostics.
+    Unavailable {
+        tag: Option<u16>,
+        reason: &'static str,
+    },
 }
 
 impl IPostProcessMetadata for ProcessMetadata {

@@ -1,7 +1,9 @@
 use std::fs;
 
 use fornax_dng::Directory;
-use fornax_raw_core::metadata::{ColorCalibration, Levels, ProcessMetadata, RawColorMeta};
+use fornax_raw_core::metadata::{
+    ColorCalibration, Levels, MetadataSource, ProcessMetadata, RawColorMeta,
+};
 use fornax_raw_core::{BayerPattern, MonoImage};
 use fornax_tiff::Value;
 use image::math::Rect;
@@ -88,6 +90,8 @@ fn process_metadata(pattern: BayerPattern) -> ProcessMetadata {
         },
         bayer_pattern: pattern,
         color_calibration: ColorCalibration::new(RawColorMeta::default()),
+        wb_source: MetadataSource::Default,
+        black_source: MetadataSource::Default,
     }
 }
 

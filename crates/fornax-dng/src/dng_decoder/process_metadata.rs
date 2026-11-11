@@ -1,6 +1,7 @@
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{
-    ColorCalibration, Levels, LightSource, Matrix3x3, ProcessMetadata, RawColorMeta, RawProfile,
+    ColorCalibration, Levels, LightSource, Matrix3x3, MetadataSource, ProcessMetadata,
+    RawColorMeta, RawProfile,
 };
 use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use fornax_tiff::constants::TiffTag;
@@ -34,6 +35,27 @@ pub fn process_metadata_from_dng_metadata(
     let bayer_pattern = bayer_pattern(dng_metadata, active_area)?;
 
     let color_calibration = ColorCalibration::new(raw_color_metadata(dng_metadata)?);
+    let wb_source = if dng_metadata.contains_key(&Tag::from(DngTag::AsShotNeutral)) {
+        MetadataSource::Tag {
+            tag: u16::from(DngTag::AsShotNeutral),
+            version: None,
+        }
+    } else if dng_metadata.contains_key(&Tag::from(DngTag::AsShotWhiteXY)) {
+        MetadataSource::Tag {
+            tag: u16::from(DngTag::AsShotWhiteXY),
+            version: None,
+        }
+    } else {
+        MetadataSource::Default
+    };
+    let black_source = if dng_metadata.contains_key(&Tag::from(DngTag::BlackLevel)) {
+        MetadataSource::Tag {
+            tag: u16::from(DngTag::BlackLevel),
+            version: None,
+        }
+    } else {
+        MetadataSource::Default
+    };
     Ok(ProcessMetadata {
         active_area,
         default_crop,
@@ -45,6 +67,8 @@ pub fn process_metadata_from_dng_metadata(
         },
         bayer_pattern,
         color_calibration,
+        wb_source,
+        black_source,
     })
 }
 

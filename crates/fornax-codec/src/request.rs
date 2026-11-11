@@ -46,6 +46,27 @@ pub enum DecodeCompression {
     /// Sony lossless-JPEG tiles packed as CFA sample rows.
     #[cfg(feature = "arw")]
     SonyLosslessJpeg,
+    /// Nikon packed CFA rows with a container-selected row stride.
+    #[cfg(feature = "nef")]
+    NikonPacked {
+        /// Bytes between the starts of adjacent packed rows.
+        row_stride: usize,
+        /// Stored bits per sample: 12 or 14.
+        bits: u8,
+        /// Bit and byte order of the packed samples.
+        byte_order: ByteOrder,
+    },
+    /// Nikon 12- or 14-bit samples stored in whole 16-bit words.
+    #[cfg(feature = "nef")]
+    NikonUnpackedWords {
+        /// Stored sample bits: 12 or 14.
+        bits: u8,
+        /// Byte order of each 16-bit word.
+        byte_order: ByteOrder,
+    },
+    /// Nikon mode-5 stripped data stored in 32-bit little-endian words.
+    #[cfg(feature = "nef")]
+    NikonStripedPacked12,
     /// TIFF's experimental Zstandard compression.
     #[cfg(feature = "zstd")]
     Zstd,

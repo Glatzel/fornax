@@ -61,6 +61,8 @@ mod jpegxl;
 mod ljpeg;
 #[cfg(feature = "lzw")]
 mod lzw;
+#[cfg(feature = "nef")]
+mod nef;
 #[cfg(feature = "packbits")]
 mod packbits;
 mod uncompressed;
@@ -135,6 +137,18 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         DecodeCompression::Arw6 => arw::decode_arw6(request),
         #[cfg(feature = "arw")]
         DecodeCompression::SonyLosslessJpeg => arw::decode_ljpeg(request),
+        #[cfg(feature = "nef")]
+        DecodeCompression::NikonPacked {
+            row_stride,
+            bits,
+            byte_order,
+        } => nef::decode_packed(request, row_stride, bits, byte_order),
+        #[cfg(feature = "nef")]
+        DecodeCompression::NikonUnpackedWords { bits, byte_order } => {
+            nef::decode_unpacked_words(request, bits, byte_order)
+        }
+        #[cfg(feature = "nef")]
+        DecodeCompression::NikonStripedPacked12 => nef::decode_striped_packed_12(request),
         #[cfg(feature = "zstd")]
         DecodeCompression::Zstd => zstd::decode(request),
     }
