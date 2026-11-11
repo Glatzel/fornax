@@ -99,9 +99,281 @@ pub enum DecodeCompression {
         /// CFA pattern used to place decoded line-buffer samples.
         cfa: FujiCfa,
     },
+    /// Phase One IIQ uncompressed little-endian samples.
+    #[cfg(feature = "iiq")]
+    IiqUncompressed,
+    /// Phase One IIQ-L and IIQ-L16 row-difference coding.
+    #[cfg(feature = "iiq")]
+    IiqLossless,
+    /// Phase One IIQ-S row-difference coding with nonlinear low-value
+    /// expansion.
+    #[cfg(feature = "iiq")]
+    IiqNonlinear,
+    /// Phase One IIQ-Sv2 eight-pixel cluster coding.
+    #[cfg(feature = "iiq")]
+    IiqSv2,
+    /// Panasonic V4 difference-coded samples.
+    #[cfg(feature = "rw2")]
+    PanasonicV4 {
+        /// Whether each 0x4000-byte block uses the split bit-pump layout.
+        split_blocks: bool,
+    },
+    /// Panasonic V5 packetized 12- or 14-bit samples.
+    #[cfg(feature = "rw2")]
+    PanasonicV5,
+    /// Panasonic V6 row packet samples.
+    #[cfg(feature = "rw2")]
+    PanasonicV6,
+    /// Panasonic V8 Huffman, predictor, gamma, and strip-coded samples.
+    #[cfg(feature = "rw2")]
+    PanasonicV8 {
+        /// Validated V8 stream tables and strip placement.
+        params: PanasonicV8Params,
+    },
+    /// Panasonic stamped 12-bit samples in left-aligned little-endian words.
+    #[cfg(feature = "rw2")]
+    PanasonicUnpacked12,
+    /// Panasonic stamped 12-bit samples with one control byte per 16-byte
+    /// group.
+    #[cfg(feature = "rw2")]
+    PanasonicPacked12Control,
     /// TIFF's experimental Zstandard compression.
     #[cfg(feature = "zstd")]
     Zstd,
+}
+
+/// Placement and bit extent of one Panasonic V8 compressed strip.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_codec::PanasonicV8Strip;
+///
+/// let strip = PanasonicV8Strip::new(0, 64, 8, 4, 32, 16).unwrap();
+/// assert_eq!(strip.width(), 32);
+/// ```
+#[cfg(feature = "rw2")]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub struct PanasonicV8Strip {
+    pub(crate) source_offset: usize,
+    pub(crate) data_bits: u32,
+    pub(crate) x: usize,
+    pub(crate) y: usize,
+    pub(crate) width: usize,
+    pub(crate) height: usize,
+}
+
+#[cfg(feature = "rw2")]
+impl PanasonicV8Strip {
+    /// Creates one validated V8 strip descriptor.
+    ///
+    /// `source_offset` is relative to [`DecodeRequest::source`], `data_bits`
+    /// is the compressed bit count, and the remaining values place the strip
+    /// in the full-resolution output.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`crate::CodecError::InvalidInput`] when the bit extent is zero,
+    /// the strip dimensions are not positive and even, or the placement
+    /// arithmetic overflows.
+    pub fn new(
+        source_offset: usize,
+        data_bits: u32,
+        x: usize,
+        y: usize,
+        width: usize,
+        height: usize,
+    ) -> Result<Self, crate::CodecError> {
+        if data_bits == 0 {
+            return Err(crate::CodecError::InvalidInput(
+                "Panasonic V8 strip bit count must not be zero".into(),
+            ));
+        }
+        if width == 0 || height == 0 || !width.is_multiple_of(2) || !height.is_multiple_of(2) {
+            return Err(crate::CodecError::InvalidInput(
+                "Panasonic V8 strip dimensions must be positive and even".into(),
+            ));
+        }
+        x.checked_add(width)
+            .and_then(|_| y.checked_add(height))
+            .ok_or_else(|| {
+                crate::CodecError::InvalidInput(
+                    "Panasonic V8 strip placement overflows usize".into(),
+                )
+            })?;
+        Ok(Self {
+            source_offset,
+            data_bits,
+            x,
+            y,
+            width,
+            height,
+        })
+    }
+
+    /// Returns the strip's byte offset in the decode source.
+    pub const fn source_offset(self) -> usize { self.source_offset }
+
+    /// Returns the strip's compressed bit count.
+    pub const fn data_bits(self) -> u32 { self.data_bits }
+
+    /// Returns the strip's horizontal output origin.
+    pub const fn x(self) -> usize { self.x }
+
+    /// Returns the strip's vertical output origin.
+    pub const fn y(self) -> usize { self.y }
+
+    /// Returns the strip's output width.
+    pub const fn width(self) -> usize { self.width }
+
+    /// Returns the strip's output height.
+    pub const fn height(self) -> usize { self.height }
+}
+
+/// Validated Huffman, gamma, predictor, and strip tables for Panasonic V8.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_codec::{PanasonicV8Params, PanasonicV8Strip};
+///
+/// let strip = PanasonicV8Strip::new(0, 16, 0, 0, 4, 2)?;
+/// let params = PanasonicV8Params::new(
+///     vec![65536; 6],
+///     vec![0; 6],
+///     0xffff,
+///     [0; 4],
+///     vec![(1, 0)],
+///     vec![0],
+///     vec![strip],
+/// )?;
+/// assert_eq!(params.strip_count(), 1);
+/// # Ok::<(), fornax_codec::CodecError>(())
+/// ```
+#[cfg(feature = "rw2")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub struct PanasonicV8Params {
+    pub(crate) gamma_points: [u32; 6],
+    pub(crate) gamma_slopes: [u32; 6],
+    pub(crate) clip_value: u16,
+    pub(crate) initial_predictors: [u16; 4],
+    pub(crate) huffman_table: Vec<(u8, u16)>,
+    pub(crate) shift_down: Vec<u16>,
+    pub(crate) strips: Vec<PanasonicV8Strip>,
+}
+
+#[cfg(feature = "rw2")]
+impl PanasonicV8Params {
+    /// Creates validated Panasonic V8 decoding tables.
+    ///
+    /// The Huffman table contains `(bit_count, right_padded_symbol)` pairs.
+    /// `shift_down` has one entry per Huffman symbol.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`crate::CodecError::InvalidInput`] when a table is empty,
+    /// exceeds the format's bounded sizes, has inconsistent lengths, contains
+    /// an invalid symbol or shift, or contains overlapping strip placements.
+    pub fn new(
+        gamma_points: Vec<u32>,
+        gamma_slopes: Vec<u32>,
+        clip_value: u16,
+        initial_predictors: [u16; 4],
+        huffman_table: Vec<(u8, u16)>,
+        shift_down: Vec<u16>,
+        strips: Vec<PanasonicV8Strip>,
+    ) -> Result<Self, crate::CodecError> {
+        let gamma_points: [u32; 6] = gamma_points.try_into().map_err(|values: Vec<u32>| {
+            crate::CodecError::InvalidInput(
+                format!(
+                    "Panasonic V8 requires 6 gamma points, found {}",
+                    values.len()
+                )
+                .into(),
+            )
+        })?;
+        let gamma_slopes: [u32; 6] = gamma_slopes.try_into().map_err(|values: Vec<u32>| {
+            crate::CodecError::InvalidInput(
+                format!(
+                    "Panasonic V8 requires 6 gamma slopes, found {}",
+                    values.len()
+                )
+                .into(),
+            )
+        })?;
+        if clip_value == 0 {
+            return Err(crate::CodecError::InvalidInput(
+                "Panasonic V8 clip value must not be zero".into(),
+            ));
+        }
+        if huffman_table.is_empty() || huffman_table.len() > 17 {
+            return Err(crate::CodecError::InvalidInput(
+                "Panasonic V8 Huffman table must contain 1 to 17 entries".into(),
+            ));
+        }
+        if shift_down.len() != huffman_table.len() {
+            return Err(crate::CodecError::InvalidInput(
+                "Panasonic V8 Huffman and shift tables have different lengths".into(),
+            ));
+        }
+        for &(bits, symbol) in &huffman_table {
+            if bits == 0 || bits > 16 {
+                return Err(crate::CodecError::InvalidInput(
+                    "Panasonic V8 Huffman symbol length must be 1 to 16 bits".into(),
+                ));
+            }
+            let mask = u16::MAX >> (16 - bits);
+            if symbol & !mask != 0 {
+                return Err(crate::CodecError::InvalidInput(
+                    "Panasonic V8 Huffman symbol exceeds its bit length".into(),
+                ));
+            }
+        }
+        if shift_down.iter().any(|shift| *shift > 31) {
+            return Err(crate::CodecError::InvalidInput(
+                "Panasonic V8 shift-down values must fit five bits".into(),
+            ));
+        }
+        if strips.is_empty() || strips.len() > 64 {
+            return Err(crate::CodecError::InvalidInput(
+                "Panasonic V8 must contain 1 to 64 strips".into(),
+            ));
+        }
+        for (index, strip) in strips.iter().copied().enumerate() {
+            for other in &strips[..index] {
+                if rectangles_overlap(strip, *other) {
+                    return Err(crate::CodecError::InvalidInput(
+                        "Panasonic V8 strips overlap".into(),
+                    ));
+                }
+            }
+        }
+        Ok(Self {
+            gamma_points,
+            gamma_slopes,
+            clip_value,
+            initial_predictors,
+            huffman_table,
+            shift_down,
+            strips,
+        })
+    }
+
+    /// Returns the number of compressed strips.
+    pub const fn strip_count(&self) -> usize { self.strips.len() }
+
+    /// Returns the validated strip descriptors in stream order.
+    pub fn strips(&self) -> &[PanasonicV8Strip] { &self.strips }
+}
+
+#[cfg(feature = "rw2")]
+const fn rectangles_overlap(left: PanasonicV8Strip, right: PanasonicV8Strip) -> bool {
+    left.x < right.x + right.width
+        && right.x < left.x + left.width
+        && left.y < right.y + right.height
+        && right.y < left.y + left.height
 }
 
 /// A rectangular RGB CFA accepted by the Fujifilm lossless codec.
