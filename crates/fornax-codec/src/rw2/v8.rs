@@ -42,6 +42,9 @@ pub fn decode(
             "Panasonic V8 strips cover {strip_area} pixels, image requires {sample_count}"
         )));
     }
+    for strip in &params.strips {
+        strip_bytes(request.source, *strip)?;
+    }
 
     let gamma = gamma_table(params)?;
     let huffman = Huffman::new(&params.huffman_table)?;
@@ -69,16 +72,7 @@ fn decode_strip(
     output: &mut [u16],
     image_width: usize,
 ) -> Result<(), CodecError> {
-    let byte_count = usize::try_from(strip.data_bits)
-        .map_err(|_| invalid("Panasonic V8 strip bit count exceeds usize"))?
-        .div_ceil(8);
-    let end = strip
-        .source_offset
-        .checked_add(byte_count)
-        .ok_or_else(|| invalid("Panasonic V8 strip range overflow"))?;
-    let bytes = source
-        .get(strip.source_offset..end)
-        .ok_or_else(|| invalid("Panasonic V8 strip payload is out of bounds"))?;
+    let bytes = strip_bytes(source, strip)?;
     let data_bits = usize::try_from(strip.data_bits)
         .map_err(|_| invalid("Panasonic V8 strip bit count exceeds usize"))?;
     let mut reader = V8Bits::new(bytes, data_bits)?;
@@ -127,6 +121,20 @@ fn decode_strip(
         }
     }
     Ok(())
+}
+
+fn strip_bytes(source: &[u8], strip: crate::PanasonicV8Strip) -> Result<&[u8], CodecError> {
+    let byte_count = usize::try_from(strip.data_bits)
+        .map_err(|_| invalid("Panasonic V8 strip bit count exceeds usize"))?
+        .div_ceil(8);
+    let end = strip
+        .source_offset
+        .checked_add(byte_count)
+        .ok_or_else(|| invalid("Panasonic V8 strip range overflow"))?;
+    let bytes = source
+        .get(strip.source_offset..end)
+        .ok_or_else(|| invalid("Panasonic V8 strip payload is out of bounds"))?;
+    Ok(bytes)
 }
 
 fn decode_delta(
