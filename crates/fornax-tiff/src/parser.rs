@@ -25,6 +25,8 @@ impl<'a> Reader<'a> {
         let magic = reader.u16(2)?;
         let big_tiff = match magic {
             42 => false,
+            // Panasonic RW2 uses classic TIFF layout with its own magic value.
+            85 => false,
             43 => {
                 if reader.u16(4)? != 8 || reader.u16(6)? != 0 {
                     return Err(corrupt("invalid BigTIFF header"));
