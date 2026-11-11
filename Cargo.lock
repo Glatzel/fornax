@@ -842,6 +842,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-iiq"
+version = "0.0.17"
+dependencies = [
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rawler",
+ "rayon",
+]
+
+[[package]]
 name = "fornax-nef"
 version = "0.0.17"
 dependencies = [

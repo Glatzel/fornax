@@ -222,12 +222,7 @@ fn validate_request(request: &DecodeRequest<'_>, compressed: bool) -> Result<u8,
     }
     match request.bits_per_sample {
         14 => Ok(2),
-        16 if !matches!(request.compression, crate::DecodeCompression::IiqNonlinear)
-            && !matches!(request.compression, crate::DecodeCompression::IiqSv2) =>
-        {
-            Ok(0)
-        }
-        14 | 16 => Ok(2),
+        16 => Ok(0),
         bits => Err(invalid(format!("IIQ sample depth {bits} is unsupported"))),
     }
 }
