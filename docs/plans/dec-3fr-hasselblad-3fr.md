@@ -119,8 +119,9 @@
 - [x] Run `scripts/agent-validation.sh`.
 - [x] Run `cargo test -p decoder-tracker`.
 - [x] Run the local tracker selection for all 11 accepted `3FR` rows and require every stage to pass.
-- [ ] Commit and push the branch, then run the manual decoder corpus workflow with `filter='Hasselblad/**/*.3FR'` and `run_duckdb_tests=false`.
-- [ ] Review the complete update artifact, copy only the complete baseline, regenerate the README, commit, push, and rerun to an unchanged result.
+- [x] Commit and push the branch, then run the manual decoder corpus workflow with `filter='Hasselblad/**/*.3FR'` and `run_duckdb_tests=false`.
+- [x] Review the complete update artifact, copy only the complete baseline, and regenerate the README.
+- [ ] Commit and push the reviewed baseline, then rerun to an unchanged result.
 - [ ] Remove `DEC-3FR` from `TODO.md`, inspect the final diff, create the pull request, and report its URL.
 
 ## Files Expected to Change
