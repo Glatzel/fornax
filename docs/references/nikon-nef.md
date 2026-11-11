@@ -229,3 +229,10 @@ maker tag `0x0096`, metadata version `0x4630`, and one strip.
 | 14 | D3 (1), D300 (1), D300S (1), D3S (1), D3X (1), D4 (1), D4S (1), D500 (1), D5100 (1), D6 (1), D600 (1), D610 (1), D700 (1), D7000 (1), D7100 (1), D7200 (1), D750 (1), D7500 (1), D780 (1), D800 (1), D800E (1), D810 (1), D850 (1), Df (1), Z fc (2), Z50_2 (3), Z5_2 (3), Z6_3 (4), Z 30 (2), Z 5 (1), Z 50 (1), Z 6 (1), Z 6_2 (1), Z 7 (1), Z 7_2 (1), Z 8 (1), Z 9 (1), Z f (1) | 47 |
 
 Both bit depths and multiple Z-series bodies have real mode-3 coverage.
+
+The reviewed manual corpus run evaluated all 277 NEF paths after the D7100
+`RowsPerStrip` edge case was fixed. All 88 mode-3 rows pass decode,
+raw-mosaic, process-metadata, and Bayer-handoff checks. Modes 1/4, HE/HE*,
+mode 8, and the remaining unsupported layouts retain their typed outcomes.
+Applying the complete reviewed baseline raises the tracker total to 514/2020
+without changing non-NEF rows.

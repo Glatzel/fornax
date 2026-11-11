@@ -81,7 +81,7 @@ Out of scope:
   typed unsupported reasons, and apply the confirmed WhiteLevel behavior.
 - [ ] Task 4: Add fixture parity, golden rows and hashes, run workspace
   validation, open the pull request, and review the NEF tracker corpus rows.
-- [ ] Task 5: Update crate READMEs, format status, reference notes, and
+- [x] Task 5: Update crate READMEs, format status, reference notes, and
   `TODO.md`; report performance measurements only if fixtures are available.
 
 ## Files Expected to Change
@@ -240,13 +240,13 @@ mode-3 metadata.
   using decoder test tooling, not a `fornax-nef` dependency.
 - [x] Add passing selected-manifest rows and regenerate decode hashes without
   changing existing DNG, ARW, or packed-NEF hashes.
-- [ ] Run `scripts/agent-validation.sh`, inspect the diff, commit, push the
+- [x] Run `scripts/agent-validation.sh`, inspect the diff, commit, push the
   branch, and open a semantic pull request with scope, survey table, and
   validation outcomes.
-- [ ] Dispatch `decoder-tracker-corpus.yml` with filter
+- [x] Dispatch `decoder-tracker-corpus.yml` with filter
   `**/*.[nN][eE][fF]` and `run_duckdb_tests=false`; review every changed row.
   Require at least one pass per sampled bit depth.
-- [ ] Run the corpus workflow with one release-mode build job and shards that
+- [x] Run the corpus workflow with one release-mode build job and shards that
   download and execute the uploaded tracker binary.
 - [ ] Apply only the complete reviewed baseline artifact, regenerate the
   tracker README, commit and push, then rerun until unchanged.
@@ -258,14 +258,14 @@ lossy, HE/HE*, unsupported, and malformed rows retain typed reasons.
 
 ### Task 5: Documentation and tracking
 
-- [ ] Update `fornax-codec` and `fornax-nef` READMEs,
+- [x] Update `fornax-codec` and `fornax-nef` READMEs,
   `docs/decoder/formats/nikon-nef.md`, and
   `docs/references/nikon-nef.md` with the supported surface, dispatch table,
   tree provenance, curve layout, WhiteLevel behavior, and unsupported reasons.
-- [ ] Update `TODO.md`: mark lossless Huffman complete, keep `DEC-NEF` open,
+- [x] Update `TODO.md`: mark lossless Huffman complete, keep `DEC-NEF` open,
   and record lossy modes as deferred by policy.
-- [ ] Optionally report, without gating, decode time for one 12-bit and one
-  14-bit mode-3 fixture versus Rawler.
+- [x] Optional benchmark deferred; correctness and corpus coverage are the
+  merge gates for this slice.
 
 Expected: public documentation matches the tested implementation and no
 unsupported mode is described as implemented.
