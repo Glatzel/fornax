@@ -86,6 +86,9 @@ fn decode_lossless_rows(
             }
             let phase = column & 1;
             let length = lengths[phase];
+            if length == 0 {
+                return Err(invalid("IIQ lossless code length must not be zero"));
+            }
             let predictor = if length == 14 {
                 i64::from(bits.read_bits(16)?)
             } else {
@@ -190,7 +193,8 @@ pub fn decode_sv2(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecErro
                         bits.read_bits(14)?
                     } else {
                         let encoded = bits.read_bits(bit_count as u8)?;
-                        (predictors[phase] + (encoded << shift_amount))
+                        predictors[phase]
+                            .saturating_add(encoded << shift_amount)
                             .saturating_sub(subtract)
                             .min(0x3fff)
                     };
@@ -233,6 +237,15 @@ fn validate_row_chunks(request: &DecodeRequest<'_>) -> Result<(), CodecError> {
             request.height,
             request.chunks.len()
         )));
+    }
+    if request
+        .chunks
+        .iter()
+        .any(|chunk| !chunk.byte_count.is_multiple_of(4))
+    {
+        return Err(invalid(
+            "IIQ compressed row chunks must contain complete 32-bit words",
+        ));
     }
     Ok(())
 }

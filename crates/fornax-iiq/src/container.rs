@@ -252,22 +252,22 @@ struct Entry {
 }
 
 impl MakerNote {
-    pub fn parse(source: &[u8]) -> Result<Self, DecodeError> {
+    pub fn parse(source: Arc<[u8]>) -> Result<Self, DecodeError> {
         if source.get(PRIVATE_BASE..PRIVATE_BASE + 4) != Some(b"IIII") {
             return Err(invalid("IIQ private header marker is missing"));
         }
-        let magic = read_u32(source, PRIVATE_BASE + 4, "IIQ private magic")?;
+        let magic = read_u32(&source, PRIVATE_BASE + 4, "IIQ private magic")?;
         if magic >> 8 != 0x0052_6177 {
             return Err(invalid("IIQ private header Raw signature is missing"));
         }
-        let ifd_relative = read_u32(source, PRIVATE_BASE + 8, "IIQ private IFD offset")?;
+        let ifd_relative = read_u32(&source, PRIVATE_BASE + 8, "IIQ private IFD offset")?;
         let ifd = PRIVATE_BASE
             .checked_add(
                 usize::try_from(ifd_relative)
                     .map_err(|_| invalid("IIQ private IFD offset exceeds the address space"))?,
             )
             .ok_or_else(|| invalid("IIQ private IFD offset overflow"))?;
-        let count = read_u32(source, ifd, "IIQ private IFD entry count")?;
+        let count = read_u32(&source, ifd, "IIQ private IFD entry count")?;
         if count > MAX_MAKER_ENTRIES {
             return Err(invalid(format!(
                 "IIQ private IFD entry count {count} exceeds {MAX_MAKER_ENTRIES}"
@@ -280,7 +280,7 @@ impl MakerNote {
         let table_start = ifd
             .checked_add(8)
             .ok_or_else(|| invalid("IIQ private IFD offset overflow"))?;
-        let table = bounded(source, table_start, table_bytes, "IIQ private IFD")?;
+        let table = bounded(&source, table_start, table_bytes, "IIQ private IFD")?;
         let mut entries = BTreeMap::new();
         for entry in table.as_chunks::<16>().0 {
             let tag = u32::from_le_bytes(entry[0..4].try_into().expect("four bytes"));
@@ -296,10 +296,7 @@ impl MakerNote {
                 )));
             }
         }
-        Ok(Self {
-            source: Arc::from(source),
-            entries,
-        })
+        Ok(Self { source, entries })
     }
 
     pub fn required_u32(&self, tag: u32, name: &str) -> Result<u32, DecodeError> {

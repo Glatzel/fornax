@@ -264,3 +264,9 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
   tracker badge reports 567/2020 corpus rows passing across 117 pairs.
 - `scripts/agent-validation.sh` passed after the final baseline and formatting
   updates.
+- Final self-review found a malformed zero-length IIQ-L selector could panic
+  before validation. The new regression test first failed with the underflow,
+  then passed after explicit zero-length rejection. Compressed rows now also
+  require complete 32-bit words.
+- The maker-note parser now shares the TIFF parser's source `Arc` instead of
+  copying the full RAW payload a second time.

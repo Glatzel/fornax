@@ -80,7 +80,7 @@ impl IiqImage {
         let parsed = fornax_tiff::parse(source)
             .map_err(|error| invalid(format!("parsing IIQ TIFF failed: {error}")))?;
         let profile = profiles::resolve(&parsed.root)?;
-        let maker = MakerNote::parse(source)?;
+        let maker = MakerNote::parse(parsed.source.clone())?;
         let layout = RawLayout::parse(source, &maker)?;
         let metadata = metadata::map(&parsed.root, &maker, &layout, &profile)?;
         Ok(Self {

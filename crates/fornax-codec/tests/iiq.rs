@@ -110,3 +110,17 @@ fn iiq_rejects_non_integer_samples() {
 
     assert!(error.contains("integer"), "{error}");
 }
+
+#[test]
+fn iiq_rejects_a_zero_lossless_code_length() {
+    let source = [0, 0, 0, 0x80, 0, 0, 0, 0];
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: source.len(),
+    }];
+    let request = request(&source, &chunks, DecodeCompression::IiqLossless, 8, 1);
+
+    let error = decode(&request).unwrap_err().to_string();
+
+    assert!(error.contains("code length"), "{error}");
+}
