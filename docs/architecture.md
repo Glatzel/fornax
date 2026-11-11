@@ -19,13 +19,15 @@ part of the current preprocessor/demosaic handoff.
 | `fornax-raw-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
 | `fornax-bmff` | Bounded generic ISO-BMFF boxes, FullBoxes, UUID payloads, and sample tables. | `fornax-raw-core` |
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, raster strip/tile planning, classic/BigTIFF parsing, and classic-TIFF writing. | `fornax-codec` |
-| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony, Nikon, Fujifilm, and Canon codecs. | None |
+| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony, Nikon, Fujifilm, Canon, Phase One, and Panasonic codecs. | None |
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-raw-core`, `fornax-tiff`, `fornax-codec` |
 | `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA layout mapping, and DNG-compatible metadata mapping. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-cr3` | Canon CR3/CRM BMFF, CMT/CTMD metadata, CRAW/CMP1/IAD1 parsing, and lossless CRX handoff. | `fornax-raw-core`, `fornax-bmff`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-nef` | Native Nikon NEF TIFF/maker-note parsing, standard packed CFA layouts, metadata mapping, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-raf` | Native Fujifilm RAF parsing, lossless Bayer/X-Trans decoding, metadata mapping, and DNG preservation. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-decoder` | Default pure-Rust DNG, Canon CR3/CRM, Sony ARW/NRW, Nikon NEF, and Fujifilm RAF decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-cr3`, `fornax-arw`, `fornax-nef`, `fornax-raf` |
+| `fornax-iiq` | Native Phase One/Leaf IIQ TIFF/private maker-note parsing, sensor correction, metadata mapping, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
+| `fornax-rw2` | Native Panasonic RW2 TIFF layout, metadata, V4/V5/V6/V8 codecs, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
+| `fornax-decoder` | Default pure-Rust DNG, Canon CR3/CRM, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, Phase One/Leaf IIQ, and Panasonic RW2 decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-cr3`, `fornax-arw`, `fornax-nef`, `fornax-raf`, `fornax-iiq`, `fornax-rw2` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-raw-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-raw-core`, `fornax-decoder-rawler` |
 | `fornax-raw-pipeline` | Black/white normalization, demosaic protocol and algorithms, RGB reconstruction, and color processing. | `fornax-raw-core` |
@@ -72,8 +74,9 @@ coefficients.
 The default implementation is `fornax_decoder::Decoder`. The facade exports it
 as `fornax_raw::Decoder`; it dispatches DNG containers to `fornax-dng`, Canon
 CR3/CRM containers to `fornax-cr3`, Sony ARW/NRW containers to `fornax-arw`,
-Nikon NEF containers to `fornax-nef`, and Fujifilm RAF containers to
-`fornax-raf`.
+Nikon NEF containers to `fornax-nef`, Fujifilm RAF containers to `fornax-raf`,
+Panasonic RW2 containers to `fornax-rw2`, and Phase One/Leaf IIQ containers to
+`fornax-iiq`.
 `fornax_raw_core` contains no decoder implementation.
 
 ## Codec API
@@ -108,6 +111,14 @@ The non-default `cr3` feature adds the lossless Canon CRX path. It accepts only
 the audited CMP1 tuple (version `0x0100`, four planes, encoding type zero, zero
 wavelet levels, MDAT header size `0x70`) and conventional 2x2 Bayer
 placements. C-RAW and every ambiguous shape return a typed unsupported error.
+
+The non-default `iiq` feature adds Phase One IIQ uncompressed, IIQ-L/L16,
+IIQ-S nonlinear, and IIQ-Sv2 row decoding. The IIQ format crate supplies one
+chunk per compressed row and performs sensor correction after codec output.
+The independent non-default `rw2` feature adds Panasonic V4, V5, V6, and V8
+decoding plus stamped 12-bit unpacked and packed-control layouts. V8 carries
+validated gamma, Huffman, shift, and strip tables in
+`PanasonicV8Params`. There is deliberately no V7 variant.
 
 `fornax-tiff::CompressionMethod` remains the typed TIFF field value.
 `fornax_tiff::RasterLayout` owns strip/tile geometry and chunk ordering, while
@@ -242,6 +253,45 @@ C-RAW, preview and JPEG tracks, ambiguous raw tracks, non-2x2 layouts, unknown
 ColorData versions, and unsupported CRX header shapes return typed errors
 before preprocessing. CR3 and CRM both require the `crx` compatible brand; the
 filename extension selects `RawFormat::Cr3` or `RawFormat::Crm`.
+
+## Phase One/Leaf IIQ support
+
+`fornax-iiq` parses the TIFF container followed by the Phase One private header
+at file offset 8. Private maker-note and raw-data offsets are relative to that
+base. The decoder supports compression modes `0`, `3`, `5`, `6`, and `8`;
+legacy Raw1/Raw2 modes return typed unsupported errors.
+
+Decoded U16 samples are processed through split black levels, polynomial
+curves, quadrant calibration, bad-column repair, and flat-field correction
+before `raw_mosaic` returns. Corrected output uses DNG `BlackLevel=0` and
+`WhiteLevel=65535`. Selected corpus fixtures match Rawler sample-for-sample
+after correction.
+
+Explicit Phase One and Leaf camera profiles supply conventional 2x2 CFA
+layouts. The source maker note supplies dimensions, margins, crop size,
+white-balance gains, and correction payloads. Unknown camera models return
+typed unsupported errors rather than guessed CFA data. Leaf `.MOS`, Phase One
+`.TIF`, preview extraction, and non-Bayer pipeline input remain outside the
+implemented boundary.
+
+## Panasonic RW2 support
+
+`fornax-rw2` parses classic-TIFF files with magic 85, selects the first primary
+IFD with Panasonic `RawDataOffset` and falls back to `StripOffsets`, then
+dispatches raw-format V4, V5, V6, and V8 through the codec's independent `rw2`
+feature. Stamped 12-bit stripped layouts are selected by payload size.
+
+The format layer maps border coordinates to `ActiveArea`, shifts CFA into the
+active reference frame, maps exclusive crop coordinates to DNG default crop,
+applies the historic V4 black offset, reduces Panasonic linearity limits to
+one white level, normalizes as-shot neutral, and preserves raw-IFD orientation
+plus Exif serial/lens when available. The result round-trips through
+`DngWriter`.
+
+Multi-shot tags, high-resolution composites, V7, unknown versions or
+compression values, and unsupported CFA layouts return typed unsupported
+errors before sample decoding. V7 remains deferred until a real single-shot
+file can validate the codec.
 
 ## Benchmarks and comparisons
 

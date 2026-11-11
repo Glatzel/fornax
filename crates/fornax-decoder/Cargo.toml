@@ -12,9 +12,11 @@ clerk.workspace = true
 fornax-arw.workspace = true
 fornax-cr3.workspace = true
 fornax-dng.workspace = true
+fornax-iiq.workspace = true
 fornax-nef.workspace = true
 fornax-raf.workspace = true
 fornax-raw-core.workspace = true
+fornax-rw2.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

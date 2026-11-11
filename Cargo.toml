@@ -15,11 +15,13 @@ fornax-cr3 = { path = "./crates/fornax-cr3" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
+fornax-iiq = { path = "./crates/fornax-iiq" }
 fornax-nef = { path = "./crates/fornax-nef" }
 fornax-raf = { path = "./crates/fornax-raf" }
 fornax-raw = { path = "./crates/fornax-raw" }
 fornax-raw-core = { path = "./crates/fornax-raw-core" }
 fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
+fornax-rw2 = { path = "./crates/fornax-rw2" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 
 # glatzel
