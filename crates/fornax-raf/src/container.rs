@@ -69,6 +69,21 @@ pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
         .map_err(|_| invalid("RAF tags length exceeds the address space"))?;
     let tags_bytes = bounded(source, tags_offset, tags_length, "RAF tag block")?;
     let tags = parse_raf_tags(tags_bytes)?;
+    let (cfa, profile) = if let Some(layout) = tags.xtrans_layout {
+        if tags.fuji_layout.is_some_and(|layout| layout & 0x80 != 0) {
+            return Err(DecodeError::Unsupported(
+                "rotated SuperCCD RAF layouts are unsupported".into(),
+            ));
+        }
+        (crate::Cfa::XTrans(xtrans_pattern(layout)?), None)
+    } else {
+        let profile = profile(&model).ok_or_else(|| {
+            DecodeError::Unsupported(
+                format!("RAF camera model {model:?} has no 2x2 Bayer profile").into(),
+            )
+        })?;
+        (crate::Cfa::Bayer(profile.cfa), Some(profile))
+    };
 
     let tiff_offset = usize::try_from(read_u32(source, RAW_TIFF_OFFSET, "RAF raw TIFF offset")?)
         .map_err(|_| invalid("RAF raw TIFF offset exceeds the address space"))?;
@@ -95,25 +110,9 @@ pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
         .ok_or_else(|| invalid("RAF raw payload offset overflow"))?;
     let payload = bounded(source, raw_offset, byte_count, "RAF raw payload")?;
 
-    let cfa = if let Some(layout) = tags.xtrans_layout {
-        if tags.fuji_layout.is_some_and(|layout| layout & 0x80 != 0) {
-            return Err(DecodeError::Unsupported(
-                "rotated SuperCCD RAF layouts are unsupported".into(),
-            ));
-        }
-        crate::Cfa::XTrans(xtrans_pattern(layout)?)
-    } else {
-        let profile = profile(&model).ok_or_else(|| {
-            DecodeError::Unsupported(
-                format!("RAF camera model {model:?} has no 2x2 Bayer profile").into(),
-            )
-        })?;
-        crate::Cfa::Bayer(profile.cfa)
-    };
     validate_raf_size(tags.size, width, height)?;
 
     let compression = classify_compression(payload, width, height, bits)?;
-    let profile = profile(&model);
     Ok(Container {
         source: Arc::from(source),
         model,

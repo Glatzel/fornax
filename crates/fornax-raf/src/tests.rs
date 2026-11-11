@@ -92,6 +92,25 @@ fn unknown_bayer_profile_is_rejected() {
 }
 
 #[test]
+fn unknown_non_xtrans_model_is_typed_unsupported_before_modern_ifd_parsing() {
+    let mut source = vec![0_u8; 120];
+    source[..8].copy_from_slice(b"FUJIFILM");
+    source[28..41].copy_from_slice(b"FinePix S5000");
+    source[92..96].copy_from_slice(&104_u32.to_be_bytes());
+    source[96..100].copy_from_slice(&4_u32.to_be_bytes());
+
+    let error = super::RafImage::parse(&source).unwrap_err();
+
+    assert!(
+        matches!(
+            &error,
+            DecodeError::Unsupported(message) if message.contains("FinePix S5000")
+        ),
+        "unexpected error: {error:?}"
+    );
+}
+
+#[test]
 fn gfx_lossless_fixture_matches_rawler_samples() {
     let Some(root) = fixture_root() else {
         return;

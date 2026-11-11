@@ -126,6 +126,10 @@ mode. The manual corpus filter is `**/*.[rR][aA][fF]` with
   split by Git LFS's comma-separated fetch include. Fetch globs now replace
   commas with the single-character wildcard, while checkout receives the
   literal path; the exact 25.6 MB object was materialized to verify the fix.
+- Corpus baseline review showed known non-X-Trans legacy models falling
+  through to modern Fuji IFD parsing as invalid input. Unknown Bayer models now
+  return typed unsupported before that parse, while X-Trans layouts continue
+  through metadata-based recognition.
 - Local validation passed `scripts/agent-validation.sh` after adding the RAF
   golden rows and generated hashes. The full RAF corpus remains a manual CI
   stage because that is the repository's designated full-corpus environment.
