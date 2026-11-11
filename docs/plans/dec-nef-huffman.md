@@ -79,7 +79,7 @@ Out of scope:
   test-only encoding, prediction tests, curve tests, and malformed-input tests.
 - [x] Task 3: Parse the Nikon curve metadata, add mode-3 dispatch, preserve
   typed unsupported reasons, and apply the confirmed WhiteLevel behavior.
-- [ ] Task 4: Add fixture parity, golden rows and hashes, run workspace
+- [x] Task 4: Add fixture parity, golden rows and hashes, run workspace
   validation, open the pull request, and review the NEF tracker corpus rows.
 - [x] Task 5: Update crate READMEs, format status, reference notes, and
   `TODO.md`; report performance measurements only if fixtures are available.
@@ -149,6 +149,11 @@ may be committed.
   it. Fornax does not adopt that reference-only dithering.
 - Golden corpus hashing uses the release profile. The manual corpus workflow
   builds one release tracker binary and every shard downloads that artifact.
+- Corpus run `43008760213` validated the release build and artifact-consuming
+  shards, then exposed two D7100 `RowsPerStrip` edge cases. Run `43009807548`
+  passed all 88 changed mode-3 rows after the fix. Applying the complete
+  reviewed baseline raised the tracker total to 514/2020. Run `43010446775`
+  completed all shards and aggregation with an unchanged baseline.
 
 ## Implementation Tasks
 
@@ -248,9 +253,9 @@ mode-3 metadata.
   Require at least one pass per sampled bit depth.
 - [x] Run the corpus workflow with one release-mode build job and shards that
   download and execute the uploaded tracker binary.
-- [ ] Apply only the complete reviewed baseline artifact, regenerate the
+- [x] Apply only the complete reviewed baseline artifact, regenerate the
   tracker README, commit and push, then rerun until unchanged.
-- [ ] Run final `scripts/agent-validation.sh` and `git diff --check`; report
+- [x] Run final `scripts/agent-validation.sh` and `git diff --check`; report
   skipped or failed checks explicitly.
 
 Expected: fixtures and corpus prove real-file parity where samples exist;
