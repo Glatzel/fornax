@@ -796,6 +796,7 @@ dependencies = [
  "fornax-arw",
  "fornax-devtool",
  "fornax-dng",
+ "fornax-hasselblad",
  "fornax-nef",
  "fornax-raf",
  "fornax-raw-core",

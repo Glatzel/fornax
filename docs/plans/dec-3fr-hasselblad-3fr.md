@@ -97,12 +97,12 @@
 - Produce: `Decoder::Hasselblad(HasselbladImage)`.
 - Preserve: every `IDecoder` and `IDecoderDng` accessor.
 
-- [ ] Write a failing extension-dispatch test proving `.3FR` routes to the native reader.
-- [ ] Run the focused decoder test; expect the current unsupported/DNC path rather than a native read error.
-- [ ] Add the facade dependency, enum variant, dispatch arm, and accessor forwarding.
-- [ ] Write fixture tests that compare all 11 accepted samples against Rawler raw samples and dimensions, then assert `f32` handoff and metadata dimensions.
-- [ ] Write DNG round-trip tests for one compressed and one uncompressed sample; assert the storage samples survive exactly.
-- [ ] Run `FORNAX_RAW_SAMPLES=external/raw.pixls.us cargo test --release -p fornax-hasselblad` and the decoder fixture test.
+- [x] Write a failing extension-dispatch test proving `.3FR` routes to the native reader.
+- [x] Run the focused decoder test; expect the current unsupported/DNC path rather than a native read error.
+- [x] Add the facade dependency, enum variant, dispatch arm, and accessor forwarding.
+- [x] Write fixture tests that compare all 11 accepted samples against Rawler raw samples and dimensions, then assert `f32` handoff and metadata dimensions.
+- [x] Write DNG round-trip tests for one compressed and one uncompressed sample; assert the storage samples survive exactly.
+- [x] Run `FORNAX_RAW_SAMPLES=external/raw.pixls.us cargo test --release -p fornax-hasselblad` and the decoder fixture test.
 
 ## Task 4: Documentation, validation, and corpus baseline
 
