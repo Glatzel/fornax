@@ -31,10 +31,16 @@ impl From<BmffError> for DecodeError {
     }
 }
 
-pub(crate) fn invalid(message: impl Into<String>) -> BmffError {
+pub fn invalid<T>(message: T) -> BmffError
+where
+    T: Into<String>,
+{
     BmffError::InvalidInput(message.into())
 }
 
-pub(crate) fn limited(message: impl Into<String>) -> BmffError {
+pub fn limited<T>(message: T) -> BmffError
+where
+    T: Into<String>,
+{
     BmffError::LimitExceeded(message.into())
 }

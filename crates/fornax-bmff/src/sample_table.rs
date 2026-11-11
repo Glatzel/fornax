@@ -68,7 +68,7 @@ impl ChunkOffsets {
         }
     }
 
-    fn len(&self) -> usize {
+    const fn len(&self) -> usize {
         match self {
             Self::Co32(values) => values.len(),
             Self::Co64(values) => values.len(),
@@ -181,10 +181,10 @@ impl SampleTable {
         let target = index + 1;
         let mut samples_seen = 0_u64;
         for (position, entry) in self.stsc.iter().enumerate() {
-            let end_chunk = self
-                .stsc
-                .get(position + 1)
-                .map_or(u64::from(u32::MAX), |next| u64::from(next.first_chunk) - 1);
+            let end_chunk = self.stsc.get(position + 1).map_or_else(
+                || u64::from(u32::MAX),
+                |next| u64::from(next.first_chunk) - 1,
+            );
             let start_chunk = u64::from(entry.first_chunk);
             let chunks = end_chunk
                 .saturating_sub(start_chunk)
@@ -233,8 +233,8 @@ impl SampleTable {
     fn validate(&self) -> Result<(), BmffError> {
         let mut samples = 0_u64;
         for (position, entry) in self.stsc.iter().enumerate() {
-            let end_chunk = self.stsc.get(position + 1).map_or(
-                u64::try_from(self.chunk_offsets.len()).unwrap_or(u64::MAX),
+            let end_chunk = self.stsc.get(position + 1).map_or_else(
+                || u64::try_from(self.chunk_offsets.len()).unwrap_or(u64::MAX),
                 |next| u64::from(next.first_chunk) - 1,
             );
             let chunks = end_chunk

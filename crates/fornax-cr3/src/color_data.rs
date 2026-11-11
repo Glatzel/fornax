@@ -7,7 +7,7 @@ const COLOR_DATA_TAG: u16 = 0x4001;
 const MAKERNOTE_BLOCK_TAG: u16 = 0x927c;
 
 #[derive(Clone, Debug)]
-pub(super) struct ColorData {
+pub struct ColorData {
     pub version: i16,
     pub white_balance: [u16; 4],
     pub black_level: [u16; 4],
@@ -15,17 +15,17 @@ pub(super) struct ColorData {
 }
 
 #[derive(Clone, Debug)]
-pub(super) enum ColorDataStatus {
+pub enum ColorDataStatus {
     Parsed(ColorData),
     Missing,
     Unknown(i16),
 }
 
-pub(super) struct Ctmd {
+pub struct Ctmd {
     pub color_data: Option<ColorDataStatus>,
 }
 
-pub(super) fn parse_ctmd(data: &[u8]) -> Result<Ctmd, DecodeError> {
+pub fn parse_ctmd(data: &[u8]) -> Result<Ctmd, DecodeError> {
     let mut position = 0_usize;
     let mut color_data = None;
     while position + 12 <= data.len() {

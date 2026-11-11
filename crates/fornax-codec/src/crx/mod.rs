@@ -84,7 +84,7 @@ struct Tile {
 }
 
 /// Decodes a validated lossless CRX sample into one U16 mosaic.
-pub(super) fn decode(
+pub fn decode(
     request: &DecodeRequest<'_>,
     header: &CanonCrxHeader,
     _cfa: CanonCrxCfa,
@@ -468,7 +468,7 @@ impl<'a> PlaneDecoder<'a> {
         }
     }
 
-    fn current(&self) -> &[i32] { &self.lines[1][1..1 + self.width] }
+    fn current(&self) -> &[i32] { &self.lines[1][1..=self.width] }
 
     fn decode_line(&mut self) -> Result<(), CodecError> {
         if self.current_row >= self.height {

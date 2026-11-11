@@ -291,7 +291,10 @@ impl CanonCrxHeader {
     /// Returns [`crate::CodecError::Unsupported`] for C-RAW, wavelet-coded,
     /// or unobserved CMP1 shapes and [`crate::CodecError::InvalidInput`] for
     /// zero or oversized geometry.
-    #[allow(clippy::too_many_arguments)]
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "the constructor mirrors the validated CMP1 fields"
+    )]
     pub fn new(
         cmp1_version: u16,
         mosaic_width: u32,

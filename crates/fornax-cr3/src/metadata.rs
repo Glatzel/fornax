@@ -12,7 +12,7 @@ const CMT3_ALLOWLIST: &[u16] = &[
     0x0001, 0x000c, 0x0010, 0x001e, 0x0028, 0x0095, 0x0096, 0x00b4, 0x4001,
 ];
 
-pub(super) fn map(
+pub fn map(
     cmt: &Cmt,
     width: u32,
     height: u32,
@@ -109,8 +109,10 @@ fn add_color_data(
     let neutral = if quality_mode == Some(130) {
         [1_u16, 1, 1]
     } else {
-        let green =
-            (u32::from(color_data.white_balance[1]) + u32::from(color_data.white_balance[2])) / 2;
+        let green = u32::midpoint(
+            u32::from(color_data.white_balance[1]),
+            u32::from(color_data.white_balance[2]),
+        );
         if green == 0 {
             return Err(crate::invalid("Canon ColorData has zero green balance"));
         }
@@ -133,7 +135,7 @@ fn add_color_data(
     Ok(())
 }
 
-pub(super) fn shifted_pattern(cfa: CanonCrxCfa, x: u32, y: u32) -> [u8; 4] {
+pub fn shifted_pattern(cfa: CanonCrxCfa, x: u32, y: u32) -> [u8; 4] {
     let base = cfa.pattern();
     let x_shift = usize::try_from(x & 1).unwrap_or(0);
     let y_shift = usize::try_from(y & 1).unwrap_or(0);
@@ -152,7 +154,7 @@ fn copy_all(source: &Directory, target: &mut Directory) {
 }
 
 impl ColorDataStatus {
-    pub(super) const fn parsed(&self) -> Option<&ColorData> {
+    pub const fn parsed(&self) -> Option<&ColorData> {
         match self {
             Self::Parsed(color_data) => Some(color_data),
             Self::Missing | Self::Unknown(_) => None,

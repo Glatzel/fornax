@@ -1,4 +1,4 @@
-use fornax_bmff::{Bmff, BmffError, BoxRef, FourCc, SampleTable, SampleTableLimits};
+use fornax_bmff::{Bmff, BmffError, BmffLimits, BoxRef, FourCc, SampleTable, SampleTableLimits};
 use fornax_codec::{CanonCrxCfa, CanonCrxHeader};
 use fornax_raw_core::error::DecodeError;
 use fornax_tiff::Directory;
@@ -13,13 +13,13 @@ const CR3_DESCRIPTION_UUID: [u8; 16] = [
 const CRX_BRAND: FourCc = FourCc::new(*b"crx ");
 
 #[derive(Clone, Copy, Debug)]
-pub(super) struct SampleRange {
+pub struct SampleRange {
     pub offset: usize,
     pub size: usize,
 }
 
 #[derive(Clone, Debug)]
-pub(super) struct CodecHeader {
+pub struct CodecHeader {
     pub header: CanonCrxHeader,
     pub cfa: CanonCrxCfa,
     pub width: usize,
@@ -28,12 +28,12 @@ pub(super) struct CodecHeader {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub(super) struct Geometry {
+pub struct Geometry {
     pub active: Rect,
     pub crop: Rect,
 }
 
-pub(super) struct Parsed {
+pub struct Parsed {
     pub sample: SampleRange,
     pub header: CodecHeader,
     pub metadata: Directory,
@@ -47,13 +47,13 @@ struct CctpRecord {
     track_index: u32,
 }
 
-pub(super) fn parse(source: &[u8], sample_index: usize) -> Result<Parsed, DecodeError> {
+pub fn parse(source: &[u8], sample_index: usize) -> Result<Parsed, DecodeError> {
     let bmff = Bmff::parse(source).map_err(bmff_invalid)?;
     validate_brand(&bmff)?;
     let moov = top_child(&bmff, FourCc::new(*b"moov"))?
         .ok_or_else(|| invalid("Canon CR3 moov box is missing"))?;
     let cr3desc = moov
-        .children(Default::default())
+        .children(BmffLimits::default())
         .map_err(bmff_invalid)?
         .into_iter()
         .find(|item| item.uuid() == Some(CR3_DESCRIPTION_UUID))
@@ -154,7 +154,7 @@ enum TrackKind {
 fn parse_tracks<'a>(moov: &BoxRef<'a>) -> Result<Vec<Track<'a>>, DecodeError> {
     let mut tracks = Vec::new();
     for trak in moov
-        .children(Default::default())
+        .children(BmffLimits::default())
         .map_err(bmff_invalid)?
         .into_iter()
         .filter(|item| item.typ() == FourCc::new(*b"trak"))
@@ -310,10 +310,9 @@ fn parse_cmp1(cmp1: BoxRef<'_>) -> Result<Cmp1, DecodeError> {
         ));
     }
     let mut median_precision = bit_depth;
-    let ext_header = payload
-        .get(32..36)
-        .map(|bytes| u32::from_be_bytes(bytes.try_into().unwrap_or([0; 4])))
-        .unwrap_or(0);
+    let ext_header = payload.get(32..36).map_or(0, |bytes| {
+        u32::from_be_bytes(bytes.try_into().unwrap_or([0; 4]))
+    });
     if payload.len() >= 57
         && ext_header & 0x8000_0000 != 0
         && u32::from_be_bytes(payload[52..56].try_into().unwrap_or([0; 4])) & 0x4000_0000 != 0
@@ -428,11 +427,11 @@ fn inclusive_rect(
     })
 }
 
-pub(super) struct Cmt {
-    pub(super) cmt1: Directory,
-    pub(super) cmt2: Directory,
-    pub(super) cmt3: Directory,
-    pub(super) cmt4: Directory,
+pub struct Cmt {
+    pub cmt1: Directory,
+    pub cmt2: Directory,
+    pub cmt3: Directory,
+    pub cmt4: Directory,
 }
 
 fn parse_cmt(cr3desc: &BoxRef<'_>) -> Result<Cmt, DecodeError> {
@@ -541,7 +540,7 @@ fn read_u16(bytes: &[u8], offset: usize) -> Result<u16, DecodeError> {
 }
 
 #[cfg(test)]
-pub(super) fn parse_geometry_for_test(
+pub fn parse_geometry_for_test(
     image_type: u16,
     crop_left: u16,
     crop_top: u16,
