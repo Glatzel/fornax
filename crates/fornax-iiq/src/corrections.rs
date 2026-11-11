@@ -122,7 +122,6 @@ fn split_blacks(
     let columns = maker.optional_u32(BLACK_COL)?;
     let rows = maker.optional_u32(BLACK_ROW)?;
     match (columns, rows) {
-        (None, None) => Ok(None),
         (Some(_), Some(_)) => {
             let split_col = maker.required_u32(SPLIT_COL, "split column")?;
             let split_row = maker.required_u32(SPLIT_ROW, "split row")?;
