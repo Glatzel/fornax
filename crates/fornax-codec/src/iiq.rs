@@ -72,15 +72,15 @@ fn decode_lossless_rows(
         for (column, sample) in target.iter_mut().enumerate() {
             if column >= (request.width & !7) {
                 lengths = [14, 14];
-            } else if column & 7 == 0 {
-                for phase in 0..2 {
+            } else if column.is_multiple_of(8) {
+                for length in &mut lengths {
                     let mut zeros = 0_u8;
                     while zeros < 5 && bits.read_bits(1)? == 0 {
                         zeros += 1;
                     }
                     if zeros > 0 {
                         let selector = (zeros - 1) * 2 + bits.read_bits(1)? as u8;
-                        lengths[phase] = LENGTHS[usize::from(selector)];
+                        *length = LENGTHS[usize::from(selector)];
                     }
                 }
             }

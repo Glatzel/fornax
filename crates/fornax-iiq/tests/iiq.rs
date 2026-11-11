@@ -229,7 +229,8 @@ fn synthetic_iiq(
     let serial_offset = wb_offset + 12;
     source[serial_offset..serial_offset + 8].copy_from_slice(b"LD001028");
     for (index, sample) in samples
-        .into_iter()
+        .iter()
+        .copied()
         .take((width * height) as usize)
         .enumerate()
     {

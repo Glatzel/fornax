@@ -30,3 +30,7 @@ iiq = []
 packbits = []
 raf = []
 zstd = ["dep:zstd"]
+
+[[test]]
+name = "iiq"
+required-features = ["iiq"]

@@ -96,13 +96,13 @@ fn apply_black(
     black: u16,
 ) -> Result<(), DecodeError> {
     let split = split_blacks(maker, layout.width, layout.height)?;
-    if let Some((columns, rows, split_col, split_row)) = split {
+    if let Some(split) = split {
         for row in 0..layout.height {
             for column in 0..layout.width {
                 let index = row * layout.width + column;
                 let value = i32::from(pixels[index]) - i32::from(black)
-                    + i32::from(columns[row * 2 + usize::from(column >= split_col)])
-                    + i32::from(rows[column * 2 + usize::from(row >= split_row)]);
+                    + i32::from(split.columns[row * 2 + usize::from(column >= split.split_col)])
+                    + i32::from(split.rows[column * 2 + usize::from(row >= split.split_row)]);
                 pixels[index] = clamp(value);
             }
         }
@@ -118,7 +118,7 @@ fn split_blacks(
     maker: &MakerNote,
     width: usize,
     height: usize,
-) -> Result<Option<(Vec<i16>, Vec<i16>, usize, usize)>, DecodeError> {
+) -> Result<Option<SplitBlacks>, DecodeError> {
     let columns = maker.optional_u32(BLACK_COL)?;
     let rows = maker.optional_u32(BLACK_ROW)?;
     match (columns, rows) {
@@ -138,12 +138,21 @@ fn split_blacks(
             if column_values.len() != height * 2 || row_values.len() != width * 2 {
                 return Err(invalid("IIQ split-black tables have invalid lengths"));
             }
-            Ok(Some((column_values, row_values, split_col, split_row)))
+            Ok(Some(SplitBlacks {
+                columns: column_values,
+                rows: row_values,
+                split_col,
+                split_row,
+            }))
         }
         _ => Err(invalid("IIQ split-black metadata is incomplete")),
     }
 }
 
+#[allow(
+    clippy::suboptimal_flops,
+    reason = "preserve the reference decoder's operation order and rounding"
+)]
 fn apply_poly_half(
     pixels: &mut [u16],
     layout: &RawLayout,
@@ -175,6 +184,10 @@ fn apply_poly_half(
     Ok(())
 }
 
+#[allow(
+    clippy::suboptimal_flops,
+    reason = "preserve the reference decoder's operation order and rounding"
+)]
 fn apply_poly_full(pixels: &mut [u16], data: &[u8]) -> Result<(), DecodeError> {
     let polynomial = f32_array::<4>(data, "full polynomial")?;
     let curve: Vec<u16> = (0_u32..=u16::MAX as u32)
@@ -345,6 +358,10 @@ fn apply_curve_region(
     }
 }
 
+#[allow(
+    clippy::suboptimal_flops,
+    reason = "preserve the reference decoder's operation order and rounding"
+)]
 fn apply_defects(
     pixels: &mut [u16],
     width: usize,
@@ -352,7 +369,7 @@ fn apply_defects(
     cfa: [u8; 4],
     data: &[u8],
 ) -> Result<(), DecodeError> {
-    if data.len() % 8 != 0 {
+    if !data.len().is_multiple_of(8) {
         return Err(invalid("IIQ defect table has a partial entry"));
     }
     for defect in data.as_chunks::<8>().0 {
@@ -363,35 +380,31 @@ fn apply_defects(
         }
         for row in 2..height.saturating_sub(2) {
             let index = row * width + column;
-            match color_at(cfa, row, column) {
-                1 => {
-                    let values = [
-                        pixels[(row - 1) * width + column - 1],
-                        pixels[(row + 1) * width + column - 1],
-                        pixels[(row - 1) * width + column + 1],
-                        pixels[(row + 1) * width + column + 1],
-                    ];
-                    let sum: i32 = values.iter().map(|value| i32::from(*value)).sum();
-                    let deviations = values.map(|value| (i32::from(value) * 4 - sum).abs());
-                    let mut largest = 0;
-                    for index in 1..deviations.len() {
-                        if deviations[largest] < deviations[index] {
-                            largest = index;
-                        }
+            if color_at(cfa, row, column) == 1 {
+                let values = [
+                    pixels[(row - 1) * width + column - 1],
+                    pixels[(row + 1) * width + column - 1],
+                    pixels[(row - 1) * width + column + 1],
+                    pixels[(row + 1) * width + column + 1],
+                ];
+                let sum: i32 = values.iter().map(|value| i32::from(*value)).sum();
+                let deviations = values.map(|value| (i32::from(value) * 4 - sum).abs());
+                let mut largest = 0;
+                for index in 1..deviations.len() {
+                    if deviations[largest] < deviations[index] {
+                        largest = index;
                     }
-                    pixels[index] = ((sum - i32::from(values[largest]) + 1) / 3) as u16;
                 }
-                _ => {
-                    let diagonals = u32::from(pixels[(row - 2) * width + column - 2])
-                        + u32::from(pixels[(row - 2) * width + column + 2])
-                        + u32::from(pixels[(row + 2) * width + column - 2])
-                        + u32::from(pixels[(row + 2) * width + column + 2]);
-                    let horizontal = u32::from(pixels[row * width + column - 2])
-                        + u32::from(pixels[row * width + column + 2]);
-                    pixels[index] = (diagonals as f32 * 0.073_223_3
-                        + horizontal as f32 * 0.353_553_4)
-                        .round() as u16;
-                }
+                pixels[index] = ((sum - i32::from(values[largest]) + 1) / 3) as u16;
+            } else {
+                let diagonals = u32::from(pixels[(row - 2) * width + column - 2])
+                    + u32::from(pixels[(row - 2) * width + column + 2])
+                    + u32::from(pixels[(row + 2) * width + column - 2])
+                    + u32::from(pixels[(row + 2) * width + column + 2]);
+                let horizontal = u32::from(pixels[row * width + column - 2])
+                    + u32::from(pixels[row * width + column + 2]);
+                pixels[index] = (diagonals as f32 * 0.073_223_3 + horizontal as f32 * 0.353_553_4)
+                    .round() as u16;
             }
         }
     }
@@ -522,6 +535,10 @@ fn split_offsets(maker: &MakerNote, layout: &RawLayout) -> Result<(usize, usize)
     Ok((split_col, split_row))
 }
 
+#[allow(
+    clippy::suboptimal_flops,
+    reason = "preserve the reference decoder's operation order and rounding"
+)]
 fn linear_curve(points: &[(u16, u16)]) -> Result<Vec<u16>, DecodeError> {
     if points.len() < 2
         || points.first() != Some(&(0, 0))
@@ -579,6 +596,13 @@ fn clamp_f32(value: f32) -> u16 { value.clamp(0.0, f32::from(u16::MAX)) as u16 }
 
 struct CorrectionBlock<'a> {
     entries: Vec<(u32, &'a [u8])>,
+}
+
+struct SplitBlacks {
+    columns: Vec<i16>,
+    rows: Vec<i16>,
+    split_col: usize,
+    split_row: usize,
 }
 
 impl<'a> CorrectionBlock<'a> {
