@@ -29,6 +29,7 @@ nef = []
 iiq = []
 packbits = []
 raf = []
+rw2 = []
 zstd = ["dep:zstd"]
 
 [[test]]

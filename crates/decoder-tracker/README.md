@@ -2,7 +2,7 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![RAW corpus: 567/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-567%2F2020-orange)](baseline.csv)
+[![RAW corpus: 951/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-951%2F2020-orange)](baseline.csv)
 
 | Vendor | Format | Status |
 | --- | --- | ---: |
@@ -83,7 +83,7 @@
 | PENTAX | PEF | 0/1 |
 | Panasonic | DNG | 1/1 |
 | Panasonic | RAW | 0/10 |
-| Panasonic | RW2 | 0/402 |
+| Panasonic | RW2 | 384/402 |
 | Paralenz | RAW | 0/2 |
 | Parrot | DNG | 1/1 |
 | Pentax | DNG | 34/35 |

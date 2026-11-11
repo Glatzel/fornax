@@ -17,6 +17,8 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 - 🦀 **Rust + Python support** — Native performance with Python accessibility.
 - 🔒 **Pure-Rust decoding** — No C/C++ decoder dependency in the production
   image pipeline.
+- 📷 **Native RAW formats** — DNG, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, and
+  single-shot Panasonic RW2 V4/V5/V6/V8.
 
 ## Components
 

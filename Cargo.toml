@@ -19,6 +19,7 @@ fornax-raf = { path = "./crates/fornax-raf" }
 fornax-raw = { path = "./crates/fornax-raw" }
 fornax-raw-core = { path = "./crates/fornax-raw-core" }
 fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
+fornax-rw2 = { path = "./crates/fornax-rw2" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 
 # glatzel

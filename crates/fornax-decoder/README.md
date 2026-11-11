@@ -4,9 +4,9 @@ Thin default decoder facade. DNG handling is implemented by `fornax-dng`;
 supported Sony ARW/NRW handling is implemented by `fornax-arw`; and supported
 Nikon NEF handling is implemented by `fornax-nef`; supported Fujifilm RAF
 handling is implemented by `fornax-raf`; supported Phase One/Leaf IIQ handling
-is implemented by `fornax-iiq`. Generic TIFF parsing, shared codecs, DNG
-metadata conversion, and writing remain in their format-neutral or DNG-specific
-crates.
+is implemented by `fornax-iiq`; and supported Panasonic RW2 handling is
+implemented by `fornax-rw2`. Generic TIFF parsing, shared codecs, DNG metadata
+conversion, and writing remain in their format-neutral or DNG-specific crates.
 
 ```rust
 use fornax_raw_core::{BayerPattern, MonoImage};

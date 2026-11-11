@@ -9,7 +9,8 @@ bit-reading primitives. The non-default `arw` feature owns Sony ARW1, ARW2,
 ARW6, and lossless-JPEG tile decoding, `nef` owns Nikon mode-3 lossless
 Huffman decoding, and `raf` owns Fujifilm packed and block-lossless decoding.
 The non-default `iiq` feature owns Phase One IIQ uncompressed, IIQ-L/L16,
-IIQ-S nonlinear, and IIQ-Sv2 row decoding.
+IIQ-S nonlinear, and IIQ-Sv2 row decoding, and `rw2` owns Panasonic
+V4/V5/V6/V8 plus stamped 12-bit decoding.
 It returns `SampleBuffer` values and has no dependency on TIFF, DNG, or raw
 workflow types. TIFF compression identifiers belong to
 [`fornax-tiff`](../fornax-tiff/README.md), while
@@ -48,6 +49,7 @@ format crates.
 | Nikon NEF (`nef` feature) | Mode-3 12/14-bit lossless Huffman | No |
 | Fujifilm RAF (`raf` feature) | 12-bit packed and Fujifilm 12/14/16-bit block lossless | No |
 | Phase One IIQ (`iiq` feature) | Modes 0, 3, 5, 6, and 8 to one U16 mosaic | No |
+| Panasonic RW2 (`rw2` feature) | V4/V5/V6/V8 and stamped 12-bit Bayer samples | No |
 
 Unknown TIFF compression identifiers are reported as unsupported.
 
@@ -89,11 +91,12 @@ Codec implementations are independently feature-gated.
 | `nef` | Nikon mode-3 lossless Huffman | Numeric 12/14-bit lossless trees with Rawler/LibRaw behavioral references; no implementation source is adapted |
 | `packbits` | TIFF PackBits | TIFF 6.0, independently implemented |
 | `raf` | Fujifilm packed and block-lossless CFA samples | Rawler/LibRaw behavioral references; independently implemented |
+| `rw2` | Panasonic V4/V5/V6/V8 and stamped 12-bit samples | Rawler/LibRaw behavioral references; independently implemented |
 | `zstd` | Zstandard integer/float payloads | Zstandard framing and `zstd` |
 
-The `arw`, `deflate`, `iiq`, `jpegxl`, `lossless-jpeg`, `lossy-jpeg`, `lzw`,
-`nef`, `packbits`, `raf`, and `zstd` features enable their matching dispatch
-variants.
+The `arw`, `deflate`, `jpegxl`, `lossless-jpeg`, `lossy-jpeg`, `lzw`, `nef`,
+`packbits`, `raf`, `rw2`, `iiq`, and `zstd` features enable their matching
+dispatch variants.
 The default feature set includes `lzw` and `packbits`, the standard TIFF
 compression pair implemented here; disable defaults to omit them.
 Format crates distinguish an implemented codec whose feature is disabled from
@@ -103,3 +106,5 @@ Fujifilm's behavior and reference licenses are recorded in
 [Fujifilm RAF references](../../docs/references/fuji-raf.md).
 Phase One's behavior and reference licenses are recorded in
 [Phase One IIQ references](../../docs/references/phase-one-iiq.md).
+Panasonic's behavior and reference licenses are recorded in
+[Panasonic RW2 references](../../docs/references/panasonic-rw2.md).

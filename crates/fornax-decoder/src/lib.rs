@@ -14,6 +14,7 @@ use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::ProcessMetadata;
 use fornax_raw_core::protocol::IDecoder;
 use fornax_raw_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
+use fornax_rw2::Rw2Image;
 
 #[derive(Clone, Debug)]
 pub enum Decoder {
@@ -22,6 +23,7 @@ pub enum Decoder {
     Iiq(IiqImage),
     Nef(NefImage),
     Raf(RafImage),
+    Rw2(Rw2Image),
 }
 impl IDecoder for Decoder {
     fn decode(input: &Path) -> Result<Self, DecodeError>
@@ -61,6 +63,10 @@ impl IDecoder for Decoder {
                 clerk::debug!("Reading Fujifilm RAF: {}", input.display());
                 Ok(Self::Raf(RafImage::decode(input)?))
             }
+            Ok(RawFormat::Rw2) => {
+                clerk::debug!("Reading Panasonic RW2: {}", input.display());
+                Ok(Self::Rw2(Rw2Image::decode(input)?))
+            }
             _ => {
                 cfg_select! {
                     any(target_os = "windows", target_os = "macos") => {
@@ -92,6 +98,7 @@ impl IDecoder for Decoder {
             Self::Iiq(parsed) => parsed.raw_mosaic(),
             Self::Nef(parsed) => parsed.raw_mosaic(),
             Self::Raf(parsed) => parsed.raw_mosaic(),
+            Self::Rw2(parsed) => parsed.raw_mosaic(),
         }
     }
 
@@ -105,6 +112,7 @@ impl IDecoder for Decoder {
             Self::Iiq(parsed) => parsed.cropped_mosaic(),
             Self::Nef(parsed) => parsed.cropped_mosaic(),
             Self::Raf(parsed) => parsed.cropped_mosaic(),
+            Self::Rw2(parsed) => parsed.cropped_mosaic(),
         }
     }
 
@@ -115,6 +123,7 @@ impl IDecoder for Decoder {
             Self::Iiq(parsed) => parsed.process_metadata(),
             Self::Nef(parsed) => parsed.process_metadata(),
             Self::Raf(parsed) => parsed.process_metadata(),
+            Self::Rw2(parsed) => parsed.process_metadata(),
         }
     }
 }
@@ -126,6 +135,7 @@ impl IDecoderDng for Decoder {
             Self::Iiq(parsed) => parsed.dng_metadata(),
             Self::Nef(parsed) => parsed.dng_metadata(),
             Self::Raf(parsed) => parsed.dng_metadata(),
+            Self::Rw2(parsed) => parsed.dng_metadata(),
         }
     }
 }
