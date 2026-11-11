@@ -54,6 +54,8 @@ mod samples;
 mod arw;
 #[cfg(feature = "deflate")]
 mod deflate;
+#[cfg(feature = "iiq")]
+mod iiq;
 #[cfg(feature = "lossy-jpeg")]
 mod jpeg;
 #[cfg(feature = "jpegxl")]
@@ -169,6 +171,14 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         }
         #[cfg(feature = "raf")]
         DecodeCompression::FujiLossless { cfa } => raf::decode_lossless(request, *cfa),
+        #[cfg(feature = "iiq")]
+        DecodeCompression::IiqUncompressed => iiq::decode_uncompressed(request),
+        #[cfg(feature = "iiq")]
+        DecodeCompression::IiqLossless => iiq::decode_lossless(request),
+        #[cfg(feature = "iiq")]
+        DecodeCompression::IiqNonlinear => iiq::decode_nonlinear(request),
+        #[cfg(feature = "iiq")]
+        DecodeCompression::IiqSv2 => iiq::decode_sv2(request),
         #[cfg(feature = "zstd")]
         DecodeCompression::Zstd => zstd::decode(request),
     }

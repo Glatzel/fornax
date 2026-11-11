@@ -96,6 +96,19 @@ pub enum DecodeCompression {
         /// CFA pattern used to place decoded line-buffer samples.
         cfa: FujiCfa,
     },
+    /// Phase One IIQ uncompressed little-endian samples.
+    #[cfg(feature = "iiq")]
+    IiqUncompressed,
+    /// Phase One IIQ-L and IIQ-L16 row-difference coding.
+    #[cfg(feature = "iiq")]
+    IiqLossless,
+    /// Phase One IIQ-S row-difference coding with nonlinear low-value
+    /// expansion.
+    #[cfg(feature = "iiq")]
+    IiqNonlinear,
+    /// Phase One IIQ-Sv2 eight-pixel cluster coding.
+    #[cfg(feature = "iiq")]
+    IiqSv2,
     /// TIFF's experimental Zstandard compression.
     #[cfg(feature = "zstd")]
     Zstd,
