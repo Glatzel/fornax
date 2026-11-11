@@ -11,6 +11,7 @@ name = "decoder"
 clerk.workspace = true
 fornax-arw.workspace = true
 fornax-dng.workspace = true
+fornax-iiq.workspace = true
 fornax-nef.workspace = true
 fornax-raf.workspace = true
 fornax-raw-core.workspace = true

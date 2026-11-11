@@ -18,13 +18,14 @@ part of the current preprocessor/demosaic handoff.
 | --- | --- | --- |
 | `fornax-raw-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, raster strip/tile planning, classic/BigTIFF parsing, and classic-TIFF writing. | `fornax-codec` |
-| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony, Nikon, Fujifilm, and Panasonic codecs. | None |
+| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony, Nikon, Fujifilm, Phase One, and Panasonic codecs. | None |
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-raw-core`, `fornax-tiff`, `fornax-codec` |
 | `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA layout mapping, and DNG-compatible metadata mapping. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-nef` | Native Nikon NEF TIFF/maker-note parsing, standard packed CFA layouts, metadata mapping, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-raf` | Native Fujifilm RAF parsing, lossless Bayer/X-Trans decoding, metadata mapping, and DNG preservation. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
+| `fornax-iiq` | Native Phase One/Leaf IIQ TIFF/private maker-note parsing, sensor correction, metadata mapping, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-rw2` | Native Panasonic RW2 TIFF layout, metadata, V4/V5/V6/V8 codecs, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-decoder` | Default pure-Rust DNG, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, and Panasonic RW2 decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-arw`, `fornax-nef`, `fornax-raf`, `fornax-rw2` |
+| `fornax-decoder` | Default pure-Rust DNG, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, Phase One/Leaf IIQ, and Panasonic RW2 decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-arw`, `fornax-nef`, `fornax-raf`, `fornax-iiq`, `fornax-rw2` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-raw-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-raw-core`, `fornax-decoder-rawler` |
 | `fornax-raw-pipeline` | Black/white normalization, demosaic protocol and algorithms, RGB reconstruction, and color processing. | `fornax-raw-core` |
@@ -70,9 +71,9 @@ coefficients.
 
 The default implementation is `fornax_decoder::Decoder`. The facade exports it
 as `fornax_raw::Decoder`; it dispatches DNG containers to `fornax-dng`, Sony
-ARW/NRW containers to `fornax-arw`, and Nikon NEF containers to
-`fornax-nef`, Fujifilm RAF containers to `fornax-raf`, and Panasonic RW2
-containers to `fornax-rw2`.
+ARW/NRW containers to `fornax-arw`, Nikon NEF containers to `fornax-nef`,
+Fujifilm RAF containers to `fornax-raf`, Panasonic RW2 containers to
+`fornax-rw2`, and Phase One/Leaf IIQ containers to `fornax-iiq`.
 `fornax_raw_core` contains no decoder implementation.
 
 ## Codec API
@@ -103,6 +104,9 @@ The non-default `raf` feature adds Fujifilm direct-packed and block-lossless
 decoding. `FujiCfa` selects the 2x2 or 6x6 CFA placement used when decoded
 six-line buffers are written to the output mosaic.
 
+The non-default `iiq` feature adds Phase One IIQ uncompressed, IIQ-L/L16,
+IIQ-S nonlinear, and IIQ-Sv2 row decoding. The IIQ format crate supplies one
+chunk per compressed row and performs sensor correction after codec output.
 The independent non-default `rw2` feature adds Panasonic V4, V5, V6, and V8
 decoding plus stamped 12-bit unpacked and packed-control layouts. V8 carries
 validated gamma, Huffman, shift, and strip tables in
@@ -228,6 +232,26 @@ general 6x6 CFA through `raw_mosaic` and DNG writing. The shared
 unsupported error, so X-Trans never reaches preprocessing or demosaicing.
 Lossy RAF, SuperCCD rotation/staggering, FinePix DBP, unknown Bayer models, and
 unknown compression families are also rejected with typed unsupported errors.
+
+## Phase One/Leaf IIQ support
+
+`fornax-iiq` parses the TIFF container followed by the Phase One private header
+at file offset 8. Private maker-note and raw-data offsets are relative to that
+base. The decoder supports compression modes `0`, `3`, `5`, `6`, and `8`;
+legacy Raw1/Raw2 modes return typed unsupported errors.
+
+Decoded U16 samples are processed through split black levels, polynomial
+curves, quadrant calibration, bad-column repair, and flat-field correction
+before `raw_mosaic` returns. Corrected output uses DNG `BlackLevel=0` and
+`WhiteLevel=65535`. Selected corpus fixtures match Rawler sample-for-sample
+after correction.
+
+Explicit Phase One and Leaf camera profiles supply conventional 2x2 CFA
+layouts. The source maker note supplies dimensions, margins, crop size,
+white-balance gains, and correction payloads. Unknown camera models return
+typed unsupported errors rather than guessed CFA data. Leaf `.MOS`, Phase One
+`.TIF`, preview extraction, and non-Bayer pipeline input remain outside the
+implemented boundary.
 
 ## Panasonic RW2 support
 

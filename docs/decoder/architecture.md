@@ -5,8 +5,8 @@
 The default production decoder is the pure-Rust implementation in
 `fornax-decoder`. It dispatches DNG containers to `fornax-dng`, Sony ARW/NRW
 containers to `fornax-arw`, Nikon NEF containers to `fornax-nef`, and Fujifilm
-RAF containers to `fornax-raf`, and Panasonic RW2 containers to
-`fornax-rw2`.
+RAF containers to `fornax-raf`, Panasonic RW2 containers to `fornax-rw2`, and
+Phase One/Leaf IIQ containers to `fornax-iiq`.
 `fornax-raw-core` owns the shared decoder protocol and pipeline types but no
 decoder implementation.
 
@@ -33,7 +33,7 @@ pipeline input.
 | 2 | 5 | [Fujifilm RAF](formats/fuji-raf.md) | Implemented for uncompressed and block-lossless Bayer/X-Trans |
 | 2 | 6 | [Hasselblad 3FR](formats/hasselblad-3fr.md) | Planned |
 | 2 | 7 | [Panasonic RW2](formats/panasonic-rw2.md) | Implemented for single-shot V4/V5/V6/V8 and stamped 12-bit Bayer |
-| 2 | 8 | [Phase One IIQ](formats/phase-one-iiq.md) | Planned |
+| 2 | 8 | [Phase One IIQ](formats/phase-one-iiq.md) | Implemented for modes 0, 3, 5, 6, and 8 |
 | 3 | 9 | [Other formats](formats/other.md) | Planned |
 
 Rawler may decode some of these formats as an alternate development or
@@ -74,14 +74,15 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-raw-core/src/primitive.rs` | `RawMosaic`, `CroppedMosaic`, `NormalizedMosaic`, and image aliases |
 | `fornax-raw-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
 | `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
-| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony/Nikon/Fujifilm/Panasonic codecs |
+| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony/Nikon/Fujifilm/Phase One/Panasonic codecs |
 | `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
 | `fornax-dng/src/constants.rs` | DNG-owned compression and photometric interpretation values |
 | `fornax-arw/src` | Sony TIFF selection, private metadata, codec request construction, CFA layout mapping, and DNG metadata mapping |
 | `fornax-nef/src` | Nikon TIFF selection, type-2 maker notes, packed codec requests, metadata mapping, and Bayer handoff |
 | `fornax-raf/src` | RAF pointer/tag parsing, Fuji IFD selection, lossless codec requests, metadata mapping, and Bayer-only handoff |
+| `fornax-iiq/src` | Phase One private-IFD parsing, IIQ codec requests, sensor correction, metadata mapping, and Bayer handoff |
 | `fornax-rw2/src` | Panasonic TIFF layout selection, V4-V8 codec requests, metadata mapping, DNG round-trip, and Bayer handoff |
-| `fornax-decoder/src/lib.rs` | Default DNG, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, and Panasonic RW2 dispatch and `IDecoder` implementation |
+| `fornax-decoder/src/lib.rs` | Default DNG, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, Phase One/Leaf IIQ, and Panasonic RW2 dispatch and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
 | `fornax-decoder-rawler/src/lib.rs` | Rawler decoding and metadata adaptation |
 | `fornax-dng/src/dng_decoder/mod.rs` | Raw IFD selection, DNG-to-codec request mapping, transforms, and active crop |
@@ -159,6 +160,24 @@ Lossy block compression, SuperCCD rotation/staggering, FinePix DBP, unknown
 Bayer models, and unknown compression families remain outside the implemented
 tier.
 
+## Phase One/Leaf IIQ data flow
+
+```text
+IIQ bytes
+  -> classic TIFF directories
+  -> private header at offset 8
+  -> private maker-note IFD and relative offsets
+  -> per-row IIQ codec chunks
+  -> RawMosaic U16
+  -> black, curve, quadrant, defect, and flat-field correction
+  -> mapped DNG directory and ProcessMetadata
+  -> CroppedMosaic<T>
+```
+
+Modes 0, 3, 5, 6, and 8 are accepted. Corrected samples export black level zero
+and white level 65535. Explicit profiles cover the conventional 2x2 Phase One
+and Leaf models in the pinned corpus. Legacy modes and unknown profiles remain
+typed unsupported paths.
 ## Panasonic RW2 data flow
 
 ```text
