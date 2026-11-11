@@ -68,6 +68,8 @@ mod nef;
 mod packbits;
 #[cfg(feature = "raf")]
 mod raf;
+#[cfg(feature = "rw2")]
+mod rw2;
 mod uncompressed;
 #[cfg(feature = "zstd")]
 mod zstd;
@@ -84,6 +86,8 @@ pub use request::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
     EncodedChunks, SampleFormat,
 };
+#[cfg(feature = "rw2")]
+pub use request::{PanasonicV8Params, PanasonicV8Strip};
 pub use sample_buffer::{SampleBuffer, SampleBufferError};
 
 /// Decodes one raw image using the request's compression algorithm.
@@ -169,6 +173,18 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         }
         #[cfg(feature = "raf")]
         DecodeCompression::FujiLossless { cfa } => raf::decode_lossless(request, *cfa),
+        #[cfg(feature = "rw2")]
+        DecodeCompression::PanasonicV4 { split_blocks } => rw2::decode_v4(request, *split_blocks),
+        #[cfg(feature = "rw2")]
+        DecodeCompression::PanasonicV5 => rw2::decode_v5(request),
+        #[cfg(feature = "rw2")]
+        DecodeCompression::PanasonicV6 => rw2::decode_v6(request),
+        #[cfg(feature = "rw2")]
+        DecodeCompression::PanasonicV8 { params } => rw2::decode_v8(request, params),
+        #[cfg(feature = "rw2")]
+        DecodeCompression::PanasonicUnpacked12 => rw2::decode_unpacked_12(request),
+        #[cfg(feature = "rw2")]
+        DecodeCompression::PanasonicPacked12Control => rw2::decode_packed_12_control(request),
         #[cfg(feature = "zstd")]
         DecodeCompression::Zstd => zstd::decode(request),
     }

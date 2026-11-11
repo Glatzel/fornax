@@ -5,7 +5,8 @@
 The default production decoder is the pure-Rust implementation in
 `fornax-decoder`. It dispatches DNG containers to `fornax-dng`, Sony ARW/NRW
 containers to `fornax-arw`, Nikon NEF containers to `fornax-nef`, and Fujifilm
-RAF containers to `fornax-raf`.
+RAF containers to `fornax-raf`, and Panasonic RW2 containers to
+`fornax-rw2`.
 `fornax-raw-core` owns the shared decoder protocol and pipeline types but no
 decoder implementation.
 
@@ -31,7 +32,7 @@ pipeline input.
 | 1 | 4 | [Nikon NEF](formats/nikon-nef.md) | Partially implemented for standard uncompressed/packed modes |
 | 2 | 5 | [Fujifilm RAF](formats/fuji-raf.md) | Implemented for uncompressed and block-lossless Bayer/X-Trans |
 | 2 | 6 | [Hasselblad 3FR](formats/hasselblad-3fr.md) | Planned |
-| 2 | 7 | [Panasonic RW2](formats/panasonic-rw2.md) | Planned |
+| 2 | 7 | [Panasonic RW2](formats/panasonic-rw2.md) | Implemented for single-shot V4/V5/V6/V8 and stamped 12-bit Bayer |
 | 2 | 8 | [Phase One IIQ](formats/phase-one-iiq.md) | Planned |
 | 3 | 9 | [Other formats](formats/other.md) | Planned |
 
@@ -73,13 +74,14 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-raw-core/src/primitive.rs` | `RawMosaic`, `CroppedMosaic`, `NormalizedMosaic`, and image aliases |
 | `fornax-raw-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
 | `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
-| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony/Nikon/Fujifilm codecs |
+| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony/Nikon/Fujifilm/Panasonic codecs |
 | `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
 | `fornax-dng/src/constants.rs` | DNG-owned compression and photometric interpretation values |
 | `fornax-arw/src` | Sony TIFF selection, private metadata, codec request construction, CFA layout mapping, and DNG metadata mapping |
 | `fornax-nef/src` | Nikon TIFF selection, type-2 maker notes, packed codec requests, metadata mapping, and Bayer handoff |
 | `fornax-raf/src` | RAF pointer/tag parsing, Fuji IFD selection, lossless codec requests, metadata mapping, and Bayer-only handoff |
-| `fornax-decoder/src/lib.rs` | Default DNG, Sony ARW/NRW, Nikon NEF, and Fujifilm RAF dispatch and `IDecoder` implementation |
+| `fornax-rw2/src` | Panasonic TIFF layout selection, V4-V8 codec requests, metadata mapping, DNG round-trip, and Bayer handoff |
+| `fornax-decoder/src/lib.rs` | Default DNG, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, and Panasonic RW2 dispatch and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
 | `fornax-decoder-rawler/src/lib.rs` | Rawler decoding and metadata adaptation |
 | `fornax-dng/src/dng_decoder/mod.rs` | Raw IFD selection, DNG-to-codec request mapping, transforms, and active crop |
@@ -90,7 +92,7 @@ non-2x2 CFA layouts before constructing active pipeline input.
 
 Codec availability is controlled by Cargo features. Fornax owns the Sony ARW1,
 ARW2, ARW6, and lossless-JPEG tile implementations behind the `fornax-codec`
-`arw` feature. The TIFF raster resolver
+`arw` feature, and the independent Panasonic codecs behind `rw2`. The TIFF raster resolver
 distinguishes unknown compression IDs from known IDs whose required codec
 feature is disabled, and the DNG adapter preserves that distinction in its
 typed decode errors.
@@ -156,6 +158,27 @@ and cropped mosaic accessors return a typed unsupported-CFA error.
 Lossy block compression, SuperCCD rotation/staggering, FinePix DBP, unknown
 Bayer models, and unknown compression families remain outside the implemented
 tier.
+
+## Panasonic RW2 data flow
+
+```text
+RW2 bytes
+  -> classic TIFF magic 85 directories
+  -> first primary RawDataOffset IFD, else StripOffsets
+  -> raw-format/compression validation
+  -> V4/V5/V6/V8 or stamped 12-bit decode
+  -> RawMosaic
+  -> mapped DNG directory + active-area process metadata
+  -> CroppedMosaic<T>
+```
+
+Single-shot 2x2 Bayer V4, V5, V6, and V8 layouts are supported. Border and
+crop coordinates are exclusive at right/bottom, CFA is shifted into the active
+reference frame, and the V4 black offset is applied before DNG metadata
+conversion. Multi-shot markers, high-resolution composites, V7, unknown
+versions/compression, and unknown CFAs return typed unsupported errors before
+sample decoding. See the [RW2 format plan](formats/panasonic-rw2.md) and
+[Panasonic reference note](../references/panasonic-rw2.md).
 
 ## Metadata and validation
 
