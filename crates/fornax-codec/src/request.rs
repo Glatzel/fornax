@@ -49,6 +49,14 @@ pub enum DecodeCompression {
     /// Sony lossless-JPEG tiles packed as CFA sample rows.
     #[cfg(feature = "arw")]
     SonyLosslessJpeg,
+    /// Canon CRX lossless CFA planes.
+    #[cfg(feature = "cr3")]
+    CanonCrx {
+        /// Validated CMP1 codec header.
+        header: CanonCrxHeader,
+        /// CFA placement of the decoded mosaic.
+        cfa: crate::CanonCrxCfa,
+    },
     /// Nikon packed CFA rows with a container-selected row stride.
     #[cfg(feature = "nef")]
     NikonPacked {
@@ -249,6 +257,117 @@ pub enum ByteOrder {
     Little,
     /// Most-significant byte first.
     Big,
+}
+
+/// Canon CRX CMP1 parameters accepted by the lossless decoder.
+///
+/// The constructor accepts only the audited lossless shape. C-RAW and any
+/// ambiguous CMP1 encoding return an unsupported error.
+#[cfg(feature = "cr3")]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub struct CanonCrxHeader {
+    cmp1_version: u16,
+    mosaic_width: u32,
+    mosaic_height: u32,
+    tile_width: u32,
+    tile_height: u32,
+    bit_depth: u8,
+    encoding_type: u8,
+    transform_levels: u8,
+    mdat_header_size: u32,
+    median_precision: u8,
+}
+
+#[cfg(feature = "cr3")]
+impl CanonCrxHeader {
+    /// Maximum decoded mosaic pixels accepted before allocation.
+    pub const MAX_PIXELS: u64 = 120_000_000;
+
+    /// Validates CMP1 fields for the lossless CRX path.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`crate::CodecError::Unsupported`] for C-RAW, wavelet-coded,
+    /// or unobserved CMP1 shapes and [`crate::CodecError::InvalidInput`] for
+    /// zero or oversized geometry.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        cmp1_version: u16,
+        mosaic_width: u32,
+        mosaic_height: u32,
+        tile_width: u32,
+        tile_height: u32,
+        bit_depth: u8,
+        encoding_type: u8,
+        transform_levels: u8,
+        mdat_header_size: u32,
+        median_precision: u8,
+    ) -> Result<Self, crate::CodecError> {
+        let pixels = u64::from(mosaic_width) * u64::from(mosaic_height);
+        if mosaic_width == 0 || mosaic_height == 0 || tile_width == 0 || tile_height == 0 {
+            return Err(crate::error::invalid("Canon CRX geometry must not be zero"));
+        }
+        if pixels > Self::MAX_PIXELS {
+            return Err(crate::error::invalid("Canon CRX mosaic exceeds pixel cap"));
+        }
+        if !(8..=16).contains(&bit_depth) || median_precision != bit_depth {
+            return Err(crate::error::invalid(
+                "Canon CRX lossless precision must be 8..=16 bits",
+            ));
+        }
+        if cmp1_version != 0x0100
+            || encoding_type != 0
+            || transform_levels != 0
+            || mdat_header_size != 0x70
+        {
+            return Err(crate::CodecError::Unsupported(
+                "Canon CRX CMP1 shape is not the validated lossless layout".into(),
+            ));
+        }
+        Ok(Self {
+            cmp1_version,
+            mosaic_width,
+            mosaic_height,
+            tile_width,
+            tile_height,
+            bit_depth,
+            encoding_type,
+            transform_levels,
+            mdat_header_size,
+            median_precision,
+        })
+    }
+
+    /// Returns the CMP1 codec version.
+    pub const fn cmp1_version(&self) -> u16 { self.cmp1_version }
+
+    /// Returns the full mosaic width.
+    pub const fn mosaic_width(&self) -> u32 { self.mosaic_width }
+
+    /// Returns the full mosaic height.
+    pub const fn mosaic_height(&self) -> u32 { self.mosaic_height }
+
+    /// Returns the configured tile width.
+    pub const fn tile_width(&self) -> u32 { self.tile_width }
+
+    /// Returns the configured tile height.
+    pub const fn tile_height(&self) -> u32 { self.tile_height }
+
+    /// Returns the stored bit depth.
+    pub const fn bit_depth(&self) -> u8 { self.bit_depth }
+
+    /// Returns the CMP1 encoding type.
+    pub const fn encoding_type(&self) -> u8 { self.encoding_type }
+
+    /// Returns the wavelet transform level count.
+    pub const fn transform_levels(&self) -> u8 { self.transform_levels }
+
+    /// Returns the CRX MDAT header size.
+    pub const fn mdat_header_size(&self) -> u32 { self.mdat_header_size }
+
+    /// Returns the prediction median precision.
+    pub const fn median_precision(&self) -> u8 { self.median_precision }
 }
 
 /// One encoded strip or tile within [`DecodeRequest::source`].
