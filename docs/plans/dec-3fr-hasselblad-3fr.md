@@ -48,11 +48,11 @@
 - Require: `fornax-codec/hasselblad` implies `lossless-jpeg`.
 - Preserve: `DecodeRequest` and `SampleBuffer` signatures.
 
-- [ ] Write a failing contract test that constructs a one-component 16-bit SOF3 stream with predictor 8 and asserts the exact two-column output.
-- [ ] Run `cargo test -p fornax-codec --features hasselblad --test decode_contract hasselblad`; expect failure because the feature/variant is absent.
-- [ ] Add the feature, enum variant, dispatch arm, header validation, and predictor-8 decoder.
-- [ ] Add failing malformed-stream tests for nonzero restart interval, point transform, unsupported predictor, component mismatch, missing Huffman table, and truncated entropy.
-- [ ] Run the codec feature test suite until all cases pass.
+- [x] Write a failing contract test that constructs a one-component 16-bit SOF3 stream with predictor 8 and asserts the exact two-column output.
+- [x] Run `cargo test -p fornax-codec --features hasselblad --test decode_contract hasselblad`; expect failure because the feature/variant is absent.
+- [x] Add the feature, enum variant, dispatch arm, header validation, and predictor-8 decoder.
+- [x] Add failing malformed-stream tests for nonzero restart interval, point transform, unsupported predictor, component mismatch, missing Huffman table, and truncated entropy.
+- [x] Run the codec feature test suite until all cases pass.
 
 ## Task 2: 3FR container, profiles, and metadata
 
@@ -72,15 +72,15 @@
 - Produce: `fornax_hasselblad::HasselbladImage`.
 - Consume: `fornax_tiff::parse`, `fornax_codec::decode`, `fornax_dng::dng_decoder::process_metadata_from_dng_metadata`, and `fornax_dng::metadata::IDecoderDng`.
 
-- [ ] Write failing synthetic TIFF tests for preview/raw SubIFD selection, uncompressed byte-count validation, compression-7 EOF handling, profile CFA/active-area selection, and unknown-model rejection.
-- [ ] Run `cargo test -p fornax-hasselblad`; expect the crate/tests to fail because the decoder is absent.
-- [ ] Implement container selection and validate `160000`-pixel safety arithmetic, single sample, 16-bit integer storage, strip/tile absence, and source offsets.
-- [ ] Implement explicit RGGB profiles:
+- [x] Write failing synthetic TIFF tests for preview/raw SubIFD selection, uncompressed byte-count validation, compression-7 EOF handling, profile CFA/active-area selection, and unknown-model rejection.
+- [x] Run `cargo test -p fornax-hasselblad`; expect the crate/tests to fail because the decoder is absent.
+- [x] Implement container selection and validate checked sample-count and source-offset arithmetic, single sample, 16-bit integer storage, strip/tile absence, and source offsets.
+- [x] Implement explicit RGGB profiles:
   - full active area: `Hasselblad H3D`, `Hasselblad H4D`, `Hasselblad CFV`, `Hasselblad96`, `Hasselblad ixpressCF132`, `Hasselblad X2D 100C`, `Hasselblad CFV 100C/Electronic Shutter`;
   - borders `[left 46, top 96, right 58, bottom 0]`: `Hasselblad X1D`, `Hasselblad X1D II 50C`.
-- [ ] Implement source CFA parsing; when tags are absent use the profile pattern. Keep arbitrary well-formed CFA metadata available to raw/DNG access while rejecting non-2x2 layouts at pipeline access.
-- [ ] Map geometry, active/default crop, levels, WB, matrix, identity, orientation, raw unique ID, and allowlisted EXIF into `Directory`.
-- [ ] Add failing metadata tests and make them pass, including X1D crop rebasing and unknown/non-Bayer unsupported behavior.
+- [x] Implement source CFA parsing; when tags are absent use the profile pattern. Keep arbitrary well-formed CFA metadata available to raw/DNG access while rejecting non-2x2 layouts at pipeline access.
+- [x] Map geometry, active/default crop, levels, WB, matrix, identity, orientation, raw unique ID, and allowlisted EXIF into `Directory`.
+- [x] Add failing metadata tests and make them pass, including X1D crop rebasing and unknown/non-Bayer unsupported behavior.
 
 ## Task 3: Default decoder and exact fixture parity
 
