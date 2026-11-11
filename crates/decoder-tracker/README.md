@@ -2,7 +2,7 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![RAW corpus: 396/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-396%2F2020-orange)](baseline.csv)
+[![RAW corpus: 426/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-426%2F2020-orange)](baseline.csv)
 
 | Vendor | Format | Status |
 | --- | --- | ---: |
@@ -63,10 +63,10 @@
 | Minolta | MDC | 0/1 |
 | Minolta | MRW | 0/10 |
 | Minolta Co., Ltd. | MRW | 0/1 |
-| NIKON CORPORATION | NEF | 0/42 |
+| NIKON CORPORATION | NEF | 2/42 |
 | NIKON CORPORATION | NRW | 0/1 |
 | Nikon | DNG | 1/2 |
-| Nikon | NEF | 0/235 |
+| Nikon | NEF | 28/235 |
 | Nikon | NRW | 0/11 |
 | Nokia | DNG | 2/2 |
 | OLYMPUS | ORF | 0/2 |

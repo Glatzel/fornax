@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > superpowers:subagent-driven-development or superpowers:executing-plans to
-> implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for
+> implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for
 > tracking.
 
 **Goal:** Add native Fornax decoding for standard Nikon NEF compression modes
@@ -64,16 +64,16 @@ Out of scope:
 
 ## Task Checklist
 
-- [ ] Confirm source semantics and survey real corpus modes and WB versions.
-- [ ] Add the `fornax-nef` crate, TIFF constants, maker-note parser, and
+- [x] Confirm source semantics and survey real corpus modes and WB versions.
+- [x] Add the `fornax-nef` crate, TIFF constants, maker-note parser, and
   synthetic NEF fixture builder.
-- [ ] Add Nikon packed, unpacked-word, and striped mode-5 codecs.
-- [ ] Add raw-IFD selection, layout dispatch, `NefImage`, and the `IDecoder`
+- [x] Add Nikon packed, unpacked-word, and striped mode-5 codecs.
+- [x] Add raw-IFD selection, layout dispatch, `NefImage`, and the `IDecoder`
   raw path.
-- [ ] Add DNG metadata mapping, WB decryption, and typed provenance.
-- [ ] Route `.NEF` through `fornax-decoder` and document the accepted surface.
-- [ ] Add fixture parity, golden hashes, manual corpus validation, and review.
-- [ ] Update this plan with decisions, validation results, and any deviations.
+- [x] Add DNG metadata mapping, WB decryption, and typed provenance.
+- [x] Route `.NEF` through `fornax-decoder` and document the accepted surface.
+- [x] Add fixture parity, golden hashes, manual corpus validation, and review.
+- [x] Update this plan with decisions, validation results, and any deviations.
 
 ## Files Expected to Change
 
@@ -123,3 +123,9 @@ raw.pixls.us corpus root. The manual tracker workflow uses
   commits only aggregate text to `docs/references/nikon-nef.md`.
 - Rawler parity tests live in `crates/fornax-decoder/tests`, using the
   existing dev-dependency and the public `Decoder` facade.
+- Validation completed with `scripts/agent-validation.sh`. The selected D850
+  12-bit, D850 14-bit, and D500 12-bit fixtures match Rawler sample-for-sample.
+- The first manual NEF corpus run evaluated 277 rows after all 20 shards
+  succeeded: 30 rows pass and 247 return typed failures. Modes 6 and 10 and the
+  legacy mode-2 D100 row have passing corpus coverage; modes 5, 7, and 9 remain
+  synthetic-only in this snapshot.
