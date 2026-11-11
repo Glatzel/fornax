@@ -18,10 +18,11 @@ part of the current preprocessor/demosaic handoff.
 | --- | --- | --- |
 | `fornax-raw-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, raster strip/tile planning, classic/BigTIFF parsing, and classic-TIFF writing. | `fornax-codec` |
-| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony ARW codecs. | None |
+| `fornax-codec` | Format-neutral raw sample decoding, chunk assembly, predictors, supported codec encoding, and feature-gated Sony and Nikon codecs. | None |
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-raw-core`, `fornax-tiff`, `fornax-codec` |
 | `fornax-arw` | Native Sony ARW/NRW TIFF, private metadata, CFA layout mapping, and DNG-compatible metadata mapping. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-decoder` | Default pure-Rust DNG and Sony ARW/NRW decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-arw` |
+| `fornax-nef` | Native Nikon NEF TIFF/maker-note parsing, standard packed CFA layouts, metadata mapping, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
+| `fornax-decoder` | Default pure-Rust DNG, Sony ARW/NRW, and Nikon NEF decoder facade over the format crates. | `fornax-raw-core`, `fornax-dng`, `fornax-arw`, `fornax-nef` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-raw-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-raw-core`, `fornax-decoder-rawler` |
 | `fornax-raw-pipeline` | Black/white normalization, demosaic protocol and algorithms, RGB reconstruction, and color processing. | `fornax-raw-core` |
@@ -66,8 +67,9 @@ active-area-relative Bayer pattern, and optional green-normalized white-balance
 coefficients.
 
 The default implementation is `fornax_decoder::Decoder`. The facade exports it
-as `fornax_raw::Decoder`; it dispatches DNG containers to `fornax-dng` and ARW/NRW
-containers to `fornax-arw`. `fornax_raw_core` contains no decoder implementation.
+as `fornax_raw::Decoder`; it dispatches DNG containers to `fornax-dng`, Sony
+ARW/NRW containers to `fornax-arw`, and Nikon NEF containers to
+`fornax-nef`. `fornax_raw_core` contains no decoder implementation.
 
 ## Codec API
 
@@ -88,6 +90,10 @@ The non-default `arw` feature adds Sony `Arw1`, `Arw2`, `Arw6`, and
 the same chunk, geometry, precision, and `SampleBuffer` contract as other
 codecs. `arw2_white_level` and `arw6_white_level` expose the curve-derived
 white levels needed by the Sony format layer.
+
+The non-default `nef` feature adds Nikon packed-row, unpacked-word, and
+mode-5 striped packed decoding. `fornax-nef` enables this feature for its
+vendor codec request.
 
 `fornax-tiff::CompressionMethod` remains the typed TIFF field value.
 `fornax_tiff::RasterLayout` owns strip/tile geometry and chunk ordering, while
@@ -147,6 +153,7 @@ white-balance coefficients when metadata provides them.
 - optional DNG `ColorMatrix1`, `ColorMatrix2`, `ForwardMatrix1`, and
   `ForwardMatrix2` values;
 - DNG `CameraCalibration1` and `CameraCalibration2`, represented as 3x3 matrix.
+- typed provenance for selected white-balance and black-level sources.
 
 Postprocessing can emit camera-native RGB or convert scene-linear samples to
 sRGB, Adobe RGB, Wide Gamut RGB, ProPhoto RGB, XYZ, ACES2065-1, ACEScg, DCI-P3,

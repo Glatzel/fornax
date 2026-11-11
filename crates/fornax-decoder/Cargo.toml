@@ -11,6 +11,7 @@ name = "decoder"
 clerk.workspace = true
 fornax-arw.workspace = true
 fornax-dng.workspace = true
+fornax-nef.workspace = true
 fornax-raw-core.workspace = true
 
 [dev-dependencies]
@@ -19,6 +20,7 @@ fornax-devtool.workspace = true
 generic-num.workspace = true
 image.workspace = true
 rawler.workspace = true
+fornax-tiff.workspace = true
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 strum.workspace = true

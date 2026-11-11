@@ -7,6 +7,7 @@ use fornax_arw::ArwImage;
 use fornax_dng::Directory;
 use fornax_dng::dng_decoder::DngImage;
 use fornax_dng::metadata::IDecoderDng;
+use fornax_nef::NefImage;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::ProcessMetadata;
 use fornax_raw_core::protocol::IDecoder;
@@ -16,6 +17,7 @@ use fornax_raw_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
 pub enum Decoder {
     Dng(DngImage),
     Arw(ArwImage),
+    Nef(NefImage),
 }
 impl IDecoder for Decoder {
     fn decode(input: &Path) -> Result<Self, DecodeError>
@@ -42,6 +44,10 @@ impl IDecoder for Decoder {
             Ok(RawFormat::Arw | RawFormat::Nrw) => {
                 clerk::debug!("Reading Sony RAW: {}", input.display());
                 Ok(Self::Arw(ArwImage::decode(input)?))
+            }
+            Ok(RawFormat::Nef) => {
+                clerk::debug!("Reading Nikon NEF: {}", input.display());
+                Ok(Self::Nef(NefImage::decode(input)?))
             }
             _ => {
                 cfg_select! {
@@ -71,6 +77,7 @@ impl IDecoder for Decoder {
         match self {
             Self::Dng(parsed) => parsed.raw_mosaic(),
             Self::Arw(parsed) => parsed.raw_mosaic(),
+            Self::Nef(parsed) => parsed.raw_mosaic(),
         }
     }
 
@@ -81,6 +88,7 @@ impl IDecoder for Decoder {
         match self {
             Self::Dng(parsed) => parsed.cropped_mosaic(),
             Self::Arw(parsed) => parsed.cropped_mosaic(),
+            Self::Nef(parsed) => parsed.cropped_mosaic(),
         }
     }
 
@@ -88,6 +96,7 @@ impl IDecoder for Decoder {
         match self {
             Self::Dng(parsed) => parsed.process_metadata(),
             Self::Arw(parsed) => parsed.process_metadata(),
+            Self::Nef(parsed) => parsed.process_metadata(),
         }
     }
 }
@@ -96,6 +105,7 @@ impl IDecoderDng for Decoder {
         match self {
             Self::Dng(parsed) => parsed.dng_metadata(),
             Self::Arw(parsed) => parsed.dng_metadata(),
+            Self::Nef(parsed) => parsed.dng_metadata(),
         }
     }
 }
