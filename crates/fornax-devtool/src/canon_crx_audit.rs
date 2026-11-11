@@ -4,7 +4,7 @@ use std::fmt::Write as _;
 use std::fs;
 use std::path::Path;
 
-use fornax_bmff::{Bmff, BmffLimits, BoxRef, FourCc};
+use fornax_bmff::{Bmff, BmffLimits, BoxRef, FourCc, SampleTable, SampleTableLimits};
 
 /// CMP1 fields needed to distinguish the accepted lossless shape.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -120,6 +120,7 @@ pub fn audit_file(path: &Path) -> Result<AuditRow, String> {
 pub fn audit_bytes(source: &[u8], path: &str) -> Result<AuditRow, String> {
     let bmff = Bmff::parse(source).map_err(|error| error.to_string())?;
     let track_count = top_level_track_count(&bmff)?;
+    let color_data_version = audit_color_data_version(source, &bmff).ok().flatten();
     let mut cmp1 = None;
     walk_boxes(&bmff, 0, &mut |item| {
         if item.typ() == FourCc::new(*b"CMP1") {
@@ -140,9 +141,36 @@ pub fn audit_bytes(source: &[u8], path: &str) -> Result<AuditRow, String> {
         path: path.to_owned(),
         track_count,
         cmp1,
-        color_data_version: None,
+        color_data_version,
         lossless: cmp1.is_lossless(),
     })
+}
+
+/// Audits files from a pointer manifest.
+///
+/// # Errors
+///
+/// Returns an error when the manifest or any selected CR3/CRM file cannot be
+/// read or parsed.
+pub fn audit_manifest(corpus: &Path, manifest: &Path) -> Result<Vec<AuditRow>, String> {
+    let mut reader = csv::Reader::from_path(manifest)
+        .map_err(|error| format!("opening {}: {error}", manifest.display()))?;
+    let mut rows = Vec::new();
+    for record in reader.records() {
+        let record = record.map_err(|error| format!("reading {}: {error}", manifest.display()))?;
+        let path = record
+            .get(0)
+            .ok_or_else(|| "manifest row has no path".to_owned())?;
+        let extension = Path::new(path)
+            .extension()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default();
+        if extension.eq_ignore_ascii_case("cr3") || extension.eq_ignore_ascii_case("crm") {
+            rows.push(audit_file(&corpus.join(path))?);
+        }
+    }
+    rows.sort_by(|left, right| left.path.cmp(&right.path));
+    Ok(rows)
 }
 
 /// Renders audit rows as CSV.
@@ -199,6 +227,157 @@ fn top_level_track_count(bmff: &Bmff<'_>) -> Result<usize, String> {
         .iter()
         .filter(|item| item.typ() == FourCc::new(*b"trak"))
         .count())
+}
+
+fn audit_color_data_version(source: &[u8], bmff: &Bmff<'_>) -> Result<Option<i16>, String> {
+    let Some(moov) = bmff
+        .find(&[FourCc::new(*b"moov")])
+        .map_err(|error| error.to_string())?
+    else {
+        return Ok(None);
+    };
+    let tracks = moov
+        .children(BmffLimits::default())
+        .map_err(|error| error.to_string())?;
+    for trak in tracks
+        .iter()
+        .filter(|item| item.typ() == FourCc::new(*b"trak"))
+    {
+        let Some(mdia) = child(*trak, FourCc::new(*b"mdia"), 0)? else {
+            continue;
+        };
+        let Some(minf) = child(mdia, FourCc::new(*b"minf"), 0)? else {
+            continue;
+        };
+        let Some(stbl) = child(minf, FourCc::new(*b"stbl"), 0)? else {
+            continue;
+        };
+        let Some(stsd) = child(stbl, FourCc::new(*b"stsd"), 0)? else {
+            continue;
+        };
+        if child(stsd, FourCc::new(*b"CTMD"), 8)?.is_none() {
+            continue;
+        }
+        let stsc = child(stbl, FourCc::new(*b"stsc"), 0)?
+            .ok_or_else(|| "CTMD stsc is missing".to_owned())?;
+        let stsz = child(stbl, FourCc::new(*b"stsz"), 0)?
+            .ok_or_else(|| "CTMD stsz is missing".to_owned())?;
+        let (chunk_type, chunk_offsets) =
+            if let Some(value) = child(stbl, FourCc::new(*b"stco"), 0)? {
+                (*b"stco", value)
+            } else {
+                (
+                    *b"co64",
+                    child(stbl, FourCc::new(*b"co64"), 0)?
+                        .ok_or_else(|| "CTMD chunk offsets are missing".to_owned())?,
+                )
+            };
+        let table = SampleTable::parse(
+            stsc.payload(),
+            stsz.payload(),
+            chunk_type,
+            chunk_offsets.payload(),
+            SampleTableLimits::default(),
+        )
+        .map_err(|error| error.to_string())?;
+        let sample = table
+            .sample(0, source.len())
+            .map_err(|error| error.to_string())?;
+        return color_data_version_from_ctmd(
+            source
+                .get(sample.offset..sample.offset + sample.size)
+                .ok_or_else(|| "CTMD sample exceeds source".to_owned())?,
+        );
+    }
+    Ok(None)
+}
+
+fn color_data_version_from_ctmd(data: &[u8]) -> Result<Option<i16>, String> {
+    let mut position = 0_usize;
+    while position + 12 <= data.len() {
+        let size = usize::try_from(read_u32_le(data, position)?)
+            .map_err(|_| "CTMD record size exceeds usize".to_owned())?;
+        if size < 12 || position + size > data.len() {
+            break;
+        }
+        if read_u16_le(data, position + 4)? == 8 {
+            return color_data_version_from_record(&data[position + 12..position + size]);
+        }
+        position += size;
+    }
+    Ok(None)
+}
+
+fn color_data_version_from_record(data: &[u8]) -> Result<Option<i16>, String> {
+    let mut position = 0_usize;
+    while position + 8 <= data.len() {
+        let size = usize::try_from(read_u32_le(data, position)?)
+            .map_err(|_| "CTMD block size exceeds usize".to_owned())?;
+        if size < 8 || position + size > data.len() {
+            return Err("CTMD block is malformed".to_owned());
+        }
+        if read_u16_le(data, position + 4)? == 0x927c {
+            let block = &data[position + 8..position + size];
+            let order = match block.get(..2) {
+                Some(b"II") => fornax_tiff::ByteOrder::Little,
+                Some(b"MM") => fornax_tiff::ByteOrder::Big,
+                _ => return Err("CTMD TIFF header is missing".to_owned()),
+            };
+            let ifd_offset = match order {
+                fornax_tiff::ByteOrder::Little => {
+                    u32::from_le_bytes(block[4..8].try_into().map_err(|_| "TIFF IFD offset")?)
+                }
+                fornax_tiff::ByteOrder::Big => {
+                    u32::from_be_bytes(block[4..8].try_into().map_err(|_| "TIFF IFD offset")?)
+                }
+            };
+            let directory = fornax_tiff::parse_ifd_at(block, u64::from(ifd_offset), order, 0)
+                .map_err(|error| error.to_string())?;
+            let Some(value) = directory.get(&fornax_tiff::Tag(0x4001)) else {
+                return Ok(None);
+            };
+            let values = value
+                .clone()
+                .into_u64_vec()
+                .map_err(|_| "ColorData is not an integer list".to_owned())?;
+            let version = values
+                .first()
+                .copied()
+                .ok_or_else(|| "ColorData is empty".to_owned())?;
+            return u16::try_from(version)
+                .map(|value| Some(value as i16))
+                .map_err(|_| "ColorData version exceeds u16".to_owned());
+        }
+        position += size;
+    }
+    Ok(None)
+}
+
+fn child(parent: BoxRef<'_>, typ: FourCc, skip: usize) -> Result<Option<BoxRef<'_>>, String> {
+    let payload = parent
+        .payload()
+        .get(skip..)
+        .ok_or_else(|| format!("{} payload is shorter than {skip}", parent.typ()))?;
+    let bmff = Bmff::parse(payload).map_err(|error| error.to_string())?;
+    Ok(bmff.boxes().iter().copied().find(|item| item.typ() == typ))
+}
+
+fn read_u16_le(data: &[u8], offset: usize) -> Result<u16, String> {
+    let bytes: [u8; 2] = data
+        .get(offset..offset + 2)
+        .ok_or_else(|| "CTMD u16 is truncated".to_owned())?
+        .try_into()
+        .map_err(|_| "CTMD u16 is truncated".to_owned())?;
+    Ok(u16::from_le_bytes(bytes))
+}
+
+fn read_u32_le(data: &[u8], offset: usize) -> Result<u32, String> {
+    let bytes: [u8; 4] = data
+        .get(offset..offset + 4)
+        .ok_or_else(|| "CTMD u32 is truncated".to_owned())?
+        .try_into()
+        .map_err(|_| "CTMD u32 is truncated".to_owned())?;
+    Ok(u32::from_le_bytes(bytes))
 }
 
 fn walk_boxes(

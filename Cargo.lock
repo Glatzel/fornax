@@ -835,8 +835,10 @@ name = "fornax-devtool"
 version = "0.0.17"
 dependencies = [
  "clerk",
+ "csv",
  "fornax-bmff",
  "fornax-raw-core",
+ "fornax-tiff",
  "generic-num",
  "image 0.25.9",
  "mischief",
