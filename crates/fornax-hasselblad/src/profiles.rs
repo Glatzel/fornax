@@ -1,12 +1,12 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) struct ModelProfile {
+pub struct ModelProfile {
     pub cfa: [u8; 4],
     /// Left, top, right, and bottom inactive borders relative to the full
     /// frame.
     pub borders: [u32; 4],
 }
 
-pub(crate) fn profile(unique_model: &str, model: &str) -> Option<ModelProfile> {
+pub fn profile(unique_model: &str, model: &str) -> Option<ModelProfile> {
     let key = unique_model.trim();
     let borders = match key {
         "Hasselblad X1D" | "Hasselblad X1D II 50C" => [46, 96, 58, 0],

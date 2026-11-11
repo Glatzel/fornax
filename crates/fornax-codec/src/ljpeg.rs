@@ -315,6 +315,7 @@ struct BitReader<'a> {
     ended: bool,
 }
 
+#[cfg(feature = "hasselblad")]
 struct HasselbladBitReader<'a> {
     bytes: &'a [u8],
     position: usize,
@@ -322,6 +323,7 @@ struct HasselbladBitReader<'a> {
     buffered_bits: u8,
 }
 
+#[cfg(feature = "hasselblad")]
 impl<'a> HasselbladBitReader<'a> {
     const fn new(bytes: &'a [u8]) -> Self {
         Self {
@@ -333,6 +335,7 @@ impl<'a> HasselbladBitReader<'a> {
     }
 }
 
+#[cfg(feature = "hasselblad")]
 impl BitRead for HasselbladBitReader<'_> {
     fn peek(&mut self, count: u8) -> u16 {
         while self.buffered_bits < count {

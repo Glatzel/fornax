@@ -30,7 +30,7 @@ const SAFE_EXIF_TAGS: &[Tag] = &[
     LENS_MODEL,
 ];
 
-pub(crate) fn map(container: &Container) -> Result<Directory, DecodeError> {
+pub fn map(container: &Container) -> Result<Directory, DecodeError> {
     let mut directory = Directory::default();
     copy_preserved(&mut directory, &container.root);
     copy_preserved(&mut directory, &container.raw);
@@ -145,7 +145,7 @@ pub(crate) fn map(container: &Container) -> Result<Directory, DecodeError> {
     Ok(directory)
 }
 
-pub(crate) fn process(
+pub fn process(
     metadata: &Directory,
     width: u32,
     height: u32,

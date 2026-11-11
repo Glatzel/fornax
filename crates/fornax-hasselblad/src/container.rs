@@ -9,13 +9,13 @@ use image::math::Rect;
 use crate::profiles::{ModelProfile, profile};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum Compression {
+pub enum Compression {
     Uncompressed,
     LosslessJpeg,
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct RawLayout {
+pub struct RawLayout {
     pub compression: Compression,
     pub width: usize,
     pub height: usize,
@@ -24,7 +24,7 @@ pub(crate) struct RawLayout {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct Cfa {
+pub struct Cfa {
     pub repeat: [u32; 2],
     pub pattern: Vec<u8>,
     pub plane_colors: Vec<u8>,
@@ -32,7 +32,7 @@ pub(crate) struct Cfa {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct Container {
+pub struct Container {
     pub source: Arc<[u8]>,
     pub make: String,
     pub model: String,
@@ -45,7 +45,7 @@ pub(crate) struct Container {
     pub layout: RawLayout,
 }
 
-pub(crate) fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
+pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
     if !source.starts_with(b"II") {
         return Err(unsupported(
             "3FR requires little-endian classic TIFF sample words",
@@ -142,13 +142,12 @@ fn source_cfa(raw: &Directory) -> Result<Option<Cfa>, DecodeError> {
                 .into_iter()
                 .map(|value| u8::try_from(value).map_err(|_| invalid("3FR CFA plane exceeds u8")))
                 .collect::<Result<Vec<_>, _>>()?;
-            let expected = usize::try_from(repeat[0])
-                .ok()
-                .and_then(|width| {
-                    usize::try_from(repeat[1])
-                        .ok()
-                        .and_then(|height| width.checked_mul(height))
-                })
+            let width =
+                usize::try_from(repeat[0]).map_err(|_| invalid("3FR CFA width exceeds usize"))?;
+            let height =
+                usize::try_from(repeat[1]).map_err(|_| invalid("3FR CFA height exceeds usize"))?;
+            let expected = width
+                .checked_mul(height)
                 .ok_or_else(|| invalid("3FR CFA dimensions overflow"))?;
             if expected == 0 || pattern.len() != expected {
                 return Err(invalid(format!(
@@ -328,7 +327,7 @@ fn optional_usize<T>(directory: &Directory, tag: T) -> Option<usize>
 where
     T: Into<Tag>,
 {
-    unsigned_scalar(directory.get(&tag.into())).and_then(|value| usize::try_from(value).ok())
+    usize::try_from(unsigned_scalar(directory.get(&tag.into()))?).ok()
 }
 
 fn unsigned_values<T>(directory: &Directory, tag: T) -> Result<Vec<u32>, DecodeError>

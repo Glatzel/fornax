@@ -152,7 +152,10 @@ fn source_cfa_metadata_allows_raw_export_but_rejects_pipeline_handoff() {
     ));
 }
 
-#[allow(clippy::too_many_arguments)]
+#[allow(
+    clippy::too_many_arguments,
+    reason = "synthetic TIFF scenarios vary independent geometry and metadata fields"
+)]
 fn synthetic_3fr(
     unique_model: &str,
     model: &str,
@@ -227,7 +230,7 @@ fn build_tiff(
         .into_iter()
         .map(|(tag, value)| (tag.into(), value))
         .collect::<Vec<_>>();
-    let byte_count = declared_byte_count.unwrap_or(u32::try_from(payload.len()).unwrap());
+    let byte_count = declared_byte_count.unwrap_or_else(|| u32::try_from(payload.len()).unwrap());
     raw.push((TiffTag::StripOffsets.into(), Value::Unsigned(0)));
     raw.push((TiffTag::StripByteCounts.into(), Value::Unsigned(byte_count)));
     let raw_ifd_tag = RAW_IFD_TAG;
