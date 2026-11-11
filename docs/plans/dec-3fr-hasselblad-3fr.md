@@ -115,10 +115,10 @@
 - Modify: `TODO.md`
 - Generated only through required workflow: `crates/decoder-tracker/baseline.csv`, `crates/decoder-tracker/README.md`
 
-- [ ] Document the observed TIFF/SubIFD shape, compression paths, predictor-8 ordering, profiles, metadata mapping, exclusions, pinned source links, and licensing constraints.
-- [ ] Run `scripts/agent-validation.sh`.
-- [ ] Run `cargo test -p decoder-tracker`.
-- [ ] Run the local tracker selection for `Hasselblad/**/*.3FR` and require all 11 accepted rows to pass.
+- [x] Document the observed TIFF/SubIFD shape, compression paths, predictor-8 ordering, profiles, metadata mapping, exclusions, pinned source links, and licensing constraints.
+- [x] Run `scripts/agent-validation.sh`.
+- [x] Run `cargo test -p decoder-tracker`.
+- [x] Run the local tracker selection for all 11 accepted `3FR` rows and require every stage to pass.
 - [ ] Commit and push the branch, then run the manual decoder corpus workflow with `filter='Hasselblad/**/*.3FR'` and `run_duckdb_tests=false`.
 - [ ] Review the complete update artifact, copy only the complete baseline, regenerate the README, commit, push, and rerun to an unchanged result.
 - [ ] Remove `DEC-3FR` from `TODO.md`, inspect the final diff, create the pull request, and report its URL.
