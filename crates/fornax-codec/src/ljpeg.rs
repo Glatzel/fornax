@@ -321,6 +321,7 @@ struct HasselbladBitReader<'a> {
     position: usize,
     buffer: u64,
     buffered_bits: u8,
+    exhausted: bool,
 }
 
 #[cfg(feature = "hasselblad")]
@@ -331,6 +332,7 @@ impl<'a> HasselbladBitReader<'a> {
             position: 0,
             buffer: 0,
             buffered_bits: 0,
+            exhausted: false,
         }
     }
 }
@@ -340,11 +342,20 @@ impl BitRead for HasselbladBitReader<'_> {
     fn peek(&mut self, count: u8) -> u16 {
         while self.buffered_bits < count {
             let end = self.position.saturating_add(4).min(self.bytes.len());
+            if end == self.position {
+                self.exhausted = true;
+                self.buffer <<= 32;
+                self.buffered_bits += 32;
+                continue;
+            }
             let mut word = [0_u8; 4];
             word[..end.saturating_sub(self.position)]
                 .copy_from_slice(&self.bytes[self.position..end]);
-            self.buffer = (self.buffer << 32) | u64::from(u32::from_le_bytes(word));
-            self.buffered_bits += 32;
+            let loaded_bits = (end - self.position) * 8;
+            let aligned = u32::from_le_bytes(word) << (32 - loaded_bits);
+            self.buffer = (self.buffer << loaded_bits) | u64::from(aligned);
+            self.buffered_bits +=
+                u8::try_from(loaded_bits).expect("a bit-pump refill is at most 32");
             self.position = end;
         }
         let shift = self.buffered_bits - count;
@@ -676,6 +687,9 @@ fn decode_hasselblad_interleaved(
             output.push(first as u16);
             output.push(second as u16);
         }
+    }
+    if bits.exhausted {
+        return Err("entropy stream is truncated".to_owned());
     }
     Ok(output)
 }

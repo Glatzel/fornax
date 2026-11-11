@@ -476,6 +476,14 @@ fn hasselblad_lossless_jpeg_rejects_truncated_entropy() {
 
 #[test]
 #[cfg(feature = "hasselblad")]
+fn hasselblad_lossless_jpeg_rejects_entropy_truncated_after_a_row() {
+    let tile = hasselblad_tile(&[0x00, 0x00, 0x94]);
+
+    assert_hasselblad_rejected(&tile, "lossless JPEG");
+}
+
+#[test]
+#[cfg(feature = "hasselblad")]
 fn hasselblad_lossless_jpeg_consumes_the_dng_symbol_sixteen_payload() {
     let tile = hasselblad_symbol_sixteen_tile();
     let chunks = [Chunk {
