@@ -396,7 +396,7 @@ fn lossless_jpeg_applies_point_transform() {
 #[test]
 #[cfg(feature = "hasselblad")]
 fn hasselblad_lossless_jpeg_reads_pair_lengths_before_differences() {
-    let tile = hasselblad_tile(&[0x94, 0x94]);
+    let tile = hasselblad_tile(&[0x00, 0x00, 0x94, 0x94]);
     let chunks = [Chunk {
         offset: 0,
         byte_count: tile.len(),
@@ -474,6 +474,34 @@ fn hasselblad_lossless_jpeg_rejects_truncated_entropy() {
     assert_hasselblad_rejected(&tile, "entropy");
 }
 
+#[test]
+#[cfg(feature = "hasselblad")]
+fn hasselblad_lossless_jpeg_consumes_the_dng_symbol_sixteen_payload() {
+    let tile = hasselblad_symbol_sixteen_tile();
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        &tile,
+        &chunks,
+        2,
+        2,
+        2,
+        2,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        DecodeCompression::HasselbladLosslessJpeg,
+    );
+
+    let SampleBuffer::U16(image) = decode(&request).unwrap() else {
+        panic!("Hasselblad lossless JPEG samples must decode as u16");
+    };
+
+    assert_eq!(image.as_raw().as_slice(), &[0, 32_768, 0, 32_768]);
+}
+
 #[cfg(feature = "hasselblad")]
 fn hasselblad_tile(entropy: &[u8]) -> Vec<u8> { hasselblad_tile_with(1, 8, 0, None, entropy) }
 
@@ -525,6 +553,40 @@ fn hasselblad_tile_without_dht(entropy: &[u8]) -> Vec<u8> {
     let dht_start = 2 + 2 + ushort_segment_length(&tile[4..6]) as usize;
     let dht_length = ushort_segment_length(&tile[dht_start + 2..dht_start + 4]) as usize;
     tile.drain(dht_start..dht_start + 2 + dht_length);
+    tile
+}
+
+#[cfg(feature = "hasselblad")]
+fn hasselblad_symbol_sixteen_tile() -> Vec<u8> {
+    let mut tile = vec![
+        0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x10, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11, 0x00,
+        0xff, 0xc4, 0x00, 0x15, 0x00, 0x02, 0x00,
+    ];
+    tile.extend_from_slice(&[0; 14]);
+    tile.extend_from_slice(&[
+        16, 0, 0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00, 0x08, 0x00, 0x00,
+    ]);
+    let mut bits = Vec::new();
+    for _ in 0..2 {
+        bits.push(false);
+        bits.push(true);
+        bits.extend(std::iter::repeat_n(false, 16));
+    }
+    while !bits.len().is_multiple_of(32) {
+        bits.push(false);
+    }
+    let mut encoded = Vec::new();
+    for byte in bits.chunks(8) {
+        let mut value = 0_u8;
+        for (index, bit) in byte.iter().enumerate() {
+            value |= u8::from(*bit) << (7 - index);
+        }
+        encoded.push(value);
+    }
+    for chunk in encoded.chunks(4) {
+        tile.extend(chunk.iter().rev());
+    }
+    tile.extend_from_slice(&[0xff, 0xd9]);
     tile
 }
 

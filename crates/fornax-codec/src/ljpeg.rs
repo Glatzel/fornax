@@ -247,6 +247,11 @@ struct HuffmanTable {
     lookup: Box<[HuffmanEntry]>,
 }
 
+trait BitRead {
+    fn peek(&mut self, count: u8) -> u16;
+    fn skip(&mut self, count: usize);
+}
+
 impl HuffmanTable {
     fn parse(
         counts: &[u8; 16],
@@ -285,7 +290,7 @@ impl HuffmanTable {
         })
     }
 
-    fn decode(&self, bits: &mut BitReader<'_>) -> Result<u8, String> {
+    fn decode(&self, bits: &mut impl BitRead) -> Result<u8, String> {
         let entry = self.lookup[usize::from(bits.peek(16))];
         if entry.bits == 0 {
             return Err("lossless JPEG contains an invalid Huffman code".to_owned());
@@ -308,6 +313,48 @@ struct BitReader<'a> {
     buffer: u64,
     buffered_bits: u8,
     ended: bool,
+}
+
+struct HasselbladBitReader<'a> {
+    bytes: &'a [u8],
+    position: usize,
+    buffer: u64,
+    buffered_bits: u8,
+}
+
+impl<'a> HasselbladBitReader<'a> {
+    const fn new(bytes: &'a [u8]) -> Self {
+        Self {
+            bytes,
+            position: 0,
+            buffer: 0,
+            buffered_bits: 0,
+        }
+    }
+}
+
+impl BitRead for HasselbladBitReader<'_> {
+    fn peek(&mut self, count: u8) -> u16 {
+        while self.buffered_bits < count {
+            let end = self.position.saturating_add(4).min(self.bytes.len());
+            let mut word = [0_u8; 4];
+            word[..end.saturating_sub(self.position)]
+                .copy_from_slice(&self.bytes[self.position..end]);
+            self.buffer = (self.buffer << 32) | u64::from(u32::from_le_bytes(word));
+            self.buffered_bits += 32;
+            self.position = end;
+        }
+        let shift = self.buffered_bits - count;
+        let mask = (1_u64 << count) - 1;
+        u16::try_from((self.buffer >> shift) & mask).unwrap_or_default()
+    }
+
+    fn skip(&mut self, count: usize) {
+        self.buffered_bits = self
+            .buffered_bits
+            .saturating_sub(u8::try_from(count).expect("lossless JPEG bit counts are at most 16"));
+        self.buffer &= (1_u64 << self.buffered_bits) - 1;
+    }
 }
 
 impl<'a> BitReader<'a> {
@@ -370,6 +417,12 @@ impl<'a> BitReader<'a> {
         self.ended = true;
         0
     }
+}
+
+impl BitRead for BitReader<'_> {
+    fn peek(&mut self, count: u8) -> u16 { Self::peek(self, count) }
+
+    fn skip(&mut self, count: usize) { Self::skip(self, count); }
 }
 
 struct HeaderReader<'a> {
@@ -604,15 +657,19 @@ fn decode_hasselblad_interleaved(
         .checked_mul(expected_height)
         .ok_or_else(|| "sample count overflow".to_owned())?;
     let mut output = Vec::with_capacity(sample_count);
-    let mut bits = BitReader::new(entropy);
+    let mut bits = HasselbladBitReader::new(entropy);
     for _row in 0..expected_height {
         let mut first = 0x8000_i32;
         let mut second = 0x8000_i32;
-        for _ in (0..expected_width).step_by(2) {
-            let first_length = table.decode(&mut bits)?;
-            let second_length = table.decode(&mut bits)?;
-            first = first.wrapping_add(decode_difference(first_length, &mut bits)?);
-            second = second.wrapping_add(decode_difference(second_length, &mut bits)?);
+        for column in (0..expected_width).step_by(2) {
+            let first_length = table
+                .decode(&mut bits)
+                .map_err(|detail| format!("{detail} at row {_row}, column {column}"))?;
+            let second_length = table
+                .decode(&mut bits)
+                .map_err(|detail| format!("{detail} at row {_row}, column {}", column + 1))?;
+            first = first.wrapping_add(decode_difference(first_length, &mut bits, true)?);
+            second = second.wrapping_add(decode_difference(second_length, &mut bits, true)?);
             output.push(first as u16);
             output.push(second as u16);
         }
@@ -843,7 +900,7 @@ fn add_prediction(
     bits: &mut BitReader<'_>,
     precision: u8,
 ) -> Result<u16, String> {
-    let difference = decode_difference(symbol, bits)?;
+    let difference = decode_difference(symbol, bits, false)?;
     let mask = (1_u32 << precision) - 1;
     Ok(
         u16::try_from((prediction.wrapping_add(difference) as u32) & mask)
@@ -851,10 +908,20 @@ fn add_prediction(
     )
 }
 
-fn decode_difference(symbol: u8, bits: &mut BitReader<'_>) -> Result<i32, String> {
+fn decode_difference(
+    symbol: u8,
+    bits: &mut impl BitRead,
+    consume_symbol_sixteen: bool,
+) -> Result<i32, String> {
     Ok(match symbol {
         0 => 0,
-        16 => -32_768,
+        16 => {
+            if consume_symbol_sixteen {
+                bits.peek(16);
+                bits.skip(16);
+            }
+            -32_768
+        }
         1..=15 => {
             let bit_count = symbol;
             let raw = i32::from(bits.peek(bit_count));
