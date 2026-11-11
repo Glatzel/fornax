@@ -394,6 +394,173 @@ fn lossless_jpeg_applies_point_transform() {
 }
 
 #[test]
+#[cfg(feature = "hasselblad")]
+fn hasselblad_lossless_jpeg_reads_pair_lengths_before_differences() {
+    let tile = hasselblad_tile(&[0x94, 0x94]);
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        &tile,
+        &chunks,
+        4,
+        2,
+        4,
+        2,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        DecodeCompression::HasselbladLosslessJpeg,
+    );
+
+    let SampleBuffer::U16(image) = decode(&request).unwrap() else {
+        panic!("Hasselblad lossless JPEG samples must decode as u16");
+    };
+
+    assert_eq!(
+        image.as_raw().as_slice(),
+        &[
+            32_769, 32_768, 32_769, 32_767, 32_769, 32_768, 32_769, 32_767
+        ]
+    );
+}
+
+#[test]
+#[cfg(feature = "hasselblad")]
+fn hasselblad_lossless_jpeg_rejects_restart_intervals() {
+    let tile = hasselblad_tile_with(1, 8, 0, Some(1), &[0x94, 0x94]);
+
+    assert_hasselblad_rejected(&tile, "restart intervals");
+}
+
+#[test]
+#[cfg(feature = "hasselblad")]
+fn hasselblad_lossless_jpeg_rejects_point_transform() {
+    let tile = hasselblad_tile_with(1, 8, 1, None, &[0x94, 0x94]);
+
+    assert_hasselblad_rejected(&tile, "point transform");
+}
+
+#[test]
+#[cfg(feature = "hasselblad")]
+fn hasselblad_lossless_jpeg_rejects_other_predictors() {
+    let tile = hasselblad_tile_with(1, 7, 0, None, &[0x94, 0x94]);
+
+    assert_hasselblad_rejected(&tile, "predictor 8");
+}
+
+#[test]
+#[cfg(feature = "hasselblad")]
+fn hasselblad_lossless_jpeg_rejects_multiple_components() {
+    let tile = hasselblad_tile_with(2, 8, 0, None, &[0x94, 0x94]);
+
+    assert_hasselblad_rejected(&tile, "one-component");
+}
+
+#[test]
+#[cfg(feature = "hasselblad")]
+fn hasselblad_lossless_jpeg_rejects_missing_huffman_table() {
+    let tile = hasselblad_tile_without_dht(&[0x94, 0x94]);
+
+    assert_hasselblad_rejected(&tile, "Huffman table");
+}
+
+#[test]
+#[cfg(feature = "hasselblad")]
+fn hasselblad_lossless_jpeg_rejects_truncated_entropy() {
+    let tile = hasselblad_tile(&[]);
+
+    assert_hasselblad_rejected(&tile, "entropy");
+}
+
+#[cfg(feature = "hasselblad")]
+fn hasselblad_tile(entropy: &[u8]) -> Vec<u8> { hasselblad_tile_with(1, 8, 0, None, entropy) }
+
+#[cfg(feature = "hasselblad")]
+fn hasselblad_tile_with(
+    component_count: u8,
+    predictor: u8,
+    point_transform: u8,
+    restart_interval: Option<u16>,
+    entropy: &[u8],
+) -> Vec<u8> {
+    let mut tile = vec![
+        0xff,
+        0xd8,
+        0xff,
+        0xc3,
+        0x00,
+        0x08 + component_count * 3,
+        0x10,
+        0x00,
+        0x02,
+        0x00,
+        0x04,
+        component_count,
+    ];
+    for component in 1..=component_count {
+        tile.extend_from_slice(&[component, 0x11, 0x00]);
+    }
+    tile.extend_from_slice(&[0xff, 0xc4, 0x00, 0x15, 0x00, 0x01, 0x01]);
+    tile.extend_from_slice(&[0; 14]);
+    tile.extend_from_slice(&[0x00, 0x01]);
+    if let Some(interval) = restart_interval {
+        tile.extend_from_slice(&[0xff, 0xdd, 0x00, 0x04]);
+        tile.extend_from_slice(&interval.to_be_bytes());
+    }
+    tile.extend_from_slice(&[0xff, 0xda, 0x00, 6 + component_count * 2, component_count]);
+    for component in 1..=component_count {
+        tile.extend_from_slice(&[component, 0x00]);
+    }
+    tile.extend_from_slice(&[predictor, 0x00, point_transform]);
+    tile.extend_from_slice(entropy);
+    tile.extend_from_slice(&[0xff, 0xd9]);
+    tile
+}
+
+#[cfg(feature = "hasselblad")]
+fn hasselblad_tile_without_dht(entropy: &[u8]) -> Vec<u8> {
+    let mut tile = hasselblad_tile(entropy);
+    let dht_start = 2 + 2 + ushort_segment_length(&tile[4..6]) as usize;
+    let dht_length = ushort_segment_length(&tile[dht_start + 2..dht_start + 4]) as usize;
+    tile.drain(dht_start..dht_start + 2 + dht_length);
+    tile
+}
+
+#[cfg(feature = "hasselblad")]
+fn ushort_segment_length(bytes: &[u8]) -> u16 {
+    u16::from_be_bytes(
+        bytes
+            .try_into()
+            .expect("a JPEG segment length is two bytes"),
+    )
+}
+
+#[cfg(feature = "hasselblad")]
+fn assert_hasselblad_rejected(tile: &[u8], expected: &str) {
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        tile,
+        &chunks,
+        4,
+        2,
+        4,
+        2,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        DecodeCompression::HasselbladLosslessJpeg,
+    );
+
+    let error = decode(&request).unwrap_err().to_string();
+    assert!(error.contains(expected), "unexpected error: {error}");
+}
+
+#[test]
 #[cfg(feature = "lossy-jpeg")]
 fn lossy_jpeg_decodes_a_single_component_tile() {
     use image::ImageEncoder;

@@ -49,6 +49,9 @@ pub enum DecodeCompression {
     /// Sony lossless-JPEG tiles packed as CFA sample rows.
     #[cfg(feature = "arw")]
     SonyLosslessJpeg,
+    /// Hasselblad predictor-8 lossless-JPEG mosaic.
+    #[cfg(feature = "hasselblad")]
+    HasselbladLosslessJpeg,
     /// Nikon packed CFA rows with a container-selected row stride.
     #[cfg(feature = "nef")]
     NikonPacked {

@@ -21,6 +21,7 @@ image = { workspace = true, features = ["jpeg"] }
 default = ["lzw", "packbits"]
 arw = ["lossless-jpeg"]
 deflate = ["dep:flate2"]
+hasselblad = ["lossless-jpeg"]
 jpegxl = ["dep:jxl-oxide"]
 lossless-jpeg = []
 lossy-jpeg = ["dep:zune-jpeg"]
