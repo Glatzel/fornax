@@ -77,7 +77,7 @@ Out of scope:
   completeness validation, and randomized equivalence tests.
 - [x] Task 2: Add Nikon `NikonTreeId`, `NikonHuffman`, difference decoding,
   test-only encoding, prediction tests, curve tests, and malformed-input tests.
-- [ ] Task 3: Parse the Nikon curve metadata, add mode-3 dispatch, preserve
+- [x] Task 3: Parse the Nikon curve metadata, add mode-3 dispatch, preserve
   typed unsupported reasons, and apply the confirmed WhiteLevel behavior.
 - [ ] Task 4: Add fixture parity, golden rows and hashes, run workspace
   validation, open the pull request, and review the NEF tracker corpus rows.
@@ -201,19 +201,19 @@ per-pixel allocation, and rejects malformed streams with `CodecError`.
 
 ### Task 3: NEF integration
 
-- [ ] Add `fornax-nef/src/curve.rs` to read maker tags `0x0096` then
+- [x] Add `fornax-nef/src/curve.rs` to read maker tags `0x0096` then
   `0x008c`, validate endian/version/header lengths, extract the four initial
   predictors and curve, and scale the curve by bit depth as established in
   Task 0.
-- [ ] First write failing synthetic NEF tests for mode 3 at 12/14 bits,
+- [x] First write failing synthetic NEF tests for mode 3 at 12/14 bits,
   missing/truncated curve metadata, inconsistent curve length, TIFF/maker
   mode conflicts, modes 1/4 policy errors, unchanged modes 8/13/14, and the
   multi-strip ruling.
-- [ ] Dispatch mode 3 through `LayoutKind`, `DecodeCompression`, and
+- [x] Dispatch mode 3 through `LayoutKind`, `DecodeCompression`, and
   `fornax-nef::decode`; preserve existing packed modes.
-- [ ] Apply the confirmed WhiteLevel behavior and leave black-level scaling
+- [x] Apply the confirmed WhiteLevel behavior and leave black-level scaling
   unchanged.
-- [ ] Run `cargo test -p fornax-codec -p fornax-nef -p fornax-decoder` and
+- [x] Run `cargo test -p fornax-codec -p fornax-nef -p fornax-decoder` and
   commit `feat: decode Nikon lossless NEF`.
 
 Expected: synthetic images decode to hand-derived mosaics; unsupported
