@@ -858,7 +858,6 @@ dependencies = [
 name = "fornax-raf"
 version = "0.0.17"
 dependencies = [
- "bytemuck",
  "fornax-codec",
  "fornax-dng",
  "fornax-raw-core",
@@ -867,8 +866,6 @@ dependencies = [
  "image 0.25.9",
  "rawler",
  "rayon",
- "sha2",
- "tempfile",
 ]
 
 [[package]]
