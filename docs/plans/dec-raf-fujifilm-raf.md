@@ -122,6 +122,10 @@ mode. The manual corpus filter is `**/*.[rR][aA][fF]` with
 - A valid EXIF `Orientation` from the embedded JPEG APP1 block is copied into
   RAF DNG metadata and survives DNG write/read-back; malformed preview EXIF is
   ignored without affecting raw decoding.
+- The first full RAF CI run exposed comma-containing corpus filenames being
+  split by Git LFS's comma-separated fetch include. Fetch globs now replace
+  commas with the single-character wildcard, while checkout receives the
+  literal path; the exact 25.6 MB object was materialized to verify the fix.
 - Local validation passed `scripts/agent-validation.sh` after adding the RAF
   golden rows and generated hashes. The full RAF corpus remains a manual CI
   stage because that is the repository's designated full-corpus environment.
