@@ -123,7 +123,7 @@
 - [x] Review the complete update artifact, copy only the complete baseline, and regenerate the README.
 - [x] Commit and push the reviewed baseline, then rerun to an unchanged result.
 - [x] Remove `DEC-3FR` from `TODO.md` and inspect the final diff.
-- [ ] Create the pull request and report its URL.
+- [x] Create the pull request and report its URL.
 
 ## Files Expected to Change
 
