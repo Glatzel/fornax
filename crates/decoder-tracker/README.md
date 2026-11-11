@@ -2,7 +2,7 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![RAW corpus: 539/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-539%2F2020-orange)](baseline.csv)
+[![RAW corpus: 567/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-567%2F2020-orange)](baseline.csv)
 
 | Vendor | Format | Status |
 | --- | --- | ---: |
@@ -48,7 +48,7 @@
 | Kodak | TIF | 0/5 |
 | LEICA CAMERA AG | DNG | 1/1 |
 | LG | DNG | 8/9 |
-| Leaf | IIQ | 0/4 |
+| Leaf | IIQ | 4/4 |
 | Leaf | MOS | 0/4 |
 | Leica | DNG | 9/13 |
 | Leica | RAW | 0/4 |
@@ -89,9 +89,9 @@
 | Pentax | DNG | 34/35 |
 | Pentax | PEF | 0/40 |
 | Pentax | RAW | 0/1 |
-| Phase One | IIQ | 0/28 |
+| Phase One | IIQ | 23/28 |
 | Phase One | TIF | 0/12 |
-| Phase One AS | IIQ | 0/3 |
+| Phase One AS | IIQ | 1/3 |
 | Plustek | DNG | 0/2 |
 | Polaroid | X3F | 0/1 |
 | RICOH | DNG | 2/2 |

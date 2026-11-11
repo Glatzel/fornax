@@ -51,6 +51,8 @@
 - The P65+ corpus uses a short quadrant-linearization payload that is not the
   1028-byte table consumed by the supported correction path; Fornax leaves
   this variant typed unsupported.
+- P45+ files can expose only one split-black table. The reference path ignores
+  incomplete split metadata, and Fornax follows that behavior.
 
 ## Metadata mapping
 

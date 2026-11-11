@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use
-> checkbox (`- [ ]`) syntax for tracking.
+> checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Implement native Phase One/Leaf IIQ decoding for modes 0, 3, 5, 6,
 and 8, including sensor corrections, DNG-compatible metadata, facade routing,
@@ -75,13 +75,13 @@ Out of scope:
 
 ## Task Checklist
 
-- [ ] Add the IIQ codec API and table-driven malformed-input tests.
-- [ ] Implement uncompressed, IIQ-L/L16, IIQ-S, and IIQ-Sv2 decoding.
-- [ ] Add the `fornax-iiq` crate, container parser, profiles, and metadata.
-- [ ] Implement sensor correction and DNG round-trip coverage.
-- [ ] Route `.IIQ` through the default decoder and document the format.
-- [ ] Add fixture parity and golden rows; run the complete IIQ corpus.
-- [ ] Run workspace validation, review the diff, update `TODO.md`, commit, push,
+- [x] Add the IIQ codec API and table-driven malformed-input tests.
+- [x] Implement uncompressed, IIQ-L/L16, IIQ-S, and IIQ-Sv2 decoding.
+- [x] Add the `fornax-iiq` crate, container parser, profiles, and metadata.
+- [x] Implement sensor correction and DNG round-trip coverage.
+- [x] Route `.IIQ` through the default decoder and document the format.
+- [x] Add fixture parity and golden rows; run the complete IIQ corpus.
+- [x] Run workspace validation, review the diff, update `TODO.md`, commit, push,
   and open one pull request.
 
 ## Files Expected to Change
@@ -132,12 +132,12 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
   `DecodeCompression::IiqLossless`, `DecodeCompression::IiqNonlinear`, and
   `DecodeCompression::IiqSv2` behind feature `iiq`.
 
-- [ ] Add failing tests for unsupported sample type, geometry, chunk count, and
+- [x] Add failing tests for unsupported sample type, geometry, chunk count, and
   truncated row streams.
-- [ ] Run `cargo test -p fornax-codec --features iiq` and confirm the expected
+- [x] Run `cargo test -p fornax-codec --features iiq` and confirm the expected
   compile/feature failure.
-- [ ] Add the feature, enum variants, dispatch, and strict request validation.
-- [ ] Run the focused tests and commit.
+- [x] Add the feature, enum variants, dispatch, and strict request validation.
+- [x] Run the focused tests and commit.
 
 ### Task 2: Implement IIQ sample decoders
 
@@ -149,12 +149,12 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
 
 - Produces: U16 `SampleBuffer` output for all four IIQ decode variants.
 
-- [ ] Add hand-derived tests for uncompressed 14-to-16-bit scaling, IIQ-L
+- [x] Add hand-derived tests for uncompressed 14-to-16-bit scaling, IIQ-L
   alternating predictors, IIQ-S low-value linearization, and IIQ-Sv2 clusters.
-- [ ] Run the tests and confirm local decoding assertions fail.
-- [ ] Implement the four row decoders with checked geometry and fixed output
+- [x] Run the tests and confirm local decoding assertions fail.
+- [x] Implement the four row decoders with checked geometry and fixed output
   allocation.
-- [ ] Run codec tests and commit.
+- [x] Run codec tests and commit.
 
 ### Task 3: Add the IIQ container and metadata crate
 
@@ -167,12 +167,12 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
 
 - Produces: `fornax_iiq::IiqImage::{parse,raw_mosaic,dng_metadata,process_metadata,cropped_mosaic}`.
 
-- [ ] Add synthetic parser tests for file-relative and private-relative
+- [x] Add synthetic parser tests for file-relative and private-relative
   offsets, mode classification, dimensions, row tables, CFA, white balance,
   and malformed bounds.
-- [ ] Run `cargo test -p fornax-iiq` and confirm the crate/API is missing.
-- [ ] Implement profiles, parser, metadata mapping, and decoder interfaces.
-- [ ] Run crate tests and commit.
+- [x] Run `cargo test -p fornax-iiq` and confirm the crate/API is missing.
+- [x] Implement profiles, parser, metadata mapping, and decoder interfaces.
+- [x] Run crate tests and commit.
 
 ### Task 4: Implement sensor correction
 
@@ -184,11 +184,11 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
 
 - Produces: corrected U16 `RawMosaic` samples and zero corrected black level.
 
-- [ ] Add small hand-derived correction tests for split black, curves,
+- [x] Add small hand-derived correction tests for split black, curves,
   quadrant gain, defect repair, and flat fields.
-- [ ] Run the correction tests and confirm the transform assertions fail.
-- [ ] Implement the reference correction order and malformed-payload errors.
-- [ ] Add fixture parity and DNG round-trip tests, run the focused suite, and
+- [x] Run the correction tests and confirm the transform assertions fail.
+- [x] Implement the reference correction order and malformed-payload errors.
+- [x] Add fixture parity and DNG round-trip tests, run the focused suite, and
   commit.
 
 ### Task 5: Route and document IIQ
@@ -205,9 +205,9 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
 
 - Produces: `Decoder::Iiq(IiqImage)` for case-insensitive `.iiq`.
 
-- [ ] Add a failing facade routing test.
-- [ ] Route `.IIQ` and update all format documentation and provenance notes.
-- [ ] Run decoder and documentation checks and commit.
+- [x] Add a failing facade routing test.
+- [x] Route `.IIQ` and update all format documentation and provenance notes.
+- [x] Run decoder and documentation checks and commit.
 
 ### Task 6: Add golden and corpus coverage
 
@@ -219,10 +219,10 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
 
 - Produces: accepted IIQ golden hashes and the reviewed full IIQ baseline.
 
-- [ ] Select representative IIQ mode 3, 5, 6, and 8 fixtures for golden hashes.
-- [ ] Run the full pinned IIQ corpus in local shards, merge, review failures,
-  and update the complete baseline.
-- [ ] Generate golden hashes and the tracker README, verify unchanged reruns,
+- [x] Select representative IIQ mode 3, 5, 6, and 8 fixtures for golden hashes.
+- [x] Run the full pinned IIQ corpus through the manual CI workflow, review
+  failures, and update the complete baseline.
+- [x] Generate golden hashes and the tracker README, verify unchanged reruns,
   and commit.
 
 ### Task 7: Validate and publish
@@ -232,11 +232,11 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
 - Modify: `TODO.md`
 - Modify: `docs/plans/dec-iiq-phase-one-iiq.md`
 
-- [ ] Run all focused tests, fixture parity, golden verification,
+- [x] Run all focused tests, fixture parity, golden verification,
   `scripts/agent-validation.sh`, and `git diff --check`.
-- [ ] Review the full branch diff, remove `DEC-IIQ` from `TODO.md`, and record
+- [x] Review the full branch diff, remove `DEC-IIQ` from `TODO.md`, and record
   final validation results in this plan.
-- [ ] Commit, push, and open one semantic pull request.
+- [x] Commit, push, and open one semantic pull request.
 
 ## Decisions and Notes
 
@@ -250,3 +250,17 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
   `DecodeError::Unsupported`.
 - Mode 0 is covered synthetically because the current `.IIQ` corpus snapshot
   has no materialized mode-0 sample.
+- P45+ incomplete split-black tables follow Rawler by being ignored when only
+  one signed row/column table is present; both P45+ corpus files match Rawler.
+- P65+ corpus files use a 260-byte quadrant-linearization payload rather than
+  the supported 1028-byte table. They return `DecodeError::Unsupported`, making
+  five P65+ rows intentional failures in the accepted baseline.
+- P40+ remains an unknown camera profile and returns
+  `DecodeError::Unsupported`; two P40+ rows are intentional failures.
+- CI run `43047950209` completed all four IIQ shards successfully. The
+  aggregate job intentionally failed after uploading the changed baseline.
+  Review accepted 28/35 rows: 23/28 Phase One, 1/3 Phase One A/S, and 4/4 Leaf.
+- The complete reviewed artifact updated `baseline.csv`; the regenerated
+  tracker badge reports 567/2020 corpus rows passing across 117 pairs.
+- `scripts/agent-validation.sh` passed after the final baseline and formatting
+  updates.
