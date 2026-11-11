@@ -69,6 +69,21 @@ fn crop_right_and_bottom_are_exclusive_coordinates() {
 }
 
 #[test]
+fn all_zero_crop_tags_mean_the_full_active_area() {
+    let source = synthetic_rw2(&Synthetic {
+        crop: (0, 0, 0, 0),
+        ..Synthetic::default()
+    });
+    let crop = Rw2Image::parse(&source)
+        .unwrap()
+        .process_metadata()
+        .unwrap()
+        .default_crop;
+
+    assert_eq!((crop.x, crop.y, crop.width, crop.height), (0, 0, 12, 8));
+}
+
+#[test]
 fn strip_offset_layout_decodes_when_raw_data_offset_is_absent() {
     let source = synthetic_rw2(&Synthetic {
         use_raw_data_offset: false,

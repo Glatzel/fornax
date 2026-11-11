@@ -186,6 +186,14 @@ fn default_crop(raw: &Directory, active: Rect) -> Result<Rect, DecodeError> {
     let left = required_u32(raw, CROP_LEFT, "crop left")?;
     let bottom = required_u32(raw, CROP_BOTTOM, "crop bottom")?;
     let right = required_u32(raw, CROP_RIGHT, "crop right")?;
+    if top == 0 && left == 0 && bottom == 0 && right == 0 {
+        return Ok(Rect {
+            x: 0,
+            y: 0,
+            width: active.width,
+            height: active.height,
+        });
+    }
     if left >= right || top >= bottom {
         return Err(container::invalid(
             "RW2 default-crop coordinates are invalid",
