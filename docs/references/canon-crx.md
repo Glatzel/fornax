@@ -38,6 +38,37 @@ The full 110-file classification must be produced by the remote decoder
 corpus workflow. RAW payloads are transient and are never committed or
 uploaded.
 
+## Full corpus audit
+
+The remote `CRX header audit` job classified all 110 Canon CR3 rows:
+
+| Classification | Rows | Header observation |
+| --- | ---: | --- |
+| Lossless | 28 | Accepted full-resolution tuple above |
+| Lossy | 51 | Three wavelet levels |
+| Ambiguous | 31 | Zero levels, but another CMP1 or CRX layout field differs from the accepted tuple |
+
+Across all 110 files, CMP1 declared four planes, `enc_type 0`, 14-bit samples,
+CFA layout zero, and four overall movie tracks. CMP1 version split was 88 at
+`0x0100` and 22 at `0x0200`. Wavelet levels split was 59 at zero and 51 at
+three.
+
+ColorData versions observed:
+
+| Version | Rows |
+| ---: | ---: |
+| 16 | 4 |
+| 17 | 8 |
+| 18 | 22 |
+| 19 | 27 |
+| 32 | 2 |
+| 33 | 12 |
+| 34 | 1 |
+| 48 | 24 |
+| 64 | 4 |
+| 65 | 2 |
+| 66 | 4 |
+
 ## Targeted reference digests
 
 The following integer mosaics were decoded once with Rawler 0.8.0 in an

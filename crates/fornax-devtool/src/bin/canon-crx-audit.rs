@@ -51,9 +51,9 @@ fn main() -> ExitCode {
     } else {
         print!("{csv}");
     }
-    let (lossless, other) = summarize(&rows);
+    let (lossless, lossy, ambiguous) = summarize(&rows);
     eprintln!(
-        "lossless={lossless} unsupported={other} total={}",
+        "lossless={lossless} lossy={lossy} ambiguous={ambiguous} total={}",
         rows.len()
     );
     ExitCode::SUCCESS

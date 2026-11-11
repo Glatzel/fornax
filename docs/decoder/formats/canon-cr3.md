@@ -78,6 +78,11 @@ declared precision. The targeted R5 and R6 Mark II C-RAW files use version
 `0x0200` with three levels. Every unobserved or ambiguous tuple returns
 `Unsupported`.
 
+The full 110-file audit records 28 lossless rows, 51 lossy rows with three
+wavelet levels, and 31 zero-level rows whose remaining CRX layout is ambiguous.
+The latter two groups remain typed unsupported and are listed in the reviewed
+tracker baseline.
+
 ## References
 
 - [Canon CR3 documentation](https://github.com/lclevy/canon_cr3), plus ISO

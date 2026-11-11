@@ -193,25 +193,35 @@ pub fn render_csv(rows: &[AuditRow]) -> String {
             row.cmp1.cfa_layout,
             row.color_data_version
                 .map_or_else(|| "unknown".to_owned(), |value| value.to_string()),
-            if row.lossless {
-                "lossless"
-            } else {
-                "unsupported-lossy-or-ambiguous"
-            }
+            row.classification()
         );
     }
     output
 }
 
-/// Summarizes the number of lossless and lossy/ambiguous rows.
-pub fn summarize(rows: &[AuditRow]) -> (usize, usize) {
-    rows.iter().fold((0, 0), |(lossless, other), row| {
-        if row.lossless {
-            (lossless + 1, other)
+impl AuditRow {
+    /// Returns the lossless, lossy, or ambiguous CRX classification.
+    pub const fn classification(&self) -> &'static str {
+        if self.lossless {
+            "lossless"
+        } else if self.cmp1.levels > 0 {
+            "lossy"
         } else {
-            (lossless, other + 1)
+            "ambiguous"
         }
-    })
+    }
+}
+
+/// Summarizes lossless, lossy, and ambiguous rows.
+pub fn summarize(rows: &[AuditRow]) -> (usize, usize, usize) {
+    rows.iter()
+        .fold((0, 0, 0), |(lossless, lossy, ambiguous), row| {
+            match row.classification() {
+                "lossless" => (lossless + 1, lossy, ambiguous),
+                "lossy" => (lossless, lossy + 1, ambiguous),
+                _ => (lossless, lossy, ambiguous + 1),
+            }
+        })
 }
 
 fn top_level_track_count(bmff: &Bmff<'_>) -> Result<usize, String> {
@@ -475,10 +485,10 @@ mod tests {
                 lossless: second.is_lossless(),
             },
         ];
-        assert_eq!(summarize(&rows), (1, 1));
+        assert_eq!(summarize(&rows), (1, 1, 0));
         let csv = render_csv(&rows);
         assert!(csv.contains("\"lossy,one.cr3\""));
-        assert!(csv.contains(",unsupported-lossy-or-ambiguous"));
+        assert!(csv.contains(",lossy"));
 
         first.cfa_layout = 4;
         assert!(!first.is_lossless());
