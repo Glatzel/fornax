@@ -17,7 +17,7 @@ const DATA_OFFSET: u32 = 0x010f;
 const WHITE_BALANCE: u32 = 0x0107;
 const BLACK_LEVEL: u32 = 0x021d;
 const STRIP_OFFSETS: u32 = 0x021c;
-const SENSOR_CORRECTION: u32 = 0x0110;
+pub const SENSOR_CORRECTION: u32 = 0x0110;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Compression {
@@ -223,16 +223,18 @@ impl RawLayout {
         maker.f32x3(WHITE_BALANCE, "white balance")
     }
 
+    pub fn sensor_margins(&self, maker: &MakerNote) -> Result<(usize, usize), DecodeError> {
+        let left = usize::try_from(maker.required_u32(MARGIN_LEFT, "left margin")?)
+            .map_err(|_| invalid("IIQ left margin exceeds the address space"))?;
+        let top = usize::try_from(maker.required_u32(MARGIN_TOP, "top margin")?)
+            .map_err(|_| invalid("IIQ top margin exceeds the address space"))?;
+        Ok((left, top))
+    }
+
     pub fn black_level(&self, maker: &MakerNote) -> Result<u16, DecodeError> {
         maker.optional_u32(BLACK_LEVEL)?.map_or(Ok(0), |value| {
             u16::try_from(value).map_err(|_| invalid("IIQ black level exceeds u16"))
         })
-    }
-
-    pub fn sensor_correction(&self, maker: &MakerNote) -> Option<(usize, usize)> {
-        maker
-            .offset_and_count(SENSOR_CORRECTION, "sensor correction")
-            .ok()
     }
 }
 
@@ -346,15 +348,6 @@ impl MakerNote {
             entry.count,
             &format!("IIQ maker tag 0x{tag:04x}"),
         )
-    }
-
-    pub fn string(&self, tag: u32) -> Result<Option<String>, DecodeError> {
-        if !self.entries.contains_key(&tag) {
-            return Ok(None);
-        }
-        let bytes = self.bytes(tag)?;
-        let value = bytes.split(|byte| *byte == 0).next().unwrap_or_default();
-        Ok(Some(String::from_utf8_lossy(value).trim().to_owned()))
     }
 
     pub fn f32x3(&self, tag: u32, name: &str) -> Result<[f32; 3], DecodeError> {

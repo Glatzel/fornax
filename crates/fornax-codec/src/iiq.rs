@@ -66,7 +66,7 @@ fn decode_lossless_rows(
     for (row, encoded) in request.chunks.iter().copied().enumerate() {
         let payload = chunk(request.source, encoded)?;
         let mut bits = BitReader::new(payload);
-        let mut predictors = [0_u32; 2];
+        let mut predictors = [0_i64; 2];
         let mut lengths = [0_u8; 2];
         let target = &mut output[row * request.width..][..request.width];
         for (column, sample) in target.iter_mut().enumerate() {
@@ -87,29 +87,28 @@ fn decode_lossless_rows(
             let phase = column & 1;
             let length = lengths[phase];
             let predictor = if length == 14 {
-                bits.read_bits(16)?
+                i64::from(bits.read_bits(16)?)
             } else {
-                let value = bits.read_bits(length)?;
-                predictors[phase]
-                    .checked_add(value)
-                    .and_then(|value| value.checked_add(1))
-                    .and_then(|value| value.checked_sub(1 << (length - 1)))
-                    .ok_or_else(|| invalid("IIQ lossless predictor overflow"))?
+                let value = i64::from(bits.read_bits(length)?);
+                predictors[phase] + value + 1 - (1_i64 << (length - 1))
             };
-            if predictor > maximum {
+            if !(0..=i64::from(maximum)).contains(&predictor) {
                 return Err(invalid(format!(
                     "IIQ lossless row {row} column {column} predictor {predictor} exceeds {maximum}"
                 )));
             }
             predictors[phase] = predictor;
-            let value = predictor
+            let value = u32::try_from(predictor)
+                .map_err(|_| invalid("IIQ lossless predictor is negative"))?
                 .checked_shl(shift.into())
                 .filter(|value| *value <= u32::from(u16::MAX))
                 .ok_or_else(|| invalid("IIQ lossless sample normalization overflow"))?;
-            *sample = if shift_values || predictor >= 256 {
+            *sample = if shift_values {
                 value as u16
-            } else {
+            } else if predictor < 256 {
                 nonlinear_curve(predictor as usize) << shift
+            } else {
+                predictor as u16
             };
         }
     }
@@ -250,16 +249,18 @@ fn nonlinear_curve(index: usize) -> u16 { ((index as f32 * index as f32) / 3.969
 #[derive(Clone)]
 struct BitReader<'a> {
     source: &'a [u8],
-    byte: usize,
-    bit: u8,
+    next_word: usize,
+    buffer: u64,
+    buffered: u8,
 }
 
 impl<'a> BitReader<'a> {
     const fn new(source: &'a [u8]) -> Self {
         Self {
             source,
-            byte: 0,
-            bit: 0,
+            next_word: 0,
+            buffer: 0,
+            buffered: 0,
         }
     }
 
@@ -269,41 +270,38 @@ impl<'a> BitReader<'a> {
         Ok(value)
     }
 
-    fn peek_bits(&self, count: u8) -> Result<u32, CodecError> {
+    fn peek_bits(&mut self, count: u8) -> Result<u32, CodecError> {
         if count > 32 {
             return Err(invalid("IIQ bit read exceeds 32 bits"));
         }
-        let remaining = self
-            .source
-            .len()
-            .checked_mul(8)
-            .and_then(|bits| bits.checked_sub(self.byte * 8 + usize::from(self.bit)))
-            .ok_or_else(|| invalid("IIQ bit position overflow"))?;
-        if usize::from(count) > remaining {
+        if count == 0 {
+            return Ok(0);
+        }
+        self.fill(count);
+        if self.buffered < count {
             return Err(invalid("IIQ bitstream is exhausted"));
         }
-        let mut value = 0_u32;
-        for offset in 0..count {
-            let absolute = self.byte * 8 + usize::from(self.bit) + usize::from(offset);
-            let bit = (self.source[absolute / 8] >> (7 - absolute % 8)) & 1;
-            value = (value << 1) | u32::from(bit);
-        }
-        Ok(value)
+        Ok(((self.buffer << (64 - self.buffered)) >> (64 - count)) as u32)
     }
 
     fn consume_bits(&mut self, count: u32) -> Result<(), CodecError> {
-        let bit = usize::try_from(count)
-            .map_err(|_| invalid("IIQ bit count exceeds the address space"))?
-            .checked_add(usize::from(self.bit))
-            .ok_or_else(|| invalid("IIQ bit position overflow"))?;
-        self.byte = self
-            .byte
-            .checked_add(bit / 8)
-            .ok_or_else(|| invalid("IIQ byte position overflow"))?;
-        self.bit = (bit % 8) as u8;
-        if self.byte > self.source.len() {
+        let count = u8::try_from(count).map_err(|_| invalid("IIQ bit count exceeds u8"))?;
+        if count > self.buffered {
             return Err(invalid("IIQ bitstream is exhausted"));
         }
+        self.buffered -= count;
         Ok(())
+    }
+
+    fn fill(&mut self, required: u8) {
+        while self.buffered < required && self.next_word < self.source.len() {
+            let end = (self.next_word + 4).min(self.source.len());
+            let mut bytes = [0_u8; 4];
+            bytes[..end - self.next_word].copy_from_slice(&self.source[self.next_word..end]);
+            let word = u32::from_le_bytes(bytes);
+            self.buffer = (self.buffer << 32) | u64::from(word);
+            self.next_word = end;
+            self.buffered = self.buffered.saturating_add(32);
+        }
     }
 }

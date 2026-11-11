@@ -43,7 +43,7 @@ fn iiq_uncompressed_scales_fourteen_bit_samples() {
 fn iiq_lossless_decodes_wide_rows_with_alternating_predictors() {
     // Two six-bit length headers select an eight-bit predictor. Each value is
     // then an eight-bit signed update biased by 127.
-    let source = [0x49, 0xfd, 0xfe, 0x02, 0x02, 0x02, 0x02, 0x02, 0x00];
+    let source = [2, 254, 253, 73, 2, 2, 2, 2, 0, 0, 0, 0];
     let chunks = [Chunk {
         offset: 0,
         byte_count: source.len(),
@@ -57,7 +57,7 @@ fn iiq_lossless_decodes_wide_rows_with_alternating_predictors() {
 
 #[test]
 fn iiq_nonlinear_expands_low_values_through_the_s_curve() {
-    let source = [0, 0, 0, 1, 0, 2];
+    let source = [1, 0, 0, 0, 0, 0, 2, 0];
     let chunks = [Chunk {
         offset: 0,
         byte_count: source.len(),
@@ -71,7 +71,7 @@ fn iiq_nonlinear_expands_low_values_through_the_s_curve() {
 
 #[test]
 fn iiq_sv2_decodes_a_partial_final_cluster() {
-    let source = [0, 0, 0, 4, 0, 32, 0, 192];
+    let source = [4, 0, 0, 0, 192, 0, 32, 0];
     let chunks = [Chunk {
         offset: 0,
         byte_count: source.len(),

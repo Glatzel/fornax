@@ -12,6 +12,7 @@
 //! ```
 
 mod container;
+mod corrections;
 mod metadata;
 mod profiles;
 
@@ -52,6 +53,7 @@ use rayon::prelude::*;
 pub struct IiqImage {
     parsed: ParsedTiff,
     maker: MakerNote,
+    cfa: [u8; 4],
     layout: RawLayout,
     metadata: Directory,
 }
@@ -84,6 +86,7 @@ impl IiqImage {
         Ok(Self {
             parsed,
             maker,
+            cfa: profile.cfa,
             layout,
             metadata,
         })
@@ -115,10 +118,12 @@ impl IiqImage {
         let SampleBuffer::U16(image) = fornax_codec::decode(&request).map_err(codec_error)? else {
             return Err(invalid("IIQ codec returned non-U16 samples"));
         };
+        let mut samples = image.into_raw();
+        corrections::apply(&mut samples, &self.maker, &self.layout, self.cfa)?;
         MonoImage::from_raw(
             u32::try_from(self.layout.width).map_err(|_| invalid("IIQ width exceeds u32"))?,
             u32::try_from(self.layout.height).map_err(|_| invalid("IIQ height exceeds u32"))?,
-            image.into_raw(),
+            samples,
         )
         .map(RawMosaic::U16)
         .ok_or_else(|| invalid("decoded IIQ mosaic dimensions are invalid"))

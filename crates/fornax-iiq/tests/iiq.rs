@@ -1,3 +1,7 @@
+use std::io::Cursor;
+
+use fornax_dng::dng_decoder::DngImage;
+use fornax_dng::writer::{DngCompression, DngWriter};
 use fornax_iiq::IiqImage;
 use fornax_raw_core::RawMosaic;
 use fornax_raw_core::error::DecodeError;
@@ -102,6 +106,91 @@ fn non_iiq_private_header_is_rejected() {
     assert!(error.to_string().contains("IIQ"), "{error}");
 }
 
+#[test]
+fn applies_base_black_level_to_corrected_samples() {
+    let mut source = synthetic_iiq("Leaf", "Credo 40", 0, 2, 2, &[4, 8, 12, 16]);
+    set_maker_value(&mut source, 0x021d, 1);
+
+    let decoder = IiqImage::parse(&source).unwrap();
+    let RawMosaic::U16(raw) = decoder.raw_mosaic().unwrap() else {
+        panic!("IIQ returned non-U16 samples");
+    };
+
+    assert_eq!(raw.as_raw(), &[15, 31, 47, 63]);
+}
+
+#[test]
+fn selected_fixtures_match_rawler_after_correction() {
+    let Some(root) = fixture_root() else {
+        return;
+    };
+    for relative in [
+        "Phase One/P20+/CF051545.IIQ",
+        "Phase One/H 25/H25_Outdoor_.IIQ",
+        "Leaf/Credo 40/0001_20_32.IIQ",
+        "Leaf/Credo 40/0002_20_32.IIQ",
+        "Phase One/IQ3 100MP/Phase_One_IQ3_100MP_IIQ_L_16bit.IIQ",
+    ] {
+        let path = root.join(relative);
+        let Ok(source) = std::fs::read(&path) else {
+            continue;
+        };
+        if source.starts_with(b"version https://git-lfs.github.com/spec/v1") {
+            continue;
+        }
+        let decoder = IiqImage::parse(&source)
+            .unwrap_or_else(|error| panic!("{} failed to parse: {error}", path.display()));
+        let RawMosaic::U16(ours) = decoder.raw_mosaic().unwrap() else {
+            panic!("{} decoded as non-U16", path.display());
+        };
+        let reference = rawler::decode_file(&path)
+            .unwrap_or_else(|error| panic!("Rawler failed on {}: {error}", path.display()));
+        let dimensions = (reference.width as u32, reference.height as u32);
+        let rawler::decoders::RawImageData::Integer(reference) = reference.data else {
+            panic!("{} Rawler result is not integer", path.display());
+        };
+        assert_eq!(ours.dimensions(), dimensions, "{}", path.display());
+        let mismatch = ours
+            .as_raw()
+            .iter()
+            .zip(&reference)
+            .position(|(ours, reference)| ours != reference);
+        if let Some(index) = mismatch {
+            panic!(
+                "{} differs at sample {index}: {} != {}",
+                path.display(),
+                ours.as_raw()[index],
+                reference[index]
+            );
+        }
+    }
+}
+
+#[test]
+fn corrected_samples_and_cfa_round_trip_through_dng() {
+    let source = synthetic_iiq("Leaf", "Credo 40", 0, 4, 4, &[4, 8, 12, 16]);
+    let decoder = IiqImage::parse(&source).unwrap();
+    let raw = decoder.raw_mosaic().unwrap();
+    let metadata = decoder.dng_metadata().unwrap();
+    let mut output = Cursor::new(Vec::new());
+
+    DngWriter::new(DngCompression::Uncompressed)
+        .write_dng_with(&mut output, &raw, &metadata)
+        .unwrap();
+
+    let decoded = DngImage::parse(output.get_ref()).unwrap();
+    assert_eq!(decoded.raw_mosaic().unwrap(), raw);
+    let round_trip = decoded.dng_metadata().unwrap();
+    assert_eq!(
+        fornax_tiff::unsigned_vec::<_, u8>(
+            &round_trip,
+            fornax_tiff::constants::TiffTag::CfaPattern
+        )
+        .unwrap(),
+        [0, 1, 1, 2]
+    );
+}
+
 fn synthetic_iiq(
     make: &str,
     model: &str,
@@ -114,13 +203,14 @@ fn synthetic_iiq(
     let private_ifd = 64_usize;
     let private_base = 8_usize;
     let ifd_offset = private_base + private_ifd;
+    let margin = u32::from(width > 2 && height > 2);
     let tags = [
         (0x0108_u16, width, 0_u32),
         (0x0109_u16, height, 0),
-        (0x010a, 1, 0),
-        (0x010b, 1, 0),
-        (0x010c, width - 2, 0),
-        (0x010d, height - 2, 0),
+        (0x010a, margin, 0),
+        (0x010b, margin, 0),
+        (0x010c, width - 2 * margin, 0),
+        (0x010d, height - 2 * margin, 0),
         (0x010e, mode, 0),
         (0x021d, 0, 0),
     ];
@@ -204,6 +294,19 @@ fn synthetic_iiq(
     source
 }
 
+fn set_maker_value(source: &mut [u8], tag: u32, value: u32) {
+    let ifd = 8 + u32::from_le_bytes(source[16..20].try_into().unwrap()) as usize;
+    let count = u32::from_le_bytes(source[ifd..ifd + 4].try_into().unwrap()) as usize;
+    for index in 0..count {
+        let position = ifd + 8 + index * 16;
+        if u32::from_le_bytes(source[position..position + 4].try_into().unwrap()) == tag {
+            source[position + 12..position + 16].copy_from_slice(&value.to_le_bytes());
+            return;
+        }
+    }
+    panic!("maker tag 0x{tag:04x} not found");
+}
+
 fn put_maker_entry(
     source: &mut [u8],
     position: usize,
@@ -223,4 +326,10 @@ fn put_tiff_entry(source: &mut [u8], position: usize, tag: u16, kind: u16, count
     source[position + 2..position + 4].copy_from_slice(&kind.to_le_bytes());
     source[position + 4..position + 8].copy_from_slice(&count.to_le_bytes());
     source[position + 8..position + 12].copy_from_slice(&value.to_le_bytes());
+}
+
+fn fixture_root() -> Option<std::path::PathBuf> {
+    let root = std::path::PathBuf::from(std::env::var_os("FORNAX_RAW_SAMPLES")?);
+    assert!(root.is_dir(), "FORNAX_RAW_SAMPLES is not a directory");
+    Some(root)
 }
