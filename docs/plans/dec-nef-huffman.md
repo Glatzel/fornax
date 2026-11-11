@@ -75,7 +75,7 @@ Out of scope:
   record the owner-approved numeric-tree provenance.
 - [x] Task 1: Add canonical Huffman construction, bit reading, fast decoding,
   completeness validation, and randomized equivalence tests.
-- [ ] Task 2: Add Nikon `NikonTreeId`, `NikonHuffman`, difference decoding,
+- [x] Task 2: Add Nikon `NikonTreeId`, `NikonHuffman`, difference decoding,
   test-only encoding, prediction tests, curve tests, and malformed-input tests.
 - [ ] Task 3: Parse the Nikon curve metadata, add mode-3 dispatch, preserve
   typed unsupported reasons, and apply the confirmed WhiteLevel behavior.
@@ -180,20 +180,20 @@ default feature build remains green.
 
 ### Task 2: Nikon difference decoder
 
-- [ ] Add `NikonTreeId` and
+- [x] Add `NikonTreeId` and
   `DecodeCompression::NikonHuffman { bits, tree, init, curve }` behind the
   `nef` feature. Do not add a split field.
-- [ ] Add only the 12-bit lossless (index 2) and 14-bit lossless (index 5)
+- [x] Add only the 12-bit lossless (index 2) and 14-bit lossless (index 5)
   numeric count and symbol arrays with provenance comments and
   `docs/references/nikon-nef.md` links. Do not transcribe lossy or split
   arrays.
-- [ ] First write failing tests for the 2x2 initial predictors, vertical
+- [x] First write failing tests for the 2x2 initial predictors, vertical
   propagation, horizontal prediction, odd widths, heights one and two,
   identity and non-trivial curves, curve index overflow, invalid codes,
   truncated streams, trailing bytes, zero dimensions, and allocation after
   validation.
-- [ ] Add a test-only encoder for 12/14-bit randomized round trips.
-- [ ] Run `cargo test -p fornax-codec --features nef` and default-feature
+- [x] Add a test-only encoder for 12/14-bit randomized round trips.
+- [x] Run `cargo test -p fornax-codec --features nef` and default-feature
   tests; commit `feat: add Nikon lossless Huffman codec`.
 
 Expected: decoding writes directly into validated `u16` output, uses no

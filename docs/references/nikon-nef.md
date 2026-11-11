@@ -175,8 +175,8 @@ Rawler index 5 and LibRaw's corresponding 14-bit table likewise agree.
 
 | Bits | Rawler index | Counts by code length 1..16 | Symbols |
 | ---: | ---: | --- | --- |
-| 12 | 2 | `0,0,1,4,2,3,1,2,0,0,0,0,0,0,0,0` | `5,4,6,3,7,2,8,1,9,0,10,11,12` |
-| 14 | 5 | `0,0,1,4,2,2,3,1,2,0,0,0,0,0,0,0` | `7,6,8,5,9,4,10,3,11,12,2,0,1,13,14` |
+| 12 | 2 | `0,1,4,2,3,1,2,0,0,0,0,0,0,0,0,0` | `5,4,6,3,7,2,8,1,9,0,10,11,12` |
+| 14 | 5 | `0,1,4,2,2,3,1,2,0,0,0,0,0,0,0,0` | `7,6,8,5,9,4,10,3,11,12,2,0,1,13,14` |
 
 Each table is a complete canonical prefix code. The Rust representation is
 format data, and `crates/fornax-codec` has a completeness test that constructs

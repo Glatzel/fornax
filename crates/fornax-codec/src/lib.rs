@@ -74,6 +74,8 @@ mod zstd;
 pub use arw::{arw2_white_level, arw6_white_level};
 pub use error::CodecError;
 pub use predictor::Predictor;
+#[cfg(feature = "nef")]
+pub use request::NikonTreeId;
 pub use request::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
     EncodedChunks, SampleFormat,
@@ -116,7 +118,7 @@ pub use sample_buffer::{SampleBuffer, SampleBufferError};
 /// assert_eq!((decoded.width(), decoded.height()), (2, 2));
 /// ```
 pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
-    match request.compression {
+    match &request.compression {
         DecodeCompression::Uncompressed => uncompressed::decode(request),
         #[cfg(feature = "lossless-jpeg")]
         DecodeCompression::LosslessJpeg => ljpeg::decode(request),
@@ -133,7 +135,7 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         #[cfg(feature = "arw")]
         DecodeCompression::Arw1 => arw::decode_arw1(request),
         #[cfg(feature = "arw")]
-        DecodeCompression::Arw2 { curve } => arw::decode_arw2(request, curve),
+        DecodeCompression::Arw2 { curve } => arw::decode_arw2(request, *curve),
         #[cfg(feature = "arw")]
         DecodeCompression::Arw6 => arw::decode_arw6(request),
         #[cfg(feature = "arw")]
@@ -143,13 +145,20 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
             row_stride,
             bits,
             byte_order,
-        } => nef::decode_packed(request, row_stride, bits, byte_order),
+        } => nef::decode_packed(request, *row_stride, *bits, *byte_order),
         #[cfg(feature = "nef")]
         DecodeCompression::NikonUnpackedWords { bits, byte_order } => {
-            nef::decode_unpacked_words(request, bits, byte_order)
+            nef::decode_unpacked_words(request, *bits, *byte_order)
         }
         #[cfg(feature = "nef")]
         DecodeCompression::NikonStripedPacked12 => nef::decode_striped_packed_12(request),
+        #[cfg(feature = "nef")]
+        DecodeCompression::NikonHuffman {
+            bits,
+            tree,
+            init,
+            curve,
+        } => nef::decode_huffman(request, *bits, *tree, *init, curve.as_ref()),
         #[cfg(feature = "zstd")]
         DecodeCompression::Zstd => zstd::decode(request),
     }

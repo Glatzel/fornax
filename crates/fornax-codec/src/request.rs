@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::Predictor;
 use crate::sample_buffer::SampleBuffer;
 
@@ -9,7 +11,7 @@ use crate::sample_buffer::SampleBuffer;
 /// let compression = fornax_codec::DecodeCompression::Uncompressed;
 /// assert_eq!(compression, fornax_codec::DecodeCompression::Uncompressed);
 /// ```
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DecodeCompression {
     /// Samples are stored directly in the chunk payloads.
     Uncompressed,
@@ -67,9 +69,58 @@ pub enum DecodeCompression {
     /// Nikon mode-5 stripped data stored in 32-bit little-endian words.
     #[cfg(feature = "nef")]
     NikonStripedPacked12,
+    /// Nikon mode-3 lossless Huffman difference coding.
+    #[cfg(feature = "nef")]
+    NikonHuffman {
+        /// Stored sample bits: 12 or 14.
+        bits: u8,
+        /// Lossless canonical Huffman tree selected by `bits`.
+        tree: NikonTreeId,
+        /// Initial vertical predictors indexed by row parity and CFA phase.
+        init: [[u16; 2]; 2],
+        /// Linearization curve indexed by decoded predictor value.
+        curve: Arc<[u16]>,
+    },
     /// TIFF's experimental Zstandard compression.
     #[cfg(feature = "zstd")]
     Zstd,
+}
+
+/// Nikon lossless Huffman tree identifiers.
+///
+/// # Examples
+///
+/// ```
+/// use fornax_codec::NikonTreeId;
+///
+/// assert_eq!(NikonTreeId::Lossless12.bits(), 12);
+/// ```
+#[cfg(feature = "nef")]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum NikonTreeId {
+    /// The canonical tree for 12-bit lossless NEF mode 3.
+    Lossless12,
+    /// The canonical tree for 14-bit lossless NEF mode 3.
+    Lossless14,
+}
+
+#[cfg(feature = "nef")]
+impl NikonTreeId {
+    /// Returns the sample depth associated with this tree.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_codec::NikonTreeId;
+    ///
+    /// assert_eq!(NikonTreeId::Lossless14.bits(), 14);
+    /// ```
+    pub const fn bits(self) -> u8 {
+        match self {
+            Self::Lossless12 => 12,
+            Self::Lossless14 => 14,
+        }
+    }
 }
 
 /// A raw sample encoding algorithm.
