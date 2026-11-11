@@ -2,6 +2,10 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+**Status:** Complete. The final 110-file remote corpus rerun was clean, produced
+no baseline-update artifact, and the header audit uploaded separately for
+review.
+
 **Goal:** Decode provably lossless, single-sample, conventional 2x2 RGB Bayer
 Canon CR3/CRM files into the existing Fornax `U16` mosaic and metadata
 interfaces, while returning typed unsupported errors for C-RAW and every
@@ -231,3 +235,16 @@ is remote-only.
   with fabricated zero/default values.
 - Full local corpus execution is prohibited by the operator. The tooling and
   remote workflow remain the authority for complete classification.
+
+### Final results
+
+- The remote corpus classified 110/110 CR3 rows without a local full-corpus
+  run.
+- 28 files pass all decoder, metadata, and handoff stages.
+- 82 files return typed unsupported errors: 51 are lossy with three wavelet
+  levels and 31 are ambiguous zero-level layouts outside the validated tuple.
+- ColorData versions 16, 17, 18, 19, 32, 33, 34, 48, 64, 65, and 66 were
+  observed by the audit.
+- Targeted R5 and R6 Mark II mosaics match Rawler 0.8.0 digests exactly.
+- `scripts/agent-validation.sh`, workspace tests, docs, strict clippy, nightly
+  formatting, golden hashes, and decoder benchmark compilation pass.
