@@ -3,6 +3,10 @@ name = "fornax-codec"
 version.workspace = true
 edition.workspace = true
 
+[[test]]
+name = "iiq"
+required-features = ["iiq"]
+
 [dependencies]
 bytemuck.workspace = true
 flate2 = { workspace = true, optional = true }
@@ -21,17 +25,13 @@ image = { workspace = true, features = ["jpeg"] }
 default = ["lzw", "packbits"]
 arw = ["lossless-jpeg"]
 deflate = ["dep:flate2"]
+iiq = []
 jpegxl = ["dep:jxl-oxide"]
 lossless-jpeg = []
 lossy-jpeg = ["dep:zune-jpeg"]
 lzw = ["dep:weezl"]
 nef = []
-iiq = []
 packbits = []
 raf = []
 rw2 = []
 zstd = ["dep:zstd"]
-
-[[test]]
-name = "iiq"
-required-features = ["iiq"]
