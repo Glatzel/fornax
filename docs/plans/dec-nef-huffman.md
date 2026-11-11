@@ -71,7 +71,7 @@ Out of scope:
 
 ## Task Checklist
 
-- [ ] Task 0: Pin sources, confirm algorithm behavior, survey the corpus, and
+- [x] Task 0: Pin sources, confirm algorithm behavior, survey the corpus, and
   record the owner-approved numeric-tree provenance.
 - [ ] Task 1: Add canonical Huffman construction, bit reading, fast decoding,
   completeness validation, and randomized equivalence tests.
@@ -143,17 +143,17 @@ may be committed.
 
 ### Task 0: Verification gates
 
-- [ ] Pin Rawler/LibRaw revisions in `docs/references/nikon-nef.md` and
+- [x] Pin Rawler/LibRaw revisions in `docs/references/nikon-nef.md` and
   confirm the curve tag, metadata header, lossless trees, difference rule,
   predictor scheme, bit-depth rule, curve behavior, and effective WhiteLevel.
-- [ ] Confirm lossy modes 1 and 4 share entropy decoding but use a split row
+- [x] Confirm lossy modes 1 and 4 share entropy decoding but use a split row
   and after-split trees. Record the behavior without implementing it.
-- [ ] Confirm whether corpus mode-3 images have multiple strips with
+- [x] Confirm whether corpus mode-3 images have multiple strips with
   independent state. If not, multi-strip mode 3 is unsupported.
-- [ ] Survey the corpus with the decoder tracker filtered to
+- [x] Survey the corpus with the decoder tracker filtered to
   `**/*.[nN][eE][fF]`; list mode-3 files by camera, bit depth, and metadata
   version. Synthetic-only bit depths or cameras must be identified.
-- [ ] Record the owner decision approving transcription of only the two
+- [x] Record the owner decision approving transcription of only the two
   lossless trees as numeric format data.
 
 Expected: reference notes contain pinned revisions, source licenses, the
