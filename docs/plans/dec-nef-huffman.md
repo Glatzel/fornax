@@ -141,6 +141,9 @@ may be committed.
 - Mode 3 accepts exactly one strip until corpus evidence proves that Nikon
   lossless strips have independent state. Multi-strip mode 3 remains
   unsupported otherwise.
+- A single mode-3 strip may declare `RowsPerStrip` above the image height.
+  The D7100 corpus files require accepting 4022 declared rows for 4020 output
+  rows.
 - Rawler's identity curve applies a lossy dithering step, so real-file parity
   is exact for Fornax predictors and accepts Rawler's value or one code below
   it. Fornax does not adopt that reference-only dithering.

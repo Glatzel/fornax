@@ -44,7 +44,7 @@ pub fn decode_huffman(
             "multi-strip Nikon mode-3 Huffman data is unsupported",
         ));
     }
-    if request.chunk_width != request.width || request.chunk_height != request.height {
+    if request.chunk_width != request.width || request.chunk_height < request.height {
         return Err(invalid(
             "Nikon Huffman requires one strip spanning the full image",
         ));
@@ -482,6 +482,38 @@ mod lossless_tests {
         .unwrap();
 
         assert_eq!(decoded, [101, 202, 299, 398]);
+    }
+
+    #[test]
+    fn single_strip_may_declare_more_rows_than_the_image() {
+        let curve = Arc::from(identity_curve(12));
+        let chunks = [Chunk {
+            offset: 0,
+            byte_count: 2,
+        }];
+        let request = DecodeRequest {
+            source: &[0xe7, 0x90],
+            compression: DecodeCompression::NikonHuffman {
+                bits: 12,
+                tree: NikonTreeId::Lossless12,
+                init: [[0, 1], [0, 0]],
+                curve,
+            },
+            width: 2,
+            height: 1,
+            chunk_width: 2,
+            chunk_height: 3,
+            chunks: &chunks,
+            bits_per_sample: 12,
+            sample_format: SampleFormat::Integer,
+            byte_order: ByteOrder::Little,
+            predictor: Predictor::None,
+        };
+        let SampleBuffer::U16(image) = crate::decode(&request).unwrap() else {
+            panic!("Nikon Huffman returned non-u16 samples");
+        };
+
+        assert_eq!(image.into_raw(), [1, 2]);
     }
 
     #[test]

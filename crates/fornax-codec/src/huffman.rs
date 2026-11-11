@@ -4,6 +4,20 @@
 //! formats. Codes are assigned canonically in symbol order. A fixed lookup
 //! table handles common short codes, while codes longer than the lookup width
 //! fall back to a bounded bit-by-bit search.
+//!
+//! # Examples
+//!
+//! ```
+//! use fornax_codec::huffman::{BitReader, HuffmanTable};
+//!
+//! let table = HuffmanTable::from_counts(
+//!     &[1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+//!     &[5, 1, 2, 3, 4],
+//! )
+//! .unwrap();
+//! let mut bits = BitReader::new(&[0b0100_1011]);
+//! assert_eq!(table.decode_symbol(&mut bits).unwrap(), 5);
+//! ```
 
 use crate::CodecError;
 use crate::error::invalid;

@@ -208,6 +208,10 @@ on vertically accumulated predictors.
 - All 88 mode-3 files in the pinned corpus contain one strip. Supporting
   multiple independently coded mode-3 strips is outside this slice, so a
   multi-strip mode-3 layout is `Unsupported`.
+- A one-strip mode-3 IFD may declare `RowsPerStrip` greater than the image
+  height. The D7100 samples use 4022 declared rows for a 4020-row image, so
+  validation accepts any full-width single strip whose declared row capacity
+  covers the image and decodes exactly the image height.
 - Mode 3 tree selection is determined by TIFF `BitsPerSample`: 12 selects the
   index-2 table and 14 selects the index-5 table.
 

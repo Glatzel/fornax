@@ -2,10 +2,11 @@
 
 **Tier:** 1
 
-**Status:** Partially implemented for standard uncompressed/packed modes `2`,
-`5`, `6`, `7`, `9`, and `10`. Huffman lossless/lossy modes, HE/HE*, small raw,
-reduced-linear output, Coolpix-specific layouts, and headerless maker notes
-remain unsupported.
+**Status:** Implemented for standard uncompressed/packed modes `2`, `5`, `6`,
+`7`, `9`, and `10`, and for 12/14-bit mode-3 lossless Huffman. Lossy Huffman
+modes `1` and `4` are deferred by policy. HE/HE*, small raw, reduced-linear
+output, multi-strip mode 3, Coolpix-specific layouts, and headerless maker
+notes remain unsupported.
 
 ## Container structure
 
@@ -32,9 +33,13 @@ Known Nikon compression modes are:
 | `10` | Packed 14-bit. |
 | `13`, `14` | High Efficiency / HE*. |
 
-The implemented first slice covers modes `2`, `5`, `6`, `7`, `9`, and `10`.
-Huffman modes `1`, `3`, and `4`; small raw mode `8`; and HE/HE* modes `13` and
-`14` return `DecodeError::Unsupported`.
+The accepted surface covers modes `2`, `3`, `5`, `6`, `7`, `9`, and `10`.
+Mode 3 uses the 12-bit or 14-bit canonical lossless Huffman tree selected by
+`BitsPerSample`, an identity linearization curve for the supported `0x4630`
+metadata version, and a single strip. Lossy modes `1` and `4` return
+`DecodeError::Unsupported` with a policy-deferred reason. Small raw mode `8`,
+HE/HE* modes `13` and `14`, unknown modes, and multi-strip mode 3 are also
+typed unsupported.
 
 ## Metadata to DNG tags
 
@@ -61,6 +66,9 @@ that derivation.
   iterate strip metadata rather than assuming one layout.
 - Small/reduced-resolution NEF can produce three-component linear data, which
   is not a CFA mosaic.
+- Lossless Huffman predictor values are emitted exactly. Rawler applies a
+  one-code dither to its identity curve; Fornax does not reproduce that
+  reference-only lossy step.
 - White-balance coefficient versions differ across generations.
 - Some camera models override sampled width or row structure.
 - HE/HE* use a substantially different codec and must not be mislabeled as
@@ -82,5 +90,6 @@ that derivation.
   endianness, packing, and WB normalization.
 - HE/HE* and linear/reduced modes return typed unsupported results unless
   explicitly brought into scope.
-- Synthetic tests cover packed/unpacked 12/14-bit rows, row padding, Huffman
-  mode dispatch, maker-note endianness, and Bayer handoff.
+- Synthetic and randomized tests cover packed/unpacked 12/14-bit rows, row
+  padding, Huffman predictor propagation, curve bounds, malformed streams,
+  maker-note endianness, mode dispatch, and Bayer handoff.
