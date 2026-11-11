@@ -6,6 +6,7 @@ use fornax_tiff::{ByteOrder, Directory, Tag, Value, unsigned_scalar};
 use crate::profiles::{ModelProfile, profile};
 
 const MAX_RAF_TAGS: u32 = 4000;
+const PREVIEW_OFFSET: usize = 84;
 const RAF_TAGS_OFFSET: usize = 92;
 const RAW_TIFF_OFFSET: usize = 100;
 const FUJI_IFD_TAG: Tag = Tag(0xf000);
@@ -39,6 +40,7 @@ pub struct Container {
     pub model: String,
     pub cfa: crate::Cfa,
     pub profile: Option<ModelProfile>,
+    pub orientation: Option<u16>,
     pub tags: RafTags,
     pub fuji_ifd: Directory,
     pub layout: RawLayout,
@@ -60,6 +62,7 @@ pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
         return Err(invalid("RAF header is missing FUJIFILM magic"));
     }
     let model = model_name(source)?;
+    let orientation = preview_orientation(source);
     let tags_offset = usize::try_from(read_u32(source, RAF_TAGS_OFFSET, "RAF tags offset")?)
         .map_err(|_| invalid("RAF tags offset exceeds the address space"))?;
     let tags_length = usize::try_from(read_u32(source, RAF_TAGS_OFFSET + 4, "RAF tags length")?)
@@ -116,6 +119,7 @@ pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
         model,
         cfa,
         profile,
+        orientation,
         tags,
         fuji_ifd,
         layout: RawLayout {
@@ -128,6 +132,61 @@ pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
             byte_order,
         },
     })
+}
+
+fn preview_orientation(source: &[u8]) -> Option<u16> {
+    let offset =
+        usize::try_from(read_u32(source, PREVIEW_OFFSET, "RAF preview offset").ok()?).ok()?;
+    let length =
+        usize::try_from(read_u32(source, PREVIEW_OFFSET + 4, "RAF preview length").ok()?).ok()?;
+    let jpeg = bounded(source, offset, length, "RAF preview").ok()?;
+    if !jpeg.starts_with(&[0xff, 0xd8]) {
+        return None;
+    }
+    let mut position = 2_usize;
+    while position.checked_add(4)? <= jpeg.len() {
+        if jpeg[position] != 0xff {
+            return None;
+        }
+        while jpeg.get(position) == Some(&0xff) {
+            position += 1;
+        }
+        let marker = *jpeg.get(position)?;
+        position += 1;
+        if matches!(marker, 0xd9 | 0xda) {
+            return None;
+        }
+        if matches!(marker, 0x01 | 0xd0..=0xd7) {
+            continue;
+        }
+        let length_end = position.checked_add(2)?;
+        let segment_length =
+            u16::from_be_bytes(jpeg.get(position..length_end)?.try_into().ok()?) as usize;
+        if segment_length < 2 {
+            return None;
+        }
+        let segment_end = position.checked_add(segment_length)?;
+        let payload = jpeg.get(length_end..segment_end)?;
+        if marker == 0xe1
+            && payload.starts_with(b"Exif\0\0")
+            && let Some(orientation) = exif_orientation(&payload[6..])
+        {
+            return Some(orientation);
+        }
+        position = segment_end;
+    }
+    None
+}
+
+fn exif_orientation(tiff: &[u8]) -> Option<u16> {
+    let parsed = fornax_tiff::parse(tiff).ok()?;
+    let orientation = unsigned_scalar(
+        parsed
+            .root
+            .get(&Tag::from(fornax_tiff::constants::TiffTag::Orientation)),
+    )?;
+    let orientation = u16::try_from(orientation).ok()?;
+    (1..=8).contains(&orientation).then_some(orientation)
 }
 
 pub fn parse_raf_tags(bytes: &[u8]) -> Result<RafTags, DecodeError> {

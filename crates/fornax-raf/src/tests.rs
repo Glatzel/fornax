@@ -182,6 +182,12 @@ fn xtrans_lossless_fixture_matches_rawler_and_round_trips_through_dng() {
             .unwrap();
     assert_eq!(repeat, [6, 6]);
     assert_eq!(pattern.len(), 36);
+    assert_eq!(
+        fornax_tiff::unsigned_scalar(metadata.get(&fornax_tiff::Tag::from(
+            fornax_tiff::constants::TiffTag::Orientation
+        ))),
+        Some(6)
+    );
     assert!(matches!(
         decoder.process_metadata(),
         Err(DecodeError::Unsupported(message)) if message.contains("X-Trans")
@@ -216,6 +222,12 @@ fn xtrans_lossless_fixture_matches_rawler_and_round_trips_through_dng() {
         )
         .unwrap(),
         pattern
+    );
+    assert_eq!(
+        fornax_tiff::unsigned_scalar(round_trip_metadata.get(&fornax_tiff::Tag::from(
+            fornax_tiff::constants::TiffTag::Orientation
+        ))),
+        Some(6)
     );
 }
 

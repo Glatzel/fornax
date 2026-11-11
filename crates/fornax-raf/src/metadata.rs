@@ -34,6 +34,9 @@ pub fn map(container: &Container) -> Result<Directory, DecodeError> {
         Tag::from(DngTag::UniqueCameraModel),
         Value::Ascii(format!("Fujifilm {}", container.model)),
     );
+    if let Some(orientation) = container.orientation {
+        directory.insert(Tag::from(TiffTag::Orientation), Value::Short(orientation));
+    }
     directory.insert(Tag::from(TiffTag::ImageWidth), Value::Unsigned(width));
     directory.insert(Tag::from(TiffTag::ImageLength), Value::Unsigned(height));
     directory.insert(Tag::from(TiffTag::BitsPerSample), Value::Short(16));

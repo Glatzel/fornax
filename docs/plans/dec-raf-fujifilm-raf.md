@@ -119,6 +119,9 @@ mode. The manual corpus filter is `**/*.[rR][aA][fF]` with
   Lossy X-H2 compression returns typed unsupported.
 - X-Trans DNG round-trip tests preserve storage-native samples and the 6x6,
   36-plane CFA, while process metadata and cropped handoff reject the layout.
+- A valid EXIF `Orientation` from the embedded JPEG APP1 block is copied into
+  RAF DNG metadata and survives DNG write/read-back; malformed preview EXIF is
+  ignored without affecting raw decoding.
 - Local validation passed `scripts/agent-validation.sh` after adding the RAF
   golden rows and generated hashes. The full RAF corpus remains a manual CI
   stage because that is the repository's designated full-corpus environment.
