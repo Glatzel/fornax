@@ -131,7 +131,7 @@ Metadata decisions:
   file, and add expected-unsupported tests for the three named files.
 - [x] Run the RW2 corpus workflow/selection, review baseline changes, regenerate
   the tracker README, and require a clean rerun.
-- [ ] Write Panasonic format/reference docs, update architecture and crate
+- [x] Write Panasonic format/reference docs, update architecture and crate
   READMEs, remove DEC-RW2 from `TODO.md`, and run full validation.
 
 ## Files Expected to Change
