@@ -783,4 +783,16 @@ mod tests {
         assert_eq!(signed(2).unwrap(), 1);
         assert_eq!(signed(3).unwrap(), -2);
     }
+
+    #[test]
+    fn run_length_saturates_at_the_remaining_line_width() {
+        let mut decoder = PlaneDecoder::new(3, 1, &[0b1111_1000]);
+        assert_eq!(decoder.run_count(3).unwrap(), 3);
+    }
+
+    #[test]
+    fn lossless_q_step_must_be_identity() {
+        assert!(validate_qp(4).is_ok());
+        assert!(validate_qp(0).is_err());
+    }
 }

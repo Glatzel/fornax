@@ -452,7 +452,7 @@ fn required_tiff_child(parent: &BoxRef<'_>, typ: [u8; 4]) -> Result<Directory, D
     })
 }
 
-fn optional_tiff_child(
+pub fn optional_tiff_child(
     parent: &BoxRef<'_>,
     typ: [u8; 4],
 ) -> Result<Option<Directory>, DecodeError> {
