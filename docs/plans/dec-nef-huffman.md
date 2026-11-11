@@ -73,7 +73,7 @@ Out of scope:
 
 - [x] Task 0: Pin sources, confirm algorithm behavior, survey the corpus, and
   record the owner-approved numeric-tree provenance.
-- [ ] Task 1: Add canonical Huffman construction, bit reading, fast decoding,
+- [x] Task 1: Add canonical Huffman construction, bit reading, fast decoding,
   completeness validation, and randomized equivalence tests.
 - [ ] Task 2: Add Nikon `NikonTreeId`, `NikonHuffman`, difference decoding,
   test-only encoding, prediction tests, curve tests, and malformed-input tests.
@@ -162,17 +162,17 @@ corpus table. No production code changes in this task.
 
 ### Task 1: Generic Huffman primitives
 
-- [ ] Add `fornax-codec/src/huffman.rs` with
+- [x] Add `fornax-codec/src/huffman.rs` with
   `HuffmanTable::from_counts(counts: &[u8; 16], symbols: &[u8]) ->
   Result<Self, DecodeError>`, a `BitReader` over `&[u8]`, and
   `decode_symbol` with a lookup fast path and slow fallback for long codes.
-- [ ] First write failing tests for canonical code assignment, rejection of
+- [x] First write failing tests for canonical code assignment, rejection of
   over-subscribed and incomplete tables, rejection of symbol lengths above
   16, MSB-first reads across byte boundaries, end-of-data handling, and
   equivalence with a naive bit-by-bit decoder on randomized streams.
-- [ ] Include a canonical-prefix-code completeness test that proves each
+- [x] Include a canonical-prefix-code completeness test that proves each
   supported lossless tree is complete.
-- [ ] Run `cargo test -p fornax-codec` and commit
+- [x] Run `cargo test -p fornax-codec` and commit
   `feat: add generic Huffman decoding primitives`.
 
 Expected: the new tests fail because the module/API is absent, then pass; the

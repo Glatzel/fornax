@@ -40,6 +40,7 @@
 )]
 mod encode;
 mod error;
+pub mod huffman;
 #[allow(
     dead_code,
     reason = "predictor helpers are used only by feature-gated codecs"
