@@ -2,7 +2,7 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![RAW corpus: 514/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-514%2F2020-orange)](baseline.csv)
+[![RAW corpus: 539/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-539%2F2020-orange)](baseline.csv)
 
 | Vendor | Format | Status |
 | --- | --- | ---: |
@@ -24,9 +24,9 @@
 | Epson | ERF | 0/3 |
 | Eyedeas | DNG | 1/1 |
 | FIMI | DNG | 1/1 |
-| FUJIFILM | RAF | 0/25 |
+| FUJIFILM | RAF | 8/25 |
 | Fujifilm | DNG | 0/1 |
-| Fujifilm | RAF | 0/126 |
+| Fujifilm | RAF | 17/126 |
 | GITUP | RAW | 0/4 |
 | Gitup | RAW | 0/1 |
 | GoPro | GPR | 0/17 |
