@@ -129,10 +129,110 @@ this slice. They remain unsupported or require fixture investigation.
 
 ## Known limits
 
-- Modes 1, 3, and 4 use Nikon Huffman streams and are not decoded here.
+- Mode 3 uses Nikon Huffman streams and is implemented at 12 and 14 bits.
+  Lossy modes 1 and 4 remain unsupported by policy.
 - Mode 8 small raw, reduced-linear output, HE/HE* modes 13/14, multi-sample
   files, and non-Bayer layouts are unsupported.
 - Coolpix interlacing, camera-specific width overrides, and older headerless
   maker notes are deferred.
 - The mode-5, mode-7, and mode-9 paths have synthetic coverage only in this
   corpus snapshot.
+
+## Lossless Huffman verification
+
+The implementation uses the pinned Rawler and LibRaw revisions above as
+behavioral references. The owner approved on 2026-11-11 transcribing only the
+numeric counts and symbols for the two lossless trees. No reference code,
+comments, or naming is copied, and lossy or split trees are deliberately not
+transcribed.
+
+### Metadata and curve
+
+- Rawler prefers maker tag `0x0096` (`NefMeta2`) and falls back to `0x008c`
+  (`NefMeta1`). LibRaw records the metadata offset from either tag. Every
+  mode-3 file in the pinned corpus uses `0x0096`.
+- Both references read two version bytes, optionally skip 2110 bytes when the
+  first byte is `0x49` or the second is `0x58`, then read four initial
+  predictors as 16-bit maker-order values, followed by a 16-bit curve-point
+  count.
+- Every mode-3 corpus file has version bytes `46 30` and four predictors.
+  Rawler selects the lossless tree when the first version byte is `0x46`.
+  LibRaw's curve parser likewise leaves the identity curve in place for
+  version `0x46`.
+- For version `0x4630`, the curve-point count field is present but the
+  referenced decoders do not consume curve entries. The effective
+  linearization is identity. Its WhiteLevel is therefore
+  `(1 << BitsPerSample) - 1`: 4095 for 12-bit files and 16383 for 14-bit
+  files. No lower camera-specific saturation point is inferred.
+- Rawler applies its dithering lookup even to the identity curve. That lookup
+  emits either the exact predictor or one code below it. Fornax keeps the
+  lossless predictor exact; real-file comparisons therefore require Rawler's
+  reference value to equal the Fornax value or the value immediately below it.
+  The selected D850 12-bit and Z8 14-bit fixtures satisfy that relationship
+  sample-for-sample while preserving Fornax's exact lossless samples.
+- Versions whose metadata does not select the lossless identity path remain
+  unsupported for mode 3. They are not reinterpreted through a lossy tree.
+
+### Huffman trees
+
+The two-source agreement is exact. Rawler table index 2 and the first
+12-bit lossless table selected by LibRaw contain the same counts and symbols;
+Rawler index 5 and LibRaw's corresponding 14-bit table likewise agree.
+
+| Bits | Rawler index | Counts by code length 1..16 | Symbols |
+| ---: | ---: | --- | --- |
+| 12 | 2 | `0,1,4,2,3,1,2,0,0,0,0,0,0,0,0,0` | `5,4,6,3,7,2,8,1,9,0,10,11,12` |
+| 14 | 5 | `0,1,4,2,2,3,1,2,0,0,0,0,0,0,0,0` | `7,6,8,5,9,4,10,3,11,12,2,0,1,13,14` |
+
+Each table is a complete canonical prefix code. The Rust representation is
+format data, and `crates/fornax-codec` has a completeness test that constructs
+both tables and requires the canonical code space to end exactly at the
+16-bit boundary.
+
+For each symbol `len`, read `len` extra bits. With `value` equal to those bits,
+the difference is `value` when the sign bit is set, otherwise
+`value - ((1 << len) - 1)`. A zero-length symbol contributes zero. The
+lossless trees have no additional shift component.
+
+Each row first decodes one difference for each CFA column phase and adds it to
+the corresponding initial vertical predictor for the row parity. Later samples
+in the row first add their difference to the preceding sample of the same
+phase. Rows are processed serially because the next row of that parity depends
+on vertically accumulated predictors.
+
+### Lossy and strip conclusions
+
+- Modes 1 and 4 use the same predictor and difference structure, but metadata
+  can select lossy trees and a row at which an after-split tree takes over.
+  They are deferred by policy; no lossy or split table is included.
+- All 88 mode-3 files in the pinned corpus contain one strip. Supporting
+  multiple independently coded mode-3 strips is outside this slice, so a
+  multi-strip mode-3 layout is `Unsupported`.
+- A one-strip mode-3 IFD may declare `RowsPerStrip` greater than the image
+  height. The D7100 samples use 4022 declared rows for a 4020-row image, so
+  validation accepts any full-width single strip whose declared row capacity
+  covers the image and decodes exactly the image height.
+- Mode 3 tree selection is determined by TIFF `BitsPerSample`: 12 selects the
+  index-2 table and 14 selects the index-5 table.
+
+### Corpus survey
+
+The metadata-only survey read at most the first 2 MiB of each NEF through the
+LFS batch endpoint and did not materialize RAW payloads. Of 277 NEF paths, 273
+had parseable TIFF/type-2 maker metadata; four legacy D1/D1H/D1X files have
+non-type-2 maker notes and remain unsupported. The 88 mode-3 paths all use
+maker tag `0x0096`, metadata version `0x4630`, and one strip.
+
+| Bits | Cameras (file count) | Files |
+| ---: | --- | ---: |
+| 12 | D3 (1), D300 (1), D300S (1), D3S (1), D4 (1), D4S (1), D500 (3), D6 (3), D600 (1), D610 (1), D700 (1), D7000 (1), D7100 (1), D7200 (1), D750 (1), D7500 (1), D780 (1), D800 (1), D810 (1), D850 (3), Df (1), Z fc (2), Z 30 (2), Z 5 (1), Z 50 (1), Z 6 (3), Z 6_2 (1), Z 7 (3), Z 7_2 (1) | 41 |
+| 14 | D3 (1), D300 (1), D300S (1), D3S (1), D3X (1), D4 (1), D4S (1), D500 (1), D5100 (1), D6 (1), D600 (1), D610 (1), D700 (1), D7000 (1), D7100 (1), D7200 (1), D750 (1), D7500 (1), D780 (1), D800 (1), D800E (1), D810 (1), D850 (1), Df (1), Z fc (2), Z50_2 (3), Z5_2 (3), Z6_3 (4), Z 30 (2), Z 5 (1), Z 50 (1), Z 6 (1), Z 6_2 (1), Z 7 (1), Z 7_2 (1), Z 8 (1), Z 9 (1), Z f (1) | 47 |
+
+Both bit depths and multiple Z-series bodies have real mode-3 coverage.
+
+The reviewed manual corpus run evaluated all 277 NEF paths after the D7100
+`RowsPerStrip` edge case was fixed. All 88 mode-3 rows pass decode,
+raw-mosaic, process-metadata, and Bayer-handoff checks. Modes 1/4, HE/HE*,
+mode 8, and the remaining unsupported layouts retain their typed outcomes.
+Applying the complete reviewed baseline raises the tracker total to 514/2020
+without changing non-NEF rows.

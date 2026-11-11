@@ -1,5 +1,5 @@
 use fornax_codec::{
-    ByteOrder, DecodeCompression, DecodeRequest, Predictor, SampleBuffer, SampleFormat,
+    ByteOrder, DecodeCompression, DecodeRequest, NikonTreeId, Predictor, SampleBuffer, SampleFormat,
 };
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::{MonoImage, RawMosaic};
@@ -12,28 +12,49 @@ pub fn samples(
     layout: &RawLayout,
     _raw: &Directory,
 ) -> Result<RawMosaic, DecodeError> {
-    let (compression, bits, byte_order) = match layout.kind {
+    let (compression, bits, byte_order) = match &layout.kind {
         LayoutKind::Packed {
             row_stride,
             bits,
             byte_order,
         } => (
             DecodeCompression::NikonPacked {
-                row_stride,
-                bits,
-                byte_order,
+                row_stride: *row_stride,
+                bits: *bits,
+                byte_order: *byte_order,
             },
-            bits,
-            byte_order,
+            *bits,
+            *byte_order,
         ),
         LayoutKind::UnpackedWords { bits, byte_order } => (
-            DecodeCompression::NikonUnpackedWords { bits, byte_order },
-            bits,
-            byte_order,
+            DecodeCompression::NikonUnpackedWords {
+                bits: *bits,
+                byte_order: *byte_order,
+            },
+            *bits,
+            *byte_order,
         ),
         LayoutKind::StripedPacked12 => (
             DecodeCompression::NikonStripedPacked12,
             12,
+            ByteOrder::Little,
+        ),
+        LayoutKind::NikonHuffman { bits, init, curve } => (
+            DecodeCompression::NikonHuffman {
+                bits: *bits,
+                tree: match bits {
+                    12 => NikonTreeId::Lossless12,
+                    14 => NikonTreeId::Lossless14,
+                    _ => {
+                        return Err(DecodeError::InvalidInput(
+                            "Nikon Huffman bit depth is unsupported".into(),
+                        ));
+                    }
+                },
+                init: *init,
+                curve: curve.clone(),
+            },
+            *bits,
             ByteOrder::Little,
         ),
     };

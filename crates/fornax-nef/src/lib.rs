@@ -14,6 +14,7 @@ use image::math::Rect;
 use rayon::prelude::*;
 
 mod container;
+mod curve;
 mod decode;
 mod makernote;
 mod metadata;

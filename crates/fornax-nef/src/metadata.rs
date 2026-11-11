@@ -246,8 +246,10 @@ fn unsigned_values(value: &Value) -> Result<Vec<usize>, DecodeError> {
 
 fn layout_bits(layout: &RawLayout) -> u32 {
     use crate::container::LayoutKind;
-    match layout.kind {
-        LayoutKind::Packed { bits, .. } | LayoutKind::UnpackedWords { bits, .. } => u32::from(bits),
+    match &layout.kind {
+        LayoutKind::Packed { bits, .. }
+        | LayoutKind::UnpackedWords { bits, .. }
+        | LayoutKind::NikonHuffman { bits, .. } => u32::from(*bits),
         LayoutKind::StripedPacked12 => 12,
     }
 }

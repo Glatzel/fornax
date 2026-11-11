@@ -34,7 +34,7 @@ Common checks:
 ```bash
 pixi run -e dev cargo run -q -p decoder-tracker -- manifest --check
 pixi run -e dev cargo run -q -p decoder-tracker -- run --filename IMG_0001
-pixi run -e dev cargo run -q -p decoder-tracker -- hash --check \
+pixi run -e dev cargo run --release -q -p decoder-tracker -- hash --check \
   crates/decoder-tracker/golden/decode-hashes.csv
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```

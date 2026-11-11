@@ -198,6 +198,9 @@ if [[ "$docs_only" == false ]]; then
     fi
 
     cargo -q run -p decoder-tracker -- manifest --check
+    cargo -q run --release -p decoder-tracker -- hash \
+        --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+        --check crates/decoder-tracker/golden/decode-hashes.csv
     pixi run -e tracker cargo -q test -p decoder-tracker --lib duckdb_
     cargo -q test --workspace --all-features --exclude compare-demosaic
     cargo -q check -p fornax-codec --no-default-features

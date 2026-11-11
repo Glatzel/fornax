@@ -155,17 +155,17 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,NIKON CORPORATION NIKON D2Xs,NEF,NIKON CORPORATION/NIKON D2Xs/DSC_0034.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON D5300,NEF,NIKON CORPORATION/NIKON D5300/DSC_0089-14bit-uncompressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON D5300,NEF,NIKON CORPORATION/NIKON D5300/DSC_0090-12bit-uncompressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,NIKON CORPORATION NIKON Z fc,NEF,NIKON CORPORATION/NIKON Z fc/Nikon_Z_fc_12bit.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,NIKON CORPORATION NIKON Z fc,NEF,NIKON CORPORATION/NIKON Z fc/Nikon_Z_fc_12bit.NEF,1,1,ad586331a47d26f6c07da1d56226a2d6074858d4cdfc2c506765693325fed99d,1,1,,5600,3728,RGGB
 ✅,NIKON CORPORATION NIKON Z fc,NEF,NIKON CORPORATION/NIKON Z fc/Nikon_Z_fc_12bit_uncompressed.NEF,1,1,18ca12c654a2f658ed99143fdf182a1a44ff9c7fed9fde8e0f9f0cbdafbd2f5e,1,1,,5600,3728,RGGB
-❌,NIKON CORPORATION NIKON Z fc,NEF,NIKON CORPORATION/NIKON Z fc/Nikon_Z_fc_14bit.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,NIKON CORPORATION NIKON Z fc,NEF,NIKON CORPORATION/NIKON Z fc/Nikon_Z_fc_14bit.NEF,1,1,981d63b312eac3a6dc48096b552ea8f12d1e88c8f9ec0d56bcdeae26719437c8,1,1,,5600,3728,RGGB
 ✅,NIKON CORPORATION NIKON Z fc,NEF,NIKON CORPORATION/NIKON Z fc/Nikon_Z_fc_14bit_uncompressed.NEF,1,1,72da334735bd7d5877d70bf86ffecd72277d974019d8a41342cb551d1ae3e26d,1,1,,5600,3728,RGGB
-❌,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0060_DX_Lossless.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0060_DX_Lossless.NEF,1,1,b851bc3ccb06299eef10b2406610729e0f71542e8e9e96ef51736fe6180fa937,1,1,,5600,3728,RGGB
 ❌,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0061_DX_HE_Star.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0062_DX_HE.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0063_1x1_Lossless.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0063_1x1_Lossless.NEF,1,1,7e6eb0c8bbad4078a8f44fa987ab70dbc7ca57370948f4dc4ad292bf652d156d,1,1,,3728,3728,RGGB
 ❌,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0064_1x1_HE_Star.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0065_1x1_HE.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0066_16x9_Lossless.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0066_16x9_Lossless.NEF,1,1,3eafed808cffbfa8fc19c55f62028d8767e436ea39f9b3a6ef0cd97b7bd7a705,1,1,,5600,3144,RGGB
 ❌,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0067_16x9_HE_Star.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON Z50_2,NEF,NIKON CORPORATION/NIKON Z50_2/DSC_0068_16x9_HE.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON Z5_2,NEF,NIKON CORPORATION/NIKON Z5_2/High_Efficiency_1-1.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -176,9 +176,9 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,NIKON CORPORATION NIKON Z5_2,NEF,NIKON CORPORATION/NIKON Z5_2/High_Efficiency_Star_16-9.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON Z5_2,NEF,NIKON CORPORATION/NIKON Z5_2/High_Efficiency_Star_DX.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON Z5_2,NEF,NIKON CORPORATION/NIKON Z5_2/High_Efficiency_Star_FX_1.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,NIKON CORPORATION NIKON Z5_2,NEF,NIKON CORPORATION/NIKON Z5_2/Lossless_compression_1-1.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,NIKON CORPORATION NIKON Z5_2,NEF,NIKON CORPORATION/NIKON Z5_2/Lossless_compression_DX.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,NIKON CORPORATION NIKON Z5_2,NEF,NIKON CORPORATION/NIKON Z5_2/Lossless_compression_FX_1.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,NIKON CORPORATION NIKON Z5_2,NEF,NIKON CORPORATION/NIKON Z5_2/Lossless_compression_1-1.NEF,1,1,1d42be7d45f890af95635e67d053ba9fd1179eca5347c68ba604a33cb66d48fb,1,1,,4048,4040,RGGB
+✅,NIKON CORPORATION NIKON Z5_2,NEF,NIKON CORPORATION/NIKON Z5_2/Lossless_compression_DX.NEF,1,1,b1e77bacf5fe94c34ea4bcabf04663f4608e8b11ec30d421452ba549a5413bb7,1,1,,4000,2672,RGGB
+✅,NIKON CORPORATION NIKON Z5_2,NEF,NIKON CORPORATION/NIKON Z5_2/Lossless_compression_FX_1.NEF,1,1,71bd1331fe1dc1b86b480e6197f6a235d6360320e544356cbb8da1083d732519,1,1,,6064,4040,RGGB
 ❌,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_High_Efficiency_16_9.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_High_Efficiency_1_1.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_High_Efficiency_DX.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -187,10 +187,10 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_High_Efficiency_Star_1_1.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_High_Efficiency_Star_DX.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_High_Efficiency_Star_FX.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_Lossless_compressed_16_9.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_Lossless_compressed_1_1.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_Lossless_compressed_DX.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_Lossless_compressed_FX.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_Lossless_compressed_16_9.NEF,1,1,9a7a3eedd5ecade305bbedb979f0d3a828887f45fbad93eb3fb2b26ce9b8a55b,1,1,,6064,3416,RGGB
+✅,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_Lossless_compressed_1_1.NEF,1,1,2a7c7381b85836107c50d2d2242d3b291dbb79e900bdce0f182d04b75c0ca454,1,1,,4048,4040,RGGB
+✅,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_Lossless_compressed_DX.NEF,1,1,67907d38b59cbb59c97da1201a2ba81576cb5f5c0b7d8d0a2539dbdfa2bcc55f,1,1,,4000,2672,RGGB
+✅,NIKON CORPORATION NIKON Z6_3,NEF,NIKON CORPORATION/NIKON Z6_3/Nikon_Z6__3_Lossless_compressed_FX.NEF,1,1,d8c44b41a59139ef1f5459957fe546bdc84e5d3857bf997cbd536a1ae6537ec5,1,1,,6064,4040,RGGB
 ❌,Nikon 1 AW1,NEF,Nikon/1 AW1/_DSC0521.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon 1 J1,NEF,Nikon/1 J1/_DSC0355.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon 1 J1,NEF,Nikon/1 J1/_DSC7434.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -222,21 +222,21 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Nikon D2Xs,NEF,Nikon/D2Xs/DSC_0035.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D3,NEF,Nikon/D3/JD1_8203.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D3,NEF,Nikon/D3/JD1_8204.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D3,NEF,Nikon/D3/JD1_8205.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D3,NEF,Nikon/D3/JD1_8205.NEF,1,1,8cf303736c0b25358c3ebcdfddab2660a6ba7e79c203745035222c49c0715179,1,1,,4288,2844,RGGB
 ❌,Nikon D3,NEF,Nikon/D3/JD1_8206.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D3,NEF,Nikon/D3/JD1_8207.NEF,1,1,9c03d6b0bd624872d4232c42732134b9051b9d714a1fda0810affee5bf92e335,1,1,,4288,2844,RGGB
-❌,Nikon D3,NEF,Nikon/D3/JD1_8208.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D300,NEF,Nikon/D300/MMC_2821.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D3,NEF,Nikon/D3/JD1_8208.NEF,1,1,6f6f6f30afd6637330b19b38bc2b174399bffba0558314e10cfb0cb957cd7463,1,1,,4288,2844,RGGB
+✅,Nikon D300,NEF,Nikon/D300/MMC_2821.NEF,1,1,5eb3c15d5c03e8a44f2479e2d06dc78b9faae7b98e915d3141443567106de643,1,1,,4352,2868,RGGB
 ❌,Nikon D300,NEF,Nikon/D300/MMC_2822.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D300,NEF,Nikon/D300/MMC_2823.NEF,1,1,a5ba4067712946f695dbd555396d39100f0957232a5e6f2220d5cee5edb2ab87,1,1,,4352,2868,RGGB
-❌,Nikon D300,NEF,Nikon/D300/MMC_2824.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D300,NEF,Nikon/D300/MMC_2824.NEF,1,1,096141c24df7702864de59760e5c85c7a2eb3fda08ee723beaa341a0f90b70f5,1,1,,4352,2868,RGGB
 ❌,Nikon D300,NEF,Nikon/D300/MMC_2825.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D300,NEF,Nikon/D300/MMC_2826.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D3000,NEF,Nikon/D3000/DSC_0009.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D300S,NEF,Nikon/D300S/_DSC4612.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D300S,NEF,Nikon/D300S/_DSC4612.NEF,1,1,505df9595bc0886bdca81d1e7a48cefa1020ba359b36f59f545c988d91c1021f,1,1,,4352,2868,RGGB
 ❌,Nikon D300S,NEF,Nikon/D300S/_DSC4613.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D300S,NEF,Nikon/D300S/_DSC4614.NEF,1,1,07a4c96a3d5563f6e99bd647d0d48d78c1ead3f0c680ed07e5bc1d2ecf5d947e,1,1,,4352,2868,RGGB
-❌,Nikon D300S,NEF,Nikon/D300S/_DSC4615.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D300S,NEF,Nikon/D300S/_DSC4615.NEF,1,1,93f13cb5739137597159cece5bb7aebe58d0db0a3f8bb35052cd5dbec0d8b7c6,1,1,,4352,2868,RGGB
 ❌,Nikon D300S,NEF,Nikon/D300S/_DSC4616.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D300S,NEF,Nikon/D300S/_DSC4617.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D3100,NEF,Nikon/D3100/DSC_0359.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -245,44 +245,44 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Nikon D3400,NEF,Nikon/D3400/DSC_0202.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D3400,NEF,Nikon/D3400/DSC_0330_bad.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D3500,NEF,Nikon/D3500/DSC_0043.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D3S,NEF,Nikon/D3S/_CB32157.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D3S,NEF,Nikon/D3S/_CB32157.NEF,1,1,304297373996f3f8ff47d094991b5843b1cc5adb4a9c7583ce2ed1b6828466ff,1,1,,4288,2844,RGGB
 ❌,Nikon D3S,NEF,Nikon/D3S/_CB32158.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D3S,NEF,Nikon/D3S/_CB32159.NEF,1,1,9f8611e760af4ac2d4016e10ed8a3da8b4edfb5dc41cd0075b2c7c172c491d64,1,1,,4288,2844,RGGB
-❌,Nikon D3S,NEF,Nikon/D3S/_CB32160.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D3S,NEF,Nikon/D3S/_CB32160.NEF,1,1,96ae0146e6e46c236f4506ef9c6ec1fbfbb25c0e18fe996b0be55131b76b3ac2,1,1,,4288,2844,RGGB
 ❌,Nikon D3S,NEF,Nikon/D3S/_CB32161.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D3S,NEF,Nikon/D3S/_CB32162.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D3X,NEF,Nikon/D3X/RAW_NIKON_D3X.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D3X,NEF,Nikon/D3X/RAW_NIKON_D3X.NEF,1,1,9af9e7c2e6a0c737da83185ff80441950224bcea1623f57f91161a671eebb16a,1,1,,6080,4044,RGGB
 ✅,Nikon D3X,NEF,Nikon/D3X/_RLC8083.NEF,1,1,54eb5452650c9918591c65e362c4b6228350473b0b73bf86c4c3770697590d7e,1,1,,6080,4044,RGGB
 ✅,Nikon D4,NEF,Nikon/D4/_DSC2250[1].NEF,1,1,2c6fd220143893a52df134faaa5cb61db1fdb5efc696e6aa9ad68c7ba328722d,1,1,,4992,3292,RGGB
 ❌,Nikon D4,NEF,Nikon/D4/_DSC2252[1].NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D4,NEF,Nikon/D4/_DSC2254[1].NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D4,NEF,Nikon/D4/_DSC2254[1].NEF,1,1,d092cfcbccdb5666e3d44715c7232edf17fd132c3e789d2ea6b5f34388a616ca,1,1,,4992,3292,RGGB
 ❌,Nikon D4,NEF,Nikon/D4/_DSC2256[1].NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D4,NEF,Nikon/D4/_DSC2258[1].NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D4,NEF,Nikon/D4/_DSC2260[1].NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D4,NEF,Nikon/D4/_DSC2260[1].NEF,1,1,e55ff804757a4bc1528f8ee9cbba9bcfb0901788acb8ccfd2ab1e580f165c1e5,1,1,,4992,3292,RGGB
 ❌,Nikon D40,NEF,Nikon/D40/DSC_1842.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D40X,NEF,Nikon/D40X/DSC_4670.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D4S,NEF,Nikon/D4S/FU9_3802.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D4S,NEF,Nikon/D4S/FU9_3803.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D4S,NEF,Nikon/D4S/FU9_3803.NEF,1,1,701cd13cb269b1fa681ca3eb289c98f7105a6e41dcf97288212adcb326af58ec,1,1,,4936,3288,RGGB
 ❌,Nikon D4S,NEF,Nikon/D4S/FU9_3804.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D4S,NEF,Nikon/D4S/FU9_3805.NEF,1,1,8563f6358493ce9da0a3288518b57cd41565a0ec6673c6d6f11abfb582abcf60,1,1,,4936,3288,RGGB
 ✅,Nikon D4S,NEF,Nikon/D4S/FU9_3807.NEF,1,1,0953fb733fea9d1296761d9ea48fcbf336a5aa508390d61221868c75605bfea0,1,1,,4936,3288,RGGB
 ❌,Nikon D4S,NEF,Nikon/D4S/FU9_3809.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D4S,NEF,Nikon/D4S/FU9_3810.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D4S,NEF,Nikon/D4S/FU9_3810.NEF,1,1,13d6c5dd3cfe55eea796434e48d24577bbf88f45106dae92c16477ed168997b5,1,1,,4936,3288,RGGB
 ✅,Nikon D5,NEF,Nikon/D5/20170603_CCSG_on_Nikon_D5-DSC3096.NEF,1,1,16898395298d1bd53b756060d61f900624f599c25113b761ac26303078baf6dd,1,1,,5584,3728,RGGB
 ❌,Nikon D5,NEF,Nikon/D5/LV5_4402.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D50,NEF,Nikon/D50/DSC_5155.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWL_12bit_Compressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWL_12bit_LosslessCompressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWL_12bit_LosslessCompressed.NEF,1,1,2da3c3b7105151b5914a3c2dbdfd153f26de4fc0c678a306d7ce5ad1975878e4,1,1,,5600,3728,RGGB
 ✅,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWL_12bit_Uncompressed.NEF,1,1,c2f3e7408b11a97687a31e6c4121ef716ce6cdcb321eb46599cb7637078050a8,1,1,,5600,3728,RGGB
 ❌,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWL_14bit_Compressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWL_14bit_LosslessCompressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWL_14bit_LosslessCompressed.NEF,1,1,3c8ccbe7af5ca5a912f23cff38ca35e5cb667a3ba7b18b2ff07ea0a82c7f7e4a,1,1,,5600,3728,RGGB
 ✅,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWL_14bit_Uncompressed.NEF,1,1,c0434c484b6f7ccf65bc8f757f36fff6c1e7d74b3c6e2e2072e36c20dc9f10c7,1,1,,5600,3728,RGGB
-❌,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWM_12bit_LosslessCompressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWS_12bit_LosslessCompressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWM_12bit_LosslessCompressed.NEF,1,1,125b09dff751e7b4be83d83b0fa3690e1bebba013ff3161230627108bc481873,1,1,,4800,3192,RGGB
+✅,Nikon D500,NEF,Nikon/D500/Nikon_D500_RAWS_12bit_LosslessCompressed.NEF,1,1,5a8617a1e06e14a3dcd02935c8ffc0451909331dfd3d6c993e9c9664a78a1278,1,1,,4200,2792,RGGB
 ❌,Nikon D5000,NEF,Nikon/D5000/2017-03-30T14-24-27+0800_DSC_3614.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D5000,NEF,Nikon/D5000/DSC_5349.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D5100,NEF,Nikon/D5100/00.nikon.12b-lossy-raw.nef,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D5100,NEF,Nikon/D5100/01.nikonhackers.12b-lossless-raw.nef,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D5100,NEF,Nikon/D5100/01.nikonhackers.12b-lossless-raw.nef,1,1,799ae1765781bddbb607ba5a9b123087fafdabc169c5c9cdfa39e8eadf0cc751,1,1,,4992,3280,RGGB
 ✅,Nikon D5100,NEF,Nikon/D5100/02.nikonhackers.12b-uncompressed-raw.nef,1,1,7aed78b6afecaf25428f734718ed3244409d344ca08ddc66e7ddbce42a20ef71,1,1,,4992,3280,RGGB
 ❌,Nikon D5200,NEF,Nikon/D5200/NIKON_D5200_14_bit_compressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D5200,NEF,Nikon/D5200/_DSC7535.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -294,140 +294,140 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Nikon D5600,NEF,Nikon/D5600/DSC_0027.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D5600,NEF,Nikon/D5600/DSC_0028.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D6,NEF,Nikon/D6/D06_0312.NEF,1,1,84901a03df1fac37b33d0c2dcc20987b508fa11be6bf262c5f8074912ad9b251,1,1,,5584,3728,RGGB
-❌,Nikon D6,NEF,Nikon/D6/D06_0313.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D6,NEF,Nikon/D6/D06_0313.NEF,1,1,5fc6bbd60d75a1e0d44fe2bbd23e38ca5d8a5d898b3fa2a1a8dec6c2550ce202,1,1,,5584,3728,RGGB
 ❌,Nikon D6,NEF,Nikon/D6/D06_0314.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D6,NEF,Nikon/D6/D06_0315.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D6,NEF,Nikon/D6/D06_0316.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D6,NEF,Nikon/D6/D06_0315.NEF,1,1,6927605410f1a228749f4e4a50d8845c234a81dff371194226853fc33ae7ce1d,1,1,,4786,3194,RGGB
+✅,Nikon D6,NEF,Nikon/D6/D06_0316.NEF,1,1,d4a083a1998afd9277cb6b905315129c85dda900d07c666a667f21ee2af880b7,1,1,,4188,2796,RGGB
 ❌,Nikon D6,NEF,Nikon/D6/D06_0317.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D6,NEF,Nikon/D6/D06_0318.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D6,NEF,Nikon/D6/D06_0318.NEF,1,1,837012608068b8b497ae749f9f32112c2d837ab2c971ada8fee489a6e0eae475,1,1,,5584,3728,RGGB
 ❌,Nikon D6,NEF,Nikon/D6/D06_0319.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D60,NEF,Nikon/D60/DSC_8294.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D600,NEF,Nikon/D600/DSC_3294.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D600,NEF,Nikon/D600/DSC_3294.NEF,1,1,46fa25aa3dd340f4699b006f500d63164cda7cbe623aba208c81036f07909f06,1,1,,6080,4028,RGGB
 ❌,Nikon D600,NEF,Nikon/D600/DSC_3295.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D600,NEF,Nikon/D600/DSC_3296.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D600,NEF,Nikon/D600/DSC_3296.NEF,1,1,e3514a335882d950e73e0deb443663ea3920b90150a06a7c88e21dbead242899,1,1,,6080,4028,RGGB
 ❌,Nikon D600,NEF,Nikon/D600/DSC_3297.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D610,NEF,Nikon/D610/ESP_0352.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D610,NEF,Nikon/D610/ESP_0352.NEF,1,1,d18866dd14e9705869ed3a9b00c495be7bcf9c4233ae08024a216179a5e39608,1,1,,6080,4028,RGGB
 ❌,Nikon D610,NEF,Nikon/D610/ESP_0353.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D610,NEF,Nikon/D610/ESP_0354.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D610,NEF,Nikon/D610/ESP_0354.NEF,1,1,63031c93d97cce11800c18eb551626fc1fa223740d59920544271ca149797f1f,1,1,,6080,4028,RGGB
 ❌,Nikon D610,NEF,Nikon/D610/ESP_0355.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D70,NEF,Nikon/D70/20170902_0047.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D700,NEF,Nikon/D700/_GDN0443.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D700,NEF,Nikon/D700/_GDN0443.NEF,1,1,b3e4427aa4663567f22276a9e83f48ab55ea138eceb09487bbd006ee3cb18787,1,1,,4288,2844,RGGB
 ❌,Nikon D700,NEF,Nikon/D700/_GDN0444.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D700,NEF,Nikon/D700/_GDN0445.NEF,1,1,d7aba1aba8fe7f79569df4bfbc602d3a2f3ba5569362bb13402a59fbbffa575f,1,1,,4288,2844,RGGB
-❌,Nikon D700,NEF,Nikon/D700/_GDN0446.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D700,NEF,Nikon/D700/_GDN0446.NEF,1,1,9513e2d0446998607be9fb166251e7f77e3b8a81cfd8f23682bbf9037936822b,1,1,,4288,2844,RGGB
 ❌,Nikon D700,NEF,Nikon/D700/_GDN0447.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D700,NEF,Nikon/D700/_GDN0448.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D7000,NEF,Nikon/D7000/Compressed 12-bit D7000 NIK_3876.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D7000,NEF,Nikon/D7000/Compressed 14-bit D7000 NIK_3875.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D7000,NEF,Nikon/D7000/DSE61507.nef,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D7000,NEF,Nikon/D7000/Lossless compressed 12-bit D7000 NIK_3877.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D7000,NEF,Nikon/D7000/Lossless compressed 14-bit D7000 NIK_3874.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D7000,NEF,Nikon/D7000/Lossless compressed 12-bit D7000 NIK_3877.NEF,1,1,1ef41d64c1711857839b141b8ba98b598c376126bb731b1c82a97a5a68dfca59,1,1,,4992,3280,RGGB
+✅,Nikon D7000,NEF,Nikon/D7000/Lossless compressed 14-bit D7000 NIK_3874.NEF,1,1,a3160c4455e0ed9b3695d30f410ff313af4d899aea942a6a2552d802195089f0,1,1,,4992,3280,RGGB
 ❌,Nikon D70s,NEF,Nikon/D70s/RAW_NIKON_D70S.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D7100,NEF,Nikon/D7100/JCR_4305.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D7100,NEF,Nikon/D7100/JCR_4306.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D7100,NEF,Nikon/D7100/JCR_4305.NEF,1,1,bbbf4dc03c297e60b7bd5623ef5efca8c40870eb3b4192a94fa69e2c5b27285d,1,1,,6036,4020,RGGB
+✅,Nikon D7100,NEF,Nikon/D7100/JCR_4306.NEF,1,1,ea0a67c5d5a5827e2198fdba72206d0c65ec4fd64bb3a1b9e2c15cc1e2d86025,1,1,,6036,4020,RGGB
 ❌,Nikon D7100,NEF,Nikon/D7100/JCR_4308.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D7100,NEF,Nikon/D7100/JCR_4309.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D7200,NEF,Nikon/D7200/DSC_0977.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D7200,NEF,Nikon/D7200/DSC_0977.NEF,1,1,fcec1eeefcdeed9b16d74cec9aecf0ce5c8b7b14b21185de3b4db47bf48c8109,1,1,,6016,4016,RGGB
 ❌,Nikon D7200,NEF,Nikon/D7200/DSC_0978.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D7200,NEF,Nikon/D7200/DSC_0979.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D7200,NEF,Nikon/D7200/DSC_0982.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D7200,NEF,Nikon/D7200/DSC_0982.NEF,1,1,e872ce6da321738e5e123072fc681a134bd3be668f3ef0db1c1cd1758c12a545,1,1,,6016,4016,RGGB
 ❌,Nikon D750,NEF,Nikon/D750/compressed_12_bit.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D750,NEF,Nikon/D750/compressed_14_bit.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D750,NEF,Nikon/D750/lossless_compressed_12_bit.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D750,NEF,Nikon/D750/lossless_compressed_14_bit.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D750,NEF,Nikon/D750/lossless_compressed_12_bit.NEF,1,1,036c07f424eb7cb24a10799043a47fc114520a4b2b7e58c06136d621061632b5,1,1,,6032,4032,RGGB
+✅,Nikon D750,NEF,Nikon/D750/lossless_compressed_14_bit.NEF,1,1,5143a8c575dbb68d876c2eaf5940b36de06a56c6a35f9ddf07da52484716f7ae,1,1,,6032,4032,RGGB
 ❌,Nikon D7500,NEF,Nikon/D7500/RAW_NIKON_D7500_12BIT_COMPRESSED.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D7500,NEF,Nikon/D7500/RAW_NIKON_D7500_12BIT_LOSSLESS_COMPRESSED.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D7500,NEF,Nikon/D7500/RAW_NIKON_D7500_12BIT_LOSSLESS_COMPRESSED.NEF,1,1,b3e0e76e7d1fbde0fe1a17e7b92aa74d2b7a98f0f0d06957fad4c2fa07a72953,1,1,,5600,3728,RGGB
 ❌,Nikon D7500,NEF,Nikon/D7500/RAW_NIKON_D7500_14BIT_COMPRESSED.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D7500,NEF,Nikon/D7500/RAW_NIKON_D7500_14BIT_LOSSLESS_COMPRESSED.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D780,NEF,Nikon/D780/DSC_0334.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D7500,NEF,Nikon/D7500/RAW_NIKON_D7500_14BIT_LOSSLESS_COMPRESSED.NEF,1,1,6a8441a29307afccb4096cd3fc562c5dcbf0619d49de088b9cd014f961d60689,1,1,,5600,3728,RGGB
+✅,Nikon D780,NEF,Nikon/D780/DSC_0334.NEF,1,1,ede533f97514d7b0238df01473dd970ff21e9bc7a4c6b629ff18bbe98b9280d4,1,1,,6064,4040,RGGB
 ❌,Nikon D780,NEF,Nikon/D780/DSC_0336.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D780,NEF,Nikon/D780/DSC_0338.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D780,NEF,Nikon/D780/DSC_0338.NEF,1,1,edb3415a233df13ca95d0c93b8ad1fcc8127d9cafdd05e6e4ae8eb1437bc891b,1,1,,6064,4040,RGGB
 ❌,Nikon D780,NEF,Nikon/D780/DSC_0340.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D80,DNG,Nikon/D80/DSC_0143.dng,1,1,3b97c73f3feb754aa33a0429d1bf7f68c1721dd388ada410d0cffeb38e2a09d6,1,1,,3900,2611,GBRG
 ❌,Nikon D80,NEF,Nikon/D80/DSC_1114.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D800,NEF,Nikon/D800/D800-12b-comp.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D800,NEF,Nikon/D800/D800-12b-lossless-comp.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D800,NEF,Nikon/D800/D800-12b-lossless-comp.NEF,1,1,be391dee716f41d6fbe9bb1db03e6f54c51a70f20cf40be57d10cdc4856cc404,1,1,,7424,4924,RGGB
 ❌,Nikon D800,NEF,Nikon/D800/D800-12b-no-comp.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D800,NEF,Nikon/D800/D800-14b-comp.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D800,NEF,Nikon/D800/D800-14b-lossless-comp.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D800,NEF,Nikon/D800/D800-14b-lossless-comp.NEF,1,1,fa45dc70c58e19e9f6014f489e6ab02da715c7f5486f0dd4e997e212f6a444ee,1,1,,7424,4924,RGGB
 ✅,Nikon D800,NEF,Nikon/D800/D800-14b-no-comp.NEF,1,1,1523cbfce070525c7b742ffbe0eb84bdc6ce843b2b8b3e82632e04d62f695ed7,1,1,,7424,4924,RGGB
-❌,Nikon D800E,NEF,Nikon/D800E/NikonD800EDyLght0EV.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D800E,NEF,Nikon/D800E/NikonD800EDyLght0EV.NEF,1,1,220ca260b2244414982b068384ad891ab80b87f8c06328409323496ad2870b12,1,1,,7424,4924,RGGB
 ✅,Nikon D800E,NEF,Nikon/D800E/_D8E3567.NEF,1,1,6e6de2555574720c0eeb15410df20dc6c1088337ff9c74298d826e458d3ec3ed,1,1,,7424,4924,RGGB
-❌,Nikon D810,NEF,Nikon/D810/DSC_1882.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D810,NEF,Nikon/D810/DSC_1882.NEF,1,1,55f6d79b5a03bd71c5fc828f9fe28a97b9f660bda63fa1e7ff2cd74b47f6589b,1,1,,7380,4928,RGGB
 ❌,Nikon D810,NEF,Nikon/D810/DSC_1883.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D810,NEF,Nikon/D810/DSC_1884.NEF,1,1,68a24cd0a03f622c9a38cc2c713fb6d32c9b8293aa0a17ea32c404a2102fdc0f,1,1,,7380,4928,RGGB
-❌,Nikon D810,NEF,Nikon/D810/DSC_1885.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D810,NEF,Nikon/D810/DSC_1885.NEF,1,1,7e7cfb849b8f4eebb9b4cec7c7bb79b275987c2e6dcb29fd05b8cc6ee582a034,1,1,,7380,4928,RGGB
 ❌,Nikon D810,NEF,Nikon/D810/DSC_1886.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D810,NEF,Nikon/D810/DSC_1887.NEF,1,1,5cb6028b6137727ee3206db3c8592fab7d408952ef374687f19aeb2d99693bac,1,1,,7380,4928,RGGB
 ❌,Nikon D810,NEF,Nikon/D810/DSC_1888.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D850,NEF,Nikon/D850/Nikon-D850-12bit-compressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D850,NEF,Nikon/D850/Nikon-D850-12bit-lossless-compressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D850,NEF,Nikon/D850/Nikon-D850-12bit-lossless-compressed.NEF,1,1,1ddc4fe8ae0cd904ddf753cf2def80b4bebbcb13a96c4ddcfc9cd76a843f390e,1,1,,8288,5520,RGGB
 ✅,Nikon D850,NEF,Nikon/D850/Nikon-D850-12bit-uncompressed.NEF,1,1,29fa12350bd15604795aa052cd513f335459fb767111dd158aefcec352283808,1,1,,8288,5520,RGGB
 ❌,Nikon D850,NEF,Nikon/D850/Nikon-D850-14bit-compressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D850,NEF,Nikon/D850/Nikon-D850-14bit-lossless-compressed.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D850,NEF,Nikon/D850/Nikon-D850-14bit-lossless-compressed.NEF,1,1,1ea900aeb5b297e39206fa096afb767764a00816148433ed61adbf5db0a41e8f,1,1,,8288,5520,RGGB
 ✅,Nikon D850,NEF,Nikon/D850/Nikon-D850-14bit-uncompressed.NEF,1,1,1d05d68d9372415e4d224aa0bb4e4b15f10854c7dabfdeb03089108e2b225422,1,1,,8288,5520,RGGB
-❌,Nikon D850,NEF,Nikon/D850/Nikon-D850-medium.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon D850,NEF,Nikon/D850/Nikon-D850-small.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon D850,NEF,Nikon/D850/Nikon-D850-medium.NEF,1,1,1f30ddd0a3711697b3c3455ea39944418340f90d8d6676a0c31f9325a8e31aae,1,1,,7104,4728,RGGB
+✅,Nikon D850,NEF,Nikon/D850/Nikon-D850-small.NEF,1,1,1e096a07d5c51c4b764e466091d3721d13c46c7a43eeca1239ef2eb7735f06ec,1,1,,6216,4136,RGGB
 ❌,Nikon D90,NEF,Nikon/D90/00001.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon Df,NEF,Nikon/Df/DSC_6792_Df12compr.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon Df,NEF,Nikon/Df/DSC_6793_Df12uncompr.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Df,NEF,Nikon/Df/DSC_6794_Df12losslesscompr.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Df,NEF,Nikon/Df/DSC_6794_Df12losslesscompr.NEF,1,1,29c598136c8e3c191a08e559dfe383b9d7a008b1bd50194de45f7d435c9ccaba,1,1,,4992,3292,RGGB
 ❌,Nikon Df,NEF,Nikon/Df/DSC_6795_Df14compr.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon Df,NEF,Nikon/Df/DSC_6796_Df14uncompr.NEF,1,1,bdc35addaa2a85a6e0a81f06ca61d262a5f7e91cb2ff8008b95f8e23d0bd2e90,1,1,,4992,3292,RGGB
-❌,Nikon Df,NEF,Nikon/Df/DSC_6797_Df14losslesscompr.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Df,NEF,Nikon/Df/DSC_6797_Df14losslesscompr.NEF,1,1,13c3d1a2d967a44d09498515ffcb721ed9b8184ccebad81425d4dacff69f735b,1,1,,4992,3292,RGGB
 ❌,Nikon E5400,NEF,Nikon/E5400/RAW_NIKON_E5400.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon E5700,NEF,Nikon/E5700/20080115-DSCN1758.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon E8400,NEF,Nikon/E8400/DSCN1565.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon LS-5000,DNG,Nikon/LS-5000/F014-07.dng,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
-❌,Nikon Z 30,NEF,Nikon/Z 30/NIKON_Z30_12BIT.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 30,NEF,Nikon/Z 30/NIKON_Z30_14BIT.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 30,NEF,Nikon/Z 30/_DSC0028.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 30,NEF,Nikon/Z 30/_DSC0029.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 5,NEF,Nikon/Z 5/DSC_0517.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 5,NEF,Nikon/Z 5/DSC_0518.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z 30,NEF,Nikon/Z 30/NIKON_Z30_12BIT.NEF,1,1,f2ebd4195969663725936e54ab76881cf34c206299248eacb4ca3e94a16d21cc,1,1,,5600,3728,RGGB
+✅,Nikon Z 30,NEF,Nikon/Z 30/NIKON_Z30_14BIT.NEF,1,1,4f2b94413b9fcfb833bb98b0d3304d382fa5cf641b6014fe66f04b40302d7886,1,1,,5600,3728,RGGB
+✅,Nikon Z 30,NEF,Nikon/Z 30/_DSC0028.NEF,1,1,76ce93eff4a87b998fca9ab9615e48c8e700dd0d9017e9139da89c083648b6b6,1,1,,5600,3728,RGGB
+✅,Nikon Z 30,NEF,Nikon/Z 30/_DSC0029.NEF,1,1,0bbc1dcf87319d47abb0bed6aac00ecb25793800aa92c36a48885d41e06ba588,1,1,,5600,3728,RGGB
+✅,Nikon Z 5,NEF,Nikon/Z 5/DSC_0517.NEF,1,1,3b757d9eccab9a5efe6610db7df85ecdc17925172b6e128f9705f723a2b3ade5,1,1,,6040,4032,RGGB
+✅,Nikon Z 5,NEF,Nikon/Z 5/DSC_0518.NEF,1,1,48e6e656ac4c8c216cfd83ad1780a24043e112d850d1ac95e3e753f5f6040c11,1,1,,6040,4032,RGGB
 ❌,Nikon Z 5,NEF,Nikon/Z 5/DSC_0519.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon Z 5,NEF,Nikon/Z 5/DSC_0520.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 50,NEF,Nikon/Z 50/DSC_0441.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 50,NEF,Nikon/Z 50/DSC_0450.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z 50,NEF,Nikon/Z 50/DSC_0441.NEF,1,1,168c9ac8df6246c8c0790a0a8ac48aa146e04a7b2403c23bf126aa5b82ba42fe,1,1,,5600,3728,RGGB
+✅,Nikon Z 50,NEF,Nikon/Z 50/DSC_0450.NEF,1,1,da37b2ce73e7f0c4b21fe2b4ffb13c34981c14ac96d03b1f393684b02c7cd597,1,1,,5600,3728,RGGB
 ✅,Nikon Z 6,NEF,Nikon/Z 6/DSC_0750.NEF,1,1,1aa4d45c5777acdc3161136c7b17e6958d2ef1090f9b713d40938601f06474b1,1,1,,6064,4040,RGGB
 ❌,Nikon Z 6,NEF,Nikon/Z 6/DSC_0751.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 6,NEF,Nikon/Z 6/DSC_0752.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z 6,NEF,Nikon/Z 6/DSC_0752.NEF,1,1,3f2f57fe679292af9550ff8c0de2b8bab792654cf37215ae6c8dd56f235c58af,1,1,,6064,4040,RGGB
 ❌,Nikon Z 6,NEF,Nikon/Z 6/DSC_0753.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon Z 6,NEF,Nikon/Z 6/DSC_0754.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 6,NEF,Nikon/Z 6/DSC_0755.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 6,NEF,Nikon/Z 6/DSC_0756.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 6,NEF,Nikon/Z 6/DSC_0757.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 6_2,NEF,Nikon/Z 6_2/CZP_0299.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z 6,NEF,Nikon/Z 6/DSC_0755.NEF,1,1,f0806fe4b89c4526b1e1dec53f2f2d497f84daccb347dfc94458a2bb24380010,1,1,,6064,4040,RGGB
+✅,Nikon Z 6,NEF,Nikon/Z 6/DSC_0756.NEF,1,1,9aac370ad8be314632b7a7a8c99c82809bc8396cdcaff328be2be097b41a576b,1,1,,5196,3462,RGGB
+✅,Nikon Z 6,NEF,Nikon/Z 6/DSC_0757.NEF,1,1,700b1fdf63f201422850836cc5295bc6a60c2702d527559ef4cdf74be6d625f5,1,1,,4548,3030,RGGB
+✅,Nikon Z 6_2,NEF,Nikon/Z 6_2/CZP_0299.NEF,1,1,f4833ca045c56cdc1f8b4309874e52d76aa3a8da32affddae595b3f6f3ec97b7,1,1,,6064,4040,RGGB
 ❌,Nikon Z 6_2,NEF,Nikon/Z 6_2/CZP_0300.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon Z 6_2,NEF,Nikon/Z 6_2/CZP_0301.NEF,1,1,62089b113ab94921a5beaa8139144ccf3fedc6a617eaa7ede71f3273b0602702,1,1,,6064,4040,RGGB
-❌,Nikon Z 6_2,NEF,Nikon/Z 6_2/CZP_0302.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z 6_2,NEF,Nikon/Z 6_2/CZP_0302.NEF,1,1,e50355b7d5c695e2b872c2c0969d2ea6b21d00fe432999532b65144891f064c4,1,1,,6064,4040,RGGB
 ❌,Nikon Z 6_2,NEF,Nikon/Z 6_2/CZP_0303.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon Z 6_2,NEF,Nikon/Z 6_2/CZP_0304.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon Z 7,NEF,Nikon/Z 7/1-Nikon-Z7-RAW-14bit-uncompressed-L.NEF,1,1,3f32e5ef2ba9d1484b6ac214e077289f8c006bb4c3fe71c91401a986025c073d,1,1,,8288,5520,RGGB
 ❌,Nikon Z 7,NEF,Nikon/Z 7/2-Nikon-Z7-RAW-14bit-compressed-L.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 7,NEF,Nikon/Z 7/3-Nikon-Z7-RAW-14bit-lossless-compressed-L.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z 7,NEF,Nikon/Z 7/3-Nikon-Z7-RAW-14bit-lossless-compressed-L.NEF,1,1,21a301b4b11d1c496f66c585f102a0bb288ba8e70e4106f6bd57c1b7032cb3d6,1,1,,8288,5520,RGGB
 ✅,Nikon Z 7,NEF,Nikon/Z 7/4-Nikon-Z7-RAW-12bit-uncompressed-L.NEF,1,1,08848f18f9e81729bf96bb2e03e108b32035554bd20f9dd5cd470fe1131a99ea,1,1,,8288,5520,RGGB
 ❌,Nikon Z 7,NEF,Nikon/Z 7/5-Nikon-Z7-RAW-12bit-compressed-L.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 7,NEF,Nikon/Z 7/6-Nikon-Z7-RAW-12bit-lossless-compressed-L.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 7,NEF,Nikon/Z 7/7-Nikon-Z7-RAW-12bit-lossless-compressed-M.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 7,NEF,Nikon/Z 7/8-Nikon-Z7-RAW-12bit-lossless-compressed-S.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 7_2,NEF,Nikon/Z 7_2/Z72_0027.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 7_2,NEF,Nikon/Z 7_2/Z72_0028.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z 7,NEF,Nikon/Z 7/6-Nikon-Z7-RAW-12bit-lossless-compressed-L.NEF,1,1,74b22ef1c6bae0db3eb7e61e35d23e94b3b92a82fa6b73aaf673a36e8dc1f893,1,1,,8288,5520,RGGB
+✅,Nikon Z 7,NEF,Nikon/Z 7/7-Nikon-Z7-RAW-12bit-lossless-compressed-M.NEF,1,1,8b0705fcb84289d16667e0a1ebaeae99991d572914abb70d4dc3db2b58746c80,1,1,,7104,4730,RGGB
+✅,Nikon Z 7,NEF,Nikon/Z 7/8-Nikon-Z7-RAW-12bit-lossless-compressed-S.NEF,1,1,ad31f359faecf02a2f063f429cb62c75b714fdf663bebc6d4aa2f09c0ffebe0f,1,1,,6216,4140,RGGB
+✅,Nikon Z 7_2,NEF,Nikon/Z 7_2/Z72_0027.NEF,1,1,239c0b868a4162e080e90530d7e109b96b207d1f403fc6fd7068d71e6132c96b,1,1,,8288,5520,RGGB
+✅,Nikon Z 7_2,NEF,Nikon/Z 7_2/Z72_0028.NEF,1,1,0082d8b2ef4b2fd31ff998a966092698df3e23135a81e6775e4f817856f4298c,1,1,,8288,5520,RGGB
 ❌,Nikon Z 7_2,NEF,Nikon/Z 7_2/Z72_0029.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon Z 7_2,NEF,Nikon/Z 7_2/Z72_0030.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon Z 7_2,NEF,Nikon/Z 7_2/Z72_0031.NEF,1,1,679f89ec87bc510490f2c800204423adda7c55b6f7c055f0ba922a35a9be2ca7,1,1,,8288,5520,RGGB
 ✅,Nikon Z 7_2,NEF,Nikon/Z 7_2/Z72_0032.NEF,1,1,57b0f15161e2f6175c660525df49e52515cbc31e38a17a4c854f3c710d822aa4,1,1,,8288,5520,RGGB
 ❌,Nikon Z 8,NEF,Nikon/Z 8/Nikon_Z8_high_efficiency_low.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 8,NEF,Nikon/Z 8/Nikon_Z8_raw_14_bit_lossless_compression.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z 8,NEF,Nikon/Z 8/Nikon_Z8_raw_14_bit_lossless_compression.NEF,1,1,6d530d3794fecce0f9d5e695ab0bfafb9cba2fea5a6e9deb139a278ba90323db,1,1,,8280,5520,RGGB
 ❌,Nikon Z 8,NEF,Nikon/Z 8/Nikon_Z8_raw_high_efficiency_hight.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z 9,NEF,Nikon/Z 9/Nikon_-_NIKON_Z_9_-_14bit_compressed_(Lossless).NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z 9,NEF,Nikon/Z 9/Nikon_-_NIKON_Z_9_-_14bit_compressed_(Lossless).NEF,1,1,e5238eae38ee622c75dbb344c204ed3dfca8c4e7e7e41c033d8ab87f5c57a646,1,1,,8280,5520,RGGB
 ❌,Nikon Z 9,NEF,Nikon/Z 9/Nikon_-_NIKON_Z_9_-_14bit_compressed_(Lossy_High_Efficiency).NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon Z 9,NEF,Nikon/Z 9/Nikon_-_NIKON_Z_9_-_14bit_compressed_(Lossy_High_Efficiency_Star).NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z f,NEF,Nikon/Z f/DSC_0040.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z f,NEF,Nikon/Z f/DSC_0040.NEF,1,1,9121a32726cb2a3c0d907edafef8f881321fd0e68acdf9d8582cbecef476ed27,1,1,,6064,4040,RGGB
 ❌,Nikon Z f,NEF,Nikon/Z f/DSC_0042.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon Z f,NEF,Nikon/Z f/DSC_0043.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z fc,NEF,Nikon/Z fc/_DSC0018.nef,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Nikon Z fc,NEF,Nikon/Z fc/_DSC0070.nef,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Nikon Z fc,NEF,Nikon/Z fc/_DSC0018.nef,1,1,80e33a35eea19e0e272b01a82a7bd3723914c7c4292995be32eaea066f29ee54,1,1,,5600,3728,RGGB
+✅,Nikon Z fc,NEF,Nikon/Z fc/_DSC0070.nef,1,1,2ca299e9daeb548af613cb6b09b14de4210c5dbf1a4c6170f2e7e651d40fa8e3,1,1,,5600,3728,RGGB
 ✅,Nokia Lumia 1020,DNG,Nokia/Lumia 1020/RAW_NOKIA_LUMIA_1020.DNG,1,1,2e15a7b79ef411c2f0a3b606807be8ff0938b48b278ad701f0ef2a4dee90de12,1,1,,7152,5360,GRBG
 ✅,Nokia Lumia 930,DNG,Nokia/Lumia 930/WP_20180612_19_16_03_Raw__highres.dng,1,1,a1239c465675ed78cda7ffa883910578c536caf52eb466b714f2b71ca9219b24,1,1,,5376,3024,GRBG
 ✅,ONEPLUS A3003,DNG,OnePlus/ONEPLUS A3003/IMG_20170316_134557.dng,1,1,47f43c35b65f06caba3ca52fbe45d3c0b9d67c1c571c9037400e4c16c89a7c40,1,1,,4656,3496,RGGB

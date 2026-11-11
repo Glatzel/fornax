@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use fornax_codec::{ByteOrder as CodecByteOrder, Chunk};
 use fornax_raw_core::error::DecodeError;
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
@@ -8,7 +10,7 @@ use fornax_tiff::{
 
 use crate::makernote::MakerNote;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum LayoutKind {
     Packed {
         row_stride: usize,
@@ -20,6 +22,11 @@ pub enum LayoutKind {
         byte_order: CodecByteOrder,
     },
     StripedPacked12,
+    NikonHuffman {
+        bits: u8,
+        init: [[u16; 2]; 2],
+        curve: Arc<[u16]>,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -86,16 +93,28 @@ impl RawLayout {
         let compression = required_u16(raw, TiffTag::Compression)?;
         let mode = maker.compression()?;
         let byte_order = codec_order(maker.byte_order());
-        let kind = dispatch(
-            compression,
-            mode,
-            bits,
-            width,
-            height,
-            total_bytes,
-            byte_order,
-        )?;
-        validate_strip_sizes(&chunks, kind, width, height, rows_per_strip)?;
+        let kind = if compression == 34_713 && mode == Some(3) {
+            if chunks.len() != 1 {
+                return Err(unsupported("multi-strip Nikon mode 3 is unsupported"));
+            }
+            let curve = crate::curve::parse(maker.directory(), bits as u8, maker.byte_order())?;
+            LayoutKind::NikonHuffman {
+                bits: bits as u8,
+                init: curve.init,
+                curve: curve.curve,
+            }
+        } else {
+            dispatch(
+                compression,
+                mode,
+                bits,
+                width,
+                height,
+                total_bytes,
+                byte_order,
+            )?
+        };
+        validate_strip_sizes(&chunks, &kind, width, height, rows_per_strip)?;
         Ok((
             raw_ifd,
             Self {
@@ -275,20 +294,25 @@ fn dispatch(
         6 if bits == 12 => packed(true),
         7 if bits == 12 => words(),
         9 if bits == 12 => packed(false),
+        1 | 4 => Err(unsupported(format!(
+            "Nikon maker mode {mode} is lossy, deferred by policy"
+        ))),
+        8 => Err(unsupported("Nikon small raw mode 8 is unsupported")),
         10 if bits == 14 && total_bytes == word_bytes => words(),
         10 if bits == 14 && byte_order == CodecByteOrder::Little => packed(false),
         10 => Err(unsupported(
             "Nikon mode 10 requires 14-bit little-endian packed data or 16-bit words",
         )),
+        13 | 14 => Err(unsupported("Nikon HE/HE* modes 13 and 14 are unsupported")),
         _ => Err(unsupported(format!(
-            "Nikon maker mode {mode} with {bits} bits is unsupported"
+            "Nikon maker mode {mode} is unknown or unsupported at {bits} bits"
         ))),
     }
 }
 
 fn validate_strip_sizes(
     chunks: &[Chunk],
-    kind: LayoutKind,
+    kind: &LayoutKind,
     width: usize,
     height: usize,
     rows_per_strip: usize,
@@ -300,7 +324,7 @@ fn validate_strip_sizes(
         let rows = rows_per_strip.min(height - start);
         let required = match kind {
             LayoutKind::Packed { row_stride, .. } => rows
-                .checked_mul(row_stride)
+                .checked_mul(*row_stride)
                 .ok_or_else(|| invalid("Nikon packed strip size overflow"))?,
             LayoutKind::UnpackedWords { .. } => rows
                 .checked_mul(width)
@@ -309,6 +333,12 @@ fn validate_strip_sizes(
             LayoutKind::StripedPacked12 => rows
                 .checked_mul(width * 3 / 2)
                 .ok_or_else(|| invalid("Nikon mode-5 strip size overflow"))?,
+            LayoutKind::NikonHuffman { .. } => {
+                if chunk.byte_count == 0 {
+                    return Err(invalid("Nikon mode-3 strip must not be empty"));
+                }
+                continue;
+            }
         };
         if chunk.byte_count != required {
             return Err(unsupported(format!(

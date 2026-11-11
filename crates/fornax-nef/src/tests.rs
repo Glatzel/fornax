@@ -197,20 +197,130 @@ fn mode_five_decodes_striped_twelve_bit_words() {
 }
 
 #[test]
-fn deferred_huffman_and_he_modes_are_unsupported() {
-    for mode in [1, 3, 4, 8, 13, 14, 99] {
+fn mode_three_decodes_twelve_bit_lossless_huffman() {
+    let metadata = lossless_metadata([10, 20], [300, 400], 32);
+    let source = raw_fixture_with_maker_entries(
+        Some(3),
+        34_713,
+        12,
+        4,
+        1,
+        &[0xc9, 0x56, 0x69, 0x40],
+        &[(0x008c, metadata)],
+    );
+    let image = NefImage::parse(&source).unwrap();
+    let RawMosaic::U16(raw) = image.raw_mosaic().unwrap() else {
+        panic!("NEF returned non-u16 samples");
+    };
+
+    assert_eq!(raw.dimensions(), (4, 1));
+    assert_eq!(raw.as_raw(), &[12, 30, 15, 20]);
+    assert_eq!(image.process_metadata().unwrap().levels.white, 4095.0);
+}
+
+#[test]
+fn mode_three_decodes_fourteen_bit_lossless_huffman() {
+    let metadata = lossless_metadata([1000, 2000], [3000, 4000], 34);
+    let source = raw_fixture_with_maker_entries(
+        Some(3),
+        34_713,
+        14,
+        4,
+        1,
+        &[0xfb, 0xef, 0xbe],
+        &[(0x0096, metadata)],
+    );
+    let image = NefImage::parse(&source).unwrap();
+    let RawMosaic::U16(raw) = image.raw_mosaic().unwrap() else {
+        panic!("NEF returned non-u16 samples");
+    };
+
+    assert_eq!(raw.as_raw(), &[1000, 2000, 1000, 2000]);
+    assert_eq!(image.process_metadata().unwrap().levels.white, 16383.0);
+}
+
+#[test]
+fn mode_three_rejects_missing_truncated_or_inconsistent_curve_metadata() {
+    let missing = raw_fixture(Some(3), 34_713, 12, 2, 1, &[0; 2]);
+    assert!(matches!(
+        NefImage::parse(&missing),
+        Err(DecodeError::InvalidInput(_))
+    ));
+
+    for metadata in [
+        Value::List(vec![Value::Byte(0x46); 11]),
+        lossless_metadata([0, 0], [0, 0], u16::MAX),
+    ] {
+        let source = raw_fixture_with_maker_entries(
+            Some(3),
+            34_713,
+            12,
+            2,
+            1,
+            &[0; 2],
+            &[(0x0096, metadata)],
+        );
+        assert!(matches!(
+            NefImage::parse(&source),
+            Err(DecodeError::InvalidInput(_))
+        ));
+    }
+}
+
+#[test]
+fn lossy_and_unimplemented_modes_have_distinct_unsupported_reasons() {
+    for mode in [1, 4] {
         let source = raw_fixture(Some(mode), 34_713, 12, 2, 1, &[0; 3]);
         let error = NefImage::parse(&source).unwrap_err();
-        assert!(
-            matches!(error, DecodeError::Unsupported(_)),
-            "mode {mode}: {error}"
-        );
+        let DecodeError::Unsupported(reason) = error else {
+            panic!("mode {mode} was not unsupported");
+        };
+        assert!(reason.contains("lossy"));
+        assert!(reason.contains("policy"));
+    }
+
+    for (mode, reason) in [
+        (8, "small raw"),
+        (13, "HE/HE*"),
+        (14, "HE/HE*"),
+        (99, "unknown"),
+    ] {
+        let source = raw_fixture(Some(mode), 34_713, 12, 2, 1, &[0; 3]);
+        let error = NefImage::parse(&source).unwrap_err();
+        let DecodeError::Unsupported(detail) = error else {
+            panic!("mode {mode} was not unsupported");
+        };
+        assert!(detail.contains(reason), "mode {mode}: {detail}");
     }
 }
 
 #[test]
 fn tiff_and_maker_mode_conflicts_are_unsupported() {
     let source = raw_fixture(Some(6), 1, 12, 2, 1, &[0; 4]);
+    let error = NefImage::parse(&source).unwrap_err();
+
+    assert!(matches!(error, DecodeError::Unsupported(_)));
+
+    let metadata = lossless_metadata([0, 0], [0, 0], 32);
+    let source =
+        raw_fixture_with_maker_entries(Some(3), 1, 12, 2, 1, &[0; 4], &[(0x0096, metadata)]);
+    let error = NefImage::parse(&source).unwrap_err();
+
+    assert!(matches!(error, DecodeError::Unsupported(_)));
+}
+
+#[test]
+fn multi_strip_mode_three_is_unsupported() {
+    let metadata = lossless_metadata([0, 0], [0, 0], 32);
+    let source = raw_fixture_with_strips(
+        vec![(0x0093, Value::Short(3)), (0x0096, metadata)],
+        34_713,
+        12,
+        2,
+        2,
+        1,
+        &[&[0; 2], &[0; 2]],
+    );
     let error = NefImage::parse(&source).unwrap_err();
 
     assert!(matches!(error, DecodeError::Unsupported(_)));
@@ -447,6 +557,77 @@ fn raw_fixture_with_entries_inner(
         (0x014a, Value::Unsigned(raw_ifd)),
         (0x8769, Value::Unsigned(exif)),
     ])
+}
+
+fn raw_fixture_with_strips(
+    maker_entries: Vec<(u16, Value)>,
+    compression: u16,
+    bits: u16,
+    width: u32,
+    height: u32,
+    rows_per_strip: u32,
+    strips: &[&[u8]],
+) -> Vec<u8> {
+    let maker_payload = maker_note(ByteOrder::Little, &maker_entries);
+    let mut builder = TiffFixture::new(ByteOrder::Little);
+    let offsets = strips
+        .iter()
+        .map(|strip| Value::Unsigned(builder.data(strip)))
+        .collect::<Vec<_>>();
+    let byte_counts = strips
+        .iter()
+        .map(|strip| Value::Unsigned(strip.len() as u32))
+        .collect::<Vec<_>>();
+    let raw_ifd = builder.ifd(&[
+        (0x00fe, Value::Unsigned(0)),
+        (0x0100, Value::Unsigned(width)),
+        (0x0101, Value::Unsigned(height)),
+        (0x0102, Value::Short(bits)),
+        (0x0103, Value::Short(compression)),
+        (0x0106, Value::Short(32_803)),
+        (0x0111, Value::List(offsets)),
+        (0x0115, Value::Short(1)),
+        (0x0116, Value::Unsigned(rows_per_strip)),
+        (0x0117, Value::List(byte_counts)),
+        (33_421, Value::List(vec![Value::Short(2), Value::Short(2)])),
+        (
+            33_422,
+            Value::List(vec![
+                Value::Byte(0),
+                Value::Byte(1),
+                Value::Byte(1),
+                Value::Byte(2),
+            ]),
+        ),
+    ]);
+    let exif = builder.ifd(&[(
+        0x927c,
+        Value::List(maker_payload.into_iter().map(Value::Byte).collect()),
+    )]);
+    builder.root(&[
+        (0x010f, Value::Ascii("NIKON CORPORATION".into())),
+        (0x0110, Value::Ascii("NIKON D850".into())),
+        (0x014a, Value::Unsigned(raw_ifd)),
+        (0x8769, Value::Unsigned(exif)),
+    ])
+}
+
+fn lossless_metadata(init0: [u16; 2], init1: [u16; 2], curve_length: u16) -> Value {
+    let bytes = [
+        0x46,
+        0x30,
+        init0[0].to_le_bytes()[0],
+        init0[0].to_le_bytes()[1],
+        init0[1].to_le_bytes()[0],
+        init0[1].to_le_bytes()[1],
+        init1[0].to_le_bytes()[0],
+        init1[0].to_le_bytes()[1],
+        init1[1].to_le_bytes()[0],
+        init1[1].to_le_bytes()[1],
+        curve_length.to_le_bytes()[0],
+        curve_length.to_le_bytes()[1],
+    ];
+    Value::List(bytes.into_iter().map(Value::Byte).collect())
 }
 
 fn maker_prefix(order: ByteOrder) -> Vec<u8> {

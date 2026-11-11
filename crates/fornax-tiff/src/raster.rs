@@ -421,7 +421,7 @@ impl<'a> RasterRequest<'a> {
     /// assert_eq!(request.compression(), DecodeCompression::Uncompressed);
     /// # Ok::<(), fornax_tiff::RasterError>(())
     /// ```
-    pub const fn compression(&self) -> DecodeCompression { self.compression }
+    pub fn compression(&self) -> DecodeCompression { self.compression.clone() }
 
     /// Returns the parsed raster layout.
     ///
@@ -562,7 +562,7 @@ impl<'a> RasterRequest<'a> {
     pub fn codec_request(&self) -> DecodeRequest<'_> {
         DecodeRequest {
             source: self.source,
-            compression: self.compression,
+            compression: self.compression.clone(),
             width: self.layout.width,
             height: self.layout.height,
             chunk_width: self.layout.chunk_width,
