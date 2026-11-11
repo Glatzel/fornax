@@ -14,6 +14,7 @@ fornax-dng.workspace = true
 fornax-nef.workspace = true
 fornax-raf.workspace = true
 fornax-raw-core.workspace = true
+fornax-rw2.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true

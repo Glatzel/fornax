@@ -799,6 +799,7 @@ dependencies = [
  "fornax-nef",
  "fornax-raf",
  "fornax-raw-core",
+ "fornax-rw2",
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
