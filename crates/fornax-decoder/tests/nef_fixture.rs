@@ -43,6 +43,12 @@ fn selected_nef_fixtures_match_rawler_raw_samples() {
             "{}",
             path.display()
         );
+        assert_eq!(
+            ours.as_raw().len(),
+            reference.len(),
+            "{} sample count",
+            path.display()
+        );
         let mismatch = ours
             .as_raw()
             .iter()
