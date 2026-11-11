@@ -13,6 +13,7 @@ fornax-codec = { path = "./crates/fornax-codec" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
+fornax-iiq = { path = "./crates/fornax-iiq" }
 fornax-nef = { path = "./crates/fornax-nef" }
 fornax-raf = { path = "./crates/fornax-raf" }
 fornax-raw = { path = "./crates/fornax-raw" }
