@@ -52,6 +52,8 @@ mod samples;
 
 #[cfg(feature = "arw")]
 mod arw;
+#[cfg(feature = "cr3")]
+mod crx;
 #[cfg(feature = "deflate")]
 mod deflate;
 #[cfg(feature = "iiq")]
@@ -78,8 +80,12 @@ mod zstd;
 
 #[cfg(feature = "arw")]
 pub use arw::{arw2_white_level, arw6_white_level};
+#[cfg(feature = "cr3")]
+pub use crx::CanonCrxCfa;
 pub use error::CodecError;
 pub use predictor::Predictor;
+#[cfg(feature = "cr3")]
+pub use request::CanonCrxHeader;
 #[cfg(feature = "raf")]
 pub use request::FujiCfa;
 #[cfg(feature = "nef")]
@@ -152,6 +158,8 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         DecodeCompression::SonyLosslessJpeg => arw::decode_ljpeg(request),
         #[cfg(feature = "hasselblad")]
         DecodeCompression::HasselbladLosslessJpeg => ljpeg::decode_hasselblad(request),
+        #[cfg(feature = "cr3")]
+        DecodeCompression::CanonCrx { header, cfa } => crx::decode(request, header, *cfa),
         #[cfg(feature = "nef")]
         DecodeCompression::NikonPacked {
             row_stride,

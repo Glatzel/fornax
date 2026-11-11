@@ -3,11 +3,11 @@
 ## Status
 
 The default production decoder is the pure-Rust implementation in
-`fornax-decoder`. It dispatches DNG containers to `fornax-dng`, Sony ARW/NRW
-containers to `fornax-arw`, Nikon NEF containers to `fornax-nef`, and Fujifilm
-RAF containers to `fornax-raf`, Hasselblad 3FR containers to
-`fornax-hasselblad`, Panasonic RW2 containers to `fornax-rw2`, and Phase
-One/Leaf IIQ containers to `fornax-iiq`.
+`fornax-decoder`. It dispatches DNG containers to `fornax-dng`, Canon CR3/CRM
+containers to `fornax-cr3`, Sony ARW/NRW containers to `fornax-arw`, Nikon NEF
+containers to `fornax-nef`, Fujifilm RAF containers to `fornax-raf`, Hasselblad
+3FR containers to `fornax-hasselblad`, Panasonic RW2 containers to
+`fornax-rw2`, and Phase One/Leaf IIQ containers to `fornax-iiq`.
 `fornax-raw-core` owns the shared decoder protocol and pipeline types but no
 decoder implementation.
 
@@ -28,7 +28,7 @@ pipeline input.
 | Tier | Order | Format plan | Current state |
 | --- | ---: | --- | --- |
 | 0 | 1 | [DNG](formats/dng.md) | Default decoder implemented |
-| 1 | 2 | [Canon CR3](formats/canon-cr3.md) | Planned |
+| 1 | 2 | [Canon CR3](formats/canon-cr3.md) | Implemented for audited lossless CRX; C-RAW rejected |
 | 1 | 3 | [Sony ARW](formats/sony-arw.md) | Implemented for uncompressed, ARW1, ARW2, ARW6, and tiled LJPEG |
 | 1 | 4 | [Nikon NEF](formats/nikon-nef.md) | Partially implemented for standard uncompressed/packed modes |
 | 2 | 5 | [Fujifilm RAF](formats/fuji-raf.md) | Implemented for uncompressed and block-lossless Bayer/X-Trans |
@@ -74,17 +74,19 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-raw-core/src/protocol.rs` | `IDecoder` and cross-stage processor traits |
 | `fornax-raw-core/src/primitive.rs` | `RawMosaic`, `CroppedMosaic`, `NormalizedMosaic`, and image aliases |
 | `fornax-raw-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
+| `fornax-bmff/src` | Bounded ISO-BMFF boxes, FullBoxes, UUID payloads, and sample tables |
 | `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
-| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony/Nikon/Fujifilm/Hasselblad/Phase One/Panasonic codecs |
+| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony/Nikon/Fujifilm/Hasselblad/Canon/Phase One/Panasonic codecs |
 | `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
 | `fornax-dng/src/constants.rs` | DNG-owned compression and photometric interpretation values |
 | `fornax-arw/src` | Sony TIFF selection, private metadata, codec request construction, CFA layout mapping, and DNG metadata mapping |
+| `fornax-cr3/src` | Canon BMFF/track selection, CMT/CTMD metadata, CMP1/IAD1 geometry, and lossless CRX handoff |
 | `fornax-nef/src` | Nikon TIFF selection, type-2 maker notes, packed codec requests, metadata mapping, and Bayer handoff |
 | `fornax-raf/src` | RAF pointer/tag parsing, Fuji IFD selection, lossless codec requests, metadata mapping, and Bayer-only handoff |
 | `fornax-hasselblad/src` | 3FR TIFF/SubIFD selection, camera profiles, uncompressed and predictor-8 decoding, metadata mapping, and Bayer handoff |
 | `fornax-iiq/src` | Phase One private-IFD parsing, IIQ codec requests, sensor correction, metadata mapping, and Bayer handoff |
 | `fornax-rw2/src` | Panasonic TIFF layout selection, V4-V8 codec requests, metadata mapping, DNG round-trip, and Bayer handoff |
-| `fornax-decoder/src/lib.rs` | Default DNG, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, Hasselblad 3FR, Phase One/Leaf IIQ, and Panasonic RW2 dispatch and `IDecoder` implementation |
+| `fornax-decoder/src/lib.rs` | Default DNG, Canon CR3/CRM, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, Hasselblad 3FR, Phase One/Leaf IIQ, and Panasonic RW2 dispatch and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
 | `fornax-decoder-rawler/src/lib.rs` | Rawler decoding and metadata adaptation |
 | `fornax-dng/src/dng_decoder/mod.rs` | Raw IFD selection, DNG-to-codec request mapping, transforms, and active crop |
@@ -185,6 +187,27 @@ does.
 Accepted camera models use explicit RGGB profiles. X1D and X1D II remove
 inactive sensor borders. FFF, merged/multi-shot, tiled, unknown tagless models,
 and unknown compression families remain outside the implemented tier.
+
+## Canon CR3/CRM data flow
+
+```text
+CR3/CRM bytes
+  -> ISO-BMFF boxes and CRX brand validation
+  -> CCTP-selected CRAW track and sample tables
+  -> CMT1-CMT4 TIFF metadata
+  -> CMP1/IAD1 geometry and CFA
+  -> CTMD ColorData
+  -> lossless CRX entropy decode and plane placement
+  -> RawMosaic::U16
+  -> CroppedMosaic<T>
+```
+
+The first raw sample is selected. Preview, JPEG, HEIF, and auxiliary tracks are
+never selected. The accepted CRX scope is pinned by CMP1 version `0x0100`,
+four planes, encoding type zero, zero transform levels, and MDAT header size
+`0x70`; every other combination is typed unsupported. IAD1 inclusive endpoints
+are converted once, CMP1 overshoot is clamped, and a valid crop outside the
+active area becomes the active area.
 
 ## Phase One/Leaf IIQ data flow
 

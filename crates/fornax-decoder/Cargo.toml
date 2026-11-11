@@ -10,6 +10,7 @@ name = "decoder"
 [dependencies]
 clerk.workspace = true
 fornax-arw.workspace = true
+fornax-cr3.workspace = true
 fornax-dng.workspace = true
 fornax-hasselblad.workspace = true
 fornax-iiq.workspace = true
@@ -20,6 +21,7 @@ fornax-rw2.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
+fornax-codec.workspace = true
 fornax-devtool.workspace = true
 fornax-tiff.workspace = true
 generic-num.workspace = true

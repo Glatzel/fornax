@@ -26,6 +26,15 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Blackmagic URSA 4K,DNG,Blackmagic/URSA 4K/Blackmagic URSA_1_1999-12-31_2153_C0003_000001.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,Canon DIGITAL IXUS 60,DNG,Canon/Canon DIGITAL IXUS 60/CRW_2069.DNG,1,1,a84e6d45f771c48422ee058f9abd9b4ce9dfe81ca4bcdd431ffe65b0ca5d1efe,1,1,,2888,2136,RGGB
 ✅,Canon DIGITAL IXUS 95 IS,DNG,Canon/Canon DIGITAL IXUS 95 IS/CRW_2593_01.DNG,1,1,83a1f48eae5a1fadcf55afc97e9bcaa96172c24c29af5a597c158e945b767259,1,1,,3720,2772,RGGB
+❌,Canon EOS 200D Mark II,CR3,Canon/EOS 200D Mark II/_MG_3608.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_RAW-19:9.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_RAW-1:1.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_RAW-2:3.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_RAW-4:3.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_cRAW-16:9.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_cRAW-1:1.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_cRAW-3:2.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_cRAW-4:3.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/M24-1221_000202.dng,1,1,40b2cc54cc849e35f3ebf523087c1c0f39f79ccafefca7ae3b28f339db611488,1,1,,1920,1080,RGGB
 ❌,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/compress.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-uncompressed.dng,1,1,fcaf551c4eb67f87879993a585a751e723b823c9636412337cc6dec6b0a55a45,1,1,,5920,3950,RGGB
@@ -36,7 +45,89 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-w-pred-deflate.dng,1,1,33d127bacc386fe9423add0b36274a62c0aeefc0410ed7780b1f2a5441f5785d,1,1,,5920,3950,RGGB
 ❌,Canon EOS 60D,DNG,Canon/EOS 60D/M14-1451_000085_cDNG_compressed.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,Canon EOS 7D Mark II,DNG,Canon/EOS 7D Mark II/0P9A0410-Enhanced-NR.dng,1,1,b0be075a0e9685deae5e285920e30ea5f3a2c49c125963316223172168fe8fa5,1,1,,5568,3708,RGGB
+❌,Canon EOS 850D,CR3,Canon/EOS 850D/IMG_1837.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 850D,CR3,Canon/EOS 850D/IMG_1906.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 90D,CR3,Canon/EOS 90D/Canon-90D-RAW-ISO-100.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 90D,CR3,Canon/EOS 90D/Canon-90D-cRAW-ISO-100.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Kiss M,CR3,Canon/EOS Kiss M/IMG_2695.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M200,CR3,Canon/Canon EOS M200/_MG_2231.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M200,CR3,Canon/Canon EOS M200/_MG_2233.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M50,CR3,Canon/EOS M50/Canon-EOS_M50_-CRAW_(1:1).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M50,CR3,Canon/EOS M50/Canon_EOS_M50_CRAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M50,CR3,Canon/EOS M50/Canon_EOS_M50_RAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M50 Mark II,CR3,Canon/EOS M50 Mark II/IMG_0051.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_CRAW_16_9.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_CRAW_1_1.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_CRAW_3_2.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_CRAW_4_3.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_RAW_16_9.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_RAW_1_1.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_RAW_3_2.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_RAW_4_3.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R,CR3,Canon/EOS R/Canon_EOS_R_CRAW_ISO_100.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R,CR3,Canon/EOS R/Canon_EOS_R_CRAW_ISO_100_crop_dual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R,CR3,Canon/EOS R/Canon_EOS_R_CRAW_ISO_100_crop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R,CR3,Canon/EOS R/Canon_EOS_R_CRAW_ISO_100_dual_pixel_on.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R,CR3,Canon/EOS R/Canon_EOS_R_RAW_ISO_100.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R,CR3,Canon/EOS R/Canon_EOS_R_RAW_ISO_100_crop_dual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R,CR3,Canon/EOS R/Canon_EOS_R_RAW_ISO_100_crop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R,CR3,Canon/EOS R/Canon_EOS_R_RAW_ISO_100_dual_pixel_on.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R10,CR3,Canon/Canon EOS R10/IMG_6310.CR3,1,1,fd3e7766a73c15f51b4db01f81deea9ff7c8d98f721430e40387f1d5bcda0bd5,1,1,,6192,4060,RGGB
+✅,Canon EOS R10,CR3,Canon/EOS R10/IMG_4276.CR3,1,1,ff1a1b7955dcad267b0ed2ec36aeffe4c9e12ba9ceb43dcfcd23cc98a18f933c,1,1,,6192,4060,RGGB
+✅,Canon EOS R10,CR3,Canon/EOS R10/IMG_4279.CR3,1,1,8b6e6be0907c21630c16e2a2669e38010d990f546fd0a76507734790a2efd99c,1,1,,6192,4060,RGGB
+✅,Canon EOS R10,CR3,Canon/EOS R10/IMG_4361.CR3,1,1,b7b790c36ab361cb9d6c9d17646672be3580242cc4a94245df4878ecdd429f9c,1,1,,6192,4060,RGGB
+❌,Canon EOS R100,CR3,Canon/Canon EOS R100/_MG_2195[1].CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R100,CR3,Canon/Canon EOS R100/_MG_2205[1].CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R3,CR3,Canon/EOS R3/_C3A1200.CR3,1,1,8f8561a4b58f882206d363656a7307415860483321933621a0af0e10cf4aabdf,1,1,,6192,4152,BGGR
+❌,Canon EOS R5,CR3,Canon/EOS R5/Canon_EOS_R5_CRAW_ISO_100_crop_dual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R5,CR3,Canon/EOS R5/Canon_EOS_R5_CRAW_ISO_100_crop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R5,CR3,Canon/EOS R5/Canon_EOS_R5_CRAW_ISO_100_nocrop_dual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R5,CR3,Canon/EOS R5/Canon_EOS_R5_CRAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R5,CR3,Canon/EOS R5/Canon_EOS_R5_RAW_ISO_100_crop_dual.CR3,1,1,fd59dfc77ca15bbc74c49593b5f7face65f10d55b2c6fcb5b218901e7a3aed84,1,1,,5248,3510,RGGB
+✅,Canon EOS R5,CR3,Canon/EOS R5/Canon_EOS_R5_RAW_ISO_100_crop_nodual.CR3,1,1,13d708a5d4d37ab24c128039f160032a62d0b62af0121c6ea62be383aa4d1a76,1,1,,5248,3510,RGGB
+✅,Canon EOS R5,CR3,Canon/EOS R5/Canon_EOS_R5_RAW_ISO_100_nocrop_dual.CR3,1,1,0ff32f9640cbffb0ca15a1b65a98c84999368028c9797353ab3b3bc6a7b589b4,1,1,,8352,5586,RGGB
+✅,Canon EOS R5,CR3,Canon/EOS R5/Canon_EOS_R5_RAW_ISO_100_nocrop_nodual.CR3,1,1,387d35437f525a915cd83160b936509336778eb76dde108d54a978c3b19b7319,1,1,,8352,5586,RGGB
+✅,Canon EOS R50,CR3,Canon/EOS R50/Canon_R50_ISO100_RAW_electronicShutter.CR3,1,1,e57d41d5b8b477a27456bf4e0a3a505b6e8999327a33f8e598883da08dbfcccb,1,1,,6192,4060,RGGB
+✅,Canon EOS R50,CR3,Canon/EOS R50/Canon_R50_ISO100_RAW_mechanicShutter.CR3,1,1,1fcc2b698f9b180eec60c50781cbd43b2247710707b1362240100d5ebb604277,1,1,,6192,4060,RGGB
+❌,Canon EOS R50,CR3,Canon/EOS R50/Canon_R50_ISO100_cRAW_electronicShutter.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R50,CR3,Canon/EOS R50/Canon_R50_ISO100_cRAW_mechanicShutter.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R50 V,CR3,Canon/Canon EOS R50 V/IMG_0034.CR3,1,1,c7306243d62e16a2d3b927903293dde7682819882e9be61ead77e852accd1adf,1,1,,6192,4060,RGGB
+❌,Canon EOS R5m2,CR3,Canon/Canon EOS R5m2/APS-C_CRAW.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R5m2,CR3,Canon/Canon EOS R5m2/APS-C_RAW.CR3,1,1,ccf861c669b97125ca42109b9fd257bc9422bf63714a5aa5ecf5225eaafb6fa7,1,1,,5376,3574,RGGB
+❌,Canon EOS R5m2,CR3,Canon/Canon EOS R5m2/CRAW.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R5m2,CR3,Canon/Canon EOS R5m2/RAW.CR3,1,1,35575e130e6bb7452d6932d1227b78a5ea0a73bcaa95c4f3706c62a3b9a4e758,1,1,,8480,5650,RGGB
+❌,Canon EOS R6,CR3,Canon/EOS R6/Canon_EOS_R6_CRAW_ISO_100_crop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R6,CR3,Canon/EOS R6/Canon_EOS_R6_CRAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R6,CR3,Canon/EOS R6/Canon_EOS_R6_RAW_ISO_100_crop_nodual.CR3,1,1,2c9be0b1d4b09b2bb4aef5b7eff654a5eed99021d43fe0207189fc71506e210c,1,1,,3584,2386,RGGB
+✅,Canon EOS R6,CR3,Canon/EOS R6/Canon_EOS_R6_RAW_ISO_100_nocrop_nodual.CR3,1,1,82bc722e2efc142f63568b50e0f537c5141f2f9fcdd9ae9d2c2f62e42acab8f3,1,1,,5568,3708,RGGB
+✅,Canon EOS R6 Mark II,CR3,Canon/EOS R6 Mark II/canon-r6m2-img_0346-raw-normal-full.cr3,1,1,badbf1599eaca22b1e4ef8cf465ac18ce641124970a9df74db227755c5681597,1,1,,6188,4120,RGGB
+✅,Canon EOS R6 Mark II,CR3,Canon/EOS R6 Mark II/canon-r6m2-img_0347-raw-normal-crop.cr3,1,1,6a3b846968910e70d494cabf96260d336654df3a7b1d33edef54a0faffeb30c2,1,1,,3936,2612,RGGB
+✅,Canon EOS R6 Mark II,CR3,Canon/EOS R6 Mark II/canon-r6m2-img_0349-raw-dual-crop.cr3,1,1,b47dc276045b265ae08c53ee46761ffc529032d052b9ab9c3a7d640a2c9bb5ca,1,1,,3936,2612,RGGB
+✅,Canon EOS R6 Mark II,CR3,Canon/EOS R6 Mark II/canon-r6m2-img_0351-raw-dual-full.cr3,1,1,291dd386122f81769ce819539fa3916df97839e9a584d67743dd30ccd10fdcc8,1,1,,6188,4120,RGGB
+❌,Canon EOS R6 Mark II,CR3,Canon/EOS R6 Mark II/canon-r6m2-img_0355-craw-dual-full.cr3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R6 Mark II,CR3,Canon/EOS R6 Mark II/canon-r6m2-img_0356-craw-dual-crop.cr3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R6 Mark II,CR3,Canon/EOS R6 Mark II/canon-r6m2-img_0359-craw-normal-crop.cr3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R6 Mark II,CR3,Canon/EOS R6 Mark II/canon-r6m2-img_0361-craw-normal-full.cr3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R6 Mark III,CR3,Canon/Canon EOS R6 Mark III/IMG_4241.CR3,1,1,98531bbb3d9cf69c7af97fc62b7c7b358c99d74e51974567325bdf433db2a33e,1,1,,7144,4760,RGGB
+❌,Canon EOS R6 Mark III,CR3,Canon/Canon EOS R6 Mark III/IMG_4242.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R6 Mark III,CR3,Canon/Canon EOS R6 Mark III/IMG_4243.CR3,1,1,3816327e966caf9a331b58414f83366d819f2e13ccf039d49cf3a303025efbc0,1,1,,4512,2994,RGGB
+❌,Canon EOS R6 Mark III,CR3,Canon/Canon EOS R6 Mark III/IMG_4244.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R7,CR3,Canon/EOS R7/443A0157.CR3,1,1,b0a1b08c3c07bc8bbefe019e3984eb0ee9292bedab3be920dd07b8f2d04c912a,1,1,,7128,4732,RGGB
+❌,Canon EOS R7,CR3,Canon/EOS R7/443A0159.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R7,CR3,Canon/EOS R7/443A0161.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R7,CR3,Canon/EOS R7/443A0163.CR3,1,1,42356035e8633b08f189e533fdd087b125e71657d155730b7f9256ff72de760a,1,1,,7128,4732,RGGB
+❌,Canon EOS R8,CR3,Canon/EOS R8/CRAW_FULL_FRAME.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS R8,CR3,Canon/EOS R8/CRAW_FULL_FRAME_DUAL_PIXEL.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS R8,CR3,Canon/EOS R8/RAW_FULL_FRAME.CR3,1,1,b1d073c719285ac57f37b009c3a0f7dd6634a61983ef8b3b32d3896112c53140,1,1,,6188,4120,RGGB
+✅,Canon EOS R8,CR3,Canon/EOS R8/RAW_FULL_FRAME_DUAL_PIXEL.CR3,1,1,d0521d5faa75a75ef21ca7715794847e34b2078724db20b9e3f82df3a16601fb,1,1,,6188,4120,RGGB
+❌,Canon EOS RP,CR3,Canon/EOS RP/Canon_EOS_RP_CRAW_ISO_100_crop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS RP,CR3,Canon/EOS RP/Canon_EOS_RP_CRAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS RP,CR3,Canon/EOS RP/Canon_EOS_RP_RAW_ISO_100_crop_nodual.CR3,1,1,117b8d74127b6526f11a18478a38c4a111d9111098b536faf4f719d492c4aab9,1,1,,4032,2656,RGGB
+❌,Canon EOS RP,CR3,Canon/EOS RP/Canon_EOS_RP_RAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel SL3,CR3,Canon/EOS Rebel SL3/Sedona2020_SL3__MG_1061.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS-1D X,DNG,Canon/EOS-1D X/CROPGX2R4019-topaz-denoiseraw.dng,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Canon EOS-1D X Mark III,CR3,Canon/EOS-1D X Mark III/Canon_EOS-1D_X_Mark_III_CRAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+✅,Canon EOS-1D X Mark III,CR3,Canon/EOS-1D X Mark III/Canon_EOS-1D_X_Mark_III_RAW_ISO_100_nocrop_nodual.CR3,1,1,8d4459c66103b327f8ab430ce3bee82ead9e423ee943e4dc7a1ad02bf828a1df,1,1,,5568,3708,RGGB
 ✅,Canon IXY 220F,DNG,Canon/IXY 220F/canon_ixy_220f.DNG,1,1,9d65bceda4148d0258d3505b7e63d1841e098ba391b1da1b9c1e25ba7da6d9e6,1,1,,4784,3516,RGGB
 ✅,Canon PowerShot A3100 IS,DNG,Canon/Canon PowerShot A3100 IS/CRW_3338.DNG,1,1,869857ffb0399ee24db55718971e9de790f57c707d460b33ae8725d524f15457,1,1,,4080,3048,RGGB
 ✅,Canon PowerShot A3200 IS,DNG,Canon/PowerShot A3200 IS/RAW_CANON_POWERSHOT_A3200IS_CHDK.DNG,1,1,a028bbc7e4281a7b6bfb19999ecc78bcaf8f0602115d1151acac9ee81f4c2176,1,1,,4416,3296,RGGB
@@ -56,7 +147,17 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Canon PowerShot ELPH 180,DNG,Canon/Canon PowerShot ELPH 180/CRW_0334.DNG,1,1,46cd1f3729edddc4114d91f001cd69ca1549e23fd29bb62b678930d6f8a06330,1,1,,5248,3920,RGGB
 ✅,Canon PowerShot ELPH 310 HS,DNG,Canon/Canon PowerShot ELPH 310 HS/CRW_9720.DNG,1,1,8e8d95427fab950a7b5201d87eaf684fd8a18feebee2a525570054fef5d80286,1,1,,4168,3060,RGGB
 ✅,Canon PowerShot G1 X,DNG,Canon/PowerShot G1 X/CRW_0004.DNG,1,1,cce5ad24cc43b449df645b29a1ffc52404cd6a8298401821a1bb74de5b5a2b8e,1,1,,4496,3366,RGGB
+❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_CRAW_(16:9).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_CRAW_(1:1).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_CRAW_(3:2).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_CRAW_(4:3).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_RAW_(16:9).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_RAW_(1:1).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_RAW_(3:2).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_RAW_(4:3).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot G7 X,DNG,Canon/PowerShot G7 X/CANON_G7X_CHDK_CRW_6740.DNG,1,1,835589fea6836b07a069058ac11cf3c9c595edbd354483da130de9a932213a86,1,1,,5632,3710,RGGB
+❌,Canon PowerShot G7 X Mark III,CR3,Canon/PowerShot G7 X Mark III/IMG_0253.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G7 X Mark III,CR3,Canon/PowerShot G7 X Mark III/IMG_0254.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot S100,DNG,Canon/PowerShot S100/CRW_1369.DNG,1,1,93d53a9f54cda0c157824c454d39de36b9db39c7dc4a0a0e25ccb4e622579cbc,1,1,,4160,3124,GBRG
 ✅,Canon PowerShot S2 IS,DNG,Canon/Canon PowerShot S2 IS/IMG_1739.DNG,1,1,6fe4cf25142b090422aa12454d277440ec0c6d06d43fc592ebbcdce67dea77db,1,1,,2672,1968,RGGB
 ✅,Canon PowerShot S3IS,DNG,Canon/Canon PowerShot S3IS/CRW_8531.DNG,1,1,b3086ba6d9f5e4f05f4c634c035f7febb9fa71b5be5bddadb7bdc92ebfc720c6,1,1,,2888,2136,RGGB
@@ -76,7 +177,16 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Canon PowerShot SX510 HS,DNG,Canon/PowerShot SX510 HS/RAW_CANON_POWERSHOT_SX510HS.DNG,1,1,54456b9685eb4be4dfb2b61f0e852a3092f4c1691de1ab629e95d7d8264f988e,1,1,,4168,3062,RGGB
 ✅,Canon PowerShot SX530 HS,DNG,Canon/PowerShot SX530 HS/CRW_4494.DNG,1,1,fa574548ab0e51ae02c2754c53f7162b2e9bbf057a5b72ebd0e7022c9550383a,1,1,,4768,3516,RGGB
 ✅,Canon PowerShot SX60 HS,DNG,Canon/PowerShot SX60 HS/Canon-SX60HS-CHDK-RAW.DNG,1,1,2948351e5bb26495b78aef907bccfa604122d03b6bd517b02106cc6624c1fdcc,1,1,,4768,3516,RGGB
+❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1000.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1001.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1002.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1003.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1004.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1005.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1006.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1007.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX710 HS,DNG,Canon/PowerShot SX710 HS/CANON_SX710HS_CHDK_CRW_0716.DNG,1,1,d5e71361651affa5a0fbab82af6cf358248de72af41a69aaef15b90dabd1dee3,1,1,,5344,3950,RGGB
+❌,Canon PowerShot V1,CR3,Canon/Canon PowerShot V1/IMG_1225.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,DJI FC220,DNG,DJI/FC220/DJI_0004.DNG,1,1,bff5114dbaafd125ad080f99f4519ac5f45ceb020eb67ffcaee42d1fdc1330da,1,1,,4000,3000,RGGB
 ✅,DJI FC350,DNG,DJI/FC350/DJI_0040.DNG,1,1,6c58a1c70fc07af1ee95862121521baf6c3fa1626d5426d2f1781285a4d3c83e,1,1,,4000,2250,RGGB
 ❌,DJI FC4382,DNG,DJI/FC4382/DJI_20250506184749_0011_D.DNG,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
