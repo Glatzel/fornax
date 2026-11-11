@@ -33,13 +33,13 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
             .checked_mul(BLOCK_BYTES)
             .ok_or_else(|| invalid("Panasonic V5 block offset overflow"))?;
         let block = &payload[block_start..block_start + BLOCK_BYTES];
-        for packet in block[SPLIT_OFFSET..]
-            .as_chunks::<PACKET_BYTES>()
-            .0
-            .iter()
-            .chain(block[..SPLIT_OFFSET].as_chunks::<PACKET_BYTES>().0.iter())
-        {
-            let mut stream = LsbBits::new(packet, PACKET_BYTES * 8)?;
+        for packet_index in 0..packets_per_block {
+            let mut packet = [0_u8; PACKET_BYTES];
+            for (index, byte) in packet.iter_mut().enumerate() {
+                let source = (SPLIT_OFFSET + packet_index * PACKET_BYTES + index) % BLOCK_BYTES;
+                *byte = block[source];
+            }
+            let mut stream = LsbBits::new(&packet, PACKET_BYTES * 8)?;
             for _ in 0..pixels_per_packet {
                 if output.len() == sample_count {
                     break 'blocks;

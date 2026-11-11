@@ -927,6 +927,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-rw2"
+version = "0.0.17"
+dependencies = [
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rayon",
+ "sha2",
+]
+
+[[package]]
 name = "fornax-tiff"
 version = "0.0.17"
 dependencies = [

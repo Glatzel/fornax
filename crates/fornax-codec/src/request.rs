@@ -347,6 +347,9 @@ impl PanasonicV8Params {
 
     /// Returns the number of compressed strips.
     pub const fn strip_count(&self) -> usize { self.strips.len() }
+
+    /// Returns the validated strip descriptors in stream order.
+    pub fn strips(&self) -> &[PanasonicV8Strip] { &self.strips }
 }
 
 #[cfg(feature = "rw2")]

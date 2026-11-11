@@ -7,6 +7,93 @@ pub struct LsbBits<'a> {
     position: usize,
 }
 
+pub struct V8Bits<'a> {
+    bytes: &'a [u8],
+    bit_len: usize,
+    position: usize,
+}
+
+impl<'a> V8Bits<'a> {
+    pub fn new(bytes: &'a [u8], bit_len: usize) -> Result<Self, CodecError> {
+        let available = bytes
+            .len()
+            .checked_mul(8)
+            .ok_or_else(|| invalid("Panasonic V8 bit count overflow"))?;
+        if bit_len > available {
+            return Err(invalid("Panasonic V8 bitstream is truncated"));
+        }
+        Ok(Self {
+            bytes,
+            bit_len,
+            position: 0,
+        })
+    }
+
+    pub fn read(&mut self, count: u32) -> Result<u32, CodecError> {
+        if count > 32 {
+            return Err(invalid("Panasonic V8 bit read exceeds 32 bits"));
+        }
+        let count =
+            usize::try_from(count).map_err(|_| invalid("Panasonic V8 bit count overflow"))?;
+        let end = self
+            .position
+            .checked_add(count)
+            .ok_or_else(|| invalid("Panasonic V8 bit position overflow"))?;
+        if end > self.bit_len {
+            return Err(invalid("Panasonic V8 bitstream is truncated"));
+        }
+        let value = self.bits_at(self.position, count).reverse_bits();
+        let value = if count == 32 {
+            value
+        } else {
+            value >> (32 - count)
+        };
+        self.position = end;
+        Ok(value)
+    }
+
+    pub fn peek_16(&self) -> u16 {
+        let count = (self.bit_len - self.position).min(16);
+        if count == 0 {
+            return 0;
+        }
+        self.bits_at(self.position, count)
+            .reverse_bits()
+            .wrapping_shr((32 - count) as u32) as u16
+    }
+
+    pub fn skip(&mut self, count: usize) -> Result<(), CodecError> {
+        let end = self
+            .position
+            .checked_add(count)
+            .ok_or_else(|| invalid("Panasonic V8 bit position overflow"))?;
+        if end > self.bit_len {
+            return Err(invalid("Panasonic V8 bitstream is truncated"));
+        }
+        self.position = end;
+        Ok(())
+    }
+
+    fn bits_at(&self, position: usize, count: usize) -> u32 {
+        if count == 0 {
+            return 0;
+        }
+        let byte = position / 8;
+        let shift = position % 8;
+        let bytes = (shift + count).div_ceil(8);
+        let mut value = 0_u64;
+        for index in 0..bytes {
+            value |= u64::from(self.bytes[byte + index]) << (index * 8);
+        }
+        let value = (value >> shift) as u32;
+        if count == 32 {
+            value
+        } else {
+            value & ((1_u32 << count) - 1)
+        }
+    }
+}
+
 impl<'a> LsbBits<'a> {
     pub fn new(bytes: &'a [u8], bit_len: usize) -> Result<Self, CodecError> {
         let available = bytes
@@ -35,27 +122,9 @@ impl<'a> LsbBits<'a> {
         if end > self.bit_len {
             return Err(invalid("Panasonic bitstream is truncated"));
         }
-        let mut value = 0_u32;
-        for bit in 0..count {
-            let position = self.position + bit;
-            let source = (self.bytes[position / 8] >> (position % 8)) & 1;
-            value |= u32::from(source) << bit;
-        }
+        let value = self.bits_at(self.position, count);
         self.position = end;
         Ok(value)
-    }
-
-    pub fn peek_16(&self) -> u16 {
-        let mut value = 0_u16;
-        for bit in 0..16 {
-            let position = self.position + bit;
-            if position >= self.bit_len {
-                break;
-            }
-            let source = (self.bytes[position / 8] >> (position % 8)) & 1;
-            value |= u16::from(source) << bit;
-        }
-        value
     }
 
     pub fn skip(&mut self, count: usize) -> Result<(), CodecError> {
@@ -68,6 +137,25 @@ impl<'a> LsbBits<'a> {
         }
         self.position = end;
         Ok(())
+    }
+
+    fn bits_at(&self, position: usize, count: usize) -> u32 {
+        if count == 0 {
+            return 0;
+        }
+        let byte = position / 8;
+        let shift = position % 8;
+        let bytes = (shift + count).div_ceil(8);
+        let mut value = 0_u64;
+        for index in 0..bytes {
+            value |= u64::from(self.bytes[byte + index]) << (index * 8);
+        }
+        let value = (value >> shift) as u32;
+        if count == 32 {
+            value
+        } else {
+            value & ((1_u32 << count) - 1)
+        }
     }
 }
 
@@ -111,11 +199,14 @@ impl<'a> PanasonicV4Bits<'a> {
             .checked_mul(Self::BLOCK_BYTES)
             .and_then(|offset| offset.checked_add(byte))
             .ok_or_else(|| invalid("Panasonic V4 byte offset overflow"))?;
-        let pair = self
-            .bytes
-            .get(offset..offset.saturating_add(2))
-            .ok_or_else(|| invalid("Panasonic V4 payload is truncated"))?;
-        let word = u32::from(u16::from_le_bytes([pair[0], pair[1]]));
+        let first = self.bytes.get(offset).copied().ok_or_else(|| {
+            invalid(format!(
+                "Panasonic V4 payload is truncated at byte {offset} of {}",
+                self.bytes.len()
+            ))
+        })?;
+        let second = self.bytes.get(offset + 1).copied().unwrap_or(0);
+        let word = u32::from(u16::from_le_bytes([first, second]));
         let shift = u32::try_from(bit & 7).map_err(|_| invalid("Panasonic V4 shift overflow"))?;
         let mask = 0xffff_u32 >> (16 - count);
         self.consumed = self

@@ -1,4 +1,4 @@
-use super::bits::LsbBits;
+use super::bits::V8Bits;
 use super::{finish_buffer, pixels, single_payload};
 use crate::error::invalid;
 use crate::{CodecError, DecodeRequest, PanasonicV8Params, SampleBuffer, SampleFormat};
@@ -7,9 +7,11 @@ pub fn decode(
     request: &DecodeRequest<'_>,
     params: &PanasonicV8Params,
 ) -> Result<SampleBuffer, CodecError> {
-    if request.sample_format != SampleFormat::Integer || request.bits_per_sample != 14 {
+    if request.sample_format != SampleFormat::Integer
+        || !matches!(request.bits_per_sample, 12 | 14 | 16)
+    {
         return Err(invalid(
-            "Panasonic V8 requires 14-bit integer sample metadata",
+            "Panasonic V8 requires 12-, 14-, or 16-bit integer sample metadata",
         ));
     }
     let sample_count = pixels(request, "Panasonic V8")?;
@@ -79,20 +81,28 @@ fn decode_strip(
         .ok_or_else(|| invalid("Panasonic V8 strip payload is out of bounds"))?;
     let data_bits = usize::try_from(strip.data_bits)
         .map_err(|_| invalid("Panasonic V8 strip bit count exceeds usize"))?;
-    let mut reader = LsbBits::new(bytes, data_bits)?;
+    let mut reader = V8Bits::new(bytes, data_bits)?;
     let mut line = vec![0_u16; strip.width * 2];
     let mut line_base = params.initial_predictors;
     for half_row in 0..strip.height / 2 {
         let mut current = line_base;
         for (group_index, group) in line.as_chunks_mut::<4>().0.iter_mut().enumerate() {
-            for (index, target) in group.iter_mut().enumerate() {
+            for index in 0..4 {
+                let target_index = match index {
+                    0 => 0,
+                    1 => 2,
+                    2 => 1,
+                    3 => 3,
+                    _ => unreachable!("V8 groups contain four coefficients"),
+                };
                 let symbol = huffman.next(&mut reader)?;
                 let delta = decode_delta(&mut reader, symbol, &params.shift_down)?;
-                let predictor = i32::from(current[index]);
-                *target = predictor
+                let predictor = i32::from(current[target_index]);
+                group[target_index] = predictor
                     .checked_add(delta)
                     .ok_or_else(|| invalid("Panasonic V8 predictor overflow"))?
-                    .clamp(0, i32::from(params.clip_value)) as u16;
+                    .clamp(0, i32::from(params.clip_value))
+                    as u16;
             }
             current = [group[0], group[1], group[2], group[3]];
             if group_index == 0 {
@@ -120,7 +130,7 @@ fn decode_strip(
 }
 
 fn decode_delta(
-    reader: &mut LsbBits<'_>,
+    reader: &mut V8Bits<'_>,
     symbol: usize,
     shift_down: &[u16],
 ) -> Result<i32, CodecError> {
@@ -165,7 +175,7 @@ impl Huffman {
         Ok(Self { entries })
     }
 
-    fn next(&self, reader: &mut LsbBits<'_>) -> Result<usize, CodecError> {
+    fn next(&self, reader: &mut V8Bits<'_>) -> Result<usize, CodecError> {
         let bits = reader.peek_16();
         for (index, &(count, symbol, mask)) in self.entries.iter().enumerate() {
             if bits & mask == symbol {
