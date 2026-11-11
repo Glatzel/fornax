@@ -548,6 +548,9 @@ fn tag_name(tag: Tag) -> String {
     }
 }
 
-pub fn invalid(detail: impl Into<Box<str>>) -> DecodeError {
+pub fn invalid<T>(detail: T) -> DecodeError
+where
+    T: Into<Box<str>>,
+{
     DecodeError::InvalidInput(detail.into())
 }
