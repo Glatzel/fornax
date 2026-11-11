@@ -2,7 +2,7 @@ use clap::Parser;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::tracing_subscriber::{EnvFilter, Layer, Registry};
-use fornax_cli::{CliArgs, run};
+use fornax_raw_cli::{CliArgs, run};
 
 fn main() -> mischief::Result<()> {
     let args = CliArgs::parse();

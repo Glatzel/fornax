@@ -795,28 +795,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fornax-cli"
-version = "0.0.17"
-dependencies = [
- "assert_cmd",
- "clap",
- "clap-style",
- "clap-verbosity-flag",
- "clerk",
- "fornax-dng",
- "fornax-raw",
- "image 0.25.9",
- "mischief",
- "num-traits",
- "rayon",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "toml 1.2.1+spec-1.1.0",
-]
-
-[[package]]
 name = "fornax-codec"
 version = "0.0.17"
 dependencies = [
@@ -890,6 +868,28 @@ dependencies = [
  "fornax-decoder",
  "fornax-raw-core",
  "fornax-raw-pipeline",
+]
+
+[[package]]
+name = "fornax-raw-cli"
+version = "0.0.17"
+dependencies = [
+ "assert_cmd",
+ "clap",
+ "clap-style",
+ "clap-verbosity-flag",
+ "clerk",
+ "fornax-dng",
+ "fornax-raw",
+ "image 0.25.9",
+ "mischief",
+ "num-traits",
+ "rayon",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "toml 1.2.1+spec-1.1.0",
 ]
 
 [[package]]

@@ -2,10 +2,10 @@ use std::fs;
 
 use assert_cmd::Command;
 use clap::Parser;
-use fornax_cli::{CliArgs, ConversionOutcome, run};
 use fornax_dng::metadata::{Directory, DngTag, Tag, TiffTag, Value};
 use fornax_dng::writer::{DngCompression, DngWriter};
 use fornax_raw::{MonoImage, RawMosaic};
+use fornax_raw_cli::{CliArgs, ConversionOutcome, run};
 use image::GenericImageView;
 use tempfile::tempdir;
 
@@ -81,14 +81,14 @@ fn synthetic_dng(path: &std::path::Path) {
 }
 
 fn args(values: &[&std::ffi::OsStr]) -> CliArgs {
-    let mut all = vec![std::ffi::OsStr::new("fornax")];
+    let mut all = vec![std::ffi::OsStr::new("fornax-raw")];
     all.extend_from_slice(values);
     CliArgs::try_parse_from(all).unwrap()
 }
 
 #[test]
 fn binary_help_shows_default_values() {
-    let output = Command::cargo_bin("fornax")
+    let output = Command::cargo_bin("fornax-raw")
         .unwrap()
         .arg("--help")
         .output()
