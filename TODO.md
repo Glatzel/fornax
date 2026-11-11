@@ -1,7 +1,6 @@
 # TODO
 
 - decoder
-  - [DEC-CR3] Implement Canon CR3/CRM BMFF parsing and CRX decoding. Plan: `docs/decoder/formats/canon-cr3.md`.
   - [DEC-3FR] Implement supported Hasselblad 3FR decoding and DNG export. Plan: `docs/decoder/formats/hasselblad-3fr.md`.
   - [DEC-OTHER] Enforce the explicit unsupported-format policy for all untiered RAW containers. Plan: `docs/decoder/formats/other.md`.
 - demosaic

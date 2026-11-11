@@ -1,4 +1,5 @@
 mod bench;
+pub mod canon_crx_audit;
 mod dirs;
 
 use std::ops::Deref;

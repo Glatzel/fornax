@@ -9,6 +9,7 @@ use strum::{AsRefStr, Display, EnumString, IntoStaticStr};
 ///
 /// assert_eq!(RawFormat::Dng.to_string(), "DNG");
 /// assert_eq!("CR3".parse(), Ok(RawFormat::Cr3));
+/// assert_eq!("crm".parse(), Ok(RawFormat::Crm));
 /// assert_eq!("nrw".parse(), Ok(RawFormat::Nrw));
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq, AsRefStr, Display, EnumString, IntoStaticStr)]
@@ -18,6 +19,8 @@ pub enum RawFormat {
     Dng,
     /// Canon CR3 or CRM.
     Cr3,
+    /// Canon CRM movie raw.
+    Crm,
     /// Sony Alpha RAW.
     Arw,
     /// Sony/Zeiss NRW variant of Alpha RAW.

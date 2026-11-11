@@ -5,6 +5,7 @@ pub fn raw_file(format: RawFormat) -> PathBuf {
     match format {
         RawFormat::Dng => root_dir().join("external/raw-images/images/colorchart-5D2-6000K.dng"),
         RawFormat::Cr3
+        | RawFormat::Crm
         | RawFormat::Arw
         | RawFormat::Nrw
         | RawFormat::Nef

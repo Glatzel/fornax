@@ -2,7 +2,7 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![RAW corpus: 951/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-951%2F2020-orange)](baseline.csv)
+[![RAW corpus: 979/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-979%2F2020-orange)](baseline.csv)
 
 | Vendor | Format | Status |
 | --- | --- | ---: |
@@ -15,7 +15,7 @@
 | Blackmagic | DNG | 2/9 |
 | Blackmagic Design | DNG | 1/1 |
 | Canon | CR2 | 0/142 |
-| Canon | CR3 | 0/110 |
+| Canon | CR3 | 28/110 |
 | Canon | CRW | 0/51 |
 | Canon | DNG | 50/53 |
 | Canon | TIF | 0/3 |
