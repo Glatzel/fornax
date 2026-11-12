@@ -90,22 +90,20 @@ pub fn select_golden_inputs(
             corpus.display()
         )
     })?;
-    let resolved = rows
-        .iter()
-        .map(|row| {
-            let path = corpus.join(&row.path);
-            let path = fs::canonicalize(&path).map_err(|error| {
-                format!(
-                    "golden input {} is not materialized: {error}; materialize the golden corpus",
-                    row.path
-                )
-            })?;
-            Ok((row.clone(), path))
-        })
-        .collect::<Result<Vec<_>, String>>()?;
-
     let Some(explicit) = explicit else {
-        return Ok(resolved);
+        return rows
+            .iter()
+            .map(|row| {
+                let path = corpus.join(&row.path);
+                let path = fs::canonicalize(&path).map_err(|error| {
+                    format!(
+                        "golden input {} is not materialized: {error}; materialize the golden corpus",
+                        row.path
+                    )
+                })?;
+                Ok((row.clone(), path))
+            })
+            .collect();
     };
     let explicit = fs::canonicalize(explicit).map_err(|error| {
         format!(
@@ -113,9 +111,14 @@ pub fn select_golden_inputs(
             explicit.display()
         )
     })?;
-    let selected = resolved
-        .into_iter()
-        .filter(|(_, path)| *path == explicit)
+    let selected = rows
+        .iter()
+        .filter_map(|row| {
+            let expected = corpus.join(&row.path);
+            let matches = expected == explicit
+                || fs::canonicalize(&expected).is_ok_and(|path| path == explicit);
+            matches.then(|| (row.clone(), explicit.clone()))
+        })
         .collect::<Vec<_>>();
     if selected.len() != 1 {
         return Err(format!(

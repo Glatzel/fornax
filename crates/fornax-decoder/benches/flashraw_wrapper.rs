@@ -104,7 +104,7 @@ impl IDecoder for FlashRawDecoder {
             frame.height,
             frame.cpp,
             frame.cfa,
-            frame.data.clone(),
+            frame.data,
             frame.active_area,
         )
     }

@@ -108,7 +108,6 @@ fn selects_all_golden_inputs_when_no_path_is_requested() {
 #[test]
 fn selects_the_exact_requested_golden_input() {
     let tree = TempTree::new("select-one");
-    tree.write("corpus/Canon/EOS R5/photo.CR3", b"canon");
     tree.write("corpus/Nikon/D850/photo.NEF", b"nikon");
     let rows = parse_golden_manifest(&manifest()).unwrap();
     let requested = tree.path().join("corpus/Nikon/D850/photo.NEF");

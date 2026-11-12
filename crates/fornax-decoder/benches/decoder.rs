@@ -1,4 +1,5 @@
 mod decoder_inputs;
+mod decoder_selection;
 mod flashraw_wrapper;
 mod rawler_wrapper;
 
@@ -10,6 +11,7 @@ use criterion::{BenchmarkGroup, Criterion, black_box, criterion_group, criterion
 use decoder_inputs::{
     GoldenInput, ensure_materialized, parse_golden_manifest, select_golden_inputs,
 };
+use decoder_selection::{DecoderKind, parse_decoder_selection};
 use flashraw_wrapper::FlashRawDecoder;
 use fornax_decoder::Decoder;
 use fornax_devtool::{BenchParams, BenchSampleBits};
@@ -21,29 +23,10 @@ use rawler_wrapper::RawlerDecoder;
 const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/golden/selected-manifest.csv";
 const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
 
-#[derive(Clone, Copy, Eq, PartialEq)]
-enum DecoderKind {
-    Fornax,
-    Rawler,
-    FlashRaw,
-}
-
 fn selected_decoders() -> Vec<DecoderKind> {
-    let value =
-        env::var("FORNAX_BENCH_DECODER").unwrap_or_else(|_| "fornax,rawler,flashraw".into());
-    value
-        .split(',')
-        .map(str::trim)
-        .filter(|name| !name.is_empty())
-        .map(|name| match name {
-            "fornax" => DecoderKind::Fornax,
-            "rawler" => DecoderKind::Rawler,
-            "flashraw" => DecoderKind::FlashRaw,
-            _ => panic!(
-                "unknown FORNAX_BENCH_DECODER value {name:?}; expected fornax, rawler, or flashraw"
-            ),
-        })
-        .collect()
+    let value = env::var("FORNAX_BENCH_DECODER").ok();
+    parse_decoder_selection(value.as_deref())
+        .unwrap_or_else(|error| panic!("parsing FORNAX_BENCH_DECODER failed: {error}"))
 }
 
 fn benchmark_inputs() -> Vec<(GoldenInput, PathBuf)> {
