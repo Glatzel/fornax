@@ -12,6 +12,7 @@ clerk.workspace = true
 fornax-arw.workspace = true
 fornax-cr3.workspace = true
 fornax-dng.workspace = true
+fornax-hasselblad.workspace = true
 fornax-iiq.workspace = true
 fornax-nef.workspace = true
 fornax-raf.workspace = true

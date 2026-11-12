@@ -1,51 +1,89 @@
-# Hasselblad 3FR format plan
+# Hasselblad 3FR format support
 
-**Tier:** 2, placeholder until this tier starts
+**Tier:** 2, implemented for the accepted conventional-Bayer corpus.
 
 ## Container structure
 
-3FR uses a TIFF container with Hasselblad-specific metadata and one or more raw
-IFDs. The raw image is selected by dimensions, white-level presence, and CFA
-metadata. Some Hasselblad files are named FFF or embed a separate raw data
-area; those variants are outside this plan unless a corpus investigation adds
-them explicitly.
+3FR files are classic little-endian TIFF containers. The root IFD contains
+previews, identity, color matrices, white balance, and optional Exif. The
+full-resolution raw image is a CFA SubIFD containing `WhiteLevel`, strip
+geometry, and optional black level or crop tags.
+
+The decoder selects the largest non-reduced CFA IFD with `WhiteLevel` and strip
+storage. Accepted raw IFDs have one 16-bit integer sample per pixel and no CFA
+pattern tags; those values come from explicit camera profiles.
 
 ## Compression schemes
 
-Initial investigation targets uncompressed 16-bit samples and lossless
-JPEG-based compression. Unsupported lossy, multi-shot, or proprietary
-compression variants return `DecodeError::UnsupportedVariant`.
+Two payload layouts are accepted:
+
+- TIFF compression 1 stores exactly `width * height` little-endian 16-bit
+  words. `StripByteCounts` must match that word count.
+- TIFF compression 7 contains a single-component 16-bit SOF3 stream using
+  predictor 8. The decoder reads two Huffman lengths, then their two attached
+  differences, for each pixel pair. Predictors reset to `0x8000` at every row.
+  The bitstream uses Rawler's 3FR `MSB32` word order and consumes a 16-bit
+  payload for difference class 16.
+
+Compression-7 strip byte counts are not used as payload bounds because several
+accepted files record values larger than the file. The checked strip offset
+bounds the payload and entropy decoding continues through EOF.
+
+Other compression identifiers, tiled storage, multi-sample pixels, non-16-bit
+samples, restart intervals, point transforms, and non-predictor-8 streams
+return typed `DecodeError::Unsupported` or `DecodeError::InvalidInput` errors.
+
+## Camera profiles
+
+The accepted tagless models use 2x2 RGGB profiles. Full-frame active areas are
+used for:
+
+- `Hasselblad H3D`
+- `Hasselblad H4D`
+- `Hasselblad CFV`
+- `Hasselblad96`
+- `Hasselblad ixpressCF132`
+- `Hasselblad X2D 100C`
+- `Hasselblad CFV 100C/Electronic Shutter`
+
+`Hasselblad X1D` and `Hasselblad X1D II 50C` remove inactive borders
+`[left 46, top 96, right 58, bottom 0]`. The CFV 50C II corpus file reports the
+X1D II unique model and uses the same borders.
+
+Source CFA tags take precedence when present. Well-formed non-2x2 CFA data can
+be decoded and exported as CFA DNG, but `process_metadata` and
+`cropped_mosaic` reject it before preprocessing.
 
 ## Metadata to DNG tags
 
-Map or preserve:
+The DNG metadata mapper preserves or synthesizes:
 
-- `Make`, `Model`, serial, and lens identity;
-- full dimensions, `ActiveArea`, and default crop;
-- CFA repeat/pattern/plane colors;
-- `BlackLevel` and `WhiteLevel`;
-- `AsShotNeutral`;
-- `Orientation` and safe EXIF values.
+- `Make`, `Model`, `UniqueCameraModel`, `RawDataUniqueID`, `Orientation`;
+- full dimensions, `ActiveArea`, and active-area-relative default crop;
+- CFA repeat/pattern/plane colors/layout;
+- `BlackLevel` and `BlackLevelRepeatDim`;
+- `WhiteLevel`;
+- `ColorMatrix1`, `CalibrationIlluminant1`, and `AsShotNeutral` when present;
+- allowlisted Exif exposure, sensitivity, date, focal length, lens, and serial
+  fields.
 
-## Known variants and pitfalls
+The generic `DngWriter` can export every decoded mosaic without byte-identical
+container regeneration.
 
-- TIFF offsets may point into vendor-specific blocks.
-- White and black levels can be in separate IFDs from geometry.
-- Some camera backs expose non-Bayer layouts; these remain valid decoded CFA
-  data but cannot enter the preprocessor.
-- FFF and merged/multi-shot files are not assumed to share the 3FR path.
+## Out of scope
 
-## References to consult
-
-- `external/dnglab` at `62b77de1a206d467e910d55199191068b45a9cc1`:
-  `rawler/src/decoders/tfr.rs`.
-- `external/libraw` at `cf02d66eb5c19d4e46df7aee0582e47a4918509a`:
-  Hasselblad container and level behavior.
+FFF, Imacon/merged/multi-shot variants, unknown tagless camera models, unknown
+CFA layouts, tiled data, and unsupported compression families remain outside
+this implementation. The accepted manifest files remain limited to `.3FR`.
 
 ## Definition of done
 
-- The accepted 3FR corpus cameras are frozen in the manifest.
-- Uncompressed and accepted lossless samples decode with sane geometry and
-  tags.
-- Each accepted conventional Bayer image has an exact pixel comparison and a
-  successful handoff; all other CFAs return a typed unsupported-CFA error.
+- The 11 accepted 3FR corpus cameras are present in the committed manifest.
+- All accepted uncompressed and predictor-8 samples match Rawler's low-level
+  codec exactly and complete the conventional Bayer handoff.
+- Compressed and uncompressed samples round-trip exactly through the generic
+  DNG writer.
+- The decoder-tracker baseline records all accepted 3FR rows as passing.
+
+Behavioral provenance and licensing constraints are recorded in
+[Hasselblad 3FR references](../../references/hasselblad-3fr.md).

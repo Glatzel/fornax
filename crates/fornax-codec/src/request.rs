@@ -49,6 +49,9 @@ pub enum DecodeCompression {
     /// Sony lossless-JPEG tiles packed as CFA sample rows.
     #[cfg(feature = "arw")]
     SonyLosslessJpeg,
+    /// Hasselblad predictor-8 lossless-JPEG mosaic.
+    #[cfg(feature = "hasselblad")]
+    HasselbladLosslessJpeg,
     /// Canon CRX lossless CFA planes.
     #[cfg(feature = "cr3")]
     CanonCrx {

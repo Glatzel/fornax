@@ -156,6 +156,8 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         DecodeCompression::Arw6 => arw::decode_arw6(request),
         #[cfg(feature = "arw")]
         DecodeCompression::SonyLosslessJpeg => arw::decode_ljpeg(request),
+        #[cfg(feature = "hasselblad")]
+        DecodeCompression::HasselbladLosslessJpeg => ljpeg::decode_hasselblad(request),
         #[cfg(feature = "cr3")]
         DecodeCompression::CanonCrx { header, cfa } => crx::decode(request, header, *cfa),
         #[cfg(feature = "nef")]

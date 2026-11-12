@@ -4,11 +4,11 @@ Thin default decoder facade. DNG handling is implemented by `fornax-dng`;
 audited lossless Canon CR3/CRM handling is implemented by `fornax-cr3`;
 supported Sony ARW/NRW handling is implemented by `fornax-arw`; supported Nikon
 NEF handling is implemented by `fornax-nef`; and supported Fujifilm RAF
-handling is implemented by `fornax-raf`; supported Phase One/Leaf IIQ handling
-is implemented by `fornax-iiq`; and supported Panasonic RW2 handling is
-implemented by `fornax-rw2`. Generic BMFF/TIFF parsing, shared codecs, metadata
-conversion, and writing remain in their container-neutral or format-specific
-crates.
+handling is implemented by `fornax-raf`; supported Hasselblad 3FR handling is
+implemented by `fornax-hasselblad`; supported Phase One/Leaf IIQ handling is
+implemented by `fornax-iiq`; and supported Panasonic RW2 handling is implemented
+by `fornax-rw2`. Generic BMFF/TIFF parsing, shared codecs, metadata conversion,
+and writing remain in their container-neutral or format-specific crates.
 
 ```rust
 use fornax_raw_core::{BayerPattern, MonoImage};
