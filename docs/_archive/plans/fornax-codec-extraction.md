@@ -1,5 +1,7 @@
 # Extract `fornax-codec` Implementation Plan
 
+This archived plan documents the completed Extract `fornax-codec` work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task.
 
@@ -164,7 +166,7 @@ Run: `cargo test -p fornax-codec --all-features`
 - [ ] **Step 5: Commit the task.**
 
 ```bash
-git add Cargo.toml Cargo.lock crates/fornax-codec docs/plans/chore-extract-fornax-codec.md
+git add Cargo.toml Cargo.lock crates/fornax-codec docs/_archive/plans/fornax-codec-extraction.md
 git commit -m "feat: add raw codec contract and uncompressed decoding"
 ```
 
@@ -308,9 +310,9 @@ git commit -m "refactor: route DNG sample coding through fornax-codec"
 - Modify: `crates/fornax-decoder/README.md`
 - Modify: `crates/fornax-dng/README.md`
 - Modify: `crates/fornax-tiff/README.md`
-- Modify: `docs/architecture.md`
-- Modify: `docs/decoder/architecture.md`
-- Modify: `docs/plans/chore-extract-fornax-codec.md`
+- Modify: `docs/architecture/overview.md`
+- Modify: `docs/architecture/decoder.md`
+- Modify: `docs/_archive/plans/fornax-codec-extraction.md`
 
 **Interfaces:**
 
@@ -351,8 +353,8 @@ git commit -m "docs: document fornax-codec ownership"
 - `crates/fornax-raw-core/README.md`
 - `crates/fornax-decoder/README.md`
 - `crates/fornax-tiff/README.md`
-- `docs/architecture.md`
-- `docs/decoder/architecture.md`
+- `docs/architecture/overview.md`
+- `docs/architecture/decoder.md`
 
 ## Validation
 

@@ -10,7 +10,7 @@ convention.
 | --- | --- | --- |
 | $I(x,y)$ | Single-channel sample at integer column $x$ and row $y$ | [Core image types](../../crates/fornax-raw-core/src/lib.rs) |
 | $I_R$, $I_G$, $I_B$ | Reconstructed red, green, and blue channels | [Postprocessor API](../../crates/fornax-raw-pipeline/src/lib.rs) |
-| $M$ | Bayer mosaic before linear RGB reconstruction | [Architecture](../../docs/architecture.md) |
+| $M$ | Bayer mosaic before linear RGB reconstruction | [Architecture](../../docs/architecture/overview.md) |
 | $b$ | Black level in input sample codes | [Preprocessor](../../crates/fornax-raw-pipeline/src/lib.rs) |
 | $w$ | White level in input sample codes | [Preprocessor](../../crates/fornax-raw-pipeline/src/lib.rs) |
 | $x_n$ | Normalized sample | [Preprocessor](../../crates/fornax-raw-pipeline/src/lib.rs) |
@@ -28,7 +28,7 @@ clipping; see [the preprocessor source](../../crates/fornax-raw-pipeline/src/lib
 
 | Symbol | Meaning | Source |
 | --- | --- | --- |
-| $G_1$, $G_2$ | The two green sites in a 2x2 RGB Bayer repeat | [VNG notes](../../docs/references/vng.md) |
+| $G_1$, $G_2$ | The two green sites in a 2x2 RGB Bayer repeat | [VNG notes](../../docs/reference/algorithms/vng.md) |
 | MAE | Mean absolute error between corresponding samples | [Comparison guide](../../crates/compare-demosaic/README.md) |
 | RMSE | Root mean square error between corresponding samples | [Comparison guide](../../crates/compare-demosaic/README.md) |
 | P99 | 99th percentile of absolute sample error | [Comparison guide](../../crates/compare-demosaic/README.md) |

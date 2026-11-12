@@ -1,5 +1,7 @@
 # AAHD reference notes
 
+This reference note records pinned sources, numerical behavior, and implementation boundaries for AAHD.
+
 This note records the authoritative source and integer conventions used by
 Fornax's conventional 2x2 RGB Bayer AAHD path.
 

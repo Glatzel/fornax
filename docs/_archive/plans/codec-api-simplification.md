@@ -1,5 +1,7 @@
 # Simplify Codec and Dependency APIs
 
+This archived plan documents the completed Simplify Codec and Dependency APIs work.
+
 ## Goal
 
 Replace `fornax_codec::Codec` with direction-specific compression enums stored
@@ -155,8 +157,8 @@ public writer configuration mechanism.
 - `crates/fornax-cli/src/{config,convert,discover}.rs`
 - `crates/fornax-cli/tests/cli.rs`
 - `crates/fornax-raw/src/lib.rs`
-- `docs/architecture.md`
-- `docs/plans/chore-simplify-codec-dependencies.md`
+- `docs/architecture/overview.md`
+- `docs/_archive/plans/codec-api-simplification.md`
 
 ## Validation
 

@@ -1,4 +1,6 @@
-# Trigger: Step 2 — merge raw processing crates
+# Raw Pipeline Merge Step
+
+This archived workspace-refactor record documents Raw Pipeline Merge Step.
 
 Implement only Step 2 of the Fornax workspace refactor. Open one PR and stop.
 
@@ -16,8 +18,8 @@ Merge the preprocessing and demosaicing stages into `fornax-raw-pipeline`.
 ## Read first
 
 - `AGENTS.md`
-- `docs/architecture.md`
-- `docs/references/workspace-refactor-baseline.md`
+- `docs/architecture/overview.md`
+- `docs/_archive/workspace-refactor/baseline-findings.md`
 - `crates/fornax-raw-pipeline`
 - `crates/fornax`
 - `crates/fornax-cli`
@@ -27,7 +29,7 @@ Merge the preprocessing and demosaicing stages into `fornax-raw-pipeline`.
 
 - Create branch `chore/merge-pre-post-pipeline`.
 - Create worktree `.worktrees/chore-merge-pre-post-pipeline` from `origin/main`.
-- Create a plan at `docs/plans/chore-merge-pre-post-pipeline.md`.
+- Create a plan at `docs/_archive/workspace-refactor/raw-pipeline-merge.md`.
 - Do not modify `TODO.md`.
 - Keep every commit independently green.
 

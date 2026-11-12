@@ -1,5 +1,7 @@
 # Workspace refactor Phase B-C handoff
 
+This archived workspace-refactor record documents Workspace refactor Phase B-C handoff.
+
 ## Purpose
 
 This index is the shared specification for the remaining workspace-refactor
@@ -48,11 +50,11 @@ The `fornax-raw` `zstd` feature is already decided and must remain.
 
 | Step | Branch and worktree | Plan | Branch plan path | Deliverable |
 | --- | --- | --- | --- | --- |
-| B1 | `chore/tiff-optional-raster`; `.worktrees/chore-tiff-optional-raster` | [Optional TIFF raster](b1-optional-tiff-raster.md) | `docs/plans/chore-tiff-optional-raster.md` | Default `fornax-tiff` has no codec/image/Rayon dependency |
-| B2 | `chore/compression-id-audit`; `.worktrees/chore-compression-id-audit` | [Compression ID audit](b2-compression-id-audit.md) | `docs/plans/chore-compression-id-audit.md` | Source-versioned ownership table, then implementation only if ownership is clear |
-| B3 | `chore/codec-lzw-packbits`; `.worktrees/chore-codec-lzw-packbits` | [LZW and PackBits](b3-lzw-packbits.md) | `docs/plans/chore-codec-lzw-packbits.md` | Feature-gated LZW/PackBits codecs and legacy Deflate alias |
-| B4 | `chore/multiband-note`; `.worktrees/chore-multiband-note` | [Multi-band design note](b4-multiband-note.md) | `docs/plans/chore-multiband-note.md` | Options and evidence, with no selected shape |
-| C | `chore/publish-readiness`; `.worktrees/chore-publish-readiness` | [Publish readiness](c-publish-readiness.md) | `docs/plans/chore-publish-readiness.md` | Read-only package/publish report, with no publishing |
+| B1 | `chore/tiff-optional-raster`; `.worktrees/chore-tiff-optional-raster` | [Optional TIFF raster](optional-tiff-raster-plan.md) | `docs/plans/chore-tiff-optional-raster.md` | Default `fornax-tiff` has no codec/image/Rayon dependency |
+| B2 | `chore/compression-id-audit`; `.worktrees/chore-compression-id-audit` | [Compression ID audit](compression-id-audit-plan.md) | `docs/_archive/workspace-refactor/compression-id-audit-implementation.md` | Source-versioned ownership table, then implementation only if ownership is clear |
+| B3 | `chore/codec-lzw-packbits`; `.worktrees/chore-codec-lzw-packbits` | [LZW and PackBits](lzw-packbits-plan.md) | `docs/_archive/plans/lzw-packbits-codecs.md` | Feature-gated LZW/PackBits codecs and legacy Deflate alias |
+| B4 | `chore/multiband-note`; `.worktrees/chore-multiband-note` | [Multi-band design note](multiband-design-plan.md) | `docs/_archive/workspace-refactor/multiband-container-record.md` | Options and evidence, with no selected shape |
+| C | `chore/publish-readiness`; `.worktrees/chore-publish-readiness` | [Publish readiness](publish-readiness-plan.md) | `docs/_archive/workspace-refactor/publish-readiness-implementation.md` | Read-only package/publish report, with no publishing |
 
 ## Required report
 

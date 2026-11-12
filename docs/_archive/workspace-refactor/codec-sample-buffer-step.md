@@ -1,4 +1,6 @@
-# Step 4: codec sample buffer
+# Codec Sample Buffer Step
+
+This archived workspace-refactor record documents Codec Sample Buffer Step.
 
 ## Status
 

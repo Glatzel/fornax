@@ -1,5 +1,7 @@
 # Add neutral codec sample buffer
 
+This archived plan documents the completed Add neutral codec sample buffer work.
+
 ## Goal
 
 Move neutral codec output into a codec-owned `SampleBuffer`, remove
@@ -155,8 +157,8 @@ not use the generic codec.
 - `crates/fornax-dng/src/dng_decoder/mod.rs`
 - `crates/fornax-dng/src/sample_buffer.rs`
 - `crates/fornax-dng/src/writer.rs`
-- `docs/architecture.md`
-- `docs/plans/chore-codec-sample-buffer.md`
+- `docs/architecture/overview.md`
+- `docs/_archive/plans/codec-sample-buffer.md`
 
 ## Validation
 

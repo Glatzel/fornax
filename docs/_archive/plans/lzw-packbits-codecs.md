@@ -1,5 +1,7 @@
 # TIFF LZW, PackBits, and F64 Codec Support
 
+This archived plan documents the completed TIFF LZW, PackBits, and F64 Codec Support work.
+
 ## Goal
 
 Add feature-gated, format-neutral TIFF LZW and PackBits decode/encode support
@@ -74,8 +76,8 @@ identifier.
 - `crates/fornax-tiff/src/raster.rs`
 - `crates/fornax-tiff/tests/raster.rs`
 - `crates/fornax-dng/src/sample_buffer.rs` for the F64 boundary
-- `docs/plans/chore-codec-lzw-packbits.md`
-- `docs/references/compression-ids.md` if availability wording must change
+- `docs/_archive/plans/lzw-packbits-codecs.md`
+- `docs/reference/codecs/compression-ids.md` if availability wording must change
 
 ## Validation
 

@@ -1,5 +1,7 @@
 # Nikon NEF reference notes
 
+This reference note records pinned sources, decoder behavior, and implementation boundaries for Nikon NEF.
+
 ## Sources
 
 - dnglab/Rawler at

@@ -1,5 +1,7 @@
 # Publish Readiness Implementation Plan
 
+This archived workspace-refactor record documents Publish Readiness Implementation Plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Produce a read-only report covering workspace membership, publishable-crate metadata, path dependencies, name availability, package contents, archive sizes, publish dry runs, and docs.rs feature behavior without changing code or publishing anything.
@@ -8,7 +10,7 @@
 
 **Tech Stack:** Cargo, crates.io HTTP endpoints, docs.rs metadata semantics, Git worktrees, repository documentation validation.
 
-**Spec:** `docs/plans/workspace-refactor/c-publish-readiness.md`
+**Spec:** `docs/_archive/workspace-refactor/publish-readiness-plan.md`
 
 ## Global Constraints
 
@@ -32,7 +34,7 @@
 ## Task 1: Inventory, metadata, dependencies, and names
 
 **Files:**
-- Create: `docs/plans/workspace-refactor/publish-readiness.md`
+- Create: `docs/_archive/workspace-refactor/publish-readiness-report.md`
 
 **Interfaces:**
 - Consumes: `cargo metadata --no-deps`, package manifests, crates.io crate endpoints.
@@ -78,8 +80,8 @@ Create the report with sections for scope/method, inventory, metadata completene
 ## Task 2: Package evidence, dry runs, and completion
 
 **Files:**
-- Modify: `docs/plans/workspace-refactor/publish-readiness.md`
-- Modify: `docs/plans/chore-publish-readiness.md`
+- Modify: `docs/_archive/workspace-refactor/publish-readiness-report.md`
+- Modify: `docs/_archive/workspace-refactor/publish-readiness-implementation.md`
 
 **Interfaces:**
 - Consumes: publishable crate list from Task 1.
@@ -129,8 +131,8 @@ Commit documentation only, push the branch, and open `docs: report publish readi
 
 ## Files Expected to Change
 
-- `docs/plans/chore-publish-readiness.md`
-- `docs/plans/workspace-refactor/publish-readiness.md`
+- `docs/_archive/workspace-refactor/publish-readiness-implementation.md`
+- `docs/_archive/workspace-refactor/publish-readiness-report.md`
 
 ## Validation
 

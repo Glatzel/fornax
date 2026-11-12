@@ -2,7 +2,7 @@
 
 - decoder
   - [DEC-3FR] Implement supported Hasselblad 3FR decoding and DNG export. Plan: `docs/decoder/formats/hasselblad-3fr.md`.
-  - [DEC-OTHER] Enforce the explicit unsupported-format policy for all untiered RAW containers. Plan: `docs/decoder/formats/other.md`.
+  - [DEC-OTHER] Enforce the explicit unsupported-format policy for all untiered RAW containers. Plan: `docs/decoder/formats/other-formats.md`.
 - demosaic
   - [IGV] Make IGV reproduce RawTherapee 5.13 IGV and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [EAHD] Make EAHD reproduce RawTherapee 5.13 EAHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
@@ -14,7 +14,7 @@
 - misc
   - [PY] python bindings: implement `fornax-py`
 - document
-  - [BOOK-03] Shareable PDF build: pandoc with the Typst engine through pixi, spike first. Needs BOOK-01. Plan: `docs/plans/book-03-build.md`.
+  - [BOOK-03] Shareable PDF build: pandoc with the Typst engine through pixi, spike first. Needs BOOK-01. Plan: `docs/plans/book-03-pdf-build.md`.
   - [BOOK-10] L00 Pipeline overview: stage flow and the map from stage to crate.
   - [BOOK-11] L01 From photons to numbers: sensor, ADC, Bayer CFA and its pattern variants.
   - [BOOK-12] L02 Preprocess: black level, white level, saturation, normalization, clipping (ready when the preprocess stage and level metadata are merged).

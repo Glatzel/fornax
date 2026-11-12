@@ -1,5 +1,7 @@
 # Sony ARW/NRW reference notes
 
+This reference note records pinned sources, decoder behavior, and implementation boundaries for Sony ARW/NRW.
+
 ## Sources
 
 - In-tree implementations:

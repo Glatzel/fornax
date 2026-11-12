@@ -1,5 +1,7 @@
 # Cheap Golden Decode Hash CI Implementation Plan
 
+This archived plan documents the completed Cheap Golden Decode Hash CI work.
+
 ## Goal
 
 Add a focused Ubuntu CI job that checks the committed decoder golden hashes
@@ -39,7 +41,7 @@ Out of scope:
 ## Files Expected to Change
 
 - `.github/workflows/ci.yml`
-- `docs/plans/chore-cheap-golden-ci.md`
+- `docs/_archive/plans/golden-corpus-ci.md`
 
 ## Validation
 

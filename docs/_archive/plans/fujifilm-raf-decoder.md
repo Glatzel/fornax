@@ -1,5 +1,7 @@
 # Fujifilm RAF Implementation Plan
 
+This archived plan documents the completed Fujifilm RAF work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
@@ -75,8 +77,8 @@ Out of scope:
 - `crates/fornax-decoder/{Cargo.toml,README.md,src/lib.rs,tests/raf*.rs}`
 - `crates/decoder-tracker/{golden/**,baseline.csv,README.md}`
 - `docs/{architecture.md,decoder/architecture.md,decoder/formats/fuji-raf.md}`
-- `docs/references/fuji-raf.md`
-- `docs/plans/dec-raf-fujifilm-raf.md`
+- `docs/reference/decoders/fuji-raf.md`
+- `docs/_archive/plans/fujifilm-raf-decoder.md`
 - `TODO.md`
 
 ## Validation

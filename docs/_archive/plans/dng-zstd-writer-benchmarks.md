@@ -1,5 +1,7 @@
 # Experimental DNG Zstandard and Writer Benchmarks
 
+This archived plan documents the completed Experimental DNG Zstandard and Writer Benchmarks work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task.
 

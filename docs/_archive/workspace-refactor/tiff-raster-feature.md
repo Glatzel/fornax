@@ -1,5 +1,7 @@
 # Optional TIFF Raster Feature Plan
 
+This archived workspace-refactor record documents Optional TIFF Raster Feature Plan.
+
 ## Goal
 
 Make `fornax-tiff`'s raster integration optional so a consumer that only needs
@@ -60,8 +62,8 @@ Out of scope:
 - `crates/fornax-tiff/tests/raster.rs`
 - `crates/fornax-tiff/README.md`
 - `crates/fornax-dng/Cargo.toml`
-- `docs/architecture.md`
-- `docs/plans/chore-tiff-raster-feature.md`
+- `docs/architecture/overview.md`
+- `docs/_archive/workspace-refactor/tiff-raster-feature.md`
 
 ## Validation
 

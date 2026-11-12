@@ -1,4 +1,6 @@
-# Panasonic RW2 format plan
+# Panasonic RW2 Format
+
+This format guide defines the supported container, compression, metadata, and completion requirements for Panasonic RW2.
 
 **Tier:** 2
 

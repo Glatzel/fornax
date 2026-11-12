@@ -1,5 +1,7 @@
 # Workspace refactor baseline
 
+This archived workspace-refactor record documents Workspace refactor baseline.
+
 ## Purpose
 
 This note records the pre-refactor measurements, golden decode cases, and

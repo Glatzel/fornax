@@ -1,5 +1,7 @@
 # Phase One/Leaf IIQ references
 
+This reference note records pinned sources, decoder behavior, and implementation boundaries for Phase One/Leaf IIQ.
+
 ## Sources
 
 - Rawler `0.8.0`, LGPL-2.1: `src/decoders/iiq.rs`,

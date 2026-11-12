@@ -1,5 +1,7 @@
 # Nikon NEF Huffman Lossless Implementation Plan
 
+This archived plan documents the completed Nikon NEF Huffman Lossless work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:subagent-driven-development` or
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use
@@ -32,7 +34,7 @@ codec parameters, and dispatch mode 3.
 - Numeric Huffman counts and symbols for the 12-bit and 14-bit lossless trees
   are transcribed as format data only. The owner approved this approach on
   2026-11-11. Source revisions, licenses, source agreement, and behavioral
-  verification are recorded in `docs/references/nikon-nef.md`. Lossy and split
+  verification are recorded in `docs/reference/decoders/nikon-nef.md`. Lossy and split
   trees are explicitly out of scope.
 - Production codec variants remain decode-only. Test-only encoders may live
   inside test modules.
@@ -97,7 +99,7 @@ Out of scope:
 - `crates/fornax-decoder/tests/**` for fixture parity where needed
 - `crates/decoder-tracker/{golden/**,baseline.csv,README.md}`
 - `docs/decoder/formats/nikon-nef.md`
-- `docs/references/nikon-nef.md`
+- `docs/reference/decoders/nikon-nef.md`
 - `TODO.md`
 
 ## Validation
@@ -137,7 +139,7 @@ may be committed.
   forms a complete canonical prefix code.
 - The curve table transforms decoded predictor values. The effective WhiteLevel
   is determined during the corpus/source verification and recorded in
-  `docs/references/nikon-nef.md`.
+  `docs/reference/decoders/nikon-nef.md`.
 - Mode 3 accepts exactly one strip until corpus evidence proves that Nikon
   lossless strips have independent state. Multi-strip mode 3 remains
   unsupported otherwise.
@@ -159,7 +161,7 @@ may be committed.
 
 ### Task 0: Verification gates
 
-- [x] Pin Rawler/LibRaw revisions in `docs/references/nikon-nef.md` and
+- [x] Pin Rawler/LibRaw revisions in `docs/reference/decoders/nikon-nef.md` and
   confirm the curve tag, metadata header, lossless trees, difference rule,
   predictor scheme, bit-depth rule, curve behavior, and effective WhiteLevel.
 - [x] Confirm lossy modes 1 and 4 share entropy decoding but use a split row
@@ -201,7 +203,7 @@ default feature build remains green.
   `nef` feature. Do not add a split field.
 - [x] Add only the 12-bit lossless (index 2) and 14-bit lossless (index 5)
   numeric count and symbol arrays with provenance comments and
-  `docs/references/nikon-nef.md` links. Do not transcribe lossy or split
+  `docs/reference/decoders/nikon-nef.md` links. Do not transcribe lossy or split
   arrays.
 - [x] First write failing tests for the 2x2 initial predictors, vertical
   propagation, horizontal prediction, odd widths, heights one and two,
@@ -265,7 +267,7 @@ lossy, HE/HE*, unsupported, and malformed rows retain typed reasons.
 
 - [x] Update `fornax-codec` and `fornax-nef` READMEs,
   `docs/decoder/formats/nikon-nef.md`, and
-  `docs/references/nikon-nef.md` with the supported surface, dispatch table,
+  `docs/reference/decoders/nikon-nef.md` with the supported surface, dispatch table,
   tree provenance, curve layout, WhiteLevel behavior, and unsupported reasons.
 - [x] Update `TODO.md`: mark lossless Huffman complete, keep `DEC-NEF` open,
   and record lossy modes as deferred by policy.

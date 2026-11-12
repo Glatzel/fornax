@@ -1,5 +1,7 @@
 # Workspace refactor Phase A
 
+This archived workspace-refactor record documents Workspace refactor Phase A.
+
 ## Goal
 
 Fix the stale names, failing checks, and record-keeping gaps left by PR #690,
@@ -55,13 +57,13 @@ Out of scope:
 - `book/src/notation.md`
 - `crates/fornax-dng/Cargo.toml`
 - crate README files under `crates/`
-- `docs/architecture.md`
-- `docs/decoder/architecture.md`
+- `docs/architecture/overview.md`
+- `docs/architecture/decoder.md`
 - `docs/decoder/benchmark.md`
 - `docs/plans/**`
-- `docs/proposal/**`
-- `docs/references/**`
-- `docs/superpowers/specs/**`
+- `docs/_archive/workspace-refactor/**`
+- `docs/reference/**`
+- `docs/_archive/designs/**`
 
 No decoder source, submodule pointer, or golden file should change.
 
@@ -96,9 +98,9 @@ git diff --check
   fails or is cancelled. It is a required status check under the active main
   ruleset.
 - The #684, #686, and #687 lefthook failures included markdownlint MD036 in
-  `docs/plans/chore-tiff-generic-accessors.md`. #687 also found a TOML order
+  `docs/_archive/workspace-refactor/tiff-accessors-implementation.md`. #687 also found a TOML order
   change. #688 also found a typos warning for `catch-alls` in
-  `docs/plans/chore-dng-owned-constants.md`. They are content lint findings,
+  `docs/_archive/workspace-refactor/dng-constants-implementation.md`. They are content lint findings,
   not configuration or naming failures, so this PR reports them without
   changing those documents.
 - No `fornax-codec` benchmark target exists at the baseline or main. The DNG

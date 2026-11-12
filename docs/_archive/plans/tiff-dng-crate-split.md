@@ -1,5 +1,7 @@
 # TIFF and DNG Crate Ownership Implementation Plan
 
+This archived plan documents the completed TIFF and DNG Crate Ownership work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task.
 
@@ -140,9 +142,9 @@ Run `scripts/agent-validation.sh`.
 - `crates/fornax-decoder-dnc/src/wrapper.rs`
 - `crates/fornax-raw-pipeline/src/lib.rs`
 - `scripts/agent-validation.sh`, `scripts/agent-validation-test.sh`
-- `docs/architecture.md`, `docs/decoder/architecture.md`,
+- `docs/architecture/overview.md`, `docs/architecture/decoder.md`,
   `docs/decoder/formats/dng.md`
-- `docs/references/dng-compression.md`
+- `docs/reference/decoders/dng-compression.md`
 
 ## Validation
 

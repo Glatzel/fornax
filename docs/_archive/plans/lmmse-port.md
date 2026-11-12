@@ -1,5 +1,7 @@
 # LMMSE faithful port
 
+This archived plan documents the completed LMMSE faithful port work.
+
 ## Goal
 
 Replace Fornax's generic directional LMMSE approximation with a dedicated
@@ -44,7 +46,7 @@ Out of scope:
 - `crates/fornax-raw-pipeline/src/demosaic.rs`
 - `crates/fornax-raw-pipeline/src/demosaic/directional.rs`
 - `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
-- `docs/references/lmmse.md`
+- `docs/reference/algorithms/lmmse.md`
 - `TODO.md`
 
 ## Validation

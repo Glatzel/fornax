@@ -1,5 +1,7 @@
 # DNG Raw-IFD Compatibility and Performance Implementation Plan
 
+This archived plan documents the completed DNG Raw-IFD Compatibility and Performance work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > superpowers:executing-plans to implement this plan task-by-task. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
@@ -21,7 +23,7 @@ fallback while retaining the existing signatures and enums.
 fixtures.
 
 **Spec:** The approved implementation plan supplied by the user and the
-repository constraints in `AGENTS.md`, `docs/architecture.md`, and
+repository constraints in `AGENTS.md`, `docs/architecture/overview.md`, and
 `docs/decoder/formats/dng.md`.
 
 ## Global Constraints
@@ -80,8 +82,8 @@ repository constraints in `AGENTS.md`, `docs/architecture.md`, and
 - Focused writer JPEG-92/Deflate modules
 - `crates/bench-decoder/benches/decoder.rs` if additional benchmark coverage
   is required
-- `docs/architecture.md`, `docs/decoder/architecture.md`,
-  `docs/decoder/formats/dng.md`, `docs/references/dng-lossless-jpeg.md`, and
+- `docs/architecture/overview.md`, `docs/architecture/decoder.md`,
+  `docs/decoder/formats/dng.md`, `docs/reference/decoders/dng-lossless-jpeg.md`, and
   this plan
 
 ## Validation
@@ -126,7 +128,7 @@ Run the decoder benchmark with the colorchart fixture and compare
 
 **Files:**
 
-- Create: `docs/plans/chore-dng-raw-ifd-compat-performance.md`
+- Create: `docs/_archive/plans/dng-raw-ifd-compatibility.md`
 
 **Interfaces:**
 
@@ -284,10 +286,10 @@ Run the decoder benchmark with the colorchart fixture and compare
 
 **Files:**
 
-- Modify: `docs/architecture.md`
-- Modify: `docs/decoder/architecture.md`
+- Modify: `docs/architecture/overview.md`
+- Modify: `docs/architecture/decoder.md`
 - Modify: `docs/decoder/formats/dng.md`
-- Modify: `docs/references/dng-lossless-jpeg.md`
+- Modify: `docs/reference/decoders/dng-lossless-jpeg.md`
 
 **Interfaces:**
 

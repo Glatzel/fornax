@@ -1,5 +1,7 @@
 # VNG4 implementation plan
 
+This archived plan documents the completed VNG4 work.
+
 ## Goal
 
 Add a native VNG4 demosaic target that keeps the two green CFA phases separate
@@ -54,8 +56,8 @@ VNG behavior or LibRaw non-four-color comparison.
 - `crates/compare-demosaic/src/snapshots/*VNG4*`
 - `crates/compare-demosaic/baseline/canonical.json`
 - `crates/compare-demosaic/README.md`
-- `docs/references/vng.md`
-- `docs/plans/vng4-native.md`
+- `docs/reference/algorithms/vng.md`
+- `docs/_archive/plans/vng4.md`
 
 ## Interfaces
 
@@ -87,8 +89,8 @@ cargo test --workspace --all-features
 cargo +nightly fmt --check
 cargo clippy --workspace --all-features --all-targets -- -D warnings -A clippy::too_many_arguments
 markdownlint-cli2 crates/compare-demosaic/README.md \
-  crates/fornax-raw-pipeline/README.md docs/references/vng.md \
-  docs/plans/vng4-native.md
+  crates/fornax-raw-pipeline/README.md docs/reference/algorithms/vng.md \
+  docs/_archive/plans/vng4.md
 git -c core.whitespace=cr-at-eol diff --check
 ```
 

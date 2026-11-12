@@ -1,4 +1,6 @@
-# Trigger: Step 5 — move TIFF raster handling
+# TIFF Raster Step
+
+This archived workspace-refactor record documents TIFF Raster Step.
 
 Implement only Step 5 of the Fornax workspace refactor. Open one PR and stop.
 
@@ -6,7 +8,7 @@ Implement only Step 5 of the Fornax workspace refactor. Open one PR and stop.
 
 - Work from current `origin/main`.
 - Confirm Steps 3 and 4 are merged.
-- Read `docs/references/workspace-refactor-baseline.md`.
+- Read `docs/_archive/workspace-refactor/baseline-findings.md`.
 
 ## Goal
 
@@ -51,7 +53,7 @@ required ID remains ambiguous, stop and request a maintainer ruling.
 
 - Suggested branch: `chore/tiff-raster`
 - Suggested worktree: `.worktrees/chore-tiff-raster`
-- Plan: `docs/plans/chore-tiff-raster.md`
+- Plan: `docs/_archive/workspace-refactor/tiff-raster-implementation.md`
 
 ## Validation
 

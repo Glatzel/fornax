@@ -1,5 +1,7 @@
 # Codec Enum API Implementation Plan
 
+This archived plan documents the completed Codec Enum API work.
+
 **Goal:** Replace the separate codec direction traits and free dispatch
 functions with one public `Codec` enum whose variants decode and encode
 format-neutral sample chunks.
@@ -60,8 +62,8 @@ Out of scope:
 - `crates/fornax-dng/README.md`
 - `crates/fornax-dng/src/dng_decoder/mod.rs`
 - `crates/fornax-dng/src/writer.rs`
-- `docs/architecture.md`
-- `docs/plans/chore-codec-enum-api.md`
+- `docs/architecture/overview.md`
+- `docs/_archive/plans/codec-enum-api.md`
 
 ## Review focus
 
@@ -191,8 +193,8 @@ git commit -m "refactor: route DNG codecs through Codec"
 
 **Files:**
 
-- Modify: `docs/architecture.md`
-- Modify: `docs/plans/chore-codec-enum-api.md`
+- Modify: `docs/architecture/overview.md`
+- Modify: `docs/_archive/plans/codec-enum-api.md`
 - Modify: `crates/fornax-codec/README.md`
 - Modify: `crates/fornax-dng/README.md`
 
@@ -216,7 +218,7 @@ Clippy, decoder benchmark compilation, and diff checks passing.
 - [x] **Step 4: Commit documentation and validation updates.**
 
 ```bash
-git add docs/architecture.md docs/plans/chore-codec-enum-api.md
+git add docs/architecture/overview.md docs/_archive/plans/codec-enum-api.md
 git commit -m "docs: document codec enum API"
 ```
 

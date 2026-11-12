@@ -1,5 +1,7 @@
 # DHT faithful behavioral port
 
+This archived design note documents the selected DHT faithful behavioral port approach.
+
 ## Intent
 
 Make Fornax's `Demosaic::Dht` implementation reproduce LibRaw 0.22.3's

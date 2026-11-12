@@ -1,12 +1,14 @@
 # TIFF/DNG Compression ID Ownership Audit
 
+This archived workspace-refactor record documents TIFF/DNG Compression ID Ownership Audit.
+
 **Goal:** Establish source-backed ownership for the requested TIFF-family
 compression IDs, move non-DNG values into the TIFF vocabulary, and make the TIFF
 resolver distinguish unknown IDs from known IDs whose codec feature is
 unavailable.
 
-**Spec:** `docs/plans/workspace-refactor/b2-compression-id-audit.md` and
-`docs/plans/workspace-refactor/phase-b-c-handoff.md`.
+**Spec:** `docs/_archive/workspace-refactor/compression-id-audit-plan.md` and
+`docs/_archive/workspace-refactor/phase-b-c-handoff.md`.
 
 ## Scope
 
@@ -36,10 +38,10 @@ Out of scope:
 - [x] Inspect TIFF 6.0, TIFF Technical Note #2, TIFF/EP 1.0, DNG 1.7.1.0,
   pinned LibTIFF headers/release notes, and the GDAL JPEG XL registration
   discussion.
-- [x] Create `docs/references/compression-ids.md` with one row per requested ID.
+- [x] Create `docs/reference/codecs/compression-ids.md` with one row per requested ID.
 - [x] Apply the ambiguity gate. No contradictory or unestablished ownership was
   found.
-- [x] Update `docs/references/dng-compression.md` to match the audit.
+- [x] Update `docs/reference/decoders/dng-compression.md` to match the audit.
 - [x] Add failing TIFF resolver tests for supported, feature-disabled, and
   unknown IDs.
 - [x] Add all confirmed non-DNG IDs to TIFF vocabulary with conservative codec
@@ -58,9 +60,9 @@ Out of scope:
 
 ## Files Expected to Change
 
-- `docs/references/compression-ids.md`
-- `docs/references/dng-compression.md`
-- `docs/plans/chore-compression-id-audit.md`
+- `docs/reference/codecs/compression-ids.md`
+- `docs/reference/decoders/dng-compression.md`
+- `docs/_archive/workspace-refactor/compression-id-audit-implementation.md`
 - `crates/fornax-tiff/Cargo.toml`
 - `crates/fornax-tiff/README.md`
 - `crates/fornax-tiff/src/constants.rs`
@@ -76,8 +78,8 @@ Out of scope:
 - `crates/fornax-dng/src/writer.rs`
 - `crates/fornax-dng/tests/constants.rs`
 - `crates/fornax-dng/tests/writer_boundary.rs`
-- `docs/architecture.md`
-- `docs/decoder/architecture.md`
+- `docs/architecture/overview.md`
+- `docs/architecture/decoder.md`
 - `docs/decoder/corpus.md`
 - `docs/decoder/formats/dng.md`
 

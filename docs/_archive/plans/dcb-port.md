@@ -1,5 +1,7 @@
 # DCB Faithful Port Implementation Plan
 
+This archived plan documents the completed DCB Faithful Port work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > superpowers:subagent-driven-development (recommended) or
 > superpowers:executing-plans to implement this plan task-by-task. Steps use
@@ -18,7 +20,7 @@ lazy boundary.
 `compare-demosaic`, LibRaw 0.22.3, Insta, and Cargo.
 
 **Spec:**
-[`docs/superpowers/specs/2026-11-03-dcb-faithful-port-design.md`](../superpowers/specs/2026-11-03-dcb-faithful-port-design.md)
+[`docs/_archive/designs/dcb-port-design.md`](../designs/dcb-port-design.md)
 
 ## Goal
 
@@ -92,8 +94,8 @@ waivers.
 - `crates/compare-demosaic/src/snapshots/*-DCB-libraw.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
-- `docs/references/dcb.md`
-- `docs/plans/dcb-faithful-port.md`
+- `docs/reference/algorithms/dcb.md`
+- `docs/_archive/plans/dcb-port.md`
 - `TODO.md`
 
 ## Validation
@@ -117,8 +119,8 @@ cargo fmt --check
 cargo clippy --workspace --all-features --all-targets -- \
   -D warnings -A clippy::too_many_arguments
 pixi exec -s markdownlint-cli2 markdownlint-cli2 \
-  crates/compare-demosaic/README.md docs/references/dcb.md \
-  docs/plans/dcb-faithful-port.md
+  crates/compare-demosaic/README.md docs/reference/algorithms/dcb.md \
+  docs/_archive/plans/dcb-port.md
 git -c core.whitespace=cr-at-eol diff --check
 ```
 
@@ -247,7 +249,7 @@ Expected: compilation fails because the new DCB helpers do not exist.
 Add a module header naming LibRaw 0.22.3 commit
 `cf02d66eb5c19d4e46df7aee0582e47a4918509a`, the
 `dcb_demosaic.cpp` reference, copyright holder Jacek Gozdz, and the
-BSD-3-Clause `docs/references/dcb.md` notice. Implement `insert_measured`,
+BSD-3-Clause `docs/reference/algorithms/dcb.md` notice. Implement `insert_measured`,
 `cfa_channel`, and `border_interpolate`.
 
 `cfa_channel` maps `R` to 0, either green channel to 1, and `B` to 2 using
@@ -627,8 +629,8 @@ git commit -m "feat: port LibRaw DCB demosaicing"
 - Modify: `crates/compare-demosaic/baseline/canonical.json`
 - Modify: `crates/compare-demosaic/src/snapshots/*-DCB-libraw.snap`
 - Modify: `TODO.md`
-- Modify: `docs/plans/dcb-faithful-port.md`
-- Create: `docs/references/dcb.md`
+- Modify: `docs/_archive/plans/dcb-port.md`
+- Create: `docs/reference/algorithms/dcb.md`
 
 **Interfaces:**
 
@@ -670,7 +672,7 @@ diff and restore any unrelated snapshot change.
 
 - [ ] **Step 4: Write reference notes and update the hand-written DCB note**
 
-Create `docs/references/dcb.md` with the pinned source link, algorithm stage
+Create `docs/reference/algorithms/dcb.md` with the pinned source link, algorithm stage
 order, six-pixel border, fixed iteration/enhancement settings, integer
 conversion behavior, expected comparison behavior, and the complete
 BSD-3-Clause notice retained from `dcb_demosaic.cpp`.
@@ -709,7 +711,7 @@ Expected: both commands exit 0.
 - [ ] **Step 7: Complete the backlog record**
 
 Remove the `[DCB]` bullet from `TODO.md`. Mark completed plan checkboxes in
-`docs/plans/dcb-faithful-port.md` and record the final accepted metrics,
+`docs/_archive/plans/dcb-port.md` and record the final accepted metrics,
 validation results, and any skipped platform checks under
 `Decisions and notes`.
 
@@ -723,7 +725,7 @@ in the pull request. Do not describe a skipped command as passing.
 Run:
 
 ```bash
-git add TODO.md docs/plans/dcb-faithful-port.md docs/references/dcb.md \
+git add TODO.md docs/_archive/plans/dcb-port.md docs/reference/algorithms/dcb.md \
   crates/compare-demosaic/README.md \
   crates/compare-demosaic/baseline/canonical.json \
   crates/compare-demosaic/src/snapshots

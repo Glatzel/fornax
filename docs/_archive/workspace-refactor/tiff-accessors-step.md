@@ -1,4 +1,6 @@
-# Trigger: Step 3 — move generic TIFF accessors
+# TIFF Accessors Step
+
+This archived workspace-refactor record documents TIFF Accessors Step.
 
 Implement only Step 3 of the Fornax workspace refactor. Open one PR and stop.
 
@@ -34,7 +36,7 @@ Move only generic TIFF value/accessor helpers into `fornax-tiff`.
 
 - Branch: `chore/tiff-generic-accessors`
 - Worktree: `.worktrees/chore-tiff-generic-accessors`
-- Plan: `docs/plans/chore-tiff-generic-accessors.md`
+- Plan: `docs/_archive/workspace-refactor/tiff-accessors-implementation.md`
 - Do not modify `TODO.md`.
 
 ## Forbidden

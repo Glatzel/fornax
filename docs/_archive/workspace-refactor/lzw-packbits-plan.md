@@ -1,5 +1,7 @@
 # LZW and PackBits Codec Implementation Plan
 
+This archived workspace-refactor record documents LZW and PackBits Codec Implementation Plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add feature-gated TIFF LZW and PackBits decoding/encoding plus the legacy Deflate identifier.
@@ -8,14 +10,14 @@
 
 **Tech Stack:** Rust 2024, Cargo features, `weezl` candidate for TIFF LZW.
 
-**Spec:** `docs/plans/workspace-refactor/phase-b-c-handoff.md`
+**Spec:** `docs/_archive/workspace-refactor/phase-b-c-handoff.md`
 
 ## Global Constraints
 
 - Use branch `chore/codec-lzw-packbits` and worktree
   `.worktrees/chore-codec-lzw-packbits`.
 - Use one worktree and one pull request.
-- Keep the branch plan at `docs/plans/chore-codec-lzw-packbits.md`.
+- Keep the branch plan at `docs/_archive/plans/lzw-packbits-codecs.md`.
 - Start after B1 and B2 are merged.
 - Add only `lzw` and `packbits`; do not add LZMA, JPEG, WebP, or vendor codecs.
 - Do not place TIFF or raw-workflow types in `fornax-codec`.
@@ -240,7 +242,7 @@ git commit -m "feat: resolve optional TIFF LZW and PackBits"
 ### Task 4: Full validation and handoff
 
 **Files:**
-- Modify: `docs/plans/chore-codec-lzw-packbits.md`
+- Modify: `docs/_archive/plans/lzw-packbits-codecs.md`
 
 **Interfaces:**
 - Consumes: Tasks 1-3.

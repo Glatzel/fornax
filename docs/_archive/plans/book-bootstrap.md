@@ -1,4 +1,6 @@
-# Plan: book-01 — bootstrap the human-facing book
+# Human-Facing Book Bootstrap
+
+This archived plan documents the completed Human-Facing Book Bootstrap work.
 
 Branch `task/book-01-bootstrap`, worktree `.worktrees/book-01-bootstrap`.
 PR title example: `docs: add book skeleton and asset check`. Put `BOOK-01` in the PR body and remove the `BOOK-01` item from `TODO.md` in the same PR (per root `AGENTS.md`).
@@ -15,7 +17,7 @@ This task builds the skeleton, rules and a CI asset check. It writes no chapters
 ## Context a fresh reader needs
 
 - Root `AGENTS.md` rules still apply: stages stay separate; the active demosaic target is conventional 2x2 RGB Bayer, and the book must not claim X-Trans, four-color, monochrome or other CFA support; the `AGENTS.md` closest to changed files wins; do not add items to `TODO.md`; docs-only validation is `git diff --check` plus the repository-configured Markdown lint (`.markdownlint-cli2.jsonc`).
-- Read `docs/architecture.md` and `docs/references/` for crate roles and source notes. The book links to them and does not duplicate them.
+- Read `docs/architecture/overview.md` and `docs/reference/` for crate roles and source notes. The book links to them and does not duplicate them.
 - Maintainer decisions already made: the human content lives in top-level `book/`; the agent drafts and the maintainer rewrites; a chapter is written only after the code it describes is implemented and merged; figures are generated procedurally (see `book-02-figures`); a PDF build exists for sharing (see `book-03-build`); book tools are declared in `pixi.toml`, never installed globally.
 
 ## Scope
@@ -29,7 +31,7 @@ In:
 Out:
 
 - chapter prose, figures, build tooling, `pixi.toml` changes (later plans)
-- Rust code changes; edits to `docs/architecture.md` or `docs/references/` other than adding links
+- Rust code changes; edits to `docs/architecture/overview.md` or `docs/reference/` other than adding links
 - committed binary files of any kind
 
 ## Layout to create
@@ -77,7 +79,7 @@ Nothing binary is committed: no PNG, JPG, GIF, WebP, TIFF, PDF, raw files, fonts
 - Math: GitHub `$inline$` and `$$display$$`. Define each symbol once in `src/notation.md`.
 - Figures: Mermaid for flow, dependency and decision diagrams only. Everything spatial or numeric is an SVG produced by a generator script (`book-02-figures`). Transparent background, mid-contrast colors so light and dark themes both work, mandatory alt text.
 - Originality: redraw figures; never copy figures from papers. Link to permissively licensed external samples and record each licence (raw.pixls.us samples are, as far as I know, CC0; verify).
-- Citations: keys like `[Malvar2004]` link to `src/bibliography.md` (DOI or stable URL; access date for websites; code as pinned commit permalinks, or the pinned sources under `external/`). Link to `docs/references/<topic>.md` for detail.
+- Citations: keys like `[Malvar2004]` link to `src/bibliography.md` (DOI or stable URL; access date for websites; code as pinned commit permalinks, or the pinned sources under `external/`). Link to `docs/reference/<topic>.md` for detail.
 - Honesty: every technical claim traces to a cited source or `file:line`. Never invent citations; check that a DOI or URL resolves before using it.
 - Theory vs Fornax: always separate what the literature does from what Fornax does. Do not describe stages Fornax lacks as if it had them.
 
@@ -103,7 +105,7 @@ CI step: read `.github/workflows/` (a `ci.yml` exists) and add a minimal step or
 
 ## Task checklist
 
-- [x] Read root `AGENTS.md`, `docs/architecture.md`, `docs/references/`, crate READMEs, `crates/compare-demosaic/`, `scripts/`, `.github/workflows/`, `.markdownlint-cli2.jsonc`, `ruff.toml`; note the patterns to match
+- [x] Read root `AGENTS.md`, `docs/architecture/overview.md`, `docs/reference/`, crate READMEs, `crates/compare-demosaic/`, `scripts/`, `.github/workflows/`, `.markdownlint-cli2.jsonc`, `ruff.toml`; note the patterns to match
 - [x] Create the `book/` files above; README includes the chapter status table (planned / ready / draft / rewrite / done) and one Mermaid diagram of the separate stages (decode, preprocess, demosaic, post-process)
 - [x] Write `book/AGENTS.md` from the section above, hard rule first
 - [x] Create `book/scripts/check_assets.py`, its tests, and the CI step; run the script once
@@ -113,7 +115,7 @@ CI step: read `.github/workflows/` (a `ci.yml` exists) and add a minimal step or
 
 ## Files expected to change
 
-- new: `book/AGENTS.md`, `book/README.md`, `book/template.md`, `book/src/{SUMMARY,notation,glossary,bibliography}.md`, `book/scripts/{check_assets,test_check_assets}.py`, `docs/plans/book-01-bootstrap.md`
+- new: `book/AGENTS.md`, `book/README.md`, `book/template.md`, `book/src/{SUMMARY,notation,glossary,bibliography}.md`, `book/scripts/{check_assets,test_check_assets}.py`, `docs/_archive/plans/book-bootstrap.md`
 - edit: root `AGENTS.md`, `.gitignore`, one workflow under `.github/workflows/`, `TODO.md` (remove `BOOK-01` only)
 
 ## Validation
@@ -131,7 +133,7 @@ Resolved: location `book/`; draft-then-rewrite; readiness follows code; generate
 
 Open: none.
 
-Not read when this plan was written: `docs/architecture.md`, `docs/references/`, `scripts/`, `.github/workflows/`, `pixi.toml`, `TODO.md` (GitHub blocked directory and some file access). Follow the repo, not this plan, where they differ.
+Not read when this plan was written: `docs/architecture/overview.md`, `docs/reference/`, `scripts/`, `.github/workflows/`, `pixi.toml`, `TODO.md` (GitHub blocked directory and some file access). Follow the repo, not this plan, where they differ.
 
 ## Progress log
 

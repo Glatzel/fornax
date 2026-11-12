@@ -1,5 +1,7 @@
 # Optional TIFF Raster Implementation Plan
 
+This archived workspace-refactor record documents Optional TIFF Raster Implementation Plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Let `fornax-tiff` provide parser/writer-only functionality without pulling the codec, image, or Rayon stack.
@@ -8,7 +10,7 @@
 
 **Tech Stack:** Rust 2024, Cargo optional dependencies and features.
 
-**Spec:** `docs/plans/workspace-refactor/phase-b-c-handoff.md`
+**Spec:** `docs/_archive/workspace-refactor/phase-b-c-handoff.md`
 
 ## Global Constraints
 

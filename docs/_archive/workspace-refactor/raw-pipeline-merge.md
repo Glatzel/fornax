@@ -1,5 +1,7 @@
 # Merge Preprocessing and Postprocessing Implementation Plan
 
+This archived workspace-refactor record documents Merge Preprocessing and Postprocessing Implementation Plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Merge the production preprocessing and postprocessing implementations
@@ -15,7 +17,7 @@ directly.
 
 **Tech Stack:** Rust 2024, Cargo workspace, Rayon, Criterion, `fornax-raw-core`
 
-**Spec:** `docs/references/workspace-refactor-baseline.md`, Step 2 only
+**Spec:** `docs/_archive/workspace-refactor/baseline-findings.md`, Step 2 only
 
 ## Scope
 
@@ -196,9 +198,9 @@ Expected: every command exits 0 and the moved test count is preserved except tes
 - Modify: `AGENTS.md`
 - Modify: `README.md`
 - Modify: `crates/fornax-raw-core/README.md`
-- Modify: `docs/architecture.md`
+- Modify: `docs/architecture/overview.md`
 - Modify: `.github/workflows/ci.yml`
-- Modify: `docs/plans/chore-merge-pre-post-pipeline.md`
+- Modify: `docs/_archive/workspace-refactor/raw-pipeline-merge.md`
 
 **Interfaces:**
 

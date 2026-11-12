@@ -1,4 +1,6 @@
-# Architecture
+# Architecture Overview
+
+This document explains Fornax's crate boundaries, stage contracts, and end-to-end image-processing data flow.
 
 ## Purpose
 
@@ -44,7 +46,7 @@ whose current replacement is `fornax-raw`. Its source still imports
 `fornax::dnc`, `fornax::fornax_dalim`, `fornax::libraw`, and
 `fornax::Fornax`, none of which the current facade exports. The intended
 Python API remains a
-[reserved decision](proposal/steps-1-6-review-summary.md#11-decisions-and-gaps).
+[reserved decision](../_archive/workspace-refactor/steps-1-6-review.md#11-decisions-and-gaps).
 
 ## Decoder contract
 
@@ -305,7 +307,7 @@ live in `fornax-raw-pipeline`.
 runs manual, deterministically sharded decoder regressions against a committed
 CSV baseline. RAW payloads are transient and never uploaded or committed.
 
-See [the decoder-tracker agent guide](../crates/decoder-tracker/AGENTS.md) for
+See [the decoder-tracker agent guide](../../crates/decoder-tracker/AGENTS.md) for
 corpus setup, run, baseline-update, and README rules.
 
 `compare-demosaic` normalizes the active Bayer mosaic before passing it to
@@ -313,11 +315,11 @@ Fornax and pinned LibRaw, darktable, and RawTherapee adapters. Reference C/C++
 code is build-time development tooling only and must not enter production
 decoder dependencies.
 
-See [the comparison agent guide](../crates/compare-demosaic/AGENTS.md) for
+See [the comparison agent guide](../../crates/compare-demosaic/AGENTS.md) for
 baseline, waiver, artifact, and regeneration rules.
 
 ## References
 
-- Decoder details: [docs/decoder/architecture.md](decoder/architecture.md)
-- Decoder benchmark plan: [docs/decoder/benchmark.md](decoder/benchmark.md)
-- Decoder corpus plan: [docs/decoder/corpus.md](decoder/corpus.md)
+- Decoder details: [docs/architecture/decoder.md](decoder.md)
+- Decoder benchmark plan: [docs/decoder/benchmark.md](../decoder/benchmark.md)
+- Decoder corpus plan: [docs/decoder/corpus.md](../decoder/corpus.md)

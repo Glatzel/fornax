@@ -1,5 +1,7 @@
 # Panasonic RW2 references
 
+This reference note records pinned sources, decoder behavior, and implementation boundaries for Panasonic RW2.
+
 ## Behavior References
 
 ### Rawler 0.8.0

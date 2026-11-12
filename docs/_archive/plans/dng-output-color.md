@@ -1,5 +1,7 @@
 # DNG Output Color Management Implementation Plan
 
+This archived plan documents the completed DNG Output Color Management work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task.
 
@@ -82,8 +84,8 @@ Out of scope:
 - `crates/fornax-raw-pipeline/src/lib.rs`
 - `crates/fornax-raw-pipeline/README.md`
 - `crates/fornax-decoder-rawler/src/lib.rs`
-- `docs/references/dng-preview-color.md`
-- `docs/architecture.md`
+- `docs/reference/decoders/dng-output-color.md`
+- `docs/architecture/overview.md`
 
 ## Validation
 

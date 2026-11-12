@@ -1,5 +1,7 @@
 # Workspace refactor baseline
 
+This archived workspace-refactor record documents Workspace refactor baseline.
+
 ## Goal
 
 Record reproducible pre-refactor measurements and golden decode outputs so each
@@ -53,8 +55,8 @@ Out of scope:
 - `crates/decoder-tracker/AGENTS.md`
 - `crates/decoder-tracker/README.md`
 - `docs/decoder/corpus.md`
-- `docs/references/workspace-refactor-baseline.md`
-- `docs/plans/chore-workspace-refactor-baseline.md`
+- `docs/_archive/workspace-refactor/baseline-findings.md`
+- `docs/_archive/workspace-refactor/baseline-plan.md`
 
 ## Validation
 

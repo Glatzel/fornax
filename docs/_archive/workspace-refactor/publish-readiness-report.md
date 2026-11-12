@@ -1,5 +1,7 @@
 # Publish Readiness Report
 
+This archived workspace-refactor record documents Publish Readiness Report.
+
 ## Scope and method
 
 This is a read-only snapshot of the Cargo workspace on 2026-11-10. It

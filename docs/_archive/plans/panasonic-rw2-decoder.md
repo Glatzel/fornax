@@ -1,4 +1,6 @@
-# DEC-RW2: Panasonic RW2
+# Panasonic RW2 Decoder
+
+This archived plan documents the completed Panasonic RW2 Decoder work.
 
 ## Goal
 
@@ -150,9 +152,9 @@ Metadata decisions:
 - `crates/decoder-tracker/{baseline.csv,README.md}`
 - `crates/decoder-tracker/src/` and tests only where RW2 result classification
   needs regression coverage.
-- `docs/architecture.md`
+- `docs/architecture/overview.md`
 - `docs/decoder/formats/panasonic-rw2.md`
-- `docs/references/panasonic-rw2.md`
+- `docs/reference/decoders/panasonic-rw2.md`
 - `README.md` and affected crate READMEs
 - `Cargo.toml`, `Cargo.lock`
 - `TODO.md`

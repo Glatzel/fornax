@@ -1,4 +1,6 @@
-# Plan: book-02 — procedural figure generation
+# Procedural Book Figure Generation
+
+This archived plan documents the completed Procedural Book Figure Generation work.
 
 Branch `task/book-02-figures`, worktree `.worktrees/book-02-figures`.
 PR title example: `docs: add procedural figure tooling for book`. Put `BOOK-02` in the PR body and remove its `TODO.md` item in the same PR.
@@ -59,7 +61,7 @@ Sample file names follow the chapter ids planned in `TODO.md`; rename to match w
 
 ## Files expected to change
 
-- new: `book/figures/{README.md,common.py,l01_bayer_patterns.py,l02_level_normalization.py}`, `docs/plans/book-02-figures.md`
+- new: `book/figures/{README.md,common.py,l01_bayer_patterns.py,l02_level_normalization.py}`, `docs/_archive/plans/book-figures.md`
 - generated, ignored: two SVGs under `book/src/figures/`
 - edit: `pixi.toml`, `pixi.lock`, `TODO.md` (remove `BOOK-02` only)
 

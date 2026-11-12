@@ -1,5 +1,7 @@
 # Multi-band container options
 
+This archived workspace-refactor record documents Multi-band container options.
+
 This note records evidence for the reserved multi-band container decision. It
 compares two implementation directions without defining a container shape or
 selecting an option.

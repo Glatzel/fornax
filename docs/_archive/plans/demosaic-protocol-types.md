@@ -1,5 +1,7 @@
 # Move Demosaic Protocol Traits Implementation Plan
 
+This archived plan documents the completed Move Demosaic Protocol Traits work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Move `IDemosaic` and `LazyDemosaic` from `fornax-raw-core` to `fornax-raw-pipeline`, while keeping `DemosaicError` in `fornax-raw-core` to avoid a dependency cycle.
@@ -114,7 +116,7 @@ Expected: compilation fails because `fornax_raw_pipeline::protocol` does not exi
 - Modify: `crates/fornax-raw/src/postprocessor.rs`
 - Modify: `crates/fornax-raw-core/README.md`
 - Modify: `crates/fornax-raw-pipeline/README.md`
-- Modify: `docs/architecture.md`
+- Modify: `docs/architecture/overview.md`
 
 **Interfaces:**
 

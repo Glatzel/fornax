@@ -1,5 +1,7 @@
 # Decoder Tracker Agent Guide Implementation Plan
 
+This archived plan documents the completed Decoder Tracker Agent Guide work.
+
 **Goal:** Make the decoder-tracker corpus lifecycle discoverable and safe for
 maintainers and agents by pairing a crate-local guide with a project skill and
 completing the manual-workflow handoff documentation.
@@ -28,7 +30,7 @@ Out of scope:
 - [x] Complete the workflow artifact and README handoff in
       `docs/decoder/corpus.md`.
 - [x] Add discoverability links in the crate README and
-      `docs/architecture.md`.
+      `docs/architecture/overview.md`.
 - [x] Forward-test the skill against the baseline scenario.
 - [x] Run documentation validation and inspect the final diff.
 
@@ -38,8 +40,8 @@ Out of scope:
 - `.agents/skills/decoder-corpus-tracker/SKILL.md` (new)
 - `crates/decoder-tracker/README.md`
 - `docs/decoder/corpus.md`
-- `docs/architecture.md`
-- `docs/plans/chore-decoder-tracker-agent-guide.md` (new)
+- `docs/architecture/overview.md`
+- `docs/_archive/plans/decoder-tracker-agent-guide.md` (new)
 
 ## Validation
 

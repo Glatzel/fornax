@@ -1,4 +1,6 @@
-# RawTherapee reference notes
+# RawTherapee Reference Notes
+
+This reference note records pinned sources, numerical behavior, and implementation boundaries for RawTherapee.
 
 This note records the pinned RawTherapee source used by `compare-demosaic` and
 the boundary conditions required to reproduce its demosaic routines without

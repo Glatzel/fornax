@@ -1,5 +1,7 @@
 # AMaZE reference notes
 
+This reference note records pinned sources, numerical behavior, and implementation boundaries for AMaZE.
+
 This note records the authoritative material and conventions used by Fornax's
 conventional 2x2 RGB Bayer AMaZE path.
 

@@ -1,5 +1,7 @@
 # Generic TIFF Accessors Implementation Plan
 
+This archived workspace-refactor record documents Generic TIFF Accessors Implementation Plan.
+
 **Goal:** Share only the generic unsigned TIFF scalar/list access behavior used
 by `fornax-dng` and `fornax-arw`, without moving DNG or Sony policy.
 
@@ -113,7 +115,7 @@ caller behavior remains unchanged.
 
 ## Files Expected to Change
 
-- `docs/plans/chore-tiff-generic-accessors.md`
+- `docs/_archive/workspace-refactor/tiff-accessors-implementation.md`
 - `crates/fornax-tiff/src/lib.rs`
 - `crates/fornax-tiff/src/value.rs`
 - `crates/fornax-tiff/tests/value_accessors.rs`

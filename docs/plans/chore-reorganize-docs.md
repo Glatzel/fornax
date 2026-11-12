@@ -1,5 +1,7 @@
 # Documentation Reorganization Implementation Plan
 
+This plan records the approved documentation reorganization and its validation steps.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Reorganize `docs/` into a purpose-based tree that is navigable by
@@ -97,7 +99,7 @@ git commit -m "docs: plan documentation reorganization"
 - Produces: a complete move-only commit whose tree contains every old document
   at exactly one new path.
 
-- [ ] **Step 1: Validate the source inventory before moving**
+- [x] **Step 1: Validate the source inventory before moving**
 
 Run:
 
@@ -108,7 +110,7 @@ git ls-tree -r --name-only HEAD docs | sort
 Expected: 105 Markdown files, including this plan, and no mapping source has
 already moved.
 
-- [ ] **Step 2: Move every mapped file with `git mv`**
+- [x] **Step 2: Move every mapped file with `git mv`**
 
 Use the exact pairs below. Do not use ordinary `mv`, and do not change file
 contents in this task.
@@ -220,7 +222,7 @@ docs/superpowers/specs/2026-11-03-dcb-faithful-port-design.md -> docs/_archive/d
 docs/superpowers/specs/2026-11-04-dht-faithful-port-design.md -> docs/_archive/designs/dht-port-design.md
 ```
 
-- [ ] **Step 3: Verify the move-only commit**
+- [x] **Step 3: Verify the move-only commit**
 
 Run:
 
@@ -232,7 +234,7 @@ git diff --name-only --cached | wc -l
 Expected: only rename records appear, and the old-to-new path count matches the
 approved mapping.
 
-- [ ] **Step 4: Commit the moves**
+- [x] **Step 4: Commit the moves**
 
 ```bash
 git add -A docs
@@ -252,12 +254,12 @@ git commit -m "docs: reorganize documentation tree"
 - Consumes: the move-only commit from Task 2.
 - Produces: zero stale documentation paths and valid relative links/anchors.
 
-- [ ] **Step 1: Update every internal link and fragment**
+- [x] **Step 1: Update every internal link and fragment**
 
 Resolve links relative to each document's new location, including Markdown
 links, images, and reference definitions.
 
-- [ ] **Step 2: Update every outside reference to moved documents**
+- [x] **Step 2: Update every outside reference to moved documents**
 
 Update references in:
 
@@ -288,7 +290,7 @@ Update references in:
 - `crates/fornax-rw2/README.md`
 - `crates/fornax-tiff/README.md`
 
-- [ ] **Step 3: Normalize headings and summaries**
+- [x] **Step 3: Normalize headings and summaries**
 
 For every moved document:
 
@@ -298,14 +300,14 @@ For every moved document:
 
 Do not change other prose except to repair links.
 
-- [ ] **Step 4: Run the relative-link checker**
+- [x] **Step 4: Run the relative-link checker**
 
 Check Markdown links, images, reference definitions, and local fragments across
 all of `docs/`, plus all references from outside `docs/`.
 
 Expected: zero broken relative targets and zero broken local anchors.
 
-- [ ] **Step 5: Commit link and heading repairs**
+- [x] **Step 5: Commit link and heading repairs**
 
 ```bash
 git add AGENTS.md TODO.md .agents book crates docs

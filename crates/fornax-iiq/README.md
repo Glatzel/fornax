@@ -12,4 +12,4 @@ Legacy Raw1/Raw2 modes, unknown camera profiles, Leaf `.MOS`, Phase One `.TIF`,
 preview extraction, and non-2x2 pipeline input return typed unsupported errors.
 
 Behavioral provenance and licensing constraints are recorded in
-[Phase One IIQ references](../../docs/references/phase-one-iiq.md).
+[Phase One IIQ references](../../docs/reference/decoders/phase-one-iiq.md).

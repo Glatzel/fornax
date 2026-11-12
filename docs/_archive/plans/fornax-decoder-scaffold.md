@@ -1,5 +1,7 @@
 # Initialize fornax-decoder Implementation Plan
 
+This archived plan documents the completed Initialize fornax-decoder work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add the planning documents, DNG-shaped scaffold, corpus/benchmark
@@ -15,7 +17,7 @@ other CFA layout with a typed handoff error.
 `tiff`.
 
 **Spec:** This task's user request and
-[the decoder architecture](../decoder/architecture.md).
+[the decoder architecture](../../architecture/decoder.md).
 
 ## Global Constraints
 
@@ -79,11 +81,11 @@ other CFA layout with a typed handoff error.
 - `crates/fornax-decoder/README.md`
 - `crates/fornax-decoder/src/*.rs`
 - `crates/fornax-decoder/tests/scaffold.rs` (removed)
-- `docs/decoder/architecture.md`
+- `docs/architecture/decoder.md`
 - `docs/decoder/corpus.md`
 - `docs/decoder/benchmark.md`
 - `docs/decoder/formats/*.md`
-- `docs/plans/chore-fornax-decoder-scaffold.md`
+- `docs/_archive/plans/fornax-decoder-scaffold.md`
 
 ## Validation
 
@@ -112,7 +114,7 @@ cargo +nightly clippy --workspace --all-features --all-targets -- \
 Run Markdown lint through the repository-configured tool if available:
 
 ```bash
-markdownlint-cli2 docs/decoder/architecture.md docs/decoder/corpus.md docs/decoder/benchmark.md docs/decoder/formats/*.md docs/plans/chore-fornax-decoder-scaffold.md
+markdownlint-cli2 docs/architecture/decoder.md docs/decoder/corpus.md docs/decoder/benchmark.md docs/decoder/formats/*.md docs/_archive/plans/fornax-decoder-scaffold.md
 ```
 
 Observed on this branch:

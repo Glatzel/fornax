@@ -1,5 +1,7 @@
 # Move DNG-Owned Constants Implementation Plan
 
+This archived workspace-refactor record documents Move DNG-Owned Constants Implementation Plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
@@ -15,7 +17,7 @@ values plus `DngTag`. DNG compression resolution tries DNG/compatibility values
 first and then falls back to the Step 5 TIFF resolver. `RasterLayout`,
 `RasterRequest`, and `resolve_tiff_compression` remain in `fornax-tiff`.
 
-**Spec:** `docs/plans/workspace-refactor/step-06-dng-constants.md`
+**Spec:** `docs/_archive/workspace-refactor/dng-constants-step.md`
 
 ## Global Constraints
 
@@ -141,7 +143,7 @@ by TIFF/EP. It is a generic TIFF extension, not a DNG-owned tag.
   <https://libtiff.gitlab.io/libtiff/releases/v4.0.10.html>.
 - GDAL JPEG XL identifier discussion:
   <https://www.mail-archive.com/gdal-dev@lists.osgeo.org/msg42055.html>.
-- Sony private references: `docs/references/sony-arw.md`.
+- Sony private references: `docs/reference/decoders/sony-arw.md`.
 
 ## Task Checklist
 
@@ -202,11 +204,11 @@ by TIFF/EP. It is a generic TIFF extension, not a DNG-owned tag.
 
 - [x] Update `crates/fornax-tiff/README.md` to remove DNG/self-assigned
   compression variants from the TIFF-owned table.
-- [x] Update `crates/fornax-dng/README.md` and `docs/architecture.md` with the
+- [x] Update `crates/fornax-dng/README.md` and `docs/architecture/overview.md` with the
   DNG value ownership boundary.
-- [x] Update `docs/decoder/architecture.md` where it states DNG value
+- [x] Update `docs/architecture/decoder.md` where it states DNG value
   ownership.
-- [x] Update `docs/references/dng-compression.md` only if the implementation
+- [x] Update `docs/reference/decoders/dng-compression.md` only if the implementation
   changes an ownership statement; preserve its complete compression table.
 
 ### Task 6: Validate, inspect, commit, push, and open one PR
@@ -241,10 +243,10 @@ by TIFF/EP. It is a generic TIFF extension, not a DNG-owned tag.
 - `crates/decoder-tracker/src/stages.rs`
 - `crates/decoder-tracker/src/tests.rs`
 - `crates/decoder-tracker/tests/golden.rs`
-- `docs/architecture.md`
-- `docs/decoder/architecture.md`
-- `docs/references/dng-compression.md` if ownership prose changes
-- `docs/plans/chore-dng-owned-constants.md`
+- `docs/architecture/overview.md`
+- `docs/architecture/decoder.md`
+- `docs/reference/decoders/dng-compression.md` if ownership prose changes
+- `docs/_archive/workspace-refactor/dng-constants-implementation.md`
 
 ## Validation
 

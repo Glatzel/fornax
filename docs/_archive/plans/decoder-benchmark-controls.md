@@ -1,5 +1,7 @@
 # Decoder Benchmark and Devtool Controls Implementation Plan
 
+This archived plan documents the completed Decoder Benchmark and Devtool Controls work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
@@ -56,8 +58,8 @@ Out of scope:
 - `crates/fornax-decoder-rawler/src/lib.rs`
 - `crates/fornax-raw-pipeline/README.md`
 - `.github/workflows/ci.yml`
-- `docs/architecture.md`
-- `docs/decoder/architecture.md`
+- `docs/architecture/overview.md`
+- `docs/architecture/decoder.md`
 - `docs/decoder/benchmark.md`
 
 ## Interfaces
@@ -133,8 +135,8 @@ in the pull request; no timing baseline is committed.
 
 ### Task 4: CI and Architecture Documentation
 
-**Files:** `.github/workflows/ci.yml`, `docs/architecture.md`,
-`docs/decoder/architecture.md`, `docs/decoder/benchmark.md`
+**Files:** `.github/workflows/ci.yml`, `docs/architecture/overview.md`,
+`docs/architecture/decoder.md`, `docs/decoder/benchmark.md`
 
 - [x] Update decoder benchmark path filters and documented behavior.
 

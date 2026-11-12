@@ -1,4 +1,6 @@
-# Canon CR3/CRM Lossless Slice Implementation Plan
+# Canon CR3/CRM Lossless Decoder
+
+This archived plan documents the completed Canon CR3/CRM Lossless Decoder work.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -58,7 +60,7 @@ lossless value.
 **Files:**
 - Create: `crates/fornax-devtool/src/bin/canon-crx-audit.rs`
 - Modify: `crates/fornax-devtool/Cargo.toml`
-- Create: `docs/references/canon-crx.md`
+- Create: `docs/reference/decoders/canon-crx.md`
 
 **Interfaces:**
 - Consumes: raw file paths or manifest CSV rows.
@@ -180,10 +182,10 @@ lossless value.
 - Modify: `crates/decoder-tracker/golden/decode-hashes.csv`
 - Modify: `crates/decoder-tracker/baseline.csv`
 - Modify: `crates/decoder-tracker/README.md`
-- Modify: `docs/architecture.md`
-- Modify: `docs/decoder/architecture.md`
+- Modify: `docs/architecture/overview.md`
+- Modify: `docs/architecture/decoder.md`
 - Modify: `docs/decoder/formats/canon-cr3.md`
-- Modify: `docs/references/canon-crx.md`
+- Modify: `docs/reference/decoders/canon-crx.md`
 - Modify: `TODO.md`
 
 **Interfaces:**

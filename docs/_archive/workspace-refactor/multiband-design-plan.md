@@ -1,5 +1,7 @@
 # Multi-Band Container Design Note Implementation Plan
 
+This archived workspace-refactor record documents Multi-Band Container Design Note Implementation Plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Record evidence and implementation consequences for future multi-band and wider-sample support without selecting a container shape.
@@ -8,14 +10,14 @@
 
 **Tech Stack:** Rust API documentation and Cargo feature analysis.
 
-**Spec:** `docs/plans/workspace-refactor/phase-b-c-handoff.md`
+**Spec:** `docs/_archive/workspace-refactor/phase-b-c-handoff.md`
 
 ## Global Constraints
 
 - Use branch `chore/multiband-note` and worktree
   `.worktrees/chore-multiband-note`.
 - Use one worktree and one pull request.
-- Keep the branch plan at `docs/plans/chore-multiband-note.md`.
+- Keep the branch plan at `docs/_archive/workspace-refactor/multiband-container-record.md`.
 - Do not change production code, versions, Cargo features, or dependencies.
 - Do not choose a multi-band container shape.
 - Do not choose the representation of `i16` or `f64`.
@@ -35,8 +37,8 @@
 ### Task 1: Create the options note
 
 **Files:**
-- Create: `docs/plans/workspace-refactor/multiband-note.md`
-- Modify: `docs/plans/workspace-refactor/README.md`
+- Create: `docs/_archive/workspace-refactor/multiband-container-options.md`
+- Modify: `docs/_archive/workspace-refactor/workspace-refactor-steps.md`
 
 **Interfaces:**
 - Consumes: implemented `SampleBuffer`, codec request, TIFF raster, and DNG adapter contracts.
@@ -96,7 +98,7 @@ shape.
 
 - [ ] **Step 5: Link the note**
 
-Add the new note to `docs/plans/workspace-refactor/README.md`.
+Add the new note to `docs/_archive/workspace-refactor/workspace-refactor-steps.md`.
 
 - [ ] **Step 6: Validate documentation**
 
@@ -123,7 +125,7 @@ Expected: dependency trees are unchanged and
 - [ ] **Step 8: Commit**
 
 ```bash
-git add docs/plans/workspace-refactor/multiband-note.md \
-  docs/plans/workspace-refactor/README.md
+git add docs/_archive/workspace-refactor/multiband-container-options.md \
+  docs/_archive/workspace-refactor/workspace-refactor-steps.md
 git commit -m "docs: record multiband container options"
 ```

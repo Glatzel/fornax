@@ -1,5 +1,7 @@
 # TIFF Raster Layout Support Implementation Plan
 
+This archived workspace-refactor record documents TIFF Raster Layout Support Implementation Plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > superpowers:executing-plans to implement this plan task-by-task. Steps use
 > checkbox (`- [x]`) syntax for tracking.
@@ -19,7 +21,7 @@ shared request before dispatching to `fornax-codec`. `fornax-arw` and
 **Tech Stack:** Rust 2024, `fornax-tiff`, `fornax-codec`, `fornax-dng`,
 `fornax-arw`, Cargo tests, rustdoc, Clippy, and repository validation scripts.
 
-**Spec:** `docs/plans/workspace-refactor/step-05-tiff-raster.md`
+**Spec:** `docs/_archive/workspace-refactor/tiff-raster-step.md`
 
 ## Global Constraints
 
@@ -50,8 +52,8 @@ LibTIFF, GDAL, and Sony references. No ownership is unresolved.
 | `1` | TIFF 6.0 uncompressed, tightly packed; TIFF 6.0 section 8 and Compression field on p.30 | Fornax mono integer 1-32-bit or float 16/24/32-bit; strips or tiles | DNG maps to `Uncompressed`; DNG writer emits `1` | TIFF default resolver to codec `Uncompressed` |
 | `7` | TIFF Technical Note #2 complete ISO JPEG segment, sequential lossy or lossless; DNG 1.7.1 pp.20-21 requires lossless Huffman JPEG for CFA raw payloads | Fornax mono lossless JPEG-92, 2-16-bit; ARW has a vendor-specific LJPEG tile layout | DNG maps to `LosslessJpeg`; ARW maps to Sony LJPEG; DNG writer emits `7` | TIFF default resolver to `LosslessJpeg` for the supported mono raw subset; DNG keeps applicability checks; ARW keeps vendor semantics |
 | `8` | Adobe Deflate extension; DNG 1.7.1 pp.20-21 defines Deflate (ZIP) and permitted DNG storage types; LibTIFF names it `COMPRESSION_ADOBE_DEFLATE` | Integer and float payloads with TIFF predictors; strips or tiles | DNG maps to `Deflate`; DNG writer emits `8` | TIFF default resolver to codec `Deflate`; DNG retains version and sample-type policy |
-| `32766` | Sony-private ARW6 compression with no TIFF registration; pinned dnglab/Rawler and LibRaw behavior in `docs/references/sony-arw.md` | Sony wavelet stream decoded to one `u16` mosaic | ARW maps to `Arw6` | `fornax-arw` only |
-| `32767` | Sony-private ARW1/ARW2 compression with no TIFF registration; pinned dnglab/Rawler and LibRaw behavior in `docs/references/sony-arw.md` | One-strip packed Sony stream; stored byte count distinguishes ARW2 | ARW maps to `Arw1` or `Arw2` | `fornax-arw` only |
+| `32766` | Sony-private ARW6 compression with no TIFF registration; pinned dnglab/Rawler and LibRaw behavior in `docs/reference/decoders/sony-arw.md` | Sony wavelet stream decoded to one `u16` mosaic | ARW maps to `Arw6` | `fornax-arw` only |
+| `32767` | Sony-private ARW1/ARW2 compression with no TIFF registration; pinned dnglab/Rawler and LibRaw behavior in `docs/reference/decoders/sony-arw.md` | One-strip packed Sony stream; stored byte count distinguishes ARW2 | ARW maps to `Arw1` or `Arw2` | `fornax-arw` only |
 | `34892` | DNG 1.4+ Lossy JPEG; DNG 1.7.1 p.21 and Appendix A | DNG 8-bit `LinearRaw` or `PhotometricMask`; Fornax supports one 8-bit component | DNG maps to `LossyJpeg` | DNG override to codec `LossyJpeg` |
 | `50000` | LibTIFF self-assigned Zstandard, explicitly not Adobe-registered; LibTIFF 4.0.10 release notes | Fornax integer or float raw payloads | DNG maps to `Zstd`; DNG writer emits `50000` experimentally | DNG compatibility override to codec `Zstd` |
 | `50002` | GDAL self-assigned JPEG XL TIFF value, not Adobe-registered and superseded for writing by DNG `52546`; GDAL discussion and current LibTIFF header warning | Fornax single-channel 8-16-bit integer JPEG XL | DNG maps to `JpegXl` | DNG compatibility override to codec `JpegXl` |
@@ -244,8 +246,8 @@ git commit -m "refactor: add TIFF raster layout model"
 
 - Modify: `crates/fornax-dng/src/dng_decoder/mod.rs`
 - Modify: `crates/fornax-dng/README.md`
-- Modify: `docs/references/dng-compression.md`
-- Modify: `docs/architecture.md`
+- Modify: `docs/reference/decoders/dng-compression.md`
+- Modify: `docs/architecture/overview.md`
 
 **Interfaces:**
 
@@ -308,8 +310,8 @@ round trips and transforms.
 - [x] **Step 6: Update ownership documentation**
 
 Add the complete gate table and TIFF-versus-DNG resolution rule to
-`docs/references/dng-compression.md`. Update `crates/fornax-dng/README.md` and
-`docs/architecture.md` so `fornax-tiff -> fornax-codec` is explicit and DNG is
+`docs/reference/decoders/dng-compression.md`. Update `crates/fornax-dng/README.md` and
+`docs/architecture/overview.md` so `fornax-tiff -> fornax-codec` is explicit and DNG is
 documented as the override/fallback owner. Do not move constants.
 
 - [x] **Step 7: Commit Task 2**
@@ -318,8 +320,8 @@ Run `cargo test -p fornax-tiff` and `cargo test -p fornax-dng`, then commit:
 
 ```bash
 git add crates/fornax-dng/src/dng_decoder/mod.rs \
-  crates/fornax-dng/README.md docs/references/dng-compression.md \
-  docs/architecture.md
+  crates/fornax-dng/README.md docs/reference/decoders/dng-compression.md \
+  docs/architecture/overview.md
 git commit -m "refactor: migrate DNG raster planning"
 ```
 

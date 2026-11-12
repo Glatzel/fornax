@@ -1,5 +1,7 @@
 # Multi-band container options record
 
+This archived workspace-refactor record documents Multi-band container options record.
+
 ## Goal
 
 Create a documentation-only decision-support note that records the current
@@ -19,7 +21,7 @@ In scope:
   storage consequences.
 - Include a comparison table, unresolved questions, and a closing options and
   consequences section.
-- Link the note from `docs/plans/workspace-refactor/README.md`.
+- Link the note from `docs/_archive/workspace-refactor/workspace-refactor-steps.md`.
 
 Out of scope:
 
@@ -46,9 +48,9 @@ Out of scope:
 
 ## Files expected to change
 
-- Create: `docs/plans/chore-multiband-note.md`
-- Create: `docs/plans/workspace-refactor/multiband-note.md`
-- Modify: `docs/plans/workspace-refactor/README.md`
+- Create: `docs/_archive/workspace-refactor/multiband-container-record.md`
+- Create: `docs/_archive/workspace-refactor/multiband-container-options.md`
+- Modify: `docs/_archive/workspace-refactor/workspace-refactor-steps.md`
 
 ## Validation
 

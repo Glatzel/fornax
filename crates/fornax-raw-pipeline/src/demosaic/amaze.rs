@@ -2,7 +2,7 @@
 //!
 //! This independent Rust implementation follows the behavioral conventions of
 //! darktable 5.6.2 and RawTherapee 5.13. See the
-//! [AMaZE reference notes](https://github.com/Glatzel/fornax/blob/main/docs/references/amaze.md).
+//! [AMaZE reference notes](https://github.com/Glatzel/fornax/blob/main/docs/reference/algorithms/amaze.md).
 
 #![allow(
     clippy::suboptimal_flops,

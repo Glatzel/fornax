@@ -1,5 +1,7 @@
 # Eliminate uncompressed and lossless JPEG writer regressions
 
+This archived plan documents the completed Eliminate uncompressed and lossless JPEG writer regressions work.
+
 ## Goal
 
 Restore DNG writer performance for Uncompressed and Lossless JPEG after the
@@ -47,7 +49,7 @@ Out of scope:
 - `crates/fornax-codec/src/uncompressed.rs`
 - `crates/fornax-codec/src/ljpeg.rs`
 - `crates/fornax-codec/tests/encode_contract.rs`
-- `docs/plans/chore-codec-writer-perf.md`
+- `docs/_archive/plans/codec-writer-performance.md`
 - `typos.toml` (normalize the branch's CRLF line endings so the required
   validation diff check accepts the existing `Flate` identifier exception)
 

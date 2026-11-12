@@ -1,5 +1,7 @@
 # AMaZE faithful-port implementation plan
 
+This archived plan documents the completed AMaZE faithful-port work.
+
 ## Goal
 
 Replace Fornax's generic directional approximation with a dedicated AMaZE
@@ -58,8 +60,8 @@ Out of scope:
 - `crates/compare-demosaic/src/snapshots/*-AMaZE-{darktable,rawtherapee}.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
-- `docs/references/amaze.md`
-- `docs/plans/amaze-implement.md`
+- `docs/reference/algorithms/amaze.md`
+- `docs/_archive/plans/amaze-port.md`
 - `TODO.md`
 
 ## Validation

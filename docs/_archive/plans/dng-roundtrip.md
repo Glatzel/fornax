@@ -1,4 +1,6 @@
-# DEC-MIGRATE and DEC-DNG finalization
+# DNG Roundtrip Finalization
+
+This archived plan documents the completed DNG Roundtrip Finalization work.
 
 **Tasks:** `DEC-MIGRATE`, `DEC-DNG`
 
@@ -129,14 +131,14 @@ Out of scope:
 - `crates/compare-demosaic/src/snapshots/*.snap`
 - `crates/compare-demosaic/src/status.rs`
 - `crates/compare-demosaic/src/waivers.rs`
-- `docs/architecture.md`
-- `docs/decoder/architecture.md`
+- `docs/architecture/overview.md`
+- `docs/architecture/decoder.md`
 - `docs/decoder/benchmark.md`
 - `docs/decoder/corpus.md`
 - `docs/decoder/formats/*.md`
-- `docs/references/dcb.md`
-- `docs/references/dng-lossless-jpeg.md`
-- `docs/plans/dec-dng-roundtrip.md`
+- `docs/reference/algorithms/dcb.md`
+- `docs/reference/decoders/dng-lossless-jpeg.md`
+- `docs/_archive/plans/dng-roundtrip.md`
 - `scripts/install-dnc.ps1` (delete)
 - `scripts/libraw-bindings.ps1` (delete)
 

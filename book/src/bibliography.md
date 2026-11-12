@@ -7,7 +7,7 @@ links to the repository reference below.
 
 ### [FornaxArchitecture]
 
-- Source: [docs/architecture.md](../../docs/architecture.md)
+- Source: [docs/architecture/overview.md](../../docs/architecture/overview.md)
 - Supports: crate roles, pipeline boundaries, metadata flow, and the supported
   2x2 RGB Bayer scope.
 - Note: this is the repository's concise implementation map; the book explains
@@ -23,7 +23,7 @@ links to the repository reference below.
 
 ### [VNGNotes]
 
-- Source: [docs/references/vng.md](../../docs/references/vng.md)
+- Source: [docs/reference/algorithms/vng.md](../../docs/reference/algorithms/vng.md)
 - Supports: Fornax's VNG algorithm shape, green-plane convention, expected
   comparison behavior, and source licensing constraints.
 

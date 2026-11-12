@@ -1,4 +1,6 @@
-# Hasselblad 3FR format plan
+# Hasselblad 3FR Format
+
+This format guide defines the supported container, compression, metadata, and completion requirements for Hasselblad 3FR.
 
 **Tier:** 2, placeholder until this tier starts
 

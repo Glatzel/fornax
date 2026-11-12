@@ -103,8 +103,8 @@ Format crates distinguish an implemented codec whose feature is disabled from
 a documented compression ID with no Fornax implementation.
 
 Fujifilm's behavior and reference licenses are recorded in
-[Fujifilm RAF references](../../docs/references/fuji-raf.md).
+[Fujifilm RAF references](../../docs/reference/decoders/fuji-raf.md).
 Phase One's behavior and reference licenses are recorded in
-[Phase One IIQ references](../../docs/references/phase-one-iiq.md).
+[Phase One IIQ references](../../docs/reference/decoders/phase-one-iiq.md).
 Panasonic's behavior and reference licenses are recorded in
-[Panasonic RW2 references](../../docs/references/panasonic-rw2.md).
+[Panasonic RW2 references](../../docs/reference/decoders/panasonic-rw2.md).

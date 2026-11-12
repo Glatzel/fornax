@@ -1,4 +1,6 @@
-# Phase One IIQ format plan
+# Phase One IIQ Format
+
+This format guide defines the supported container, compression, metadata, and completion requirements for Phase One IIQ.
 
 **Tier:** 2, implemented for Phase One/Leaf `.IIQ` modes 0, 3, 5, 6, and 8
 
@@ -91,7 +93,7 @@ synthesized when the source does not provide a validated DNG-compatible matrix.
   `src/decoders/decoders_libraw.cpp`, and
   `src/utils/phaseone_processing.cpp`.
 - Both are LGPL-2.1 and remain behavioral references only. See
-  [Phase One IIQ references](../../references/phase-one-iiq.md).
+  [Phase One IIQ references](../../reference/decoders/phase-one-iiq.md).
 
 ## Definition of done
 

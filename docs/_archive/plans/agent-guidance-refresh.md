@@ -1,5 +1,7 @@
 # Agent Guidance Refresh Implementation Plan
 
+This archived plan documents the completed Agent Guidance Refresh work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > superpowers:executing-plans to implement this plan task-by-task. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
@@ -70,8 +72,8 @@ therefore leave generated README data and conclusions unchanged.
 - `AGENTS.md`
 - `crates/compare-demosaic/AGENTS.md`
 - `.agents/skills/demosaic-comparison/SKILL.md`
-- `docs/architecture.md`
-- `docs/decoder/architecture.md`
+- `docs/architecture/overview.md`
+- `docs/architecture/decoder.md`
 - `docs/decoder/benchmark.md`
 - `docs/decoder/corpus.md`
 - `docs/decoder/formats/canon-cr3.md`
@@ -79,7 +81,7 @@ therefore leave generated README data and conclusions unchanged.
 - `docs/decoder/formats/fuji-raf.md`
 - `docs/decoder/formats/hasselblad-3fr.md`
 - `docs/decoder/formats/panasonic-rw2.md`
-- `docs/plans/chore-agent-guidance-refresh.md`
+- `docs/_archive/plans/agent-guidance-refresh.md`
 
 ## Validation
 

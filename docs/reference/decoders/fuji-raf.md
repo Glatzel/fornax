@@ -1,5 +1,7 @@
 # Fujifilm RAF references
 
+This reference note records pinned sources, decoder behavior, and implementation boundaries for Fujifilm RAF.
+
 ## Sources
 
 - Rawler `0.8.0`, LGPL-2.1:

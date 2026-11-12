@@ -1,5 +1,7 @@
 # Independent Fornax CLI Implementation Plan
 
+This archived plan documents the completed Independent Fornax CLI work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task.
 
@@ -103,7 +105,7 @@ file; explicit CLI paths resolve relative to the current directory.
 - `crates/fornax-raw/README.md`
 - `pixi.toml`
 - `.github/workflows/ci.yml`
-- `docs/architecture.md`
+- `docs/architecture/overview.md`
 
 ## Validation
 

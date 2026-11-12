@@ -1,5 +1,7 @@
 # DCB faithful behavioral port
 
+This archived design note documents the selected DCB faithful behavioral port approach.
+
 ## Intent
 
 Make Fornax's `Demosaic::Dcb` implementation reproduce LibRaw 0.22.3's fixed
@@ -27,7 +29,7 @@ a border or normalization issue.
   indexing, while using native GBRG as the independent acceptance row.
 - Add stage-level tests that fail for omitted or reordered DCB stages.
 - Record the pinned reference, behavioral differences, and BSD-3-Clause
-  attribution obligations in `docs/references/dcb.md`.
+  attribution obligations in `docs/reference/algorithms/dcb.md`.
 
 ## Non-goals
 

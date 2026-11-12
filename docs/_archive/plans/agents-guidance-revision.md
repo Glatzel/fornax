@@ -1,4 +1,6 @@
-# Plan: Revise the root AGENTS.md, add architecture docs and project skills
+# Agent Guidance and Architecture Documentation Revision
+
+This archived plan documents the completed Agent Guidance and Architecture Documentation Revision work.
 
 Work type: maintenance (not a `TODO.md` item). Branch
 `chore/agents-md-revision`, worktree `.worktrees/chore-agents-md-revision`,
@@ -7,7 +9,7 @@ one semantic pull request into `main`. Do not change `TODO.md`.
 ## Goal
 
 Rewrite the root `AGENTS.md` as a short, tool-agnostic map that any coding
-agent can follow. Move durable architecture detail to `docs/architecture.md`,
+agent can follow. Move durable architecture detail to `docs/architecture/overview.md`,
 comparison-specific rules to `crates/compare-demosaic/AGENTS.md`, and the
 repeatable comparison procedure to
 `.agents/skills/add-demosaic-comparison/SKILL.md`.
@@ -21,7 +23,7 @@ must also point to architecture, crate-specific rules, plans, and skills.
 In scope:
 
 - Rewrite the root `AGENTS.md`.
-- Add `docs/architecture.md` and this committed plan.
+- Add `docs/architecture/overview.md` and this committed plan.
 - Merge current comparison-specific rules into
   `crates/compare-demosaic/AGENTS.md`.
 - Add the `add-demosaic-comparison` project skill.
@@ -38,8 +40,8 @@ Out of scope:
 
 - `AGENTS.md`
 - `crates/compare-demosaic/AGENTS.md`
-- `docs/architecture.md`
-- `docs/plans/agents-md-revision.md`
+- `docs/architecture/overview.md`
+- `docs/_archive/plans/agents-guidance-revision.md`
 - `.agents/skills/add-demosaic-comparison/SKILL.md`
 - `.gitignore` only if an existing rule hides a required new file
 
@@ -62,7 +64,7 @@ Out of scope:
       (2026-11-01).
 - [x] 3. Build the disposition table (every old rule: keep, move, or drop)
       (2026-11-01).
-- [x] 4. Write `docs/architecture.md` (2026-11-01).
+- [x] 4. Write `docs/architecture/overview.md` (2026-11-01).
 - [x] 5. Move comparison-specific rules into
       `crates/compare-demosaic/AGENTS.md` and create the project skill(s).
 - [x] 6. Write the new root `AGENTS.md` (2026-11-01; 118 lines).
@@ -105,7 +107,7 @@ workflow.
 
 ### 4. Architecture
 
-Write a roughly 100-line `docs/architecture.md` sourced from the workspace,
+Write a roughly 100-line `docs/architecture/overview.md` sourced from the workspace,
 crate sources, and README. Include:
 
 1. Purpose and users.
@@ -205,7 +207,7 @@ merging, or closing it.
   dropped in the disposition table.
 - Work types, plan convention, validation commands, and handoff rules appear
   once at the root.
-- New files are limited to this plan, `docs/architecture.md`, the comparison
+- New files are limited to this plan, `docs/architecture/overview.md`, the comparison
   skill, and any justified design note.
 - All claimed validation actually ran; skipped checks are named.
 - No changes to source code, CI workflows, `TODO.md`, or pre-existing managed
@@ -217,7 +219,7 @@ merging, or closing it.
   committed per-item plans.
 - Commit plans with their pull request without an active/completed split.
 - Keep permanent pipeline and support invariants in the root; put architecture
-  explanation in `docs/architecture.md`.
+  explanation in `docs/architecture/overview.md`.
 - Use `.agents/skills/<name>/SKILL.md` for project skills and leave managed
   installations alone.
 - Add no tool-specific entry files.
@@ -243,7 +245,7 @@ merging, or closing it.
   change does not rely on that component list; the architecture document uses
   the current `Cargo.toml` manifests and crate sources.
 - 2026-11-01: The supplied intended plan filename is preserved as
-  `docs/plans/agents-md-revision.md`. The new root instruction states
+  `docs/_archive/plans/agents-guidance-revision.md`. The new root instruction states
   `chore-<slug>` for future chore plans; this file predates that convention.
 - 2026-11-01: Validation passed for `git diff --check`, the repository
   Markdown lint (5 files, 0 issues), the project skill validator, all relative

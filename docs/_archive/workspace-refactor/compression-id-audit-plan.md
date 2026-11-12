@@ -1,5 +1,7 @@
 # Compression ID Ownership Audit Implementation Plan
 
+This archived workspace-refactor record documents Compression ID Ownership Audit Implementation Plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Establish source-backed ownership for every requested TIFF-family compression ID, then move only non-DNG IDs to the TIFF vocabulary when the evidence is unambiguous.
@@ -8,14 +10,14 @@
 
 **Tech Stack:** Rust 2024, Cargo features, TIFF/DNG specifications and registry sources.
 
-**Spec:** `docs/plans/workspace-refactor/phase-b-c-handoff.md`
+**Spec:** `docs/_archive/workspace-refactor/phase-b-c-handoff.md`
 
 ## Global Constraints
 
 - Use branch `chore/compression-id-audit` and worktree
   `.worktrees/chore-compression-id-audit`.
 - Use one worktree and one pull request.
-- Keep the branch plan at `docs/plans/chore-compression-id-audit.md`.
+- Keep the branch plan at `docs/_archive/workspace-refactor/compression-id-audit-implementation.md`.
 - Paraphrase specifications; do not paste long normative text.
 - Keep `34892` and `52546` in `fornax-dng`.
 - DNG decoding results must not change.
@@ -36,8 +38,8 @@
 ### Task 1: Produce the ownership table and stop on ambiguity
 
 **Files:**
-- Create: `docs/references/compression-ids.md`
-- Modify: `docs/references/dng-compression.md`
+- Create: `docs/reference/codecs/compression-ids.md`
+- Modify: `docs/reference/decoders/dng-compression.md`
 
 **Interfaces:**
 - Consumes: the requested IDs `1`, `5`, `7`, `8`, `32773`, `32946`, `34892`, `34925`, `50000`, `50001`, `50002`, and `52546`.
@@ -52,7 +54,7 @@ commit URLs.
 
 - [ ] **Step 2: Write the table**
 
-Create `docs/references/compression-ids.md` with this schema:
+Create `docs/reference/codecs/compression-ids.md` with this schema:
 
 ```markdown
 | ID | Meaning | Defining source and version | DNG-defined? | Fornax owner |
@@ -78,7 +80,7 @@ the maintainer for a ruling.
 
 - [ ] **Step 4: Update the existing DNG compression reference**
 
-Revise `docs/references/dng-compression.md` so its decisions and ownership
+Revise `docs/reference/decoders/dng-compression.md` so its decisions and ownership
 table agree with the new audit. Preserve the rule that `50000` and `50002`
 must be described according to their actual external ownership, not as
 Adobe-defined DNG values.
@@ -86,7 +88,7 @@ Adobe-defined DNG values.
 - [ ] **Step 5: Commit the audit**
 
 ```bash
-git add docs/references/compression-ids.md docs/references/dng-compression.md
+git add docs/reference/codecs/compression-ids.md docs/reference/decoders/dng-compression.md
 git commit -m "docs: audit TIFF compression id ownership"
 ```
 
@@ -105,7 +107,7 @@ git commit -m "docs: audit TIFF compression id ownership"
 - Modify: `crates/fornax-dng/Cargo.toml`
 - Modify: `crates/fornax-tiff/README.md`
 - Modify: `crates/fornax-dng/README.md`
-- Modify: `docs/architecture.md`
+- Modify: `docs/architecture/overview.md`
 
 **Interfaces:**
 - Consumes: the Task 1 ownership decisions.
@@ -196,7 +198,7 @@ Expected: all commands exit 0.
 - [ ] **Step 7: Commit implementation**
 
 ```bash
-git add crates/fornax-tiff crates/fornax-dng docs/architecture.md
+git add crates/fornax-tiff crates/fornax-dng docs/architecture/overview.md
 git commit -m "refactor: separate DNG and TIFF compression ownership"
 ```
 

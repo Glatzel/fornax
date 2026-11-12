@@ -1,5 +1,7 @@
 # Canon CRX reference notes
 
+This reference note records pinned sources, decoder behavior, and implementation boundaries for Canon CRX.
+
 ## Pinned behavior
 
 - Canon CR3/CRM container notes:

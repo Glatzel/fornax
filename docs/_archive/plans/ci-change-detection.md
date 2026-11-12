@@ -1,5 +1,7 @@
 # CI Path-Based Job Gating Implementation Plan
 
+This archived plan documents the completed CI Path-Based Job Gating work.
+
 ## Goal
 
 Add one change-detection job to `.github/workflows/ci.yml` and use its
@@ -33,7 +35,7 @@ Out of scope:
 ## Files Expected to Change
 
 - `.github/workflows/ci.yml`
-- `docs/plans/chore-ci-change-detection.md`
+- `docs/_archive/plans/ci-change-detection.md`
 
 ## Validation
 

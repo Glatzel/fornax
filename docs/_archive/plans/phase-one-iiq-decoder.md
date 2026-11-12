@@ -1,5 +1,7 @@
 # Phase One IIQ Implementation Plan
 
+This archived plan documents the completed Phase One IIQ work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > `superpowers:executing-plans` to implement this plan task-by-task. Steps use
 > checkbox (`- [x]`) syntax for tracking.
@@ -93,8 +95,8 @@ Out of scope:
 - `crates/fornax-decoder/{Cargo.toml,README.md,src/lib.rs,tests/iiq*.rs}`
 - `crates/decoder-tracker/{golden/**,baseline.csv,README.md}`
 - `docs/{architecture.md,decoder/architecture.md,decoder/formats/phase-one-iiq.md}`
-- `docs/references/phase-one-iiq.md`
-- `docs/plans/dec-iiq-phase-one-iiq.md`
+- `docs/reference/decoders/phase-one-iiq.md`
+- `docs/_archive/plans/phase-one-iiq-decoder.md`
 
 ## Validation
 
@@ -199,7 +201,7 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
 - Modify: `crates/fornax-codec/README.md`
 - Modify: `docs/{architecture.md,decoder/architecture.md}`
 - Modify: `docs/decoder/formats/phase-one-iiq.md`
-- Create: `docs/references/phase-one-iiq.md`
+- Create: `docs/reference/decoders/phase-one-iiq.md`
 
 **Interfaces:**
 
@@ -230,7 +232,7 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
 **Files:**
 
 - Modify: `TODO.md`
-- Modify: `docs/plans/dec-iiq-phase-one-iiq.md`
+- Modify: `docs/_archive/plans/phase-one-iiq-decoder.md`
 
 - [x] Run all focused tests, fixture parity, golden verification,
   `scripts/agent-validation.sh`, and `git diff --check`.

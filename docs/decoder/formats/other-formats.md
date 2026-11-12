@@ -1,4 +1,6 @@
-# Other RAW formats policy
+# Other RAW Formats Policy
+
+This policy defines the explicit unsupported-format boundary and the requirements for adding a new RAW format.
 
 **Tier:** 3, may never
 

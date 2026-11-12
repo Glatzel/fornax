@@ -1,11 +1,13 @@
 # DNG compression references
 
+This reference note records pinned sources, decoder behavior, and implementation boundaries for DNG compression.
+
 ## Sources
 
 - Adobe, *Digital Negative (DNG) Specification 1.7.1.0*, September 2023:
   <https://download.adobe.com/pub/adobe/dng/DNG_Spec_1_7_1_0.pdf>.
 - TIFF-family ownership evidence:
-  [compression-ids.md](compression-ids.md).
+  [compression-ids.md](../codecs/compression-ids.md).
 - RFC 8878, *Zstandard Compression and the `application/zstd` Media Type*:
   <https://www.rfc-editor.org/rfc/rfc8878>.
 - Sony ARW/NRW behavior and pinned vendor-reference notes:
@@ -50,5 +52,5 @@ writer level is 3; LosslessJPEG remains the default interoperable compression.
 ## Compression ownership
 
 The complete source-versioned ownership table is maintained in
-[compression-ids.md](compression-ids.md). Sony-private IDs never enter either
+[compression-ids.md](../codecs/compression-ids.md). Sony-private IDs never enter either
 generic resolver and remain owned by `fornax-arw`.

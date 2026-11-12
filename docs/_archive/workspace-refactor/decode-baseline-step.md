@@ -1,11 +1,13 @@
-# Trigger: Step 1 — decode baseline
+# Decode Baseline Step
+
+This archived workspace-refactor record documents Decode Baseline Step.
 
 This step is complete. It is retained so every trigger has the same format.
 
 ## Required state
 
 - PR #681 is merged.
-- `docs/references/workspace-refactor-baseline.md` exists.
+- `docs/_archive/workspace-refactor/baseline-findings.md` exists.
 - `crates/decoder-tracker/golden/selected-manifest.csv` exists.
 - `crates/decoder-tracker/golden/decode-hashes.csv` exists.
 
@@ -19,4 +21,4 @@ This step is complete. It is retained so every trigger has the same format.
 - Verification and correction of the advisory feasibility analysis.
 
 Do not redo this step. See
-[workspace-refactor-baseline.md](../../references/workspace-refactor-baseline.md).
+[workspace-refactor-baseline.md](baseline-findings.md).

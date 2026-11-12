@@ -1,4 +1,6 @@
-# DEC-CORPUS: Git LFS-backed Manual DNG Regression Tracker
+# Manual DNG Corpus Regression Tracker
+
+This archived plan documents the completed Manual DNG Corpus Regression Tracker work.
 
 ## Goal
 
@@ -63,7 +65,7 @@ Out of scope:
 - `scripts/agent-validation.sh`, `scripts/agent-validation-test.sh`
 - `scripts/get_raw_samples.py` (deleted)
 - `TODO.md`, `AGENTS.md`
-- `docs/architecture.md`, `docs/decoder/architecture.md`,
+- `docs/architecture/overview.md`, `docs/architecture/decoder.md`,
   `docs/decoder/corpus.md`
 
 ## Validation

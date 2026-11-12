@@ -1,5 +1,7 @@
 # Remove `flashraw-codecs` and Own the Codec Paths
 
+This archived plan documents the completed Remove `flashraw-codecs` and Own the Codec Paths work.
+
 ## Goal
 
 Remove the production dependency on `flashraw-codecs` by implementing the
@@ -63,8 +65,8 @@ Out of scope:
 - `crates/fornax-dng/Cargo.toml`,
   `crates/fornax-dng/src/dng_decoder/{mod.rs,transforms.rs,opcodes.rs}`
 - `crates/decoder-tracker/{baseline.csv,scripts/aggregate.sh,sql/*.sql,src/*}`
-- `docs/architecture.md`, `docs/references/{sony-arw.md,dng-lossless-jpeg.md}`
-- `docs/references/dng-opcodes.md`
+- `docs/architecture/overview.md`, `docs/reference/{sony-arw.md,dng-lossless-jpeg.md}`
+- `docs/reference/decoders/dng-opcodes.md`
 - `docs/decoder/corpus.md`
 - `crates/fornax-codec/README.md`, `scripts/agent-validation.sh`
 - Focused test modules under the affected crates

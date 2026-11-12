@@ -1,4 +1,6 @@
-# DNG output color management
+# DNG Output Color Management
+
+This reference note documents source matrices, profile selection, and Fornax's DNG output color transform.
 
 ## Sources
 

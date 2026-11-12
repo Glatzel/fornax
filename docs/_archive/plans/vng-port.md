@@ -1,5 +1,7 @@
 # VNG faithful behavioral implementation
 
+This archived plan documents the completed VNG faithful behavioral implementation work.
+
 ## Goal
 
 Replace the incorrect Fornax VNG path with an independent BSD-only
@@ -44,7 +46,7 @@ changes to comparison limits, and waivers for VNG failures.
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
 - `AGENTS.md`
-- `docs/references/vng.md`
+- `docs/reference/algorithms/vng.md`
 - `TODO.md`
 - This plan
 
@@ -69,7 +71,7 @@ cargo test --workspace --all-features
 cargo fmt --check
 cargo clippy --workspace --all-features --all-targets -- -D warnings
 markdownlint-cli2 crates/compare-demosaic/README.md \
-  docs/plans/vng-faithful-port.md
+  docs/_archive/plans/vng-port.md
 git -c core.whitespace=cr-at-eol diff --check
 ```
 
@@ -103,5 +105,5 @@ fraction `<= 0.001` above 1024 codes. No numeric limit or waiver may change.
 - The full comparison run changed only the eight VNG rows; every non-VNG row
   remained identical to the committed baseline.
 - Reusable VNG sources and implementation decisions are recorded in
-  `docs/references/vng.md`. The root agent guidance now requires durable
+  `docs/reference/algorithms/vng.md`. The root agent guidance now requires durable
   algorithm research to be committed there with the code it informs.

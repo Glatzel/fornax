@@ -1,5 +1,7 @@
 # DNG opcode reference notes
 
+This reference note records pinned sources, decoder behavior, and implementation boundaries for DNG opcode.
+
 ## Authoritative sources
 
 - [Adobe DNG Specification 1.7.1.0](https://download.adobe.com/pub/adobe/dng/DNG_Spec_1_7_1_0.pdf),

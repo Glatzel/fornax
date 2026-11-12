@@ -1,5 +1,7 @@
 # RawTherapee demosaic reference integration
 
+This archived plan documents the completed RawTherapee demosaic reference integration work.
+
 ## Goal
 
 Add RawTherapee 5.13 as a pinned comparison reference and exercise every Bayer
@@ -112,7 +114,7 @@ Out of scope:
 
 ## Task 4: Documentation and backlog
 
-**Files:** `TODO.md`, `docs/references/rawtherapee.md`,
+**Files:** `TODO.md`, `docs/reference/algorithms/rawtherapee.md`,
 `crates/compare-demosaic/AGENTS.md`, `crates/compare-demosaic/README.md`.
 
 **Steps:**
@@ -151,8 +153,8 @@ Out of scope:
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
 - `crates/compare-demosaic/AGENTS.md`
-- `docs/references/rawtherapee.md`
-- `docs/plans/chore-rawtherapee-demosaic-reference.md`
+- `docs/reference/algorithms/rawtherapee.md`
+- `docs/_archive/plans/rawtherapee-demosaic-reference.md`
 - `TODO.md`
 
 ## Validation

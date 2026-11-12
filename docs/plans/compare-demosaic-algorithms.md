@@ -1,4 +1,6 @@
-# Compare-demosaic reference algorithms: investigation and implementation plans
+# Compare-Demosaic Reference Algorithms
+
+This active plan records completed and pending reference-algorithm port tasks for the demosaic comparison suite.
 
 > **For agentic workers:** Implement one bracketed `TODO.md` item per branch
 > and pull request. Use the task checklist for that algorithm, preserve the
@@ -470,7 +472,7 @@ helpers:
 - `crates/compare-demosaic/src/snapshots/*-AAHD-libraw.snap`
 - `crates/compare-demosaic/README.md` AAHD note outside generated markers
 - `crates/compare-demosaic/baseline/canonical.json`
-- `docs/references/aahd.md`
+- `docs/reference/algorithms/aahd.md`
 - `TODO.md`
 
 ### Acceptance criteria

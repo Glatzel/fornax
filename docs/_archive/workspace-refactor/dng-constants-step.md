@@ -1,4 +1,6 @@
-# Trigger: Step 6 — move DNG-owned constants
+# DNG Constants Step
+
+This archived workspace-refactor record documents DNG Constants Step.
 
 Implement only Step 6 of the approved Fornax refactor. Open one PR and stop.
 
@@ -6,8 +8,8 @@ Implement only Step 6 of the approved Fornax refactor. Open one PR and stop.
 
 - Work from current `origin/main`.
 - Confirm Steps 3, 4, and 5 are merged.
-- Read `docs/references/workspace-refactor-baseline.md` and
-  `docs/references/dng-compression.md`.
+- Read `docs/_archive/workspace-refactor/baseline-findings.md` and
+  `docs/reference/decoders/dng-compression.md`.
 
 ## Goal
 
@@ -55,7 +57,7 @@ an owner remains ambiguous.
 
 - Suggested branch: `chore/dng-owned-constants`
 - Suggested worktree: `.worktrees/chore-dng-owned-constants`
-- Plan: `docs/plans/chore-dng-owned-constants.md`
+- Plan: `docs/_archive/workspace-refactor/dng-constants-implementation.md`
 
 ## Validation
 

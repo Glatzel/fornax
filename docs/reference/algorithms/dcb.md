@@ -1,5 +1,7 @@
 # DCB reference notes
 
+This reference note records pinned sources, numerical behavior, and implementation boundaries for DCB.
+
 This note records the authoritative material used to implement Fornax's
 conventional 2x2 RGB Bayer DCB path and the license obligations attached to
 that work.
@@ -11,7 +13,7 @@ that work.
 - LibRaw 0.22.3, CFA border interpolation and `pre_interpolate`:
   [`src/demosaic/misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L21).
 - LibRaw 0.22.3, comparison adapter entry point:
-  [`crates/compare-demosaic/cpp/algos/libraw_dcb.cpp`](../../crates/compare-demosaic/cpp/algos/libraw_dcb.cpp).
+  [`crates/compare-demosaic/cpp/algos/libraw_dcb.cpp`](../../../crates/compare-demosaic/cpp/algos/libraw_dcb.cpp).
 
 The comparison calls `pre_interpolate()` followed by the default
 `dcb(0, 1)`. Fornax exposes both behavioral arguments as

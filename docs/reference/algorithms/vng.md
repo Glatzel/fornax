@@ -1,5 +1,7 @@
 # VNG reference notes
 
+This reference note records pinned sources, numerical behavior, and implementation boundaries for VNG.
+
 This note records the authoritative material used to diagnose and implement
 Fornax's conventional 2x2 RGB Bayer VNG path. It is explanatory material, not
 a copied implementation.

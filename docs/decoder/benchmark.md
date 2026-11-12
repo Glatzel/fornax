@@ -1,4 +1,6 @@
-# Decoder benchmark
+# Decoder Benchmarks
+
+This guide documents decoder benchmark targets, environment controls, and comparison criteria.
 
 ## Current benchmark
 

@@ -1,4 +1,6 @@
-# Canon CR3 format plan
+# Canon CR3 Format
+
+This format guide defines the supported container, compression, metadata, and completion requirements for Canon CR3.
 
 **Tier:** 1
 

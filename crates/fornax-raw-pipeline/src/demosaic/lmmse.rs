@@ -2,7 +2,7 @@
 //!
 //! This path follows the published LMMSE algorithm and darktable 5.6.2's
 //! mode conventions. See the
-//! [LMMSE reference notes](https://github.com/Glatzel/fornax/blob/main/docs/references/lmmse.md).
+//! [LMMSE reference notes](https://github.com/Glatzel/fornax/blob/main/docs/reference/algorithms/lmmse.md).
 
 use std::sync::OnceLock;
 

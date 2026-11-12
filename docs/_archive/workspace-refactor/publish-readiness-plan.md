@@ -1,5 +1,7 @@
 # Publish Readiness Report Implementation Plan
 
+This archived workspace-refactor record documents Publish Readiness Report Implementation Plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Produce a read-only publish-readiness report for every workspace crate that Cargo would allow publishing.
@@ -8,14 +10,14 @@
 
 **Tech Stack:** Cargo 1.99.1, crates.io HTTP API, shell file inspection, Phase B-C handoff rules.
 
-**Spec:** `docs/plans/workspace-refactor/phase-b-c-handoff.md`
+**Spec:** `docs/_archive/workspace-refactor/phase-b-c-handoff.md`
 
 ## Global Constraints
 
 - Use branch `chore/publish-readiness` and worktree
   `.worktrees/chore-publish-readiness`.
 - Use one worktree and one pull request.
-- Keep the branch plan at `docs/plans/chore-publish-readiness.md`.
+- Keep the branch plan at `docs/_archive/workspace-refactor/publish-readiness-implementation.md`.
 - Do not publish anything.
 - Do not change crate versions, metadata, manifests, lockfile, or source code.
 - Do not decide whether or when crates should be published.
@@ -36,7 +38,7 @@
 ### Task 1: Inventory and metadata audit
 
 **Files:**
-- Create: `docs/plans/workspace-refactor/publish-readiness.md`
+- Create: `docs/_archive/workspace-refactor/publish-readiness-report.md`
 
 **Interfaces:**
 - Consumes: current workspace Cargo metadata.
@@ -96,14 +98,14 @@ every `0.0.x` patch version may contain breaking changes.
 - [ ] **Step 6: Commit the inventory**
 
 ```bash
-git add docs/plans/workspace-refactor/publish-readiness.md
+git add docs/_archive/workspace-refactor/publish-readiness-report.md
 git commit -m "docs: record publish readiness inventory"
 ```
 
 ### Task 2: Inspect packages and run dry releases
 
 **Files:**
-- Modify: `docs/plans/workspace-refactor/publish-readiness.md`
+- Modify: `docs/_archive/workspace-refactor/publish-readiness-report.md`
 
 **Interfaces:**
 - Consumes: Task 1 crate inventory.
@@ -211,6 +213,6 @@ Expected: documentation checks pass, dependency trees are unchanged, and
 - [ ] **Step 7: Commit the completed report**
 
 ```bash
-git add docs/plans/workspace-refactor/publish-readiness.md
+git add docs/_archive/workspace-refactor/publish-readiness-report.md
 git commit -m "docs: report publish readiness"
 ```

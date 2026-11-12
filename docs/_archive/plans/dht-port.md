@@ -1,5 +1,7 @@
 # DHT Faithful Port Implementation Plan
 
+This archived plan documents the completed DHT Faithful Port work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
 > superpowers:subagent-driven-development (recommended) or
 > superpowers:executing-plans to implement this plan task-by-task. Steps use
@@ -18,7 +20,11 @@ existing lazy boundary.
 `compare-demosaic`, LibRaw 0.22.3, Insta, and Cargo.
 
 **Spec:**
-[`docs/superpowers/specs/2026-11-04-dht-faithful-port-design.md`](../superpowers/specs/2026-11-04-dht-faithful-port-design.md)
+[`docs/_archive/designs/dht-port-design.md
+```
+`](../designs/dht-port-design.md
+```
+)
 
 ## Goal
 
@@ -211,7 +217,7 @@ Expected: focused tests and all postprocessor tests pass.
 - Modify: `crates/compare-demosaic/src/snapshots/*-DHT-libraw.snap`
 - Modify: `crates/compare-demosaic/README.md`
 - Modify: `crates/compare-demosaic/baseline/canonical.json`
-- Create: `docs/references/dht.md`
+- Create: `docs/reference/algorithms/dht.md`
 - Modify: `TODO.md`
 
 **Interfaces:**
@@ -251,7 +257,7 @@ pass.
 - [x] **Step 4: Write the reference and remove the completed backlog item**
 
 Document the pinned source, algorithm stages, numeric invariants, stage
-boundary, and dual-license notice in `docs/references/dht.md`. Rewrite the DHT
+boundary, and dual-license notice in `docs/reference/algorithms/dht.md`. Rewrite the DHT
 README note to describe the faithful match and known comparison boundary.
 Remove `[DHT]` from `TODO.md`.
 
@@ -268,9 +274,11 @@ cargo clippy --workspace --all-features --all-targets -- \
     -D clippy::allow_attributes_without_reason \
     -D warnings
 pixi exec -s markdownlint-cli2 markdownlint-cli2 \
-    crates/compare-demosaic/README.md docs/references/dht.md \
-    docs/plans/dht-faithful-port.md \
-    docs/superpowers/specs/2026-11-04-dht-faithful-port-design.md
+    crates/compare-demosaic/README.md docs/reference/algorithms/dht.md \
+    docs/_archive/plans/dht-port.md \
+    docs/_archive/designs/dht-port-design.md
+```
+
 git diff --check
 ```
 

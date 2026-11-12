@@ -1,5 +1,7 @@
 # LMMSE reference notes
 
+This reference note records pinned sources, numerical behavior, and implementation boundaries for LMMSE.
+
 This note records the authoritative material used to implement Fornax's
 conventional 2x2 RGB Bayer LMMSE path.
 

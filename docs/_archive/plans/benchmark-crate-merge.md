@@ -1,5 +1,7 @@
 # Merge Benchmark Crates Implementation Plan
 
+This archived plan documents the completed Merge Benchmark Crates work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Consolidate the demosaic and preprocessor benchmark crates into their corresponding production-stage crates while preserving benchmark behavior and explicit `cargo bench -p` entry points.
@@ -191,7 +193,7 @@ git commit -m "refactor: integrate preprocessor benchmark"
 - Delete: `crates/bench-preprocessor/README.md`
 - Delete: `crates/bench-preprocessor/benches/preprocessor.rs`
 - Modify: `.github/workflows/ci.yml`
-- Modify: `docs/architecture.md`
+- Modify: `docs/architecture/overview.md`
 - Modify: `Cargo.lock`
 
 **Interfaces:**
@@ -231,7 +233,7 @@ workspace, CI, README, or architecture reference remains.
 - [x] **Step 5: Commit the workspace cleanup**
 
 ```bash
-git add Cargo.lock .github/workflows/ci.yml docs/architecture.md \
+git add Cargo.lock .github/workflows/ci.yml docs/architecture/overview.md \
   crates/bench-demosaic crates/bench-preprocessor
 git commit -m "chore: remove standalone benchmark crates"
 ```
@@ -240,7 +242,7 @@ git commit -m "chore: remove standalone benchmark crates"
 
 **Files:**
 
-- Modify: `docs/plans/chore-merge-bench-crates.md`
+- Modify: `docs/_archive/plans/benchmark-crate-merge.md`
 
 **Interfaces:**
 
@@ -278,7 +280,7 @@ Expected: only planned files changed, `TODO.md` is untouched, and both removed
 benchmark packages are absent.
 
 ```bash
-git add docs/plans/chore-merge-bench-crates.md
+git add docs/_archive/plans/benchmark-crate-merge.md
 git commit -m "docs: record benchmark consolidation validation"
 ```
 

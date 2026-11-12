@@ -1,5 +1,7 @@
 # Demosaic linear workflow and parameter audit
 
+This archived plan documents the completed Demosaic linear workflow and parameter audit work.
+
 ## Goal
 
 Make every demosaic's linear input/output boundary explicit, expose the missing
@@ -130,8 +132,8 @@ outputs and comparison baselines.
 
 **Files:**
 
-- Modify: `docs/references/dcb.md`
-- Modify: `docs/references/lmmse.md`
+- Modify: `docs/reference/algorithms/dcb.md`
+- Modify: `docs/reference/algorithms/lmmse.md`
 - Modify: `crates/fornax-raw-pipeline/README.md`
 
 **Interfaces:**
@@ -154,9 +156,9 @@ outputs and comparison baselines.
 - `crates/fornax-raw-pipeline/README.md`
 - `crates/fornax-raw-pipeline/benches/support/demosaic_registry.rs`
 - `crates/compare-demosaic/src/cases.rs`
-- `docs/references/dcb.md`
-- `docs/references/lmmse.md`
-- `docs/plans/chore-demosaic-parameter-audit.md`
+- `docs/reference/algorithms/dcb.md`
+- `docs/reference/algorithms/lmmse.md`
+- `docs/_archive/plans/demosaic-parameter-audit.md`
 
 ## Validation
 

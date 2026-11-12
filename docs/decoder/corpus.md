@@ -1,4 +1,6 @@
-# RAW corpus and regression tracking
+# RAW Corpus and Regression Tracking
+
+This guide documents the pinned RAW corpus, golden regression workflow, schemas, and manual CI operation.
 
 ## Status
 

@@ -1,4 +1,6 @@
-# DEC-ARW Sony ARW/NRW decoder
+# Sony ARW/NRW Decoder
+
+This archived plan documents the completed Sony ARW/NRW Decoder work.
 
 ## Goal
 
@@ -73,10 +75,10 @@ Out of scope:
 - `crates/fornax-tiff/src/parser.rs`
 - `crates/fornax-tiff/tests/private_ifd.rs`
 - `crates/fornax-raw/src/lib.rs`
-- `docs/architecture.md`
-- `docs/decoder/architecture.md`
+- `docs/architecture/overview.md`
+- `docs/architecture/decoder.md`
 - `docs/decoder/formats/sony-arw.md`
-- `docs/references/sony-arw.md`
+- `docs/reference/decoders/sony-arw.md`
 
 ## Validation
 

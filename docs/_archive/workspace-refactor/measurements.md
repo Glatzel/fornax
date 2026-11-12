@@ -1,5 +1,7 @@
 # Workspace refactor measurements
 
+This archived workspace-refactor record documents Workspace refactor measurements.
+
 ## Environment and method
 
 - Machine: AMD Ryzen 7 5800H, 8 cores and 15 online logical CPUs, WSL2 on

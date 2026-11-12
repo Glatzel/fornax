@@ -1,4 +1,6 @@
-# Plan: book-03 — build a shareable PDF
+# Shareable Book PDF Build
+
+This active plan defines the remaining work for a shareable book PDF build.
 
 Branch `task/book-03-build`, worktree `.worktrees/book-03-build`.
 PR title example: `docs: add book PDF build`. Put `BOOK-03` in the PR body and remove its `TODO.md` item in the same PR.
@@ -65,7 +67,7 @@ Known risks to test, not assume:
 
 ## Files expected to change
 
-- new: `book/scripts/book_build.py`, possibly one Lua filter under `book/scripts/`, `docs/plans/book-03-build.md`
+- new: `book/scripts/book_build.py`, possibly one Lua filter under `book/scripts/`, `docs/plans/book-03-pdf-build.md`
 - edit: `pixi.toml`, `pixi.lock`, `TODO.md` (remove `BOOK-03` only)
 
 ## Validation

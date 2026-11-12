@@ -3,7 +3,7 @@
 //! The integer pipeline, padded working planes, direction flags, hot-pixel
 //! handling, and output truncation follow LibRaw 0.22.3
 //! `LibRaw::aahd_interpolate` and its private `AAHD` helper.
-//! See the [AAHD reference notes](https://github.com/Glatzel/fornax/blob/main/docs/references/aahd.md)
+//! See the [AAHD reference notes](https://github.com/Glatzel/fornax/blob/main/docs/reference/algorithms/aahd.md)
 //! for the pinned source and compatibility conventions.
 
 use std::cmp::Ordering;

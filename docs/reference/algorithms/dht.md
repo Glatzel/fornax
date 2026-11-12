@@ -1,5 +1,7 @@
 # DHT reference notes
 
+This reference note records pinned sources, numerical behavior, and implementation boundaries for DHT.
+
 This note records the authoritative source and numeric conventions used by
 Fornax's conventional 2x2 RGB Bayer DHT path.
 
@@ -11,7 +13,7 @@ Fornax's conventional 2x2 RGB Bayer DHT path.
 - LibRaw 0.22.3, three-color CFA preprocessing:
   [`src/demosaic/misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L21).
 - Fornax comparison adapter:
-  [`crates/compare-demosaic/cpp/algos/libraw_dht.cpp`](../../crates/compare-demosaic/cpp/algos/libraw_dht.cpp).
+  [`crates/compare-demosaic/cpp/algos/libraw_dht.cpp`](../../../crates/compare-demosaic/cpp/algos/libraw_dht.cpp).
 
 The comparison calls `pre_interpolate()` followed by `dht_interpolate()`. For
 the fixture's three-color, full-resolution Bayer path, preprocessing unifies

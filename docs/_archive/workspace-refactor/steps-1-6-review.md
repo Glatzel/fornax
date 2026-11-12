@@ -1,16 +1,18 @@
 # Steps 1-6 workspace refactor review summary
 
+This archived workspace-refactor record documents Steps 1-6 workspace refactor review summary.
+
 `[DONE]` This review uses current `main`, source files, merge history, and read-only GitHub PR records. Commit/check metadata is not line-addressable; source claims use repository-relative `path:line` citations.
 
 ## 1. Baseline and state
 
 | Item | Verified fact | Evidence |
 | --- | --- | --- |
-| `[DONE]` Baseline | `9b9c1b284ff5f4fe9ef1c8ff41eb6c3cff17b8d2` | `docs/references/workspace-refactor-baseline.md:8` |
+| `[DONE]` Baseline | `9b9c1b284ff5f4fe9ef1c8ff41eb6c3cff17b8d2` | `docs/_archive/workspace-refactor/baseline-findings.md:8` |
 | `[DONE]` Current `main` | `74c8100692e56638f52f0c5430e5a1ab5dd8672b`, equal to `origin/main` | `.git/refs/heads/main:1`, `.git/refs/remotes/origin/main:1` |
 | `[DONE]` Working tree | Only `external/raw.pixls.us` is dirty at top level; its worktree is `bdef075de28da656976c7cf54f89c1214dbc65d4-dirty`, not the recorded gitlink `a96f50803e8c7b2923badc983cba80246b80eb1e`. Six Sony ARW files are modified inside it. | `.gitmodules:9`; `git status --porcelain=v2` and `git -C external/raw.pixls.us status` |
 | `[DEVIATION]` Out-of-band merge | PR #690, `refactor: clean up`, merged after Step 6. It renamed the former core crate to `fornax-raw-core`, renamed the facade to `fornax-raw`, and deleted the compatibility processor crates. | `.git/refs/heads/main:1`; `Cargo.toml:16`; `crates/fornax-raw/Cargo.toml:2` |
-| `[DONE]` Interleaved non-step merges | PR #682 added trigger documents; PR #685 only reordered a dependency declaration. | `docs/plans/workspace-refactor/README.md:1`; `Cargo.toml:22` |
+| `[DONE]` Interleaved non-step merges | PR #682 added trigger documents; PR #685 only reordered a dependency declaration. | `docs/_archive/workspace-refactor/workspace-refactor-steps.md:1`; `Cargo.toml:22` |
 
 | Step | PR and title | Merge status |
 | --- | --- | --- |
@@ -203,10 +205,10 @@ Evidence: `crates/fornax-dng/src/sample_buffer.rs:5`, `crates/fornax-dng/src/lib
 
 | `[DONE]` Name/value | Current location | Origin evidence |
 | --- | --- | --- |
-| `[DONE]` `DngCompressionMethod::LossyJpeg = 34892` | `crates/fornax-dng/src/constants.rs:14` | DNG specification; `docs/references/dng-compression.md:63` |
-| `[DONE]` `DngCompressionMethod::Zstd = 50000` | `crates/fornax-dng/src/constants.rs:16` | LibTIFF self-assignment; `docs/references/dng-compression.md:64` |
-| `[DONE]` `DngCompressionMethod::JpegXlLegacy = 50002` | `crates/fornax-dng/src/constants.rs:18` | GDAL self-assignment, not DNG or LibTIFF; `docs/references/dng-compression.md:65` |
-| `[DONE]` `DngCompressionMethod::JpegXl = 52546` | `crates/fornax-dng/src/constants.rs:20` | DNG 1.7 specification; `docs/references/dng-compression.md:66` |
+| `[DONE]` `DngCompressionMethod::LossyJpeg = 34892` | `crates/fornax-dng/src/constants.rs:14` | DNG specification; `docs/reference/decoders/dng-compression.md:63` |
+| `[DONE]` `DngCompressionMethod::Zstd = 50000` | `crates/fornax-dng/src/constants.rs:16` | LibTIFF self-assignment; `docs/reference/decoders/dng-compression.md:64` |
+| `[DONE]` `DngCompressionMethod::JpegXlLegacy = 50002` | `crates/fornax-dng/src/constants.rs:18` | GDAL self-assignment, not DNG or LibTIFF; `docs/reference/decoders/dng-compression.md:65` |
+| `[DONE]` `DngCompressionMethod::JpegXl = 52546` | `crates/fornax-dng/src/constants.rs:20` | DNG 1.7 specification; `docs/reference/decoders/dng-compression.md:66` |
 | `[UNVERIFIED]` `DngPhotometricInterpretation::LinearRaw = 34892` | `crates/fornax-dng/src/constants.rs:31` | Origin is asserted only in code (`crates/fornax-dng/src/constants.rs:26`); no value-specific citation is retained. |
 | `[UNVERIFIED]` `DngPhotometricInterpretation::Depth = 51177` | `crates/fornax-dng/src/constants.rs:33` | Origin unknown in current repository evidence. |
 | `[UNVERIFIED]` `DngPhotometricInterpretation::PhotometricMask = 52527` | `crates/fornax-dng/src/constants.rs:35` | Origin unknown in current repository evidence. |
@@ -329,7 +331,7 @@ golden file. Phase A reran the hash check and reported
 `golden: unchanged (9 rows)`.
 
 `[DONE]` Phase A recorded benchmark numbers in
-`docs/references/workspace-refactor-measurements.md`. No `fornax-codec`
+`docs/_archive/workspace-refactor/measurements.md`. No `fornax-codec`
 benchmark target exists at the baseline or current main. The DNG target is a
 writer benchmark, and the older stage benchmarks moved from the preprocessor
 and postprocessor crates into `fornax-raw-pipeline`.
@@ -372,18 +374,18 @@ subtable.
 architecture, crate READMEs, plans, proposals, references, and book links.
 
 `[DONE]` The `fornax-raw` `zstd` feature is a maintainer decision and is
-documented in `docs/architecture.md`.
+documented in `docs/architecture/overview.md`.
 
 ## 11. Decisions and gaps
 
 `[DONE]` The approved `SampleBuffer` shape and its public compatibility
 constraint are recorded in
-`docs/plans/workspace-refactor/step-04-sample-buffer.md`.
+`docs/_archive/workspace-refactor/codec-sample-buffer-step.md`.
 
 `[UNVERIFIED]` Normative origins of photometric 51177 and 52527, and a value-specific citation for 34892.
 
 `[DONE]` The current `fornax-py` dependency and import failures are documented
-in `crates/fornax-py/README.md` and `docs/architecture.md`. The intended API
+in `crates/fornax-py/README.md` and `docs/architecture/overview.md`. The intended API
 remains a reserved decision.
 
 `[DONE]` Phase A ran the allowed benchmark targets and full workspace

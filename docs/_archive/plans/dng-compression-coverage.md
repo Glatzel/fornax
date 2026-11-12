@@ -1,5 +1,7 @@
 # DNG Compression Coverage and Corpus Status Plan
 
+This archived plan documents the completed DNG Compression Coverage and Corpus Status work.
+
 ## Goal
 
 Document and fix the DNG decoder gaps exposed by the pinned corpus, add legacy
@@ -72,13 +74,13 @@ Out of scope:
 - `crates/fornax-tiff/tests/constants.rs`
 - `crates/fornax-codec/README.md`
 - `crates/fornax-dng/README.md`
-- `docs/architecture.md`
-- `docs/decoder/architecture.md`
+- `docs/architecture/overview.md`
+- `docs/architecture/decoder.md`
 - `docs/decoder/corpus.md`
 - `docs/decoder/formats/dng.md`
-- `docs/references/dng-compression.md`
-- `docs/references/dng-lossless-jpeg.md`
-- `docs/plans/chore-dng-compression-coverage.md`
+- `docs/reference/decoders/dng-compression.md`
+- `docs/reference/decoders/dng-lossless-jpeg.md`
+- `docs/_archive/plans/dng-compression-coverage.md`
 
 ## Validation
 
@@ -144,12 +146,12 @@ Validation record:
 - Modify: `crates/fornax-tiff/README.md`
 - Modify: `crates/fornax-codec/README.md`
 - Modify: `crates/fornax-dng/README.md`
-- Modify: `docs/architecture.md`
-- Modify: `docs/decoder/architecture.md`
+- Modify: `docs/architecture/overview.md`
+- Modify: `docs/architecture/decoder.md`
 - Modify: `docs/decoder/corpus.md`
 - Modify: `docs/decoder/formats/dng.md`
-- Modify: `docs/references/dng-compression.md`
-- Modify: `docs/references/dng-lossless-jpeg.md`
+- Modify: `docs/reference/decoders/dng-compression.md`
+- Modify: `docs/reference/decoders/dng-lossless-jpeg.md`
 
 Add the shared compression/identifier matrix, lossless-JPEG limitations,
 multi-sample `LinearRaw` limitation, and non-codec failure taxonomy described

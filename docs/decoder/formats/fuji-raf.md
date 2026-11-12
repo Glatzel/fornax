@@ -1,4 +1,6 @@
-# Fujifilm RAF format plan
+# Fujifilm RAF Format
+
+This format guide defines the supported container, compression, metadata, and completion requirements for Fujifilm RAF.
 
 **Tier:** 2, implemented for uncompressed and Fujifilm block-lossless images
 

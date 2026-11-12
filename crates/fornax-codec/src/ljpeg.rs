@@ -1,7 +1,7 @@
 //! Restart-free lossless JPEG-92 color-component decoding.
 //!
 //! The DNG-specific tile assembly and metadata decisions are documented in
-//! `docs/references/dng-lossless-jpeg.md`.
+//! `docs/reference/decoders/dng-lossless-jpeg.md`.
 
 use rayon::prelude::*;
 
