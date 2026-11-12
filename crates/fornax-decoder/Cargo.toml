@@ -21,6 +21,7 @@ fornax-rw2.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
+csv.workspace = true
 fornax-codec.workspace = true
 fornax-devtool.workspace = true
 fornax-tiff.workspace = true

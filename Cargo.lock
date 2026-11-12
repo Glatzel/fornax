@@ -815,6 +815,7 @@ version = "0.0.17"
 dependencies = [
  "clerk",
  "codspeed-criterion-compat",
+ "csv",
  "fornax-arw",
  "fornax-codec",
  "fornax-cr3",

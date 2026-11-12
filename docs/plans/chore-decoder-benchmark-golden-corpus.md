@@ -21,6 +21,8 @@ This plan replaces the single-fixture decoder benchmark with a per-file golden-c
 - Compare only `decode`, `raw_mosaic`, and `cropped_mosaic` across all decoders.
 - Keep Fornax `dng_metadata` and `process_metadata` as Fornax-only diagnostics.
 - Pin decoder benchmark execution to one thread.
+- Do not execute timed benchmarks in the implementation session; GitHub Actions
+  owns benchmark execution.
 
 ## Review Focus
 
@@ -399,9 +401,10 @@ git diff --check
 Expected: tests compile and pass, the benchmark compiles, and the normal
 dependency tree contains neither `rawler` nor `flashraw`.
 
-- [ ] **Step 2: Run a one-file smoke benchmark**
+- [ ] **Step 2: Verify the benchmark matrix in CI**
 
-Use a materialized golden DNG with:
+After pushing the branch, dispatch CI and require the decoder benchmark matrix
+to execute one golden input per job with:
 
 ```text
 RAYON_NUM_THREADS=1
@@ -443,3 +446,4 @@ Report the PR URL and validation evidence. Do not watch, merge, or close it.
   to a new decoder release.
 - Timing values are review evidence only; no host-dependent baseline is
   committed.
+- Actual benchmark timing runs happen only in CI, as requested by the user.
