@@ -247,11 +247,6 @@ struct HuffmanTable {
     lookup: Box<[HuffmanEntry]>,
 }
 
-trait BitRead {
-    fn peek(&mut self, count: u8) -> u16;
-    fn skip(&mut self, count: usize);
-}
-
 impl HuffmanTable {
     fn parse(
         counts: &[u8; 16],
@@ -290,7 +285,19 @@ impl HuffmanTable {
         })
     }
 
-    fn decode(&self, bits: &mut impl BitRead) -> Result<u8, String> {
+    // Keep the DNG hot path concrete. Genericizing these bit-reader helpers
+    // regressed decoder raw_mosaic and cropped_mosaic benchmarks.
+    fn decode(&self, bits: &mut BitReader<'_>) -> Result<u8, String> {
+        let entry = self.lookup[usize::from(bits.peek(16))];
+        if entry.bits == 0 {
+            return Err("lossless JPEG contains an invalid Huffman code".to_owned());
+        }
+        bits.skip(usize::from(entry.bits));
+        Ok(entry.symbol)
+    }
+
+    #[cfg(feature = "hasselblad")]
+    fn decode_hasselblad(&self, bits: &mut HasselbladBitReader<'_>) -> Result<u8, String> {
         let entry = self.lookup[usize::from(bits.peek(16))];
         if entry.bits == 0 {
             return Err("lossless JPEG contains an invalid Huffman code".to_owned());
@@ -338,7 +345,7 @@ impl<'a> HasselbladBitReader<'a> {
 }
 
 #[cfg(feature = "hasselblad")]
-impl BitRead for HasselbladBitReader<'_> {
+impl HasselbladBitReader<'_> {
     fn peek(&mut self, count: u8) -> u16 {
         while self.buffered_bits < count {
             let end = self.position.saturating_add(4).min(self.bytes.len());
@@ -431,12 +438,6 @@ impl<'a> BitReader<'a> {
         self.ended = true;
         0
     }
-}
-
-impl BitRead for BitReader<'_> {
-    fn peek(&mut self, count: u8) -> u16 { Self::peek(self, count) }
-
-    fn skip(&mut self, count: usize) { Self::skip(self, count); }
 }
 
 struct HeaderReader<'a> {
@@ -677,13 +678,13 @@ fn decode_hasselblad_interleaved(
         let mut second = 0x8000_i32;
         for column in (0..expected_width).step_by(2) {
             let first_length = table
-                .decode(&mut bits)
+                .decode_hasselblad(&mut bits)
                 .map_err(|detail| format!("{detail} at row {_row}, column {column}"))?;
             let second_length = table
-                .decode(&mut bits)
+                .decode_hasselblad(&mut bits)
                 .map_err(|detail| format!("{detail} at row {_row}, column {}", column + 1))?;
-            first = first.wrapping_add(decode_difference(first_length, &mut bits, true)?);
-            second = second.wrapping_add(decode_difference(second_length, &mut bits, true)?);
+            first = first.wrapping_add(decode_hasselblad_difference(first_length, &mut bits)?);
+            second = second.wrapping_add(decode_hasselblad_difference(second_length, &mut bits)?);
             output.push(first as u16);
             output.push(second as u16);
         }
@@ -917,7 +918,26 @@ fn add_prediction(
     bits: &mut BitReader<'_>,
     precision: u8,
 ) -> Result<u16, String> {
-    let difference = decode_difference(symbol, bits, false)?;
+    let difference = match symbol {
+        0 => 0,
+        16 => -32_768,
+        1..=15 => {
+            let bit_count = symbol;
+            let raw = i32::from(bits.peek(bit_count));
+            bits.skip(usize::from(bit_count));
+            let threshold = 1_i32 << (bit_count - 1);
+            if raw < threshold {
+                raw - ((1_i32 << bit_count) - 1)
+            } else {
+                raw
+            }
+        }
+        _ => {
+            return Err(format!(
+                "lossless JPEG difference class {symbol} is unsupported"
+            ));
+        }
+    };
     let mask = (1_u32 << precision) - 1;
     Ok(
         u16::try_from((prediction.wrapping_add(difference) as u32) & mask)
@@ -925,18 +945,17 @@ fn add_prediction(
     )
 }
 
-fn decode_difference(
+#[cfg(feature = "hasselblad")]
+fn decode_hasselblad_difference(
     symbol: u8,
-    bits: &mut impl BitRead,
-    consume_symbol_sixteen: bool,
+    bits: &mut HasselbladBitReader<'_>,
 ) -> Result<i32, String> {
+    // Hasselblad class 16 has an extra 16-bit payload that DNG class 16 omits.
     Ok(match symbol {
         0 => 0,
         16 => {
-            if consume_symbol_sixteen {
-                bits.peek(16);
-                bits.skip(16);
-            }
+            bits.peek(16);
+            bits.skip(16);
             -32_768
         }
         1..=15 => {

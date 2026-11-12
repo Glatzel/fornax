@@ -155,3 +155,4 @@ git diff --check
 - Camera profiles supply RGGB and active borders because accepted raw IFDs do not carry CFA tags.
 - Embedded `ColorMatrix1`, `AsShotNeutral`, levels, crop geometry, orientation, and safe EXIF take precedence over profile defaults.
 - Non-Bayer CFA data remains exportable but never enters `process_metadata` or `cropped_mosaic`.
+- The DNG and Hasselblad lossless-JPEG bit readers remain specialized: genericizing the shared DNG read path with the Hasselblad bit order regressed `raw_mosaic` and `cropped_mosaic` benchmarks.
