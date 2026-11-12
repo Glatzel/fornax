@@ -10,12 +10,14 @@ edition = "2024"
 [workspace.dependencies]
 fornax-bmff = { path = "./crates/fornax-bmff" }
 fornax-codec = { path = "./crates/fornax-codec" }
-fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
+fornax-tiff = { path = "./crates/fornax-tiff" }
+
 fornax-raw = { path = "./crates/fornax-raw" }
 fornax-raw-canon = { path = "./crates/fornax-raw-canon" }
 fornax-raw-core = { path = "./crates/fornax-raw-core" }
+fornax-raw-decoder = { path = "./crates/fornax-raw-decoder" }
 fornax-raw-fujifilm = { path = "./crates/fornax-raw-fujifilm" }
 fornax-raw-hasselblad = { path = "./crates/fornax-raw-hasselblad" }
 fornax-raw-nikon = { path = "./crates/fornax-raw-nikon" }
@@ -23,7 +25,6 @@ fornax-raw-panasonic = { path = "./crates/fornax-raw-panasonic" }
 fornax-raw-phase-one = { path = "./crates/fornax-raw-phase-one" }
 fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
 fornax-raw-sony = { path = "./crates/fornax-raw-sony" }
-fornax-tiff = { path = "./crates/fornax-tiff" }
 
 # glatzel
 clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }

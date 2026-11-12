@@ -477,9 +477,9 @@ version = "0.0.17"
 dependencies = [
  "cc",
  "clap",
- "fornax-decoder",
  "fornax-devtool",
  "fornax-raw-core",
+ "fornax-raw-decoder",
  "fornax-raw-pipeline",
  "hex",
  "image 0.25.9",
@@ -621,9 +621,9 @@ dependencies = [
  "clap-verbosity-flag",
  "clerk",
  "csv",
- "fornax-decoder",
  "fornax-dng",
  "fornax-raw-core",
+ "fornax-raw-decoder",
  "fornax-tiff",
  "globset",
  "hex",
@@ -840,31 +840,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fornax-decoder"
-version = "0.0.17"
-dependencies = [
- "clerk",
- "codspeed-criterion-compat",
- "csv",
- "flashraw",
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-canon",
- "fornax-raw-core",
- "fornax-raw-fujifilm",
- "fornax-raw-hasselblad",
- "fornax-raw-nikon",
- "fornax-raw-panasonic",
- "fornax-raw-phase-one",
- "fornax-raw-sony",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "rawler",
- "strum",
-]
-
-[[package]]
 name = "fornax-devtool"
 version = "0.0.17"
 dependencies = [
@@ -906,8 +881,8 @@ dependencies = [
 name = "fornax-raw"
 version = "0.0.17"
 dependencies = [
- "fornax-decoder",
  "fornax-raw-core",
+ "fornax-raw-decoder",
  "fornax-raw-pipeline",
 ]
 
@@ -959,6 +934,31 @@ dependencies = [
  "raw-cpuid",
  "strum",
  "thiserror",
+]
+
+[[package]]
+name = "fornax-raw-decoder"
+version = "0.0.17"
+dependencies = [
+ "clerk",
+ "codspeed-criterion-compat",
+ "csv",
+ "flashraw",
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-canon",
+ "fornax-raw-core",
+ "fornax-raw-fujifilm",
+ "fornax-raw-hasselblad",
+ "fornax-raw-nikon",
+ "fornax-raw-panasonic",
+ "fornax-raw-phase-one",
+ "fornax-raw-sony",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rawler",
+ "strum",
 ]
 
 [[package]]

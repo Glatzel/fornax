@@ -3,10 +3,10 @@ name = "fornax-raw"
 version.workspace = true
 edition.workspace = true
 
-[dependencies]
-fornax-decoder.workspace = true
-fornax-raw-core.workspace = true
-fornax-raw-pipeline.workspace = true
-
 [features]
-zstd = ["fornax-decoder/zstd"]
+zstd = ["fornax-raw-decoder/zstd"]
+
+[dependencies]
+fornax-raw-core.workspace = true
+fornax-raw-decoder.workspace = true
+fornax-raw-pipeline.workspace = true
