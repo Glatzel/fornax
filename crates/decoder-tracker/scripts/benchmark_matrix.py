@@ -6,46 +6,50 @@ import csv
 import json
 from pathlib import Path
 
-
 HEADER = ["path", "size", "sha256"]
+
+
+class GoldenManifestError(ValueError):
+    """Invalid golden benchmark manifest."""
 
 
 def load_manifest(stream):
     reader = csv.DictReader(stream)
     if reader.fieldnames != HEADER:
-        raise ValueError("golden manifest header must be exactly path,size,sha256")
+        msg = "golden manifest header must be exactly path,size,sha256"
+        raise GoldenManifestError(msg)
 
     rows = []
     seen = set()
     for line_number, record in enumerate(reader, start=2):
         path = record["path"].replace("\\", "/")
         segments = path.split("/")
-        if (
-            not path
-            or path.startswith("/")
-            or any(segment in ("", ".", "..") for segment in segments)
-        ):
-            raise ValueError(f"line {line_number}: invalid repository path {path!r}")
+        if not path or path.startswith("/") or any(segment in ("", ".", "..") for segment in segments):
+            msg = f"line {line_number}: invalid repository path {path!r}"
+            raise GoldenManifestError(msg)
         if path in seen:
-            raise ValueError(f"line {line_number}: duplicate path {path}")
+            msg = f"line {line_number}: duplicate path {path}"
+            raise GoldenManifestError(msg)
         seen.add(path)
 
         try:
             size = int(record["size"])
         except ValueError as error:
-            raise ValueError(f"line {line_number}: invalid size: {error}") from error
+            msg = f"line {line_number}: invalid size: {error}"
+            raise GoldenManifestError(msg) from error
         if size < 0:
-            raise ValueError(f"line {line_number}: size must not be negative")
+            msg = f"line {line_number}: size must not be negative"
+            raise GoldenManifestError(msg)
 
         sha256 = record["sha256"].lower()
-        if len(sha256) != 64 or any(
-            character not in "0123456789abcdef" for character in sha256
-        ):
-            raise ValueError(f"line {line_number}: invalid SHA-256 {sha256!r}")
+        if len(sha256) != 64 or any(character not in "0123456789abcdef" for character in sha256):
+            msg = f"line {line_number}: invalid SHA-256 {sha256!r}"
+            raise GoldenManifestError(msg)
         rows.append({"path": path, "size": size, "sha256": sha256})
 
     if not rows:
-        raise ValueError("golden manifest contains no inputs")
+        msg = "golden manifest contains no inputs"
+        raise GoldenManifestError(msg)
     return rows
 
 
@@ -54,7 +58,8 @@ def build_matrix(rows):
     for row in rows:
         extension = row["path"].rsplit(".", 1)
         if len(extension) != 2 or not extension[1]:
-            raise ValueError(f"golden path has no extension: {row['path']}")
+            msg = f"golden path has no extension: {row['path']}"
+            raise GoldenManifestError(msg)
         format_name = extension[1].upper()
         include.append(
             {

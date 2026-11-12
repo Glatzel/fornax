@@ -9,7 +9,8 @@ use std::{env, fs};
 use criterion::measurement::WallTime;
 use criterion::{BenchmarkGroup, Criterion, black_box, criterion_group, criterion_main};
 use decoder_inputs::{
-    GoldenInput, ensure_materialized, parse_golden_manifest, select_golden_inputs,
+    GoldenInput, ensure_materialized, parse_golden_manifest, resolve_repo_relative,
+    select_golden_inputs,
 };
 use decoder_selection::{DecoderKind, parse_decoder_selection};
 use flashraw_wrapper::FlashRawDecoder;
@@ -30,10 +31,13 @@ fn selected_decoders() -> Vec<DecoderKind> {
 }
 
 fn benchmark_inputs() -> Vec<(GoldenInput, PathBuf)> {
+    let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let manifest = env::var_os("FORNAX_BENCH_MANIFEST")
         .map_or_else(|| PathBuf::from(DEFAULT_MANIFEST), PathBuf::from);
     let corpus = env::var_os("FORNAX_BENCH_CORPUS")
         .map_or_else(|| PathBuf::from(DEFAULT_CORPUS), PathBuf::from);
+    let manifest = resolve_repo_relative(&repo_root, &manifest);
+    let corpus = resolve_repo_relative(&repo_root, &corpus);
     let bytes = fs::read(&manifest).unwrap_or_else(|error| {
         panic!(
             "reading decoder benchmark golden manifest {} failed: {error}",
@@ -46,7 +50,9 @@ fn benchmark_inputs() -> Vec<(GoldenInput, PathBuf)> {
             manifest.display()
         )
     });
-    let explicit = env::var_os("FORNAX_BENCH_RAW").map(PathBuf::from);
+    let explicit = env::var_os("FORNAX_BENCH_RAW")
+        .map(PathBuf::from)
+        .map(|path| resolve_repo_relative(&repo_root, &path));
     let inputs = select_golden_inputs(&rows, explicit.as_deref(), &corpus)
         .unwrap_or_else(|error| panic!("configuring decoder benchmark inputs failed: {error}"));
     ensure_materialized(&inputs)

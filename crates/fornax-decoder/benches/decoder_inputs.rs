@@ -162,6 +162,14 @@ pub fn ensure_materialized(inputs: &[(GoldenInput, PathBuf)]) -> Result<(), Stri
     Ok(())
 }
 
+pub fn resolve_repo_relative(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
 fn normalized_repo_path(path: &str) -> Result<String, String> {
     let path = path.replace('\\', "/");
     if path.is_empty()

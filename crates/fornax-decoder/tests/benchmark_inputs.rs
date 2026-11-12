@@ -5,7 +5,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use decoder_inputs::{
-    GoldenInput, ensure_materialized, parse_golden_manifest, select_golden_inputs,
+    GoldenInput, ensure_materialized, parse_golden_manifest, resolve_repo_relative,
+    select_golden_inputs,
 };
 
 const SHA_A: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -142,4 +143,17 @@ fn rejects_an_unmaterialized_lfs_pointer() {
     let rows = parse_golden_manifest(&manifest()).unwrap();
     let error = ensure_materialized(&[(rows[0].clone(), pointer)]).unwrap_err();
     assert!(error.contains("LFS pointer"), "{error}");
+}
+
+#[test]
+fn resolves_relative_benchmark_paths_from_the_repository_root() {
+    let root = Path::new("/opt/fornax");
+    assert_eq!(
+        resolve_repo_relative(root, Path::new("crates/decoder-tracker/golden")),
+        root.join("crates/decoder-tracker/golden")
+    );
+    assert_eq!(
+        resolve_repo_relative(root, Path::new("/tmp/fornax-benchmark.CR3")),
+        Path::new("/tmp/fornax-benchmark.CR3")
+    );
 }

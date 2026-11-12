@@ -34,9 +34,11 @@ external/raw.pixls.us
 ```
 
 Override the manifest or corpus root with `FORNAX_BENCH_MANIFEST` and
-`FORNAX_BENCH_CORPUS`. With no `FORNAX_BENCH_RAW`, every golden row must be
-materialized and is benchmarked. `FORNAX_BENCH_RAW` selects exactly one input,
-but that canonical path must belong to the selected golden manifest.
+`FORNAX_BENCH_CORPUS`. Relative path overrides are resolved from the repository
+root, including when the benchmark process runs from another working directory.
+With no `FORNAX_BENCH_RAW`, every golden row must be materialized and is
+benchmarked. `FORNAX_BENCH_RAW` selects exactly one input, but that canonical
+path must belong to the selected golden manifest.
 
 The benchmark rejects missing files, LFS pointer metadata, incorrect file sizes,
 malformed manifests, duplicate paths, and paths outside the manifest before

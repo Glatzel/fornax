@@ -22,12 +22,12 @@ fornax-rw2.workspace = true
 [dev-dependencies]
 criterion.workspace = true
 csv.workspace = true
+flashraw = "=0.2.0"
 fornax-codec.workspace = true
 fornax-devtool.workspace = true
 fornax-tiff.workspace = true
 generic-num.workspace = true
 image.workspace = true
-flashraw = "=0.2.0"
 rawler = "0.8.0"
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]

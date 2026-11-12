@@ -455,3 +455,6 @@ Report the PR URL and validation evidence. Do not watch, merge, or close it.
   `FORNAX_BENCH_DECODER` now selects all three decoders as documented.
 - FlashRaw `decode` moves the decoded frame data into the adapter instead of
   cloning the full sensor buffer, keeping the timed path free of an extra copy.
+- CI review found CodSpeed running the benchmark outside the repository root;
+  benchmark paths now resolve relative overrides from `CARGO_MANIFEST_DIR`'s
+  repository root instead of the process working directory.
