@@ -449,6 +449,9 @@ Pull request: <https://github.com/Glatzel/fornax/pull/715>.
     `docs/_archive/plans/hasselblad-3fr-decoder.md`.
   - `docs/references/hasselblad-3fr.md` to
     `docs/reference/decoders/hasselblad-3fr.md`.
+- CI exposed a Cargo documentation output collision between the
+  `fornax-raw-cli` binary target and the `fornax-raw` library target. Binary
+  documentation is disabled because the CLI has no separate public API docs.
 - No document is deleted.
 - `docs/plans/` remains the active-plan folder because root `AGENTS.md` already
   defines that workflow.

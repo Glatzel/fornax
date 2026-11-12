@@ -6,6 +6,7 @@ edition.workspace = true
 [[bin]]
 name = "fornax-raw"
 path = "src/main.rs"
+doc = false
 
 [dependencies]
 clap.workspace = true
