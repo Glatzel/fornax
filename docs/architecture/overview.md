@@ -318,11 +318,13 @@ file can validate the codec.
 
 ## Benchmarks and comparisons
 
-Decoder benchmarks live in `crates/fornax-decoder/benches/decoder.rs`. The benchmark
-compares the DNG decoder and Rawler adapter over each `IDecoder` method and
-over composite decode-plus-mosaic cases. `f32` is the default sample type;
-`f64` and decoder subsets are opt-in. Preprocessor and demosaic benchmarks
-live in `fornax-raw-pipeline`.
+Decoder benchmarks live in `crates/fornax-decoder/benches/decoder.rs`. The
+benchmark compares Fornax, Rawler, and FlashRaw over the decoder-tracker golden
+corpus with one Criterion group per input. The shared measurements are
+`decode`, `raw_mosaic`, and `cropped_mosaic`; Fornax metadata remains
+diagnostic-only. `f32` is the default sample type, and `f64` and decoder
+subsets are opt-in. Preprocessor and demosaic benchmarks live in
+`fornax-raw-pipeline`.
 
 `decoder-tracker` validates the pointer-only raw.pixls.us submodule manifest and
 runs manual, deterministically sharded decoder regressions against a committed

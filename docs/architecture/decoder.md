@@ -94,7 +94,7 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-dng/src/dng_decoder/mod.rs` | Raw IFD selection, DNG-to-codec request mapping, transforms, and active crop |
 | `fornax-dng/src/dng_decoder/process_metadata.rs` | DNG geometry, levels, CFA, and white-balance conversion |
 | `fornax-dng/src/writer.rs` | Uncompressed and lossless DNG generation |
-| `crates/fornax-decoder/benches/decoder.rs` | Decoder-method benchmarks for default and Rawler adapters |
+| `crates/fornax-decoder/benches/decoder.rs` | Golden-corpus decoder-method benchmarks for default, Rawler, and FlashRaw adapters |
 | `decoder-tracker/src` | Manual raw.pixls.us manifest, isolated decoder runs, shard merge, and baseline diff |
 
 Codec availability is controlled by Cargo features. Fornax owns the Sony ARW1,
@@ -297,8 +297,9 @@ and macOS; tests and documentation must not make the DNC path a requirement on
 other platforms or on machines without that executable.
 
 `fornax-decoder` compiles one benchmark target covering `decode`, `raw_mosaic`,
-`cropped_mosaic`, `dng_metadata`, and `process_metadata` for the default DNG
-and Rawler decoders. It is separate from the preprocessor and demosaic
+and `cropped_mosaic` for the default decoder and benchmark-only Rawler and
+FlashRaw adapters across the 30-file golden corpus. Fornax metadata accessors
+remain diagnostic-only. It is separate from the preprocessor and demosaic
 benchmarks in their stage crates.
 
 ## Writer behavior

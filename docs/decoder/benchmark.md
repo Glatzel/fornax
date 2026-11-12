@@ -1,83 +1,99 @@
 # Decoder Benchmarks
 
-This guide documents decoder benchmark targets, environment controls, and comparison criteria.
+This guide defines the golden-corpus decoder benchmark, its comparison scope, and its CI matrix.
 
 ## Current benchmark
 
-`fornax-decoder` is the workspace benchmark package for decoder comparisons. Its
-`decoder` target measures the default decoder in `fornax-decoder` (DNG and
-supported Sony ARW/NRW) against the Rawler adapter used by the benchmark.
+`fornax-decoder` owns the `decoder` benchmark target. It compares the default
+pure-Rust decoder with benchmark-only Rawler and FlashRaw adapters on every row
+of `crates/decoder-tracker/golden/selected-manifest.csv`.
 
-For each selected decoder, the target benchmarks every method in
-`fornax_raw_core::protocol::IDecoder`:
+The golden set contains 30 known-passing conventional 2x2 RGB Bayer files
+across DNG, Canon CR3, Sony ARW, Nikon NEF, Fujifilm RAF, Hasselblad 3FR,
+Panasonic RW2, and Phase One/Leaf IIQ. The 3FR rows cover both accepted payload
+families: uncompressed compression 1 and predictor-8 compression 7.
 
-- `decode`;
-- `raw_mosaic`;
-- `cropped_mosaic`;
-- `dng_metadata`;
-- `process_metadata`.
+For every input, the benchmark creates one Criterion group containing:
 
-The instance-method benchmarks construct one decoder outside the timed region,
-so they measure the requested accessor rather than reparsing the file. The
-`decode` benchmark includes file read and decoder construction.
+- `decode`, measured as file read, container parse, and sensor decode;
+- `raw_mosaic`, measured on one decoder constructed outside the timed region;
+- `cropped_mosaic`, measured with `f32` or `f64` conversion and active-area crop.
+
+All selected decoders report those three shared methods. Fornax also reports
+`dng_metadata` and `process_metadata` as diagnostics. FlashRaw has no equivalent
+TIFF `Directory` API and the Rawler benchmark adapter does not expose normalized
+process metadata, so those accessors are not compared across implementations.
+
+## Input selection
+
+The benchmark defaults to:
+
+```text
+crates/decoder-tracker/golden/selected-manifest.csv
+external/raw.pixls.us
+```
+
+Override the manifest or corpus root with `FORNAX_BENCH_MANIFEST` and
+`FORNAX_BENCH_CORPUS`. With no `FORNAX_BENCH_RAW`, every golden row must be
+materialized and is benchmarked. `FORNAX_BENCH_RAW` selects exactly one input,
+but that canonical path must belong to the selected golden manifest.
+
+The benchmark rejects missing files, LFS pointer metadata, incorrect file sizes,
+malformed manifests, duplicate paths, and paths outside the manifest before
+timing starts. The old arbitrary single-fixture default is removed.
+
+Materialize and verify the golden set before a local run:
+
+```bash
+pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
+  --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+  --check crates/decoder-tracker/golden/decode-hashes.csv
+```
 
 `f32` is the default sample type. Select `f64` or both with
 `FORNAX_BENCH_BITS=64` or `FORNAX_BENCH_BITS=32,64`.
-`FORNAX_BENCH_DECODER` selects `fornax`, `rawler`, or a comma-separated list;
-the default is both.
-
-The default fixture is
-`external/raw-images/images/colorchart-5D2-6000K.dng`. Override it with:
+`FORNAX_BENCH_DECODER` accepts `fornax`, `rawler`, and `flashraw`; the default
+is all three.
 
 ```bash
-FORNAX_BENCH_RAW=path/to/input.dng cargo bench -p fornax-decoder
+RAYON_NUM_THREADS=1 FORNAX_BENCH_BITS=32 \
+  cargo bench -p fornax-decoder
 ```
 
-Each decoder prints its metadata tag count before the metadata timings.
-Compare those timings only when both decoders expose equivalent metadata.
+FlashRaw is configured for the CPU, one worker thread, strict corruption
+handling, no default crop, and no DNG opcode application. CI also sets
+`RAYON_NUM_THREADS=1` and `OMP_NUM_THREADS=1`.
 
-Run it from the repository root:
-
-```bash
-cargo bench -p fornax-decoder
-```
-
-Compile-only validation is useful when the fixture is unavailable or benchmark
-setup is changing:
+Compile the benchmark without executing timings:
 
 ```bash
 cargo bench -p fornax-decoder --no-run
 ```
 
-The CI benchmark matrix invokes `-p fornax-decoder`, whose `decoder` benchmark
-target owns decoder comparisons.
+## CI matrix
 
-## Fixed-corpus comparison
+The `decoder-benchmark-plan` CI job reads the golden CSV and emits one matrix
+item per file. Each `decoder-benchmark` job:
 
-The open `[DEC-BENCH]` item extends the current fixture benchmark into a
-fixed-set, Fornax-versus-Rawler decode comparison. This extension is not
-implemented yet.
+1. initializes the pointer-only raw.pixls.us submodule;
+2. fetches only that matrix item's Git LFS object;
+3. verifies its recorded size and SHA-256;
+4. runs Fornax, Rawler, and FlashRaw on that one input.
 
-The extension should:
+RAW payloads remain transient. The decoder benchmark workflow does not cache or
+upload them. A selected reference that cannot decode a golden input fails its
+matrix case instead of silently disappearing from the comparison.
 
-1. Resolve files through the corpus manifest rather than committed RAW files.
-2. Run native and reference decoders in the same process on the same input.
-3. Exclude sample-type conversion from the decode-only region unless a second
-   converted-output measurement is reported separately.
-4. Report each file and a geometric mean without hiding a large single-file
-   regression.
-5. Record host class, corpus revision, and command in review evidence; do not
-   commit host-dependent timing baselines.
+## Comparison scope
 
-The diagnostic target is a Fornax/Rawler median ratio between 0.80 and 1.25
-once enough files are stable. A large ratio is investigated, not hidden with an
-aggregate.
+- Record the command and corpus revision in review evidence; do not commit
+  host-dependent timing baselines.
+- Inspect every single-file result. A favorable aggregate must not hide a
+  regression in one format or compression family.
+- Compare `dng_metadata` and `process_metadata` only with another implementation
+  that exposes equivalent metadata. The current reference adapters do not.
+- `rawler` and `flashraw` are dev-dependencies of `fornax-decoder`. They must not
+  appear in the normal dependency graph of any production decoder crate.
 
-## Definition of done for the extension
-
-- The benchmark resolves its fixed set only through the corpus manifest.
-- The report separates file read/parse/decode from sample conversion.
-- Every input and decoder method remains visible in single-file output.
-- Dependency-tree checks prove comparison-only references stay out of
-  production decoder crates.
-- Single-file regressions remain visible in review output.
+See [FlashRaw reference notes](../reference/decoders/flashraw.md) for the pinned
+benchmark adapter contract and known API differences.

@@ -128,10 +128,11 @@ typed unsupported CFA error is recorded.
 
 ## Golden decode outputs
 
-`golden/selected-manifest.csv` is a small, pointer-only subset of the committed
-manifest chosen to cover integer and floating-point DNG storage plus Sony ARW
-compression families. `golden/decode-hashes.csv` is the canonical output gate
-for refactors that must not change decoder results.
+`golden/selected-manifest.csv` is a pointer-only set of 30 known-passing
+conventional 2x2 RGB Bayer files. It covers DNG integer and floating-point
+storage, CR3, ARW, NEF, RAF, both accepted 3FR compression families, RW2, and
+IIQ. `golden/decode-hashes.csv` is the canonical output gate for refactors that
+must not change decoder results.
 
 Each row records the path, raw sample type and dimensions, cropped `f32`
 dimensions, and four SHA-256 digests:
