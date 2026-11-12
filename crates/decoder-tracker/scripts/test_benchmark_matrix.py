@@ -4,8 +4,8 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
-import benchmark_matrix  # noqa: E402
-import pytest  # noqa: E402
+import benchmark_matrix
+import pytest
 
 SHA_A = "a" * 64
 SHA_B = "b" * 64

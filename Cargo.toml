@@ -8,21 +8,21 @@ version = "0.0.17"
 edition = "2024"
 
 [workspace.dependencies]
-fornax-raw-sony = { path = "./crates/fornax-raw-sony" }
 fornax-bmff = { path = "./crates/fornax-bmff" }
 fornax-codec = { path = "./crates/fornax-codec" }
-fornax-raw-canon = { path = "./crates/fornax-raw-canon" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
-fornax-raw-hasselblad = { path = "./crates/fornax-raw-hasselblad" }
-fornax-raw-phase-one = { path = "./crates/fornax-raw-phase-one" }
-fornax-raw-nikon = { path = "./crates/fornax-raw-nikon" }
-fornax-raw-fujifilm = { path = "./crates/fornax-raw-fujifilm" }
 fornax-raw = { path = "./crates/fornax-raw" }
+fornax-raw-canon = { path = "./crates/fornax-raw-canon" }
 fornax-raw-core = { path = "./crates/fornax-raw-core" }
-fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
+fornax-raw-fujifilm = { path = "./crates/fornax-raw-fujifilm" }
+fornax-raw-hasselblad = { path = "./crates/fornax-raw-hasselblad" }
+fornax-raw-nikon = { path = "./crates/fornax-raw-nikon" }
 fornax-raw-panasonic = { path = "./crates/fornax-raw-panasonic" }
+fornax-raw-phase-one = { path = "./crates/fornax-raw-phase-one" }
+fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
+fornax-raw-sony = { path = "./crates/fornax-raw-sony" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 
 # glatzel

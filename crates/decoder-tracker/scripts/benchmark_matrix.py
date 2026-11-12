@@ -134,9 +134,7 @@ def build_matrix(rows, formats=None):
                 "format": format_name,
                 "feature": feature,
                 "cargo-options": (
-                    f"--no-default-features --features {feature}"
-                    if feature
-                    else "--no-default-features"
+                    f"--no-default-features --features {feature}" if feature else "--no-default-features"
                 ),
                 "label": f"{format_name}: {row['path']}",
                 "size": row["size"],
