@@ -8,6 +8,7 @@ use fornax_cr3::Cr3Image;
 use fornax_dng::Directory;
 use fornax_dng::dng_decoder::DngImage;
 use fornax_dng::metadata::IDecoderDng;
+use fornax_hasselblad::HasselbladImage;
 use fornax_iiq::IiqImage;
 use fornax_nef::NefImage;
 use fornax_raf::RafImage;
@@ -22,6 +23,7 @@ pub enum Decoder {
     Dng(DngImage),
     Cr3(Cr3Image),
     Arw(ArwImage),
+    Hasselblad(HasselbladImage),
     Iiq(IiqImage),
     Nef(NefImage),
     Raf(RafImage),
@@ -66,6 +68,10 @@ impl IDecoder for Decoder {
                 clerk::debug!("Reading Nikon NEF: {}", input.display());
                 Ok(Self::Nef(NefImage::decode(input)?))
             }
+            Ok(RawFormat::Hasselblad3fr) => {
+                clerk::debug!("Reading Hasselblad 3FR: {}", input.display());
+                Ok(Self::Hasselblad(HasselbladImage::decode(input)?))
+            }
             Ok(RawFormat::Iiq) => {
                 clerk::debug!("Reading Phase One IIQ: {}", input.display());
                 Ok(Self::Iiq(IiqImage::decode(input)?))
@@ -107,6 +113,7 @@ impl IDecoder for Decoder {
             Self::Dng(parsed) => parsed.raw_mosaic(),
             Self::Cr3(parsed) => parsed.raw_mosaic(),
             Self::Arw(parsed) => parsed.raw_mosaic(),
+            Self::Hasselblad(parsed) => parsed.raw_mosaic(),
             Self::Iiq(parsed) => parsed.raw_mosaic(),
             Self::Nef(parsed) => parsed.raw_mosaic(),
             Self::Raf(parsed) => parsed.raw_mosaic(),
@@ -122,6 +129,7 @@ impl IDecoder for Decoder {
             Self::Dng(parsed) => parsed.cropped_mosaic(),
             Self::Cr3(parsed) => parsed.cropped_mosaic(),
             Self::Arw(parsed) => parsed.cropped_mosaic(),
+            Self::Hasselblad(parsed) => parsed.cropped_mosaic(),
             Self::Iiq(parsed) => parsed.cropped_mosaic(),
             Self::Nef(parsed) => parsed.cropped_mosaic(),
             Self::Raf(parsed) => parsed.cropped_mosaic(),
@@ -134,6 +142,7 @@ impl IDecoder for Decoder {
             Self::Dng(parsed) => parsed.process_metadata(),
             Self::Cr3(parsed) => parsed.process_metadata(),
             Self::Arw(parsed) => parsed.process_metadata(),
+            Self::Hasselblad(parsed) => parsed.process_metadata(),
             Self::Iiq(parsed) => parsed.process_metadata(),
             Self::Nef(parsed) => parsed.process_metadata(),
             Self::Raf(parsed) => parsed.process_metadata(),
@@ -147,6 +156,7 @@ impl IDecoderDng for Decoder {
             Self::Dng(parsed) => parsed.dng_metadata(),
             Self::Cr3(parsed) => parsed.dng_metadata(),
             Self::Arw(parsed) => parsed.dng_metadata(),
+            Self::Hasselblad(parsed) => parsed.dng_metadata(),
             Self::Iiq(parsed) => parsed.dng_metadata(),
             Self::Nef(parsed) => parsed.dng_metadata(),
             Self::Raf(parsed) => parsed.dng_metadata(),

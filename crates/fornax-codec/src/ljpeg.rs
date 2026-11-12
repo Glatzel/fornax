@@ -91,6 +91,37 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     }
 }
 
+#[cfg(feature = "hasselblad")]
+pub fn decode_hasselblad(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
+    if request.sample_format != SampleFormat::Integer
+        || request.bits_per_sample != 16
+        || request.predictor != Predictor::None
+    {
+        return Err(invalid(
+            "Hasselblad lossless JPEG requires 16-bit integer samples",
+        ));
+    }
+    let geometry = Geometry::new(
+        request.width,
+        request.height,
+        request.chunk_width,
+        request.chunk_height,
+        request.chunks.len(),
+    )?;
+    if geometry.chunk_width != geometry.width
+        || geometry.chunk_height != geometry.height
+        || request.chunks.len() != 1
+    {
+        return Err(invalid(
+            "Hasselblad lossless JPEG requires one full-image chunk",
+        ));
+    }
+    let encoded = chunk(request.source, request.chunks[0])?;
+    let decoded = decode_hasselblad_interleaved(encoded, request.width, request.height)
+        .map_err(|detail| invalid(format!("Hasselblad lossless JPEG: {detail}")))?;
+    buffer_u16(geometry.width, geometry.height, decoded)
+}
+
 pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
     if request.predictor != Predictor::None {
         return Err(invalid(
@@ -254,7 +285,19 @@ impl HuffmanTable {
         })
     }
 
+    // Keep the DNG hot path concrete. Genericizing these bit-reader helpers
+    // regressed decoder raw_mosaic and cropped_mosaic benchmarks.
     fn decode(&self, bits: &mut BitReader<'_>) -> Result<u8, String> {
+        let entry = self.lookup[usize::from(bits.peek(16))];
+        if entry.bits == 0 {
+            return Err("lossless JPEG contains an invalid Huffman code".to_owned());
+        }
+        bits.skip(usize::from(entry.bits));
+        Ok(entry.symbol)
+    }
+
+    #[cfg(feature = "hasselblad")]
+    fn decode_hasselblad(&self, bits: &mut HasselbladBitReader<'_>) -> Result<u8, String> {
         let entry = self.lookup[usize::from(bits.peek(16))];
         if entry.bits == 0 {
             return Err("lossless JPEG contains an invalid Huffman code".to_owned());
@@ -277,6 +320,62 @@ struct BitReader<'a> {
     buffer: u64,
     buffered_bits: u8,
     ended: bool,
+}
+
+#[cfg(feature = "hasselblad")]
+struct HasselbladBitReader<'a> {
+    bytes: &'a [u8],
+    position: usize,
+    buffer: u64,
+    buffered_bits: u8,
+    exhausted: bool,
+}
+
+#[cfg(feature = "hasselblad")]
+impl<'a> HasselbladBitReader<'a> {
+    const fn new(bytes: &'a [u8]) -> Self {
+        Self {
+            bytes,
+            position: 0,
+            buffer: 0,
+            buffered_bits: 0,
+            exhausted: false,
+        }
+    }
+}
+
+#[cfg(feature = "hasselblad")]
+impl HasselbladBitReader<'_> {
+    fn peek(&mut self, count: u8) -> u16 {
+        while self.buffered_bits < count {
+            let end = self.position.saturating_add(4).min(self.bytes.len());
+            if end == self.position {
+                self.exhausted = true;
+                self.buffer <<= 32;
+                self.buffered_bits += 32;
+                continue;
+            }
+            let mut word = [0_u8; 4];
+            word[..end.saturating_sub(self.position)]
+                .copy_from_slice(&self.bytes[self.position..end]);
+            let loaded_bits = (end - self.position) * 8;
+            let aligned = u32::from_le_bytes(word) << (32 - loaded_bits);
+            self.buffer = (self.buffer << loaded_bits) | u64::from(aligned);
+            self.buffered_bits +=
+                u8::try_from(loaded_bits).expect("a bit-pump refill is at most 32");
+            self.position = end;
+        }
+        let shift = self.buffered_bits - count;
+        let mask = (1_u64 << count) - 1;
+        u16::try_from((self.buffer >> shift) & mask).unwrap_or_default()
+    }
+
+    fn skip(&mut self, count: usize) {
+        self.buffered_bits = self
+            .buffered_bits
+            .saturating_sub(u8::try_from(count).expect("lossless JPEG bit counts are at most 16"));
+        self.buffer &= (1_u64 << self.buffered_bits) - 1;
+    }
 }
 
 impl<'a> BitReader<'a> {
@@ -503,6 +602,97 @@ fn decode_into(
     }
     output.copy_from_slice(&decoded.samples);
     Ok(())
+}
+
+#[cfg(feature = "hasselblad")]
+fn decode_hasselblad_interleaved(
+    source: &[u8],
+    expected_width: usize,
+    expected_height: usize,
+) -> Result<Vec<u16>, String> {
+    let mut header = HeaderReader::new(source);
+    if header.marker()? != MARKER_SOI {
+        return Err("stream does not start with SOI".to_owned());
+    }
+
+    let mut frame = None;
+    let mut tables: [Option<HuffmanTable>; 4] = std::array::from_fn(|_| None);
+    let (predictor, point_transform) = loop {
+        let marker = header.marker()?;
+        match marker {
+            MARKER_SOF3 => frame = Some(parse_frame(&mut header)?),
+            MARKER_DHT => parse_huffman_tables(&mut header, &mut tables)?,
+            0xdd => {
+                let length = header.u16()?;
+                if length != 4 || header.u16()? != 0 {
+                    return Err("restart intervals are unsupported".to_owned());
+                }
+            }
+            MARKER_SOS => {
+                let frame = frame
+                    .as_mut()
+                    .ok_or_else(|| "SOS precedes SOF3".to_owned())?;
+                break parse_scan(&mut header, frame)?;
+            }
+            MARKER_EOI => {
+                return Err("stream reached EOI before SOS".to_owned());
+            }
+            _ => {
+                let length = usize::from(header.u16()?);
+                if length < 2 {
+                    return Err("segment length is invalid".to_owned());
+                }
+                header.take(length - 2)?;
+            }
+        }
+    };
+
+    let frame = frame.ok_or_else(|| "stream has no SOF3".to_owned())?;
+    if frame.precision != 16
+        || frame.components.len() != 1
+        || frame.width != expected_width
+        || frame.height != expected_height
+    {
+        return Err("frame must be one-component 16-bit data matching the raw IFD".to_owned());
+    }
+    if predictor != 8 || point_transform != 0 {
+        return Err("predictor 8 with no point transform is required".to_owned());
+    }
+    let table = tables[frame.components[0].huffman_table]
+        .as_ref()
+        .ok_or_else(|| "stream references a missing Huffman table".to_owned())?;
+    let entropy = header
+        .bytes
+        .get(header.position..)
+        .ok_or_else(|| "entropy stream is missing".to_owned())?;
+    if entropy.is_empty() || (entropy[0] == MARKER_PREFIX && entropy.get(1) != Some(&0)) {
+        return Err("entropy stream is truncated".to_owned());
+    }
+    let sample_count = expected_width
+        .checked_mul(expected_height)
+        .ok_or_else(|| "sample count overflow".to_owned())?;
+    let mut output = Vec::with_capacity(sample_count);
+    let mut bits = HasselbladBitReader::new(entropy);
+    for _row in 0..expected_height {
+        let mut first = 0x8000_i32;
+        let mut second = 0x8000_i32;
+        for column in (0..expected_width).step_by(2) {
+            let first_length = table
+                .decode_hasselblad(&mut bits)
+                .map_err(|detail| format!("{detail} at row {_row}, column {column}"))?;
+            let second_length = table
+                .decode_hasselblad(&mut bits)
+                .map_err(|detail| format!("{detail} at row {_row}, column {}", column + 1))?;
+            first = first.wrapping_add(decode_hasselblad_difference(first_length, &mut bits)?);
+            second = second.wrapping_add(decode_hasselblad_difference(second_length, &mut bits)?);
+            output.push(first as u16);
+            output.push(second as u16);
+        }
+    }
+    if bits.exhausted {
+        return Err("entropy stream is truncated".to_owned());
+    }
+    Ok(output)
 }
 
 fn parse_frame(header: &mut HeaderReader<'_>) -> Result<Frame, String> {
@@ -753,6 +943,38 @@ fn add_prediction(
         u16::try_from((prediction.wrapping_add(difference) as u32) & mask)
             .expect("the precision mask limits samples to u16"),
     )
+}
+
+#[cfg(feature = "hasselblad")]
+fn decode_hasselblad_difference(
+    symbol: u8,
+    bits: &mut HasselbladBitReader<'_>,
+) -> Result<i32, String> {
+    // Hasselblad class 16 has an extra 16-bit payload that DNG class 16 omits.
+    Ok(match symbol {
+        0 => 0,
+        16 => {
+            bits.peek(16);
+            bits.skip(16);
+            -32_768
+        }
+        1..=15 => {
+            let bit_count = symbol;
+            let raw = i32::from(bits.peek(bit_count));
+            bits.skip(usize::from(bit_count));
+            let threshold = 1_i32 << (bit_count - 1);
+            if raw < threshold {
+                raw - ((1_i32 << bit_count) - 1)
+            } else {
+                raw
+            }
+        }
+        _ => {
+            return Err(format!(
+                "lossless JPEG difference class {symbol} is unsupported"
+            ));
+        }
+    })
 }
 
 const HUFFMAN_BITS: u8 = 5;

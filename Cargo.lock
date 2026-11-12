@@ -820,6 +820,7 @@ dependencies = [
  "fornax-cr3",
  "fornax-devtool",
  "fornax-dng",
+ "fornax-hasselblad",
  "fornax-iiq",
  "fornax-nef",
  "fornax-raf",
@@ -868,6 +869,19 @@ dependencies = [
  "serde_json",
  "strum",
  "thiserror",
+]
+
+[[package]]
+name = "fornax-hasselblad"
+version = "0.0.17"
+dependencies = [
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rawler",
 ]
 
 [[package]]

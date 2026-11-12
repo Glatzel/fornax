@@ -7,9 +7,9 @@ This document explains decoder dispatch, shared interfaces, and per-format data 
 The default production decoder is the pure-Rust implementation in
 `fornax-decoder`. It dispatches DNG containers to `fornax-dng`, Canon CR3/CRM
 containers to `fornax-cr3`, Sony ARW/NRW containers to `fornax-arw`, Nikon NEF
-containers to `fornax-nef`, Fujifilm RAF containers to `fornax-raf`, Panasonic
-RW2 containers to `fornax-rw2`, and Phase One/Leaf IIQ containers to
-`fornax-iiq`.
+containers to `fornax-nef`, Fujifilm RAF containers to `fornax-raf`, Hasselblad
+3FR containers to `fornax-hasselblad`, Panasonic RW2 containers to
+`fornax-rw2`, and Phase One/Leaf IIQ containers to `fornax-iiq`.
 `fornax-raw-core` owns the shared decoder protocol and pipeline types but no
 decoder implementation.
 
@@ -34,7 +34,7 @@ pipeline input.
 | 1 | 3 | [Sony ARW](../decoder/formats/sony-arw.md) | Implemented for uncompressed, ARW1, ARW2, ARW6, and tiled LJPEG |
 | 1 | 4 | [Nikon NEF](../decoder/formats/nikon-nef.md) | Partially implemented for standard uncompressed/packed modes |
 | 2 | 5 | [Fujifilm RAF](../decoder/formats/fuji-raf.md) | Implemented for uncompressed and block-lossless Bayer/X-Trans |
-| 2 | 6 | [Hasselblad 3FR](../decoder/formats/hasselblad-3fr.md) | Planned |
+| 2 | 6 | [Hasselblad 3FR](../decoder/formats/hasselblad-3fr.md) | Implemented for accepted uncompressed and predictor-8 samples |
 | 2 | 7 | [Panasonic RW2](../decoder/formats/panasonic-rw2.md) | Implemented for single-shot V4/V5/V6/V8 and stamped 12-bit Bayer |
 | 2 | 8 | [Phase One IIQ](../decoder/formats/phase-one-iiq.md) | Implemented for modes 0, 3, 5, 6, and 8 |
 | 3 | 9 | [Other formats](../decoder/formats/other-formats.md) | Planned |
@@ -78,16 +78,17 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-raw-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
 | `fornax-bmff/src` | Bounded ISO-BMFF boxes, FullBoxes, UUID payloads, and sample tables |
 | `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
-| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony/Nikon/Fujifilm/Canon/Phase One/Panasonic codecs |
+| `fornax-codec/src` | Format-neutral sample decoding, chunk assembly, predictors, supported codec encoders, and feature-gated Sony/Nikon/Fujifilm/Hasselblad/Canon/Phase One/Panasonic codecs |
 | `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
 | `fornax-dng/src/constants.rs` | DNG-owned compression and photometric interpretation values |
 | `fornax-arw/src` | Sony TIFF selection, private metadata, codec request construction, CFA layout mapping, and DNG metadata mapping |
 | `fornax-cr3/src` | Canon BMFF/track selection, CMT/CTMD metadata, CMP1/IAD1 geometry, and lossless CRX handoff |
 | `fornax-nef/src` | Nikon TIFF selection, type-2 maker notes, packed codec requests, metadata mapping, and Bayer handoff |
 | `fornax-raf/src` | RAF pointer/tag parsing, Fuji IFD selection, lossless codec requests, metadata mapping, and Bayer-only handoff |
+| `fornax-hasselblad/src` | 3FR TIFF/SubIFD selection, camera profiles, uncompressed and predictor-8 decoding, metadata mapping, and Bayer handoff |
 | `fornax-iiq/src` | Phase One private-IFD parsing, IIQ codec requests, sensor correction, metadata mapping, and Bayer handoff |
 | `fornax-rw2/src` | Panasonic TIFF layout selection, V4-V8 codec requests, metadata mapping, DNG round-trip, and Bayer handoff |
-| `fornax-decoder/src/lib.rs` | Default DNG, Canon CR3/CRM, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, Phase One/Leaf IIQ, and Panasonic RW2 dispatch and `IDecoder` implementation |
+| `fornax-decoder/src/lib.rs` | Default DNG, Canon CR3/CRM, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, Hasselblad 3FR, Phase One/Leaf IIQ, and Panasonic RW2 dispatch and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
 | `fornax-decoder-rawler/src/lib.rs` | Rawler decoding and metadata adaptation |
 | `fornax-dng/src/dng_decoder/mod.rs` | Raw IFD selection, DNG-to-codec request mapping, transforms, and active crop |
@@ -164,6 +165,30 @@ and cropped mosaic accessors return a typed unsupported-CFA error.
 Lossy block compression, SuperCCD rotation/staggering, FinePix DBP, unknown
 Bayer models, and unknown compression families remain outside the implemented
 tier.
+
+## Hasselblad 3FR data flow
+
+```text
+3FR bytes
+  -> classic little-endian TIFF
+  -> root previews and full-resolution CFA SubIFD
+  -> explicit camera profile when CFA tags are absent
+  -> uncompressed words or predictor-8 lossless JPEG
+  -> RawMosaic
+  -> mapped DNG directory
+  -> CroppedMosaic<T> for 2x2 Bayer only
+```
+
+Compression 1 requires exact little-endian 16-bit word storage. Compression 7
+uses two leading Huffman lengths per pixel pair, two attached differences,
+per-row predictor resets, the 3FR `MSB32` four-byte order, and class-16 payload
+consumption. Compression-7 strip byte counts are recorded inconsistently in
+accepted files and therefore do not bound the payload; the checked strip offset
+does.
+
+Accepted camera models use explicit RGGB profiles. X1D and X1D II remove
+inactive sensor borders. FFF, merged/multi-shot, tiled, unknown tagless models,
+and unknown compression families remain outside the implemented tier.
 
 ## Canon CR3/CRM data flow
 
@@ -309,11 +334,12 @@ references.
 
 Unit tests cover TIFF read-overflow checks, private-IFD offset correction,
 lossless-JPEG component decoding, Sony packing and row transforms, Fujifilm
-packed/block-lossless decoding, Rawler tag conversion, and DNC argument
-construction. Benchmark changes should at minimum compile with
+packed/block-lossless decoding, Hasselblad predictor-8 ordering and bit order,
+Rawler tag conversion, and DNC argument construction. Benchmark changes should
+at minimum compile with
 `cargo bench -p fornax-decoder --no-run`. Fixture-backed DNG, Sony, Nikon,
-Fujifilm, Rawler, and DNC checks depend on the ignored external RAW fixtures and
-platform tools available in the development environment.
+Fujifilm, Hasselblad, Rawler, and DNC checks depend on the ignored external RAW
+fixtures and platform tools available in the development environment.
 
 `decoder-tracker` holds the manual full-corpus regression workflow. The
 raw.pixls.us submodule is checked out as pointer metadata only; selected LFS
@@ -323,10 +349,10 @@ committed.
 ## Migration
 
 The decoder migration is complete for the current DNG, Sony ARW/NRW, Nikon NEF,
-and Fujifilm RAF stages:
+Fujifilm RAF, and Hasselblad 3FR stages:
 
 1. `fornax-decoder::Decoder` is the default pure-Rust DNG, Sony ARW/NRW,
-   Nikon NEF, and Fujifilm RAF facade.
+   Nikon NEF, Fujifilm RAF, and Hasselblad 3FR facade.
 2. Rawler and Adobe DNG Converter adapters are separate workspace crates.
 3. `fornax-raw-core` contains shared interfaces and types, not decoder
    implementations.

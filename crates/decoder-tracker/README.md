@@ -2,7 +2,7 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![RAW corpus: 979/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-979%2F2020-orange)](baseline.csv)
+[![RAW corpus: 990/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-990%2F2020-orange)](baseline.csv)
 
 | Vendor | Format | Status |
 | --- | --- | ---: |
@@ -35,7 +35,7 @@
 | HMD Global | DNG | 1/1 |
 | HTC | DNG | 1/1 |
 | HUAWEI | DNG | 18/18 |
-| Hasselblad | 3FR | 0/11 |
+| Hasselblad | 3FR | 11/11 |
 | Hasselblad | DNG | 1/2 |
 | Hasselblad | FFF | 0/11 |
 | ImBack | RAW | 0/1 |

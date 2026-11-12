@@ -15,6 +15,7 @@ fornax-cr3 = { path = "./crates/fornax-cr3" }
 fornax-decoder = { path = "./crates/fornax-decoder" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
+fornax-hasselblad = { path = "./crates/fornax-hasselblad" }
 fornax-iiq = { path = "./crates/fornax-iiq" }
 fornax-nef = { path = "./crates/fornax-nef" }
 fornax-raf = { path = "./crates/fornax-raf" }

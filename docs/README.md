@@ -76,6 +76,7 @@ This index is the entry point for Fornax architecture, decoder, reference, and a
 | [DNG opcode reference notes](reference/decoders/dng-opcodes.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for DNG opcode. |
 | [DNG Output Color Management](reference/decoders/dng-output-color.md) | This reference note documents source matrices, profile selection, and Fornax's DNG output color transform. |
 | [Fujifilm RAF references](reference/decoders/fuji-raf.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for Fujifilm RAF. |
+| [Hasselblad 3FR reference notes](reference/decoders/hasselblad-3fr.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for Hasselblad 3FR. |
 | [Nikon NEF reference notes](reference/decoders/nikon-nef.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for Nikon NEF. |
 | [Panasonic RW2 references](reference/decoders/panasonic-rw2.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for Panasonic RW2. |
 | [Phase One/Leaf IIQ references](reference/decoders/phase-one-iiq.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for Phase One/Leaf IIQ. |
@@ -115,6 +116,7 @@ This index is the entry point for Fornax architecture, decoder, reference, and a
 | [Initialize fornax-decoder Implementation Plan](_archive/plans/fornax-decoder-scaffold.md) | This archived plan documents the completed Initialize fornax-decoder work. |
 | [Fujifilm RAF Implementation Plan](_archive/plans/fujifilm-raf-decoder.md) | This archived plan documents the completed Fujifilm RAF work. |
 | [Cheap Golden Decode Hash CI Implementation Plan](_archive/plans/golden-corpus-ci.md) | This archived plan documents the completed Cheap Golden Decode Hash CI work. |
+| [Hasselblad 3FR Decoder](_archive/plans/hasselblad-3fr-decoder.md) | This archived plan documents the completed Hasselblad 3FR decoder work. |
 | [LMMSE faithful port](_archive/plans/lmmse-port.md) | This archived plan documents the completed LMMSE faithful port work. |
 | [TIFF LZW, PackBits, and F64 Codec Support](_archive/plans/lzw-packbits-codecs.md) | This archived plan documents the completed TIFF LZW, PackBits, and F64 Codec Support work. |
 | [Nikon NEF Huffman Lossless Implementation Plan](_archive/plans/nikon-nef-huffman.md) | This archived plan documents the completed Nikon NEF Huffman Lossless work. |

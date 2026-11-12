@@ -1,7 +1,6 @@
 # TODO
 
 - decoder
-  - [DEC-3FR] Implement supported Hasselblad 3FR decoding and DNG export. Plan: `docs/decoder/formats/hasselblad-3fr.md`.
   - [DEC-OTHER] Enforce the explicit unsupported-format policy for all untiered RAW containers. Plan: `docs/decoder/formats/other-formats.md`.
 - demosaic
   - [IGV] Make IGV reproduce RawTherapee 5.13 IGV and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.

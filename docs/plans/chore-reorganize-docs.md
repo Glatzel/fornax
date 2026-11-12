@@ -441,6 +441,14 @@ Pull request: <https://github.com/Glatzel/fornax/pull/715>.
 
 - Completed plans and workspace-refactor evidence are archived rather than
   merged because they preserve distinct design, execution, and result roles.
+- The `origin/main` Hasselblad decoder merge added one completed plan and one
+  reference note; both were integrated into the approved archive/reference
+  structure during conflict resolution.
+- Conflict-resolution additions:
+  - `docs/plans/dec-3fr-hasselblad-3fr.md` to
+    `docs/_archive/plans/hasselblad-3fr-decoder.md`.
+  - `docs/references/hasselblad-3fr.md` to
+    `docs/reference/decoders/hasselblad-3fr.md`.
 - No document is deleted.
 - `docs/plans/` remains the active-plan folder because root `AGENTS.md` already
   defines that workflow.
