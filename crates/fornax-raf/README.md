@@ -16,4 +16,4 @@ models, lossy compression, SuperCCD rotation, DBP, and other legacy layouts
 return typed unsupported errors.
 
 Behavioral provenance and licensing constraints are recorded in
-[Fujifilm RAF references](../../docs/references/fuji-raf.md).
+[Fujifilm RAF references](../../docs/reference/decoders/fuji-raf.md).

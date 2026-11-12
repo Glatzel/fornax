@@ -1,4 +1,6 @@
-# Hasselblad 3FR format support
+# Hasselblad 3FR Format
+
+This format guide defines the supported container, compression, metadata, and completion requirements for Hasselblad 3FR.
 
 **Tier:** 2, implemented for the accepted conventional-Bayer corpus.
 
@@ -86,4 +88,4 @@ this implementation. The accepted manifest files remain limited to `.3FR`.
 - The decoder-tracker baseline records all accepted 3FR rows as passing.
 
 Behavioral provenance and licensing constraints are recorded in
-[Hasselblad 3FR references](../../references/hasselblad-3fr.md).
+[Hasselblad 3FR reference notes](../../reference/decoders/hasselblad-3fr.md).

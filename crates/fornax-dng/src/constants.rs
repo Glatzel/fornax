@@ -2,7 +2,7 @@
 //!
 //! Compression sources and ownership are documented in
 //! [the DNG compression
-//! reference](../../../docs/references/dng-compression.md).
+//! reference](../../../docs/reference/decoders/dng-compression.md).
 
 use num_enum::{FromPrimitive, IntoPrimitive};
 

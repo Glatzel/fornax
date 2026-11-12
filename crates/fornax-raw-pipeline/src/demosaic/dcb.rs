@@ -2,7 +2,7 @@
 //!
 //! This port follows LibRaw 0.22.3's fixed `dcb(0, 1)` path. The original DCB
 //! implementation is copyright (C) 2010 Jacek Gozdz and is distributed under
-//! the BSD-3-Clause license reproduced in `docs/references/dcb.md`.
+//! the BSD-3-Clause license reproduced in `docs/reference/algorithms/dcb.md`.
 
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive};

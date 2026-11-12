@@ -569,7 +569,7 @@ follows that convention with a three-row rolling result in generic `u16`
 channels; the bridge uses four-channel float pixels. Border windows and
 fixed-point clipping can therefore produce sparse high-value differences
 even when the aggregate error is small. See
-[the VNG reference notes](../../docs/references/vng.md) for source links and
+[the VNG reference notes](../../docs/reference/algorithms/vng.md) for source links and
 implementation details.
 
 ### LibRaw `vng_interpolate`

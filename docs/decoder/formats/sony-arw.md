@@ -1,4 +1,6 @@
-# Sony ARW format plan
+# Sony ARW Format
+
+This format guide defines the supported container, compression, metadata, and completion requirements for Sony ARW.
 
 **Tier:** 1
 
@@ -104,7 +106,7 @@ Both references are copyleft and remain behavior-only references. The
 production codecs are independently implemented in Fornax. The fixed Sony
 LLVC3 output table is format data checked against the permissively licensed
 pre-migration dependency, as documented in
-[the Sony ARW reference note](../../references/sony-arw.md).
+[the Sony ARW reference note](../../reference/decoders/sony-arw.md).
 
 ## Definition of done
 

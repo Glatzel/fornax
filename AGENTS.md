@@ -9,7 +9,7 @@ instructions conflict, the user's explicit request wins. Otherwise, the
 
 ## Project map
 
-Read [docs/architecture.md](docs/architecture.md) for crate roles, interfaces,
+Read [docs/architecture/overview.md](docs/architecture/overview.md) for crate roles, interfaces,
 and pipeline data flow. These invariants always apply:
 
 - Keep decoding, preprocessing, and demosaicing as separate stages.
@@ -163,9 +163,9 @@ linked issue. Only the user merges or abandons a pull request.
 ## Reference knowledge
 
 - Preserve reusable algorithm and implementation research in
-  `docs/references/<topic>.md` and commit it with the code it informs. Do not
-  leave important findings only in chat, scratch files, or pull request
-  comments.
+  `docs/reference/<category>/<topic>.md` and commit it with the code it
+  informs. Do not leave important findings only in chat, scratch files, or
+  pull request comments.
 - Record authoritative source links with pinned versions or commits, the
   behavior or decision they support, known implementation differences, and
   license constraints that affect reuse.
@@ -175,8 +175,8 @@ linked issue. Only the user merges or abandons a pull request.
 
 ## Where to look next
 
-- Architecture and pipeline boundaries: [docs/architecture.md](docs/architecture.md)
-- Decoder ownership and validation: [docs/decoder/architecture.md](docs/decoder/architecture.md)
+- Architecture and pipeline boundaries: [docs/architecture/overview.md](docs/architecture/overview.md)
+- Decoder ownership and validation: [docs/architecture/decoder.md](docs/architecture/decoder.md)
 - Decoder benchmarks and corpus plans: [docs/decoder/benchmark.md](docs/decoder/benchmark.md),
   [docs/decoder/corpus.md](docs/decoder/corpus.md)
 - Manual corpus tracker: `cargo run -p decoder-tracker -- --help`; full runs are
@@ -185,7 +185,7 @@ linked issue. Only the user merges or abandons a pull request.
   `run_duckdb_tests` disabled at its default unless explicitly requested, and
   set `formats` to match the requested corpus filter.
 - Per-work plans: [docs/plans/](docs/plans/)
-- Algorithm and reference notes: [docs/references/](docs/references/)
+- Algorithm and reference notes: [docs/reference/](docs/reference)
 - Comparison-crate rules:
   [crates/compare-demosaic/AGENTS.md](crates/compare-demosaic/AGENTS.md)
 - Human-facing book: [book/](book/README.md); agents edit it only when asked

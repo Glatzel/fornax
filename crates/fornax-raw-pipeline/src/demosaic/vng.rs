@@ -3,7 +3,7 @@
 //! The algorithm is described by the
 //! [original VNG report](http://scien.stanford.edu/pages/labsite/1999/psych221/projects/99/tingchen/algodep/vargra.html).
 //! The port follows darktable's split-green convention; see the
-//! [VNG reference notes](https://github.com/Glatzel/fornax/blob/main/docs/references/vng.md).
+//! [VNG reference notes](https://github.com/Glatzel/fornax/blob/main/docs/reference/algorithms/vng.md).
 //! [`DemosaicVng`] backs both the darktable-compatible VNG selector and the
 //! explicit four-color VNG4 selector.
 

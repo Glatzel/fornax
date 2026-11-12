@@ -63,7 +63,7 @@ CI enforces this gate through `book/scripts/check_assets.py`.
 - Use citation keys such as `[Malvar2004]` that link to entries in
   `src/bibliography.md`. Record a DOI or stable URL, an access date for a
   website, and a pinned commit URL for code. Link to
-  `docs/references/<topic>.md` for repository research notes.
+  `docs/reference/<category>/<topic>.md` for repository research notes.
 - Every technical claim must trace to a cited source or a `file:line`
   reference. Never invent a citation; verify that a DOI or URL resolves before
   using it.

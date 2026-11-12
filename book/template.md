@@ -47,7 +47,7 @@ command. State the expected observation and cite the command source.
 <!-- DRAFT -->
 List papers, code, websites, and standards in reading order. Use bibliography
 keys from [Bibliography](src/bibliography.md) and link repository notes under
-`docs/references/`.
+`docs/reference/`.
 
 ## 8. Check yourself
 

@@ -1,0 +1,96 @@
+# DCB reference notes
+
+This reference note records pinned sources, numerical behavior, and implementation boundaries for DCB.
+
+This note records the authoritative material used to implement Fornax's
+conventional 2x2 RGB Bayer DCB path and the license obligations attached to
+that work.
+
+## Sources
+
+- LibRaw 0.22.3, `dcb` and its helper stages:
+  [`src/demosaic/dcb_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849).
+- LibRaw 0.22.3, CFA border interpolation and `pre_interpolate`:
+  [`src/demosaic/misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L21).
+- LibRaw 0.22.3, comparison adapter entry point:
+  [`crates/compare-demosaic/cpp/algos/libraw_dcb.cpp`](../../../crates/compare-demosaic/cpp/algos/libraw_dcb.cpp).
+
+The comparison calls `pre_interpolate()` followed by the default
+`dcb(0, 1)`. Fornax exposes both behavioral arguments as
+`Demosaic::Dcb { iterations, enhance }`.
+
+## Algorithm shape
+
+DCB first fills the six-pixel border with CFA-aware averages. It then builds
+full-frame horizontal and vertical candidates:
+
+1. Estimate green on the opposite axis and reconstruct red and blue relative
+   to those green candidates.
+2. Compare local color ranges and select the horizontal or vertical green
+   candidate at each non-green site.
+3. Save the current red and blue planes, reconstruct the missing colors, and
+   smooth them using green contrast.
+4. For each requested iteration, apply three Nyquist corrections followed by a
+   direction map and correction. Then apply one contrast-aware correction and
+   three direction-map/correction passes.
+5. Restore the saved red and blue planes and reconstruct color again. If
+   enhancement is enabled, refine green with directional ratios and neighbor
+   limits, then perform final chroma-map interpolation and red/blue neighbor
+   limiting.
+
+Fornax stores the working image as `[u16; 4]`: red at channel 0, unified green
+at channel 1, blue at channel 2, and the direction map at channel 3. The
+horizontal and vertical candidates use `[f32; 3]` full-frame planes. The
+result is packed back to 16-bit RGB at the `DenseLazy` boundary.
+
+## Numeric behavior
+
+- Input and output are 16-bit codes in the comparison path.
+- `CLIP(int(expression))` truncates toward zero and clamps to `0..=65535`.
+- Direct `ushort(expression)` conversions truncate rather than round.
+- The direction map stores zero for horizontal and one for vertical.
+- Final full-color reconstruction is allowed to change sampled red or blue
+  values through its eight-neighbor limits; Fornax does not restore CFA samples
+  after that pass.
+
+On the pinned `colorchart-5D2-6000K.dng` fixture, all four Bayer phases differ
+from LibRaw 0.22.3 by at most two 16-bit codes after the comparison harness
+converts between sample types.
+
+The comparison remains pinned to `(0, 1)` so its baseline is stable.
+Non-default parameter combinations are covered by postprocessor unit tests
+rather than additional comparison rows.
+
+## License
+
+LibRaw's `dcb_demosaic.cpp` retains the following BSD-3-Clause notice from the
+DCB/FBDD author:
+
+```text
+Copyright (C) 2010, Jacek Gozdz (cuniek@kft.umcs.lublin.pl)
+
+This code is licensed under a (3-clause) BSD license as follows:
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+* Neither the name of the author nor the names of its contributors may be used
+  to endorse or promote products derived from this software without specific
+  prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```

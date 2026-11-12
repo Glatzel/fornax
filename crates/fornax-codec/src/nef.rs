@@ -5,7 +5,7 @@ use crate::samples::{buffer_u16, chunk};
 use crate::{CodecError, NikonTreeId, SampleBuffer, SampleFormat};
 
 // Numeric format data only. Provenance, licensing, source agreement, and the
-// lossless-only scope are documented in docs/references/nikon-nef.md.
+// lossless-only scope are documented in docs/reference/decoders/nikon-nef.md.
 const LOSSLESS_12_COUNTS: [u8; 16] = [0, 1, 4, 2, 3, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 const LOSSLESS_12_SYMBOLS: [u8; 13] = [5, 4, 6, 3, 7, 2, 8, 1, 9, 0, 10, 11, 12];
 const LOSSLESS_14_COUNTS: [u8; 16] = [0, 1, 4, 2, 2, 3, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0];

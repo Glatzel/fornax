@@ -71,7 +71,7 @@ payload layout.
 `packbits`, `jpegxl`, and `zstd` enable their matching optional codecs, with
 `lzw` and `packbits` on by default. The source ownership and version evidence
 is recorded in
-[`compression-ids.md`](../../docs/references/compression-ids.md).
+[`compression-ids.md`](../../docs/reference/codecs/compression-ids.md).
 
 The crate intentionally owns container mechanics only. DNG-only tag semantics
 belong to `fornax-dng`; format-neutral raw codecs belong to `fornax-codec`.

@@ -1,4 +1,6 @@
-# Nikon NEF format plan
+# Nikon NEF Format
+
+This format guide defines the supported container, compression, metadata, and completion requirements for Nikon NEF.
 
 **Tier:** 1
 

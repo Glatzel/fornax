@@ -8,7 +8,7 @@ derivations, and primary references.
 
 Fornax keeps decoding, preprocessing, demosaicing, and post-processing as
 separate pipeline concerns; see the
-[architecture documentation](../docs/architecture.md). The book follows those
+[architecture documentation](../docs/architecture/overview.md). The book follows those
 boundaries and treats conventional 2x2 RGB Bayer input as the active demosaic
 target.
 
@@ -67,9 +67,9 @@ this status table.
 
 ## Repository context
 
-- [Architecture](../docs/architecture.md) defines stage interfaces and crate
+- [Architecture](../docs/architecture/overview.md) defines stage interfaces and crate
   responsibilities.
-- [Algorithm notes](../docs/references/) preserve implementation research.
+- [Algorithm notes](../docs/reference) preserve implementation research.
 - [Book bibliography](src/bibliography.md) records external sources and
   licence constraints.
 - [Book glossary](src/glossary.md) defines terms used across chapters.
