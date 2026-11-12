@@ -379,7 +379,7 @@ git commit -m "docs: add documentation index and conventions"
 - Consumes: all prior tasks.
 - Produces: a validated branch, final audit summary, and pull request.
 
-- [ ] **Step 1: Re-run all structural checks**
+- [x] **Step 1: Re-run all structural checks**
 
 Verify:
 
@@ -395,7 +395,7 @@ Verify:
 
 Expected: every check passes with zero findings.
 
-- [ ] **Step 2: Run repository documentation validation**
+- [x] **Step 2: Run repository documentation validation**
 
 ```bash
 scripts/agent-validation.sh --docs-only
@@ -404,12 +404,12 @@ git diff --check
 
 Expected: exit 0.
 
-- [ ] **Step 3: Inspect the complete diff and commit log**
+- [x] **Step 3: Inspect the complete diff and commit log**
 
 Confirm the only non-documentation changes are reference repairs, and confirm
 the commit sequence contains the plan, moves, link repairs, and index.
 
-- [ ] **Step 4: Perform the final whole-branch self-review**
+- [x] **Step 4: Perform the final whole-branch self-review**
 
 Read the diff against this plan and the approved audit, using the Review Focus
 items as an explicit checklist.
@@ -446,3 +446,6 @@ Expected: the branch is pushed and one PR URL is returned.
   checkbox inconsistencies are recorded as content issues, not silently fixed.
 - There is no docs-site build; documentation validation is
   `scripts/agent-validation.sh --docs-only` plus the link/structure checks above.
+- Final review corrected a malformed DHT design link introduced during the
+  mechanical path rewrite and updated reference templates to include their
+  algorithm, codec, or decoder category.

@@ -163,9 +163,9 @@ linked issue. Only the user merges or abandons a pull request.
 ## Reference knowledge
 
 - Preserve reusable algorithm and implementation research in
-  `docs/reference/<topic>.md` and commit it with the code it informs. Do not
-  leave important findings only in chat, scratch files, or pull request
-  comments.
+  `docs/reference/<category>/<topic>.md` and commit it with the code it
+  informs. Do not leave important findings only in chat, scratch files, or
+  pull request comments.
 - Record authoritative source links with pinned versions or commits, the
   behavior or decision they support, known implementation differences, and
   license constraints that affect reuse.

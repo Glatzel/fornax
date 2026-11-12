@@ -20,11 +20,7 @@ existing lazy boundary.
 `compare-demosaic`, LibRaw 0.22.3, Insta, and Cargo.
 
 **Spec:**
-[`docs/_archive/designs/dht-port-design.md
-```
-`](../designs/dht-port-design.md
-```
-)
+[`docs/_archive/designs/dht-port-design.md`](../designs/dht-port-design.md)
 
 ## Goal
 
@@ -277,8 +273,6 @@ pixi exec -s markdownlint-cli2 markdownlint-cli2 \
     crates/compare-demosaic/README.md docs/reference/algorithms/dht.md \
     docs/_archive/plans/dht-port.md \
     docs/_archive/designs/dht-port-design.md
-```
-
 git diff --check
 ```
 

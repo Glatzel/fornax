@@ -79,7 +79,7 @@ Nothing binary is committed: no PNG, JPG, GIF, WebP, TIFF, PDF, raw files, fonts
 - Math: GitHub `$inline$` and `$$display$$`. Define each symbol once in `src/notation.md`.
 - Figures: Mermaid for flow, dependency and decision diagrams only. Everything spatial or numeric is an SVG produced by a generator script (`book-02-figures`). Transparent background, mid-contrast colors so light and dark themes both work, mandatory alt text.
 - Originality: redraw figures; never copy figures from papers. Link to permissively licensed external samples and record each licence (raw.pixls.us samples are, as far as I know, CC0; verify).
-- Citations: keys like `[Malvar2004]` link to `src/bibliography.md` (DOI or stable URL; access date for websites; code as pinned commit permalinks, or the pinned sources under `external/`). Link to `docs/reference/<topic>.md` for detail.
+- Citations: keys like `[Malvar2004]` link to `src/bibliography.md` (DOI or stable URL; access date for websites; code as pinned commit permalinks, or the pinned sources under `external/`). Link to `docs/reference/<category>/<topic>.md` for detail.
 - Honesty: every technical claim traces to a cited source or `file:line`. Never invent citations; check that a DOI or URL resolves before using it.
 - Theory vs Fornax: always separate what the literature does from what Fornax does. Do not describe stages Fornax lacks as if it had them.
 

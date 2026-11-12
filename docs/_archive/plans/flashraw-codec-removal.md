@@ -65,7 +65,7 @@ Out of scope:
 - `crates/fornax-dng/Cargo.toml`,
   `crates/fornax-dng/src/dng_decoder/{mod.rs,transforms.rs,opcodes.rs}`
 - `crates/decoder-tracker/{baseline.csv,scripts/aggregate.sh,sql/*.sql,src/*}`
-- `docs/architecture/overview.md`, `docs/reference/{sony-arw.md,dng-lossless-jpeg.md}`
+- `docs/architecture/overview.md`, `docs/reference/decoders/{sony-arw.md,dng-lossless-jpeg.md}`
 - `docs/reference/decoders/dng-opcodes.md`
 - `docs/decoder/corpus.md`
 - `crates/fornax-codec/README.md`, `scripts/agent-validation.sh`
