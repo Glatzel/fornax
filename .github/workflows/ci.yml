@@ -34,10 +34,24 @@ jobs:
               - ./**
               - '!**/*.md'
             benchmark_decoder:
+              - ./Cargo.toml
+              - ./Cargo.lock
+              - ./.github/workflows/ci.yml
               - ./crates/fornax-codec/**
               - ./crates/fornax-decoder/**
+              - ./crates/fornax-arw/**
+              - ./crates/fornax-bmff/**
+              - ./crates/fornax-cr3/**
               - ./crates/fornax-dng/**
+              - ./crates/fornax-hasselblad/**
+              - ./crates/fornax-iiq/**
+              - ./crates/fornax-nef/**
+              - ./crates/fornax-raf/**
+              - ./crates/fornax-raw-core/**
+              - ./crates/fornax-rw2/**
               - ./crates/fornax-tiff/**
+              - ./crates/decoder-tracker/golden/**
+              - ./crates/decoder-tracker/scripts/benchmark_matrix.py
               - '!**/*.md'
             benchmark_dng:
               - ./crates/fornax-codec/**
@@ -63,6 +77,34 @@ jobs:
               - ./crates/fornax-raw-core/**
               - ./crates/fornax-raw-pipeline/**
               - ./crates/decoder-tracker/**
+
+  decoder-benchmark-plan:
+    name: plan decoder benchmark matrix
+    needs: changed
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        (github.event_name == 'workflow_dispatch' ||
+         ((github.event_name == 'push' || github.event_name == 'pull_request') &&
+          needs.changed.outputs.benchmark_decoder == 'true'))
+      }}
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: plan
+        name: Build one matrix item per golden input
+        shell: bash
+        run: |
+          python3 crates/decoder-tracker/scripts/benchmark_matrix.py \
+            --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+            --github-output "$GITHUB_OUTPUT"
 
   lefthook:
     if: ${{ github.event_name == 'pull_request' }}
@@ -177,18 +219,13 @@ jobs:
         !cancelled() &&
         (github.event_name == 'workflow_dispatch' ||
          ((github.event_name == 'push' || github.event_name == 'pull_request') &&
-          (needs.changed.outputs.benchmark_decoder == 'true' ||
-           needs.changed.outputs.benchmark_dng == 'true' ||
+          (needs.changed.outputs.benchmark_dng == 'true' ||
            needs.changed.outputs.benchmark_raw_pipeline == 'true')))
       }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - package: fornax-decoder
-            changed: ${{ needs.changed.outputs.benchmark_decoder }}
-            extra-options: --bench decoder
-
           - package: fornax-dng
             changed: ${{ needs.changed.outputs.benchmark_dng }}
 
@@ -261,6 +298,60 @@ jobs:
           FORNAX_BENCH_BITS: 32
           FORNAX_BENCH_DECODER: fornax,rawler
 
+  decoder-benchmark:
+    name: decoder benchmark (${{ matrix.label }})
+    needs: [changed, decoder-benchmark-plan]
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        needs.decoder-benchmark-plan.result == 'success'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.decoder-benchmark-plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - name: Initialize pointer-only corpus
+        shell: bash
+        env:
+          GIT_LFS_SKIP_SMUDGE: "1"
+        run: |
+          git -c filter.lfs.required=false \
+            -c submodule.external/raw.pixls.us.branch=master \
+            submodule update --init --remote external/raw.pixls.us
+      - name: Materialize the matrix input
+        shell: bash
+        env:
+          FORNAX_BENCH_REPO_PATH: ${{ matrix.path }}
+          FORNAX_BENCH_RAW: ${{ github.workspace }}/external/raw.pixls.us/${{ matrix.path }}
+          FORNAX_BENCH_SHA256: ${{ matrix.sha256 }}
+          FORNAX_BENCH_SIZE: ${{ matrix.size }}
+        run: |
+          git -C external/raw.pixls.us lfs install --local
+          git -C external/raw.pixls.us lfs pull --include="$FORNAX_BENCH_REPO_PATH"
+          test -f "$FORNAX_BENCH_RAW"
+          test "$(stat -c '%s' "$FORNAX_BENCH_RAW")" = "$FORNAX_BENCH_SIZE"
+          test "$(sha256sum "$FORNAX_BENCH_RAW" | cut -d' ' -f1)" = "$FORNAX_BENCH_SHA256"
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+        with:
+          options: -p fornax-decoder --bench decoder --all-features
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
+          CARGO_WORKSPACE_DIR: ${{ github.workspace }}
+          FORNAX_BENCH_BITS: 32
+          FORNAX_BENCH_DECODER: fornax,rawler,flashraw
+          FORNAX_BENCH_RAW: ${{ github.workspace }}/external/raw.pixls.us/${{ matrix.path }}
+          OMP_NUM_THREADS: 1
+          RAYON_NUM_THREADS: 1
+
   compare-demosaic:
     needs: changed
     if: >-
@@ -321,7 +412,17 @@ jobs:
   check-point:
     if: ( cancelled() || failure() ) && github.event_name == 'pull_request'
     needs:
-      [changed, lefthook, golden, main, benchmark, compare-demosaic, book-assets]
+      [
+        changed,
+        decoder-benchmark-plan,
+        lefthook,
+        golden,
+        main,
+        benchmark,
+        decoder-benchmark,
+        compare-demosaic,
+        book-assets,
+      ]
     runs-on: ubuntu-slim
     steps:
       - run: exit 1
