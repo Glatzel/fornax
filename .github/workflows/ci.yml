@@ -34,16 +34,10 @@ jobs:
               - ./**
               - '!**/*.md'
             benchmark_all:
-              - ./Cargo.toml
-              - ./Cargo.lock
-              - ./.github/workflows/ci.yml
               - ./crates/fornax-codec/**
-              - ./crates/fornax-decoder/**
               - ./crates/fornax-dng/**
-              - ./crates/fornax-raw-core/**
               - ./crates/fornax-tiff/**
               - ./crates/decoder-tracker/golden/**
-              - ./crates/decoder-tracker/scripts/benchmark_*
               - '!**/*.md'
             benchmark_sony:
               - ./crates/fornax-raw-sony/**
@@ -83,14 +77,8 @@ jobs:
             book_assets:
               - ./book/**
             golden:
-              - ./crates/fornax-codec/**
-              - ./crates/fornax-tiff/**
-              - ./crates/fornax-dng/**
-              - ./crates/fornax-raw-sony/**
-              - ./crates/fornax-decoder/**
-              - ./crates/fornax-raw-core/**
-              - ./crates/fornax-raw-pipeline/**
-              - ./crates/decoder-tracker/**
+              - ./**
+              - '!**/*.md'
       - id: benchmark-formats
         name: Select impacted decoder benchmark formats
         shell: bash
@@ -217,7 +205,7 @@ jobs:
             test-options: --all-features -p compare-demosaic
             pwd: ./crates/compare-demosaic
           - machine: macos-latest
-            test-options: -p fornax-decoder
+            test-options: -p fornax-raw-decoder
             pwd: ./
           - machine: ubuntu-latest
             test-options: --workspace --all-features --exclude compare-demosaic
@@ -382,7 +370,7 @@ jobs:
           test "$(sha256sum "$FORNAX_BENCH_RAW" | cut -d' ' -f1)" = "$FORNAX_BENCH_SHA256"
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         with:
-          options: -p fornax-decoder --bench decoder ${{ matrix['cargo-options'] }}
+          options: -p fornax-raw-decoder --bench decoder ${{ matrix['cargo-options'] }}
         env:
           GH_TOKEN: ${{ github.token }}
           LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}

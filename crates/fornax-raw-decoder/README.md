@@ -13,8 +13,8 @@ Format features are `sony`, `canon`, `nikon`, `fujifilm`, `hasselblad`,
 consumer needs:
 
 ```bash
-cargo build -p fornax-decoder --no-default-features
-cargo build -p fornax-decoder --no-default-features --features canon
+cargo build -p fornax-raw-decoder --no-default-features
+cargo build -p fornax-raw-decoder --no-default-features --features canon
 ```
 
 A known format whose feature is disabled returns `DecodeError::Unsupported`
@@ -44,7 +44,7 @@ measure only separate `decode` and `raw_mosaic` items; later conversion and
 crop work is outside the reference comparison.
 
 ```bash
-RAYON_NUM_THREADS=1 cargo bench -p fornax-decoder
+RAYON_NUM_THREADS=1 cargo bench -p fornax-raw-decoder
 ```
 
 The benchmark reads
@@ -55,7 +55,7 @@ golden member with:
 
 ```bash
 FORNAX_BENCH_RAW=external/raw.pixls.us/path/from/selected-manifest.dng \
-  cargo bench -p fornax-decoder
+  cargo bench -p fornax-raw-decoder
 ```
 
 `FORNAX_BENCH_DECODER` selects `fornax`, `rawler`, `flashraw`, or a
@@ -63,7 +63,7 @@ comma-separated list. An unset or empty value benchmarks all three:
 
 ```bash
 FORNAX_BENCH_DECODER=fornax \
-  cargo bench -p fornax-decoder
+  cargo bench -p fornax-raw-decoder
 ```
 
 CI creates one benchmark job per golden file, fetches only that file's
@@ -75,5 +75,5 @@ invalid output fail the job.
 Compile the benchmark without running timings:
 
 ```bash
-cargo bench -p fornax-decoder --no-run
+cargo bench -p fornax-raw-decoder --no-run
 ```

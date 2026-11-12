@@ -24,7 +24,6 @@ SHARED_PREFIXES = (
     "Cargo.lock",
     "Cargo.toml",
     "crates/fornax-codec/",
-    "crates/fornax-decoder/",
     "crates/fornax-dng/",
     "crates/fornax-raw-core/",
     "crates/fornax-tiff/",

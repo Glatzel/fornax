@@ -18,7 +18,7 @@ def test_bmff_selects_canon_and_codec_selects_everything():
 
 def test_shared_benchmark_and_manifest_changes_select_everything():
     for path in (
-        "crates/fornax-decoder/benches/decoder.rs",
+        "crates/fornax-raw-decoder/benches/decoder.rs",
         "crates/fornax-tiff/src/raster.rs",
         "Cargo.toml",
         "crates/decoder-tracker/golden/selected-manifest.csv",
