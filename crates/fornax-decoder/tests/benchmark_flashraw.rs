@@ -67,7 +67,10 @@ fn rejects_non_one_sample_data() {
         Rect::new(0, 0, 2, 1),
     )
     .unwrap_err();
-    assert!(error.to_string().contains("one sample per pixel"), "{error}");
+    assert!(
+        error.to_string().contains("one sample per pixel"),
+        "{error}"
+    );
 }
 
 #[test]

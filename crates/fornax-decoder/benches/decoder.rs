@@ -2,13 +2,14 @@ mod decoder_inputs;
 mod flashraw_wrapper;
 mod rawler_wrapper;
 
-use std::env;
-use std::fs;
 use std::path::{Path, PathBuf};
+use std::{env, fs};
 
 use criterion::measurement::WallTime;
 use criterion::{BenchmarkGroup, Criterion, black_box, criterion_group, criterion_main};
-use decoder_inputs::{GoldenInput, ensure_materialized, parse_golden_manifest, select_golden_inputs};
+use decoder_inputs::{
+    GoldenInput, ensure_materialized, parse_golden_manifest, select_golden_inputs,
+};
 use flashraw_wrapper::FlashRawDecoder;
 use fornax_decoder::Decoder;
 use fornax_devtool::{BenchParams, BenchSampleBits};
@@ -87,26 +88,25 @@ fn bench_decoder<D, T>(
     let prefix = format!("{decoder_name}/{sample_name}");
     group.bench_function(format!("{prefix}/decode"), |b| {
         b.iter(|| {
-            D::decode(black_box(path)).unwrap_or_else(|error| {
-                decoder_error(case, decoder_name, "decode", error)
-            })
+            D::decode(black_box(path))
+                .unwrap_or_else(|error| decoder_error(case, decoder_name, "decode", error))
         });
     });
 
-    let decoder = D::decode(path)
-        .unwrap_or_else(|error| decoder_error(case, decoder_name, "decode", error));
+    let decoder =
+        D::decode(path).unwrap_or_else(|error| decoder_error(case, decoder_name, "decode", error));
     group.bench_function(format!("{prefix}/raw_mosaic"), |b| {
         b.iter(|| {
-            decoder.raw_mosaic().unwrap_or_else(|error| {
-                decoder_error(case, decoder_name, "raw_mosaic", error)
-            })
+            decoder
+                .raw_mosaic()
+                .unwrap_or_else(|error| decoder_error(case, decoder_name, "raw_mosaic", error))
         });
     });
     group.bench_function(format!("{prefix}/cropped_mosaic"), |b| {
         b.iter(|| {
-            decoder.cropped_mosaic::<T>().unwrap_or_else(|error| {
-                decoder_error(case, decoder_name, "cropped_mosaic", error)
-            })
+            decoder
+                .cropped_mosaic::<T>()
+                .unwrap_or_else(|error| decoder_error(case, decoder_name, "cropped_mosaic", error))
         });
     });
 }
@@ -130,9 +130,9 @@ where
     });
     group.bench_function("fornax/process_metadata", |b| {
         b.iter(|| {
-            decoder.process_metadata().unwrap_or_else(|error| {
-                decoder_error(case, "fornax", "process_metadata", error)
-            })
+            decoder
+                .process_metadata()
+                .unwrap_or_else(|error| decoder_error(case, "fornax", "process_metadata", error))
         });
     });
 }
@@ -144,10 +144,7 @@ fn bench_input(
     row: &GoldenInput,
     path: &Path,
 ) {
-    eprintln!(
-        "decoder benchmark input: {} ({} bytes)",
-        row.path, row.size
-    );
+    eprintln!("decoder benchmark input: {} ({} bytes)", row.path, row.size);
     let mut group = c.benchmark_group(row.case_label());
     if decoders.contains(&DecoderKind::Fornax) {
         bench_metadata::<Decoder>(&mut group, &row.path, path);

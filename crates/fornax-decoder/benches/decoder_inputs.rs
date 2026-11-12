@@ -28,7 +28,8 @@ impl GoldenInput {
                 '/' => path.push_str("--"),
                 ' ' => path.push('_'),
                 character
-                    if character.is_ascii_alphanumeric() || matches!(character, '.' | '-' | '_') =>
+                    if character.is_ascii_alphanumeric()
+                        || matches!(character, '.' | '-' | '_') =>
                 {
                     path.push(character);
                 }
@@ -40,9 +41,7 @@ impl GoldenInput {
 }
 
 pub fn parse_golden_manifest(bytes: &[u8]) -> Result<Vec<GoldenInput>, String> {
-    let mut reader = ReaderBuilder::new()
-        .flexible(false)
-        .from_reader(bytes);
+    let mut reader = ReaderBuilder::new().flexible(false).from_reader(bytes);
     let headers = reader
         .headers()
         .map_err(|error| format!("reading golden manifest header failed: {error}"))?;
@@ -130,10 +129,7 @@ pub fn select_golden_inputs(
 pub fn ensure_materialized(inputs: &[(GoldenInput, PathBuf)]) -> Result<(), String> {
     for (row, path) in inputs {
         let metadata = fs::metadata(path).map_err(|error| {
-            format!(
-                "reading benchmark input {} failed: {error}",
-                path.display()
-            )
+            format!("reading benchmark input {} failed: {error}", path.display())
         })?;
         if !metadata.is_file() {
             return Err(format!(

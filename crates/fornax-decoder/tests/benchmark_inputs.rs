@@ -127,7 +127,10 @@ fn rejects_an_explicit_path_outside_the_golden_manifest() {
     let rows = parse_golden_manifest(&manifest()).unwrap();
     let error =
         select_golden_inputs(&rows, Some(&requested), &tree.path().join("corpus")).unwrap_err();
-    assert!(error.contains("not present in the golden manifest"), "{error}");
+    assert!(
+        error.contains("not present in the golden manifest"),
+        "{error}"
+    );
 }
 
 #[test]

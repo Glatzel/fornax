@@ -122,8 +122,8 @@ impl IDecoder for FlashRawDecoder {
             RawMosaic::U32(samples) => samples.as_raw().iter().map(|v| num!(*v)).collect(),
             RawMosaic::F32(samples) => samples.as_raw().iter().map(|v| num!(*v)).collect(),
         };
-        let mut cropped = MonoImage::from_raw(width, height, samples)
-            .ok_or(RawValidationError::InvalidImage)?;
+        let mut cropped =
+            MonoImage::from_raw(width, height, samples).ok_or(RawValidationError::InvalidImage)?;
         cropped.crop_in_place(self.active_area);
         cropped.shrink_to_fit();
         Ok(CroppedMosaic::new(cropped))
@@ -151,10 +151,8 @@ fn validate_active_area(active_area: Rect, width: u32, height: u32) -> Result<()
         || u64::from(active_area.y) + u64::from(active_area.height) > u64::from(height)
     {
         return Err(DecodeError::InvalidInput(
-            format!(
-                "FlashRaw active area {active_area:?} is outside the {width}x{height} frame"
-            )
-            .into(),
+            format!("FlashRaw active area {active_area:?} is outside the {width}x{height} frame")
+                .into(),
         ));
     }
     Ok(())
