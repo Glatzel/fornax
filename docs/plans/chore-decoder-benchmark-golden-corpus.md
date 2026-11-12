@@ -437,8 +437,9 @@ Report the PR URL and validation evidence. Do not watch, merge, or close it.
 
 ## Decisions and Notes
 
-- Tasks 1-8 and Task 9 steps 1, 3, and 4 are complete. Task 9 step 2 remains
-  for the pushed CI run, and step 5 remains for push and pull-request creation.
+- Tasks 1-8 and Task 9 steps 1, 3, 4, and 5 are complete. Task 9 step 2 remains
+  for the CI run on pull request
+  [#717](https://github.com/Glatzel/fornax/pull/717).
 - The golden set adds one compression-1 H3D file and one predictor-8 X2D file.
 - Rawler and FlashRaw are benchmark development references, never production
   dependencies.
