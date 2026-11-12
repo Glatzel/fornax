@@ -35,7 +35,7 @@ impl GoldenInput {
                 _ => path.push('-'),
             }
         }
-        format!("{}__{path}", self.format())
+        format!("{}__{path}--{}", self.format(), &self.sha256[..8])
     }
 }
 

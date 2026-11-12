@@ -69,7 +69,10 @@ fn parses_canonical_manifest_and_derives_case_labels() {
     );
     assert_eq!(rows[0].format(), "CR3");
     assert_eq!(rows[1].format(), "NEF");
-    assert_eq!(rows[0].case_label(), "CR3__Canon--EOS_R5--photo.CR3");
+    assert_eq!(
+        rows[0].case_label(),
+        "CR3__Canon--EOS_R5--photo.CR3--aaaaaaaa"
+    );
 }
 
 #[test]
