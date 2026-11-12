@@ -4,9 +4,9 @@ version.workspace = true
 edition.workspace = true
 
 [[bin]]
+doc = false
 name = "fornax-raw"
 path = "src/main.rs"
-doc = false
 
 [dependencies]
 clap.workspace = true
