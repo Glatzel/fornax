@@ -131,13 +131,13 @@ jobs:
       matrix:
         include:
           - machine: ubuntu-latest
-            test-options: --all-features -p compare-demosaic
+            test-options: --all-features -p compare-demosaic --config 'profile.release.opt-level=3'
             pwd: ./crates/compare-demosaic
           - machine: macos-latest
             test-options: -p fornax-decoder
             pwd: ./
           - machine: ubuntu-latest
-            test-options: --workspace --all-features --exclude compare-demosaic
+            test-options: --workspace --all-features --exclude compare-demosaic --config 'profile.release.opt-level=3'
             pwd: ./
     runs-on: ${{matrix.machine}}
     steps:
