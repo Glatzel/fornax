@@ -562,7 +562,6 @@ impl<'a> RasterRequest<'a> {
     pub fn codec_request(&self) -> DecodeRequest<'_> {
         DecodeRequest {
             source: self.source,
-            compression: self.compression.clone(),
             width: self.layout.width,
             height: self.layout.height,
             chunk_width: self.layout.chunk_width,

@@ -54,7 +54,7 @@ unimplemented or disabled codec does not change who owns an identifier.
   Adobe-defined DNG values.
 - `8` and `32946` have distinct registration histories but the same Deflate
   payload meaning. They are not contradictory ownership claims.
-- Sony-private compression IDs remain owned by `fornax-arw` and are outside the
+- Sony-private compression IDs remain owned by `fornax-raw-sony` and are outside the
   generic TIFF resolver. See [sony-arw.md](../decoders/sony-arw.md).
 - The resolver must report undocumented IDs as unknown and documented IDs
   without available codecs as unsupported with the relevant feature name.

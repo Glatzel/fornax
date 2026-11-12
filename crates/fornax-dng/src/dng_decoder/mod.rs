@@ -4,7 +4,7 @@ mod opcodes;
 mod process_metadata;
 mod transforms;
 
-use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
+use fornax_codec::{ByteOrder, DecodeCompression, ICodecDecode, Predictor, SampleFormat};
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::ProcessMetadata;
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
@@ -238,7 +238,10 @@ fn resolve_dng_compression(id: u16) -> Result<DecodeCompression, DecodeError> {
 
 fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, DecodeError> {
     let plan = decode_plan(source, metadata)?;
-    let samples = fornax_codec::decode(&plan.codec_request()).map_err(codec_decode_error)?;
+    let samples = plan
+        .compression()
+        .decode(&plan.codec_request())
+        .map_err(codec_decode_error)?;
     into_raw_mosaic(samples)
 }
 

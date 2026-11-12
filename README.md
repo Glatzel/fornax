@@ -17,15 +17,20 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 - 🦀 **Rust + Python support** — Native performance with Python accessibility.
 - 🔒 **Pure-Rust decoding** — No C/C++ decoder dependency in the production
   image pipeline.
-- 📷 **Native RAW formats** — DNG, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, and
-  single-shot Panasonic RW2 V4/V5/V6/V8.
+- 📷 **Native RAW formats** — DNG, Sony ARW/NRW, Canon CR3/CRM, Nikon NEF,
+  Fujifilm RAF, Hasselblad 3FR, Phase One/Leaf IIQ, and single-shot Panasonic
+  RW2 V4/V5/V6/V8.
 
 ## Components
 
 - **fornax-raw-core**: Shared pipeline types, errors, and decoder/processor
   contracts.
 - **fornax-bmff**: Bounded generic ISO-BMFF box and sample-table parsing.
-- **fornax-cr3**: Canon CR3/CRM parsing and the audited lossless CRX handoff.
+- **fornax-codec**: Format-neutral request, sample-buffer, predictor, Huffman,
+  and generic codec interfaces.
+- **fornax-decoder**: Feature-gated native decoder facade over DNG and the
+  vendor format crates.
+- **fornax-raw-canon**: Canon CR3/CRM parsing and owned lossless CRX decoding.
 - **fornax-raw-pipeline**: Black/white-level normalization, demosaic
   algorithms, RGB reconstruction, and color processing.
 - **fornax-raw**: High-level facade tying the stages together.

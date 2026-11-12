@@ -34,11 +34,10 @@ The ARW2 8-bit path needs camera-specific curve and black/white rescaling.
 The newer LJPEG tiled path packs two Bayer lines into each decoded row and may
 use a 4-component 256x256 stream for a 512x512 output tile.
 
-Fornax owns ARW1, ARW2, ARW6, and lossless-JPEG entropy decoding in
-`fornax-codec` behind its `arw` feature. `fornax-arw` owns container selection,
-Sony private-data decryption, codec request construction, sample/white-level
-mapping, and metadata conversion. The codec adapter owns the LJPEG two-row
-unpack.
+`fornax-raw-sony` owns ARW1, ARW2, ARW6, and Sony lossless-JPEG entropy
+decoding behind its private `ICodecDecode` codec. It also owns container
+selection, Sony private-data decryption, curve-derived white levels, LLVC3
+data, sample mapping, metadata conversion, and the LJPEG two-row unpack.
 
 ## Metadata to DNG tags
 

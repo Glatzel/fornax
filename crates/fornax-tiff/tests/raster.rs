@@ -1,6 +1,8 @@
 #![cfg(feature = "raster")]
 
-use fornax_codec::{ByteOrder, Chunk, DecodeCompression, Predictor, SampleBuffer, SampleFormat};
+use fornax_codec::{
+    ByteOrder, Chunk, DecodeCompression, ICodecDecode, Predictor, SampleBuffer, SampleFormat,
+};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{
     Directory, RasterError, RasterLayout, RasterRequest, RasterStorage, Tag, TiffCompressionError,
@@ -134,7 +136,10 @@ fn decode_tiles_with_partial_final_geometry_preserves_row_major_copy() {
     )
     .unwrap();
 
-    let decoded = fornax_codec::decode(&request.codec_request()).unwrap();
+    let decoded = request
+        .compression()
+        .decode(&request.codec_request())
+        .unwrap();
     let SampleBuffer::U8(image) = decoded else {
         panic!("uncompressed 8-bit samples must decode as u8");
     };
@@ -168,7 +173,10 @@ fn decode_strips_with_partial_final_strip_preserves_row_major_copy() {
     )
     .unwrap();
 
-    let decoded = fornax_codec::decode(&request.codec_request()).unwrap();
+    let decoded = request
+        .compression()
+        .decode(&request.codec_request())
+        .unwrap();
     let SampleBuffer::U8(image) = decoded else {
         panic!("uncompressed 8-bit strips must decode as u8");
     };

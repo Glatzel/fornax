@@ -18,13 +18,22 @@ and pipeline data flow. These invariants always apply:
   writing, or a decoder implementation.
 - `fornax-tiff` owns generic TIFF tags (`Tag` and `TiffTag`), typed TIFF field
   constants, `Directory` values, parsing, and the reusable directory writer.
-- `fornax-codec` owns format-neutral raw sample decoding, chunk assembly,
-  predictors, and supported codec encoding.
+- `fornax-codec` owns format-neutral requests and sample buffers, chunk
+  assembly, predictors, byte order and error types, Huffman support, generic
+  codecs, and supported codec encoding. `ICodecDecode` is the decode contract.
+- Vendor format crates own their private codec enums, parameters, and stream
+  implementations: `fornax-raw-sony`, `fornax-raw-canon`,
+  `fornax-raw-nikon`, `fornax-raw-fujifilm`, `fornax-raw-hasselblad`,
+  `fornax-raw-panasonic`, and `fornax-raw-phase-one`. Do not put vendor stream
+  behavior behind generic `fornax-codec` feature flags.
 - `fornax-dng` owns DNG-only tags (`DngTag`), a `Directory` keyed by `Tag`,
   DNG-specific transforms, and DNG writing.
-- `fornax-decoder::Decoder<T>` is the default pure-Rust DNG decoder. The
-  `fornax-raw` facade re-exports it as `fornax_raw::decoder::Decoder` and the
-  DNG format layer as `fornax_raw::dng`.
+- `fornax-decoder::Decoder` is the default pure-Rust decoder facade. DNG is
+  unconditional; the `sony`, `canon`, `nikon`, `fujifilm`, `hasselblad`,
+  `panasonic`, and `phase-one` features gate optional vendor crates and are all
+  enabled by default. The `fornax-raw` facade re-exports the full-feature
+  decoder as `fornax_raw::decoder::Decoder` and the DNG format layer as
+  `fornax_raw::dng`; it does not duplicate the decoder feature surface.
 - `fornax-decoder-rawler` is an alternate Rawler-backed decoder for supported
   conventional 2x2 RGB Bayer files. `fornax-decoder-dnc` converts with Adobe
   DNG Converter before decoding with Rawler; its facade export is limited to
@@ -37,6 +46,8 @@ and pipeline data flow. These invariants always apply:
   algorithms, RGB reconstruction, and postprocessing.
 - `fornax-decoder` owns decoder benchmarks. Demosaic and preprocessor
   benchmarks live in `fornax-raw-pipeline`.
+- Decoder benchmark matrix items compile with `--no-default-features` and only
+  the feature required by their golden input. DNG needs no format feature.
 - `decoder-tracker` owns the manual raw.pixls.us decoder regression tracker,
   pointer-only corpus manifest, sharded CI workflow, and text baseline.
 - LibRaw, darktable, and RawTherapee remain development-only references for

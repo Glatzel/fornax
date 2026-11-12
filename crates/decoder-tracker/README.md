@@ -161,9 +161,10 @@ schema, stage semantics, glob/sharding rules, workflow, and update procedure
 are documented in
 [docs/decoder/corpus.md](../../docs/decoder/corpus.md).
 
-`golden/selected-manifest.csv` and `golden/decode-hashes.csv` form a small
-deterministic decode-output gate. Run `hash --check` in release mode so full RAW
-decodes complete in bounded CI time. It materializes only those selected
-payloads and verifies raw samples, cropped samples, process metadata, and DNG
-metadata against the committed hashes. These files are generated and must not
-be hand-edited.
+`golden/selected-manifest.csv` and `golden/decode-hashes.csv` form a 30-file
+deterministic decode-output gate shared by decoder benchmarks. The set covers
+all eight implemented container families and both accepted 3FR compression
+families. Run `hash --check` in release mode so full RAW decodes complete in
+bounded CI time. It materializes only those selected payloads and verifies raw
+samples, cropped samples, process metadata, and DNG metadata against the
+committed hashes. These files are generated and must not be hand-edited.

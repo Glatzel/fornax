@@ -1,0 +1,15 @@
+[package]
+name = "fornax-raw-hasselblad"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+fornax-codec = { workspace = true, features = ["lossless-jpeg"] }
+fornax-dng.workspace = true
+fornax-raw-core.workspace = true
+fornax-tiff.workspace = true
+generic-num.workspace = true
+image.workspace = true
+
+[dev-dependencies]
+rawler = "0.8.0"

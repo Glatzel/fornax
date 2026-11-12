@@ -53,4 +53,4 @@ writer level is 3; LosslessJPEG remains the default interoperable compression.
 
 The complete source-versioned ownership table is maintained in
 [compression-ids.md](../codecs/compression-ids.md). Sony-private IDs never enter either
-generic resolver and remain owned by `fornax-arw`.
+generic resolver and remain owned by `fornax-raw-sony`.

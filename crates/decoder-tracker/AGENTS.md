@@ -163,8 +163,8 @@ Follow the deliberately bounded procedure in
 
 - `manifest.csv` identifies every corpus path, size, and LFS SHA-256.
 - `baseline.csv` is the accepted full result set. Do not hand-edit it.
-- `golden/selected-manifest.csv` is the pointer-only selected fixture set for
-  deterministic decode-output checks.
+- `golden/selected-manifest.csv` is the pointer-only 30-file fixed set for
+  deterministic decode-output checks and decoder benchmarks.
 - `golden/decode-hashes.csv` contains SHA-256 values for raw samples, cropped
   samples, process metadata, and DNG metadata. Generate it with `hash --out`;
   never hand-edit it.
