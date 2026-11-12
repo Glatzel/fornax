@@ -14,5 +14,5 @@ rayon.workspace = true
 
 [dev-dependencies]
 bytemuck.workspace = true
-rawler.workspace = true
+rawler = "0.8.0"
 sha2.workspace = true

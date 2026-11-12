@@ -27,7 +27,8 @@ fornax-devtool.workspace = true
 fornax-tiff.workspace = true
 generic-num.workspace = true
 image.workspace = true
-rawler.workspace = true
+flashraw = "=0.2.0"
+rawler = "0.8.0"
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 strum.workspace = true

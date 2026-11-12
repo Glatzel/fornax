@@ -12,4 +12,4 @@ generic-num.workspace = true
 image.workspace = true
 
 [dev-dependencies]
-rawler.workspace = true
+rawler = "0.8.0"
