@@ -414,7 +414,7 @@ the commit sequence contains the plan, moves, link repairs, and index.
 Read the diff against this plan and the approved audit, using the Review Focus
 items as an explicit checklist.
 
-- [ ] **Step 5: Push and open one semantic pull request**
+- [x] **Step 5: Push and open one semantic pull request**
 
 ```bash
 git push -u origin HEAD
@@ -424,6 +424,8 @@ gh pr create --base main \
 ```
 
 Expected: the branch is pushed and one PR URL is returned.
+
+Pull request: <https://github.com/Glatzel/fornax/pull/715>.
 
 ## Validation
 
