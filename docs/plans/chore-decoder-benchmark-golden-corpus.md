@@ -437,6 +437,8 @@ Report the PR URL and validation evidence. Do not watch, merge, or close it.
 
 ## Decisions and Notes
 
+- Tasks 1-8 and Task 9 steps 1, 3, and 4 are complete. Task 9 step 2 remains
+  for the pushed CI run, and step 5 remains for push and pull-request creation.
 - The golden set adds one compression-1 H3D file and one predictor-8 X2D file.
 - Rawler and FlashRaw are benchmark development references, never production
   dependencies.
@@ -447,3 +449,8 @@ Report the PR URL and validation evidence. Do not watch, merge, or close it.
 - Timing values are review evidence only; no host-dependent baseline is
   committed.
 - Actual benchmark timing runs happen only in CI, as requested by the user.
+- Self-review found and fixed two benchmark-path defects: explicit single-file
+  selection no longer canonicalizes unmaterialized peer files, and an empty
+  `FORNAX_BENCH_DECODER` now selects all three decoders as documented.
+- FlashRaw `decode` moves the decoded frame data into the adapter instead of
+  cloning the full sensor buffer, keeping the timed path free of an extra copy.
