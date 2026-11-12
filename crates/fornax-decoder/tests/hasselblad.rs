@@ -1,3 +1,5 @@
+#![cfg(feature = "hasselblad")]
+
 use std::path::PathBuf;
 
 use fornax_decoder::Decoder;

@@ -21,6 +21,8 @@ def test_builds_one_item_per_golden_row():
             {
                 "path": "Canon/EOS R5/photo.CR3",
                 "format": "CR3",
+                "feature": "canon",
+                "cargo-options": "--no-default-features --features canon",
                 "label": "CR3: Canon/EOS R5/photo.CR3",
                 "size": 10,
                 "sha256": SHA_A,
@@ -28,12 +30,35 @@ def test_builds_one_item_per_golden_row():
             {
                 "path": "Nikon/D850/photo.NEF",
                 "format": "NEF",
+                "feature": "nikon",
+                "cargo-options": "--no-default-features --features nikon",
                 "label": "NEF: Nikon/D850/photo.NEF",
                 "size": 20,
                 "sha256": SHA_B,
             },
         ]
     }
+
+
+def test_filters_to_requested_formats_and_maps_dng_to_no_feature():
+    rows = benchmark_matrix.load_manifest(
+        io.StringIO(f"path,size,sha256\nAdobe/photo.DNG,10,{SHA_A}\nSony/photo.ARW,20,{SHA_B}\n")
+    )
+
+    matrix = benchmark_matrix.build_matrix(rows, benchmark_matrix.parse_formats("arw"))
+
+    assert matrix["include"] == [
+        {
+            "path": "Sony/photo.ARW",
+            "format": "ARW",
+            "feature": "sony",
+            "cargo-options": "--no-default-features --features sony",
+            "label": "ARW: Sony/photo.ARW",
+            "size": 20,
+            "sha256": SHA_B,
+        }
+    ]
+    assert benchmark_matrix.FEATURES["DNG"] == ""
 
 
 def test_rejects_duplicate_paths():

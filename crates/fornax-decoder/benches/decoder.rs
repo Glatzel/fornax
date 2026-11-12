@@ -2,6 +2,7 @@ mod decoder_inputs;
 mod decoder_selection;
 mod flashraw_wrapper;
 mod rawler_wrapper;
+mod reference_preflight;
 
 use std::path::{Path, PathBuf};
 use std::{env, fs};
@@ -15,11 +16,10 @@ use decoder_inputs::{
 use decoder_selection::{DecoderKind, parse_decoder_selection};
 use flashraw_wrapper::FlashRawDecoder;
 use fornax_decoder::Decoder;
-use fornax_devtool::{BenchParams, BenchSampleBits};
 use fornax_dng::metadata::IDecoderDng;
-use fornax_raw_core::Primitive;
 use fornax_raw_core::protocol::IDecoder;
 use rawler_wrapper::RawlerDecoder;
+use reference_preflight::{ReferencePreflight, preflight_reference};
 
 const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/golden/selected-manifest.csv";
 const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
@@ -64,38 +64,62 @@ fn decoder_error(case: &str, decoder: &str, method: &str, error: impl std::fmt::
     panic!("decoder benchmark {decoder} failed {method} for {case}: {error}")
 }
 
-fn bench_decoder<D, T>(
+fn bench_fornax(group: &mut BenchmarkGroup<'_, WallTime>, case: &str, path: &Path) {
+    group.bench_function("fornax/decode", |b| {
+        b.iter(|| {
+            Decoder::decode(black_box(path))
+                .unwrap_or_else(|error| decoder_error(case, "fornax", "decode", error))
+        });
+    });
+
+    let decoder = Decoder::decode(path)
+        .unwrap_or_else(|error| decoder_error(case, "fornax", "decode", error));
+    group.bench_function("fornax/raw_mosaic", |b| {
+        b.iter(|| {
+            decoder
+                .raw_mosaic()
+                .unwrap_or_else(|error| decoder_error(case, "fornax", "raw_mosaic", error))
+        });
+    });
+    group.bench_function("fornax/cropped_mosaic", |b| {
+        b.iter(|| {
+            decoder
+                .cropped_mosaic::<f32>()
+                .unwrap_or_else(|error| decoder_error(case, "fornax", "cropped_mosaic", error))
+        });
+    });
+}
+
+fn bench_reference<D>(
     group: &mut BenchmarkGroup<'_, WallTime>,
     case: &str,
     path: &Path,
     decoder_name: &str,
-    sample_name: &str,
 ) where
     D: IDecoder,
-    T: Primitive + Send + Sync,
 {
-    let prefix = format!("{decoder_name}/{sample_name}");
-    group.bench_function(format!("{prefix}/decode"), |b| {
+    let decoder = match preflight_reference::<D>(path) {
+        Ok(ReferencePreflight::Ready(decoder)) => decoder,
+        Ok(ReferencePreflight::Unsupported(detail)) => {
+            eprintln!(
+                "decoder benchmark warning: skipping {decoder_name} for {case}: \
+                 unsupported input ({detail})"
+            );
+            return;
+        }
+        Err(error) => decoder_error(case, decoder_name, "decode/raw_mosaic preflight", error),
+    };
+    group.bench_function(format!("{decoder_name}/decode"), |b| {
         b.iter(|| {
             D::decode(black_box(path))
                 .unwrap_or_else(|error| decoder_error(case, decoder_name, "decode", error))
         });
     });
-
-    let decoder =
-        D::decode(path).unwrap_or_else(|error| decoder_error(case, decoder_name, "decode", error));
-    group.bench_function(format!("{prefix}/raw_mosaic"), |b| {
+    group.bench_function(format!("{decoder_name}/raw_mosaic"), |b| {
         b.iter(|| {
             decoder
                 .raw_mosaic()
                 .unwrap_or_else(|error| decoder_error(case, decoder_name, "raw_mosaic", error))
-        });
-    });
-    group.bench_function(format!("{prefix}/cropped_mosaic"), |b| {
-        b.iter(|| {
-            decoder
-                .cropped_mosaic::<T>()
-                .unwrap_or_else(|error| decoder_error(case, decoder_name, "cropped_mosaic", error))
         });
     });
 }
@@ -126,87 +150,26 @@ where
     });
 }
 
-fn bench_input(
-    c: &mut Criterion,
-    params: &BenchParams,
-    decoders: &[DecoderKind],
-    row: &GoldenInput,
-    path: &Path,
-) {
+fn bench_input(c: &mut Criterion, decoders: &[DecoderKind], row: &GoldenInput, path: &Path) {
     eprintln!("decoder benchmark input: {} ({} bytes)", row.path, row.size);
     let mut group = c.benchmark_group(row.case_label());
     if decoders.contains(&DecoderKind::Fornax) {
         bench_metadata::<Decoder>(&mut group, &row.path, path);
+        bench_fornax(&mut group, &row.path, path);
     }
-
-    for bits in &params.bits {
-        for decoder in decoders {
-            match (decoder, bits) {
-                (DecoderKind::Fornax, BenchSampleBits::F32) => {
-                    bench_decoder::<Decoder, f32>(
-                        &mut group,
-                        &row.path,
-                        path,
-                        "fornax",
-                        bits.as_ref(),
-                    );
-                }
-                (DecoderKind::Fornax, BenchSampleBits::F64) => {
-                    bench_decoder::<Decoder, f64>(
-                        &mut group,
-                        &row.path,
-                        path,
-                        "fornax",
-                        bits.as_ref(),
-                    );
-                }
-                (DecoderKind::Rawler, BenchSampleBits::F32) => {
-                    bench_decoder::<RawlerDecoder, f32>(
-                        &mut group,
-                        &row.path,
-                        path,
-                        "rawler",
-                        bits.as_ref(),
-                    );
-                }
-                (DecoderKind::Rawler, BenchSampleBits::F64) => {
-                    bench_decoder::<RawlerDecoder, f64>(
-                        &mut group,
-                        &row.path,
-                        path,
-                        "rawler",
-                        bits.as_ref(),
-                    );
-                }
-                (DecoderKind::FlashRaw, BenchSampleBits::F32) => {
-                    bench_decoder::<FlashRawDecoder, f32>(
-                        &mut group,
-                        &row.path,
-                        path,
-                        "flashraw",
-                        bits.as_ref(),
-                    );
-                }
-                (DecoderKind::FlashRaw, BenchSampleBits::F64) => {
-                    bench_decoder::<FlashRawDecoder, f64>(
-                        &mut group,
-                        &row.path,
-                        path,
-                        "flashraw",
-                        bits.as_ref(),
-                    );
-                }
-            }
-        }
+    if decoders.contains(&DecoderKind::Rawler) {
+        bench_reference::<RawlerDecoder>(&mut group, &row.path, path, "rawler");
+    }
+    if decoders.contains(&DecoderKind::FlashRaw) {
+        bench_reference::<FlashRawDecoder>(&mut group, &row.path, path, "flashraw");
     }
     group.finish();
 }
 
 fn benches(c: &mut Criterion) {
-    let params = BenchParams::from_env();
     let decoders = selected_decoders();
     for (row, path) in benchmark_inputs() {
-        bench_input(c, &params, &decoders, &row, &path);
+        bench_input(c, &decoders, &row, &path);
     }
 }
 

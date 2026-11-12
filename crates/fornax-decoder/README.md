@@ -1,14 +1,25 @@
 # fornax-decoder
 
-Thin default decoder facade. DNG handling is implemented by `fornax-dng`;
-audited lossless Canon CR3/CRM handling is implemented by `fornax-cr3`;
-supported Sony ARW/NRW handling is implemented by `fornax-arw`; supported Nikon
-NEF handling is implemented by `fornax-nef`; and supported Fujifilm RAF
-handling is implemented by `fornax-raf`; supported Hasselblad 3FR handling is
-implemented by `fornax-hasselblad`; supported Phase One/Leaf IIQ handling is
-implemented by `fornax-iiq`; and supported Panasonic RW2 handling is implemented
-by `fornax-rw2`. Generic BMFF/TIFF parsing, shared codecs, metadata conversion,
-and writing remain in their container-neutral or format-specific crates.
+Thin default decoder facade. DNG handling is implemented by `fornax-dng` and is
+always enabled. The default feature set adds supported native handling from
+`fornax-raw-sony`, `fornax-raw-canon`, `fornax-raw-nikon`,
+`fornax-raw-fujifilm`, `fornax-raw-hasselblad`, `fornax-raw-panasonic`, and
+`fornax-raw-phase-one`. Generic BMFF/TIFF parsing and generic codecs remain in
+their container-neutral crates; vendor stream implementations live with their
+vendor decoders.
+
+Format features are `sony`, `canon`, `nikon`, `fujifilm`, `hasselblad`,
+`panasonic`, and `phase-one`. Disable defaults and enable only the formats a
+consumer needs:
+
+```bash
+cargo build -p fornax-decoder --no-default-features
+cargo build -p fornax-decoder --no-default-features --features canon
+```
+
+A known format whose feature is disabled returns `DecodeError::Unsupported`
+naming that feature. It does not fall through to Adobe DNG Converter. The
+`fornax-raw` facade remains full-featured and does not duplicate these features.
 
 ```rust
 use fornax_raw_core::{BayerPattern, MonoImage};
@@ -26,10 +37,11 @@ adapters over `decoder-tracker`'s golden corpus. The default set contains 30
 passing conventional 2x2 RGB Bayer files across eight native formats and both
 accepted Hasselblad 3FR compression families.
 
-Every input is a separate Criterion group. All decoders measure `decode`,
-`raw_mosaic`, and `cropped_mosaic`. Fornax additionally reports
-`dng_metadata` and `process_metadata` diagnostics; the reference adapters do not
-expose equivalent metadata.
+Every input is a separate Criterion group. Fornax measures `decode`,
+`raw_mosaic`, and `cropped_mosaic` as separate f32 items and additionally
+reports `dng_metadata` and `process_metadata` diagnostics. Rawler and FlashRaw
+measure only separate `decode` and `raw_mosaic` items; later conversion and
+crop work is outside the reference comparison.
 
 ```bash
 RAYON_NUM_THREADS=1 cargo bench -p fornax-decoder
@@ -46,20 +58,19 @@ FORNAX_BENCH_RAW=external/raw.pixls.us/path/from/selected-manifest.dng \
   cargo bench -p fornax-decoder
 ```
 
-`FORNAX_BENCH_BITS` selects `32`, `64`, or a comma-separated list. The default
-is `32`.
-
 `FORNAX_BENCH_DECODER` selects `fornax`, `rawler`, `flashraw`, or a
 comma-separated list. An unset or empty value benchmarks all three:
 
 ```bash
-FORNAX_BENCH_DECODER=fornax FORNAX_BENCH_BITS=32 \
+FORNAX_BENCH_DECODER=fornax \
   cargo bench -p fornax-decoder
 ```
 
 CI creates one benchmark job per golden file, fetches only that file's
-transient LFS object, verifies its SHA-256, and runs all three decoders on the
-same runner.
+transient LFS object, verifies its SHA-256, and builds only the decoder feature
+required by that file. A reference that reports typed unsupported decode or
+raw-mosaic support is skipped with a visible warning; backend errors and
+invalid output fail the job.
 
 Compile the benchmark without running timings:
 

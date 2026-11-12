@@ -9,22 +9,21 @@ name = "decoder"
 
 [dependencies]
 clerk.workspace = true
-fornax-arw.workspace = true
-fornax-cr3.workspace = true
+fornax-raw-sony = { workspace = true, optional = true }
+fornax-raw-canon = { workspace = true, optional = true }
 fornax-dng.workspace = true
-fornax-hasselblad.workspace = true
-fornax-iiq.workspace = true
-fornax-nef.workspace = true
-fornax-raf.workspace = true
+fornax-raw-hasselblad = { workspace = true, optional = true }
+fornax-raw-phase-one = { workspace = true, optional = true }
+fornax-raw-nikon = { workspace = true, optional = true }
+fornax-raw-fujifilm = { workspace = true, optional = true }
 fornax-raw-core.workspace = true
-fornax-rw2.workspace = true
+fornax-raw-panasonic = { workspace = true, optional = true }
 
 [dev-dependencies]
 criterion.workspace = true
 csv.workspace = true
 flashraw = "=0.2.0"
 fornax-codec.workspace = true
-fornax-devtool.workspace = true
 fornax-tiff.workspace = true
 generic-num.workspace = true
 image.workspace = true
@@ -34,4 +33,20 @@ rawler = "0.8.0"
 strum.workspace = true
 
 [features]
+default = [
+    "sony",
+    "canon",
+    "nikon",
+    "fujifilm",
+    "hasselblad",
+    "panasonic",
+    "phase-one",
+]
+canon = ["dep:fornax-raw-canon"]
+fujifilm = ["dep:fornax-raw-fujifilm"]
+hasselblad = ["dep:fornax-raw-hasselblad"]
+nikon = ["dep:fornax-raw-nikon"]
+panasonic = ["dep:fornax-raw-panasonic"]
+phase-one = ["dep:fornax-raw-phase-one"]
+sony = ["dep:fornax-raw-sony"]
 zstd = ["fornax-dng/zstd"]

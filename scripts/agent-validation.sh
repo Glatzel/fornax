@@ -205,7 +205,14 @@ if [[ "$docs_only" == false ]]; then
     cargo -q test --workspace --all-features --exclude compare-demosaic
     cargo -q check -p fornax-codec --no-default-features
     cargo -q test -p fornax-codec --features lossless-jpeg
-    cargo -q test -p fornax-codec --features arw
+    cargo -q test \
+        -p fornax-raw-sony \
+        -p fornax-raw-canon \
+        -p fornax-raw-nikon \
+        -p fornax-raw-fujifilm \
+        -p fornax-raw-hasselblad \
+        -p fornax-raw-panasonic \
+        -p fornax-raw-phase-one
     cargo +nightly fmt --check -q
     RUSTDOCFLAGS="-D warnings" \
         cargo -q doc --workspace --all-features --exclude compare-demosaic --no-deps

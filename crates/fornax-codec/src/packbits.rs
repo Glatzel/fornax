@@ -135,7 +135,7 @@ fn repeated_len(data: &[u8], start: usize) -> usize {
 mod tests {
     use crate::{
         ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
-        Predictor, SampleBuffer, SampleFormat, decode, encode,
+        ICodecDecode, Predictor, SampleBuffer, SampleFormat, encode,
     };
 
     fn decode_request<'a>(
@@ -149,7 +149,6 @@ mod tests {
     ) -> DecodeRequest<'a> {
         DecodeRequest {
             source,
-            compression: DecodeCompression::PackBits,
             width,
             height,
             chunk_width,
@@ -201,7 +200,7 @@ mod tests {
         }];
         let request = decode_request(&source, &chunks, 6, 1, 6, 1, Predictor::None);
 
-        let decoded = decode(&request).unwrap();
+        let decoded = DecodeCompression::PackBits.decode(&request).unwrap();
 
         assert_eq!(decoded.into_raw_u8().unwrap(), [0xaa, 0xaa, 0xaa, 1, 2, 3]);
     }
@@ -215,7 +214,14 @@ mod tests {
         }];
         let request = decode_request(&source, &chunks, 3, 1, 3, 1, Predictor::None);
 
-        assert_eq!(decode(&request).unwrap().into_raw_u8().unwrap(), [9, 8, 7]);
+        assert_eq!(
+            DecodeCompression::PackBits
+                .decode(&request)
+                .unwrap()
+                .into_raw_u8()
+                .unwrap(),
+            [9, 8, 7]
+        );
     }
 
     #[test]
@@ -225,7 +231,7 @@ mod tests {
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 8, 1, 8, 1, Predictor::None);
 
-        assert_eq!(decode(&request).unwrap(), image);
+        assert_eq!(DecodeCompression::PackBits.decode(&request).unwrap(), image);
     }
 
     #[test]
@@ -235,7 +241,7 @@ mod tests {
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 4, 1, 4, 1, Predictor::HorizontalInteger);
 
-        assert_eq!(decode(&request).unwrap(), image);
+        assert_eq!(DecodeCompression::PackBits.decode(&request).unwrap(), image);
     }
 
     #[test]
@@ -246,7 +252,7 @@ mod tests {
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 5, 3, 4, 2, Predictor::None);
 
-        assert_eq!(decode(&request).unwrap(), image);
+        assert_eq!(DecodeCompression::PackBits.decode(&request).unwrap(), image);
     }
 
     #[test]
@@ -264,7 +270,10 @@ mod tests {
         ];
         let request = decode_request(&source, &chunks, 130, 1, 128, 1, Predictor::None);
 
-        let error = decode(&request).unwrap_err().to_string();
+        let error = DecodeCompression::PackBits
+            .decode(&request)
+            .unwrap_err()
+            .to_string();
 
         assert!(error.contains("PackBits chunk 1"), "{error}");
     }
@@ -284,7 +293,10 @@ mod tests {
         ];
         let request = decode_request(&source, &chunks, 130, 1, 128, 1, Predictor::None);
 
-        let error = decode(&request).unwrap_err().to_string();
+        let error = DecodeCompression::PackBits
+            .decode(&request)
+            .unwrap_err()
+            .to_string();
 
         assert!(error.contains("PackBits chunk 1"), "{error}");
     }
@@ -298,7 +310,7 @@ mod tests {
             let (source, chunks) = source_and_chunks(encoded.chunks);
             let request = decode_request(&source, &chunks, length, 1, length, 1, Predictor::None);
             assert_eq!(
-                decode(&request).unwrap(),
+                DecodeCompression::PackBits.decode(&request).unwrap(),
                 repeated,
                 "repeat length {length}"
             );
@@ -313,7 +325,7 @@ mod tests {
             let (source, chunks) = source_and_chunks(encoded.chunks);
             let request = decode_request(&source, &chunks, length, 1, length, 1, Predictor::None);
             assert_eq!(
-                decode(&request).unwrap(),
+                DecodeCompression::PackBits.decode(&request).unwrap(),
                 literals,
                 "literal length {length}"
             );

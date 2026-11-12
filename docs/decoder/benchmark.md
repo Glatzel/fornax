@@ -15,13 +15,16 @@ families: uncompressed compression 1 and predictor-8 compression 7.
 
 For every input, the benchmark creates one Criterion group containing:
 
-- `decode`, measured as file read, container parse, and sensor decode;
-- `raw_mosaic`, measured on one decoder constructed outside the timed region;
-- `cropped_mosaic`, measured with `f32` or `f64` conversion and active-area crop.
+- Fornax `decode`, measured as file read, container parse, and sensor decode;
+- Fornax `raw_mosaic`, measured on one decoder constructed outside the timed
+  region;
+- Fornax `cropped_mosaic`, measured with `f32` conversion and active-area crop;
+- Rawler and FlashRaw `decode` and `raw_mosaic`, registered separately.
 
-All selected decoders report those three shared methods. Fornax also reports
-`dng_metadata` and `process_metadata` as diagnostics. FlashRaw has no equivalent
-TIFF `Directory` API and the Rawler benchmark adapter does not expose normalized
+Fornax also reports `dng_metadata` and `process_metadata` as diagnostics.
+References do not run `cropped_mosaic`, excluding active-area conversion work
+and avoiding missing-active-area panics. FlashRaw has no equivalent TIFF
+`Directory` API and the Rawler benchmark adapter does not expose normalized
 process metadata, so those accessors are not compared across implementations.
 
 ## Input selection
@@ -52,14 +55,11 @@ pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
   --check crates/decoder-tracker/golden/decode-hashes.csv
 ```
 
-`f32` is the default sample type. Select `f64` or both with
-`FORNAX_BENCH_BITS=64` or `FORNAX_BENCH_BITS=32,64`.
 `FORNAX_BENCH_DECODER` accepts `fornax`, `rawler`, and `flashraw`; the default
-is all three.
+is all three. Every Fornax crop case uses `f32`.
 
 ```bash
-RAYON_NUM_THREADS=1 FORNAX_BENCH_BITS=32 \
-  cargo bench -p fornax-decoder
+RAYON_NUM_THREADS=1 cargo bench -p fornax-decoder
 ```
 
 FlashRaw is configured for the CPU, one worker thread, strict corruption
@@ -80,11 +80,21 @@ item per file. Each `decoder-benchmark` job:
 1. initializes the pointer-only raw.pixls.us submodule;
 2. fetches only that matrix item's Git LFS object;
 3. verifies its recorded size and SHA-256;
-4. runs Fornax, Rawler, and FlashRaw on that one input.
+4. builds `fornax-decoder` with `--no-default-features` and only that input's
+   vendor feature, except DNG which needs no format feature;
+5. runs Fornax, Rawler, and FlashRaw on that one input.
+
+Changed-path impact selection is proportional. A direct vendor crate change
+runs only that vendor's golden cases; `fornax-bmff` runs Canon cases; every
+`fornax-codec` change runs all formats and DNG. Shared TIFF/DNG/core/decoder,
+benchmark source, manifests, matrix scripts, and workflow changes run every
+case.
 
 RAW payloads remain transient. The decoder benchmark workflow does not cache or
-upload them. A selected reference that cannot decode a golden input fails its
-matrix case instead of silently disappearing from the comparison.
+upload them. Before registering a reference, the benchmark preflights both
+decode and raw-mosaic support. Only typed `DecodeError::Unsupported` skips that
+reference with a visible case/reference warning; backend errors, malformed
+output, and panics fail the matrix case.
 
 ## Comparison scope
 
@@ -92,6 +102,8 @@ matrix case instead of silently disappearing from the comparison.
   host-dependent timing baselines.
 - Inspect every single-file result. A favorable aggregate must not hide a
   regression in one format or compression family.
+- Compare Fornax decode and raw-mosaic items manually with the corresponding
+  reference items. Do not merge measurement stages into one Criterion item.
 - Compare `dng_metadata` and `process_metadata` only with another implementation
   that exposes equivalent metadata. The current reference adapters do not.
 - `rawler` and `flashraw` are dev-dependencies of `fornax-decoder`. They must not

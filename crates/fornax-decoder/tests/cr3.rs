@@ -1,8 +1,10 @@
+#![cfg(feature = "canon")]
+
 use std::fs;
 
-use fornax_codec::CanonCrxCfa;
 use fornax_decoder::Decoder;
 use fornax_dng::metadata::IDecoderDng;
+use fornax_raw_canon::CanonCrxCfa;
 use fornax_raw_core::RawMosaic;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::protocol::IDecoder;

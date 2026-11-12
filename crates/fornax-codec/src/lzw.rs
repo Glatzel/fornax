@@ -93,7 +93,7 @@ mod tests {
 
     use crate::{
         ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
-        Predictor, SampleBuffer, SampleFormat, decode, encode,
+        ICodecDecode, Predictor, SampleBuffer, SampleFormat, encode,
     };
 
     const TIFF_LZW_HEX: &[u8] = &[0x80, 0x0b, 0x60, 0x50, 0x22, 0x0c, 0x0c, 0x85, 0x01];
@@ -110,7 +110,6 @@ mod tests {
     ) -> DecodeRequest<'a> {
         DecodeRequest {
             source,
-            compression: DecodeCompression::Lzw,
             width,
             height,
             chunk_width,
@@ -161,7 +160,7 @@ mod tests {
         }];
         let request = decode_request(TIFF_LZW_HEX, &chunks, 10, 1, 10, 1, Predictor::None);
 
-        let decoded = decode(&request).unwrap();
+        let decoded = DecodeCompression::Lzw.decode(&request).unwrap();
 
         assert_eq!(decoded.into_raw_u8().unwrap(), TIFF_LZW_DECODED);
     }
@@ -173,7 +172,7 @@ mod tests {
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 10, 1, 10, 1, Predictor::None);
 
-        assert_eq!(decode(&request).unwrap(), image);
+        assert_eq!(DecodeCompression::Lzw.decode(&request).unwrap(), image);
     }
 
     #[test]
@@ -183,7 +182,7 @@ mod tests {
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 4, 1, 4, 1, Predictor::HorizontalInteger);
 
-        assert_eq!(decode(&request).unwrap(), image);
+        assert_eq!(DecodeCompression::Lzw.decode(&request).unwrap(), image);
     }
 
     #[test]
@@ -194,7 +193,7 @@ mod tests {
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 5, 3, 4, 2, Predictor::None);
 
-        assert_eq!(decode(&request).unwrap(), image);
+        assert_eq!(DecodeCompression::Lzw.decode(&request).unwrap(), image);
     }
 
     #[test]
@@ -219,7 +218,14 @@ mod tests {
             Predictor::None,
         );
 
-        assert_eq!(decode(&request).unwrap().into_raw_u8().unwrap(), samples);
+        assert_eq!(
+            DecodeCompression::Lzw
+                .decode(&request)
+                .unwrap()
+                .into_raw_u8()
+                .unwrap(),
+            samples
+        );
     }
 
     #[test]
@@ -252,7 +258,10 @@ mod tests {
         ];
         let request = decode_request(&source, &chunks, 20, 1, 10, 1, Predictor::None);
 
-        let error = decode(&request).unwrap_err().to_string();
+        let error = DecodeCompression::Lzw
+            .decode(&request)
+            .unwrap_err()
+            .to_string();
 
         assert!(error.contains("LZW chunk 1"), "{error}");
     }

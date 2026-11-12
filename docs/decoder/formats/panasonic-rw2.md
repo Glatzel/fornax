@@ -6,7 +6,7 @@ This format guide defines the supported container, compression, metadata, and co
 
 ## Scope
 
-`fornax-rw2` natively decodes single-shot Panasonic RW2 files with conventional
+`fornax-raw-panasonic` natively decodes single-shot Panasonic RW2 files with conventional
 2x2 RGB Bayer storage:
 
 - Panasonic raw-format versions 4, 5, 6, and 8;

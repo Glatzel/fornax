@@ -1,6 +1,6 @@
 use fornax_codec::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
-    EncodedChunks, Predictor, SampleBuffer, SampleFormat, decode, encode,
+    EncodedChunks, ICodecDecode, Predictor, SampleBuffer, SampleFormat, encode,
 };
 
 const fn request(
@@ -64,6 +64,17 @@ fn assert_sample_buffer_eq(actual: &SampleBuffer, expected: &SampleBuffer) {
     }
 }
 
+struct TestRequest<'a> {
+    compression: DecodeCompression,
+    request: DecodeRequest<'a>,
+}
+
+impl TestRequest<'_> {
+    fn decode(&self) -> Result<SampleBuffer, fornax_codec::CodecError> {
+        self.compression.decode(&self.request)
+    }
+}
+
 const fn decode_request<'a>(
     source: &'a [u8],
     chunks: &'a [Chunk],
@@ -75,19 +86,21 @@ const fn decode_request<'a>(
     sample_format: SampleFormat,
     predictor: Predictor,
     compression: DecodeCompression,
-) -> DecodeRequest<'a> {
-    DecodeRequest {
-        source,
+) -> TestRequest<'a> {
+    TestRequest {
         compression,
-        width,
-        height,
-        chunk_width,
-        chunk_height,
-        chunks,
-        bits_per_sample,
-        sample_format,
-        byte_order: ByteOrder::Little,
-        predictor,
+        request: DecodeRequest {
+            source,
+            width,
+            height,
+            chunk_width,
+            chunk_height,
+            chunks,
+            bits_per_sample,
+            sample_format,
+            byte_order: ByteOrder::Little,
+            predictor,
+        },
     }
 }
 
@@ -118,7 +131,7 @@ fn uncompressed_u16_round_trips_partial_chunks() {
         Predictor::None,
         DecodeCompression::Uncompressed,
     );
-    let SampleBuffer::U16(decoded) = decode(&request).unwrap() else {
+    let SampleBuffer::U16(decoded) = request.decode().unwrap() else {
         panic!("u16 input must decode as u16");
     };
 
@@ -170,7 +183,7 @@ fn uncompressed_float_round_trips_exact_bits() {
         Predictor::None,
         DecodeCompression::Uncompressed,
     );
-    let SampleBuffer::F32(decoded) = decode(&request).unwrap() else {
+    let SampleBuffer::F32(decoded) = request.decode().unwrap() else {
         panic!("f32 input must decode as f32");
     };
 
@@ -213,7 +226,7 @@ fn uncompressed_f64_round_trips_exact_bits() {
         DecodeCompression::Uncompressed,
     );
 
-    assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+    assert_sample_buffer_eq(&request.decode().unwrap(), &image);
 }
 
 #[test]
@@ -244,7 +257,7 @@ fn packbits_float64_predictor_round_trips() {
         DecodeCompression::PackBits,
     );
 
-    assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+    assert_sample_buffer_eq(&request.decode().unwrap(), &image);
 }
 
 #[test]
@@ -273,7 +286,7 @@ fn deflate_horizontal_predictor_round_trips() {
         Predictor::HorizontalInteger,
         DecodeCompression::Deflate,
     );
-    let SampleBuffer::U8(decoded) = decode(&request).unwrap() else {
+    let SampleBuffer::U8(decoded) = request.decode().unwrap() else {
         panic!("u8 input must decode as u8");
     };
 
@@ -306,7 +319,7 @@ fn deflate_floating_point_predictor_round_trips() {
         Predictor::FloatingPoint { byte_stride: 1 },
         DecodeCompression::Deflate,
     );
-    let SampleBuffer::F32(decoded) = decode(&request).unwrap() else {
+    let SampleBuffer::F32(decoded) = request.decode().unwrap() else {
         panic!("f32 input must decode as f32");
     };
 
@@ -351,7 +364,7 @@ fn deflate_float64_predictor_round_trips() {
         DecodeCompression::Deflate,
     );
 
-    assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+    assert_sample_buffer_eq(&request.decode().unwrap(), &image);
 }
 
 #[test]
@@ -391,7 +404,7 @@ fn lossless_jpeg_round_trips_u8_and_u16() {
             Predictor::None,
             DecodeCompression::LosslessJpeg,
         );
-        assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+        assert_sample_buffer_eq(&request.decode().unwrap(), &image);
     }
 }
 
@@ -433,7 +446,7 @@ fn lossless_jpeg_round_trips_partial_edge_tiles() {
             Predictor::None,
             DecodeCompression::LosslessJpeg,
         );
-        assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+        assert_sample_buffer_eq(&request.decode().unwrap(), &image);
     }
 }
 
@@ -478,7 +491,7 @@ fn zstd_round_trips_integer_and_float_chunks() {
             Predictor::None,
             DecodeCompression::Zstd,
         );
-        assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+        assert_sample_buffer_eq(&request.decode().unwrap(), &image);
     }
 }
 
@@ -522,6 +535,6 @@ fn uncompressed_round_trips_every_sample_type() {
             Predictor::None,
             DecodeCompression::Uncompressed,
         );
-        assert_sample_buffer_eq(&decode(&request).unwrap(), &image);
+        assert_sample_buffer_eq(&request.decode().unwrap(), &image);
     }
 }

@@ -818,22 +818,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
-name = "fornax-arw"
-version = "0.0.17"
-dependencies = [
- "bytemuck",
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "rawler",
- "rayon",
- "sha2",
-]
-
-[[package]]
 name = "fornax-bmff"
 version = "0.0.17"
 dependencies = [
@@ -856,21 +840,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fornax-cr3"
-version = "0.0.17"
-dependencies = [
- "fornax-bmff",
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "rayon",
- "sha2",
-]
-
-[[package]]
 name = "fornax-decoder"
 version = "0.0.17"
 dependencies = [
@@ -878,17 +847,16 @@ dependencies = [
  "codspeed-criterion-compat",
  "csv",
  "flashraw",
- "fornax-arw",
  "fornax-codec",
- "fornax-cr3",
- "fornax-devtool",
  "fornax-dng",
- "fornax-hasselblad",
- "fornax-iiq",
- "fornax-nef",
- "fornax-raf",
+ "fornax-raw-canon",
  "fornax-raw-core",
- "fornax-rw2",
+ "fornax-raw-fujifilm",
+ "fornax-raw-hasselblad",
+ "fornax-raw-nikon",
+ "fornax-raw-panasonic",
+ "fornax-raw-phase-one",
+ "fornax-raw-sony",
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
@@ -935,66 +903,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "fornax-hasselblad"
-version = "0.0.17"
-dependencies = [
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "rawler",
-]
-
-[[package]]
-name = "fornax-iiq"
-version = "0.0.17"
-dependencies = [
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "rawler",
- "rayon",
-]
-
-[[package]]
-name = "fornax-nef"
-version = "0.0.17"
-dependencies = [
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "rayon",
-]
-
-[[package]]
-name = "fornax-raf"
-version = "0.0.17"
-dependencies = [
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "rawler",
- "rayon",
-]
-
-[[package]]
 name = "fornax-raw"
 version = "0.0.17"
 dependencies = [
  "fornax-decoder",
  "fornax-raw-core",
  "fornax-raw-pipeline",
+]
+
+[[package]]
+name = "fornax-raw-canon"
+version = "0.0.17"
+dependencies = [
+ "fornax-bmff",
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rayon",
+ "sha2",
 ]
 
 [[package]]
@@ -1033,6 +962,74 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-raw-fujifilm"
+version = "0.0.17"
+dependencies = [
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rawler",
+ "rayon",
+]
+
+[[package]]
+name = "fornax-raw-hasselblad"
+version = "0.0.17"
+dependencies = [
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rawler",
+]
+
+[[package]]
+name = "fornax-raw-nikon"
+version = "0.0.17"
+dependencies = [
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rayon",
+]
+
+[[package]]
+name = "fornax-raw-panasonic"
+version = "0.0.17"
+dependencies = [
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rayon",
+ "sha2",
+]
+
+[[package]]
+name = "fornax-raw-phase-one"
+version = "0.0.17"
+dependencies = [
+ "fornax-codec",
+ "fornax-dng",
+ "fornax-raw-core",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "rawler",
+ "rayon",
+]
+
+[[package]]
 name = "fornax-raw-pipeline"
 version = "0.0.17"
 dependencies = [
@@ -1047,15 +1044,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "fornax-rw2"
+name = "fornax-raw-sony"
 version = "0.0.17"
 dependencies = [
+ "bytemuck",
  "fornax-codec",
  "fornax-dng",
  "fornax-raw-core",
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
+ "rawler",
  "rayon",
  "sha2",
 ]

@@ -45,7 +45,7 @@ This reference note records pinned sources, decoder behavior, and implementation
   fixed 12-to-16-bit output curve.
 - Sony lossless-JPEG CFA tiles commonly carry four components at `256x256`.
   Components `0/1/2/3` for each sample become `R/G` on the first 512-wide
-  output row and `G/B` on the second. The Sony adapter in `fornax-codec` expands
+  output row and `G/B` on the second. The Sony vendor codec expands
   those four components into two Bayer rows.
 - Some Sony lossless-JPEG streams store 14-bit samples while the TIFF
   `BitsPerSample` tag retains the historical value `12`. The JPEG frame

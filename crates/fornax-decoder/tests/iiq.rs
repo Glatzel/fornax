@@ -1,3 +1,5 @@
+#![cfg(feature = "phase-one")]
+
 use std::path::PathBuf;
 
 use fornax_decoder::Decoder;

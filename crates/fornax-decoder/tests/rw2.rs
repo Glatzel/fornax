@@ -1,3 +1,5 @@
+#![cfg(feature = "panasonic")]
+
 use std::path::Path;
 
 use fornax_decoder::Decoder;

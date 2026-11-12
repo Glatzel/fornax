@@ -1,3 +1,5 @@
+#![cfg(feature = "nikon")]
+
 use std::io::Cursor;
 use std::path::PathBuf;
 

@@ -1,460 +1,223 @@
-# Decoder Golden-Corpus Benchmark Implementation Plan
+# Decoder Golden-Corpus and Vendor Codec Ownership Plan
 
-This plan replaces the single-fixture decoder benchmark with a per-file golden-corpus comparison and a FlashRaw reference.
+This plan preserves the completed golden-corpus benchmark work and extends the
+same branch and pull request with vendor codec ownership, decoder feature
+selection, and proportional benchmark CI.
 
-**Goal:** Benchmark Fornax, Rawler, and FlashRaw on one 2x2 Bayer RAW file per CI matrix item, using only decoder-tracker golden inputs.
+**Goal:** Keep each vendor stream implementation with its vendor decoder,
+restore a vendor-neutral codec contract, let `fornax-decoder` compile only the
+requested formats, and make each golden benchmark matrix item compile and run
+only the features needed by that input.
 
-**Architecture:** The benchmark parses the pointer-only golden manifest, resolves one or all materialized inputs, and runs a Criterion group per input. Fornax and two benchmark-only adapters expose the shared decoder methods. CI generates one matrix item per golden file and fetches only that file's transient LFS payload.
+**Architecture:** `fornax-codec` owns generic requests, sample buffers,
+predictors, byte order, errors, Huffman support, and the generic compression
+enum. Renamed vendor crates own private codec enums implementing
+`ICodecDecode`. `fornax-decoder` owns the public all-format `Decoder`, with one
+optional dependency and feature per vendor. The golden benchmark keeps separate
+Forrnax metadata, decode, raw-mosaic, and cropped-mosaic measurements, while
+Rawler and FlashRaw expose only decode and raw-mosaic measurements.
 
-**Tech Stack:** Rust 2024, Criterion compatibility crate, `flashraw` 0.2.0, `rawler` 0.8.0, decoder-tracker CSV data, GitHub Actions.
+## Scope
 
-## Global Constraints
+In scope:
 
-- Do not modify `TODO.md`, the decoder baseline, or generated README marker regions.
-- Do not commit, cache, or upload RAW payloads.
-- Keep `rawler` and `flashraw` out of `[workspace.dependencies]`.
-- Put `rawler = "0.8.0"` and `flashraw = "=0.2.0"` directly in
-  `fornax-decoder` dev-dependencies.
-- Existing Rawler test oracles in `fornax-arw`, `fornax-raf`, `fornax-iiq`, and
-  `fornax-hasselblad` use direct `rawler = "0.8.0"` dev-dependencies because
-  removing the workspace entry would otherwise break those crates.
-- Compare only `decode`, `raw_mosaic`, and `cropped_mosaic` across all decoders.
-- Keep Fornax `dng_metadata` and `process_metadata` as Fornax-only diagnostics.
-- Pin decoder benchmark execution to one thread.
-- Do not execute timed benchmarks in the implementation session; GitHub Actions
-  owns benchmark execution.
+- Hard-rename the format crates to vendor-first names without aliases.
+- Move vendor codec implementations, parameters, and tests into those crates.
+- Restore `ICodecDecode` and remove compression from `DecodeRequest`.
+- Add feature-gated format dependencies and decoder dispatch.
+- Make known disabled formats return `DecodeError::Unsupported`.
+- Refactor benchmark sample type, reference measurements, and support preflight.
+- Add matrix feature mapping and precise changed-file impact groups.
+- Update active documentation, manifests, lockfile, examples, and imports.
 
-## Review Focus
+Out of scope:
 
-- A selected benchmark path can bypass golden-manifest membership.
-- A reference failure is silently skipped instead of failing its matrix case.
-- FlashRaw defaults accidentally apply opcodes, use multiple threads, use the GPU, or change storage-native sample types.
-- Removing the Rawler workspace dependency breaks another dev-only test consumer.
-- CI fetches, caches, uploads, or iterates more than one RAW payload per matrix item.
+- Archived plans or historical records.
+- A feature surface on the `fornax-raw` facade.
+- Compatibility aliases for old crate names or codec variants.
+- Timed benchmark execution during local implementation.
+- Changes to the decoder tracker baseline, `TODO.md`, or RAW payload handling.
 
-## Task 1: Record the plan and establish the ledger
+## Public Interfaces
 
-**Files:**
+Hard renames:
 
-- Create: `docs/plans/chore-decoder-benchmark-golden-corpus.md`
+| Old | New |
+| --- | --- |
+| `fornax-arw` | `fornax-raw-sony` |
+| `fornax-cr3` | `fornax-raw-canon` |
+| `fornax-nef` | `fornax-raw-nikon` |
+| `fornax-raf` | `fornax-raw-fujifilm` |
+| `fornax-hasselblad` | `fornax-raw-hasselblad` |
+| `fornax-rw2` | `fornax-raw-panasonic` |
+| `fornax-iiq` | `fornax-raw-phase-one` |
 
-**Interfaces:**
+`fornax-dng` remains unchanged.
 
-- Consumes: the user-approved benchmark design and dependency ruling.
-- Produces: a committed implementation plan and clean baseline.
+`fornax-decoder` features are `sony`, `canon`, `nikon`, `fujifilm`,
+`hasselblad`, `panasonic`, and `phase-one`. All seven are default features.
+DNG is unconditional. `zstd` remains separate and non-default.
 
-- [ ] **Step 1: Run focused baseline tests**
+The restored contract is:
 
-Run:
-
-```bash
-cargo test -p fornax-decoder -p decoder-tracker --lib
+```rust
+pub trait ICodecDecode {
+    fn decode(&self, request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError>;
+}
 ```
 
-Expected: all tests pass.
+`DecodeRequest` has no `compression` field. `DecodeCompression` retains only
+Uncompressed, Lossless JPEG, Deflate, LZW, PackBits, Lossy JPEG, JPEG XL, and
+Zstandard, and implements `ICodecDecode`. The free `fornax_codec::decode`
+dispatcher is removed. Encoding keeps its current `EncodeCompression` behavior.
 
-- [ ] **Step 2: Initialize the per-plan SDD workspace and ledger**
+## Task Checklist
 
-Use `sdd-workspace` with this plan file and create `progress.md` whose first
-line names this plan.
+## Task 10: Record the new phase and run the baseline
 
-- [ ] **Step 3: Commit the plan**
+- [ ] Update this plan and the ledger without discarding completed benchmark
+  evidence.
+- [ ] Run focused decoder-tracker, benchmark input, matrix, and workspace
+  compilation tests from the starting branch.
 
-```bash
-git add docs/plans/chore-decoder-benchmark-golden-corpus.md
-git commit -m "docs: plan decoder golden corpus benchmark"
-```
+## Task 11: Hard-rename format crates
 
-## Task 2: Add benchmark input-selection tests
+- [ ] Use `git mv` for directories and update package names, paths, imports,
+  examples, READMEs, workspace dependencies, and lockfile.
+- [ ] Do not add aliases.
 
-**Files:**
+## Task 12: Restore generic codec ownership and move vendor codecs
 
-- Create: `crates/fornax-decoder/tests/benchmark_inputs.rs`
+- [ ] Add `ICodecDecode`; make the generic compression enum implement it;
+  remove compression from decode requests and remove the free dispatcher only
+  after all callers migrate.
+- [ ] Move Sony ARW1/ARW2/ARW6/Sony-LJPEG, white-level derivation, and LLVC3
+  data to `fornax-raw-sony`.
+- [ ] Move Canon CRX header/CFA types and decoder to `fornax-raw-canon`.
+- [ ] Move Nikon packed, word, striped, and Huffman codecs plus tree
+  identifiers to `fornax-raw-nikon`.
+- [ ] Move Fujifilm packed/lossless codecs and CFA layout type to
+  `fornax-raw-fujifilm`.
+- [ ] Move Hasselblad predictor-8 lossless-JPEG handling to
+  `fornax-raw-hasselblad`.
+- [ ] Move Panasonic V4/V5/V6/V8 and stamped layouts plus V8 tables to
+  `fornax-raw-panasonic`.
+- [ ] Move Phase One uncompressed, lossless, nonlinear, and Sv2 codecs to
+  `fornax-raw-phase-one`.
+- [ ] Keep codec enums crate-private and move vendor codec tests with their
+  code.
+- [ ] Update DNG, TIFF raster callers, and generic codec tests to call
+  `ICodecDecode::decode`.
 
-**Interfaces:**
+## Task 13: Gate decoder formats and prove feature isolation
 
-- Consumes: golden CSV bytes and an optional explicit input path.
-- Produces: tests for `parse_golden_manifest`, `select_golden_inputs`, and `ensure_materialized` in `benches/decoder_inputs.rs`.
+- [ ] Make vendor dependencies optional, gate enum variants and every dispatch
+  arm, and map disabled known extensions to `DecodeError::Unsupported` with the
+  required feature name.
+- [ ] Ensure disabled formats never reach Adobe DNG Converter.
+- [ ] Add tests for default/all features, DNG-only, every single feature, and
+  disabled known formats.
+- [ ] Verify normal dependency trees for DNG-only, each vendor feature, and all
+  defaults.
 
-- [ ] **Step 1: Write the failing integration tests**
+## Task 14: Refactor decoder benchmarks
 
-Include `benches/decoder_inputs.rs` from the integration test with a `#[path]`
-module. Cover:
+- [ ] Remove `FORNAX_BENCH_BITS`, `BenchParams`, all f64 cases, and combined
+  decoder measurements.
+- [ ] Keep separate Fornax `decode`, `raw_mosaic`, and `cropped_mosaic` items.
+- [ ] Expose only separate Rawler and FlashRaw `decode` and `raw_mosaic` items.
+- [ ] Preflight reference decode and raw-mosaic support; skip only typed
+  `DecodeError::Unsupported` with a visible case/reference warning.
+- [ ] Fail backend errors, malformed output, missing support, and panics.
 
-- canonical header parsing and format/label derivation;
-- duplicate path rejection;
-- invalid SHA-256 rejection;
-- selecting all rows when no explicit path is provided;
-- selecting exactly one member path;
-- rejecting a path outside the golden manifest;
-- rejecting an LFS pointer file.
+## Task 15: Map benchmark matrix items to features and changed paths
 
-- [ ] **Step 2: Run the tests and confirm RED**
+- [ ] Add one required feature to every matrix row: no feature for DNG, vendor
+  features for ARW/CR3/NEF/RAF/3FR/RW2/IIQ.
+- [ ] Build each job with `--no-default-features` plus only the matrix feature.
+- [ ] Add impact-map tests and planner tests for format filtering, feature
+  mapping, and exactly one matrix item per input.
+- [ ] Apply precise vendor/Bmff groups; run everything for `fornax-codec`,
+  shared crates, benchmark source, manifests, scripts, or workflow changes.
 
-```bash
-cargo test -p fornax-decoder --test benchmark_inputs
-```
+## Task 16: Update active documentation and references
 
-Expected: compilation fails because `benches/decoder_inputs.rs` does not exist.
+- [ ] Update root guidance, architecture, decoder benchmark/corpus docs, crate
+  READMEs, active reference notes, and examples.
+- [ ] Search active files for old crate/import names and retired codec feature
+  names, allowing them only in archived history.
 
-## Task 3: Implement golden benchmark input selection
+## Task 17: Validate, review, and hand off
 
-**Files:**
+- [ ] Run moved codec tests, generic codec tests, focused feature builds/tests,
+  dependency trees, benchmark compilation per feature, matrix tests, golden
+  hash checks for all 30 files, and `scripts/agent-validation.sh`.
+- [ ] Inspect the complete diff and perform a fresh self-review if no reviewer
+  agent is permitted.
+- [ ] Commit on the existing branch, push, and update PR #717. Do not merge,
+  watch, or close it.
 
-- Create: `crates/fornax-decoder/benches/decoder_inputs.rs`
-- Modify: `crates/fornax-decoder/Cargo.toml`
+## Files Expected to Change
 
-**Interfaces:**
+- Root `Cargo.toml`, `Cargo.lock`, `AGENTS.md`, and active architecture docs.
+- `crates/fornax-codec/**`.
+- The seven renamed vendor crate directories and their manifests, READMEs,
+  source, and tests.
+- `crates/fornax-decoder/{Cargo.toml,README.md,src/**,tests/**,benches/**}`.
+- `crates/fornax-dng/**`, `crates/fornax-tiff/**`, and callers of changed
+  codec APIs.
+- `crates/decoder-tracker/scripts/{benchmark_matrix.py,test_benchmark_matrix.py}`.
+- `.github/workflows/ci.yml`.
+- `docs/decoder/{benchmark.md,corpus.md}`, active decoder references, and this
+  plan.
 
-- Produces `GoldenInput { path, size, sha256 }`.
-- Produces `parse_golden_manifest(&[u8]) -> Result<Vec<GoldenInput>, String>`.
-- Produces `select_golden_inputs(&[GoldenInput], Option<&Path>, &Path) -> Result<Vec<(GoldenInput, PathBuf)>, String>`.
-- Produces `ensure_materialized(&[(GoldenInput, PathBuf)]) -> Result<(), String>`.
-
-- [ ] **Step 1: Add `csv.workspace = true` to benchmark dev-dependencies**
-
-- [ ] **Step 2: Implement the smallest parser and selector that passes the tests**
-
-Require the exact `path,size,sha256` header, unique normalized repository
-paths, 64 hexadecimal SHA-256 characters, and non-pointer materialized files.
-Resolve explicit inputs by canonical path membership.
-
-- [ ] **Step 3: Run the integration test and confirm GREEN**
-
-```bash
-cargo test -p fornax-decoder --test benchmark_inputs
-```
-
-Expected: all benchmark input-selection tests pass.
-
-## Task 4: Add the FlashRaw adapter through TDD
-
-**Files:**
-
-- Create: `crates/fornax-decoder/tests/benchmark_flashraw.rs`
-- Create: `crates/fornax-decoder/benches/flashraw_wrapper.rs`
-- Modify: `crates/fornax-decoder/Cargo.toml`
-- Modify: `Cargo.toml`
-- Modify: `crates/fornax-arw/Cargo.toml`
-- Modify: `crates/fornax-raf/Cargo.toml`
-- Modify: `crates/fornax-iiq/Cargo.toml`
-- Modify: `crates/fornax-hasselblad/Cargo.toml`
-
-**Interfaces:**
-
-- Consumes: FlashRaw `RawPixelData`, CFA metadata, and active area.
-- Produces: a benchmark-only `FlashRawDecoder` implementing `IDecoder`.
-- Produces: `FlashRawDecoder::from_parts(...)` for adapter tests.
-
-**Dependency ruling:** `rawler` and `flashraw` are not workspace dependencies.
-`fornax-decoder` owns direct benchmark dev-dependencies. The four existing
-Rawler test-oracle crates receive direct dev-dependency pins so the workspace
-continues to compile. Cost if wrong: Rawler test-oracle pins are duplicated in
-five manifests instead of centralized.
-
-- [ ] **Step 1: Write adapter tests that fail to compile**
-
-Cover:
-
-- preserving `RawPixelData::U16` as `RawMosaic::U16`;
-- preserving `RawPixelData::F32` as `RawMosaic::F32`;
-- cropping to FlashRaw's active area;
-- rejecting non-one-sample data and non-Bayer/no-CFA frames.
-
-- [ ] **Step 2: Confirm RED**
+## Validation
 
 ```bash
-cargo test -p fornax-decoder --test benchmark_flashraw
-```
-
-Expected: compilation fails because the adapter module does not exist.
-
-- [ ] **Step 3: Update direct dev-dependencies**
-
-Remove `rawler` from workspace dependencies. Add direct `rawler` pins where
-tests already consume it. Add direct `rawler` and `flashraw` pins to
-`fornax-decoder` dev-dependencies.
-
-- [ ] **Step 4: Implement the adapter**
-
-Open with `FlashRaw::open_path`, select `RawF32` or `RawU16` from
-`FrameInfo::sample_format`, and decode with:
-
-- CPU backend;
-- one thread;
-- strict corruption policy;
-- opcode application disabled;
-- default crop disabled.
-
-Map errors to `DecodeError::Backend` or `Unsupported`, validate dimensions,
-sample count, CFA, and active area, clone the storage-native mosaic for
-`raw_mosaic`, and crop/convert for `cropped_mosaic`. Return unsupported for
-`process_metadata`; do not implement DNG metadata.
-
-- [ ] **Step 5: Confirm GREEN**
-
-```bash
-cargo test -p fornax-decoder --test benchmark_flashraw
-```
-
-Expected: all adapter tests pass.
-
-## Task 5: Extend and regenerate the golden corpus
-
-**Files:**
-
-- Modify: `crates/decoder-tracker/golden/selected-manifest.csv`
-- Regenerate: `crates/decoder-tracker/golden/decode-hashes.csv`
-
-**Interfaces:**
-
-- Consumes: already-passing baseline rows for two 3FR compression families.
-- Produces: 30 golden files across eight native formats.
-
-- [ ] **Step 1: Add the two manifest rows**
-
-Add:
-
-```text
-Hasselblad/H3D/A9391120.3FR,53594112,34fdb93cb215e4f419ae0f7252c57b881fa381003124b4f9c143d27741f211b3
-Hasselblad/X2D 100C/B0000079.3FR,213311488,dcc5a4abe3498e6f25e89bb491995fd12c3b669d9277c71b45b49210d3e56280
-```
-
-Keep rows sorted by SHA-256.
-
-- [ ] **Step 2: Initialize the pointer-only corpus**
-
-```bash
-GIT_LFS_SKIP_SMUDGE=1 git -c filter.lfs.required=false \
-  submodule update --init external/raw.pixls.us
-```
-
-- [ ] **Step 3: Regenerate golden hashes**
-
-```bash
-cargo run --release -p decoder-tracker -- hash \
-  --manifest crates/decoder-tracker/golden/selected-manifest.csv \
-  --out crates/decoder-tracker/golden/decode-hashes.csv
-```
-
-Expected: generation succeeds for all 30 cases and writes the complete file.
-
-- [ ] **Step 4: Verify golden hashes**
-
-```bash
-cargo run --release -p decoder-tracker -- hash \
+cargo test -p fornax-codec
+cargo test -p fornax-raw-sony -p fornax-raw-canon -p fornax-raw-nikon
+cargo test -p fornax-raw-fujifilm -p fornax-raw-hasselblad
+cargo test -p fornax-raw-panasonic -p fornax-raw-phase-one
+cargo test -p fornax-decoder --no-default-features
+cargo test -p fornax-decoder --features sony
+cargo test -p fornax-decoder
+cargo test -p fornax-decoder --all-features
+cargo test -p decoder-tracker --lib
+python3 -m unittest crates/decoder-tracker/scripts/test_benchmark_matrix.py
+python3 crates/decoder-tracker/scripts/test_benchmark_impact.py
+cargo bench -p fornax-decoder --bench decoder --no-run
+cargo bench -p fornax-decoder --bench decoder --no-default-features \
+  --features phase-one --no-run
+cargo tree -p fornax-decoder --no-default-features --edges normal
+cargo tree -p fornax-decoder --no-default-features --features sony --edges normal
+pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
   --manifest crates/decoder-tracker/golden/selected-manifest.csv \
   --check crates/decoder-tracker/golden/decode-hashes.csv
-```
-
-Expected: unchanged.
-
-## Task 6: Rewrite the Criterion benchmark
-
-**Files:**
-
-- Modify: `crates/fornax-decoder/benches/decoder.rs`
-
-**Interfaces:**
-
-- Consumes: `decoder_inputs` and both reference adapters.
-- Produces: one Criterion group per golden input and decoder/method cases.
-
-- [ ] **Step 1: Replace fixture resolution**
-
-Read `FORNAX_BENCH_MANIFEST` and `FORNAX_BENCH_CORPUS`, select all rows by
-default or one row through `FORNAX_BENCH_RAW`, and reject missing, unmaterialized,
-or non-member inputs before benchmark registration.
-
-- [ ] **Step 2: Add FlashRaw to decoder selection**
-
-Accept `fornax`, `rawler`, and `flashraw`; default to all three. Preserve
-`FORNAX_BENCH_BITS`.
-
-- [ ] **Step 3: Register grouped measurements**
-
-For every input:
-
-- create one Criterion group named from format and path;
-- benchmark Fornax metadata diagnostics once;
-- benchmark `decode`, `raw_mosaic`, and `cropped_mosaic` for every selected
-  decoder and sample type;
-- include the full repository path in startup output;
-- fail with input and decoder context instead of an opaque unwrap.
-
-- [ ] **Step 4: Compile**
-
-```bash
-cargo bench -p fornax-decoder --bench decoder --no-run
-```
-
-Expected: success.
-
-## Task 7: Add the CI per-file matrix
-
-**Files:**
-
-- Create: `crates/decoder-tracker/scripts/test_benchmark_matrix.py`
-- Create: `crates/decoder-tracker/scripts/benchmark_matrix.py`
-- Modify: `.github/workflows/ci.yml`
-
-**Interfaces:**
-
-- Consumes: `golden/selected-manifest.csv`.
-- Produces: GitHub Actions JSON matrix with one unique `path`, `format`, `label`,
-  `size`, and `sha256` per item.
-
-- [ ] **Step 1: Write a failing Python unit test**
-
-Test canonical CSV parsing, duplicate path rejection, and one matrix item per
-row with populated derived fields.
-
-- [ ] **Step 2: Confirm RED**
-
-```bash
-python3 -m unittest crates/decoder-tracker/scripts/test_benchmark_matrix.py
-```
-
-Expected: import failure because `benchmark_matrix.py` does not exist.
-
-- [ ] **Step 3: Implement the matrix script and confirm GREEN**
-
-```bash
-python3 -m unittest crates/decoder-tracker/scripts/test_benchmark_matrix.py
-```
-
-Expected: all tests pass.
-
-- [ ] **Step 4: Update CI**
-
-- Add `decoder-benchmark-plan` and `decoder-benchmark` jobs.
-- Generate the dynamic matrix from the golden CSV.
-- Initialize the pointer-only corpus at the recorded submodule commit.
-- Fetch exactly one matrix path with Git LFS.
-- Verify the generated file's SHA-256 against the matrix item.
-- Run one input with all three decoders and one thread.
-- Do not cache or upload RAW payloads.
-- Broaden decoder benchmark change detection and remove `fornax-decoder`
-  from the static benchmark matrix.
-- Include both new decoder jobs in `check-point`.
-
-## Task 8: Update documentation and dependency references
-
-**Files:**
-
-- Modify: `docs/decoder/benchmark.md`
-- Modify: `docs/decoder/corpus.md`
-- Modify: `crates/fornax-decoder/README.md`
-- Create: `docs/reference/decoders/flashraw.md`
-- Modify: `docs/README.md`
-
-**Interfaces:**
-
-- Consumes: final benchmark contract and CI behavior.
-- Produces: user-facing and pinned-reference documentation.
-
-- [ ] **Step 1: Rewrite benchmark guidance**
-
-Document golden input resolution, local materialization, per-file CI matrix,
-single-thread controls, shared method limitations, and the removal of the old
-default fixture.
-
-- [ ] **Step 2: Update golden corpus guidance**
-
-Describe 30 cases across eight native formats, including both 3FR compression
-families.
-
-- [ ] **Step 3: Add the FlashRaw reference note**
-
-Pin `flashraw` 0.2.0, record crates.io/GitHub sources, benchmark-only scope,
-API differences, required neutral decode options, and MIT OR Apache-2.0
-license. Update the documentation index.
-
-- [ ] **Step 4: Run docs validation**
-
-```bash
-scripts/agent-validation.sh --docs-only
-```
-
-Expected: exit 0.
-
-## Task 9: Validate and review
-
-**Files:**
-
-- Modify: this plan's checklists and decisions as implementation progresses.
-
-**Interfaces:**
-
-- Consumes: all implementation changes.
-- Produces: verified branch and pull request.
-
-- [ ] **Step 1: Run focused and dependency checks**
-
-```bash
-cargo test -p fornax-decoder --test benchmark_inputs --test benchmark_flashraw
-cargo bench -p fornax-decoder --bench decoder --no-run
-cargo tree -p fornax-decoder --edges normal
-git diff --check
-```
-
-Expected: tests compile and pass, the benchmark compiles, and the normal
-dependency tree contains neither `rawler` nor `flashraw`.
-
-- [ ] **Step 2: Verify the benchmark matrix in CI**
-
-After pushing the branch, dispatch CI and require the decoder benchmark matrix
-to execute one golden input per job with:
-
-```text
-RAYON_NUM_THREADS=1
-FORNAX_BENCH_RAW=<absolute golden path>
-FORNAX_BENCH_DECODER=fornax,rawler,flashraw
-FORNAX_BENCH_BITS=32
-```
-
-Expected: all three decoders complete the three shared measurements.
-
-- [ ] **Step 3: Run repository validation**
-
-```bash
 scripts/agent-validation.sh
 ```
 
-Expected: pass. Record the complete golden hash check and any fixture or
-network limitations.
+Timed decoder benchmarks are CI-only. Compile them locally without running the
+benchmark bodies.
 
-- [ ] **Step 4: Perform the whole-branch review**
+## Progress
 
-Review the complete diff against `origin/main`, sort findings, fix Critical and
-Important findings through RED-GREEN tests, and record minor findings for the
-handoff.
-
-- [ ] **Step 5: Commit, push, and open one pull request**
-
-Use a semantic title such as `perf: benchmark decoders across golden corpus`.
-Report the PR URL and validation evidence. Do not watch, merge, or close it.
+Tasks 10 through 17 are implemented and validated. The work is committed on
+the existing branch and is ready for push and pull-request handoff.
 
 ## Decisions and Notes
 
-- Tasks 1-8 and Task 9 steps 1, 3, 4, and 5 are complete. Task 9 step 2 remains
-  for the CI run on pull request
-  [#717](https://github.com/Glatzel/fornax/pull/717).
-- The golden set adds one compression-1 H3D file and one predictor-8 X2D file.
-- Rawler and FlashRaw are benchmark development references, never production
-  dependencies.
-- Rawler remains a dev-only oracle in four format crates, so direct version pins
-  replace the removed workspace dependency there.
-- FlashRaw is pinned exactly because timing comparisons must not silently move
-  to a new decoder release.
-- Timing values are review evidence only; no host-dependent baseline is
-  committed.
-- Actual benchmark timing runs happen only in CI, as requested by the user.
-- Self-review found and fixed two benchmark-path defects: explicit single-file
-  selection no longer canonicalizes unmaterialized peer files, and an empty
-  `FORNAX_BENCH_DECODER` now selects all three decoders as documented.
-- FlashRaw `decode` moves the decoded frame data into the adapter instead of
-  cloning the full sensor buffer, keeping the timed path free of an extra copy.
-- CI review found CodSpeed running the benchmark outside the repository root;
-  benchmark paths now resolve relative overrides from `CARGO_MANIFEST_DIR`'s
-  repository root instead of the process working directory.
+- The completed golden benchmark remains on this branch and PR #717. Its
+  previous ledger entries are historical evidence, not open work.
+- The earlier combined decode/raw-mosaic benchmark wording is superseded by
+  the explicit instruction to keep separate items and give references only
+  decode plus raw-mosaic.
+- Any `fornax-codec` change conservatively runs every DNG and format benchmark.
+  Per-module impact precision is intentionally deferred.
+- `fornax-raw` stays a full-feature facade. Reduced builds target
+  `fornax-decoder` directly.
+- Benchmark reference support is a typed capability preflight. A reference
+  that fails supported decode or raw-mosaic with `Unsupported` is skipped with
+  a visible warning; all other failures fail the matrix job.
+- RAW payloads remain transient and are never cached or uploaded.
+- The implementation starts from the latest `origin/main` baseline already
+  merged into this branch plus the completed golden benchmark commits.

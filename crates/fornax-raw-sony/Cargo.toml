@@ -1,0 +1,18 @@
+[package]
+name = "fornax-raw-sony"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+fornax-codec = { workspace = true, features = ["lossless-jpeg"] }
+fornax-dng.workspace = true
+fornax-raw-core.workspace = true
+fornax-tiff = { workspace = true, default-features = false }
+generic-num.workspace = true
+image.workspace = true
+rayon.workspace = true
+
+[dev-dependencies]
+bytemuck.workspace = true
+rawler = "0.8.0"
+sha2.workspace = true
