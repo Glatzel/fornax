@@ -25,7 +25,11 @@ const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/golden/selected-manifest.
 const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
 
 fn selected_decoders() -> Vec<DecoderKind> {
-    let value = env::var("FORNAX_BENCH_DECODER").ok();
+    let value = if env::var("CI").is_ok() {
+        Some("fornax".into())
+    } else {
+        env::var("FORNAX_BENCH_DECODER").ok()
+    };
     parse_decoder_selection(value.as_deref())
         .unwrap_or_else(|error| panic!("parsing FORNAX_BENCH_DECODER failed: {error}"))
 }
