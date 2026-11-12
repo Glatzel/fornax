@@ -327,12 +327,12 @@ git commit -m "docs: repair links after documentation reorganization"
 - Produces: an index linking to every other document with one-line summaries and
   rules for future placement and naming.
 
-- [ ] **Step 1: Create `docs/README.md`**
+- [x] **Step 1: Create `docs/README.md`**
 
 Describe each top-level section and link every other Markdown document,
 including archived documents, with a one-line summary.
 
-- [ ] **Step 2: Create `docs/CONVENTIONS.md`**
+- [x] **Step 2: Create `docs/CONVENTIONS.md`**
 
 Document:
 
@@ -345,14 +345,14 @@ Document:
   reference documents belong;
 - ADR naming as `decisions/0001-title.md` if that folder is later added.
 
-- [ ] **Step 3: Verify index completeness**
+- [x] **Step 3: Verify index completeness**
 
 Compare the set of Markdown files under `docs/` against the relative links in
 `docs/README.md`.
 
 Expected: every document except `docs/README.md` is linked.
 
-- [ ] **Step 4: Run documentation validation**
+- [x] **Step 4: Run documentation validation**
 
 ```bash
 scripts/agent-validation.sh --docs-only
@@ -361,7 +361,7 @@ git diff --check
 
 Expected: both commands exit 0.
 
-- [ ] **Step 5: Commit the index and conventions**
+- [x] **Step 5: Commit the index and conventions**
 
 ```bash
 git add docs/README.md docs/CONVENTIONS.md
