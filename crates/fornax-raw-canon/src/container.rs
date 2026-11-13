@@ -577,7 +577,7 @@ pub fn parse_geometry_for_test(
 
 fn bmff_invalid(error: BmffError) -> DecodeError {
     match error {
-        BmffError::InvalidInput(message) => DecodeError::InvalidInput(message.into()),
-        BmffError::LimitExceeded(message) => DecodeError::Unsupported(message.into()),
+        BmffError::InvalidInput(message) => DecodeError::InvalidInput(message),
+        BmffError::LimitExceeded(message) => DecodeError::Unsupported(message),
     }
 }
