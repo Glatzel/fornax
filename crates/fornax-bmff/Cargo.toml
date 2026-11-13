@@ -4,4 +4,4 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-fornax-raw-core.workspace = true
+thiserror.workspace = true

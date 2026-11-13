@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::error::{BmffError, invalid, limited};
+use crate::error::BmffError;
 
 /// Four ISO-BMFF type bytes.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -101,10 +101,9 @@ impl<'a> BoxRef<'a> {
     /// Returns [`BmffError::InvalidInput`] when the payload is shorter than
     /// four bytes.
     pub fn full_box(self) -> Result<(u8, u32), BmffError> {
-        let bytes = self
-            .payload
-            .get(..4)
-            .ok_or_else(|| invalid("FullBox payload is shorter than four bytes"))?;
+        let bytes = self.payload.get(..4).ok_or_else(|| {
+            BmffError::InvalidInput("FullBox payload is shorter than four bytes".into())
+        })?;
         let flags = u32::from_be_bytes([0, bytes[1], bytes[2], bytes[3]]);
         Ok((bytes[0], flags))
     }
@@ -189,20 +188,18 @@ impl<'a> Bmff<'a> {
         let mut visited = 1_usize;
         for (depth, typ) in rest.iter().enumerate() {
             if depth >= usize::from(limits.max_depth) {
-                return Err(limited(format!(
-                    "box lookup exceeds maximum depth {}",
-                    limits.max_depth
-                )));
+                return Err(BmffError::LimitExceeded(
+                    format!("box lookup exceeds maximum depth {}", limits.max_depth).into(),
+                ));
             }
             let children = current.children(*limits)?;
             visited = visited
                 .checked_add(children.len())
-                .ok_or_else(|| limited("BMFF lookup box count overflow"))?;
+                .ok_or_else(|| BmffError::LimitExceeded("BMFF lookup box count overflow".into()))?;
             if visited > limits.max_boxes {
-                return Err(limited(format!(
-                    "box lookup exceeds maximum count {}",
-                    limits.max_boxes
-                )));
+                return Err(BmffError::LimitExceeded(
+                    format!("box lookup exceeds maximum count {}", limits.max_boxes).into(),
+                ));
             }
             let Some(child) = children.into_iter().find(|item| item.typ() == *typ) else {
                 return Ok(None);
@@ -220,31 +217,30 @@ fn parse_boxes(
     depth: u8,
 ) -> Result<Vec<BoxRef<'_>>, BmffError> {
     if depth > limits.max_depth {
-        return Err(limited(format!(
-            "box nesting exceeds maximum depth {}",
-            limits.max_depth
-        )));
+        return Err(BmffError::LimitExceeded(
+            format!("box nesting exceeds maximum depth {}", limits.max_depth).into(),
+        ));
     }
     let mut boxes = Vec::new();
     let mut cursor = 0_usize;
     while cursor < source.len() {
         if boxes.len() >= limits.max_boxes {
-            return Err(limited(format!(
-                "box count exceeds maximum {}",
-                limits.max_boxes
-            )));
+            return Err(BmffError::LimitExceeded(
+                format!("box count exceeds maximum {}", limits.max_boxes).into(),
+            ));
         }
         let remaining = &source[cursor..];
         let size32 = read_u32(remaining, 0)?;
         let typ_bytes: [u8; 4] = remaining
             .get(4..8)
-            .ok_or_else(|| invalid("box header is truncated"))?
+            .ok_or_else(|| BmffError::InvalidInput("box header is truncated".into()))?
             .try_into()
-            .map_err(|_| invalid("box type is truncated"))?;
+            .map_err(|_| BmffError::InvalidInput("box type is truncated".into()))?;
         let typ = FourCc::new(typ_bytes);
         let mut header_size = 8_u64;
         let size = match size32 {
-            0 => u64::try_from(remaining.len()).map_err(|_| invalid("box size exceeds u64"))?,
+            0 => u64::try_from(remaining.len())
+                .map_err(|_| BmffError::InvalidInput("box size exceeds u64".into()))?,
             1 => {
                 header_size = 16;
                 read_u64(remaining, 8)?
@@ -254,40 +250,47 @@ fn parse_boxes(
         if typ == FourCc::new(*b"uuid") {
             header_size = header_size
                 .checked_add(16)
-                .ok_or_else(|| invalid("UUID box header overflow"))?;
+                .ok_or_else(|| BmffError::InvalidInput("UUID box header overflow".into()))?;
         }
         if size < header_size {
-            return Err(invalid(format!(
-                "{typ} box size {size} is smaller than its {header_size}-byte header"
-            )));
+            return Err(BmffError::InvalidInput(
+                format!("{typ} box size {size} is smaller than its {header_size}-byte header")
+                    .into(),
+            ));
         }
         if size > limits.max_box_size {
-            return Err(limited(format!(
-                "{typ} box size {size} exceeds maximum {}",
-                limits.max_box_size
-            )));
+            return Err(BmffError::LimitExceeded(
+                format!(
+                    "{typ} box size {size} exceeds maximum {}",
+                    limits.max_box_size
+                )
+                .into(),
+            ));
         }
-        let size_usize =
-            usize::try_from(size).map_err(|_| invalid("box size exceeds address space"))?;
+        let size_usize = usize::try_from(size)
+            .map_err(|_| BmffError::InvalidInput("box size exceeds address space".into()))?;
         let header_usize = usize::try_from(header_size)
-            .map_err(|_| invalid("box header size exceeds address space"))?;
+            .map_err(|_| BmffError::InvalidInput("box header size exceeds address space".into()))?;
         let box_bytes = remaining
             .get(..size_usize)
-            .ok_or_else(|| invalid(format!("{typ} box is truncated")))?;
+            .ok_or_else(|| BmffError::InvalidInput(format!("{typ} box is truncated").into()))?;
         let uuid = if typ == FourCc::new(*b"uuid") {
             Some(
                 box_bytes
                     .get(header_usize - 16..header_usize)
-                    .ok_or_else(|| invalid("UUID box header is truncated"))?
+                    .ok_or_else(|| BmffError::InvalidInput("UUID box header is truncated".into()))?
                     .try_into()
-                    .map_err(|_| invalid("UUID box header is truncated"))?,
+                    .map_err(|_| BmffError::InvalidInput("UUID box header is truncated".into()))?,
             )
         } else {
             None
         };
         let offset = base_offset
-            .checked_add(u64::try_from(cursor).map_err(|_| invalid("box offset exceeds u64"))?)
-            .ok_or_else(|| invalid("box offset overflow"))?;
+            .checked_add(
+                u64::try_from(cursor)
+                    .map_err(|_| BmffError::InvalidInput("box offset exceeds u64".into()))?,
+            )
+            .ok_or_else(|| BmffError::InvalidInput("box offset overflow".into()))?;
         boxes.push(BoxRef {
             header: BoxHeader {
                 offset,
@@ -298,11 +301,11 @@ fn parse_boxes(
             },
             payload: box_bytes
                 .get(header_usize..)
-                .ok_or_else(|| invalid("box payload is truncated"))?,
+                .ok_or_else(|| BmffError::InvalidInput("box payload is truncated".into()))?,
         });
         cursor = cursor
             .checked_add(size_usize)
-            .ok_or_else(|| invalid("box cursor overflow"))?;
+            .ok_or_else(|| BmffError::InvalidInput("box cursor overflow".into()))?;
     }
     Ok(boxes)
 }
@@ -310,17 +313,17 @@ fn parse_boxes(
 fn read_u32(source: &[u8], offset: usize) -> Result<u32, BmffError> {
     let bytes: [u8; 4] = source
         .get(offset..offset + 4)
-        .ok_or_else(|| invalid("box header is truncated"))?
+        .ok_or_else(|| BmffError::InvalidInput("box header is truncated".into()))?
         .try_into()
-        .map_err(|_| invalid("box header is truncated"))?;
+        .map_err(|_| BmffError::InvalidInput("box header is truncated".into()))?;
     Ok(u32::from_be_bytes(bytes))
 }
 
 fn read_u64(source: &[u8], offset: usize) -> Result<u64, BmffError> {
     let bytes: [u8; 8] = source
         .get(offset..offset + 8)
-        .ok_or_else(|| invalid("extended box size is truncated"))?
+        .ok_or_else(|| BmffError::InvalidInput("extended box size is truncated".into()))?
         .try_into()
-        .map_err(|_| invalid("extended box size is truncated"))?;
+        .map_err(|_| BmffError::InvalidInput("extended box size is truncated".into()))?;
     Ok(u64::from_be_bytes(bytes))
 }

@@ -1,4 +1,4 @@
-use crate::error::{BmffError, invalid, limited};
+use crate::error::BmffError;
 
 /// Sample-table entry and allocation caps.
 #[derive(Clone, Copy, Debug)]
@@ -57,7 +57,9 @@ impl ChunkOffsets {
         match &typ {
             b"stco" => Ok(Self::Co32(reader.u32_entries(count)?)),
             b"co64" => Ok(Self::Co64(reader.u64_entries(count)?)),
-            _ => Err(invalid("chunk offset box must be stco or co64")),
+            _ => Err(BmffError::InvalidInput(
+                "chunk offset box must be stco or co64".into(),
+            )),
         }
     }
 
@@ -121,7 +123,7 @@ impl SampleTable {
                 || samples_per_chunk > limits.max_samples_per_chunk
                 || sample_description_index == 0
             {
-                return Err(invalid("invalid stsc entry"));
+                return Err(BmffError::InvalidInput("invalid stsc entry".into()));
             }
             previous_chunk = first_chunk;
             entries.push(StscEntry {
@@ -130,7 +132,9 @@ impl SampleTable {
             });
         }
         if entries.first().is_some_and(|entry| entry.first_chunk != 1) {
-            return Err(invalid("first stsc entry must begin at chunk 1"));
+            return Err(BmffError::InvalidInput(
+                "first stsc entry must begin at chunk 1".into(),
+            ));
         }
 
         let mut stsz_reader = Reader::new(stsz, limits);
@@ -138,13 +142,14 @@ impl SampleTable {
         let constant_sample_size = stsz_reader.u32()?;
         let sample_count = stsz_reader.u32()?;
         if u64::from(sample_count) > limits.max_samples {
-            return Err(limited("stsz sample count exceeds configured maximum"));
+            return Err(BmffError::LimitExceeded(
+                "stsz sample count exceeds configured maximum".into(),
+            ));
         }
         let sample_sizes = if constant_sample_size == 0 {
-            stsz_reader.u32_entries(
-                usize::try_from(sample_count)
-                    .map_err(|_| limited("stsz sample count exceeds address space"))?,
-            )?
+            stsz_reader.u32_entries(usize::try_from(sample_count).map_err(|_| {
+                BmffError::LimitExceeded("stsz sample count exceeds address space".into())
+            })?)?
         } else {
             Vec::new()
         };
@@ -171,12 +176,12 @@ impl SampleTable {
     /// Returns [`BmffError::InvalidInput`] when the index is out of range or
     /// the resolved sample extends beyond `source_len`.
     pub fn sample(&self, index: usize, source_len: usize) -> Result<Sample, BmffError> {
-        let index = u64::try_from(index).map_err(|_| invalid("sample index exceeds u64"))?;
+        let index = u64::try_from(index)
+            .map_err(|_| BmffError::InvalidInput("sample index exceeds u64".into()))?;
         if index >= u64::from(self.sample_count) {
-            return Err(invalid(format!(
-                "sample index {index} exceeds count {}",
-                self.sample_count
-            )));
+            return Err(BmffError::InvalidInput(
+                format!("sample index {index} exceeds count {}", self.sample_count).into(),
+            ));
         }
         let target = index + 1;
         let mut samples_seen = 0_u64;
@@ -192,33 +197,36 @@ impl SampleTable {
                 .min(u64::try_from(self.chunk_offsets.len()).unwrap_or(u64::MAX));
             let samples = chunks
                 .checked_mul(u64::from(entry.samples_per_chunk))
-                .ok_or_else(|| invalid("stsc sample count overflow"))?;
+                .ok_or_else(|| BmffError::InvalidInput("stsc sample count overflow".into()))?;
             if target <= samples_seen + samples {
                 let within = target - samples_seen - 1;
                 let chunk = start_chunk + within / u64::from(entry.samples_per_chunk);
                 let index_in_chunk = u32::try_from(within % u64::from(entry.samples_per_chunk))
-                    .map_err(|_| invalid("chunk sample index exceeds u32"))?;
-                let chunk_usize =
-                    usize::try_from(chunk - 1).map_err(|_| invalid("chunk index exceeds usize"))?;
-                let chunk_offset = self
-                    .chunk_offsets
-                    .get(chunk_usize)
-                    .ok_or_else(|| invalid("stsc references a missing chunk offset"))?;
+                    .map_err(|_| {
+                        BmffError::InvalidInput("chunk sample index exceeds u32".into())
+                    })?;
+                let chunk_usize = usize::try_from(chunk - 1)
+                    .map_err(|_| BmffError::InvalidInput("chunk index exceeds usize".into()))?;
+                let chunk_offset = self.chunk_offsets.get(chunk_usize).ok_or_else(|| {
+                    BmffError::InvalidInput("stsc references a missing chunk offset".into())
+                })?;
                 let sample_number = samples_seen + within + 1;
                 let relative = self.relative_offset(sample_number, index_in_chunk)?;
                 let offset = chunk_offset
                     .checked_add(relative)
-                    .ok_or_else(|| invalid("sample offset overflow"))?;
+                    .ok_or_else(|| BmffError::InvalidInput("sample offset overflow".into()))?;
                 let size = self.sample_size(sample_number)?;
-                let offset_usize =
-                    usize::try_from(offset).map_err(|_| invalid("sample offset exceeds usize"))?;
-                let size_usize =
-                    usize::try_from(size).map_err(|_| invalid("sample size exceeds usize"))?;
+                let offset_usize = usize::try_from(offset)
+                    .map_err(|_| BmffError::InvalidInput("sample offset exceeds usize".into()))?;
+                let size_usize = usize::try_from(size)
+                    .map_err(|_| BmffError::InvalidInput("sample size exceeds usize".into()))?;
                 let end = offset_usize
                     .checked_add(size_usize)
-                    .ok_or_else(|| invalid("sample end overflow"))?;
+                    .ok_or_else(|| BmffError::InvalidInput("sample end overflow".into()))?;
                 if end > source_len {
-                    return Err(invalid("sample extends beyond BMFF source"));
+                    return Err(BmffError::InvalidInput(
+                        "sample extends beyond BMFF source".into(),
+                    ));
                 }
                 return Ok(Sample {
                     offset: offset_usize,
@@ -227,7 +235,9 @@ impl SampleTable {
             }
             samples_seen += samples;
         }
-        Err(invalid("stsc mappings do not cover the requested sample"))
+        Err(BmffError::InvalidInput(
+            "stsc mappings do not cover the requested sample".into(),
+        ))
     }
 
     fn validate(&self) -> Result<(), BmffError> {
@@ -240,20 +250,25 @@ impl SampleTable {
             let chunks = end_chunk
                 .checked_sub(u64::from(entry.first_chunk))
                 .and_then(|value| value.checked_add(1))
-                .ok_or_else(|| invalid("stsc chunk range is invalid"))?;
+                .ok_or_else(|| BmffError::InvalidInput("stsc chunk range is invalid".into()))?;
             samples = samples
                 .checked_add(
                     chunks
                         .checked_mul(u64::from(entry.samples_per_chunk))
-                        .ok_or_else(|| invalid("stsc sample count overflow"))?,
+                        .ok_or_else(|| {
+                            BmffError::InvalidInput("stsc sample count overflow".into())
+                        })?,
                 )
-                .ok_or_else(|| invalid("stsc sample count overflow"))?;
+                .ok_or_else(|| BmffError::InvalidInput("stsc sample count overflow".into()))?;
         }
         if samples != u64::from(self.sample_count) {
-            return Err(invalid(format!(
-                "stsc maps {samples} samples but stsz declares {}",
-                self.sample_count
-            )));
+            return Err(BmffError::InvalidInput(
+                format!(
+                    "stsc maps {samples} samples but stsz declares {}",
+                    self.sample_count
+                )
+                .into(),
+            ));
         }
         Ok(())
     }
@@ -263,24 +278,24 @@ impl SampleTable {
             return Ok(self.constant_sample_size);
         }
         let index = usize::try_from(sample_number - 1)
-            .map_err(|_| invalid("sample number exceeds usize"))?;
+            .map_err(|_| BmffError::InvalidInput("sample number exceeds usize".into()))?;
         self.sample_sizes
             .get(index)
             .copied()
-            .ok_or_else(|| invalid("sample size is missing"))
+            .ok_or_else(|| BmffError::InvalidInput("sample size is missing".into()))
     }
 
     fn relative_offset(&self, sample_number: u64, index_in_chunk: u32) -> Result<u64, BmffError> {
         if self.constant_sample_size != 0 {
             return u64::from(self.constant_sample_size)
                 .checked_mul(u64::from(index_in_chunk))
-                .ok_or_else(|| invalid("sample offset overflow"));
+                .ok_or_else(|| BmffError::InvalidInput("sample offset overflow".into()));
         }
         let first = sample_number - u64::from(index_in_chunk);
         (0..index_in_chunk).try_fold(0_u64, |total, offset| {
             total
                 .checked_add(u64::from(self.sample_size(first + u64::from(offset))?))
-                .ok_or_else(|| invalid("sample offset overflow"))
+                .ok_or_else(|| BmffError::InvalidInput("sample offset overflow".into()))
         })
     }
 }
@@ -304,7 +319,7 @@ impl<'a> Reader<'a> {
         let bytes: [u8; 4] = self
             .bytes(4)?
             .try_into()
-            .map_err(|_| invalid("FullBox header is truncated"))?;
+            .map_err(|_| BmffError::InvalidInput("FullBox header is truncated".into()))?;
         Ok((
             bytes[0],
             u32::from_be_bytes([0, bytes[1], bytes[2], bytes[3]]),
@@ -312,13 +327,17 @@ impl<'a> Reader<'a> {
     }
 
     fn entry_count(&mut self) -> Result<usize, BmffError> {
-        let count = usize::try_from(self.u32()?)
-            .map_err(|_| invalid("sample-table entry count exceeds address space"))?;
+        let count = usize::try_from(self.u32()?).map_err(|_| {
+            BmffError::InvalidInput("sample-table entry count exceeds address space".into())
+        })?;
         if count > self.limits.max_entries {
-            return Err(limited(format!(
-                "sample-table entry count {count} exceeds {}",
-                self.limits.max_entries
-            )));
+            return Err(BmffError::LimitExceeded(
+                format!(
+                    "sample-table entry count {count} exceeds {}",
+                    self.limits.max_entries
+                )
+                .into(),
+            ));
         }
         Ok(count)
     }
@@ -335,7 +354,7 @@ impl<'a> Reader<'a> {
         let bytes: [u8; 4] = self
             .bytes(4)?
             .try_into()
-            .map_err(|_| invalid("u32 is truncated"))?;
+            .map_err(|_| BmffError::InvalidInput("u32 is truncated".into()))?;
         Ok(u32::from_be_bytes(bytes))
     }
 
@@ -343,7 +362,7 @@ impl<'a> Reader<'a> {
         let bytes: [u8; 8] = self
             .bytes(8)?
             .try_into()
-            .map_err(|_| invalid("u64 is truncated"))?;
+            .map_err(|_| BmffError::InvalidInput("u64 is truncated".into()))?;
         Ok(u64::from_be_bytes(bytes))
     }
 
@@ -351,11 +370,11 @@ impl<'a> Reader<'a> {
         let end = self
             .position
             .checked_add(count)
-            .ok_or_else(|| invalid("sample-table position overflow"))?;
+            .ok_or_else(|| BmffError::InvalidInput("sample-table position overflow".into()))?;
         let bytes = self
             .source
             .get(self.position..end)
-            .ok_or_else(|| invalid("sample table is truncated"))?;
+            .ok_or_else(|| BmffError::InvalidInput("sample table is truncated".into()))?;
         self.position = end;
         Ok(bytes)
     }
