@@ -1,46 +1,12 @@
-use std::fmt;
-
-use fornax_raw_core::error::DecodeError;
+use thiserror::Error;
 
 /// A bounded BMFF parsing failure.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Error)]
 pub enum BmffError {
     /// The byte stream or box layout is malformed.
-    InvalidInput(String),
+    #[error("invalid BMFF input: {0}")]
+    InvalidInput(Box<str>),
     /// A configured parser limit was exceeded.
-    LimitExceeded(String),
-}
-
-impl fmt::Display for BmffError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InvalidInput(message) => write!(formatter, "invalid BMFF input: {message}"),
-            Self::LimitExceeded(message) => write!(formatter, "BMFF limit exceeded: {message}"),
-        }
-    }
-}
-
-impl std::error::Error for BmffError {}
-
-impl From<BmffError> for DecodeError {
-    fn from(error: BmffError) -> Self {
-        match error {
-            BmffError::InvalidInput(message) => Self::InvalidInput(message.into()),
-            BmffError::LimitExceeded(message) => Self::Unsupported(message.into()),
-        }
-    }
-}
-
-pub fn invalid<T>(message: T) -> BmffError
-where
-    T: Into<String>,
-{
-    BmffError::InvalidInput(message.into())
-}
-
-pub fn limited<T>(message: T) -> BmffError
-where
-    T: Into<String>,
-{
-    BmffError::LimitExceeded(message.into())
+    #[error("BMFF limit exceeded: {0}")]
+    LimitExceeded(Box<str>),
 }
