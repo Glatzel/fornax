@@ -72,6 +72,22 @@ fn corpus_metadata_commands_are_exposed() {
 }
 
 #[test]
+fn selection_commands_do_not_expose_a_format_filter() {
+    for command in ["select", "run"] {
+        let output = Command::cargo_bin("decoder-tracker")
+            .unwrap()
+            .args([command, "--help"])
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+        assert!(
+            !String::from_utf8_lossy(&output.stdout).contains("--format"),
+            "{command} still exposes --format"
+        );
+    }
+}
+
+#[test]
 fn corpus_metadata_merge_writes_the_complete_selected_dng_set() {
     let temp = tempdir().unwrap();
     let row = manifest_row(&"aa".repeat(32), "Canon/Cam/A.DNG");

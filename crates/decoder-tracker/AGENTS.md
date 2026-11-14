@@ -16,7 +16,7 @@ Run from the repository root:
 
 ```text
 decoder-tracker manifest [--check]
-decoder-tracker select [--format F]... [--camera C]... [--filename N]...
+decoder-tracker select [--camera C]... [--filename N]...
     [--glob G]... [--manifest F] [--out F]
 decoder-tracker run [filters] [--manifest F] [--shard I/N] [--out F]
     [--max-files N] [--allow-full]

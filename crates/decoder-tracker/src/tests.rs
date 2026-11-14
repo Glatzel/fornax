@@ -16,9 +16,7 @@ use crate::manifest::{
     ManifestCheck, generate_manifest, normalize_repo_path, validate_pointer, write_pointer,
 };
 use crate::model::{BaselineKey, BaselineRow, ManifestRow};
-use crate::selection::{
-    Selection, Shard, runner_count_for, select_manifest, with_manifest_formats,
-};
+use crate::selection::{Selection, Shard, runner_count_for, select_manifest};
 use crate::stages::{
     StageRow, classify_decode_error, run_guarded, sanity_check_metadata, transition_row,
 };
@@ -139,7 +137,7 @@ fn derives_vendor_camera_model_and_filename_from_path() {
 }
 
 #[test]
-fn filters_formats_first_then_selects_by_sha_before_sharding() {
+fn selects_all_formats_by_sha_before_sharding() {
     let rows = vec![
         manifest_row("ff", "Zed/Cam/c.ARW", "ARW"),
         manifest_row("cc", "Sony/Cam/c.DNG", "DNG"),
@@ -147,7 +145,6 @@ fn filters_formats_first_then_selects_by_sha_before_sharding() {
         manifest_row("bb", "Canon/Cam/b.dng", "DNG"),
     ];
     let selection = Selection {
-        formats: vec!["dng".into()],
         cameras: Vec::new(),
         filenames: Vec::new(),
         globs: Vec::new(),
@@ -159,29 +156,31 @@ fn filters_formats_first_then_selects_by_sha_before_sharding() {
             .iter()
             .map(|row| row.sha256.as_str())
             .collect::<Vec<_>>(),
-        ["bb"]
+        ["bb", "ff"]
     );
 }
 
 #[test]
-fn custom_manifest_supplies_formats_when_none_are_requested() {
+fn glob_selection_covers_every_selected_format() {
     let rows = vec![
         manifest_row("aa", "Canon/Cam/a.DNG", "DNG"),
         manifest_row("bb", "Sony/Cam/b.ARW", "ARW"),
     ];
-    let selection = with_manifest_formats(
-        Selection {
-            formats: Vec::new(),
-            cameras: Vec::new(),
-            filenames: Vec::new(),
-            globs: vec!["**/*".into()],
-            shard: None,
-        },
-        &rows,
-    );
+    let selection = Selection {
+        cameras: Vec::new(),
+        filenames: Vec::new(),
+        globs: vec!["*/**/*".into()],
+        shard: None,
+    };
 
-    assert_eq!(selection.formats, ["ARW", "DNG"]);
-    assert_eq!(select_manifest(&rows, &selection).unwrap().len(), 2);
+    assert_eq!(
+        select_manifest(&rows, &selection)
+            .unwrap()
+            .iter()
+            .map(|row| row.sha256.as_str())
+            .collect::<Vec<_>>(),
+        ["aa", "bb"]
+    );
 }
 
 #[test]
@@ -191,7 +190,6 @@ fn filename_filter_is_exact_and_case_insensitive() {
         manifest_row("bb", "Canon/Cam/IMAGE_2.DNG", "DNG"),
     ];
     let selection = Selection {
-        formats: vec!["DNG".into()],
         cameras: Vec::new(),
         filenames: vec!["image".into()],
         globs: Vec::new(),
@@ -208,7 +206,6 @@ fn glob_filters_use_standard_segment_aware_matching() {
         manifest_row("cc", "Canon/Cam/c.ARW", "ARW"),
     ];
     let selection = Selection {
-        formats: Vec::new(),
         cameras: Vec::new(),
         filenames: Vec::new(),
         globs: vec!["Canon/*/a.DNG".into(), "Canon/**/b.DNG".into()],
@@ -251,7 +248,6 @@ fn balanced_modulo_shards_keep_a_210_file_selection_within_ten_or_eleven() {
             select_manifest(
                 &rows,
                 &Selection {
-                    formats: Vec::new(),
                     cameras: Vec::new(),
                     filenames: Vec::new(),
                     globs: Vec::new(),

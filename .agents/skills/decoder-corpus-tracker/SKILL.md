@@ -48,8 +48,9 @@ pixi run -e dev cargo run -q -p decoder-tracker -- run \
   --out target/decoder-tracker/investigate.csv
 ```
 
-Format and filename filters are case-insensitive exact matches. Camera filters
-are case-insensitive substrings. Path globs are case-sensitive.
+Filename filters are case-insensitive exact matches. Camera filters are
+case-insensitive substrings. Path globs are case-sensitive. Select a format by
+extension, such as `**/*.[dD][nN][gG]` for DNG.
 
 ## Local shard merge
 

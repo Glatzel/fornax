@@ -18,7 +18,7 @@ use decoder_tracker::manifest::{
 };
 use decoder_tracker::model::{BaselineRow, ManifestRow, Result, TrackerError, status_for_stages};
 use decoder_tracker::runner::{materialize, run_isolation, timeout_from_env};
-use decoder_tracker::selection::{Selection, Shard, select_manifest, with_manifest_formats};
+use decoder_tracker::selection::{Selection, Shard, select_manifest};
 use decoder_tracker::stages::{StageRow, evaluate_one};
 
 const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
@@ -87,8 +87,6 @@ struct SelectArgs {
 struct FilterArgs {
     #[arg(long, default_value = DEFAULT_CORPUS)]
     corpus: PathBuf,
-    #[arg(long = "format", action = clap::ArgAction::Append)]
-    formats: Vec<String>,
     #[arg(long = "camera", action = clap::ArgAction::Append)]
     cameras: Vec<String>,
     #[arg(long = "filename", action = clap::ArgAction::Append)]
@@ -100,7 +98,6 @@ struct FilterArgs {
 impl FilterArgs {
     fn selection(&self, shard: Option<Shard>) -> Selection {
         Selection {
-            formats: self.formats.clone(),
             cameras: self.cameras.clone(),
             filenames: self.filenames.clone(),
             globs: self.globs.clone(),
@@ -256,10 +253,13 @@ fn execute(cli: Cli) -> Result<ExitCode> {
 
 fn corpus_metadata(args: CorpusMetadataArgs) -> Result<ExitCode> {
     let rows = read_manifest_csv(read_file(&args.manifest)?)?;
+    let dng_rows = rows
+        .into_iter()
+        .filter(|row| row.format == "DNG")
+        .collect::<Vec<_>>();
     let selected = select_manifest(
-        &rows,
+        &dng_rows,
         &Selection {
-            formats: vec!["DNG".to_owned()],
             cameras: Vec::new(),
             filenames: Vec::new(),
             globs: Vec::new(),
@@ -348,10 +348,7 @@ fn run(args: RunArgs) -> Result<ExitCode> {
             args.manifest.display()
         ))
     })?)?;
-    let mut selection = args.filter.selection(args.shard);
-    if args.manifest != Path::new(DEFAULT_MANIFEST) {
-        selection = with_manifest_formats(selection, &rows);
-    }
+    let selection = args.filter.selection(args.shard);
     let selected = select_manifest(&rows, &selection)?;
     let ci = std::env::var("CI").is_ok_and(|value| value == "true");
     if !args.allow_full && !ci && selected.len() > args.max_files {

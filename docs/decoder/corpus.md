@@ -32,7 +32,7 @@ Pixi environments for DuckDB and decoder tooling:
 ```text
 pixi run -e dev cargo run -q -p decoder-tracker -- manifest [--check]
 pixi run -e dev cargo run -q -p decoder-tracker -- select [--glob G]... [--out FILE]
-pixi run -e dev cargo run -q -p decoder-tracker -- run [--manifest F] [--format F]...
+pixi run -e dev cargo run -q -p decoder-tracker -- run [--manifest F]
     [--camera TEXT]... [--filename TEXT]... [--glob G]... [--shard INDEX/COUNT]
     [--out FILE] [--max-files N] [--allow-full]
 pixi run -e dev cargo run -q -p decoder-tracker -- merge --manifest F --out FILE SHARD...
@@ -44,9 +44,10 @@ pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata-merge --manif
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
-`run` defaults to DNG and refuses selections larger than two files unless
-`CI=true` or `--allow-full` is present. Use camera and filename filters for
-local investigation:
+`run` does not apply an implicit format filter. With the default manifest and
+no camera, filename, or glob filters it selects the complete corpus, then
+refuses selections larger than two files unless `CI=true` or `--allow-full` is
+present. Use camera and filename filters for local investigation:
 
 ```bash
 pixi run -e dev cargo run -q -p decoder-tracker -- run \
@@ -54,14 +55,18 @@ pixi run -e dev cargo run -q -p decoder-tracker -- run \
   --out target/decoder-tracker/investigate.csv
 ```
 
-Format and filename filters are case-insensitive exact matches. Camera filters
-are case-insensitive substring matches. Path globs are case-sensitive:
+Filename filters are case-insensitive exact matches. Camera filters are
+case-insensitive substring matches. Path globs are case-sensitive:
 
 - `*` matches within one path segment;
 - `**` crosses directory separators;
 - `?` matches one non-separator character;
-- repeated `--glob` values use OR; format, camera, filename, and glob classes
-  combine with AND.
+- repeated `--glob` values use OR; camera, filename, and glob classes combine
+  with AND.
+
+Format is derived from the file extension but is not a separate command-line
+filter. Select one format with an extension glob, such as
+`**/*.[dD][nN][gG]` for DNG.
 
 The workflow default glob is `*/**/*`, which selects the complete corpus across
 all supported and unsupported formats. Filters are applied before the selection
@@ -133,7 +138,9 @@ typed unsupported CFA error is recorded.
 coverage groups by the actual DNG container tags rather than filenames. It does
 not change the pointer-only manifest or the required baseline schema. DNG is
 the first supported format; future formats can add their own rows without
-changing the manifest.
+changing the manifest. The `corpus-metadata` command internally selects rows
+whose derived format is DNG; this format-specific behavior is not exposed as a
+generic CLI filter.
 
 The canonical header is:
 
