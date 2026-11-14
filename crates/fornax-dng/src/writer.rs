@@ -618,7 +618,8 @@ where
         | Value::Double(_)
         | Value::Rational(_, _)
         | Value::SRational(_, _)
-        | Value::Ascii(_) => directory
+        | Value::Ascii(_)
+        | Value::Bytes(_) => directory
             .write_tag(tag, value.clone())
             .map_err(DngWriteError::from),
         Value::RationalBig(_, _) | Value::SRationalBig(_, _) | Value::Ifd(_) | Value::IfdBig(_) => {

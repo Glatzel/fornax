@@ -18,8 +18,8 @@ pub use raster::{
     resolve_tiff_compression,
 };
 pub use value::{
-    Tag, Value, ValueAccessError, ValueConversionError, unsigned_scalar, unsigned_vec,
-    unsigned_vec_lookup,
+    LARGE_BYTE_VALUE_THRESHOLD, Tag, Value, ValueAccessError, ValueConversionError,
+    unsigned_scalar, unsigned_vec, unsigned_vec_lookup,
 };
 pub use writer::{IntoValue, TiffDirectory, TiffWriter};
 
@@ -36,9 +36,9 @@ pub trait DirectoryLookup {
 }
 
 impl DirectoryLookup for Directory {
-    fn get(&self, tag: &Tag) -> Option<&Value> { BTreeMap::get(self, tag) }
+    fn get(&self, tag: &Tag) -> Option<&Value> { Self::get(self, tag) }
 
-    fn contains_key(&self, tag: &Tag) -> bool { BTreeMap::contains_key(self, tag) }
+    fn contains_key(&self, tag: &Tag) -> bool { Self::contains_key(self, tag) }
 }
 
 /// Owned backing storage for parsed TIFF bytes.

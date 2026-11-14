@@ -388,6 +388,9 @@ where
     match value {
         None => Ok(None),
         Some(Value::Byte(value)) => Ok(Some(num!(*value))),
+        Some(Value::Bytes(values)) => values
+            .first()
+            .map_or(Ok(None), |value| Ok(Some(num!(*value)))),
         Some(Value::SignedByte(value)) => Ok(Some(num!(*value))),
         Some(Value::Short(value)) => Ok(Some(num!(*value))),
         Some(Value::SignedShort(value)) => Ok(Some(num!(*value))),
@@ -422,6 +425,7 @@ where
         return Ok(Vec::new());
     };
     match value {
+        Value::Bytes(values) => values.iter().map(|value| Ok(num!(*value))).collect(),
         Value::List(values) => values
             .iter()
             .map(|value| {
@@ -438,6 +442,10 @@ fn unsigned_values(value: Option<&Value>) -> Result<Option<Vec<u32>>, DecodeErro
         return Ok(None);
     };
     let values = match value {
+        Value::Bytes(values) => values
+            .iter()
+            .map(|value| Ok(u32::from(*value)))
+            .collect::<Result<Vec<_>, DecodeError>>()?,
         Value::List(values) => values
             .iter()
             .map(unsigned_scalar)
@@ -461,6 +469,13 @@ fn metadata_error(detail: impl Into<Box<str>>) -> DecodeError {
 fn unsigned_scalar(value: &Value) -> Result<u32, DecodeError> {
     let number = match value {
         Value::Byte(value) => *value as u32,
+        Value::Bytes(values) => {
+            return values
+                .first()
+                .copied()
+                .map(u32::from)
+                .ok_or_else(|| DecodeError::Backend("byte tag value is empty".into()));
+        }
         Value::Short(value) => *value as u32,
         Value::Unsigned(value) | Value::Ifd(value) => *value,
         Value::UnsignedBig(value) => u32::try_from(*value)

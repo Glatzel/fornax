@@ -276,6 +276,24 @@ Pixel 8 improved by about 92 ms, consistent with removing the large private-tag
 directory clone. The 30-row golden hash set and three-way DNG equality remained
 unchanged.
 
+### Compact private byte payloads
+
+Task 5 stores TIFF BYTE and UNDEFINED fields larger than 64 bytes as a single
+`Value::Bytes` allocation. Smaller fields keep the existing `Value::List` of
+`Value::Byte` values. Conversion, JSON, TIFF/DNG writing, opcode access, and
+vendor byte helpers preserve the same byte sequence.
+
+Single-thread Pixel 8 Pro walltime:
+
+| Case | Before | After | Rawler | FlashRaw | Fornax/Rawler |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| parse/setup | 102.1 ms | 2.94 ms | n/a | n/a | n/a |
+| end-to-end | 580.2 ms | 495.1 ms | 555.6 ms | 200.5 ms | 0.89x |
+
+This removes the per-byte `Value` allocation for the 3.16-million-byte private
+Pixel metadata payload. The complete golden hash set and three-way DNG equality
+remained unchanged.
+
 ## Neutral experiments
 
 - `-C target-cpu=native` measured 475 ms LJPEG, 164 ms uncompressed, and

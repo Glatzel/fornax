@@ -387,6 +387,7 @@ fn lookup_linearization(indexes: &[usize], table: &[u16]) -> Result<Vec<u16>, De
 fn opcode_bytes(value: &Value) -> Result<Vec<u8>, DecodeError> {
     match value {
         Value::Byte(value) => Ok(vec![*value]),
+        Value::Bytes(values) => Ok(values.clone()),
         Value::List(values) => values
             .iter()
             .map(|value| match value {

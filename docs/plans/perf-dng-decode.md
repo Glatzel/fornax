@@ -189,7 +189,7 @@ with more than 64 elements; small CFA/pattern fields remain
 - [x] Task 3: Add non-copying TIFF source storage and remove the duplicated
   root directory.
 - [x] Task 4: Use borrowed DNG metadata during decode.
-- [ ] Task 5: Store large private TIFF byte payloads compactly.
+- [x] Task 5: Store large private TIFF byte payloads compactly.
 - [ ] Task 6: Add direct uncompressed sample unpacking.
 - [ ] Task 7: Fuse Deflate predictor and typed conversion.
 
@@ -906,7 +906,7 @@ pub enum Value {
 const LARGE_BYTE_VALUE_THRESHOLD: usize = 64;
 ```
 
-- [ ] **Step 1: Add parser representation tests**
+- [x] **Step 1: Add parser representation tests**
 
 Create TIFF UNDEFINED fields with 64 and 65 bytes. Assert:
 
@@ -918,7 +918,7 @@ assert!(matches!(large, Value::Bytes(_)));
 Assert both expose identical byte lengths, indices, unsigned conversion, JSON,
 and writer output.
 
-- [ ] **Step 2: Run the tests and verify the variant is absent**
+- [x] **Step 2: Run the tests and verify the variant is absent**
 
 Run:
 
@@ -926,13 +926,13 @@ Run:
 cargo test -p fornax-tiff large_byte
 ```
 
-- [ ] **Step 3: Implement byte-array semantics**
+- [x] **Step 3: Implement byte-array semantics**
 
 Update `count`, scalar access, unsigned conversion, display, JSON conversion,
 DNG helpers, and TIFF/DNG list writers. Preserve exact element order and byte
 values. Small values continue using `List(Vec<Value::Byte>)`.
 
-- [ ] **Step 4: Verify all byte consumers**
+- [x] **Step 4: Verify all byte consumers**
 
 Audit opcode lists, DNG private data, MakerNotes, CFA patterns, and vendor
 private blobs. Add helper methods rather than matching `Value::Bytes` in every
@@ -945,20 +945,20 @@ impl Value {
 }
 ```
 
-- [ ] **Step 5: Prove metadata and decode equality**
+- [x] **Step 5: Prove metadata and decode equality**
 
 Run the Pixel 8 metadata JSON, golden hashes, and three-way raw equality. The
 3.16-million-element private tag must serialize unchanged while avoiding one
 `Value` allocation per byte.
 
-- [ ] **Step 6: Benchmark acceptance**
+- [x] **Step 6: Benchmark acceptance**
 
 Measure Pixel 8 parse/setup and end-to-end. Target:
 
 - reduce parse/setup materially from the reported ~152 ms;
 - no regression in any golden DNG output or writer benchmark.
 
-- [ ] **Step 7: Verify and commit**
+- [x] **Step 7: Verify and commit**
 
 Run:
 

@@ -198,6 +198,11 @@ impl EncodedEntry {
 }
 
 fn encode_value(value: &Value) -> Result<(u16, u32, Vec<u8>), TiffError> {
+    if let Value::Bytes(bytes) = value {
+        let count = u32::try_from(bytes.len())
+            .map_err(|_| TiffError::new("TIFF byte count exceeds u32"))?;
+        return Ok((1, count, bytes.clone()));
+    }
     if let Value::List(values) = value {
         if values.is_empty() {
             return Err(TiffError::new("empty TIFF lists cannot be serialized"));
@@ -263,6 +268,9 @@ fn encode_scalar(value: &Value) -> Result<(u16, u32, Vec<u8>), TiffError> {
             bytes.extend_from_slice(&numerator.to_le_bytes());
             bytes.extend_from_slice(&denominator.to_le_bytes());
             (10, bytes)
+        }
+        Value::Bytes(_) => {
+            return Err(TiffError::new("nested TIFF byte arrays are unsupported"));
         }
         Value::List(_) => return Err(TiffError::new("nested TIFF lists are unsupported")),
     };

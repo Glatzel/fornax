@@ -230,6 +230,9 @@ fn value_to_json(value: &Value) -> serde_json::Value {
         Value::RationalBig(numerator, denominator)
         | Value::SRationalBig(numerator, denominator) => rational_to_json(*numerator, *denominator),
         Value::Ascii(value) => JsonValue::String(value.clone()),
+        Value::Bytes(values) => {
+            JsonValue::Array(values.iter().copied().map(JsonValue::from).collect())
+        }
         Value::List(values) => JsonValue::Array(values.iter().map(value_to_json).collect()),
     }
 }
@@ -274,5 +277,16 @@ mod tests {
         assert_eq!(tags[2]["value"][0]["denominator"], 2);
         assert_eq!(tags[3]["name"], "Unknown(0xea61)");
         assert_eq!(tags[3]["value"], serde_json::json!([1, 2]));
+    }
+
+    #[cfg(feature = "metadata-json")]
+    #[test]
+    fn compact_bytes_and_byte_lists_serialize_identically() {
+        use super::*;
+
+        let small = Value::List(vec![Value::Byte(1), Value::Byte(2), Value::Byte(3)]);
+        let large = Value::Bytes(vec![1, 2, 3]);
+
+        assert_eq!(value_to_json(&small), value_to_json(&large));
     }
 }

@@ -184,8 +184,10 @@ fn be_u16(data: &[u8], offset: usize) -> Result<u16, DecodeError> {
 }
 
 fn bytes(value: &Value) -> Option<Vec<u8>> {
+    if let Some(bytes) = value.as_byte_slice() {
+        return Some(bytes.to_vec());
+    }
     match value {
-        Value::Byte(value) => Some(vec![*value]),
         Value::List(values) => values.iter().try_fold(Vec::new(), |mut output, value| {
             output.extend(bytes(value)?);
             Some(output)

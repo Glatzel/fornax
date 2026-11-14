@@ -1,7 +1,9 @@
 use std::collections::{HashSet, VecDeque};
 
 use crate::constants::TiffTag;
-use crate::{ByteOrder, Directory, ParsedTiff, Tag, TiffError, TiffSource, Value};
+use crate::{
+    ByteOrder, Directory, LARGE_BYTE_VALUE_THRESHOLD, ParsedTiff, Tag, TiffError, TiffSource, Value,
+};
 
 struct Reader<'a> {
     bytes: &'a [u8],
@@ -148,6 +150,9 @@ impl<'a> Reader<'a> {
                     .trim_end_matches('\0')
                     .to_owned(),
             )));
+        }
+        if matches!(field_type, 1 | 7) && bytes.len() > LARGE_BYTE_VALUE_THRESHOLD {
+            return Ok(Some(Value::Bytes(bytes.to_vec())));
         }
         let count = usize::try_from(count)
             .map_err(|_| corrupt("TIFF tag value count exceeds the platform address space"))?;
