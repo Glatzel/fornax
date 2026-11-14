@@ -441,7 +441,7 @@ mod tests {
     }
 
     #[test]
-    fn unparseable_dng_is_recorded_as_a_failed_result() {
+    fn unparsable_dng_is_recorded_as_a_failed_result() {
         let temp = tempdir().unwrap();
         let corpus = temp.path();
         let row = row();

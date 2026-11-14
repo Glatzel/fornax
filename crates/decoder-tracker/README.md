@@ -154,7 +154,7 @@ pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 The committed corpus metadata manifest is `manifest.csv`; decoder pass columns
 and outcomes are in `baseline.csv`. The generated `corpus-metadata.csv` sidecar
 groups parseable DNG rows by container compression, strip/tile storage, bit
-depth, sample format, and predictor and records unparseable DNGs as failed
+depth, sample format, and predictor and records unparsable DNGs as failed
 results without changing either canonical schema. DuckDB CLI owns plan-time
 manifest filtering and the shell-driven merge, selected-key diff, and baseline
 upsert path. Stage columns remain numeric for SQL; a leading emoji

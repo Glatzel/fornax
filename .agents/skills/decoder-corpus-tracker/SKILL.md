@@ -162,7 +162,7 @@ badge/table region. Review the diff. Never edit between
 
 - `diff --selected` reports only the reviewed selection.
 - `update` preserves unselected baseline rows.
-- The DNG metadata sidecar keeps unparseable corpus files as failed rows with
+- The DNG metadata sidecar keeps unparsable corpus files as failed rows with
   an `error_kind`; only infrastructure failures abort shard generation.
 - The README script preserves text outside its markers.
 - `manifest.csv`, `baseline.csv`, and generated README data contain no RAW
