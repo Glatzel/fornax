@@ -230,7 +230,7 @@ decoder was constructed even if a later stage fails. Update every SQL projection
 and shell schema check. Remove the second `corpus-metadata` execution and its
 artifact from the workflow.
 
-- [ ] **Step 4: Prove DNG parity before deleting the sidecar**
+- [x] **Step 4: Prove DNG parity before deleting the sidecar**
 
 Generate a selected DNG baseline and compare its metadata columns with the
 existing `data/corpus-metadata.csv` for all 262 sidecar rows. Compression,
@@ -240,7 +240,7 @@ storage, bit depth, sample format, predictor, and geometry must match exactly.
 
 Expected: Rust and DuckDB tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add crates/decoder-tracker .github/workflows/decoder-tracker-corpus.yml
@@ -315,7 +315,7 @@ git commit -m "feat: audit golden corpus encoding coverage"
 - Consumes: the existing full-corpus workflow.
 - Produces: a reviewed, complete 2,020-row baseline containing source metadata.
 
-- [ ] **Step 1: Run repository validation**
+- [x] **Step 1: Run repository validation**
 
 ```bash
 scripts/agent-validation.sh
@@ -323,9 +323,12 @@ pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
   --check crates/decoder-tracker/golden/decode-hashes.csv
 ```
 
-Expected: both commands pass.
+Expected: both commands pass. The changed tracker/API tests and unchanged
+golden hashes passed. Full workspace validation reaches pre-existing strict
+clippy findings in `fornax-codec`, `fornax-dng` opcode/writer code, and
+`fornax-raw-pipeline`; these are recorded as external failures.
 
-- [ ] **Step 2: Push the branch and run the full-corpus workflow**
+- [x] **Step 2: Push the branch and run the full-corpus workflow**
 
 ```bash
 gh workflow run decoder-tracker-corpus.yml --ref chore/full-corpus-metadata \
@@ -333,9 +336,12 @@ gh workflow run decoder-tracker-corpus.yml --ref chore/full-corpus-metadata \
   -f run_duckdb_tests=false
 ```
 
-Expected first run: changed rows and a `decoder-baseline-update` artifact.
+The first run produced all complete shard artifacts, then failed in aggregation
+because the committed baseline still used the legacy schema. After the guarded
+migration fix, the user waived a workflow rerun and approved aggregating the
+existing shard artifacts locally.
 
-- [ ] **Step 3: Review the migration**
+- [x] **Step 3: Review the migration**
 
 Verify:
 
@@ -345,7 +351,7 @@ Verify:
 - every fully passing row has complete source metadata;
 - unsupported formats remain ordinary `unknown` metadata rows.
 
-- [ ] **Step 4: Apply the complete reviewed baseline**
+- [x] **Step 4: Apply the complete reviewed baseline**
 
 ```bash
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
@@ -354,9 +360,10 @@ git commit -m "chore: refresh corpus baseline with source encoding metadata"
 git push
 ```
 
-- [ ] **Step 5: Re-run the workflow**
+- [x] **Step 5: Re-run the workflow**
 
-Expected: unchanged, with no update artifact.
+Waived by the user after the full shard set was already available. The reviewed
+2,020-row artifact was aggregated locally with the fixed migration path.
 
 ---
 
