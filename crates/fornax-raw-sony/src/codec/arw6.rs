@@ -668,12 +668,13 @@ fn decode_packet_planes(
             let mut values = vec![0_i32; components * record_rows];
             if record.byte_length > 0 {
                 let mut bits = CoeffBits::new(packet.bytes, record.payload, record.byte_length);
-                for component in 0..components {
+                for (component, &selector) in record.selectors.iter().take(components).enumerate() {
                     let shift = if component < packet.kind {
-                        u32::from(record.selectors[component])
+                        u32::from(selector)
                     } else {
                         0
                     };
+
                     for row in 0..multiplier {
                         let start = component * record_rows + row * row_width;
                         decode_component(

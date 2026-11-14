@@ -1,10 +1,9 @@
-use std::collections::BTreeSet;
 use std::fmt;
 use std::str::FromStr;
 
 use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
 
-use crate::manifest::{selected_formats, validate_manifest_keys};
+use crate::manifest::validate_manifest_keys;
 use crate::model::{ManifestRow, Result, TrackerError};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -43,28 +42,14 @@ impl fmt::Display for Shard {
 
 #[derive(Clone, Debug, Default)]
 pub struct Selection {
-    pub formats: Vec<String>,
     pub cameras: Vec<String>,
     pub filenames: Vec<String>,
     pub globs: Vec<String>,
     pub shard: Option<Shard>,
 }
 
-pub fn with_manifest_formats(mut selection: Selection, rows: &[ManifestRow]) -> Selection {
-    if selection.formats.is_empty() {
-        selection.formats = rows
-            .iter()
-            .map(|row| row.format.to_ascii_uppercase())
-            .collect::<BTreeSet<_>>()
-            .into_iter()
-            .collect();
-    }
-    selection
-}
-
 pub fn select_manifest(rows: &[ManifestRow], selection: &Selection) -> Result<Vec<ManifestRow>> {
     validate_manifest_keys(rows)?;
-    let formats = selected_formats(&selection.formats);
     let cameras = selection
         .cameras
         .iter()
@@ -73,7 +58,6 @@ pub fn select_manifest(rows: &[ManifestRow], selection: &Selection) -> Result<Ve
     let globs = build_globs(&selection.globs)?;
     let mut selected = rows
         .iter()
-        .filter(|row| formats.contains(&row.format.to_ascii_uppercase()))
         .filter(|row| {
             cameras.is_empty()
                 || cameras

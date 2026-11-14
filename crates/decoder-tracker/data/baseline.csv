@@ -12,6 +12,7 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Apple iPhone SE,DNG,Apple/iPhone SE/A4973FFB-9CBD-4ED8-805D-E30F4AE08A95.dng,1,1,c9c3f321f83bd3eec95188ecfae4faf05b5293678b6e029ee17a10b411824a75,1,1,,4032,3024,BGGR
 ✅,Apple iPhone XS,DNG,Apple/iPhone XS/IMG_1105.dng,1,1,65af6592d1ad073f4282863d81aca3e6dce936c83fe787e3dba72de00eaea90e,1,1,,4032,3024,RGGB
 ✅,Arashi Vision Insta360 One X,DNG,Arashi Vision/Insta360 One X/IMG_20201122_142733_00_015.dng,1,1,96c7c0852e5c3e5e42bb821891bad2633c2a46ab608876ccd1445677d54f91f7,1,1,,3040,6080,GRBG
+❌,Arri Alexa Mini,ARI,Arri/Alexa Mini/A004C002_190722_R20I.478.ari,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Autel Model 323,DNG,Autel/Model 323/MAX_0005.DNG,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,Autel Robotics XB015,DNG,Autel Robotics/XB015/MAX_0001.DNG,1,1,19d01bedb9b91314b6382923355fcf5790f0dc7275075ce609e6930e5a7c6250,1,1,,4000,2250,RGGB
 ✅,Blackmagic Design Pocket Cinema Camera 6k Pro,DNG,Blackmagic Design/Pocket Cinema Camera 6k Pro/A010_04101355_S068.dng,1,1,36dfe172477deb0dde8d04b0b9ac4a57ba66a9287a82b7a70adc616e4339224b,1,1,,6144,3456,RGGB
@@ -24,9 +25,21 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_lossless.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_uncompressed.dng,1,1,948397f3bdb4a1ea0b7383d1530a8f361acbd2d1b7b17c89e115072cc8053a23,1,1,,4128,2176,RGGB
 ❌,Blackmagic URSA 4K,DNG,Blackmagic/URSA 4K/Blackmagic URSA_1_1999-12-31_2153_C0003_000001.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
+❌,Canon A570 IS,CRW,Canon/A570 IS/CRW_2554.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon DIGITAL IXUS 60,DNG,Canon/Canon DIGITAL IXUS 60/CRW_2069.DNG,1,1,a84e6d45f771c48422ee058f9abd9b4ce9dfe81ca4bcdd431ffe65b0ca5d1efe,1,1,,2888,2136,RGGB
 ✅,Canon DIGITAL IXUS 95 IS,DNG,Canon/Canon DIGITAL IXUS 95 IS/CRW_2593_01.DNG,1,1,83a1f48eae5a1fadcf55afc97e9bcaa96172c24c29af5a597c158e945b767259,1,1,,3720,2772,RGGB
+❌,Canon EOS 1000D,CR2,Canon/EOS 1000D/IMG_9406.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 100D,CR2,Canon/EOS 100D/IMG_3721.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 10D,CRW,Canon/EOS 10D/CRW_7673.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 10D,CRW,Canon/EOS 10D/crw_2127.crw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 10D,CRW,Canon/EOS 10D/crw_2455.crw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 1100D,CR2,Canon/EOS 1100D/IMG_0962.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 1200D,CR2,Canon/EOS 1200D/IMG_0008.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 1300D,CR2,Canon/EOS 1300D/IMG_0778.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 2000D,CR2,Canon/EOS 2000D/IMG_0531.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 200D,CR2,Canon/EOS 200D/IMG_1813.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 200D Mark II,CR3,Canon/EOS 200D Mark II/_MG_3608.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 20D,CR2,Canon/EOS 20D/IMG_3893.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_RAW-19:9.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_RAW-1:1.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_RAW-2:3.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -35,6 +48,28 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_cRAW-1:1.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_cRAW-3:2.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 250D,CR3,Canon/EOS 250D/Canon250D_cRAW-4:3.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 300D,CRW,Canon/EOS 300D/103_0333.crw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 300D,CRW,Canon/EOS 300D/CRW_8395.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 30D,CR2,Canon/EOS 30D/IMG_0062.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 350D,CR2,Canon/EOS 350D/IMG_1707.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 4000D,CR2,Canon/EOS 4000D/IMG_0361.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 400D,CR2,Canon/EOS 400D/IMG_3397.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 40D,CR2,Canon/EOS 40D/_MG_0153.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 40D,CR2,Canon/EOS 40D/_MG_0154.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 450D,CR2,Canon/EOS 450D/_MG_7191.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 500D,CR2,Canon/EOS 500D/IMG_0002.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 50D,CR2,Canon/EOS 50D/IMG_9516.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 50D,CR2,Canon/EOS 50D/IMG_9517.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 50D,CR2,Canon/EOS 50D/IMG_9518.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 550D,CR2,Canon/EOS 550D/IMG_4047.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D,CR2,Canon/EOS 5D/IMG_1428.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark II,CR2,Canon/EOS 5D Mark II/08.canon.raw.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark II,CR2,Canon/EOS 5D Mark II/09.canon.sraw1.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark II,CR2,Canon/EOS 5D Mark II/10.canon.sraw2.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark II,CR2,Canon/EOS 5D Mark II/IMG_0051.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark III,CR2,Canon/EOS 5D Mark III/5G4A9394.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark III,CR2,Canon/EOS 5D Mark III/5G4A9395.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark III,CR2,Canon/EOS 5D Mark III/5G4A9396.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/M24-1221_000202.dng,1,1,40b2cc54cc849e35f3ebf523087c1c0f39f79ccafefca7ae3b28f339db611488,1,1,,1920,1080,RGGB
 ❌,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/compress.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-uncompressed.dng,1,1,fcaf551c4eb67f87879993a585a751e723b823c9636412337cc6dec6b0a55a45,1,1,,5920,3950,RGGB
@@ -43,19 +78,81 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-w-pred-deflate.dng,1,1,ded36a8c4bc055bac903ea7ad8f9a6cfa3dfe8dce167925b25f4cd8c7e71c6f0,1,1,,5920,3950,RGGB
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-uncompressed.dng,1,1,d48f9f8c319b42fa12259f1ca4353a69f1b562fd9b2a9d87ce40e647d3bab65d,1,1,,5920,3950,RGGB
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-w-pred-deflate.dng,1,1,33d127bacc386fe9423add0b36274a62c0aeefc0410ed7780b1f2a5441f5785d,1,1,,5920,3950,RGGB
+❌,Canon EOS 5D Mark IV,CR2,Canon/EOS 5D Mark IV/B13A0729.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark IV,CR2,Canon/EOS 5D Mark IV/B13A0732.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark IV,CR2,Canon/EOS 5D Mark IV/B13A0733.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark IV,CR2,Canon/EOS 5D Mark IV/B13A0734.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5D Mark IV,CR2,Canon/EOS 5D Mark IV/B13A0800.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5DS,CR2,Canon/EOS 5DS/2K4A9927.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5DS,CR2,Canon/EOS 5DS/2K4A9928.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5DS,CR2,Canon/EOS 5DS/2K4A9929.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5DS R,CR2,Canon/EOS 5DS R/_DSR2002.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5DS R,CR2,Canon/EOS 5DS R/_DSR2003.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 5DS R,CR2,Canon/EOS 5DS R/_DSR2004.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 600D,CR2,Canon/EOS 600D/_MG_2587.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 60D,CR2,Canon/EOS 60D/IMG_2014.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 60D,CR2,Canon/EOS 60D/IMG_2015.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 60D,CR2,Canon/EOS 60D/IMG_2016.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 60D,DNG,Canon/EOS 60D/M14-1451_000085_cDNG_compressed.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
+❌,Canon EOS 650D,CR2,Canon/EOS 650D/IMG_3517.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 6D,CR2,Canon/EOS 6D/EOS_6D_RAW.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 6D,CR2,Canon/EOS 6D/EOS_6D_mRAW.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 6D,CR2,Canon/EOS 6D/EOS_6D_sRAW.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 6D,CR2,Canon/EOS 6D/IMG_0001.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 6D Mark II,CR2,Canon/EOS 6D Mark II/6DII-RAW.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 6D Mark II,CR2,Canon/EOS 6D Mark II/6DII-mRAW.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 6D Mark II,CR2,Canon/EOS 6D Mark II/6DII-sRAW.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 700D,CR2,Canon/EOS 700D/_MG_1948.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 70D,CR2,Canon/EOS 70D/RAW_CANON_EOS70D_01.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 70D,CR2,Canon/EOS 70D/mRAW_CANON_EOS70D_01.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 70D,CR2,Canon/EOS 70D/sRAW_CANON_EOS70D_01.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 750D,CR2,Canon/EOS 750D/IMG_5474.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 760D,CR2,Canon/EOS 760D/2015-07-10_18-54-26.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 77D,CR2,Canon/EOS 77D/IMG_4049.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 7D,CR2,Canon/EOS 7D/RAW_CANON_EOS_7D-mraw.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 7D,CR2,Canon/EOS 7D/RAW_CANON_EOS_7D-raw.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 7D,CR2,Canon/EOS 7D/RAW_CANON_EOS_7D-sraw.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 7D,CR2,Canon/EOS 7D/_MG_0001.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 7D Mark II,CR2,Canon/EOS 7D Mark II/capture000106.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 7D Mark II,CR2,Canon/EOS 7D Mark II/capture000107.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 7D Mark II,CR2,Canon/EOS 7D Mark II/capture000108.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon EOS 7D Mark II,DNG,Canon/EOS 7D Mark II/0P9A0410-Enhanced-NR.dng,1,1,b0be075a0e9685deae5e285920e30ea5f3a2c49c125963316223172168fe8fa5,1,1,,5568,3708,RGGB
+❌,Canon EOS 800D,CR2,Canon/EOS 800D/IMG_3378.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 80D,CR2,Canon/EOS 80D/IMG_0096.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 80D,CR2,Canon/EOS 80D/IMG_0097.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS 80D,CR2,Canon/EOS 80D/IMG_0098.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 850D,CR3,Canon/EOS 850D/IMG_1837.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 850D,CR3,Canon/EOS 850D/IMG_1906.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 90D,CR3,Canon/EOS 90D/Canon-90D-RAW-ISO-100.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 90D,CR3,Canon/EOS 90D/Canon-90D-cRAW-ISO-100.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS D2000C,TIF,Canon/EOS D2000C/RAW_CANON_D2000.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS D30,CRW,Canon/EOS D30/CRW_2444.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS D60,CRW,Canon/EOS D60/CRW_0099.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Digital Rebel,CRW,Canon/EOS Digital Rebel/CRW_2390.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Digital Rebel XS,CR2,Canon/EOS Digital Rebel XS/RAW_CANON_1000D.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Digital Rebel XSi,CR2,Canon/EOS Digital Rebel XSi/_MG_1125.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Digital Rebel XT,CR2,Canon/EOS Digital Rebel XT/IMG_8728.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Digital Rebel XTi,CR2,Canon/EOS Digital Rebel XTi/img_2981.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Kiss Digital N,CR2,Canon/EOS Kiss Digital N/20170226_0040.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Kiss F,CR2,Canon/EOS Kiss F/IMG_7072.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS Kiss M,CR3,Canon/EOS Kiss M/IMG_2695.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Kiss X3,CR2,Canon/EOS Kiss X3/IMG_2856-2.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Kiss X4,CR2,Canon/EOS Kiss X4/20120117-e01.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Kiss X80,CR2,Canon/EOS Kiss X80/IMG_3688.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Kiss X9,CR2,Canon/EOS Kiss X9/IMG_3505.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M,CR2,Canon/EOS M/IMG_4624.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M10,CR2,Canon/EOS M10/IMG_2207.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M100,CR2,Canon/EOS M100/IMG_1200.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M2,CR2,Canon/EOS M2/m2_test_02.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS M200,CR3,Canon/Canon EOS M200/_MG_2231.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS M200,CR3,Canon/Canon EOS M200/_MG_2233.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M3,CR2,Canon/EOS M3/IMG_4635.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M5,CR2,Canon/EOS M5/IMG_6968.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS M50,CR3,Canon/EOS M50/Canon-EOS_M50_-CRAW_(1:1).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS M50,CR3,Canon/EOS M50/Canon_EOS_M50_CRAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS M50,CR3,Canon/EOS M50/Canon_EOS_M50_RAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS M50 Mark II,CR3,Canon/EOS M50 Mark II/IMG_0051.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS M6,CR2,Canon/EOS M6/Canon_EOS-M6-IMG_0302.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_CRAW_16_9.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_CRAW_1_1.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS M6 Mark II,CR3,Canon/EOS M6 Mark II/IMG_CRAW_3_2.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -120,33 +217,89 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Canon EOS R8,CR3,Canon/EOS R8/CRAW_FULL_FRAME_DUAL_PIXEL.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon EOS R8,CR3,Canon/EOS R8/RAW_FULL_FRAME.CR3,1,1,b1d073c719285ac57f37b009c3a0f7dd6634a61983ef8b3b32d3896112c53140,1,1,,6188,4120,RGGB
 ✅,Canon EOS R8,CR3,Canon/EOS R8/RAW_FULL_FRAME_DUAL_PIXEL.CR3,1,1,d0521d5faa75a75ef21ca7715794847e34b2078724db20b9e3f82df3a16601fb,1,1,,6188,4120,RGGB
+❌,Canon EOS REBEL T7i,CR2,Canon/EOS REBEL T7i/IMG_1322.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS RP,CR3,Canon/EOS RP/Canon_EOS_RP_CRAW_ISO_100_crop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS RP,CR3,Canon/EOS RP/Canon_EOS_RP_CRAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon EOS RP,CR3,Canon/EOS RP/Canon_EOS_RP_RAW_ISO_100_crop_nodual.CR3,1,1,117b8d74127b6526f11a18478a38c4a111d9111098b536faf4f719d492c4aab9,1,1,,4032,2656,RGGB
 ❌,Canon EOS RP,CR3,Canon/EOS RP/Canon_EOS_RP_RAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel SL1,CR2,Canon/EOS Rebel SL1/IMG_0308.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel SL2,CR2,Canon/EOS Rebel SL2/Canon_SL2_Len_24-105.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS Rebel SL3,CR3,Canon/EOS Rebel SL3/Sedona2020_SL3__MG_1061.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T100,CR2,Canon/EOS Rebel T100/IMG_7229.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T1i,CR2,Canon/EOS Rebel T1i/IMG_0493.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T2i,CR2,Canon/EOS Rebel T2i/IMG_9301.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T3,CR2,Canon/EOS Rebel T3/IMG_0294.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T3i,CR2,Canon/EOS Rebel T3i/IMG_0126.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T4i,CR2,Canon/EOS Rebel T4i/IMG_6980.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T5,CR2,Canon/EOS Rebel T5/IMG_0764.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T5i,CR2,Canon/EOS Rebel T5i/IMG_5139.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T6,CR2,Canon/EOS Rebel T6/IMG_2422.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T6i,CR2,Canon/EOS Rebel T6i/IMG_6217.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T6s,CR2,Canon/EOS Rebel T6s/IMG_3661.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T7,CR2,Canon/EOS Rebel T7/IMG_0662.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS Rebel T7i,CR2,Canon/EOS Rebel T7i/20190925-1501-0421.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1D,TIF,Canon/EOS-1D/B53A0011-20171118-ss200-ap2.8-fl50-iso200.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1D Mark II,CR2,Canon/EOS-1D Mark II/RAW_CANON_1DM2.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1D Mark II N,CR2,Canon/EOS-1D Mark II N/RY5Q8391-20170423-ss250-ap8.0-fl50-iso100.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1D Mark III,CR2,Canon/EOS-1D Mark III/_K5R7350.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1D Mark IV,CR2,Canon/EOS-1D Mark IV/IMG_5391.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1D Mark IV,CR2,Canon/EOS-1D Mark IV/IMG_5395.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1D Mark IV,CR2,Canon/EOS-1D Mark IV/IMG_5398.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1D X,CR2,Canon/EOS-1D X/RAW_CANON_EOS_1DX.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS-1D X,DNG,Canon/EOS-1D X/CROPGX2R4019-topaz-denoiseraw.dng,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Canon EOS-1D X Mark II,CR2,Canon/EOS-1D X Mark II/AZ1I2270.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1D X Mark II,CR2,Canon/EOS-1D X Mark II/AZ1I2271.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1D X Mark II,CR2,Canon/EOS-1D X Mark II/AZ1I2272.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS-1D X Mark III,CR3,Canon/EOS-1D X Mark III/Canon_EOS-1D_X_Mark_III_CRAW_ISO_100_nocrop_nodual.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon EOS-1D X Mark III,CR3,Canon/EOS-1D X Mark III/Canon_EOS-1D_X_Mark_III_RAW_ISO_100_nocrop_nodual.CR3,1,1,8d4459c66103b327f8ab430ce3bee82ead9e423ee943e4dc7a1ad02bf828a1df,1,1,,5568,3708,RGGB
+❌,Canon EOS-1Ds,TIF,Canon/EOS-1Ds/IMG-27780.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1Ds Mark II,CR2,Canon/EOS-1Ds Mark II/RAW_CANON_1DSM2.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon EOS-1Ds Mark III,CR2,Canon/EOS-1Ds Mark III/RAW_CANON_1DSM3.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon IXUS900Ti,CRW,Canon/Canon IXUS900Ti/RAW_CANON_IXUS900TI_CHDK.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon IXY 220F,CRW,Canon/IXY 220F/canon_ixy_220f.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon IXY 220F,DNG,Canon/IXY 220F/canon_ixy_220f.DNG,1,1,9d65bceda4148d0258d3505b7e63d1841e098ba391b1da1b9c1e25ba7da6d9e6,1,1,,4784,3516,RGGB
 ✅,Canon PowerShot A3100 IS,DNG,Canon/Canon PowerShot A3100 IS/CRW_3338.DNG,1,1,869857ffb0399ee24db55718971e9de790f57c707d460b33ae8725d524f15457,1,1,,4080,3048,RGGB
 ✅,Canon PowerShot A3200 IS,DNG,Canon/PowerShot A3200 IS/RAW_CANON_POWERSHOT_A3200IS_CHDK.DNG,1,1,a028bbc7e4281a7b6bfb19999ecc78bcaf8f0602115d1151acac9ee81f4c2176,1,1,,4416,3296,RGGB
 ✅,Canon PowerShot A3300 IS,DNG,Canon/Canon PowerShot A3300 IS/CRW_1140.DNG,1,1,dee97924ddeb9aadc8d86f5c6e298f5a6ac781d912e1b98117e539a64b8b89c9,1,1,,4704,3504,RGGB
 ✅,Canon PowerShot A410,DNG,Canon/Canon PowerShot A410/CANON_A410_CHDK_CRW_0741.DNG,1,1,28326d93e37750aa65b641503af1b825a9d25a7ff12a3e7bc4a11a65e3f79097,1,1,,2144,1560,RGGB
+❌,Canon PowerShot A480,CR2,Canon/PowerShot A480/CRW_0007.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot A480,DNG,Canon/Canon PowerShot A480/CRW_0010.DNG,1,1,19d388b4718af0e7d8a4fb1128c2d8b4fc287e5417113bba69c82da46c617137,1,1,,3720,2772,RGGB
+❌,Canon PowerShot A540,CRW,Canon/Canon PowerShot A540/CANON_A540_CHDK_CRW_0015.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot A540,DNG,Canon/Canon PowerShot A540/CANON_A540_CHDK_CRW_0010.DNG,1,1,725f62207a78bab4e32abee9e779d1c925c169dc5752b9c7ec44e9ade861b517,1,1,,2888,2136,RGGB
+❌,Canon PowerShot A550,CRW,Canon/PowerShot A550/CRW_0007.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot A550,DNG,Canon/Canon PowerShot A550/CRW_0006.DNG,1,1,0ae2300345fbb417b45e2d91525957773507b02d9db1bd759f440bc6c0f6fbb7,1,1,,3152,2340,RGGB
 ✅,Canon PowerShot A560,DNG,Canon/Canon PowerShot A560/IMG_2641.DNG,1,1,dc03d7c5cb8dfa4a3648b9b1522f2939d8af960e41646736bf436ab91b9320af,1,1,,3152,2340,RGGB
 ✅,Canon PowerShot A570 IS,DNG,Canon/Canon PowerShot A570 IS/CRW_1918.DNG,1,1,97d2a1585dae48b465368c83eca08029add4495b4ed07e08828ad15b90581a17,1,1,,3152,2340,RGGB
+❌,Canon PowerShot A610,CRW,Canon/Canon PowerShot A610/IMG_1574.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot A620,CRW,Canon/Canon PowerShot A620/Canon_PowerShot_A620_CHDK_1.0.0.1892.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot A630,CRW,Canon/Canon PowerShot A630/RAW_CANON_POWERSHOT_A630_CHDK.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot A640,DNG,Canon/Canon PowerShot A640/CRW_0440.DNG,1,1,ce7559ccb717c8c3925ffbbe4fe96887f24f6faa6ff520e575d5cdda277c213d,1,1,,3736,2772,RGGB
+❌,Canon PowerShot A710 IS,CRW,Canon/Canon PowerShot A710 IS/RAW_CANON_A710.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot A720 IS,DNG,Canon/PowerShot A720 IS/IMG_8329.DNG,1,1,67c4f9fc44d49a10af19cafc35655c89265b3adf377fea0aa3c7a29607c85384,1,1,,3336,2480,GBRG
+❌,Canon PowerShot D10,CRW,Canon/PowerShot D10/CANON_D10_CHDK_CRW_0627.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot D10,DNG,Canon/Canon PowerShot D10/CANON_D10_CHDK_CRW_0626.DNG,1,1,e0b77c54d3c19a94f1eca53c0ce9afb3c467787054d527a47bd0d7d160c492f1,1,1,,4104,3048,GBRG
+❌,Canon PowerShot ELPH 130 IS,CRW,Canon/Canon PowerShot ELPH 130 IS/CANON_IXUS140_ELPH130_CHDK_CRW_5646.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot ELPH 130 IS,DNG,Canon/Canon PowerShot ELPH 130 IS/CANON_IXUS140_ELPH130_CHDK_CRW_5645.DNG,1,1,d6f10fc1d5a2f82c726442d59dc1552a5c46eb676f32bbb5cfca594da7f5f963,1,1,,4704,3504,GBRG
 ✅,Canon PowerShot ELPH 160,DNG,Canon/Canon PowerShot ELPH 160/RAW_CANON_POWERSHOT_IXUS160_CHDK.DNG,1,1,c13c144cb7a579b3faaeed8ad6de01fadc0cd984a6f013a750cc22be0d12e824,1,1,,5248,3920,RGGB
+❌,Canon PowerShot ELPH 180,CRW,Canon/Canon PowerShot ELPH 180/CANON_IXUS175_ELPH180_CHDK_CRW_0195.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot ELPH 180,DNG,Canon/Canon PowerShot ELPH 180/CANON_IXUS175_ELPH180_CHDK_CRW_0194.DNG,1,1,2911881543ed5c4e607823f70ff133dd97256a3d83238c53aadc2b5fa65306ee,1,1,,5248,3920,RGGB
 ✅,Canon PowerShot ELPH 180,DNG,Canon/Canon PowerShot ELPH 180/CRW_0334.DNG,1,1,46cd1f3729edddc4114d91f001cd69ca1549e23fd29bb62b678930d6f8a06330,1,1,,5248,3920,RGGB
 ✅,Canon PowerShot ELPH 310 HS,DNG,Canon/Canon PowerShot ELPH 310 HS/CRW_9720.DNG,1,1,8e8d95427fab950a7b5201d87eaf684fd8a18feebee2a525570054fef5d80286,1,1,,4168,3060,RGGB
+❌,Canon PowerShot G1,CRW,Canon/PowerShot G1/crw_1693.crw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G1 X,CR2,Canon/PowerShot G1 X/IMG_0004.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot G1 X,DNG,Canon/PowerShot G1 X/CRW_0004.DNG,1,1,cce5ad24cc43b449df645b29a1ffc52404cd6a8298401821a1bb74de5b5a2b8e,1,1,,4496,3366,RGGB
+❌,Canon PowerShot G1 X Mark II,CR2,Canon/PowerShot G1 X Mark II/IMG_1986.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G1 X Mark III,CR2,Canon/PowerShot G1 X Mark III/20180719T101829IMG_0246.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G10,CR2,Canon/PowerShot G10/RAW_CANON_G10.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G11,CR2,Canon/PowerShot G11/IMG_3310.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G12,CR2,Canon/PowerShot G12/2017_09_20_img_1146.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G15,CR2,Canon/PowerShot G15/2016-04-28_IMG_1712.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G16,CR2,Canon/PowerShot G16/IMG_0963.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G2,CRW,Canon/PowerShot G2/RAW_CANON_G2.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G3,CRW,Canon/PowerShot G3/RAW_CANON_G3.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G3 X,CR2,Canon/PowerShot G3 X/IMG_5395.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G5,CRW,Canon/PowerShot G5/105_0506.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G5 X,CR2,Canon/PowerShot G5 X/IMG_2240.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_CRAW_(16:9).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_CRAW_(1:1).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_CRAW_(3:2).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -155,27 +308,63 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_RAW_(1:1).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_RAW_(3:2).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon PowerShot G5 X Mark II,CR3,Canon/PowerShot G5 X Mark II/Canon_-_PowerShot_G5_X_Mark_II_-_RAW_(4:3).CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G6,CRW,Canon/PowerShot G6/CRW_2097.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G7 X,CR2,Canon/PowerShot G7 X/CANON_G7X_IMG_6738.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G7 X,CRW,Canon/PowerShot G7 X/CANON_G7X_CHDK_CRW_6739.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot G7 X,DNG,Canon/PowerShot G7 X/CANON_G7X_CHDK_CRW_6740.DNG,1,1,835589fea6836b07a069058ac11cf3c9c595edbd354483da130de9a932213a86,1,1,,5632,3710,RGGB
+❌,Canon PowerShot G7 X Mark II,CR2,Canon/PowerShot G7 X Mark II/IMG_0166.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon PowerShot G7 X Mark III,CR3,Canon/PowerShot G7 X Mark III/IMG_0253.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon PowerShot G7 X Mark III,CR3,Canon/PowerShot G7 X Mark III/IMG_0254.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G9,CR2,Canon/PowerShot G9/IMG_1188.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G9 X,CR2,Canon/PowerShot G9 X/IMG_3301.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot G9 X Mark II,CR2,Canon/PowerShot G9 X Mark II/IMG_1066.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot Pro1,CRW,Canon/PowerShot Pro1/RAW_CANON_PRO1_ARGB.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot Pro70,CRW,Canon/PowerShot Pro70/RAW_CANON_PRO70_SRGB.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S100,CR2,Canon/PowerShot S100/IMG_1340.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S100,CRW,Canon/PowerShot S100/CRW_1376.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot S100,DNG,Canon/PowerShot S100/CRW_1369.DNG,1,1,93d53a9f54cda0c157824c454d39de36b9db39c7dc4a0a0e25ccb4e622579cbc,1,1,,4160,3124,GBRG
+❌,Canon PowerShot S100V,CR2,Canon/Canon PowerShot S100V/Canon_PS-S100V_FW1.0.2.0.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S110,CR2,Canon/PowerShot S110/IMG_1218.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S120,CR2,Canon/PowerShot S120/IMG_1995.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S2 IS,CR2,Canon/Canon PowerShot S2 IS/IMG_1107.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S2 IS,CRW,Canon/Canon PowerShot S2 IS/RAW_CANON_S2IS.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot S2 IS,DNG,Canon/Canon PowerShot S2 IS/IMG_1739.DNG,1,1,6fe4cf25142b090422aa12454d277440ec0c6d06d43fc592ebbcdce67dea77db,1,1,,2672,1968,RGGB
+❌,Canon PowerShot S30,CRW,Canon/PowerShot S30/RAW_CANON_S30.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S3IS,CRW,Canon/Canon PowerShot S3IS/CRW_8760.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot S3IS,DNG,Canon/Canon PowerShot S3IS/CRW_8531.DNG,1,1,b3086ba6d9f5e4f05f4c634c035f7febb9fa71b5be5bddadb7bdc92ebfc720c6,1,1,,2888,2136,RGGB
+❌,Canon PowerShot S40,CRW,Canon/PowerShot S40/RAW_CANON_S40.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S45,CRW,Canon/PowerShot S45/RAW_CANON_S45.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S5 IS,CRW,Canon/Canon PowerShot S5 IS/RAW_CANON_S5IS.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S50,CRW,Canon/PowerShot S50/RAW_CANON_S50.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S60,CRW,Canon/PowerShot S60/RAW_CANON_S60_SRGB.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S70,CRW,Canon/PowerShot S70/RAW_CANON_S70_SRGB.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S90,CR2,Canon/PowerShot S90/RAW_CANON_S90.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot S95,CR2,Canon/PowerShot S95/img_1866.cr2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SD450,DNG,Canon/PowerShot SD450/RAW_CANON_POWERSHOT_SD450_CHDK_V0.9.7-725.DNG,1,1,584be844769ee5e20c8849333cd7cb060521cf725d82ace0d3e7572e189ae5a7,1,1,,2672,1968,RGGB
+❌,Canon PowerShot SD750,CRW,Canon/Canon PowerShot SD750/RAW_CANON_SD750.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot SX1 IS,CR2,Canon/PowerShot SX1 IS/RAW_CANON_POWERSHOT_SX1_IS.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX10 IS,DNG,Canon/PowerShot SX10 IS/CRW_1627.DNG,1,1,81b1e9ea3696d98bdfde3d5acefb996a9d94bf4cdb083e0a6f32690c23e31a9c,1,1,,3720,2772,RGGB
 ✅,Canon PowerShot SX100 IS,DNG,Canon/PowerShot SX100 IS/CRW_0964_01.DNG,1,1,2af1bbbb5bc150dc5bf3fbf1a711cd21127248009d15104968aeba134cd9bb6e,1,1,,3336,2480,GBRG
+❌,Canon PowerShot SX110 IS,CRW,Canon/PowerShot SX110 IS/CRW_5178.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX130 IS,DNG,Canon/PowerShot SX130 IS/CRW_8815.DNG,1,1,e20bb68759df225f344da8b2b51ba1447b13cd8e615c0db109d9318efe98b694,1,1,,4080,3048,RGGB
+❌,Canon PowerShot SX160 IS,CRW,Canon/PowerShot SX160 IS/CANON_SX160IS_CHDK_CRW_5151.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX160 IS,DNG,Canon/PowerShot SX160 IS/CANON_SX160IS_CHDK_CRW_5152.DNG,1,1,15157187b8e38c904019ac282cc1eeaf72a8ea42b08d247d38501a9684c4e63f,1,1,,4704,3504,GBRG
+❌,Canon PowerShot SX20 IS,CRW,Canon/PowerShot SX20 IS/CRW_6488.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX20 IS,DNG,Canon/PowerShot SX20 IS/CRW_6489.DNG,1,1,0e9e345ab09d92aa15f5242eaf7046f184846ed26c2b00b6d9868b2e5f4da543,1,1,,4080,3048,RGGB
+❌,Canon PowerShot SX220 HS,CRW,Canon/PowerShot SX220 HS/CRW_7732.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX220 HS,DNG,Canon/PowerShot SX220 HS/CRW_7733.DNG,1,1,bd8f70d6ad069d97041599bf2db829ffe0a27812d7bd63768b98450a27c51c54,1,1,,4168,3060,RGGB
 ✅,Canon PowerShot SX230 HS,DNG,Canon/PowerShot SX230 HS/CRW_5894.DNG,1,1,f708ee2421c65d07b6fb6831142d46c8f61f60ebc218df320a20a6532791512d,1,1,,4168,3060,RGGB
 ✅,Canon PowerShot SX240 HS,DNG,Canon/PowerShot SX240 HS/CRW_5797.DNG,1,1,cd6571605cc475ead75d37accfe627e7ca27218330bb3f7212b43876acc6ff5b,1,1,,4176,3060,RGGB
+❌,Canon PowerShot SX260 HS,CRW,Canon/PowerShot SX260 HS/CRW_3026.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX260 HS,DNG,Canon/PowerShot SX260 HS/CRW_3027.DNG,1,1,7e32bf212f1647e688b5b7e1801910399eaf0ce58081a63eae063cd9b0fb3832,1,1,,4176,3060,RGGB
 ✅,Canon PowerShot SX30 IS,DNG,Canon/PowerShot SX30 IS/CRW_0763.DNG,1,1,7e2e2fe12f927876a57530e4cd1d5200cddee242439ac48cdfcac7c01e061f40,1,1,,4464,3276,GBRG
+❌,Canon PowerShot SX40 HS,CR2,Canon/PowerShot SX40 HS/CRW_6036.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX40 HS,DNG,Canon/PowerShot SX40 HS/CRW_6037.DNG,1,1,abfd1b79e1271d650df852dc160db6d72d87582d339c39ee125c6f6bea064c50,1,1,,4176,3060,RGGB
+❌,Canon PowerShot SX50 HS,CR2,Canon/PowerShot SX50 HS/IMG_4059.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX50 HS,DNG,Canon/PowerShot SX50 HS/CRW_4061.DNG,1,1,b27db38a70f94c3baaba9fc0b560045ae0406f5e7597ce7ee505d4ec60d23fed,1,1,,4176,3062,RGGB
 ✅,Canon PowerShot SX510 HS,DNG,Canon/PowerShot SX510 HS/RAW_CANON_POWERSHOT_SX510HS.DNG,1,1,54456b9685eb4be4dfb2b61f0e852a3092f4c1691de1ab629e95d7d8264f988e,1,1,,4168,3062,RGGB
 ✅,Canon PowerShot SX530 HS,DNG,Canon/PowerShot SX530 HS/CRW_4494.DNG,1,1,fa574548ab0e51ae02c2754c53f7162b2e9bbf057a5b72ebd0e7022c9550383a,1,1,,4768,3516,RGGB
+❌,Canon PowerShot SX60 HS,CR2,Canon/PowerShot SX60 HS/Canon-SX60HS-Canon-RAW.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX60 HS,DNG,Canon/PowerShot SX60 HS/Canon-SX60HS-CHDK-RAW.DNG,1,1,2948351e5bb26495b78aef907bccfa604122d03b6bd517b02106cc6624c1fdcc,1,1,,4768,3516,RGGB
 ❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1000.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1001.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -185,8 +374,18 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1005.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1006.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon PowerShot SX70 HS,CR3,Canon/PowerShot SX70 HS/IMG_1007.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon PowerShot SX710 HS,CRW,Canon/PowerShot SX710 HS/CANON_SX710HS_CHDK_CRW_0717.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon PowerShot SX710 HS,DNG,Canon/PowerShot SX710 HS/CANON_SX710HS_CHDK_CRW_0716.DNG,1,1,d5e71361651affa5a0fbab82af6cf358248de72af41a69aaef15b90dabd1dee3,1,1,,5344,3950,RGGB
 ❌,Canon PowerShot V1,CR3,Canon/Canon PowerShot V1/IMG_1225.CR3,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon Powershot A620,CRW,Canon/Powershot A620/Portulaca_1216.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon Powershot A640,CRW,Canon/Powershot A640/CRW_0441.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon Powershot A650,CRW,Canon/Canon Powershot A650/RAW_CANON_POWERSHOT_A650_CHDK.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon Powershot A720IS,CRW,Canon/Powershot A720IS/IMG_2115.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon Poweshot S3IS,CRW,Canon/Poweshot S3IS/RAW_CANON_S3IS.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon SX150IS,CR2,Canon/SX150IS/CRW_1762.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Canon ixus 75,CRW,Canon/ixus 75/2008-06-10_Moscow_0012.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Casio QV-11,CAM,Casio/QV-11/QV-11_01.cam,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Casio QV-5000SX,CAM,Casio/QV-5000SX/QV-5000_01.cam,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,DJI FC220,DNG,DJI/FC220/DJI_0004.DNG,1,1,bff5114dbaafd125ad080f99f4519ac5f45ceb020eb67ffcaee42d1fdc1330da,1,1,,4000,3000,RGGB
 ✅,DJI FC350,DNG,DJI/FC350/DJI_0040.DNG,1,1,6c58a1c70fc07af1ee95862121521baf6c3fa1626d5426d2f1781285a4d3c83e,1,1,,4000,2250,RGGB
 ❌,DJI FC4382,DNG,DJI/FC4382/DJI_20250506184749_0011_D.DNG,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
@@ -195,6 +394,9 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,DJI FC7303,DNG,DJI/FC7303/DJI_0765.DNG,1,1,65106b24a3bd290b9fdcbb4db5d0e1da1a78a6ad1911f1b3a2359e1760bff5a9,1,1,,4000,2250,RGGB
 ❌,DJI FC9287,DNG,DJI/FC9287/DJI_20250528104510_0025_D.DNG,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,DJI Osmo Action,DNG,DJI/DJI Osmo Action/DJI_0254.DNG,1,1,aa58d661f8bb886e96d891678f50ad69e4918adbdbe22ed442f1af0a617830d1,1,1,,4000,3000,RGGB
+❌,Epson R-D1,ERF,Epson/R-D1/_EPS0672.ERF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Epson R-D1s,ERF,Epson/R-D1s/EPSN3575.ERF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Epson R-D1x,ERF,Epson/R-D1x/_EPS1919.ERF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Eyedeas E1,DNG,Eyedeas/E1/EYED0651.DNG,1,1,90b0ae78444205f3b7f9f0c60a9c431cc79dd8ca3457945094178eceacacf4ef,1,1,,4640,3480,GRBG
 ✅,FIMI X8SE,DNG,FIMI/X8SE/IMG_20180808_081040_0001.DNG,1,1,4f2eb054e2ec025126c8225ee60cdd7bb2c8aa7ada72b70351ce229893c7181a,1,1,,3840,2160,RGGB
 ✅,FUJIFILM GFX100RF,RAF,FUJIFILM/GFX100RF/DSCF0075.RAF,1,1,effea9199e4f678771ba457e254b58c01deb06d8fafc9a6dc563970d72673d50,1,1,,11808,8754,RGGB
@@ -349,6 +551,28 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Fujifilm XF10,RAF,Fujifilm/XF10/DSCF6466.RAF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Fujifilm XQ1,RAF,Fujifilm/XQ1/DSCF2004.RAF,1,1,48637cf312768262f8eaaa57d7e174ca6a3b2551649c7643147081d7f4c38c54,0,0,process_metadata:unsupported,4096,3012,XTrans-6x6
 ❌,Fujifilm XQ2,RAF,Fujifilm/XQ2/DSCF4186.RAF,1,1,3c63e155b79b90f1097514d11e92bdaa488581c1630c5f73ee8f2091142e3b04,0,0,process_metadata:unsupported,4096,3012,XTrans-6x6
+❌,GITUP GIT2,RAW,GITUP/GIT2/GITUP-GIT2-16:9.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GITUP GIT2,RAW,GITUP/GIT2/GITUP-GIT2-4:3.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GITUP GIT2P,RAW,GITUP/GIT2P/git2p_169.raw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GITUP GIT2P,RAW,GITUP/GIT2P/git2p_43.raw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Gitup G3 Duo 170,RAW,Gitup/G3 Duo 170/Gitup_G3_duo_170°.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro FUSION,GPR,GoPro/FUSION/GPBK1322.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro FUSION,GPR,GoPro/FUSION/GPFR1322.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO10 Black,GPR,GoPro/HERO10 Black/GOPR0018.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO10 Black,GPR,GoPro/HERO10 Black/GOPR0119.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO11 Black,GPR,GoPro/HERO11 Black/GOPR0123.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO5 Black,GPR,GoPro/HERO5 Black/GOPR0020.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO5 Black,GPR,GoPro/HERO5 Black/GOPR2435.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO6 Black,GPR,GoPro/HERO6 Black/GOPR8921.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO6 Black,GPR,GoPro/HERO6 Black/GOPR9172.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO6 Black,GPR,GoPro/HERO6 Black/GOPR9231.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO7 Black,GPR,GoPro/HERO7 Black/GOPR0055.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO7 Black,GPR,GoPro/HERO7 Black/GOPR0062.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO7 Black,GPR,GoPro/HERO7 Black/GOPR0476.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO7 Black,GPR,GoPro/HERO7 Black/GOPR9231.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO8 Black,GPR,GoPro/HERO8 Black/GOPR0009.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO8 Black,GPR,GoPro/HERO8 Black/GOPR5797.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,GoPro HERO9 Black,GPR,GoPro/HERO9 Black/GOPR0017.GPR,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Google Pixel 2 XL,DNG,Google/Pixel 2 XL/IMG_20180109_080629.dng,1,1,2031743911aef2401d311342a0be2b182fdd2670c219db1695a1cce2a9c9ce43,1,1,,4032,3032,BGGR
 ✅,Google Pixel 3a,DNG,Google/Pixel 3a/IMG_20190918_164153.dng,1,1,f7e71773dfc851379dda56e961aec92d892e0323b02d5393dc320b8dd3f51cc3,1,1,,4032,3024,BGGR
 ✅,Google Pixel 4 XL,DNG,Google/Pixel 4 XL/IMG_20191023_125156.dng,1,1,c8fa28a215d8e44f2d78b403ca254c216c6e10ddb2d86a0a526c6650cd013614,1,1,,3700,2774,RGGB
@@ -380,20 +604,64 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Hasselblad CF132,3FR,Hasselblad/CF132/RAW_HASSELBLAD_IXPRESS_CF132.3FR,1,1,ec80e723e42ba9ea62bef0497239bd77d8f5b107a318f64cdf2281949d20253e,1,1,,4096,5456,RGGB
 ✅,Hasselblad CFV,3FR,Hasselblad/CFV/RAW_HASSELBLAD_CFV.3FR,1,1,00f2ebd6f78fbf3736fb1e818e24bb56e9c746fad020e775006b2634a811ba0f,1,1,,4096,4096,RGGB
 ✅,Hasselblad CFV 100CElectronic Shutter,3FR,Hasselblad/CFV 100CElectronic Shutter/B0003499.3FR,1,1,847f657cf85f9e40a35bdc98a5f1c3fab31418af29bcfa04e101affa2b6e4c82,1,1,,11904,8842,RGGB
+❌,Hasselblad CFV-50,FFF,Hasselblad/CFV-50/20170401_CCSG_on_Hasselblad_CFV-50-0002297.fff,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Hasselblad CFV-50c,3FR,Hasselblad/CFV-50c/20200215_BERLIN_OldNew_WestHafen_B0000420.3FR,1,1,4315ab0f3b159e407313cd7c11e27ff38619ac6da566e8e50c4b5c2863e2de72,1,1,,8374,6304,RGGB
+❌,Hasselblad CFV-50c,FFF,Hasselblad/CFV-50c/20200215_BERLIN_OldNew_WestHafen_B0000420.fff,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Hasselblad CFV-50c,FFF,Hasselblad/CFV-50c/B0002648.fff,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Hasselblad H3D,3FR,Hasselblad/H3D/A9391120.3FR,1,1,d0d67bfbfcdb5129556729c616195e2ceab346363b1a7fc869d68bd4b1587cb1,1,1,,7262,5456,RGGB
 ✅,Hasselblad H4D,3FR,Hasselblad/Hasselblad H4D/A0000902.3FR,1,1,bb3dfdcac0c7dda6ac9a2ed96ae730b46b31696271927fe7f21e7fd8a0460930,1,1,,9044,6732,RGGB
+❌,Hasselblad H4D-40,FFF,Hasselblad/Hasselblad H4D-40/Job_3583.fff,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Hasselblad H4D-50,FFF,Hasselblad/H4D-50/2-9-2017_street_0012.fff,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Hasselblad H5D-40,FFF,Hasselblad/H5D-40/20151114_CCSG_on_Hasselblad_H5D40-0726.fff,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Hasselblad H5D-50c,FFF,Hasselblad/H5D-50c/20151114_CCSG_on_Hasselblad_H5D50c-0017.fff,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Hasselblad H6D-100cMS,FFF,Hasselblad/Hasselblad H6D-100cMS/h6d400c_1shot_0007.fff,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Hasselblad L1D-20c,DNG,Hasselblad/L1D-20c/DJI_0017.DNG,1,1,ffd6227c7410f0fa356fe0b8ea3e277984e3c40d8b10cc0a47077f02d56f54f6,1,1,,5568,3648,RGGB
 ❌,Hasselblad L2D-20c,DNG,Hasselblad/L2D-20c/DJI_0023.DNG,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,Hasselblad X1D,3FR,Hasselblad/X1D/B9999910.3FR,1,1,d2bb478de27dec7fd8975c3d327ebfcd5fc1bfccb02b5a0eac4a9412fa300e2a,1,1,,8384,6304,RGGB
 ✅,Hasselblad X1D II 50C,3FR,Hasselblad/X1D II 50C/MKW_20200429_0004569.3FR,1,1,697bcdb51cfda3809717d4ba47bc5247d9b9c12d3066d4f9a85cbec0451b8136,1,1,,8384,6304,RGGB
+❌,Hasselblad X1D II 50C,FFF,Hasselblad/X1D II 50C/x1d-II-sample-02.fff,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Hasselblad X2D 100C,3FR,Hasselblad/X2D 100C/B0000079.3FR,1,1,880249e7248e0f64f228adb524a916a843e47640ad1fb9438aa864f319f444b5,1,1,,11904,8842,RGGB
 ✅,Hasselblad X2D 100C,3FR,Hasselblad/X2D 100C/B0000080.3FR,1,1,be216a923fca51b39557692d2da39af35bc681c7ffc9a78b3f4518411a969d8d,1,1,,11904,8842,RGGB
+❌,Hasselblad X2D 100C,FFF,Hasselblad/X2D 100C/Job_0079.fff,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Hasselblad X2D 100C,FFF,Hasselblad/X2D 100C/Job_0080.fff,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Hasselblad cfv 50C II,3FR,Hasselblad/cfv 50C II/B9979382.3FR,1,1,866ff8238ba1a472681b5a832f330d5570d8ed2b37daf7e1502e4a17bf2f99b6,1,1,,8384,6304,RGGB
+❌,ImBack ImB35mm,RAW,ImBack/ImB35mm/ttx.raw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,KODAK P712 ZOOM DIGITAL CAMERA,KDC,Kodak/KODAK P712 ZOOM DIGITAL CAMERA/100_4343.KDC,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,KONICA MINOLTA ALPHA SWEET DIGITAL,MRW,KONICA MINOLTA/ALPHA SWEET DIGITAL/PICT1038.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,KONICA MINOLTA ALPHA-7 DIGITAL,MRW,KONICA MINOLTA/ALPHA-7 DIGITAL/PICT0108.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,KanDao QooCam,DNG,KanDao/QooCam/KD3D_20190310_123825_000001.DNG,1,1,a06f37977c4a58774e70e33f449b2b47ef02f8b53f5c314ef5b974591be19d41,1,1,,4320,2160,RGGB
 ❌,KanDao QooCam,DNG,KanDao/QooCam/KDRaw_Q360_20190310_125715_000001.dng,1,1,c3c0b893074377d895342a2850c75147537c4113e35798ec66227c6b1b96fc56,0,0,process_metadata:backend,4320,2160,RGGB
 ✅,KanDao QooCam,DNG,KanDao/QooCam/Q360_20190310_123437_000001.DNG,1,1,91655c88471682f12c2037d0c685d3591f5a25bfb0254942a32cc2693468ebf3,1,1,,4320,2160,RGGB
 ✅,Kandao QooCam 8K,DNG,Kandao/QooCam 8K/Q360_20210330_100513_00000D.DNG,1,1,8faf4073a3d693571cd1949e81182430ed83a98da146aa7147e0e80eb26df6e1,1,1,,3840,7680,GBRG
+❌,Kodak C330,RAW,Kodak/Kodak C330/RAW_KODAK_C330_FORMAT420_YRGB.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak C330,RAW,Kodak/Kodak C330/RAW_KODAK_C330_FORMAT422_YRGB.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak C330,RAW,Kodak/Kodak C330/RAW_KODAK_C330_FORMAT_NONE_YRGB.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak C603  Kodak C643,RAW,Kodak/Kodak C603  Kodak C643/KODAK_C603_C643_FORMAT_422_CCDI0001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak C603  Kodak C643,RAW,Kodak/Kodak C603  Kodak C643/KODAK_C603_C643_FORMAT_422_CFAI0001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak C603  Kodak C643,RAW,Kodak/Kodak C603  Kodak C643/KODAK_C603_C643_FORMAT_NONE_CCDI0001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak C603  Kodak C643,RAW,Kodak/Kodak C603  Kodak C643/KODAK_C603_C643_FORMAT_NONE_CFAI0001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak C603  Kodak C643,RAW,Kodak/Kodak C603  Kodak C643/KODAK_C603_C643_FORMAT_NONE_YRGB0001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak C603  Kodak C643,RAW,Kodak/Kodak C603  Kodak C643/KODAK_C603_C643_Format_420_CCDI0001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak C603  Kodak C643,RAW,Kodak/Kodak C603  Kodak C643/KODAK_C603_C643_Format_420_CFAI0001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak C603  Kodak C643,RAW,Kodak/Kodak C603  Kodak C643/KODAK_C603_C643_Format_420_YRGB0001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DC120,KDC,Kodak/DC120/P000439.kdc,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DC120,KDC,Kodak/DC120/RAW_KODAK_DC120.KDC,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DC120,KDC,Kodak/DC120/RAW_KODAK_DC120_WITH_JPEG.KDC,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DC50,KDC,Kodak/DC50/RAW_KODAK_DC50.KDC,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DCS Pro 14N,DCR,Kodak/DCS Pro 14N/D4C50031.DCR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DCS Pro 14nx,DCR,Kodak/DCS Pro 14nx/D7465857.DCR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DCS Pro SLRc,DCR,Kodak/DCS Pro SLRc/F3G93631.DCR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DCS Pro SLRn,DCR,Kodak/DCS Pro SLRn/G3X25544.DCR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DCS460D,TIF,Kodak/DCS460D/RAW_KODAK_DCS460D_FILEVERSION_3.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DCS520C,TIF,Kodak/DCS520C/23HK3627.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DCS560C,TIF,Kodak/DCS560C/RAW_KODAK_DCS560C.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak DCS760C,DCR,Kodak/DCS760C/86L57188.DCR,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak EOS DCS 1,TIF,Kodak/EOS DCS 1/RAW_CANON_DCS1.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak EOS DCS 3,TIF,Kodak/EOS DCS 3/DCS00240.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak EasyShare Z981,KDC,Kodak/EasyShare Z981/100_1548.KDC,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak EasyShare Z990,KDC,Kodak/EasyShare Z990/100_0891.KDC,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak P880,KDC,Kodak/P880/100_3710.KDC,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Kodak Z1015 IS,KDC,Kodak/Z1015 IS/RAW_KODAK_EASYSHARE_Z1015-IS.KDC,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,LEICA CAMERA AG LEICA SL2,DNG,LEICA CAMERA AG/LEICA SL2/L1020010.DNG,1,1,8b60c80a26a4b2d89efb60a867ebc1ca02c3cd3ed972a45856b4093adb74f9b9,1,1,,8424,5632,GBRG
 ❌,LG D855,DNG,LG/D855/IMG_2017_07_16_13_10_47.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,LG H815,DNG,LG/H815/20161227_150823.dng,1,1,13f89ae5526e4fdd201d46fde7eccf0abae0ea8244138fe5b1e024cd4627219a,1,1,,5312,2988,BGGR
@@ -404,12 +672,33 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,LG Nexus 5X,DNG,LG/Nexus 5X/IMG_20170214_170637_637.dng,1,1,f4e253036068043e7346efcb1a3e121ca367f24d8880645ca588474338578e27,1,1,,4080,3028,RGGB
 ✅,LG US996,DNG,LG/US996/IMG_20170821_025047.dng,1,1,2128b5d0fd34270edc57f38c1ba7f10d2e98d01516b76a784a421a31a543864f,1,1,,4656,3492,RGGB
 ✅,LG VS995,DNG,LG/VS995/0313171232.dng,1,1,fef4584c4ae88bada0b0d0e72b417435da000849a80bb2e80ed32b0ba66698a3,1,1,,4656,3492,RGGB
+❌,Leaf AFi-II 12,MOS,Leaf/AFi-II 12/L_000859.mos,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leaf Aptus 22,MOS,Leaf/Aptus 22/L_003172.mos,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leaf Aptus 22,MOS,Leaf/Aptus 22/L_003173.mos,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leaf Aptus 75,MOS,Leaf/Aptus 75/RAW_APTUS_75.MOS,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Leaf Credo 40,IIQ,Leaf/Credo 40/0001_20_32.IIQ,1,1,f3aa8b263be13bac489ecd95c9d53cad1096a2ba0c91f955c4d48683808b02d2,1,1,,7372,5536,RGGB
 ✅,Leaf Credo 40,IIQ,Leaf/Credo 40/0002_20_32.IIQ,1,1,2f7e0e618a192764f782885c510287e1a44fb738f16f01d16663aa27cc5528bc,1,1,,7372,5536,RGGB
 ✅,Leaf Credo 40,IIQ,Leaf/Credo 40/0008_20_23.IIQ,1,1,b175bd004bdf3502cbe2717ab3e054b890eade993017641ac15be71135d4290b,1,1,,7372,5536,RGGB
 ✅,Leaf Credo 40,IIQ,Leaf/Credo 40/CF003914.IIQ,1,1,69d69b5ea4baa388d40667350a7d39dd0ed958fb6835600b143e31cf75f482f0,1,1,,7372,5536,RGGB
+❌,Leica C (Typ 112),RWL,Leica/C (Typ 112)/L1000006.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica C (Typ 112),RWL,Leica/C (Typ 112)/Leica_-_C_(Typ_112)-_3:2.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica C-Lux,RWL,Leica/C-Lux/_1001076.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Leica CL,DNG,Leica/CL/L1080510_2018_CL-35-135-Chateau_Thy__Chateau_Ham.DNG,1,1,1db0ec46c102ea54c26215ac80ec90987e22f2bca9ea8c4f08ea6486e31d47b4,1,1,,6120,4016,GBRG
 ✅,Leica Camera AG LEICA M10-R,DNG,Leica Camera AG/LEICA M10-R/M10R0324.DNG,1,1,2f4b45b38c44476810197a3df5c737e896dcc780a835db67dc6c003fe8cc6f9d,1,1,,7872,5208,GBRG
+❌,Leica D-LUX (Typ 109),RWL,Leica/D-LUX (Typ 109)/pic_1-1.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-LUX (Typ 109),RWL,Leica/D-LUX (Typ 109)/pic_16-9.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-LUX (Typ 109),RWL,Leica/D-LUX (Typ 109)/pic_3-2.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-LUX (Typ 109),RWL,Leica/D-LUX (Typ 109)/pic_4-3.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-LUX 3,RAW,Leica/Leica D-LUX 3/RAW_LEICA_DLUX3.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-LUX 4,RWL,Leica/D-LUX 4/L1010119.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-LUX 5,RWL,Leica/D-LUX 5/L1010451.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-LUX 5,RWL,Leica/D-LUX 5/L1010452.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-LUX 5,RWL,Leica/D-LUX 5/L1010453.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-LUX 5,RWL,Leica/D-LUX 5/L1010454.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-LUX 6,RWL,Leica/D-LUX 6/L1010139.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica D-Lux 7,RWL,Leica/D-Lux 7/L1023208.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica Digilux 2,RAW,Leica/Leica Digilux 2/RAW_LEICA_DIGILUX2_SRGB.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica Digilux 3,RAW,Leica/Digilux 3/L1050624.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Leica M (Typ 240),DNG,Leica/M (Typ 240)/ADG_RPUsubmit_compressed_L1006373.DNG,1,1,62f46af3f13dab7b2ef3c43df323aeff112e884cf919817d4f843d9799f5b60b,1,1,,5984,4000,BGGR
 ✅,Leica M (Typ 240),DNG,Leica/M (Typ 240)/ADG_RPUsubmit_uncompressed_L1006374.DNG,1,1,640a476d0d0ce1a37361ac990efa77816940544fe0d2edeff3ff251f29f38c0f,1,1,,5984,4000,BGGR
 ❌,Leica M Monochrom,DNG,Leica/M Monochrom/L1000622.DNG,1,1,65fcfe0b0ea234e879a215f11f76f2f6e466e622cce9189ed2e7642f2ee2c640,0,0,process_metadata:backend,5216,3472,unknown
@@ -421,10 +710,33 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Leica Q (Typ 116),DNG,Leica/Q (Typ 116)/L1070048.DNG,1,1,c416da09588d04a80cbb6bff5b1d65bf76655cbd0d1f6b44d963d80d639274ee,1,1,,6120,4016,BGGR
 ✅,Leica Q2,DNG,Leica/Q2/L1000750.DNG,1,1,f3c07e5fd777488fb2850601dff613bfcd3470f17eab55ef2922cd22e6166682,1,1,,8424,5632,GBRG
 ✅,Leica SL (Typ 601),DNG,Leica/SL (Typ 601)/20160915_Lechtaler_001.DNG,1,1,4d306d8998a81b608a63b49dc699e3cdf173dcb6c88c402ab443c097f8b8c997,1,1,,6120,4016,BGGR
+❌,Leica V-LUX (Typ 114),RWL,Leica/V-LUX (Typ 114)/Leica_-_V-LUX_(typ114)_-_16:9.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica V-LUX (Typ 114),RWL,Leica/V-LUX (Typ 114)/Leica_-_V-LUX_(typ114)_-_1:1.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica V-LUX (Typ 114),RWL,Leica/V-LUX (Typ 114)/Leica_-_V-LUX_(typ114)_-_3:2.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica V-LUX (Typ 114),RWL,Leica/V-LUX (Typ 114)/Leica_-_V-LUX_(typ114)_-_4:3.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica V-LUX 1,RAW,Leica/V-LUX 1/RAW_LEICA_VLUX1.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica V-Lux 4,RWL,Leica/V-Lux 4/L1040407.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Leica V-Lux 5,RWL,Leica/V-Lux 5/_1000200.RWL,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Leica X2,DNG,Leica/X2/L1021324.DNG,1,1,722613694945f95cb8be0f60f885075aae4f8894086e31dbcab0b069f6866506,0,0,process_metadata:backend,4944,3272,RGGB
 ❌,Light L16,DNG,Light/L16/L16_00148.dng,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Light L16,LRI,Light/L16/L16_00078.lri,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,MADV QJXJ01FJ,DNG,MADV/QJXJ01FJ/IMG_20190326_134416.DNG,1,1,afef84e8b307a9c1c8976261c787d9fb6fc3d0afdebda5494ef6772856851f34,1,1,,6912,3456,RGGB
+❌,MINOLTA DYNAX 5D,MRW,MINOLTA/DYNAX 5D/Minolta_Dynax_5D.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Mamiya ZD,MEF,Mamiya/ZD/RAW_MAMIYA_ZD.MEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Microsoft Lumia 950 XL Dual SIM,DNG,Microsoft/Lumia 950 XL Dual SIM/Microsoft_-_Lumia_950XL.dng,1,1,79396446dd8f54f08f75bfd27acfa0b21f6f4b86b40e592a91d5009ba895dd54,1,1,,4992,3744,GRBG
+❌,Minolta ALPHA-7 DIGITAL,MRW,Minolta/ALPHA-7 DIGITAL/PICT6107.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,"Minolta Co., Ltd. DiMAGE 5",MRW,"Minolta Co., Ltd./DiMAGE 5/20250104_0010.MRW",0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Minolta DiMAGE 7,MRW,Minolta/DiMAGE 7/RAW_MINOLTA_DIMAGE7.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Minolta DiMAGE 7Hi,MRW,Minolta/DiMAGE 7Hi/RAW_MINOLTA_DIMAGE_7HI.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Minolta DiMAGE 7i,MRW,Minolta/DiMAGE 7i/RAW_MINOLTA_DIMAGE_7I.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Minolta DiMAGE A1,MRW,Minolta/DiMAGE A1/RAW_MINOLTA_A1.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Minolta DiMAGE A2,MRW,Minolta/DiMAGE A2/PICT0881.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Minolta DiMAGE A200,MRW,Minolta/DiMAGE A200/RAW_MINOLTA_DIMAGE_A200.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Minolta Dimage Z2,MRW,Minolta/Dimage Z2/RAW_MINOLTA_DIMAGE_Z2.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Minolta Dynax 7D,MRW,Minolta/Dynax 7D/PICT3410.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Minolta Maxxum 7D,MRW,Minolta/Maxxum 7D/PICT0041.MRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Minolta RD 175,MDC,Minolta/RD 175/M001.MDC,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,NIKON CORPORATION COOLPIX P1100,NRW,NIKON CORPORATION/COOLPIX P1100/DSCN0173.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON D200,NEF,NIKON CORPORATION/NIKON D200/20071013-10273016-NIKON_D200.nef,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON D2X,NEF,NIKON CORPORATION/NIKON D2X/_ABA4604.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,NIKON CORPORATION NIKON D2X,NEF,NIKON CORPORATION/NIKON D2X/_ABA4605.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -482,10 +794,21 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Nikon 1 V1,NEF,Nikon/1 V1/DSC_4167.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon 1 V2,NEF,Nikon/1 V2/Nikon_1_V2_ISO-200.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon 1 V3,NEF,Nikon/1 V3/DSC_3313.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon COOLPIX B700,NRW,Nikon/COOLPIX B700/DSCN2079.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon COOLPIX P1000,NRW,Nikon/COOLPIX P1000/DSCN1113.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon COOLPIX P950,NRW,Nikon/COOLPIX P950/DSCN0014.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon COOLSCAN IV ED,NEF,Nikon/Nikon COOLSCAN IV ED/NEF_from_Nikon_Scan_4.0.3_at_600dpi.nef,0,0,,0,0,decode:invalid_input,0,0,unknown
 ❌,Nikon COOLSCAN V ED,NEF,Nikon/Nikon COOLSCAN V ED/Image21-600pixels.nef,0,0,,0,0,decode:invalid_input,0,0,unknown
 ❌,Nikon Coolpix A,NEF,Nikon/Coolpix A/_DSC0010.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon Coolpix A1000,NRW,Nikon/Coolpix A1000/DSCN0417.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon Coolpix E8800,NEF,Nikon/Coolpix E8800/DSCN6207.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon Coolpix P330,NRW,Nikon/Coolpix P330/DSCN0138.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon Coolpix P340,NRW,Nikon/Coolpix P340/RAW_NIKON_COOLPIX_P340.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon Coolpix P6000,NRW,Nikon/Coolpix P6000/RAW_NIKON_P6000_GPS.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon Coolpix P7000,NRW,Nikon/Coolpix P7000/RAW_NIKON_P7000.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon Coolpix P7100,NRW,Nikon/Coolpix P7100/RAW_NIKON_COOLPIX_P7100.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon Coolpix P7700,NRW,Nikon/Coolpix P7700/2021-01-09-112815.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Nikon Coolpix P7800,NRW,Nikon/Coolpix P7800/DSCN2039.NRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Nikon D1,NEF,Nikon/D1/RAW_NIKON_D1.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Nikon D100,NEF,Nikon/D100/DSC_2376.NEF,1,1,1240696b56e269b52374f48cf4a057003b8ae6a2a6550497731558113cb1ca4b,1,1,,3034,2024,GRBG
 ❌,Nikon D1H,NEF,Nikon/D1H/DSC_3671.NEF,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -706,13 +1029,126 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Nikon Z fc,NEF,Nikon/Z fc/_DSC0070.nef,1,1,2ca299e9daeb548af613cb6b09b14de4210c5dbf1a4c6170f2e7e651d40fa8e3,1,1,,5600,3728,RGGB
 ✅,Nokia Lumia 1020,DNG,Nokia/Lumia 1020/RAW_NOKIA_LUMIA_1020.DNG,1,1,2e15a7b79ef411c2f0a3b606807be8ff0938b48b278ad701f0ef2a4dee90de12,1,1,,7152,5360,GRBG
 ✅,Nokia Lumia 930,DNG,Nokia/Lumia 930/WP_20180612_19_16_03_Raw__highres.dng,1,1,a1239c465675ed78cda7ffa883910578c536caf52eb466b714f2b71ca9219b24,1,1,,5376,3024,GRBG
+❌,OLYMPUS E-M5 Mark III,ORF,OLYMPUS/E-M5 Mark III/PB290154.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OLYMPUS IMAGING CORP. SP550UZ,ORF,OLYMPUS IMAGING CORP./SP550UZ/PA030017.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,"OLYMPUS STYLUS1,1s",ORF,"OLYMPUS/STYLUS1,1s/P4155261.ORF",0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-3,ORF,OM Digital Solutions/OM-3/P5048182.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-3,ORF,OM Digital Solutions/OM-3/P5048183.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-3,ORF,OM Digital Solutions/OM-3/P5048184.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-3,ORF,OM Digital Solutions/OM-3/P5048185.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-3,ORF,OM Digital Solutions/OM-3/P5048186.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-3,ORI,OM Digital Solutions/OM-3/P5048183.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-3,ORI,OM Digital Solutions/OM-3/P5048184.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-3,ORI,OM Digital Solutions/OM-3/P5048185.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-3,ORI,OM Digital Solutions/OM-3/P5048186.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-5MarkII,ORF,OM Digital Solutions/OM-5MarkII/OM_System_OM-5_2_hires_a.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-5MarkII,ORF,OM Digital Solutions/OM-5MarkII/OM_System_OM-5_2_hires_b.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-5MarkII,ORF,OM Digital Solutions/OM-5MarkII/OM_System_OM-5_2_regular.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-5MarkII,ORI,OM Digital Solutions/OM-5MarkII/OM_System_OM-5_2_hires_a.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM Digital Solutions OM-5MarkII,ORI,OM Digital Solutions/OM-5MarkII/OM_System_OM-5_2_hires_b.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1,ORF,OM System/OM-1/OM_Systems_OM1_RAW_Image_20mpx_P1010025.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1,ORF,OM System/OM-1/OM_Systems_OM1_RAW_image_HiRes_50mpx_P1010026.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1,ORF,OM System/OM-1/OM_Systems_OM1_RAW_image_HiRes_80mpx_P1010027.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1,ORI,OM System/OM-1/OM_Systems_OM1_RAW_image_HiRes_50mpx_P1010026.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1,ORI,OM System/OM-1/OM_Systems_OM1_RAW_image_HiRes_80mpx_P1010027.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1 Mark II,ORF,OM System/OM-1 Mark II/20mp-12bit.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1 Mark II,ORF,OM System/OM-1 Mark II/50mp-12bit-handheld.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1 Mark II,ORF,OM System/OM-1 Mark II/50mp-14bit-handheld.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1 Mark II,ORF,OM System/OM-1 Mark II/80mp-12bit-tripod.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1 Mark II,ORF,OM System/OM-1 Mark II/80mp-14bit-tripod.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1 Mark II,ORI,OM System/OM-1 Mark II/50mp-12bit-handheld.ori,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1 Mark II,ORI,OM System/OM-1 Mark II/50mp-14bit-handheld.ori,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1 Mark II,ORI,OM System/OM-1 Mark II/80mp-12bit-tripod.ori,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-1 Mark II,ORI,OM System/OM-1 Mark II/80mp-14bit-tripod.ori,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-5,ORF,OM System/OM-5/C1291096.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-5,ORF,OM System/OM-5/C1291097.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-5,ORF,OM System/OM-5/C1291098.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-5,ORI,OM System/OM-5/C1291097.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System OM-5,ORI,OM System/OM-5/C1291098.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,OM System TG-7,ORF,OM System/TG-7/UWAG0002.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,ONEPLUS A3003,DNG,OnePlus/ONEPLUS A3003/IMG_20170316_134557.dng,1,1,47f43c35b65f06caba3ca52fbe45d3c0b9d67c1c571c9037400e4c16c89a7c40,1,1,,4656,3496,RGGB
 ✅,ONEPLUS A5000,DNG,OnePlus/ONEPLUS A5000/IMG_20171224_201301.dng,1,1,b9199f409bd4cb29c7b69de2f3767a8a3bb0f9a15b27276e45426a0506009432,1,1,,4656,3496,RGGB
 ✅,ONEPLUS A6003,DNG,OnePlus/ONEPLUS A6003/IMG_20201019_093659.dng,1,1,8d33f485646d229cb8f80e6bbcdc7a6ea77969c5d7a4d82c08cbc724bbecfa86,1,1,,4656,3496,RGGB
+❌,Olympus C5050Z,ORF,Olympus/C5050Z/RAW_OLYMPUS_C5050Z.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus C5060WZ,ORF,Olympus/C5060WZ/C5060WZ_5_7_22_8mm__27_110mm_equiv__F_2_8_8P4141018_cabo_de_gata.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus C7070WZ,ORF,Olympus/C7070WZ/PC270085.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus C8080WZ,ORF,Olympus/C8080WZ/RAW_OLYMPUS_C8080.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-1,ORF,Olympus/E-1/E_1__C106743_gredos.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-10,ORF,Olympus/E-10/P7198607.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-20,ORF,Olympus/E-20/RAW_OLYMPUS_E20.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-3,ORF,Olympus/E-3/E_3__3099164_casco_antiguo_petrer.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-30,ORF,Olympus/E-30/RAW_OLYMPUS_E30.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-300,ORF,Olympus/E-300/P1252148.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-330,ORF,Olympus/E-330/P3307182.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-400,ORF,Olympus/E-400/_A270187.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-410,ORF,Olympus/E-410/PC309398.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-420,ORF,Olympus/E-420/P4232993.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-450,ORF,Olympus/E-450/20220605_0011.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-5,ORF,Olympus/E-5/_7061961_copy.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-500,ORF,Olympus/E-500/_1010010.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-510,ORF,Olympus/E-510/Olympus_E510-4.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-520,ORF,Olympus/E-520/RAW_OLYMPUS_E520.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-600,ORF,Olympus/E-600/RAW_OLYMPUS_E600.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-620,ORF,Olympus/E-620/_1100778.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1,ORF,Olympus/E-M1/sc000877.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M10,ORF,Olympus/E-M10/P3180165.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M10 Mark II,ORF,Olympus/E-M10 Mark II/2022-04-15T17_31_58[P4150904].ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M10 Mark III,ORF,Olympus/E-M10 Mark III/PA080192.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M10 Mark IIIs,ORF,Olympus/E-M10 Mark IIIs/ilhabela_202110_0082.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M10 Mark IV,ORF,Olympus/E-M10 Mark IV/PA040002.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M10 Mark IV,ORF,Olympus/E-M10 Mark IV/_A180042.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkII,ORF,Olympus/E-M1MarkII/Olympus_EM1mk2_Standard_20MP.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkII,ORF,Olympus/E-M1MarkII/Olympus_EM1mk2_Standard_20MP_ColorChecker.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkII,ORF,Olympus/E-M1MarkII/Olympus_EM1mk2__HIRES_25MP.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkII,ORF,Olympus/E-M1MarkII/Olympus_EM1mk2__HIRES_50MP.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkII,ORI,Olympus/E-M1MarkII/Olympus_EM1mk2__HIRES_25MP.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkII,ORI,Olympus/E-M1MarkII/Olympus_EM1mk2__HIRES_50MP.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkIII,ORF,Olympus/E-M1MarkIII/_3160529.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkIII,ORF,Olympus/E-M1MarkIII/_3160530.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkIII,ORF,Olympus/E-M1MarkIII/_3160531.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkIII,ORI,Olympus/E-M1MarkIII/_3160529.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1MarkIII,ORI,Olympus/E-M1MarkIII/_3160530.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M1X,ORF,Olympus/E-M1X/P3240916.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M5,ORF,Olympus/E-M5/P2082705.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M5 Mark II,ORF,Olympus/E-M5 Mark II/CB252215.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M5 Mark II,ORI,Olympus/E-M5 Mark II/CB252215.ORI,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-M5 Mark III,ORF,Olympus/E-M5 Mark III/PB240241.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-P1,ORF,Olympus/E-P1/P1080385.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-P2,ORF,Olympus/E-P2/P9084305.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-P3,ORF,Olympus/E-P3/RAW_OLYMPUS_EP3.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-P5,ORF,Olympus/E-P5/OLYMPUS_PEN_E-P5_ISO200_IT8COLOR.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-P7,ORF,Olympus/E-P7/P8162689.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PL1,ORF,Olympus/E-PL1/PB120976.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PL10,ORF,Olympus/E-PL10/P6100030.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PL2,ORF,Olympus/E-PL2/P9031909.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PL3,ORF,Olympus/E-PL3/RAW_OLYMPUS_EPL2.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PL5,ORF,Olympus/E-PL5/P9230087.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PL6,ORF,Olympus/E-PL6/e7169440.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PL7,ORF,Olympus/E-PL7/fb240007.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PL8,ORF,Olympus/E-PL8/P9110021.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PL9,ORF,Olympus/E-PL9/EB000005.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PM1,ORF,Olympus/E-PM1/P2083783.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus E-PM2,ORF,Olympus/E-PM2/P1010001.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus PEN-F,ORF,Olympus/PEN-F/PenFHiRes.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus PEN-F,ORF,Olympus/PEN-F/PenFNormal.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus SH-2,ORF,Olympus/SH-2/PC260009.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus SP350,ORF,Olympus/SP350/RAW_OLYMPUS_SP350.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus SP500UZ,ORF,Olympus/SP500UZ/RAW_OLYMPUS_SP500UZ.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus SP510UZ,ORF,Olympus/SP510UZ/PA210583.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus SP565UZ,ORF,Olympus/SP565UZ/2019-09-26--10.03.53001.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus SP570UZ,ORF,Olympus/SP570UZ/P5110102.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus Stylus1,ORF,Olympus/Stylus1/OLYMPUS-STYLUS1.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus TG-4,ORF,Olympus/TG-4/P1170373.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus TG-5,ORF,Olympus/TG-5/P9100007.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus TG-6,ORF,Olympus/TG-6/_6100003.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus XZ-1,ORF,Olympus/XZ-1/p1319978.orf,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus XZ-10,ORF,Olympus/XZ-10/P1240016.ORF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Olympus XZ-2,ORF,Olympus/XZ-2/p7166537.orf,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,OnePlus One,DNG,OnePlus/One/IMG_20150729_201116.dng,1,1,d0e9b864b093c090f8c93315105901a7b4c23db3eec673abcdf8a56e2e47e3f0,1,1,,4212,3120,RGGB
 ❌,PARROT Bebop 2,DNG,PARROT/Bebop 2/Bebop2_20170330115857+0200.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ❌,PARROT Bebop Drone,DNG,PARROT/Bebop Drone/Bebop_Drone_2015-11-07T180428+0000_C10611.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,PENTAX K-r,DNG,PENTAX/PENTAX K-r/IMGP4425.DNG,1,1,14a0358494310415cf7e70193d373d5f8ef62ba28ddcefecbb0f24e2daf9a333,1,1,,4352,2868,BGGR
+❌,PENTAX K-r,PEF,PENTAX/PENTAX K-r/IMGP4424.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Panasonic DC-FZ10002,RW2,Panasonic/DC-FZ10002/P1015595.RW2,1,1,b7c403b3532697d7a7abf20911a176e18a0421cdab12905268353b44e83ec589,1,1,,5488,3664,GBRG
 ✅,Panasonic DC-FZ10002,RW2,Panasonic/DC-FZ10002/P1015596.RW2,1,1,0c42601bbccbe97af6891d1b01f7912a7b16b7975527e643584c6092eda3f47b,1,1,,5488,3664,GBRG
 ✅,Panasonic DC-FZ10002,RW2,Panasonic/DC-FZ10002/P1015597.RW2,1,1,ca128a3ca75fcd1d7419059c891cea6524b9dbdac39be899dada196c5a958914,1,1,,5488,3664,GBRG
@@ -886,6 +1322,7 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Panasonic DMC-FZ150,RW2,Panasonic/DMC-FZ150/Panasonic_FZ150_1:1.RW2,1,1,90418008b7c94522cefe385ae6366dae9d4ac2f92e6d571544a88fbca2bac9ff,1,1,,3024,3008,GBRG
 ✅,Panasonic DMC-FZ150,RW2,Panasonic/DMC-FZ150/Panasonic_FZ150_3:2.RW2,1,1,35a34660d5d93b054e5c931ad3f06633ea9c816b59ead97ed8aed59df94b827a,1,1,,4144,2688,GBRG
 ✅,Panasonic DMC-FZ150,RW2,Panasonic/DMC-FZ150/Panasonic_FZ150_4:3.RW2,1,1,1b7cb662294f5ce64e8d954cf41f9c7bb7af9395fea6da8113e7e904573a495a,1,1,,4144,3016,GBRG
+❌,Panasonic DMC-FZ18,RAW,Panasonic/DMC-FZ18/RAW_PANASONIC_LUMIX_FZ18.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Panasonic DMC-FZ200,RW2,Panasonic/DMC-FZ200/P1040142.RW2,1,1,c3f761cb8a0e0e96089270f70b354ed2543acde2e1a4668c5e84468042b84177,1,1,,4144,2264,GBRG
 ✅,Panasonic DMC-FZ200,RW2,Panasonic/DMC-FZ200/Panasonic_DMC-FZ200_Ratio_1-1.RW2,1,1,26a8270fd30d0e5878391c34d72b2cdb015f754d9e03d4e93925765eb3740f50,1,1,,3024,3008,GBRG
 ✅,Panasonic DMC-FZ200,RW2,Panasonic/DMC-FZ200/Panasonic_DMC-FZ200_Ratio_16-9.RW2,1,1,1681ed08fc010b6b12a091156fcf5bc7619087f438a33bbb34ff106c961059f6,1,1,,4144,2264,GBRG
@@ -902,6 +1339,7 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Panasonic DMC-FZ28,RW2,Panasonic/DMC-FZ28/P1120635.RW2,1,1,f1363e1b4d887b4c723e7b1bb2e08304ca4a131b331076705f1e749b2cf7337f,1,1,,3724,2450,BGGR
 ✅,Panasonic DMC-FZ28,RW2,Panasonic/DMC-FZ28/P1120636.RW2,1,1,4785545644590d72bcb230a8d80bbb600604db62b419150bec790d2f2ba36351,1,1,,3724,2754,BGGR
 ✅,Panasonic DMC-FZ28,RW2,Panasonic/DMC-FZ28/P1120637.RW2,1,1,4798482e13de646b2a9a70745fe47f69a43dda86134bfafe2c7975428088be46,1,1,,3724,2074,BGGR
+❌,Panasonic DMC-FZ30,RAW,Panasonic/DMC-FZ30/RAW_PANASONIC_FZ30_SRGB.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Panasonic DMC-FZ300,RW2,Panasonic/DMC-FZ300/RAW_PANASONIC_FZ300_1-1.RW2,1,1,53662967ff2fcb91086c153c9b4c4a381c528c4e306187272744ba848a6cf276,1,1,,4144,3016,GBRG
 ✅,Panasonic DMC-FZ300,RW2,Panasonic/DMC-FZ300/RAW_PANASONIC_FZ300_16-9.RW2,1,1,54826b25fa5deeef5ca721e9f6216bb6211ae8024b65fe033ef53788167b310a,1,1,,4144,3016,GBRG
 ✅,Panasonic DMC-FZ300,RW2,Panasonic/DMC-FZ300/RAW_PANASONIC_FZ300_3-2.RW2,1,1,4da3cf401dda462f1215c7cfd6090dc42397a8cd7af1dd6656d153f6e584d8db,1,1,,4144,3016,GBRG
@@ -920,12 +1358,16 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Panasonic DMC-FZ45,RW2,Panasonic/DMC-FZ45/Panasonic_DMC-FZ45_1:1.RW2,1,1,c8a3ad0d300c640aaa8fb7edefaa1eb02357abb79126b4330d4544ddbbbed742,1,1,,3276,3252,GBRG
 ✅,Panasonic DMC-FZ45,RW2,Panasonic/DMC-FZ45/Panasonic_DMC-FZ45_3:2.RW2,1,1,90d53d13e8eec1cc3cc8c45de962ea07159cc6b3b28638809643ecf9ea9a6eba,1,1,,4396,2898,GBRG
 ✅,Panasonic DMC-FZ45,RW2,Panasonic/DMC-FZ45/Panasonic_DMC-FZ45_4:3.RW2,1,1,334ce7641dc9c30505299b0b561557badbc4510551092eaf59d8c9a1c384c415,1,1,,4396,3258,GBRG
+❌,Panasonic DMC-FZ50,RAW,Panasonic/DMC-FZ50/P1250835.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Panasonic DMC-FZ50,RAW,Panasonic/DMC-FZ50/P1250847.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Panasonic DMC-FZ50,RAW,Panasonic/DMC-FZ50/P1250848.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Panasonic DMC-FZ70,RW2,Panasonic/DMC-FZ70/P1000836.RW2,1,1,a328ff7381bba6a4459e7c991101d137b597b4b49bc3c0d08a25eaa90b301a34,1,1,,4816,3472,RGGB
 ✅,Panasonic DMC-FZ72,RW2,Panasonic/DMC-FZ72/Panasonic_FZ72_11.RW2,1,1,7ea0034f3cfcef61b82e3fb0ba1e196b47729c9e1bd64ee2003be6e84d4695b7,1,1,,3472,3472,RGGB
 ✅,Panasonic DMC-FZ72,RW2,Panasonic/DMC-FZ72/Panasonic_FZ72_169.RW2,1,1,89133449c612ec9561067a26f73e9f6abd9b3b21f8b399c6117020e232253042,1,1,,4816,2608,RGGB
 ✅,Panasonic DMC-FZ72,RW2,Panasonic/DMC-FZ72/Panasonic_FZ72_32.RW2,1,1,773cca0bac7a3e01d5ad046fd89e585bcc1b22f9a3f2f09686b6ac2ed9a676ee,1,1,,4816,3088,RGGB
 ✅,Panasonic DMC-FZ72,RW2,Panasonic/DMC-FZ72/Panasonic_FZ72_43.RW2,1,1,7627bdd4d39f7071557a2bcc35b719eab565d0e90c063dbcde8767d040372ce4,1,1,,4816,3472,RGGB
 ✅,Panasonic DMC-FZ72,RW2,Panasonic/DMC-FZ72/RAW_PANASONIC_DMC_FZ72.RW2,1,1,d7ee8219a71aa3d021f851b15068e12e066ef5e97f6ea640faca7ca8e48a6e58,1,1,,4816,3472,RGGB
+❌,Panasonic DMC-FZ8,RAW,Panasonic/DMC-FZ8/P1240856.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Panasonic DMC-G1,RW2,Panasonic/DMC-G1/RAW_PANASONIC_G1.RW2,1,1,c2ce16dda4f99d7a2066eaa8ec89fe797ee1405bfe399a4c2de52dfec5f9750f,1,1,,4060,3016,GBRG
 ✅,Panasonic DMC-G10,RW2,Panasonic/DMC-G10/P1030392.RW2,1,1,46d57219733c0c122d02e5c136ab47da697983dfcbf079c9e68abc97854e682a,1,1,,4060,3016,GBRG
 ✅,Panasonic DMC-G10,RW2,Panasonic/DMC-G10/P1030393.RW2,1,1,977b4c6470879d67354acca4505062b099c0100284590acc7166902b99e5d50b,1,1,,4060,2688,GBRG
@@ -1041,9 +1483,12 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Panasonic DMC-GX85,RW2,Panasonic/DMC-GX85/Panasonic_-_DMC-GX85_-_1:1.RW2,1,1,42eb5d1c07f557357dc345a18a4f1875aa0101404a859d7434ed503e7df65a60,1,1,,4816,3464,BGGR
 ✅,Panasonic DMC-GX85,RW2,Panasonic/DMC-GX85/Panasonic_-_DMC-GX85_-_3:2.RW2,1,1,534487583fd6716c83ad80a8c14399d006957757f2083be3057a386a29811f95,1,1,,4816,3464,BGGR
 ✅,Panasonic DMC-GX85,RW2,Panasonic/DMC-GX85/Panasonic_-_DMC-GX85_-_4:3.RW2,1,1,261b65a455450b006266d289426c0f835c19c47c826642aa0facc7de57e427b0,1,1,,4816,3464,BGGR
+❌,Panasonic DMC-L1,RAW,Panasonic/DMC-L1/RAW_PANASONIC_LUMIX_L1.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Panasonic DMC-L10,RAW,Panasonic/DMC-L10/RAW_PANASONIC_DMCL10.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Panasonic DMC-LF1,RW2,Panasonic/DMC-LF1/RAW_PANASONIC_DMC_LF1.RW2,1,1,5430e19cd0011298fdf7a82e6c4c11ff42f2f9553e5f2d8235b17a93304f1ec3,1,1,,4144,3016,RGGB
 ✅,Panasonic DMC-LF1,RW2,Panasonic/DMC-LF1/image-20170106_111000-1.rw2,1,1,61f3bf13ea4cc0e8a0a596fb73eba50c3404d0e83abac7df07c53fd8193178b6,1,1,,4144,2688,RGGB
 ✅,Panasonic DMC-LX1,DNG,Panasonic/DMC-LX1/P1080763.dng,1,1,043022b29c5f28b796faca50c415778a3fa5a01485b42813cf425917389b641a,1,1,,3857,2170,RGGB
+❌,Panasonic DMC-LX1,RAW,Panasonic/DMC-LX1/P1080763.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Panasonic DMC-LX10,RW2,Panasonic/DMC-LX10/pana_DMC-LX10_16x19.RW2,1,1,af02dffe426fa05662142fd54c2cf39ce487acacf9b509d796f25419e602069b,1,1,,5488,3664,GBRG
 ✅,Panasonic DMC-LX10,RW2,Panasonic/DMC-LX10/pana_DMC-LX10_1x1.RW2,1,1,7d9b2947e82f49a39c6a00fefd257172b196b0839b2073f3d38395ba22ffc701,1,1,,5488,3664,GBRG
 ✅,Panasonic DMC-LX10,RW2,Panasonic/DMC-LX10/pana_DMC-LX10_3x2.RW2,1,1,89ca0526b8c4bdaf141319fe824cf7bf69eb76f525ee0ceb624ff76d16bb2970,1,1,,5488,3664,GBRG
@@ -1056,6 +1501,7 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Panasonic DMC-LX15,RW2,Panasonic/DMC-LX15/P1000927_4_by_3.RW2,1,1,45cfed66401e5c883d612c674528b623f9886bb8fb5b20a843ae8a3645083c10,1,1,,5488,3664,GBRG
 ✅,Panasonic DMC-LX15,RW2,Panasonic/DMC-LX15/P1000928_16_by_9.RW2,1,1,682cee350a1dbd0e75e3b336693e79b9e981ea838a6c9640db96227b0ef7489d,1,1,,5488,3664,GBRG
 ✅,Panasonic DMC-LX15,RW2,Panasonic/DMC-LX15/P1000929_1_by_1.RW2,1,1,c03f3d058476c32ecc2f1ae3364eed3a5b52403d31a4c5bab1f614ddafbe324a,1,1,,5488,3664,GBRG
+❌,Panasonic DMC-LX2,RAW,Panasonic/DMC-LX2/RAW_PANASONIC_LX2.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Panasonic DMC-LX3,RW2,Panasonic/DMC-LX3/Lumix_LX3_16_9.rw2,1,1,908ac85e86623c7d989640b50aec575ee922ef4f9d9b2b7f6f44178eb49f839e,1,1,,4060,2250,BGGR
 ✅,Panasonic DMC-LX3,RW2,Panasonic/DMC-LX3/Lumix_LX3_3_2.rw2,1,1,a8d40dd09ca66c430130388d34abfb5f27a24b1fb7fed97adedd14dbe016b301,1,1,,3836,2538,BGGR
 ✅,Panasonic DMC-LX3,RW2,Panasonic/DMC-LX3/Lumix_LX3_4_3.rw2,1,1,1fd808306a265c1ae6af618ddf70ff6b73a85d625e8a28469c68c600db67ba96,1,1,,3724,2754,BGGR
@@ -1116,46 +1562,94 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Panasonic DMC-ZS100,RW2,Panasonic/DMC-ZS100/P1010051.RW2,1,1,c086b0b5a9db88c211c351c89aa3b3bdfbe6344e90cf1ff1777ee679752d3453,1,1,,5488,3664,GBRG
 ✅,Panasonic DMC-ZS40,RW2,Panasonic/DMC-ZS40/P1000048.RW2,1,1,203a63a60f85bf2ed0de97f679f812a315f4abd07cdeb78662ddaf9dcb655eac,1,1,,5040,3688,RGGB
 ✅,Panasonic DMC-ZS60,RW2,Panasonic/DMC-ZS60/P1000290.RW2,1,1,22d43ea827167090d74d9854b37f26b6b8077977ebb116b461a9019473a22b63,1,1,,5040,3688,GBRG
+❌,Paralenz +,RAW,Paralenz/+/IMG_0005.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Paralenz Dive Camera,RAW,Paralenz/Dive Camera/IMG_0005.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Parrot Anafi,DNG,Parrot/Anafi/100000190019.DNG,1,1,6cda5f092bea00cf280b479f988e95bdca1b5a630b709e00cadc354b38267156,1,1,,5344,4016,BGGR
 ✅,Pentax 645D,DNG,Pentax/645D/645D2839.DNG,1,1,6fef880c8944901b1eef0187eee6b53d3c5d45b4b219889012643c12439552a3,1,1,,7424,5552,BGGR
+❌,Pentax 645D,PEF,Pentax/645D/645D2840.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax 645Z,DNG,Pentax/645Z/IMGP2836.DNG,1,1,b83594363f846841deded5acba65b5de41d015d453ca7f243c6b08ba7caca507,1,1,,8384,6208,RGGB
+❌,Pentax 645Z,PEF,Pentax/645Z/IMGP2837.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-01,DNG,Pentax/K-01/_IGP2068.DNG,1,1,a271535e9d9b91b407f28858a28cb269656b3af1bc1f673402f436e9c1131210,1,1,,4960,3300,RGGB
 ✅,Pentax K-1,DNG,Pentax/K-1/IMGP8551.DNG,1,1,8cc89439be5ae263266f0f0cb84c537afd6403cbc4f9c725e5cf50b3e9460603,1,1,,7392,4950,RGGB
 ✅,Pentax K-1,DNG,Pentax/K-1/IMGP8555.DNG,1,1,8f6d46188f143d15d94f475265fecbe887a6459518c063fcd1aed906e673f325,1,1,,7392,4950,RGGB
+❌,Pentax K-1,PEF,Pentax/K-1/IMGP8550.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-1,PEF,Pentax/K-1/IMGP8552.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_IMG2387.DNG,1,1,dd274e90ab0a4af4ac6d194e821efa54e9fb1a2758f64b5e2ac5c7ca29fa2527,1,1,,7392,4950,RGGB
 ✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_IMG2390.DNG,1,1,a3c1d22cd3617a413588e28c825ee55e3cb878be1e6d607a9cd99aa0d4b45678,1,1,,7392,4950,RGGB
 ✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9779.DNG,1,1,167f53eec7f7edcfe33a52f4ee26f8afeba9b9246ee72595dff31726abc21c3a,1,1,,7392,4950,RGGB
 ✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9783.DNG,1,1,008cfcb8457cc990bdeaa01c87416a64e304b1199bd9f04bd4d2469b8e5784d6,1,1,,7392,4950,RGGB
 ✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9784.DNG,1,1,41c03ed04949501c649dba2694713dfc8378692ac08e0a16d7a11a3369fa73d2,1,1,,7392,4950,RGGB
 ✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_K1I9786.DNG,1,1,595494643ad1899824f1459e207aaab062af29e3bc846560d775224d00422317,1,1,,4832,3238,RGGB
+❌,Pentax K-1 Mark II,PEF,Pentax/K-1 Mark II/_IMG2388.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-1 Mark II,PEF,Pentax/K-1 Mark II/_IMG2393.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-1 Mark II,PEF,Pentax/K-1 Mark II/_K1I9780.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-1 Mark II,PEF,Pentax/K-1 Mark II/_K1I9781.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-1 Mark II,PEF,Pentax/K-1 Mark II/_K1I9782.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-1 Mark II,PEF,Pentax/K-1 Mark II/_K1I9785.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-3,DNG,Pentax/K-3/IMGP6916.DNG,1,1,e91cb1e3eb195cf597fe58ce409ecd375a831a331799a289b725e828e68ea586,1,1,,6080,4032,RGGB
+❌,Pentax K-3,PEF,Pentax/K-3/IMGP6917.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-3 II,DNG,Pentax/K-3 II/20170430-121325.dng,1,1,0322dece2b44e908b6de484fd2f6a23502645e4c9fe1eeaddd94ced63bb7d9dc,1,1,,6080,4032,RGGB
 ✅,Pentax K-3 II,DNG,Pentax/K-3 II/IMGP0668.DNG,1,1,b8479b442b14a446ca41510471836a47f8bbafb09c92a2ba04318d7b952c35f6,1,1,,6080,4032,RGGB
+❌,Pentax K-3 II,PEF,Pentax/K-3 II/IMGP0679.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-3 Mark III,DNG,Pentax/K-3 Mark III/_IMG0114.DNG,1,1,4b5de73f82e1d2ba135b8c23df843890329e053f7b747b6998de8a603d0c9b7d,1,1,,6304,4224,RGGB
+❌,Pentax K-3 Mark III,PEF,Pentax/K-3 Mark III/IMGP9854.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-3 Mark III,PEF,Pentax/K-3 Mark III/IMGP9855.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-3 Mark III,PEF,Pentax/K-3 Mark III/IMGP9856.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-3 Mark III,PEF,Pentax/K-3 Mark III/IMGP9863.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-3 Mark III,PEF,Pentax/K-3 Mark III/_IMG0115.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Pentax K-3 Mark III Monochrome,DNG,Pentax/K-3 Mark III Monochrome/K3III.DNG,1,1,35900199d8a36665a42be3032894294f537561f084a5b87008a18f100ac3b018,0,0,process_metadata:backend,6304,4224,unknown
+❌,Pentax K-3 Mark III Monochrome,PEF,Pentax/K-3 Mark III Monochrome/K3III.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-30,DNG,Pentax/K-30/_IGP4042.DNG,1,1,99381855c0e8dc69febb82e1cdc08584a1496ee2195ba4f54c3818e20d4dbfa4,1,1,,4960,3300,RGGB
 ✅,Pentax K-5,DNG,Pentax/K-5/_MAR0543.DNG,1,1,d1561d6b8df3c6c4225f3f3202a1dd0fbceee4c112fde8d4ec74f63f18a9c7c6,1,1,,4992,3284,BGGR
+❌,Pentax K-5,PEF,Pentax/K-5/_MAR0544.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-5 II,DNG,Pentax/K-5 II/IMGP2032.DNG,1,1,83582ab9d4245dd224854cca4f1c5fe8724a22da7183d26e56e96db2717971f7,1,1,,4992,3284,BGGR
+❌,Pentax K-5 II,PEF,Pentax/K-5 II/IMGP2033.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-5 II s,DNG,Pentax/K-5 II s/_JAK3776.DNG,1,1,c6dfa8bad408e22c5e62066386e677273b9479a86c86860f2e1dd6ece881b4aa,1,1,,4992,3284,BGGR
+❌,Pentax K-5 II s,PEF,Pentax/K-5 II s/_JAK3781.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-50,DNG,Pentax/K-50/IMGP1385.DNG,1,1,679b91df5a3fe65ae68c4cf17b7a2fdce10e3e821aef970c76ee5e15b261225b,1,1,,4960,3300,RGGB
 ✅,Pentax K-500,DNG,Pentax/K-500/Pentax_-_K-500.DNG,1,1,c013c7eab7e6dd9b74c3f5ae907e7b4918e352a09e5a201b5a492c3b29497a10,1,1,,4960,3300,RGGB
 ✅,Pentax K-7,DNG,Pentax/K-7/IMGP6297.DNG,1,1,a54323220afdb85e63830904adaabc046ffec63affcbd60d07e1edc386637b80,1,1,,4736,3136,BGGR
+❌,Pentax K-7,PEF,Pentax/K-7/IMGP6298.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-70,DNG,Pentax/K-70/IMGP0771.DNG,1,1,d45e0909096ab0bcdb67ee7b029b9293710699a0e66d88588d3173614c99d219,1,1,,6080,4064,RGGB
 ✅,Pentax K-70,DNG,Pentax/K-70/IMGP6855.DNG,1,1,cceff1cbe1a6c11507d34072354cff8645cab384b6c727357cbb9138bb3af4ec,1,1,,6080,4064,RGGB
+❌,Pentax K-70,PEF,Pentax/K-70/IMGP6854.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-S1,DNG,Pentax/K-S1/IMGP4743.DNG,1,1,fd2be10801726fd7edde5567241d0b3dd67e1a42819f81cfb2487ee6aaaec0b0,1,1,,5504,3664,RGGB
+❌,Pentax K-S1,PEF,Pentax/K-S1/20210215_0110.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-S2,DNG,Pentax/K-S2/IMGP3368.DNG,1,1,8b9db3c4ba34b45eeed657fa2c6cb4fec4797479f059c620baa739f30748c65a,1,1,,5504,3664,RGGB
+❌,Pentax K-S2,PEF,Pentax/K-S2/IMGP3369.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K-m,PEF,Pentax/K-m/RAW_PENTAX_K-m.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K-x,DNG,Pentax/K-x/IMGP6431.DNG,1,1,f8d440e5a04cb5e3062176dc9b7d4fc37568812c7919bf550f12410dcf01cfd8,1,1,,4352,2868,BGGR
+❌,Pentax K-x,PEF,Pentax/K-x/IMGP6432.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K100D,PEF,Pentax/K100D/IMGP1754.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K100D Super,PEF,Pentax/K100D Super/IMGP8038.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K10D,DNG,Pentax/K10D/IMGP5398.DNG,1,1,08d9f4d1a438631d1d98d33501e0b4102bc00028e85fa53412918fb8f44468bc,1,1,,3936,2624,RGGB
+❌,Pentax K10D,PEF,Pentax/K10D/_IGP7284.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K110D,PEF,Pentax/K110D/2009.08.15-imgp3224.pef,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax K2000,PEF,Pentax/K2000/IMGP0251.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K200D,DNG,Pentax/K200D/IMGP2292.DNG,1,1,17b3407f520a297934f804fd911e1eadc521bcd9799c3873e76bf080857d5fdd,1,1,,3936,2624,RGGB
+❌,Pentax K200D,PEF,Pentax/K200D/IMGP2293.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax K20D,DNG,Pentax/K20D/RAW_Pentax_K20.DNG,1,1,820ecc396ee0d60e209cc9db48b454d72ef48caf1df1fb8756b272175bf85eb2,1,1,,4864,3136,BGGR
+❌,Pentax K20D,PEF,Pentax/K20D/IMGP3335.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax KF,PEF,Pentax/KF/IMGP0063.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax KP,DNG,Pentax/KP/IMGP0236.DNG,1,1,fed76d63a38304262ac7f800d323ebea33cf018e1b5c7adc6f62697b95756fc5,1,1,,6112,4060,RGGB
+❌,Pentax KP,PEF,Pentax/KP/IMGP0237.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax MX-1,DNG,Pentax/MX-1/pentax_mx1_raw2.dng,1,1,b2d4280815f0d9deabdbeff324bdd584b4bd3af187f1ae5379c2542db4a0bc84,1,1,,4016,3010,RGGB
+❌,Pentax Optio S4,RAW,Pentax/Pentax Optio S4/RAW_PENTAX_OPTIOS4.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Pentax Q,DNG,Pentax/Q/IMGP0647.DNG,1,1,83939d81b9fca5b0da5e824a2d915aba2afcefbbd39bea38cd3890cabb5d50af,1,1,,4064,3000,GRBG
 ✅,Pentax Q7,DNG,Pentax/Q7/IMGP1691.DNG,1,1,f3f9a3db12e32932f01c060acd898258b413a03dac212b555e9f66d414255dff,1,1,,4064,3000,RGGB
+❌,Pentax ist D,PEF,Pentax/ist D/pentax.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax ist DL,PEF,Pentax/ist DL/IMGP0370.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax ist DL2,PEF,Pentax/ist DL2/RAW_PENTAX_STAR_DL2.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Pentax ist DS,PEF,Pentax/ist DS/IMGP2333.pef,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Phase One AS P40+,IIQ,Phase One AS/P40+/CF100585.IIQ,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Phase One AS P40+,IIQ,Phase One AS/P40+/CF100602.IIQ,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Phase One AS iXU-RS1000 NIR,IIQ,Phase One AS/iXU-RS1000 NIR/RGB_791813.IIQ,1,1,0d5fdeecfeed9154cb03bf620c57b44db99981d0d37653c8fd99f043be614ba7,1,1,,11976,8852,RGGB
 ✅,Phase One H 25,IIQ,Phase One/H 25/H25_Outdoor_.IIQ,1,1,454e40136c29dabf37b501a85adf4f19374b54722ecca60e2bca1f8466d302d7,1,1,,4134,5488,GBRG
+❌,Phase One H 25,TIF,Phase One/H 25/H25_IT8.7-2_Card.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Phase One IQ140,TIF,Phase One/IQ140/Phase_One_IQ140_sample_files_04_Diciembre_2017_004_IIQ_L.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Phase One IQ140,TIF,Phase One/IQ140/Phase_One_IQ140_sample_files_04_Diciembre_2017_005_IIQ_S.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Phase One IQ140,TIF,Phase One/IQ140/Phase_One_IQ140_sample_files_04_Diciembre_2017_010_Sensor+_IIQ_L.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Phase One IQ140,TIF,Phase One/IQ140/Phase_One_IQ140_sample_files_04_Diciembre_2017_011_Sensor+_IIQ_S.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Phase One IQ150,IIQ,Phase One/IQ150/CF006803.IIQ,1,1,e3f119434fe07bb73203839c99e35d8349fa2d0f6d6fa3b12d648b009b2e2090,1,1,,8372,6316,RGGB
 ✅,Phase One IQ180,IIQ,Phase One/IQ180/230214_9561.IIQ,1,1,46515bc2a30c12c13028333fe4b5db12c1beedd4295c25d7e207c65c4d4a7c81,1,1,,10380,7816,RGGB
 ✅,Phase One IQ180,IIQ,Phase One/IQ180/230214_9562.IIQ,1,1,e6b04b8b64e1776c92e3b1c22cec749f0761fb7008a2a5209028cf7dd84c119e,1,1,,10380,7816,RGGB
@@ -1170,8 +1664,15 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Phase One IQ4 150MP,IIQ,Phase One/IQ4 150MP/IQ4_150MP_L_16_Ex.iiq,1,1,bd4c7081c44ff6c8fd468b1cf70ce74023f700d99688be8b83249017f60c0853,1,1,,14308,10760,RGGB
 ✅,Phase One P20+,IIQ,Phase One/P20+/CF051544.IIQ,1,1,fa12e6c9ecad10e456c472cd46d6dbdbf56598b413a4db9c33e8815c6d90d7f7,1,1,,4134,4128,GRBG
 ✅,Phase One P20+,IIQ,Phase One/P20+/CF051545.IIQ,1,1,6d9e0d74ebb3f8e804e51576d7c096b05b3245b24751e42263c091a3e2b132e4,1,1,,4134,4128,GRBG
+❌,Phase One P20+,TIF,Phase One/P20+/CF051552.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Phase One P20+,TIF,Phase One/P20+/CF051553.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Phase One P25,TIF,Phase One/P25/CF082161.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Phase One P25,TIF,Phase One/P25/CF082166.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Phase One P25+,IIQ,Phase One/P25+/CF028662.IIQ,1,1,bd22794cd149d06dc33849a5212863241a157dc08099094a0a93ec0543689133,1,1,,4134,5488,GBRG
 ✅,Phase One P25+,IIQ,Phase One/P25+/CF028663.IIQ,1,1,05cb01776f4fa0047c16a397722711e709e5606cc9a01452f0dbbd4c0eb3bc8d,1,1,,4134,5488,GBRG
+❌,Phase One P30,TIF,Phase One/P30/CF098736.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Phase One P45,TIF,Phase One/P45/230215_3809.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Phase One P45,TIF,Phase One/P45/230215_3810.TIF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Phase One P45+,IIQ,Phase One/P45+/CF125838.IIQ,1,1,14ee1359df6164f47eddf25649167afa661c60aefbb680723d43adcb5348f608,1,1,,7308,5494,GRBG
 ✅,Phase One P45+,IIQ,Phase One/P45+/CF125839.IIQ,1,1,8e3d80a6d1f95bcd1e75beef8c2ad2d189f09f2a5057da4a7c48f87b5ecf6460,1,1,,7308,5494,GRBG
 ❌,Phase One P65+,IIQ,Phase One/P65+/CF027310.IIQ,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
@@ -1185,17 +1686,40 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Phase One iXU180,IIQ,Phase One/iXU180/cap_22908.IIQ,1,1,14c7bf11c8626908077874d56a39311e35ece1a2b70d852cc4ba0bd9ef831379,1,1,,10380,7816,RGGB
 ❌,Plustek OpticFilm 8100,DNG,Plustek/OpticFilm 8100/SF8_processed_-_Mon_Jun_17_19-45-39_2019.dng,1,1,02a48c6af0792fb66221f852d022e0c674aa5897e5ea5ce37010ea26bb31bc68,0,0,process_metadata:backend,2592,1800,unknown
 ❌,Plustek OpticFilm 8200i SE,DNG,Plustek/OpticFilm 8200i SE/AristaUltra_400_Test1.dng,1,1,19539e11bfbf3892685babe307ba926c418e7aca6ef5441edb7f1c10597c1843,0,0,process_metadata:backend,5040,3384,unknown
+❌,Polaroid x530,X3F,Polaroid/Polaroid x530/RAW_POLAROID_X530.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,RICOH GX200,DNG,RICOH/RICOH GX200/R0014336-20180515-ss620-ap4.6-fl5-iso64.DNG,1,1,2541a3f20f5a170937502b70faddcd27f08d6057a23d3f6fae044bacb7265fa7,1,1,,4096,3014,GRBG
 ✅,RICOH GXR,DNG,RICOH/GXR/R0017428.DNG,1,1,d5e74fc979cc06899ad5fa87172e92c62d0ca515de99df5bfe7c87761b0b7818,1,1,,3672,2748,RGGB
+❌,RaspberryPi RP_imx219,RAW,RaspberryPi/RP_imx219/Pi_V2.1.raw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,RaspberryPi RP_imx219,RAW,RaspberryPi/RP_imx219/Pi_V2.1_picamera.raw,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,RaspberryPi RP_imx477,DNG,RaspberryPi/RP_imx477/pi.dng,1,1,c6c0fcf96bdcc8b630188de09e7c99b86bd7afd7e8a91af82a01700769b4f7c8,1,1,,4056,3040,BGGR
 ✅,RaspberryPi RP_imx477,DNG,RaspberryPi/RP_imx477/pi_hq_picamera.dng,1,1,84669ab9c672fb2ed35839b6eb979bf3e6e9efea3e0d161dbe3d479fddeadaab,1,1,,4056,3040,BGGR
 ✅,RaspberryPi RP_imx477,DNG,RaspberryPi/RP_imx477/pi_hq_raspistill.dng,1,1,be09b723e36b0824d57f68168bdbe747bd5894371ce793a08d7f886f25131c7e,1,1,,4056,3040,BGGR
+❌,RaspberryPi RP_imx477,RAW,RaspberryPi/RP_imx477/pi.raw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,RaspberryPi RP_imx477,RAW,RaspberryPi/RP_imx477/pi_hq_picamera.raw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,RaspberryPi RP_imx477,RAW,RaspberryPi/RP_imx477/pi_hq_raspistill.raw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,RaspberryPi RP_ov5647,RAW,RaspberryPi/RP_ov5647/Pi_V1.3.raw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,RaspberryPi RP_ov5647,RAW,RaspberryPi/RP_ov5647/Pi_V1.3_picamera.raw,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Realme RMX1851,DNG,Realme/RMX1851/IMG_OCT_20191005_163311.dng,1,1,24d613dbb80d4a636b739b015104874c6dfdd393297a49609d281844f18177bd,1,1,,4656,3496,BGGR
 ✅,Ricoh GR,DNG,Ricoh/GR/R0003611.DNG,1,1,b672b3d25f512c4025993a53832a65f592382892c905dfb2c70fd50ba4ce3ee9,1,1,,4960,3280,RGGB
 ✅,Ricoh GR DIGITAL 2,DNG,Ricoh/GR DIGITAL 2/RAW_RICOH_GR2.DNG,1,1,9b991e2ab3702f3c04f556817dfff29afaa38d68468fc98e3c2477de83eb1d7e,1,1,,3656,2744,BGGR
 ✅,Ricoh GR II,DNG,Ricoh/GR II/R0000443.DNG,1,1,218ed7e232dc7cc3ed41fcb0955e58cac0c329e21a0c46e769f758db52ad22c1,1,1,,4960,3280,RGGB
 ✅,Ricoh GR III,DNG,Ricoh/GR III/R0000357.DNG,1,1,b41651e822c16db6d28d90bf672ead47e7a212c03831504e7f38a8231321652f,1,1,,6112,4064,RGGB
 ✅,Ricoh GR IIIx,DNG,Ricoh/GR IIIx/R0001005.DNG,1,1,cda1e7d2604e314500725d648afe5241a82d338907659daad69c3b47a84ebde1,1,1,,6112,4064,RGGB
+❌,SAMSUNG TECHWIN GX-1L,PEF,SAMSUNG TECHWIN/GX-1L/SG1L5458.PEF,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SIGMA DP2 Merrill,X3F,Sigma/SIGMA DP2 Merrill/DP2M1726.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SIGMA DP2 Merrill,X3F,Sigma/SIGMA DP2 Merrill/DP2M5265.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SIGMA DP2 Merrill,X3F,Sigma/SIGMA DP2 Merrill/SDIM0076.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SIGMA DP2 Merrill,X3F,Sigma/SIGMA DP2 Merrill/SDIM1223.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SIGMA SD1 Merrill,X3F,Sigma/SIGMA SD1 Merrill/SDIM0042.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SIGMA SD14,X3F,Sigma/SIGMA SD14/20120818-SDIM4579.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SIGMA SD15,X3F,Sigma/SIGMA SD15/_SDI5651.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SIGMA dp2 Quattro,X3F,Sigma/SIGMA dp2 Quattro/SDIM4388.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SJCAM M20,RAW,SJCAM/M20/2016_0101_013059_001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SJCAM SJ6 LEGEND,RAW,SJCAM/SJ6 LEGEND/2018_0107_140544_001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SJCAM SJ6 LEGEND,RAW,SJCAM/SJ6 LEGEND/2018_0107_140610_003.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SJCAM SJ6 LEGEND,RAW,SJCAM/SJ6 LEGEND/2018_0107_140646_005.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SJCam 5000X Elite,RAW,SJCam/5000X Elite/2015_0101_035947_003.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,SJCam 5000X Elite,RAW,SJCam/5000X Elite/2016_0104_005847_665To_send.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,SONY DSC-RX100M7A,ARW,SONY/DSC-RX100M7A/RX700064.ARW,1,1,59accc3a08fdcecc95ebd36ce861fca2b607e743b12a9b9848f97e76759a7020,1,1,,5504,3672,RGGB
 ✅,SONY DSC-RX1RM3,ARW,SONY/DSC-RX1RM3/DSC00253.ARW,1,1,8f2059fe70b1889b2ee0f7764a57f554c25c00d869d10f23979269aad25ad667,1,1,,9600,6376,RGGB
 ✅,SONY DSC-RX1RM3,ARW,SONY/DSC-RX1RM3/DSC00254.ARW,1,1,ec53446a01a707a121591b03163f71cc4a0237626d7d322e412f06dbe9513516,1,1,,9728,6656,RGGB
@@ -1227,6 +1751,9 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,SONY ZV-1M2,ARW,SONY/ZV-1M2/_DSC5498.ARW,1,1,52dbd4c948131cc9643211a6932d6a50a3f515da5db7f35c679e45820f1e14d2,1,1,,5504,3672,RGGB
 ✅,SONY ZV-E10M2,ARW,SONY/ZV-E10M2/DSC00696.ARW,1,1,220f652b885427c76c7498b2753d7ac8e898918d1ef06139fb58a69fc3d4b60e,1,1,,6272,4168,RGGB
 ✅,SONY ZV-E10M2,ARW,SONY/ZV-E10M2/DSC00697.ARW,1,1,3e9ee68ec60abd3a65405cbb86d126780f9b99c1ad65062e7fbaf7fc096cc2eb,1,1,,6656,4608,RGGB
+❌,Samsung EK-GN120,SRW,Samsung/EK-GN120/20231015_094741.srw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung EX1,SRW,Samsung/EX1/SAM_5548.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung EX2F,SRW,Samsung/EX2F/RAW_SAMSUNG_EX2F.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Samsung G920F,DNG,Samsung/G920F/LRM_20170316_152407.dng,1,1,769ae8de9f038505d7228633c5b4b13254d593b19709247e20b1d3dc75deb454,1,1,,5328,3000,GRBG
 ✅,Samsung G935F,DNG,Samsung/G935F/20170403_104110.dng,1,1,4cdae9924361755d7f0beb5440527f793e860d42be088f111e92122faa060ab0,1,1,,4032,2268,GRBG
 ✅,Samsung GX10,DNG,Samsung/GX10/_G107701.DNG,1,1,5f125e1e25c37953553655be8f4eac3717ac5da53d9325e324d2e669335668a1,1,1,,3936,2624,RGGB
@@ -1239,6 +1766,29 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Samsung Galaxy S23 Ultra,DNG,Samsung/Galaxy S23 Ultra/20230817_120455.dng,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
 ❌,Samsung Galaxy S23 Ultra,DNG,Samsung/Galaxy S23 Ultra/20231214_130645.dng,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
 ❌,Samsung Galaxy S23+,DNG,Samsung/Galaxy S23+/20231227_172938.dng,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Samsung NX mini,SRW,Samsung/NX mini/SAM_0295.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX1,SRW,Samsung/NX1/2016-07-23-142101_sam_9364.srw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX10,SRW,Samsung/NX10/SAM_3630.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX100,SRW,Samsung/NX100/RAW_SAMSUNG_NX100.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX1000,SRW,Samsung/NX1000/_5169011.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX11,SRW,Samsung/NX11/SAM_5935.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX1100,SRW,Samsung/NX1100/Sam20_50mm.srw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX1100,SRW,Samsung/NX1100/Sam20mm.srw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX1100,SRW,Samsung/NX1100/Sam50_200mm.srw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX20,SRW,Samsung/NX20/03194133.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX200,SRW,Samsung/NX200/2013-05-08-194524__sam6589.srw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX2000,SRW,Samsung/NX2000/_3240014.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX210,SRW,Samsung/NX210/nx210.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX30,SRW,Samsung/NX30/2015-03-07-163604_sam_7204.srw,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX300,SRW,Samsung/NX300/nx300.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX3000,SRW,Samsung/NX3000/_3184416.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX300M,SRW,Samsung/NX300M/RAW_SAMSUNG_NX300M.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX3300,SRW,Samsung/NX3300/SAM_4260.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX5,SRW,Samsung/NX5/SAM_3213.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX500,SRW,Samsung/NX500/SAM_2922.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX500,SRW,Samsung/NX500/SAM_2927.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX500,SRW,Samsung/NX500/SAM_2929.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Samsung NX500,SRW,Samsung/NX500/SAM_2935.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Samsung SAMSUNG-SM-G930A,DNG,Samsung/SAMSUNG-SM-G930A/20180105_103031.dng,1,1,ea83a4c8e65ff4e9f34e29dcf6393c361ec62142bc6163554fd423e0f9fdb38f,1,1,,4032,2268,GRBG
 ✅,Samsung SM-G930F,DNG,Samsung/SM-G930F/20200125_130015.dng,1,1,5ba99e8e4de12d1ed193e2947e8ab0411d2c900cb29be05a77dd6af4e4d4235d,1,1,,4032,3024,GRBG
 ✅,Samsung SM-G930T,DNG,Samsung/SM-G930T/20180602_132834.dng,1,1,fb9b0764d839ce740926a57e6025e0dc101d8112ad07a409470943e5be2f903a,1,1,,4032,3024,GRBG
@@ -1249,6 +1799,14 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Samsung SM-G965F,DNG,Samsung/SM-G965F/Samsung_SM-G965F_4-3_ratio_f2.4.dng,1,1,9579d94afe96700f8cd4ae186f560190b1e95493bedbbe270d2378652e84b9a6,1,1,,4032,3024,GRBG
 ✅,Samsung SM-G973F,DNG,Samsung/SM-G973F/20191114_225157.dng,1,1,d3b2d362609a2acc36be447db89eed1f2119de7ff0438a9f6c2cf8a7b20fb96e,1,1,,4032,3024,GRBG
 ❌,Samsung SM-G973U,DNG,Samsung/SM-G973U/20200402_181931.dng,0,0,,0,0,decode:invalid_input,0,0,unknown
+❌,Samsung WB2000,SRW,Samsung/WB2000/SAM_4727.SRW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Sigma DP0 Quattro,X3F,Sigma/DP0 Quattro/_SDI0263.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Sigma DP1,X3F,Sigma/DP1/RAW_SIGMA_DP1.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Sigma DP1 Merrill,X3F,Sigma/DP1 Merrill/SDIM0555.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Sigma DP1s,X3F,Sigma/Sigma DP1s/RAW_SIGMA_DP1S.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Sigma DP3 Merrill,X3F,Sigma/DP3 Merrill/_P3M9383.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Sigma SD10,X3F,Sigma/Sigma SD10/RAW_SIGMA_SD10.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Sigma SD9,X3F,Sigma/Sigma SD9/RAW_SIGMA_SD9_SRGB.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Sigma fp,DNG,Sigma/fp/A002_647_20240229_000001_4k_12bit.DNG,1,1,e70b0b3ada4e6ce0c21778b68060319a4d1f3889a4890e502bdf1e178b69b5a1,1,1,,3856,2170,RGGB
 ✅,Sigma fp,DNG,Sigma/fp/A002_648_20240229_000001_4k_10bit.DNG,1,1,e6eb207caccb701e0ae4796ceb8345db998cee1abbb50e670101e5757148e068,1,1,,3856,2170,RGGB
 ✅,Sigma fp,DNG,Sigma/fp/A002_650_20240229_000001_4k_8bit.DNG,1,1,78ce38d8cae8cfdebc9fad2e0914ed4bbdd45b740223addf547b322cf26858b0,1,1,,3856,2170,RGGB
@@ -1258,8 +1816,13 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Sigma fp,DNG,Sigma/fp/SDIM4591.DNG,1,1,700ce1fd157bde7d996ce8803945322116ed57de3befa0f5ac64265a30628ebf,1,1,,6064,4042,RGGB
 ✅,Sigma fp L,DNG,Sigma/fp L/SDIM0915.DNG,1,1,f44268ee14e3acf5a702ded6ea32d18743fd9586fbf8f835f21fb8c6adec3a78,1,1,,9536,6344,RGGB
 ❌,Sigma sd Quattro,DNG,Sigma/sd Quattro/sample3.DNG,0,0,,0,0,raw_mosaic:unsupported,0,0,unknown
+❌,Sigma sd Quattro,X3F,Sigma/sd Quattro/sample3.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Sigma sd Quattro H,X3F,Sigma/sd Quattro H/SDIM0061.X3F,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,"Sinarback eVolution 75, Sinar p3  f3",STI,"Sinarback/Sinarback eVolution 75, Sinar p3  f3/Tomatio_03.sti",0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Sony DSC-F828,SRF,Sony/DSC-F828/DSC06227.SRF,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Sony DSC-HX95,ARW,Sony/DSC-HX95/DSC00018.ARW,1,1,a60b0315bd680516afd32d6621adfdaf9cd50cb309abda47858c481c899b2ab9,1,1,,4928,3708,RGGB
 ✅,Sony DSC-HX99,ARW,Sony/DSC-HX99/DSC00001.ARW,1,1,b0fcee76cbc650ef9678f83f641fc0e116453be9f92b0db67a777b1504f1f6ec,1,1,,4928,3708,RGGB
+❌,Sony DSC-R1,SR2,Sony/DSC-R1/_DSC1477.SR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Sony DSC-RX0,ARW,Sony/DSC-RX0/DSC00009.ARW,1,1,0107c7046905dc8416f7a1cb2c6fb17a96a71bbc8cb67cb858ef66f0479d56fb,1,1,,4832,3224,RGGB
 ✅,Sony DSC-RX0M2,ARW,Sony/DSC-RX0M2/RX000224.ARW,1,1,4251ca9104f4acec30dab639b212b7d0d3b33075c3dd1443cbf06dcfd28c04c0,1,1,,4832,3224,RGGB
 ✅,Sony DSC-RX1,ARW,Sony/DSC-RX1/_DSC0812.ARW,1,1,7e97ea47c045339c0b55e9d5290ccd6176caf38e89d2924c9c0b104536937b72,1,1,,6048,4024,RGGB
@@ -1360,6 +1923,7 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Sony ILCE-7RM2,ARW,Sony/ILCE-7RM2/distortion-correction-off.ARW,1,1,2d3fd7cc30b5e1b19d5d2a69307d92fcef24cbd02a6d080531782f0ea15adc34,1,1,,8000,5320,RGGB
 ✅,Sony ILCE-7RM2,ARW,Sony/ILCE-7RM2/vignetting-and-CA-correction-off.ARW,1,1,f97f67fa0ae7ee9dcceb0c29804bfc46e4ee4f3090517aba5af6637265ac7358,1,1,,8000,5320,RGGB
 ✅,Sony ILCE-7RM2,ARW,Sony/ILCE-7RM2/vignetting-and-CA-correction-on.ARW,1,1,eeb5bb6f73dfc32d7cbc6b1f070bcc227a2d9e7f06d8675981557d19561f656b,1,1,,8000,5320,RGGB
+❌,Sony ILCE-7RM3,ARQ,Sony/ILCE-7RM3/Indoor_Multi-20190712-094102.ARQ,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Sony ILCE-7RM3,ARW,Sony/ILCE-7RM3/DSC03791.ARW,1,1,5da24017ce703de40d35a496c710f045580a54b9f31a2588dbdf0a7750952bb1,1,1,,8000,5320,RGGB
 ✅,Sony ILCE-7RM3,ARW,Sony/ILCE-7RM3/DSC03792.ARW,1,1,99f226e02bda0000fd32e5117ca7ec8b6f764e8479d44eaaa6f29fa629e1ad73,1,1,,8000,5320,RGGB
 ✅,Sony ILCE-7RM3,ARW,Sony/ILCE-7RM3/DSC03793.ARW,1,1,52c42cf65c5548ad2757db9f8349c14f3dce223b342d06857e75e26c0fd9fcf8,1,1,,8000,5320,RGGB
@@ -1442,6 +2006,8 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Xiaomi Mi 9 Lite,DNG,Xiaomi/Mi 9 Lite/IMG_20200324_073611.dng,1,1,e7392269a1745d2d818497c506dfe5032649f93516f21292d9eba0bb94c0527f,1,1,,4000,3000,RGGB
 ✅,Xiaomi Redmi Note 7,DNG,Xiaomi/Redmi Note 7/IMG_20190615_155524.dng,1,1,25a02450f5ae5f91a52e9c1499c9e0efb7ab8de8896171e4acf30b52c772c629,1,1,,4000,3000,GRBG
 ✅,Xiaomi Redmi Note 8T,DNG,Xiaomi/Redmi Note 8T/IMG_20200715_094601.dng,1,1,a8f8a643bc12c787fc5344220ce86a2ee95792afcf62ee11c8fe7a53c1ce26da,1,1,,4000,3000,GRBG
+❌,Xiaomi Yi,RAW,Xiaomi/Yi/YDXJ0309.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
+❌,Xiro Xplorer V,RAW,Xiro/Xplorer V/2017_0908_092308_001.RAW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,YI TECHNOLOGY M1,DNG,YI TECHNOLOGY/M1/PC070001.DNG,1,1,9eda0d624c5f9cbb76ed4e7dcd92fb3a4be78ad6b77d97307e951c647ae440c4,1,1,,5200,3902,RGGB
 ❌,Yuneec CGO3,DNG,Yuneec/CGO3/YUN00038.dng,1,1,ab0b8bc01f75c381b57be25395f20ff7e4276229fc58c0d5a11786dfd3ba24a2,0,0,process_metadata:backend,4000,3000,BGGR
 ❌,Yuneec CGO3P,DNG,Yuneec/CGO3P/YUN00007.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown

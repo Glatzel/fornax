@@ -7,6 +7,9 @@ use clap_verbosity_flag::InfoLevel;
 use clerk::tracing_subscriber::layer::SubscriberExt;
 use clerk::tracing_subscriber::util::SubscriberInitExt;
 use clerk::tracing_subscriber::{EnvFilter, Layer, Registry};
+use decoder_tracker::corpus_metadata::{
+    classify_rows, merge_corpus_metadata, write_corpus_metadata_csv,
+};
 use decoder_tracker::csvio::{read_manifest_csv, write_baseline_csv, write_manifest_csv};
 use decoder_tracker::duckdb::{diff as duckdb_diff, merge as duckdb_merge};
 use decoder_tracker::golden::{check_golden_csv, decode_golden, read_golden_csv, write_golden_csv};
@@ -15,12 +18,13 @@ use decoder_tracker::manifest::{
 };
 use decoder_tracker::model::{BaselineRow, ManifestRow, Result, TrackerError, status_for_stages};
 use decoder_tracker::runner::{materialize, run_isolation, timeout_from_env};
-use decoder_tracker::selection::{Selection, Shard, select_manifest, with_manifest_formats};
+use decoder_tracker::selection::{Selection, Shard, select_manifest};
 use decoder_tracker::stages::{StageRow, evaluate_one};
 
 const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
-const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/manifest.csv";
+const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/data/manifest.csv";
 const DEFAULT_OUTPUT: &str = "target/decoder-tracker/corpus.csv";
+const DEFAULT_CORPUS_METADATA: &str = "crates/decoder-tracker/data/corpus-metadata.csv";
 
 #[derive(Debug, Parser)]
 #[command(
@@ -50,6 +54,10 @@ enum Command {
     Update(UpdateArgs),
     /// Write or verify canonical decoder-output hashes.
     Hash(HashArgs),
+    /// Classify DNG storage and compression tags for selected corpus files.
+    CorpusMetadata(CorpusMetadataArgs),
+    /// Merge canonical DNG corpus metadata shards.
+    CorpusMetadataMerge(CorpusMetadataMergeArgs),
     /// Evaluate one materialized file for the run parent process.
     #[command(hide = true)]
     RunOne(RunOneArgs),
@@ -79,8 +87,6 @@ struct SelectArgs {
 struct FilterArgs {
     #[arg(long, default_value = DEFAULT_CORPUS)]
     corpus: PathBuf,
-    #[arg(long = "format", action = clap::ArgAction::Append)]
-    formats: Vec<String>,
     #[arg(long = "camera", action = clap::ArgAction::Append)]
     cameras: Vec<String>,
     #[arg(long = "filename", action = clap::ArgAction::Append)]
@@ -92,7 +98,6 @@ struct FilterArgs {
 impl FilterArgs {
     fn selection(&self, shard: Option<Shard>) -> Selection {
         Selection {
-            formats: self.formats.clone(),
             cameras: self.cameras.clone(),
             filenames: self.filenames.clone(),
             globs: self.globs.clone(),
@@ -163,6 +168,35 @@ struct HashArgs {
 }
 
 #[derive(Debug, Args)]
+struct CorpusMetadataArgs {
+    #[arg(long, default_value = DEFAULT_CORPUS)]
+    corpus: PathBuf,
+    #[arg(long, default_value = DEFAULT_MANIFEST)]
+    manifest: PathBuf,
+    #[arg(long)]
+    shard: Option<Shard>,
+    #[arg(
+        long,
+        default_value = "target/decoder-tracker/corpus-metadata-shard.csv"
+    )]
+    out: PathBuf,
+    #[arg(long, default_value_t = 2)]
+    max_files: usize,
+    #[arg(long)]
+    allow_full: bool,
+}
+
+#[derive(Debug, Args)]
+struct CorpusMetadataMergeArgs {
+    #[arg(long, default_value = DEFAULT_MANIFEST)]
+    manifest: PathBuf,
+    #[arg(long, default_value = DEFAULT_CORPUS_METADATA)]
+    out: PathBuf,
+    #[arg(required = true)]
+    shards: Vec<PathBuf>,
+}
+
+#[derive(Debug, Args)]
 struct RunOneArgs {
     #[arg(long)]
     input: PathBuf,
@@ -208,11 +242,68 @@ fn execute(cli: Cli) -> Result<ExitCode> {
         Command::Diff(args) => diff(args),
         Command::Update(args) => update(args),
         Command::Hash(args) => hash(args),
+        Command::CorpusMetadata(args) => corpus_metadata(args),
+        Command::CorpusMetadataMerge(args) => corpus_metadata_merge(args),
         Command::RunOne(args) => {
             println!("{}", serde_json::to_string(&evaluate_one(&args.input))?);
             Ok(ExitCode::SUCCESS)
         }
     }
+}
+
+fn corpus_metadata(args: CorpusMetadataArgs) -> Result<ExitCode> {
+    let rows = read_manifest_csv(read_file(&args.manifest)?)?;
+    let dng_rows = rows
+        .into_iter()
+        .filter(|row| row.format == "DNG")
+        .collect::<Vec<_>>();
+    let selected = select_manifest(
+        &dng_rows,
+        &Selection {
+            cameras: Vec::new(),
+            filenames: Vec::new(),
+            globs: Vec::new(),
+            shard: args.shard,
+        },
+    )?;
+    let ci = std::env::var("CI").is_ok_and(|value| value == "true");
+    if !args.allow_full && !ci && selected.len() > args.max_files {
+        return Err(TrackerError::new(format!(
+            "metadata selection has {} DNG files but --max-files is {}; use a shard, CI=true, or --allow-full",
+            selected.len(),
+            args.max_files
+        )));
+    }
+
+    materialize(&args.corpus, &selected)?;
+    let metadata = classify_rows(&selected, &args.corpus)?;
+    let bytes = write_corpus_metadata_csv(&metadata)?;
+    write_file(&args.out, &bytes)?;
+    clerk::info!(
+        "classified {} DNG files in {}",
+        metadata.len(),
+        args.out.display()
+    );
+    println!(
+        "corpus-metadata: classified {} rows in {}",
+        metadata.len(),
+        args.out.display()
+    );
+    Ok(ExitCode::SUCCESS)
+}
+
+fn corpus_metadata_merge(args: CorpusMetadataMergeArgs) -> Result<ExitCode> {
+    let rows = read_manifest_csv(read_file(&args.manifest)?)?;
+    let metadata = merge_corpus_metadata(&rows, &args.shards)?;
+    let bytes = write_corpus_metadata_csv(&metadata)?;
+    write_file(&args.out, &bytes)?;
+    clerk::info!("merged {} DNG metadata rows", metadata.len());
+    println!(
+        "corpus-metadata-merge: wrote {} rows to {}",
+        metadata.len(),
+        args.out.display()
+    );
+    Ok(ExitCode::SUCCESS)
 }
 
 fn select(args: SelectArgs) -> Result<ExitCode> {
@@ -257,10 +348,7 @@ fn run(args: RunArgs) -> Result<ExitCode> {
             args.manifest.display()
         ))
     })?)?;
-    let mut selection = args.filter.selection(args.shard);
-    if args.manifest != Path::new(DEFAULT_MANIFEST) {
-        selection = with_manifest_formats(selection, &rows);
-    }
+    let selection = args.filter.selection(args.shard);
     let selected = select_manifest(&rows, &selection)?;
     let ci = std::env::var("CI").is_ok_and(|value| value == "true");
     if !args.allow_full && !ci && selected.len() > args.max_files {
