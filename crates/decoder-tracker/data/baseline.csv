@@ -16,15 +16,15 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Autel Model 323,DNG,Autel/Model 323/MAX_0005.DNG,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ✅,Autel Robotics XB015,DNG,Autel Robotics/XB015/MAX_0001.DNG,1,1,19d01bedb9b91314b6382923355fcf5790f0dc7275075ce609e6930e5a7c6250,1,1,,4000,2250,RGGB
 ✅,Blackmagic Design Pocket Cinema Camera 6k Pro,DNG,Blackmagic Design/Pocket Cinema Camera 6k Pro/A010_04101355_S068.dng,1,1,36dfe172477deb0dde8d04b0b9ac4a57ba66a9287a82b7a70adc616e4339224b,1,1,,6144,3456,RGGB
-❌,Blackmagic Micro Cinema Camera,DNG,Blackmagic/Micro Cinema Camera/CAM1_2000-01-01_1659_C0002_000100.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Blackmagic Micro Cinema Camera,DNG,Blackmagic/Micro Cinema Camera/CAM1_2000-01-01_1659_C0002_000100.dng,1,1,7dd476c883c048ef2f96764060d3e259c0b1ef83f16d53e9f894f3e00e6c84cf,1,1,,1952,1104,GBRG
 ❌,Blackmagic Micro Cinema Camera,DNG,Blackmagic/Micro Cinema Camera/CAM1_2000-01-01_1707_C0003_000100.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
-❌,Blackmagic Pocket Cinema Camera,DNG,Blackmagic/Pocket Cinema Camera/Blackmagic_Pocket_Cinema_Camera_1_2016-09-17_0053_C0022_000007.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Blackmagic Pocket Cinema Camera,DNG,Blackmagic/Pocket Cinema Camera/Blackmagic_Pocket_Cinema_Camera_1_2016-09-17_0053_C0022_000007.dng,1,1,783aac798eca1e27c0cb5216c84da09c5c8b7b7cb03025651d8f2613977a4a0d,1,1,,1952,1112,GBRG
 ✅,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/4k_DCI_uncompressed.dng,1,1,7fc45dd1b7f2a6405a6f21ee3323baa978e14c4e4970eb24679b7b85874a02be,1,1,,4128,2176,RGGB
 ❌,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_3-1.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
 ❌,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_4-1.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
-❌,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_lossless.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_lossless.dng,1,1,4eadaeec4d50dee56a62781ea69bfa03d017e34542dab337979960c50d4b273c,1,1,,4128,2176,RGGB
 ✅,Blackmagic Pocket Cinema Camera 4k,DNG,Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_uncompressed.dng,1,1,948397f3bdb4a1ea0b7383d1530a8f361acbd2d1b7b17c89e115072cc8053a23,1,1,,4128,2176,RGGB
-❌,Blackmagic URSA 4K,DNG,Blackmagic/URSA 4K/Blackmagic URSA_1_1999-12-31_2153_C0003_000001.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Blackmagic URSA 4K,DNG,Blackmagic/URSA 4K/Blackmagic URSA_1_1999-12-31_2153_C0003_000001.dng,1,1,8bc04f1cb7a24675c141d37a150a70fb0a0b57114d583eecfc71894263bd1ce6,1,1,,4032,2192,GRBG
 ❌,Canon A570 IS,CRW,Canon/A570 IS/CRW_2554.CRW,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon DIGITAL IXUS 60,DNG,Canon/Canon DIGITAL IXUS 60/CRW_2069.DNG,1,1,a84e6d45f771c48422ee058f9abd9b4ce9dfe81ca4bcdd431ffe65b0ca5d1efe,1,1,,2888,2136,RGGB
 ✅,Canon DIGITAL IXUS 95 IS,DNG,Canon/Canon DIGITAL IXUS 95 IS/CRW_2593_01.DNG,1,1,83a1f48eae5a1fadcf55afc97e9bcaa96172c24c29af5a597c158e945b767259,1,1,,3720,2772,RGGB
@@ -71,7 +71,7 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Canon EOS 5D Mark III,CR2,Canon/EOS 5D Mark III/5G4A9395.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 5D Mark III,CR2,Canon/EOS 5D Mark III/5G4A9396.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/M24-1221_000202.dng,1,1,40b2cc54cc849e35f3ebf523087c1c0f39f79ccafefca7ae3b28f339db611488,1,1,,1920,1080,RGGB
-❌,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/compress.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/compress.dng,1,1,5caf2584f2a6b2e7650e23a8564b62794df3cbc8d378179e9037882375403afd,1,1,,1920,818,RGGB
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-uncompressed.dng,1,1,fcaf551c4eb67f87879993a585a751e723b823c9636412337cc6dec6b0a55a45,1,1,,5920,3950,RGGB
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-w-pred-deflate.dng,1,1,684e141ef9f39463bd2f949a7230ac48fcea2040727f590060c3dc6049f68fca,1,1,,5920,3950,RGGB
 ✅,Canon EOS 5D Mark III,DNG,Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-uncompressed.dng,1,1,d48f9f8c319b42fa12259f1ca4353a69f1b562fd9b2a9d87ce40e647d3bab65d,1,1,,5920,3950,RGGB
@@ -93,7 +93,7 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Canon EOS 60D,CR2,Canon/EOS 60D/IMG_2014.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 60D,CR2,Canon/EOS 60D/IMG_2015.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 60D,CR2,Canon/EOS 60D/IMG_2016.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
-❌,Canon EOS 60D,DNG,Canon/EOS 60D/M14-1451_000085_cDNG_compressed.dng,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,Canon EOS 60D,DNG,Canon/EOS 60D/M14-1451_000085_cDNG_compressed.dng,1,1,866e2cdf4f1419b9d00320efa107839c0a371e4c5f67315986112c604121e747,1,1,,960,540,RGGB
 ❌,Canon EOS 650D,CR2,Canon/EOS 650D/IMG_3517.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 6D,CR2,Canon/EOS 6D/EOS_6D_RAW.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Canon EOS 6D,CR2,Canon/EOS 6D/EOS_6D_mRAW.CR2,0,0,,0,0,decode:unsupported,0,0,unknown
@@ -388,11 +388,11 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Casio QV-5000SX,CAM,Casio/QV-5000SX/QV-5000_01.cam,0,0,,0,0,decode:unsupported,0,0,unknown
 ✅,DJI FC220,DNG,DJI/FC220/DJI_0004.DNG,1,1,bff5114dbaafd125ad080f99f4519ac5f45ceb020eb67ffcaee42d1fdc1330da,1,1,,4000,3000,RGGB
 ✅,DJI FC350,DNG,DJI/FC350/DJI_0040.DNG,1,1,6c58a1c70fc07af1ee95862121521baf6c3fa1626d5426d2f1781285a4d3c83e,1,1,,4000,2250,RGGB
-❌,DJI FC4382,DNG,DJI/FC4382/DJI_20250506184749_0011_D.DNG,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,DJI FC4382,DNG,DJI/FC4382/DJI_20250506184749_0011_D.DNG,1,1,903829af8eb27607ca30d58fcbec11b7fe41d663f7e6e7e399f9445d0052af86,1,1,,4032,3024,GRBG
 ✅,DJI FC6310,DNG,DJI/FC6310/DJI_0220.DNG,1,1,3daa3768863de759fab612b9819595dd5b6a906e5be573b54bf7592b88f1e23d,1,1,,5472,3648,RGGB
 ✅,DJI FC7303,DNG,DJI/FC7303/DJI_0109.DNG,1,1,6b978f9e1e624e5a63973cd5f83ef523f73be5b6ba57357cd930d52330c6a885,1,1,,4000,3000,RGGB
 ✅,DJI FC7303,DNG,DJI/FC7303/DJI_0765.DNG,1,1,65106b24a3bd290b9fdcbb4db5d0e1da1a78a6ad1911f1b3a2359e1760bff5a9,1,1,,4000,2250,RGGB
-❌,DJI FC9287,DNG,DJI/FC9287/DJI_20250528104510_0025_D.DNG,0,0,,0,0,raw_mosaic:invalid_input,0,0,unknown
+✅,DJI FC9287,DNG,DJI/FC9287/DJI_20250528104510_0025_D.DNG,1,1,ba8853e9854af7b294a397cbc7cf6d9fc04c2737804692d81aad420f518627f3,1,1,,8192,4608,BGGR
 ✅,DJI Osmo Action,DNG,DJI/DJI Osmo Action/DJI_0254.DNG,1,1,aa58d661f8bb886e96d891678f50ad69e4918adbdbe22ed442f1af0a617830d1,1,1,,4000,3000,RGGB
 ❌,Epson R-D1,ERF,Epson/R-D1/_EPS0672.ERF,0,0,,0,0,decode:unsupported,0,0,unknown
 ❌,Epson R-D1s,ERF,Epson/R-D1s/EPSN3575.ERF,0,0,,0,0,decode:unsupported,0,0,unknown

@@ -2,7 +2,7 @@
 
 <!-- decoder-tracker-badge:start -->
 
-[![RAW corpus: 990/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-990%2F2020-orange)](data/baseline.csv)
+[![RAW corpus: 998/2020 passed](https://img.shields.io/badge/raw.pixls.us_corpus_pass-998%2F2020-orange)](data/baseline.csv)
 
 | Vendor | Format | Status |
 | --- | --- | ---: |
@@ -12,15 +12,15 @@
 | Arri | ARI | 0/1 |
 | Autel | DNG | 0/1 |
 | Autel Robotics | DNG | 1/1 |
-| Blackmagic | DNG | 2/9 |
+| Blackmagic | DNG | 6/9 |
 | Blackmagic Design | DNG | 1/1 |
 | Canon | CR2 | 0/142 |
 | Canon | CR3 | 28/110 |
 | Canon | CRW | 0/51 |
-| Canon | DNG | 50/53 |
+| Canon | DNG | 52/53 |
 | Canon | TIF | 0/3 |
 | Casio | CAM | 0/2 |
-| DJI | DNG | 6/8 |
+| DJI | DNG | 8/8 |
 | Epson | ERF | 0/3 |
 | Eyedeas | DNG | 1/1 |
 | FIMI | DNG | 1/1 |
