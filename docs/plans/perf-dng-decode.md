@@ -1248,6 +1248,9 @@ equality result, and rollback.
 
 ## Decisions and Notes
 
+- The post-optimization FlashRaw gap, evidence limits, and follow-up probes are
+  recorded in
+  [DNG decode remaining performance gap](../reference/decoders/dng-remaining-gap.md).
 - The headline performance comparison is Fornax `decode + raw_mosaic` versus
   Rawler/FlashRaw `decode`. Parse-only and pixel-only items remain diagnostics.
 - Rawler and FlashRaw `raw_mosaic` timing items are intentionally omitted.

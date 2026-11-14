@@ -4,6 +4,8 @@ This note records the 2026-11-14 investigation into Fornax DNG decode
 performance relative to Rawler 0.8.0 and FlashRaw 0.2.0. It preserves the
 measurement method, fairness constraints, hot paths, and implementation
 differences that inform [the DNG performance plan](../../plans/perf-dng-decode.md).
+The post-optimization FlashRaw gap is analyzed separately in
+[DNG decode remaining performance gap](dng-remaining-gap.md).
 
 Timing values in this note are host-specific observations. They are not a CI
 baseline and must not be treated as portable performance guarantees.
