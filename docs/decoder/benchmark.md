@@ -94,8 +94,9 @@ cargo test -p fornax-raw-decoder --test decoder_equivalence -- \
 ```
 
 Select one golden input with `FORNAX_BENCH_RAW` in the same way as the
-benchmark. Each DNG decoder-benchmark CI matrix job runs this check for its
-materialized input before timing.
+benchmark. The benchmark runs the same three-way equality check for its
+materialized DNG input before timing, so the CI matrix does not invoke the
+standalone ignored test a second time.
 
 ## CI matrix
 
