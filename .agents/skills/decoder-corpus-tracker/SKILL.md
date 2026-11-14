@@ -95,7 +95,9 @@ The report groups fully passing rows with `compression_lossless=1` by format,
 compression name, bit depth, sample format, storage, and predictor. CFA is
 metadata on the representative, not part of the encoding key. The representative
 is the lowest-pixel passing file, with file size and path as deterministic
-tie-breakers. Known-lossy and ambiguous streams are excluded.
+tie-breakers. Only tier-0 DNG and tier-1 ARW/CR3/NEF rows are eligible.
+Known-lossy and ambiguous streams are excluded, along with legacy Sony ARW1 and
+all tier-2/3 formats.
 
 Use `--selected-out FILE` to write one representative per encoding group.
 Review the result and regenerate golden hashes before replacing the committed

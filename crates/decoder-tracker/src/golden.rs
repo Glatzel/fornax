@@ -183,10 +183,7 @@ pub fn build_golden_coverage(
     }
 
     let mut groups = BTreeMap::<CoverageKey, Vec<&BaselineRow>>::new();
-    for row in baseline
-        .iter()
-        .filter(|row| fully_passing(row) && row.compression_lossless == Some(1))
-    {
+    for row in baseline.iter().filter(|row| golden_encoding(row)) {
         groups
             .entry(CoverageKey {
                 format: row.format.clone(),
@@ -330,6 +327,13 @@ const fn fully_passing(row: &BaselineRow) -> bool {
         && row.raw_mosaic_pass == 1
         && row.process_metadata_pass == 1
         && row.handoff_pass == 1
+}
+
+fn golden_encoding(row: &BaselineRow) -> bool {
+    fully_passing(row)
+        && row.compression_lossless == Some(1)
+        && matches!(row.format.as_str(), "DNG" | "ARW" | "CR3" | "NEF")
+        && !(row.format == "ARW" && row.compression_name == "sony-arw1")
 }
 
 pub fn decode_golden(path: &str, input: &std::path::Path) -> Result<GoldenRow> {

@@ -285,6 +285,48 @@ fn golden_coverage_excludes_non_lossless_encodings() {
 }
 
 #[test]
+fn golden_coverage_only_includes_tier_zero_and_one_formats_and_excludes_arw1() {
+    let cases = [
+        ("Canon/Cam/file.DNG", "lossless-jpeg"),
+        ("Sony/Cam/old.ARW", "sony-arw1"),
+        ("Sony/Cam/new.ARW", "sony-arw6"),
+        ("Canon/Cam/file.CR3", "canon-lossless-crx"),
+        ("Nikon/Cam/file.NEF", "nikon-huffman"),
+        ("Fujifilm/Cam/file.RAF", "fuji-lossless"),
+        ("Panasonic/Cam/file.RW2", "panasonic-v8"),
+    ];
+    let manifest = cases
+        .iter()
+        .enumerate()
+        .map(|(index, (path, _))| {
+            manifest_row(path, 10 + index as u64, char::from(b'a' + index as u8))
+        })
+        .collect::<Vec<_>>();
+    let baseline = manifest
+        .iter()
+        .zip(cases)
+        .map(|(row, (_, compression))| baseline_row(row, compression, 14, true))
+        .collect::<Vec<_>>();
+
+    let report = build_golden_coverage(&baseline, &manifest, &[]).unwrap();
+
+    assert_eq!(
+        report
+            .rows
+            .iter()
+            .map(|row| (row.format.as_str(), row.compression_name.as_str()))
+            .collect::<Vec<_>>(),
+        [
+            ("ARW", "sony-arw6"),
+            ("CR3", "canon-lossless-crx"),
+            ("DNG", "lossless-jpeg"),
+            ("NEF", "nikon-huffman"),
+        ]
+    );
+    assert_eq!(report.summary.missing, 4);
+}
+
+#[test]
 fn golden_coverage_rejects_absent_or_failed_golden_rows() {
     let absent = manifest_row("Canon/Cam/absent.DNG", 10, 'a');
     let failed = manifest_row("Canon/Cam/failed.DNG", 20, 'b');

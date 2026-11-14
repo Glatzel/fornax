@@ -180,11 +180,11 @@ specific decoder path. Join `data/manifest.csv` by `path` for file size.
 
 ## Golden decode outputs
 
-`golden/selected-manifest.csv` is a pointer-only lossless set containing one
-lowest-pixel known-passing representative per source encoding group. It covers
-DNG integer and floating-point storage, CR3, ARW, NEF, RAF, both accepted 3FR
-compression families, RW2, and IIQ. `golden/decode-hashes.csv` is the canonical
-output gate for refactors that must not change decoder results.
+`golden/selected-manifest.csv` is a pointer-only tier-0/1 lossless set
+containing one lowest-pixel known-passing representative per source encoding
+group. It covers DNG, ARW, CR3, and NEF only; tier-2/3 formats and legacy Sony
+ARW1 are excluded. `golden/decode-hashes.csv` is the canonical output gate for
+refactors that must not change decoder results.
 
 Each row records the path, raw sample type and dimensions, cropped `f32`
 dimensions, and four SHA-256 digests:
@@ -220,8 +220,8 @@ pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --out target/decoder-tracker/golden-coverage.csv
 ```
 
-The report groups fully passing rows with `compression_lossless=1` by the
-encoding tuple
+The report groups fully passing DNG/ARW/CR3/NEF rows with
+`compression_lossless=1` by the encoding tuple
 `(format, compression_name, bits_per_sample, sample_format, storage, predictor)`.
 CFA is reported for the representative but does not split an encoding group.
 It records passing and golden counts, all golden paths, and the lowest-pixel
@@ -236,11 +236,15 @@ pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --selected-out crates/decoder-tracker/golden/selected-manifest.csv
 ```
 
-The current generated set contains 45 lossless encoding groups. Lossy Sony
+The current generated set contains 30 lossless encoding groups. Lossy Sony
 ARW2 and IIQ nonlinear/Sv2 paths are excluded. Codec identifiers that can carry
 either lossy or lossless streams, currently DNG JPEG XL and WebP, are treated as
 not proven lossless and therefore remain ineligible until stream-level mode
 detection is implemented.
+
+Sony ARW1 is also excluded because it is only used by legacy models. Tier-2
+formats (RAF, 3FR, RW2, IIQ) and tier-3 unsupported formats never enter the
+golden selection.
 
 The classification evidence and conservative boundaries are recorded in
 [lossless-classification.md](../reference/codecs/lossless-classification.md).

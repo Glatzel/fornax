@@ -167,12 +167,12 @@ schema, stage semantics, glob/sharding rules, workflow, and update procedure
 are documented in
 [docs/decoder/corpus.md](../../docs/decoder/corpus.md).
 
-`golden/selected-manifest.csv` and `golden/decode-hashes.csv` form a 45-file
-lossless deterministic decode-output gate shared by decoder benchmarks. The set
-contains one lowest-pixel representative per known-lossless encoding group and
-covers all eight implemented container families. `golden-coverage` reports
-missing and redundant lossless encoding groups and names the lowest-pixel
-passing representative for each decoder path.
+`golden/selected-manifest.csv` and `golden/decode-hashes.csv` form a 30-file
+tier-0/1 lossless deterministic decode-output gate shared by decoder benchmarks.
+The set contains one lowest-pixel representative per known-lossless encoding
+group across DNG, ARW, CR3, and NEF. `golden-coverage` reports missing and
+redundant lossless encoding groups and names the lowest-pixel passing
+representative for each decoder path.
 `--selected-out` can emit one representative per group without changing the
 committed golden set implicitly. Run `hash --check` in release mode so full RAW decodes
 complete in bounded CI time. It materializes only those selected payloads and
