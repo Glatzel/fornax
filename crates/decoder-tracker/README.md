@@ -174,7 +174,8 @@ covers all eight implemented container families. `golden-coverage` reports
 missing and redundant lossless encoding groups and names the lowest-pixel
 passing representative for each decoder path.
 `--selected-out` can emit one representative per group without changing the
-committed golden set implicitly. Run `hash --check` in release mode so full RAW decodes
+committed golden set implicitly. Repeat `--exclude PATH` for passing candidates
+whose LFS object is unavailable. Run `hash --check` in release mode so full RAW decodes
 complete in bounded CI time. It materializes only those selected payloads and
 verifies raw samples, cropped samples, process metadata, and DNG metadata
 against the committed hashes. These files are generated and must not be

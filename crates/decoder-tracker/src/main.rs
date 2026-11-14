@@ -12,7 +12,7 @@ use decoder_tracker::csvio::{
 };
 use decoder_tracker::duckdb::{diff as duckdb_diff, merge as duckdb_merge};
 use decoder_tracker::golden::{
-    build_golden_coverage, check_golden_csv, decode_golden, read_golden_csv,
+    build_golden_coverage_with_exclusions, check_golden_csv, decode_golden, read_golden_csv,
     write_golden_coverage_csv, write_golden_csv, write_golden_selection_csv,
 };
 use decoder_tracker::manifest::{
@@ -181,6 +181,8 @@ struct GoldenCoverageArgs {
     out: PathBuf,
     #[arg(long)]
     selected_out: Option<PathBuf>,
+    #[arg(long = "exclude", action = clap::ArgAction::Append)]
+    excluded: Vec<String>,
 }
 
 #[derive(Debug, Args)]
@@ -403,7 +405,12 @@ fn golden_coverage(args: GoldenCoverageArgs) -> Result<ExitCode> {
     let baseline = read_baseline_csv(read_file(&args.baseline)?)?;
     let corpus_manifest = read_manifest_csv(read_file(&args.corpus_manifest)?)?;
     let golden_manifest = read_manifest_csv(read_file(&args.golden)?)?;
-    let report = build_golden_coverage(&baseline.rows, &corpus_manifest, &golden_manifest)?;
+    let report = build_golden_coverage_with_exclusions(
+        &baseline.rows,
+        &corpus_manifest,
+        &golden_manifest,
+        &args.excluded,
+    )?;
     let bytes = write_golden_coverage_csv(&report.rows)?;
     write_file(&args.out, &bytes)?;
     if let Some(path) = args.selected_out {

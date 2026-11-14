@@ -99,7 +99,8 @@ tie-breakers. Known-lossy and ambiguous streams are excluded.
 
 Use `--selected-out FILE` to write one representative per encoding group.
 Review the result and regenerate golden hashes before replacing the committed
-golden manifest.
+golden manifest. Repeat `--exclude PATH` when a lower-priority candidate's LFS
+object is unavailable.
 
 ## Manual baseline update
 

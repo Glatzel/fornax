@@ -267,7 +267,7 @@ git commit -m "refactor: merge encoding metadata into corpus baseline"
 ```text
 decoder-tracker golden-coverage \
   --baseline FILE --corpus-manifest FILE --golden FILE [--out FILE]
-  [--selected-out FILE]
+  [--selected-out FILE] [--exclude PATH]...
 ```
 
 - [x] **Step 1: Write failing golden coverage tests**
@@ -290,7 +290,8 @@ Expected: compile or assertion failure because the command does not exist.
 Write `target/decoder-tracker/golden-coverage.csv` by default. Emit passing
 counts, golden counts, golden paths, and the lowest-pixel passing
 representative. `--selected-out` emits one representative per
-`compression_lossless=1` encoding group.
+`compression_lossless=1` encoding group. `--exclude` skips passing candidates
+whose LFS objects are unavailable.
 
 - [x] **Step 4: Re-run tracker tests and inspect a generated report**
 

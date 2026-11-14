@@ -68,6 +68,7 @@ fn golden_coverage_command_is_exposed() {
         .stdout(predicates::str::contains("--corpus-manifest"))
         .stdout(predicates::str::contains("--golden"))
         .stdout(predicates::str::contains("--selected-out"))
+        .stdout(predicates::str::contains("--exclude"))
         .stdout(predicates::str::contains("--out"));
 }
 

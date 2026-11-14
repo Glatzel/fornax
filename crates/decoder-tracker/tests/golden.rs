@@ -1,6 +1,7 @@
 use decoder_tracker::golden::{
-    GoldenCsv, GoldenRow, build_golden_coverage, check_golden_csv, decode_golden, read_golden_csv,
-    write_golden_coverage_csv, write_golden_csv, write_golden_selection_csv,
+    GoldenCsv, GoldenRow, build_golden_coverage, build_golden_coverage_with_exclusions,
+    check_golden_csv, decode_golden, read_golden_csv, write_golden_coverage_csv, write_golden_csv,
+    write_golden_selection_csv,
 };
 use decoder_tracker::manifest::derive_identity;
 use decoder_tracker::model::{BaselineRow, ManifestRow, status_for_stages};
@@ -369,6 +370,30 @@ fn golden_coverage_groups_by_encoding_and_uses_lowest_pixel_count() {
     );
     assert_eq!(report.rows[0].representative_width, 1200);
     assert_eq!(report.rows[0].representative_height, 800);
+}
+
+#[test]
+fn golden_coverage_skips_explicitly_excluded_unavailable_files() {
+    let unavailable = manifest_row("Canon/Cam/unavailable.DNG", 10, 'a');
+    let fallback = manifest_row("Canon/Cam/fallback.DNG", 20, 'b');
+    let mut unavailable_row = baseline_row(&unavailable, "lossless-jpeg", 14, true);
+    unavailable_row.width = 1000;
+    unavailable_row.height = 500;
+    let mut fallback_row = baseline_row(&fallback, "lossless-jpeg", 14, true);
+    fallback_row.width = 1200;
+    fallback_row.height = 700;
+    let manifest = vec![unavailable.clone(), fallback.clone()];
+
+    let report = build_golden_coverage_with_exclusions(
+        &[unavailable_row, fallback_row],
+        &manifest,
+        &[],
+        &[unavailable.path],
+    )
+    .unwrap();
+
+    assert_eq!(report.rows.len(), 1);
+    assert_eq!(report.rows[0].representative_path, "Canon/Cam/fallback.DNG");
 }
 
 #[test]

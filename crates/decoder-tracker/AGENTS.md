@@ -25,7 +25,7 @@ decoder-tracker diff --selected F [--out F] BASELINE CANDIDATE
 decoder-tracker update [--baseline F] --candidate F [--out F]
 decoder-tracker hash [--manifest F] [--out F | --check F]
 decoder-tracker golden-coverage [--baseline F] [--corpus-manifest F]
-    [--golden F] [--out F] [--selected-out F]
+    [--golden F] [--out F] [--selected-out F] [--exclude PATH]...
 ```
 
 Use `pixi run -e dev cargo run -q -p decoder-tracker -- <subcommand>` for the
@@ -192,7 +192,8 @@ Follow the deliberately bounded procedure in
   golden groups that duplicate the same decoder path. Its encoding key excludes
   CFA, and its representative is the lowest-pixel passing file.
   `--selected-out` writes one representative per encoding group but never
-  replaces the golden manifest implicitly.
+  replaces the golden manifest implicitly. Repeat `--exclude PATH` for passing
+  candidates whose LFS object is unavailable.
 
 ## Validate tracker changes
 
