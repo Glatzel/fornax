@@ -3,7 +3,7 @@ use std::fs;
 use assert_cmd::Command;
 use decoder_tracker::csvio::{read_manifest_csv, write_baseline_csv, write_manifest_csv};
 use decoder_tracker::manifest::{derive_identity, generate_manifest};
-use decoder_tracker::model::{BaselineRow, ManifestRow, status_for_stages};
+use decoder_tracker::model::{BASELINE_HEADER, BaselineRow, ManifestRow, status_for_stages};
 use tempfile::tempdir;
 
 fn manifest_row(sha: &str, path: &str) -> ManifestRow {
@@ -345,6 +345,8 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
             manifest.to_str().unwrap(),
             "--baseline",
             baseline.to_str().unwrap(),
+            "--corpus-manifest",
+            manifest.to_str().unwrap(),
             "--work-dir",
             temp.path().join("update").to_str().unwrap(),
             "--github-output",
@@ -384,6 +386,8 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
             manifest.to_str().unwrap(),
             "--baseline",
             baseline.to_str().unwrap(),
+            "--corpus-manifest",
+            manifest.to_str().unwrap(),
             "--work-dir",
             temp.path().join("update-changed").to_str().unwrap(),
             "--github-output",
@@ -405,6 +409,99 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
             .unwrap()
             .contains("decode:invalid_input")
     );
+}
+
+#[test]
+fn duckdb_aggregate_script_migrates_a_complete_legacy_baseline_schema() {
+    if !std::process::Command::new("duckdb")
+        .arg("--version")
+        .output()
+        .is_ok_and(|output| output.status.success())
+    {
+        return;
+    }
+    let temp = tempdir().unwrap();
+    let row = manifest_row(&"aa".repeat(32), "Canon/Cam/A.DNG");
+    let manifest = temp.path().join("selected.csv");
+    fs::write(
+        &manifest,
+        write_manifest_csv(std::slice::from_ref(&row)).unwrap(),
+    )
+    .unwrap();
+    let candidate_row = BaselineRow {
+        status: status_for_stages([1, 1, 1, 1]).into(),
+        camera: row.camera.clone(),
+        format: row.format.clone(),
+        path: row.path.clone(),
+        decode_pass: 1,
+        raw_mosaic_pass: 1,
+        raw_sha256: "11".repeat(32),
+        process_metadata_pass: 1,
+        handoff_pass: 1,
+        error_kind: String::new(),
+        width: 16,
+        height: 8,
+        cfa: "RGGB".into(),
+        compression_id: Some(7),
+        compression_name: "lossless-jpeg".into(),
+        storage: "tiles".into(),
+        bits_per_sample: Some(14),
+        sample_format: "integer".into(),
+        predictor: Some(1),
+        rows_per_strip: None,
+        tile_width: Some(256),
+        tile_height: Some(256),
+    };
+    let shard = temp.path().join("shard.csv");
+    fs::write(
+        &shard,
+        write_baseline_csv(std::slice::from_ref(&candidate_row)).unwrap(),
+    )
+    .unwrap();
+    let baseline = temp.path().join("baseline.csv");
+    fs::write(
+        &baseline,
+        format!(
+            "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n\
+             ✅,{},DNG,{},1,1,{},1,1,,16,8,RGGB\n",
+            row.camera,
+            row.path,
+            "11".repeat(32)
+        ),
+    )
+    .unwrap();
+    let output_file = temp.path().join("github-output");
+    fs::write(&output_file, "").unwrap();
+    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/aggregate.sh");
+
+    let output = std::process::Command::new("bash")
+        .arg(script)
+        .args([
+            "--selected",
+            manifest.to_str().unwrap(),
+            "--baseline",
+            baseline.to_str().unwrap(),
+            "--corpus-manifest",
+            manifest.to_str().unwrap(),
+            "--work-dir",
+            temp.path().join("update").to_str().unwrap(),
+            "--github-output",
+            output_file.to_str().unwrap(),
+            "--",
+            shard.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("outcome=changed"));
+    let migrated = fs::read_to_string(temp.path().join("update/baseline.csv")).unwrap();
+    assert!(migrated.starts_with(&format!("{}\n", BASELINE_HEADER.join(","))));
+    assert!(migrated.contains("lossless-jpeg"));
 }
 
 #[test]

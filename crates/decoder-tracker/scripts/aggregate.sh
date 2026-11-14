@@ -5,6 +5,7 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 selected=""
 baseline="$repo_root/crates/decoder-tracker/data/baseline.csv"
+corpus_manifest="$repo_root/crates/decoder-tracker/data/manifest.csv"
 work_dir="$repo_root/target/decoder-tracker/update"
 github_output=""
 shards=()
@@ -17,6 +18,10 @@ while (($# > 0)); do
             ;;
         --baseline)
             baseline="$2"
+            shift 2
+            ;;
+        --corpus-manifest)
+            corpus_manifest="$2"
             shift 2
             ;;
         --work-dir)
@@ -33,7 +38,7 @@ while (($# > 0)); do
             break
             ;;
         *)
-            printf 'usage: %s --selected FILE [--baseline FILE] [--work-dir DIR] -- SHARD...\n' "$0" >&2
+            printf 'usage: %s --selected FILE [--baseline FILE] [--corpus-manifest FILE] [--work-dir DIR] -- SHARD...\n' "$0" >&2
             exit 2
             ;;
     esac
@@ -64,6 +69,7 @@ render_sql() {
 }
 
 expected_header='status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height'
+legacy_header='status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa'
 for shard in "${shards[@]}"; do
     header="$(head -n 1 "$shard")"
     if [[ "$header" != "$expected_header" ]]; then
@@ -122,6 +128,37 @@ if [[ ! -f "$baseline" ]]; then
     emit_output "changed=true"
     summarize bootstrap
     exit 0
+fi
+
+baseline_header="$(head -n 1 "$baseline")"
+if [[ "$baseline_header" == "$legacy_header" ]]; then
+    selected_count="$(
+        duckdb -no-agent -noheader -list :memory: -c "
+            SELECT count(*)
+            FROM read_csv('$(sql_escape "$selected")', header = true, all_varchar = true);
+        "
+    )"
+    corpus_count="$(
+        duckdb -no-agent -noheader -list :memory: -c "
+            SELECT count(*)
+            FROM read_csv(
+                '$(sql_escape "$corpus_manifest")',
+                header = true,
+                all_varchar = true
+            );
+        "
+    )"
+    if [[ "$selected_count" != "$corpus_count" ]]; then
+        printf 'legacy baseline schema migration requires the complete corpus: selected %s of %s rows\n' \
+            "$selected_count" "$corpus_count" >&2
+        exit 1
+    fi
+    output="$work_dir/legacy-baseline.csv"
+    duckdb -no-agent :memory: -c "$(render_sql migrate-baseline.sql)" >/dev/null
+    baseline="$output"
+elif [[ "$baseline_header" != "$expected_header" ]]; then
+    printf 'unsupported baseline schema in %s\n' "$baseline" >&2
+    exit 1
 fi
 
 output="$work_dir/diff.csv"
