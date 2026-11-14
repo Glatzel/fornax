@@ -269,14 +269,14 @@ decoder-tracker golden-coverage \
   --baseline FILE --corpus-manifest FILE --golden FILE [--out FILE]
 ```
 
-- [ ] **Step 1: Write failing golden coverage tests**
+- [x] **Step 1: Write failing golden coverage tests**
 
 Test groups by
 `(format, compression_name, bits_per_sample, sample_format, storage, predictor, cfa)`,
 smallest passing representative selection, missing golden coverage, duplicate
 golden groups, and rejection of absent or non-passing golden keys.
 
-- [ ] **Step 2: Run the tests and verify the command is missing**
+- [x] **Step 2: Run the tests and verify the command is missing**
 
 ```bash
 cargo test -p decoder-tracker golden_coverage
@@ -284,17 +284,17 @@ cargo test -p decoder-tracker golden_coverage
 
 Expected: compile or assertion failure because the command does not exist.
 
-- [ ] **Step 3: Implement the deterministic CSV audit and summary**
+- [x] **Step 3: Implement the deterministic CSV audit and summary**
 
 Write `target/decoder-tracker/golden-coverage.csv` by default. Emit passing
 counts, golden counts, golden paths, and the smallest passing representative.
 Do not write or modify the golden manifest.
 
-- [ ] **Step 4: Re-run tracker tests and inspect a generated report**
+- [x] **Step 4: Re-run tracker tests and inspect a generated report**
 
 Expected: tests pass and the report is sorted deterministically.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add crates/decoder-tracker docs/decoder/corpus.md .agents/skills

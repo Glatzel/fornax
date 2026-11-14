@@ -58,6 +58,19 @@ fn hash_command_exposes_write_and_check_modes() {
 }
 
 #[test]
+fn golden_coverage_command_is_exposed() {
+    Command::cargo_bin("decoder-tracker")
+        .unwrap()
+        .args(["golden-coverage", "--help"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("--baseline"))
+        .stdout(predicates::str::contains("--corpus-manifest"))
+        .stdout(predicates::str::contains("--golden"))
+        .stdout(predicates::str::contains("--out"));
+}
+
+#[test]
 fn retired_corpus_metadata_commands_are_removed() {
     let output = Command::cargo_bin("decoder-tracker")
         .unwrap()

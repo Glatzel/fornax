@@ -39,8 +39,8 @@ pixi run -e dev cargo run -q -p decoder-tracker -- merge --manifest F --out FILE
 pixi run -e dev cargo run -q -p decoder-tracker -- diff --selected F --out FILE BASELINE CANDIDATE
 pixi run -e dev cargo run -q -p decoder-tracker -- update --baseline F --candidate F --out FILE
 pixi run -e dev cargo run -q -p decoder-tracker -- hash [--manifest F] [--out FILE | --check FILE]
-pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata --manifest F --shard I/N --out FILE
-pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata-merge --manifest F --out FILE SHARD...
+pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
+  --baseline F --corpus-manifest F --golden F --out FILE
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
@@ -101,7 +101,7 @@ key is `(camera, format, path)`. Duplicate keys are an error.
 The canonical baseline header is:
 
 ```csv
-status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa
+status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height
 ```
 
 Rows use UTF-8 with LF endings and RFC 4180 quoting, sort by the unique key, and
@@ -133,62 +133,46 @@ The runner retains the best geometry and CFA label available after partial
 failure. A non-2x2 CFA gets a descriptive label such as `XTrans-6x6` before the
 typed unsupported CFA error is recorded.
 
-## DNG corpus metadata schema
+## Source encoding metadata
 
-`corpus-metadata.csv` is a generated sidecar used to analyze benchmark and
-coverage groups by the actual DNG container tags rather than filenames. It does
-not change the pointer-only manifest or the required baseline schema. DNG is
-the first supported format; future formats can add their own rows without
-changing the manifest. The `corpus-metadata` command internally selects rows
-whose derived format is DNG; this format-specific behavior is not exposed as a
-generic CLI filter.
+The metadata columns describe the actual storage path selected by the native
+decoder. They are appended to the same baseline row as the decoder result, so
+failures, geometry, CFA, output hashes, and encoding details remain aligned.
 
-The canonical header is:
+- `compression_id` is a source-native identifier when one exists. It is only
+  meaningful together with `format`.
+- `compression_name` distinguishes codec variants, including vendor modes that
+  share a numeric identifier.
+- `storage` identifies strips, tiles, BMFF samples, RAF blocks, row tables, or a
+  single chunk.
+- `bits_per_sample` and `sample_format` describe source storage, not the
+  normalized DNG metadata.
+- `predictor`, `rows_per_strip`, `tile_width`, and `tile_height` retain layout
+  fields when the source defines them.
 
-```csv
-status,path,sha256,format,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height,error_kind
+Rows with a successful raw decode must have a known compression, storage, bit
+depth, and sample format. Rows for formats without a native decoder remain in
+the baseline with `compression_name=unknown`, `storage=unknown`, and empty
+optional fields.
+
+Use the baseline directly to choose a file for decoder development:
+
+```sql
+SELECT
+    format,
+    compression_name,
+    bits_per_sample,
+    storage,
+    count() AS files,
+    min(path) AS representative
+FROM read_csv_auto('crates/decoder-tracker/data/baseline.csv')
+WHERE raw_mosaic_pass = 1
+GROUP BY ALL
+ORDER BY format, compression_name, bits_per_sample, storage;
 ```
 
-Rows are keyed by `(sha256, path)` and cover every selected DNG exactly once.
-For a parseable DNG, `status` is `✅`, `storage` is `strips` or `tiles`, and
-absent layout fields and the default TIFF predictor of `1` are explicit so
-grouping does not need to reinterpret missing values. The classifier uses the
-full-resolution raw IFD selected by `fornax-dng`, including DNG-owned
-compression identifiers `34892` and `52546`. It records unknown IDs rather than
-inferring compression from the path.
-
-A DNG that cannot be parsed or classified is a failed result rather than a
-workflow error. It gets `status` `❌`, `compression_name` and `storage` of
-`unknown`, empty classification values, and a typed `error_kind` such as
-`metadata:invalid_input` or `metadata:unsupported`. File I/O, LFS, and other
-infrastructure failures remain fatal.
-
-Generate a local selection with `select`, then classify all of it:
-
-```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata \
-  --manifest target/decoder-tracker/selected-metadata.csv \
-  --allow-full \
-  --out target/decoder-tracker/corpus-metadata.csv
-```
-
-For sharded use, pass the same selection and shard to each runner, then merge
-all metadata shards:
-
-```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata \
-  --manifest target/decoder-tracker/selected-manifest.csv \
-  --shard 0/COUNT --allow-full \
-  --out target/decoder-tracker/metadata-shards/shard-0.csv
-pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata-merge \
-  --manifest target/decoder-tracker/selected-manifest.csv \
-  --out target/decoder-tracker/corpus-metadata.csv \
-  target/decoder-tracker/metadata-shards/*.csv
-```
-
-The merge rejects missing, duplicate, unexpected, or malformed DNG rows,
-including failed results that carry contradictory classification fields. The
-committed sidecar is generated data and must not be hand-edited.
+Add `WHERE format = 'DNG' AND compression_name = 'lossless-jpeg'` to select a
+specific decoder path. Join `data/manifest.csv` by `path` for file size.
 
 ## Golden decode outputs
 
@@ -221,6 +205,23 @@ Golden corpus hashing must use the release profile; debug-mode decodes are too
 slow for routine local verification and CI. `hash` materializes only the
 selected LFS payloads. A failed decode aborts without writing a partial CSV.
 The golden manifest and hashes are generated data and must not be hand-edited.
+
+Audit golden coverage without changing the golden set:
+
+```bash
+pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
+  --baseline crates/decoder-tracker/data/baseline.csv \
+  --corpus-manifest crates/decoder-tracker/data/manifest.csv \
+  --golden crates/decoder-tracker/golden/selected-manifest.csv \
+  --out target/decoder-tracker/golden-coverage.csv
+```
+
+The report groups fully passing rows by
+`(format, compression_name, bits_per_sample, sample_format, storage, predictor,
+cfa)`. It records passing and golden counts, all golden paths, and the smallest
+passing representative with camera, file size, and dimensions. `coverage` is
+`covered`, `missing`, or `redundant`; the command reports those counts in CI but
+fails if a golden path is absent or is not fully passing.
 
 ## Reading failures
 
@@ -307,23 +308,14 @@ GitHub/Pixi download failures.
 
 Each shard downloads the selected manifest and release tracker binary,
 initializes the pointer-only corpus, runs `manifest --check`, executes its
-assigned decoder rows, classifies assigned DNG compression metadata, and
-uploads CSV only. The aggregate job uses
+assigned decoder rows, and uploads CSV only. The aggregate job uses
 `crates/decoder-tracker/scripts/aggregate.sh` to merge, validate, diff, and
-upsert decoder rows entirely through DuckDB. It separately merges and compares
-the DNG metadata sidecar, then:
+upsert decoder rows entirely through DuckDB, then:
 
 - uploads a bootstrap baseline when no committed baseline exists;
 - uploads nothing when selected rows are unchanged;
 - uploads the complete updated baseline and `diff.csv`, then fails, when rows
   changed.
-- uploads `decoder-corpus-metadata-update` and fails when the DNG metadata
-  sidecar changed.
-
-Malformed corpus DNGs are represented in the metadata sidecar as `❌` failed
-rows; they do not fail the shard. The intentional changed-artifact review gate
-still fails the aggregate until the generated sidecar is reviewed and
-committed.
 
 RAW payloads are never cached or uploaded.
 
@@ -360,12 +352,6 @@ fails after uploading `decoder-baseline-update` with three CSV files:
 - `diff.csv` classifies selected keys as missing, extra, or changed;
 - `candidate.csv` contains the merged selected rows;
 - `baseline.csv` is the complete baseline after the selected-key upsert.
-
-A DNG metadata change independently uploads
-`decoder-corpus-metadata-update/corpus-metadata.csv` and fails the run. Review
-the complete sidecar, copy it to
-`crates/decoder-tracker/data/corpus-metadata.csv`,
-commit it, and rerun until it is unchanged. Do not merge a partial candidate.
 
 Download and inspect the artifact:
 

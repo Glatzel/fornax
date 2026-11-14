@@ -24,9 +24,8 @@ decoder-tracker merge [--manifest F] [--out F] SHARD...
 decoder-tracker diff --selected F [--out F] BASELINE CANDIDATE
 decoder-tracker update [--baseline F] --candidate F [--out F]
 decoder-tracker hash [--manifest F] [--out F | --check F]
-decoder-tracker corpus-metadata [--manifest F] [--shard I/N] [--out F]
-    [--max-files N] [--allow-full]
-decoder-tracker corpus-metadata-merge [--manifest F] [--out F] SHARD...
+decoder-tracker golden-coverage [--baseline F] [--corpus-manifest F]
+    [--golden F] [--out F]
 ```
 
 Use `pixi run -e dev cargo run -q -p decoder-tracker -- <subcommand>` for the
@@ -39,6 +38,7 @@ pixi run -e dev cargo run -q -p decoder-tracker -- manifest --check
 pixi run -e dev cargo run -q -p decoder-tracker -- run --filename IMG_0001
 pixi run -e dev cargo run --release -q -p decoder-tracker -- hash --check \
   crates/decoder-tracker/golden/decode-hashes.csv
+pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
@@ -150,13 +150,10 @@ workflow only after the remote branch contains the reviewed baseline and
 README. It must report unchanged and upload no update artifact before the
 baseline is considered accepted.
 
-The same workflow classifies DNG container metadata for every selected shard.
-A changed sidecar uploads
-`decoder-corpus-metadata-update/corpus-metadata.csv` and also fails the run.
-Review and copy the complete file to
-`crates/decoder-tracker/data/corpus-metadata.csv`, then rerun until the sidecar is
-unchanged. The sidecar is diagnostic data and does not alter the baseline
-schema.
+Source encoding metadata is part of each baseline row. Compression, storage,
+bit depth, sample format, predictor, or geometry changes therefore appear in
+`decoder-baseline-update/diff.csv` and the complete `baseline.csv`, and require
+the same review as stage or output changes.
 
 ## Corpus snapshot update
 
@@ -174,11 +171,8 @@ Follow the deliberately bounded procedure in
 ## Files and invariants
 
 - `data/manifest.csv` identifies every corpus path, size, and LFS SHA-256.
-- `data/baseline.csv` is the accepted full result set. Do not hand-edit it.
-- `data/corpus-metadata.csv` records the generated DNG compression, storage,
-  layout, bit-depth, sample-format, and predictor groups. Unparsable DNGs are
-  retained as failed results instead of aborting the shard. Do not hand-edit
-  it.
+- `data/baseline.csv` is the accepted full result set, including source
+  encoding metadata for every successfully decoded row. Do not hand-edit it.
 - `golden/selected-manifest.csv` is the pointer-only 30-file fixed set for
   deterministic decode-output checks and decoder benchmarks.
 - `golden/decode-hashes.csv` contains SHA-256 values for raw samples, cropped
@@ -194,6 +188,8 @@ Follow the deliberately bounded procedure in
   from `runner:*` status before changing the baseline.
 - Golden cases must be known passing rows. A failed decode is not a valid
   golden case and must not cause partial output.
+- `golden-coverage` reports encoding groups absent from golden and golden
+  groups that duplicate the same decoder path. It never edits the golden set.
 
 ## Validate tracker changes
 

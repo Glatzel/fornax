@@ -17,6 +17,7 @@ Choose one route:
 | Inspect one camera, file, format, or path | [Local investigation](#local-investigation) |
 | Run an existing selection across local shards | [Local shard merge](#local-shard-merge) |
 | Decoder behavior changed | [Manual baseline update](#manual-baseline-update) |
+| Review golden sampling or select a decoder-specific debug file | [Source encoding audit](#source-encoding-audit) |
 | raw.pixls.us snapshot changed | [Corpus snapshot update](#corpus-snapshot-update) |
 | Only the badge/table is stale | [Refresh the README](#refresh-the-readme) |
 
@@ -77,6 +78,23 @@ pixi run -e dev cargo run -q -p decoder-tracker -- merge \
 Merge errors are a stop condition: selected keys are missing, duplicated, or
 unexpected. Do not replace the committed baseline with a partial candidate.
 
+## Source encoding audit
+
+Use the baseline encoding columns to select a representative file for a codec
+path or audit golden coverage:
+
+```bash
+pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
+  --baseline crates/decoder-tracker/data/baseline.csv \
+  --corpus-manifest crates/decoder-tracker/data/manifest.csv \
+  --golden crates/decoder-tracker/golden/selected-manifest.csv \
+  --out target/decoder-tracker/golden-coverage.csv
+```
+
+The report groups fully passing rows by format, compression name, bit depth,
+sample format, storage, predictor, and CFA. Missing or redundant groups are
+review signals, not automatic permission to edit the golden set.
+
 ## Manual baseline update
 
 The workflow advances the pointer-only submodule to current raw.pixls.us
@@ -120,12 +138,9 @@ gh run download <run-id> --name decoder-baseline-update \
    reviewed files.
 7. Rerun the workflow and require `unchanged` with no update artifact.
 
-The same workflow always merges DNG compression metadata. If that sidecar
-changes, the run intentionally fails and uploads
-`decoder-corpus-metadata-update`. Review the complete
-`corpus-metadata.csv`, copy it to
-`crates/decoder-tracker/data/corpus-metadata.csv`,
-commit it, and rerun until unchanged. Never hand-edit the sidecar.
+Source encoding metadata is part of the baseline row. Any compression, storage,
+bit-depth, sample-format, predictor, or geometry change appears in `diff.csv`
+and the complete baseline artifact and must be reviewed with the decoder result.
 
 Rerun in place with `gh run rerun <run-id> --failed` only for a transient
 infrastructure failure. A changed-row failure requires review, not a blind
@@ -163,8 +178,8 @@ badge/table region. Review the diff. Never edit between
 
 - `diff --selected` reports only the reviewed selection.
 - `update` preserves unselected baseline rows.
-- The DNG metadata sidecar keeps unparsable corpus files as failed rows with
-  an `error_kind`; only infrastructure failures abort shard generation.
+- Successful raw decodes have known compression, storage, bit depth, and sample
+  format; unsupported formats remain explicit `unknown` rows.
 - The README script preserves text outside its markers.
 - `manifest.csv`, `baseline.csv`, and generated README data contain no RAW
   payload data.
