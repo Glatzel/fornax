@@ -211,8 +211,8 @@ fn gamma_table(params: &PanasonicV8Params) -> Result<Option<Vec<u16>>, CodecErro
 fn gamma(value: u16, params: &PanasonicV8Params) -> Result<u16, CodecError> {
     let x = u32::from(value);
     let mut region = 0_usize;
-    for index in 1..=5 {
-        if x >= params.gamma_slopes[index] & 0xffff {
+    for (index, &slope) in params.gamma_slopes.iter().enumerate().skip(1).take(5) {
+        if x >= slope & 0xffff {
             region = index;
         } else {
             break;

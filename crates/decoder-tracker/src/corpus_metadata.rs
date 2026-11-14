@@ -163,9 +163,8 @@ pub const fn compression_name(id: u16) -> &'static str {
         1 => "uncompressed",
         5 => "lzw",
         7 => "lossless-jpeg",
-        8 => "deflate",
+        8| 32946 => "deflate",
         32773 => "packbits",
-        32946 => "deflate",
         34892 => "lossy-jpeg",
         34925 => "lzma2",
         50000 => "zstandard",
@@ -192,7 +191,7 @@ pub fn write_corpus_metadata_csv(rows: &[CorpusMetadataRow]) -> Result<Vec<u8>> 
             writer.serialize(row)?;
         }
         writer.flush()?;
-    }
+    };
     Ok(output)
 }
 
@@ -352,11 +351,13 @@ fn required_u16(metadata: &Directory, tag: TiffTag) -> Result<u16> {
 }
 
 fn optional_u16(metadata: &Directory, tag: TiffTag) -> Option<u16> {
-    unsigned_scalar(metadata.get(&Tag::from(tag))).and_then(|value| u16::try_from(value).ok())
+    let value = unsigned_scalar(metadata.get(&Tag::from(tag)))?;
+    u16::try_from(value).ok()
 }
 
 fn optional_u32(metadata: &Directory, tag: TiffTag) -> Option<u32> {
-    unsigned_scalar(metadata.get(&Tag::from(tag))).and_then(|value| u32::try_from(value).ok())
+    let value = unsigned_scalar(metadata.get(&Tag::from(tag)))?;
+    u32::try_from(value).ok()
 }
 
 #[cfg(test)]
