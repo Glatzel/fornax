@@ -163,7 +163,7 @@ pub const fn compression_name(id: u16) -> &'static str {
         1 => "uncompressed",
         5 => "lzw",
         7 => "lossless-jpeg",
-        8| 32946 => "deflate",
+        8 | 32946 => "deflate",
         32773 => "packbits",
         34892 => "lossy-jpeg",
         34925 => "lzma2",
