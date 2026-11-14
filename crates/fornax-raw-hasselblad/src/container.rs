@@ -53,16 +53,16 @@ pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
     }
     let parsed = fornax_tiff::parse(source)
         .map_err(|error| invalid(format!("parsing 3FR TIFF failed: {error}")))?;
-    let make = ascii(&parsed.root, TiffTag::Make).unwrap_or_default();
+    let make = ascii(&parsed.root(), TiffTag::Make).unwrap_or_default();
     if !make.eq_ignore_ascii_case("Hasselblad") {
         return Err(unsupported(format!(
             "3FR container is not a Hasselblad image (Make={make:?})"
         )));
     }
-    let model = ascii(&parsed.root, TiffTag::Model)
+    let model = ascii(&parsed.root(), TiffTag::Model)
         .ok_or_else(|| invalid("3FR root IFD has no ASCII Model"))?;
     let unique_model =
-        ascii_tag(&parsed.root, DngTag::UniqueCameraModel).unwrap_or_else(|| model.clone());
+        ascii_tag(&parsed.root(), DngTag::UniqueCameraModel).unwrap_or_else(|| model.clone());
     let profile = profile(&unique_model, &model);
     let raw_index = select_raw_ifd(&parsed)?;
     let raw = parsed
@@ -84,7 +84,7 @@ pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
     })?;
     let active_area = active_area(raw, profile)?;
     let layout = raw_layout(source.len(), raw)?;
-    let exif = exif_directory(source, &parsed.root)?;
+    let exif = exif_directory(source, &parsed.root())?;
     Ok(Container {
         source: Arc::from(source),
         make,
@@ -92,7 +92,7 @@ pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
         unique_model,
         cfa,
         active_area,
-        root: parsed.root.clone(),
+        root: parsed.root().clone(),
         raw: raw.clone(),
         exif,
         layout,

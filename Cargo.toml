@@ -53,6 +53,7 @@ hex = "0.4.3"
 insta = { version = "1.49.0", features = ["json"] }
 jxl-oxide = "0.12.6"
 libc = "0.2.191"
+memmap2 = "0.9.12"
 num_enum = "0.7.6"
 num-traits = "0.2.19"
 predicates = "3.1.4"

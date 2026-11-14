@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
-use std::sync::Arc;
 
 use fornax_codec::Chunk;
 use fornax_raw_core::error::DecodeError;
+use fornax_tiff::TiffSource;
 
 use crate::invalid;
 
@@ -240,7 +240,7 @@ impl RawLayout {
 
 #[derive(Clone, Debug)]
 pub struct MakerNote {
-    source: Arc<[u8]>,
+    source: TiffSource,
     entries: BTreeMap<u32, Entry>,
 }
 
@@ -252,7 +252,7 @@ struct Entry {
 }
 
 impl MakerNote {
-    pub fn parse(source: Arc<[u8]>) -> Result<Self, DecodeError> {
+    pub fn parse(source: TiffSource) -> Result<Self, DecodeError> {
         if source.get(PRIVATE_BASE..PRIVATE_BASE + 4) != Some(b"IIII") {
             return Err(invalid("IIQ private header marker is missing"));
         }

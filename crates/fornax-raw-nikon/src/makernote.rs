@@ -14,7 +14,7 @@ pub struct MakerNote {
 impl MakerNote {
     pub fn parse(parsed: &ParsedTiff) -> Result<Self, DecodeError> {
         let byte_order = file_byte_order(&parsed.source)?;
-        let exif_offset = unsigned_scalar(parsed.root.get(&Tag::from(TiffTag::ExifIfdPointer)))
+        let exif_offset = unsigned_scalar(parsed.root().get(&Tag::from(TiffTag::ExifIfdPointer)))
             .ok_or_else(|| invalid("NEF root IFD has no valid ExifIFDPointer"))?;
         let exif = fornax_tiff::parse_ifd_at(&parsed.source, exif_offset, byte_order, 0)
             .map_err(|error| invalid(format!("parsing NEF Exif IFD failed: {error}")))?;

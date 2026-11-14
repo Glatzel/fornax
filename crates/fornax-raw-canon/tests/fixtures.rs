@@ -48,7 +48,7 @@ fn targeted_lossless_fixture_parses_and_decodes() {
         .write_dng_with(&mut dng, &mosaic, &image.dng_metadata().unwrap())
         .unwrap();
     let parsed = fornax_tiff::parse(dng.get_ref()).unwrap();
-    assert!(!parsed.root.is_empty());
+    assert!(!parsed.root().is_empty());
 }
 
 #[test]

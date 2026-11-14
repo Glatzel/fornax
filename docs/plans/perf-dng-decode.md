@@ -186,7 +186,7 @@ with more than 64 elements; small CFA/pattern fields remain
 - [x] Task 1: Fix Blackmagic packed-row LJPEG as an independent correctness
   change.
 - [ ] Task 2: Add the fused common-case LJPEG decoder.
-- [ ] Task 3: Add non-copying TIFF source storage and remove the duplicated
+- [x] Task 3: Add non-copying TIFF source storage and remove the duplicated
   root directory.
 - [ ] Task 4: Use borrowed DNG metadata during decode.
 - [ ] Task 5: Store large private TIFF byte payloads compactly.
@@ -624,6 +624,13 @@ single-thread Fornax/Rawler ratios are 1.02x (5D3 LJPEG), 1.17x (iPhone SE),
 1.49x (Pixel 8), and 1.52x (Pentax). The left-aligned reader and direct
 destination staging remain open before Task 2 is complete.
 
+CodSpeed's simulated run reported Sony A1 `raw_mosaic` and `cropped_mosaic`
+regressions. Single-thread walltime did not reproduce them: against `d83021b`,
+the golden Sony A1 file measured 838.6 ms and 1.04 s on the base versus
+669.3 ms and 865.7 ms on the implementation. The CodSpeed report also marked
+101 benchmarks as system-call-dominated, which its simulation instrument
+excludes.
+
 **Risks and rollback:** Invalid-code handling, odd tile widths, and predictor
 state are the main risks. Keep dispatch narrow and the general fallback
 available. Revert the task PR if any exact-equality check fails; no data-format
@@ -656,13 +663,13 @@ pub fn parse(source: &[u8]) -> Result<ParsedTiff, TiffError>;
 pub fn parse_source(source: TiffSource) -> Result<ParsedTiff, TiffError>;
 ```
 
-- [ ] **Step 1: Add source/root behavioral tests**
+- [x] **Step 1: Add source/root behavioral tests**
 
 Test that `parse` and `parse_source(TiffSource::from_vec(bytes))` produce
 identical directories and source bytes, that `root()` points at directory zero,
 and that no root clone exists.
 
-- [ ] **Step 2: Run the tests and verify the APIs are absent**
+- [x] **Step 2: Run the tests and verify the APIs are absent**
 
 Run:
 
@@ -673,7 +680,7 @@ cargo test -p fornax-tiff parses_classic
 
 Expected: missing symbols or old public field.
 
-- [ ] **Step 3: Add `memmap2` with a feature gate**
+- [x] **Step 3: Add `memmap2` with a feature gate**
 
 Add workspace dependency `memmap2 = "0.9.12"` and:
 
@@ -686,20 +693,20 @@ default = ["mmap"]
 Enable `fornax-tiff/mmap` from `fornax-raw-decoder`. The no-default-features
 build uses `Arc<Vec<u8>>` directly from `fs::read`.
 
-- [ ] **Step 4: Implement source ownership**
+- [x] **Step 4: Implement source ownership**
 
 Add `TiffSource`, `parse_source`, and `ParsedTiff::root()`. Change
 `ParsedTiff.source` from `Arc<[u8]>` to `TiffSource`. Keep
 `parse(&[u8])` for in-memory callers.
 
-- [ ] **Step 5: Add mapped opening at the decoder boundary**
+- [x] **Step 5: Add mapped opening at the decoder boundary**
 
 In `fornax-raw-decoder`, when `mmap` is enabled, open the file read-only and map
 it with `memmap2::Mmap`. Otherwise read to `Vec<u8>`. Call
 `DngImage::parse_source`, not `DngImage::parse(&vec)`, so the file bytes are
 not copied into a second allocation.
 
-- [ ] **Step 6: Update callers mechanically**
+- [x] **Step 6: Update callers mechanically**
 
 Replace `parsed.root` with `parsed.root()`. Remove the clone in:
 
@@ -710,7 +717,7 @@ let root = (*directories.first()?).clone();
 Update DNG, Sony, Canon, Nikon, Hasselblad, Panasonic, and any other users of
 `ParsedTiff`.
 
-- [ ] **Step 7: Verify feature matrices and mapped lifetime behavior**
+- [x] **Step 7: Verify feature matrices and mapped lifetime behavior**
 
 Run:
 
@@ -725,7 +732,7 @@ cargo tree -p fornax-raw-decoder --no-default-features --edges normal
 Also add a read-only mapped fixture test that decodes after the opening
 function returns, proving the owner remains live.
 
-- [ ] **Step 8: Benchmark acceptance**
+- [x] **Step 8: Benchmark acceptance**
 
 Run the 5D3 uncompressed and FP32 Deflate cases. Acceptance:
 
@@ -733,7 +740,7 @@ Run the 5D3 uncompressed and FP32 Deflate cases. Acceptance:
 - no regression in parse-only or end-to-end FP32 timing;
 - source-copy and root-clone removal are visible in PR evidence.
 
-- [ ] **Step 9: Verify and commit**
+- [x] **Step 9: Verify and commit**
 
 Run `scripts/agent-validation.sh`.
 

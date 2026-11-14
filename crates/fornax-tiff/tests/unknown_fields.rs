@@ -6,10 +6,10 @@ fn unsupported_field_types_are_skipped_and_later_tags_still_parse() {
 
     let parsed = parse(&source).unwrap();
 
-    assert!(!parsed.root.contains_key(&Tag(259)));
-    assert_eq!(parsed.root.get(&Tag(256)), Some(&Value::Unsigned(4)));
+    assert!(!parsed.root().contains_key(&Tag(259)));
+    assert_eq!(parsed.root().get(&Tag(256)), Some(&Value::Unsigned(4)));
     assert_eq!(
-        parsed.root.get(&Tag(60_001)),
+        parsed.root().get(&Tag(60_001)),
         Some(&Value::Ascii("abc".into()))
     );
 }

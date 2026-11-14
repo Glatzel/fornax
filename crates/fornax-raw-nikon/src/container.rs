@@ -130,7 +130,7 @@ impl RawLayout {
 
 pub fn validate_make(parsed: &ParsedTiff) -> Result<(), DecodeError> {
     let make = parsed
-        .root
+        .root()
         .get(&Tag::from(TiffTag::Make))
         .and_then(|value| match value {
             Value::Ascii(value) => Some(value.trim()),

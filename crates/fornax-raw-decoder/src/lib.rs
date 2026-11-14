@@ -1,4 +1,6 @@
 use std::fs;
+#[cfg(feature = "mmap")]
+use std::fs::File;
 use std::path::Path;
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 mod dnc;
@@ -24,6 +26,7 @@ use fornax_raw_panasonic::Rw2Image;
 use fornax_raw_phase_one::IiqImage;
 #[cfg(feature = "sony")]
 use fornax_raw_sony::ArwImage;
+use fornax_tiff::TiffSource;
 
 #[derive(Clone, Debug)]
 pub enum Decoder {
@@ -58,12 +61,7 @@ impl IDecoder for Decoder {
         match RawFormat::try_from(extension) {
             Ok(RawFormat::Dng) => {
                 clerk::debug!("Reading DNG: {}", input.display());
-                let source = fs::read(input).map_err(|error| {
-                    DecodeError::Other(
-                        format!("reading {} failed: {error}", input.display()).into(),
-                    )
-                })?;
-                Ok(Self::Dng(DngImage::parse(&source)?))
+                Ok(Self::Dng(DngImage::parse_source(open_dng_source(input)?)?))
             }
             Ok(RawFormat::Cr3 | RawFormat::Crm) => {
                 #[cfg(feature = "canon")]
@@ -155,12 +153,9 @@ impl IDecoder for Decoder {
                             input.display()
                         );
                         let dng_file = dnc::Dnc::convert(input)?;
-                        let source = fs::read(&dng_file).map_err(|error| {
-                            DecodeError::Other(
-                                format!("reading {} failed: {error}", dng_file.display()).into(),
-                            )
-                        })?;
-                        Ok(Self::Dng(DngImage::parse(&source)?))
+                        Ok(Self::Dng(DngImage::parse_source(open_dng_source(
+                            &dng_file,
+                        )?)?))
                     }
                     _ => {
                         clerk::error!("Unsupported RAW format: {}", extension);
@@ -254,6 +249,26 @@ impl IDecoderDng for Decoder {
             Self::Rw2(parsed) => parsed.dng_metadata(),
         }
     }
+}
+
+#[cfg(feature = "mmap")]
+fn open_dng_source(path: &Path) -> Result<TiffSource, DecodeError> {
+    let file = File::open(path).map_err(|error| {
+        DecodeError::Other(format!("opening {} failed: {error}", path.display()).into())
+    })?;
+    // The mapping is read-only. As with any mmap, truncating the underlying
+    // file while the decoder is alive can make accesses fault with SIGBUS.
+    let mmap = unsafe { memmap2::Mmap::map(&file) }.map_err(|error| {
+        DecodeError::Other(format!("mapping {} failed: {error}", path.display()).into())
+    })?;
+    Ok(TiffSource::from_mmap(mmap))
+}
+
+#[cfg(not(feature = "mmap"))]
+fn open_dng_source(path: &Path) -> Result<TiffSource, DecodeError> {
+    fs::read(path).map(TiffSource::from_vec).map_err(|error| {
+        DecodeError::Other(format!("reading {} failed: {error}", path.display()).into())
+    })
 }
 
 #[allow(

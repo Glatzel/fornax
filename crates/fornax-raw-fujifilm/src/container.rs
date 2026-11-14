@@ -181,7 +181,7 @@ fn exif_orientation(tiff: &[u8]) -> Option<u16> {
     let parsed = fornax_tiff::parse(tiff).ok()?;
     let orientation = unsigned_scalar(
         parsed
-            .root
+            .root()
             .get(&Tag::from(fornax_tiff::constants::TiffTag::Orientation)),
     )?;
     let orientation = u16::try_from(orientation).ok()?;

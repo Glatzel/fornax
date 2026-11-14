@@ -234,6 +234,29 @@ Fornax:
 Rawler and FlashRaw map source files. Their metadata models retain or parse
 private payloads without building Fornax's full typed `BTreeMap`.
 
+### Non-copying source storage
+
+Task 3 makes the DNG decoder boundary map files read-only by default, passes
+`TiffSource` into `fornax-tiff`, and returns the root directory by reference
+instead of cloning directory zero. Disabling the `mmap` feature keeps an owned
+`Arc<Vec<u8>>` fallback sourced directly from `fs::read`.
+
+Single-thread walltime measurements from the Task 3 base (`740446c`) to the
+implementation:
+
+| Case | Base | Implementation |
+| --- | ---: | ---: |
+| 5D3 uncompressed end-to-end | 151.2 ms | 51.6 ms |
+| 5D3 FP32 Deflate end-to-end | 761.6 ms | 528.7 ms |
+| 5D3 FP32 Deflate parse-only | 138.1 ms | 0.047 ms |
+
+The uncompressed Fornax/Rawler ratio fell from 2.98x to 1.01x.
+
+The mapping is read-only but does not protect against another process truncating
+or replacing the file contents while a decoder is alive. Such mutation can
+raise `SIGBUS` on access. Consumers that require protection from this behavior
+must disable the default `mmap` feature and use the owned-buffer fallback.
+
 ## Neutral experiments
 
 - `-C target-cpu=native` measured 475 ms LJPEG, 164 ms uncompressed, and

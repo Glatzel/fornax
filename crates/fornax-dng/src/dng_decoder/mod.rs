@@ -10,7 +10,7 @@ use fornax_raw_core::metadata::ProcessMetadata;
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
-    Directory, ParsedTiff, RasterRequest, Tag, TiffCompressionError, ValueAccessError,
+    Directory, ParsedTiff, RasterRequest, Tag, TiffCompressionError, TiffSource, ValueAccessError,
     resolve_tiff_compression, unsigned_scalar, unsigned_vec as tiff_unsigned_vec,
 };
 use generic_num::num;
@@ -30,7 +30,11 @@ pub struct DngImage {
 
 impl DngImage {
     pub fn parse(source: &[u8]) -> Result<Self, DecodeError> {
-        let parsed = fornax_tiff::parse(source)
+        Self::parse_source(TiffSource::from_vec(source.to_vec()))
+    }
+
+    pub fn parse_source(source: TiffSource) -> Result<Self, DecodeError> {
+        let parsed = fornax_tiff::parse_source(source)
             .map_err(|error| DecodeError::InvalidInput(error.to_string().into()))?;
         let raw_ifd = select_raw_ifd(&parsed)?;
         Ok(Self { parsed, raw_ifd })
@@ -62,7 +66,7 @@ impl DngImage {
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> {
         if !self
             .parsed
-            .root
+            .root()
             .contains_key(&Tag(u16::from(DngTag::DngVersion)))
         {
             return Err(unsupported_variant(
@@ -75,7 +79,7 @@ impl DngImage {
             .get(self.raw_ifd)
             .ok_or_else(|| corrupt("selected raw IFD is missing"))?;
         let mut dng_metadata = Directory::default();
-        dng_metadata.extend(self.parsed.root.clone());
+        dng_metadata.extend(self.parsed.root().clone());
         dng_metadata.extend(raw_metadata.clone());
         Ok(dng_metadata)
     }

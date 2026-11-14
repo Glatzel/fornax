@@ -41,7 +41,7 @@ pub struct RawLayout {
 impl RawLayout {
     pub fn parse(parsed: &ParsedTiff) -> Result<(usize, Self), DecodeError> {
         let make = parsed
-            .root
+            .root()
             .get(&Tag::from(TiffTag::Make))
             .and_then(|value| match value {
                 Value::Ascii(value) => Some(value.trim()),

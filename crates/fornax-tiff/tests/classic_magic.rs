@@ -12,7 +12,7 @@ fn panasonic_magic_parses_a_classic_ifd() {
 
     let parsed = parse(&source).unwrap();
 
-    assert_eq!(parsed.root.get(&Tag(0x0100)), Some(&Value::Unsigned(9)));
+    assert_eq!(parsed.root().get(&Tag(0x0100)), Some(&Value::Unsigned(9)));
 }
 
 #[test]
@@ -27,5 +27,5 @@ fn panasonic_magic_does_not_enable_bigtiff_offsets() {
     let parsed = parse(&source).unwrap();
 
     assert_eq!(parsed.directories.len(), 1);
-    assert!(parsed.root.is_empty());
+    assert!(parsed.root().is_empty());
 }

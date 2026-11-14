@@ -303,12 +303,12 @@ mod tests {
             .unwrap();
 
         let parsed = parse(output.get_ref()).unwrap();
-        assert_eq!(parsed.root.get(&Tag(256)), Some(&Value::Unsigned(2)));
+        assert_eq!(parsed.root().get(&Tag(256)), Some(&Value::Unsigned(2)));
         assert_eq!(
-            parsed.root.get(&Tag(270)),
+            parsed.root().get(&Tag(270)),
             Some(&Value::Ascii("Fornax".into()))
         );
-        let Value::List(offsets) = parsed.root.get(&Tag(273)).unwrap() else {
+        let Value::List(offsets) = parsed.root().get(&Tag(273)).unwrap() else {
             panic!("strip offsets should remain a list");
         };
         assert_eq!(offsets.len(), 2);
