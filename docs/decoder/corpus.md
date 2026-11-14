@@ -164,6 +164,7 @@ Use the baseline directly to choose a file for decoder development:
 SELECT
     format,
     compression_name,
+    compression_lossless,
     bits_per_sample,
     storage,
     count() AS files,
@@ -240,6 +241,9 @@ ARW2 and IIQ nonlinear/Sv2 paths are excluded. Codec identifiers that can carry
 either lossy or lossless streams, currently DNG JPEG XL and WebP, are treated as
 not proven lossless and therefore remain ineligible until stream-level mode
 detection is implemented.
+
+The classification evidence and conservative boundaries are recorded in
+[lossless-classification.md](../reference/codecs/lossless-classification.md).
 
 ## Reading failures
 

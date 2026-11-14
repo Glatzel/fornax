@@ -403,5 +403,6 @@ reviewed schema migration, and the second must report unchanged.
   lossy and ambiguous codecs are excluded.
 - `compression_lossless` is a `0`/`1` baseline column for constructed decoders.
   It is empty for unknown/undecoded rows. Ambiguous JPEG XL and WebP streams are
-  conservatively classified as not proven lossless.
+  conservatively classified as not proven lossless. Provenance is recorded in
+  `docs/reference/codecs/lossless-classification.md`.
 - No new dependency or workflow is introduced.
