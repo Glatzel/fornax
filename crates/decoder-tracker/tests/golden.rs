@@ -291,6 +291,9 @@ fn golden_coverage_only_includes_tier_zero_and_one_formats_and_excludes_arw1() {
         ("Sony/Cam/old.ARW", "sony-arw1"),
         ("Sony/Cam/new.ARW", "sony-arw6"),
         ("Canon/Cam/file.CR3", "canon-lossless-crx"),
+        ("Nikon/Cam/mode2.NEF", "nikon-mode-2-packed"),
+        ("Nikon/Cam/mode6.NEF", "nikon-mode-6-packed"),
+        ("Nikon/Cam/words.NEF", "nikon-uncompressed-words"),
         ("Nikon/Cam/file.NEF", "nikon-huffman"),
         ("Fujifilm/Cam/file.RAF", "fuji-lossless"),
         ("Panasonic/Cam/file.RW2", "panasonic-v8"),
@@ -324,6 +327,52 @@ fn golden_coverage_only_includes_tier_zero_and_one_formats_and_excludes_arw1() {
         ]
     );
     assert_eq!(report.summary.missing, 4);
+}
+
+#[test]
+fn golden_coverage_uses_highest_bit_depth_for_sony_ljpeg_and_nikon() {
+    let sony12 = manifest_row("Sony/Cam/ljpeg12.ARW", 10, 'a');
+    let sony14 = manifest_row("Sony/Cam/ljpeg14.ARW", 20, 'b');
+    let nikon12 = manifest_row("Nikon/Cam/huffman12.NEF", 10, 'c');
+    let nikon14 = manifest_row("Nikon/Cam/huffman14.NEF", 20, 'd');
+    let manifest = vec![
+        sony12.clone(),
+        sony14.clone(),
+        nikon12.clone(),
+        nikon14.clone(),
+    ];
+    let mut baseline = vec![
+        baseline_row(&sony12, "sony-lossless-jpeg", 12, true),
+        baseline_row(&sony14, "sony-lossless-jpeg", 14, true),
+        baseline_row(&nikon12, "nikon-huffman", 12, true),
+        baseline_row(&nikon14, "nikon-huffman", 14, true),
+    ];
+    for row in &mut baseline {
+        row.width = if row.bits_per_sample == Some(14) {
+            2000
+        } else {
+            1000
+        };
+        row.height = 1000;
+    }
+
+    let report = build_golden_coverage(&baseline, &manifest, &[]).unwrap();
+
+    assert_eq!(report.rows.len(), 2);
+    assert!(
+        report
+            .rows
+            .iter()
+            .all(|row| row.bits_per_sample == Some(14))
+    );
+    assert_eq!(
+        report
+            .rows
+            .iter()
+            .map(|row| row.representative_path.as_str())
+            .collect::<Vec<_>>(),
+        ["Sony/Cam/ljpeg14.ARW", "Nikon/Cam/huffman14.NEF"]
+    );
 }
 
 #[test]

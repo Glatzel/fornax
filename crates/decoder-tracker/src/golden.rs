@@ -188,7 +188,11 @@ pub fn build_golden_coverage(
             .entry(CoverageKey {
                 format: row.format.clone(),
                 compression_name: row.compression_name.clone(),
-                bits_per_sample: row.bits_per_sample,
+                bits_per_sample: if uses_highest_bit_depth(&row.format, &row.compression_name) {
+                    None
+                } else {
+                    row.bits_per_sample
+                },
                 sample_format: row.sample_format.clone(),
                 storage: row.storage.clone(),
                 predictor: row.predictor,
@@ -204,8 +208,13 @@ pub fn build_golden_coverage(
             passing.sort_by(|left, right| {
                 let left_pixels = u64::from(left.width) * u64::from(left.height);
                 let right_pixels = u64::from(right.width) * u64::from(right.height);
-                left_pixels
-                    .cmp(&right_pixels)
+                let highest_bits = if uses_highest_bit_depth(&key.format, &key.compression_name) {
+                    right.bits_per_sample.cmp(&left.bits_per_sample)
+                } else {
+                    std::cmp::Ordering::Equal
+                };
+                highest_bits
+                    .then_with(|| left_pixels.cmp(&right_pixels))
                     .then_with(|| {
                         manifest[left.path.as_str()]
                             .size
@@ -238,7 +247,7 @@ pub fn build_golden_coverage(
                 compression_name: key.compression_name,
                 compression_lossless: 1,
                 compression_id: representative.compression_id,
-                bits_per_sample: key.bits_per_sample,
+                bits_per_sample: representative.bits_per_sample,
                 sample_format: key.sample_format,
                 storage: key.storage,
                 predictor: key.predictor,
@@ -333,7 +342,20 @@ fn golden_encoding(row: &BaselineRow) -> bool {
     fully_passing(row)
         && row.compression_lossless == Some(1)
         && matches!(row.format.as_str(), "DNG" | "ARW" | "CR3" | "NEF")
-        && !(row.format == "ARW" && row.compression_name == "sony-arw1")
+        && !deprecated_golden_encoding(row)
+}
+
+fn uses_highest_bit_depth(format: &str, compression_name: &str) -> bool {
+    format == "NEF" || (format == "ARW" && compression_name == "sony-lossless-jpeg")
+}
+
+fn deprecated_golden_encoding(row: &BaselineRow) -> bool {
+    (row.format == "ARW" && row.compression_name == "sony-arw1")
+        || (row.format == "NEF"
+            && matches!(
+                row.compression_name.as_str(),
+                "nikon-mode-2-packed" | "nikon-mode-6-packed" | "nikon-uncompressed-words"
+            ))
 }
 
 pub fn decode_golden(path: &str, input: &std::path::Path) -> Result<GoldenRow> {

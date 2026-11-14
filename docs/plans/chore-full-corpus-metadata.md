@@ -400,9 +400,11 @@ reviewed schema migration, and the second must report unchanged.
 - Formats without a decoder retain a baseline row with unknown metadata.
 - The final golden set contains one lowest-pixel representative for each
   eligible known-lossless encoding group. Eligibility is limited to tier-0 DNG
-  and tier-1 ARW/CR3/NEF; tier-2/3 formats and legacy Sony ARW1 are excluded.
-  CFA does not split an encoding group, and known lossy or ambiguous codecs are
-  excluded.
+  and tier-1 ARW/CR3/NEF; tier-2/3 formats and deprecated Sony ARW1/Nikon
+  mode-2 packed, mode-6 packed, and uncompressed-word paths are excluded. CFA
+  does not split an encoding group, and known lossy or ambiguous codecs are
+  excluded. Sony lossless JPEG and Nikon NEF collapse bit-depth variants and
+  retain the highest available bit depth.
 - `compression_lossless` is a `0`/`1` baseline column for constructed decoders.
   It is empty for unknown/undecoded rows. Ambiguous JPEG XL and WebP streams are
   conservatively classified as not proven lossless. Provenance is recorded in
