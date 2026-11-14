@@ -143,9 +143,16 @@ where
     let decoder =
         D::decode(path).map_err(|error| format!("decode:{}", classify_decode_error(&error)))?;
     let encoding = decoder.encoding_metadata();
-    let raw = decoder
-        .raw_mosaic()
-        .map_err(|error| format!("raw_mosaic:{}", classify_decode_error(&error)))?;
+    let raw = match decoder.raw_mosaic() {
+        Ok(raw) => raw,
+        Err(error) => {
+            return Ok(StageRow {
+                error_kind: format!("raw_mosaic:{}", classify_decode_error(&error)),
+                ..StageRow::default()
+            }
+            .with_encoding(encoding));
+        }
+    };
     let (width, height) = raw.dimensions();
     if width == 0 || height == 0 || !sample_count_matches(&raw) {
         return Ok(StageRow {

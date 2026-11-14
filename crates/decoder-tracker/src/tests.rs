@@ -1,11 +1,15 @@
 use std::fs;
+use std::path::Path;
 
 use fornax_dng::Directory;
+use fornax_dng::metadata::IDecoderDng;
+use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{
     ColorCalibration, EncodingMetadata, EncodingSampleFormat, Levels, MetadataSource,
     ProcessMetadata, RawColorMeta,
 };
-use fornax_raw_core::{BayerPattern, MonoImage};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
+use fornax_raw_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::Value;
 use image::math::Rect;
 use rstest::rstest;
@@ -19,7 +23,8 @@ use crate::manifest::{
 use crate::model::{BaselineKey, BaselineRow, ManifestRow};
 use crate::selection::{Selection, Shard, runner_count_for, select_manifest};
 use crate::stages::{
-    StageRow, classify_decode_error, run_guarded, sanity_check_metadata, transition_row,
+    StageRow, classify_decode_error, evaluate_decoder, run_guarded, sanity_check_metadata,
+    transition_row,
 };
 
 fn manifest_row(sha: &str, path: &str, format: &str) -> ManifestRow {
@@ -345,6 +350,61 @@ fn decode_errors_use_stable_error_kinds() {
         )),
         "invalid_input"
     );
+}
+
+struct RawFailureDecoder;
+
+impl IDecoder for RawFailureDecoder {
+    fn decode(_: &Path) -> Result<Self, DecodeError> { Ok(Self) }
+
+    fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
+        Err(DecodeError::Unsupported("raw layout".into()))
+    }
+
+    fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
+    where
+        T: Primitive,
+    {
+        Err(DecodeError::Unsupported("raw layout".into()))
+    }
+
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
+        Err(DecodeError::Unsupported("raw layout".into()))
+    }
+}
+
+impl IDecoderDng for RawFailureDecoder {
+    fn dng_metadata(&self) -> Result<Directory, DecodeError> {
+        Err(DecodeError::Unsupported("raw layout".into()))
+    }
+}
+
+impl IDecoderEncoding for RawFailureDecoder {
+    fn encoding_metadata(&self) -> EncodingMetadata {
+        EncodingMetadata {
+            compression_id: Some(7),
+            compression_name: "lossless-jpeg",
+            storage: "tiles",
+            bits_per_sample: Some(14),
+            sample_format: Some(EncodingSampleFormat::Integer),
+            predictor: Some(1),
+            rows_per_strip: Some(171),
+            tile_width: Some(256),
+            tile_height: Some(256),
+        }
+    }
+}
+
+#[test]
+fn raw_decode_failure_retains_constructed_decoder_metadata() {
+    let row = evaluate_decoder::<RawFailureDecoder>(Path::new("ignored.dng")).unwrap();
+
+    assert_eq!(row.decode_pass, 0);
+    assert_eq!(row.error_kind, "raw_mosaic:unsupported");
+    assert_eq!(row.compression_name, "lossless-jpeg");
+    assert_eq!(row.storage, "tiles");
+    assert_eq!(row.bits_per_sample, Some(14));
+    assert_eq!(row.rows_per_strip, Some(171));
 }
 
 #[test]

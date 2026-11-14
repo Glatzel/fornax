@@ -190,19 +190,18 @@ impl BaselineRow {
                 self.status
             )));
         }
-        if self.raw_mosaic_pass == 1 {
-            if self.compression_name.is_empty()
+        if self.raw_mosaic_pass == 1
+            && (self.compression_name.is_empty()
                 || self.compression_name == "unknown"
                 || self.storage.is_empty()
                 || self.storage == "unknown"
                 || self.bits_per_sample.is_none_or(|bits| bits == 0)
-                || !matches!(self.sample_format.as_str(), "integer" | "float")
-            {
-                return Err(TrackerError::new(format!(
-                    "{} is missing source encoding metadata after a successful raw decode",
-                    self.key()
-                )));
-            }
+                || !matches!(self.sample_format.as_str(), "integer" | "float"))
+        {
+            return Err(TrackerError::new(format!(
+                "{} is missing source encoding metadata after a successful raw decode",
+                self.key()
+            )));
         }
         Ok(())
     }

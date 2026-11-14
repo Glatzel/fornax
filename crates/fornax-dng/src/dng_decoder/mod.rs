@@ -334,9 +334,7 @@ where
         bits_per_sample: optional_u16(metadata, TiffTag::BitsPerSample),
         sample_format,
         predictor: optional_u16(metadata, TiffTag::Predictor).or(Some(1)),
-        rows_per_strip: (storage == "strips")
-            .then(|| optional_u32(metadata, TiffTag::RowsPerStrip))
-            .flatten(),
+        rows_per_strip: optional_u32(metadata, TiffTag::RowsPerStrip),
         tile_width: (storage == "tiles")
             .then(|| optional_u32(metadata, TiffTag::TileWidth))
             .flatten(),
@@ -1171,6 +1169,7 @@ mod tests {
             [
                 (Tag::from(TiffTag::Compression), Value::Short(7)),
                 (Tag::from(TiffTag::Predictor), Value::Short(1)),
+                (Tag::from(TiffTag::RowsPerStrip), Value::Unsigned(171)),
                 (Tag::from(TiffTag::TileWidth), Value::Unsigned(256)),
             ],
         );
@@ -1186,6 +1185,7 @@ mod tests {
             Some(fornax_raw_core::EncodingSampleFormat::Integer)
         );
         assert_eq!(encoding.predictor, Some(1));
+        assert_eq!(encoding.rows_per_strip, Some(171));
         assert_eq!(encoding.tile_width, Some(256));
         assert_eq!(encoding.tile_height, Some(512));
     }
