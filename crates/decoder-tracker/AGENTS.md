@@ -98,7 +98,7 @@ pixi run -e dev cargo run -q -p decoder-tracker -- merge \
   target/decoder-tracker/shards/*.csv
 pixi run -e dev cargo run -q -p decoder-tracker -- diff \
   --selected target/decoder-tracker/selected-manifest.csv \
-  crates/decoder-tracker/baseline.csv \
+  crates/decoder-tracker/data/baseline.csv \
   target/decoder-tracker/candidate.csv
 ```
 
@@ -141,7 +141,7 @@ reviewed artifact baseline, never the partial candidate:
 
 ```bash
 cp target/decoder-tracker/update/baseline.csv \
-  crates/decoder-tracker/baseline.csv
+  crates/decoder-tracker/data/baseline.csv
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
@@ -154,7 +154,7 @@ The same workflow classifies DNG container metadata for every selected shard.
 A changed sidecar uploads
 `decoder-corpus-metadata-update/corpus-metadata.csv` and also fails the run.
 Review and copy the complete file to
-`crates/decoder-tracker/corpus-metadata.csv`, then rerun until the sidecar is
+`crates/decoder-tracker/data/corpus-metadata.csv`, then rerun until the sidecar is
 unchanged. The sidecar is diagnostic data and does not alter the baseline
 schema.
 
@@ -173,11 +173,12 @@ Follow the deliberately bounded procedure in
 
 ## Files and invariants
 
-- `manifest.csv` identifies every corpus path, size, and LFS SHA-256.
-- `baseline.csv` is the accepted full result set. Do not hand-edit it.
-- `corpus-metadata.csv` records the generated DNG compression, storage, layout,
-  bit-depth, sample-format, and predictor groups. Unparsable DNGs are retained
-  as failed results instead of aborting the shard. Do not hand-edit it.
+- `data/manifest.csv` identifies every corpus path, size, and LFS SHA-256.
+- `data/baseline.csv` is the accepted full result set. Do not hand-edit it.
+- `data/corpus-metadata.csv` records the generated DNG compression, storage,
+  layout, bit-depth, sample-format, and predictor groups. Unparsable DNGs are
+  retained as failed results instead of aborting the shard. Do not hand-edit
+  it.
 - `golden/selected-manifest.csv` is the pointer-only 30-file fixed set for
   deterministic decode-output checks and decoder benchmarks.
 - `golden/decode-hashes.csv` contains SHA-256 values for raw samples, cropped

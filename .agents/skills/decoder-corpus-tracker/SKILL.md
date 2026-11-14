@@ -111,7 +111,7 @@ gh run download <run-id> --name decoder-baseline-update \
 
    ```bash
    cp target/decoder-tracker/update/baseline.csv \
-     crates/decoder-tracker/baseline.csv
+     crates/decoder-tracker/data/baseline.csv
    ```
 
 4. Refresh the README as below.
@@ -123,7 +123,8 @@ gh run download <run-id> --name decoder-baseline-update \
 The same workflow always merges DNG compression metadata. If that sidecar
 changes, the run intentionally fails and uploads
 `decoder-corpus-metadata-update`. Review the complete
-`corpus-metadata.csv`, copy it to `crates/decoder-tracker/corpus-metadata.csv`,
+`corpus-metadata.csv`, copy it to
+`crates/decoder-tracker/data/corpus-metadata.csv`,
 commit it, and rerun until unchanged. Never hand-edit the sidecar.
 
 Rerun in place with `gh run rerun <run-id> --failed` only for a transient

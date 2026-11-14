@@ -3,7 +3,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-manifest="$repo_root/crates/decoder-tracker/manifest.csv"
+manifest="$repo_root/crates/decoder-tracker/data/manifest.csv"
 filter="*/**/*"
 out="$repo_root/target/decoder-tracker/selected-manifest.csv"
 

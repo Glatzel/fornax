@@ -19,7 +19,7 @@ are never committed, cached, or uploaded as artifacts.
 raw.pixls.us replaces its Git LFS repository with a new daily snapshot instead
 of retaining a permanent commit history. The submodule therefore follows the
 remote's `master` branch for setup, while
-`crates/decoder-tracker/manifest.csv` records the accepted snapshot's
+`crates/decoder-tracker/data/manifest.csv` records the accepted snapshot's
 paths, sizes, identities, and LFS SHA-256 values. `manifest --check` fails if the
 current `filelist.sha256` or pointer set no longer matches that committed
 manifest.
@@ -76,7 +76,8 @@ is sorted by LFS SHA-256 and assigned with zero-based `position % COUNT`.
 
 `manifest` reads `filelist.sha256`, parses every corresponding LFS pointer,
 verifies that its object ID equals the listed SHA-256, derives identity fields,
-and writes the canonical CSV under `crates/decoder-tracker/manifest.csv`. The
+and writes the canonical CSV under
+`crates/decoder-tracker/data/manifest.csv`. The
 manifest always covers every format in the corpus, including formats without a
 decoder implementation or baseline rows.
 
@@ -362,7 +363,8 @@ fails after uploading `decoder-baseline-update` with three CSV files:
 
 A DNG metadata change independently uploads
 `decoder-corpus-metadata-update/corpus-metadata.csv` and fails the run. Review
-the complete sidecar, copy it to `crates/decoder-tracker/corpus-metadata.csv`,
+the complete sidecar, copy it to
+`crates/decoder-tracker/data/corpus-metadata.csv`,
 commit it, and rerun until it is unchanged. Do not merge a partial candidate.
 
 Download and inspect the artifact:
@@ -379,7 +381,7 @@ candidate from a partial selection must never replace the committed baseline:
 
 ```bash
 cp target/decoder-tracker/update/baseline.csv \
-  crates/decoder-tracker/baseline.csv
+  crates/decoder-tracker/data/baseline.csv
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 

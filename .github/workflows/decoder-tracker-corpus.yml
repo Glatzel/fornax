@@ -206,7 +206,7 @@ jobs:
         run: |
           pixi run -e tracker bash crates/decoder-tracker/scripts/aggregate.sh \
             --selected target/decoder-tracker/selected-manifest.csv \
-            --baseline crates/decoder-tracker/baseline.csv \
+            --baseline crates/decoder-tracker/data/baseline.csv \
             --work-dir target/decoder-tracker/update \
             --github-output "$GITHUB_OUTPUT" \
             -- target/decoder-tracker/shards/*.csv
@@ -221,7 +221,7 @@ jobs:
             --out "$candidate" \
             -- target/decoder-tracker/metadata-shards/*.csv
 
-          committed="crates/decoder-tracker/corpus-metadata.csv"
+          committed="crates/decoder-tracker/data/corpus-metadata.csv"
           if [[ -f "$committed" ]] && cmp -s "$candidate" "$committed"; then
             printf 'metadata_changed=false\n' >>"$GITHUB_OUTPUT"
             printf 'DNG corpus metadata is unchanged\n'

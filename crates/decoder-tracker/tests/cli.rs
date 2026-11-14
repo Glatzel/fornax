@@ -72,6 +72,21 @@ fn corpus_metadata_commands_are_exposed() {
 }
 
 #[test]
+fn committed_csv_files_live_in_the_data_directory() {
+    let crate_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    for filename in ["manifest.csv", "baseline.csv", "corpus-metadata.csv"] {
+        assert!(
+            crate_root.join("data").join(filename).is_file(),
+            "{filename} is missing from data/"
+        );
+        assert!(
+            !crate_root.join(filename).exists(),
+            "{filename} still exists at the crate root"
+        );
+    }
+}
+
+#[test]
 fn selection_commands_do_not_expose_a_format_filter() {
     for command in ["select", "run"] {
         let output = Command::cargo_bin("decoder-tracker")

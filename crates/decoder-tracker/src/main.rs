@@ -22,9 +22,9 @@ use decoder_tracker::selection::{Selection, Shard, select_manifest};
 use decoder_tracker::stages::{StageRow, evaluate_one};
 
 const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
-const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/manifest.csv";
+const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/data/manifest.csv";
 const DEFAULT_OUTPUT: &str = "target/decoder-tracker/corpus.csv";
-const DEFAULT_CORPUS_METADATA: &str = "crates/decoder-tracker/corpus-metadata.csv";
+const DEFAULT_CORPUS_METADATA: &str = "crates/decoder-tracker/data/corpus-metadata.csv";
 
 #[derive(Debug, Parser)]
 #[command(
