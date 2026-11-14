@@ -176,7 +176,8 @@ Follow the deliberately bounded procedure in
 - `manifest.csv` identifies every corpus path, size, and LFS SHA-256.
 - `baseline.csv` is the accepted full result set. Do not hand-edit it.
 - `corpus-metadata.csv` records the generated DNG compression, storage, layout,
-  bit-depth, sample-format, and predictor groups. Do not hand-edit it.
+  bit-depth, sample-format, and predictor groups. Unparseable DNGs are retained
+  as failed results instead of aborting the shard. Do not hand-edit it.
 - `golden/selected-manifest.csv` is the pointer-only 30-file fixed set for
   deterministic decode-output checks and decoder benchmarks.
 - `golden/decode-hashes.csv` contains SHA-256 values for raw samples, cropped

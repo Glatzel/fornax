@@ -138,15 +138,22 @@ changing the manifest.
 The canonical header is:
 
 ```csv
-path,sha256,format,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height
+status,path,sha256,format,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height,error_kind
 ```
 
 Rows are keyed by `(sha256, path)` and cover every selected DNG exactly once.
-`storage` is `strips` or `tiles`; absent layout fields and the default TIFF
-predictor of `1` are explicit so grouping does not need to reinterpret missing
-values. The classifier uses the full-resolution raw IFD selected by
-`fornax-dng`, including DNG-owned compression identifiers `34892` and `52546`.
-It records unknown IDs rather than inferring compression from the path.
+For a parseable DNG, `status` is `✅`, `storage` is `strips` or `tiles`, and
+absent layout fields and the default TIFF predictor of `1` are explicit so
+grouping does not need to reinterpret missing values. The classifier uses the
+full-resolution raw IFD selected by `fornax-dng`, including DNG-owned
+compression identifiers `34892` and `52546`. It records unknown IDs rather than
+inferring compression from the path.
+
+A DNG that cannot be parsed or classified is a failed result rather than a
+workflow error. It gets `status` `❌`, `compression_name` and `storage` of
+`unknown`, empty classification values, and a typed `error_kind` such as
+`metadata:invalid_input` or `metadata:unsupported`. File I/O, LFS, and other
+infrastructure failures remain fatal.
 
 Generate a local selection with `select`, then classify all of it:
 
@@ -171,7 +178,8 @@ pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata-merge \
   target/decoder-tracker/metadata-shards/*.csv
 ```
 
-The merge rejects missing, duplicate, unexpected, or malformed DNG rows. The
+The merge rejects missing, duplicate, unexpected, or malformed DNG rows,
+including failed results that carry contradictory classification fields. The
 committed sidecar is generated data and must not be hand-edited.
 
 ## Golden decode outputs
@@ -303,6 +311,11 @@ the DNG metadata sidecar, then:
   changed.
 - uploads `decoder-corpus-metadata-update` and fails when the DNG metadata
   sidecar changed.
+
+Malformed corpus DNGs are represented in the metadata sidecar as `❌` failed
+rows; they do not fail the shard. The intentional changed-artifact review gate
+still fails the aggregate until the generated sidecar is reviewed and
+committed.
 
 RAW payloads are never cached or uploaded.
 

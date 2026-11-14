@@ -82,18 +82,20 @@ fn corpus_metadata_merge_writes_the_complete_selected_dng_set() {
     )
     .unwrap();
     let metadata = CorpusMetadataRow {
+        status: "✅".to_owned(),
         path: row.path.clone(),
         sha256: row.sha256.clone(),
         format: "DNG".to_owned(),
-        compression_id: 7,
+        compression_id: Some(7),
         compression_name: "lossless-jpeg".to_owned(),
         storage: "strips".to_owned(),
-        bits_per_sample: 14,
-        sample_format: 1,
-        predictor: 1,
+        bits_per_sample: Some(14),
+        sample_format: Some(1),
+        predictor: Some(1),
         rows_per_strip: Some(128),
         tile_width: None,
         tile_height: None,
+        error_kind: String::new(),
     };
     let shard = temp.path().join("shard.csv");
     fs::write(

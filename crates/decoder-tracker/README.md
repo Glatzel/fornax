@@ -153,10 +153,11 @@ pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 
 The committed corpus metadata manifest is `manifest.csv`; decoder pass columns
 and outcomes are in `baseline.csv`. The generated `corpus-metadata.csv` sidecar
-groups DNG rows by container compression, strip/tile storage, bit depth, sample
-format, and predictor without changing either canonical schema. DuckDB CLI owns
-plan-time manifest filtering and the shell-driven merge, selected-key diff, and
-baseline upsert path. Stage columns remain numeric for SQL; a leading emoji
+groups parseable DNG rows by container compression, strip/tile storage, bit
+depth, sample format, and predictor and records unparseable DNGs as failed
+results without changing either canonical schema. DuckDB CLI owns plan-time
+manifest filtering and the shell-driven merge, selected-key diff, and baseline
+upsert path. Stage columns remain numeric for SQL; a leading emoji
 `status` column makes pass/fail visually scannable. `update-badge.sh` joins the
 full manifest to the baseline and writes the accumulated badge and
 per-vendor-format `passed/total` table between the README markers;
