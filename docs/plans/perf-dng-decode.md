@@ -190,7 +190,7 @@ with more than 64 elements; small CFA/pattern fields remain
   root directory.
 - [x] Task 4: Use borrowed DNG metadata during decode.
 - [x] Task 5: Store large private TIFF byte payloads compactly.
-- [ ] Task 6: Add direct uncompressed sample unpacking.
+- [x] Task 6: Add direct uncompressed sample unpacking.
 - [ ] Task 7: Fuse Deflate predictor and typed conversion.
 
 ---
@@ -1012,13 +1012,13 @@ fn unpack_14_msb(source: &[u8], target: &mut [u16]);
 fn unpack_14_lsb(source: &[u8], target: &mut [u16]);
 ```
 
-- [ ] **Step 1: Add scalar-oracle tests**
+- [x] **Step 1: Add scalar-oracle tests**
 
 Compare each grouped kernel with the current generic bit pump for randomized
 rows, odd sample counts, both byte orders, and 12-, 14-, and 16-bit samples.
 Assert every U16 value.
 
-- [ ] **Step 2: Run the tests and verify missing symbols**
+- [x] **Step 2: Run the tests and verify missing symbols**
 
 Run:
 
@@ -1027,24 +1027,24 @@ cargo test -p fornax-codec unpack_12
 cargo test -p fornax-codec unpack_14
 ```
 
-- [ ] **Step 3: Add a native-endian U16 copy**
+- [x] **Step 3: Add a native-endian U16 copy**
 
 When `bits == 16` and file endianness equals host endianness, copy source bytes
 directly into the destination `u16` byte slice. Keep scalar/endian-swap paths
 for other combinations.
 
-- [ ] **Step 4: Add grouped 12/14-bit kernels**
+- [x] **Step 4: Add grouped 12/14-bit kernels**
 
 Decode two 12-bit samples from three bytes and four 14-bit samples from seven
 bytes, using word loads and scalar tails. Write directly to U16; delete the
 `Vec<u32>` staging path for integer samples up to 16 bits.
 
-- [ ] **Step 5: Preserve edge tiles**
+- [x] **Step 5: Preserve edge tiles**
 
 Pass the exact copy width per row and test partial right-edge tiles for both
 grouped formats. Do not read beyond the encoded payload.
 
-- [ ] **Step 6: Prove full-corpus equality and benchmark**
+- [x] **Step 6: Prove full-corpus equality and benchmark**
 
 Run three-way equality on all selected DNGs, especially Sigma fp 4K/2K and 5D3
 uncompressed. Acceptance:
@@ -1053,7 +1053,7 @@ uncompressed. Acceptance:
 - 5D3 uncompressed no slower than its Task 3 result;
 - no output hash changes.
 
-- [ ] **Step 7: Verify and commit**
+- [x] **Step 7: Verify and commit**
 
 Run:
 

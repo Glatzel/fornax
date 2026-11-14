@@ -115,6 +115,8 @@ fn decode_integer(
             let mut output = vec![0_u16; sample_count];
             if bits == 16 {
                 copy_samples(geometry, byte_order, payloads, &mut output)?;
+            } else if matches!(bits, 12 | 14) {
+                decode_packed_u16(geometry, bits, byte_order, payloads, &mut output)?;
             } else {
                 // `bits <= 16`, so the unpacked value always fits.
                 decode_packed(geometry, bits, payloads, low_u16, &mut output)?;
@@ -330,6 +332,148 @@ fn unpack_bits(source: &[u8], output: &mut [u32], bits: usize) -> Result<(), Cod
     Ok(())
 }
 
+fn decode_packed_u16(
+    geometry: &Geometry,
+    bits: u16,
+    byte_order: ByteOrder,
+    payloads: &[&[u8]],
+    output: &mut [u16],
+) -> Result<(), CodecError> {
+    let row_bytes = geometry
+        .chunk_width
+        .checked_mul(usize::from(bits))
+        .ok_or_else(|| invalid("packed row bit count overflow"))?
+        .div_ceil(8);
+    output
+        .par_chunks_mut(geometry.band_stride()?)
+        .enumerate()
+        .try_for_each(|(tile_y_index, band)| {
+            let tile_y = tile_y_index * geometry.chunk_height;
+            let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
+            for tile_x_index in 0..geometry.across {
+                let index = tile_y_index * geometry.across + tile_x_index;
+                let encoded = payloads[index];
+                let tile_x = tile_x_index * geometry.chunk_width;
+                let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
+                let copy_row_bytes = copy_width
+                    .checked_mul(usize::from(bits))
+                    .ok_or_else(|| invalid("packed row bit count overflow"))?
+                    .div_ceil(8);
+                let required_bytes = (copy_height - 1)
+                    .checked_mul(row_bytes)
+                    .and_then(|bytes| bytes.checked_add(copy_row_bytes))
+                    .ok_or_else(|| invalid("uncompressed chunk size overflow"))?;
+                if encoded.len() < required_bytes {
+                    return Err(invalid(format!("uncompressed chunk {index} is truncated")));
+                }
+
+                for y in 0..copy_height {
+                    let source = &encoded[y * row_bytes..][..copy_row_bytes];
+                    let target = &mut band[y * geometry.width + tile_x..][..copy_width];
+                    unpack_row_u16(source, target, bits, byte_order);
+                }
+            }
+            Ok::<(), CodecError>(())
+        })
+}
+
+fn unpack_row_u16(source: &[u8], target: &mut [u16], bits: u16, byte_order: ByteOrder) {
+    match bits {
+        12 => unpack_12_msb(source, target),
+        14 => unpack_14_msb(source, target),
+        16 if byte_order == native_order() => {
+            let byte_count = target.len() * 2;
+            bytemuck::cast_slice_mut(target).copy_from_slice(&source[..byte_count]);
+        }
+        16 => {
+            for (target, source) in target.iter_mut().zip(source.as_chunks::<2>().0) {
+                *target = read_u16(source, byte_order);
+            }
+        }
+        _ => unpack_scalar(source, target, usize::from(bits), false),
+    }
+}
+
+fn unpack_12_msb(source: &[u8], target: &mut [u16]) {
+    let groups = (target.len() / 2).min(source.len() / 3);
+    for group in 0..groups {
+        let bytes = &source[group * 3..][..3];
+        target[group * 2] = (u16::from(bytes[0]) << 4) | (u16::from(bytes[1]) >> 4);
+        target[group * 2 + 1] = (u16::from(bytes[1] & 0x0f) << 8) | u16::from(bytes[2]);
+    }
+    unpack_scalar(&source[groups * 3..], &mut target[groups * 2..], 12, false);
+}
+
+#[cfg(test)]
+fn unpack_12_lsb(source: &[u8], target: &mut [u16]) {
+    let groups = (target.len() / 2).min(source.len() / 3);
+    for group in 0..groups {
+        let bytes = &source[group * 3..][..3];
+        target[group * 2] = u16::from(bytes[0]) | (u16::from(bytes[1] & 0x0f) << 8);
+        target[group * 2 + 1] = (u16::from(bytes[1]) >> 4) | (u16::from(bytes[2]) << 4);
+    }
+    unpack_scalar(&source[groups * 3..], &mut target[groups * 2..], 12, true);
+}
+
+fn unpack_14_msb(source: &[u8], target: &mut [u16]) {
+    let groups = (target.len() / 4).min(source.len() / 7);
+    for group in 0..groups {
+        let bytes = &source[group * 7..][..7];
+        let word = u64::from_be_bytes([
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], 0,
+        ]) >> 8;
+        for index in 0..4 {
+            target[group * 4 + index] = ((word >> (56 - 14 * (index + 1))) & 0x3fff) as u16;
+        }
+    }
+    unpack_scalar(&source[groups * 7..], &mut target[groups * 4..], 14, false);
+}
+
+#[cfg(test)]
+fn unpack_14_lsb(source: &[u8], target: &mut [u16]) {
+    let groups = (target.len() / 4).min(source.len() / 7);
+    for group in 0..groups {
+        let bytes = &source[group * 7..][..7];
+        let word = u64::from_le_bytes([
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], 0,
+        ]);
+        for index in 0..4 {
+            target[group * 4 + index] = ((word >> (14 * index)) & 0x3fff) as u16;
+        }
+    }
+    unpack_scalar(&source[groups * 7..], &mut target[groups * 4..], 14, true);
+}
+
+fn unpack_scalar(source: &[u8], target: &mut [u16], bits: usize, lsb: bool) {
+    if bits == 0 || target.is_empty() {
+        return;
+    }
+    let mask = (1_u64 << bits) - 1;
+    let mut buffer = 0_u64;
+    let mut buffered = 0_usize;
+    let mut bytes = source.iter().copied();
+    if lsb {
+        for value in target {
+            while buffered < bits {
+                buffer |= u64::from(bytes.next().unwrap_or(0)) << buffered;
+                buffered += 8;
+            }
+            *value = (buffer & mask) as u16;
+            buffer >>= bits;
+            buffered -= bits;
+        }
+    } else {
+        for value in target {
+            while buffered < bits {
+                buffer = (buffer << 8) | u64::from(bytes.next().unwrap_or(0));
+                buffered += 8;
+            }
+            buffered -= bits;
+            *value = ((buffer >> buffered) & mask) as u16;
+        }
+    }
+}
+
 /// Samples that can be read straight from a tile row of raw bytes.
 trait Sample: Copy + Send {
     const BYTES: usize;
@@ -370,7 +514,20 @@ macro_rules! impl_sample {
     };
 }
 
-impl_sample!(u16, 2);
+impl Sample for u16 {
+    const BYTES: usize = 2;
+
+    fn read_row(source: &[u8], target: &mut [Self], byte_order: ByteOrder) {
+        if byte_order == native_order() {
+            bytemuck::cast_slice_mut(target).copy_from_slice(source);
+        } else {
+            for (target, bytes) in target.iter_mut().zip(source.as_chunks::<2>().0) {
+                *target = read_u16(bytes, byte_order);
+            }
+        }
+    }
+}
+
 impl_sample!(u32, 4);
 
 /// Copies tiles straight into the typed output, with no intermediate byte
@@ -399,6 +556,14 @@ const fn low_u16(value: u32) -> u16 {
 const fn low_u32(value: u64) -> u32 {
     let bytes = value.to_le_bytes();
     u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])
+}
+
+const fn native_order() -> ByteOrder {
+    if cfg!(target_endian = "little") {
+        ByteOrder::Little
+    } else {
+        ByteOrder::Big
+    }
 }
 
 const fn read_u16(bytes: &[u8], byte_order: ByteOrder) -> u16 {
@@ -510,4 +675,80 @@ fn buffer_f64(width: usize, height: usize, samples: Vec<f64>) -> Result<SampleBu
 
 fn checked_product<const N: usize>(values: [usize; N]) -> Option<usize> {
     values.into_iter().try_fold(1_usize, usize::checked_mul)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn grouped_unpack_12_kernels_match_the_scalar_oracle() {
+        for len in [1, 2, 3, 4, 5, 7, 8, 9, 17, 31] {
+            let samples = (0..len)
+                .map(|index| ((index * 977 + 123) & 0x0fff) as u16)
+                .collect::<Vec<_>>();
+            for lsb in [false, true] {
+                let bytes = pack(&samples, 12, lsb);
+                let mut decoded = vec![0_u16; len];
+                if lsb {
+                    unpack_12_lsb(&bytes, &mut decoded);
+                } else {
+                    unpack_12_msb(&bytes, &mut decoded);
+                }
+                assert_eq!(decoded, samples, "12-bit {lsb:?} len {len}");
+            }
+        }
+    }
+
+    #[test]
+    fn grouped_unpack_14_kernels_match_the_scalar_oracle() {
+        for len in [1, 2, 3, 4, 5, 7, 8, 9, 17, 31] {
+            let samples = (0..len)
+                .map(|index| ((index * 1_597 + 31) & 0x3fff) as u16)
+                .collect::<Vec<_>>();
+            for lsb in [false, true] {
+                let bytes = pack(&samples, 14, lsb);
+                let mut decoded = vec![0_u16; len];
+                if lsb {
+                    unpack_14_lsb(&bytes, &mut decoded);
+                } else {
+                    unpack_14_msb(&bytes, &mut decoded);
+                }
+                assert_eq!(decoded, samples, "14-bit {lsb:?} len {len}");
+            }
+        }
+    }
+
+    #[test]
+    fn unpack_row_u16_copies_native_endian_and_swaps_opposite_endian_16_bit_rows() {
+        let samples = [0x0102_u16, 0x0304, 0xabcd, 0xff00, 0x1234];
+        for byte_order in [ByteOrder::Little, ByteOrder::Big] {
+            let bytes = samples
+                .iter()
+                .flat_map(|value| match byte_order {
+                    ByteOrder::Little => value.to_le_bytes(),
+                    ByteOrder::Big => value.to_be_bytes(),
+                })
+                .collect::<Vec<_>>();
+            let mut decoded = [0_u16; 5];
+            unpack_row_u16(&bytes, &mut decoded, 16, byte_order);
+            assert_eq!(decoded, samples);
+        }
+    }
+
+    fn pack(samples: &[u16], bits: usize, lsb: bool) -> Vec<u8> {
+        let mut bytes = vec![0_u8; (samples.len() * bits).div_ceil(8)];
+        for (sample_index, sample) in samples.iter().copied().enumerate() {
+            for bit in 0..bits {
+                if sample & (1 << bit) == 0 {
+                    continue;
+                }
+                let stream_bit = sample_index * bits + if lsb { bit } else { bits - 1 - bit };
+                let byte = stream_bit / 8;
+                let within = stream_bit % 8;
+                bytes[byte] |= if lsb { 1 << within } else { 1 << (7 - within) };
+            }
+        }
+        bytes
+    }
 }

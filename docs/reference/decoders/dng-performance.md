@@ -294,6 +294,23 @@ This removes the per-byte `Value` allocation for the 3.16-million-byte private
 Pixel metadata payload. The complete golden hash set and three-way DNG equality
 remained unchanged.
 
+### Direct uncompressed unpacking
+
+Task 6 writes 12- and 14-bit packed rows directly into the final U16 buffer.
+Two 12-bit samples are decoded from three bytes, four 14-bit samples from seven
+bytes, and native-endian 16-bit rows use a typed memcpy. Odd and partial rows
+fall back to a scalar tail without reading beyond the encoded payload.
+
+Single-thread walltime:
+
+| Case | Before | After | Rawler | FlashRaw | Fornax/Rawler |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Sigma fp 4K 12-bit | 17.95 ms | 5.75 ms | 5.79 ms | 10.53 ms | 0.99x |
+| 5D3 16-bit uncompressed | 51.6 ms | 52.0 ms | 53.5 ms | 18.6 ms | 0.97x |
+
+Sigma fp moved from 3.0x Rawler to parity with Rawler. The 5D3 U16 path remained
+statistically unchanged, and all golden decode hashes remained exact.
+
 ## Neutral experiments
 
 - `-C target-cpu=native` measured 475 ms LJPEG, 164 ms uncompressed, and
