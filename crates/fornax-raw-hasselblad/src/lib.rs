@@ -32,8 +32,8 @@ use fornax_codec::{
 };
 use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::ProcessMetadata;
-use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::Directory;
 use generic_num::num;
@@ -154,6 +154,11 @@ impl HasselbladImage {
     /// ```
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> { Ok(self.metadata.clone()) }
 
+    /// Return the selected Hasselblad source compression and storage layout.
+    pub const fn encoding_metadata(&self) -> EncodingMetadata {
+        encoding_metadata_for_layout(&self.layout)
+    }
+
     /// Returns normalized process metadata for a conventional Bayer 3FR.
     ///
     /// # Errors
@@ -235,6 +240,29 @@ impl IDecoder for HasselbladImage {
 
 impl IDecoderDng for HasselbladImage {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> { Self::dng_metadata(self) }
+}
+
+impl IDecoderEncoding for HasselbladImage {
+    fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
+}
+
+const fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetadata {
+    let (compression_id, compression_name) = match layout.compression {
+        container::Compression::Uncompressed => (1, "uncompressed"),
+        container::Compression::LosslessJpeg => (7, "hasselblad-lossless-jpeg"),
+    };
+    EncodingMetadata {
+        compression_id: Some(compression_id),
+        compression_name,
+        lossless: true,
+        storage: "strips",
+        bits_per_sample: Some(16),
+        sample_format: Some(EncodingSampleFormat::Integer),
+        predictor: None,
+        rows_per_strip: None,
+        tile_width: None,
+        tile_height: None,
+    }
 }
 
 fn crop_and_cast<S, T>(

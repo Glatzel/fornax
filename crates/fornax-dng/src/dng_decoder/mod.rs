@@ -6,7 +6,8 @@ mod transforms;
 
 use fornax_codec::{ByteOrder, DecodeCompression, ICodecDecode, Predictor, SampleFormat};
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::ProcessMetadata;
+use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
+use fornax_raw_core::protocol::IDecoderEncoding;
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
@@ -117,6 +118,19 @@ impl DngImage {
         let height = required_u32(&metadata, TiffTag::ImageLength)?;
         process_metadata::from_lookup(width, height, &metadata)
     }
+
+    /// Return source compression and storage metadata from the selected raw
+    /// IFD.
+    pub fn encoding_metadata(&self) -> EncodingMetadata {
+        self.dng_directory().map_or_else(
+            |_| EncodingMetadata::unknown(),
+            |metadata| encoding_metadata_from_lookup(&metadata),
+        )
+    }
+}
+
+impl IDecoderEncoding for DngImage {
+    fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
 }
 
 fn select_raw_ifd(parsed: &ParsedTiff) -> Result<usize, DecodeError> {
@@ -296,6 +310,61 @@ where
     unsigned_scalar(metadata.get(&Tag::from(TiffTag::SampleFormat))).unwrap_or(1)
 }
 
+fn encoding_metadata_from_lookup<D>(metadata: &D) -> EncodingMetadata
+where
+    D: DirectoryLookup + ?Sized,
+{
+    let compression_id = optional_u16(metadata, TiffTag::Compression);
+    let storage = if metadata.contains_key(&Tag::from(TiffTag::TileOffsets)) {
+        "tiles"
+    } else if metadata.contains_key(&Tag::from(TiffTag::StripOffsets)) {
+        "strips"
+    } else {
+        "unknown"
+    };
+    let sample_format = match unsigned_scalar(metadata.get(&Tag::from(TiffTag::SampleFormat))) {
+        None | Some(1) => Some(EncodingSampleFormat::Integer),
+        Some(3) => Some(EncodingSampleFormat::Float),
+        Some(_) => None,
+    };
+    EncodingMetadata {
+        compression_id: compression_id.map(u32::from),
+        compression_name: compression_id.map_or("unknown", compression_name),
+        lossless: compression_id.is_some_and(compression_lossless),
+        storage,
+        bits_per_sample: optional_u16(metadata, TiffTag::BitsPerSample),
+        sample_format,
+        predictor: optional_u16(metadata, TiffTag::Predictor).or(Some(1)),
+        rows_per_strip: optional_u32(metadata, TiffTag::RowsPerStrip),
+        tile_width: (storage == "tiles")
+            .then(|| optional_u32(metadata, TiffTag::TileWidth))
+            .flatten(),
+        tile_height: (storage == "tiles")
+            .then(|| optional_u32(metadata, TiffTag::TileLength))
+            .flatten(),
+    }
+}
+
+const fn compression_name(id: u16) -> &'static str {
+    match id {
+        1 => "uncompressed",
+        5 => "lzw",
+        7 => "lossless-jpeg",
+        8 | 32_946 => "deflate",
+        32_773 => "packbits",
+        34_892 => "lossy-jpeg",
+        34_925 => "lzma2",
+        50_000 => "zstandard",
+        50_001 => "webp",
+        50_002 | 52_546 => "jpeg-xl",
+        _ => "unknown",
+    }
+}
+
+const fn compression_lossless(id: u16) -> bool {
+    matches!(id, 1 | 5 | 7 | 8 | 32_773 | 32_946 | 34_925 | 50_000)
+}
+
 fn byte_order(source: &[u8]) -> ByteOrder {
     match source.get(..2) {
         Some(b"II") => ByteOrder::Little,
@@ -312,6 +381,22 @@ where
     let value = unsigned_scalar(metadata.get(&tag))
         .ok_or_else(|| corrupt(format!("{tag} is missing or invalid")))?;
     u16::try_from(value).map_err(|_| corrupt(format!("{tag} is out of range")))
+}
+
+fn optional_u16<D>(metadata: &D, tag: TiffTag) -> Option<u16>
+where
+    D: DirectoryLookup + ?Sized,
+{
+    let value = unsigned_scalar(metadata.get(&Tag::from(tag)))?;
+    u16::try_from(value).ok()
+}
+
+fn optional_u32<D>(metadata: &D, tag: TiffTag) -> Option<u32>
+where
+    D: DirectoryLookup + ?Sized,
+{
+    let value = unsigned_scalar(metadata.get(&Tag::from(tag)))?;
+    u32::try_from(value).ok()
 }
 
 fn required_u32<D, T>(metadata: &D, tag: T) -> Result<u32, DecodeError>
@@ -990,6 +1075,26 @@ mod tests {
         metadata
     }
 
+    fn directory_with_strips(width: u32, height: u32, bits: u16, byte_count: u32) -> Directory {
+        let mut metadata = Directory::default();
+        metadata.insert(Tag::from(TiffTag::ImageWidth), Value::Unsigned(width));
+        metadata.insert(Tag::from(TiffTag::ImageLength), Value::Unsigned(height));
+        metadata.insert(Tag::from(TiffTag::BitsPerSample), Value::Short(bits));
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(1));
+        metadata.insert(Tag::from(TiffTag::SamplesPerPixel), Value::Short(1));
+        metadata.insert(
+            Tag::from(TiffTag::PhotometricInterpretation),
+            Value::Short(32_803),
+        );
+        metadata.insert(Tag::from(TiffTag::RowsPerStrip), Value::Unsigned(8));
+        metadata.insert(Tag::from(TiffTag::StripOffsets), Value::Unsigned(0));
+        metadata.insert(
+            Tag::from(TiffTag::StripByteCounts),
+            Value::Unsigned(byte_count),
+        );
+        metadata
+    }
+
     fn writable_metadata(width: u32, height: u32) -> Directory {
         let mut metadata = Directory::default();
         metadata.insert(
@@ -1057,6 +1162,73 @@ mod tests {
             bytes.extend_from_slice(&value.to_be_bytes());
         }
         bytes
+    }
+
+    #[test]
+    fn encoding_metadata_preserves_tiled_source_layout() {
+        let metadata = metadata(
+            496,
+            512,
+            14,
+            1024,
+            [
+                (Tag::from(TiffTag::Compression), Value::Short(7)),
+                (Tag::from(TiffTag::Predictor), Value::Short(1)),
+                (Tag::from(TiffTag::RowsPerStrip), Value::Unsigned(171)),
+                (Tag::from(TiffTag::TileWidth), Value::Unsigned(256)),
+            ],
+        );
+
+        let encoding = encoding_metadata_from_lookup(&metadata);
+
+        assert_eq!(encoding.compression_id, Some(7));
+        assert_eq!(encoding.compression_name, "lossless-jpeg");
+        assert!(encoding.lossless);
+        assert_eq!(encoding.storage, "tiles");
+        assert_eq!(encoding.bits_per_sample, Some(14));
+        assert_eq!(
+            encoding.sample_format,
+            Some(fornax_raw_core::EncodingSampleFormat::Integer)
+        );
+        assert_eq!(encoding.predictor, Some(1));
+        assert_eq!(encoding.rows_per_strip, Some(171));
+        assert_eq!(encoding.tile_width, Some(256));
+        assert_eq!(encoding.tile_height, Some(512));
+    }
+
+    #[test]
+    fn encoding_metadata_preserves_strip_and_float_details() {
+        let mut metadata = directory_with_strips(32, 16, 32, 128);
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(8));
+        metadata.insert(Tag::from(TiffTag::BitsPerSample), Value::Short(32));
+        metadata.insert(Tag::from(TiffTag::SampleFormat), Value::Short(3));
+        metadata.insert(Tag::from(TiffTag::Predictor), Value::Short(34_895));
+
+        let encoding = encoding_metadata_from_lookup(&metadata);
+
+        assert_eq!(encoding.compression_id, Some(8));
+        assert_eq!(encoding.compression_name, "deflate");
+        assert!(encoding.lossless);
+        assert_eq!(encoding.storage, "strips");
+        assert_eq!(encoding.bits_per_sample, Some(32));
+        assert_eq!(
+            encoding.sample_format,
+            Some(fornax_raw_core::EncodingSampleFormat::Float)
+        );
+        assert_eq!(encoding.predictor, Some(34_895));
+        assert_eq!(encoding.rows_per_strip, Some(8));
+        assert_eq!(encoding.tile_width, None);
+        assert_eq!(encoding.tile_height, None);
+    }
+
+    #[test]
+    fn encoding_metadata_marks_known_dng_lossy_and_ambiguous_codecs() {
+        let mut metadata = directory_with_strips(32, 16, 14, 128);
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(34_892));
+        assert!(!encoding_metadata_from_lookup(&metadata).lossless);
+
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(52_546));
+        assert!(!encoding_metadata_from_lookup(&metadata).lossless);
     }
 
     fn ifd_tag_count(source: &[u8], tag: TiffTag) -> usize {

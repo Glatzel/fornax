@@ -1,12 +1,9 @@
 use std::fs;
 
 use assert_cmd::Command;
-use decoder_tracker::corpus_metadata::{
-    CorpusMetadataRow, read_corpus_metadata_csv, write_corpus_metadata_csv,
-};
 use decoder_tracker::csvio::{read_manifest_csv, write_baseline_csv, write_manifest_csv};
 use decoder_tracker::manifest::{derive_identity, generate_manifest};
-use decoder_tracker::model::{BaselineRow, ManifestRow, status_for_stages};
+use decoder_tracker::model::{BASELINE_HEADER, BaselineRow, ManifestRow, status_for_stages};
 use tempfile::tempdir;
 
 fn manifest_row(sha: &str, path: &str) -> ManifestRow {
@@ -61,20 +58,34 @@ fn hash_command_exposes_write_and_check_modes() {
 }
 
 #[test]
-fn corpus_metadata_commands_are_exposed() {
+fn golden_coverage_command_is_exposed() {
     Command::cargo_bin("decoder-tracker")
         .unwrap()
-        .arg("--help")
+        .args(["golden-coverage", "--help"])
         .assert()
         .success()
-        .stdout(predicates::str::contains("corpus-metadata"))
-        .stdout(predicates::str::contains("corpus-metadata-merge"));
+        .stdout(predicates::str::contains("--baseline"))
+        .stdout(predicates::str::contains("--corpus-manifest"))
+        .stdout(predicates::str::contains("--golden"))
+        .stdout(predicates::str::contains("--selected-out"))
+        .stdout(predicates::str::contains("--out"));
+}
+
+#[test]
+fn retired_corpus_metadata_commands_are_removed() {
+    let output = Command::cargo_bin("decoder-tracker")
+        .unwrap()
+        .arg("--help")
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("corpus-metadata"));
 }
 
 #[test]
 fn committed_csv_files_live_in_the_data_directory() {
     let crate_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    for filename in ["manifest.csv", "baseline.csv", "corpus-metadata.csv"] {
+    for filename in ["manifest.csv", "baseline.csv"] {
         assert!(
             crate_root.join("data").join(filename).is_file(),
             "{filename} is missing from data/"
@@ -100,62 +111,6 @@ fn selection_commands_do_not_expose_a_format_filter() {
             "{command} still exposes --format"
         );
     }
-}
-
-#[test]
-fn corpus_metadata_merge_writes_the_complete_selected_dng_set() {
-    let temp = tempdir().unwrap();
-    let row = manifest_row(&"aa".repeat(32), "Canon/Cam/A.DNG");
-    let manifest = temp.path().join("selected.csv");
-    fs::write(
-        &manifest,
-        write_manifest_csv(std::slice::from_ref(&row)).unwrap(),
-    )
-    .unwrap();
-    let metadata = CorpusMetadataRow {
-        status: "✅".to_owned(),
-        path: row.path.clone(),
-        sha256: row.sha256.clone(),
-        format: "DNG".to_owned(),
-        compression_id: Some(7),
-        compression_name: "lossless-jpeg".to_owned(),
-        storage: "strips".to_owned(),
-        bits_per_sample: Some(14),
-        sample_format: Some(1),
-        predictor: Some(1),
-        rows_per_strip: Some(128),
-        tile_width: None,
-        tile_height: None,
-        error_kind: String::new(),
-    };
-    let shard = temp.path().join("shard.csv");
-    fs::write(
-        &shard,
-        write_corpus_metadata_csv(std::slice::from_ref(&metadata)).unwrap(),
-    )
-    .unwrap();
-    let output = temp.path().join("corpus-metadata.csv");
-
-    Command::cargo_bin("decoder-tracker")
-        .unwrap()
-        .args([
-            "corpus-metadata-merge",
-            "--manifest",
-            manifest.to_str().unwrap(),
-            "--out",
-            output.to_str().unwrap(),
-            "--",
-            shard.to_str().unwrap(),
-        ])
-        .assert()
-        .success()
-        .stdout(predicates::str::contains(
-            "corpus-metadata-merge: wrote 1 rows",
-        ));
-    assert_eq!(
-        read_corpus_metadata_csv(&fs::read(output).unwrap()).unwrap(),
-        vec![metadata]
-    );
 }
 
 #[test]
@@ -363,6 +318,16 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
             width: 16,
             height: 8,
             cfa: "RGGB".into(),
+            compression_id: Some(7),
+            compression_name: "lossless-jpeg".into(),
+            compression_lossless: Some(1),
+            storage: "tiles".into(),
+            bits_per_sample: Some(14),
+            sample_format: "integer".into(),
+            predictor: Some(1),
+            rows_per_strip: None,
+            tile_width: Some(256),
+            tile_height: Some(256),
         })
         .collect::<Vec<_>>();
     let shard_a = temp.path().join("a.csv");
@@ -382,6 +347,8 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
             manifest.to_str().unwrap(),
             "--baseline",
             baseline.to_str().unwrap(),
+            "--corpus-manifest",
+            manifest.to_str().unwrap(),
             "--work-dir",
             temp.path().join("update").to_str().unwrap(),
             "--github-output",
@@ -421,6 +388,8 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
             manifest.to_str().unwrap(),
             "--baseline",
             baseline.to_str().unwrap(),
+            "--corpus-manifest",
+            manifest.to_str().unwrap(),
             "--work-dir",
             temp.path().join("update-changed").to_str().unwrap(),
             "--github-output",
@@ -442,6 +411,100 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
             .unwrap()
             .contains("decode:invalid_input")
     );
+}
+
+#[test]
+fn duckdb_aggregate_script_migrates_a_complete_legacy_baseline_schema() {
+    if !std::process::Command::new("duckdb")
+        .arg("--version")
+        .output()
+        .is_ok_and(|output| output.status.success())
+    {
+        return;
+    }
+    let temp = tempdir().unwrap();
+    let row = manifest_row(&"aa".repeat(32), "Canon/Cam/A.DNG");
+    let manifest = temp.path().join("selected.csv");
+    fs::write(
+        &manifest,
+        write_manifest_csv(std::slice::from_ref(&row)).unwrap(),
+    )
+    .unwrap();
+    let candidate_row = BaselineRow {
+        status: status_for_stages([1, 1, 1, 1]).into(),
+        camera: row.camera.clone(),
+        format: row.format.clone(),
+        path: row.path.clone(),
+        decode_pass: 1,
+        raw_mosaic_pass: 1,
+        raw_sha256: "11".repeat(32),
+        process_metadata_pass: 1,
+        handoff_pass: 1,
+        error_kind: String::new(),
+        width: 16,
+        height: 8,
+        cfa: "RGGB".into(),
+        compression_id: Some(7),
+        compression_name: "lossless-jpeg".into(),
+        compression_lossless: Some(1),
+        storage: "tiles".into(),
+        bits_per_sample: Some(14),
+        sample_format: "integer".into(),
+        predictor: Some(1),
+        rows_per_strip: None,
+        tile_width: Some(256),
+        tile_height: Some(256),
+    };
+    let shard = temp.path().join("shard.csv");
+    fs::write(
+        &shard,
+        write_baseline_csv(std::slice::from_ref(&candidate_row)).unwrap(),
+    )
+    .unwrap();
+    let baseline = temp.path().join("baseline.csv");
+    fs::write(
+        &baseline,
+        format!(
+            "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n\
+             ✅,{},DNG,{},1,1,{},1,1,,16,8,RGGB\n",
+            row.camera,
+            row.path,
+            "11".repeat(32)
+        ),
+    )
+    .unwrap();
+    let output_file = temp.path().join("github-output");
+    fs::write(&output_file, "").unwrap();
+    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/aggregate.sh");
+
+    let output = std::process::Command::new("bash")
+        .arg(script)
+        .args([
+            "--selected",
+            manifest.to_str().unwrap(),
+            "--baseline",
+            baseline.to_str().unwrap(),
+            "--corpus-manifest",
+            manifest.to_str().unwrap(),
+            "--work-dir",
+            temp.path().join("update").to_str().unwrap(),
+            "--github-output",
+            output_file.to_str().unwrap(),
+            "--",
+            shard.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("outcome=changed"));
+    let migrated = fs::read_to_string(temp.path().join("update/baseline.csv")).unwrap();
+    assert!(migrated.starts_with(&format!("{}\n", BASELINE_HEADER.join(","))));
+    assert!(migrated.contains("lossless-jpeg"));
 }
 
 #[test]
@@ -472,6 +535,16 @@ fn duckdb_badge_script_groups_missing_baseline_formats_by_vendor() {
             width: 16,
             height: 8,
             cfa: "RGGB".into(),
+            compression_id: Some(7),
+            compression_name: "lossless-jpeg".into(),
+            compression_lossless: Some(1),
+            storage: "tiles".into(),
+            bits_per_sample: Some(14),
+            sample_format: "integer".into(),
+            predictor: Some(1),
+            rows_per_strip: None,
+            tile_width: Some(256),
+            tile_height: Some(256),
         },
         BaselineRow {
             status: status_for_stages([0, 0, 0, 0]).into(),
@@ -487,6 +560,16 @@ fn duckdb_badge_script_groups_missing_baseline_formats_by_vendor() {
             width: 0,
             height: 0,
             cfa: "unknown".into(),
+            compression_id: None,
+            compression_name: "unknown".into(),
+            compression_lossless: None,
+            storage: "unknown".into(),
+            bits_per_sample: None,
+            sample_format: String::new(),
+            predictor: None,
+            rows_per_strip: None,
+            tile_width: None,
+            tile_height: None,
         },
     ];
     fs::write(&baseline, write_baseline_csv(&rows).unwrap()).unwrap();

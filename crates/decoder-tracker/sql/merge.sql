@@ -17,7 +17,17 @@ SELECT
     error_kind::VARCHAR AS error_kind,
     width::INTEGER AS width,
     height::INTEGER AS height,
-    cfa::VARCHAR AS cfa
+    cfa::VARCHAR AS cfa,
+    compression_id::INTEGER AS compression_id,
+    compression_name::VARCHAR AS compression_name,
+    compression_lossless::INTEGER AS compression_lossless,
+    storage::VARCHAR AS storage,
+    bits_per_sample::INTEGER AS bits_per_sample,
+    sample_format::VARCHAR AS sample_format,
+    predictor::INTEGER AS predictor,
+    rows_per_strip::INTEGER AS rows_per_strip,
+    tile_width::INTEGER AS tile_width,
+    tile_height::INTEGER AS tile_height
 FROM read_csv([@SHARDS@], header = true, all_varchar = true, union_by_name = true);
 
 COPY (
@@ -34,7 +44,17 @@ COPY (
         error_kind,
         width,
         height,
-        cfa
+        cfa,
+        compression_id,
+        compression_name,
+        compression_lossless,
+        storage,
+        bits_per_sample,
+        sample_format,
+        predictor,
+        rows_per_strip,
+        tile_width,
+        tile_height
     FROM updates
     ORDER BY camera, format, path
 ) TO '@OUTPUT@' (
@@ -90,6 +110,19 @@ SELECT
             OR (raw_mosaic_pass = 0 AND (process_metadata_pass = 1 OR handoff_pass = 1))
             OR (process_metadata_pass = 0 AND handoff_pass = 1)
     ) AS invalid_stage_order,
+    (
+        SELECT count()
+        FROM updates
+        WHERE raw_mosaic_pass = 1
+            AND (
+                coalesce(compression_name, '') IN ('', 'unknown')
+                OR compression_lossless NOT IN (0, 1)
+                OR coalesce(storage, '') IN ('', 'unknown')
+                OR bits_per_sample IS NULL
+                OR bits_per_sample <= 0
+                OR sample_format NOT IN ('integer', 'float')
+            )
+    ) AS invalid_encoding_metadata,
     (
         SELECT count()
         FROM updates

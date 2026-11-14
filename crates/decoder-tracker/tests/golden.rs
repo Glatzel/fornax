@@ -1,6 +1,9 @@
 use decoder_tracker::golden::{
-    GoldenCsv, GoldenRow, check_golden_csv, decode_golden, read_golden_csv, write_golden_csv,
+    GoldenCsv, GoldenRow, build_golden_coverage, check_golden_csv, decode_golden, read_golden_csv,
+    write_golden_coverage_csv, write_golden_csv, write_golden_selection_csv,
 };
+use decoder_tracker::manifest::derive_identity;
+use decoder_tracker::model::{BaselineRow, ManifestRow, status_for_stages};
 use fornax_raw_core::metadata::{
     ColorCalibration, Levels, MetadataSource, ProcessMetadata, RawColorMeta,
 };
@@ -8,6 +11,61 @@ use fornax_raw_core::{BayerPattern, MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Directory, Value};
 use image::math::Rect;
+
+fn manifest_row(path: &str, size: u64, sha_byte: char) -> ManifestRow {
+    let (vendor, camera, model, filename) = derive_identity(path).unwrap();
+    ManifestRow {
+        sha256: sha_byte.to_string().repeat(64),
+        size,
+        path: path.into(),
+        vendor,
+        camera,
+        model,
+        format: path.rsplit_once('.').unwrap().1.to_ascii_uppercase(),
+        filename,
+    }
+}
+
+fn baseline_row(
+    manifest: &ManifestRow,
+    compression_name: &str,
+    bits: u16,
+    passing: bool,
+) -> BaselineRow {
+    BaselineRow {
+        status: status_for_stages([u8::from(passing); 4]).into(),
+        camera: manifest.camera.clone(),
+        format: manifest.format.clone(),
+        path: manifest.path.clone(),
+        decode_pass: u8::from(passing),
+        raw_mosaic_pass: u8::from(passing),
+        raw_sha256: if passing {
+            "11".repeat(32)
+        } else {
+            String::new()
+        },
+        process_metadata_pass: u8::from(passing),
+        handoff_pass: u8::from(passing),
+        error_kind: if passing {
+            String::new()
+        } else {
+            "raw_mosaic:invalid_input".into()
+        },
+        width: 64,
+        height: 32,
+        cfa: "RGGB".into(),
+        compression_id: Some(7),
+        compression_name: compression_name.into(),
+        compression_lossless: Some(1),
+        storage: "tiles".into(),
+        bits_per_sample: Some(bits),
+        sample_format: "integer".into(),
+        predictor: Some(1),
+        rows_per_strip: None,
+        tile_width: Some(256),
+        tile_height: Some(256),
+    }
+}
 
 fn process_metadata(pattern: BayerPattern) -> ProcessMetadata {
     ProcessMetadata {
@@ -162,6 +220,285 @@ fn golden_check_rejects_duplicate_expected_rows() {
 
     let error = check_golden_csv(&[actual_row], &expected).unwrap_err();
     assert!(error.to_string().contains("duplicate path"));
+}
+
+#[test]
+fn golden_coverage_groups_encoding_paths_and_chooses_smallest_representative() {
+    let small = manifest_row("Canon/Cam/small.DNG", 10, 'a');
+    let large = manifest_row("Canon/Cam/large.DNG", 20, 'b');
+    let missing = manifest_row("Sony/Cam/missing.ARW", 30, 'c');
+    let baseline = vec![
+        baseline_row(&large, "lossless-jpeg", 14, true),
+        baseline_row(&small, "lossless-jpeg", 14, true),
+        baseline_row(&missing, "sony-lossless-jpeg", 14, true),
+    ];
+    let manifest = vec![large, small, missing.clone()];
+    let golden = vec![
+        manifest[1].clone(),
+        manifest[0].clone(),
+        manifest_row("Sony/Cam/other.ARW", 40, 'd'),
+    ];
+    let other = manifest_row("Sony/Cam/other.ARW", 40, 'd');
+    let mut baseline = baseline;
+    baseline.push(baseline_row(&other, "sony-lossless-jpeg", 14, true));
+    let mut manifest = manifest;
+    manifest.push(other);
+
+    let report = build_golden_coverage(&baseline, &manifest, &golden).unwrap();
+
+    assert_eq!(report.rows.len(), 2);
+    assert_eq!(report.summary.missing, 0);
+    assert_eq!(report.summary.covered, 1);
+    assert_eq!(report.summary.redundant, 1);
+    let dng = report.rows.iter().find(|row| row.format == "DNG").unwrap();
+    assert_eq!(dng.golden_count, 2);
+    assert_eq!(dng.coverage, "redundant");
+    assert_eq!(dng.representative_path, "Canon/Cam/small.DNG");
+    assert_eq!(dng.representative_size, 10);
+}
+
+#[test]
+fn golden_coverage_reports_missing_groups() {
+    let raw = manifest_row("Pentax/Cam/file.DNG", 10, 'a');
+    let report = build_golden_coverage(
+        &[baseline_row(&raw, "deflate", 16, true)],
+        std::slice::from_ref(&raw),
+        &[],
+    )
+    .unwrap();
+
+    assert_eq!(report.rows.len(), 1);
+    assert_eq!(report.rows[0].coverage, "missing");
+    assert_eq!(report.summary.missing, 1);
+}
+
+#[test]
+fn golden_coverage_excludes_non_lossless_encodings() {
+    let lossy = manifest_row("Sony/Cam/lossy.ARW", 10, 'a');
+    let mut row = baseline_row(&lossy, "sony-arw2", 12, true);
+    row.compression_lossless = Some(0);
+
+    let report = build_golden_coverage(&[row], std::slice::from_ref(&lossy), &[]).unwrap();
+
+    assert!(report.rows.is_empty());
+    assert_eq!(report.summary.missing, 0);
+}
+
+#[test]
+fn golden_coverage_only_includes_tier_zero_and_one_formats_and_excludes_arw1() {
+    let cases = [
+        ("Canon/Cam/file.DNG", "lossless-jpeg"),
+        ("Sony/Cam/old.ARW", "sony-arw1"),
+        ("Sony/Cam/new.ARW", "sony-arw6"),
+        ("Canon/Cam/file.CR3", "canon-lossless-crx"),
+        ("Nikon/Cam/mode2.NEF", "nikon-mode-2-packed"),
+        ("Nikon/Cam/mode6.NEF", "nikon-mode-6-packed"),
+        ("Nikon/Cam/words.NEF", "nikon-uncompressed-words"),
+        ("Nikon/Cam/file.NEF", "nikon-huffman"),
+        ("Fujifilm/Cam/file.RAF", "fuji-lossless"),
+        ("Panasonic/Cam/file.RW2", "panasonic-v8"),
+    ];
+    let manifest = cases
+        .iter()
+        .enumerate()
+        .map(|(index, (path, _))| {
+            manifest_row(path, 10 + index as u64, char::from(b'a' + index as u8))
+        })
+        .collect::<Vec<_>>();
+    let baseline = manifest
+        .iter()
+        .zip(cases)
+        .map(|(row, (_, compression))| baseline_row(row, compression, 14, true))
+        .collect::<Vec<_>>();
+
+    let report = build_golden_coverage(&baseline, &manifest, &[]).unwrap();
+
+    assert_eq!(
+        report
+            .rows
+            .iter()
+            .map(|row| (row.format.as_str(), row.compression_name.as_str()))
+            .collect::<Vec<_>>(),
+        [
+            ("ARW", "sony-arw6"),
+            ("CR3", "canon-lossless-crx"),
+            ("DNG", "lossless-jpeg"),
+            ("NEF", "nikon-huffman"),
+        ]
+    );
+    assert_eq!(report.summary.missing, 4);
+}
+
+#[test]
+fn golden_coverage_uses_highest_bit_depth_for_sony_arw_and_nikon() {
+    let sony12 = manifest_row("Sony/Cam/ljpeg12.ARW", 10, 'a');
+    let sony14 = manifest_row("Sony/Cam/ljpeg14.ARW", 20, 'b');
+    let nikon12 = manifest_row("Nikon/Cam/huffman12.NEF", 10, 'c');
+    let nikon14 = manifest_row("Nikon/Cam/huffman14.NEF", 20, 'd');
+    let sony_uncompressed12 = manifest_row("Sony/Cam/uncompressed12.ARW", 10, 'e');
+    let sony_uncompressed14 = manifest_row("Sony/Cam/uncompressed14.ARW", 20, 'f');
+    let manifest = vec![
+        sony12.clone(),
+        sony14.clone(),
+        nikon12.clone(),
+        nikon14.clone(),
+        sony_uncompressed12.clone(),
+        sony_uncompressed14.clone(),
+    ];
+    let mut baseline = vec![
+        baseline_row(&sony12, "sony-lossless-jpeg", 12, true),
+        baseline_row(&sony14, "sony-lossless-jpeg", 14, true),
+        baseline_row(&nikon12, "nikon-huffman", 12, true),
+        baseline_row(&nikon14, "nikon-huffman", 14, true),
+        baseline_row(&sony_uncompressed12, "uncompressed", 12, true),
+        baseline_row(&sony_uncompressed14, "uncompressed", 14, true),
+    ];
+    for row in &mut baseline {
+        row.width = if row.bits_per_sample == Some(14) {
+            2000
+        } else {
+            1000
+        };
+        row.height = 1000;
+    }
+
+    let report = build_golden_coverage(&baseline, &manifest, &[]).unwrap();
+
+    assert_eq!(report.rows.len(), 3);
+    assert!(
+        report
+            .rows
+            .iter()
+            .all(|row| row.bits_per_sample == Some(14))
+    );
+    assert_eq!(
+        report
+            .rows
+            .iter()
+            .map(|row| row.representative_path.as_str())
+            .collect::<Vec<_>>(),
+        [
+            "Sony/Cam/ljpeg14.ARW",
+            "Sony/Cam/uncompressed14.ARW",
+            "Nikon/Cam/huffman14.NEF"
+        ]
+    );
+}
+
+#[test]
+fn golden_coverage_rejects_absent_or_failed_golden_rows() {
+    let absent = manifest_row("Canon/Cam/absent.DNG", 10, 'a');
+    let failed = manifest_row("Canon/Cam/failed.DNG", 20, 'b');
+    let manifest = vec![absent.clone(), failed.clone()];
+    let baseline = vec![baseline_row(&failed, "lossless-jpeg", 14, false)];
+
+    assert!(
+        build_golden_coverage(&baseline, &manifest, std::slice::from_ref(&absent))
+            .unwrap_err()
+            .to_string()
+            .contains("absent")
+    );
+    let error = build_golden_coverage(&baseline, &manifest, std::slice::from_ref(&failed))
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("failed") || error.contains("not passing"));
+}
+
+#[test]
+fn golden_coverage_rejects_golden_corpus_identity_drift() {
+    let raw = manifest_row("Canon/Cam/file.DNG", 10, 'a');
+    let mut drifted = raw.clone();
+    drifted.sha256 = "ff".repeat(32);
+
+    let error = build_golden_coverage(
+        &[baseline_row(&raw, "lossless-jpeg", 14, true)],
+        std::slice::from_ref(&raw),
+        std::slice::from_ref(&drifted),
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert!(error.contains("does not match the corpus manifest"));
+}
+
+#[test]
+fn golden_coverage_csv_is_sorted_and_includes_debug_fields() {
+    let raw = manifest_row("Canon/Cam/file.DNG", 10, 'a');
+    let report = build_golden_coverage(
+        &[baseline_row(&raw, "lossless-jpeg", 14, true)],
+        std::slice::from_ref(&raw),
+        std::slice::from_ref(&raw),
+    )
+    .unwrap();
+    let bytes = write_golden_coverage_csv(&report.rows).unwrap();
+    let text = std::str::from_utf8(&bytes).unwrap();
+
+    assert!(text.starts_with(
+        "format,compression_name,compression_lossless,compression_id,bits_per_sample,sample_format,storage,predictor,cfa,coverage,passing_count,golden_count,golden_paths,representative_path,representative_camera,representative_size,representative_sha256,representative_width,representative_height\n"
+    ));
+    assert!(text.contains(
+        "DNG,lossless-jpeg,1,7,14,integer,tiles,1,RGGB,covered,1,1,Canon/Cam/file.DNG,Canon/Cam/file.DNG,Canon Cam,10,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,64,32"
+    ));
+}
+
+#[test]
+fn golden_coverage_groups_by_encoding_and_uses_lowest_pixel_count() {
+    let large_pixels = manifest_row("Canon/Cam/large-pixels.DNG", 10, 'a');
+    let small_pixels = manifest_row("Canon/Cam/small-pixels.DNG", 20, 'b');
+    let other_cfa = manifest_row("Canon/Cam/other-cfa.DNG", 5, 'c');
+    let mut large = baseline_row(&large_pixels, "lossless-jpeg", 14, true);
+    large.width = 4000;
+    large.height = 3000;
+    let mut small = baseline_row(&small_pixels, "lossless-jpeg", 14, true);
+    small.width = 1200;
+    small.height = 800;
+    let mut other = baseline_row(&other_cfa, "lossless-jpeg", 14, true);
+    other.width = 1600;
+    other.height = 1000;
+    other.cfa = "BGGR".into();
+    let baseline = vec![large, small, other];
+    let manifest = vec![large_pixels.clone(), small_pixels, other_cfa];
+
+    let report =
+        build_golden_coverage(&baseline, &manifest, std::slice::from_ref(&large_pixels)).unwrap();
+
+    assert_eq!(report.rows.len(), 1);
+    assert_eq!(report.rows[0].passing_count, 3);
+    assert_eq!(
+        report.rows[0].representative_path,
+        "Canon/Cam/small-pixels.DNG"
+    );
+    assert_eq!(report.rows[0].representative_width, 1200);
+    assert_eq!(report.rows[0].representative_height, 800);
+}
+
+#[test]
+fn golden_selection_manifest_writes_one_lowest_pixel_representative_per_encoding() {
+    let first = manifest_row("Canon/Cam/first.DNG", 10, 'a');
+    let second = manifest_row("Canon/Cam/second.DNG", 20, 'b');
+    let mut first_row = baseline_row(&first, "lossless-jpeg", 14, true);
+    first_row.width = 2000;
+    first_row.height = 1000;
+    let mut second_row = baseline_row(&second, "lossless-jpeg", 14, true);
+    second_row.width = 1000;
+    second_row.height = 500;
+    second_row.cfa = "BGGR".into();
+    let report = build_golden_coverage(
+        &[first_row, second_row],
+        &[first.clone(), second.clone()],
+        &[],
+    )
+    .unwrap();
+
+    let bytes = write_golden_selection_csv(&report.rows).unwrap();
+
+    assert_eq!(
+        std::str::from_utf8(&bytes).unwrap(),
+        format!(
+            "path,size,sha256\nCanon/Cam/second.DNG,20,{}\n",
+            "b".repeat(64)
+        )
+    );
 }
 
 #[test]

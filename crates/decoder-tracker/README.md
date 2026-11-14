@@ -146,20 +146,20 @@ pixi run -e dev cargo run -p decoder-tracker -- merge --manifest MANIFEST SHARD.
 pixi run -e dev cargo run -p decoder-tracker -- diff --selected MANIFEST BASELINE CANDIDATE
 pixi run -e dev cargo run -p decoder-tracker -- update --baseline BASELINE --candidate CANDIDATE
 pixi run -e dev cargo run --release -p decoder-tracker -- hash --check GOLDEN
-pixi run -e dev cargo run -p decoder-tracker -- corpus-metadata --manifest MANIFEST --shard I/N
-pixi run -e dev cargo run -p decoder-tracker -- corpus-metadata-merge --manifest MANIFEST SHARD...
+pixi run -e dev cargo run -p decoder-tracker -- golden-coverage --baseline BASELINE \
+  --corpus-manifest MANIFEST --golden GOLDEN
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
 The committed corpus metadata manifest is `data/manifest.csv`; decoder pass
-columns and outcomes are in `data/baseline.csv`. The generated
-`data/corpus-metadata.csv` sidecar
-groups parseable DNG rows by container compression, strip/tile storage, bit
-depth, sample format, and predictor and records unparsable DNGs as failed
-results without changing either canonical schema. DuckDB CLI owns plan-time
-manifest filtering and the shell-driven merge, selected-key diff, and baseline
-upsert path. Stage columns remain numeric for SQL; a leading emoji
-`status` column makes pass/fail visually scannable. `update-badge.sh` joins the
+columns, outcomes, and source encoding fields are in `data/baseline.csv`.
+Encoding fields identify the exact codec variant, strip/tile/block storage,
+losslessness, source bit depth, sample format, predictor, and chunk geometry for
+every successfully decoded row. Formats without a native decoder remain as rows
+with unknown encoding fields. DuckDB CLI owns plan-time manifest filtering and the
+shell-driven merge, selected-key diff, and baseline upsert path. Stage columns
+remain numeric for SQL; a leading emoji `status` column makes pass/fail
+visually scannable. `update-badge.sh` joins the
 full manifest to the baseline and writes the accumulated badge and
 per-vendor-format `passed/total` table between the README markers;
 vendor-format pairs without baseline rows report `0/total`. The complete
@@ -167,10 +167,15 @@ schema, stage semantics, glob/sharding rules, workflow, and update procedure
 are documented in
 [docs/decoder/corpus.md](../../docs/decoder/corpus.md).
 
-`golden/selected-manifest.csv` and `golden/decode-hashes.csv` form a 30-file
-deterministic decode-output gate shared by decoder benchmarks. The set covers
-all eight implemented container families and both accepted 3FR compression
-families. Run `hash --check` in release mode so full RAW decodes complete in
-bounded CI time. It materializes only those selected payloads and verifies raw
-samples, cropped samples, process metadata, and DNG metadata against the
-committed hashes. These files are generated and must not be hand-edited.
+`golden/selected-manifest.csv` and `golden/decode-hashes.csv` form a 23-file
+tier-0/1 lossless deterministic decode-output gate shared by decoder benchmarks.
+The set contains one lowest-pixel representative per known-lossless encoding
+group across DNG, ARW, CR3, and NEF. `golden-coverage` reports missing and
+redundant lossless encoding groups and names the lowest-pixel passing
+representative for each decoder path.
+`--selected-out` can emit one representative per group without changing the
+committed golden set implicitly. Run `hash --check` in release mode so full RAW decodes
+complete in bounded CI time. It materializes only those selected payloads and
+verifies raw samples, cropped samples, process metadata, and DNG metadata
+against the committed hashes. These files are generated and must not be
+hand-edited.

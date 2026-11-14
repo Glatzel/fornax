@@ -10,6 +10,60 @@ pub type Matrix3x3 = [[f64; 3]; 3];
 /// A 3-channel vector (R, G, B or X, Y, Z).
 pub type Array3 = [f64; 3];
 
+/// Source sample representation before decoder normalization.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum EncodingSampleFormat {
+    Integer,
+    Float,
+}
+
+impl EncodingSampleFormat {
+    /// Return the stable label used by corpus CSV output.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Integer => "integer",
+            Self::Float => "float",
+        }
+    }
+}
+
+/// Metadata describing how the selected raw mosaic is encoded in the source.
+///
+/// Numeric compression identifiers are format-local. Consumers must scope them
+/// with the file format and use [`Self::compression_name`] to distinguish
+/// algorithms that share an identifier.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct EncodingMetadata {
+    pub compression_id: Option<u32>,
+    pub compression_name: &'static str,
+    pub lossless: bool,
+    pub storage: &'static str,
+    pub bits_per_sample: Option<u16>,
+    pub sample_format: Option<EncodingSampleFormat>,
+    pub predictor: Option<u16>,
+    pub rows_per_strip: Option<u32>,
+    pub tile_width: Option<u32>,
+    pub tile_height: Option<u32>,
+}
+
+impl EncodingMetadata {
+    /// Metadata used when no native decoder could classify the source.
+    pub const fn unknown() -> Self {
+        Self {
+            compression_id: None,
+            compression_name: "unknown",
+            lossless: false,
+            storage: "unknown",
+            bits_per_sample: None,
+            sample_format: None,
+            predictor: None,
+            rows_per_strip: None,
+            tile_width: None,
+            tile_height: None,
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // ProcessMetadata
 // ---------------------------------------------------------------------------
@@ -773,5 +827,26 @@ mod tests {
         assert_eq!(LightSource::from(21_u16), LightSource::D65);
         assert_eq!(LightSource::from(999_u16), LightSource::Reserved(999));
         assert_eq!(u16::from(LightSource::Reserved(999)), 999);
+    }
+
+    #[test]
+    fn unknown_encoding_metadata_uses_stable_placeholders() {
+        let metadata = EncodingMetadata::unknown();
+        assert_eq!(metadata.compression_id, None);
+        assert_eq!(metadata.compression_name, "unknown");
+        assert_eq!(metadata.storage, "unknown");
+        assert_eq!(metadata.bits_per_sample, None);
+        assert_eq!(metadata.sample_format, None);
+        assert_eq!(metadata.predictor, None);
+        assert_eq!(metadata.rows_per_strip, None);
+        assert_eq!(metadata.tile_width, None);
+        assert_eq!(metadata.tile_height, None);
+        assert!(!metadata.lossless);
+    }
+
+    #[test]
+    fn encoding_sample_format_has_canonical_csv_labels() {
+        assert_eq!(EncodingSampleFormat::Integer.as_str(), "integer");
+        assert_eq!(EncodingSampleFormat::Float.as_str(), "float");
     }
 }

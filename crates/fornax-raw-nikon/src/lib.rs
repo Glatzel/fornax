@@ -5,8 +5,8 @@ use std::path::Path;
 
 use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::ProcessMetadata;
-use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::{Directory, ParsedTiff};
 use generic_num::num;
@@ -73,6 +73,11 @@ impl NefImage {
         Ok(self.metadata.directory.clone())
     }
 
+    /// Return the selected Nikon source compression and storage layout.
+    pub fn encoding_metadata(&self) -> EncodingMetadata {
+        encoding_metadata_for_layout(&self.layout)
+    }
+
     pub fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
         metadata::process(
             &self.metadata,
@@ -123,6 +128,52 @@ impl IDecoder for NefImage {
 
 impl IDecoderDng for NefImage {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> { Self::dng_metadata(self) }
+}
+
+impl IDecoderEncoding for NefImage {
+    fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
+}
+
+fn encoding_metadata_for_layout(layout: &RawLayout) -> EncodingMetadata {
+    EncodingMetadata {
+        compression_id: Some(u32::from(layout.compression_id)),
+        compression_name: compression_name(layout),
+        lossless: true,
+        storage: "strips",
+        bits_per_sample: Some(match layout.kind {
+            container::LayoutKind::Packed { bits, .. }
+            | container::LayoutKind::UnpackedWords { bits, .. }
+            | container::LayoutKind::NikonHuffman { bits, .. } => u16::from(bits),
+            container::LayoutKind::StripedPacked12 => 12,
+        }),
+        sample_format: Some(EncodingSampleFormat::Integer),
+        predictor: None,
+        rows_per_strip: u32::try_from(layout.rows_per_strip).ok(),
+        tile_width: None,
+        tile_height: None,
+    }
+}
+
+const fn compression_name(layout: &RawLayout) -> &'static str {
+    match layout.kind {
+        container::LayoutKind::NikonHuffman { .. } => "nikon-huffman",
+        container::LayoutKind::StripedPacked12 => "nikon-mode-5-packed12",
+        container::LayoutKind::UnpackedWords { .. } if layout.compression_id == 1 => {
+            "nikon-uncompressed-words"
+        }
+        container::LayoutKind::UnpackedWords { .. } => match layout.mode {
+            Some(7) => "nikon-mode-7-words",
+            Some(10) => "nikon-mode-10-words",
+            _ => "nikon-uncompressed-words",
+        },
+        container::LayoutKind::Packed { .. } => match layout.mode {
+            Some(2) => "nikon-mode-2-packed",
+            Some(6) => "nikon-mode-6-packed",
+            Some(9) => "nikon-mode-9-packed",
+            Some(10) => "nikon-mode-10-packed",
+            _ => "nikon-packed",
+        },
+    }
 }
 
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>

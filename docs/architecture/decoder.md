@@ -299,7 +299,7 @@ other platforms or on machines without that executable.
 
 `fornax-decoder` compiles one benchmark target covering `decode`, `raw_mosaic`,
 and `cropped_mosaic` for the default decoder and benchmark-only Rawler and
-FlashRaw adapters across the 30-file golden corpus. Fornax metadata accessors
+FlashRaw adapters across the 23-file tier-0/1 lossless golden corpus. Fornax metadata accessors
 remain diagnostic-only. It is separate from the preprocessor and demosaic
 benchmarks in their stage crates.
 

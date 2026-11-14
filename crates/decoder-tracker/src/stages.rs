@@ -6,8 +6,8 @@ use fornax_dng::Directory;
 use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::RawMosaic;
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::ProcessMetadata;
-use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::metadata::{EncodingMetadata, ProcessMetadata};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_decoder::Decoder;
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, Value};
@@ -23,6 +23,16 @@ pub struct StageRow {
     pub width: u32,
     pub height: u32,
     pub cfa: String,
+    pub compression_id: Option<u32>,
+    pub compression_name: String,
+    pub compression_lossless: Option<u8>,
+    pub storage: String,
+    pub bits_per_sample: Option<u16>,
+    pub sample_format: String,
+    pub predictor: Option<u16>,
+    pub rows_per_strip: Option<u32>,
+    pub tile_width: Option<u32>,
+    pub tile_height: Option<u32>,
 }
 
 impl Default for StageRow {
@@ -37,7 +47,36 @@ impl Default for StageRow {
             width: 0,
             height: 0,
             cfa: "unknown".to_owned(),
+            compression_id: None,
+            compression_name: "unknown".to_owned(),
+            compression_lossless: None,
+            storage: "unknown".to_owned(),
+            bits_per_sample: None,
+            sample_format: String::new(),
+            predictor: None,
+            rows_per_strip: None,
+            tile_width: None,
+            tile_height: None,
         }
+    }
+}
+
+impl StageRow {
+    /// Attach the source encoding selected by a constructed decoder.
+    pub fn with_encoding(mut self, encoding: EncodingMetadata) -> Self {
+        self.compression_id = encoding.compression_id;
+        self.compression_name = encoding.compression_name.to_owned();
+        self.compression_lossless = Some(u8::from(encoding.lossless));
+        self.storage = encoding.storage.to_owned();
+        self.bits_per_sample = encoding.bits_per_sample;
+        self.sample_format = encoding
+            .sample_format
+            .map_or_else(String::new, |format| format.as_str().to_owned());
+        self.predictor = encoding.predictor;
+        self.rows_per_strip = encoding.rows_per_strip;
+        self.tile_width = encoding.tile_width;
+        self.tile_height = encoding.tile_height;
+        self
     }
 }
 
@@ -101,14 +140,22 @@ pub fn runner_row(error_kind: &str) -> StageRow {
 
 pub fn evaluate_decoder<D>(path: &Path) -> std::result::Result<StageRow, String>
 where
-    D: IDecoder + IDecoderDng,
+    D: IDecoder + IDecoderDng + IDecoderEncoding,
 {
     clerk::info!("evaluating {}", path.display());
     let decoder =
         D::decode(path).map_err(|error| format!("decode:{}", classify_decode_error(&error)))?;
-    let raw = decoder
-        .raw_mosaic()
-        .map_err(|error| format!("raw_mosaic:{}", classify_decode_error(&error)))?;
+    let encoding = decoder.encoding_metadata();
+    let raw = match decoder.raw_mosaic() {
+        Ok(raw) => raw,
+        Err(error) => {
+            return Ok(StageRow {
+                error_kind: format!("raw_mosaic:{}", classify_decode_error(&error)),
+                ..StageRow::default()
+            }
+            .with_encoding(encoding));
+        }
+    };
     let (width, height) = raw.dimensions();
     if width == 0 || height == 0 || !sample_count_matches(&raw) {
         return Ok(StageRow {
@@ -117,7 +164,8 @@ where
             width,
             height,
             ..StageRow::default()
-        });
+        }
+        .with_encoding(encoding));
     }
     let raw_sha256 = crate::golden::raw_sha256(&raw);
     let dng = match decoder.dng_metadata() {
@@ -131,7 +179,8 @@ where
                 width,
                 height,
                 ..StageRow::default()
-            });
+            }
+            .with_encoding(encoding));
         }
     };
     let cfa = describe_cfa(&dng);
@@ -147,7 +196,8 @@ where
                 height,
                 cfa,
                 ..StageRow::default()
-            });
+            }
+            .with_encoding(encoding));
         }
     };
     if let Err(error) = sanity_check_metadata(width, height, &dng, &process) {
@@ -160,7 +210,8 @@ where
             height,
             cfa,
             ..StageRow::default()
-        });
+        }
+        .with_encoding(encoding));
     }
     let handoff = match decoder.cropped_mosaic::<f32>() {
         Ok(cropped) => {
@@ -196,7 +247,9 @@ where
         width,
         height,
         cfa,
-    })
+        ..StageRow::default()
+    }
+    .with_encoding(encoding))
 }
 
 pub fn evaluate_one(path: &Path) -> StageRow { run_guarded(|| evaluate_decoder::<Decoder>(path)) }

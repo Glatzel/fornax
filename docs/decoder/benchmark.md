@@ -8,10 +8,12 @@ This guide defines the golden-corpus decoder benchmark, its comparison scope, an
 pure-Rust decoder with benchmark-only Rawler and FlashRaw adapters on every row
 of `crates/decoder-tracker/golden/selected-manifest.csv`.
 
-The golden set contains 30 known-passing conventional 2x2 RGB Bayer files
-across DNG, Canon CR3, Sony ARW, Nikon NEF, Fujifilm RAF, Hasselblad 3FR,
-Panasonic RW2, and Phase One/Leaf IIQ. The 3FR rows cover both accepted payload
-families: uncompressed compression 1 and predictor-8 compression 7.
+The golden set contains 23 known-lossless conventional 2x2 RGB Bayer files from
+tier 0 and tier 1 only: DNG, Canon CR3, Sony ARW, and Nikon NEF. It contains one
+lowest-pixel representative per known-lossless encoding group. Sony ARW and
+Nikon NEF use their highest available bit depth. Legacy Sony
+ARW1, Nikon mode-2 packed, mode-6 packed, uncompressed words, lossy Sony
+ARW2/ARW6, and tier-2/3 formats are excluded.
 
 For every input, the benchmark creates one Criterion group containing:
 

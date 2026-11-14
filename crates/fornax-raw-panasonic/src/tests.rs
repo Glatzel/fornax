@@ -3,7 +3,7 @@ use std::io::Cursor;
 use fornax_dng::metadata::DngTag;
 use fornax_dng::writer::{DngCompression, DngWriter};
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::{BayerPattern, RawMosaic};
+use fornax_raw_core::{BayerPattern, EncodingSampleFormat, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
 use sha2::{Digest, Sha256};
@@ -103,6 +103,58 @@ fn raw_data_offset_wins_when_both_layout_tags_are_present() {
     let image = Rw2Image::parse(&source).unwrap();
 
     assert!(matches!(image.raw_mosaic().unwrap(), RawMosaic::U16(_)));
+}
+
+#[test]
+fn encoding_metadata_distinguishes_panasonic_compression_families() {
+    let v8 = crate::container::Family::V8(
+        crate::PanasonicV8Params::new(
+            vec![0; 6],
+            vec![0; 6],
+            1,
+            [0; 4],
+            vec![(1, 0)],
+            vec![0],
+            vec![crate::PanasonicV8Strip::new(0, 1, 0, 0, 2, 2).unwrap()],
+        )
+        .unwrap(),
+    );
+    for (family, expected_name) in [
+        (
+            crate::container::Family::V4 {
+                split_blocks: false,
+            },
+            "panasonic-v4",
+        ),
+        (crate::container::Family::V5, "panasonic-v5"),
+        (crate::container::Family::V6, "panasonic-v6"),
+        (v8, "panasonic-v8"),
+        (crate::container::Family::Unpacked12, "panasonic-unpacked12"),
+        (
+            crate::container::Family::Packed12Control,
+            "panasonic-packed12-control",
+        ),
+    ] {
+        let layout = crate::container::RawLayout {
+            width: 64,
+            height: 32,
+            bits: 14,
+            chunk: fornax_codec::Chunk {
+                offset: 0,
+                byte_count: 128,
+            },
+            family,
+        };
+
+        let encoding = crate::encoding_metadata_for_layout(&layout);
+
+        assert_eq!(encoding.compression_id, Some(34_316));
+        assert_eq!(encoding.compression_name, expected_name);
+        assert!(encoding.lossless);
+        assert_eq!(encoding.storage, "single-chunk");
+        assert_eq!(encoding.bits_per_sample, Some(14));
+        assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));
+    }
 }
 
 #[test]

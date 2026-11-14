@@ -1,7 +1,9 @@
 use std::path::Path;
 
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
-use crate::metadata::{ColorCalibration, ColorTransform, Levels, ProcessMetadata};
+use crate::metadata::{
+    ColorCalibration, ColorTransform, EncodingMetadata, Levels, ProcessMetadata,
+};
 use crate::{
     BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
 };
@@ -14,6 +16,11 @@ pub trait IDecoder: Send + Sync {
     where
         T: Primitive;
     fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError>;
+}
+
+/// Reports the source encoding selected by a successfully parsed decoder.
+pub trait IDecoderEncoding {
+    fn encoding_metadata(&self) -> EncodingMetadata;
 }
 
 pub trait IPreprocessor<T>: Sized

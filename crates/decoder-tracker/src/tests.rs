@@ -1,10 +1,15 @@
 use std::fs;
+use std::path::Path;
 
 use fornax_dng::Directory;
+use fornax_dng::metadata::IDecoderDng;
+use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{
-    ColorCalibration, Levels, MetadataSource, ProcessMetadata, RawColorMeta,
+    ColorCalibration, EncodingMetadata, EncodingSampleFormat, Levels, MetadataSource,
+    ProcessMetadata, RawColorMeta,
 };
-use fornax_raw_core::{BayerPattern, MonoImage};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
+use fornax_raw_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::Value;
 use image::math::Rect;
 use rstest::rstest;
@@ -18,7 +23,8 @@ use crate::manifest::{
 use crate::model::{BaselineKey, BaselineRow, ManifestRow};
 use crate::selection::{Selection, Shard, runner_count_for, select_manifest};
 use crate::stages::{
-    StageRow, classify_decode_error, run_guarded, sanity_check_metadata, transition_row,
+    StageRow, classify_decode_error, evaluate_decoder, run_guarded, sanity_check_metadata,
+    transition_row,
 };
 
 fn manifest_row(sha: &str, path: &str, format: &str) -> ManifestRow {
@@ -55,6 +61,16 @@ fn baseline_row(key: &BaselineKey, handoff: u8) -> BaselineRow {
         width: 16,
         height: 8,
         cfa: "RGGB".into(),
+        compression_id: Some(7),
+        compression_name: "lossless-jpeg".into(),
+        compression_lossless: Some(1),
+        storage: "tiles".into(),
+        bits_per_sample: Some(14),
+        sample_format: "integer".into(),
+        predictor: Some(1),
+        rows_per_strip: None,
+        tile_width: Some(256),
+        tile_height: Some(256),
     };
     row.status = crate::model::status_for_stages([
         row.decode_pass,
@@ -317,6 +333,8 @@ fn panic_is_mapped_to_a_runner_row() {
         ),
         (0, 0, 0, 0)
     );
+    assert_eq!(row.compression_name, "unknown");
+    assert_eq!(row.storage, "unknown");
 }
 
 #[test]
@@ -335,6 +353,88 @@ fn decode_errors_use_stable_error_kinds() {
     );
 }
 
+struct RawFailureDecoder;
+
+impl IDecoder for RawFailureDecoder {
+    fn decode(_: &Path) -> Result<Self, DecodeError> { Ok(Self) }
+
+    fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
+        Err(DecodeError::Unsupported("raw layout".into()))
+    }
+
+    fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
+    where
+        T: Primitive,
+    {
+        Err(DecodeError::Unsupported("raw layout".into()))
+    }
+
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
+        Err(DecodeError::Unsupported("raw layout".into()))
+    }
+}
+
+impl IDecoderDng for RawFailureDecoder {
+    fn dng_metadata(&self) -> Result<Directory, DecodeError> {
+        Err(DecodeError::Unsupported("raw layout".into()))
+    }
+}
+
+impl IDecoderEncoding for RawFailureDecoder {
+    fn encoding_metadata(&self) -> EncodingMetadata {
+        EncodingMetadata {
+            compression_id: Some(7),
+            compression_name: "lossless-jpeg",
+            lossless: true,
+            storage: "tiles",
+            bits_per_sample: Some(14),
+            sample_format: Some(EncodingSampleFormat::Integer),
+            predictor: Some(1),
+            rows_per_strip: Some(171),
+            tile_width: Some(256),
+            tile_height: Some(256),
+        }
+    }
+}
+
+#[test]
+fn raw_decode_failure_retains_constructed_decoder_metadata() {
+    let row = evaluate_decoder::<RawFailureDecoder>(Path::new("ignored.dng")).unwrap();
+
+    assert_eq!(row.decode_pass, 0);
+    assert_eq!(row.error_kind, "raw_mosaic:unsupported");
+    assert_eq!(row.compression_name, "lossless-jpeg");
+    assert_eq!(row.compression_lossless, Some(1));
+    assert_eq!(row.storage, "tiles");
+    assert_eq!(row.bits_per_sample, Some(14));
+    assert_eq!(row.rows_per_strip, Some(171));
+}
+
+#[test]
+fn stage_row_preserves_encoding_metadata_after_construction() {
+    let row = StageRow::default().with_encoding(EncodingMetadata {
+        compression_id: Some(7),
+        compression_name: "sony-lossless-jpeg",
+        lossless: true,
+        storage: "tiles",
+        bits_per_sample: Some(14),
+        sample_format: Some(EncodingSampleFormat::Integer),
+        predictor: None,
+        rows_per_strip: None,
+        tile_width: Some(256),
+        tile_height: Some(256),
+    });
+
+    assert_eq!(row.compression_id, Some(7));
+    assert_eq!(row.compression_name, "sony-lossless-jpeg");
+    assert_eq!(row.compression_lossless, Some(1));
+    assert_eq!(row.storage, "tiles");
+    assert_eq!(row.bits_per_sample, Some(14));
+    assert_eq!(row.sample_format, "integer");
+    assert_eq!(row.tile_width, Some(256));
+    assert_eq!(row.tile_height, Some(256));
+}
+
 #[test]
 fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     let row = BaselineRow {
@@ -351,16 +451,26 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
         width: 10,
         height: 20,
         cfa: "RGGB".into(),
+        compression_id: Some(7),
+        compression_name: "lossless-jpeg".into(),
+        compression_lossless: Some(1),
+        storage: "tiles".into(),
+        bits_per_sample: Some(14),
+        sample_format: "integer".into(),
+        predictor: Some(1),
+        rows_per_strip: None,
+        tile_width: Some(256),
+        tile_height: Some(256),
     };
     let bytes = write_baseline_csv(std::slice::from_ref(&row)).unwrap();
     let text = std::str::from_utf8(&bytes).unwrap();
     assert!(text.starts_with(
-        "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n"
+        "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,compression_lossless,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height\n"
     ));
     assert!(text.contains("\n✅,"));
     assert!(text.contains("\"Canon, EOS \"\"R5\"\"\""));
     assert!(text.contains(&format!(",1,1,{},1,1,", "11".repeat(32))));
-    assert!(text.ends_with(",RGGB\n"));
+    assert!(text.ends_with(",RGGB,7,lossless-jpeg,1,tiles,14,integer,1,,256,256\n"));
     assert!(!text.contains('\r'));
 }
 
@@ -468,7 +578,7 @@ fn manifest_check_reports_snapshot_drift() {
 
 #[test]
 fn baseline_reader_rejects_non_boolean_stage_values() {
-    let csv = "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n❌,Canon Cam,DNG,Canon/Cam/IMG.DNG,2,0,,0,0,decode:bad,0,0,\n";
+    let csv = "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,compression_lossless,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height\n❌,Canon Cam,DNG,Canon/Cam/IMG.DNG,2,0,,0,0,decode:bad,0,0,,,,,,,,,,\n";
     assert!(read_baseline_csv(csv.as_bytes()).is_err());
 }
 
@@ -486,6 +596,43 @@ fn baseline_rejects_status_that_disagrees_with_stages() {
             .unwrap_err()
             .to_string()
             .contains("status")
+    );
+}
+
+#[test]
+fn baseline_rejects_successful_raw_decode_without_encoding_metadata() {
+    let key = BaselineKey {
+        camera: "Canon Cam".into(),
+        format: "DNG".into(),
+        path: "Canon/Cam/IMG.DNG".into(),
+    };
+    let mut row = baseline_row(&key, 1);
+    row.compression_name = "unknown".into();
+    row.storage = "unknown".into();
+    row.bits_per_sample = None;
+    row.sample_format.clear();
+    assert!(
+        write_baseline_csv(&[row])
+            .unwrap_err()
+            .to_string()
+            .contains("encoding metadata")
+    );
+}
+
+#[test]
+fn baseline_rejects_successful_raw_decode_without_lossless_flag() {
+    let key = BaselineKey {
+        camera: "Canon Cam".into(),
+        format: "DNG".into(),
+        path: "Canon/Cam/IMG.DNG".into(),
+    };
+    let mut row = baseline_row(&key, 1);
+    row.compression_lossless = None;
+    assert!(
+        write_baseline_csv(&[row])
+            .unwrap_err()
+            .to_string()
+            .contains("encoding metadata")
     );
 }
 
@@ -678,6 +825,37 @@ fn duckdb_diff_classifies_selected_missing_extra_and_changed_rows() {
         }
     );
     assert!(fs::read_to_string(report).unwrap().contains("changed"));
+}
+
+#[test]
+fn duckdb_diff_detects_encoding_metadata_changes() {
+    if !duckdb_test_guard() {
+        return;
+    }
+    let temp = tempdir().unwrap();
+    let key = BaselineKey {
+        camera: "Canon Cam".into(),
+        format: "DNG".into(),
+        path: "Canon/Cam/A.DNG".into(),
+    };
+    let baseline = temp.path().join("baseline.csv");
+    let candidate = temp.path().join("candidate.csv");
+    let selected = temp.path().join("selected.csv");
+    let report = temp.path().join("diff.csv");
+    write_baseline(&baseline, &[baseline_row(&key, 1)]);
+    let mut changed = baseline_row(&key, 1);
+    changed.compression_name = "deflate".into();
+    write_baseline(&candidate, &[changed]);
+    write_manifest(&selected, &[manifest_row("aa", "Canon/Cam/A.DNG", "DNG")]);
+
+    assert_eq!(
+        diff(&baseline, &candidate, &selected, &report).unwrap(),
+        DiffSummary {
+            missing: 0,
+            extra: 0,
+            changed: 1,
+        }
+    );
 }
 
 #[test]

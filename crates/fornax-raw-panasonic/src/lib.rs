@@ -18,8 +18,8 @@ pub(crate) use fornax_codec::{CodecError, DecodeRequest, SampleBuffer};
 use fornax_dng::Directory;
 use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::ProcessMetadata;
-use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use generic_num::num;
 use image::math::Rect;
@@ -149,6 +149,11 @@ impl Rw2Image {
     /// Returns DNG-compatible metadata mapped from the RW2 container.
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> { Ok(self.metadata.clone()) }
 
+    /// Return the selected Panasonic source compression and storage layout.
+    pub const fn encoding_metadata(&self) -> EncodingMetadata {
+        encoding_metadata_for_layout(&self.container.layout)
+    }
+
     /// Returns normalized process metadata for the active Bayer area.
     ///
     /// # Errors
@@ -184,6 +189,32 @@ impl IDecoder for Rw2Image {
 
 impl IDecoderDng for Rw2Image {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> { Self::dng_metadata(self) }
+}
+
+impl IDecoderEncoding for Rw2Image {
+    fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
+}
+
+const fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetadata {
+    EncodingMetadata {
+        compression_id: Some(34_316),
+        compression_name: match layout.family {
+            container::Family::V4 { .. } => "panasonic-v4",
+            container::Family::V5 => "panasonic-v5",
+            container::Family::V6 => "panasonic-v6",
+            container::Family::V8(_) => "panasonic-v8",
+            container::Family::Unpacked12 => "panasonic-unpacked12",
+            container::Family::Packed12Control => "panasonic-packed12-control",
+        },
+        lossless: true,
+        storage: "single-chunk",
+        bits_per_sample: Some(layout.bits),
+        sample_format: Some(EncodingSampleFormat::Integer),
+        predictor: None,
+        rows_per_strip: None,
+        tile_width: None,
+        tile_height: None,
+    }
 }
 
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>

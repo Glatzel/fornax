@@ -1,4 +1,5 @@
 use fornax_codec::CodecError;
+use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CanonCrxHeader {
@@ -87,4 +88,44 @@ impl CanonCrxHeader {
     pub const fn mdat_header_size(&self) -> u32 { self.mdat_header_size }
 
     pub const fn median_precision(&self) -> u8 { self.median_precision }
+
+    /// Return source encoding metadata for the validated lossless CRX sample.
+    pub fn encoding_metadata(&self) -> EncodingMetadata {
+        EncodingMetadata {
+            compression_id: None,
+            compression_name: "canon-lossless-crx",
+            lossless: true,
+            storage: "bmff-sample",
+            bits_per_sample: Some(u16::from(self.bit_depth)),
+            sample_format: Some(EncodingSampleFormat::Integer),
+            predictor: None,
+            rows_per_strip: None,
+            tile_width: Some(self.tile_width),
+            tile_height: Some(self.tile_height),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use fornax_raw_core::EncodingSampleFormat;
+
+    use super::*;
+
+    #[test]
+    fn encoding_metadata_describes_lossless_crx_layout() {
+        let header =
+            CanonCrxHeader::new(0x0100, 8_000, 6_000, 512, 384, 14, 0, 0, 0x70, 14).unwrap();
+
+        let encoding = header.encoding_metadata();
+
+        assert_eq!(encoding.compression_id, None);
+        assert_eq!(encoding.compression_name, "canon-lossless-crx");
+        assert!(encoding.lossless);
+        assert_eq!(encoding.storage, "bmff-sample");
+        assert_eq!(encoding.bits_per_sample, Some(14));
+        assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));
+        assert_eq!(encoding.tile_width, Some(512));
+        assert_eq!(encoding.tile_height, Some(384));
+    }
 }

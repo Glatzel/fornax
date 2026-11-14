@@ -23,8 +23,8 @@ use std::path::Path;
 
 use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::ProcessMetadata;
-use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::{Directory, ParsedTiff};
 use generic_num::num;
@@ -122,6 +122,11 @@ impl ArwImage {
     /// Returns the DNG-compatible metadata mapped from the Sony container.
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> { Ok(self.metadata.clone()) }
 
+    /// Return the selected Sony source compression and storage layout.
+    pub fn encoding_metadata(&self) -> EncodingMetadata {
+        encoding_metadata_for_layout(&self.layout)
+    }
+
     /// Returns normalized process metadata for the cropped Bayer mosaic.
     ///
     /// # Errors
@@ -163,6 +168,45 @@ impl IDecoder for ArwImage {
 
 impl IDecoderDng for ArwImage {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> { Self::dng_metadata(self) }
+}
+
+impl IDecoderEncoding for ArwImage {
+    fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
+}
+
+fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetadata {
+    let (compression_id, compression_name) = match layout.compression {
+        container::CompressionFamily::Uncompressed => (Some(1), "uncompressed"),
+        container::CompressionFamily::Arw1 => (Some(32_767), "sony-arw1"),
+        container::CompressionFamily::Arw2 => (Some(32_767), "sony-arw2"),
+        container::CompressionFamily::Arw6 => (Some(32_766), "sony-arw6"),
+        container::CompressionFamily::SonyLosslessJpeg => (Some(7), "sony-lossless-jpeg"),
+    };
+    EncodingMetadata {
+        compression_id,
+        compression_name,
+        lossless: matches!(
+            layout.compression,
+            container::CompressionFamily::Uncompressed
+                | container::CompressionFamily::Arw1
+                | container::CompressionFamily::SonyLosslessJpeg
+        ),
+        storage: if layout.tile_width.is_some() {
+            "tiles"
+        } else {
+            "strips"
+        },
+        bits_per_sample: Some(layout.bits_per_sample),
+        sample_format: Some(EncodingSampleFormat::Integer),
+        predictor: None,
+        rows_per_strip: None,
+        tile_width: layout
+            .tile_width
+            .and_then(|value| u32::try_from(value).ok()),
+        tile_height: layout
+            .tile_height
+            .and_then(|value| u32::try_from(value).ok()),
+    }
 }
 
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>

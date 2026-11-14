@@ -11,7 +11,9 @@ use image::math::Rect;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::model::{Result, TrackerError};
+use crate::csvio::write_manifest_csv;
+use crate::manifest::derive_identity;
+use crate::model::{BaselineRow, ManifestRow, Result, TrackerError};
 
 pub const GOLDEN_HEADER: [&str; 10] = [
     "path",
@@ -24,6 +26,27 @@ pub const GOLDEN_HEADER: [&str; 10] = [
     "cropped_sha256",
     "process_sha256",
     "dng_sha256",
+];
+pub const GOLDEN_COVERAGE_HEADER: [&str; 19] = [
+    "format",
+    "compression_name",
+    "compression_lossless",
+    "compression_id",
+    "bits_per_sample",
+    "sample_format",
+    "storage",
+    "predictor",
+    "cfa",
+    "coverage",
+    "passing_count",
+    "golden_count",
+    "golden_paths",
+    "representative_path",
+    "representative_camera",
+    "representative_size",
+    "representative_sha256",
+    "representative_width",
+    "representative_height",
 ];
 
 const RAW_DOMAIN: &[u8] = b"fornax.raw_mosaic.v1";
@@ -48,6 +71,291 @@ pub struct GoldenRow {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GoldenCsv {
     pub rows: Vec<GoldenRow>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct GoldenCoverageRow {
+    pub format: String,
+    pub compression_name: String,
+    pub compression_lossless: u8,
+    pub compression_id: Option<u32>,
+    pub bits_per_sample: Option<u16>,
+    pub sample_format: String,
+    pub storage: String,
+    pub predictor: Option<u16>,
+    pub cfa: String,
+    pub coverage: String,
+    pub passing_count: usize,
+    pub golden_count: usize,
+    pub golden_paths: String,
+    pub representative_path: String,
+    pub representative_camera: String,
+    pub representative_size: u64,
+    pub representative_sha256: String,
+    pub representative_width: u32,
+    pub representative_height: u32,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct GoldenCoverageSummary {
+    pub covered: usize,
+    pub missing: usize,
+    pub redundant: usize,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GoldenCoverage {
+    pub rows: Vec<GoldenCoverageRow>,
+    pub summary: GoldenCoverageSummary,
+}
+
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct CoverageKey {
+    format: String,
+    compression_name: String,
+    bits_per_sample: Option<u16>,
+    sample_format: String,
+    storage: String,
+    predictor: Option<u16>,
+}
+
+pub fn build_golden_coverage(
+    baseline: &[BaselineRow],
+    corpus_manifest: &[ManifestRow],
+    golden_manifest: &[ManifestRow],
+) -> Result<GoldenCoverage> {
+    let mut manifest = BTreeMap::new();
+    for row in corpus_manifest {
+        if manifest.insert(row.path.as_str(), row).is_some() {
+            return Err(TrackerError::new(format!(
+                "corpus manifest contains duplicate path {}",
+                row.path
+            )));
+        }
+    }
+
+    let mut baseline_index = BTreeMap::new();
+    for row in baseline {
+        if baseline_index.insert(row.path.as_str(), row).is_some() {
+            return Err(TrackerError::new(format!(
+                "baseline contains duplicate path {}",
+                row.path
+            )));
+        }
+        if !manifest.contains_key(row.path.as_str()) {
+            return Err(TrackerError::new(format!(
+                "baseline path {} is absent from the corpus manifest",
+                row.path
+            )));
+        }
+    }
+
+    let mut golden_paths = BTreeMap::new();
+    for row in golden_manifest {
+        if golden_paths.insert(row.path.as_str(), row).is_some() {
+            return Err(TrackerError::new(format!(
+                "golden manifest contains duplicate path {}",
+                row.path
+            )));
+        }
+        let Some(baseline_row) = baseline_index.get(row.path.as_str()) else {
+            return Err(TrackerError::new(format!(
+                "golden path {} is absent from the baseline",
+                row.path
+            )));
+        };
+        if !fully_passing(baseline_row) {
+            return Err(TrackerError::new(format!(
+                "golden path {} is not passing",
+                row.path
+            )));
+        }
+        let corpus_row = manifest[row.path.as_str()];
+        if row.size != corpus_row.size
+            || row.sha256 != corpus_row.sha256
+            || row.format != corpus_row.format
+        {
+            return Err(TrackerError::new(format!(
+                "golden path {} does not match the corpus manifest",
+                row.path
+            )));
+        }
+    }
+
+    let mut groups = BTreeMap::<CoverageKey, Vec<&BaselineRow>>::new();
+    for row in baseline.iter().filter(|row| golden_encoding(row)) {
+        groups
+            .entry(CoverageKey {
+                format: row.format.clone(),
+                compression_name: row.compression_name.clone(),
+                bits_per_sample: if uses_highest_bit_depth(&row.format, &row.compression_name) {
+                    None
+                } else {
+                    row.bits_per_sample
+                },
+                sample_format: row.sample_format.clone(),
+                storage: row.storage.clone(),
+                predictor: row.predictor,
+            })
+            .or_default()
+            .push(row);
+    }
+
+    let mut summary = GoldenCoverageSummary::default();
+    let rows = groups
+        .into_iter()
+        .map(|(key, mut passing)| {
+            passing.sort_by(|left, right| {
+                let left_pixels = u64::from(left.width) * u64::from(left.height);
+                let right_pixels = u64::from(right.width) * u64::from(right.height);
+                let highest_bits = if uses_highest_bit_depth(&key.format, &key.compression_name) {
+                    right.bits_per_sample.cmp(&left.bits_per_sample)
+                } else {
+                    std::cmp::Ordering::Equal
+                };
+                highest_bits
+                    .then_with(|| left_pixels.cmp(&right_pixels))
+                    .then_with(|| {
+                        manifest[left.path.as_str()]
+                            .size
+                            .cmp(&manifest[right.path.as_str()].size)
+                    })
+                    .then_with(|| left.path.cmp(&right.path))
+            });
+            let selected = passing
+                .iter()
+                .filter_map(|row| golden_paths.get(row.path.as_str()).copied())
+                .collect::<Vec<_>>();
+            let coverage = match selected.len() {
+                0 => {
+                    summary.missing += 1;
+                    "missing"
+                }
+                1 => {
+                    summary.covered += 1;
+                    "covered"
+                }
+                _ => {
+                    summary.redundant += 1;
+                    "redundant"
+                }
+            };
+            let representative = passing[0];
+            let representative_manifest = manifest[representative.path.as_str()];
+            GoldenCoverageRow {
+                format: key.format,
+                compression_name: key.compression_name,
+                compression_lossless: 1,
+                compression_id: representative.compression_id,
+                bits_per_sample: representative.bits_per_sample,
+                sample_format: key.sample_format,
+                storage: key.storage,
+                predictor: key.predictor,
+                cfa: representative.cfa.clone(),
+                coverage: coverage.to_owned(),
+                passing_count: passing.len(),
+                golden_count: selected.len(),
+                golden_paths: selected
+                    .iter()
+                    .map(|row| row.path.as_str())
+                    .collect::<Vec<_>>()
+                    .join(";"),
+                representative_path: representative.path.clone(),
+                representative_camera: representative.camera.clone(),
+                representative_size: representative_manifest.size,
+                representative_sha256: representative_manifest.sha256.clone(),
+                representative_width: representative.width,
+                representative_height: representative.height,
+            }
+        })
+        .collect();
+    Ok(GoldenCoverage { rows, summary })
+}
+
+pub fn write_golden_coverage_csv(rows: &[GoldenCoverageRow]) -> Result<Vec<u8>> {
+    let mut rows = rows.to_vec();
+    rows.sort_by(|left, right| {
+        (
+            &left.format,
+            &left.compression_name,
+            left.compression_lossless,
+            left.bits_per_sample,
+            &left.sample_format,
+            &left.storage,
+            left.predictor,
+        )
+            .cmp(&(
+                &right.format,
+                &right.compression_name,
+                right.compression_lossless,
+                right.bits_per_sample,
+                &right.sample_format,
+                &right.storage,
+                right.predictor,
+            ))
+    });
+    let mut writer = WriterBuilder::new()
+        .has_headers(false)
+        .terminator(Terminator::Any(b'\n'))
+        .from_writer(Vec::new());
+    writer.write_record(GOLDEN_COVERAGE_HEADER)?;
+    for row in rows {
+        writer.serialize(row)?;
+    }
+    Ok(writer
+        .into_inner()
+        .map_err(csv::IntoInnerError::into_error)?)
+}
+
+pub fn write_golden_selection_csv(rows: &[GoldenCoverageRow]) -> Result<Vec<u8>> {
+    let rows = rows
+        .iter()
+        .map(|row| {
+            let (vendor, camera, model, filename) = derive_identity(&row.representative_path)?;
+            let format = row
+                .representative_path
+                .rsplit_once('.')
+                .map_or_else(String::new, |(_, extension)| extension.to_ascii_uppercase());
+            Ok(ManifestRow {
+                sha256: row.representative_sha256.clone(),
+                size: row.representative_size,
+                path: row.representative_path.clone(),
+                vendor,
+                camera,
+                model,
+                format,
+                filename,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    write_manifest_csv(&rows)
+}
+
+const fn fully_passing(row: &BaselineRow) -> bool {
+    row.decode_pass == 1
+        && row.raw_mosaic_pass == 1
+        && row.process_metadata_pass == 1
+        && row.handoff_pass == 1
+}
+
+fn golden_encoding(row: &BaselineRow) -> bool {
+    fully_passing(row)
+        && row.compression_lossless == Some(1)
+        && matches!(row.format.as_str(), "DNG" | "ARW" | "CR3" | "NEF")
+        && !deprecated_golden_encoding(row)
+}
+
+fn uses_highest_bit_depth(format: &str, _compression_name: &str) -> bool {
+    matches!(format, "ARW" | "NEF")
+}
+
+fn deprecated_golden_encoding(row: &BaselineRow) -> bool {
+    (row.format == "ARW" && row.compression_name == "sony-arw1")
+        || (row.format == "NEF"
+            && matches!(
+                row.compression_name.as_str(),
+                "nikon-mode-2-packed" | "nikon-mode-6-packed" | "nikon-uncompressed-words"
+            ))
 }
 
 pub fn decode_golden(path: &str, input: &std::path::Path) -> Result<GoldenRow> {

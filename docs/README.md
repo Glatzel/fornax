@@ -70,6 +70,7 @@ This index is the entry point for Fornax architecture, decoder, reference, and a
 | [RawTherapee Reference Notes](reference/algorithms/rawtherapee.md) | This reference note records pinned sources, numerical behavior, and implementation boundaries for RawTherapee. |
 | [VNG reference notes](reference/algorithms/vng.md) | This reference note records pinned sources, numerical behavior, and implementation boundaries for VNG. |
 | [TIFF-Family Compression ID Ownership](reference/codecs/compression-ids.md) | This reference note records ownership of TIFF-family compression identifiers and the rules that separate generic TIFF vocabulary from DNG-specific values. |
+| [Corpus Losslessness Classification](reference/codecs/lossless-classification.md) | This reference note records the provenance and conservative boundaries for the corpus `compression_lossless` flag. |
 | [Canon CRX reference notes](reference/decoders/canon-crx.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for Canon CRX. |
 | [DNG compression references](reference/decoders/dng-compression.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for DNG compression. |
 | [DNG and lossless JPEG-92 reference notes](reference/decoders/dng-lossless-jpeg.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for DNG and lossless JPEG-92. |
