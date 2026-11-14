@@ -191,7 +191,7 @@ with more than 64 elements; small CFA/pattern fields remain
 - [x] Task 4: Use borrowed DNG metadata during decode.
 - [x] Task 5: Store large private TIFF byte payloads compactly.
 - [x] Task 6: Add direct uncompressed sample unpacking.
-- [ ] Task 7: Fuse Deflate predictor and typed conversion.
+- [x] Task 7: Fuse Deflate predictor and typed conversion.
 
 ---
 
@@ -1111,7 +1111,7 @@ fn decode_float_rows_into(
     -> Result<(), CodecError>;
 ```
 
-- [ ] **Step 1: Add old-vs-fused equivalence tests**
+- [x] **Step 1: Add old-vs-fused equivalence tests**
 
 For predictor 3, 34894, and 34895; 16/24/32-bit float; both byte orders; odd
 widths; and multiple rows, compare the fused path bit-for-bit with the existing
@@ -1119,7 +1119,7 @@ widths; and multiple rows, compare the fused path bit-for-bit with the existing
 
 Add integer horizontal predictor coverage if a synthetic request is available.
 
-- [ ] **Step 2: Run the tests and verify the fused path is absent**
+- [x] **Step 2: Run the tests and verify the fused path is absent**
 
 Run:
 
@@ -1127,13 +1127,13 @@ Run:
 cargo test -p fornax-codec deflate_fused
 ```
 
-- [ ] **Step 3: Reuse per-band scratch**
+- [x] **Step 3: Reuse per-band scratch**
 
 Allocate one `DeflateScratch` per parallel destination band or worker. Clear
 and reuse vectors between tiles. Inflate into the reusable compressed/output
 buffer and retain capacity.
 
-- [ ] **Step 4: Fuse predictor and conversion**
+- [x] **Step 4: Fuse predictor and conversion**
 
 For floating-point predictor tiles, reverse byte differencing, unshuffle byte
 planes, convert f16/f24/f32/f64-era storage to F32, and write the typed row
@@ -1141,12 +1141,12 @@ directly. For native F32 storage with no predictor, decode directly without a
 byte-plane pass. Keep the general path for unsupported combinations and error
 reporting.
 
-- [ ] **Step 5: Preserve Exif/byte-order behavior**
+- [x] **Step 5: Preserve Exif/byte-order behavior**
 
 Test both endian variants and the current f16 expansion rules, including
 subnormals, infinities, and signed zero.
 
-- [ ] **Step 6: Prove full-corpus equality and benchmark**
+- [x] **Step 6: Prove full-corpus equality and benchmark**
 
 Run three-way equality on FP16 and FP32 5D3 files. Acceptance:
 
@@ -1156,7 +1156,7 @@ Run three-way equality on FP16 and FP32 5D3 files. Acceptance:
 
 Do not change `flate2` backend features in this task.
 
-- [ ] **Step 7: Verify and commit**
+- [x] **Step 7: Verify and commit**
 
 Run:
 

@@ -39,7 +39,7 @@ format crates.
 | Uncompressed (`1`) | Packed integers and floats | U8/U16/U32/F32/F64 |
 | Lossless JPEG-92 (`7`) | Single-sample strips/tiles, predictors 1-7 | U8/U16 tiles |
 | LZW (`5`) | TIFF MSB-first words and size switches | U8/U16/U32/F32/F64 tiles |
-| Deflate (`8`) | Integer and float predictors | U8/U16/U32/F32/F64 tiles |
+| Deflate (`8`) | Integer and fused float predictors | U8/U16/U32/F32/F64 tiles |
 | PackBits (`32773`) | Literal, repeat, and no-op controls | U8/U16/U32/F32/F64 tiles |
 | Lossy JPEG (`34892`) | Single-component 8-bit | No |
 | JPEG XL (`50002`, `52546`) | Single-channel 8-16-bit mosaics | No |
@@ -64,6 +64,10 @@ compression `52546` to the same JPEG XL decoder.
   payloads are outside the single-band `SampleBuffer` contract.
 - Uncompressed, Deflate, and Zstandard decoding accept only one raw sample per
   pixel in the DNG decoder.
+- Floating-point Deflate decoding fuses predictor reversal, byte-plane
+  reconstruction, f16/f24 expansion, and f32 output into one pass. The
+  generic reverse-then-convert path remains available for unsupported
+  combinations and as the test oracle.
 - Vendor packed, word, stripped, lossless-Huffman, block-lossless, CRX,
   predictor-8, and stamped layouts belong to their vendor crates.
 

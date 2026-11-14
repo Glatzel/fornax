@@ -311,6 +311,24 @@ Single-thread walltime:
 Sigma fp moved from 3.0x Rawler to parity with Rawler. The 5D3 U16 path remained
 statistically unchanged, and all golden decode hashes remained exact.
 
+### Fused Deflate predictor and float conversion
+
+Task 7 inflates into reusable per-band scratch, reverses floating-point byte
+differencing, reconstructs byte planes, converts f16/f24/f32 storage, and writes
+F32 samples in one operation. Native F32 without prediction bypasses the
+byte-plane path. Integer and unsupported layouts retain the general decoder.
+
+Single-thread walltime:
+
+| Case | Before | After | Rawler | FlashRaw | Fornax/Rawler |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 5D3 FP16 predictor Deflate | 300.1 ms | 255.8 ms | 454.2 ms | 195.8 ms | 0.56x |
+| 5D3 FP32 predictor Deflate | 515.4 ms | 410.8 ms | 766.1 ms | 332.7 ms | 0.54x |
+
+Both endian variants, predictor 3/34894/34895, 16/24/32-bit storage, odd widths,
+and multiple rows match the previous reverse-plus-convert output bit for bit.
+The complete golden hash set and three-way DNG equality remain unchanged.
+
 ## Neutral experiments
 
 - `-C target-cpu=native` measured 475 ms LJPEG, 164 ms uncompressed, and

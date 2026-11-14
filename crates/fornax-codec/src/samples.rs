@@ -566,7 +566,7 @@ const fn native_order() -> ByteOrder {
     }
 }
 
-const fn read_u16(bytes: &[u8], byte_order: ByteOrder) -> u16 {
+pub const fn read_u16(bytes: &[u8], byte_order: ByteOrder) -> u16 {
     let bytes = [bytes[0], bytes[1]];
     match byte_order {
         ByteOrder::Little => u16::from_le_bytes(bytes),
@@ -574,14 +574,14 @@ const fn read_u16(bytes: &[u8], byte_order: ByteOrder) -> u16 {
     }
 }
 
-const fn read_u24(bytes: &[u8], byte_order: ByteOrder) -> u32 {
+pub const fn read_u24(bytes: &[u8], byte_order: ByteOrder) -> u32 {
     match byte_order {
         ByteOrder::Little => u32::from_le_bytes([bytes[0], bytes[1], bytes[2], 0]),
         ByteOrder::Big => u32::from_be_bytes([0, bytes[0], bytes[1], bytes[2]]),
     }
 }
 
-const fn read_u32(bytes: &[u8], byte_order: ByteOrder) -> u32 {
+pub const fn read_u32(bytes: &[u8], byte_order: ByteOrder) -> u32 {
     let bytes = [bytes[0], bytes[1], bytes[2], bytes[3]];
     match byte_order {
         ByteOrder::Little => u32::from_le_bytes(bytes),
@@ -599,7 +599,7 @@ const fn read_u64(bytes: &[u8], byte_order: ByteOrder) -> u64 {
     }
 }
 
-fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
+pub fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
     let storage_bits = 1 + exponent_bits + fraction_bits;
     let sign = (raw >> (storage_bits - 1)) & 1;
     let exponent_mask = (1_u32 << exponent_bits) - 1;
