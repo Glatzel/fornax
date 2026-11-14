@@ -54,8 +54,10 @@ compression `52546` to the same JPEG XL decoder.
 
 - Lossless JPEG-92 does not yet support pre-DNG-1.1 precision handling, restart
   intervals, Huffman selector `0x10`, or multi-component subsampled and
-  half-height tile layouts. Sony's vendor codec separately handles its
-  full-resolution one- and four-component tile layouts.
+  half-height tile layouts. A single-component JPEG row that contains multiple
+  TIFF tile rows is accepted when total sample count is unchanged. Sony's
+  vendor codec separately handles its full-resolution one- and four-component
+  tile layouts.
 - Lossy JPEG decoding accepts only one 8-bit component. Three-component
   `LinearRaw` payloads are outside the single-band `SampleBuffer` contract.
 - JPEG XL decoding accepts only one 8-16-bit channel. Multi-channel `LinearRaw`

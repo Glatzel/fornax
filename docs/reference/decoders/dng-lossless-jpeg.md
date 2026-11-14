@@ -40,6 +40,9 @@ This reference note records pinned sources, decoder behavior, and implementation
   tile width and the total sample count is unchanged. The Blackmagic Pocket
   Cinema Camera 4K lossless DNG uses 2064x1088 JPEG geometry for 1032x2176 TIFF
   tiles.
+- Predictor-1 scans with one or two components use a fused row decoder with a
+  13-bit completed-difference lookup. The general component/predictor scanner
+  remains the reference and fallback.
 - Predictors 1 through 7 use the left, above, and above-left neighbors across
   the interleaved component stream. The first pixel is initialized from the
   precision-dependent midpoint plus its Huffman difference.

@@ -18,6 +18,8 @@ const MARKER_EOI: u8 = 0xd9;
 const MARKER_SOS: u8 = 0xda;
 const HUFFMAN_LOOKAHEAD_BITS: usize = 16;
 const HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << HUFFMAN_LOOKAHEAD_BITS;
+const FAST_HUFFMAN_LOOKAHEAD_BITS: usize = 13;
+const FAST_HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << FAST_HUFFMAN_LOOKAHEAD_BITS;
 
 pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     if request.sample_format != SampleFormat::Integer
@@ -212,8 +214,24 @@ impl HuffmanEntry {
     const INVALID: Self = Self { symbol: 0, bits: 0 };
 }
 
+#[derive(Clone, Copy)]
+struct FastHuffmanEntry {
+    consumed: u8,
+    difference: i16,
+    full: bool,
+}
+
+impl FastHuffmanEntry {
+    const INVALID: Self = Self {
+        consumed: 0,
+        difference: 0,
+        full: false,
+    };
+}
+
 struct HuffmanTable {
     lookup: Box<[HuffmanEntry]>,
+    fast_lookup: Box<[FastHuffmanEntry]>,
 }
 
 impl HuffmanTable {
@@ -223,9 +241,11 @@ impl HuffmanTable {
         lookup: &mut [HuffmanEntry],
     ) -> Result<Self, String> {
         lookup.fill(HuffmanEntry::INVALID);
+        let mut fast_lookup = vec![FastHuffmanEntry::INVALID; FAST_HUFFMAN_LOOKAHEAD_SIZE];
 
         let mut symbol_index = 0;
         let mut lookup_index = 0_usize;
+        let mut code = 0_usize;
         for (length_index, &count) in counts.iter().enumerate() {
             let length = u8::try_from(length_index + 1)
                 .expect("lossless JPEG Huffman lengths are at most 16");
@@ -245,12 +265,58 @@ impl HuffmanTable {
                     bits: length,
                 });
                 lookup_index = end;
+
+                if usize::from(length) <= FAST_HUFFMAN_LOOKAHEAD_BITS {
+                    let fast_width = 1_usize << (FAST_HUFFMAN_LOOKAHEAD_BITS - usize::from(length));
+                    let fast_start = code << (FAST_HUFFMAN_LOOKAHEAD_BITS - usize::from(length));
+                    for fill in 0..fast_width {
+                        let index = fast_start + fill;
+                        fast_lookup[index] = if symbol == 0 {
+                            FastHuffmanEntry {
+                                consumed: length,
+                                difference: 0,
+                                full: true,
+                            }
+                        } else if symbol < 16
+                            && usize::from(length) + usize::from(symbol)
+                                <= FAST_HUFFMAN_LOOKAHEAD_BITS
+                        {
+                            let shift = FAST_HUFFMAN_LOOKAHEAD_BITS
+                                - usize::from(length)
+                                - usize::from(symbol);
+                            let raw = i32::from(
+                                u16::try_from((index >> shift) & ((1 << symbol) - 1))
+                                    .expect("fast Huffman difference fits u16"),
+                            );
+                            let threshold = 1_i32 << (symbol - 1);
+                            FastHuffmanEntry {
+                                consumed: length + symbol,
+                                difference: i16::try_from(if raw < threshold {
+                                    raw - ((1_i32 << symbol) - 1)
+                                } else {
+                                    raw
+                                })
+                                .expect("DNG Huffman difference fits i16"),
+                                full: true,
+                            }
+                        } else {
+                            FastHuffmanEntry {
+                                consumed: length,
+                                difference: 0,
+                                full: false,
+                            }
+                        };
+                    }
+                }
                 symbol_index += 1;
+                code += 1;
             }
+            code <<= 1;
         }
 
         Ok(Self {
             lookup: lookup.into(),
+            fast_lookup: fast_lookup.into(),
         })
     }
 
@@ -263,6 +329,16 @@ impl HuffmanTable {
         }
         bits.skip(usize::from(entry.bits));
         Ok(entry.symbol)
+    }
+
+    fn decode_difference(&self, bits: &mut BitReader<'_>) -> Result<i32, String> {
+        let entry = self.fast_lookup[usize::from(bits.peek(13))];
+        if entry.full {
+            bits.skip(usize::from(entry.consumed));
+            return Ok(i32::from(entry.difference));
+        }
+        let symbol = self.decode(bits)?;
+        decode_difference(symbol, bits)
     }
 }
 
@@ -401,6 +477,14 @@ pub fn decode_interleaved(
     source: &[u8],
     expected_precision: u8,
 ) -> Result<InterleavedJpeg, String> {
+    decode_interleaved_impl(source, expected_precision, true)
+}
+
+fn decode_interleaved_impl(
+    source: &[u8],
+    expected_precision: u8,
+    fast: bool,
+) -> Result<InterleavedJpeg, String> {
     let mut header = HeaderReader::new(source);
     if header.marker()? != MARKER_SOI {
         return Err("lossless JPEG stream does not start with SOI".to_owned());
@@ -473,6 +557,7 @@ pub fn decode_interleaved(
         point_transform,
         output_width,
         &mut output,
+        fast,
     )?;
     if point_transform != 0 {
         for value in &mut output {
@@ -678,6 +763,7 @@ fn decode_scan_into(
     point_transform: u8,
     output_width: usize,
     output: &mut [u16],
+    fast: bool,
 ) -> Result<(), String> {
     let mut components = Vec::with_capacity(frame.components.len());
     for component in &frame.components {
@@ -696,6 +782,16 @@ fn decode_scan_into(
             "lossless JPEG output has {} samples, expected {sample_count}",
             output.len()
         ));
+    }
+    if fast && predictor == 1 && frame.components.len() <= 2 {
+        return decode_scan_prediction_one(
+            entropy,
+            frame,
+            &components,
+            point_transform,
+            output_width,
+            output,
+        );
     }
     let mut bits = BitReader::new(entropy);
     let initial = 1_i32 << (frame.precision - point_transform - 1);
@@ -730,6 +826,70 @@ fn decode_scan_into(
         }
     }
 
+    Ok(())
+}
+
+fn decode_scan_prediction_one(
+    entropy: &[u8],
+    frame: &Frame,
+    tables: &[&HuffmanTable],
+    point_transform: u8,
+    output_width: usize,
+    output: &mut [u16],
+) -> Result<(), String> {
+    let mut bits = BitReader::new(entropy);
+    let initial = 1_i32 << (frame.precision - point_transform - 1);
+    let mask = (1_u32 << frame.precision) - 1;
+
+    for (component, table) in tables.iter().enumerate() {
+        output[component] = apply_difference(initial, table.decode_difference(&mut bits)?, mask);
+    }
+
+    match frame.components.len() {
+        1 => {
+            let table = tables[0];
+            for row in 0..frame.height {
+                let first_column = usize::from(row == 0);
+                let mut prediction = if row == 0 {
+                    0
+                } else {
+                    i32::from(output[row * output_width - output_width])
+                };
+                for column in first_column..frame.width {
+                    let index = row * output_width + column;
+                    if column != 0 {
+                        prediction = i32::from(output[index - 1]);
+                    }
+                    output[index] =
+                        apply_difference(prediction, table.decode_difference(&mut bits)?, mask);
+                }
+            }
+        }
+        2 => {
+            for row in 0..frame.height {
+                let first_column = usize::from(row == 0);
+                for column in first_column..frame.width {
+                    let index = row * output_width + column * 2;
+                    let prediction = if column == 0 {
+                        i32::from(output[index - output_width])
+                    } else {
+                        i32::from(output[index - 2])
+                    };
+                    output[index] =
+                        apply_difference(prediction, tables[0].decode_difference(&mut bits)?, mask);
+
+                    let prediction = if column == 0 {
+                        i32::from(output[index - output_width + 1])
+                    } else {
+                        i32::from(output[index - 1])
+                    };
+                    output[index + 1] =
+                        apply_difference(prediction, tables[1].decode_difference(&mut bits)?, mask);
+                }
+            }
+        }
+        _ => unreachable!("fast prediction-one scan supports one or two components"),
+    }
     Ok(())
 }
 
@@ -773,31 +933,37 @@ fn add_prediction(
     bits: &mut BitReader<'_>,
     precision: u8,
 ) -> Result<u16, String> {
-    let difference = match symbol {
-        0 => 0,
-        16 => -32_768,
+    Ok(apply_difference(
+        prediction,
+        decode_difference(symbol, bits)?,
+        (1_u32 << precision) - 1,
+    ))
+}
+
+fn decode_difference(symbol: u8, bits: &mut BitReader<'_>) -> Result<i32, String> {
+    match symbol {
+        0 => Ok(0),
+        16 => Ok(-32_768),
         1..=15 => {
             let bit_count = symbol;
             let raw = i32::from(bits.peek(bit_count));
             bits.skip(usize::from(bit_count));
             let threshold = 1_i32 << (bit_count - 1);
-            if raw < threshold {
+            Ok(if raw < threshold {
                 raw - ((1_i32 << bit_count) - 1)
             } else {
                 raw
-            }
+            })
         }
-        _ => {
-            return Err(format!(
-                "lossless JPEG difference class {symbol} is unsupported"
-            ));
-        }
-    };
-    let mask = (1_u32 << precision) - 1;
-    Ok(
-        u16::try_from((prediction.wrapping_add(difference) as u32) & mask)
-            .expect("the precision mask limits samples to u16"),
-    )
+        _ => Err(format!(
+            "lossless JPEG difference class {symbol} is unsupported"
+        )),
+    }
+}
+
+fn apply_difference(prediction: i32, difference: i32, mask: u32) -> u16 {
+    u16::try_from((prediction.wrapping_add(difference) as u32) & mask)
+        .expect("the precision mask limits samples to u16")
 }
 
 const HUFFMAN_BITS: u8 = 5;
@@ -973,7 +1139,9 @@ impl<'a> BitWriter<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::{BitReader, BitWriter, add_prediction, copy_tile_into, predict};
+    use super::{
+        BitReader, BitWriter, add_prediction, copy_tile_into, decode_interleaved_impl, predict,
+    };
     use crate::SampleBuffer;
 
     #[test]
@@ -996,6 +1164,31 @@ mod tests {
         assert_eq!(predict(&output, 3, 1, 1, 0, 1, 5), 18);
         assert_eq!(predict(&output, 3, 1, 1, 0, 1, 6), 23);
         assert_eq!(predict(&output, 3, 1, 1, 0, 1, 7), 15);
+    }
+
+    #[test]
+    fn fused_prediction_one_matches_the_general_scanner() {
+        for components in [1_u8, 2] {
+            let width = 17_u16;
+            let height = 9_u16;
+            let samples = (0..usize::from(width) * usize::from(height) * usize::from(components))
+                .map(|index| ((index * 977 + 12_345) & 0x3fff) as u16)
+                .collect::<Vec<_>>();
+            let encoded =
+                super::encode_interleaved_for_test(&samples, width, height, components, 14);
+            let fast = decode_interleaved_impl(&encoded, 14, true).unwrap();
+            let general = decode_interleaved_impl(&encoded, 14, false).unwrap();
+
+            assert_eq!(
+                (fast.width, fast.height, fast.components),
+                (
+                    usize::from(width) * usize::from(components),
+                    usize::from(height),
+                    usize::from(components)
+                )
+            );
+            assert_eq!(fast.samples, general.samples);
+        }
     }
 
     #[test]

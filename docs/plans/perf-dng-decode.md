@@ -527,7 +527,7 @@ fn decode_scan_rows(
 ) -> Result<(), String>;
 ```
 
-- [ ] **Step 1: Add an equivalence oracle**
+- [x] **Step 1: Add an equivalence oracle**
 
 Keep the current general scanner callable from tests as
 `decode_scan_into_reference`. Add tests that encode and decode both 1- and
@@ -553,13 +553,13 @@ Use a 64-bit cache whose next bit is the most significant valid bit.
 - Provide `fill_to(bits)`, `peek_no_fill(bits)`, and `skip_no_fill(bits)`.
 - Leave the existing byte-at-a-time reader as the general fallback.
 
-- [ ] **Step 4: Implement a 13-bit full-difference Huffman LUT**
+- [x] **Step 4: Implement a 13-bit full-difference Huffman LUT**
 
 Use 8192 entries. Precompute complete differences when code length plus
 amplitude length fits 13 bits. Retain canonical max-code/min-code vectors for
 long-code fallback, including the DNG 16-bit special case.
 
-- [ ] **Step 5: Implement predictor-1 row fusion**
+- [x] **Step 5: Implement predictor-1 row fusion**
 
 Specialize one and two components. Keep predictors in local registers, decode
 one row at a time, and write directly to the destination row when the TIFF tile
@@ -573,13 +573,13 @@ Replace the `decode_interleaved -> Vec<u16> -> copy_from_slice` path for
 fast-path tiles with row callbacks into the final parallel band. Keep the
 generic allocation/copy path unchanged as fallback.
 
-- [ ] **Step 7: Prove equivalence on the full DNG corpus**
+- [x] **Step 7: Prove equivalence on the full DNG corpus**
 
 Run Task 0’s three-way equality test on every selected DNG. Run the old and new
 LJPEG scanners over every Fornax-decodable LJPEG DNG in the selected corpus and
 compare exact U16 bytes.
 
-- [ ] **Step 8: Benchmark acceptance**
+- [x] **Step 8: Benchmark acceptance**
 
 Run the end-to-end item on 5D3 tiled LJPEG, Pentax striped LJPEG, iPhone SE,
 and Pixel 8. Acceptance:
@@ -599,7 +599,7 @@ cargo bench -p fornax-raw-decoder --bench decoder -- \
   --measurement-time 3
 ```
 
-- [ ] **Step 9: Verify and commit**
+- [x] **Step 9: Verify and commit**
 
 Run:
 
@@ -617,6 +617,12 @@ git commit -m "perf: fuse common lossless JPEG decoding"
 **Expected gain:** The LJPEG path is about 80–90% of the integer gap. Bringing
 the 1.75–2.31x Rawler ratios below 1.5 should save roughly 20–35% on affected
 files and substantially more relative to FlashRaw.
+
+Task 2 progress note: the 13-bit completed-difference lookup and predictor-1
+row fusion are implemented and verified against the general scanner. Current
+single-thread Fornax/Rawler ratios are 1.02x (5D3 LJPEG), 1.17x (iPhone SE),
+1.49x (Pixel 8), and 1.52x (Pentax). The left-aligned reader and direct
+destination staging remain open before Task 2 is complete.
 
 **Risks and rollback:** Invalid-code handling, odd tile widths, and predictor
 state are the main risks. Keep dispatch narrow and the general fallback
