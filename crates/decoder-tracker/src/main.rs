@@ -13,7 +13,7 @@ use decoder_tracker::csvio::{
 use decoder_tracker::duckdb::{diff as duckdb_diff, merge as duckdb_merge};
 use decoder_tracker::golden::{
     build_golden_coverage, check_golden_csv, decode_golden, read_golden_csv,
-    write_golden_coverage_csv, write_golden_csv,
+    write_golden_coverage_csv, write_golden_csv, write_golden_selection_csv,
 };
 use decoder_tracker::manifest::{
     ManifestCheck, corpus_path, generate_manifest, normalize_repo_path,
@@ -179,6 +179,8 @@ struct GoldenCoverageArgs {
     golden: PathBuf,
     #[arg(long, default_value = DEFAULT_GOLDEN_COVERAGE)]
     out: PathBuf,
+    #[arg(long)]
+    selected_out: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]
@@ -404,6 +406,15 @@ fn golden_coverage(args: GoldenCoverageArgs) -> Result<ExitCode> {
     let report = build_golden_coverage(&baseline.rows, &corpus_manifest, &golden_manifest)?;
     let bytes = write_golden_coverage_csv(&report.rows)?;
     write_file(&args.out, &bytes)?;
+    if let Some(path) = args.selected_out {
+        let selected = write_golden_selection_csv(&report.rows)?;
+        write_file(&path, &selected)?;
+        println!(
+            "golden-coverage: wrote {} selected inputs to {}",
+            report.rows.len(),
+            path.display()
+        );
+    }
     clerk::info!(
         "golden coverage has {} covered, {} missing, and {} redundant groups",
         report.summary.covered,
@@ -443,6 +454,7 @@ fn baseline_row(manifest: &ManifestRow, stage: StageRow) -> BaselineRow {
         cfa: stage.cfa,
         compression_id: stage.compression_id,
         compression_name: stage.compression_name,
+        compression_lossless: stage.compression_lossless,
         storage: stage.storage,
         bits_per_sample: stage.bits_per_sample,
         sample_format: stage.sample_format,

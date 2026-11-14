@@ -150,6 +150,7 @@ fn encoding_metadata_distinguishes_panasonic_compression_families() {
 
         assert_eq!(encoding.compression_id, Some(34_316));
         assert_eq!(encoding.compression_name, expected_name);
+        assert!(encoding.lossless);
         assert_eq!(encoding.storage, "single-chunk");
         assert_eq!(encoding.bits_per_sample, Some(14));
         assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));

@@ -11,6 +11,8 @@ use image::math::Rect;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+use crate::csvio::write_manifest_csv;
+use crate::manifest::derive_identity;
 use crate::model::{BaselineRow, ManifestRow, Result, TrackerError};
 
 pub const GOLDEN_HEADER: [&str; 10] = [
@@ -25,9 +27,10 @@ pub const GOLDEN_HEADER: [&str; 10] = [
     "process_sha256",
     "dng_sha256",
 ];
-pub const GOLDEN_COVERAGE_HEADER: [&str; 17] = [
+pub const GOLDEN_COVERAGE_HEADER: [&str; 19] = [
     "format",
     "compression_name",
+    "compression_lossless",
     "compression_id",
     "bits_per_sample",
     "sample_format",
@@ -41,6 +44,7 @@ pub const GOLDEN_COVERAGE_HEADER: [&str; 17] = [
     "representative_path",
     "representative_camera",
     "representative_size",
+    "representative_sha256",
     "representative_width",
     "representative_height",
 ];
@@ -73,6 +77,7 @@ pub struct GoldenCsv {
 pub struct GoldenCoverageRow {
     pub format: String,
     pub compression_name: String,
+    pub compression_lossless: u8,
     pub compression_id: Option<u32>,
     pub bits_per_sample: Option<u16>,
     pub sample_format: String,
@@ -86,6 +91,7 @@ pub struct GoldenCoverageRow {
     pub representative_path: String,
     pub representative_camera: String,
     pub representative_size: u64,
+    pub representative_sha256: String,
     pub representative_width: u32,
     pub representative_height: u32,
 }
@@ -111,7 +117,6 @@ struct CoverageKey {
     sample_format: String,
     storage: String,
     predictor: Option<u16>,
-    cfa: String,
 }
 
 pub fn build_golden_coverage(
@@ -178,7 +183,10 @@ pub fn build_golden_coverage(
     }
 
     let mut groups = BTreeMap::<CoverageKey, Vec<&BaselineRow>>::new();
-    for row in baseline.iter().filter(|row| fully_passing(row)) {
+    for row in baseline
+        .iter()
+        .filter(|row| fully_passing(row) && row.compression_lossless == Some(1))
+    {
         groups
             .entry(CoverageKey {
                 format: row.format.clone(),
@@ -187,7 +195,6 @@ pub fn build_golden_coverage(
                 sample_format: row.sample_format.clone(),
                 storage: row.storage.clone(),
                 predictor: row.predictor,
-                cfa: row.cfa.clone(),
             })
             .or_default()
             .push(row);
@@ -198,9 +205,15 @@ pub fn build_golden_coverage(
         .into_iter()
         .map(|(key, mut passing)| {
             passing.sort_by(|left, right| {
-                manifest[left.path.as_str()]
-                    .size
-                    .cmp(&manifest[right.path.as_str()].size)
+                let left_pixels = u64::from(left.width) * u64::from(left.height);
+                let right_pixels = u64::from(right.width) * u64::from(right.height);
+                left_pixels
+                    .cmp(&right_pixels)
+                    .then_with(|| {
+                        manifest[left.path.as_str()]
+                            .size
+                            .cmp(&manifest[right.path.as_str()].size)
+                    })
                     .then_with(|| left.path.cmp(&right.path))
             });
             let selected = passing
@@ -226,12 +239,13 @@ pub fn build_golden_coverage(
             GoldenCoverageRow {
                 format: key.format,
                 compression_name: key.compression_name,
+                compression_lossless: 1,
                 compression_id: representative.compression_id,
                 bits_per_sample: key.bits_per_sample,
                 sample_format: key.sample_format,
                 storage: key.storage,
                 predictor: key.predictor,
-                cfa: key.cfa,
+                cfa: representative.cfa.clone(),
                 coverage: coverage.to_owned(),
                 passing_count: passing.len(),
                 golden_count: selected.len(),
@@ -243,6 +257,7 @@ pub fn build_golden_coverage(
                 representative_path: representative.path.clone(),
                 representative_camera: representative.camera.clone(),
                 representative_size: representative_manifest.size,
+                representative_sha256: representative_manifest.sha256.clone(),
                 representative_width: representative.width,
                 representative_height: representative.height,
             }
@@ -257,20 +272,20 @@ pub fn write_golden_coverage_csv(rows: &[GoldenCoverageRow]) -> Result<Vec<u8>> 
         (
             &left.format,
             &left.compression_name,
+            left.compression_lossless,
             left.bits_per_sample,
             &left.sample_format,
             &left.storage,
             left.predictor,
-            &left.cfa,
         )
             .cmp(&(
                 &right.format,
                 &right.compression_name,
+                right.compression_lossless,
                 right.bits_per_sample,
                 &right.sample_format,
                 &right.storage,
                 right.predictor,
-                &right.cfa,
             ))
     });
     let mut writer = WriterBuilder::new()
@@ -284,6 +299,30 @@ pub fn write_golden_coverage_csv(rows: &[GoldenCoverageRow]) -> Result<Vec<u8>> 
     Ok(writer
         .into_inner()
         .map_err(csv::IntoInnerError::into_error)?)
+}
+
+pub fn write_golden_selection_csv(rows: &[GoldenCoverageRow]) -> Result<Vec<u8>> {
+    let rows = rows
+        .iter()
+        .map(|row| {
+            let (vendor, camera, model, filename) = derive_identity(&row.representative_path)?;
+            let format = row
+                .representative_path
+                .rsplit_once('.')
+                .map_or_else(String::new, |(_, extension)| extension.to_ascii_uppercase());
+            Ok(ManifestRow {
+                sha256: row.representative_sha256.clone(),
+                size: row.representative_size,
+                path: row.representative_path.clone(),
+                vendor,
+                camera,
+                model,
+                format,
+                filename,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    write_manifest_csv(&rows)
 }
 
 const fn fully_passing(row: &BaselineRow) -> bool {

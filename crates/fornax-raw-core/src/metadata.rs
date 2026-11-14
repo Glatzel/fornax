@@ -36,6 +36,7 @@ impl EncodingSampleFormat {
 pub struct EncodingMetadata {
     pub compression_id: Option<u32>,
     pub compression_name: &'static str,
+    pub lossless: bool,
     pub storage: &'static str,
     pub bits_per_sample: Option<u16>,
     pub sample_format: Option<EncodingSampleFormat>,
@@ -51,6 +52,7 @@ impl EncodingMetadata {
         Self {
             compression_id: None,
             compression_name: "unknown",
+            lossless: false,
             storage: "unknown",
             bits_per_sample: None,
             sample_format: None,
@@ -839,6 +841,7 @@ mod tests {
         assert_eq!(metadata.rows_per_strip, None);
         assert_eq!(metadata.tile_width, None);
         assert_eq!(metadata.tile_height, None);
+        assert!(!metadata.lossless);
     }
 
     #[test]

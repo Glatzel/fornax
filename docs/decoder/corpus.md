@@ -101,7 +101,7 @@ key is `(camera, format, path)`. Duplicate keys are an error.
 The canonical baseline header is:
 
 ```csv
-status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height
+status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,compression_lossless,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height
 ```
 
 Rows use UTF-8 with LF endings and RFC 4180 quoting, sort by the unique key, and
@@ -143,6 +143,9 @@ failures, geometry, CFA, output hashes, and encoding details remain aligned.
   meaningful together with `format`.
 - `compression_name` distinguishes codec variants, including vendor modes that
   share a numeric identifier.
+- `compression_lossless` is `1` only when the implemented source path is known
+  to reconstruct the stored integer samples losslessly, and `0` for known lossy
+  or ambiguous streams. Unknown or undecoded rows leave it empty.
 - `storage` identifies strips, tiles, BMFF samples, RAF blocks, row tables, or a
   single chunk.
 - `bits_per_sample` and `sample_format` describe source storage, not the
@@ -150,10 +153,10 @@ failures, geometry, CFA, output hashes, and encoding details remain aligned.
 - `predictor`, `rows_per_strip`, `tile_width`, and `tile_height` retain layout
   fields when the source defines them.
 
-Rows with a successful raw decode must have a known compression, storage, bit
-depth, and sample format. Rows for formats without a native decoder remain in
-the baseline with `compression_name=unknown`, `storage=unknown`, and empty
-optional fields.
+Rows with a successful raw decode must have known compression, losslessness,
+storage, bit depth, and sample format. Rows for formats without a native decoder
+remain in the baseline with `compression_name=unknown`, `storage=unknown`, and
+empty optional fields.
 
 Use the baseline directly to choose a file for decoder development:
 
@@ -176,11 +179,11 @@ specific decoder path. Join `data/manifest.csv` by `path` for file size.
 
 ## Golden decode outputs
 
-`golden/selected-manifest.csv` is a pointer-only set of 30 known-passing
-conventional 2x2 RGB Bayer files. It covers DNG integer and floating-point
-storage, CR3, ARW, NEF, RAF, both accepted 3FR compression families, RW2, and
-IIQ. `golden/decode-hashes.csv` is the canonical output gate for refactors that
-must not change decoder results.
+`golden/selected-manifest.csv` is a pointer-only lossless set containing one
+lowest-pixel known-passing representative per source encoding group. It covers
+DNG integer and floating-point storage, CR3, ARW, NEF, RAF, both accepted 3FR
+compression families, RW2, and IIQ. `golden/decode-hashes.csv` is the canonical
+output gate for refactors that must not change decoder results.
 
 Each row records the path, raw sample type and dimensions, cropped `f32`
 dimensions, and four SHA-256 digests:
@@ -216,12 +219,27 @@ pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --out target/decoder-tracker/golden-coverage.csv
 ```
 
-The report groups fully passing rows by
-`(format, compression_name, bits_per_sample, sample_format, storage, predictor,
-cfa)`. It records passing and golden counts, all golden paths, and the smallest
-passing representative with camera, file size, and dimensions. `coverage` is
+The report groups fully passing rows with `compression_lossless=1` by the
+encoding tuple
+`(format, compression_name, bits_per_sample, sample_format, storage, predictor)`.
+CFA is reported for the representative but does not split an encoding group.
+It records passing and golden counts, all golden paths, and the lowest-pixel
+passing representative, breaking ties by file size and path. `coverage` is
 `covered`, `missing`, or `redundant`; the command reports those counts in CI but
 fails if a golden path is absent or is not fully passing.
+
+Generate a golden manifest with one representative per encoding group:
+
+```bash
+pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
+  --selected-out crates/decoder-tracker/golden/selected-manifest.csv
+```
+
+The current generated set contains 45 lossless encoding groups. Lossy Sony
+ARW2 and IIQ nonlinear/Sv2 paths are excluded. Codec identifiers that can carry
+either lossy or lossless streams, currently DNG JPEG XL and WebP, are treated as
+not proven lossless and therefore remain ineligible until stream-level mode
+detection is implemented.
 
 ## Reading failures
 

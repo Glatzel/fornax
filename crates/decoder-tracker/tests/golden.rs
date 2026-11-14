@@ -1,6 +1,6 @@
 use decoder_tracker::golden::{
     GoldenCsv, GoldenRow, build_golden_coverage, check_golden_csv, decode_golden, read_golden_csv,
-    write_golden_coverage_csv, write_golden_csv,
+    write_golden_coverage_csv, write_golden_csv, write_golden_selection_csv,
 };
 use decoder_tracker::manifest::derive_identity;
 use decoder_tracker::model::{BaselineRow, ManifestRow, status_for_stages};
@@ -56,6 +56,7 @@ fn baseline_row(
         cfa: "RGGB".into(),
         compression_id: Some(7),
         compression_name: compression_name.into(),
+        compression_lossless: Some(1),
         storage: "tiles".into(),
         bits_per_sample: Some(bits),
         sample_format: "integer".into(),
@@ -272,6 +273,18 @@ fn golden_coverage_reports_missing_groups() {
 }
 
 #[test]
+fn golden_coverage_excludes_non_lossless_encodings() {
+    let lossy = manifest_row("Sony/Cam/lossy.ARW", 10, 'a');
+    let mut row = baseline_row(&lossy, "sony-arw2", 12, true);
+    row.compression_lossless = Some(0);
+
+    let report = build_golden_coverage(&[row], std::slice::from_ref(&lossy), &[]).unwrap();
+
+    assert!(report.rows.is_empty());
+    assert_eq!(report.summary.missing, 0);
+}
+
+#[test]
 fn golden_coverage_rejects_absent_or_failed_golden_rows() {
     let absent = manifest_row("Canon/Cam/absent.DNG", 10, 'a');
     let failed = manifest_row("Canon/Cam/failed.DNG", 20, 'b');
@@ -320,11 +333,71 @@ fn golden_coverage_csv_is_sorted_and_includes_debug_fields() {
     let text = std::str::from_utf8(&bytes).unwrap();
 
     assert!(text.starts_with(
-        "format,compression_name,compression_id,bits_per_sample,sample_format,storage,predictor,cfa,coverage,passing_count,golden_count,golden_paths,representative_path,representative_camera,representative_size,representative_width,representative_height\n"
+        "format,compression_name,compression_lossless,compression_id,bits_per_sample,sample_format,storage,predictor,cfa,coverage,passing_count,golden_count,golden_paths,representative_path,representative_camera,representative_size,representative_sha256,representative_width,representative_height\n"
     ));
     assert!(text.contains(
-        "DNG,lossless-jpeg,7,14,integer,tiles,1,RGGB,covered,1,1,Canon/Cam/file.DNG,Canon/Cam/file.DNG,Canon Cam,10,64,32"
+        "DNG,lossless-jpeg,1,7,14,integer,tiles,1,RGGB,covered,1,1,Canon/Cam/file.DNG,Canon/Cam/file.DNG,Canon Cam,10,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,64,32"
     ));
+}
+
+#[test]
+fn golden_coverage_groups_by_encoding_and_uses_lowest_pixel_count() {
+    let large_pixels = manifest_row("Canon/Cam/large-pixels.DNG", 10, 'a');
+    let small_pixels = manifest_row("Canon/Cam/small-pixels.DNG", 20, 'b');
+    let other_cfa = manifest_row("Canon/Cam/other-cfa.DNG", 5, 'c');
+    let mut large = baseline_row(&large_pixels, "lossless-jpeg", 14, true);
+    large.width = 4000;
+    large.height = 3000;
+    let mut small = baseline_row(&small_pixels, "lossless-jpeg", 14, true);
+    small.width = 1200;
+    small.height = 800;
+    let mut other = baseline_row(&other_cfa, "lossless-jpeg", 14, true);
+    other.width = 1600;
+    other.height = 1000;
+    other.cfa = "BGGR".into();
+    let baseline = vec![large, small, other];
+    let manifest = vec![large_pixels.clone(), small_pixels, other_cfa];
+
+    let report =
+        build_golden_coverage(&baseline, &manifest, std::slice::from_ref(&large_pixels)).unwrap();
+
+    assert_eq!(report.rows.len(), 1);
+    assert_eq!(report.rows[0].passing_count, 3);
+    assert_eq!(
+        report.rows[0].representative_path,
+        "Canon/Cam/small-pixels.DNG"
+    );
+    assert_eq!(report.rows[0].representative_width, 1200);
+    assert_eq!(report.rows[0].representative_height, 800);
+}
+
+#[test]
+fn golden_selection_manifest_writes_one_lowest_pixel_representative_per_encoding() {
+    let first = manifest_row("Canon/Cam/first.DNG", 10, 'a');
+    let second = manifest_row("Canon/Cam/second.DNG", 20, 'b');
+    let mut first_row = baseline_row(&first, "lossless-jpeg", 14, true);
+    first_row.width = 2000;
+    first_row.height = 1000;
+    let mut second_row = baseline_row(&second, "lossless-jpeg", 14, true);
+    second_row.width = 1000;
+    second_row.height = 500;
+    second_row.cfa = "BGGR".into();
+    let report = build_golden_coverage(
+        &[first_row, second_row],
+        &[first.clone(), second.clone()],
+        &[],
+    )
+    .unwrap();
+
+    let bytes = write_golden_selection_csv(&report.rows).unwrap();
+
+    assert_eq!(
+        std::str::from_utf8(&bytes).unwrap(),
+        format!(
+            "path,size,sha256\nCanon/Cam/second.DNG,20,{}\n",
+            "b".repeat(64)
+        )
+    );
 }
 
 #[test]

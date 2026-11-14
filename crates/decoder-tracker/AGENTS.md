@@ -25,7 +25,7 @@ decoder-tracker diff --selected F [--out F] BASELINE CANDIDATE
 decoder-tracker update [--baseline F] --candidate F [--out F]
 decoder-tracker hash [--manifest F] [--out F | --check F]
 decoder-tracker golden-coverage [--baseline F] [--corpus-manifest F]
-    [--golden F] [--out F]
+    [--golden F] [--out F] [--selected-out F]
 ```
 
 Use `pixi run -e dev cargo run -q -p decoder-tracker -- <subcommand>` for the
@@ -173,8 +173,8 @@ Follow the deliberately bounded procedure in
 - `data/manifest.csv` identifies every corpus path, size, and LFS SHA-256.
 - `data/baseline.csv` is the accepted full result set, including source
   encoding metadata for every successfully decoded row. Do not hand-edit it.
-- `golden/selected-manifest.csv` is the pointer-only 30-file fixed set for
-  deterministic decode-output checks and decoder benchmarks.
+- `golden/selected-manifest.csv` is the pointer-only 45-file lossless encoding
+  coverage set for deterministic decode-output checks and decoder benchmarks.
 - `golden/decode-hashes.csv` contains SHA-256 values for raw samples, cropped
   samples, process metadata, and DNG metadata. Generate it with `hash --out`;
   never hand-edit it.
@@ -188,8 +188,11 @@ Follow the deliberately bounded procedure in
   from `runner:*` status before changing the baseline.
 - Golden cases must be known passing rows. A failed decode is not a valid
   golden case and must not cause partial output.
-- `golden-coverage` reports encoding groups absent from golden and golden
-  groups that duplicate the same decoder path. It never edits the golden set.
+- `golden-coverage` reports lossless encoding groups absent from golden and
+  golden groups that duplicate the same decoder path. Its encoding key excludes
+  CFA, and its representative is the lowest-pixel passing file.
+  `--selected-out` writes one representative per encoding group but never
+  replaces the golden manifest implicitly.
 
 ## Validate tracker changes
 

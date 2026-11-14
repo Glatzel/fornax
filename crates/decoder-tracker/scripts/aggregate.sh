@@ -68,7 +68,7 @@ render_sql() {
     printf '%s' "$sql"
 }
 
-expected_header='status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height'
+expected_header='status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,compression_lossless,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height'
 legacy_header='status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa'
 for shard in "${shards[@]}"; do
     header="$(head -n 1 "$shard")"

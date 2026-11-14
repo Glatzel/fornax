@@ -4,8 +4,8 @@
 
 **Goal:** Replace the DNG-only corpus metadata sidecar with normalized
 source-encoding metadata in the canonical all-format decoder baseline, then
-use that metadata to audit golden-corpus coverage without changing the golden
-set in this task.
+use that metadata to rebuild the golden corpus with one lowest-pixel
+representative per known-lossless encoding group.
 
 **Architecture:** Each native decoder exposes a small, codec-independent
 `EncodingMetadata` value backed by its already parsed source layout. The
@@ -19,7 +19,7 @@ and Pixi-managed tooling.
 
 **Spec:** User-approved decisions in the `chore/full-corpus-metadata` request:
 merge metadata into the CSV baseline, retain all corpus rows, and audit golden
-coverage only.
+coverage before selecting one lossless file per encoding group.
 
 ## Global Constraints
 
@@ -33,8 +33,8 @@ coverage only.
 - Keep all 2,020 corpus keys in the baseline. Formats without a native decoder
   keep the row with `compression_name=unknown`, `storage=unknown`, and empty
   optional fields.
-- Do not modify `golden/selected-manifest.csv` or
-  `golden/decode-hashes.csv` in this task.
+- Generate the golden manifest and hashes from known-lossless encoding groups,
+  retaining one representative per group.
 - Do not edit `TODO.md`; this is an explicit maintenance request rather than a
   bracketed backlog item.
 
@@ -205,7 +205,7 @@ git commit -m "feat: expose source encoding metadata"
 - Produces: the canonical baseline header:
 
 ```csv
-status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height
+status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,compression_lossless,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height
 ```
 
 - [x] **Step 1: Write failing baseline schema and stage tests**
@@ -267,13 +267,14 @@ git commit -m "refactor: merge encoding metadata into corpus baseline"
 ```text
 decoder-tracker golden-coverage \
   --baseline FILE --corpus-manifest FILE --golden FILE [--out FILE]
+  [--selected-out FILE]
 ```
 
 - [x] **Step 1: Write failing golden coverage tests**
 
-Test groups by
-`(format, compression_name, bits_per_sample, sample_format, storage, predictor, cfa)`,
-smallest passing representative selection, missing golden coverage, duplicate
+Test groups by the lossless encoding tuple
+`(format, compression_name, bits_per_sample, sample_format, storage, predictor)`,
+lowest-pixel representative selection, missing golden coverage, duplicate
 golden groups, and rejection of absent or non-passing golden keys.
 
 - [x] **Step 2: Run the tests and verify the command is missing**
@@ -287,8 +288,9 @@ Expected: compile or assertion failure because the command does not exist.
 - [x] **Step 3: Implement the deterministic CSV audit and summary**
 
 Write `target/decoder-tracker/golden-coverage.csv` by default. Emit passing
-counts, golden counts, golden paths, and the smallest passing representative.
-Do not write or modify the golden manifest.
+counts, golden counts, golden paths, and the lowest-pixel passing
+representative. `--selected-out` emits one representative per
+`compression_lossless=1` encoding group.
 
 - [x] **Step 4: Re-run tracker tests and inspect a generated report**
 
@@ -396,6 +398,10 @@ reviewed schema migration, and the second must report unchanged.
 - All formats share normalized fields. Numeric IDs are source-native and scoped
   by `format`; `compression_name` disambiguates variants.
 - Formats without a decoder retain a baseline row with unknown metadata.
-- This task audits golden coverage only. Golden selection and hashes require a
-  later reviewed change.
+- The final golden set contains one lowest-pixel representative for each
+  known-lossless encoding group. CFA does not split an encoding group. Known
+  lossy and ambiguous codecs are excluded.
+- `compression_lossless` is a `0`/`1` baseline column for constructed decoders.
+  It is empty for unknown/undecoded rows. Ambiguous JPEG XL and WebP streams are
+  conservatively classified as not proven lossless.
 - No new dependency or workflow is introduced.

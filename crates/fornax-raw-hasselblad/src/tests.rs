@@ -65,6 +65,7 @@ fn encoding_metadata_distinguishes_hasselblad_compression() {
             }))
         );
         assert_eq!(encoding.compression_name, expected_name);
+        assert!(encoding.lossless);
         assert_eq!(encoding.storage, "strips");
         assert_eq!(encoding.bits_per_sample, Some(16));
         assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));

@@ -138,6 +138,7 @@ fn encoding_metadata_for_layout(layout: &RawLayout) -> EncodingMetadata {
     EncodingMetadata {
         compression_id: Some(u32::from(layout.compression_id)),
         compression_name: compression_name(layout),
+        lossless: true,
         storage: "strips",
         bits_per_sample: Some(match layout.kind {
             container::LayoutKind::Packed { bits, .. }

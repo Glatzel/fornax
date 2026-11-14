@@ -25,6 +25,7 @@ pub struct StageRow {
     pub cfa: String,
     pub compression_id: Option<u32>,
     pub compression_name: String,
+    pub compression_lossless: Option<u8>,
     pub storage: String,
     pub bits_per_sample: Option<u16>,
     pub sample_format: String,
@@ -48,6 +49,7 @@ impl Default for StageRow {
             cfa: "unknown".to_owned(),
             compression_id: None,
             compression_name: "unknown".to_owned(),
+            compression_lossless: None,
             storage: "unknown".to_owned(),
             bits_per_sample: None,
             sample_format: String::new(),
@@ -64,6 +66,7 @@ impl StageRow {
     pub fn with_encoding(mut self, encoding: EncodingMetadata) -> Self {
         self.compression_id = encoding.compression_id;
         self.compression_name = encoding.compression_name.to_owned();
+        self.compression_lossless = Some(u8::from(encoding.lossless));
         self.storage = encoding.storage.to_owned();
         self.bits_per_sample = encoding.bits_per_sample;
         self.sample_format = encoding

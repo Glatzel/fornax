@@ -15,6 +15,7 @@ COPY (
         cfa::VARCHAR AS cfa,
         NULL::INTEGER AS compression_id,
         NULL::VARCHAR AS compression_name,
+        NULL::INTEGER AS compression_lossless,
         NULL::VARCHAR AS storage,
         NULL::INTEGER AS bits_per_sample,
         NULL::VARCHAR AS sample_format,

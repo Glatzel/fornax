@@ -112,6 +112,7 @@ fn encoding_metadata_distinguishes_fuji_compression_families() {
 
         assert_eq!(encoding.compression_id, None);
         assert_eq!(encoding.compression_name, expected_name);
+        assert!(encoding.lossless);
         assert_eq!(encoding.storage, "raf-block");
         assert_eq!(encoding.bits_per_sample, Some(14));
         assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));

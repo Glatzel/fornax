@@ -154,9 +154,9 @@ pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 The committed corpus metadata manifest is `data/manifest.csv`; decoder pass
 columns, outcomes, and source encoding fields are in `data/baseline.csv`.
 Encoding fields identify the exact codec variant, strip/tile/block storage,
-source bit depth, sample format, predictor, and chunk geometry for every
-successfully decoded row. Formats without a native decoder remain as rows with
-unknown encoding fields. DuckDB CLI owns plan-time manifest filtering and the
+losslessness, source bit depth, sample format, predictor, and chunk geometry for
+every successfully decoded row. Formats without a native decoder remain as rows
+with unknown encoding fields. DuckDB CLI owns plan-time manifest filtering and the
 shell-driven merge, selected-key diff, and baseline upsert path. Stage columns
 remain numeric for SQL; a leading emoji `status` column makes pass/fail
 visually scannable. `update-badge.sh` joins the
@@ -167,12 +167,14 @@ schema, stage semantics, glob/sharding rules, workflow, and update procedure
 are documented in
 [docs/decoder/corpus.md](../../docs/decoder/corpus.md).
 
-`golden/selected-manifest.csv` and `golden/decode-hashes.csv` form a 30-file
-deterministic decode-output gate shared by decoder benchmarks. The set covers
-all eight implemented container families and both accepted 3FR compression
-families. `golden-coverage` reports missing and redundant encoding groups and
-names the smallest passing representative for each decoder path without
-changing the golden set. Run `hash --check` in release mode so full RAW decodes
+`golden/selected-manifest.csv` and `golden/decode-hashes.csv` form a 45-file
+lossless deterministic decode-output gate shared by decoder benchmarks. The set
+contains one lowest-pixel representative per known-lossless encoding group and
+covers all eight implemented container families. `golden-coverage` reports
+missing and redundant lossless encoding groups and names the lowest-pixel
+passing representative for each decoder path.
+`--selected-out` can emit one representative per group without changing the
+committed golden set implicitly. Run `hash --check` in release mode so full RAW decodes
 complete in bounded CI time. It materializes only those selected payloads and
 verifies raw samples, cropped samples, process metadata, and DNG metadata
 against the committed hashes. These files are generated and must not be

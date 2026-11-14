@@ -26,6 +26,7 @@ SELECT
     candidate.cfa::VARCHAR AS cfa,
     candidate.compression_id::INTEGER AS compression_id,
     candidate.compression_name::VARCHAR AS compression_name,
+    candidate.compression_lossless::INTEGER AS compression_lossless,
     candidate.storage::VARCHAR AS storage,
     candidate.bits_per_sample::INTEGER AS bits_per_sample,
     candidate.sample_format::VARCHAR AS sample_format,
@@ -52,6 +53,7 @@ SELECT
     baseline.cfa AS before_cfa,
     baseline.compression_id::INTEGER AS before_compression_id,
     baseline.compression_name AS before_compression_name,
+    baseline.compression_lossless::INTEGER AS before_compression_lossless,
     baseline.storage AS before_storage,
     baseline.bits_per_sample::INTEGER AS before_bits_per_sample,
     baseline.sample_format AS before_sample_format,
@@ -70,6 +72,7 @@ SELECT
     NULL::VARCHAR AS after_cfa,
     NULL::INTEGER AS after_compression_id,
     NULL::VARCHAR AS after_compression_name,
+    NULL::INTEGER AS after_compression_lossless,
     NULL::VARCHAR AS after_storage,
     NULL::INTEGER AS after_bits_per_sample,
     NULL::VARCHAR AS after_sample_format,
@@ -98,6 +101,7 @@ SELECT
     NULL::VARCHAR AS before_cfa,
     NULL::INTEGER AS before_compression_id,
     NULL::VARCHAR AS before_compression_name,
+    NULL::INTEGER AS before_compression_lossless,
     NULL::VARCHAR AS before_storage,
     NULL::INTEGER AS before_bits_per_sample,
     NULL::VARCHAR AS before_sample_format,
@@ -116,6 +120,7 @@ SELECT
     candidate.cfa AS after_cfa,
     candidate.compression_id AS after_compression_id,
     candidate.compression_name AS after_compression_name,
+    candidate.compression_lossless AS after_compression_lossless,
     candidate.storage AS after_storage,
     candidate.bits_per_sample AS after_bits_per_sample,
     candidate.sample_format AS after_sample_format,
@@ -144,6 +149,7 @@ SELECT
     baseline.cfa AS before_cfa,
     baseline.compression_id::INTEGER AS before_compression_id,
     baseline.compression_name AS before_compression_name,
+    baseline.compression_lossless::INTEGER AS before_compression_lossless,
     baseline.storage AS before_storage,
     baseline.bits_per_sample::INTEGER AS before_bits_per_sample,
     baseline.sample_format AS before_sample_format,
@@ -162,6 +168,7 @@ SELECT
     candidate.cfa AS after_cfa,
     candidate.compression_id AS after_compression_id,
     candidate.compression_name AS after_compression_name,
+    candidate.compression_lossless AS after_compression_lossless,
     candidate.storage AS after_storage,
     candidate.bits_per_sample AS after_bits_per_sample,
     candidate.sample_format AS after_sample_format,
@@ -183,6 +190,7 @@ WHERE
     OR baseline.cfa::VARCHAR IS DISTINCT FROM candidate.cfa
     OR baseline.compression_id::INTEGER IS DISTINCT FROM candidate.compression_id
     OR baseline.compression_name::VARCHAR IS DISTINCT FROM candidate.compression_name
+    OR baseline.compression_lossless::INTEGER IS DISTINCT FROM candidate.compression_lossless
     OR baseline.storage::VARCHAR IS DISTINCT FROM candidate.storage
     OR baseline.bits_per_sample::INTEGER IS DISTINCT FROM candidate.bits_per_sample
     OR baseline.sample_format::VARCHAR IS DISTINCT FROM candidate.sample_format

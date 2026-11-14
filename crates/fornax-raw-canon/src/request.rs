@@ -94,6 +94,7 @@ impl CanonCrxHeader {
         EncodingMetadata {
             compression_id: None,
             compression_name: "canon-lossless-crx",
+            lossless: true,
             storage: "bmff-sample",
             bits_per_sample: Some(u16::from(self.bit_depth)),
             sample_format: Some(EncodingSampleFormat::Integer),
@@ -120,6 +121,7 @@ mod tests {
 
         assert_eq!(encoding.compression_id, None);
         assert_eq!(encoding.compression_name, "canon-lossless-crx");
+        assert!(encoding.lossless);
         assert_eq!(encoding.storage, "bmff-sample");
         assert_eq!(encoding.bits_per_sample, Some(14));
         assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));

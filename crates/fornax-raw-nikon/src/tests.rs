@@ -173,6 +173,7 @@ fn encoding_metadata_distinguishes_nikon_layout_modes() {
 
         assert_eq!(encoding.compression_id, Some(u32::from(compression_id)));
         assert_eq!(encoding.compression_name, expected_name);
+        assert!(encoding.lossless);
         assert_eq!(encoding.storage, "strips");
         assert_eq!(encoding.rows_per_strip, Some(8));
         assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));

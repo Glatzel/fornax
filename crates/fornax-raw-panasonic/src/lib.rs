@@ -206,6 +206,7 @@ fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetada
             container::Family::Unpacked12 => "panasonic-unpacked12",
             container::Family::Packed12Control => "panasonic-packed12-control",
         },
+        lossless: true,
         storage: "single-chunk",
         bits_per_sample: Some(layout.bits),
         sample_format: Some(EncodingSampleFormat::Integer),

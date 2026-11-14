@@ -67,6 +67,7 @@ fn golden_coverage_command_is_exposed() {
         .stdout(predicates::str::contains("--baseline"))
         .stdout(predicates::str::contains("--corpus-manifest"))
         .stdout(predicates::str::contains("--golden"))
+        .stdout(predicates::str::contains("--selected-out"))
         .stdout(predicates::str::contains("--out"));
 }
 
@@ -319,6 +320,7 @@ fn duckdb_aggregate_script_merges_and_diffs_without_rust() {
             cfa: "RGGB".into(),
             compression_id: Some(7),
             compression_name: "lossless-jpeg".into(),
+            compression_lossless: Some(1),
             storage: "tiles".into(),
             bits_per_sample: Some(14),
             sample_format: "integer".into(),
@@ -444,6 +446,7 @@ fn duckdb_aggregate_script_migrates_a_complete_legacy_baseline_schema() {
         cfa: "RGGB".into(),
         compression_id: Some(7),
         compression_name: "lossless-jpeg".into(),
+        compression_lossless: Some(1),
         storage: "tiles".into(),
         bits_per_sample: Some(14),
         sample_format: "integer".into(),
@@ -534,6 +537,7 @@ fn duckdb_badge_script_groups_missing_baseline_formats_by_vendor() {
             cfa: "RGGB".into(),
             compression_id: Some(7),
             compression_name: "lossless-jpeg".into(),
+            compression_lossless: Some(1),
             storage: "tiles".into(),
             bits_per_sample: Some(14),
             sample_format: "integer".into(),
@@ -558,6 +562,7 @@ fn duckdb_badge_script_groups_missing_baseline_formats_by_vendor() {
             cfa: "unknown".into(),
             compression_id: None,
             compression_name: "unknown".into(),
+            compression_lossless: None,
             storage: "unknown".into(),
             bits_per_sample: None,
             sample_format: String::new(),

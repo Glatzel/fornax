@@ -85,12 +85,17 @@ fn sony_private_compression_ids_remain_vendor_owned() {
 
 #[test]
 fn encoding_metadata_distinguishes_sony_compression_families() {
-    for (compression, expected_id, expected_name) in [
-        (CompressionFamily::Uncompressed, 1, "uncompressed"),
-        (CompressionFamily::Arw1, 32_767, "sony-arw1"),
-        (CompressionFamily::Arw2, 32_767, "sony-arw2"),
-        (CompressionFamily::Arw6, 32_766, "sony-arw6"),
-        (CompressionFamily::SonyLosslessJpeg, 7, "sony-lossless-jpeg"),
+    for (compression, expected_id, expected_name, lossless) in [
+        (CompressionFamily::Uncompressed, 1, "uncompressed", true),
+        (CompressionFamily::Arw1, 32_767, "sony-arw1", true),
+        (CompressionFamily::Arw2, 32_767, "sony-arw2", false),
+        (CompressionFamily::Arw6, 32_766, "sony-arw6", true),
+        (
+            CompressionFamily::SonyLosslessJpeg,
+            7,
+            "sony-lossless-jpeg",
+            true,
+        ),
     ] {
         let layout = RawLayout {
             compression,
@@ -107,6 +112,7 @@ fn encoding_metadata_distinguishes_sony_compression_families() {
 
         assert_eq!(encoding.compression_id, Some(expected_id));
         assert_eq!(encoding.compression_name, expected_name);
+        assert_eq!(encoding.lossless, lossless);
         assert_eq!(encoding.storage, "tiles");
         assert_eq!(encoding.bits_per_sample, Some(14));
         assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));

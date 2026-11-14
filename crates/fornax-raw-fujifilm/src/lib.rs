@@ -311,6 +311,7 @@ fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetada
             container::Compression::Words => "fuji-words",
             container::Compression::FujiLossless => "fuji-lossless",
         },
+        lossless: true,
         storage: "raf-block",
         bits_per_sample: Some(u16::from(layout.bits)),
         sample_format: Some(EncodingSampleFormat::Integer),

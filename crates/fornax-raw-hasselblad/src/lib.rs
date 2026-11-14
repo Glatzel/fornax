@@ -254,6 +254,7 @@ fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetada
     EncodingMetadata {
         compression_id: Some(compression_id),
         compression_name,
+        lossless: true,
         storage: "strips",
         bits_per_sample: Some(16),
         sample_format: Some(EncodingSampleFormat::Integer),

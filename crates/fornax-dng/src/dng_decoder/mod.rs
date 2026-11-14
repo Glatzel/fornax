@@ -330,6 +330,7 @@ where
     EncodingMetadata {
         compression_id: compression_id.map(u32::from),
         compression_name: compression_id.map_or("unknown", compression_name),
+        lossless: compression_id.is_some_and(compression_lossless),
         storage,
         bits_per_sample: optional_u16(metadata, TiffTag::BitsPerSample),
         sample_format,
@@ -358,6 +359,10 @@ const fn compression_name(id: u16) -> &'static str {
         50_002 | 52_546 => "jpeg-xl",
         _ => "unknown",
     }
+}
+
+const fn compression_lossless(id: u16) -> bool {
+    matches!(id, 1 | 5 | 7 | 8 | 32_773 | 32_946 | 34_925 | 50_000)
 }
 
 fn byte_order(source: &[u8]) -> ByteOrder {
@@ -1178,6 +1183,7 @@ mod tests {
 
         assert_eq!(encoding.compression_id, Some(7));
         assert_eq!(encoding.compression_name, "lossless-jpeg");
+        assert!(encoding.lossless);
         assert_eq!(encoding.storage, "tiles");
         assert_eq!(encoding.bits_per_sample, Some(14));
         assert_eq!(
@@ -1202,6 +1208,7 @@ mod tests {
 
         assert_eq!(encoding.compression_id, Some(8));
         assert_eq!(encoding.compression_name, "deflate");
+        assert!(encoding.lossless);
         assert_eq!(encoding.storage, "strips");
         assert_eq!(encoding.bits_per_sample, Some(32));
         assert_eq!(
@@ -1212,6 +1219,16 @@ mod tests {
         assert_eq!(encoding.rows_per_strip, Some(8));
         assert_eq!(encoding.tile_width, None);
         assert_eq!(encoding.tile_height, None);
+    }
+
+    #[test]
+    fn encoding_metadata_marks_known_dng_lossy_and_ambiguous_codecs() {
+        let mut metadata = directory_with_strips(32, 16, 14, 128);
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(34_892));
+        assert!(!encoding_metadata_from_lookup(&metadata).lossless);
+
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(52_546));
+        assert!(!encoding_metadata_from_lookup(&metadata).lossless);
     }
 
     fn ifd_tag_count(source: &[u8], tag: TiffTag) -> usize {

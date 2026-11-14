@@ -20,6 +20,7 @@ SELECT
     cfa::VARCHAR AS cfa,
     compression_id::INTEGER AS compression_id,
     compression_name::VARCHAR AS compression_name,
+    compression_lossless::INTEGER AS compression_lossless,
     storage::VARCHAR AS storage,
     bits_per_sample::INTEGER AS bits_per_sample,
     sample_format::VARCHAR AS sample_format,
@@ -46,6 +47,7 @@ COPY (
         cfa,
         compression_id,
         compression_name,
+        compression_lossless,
         storage,
         bits_per_sample,
         sample_format,
@@ -114,6 +116,7 @@ SELECT
         WHERE raw_mosaic_pass = 1
             AND (
                 coalesce(compression_name, '') IN ('', 'unknown')
+                OR compression_lossless NOT IN (0, 1)
                 OR coalesce(storage, '') IN ('', 'unknown')
                 OR bits_per_sample IS NULL
                 OR bits_per_sample <= 0

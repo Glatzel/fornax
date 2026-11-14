@@ -212,16 +212,17 @@ impl IDecoderEncoding for IiqImage {
 }
 
 fn encoding_metadata_for_layout(layout: &RawLayout) -> EncodingMetadata {
-    let (compression_id, compression_name, storage) = match layout.compression {
-        container::Compression::Uncompressed => (0, "iiq-uncompressed", "single-chunk"),
-        container::Compression::Lossless14 => (3, "iiq-lossless14", "iiq-rows"),
-        container::Compression::Nonlinear => (5, "iiq-nonlinear", "iiq-rows"),
-        container::Compression::Sv2 => (6, "iiq-sv2", "iiq-rows"),
-        container::Compression::Lossless16 => (8, "iiq-lossless16", "iiq-rows"),
+    let (compression_id, compression_name, lossless, storage) = match layout.compression {
+        container::Compression::Uncompressed => (0, "iiq-uncompressed", true, "single-chunk"),
+        container::Compression::Lossless14 => (3, "iiq-lossless14", true, "iiq-rows"),
+        container::Compression::Nonlinear => (5, "iiq-nonlinear", false, "iiq-rows"),
+        container::Compression::Sv2 => (6, "iiq-sv2", false, "iiq-rows"),
+        container::Compression::Lossless16 => (8, "iiq-lossless16", true, "iiq-rows"),
     };
     EncodingMetadata {
         compression_id: Some(compression_id),
         compression_name,
+        lossless,
         storage,
         bits_per_sample: Some(layout.compression.bits()),
         sample_format: Some(EncodingSampleFormat::Integer),

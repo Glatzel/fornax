@@ -91,9 +91,15 @@ pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --out target/decoder-tracker/golden-coverage.csv
 ```
 
-The report groups fully passing rows by format, compression name, bit depth,
-sample format, storage, predictor, and CFA. Missing or redundant groups are
-review signals, not automatic permission to edit the golden set.
+The report groups fully passing rows with `compression_lossless=1` by format,
+compression name, bit depth, sample format, storage, and predictor. CFA is
+metadata on the representative, not part of the encoding key. The representative
+is the lowest-pixel passing file, with file size and path as deterministic
+tie-breakers. Known-lossy and ambiguous streams are excluded.
+
+Use `--selected-out FILE` to write one representative per encoding group.
+Review the result and regenerate golden hashes before replacing the committed
+golden manifest.
 
 ## Manual baseline update
 

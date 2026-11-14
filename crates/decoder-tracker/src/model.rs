@@ -3,7 +3,7 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 pub const MANIFEST_HEADER: [&str; 3] = ["path", "size", "sha256"];
-pub const BASELINE_HEADER: [&str; 22] = [
+pub const BASELINE_HEADER: [&str; 23] = [
     "status",
     "camera",
     "format",
@@ -19,6 +19,7 @@ pub const BASELINE_HEADER: [&str; 22] = [
     "cfa",
     "compression_id",
     "compression_name",
+    "compression_lossless",
     "storage",
     "bits_per_sample",
     "sample_format",
@@ -121,6 +122,7 @@ pub struct BaselineRow {
     pub cfa: String,
     pub compression_id: Option<u32>,
     pub compression_name: String,
+    pub compression_lossless: Option<u8>,
     pub storage: String,
     pub bits_per_sample: Option<u16>,
     pub sample_format: String,
@@ -193,6 +195,9 @@ impl BaselineRow {
         if self.raw_mosaic_pass == 1
             && (self.compression_name.is_empty()
                 || self.compression_name == "unknown"
+                || !self
+                    .compression_lossless
+                    .is_some_and(|lossless| matches!(lossless, 0 | 1))
                 || self.storage.is_empty()
                 || self.storage == "unknown"
                 || self.bits_per_sample.is_none_or(|bits| bits == 0)

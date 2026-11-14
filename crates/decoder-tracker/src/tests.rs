@@ -63,6 +63,7 @@ fn baseline_row(key: &BaselineKey, handoff: u8) -> BaselineRow {
         cfa: "RGGB".into(),
         compression_id: Some(7),
         compression_name: "lossless-jpeg".into(),
+        compression_lossless: Some(1),
         storage: "tiles".into(),
         bits_per_sample: Some(14),
         sample_format: "integer".into(),
@@ -384,6 +385,7 @@ impl IDecoderEncoding for RawFailureDecoder {
         EncodingMetadata {
             compression_id: Some(7),
             compression_name: "lossless-jpeg",
+            lossless: true,
             storage: "tiles",
             bits_per_sample: Some(14),
             sample_format: Some(EncodingSampleFormat::Integer),
@@ -402,6 +404,7 @@ fn raw_decode_failure_retains_constructed_decoder_metadata() {
     assert_eq!(row.decode_pass, 0);
     assert_eq!(row.error_kind, "raw_mosaic:unsupported");
     assert_eq!(row.compression_name, "lossless-jpeg");
+    assert_eq!(row.compression_lossless, Some(1));
     assert_eq!(row.storage, "tiles");
     assert_eq!(row.bits_per_sample, Some(14));
     assert_eq!(row.rows_per_strip, Some(171));
@@ -412,6 +415,7 @@ fn stage_row_preserves_encoding_metadata_after_construction() {
     let row = StageRow::default().with_encoding(EncodingMetadata {
         compression_id: Some(7),
         compression_name: "sony-lossless-jpeg",
+        lossless: true,
         storage: "tiles",
         bits_per_sample: Some(14),
         sample_format: Some(EncodingSampleFormat::Integer),
@@ -423,6 +427,7 @@ fn stage_row_preserves_encoding_metadata_after_construction() {
 
     assert_eq!(row.compression_id, Some(7));
     assert_eq!(row.compression_name, "sony-lossless-jpeg");
+    assert_eq!(row.compression_lossless, Some(1));
     assert_eq!(row.storage, "tiles");
     assert_eq!(row.bits_per_sample, Some(14));
     assert_eq!(row.sample_format, "integer");
@@ -448,6 +453,7 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
         cfa: "RGGB".into(),
         compression_id: Some(7),
         compression_name: "lossless-jpeg".into(),
+        compression_lossless: Some(1),
         storage: "tiles".into(),
         bits_per_sample: Some(14),
         sample_format: "integer".into(),
@@ -459,12 +465,12 @@ fn baseline_csv_is_canonical_and_rfc4180_quoted() {
     let bytes = write_baseline_csv(std::slice::from_ref(&row)).unwrap();
     let text = std::str::from_utf8(&bytes).unwrap();
     assert!(text.starts_with(
-        "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height\n"
+        "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,compression_lossless,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height\n"
     ));
     assert!(text.contains("\n✅,"));
     assert!(text.contains("\"Canon, EOS \"\"R5\"\"\""));
     assert!(text.contains(&format!(",1,1,{},1,1,", "11".repeat(32))));
-    assert!(text.ends_with(",RGGB,7,lossless-jpeg,tiles,14,integer,1,,256,256\n"));
+    assert!(text.ends_with(",RGGB,7,lossless-jpeg,1,tiles,14,integer,1,,256,256\n"));
     assert!(!text.contains('\r'));
 }
 
@@ -572,7 +578,7 @@ fn manifest_check_reports_snapshot_drift() {
 
 #[test]
 fn baseline_reader_rejects_non_boolean_stage_values() {
-    let csv = "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa\n❌,Canon Cam,DNG,Canon/Cam/IMG.DNG,2,0,,0,0,decode:bad,0,0,\n";
+    let csv = "status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,compression_lossless,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height\n❌,Canon Cam,DNG,Canon/Cam/IMG.DNG,2,0,,0,0,decode:bad,0,0,,,,,,,,,,\n";
     assert!(read_baseline_csv(csv.as_bytes()).is_err());
 }
 
@@ -605,6 +611,23 @@ fn baseline_rejects_successful_raw_decode_without_encoding_metadata() {
     row.storage = "unknown".into();
     row.bits_per_sample = None;
     row.sample_format.clear();
+    assert!(
+        write_baseline_csv(&[row])
+            .unwrap_err()
+            .to_string()
+            .contains("encoding metadata")
+    );
+}
+
+#[test]
+fn baseline_rejects_successful_raw_decode_without_lossless_flag() {
+    let key = BaselineKey {
+        camera: "Canon Cam".into(),
+        format: "DNG".into(),
+        path: "Canon/Cam/IMG.DNG".into(),
+    };
+    let mut row = baseline_row(&key, 1);
+    row.compression_lossless = None;
     assert!(
         write_baseline_csv(&[row])
             .unwrap_err()
