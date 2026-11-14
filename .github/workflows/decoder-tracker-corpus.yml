@@ -111,7 +111,7 @@ jobs:
           if-no-files-found: error
 
   shard:
-    name: shard ${{ matrix.index }}/${{ matrix.count }}
+    name: shard ${{ matrix.index }}
     needs: [plan, build]
     runs-on: ubuntu-latest
     permissions:
