@@ -37,7 +37,7 @@ format crates.
 | TIFF compression | Decode | Encode |
 | --- | --- | --- |
 | Uncompressed (`1`) | Packed integers and floats | U8/U16/U32/F32/F64 |
-| Lossless JPEG-92 (`7`) | Single-sample strips/tiles, predictors 1-7 | U8/U16 tiles |
+| Lossless JPEG-92 (`7`) | Predictors 1-7; fused predictor-1 strips/tiles | U8/U16 tiles |
 | LZW (`5`) | TIFF MSB-first words and size switches | U8/U16/U32/F32/F64 tiles |
 | Deflate (`8`) | Integer and fused float predictors | U8/U16/U32/F32/F64 tiles |
 | PackBits (`32773`) | Literal, repeat, and no-op controls | U8/U16/U32/F32/F64 tiles |
@@ -58,6 +58,9 @@ compression `52546` to the same JPEG XL decoder.
   TIFF tile rows is accepted when total sample count is unchanged. Sony's
   vendor codec separately handles its full-resolution one- and four-component
   tile layouts.
+- Predictor-1 scans use a left-aligned 64-bit reader, a 13-bit completed-
+  difference lookup, and row callbacks into the final mosaic for one or two
+  components. Other predictors and layouts retain the general scanner.
 - Lossy JPEG decoding accepts only one 8-bit component. Three-component
   `LinearRaw` payloads are outside the single-band `SampleBuffer` contract.
 - JPEG XL decoding accepts only one 8-16-bit channel. Multi-channel `LinearRaw`

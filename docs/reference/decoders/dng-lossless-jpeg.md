@@ -41,7 +41,8 @@ This reference note records pinned sources, decoder behavior, and implementation
   Cinema Camera 4K lossless DNG uses 2064x1088 JPEG geometry for 1032x2176 TIFF
   tiles.
 - Predictor-1 scans with one or two components use a fused row decoder with a
-  13-bit completed-difference lookup. The general component/predictor scanner
+  13-bit completed-difference lookup, a left-aligned 64-bit cache, and direct
+  row callbacks into the final mosaic. The general component/predictor scanner
   remains the reference and fallback.
 - Predictors 1 through 7 use the left, above, and above-left neighbors across
   the interleaved component stream. The first pixel is initialized from the

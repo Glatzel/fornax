@@ -194,6 +194,23 @@ FlashRaw:
 - Fuses predictor 1 for one or two components with direct row output.
 - Keeps the general predictor path as fallback.
 
+### Fused LJPEG follow-up
+
+Task 2 completes the remaining fast-path work with a left-aligned 64-bit reader
+and row callbacks into the final mosaic, removing full-tile staging for
+predictor-1 scans.
+
+Final single-thread ratios:
+
+| Case | Fornax | Rawler | FlashRaw | Fornax/Rawler |
+| --- | ---: | ---: | ---: | ---: |
+| 5D3 LJPEG | 266.0 ms | 272.1 ms | 95.8 ms | 0.98x |
+| iPhone SE | 107.3 ms | 80.8 ms | 40.8 ms | 1.33x |
+| Pixel 8 LJPEG | 545.4 ms | 546.4 ms | 197.8 ms | 1.00x |
+| Pentax K-5 | 159.5 ms | 168.5 ms | 77.0 ms | 0.95x |
+
+Every measured integer LJPEG case is now within the 1.5x Rawler target.
+
 ### Uncompressed
 
 Fornax:

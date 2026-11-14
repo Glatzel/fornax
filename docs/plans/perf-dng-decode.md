@@ -185,7 +185,7 @@ with more than 64 elements; small CFA/pattern fields remain
 - [x] Task 0: Add equality/headline/profile guardrails.
 - [x] Task 1: Fix Blackmagic packed-row LJPEG as an independent correctness
   change.
-- [ ] Task 2: Add the fused common-case LJPEG decoder.
+- [x] Task 2: Add the fused common-case LJPEG decoder.
 - [x] Task 3: Add non-copying TIFF source storage and remove the duplicated
   root directory.
 - [x] Task 4: Use borrowed DNG metadata during decode.
@@ -535,7 +535,7 @@ Keep the current general scanner callable from tests as
 for complete tiles, one-row tiles, odd widths, and the Blackmagic packed-row
 case.
 
-- [ ] **Step 2: Run the tests and verify the fast path is absent**
+- [x] **Step 2: Run the tests and verify the fast path is absent**
 
 Run:
 
@@ -545,7 +545,7 @@ cargo test -p fornax-codec ljpeg_fast
 
 Expected: missing fast-path symbols.
 
-- [ ] **Step 3: Implement the left-aligned bit reader**
+- [x] **Step 3: Implement the left-aligned bit reader**
 
 Use a 64-bit cache whose next bit is the most significant valid bit.
 - Refill from eight bytes when possible.
@@ -567,7 +567,7 @@ is one JPEG row high. For packed-row tiles, use Task 1’s expected-width mappin
 and a reusable row buffer. Dispatch to the general scanner for predictors 2–7,
 more than two components, restart markers, or unsupported sampling.
 
-- [ ] **Step 6: Remove per-tile whole-frame staging**
+- [x] **Step 6: Remove per-tile whole-frame staging**
 
 Replace the `decode_interleaved -> Vec<u16> -> copy_from_slice` path for
 fast-path tiles with row callbacks into the final parallel band. Keep the
@@ -620,9 +620,9 @@ files and substantially more relative to FlashRaw.
 
 Task 2 progress note: the 13-bit completed-difference lookup and predictor-1
 row fusion are implemented and verified against the general scanner. Current
-single-thread Fornax/Rawler ratios are 1.02x (5D3 LJPEG), 1.17x (iPhone SE),
-1.49x (Pixel 8), and 1.52x (Pentax). The left-aligned reader and direct
-destination staging remain open before Task 2 is complete.
+single-thread Fornax/Rawler ratios are 0.98x (5D3 LJPEG), 1.33x (iPhone SE),
+1.00x (Pixel 8), and 0.95x (Pentax). The left-aligned reader and direct
+destination staging are complete.
 
 CodSpeed's simulated run reported Sony A1 `raw_mosaic` and `cropped_mosaic`
 regressions. Single-thread walltime did not reproduce them: against `d83021b`,

@@ -52,7 +52,8 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         .par_chunks_mut(geometry.band_stride()?)
         .enumerate()
         .try_for_each(|(tile_y_index, band)| {
-            let mut decoded = vec![0_u16; expected_samples];
+            let mut decoded = Vec::new();
+            let mut row_scratch = FastRowScratch::default();
             let tile_y = tile_y_index * geometry.chunk_height;
             let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
             for tile_x_index in 0..geometry.across {
@@ -60,6 +61,31 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
                 let encoded = chunk(request.source, request.chunks[index])?;
                 let precision = u8::try_from(request.bits_per_sample)
                     .expect("lossless JPEG precision is at most 16");
+                let tile_x = tile_x_index * geometry.chunk_width;
+                let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
+                let decoded_directly = decode_into_rows_with_scratch(
+                    encoded,
+                    precision,
+                    geometry.chunk_width,
+                    geometry.chunk_height,
+                    &mut row_scratch,
+                    |row, samples| {
+                        if row < copy_height {
+                            let target_start = row * geometry.width + tile_x;
+                            let width = copy_width.min(samples.len());
+                            band[target_start..target_start + width]
+                                .copy_from_slice(&samples[..width]);
+                        }
+                        Ok(())
+                    },
+                )
+                .map_err(|detail| invalid(format!("lossless JPEG tile {index}: {detail}")))?;
+                if decoded_directly {
+                    continue;
+                }
+                if decoded.len() != expected_samples {
+                    decoded.resize(expected_samples, 0);
+                }
                 decode_into(
                     encoded,
                     geometry.chunk_width,
@@ -68,8 +94,6 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
                     &mut decoded,
                 )
                 .map_err(|detail| invalid(format!("lossless JPEG tile {index}: {detail}")))?;
-                let tile_x = tile_x_index * geometry.chunk_width;
-                let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
                 for row in 0..copy_height {
                     let source_start = row * geometry.chunk_width;
                     let target_start = row * geometry.width + tile_x;
@@ -331,14 +355,23 @@ impl HuffmanTable {
         Ok(entry.symbol)
     }
 
-    fn decode_difference(&self, bits: &mut BitReader<'_>) -> Result<i32, String> {
-        let entry = self.fast_lookup[usize::from(bits.peek(13))];
+    fn decode_fast(&self, bits: &mut FastBitReader<'_>) -> Result<u8, String> {
+        let entry = self.lookup[usize::from(bits.fill_to(16))];
+        if entry.bits == 0 {
+            return Err("lossless JPEG contains an invalid Huffman code".to_owned());
+        }
+        bits.skip_no_fill(u32::from(entry.bits));
+        Ok(entry.symbol)
+    }
+
+    fn decode_difference_fast(&self, bits: &mut FastBitReader<'_>) -> Result<i32, String> {
+        let entry = self.fast_lookup[usize::from(bits.fill_to(13))];
         if entry.full {
-            bits.skip(usize::from(entry.consumed));
+            bits.skip_no_fill(u32::from(entry.consumed));
             return Ok(i32::from(entry.difference));
         }
-        let symbol = self.decode(bits)?;
-        decode_difference(symbol, bits)
+        let symbol = self.decode_fast(bits)?;
+        decode_difference_fast(symbol, bits)
     }
 }
 
@@ -419,6 +452,82 @@ impl<'a> BitReader<'a> {
     }
 }
 
+struct FastBitReader<'a> {
+    bytes: &'a [u8],
+    position: usize,
+    cache: u64,
+    buffered_bits: u32,
+    ended: bool,
+}
+
+impl<'a> FastBitReader<'a> {
+    const fn new(bytes: &'a [u8]) -> Self {
+        Self {
+            bytes,
+            position: 0,
+            cache: 0,
+            buffered_bits: 0,
+            ended: false,
+        }
+    }
+
+    fn fill_to(&mut self, count: u8) -> u16 {
+        while self.buffered_bits < u32::from(count) {
+            let remaining = self.bytes.len().saturating_sub(self.position);
+            if self.buffered_bits == 0
+                && remaining >= 8
+                && self.bytes[self.position..self.position + 8]
+                    .iter()
+                    .all(|byte| *byte != MARKER_PREFIX)
+            {
+                self.cache = u64::from_be_bytes(
+                    self.bytes[self.position..self.position + 8]
+                        .try_into()
+                        .expect("eight bytes are available"),
+                );
+                self.position += 8;
+                self.buffered_bits = 64;
+                continue;
+            }
+            let byte = self.next_byte();
+            let shift = 64 - self.buffered_bits - 8;
+            self.cache |= u64::from(byte) << shift;
+            self.buffered_bits += 8;
+        }
+        self.peek_no_fill(u32::from(count))
+    }
+
+    fn peek_no_fill(&self, count: u32) -> u16 {
+        debug_assert!(count != 0 && count <= self.buffered_bits && count <= 16);
+        let mask = (1_u64 << count) - 1;
+        u16::try_from((self.cache >> (64 - count)) & mask).expect("peeked bits fit u16")
+    }
+
+    fn skip_no_fill(&mut self, count: u32) {
+        debug_assert!(count <= self.buffered_bits);
+        self.cache <<= count;
+        self.buffered_bits -= count;
+    }
+
+    fn next_byte(&mut self) -> u8 {
+        if self.ended || self.position >= self.bytes.len() {
+            self.ended = true;
+            return 0;
+        }
+        let byte = self.bytes[self.position];
+        if byte != MARKER_PREFIX {
+            self.position += 1;
+            return byte;
+        }
+        if self.bytes.get(self.position + 1) == Some(&0) {
+            self.position += 2;
+            return byte;
+        }
+        self.ended = true;
+        0
+    }
+}
+
 struct HeaderReader<'a> {
     bytes: &'a [u8],
     position: usize,
@@ -473,6 +582,14 @@ pub struct InterleavedJpeg {
     pub samples: Vec<u16>,
 }
 
+struct ParsedJpeg<'a> {
+    frame: Frame,
+    tables: [Option<HuffmanTable>; 4],
+    predictor: u8,
+    point_transform: u8,
+    entropy: &'a [u8],
+}
+
 pub fn decode_interleaved(
     source: &[u8],
     expected_precision: u8,
@@ -485,6 +602,40 @@ fn decode_interleaved_impl(
     expected_precision: u8,
     fast: bool,
 ) -> Result<InterleavedJpeg, String> {
+    let parsed = parse_jpeg(source, expected_precision)?;
+    let frame = parsed.frame;
+    let output_width = frame
+        .width
+        .checked_mul(frame.components.len())
+        .ok_or_else(|| "lossless JPEG output width overflow".to_owned())?;
+    let sample_count = output_width
+        .checked_mul(frame.height)
+        .ok_or_else(|| "lossless JPEG sample count overflow".to_owned())?;
+    let mut output = vec![0_u16; sample_count];
+    let fast_path = decode_scan_into(
+        parsed.entropy,
+        &frame,
+        &parsed.tables,
+        parsed.predictor,
+        parsed.point_transform,
+        output_width,
+        &mut output,
+        fast,
+    )?;
+    if parsed.point_transform != 0 && !fast_path {
+        for value in &mut output {
+            *value = value.wrapping_shl(u32::from(parsed.point_transform));
+        }
+    }
+    Ok(InterleavedJpeg {
+        width: output_width,
+        height: frame.height,
+        components: frame.components.len(),
+        samples: output,
+    })
+}
+
+fn parse_jpeg(source: &[u8], expected_precision: u8) -> Result<ParsedJpeg<'_>, String> {
     let mut header = HeaderReader::new(source);
     if header.marker()? != MARKER_SOI {
         return Err("lossless JPEG stream does not start with SOI".to_owned());
@@ -528,10 +679,6 @@ fn decode_interleaved_impl(
             frame.precision
         ));
     }
-    let output_width = frame
-        .width
-        .checked_mul(frame.components.len())
-        .ok_or_else(|| "lossless JPEG output width overflow".to_owned())?;
     if !(1..=7).contains(&predictor) {
         return Err(format!(
             "lossless JPEG predictor {predictor} is unsupported"
@@ -545,30 +692,12 @@ fn decode_interleaved_impl(
         .bytes
         .get(header.position..)
         .ok_or_else(|| "lossless JPEG entropy stream is missing".to_owned())?;
-    let sample_count = output_width
-        .checked_mul(frame.height)
-        .ok_or_else(|| "lossless JPEG sample count overflow".to_owned())?;
-    let mut output = vec![0_u16; sample_count];
-    decode_scan_into(
-        entropy,
-        &frame,
-        &tables,
+    Ok(ParsedJpeg {
+        frame,
+        tables,
         predictor,
         point_transform,
-        output_width,
-        &mut output,
-        fast,
-    )?;
-    if point_transform != 0 {
-        for value in &mut output {
-            *value = value.wrapping_shl(u32::from(point_transform));
-        }
-    }
-    Ok(InterleavedJpeg {
-        width: output_width,
-        height: frame.height,
-        components: frame.components.len(),
-        samples: output,
+        entropy,
     })
 }
 
@@ -588,6 +717,95 @@ fn decode_into(
         &decoded.samples,
         output,
     )
+}
+
+#[cfg(test)]
+fn decode_into_rows(
+    source: &[u8],
+    expected_precision: u8,
+    expected_width: usize,
+    expected_height: usize,
+    mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
+) -> Result<bool, String> {
+    let mut scratch = FastRowScratch::default();
+    decode_into_rows_with_scratch(
+        source,
+        expected_precision,
+        expected_width,
+        expected_height,
+        &mut scratch,
+        &mut sink,
+    )
+}
+
+fn decode_into_rows_with_scratch(
+    source: &[u8],
+    expected_precision: u8,
+    expected_width: usize,
+    expected_height: usize,
+    scratch: &mut FastRowScratch,
+    mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
+) -> Result<bool, String> {
+    let parsed = parse_jpeg(source, expected_precision)?;
+    if parsed.predictor != 1 || parsed.frame.components.len() > 2 {
+        return Ok(false);
+    }
+    let decoded_width = parsed
+        .frame
+        .width
+        .checked_mul(parsed.frame.components.len())
+        .ok_or_else(|| "lossless JPEG output width overflow".to_owned())?;
+    let decoded_samples = decoded_width
+        .checked_mul(parsed.frame.height)
+        .ok_or_else(|| "lossless JPEG decoded sample count overflow".to_owned())?;
+    let expected_samples = expected_width
+        .checked_mul(expected_height)
+        .ok_or_else(|| "lossless JPEG expected sample count overflow".to_owned())?;
+    if decoded_samples != expected_samples {
+        return Err(format!(
+            "lossless JPEG frame is {}x{} with sample count {decoded_samples}, expected \
+             {expected_width}x{expected_height} with sample count {expected_samples}",
+            decoded_width, parsed.frame.height
+        ));
+    }
+    if expected_width == 0 || !decoded_width.is_multiple_of(expected_width) {
+        return Err(format!(
+            "lossless JPEG frame width {decoded_width} is not an integer multiple of the \
+             expected tile width {expected_width}"
+        ));
+    }
+    let rows_per_decoded_row = decoded_width / expected_width;
+    let decoded_tables = parsed
+        .frame
+        .components
+        .iter()
+        .map(|component| {
+            parsed.tables[component.huffman_table]
+                .as_ref()
+                .ok_or_else(|| "lossless JPEG references a missing Huffman table".to_owned())
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    decode_scan_rows_with_scratch(
+        parsed.entropy,
+        &parsed.frame,
+        &decoded_tables,
+        parsed.predictor,
+        parsed.point_transform,
+        decoded_width,
+        scratch,
+        |row, samples| {
+            for (offset, expected_row) in (0..rows_per_decoded_row)
+                .map(|offset| (offset, row * rows_per_decoded_row + offset))
+            {
+                sink(
+                    expected_row,
+                    &samples[offset * expected_width..][..expected_width],
+                )?;
+            }
+            Ok(())
+        },
+    )?;
+    Ok(true)
 }
 
 fn reshape_scan_into(
@@ -764,7 +982,7 @@ fn decode_scan_into(
     output_width: usize,
     output: &mut [u16],
     fast: bool,
-) -> Result<(), String> {
+) -> Result<bool, String> {
     let mut components = Vec::with_capacity(frame.components.len());
     for component in &frame.components {
         components.push(
@@ -784,14 +1002,15 @@ fn decode_scan_into(
         ));
     }
     if fast && predictor == 1 && frame.components.len() <= 2 {
-        return decode_scan_prediction_one(
+        decode_scan_prediction_one(
             entropy,
             frame,
             &components,
             point_transform,
             output_width,
             output,
-        );
+        )?;
+        return Ok(true);
     }
     let mut bits = BitReader::new(entropy);
     let initial = 1_i32 << (frame.precision - point_transform - 1);
@@ -826,7 +1045,7 @@ fn decode_scan_into(
         }
     }
 
-    Ok(())
+    Ok(false)
 }
 
 fn decode_scan_prediction_one(
@@ -837,58 +1056,113 @@ fn decode_scan_prediction_one(
     output_width: usize,
     output: &mut [u16],
 ) -> Result<(), String> {
-    let mut bits = BitReader::new(entropy);
+    decode_scan_rows(
+        entropy,
+        frame,
+        tables,
+        1,
+        point_transform,
+        output_width,
+        |row, samples| {
+            let target = &mut output[row * output_width..][..output_width];
+            target.copy_from_slice(samples);
+            Ok(())
+        },
+    )
+}
+
+fn decode_scan_rows(
+    entropy: &[u8],
+    frame: &Frame,
+    tables: &[&HuffmanTable],
+    predictor: u8,
+    point_transform: u8,
+    output_width: usize,
+    sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
+) -> Result<(), String> {
+    let mut scratch = FastRowScratch::default();
+    decode_scan_rows_with_scratch(
+        entropy,
+        frame,
+        tables,
+        predictor,
+        point_transform,
+        output_width,
+        &mut scratch,
+        sink,
+    )
+}
+
+#[derive(Default)]
+struct FastRowScratch {
+    previous: Vec<u16>,
+    current: Vec<u16>,
+    shifted: Vec<u16>,
+}
+
+impl FastRowScratch {
+    fn resize(&mut self, width: usize, shift: bool) {
+        self.previous.resize(width, 0);
+        self.current.resize(width, 0);
+        self.previous.fill(0);
+        self.current.fill(0);
+        if shift {
+            self.shifted.resize(width, 0);
+        }
+    }
+}
+
+fn decode_scan_rows_with_scratch(
+    entropy: &[u8],
+    frame: &Frame,
+    tables: &[&HuffmanTable],
+    predictor: u8,
+    point_transform: u8,
+    output_width: usize,
+    scratch: &mut FastRowScratch,
+    mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
+) -> Result<(), String> {
+    if predictor != 1 || !matches!(frame.components.len(), 1 | 2) {
+        return Err("fast lossless JPEG row decode does not support this scan".to_owned());
+    }
+    let components = frame.components.len();
+    let expected_width = frame
+        .width
+        .checked_mul(components)
+        .ok_or_else(|| "lossless JPEG output width overflow".to_owned())?;
+    if output_width != expected_width {
+        return Err("lossless JPEG row width does not match the frame".to_owned());
+    }
     let initial = 1_i32 << (frame.precision - point_transform - 1);
     let mask = (1_u32 << frame.precision) - 1;
+    let mut bits = FastBitReader::new(entropy);
+    scratch.resize(output_width, point_transform != 0);
 
-    for (component, table) in tables.iter().enumerate() {
-        output[component] = apply_difference(initial, table.decode_difference(&mut bits)?, mask);
-    }
-
-    match frame.components.len() {
-        1 => {
-            let table = tables[0];
-            for row in 0..frame.height {
-                let first_column = usize::from(row == 0);
-                let mut prediction = if row == 0 {
-                    0
+    for row in 0..frame.height {
+        for column in 0..frame.width {
+            for (component, table) in tables.iter().enumerate() {
+                let index = column * components + component;
+                let prediction = if row == 0 && column == 0 {
+                    initial
+                } else if column == 0 {
+                    i32::from(scratch.previous[index])
                 } else {
-                    i32::from(output[row * output_width - output_width])
+                    i32::from(scratch.current[index - components])
                 };
-                for column in first_column..frame.width {
-                    let index = row * output_width + column;
-                    if column != 0 {
-                        prediction = i32::from(output[index - 1]);
-                    }
-                    output[index] =
-                        apply_difference(prediction, table.decode_difference(&mut bits)?, mask);
+                let value =
+                    apply_difference(prediction, table.decode_difference_fast(&mut bits)?, mask);
+                scratch.current[index] = value;
+                if point_transform != 0 {
+                    scratch.shifted[index] = value.wrapping_shl(u32::from(point_transform));
                 }
             }
         }
-        2 => {
-            for row in 0..frame.height {
-                let first_column = usize::from(row == 0);
-                for column in first_column..frame.width {
-                    let index = row * output_width + column * 2;
-                    let prediction = if column == 0 {
-                        i32::from(output[index - output_width])
-                    } else {
-                        i32::from(output[index - 2])
-                    };
-                    output[index] =
-                        apply_difference(prediction, tables[0].decode_difference(&mut bits)?, mask);
-
-                    let prediction = if column == 0 {
-                        i32::from(output[index - output_width + 1])
-                    } else {
-                        i32::from(output[index - 1])
-                    };
-                    output[index + 1] =
-                        apply_difference(prediction, tables[1].decode_difference(&mut bits)?, mask);
-                }
-            }
+        if point_transform == 0 {
+            sink(row, &scratch.current)?;
+        } else {
+            sink(row, &scratch.shifted)?;
         }
-        _ => unreachable!("fast prediction-one scan supports one or two components"),
+        std::mem::swap(&mut scratch.previous, &mut scratch.current);
     }
     Ok(())
 }
@@ -951,6 +1225,26 @@ fn decode_difference(symbol: u8, bits: &mut BitReader<'_>) -> Result<i32, String
             let threshold = 1_i32 << (bit_count - 1);
             Ok(if raw < threshold {
                 raw - ((1_i32 << bit_count) - 1)
+            } else {
+                raw
+            })
+        }
+        _ => Err(format!(
+            "lossless JPEG difference class {symbol} is unsupported"
+        )),
+    }
+}
+
+fn decode_difference_fast(symbol: u8, bits: &mut FastBitReader<'_>) -> Result<i32, String> {
+    match symbol {
+        0 => Ok(0),
+        16 => Ok(-32_768),
+        1..=15 => {
+            let raw = i32::from(bits.fill_to(symbol));
+            bits.skip_no_fill(u32::from(symbol));
+            let threshold = 1_i32 << (symbol - 1);
+            Ok(if raw < threshold {
+                raw - ((1_i32 << symbol) - 1)
             } else {
                 raw
             })
@@ -1140,7 +1434,8 @@ impl<'a> BitWriter<'a> {
 #[cfg(test)]
 mod tests {
     use super::{
-        BitReader, BitWriter, add_prediction, copy_tile_into, decode_interleaved_impl, predict,
+        BitReader, BitWriter, FastBitReader, add_prediction, copy_tile_into,
+        decode_interleaved_impl, decode_into_rows, predict,
     };
     use crate::SampleBuffer;
 
@@ -1219,5 +1514,65 @@ mod tests {
         writer.write(0x1234, 16);
         writer.finish();
         assert_eq!(encoded, [0x12, 0x34]);
+    }
+
+    #[test]
+    fn left_aligned_fast_reader_matches_reference_across_stuffing() {
+        let source = [0x12, 0x34, 0xff, 0x00, 0x7f, 0x80, 0x55];
+        let mut reference = BitReader::new(&source);
+        let mut fast = FastBitReader::new(&source);
+
+        for count in [1_u8, 5, 9, 13, 16, 3, 11, 2] {
+            assert_eq!(fast.fill_to(count), reference.peek(count));
+            fast.skip_no_fill(u32::from(count));
+            reference.skip(usize::from(count));
+        }
+    }
+
+    #[test]
+    fn fast_row_sink_matches_general_decode_and_maps_packed_rows() {
+        for components in [1_u8, 2] {
+            let width = 17_u16;
+            let height = 9_u16;
+            let samples = (0..usize::from(width) * usize::from(height) * usize::from(components))
+                .map(|index| ((index * 977 + 12_345) & 0x3fff) as u16)
+                .collect::<Vec<_>>();
+            let encoded =
+                super::encode_interleaved_for_test(&samples, width, height, components, 14);
+            let expected_width = usize::from(width) * usize::from(components);
+            let mut rows = Vec::new();
+            assert!(
+                decode_into_rows(
+                    &encoded,
+                    14,
+                    expected_width,
+                    usize::from(height),
+                    |row, samples| {
+                        rows.push((row, samples.to_vec()));
+                        Ok(())
+                    },
+                )
+                .unwrap()
+            );
+            assert_eq!(
+                rows.into_iter()
+                    .flat_map(|(_, samples)| samples)
+                    .collect::<Vec<_>>(),
+                decode_interleaved_impl(&encoded, 14, false)
+                    .unwrap()
+                    .samples
+            );
+        }
+
+        let packed = super::encode_interleaved_for_test(&[1, 2, 3, 4], 4, 1, 1, 16);
+        let mut rows = Vec::new();
+        assert!(
+            decode_into_rows(&packed, 16, 2, 2, |row, samples| {
+                rows.push((row, samples.to_vec()));
+                Ok(())
+            })
+            .unwrap()
+        );
+        assert_eq!(rows, vec![(0, vec![1, 2]), (1, vec![3, 4])]);
     }
 }
