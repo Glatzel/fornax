@@ -91,9 +91,12 @@ pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --out target/decoder-tracker/golden-coverage.csv
 ```
 
-The report groups fully passing rows with `compression_lossless=1` by format,
-compression name, bit depth, sample format, storage, and predictor. CFA is
-metadata on the representative, not part of the encoding key. The representative
+The report groups fully passing rows with `compression_lossless=1` by decoder
+path. DNG Lossless JPEG collapses across bit depths but keeps strip and tile
+layouts separate; uncompressed integer paths follow their actual unpacking
+kernel; floating-point widths remain separate. Non-DNG encodings retain their
+format, compression, bit-depth, sample-format, storage, and predictor keys.
+CFA is metadata on the representative, not part of the key. The representative
 is the lowest-pixel passing file, with file size and path as deterministic
 tie-breakers. Only tier-0 DNG and tier-1 ARW/CR3/NEF rows are eligible.
 Known-lossy and ambiguous streams are excluded, including Sony ARW2/ARW6,
@@ -101,7 +104,7 @@ along with deprecated Sony ARW1, Nikon mode-2 packed, mode-6 packed,
 uncompressed words, and all tier-2/3 formats. Sony ARW and Nikon NEF group
 across bit depths and select the highest available bit depth.
 
-Use `--selected-out FILE` to write one representative per encoding group.
+Use `--selected-out FILE` to write one representative per decoder path.
 Review the result and regenerate golden hashes before replacing the committed
 golden manifest.
 

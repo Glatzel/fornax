@@ -173,8 +173,8 @@ Follow the deliberately bounded procedure in
 - `data/manifest.csv` identifies every corpus path, size, and LFS SHA-256.
 - `data/baseline.csv` is the accepted full result set, including source
   encoding metadata for every successfully decoded row. Do not hand-edit it.
-- `golden/selected-manifest.csv` is the pointer-only 23-file tier-0/1 lossless
-  encoding coverage set for deterministic decode-output checks and decoder
+- `golden/selected-manifest.csv` is the pointer-only 18-file tier-0/1 lossless
+  decoder-path coverage set for deterministic decode-output checks and decoder
   benchmarks. Deprecated/lossy ARW1/ARW6/Nikon modes and tier-2/3 formats are
   excluded.
 - `golden/decode-hashes.csv` contains SHA-256 values for raw samples, cropped
@@ -190,10 +190,12 @@ Follow the deliberately bounded procedure in
   from `runner:*` status before changing the baseline.
 - Golden cases must be known passing rows. A failed decode is not a valid
   golden case and must not cause partial output.
-- `golden-coverage` reports lossless encoding groups absent from golden and
-  golden groups that duplicate the same decoder path. Its encoding key excludes
-  CFA, and its representative is the lowest-pixel passing file.
-  `--selected-out` writes one representative per encoding group but never
+- `golden-coverage` reports lossless decoder paths absent from golden and
+  golden groups that duplicate the same decoder path. DNG uses codec-kernel
+  groups while retaining LJPEG strip/tile layout; non-DNG formats retain their
+  encoding key. CFA is excluded, and the representative is the lowest-pixel
+  passing file.
+  `--selected-out` writes one representative per decoder path but never
   replaces the golden manifest implicitly.
 
 ## Validate tracker changes

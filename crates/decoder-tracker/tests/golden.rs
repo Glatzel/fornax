@@ -67,6 +67,30 @@ fn baseline_row(
     }
 }
 
+fn set_encoding(
+    row: &mut BaselineRow,
+    compression_name: &str,
+    bits: u16,
+    sample_format: &str,
+    storage: &str,
+    predictor: u16,
+) {
+    row.compression_name = compression_name.into();
+    row.compression_id = Some(match compression_name {
+        "uncompressed" => 1,
+        "lossless-jpeg" => 7,
+        "deflate" => 8,
+        _ => unreachable!("unknown test compression"),
+    });
+    row.bits_per_sample = Some(bits);
+    row.sample_format = sample_format.into();
+    row.storage = storage.into();
+    row.predictor = Some(predictor);
+    row.rows_per_strip = (storage == "strips").then_some(bits.into());
+    row.tile_width = (storage == "tiles").then_some(256);
+    row.tile_height = (storage == "tiles").then_some(256);
+}
+
 fn process_metadata(pattern: BayerPattern) -> ProcessMetadata {
     ProcessMetadata {
         active_area: Rect {
@@ -258,6 +282,221 @@ fn golden_coverage_groups_encoding_paths_and_chooses_smallest_representative() {
 }
 
 #[test]
+fn golden_coverage_groups_dng_by_actual_decoder_path() {
+    let cases = [
+        (
+            "Canon/Cam/jpeg12-strip.DNG",
+            10,
+            'a',
+            "lossless-jpeg",
+            12,
+            "integer",
+            "strips",
+            1,
+        ),
+        (
+            "Canon/Cam/jpeg14-strip.DNG",
+            20,
+            'b',
+            "lossless-jpeg",
+            14,
+            "integer",
+            "strips",
+            1,
+        ),
+        (
+            "Canon/Cam/jpeg16-strip.DNG",
+            30,
+            'c',
+            "lossless-jpeg",
+            16,
+            "integer",
+            "strips",
+            1,
+        ),
+        (
+            "Canon/Cam/jpeg12-tile.DNG",
+            40,
+            'd',
+            "lossless-jpeg",
+            12,
+            "integer",
+            "tiles",
+            1,
+        ),
+        (
+            "Canon/Cam/u8.DNG",
+            50,
+            'e',
+            "uncompressed",
+            8,
+            "integer",
+            "strips",
+            1,
+        ),
+        (
+            "Canon/Cam/u10.DNG",
+            60,
+            'f',
+            "uncompressed",
+            10,
+            "integer",
+            "strips",
+            1,
+        ),
+        (
+            "Canon/Cam/u12-strip.DNG",
+            70,
+            '0',
+            "uncompressed",
+            12,
+            "integer",
+            "strips",
+            1,
+        ),
+        (
+            "Canon/Cam/u12-tile.DNG",
+            80,
+            '1',
+            "uncompressed",
+            12,
+            "integer",
+            "tiles",
+            1,
+        ),
+        (
+            "Canon/Cam/u14.DNG",
+            90,
+            '2',
+            "uncompressed",
+            14,
+            "integer",
+            "strips",
+            1,
+        ),
+        (
+            "Canon/Cam/u16.DNG",
+            100,
+            '3',
+            "uncompressed",
+            16,
+            "integer",
+            "strips",
+            1,
+        ),
+        (
+            "Canon/Cam/def16.DNG",
+            110,
+            '4',
+            "deflate",
+            16,
+            "float",
+            "tiles",
+            34_894,
+        ),
+        (
+            "Canon/Cam/def24.DNG",
+            120,
+            '5',
+            "deflate",
+            24,
+            "float",
+            "tiles",
+            34_894,
+        ),
+        (
+            "Canon/Cam/def32.DNG",
+            130,
+            '6',
+            "deflate",
+            32,
+            "float",
+            "tiles",
+            34_894,
+        ),
+        (
+            "Canon/Cam/uf16.DNG",
+            140,
+            '7',
+            "uncompressed",
+            16,
+            "float",
+            "tiles",
+            1,
+        ),
+        (
+            "Canon/Cam/uf24.DNG",
+            150,
+            '8',
+            "uncompressed",
+            24,
+            "float",
+            "tiles",
+            1,
+        ),
+        (
+            "Canon/Cam/uf32.DNG",
+            160,
+            '9',
+            "uncompressed",
+            32,
+            "float",
+            "tiles",
+            1,
+        ),
+    ];
+    let manifest = cases
+        .iter()
+        .map(|(path, size, sha, ..)| manifest_row(path, *size, *sha))
+        .collect::<Vec<_>>();
+    let baseline = cases
+        .iter()
+        .zip(&manifest)
+        .map(
+            |((_, _, _, compression_name, bits, sample_format, storage, predictor), manifest)| {
+                let mut row = baseline_row(manifest, compression_name, *bits, true);
+                set_encoding(
+                    &mut row,
+                    compression_name,
+                    *bits,
+                    sample_format,
+                    storage,
+                    *predictor,
+                );
+                row
+            },
+        )
+        .collect::<Vec<_>>();
+
+    let report = build_golden_coverage(&baseline, &manifest, &[]).unwrap();
+    let mut representatives = report
+        .rows
+        .iter()
+        .map(|row| row.representative_path.as_str())
+        .collect::<Vec<_>>();
+    representatives.sort_unstable();
+
+    assert_eq!(
+        representatives,
+        [
+            "Canon/Cam/def16.DNG",
+            "Canon/Cam/def24.DNG",
+            "Canon/Cam/def32.DNG",
+            "Canon/Cam/jpeg12-strip.DNG",
+            "Canon/Cam/jpeg12-tile.DNG",
+            "Canon/Cam/u10.DNG",
+            "Canon/Cam/u12-strip.DNG",
+            "Canon/Cam/u14.DNG",
+            "Canon/Cam/u16.DNG",
+            "Canon/Cam/u8.DNG",
+            "Canon/Cam/uf16.DNG",
+            "Canon/Cam/uf24.DNG",
+            "Canon/Cam/uf32.DNG",
+        ]
+    );
+}
+
+#[test]
 fn golden_coverage_reports_missing_groups() {
     let raw = manifest_row("Pentax/Cam/file.DNG", 10, 'a');
     let report = build_golden_coverage(
@@ -434,10 +673,10 @@ fn golden_coverage_csv_is_sorted_and_includes_debug_fields() {
     let text = std::str::from_utf8(&bytes).unwrap();
 
     assert!(text.starts_with(
-        "format,compression_name,compression_lossless,compression_id,bits_per_sample,sample_format,storage,predictor,cfa,coverage,passing_count,golden_count,golden_paths,representative_path,representative_camera,representative_size,representative_sha256,representative_width,representative_height\n"
+        "format,compression_name,decode_path,compression_lossless,compression_id,bits_per_sample,sample_format,storage,predictor,cfa,coverage,passing_count,golden_count,golden_paths,representative_path,representative_camera,representative_size,representative_sha256,representative_width,representative_height\n"
     ));
     assert!(text.contains(
-        "DNG,lossless-jpeg,1,7,14,integer,tiles,1,RGGB,covered,1,1,Canon/Cam/file.DNG,Canon/Cam/file.DNG,Canon Cam,10,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,64,32"
+        "DNG,lossless-jpeg,dng.lossless-jpeg.tiles,1,7,14,integer,tiles,1,RGGB,covered,1,1,Canon/Cam/file.DNG,Canon/Cam/file.DNG,Canon Cam,10,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,64,32"
     ));
 }
 

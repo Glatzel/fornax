@@ -33,9 +33,8 @@ assert_eq!(mosaic.dimensions(), (2, 2));
 ## benchmark
 
 Compares the default pure-Rust decoder with benchmark-only Rawler and FlashRaw
-adapters over `decoder-tracker`'s golden corpus. The default set contains 30
-passing conventional 2x2 RGB Bayer files across eight native formats and both
-accepted Hasselblad 3FR compression families.
+adapters over `decoder-tracker`'s golden corpus. The default set contains 18
+passing conventional 2x2 RGB Bayer files across DNG, ARW, CR3, and NEF.
 
 Every input is a separate Criterion group. Fornax measures `end_to_end`,
 parse-only `decode`, `raw_mosaic`, and `f32` `cropped_mosaic` items and
