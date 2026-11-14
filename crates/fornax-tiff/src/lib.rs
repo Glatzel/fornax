@@ -19,11 +19,27 @@ pub use raster::{
 };
 pub use value::{
     Tag, Value, ValueAccessError, ValueConversionError, unsigned_scalar, unsigned_vec,
+    unsigned_vec_lookup,
 };
 pub use writer::{IntoValue, TiffDirectory, TiffWriter};
 
 /// A TIFF image file directory.
 pub type Directory = BTreeMap<Tag, Value>;
+
+/// Read-only lookup over TIFF directory metadata.
+pub trait DirectoryLookup {
+    /// Returns the value associated with `tag`.
+    fn get(&self, tag: &Tag) -> Option<&Value>;
+
+    /// Returns whether `tag` is present.
+    fn contains_key(&self, tag: &Tag) -> bool;
+}
+
+impl DirectoryLookup for Directory {
+    fn get(&self, tag: &Tag) -> Option<&Value> { BTreeMap::get(self, tag) }
+
+    fn contains_key(&self, tag: &Tag) -> bool { BTreeMap::contains_key(self, tag) }
+}
 
 /// Owned backing storage for parsed TIFF bytes.
 #[derive(Clone)]

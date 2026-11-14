@@ -257,6 +257,25 @@ or replacing the file contents while a decoder is alive. Such mutation can
 raise `SIGBUS` on access. Consumers that require protection from this behavior
 must disable the default `mmap` feature and use the owned-buffer fallback.
 
+### Borrowed DNG metadata
+
+Task 4 introduced a DNG root/raw lookup overlay for decode. Raw-IFD values take
+precedence, root values remain available as fallbacks, and the owned merged
+directory is constructed only when `dng_metadata()` is explicitly requested.
+Raster construction and process metadata accept the generic
+`DirectoryLookup`, so no DNG-specific lookup behavior enters `fornax-tiff`.
+
+Single-thread walltime:
+
+| Case | Before | After | Rawler | FlashRaw | Fornax/Rawler |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Pixel 8 Pro end-to-end | 672.5 ms | 580.2 ms | 548.1 ms | 189.9 ms | 1.06x |
+| 5D3 LJPEG end-to-end | n/a | 239.2 ms | 271.1 ms | 94.2 ms | 0.88x |
+
+Pixel 8 improved by about 92 ms, consistent with removing the large private-tag
+directory clone. The 30-row golden hash set and three-way DNG equality remained
+unchanged.
+
 ## Neutral experiments
 
 - `-C target-cpu=native` measured 475 ms LJPEG, 164 ms uncompressed, and

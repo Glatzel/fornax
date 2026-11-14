@@ -188,7 +188,7 @@ with more than 64 elements; small CFA/pattern fields remain
 - [ ] Task 2: Add the fused common-case LJPEG decoder.
 - [x] Task 3: Add non-copying TIFF source storage and remove the duplicated
   root directory.
-- [ ] Task 4: Use borrowed DNG metadata during decode.
+- [x] Task 4: Use borrowed DNG metadata during decode.
 - [ ] Task 5: Store large private TIFF byte payloads compactly.
 - [ ] Task 6: Add direct uncompressed sample unpacking.
 - [ ] Task 7: Fuse Deflate predictor and typed conversion.
@@ -803,13 +803,13 @@ impl<'a> RasterRequest<'a> {
 }
 ```
 
-- [ ] **Step 1: Add lookup precedence tests**
+- [x] **Step 1: Add lookup precedence tests**
 
 Create root `ImageWidth=10`, raw `ImageWidth=20`. Assert a
 `DngDirectory` lookup returns 20, falls back to root for a root-only tag, and
 matches `dng_metadata()` for every tag present in either directory.
 
-- [ ] **Step 2: Run the tests and verify they fail**
+- [x] **Step 2: Run the tests and verify they fail**
 
 Run:
 
@@ -820,7 +820,7 @@ cargo test -p fornax-dng metadata_overlay
 
 Expected: missing trait/overlay symbols.
 
-- [ ] **Step 3: Implement generic container lookup**
+- [x] **Step 3: Implement generic container lookup**
 
 Add `DirectoryLookup` for `Directory`. Preserve existing methods:
 
@@ -829,26 +829,26 @@ Add `DirectoryLookup` for `Directory`. Preserve existing methods:
 
 No DNG-specific tag names enter `fornax-tiff`.
 
-- [ ] **Step 4: Implement `DngDirectory<'a>`**
+- [x] **Step 4: Implement `DngDirectory<'a>`**
 
 The crate-private overlay stores `root: &'a Directory` and
 `raw: &'a Directory`. Raw wins on duplicate keys. Add an iterator only if a
 decode helper still requires full iteration; do not materialize a merged map.
 
-- [ ] **Step 5: Route decode through the overlay**
+- [x] **Step 5: Route decode through the overlay**
 
 Change `raw_mosaic`, `cropped_mosaic`, `process_metadata`, decode-plan helpers,
 raster creation, transforms, and linearization/opcode lookups to use the
 overlay. Keep `dng_metadata()` returning an owned merged `Directory` for
 callers that explicitly need serialization/writing.
 
-- [ ] **Step 6: Prove full-DNG equivalence**
+- [x] **Step 6: Prove full-DNG equivalence**
 
 Compare old `dng_metadata()` plus general decode against overlay decode on every
 selected DNG. Exact raw, cropped, process-metadata, and DNG-metadata hashes must
 match the prior golden hashes.
 
-- [ ] **Step 7: Benchmark acceptance**
+- [x] **Step 7: Benchmark acceptance**
 
 Run the Pixel 8 and 5D3 LJPEG cases. Acceptance:
 
@@ -856,7 +856,7 @@ Run the Pixel 8 and 5D3 LJPEG cases. Acceptance:
 - no material regression on cases where the clone was below 1 ms;
 - `fornax/end_to_end` improves without changing pixel bytes.
 
-- [ ] **Step 8: Verify and commit**
+- [x] **Step 8: Verify and commit**
 
 Run:
 

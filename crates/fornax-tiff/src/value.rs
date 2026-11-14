@@ -197,6 +197,17 @@ where
     T: Into<Tag>,
     U: TryFrom<u64>,
 {
+    unsigned_vec_lookup(directory, tag)
+}
+
+/// Converts a TIFF directory field through a metadata lookup into unsigned
+/// integers.
+pub fn unsigned_vec_lookup<D, T, U>(directory: &D, tag: T) -> Result<Vec<U>, ValueAccessError>
+where
+    D: crate::DirectoryLookup + ?Sized,
+    T: Into<Tag>,
+    U: TryFrom<u64>,
+{
     let tag = tag.into();
     let value = directory.get(&tag).ok_or(ValueAccessError::Missing)?;
     let values = value

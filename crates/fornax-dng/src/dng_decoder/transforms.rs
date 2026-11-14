@@ -1,22 +1,28 @@
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::{MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{Tag, Value, unsigned_scalar};
+use fornax_tiff::{DirectoryLookup, Tag, Value, unsigned_scalar};
 use num_traits::ToPrimitive;
 use rayon::prelude::*;
 
 use super::{corrupt, unsigned_vec};
-use crate::metadata::{Directory, DngTag};
+use crate::metadata::DngTag;
 
 const MAX_EXACT_F32_INTEGER: u32 = 1 << 24;
 
-pub(super) fn apply(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
+pub(super) fn apply<D>(pixels: RawMosaic, metadata: &D) -> Result<RawMosaic, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let pixels = deinterleave(pixels, metadata)?;
     let pixels = apply_opcode_list1(pixels, metadata)?;
     apply_linearization(pixels, metadata)
 }
 
-fn deinterleave(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
+fn deinterleave<D>(pixels: RawMosaic, metadata: &D) -> Result<RawMosaic, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let row_factor =
         unsigned_scalar(metadata.get(&DngTag::RowInterleaveFactor.into())).unwrap_or(1);
     let column_factor =
@@ -95,7 +101,10 @@ where
         .ok_or_else(|| corrupt("deinterleaved image dimensions are invalid"))
 }
 
-fn apply_opcode_list1(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
+fn apply_opcode_list1<D>(pixels: RawMosaic, metadata: &D) -> Result<RawMosaic, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let Some(value) = metadata.get(&DngTag::OpcodeList1.into()) else {
         return Ok(pixels);
     };
@@ -214,7 +223,10 @@ where
         .collect()
 }
 
-fn apply_linearization(pixels: RawMosaic, metadata: &Directory) -> Result<RawMosaic, DecodeError> {
+fn apply_linearization<D>(pixels: RawMosaic, metadata: &D) -> Result<RawMosaic, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     if !metadata.contains_key(&Tag::from(DngTag::LinearizationTable)) {
         return Ok(pixels);
     }

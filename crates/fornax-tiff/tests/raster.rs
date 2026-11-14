@@ -5,8 +5,8 @@ use fornax_codec::{
 };
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{
-    Directory, RasterError, RasterLayout, RasterRequest, RasterStorage, Tag, TiffCompressionError,
-    Value, resolve_tiff_compression,
+    Directory, DirectoryLookup, RasterError, RasterLayout, RasterRequest, RasterStorage, Tag,
+    TiffCompressionError, Value, resolve_tiff_compression,
 };
 
 fn directory(
@@ -25,6 +25,45 @@ fn directory(
 
 fn unsigned(values: impl IntoIterator<Item = u32>) -> Value {
     Value::List(values.into_iter().map(Value::Unsigned).collect())
+}
+
+struct Overlay<'a> {
+    root: &'a Directory,
+    raw: &'a Directory,
+}
+
+impl DirectoryLookup for Overlay<'_> {
+    fn get(&self, tag: &Tag) -> Option<&Value> { self.raw.get(tag).or_else(|| self.root.get(tag)) }
+
+    fn contains_key(&self, tag: &Tag) -> bool {
+        self.raw.contains_key(tag) || self.root.contains_key(tag)
+    }
+}
+
+#[test]
+fn directory_lookup_prefers_raw_geometry_and_falls_back_to_root() {
+    let root = directory(
+        10,
+        4,
+        [
+            (TiffTag::RowsPerStrip, Value::Unsigned(4)),
+            (TiffTag::StripOffsets, Value::Unsigned(0)),
+            (TiffTag::StripByteCounts, Value::Unsigned(80)),
+        ],
+    );
+    let raw = directory(20, 4, []);
+    let overlay = Overlay {
+        root: &root,
+        raw: &raw,
+    };
+
+    let layout = RasterLayout::from_lookup(&overlay).unwrap();
+
+    assert_eq!(layout.width(), 20);
+    assert_eq!(
+        overlay.get(&TiffTag::RowsPerStrip.into()),
+        Some(&Value::Unsigned(4))
+    );
 }
 
 #[test]

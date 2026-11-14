@@ -5,7 +5,7 @@ use fornax_raw_core::metadata::{
 };
 use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{Tag, Value};
+use fornax_tiff::{DirectoryLookup, Tag, Value};
 use generic_num::num;
 use image::math::Rect;
 
@@ -16,6 +16,17 @@ pub fn process_metadata_from_dng_metadata(
     full_height: u32,
     dng_metadata: &Directory,
 ) -> Result<ProcessMetadata, DecodeError> {
+    from_lookup(full_width, full_height, dng_metadata)
+}
+
+pub(super) fn from_lookup<D>(
+    full_width: u32,
+    full_height: u32,
+    dng_metadata: &D,
+) -> Result<ProcessMetadata, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let active_area = active_area(dng_metadata, full_width, full_height)?;
     let default_crop = default_crop(dng_metadata, active_area)?;
     let black = black_levels(dng_metadata)?;
@@ -73,7 +84,10 @@ pub fn process_metadata_from_dng_metadata(
 }
 
 /// Maps raw DNG color tags into the decoder-facing color model.
-fn raw_color_metadata(dng_metadata: &Directory) -> Result<RawColorMeta, DecodeError> {
+fn raw_color_metadata<D>(dng_metadata: &D) -> Result<RawColorMeta, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let mut profiles = vec![
         color_profile(
             dng_metadata,
@@ -109,13 +123,16 @@ fn raw_color_metadata(dng_metadata: &Directory) -> Result<RawColorMeta, DecodeEr
     })
 }
 
-fn color_profile(
-    metadata: &Directory,
+fn color_profile<D>(
+    metadata: &D,
     color_matrix: DngTag,
     forward_matrix: DngTag,
     camera_calibration: DngTag,
     illuminant: DngTag,
-) -> Result<RawProfile, DecodeError> {
+) -> Result<RawProfile, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     Ok(RawProfile {
         illuminant: light_source(metadata, illuminant)?,
         illuminant_data: None,
@@ -133,10 +150,13 @@ const fn profile_is_empty(profile: &RawProfile) -> bool {
         && profile.camera_calibration.is_none()
 }
 
-fn color_vector<const N: usize>(
-    metadata: &Directory,
+fn color_vector<const N: usize, D>(
+    metadata: &D,
     tag: DngTag,
-) -> Result<Option<[f64; N]>, DecodeError> {
+) -> Result<Option<[f64; N]>, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let values = scalar_values::<f64>(metadata.get(&Tag::from(tag)))?;
     if values.is_empty() {
         return Ok(None);
@@ -149,7 +169,10 @@ fn color_vector<const N: usize>(
     })
 }
 
-fn light_source(metadata: &Directory, tag: DngTag) -> Result<Option<LightSource>, DecodeError> {
+fn light_source<D>(metadata: &D, tag: DngTag) -> Result<Option<LightSource>, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let Some(value) =
         unsigned_values(metadata.get(&Tag::from(tag)))?.and_then(|values| values.first().copied())
     else {
@@ -160,7 +183,10 @@ fn light_source(metadata: &Directory, tag: DngTag) -> Result<Option<LightSource>
     Ok(Some(LightSource::from(value)))
 }
 
-fn matrix(metadata: &Directory, tag: DngTag) -> Result<Option<Matrix3x3>, DecodeError> {
+fn matrix<D>(metadata: &D, tag: DngTag) -> Result<Option<Matrix3x3>, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let Some(value) = metadata.get(&Tag::from(tag)) else {
         return Ok(None);
     };
@@ -178,11 +204,10 @@ fn matrix(metadata: &Directory, tag: DngTag) -> Result<Option<Matrix3x3>, Decode
     ]))
 }
 
-fn active_area(
-    metadata: &Directory,
-    full_width: u32,
-    full_height: u32,
-) -> Result<Rect, DecodeError> {
+fn active_area<D>(metadata: &D, full_width: u32, full_height: u32) -> Result<Rect, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let Some(values) = unsigned_values(metadata.get(&Tag::from(DngTag::ActiveArea)))? else {
         return Ok(Rect {
             x: 0,
@@ -206,7 +231,10 @@ fn active_area(
         height: bottom - top,
     })
 }
-fn default_crop(metadata: &Directory, active: Rect) -> Result<Rect, DecodeError> {
+fn default_crop<D>(metadata: &D, active: Rect) -> Result<Rect, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let origin = unsigned_values(metadata.get(&Tag::from(DngTag::DefaultCropOrigin)))?;
     let size = unsigned_values(metadata.get(&Tag::from(DngTag::DefaultCropSize)))?;
     let (Some(origin), Some(size)) = (origin, size) else {
@@ -241,8 +269,9 @@ fn default_crop(metadata: &Directory, active: Rect) -> Result<Rect, DecodeError>
     })
 }
 
-fn black_levels<T>(metadata: &Directory) -> Result<MonoImage<T>, DecodeError>
+fn black_levels<D, T>(metadata: &D) -> Result<MonoImage<T>, DecodeError>
 where
+    D: DirectoryLookup + ?Sized,
     T: Primitive,
 {
     let repeat = unsigned_values(metadata.get(&Tag::from(DngTag::BlackLevelRepeatDim)))?
@@ -272,7 +301,10 @@ where
         .ok_or_else(|| metadata_error("black-level image dimensions are invalid"))
 }
 
-fn bayer_pattern(metadata: &Directory, active: Rect) -> Result<BayerPattern, DecodeError> {
+fn bayer_pattern<D>(metadata: &D, active: Rect) -> Result<BayerPattern, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let repeat = unsigned_values(metadata.get(&Tag::from(TiffTag::CfaRepeatPatternDim)))?
         .ok_or_else(|| metadata_error("CFARepeatPatternDim is missing"))?;
     let [width, height]: [u32; 2] = repeat
