@@ -403,8 +403,8 @@ reviewed schema migration, and the second must report unchanged.
   and tier-1 ARW/CR3/NEF; tier-2/3 formats, lossy Sony ARW2/ARW6, and deprecated Sony ARW1/Nikon
   mode-2 packed, mode-6 packed, and uncompressed-word paths are excluded. CFA
   does not split an encoding group, and known lossy or ambiguous codecs are
-  excluded. Sony lossless JPEG and Nikon NEF collapse bit-depth variants and
-  retain the highest available bit depth.
+  excluded. Sony ARW and Nikon NEF collapse bit-depth variants and retain the
+  highest available bit depth.
 - `compression_lossless` is a `0`/`1` baseline column for constructed decoders.
   It is empty for unknown/undecoded rows. Ambiguous JPEG XL and WebP streams are
   conservatively classified as not proven lossless. Provenance is recorded in

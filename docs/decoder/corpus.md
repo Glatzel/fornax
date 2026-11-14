@@ -237,9 +237,9 @@ pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --selected-out crates/decoder-tracker/golden/selected-manifest.csv
 ```
 
-The current generated set contains 24 lossless encoding groups. Sony lossless
-JPEG groups choose the highest available bit depth (14 over 12), as do Nikon
-NEF groups. Lossy Sony ARW2/ARW6 and IIQ nonlinear/Sv2 paths are excluded.
+The current generated set contains 23 lossless encoding groups. Sony ARW and
+Nikon NEF groups choose the highest available bit depth (for example, 14 over
+12). Lossy Sony ARW2/ARW6 and IIQ nonlinear/Sv2 paths are excluded.
 Codec identifiers that can carry
 either lossy or lossless streams, currently DNG JPEG XL and WebP, are treated as
 not proven lossless and therefore remain ineligible until stream-level mode

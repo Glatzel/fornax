@@ -173,7 +173,7 @@ Follow the deliberately bounded procedure in
 - `data/manifest.csv` identifies every corpus path, size, and LFS SHA-256.
 - `data/baseline.csv` is the accepted full result set, including source
   encoding metadata for every successfully decoded row. Do not hand-edit it.
-- `golden/selected-manifest.csv` is the pointer-only 24-file tier-0/1 lossless
+- `golden/selected-manifest.csv` is the pointer-only 23-file tier-0/1 lossless
   encoding coverage set for deterministic decode-output checks and decoder
   benchmarks. Deprecated/lossy ARW1/ARW6/Nikon modes and tier-2/3 formats are
   excluded.

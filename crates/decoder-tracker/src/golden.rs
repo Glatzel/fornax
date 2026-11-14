@@ -345,8 +345,8 @@ fn golden_encoding(row: &BaselineRow) -> bool {
         && !deprecated_golden_encoding(row)
 }
 
-fn uses_highest_bit_depth(format: &str, compression_name: &str) -> bool {
-    format == "NEF" || (format == "ARW" && compression_name == "sony-lossless-jpeg")
+fn uses_highest_bit_depth(format: &str, _compression_name: &str) -> bool {
+    matches!(format, "ARW" | "NEF")
 }
 
 fn deprecated_golden_encoding(row: &BaselineRow) -> bool {

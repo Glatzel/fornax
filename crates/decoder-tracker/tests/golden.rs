@@ -330,22 +330,28 @@ fn golden_coverage_only_includes_tier_zero_and_one_formats_and_excludes_arw1() {
 }
 
 #[test]
-fn golden_coverage_uses_highest_bit_depth_for_sony_ljpeg_and_nikon() {
+fn golden_coverage_uses_highest_bit_depth_for_sony_arw_and_nikon() {
     let sony12 = manifest_row("Sony/Cam/ljpeg12.ARW", 10, 'a');
     let sony14 = manifest_row("Sony/Cam/ljpeg14.ARW", 20, 'b');
     let nikon12 = manifest_row("Nikon/Cam/huffman12.NEF", 10, 'c');
     let nikon14 = manifest_row("Nikon/Cam/huffman14.NEF", 20, 'd');
+    let sony_uncompressed12 = manifest_row("Sony/Cam/uncompressed12.ARW", 10, 'e');
+    let sony_uncompressed14 = manifest_row("Sony/Cam/uncompressed14.ARW", 20, 'f');
     let manifest = vec![
         sony12.clone(),
         sony14.clone(),
         nikon12.clone(),
         nikon14.clone(),
+        sony_uncompressed12.clone(),
+        sony_uncompressed14.clone(),
     ];
     let mut baseline = vec![
         baseline_row(&sony12, "sony-lossless-jpeg", 12, true),
         baseline_row(&sony14, "sony-lossless-jpeg", 14, true),
         baseline_row(&nikon12, "nikon-huffman", 12, true),
         baseline_row(&nikon14, "nikon-huffman", 14, true),
+        baseline_row(&sony_uncompressed12, "uncompressed", 12, true),
+        baseline_row(&sony_uncompressed14, "uncompressed", 14, true),
     ];
     for row in &mut baseline {
         row.width = if row.bits_per_sample == Some(14) {
@@ -358,7 +364,7 @@ fn golden_coverage_uses_highest_bit_depth_for_sony_ljpeg_and_nikon() {
 
     let report = build_golden_coverage(&baseline, &manifest, &[]).unwrap();
 
-    assert_eq!(report.rows.len(), 2);
+    assert_eq!(report.rows.len(), 3);
     assert!(
         report
             .rows
@@ -371,7 +377,11 @@ fn golden_coverage_uses_highest_bit_depth_for_sony_ljpeg_and_nikon() {
             .iter()
             .map(|row| row.representative_path.as_str())
             .collect::<Vec<_>>(),
-        ["Sony/Cam/ljpeg14.ARW", "Nikon/Cam/huffman14.NEF"]
+        [
+            "Sony/Cam/ljpeg14.ARW",
+            "Sony/Cam/uncompressed14.ARW",
+            "Nikon/Cam/huffman14.NEF"
+        ]
     );
 }
 
