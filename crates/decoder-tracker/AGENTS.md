@@ -24,6 +24,9 @@ decoder-tracker merge [--manifest F] [--out F] SHARD...
 decoder-tracker diff --selected F [--out F] BASELINE CANDIDATE
 decoder-tracker update [--baseline F] --candidate F [--out F]
 decoder-tracker hash [--manifest F] [--out F | --check F]
+decoder-tracker corpus-metadata [--manifest F] [--shard I/N] [--out F]
+    [--max-files N] [--allow-full]
+decoder-tracker corpus-metadata-merge [--manifest F] [--out F] SHARD...
 ```
 
 Use `pixi run -e dev cargo run -q -p decoder-tracker -- <subcommand>` for the
@@ -83,7 +86,7 @@ then `diff --selected` compares only those keys with the committed baseline:
 
 ```bash
 pixi run -e dev cargo run -q -p decoder-tracker -- select \
-  --glob '**/*.[dD][nN][gG]' \
+  --glob '*/**/*' \
   --out target/decoder-tracker/selected-manifest.csv
 pixi run -e dev cargo run -q -p decoder-tracker -- run \
   --manifest target/decoder-tracker/selected-manifest.csv \
@@ -108,7 +111,7 @@ Prefer the manual sharded workflow for a full refresh:
 
 ```bash
 gh workflow run decoder-tracker-corpus.yml --ref <branch> \
-  -f filter='**/*.[dD][nN][gG]' \
+  -f filter='*/**/*' \
   -f run_duckdb_tests=false
 gh run list --workflow decoder-tracker-corpus.yml --branch <branch>
 gh run view <run-id>
@@ -147,11 +150,20 @@ workflow only after the remote branch contains the reviewed baseline and
 README. It must report unchanged and upload no update artifact before the
 baseline is considered accepted.
 
+The same workflow classifies DNG container metadata for every selected shard.
+A changed sidecar uploads
+`decoder-corpus-metadata-update/corpus-metadata.csv` and also fails the run.
+Review and copy the complete file to
+`crates/decoder-tracker/corpus-metadata.csv`, then rerun until the sidecar is
+unchanged. The sidecar is diagnostic data and does not alter the baseline
+schema.
+
 ## Corpus snapshot update
 
 1. Advance the pointer-only submodule to the advertised snapshot.
 2. Run `manifest` and review every change to `manifest.csv`.
-3. Run the full default DNG workflow and apply its changed artifact as above.
+3. Run the full default `*/**/*` workflow and apply its changed artifacts as
+   above.
 4. Commit the submodule pointer (`external/raw.pixls.us`), manifest, complete
    baseline, and regenerated README together.
 5. Rerun the workflow and require an unchanged outcome.
@@ -163,6 +175,8 @@ Follow the deliberately bounded procedure in
 
 - `manifest.csv` identifies every corpus path, size, and LFS SHA-256.
 - `baseline.csv` is the accepted full result set. Do not hand-edit it.
+- `corpus-metadata.csv` records the generated DNG compression, storage, layout,
+  bit-depth, sample-format, and predictor groups. Do not hand-edit it.
 - `golden/selected-manifest.csv` is the pointer-only 30-file fixed set for
   deterministic decode-output checks and decoder benchmarks.
 - `golden/decode-hashes.csv` contains SHA-256 values for raw samples, cropped

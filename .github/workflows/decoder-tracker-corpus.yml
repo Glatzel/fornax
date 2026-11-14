@@ -7,7 +7,7 @@ on:
         description: Repository-relative path glob. `*` stays within a segment; `**` crosses directories.
         type: string
         required: true
-        default: "**/*.[dD][nN][gG]"
+        default: "*/**/*"
       run_duckdb_tests:
         description: Test DuckDB selection, aggregation, and badge shell scripts before running shards.
         type: boolean
@@ -49,7 +49,7 @@ jobs:
         env:
           REQUESTED_FILTER: ${{ inputs.filter }}
         run: |
-          filter="${REQUESTED_FILTER:-**/*.[dD][nN][gG]}"
+          filter="${REQUESTED_FILTER:-*/**/*}"
           result="$(
             pixi run -e tracker bash crates/decoder-tracker/scripts/select.sh \
               --filter "$filter" \
@@ -150,10 +150,20 @@ jobs:
             --manifest target/decoder-tracker/selected-manifest.csv \
             --shard "${{ matrix.index }}/${{ matrix.count }}" \
             --out "target/decoder-tracker/shards/shard-${{ matrix.index }}.csv"
+          target/release/decoder-tracker corpus-metadata \
+            --manifest target/decoder-tracker/selected-manifest.csv \
+            --shard "${{ matrix.index }}/${{ matrix.count }}" \
+            --out "target/decoder-tracker/metadata-shards/shard-${{ matrix.index }}.csv"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: decoder-shard-${{ matrix.index }}
           path: target/decoder-tracker/shards/shard-${{ matrix.index }}.csv
+          retention-days: 1
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: decoder-metadata-shard-${{ matrix.index }}
+          path: target/decoder-tracker/metadata-shards/shard-${{ matrix.index }}.csv
           retention-days: 1
           if-no-files-found: error
 
@@ -173,8 +183,17 @@ jobs:
           path: target/decoder-tracker
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
+          name: decoder-tracker-release
+          path: target/release
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
           pattern: decoder-shard-*
           path: target/decoder-tracker/shards
+          merge-multiple: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: decoder-metadata-shard-*
+          path: target/decoder-tracker/metadata-shards
           merge-multiple: true
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
         with:
@@ -182,6 +201,7 @@ jobs:
       - name: Install tracker tools
         run: pixi install -e tracker
       - id: aggregate
+        name: Aggregate decoder baseline
         shell: bash
         run: |
           pixi run -e tracker bash crates/decoder-tracker/scripts/aggregate.sh \
@@ -190,6 +210,27 @@ jobs:
             --work-dir target/decoder-tracker/update \
             --github-output "$GITHUB_OUTPUT" \
             -- target/decoder-tracker/shards/*.csv
+      - id: metadata
+        name: Aggregate DNG corpus metadata
+        shell: bash
+        run: |
+          chmod +x target/release/decoder-tracker
+          candidate="target/decoder-tracker/corpus-metadata-candidate.csv"
+          target/release/decoder-tracker corpus-metadata-merge \
+            --manifest target/decoder-tracker/selected-manifest.csv \
+            --out "$candidate" \
+            -- target/decoder-tracker/metadata-shards/*.csv
+
+          committed="crates/decoder-tracker/corpus-metadata.csv"
+          if [[ -f "$committed" ]] && cmp -s "$candidate" "$committed"; then
+            printf 'metadata_changed=false\n' >>"$GITHUB_OUTPUT"
+            printf 'DNG corpus metadata is unchanged\n'
+          else
+            mkdir -p target/decoder-tracker/metadata-update
+            cp "$candidate" target/decoder-tracker/metadata-update/corpus-metadata.csv
+            printf 'metadata_changed=true\n' >>"$GITHUB_OUTPUT"
+            printf 'DNG corpus metadata changed\n'
+          fi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ steps.aggregate.outputs.changed == 'true' }}
         with:
@@ -197,6 +238,13 @@ jobs:
           path: target/decoder-tracker/update
           retention-days: 3
           if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ steps.metadata.outputs.metadata_changed == 'true' }}
+        with:
+          name: decoder-corpus-metadata-update
+          path: target/decoder-tracker/metadata-update
+          retention-days: 3
+          if-no-files-found: error
       - name: Fail when reviewed rows changed
-        if: ${{ steps.aggregate.outputs.outcome == 'changed' }}
+        if: ${{ steps.aggregate.outputs.outcome == 'changed' || steps.metadata.outputs.metadata_changed == 'true' }}
         run: exit 1

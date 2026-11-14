@@ -39,6 +39,8 @@ pixi run -e dev cargo run -q -p decoder-tracker -- merge --manifest F --out FILE
 pixi run -e dev cargo run -q -p decoder-tracker -- diff --selected F --out FILE BASELINE CANDIDATE
 pixi run -e dev cargo run -q -p decoder-tracker -- update --baseline F --candidate F --out FILE
 pixi run -e dev cargo run -q -p decoder-tracker -- hash [--manifest F] [--out FILE | --check FILE]
+pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata --manifest F --shard I/N --out FILE
+pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata-merge --manifest F --out FILE SHARD...
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
@@ -61,10 +63,9 @@ are case-insensitive substring matches. Path globs are case-sensitive:
 - repeated `--glob` values use OR; format, camera, filename, and glob classes
   combine with AND.
 
-The workflow default glob is `**/*.[dD][nN][gG]` because the corpus mixes
-uppercase and lowercase DNG extensions. Filters are applied before the
-selection is sorted by LFS SHA-256 and assigned with zero-based
-`position % COUNT`.
+The workflow default glob is `*/**/*`, which selects the complete corpus across
+all supported and unsupported formats. Filters are applied before the selection
+is sorted by LFS SHA-256 and assigned with zero-based `position % COUNT`.
 
 ## Manifest
 
@@ -125,6 +126,53 @@ only when all four stages pass; otherwise it is `<stage>:<kind>`, such as
 The runner retains the best geometry and CFA label available after partial
 failure. A non-2x2 CFA gets a descriptive label such as `XTrans-6x6` before the
 typed unsupported CFA error is recorded.
+
+## DNG corpus metadata schema
+
+`corpus-metadata.csv` is a generated sidecar used to analyze benchmark and
+coverage groups by the actual DNG container tags rather than filenames. It does
+not change the pointer-only manifest or the required baseline schema. DNG is
+the first supported format; future formats can add their own rows without
+changing the manifest.
+
+The canonical header is:
+
+```csv
+path,sha256,format,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height
+```
+
+Rows are keyed by `(sha256, path)` and cover every selected DNG exactly once.
+`storage` is `strips` or `tiles`; absent layout fields and the default TIFF
+predictor of `1` are explicit so grouping does not need to reinterpret missing
+values. The classifier uses the full-resolution raw IFD selected by
+`fornax-dng`, including DNG-owned compression identifiers `34892` and `52546`.
+It records unknown IDs rather than inferring compression from the path.
+
+Generate a local selection with `select`, then classify all of it:
+
+```bash
+pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata \
+  --manifest target/decoder-tracker/selected-metadata.csv \
+  --allow-full \
+  --out target/decoder-tracker/corpus-metadata.csv
+```
+
+For sharded use, pass the same selection and shard to each runner, then merge
+all metadata shards:
+
+```bash
+pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata \
+  --manifest target/decoder-tracker/selected-manifest.csv \
+  --shard 0/COUNT --allow-full \
+  --out target/decoder-tracker/metadata-shards/shard-0.csv
+pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata-merge \
+  --manifest target/decoder-tracker/selected-manifest.csv \
+  --out target/decoder-tracker/corpus-metadata.csv \
+  target/decoder-tracker/metadata-shards/*.csv
+```
+
+The merge rejects missing, duplicate, unexpected, or malformed DNG rows. The
+committed sidecar is generated data and must not be hand-edited.
 
 ## Golden decode outputs
 
@@ -219,9 +267,9 @@ rows. The diff command exits 1 when any category is non-empty.
 
 `.github/workflows/decoder-tracker-corpus.yml` is manual-only after bootstrap.
 It accepts one `filter` path glob and an optional `run_duckdb_tests` boolean
-(default `false`). The selected manifest determines the formats processed by
-each shard, so the filter alone selects a DNG, ARW, or mixed corpus subset. The
-plan job uses
+(default `false`). The default `*/**/*` filter selects the complete corpus; a
+narrower filter selects a DNG, ARW, or mixed subset. The selected manifest
+determines the formats processed by each shard. The plan job uses
 `crates/decoder-tracker/scripts/select.sh` to filter `manifest.csv` directly with
 DuckDB, writes and uploads `selected-manifest.csv`, then computes:
 
@@ -243,14 +291,18 @@ GitHub/Pixi download failures.
 
 Each shard downloads the selected manifest and release tracker binary,
 initializes the pointer-only corpus, runs `manifest --check`, executes its
-assigned files, and uploads CSV only. The aggregate job uses
+assigned decoder rows, classifies assigned DNG compression metadata, and
+uploads CSV only. The aggregate job uses
 `crates/decoder-tracker/scripts/aggregate.sh` to merge, validate, diff, and
-upsert entirely through DuckDB, then:
+upsert decoder rows entirely through DuckDB. It separately merges and compares
+the DNG metadata sidecar, then:
 
 - uploads a bootstrap baseline when no committed baseline exists;
 - uploads nothing when selected rows are unchanged;
 - uploads the complete updated baseline and `diff.csv`, then fails, when rows
   changed.
+- uploads `decoder-corpus-metadata-update` and fails when the DNG metadata
+  sidecar changed.
 
 RAW payloads are never cached or uploaded.
 
@@ -261,7 +313,7 @@ the review commands:
 
 ```bash
 gh workflow run decoder-tracker-corpus.yml --ref <branch> \
-  -f filter='**/*.[dD][nN][gG]' \
+  -f filter='*/**/*' \
   -f run_duckdb_tests=false
 gh run list --workflow decoder-tracker-corpus.yml --branch <branch>
 gh run view <run-id>
@@ -281,12 +333,17 @@ changed-row failure is the review gate described below.
 
 ## Applying a manual workflow result
 
-An unchanged run uploads no `decoder-baseline-update` artifact. A changed run
-intentionally fails after uploading that artifact with three CSV files:
+An unchanged run uploads no update artifact. A decoder change intentionally
+fails after uploading `decoder-baseline-update` with three CSV files:
 
 - `diff.csv` classifies selected keys as missing, extra, or changed;
 - `candidate.csv` contains the merged selected rows;
 - `baseline.csv` is the complete baseline after the selected-key upsert.
+
+A DNG metadata change independently uploads
+`decoder-corpus-metadata-update/corpus-metadata.csv` and fails the run. Review
+the complete sidecar, copy it to `crates/decoder-tracker/corpus-metadata.csv`,
+commit it, and rerun until it is unchanged. Do not merge a partial candidate.
 
 Download and inspect the artifact:
 
@@ -325,7 +382,8 @@ A corpus update is deliberate:
 
 1. Initialize the pointer-only submodule at the current advertised snapshot.
 2. Run `manifest` and review every manifest change.
-3. Run the manual workflow with the full default DNG glob.
+3. Run the manual workflow with the full default
+   `*/**/*` glob.
 4. Download and review the complete candidate against the manifest.
 5. Commit the submodule pointer (`external/raw.pixls.us`), manifest, complete
    baseline, and regenerated README.

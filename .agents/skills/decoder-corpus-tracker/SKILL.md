@@ -58,7 +58,7 @@ manifest:
 
 ```bash
 pixi run -e dev cargo run -q -p decoder-tracker -- select \
-  --glob '**/*.[dD][nN][gG]' \
+  --glob '*/**/*' \
   --out target/decoder-tracker/selected-manifest.csv
 
 # Repeat for 0/COUNT .. (COUNT-1)/COUNT.
@@ -89,7 +89,7 @@ uncommitted commits or files. Run the manual workflow from that branch:
 
 ```bash
 gh workflow run decoder-tracker-corpus.yml --ref <branch> \
-  -f filter='**/*.[dD][nN][gG]' \
+  -f filter='*/**/*' \
   -f run_duckdb_tests=false
 gh run list --workflow decoder-tracker-corpus.yml --branch <branch>
 gh run view <run-id>
@@ -118,6 +118,12 @@ gh run download <run-id> --name decoder-baseline-update \
 6. Commit and push the updated branch so the remote workflow can see the
    reviewed files.
 7. Rerun the workflow and require `unchanged` with no update artifact.
+
+The same workflow always merges DNG compression metadata. If that sidecar
+changes, the run intentionally fails and uploads
+`decoder-corpus-metadata-update`. Review the complete
+`corpus-metadata.csv`, copy it to `crates/decoder-tracker/corpus-metadata.csv`,
+commit it, and rerun until unchanged. Never hand-edit the sidecar.
 
 Rerun in place with `gh run rerun <run-id> --failed` only for a transient
 infrastructure failure. A changed-row failure requires review, not a blind

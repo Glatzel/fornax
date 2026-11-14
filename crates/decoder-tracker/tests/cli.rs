@@ -1,6 +1,9 @@
 use std::fs;
 
 use assert_cmd::Command;
+use decoder_tracker::corpus_metadata::{
+    CorpusMetadataRow, read_corpus_metadata_csv, write_corpus_metadata_csv,
+};
 use decoder_tracker::csvio::{read_manifest_csv, write_baseline_csv, write_manifest_csv};
 use decoder_tracker::manifest::{derive_identity, generate_manifest};
 use decoder_tracker::model::{BaselineRow, ManifestRow, status_for_stages};
@@ -55,6 +58,71 @@ fn hash_command_exposes_write_and_check_modes() {
         .success()
         .stdout(predicates::str::contains("--check"))
         .stdout(predicates::str::contains("--out"));
+}
+
+#[test]
+fn corpus_metadata_commands_are_exposed() {
+    Command::cargo_bin("decoder-tracker")
+        .unwrap()
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("corpus-metadata"))
+        .stdout(predicates::str::contains("corpus-metadata-merge"));
+}
+
+#[test]
+fn corpus_metadata_merge_writes_the_complete_selected_dng_set() {
+    let temp = tempdir().unwrap();
+    let row = manifest_row(&"aa".repeat(32), "Canon/Cam/A.DNG");
+    let manifest = temp.path().join("selected.csv");
+    fs::write(
+        &manifest,
+        write_manifest_csv(std::slice::from_ref(&row)).unwrap(),
+    )
+    .unwrap();
+    let metadata = CorpusMetadataRow {
+        path: row.path.clone(),
+        sha256: row.sha256.clone(),
+        format: "DNG".to_owned(),
+        compression_id: 7,
+        compression_name: "lossless-jpeg".to_owned(),
+        storage: "strips".to_owned(),
+        bits_per_sample: 14,
+        sample_format: 1,
+        predictor: 1,
+        rows_per_strip: Some(128),
+        tile_width: None,
+        tile_height: None,
+    };
+    let shard = temp.path().join("shard.csv");
+    fs::write(
+        &shard,
+        write_corpus_metadata_csv(std::slice::from_ref(&metadata)).unwrap(),
+    )
+    .unwrap();
+    let output = temp.path().join("corpus-metadata.csv");
+
+    Command::cargo_bin("decoder-tracker")
+        .unwrap()
+        .args([
+            "corpus-metadata-merge",
+            "--manifest",
+            manifest.to_str().unwrap(),
+            "--out",
+            output.to_str().unwrap(),
+            "--",
+            shard.to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains(
+            "corpus-metadata-merge: wrote 1 rows",
+        ));
+    assert_eq!(
+        read_corpus_metadata_csv(&fs::read(output).unwrap()).unwrap(),
+        vec![metadata]
+    );
 }
 
 #[test]

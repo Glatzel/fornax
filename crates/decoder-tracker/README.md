@@ -146,13 +146,17 @@ pixi run -e dev cargo run -p decoder-tracker -- merge --manifest MANIFEST SHARD.
 pixi run -e dev cargo run -p decoder-tracker -- diff --selected MANIFEST BASELINE CANDIDATE
 pixi run -e dev cargo run -p decoder-tracker -- update --baseline BASELINE --candidate CANDIDATE
 pixi run -e dev cargo run --release -p decoder-tracker -- hash --check GOLDEN
+pixi run -e dev cargo run -p decoder-tracker -- corpus-metadata --manifest MANIFEST --shard I/N
+pixi run -e dev cargo run -p decoder-tracker -- corpus-metadata-merge --manifest MANIFEST SHARD...
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
 The committed corpus metadata manifest is `manifest.csv`; decoder pass columns
-and outcomes are in `baseline.csv`. DuckDB CLI owns plan-time manifest filtering
-and the shell-driven merge, selected-key diff, and baseline upsert path. Stage
-columns remain numeric for SQL; a leading emoji
+and outcomes are in `baseline.csv`. The generated `corpus-metadata.csv` sidecar
+groups DNG rows by container compression, strip/tile storage, bit depth, sample
+format, and predictor without changing either canonical schema. DuckDB CLI owns
+plan-time manifest filtering and the shell-driven merge, selected-key diff, and
+baseline upsert path. Stage columns remain numeric for SQL; a leading emoji
 `status` column makes pass/fail visually scannable. `update-badge.sh` joins the
 full manifest to the baseline and writes the accumulated badge and
 per-vendor-format `passed/total` table between the README markers;
