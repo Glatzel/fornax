@@ -21,7 +21,7 @@ does not mean that later camera-profile transforms are semantically lossless.
 | Format family | Lossless | Not lossless / not proven | Evidence |
 | --- | --- | --- | --- |
 | DNG/TIFF | Uncompressed, LZW, lossless JPEG, Deflate, PackBits, LZMA2, Zstandard | Lossy JPEG; JPEG XL and WebP are ambiguous | TIFF/DNG identifier semantics; the DNG path accepts lossless JPEG SOF3 |
-| Sony ARW | ARW1, ARW6, lossless JPEG, uncompressed | ARW2 | ARW1 is a reversible difference stream; ARW2 quantizes 11-bit extrema into 7-bit deltas and applies Sony's deterministic dither in Rawler `decoders/arw.rs` |
+| Sony ARW | ARW1, lossless JPEG, uncompressed | ARW2, ARW6 | ARW1 is a reversible difference stream; ARW2 quantizes 11-bit extrema into 7-bit deltas and applies Sony's deterministic dither in Rawler `decoders/arw.rs`. ARW6 is treated as lossy for golden selection. |
 | Nikon NEF | Uncompressed words, lossless trees, supported packed/word modes | Unsupported lossy/split modes are not emitted | Fornax exposes only modes accepted by its lossless Huffman/packed paths |
 | Canon CR3 | CRX | Lossy CRX or unknown layouts are not emitted | The CRX parser accepts only the validated zero-level lossless layout |
 | Hasselblad 3FR | Uncompressed, lossless JPEG | None among exposed paths | TIFF compression 1 and lossless JPEG-92 |

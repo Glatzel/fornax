@@ -89,7 +89,7 @@ fn encoding_metadata_distinguishes_sony_compression_families() {
         (CompressionFamily::Uncompressed, 1, "uncompressed", true),
         (CompressionFamily::Arw1, 32_767, "sony-arw1", true),
         (CompressionFamily::Arw2, 32_767, "sony-arw2", false),
-        (CompressionFamily::Arw6, 32_766, "sony-arw6", true),
+        (CompressionFamily::Arw6, 32_766, "sony-arw6", false),
         (
             CompressionFamily::SonyLosslessJpeg,
             7,

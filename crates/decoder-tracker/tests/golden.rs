@@ -230,7 +230,7 @@ fn golden_coverage_groups_encoding_paths_and_chooses_smallest_representative() {
     let baseline = vec![
         baseline_row(&large, "lossless-jpeg", 14, true),
         baseline_row(&small, "lossless-jpeg", 14, true),
-        baseline_row(&missing, "sony-arw6", 14, false),
+        baseline_row(&missing, "sony-lossless-jpeg", 14, true),
     ];
     let manifest = vec![large, small, missing.clone()];
     let golden = vec![
@@ -240,7 +240,7 @@ fn golden_coverage_groups_encoding_paths_and_chooses_smallest_representative() {
     ];
     let other = manifest_row("Sony/Cam/other.ARW", 40, 'd');
     let mut baseline = baseline;
-    baseline.push(baseline_row(&other, "sony-arw6", 14, false));
+    baseline.push(baseline_row(&other, "sony-lossless-jpeg", 14, true));
     let mut manifest = manifest;
     manifest.push(other);
 

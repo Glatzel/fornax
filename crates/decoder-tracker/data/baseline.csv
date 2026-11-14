@@ -1737,11 +1737,11 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,SONY ILCE-1M2,ARW,SONY/ILCE-1M2/A1_07634_lossy_compressed_apsc.ARW,1,1,d7685589dfeb1f50c198ab0ac52b7b045e18e8b4799616f732a871195732681f,1,1,,5664,3768,RGGB,32767,sony-arw2,0,strips,14,integer,,,,
 ✅,SONY ILCE-6400A,ARW,SONY/ILCE-6400A/DSC04880.ARW,1,1,33fa3da8eb2dee9b06841b963e0f2761aca1cb1fb0f19a08bb4b33cb486cb111,1,1,,6048,4024,RGGB,32767,sony-arw2,0,strips,14,integer,,,,
 ✅,SONY ILCE-6400A,ARW,SONY/ILCE-6400A/KTB00899.ARW,1,1,3da75f63568be35343dc07967e25f0bf7292c34dd5614c18ff2ea377d08180b9,1,1,,6048,4024,RGGB,32767,sony-arw2,0,strips,14,integer,,,,
-✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/apcs_compressed_hq.ARW,1,1,27d7c095b3384b220b5d20be0a7bb5928dbd433e79b7a3c7586a5d862d24fa20,1,1,,4640,3088,RGGB,32766,sony-arw6,1,strips,14,integer,,,,
-✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/apsc_compressed.ARW,1,1,6169964d6e7f87a44f351508c4b6a4aa5faef1052c2d09a18c0084a478662cf7,1,1,,4640,3088,RGGB,32766,sony-arw6,1,strips,14,integer,,,,
+✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/apcs_compressed_hq.ARW,1,1,27d7c095b3384b220b5d20be0a7bb5928dbd433e79b7a3c7586a5d862d24fa20,1,1,,4640,3088,RGGB,32766,sony-arw6,0,strips,14,integer,,,,
+✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/apsc_compressed.ARW,1,1,6169964d6e7f87a44f351508c4b6a4aa5faef1052c2d09a18c0084a478662cf7,1,1,,4640,3088,RGGB,32766,sony-arw6,0,strips,14,integer,,,,
 ✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/apsc_compressed_lossless.ARW,1,1,e472272a574afb61297e5e220e4a287589b06671da9601a820e0fb07d04ae90e,1,1,,5120,3584,RGGB,7,sony-lossless-jpeg,1,tiles,14,integer,,,512,512
-✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/full_compressed.ARW,1,1,d4ec868a3b7c9a3eb6049f341414fc0113e3be713cac4f9c875a22e3dfab0d97,1,1,,7040,4688,RGGB,32766,sony-arw6,1,strips,14,integer,,,,
-✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/full_compressed_HQ.ARW,1,1,863330047d5ff1ac6f41dc8e645d88e0143cbeec113a6a004fa2836ce7a1576c,1,1,,7040,4688,RGGB,32766,sony-arw6,1,strips,14,integer,,,,
+✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/full_compressed.ARW,1,1,d4ec868a3b7c9a3eb6049f341414fc0113e3be713cac4f9c875a22e3dfab0d97,1,1,,7040,4688,RGGB,32766,sony-arw6,0,strips,14,integer,,,,
+✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/full_compressed_HQ.ARW,1,1,863330047d5ff1ac6f41dc8e645d88e0143cbeec113a6a004fa2836ce7a1576c,1,1,,7040,4688,RGGB,32766,sony-arw6,0,strips,14,integer,,,,
 ✅,SONY ILCE-7M5,ARW,SONY/ILCE-7M5/full_compressed_lossless.ARW,1,1,414d6ba1b3f62029b006ddca0f2aefdd83168bd796620b4d26fc865e808eb131,1,1,,7168,5120,RGGB,7,sony-lossless-jpeg,1,tiles,14,integer,,,512,512
 ✅,SONY ILME-FX2,ARW,SONY/ILME-FX2/Image_1_-_Uncompressed_-_Landscape.ARW,1,1,eff07bef41e32475737e719c8735e528ea8b4c773cd1b32c435180e87342c375,1,1,,7040,4688,RGGB,1,uncompressed,1,strips,14,integer,,,,
 ✅,SONY ILME-FX2,ARW,SONY/ILME-FX2/Image_2_-_Compressed_-_Architecture.ARW,1,1,641b00f7694bd67a07f123fe0649647eefc67d6c26cddd6e309c8ff8dafebfaa,1,1,,7040,4688,RGGB,32767,sony-arw2,0,strips,12,integer,,,,

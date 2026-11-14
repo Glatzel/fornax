@@ -185,7 +185,12 @@ fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetada
     EncodingMetadata {
         compression_id,
         compression_name,
-        lossless: layout.compression != container::CompressionFamily::Arw2,
+        lossless: matches!(
+            layout.compression,
+            container::CompressionFamily::Uncompressed
+                | container::CompressionFamily::Arw1
+                | container::CompressionFamily::SonyLosslessJpeg
+        ),
         storage: if layout.tile_width.is_some() {
             "tiles"
         } else {

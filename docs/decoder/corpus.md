@@ -183,7 +183,7 @@ specific decoder path. Join `data/manifest.csv` by `path` for file size.
 `golden/selected-manifest.csv` is a pointer-only tier-0/1 lossless set
 containing one lowest-pixel known-passing representative per source encoding
 group. It covers DNG, ARW, CR3, and NEF only; tier-2/3 formats and deprecated
-Sony ARW1/Nikon modes are excluded. `golden/decode-hashes.csv` is the canonical
+Sony ARW1/ARW6 and Nikon modes are excluded. `golden/decode-hashes.csv` is the canonical
 output gate for
 refactors that must not change decoder results.
 
@@ -237,10 +237,10 @@ pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --selected-out crates/decoder-tracker/golden/selected-manifest.csv
 ```
 
-The current generated set contains 25 lossless encoding groups. Sony lossless
+The current generated set contains 24 lossless encoding groups. Sony lossless
 JPEG groups choose the highest available bit depth (14 over 12), as do Nikon
-NEF groups. Lossy Sony
-ARW2 and IIQ nonlinear/Sv2 paths are excluded. Codec identifiers that can carry
+NEF groups. Lossy Sony ARW2/ARW6 and IIQ nonlinear/Sv2 paths are excluded.
+Codec identifiers that can carry
 either lossy or lossless streams, currently DNG JPEG XL and WebP, are treated as
 not proven lossless and therefore remain ineligible until stream-level mode
 detection is implemented.
