@@ -41,7 +41,7 @@ pub struct RawLayout {
 impl RawLayout {
     pub fn parse(parsed: &ParsedTiff) -> Result<(usize, Self), DecodeError> {
         let make = parsed
-            .root
+            .root()
             .get(&Tag::from(TiffTag::Make))
             .and_then(|value| match value {
                 Value::Ascii(value) => Some(value.trim()),
@@ -249,8 +249,10 @@ where
 }
 
 pub fn bytes(value: &Value) -> Option<Vec<u8>> {
+    if let Some(bytes) = value.as_byte_slice() {
+        return Some(bytes.to_vec());
+    }
     match value {
-        Value::Byte(value) => Some(vec![*value]),
         Value::List(values) => values.iter().try_fold(Vec::new(), |mut output, value| {
             output.extend(bytes(value)?);
             Some(output)

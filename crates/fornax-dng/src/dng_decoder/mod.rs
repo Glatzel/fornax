@@ -10,8 +10,9 @@ use fornax_raw_core::metadata::ProcessMetadata;
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
-    Directory, ParsedTiff, RasterRequest, Tag, TiffCompressionError, ValueAccessError,
-    resolve_tiff_compression, unsigned_scalar, unsigned_vec as tiff_unsigned_vec,
+    Directory, DirectoryLookup, ParsedTiff, RasterRequest, Tag, TiffCompressionError, TiffSource,
+    ValueAccessError, resolve_tiff_compression, unsigned_scalar,
+    unsigned_vec_lookup as tiff_unsigned_vec,
 };
 use generic_num::num;
 use image::math::Rect;
@@ -28,15 +29,44 @@ pub struct DngImage {
     raw_ifd: usize,
 }
 
+struct DngDirectory<'a> {
+    root: &'a Directory,
+    raw: &'a Directory,
+}
+
+impl<'a> DngDirectory<'a> {
+    const fn new(root: &'a Directory, raw: &'a Directory) -> Self { Self { root, raw } }
+
+    fn merged(&self) -> Directory {
+        let mut directory = self.root.clone();
+        directory.extend(self.raw.clone());
+        directory
+    }
+}
+
+impl DirectoryLookup for DngDirectory<'_> {
+    fn get(&self, tag: &Tag) -> Option<&fornax_tiff::Value> {
+        self.raw.get(tag).or_else(|| self.root.get(tag))
+    }
+
+    fn contains_key(&self, tag: &Tag) -> bool {
+        self.raw.contains_key(tag) || self.root.contains_key(tag)
+    }
+}
+
 impl DngImage {
     pub fn parse(source: &[u8]) -> Result<Self, DecodeError> {
-        let parsed = fornax_tiff::parse(source)
+        Self::parse_source(TiffSource::from_vec(source.to_vec()))
+    }
+
+    pub fn parse_source(source: TiffSource) -> Result<Self, DecodeError> {
+        let parsed = fornax_tiff::parse_source(source)
             .map_err(|error| DecodeError::InvalidInput(error.to_string().into()))?;
         let raw_ifd = select_raw_ifd(&parsed)?;
         Ok(Self { parsed, raw_ifd })
     }
     pub fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> {
-        let metadata = self.dng_metadata()?;
+        let metadata = self.dng_directory()?;
         let pixels = transforms::apply(decode_samples(&self.parsed.source, &metadata)?, &metadata)?;
         validate_dimensions(&pixels, &metadata)?;
         Ok(pixels)
@@ -46,9 +76,9 @@ impl DngImage {
         T: Primitive,
     {
         let pixels = self.raw_mosaic()?;
-        let metadata = self.dng_metadata()?;
+        let metadata = self.dng_directory()?;
         let (width, height) = pixels.dimensions();
-        let process_metadata = process_metadata_from_dng_metadata(width, height, &metadata)?;
+        let process_metadata = process_metadata::from_lookup(width, height, &metadata)?;
         let active_area = process_metadata.active_area;
         let image = match pixels {
             RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
@@ -60,9 +90,13 @@ impl DngImage {
     }
 
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> {
+        Ok(self.dng_directory()?.merged())
+    }
+
+    fn dng_directory(&self) -> Result<DngDirectory<'_>, DecodeError> {
         if !self
             .parsed
-            .root
+            .root()
             .contains_key(&Tag(u16::from(DngTag::DngVersion)))
         {
             return Err(unsupported_variant(
@@ -74,17 +108,14 @@ impl DngImage {
             .directories
             .get(self.raw_ifd)
             .ok_or_else(|| corrupt("selected raw IFD is missing"))?;
-        let mut dng_metadata = Directory::default();
-        dng_metadata.extend(self.parsed.root.clone());
-        dng_metadata.extend(raw_metadata.clone());
-        Ok(dng_metadata)
+        Ok(DngDirectory::new(self.parsed.root(), raw_metadata))
     }
 
     pub fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError> {
-        let metadata = self.dng_metadata()?;
+        let metadata = self.dng_directory()?;
         let width = required_u32(&metadata, TiffTag::ImageWidth)?;
         let height = required_u32(&metadata, TiffTag::ImageLength)?;
-        process_metadata_from_dng_metadata(width, height, &metadata)
+        process_metadata::from_lookup(width, height, &metadata)
     }
 }
 
@@ -140,7 +171,10 @@ where
         .ok_or_else(|| corrupt("cropped DNG dimensions are invalid"))
 }
 
-fn validate_dimensions(pixels: &RawMosaic, metadata: &Directory) -> Result<(), DecodeError> {
+fn validate_dimensions<D>(pixels: &RawMosaic, metadata: &D) -> Result<(), DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let width = required_u32(metadata, TiffTag::ImageWidth)?;
     let height = required_u32(metadata, TiffTag::ImageLength)?;
     let (actual_width, actual_height) = pixels.dimensions();
@@ -153,10 +187,10 @@ fn validate_dimensions(pixels: &RawMosaic, metadata: &Directory) -> Result<(), D
     Ok(())
 }
 
-fn decode_plan<'a>(
-    source: &'a [u8],
-    metadata: &Directory,
-) -> Result<RasterRequest<'a>, DecodeError> {
+fn decode_plan<'a, D>(source: &'a [u8], metadata: &D) -> Result<RasterRequest<'a>, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let width = required_u32(metadata, TiffTag::ImageWidth)?;
     let height = required_u32(metadata, TiffTag::ImageLength)?;
     if width == 0 || height == 0 {
@@ -206,7 +240,7 @@ fn decode_plan<'a>(
         }
         _ => Predictor::None,
     };
-    RasterRequest::new(
+    RasterRequest::new_with_lookup(
         source,
         metadata,
         compression,
@@ -236,7 +270,10 @@ fn resolve_dng_compression(id: u16) -> Result<DecodeCompression, DecodeError> {
     }
 }
 
-fn decode_samples(source: &[u8], metadata: &Directory) -> Result<RawMosaic, DecodeError> {
+fn decode_samples<D>(source: &[u8], metadata: &D) -> Result<RawMosaic, DecodeError>
+where
+    D: DirectoryLookup + ?Sized,
+{
     let plan = decode_plan(source, metadata)?;
     let samples = plan
         .compression()
@@ -252,7 +289,10 @@ fn codec_decode_error(error: fornax_codec::CodecError) -> DecodeError {
     }
 }
 
-fn sample_format(metadata: &Directory) -> u64 {
+fn sample_format<D>(metadata: &D) -> u64
+where
+    D: DirectoryLookup + ?Sized,
+{
     unsigned_scalar(metadata.get(&Tag::from(TiffTag::SampleFormat))).unwrap_or(1)
 }
 
@@ -263,8 +303,9 @@ fn byte_order(source: &[u8]) -> ByteOrder {
     }
 }
 
-fn required_u16<T>(metadata: &Directory, tag: T) -> Result<u16, DecodeError>
+fn required_u16<D, T>(metadata: &D, tag: T) -> Result<u16, DecodeError>
 where
+    D: DirectoryLookup + ?Sized,
     T: Into<Tag>,
 {
     let tag = tag.into();
@@ -273,8 +314,9 @@ where
     u16::try_from(value).map_err(|_| corrupt(format!("{tag} is out of range")))
 }
 
-fn required_u32<T>(metadata: &Directory, tag: T) -> Result<u32, DecodeError>
+fn required_u32<D, T>(metadata: &D, tag: T) -> Result<u32, DecodeError>
 where
+    D: DirectoryLookup + ?Sized,
     T: Into<Tag>,
 {
     let tag = tag.into();
@@ -283,8 +325,9 @@ where
     u32::try_from(value).map_err(|_| corrupt(format!("{tag} is out of range")))
 }
 
-fn unsigned_vec<T>(metadata: &Directory, tag: T) -> Result<Vec<usize>, DecodeError>
+fn unsigned_vec<D, T>(metadata: &D, tag: T) -> Result<Vec<usize>, DecodeError>
 where
+    D: DirectoryLookup + ?Sized,
     T: Into<Tag>,
 {
     let tag = tag.into();
@@ -339,6 +382,27 @@ mod tests {
             );
 
             assert!(super::is_raw_ifd(&metadata), "photometric {photometric}");
+        }
+    }
+
+    #[test]
+    fn metadata_overlay_prefers_raw_and_matches_the_merged_directory() {
+        let mut root = Directory::default();
+        root.insert(TiffTag::ImageWidth.into(), Value::Unsigned(10));
+        root.insert(TiffTag::Make.into(), Value::Ascii("Root".into()));
+        let mut raw = Directory::default();
+        raw.insert(TiffTag::ImageWidth.into(), Value::Unsigned(20));
+        raw.insert(TiffTag::ImageLength.into(), Value::Unsigned(4));
+        let overlay = DngDirectory::new(&root, &raw);
+        let mut merged = root.clone();
+        merged.extend(raw.clone());
+
+        assert_eq!(
+            overlay.get(&TiffTag::ImageWidth.into()),
+            Some(&Value::Unsigned(20))
+        );
+        for tag in root.keys().chain(raw.keys()) {
+            assert_eq!(overlay.get(tag), merged.get(tag), "{tag}");
         }
     }
 

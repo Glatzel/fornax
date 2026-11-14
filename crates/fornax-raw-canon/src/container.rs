@@ -470,7 +470,7 @@ pub fn optional_tiff_child(
         &child.payload()[offset..]
     };
     fornax_tiff::parse(payload)
-        .map(|parsed| Some(parsed.root))
+        .map(|parsed| Some(parsed.root().clone()))
         .map_err(|error| invalid(format!("parsing Canon CMT TIFF failed: {error}")))
 }
 

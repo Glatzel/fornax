@@ -1,8 +1,9 @@
 use std::collections::{HashSet, VecDeque};
-use std::sync::Arc;
 
 use crate::constants::TiffTag;
-use crate::{ByteOrder, Directory, ParsedTiff, Tag, TiffError, Value};
+use crate::{
+    ByteOrder, Directory, LARGE_BYTE_VALUE_THRESHOLD, ParsedTiff, Tag, TiffError, TiffSource, Value,
+};
 
 struct Reader<'a> {
     bytes: &'a [u8],
@@ -150,6 +151,9 @@ impl<'a> Reader<'a> {
                     .to_owned(),
             )));
         }
+        if matches!(field_type, 1 | 7) && bytes.len() > LARGE_BYTE_VALUE_THRESHOLD {
+            return Ok(Some(Value::Bytes(bytes.to_vec())));
+        }
         let count = usize::try_from(count)
             .map_err(|_| corrupt("TIFF tag value count exceeds the platform address space"))?;
         let values = match field_type {
@@ -278,35 +282,36 @@ impl<'a> Reader<'a> {
     }
 }
 
-pub fn parse(source: &[u8]) -> Result<ParsedTiff, TiffError> {
-    let reader = Reader::new(source)?;
-    let first_ifd = reader.first_ifd()?;
-    if first_ifd == 0 {
-        return Err(corrupt("TIFF contains no image file directories"));
-    }
+pub fn parse_source(source: TiffSource) -> Result<ParsedTiff, TiffError> {
+    let directories = {
+        let reader = Reader::new(source.as_ref())?;
+        let first_ifd = reader.first_ifd()?;
+        if first_ifd == 0 {
+            return Err(corrupt("TIFF contains no image file directories"));
+        }
 
-    let mut pending = VecDeque::from([first_ifd]);
-    let mut visited = HashSet::new();
-    let mut directories = Vec::new();
-    while let Some(offset) = pending.pop_front() {
-        if !visited.insert(offset) {
-            continue;
+        let mut pending = VecDeque::from([first_ifd]);
+        let mut visited = HashSet::new();
+        let mut directories = Vec::new();
+        while let Some(offset) = pending.pop_front() {
+            if !visited.insert(offset) {
+                continue;
+            }
+            let (metadata, next, children) = reader.parse_ifd(offset, 0)?;
+            pending.extend(children);
+            if let Some(next) = next {
+                pending.push_back(next);
+            }
+            directories.push(metadata);
         }
-        let (metadata, next, children) = reader.parse_ifd(offset, 0)?;
-        pending.extend(children);
-        if let Some(next) = next {
-            pending.push_back(next);
-        }
-        directories.push(metadata);
+        directories
+    };
+    if directories.is_empty() {
+        return Err(corrupt("TIFF contains no readable image file directory"));
     }
-    let root = (*directories
-        .first()
-        .ok_or_else(|| corrupt("TIFF contains no readable image file directory"))?)
-    .clone();
     Ok(ParsedTiff {
-        root,
         directories,
-        source: Arc::from(source),
+        source,
     })
 }
 
@@ -380,8 +385,8 @@ fn corrupt(detail: impl Into<Box<str>>) -> TiffError { TiffError::new(detail) }
 
 #[cfg(test)]
 mod tests {
-    use super::{parse, read_u16, read_u32, read_u64};
-    use crate::{ByteOrder, Tag, Value};
+    use super::{read_u16, read_u32, read_u64};
+    use crate::{ByteOrder, Tag, Value, parse};
 
     #[test]
     fn read_helpers_reject_overflowing_offsets() {

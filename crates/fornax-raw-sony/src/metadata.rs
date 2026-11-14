@@ -20,7 +20,7 @@ pub fn map(
         .get(raw_ifd)
         .ok_or_else(|| invalid("selected Sony raw IFD is missing"))?;
     let private = private_ifd(parsed)?;
-    let mut metadata = parsed.root.clone();
+    let mut metadata = parsed.root().clone();
     metadata.extend(raw.clone());
     metadata.remove(&Tag::from(DngTag::DngPrivateData));
 
@@ -130,7 +130,7 @@ pub fn map(
 }
 
 fn private_ifd(parsed: &ParsedTiff) -> Result<Option<Directory>, DecodeError> {
-    let Some(value) = parsed.root.get(&Tag::from(DngTag::DngPrivateData)) else {
+    let Some(value) = parsed.root().get(&Tag::from(DngTag::DngPrivateData)) else {
         return Ok(None);
     };
     let raw = bytes(value).ok_or_else(|| invalid("DNGPrivateData is not a byte string"))?;

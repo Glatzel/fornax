@@ -5,7 +5,7 @@ use std::fmt;
 use fornax_codec::{ByteOrder, Chunk, DecodeCompression, DecodeRequest, Predictor, SampleFormat};
 
 use crate::constants::TiffTag;
-use crate::{Directory, Tag, ValueAccessError, unsigned_vec};
+use crate::{Directory, DirectoryLookup, Tag, ValueAccessError, unsigned_vec_lookup};
 
 /// TIFF raster storage organization.
 ///
@@ -90,6 +90,19 @@ impl RasterLayout {
     /// # Ok::<(), fornax_tiff::RasterError>(())
     /// ```
     pub fn from_directory(directory: &Directory) -> Result<Self, RasterError> {
+        Self::from_lookup(directory)
+    }
+
+    /// Reads image and strip/tile geometry through a metadata lookup.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RasterError`] under the same conditions as
+    /// [`Self::from_directory`].
+    pub fn from_lookup<D>(directory: &D) -> Result<Self, RasterError>
+    where
+        D: DirectoryLookup + ?Sized,
+    {
         let width = required_usize(directory, TiffTag::ImageWidth)?;
         let height = required_usize(directory, TiffTag::ImageLength)?;
         if width == 0 {
@@ -374,7 +387,35 @@ impl<'a> RasterRequest<'a> {
         byte_order: ByteOrder,
         predictor: Predictor,
     ) -> Result<Self, RasterError> {
-        let layout = RasterLayout::from_directory(directory)?;
+        Self::new_with_lookup(
+            source,
+            directory,
+            compression,
+            bits_per_sample,
+            sample_format,
+            byte_order,
+            predictor,
+        )
+    }
+
+    /// Creates a validated raster request through a metadata lookup.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RasterError`] under the same conditions as [`Self::new`].
+    pub fn new_with_lookup<D>(
+        source: &'a [u8],
+        directory: &D,
+        compression: DecodeCompression,
+        bits_per_sample: u16,
+        sample_format: SampleFormat,
+        byte_order: ByteOrder,
+        predictor: Predictor,
+    ) -> Result<Self, RasterError>
+    where
+        D: DirectoryLookup + ?Sized,
+    {
+        let layout = RasterLayout::from_lookup(directory)?;
         for (index, chunk) in layout.chunks().iter().copied().enumerate() {
             let end = chunk
                 .offset
@@ -793,8 +834,9 @@ pub const fn resolve_tiff_compression(id: u16) -> Result<DecodeCompression, Tiff
     }
 }
 
-fn required_usize<T>(directory: &Directory, tag: T) -> Result<usize, RasterError>
+fn required_usize<D, T>(directory: &D, tag: T) -> Result<usize, RasterError>
 where
+    D: DirectoryLookup + ?Sized,
     T: Into<Tag>,
 {
     let tag = tag.into();
@@ -803,12 +845,13 @@ where
     usize::try_from(value).map_err(|_| RasterError::ValueOutOfRange(tag))
 }
 
-fn unsigned_usizes<T>(directory: &Directory, tag: T) -> Result<Vec<usize>, RasterError>
+fn unsigned_usizes<D, T>(directory: &D, tag: T) -> Result<Vec<usize>, RasterError>
 where
+    D: DirectoryLookup + ?Sized,
     T: Into<Tag>,
 {
     let tag = tag.into();
-    unsigned_vec::<_, usize>(directory, tag).map_err(|error| match error {
+    unsigned_vec_lookup::<_, _, usize>(directory, tag).map_err(|error| match error {
         ValueAccessError::Missing => RasterError::MissingTag(tag),
         ValueAccessError::InvalidType => RasterError::InvalidValueType(tag),
         ValueAccessError::Overflow => RasterError::ValueOutOfRange(tag),

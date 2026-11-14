@@ -957,8 +957,10 @@ dependencies = [
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
+ "memmap2",
  "rawler",
  "strum",
+ "tempfile",
 ]
 
 [[package]]
@@ -1064,6 +1066,7 @@ name = "fornax-tiff"
 version = "0.0.17"
 dependencies = [
  "fornax-codec",
+ "memmap2",
  "num_enum",
  "strum",
 ]

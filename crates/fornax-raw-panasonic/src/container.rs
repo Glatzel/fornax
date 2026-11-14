@@ -504,6 +504,9 @@ fn required_bytes(raw: &Directory, tag: Tag, name: &str) -> Result<Vec<u8>, Deco
 }
 
 pub fn bytes_value(value: Option<&Value>) -> Option<Vec<u8>> {
+    if let Some(bytes) = value?.as_byte_slice() {
+        return Some(bytes.to_vec());
+    }
     let Value::List(values) = value? else {
         return None;
     };

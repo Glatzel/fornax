@@ -23,15 +23,15 @@ fn tiff_directory_round_trips_typed_and_dynamic_entries() {
 
     let parsed = parse(output.get_ref()).unwrap();
     assert_eq!(
-        parsed.root.get(&TiffTag::ImageWidth.into()),
+        parsed.root().get(&TiffTag::ImageWidth.into()),
         Some(&Value::Unsigned(2))
     );
     assert_eq!(
-        parsed.root.get(&TiffTag::StripOffsets.into()),
+        parsed.root().get(&TiffTag::StripOffsets.into()),
         Some(&Value::Unsigned(data_offset))
     );
     assert_eq!(
-        parsed.root.get(&Tag(60_001)),
+        parsed.root().get(&Tag(60_001)),
         Some(&Value::Ascii("private".into()))
     );
 }

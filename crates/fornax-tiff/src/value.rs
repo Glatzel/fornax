@@ -1,5 +1,8 @@
 use std::fmt;
 
+/// Maximum byte-list length stored as individual [`Value::Byte`] entries.
+pub const LARGE_BYTE_VALUE_THRESHOLD: usize = 64;
+
 /// A TIFF tag identifier.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Tag(pub u16);
@@ -38,6 +41,7 @@ pub enum Value {
     Ifd(u32),
     IfdBig(u64),
     Ascii(String),
+    Bytes(Vec<u8>),
     List(Vec<Self>),
 }
 
@@ -45,6 +49,7 @@ impl Value {
     /// Returns the number of scalar values represented by this field.
     pub const fn count(&self) -> usize {
         match self {
+            Self::Bytes(values) => values.len(),
             Self::List(values) => values.len(),
             _ => 1,
         }
@@ -52,6 +57,9 @@ impl Value {
 
     /// Returns an unsigned integer at `index` when representable.
     pub fn force_u32(&self, index: usize) -> u32 {
+        if let Self::Bytes(values) = self {
+            return values.get(index).map_or(0, |value| u32::from(*value));
+        }
         self.scalar(index)
             .and_then(Self::force_u32_scalar)
             .unwrap_or_default()
@@ -59,6 +67,9 @@ impl Value {
 
     /// Returns a floating-point value at `index` when representable.
     pub fn force_f32(&self, index: usize) -> f32 {
+        if let Self::Bytes(values) = self {
+            return values.get(index).map_or(0.0, |value| f32::from(*value));
+        }
         self.scalar(index)
             .and_then(Self::force_f32_scalar)
             .unwrap_or_default()
@@ -67,8 +78,34 @@ impl Value {
     /// Converts every scalar to `u64`.
     pub fn into_u64_vec(self) -> Result<Vec<u64>, ValueConversionError> {
         match self {
+            Self::Bytes(values) => Ok(values.into_iter().map(u64::from).collect()),
             Self::List(values) => values.into_iter().map(Self::force_u64_scalar).collect(),
             value => Ok(vec![Self::force_u64_scalar(value)?]),
+        }
+    }
+
+    /// Returns bytes when this value is a byte array or a single byte.
+    pub fn as_byte_slice(&self) -> Option<&[u8]> {
+        match self {
+            Self::Byte(value) => Some(std::slice::from_ref(value)),
+            Self::Bytes(values) => Some(values),
+            _ => None,
+        }
+    }
+
+    /// Converts this value into bytes without per-byte enum storage.
+    pub fn into_byte_vec(self) -> Option<Vec<u8>> {
+        match self {
+            Self::Byte(value) => Some(vec![value]),
+            Self::Bytes(values) => Some(values),
+            Self::List(values) => values
+                .into_iter()
+                .map(|value| match value {
+                    Self::Byte(value) => Some(value),
+                    _ => None,
+                })
+                .collect(),
+            _ => None,
         }
     }
 
@@ -155,6 +192,7 @@ impl fmt::Display for Value {
 pub fn unsigned_scalar(value: Option<&Value>) -> Option<u64> {
     match value? {
         Value::Byte(value) => Some(u64::from(*value)),
+        Value::Bytes(values) => values.first().copied().map(u64::from),
         Value::Short(value) => Some(u64::from(*value)),
         Value::Unsigned(value) | Value::Ifd(value) => Some(u64::from(*value)),
         Value::UnsignedBig(value) | Value::IfdBig(value) => Some(*value),
@@ -194,6 +232,17 @@ pub fn unsigned_scalar(value: Option<&Value>) -> Option<u64> {
 /// ```
 pub fn unsigned_vec<T, U>(directory: &crate::Directory, tag: T) -> Result<Vec<U>, ValueAccessError>
 where
+    T: Into<Tag>,
+    U: TryFrom<u64>,
+{
+    unsigned_vec_lookup(directory, tag)
+}
+
+/// Converts a TIFF directory field through a metadata lookup into unsigned
+/// integers.
+pub fn unsigned_vec_lookup<D, T, U>(directory: &D, tag: T) -> Result<Vec<U>, ValueAccessError>
+where
+    D: crate::DirectoryLookup + ?Sized,
     T: Into<Tag>,
     U: TryFrom<u64>,
 {

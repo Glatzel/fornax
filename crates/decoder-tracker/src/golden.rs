@@ -381,6 +381,13 @@ fn update_value(hash: &mut Sha256, value: &Value) {
         Value::Ifd(value) => update_tagged(hash, b"ifd", &value.to_le_bytes()),
         Value::IfdBig(value) => update_tagged(hash, b"ifd-big", &value.to_le_bytes()),
         Value::Ascii(value) => update_tagged(hash, b"ascii", value.as_bytes()),
+        Value::Bytes(values) => {
+            update_bytes(hash, b"list");
+            hash.update((values.len() as u64).to_le_bytes());
+            for value in values {
+                update_value(hash, &Value::Byte(*value));
+            }
+        }
         Value::List(values) => {
             update_bytes(hash, b"list");
             hash.update((values.len() as u64).to_le_bytes());

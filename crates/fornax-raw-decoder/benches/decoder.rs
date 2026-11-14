@@ -1,67 +1,30 @@
 mod decoder_inputs;
 mod decoder_selection;
 mod flashraw_wrapper;
+#[path = "../tests/support/mosaic_compare.rs"]
+mod mosaic_compare;
 mod rawler_wrapper;
 mod reference_preflight;
 
-use std::path::{Path, PathBuf};
-use std::{env, fs};
+use std::env;
+use std::path::Path;
 
 use criterion::measurement::WallTime;
 use criterion::{BenchmarkGroup, Criterion, black_box, criterion_group, criterion_main};
-use decoder_inputs::{
-    GoldenInput, ensure_materialized, parse_golden_manifest, resolve_repo_relative,
-    select_golden_inputs,
-};
-use decoder_selection::{DecoderKind, parse_decoder_selection};
+use decoder_inputs::{GoldenInput, benchmark_inputs};
+use decoder_selection::{DecoderKind, select_decoders};
 use flashraw_wrapper::FlashRawDecoder;
 use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::protocol::IDecoder;
 use fornax_raw_decoder::Decoder;
+use mosaic_compare::{assert_mosaic_eq, canonical_mosaic};
 use rawler_wrapper::RawlerDecoder;
 use reference_preflight::{ReferencePreflight, preflight_reference};
 
-const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/golden/selected-manifest.csv";
-const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
-
 fn selected_decoders() -> Vec<DecoderKind> {
-    let value = if env::var("CI").is_ok() {
-        Some("fornax".into())
-    } else {
-        env::var("FORNAX_BENCH_DECODER").ok()
-    };
-    parse_decoder_selection(value.as_deref())
+    let explicit = env::var("FORNAX_BENCH_DECODER").ok();
+    select_decoders(explicit.as_deref(), env::var_os("CI").is_some())
         .unwrap_or_else(|error| panic!("parsing FORNAX_BENCH_DECODER failed: {error}"))
-}
-
-fn benchmark_inputs() -> Vec<(GoldenInput, PathBuf)> {
-    let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let manifest = env::var_os("FORNAX_BENCH_MANIFEST")
-        .map_or_else(|| PathBuf::from(DEFAULT_MANIFEST), PathBuf::from);
-    let corpus = env::var_os("FORNAX_BENCH_CORPUS")
-        .map_or_else(|| PathBuf::from(DEFAULT_CORPUS), PathBuf::from);
-    let manifest = resolve_repo_relative(&repo_root, &manifest);
-    let corpus = resolve_repo_relative(&repo_root, &corpus);
-    let bytes = fs::read(&manifest).unwrap_or_else(|error| {
-        panic!(
-            "reading decoder benchmark golden manifest {} failed: {error}",
-            manifest.display()
-        )
-    });
-    let rows = parse_golden_manifest(&bytes).unwrap_or_else(|error| {
-        panic!(
-            "parsing decoder benchmark golden manifest {} failed: {error}",
-            manifest.display()
-        )
-    });
-    let explicit = env::var_os("FORNAX_BENCH_RAW")
-        .map(PathBuf::from)
-        .map(|path| resolve_repo_relative(&repo_root, &path));
-    let inputs = select_golden_inputs(&rows, explicit.as_deref(), &corpus)
-        .unwrap_or_else(|error| panic!("configuring decoder benchmark inputs failed: {error}"));
-    ensure_materialized(&inputs)
-        .unwrap_or_else(|error| panic!("decoder benchmark input check failed: {error}"));
-    inputs
 }
 
 fn decoder_error(case: &str, decoder: &str, method: &str, error: impl std::fmt::Display) -> ! {
@@ -69,6 +32,16 @@ fn decoder_error(case: &str, decoder: &str, method: &str, error: impl std::fmt::
 }
 
 fn bench_fornax(group: &mut BenchmarkGroup<'_, WallTime>, case: &str, path: &Path) {
+    group.bench_function("fornax/end_to_end", |b| {
+        b.iter(|| {
+            let decoder = Decoder::decode(black_box(path))
+                .unwrap_or_else(|error| decoder_error(case, "fornax", "decode", error));
+            decoder
+                .raw_mosaic()
+                .unwrap_or_else(|error| decoder_error(case, "fornax", "raw_mosaic", error))
+        });
+    });
+
     group.bench_function("fornax/decode", |b| {
         b.iter(|| {
             Decoder::decode(black_box(path))
@@ -94,6 +67,22 @@ fn bench_fornax(group: &mut BenchmarkGroup<'_, WallTime>, case: &str, path: &Pat
     });
 }
 
+fn verify_three_way_equality(case: &str, path: &Path) {
+    let fornax = Decoder::decode(path)
+        .and_then(|decoder| decoder.raw_mosaic())
+        .unwrap_or_else(|error| decoder_error(case, "fornax", "raw_mosaic", error));
+    let rawler = RawlerDecoder::decode(path)
+        .and_then(|decoder| decoder.raw_mosaic())
+        .unwrap_or_else(|error| decoder_error(case, "rawler", "raw_mosaic", error));
+    let flashraw = FlashRawDecoder::decode(path)
+        .and_then(|decoder| decoder.raw_mosaic())
+        .unwrap_or_else(|error| decoder_error(case, "flashraw", "raw_mosaic", error));
+
+    let fornax = canonical_mosaic(&fornax);
+    assert_mosaic_eq(case, "rawler", &canonical_mosaic(&rawler), &fornax);
+    assert_mosaic_eq(case, "flashraw", &canonical_mosaic(&flashraw), &fornax);
+}
+
 fn bench_reference<D>(
     group: &mut BenchmarkGroup<'_, WallTime>,
     case: &str,
@@ -102,8 +91,8 @@ fn bench_reference<D>(
 ) where
     D: IDecoder,
 {
-    let decoder = match preflight_reference::<D>(path) {
-        Ok(ReferencePreflight::Ready(decoder)) => decoder,
+    match preflight_reference::<D>(path) {
+        Ok(ReferencePreflight::Ready(_)) => {}
         Ok(ReferencePreflight::Unsupported(detail)) => {
             eprintln!(
                 "decoder benchmark warning: skipping {decoder_name} for {case}: \
@@ -112,18 +101,11 @@ fn bench_reference<D>(
             return;
         }
         Err(error) => decoder_error(case, decoder_name, "decode/raw_mosaic preflight", error),
-    };
+    }
     group.bench_function(format!("{decoder_name}/decode"), |b| {
         b.iter(|| {
             D::decode(black_box(path))
                 .unwrap_or_else(|error| decoder_error(case, decoder_name, "decode", error))
-        });
-    });
-    group.bench_function(format!("{decoder_name}/raw_mosaic"), |b| {
-        b.iter(|| {
-            decoder
-                .raw_mosaic()
-                .unwrap_or_else(|error| decoder_error(case, decoder_name, "raw_mosaic", error))
         });
     });
 }
@@ -156,6 +138,14 @@ where
 
 fn bench_input(c: &mut Criterion, decoders: &[DecoderKind], row: &GoldenInput, path: &Path) {
     eprintln!("decoder benchmark input: {} ({} bytes)", row.path, row.size);
+    if row.format() == "DNG"
+        && decoders.len() == 3
+        && decoders.contains(&DecoderKind::Fornax)
+        && decoders.contains(&DecoderKind::Rawler)
+        && decoders.contains(&DecoderKind::FlashRaw)
+    {
+        verify_three_way_equality(&row.path, path);
+    }
     let mut group = c.benchmark_group(row.case_label());
     if decoders.contains(&DecoderKind::Fornax) {
         bench_metadata::<Decoder>(&mut group, &row.path, path);

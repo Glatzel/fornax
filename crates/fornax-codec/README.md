@@ -37,9 +37,9 @@ format crates.
 | TIFF compression | Decode | Encode |
 | --- | --- | --- |
 | Uncompressed (`1`) | Packed integers and floats | U8/U16/U32/F32/F64 |
-| Lossless JPEG-92 (`7`) | Single-sample strips/tiles, predictors 1-7 | U8/U16 tiles |
+| Lossless JPEG-92 (`7`) | Predictors 1-7; fused predictor-1 strips/tiles | U8/U16 tiles |
 | LZW (`5`) | TIFF MSB-first words and size switches | U8/U16/U32/F32/F64 tiles |
-| Deflate (`8`) | Integer and float predictors | U8/U16/U32/F32/F64 tiles |
+| Deflate (`8`) | Integer and fused float predictors | U8/U16/U32/F32/F64 tiles |
 | PackBits (`32773`) | Literal, repeat, and no-op controls | U8/U16/U32/F32/F64 tiles |
 | Lossy JPEG (`34892`) | Single-component 8-bit | No |
 | JPEG XL (`50002`, `52546`) | Single-channel 8-16-bit mosaics | No |
@@ -54,14 +54,23 @@ compression `52546` to the same JPEG XL decoder.
 
 - Lossless JPEG-92 does not yet support pre-DNG-1.1 precision handling, restart
   intervals, Huffman selector `0x10`, or multi-component subsampled and
-  half-height tile layouts. Sony's vendor codec separately handles its
-  full-resolution one- and four-component tile layouts.
+  half-height tile layouts. A single-component JPEG row that contains multiple
+  TIFF tile rows is accepted when total sample count is unchanged. Sony's
+  vendor codec separately handles its full-resolution one- and four-component
+  tile layouts.
+- Predictor-1 scans use a left-aligned 64-bit reader, a 13-bit completed-
+  difference lookup, and row callbacks into the final mosaic for one or two
+  components. Other predictors and layouts retain the general scanner.
 - Lossy JPEG decoding accepts only one 8-bit component. Three-component
   `LinearRaw` payloads are outside the single-band `SampleBuffer` contract.
 - JPEG XL decoding accepts only one 8-16-bit channel. Multi-channel `LinearRaw`
   payloads are outside the single-band `SampleBuffer` contract.
 - Uncompressed, Deflate, and Zstandard decoding accept only one raw sample per
   pixel in the DNG decoder.
+- Floating-point Deflate decoding fuses predictor reversal, byte-plane
+  reconstruction, f16/f24 expansion, and f32 output into one pass. The
+  generic reverse-then-convert path remains available for unsupported
+  combinations and as the test oracle.
 - Vendor packed, word, stripped, lossless-Huffman, block-lossless, CRX,
   predictor-8, and stamped layouts belong to their vendor crates.
 

@@ -24,15 +24,16 @@ fn writer_emits_tiff_and_dng_owned_compression_ids() {
             .write_dng_with(&mut output, &mosaic, &Directory::default())
             .unwrap();
         let parsed = parse(output.get_ref()).unwrap();
-        let actual = parsed
-            .root
-            .get(&TiffTag::Compression.into())
-            .and_then(|value| match value {
-                Value::Short(value) => Some(*value),
-                _ => None,
-            });
+        let actual =
+            parsed
+                .root()
+                .get(&TiffTag::Compression.into())
+                .and_then(|value| match value {
+                    Value::Short(value) => Some(*value),
+                    _ => None,
+                });
         let photometric = parsed
-            .root
+            .root()
             .get(&TiffTag::PhotometricInterpretation.into())
             .and_then(|value| match value {
                 Value::Short(value) => Some(*value),

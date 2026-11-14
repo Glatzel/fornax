@@ -108,6 +108,47 @@ fn uncompressed_ten_bit_rows_unpack_msb_first() {
 }
 
 #[test]
+fn uncompressed_grouped_packed_rows_preserve_partial_right_edge_tiles() {
+    for bits in [12_u16, 14] {
+        for byte_order in [ByteOrder::Little, ByteOrder::Big] {
+            let chunks_data = [
+                pack_msb(&[0, 1, 2, 3], bits),
+                pack_msb(&[4], bits),
+                pack_msb(&[5, 6, 7, 8], bits),
+                pack_msb(&[9], bits),
+            ];
+            let mut source = Vec::new();
+            let mut chunks = Vec::new();
+            for data in chunks_data {
+                chunks.push(Chunk {
+                    offset: source.len(),
+                    byte_count: data.len(),
+                });
+                source.extend(data);
+            }
+            let request = request(
+                &source,
+                &chunks,
+                5,
+                2,
+                4,
+                1,
+                bits,
+                SampleFormat::Integer,
+                byte_order,
+                DecodeCompression::Uncompressed,
+            );
+
+            let SampleBuffer::U16(image) = request.decode().unwrap() else {
+                panic!("{bits}-bit samples must decode as u16");
+            };
+
+            assert_eq!(image.as_raw().as_slice(), (0_u16..10).collect::<Vec<_>>());
+        }
+    }
+}
+
+#[test]
 fn uncompressed_big_endian_partial_strip_copies_the_last_row() {
     let source = [b'M', b'M', 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6];
     let chunks = [
@@ -231,6 +272,21 @@ fn uncompressed_rejects_missing_chunks() {
     let error = request.decode().unwrap_err();
 
     assert!(matches!(error, fornax_codec::CodecError::InvalidInput(_)));
+}
+
+fn pack_msb(samples: &[u16], bits: u16) -> Vec<u8> {
+    let bits = usize::from(bits);
+    let mut bytes = vec![0_u8; (samples.len() * bits).div_ceil(8)];
+    for (sample_index, sample) in samples.iter().copied().enumerate() {
+        for bit in 0..bits {
+            if sample & (1 << bit) == 0 {
+                continue;
+            }
+            let stream_bit = sample_index * bits + bits - 1 - bit;
+            bytes[stream_bit / 8] |= 1 << (7 - stream_bit % 8);
+        }
+    }
+    bytes
 }
 
 #[test]
@@ -372,6 +428,84 @@ fn lossless_jpeg_decodes_twelve_bit_tiles() {
     };
 
     assert_eq!(image.as_raw().as_slice(), &[2_048; 4]);
+}
+
+#[test]
+#[cfg(feature = "lossless-jpeg")]
+fn lossless_jpeg_folds_packed_rows_into_the_expected_tile() {
+    let tile = fornax_codec::ljpeg::encode_interleaved_for_test(&[1, 2, 3, 4], 4, 1, 1, 16);
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        &tile,
+        &chunks,
+        2,
+        2,
+        2,
+        2,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        DecodeCompression::LosslessJpeg,
+    );
+
+    let SampleBuffer::U16(image) = request.decode().unwrap() else {
+        panic!("lossless JPEG samples must decode as u16");
+    };
+
+    assert_eq!(image.as_raw().as_slice(), &[1, 2, 3, 4]);
+}
+
+#[test]
+#[cfg(feature = "lossless-jpeg")]
+fn lossless_jpeg_rejects_packed_rows_with_a_mismatched_sample_count() {
+    let tile = fornax_codec::ljpeg::encode_interleaved_for_test(&[1, 2, 3, 4], 4, 1, 1, 16);
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        &tile,
+        &chunks,
+        2,
+        3,
+        2,
+        3,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        DecodeCompression::LosslessJpeg,
+    );
+
+    let error = request.decode().unwrap_err();
+    assert!(error.to_string().contains("sample count"), "{error}");
+}
+
+#[test]
+#[cfg(feature = "lossless-jpeg")]
+fn lossless_jpeg_rejects_non_integral_row_folding() {
+    let tile = fornax_codec::ljpeg::encode_interleaved_for_test(&[1, 2, 3, 4, 5, 6], 3, 2, 1, 16);
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        &tile,
+        &chunks,
+        2,
+        3,
+        2,
+        3,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        DecodeCompression::LosslessJpeg,
+    );
+
+    let error = request.decode().unwrap_err();
+    assert!(error.to_string().contains("multiple"), "{error}");
 }
 
 #[test]

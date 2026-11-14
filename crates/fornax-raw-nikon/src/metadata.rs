@@ -28,7 +28,7 @@ pub fn map(
         .directories
         .get(raw_ifd)
         .ok_or_else(|| invalid("selected Nikon raw IFD is missing"))?;
-    let mut directory = parsed.root.clone();
+    let mut directory = parsed.root().clone();
     directory.extend(raw.clone());
     let width = u32::try_from(layout.width).map_err(|_| invalid("Nikon width exceeds u32"))?;
     let height = u32::try_from(layout.height).map_err(|_| invalid("Nikon height exceeds u32"))?;

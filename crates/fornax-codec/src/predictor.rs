@@ -71,6 +71,27 @@ fn check_floating_point(
     Ok(())
 }
 
+pub fn reverse_floating_row(
+    inflated: &[u8],
+    output: &mut [u8],
+    width: usize,
+    bits: u16,
+    byte_stride: usize,
+) -> Result<(), CodecError> {
+    check_floating_point(SampleFormat::Float, bits, byte_stride)?;
+    let row_bytes = width
+        .checked_mul(usize::from(bits.div_ceil(8)))
+        .ok_or_else(|| invalid("predictor row size overflow"))?;
+    if inflated.len() < row_bytes || output.len() < row_bytes {
+        return Err(invalid("predicted payload is truncated"));
+    }
+    output[..row_bytes].copy_from_slice(&inflated[..row_bytes]);
+    for index in byte_stride..row_bytes {
+        output[index] = output[index].wrapping_add(output[index - byte_stride]);
+    }
+    Ok(())
+}
+
 pub fn reverse(
     payload: &mut [u8],
     predictor: Predictor,
