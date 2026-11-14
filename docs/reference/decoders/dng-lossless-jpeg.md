@@ -35,6 +35,11 @@ This reference note records pinned sources, decoder behavior, and implementation
   components. The accepted fixture uses two 128-sample components per
   256-sample tile row. The entropy decoder writes those components back into
   one row-major sample stream.
+- A JPEG row may also contain multiple TIFF tile rows. Fornax accepts this
+  only when the decoded width is a positive integer multiple of the expected
+  tile width and the total sample count is unchanged. The Blackmagic Pocket
+  Cinema Camera 4K lossless DNG uses 2064x1088 JPEG geometry for 1032x2176 TIFF
+  tiles.
 - Predictors 1 through 7 use the left, above, and above-left neighbors across
   the interleaved component stream. The first pixel is initialized from the
   precision-dependent midpoint plus its Huffman difference.
@@ -52,13 +57,15 @@ This reference note records pinned sources, decoder behavior, and implementation
   static Huffman table and predictor 1. U32/F32 samples use lossless Deflate.
 - Restart markers, multi-component subsampling, the pre-DNG-1.1 16-bit
   deviation, sub-tile blocks, and geometric opcodes remain future work.
-- Corpus DNGs used by Canon EOS 5D Mark III, Canon EOS 60D, Blackmagic Pocket
-  Cinema Camera 4K, Blackmagic Micro Cinema Camera, Blackmagic Pocket Cinema
-  Camera, and Blackmagic URSA 4K contain two-component half-height JPEG scans.
-  The decoder currently assumes scan height matches the TIFF tile height and
-  rejects these files before entropy decoding.
+- Corpus DNGs used by Canon EOS 5D Mark III, Canon EOS 60D, Blackmagic Micro
+  Cinema Camera, Blackmagic Pocket Cinema Camera, and Blackmagic URSA 4K
+  contain two-component half-height JPEG scans.
 - Some Blackmagic DNGs use DHT selector `0x10`. The decoder currently accepts
   only table class 0 and reports the selector as unsupported.
+- FlashRaw's `RawU16` Blackmagic output is precision-scaled to a 16-bit range;
+  Fornax and Rawler preserve the stored 12-bit code values. The Blackmagic
+  packed-row corpus regression therefore compares Fornax exactly with Rawler
+  rather than adding a three-way-equivalent row to the golden benchmark.
 - Several XIAOYI lossless-JPEG failures occur while decoding entropy-coded
   samples after component handling. They require reference comparison before
   being classified as a separate codec variant.

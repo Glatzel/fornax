@@ -495,13 +495,58 @@ fn decode_into(
     output: &mut [u16],
 ) -> Result<(), String> {
     let decoded = decode_interleaved(source, expected_precision)?;
-    if decoded.width != expected_width || decoded.height != expected_height {
+    reshape_scan_into(
+        decoded.width,
+        decoded.height,
+        expected_width,
+        expected_height,
+        &decoded.samples,
+        output,
+    )
+}
+
+fn reshape_scan_into(
+    decoded_width: usize,
+    decoded_height: usize,
+    expected_width: usize,
+    expected_height: usize,
+    decoded: &[u16],
+    output: &mut [u16],
+) -> Result<(), String> {
+    let expected_samples = expected_width
+        .checked_mul(expected_height)
+        .ok_or_else(|| "lossless JPEG expected sample count overflow".to_owned())?;
+    if output.len() != expected_samples {
         return Err(format!(
-            "lossless JPEG frame is {}x{}, expected {expected_width}x{expected_height}",
-            decoded.width, decoded.height
+            "lossless JPEG output sample count is {}, expected {expected_samples}",
+            output.len()
         ));
     }
-    output.copy_from_slice(&decoded.samples);
+    let decoded_samples = decoded_width
+        .checked_mul(decoded_height)
+        .ok_or_else(|| "lossless JPEG decoded sample count overflow".to_owned())?;
+    if decoded.len() != decoded_samples {
+        return Err(format!(
+            "lossless JPEG decoded sample count is {}, expected {decoded_samples}",
+            decoded.len()
+        ));
+    }
+    if decoded_samples != expected_samples {
+        return Err(format!(
+            "lossless JPEG frame is {decoded_width}x{decoded_height} with sample count \
+             {decoded_samples}, expected {expected_width}x{expected_height} with sample count \
+             {expected_samples}"
+        ));
+    }
+    if (decoded_width, decoded_height) != (expected_width, expected_height)
+        && (expected_width == 0 || !decoded_width.is_multiple_of(expected_width))
+    {
+        return Err(format!(
+            "lossless JPEG frame width {decoded_width} is not an integer multiple of the \
+             expected tile width {expected_width}"
+        ));
+    }
+    output.copy_from_slice(decoded);
     Ok(())
 }
 

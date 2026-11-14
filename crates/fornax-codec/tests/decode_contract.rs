@@ -376,6 +376,84 @@ fn lossless_jpeg_decodes_twelve_bit_tiles() {
 
 #[test]
 #[cfg(feature = "lossless-jpeg")]
+fn lossless_jpeg_folds_packed_rows_into_the_expected_tile() {
+    let tile = fornax_codec::ljpeg::encode_interleaved_for_test(&[1, 2, 3, 4], 4, 1, 1, 16);
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        &tile,
+        &chunks,
+        2,
+        2,
+        2,
+        2,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        DecodeCompression::LosslessJpeg,
+    );
+
+    let SampleBuffer::U16(image) = request.decode().unwrap() else {
+        panic!("lossless JPEG samples must decode as u16");
+    };
+
+    assert_eq!(image.as_raw().as_slice(), &[1, 2, 3, 4]);
+}
+
+#[test]
+#[cfg(feature = "lossless-jpeg")]
+fn lossless_jpeg_rejects_packed_rows_with_a_mismatched_sample_count() {
+    let tile = fornax_codec::ljpeg::encode_interleaved_for_test(&[1, 2, 3, 4], 4, 1, 1, 16);
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        &tile,
+        &chunks,
+        2,
+        3,
+        2,
+        3,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        DecodeCompression::LosslessJpeg,
+    );
+
+    let error = request.decode().unwrap_err();
+    assert!(error.to_string().contains("sample count"), "{error}");
+}
+
+#[test]
+#[cfg(feature = "lossless-jpeg")]
+fn lossless_jpeg_rejects_non_integral_row_folding() {
+    let tile = fornax_codec::ljpeg::encode_interleaved_for_test(&[1, 2, 3, 4, 5, 6], 3, 2, 1, 16);
+    let chunks = [Chunk {
+        offset: 0,
+        byte_count: tile.len(),
+    }];
+    let request = request(
+        &tile,
+        &chunks,
+        2,
+        3,
+        2,
+        3,
+        16,
+        SampleFormat::Integer,
+        ByteOrder::Little,
+        DecodeCompression::LosslessJpeg,
+    );
+
+    let error = request.decode().unwrap_err();
+    assert!(error.to_string().contains("multiple"), "{error}");
+}
+
+#[test]
+#[cfg(feature = "lossless-jpeg")]
 fn lossless_jpeg_applies_point_transform() {
     let mut tile = [
         0xff, 0xd8, 0xff, 0xc3, 0x00, 0x0b, 0x10, 0x00, 0x02, 0x00, 0x02, 0x01, 0x01, 0x11, 0x00,

@@ -183,7 +183,7 @@ with more than 64 elements; small CFA/pattern fields remain
 ## Task Checklist
 
 - [x] Task 0: Add equality/headline/profile guardrails.
-- [ ] Task 1: Fix Blackmagic packed-row LJPEG as an independent correctness
+- [x] Task 1: Fix Blackmagic packed-row LJPEG as an independent correctness
   change.
 - [ ] Task 2: Add the fused common-case LJPEG decoder.
 - [ ] Task 3: Add non-copying TIFF source storage and remove the duplicated
@@ -399,7 +399,7 @@ fn reshape_scan_into(
 ) -> Result<(), String>;
 ```
 
-- [ ] **Step 1: Add a synthetic failing row-packing test**
+- [x] **Step 1: Add a synthetic failing row-packing test**
 
 Encode a 4x1 synthetic LJPEG scan whose linear samples are
 `[1, 2, 3, 4]`. Decode it as a 2x2 tile and assert:
@@ -410,7 +410,7 @@ assert_eq!(tile, [1, 2, 3, 4]);
 
 Also add a mismatched-total test that must remain a typed invalid-input error.
 
-- [ ] **Step 2: Run the test and verify the current dimension rejection**
+- [x] **Step 2: Run the test and verify the current dimension rejection**
 
 Run:
 
@@ -420,7 +420,7 @@ cargo test -p fornax-codec decode_contract packed_row -- --nocapture
 
 Expected: failure containing the current frame/tile dimension mismatch.
 
-- [ ] **Step 3: Implement row folding**
+- [x] **Step 3: Implement row folding**
 
 The Blackmagic corpus payload is a valid 12-bit one-component SOF3 stream with
 frame geometry 2064x1088 and TIFF tile geometry 1032x2176. It packs two TIFF
@@ -430,7 +430,7 @@ decoded sample count equals the expected tile sample count, and linear
 reshaping is therefore lossless. Compact each decoded row into consecutive
 expected-width rows. Keep all other dimension mismatches invalid.
 
-- [ ] **Step 4: Add the corpus regression**
+- [x] **Step 4: Add the corpus regression**
 
 Materialize:
 
@@ -439,18 +439,19 @@ Blackmagic/Blackmagic Pocket Cinema Camera 4k/BMPCC_4k_DCI_lossless.dng
 ```
 
 Decode it through `fornax-raw-decoder`, assert 4128x2176 RGGB U16 output, and
-run the three-way equality guard from Task 0. Add this file to the golden
-manifest only after the equality check passes.
+run the Fornax-versus-Rawler equality check. FlashRaw precision-scales this
+12-bit output and is not byte-equivalent, so keep the file out of the shared
+three-way golden set and use a focused corpus regression instead.
 
-Regenerate rather than hand-edit hashes:
+The selected manifest and existing hashes remain unchanged:
 
 ```bash
 pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
   --manifest crates/decoder-tracker/golden/selected-manifest.csv \
-  --out crates/decoder-tracker/golden/decode-hashes.csv
+  --check crates/decoder-tracker/golden/decode-hashes.csv
 ```
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 Run:
 
@@ -470,6 +471,12 @@ git commit -m "fix: decode packed-row Blackmagic lossless JPEG"
 
 **Expected gain:** Correct decode for the affected Blackmagic file. No timing
 commitment.
+
+Task 1 verification note: synthetic row-packing tests pass, the Blackmagic
+corpus file decodes as 4128x2176 RGGB U16 and matches Rawler bit-for-bit,
+`fornax-codec` tests and package clippy pass, and the unchanged 30-row golden
+hash check passes. Full workspace validation remains blocked by the unrelated
+clippy findings recorded under Task 0.
 
 **Risks and rollback:** Row folding could mask corrupt dimensions. Require
 exact total sample equality and add mismatch tests. Revert this independent PR
