@@ -6,6 +6,16 @@ use std::path::{Path, PathBuf};
 use csv::ReaderBuilder;
 
 const LFS_POINTER_PREFIX: &str = "version https://git-lfs.github.com/spec/v1";
+#[allow(
+    dead_code,
+    reason = "used by the decoder benchmark and equality targets but not parser unit tests"
+)]
+const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/golden/selected-manifest.csv";
+#[allow(
+    dead_code,
+    reason = "used by the decoder benchmark and equality targets but not parser unit tests"
+)]
+const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GoldenInput {
@@ -127,6 +137,40 @@ pub fn select_golden_inputs(
         ));
     }
     Ok(selected)
+}
+
+#[allow(
+    dead_code,
+    reason = "shared by the decoder benchmark and equivalence test; parser unit tests include only lower-level helpers"
+)]
+pub fn benchmark_inputs() -> Vec<(GoldenInput, PathBuf)> {
+    let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let manifest = std::env::var_os("FORNAX_BENCH_MANIFEST")
+        .map_or_else(|| PathBuf::from(DEFAULT_MANIFEST), PathBuf::from);
+    let corpus = std::env::var_os("FORNAX_BENCH_CORPUS")
+        .map_or_else(|| PathBuf::from(DEFAULT_CORPUS), PathBuf::from);
+    let manifest = resolve_repo_relative(&repo_root, &manifest);
+    let corpus = resolve_repo_relative(&repo_root, &corpus);
+    let bytes = fs::read(&manifest).unwrap_or_else(|error| {
+        panic!(
+            "reading decoder benchmark golden manifest {} failed: {error}",
+            manifest.display()
+        )
+    });
+    let rows = parse_golden_manifest(&bytes).unwrap_or_else(|error| {
+        panic!(
+            "parsing decoder benchmark golden manifest {} failed: {error}",
+            manifest.display()
+        )
+    });
+    let explicit = std::env::var_os("FORNAX_BENCH_RAW")
+        .map(PathBuf::from)
+        .map(|path| resolve_repo_relative(&repo_root, &path));
+    let inputs = select_golden_inputs(&rows, explicit.as_deref(), &corpus)
+        .unwrap_or_else(|error| panic!("configuring decoder benchmark inputs failed: {error}"));
+    ensure_materialized(&inputs)
+        .unwrap_or_else(|error| panic!("decoder benchmark input check failed: {error}"));
+    inputs
 }
 
 pub fn ensure_materialized(inputs: &[(GoldenInput, PathBuf)]) -> Result<(), String> {

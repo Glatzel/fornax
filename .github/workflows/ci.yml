@@ -368,6 +368,16 @@ jobs:
           test -f "$FORNAX_BENCH_RAW"
           test "$(stat -c '%s' "$FORNAX_BENCH_RAW")" = "$FORNAX_BENCH_SIZE"
           test "$(sha256sum "$FORNAX_BENCH_RAW" | cut -d' ' -f1)" = "$FORNAX_BENCH_SHA256"
+      - name: Verify native decoder pixel equality
+        if: matrix.format == 'DNG'
+        shell: bash
+        env:
+          FORNAX_BENCH_RAW: ${{ github.workspace }}/external/raw.pixls.us/${{ matrix.path }}
+          OMP_NUM_THREADS: 1
+          RAYON_NUM_THREADS: 1
+        run: |
+          cargo test -p fornax-raw-decoder ${{ matrix['cargo-options'] }} \
+            --test decoder_equivalence -- --ignored --nocapture
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
         with:
           options: -p fornax-raw-decoder --bench decoder ${{ matrix['cargo-options'] }}
