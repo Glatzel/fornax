@@ -74,6 +74,7 @@ This index is the entry point for Fornax architecture, decoder, reference, and a
 | [DNG compression references](reference/decoders/dng-compression.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for DNG compression. |
 | [DNG and lossless JPEG-92 reference notes](reference/decoders/dng-lossless-jpeg.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for DNG and lossless JPEG-92. |
 | [DNG opcode reference notes](reference/decoders/dng-opcodes.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for DNG opcode. |
+| [DNG decode performance notes](reference/decoders/dng-performance.md) | This reference note records measured Fornax, Rawler, and FlashRaw DNG performance, profile evidence, and implementation differences. |
 | [DNG Output Color Management](reference/decoders/dng-output-color.md) | This reference note documents source matrices, profile selection, and Fornax's DNG output color transform. |
 | [FlashRaw reference notes](reference/decoders/flashraw.md) | This reference note records the pinned benchmark adapter, neutral settings, and differences from Fornax and Rawler. |
 | [Fujifilm RAF references](reference/decoders/fuji-raf.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for Fujifilm RAF. |

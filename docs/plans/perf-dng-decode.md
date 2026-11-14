@@ -23,6 +23,9 @@ read-only source mapping.
 measured baseline and accepted conclusions are reproduced below so this plan
 is executable without chat context.
 
+**Investigation evidence:**
+[DNG decode performance reference notes](../reference/decoders/dng-performance.md).
+
 ## Global Constraints
 
 - Implement pure Rust only. Do not introduce project-authored FFI.
