@@ -7,7 +7,6 @@
   - [HPHD] Make HPHD reproduce RawTherapee 5.13 HPHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
 
 - perf
-  - [P-DNG] Bring integer DNG decode within about 1.5x Rawler. Plan: `docs/plans/perf-dng-decode.md`.
   - [P-SIMD] use fearless simd to optimize demosaic and preprocessor, in separate crates.
   - [P-CUDA] try cutiles-rs to improve perf
 - misc
