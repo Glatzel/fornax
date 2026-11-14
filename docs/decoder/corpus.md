@@ -19,7 +19,7 @@ are never committed, cached, or uploaded as artifacts.
 raw.pixls.us replaces its Git LFS repository with a new daily snapshot instead
 of retaining a permanent commit history. The submodule therefore follows the
 remote's `master` branch for setup, while
-`crates/decoder-tracker/manifest.csv` records the accepted snapshot's
+`crates/decoder-tracker/data/manifest.csv` records the accepted snapshot's
 paths, sizes, identities, and LFS SHA-256 values. `manifest --check` fails if the
 current `filelist.sha256` or pointer set no longer matches that committed
 manifest.
@@ -32,19 +32,22 @@ Pixi environments for DuckDB and decoder tooling:
 ```text
 pixi run -e dev cargo run -q -p decoder-tracker -- manifest [--check]
 pixi run -e dev cargo run -q -p decoder-tracker -- select [--glob G]... [--out FILE]
-pixi run -e dev cargo run -q -p decoder-tracker -- run [--manifest F] [--format F]...
+pixi run -e dev cargo run -q -p decoder-tracker -- run [--manifest F]
     [--camera TEXT]... [--filename TEXT]... [--glob G]... [--shard INDEX/COUNT]
     [--out FILE] [--max-files N] [--allow-full]
 pixi run -e dev cargo run -q -p decoder-tracker -- merge --manifest F --out FILE SHARD...
 pixi run -e dev cargo run -q -p decoder-tracker -- diff --selected F --out FILE BASELINE CANDIDATE
 pixi run -e dev cargo run -q -p decoder-tracker -- update --baseline F --candidate F --out FILE
 pixi run -e dev cargo run -q -p decoder-tracker -- hash [--manifest F] [--out FILE | --check FILE]
+pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata --manifest F --shard I/N --out FILE
+pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata-merge --manifest F --out FILE SHARD...
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
-`run` defaults to DNG and refuses selections larger than two files unless
-`CI=true` or `--allow-full` is present. Use camera and filename filters for
-local investigation:
+`run` does not apply an implicit format filter. With the default manifest and
+no camera, filename, or glob filters it selects the complete corpus, then
+refuses selections larger than two files unless `CI=true` or `--allow-full` is
+present. Use camera and filename filters for local investigation:
 
 ```bash
 pixi run -e dev cargo run -q -p decoder-tracker -- run \
@@ -52,25 +55,29 @@ pixi run -e dev cargo run -q -p decoder-tracker -- run \
   --out target/decoder-tracker/investigate.csv
 ```
 
-Format and filename filters are case-insensitive exact matches. Camera filters
-are case-insensitive substring matches. Path globs are case-sensitive:
+Filename filters are case-insensitive exact matches. Camera filters are
+case-insensitive substring matches. Path globs are case-sensitive:
 
 - `*` matches within one path segment;
 - `**` crosses directory separators;
 - `?` matches one non-separator character;
-- repeated `--glob` values use OR; format, camera, filename, and glob classes
-  combine with AND.
+- repeated `--glob` values use OR; camera, filename, and glob classes combine
+  with AND.
 
-The workflow default glob is `**/*.[dD][nN][gG]` because the corpus mixes
-uppercase and lowercase DNG extensions. Filters are applied before the
-selection is sorted by LFS SHA-256 and assigned with zero-based
-`position % COUNT`.
+Format is derived from the file extension but is not a separate command-line
+filter. Select one format with an extension glob, such as
+`**/*.[dD][nN][gG]` for DNG.
+
+The workflow default glob is `*/**/*`, which selects the complete corpus across
+all supported and unsupported formats. Filters are applied before the selection
+is sorted by LFS SHA-256 and assigned with zero-based `position % COUNT`.
 
 ## Manifest
 
 `manifest` reads `filelist.sha256`, parses every corresponding LFS pointer,
 verifies that its object ID equals the listed SHA-256, derives identity fields,
-and writes the canonical CSV under `crates/decoder-tracker/manifest.csv`. The
+and writes the canonical CSV under
+`crates/decoder-tracker/data/manifest.csv`. The
 manifest always covers every format in the corpus, including formats without a
 decoder implementation or baseline rows.
 
@@ -125,6 +132,63 @@ only when all four stages pass; otherwise it is `<stage>:<kind>`, such as
 The runner retains the best geometry and CFA label available after partial
 failure. A non-2x2 CFA gets a descriptive label such as `XTrans-6x6` before the
 typed unsupported CFA error is recorded.
+
+## DNG corpus metadata schema
+
+`corpus-metadata.csv` is a generated sidecar used to analyze benchmark and
+coverage groups by the actual DNG container tags rather than filenames. It does
+not change the pointer-only manifest or the required baseline schema. DNG is
+the first supported format; future formats can add their own rows without
+changing the manifest. The `corpus-metadata` command internally selects rows
+whose derived format is DNG; this format-specific behavior is not exposed as a
+generic CLI filter.
+
+The canonical header is:
+
+```csv
+status,path,sha256,format,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height,error_kind
+```
+
+Rows are keyed by `(sha256, path)` and cover every selected DNG exactly once.
+For a parseable DNG, `status` is `✅`, `storage` is `strips` or `tiles`, and
+absent layout fields and the default TIFF predictor of `1` are explicit so
+grouping does not need to reinterpret missing values. The classifier uses the
+full-resolution raw IFD selected by `fornax-dng`, including DNG-owned
+compression identifiers `34892` and `52546`. It records unknown IDs rather than
+inferring compression from the path.
+
+A DNG that cannot be parsed or classified is a failed result rather than a
+workflow error. It gets `status` `❌`, `compression_name` and `storage` of
+`unknown`, empty classification values, and a typed `error_kind` such as
+`metadata:invalid_input` or `metadata:unsupported`. File I/O, LFS, and other
+infrastructure failures remain fatal.
+
+Generate a local selection with `select`, then classify all of it:
+
+```bash
+pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata \
+  --manifest target/decoder-tracker/selected-metadata.csv \
+  --allow-full \
+  --out target/decoder-tracker/corpus-metadata.csv
+```
+
+For sharded use, pass the same selection and shard to each runner, then merge
+all metadata shards:
+
+```bash
+pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata \
+  --manifest target/decoder-tracker/selected-manifest.csv \
+  --shard 0/COUNT --allow-full \
+  --out target/decoder-tracker/metadata-shards/shard-0.csv
+pixi run -e dev cargo run -q -p decoder-tracker -- corpus-metadata-merge \
+  --manifest target/decoder-tracker/selected-manifest.csv \
+  --out target/decoder-tracker/corpus-metadata.csv \
+  target/decoder-tracker/metadata-shards/*.csv
+```
+
+The merge rejects missing, duplicate, unexpected, or malformed DNG rows,
+including failed results that carry contradictory classification fields. The
+committed sidecar is generated data and must not be hand-edited.
 
 ## Golden decode outputs
 
@@ -219,9 +283,9 @@ rows. The diff command exits 1 when any category is non-empty.
 
 `.github/workflows/decoder-tracker-corpus.yml` is manual-only after bootstrap.
 It accepts one `filter` path glob and an optional `run_duckdb_tests` boolean
-(default `false`). The selected manifest determines the formats processed by
-each shard, so the filter alone selects a DNG, ARW, or mixed corpus subset. The
-plan job uses
+(default `false`). The default `*/**/*` filter selects the complete corpus; a
+narrower filter selects a DNG, ARW, or mixed subset. The selected manifest
+determines the formats processed by each shard. The plan job uses
 `crates/decoder-tracker/scripts/select.sh` to filter `manifest.csv` directly with
 DuckDB, writes and uploads `selected-manifest.csv`, then computes:
 
@@ -243,14 +307,23 @@ GitHub/Pixi download failures.
 
 Each shard downloads the selected manifest and release tracker binary,
 initializes the pointer-only corpus, runs `manifest --check`, executes its
-assigned files, and uploads CSV only. The aggregate job uses
+assigned decoder rows, classifies assigned DNG compression metadata, and
+uploads CSV only. The aggregate job uses
 `crates/decoder-tracker/scripts/aggregate.sh` to merge, validate, diff, and
-upsert entirely through DuckDB, then:
+upsert decoder rows entirely through DuckDB. It separately merges and compares
+the DNG metadata sidecar, then:
 
 - uploads a bootstrap baseline when no committed baseline exists;
 - uploads nothing when selected rows are unchanged;
 - uploads the complete updated baseline and `diff.csv`, then fails, when rows
   changed.
+- uploads `decoder-corpus-metadata-update` and fails when the DNG metadata
+  sidecar changed.
+
+Malformed corpus DNGs are represented in the metadata sidecar as `❌` failed
+rows; they do not fail the shard. The intentional changed-artifact review gate
+still fails the aggregate until the generated sidecar is reviewed and
+committed.
 
 RAW payloads are never cached or uploaded.
 
@@ -261,7 +334,7 @@ the review commands:
 
 ```bash
 gh workflow run decoder-tracker-corpus.yml --ref <branch> \
-  -f filter='**/*.[dD][nN][gG]' \
+  -f filter='*/**/*' \
   -f run_duckdb_tests=false
 gh run list --workflow decoder-tracker-corpus.yml --branch <branch>
 gh run view <run-id>
@@ -281,12 +354,18 @@ changed-row failure is the review gate described below.
 
 ## Applying a manual workflow result
 
-An unchanged run uploads no `decoder-baseline-update` artifact. A changed run
-intentionally fails after uploading that artifact with three CSV files:
+An unchanged run uploads no update artifact. A decoder change intentionally
+fails after uploading `decoder-baseline-update` with three CSV files:
 
 - `diff.csv` classifies selected keys as missing, extra, or changed;
 - `candidate.csv` contains the merged selected rows;
 - `baseline.csv` is the complete baseline after the selected-key upsert.
+
+A DNG metadata change independently uploads
+`decoder-corpus-metadata-update/corpus-metadata.csv` and fails the run. Review
+the complete sidecar, copy it to
+`crates/decoder-tracker/data/corpus-metadata.csv`,
+commit it, and rerun until it is unchanged. Do not merge a partial candidate.
 
 Download and inspect the artifact:
 
@@ -302,7 +381,7 @@ candidate from a partial selection must never replace the committed baseline:
 
 ```bash
 cp target/decoder-tracker/update/baseline.csv \
-  crates/decoder-tracker/baseline.csv
+  crates/decoder-tracker/data/baseline.csv
 pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
@@ -325,7 +404,8 @@ A corpus update is deliberate:
 
 1. Initialize the pointer-only submodule at the current advertised snapshot.
 2. Run `manifest` and review every manifest change.
-3. Run the manual workflow with the full default DNG glob.
+3. Run the manual workflow with the full default
+   `*/**/*` glob.
 4. Download and review the complete candidate against the manifest.
 5. Commit the submodule pointer (`external/raw.pixls.us`), manifest, complete
    baseline, and regenerated README.

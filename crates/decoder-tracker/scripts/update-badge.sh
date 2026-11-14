@@ -3,8 +3,8 @@
 set -euo pipefail
 
 crate_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-baseline="$crate_root/baseline.csv"
-manifest="$crate_root/manifest.csv"
+baseline="$crate_root/data/baseline.csv"
+manifest="$crate_root/data/manifest.csv"
 readme="$crate_root/README.md"
 start_marker='<!-- decoder-tracker-badge:start -->'
 end_marker='<!-- decoder-tracker-badge:end -->'
@@ -101,7 +101,7 @@ else
     badge_label='RAW corpus'
 fi
 
-badge="[![${badge_label}: ${passed}/${total} passed](https://img.shields.io/badge/${badge_slug}-${passed}%2F${total}-${color})](baseline.csv)"
+badge="[![${badge_label}: ${passed}/${total} passed](https://img.shields.io/badge/${badge_slug}-${passed}%2F${total}-${color})](data/baseline.csv)"
 starts="$(grep -Fxc "$start_marker" "$readme" || true)"
 ends="$(grep -Fxc "$end_marker" "$readme" || true)"
 if [[ "$starts" != 1 || "$ends" != 1 ]]; then

@@ -48,8 +48,9 @@ pixi run -e dev cargo run -q -p decoder-tracker -- run \
   --out target/decoder-tracker/investigate.csv
 ```
 
-Format and filename filters are case-insensitive exact matches. Camera filters
-are case-insensitive substrings. Path globs are case-sensitive.
+Filename filters are case-insensitive exact matches. Camera filters are
+case-insensitive substrings. Path globs are case-sensitive. Select a format by
+extension, such as `**/*.[dD][nN][gG]` for DNG.
 
 ## Local shard merge
 
@@ -58,7 +59,7 @@ manifest:
 
 ```bash
 pixi run -e dev cargo run -q -p decoder-tracker -- select \
-  --glob '**/*.[dD][nN][gG]' \
+  --glob '*/**/*' \
   --out target/decoder-tracker/selected-manifest.csv
 
 # Repeat for 0/COUNT .. (COUNT-1)/COUNT.
@@ -89,7 +90,7 @@ uncommitted commits or files. Run the manual workflow from that branch:
 
 ```bash
 gh workflow run decoder-tracker-corpus.yml --ref <branch> \
-  -f filter='**/*.[dD][nN][gG]' \
+  -f filter='*/**/*' \
   -f run_duckdb_tests=false
 gh run list --workflow decoder-tracker-corpus.yml --branch <branch>
 gh run view <run-id>
@@ -110,7 +111,7 @@ gh run download <run-id> --name decoder-baseline-update \
 
    ```bash
    cp target/decoder-tracker/update/baseline.csv \
-     crates/decoder-tracker/baseline.csv
+     crates/decoder-tracker/data/baseline.csv
    ```
 
 4. Refresh the README as below.
@@ -118,6 +119,13 @@ gh run download <run-id> --name decoder-baseline-update \
 6. Commit and push the updated branch so the remote workflow can see the
    reviewed files.
 7. Rerun the workflow and require `unchanged` with no update artifact.
+
+The same workflow always merges DNG compression metadata. If that sidecar
+changes, the run intentionally fails and uploads
+`decoder-corpus-metadata-update`. Review the complete
+`corpus-metadata.csv`, copy it to
+`crates/decoder-tracker/data/corpus-metadata.csv`,
+commit it, and rerun until unchanged. Never hand-edit the sidecar.
 
 Rerun in place with `gh run rerun <run-id> --failed` only for a transient
 infrastructure failure. A changed-row failure requires review, not a blind
@@ -155,6 +163,8 @@ badge/table region. Review the diff. Never edit between
 
 - `diff --selected` reports only the reviewed selection.
 - `update` preserves unselected baseline rows.
+- The DNG metadata sidecar keeps unparsable corpus files as failed rows with
+  an `error_kind`; only infrastructure failures abort shard generation.
 - The README script preserves text outside its markers.
 - `manifest.csv`, `baseline.csv`, and generated README data contain no RAW
   payload data.

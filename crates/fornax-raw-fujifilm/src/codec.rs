@@ -1123,8 +1123,8 @@ fn shift_previous_lines(block: &mut Block) {
 
 fn clear_current_lines(block: &mut Block, line_width: usize) {
     for (start, count) in [(R2, 3), (G2, 6), (B2, 3)] {
-        for line in start..start + count {
-            block.lines[line].fill(0);
+        for line in block.lines.iter_mut().skip(start).take(count) {
+            line.fill(0);
         }
         block.lines[start][0] = block.lines[start - 1][1];
         block.lines[start][line_width + 1] = block.lines[start - 1][line_width];

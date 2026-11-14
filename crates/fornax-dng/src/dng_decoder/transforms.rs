@@ -326,7 +326,7 @@ fn apply_u16_linearization(
 
     let mut mapped = Vec::with_capacity(samples.len());
     for row in samples.chunks(width) {
-        let mut random = row.first().copied().map(u32::from).unwrap_or_default();
+        let mut random = row.first().copied().map_or_default(u32::from);
         if let Some(second) = row.get(1) {
             random |= u32::from(*second) << 16;
         }

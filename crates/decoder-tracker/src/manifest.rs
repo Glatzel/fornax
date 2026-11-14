@@ -219,17 +219,6 @@ pub fn corpus_path(corpus: &Path, path: &str) -> PathBuf {
         .fold(corpus.to_path_buf(), |path, segment| path.join(segment))
 }
 
-pub fn selected_formats(formats: &[String]) -> BTreeSet<String> {
-    if formats.is_empty() {
-        BTreeSet::from(["DNG".to_owned()])
-    } else {
-        formats
-            .iter()
-            .map(|format| format.to_ascii_uppercase())
-            .collect()
-    }
-}
-
 #[cfg(test)]
 pub fn write_pointer(path: &Path, sha256: &str, size: u64) -> Result<()> {
     if let Some(parent) = path.parent() {

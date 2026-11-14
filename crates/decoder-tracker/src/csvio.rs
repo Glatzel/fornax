@@ -29,7 +29,7 @@ pub fn write_manifest_csv(rows: &[ManifestRow]) -> Result<Vec<u8>> {
         writer.serialize(ManifestCsvRecord {
             path: row.path.clone(),
             size: row.size,
-            sha256: row.sha256.clone(),
+            sha256: row.sha256,
         })?;
     }
     Ok(writer
