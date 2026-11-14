@@ -7,8 +7,8 @@ use std::sync::Arc;
 use fornax_dng::Directory;
 use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::{MetadataSource, ProcessMetadata};
-use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::metadata::{EncodingMetadata, MetadataSource, ProcessMetadata};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use generic_num::num;
 use image::math::Rect;
@@ -141,6 +141,9 @@ impl Cr3Image {
     /// Returns the DNG-compatible metadata directory.
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> { Ok(self.metadata.clone()) }
 
+    /// Return source encoding metadata for the selected CRX raw sample.
+    pub fn encoding_metadata(&self) -> EncodingMetadata { self.header.header.encoding_metadata() }
+
     /// Returns normalized process metadata.
     ///
     /// # Errors
@@ -208,6 +211,10 @@ impl IDecoder for Cr3Image {
 
 impl IDecoderDng for Cr3Image {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> { Self::dng_metadata(self) }
+}
+
+impl IDecoderEncoding for Cr3Image {
+    fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
 }
 
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>

@@ -30,8 +30,8 @@ use fornax_codec::{ByteOrder, ICodecDecode, Predictor, SampleFormat};
 pub(crate) use fornax_codec::{CodecError, DecodeRequest, SampleBuffer};
 use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::ProcessMetadata;
-use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::{Directory, ParsedTiff};
 use generic_num::num;
@@ -145,6 +145,11 @@ impl IiqImage {
     /// Returns the DNG-compatible metadata mapped from the IIQ container.
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> { Ok(self.metadata.clone()) }
 
+    /// Return the selected Phase One source compression and storage layout.
+    pub fn encoding_metadata(&self) -> EncodingMetadata {
+        encoding_metadata_for_layout(&self.layout)
+    }
+
     /// Returns normalized process metadata for the active Bayer mosaic.
     ///
     /// # Errors
@@ -200,6 +205,31 @@ impl IDecoder for IiqImage {
 
 impl IDecoderDng for IiqImage {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> { Self::dng_metadata(self) }
+}
+
+impl IDecoderEncoding for IiqImage {
+    fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
+}
+
+fn encoding_metadata_for_layout(layout: &RawLayout) -> EncodingMetadata {
+    let (compression_id, compression_name, storage) = match layout.compression {
+        container::Compression::Uncompressed => (0, "iiq-uncompressed", "single-chunk"),
+        container::Compression::Lossless14 => (3, "iiq-lossless14", "iiq-rows"),
+        container::Compression::Nonlinear => (5, "iiq-nonlinear", "iiq-rows"),
+        container::Compression::Sv2 => (6, "iiq-sv2", "iiq-rows"),
+        container::Compression::Lossless16 => (8, "iiq-lossless16", "iiq-rows"),
+    };
+    EncodingMetadata {
+        compression_id: Some(compression_id),
+        compression_name,
+        storage,
+        bits_per_sample: Some(layout.compression.bits()),
+        sample_format: Some(EncodingSampleFormat::Integer),
+        predictor: None,
+        rows_per_strip: None,
+        tile_width: None,
+        tile_height: None,
+    }
 }
 
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>

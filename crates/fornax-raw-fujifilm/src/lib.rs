@@ -30,8 +30,8 @@ use fornax_codec::{ByteOrder, Chunk, ICodecDecode, Predictor, SampleFormat};
 pub(crate) use fornax_codec::{CodecError, DecodeRequest, SampleBuffer};
 use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::ProcessMetadata;
-use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
 use fornax_tiff::Directory;
 use generic_num::num;
@@ -202,6 +202,11 @@ impl RafImage {
     /// ```
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> { Ok(self.metadata.clone()) }
 
+    /// Return the selected Fujifilm source compression and storage layout.
+    pub fn encoding_metadata(&self) -> EncodingMetadata {
+        encoding_metadata_for_layout(&self.layout)
+    }
+
     /// Returns normalized process metadata for a conventional Bayer RAF.
     ///
     /// # Errors
@@ -292,6 +297,28 @@ impl IDecoder for RafImage {
 
 impl IDecoderDng for RafImage {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> { Self::dng_metadata(self) }
+}
+
+impl IDecoderEncoding for RafImage {
+    fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
+}
+
+fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetadata {
+    EncodingMetadata {
+        compression_id: None,
+        compression_name: match layout.compression {
+            container::Compression::Packed12 => "fuji-packed12",
+            container::Compression::Words => "fuji-words",
+            container::Compression::FujiLossless => "fuji-lossless",
+        },
+        storage: "raf-block",
+        bits_per_sample: Some(u16::from(layout.bits)),
+        sample_format: Some(EncodingSampleFormat::Integer),
+        predictor: None,
+        rows_per_strip: None,
+        tile_width: None,
+        tile_height: None,
+    }
 }
 
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>

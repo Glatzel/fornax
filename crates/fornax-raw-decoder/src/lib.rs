@@ -11,8 +11,8 @@ use fornax_dng::metadata::IDecoderDng;
 #[cfg(feature = "canon")]
 use fornax_raw_canon::Cr3Image;
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::ProcessMetadata;
-use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::metadata::{EncodingMetadata, ProcessMetadata};
+use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
 #[cfg(feature = "fujifilm")]
 use fornax_raw_fujifilm::RafImage;
@@ -46,6 +46,30 @@ pub enum Decoder {
     #[cfg(feature = "panasonic")]
     Rw2(Rw2Image),
 }
+
+impl Decoder {
+    /// Return the source encoding selected by the parsed decoder.
+    pub fn encoding_metadata(&self) -> EncodingMetadata {
+        match self {
+            Self::Dng(parsed) => parsed.encoding_metadata(),
+            #[cfg(feature = "canon")]
+            Self::Cr3(parsed) => parsed.encoding_metadata(),
+            #[cfg(feature = "sony")]
+            Self::Arw(parsed) => parsed.encoding_metadata(),
+            #[cfg(feature = "hasselblad")]
+            Self::Hasselblad(parsed) => parsed.encoding_metadata(),
+            #[cfg(feature = "phase-one")]
+            Self::Iiq(parsed) => parsed.encoding_metadata(),
+            #[cfg(feature = "nikon")]
+            Self::Nef(parsed) => parsed.encoding_metadata(),
+            #[cfg(feature = "fujifilm")]
+            Self::Raf(parsed) => parsed.encoding_metadata(),
+            #[cfg(feature = "panasonic")]
+            Self::Rw2(parsed) => parsed.encoding_metadata(),
+        }
+    }
+}
+
 impl IDecoder for Decoder {
     fn decode(input: &Path) -> Result<Self, DecodeError>
     where
@@ -229,6 +253,11 @@ impl IDecoder for Decoder {
         }
     }
 }
+
+impl IDecoderEncoding for Decoder {
+    fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
+}
+
 impl IDecoderDng for Decoder {
     fn dng_metadata(&self) -> Result<Directory, DecodeError> {
         match self {

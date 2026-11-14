@@ -131,7 +131,7 @@ pub trait IDecoderEncoding {
 }
 ```
 
-- [ ] **Step 1: Write failing metadata contract tests**
+- [x] **Step 1: Write failing metadata contract tests**
 
 Add tests proving:
 
@@ -146,7 +146,7 @@ Add tests proving:
 - Panasonic maps V4, V5, V6, V8, unpacked 12-bit, and packed 12-bit control.
 - Phase One maps uncompressed, lossless 14, lossless 16, nonlinear, and SV2.
 
-- [ ] **Step 2: Run the tests and verify the contract is missing**
+- [x] **Step 2: Run the tests and verify the contract is missing**
 
 ```bash
 cargo test -p fornax-raw-core
@@ -163,17 +163,17 @@ cargo test -p fornax-raw-decoder
 
 Expected: compile failures for the missing metadata type and methods.
 
-- [ ] **Step 3: Implement the shared metadata type and per-format mappings**
+- [x] **Step 3: Implement the shared metadata type and per-format mappings**
 
 Use source layout fields rather than normalized DNG metadata for source bit
 depth. Use `format` to scope numeric IDs. DNG uses the full-resolution raw IFD;
 vendor names are stable and namespaced where an ID alone is ambiguous.
 
-- [ ] **Step 4: Re-run the focused tests**
+- [x] **Step 4: Re-run the focused tests**
 
 Expected: all focused test targets pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add crates/fornax-raw-core crates/fornax-dng \

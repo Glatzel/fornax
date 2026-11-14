@@ -36,6 +36,8 @@ pub struct RawLayout {
     pub rows_per_strip: usize,
     pub chunks: Vec<Chunk>,
     pub kind: LayoutKind,
+    pub compression_id: u16,
+    pub mode: Option<u16>,
 }
 
 impl RawLayout {
@@ -123,6 +125,8 @@ impl RawLayout {
                 rows_per_strip,
                 chunks,
                 kind,
+                compression_id: compression,
+                mode,
             },
         ))
     }

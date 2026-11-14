@@ -3,8 +3,8 @@ use std::path::PathBuf;
 
 use fornax_dng::dng_decoder::DngImage;
 use fornax_dng::writer::{DngCompression, DngWriter};
-use fornax_raw_core::RawMosaic;
 use fornax_raw_core::error::DecodeError;
+use fornax_raw_core::{EncodingSampleFormat, RawMosaic};
 
 use super::container::{parse_raf_tags, xtrans_pattern};
 use super::profiles::profile;
@@ -89,6 +89,33 @@ fn gfx_bayer_profiles_cover_all_supported_models() {
 #[test]
 fn unknown_bayer_profile_is_rejected() {
     assert!(profile("GFX unknown").is_none());
+}
+
+#[test]
+fn encoding_metadata_distinguishes_fuji_compression_families() {
+    for (compression, expected_name) in [
+        (super::container::Compression::Packed12, "fuji-packed12"),
+        (super::container::Compression::Words, "fuji-words"),
+        (super::container::Compression::FujiLossless, "fuji-lossless"),
+    ] {
+        let layout = super::container::RawLayout {
+            compression,
+            width: 64,
+            height: 32,
+            bits: 14,
+            offset: 0,
+            byte_count: 128,
+            byte_order: fornax_tiff::ByteOrder::Big,
+        };
+
+        let encoding = super::encoding_metadata_for_layout(&layout);
+
+        assert_eq!(encoding.compression_id, None);
+        assert_eq!(encoding.compression_name, expected_name);
+        assert_eq!(encoding.storage, "raf-block");
+        assert_eq!(encoding.bits_per_sample, Some(14));
+        assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));
+    }
 }
 
 #[test]

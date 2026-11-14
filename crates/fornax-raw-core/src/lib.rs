@@ -8,4 +8,5 @@ pub mod utils;
 
 pub use bayer::{BayerChannel, BayerPattern};
 pub use format::RawFormat;
+pub use metadata::{EncodingMetadata, EncodingSampleFormat};
 pub use primitive::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage};

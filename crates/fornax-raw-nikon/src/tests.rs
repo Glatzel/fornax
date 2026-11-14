@@ -1,9 +1,10 @@
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::MetadataSource;
-use fornax_raw_core::{BayerPattern, RawMosaic};
+use fornax_raw_core::{BayerPattern, EncodingSampleFormat, RawMosaic};
 use fornax_tiff::{ByteOrder, Tag, Value};
 
 use crate::NefImage;
+use crate::container::{LayoutKind, RawLayout};
 use crate::makernote::MakerNote;
 
 #[test]
@@ -92,6 +93,90 @@ fn conflicting_compression_tags_are_unsupported() {
         .unwrap_err();
 
     assert!(matches!(error, DecodeError::Unsupported(_)));
+}
+
+#[test]
+fn encoding_metadata_distinguishes_nikon_layout_modes() {
+    let huffman = LayoutKind::NikonHuffman {
+        bits: 14,
+        init: [[0; 2]; 2],
+        curve: vec![0_u16; 16].into(),
+    };
+    for (compression_id, mode, kind, expected_name) in [
+        (
+            1,
+            Some(2),
+            LayoutKind::UnpackedWords {
+                bits: 14,
+                byte_order: fornax_codec::ByteOrder::Little,
+            },
+            "nikon-uncompressed-words",
+        ),
+        (
+            34_713,
+            Some(2),
+            LayoutKind::Packed {
+                row_stride: 32,
+                bits: 12,
+                byte_order: fornax_codec::ByteOrder::Little,
+            },
+            "nikon-mode-2-packed",
+        ),
+        (
+            34_713,
+            Some(5),
+            LayoutKind::StripedPacked12,
+            "nikon-mode-5-packed12",
+        ),
+        (
+            34_713,
+            Some(6),
+            LayoutKind::Packed {
+                row_stride: 24,
+                bits: 12,
+                byte_order: fornax_codec::ByteOrder::Little,
+            },
+            "nikon-mode-6-packed",
+        ),
+        (
+            34_713,
+            Some(7),
+            LayoutKind::UnpackedWords {
+                bits: 12,
+                byte_order: fornax_codec::ByteOrder::Little,
+            },
+            "nikon-mode-7-words",
+        ),
+        (
+            34_713,
+            Some(9),
+            LayoutKind::Packed {
+                row_stride: 24,
+                bits: 12,
+                byte_order: fornax_codec::ByteOrder::Little,
+            },
+            "nikon-mode-9-packed",
+        ),
+        (34_713, Some(3), huffman, "nikon-huffman"),
+    ] {
+        let layout = RawLayout {
+            width: 16,
+            height: 8,
+            rows_per_strip: 8,
+            chunks: Vec::new(),
+            kind,
+            compression_id,
+            mode,
+        };
+
+        let encoding = crate::encoding_metadata_for_layout(&layout);
+
+        assert_eq!(encoding.compression_id, Some(u32::from(compression_id)));
+        assert_eq!(encoding.compression_name, expected_name);
+        assert_eq!(encoding.storage, "strips");
+        assert_eq!(encoding.rows_per_strip, Some(8));
+        assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));
+    }
 }
 
 #[test]

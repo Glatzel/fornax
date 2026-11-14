@@ -2,8 +2,8 @@ use std::io::Cursor;
 use std::path::{Path, PathBuf};
 
 use fornax_dng::constants::DngPhotometricInterpretation;
-use fornax_raw_core::RawMosaic;
 use fornax_raw_core::protocol::IDecoder;
+use fornax_raw_core::{EncodingSampleFormat, RawMosaic};
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffWriter, Value};
 use rawler::decoders::RawImageData;
@@ -80,6 +80,38 @@ fn sony_private_compression_ids_remain_vendor_owned() {
             layout.compression, expected,
             "compression {compression} with {bytes} stored bytes"
         );
+    }
+}
+
+#[test]
+fn encoding_metadata_distinguishes_sony_compression_families() {
+    for (compression, expected_id, expected_name) in [
+        (CompressionFamily::Uncompressed, 1, "uncompressed"),
+        (CompressionFamily::Arw1, 32_767, "sony-arw1"),
+        (CompressionFamily::Arw2, 32_767, "sony-arw2"),
+        (CompressionFamily::Arw6, 32_766, "sony-arw6"),
+        (CompressionFamily::SonyLosslessJpeg, 7, "sony-lossless-jpeg"),
+    ] {
+        let layout = RawLayout {
+            compression,
+            width: 64,
+            stored_height: 32,
+            bits_per_sample: 14,
+            offsets: vec![0],
+            byte_counts: vec![128],
+            tile_width: Some(16),
+            tile_height: Some(8),
+        };
+
+        let encoding = crate::encoding_metadata_for_layout(&layout);
+
+        assert_eq!(encoding.compression_id, Some(expected_id));
+        assert_eq!(encoding.compression_name, expected_name);
+        assert_eq!(encoding.storage, "tiles");
+        assert_eq!(encoding.bits_per_sample, Some(14));
+        assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));
+        assert_eq!(encoding.tile_width, Some(16));
+        assert_eq!(encoding.tile_height, Some(8));
     }
 }
 
