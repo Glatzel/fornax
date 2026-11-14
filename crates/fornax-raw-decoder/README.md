@@ -37,11 +37,13 @@ adapters over `decoder-tracker`'s golden corpus. The default set contains 30
 passing conventional 2x2 RGB Bayer files across eight native formats and both
 accepted Hasselblad 3FR compression families.
 
-Every input is a separate Criterion group. Fornax measures `decode`,
-`raw_mosaic`, and `cropped_mosaic` as separate f32 items and additionally
-reports `dng_metadata` and `process_metadata` diagnostics. Rawler and FlashRaw
-measure only separate `decode` and `raw_mosaic` items; later conversion and
-crop work is outside the reference comparison.
+Every input is a separate Criterion group. Fornax measures `end_to_end`,
+parse-only `decode`, `raw_mosaic`, and `f32` `cropped_mosaic` items and
+additionally reports `dng_metadata` and `process_metadata` diagnostics. Rawler
+and FlashRaw measure only `decode`, whose decoded output is the reference
+end-to-end result. Their raw-mosaic methods are checked during preflight but are
+not timed because they only clone the already-decoded samples into Fornax's
+benchmark types.
 
 ```bash
 RAYON_NUM_THREADS=1 cargo bench -p fornax-raw-decoder

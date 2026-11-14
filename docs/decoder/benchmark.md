@@ -22,7 +22,8 @@ For every input, the benchmark creates one Criterion group containing:
 - Fornax `raw_mosaic`, measured on one decoder constructed outside the timed
   region;
 - Fornax `cropped_mosaic`, measured with `f32` conversion and active-area crop;
-- Rawler and FlashRaw `decode` and `raw_mosaic`, registered separately.
+- Rawler and FlashRaw `decode`, with raw-mosaic support checked only during
+  preflight.
 
 Fornax also reports `dng_metadata` and `process_metadata` as diagnostics.
 References do not run `cropped_mosaic`, excluding active-area conversion work
@@ -127,6 +128,9 @@ output, and panics fail the matrix case.
   end-to-end raw-decode ratio. Compare every file independently.
 - Keep parse-only `fornax/decode`, pixel-only `fornax/raw_mosaic`,
   `cropped_mosaic`, and metadata diagnostics separate from the headline.
+- Do not time reference `raw_mosaic` methods. Their decode calls already return
+  decoded samples; the adapter methods only clone those samples into Fornax's
+  benchmark types.
 - Record the command and corpus revision in review evidence; do not commit
   host-dependent timing baselines.
 - Inspect every single-file result. A favorable aggregate must not hide a

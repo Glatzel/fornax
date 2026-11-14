@@ -1243,6 +1243,10 @@ equality result, and rollback.
 
 - The headline performance comparison is Fornax `decode + raw_mosaic` versus
   Rawler/FlashRaw `decode`. Parse-only and pixel-only items remain diagnostics.
+- Rawler and FlashRaw `raw_mosaic` timing items are intentionally omitted.
+  Their decode calls already produce decoded samples; the adapter methods only
+  clone those samples into Fornax's benchmark types. Raw-mosaic support remains
+  a preflight and equality requirement.
 - Rawler is the acceptance target; FlashRaw is an upper reference, not a
   requirement.
 - The Blackmagic failure is a lossless row-packing bug, not a lossy DCT

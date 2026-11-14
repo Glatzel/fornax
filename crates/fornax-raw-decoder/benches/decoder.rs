@@ -91,8 +91,8 @@ fn bench_reference<D>(
 ) where
     D: IDecoder,
 {
-    let decoder = match preflight_reference::<D>(path) {
-        Ok(ReferencePreflight::Ready(decoder)) => decoder,
+    match preflight_reference::<D>(path) {
+        Ok(ReferencePreflight::Ready(_)) => {}
         Ok(ReferencePreflight::Unsupported(detail)) => {
             eprintln!(
                 "decoder benchmark warning: skipping {decoder_name} for {case}: \
@@ -101,18 +101,11 @@ fn bench_reference<D>(
             return;
         }
         Err(error) => decoder_error(case, decoder_name, "decode/raw_mosaic preflight", error),
-    };
+    }
     group.bench_function(format!("{decoder_name}/decode"), |b| {
         b.iter(|| {
             D::decode(black_box(path))
                 .unwrap_or_else(|error| decoder_error(case, decoder_name, "decode", error))
-        });
-    });
-    group.bench_function(format!("{decoder_name}/raw_mosaic"), |b| {
-        b.iter(|| {
-            decoder
-                .raw_mosaic()
-                .unwrap_or_else(|error| decoder_error(case, decoder_name, "raw_mosaic", error))
         });
     });
 }
