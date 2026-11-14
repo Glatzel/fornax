@@ -3,7 +3,7 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 pub const MANIFEST_HEADER: [&str; 3] = ["path", "size", "sha256"];
-pub const BASELINE_HEADER: [&str; 13] = [
+pub const BASELINE_HEADER: [&str; 22] = [
     "status",
     "camera",
     "format",
@@ -17,6 +17,15 @@ pub const BASELINE_HEADER: [&str; 13] = [
     "width",
     "height",
     "cfa",
+    "compression_id",
+    "compression_name",
+    "storage",
+    "bits_per_sample",
+    "sample_format",
+    "predictor",
+    "rows_per_strip",
+    "tile_width",
+    "tile_height",
 ];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -110,6 +119,15 @@ pub struct BaselineRow {
     pub width: u32,
     pub height: u32,
     pub cfa: String,
+    pub compression_id: Option<u32>,
+    pub compression_name: String,
+    pub storage: String,
+    pub bits_per_sample: Option<u16>,
+    pub sample_format: String,
+    pub predictor: Option<u16>,
+    pub rows_per_strip: Option<u32>,
+    pub tile_width: Option<u32>,
+    pub tile_height: Option<u32>,
 }
 
 impl BaselineRow {
@@ -171,6 +189,20 @@ impl BaselineRow {
                 self.key(),
                 self.status
             )));
+        }
+        if self.raw_mosaic_pass == 1 {
+            if self.compression_name.is_empty()
+                || self.compression_name == "unknown"
+                || self.storage.is_empty()
+                || self.storage == "unknown"
+                || self.bits_per_sample.is_none_or(|bits| bits == 0)
+                || !matches!(self.sample_format.as_str(), "integer" | "float")
+            {
+                return Err(TrackerError::new(format!(
+                    "{} is missing source encoding metadata after a successful raw decode",
+                    self.key()
+                )));
+            }
         }
         Ok(())
     }

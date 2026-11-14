@@ -208,13 +208,13 @@ git commit -m "feat: expose source encoding metadata"
 status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height
 ```
 
-- [ ] **Step 1: Write failing baseline schema and stage tests**
+- [x] **Step 1: Write failing baseline schema and stage tests**
 
 Test complete metadata for a passing decoder, unknown metadata for an
 unsupported file, CSV round trips, canonical ordering, DuckDB merge/diff/upsert,
 and rejection of a fully passing row with incomplete source metadata.
 
-- [ ] **Step 2: Run the tests and verify the schema mismatch**
+- [x] **Step 2: Run the tests and verify the schema mismatch**
 
 ```bash
 cargo test -p decoder-tracker
@@ -223,7 +223,7 @@ pixi run -e tracker cargo test -q -p decoder-tracker duckdb_
 
 Expected: failures from the missing fields and old header.
 
-- [ ] **Step 3: Implement the schema and workflow changes**
+- [x] **Step 3: Implement the schema and workflow changes**
 
 Carry metadata through `StageRow` and `BaselineRow`. Preserve metadata when a
 decoder was constructed even if a later stage fails. Update every SQL projection
@@ -236,7 +236,7 @@ Generate a selected DNG baseline and compare its metadata columns with the
 existing `data/corpus-metadata.csv` for all 262 sidecar rows. Compression,
 storage, bit depth, sample format, predictor, and geometry must match exactly.
 
-- [ ] **Step 5: Re-run tracker tests**
+- [x] **Step 5: Re-run tracker tests**
 
 Expected: Rust and DuckDB tests pass.
 

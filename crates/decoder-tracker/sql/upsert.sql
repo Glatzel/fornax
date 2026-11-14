@@ -12,7 +12,16 @@ SELECT
     baseline.error_kind::VARCHAR AS error_kind,
     baseline.width::INTEGER AS width,
     baseline.height::INTEGER AS height,
-    baseline.cfa::VARCHAR AS cfa
+    baseline.cfa::VARCHAR AS cfa,
+    baseline.compression_id::INTEGER AS compression_id,
+    baseline.compression_name::VARCHAR AS compression_name,
+    baseline.storage::VARCHAR AS storage,
+    baseline.bits_per_sample::INTEGER AS bits_per_sample,
+    baseline.sample_format::VARCHAR AS sample_format,
+    baseline.predictor::INTEGER AS predictor,
+    baseline.rows_per_strip::INTEGER AS rows_per_strip,
+    baseline.tile_width::INTEGER AS tile_width,
+    baseline.tile_height::INTEGER AS tile_height
 FROM read_csv('@BASELINE@', header = true, all_varchar = true) AS baseline;
 
 CREATE TEMP TABLE updates AS
@@ -29,7 +38,16 @@ SELECT
     updates.error_kind::VARCHAR AS error_kind,
     updates.width::INTEGER AS width,
     updates.height::INTEGER AS height,
-    updates.cfa::VARCHAR AS cfa
+    updates.cfa::VARCHAR AS cfa,
+    updates.compression_id::INTEGER AS compression_id,
+    updates.compression_name::VARCHAR AS compression_name,
+    updates.storage::VARCHAR AS storage,
+    updates.bits_per_sample::INTEGER AS bits_per_sample,
+    updates.sample_format::VARCHAR AS sample_format,
+    updates.predictor::INTEGER AS predictor,
+    updates.rows_per_strip::INTEGER AS rows_per_strip,
+    updates.tile_width::INTEGER AS tile_width,
+    updates.tile_height::INTEGER AS tile_height
 FROM read_csv('@CANDIDATE@', header = true, all_varchar = true) AS updates;
 
 CREATE TEMP TABLE merged AS
@@ -49,6 +67,15 @@ FROM (
         width,
         height,
         cfa,
+        compression_id,
+        compression_name,
+        storage,
+        bits_per_sample,
+        sample_format,
+        predictor,
+        rows_per_strip,
+        tile_width,
+        tile_height,
         0 AS source_priority
     FROM baseline
     UNION ALL
@@ -66,6 +93,15 @@ FROM (
         width,
         height,
         cfa,
+        compression_id,
+        compression_name,
+        storage,
+        bits_per_sample,
+        sample_format,
+        predictor,
+        rows_per_strip,
+        tile_width,
+        tile_height,
         1 AS source_priority
     FROM updates
 )
@@ -88,7 +124,16 @@ COPY (
         error_kind,
         width,
         height,
-        cfa
+        cfa,
+        compression_id,
+        compression_name,
+        storage,
+        bits_per_sample,
+        sample_format,
+        predictor,
+        rows_per_strip,
+        tile_width,
+        tile_height
     FROM merged
     ORDER BY camera, format, path
 ) TO '@OUTPUT@' (

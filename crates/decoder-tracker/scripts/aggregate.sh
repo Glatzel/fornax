@@ -63,7 +63,7 @@ render_sql() {
     printf '%s' "$sql"
 }
 
-expected_header='status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa'
+expected_header='status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadata_pass,handoff_pass,error_kind,width,height,cfa,compression_id,compression_name,storage,bits_per_sample,sample_format,predictor,rows_per_strip,tile_width,tile_height'
 for shard in "${shards[@]}"; do
     header="$(head -n 1 "$shard")"
     if [[ "$header" != "$expected_header" ]]; then
@@ -87,7 +87,7 @@ done
 merge_values="$(
     duckdb -no-agent -csv -noheader :memory: -c "$(render_sql merge.sql)"
 )"
-IFS=, read -r duplicates missing unexpected rows_merged invalid_values invalid_order invalid_error invalid_status <<<"$merge_values"
+IFS=, read -r duplicates missing unexpected rows_merged invalid_values invalid_order invalid_metadata invalid_error invalid_status <<<"$merge_values"
 if ((duplicates > 0)); then
     printf 'merged shards contain %s duplicate rows\n' "$duplicates" >&2
     exit 1
@@ -96,9 +96,10 @@ if ((missing > 0 || unexpected > 0)); then
     printf 'merged shards are incomplete: %s missing and %s unexpected rows\n' "$missing" "$unexpected" >&2
     exit 1
 fi
-if ((invalid_values > 0 || invalid_order > 0 || invalid_error > 0 || invalid_status > 0)); then
-    printf 'shard validation failed: stages=%s order=%s errors=%s status=%s\n' \
-        "$invalid_values" "$invalid_order" "$invalid_error" "$invalid_status" >&2
+if ((invalid_values > 0 || invalid_order > 0 || invalid_metadata > 0 ||
+    invalid_error > 0 || invalid_status > 0)); then
+    printf 'shard validation failed: stages=%s order=%s metadata=%s errors=%s status=%s\n' \
+        "$invalid_values" "$invalid_order" "$invalid_metadata" "$invalid_error" "$invalid_status" >&2
     exit 1
 fi
 
