@@ -150,7 +150,7 @@ impl Rw2Image {
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> { Ok(self.metadata.clone()) }
 
     /// Return the selected Panasonic source compression and storage layout.
-    pub fn encoding_metadata(&self) -> EncodingMetadata {
+    pub const fn encoding_metadata(&self) -> EncodingMetadata {
         encoding_metadata_for_layout(&self.container.layout)
     }
 
@@ -195,7 +195,7 @@ impl IDecoderEncoding for Rw2Image {
     fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
 }
 
-fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetadata {
+const fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetadata {
     EncodingMetadata {
         compression_id: Some(34_316),
         compression_name: match layout.family {

@@ -155,7 +155,7 @@ impl HasselbladImage {
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> { Ok(self.metadata.clone()) }
 
     /// Return the selected Hasselblad source compression and storage layout.
-    pub fn encoding_metadata(&self) -> EncodingMetadata {
+    pub const fn encoding_metadata(&self) -> EncodingMetadata {
         encoding_metadata_for_layout(&self.layout)
     }
 
@@ -246,7 +246,7 @@ impl IDecoderEncoding for HasselbladImage {
     fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
 }
 
-fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetadata {
+const fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetadata {
     let (compression_id, compression_name) = match layout.compression {
         container::Compression::Uncompressed => (1, "uncompressed"),
         container::Compression::LosslessJpeg => (7, "hasselblad-lossless-jpeg"),

@@ -146,7 +146,7 @@ impl IiqImage {
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> { Ok(self.metadata.clone()) }
 
     /// Return the selected Phase One source compression and storage layout.
-    pub fn encoding_metadata(&self) -> EncodingMetadata {
+    pub const fn encoding_metadata(&self) -> EncodingMetadata {
         encoding_metadata_for_layout(&self.layout)
     }
 
@@ -211,7 +211,7 @@ impl IDecoderEncoding for IiqImage {
     fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
 }
 
-fn encoding_metadata_for_layout(layout: &RawLayout) -> EncodingMetadata {
+const fn encoding_metadata_for_layout(layout: &RawLayout) -> EncodingMetadata {
     let (compression_id, compression_name, lossless, storage) = match layout.compression {
         container::Compression::Uncompressed => (0, "iiq-uncompressed", true, "single-chunk"),
         container::Compression::Lossless14 => (3, "iiq-lossless14", true, "iiq-rows"),
