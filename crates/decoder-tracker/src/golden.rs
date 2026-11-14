@@ -124,32 +124,12 @@ pub fn build_golden_coverage(
     corpus_manifest: &[ManifestRow],
     golden_manifest: &[ManifestRow],
 ) -> Result<GoldenCoverage> {
-    build_golden_coverage_with_exclusions(baseline, corpus_manifest, golden_manifest, &[])
-}
-
-pub fn build_golden_coverage_with_exclusions(
-    baseline: &[BaselineRow],
-    corpus_manifest: &[ManifestRow],
-    golden_manifest: &[ManifestRow],
-    excluded_paths: &[String],
-) -> Result<GoldenCoverage> {
     let mut manifest = BTreeMap::new();
     for row in corpus_manifest {
         if manifest.insert(row.path.as_str(), row).is_some() {
             return Err(TrackerError::new(format!(
                 "corpus manifest contains duplicate path {}",
                 row.path
-            )));
-        }
-    }
-    let excluded = excluded_paths
-        .iter()
-        .map(String::as_str)
-        .collect::<std::collections::BTreeSet<_>>();
-    for path in &excluded {
-        if !manifest.contains_key(path) {
-            return Err(TrackerError::new(format!(
-                "excluded path {path} is absent from the corpus manifest"
             )));
         }
     }
@@ -203,11 +183,10 @@ pub fn build_golden_coverage_with_exclusions(
     }
 
     let mut groups = BTreeMap::<CoverageKey, Vec<&BaselineRow>>::new();
-    for row in baseline.iter().filter(|row| {
-        fully_passing(row)
-            && row.compression_lossless == Some(1)
-            && !excluded.contains(row.path.as_str())
-    }) {
+    for row in baseline
+        .iter()
+        .filter(|row| fully_passing(row) && row.compression_lossless == Some(1))
+    {
         groups
             .entry(CoverageKey {
                 format: row.format.clone(),

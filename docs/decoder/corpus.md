@@ -233,8 +233,7 @@ Generate a golden manifest with one representative per encoding group:
 
 ```bash
 pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
-  --selected-out crates/decoder-tracker/golden/selected-manifest.csv \
-  --exclude Nikon/D4S/FU9_3807.NEF
+  --selected-out crates/decoder-tracker/golden/selected-manifest.csv
 ```
 
 The current generated set contains 45 lossless encoding groups. Lossy Sony
@@ -242,10 +241,6 @@ ARW2 and IIQ nonlinear/Sv2 paths are excluded. Codec identifiers that can carry
 either lossy or lossless streams, currently DNG JPEG XL and WebP, are treated as
 not proven lossless and therefore remain ineligible until stream-level mode
 detection is implemented.
-
-Repeat `--exclude PATH` for passing candidates whose LFS object is unavailable.
-The current manifest excludes the lower-pixel Nikon D4S mode-6 candidate for
-that reason and uses the next-lowest available D500 file.
 
 The classification evidence and conservative boundaries are recorded in
 [lossless-classification.md](../reference/codecs/lossless-classification.md).
