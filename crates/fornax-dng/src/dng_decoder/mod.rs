@@ -384,14 +384,16 @@ fn optional_u16<D>(metadata: &D, tag: TiffTag) -> Option<u16>
 where
     D: DirectoryLookup + ?Sized,
 {
-    unsigned_scalar(metadata.get(&Tag::from(tag))).and_then(|value| u16::try_from(value).ok())
+    let value = unsigned_scalar(metadata.get(&Tag::from(tag)))?;
+    u16::try_from(value).ok()
 }
 
 fn optional_u32<D>(metadata: &D, tag: TiffTag) -> Option<u32>
 where
     D: DirectoryLookup + ?Sized,
 {
-    unsigned_scalar(metadata.get(&Tag::from(tag))).and_then(|value| u32::try_from(value).ok())
+    let value = unsigned_scalar(metadata.get(&Tag::from(tag)))?;
+    u32::try_from(value).ok()
 }
 
 fn required_u32<D, T>(metadata: &D, tag: T) -> Result<u32, DecodeError>
