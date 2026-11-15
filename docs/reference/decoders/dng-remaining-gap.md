@@ -474,11 +474,32 @@ reuse reduced faults but did not improve wall time and was reverted. Reusable
 unstuffing remained slower on noisy scans, and both predictor changes regressed
 real 5D3 timing.
 
-No portable scalar production performance change survived the final gate.
-Table-size, canonical-code, shared-table, caller-output, fused-kernel, LTO, and
-zlib-rs experiments were measured and reverted. The retained scalar path is the
-same compute path as before, now fully portable; the report's current portable
-numbers are the baseline for a later SIMD phase.
+## Portable scalar LJPEG follow-up
+
+Exact Callgrind attribution replaced sampled branch percentages. The retained
+portable scalar changes are:
+
+- truncating reconstructed samples without `u16::try_from` panic paths;
+- component-local predictors and chunked row writes;
+- a fixed-size 13-bit fast table;
+- checked word refill with a cold stuffing/marker fallback;
+- one-word packed fast entries.
+
+On 5D3, exact whole-decode instructions fall from 2,564,082,227 to
+1,551,617,888 (-39.48%). Native instructions/sample are 57.33 on 5D3,
+53.06 on Pixel 8, and 50.56 on iPhone SE, or 1.41x, 1.38x, and 1.42x
+same-session FlashRaw. Row-edge peeling was measured and reverted because it
+regressed real-file instruction counts.
+
+Wall time improves by 12.1-29.7%, not 39.48%. Cycles/sample fall from
+29.055 to 24.361 on 5D3 1T, 27.636 to 23.064 on Pixel 8 1T, and 24.088
+to 20.135 on iPhone SE 1T. FlashRaw is at 12.8-15.2 cycles/sample, so the
+remaining gap is dominated by the serial Huffman lookup/shift dependency
+chain rather than surplus retired instructions.
+
+The full exact tables, per-step before/after results, register-pressure audit,
+and rejected-change decisions are in the
+[portable LJPEG follow-up index](dng-gap-profiles/README.md).
 
 ## Sources
 

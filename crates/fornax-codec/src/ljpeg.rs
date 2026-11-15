@@ -239,23 +239,35 @@ impl HuffmanEntry {
 }
 
 #[derive(Clone, Copy)]
-struct FastHuffmanEntry {
-    consumed: u8,
-    difference: i16,
-    full: bool,
-}
+struct FastHuffmanEntry(u32);
 
 impl FastHuffmanEntry {
-    const INVALID: Self = Self {
-        consumed: 0,
-        difference: 0,
-        full: false,
-    };
+    const INVALID: Self = Self(0);
+
+    const fn new(consumed: u8, difference: i16, full: bool) -> Self {
+        let consumed = consumed.to_le_bytes();
+        let difference = difference.to_le_bytes();
+        let full = if full { 1_u32 << 5 } else { 0 };
+        Self(
+            u32::from_le_bytes([consumed[0], 0, 0, 0])
+                | full
+                | u32::from_le_bytes([0, 0, difference[0], difference[1]]),
+        )
+    }
+
+    const fn consumed(self) -> u8 { self.0.to_le_bytes()[0] & 0x1f }
+
+    const fn difference(self) -> i16 {
+        let bytes = self.0.to_le_bytes();
+        i16::from_le_bytes([bytes[2], bytes[3]])
+    }
+
+    const fn full(self) -> bool { self.0 & (1 << 5) != 0 }
 }
 
 struct HuffmanTable {
     lookup: Box<[HuffmanEntry]>,
-    fast_lookup: Box<[FastHuffmanEntry]>,
+    fast_lookup: Box<[FastHuffmanEntry; FAST_HUFFMAN_LOOKAHEAD_SIZE]>,
 }
 
 impl HuffmanTable {
@@ -296,11 +308,7 @@ impl HuffmanTable {
                     for fill in 0..fast_width {
                         let index = fast_start + fill;
                         fast_lookup[index] = if symbol == 0 {
-                            FastHuffmanEntry {
-                                consumed: length,
-                                difference: 0,
-                                full: true,
-                            }
+                            FastHuffmanEntry::new(length, 0, true)
                         } else if symbol < 16
                             && usize::from(length) + usize::from(symbol)
                                 <= FAST_HUFFMAN_LOOKAHEAD_BITS
@@ -313,22 +321,18 @@ impl HuffmanTable {
                                     .expect("fast Huffman difference fits u16"),
                             );
                             let threshold = 1_i32 << (symbol - 1);
-                            FastHuffmanEntry {
-                                consumed: length + symbol,
-                                difference: i16::try_from(if raw < threshold {
+                            FastHuffmanEntry::new(
+                                length + symbol,
+                                i16::try_from(if raw < threshold {
                                     raw - ((1_i32 << symbol) - 1)
                                 } else {
                                     raw
                                 })
                                 .expect("DNG Huffman difference fits i16"),
-                                full: true,
-                            }
+                                true,
+                            )
                         } else {
-                            FastHuffmanEntry {
-                                consumed: length,
-                                difference: 0,
-                                full: false,
-                            }
+                            FastHuffmanEntry::new(length, 0, false)
                         };
                     }
                 }
@@ -340,7 +344,10 @@ impl HuffmanTable {
 
         Ok(Self {
             lookup: lookup.into(),
-            fast_lookup: fast_lookup.into(),
+            fast_lookup: fast_lookup
+                .into_boxed_slice()
+                .try_into()
+                .map_err(|_| "lossless JPEG fast Huffman table has an invalid size".to_owned())?,
         })
     }
 
@@ -356,20 +363,21 @@ impl HuffmanTable {
     }
 
     fn decode_fast(&self, bits: &mut FastBitReader<'_>) -> u8 {
-        let entry = self.lookup[usize::from(bits.fill_to(16))];
+        let entry = self.lookup[usize::from(bits.peek_no_fill(16))];
         if entry.bits == 0 {
             bits.record_error("lossless JPEG contains an invalid Huffman code");
             return 0;
         }
-        bits.skip_no_fill(u32::from(entry.bits));
+        bits.skip_no_fill(usize::from(entry.bits));
         entry.symbol
     }
 
     fn decode_difference_fast(&self, bits: &mut FastBitReader<'_>) -> i32 {
-        let entry = self.fast_lookup[usize::from(bits.fill_to(13))];
-        if entry.full {
-            bits.skip_no_fill(u32::from(entry.consumed));
-            return i32::from(entry.difference);
+        let index = usize::from(bits.peek_no_fill(13)) & (FAST_HUFFMAN_LOOKAHEAD_SIZE - 1);
+        let entry = self.fast_lookup[index];
+        if entry.full() {
+            bits.skip_no_fill(usize::from(entry.consumed()));
+            return i32::from(entry.difference());
         }
         let symbol = self.decode_fast(bits);
         decode_difference_fast(symbol, bits)
@@ -457,7 +465,7 @@ struct FastBitReader<'a> {
     bytes: &'a [u8],
     position: usize,
     cache: u64,
-    buffered_bits: u32,
+    buffered_bits: usize,
     ended: bool,
     error: Option<&'static str>,
 }
@@ -474,39 +482,44 @@ impl<'a> FastBitReader<'a> {
         }
     }
 
-    fn fill_to(&mut self, count: u8) -> u16 {
-        while self.buffered_bits < u32::from(count) {
-            let remaining = self.bytes.len().saturating_sub(self.position);
-            if self.buffered_bits == 0
-                && remaining >= 8
-                && self.bytes[self.position..self.position + 8]
-                    .iter()
-                    .all(|byte| *byte != MARKER_PREFIX)
-            {
-                self.cache = u64::from_be_bytes(
-                    self.bytes[self.position..self.position + 8]
-                        .try_into()
-                        .expect("eight bytes are available"),
-                );
-                self.position += 8;
-                self.buffered_bits = 64;
-                continue;
+    fn refill(&mut self) {
+        if self.buffered_bits >= 32 {
+            return;
+        }
+        if let Some(bytes) = self.bytes.get(self.position..)
+            && let Some(bytes) = bytes.first_chunk::<8>()
+        {
+            let word = u64::from_be_bytes(*bytes);
+            let has_prefix =
+                (!word).wrapping_sub(0x0101_0101_0101_0101) & word & 0x8080_8080_8080_8080 != 0;
+            if !has_prefix {
+                self.cache |= word >> self.buffered_bits;
+                let taken = (63 - self.buffered_bits) >> 3;
+                self.position += taken;
+                self.buffered_bits += taken * 8;
+                return;
             }
+        }
+        self.refill_slow();
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn refill_slow(&mut self) {
+        while self.buffered_bits < 32 {
             let byte = self.next_byte();
             let shift = 64 - self.buffered_bits - 8;
             self.cache |= u64::from(byte) << shift;
             self.buffered_bits += 8;
         }
-        self.peek_no_fill(u32::from(count))
     }
 
-    fn peek_no_fill(&self, count: u32) -> u16 {
+    fn peek_no_fill(&self, count: usize) -> u16 {
         debug_assert!(count != 0 && count <= self.buffered_bits && count <= 16);
-        let mask = (1_u64 << count) - 1;
-        u16::try_from((self.cache >> (64 - count)) & mask).expect("peeked bits fit u16")
+        low_u16_from_u64(self.cache >> (64 - count))
     }
 
-    fn skip_no_fill(&mut self, count: u32) {
+    fn skip_no_fill(&mut self, count: usize) {
         debug_assert!(count <= self.buffered_bits);
         self.cache <<= count;
         self.buffered_bits -= count;
@@ -1157,21 +1170,26 @@ fn decode_scan_rows_with_scratch(
     let mut bits = FastBitReader::new(entropy);
 
     for row in 0..frame.height {
-        for column in 0..frame.width {
-            for (component, table) in tables.iter().enumerate() {
-                let index = column * components + component;
-                let prediction = if row == 0 && column == 0 {
-                    initial
-                } else if column == 0 {
-                    i32::from(scratch.previous[index])
-                } else {
-                    i32::from(scratch.current[index - components])
-                };
-                let value =
-                    apply_difference(prediction, table.decode_difference_fast(&mut bits), mask);
-                scratch.current[index] = value;
+        let mut predictions = [initial; 2];
+        if row != 0 {
+            for (prediction, &previous) in predictions.iter_mut().zip(&scratch.previous) {
+                *prediction = i32::from(previous);
+            }
+        }
+        for (column, chunk) in scratch.current.chunks_exact_mut(components).enumerate() {
+            for (component, output) in chunk.iter_mut().enumerate() {
+                let prediction = predictions[component];
+                bits.refill();
+                let value = apply_difference(
+                    prediction,
+                    tables[component].decode_difference_fast(&mut bits),
+                    mask,
+                );
+                *output = value;
+                predictions[component] = i32::from(value);
                 if point_transform != 0 {
-                    scratch.shifted[index] = value.wrapping_shl(u32::from(point_transform));
+                    scratch.shifted[column * components + component] =
+                        value.wrapping_shl(u32::from(point_transform));
                 }
             }
         }
@@ -1261,8 +1279,8 @@ fn decode_difference_fast(symbol: u8, bits: &mut FastBitReader<'_>) -> i32 {
         0 => 0,
         16 => -32_768,
         1..=15 => {
-            let raw = i32::from(bits.fill_to(symbol));
-            bits.skip_no_fill(u32::from(symbol));
+            let raw = i32::from(bits.peek_no_fill(usize::from(symbol)));
+            bits.skip_no_fill(usize::from(symbol));
             let threshold = 1_i32 << (symbol - 1);
             if raw < threshold {
                 raw - ((1_i32 << symbol) - 1)
@@ -1277,9 +1295,19 @@ fn decode_difference_fast(symbol: u8, bits: &mut FastBitReader<'_>) -> i32 {
     }
 }
 
-fn apply_difference(prediction: i32, difference: i32, mask: u32) -> u16 {
-    u16::try_from((prediction.wrapping_add(difference) as u32) & mask)
-        .expect("the precision mask limits samples to u16")
+const fn apply_difference(prediction: i32, difference: i32, mask: u32) -> u16 {
+    let difference = u32::from_le_bytes(prediction.wrapping_add(difference).to_le_bytes());
+    low_u16(difference & mask)
+}
+
+const fn low_u16(value: u32) -> u16 {
+    let bytes = value.to_le_bytes();
+    u16::from_le_bytes([bytes[0], bytes[1]])
+}
+
+const fn low_u16_from_u64(value: u64) -> u16 {
+    let bytes = value.to_le_bytes();
+    u16::from_le_bytes([bytes[0], bytes[1]])
 }
 
 const HUFFMAN_BITS: u8 = 5;
@@ -1459,9 +1487,9 @@ mod tests {
     use std::time::{Duration, Instant};
 
     use super::{
-        BitReader, BitWriter, FastBitReader, FastRowScratch, Geometry, add_prediction,
-        copy_tile_into, decode_interleaved_impl, decode_into_rows, decode_into_rows_with_scratch,
-        predict,
+        BitReader, BitWriter, FastBitReader, FastRowScratch, Geometry, MARKER_EOI, MARKER_PREFIX,
+        add_prediction, apply_difference, copy_tile_into, decode_interleaved_impl,
+        decode_into_rows, decode_into_rows_with_scratch, low_u16, predict,
     };
     use crate::{ByteOrder, Chunk, DecodeRequest, Predictor, SampleBuffer, SampleFormat};
 
@@ -1469,6 +1497,31 @@ mod tests {
     fn fourteen_bit_difference_class_consumes_amplitude_bits() {
         let mut bits = BitReader::new(&[0x8c, 0xa0]);
         assert_eq!(add_prediction(100, 14, &mut bits, 14).unwrap(), 9_100);
+    }
+
+    #[test]
+    fn truncation_helpers_preserve_wrapped_and_masked_sample_bits() {
+        assert_eq!(low_u16(0x1234_abcd), 0xabcd);
+        assert_eq!(apply_difference(0x7fff, 0x7fff, 0x3fff), 0x3ffe);
+        assert_eq!(apply_difference(-1, 0, 0x3fff), 0x3fff);
+        assert_eq!(apply_difference(i32::MAX, 1, 0xffff), 0);
+        assert_eq!(apply_difference(0, i32::MIN, 0xffff), 0);
+    }
+
+    #[test]
+    fn fast_peek_truncates_to_the_requested_high_bits() {
+        let mut bits = FastBitReader::new(&[0b1010_1100, 0b0011_0101, 0xff, 0]);
+        bits.refill();
+        assert_eq!(bits.peek_no_fill(1), 1);
+        bits.skip_no_fill(1);
+        bits.refill();
+        assert_eq!(bits.peek_no_fill(7), 0b010_1100);
+        bits.skip_no_fill(7);
+        bits.refill();
+        assert_eq!(bits.peek_no_fill(8), 0b0011_0101);
+        bits.skip_no_fill(8);
+        bits.refill();
+        assert_eq!(bits.peek_no_fill(16), 0xff00);
     }
 
     #[test]
@@ -1513,6 +1566,23 @@ mod tests {
     }
 
     #[test]
+    fn component_local_rows_cover_degenerate_dimensions() {
+        for components in [1_u8, 2] {
+            for (width, height) in [(1_u16, 1_u16), (1, 5), (5, 1), (2, 2)] {
+                let samples =
+                    (0..usize::from(width) * usize::from(height) * usize::from(components))
+                        .map(|index| ((index * 613 + 11) & 0x3fff) as u16)
+                        .collect::<Vec<_>>();
+                let encoded =
+                    super::encode_interleaved_for_test(&samples, width, height, components, 14);
+                let fast = decode_interleaved_impl(&encoded, 14, true).unwrap();
+                let general = decode_interleaved_impl(&encoded, 14, false).unwrap();
+                assert_eq!(fast.samples, general.samples);
+            }
+        }
+    }
+
+    #[test]
     fn tile_copy_extracts_u8_and_u16_partial_edges() {
         let u8_image = SampleBuffer::from_u8(5, 3, (0_u8..15).collect()).unwrap();
         let mut u8_tile = vec![0_u16; 8];
@@ -1549,10 +1619,44 @@ mod tests {
         let mut fast = FastBitReader::new(&source);
 
         for count in [1_u8, 5, 9, 13, 16, 3, 11, 2] {
-            assert_eq!(fast.fill_to(count), reference.peek(count));
-            fast.skip_no_fill(u32::from(count));
+            fast.refill();
+            assert_eq!(fast.peek_no_fill(usize::from(count)), reference.peek(count));
+            fast.skip_no_fill(usize::from(count));
             reference.skip(usize::from(count));
         }
+    }
+
+    #[test]
+    fn refill_matches_reference_across_stuffing_markers_and_truncation() {
+        for period in [1_usize, 2, 5, 8, 13] {
+            let mut source = Vec::new();
+            for value in 0_u8..96 {
+                source.push(value.wrapping_mul(37) & 0x7f);
+                if value != 0 && usize::from(value).is_multiple_of(period) {
+                    source.extend_from_slice(&[MARKER_PREFIX, 0]);
+                }
+            }
+            source.extend_from_slice(&[MARKER_PREFIX, MARKER_EOI]);
+            let mut reference = BitReader::new(&source);
+            let mut fast = FastBitReader::new(&source);
+            for count in [13_usize, 16, 1, 11, 9, 14, 7, 16] {
+                fast.refill();
+                let count_u8 = u8::try_from(count).unwrap();
+                assert_eq!(fast.peek_no_fill(count), reference.peek(count_u8));
+                fast.skip_no_fill(count);
+                reference.skip(count);
+            }
+        }
+
+        let truncated = [0xaa, 0xbb];
+        let mut reference = BitReader::new(&truncated);
+        let mut fast = FastBitReader::new(&truncated);
+        fast.refill();
+        assert_eq!(fast.peek_no_fill(16), reference.peek(16));
+        fast.skip_no_fill(16);
+        reference.skip(16);
+        fast.refill();
+        assert_eq!(fast.peek_no_fill(16), reference.peek(16));
     }
 
     #[test]
@@ -1563,6 +1667,7 @@ mod tests {
         let table = super::HuffmanTable::parse(&counts, &[1], &mut lookup).unwrap();
         let mut bits = FastBitReader::new(&[0x80, 0, 0, 0]);
 
+        bits.refill();
         let _ = table.decode_difference_fast(&mut bits);
         assert!(bits.has_error());
     }
@@ -1575,6 +1680,7 @@ mod tests {
         let table = super::HuffmanTable::parse(&counts, &[1], &mut lookup).unwrap();
         let mut bits = FastBitReader::new(&[0, 0, 0]);
 
+        bits.refill();
         assert_eq!(table.decode_difference_fast(&mut bits), -1);
         assert!(!bits.has_error());
     }

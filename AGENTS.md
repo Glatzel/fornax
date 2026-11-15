@@ -118,6 +118,13 @@ and that file must be able to carry out the work.
 
 ## Validation
 
+Reuse data already populated under the main checkout's `external/` directory.
+In linked worktrees, hard-link those files into the worktree with `rsync
+--link-dest` (excluding `.git`) instead of cloning or downloading submodules
+again. This avoids consuming LFS bandwidth and duplicating the RAW corpus.
+Treat the hard-linked fixture and RAW files as read-only: an in-place edit is
+visible from every linked worktree sharing that inode.
+
 For Rust changes, run workspace validation from the repository root:
 
 ```bash
