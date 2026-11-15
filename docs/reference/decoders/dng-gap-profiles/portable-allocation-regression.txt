@@ -1,0 +1,83 @@
+# Portable allocation regression
+
+This artifact compares the removed Linux huge-page output allocation policy
+with plain zeroed `Vec` allocation. It is a host-specific observation, not a
+portable performance guarantee.
+
+- Host: WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs.
+- Kernel: `6.6.87.1-microsoft-standard-WSL2`.
+- glibc: `2.41-12+deb13u3`.
+- THP: enabled `[madvise]`; defrag `[madvise]`.
+- Build: release, page-cache-hot, single-thread and 15-thread cases.
+- Timings: three fresh interleaved processes per decoder, five measured rounds
+  after one warmup in each process. Values are medians of the 15 rounds.
+- Faults: one separate page-cache-hot decode after warmup, measured with
+  `perf stat -e minor-faults,page-faults,instructions`.
+- Equality: the three-way dimensions, storage type, bits, and pixel gate passed
+  for all seven files on the final portable state.
+
+## Wall time and same-session FlashRaw
+
+Ratios are Fornax divided by FlashRaw; lower is better. The FlashRaw values are
+shown because host load varied between the with-policy and without-policy
+sessions.
+
+| File | Threads | With policy | Without policy | Delta | Change | Flash with | Ratio with | Flash without | Ratio without |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 5D3 uncompressed | 1 | 17.314 ms | 44.383 ms | +27.068 ms | +156.33% | 16.468 ms | 1.051x | 16.166 ms | 2.745x |
+| 5D3 uncompressed | 15 | 16.521 ms | 44.299 ms | +27.779 ms | +168.14% | 10.849 ms | 1.523x | 10.602 ms | 4.179x |
+| 5D3 LJPEG | 1 | 169.048 ms | 197.471 ms | +28.423 ms | +16.81% | 96.423 ms | 1.753x | 92.800 ms | 2.128x |
+| 5D3 LJPEG | 15 | 34.908 ms | 38.150 ms | +3.242 ms | +9.29% | 22.061 ms | 1.582x | 21.754 ms | 1.754x |
+| Sigma fp 12-bit uncompressed | 1 | 5.709 ms | 5.498 ms | -0.211 ms | -3.69% | 10.729 ms | 0.532x | 10.455 ms | 0.526x |
+| Sigma fp 12-bit uncompressed | 15 | 5.594 ms | 5.539 ms | -0.056 ms | -0.99% | 5.266 ms | 1.062x | 5.335 ms | 1.038x |
+| iPhone SE LJPEG | 1 | 74.115 ms | 72.831 ms | -1.283 ms | -1.73% | 41.400 ms | 1.790x | 41.276 ms | 1.765x |
+| iPhone SE LJPEG | 15 | 18.853 ms | 19.813 ms | +0.960 ms | +5.09% | 8.779 ms | 2.147x | 8.124 ms | 2.439x |
+| Pixel 8 Pro LJPEG | 1 | 354.032 ms | 432.649 ms | +78.617 ms | +22.21% | 185.118 ms | 1.912x | 195.489 ms | 2.213x |
+| Pixel 8 Pro LJPEG | 15 | 68.159 ms | 77.422 ms | +9.262 ms | +13.59% | 39.330 ms | 1.733x | 39.661 ms | 1.952x |
+| 5D3 FP16 Deflate | 1 | 179.249 ms | 236.454 ms | +57.205 ms | +31.91% | 191.633 ms | 0.935x | 189.025 ms | 1.251x |
+| 5D3 FP16 Deflate | 15 | 44.488 ms | 54.565 ms | +10.077 ms | +22.65% | 53.415 ms | 0.833x | 52.212 ms | 1.045x |
+| 5D3 FP32 Deflate | 1 | 341.264 ms | 397.185 ms | +55.922 ms | +16.39% | 327.592 ms | 1.042x | 322.327 ms | 1.232x |
+| 5D3 FP32 Deflate | 15 | 59.933 ms | 67.891 ms | +7.958 ms | +13.28% | 60.579 ms | 0.989x | 64.059 ms | 1.060x |
+
+## Minor faults
+
+| File | Threads | Fornax with | Fornax without | FlashRaw with | FlashRaw without |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 5D3 uncompressed | 1 | 2,023 | 12,751 | 1,811 | 1,805 |
+| 5D3 uncompressed | 15 | 2,093 | 12,821 | 1,910 | 1,907 |
+| 5D3 LJPEG | 1 | 29,360 | 40,090 | 1,458 | 1,457 |
+| 5D3 LJPEG | 15 | 22,367 | 32,324 | 2,146 | 2,145 |
+| Sigma fp 12-bit uncompressed | 1 | 1,553 | 4,616 | 1,569 | 1,565 |
+| Sigma fp 12-bit uncompressed | 15 | 1,637 | 4,701 | 1,667 | 1,656 |
+| iPhone SE LJPEG | 1 | 6,028 | 11,134 | 1,656 | 1,647 |
+| iPhone SE LJPEG | 15 | 6,631 | 10,384 | 3,450 | 3,879 |
+| Pixel 8 Pro LJPEG | 1 | 61,115 | 85,129 | 2,442 | 2,952 |
+| Pixel 8 Pro LJPEG | 15 | 44,349 | 73,879 | 3,586 | 3,558 |
+| 5D3 FP16 Deflate | 1 | 1,782 | 23,753 | 1,622 | 1,620 |
+| 5D3 FP16 Deflate | 15 | 2,998 | 24,964 | 3,542 | 3,565 |
+| 5D3 FP32 Deflate | 1 | 2,341 | 24,315 | 2,184 | 2,184 |
+| 5D3 FP32 Deflate | 15 | 4,091 | 26,057 | 4,178 | 4,159 |
+
+Fornax instruction totals moved by less than 0.01% for every case. The
+regression is first-touch/fault cost, not added scalar work.
+
+## Parity conclusion
+
+Without the Linux policy:
+
+- 5D3 uncompressed loses parity in both thread modes. The one-thread ratio moves
+  from approximately parity to 2.75x FlashRaw.
+- FP16 and FP32 Deflate lose their previous parity/lead and are slower than
+  FlashRaw in both thread modes.
+- Pixel 8 LJPEG moves from 1.91x to 2.21x FlashRaw at one thread and from 1.73x
+  to 1.95x at 15 threads.
+- 5D3 LJPEG remains compute-bound and slower, but also loses an additional
+  16.8% at one thread.
+- Sigma fp remains faster than FlashRaw at one thread and effectively at
+  parity at 15 threads. Its wall-time changes are inside noise despite a lower
+  fault count with the policy.
+- iPhone SE wall time is compute-dominated; the fault change does not establish
+  a material policy win.
+
+The corrected source measurements therefore remain useful evidence about THP,
+but the policy is not portable and is removed from the codec.
