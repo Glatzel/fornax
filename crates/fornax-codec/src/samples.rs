@@ -5,11 +5,15 @@ use crate::CodecError;
 use crate::error::invalid;
 use crate::request::{ByteOrder, Chunk, SampleFormat};
 use crate::sample_buffer::SampleBuffer;
-
+#[cfg(target_os = "linux")]
 const HUGE_PAGE_BYTES: usize = 2 * 1024 * 1024;
+#[cfg(target_os = "linux")]
 const MIN_HUGEPAGE_BYTES: usize = 4 * HUGE_PAGE_BYTES;
 
-fn zeroed_samples<T: Pod>(len: usize) -> Vec<T> {
+fn zeroed_samples<T>(len: usize) -> Vec<T>
+where
+    T: Pod,
+{
     #[cfg(target_os = "linux")]
     if let Some(output) = hugepage_zeroed_samples(len) {
         return output;
