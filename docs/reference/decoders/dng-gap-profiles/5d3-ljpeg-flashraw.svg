@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="268">
+<rect width="100%" height="100%" fill="#f7f7f7"/>
+<text x="12" y="24" font-size="18">5d3-ljpeg / flashraw</text>
+<g font-family="monospace" fill="#111">
+<rect x="0.000" y="230" width="1791.589" height="17" fill="#dcb888"><title>&lt;dng_gap_probe[caddf35f81fafe4e]::flashraw_wrapper::FlashRawDecoder as fornax_raw_core[ea017d5d5156005]::protocol::IDecoder&gt;::decode: 1041685412</title></rect>
+<rect x="0.000" y="212" width="1791.589" height="17" fill="#f1b848"><title>&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode: 1041685412</title></rect>
+<rect x="0.000" y="194" width="1791.589" height="17" fill="#e0c886"><title>flashraw_core[f3c053ec45d8992]::par::sequential::&lt;core[62e902411887be45]::result::Result&lt;flashraw[d6724063b047886d]::frame::RawFrame, flashraw_core[f3c053ec45d8992]::error::Error&gt;, &lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode::{closure#0}&gt;: 1041685412</title></rect>
+<rect x="0.000" y="176" width="1791.589" height="17" fill="#d8b846"><title>&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode_inner: 1041685412</title></rect>
+<rect x="0.000" y="158" width="1791.589" height="17" fill="#dd7846"><title>flashraw_formats[ffcca61187c129c7]::dng::open::{closure#4}: 1041685412</title></rect>
+<rect x="0.000" y="140" width="1791.589" height="17" fill="#ef7848"><title>&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_region: 1041685412</title></rect>
+<rect x="0.000" y="122" width="1791.589" height="17" fill="#e1c846"><title>&lt;flashraw_core[f3c053ec45d8992]::profile::Profiler&gt;::time::&lt;core[62e902411887be45]::result::Result&lt;(), flashraw_core[f3c053ec45d8992]::error::Error&gt;, &lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_region::{closure#4}&gt;: 1041685412</title></rect>
+<rect x="0.000" y="104" width="1791.589" height="17" fill="#d2b848"><title>&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_unit_u16: 1041685412</title></rect>
+<rect x="0.000" y="86" width="61.706" height="17" fill="#dab84a"><title>&lt;flashraw_codecs[4febb61d4a9e3833]::ljpeg::LjpegHeader&gt;::parse: 35877873</title></rect>
+<rect x="0.000" y="68" width="6.048" height="17" fill="#d6b88a"><title>&lt;flashraw_core[f3c053ec45d8992]::huffman::HuffTable as core[62e902411887be45]::clone::Clone&gt;::clone: 3516312</title></rect>
+<rect x="6.048" y="68" width="55.658" height="17" fill="#e47886"><title>&lt;flashraw_core[f3c053ec45d8992]::huffman::HuffTable&gt;::from_counts: 32361561</title></rect>
+<rect x="6.048" y="50" width="5.486" height="17" fill="#e6888c"><title>__rustc[45371133cddedda4]::__rdl_dealloc: 3189684</title></rect>
+<rect x="61.706" y="86" width="1729.883" height="17" fill="#dc788c"><title>flashraw_codecs[4febb61d4a9e3833]::ljpeg::decode_rows_par_limit::&lt;&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_compressed_u16::{closure#1}&gt;: 1005807539</title></rect>
+<rect x="61.706" y="68" width="14.820" height="17" fill="#e4b848"><title>&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_compressed_u16::{closure#1}: 8616758</title></rect>
+<rect x="76.526" y="68" width="1651.709" height="17" fill="#e8784c"><title>flashraw_codecs[4febb61d4a9e3833]::ljpeg::decode_row_pred1::&lt;flashraw_core[f3c053ec45d8992]::bits::BitPumpMsb&gt;: 960354591</title></rect>
+<rect x="1728.235" y="68" width="63.354" height="17" fill="#edc88a"><title>flashraw_codecs[4febb61d4a9e3833]::ljpeg::unstuff_scan: 36836190</title></rect>
+<rect x="1728.235" y="50" width="63.354" height="17" fill="#d4b88c"><title>flashraw_codecs[4febb61d4a9e3833]::ljpeg::unstuff_serial: 36836190</title></rect>
+<rect x="1728.235" y="32" width="50.238" height="17" fill="#dcb846"><title>flashraw_codecs[4febb61d4a9e3833]::ljpeg::unstuff_into: 29209679</title></rect>
+<rect x="1791.589" y="230" width="1.983" height="17" fill="#da7848"><title>dng_gap_probe[caddf35f81fafe4e]::main: 1153009</title></rect>
+<rect x="1791.589" y="212" width="1.983" height="17" fill="#ddb888"><title>dng_gap_probe[caddf35f81fafe4e]::decode_once: 1153009</title></rect>
+<rect x="1791.589" y="194" width="1.983" height="17" fill="#dcb888"><title>&lt;dng_gap_probe[caddf35f81fafe4e]::flashraw_wrapper::FlashRawDecoder as fornax_raw_core[ea017d5d5156005]::protocol::IDecoder&gt;::decode: 1153009</title></rect>
+<rect x="1791.589" y="176" width="1.983" height="17" fill="#efc888"><title>&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::open_path::&lt;&amp;std[c60ef17cbf7de79f]::path::Path&gt;: 1153009</title></rect>
+<rect x="1791.589" y="158" width="1.983" height="17" fill="#deb888"><title>flashraw_formats[ffcca61187c129c7]::open: 1153009</title></rect>
+<rect x="1791.589" y="140" width="1.983" height="17" fill="#e7b84a"><title>flashraw_formats[ffcca61187c129c7]::dng::open: 1153009</title></rect>
+<rect x="1791.589" y="122" width="1.983" height="17" fill="#d28888"><title>&lt;flashraw_core[f3c053ec45d8992]::camera_profile::CameraProfile&gt;::from_dng_ifd: 1153009</title></rect>
+<rect x="1791.589" y="104" width="1.983" height="17" fill="#d8c886"><title>&lt;flashraw_core[f3c053ec45d8992]::camera_profile::CameraProfile&gt;::from_ifd: 1153009</title></rect>
+<rect x="1791.589" y="86" width="1.983" height="17" fill="#ed8888"><title>&lt;alloc[2a0ada2ddd1fabff]::vec::Vec&lt;f32&gt; as alloc[2a0ada2ddd1fabff]::vec::spec_from_iter_nested::SpecFromIterNested&lt;f32, core[62e902411887be45]::iter::adapters::filter_map::FilterMap&lt;core[62e902411887be45]::ops::range::Range&lt;usize&gt;, &lt;flashraw_core[f3c053ec45d8992]::tiff::Entry&gt;::f32s::{closure#0}&gt;&gt;&gt;::from_iter: 1153009</title></rect>
+<rect x="1793.572" y="230" width="6.428" height="17" fill="#edc88a"><title>flashraw_codecs[4febb61d4a9e3833]::ljpeg::unstuff_scan: 3737358</title></rect>
+<rect x="1793.572" y="212" width="6.428" height="17" fill="#d4b88c"><title>flashraw_codecs[4febb61d4a9e3833]::ljpeg::unstuff_serial: 3737358</title></rect>
+<rect x="1793.572" y="194" width="6.428" height="17" fill="#dcb846"><title>flashraw_codecs[4febb61d4a9e3833]::ljpeg::unstuff_into: 3737358</title></rect>
+<text x="3.000" y="242" font-size="10">&lt;dng_gap_probe[caddf35f81fafe4e]::flashraw_wrapper::FlashRawDecoder as fornax_raw_core[ea017d5d5156005]::protocol::IDecoder&gt;::decode</text>
+<text x="3.000" y="224" font-size="10">&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode</text>
+<text x="3.000" y="206" font-size="10">flashraw_core[f3c053ec45d8992]::par::sequential::&lt;core[62e902411887be45]::result::Result&lt;flashraw[d6724063b047886d]::frame::RawFrame, flashraw_core[f3c053ec45d8992]::error::Error&gt;, &lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode::{closure#0}</text>
+<text x="3.000" y="188" font-size="10">&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode_inner</text>
+<text x="3.000" y="170" font-size="10">flashraw_formats[ffcca61187c129c7]::dng::open::{closure#4}</text>
+<text x="3.000" y="152" font-size="10">&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_region</text>
+<text x="3.000" y="134" font-size="10">&lt;flashraw_core[f3c053ec45d8992]::profile::Profiler&gt;::time::&lt;core[62e902411887be45]::result::Result&lt;(), flashraw_core[f3c053ec45d8992]::error::Error&gt;, &lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_region::{closure#4}&gt;</text>
+<text x="3.000" y="116" font-size="10">&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_unit_u16</text>
+<text x="3.000" y="98" font-size="10">&lt;flas</text>
+<text x="9.048" y="80" font-size="10">&lt;fla</text>
+<text x="64.706" y="98" font-size="10">flashraw_codecs[4febb61d4a9e3833]::ljpeg::decode_rows_par_limit::&lt;&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_compressed_u16::{closure#1}&gt;</text>
+<text x="79.526" y="80" font-size="10">flashraw_codecs[4febb61d4a9e3833]::ljpeg::decode_row_pred1::&lt;flashraw_core[f3c053ec45d8992]::bits::BitPumpMsb&gt;</text>
+<text x="1731.235" y="80" font-size="10">flashraw_</text>
+<text x="1731.235" y="62" font-size="10">flashraw_</text>
+<text x="1731.235" y="44" font-size="10">flashra</text>
+</g>
+</svg>

@@ -145,11 +145,34 @@ where
         .zip(actual)
         .position(|(expected, actual)| expected != actual)
     {
-        // rawler sometimes doesn't have same samples to ours.
-        eprint!(
+        panic!(
             "decoder equivalence mismatch for {case}: Fornax sample {index} is {:?}, \
              {reference_name} sample is {:?}",
             actual[index], expected[index]
+        );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn sample_mismatch_fails_equality() {
+        let expected = super::CanonicalMosaic::U16 {
+            width: 1,
+            height: 1,
+            samples: vec![1],
+        };
+        let actual = super::CanonicalMosaic::U16 {
+            width: 1,
+            height: 1,
+            samples: vec![2],
+        };
+
+        assert!(
+            std::panic::catch_unwind(|| {
+                super::assert_mosaic_eq("mismatch", "reference", &expected, &actual);
+            })
+            .is_err()
         );
     }
 }

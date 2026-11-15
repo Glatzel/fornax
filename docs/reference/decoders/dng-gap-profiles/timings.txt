@@ -1,0 +1,43 @@
+# DNG remaining-gap timings
+
+Method:
+
+- Three fresh processes per case and decoder.
+- Five interleaved rounds per process; each process performed one warmup first.
+- `RAYON_NUM_THREADS=1`, release optimization, page-cache-hot inputs.
+- Fifteen measurements per decoder and case. Values are milliseconds.
+
+| Case | Decoder | Mean | SD | Min | Median | Max |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| 5D3 uncompressed | Fornax | 51.477 | 1.026 | 49.787 | 51.244 | 53.518 |
+| 5D3 uncompressed | FlashRaw | 18.381 | 0.390 | 17.892 | 18.235 | 19.171 |
+| 5D3 LJPEG | Fornax | 267.899 | 1.883 | 265.518 | 267.602 | 271.304 |
+| 5D3 LJPEG | FlashRaw | 95.486 | 2.062 | 92.380 | 94.802 | 99.188 |
+| Pixel 8 LJPEG | Fornax | 559.753 | 17.646 | 539.926 | 557.101 | 604.267 |
+| Pixel 8 LJPEG | FlashRaw | 197.025 | 6.841 | 187.954 | 196.308 | 213.183 |
+| 5D3 FP32 Deflate | Fornax | 415.238 | 11.611 | 404.020 | 412.092 | 438.995 |
+| 5D3 FP32 Deflate | FlashRaw | 344.919 | 9.732 | 335.968 | 341.415 | 370.617 |
+
+Fornax/FlashRaw mean ratios:
+
+| Case | Ratio |
+| --- | ---: |
+| 5D3 uncompressed | 2.800x |
+| 5D3 LJPEG | 2.806x |
+| Pixel 8 LJPEG | 2.841x |
+| 5D3 FP32 Deflate | 1.204x |
+
+For later keep/revert decisions, a change is considered distinguishable only
+when its before/after difference exceeds the larger observed process-level
+spread rather than a single favorable run.
+
+## Final LJPEG results
+
+Final `C`-only code, three interleaved processes per case and decoder with five
+rounds per process:
+
+| Case | Fornax | FlashRaw | Fornax/FlashRaw |
+| --- | ---: | ---: | ---: |
+| 5D3 LJPEG | 202.619 ± 5.440 | 96.864 ± 3.330 | 2.09x |
+| Pixel 8 LJPEG | 423.734 ± 17.091 | 194.305 ± 10.025 | 2.18x |
+| iPhone SE LJPEG | 75.435 ± 6.054 | 41.023 ± 0.764 | 1.84x |

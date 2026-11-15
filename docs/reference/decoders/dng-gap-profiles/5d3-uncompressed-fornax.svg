@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="358">
+<rect width="100%" height="100%" fill="#f7f7f7"/>
+<text x="12" y="24" font-size="18">5d3-uncompressed / fornax</text>
+<g font-family="monospace" fill="#111">
+<rect x="0.000" y="320" width="8.255" height="17" fill="#d47846"><title>&lt;std[c60ef17cbf7de79f]::sys::thread::unix::Thread&gt;::new::thread_start: 359251</title></rect>
+<rect x="0.000" y="302" width="7.421" height="17" fill="#d6888a"><title>&lt;std[c60ef17cbf7de79f]::thread::lifecycle::spawn_unchecked&lt;&lt;rayon_core[8c170b57d1bfa20a]::registry::DefaultSpawn as rayon_core[8c170b57d1bfa20a]::registry::ThreadSpawn&gt;::spawn::{closure#0}, ()&gt;::{closure#1} as core[62e902411887be45]::ops::function::FnOnce&lt;()&gt;&gt;::call_once::{shim:vtable#0}: 322971</title></rect>
+<rect x="0.000" y="284" width="7.421" height="17" fill="#f0888a"><title>std[c60ef17cbf7de79f]::sys::backtrace::__rust_begin_short_backtrace::&lt;&lt;rayon_core[8c170b57d1bfa20a]::registry::DefaultSpawn as rayon_core[8c170b57d1bfa20a]::registry::ThreadSpawn&gt;::spawn::{closure#0}, ()&gt;: 322971</title></rect>
+<rect x="0.000" y="266" width="7.421" height="17" fill="#e08848"><title>&lt;rayon_core[8c170b57d1bfa20a]::registry::ThreadBuilder&gt;::run: 322971</title></rect>
+<rect x="0.000" y="248" width="7.421" height="17" fill="#e3c84a"><title>&lt;rayon_core[8c170b57d1bfa20a]::registry::WorkerThread&gt;::wait_until_cold: 322971</title></rect>
+<rect x="0.000" y="230" width="7.421" height="17" fill="#f1c88c"><title>&lt;rayon_core[8c170b57d1bfa20a]::sleep::Sleep&gt;::sleep::&lt;&lt;rayon_core[8c170b57d1bfa20a]::registry::WorkerThread&gt;::wait_until_cold::{closure#0}&gt;: 322971</title></rect>
+<rect x="0.000" y="212" width="7.421" height="17" fill="#ed888a"><title>&lt;std[c60ef17cbf7de79f]::sys::sync::condvar::futex::Condvar&gt;::wait: 322971</title></rect>
+<rect x="0.000" y="194" width="7.421" height="17" fill="#d58888"><title>syscall: 322971</title></rect>
+<rect x="7.421" y="302" width="0.834" height="17" fill="#db788a"><title>gettid: 36280</title></rect>
+<rect x="8.255" y="320" width="0.000" height="17" fill="#dc8888"><title>__ctype_init: 1</title></rect>
+<rect x="8.255" y="320" width="1791.664" height="17" fill="#f1888a"><title>_start: 77974498</title></rect>
+<rect x="8.255" y="302" width="1791.664" height="17" fill="#ddc84a"><title>__libc_start_main: 77974498</title></rect>
+<rect x="8.255" y="284" width="1791.664" height="17" fill="#e3784a"><title>main: 77974498</title></rect>
+<rect x="8.255" y="266" width="1791.664" height="17" fill="#f18848"><title>std[c60ef17cbf7de79f]::rt::lang_start_internal: 77974498</title></rect>
+<rect x="8.255" y="248" width="1791.664" height="17" fill="#dc788a"><title>std[c60ef17cbf7de79f]::rt::lang_start::&lt;()&gt;::{closure#0}: 77974498</title></rect>
+<rect x="8.255" y="230" width="1791.664" height="17" fill="#df7888"><title>std[c60ef17cbf7de79f]::sys::backtrace::__rust_begin_short_backtrace::&lt;fn(), ()&gt;: 77974498</title></rect>
+<rect x="8.255" y="212" width="1791.664" height="17" fill="#da7848"><title>dng_gap_probe[caddf35f81fafe4e]::main: 77974498</title></rect>
+<rect x="8.255" y="194" width="1791.664" height="17" fill="#ddb888"><title>dng_gap_probe[caddf35f81fafe4e]::decode_once: 77974498</title></rect>
+<rect x="8.255" y="176" width="47.244" height="17" fill="#ecb88a"><title>&lt;fornax_raw_decoder[4317740fd9d81a00]::Decoder as fornax_raw_core[ea017d5d5156005]::protocol::IDecoder&gt;::decode: 2056108</title></rect>
+<rect x="8.255" y="158" width="47.244" height="17" fill="#d3888c"><title>&lt;fornax_dng[bcc7ebe49c46a5cf]::dng_decoder::DngImage&gt;::parse_source: 2056108</title></rect>
+<rect x="8.255" y="140" width="47.244" height="17" fill="#ecb886"><title>fornax_tiff[2c9437cfce1b7160]::parser::parse_source: 2056108</title></rect>
+<rect x="8.255" y="122" width="47.244" height="17" fill="#ddc886"><title>&lt;fornax_tiff[2c9437cfce1b7160]::parser::Reader&gt;::parse_ifd: 2056108</title></rect>
+<rect x="8.255" y="104" width="47.244" height="17" fill="#df8888"><title>core[62e902411887be45]::iter::adapters::try_process::&lt;core[62e902411887be45]::iter::adapters::map::Map&lt;core[62e902411887be45]::ops::range::Range&lt;usize&gt;, &lt;fornax_tiff[2c9437cfce1b7160]::parser::Reader&gt;::parse_value::{closure#9}&gt;, fornax_tiff[2c9437cfce1b7160]::value::Value, core[62e902411887be45]::result::Result&lt;!, fornax_tiff[2c9437cfce1b7160]::TiffError&gt;, &lt;core[62e902411887be45]::result::Result&lt;alloc[2a0ada2ddd1fabff]::vec::Vec&lt;fornax_tiff[2c9437cfce1b7160]::value::Value&gt;, fornax_tiff[2c9437cfce1b7160]::TiffError&gt; as core[62e902411887be45]::iter::traits::collect::FromIterator&lt;core[62e902411887be45]::result::Result&lt;fornax_tiff[2c9437cfce1b7160]::value::Value, fornax_tiff[2c9437cfce1b7160]::TiffError&gt;&gt;&gt;::from_iter&lt;core[62e902411887be45]::iter::adapters::map::Map&lt;core[62e902411887be45]::ops::range::Range&lt;usize&gt;, &lt;fornax_tiff[2c9437cfce1b7160]::parser::Reader&gt;::parse_value::{closure#9}&gt;&gt;::{closure#0}, alloc[2a0ada2ddd1fabff]::vec::Vec&lt;fornax_tiff[2c9437cfce1b7160]::value::Value&gt;&gt;: 2056108</title></rect>
+<rect x="8.255" y="86" width="47.244" height="17" fill="#d6c84a"><title>&lt;alloc[2a0ada2ddd1fabff]::vec::Vec&lt;fornax_tiff[2c9437cfce1b7160]::value::Value&gt; as alloc[2a0ada2ddd1fabff]::vec::spec_from_iter::SpecFromIter&lt;fornax_tiff[2c9437cfce1b7160]::value::Value, core[62e902411887be45]::iter::adapters::GenericShunt&lt;core[62e902411887be45]::iter::adapters::map::Map&lt;core[62e902411887be45]::ops::range::Range&lt;usize&gt;, &lt;fornax_tiff[2c9437cfce1b7160]::parser::Reader&gt;::parse_value::{closure#9}&gt;, core[62e902411887be45]::result::Result&lt;!, fornax_tiff[2c9437cfce1b7160]::TiffError&gt;&gt;&gt;&gt;::from_iter: 2056108</title></rect>
+<rect x="55.499" y="176" width="1710.929" height="17" fill="#dbb886"><title>&lt;fornax_raw_decoder[4317740fd9d81a00]::Decoder as fornax_raw_core[ea017d5d5156005]::protocol::IDecoder&gt;::raw_mosaic: 74460876</title></rect>
+<rect x="55.499" y="158" width="1710.929" height="17" fill="#edb88c"><title>&lt;fornax_dng[bcc7ebe49c46a5cf]::dng_decoder::DngImage&gt;::raw_mosaic: 74460876</title></rect>
+<rect x="55.499" y="140" width="1710.929" height="17" fill="#e88846"><title>&lt;fornax_codec[d6b94f8ce47a56d7]::request::DecodeCompression as fornax_codec[d6b94f8ce47a56d7]::ICodecDecode&gt;::decode: 74460876</title></rect>
+<rect x="55.499" y="122" width="1710.929" height="17" fill="#e0b888"><title>fornax_codec[d6b94f8ce47a56d7]::uncompressed::decode: 74460876</title></rect>
+<rect x="55.499" y="104" width="1710.929" height="17" fill="#d57888"><title>fornax_codec[d6b94f8ce47a56d7]::samples::decode_payloads: 74460876</title></rect>
+<rect x="55.499" y="86" width="1710.929" height="17" fill="#ebb88a"><title>rayon[9064e31708bf4cb2]::iter::try_reduce::try_reduce::&lt;rayon[9064e31708bf4cb2]::iter::map::Map&lt;rayon[9064e31708bf4cb2]::iter::enumerate::Enumerate&lt;rayon[9064e31708bf4cb2]::slice::chunks::ChunksMut&lt;u16&gt;&gt;, fornax_codec[d6b94f8ce47a56d7]::samples::par_tiles&lt;u16, fornax_codec[d6b94f8ce47a56d7]::samples::copy_samples&lt;u16&gt;::{closure#0}&gt;::{closure#0}&gt;, rayon[9064e31708bf4cb2]::iter::ParallelIterator::try_for_each::ok&lt;core[62e902411887be45]::result::Result&lt;(), fornax_codec[d6b94f8ce47a56d7]::error::CodecError&gt;&gt;, &lt;() as core[62e902411887be45]::default::Default&gt;::default, core[62e902411887be45]::result::Result&lt;(), fornax_codec[d6b94f8ce47a56d7]::error::CodecError&gt;&gt;: 74460876</title></rect>
+<rect x="55.499" y="68" width="1710.929" height="17" fill="#dfb84c"><title>rayon[9064e31708bf4cb2]::iter::plumbing::bridge_producer_consumer::helper::&lt;rayon[9064e31708bf4cb2]::iter::enumerate::EnumerateProducer&lt;rayon[9064e31708bf4cb2]::slice::chunks::ChunksMutProducer&lt;u16&gt;&gt;, rayon[9064e31708bf4cb2]::iter::map::MapConsumer&lt;rayon[9064e31708bf4cb2]::iter::try_reduce::TryReduceConsumer&lt;rayon[9064e31708bf4cb2]::iter::ParallelIterator::try_for_each::ok&lt;core[62e902411887be45]::result::Result&lt;(), fornax_codec[d6b94f8ce47a56d7]::error::CodecError&gt;&gt;, &lt;() as core[62e902411887be45]::default::Default&gt;::default&gt;, fornax_codec[d6b94f8ce47a56d7]::samples::par_tiles&lt;u16, fornax_codec[d6b94f8ce47a56d7]::samples::copy_samples&lt;u16&gt;::{closure#0}&gt;::{closure#0}&gt;&gt;: 74460876</title></rect>
+<rect x="55.499" y="50" width="1710.929" height="17" fill="#d37848"><title>&lt;rayon[9064e31708bf4cb2]::iter::enumerate::EnumerateProducer&lt;rayon[9064e31708bf4cb2]::slice::chunks::ChunksMutProducer&lt;u16&gt;&gt; as rayon[9064e31708bf4cb2]::iter::plumbing::Producer&gt;::fold_with::&lt;rayon[9064e31708bf4cb2]::iter::map::MapFolder&lt;rayon[9064e31708bf4cb2]::iter::try_reduce::TryReduceFolder&lt;rayon[9064e31708bf4cb2]::iter::ParallelIterator::try_for_each::ok&lt;core[62e902411887be45]::result::Result&lt;(), fornax_codec[d6b94f8ce47a56d7]::error::CodecError&gt;&gt;, core[62e902411887be45]::result::Result&lt;(), fornax_codec[d6b94f8ce47a56d7]::error::CodecError&gt;&gt;, fornax_codec[d6b94f8ce47a56d7]::samples::par_tiles&lt;u16, fornax_codec[d6b94f8ce47a56d7]::samples::copy_samples&lt;u16&gt;::{closure#0}&gt;::{closure#0}&gt;&gt;: 74460876</title></rect>
+<rect x="55.499" y="32" width="1710.929" height="17" fill="#e17846"><title>&lt;&amp;fornax_codec[d6b94f8ce47a56d7]::samples::par_tiles&lt;u16, fornax_codec[d6b94f8ce47a56d7]::samples::copy_samples&lt;u16&gt;::{closure#0}&gt;::{closure#0} as core[62e902411887be45]::ops::function::FnMut&lt;((usize, &amp;mut [u16]),)&gt;&gt;::call_mut: 74460876</title></rect>
+<rect x="1766.429" y="176" width="33.490" height="17" fill="#e37848"><title>core[62e902411887be45]::ptr::drop_glue::&lt;fornax_tiff[2c9437cfce1b7160]::ParsedTiff&gt;: 1457514</title></rect>
+<rect x="1766.429" y="158" width="33.490" height="17" fill="#d7788c"><title>&lt;alloc[2a0ada2ddd1fabff]::vec::Vec&lt;alloc[2a0ada2ddd1fabff]::collections::btree::map::BTreeMap&lt;fornax_tiff[2c9437cfce1b7160]::value::Tag, fornax_tiff[2c9437cfce1b7160]::value::Value&gt;&gt; as core[62e902411887be45]::ops::drop::Drop&gt;::drop: 1457514</title></rect>
+<rect x="1766.429" y="140" width="33.490" height="17" fill="#e9884c"><title>core[62e902411887be45]::ptr::drop_glue::&lt;fornax_tiff[2c9437cfce1b7160]::value::Value&gt;: 1457514</title></rect>
+<rect x="1766.429" y="122" width="33.490" height="17" fill="#e9884c"><title>core[62e902411887be45]::ptr::drop_glue::&lt;fornax_tiff[2c9437cfce1b7160]::value::Value&gt;: 1457514</title></rect>
+<rect x="1799.919" y="320" width="0.081" height="17" fill="#d6b84c"><title>snprintf: 3540</title></rect>
+<text x="11.255" y="332" font-size="10">_start</text>
+<text x="11.255" y="314" font-size="10">__libc_start_main</text>
+<text x="11.255" y="296" font-size="10">main</text>
+<text x="11.255" y="278" font-size="10">std[c60ef17cbf7de79f]::rt::lang_start_internal</text>
+<text x="11.255" y="260" font-size="10">std[c60ef17cbf7de79f]::rt::lang_start::&lt;()&gt;::{closure#0}</text>
+<text x="11.255" y="242" font-size="10">std[c60ef17cbf7de79f]::sys::backtrace::__rust_begin_short_backtrace::&lt;fn(), ()&gt;</text>
+<text x="11.255" y="224" font-size="10">dng_gap_probe[caddf35f81fafe4e]::main</text>
+<text x="11.255" y="206" font-size="10">dng_gap_probe[caddf35f81fafe4e]::decode_once</text>
+<text x="11.255" y="188" font-size="10">&lt;fo</text>
+<text x="11.255" y="170" font-size="10">&lt;fo</text>
+<text x="11.255" y="152" font-size="10">fornax</text>
+<text x="11.255" y="134" font-size="10">&lt;fo</text>
+<text x="11.255" y="116" font-size="10">core[6</text>
+<text x="11.255" y="98" font-size="10">&lt;al</text>
+<text x="58.499" y="188" font-size="10">&lt;fornax_raw_decoder[4317740fd9d81a00]::Decoder as fornax_raw_core[ea017d5d5156005]::protocol::IDecoder&gt;::raw_mosaic</text>
+<text x="58.499" y="170" font-size="10">&lt;fornax_dng[bcc7ebe49c46a5cf]::dng_decoder::DngImage&gt;::raw_mosaic</text>
+<text x="58.499" y="152" font-size="10">&lt;fornax_codec[d6b94f8ce47a56d7]::request::DecodeCompression as fornax_codec[d6b94f8ce47a56d7]::ICodecDecode&gt;::decode</text>
+<text x="58.499" y="134" font-size="10">fornax_codec[d6b94f8ce47a56d7]::uncompressed::decode</text>
+<text x="58.499" y="116" font-size="10">fornax_codec[d6b94f8ce47a56d7]::samples::decode_payloads</text>
+<text x="58.499" y="98" font-size="10">rayon[9064e31708bf4cb2]::iter::try_reduce::try_reduce::&lt;rayon[9064e31708bf4cb2]::iter::map::Map&lt;rayon[9064e31708bf4cb2]::iter::enumerate::Enumerate&lt;rayon[9064e31708bf4cb2]::slice::chunks::ChunksMut&lt;u16&gt;&gt;, fornax_codec[d6b94f8c</text>
+<text x="58.499" y="80" font-size="10">rayon[9064e31708bf4cb2]::iter::plumbing::bridge_producer_consumer::helper::&lt;rayon[9064e31708bf4cb2]::iter::enumerate::EnumerateProducer&lt;rayon[9064e31708bf4cb2]::slice::chunks::ChunksMutProducer&lt;u16&gt;&gt;, rayon[9064e31708bf4cb2]::ite</text>
+<text x="58.499" y="62" font-size="10">&lt;rayon[9064e31708bf4cb2]::iter::enumerate::EnumerateProducer&lt;rayon[9064e31708bf4cb2]::slice::chunks::ChunksMutProducer&lt;u16&gt;&gt; as rayon[9064e31708bf4cb2]::iter::plumbing::Producer&gt;::fold_with::&lt;rayon[9064e31708bf4cb2]::iter::</text>
+<text x="58.499" y="44" font-size="10">&lt;&amp;fornax_codec[d6b94f8ce47a56d7]::samples::par_tiles&lt;u16, fornax_codec[d6b94f8ce47a56d7]::samples::copy_samples&lt;u16&gt;::{closure#0}&gt;::{closure#0} as core[62e902411887be45]::ops::function::FnMut&lt;((usize, &amp;mut [u16]),)&gt;</text>
+</g>
+</svg>

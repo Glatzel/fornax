@@ -1,0 +1,52 @@
+# 5D3 uncompressed allocation probe
+
+Input: `Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9394-uncompressed.DNG`
+(48,382,640 bytes, 5920x3950 U16, 23,384,000 output samples, 46,768,000 output
+bytes).
+
+Method:
+
+- In-memory source after one page-cache-hot file read.
+- Three fresh processes per destination variant, five rounds per process.
+- `RAYON_NUM_THREADS=1`, release optimization.
+- Every local destination variant was compared sample-for-sample with the
+  production uncompressed codec before timing.
+- The reused buffer was allocated and touched before timing and fully
+  overwritten each round.
+- The hugepage variant used page-aligned `alloc_zeroed` plus
+  `madvise(MADV_HUGEPAGE)` before writing the decoded rows.
+
+| Phase | Allocate ms | Allocate SD | Decode/copy ms | Decode SD | Total ms | n |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Production codec | 0.000 | 0.000 | 36.803 | 2.077 | 36.803 | 45 |
+| Fresh `Vec<u16>` | 0.016 | 0.003 | 37.417 | 5.140 | 37.433 | 15 |
+| Pre-touched reused `Vec<u16>` | 0.000 | 0.000 | 4.960 | 0.326 | 4.960 | 15 |
+| `alloc_zeroed` + `MADV_HUGEPAGE` | 34.668 | 4.895 | 5.544 | 0.451 | 40.212 | 15 |
+
+Stage split for the in-memory path:
+
+| Stage | Observation |
+| --- | --- |
+| Page-cache-hot `fs::read` | 45-62 ms; includes copying the source into an owned buffer |
+| Open + anonymous file mapping setup | about 0.05 ms; source-page faults remain lazy |
+| TIFF parse plus metadata/layout assembly | about 1.9-2.1 ms |
+| Pre-touched row copy | 4.960 ms mean |
+| Allocation and first-touch delta | about 32.5 ms (fresh total minus reused total) |
+
+Perf counters over each five-round process include the identical setup,
+production-reference rounds, equality checks, and selected variant rounds:
+
+| Variant | Instructions | Branch misses | Minor faults |
+| --- | ---: | ---: | ---: |
+| Fresh | 94,204,143 | 301,521 | 172,123 |
+| Reused | 94,140,041 | 202,605 | 115,028 |
+| Hugepage | 106,996,003 | 260,424 | 172,123 |
+
+Conclusion:
+
+First-touch output writes, not scalar unpacking or row-copy bandwidth, explain
+most of the isolated uncompressed output cost. A reused destination removes the
+allocation/first-touch component but is not a valid ownership policy for the
+public decode result. `alloc_zeroed + MADV_HUGEPAGE` does not reduce faults and
+is slower overall by about 2.8 ms than a fresh vector, so no production
+allocation-policy change is justified.

@@ -17,6 +17,11 @@ zune-jpeg = { workspace = true, optional = true }
 [dev-dependencies]
 image = { workspace = true, features = ["jpeg"] }
 
+[[bench]]
+harness = false
+name = "ljpeg_gap_probe"
+required-features = ["lossless-jpeg"]
+
 [features]
 default = ["lzw", "packbits"]
 deflate = ["dep:flate2"]

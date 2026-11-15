@@ -1,0 +1,77 @@
+# DNG remaining-gap profile shares
+
+These are self-sample shares within each decoder, not contributions to the
+Fornax/FlashRaw gap. Each graph was captured with
+`perf record --call-graph dwarf,16384 -F 997` from the DWARF-enabled release
+probe. The linked SVG and folded-stack files contain the full call trees.
+
+## 5D3 LJPEG
+
+Fornax:
+
+- 38.29%: inlined row/sample sink closure.
+- 28.57%: `HuffmanTable::decode_difference_fast`.
+- 23.33%: `FastBitReader::fill_to`.
+- 6.23%: `parse_jpeg`.
+- 3.09%: fast row-decode closure.
+
+FlashRaw:
+
+- 91.76%: `decode_row_pred1::<BitPumpMsb>`.
+- 3.15%: `unstuff_into`.
+- 2.79%: `HuffTable::from_counts`.
+- 0.82%: DNG compressed-U16 row closure.
+
+## Pixel 8 LJPEG
+
+Fornax:
+
+- 38.02%: inlined row/sample sink closure.
+- 29.35%: `HuffmanTable::decode_difference_fast`.
+- 23.31%: `FastBitReader::fill_to`.
+- 5.77%: `parse_jpeg`.
+- 2.76%: fast row-decode closure.
+
+FlashRaw:
+
+- 85.19%: `decode_row_pred1::<BitPumpMsb>`.
+- 4.65%: `HuffTable::from_counts`.
+- 4.13%: `unstuff_into`.
+- 2.29%: DNG compressed-U16 row closure.
+
+## 5D3 uncompressed
+
+Fornax:
+
+- 95.05%: inlined native U16 tile-copy callback.
+- 2.62%: TIFF value parsing.
+- 1.86%: TIFF value destruction.
+- 0.41%: syscalls.
+
+FlashRaw:
+
+- 91.48%: `packed::unpack_row`.
+- 4.58%: metadata `f32s` materialization.
+- 2.12%: process exit.
+- 0.96%: reallocation.
+
+## 5D3 HDR FP32 Deflate
+
+Fornax:
+
+- 58.83%: miniz fast inflate.
+- 23.24%: floating-row predictor reversal.
+- 5.27%: fused float-row decode.
+- 3.61%: miniz match application.
+- 3.31%: miniz Huffman-tree initialization.
+- 1.29%: Adler-32.
+
+FlashRaw:
+
+- 47.78%: zlib-rs fast inflate.
+- 27.43%: fused float-row decode.
+- 8.71%: Adler-32.
+- 4.76%: DNG float-row decode.
+- 3.33%: match copy.
+- 2.11%: inflate control.
+- 1.96%: Huffman-table initialization.

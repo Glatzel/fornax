@@ -7,6 +7,10 @@ edition.workspace = true
 harness = false
 name = "decoder"
 
+[[bench]]
+harness = false
+name = "dng_gap_probe"
+
 [dependencies]
 clerk.workspace = true
 fornax-dng.workspace = true
@@ -28,6 +32,7 @@ flashraw = "=0.2.0"
 fornax-codec.workspace = true
 generic-num.workspace = true
 image.workspace = true
+libc.workspace = true
 rawler = "0.8.0"
 tempfile.workspace = true
 
