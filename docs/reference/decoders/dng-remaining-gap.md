@@ -604,6 +604,23 @@ The full exact tables, per-step before/after results, register-pressure audit,
 and rejected-change decisions are in the
 [portable LJPEG follow-up index](dng-gap-profiles/README.md).
 
+A subsequent critical-path pass replaced the 13-bit fused difference table
+with a compact 10-bit canonical code table and branchless amplitude/sign
+extension. On 5D3 1T, cycles/sample fall from 23.917 to 20.648 and wall time
+from 175.302 ms to 157.404 ms, versus 14.604 cycles/sample and 94.130 ms for
+FlashRaw in the same session. Pixel 8 1T wall time falls from 360.765 ms to
+331.464 ms. The change retires more instructions, 79.581/sample, but cuts L1D
+load misses from 0.96167 to 0.06010/sample and raises IPC from 2.397 to 3.854.
+
+A reader-local rewrite removed the cache stack spill and reduced
+instructions/sample to 48.126, but raised 1T cycles to 24.809, so it was
+reverted. Unconditional refill cut branch misses/sample from 0.10636 to
+0.01814 but raised cycles to 23.330 and was also reverted. The compact table
+is not at exact FlashRaw parity: its serial shift/table/shift chain remains,
+and the 1T cycle and wall ratios are 1.41x and 1.67x. Interleaving two tile
+chains in one scalar loop is a reasonable separate design proposal, but no
+such change was implemented here.
+
 ## Sources
 
 - FlashRaw 0.2.0:

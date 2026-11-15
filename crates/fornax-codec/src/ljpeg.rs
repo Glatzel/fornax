@@ -18,8 +18,8 @@ const MARKER_SOI: u8 = 0xd8;
 const MARKER_EOI: u8 = 0xd9;
 const MARKER_SOS: u8 = 0xda;
 const HUFFMAN_LOOKAHEAD_BITS: usize = 16;
-const HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << HUFFMAN_LOOKAHEAD_BITS;
-const FAST_HUFFMAN_LOOKAHEAD_BITS: usize = 13;
+const FAST_HUFFMAN_LOOKAHEAD_BITS: usize = 10;
+const FAST_HUFFMAN_LOOKAHEAD_BITS_U8: u8 = 10;
 const FAST_HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << FAST_HUFFMAN_LOOKAHEAD_BITS;
 
 pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
@@ -229,55 +229,28 @@ struct Component {
 }
 
 #[derive(Clone, Copy)]
-struct HuffmanEntry {
-    symbol: u8,
-    bits: u8,
-}
+struct FastHuffmanCode(u16);
 
-impl HuffmanEntry {
-    const INVALID: Self = Self { symbol: 0, bits: 0 };
-}
-
-#[derive(Clone, Copy)]
-struct FastHuffmanEntry(u32);
-
-impl FastHuffmanEntry {
+impl FastHuffmanCode {
     const INVALID: Self = Self(0);
+    const LONG: Self = Self::new(31, 0);
 
-    const fn new(consumed: u8, difference: i16, full: bool) -> Self {
-        let consumed = consumed.to_le_bytes();
-        let difference = difference.to_le_bytes();
-        let full = if full { 1_u32 << 5 } else { 0 };
-        Self(
-            u32::from_le_bytes([consumed[0], 0, 0, 0])
-                | full
-                | u32::from_le_bytes([0, 0, difference[0], difference[1]]),
-        )
-    }
+    const fn new(length: u8, symbol: u8) -> Self { Self(u16::from_le_bytes([symbol, length])) }
 
-    const fn consumed(self) -> u8 { self.0.to_le_bytes()[0] & 0x1f }
+    const fn length(self) -> u8 { self.0.to_le_bytes()[1] & 0x1f }
 
-    const fn difference(self) -> i16 {
-        let bytes = self.0.to_le_bytes();
-        i16::from_le_bytes([bytes[2], bytes[3]])
-    }
-
-    const fn full(self) -> bool { self.0 & (1 << 5) != 0 }
+    const fn symbol(self) -> u8 { self.0.to_le_bytes()[0] }
 }
 
 struct HuffmanTable {
-    lookup: Box<[HuffmanEntry]>,
-    fast_lookup: Box<[FastHuffmanEntry; FAST_HUFFMAN_LOOKAHEAD_SIZE]>,
+    fast_lookup: Box<[FastHuffmanCode; FAST_HUFFMAN_LOOKAHEAD_SIZE]>,
+    counts: [u8; 16],
+    symbols: Box<[u8]>,
 }
 
 impl HuffmanTable {
-    fn parse(
-        counts: &[u8; 16],
-        symbols: &[u8],
-        lookup: &mut [HuffmanEntry],
-    ) -> Result<Self, String> {
-        lookup.fill(HuffmanEntry::INVALID);
-        let mut fast_lookup = vec![FastHuffmanEntry::INVALID; FAST_HUFFMAN_LOOKAHEAD_SIZE];
+    fn parse(counts: &[u8; 16], symbols: &[u8]) -> Result<Self, String> {
+        let mut fast_lookup = vec![FastHuffmanCode::INVALID; FAST_HUFFMAN_LOOKAHEAD_SIZE];
 
         let mut symbol_index = 0;
         let mut lookup_index = 0_usize;
@@ -290,52 +263,33 @@ impl HuffmanTable {
                     .get(symbol_index)
                     .ok_or_else(|| "lossless JPEG Huffman symbol table is truncated".to_owned())?;
                 let width = 1_usize << (HUFFMAN_LOOKAHEAD_BITS - usize::from(length));
-                let end = lookup_index
+                lookup_index = lookup_index
                     .checked_add(width)
                     .ok_or_else(|| "lossless JPEG Huffman table overflow".to_owned())?;
-                let entries = lookup
-                    .get_mut(lookup_index..end)
-                    .ok_or_else(|| "lossless JPEG Huffman code lengths are invalid".to_owned())?;
-                entries.fill(HuffmanEntry {
-                    symbol,
-                    bits: length,
-                });
-                lookup_index = end;
-
-                if usize::from(length) <= FAST_HUFFMAN_LOOKAHEAD_BITS {
-                    let fast_width = 1_usize << (FAST_HUFFMAN_LOOKAHEAD_BITS - usize::from(length));
-                    let fast_start = code << (FAST_HUFFMAN_LOOKAHEAD_BITS - usize::from(length));
-                    for fill in 0..fast_width {
-                        let index = fast_start + fill;
-                        fast_lookup[index] = if symbol == 0 {
-                            FastHuffmanEntry::new(length, 0, true)
-                        } else if symbol < 16
-                            && usize::from(length) + usize::from(symbol)
-                                <= FAST_HUFFMAN_LOOKAHEAD_BITS
-                        {
-                            let shift = FAST_HUFFMAN_LOOKAHEAD_BITS
-                                - usize::from(length)
-                                - usize::from(symbol);
-                            let raw = i32::from(
-                                u16::try_from((index >> shift) & ((1 << symbol) - 1))
-                                    .expect("fast Huffman difference fits u16"),
-                            );
-                            let threshold = 1_i32 << (symbol - 1);
-                            FastHuffmanEntry::new(
-                                length + symbol,
-                                i16::try_from(if raw < threshold {
-                                    raw - ((1_i32 << symbol) - 1)
-                                } else {
-                                    raw
-                                })
-                                .expect("DNG Huffman difference fits i16"),
-                                true,
-                            )
-                        } else {
-                            FastHuffmanEntry::new(length, 0, false)
-                        };
-                    }
+                if lookup_index > 1 << HUFFMAN_LOOKAHEAD_BITS {
+                    return Err("lossless JPEG Huffman code lengths are invalid".to_owned());
                 }
+
+                let fast_length = usize::from(length).min(FAST_HUFFMAN_LOOKAHEAD_BITS);
+                let fast_width = 1_usize << (FAST_HUFFMAN_LOOKAHEAD_BITS - fast_length);
+                let fast_start = if usize::from(length) <= FAST_HUFFMAN_LOOKAHEAD_BITS {
+                    code << (FAST_HUFFMAN_LOOKAHEAD_BITS - usize::from(length))
+                } else {
+                    code >> (usize::from(length) - FAST_HUFFMAN_LOOKAHEAD_BITS)
+                };
+                let fast_end = fast_start
+                    .checked_add(fast_width)
+                    .ok_or_else(|| "lossless JPEG fast Huffman table overflow".to_owned())?;
+                let entries = fast_lookup.get_mut(fast_start..fast_end).ok_or_else(|| {
+                    "lossless JPEG fast Huffman code lengths are invalid".to_owned()
+                })?;
+                entries.fill(
+                    if symbol <= 15 && usize::from(length) <= FAST_HUFFMAN_LOOKAHEAD_BITS {
+                        FastHuffmanCode::new(length, symbol)
+                    } else {
+                        FastHuffmanCode::LONG
+                    },
+                );
                 symbol_index += 1;
                 code += 1;
             }
@@ -343,44 +297,102 @@ impl HuffmanTable {
         }
 
         Ok(Self {
-            lookup: lookup.into(),
             fast_lookup: fast_lookup
                 .into_boxed_slice()
                 .try_into()
                 .map_err(|_| "lossless JPEG fast Huffman table has an invalid size".to_owned())?,
+            counts: *counts,
+            symbols: symbols.into(),
         })
     }
 
-    // Keep the DNG hot path concrete. Genericizing these bit-reader helpers
-    // regressed decoder raw_mosaic and cropped_mosaic benchmarks.
+    #[inline(always)]
     fn decode(&self, bits: &mut BitReader<'_>) -> Result<u8, String> {
-        let entry = self.lookup[usize::from(bits.peek(16))];
-        if entry.bits == 0 {
-            return Err("lossless JPEG contains an invalid Huffman code".to_owned());
+        // The general path handles multi-component Sony and DNG scans. Keep the
+        // hot symbol lookup inline so it does not pay a call for every sample.
+        let entry = self.fast_lookup[usize::from(bits.peek(FAST_HUFFMAN_LOOKAHEAD_BITS_U8))];
+        let length = entry.length();
+        if length != 0 && usize::from(length) <= FAST_HUFFMAN_LOOKAHEAD_BITS {
+            bits.skip(usize::from(length));
+            return Ok(entry.symbol());
         }
-        bits.skip(usize::from(entry.bits));
-        Ok(entry.symbol)
+        self.decode_slow(bits)
     }
 
-    fn decode_fast(&self, bits: &mut FastBitReader<'_>) -> u8 {
-        let entry = self.lookup[usize::from(bits.peek_no_fill(16))];
-        if entry.bits == 0 {
-            bits.record_error("lossless JPEG contains an invalid Huffman code");
-            return 0;
+    #[cold]
+    #[inline(never)]
+    fn decode_slow(&self, bits: &mut BitReader<'_>) -> Result<u8, String> {
+        self.decode_symbol_slow(bits)
+            .ok_or_else(|| "lossless JPEG contains an invalid Huffman code".to_owned())
+    }
+
+    fn decode_symbol_slow(&self, bits: &mut BitReader<'_>) -> Option<u8> {
+        let mut code = 0_u32;
+        let mut first_code = 0_u32;
+        let mut symbol_index = 0_usize;
+        for &count in &self.counts {
+            code = (code << 1) | u32::from(bits.peek(1));
+            bits.skip(1);
+            let count = u32::from(count);
+            if code < first_code + count {
+                let offset = usize::try_from(code - first_code).ok()?;
+                return self.symbols.get(symbol_index + offset).copied();
+            }
+            symbol_index += usize::try_from(count).ok()?;
+            first_code = (first_code + count) << 1;
         }
-        bits.skip_no_fill(usize::from(entry.bits));
-        entry.symbol
+        None
     }
 
     fn decode_difference_fast(&self, bits: &mut FastBitReader<'_>) -> i32 {
-        let index = usize::from(bits.peek_no_fill(13)) & (FAST_HUFFMAN_LOOKAHEAD_SIZE - 1);
+        let index = usize::from(bits.peek_no_fill(FAST_HUFFMAN_LOOKAHEAD_BITS));
         let entry = self.fast_lookup[index];
-        if entry.full() {
-            bits.skip_no_fill(usize::from(entry.consumed()));
-            return i32::from(entry.difference());
+        let length = entry.length();
+        if length == 0 {
+            bits.record_error("lossless JPEG contains an invalid Huffman code");
+            return 0;
         }
-        let symbol = self.decode_fast(bits);
+        if usize::from(entry.length()) > FAST_HUFFMAN_LOOKAHEAD_BITS {
+            return self.decode_difference_fast_slow(bits);
+        }
+
+        let symbol = entry.symbol();
+        let cache = bits.cache;
+        let raw = ((cache << length) >> 1) >> (63 - usize::from(symbol));
+        bits.skip_no_fill(usize::from(length) + usize::from(symbol));
+        let raw = i32::from_le_bytes(low_u32_from_u64(raw).to_le_bytes());
+        let top = (raw >> (usize::from(symbol).max(1) - 1)) & 1;
+        let negative = top - 1;
+        raw.wrapping_add(negative & (1 - (1_i32 << symbol)))
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn decode_difference_fast_slow(&self, bits: &mut FastBitReader<'_>) -> i32 {
+        let symbol = self.decode_symbol_fast_slow(bits);
         decode_difference_fast(symbol, bits)
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn decode_symbol_fast_slow(&self, bits: &mut FastBitReader<'_>) -> u8 {
+        let mut code = 0_u32;
+        let mut first_code = 0_u32;
+        let mut symbol_index = 0_usize;
+        for &count in &self.counts {
+            code = (code << 1) | u32::from(bits.peek_no_fill(1));
+            bits.skip_no_fill(1);
+            let count = u32::from(count);
+            if code < first_code + count {
+                let offset =
+                    usize::try_from(code - first_code).expect("Huffman symbol offset fits usize");
+                return self.symbols[symbol_index + offset];
+            }
+            symbol_index += usize::try_from(count).expect("Huffman symbol count fits usize");
+            first_code = (first_code + count) << 1;
+        }
+        bits.record_error("lossless JPEG contains an invalid Huffman code");
+        0
     }
 }
 
@@ -965,8 +977,7 @@ fn parse_huffman_tables(
         }
         let symbols = header.take(symbol_count)?;
         remaining -= symbol_count;
-        let mut lookup = vec![HuffmanEntry::INVALID; HUFFMAN_LOOKAHEAD_SIZE];
-        tables[table_index] = Some(HuffmanTable::parse(&counts, symbols, &mut lookup)?);
+        tables[table_index] = Some(HuffmanTable::parse(&counts, symbols)?);
     }
     Ok(())
 }
@@ -1311,6 +1322,11 @@ const fn low_u16_from_u64(value: u64) -> u16 {
     u16::from_le_bytes([bytes[0], bytes[1]])
 }
 
+const fn low_u32_from_u64(value: u64) -> u32 {
+    let bytes = value.to_le_bytes();
+    u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])
+}
+
 const HUFFMAN_BITS: u8 = 5;
 
 fn encode_tile(samples: &[u16], width: u16, height: u16, bits: u8) -> Result<Vec<u8>, String> {
@@ -1489,8 +1505,8 @@ mod tests {
 
     use super::{
         BitReader, BitWriter, FastBitReader, FastRowScratch, Geometry, MARKER_EOI, MARKER_PREFIX,
-        add_prediction, apply_difference, copy_tile_into, decode_interleaved_impl,
-        decode_into_rows, decode_into_rows_with_scratch, low_u16, predict,
+        add_prediction, apply_difference, copy_tile_into, decode_difference,
+        decode_interleaved_impl, decode_into_rows, decode_into_rows_with_scratch, low_u16, predict,
     };
     use crate::{ByteOrder, Chunk, DecodeRequest, Predictor, SampleBuffer, SampleFormat};
 
@@ -1628,6 +1644,97 @@ mod tests {
     }
 
     #[test]
+    fn fast_difference_decode_matches_reference_for_every_class() {
+        let mut counts = [0_u8; 16];
+        counts[0] = 1;
+        for symbol in 0_u8..=16 {
+            let table = super::HuffmanTable::parse(&counts, &[symbol]).unwrap();
+            let raw_values: &[u32] = match symbol {
+                0 | 16 => &[0],
+                _ => &[0, (1_u32 << symbol) - 1],
+            };
+            for &raw in raw_values {
+                let mut encoded = Vec::new();
+                let mut writer = BitWriter::new(&mut encoded);
+                writer.write(0, 1);
+                if !matches!(symbol, 0 | 16) {
+                    writer.write(raw, symbol);
+                }
+                writer.finish();
+
+                let mut reference = BitReader::new(&encoded);
+                reference.peek(1);
+                reference.skip(1);
+                if !matches!(symbol, 0 | 16) {
+                    assert_eq!(
+                        reference.peek(symbol),
+                        u16::try_from(raw).unwrap(),
+                        "encoded bits for symbol {symbol}, raw {raw}"
+                    );
+                }
+                let expected = decode_difference(symbol, &mut reference).unwrap();
+                let mut fast = FastBitReader::new(&encoded);
+                fast.refill();
+                let actual = table.decode_difference_fast(&mut fast);
+                assert_eq!(actual, expected, "symbol {symbol}, raw {raw}");
+                assert!(!fast.has_error());
+            }
+        }
+    }
+
+    #[test]
+    fn ten_bit_fast_table_covers_every_encoder_symbol() {
+        assert_eq!(super::FastHuffmanCode::new(5, 0).length(), 5);
+        let mut one_count = [0_u8; 16];
+        one_count[4] = 1;
+        let one = super::HuffmanTable::parse(&one_count, &[0]).unwrap();
+        assert_eq!(one.fast_lookup[0].length(), 5);
+
+        let mut counts = [0_u8; 16];
+        counts[4] = 17;
+        let symbols = (0_u8..=16).collect::<Vec<_>>();
+        let table = super::HuffmanTable::parse(&counts, &symbols).unwrap();
+
+        for symbol in symbols {
+            let entry = table.fast_lookup[usize::from(symbol) << 5];
+            if symbol == 16 {
+                assert_eq!(entry.length(), 31);
+            } else {
+                assert_eq!(entry.length(), 5);
+                assert_eq!(entry.symbol(), symbol);
+            }
+        }
+
+        let source = [0x80, 0, 0, 0];
+        let mut bits = FastBitReader::new(&source);
+        bits.refill();
+        assert_eq!(table.decode_difference_fast(&mut bits), -32_768);
+        assert!(!bits.has_error());
+    }
+
+    #[test]
+    fn fast_difference_reader_matches_reference_across_encoded_scan() {
+        let samples = [8_100_u16, 8_110, 8_090, 8_120];
+        let encoded = super::encode_interleaved_for_test(&samples, 2, 2, 1, 14);
+        let parsed = super::parse_jpeg(&encoded, 14).unwrap();
+        let table = parsed.tables[0].as_ref().unwrap();
+        let mut reference = BitReader::new(parsed.entropy);
+        let mut fast = FastBitReader::new(parsed.entropy);
+
+        for sample in 0..samples.len() {
+            let symbol = table.decode(&mut reference).unwrap();
+            let expected = decode_difference(symbol, &mut reference).unwrap();
+            fast.refill();
+            let entry = table.fast_lookup
+                [usize::from(fast.peek_no_fill(super::FAST_HUFFMAN_LOOKAHEAD_BITS))];
+            assert_eq!(entry.symbol(), symbol, "sample {sample}");
+            let actual = table.decode_difference_fast(&mut fast);
+            assert_eq!(actual, expected, "sample {sample}, symbol {symbol}");
+            assert!(!fast.has_error(), "sample {sample}, symbol {symbol}");
+        }
+    }
+
+    #[test]
     fn refill_matches_reference_across_stuffing_markers_and_truncation() {
         for period in [1_usize, 2, 5, 8, 13] {
             let mut source = Vec::new();
@@ -1664,8 +1771,7 @@ mod tests {
     fn buffered_fast_decode_records_invalid_huffman_codes() {
         let mut counts = [0_u8; 16];
         counts[0] = 1;
-        let mut lookup = vec![super::HuffmanEntry::INVALID; super::HUFFMAN_LOOKAHEAD_SIZE];
-        let table = super::HuffmanTable::parse(&counts, &[1], &mut lookup).unwrap();
+        let table = super::HuffmanTable::parse(&counts, &[1]).unwrap();
         let mut bits = FastBitReader::new(&[0x80, 0, 0, 0]);
 
         bits.refill();
@@ -1677,8 +1783,7 @@ mod tests {
     fn fast_decode_resolves_a_sixteen_bit_huffman_code() {
         let mut counts = [0_u8; 16];
         counts[15] = 1;
-        let mut lookup = vec![super::HuffmanEntry::INVALID; super::HUFFMAN_LOOKAHEAD_SIZE];
-        let table = super::HuffmanTable::parse(&counts, &[1], &mut lookup).unwrap();
+        let table = super::HuffmanTable::parse(&counts, &[1]).unwrap();
         let mut bits = FastBitReader::new(&[0, 0, 0]);
 
         bits.refill();
