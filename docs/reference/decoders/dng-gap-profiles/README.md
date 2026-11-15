@@ -65,7 +65,13 @@ zero-fill before `madvise` and silently disables the first-touch benefit.
 
 Follow-up LJPEG compute work starts with the
 [FlashRaw 0.2.0 CPU source comparison](../flashraw-cpu-comparison.md); it is a
-design note, not an accepted implementation change.
+design note, not an accepted implementation change. The post-#737/#738 baseline
+and both measured CPU-only scalar candidates are in
+[the FlashRaw CPU follow-up evidence](flashraw-cpu-followup.txt). The fixed
+12-bit table and component-pair refill were both reverted after failing the
+no-regression gate. Restart-free single-scan parallelism is stopped at the
+[written design gate](../restart-free-single-scan-parallelism-design.md); no
+parallel code was added.
 
 ## Reproduction
 

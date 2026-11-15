@@ -30,14 +30,10 @@ fn decoder_selection_rejects_unknown_names() {
 }
 
 #[test]
-fn explicit_decoder_selection_survives_ci() {
+fn ci_forces_fornax_even_with_an_explicit_selection() {
     assert_eq!(
         select_decoders(Some("fornax,rawler,flashraw"), true).unwrap(),
-        vec![
-            DecoderKind::Fornax,
-            DecoderKind::Rawler,
-            DecoderKind::FlashRaw,
-        ]
+        vec![DecoderKind::Fornax]
     );
 }
 
@@ -62,5 +58,13 @@ fn local_runs_without_an_explicit_selection_use_all_decoders() {
             DecoderKind::Rawler,
             DecoderKind::FlashRaw,
         ]
+    );
+}
+
+#[test]
+fn local_explicit_decoder_selection_is_preserved() {
+    assert_eq!(
+        select_decoders(Some("flashraw,fornax"), false).unwrap(),
+        vec![DecoderKind::FlashRaw, DecoderKind::Fornax]
     );
 }

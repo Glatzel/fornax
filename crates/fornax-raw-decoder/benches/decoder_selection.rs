@@ -27,6 +27,8 @@ pub fn parse_decoder_selection(value: Option<&str>) -> Result<Vec<DecoderKind>, 
 }
 
 pub fn select_decoders(explicit: Option<&str>, ci: bool) -> Result<Vec<DecoderKind>, String> {
-    let explicit = explicit.filter(|value| !value.trim().is_empty());
-    parse_decoder_selection(explicit.or(ci.then_some("fornax")))
+    if ci {
+        return Ok(vec![DecoderKind::Fornax]);
+    }
+    parse_decoder_selection(explicit)
 }
