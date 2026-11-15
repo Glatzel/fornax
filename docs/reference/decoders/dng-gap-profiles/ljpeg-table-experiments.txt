@@ -1,0 +1,88 @@
+# Portable LJPEG Huffman-table experiments
+
+Host: WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs, kernel
+`6.6.87.1-microsoft-standard-WSL2`, glibc `2.41-12+deb13u3`, THP
+`[madvise]`, THP defrag `[madvise]`. Release build, page-cache-hot inputs.
+These are host-specific observations, not portable guarantees.
+
+The 13-bit baseline was rebuilt from the plain-`Vec` state. Every experiment
+changed one Huffman representation and passed the complete codec test suite.
+Synthetic values are medians of seven rounds; real values are medians of 15
+rounds from three fresh interleaved processes per decoder.
+
+## Table footprint per distinct DHT
+
+| Representation | 16-bit lookup | Fast lookup | Symbols and bounds | Total |
+| --- | ---: | ---: | ---: | ---: |
+| 13-bit baseline | 131,072 B | 32,768 B | 0 B | 163,840 B |
+| 12-bit fast table | 131,072 B | 24,576 B | 0 B | 155,648 B |
+| 11-bit fast table | 131,072 B | 12,288 B | 0 B | 143,360 B |
+| Canonical slow path | 0 B | 32,768 B | up to 340 B | up to 33,108 B |
+
+`FastHuffmanEntry` is four bytes on this target. Each real tile currently
+allocates and initializes its own table, so these bytes are paid per tile.
+
+## Synthetic scans
+
+All values are milliseconds. `C` is components and `T` is tiles.
+
+| C | Pattern | T | 13-bit | 12-bit | 11-bit | Canonical |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | smooth | 64 | 21.567 | 21.764 | 21.292 | 24.370 |
+| 1 | smooth | 256 | 96.141 | 93.577 | 90.425 | 87.568 |
+| 1 | noisy | 64 | 61.626 | 62.645 | 61.587 | 71.954 |
+| 1 | noisy | 256 | 243.559 | 243.968 | 249.099 | 288.506 |
+| 2 | smooth | 64 | 60.050 | 57.418 | 59.092 | 39.309 |
+| 2 | smooth | 256 | 235.838 | 230.159 | 232.539 | 153.921 |
+| 2 | noisy | 64 | 104.232 | 128.010 | 126.707 | 139.445 |
+| 2 | noisy | 256 | 421.983 | 510.166 | 519.576 | 561.618 |
+
+The 12- and 11-bit tables improve smooth scans but lose 21-23% on the
+two-component noisy scan. The canonical path is 32% slower on two-component
+noisy scans despite its smaller footprint.
+
+## Real files
+
+| Variant | File | Threads | Fornax | FlashRaw | Fornax/FlashRaw |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 13-bit baseline | 5D3 | 1 | 197.471 ms | 92.800 ms | 2.128x |
+| 13-bit baseline | 5D3 | 15 | 38.150 ms | 21.754 ms | 1.754x |
+| 13-bit baseline | Pixel 8 | 1 | 432.649 ms | 195.489 ms | 2.213x |
+| 13-bit baseline | Pixel 8 | 15 | 77.422 ms | 39.661 ms | 1.952x |
+| Canonical | 5D3 | 1 | 199.906 ms | 98.798 ms | 2.023x |
+| Canonical | 5D3 | 15 | 41.446 ms | 21.511 ms | 1.927x |
+| Canonical | Pixel 8 | 1 | 408.085 ms | 196.793 ms | 2.074x |
+| Canonical | Pixel 8 | 15 | 78.345 ms | 41.059 ms | 1.908x |
+| Shared `Arc` tables | 5D3 | 1 | 239.458 ms | 95.591 ms | 2.505x |
+| Shared `Arc` tables | 5D3 | 15 | 44.158 ms | 21.946 ms | 2.012x |
+| Shared `Arc` tables | Pixel 8 | 1 | 427.445 ms | 190.546 ms | 2.243x |
+| Shared `Arc` tables | Pixel 8 | 15 | 81.184 ms | 41.240 ms | 1.969x |
+
+The canonical table reduced first-decode faults from 40,090 to 12,385 on 5D3
+and from 85,129 to 29,778 on Pixel 8, but increased instructions from about
+100.66 to 105.22 per sample on 5D3 and from 92.55 to 96.32 on Pixel 8.
+
+The `Arc` cache reduced faults to 31,728 on 5D3 and 40,362 on Pixel 8 and
+slightly reduced instructions, but its hit path and allocation bookkeeping made
+real wall time 21% worse on 5D3 at one thread. The likely explanation is that
+the real per-tile DHT definitions are not reused enough to amortize `Arc`,
+key-copy, and lookup costs.
+
+The post-C profile remains the parse reference: `parse_jpeg` was 4.10% of 5D3
+samples and the inlined predictor/row closure was 88.29%. A separate
+`parse_jpeg` share for each rejected representation was not retained because
+the wall-time and instruction regressions already failed the keep gate.
+
+## Decision
+
+Reverted:
+
+- 12-bit fast table.
+- 11-bit fast table.
+- Canonical slow path that removes the 16-bit lookup.
+- Shared `Arc` Huffman tables.
+
+Kept:
+
+- A unit test that forces and verifies a 16-bit Huffman code. It protects the
+  existing slow-code behavior without changing production performance.
