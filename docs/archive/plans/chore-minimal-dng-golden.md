@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #723 `chore/minimal-dng-golden` on 2026-11-15.
+> Current guidance: [current documentation](../../decoder/corpus.md).
+
 # Minimal DNG Golden Corpus
 
 ## Goal

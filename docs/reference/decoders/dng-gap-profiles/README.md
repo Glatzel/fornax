@@ -261,7 +261,7 @@ full-entry miss occurs on only 1.45% of 5D3 samples.
 
 The remaining removable chain cost is the cache stack spill/reload. Eliminating
 it requires a broader reader-state refactor, while the safer candidates tested
-during this branch are exhausted. Since the final branch is still 1.38-1.42x
+during that experiment are exhausted. Since the result is still 1.38-1.42x
 FlashRaw in instructions and 1.44-1.94x in 1T wall time, and cycles remain
 20-24 versus FlashRaw's 13-15, LJPEG is at the current scalar implementation's
 latency floor on this host. Further instruction-only trimming is not expected to

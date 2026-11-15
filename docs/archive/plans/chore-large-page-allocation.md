@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #738 `chore/large-page-allocation` on 2026-11-15.
+> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+
 # Linux Large-Page Sample Allocation
 
 > **For agentic workers:** Execute this plan inline, one production hypothesis

@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #737 `chore/ljpeg-critical-path` on 2026-11-15.
+> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+
 # LJPEG Critical-Path Plan
 
 > **For agentic workers:** Use `superpowers:executing-plans` to implement this

@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #725 `chore/encode-image-fast-path` on 2026-11-15.
+> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+
 # Encode Image Fast Path
 
 ## Goal

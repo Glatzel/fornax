@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #717 on 2026-11-12.
+> Current guidance: [current documentation](../../decoder/corpus.md).
+
 # Decoder Golden-Corpus and Vendor Codec Ownership Plan
 
 This plan preserves the completed golden-corpus benchmark work and extends the

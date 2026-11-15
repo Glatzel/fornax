@@ -56,6 +56,24 @@ Action meanings:
   a one-line entry to `docs/archive/README.md`.
 - No `delete` action is proposed. Total bytes removed: 0.
 
+## Execution Result
+
+- Renamed the existing 72-file archive root from `docs/_archive/` to
+  `docs/archive/`.
+- Archived 36 additional files: 16 completed plans, the superseded
+  `dng-performance.md`, and 19 generated profile artifacts.
+- Added three-line status headers to the 17 newly archived Markdown files.
+- Added a 108-entry `docs/archive/README.md` index.
+- Deleted nothing. Total bytes removed: 0.
+- `docs/` now contains 183 files and is 2.4 MiB including this active plan.
+- The DNG performance resume pack remains current and protected.
+- Added `scripts/check-doc-links.py`, a CI documentation-link job, and an
+  agent-validation test/hook for the checker.
+- `python3 scripts/check-doc-links.py` passes.
+- `bash scripts/agent-validation-test.sh` passes.
+- `scripts/agent-validation.sh --docs-only` passes.
+- The requested binary-extension scan returns no files.
+
 ## Protected DNG Resume Pack
 
 The following are created before any archive proposal and are never proposed
@@ -287,12 +305,12 @@ All entries are recommendations only. Do not delete branches or worktrees.
 - [x] Collect inbound links for every docs path.
 - [x] Create the protected DNG performance resume pack.
 - [x] Record the cleanup proposal.
-- [ ] Obtain review approval for this table.
-- [ ] Apply the approved archive/index/trim actions.
-- [ ] Update every inbound link and keep AGENTS.md pointers valid.
-- [ ] Add the CI-runnable link check if no equivalent exists.
-- [ ] Run docs-only validation and report file-count/size changes.
-- [ ] Commit, push, and open the docs-only PR.
+- [x] Obtain review approval for this table.
+- [x] Apply the approved archive/index/trim actions.
+- [x] Update every inbound link and keep AGENTS.md pointers valid.
+- [x] Add the CI-runnable link check if no equivalent exists.
+- [x] Run docs-only validation and report file-count/size changes.
+- [x] Commit, push, and update the docs-only PR.
 
 ## Files Expected to Change
 
