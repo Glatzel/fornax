@@ -213,3 +213,8 @@ RAYON_NUM_THREADS=1 dng_gap_probe equality INPUT
   Apple arm64 checks pass for feature off, default, `large-page-hint` only,
   and all pure-Rust codec features. `--all-features` reaches the pre-existing C
   `zstd` cross-compiler limitation.
+- Any follow-up LJPEG compute experiment now starts with the FlashRaw 0.2.0
+  scalar CPU source comparison in
+  [`chore-flashraw-cpu-followup.md`](chore-flashraw-cpu-followup.md). The #738
+  tree is now synchronized with #737; no candidate implementation starts until
+  that comparison is reviewed.

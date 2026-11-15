@@ -63,6 +63,10 @@ alignment, the same-global-allocator Vec adoption with `capacity == len`, the
 kernel changes. Over-alignment is a regression: it makes the allocation
 zero-fill before `madvise` and silently disables the first-touch benefit.
 
+Follow-up LJPEG compute work starts with the
+[FlashRaw 0.2.0 CPU source comparison](../flashraw-cpu-comparison.md); it is a
+design note, not an accepted implementation change.
+
 ## Reproduction
 
 Build the exact-input probe:
