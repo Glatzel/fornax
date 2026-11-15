@@ -5,6 +5,10 @@ Host-specific evidence for PR #734 successors. Host: WSL2 Debian, AMD Ryzen 7
 `2.41-12+deb13u3`, THP `[madvise]`, THP defrag `[madvise]`. Do not compare
 numbers across host sessions; ratios below use same-session FlashRaw.
 
+For a compact restart point, use [RESUME.md](RESUME.md). The single kept and
+reverted experiment history is
+[the DNG performance experiment log](../dng-experiments-log.md).
+
 ## Linux large-page allocation
 
 The current codec restores the first-touch policy as one platform-specific

@@ -76,7 +76,9 @@ This index is the entry point for Fornax architecture, decoder, reference, and a
 | [DNG and lossless JPEG-92 reference notes](reference/decoders/dng-lossless-jpeg.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for DNG and lossless JPEG-92. |
 | [DNG opcode reference notes](reference/decoders/dng-opcodes.md) | This reference note records pinned sources, decoder behavior, and implementation boundaries for DNG opcode. |
 | [DNG decode performance notes](reference/decoders/dng-performance.md) | This reference note records measured Fornax, Rawler, and FlashRaw DNG performance, profile evidence, and implementation differences. |
+| [DNG performance experiment log](reference/decoders/dng-experiments-log.md) | This log records every kept and reverted DNG performance experiment with its evidence and decision. |
 | [DNG decode remaining performance gap](reference/decoders/dng-remaining-gap.md) | This report compares the final DNG timings, isolates the remaining FlashRaw gap by codec family, and records unresolved evidence limits. |
+| [DNG performance resume notes](reference/decoders/dng-gap-profiles/RESUME.md) | This page records the commands, probes, input hashes, baseline commits, and open DNG performance items needed to resume the work. |
 | [Sony ARW decode remaining performance gap](reference/decoders/arw-remaining-gap.md) | This report inventories Sony ARW encodings, gates representative uncompressed and lossless-JPEG timings, and isolates container and entropy costs. |
 | [DNG Output Color Management](reference/decoders/dng-output-color.md) | This reference note documents source matrices, profile selection, and Fornax's DNG output color transform. |
 | [FlashRaw reference notes](reference/decoders/flashraw.md) | This reference note records the pinned benchmark adapter, neutral settings, and differences from Fornax and Rawler. |

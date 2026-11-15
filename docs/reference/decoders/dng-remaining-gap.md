@@ -5,6 +5,11 @@ This note records the remaining DNG decode performance gap after the
 not an implementation plan. The acceptance target was to get the integer DNG
 paths close to Rawler 0.8.0; FlashRaw 0.2.0 remains an upper reference.
 
+The kept/reverted experiment history is consolidated in
+[the DNG performance experiment log](dng-experiments-log.md). Reproduction
+commands, input hashes, probe locations, and open items are in
+[the DNG performance resume notes](dng-gap-profiles/RESUME.md).
+
 ## Result
 
 The integer DNG target is met. Fornax is at parity with or faster than Rawler
