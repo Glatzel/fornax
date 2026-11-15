@@ -1,7 +1,7 @@
 use std::io::Cursor;
 
 use fornax_dng::metadata::DngTag;
-use fornax_dng::writer::{DngCompression, DngWriter};
+use fornax_dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::{BayerPattern, EncodingSampleFormat, RawMosaic};
 use fornax_tiff::constants::TiffTag;
@@ -226,7 +226,7 @@ fn dng_round_trip_preserves_samples_geometry_cfa_levels_neutral_and_orientation(
     let mosaic = image.raw_mosaic().unwrap();
     let metadata = image.dng_metadata().unwrap();
     let mut output = Cursor::new(Vec::new());
-    DngWriter::new(DngCompression::Uncompressed)
+    DngWriter::new(DngWriterCompression::Uncompressed)
         .write_dng_with(&mut output, &mosaic, &metadata)
         .unwrap();
 

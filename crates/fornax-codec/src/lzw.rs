@@ -93,7 +93,7 @@ mod tests {
 
     use crate::{
         ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
-        ICodecDecode, Predictor, SampleBuffer, SampleFormat, encode,
+        ICodecDecode, ICodecEncode, Predictor, SampleBuffer, SampleFormat,
     };
 
     const TIFF_LZW_HEX: &[u8] = &[0x80, 0x0b, 0x60, 0x50, 0x22, 0x0c, 0x0c, 0x85, 0x01];
@@ -130,7 +130,6 @@ mod tests {
     ) -> EncodeRequest<'_> {
         EncodeRequest {
             image,
-            compression: EncodeCompression::Lzw,
             chunk_width,
             chunk_height,
             byte_order: ByteOrder::Little,
@@ -168,7 +167,9 @@ mod tests {
     #[test]
     fn lzw_round_trips() {
         let image = SampleBuffer::from_u8(10, 1, TIFF_LZW_DECODED.to_vec()).unwrap();
-        let encoded = encode(&encode_request(&image, 10, 1, Predictor::None)).unwrap();
+        let encoded = EncodeCompression::Lzw
+            .encode(&encode_request(&image, 10, 1, Predictor::None))
+            .unwrap();
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 10, 1, 10, 1, Predictor::None);
 
@@ -178,7 +179,9 @@ mod tests {
     #[test]
     fn lzw_reverses_horizontal_predictor_after_decompression() {
         let image = SampleBuffer::from_u8(4, 1, vec![10, 12, 13, 15]).unwrap();
-        let encoded = encode(&encode_request(&image, 4, 1, Predictor::HorizontalInteger)).unwrap();
+        let encoded = EncodeCompression::Lzw
+            .encode(&encode_request(&image, 4, 1, Predictor::HorizontalInteger))
+            .unwrap();
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 4, 1, 4, 1, Predictor::HorizontalInteger);
 
@@ -188,7 +191,9 @@ mod tests {
     #[test]
     fn lzw_preserves_row_major_partial_edge_chunks() {
         let image = SampleBuffer::from_u8(5, 3, (0_u8..15).collect()).unwrap();
-        let encoded = encode(&encode_request(&image, 4, 2, Predictor::None)).unwrap();
+        let encoded = EncodeCompression::Lzw
+            .encode(&encode_request(&image, 4, 2, Predictor::None))
+            .unwrap();
         assert_eq!(encoded.chunks.len(), 4);
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 5, 3, 4, 2, Predictor::None);
@@ -234,7 +239,9 @@ mod tests {
             .map(|value| u8::try_from((value * 53) % 241).unwrap())
             .collect::<Vec<_>>();
         let image = SampleBuffer::from_u8(4_096, 1, samples.clone()).unwrap();
-        let encoded = encode(&encode_request(&image, 4_096, 1, Predictor::None)).unwrap();
+        let encoded = EncodeCompression::Lzw
+            .encode(&encode_request(&image, 4_096, 1, Predictor::None))
+            .unwrap();
         let decoded = Decoder::with_tiff_size_switch(BitOrder::Msb, 8)
             .decode(&encoded.chunks[0])
             .unwrap();

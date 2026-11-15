@@ -1,7 +1,7 @@
 #![cfg(all(feature = "mmap", unix))]
 
 use fornax_dng::DngTag;
-use fornax_dng::writer::{DngCompression, DngWriter};
+use fornax_dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw_core::protocol::IDecoder;
 use fornax_raw_core::{MonoImage, RawMosaic};
 use fornax_raw_decoder::Decoder;
@@ -14,7 +14,7 @@ fn mapped_dng_remains_decodable_after_the_file_is_removed() {
     let path = temp.path().join("mapped.dng");
     let samples = vec![0_u16, 1, 2, 3, 4, 5, 6, 7];
     let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
-    DngWriter::new(DngCompression::Uncompressed)
+    DngWriter::new(DngWriterCompression::Uncompressed)
         .write_dng_with(std::fs::File::create(&path).unwrap(), &mosaic, &metadata())
         .unwrap();
 

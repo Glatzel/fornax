@@ -1,23 +1,31 @@
 use fornax_codec::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
-    EncodedChunks, ICodecDecode, Predictor, SampleBuffer, SampleFormat, encode,
+    EncodedChunks, ICodecDecode, ICodecEncode, Predictor, SampleBuffer, SampleFormat,
 };
 
-const fn request(
+const fn encode_request(
     image: &SampleBuffer,
     chunk_width: usize,
     chunk_height: usize,
     predictor: Predictor,
-    compression: EncodeCompression,
 ) -> EncodeRequest<'_> {
     EncodeRequest {
         image,
-        compression,
         chunk_width,
         chunk_height,
         byte_order: ByteOrder::Little,
         predictor,
     }
+}
+
+fn encode_with(
+    image: &SampleBuffer,
+    chunk_width: usize,
+    chunk_height: usize,
+    predictor: Predictor,
+    compression: EncodeCompression,
+) -> Result<EncodedChunks, fornax_codec::CodecError> {
+    compression.encode(&encode_request(image, chunk_width, chunk_height, predictor))
 }
 
 fn source_and_chunks(encoded: EncodedChunks) -> (Vec<u8>, Vec<Chunk>) {
@@ -108,13 +116,13 @@ const fn decode_request<'a>(
 fn uncompressed_u16_round_trips_partial_chunks() {
     let expected = vec![1_u16, 2, 3, 4, 5, 6];
     let image = SampleBuffer::from_u16(3, 2, expected.clone()).unwrap();
-    let encoded = encode(&request(
+    let encoded = encode_with(
         &image,
         2,
         1,
         Predictor::None,
         EncodeCompression::Uncompressed,
-    ))
+    )
     .unwrap();
     assert_eq!(encoded.chunks.len(), 4);
 
@@ -141,16 +149,10 @@ fn uncompressed_u16_round_trips_partial_chunks() {
 #[test]
 fn uncompressed_full_image_returns_one_exact_chunk() {
     let image = SampleBuffer::from_u16(2, 2, vec![0x0102, 0x0304, 0xabcd, 0xff00]).unwrap();
-    let mut request = request(
-        &image,
-        2,
-        2,
-        Predictor::None,
-        EncodeCompression::Uncompressed,
-    );
+    let mut request = encode_request(&image, 2, 2, Predictor::None);
     request.byte_order = ByteOrder::Big;
 
-    let encoded = encode(&request).unwrap();
+    let encoded = EncodeCompression::Uncompressed.encode(&request).unwrap();
 
     assert_eq!(
         encoded.chunks,
@@ -162,13 +164,13 @@ fn uncompressed_full_image_returns_one_exact_chunk() {
 fn uncompressed_float_round_trips_exact_bits() {
     let expected = vec![-1.5_f32, 0.25, 100.0, f32::from_bits(0x7fc0_1234)];
     let image = SampleBuffer::from_f32(2, 2, expected.clone()).unwrap();
-    let encoded = encode(&request(
+    let encoded = encode_with(
         &image,
         2,
         2,
         Predictor::None,
         EncodeCompression::Uncompressed,
-    ))
+    )
     .unwrap();
     let (source, chunks) = source_and_chunks(encoded);
     let request = decode_request(
@@ -204,13 +206,13 @@ fn uncompressed_float_round_trips_exact_bits() {
 fn uncompressed_f64_round_trips_exact_bits() {
     let expected = vec![-1.5_f64, 0.25, -0.0, f64::from_bits(0x7ff8_0000_0000_1234)];
     let image = SampleBuffer::from_f64(2, 2, expected).unwrap();
-    let encoded = encode(&request(
+    let encoded = encode_with(
         &image,
         2,
         2,
         Predictor::None,
         EncodeCompression::Uncompressed,
-    ))
+    )
     .unwrap();
     let (source, chunks) = source_and_chunks(encoded);
     let request = decode_request(
@@ -235,14 +237,7 @@ fn packbits_float64_predictor_round_trips() {
     let expected = vec![-1.5_f64, 0.25, -0.0, f64::from_bits(0x7ff8_0000_0000_1234)];
     let image = SampleBuffer::from_f64(2, 2, expected).unwrap();
     let predictor = Predictor::FloatingPoint { byte_stride: 1 };
-    let encoded = encode(&request(
-        &image,
-        2,
-        2,
-        predictor,
-        EncodeCompression::PackBits,
-    ))
-    .unwrap();
+    let encoded = encode_with(&image, 2, 2, predictor, EncodeCompression::PackBits).unwrap();
     let (source, chunks) = source_and_chunks(encoded);
     let request = decode_request(
         &source,
@@ -265,13 +260,13 @@ fn packbits_float64_predictor_round_trips() {
 fn deflate_horizontal_predictor_round_trips() {
     let expected = vec![1_u8, 2, 4, 8, 16, 32];
     let image = SampleBuffer::from_u8(3, 2, expected.clone()).unwrap();
-    let encoded = encode(&request(
+    let encoded = encode_with(
         &image,
         3,
         1,
         Predictor::HorizontalInteger,
         EncodeCompression::Deflate,
-    ))
+    )
     .unwrap();
     let (source, chunks) = source_and_chunks(encoded);
     let request = decode_request(
@@ -298,13 +293,13 @@ fn deflate_horizontal_predictor_round_trips() {
 fn deflate_floating_point_predictor_round_trips() {
     let expected = vec![-1.5_f32, 0.25, 100.0, f32::from_bits(0x7fc0_1234)];
     let image = SampleBuffer::from_f32(2, 2, expected.clone()).unwrap();
-    let encoded = encode(&request(
+    let encoded = encode_with(
         &image,
         2,
         2,
         Predictor::FloatingPoint { byte_stride: 1 },
         EncodeCompression::Deflate,
-    ))
+    )
     .unwrap();
     let (source, chunks) = source_and_chunks(encoded);
     let request = decode_request(
@@ -342,14 +337,7 @@ fn deflate_float64_predictor_round_trips() {
     let expected = vec![-1.5_f64, 0.25, -0.0, f64::from_bits(0x7ff8_0000_0000_1234)];
     let image = SampleBuffer::from_f64(2, 2, expected).unwrap();
     let predictor = Predictor::FloatingPoint { byte_stride: 1 };
-    let encoded = encode(&request(
-        &image,
-        2,
-        2,
-        predictor,
-        EncodeCompression::Deflate,
-    ))
-    .unwrap();
+    let encoded = encode_with(&image, 2, 2, predictor, EncodeCompression::Deflate).unwrap();
     let (source, chunks) = source_and_chunks(encoded);
     let request = decode_request(
         &source,
@@ -383,13 +371,13 @@ fn lossless_jpeg_round_trips_u8_and_u16() {
             SampleFormat::Integer,
         ),
     ] {
-        let encoded = encode(&request(
+        let encoded = encode_with(
             &image,
             4,
             2,
             Predictor::None,
             EncodeCompression::LosslessJpeg,
-        ))
+        )
         .unwrap();
         let (source, chunks) = source_and_chunks(encoded);
         let request = decode_request(
@@ -423,13 +411,13 @@ fn lossless_jpeg_round_trips_partial_edge_tiles() {
             SampleFormat::Integer,
         ),
     ] {
-        let encoded = encode(&request(
+        let encoded = encode_with(
             &image,
             4,
             2,
             Predictor::None,
             EncodeCompression::LosslessJpeg,
-        ))
+        )
         .unwrap();
         assert_eq!(encoded.chunks.len(), 4);
 
@@ -470,13 +458,13 @@ fn zstd_round_trips_integer_and_float_chunks() {
             SampleFormat::Float,
         ),
     ] {
-        let encoded = encode(&request(
+        let encoded = encode_with(
             &image,
             3,
             1,
             Predictor::None,
             EncodeCompression::Zstd { level: 3 },
-        ))
+        )
         .unwrap();
         let (source, chunks) = source_and_chunks(encoded);
         let request = decode_request(
@@ -506,13 +494,13 @@ fn uncompressed_round_trips_every_sample_type() {
     ];
 
     for image in images {
-        let encoded = encode(&request(
+        let encoded = encode_with(
             &image,
             2,
             1,
             Predictor::None,
             EncodeCompression::Uncompressed,
-        ))
+        )
         .unwrap();
         let (source, chunks) = source_and_chunks(encoded);
         let (bits, sample_format) = match &image {

@@ -135,7 +135,7 @@ fn repeated_len(data: &[u8], start: usize) -> usize {
 mod tests {
     use crate::{
         ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
-        ICodecDecode, Predictor, SampleBuffer, SampleFormat, encode,
+        ICodecDecode, ICodecEncode, Predictor, SampleBuffer, SampleFormat,
     };
 
     fn decode_request<'a>(
@@ -169,7 +169,6 @@ mod tests {
     ) -> EncodeRequest<'_> {
         EncodeRequest {
             image,
-            compression: EncodeCompression::PackBits,
             chunk_width,
             chunk_height,
             byte_order: ByteOrder::Little,
@@ -227,7 +226,9 @@ mod tests {
     #[test]
     fn packbits_round_trips() {
         let image = SampleBuffer::from_u8(8, 1, vec![0xaa, 0xaa, 0xaa, 1, 2, 2, 2, 3]).unwrap();
-        let encoded = encode(&encode_request(&image, 8, 1, Predictor::None)).unwrap();
+        let encoded = EncodeCompression::PackBits
+            .encode(&encode_request(&image, 8, 1, Predictor::None))
+            .unwrap();
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 8, 1, 8, 1, Predictor::None);
 
@@ -237,7 +238,9 @@ mod tests {
     #[test]
     fn packbits_reverses_horizontal_predictor_after_decompression() {
         let image = SampleBuffer::from_u8(4, 1, vec![10, 12, 13, 15]).unwrap();
-        let encoded = encode(&encode_request(&image, 4, 1, Predictor::HorizontalInteger)).unwrap();
+        let encoded = EncodeCompression::PackBits
+            .encode(&encode_request(&image, 4, 1, Predictor::HorizontalInteger))
+            .unwrap();
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 4, 1, 4, 1, Predictor::HorizontalInteger);
 
@@ -247,7 +250,9 @@ mod tests {
     #[test]
     fn packbits_preserves_row_major_partial_edge_chunks() {
         let image = SampleBuffer::from_u8(5, 3, (0_u8..15).collect()).unwrap();
-        let encoded = encode(&encode_request(&image, 4, 2, Predictor::None)).unwrap();
+        let encoded = EncodeCompression::PackBits
+            .encode(&encode_request(&image, 4, 2, Predictor::None))
+            .unwrap();
         assert_eq!(encoded.chunks.len(), 4);
         let (source, chunks) = source_and_chunks(encoded.chunks);
         let request = decode_request(&source, &chunks, 5, 3, 4, 2, Predictor::None);
@@ -306,7 +311,9 @@ mod tests {
         for length in [1_usize, 2, 3, 127, 128, 129, 255, 256, 257] {
             let width = u32::try_from(length).unwrap();
             let repeated = SampleBuffer::from_u8(width, 1, vec![0x55; length]).unwrap();
-            let encoded = encode(&encode_request(&repeated, length, 1, Predictor::None)).unwrap();
+            let encoded = EncodeCompression::PackBits
+                .encode(&encode_request(&repeated, length, 1, Predictor::None))
+                .unwrap();
             let (source, chunks) = source_and_chunks(encoded.chunks);
             let request = decode_request(&source, &chunks, length, 1, length, 1, Predictor::None);
             assert_eq!(
@@ -321,7 +328,9 @@ mod tests {
                 (0..length).map(|value| (value % 251) as u8).collect(),
             )
             .unwrap();
-            let encoded = encode(&encode_request(&literals, length, 1, Predictor::None)).unwrap();
+            let encoded = EncodeCompression::PackBits
+                .encode(&encode_request(&literals, length, 1, Predictor::None))
+                .unwrap();
             let (source, chunks) = source_and_chunks(encoded.chunks);
             let request = decode_request(&source, &chunks, length, 1, length, 1, Predictor::None);
             assert_eq!(

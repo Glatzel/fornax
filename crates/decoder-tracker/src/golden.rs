@@ -27,9 +27,10 @@ pub const GOLDEN_HEADER: [&str; 10] = [
     "process_sha256",
     "dng_sha256",
 ];
-pub const GOLDEN_COVERAGE_HEADER: [&str; 19] = [
+pub const GOLDEN_COVERAGE_HEADER: [&str; 20] = [
     "format",
     "compression_name",
+    "decode_path",
     "compression_lossless",
     "compression_id",
     "bits_per_sample",
@@ -77,6 +78,7 @@ pub struct GoldenCsv {
 pub struct GoldenCoverageRow {
     pub format: String,
     pub compression_name: String,
+    pub decode_path: String,
     pub compression_lossless: u8,
     pub compression_id: Option<u32>,
     pub bits_per_sample: Option<u16>,
@@ -112,11 +114,7 @@ pub struct GoldenCoverage {
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct CoverageKey {
     format: String,
-    compression_name: String,
-    bits_per_sample: Option<u16>,
-    sample_format: String,
-    storage: String,
-    predictor: Option<u16>,
+    decode_path: String,
 }
 
 pub fn build_golden_coverage(
@@ -187,15 +185,7 @@ pub fn build_golden_coverage(
         groups
             .entry(CoverageKey {
                 format: row.format.clone(),
-                compression_name: row.compression_name.clone(),
-                bits_per_sample: if uses_highest_bit_depth(&row.format, &row.compression_name) {
-                    None
-                } else {
-                    row.bits_per_sample
-                },
-                sample_format: row.sample_format.clone(),
-                storage: row.storage.clone(),
-                predictor: row.predictor,
+                decode_path: decode_path(row),
             })
             .or_default()
             .push(row);
@@ -208,7 +198,7 @@ pub fn build_golden_coverage(
             passing.sort_by(|left, right| {
                 let left_pixels = u64::from(left.width) * u64::from(left.height);
                 let right_pixels = u64::from(right.width) * u64::from(right.height);
-                let highest_bits = if uses_highest_bit_depth(&key.format, &key.compression_name) {
+                let highest_bits = if uses_highest_bit_depth(&key.format, &right.compression_name) {
                     right.bits_per_sample.cmp(&left.bits_per_sample)
                 } else {
                     std::cmp::Ordering::Equal
@@ -244,13 +234,14 @@ pub fn build_golden_coverage(
             let representative_manifest = manifest[representative.path.as_str()];
             GoldenCoverageRow {
                 format: key.format,
-                compression_name: key.compression_name,
+                compression_name: representative.compression_name.clone(),
+                decode_path: key.decode_path,
                 compression_lossless: 1,
                 compression_id: representative.compression_id,
                 bits_per_sample: representative.bits_per_sample,
-                sample_format: key.sample_format,
-                storage: key.storage,
-                predictor: key.predictor,
+                sample_format: representative.sample_format.clone(),
+                storage: representative.storage.clone(),
+                predictor: representative.predictor,
                 cfa: representative.cfa.clone(),
                 coverage: coverage.to_owned(),
                 passing_count: passing.len(),
@@ -277,6 +268,7 @@ pub fn write_golden_coverage_csv(rows: &[GoldenCoverageRow]) -> Result<Vec<u8>> 
     rows.sort_by(|left, right| {
         (
             &left.format,
+            &left.decode_path,
             &left.compression_name,
             left.compression_lossless,
             left.bits_per_sample,
@@ -286,6 +278,7 @@ pub fn write_golden_coverage_csv(rows: &[GoldenCoverageRow]) -> Result<Vec<u8>> 
         )
             .cmp(&(
                 &right.format,
+                &right.decode_path,
                 &right.compression_name,
                 right.compression_lossless,
                 right.bits_per_sample,
@@ -347,6 +340,69 @@ fn golden_encoding(row: &BaselineRow) -> bool {
 
 fn uses_highest_bit_depth(format: &str, _compression_name: &str) -> bool {
     matches!(format, "ARW" | "NEF")
+}
+
+fn decode_path(row: &BaselineRow) -> String {
+    if row.format == "DNG" {
+        return dng_decode_path(row);
+    }
+    format!(
+        "{}.{}.{}.{}.{}.{}",
+        row.format,
+        row.compression_name,
+        if uses_highest_bit_depth(&row.format, &row.compression_name) {
+            "any-bits".to_owned()
+        } else {
+            row.bits_per_sample
+                .map_or_else(|| "unknown-bits".to_owned(), |bits| bits.to_string())
+        },
+        row.sample_format,
+        row.storage,
+        row.predictor
+            .map_or_else(|| "unknown-predictor".to_owned(), |value| value.to_string())
+    )
+}
+
+fn dng_decode_path(row: &BaselineRow) -> String {
+    let bits = row.bits_per_sample.unwrap_or_default();
+    match (row.compression_name.as_str(), row.sample_format.as_str()) {
+        ("lossless-jpeg", "integer") => {
+            format!("dng.lossless-jpeg.{}", row.storage)
+        }
+        ("uncompressed" | "deflate", "float" | "integer") => {
+            let kernel = match row.sample_format.as_str() {
+                "float" => "float",
+                "integer" => match bits {
+                    1..=7 => "packed-u8",
+                    8 => "copy-u8",
+                    12 => "packed-u16-12",
+                    14 => "packed-u16-14",
+                    16 => "copy-u16",
+                    9..=15 => "packed-u16-generic",
+                    17..=31 => "packed-u32-generic",
+                    32 => "copy-u32",
+                    _ => "unknown-integer",
+                },
+                _ => unreachable!("sample format is validated by the caller"),
+            };
+            format!(
+                "dng.{}.{}.{}.{}",
+                row.compression_name, row.sample_format, bits, kernel
+            )
+        }
+        _ => format!(
+            "dng.{}.{}.{}.{}.{}.{}",
+            row.compression_name,
+            row.bits_per_sample
+                .map_or_else(|| "unknown-bits".to_owned(), |bits| bits.to_string()),
+            row.sample_format,
+            row.storage,
+            row.predictor
+                .map_or_else(|| "unknown-predictor".to_owned(), |value| value.to_string()),
+            row.compression_id
+                .map_or_else(|| "unknown-id".to_owned(), |value| value.to_string())
+        ),
+    }
 }
 
 fn deprecated_golden_encoding(row: &BaselineRow) -> bool {

@@ -181,8 +181,8 @@ specific decoder path. Join `data/manifest.csv` by `path` for file size.
 ## Golden decode outputs
 
 `golden/selected-manifest.csv` is a pointer-only tier-0/1 lossless set
-containing one lowest-pixel known-passing representative per source encoding
-group. It covers DNG, ARW, CR3, and NEF only; tier-2/3 formats and deprecated
+containing one lowest-pixel known-passing representative per decoder path. It
+covers DNG, ARW, CR3, and NEF only; tier-2/3 formats and deprecated
 Sony ARW1/ARW6 and Nikon modes are excluded. `golden/decode-hashes.csv` is the canonical
 output gate for
 refactors that must not change decoder results.
@@ -222,24 +222,29 @@ pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
 ```
 
 The report groups fully passing DNG/ARW/CR3/NEF rows with
-`compression_lossless=1` by the encoding tuple
-`(format, compression_name, bits_per_sample, sample_format, storage, predictor)`.
-CFA is reported for the representative but does not split an encoding group.
-It records passing and golden counts, all golden paths, and the lowest-pixel
-passing representative, breaking ties by file size and path. `coverage` is
-`covered`, `missing`, or `redundant`; the command reports those counts in CI but
-fails if a golden path is absent or is not fully passing.
+`compression_lossless=1` by a derived `decode_path`. DNG Lossless JPEG groups
+across 12/14/16-bit precision while retaining strip versus tile layout.
+Uncompressed integer paths follow their implemented unpacking kernels: u8
+copy, generic packed u16, dedicated 12-bit, dedicated 14-bit, and u16 copy.
+Floating-point widths remain separate for uncompressed and Deflate paths.
+Non-DNG formats retain their format, compression, bit-depth, sample-format,
+storage, and predictor grouping. CFA is reported for the representative but
+does not split a group. It records passing and golden counts, all golden paths,
+and the lowest-pixel passing representative, breaking ties by file size and
+path. `coverage` is `covered`, `missing`, or `redundant`; the command reports
+those counts in CI but fails if a golden path is absent or is not fully passing.
 
-Generate a golden manifest with one representative per encoding group:
+Generate a golden manifest with one representative per decoder path:
 
 ```bash
 pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --selected-out crates/decoder-tracker/golden/selected-manifest.csv
 ```
 
-The current generated set contains 23 lossless encoding groups. Sony ARW and
-Nikon NEF groups choose the highest available bit depth (for example, 14 over
-12). Lossy Sony ARW2/ARW6 and IIQ nonlinear/Sv2 paths are excluded.
+The current generated set contains 18 decoder paths: 13 DNG, 2 ARW, 1 CR3, and
+2 NEF. Sony ARW and Nikon NEF groups choose the highest available bit depth (for
+example, 14 over 12). Lossy Sony ARW2/ARW6 and IIQ nonlinear/Sv2 paths are
+excluded.
 Codec identifiers that can carry
 either lossy or lossless streams, currently DNG JPEG XL and WebP, are treated as
 not proven lossless and therefore remain ineligible until stream-level mode

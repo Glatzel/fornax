@@ -1,7 +1,7 @@
 use std::io::Cursor;
 
 use fornax_dng::dng_decoder::DngImage;
-use fornax_dng::writer::{DngCompression, DngWriter};
+use fornax_dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw_core::RawMosaic;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_phase_one::IiqImage;
@@ -200,7 +200,7 @@ fn corrected_samples_and_cfa_round_trip_through_dng() {
     let metadata = decoder.dng_metadata().unwrap();
     let mut output = Cursor::new(Vec::new());
 
-    DngWriter::new(DngCompression::Uncompressed)
+    DngWriter::new(DngWriterCompression::Uncompressed)
         .write_dng_with(&mut output, &raw, &metadata)
         .unwrap();
 

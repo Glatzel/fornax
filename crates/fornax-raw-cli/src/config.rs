@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, ValueEnum};
 use clap_verbosity_flag::InfoLevel;
-use fornax_dng::writer::DngCompression;
+use fornax_dng::writer::DngWriterCompression;
 use fornax_raw::raw_pipeline::Demosaic;
 use serde::Deserialize;
 use thiserror::Error;
@@ -99,12 +99,12 @@ pub enum DngCompressionChoice {
 }
 
 impl DngCompressionChoice {
-    pub const fn writer(self) -> DngCompression {
+    pub const fn writer(self, zstd_level: i32) -> DngWriterCompression {
         match self {
-            Self::Uncompressed => DngCompression::Uncompressed,
-            Self::LosslessJpeg => DngCompression::LosslessJpeg,
-            Self::Deflate => DngCompression::Deflate,
-            Self::Zstd => DngCompression::Zstd,
+            Self::Uncompressed => DngWriterCompression::Uncompressed,
+            Self::LosslessJpeg => DngWriterCompression::Lossless,
+            Self::Deflate => DngWriterCompression::Deflate,
+            Self::Zstd => DngWriterCompression::Zstd { level: zstd_level },
         }
     }
 }

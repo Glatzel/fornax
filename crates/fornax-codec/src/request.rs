@@ -115,8 +115,6 @@ pub enum ByteOrder {
 pub struct EncodeRequest<'a> {
     /// Mosaic to encode.
     pub image: &'a SampleBuffer,
-    /// Compression algorithm used to encode the chunk payloads.
-    pub compression: EncodeCompression,
     /// Output chunk width in samples.
     pub chunk_width: usize,
     /// Output chunk height in samples.

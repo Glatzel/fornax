@@ -40,7 +40,7 @@ Compression `50002` is a self-assigned TIFF JPEG XL identifier owned by
 `fornax-dng`. Both map to the single-channel JPEG XL decoder.
 
 Zstandard is available through `fornax-dng`'s `zstd` feature and is selected
-with `DngCompression::Zstd`. Compression `50000` is a LibTIFF self-assigned
+with `DngWriterCompression::Zstd { level }`. Compression `50000` is a LibTIFF self-assigned
 extension owned by `fornax-tiff`, not an Adobe-registered DNG compression code.
 
 Strip/tile geometry and encoded chunk validation come from

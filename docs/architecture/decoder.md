@@ -78,7 +78,7 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-raw-core/src/metadata/process.rs` | `ProcessMetadata<T>` and `Levels<T>` |
 | `fornax-bmff/src` | Bounded ISO-BMFF boxes, FullBoxes, UUID payloads, and sample tables |
 | `fornax-tiff/src` | TIFF tags, typed field constants, values, directories, checked parsing, and classic-TIFF writing |
-| `fornax-codec/src` | Format-neutral requests, sample buffers, chunk assembly, predictors, Huffman and byte-order support, `ICodecDecode`, generic codecs, and supported codec encoders |
+| `fornax-codec/src` | Format-neutral requests, sample buffers, chunk assembly, predictors, Huffman and byte-order support, `ICodecDecode`/`ICodecEncode`, and generic codecs |
 | `fornax-dng/src/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
 | `fornax-dng/src/constants.rs` | DNG-owned compression and photometric interpretation values |
 | `fornax-raw-sony/src` | Sony TIFF selection, private metadata, ARW codec ownership, CFA layout mapping, and DNG metadata mapping |
@@ -299,18 +299,18 @@ other platforms or on machines without that executable.
 
 `fornax-decoder` compiles one benchmark target covering `decode`, `raw_mosaic`,
 and `cropped_mosaic` for the default decoder and benchmark-only Rawler and
-FlashRaw adapters across the 23-file tier-0/1 lossless golden corpus. Fornax metadata accessors
+FlashRaw adapters across the 18-file tier-0/1 lossless golden corpus. Fornax metadata accessors
 remain diagnostic-only. It is separate from the preprocessor and demosaic
 benchmarks in their stage crates.
 
 ## Writer behavior
 
-- `DngCompression::Uncompressed` regenerates a classic-TIFF single-strip CFA
+- `DngWriterCompression::Uncompressed` regenerates a classic-TIFF single-strip CFA
   DNG from current `RawMosaic` samples and a `Directory`.
-- `DngCompression::LosslessJpeg` writes 256x256 tiled JPEG-92 for U8/U16
+- `DngWriterCompression::Lossless` writes 256x256 tiled JPEG-92 for U8/U16
   mosaics and tiled lossless Deflate for U32/F32 mosaics.
-- `DngCompression::Zstd` is implemented with pure-Rust `structured-zstd` and is
-  always available.
+- `DngWriterCompression::Zstd { level }` carries its own compression level and
+  uses pure-Rust `structured-zstd` when the `zstd` feature is enabled.
 - Structural and chunk-layout tags are regenerated; consumed frontend tags are
   omitted so they are not applied twice.
 - `TiffDirectory` in `fornax-tiff` owns shared entry accumulation and writer
