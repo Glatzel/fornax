@@ -1,9 +1,9 @@
 //! Raw sample codecs shared by Fornax decoder implementations.
 //!
-//! [`ICodecDecode`] converts format-neutral sample layouts into
-//! [`SampleBuffer`] values. [`encode`] converts supported sample buffers into
-//! independently stored chunks. Container metadata mapping and vendor-specific
-//! codecs remain in each format crate.
+//! [`ICodecDecode`] converts encoded chunks into [`SampleBuffer`] values.
+//! [`ICodecEncode`] converts sample buffers into independently stored chunks.
+//! Container metadata mapping and vendor-specific codecs remain in each format
+//! crate.
 //!
 //! # Examples
 //!
@@ -93,6 +93,18 @@ pub trait ICodecDecode {
     fn decode(&self, request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError>;
 }
 
+/// Encodes one raw image using this codec value's algorithm and parameters.
+pub trait ICodecEncode {
+    /// Encodes the image described by `request`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CodecError::InvalidInput`] for malformed geometry or sample
+    /// layouts and [`CodecError::Unsupported`] for a recognized but unsupported
+    /// layout.
+    fn encode(&self, request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError>;
+}
+
 impl ICodecDecode for DecodeCompression {
     fn decode(&self, request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         match self {
@@ -115,39 +127,20 @@ impl ICodecDecode for DecodeCompression {
     }
 }
 
-/// Encodes one raw image using the request's compression algorithm.
-///
-/// # Examples
-///
-/// ```
-/// use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor, SampleBuffer};
-///
-/// let image = SampleBuffer::from_u8(2, 1, vec![1, 2]).unwrap();
-/// let request = EncodeRequest {
-///     image: &image,
-///     compression: EncodeCompression::Uncompressed,
-///     chunk_width: 2,
-///     chunk_height: 1,
-///     byte_order: ByteOrder::Little,
-///     predictor: Predictor::None,
-/// };
-/// assert_eq!(
-///     fornax_codec::encode(&request).unwrap().chunks,
-///     vec![vec![1, 2]]
-/// );
-/// ```
-pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
-    match request.compression {
-        EncodeCompression::Uncompressed => uncompressed::encode(request),
-        #[cfg(feature = "lossless-jpeg")]
-        EncodeCompression::LosslessJpeg => ljpeg::encode(request),
-        #[cfg(feature = "deflate")]
-        EncodeCompression::Deflate => deflate::encode(request),
-        #[cfg(feature = "lzw")]
-        EncodeCompression::Lzw => lzw::encode(request),
-        #[cfg(feature = "packbits")]
-        EncodeCompression::PackBits => packbits::encode(request),
-        #[cfg(feature = "zstd")]
-        EncodeCompression::Zstd { level } => zstd::encode(request, level),
+impl ICodecEncode for EncodeCompression {
+    fn encode(&self, request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+        match self {
+            Self::Uncompressed => uncompressed::encode(request),
+            #[cfg(feature = "lossless-jpeg")]
+            Self::LosslessJpeg => ljpeg::encode(request),
+            #[cfg(feature = "deflate")]
+            Self::Deflate => deflate::encode(request),
+            #[cfg(feature = "lzw")]
+            Self::Lzw => lzw::encode(request),
+            #[cfg(feature = "packbits")]
+            Self::PackBits => packbits::encode(request),
+            #[cfg(feature = "zstd")]
+            Self::Zstd { level } => zstd::encode(request, *level),
+        }
     }
 }

@@ -2,7 +2,9 @@ use std::fs::File;
 use std::io::{BufWriter, Seek, Write};
 use std::path::Path;
 
-use fornax_codec::{ByteOrder, EncodeCompression, EncodeRequest, Predictor, SampleBuffer};
+use fornax_codec::{
+    ByteOrder, EncodeCompression, EncodeRequest, ICodecEncode, Predictor, SampleBuffer,
+};
 use fornax_raw_core::RawMosaic;
 use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffTag};
 use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
@@ -29,27 +31,33 @@ impl From<fornax_tiff::TiffError> for DngWriteError {
     fn from(error: fornax_tiff::TiffError) -> Self { tiff_write_error(error) }
 }
 
-/// DNG compression modes written in the first implementation stage.
+/// DNG writer compression policy and codec parameters.
 ///
 /// # Examples
 ///
 /// ```
-/// use fornax_dng::writer::DngCompression;
+/// use fornax_dng::writer::DngWriterCompression;
 ///
-/// assert_eq!(DngCompression::default(), DngCompression::LosslessJpeg);
+/// assert_eq!(
+///     DngWriterCompression::default(),
+///     DngWriterCompression::Lossless
+/// );
 /// ```
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub enum DngCompression {
+pub enum DngWriterCompression {
     /// Uncompressed strip storage.
     Uncompressed,
     /// Lossless DNG storage: JPEG-92 for U8/U16 and Deflate for wider samples.
     #[default]
-    LosslessJpeg,
+    Lossless,
     /// Deflate for every supported mosaic sample type.
     Deflate,
     /// Experimental TIFF compression 50000 using pure-Rust Zstandard tiles.
     #[cfg(feature = "zstd")]
-    Zstd,
+    Zstd {
+        /// Compression level passed to the Zstandard encoder.
+        level: i32,
+    },
 }
 
 /// Four-component DNG specification version stored in `DNGVersion`.
@@ -102,22 +110,20 @@ impl Default for DngVersion {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct DngWriter {
     version: DngVersion,
-    compression: DngCompression,
-    zstd_level: i32,
+    compression: DngWriterCompression,
 }
 
 impl Default for DngWriter {
-    fn default() -> Self { Self::new(DngCompression::default()) }
+    fn default() -> Self { Self::new(DngWriterCompression::default()) }
 }
 
 impl DngWriter {
     /// Creates writer options for the current DNG specification and requested
     /// compression mode.
-    pub const fn new(compression: DngCompression) -> Self {
+    pub const fn new(compression: DngWriterCompression) -> Self {
         Self {
             version: DngVersion::latest(),
             compression,
-            zstd_level: 3,
         }
     }
 
@@ -131,13 +137,7 @@ impl DngWriter {
     }
 
     /// Returns the selected compression mode.
-    pub const fn compression(self) -> DngCompression { self.compression }
-
-    /// Selects the experimental Zstandard compression level.
-    pub const fn with_zstd_level(mut self, level: i32) -> Self {
-        self.zstd_level = level;
-        self
-    }
+    pub const fn compression(self) -> DngWriterCompression { self.compression }
 
     /// Returns the selected version used for regenerated output.
     pub const fn version(self) -> DngVersion { self.version }
@@ -168,18 +168,18 @@ impl DngWriter {
     {
         let samples = from_raw_mosaic(mosaic);
         match self.compression() {
-            DngCompression::Uncompressed => {
+            DngWriterCompression::Uncompressed => {
                 write_uncompressed(writer, &samples, metadata, self.version())?;
             }
-            DngCompression::LosslessJpeg => {
+            DngWriterCompression::Lossless => {
                 write_lossless(writer, &samples, metadata, self.version())?;
             }
-            DngCompression::Deflate => {
+            DngWriterCompression::Deflate => {
                 write_deflate_all(writer, &samples, metadata, self.version())?;
             }
             #[cfg(feature = "zstd")]
-            DngCompression::Zstd => {
-                write_zstd(writer, &samples, metadata, self.version(), self.zstd_level)?;
+            DngWriterCompression::Zstd { level } => {
+                write_zstd(writer, &samples, metadata, self.version(), level)?;
             }
         }
         Ok(())
@@ -354,14 +354,9 @@ where
     let (width, height) = (mosaic.width(), mosaic.height());
     let (bits, sample_format) = sample_layout(mosaic);
     const TILE: usize = 256;
-    let request = encode_request(
-        mosaic,
-        TILE,
-        TILE,
-        EncodeCompression::Zstd { level },
-        Predictor::None,
-    );
-    let chunks = fornax_codec::encode(&request)
+    let request = encode_request(mosaic, TILE, TILE, Predictor::None);
+    let chunks = EncodeCompression::Zstd { level }
+        .encode(&request)
         .map_err(codec_write_error)?
         .chunks;
     write_tiled_payload(
@@ -417,8 +412,9 @@ fn encode_for_chunks(
     compression: EncodeCompression,
     predictor: Predictor,
 ) -> Result<Vec<Vec<u8>>, DngWriteError> {
-    let request = encode_request(mosaic, chunk_width, chunk_height, compression, predictor);
-    fornax_codec::encode(&request)
+    let request = encode_request(mosaic, chunk_width, chunk_height, predictor);
+    compression
+        .encode(&request)
         .map(|encoded| encoded.chunks)
         .map_err(codec_write_error)
 }
@@ -427,12 +423,10 @@ const fn encode_request(
     mosaic: &SampleBuffer,
     chunk_width: usize,
     chunk_height: usize,
-    compression: EncodeCompression,
     predictor: Predictor,
 ) -> EncodeRequest<'_> {
     EncodeRequest {
         image: mosaic,
-        compression,
         chunk_width,
         chunk_height,
         byte_order: ByteOrder::Little,
@@ -683,29 +677,16 @@ fn tiff_write_error(error: fornax_tiff::TiffError) -> DngWriteError {
 mod tests {
     use std::io::Cursor;
 
-    #[cfg(feature = "zstd")]
-    use fornax_raw_core::MonoImage;
     use fornax_tiff::TiffWriter;
 
     use super::*;
 
     #[cfg(feature = "zstd")]
     #[test]
-    fn encode_request_preserves_selected_compression() {
-        let mosaic = RawMosaic::U8(MonoImage::from_raw(2, 1, vec![1, 2]).unwrap());
-        let samples = from_raw_mosaic(&mosaic);
-
-        let request = encode_request(
-            &samples,
-            2,
-            1,
-            fornax_codec::EncodeCompression::Zstd { level: 7 },
-            Predictor::None,
-        );
-
+    fn writer_preserves_selected_zstd_level() {
         assert_eq!(
-            request.compression,
-            fornax_codec::EncodeCompression::Zstd { level: 7 }
+            DngWriter::new(DngWriterCompression::Zstd { level: 7 }).compression(),
+            DngWriterCompression::Zstd { level: 7 }
         );
     }
 

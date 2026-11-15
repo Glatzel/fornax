@@ -2,7 +2,7 @@ use std::io::Cursor;
 use std::path::PathBuf;
 
 use fornax_dng::dng_decoder::DngImage;
-use fornax_dng::writer::{DngCompression, DngWriter};
+use fornax_dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::{EncodingSampleFormat, RawMosaic};
 
@@ -245,7 +245,7 @@ fn xtrans_lossless_fixture_matches_rawler_and_round_trips_through_dng() {
     ));
 
     let mut output = Cursor::new(Vec::new());
-    DngWriter::new(DngCompression::Uncompressed)
+    DngWriter::new(DngWriterCompression::Uncompressed)
         .write_dng_with(&mut output, &RawMosaic::U16(ours.clone()), &metadata)
         .unwrap();
     let decoded = DngImage::parse(output.get_ref()).unwrap();

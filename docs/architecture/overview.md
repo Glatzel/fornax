@@ -21,7 +21,7 @@ part of the current preprocessor/demosaic handoff.
 | `fornax-raw-core` | Shared image wrappers, process metadata, errors, and stage traits. | None |
 | `fornax-bmff` | Bounded generic ISO-BMFF boxes, FullBoxes, UUID payloads, and sample tables. | `fornax-raw-core` |
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, raster strip/tile planning, classic/BigTIFF parsing, and classic-TIFF writing. | `fornax-codec` |
-| `fornax-codec` | Format-neutral decode requests and sample buffers, chunk assembly, predictors, Huffman and byte-order support, `ICodecDecode`, generic codecs, and supported codec encoding. | None |
+| `fornax-codec` | Format-neutral decode and encode requests, sample buffers, chunk assembly, predictors, Huffman and byte-order support, `ICodecDecode`/`ICodecEncode`, and generic codecs. | None |
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-raw-core`, `fornax-tiff`, `fornax-codec` |
 | `fornax-raw-sony` | Native Sony ARW/NRW TIFF, private metadata, CFA layout mapping, and DNG-compatible metadata mapping. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
 | `fornax-raw-canon` | Canon CR3/CRM BMFF, CMT/CTMD metadata, CRAW/CMP1/IAD1 parsing, and lossless CRX handoff. | `fornax-raw-core`, `fornax-bmff`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
@@ -94,11 +94,10 @@ than necessarily luminance.
 
 `DecodeCompression` implements `ICodecDecode` for generic Uncompressed,
 Lossless JPEG, Deflate, LZW, PackBits, Lossy JPEG, JPEG XL, and Zstandard
-handling. Generic codec features still control optional dependencies.
-`EncodeCompression` and the free `fornax_codec::encode` function keep their
-existing encoding behavior. Zstandard decoding has no level because the level
-is stored in the stream; `EncodeCompression::Zstd { level }` configures
-encoding.
+handling. `EncodeCompression` implements the symmetric `ICodecEncode`
+interface. Generic codec features still control optional dependencies.
+Zstandard decoding has no level because the level is stored in the stream;
+`EncodeCompression::Zstd { level }` configures encoding.
 
 Each vendor crate owns a private codec enum implementing `ICodecDecode` and
 keeps its stream parser, parameter types, and codec tests with that format.

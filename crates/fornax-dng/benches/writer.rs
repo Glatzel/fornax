@@ -10,7 +10,7 @@ use fornax_devtool::{
 use fornax_dng::Directory;
 use fornax_dng::dng_decoder::DngImage;
 use fornax_dng::metadata::{DngTag, Tag, Value};
-use fornax_dng::writer::{DngCompression, DngWriter};
+use fornax_dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw_core::{MonoImage, RawFormat, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 
@@ -69,7 +69,7 @@ fn metadata(width: u32, height: u32) -> Directory {
     metadata
 }
 
-fn selected_compressions() -> Vec<(String, DngCompression)> {
+fn selected_compressions(zstd_level: i32) -> Vec<(String, DngWriterCompression)> {
     let default = "uncompressed,lossless-jpeg,deflate,zstd";
     let selected =
         std::env::var("FORNAX_BENCH_DNG_COMPRESSION").unwrap_or_else(|_| default.to_owned());
@@ -79,10 +79,10 @@ fn selected_compressions() -> Vec<(String, DngCompression)> {
         .filter(|value| !value.is_empty())
         .map(|value| {
             let compression = match value {
-                "uncompressed" => DngCompression::Uncompressed,
-                "lossless-jpeg" => DngCompression::LosslessJpeg,
-                "deflate" => DngCompression::Deflate,
-                "zstd" => DngCompression::Zstd,
+                "uncompressed" => DngWriterCompression::Uncompressed,
+                "lossless-jpeg" => DngWriterCompression::Lossless,
+                "deflate" => DngWriterCompression::Deflate,
+                "zstd" => DngWriterCompression::Zstd { level: zstd_level },
                 _ => panic!("unknown FORNAX_BENCH_DNG_COMPRESSION value {value:?}"),
             };
             (value.to_owned(), compression)
@@ -171,8 +171,8 @@ fn bench_writer(c: &mut Criterion) {
         params.bits.iter().all(|bits| *bits == BenchSampleBits::F32),
         "DNG writer benchmarks currently accept f32 control only"
     );
-    let compressions = selected_compressions();
     let level = zstd_level();
+    let compressions = selected_compressions(level);
     for benchmark in benchmark_mosaics(&params) {
         let (width, height) = benchmark.mosaic.dimensions();
         let metadata = metadata(width, height);
@@ -181,7 +181,6 @@ fn bench_writer(c: &mut Criterion) {
         for (name, compression) in &compressions {
             let mut output = Cursor::new(Vec::new());
             DngWriter::new(*compression)
-                .with_zstd_level(level)
                 .write_dng_with(&mut output, &benchmark.mosaic, &metadata)
                 .unwrap();
             let bytes = output.into_inner().len();
@@ -195,7 +194,6 @@ fn bench_writer(c: &mut Criterion) {
                 b.iter(|| {
                     let mut output = Cursor::new(Vec::new());
                     DngWriter::new(*compression)
-                        .with_zstd_level(level)
                         .write_dng_with(
                             black_box(&mut output),
                             black_box(&benchmark.mosaic),

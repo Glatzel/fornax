@@ -27,6 +27,10 @@ Out of scope:
 - [x] Implement `decode_path` reporting and the minimal DNG selection.
 - [x] Regenerate the golden manifest, hashes, and affected documentation.
 - [x] Run tracker and selected cross-decoder checks.
+- [x] Separate writer compression policy from codec compression and own the
+      Zstandard level in the writer enum.
+- [x] Add symmetric `ICodecEncode` dispatch and remove the compression field
+      from `EncodeRequest`.
 - [ ] Run the manual DNG corpus workflow and review its result.
 - [ ] Run repository validation and final review.
 
@@ -76,3 +80,6 @@ unchanged.
   Blackmagic `RawU16` precision.
 - Native `f16` is deferred until Rust stabilizes it and the image buffer layer
   can support the sample type cleanly.
+- `DngWriterCompression` owns writer policy and Zstandard parameters.
+  `EncodeCompression` implements `ICodecEncode`, mirroring `DecodeCompression`
+  and `ICodecDecode`.

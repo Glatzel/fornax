@@ -18,9 +18,10 @@ codec requests.
 `DecodeCompression` implements `ICodecDecode`, so callers write
 `codec.decode(&request)`. `DecodeRequest` contains no algorithm field. The
 generic compression enum covers Uncompressed, Lossless JPEG, Deflate, LZW,
-PackBits, Lossy JPEG, JPEG XL, and Zstandard. `EncodeCompression` continues to
-select the encoder inside `EncodeRequest`, and `encode(&EncodeRequest)` returns
-row-major `EncodedChunks`. The buffer stores
+PackBits, Lossy JPEG, JPEG XL, and Zstandard. `EncodeCompression` implements
+the symmetric `ICodecEncode` interface, so callers write
+`codec.encode(&request)`. `EncodeRequest` contains no algorithm field. Encoding
+returns row-major `EncodedChunks`. The buffer stores
 U8, U16, U32, F32, or F64 samples in an `image::ImageBuffer<Luma<T>, Vec<T>>`.
 `Luma` denotes one scalar channel rather than necessarily luminance.
 Decoding accepts the image geometry, chunk locations, sample layout, byte

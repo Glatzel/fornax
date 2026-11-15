@@ -2,7 +2,7 @@ use std::io::Cursor;
 use std::path::PathBuf;
 
 use fornax_dng::dng_decoder::DngImage;
-use fornax_dng::writer::{DngCompression, DngWriter};
+use fornax_dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw_core::RawMosaic;
 use fornax_raw_hasselblad::HasselbladImage;
 use fornax_tiff::constants::TiffTag;
@@ -93,7 +93,7 @@ fn compressed_and_uncompressed_samples_round_trip_through_dng() {
             panic!("3FR decoded as a non-u16 mosaic");
         };
         let mut output = Cursor::new(Vec::new());
-        DngWriter::new(DngCompression::Uncompressed)
+        DngWriter::new(DngWriterCompression::Uncompressed)
             .write_dng_with(
                 &mut output,
                 &RawMosaic::U16(ours.clone()),

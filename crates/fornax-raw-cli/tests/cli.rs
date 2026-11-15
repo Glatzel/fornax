@@ -3,7 +3,7 @@ use std::fs;
 use assert_cmd::Command;
 use clap::Parser;
 use fornax_dng::metadata::{Directory, DngTag, Tag, TiffTag, Value};
-use fornax_dng::writer::{DngCompression, DngWriter};
+use fornax_dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw::{MonoImage, RawMosaic};
 use fornax_raw_cli::{CliArgs, ConversionOutcome, run};
 use image::GenericImageView;
@@ -75,7 +75,7 @@ fn metadata(width: u32, height: u32) -> Directory {
 fn synthetic_dng(path: &std::path::Path) {
     let samples = (0_u16..64).collect();
     let mosaic = RawMosaic::U16(MonoImage::from_raw(8, 8, samples).unwrap());
-    DngWriter::new(DngCompression::Uncompressed)
+    DngWriter::new(DngWriterCompression::Uncompressed)
         .write(path, &mosaic, &metadata(8, 8))
         .unwrap();
 }

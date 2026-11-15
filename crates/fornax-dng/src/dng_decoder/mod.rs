@@ -674,7 +674,7 @@ mod tests {
     }
 
     use crate::metadata::{Directory, DngTag};
-    use crate::writer::{DngCompression, DngWriter};
+    use crate::writer::{DngWriter, DngWriterCompression};
 
     #[test]
     fn process_metadata_does_not_decode_invalid_pixel_payload() {
@@ -772,7 +772,7 @@ mod tests {
         let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
         let metadata = writable_metadata(4, 2);
         let mut output = Cursor::new(Vec::new());
-        DngWriter::new(DngCompression::LosslessJpeg)
+        DngWriter::new(DngWriterCompression::Lossless)
             .write_dng_with(&mut output, &mosaic, &metadata)
             .unwrap();
 
@@ -790,8 +790,7 @@ mod tests {
         let samples = vec![0, 65_535, 30_000, 32_768, 1, 2, 40_000, 12_345];
         let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
         let mut output = Cursor::new(Vec::new());
-        DngWriter::new(DngCompression::Zstd)
-            .with_zstd_level(3)
+        DngWriter::new(DngWriterCompression::Zstd { level: 3 })
             .write_dng_with(&mut output, &mosaic, &writable_metadata(4, 2))
             .unwrap();
 
@@ -823,7 +822,7 @@ mod tests {
             ),
         ] {
             let mut output = Cursor::new(Vec::new());
-            DngWriter::new(DngCompression::Zstd)
+            DngWriter::new(DngWriterCompression::Zstd { level: 3 })
                 .write_dng_with(&mut output, &mosaic, &writable_metadata(4, 1))
                 .unwrap();
             let parsed = DngImage::parse(output.get_ref()).unwrap();
@@ -860,7 +859,7 @@ mod tests {
         let mosaic = RawMosaic::U8(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
         let metadata = writable_metadata(4, 2);
         let mut output = Cursor::new(Vec::new());
-        DngWriter::new(DngCompression::LosslessJpeg)
+        DngWriter::new(DngWriterCompression::Lossless)
             .write_dng_with(&mut output, &mosaic, &metadata)
             .unwrap();
 
@@ -890,7 +889,7 @@ mod tests {
         metadata.insert(Tag::from(DngTag::Unknown(50_976)), Value::Short(2));
 
         let mut output = Cursor::new(Vec::new());
-        DngWriter::new(DngCompression::LosslessJpeg)
+        DngWriter::new(DngWriterCompression::Lossless)
             .write_dng_with(&mut output, &mosaic, &metadata)
             .unwrap();
         let parsed = DngImage::parse(output.get_ref()).unwrap();
@@ -909,7 +908,7 @@ mod tests {
         let integers = vec![1_u32, 70_000, 4_000_000_000];
         let integer_mosaic = RawMosaic::U32(MonoImage::from_raw(3, 1, integers.clone()).unwrap());
         let mut integer_output = Cursor::new(Vec::new());
-        DngWriter::new(DngCompression::LosslessJpeg)
+        DngWriter::new(DngWriterCompression::Lossless)
             .write_dng_with(
                 &mut integer_output,
                 &integer_mosaic,
@@ -925,7 +924,7 @@ mod tests {
         let floats = vec![-1.5_f32, 0.25, f32::from_bits(0x7fc0_1234)];
         let float_mosaic = RawMosaic::F32(MonoImage::from_raw(3, 1, floats.clone()).unwrap());
         let mut float_output = Cursor::new(Vec::new());
-        DngWriter::new(DngCompression::LosslessJpeg)
+        DngWriter::new(DngWriterCompression::Lossless)
             .write_dng_with(&mut float_output, &float_mosaic, &writable_metadata(3, 1))
             .unwrap();
         let float_parsed = DngImage::parse(float_output.get_ref()).unwrap();
@@ -954,7 +953,7 @@ mod tests {
         metadata.insert(TiffTag::Predictor.into(), Value::Short(3));
         let mut output = Cursor::new(Vec::new());
 
-        DngWriter::new(DngCompression::LosslessJpeg)
+        DngWriter::new(DngWriterCompression::Lossless)
             .write_dng_with(&mut output, &mosaic, &metadata)
             .unwrap();
 

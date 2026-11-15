@@ -167,9 +167,11 @@ fn convert_raw_dng(
     let decoder = Decoder::decode(&job.input)?;
     let mosaic = decoder.raw_mosaic()?;
     let metadata = decoder.dng_metadata()?;
-    DngWriter::new(config.dng_compression.writer())
-        .with_zstd_level(config.zstd_level)
-        .write(&job.output, &mosaic, &metadata)?;
+    DngWriter::new(config.dng_compression.writer(config.zstd_level)).write(
+        &job.output,
+        &mosaic,
+        &metadata,
+    )?;
     if config.metadata_json {
         write_metadata_json(&job.output, &metadata)?;
     }

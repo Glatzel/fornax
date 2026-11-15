@@ -1,7 +1,7 @@
 use std::fs;
 use std::io::Cursor;
 
-use fornax_dng::writer::{DngCompression, DngWriter};
+use fornax_dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw_canon::Cr3Image;
 use fornax_raw_core::RawMosaic;
 use sha2::{Digest, Sha256};
@@ -44,7 +44,7 @@ fn targeted_lossless_fixture_parses_and_decodes() {
     assert!(image.process_metadata().unwrap().active_area.width > 1);
     let mosaic = image.raw_mosaic().unwrap();
     let mut dng = Cursor::new(Vec::new());
-    DngWriter::new(DngCompression::Uncompressed)
+    DngWriter::new(DngWriterCompression::Uncompressed)
         .write_dng_with(&mut dng, &mosaic, &image.dng_metadata().unwrap())
         .unwrap();
     let parsed = fornax_tiff::parse(dng.get_ref()).unwrap();
