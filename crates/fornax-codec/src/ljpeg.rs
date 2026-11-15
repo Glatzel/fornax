@@ -479,9 +479,6 @@ impl<'a> FastBitReader<'a> {
     }
 
     fn refill(&mut self) {
-        if self.buffered_bits >= 32 {
-            return;
-        }
         if let Some(bytes) = self.bytes.get(self.position..)
             && let Some(bytes) = bytes.first_chunk::<8>()
         {
@@ -492,7 +489,7 @@ impl<'a> FastBitReader<'a> {
                 self.cache |= word >> self.buffered_bits;
                 let taken = (63 - self.buffered_bits) >> 3;
                 self.position += taken;
-                self.buffered_bits += taken * 8;
+                self.buffered_bits |= 56;
                 return;
             }
         }
@@ -1624,6 +1621,20 @@ mod tests {
             fast.skip_no_fill(usize::from(count));
             reference.skip(usize::from(count));
         }
+    }
+
+    #[test]
+    fn refill_extends_a_partially_full_cache_without_a_buffered_bits_branch() {
+        let source = [
+            0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+        ];
+        let mut fast = FastBitReader::new(&source);
+        fast.refill();
+        let position = fast.position;
+        fast.skip_no_fill(1);
+        fast.refill();
+        assert!(fast.position > position);
+        assert!(fast.buffered_bits >= 56);
     }
 
     #[test]
