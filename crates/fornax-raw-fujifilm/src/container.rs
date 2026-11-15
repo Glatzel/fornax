@@ -21,6 +21,7 @@ pub enum Compression {
     Packed12,
     Words,
     FujiLossless,
+    FujiLossy,
 }
 
 #[derive(Clone, Debug)]
@@ -310,7 +311,11 @@ fn classify_compression(
     bits: u8,
 ) -> Result<Compression, DecodeError> {
     if payload.starts_with(&0x4953_u16.to_be_bytes()) {
-        return Ok(Compression::FujiLossless);
+        return match payload.get(2) {
+            Some(1) => Ok(Compression::FujiLossless),
+            Some(_) => Ok(Compression::FujiLossy),
+            None => Err(invalid("Fujifilm compression header is truncated")),
+        };
     }
     let pixels = width
         .checked_mul(height)
@@ -438,3 +443,23 @@ fn read_u32(bytes: &[u8], offset: usize, what: &str) -> Result<u32, DecodeError>
 }
 
 fn invalid(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInput(detail.into()) }
+
+#[cfg(test)]
+mod tests {
+    use super::{Compression, classify_compression};
+
+    #[test]
+    fn fuji_header_flag_distinguishes_lossy_from_lossless_compression() {
+        let lossless = [0x49, 0x53, 1];
+        let lossy = [0x49, 0x53, 0];
+
+        assert_eq!(
+            classify_compression(&lossless, 16, 16, 14).unwrap(),
+            Compression::FujiLossless
+        );
+        assert_eq!(
+            classify_compression(&lossy, 16, 16, 14).unwrap(),
+            Compression::FujiLossy
+        );
+    }
+}

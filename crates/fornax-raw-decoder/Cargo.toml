@@ -3,6 +3,27 @@ name = "fornax-raw-decoder"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = [
+  "canon",
+  "fujifilm",
+  "hasselblad",
+  "mmap",
+  "nikon",
+  "panasonic",
+  "phase-one",
+  "sony",
+]
+canon = ["dep:fornax-raw-canon"]
+fujifilm = ["dep:fornax-raw-fujifilm"]
+hasselblad = ["dep:fornax-raw-hasselblad"]
+mmap = ["dep:memmap2", "fornax-tiff/mmap"]
+nikon = ["dep:fornax-raw-nikon"]
+panasonic = ["dep:fornax-raw-panasonic"]
+phase-one = ["dep:fornax-raw-phase-one"]
+sony = ["dep:fornax-raw-sony"]
+zstd = ["fornax-dng/zstd"]
+
 [[bench]]
 harness = false
 name = "decoder"
@@ -38,24 +59,3 @@ tempfile.workspace = true
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 strum.workspace = true
-
-[features]
-default = [
-  "canon",
-  "fujifilm",
-  "hasselblad",
-  "mmap",
-  "nikon",
-  "panasonic",
-  "phase-one",
-  "sony",
-]
-canon = ["dep:fornax-raw-canon"]
-fujifilm = ["dep:fornax-raw-fujifilm"]
-hasselblad = ["dep:fornax-raw-hasselblad"]
-mmap = ["dep:memmap2", "fornax-tiff/mmap"]
-nikon = ["dep:fornax-raw-nikon"]
-panasonic = ["dep:fornax-raw-panasonic"]
-phase-one = ["dep:fornax-raw-phase-one"]
-sony = ["dep:fornax-raw-sony"]
-zstd = ["fornax-dng/zstd"]

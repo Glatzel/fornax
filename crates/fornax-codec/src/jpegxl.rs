@@ -5,7 +5,7 @@ use rayon::prelude::*;
 
 use crate::error::invalid;
 use crate::request::{DecodeRequest, SampleFormat};
-use crate::samples::{Geometry, buffer_u8, buffer_u16, chunk};
+use crate::samples::{Geometry, buffer_u8, buffer_u16, chunk, zeroed_samples};
 use crate::{CodecError, Predictor, SampleBuffer};
 
 pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
@@ -27,23 +27,19 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         request.chunks.len(),
     )?;
     if request.bits_per_sample == 8 {
-        let mut output = vec![
-            0_u8;
-            geometry
-                .width
-                .checked_mul(geometry.height)
-                .ok_or_else(|| invalid("JPEG XL sample count overflow"))?
-        ];
+        let sample_count = geometry
+            .width
+            .checked_mul(geometry.height)
+            .ok_or_else(|| invalid("JPEG XL sample count overflow"))?;
+        let mut output = zeroed_samples(sample_count);
         decode_into(request, &geometry, &mut output, decode_u8)?;
         buffer_u8(geometry.width, geometry.height, output)
     } else {
-        let mut output = vec![
-            0_u16;
-            geometry
-                .width
-                .checked_mul(geometry.height)
-                .ok_or_else(|| invalid("JPEG XL sample count overflow"))?
-        ];
+        let sample_count = geometry
+            .width
+            .checked_mul(geometry.height)
+            .ok_or_else(|| invalid("JPEG XL sample count overflow"))?;
+        let mut output = zeroed_samples(sample_count);
         let bits = request.bits_per_sample;
         decode_into(
             request,

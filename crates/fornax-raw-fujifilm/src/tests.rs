@@ -93,10 +93,23 @@ fn unknown_bayer_profile_is_rejected() {
 
 #[test]
 fn encoding_metadata_distinguishes_fuji_compression_families() {
-    for (compression, expected_name) in [
-        (super::container::Compression::Packed12, "fuji-packed12"),
-        (super::container::Compression::Words, "fuji-words"),
-        (super::container::Compression::FujiLossless, "fuji-lossless"),
+    for (compression, expected_name, expected_lossless) in [
+        (
+            super::container::Compression::Packed12,
+            "fuji-packed12",
+            true,
+        ),
+        (super::container::Compression::Words, "fuji-words", true),
+        (
+            super::container::Compression::FujiLossless,
+            "fuji-lossless",
+            true,
+        ),
+        (
+            super::container::Compression::FujiLossy,
+            "fuji-lossy",
+            false,
+        ),
     ] {
         let layout = super::container::RawLayout {
             compression,
@@ -112,11 +125,37 @@ fn encoding_metadata_distinguishes_fuji_compression_families() {
 
         assert_eq!(encoding.compression_id, None);
         assert_eq!(encoding.compression_name, expected_name);
-        assert!(encoding.lossless);
+        assert_eq!(encoding.lossless, expected_lossless);
         assert_eq!(encoding.storage, "raf-block");
         assert_eq!(encoding.bits_per_sample, Some(14));
         assert_eq!(encoding.sample_format, Some(EncodingSampleFormat::Integer));
     }
+}
+
+#[test]
+fn lossy_fuji_fixture_reports_lossy_encoding_metadata() {
+    let Some(root) = fixture_root() else {
+        return;
+    };
+    let path = root.join("Fujifilm/X-E4/fuji_xe4_32_lossy.RAF");
+    let Ok(source) = std::fs::read(&path) else {
+        return;
+    };
+    if source.starts_with(b"version https://git-lfs.github.com/spec/v1") {
+        return;
+    }
+    let decoder = super::RafImage::parse(&source)
+        .unwrap_or_else(|error| panic!("{} failed to parse: {error}", path.display()));
+    let encoding = decoder.encoding_metadata();
+
+    assert_eq!(encoding.compression_name, "fuji-lossy");
+    assert!(!encoding.lossless);
+    assert_eq!(encoding.storage, "raf-block");
+    assert_eq!(encoding.bits_per_sample, Some(14));
+    assert!(matches!(
+        decoder.raw_mosaic(),
+        Err(DecodeError::Unsupported(message)) if message.contains("lossy")
+    ));
 }
 
 #[test]

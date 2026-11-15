@@ -161,6 +161,11 @@ impl RafImage {
                 self.layout.bits,
                 ByteOrder::Big,
             ),
+            container::Compression::FujiLossy => {
+                return Err(DecodeError::Unsupported(
+                    "Fujifilm lossy RAF compression".into(),
+                ));
+            }
         };
         let request = DecodeRequest {
             source: &self.source,
@@ -304,14 +309,16 @@ impl IDecoderEncoding for RafImage {
 }
 
 fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetadata {
+    let (compression_name, lossless) = match layout.compression {
+        container::Compression::Packed12 => ("fuji-packed12", true),
+        container::Compression::Words => ("fuji-words", true),
+        container::Compression::FujiLossless => ("fuji-lossless", true),
+        container::Compression::FujiLossy => ("fuji-lossy", false),
+    };
     EncodingMetadata {
         compression_id: None,
-        compression_name: match layout.compression {
-            container::Compression::Packed12 => "fuji-packed12",
-            container::Compression::Words => "fuji-words",
-            container::Compression::FujiLossless => "fuji-lossless",
-        },
-        lossless: true,
+        compression_name,
+        lossless,
         storage: "raf-block",
         bits_per_sample: Some(u16::from(layout.bits)),
         sample_format: Some(EncodingSampleFormat::Integer),
