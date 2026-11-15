@@ -11,7 +11,7 @@ use crate::encode::encode_image;
 use crate::error::invalid;
 use crate::request::{ByteOrder, DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
 use crate::samples::{
-    Geometry, chunk, decode_payloads, extend_float, read_u16, read_u24, read_u32, zeroed_samples,
+    Geometry, chunk, decode_payloads, extend_float, read_u16, read_u24, read_u32,
 };
 use crate::{CodecError, Predictor, SampleBuffer, predictor};
 
@@ -82,7 +82,7 @@ fn decode_float_fused(
         let mut inflated = Vec::new();
         inflate_into(encoded, &mut inflated)
             .map_err(|detail| invalid(format!("Deflate chunk 0: {detail}")))?;
-        let mut output = zeroed_samples(sample_count);
+        let mut output = vec![0.0_f32; sample_count];
         decode_float_rows_into(
             &inflated,
             geometry.width,
@@ -98,7 +98,7 @@ fn decode_float_fused(
         .chunk_width
         .checked_mul(bytes_per_sample)
         .ok_or_else(|| invalid("Deflate row size overflow"))?;
-    let mut output = zeroed_samples(sample_count);
+    let mut output = vec![0.0_f32; sample_count];
     output
         .par_chunks_mut(geometry.band_stride()?)
         .enumerate()
