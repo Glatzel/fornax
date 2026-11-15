@@ -1,0 +1,32 @@
+# Sony ARW remaining-gap timings
+
+Host: WSL2 Debian on AMD Ryzen 7 5800H, 15 visible CPUs. Kernel
+6.6.87.1-microsoft-standard-WSL2, glibc 2.41, THP `[madvise]`, THP defrag
+`[madvise]`. Release build, page-cache-hot inputs.
+
+Method:
+
+- Three fresh processes per case and thread count.
+- Each process performed one warmup, then five rounds.
+- Decoder order rotated each round, so Fornax, Rawler, and FlashRaw were
+  interleaved within each process.
+- Fifteen observations per decoder/case/thread count.
+- Rawler used `decode_file`. Fornax timed
+  `Decoder::decode(path).raw_mosaic()`. FlashRaw used CPU backend, strict
+  corruption handling, `apply_opcodes=false`, `crop=false`, and 1 or 15
+  workers.
+- All values are milliseconds and are host-specific, not portable performance
+  guarantees.
+
+| Case and threads | Fornax median (min-max) | Rawler median (min-max) | FlashRaw median (min-max) | Fastest | Fornax/FlashRaw | Fornax/Rawler |
+| --- | ---: | ---: | ---: | --- | ---: | ---: |
+| Uncompressed 14-bit, ILCE-7RM3, 1T | 247.555 (243.843-250.500) | 196.940 (192.610-200.503) | 30.129 (29.086-66.719) | FlashRaw | 8.216x | 1.257x |
+| Uncompressed 14-bit, ILCE-7RM3, 15T | 250.612 (244.945-254.473) | 144.225 (140.532-148.332) | 19.584 (18.475-21.424) | FlashRaw | 12.797x | 1.738x |
+| LJPEG 12-bit, ZV-E10M2, 1T | 414.698 (403.973-448.364) | 244.047 (225.276-254.415) | 169.274 (164.478-195.014) | FlashRaw | 2.450x | 1.699x |
+| LJPEG 12-bit, ZV-E10M2, 15T | 135.789 (127.754-153.466) | 86.542 (62.809-87.936) | 32.101 (30.358-33.776) | FlashRaw | 4.230x | 1.569x |
+| LJPEG 14-bit, ILCE-7RM5, 1T | 993.834 (982.756-1007.793) | 724.199 (714.810-743.786) | 430.678 (408.015-485.091) | FlashRaw | 2.308x | 1.372x |
+| LJPEG 14-bit, ILCE-7RM5, 15T | 313.860 (306.686-319.421) | 316.716 (307.297-325.494) | 65.597 (62.609-77.121) | FlashRaw | 4.785x | 0.991x |
+
+The three ratio rows were accepted only after exact dimensions, U16 storage,
+source sample bits, and every output pixel matched Fornax, Rawler, and
+FlashRaw at both 1T and 15T.
