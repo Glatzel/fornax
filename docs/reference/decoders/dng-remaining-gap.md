@@ -8,34 +8,33 @@ paths close to Rawler 0.8.0; FlashRaw 0.2.0 remains an upper reference.
 ## Result
 
 The integer DNG target is met. Fornax is at parity with or faster than Rawler
-on every integer case measured after the optimization work. Fornax is at parity
-with FlashRaw on 5D3 16-bit uncompressed and FP32 Deflate, faster on FP16
-Deflate and the Sigma fp 12-bit uncompressed case, and remains slower on
+on every integer case measured after the optimization work. On the portable
+scalar state Fornax is faster than FlashRaw on the Sigma fp 12-bit uncompressed
+case and remains slower on 5D3 uncompressed, floating-point Deflate, and
 lossless JPEG.
 
-A follow-up measurement retained one additional LJPEG optimization: the hot
+A follow-up measurement retained one additional compute optimization: the hot
 predictor-1 path now buffers error state instead of constructing and propagating
 a `Result` for every sample. It closes about one quarter of the remaining LJPEG
-time on the three measured DNGs. A later corrected first-touch probe invalidated
-the earlier huge-page experiment and retained a Linux-only natural-align
-`alloc_zeroed` plus `MADV_HUGEPAGE` policy for large output buffers. That policy
-brings 5D3 uncompressed to parity with FlashRaw and was then applied to the
-separately allocated LJPEG full-image output. A corrected floating-point retry
-then showed a real first-touch gain, so the shared policy now covers every large
-full-image output rather than only integer buffers.
+time on the three measured DNGs. A corrected probe then found a large
+first-touch win from a Linux-only natural-align `alloc_zeroed` plus
+`MADV_HUGEPAGE` policy, but a later portability pass removed that policy and
+every platform-specific allocation path from `fornax-codec`. The results below
+are the current portable scalar state; the policy results are retained only as
+historical comparison evidence.
 
 Single-thread end-to-end results:
 
 | File | Variant | Fornax | Rawler | FlashRaw | Fastest | Fornax/FlashRaw | Fornax/Rawler |
 | --- | --- | ---: | ---: | ---: | --- | ---: | ---: |
-| 5D3 | U16 uncompressed strip | 18.0 ms | 53.5 ms | 18.3 ms | parity | 0.98x | 0.34x |
-| Sigma fp 4K | 12-bit uncompressed strip | 5.47 ms | 5.79 ms | 10.19 ms | Fornax | 0.54x | 0.95x |
-| 5D3 | U16 LJPEG tiles | 166.3 ms | 272.1 ms | 94.8 ms | FlashRaw | 1.75x | 0.61x |
+| 5D3 | U16 uncompressed strip | 44.38 ms | 53.5 ms | 16.17 ms | FlashRaw | 2.75x | 0.83x |
+| Sigma fp 4K | 12-bit uncompressed strip | 5.50 ms | 5.79 ms | 10.46 ms | Fornax | 0.53x | 0.95x |
+| 5D3 | U16 LJPEG tiles | 197.47 ms | 272.1 ms | 92.80 ms | FlashRaw | 2.13x | 0.73x |
 | Pentax K-5 | 14-bit LJPEG strip | not re-run | 168.5 ms | 77.0 ms | FlashRaw | n/m | n/m |
-| iPhone SE | U16 LJPEG tiles | 73.1 ms | 80.8 ms | 41.3 ms | FlashRaw | 1.77x | 0.90x |
-| Pixel 8 Pro | U16 LJPEG tiles | 346.8 ms | 546.4 ms | 192.9 ms | FlashRaw | 1.80x | 0.63x |
-| 5D3 HDR | FP16 predictor Deflate | 178.5 ms | 454.2 ms | 193.3 ms | Fornax | 0.92x | 0.39x |
-| 5D3 HDR | FP32 predictor Deflate | 338.4 ms | 766.1 ms | 334.3 ms | FlashRaw | 1.01x | 0.44x |
+| iPhone SE | U16 LJPEG tiles | 72.83 ms | 80.8 ms | 41.28 ms | FlashRaw | 1.76x | 0.90x |
+| Pixel 8 Pro | U16 LJPEG tiles | 432.65 ms | 546.4 ms | 195.49 ms | FlashRaw | 2.21x | 0.79x |
+| 5D3 HDR | FP16 predictor Deflate | 236.45 ms | 454.2 ms | 189.03 ms | FlashRaw | 1.25x | 0.52x |
+| 5D3 HDR | FP32 predictor Deflate | 397.19 ms | 766.1 ms | 322.33 ms | FlashRaw | 1.23x | 0.52x |
 
 The timings are host-specific observations from the investigation environment:
 WSL2 Debian, AMD Ryzen 7 5800H, release mode, page-cache-hot input, and one
@@ -45,10 +44,38 @@ portable performance guarantees.
 
 The current Fornax and FlashRaw values use three fresh, interleaved processes
 per case with five measured rounds after one warmup; Sigma fp used fifteen
-rounds after two warmups. Rawler values remain from the original report because
-only the Fornax/FlashRaw ratios were re-run. Pentax K-5 is pointer-only in the
-current corpus checkout and Fornax has no Pentax container decoder, so it could
-not be re-run through the three-way gate.
+rounds after two warmups in the earlier run. Rawler values remain from the
+original report because only the Fornax/FlashRaw ratios were re-run. Pentax K-5
+is pointer-only in the current corpus checkout and Fornax has no Pentax
+container decoder, so it could not be re-run through the three-way gate.
+
+## Portable Allocation Regression
+
+Removing the platform allocator moves Fornax instruction counts by less than
+0.01%, but restores first-touch page faults. The full with/without-policy table,
+same-session FlashRaw values, fault counts, and equality status are in
+[the portable allocation regression](dng-gap-profiles/portable-allocation-regression.txt).
+
+The material regressions are:
+
+| File | Threads | With policy | Plain `Vec` | Change | FlashRaw ratio after |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 5D3 uncompressed | 1 | 17.314 ms | 44.383 ms | +156.33% | 2.745x |
+| 5D3 uncompressed | 15 | 16.521 ms | 44.299 ms | +168.14% | 4.179x |
+| 5D3 LJPEG | 1 | 169.048 ms | 197.471 ms | +16.81% | 2.128x |
+| 5D3 LJPEG | 15 | 34.908 ms | 38.150 ms | +9.29% | 1.754x |
+| Pixel 8 Pro LJPEG | 1 | 354.032 ms | 432.649 ms | +22.21% | 2.213x |
+| Pixel 8 Pro LJPEG | 15 | 68.159 ms | 77.422 ms | +13.59% | 1.952x |
+| 5D3 FP16 Deflate | 1 | 179.249 ms | 236.454 ms | +31.91% | 1.251x |
+| 5D3 FP16 Deflate | 15 | 44.488 ms | 54.565 ms | +22.65% | 1.045x |
+| 5D3 FP32 Deflate | 1 | 341.264 ms | 397.185 ms | +16.39% | 1.232x |
+| 5D3 FP32 Deflate | 15 | 59.933 ms | 67.891 ms | +13.28% | 1.060x |
+
+The portable state loses FlashRaw parity on 5D3 uncompressed, FP16 Deflate,
+FP32 Deflate, and Pixel 8 all-thread LJPEG relative to the policy state. Sigma
+fp remains faster than FlashRaw at one thread and effectively at parity at 15
+threads. iPhone SE wall time is dominated by scalar LJPEG work; removing the
+policy does not change its one-thread median outside noise.
 
 ## Comparison Scope
 
@@ -79,9 +106,9 @@ The comparison still has these caveats:
 
 ## Lossless JPEG
 
-Lossless JPEG remains the largest remaining gap, but the retained buffered-error
-path reduces it to 1.75x FlashRaw on 5D3, 1.80x on Pixel 8, and 1.77x on iPhone
-SE. Fornax is faster than Rawler on the three re-measured cases for which Rawler
+Lossless JPEG remains the largest remaining gap. On the portable scalar state,
+Fornax is 2.13x FlashRaw on 5D3, 2.21x on Pixel 8, and 1.76x on iPhone SE.
+Fornax is faster than Rawler on the three re-measured cases for which Rawler
 supports the input.
 
 Fresh DWARF profiles of the pre-change 5D3 workload attributed Fornax's own
@@ -123,20 +150,22 @@ Final counters execute 35.4% fewer instructions on 5D3 and 35.6% fewer on Pixel
 8. Branch-miss counts are essentially unchanged (about +3%), so the gain is
 instruction/control-flow reduction rather than a lower branch-miss rate.
 
-A follow-up found that LJPEG allocated its full-image U16 buffer directly with
-`vec![0_u16; ...]`, bypassing the large-integer policy. Routing that allocation
-through the shared helper reduced 5D3 from 210.5 ms to 170.5 ms at one thread
-and from 41.8 ms to 38.2 ms at 15 threads. Pixel 8 improved from 429.1 ms to
-356.3 ms and from 82.2 ms to 70.6 ms. One-thread minor faults fell from 40,162
-to 29,429 on 5D3 and from 85,200 to 61,189 on Pixel 8. Details are in
+A historical follow-up found that LJPEG allocated its full-image U16 buffer
+directly with `vec![0_u16; ...]`, bypassing the then-current large-integer
+policy. Routing that allocation through the shared helper reduced 5D3 from
+210.5 ms to 170.5 ms at one thread and from 41.8 ms to 38.2 ms at 15 threads.
+Pixel 8 improved from 429.1 ms to 356.3 ms and from 82.2 ms to 70.6 ms. One-
+thread minor faults fell from 40,162 to 29,429 on 5D3 and from 85,200 to 61,189
+on Pixel 8. Those numbers describe the removed Linux allocation state. Details are in
 [the LJPEG allocation follow-up](dng-gap-profiles/ljpeg-allocation-followup.txt).
 
-A subsequent minor-fault call graph showed that the remaining faults are no
-longer dominated by the full-image output. Per-tile Huffman lookup allocation
-and initialization account for 86.9% of 5D3 one-thread fault samples and 80.1%
-on Pixel 8. The final measured counters are 29,359 and 61,115 faults,
-respectively; at 15 threads they are 20,858 and 44,252. Details and the
-fifteen-thread profile caveats are in
+A historical minor-fault call graph showed that, after using the removed output
+policy, the remaining faults were no longer dominated by the full-image output.
+Per-tile Huffman lookup allocation and initialization accounted for 86.9% of
+5D3 one-thread fault samples and 80.1% on Pixel 8. The measured counters in that
+state were 29,359 and 61,115 faults; at 15 threads they were 20,858 and 44,252.
+On the current plain-`Vec` state the corresponding first-decode counts are
+40,090 and 85,129 at one thread. Details and the fifteen-thread profile caveats are in
 [the remaining-fault attribution](dng-gap-profiles/ljpeg-remaining-faults.txt).
 
 Per-worker Huffman-buffer reuse was prototyped against that evidence. It cut the
@@ -175,9 +204,11 @@ experiments did not compose with the retained C path.
 
 ## Uncompressed
 
-The 12-bit uncompressed path is no longer a problem: Sigma fp is 5.47 ms versus
-FlashRaw's 10.19 ms and Rawler's 5.79 ms. The grouped 12/14-bit unpacking and
-native-endian U16 copy brought integer unpacking to Rawler parity.
+The 12-bit uncompressed path is faster than Rawler: Sigma fp is 5.50 ms versus
+Rawler's 5.79 ms and FlashRaw's 10.46 ms. The grouped 12/14-bit unpacking and
+native-endian U16 copy brought integer unpacking to Rawler parity. The 5D3
+U16 output is 44.38 ms on the portable state, still faster than Rawler's
+53.5 ms but slower than FlashRaw's 16.17 ms.
 
 The earlier conclusion that huge pages did not help was based on an invalid
 probe. The allocation was not 2 MiB-aligned and had already been zero-filled
@@ -224,11 +255,12 @@ to a `Vec` with capacity equal to length, reports allocation failure through
 test verifies both the raw allocation and its matching drop, plus the large F32
 decode path.
 
-Single-thread 5D3 uncompressed improved from 48.3 ms to 18.0 ms in the latest
-same-session run; FlashRaw measured 18.3 ms. Final Fornax counters are about
-6.55 million instructions and 1,586 faults per decode, close to FlashRaw's 7.27
-million and 1,527. The exact three-way dimensions, storage, bits, and pixel gate
-passed.
+Under the removed policy, single-thread 5D3 uncompressed improved from 48.3 ms
+to 18.0 ms and was approximately at parity with FlashRaw. The current portable
+state is 44.38 ms versus FlashRaw's 16.17 ms, with 12,751 versus 1,805 minor
+faults. Fornax still executes fewer instructions, about 7.14 million versus
+FlashRaw's 7.90 million. The exact three-way dimensions, storage, bits, and
+pixel gate passed.
 
 The profile's 95.1% sample share for Fornax's native U16 tile-copy callback is
 consistent with write/first-touch cost, not scalar unpacking. The codec already
@@ -238,9 +270,10 @@ close the 5D3 gap.
 
 ## Deflate
 
-Fornax beats Rawler by about 2.3x to 2.5x on both floating-point Deflate files.
-In the latest same-session comparison Fornax is 0.92x FlashRaw on FP16 and
-1.01x on FP32, so both cases are at parity or faster.
+Fornax beats Rawler by about 1.9x to 2.0x on both floating-point Deflate files.
+After removing the platform output policy, Fornax is 1.25x FlashRaw on FP16 and
+1.23x on FP32 at one thread, so the policy-era parity is not preserved by the
+portable scalar state.
 
 The current FP32 DWARF profile shows:
 
@@ -253,10 +286,11 @@ The current FP32 DWARF profile shows:
 
 The fused predictor and float conversion work removed most of Fornax's separate
 post-inflate passes, but inflate and byte/word reconstruction still dominate.
-Replacing miniz with zlib-rs only improved the old Fornax FP32 result by about
-2%, so a backend swap is not a credible standalone fix for the remaining gap.
-Fornax executes fewer instructions than FlashRaw on FP32 Deflate (3.03B versus
-3.84B per decode).
+After removing the platform allocation policy, an isolated zlib-rs backend
+retry improved FP16 by 5.8% at one thread but regressed it by 1.0% at 15
+threads. FP32 improved by 10.5% and 5.1%. The backend was reverted because it
+failed the both-thread-count keep rule. Fornax executes fewer instructions than
+FlashRaw on FP32 Deflate (3.03B versus 3.84B per decode).
 
 A minor-fault call-graph profile attributed 93.0% of FP32 faults to first writes
 into the full F32 output. Inflate scratch accounted for about 1.1%, so
@@ -264,20 +298,62 @@ per-worker temporary reuse would not address the dominant fault source and was
 not implemented. The profile is in
 [the Deflate fault attribution](dng-gap-profiles/deflate-minor-faults.txt).
 
-The old floating-point policy result was invalidated by a probe that did not
+The historical floating-point policy result was invalidated by a probe that did not
 report `AnonHugePages` or output fault counts. The corrected retry reported
 88,064 KiB of `AnonHugePages` for the returned FP32 buffer, with one-thread
 minor faults falling from 24,315 to 2,345 and instructions staying equal.
 Interleaved medians improved FP16 by 25.4% and FP32 by 16.3% at one thread, and
-by 18.4% and 9.4% at 15 threads. The policy is retained. Exact full-image output
-allocation sites now route through the shared allocator, and a
-counting-allocator test covers a large F32 decode. Details are in
+by 18.4% and 9.4% at 15 threads. The policy was later removed for portability.
+The portable state again reports 23,753 FP16 and 24,315 FP32 one-thread faults.
+Details are in
 [the floating-point huge-page retry](dng-gap-profiles/float-hugepage-retry.txt).
 
-## Multi-thread scaling
+## Portable Scalar Follow-up
+
+All platform allocation code was removed from `fornax-codec`. The portable
+state still executes nearly identical instruction counts, but plain zeroed
+`Vec` allocation restores first-touch faults. Detailed with/without-policy wall,
+fault, and FlashRaw values are in
+[the portable allocation regression](dng-gap-profiles/portable-allocation-regression.txt).
+
+The portable LJPEG experiments were isolated:
+
+| Change | 1T result | 15T result | Decision |
+| --- | ---: | ---: | --- |
+| 12-bit fast table | mixed synthetic; noisy 2C +21% | not retained | Reverted |
+| 11-bit fast table | mixed synthetic; noisy 2C +23% | not retained | Reverted |
+| Canonical long-code path | 5D3 +1.2%; Pixel -5.7% | 5D3 +8.6%; Pixel +1.2% | Reverted |
+| Shared `Arc` Huffman tables | 5D3 +21%; Pixel -1.2% | 5D3 +15.7%; Pixel +4.9% | Reverted |
+| Fused scalar direct-band kernel | 5D3 +1.6%; iPhone +11.4%; Pixel -3.7% | mixed; no consistent win | Reverted |
+| Fat LTO | 5D3 +6.5%; Pixel +0.7% | 5D3 +9.6%; Pixel +8.0% | Reverted |
+
+The canonical path reduced faults but raised 5D3 instructions from 100.66 to
+105.22 per sample. The fused kernel raised them to 102.31 on 5D3 and 94.30 on
+Pixel 8. Its 130 ms target was 34.2% below the portable 197.471 ms baseline; it
+missed by more than 35 percentage points. Exact data are in
+[the portable scalar follow-up](dng-gap-profiles/portable-scalar.txt),
+[the Huffman experiments](dng-gap-profiles/ljpeg-table-experiments.txt), and
+[the caller-owned output prototype](dng-gap-profiles/ljpeg-reused-output.txt).
+The fused-kernel rejection record remains on the separate
+`chore/portable-ljpeg-fused-kernel` branch.
+
+Caller-owned output reuse saved only 1.6-5.4% on synthetic tile loops and 1.6%
+on a 5D3-sized full-output loop. It does not justify an additive public
+decode-into API or its partial-write semantics.
+
+Fornax scales 5.18x on 5D3 LJPEG, 3.68x on iPhone SE, and 5.59x on Pixel 8.
+FlashRaw scales 4.27x, 5.08x, and 4.93x respectively. On 5D3 and Pixel the
+scaling is similar enough that tile scheduling is not the primary gap. Current
+LJPEG first-decode faults remain 40,090/32,324 on 5D3 and 85,129/73,879 on
+Pixel 8 at one/fifteen threads. Shared tables reduced faults but not wall time.
+
+## Historical Multi-thread Scaling
 
 Fornax and FlashRaw were both run with all 15 visible workers on the tiled
-lossless-JPEG and Deflate files. Values are medians from three fresh processes.
+lossless-JPEG and Deflate files. This table describes the removed Linux policy
+state. Portable-state values are in
+[the allocation regression](dng-gap-profiles/portable-allocation-regression.txt).
+Values are medians from three fresh processes.
 
 | File | Fornax 1T | Fornax 15T | FlashRaw 1T | FlashRaw 15T | Fornax/FlashRaw 15T |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -306,6 +382,9 @@ SIMD is not the explanation for these benchmark gaps:
 
 ## Evidence Limits
 
+- The compute experiments and profiles were run before the platform allocator
+  was removed. They remain valid for scalar work, but their wall-time and fault
+  counters describe the historical output policy unless explicitly updated.
 - The final LJPEG state has a fresh post-C DWARF profile plus
   instruction/branch/fault counters. The fused-kernel prototype was rejected
   rather than retained. Remaining faults are attributed to per-tile Huffman
@@ -314,8 +393,8 @@ SIMD is not the explanation for these benchmark gaps:
 - Pentax K-5 could not be re-measured: its corpus file is pointer-only in this
   checkout and Fornax has no Pentax container decoder.
 - The corrected float allocation probe confirmed 86 MiB of `AnonHugePages` and
-  a 90-92% one-thread fault reduction. Deflate output now uses the shared policy;
-  inflate scratch remains too small to justify a reuse prototype.
+  a 90-92% one-thread fault reduction. That policy was removed in the portable
+  follow-up; inflate scratch remains too small to justify a reuse prototype.
 - Reusable unstuffing scratch removed allocation from hypothesis A but still
   regressed noisy scans by 2-6%, so the implementation was reverted.
 - The 5D3 fifteen-thread fault profile used period 4 and lost 117 of 20,776
@@ -329,13 +408,14 @@ SIMD is not the explanation for these benchmark gaps:
   [first-touch-corrected.txt](dng-gap-profiles/first-touch-corrected.txt), and
   the FlashRaw reference counters are in
   [flashraw-counters.txt](dng-gap-profiles/flashraw-counters.txt).
-- Current same-session timings and fault evidence are in
+- Current portable timings and fault evidence are in
+  [portable-allocation-regression.txt](dng-gap-profiles/portable-allocation-regression.txt).
+  Historical policy-era ratios are in
   [same-session-ratios.txt](dng-gap-profiles/same-session-ratios.txt),
   [ljpeg-remaining-faults.txt](dng-gap-profiles/ljpeg-remaining-faults.txt), and
   [float-hugepage-retry.txt](dng-gap-profiles/float-hugepage-retry.txt).
-- The huge-page allocation path is Linux-only. Windows allocator behavior and
-  Windows huge-page performance were not measured, so no Windows optimization
-  or performance claim is made.
+- The codec no longer contains a huge-page allocation path. The historical probe
+  was Linux-only, and no Windows or macOS performance claim is made.
 
 ## Encode
 
@@ -386,13 +466,19 @@ in the Rawler and FlashRaw end-to-end comparisons.
 
 ## Follow-up Result
 
-The follow-up hardened the shared allocator, attributed the remaining LJPEG
-faults to per-tile Huffman construction, and corrected the floating-point
-first-touch experiment. The shared float policy is retained, along with the
-allocator soundness fixes and output-allocation coverage. Per-worker Huffman
-buffer reuse reduced faults but did not improve wall time and was reverted.
-Reusable unstuffing remained slower on noisy scans, and both predictor changes
-regressed real 5D3 timing.
+The follow-up attributed the remaining LJPEG faults to per-tile Huffman
+construction and corrected the floating-point first-touch experiment. A later
+portable pass removed the shared Linux allocator, its unsafe ownership transfer,
+its allocator-only tests, and the `libc` dependency. Per-worker Huffman buffer
+reuse reduced faults but did not improve wall time and was reverted. Reusable
+unstuffing remained slower on noisy scans, and both predictor changes regressed
+real 5D3 timing.
+
+No portable scalar production performance change survived the final gate.
+Table-size, canonical-code, shared-table, caller-output, fused-kernel, LTO, and
+zlib-rs experiments were measured and reverted. The retained scalar path is the
+same compute path as before, now fully portable; the report's current portable
+numbers are the baseline for a later SIMD phase.
 
 ## Sources
 
