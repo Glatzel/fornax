@@ -2,6 +2,7 @@ use rayon::prelude::*;
 
 use crate::CodecError;
 use crate::error::invalid;
+use crate::large_alloc::zeroed_samples;
 use crate::request::{ByteOrder, Chunk, SampleFormat};
 use crate::sample_buffer::SampleBuffer;
 
@@ -102,7 +103,7 @@ fn decode_integer(
     let sample_count = geometry.sample_count()?;
     match bits {
         1..=8 => {
-            let mut output = vec![0_u8; sample_count];
+            let mut output = zeroed_samples(sample_count)?;
             if bits == 8 {
                 copy_samples(geometry, byte_order, payloads, &mut output)?;
             } else {
@@ -112,7 +113,7 @@ fn decode_integer(
             buffer_u8(geometry.width, geometry.height, output)
         }
         9..=16 => {
-            let mut output = vec![0_u16; sample_count];
+            let mut output = zeroed_samples(sample_count)?;
             if bits == 16 {
                 copy_samples(geometry, byte_order, payloads, &mut output)?;
             } else if matches!(bits, 12 | 14) {
@@ -124,12 +125,12 @@ fn decode_integer(
             buffer_u16(geometry.width, geometry.height, output)
         }
         17..=31 => {
-            let mut output = vec![0_u32; sample_count];
+            let mut output = zeroed_samples(sample_count)?;
             decode_packed(geometry, bits, payloads, |value| value, &mut output)?;
             buffer_u32(geometry.width, geometry.height, output)
         }
         32 => {
-            let mut output = vec![0_u32; sample_count];
+            let mut output = zeroed_samples(sample_count)?;
             copy_samples(geometry, byte_order, payloads, &mut output)?;
             buffer_u32(geometry.width, geometry.height, output)
         }
@@ -156,14 +157,14 @@ fn decode_float(
     };
     if bits == 64 {
         let sample_count = geometry.sample_count()?;
-        let mut output = vec![0_f64; sample_count];
+        let mut output = zeroed_samples(sample_count)?;
         decode_float_with(geometry, bytes_per_sample, payloads, &mut output, |bytes| {
             f64::from_bits(read_u64(bytes, byte_order))
         })?;
         return buffer_f64(geometry.width, geometry.height, output);
     }
     let sample_count = geometry.sample_count()?;
-    let mut output = vec![0_f32; sample_count];
+    let mut output = zeroed_samples(sample_count)?;
 
     // Width and byte order are resolved once here, not per sample.
     macro_rules! go {

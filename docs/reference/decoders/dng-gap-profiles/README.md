@@ -5,6 +5,64 @@ Host-specific evidence for PR #734 successors. Host: WSL2 Debian, AMD Ryzen 7
 `2.41-12+deb13u3`, THP `[madvise]`, THP defrag `[madvise]`. Do not compare
 numbers across host sessions; ratios below use same-session FlashRaw.
 
+## Linux large-page allocation
+
+The current codec restores the first-touch policy as one platform-specific
+module, [`large_alloc.rs`](../../../../crates/fornax-codec/src/large_alloc.rs).
+Linux with the default-on `large-page-hint` feature uses natural-alignment
+`alloc_zeroed` for final outputs at least 8 MiB, advises the 2 MiB-aligned live
+interior with `MADV_HUGEPAGE`, and adopts the block into the owned `Vec`.
+Windows, macOS, Miri, feature off, and smaller outputs use a plain zeroed `Vec`.
+The public decode API is unchanged.
+
+All platform code and unsafe operations are in that module. It is called from
+`samples.rs` (integer, float, uncompressed, and the final image stage of the
+other payload codecs), `deflate.rs`, `ljpeg.rs`, `jpeg.rs`, and `jpegxl.rs`.
+LJPEG's <=8-bit final U8 conversion is routed through it as well. The module has
+two production unsafe blocks: allocation plus Vec adoption, and `madvise`.
+Counting-allocator tests and their unsafe trait implementation stay in the same
+file.
+
+The exact same-session regression table against PR #736 is:
+
+| File | Threads | Plain `Vec` | With module | Change | With/FlashRaw |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 5D3 uncompressed | 1 | 47.357 ms | 18.400 ms | -61.1% | 1.008x |
+| 5D3 uncompressed | 15 | 47.036 ms | 18.070 ms | -61.6% | 0.982x |
+| Sigma fp | 1 | 5.794 ms | 5.635 ms | -2.7% | 0.507x |
+| Sigma fp | 15 | 5.850 ms | 5.742 ms | -1.8% | 0.502x |
+| 5D3 LJPEG | 1 | 177.101 ms | 143.696 ms | -18.9% | 1.514x |
+| 5D3 LJPEG | 15 | 31.790 ms | 30.092 ms | -5.3% | 0.321x |
+| Pixel 8 LJPEG | 1 | 363.639 ms | 288.105 ms | -20.8% | 1.508x |
+| Pixel 8 LJPEG | 15 | 61.866 ms | 54.165 ms | -12.4% | 0.284x |
+| iPhone SE LJPEG | 1 | 61.711 ms | 61.455 ms | -0.4% | 1.493x |
+| iPhone SE LJPEG | 15 | 13.836 ms | 13.307 ms | -3.8% | 0.321x |
+| 5D3 FP16 Deflate | 1 | 239.522 ms | 180.030 ms | -24.8% | 0.949x |
+| 5D3 FP16 Deflate | 15 | 54.220 ms | 44.281 ms | -18.3% | 0.233x |
+| 5D3 FP32 Deflate | 1 | 401.427 ms | 340.140 ms | -15.3% | 1.035x |
+| 5D3 FP32 Deflate | 15 | 66.707 ms | 60.219 ms | -9.7% | 0.180x |
+
+Medians use three fresh interleaved processes x five rounds. The 1T and 15T
+FP32 ranges are disjoint, and no measured case regresses. The suggested 20%
+relative gate is not met by FP32, but the 1T result reproduces the earlier
+approximately 60 ms absolute win; the keep decision is recorded in
+[the main gap report](../dng-remaining-gap.md).
+
+On 5D3, fresh-process one-thread `AnonHugePages` is 43,008 KiB for uncompressed
+and LJPEG and 88,064 KiB for FP32. Minor faults change from 12,750 to 2,021,
+40,091 to 29,360, and 24,316 to 2,342 respectively. The host blocks setting THP
+to `never`, so a feature-off binary is the fallback proxy; it stays within
+process noise. Full ranges, fallback values, cross-target results, and evidence
+limits are in
+[the large-page allocation evidence](large-page-allocation.txt). These numbers
+are Linux-only and unmeasured on Windows or macOS.
+
+When maintaining the module, re-check the `Layout::array::<T>(len)` natural
+alignment, the same-global-allocator Vec adoption with `capacity == len`, the
+8 MiB threshold, and the `AnonHugePages`/minor-fault probe after Rust, glibc, or
+kernel changes. Over-alignment is a regression: it makes the allocation
+zero-fill before `madvise` and silently disables the first-touch benefit.
+
 ## Reproduction
 
 Build the exact-input probe:

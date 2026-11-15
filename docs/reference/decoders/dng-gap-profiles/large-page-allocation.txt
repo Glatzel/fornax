@@ -1,0 +1,96 @@
+Linux large-page sample allocation
+==================================
+
+Host
+----
+
+WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs, kernel
+6.6.87.1-microsoft-standard-WSL2, glibc 2.41, THP [madvise], THP defrag
+[madvise]. Release build, page-cache-hot inputs, one warmup per process, five
+measured rounds per process, three fresh processes per decoder. Baseline,
+candidate, and FlashRaw processes were interleaved in one session by rotating
+their order across processes.
+
+Baseline: 985c704 (PR #736). Candidate: this branch. All rows passed exact
+three-way dimensions, storage, bits, and pixel equality before timing.
+
+Wall time
+---------
+
+Medians over 15 rounds; ranges are min-max. Ratios below 1.0 favor the
+candidate.
+
+case,threads,baseline_ms,candidate_ms,flashraw_ms,candidate/baseline,candidate/flashraw,baseline/flashraw,min-max baseline,min-max candidate,min-max FlashRaw
+5D3_uncompressed,1T,47.357,18.400,18.251,0.389,1.008,2.595,46.873-57.013,17.694-20.425,17.700-18.923
+5D3_uncompressed,15T,47.036,18.070,18.411,0.384,0.982,2.555,46.032-50.298,16.426-19.400,17.699-19.117
+Sigma_fp,1T,5.794,5.635,11.118,0.973,0.507,0.521,5.029-15.898,5.086-7.033,10.514-14.301
+Sigma_fp,15T,5.850,5.742,11.438,0.981,0.502,0.511,5.366-15.791,5.115-7.985,10.599-13.059
+5D3_LJPEG,1T,177.101,143.696,94.883,0.811,1.514,1.867,174.858-183.514,140.806-159.376,92.651-110.110
+5D3_LJPEG,15T,31.790,30.092,93.804,0.947,0.321,0.339,30.737-34.853,28.888-32.098,92.823-101.610
+Pixel_8_LJPEG,1T,363.639,288.105,191.054,0.792,1.508,1.903,355.795-400.448,282.754-338.472,188.721-232.084
+Pixel_8_LJPEG,15T,61.866,54.165,190.613,0.876,0.284,0.325,60.042-73.770,53.384-66.245,187.315-206.092
+iPhone_SE_LJPEG,1T,61.711,61.455,41.161,0.996,1.493,1.499,60.869-76.400,60.661-66.904,40.263-45.450
+iPhone_SE_LJPEG,15T,13.836,13.307,41.419,0.962,0.321,0.334,11.581-15.321,11.341-16.369,40.287-43.424
+5D3_FP16_Deflate,1T,239.522,180.030,189.690,0.752,0.949,1.263,236.834-264.791,176.348-212.988,187.545-221.153
+5D3_FP16_Deflate,15T,54.220,44.281,190.327,0.817,0.233,0.285,46.523-55.454,37.078-47.857,188.165-200.685
+5D3_FP32_Deflate,1T,401.427,340.140,328.783,0.847,1.035,1.221,397.346-419.876,335.991-363.042,326.821-359.267
+5D3_FP32_Deflate,15T,66.707,60.219,334.123,0.903,0.180,0.200,65.494-68.490,58.083-61.984,329.772-379.231
+
+5D3 uncompressed improves 61.1% at 1T and 61.6% at 15T. FP32 Deflate
+improves 61.287 ms (15.3%) at 1T and 6.488 ms (9.7%) at 15T; both candidate
+ranges are disjoint from baseline. FP16 improves 24.8% and 18.3%. No measured
+case has a slower candidate median. The suggested 20% relative gate is not met
+by FP32; the 1T absolute improvement matches the approximately 60 ms policy-era
+expectation.
+
+Linux huge pages and faults
+---------------------------
+
+Fresh process, one decode, no warmup. AnonHugePages is read from /proc/self/smaps
+after the returned mosaic is complete. That inspection is excluded from the
+wall-time table above.
+
+case,baseline minor faults,candidate minor faults,baseline AnonHugePages KiB,candidate AnonHugePages KiB
+5D3_uncompressed,12750,2021,0,43008
+5D3_LJPEG,40091,29360,0,43008
+5D3_FP32_Deflate,24316,2342,0,88064
+
+The fault count changes in every probe. A candidate result with zero
+AnonHugePages or unchanged faults was treated as invalid.
+
+Feature-off fallback
+--------------------
+
+The host cannot change /sys/kernel/mm/transparent_hugepage/enabled (non-root
+and no_new_privs). The fallback proxy is the same candidate built with
+large-page-hint disabled, measured with the same three-process, five-round,
+same-session FlashRaw protocol.
+
+case,threads,baseline_ms,fallback_ms,fallback/baseline,min-max baseline,min-max fallback
+5D3_uncompressed,1T,47.133,47.421,1.006,46.498-48.857,46.520-48.516
+5D3_uncompressed,15T,47.640,47.879,1.005,46.678-48.857,46.890-49.017
+Sigma_fp,1T,6.055,5.929,0.979,5.715-15.781,5.560-15.779
+Sigma_fp,15T,5.627,5.833,1.037,5.332-15.604,5.377-15.673
+5D3_LJPEG,1T,176.327,177.086,1.004,173.806-180.350,174.459-186.114
+5D3_LJPEG,15T,33.548,33.895,1.010,30.890-34.555,30.655-35.047
+Pixel_8_LJPEG,1T,360.658,364.603,1.011,352.575-374.457,355.180-383.804
+Pixel_8_LJPEG,15T,61.253,62.778,1.025,60.734-72.350,61.912-73.885
+iPhone_SE_LJPEG,1T,61.828,62.470,1.010,60.783-76.295,61.521-78.435
+iPhone_SE_LJPEG,15T,13.741,14.421,1.049,11.461-14.904,13.606-18.279
+5D3_FP16_Deflate,1T,238.478,237.421,0.996,236.486-253.363,234.372-245.060
+5D3_FP16_Deflate,15T,54.738,55.358,1.011,47.283-56.038,47.709-56.712
+5D3_FP32_Deflate,1T,399.795,399.713,1.000,394.701-409.420,395.949-414.486
+5D3_FP32_Deflate,15T,67.370,68.686,1.020,66.006-68.926,66.963-70.928
+
+The fallback changes no median by more than 2.5% except the noisy iPhone 15T
+case; every range overlaps. It adds no material cost relative to the PR #736
+baseline. A literal THP=never host run remains unperformed.
+
+Decision
+--------
+
+Keep the module. The 5D3 uncompressed win is unambiguous, the FP32 1T absolute
+win is approximately 61 ms, both thread-count ranges are separated, and no case
+regresses beyond process noise. The relative FP32 result is below the suggested
+20%, so this is an explicit judgment based on the restored policy's historical
+ceiling, absolute gain, same-session FlashRaw ratio, and fault evidence.

@@ -4,6 +4,7 @@ use jxl_oxide::JxlImage;
 use rayon::prelude::*;
 
 use crate::error::invalid;
+use crate::large_alloc::zeroed_samples;
 use crate::request::{DecodeRequest, SampleFormat};
 use crate::samples::{Geometry, buffer_u8, buffer_u16, chunk};
 use crate::{CodecError, Predictor, SampleBuffer};
@@ -31,7 +32,7 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
             .width
             .checked_mul(geometry.height)
             .ok_or_else(|| invalid("JPEG XL sample count overflow"))?;
-        let mut output = vec![0_u8; sample_count];
+        let mut output = zeroed_samples(sample_count)?;
         decode_into(request, &geometry, &mut output, decode_u8)?;
         buffer_u8(geometry.width, geometry.height, output)
     } else {
@@ -39,7 +40,7 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
             .width
             .checked_mul(geometry.height)
             .ok_or_else(|| invalid("JPEG XL sample count overflow"))?;
-        let mut output = vec![0_u16; sample_count];
+        let mut output = zeroed_samples(sample_count)?;
         let bits = request.bits_per_sample;
         decode_into(
             request,
