@@ -1,0 +1,157 @@
+# Portable scalar DNG follow-up
+
+Host: WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs. Kernel
+`6.6.87.1-microsoft-standard-WSL2`, glibc `2.41-12+deb13u3`, THP
+`[madvise]`, THP defrag `[madvise]`. Release build, page-cache-hot inputs.
+All values are host-specific and are not portable performance guarantees.
+
+## Environment
+
+The machine has 8 physical cores and 15 visible SMT CPUs. The measurements use
+one Rayon worker for single-thread cases and all 15 visible workers for scaling
+cases. FlashRaw receives the same worker count through
+`FORNAX_FLASHRAW_THREADS`.
+
+## Huffman tables
+
+The 12-bit table, 11-bit table, canonical slow path, and shared `Arc` table cache
+were all rejected. Details and exact wall/fault/instruction results are in
+[`ljpeg-table-experiments.txt`](ljpeg-table-experiments.txt).
+
+The retained 13-bit representation uses 163,840 bytes per table on this target:
+131,072 bytes for the 16-bit symbol lookup and 32,768 bytes for the fused fast
+lookup. The smaller tables save memory but increase fast-path misses on noisy
+two-component scans. The canonical path sharply reduces memory and faults but
+raises instruction count and wall time.
+
+## Caller-owned output
+
+The bench-only caller-owned output prototype is in
+[`ljpeg-reused-output.txt`](ljpeg-reused-output.txt). Reusing output saves
+1.6-5.4% on synthetic tile loops and 1.6% in a 5D3-sized full-output loop. It
+does not justify a public decode-into API. No API change was made.
+
+## Fused scalar kernel
+
+The separate `chore/portable-ljpeg-fused-kernel` branch tested const-generic
+one/two-component row decoding with direct stores into the image band and local
+first-column/left predictors. It was rejected:
+
+| File | Threads | Portable baseline | Fused kernel | Change |
+| --- | ---: | ---: | ---: | ---: |
+| 5D3 LJPEG | 1 | 197.471 ms | 200.554 ms | +1.6% |
+| 5D3 LJPEG | 15 | 38.150 ms | 39.726 ms | +4.1% |
+| iPhone SE LJPEG | 1 | 72.831 ms | 81.113 ms | +11.4% |
+| iPhone SE LJPEG | 15 | 19.813 ms | 19.590 ms | -1.1% |
+| Pixel 8 LJPEG | 1 | 432.649 ms | 416.595 ms | -3.7% |
+| Pixel 8 LJPEG | 15 | 77.422 ms | 78.365 ms | +1.2% |
+
+Instructions per output sample rose from 100.66 to 102.31 on 5D3 and from 92.55
+to 94.30 on Pixel 8. Fornax already has higher IPC than FlashRaw on all three
+LJPEG files, so reducing cycles requires a smaller instruction stream rather
+than removing stalls. Full details are on the separate branch in
+`dng-gap-profiles/ljpeg-fused-scalar.txt`.
+
+## Bounds checks and profile settings
+
+`cargo rustc -p fornax-codec --release --all-features --lib -- --emit=asm`
+produced 147,316 lines of assembly. The hot row loop is fully inlined into the
+consumer, and the assembly still contains panic cold paths for fallible indexing
+and invariant checks. The annotated heavy regions remain the Huffman miss,
+refill, and amplitude path, not standalone row-slice checks. No source-level
+bounds-check rewrite produced a credible independent candidate, so no product
+change was made.
+
+Fat LTO was tested with the library benchmark only:
+
+| File | Threads | Default release | Fat LTO | Change |
+| --- | ---: | ---: | ---: | ---: |
+| 5D3 LJPEG | 1 | 197.471 ms | 210.214 ms | +6.5% |
+| 5D3 LJPEG | 15 | 38.150 ms | 41.823 ms | +9.6% |
+| Pixel 8 LJPEG | 1 | 432.649 ms | 435.496 ms | +0.7% |
+| Pixel 8 LJPEG | 15 | 77.422 ms | 83.619 ms | +8.0% |
+
+Reverted. No workspace profile was changed.
+
+## Fifteen-thread scaling
+
+| File | Tiles | Fornax 1T | Fornax 15T | Speedup | Efficiency | FlashRaw speedup |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 5D3 LJPEG | 171 | 197.471 ms | 38.150 ms | 5.18x | 34.5% | 4.27x |
+| iPhone SE LJPEG | 640 | 72.831 ms | 19.813 ms | 3.68x | 24.5% | 5.08x |
+| Pixel 8 LJPEG | 1,928 | 432.649 ms | 77.422 ms | 5.59x | 37.3% | 4.93x |
+| 5D3 FP16 Deflate | 171 bands | 236.454 ms | 54.565 ms | 4.33x | 28.9% | 3.62x |
+| 5D3 FP32 Deflate | 171 bands | 397.185 ms | 67.891 ms | 5.85x | 39.0% | 5.03x |
+
+Fornax scales in the same range as FlashRaw on 5D3 and Pixel 8. iPhone SE has
+enough tiles but is too short for good all-thread efficiency. There is no
+evidence that per-tile granularity is the primary scaling defect.
+
+Current first-decode minor faults:
+
+| File | 1T | 15T |
+| --- | ---: | ---: |
+| 5D3 LJPEG | 40,090 | 32,324 |
+| iPhone SE LJPEG | 11,134 | 10,384 |
+| Pixel 8 LJPEG | 85,129 | 73,879 |
+| 5D3 FP16 Deflate | 23,753 | 24,964 |
+| 5D3 FP32 Deflate | 24,315 | 26,057 |
+
+The historical call-site profile attributes 86.9% of 5D3 and 80.1% of Pixel 8
+one-thread LJPEG faults to per-tile Huffman lookup allocation and
+initialization. Output, row scratch, marker checks, and source mapping do not
+dominate. Shared tables reduced faults but regressed wall time, so there is no
+retained temporary-reuse change.
+
+## Deflate backend recheck
+
+The portable baseline uses flate2's current miniz backend. A temporary feature
+enabled flate2's `zlib-rs` backend for one isolated comparison. The feature was
+reverted after measurement.
+
+| File | Threads | Miniz | Zlib-rs | Change | Zlib-rs / FlashRaw |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| FP16 Deflate | 1 | 236.454 ms | 222.798 ms | -5.8% | 1.250x |
+| FP16 Deflate | 15 | 54.565 ms | 55.107 ms | +1.0% | 0.955x |
+| FP32 Deflate | 1 | 397.185 ms | 355.684 ms | -10.5% | 1.185x |
+| FP32 Deflate | 15 | 67.891 ms | 64.437 ms | -5.1% | 1.016x |
+
+`cargo tree` confirmed that zlib-rs was the selected backend. The backend is
+promising for FP32 and the one-thread cases, but it does not improve FP16 at 15
+threads and therefore fails the keep rule for an unconfounded backend swap.
+Reverted; a later SIMD-era backend review can reconsider it.
+
+## Kept and reverted
+
+Kept:
+
+- Removal of Linux huge-page allocation and all `fornax-codec` platform code.
+- Portable allocation regression and same-session FlashRaw evidence.
+- Long 16-bit Huffman-code regression coverage.
+- Bench-only caller-owned output experiments.
+- Negative-result and environment documentation.
+
+Reverted:
+
+- 12-bit fast Huffman lookup.
+- 11-bit fast Huffman lookup.
+- Canonical slow path without the 16-bit symbol table.
+- Shared `Arc` Huffman tables.
+- Fused const-generic direct-band kernel.
+- Fat LTO.
+- zlib-rs default backend.
+
+## Portable scalar conclusion
+
+Plain scalar Rust can keep every measured integer file faster than Rawler, and
+Sigma fp remains faster than FlashRaw. It cannot preserve the removed
+first-touch policy's 5D3 uncompressed and Deflate parity using safe standard
+allocation alone.
+
+The LJPEG gap is instruction-bound: Fornax executes about 100.7 instructions per
+output sample on 5D3 versus 40.7 for FlashRaw, while already achieving higher
+IPC. Table-footprint and kernel experiments moved construction faults or a few
+index operations, but none removed a large enough share of the Huffman-hit,
+refill, and amplitude instruction stream. Further scalar-only LJPEG work should
+require new annotation evidence; the next material step is the explicitly
+deferred SIMD phase.

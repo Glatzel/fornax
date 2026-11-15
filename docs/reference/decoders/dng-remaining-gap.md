@@ -286,10 +286,11 @@ The current FP32 DWARF profile shows:
 
 The fused predictor and float conversion work removed most of Fornax's separate
 post-inflate passes, but inflate and byte/word reconstruction still dominate.
-Replacing miniz with zlib-rs only improved the old Fornax FP32 result by about
-2%, so a backend swap is not a credible standalone fix for the remaining gap.
-Fornax executes fewer instructions than FlashRaw on FP32 Deflate (3.03B versus
-3.84B per decode).
+After removing the platform allocation policy, an isolated zlib-rs backend
+retry improved FP16 by 5.8% at one thread but regressed it by 1.0% at 15
+threads. FP32 improved by 10.5% and 5.1%. The backend was reverted because it
+failed the both-thread-count keep rule. Fornax executes fewer instructions than
+FlashRaw on FP32 Deflate (3.03B versus 3.84B per decode).
 
 A minor-fault call-graph profile attributed 93.0% of FP32 faults to first writes
 into the full F32 output. Inflate scratch accounted for about 1.1%, so
@@ -306,6 +307,45 @@ by 18.4% and 9.4% at 15 threads. The policy was later removed for portability.
 The portable state again reports 23,753 FP16 and 24,315 FP32 one-thread faults.
 Details are in
 [the floating-point huge-page retry](dng-gap-profiles/float-hugepage-retry.txt).
+
+## Portable Scalar Follow-up
+
+All platform allocation code was removed from `fornax-codec`. The portable
+state still executes nearly identical instruction counts, but plain zeroed
+`Vec` allocation restores first-touch faults. Detailed with/without-policy wall,
+fault, and FlashRaw values are in
+[the portable allocation regression](dng-gap-profiles/portable-allocation-regression.txt).
+
+The portable LJPEG experiments were isolated:
+
+| Change | 1T result | 15T result | Decision |
+| --- | ---: | ---: | --- |
+| 12-bit fast table | mixed synthetic; noisy 2C +21% | not retained | Reverted |
+| 11-bit fast table | mixed synthetic; noisy 2C +23% | not retained | Reverted |
+| Canonical long-code path | 5D3 +1.2%; Pixel -5.7% | 5D3 +8.6%; Pixel +1.2% | Reverted |
+| Shared `Arc` Huffman tables | 5D3 +21%; Pixel -1.2% | 5D3 +15.7%; Pixel +4.9% | Reverted |
+| Fused scalar direct-band kernel | 5D3 +1.6%; iPhone +11.4%; Pixel -3.7% | mixed; no consistent win | Reverted |
+| Fat LTO | 5D3 +6.5%; Pixel +0.7% | 5D3 +9.6%; Pixel +8.0% | Reverted |
+
+The canonical path reduced faults but raised 5D3 instructions from 100.66 to
+105.22 per sample. The fused kernel raised them to 102.31 on 5D3 and 94.30 on
+Pixel 8. Its 130 ms target was 34.2% below the portable 197.471 ms baseline; it
+missed by more than 35 percentage points. Exact data are in
+[the portable scalar follow-up](dng-gap-profiles/portable-scalar.txt),
+[the Huffman experiments](dng-gap-profiles/ljpeg-table-experiments.txt), and
+[the caller-owned output prototype](dng-gap-profiles/ljpeg-reused-output.txt).
+The fused-kernel rejection record remains on the separate
+`chore/portable-ljpeg-fused-kernel` branch.
+
+Caller-owned output reuse saved only 1.6-5.4% on synthetic tile loops and 1.6%
+on a 5D3-sized full-output loop. It does not justify an additive public
+decode-into API or its partial-write semantics.
+
+Fornax scales 5.18x on 5D3 LJPEG, 3.68x on iPhone SE, and 5.59x on Pixel 8.
+FlashRaw scales 4.27x, 5.08x, and 4.93x respectively. On 5D3 and Pixel the
+scaling is similar enough that tile scheduling is not the primary gap. Current
+LJPEG first-decode faults remain 40,090/32,324 on 5D3 and 85,129/73,879 on
+Pixel 8 at one/fifteen threads. Shared tables reduced faults but not wall time.
 
 ## Historical Multi-thread Scaling
 
@@ -433,6 +473,12 @@ its allocator-only tests, and the `libc` dependency. Per-worker Huffman buffer
 reuse reduced faults but did not improve wall time and was reverted. Reusable
 unstuffing remained slower on noisy scans, and both predictor changes regressed
 real 5D3 timing.
+
+No portable scalar production performance change survived the final gate.
+Table-size, canonical-code, shared-table, caller-output, fused-kernel, LTO, and
+zlib-rs experiments were measured and reverted. The retained scalar path is the
+same compute path as before, now fully portable; the report's current portable
+numbers are the baseline for a later SIMD phase.
 
 ## Sources
 
