@@ -454,11 +454,12 @@ The full workspace validation was started, completed workspace tests and
 doctests, then hit repeated clippy fixes. Per explicit user instruction after
 the final focused-test pass, the remaining full validation rerun was skipped.
 
-- [ ] **Step 5: Inspect the diff, commit, open the pull request, and stop**
+- [x] **Step 5: Inspect the diff, commit, open the pull request, and stop**
 
 Do not optimize Deflate. Do not add speculative follow-up code. Commit the plan,
 measurement artifacts, selected changes, and report update in one semantic pull
-request.
+request. Pull request:
+[#724](https://github.com/Glatzel/fornax/pull/724).
 
 ## Validation
 
