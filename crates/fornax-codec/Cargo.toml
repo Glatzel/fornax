@@ -8,6 +8,10 @@ harness = false
 name = "ljpeg_gap_probe"
 required-features = ["lossless-jpeg"]
 
+[[bench]]
+harness = false
+name = "encode_probe"
+
 [dependencies]
 bytemuck.workspace = true
 flate2 = { workspace = true, optional = true }

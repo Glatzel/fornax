@@ -1,7 +1,11 @@
+#[path = "support/synthetic.rs"]
+mod synthetic;
+
 use fornax_codec::{
     ByteOrder, Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest,
     EncodedChunks, ICodecDecode, ICodecEncode, Predictor, SampleBuffer, SampleFormat,
 };
+use synthetic::{FixtureSample, SyntheticPattern, uncompressed_fixture};
 
 const fn encode_request(
     image: &SampleBuffer,
@@ -484,45 +488,39 @@ fn zstd_round_trips_integer_and_float_chunks() {
 }
 
 #[test]
-fn uncompressed_round_trips_every_sample_type() {
-    let images = [
-        SampleBuffer::from_u8(2, 1, vec![0, 255]).unwrap(),
-        SampleBuffer::from_u16(2, 1, vec![0, 65_535]).unwrap(),
-        SampleBuffer::from_u32(2, 1, vec![0, 4_000_000_000]).unwrap(),
-        SampleBuffer::from_f32(2, 1, vec![-1.5, f32::from_bits(0x7fc0_1234)]).unwrap(),
-        SampleBuffer::from_f64(2, 1, vec![-1.5, f64::from_bits(0x7ff8_0000_0000_1234)]).unwrap(),
-    ];
-
-    for image in images {
-        let encoded = encode_with(
-            &image,
-            2,
-            1,
-            Predictor::None,
-            EncodeCompression::Uncompressed,
-        )
-        .unwrap();
-        let (source, chunks) = source_and_chunks(encoded);
-        let (bits, sample_format) = match &image {
-            SampleBuffer::U8(_) => (8, SampleFormat::Integer),
-            SampleBuffer::U16(_) => (16, SampleFormat::Integer),
-            SampleBuffer::U32(_) => (32, SampleFormat::Integer),
-            SampleBuffer::F32(_) => (32, SampleFormat::Float),
-            SampleBuffer::F64(_) => (64, SampleFormat::Float),
-            _ => unreachable!(),
-        };
-        let request = decode_request(
-            &source,
-            &chunks,
-            2,
-            1,
-            2,
-            1,
-            bits,
-            sample_format,
-            Predictor::None,
-            DecodeCompression::Uncompressed,
-        );
-        assert_sample_buffer_eq(&request.decode().unwrap(), &image);
+fn synthetic_uncompressed_fixtures_round_trip_every_sample_type() {
+    for byte_order in [ByteOrder::Little, ByteOrder::Big] {
+        assert_uncompressed_fixture::<u8>(byte_order);
+        assert_uncompressed_fixture::<u16>(byte_order);
+        assert_uncompressed_fixture::<u32>(byte_order);
+        assert_uncompressed_fixture::<f32>(byte_order);
+        assert_uncompressed_fixture::<f64>(byte_order);
     }
+}
+
+fn assert_uncompressed_fixture<S: FixtureSample>(byte_order: ByteOrder) {
+    let fixture = uncompressed_fixture::<S>(
+        23,
+        19,
+        8,
+        6,
+        byte_order,
+        SyntheticPattern::Noisy { seed: 0xc0de },
+    );
+    let request = TestRequest {
+        compression: DecodeCompression::Uncompressed,
+        request: DecodeRequest {
+            source: &fixture.source,
+            width: 23,
+            height: 19,
+            chunk_width: 8,
+            chunk_height: 6,
+            chunks: &fixture.chunks,
+            bits_per_sample: S::BITS,
+            sample_format: S::FORMAT,
+            byte_order,
+            predictor: Predictor::None,
+        },
+    };
+    assert_sample_buffer_eq(&request.decode().unwrap(), &fixture.image);
 }

@@ -212,6 +212,53 @@ SIMD is not the explanation for these benchmark gaps:
 - All reported ratios are single-file, single-thread, page-cache-hot
   measurements and should not be aggregated into a corpus-wide speed claim.
 
+## Encode
+
+The uncompressed encoder now dispatches the `SampleBuffer` variant once, uses
+a typed row writer for every tile, and parallelizes complete chunk payloads.
+Synthetic encoding measurements used the same WSL2 Debian host as the decode
+work: AMD Ryzen 7 5800H with 15 visible CPUs, release mode, hot in-memory input,
+and no filesystem I/O in the timed region. Median and observed min-max ranges
+come from 30 rounds after 10 warmups; the original baseline used 10 rounds
+after 3 warmups. These numbers are host-specific.
+
+| Case | Payload | Original | Typed serial | Final |
+| --- | ---: | ---: | ---: | ---: |
+| 5D3 U16, 256x256 tiles | 45,219,840 B, 345 chunks | 43.7 ms | 41.5 ms | 14.0 ms (13.4-14.5 ms) |
+| 5D3 U16, 5760x16 strips | 44,236,800 B, 240 chunks | 39.2 ms | 38.4 ms | 12.4 ms (11.8-12.8 ms) |
+| Small U16, 64x64 | 8,192 B, 16 chunks | 1.58 us | 0.94 us | 1.22 us (1.19-1.44 us) |
+
+The indexed rayon change provided the large-input gain. Complete payloads are
+dispatched by chunk index, so collection preserves row-major tile order. Small
+payloads initially paid roughly 1 ms of rayon dispatch overhead. Measurements
+around the crossover put an all-serial payload at 19.5 us for 512 KiB, while
+1 MiB improved from 796 us on a single rayon worker to 646 us with the default
+pool. The retained policy uses a serial fallback for one-chunk images and
+payloads below 1 MiB, and rayon at or above that threshold.
+
+The native-byte-order `bytemuck` row-copy hypothesis was reverted. Against the
+generic loop it measured 13.9 versus 14.0 ms for 5D3 tiles, 12.4 versus 12.4 ms
+for strips, and 1.21 versus 1.22 us for the small image, with overlapping
+observed ranges. The differences were inside noise, so the simpler generic path
+remains.
+
+Per-chunk allocation was measurable in isolation: allocating the 345 tile
+vectors took 11.3 ms, while one contiguous 45 MB allocation took 0.015 ms
+before writes. A bench-only contiguous-buffer-plus-chunk-ranges prototype
+completed a full tile encode in 12.9 ms versus 14.0 ms for the
+`Vec<Vec<u8>>` API, and strips in 11.9 versus 12.4 ms. That 4-7% end-to-end
+gain does not justify changing the public `EncodedChunks` representation
+without a separate caller-owned-buffer API decision, so no production
+allocation change is retained.
+
+Before the refactor, the encoder output was snapshotted for all five sample
+types, both byte orders, padded edge tiles, one-row, one-column, and
+single-tile geometry. The final code matches all 40 original snapshots and
+roundtrips each payload through `Geometry::new` and `decode_payloads`. The
+seeded smooth/noisy fixture utility generates synthetic samples and
+uncompressed payloads for codec tests and benchmarks; exact RAW inputs remain
+in the Rawler and FlashRaw end-to-end comparisons.
+
 ## Next Probes
 
 If further work is requested, a post-C DWARF profile should first locate the
@@ -242,6 +289,10 @@ These are future experiments, not implied work in this report.
   [`dng_gap_probe.rs`](../../../crates/fornax-raw-decoder/benches/dng_gap_probe.rs).
 - Synthetic LJPEG probe:
   [`ljpeg_gap_probe.rs`](../../../crates/fornax-codec/benches/ljpeg_gap_probe.rs).
+- Uncompressed encode probe:
+  [`encode_probe.rs`](../../../crates/fornax-codec/benches/encode_probe.rs).
+- Seeded synthetic fixture:
+  [`synthetic.rs`](../../../crates/fornax-codec/tests/support/synthetic.rs).
 - Fornax implementation:
   [`ljpeg.rs`](../../../crates/fornax-codec/src/ljpeg.rs),
   [`samples.rs`](../../../crates/fornax-codec/src/samples.rs),
