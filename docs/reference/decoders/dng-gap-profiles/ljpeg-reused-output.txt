@@ -1,0 +1,66 @@
+# LJPEG caller-owned output prototype
+
+Host: WSL2 Debian, AMD Ryzen 7 5800H, kernel
+`6.6.87.1-microsoft-standard-WSL2`, glibc `2.41-12+deb13u3`, THP
+`[madvise]`, THP defrag `[madvise]`. Release build, one Rayon worker,
+page-cache-hot synthetic scan data. Values are medians of seven runs and are
+not portable performance guarantees.
+
+The prototype lives only in ignored codec tests. No public API or production
+decode path changed.
+
+## Per-tile output reuse
+
+The fresh path allocates the returned tile buffer for every decode. The reused
+path writes into one pre-touched buffer. The third variant also reuses the row
+scratch.
+
+| Components | Tiles | Fresh owned | Reused output | Change | Reused output + scratch | Change |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 16 | 7.608 ms | 7.491 ms | -1.5% | 7.229 ms | -5.0% |
+| 1 | 256 | 122.249 ms | 119.884 ms | -1.9% | 115.594 ms | -5.4% |
+| 2 | 16 | 13.118 ms | 13.390 ms | +2.1% | 13.313 ms | +1.5% |
+| 2 | 256 | 209.989 ms | 206.447 ms | -1.7% | 206.356 ms | -1.7% |
+
+## Full-output reuse
+
+A 5D3-sized synthetic request (`5920x4096`, 256x256 tiles, 384 chunks) was
+decoded seven times after warmup:
+
+| Fresh owned output | Reused pre-touched output | Change |
+| ---: | ---: | ---: |
+| 225.219 ms | 221.661 ms | -1.6% |
+
+The synthetic result does not reproduce the historical 27 ms first-touch cost
+seen for an isolated 45 MB allocation. Scalar decode and row-copy work dominate
+this loop, and the reused path is already responsible for touching every output
+page during decode.
+
+## Proposed API, not implemented
+
+The smallest additive shape is:
+
+```rust
+fn decode_into(
+    &self,
+    request: &DecodeRequest<'_>,
+    output: &mut SampleBuffer,
+) -> Result<(), CodecError>;
+```
+
+The existing owned `decode` method remains unchanged. `decode_into` would verify
+that storage variant, dimensions, and sample bits match the request before
+writing. The output is fully overwritten on success. A caller-visible partially
+written buffer on failure is undesirable, so the implementation should either
+prevalidate all tile dimensions and tables or explicitly document that the
+destination is unspecified after an error.
+
+This is ordinary safe Rust and needs no unsafe or allocator-specific behavior.
+
+## Decision
+
+No API change is justified by the portable measurements. The output-reuse
+prototype is within 2-5% on synthetic tile loops and only 1.6% on the full
+output benchmark, while a real-file API would add a second public output contract
+and partial-write semantics. Stop for an explicit API decision before any real
+file prototype or public method.

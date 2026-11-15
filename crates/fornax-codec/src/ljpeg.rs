@@ -1455,11 +1455,15 @@ impl<'a> BitWriter<'a> {
 
 #[cfg(test)]
 mod tests {
+    use std::hint::black_box;
+    use std::time::{Duration, Instant};
+
     use super::{
-        BitReader, BitWriter, FastBitReader, add_prediction, copy_tile_into,
-        decode_interleaved_impl, decode_into_rows, predict,
+        BitReader, BitWriter, FastBitReader, FastRowScratch, Geometry, add_prediction,
+        copy_tile_into, decode_interleaved_impl, decode_into_rows, decode_into_rows_with_scratch,
+        predict,
     };
-    use crate::SampleBuffer;
+    use crate::{ByteOrder, Chunk, DecodeRequest, Predictor, SampleBuffer, SampleFormat};
 
     #[test]
     fn fourteen_bit_difference_class_consumes_amplitude_bits() {
@@ -1648,5 +1652,202 @@ mod tests {
             .unwrap()
         );
         assert_eq!(rows, vec![(0, vec![1, 2]), (1, vec![3, 4])]);
+    }
+
+    #[test]
+    #[ignore = "manual allocation benchmark"]
+    fn bench_reused_output_buffer() {
+        fn median(mut values: Vec<Duration>) -> Duration {
+            values.sort_unstable();
+            values[values.len() / 2]
+        }
+
+        const WIDTH: u16 = 256;
+        const HEIGHT: u16 = 256;
+        for components in [1_u8, 2] {
+            let output_width = usize::from(WIDTH) * usize::from(components);
+            let samples = (0..output_width * usize::from(HEIGHT))
+                .map(|index| ((index * 9_973 + 17) & 0x3fff) as u16)
+                .collect::<Vec<_>>();
+            let encoded =
+                super::encode_interleaved_for_test(&samples, WIDTH, HEIGHT, components, 14);
+            for tiles in [16_usize, 256] {
+                let fresh = median(
+                    (0..7)
+                        .map(|_| {
+                            let start = Instant::now();
+                            for _ in 0..tiles {
+                                let decoded =
+                                    decode_interleaved_impl(black_box(&encoded), 14, true).unwrap();
+                                black_box(decoded.samples);
+                            }
+                            start.elapsed()
+                        })
+                        .collect(),
+                );
+
+                let mut reused = vec![0_u16; output_width * usize::from(HEIGHT)];
+                reused.fill(0xaaaa);
+                black_box(&reused);
+                let reused_output = median(
+                    (0..7)
+                        .map(|_| {
+                            let start = Instant::now();
+                            for _ in 0..tiles {
+                                let mut scratch = FastRowScratch::default();
+                                assert!(
+                                    decode_into_rows_with_scratch(
+                                        &encoded,
+                                        14,
+                                        output_width,
+                                        usize::from(HEIGHT),
+                                        &mut scratch,
+                                        |row, samples| {
+                                            let target =
+                                                &mut reused[row * output_width..][..output_width];
+                                            target.copy_from_slice(samples);
+                                            Ok(())
+                                        },
+                                    )
+                                    .unwrap()
+                                );
+                            }
+                            black_box(&reused);
+                            start.elapsed()
+                        })
+                        .collect(),
+                );
+
+                let mut scratch = FastRowScratch::default();
+                let reused_all = median(
+                    (0..7)
+                        .map(|_| {
+                            let start = Instant::now();
+                            for _ in 0..tiles {
+                                assert!(
+                                    decode_into_rows_with_scratch(
+                                        &encoded,
+                                        14,
+                                        output_width,
+                                        usize::from(HEIGHT),
+                                        &mut scratch,
+                                        |row, samples| {
+                                            let target =
+                                                &mut reused[row * output_width..][..output_width];
+                                            target.copy_from_slice(samples);
+                                            Ok(())
+                                        },
+                                    )
+                                    .unwrap()
+                                );
+                            }
+                            black_box(&reused);
+                            start.elapsed()
+                        })
+                        .collect(),
+                );
+
+                println!(
+                    "benchmark,components={components},tiles={tiles},fresh_owned_ms={:.6},\
+                     reused_output_ms={:.6},reused_output_scratch_ms={:.6}",
+                    fresh.as_secs_f64() * 1_000.0,
+                    reused_output.as_secs_f64() * 1_000.0,
+                    reused_all.as_secs_f64() * 1_000.0,
+                );
+            }
+        }
+    }
+
+    #[test]
+    #[ignore = "manual full-output benchmark"]
+    fn bench_reused_full_output() {
+        const TILE: usize = 256;
+        const WIDTH: usize = 5_920;
+        const HEIGHT: usize = 4_096;
+
+        let samples = (0..TILE * TILE)
+            .map(|index| ((index * 9_973 + 17) & 0x3fff) as u16)
+            .collect::<Vec<_>>();
+        let encoded = super::encode_interleaved_for_test(&samples, TILE as u16, TILE as u16, 1, 14);
+        let across = WIDTH.div_ceil(TILE);
+        let down = HEIGHT.div_ceil(TILE);
+        let chunk_count = across * down;
+        let mut source = Vec::with_capacity(encoded.len() * chunk_count);
+        let mut chunks = Vec::with_capacity(chunk_count);
+        for _ in 0..chunk_count {
+            chunks.push(Chunk {
+                offset: source.len(),
+                byte_count: encoded.len(),
+            });
+            source.extend_from_slice(&encoded);
+        }
+        let request = DecodeRequest {
+            source: &source,
+            width: WIDTH,
+            height: HEIGHT,
+            chunk_width: TILE,
+            chunk_height: TILE,
+            chunks: &chunks,
+            bits_per_sample: 14,
+            sample_format: SampleFormat::Integer,
+            byte_order: ByteOrder::Little,
+            predictor: Predictor::None,
+        };
+
+        let mut fresh = Vec::new();
+        for _ in 0..7 {
+            let start = Instant::now();
+            black_box(super::decode(black_box(&request)).unwrap());
+            fresh.push(start.elapsed());
+        }
+        fresh.sort_unstable();
+
+        let geometry = Geometry::new(WIDTH, HEIGHT, TILE, TILE, chunk_count).unwrap();
+        let mut output = vec![0_u16; WIDTH * HEIGHT];
+        output.fill(0xaaaa);
+        black_box(&output);
+        let mut reused = Vec::new();
+        for _ in 0..7 {
+            let start = Instant::now();
+            for tile_y_index in 0..geometry.down {
+                let mut scratch = FastRowScratch::default();
+                let tile_y = tile_y_index * TILE;
+                let copy_height = TILE.min(HEIGHT - tile_y);
+                for tile_x_index in 0..geometry.across {
+                    let index = tile_y_index * geometry.across + tile_x_index;
+                    let chunk = request.chunks[index];
+                    let encoded = &request.source[chunk.offset..chunk.offset + chunk.byte_count];
+                    let tile_x = tile_x_index * TILE;
+                    let copy_width = TILE.min(WIDTH - tile_x);
+                    assert!(
+                        decode_into_rows_with_scratch(
+                            encoded,
+                            14,
+                            TILE,
+                            TILE,
+                            &mut scratch,
+                            |row, samples| {
+                                if row < copy_height {
+                                    let target_start = row * WIDTH + tile_x;
+                                    output[target_start..target_start + copy_width]
+                                        .copy_from_slice(&samples[..copy_width]);
+                                }
+                                Ok(())
+                            },
+                        )
+                        .unwrap()
+                    );
+                }
+            }
+            black_box(&output);
+            reused.push(start.elapsed());
+        }
+        reused.sort_unstable();
+
+        println!(
+            "benchmark,full_output=tiles_{chunk_count},fresh_owned_ms={:.6},reused_ms={:.6}",
+            fresh[fresh.len() / 2].as_secs_f64() * 1_000.0,
+            reused[reused.len() / 2].as_secs_f64() * 1_000.0,
+        );
     }
 }
