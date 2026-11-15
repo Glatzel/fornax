@@ -72,23 +72,23 @@ Out of scope:
 
 ## Task Checklist
 
-- [ ] **Baseline:** Confirm the worktree is based on `origin/main`, run codec
+- [x] **Baseline:** Confirm the worktree is based on `origin/main`, run codec
   tests, build the probes, and save the 5D3 Fornax/FlashRaw counter table in
   one session.
-- [ ] **Step 0 assembly:** Capture the final hot-loop disassembly outside git;
+- [x] **Step 0 assembly:** Capture the final hot-loop disassembly outside git;
   list loop-carried instructions, stack loads/stores, and what keeps each
   value in memory.
-- [ ] **TDD Experiment 1:** Add a failing behavioral test for invariant reader
+- [x] **TDD Experiment 1:** Add a failing behavioral test for invariant reader
   ownership across a whole-row decode if the existing reader tests do not
   cover it. Implement the local-state reader with cold helpers and verify the
   test passes.
-- [ ] **Measure Experiment 1:** Run all required correctness and performance
+- [x] **Measure Experiment 1:** Run all required correctness and performance
   gates. Inspect assembly for reader-state spills. Keep or revert.
-- [ ] **TDD Experiment 3a:** Add a failing test for branchless difference
+- [x] **TDD Experiment 3a:** Add a failing test for branchless difference
   decoding at symbol boundaries, including zero, 15, 16, stuffing, marker
   termination, and a 16-bit Huffman code. Implement the compact code table and
   cold escape path.
-- [ ] **Measure Experiment 3a:** Run all required correctness and performance
+- [x] **Measure Experiment 3a:** Run all required correctness and performance
   gates. Keep or revert.
 - [ ] **Experiment 3b/3c decision:** Continue only if Experiment 3a was kept and
   measured branch misses identify the refill or marker tests as a remaining
@@ -136,3 +136,11 @@ scripts/agent-validation.sh
   and table footprint do not trade lower instruction count for worse cycles or
   wall time.
 - If a candidate fails correctness, revert it before reconsidering another.
+- Experiment 1 removed the cache stack spill in assembly and reduced 5D3
+  instructions/sample to 48.126, but 1T cycles regressed from 23.981 to 24.809,
+  so the candidate was reverted in `9a85782`.
+- Experiment 3a reduced 5D3 1T cycles/sample from 23.917 to 20.648 and wall time
+  from 175.302 ms to 157.404 ms in the same session. The compact 10-bit table
+  held only 1,024 samples as cold escapes out of 25,165,824 (0.00407%) and
+  reduced L1D load misses from 0.96167 to 0.06010 per sample. The candidate is
+  provisionally kept pending the refill-branch decision.
