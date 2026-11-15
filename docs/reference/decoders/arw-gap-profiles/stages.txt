@@ -1,0 +1,53 @@
+# Sony ARW stage split
+
+These are one-thread, page-cache-hot measurements from a release build. The
+stage probe excludes output destruction from `decode_ms`; the headline timing
+includes it. The residual below is therefore mostly result destruction,
+native-result wrapping, and measurement-boundary work. Values are
+host-specific.
+
+## Uncompressed 14-bit, ILCE-7RM3
+
+| Stage | Median |
+| --- | ---: |
+| Source `fs::read` into an owned `Vec` | 76.668 ms |
+| TIFF/container parse after the read | 74.796 ms |
+| Output allocation and first touch | 54.402 ms |
+| Pre-touched 16-bit row copy/unpack | 5.311 ms |
+| Production median | 247.555 ms |
+| Residual including result destruction | 36.378 ms |
+
+Fornax does not mmap the source in this path, so there is no Fornax source-mmap
+fault stage. The source read and the TIFF parser's full-source clone each touch
+a complete file-sized allocation. The 15-thread timing is effectively flat
+because the uncompressed file is one chunk.
+
+## Lossless JPEG 12-bit, ZV-E10M2
+
+Five-round instrumented medians:
+
+| Stage | Median |
+| --- | ---: |
+| TIFF/container parse | 11.796 ms |
+| `parse_jpeg` across 117 tiles | 2.223 ms |
+| Huffman table construction (included in parse) | 2.106 ms |
+| Entropy scan | 293.939 ms |
+| Instrumented production median | 389.267 ms |
+| Residual | 81.309 ms |
+
+## Lossless JPEG 14-bit, ILCE-7RM5
+
+Five-round instrumented medians:
+
+| Stage | Median |
+| --- | ---: |
+| TIFF/container parse | 150.304 ms |
+| `parse_jpeg` across 247 tiles | 4.500 ms |
+| Huffman table construction (included in parse) | 4.223 ms |
+| Entropy scan | 686.082 ms |
+| Instrumented production median | 1001.647 ms |
+| Residual | 160.761 ms |
+
+The residual includes the final output allocation/destruction plus Sony's
+second per-tile allocation, four-component reshuffle, and band copy. Every
+sampled Sony lossless tile is SOF3 with four JPEG components.

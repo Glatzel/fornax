@@ -1,0 +1,32 @@
+# Sony ARW remaining-gap counters
+
+Method:
+
+- Page-cache-hot inputs and release build.
+- One unmeasured decode was run for each case, thread count, and decoder.
+- `perf stat -e cycles,instructions,branch-misses,minor-faults` then measured
+  five decodes in one fresh process.
+- Counters below are normalized per decode.
+- IPC is `instructions / cycles` from the same process.
+- Instructions/sample uses the decoded U16 sample count.
+- The measurements are host-specific, not portable performance guarantees.
+
+| Case | Threads | Decoder | Instructions/decode | IPC | Branch misses/decode | Minor faults/decode | Instructions/sample |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| Uncompressed 14-bit | 1 | Fornax | 19,681,173 | 0.200 | 59,214 | 41,821 | 0.462 |
+| Uncompressed 14-bit | 1 | FlashRaw | 9,361,274 | 0.306 | 15,930 | 2,243 | 0.220 |
+| Uncompressed 14-bit | 15 | Fornax | 19,856,808 | 0.203 | 61,154 | 41,840 | 0.467 |
+| Uncompressed 14-bit | 15 | FlashRaw | 10,071,591 | 0.214 | 20,397 | 1,855 | 0.237 |
+| LJPEG 12-bit | 1 | Fornax | 5,745,030,347 | 4.415 | 3,382,922 | 18,374 | 187.312 |
+| LJPEG 12-bit | 1 | FlashRaw | 1,916,902,492 | 3.046 | 250,971 | 1,255 | 62.499 |
+| LJPEG 12-bit | 15 | Fornax | 5,746,768,803 | 3.278 | 3,463,846 | 19,177 | 187.369 |
+| LJPEG 12-bit | 15 | FlashRaw | 1,920,844,299 | 1.932 | 291,115 | 1,850 | 62.628 |
+| LJPEG 14-bit | 1 | Fornax | 12,901,658,631 | 4.303 | 7,614,862 | 52,818 | 199.255 |
+| LJPEG 14-bit | 1 | FlashRaw | 4,130,831,210 | 2.607 | 2,724,646 | 2,302 | 63.797 |
+| LJPEG 14-bit | 15 | Fornax | 12,903,755,382 | 2.576 | 8,172,281 | 53,779 | 199.287 |
+| LJPEG 14-bit | 15 | FlashRaw | 4,135,271,000 | 1.775 | 2,795,606 | 2,882 | 63.866 |
+
+Fornax is instruction-bound on both Sony lossless-JPEG cases, but the gap is
+wider than the DNG result: roughly 187-199 instructions/sample versus
+FlashRaw's 63-64. Fornax also has higher IPC, so reducing stalls alone will not
+close that gap.
