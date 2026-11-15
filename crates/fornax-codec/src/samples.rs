@@ -22,7 +22,10 @@ where
 }
 
 #[cfg(target_os = "linux")]
-fn hugepage_zeroed_samples<T: Pod>(len: usize) -> Option<Vec<T>> {
+fn hugepage_zeroed_samples<T>(len: usize) -> Option<Vec<T>>
+where
+    T: Pod,
+{
     let byte_count = len.checked_mul(size_of::<T>())?;
     if byte_count < MIN_HUGEPAGE_BYTES {
         return None;
@@ -59,7 +62,7 @@ fn hugepage_zeroed_samples<T: Pod>(len: usize) -> Option<Vec<T>> {
     }
     // The pointer came from the global allocator with `layout`, and the Vec
     // uses exactly the same length, capacity, type, and allocator.
-    Some(unsafe { Vec::from_raw_parts(pointer, len, len) })
+    Some(unsafe { Box::from(slice::from_raw_parts(pointer, len, len)).into::<Vec<_>>() })
 }
 
 pub struct Geometry {
