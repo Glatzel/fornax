@@ -121,11 +121,14 @@ impl Sample for f64 {
     }
 }
 
-fn encode_typed<S: Sample>(
+fn encode_typed<S>(
     source: &[S],
     geometry: &Geometry,
     byte_order: ByteOrder,
-) -> Result<EncodedSamples, CodecError> {
+) -> Result<EncodedSamples, CodecError>
+where
+    S: Sample,
+{
     debug_assert_eq!(
         source.len(),
         geometry.width.checked_mul(geometry.height).unwrap()
