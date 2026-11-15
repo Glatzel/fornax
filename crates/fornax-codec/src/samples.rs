@@ -10,7 +10,7 @@ const HUGE_PAGE_BYTES: usize = 2 * 1024 * 1024;
 #[cfg(target_os = "linux")]
 const MIN_HUGEPAGE_BYTES: usize = 4 * HUGE_PAGE_BYTES;
 
-pub(crate) fn zeroed_samples<T>(len: usize) -> Vec<T>
+pub fn zeroed_samples<T>(len: usize) -> Vec<T>
 where
     T: Pod,
 {
