@@ -1564,6 +1564,18 @@ mod tests {
     }
 
     #[test]
+    fn fast_decode_resolves_a_sixteen_bit_huffman_code() {
+        let mut counts = [0_u8; 16];
+        counts[15] = 1;
+        let mut lookup = vec![super::HuffmanEntry::INVALID; super::HUFFMAN_LOOKAHEAD_SIZE];
+        let table = super::HuffmanTable::parse(&counts, &[1], &mut lookup).unwrap();
+        let mut bits = FastBitReader::new(&[0, 0, 0]);
+
+        assert_eq!(table.decode_difference_fast(&mut bits), -1);
+        assert!(!bits.has_error());
+    }
+
+    #[test]
     fn malformed_huffman_code_returns_scan_error() {
         let encoded = super::encode_interleaved_for_test(&[8_192; 16], 4, 4, 1, 14);
         let dht = encoded
