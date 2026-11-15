@@ -5,11 +5,14 @@ use fornax_codec::{
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SyntheticPattern {
+    #[allow(dead_code, reason = "test only")]
     Smooth,
-    Noisy { seed: u64 },
+    Noisy {
+        seed: u64,
+    },
 }
 
-#[allow(dead_code)]
+#[allow(dead_code, reason = "test only")]
 pub trait FixtureSample: Copy {
     const BITS: u16;
     const FORMAT: SampleFormat;
