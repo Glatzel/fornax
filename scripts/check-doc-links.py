@@ -10,10 +10,7 @@ import sys
 import urllib.parse
 from pathlib import Path
 
-
-MARKDOWN_LINK = re.compile(
-    r"(?<!!)\[[^\]]*\]\((?P<target>[^)\s]+)(?:\s+[^)]*)?\)"
-)
+MARKDOWN_LINK = re.compile(r"(?<!!)\[[^\]]*\]\((?P<target>[^)\s]+)(?:\s+[^)]*)?\)")
 REPOSITORY_LINK = re.compile(
     r"https://github\.com/Glatzel/fornax/(?:blob|tree)/[^/\s]+/"
     r"(?P<target>docs/[A-Za-z0-9_./@+%?-]+)"
@@ -44,11 +41,7 @@ def repository_files(root: Path) -> list[Path]:
         check=True,
         stdout=subprocess.PIPE,
     )
-    return [
-        root / path
-        for path in result.stdout.decode().rstrip("\0").split("\0")
-        if path
-    ]
+    return [root / path for path in result.stdout.decode().rstrip("\0").split("\0") if path]
 
 
 def local_target(source: Path, value: str) -> Path | None:
@@ -74,9 +67,7 @@ def markdown_anchors(path: Path) -> set[str]:
     return anchors
 
 
-def check_target(
-    root: Path, source: Path, line: int, value: str, *, repository_rooted: bool = False
-) -> str | None:
+def check_target(root: Path, source: Path, line: int, value: str, *, repository_rooted: bool = False) -> str | None:
     value = value.strip().strip("<>")
     target_text, _, fragment = value.partition("#")
     target_text = target_text.split("?", 1)[0]
@@ -119,14 +110,16 @@ def main() -> int:
         for line_number, line in enumerate(lines, 1):
             if source.suffix == ".md":
                 for match in MARKDOWN_LINK.finditer(line):
-                    failure = check_target(
-                        root, source, line_number, match.group("target")
-                    )
+                    failure = check_target(root, source, line_number, match.group("target"))
                     if failure:
                         failures.append(failure)
-            patterns = (REPOSITORY_LINK,) if source.suffix == ".md" else (
-                REPOSITORY_LINK,
-                DOC_PATH,
+            patterns = (
+                (REPOSITORY_LINK,)
+                if source.suffix == ".md"
+                else (
+                    REPOSITORY_LINK,
+                    DOC_PATH,
+                )
             )
             for pattern in patterns:
                 for match in pattern.finditer(line):
