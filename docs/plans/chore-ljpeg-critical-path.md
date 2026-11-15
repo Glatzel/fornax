@@ -90,10 +90,10 @@ Out of scope:
   cold escape path.
 - [x] **Measure Experiment 3a:** Run all required correctness and performance
   gates. Keep or revert.
-- [ ] **Experiment 3b/3c decision:** Continue only if Experiment 3a was kept and
+- [x] **Experiment 3b/3c decision:** Continue only if Experiment 3a was kept and
   measured branch misses identify the refill or marker tests as a remaining
   bottleneck. Otherwise record why it is out of scope under the stop rule.
-- [ ] **Final report:** Record same-session counter tables, wall time, cycles,
+- [x] **Final report:** Record same-session counter tables, wall time, cycles,
   IPC, instructions, branch misses, dependency chains, stack traffic,
   decisions, and the scalar-floor conclusion.
 
@@ -143,4 +143,19 @@ scripts/agent-validation.sh
   from 175.302 ms to 157.404 ms in the same session. The compact 10-bit table
   held only 1,024 samples as cold escapes out of 25,165,824 (0.00407%) and
   reduced L1D load misses from 0.96167 to 0.06010 per sample. The candidate is
-  provisionally kept pending the refill-branch decision.
+  kept in `f06cb2e`.
+- Experiment 3b made refill unconditional when eight bytes were available.
+  Branch misses/sample fell from 0.10636 to 0.01814 on 5D3, but cycles/sample
+  rose from 20.702 to 23.330 and wall time from 162.439 ms to 178.382 ms.
+  Every real-file and synthetic case regressed, so the candidate was reverted
+  in `0c35bce`.
+- No marker-unstuffing change was started. The host cannot sample branch stacks,
+  and the branchless refill result showed that removing the remaining refill
+  branch does not pay for its extra loads and shifts.
+- Validation reached the workspace Clippy stage and stopped on pre-existing
+  `fornax-codec` test-support findings (`inline_trait_bounds`, `use_self`, and
+  `missing_const_for_fn`) outside this change. The corpus hash, workspace tests,
+  docs, codec tests, three-way equality, and lossless-JPEG cross-target checks
+  for `x86_64-pc-windows-msvc` and `aarch64-apple-darwin` passed.
+- Miri is unavailable because the nightly toolchain has no `cargo-miri`
+  component installed. Big-endian Miri therefore remains unrun.
