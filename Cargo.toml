@@ -25,7 +25,10 @@ generic-num = {
   git = "https://github.com/Glatzel/toolbox",
   tag = "v2026.10.11"
 }
-image = { git = "https://github.com/Glatzel/image-rs", default-features = false }
+image = {
+  git = "https://github.com/Glatzel/image-rs",
+  default-features = false
+}
 mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 
 # other
