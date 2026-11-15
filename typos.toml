@@ -1,5 +1,11 @@
 [files]
-extend-exclude = ["changelog.md", "**/bindings*.rs", "**/*.csv", "docs/**/*.md"]
+extend-exclude = [
+  "changelog.md",
+  "**/bindings*.rs",
+  "**/*.csv",
+  "docs/**/*.md",
+  "**/*.svg"
+]
 
 [default]
 # tombi: format.rules.array-values-order = "ascending"
