@@ -30,6 +30,11 @@ cat >"$test_root/bin/pixi" <<'EOF'
 printf 'pixi:%s\n' "$*" >>"$VALIDATION_TEST_LOG"
 EOF
 
+cat >"$test_root/bin/python3" <<'EOF'
+#!/usr/bin/env bash
+printf 'python3:%s\n' "$*" >>"$VALIDATION_TEST_LOG"
+EOF
+
 cat >"$test_root/bin/git" <<'EOF'
 #!/usr/bin/env bash
 printf 'git:%s\n' "$*" >>"$VALIDATION_TEST_LOG"
@@ -55,6 +60,7 @@ chmod +x \
     "$test_root/bin/cargo" \
     "$test_root/bin/git" \
     "$test_root/bin/pixi" \
+    "$test_root/bin/python3" \
     "$test_root/scripts/setup.sh" \
     "$test_root/scripts/agent-validation.sh"
 
@@ -98,6 +104,7 @@ assert_logged_prefix \
     'cargo:-q clippy --workspace --all-features --all-targets --exclude compare-demosaic -- '
 assert_logged 'cargo:-q bench -p fornax-decoder --no-run'
 assert_logged 'git:diff --check base --'
+assert_logged 'python3:scripts/check-doc-links.py'
 
 if grep -Fq 'compare-demosaic' "$log_file" |
     grep -Fv -- '--exclude compare-demosaic'; then
@@ -151,6 +158,7 @@ assert_logged 'cargo:-q test --all-features -p compare-demosaic'
 run_validation 'AGENTS.md\n' --docs-only
 
 assert_logged 'git:diff --check base --'
+assert_logged 'python3:scripts/check-doc-links.py'
 
 if grep -Eq '^(cargo|pixi|setup):' "$log_file"; then
     printf 'docs-only validation ran Rust or setup commands\n' >&2

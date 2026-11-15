@@ -172,6 +172,7 @@ else
 fi
 
 git diff --check "$base" --
+python3 scripts/check-doc-links.py
 
 changed_files="$(
     git diff --name-only --diff-filter=ACMRTUXB "$base" --

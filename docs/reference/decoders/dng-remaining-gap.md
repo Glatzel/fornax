@@ -1,9 +1,14 @@
 # DNG Decode Remaining Performance Gap
 
 This note records the remaining DNG decode performance gap after the
-[DNG decode performance work](../../plans/perf-dng-decode.md). It is a report,
+[DNG decode performance work](../../archive/plans/perf-dng-decode.md). It is a report,
 not an implementation plan. The acceptance target was to get the integer DNG
 paths close to Rawler 0.8.0; FlashRaw 0.2.0 remains an upper reference.
+
+The kept/reverted experiment history is consolidated in
+[the DNG performance experiment log](dng-experiments-log.md). Reproduction
+commands, input hashes, probe locations, and open items are in
+[the DNG performance resume notes](dng-gap-profiles/RESUME.md).
 
 ## Result
 
@@ -18,9 +23,9 @@ A follow-up measurement retained one additional compute optimization: the hot
 predictor-1 path now buffers error state instead of constructing and propagating
 a `Result` for every sample. It closes about one quarter of the remaining LJPEG
 time on the three measured DNGs. PR #734 later removed the first-touch policy
-from `fornax-codec`; this branch restores it as one platform-specific module
-with a default-on Linux feature while leaving the decode API and scalar compute
-paths unchanged.
+from `fornax-codec`; PR #738 restored it as one platform-specific module with a
+default-on Linux feature while leaving the decode API and scalar compute paths
+unchanged.
 
 PR #736 portable-baseline single-thread end-to-end results:
 
@@ -407,10 +412,10 @@ Details are in
 
 PR #734 removed all platform allocation code from `fornax-codec`. That state
 executes nearly identical instruction counts, but plain zeroed `Vec` allocation
-restores first-touch faults. This branch restores only the bounded Linux
-allocation module; the scalar experiments and decisions below remain from the
-portable work. Detailed historical with/without-policy wall, fault, and
-FlashRaw values are in
+restores first-touch faults. PR #738 restored the bounded Linux allocation
+module; the scalar experiments and decisions below remain from the portable
+work. Detailed historical with/without-policy wall, fault, and FlashRaw values
+are in
 [the portable allocation regression](dng-gap-profiles/portable-allocation-regression.txt).
 
 The portable LJPEG experiments were isolated:
@@ -571,11 +576,11 @@ in the Rawler and FlashRaw end-to-end comparisons.
 The follow-up attributed the remaining LJPEG faults to per-tile Huffman
 construction and corrected the floating-point first-touch experiment. A later
 portable pass removed the shared Linux allocator, its unsafe ownership transfer,
-its allocator-only tests, and the `libc` dependency. This branch restores that
-policy in `large_alloc.rs`, which owns all platform code and the two production
-unsafe blocks. Per-worker Huffman buffer reuse reduced faults but did not improve
-wall time and was reverted. Reusable unstuffing remained slower on noisy scans,
-and both predictor changes regressed real 5D3 timing.
+its allocator-only tests, and the `libc` dependency. PR #738 restored that policy
+in `large_alloc.rs`, which owns all platform code and the two production unsafe
+blocks. Per-worker Huffman buffer reuse reduced faults but did not improve wall
+time and was reverted. Reusable unstuffing remained slower on noisy scans, and
+both predictor changes regressed real 5D3 timing.
 
 ## Portable scalar LJPEG follow-up
 
@@ -641,8 +646,8 @@ the complete baseline and counter tables are in
 - Rawler 0.8.0:
   [crate](https://crates.io/crates/rawler/0.8.0),
   [source](https://docs.rs/crate/rawler/0.8.0/source/), LGPL-2.1.
-- Fornax measurements and profile notes:
-  [DNG decode performance notes](dng-performance.md).
+- Historical Fornax measurements and profile notes:
+  [DNG decode performance notes](../../archive/reference/decoders/dng-performance.md).
 - Counter, timing, synthetic-LJPEG, and DWARF call-graph artifacts:
   [DNG gap profile artifacts](dng-gap-profiles/profiles.txt),
   [LJPEG hypotheses](dng-gap-profiles/ljpeg.txt),
