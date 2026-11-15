@@ -10,7 +10,7 @@ const HUGE_PAGE_BYTES: usize = 2 * 1024 * 1024;
 #[cfg(target_os = "linux")]
 const MIN_HUGEPAGE_BYTES: usize = 4 * HUGE_PAGE_BYTES;
 
-fn zeroed_samples<T>(len: usize) -> Vec<T>
+pub(crate) fn zeroed_samples<T>(len: usize) -> Vec<T>
 where
     T: Pod,
 {
@@ -62,7 +62,7 @@ where
     }
     // The pointer came from the global allocator with `layout`, and the Vec
     // uses exactly the same length, capacity, type, and allocator.
-    Some(unsafe { Box::from(slice::from_raw_parts(pointer, len, len)).into::<Vec<_>>() })
+    Some(unsafe { Vec::from_raw_parts(pointer, len, len) })
 }
 
 pub struct Geometry {

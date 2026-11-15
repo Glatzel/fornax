@@ -8,10 +8,10 @@ paths close to Rawler 0.8.0; FlashRaw 0.2.0 remains an upper reference.
 ## Result
 
 The integer DNG target is met. Fornax is at parity with or faster than Rawler
-on every integer case measured after the optimization work. FlashRaw remains
-faster on lossless JPEG, on the 5D3 16-bit uncompressed case, and on the two
-floating-point Deflate cases. Fornax is faster than FlashRaw on the Sigma fp
-12-bit uncompressed case.
+on every integer case measured after the optimization work. Fornax is at parity
+with FlashRaw on 5D3 16-bit uncompressed, remains slower on lossless JPEG and
+the two floating-point Deflate cases, and is faster on the Sigma fp 12-bit
+uncompressed case.
 
 A follow-up measurement retained one additional LJPEG optimization: the hot
 predictor-1 path now buffers error state instead of constructing and propagating
@@ -19,7 +19,8 @@ a `Result` for every sample. It closes about one quarter of the remaining LJPEG
 time on the three measured DNGs. A later corrected first-touch probe invalidated
 the earlier huge-page experiment and retained a Linux-only natural-align
 `alloc_zeroed` plus `MADV_HUGEPAGE` policy for large integer outputs. That policy
-brings 5D3 uncompressed to parity with FlashRaw. Floating-point buffers remain
+brings 5D3 uncompressed to parity with FlashRaw and was then applied to the
+separately allocated LJPEG full-image output. Floating-point buffers remain
 unchanged.
 
 Single-thread end-to-end results:
@@ -28,22 +29,24 @@ Single-thread end-to-end results:
 | --- | --- | ---: | ---: | ---: | --- | ---: | ---: |
 | 5D3 | U16 uncompressed strip | 18.5 ms | 53.5 ms | 18.6 ms | parity | 0.99x | 0.35x |
 | Sigma fp 4K | 12-bit uncompressed strip | 5.75 ms | 5.79 ms | 10.53 ms | Fornax | 0.55x | 0.99x |
-| 5D3 | U16 LJPEG tiles | 203.0 ms | 272.1 ms | 96.9 ms | FlashRaw | 2.10x | 0.75x |
+| 5D3 | U16 LJPEG tiles | 170.5 ms | 272.1 ms | 96.9 ms | FlashRaw | 1.76x | 0.63x |
 | Pentax K-5 | 14-bit LJPEG strip | not re-run | 168.5 ms | 77.0 ms | FlashRaw | n/m | n/m |
 | iPhone SE | U16 LJPEG tiles | 75.4 ms | 80.8 ms | 41.0 ms | FlashRaw | 1.84x | 0.93x |
-| Pixel 8 Pro | U16 LJPEG tiles | 416.0 ms | 546.4 ms | 194.3 ms | FlashRaw | 2.14x | 0.76x |
+| Pixel 8 Pro | U16 LJPEG tiles | 356.3 ms | 546.4 ms | 194.3 ms | FlashRaw | 1.83x | 0.65x |
 | 5D3 HDR | FP16 predictor Deflate | 242.4 ms | 454.2 ms | 195.8 ms | FlashRaw | 1.24x | 0.53x |
 | 5D3 HDR | FP32 predictor Deflate | 405.1 ms | 766.1 ms | 332.7 ms | FlashRaw | 1.22x | 0.53x |
 
 The timings are host-specific observations from the investigation environment:
 WSL2 Debian, AMD Ryzen 7 5800H, release mode, page-cache-hot input, and one
-worker for all decoders. They are not portable performance guarantees.
+worker for all decoders. Kernel `6.6.87.1-microsoft-standard-WSL2`, glibc
+`2.41-12+deb13u3`, THP `[madvise]`, and THP defrag `[madvise]`. They are not
+portable performance guarantees.
 
-The final LJPEG numbers use three fresh processes per case and decoder with five
-interleaved rounds per process. The raw and FlashRaw values used for the old
-unchanged cases remain from the original report. Pentax K-5 is pointer-only in
-the current corpus checkout and Fornax has no Pentax container decoder, so it
-could not be re-run through the three-way gate.
+The follow-up LJPEG allocation numbers use three fresh processes per case with
+three measured rounds per process after one warmup. The Rawler and FlashRaw
+values used for unchanged cases remain from the original report. Pentax K-5 is
+pointer-only in the current corpus checkout and Fornax has no Pentax container
+decoder, so it could not be re-run through the three-way gate.
 
 ## Comparison Scope
 
@@ -74,7 +77,7 @@ The comparison still has these caveats:
 ## Lossless JPEG
 
 Lossless JPEG remains the largest remaining gap, but the retained buffered-error
-path reduces it to 2.10x FlashRaw on 5D3, 2.14x on Pixel 8, and 1.84x on iPhone
+path reduces it to 1.76x FlashRaw on 5D3, 1.83x on Pixel 8, and 1.84x on iPhone
 SE. Fornax is faster than Rawler on the two re-measured cases for which Rawler
 supports the input.
 
@@ -117,14 +120,35 @@ Final counters execute 35.4% fewer instructions on 5D3 and 35.6% fewer on Pixel
 8. Branch-miss counts are essentially unchanged (about +3%), so the gain is
 instruction/control-flow reduction rather than a lower branch-miss rate.
 
+A follow-up found that LJPEG allocated its full-image U16 buffer directly with
+`vec![0_u16; ...]`, bypassing the large-integer policy. Routing that allocation
+through the shared helper reduced 5D3 from 210.5 ms to 170.5 ms at one thread
+and from 41.8 ms to 38.2 ms at 15 threads. Pixel 8 improved from 429.1 ms to
+356.3 ms and from 82.2 ms to 70.6 ms. One-thread minor faults fell from 40,162
+to 29,429 on 5D3 and from 85,200 to 61,189 on Pixel 8. Details are in
+[the LJPEG allocation follow-up](dng-gap-profiles/ljpeg-allocation-followup.txt).
+
+Hypothesis A was retried with thread-local reusable unstuff scratch. Smooth
+one-component scans improved, but noisy scans still regressed by 2.7-5.7%, and
+minor faults were unchanged. The unstuff path was reverted; details are in
+[the reusable-scratch retry](dng-gap-profiles/ljpeg-unstuff-retry.txt).
+
 A fresh post-C DWARF profile now attributes 88.29% of 5D3 samples to the inlined
 predictor-1 row/sample closure and 4.10% to `parse_jpeg`. The final path executes
-about 100.62 instructions per output sample on 5D3. A benchmark-only fused
+about 100.67 instructions per output sample on 5D3. A benchmark-only fused
 one/two-component kernel reduced one-component instructions/sample from 149.45
 to 129.70, but its wall-time result did not remain stable. Two components
 regressed from 140.56 to 158.89 instructions/sample and from about 500 ms to
 530 ms on the 256-tile noisy scan. The prototype was removed. Details are in
 [the post-C LJPEG profile](dng-gap-profiles/ljpeg-post-c.txt).
+
+Direct instruction annotation placed the largest single site, the 13-bit fast
+Huffman miss branch, at 25.2% of annotated instruction samples. Two isolated
+changes failed to improve it: a 16-bit table increased table construction and
+regressed 5D3 from 170.5 ms to 289.1 ms, while caching the symbol in a miss
+entry regressed it to 216.8 ms. Both were reverted. FlashRaw remains at 40.70
+instructions/sample versus about 100.67 for Fornax. See
+[the predictor annotation follow-up](dng-gap-profiles/ljpeg-predictor-followup.txt).
 
 FlashRaw still fuses refill, Huffman lookup, difference reconstruction, and
 prediction into a smaller instruction stream. Fornax's remaining cost is spread
@@ -189,7 +213,7 @@ close the 5D3 gap.
 ## Deflate
 
 Fornax beats Rawler by about 1.8x on both floating-point Deflate files and is
-still 1.23x to 1.31x slower than FlashRaw.
+still 1.22x to 1.24x slower than FlashRaw.
 
 The current FP32 DWARF profile shows:
 
@@ -211,6 +235,12 @@ reverted for this path: FP32 was neutral, while FP16 regressed about 1.5-2%
 before the policy was restricted to integer buffers. No Deflate implementation
 change is retained.
 
+A minor-fault call-graph profile attributed 93.0% of FP32 faults to first writes
+into the full F32 output. Inflate scratch accounted for about 1.1%, so
+per-worker temporary reuse would not address the dominant fault source and was
+not implemented. The profile is in
+[the Deflate fault attribution](dng-gap-profiles/deflate-minor-faults.txt).
+
 ## Multi-thread scaling
 
 Fornax and FlashRaw were both run with all 15 visible workers on the tiled
@@ -218,12 +248,12 @@ lossless-JPEG and Deflate files. Values are medians from three fresh processes.
 
 | File | Fornax 1T | Fornax 15T | FlashRaw 1T | FlashRaw 15T | Fornax/FlashRaw 15T |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| 5D3 LJPEG tiles | 203.0 ms | 41.6 ms | 96.9 ms | 21.1 ms | 1.97x |
-| Pixel 8 LJPEG tiles | 416.0 ms | 82.1 ms | 194.3 ms | 39.2 ms | 2.09x |
+| 5D3 LJPEG tiles | 170.5 ms | 38.2 ms | 96.9 ms | 21.1 ms | 1.81x |
+| Pixel 8 LJPEG tiles | 356.3 ms | 70.6 ms | 194.3 ms | 39.2 ms | 1.80x |
 | 5D3 FP16 Deflate | 242.4 ms | 56.9 ms | 195.8 ms | 56.1 ms | 1.01x |
 | 5D3 FP32 Deflate | 405.1 ms | 68.2 ms | 332.7 ms | 65.5 ms | 1.04x |
 
-Fornax scales 4.88x and 5.07x on the LJPEG files, and FlashRaw scales 4.59x and
+Fornax scales 4.46x and 5.05x on the LJPEG files, and FlashRaw scales 4.59x and
 4.96x. On Deflate, Fornax scales 4.26x/5.94x versus FlashRaw's 3.49x/5.08x,
 which brings the all-thread results to near parity. These are host-specific
 observations. Full data are in
@@ -250,6 +280,10 @@ SIMD is not the explanation for these benchmark gaps:
   checkout and Fornax has no Pentax container decoder.
 - Deflate allocation/first-touch was varied; floating-point output was left
   unchanged after the broad policy regressed FP16.
+- Deflate fault attribution found the output buffer dominant; inflate scratch
+  and other temporaries were too small to justify a reuse prototype.
+- Reusable unstuffing scratch removed allocation from hypothesis A but still
+  regressed noisy scans by 2-6%, so the implementation was reverted.
 - No cold-storage comparison was made.
 - All reported ratios are single-file, page-cache-hot measurements and should
   not be aggregated into a corpus-wide speed claim. The scaling table uses all
@@ -258,6 +292,9 @@ SIMD is not the explanation for these benchmark gaps:
   [first-touch-corrected.txt](dng-gap-profiles/first-touch-corrected.txt), and
   the FlashRaw reference counters are in
   [flashraw-counters.txt](dng-gap-profiles/flashraw-counters.txt).
+- The huge-page allocation path is Linux-only. Windows allocator behavior and
+  Windows huge-page performance were not measured, so no Windows optimization
+  or performance claim is made.
 
 ## Encode
 
@@ -306,15 +343,13 @@ seeded smooth/noisy fixture utility generates synthetic samples and
 uncompressed payloads for codec tests and benchmarks; exact RAW inputs remain
 in the Rawler and FlashRaw end-to-end comparisons.
 
-## Next Probes
+## Follow-up Result
 
-If further work is requested, a post-C DWARF profile should first locate the
-remaining Fornax instruction stream. Reusable caller-owned output buffers would
-require an API design decision because the current owned-return contract cannot
-reuse the destination without changing ownership. Deflate allocation/first-touch
-would need a separate probe before any implementation change.
-
-These are future experiments, not implied work in this report.
+The follow-up completed the LJPEG allocation, unstuff retry, Deflate fault
+attribution, and predictor annotation questions. Only the LJPEG allocation
+change was retained. Reusable unstuffing remained slower on noisy scans,
+Deflate scratch reuse was not justified by fault shares, and both predictor
+changes regressed real 5D3 timing.
 
 ## Sources
 
