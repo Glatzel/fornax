@@ -49,7 +49,7 @@ const HUGE_PAGE_BYTES: usize = 2 * 1024 * 1024;
 #[cfg(any(test, all(target_os = "linux", not(miri), feature = "large-page-hint")))]
 const LARGE_ALLOCATION_THRESHOLD_BYTES: usize = 4 * HUGE_PAGE_BYTES;
 
-pub(super) fn zeroed_samples<T>(len: usize) -> Result<Vec<T>, CodecError>
+pub fn zeroed_samples<T>(len: usize) -> Result<Vec<T>, CodecError>
 where
     T: Pod,
 {

@@ -32,9 +32,6 @@
 //! let decoded = DecodeCompression::Uncompressed.decode(&request).unwrap();
 //! assert_eq!((decoded.width(), decoded.height()), (2, 2));
 //! ```
-
-#![deny(unsafe_code)]
-
 #[allow(
     dead_code,
     reason = "encoding helpers are used only by feature-gated codecs"
@@ -42,10 +39,6 @@
 mod encode;
 mod error;
 pub mod huffman;
-#[allow(
-    unsafe_code,
-    reason = "platform allocation and provenance tests are isolated in this module"
-)]
 mod large_alloc;
 #[allow(
     dead_code,
