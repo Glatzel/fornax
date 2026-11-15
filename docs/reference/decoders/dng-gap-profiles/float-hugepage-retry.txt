@@ -1,0 +1,61 @@
+# Floating-point huge-page retry
+
+Host: WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs, kernel
+`6.6.87.1-microsoft-standard-WSL2`, glibc `2.41-12+deb13u3`. Release build,
+page-cache-hot inputs. THP enabled: `[madvise]`; THP defrag: `[madvise]`.
+
+The previous floating-point result did not report `AnonHugePages` or the output
+fault count, so it could not establish whether the policy had actually changed
+first touch. The release probe now accepts `--smaps` and reads
+`/proc/self/smaps` for the returned full-image buffer.
+
+## FP32 validation
+
+For one page-cache-hot FP32 Deflate decode:
+
+| Allocation | `AnonHugePages` | Minor faults | Instructions |
+| --- | ---: | ---: | ---: |
+| Fresh `Vec<f32>` | 0 KiB | 24,315 | 3,030,789,129 |
+| Shared `alloc_zeroed` + `MADV_HUGEPAGE` | 88,064 KiB | 2,345 | 3,030,757,121 |
+
+The 86 MiB huge-page-backed result, the fault reduction, and the equal
+instruction count validate the experiment. The policy changes first-touch
+memory state rather than the decode instruction stream.
+
+Fifteen-thread counters showed the same effect:
+
+| Variant | Minor faults before | Minor faults after | Instructions before | Instructions after |
+| --- | ---: | ---: | ---: | ---: |
+| 5D3 FP16 Deflate | 24,970 | 2,999 | 1,936,520,909 | 1,936,762,835 |
+| 5D3 FP32 Deflate | 26,063 | 4,089 | 3,033,412,687 | 3,033,392,886 |
+
+## Wall time
+
+Baseline and candidate were interleaved as fresh processes. Each process used
+one warmup and one measured decode; eight pairs were collected per case.
+
+| File | Threads | Before | After | Change |
+| --- | ---: | ---: | ---: | ---: |
+| 5D3 FP16 Deflate | 1 | 243.710 ms | 181.876 ms | -25.4% |
+| 5D3 FP16 Deflate | 15 | 56.203 ms | 45.873 ms | -18.4% |
+| 5D3 FP32 Deflate | 1 | 404.895 ms | 338.931 ms | -16.3% |
+| 5D3 FP32 Deflate | 15 | 68.341 ms | 61.950 ms | -9.4% |
+
+The strict dimensions, F32 storage, sample bits, and pixel-bit equality gate
+passed for FP16 and FP32 before the change was retained.
+
+## Output allocation audit
+
+Full-image decode outputs that can cross the 8 MiB threshold now use the shared
+`zeroed_samples` allocator:
+
+- generic integer and floating-point payload assembly in `samples.rs`;
+- fused and fallback Deflate floating-point output;
+- full-image LJPEG output;
+- full-image lossy JPEG output;
+- full-image JPEG XL output.
+
+Per-tile and per-row buffers are scratch rather than image outputs and remain on
+their existing allocation paths. A counting-allocator test decodes a large F32
+payload and fails if the output uses an ordinary allocation instead of the
+shared zeroed allocator.

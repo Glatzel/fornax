@@ -1,0 +1,44 @@
+# Same-session Fornax and FlashRaw ratios
+
+Host: WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs, kernel
+`6.6.87.1-microsoft-standard-WSL2`, glibc `2.41-12+deb13u3`. Release build,
+page-cache-hot inputs. THP enabled: `[madvise]`; THP defrag: `[madvise]`.
+
+Fornax and FlashRaw were alternated as fresh processes in the same host session.
+Fornax used `RAYON_NUM_THREADS=1` for the headline table and 15 for the scaling
+table. FlashRaw used one worker for the headline table and all workers for the
+scaling table. Each case used three fresh processes. The measured images used
+five rounds after one warmup; the very small Sigma fp case used fifteen rounds
+after two warmups.
+
+## Single thread
+
+| File | Fornax | FlashRaw | Fornax/FlashRaw |
+| --- | ---: | ---: | ---: |
+| 5D3 U16 uncompressed strip | 17.959 ms | 18.338 ms | 0.98x |
+| Sigma fp 4K 12-bit uncompressed strip | 5.472 ms | 10.190 ms | 0.54x |
+| 5D3 U16 LJPEG tiles | 166.274 ms | 94.844 ms | 1.75x |
+| iPhone SE U16 LJPEG tiles | 73.148 ms | 41.281 ms | 1.77x |
+| Pixel 8 Pro U16 LJPEG tiles | 346.826 ms | 192.908 ms | 1.80x |
+| 5D3 FP16 predictor Deflate | 178.529 ms | 193.312 ms | 0.92x |
+| 5D3 FP32 predictor Deflate | 338.363 ms | 334.293 ms | 1.01x |
+
+Pentax K-5 remains unavailable: the corpus entry is pointer-only in this
+checkout and Fornax has no Pentax container decoder.
+
+## Fifteen threads
+
+| File | Fornax | FlashRaw | Fornax/FlashRaw |
+| --- | ---: | ---: | ---: |
+| 5D3 U16 LJPEG tiles | 36.530 ms | 20.792 ms | 1.76x |
+| Pixel 8 Pro U16 LJPEG tiles | 70.211 ms | 39.761 ms | 1.77x |
+| 5D3 FP16 predictor Deflate | 43.903 ms | 59.006 ms | 0.74x |
+| 5D3 FP32 predictor Deflate | 60.111 ms | 66.707 ms | 0.90x |
+
+Fornax scales 4.55x and 4.94x on the two LJPEG files, and 4.07x and 5.63x on
+FP16 and FP32 Deflate. FlashRaw scales 4.56x, 4.85x, 3.28x, and 5.01x,
+respectively.
+
+The strict three-way dimensions, storage, sample bits, and pixel equality gate
+passed for 5D3 uncompressed, Sigma fp uncompressed, 5D3 LJPEG, iPhone SE LJPEG,
+Pixel 8 LJPEG, FP16 Deflate, and FP32 Deflate.

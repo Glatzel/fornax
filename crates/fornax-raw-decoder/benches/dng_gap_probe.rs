@@ -4,6 +4,7 @@ mod rawler_wrapper;
 use std::env;
 use std::fs::{self, File};
 use std::hint::black_box;
+use std::mem::size_of;
 use std::path::{Path, PathBuf};
 use std::ptr::NonNull;
 use std::time::{Duration, Instant};
@@ -25,7 +26,7 @@ const USAGE: &str = "\
 usage:
   dng_gap_probe equality PATH
   dng_gap_probe decode --decoder fornax|flashraw --warmups N --rounds N \
-    [--threads 1|all] PATH
+    [--threads 1|all] [--smaps] PATH
   dng_gap_probe uncompressed \
     --variant fresh|reused|mmap-hugepage|alloc-zeroed-hugepage|vec-populate|vec-hugepage|\
 vec-hugepage-populate \
@@ -65,6 +66,7 @@ struct ProbeArgs {
     variant: UncompressedVariant,
     counter_only: bool,
     all_threads: bool,
+    inspect_huge_pages: bool,
     input: PathBuf,
 }
 
@@ -85,12 +87,13 @@ fn run() -> Result<(), String> {
             }
             warmup(args.decoder, &args.input, args.warmups)?;
             for round in 0..args.rounds {
-                let elapsed = decode_once(args.decoder, &args.input)?;
+                let measurement = decode_once(args.decoder, &args.input, args.inspect_huge_pages)?;
                 println!(
-                    "timing,decoder={},round={},milliseconds={:.6}",
+                    "timing,decoder={},round={},milliseconds={:.6},anon_huge_kb={}",
                     decoder_name(args.decoder),
                     round,
-                    elapsed.as_secs_f64() * 1_000.0
+                    milliseconds(measurement.elapsed),
+                    measurement.anon_huge_kb
                 );
             }
         }
@@ -122,6 +125,7 @@ fn parse_args(mut args: impl Iterator<Item = std::ffi::OsString>) -> Result<Prob
     let mut variant = UncompressedVariant::Fresh;
     let mut counter_only = false;
     let mut all_threads = false;
+    let mut inspect_huge_pages = false;
     let mut input = None;
     while let Some(argument) = args.next() {
         let argument = argument
@@ -143,6 +147,7 @@ fn parse_args(mut args: impl Iterator<Item = std::ffi::OsString>) -> Result<Prob
             "--rounds" => rounds = parse_count(args.next(), "--rounds")?,
             "--warmups" => warmups = parse_count(args.next(), "--warmups")?,
             "--counter-only" => counter_only = true,
+            "--smaps" => inspect_huge_pages = true,
             "--threads" => {
                 let value = args
                     .next()
@@ -192,6 +197,7 @@ fn parse_args(mut args: impl Iterator<Item = std::ffi::OsString>) -> Result<Prob
         variant,
         counter_only,
         all_threads,
+        inspect_huge_pages,
         input,
     })
 }
@@ -214,29 +220,78 @@ fn require_single_rayon_thread() -> Result<(), String> {
 
 fn warmup(decoder: ProbeDecoder, input: &Path, count: usize) -> Result<(), String> {
     for _ in 0..count {
-        let _ = black_box(decode_once(decoder, input)?);
+        let _ = black_box(decode_once(decoder, input, false)?.elapsed);
     }
     Ok(())
 }
 
-fn decode_once(decoder: ProbeDecoder, input: &Path) -> Result<Duration, String> {
+struct DecodeMeasurement {
+    elapsed: Duration,
+    anon_huge_kb: u64,
+}
+
+fn decode_once(
+    decoder: ProbeDecoder,
+    input: &Path,
+    inspect_huge_pages: bool,
+) -> Result<DecodeMeasurement, String> {
     let start = Instant::now();
-    match decoder {
+    let anon_huge_kb = match decoder {
         ProbeDecoder::Fornax => {
             let decoder =
                 Decoder::decode(input).map_err(|error| format!("Fornax decode failed: {error}"))?;
             let mosaic = decoder
                 .raw_mosaic()
                 .map_err(|error| format!("Fornax raw_mosaic failed: {error}"))?;
+            let anon_huge_kb = if inspect_huge_pages {
+                mosaic_anon_huge_pages(&mosaic)?
+            } else {
+                0
+            };
             black_box(mosaic);
+            anon_huge_kb
         }
         ProbeDecoder::FlashRaw => {
             let decoder = FlashRawDecoder::decode(input)
                 .map_err(|error| format!("FlashRaw decode failed: {error}"))?;
+            let anon_huge_kb = if inspect_huge_pages {
+                let mosaic = decoder
+                    .raw_mosaic()
+                    .map_err(|error| format!("FlashRaw raw_mosaic failed: {error}"))?;
+                mosaic_anon_huge_pages(&mosaic)?
+            } else {
+                0
+            };
             black_box(decoder);
+            anon_huge_kb
         }
-    }
-    Ok(start.elapsed())
+    };
+    Ok(DecodeMeasurement {
+        elapsed: start.elapsed(),
+        anon_huge_kb,
+    })
+}
+
+fn mosaic_anon_huge_pages(mosaic: &RawMosaic) -> Result<u64, String> {
+    let (pointer, byte_count) = match mosaic {
+        RawMosaic::U8(samples) => (
+            samples.as_raw().as_ptr().cast(),
+            samples.as_raw().len() * size_of::<u8>(),
+        ),
+        RawMosaic::U16(samples) => (
+            samples.as_raw().as_ptr().cast(),
+            samples.as_raw().len() * size_of::<u16>(),
+        ),
+        RawMosaic::U32(samples) => (
+            samples.as_raw().as_ptr().cast(),
+            samples.as_raw().len() * size_of::<u32>(),
+        ),
+        RawMosaic::F32(samples) => (
+            samples.as_raw().as_ptr().cast(),
+            samples.as_raw().len() * size_of::<f32>(),
+        ),
+    };
+    smaps_anon_huge_pages(pointer, byte_count)
 }
 
 fn verify_three_way_equality(input: &Path) -> Result<(), String> {

@@ -1,0 +1,31 @@
+# Predictor-1 instruction follow-up
+
+Host: WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs, kernel
+`6.6.87.1-microsoft-standard-WSL2`, glibc `2.41-12+deb13u3`. Release build
+with DWARF data, one Rayon worker, page-cache-hot 5D3 LJPEG input.
+
+The current binary was sampled with:
+
+```bash
+perf record -e instructions:u -c 100000 --mmap-pages=1024 \
+  -- dng_gap_probe decode --decoder fornax --threads 1 \
+  --warmups 0 --rounds 1 5G4A9394-compressed-lossless.DNG
+```
+
+The profile captured 3,425 instruction samples with no reported loss:
+
+| Symbol | Share |
+| --- | ---: |
+| Inlined predictor-1 row/sample closure | 90.98% |
+| `parse_jpeg` | 5.20% |
+| Libc fill leaf | 0.96% |
+
+The source-region annotation remains in
+[`ljpeg-predictor-followup.txt`](ljpeg-predictor-followup.txt). It attributes the
+largest single site to the fast Huffman miss branch at 25.2% of annotated
+instruction samples. This follow-up confirms that the same closure still
+contains over 90% of instructions.
+
+No additional predictor candidate was implemented. The widened 16-bit lookup
+and cached miss payload remain reverted because both regressed the real 5D3
+decode.

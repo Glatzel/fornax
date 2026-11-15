@@ -1,0 +1,73 @@
+# Remaining LJPEG minor-fault attribution
+
+Host: WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs, kernel
+`6.6.87.1-microsoft-standard-WSL2`, glibc `2.41-12+deb13u3`. Release build
+with DWARF data, page-cache-hot inputs. THP enabled: `[madvise]`; THP defrag:
+`[madvise]`.
+
+The release probe was built with:
+
+```bash
+CARGO_PROFILE_RELEASE_DEBUG=2 CARGO_PROFILE_RELEASE_STRIP=none \
+  cargo build -p fornax-raw-decoder --release --bench dng_gap_probe
+```
+
+Fault profiles used `perf record -e minor-faults:u --call-graph dwarf,8192`.
+One-thread runs sampled every fault. Fifteen-thread runs used period 4 on 5D3
+and period 8 on Pixel 8 so the simultaneous first-touch burst did not overflow
+the available perf ring.
+
+## Final fault counts
+
+These are one page-cache-hot decode per process with no warmup inside
+`perf stat`.
+
+| File | Threads | Minor faults | Instructions |
+| --- | ---: | ---: | ---: |
+| 5D3 LJPEG | 1 | 29,359 | 2,353,776,925 |
+| 5D3 LJPEG | 15 | 20,858 | 2,356,351,779 |
+| Pixel 8 LJPEG | 1 | 61,115 | 4,639,847,963 |
+| Pixel 8 LJPEG | 15 | 44,252 | 4,643,380,824 |
+
+## One-thread attribution
+
+The dominant leaf groups are libc fills reached directly from
+`parse_jpeg`. In that path the two large writes are the 16-bit Huffman lookup
+and the 13-bit fast Huffman lookup, both allocated once per tile.
+
+| Site | 5D3 | Pixel 8 |
+| --- | ---: | ---: |
+| Per-tile Huffman lookup allocation and initialization | 86.9% | 80.1% |
+| TIFF/source parsing and allocator metadata | 4.8% | 11.5% |
+| Entropy reader, row decode, and other LJPEG work | 8.3% | 8.4% |
+
+The full-image output no longer forms a prominent write-fault site because both
+files are above the 8 MiB threshold and already use the shared huge-page-backed
+allocator. Row scratch, marker checks, and source mapping are present but do not
+dominate.
+
+The fifteen-thread call graphs were more interleaved. Directly resolved
+`parse_jpeg` frames covered at least 63.9% of 5D3 samples and 57.7% of Pixel 8
+samples; the remaining worker stacks retained the same table-fill and entropy
+reader shape. The 5D3 profile lost 117 of 20,776 sampled events and the Pixel 8
+profile had no reported loss.
+
+## Reused per-worker Huffman buffers
+
+The prototype kept one `HuffmanTable` allocation per active worker band and
+refilled those buffers for each tile. It preserved exact output and all codec
+tests.
+
+Interleaved fresh-process medians are shown below.
+
+| File | Threads | Baseline | Reused buffers | Change |
+| --- | ---: | ---: | ---: | ---: |
+| 5D3 LJPEG | 1 | 167.795 ms | 168.079 ms | +0.17% |
+| 5D3 LJPEG | 15 | 36.047 ms | 35.914 ms | -0.37% |
+| Pixel 8 LJPEG | 1 | 356.492 ms | 356.670 ms | +0.05% |
+| Pixel 8 LJPEG | 15 | 80.062 ms | 81.610 ms | +1.93% |
+
+The prototype reduced 5D3 minor faults from 30,683 to 3,033 in the
+warmup-plus-decode probe, but the table contents still have to be rewritten for
+each tile. The compute cost therefore remained, and the Pixel 8 all-thread wall
+time regressed. The prototype was reverted.

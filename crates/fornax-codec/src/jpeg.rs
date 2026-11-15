@@ -8,7 +8,7 @@ use zune_jpeg::zune_core::options::DecoderOptions;
 
 use crate::error::invalid;
 use crate::request::{DecodeRequest, SampleFormat};
-use crate::samples::{Geometry, buffer_u8, chunk};
+use crate::samples::{Geometry, buffer_u8, chunk, zeroed_samples};
 use crate::{CodecError, Predictor, SampleBuffer};
 
 pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
@@ -29,7 +29,7 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         .width
         .checked_mul(geometry.height)
         .ok_or_else(|| invalid("lossy JPEG sample count overflow"))?;
-    let mut output = vec![0_u8; sample_count];
+    let mut output = zeroed_samples(sample_count);
     output
         .par_chunks_mut(geometry.band_stride()?)
         .enumerate()

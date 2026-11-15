@@ -37,33 +37,38 @@ where
     // transferred to the Vec below.
     let pointer = unsafe { std::alloc::alloc_zeroed(layout) }.cast::<T>();
     if pointer.is_null() {
-        return None;
+        std::alloc::handle_alloc_error(layout);
     }
+    // The pointer came from the global allocator with `layout`, and the Vec
+    // uses exactly the same length, capacity, type, and allocator.
+    let mut output = unsafe { Vec::from_raw_parts(pointer, len, len) };
+    advise_hugepage(output.as_mut_ptr().cast(), layout);
+    Some(output)
+}
+
+// `start..end` is an aligned interior of the live Vec allocation. Advising
+// before initialization preserves first touch, and a failed advisory is
+// harmless.
+#[cfg(all(target_os = "linux", not(miri)))]
+fn advise_hugepage(pointer: *mut u8, layout: std::alloc::Layout) {
     let start_address = pointer as usize;
     let Some(end_address) = start_address.checked_add(layout.size()) else {
-        unsafe { std::alloc::dealloc(pointer.cast(), layout) };
-        return None;
+        return;
     };
-    let Some(start) = start_address
-        .checked_add(HUGE_PAGE_BYTES - 1)
-        .map(|value| value & !(HUGE_PAGE_BYTES - 1))
-    else {
-        unsafe { std::alloc::dealloc(pointer.cast(), layout) };
-        return None;
+    let Some(start_address) = start_address.checked_add(HUGE_PAGE_BYTES - 1) else {
+        return;
     };
+    let start = start_address & !(HUGE_PAGE_BYTES - 1);
     let end = end_address & !(HUGE_PAGE_BYTES - 1);
     if end > start {
-        // `start..end` is an aligned interior of the live Vec allocation.
-        // Advising before initialization preserves first touch, and a failed
-        // advisory is harmless.
         unsafe {
             libc::madvise(start as *mut libc::c_void, end - start, libc::MADV_HUGEPAGE);
         }
     }
-    // The pointer came from the global allocator with `layout`, and the Vec
-    // uses exactly the same length, capacity, type, and allocator.
-    Some(unsafe { Vec::from_raw_parts(pointer, len, len) })
 }
+
+#[cfg(all(target_os = "linux", miri))]
+fn advise_hugepage(_pointer: *mut u8, _layout: std::alloc::Layout) {}
 
 pub struct Geometry {
     pub width: usize,
@@ -216,14 +221,14 @@ fn decode_float(
     };
     if bits == 64 {
         let sample_count = geometry.sample_count()?;
-        let mut output = vec![0_f64; sample_count];
+        let mut output = zeroed_samples(sample_count);
         decode_float_with(geometry, bytes_per_sample, payloads, &mut output, |bytes| {
             f64::from_bits(read_u64(bytes, byte_order))
         })?;
         return buffer_f64(geometry.width, geometry.height, output);
     }
     let sample_count = geometry.sample_count()?;
-    let mut output = vec![0_f32; sample_count];
+    let mut output = zeroed_samples(sample_count);
 
     // Width and byte order are resolved once here, not per sample.
     macro_rules! go {
@@ -740,6 +745,107 @@ fn checked_product<const N: usize>(values: [usize; N]) -> Option<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(all(target_os = "linux", not(miri)))]
+    mod hugepage_allocation {
+        use std::alloc::{GlobalAlloc, System};
+        use std::sync::Mutex;
+        use std::sync::atomic::{AtomicUsize, Ordering};
+
+        const TRACKED_BYTES: usize = 4 * super::super::HUGE_PAGE_BYTES + 128;
+        static TEST_LOCK: Mutex<()> = Mutex::new(());
+        static ALLOCATIONS: AtomicUsize = AtomicUsize::new(0);
+        static ZERO_ALLOCATIONS: AtomicUsize = AtomicUsize::new(0);
+        static DEALLOCATIONS: AtomicUsize = AtomicUsize::new(0);
+
+        struct CountingAllocator;
+
+        unsafe impl GlobalAlloc for CountingAllocator {
+            unsafe fn alloc(&self, layout: std::alloc::Layout) -> *mut u8 {
+                if layout.size() == TRACKED_BYTES {
+                    ALLOCATIONS.fetch_add(1, Ordering::SeqCst);
+                }
+                unsafe { System.alloc(layout) }
+            }
+
+            unsafe fn alloc_zeroed(&self, layout: std::alloc::Layout) -> *mut u8 {
+                if layout.size() == TRACKED_BYTES {
+                    ZERO_ALLOCATIONS.fetch_add(1, Ordering::SeqCst);
+                }
+                unsafe { System.alloc_zeroed(layout) }
+            }
+
+            unsafe fn dealloc(&self, pointer: *mut u8, layout: std::alloc::Layout) {
+                if layout.size() == TRACKED_BYTES {
+                    DEALLOCATIONS.fetch_add(1, Ordering::SeqCst);
+                }
+                unsafe { System.dealloc(pointer, layout) }
+            }
+        }
+
+        #[global_allocator]
+        static ALLOCATOR: CountingAllocator = CountingAllocator;
+
+        #[test]
+        fn large_zeroed_samples_use_the_raw_allocator_and_release_on_drop() {
+            let _guard = TEST_LOCK.lock().unwrap();
+            let len = TRACKED_BYTES / size_of::<u16>();
+            let zero_allocations = ZERO_ALLOCATIONS.load(Ordering::SeqCst);
+            let deallocations = DEALLOCATIONS.load(Ordering::SeqCst);
+
+            let samples = super::super::zeroed_samples::<u16>(len);
+            assert_eq!(samples.len(), len);
+            assert_eq!(samples.capacity(), len);
+            assert!(samples.iter().all(|sample| *sample == 0));
+            assert_eq!(
+                ZERO_ALLOCATIONS.load(Ordering::SeqCst),
+                zero_allocations + 1
+            );
+            assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), deallocations);
+
+            drop(samples);
+            assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), deallocations + 1);
+        }
+
+        #[test]
+        fn large_float_decode_outputs_use_the_shared_allocator() {
+            let _guard = TEST_LOCK.lock().unwrap();
+            let len = TRACKED_BYTES / size_of::<f32>();
+            let geometry = super::super::Geometry::new(len, 1, len, 1, 1).unwrap();
+            let payload = vec![0_u8; TRACKED_BYTES];
+            let allocations = ALLOCATIONS.load(Ordering::SeqCst);
+            let zero_allocations = ZERO_ALLOCATIONS.load(Ordering::SeqCst);
+            let deallocations = DEALLOCATIONS.load(Ordering::SeqCst);
+
+            let decoded = super::super::decode_payloads(
+                &geometry,
+                32,
+                super::super::SampleFormat::Float,
+                super::super::ByteOrder::Little,
+                &[&payload],
+            )
+            .unwrap();
+            let samples = decoded.into_raw_f32().unwrap();
+            assert_eq!(samples.len(), len);
+            assert_eq!(samples.capacity(), len);
+            assert_eq!(ALLOCATIONS.load(Ordering::SeqCst), allocations);
+            assert_eq!(
+                ZERO_ALLOCATIONS.load(Ordering::SeqCst),
+                zero_allocations + 1
+            );
+            assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), deallocations);
+
+            drop(samples);
+            assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), deallocations + 1);
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn hugepage_allocation_rejects_size_overflow_and_zero_length() {
+        assert!(hugepage_zeroed_samples::<u16>(usize::MAX).is_none());
+        assert!(zeroed_samples::<u16>(0).is_empty());
+    }
 
     #[test]
     fn grouped_unpack_12_kernels_match_the_scalar_oracle() {
