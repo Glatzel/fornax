@@ -6,6 +6,7 @@
 use rayon::prelude::*;
 
 use crate::error::invalid;
+use crate::large_alloc::zeroed_samples;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
 use crate::samples::{Geometry, buffer_u8, buffer_u16, chunk};
 use crate::{CodecError, Predictor, SampleBuffer};
@@ -43,7 +44,7 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         .width
         .checked_mul(geometry.height)
         .ok_or_else(|| invalid("lossless JPEG sample count overflow"))?;
-    let mut output = vec![0_u16; sample_count];
+    let mut output = zeroed_samples(sample_count)?;
     let expected_samples = geometry
         .chunk_width
         .checked_mul(geometry.chunk_height)
@@ -105,12 +106,11 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         })?;
 
     if request.bits_per_sample <= 8 {
-        let samples = output
-            .into_iter()
-            .map(|value| {
-                u8::try_from(value).map_err(|_| invalid("lossless JPEG sample exceeds u8 storage"))
-            })
-            .collect::<Result<Vec<_>, _>>()?;
+        let mut samples = zeroed_samples(sample_count)?;
+        for (sample, value) in samples.iter_mut().zip(output) {
+            *sample = u8::try_from(value)
+                .map_err(|_| invalid("lossless JPEG sample exceeds u8 storage"))?;
+        }
         buffer_u8(geometry.width, geometry.height, samples)
     } else {
         buffer_u16(geometry.width, geometry.height, output)
@@ -654,7 +654,8 @@ fn decode_interleaved_impl(
     let sample_count = output_width
         .checked_mul(frame.height)
         .ok_or_else(|| "lossless JPEG sample count overflow".to_owned())?;
-    let mut output = vec![0_u16; sample_count];
+    let mut output = zeroed_samples(sample_count)
+        .map_err(|error| format!("lossless JPEG allocation: {error}"))?;
     let fast_path = decode_scan_into(
         parsed.entropy,
         &frame,

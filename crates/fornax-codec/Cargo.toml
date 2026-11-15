@@ -4,9 +4,10 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-default = ["lzw", "packbits"]
+default = ["large-page-hint", "lzw", "packbits"]
 deflate = ["dep:flate2"]
 jpegxl = ["dep:jxl-oxide"]
+large-page-hint = ["dep:libc"]
 lossless-jpeg = []
 lossy-jpeg = ["dep:zune-jpeg"]
 lzw = ["dep:weezl"]
@@ -35,3 +36,6 @@ zune-jpeg = { workspace = true, optional = true }
 
 [dev-dependencies]
 image = { workspace = true, features = ["jpeg"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = { workspace = true, optional = true }
