@@ -362,25 +362,37 @@ impl HuffmanTable {
         Ok(entry.symbol)
     }
 
-    fn decode_fast(&self, bits: &mut FastBitReader<'_>) -> u8 {
-        let entry = self.lookup[usize::from(bits.peek_no_fill(16))];
-        if entry.bits == 0 {
-            bits.record_error("lossless JPEG contains an invalid Huffman code");
-            return 0;
-        }
-        bits.skip_no_fill(usize::from(entry.bits));
-        entry.symbol
-    }
-
-    fn decode_difference_fast(&self, bits: &mut FastBitReader<'_>) -> i32 {
+    #[cfg(test)]
+    #[inline(always)]
+    fn decode_difference_fast(
+        &self,
+        bits: FastBitReader,
+        error: &mut Option<&'static str>,
+    ) -> (i32, FastBitReader) {
         let index = usize::from(bits.peek_no_fill(13)) & (FAST_HUFFMAN_LOOKAHEAD_SIZE - 1);
         let entry = self.fast_lookup[index];
         if entry.full() {
-            bits.skip_no_fill(usize::from(entry.consumed()));
-            return i32::from(entry.difference());
+            let bits = bits.skip_no_fill(usize::from(entry.consumed()));
+            return (i32::from(entry.difference()), bits);
         }
-        let symbol = self.decode_fast(bits);
-        decode_difference_fast(symbol, bits)
+        self.decode_difference_fast_slow(bits, error)
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn decode_difference_fast_slow(
+        &self,
+        bits: FastBitReader,
+        error: &mut Option<&'static str>,
+    ) -> (i32, FastBitReader) {
+        let entry = self.lookup[usize::from(bits.peek_no_fill(16))];
+        let (symbol, bits) = if entry.bits == 0 {
+            record_error(error, "lossless JPEG contains an invalid Huffman code");
+            (0, bits)
+        } else {
+            (entry.symbol, bits.skip_no_fill(usize::from(entry.bits)))
+        };
+        decode_difference_fast_slow(symbol, bits, error)
     }
 }
 
@@ -461,101 +473,94 @@ impl<'a> BitReader<'a> {
     }
 }
 
-struct FastBitReader<'a> {
-    bytes: &'a [u8],
+#[derive(Clone, Copy, Default)]
+struct FastBitReader {
     position: usize,
     cache: u64,
     buffered_bits: usize,
     ended: bool,
-    error: Option<&'static str>,
 }
 
-impl<'a> FastBitReader<'a> {
-    const fn new(bytes: &'a [u8]) -> Self {
+impl FastBitReader {
+    #[cfg(test)]
+    const fn new() -> Self {
         Self {
-            bytes,
             position: 0,
             cache: 0,
             buffered_bits: 0,
             ended: false,
-            error: None,
         }
     }
 
-    fn refill(&mut self) {
+    #[cfg(test)]
+    #[inline(always)]
+    fn refill(self, bytes: &[u8]) -> Self {
         if self.buffered_bits >= 32 {
-            return;
+            return self;
         }
-        if let Some(bytes) = self.bytes.get(self.position..)
-            && let Some(bytes) = bytes.first_chunk::<8>()
+        if let Some(available) = bytes.get(self.position..)
+            && let Some(chunk) = available.first_chunk::<8>()
         {
-            let word = u64::from_be_bytes(*bytes);
+            let word = u64::from_be_bytes(*chunk);
             let has_prefix =
                 (!word).wrapping_sub(0x0101_0101_0101_0101) & word & 0x8080_8080_8080_8080 != 0;
             if !has_prefix {
-                self.cache |= word >> self.buffered_bits;
+                let cache = self.cache | (word >> self.buffered_bits);
                 let taken = (63 - self.buffered_bits) >> 3;
-                self.position += taken;
-                self.buffered_bits += taken * 8;
-                return;
+                return Self {
+                    position: self.position + taken,
+                    cache,
+                    buffered_bits: self.buffered_bits + taken * 8,
+                    ended: self.ended,
+                };
             }
         }
-        self.refill_slow();
+        self.refill_slow(bytes)
     }
 
     #[cold]
     #[inline(never)]
-    fn refill_slow(&mut self) {
+    fn refill_slow(mut self, bytes: &[u8]) -> Self {
         while self.buffered_bits < 32 {
-            let byte = self.next_byte();
+            let (next, byte) = self.next_byte(bytes);
+            self = next;
             let shift = 64 - self.buffered_bits - 8;
             self.cache |= u64::from(byte) << shift;
             self.buffered_bits += 8;
         }
+        self
     }
 
+    #[inline(always)]
     fn peek_no_fill(&self, count: usize) -> u16 {
         debug_assert!(count != 0 && count <= self.buffered_bits && count <= 16);
         low_u16_from_u64(self.cache >> (64 - count))
     }
 
-    fn skip_no_fill(&mut self, count: usize) {
+    #[inline(always)]
+    fn skip_no_fill(mut self, count: usize) -> Self {
         debug_assert!(count <= self.buffered_bits);
         self.cache <<= count;
         self.buffered_bits -= count;
+        self
     }
 
-    fn next_byte(&mut self) -> u8 {
-        if self.ended || self.position >= self.bytes.len() {
+    fn next_byte(mut self, bytes: &[u8]) -> (Self, u8) {
+        if self.ended || self.position >= bytes.len() {
             self.ended = true;
-            return 0;
+            return (self, 0);
         }
-        let byte = self.bytes[self.position];
+        let byte = bytes[self.position];
         if byte != MARKER_PREFIX {
             self.position += 1;
-            return byte;
+            return (self, byte);
         }
-        if self.bytes.get(self.position + 1) == Some(&0) {
+        if bytes.get(self.position + 1) == Some(&0) {
             self.position += 2;
-            return byte;
+            return (self, byte);
         }
         self.ended = true;
-        0
-    }
-
-    const fn record_error(&mut self, error: &'static str) {
-        if self.error.is_none() {
-            self.error = Some(error);
-        }
-    }
-
-    #[cfg(test)]
-    const fn has_error(&self) -> bool { self.error.is_some() }
-
-    const fn take_error(&mut self) -> Option<&'static str> {
-        let error = self.error;
-        self.error = None;
-        error
+        (self, 0)
     }
 }
 
@@ -1167,7 +1172,11 @@ fn decode_scan_rows_with_scratch(
     let initial = 1_i32 << (frame.precision - point_transform - 1);
     let mask = (1_u32 << frame.precision) - 1;
     scratch.resize(output_width, point_transform != 0);
-    let mut bits = FastBitReader::new(entropy);
+    let mut bit_position = 0_usize;
+    let mut bit_cache = 0_u64;
+    let mut buffered_bits = 0_usize;
+    let mut ended = false;
+    let mut error = None;
 
     for row in 0..frame.height {
         let mut predictions = [initial; 2];
@@ -1179,10 +1188,68 @@ fn decode_scan_rows_with_scratch(
         for (column, chunk) in scratch.current.chunks_exact_mut(components).enumerate() {
             for (component, output) in chunk.iter_mut().enumerate() {
                 let prediction = predictions[component];
-                bits.refill();
+                if buffered_bits < 32 {
+                    let mut refilled = false;
+                    if let Some(available) = entropy.get(bit_position..)
+                        && let Some(word) = available.first_chunk::<8>()
+                    {
+                        let word = u64::from_be_bytes(*word);
+                        let has_prefix = (!word).wrapping_sub(0x0101_0101_0101_0101)
+                            & word
+                            & 0x8080_8080_8080_8080
+                            != 0;
+                        if !has_prefix {
+                            bit_cache |= word >> buffered_bits;
+                            let taken = (63 - buffered_bits) >> 3;
+                            bit_position += taken;
+                            buffered_bits += taken * 8;
+                            refilled = true;
+                        }
+                    }
+                    if !refilled {
+                        let next = FastBitReader {
+                            position: bit_position,
+                            cache: bit_cache,
+                            buffered_bits,
+                            ended,
+                        }
+                        .refill_slow(entropy);
+                        bit_position = next.position;
+                        bit_cache = next.cache;
+                        buffered_bits = next.buffered_bits;
+                        ended = next.ended;
+                    }
+                }
+
+                let table = tables[component];
+                let index = usize::from(low_u16_from_u64(bit_cache >> 51))
+                    & (FAST_HUFFMAN_LOOKAHEAD_SIZE - 1);
+                let entry = table.fast_lookup[index];
+                let difference;
+                if entry.full() {
+                    let consumed = usize::from(entry.consumed());
+                    bit_cache <<= consumed;
+                    buffered_bits -= consumed;
+                    difference = i32::from(entry.difference());
+                } else {
+                    let next = table.decode_difference_fast_slow(
+                        FastBitReader {
+                            position: bit_position,
+                            cache: bit_cache,
+                            buffered_bits,
+                            ended,
+                        },
+                        &mut error,
+                    );
+                    difference = next.0;
+                    bit_position = next.1.position;
+                    bit_cache = next.1.cache;
+                    buffered_bits = next.1.buffered_bits;
+                    ended = next.1.ended;
+                }
                 let value = apply_difference(
                     prediction,
-                    tables[component].decode_difference_fast(&mut bits),
+                    difference,
                     mask,
                 );
                 *output = value;
@@ -1200,7 +1267,7 @@ fn decode_scan_rows_with_scratch(
         }
         std::mem::swap(&mut scratch.previous, &mut scratch.current);
     }
-    if let Some(error) = bits.take_error() {
+    if let Some(error) = error {
         return Err(error.to_owned());
     }
     Ok(())
@@ -1274,24 +1341,35 @@ fn decode_difference(symbol: u8, bits: &mut BitReader<'_>) -> Result<i32, String
     }
 }
 
-fn decode_difference_fast(symbol: u8, bits: &mut FastBitReader<'_>) -> i32 {
+fn decode_difference_fast_slow(
+    symbol: u8,
+    bits: FastBitReader,
+    error: &mut Option<&'static str>,
+) -> (i32, FastBitReader) {
     match symbol {
-        0 => 0,
-        16 => -32_768,
+        0 => (0, bits),
+        16 => (-32_768, bits),
         1..=15 => {
             let raw = i32::from(bits.peek_no_fill(usize::from(symbol)));
-            bits.skip_no_fill(usize::from(symbol));
+            let bits = bits.skip_no_fill(usize::from(symbol));
             let threshold = 1_i32 << (symbol - 1);
-            if raw < threshold {
+            let difference = if raw < threshold {
                 raw - ((1_i32 << symbol) - 1)
             } else {
                 raw
-            }
+            };
+            (difference, bits)
         }
         _ => {
-            bits.record_error("lossless JPEG difference class is unsupported");
-            0
+            record_error(error, "lossless JPEG difference class is unsupported");
+            (0, bits)
         }
+    }
+}
+
+fn record_error(error: &mut Option<&'static str>, message: &'static str) {
+    if error.is_none() {
+        *error = Some(message);
     }
 }
 
@@ -1510,17 +1588,18 @@ mod tests {
 
     #[test]
     fn fast_peek_truncates_to_the_requested_high_bits() {
-        let mut bits = FastBitReader::new(&[0b1010_1100, 0b0011_0101, 0xff, 0]);
-        bits.refill();
+        let source = [0b1010_1100, 0b0011_0101, 0xff, 0];
+        let mut bits = FastBitReader::new();
+        bits = bits.refill(&source);
         assert_eq!(bits.peek_no_fill(1), 1);
-        bits.skip_no_fill(1);
-        bits.refill();
+        bits = bits.skip_no_fill(1);
+        bits = bits.refill(&source);
         assert_eq!(bits.peek_no_fill(7), 0b010_1100);
-        bits.skip_no_fill(7);
-        bits.refill();
+        bits = bits.skip_no_fill(7);
+        bits = bits.refill(&source);
         assert_eq!(bits.peek_no_fill(8), 0b0011_0101);
-        bits.skip_no_fill(8);
-        bits.refill();
+        bits = bits.skip_no_fill(8);
+        bits = bits.refill(&source);
         assert_eq!(bits.peek_no_fill(16), 0xff00);
     }
 
@@ -1613,15 +1692,36 @@ mod tests {
     }
 
     #[test]
+    fn row_local_fast_reader_state_matches_reference_across_rows() {
+        let rows = [
+            [0x12, 0x34, 0xff, 0x00, 0x7f, 0x80, 0x55],
+            [0xa5, 0x5a, 0x11, 0x22, 0xff, 0x00, 0x90],
+        ];
+        let source = rows.concat();
+        let mut reference = BitReader::new(&source);
+        let mut fast = FastBitReader::new();
+
+        for count in [1_usize, 5, 9, 13, 16, 3, 11, 2, 16, 7] {
+            fast = fast.refill(&source);
+            assert_eq!(
+                fast.peek_no_fill(count),
+                reference.peek(u8::try_from(count).unwrap())
+            );
+            fast = fast.skip_no_fill(count);
+            reference.skip(count);
+        }
+    }
+
+    #[test]
     fn left_aligned_fast_reader_matches_reference_across_stuffing() {
         let source = [0x12, 0x34, 0xff, 0x00, 0x7f, 0x80, 0x55];
         let mut reference = BitReader::new(&source);
-        let mut fast = FastBitReader::new(&source);
+        let mut fast = FastBitReader::new();
 
         for count in [1_u8, 5, 9, 13, 16, 3, 11, 2] {
-            fast.refill();
+            fast = fast.refill(&source);
             assert_eq!(fast.peek_no_fill(usize::from(count)), reference.peek(count));
-            fast.skip_no_fill(usize::from(count));
+            fast = fast.skip_no_fill(usize::from(count));
             reference.skip(usize::from(count));
         }
     }
@@ -1638,24 +1738,24 @@ mod tests {
             }
             source.extend_from_slice(&[MARKER_PREFIX, MARKER_EOI]);
             let mut reference = BitReader::new(&source);
-            let mut fast = FastBitReader::new(&source);
+            let mut fast = FastBitReader::new();
             for count in [13_usize, 16, 1, 11, 9, 14, 7, 16] {
-                fast.refill();
+                fast = fast.refill(&source);
                 let count_u8 = u8::try_from(count).unwrap();
                 assert_eq!(fast.peek_no_fill(count), reference.peek(count_u8));
-                fast.skip_no_fill(count);
+                fast = fast.skip_no_fill(count);
                 reference.skip(count);
             }
         }
 
         let truncated = [0xaa, 0xbb];
         let mut reference = BitReader::new(&truncated);
-        let mut fast = FastBitReader::new(&truncated);
-        fast.refill();
+        let mut fast = FastBitReader::new();
+        fast = fast.refill(&truncated);
         assert_eq!(fast.peek_no_fill(16), reference.peek(16));
-        fast.skip_no_fill(16);
+        fast = fast.skip_no_fill(16);
         reference.skip(16);
-        fast.refill();
+        fast = fast.refill(&truncated);
         assert_eq!(fast.peek_no_fill(16), reference.peek(16));
     }
 
@@ -1665,11 +1765,13 @@ mod tests {
         counts[0] = 1;
         let mut lookup = vec![super::HuffmanEntry::INVALID; super::HUFFMAN_LOOKAHEAD_SIZE];
         let table = super::HuffmanTable::parse(&counts, &[1], &mut lookup).unwrap();
-        let mut bits = FastBitReader::new(&[0x80, 0, 0, 0]);
+        let source = [0x80, 0, 0, 0];
+        let mut bits = FastBitReader::new();
+        let mut error = None;
 
-        bits.refill();
-        let _ = table.decode_difference_fast(&mut bits);
-        assert!(bits.has_error());
+        bits = bits.refill(&source);
+        let _ = table.decode_difference_fast(bits, &mut error);
+        assert!(error.is_some());
     }
 
     #[test]
@@ -1678,11 +1780,14 @@ mod tests {
         counts[15] = 1;
         let mut lookup = vec![super::HuffmanEntry::INVALID; super::HUFFMAN_LOOKAHEAD_SIZE];
         let table = super::HuffmanTable::parse(&counts, &[1], &mut lookup).unwrap();
-        let mut bits = FastBitReader::new(&[0, 0, 0]);
+        let source = [0, 0, 0];
+        let mut bits = FastBitReader::new();
+        let mut error = None;
 
-        bits.refill();
-        assert_eq!(table.decode_difference_fast(&mut bits), -1);
-        assert!(!bits.has_error());
+        bits = bits.refill(&source);
+        let (difference, _) = table.decode_difference_fast(bits, &mut error);
+        assert_eq!(difference, -1);
+        assert!(error.is_none());
     }
 
     #[test]
