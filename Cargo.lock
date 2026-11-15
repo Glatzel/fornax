@@ -832,6 +832,7 @@ dependencies = [
  "flate2",
  "image 0.25.9",
  "jxl-oxide",
+ "libc",
  "rayon",
  "thiserror",
  "weezl 0.2.1",

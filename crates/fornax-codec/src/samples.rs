@@ -1,9 +1,69 @@
+use bytemuck::Pod;
 use rayon::prelude::*;
 
 use crate::CodecError;
 use crate::error::invalid;
 use crate::request::{ByteOrder, Chunk, SampleFormat};
 use crate::sample_buffer::SampleBuffer;
+#[cfg(target_os = "linux")]
+const HUGE_PAGE_BYTES: usize = 2 * 1024 * 1024;
+#[cfg(target_os = "linux")]
+const MIN_HUGEPAGE_BYTES: usize = 4 * HUGE_PAGE_BYTES;
+
+fn zeroed_samples<T>(len: usize) -> Vec<T>
+where
+    T: Pod,
+{
+    #[cfg(target_os = "linux")]
+    if let Some(output) = hugepage_zeroed_samples(len) {
+        return output;
+    }
+    vec![T::zeroed(); len]
+}
+
+#[cfg(target_os = "linux")]
+fn hugepage_zeroed_samples<T>(len: usize) -> Option<Vec<T>>
+where
+    T: Pod,
+{
+    let byte_count = len.checked_mul(size_of::<T>())?;
+    if byte_count < MIN_HUGEPAGE_BYTES {
+        return None;
+    }
+
+    let layout = std::alloc::Layout::array::<T>(len).ok()?;
+    // `T: Pod` means every all-zero bit pattern is valid. The returned block
+    // has `layout`, is zero-initialized, and is never read before ownership is
+    // transferred to the Vec below.
+    let pointer = unsafe { std::alloc::alloc_zeroed(layout) }.cast::<T>();
+    if pointer.is_null() {
+        return None;
+    }
+    let start_address = pointer as usize;
+    let Some(end_address) = start_address.checked_add(layout.size()) else {
+        unsafe { std::alloc::dealloc(pointer.cast(), layout) };
+        return None;
+    };
+    let Some(start) = start_address
+        .checked_add(HUGE_PAGE_BYTES - 1)
+        .map(|value| value & !(HUGE_PAGE_BYTES - 1))
+    else {
+        unsafe { std::alloc::dealloc(pointer.cast(), layout) };
+        return None;
+    };
+    let end = end_address & !(HUGE_PAGE_BYTES - 1);
+    if end > start {
+        // `start..end` is an aligned interior of the live Vec allocation.
+        // Advising before initialization preserves first touch, and a failed
+        // advisory is harmless.
+        unsafe {
+            libc::madvise(start as *mut libc::c_void, end - start, libc::MADV_HUGEPAGE);
+        }
+    }
+    // The pointer came from the global allocator with `layout`, and the Vec
+    // uses exactly the same length, capacity, type, and allocator.
+    Some(unsafe { Box::from(slice::from_raw_parts(pointer, len, len)).into::<Vec<_>>() })
+}
 
 pub struct Geometry {
     pub width: usize,
@@ -102,7 +162,7 @@ fn decode_integer(
     let sample_count = geometry.sample_count()?;
     match bits {
         1..=8 => {
-            let mut output = vec![0_u8; sample_count];
+            let mut output = zeroed_samples(sample_count);
             if bits == 8 {
                 copy_samples(geometry, byte_order, payloads, &mut output)?;
             } else {
@@ -112,7 +172,7 @@ fn decode_integer(
             buffer_u8(geometry.width, geometry.height, output)
         }
         9..=16 => {
-            let mut output = vec![0_u16; sample_count];
+            let mut output = zeroed_samples(sample_count);
             if bits == 16 {
                 copy_samples(geometry, byte_order, payloads, &mut output)?;
             } else if matches!(bits, 12 | 14) {
@@ -124,12 +184,12 @@ fn decode_integer(
             buffer_u16(geometry.width, geometry.height, output)
         }
         17..=31 => {
-            let mut output = vec![0_u32; sample_count];
+            let mut output = zeroed_samples(sample_count);
             decode_packed(geometry, bits, payloads, |value| value, &mut output)?;
             buffer_u32(geometry.width, geometry.height, output)
         }
         32 => {
-            let mut output = vec![0_u32; sample_count];
+            let mut output = zeroed_samples(sample_count);
             copy_samples(geometry, byte_order, payloads, &mut output)?;
             buffer_u32(geometry.width, geometry.height, output)
         }

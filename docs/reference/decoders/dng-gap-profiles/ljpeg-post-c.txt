@@ -1,0 +1,31 @@
+# Post-C LJPEG profile
+
+Workload: 5D3 LJPEG, `RAYON_NUM_THREADS=1`, release build with DWARF data.
+
+`perf record --call-graph dwarf,16384 -F 997` captured 879 samples. With
+children excluded, the self-sample shares were:
+
+| Symbol | Share |
+| --- | ---: |
+| Inlined predictor-1 row/sample closure | 88.29% |
+| `parse_jpeg` | 4.10% |
+| `decode_into_rows_with_scratch` closure | 0.65% |
+| Kernel sample | 0.60% |
+
+A separate five-decode `perf stat` measured 11,765,570,203 instructions,
+24,408,272 branch misses, and 88,124 faults for five decodes. The 23,384,000
+pixel 5D3 output therefore executes about 100.62 instructions/sample.
+
+## Fused predictor-1 prototype
+
+The prototype removed the dynamic component loop for one and two components
+and wrote predictions directly into the output row.
+
+| Scan | Current instructions/sample | Fused instructions/sample | Wall result |
+| --- | ---: | ---: | --- |
+| 1 component, noisy, 256 tiles | 149.45 | 129.70 | Mixed across runs |
+| 2 components, noisy, 256 tiles | 140.56 | 158.89 | 500 ms to 530 ms |
+
+The two-component kernel regressed both instructions and wall time. The
+one-component wall result did not remain an improvement across repeated runs.
+The prototype and its hidden benchmark hook were removed.
