@@ -26,6 +26,9 @@ zune-jpeg = { workspace = true, optional = true }
 [dev-dependencies]
 image = { workspace = true, features = ["jpeg"] }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+libc.workspace = true
+
 [features]
 default = ["lzw", "packbits"]
 deflate = ["dep:flate2"]

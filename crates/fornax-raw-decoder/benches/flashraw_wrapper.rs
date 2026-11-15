@@ -92,7 +92,7 @@ impl IDecoder for FlashRawDecoder {
             .decode(DecodeOptions {
                 backend: Backend::Cpu,
                 output,
-                threads: Some(1),
+                threads: decode_threads()?,
                 crop: false,
                 apply_opcodes: false,
                 corruption_policy: CorruptionPolicy::Strict,
@@ -133,6 +133,28 @@ impl IDecoder for FlashRawDecoder {
         Err(DecodeError::Unsupported(
             "FlashRaw process metadata is not implemented".into(),
         ))
+    }
+}
+
+fn decode_threads() -> Result<Option<usize>, DecodeError> {
+    let Some(value) = std::env::var_os("FORNAX_FLASHRAW_THREADS") else {
+        return Ok(Some(1));
+    };
+    let value = value
+        .to_str()
+        .ok_or_else(|| DecodeError::InvalidInput("FlashRaw thread count is not UTF-8".into()))?;
+    if value == "all" || value == "0" {
+        return Ok(None);
+    }
+    let threads = value.parse::<usize>().map_err(|error| {
+        DecodeError::InvalidInput(
+            format!("invalid FlashRaw thread count {value:?}: {error}").into(),
+        )
+    })?;
+    if threads == 0 {
+        Ok(None)
+    } else {
+        Ok(Some(threads))
     }
 }
 

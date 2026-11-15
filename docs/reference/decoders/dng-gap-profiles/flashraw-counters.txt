@@ -1,0 +1,17 @@
+# FlashRaw counters
+
+Host: WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs, kernel
+`6.6.87.1-microsoft-standard-WSL2`, glibc `2.41-12+deb13u3`, THP
+`[madvise]`, THP defrag `[madvise]`. Release build, page-cache-hot input,
+one warmup outside `perf stat`, then five measured decodes except FP32 Deflate
+(three measured decodes). FlashRaw uses `threads = Some(1)` for these rows.
+
+| Case | Rounds | Instructions/decode | Branch misses/decode | Minor faults/decode |
+| --- | ---: | ---: | ---: | ---: |
+| 5D3 uncompressed | 5 | 7,270,406 | 7,503 | 1,526.6 |
+| 5D3 LJPEG | 5 | 951,622,276 | 600,425 | 1,202.2 |
+| 5D3 FP32 Deflate | 3 | 3,837,188,283 | 6,252,994 | 1,892.0 |
+
+FlashRaw's `alloc_zeroed` implementation uses the natural type alignment,
+advises the aligned 2 MiB interior before writes, and preserves the allocation
+as a `Vec`. The corrected Fornax probe reproduces this ordering and backing.

@@ -16,21 +16,24 @@ floating-point Deflate cases. Fornax is faster than FlashRaw on the Sigma fp
 A follow-up measurement retained one additional LJPEG optimization: the hot
 predictor-1 path now buffers error state instead of constructing and propagating
 a `Result` for every sample. It closes about one quarter of the remaining LJPEG
-time on the three measured DNGs. No uncompressed allocation-policy change was
-retained.
+time on the three measured DNGs. A later corrected first-touch probe invalidated
+the earlier huge-page experiment and retained a Linux-only natural-align
+`alloc_zeroed` plus `MADV_HUGEPAGE` policy for large integer outputs. That policy
+brings 5D3 uncompressed to parity with FlashRaw. Floating-point buffers remain
+unchanged.
 
 Single-thread end-to-end results:
 
 | File | Variant | Fornax | Rawler | FlashRaw | Fastest | Fornax/FlashRaw | Fornax/Rawler |
 | --- | --- | ---: | ---: | ---: | --- | ---: | ---: |
-| 5D3 | U16 uncompressed strip | 52.0 ms | 53.5 ms | 18.6 ms | FlashRaw | 2.80x | 0.97x |
+| 5D3 | U16 uncompressed strip | 18.5 ms | 53.5 ms | 18.6 ms | parity | 0.99x | 0.35x |
 | Sigma fp 4K | 12-bit uncompressed strip | 5.75 ms | 5.79 ms | 10.53 ms | Fornax | 0.55x | 0.99x |
-| 5D3 | U16 LJPEG tiles | 202.6 ms | 272.1 ms | 96.9 ms | FlashRaw | 2.09x | 0.74x |
+| 5D3 | U16 LJPEG tiles | 203.0 ms | 272.1 ms | 96.9 ms | FlashRaw | 2.10x | 0.75x |
 | Pentax K-5 | 14-bit LJPEG strip | not re-run | 168.5 ms | 77.0 ms | FlashRaw | n/m | n/m |
 | iPhone SE | U16 LJPEG tiles | 75.4 ms | 80.8 ms | 41.0 ms | FlashRaw | 1.84x | 0.93x |
-| Pixel 8 Pro | U16 LJPEG tiles | 423.7 ms | 546.4 ms | 194.3 ms | FlashRaw | 2.18x | 0.78x |
-| 5D3 HDR | FP16 predictor Deflate | 255.8 ms | 454.2 ms | 195.8 ms | Fornax | 1.31x | 0.56x |
-| 5D3 HDR | FP32 predictor Deflate | 410.8 ms | 766.1 ms | 332.7 ms | Fornax | 1.23x | 0.54x |
+| Pixel 8 Pro | U16 LJPEG tiles | 416.0 ms | 546.4 ms | 194.3 ms | FlashRaw | 2.14x | 0.76x |
+| 5D3 HDR | FP16 predictor Deflate | 242.4 ms | 454.2 ms | 195.8 ms | FlashRaw | 1.24x | 0.53x |
+| 5D3 HDR | FP32 predictor Deflate | 405.1 ms | 766.1 ms | 332.7 ms | FlashRaw | 1.22x | 0.53x |
 
 The timings are host-specific observations from the investigation environment:
 WSL2 Debian, AMD Ryzen 7 5800H, release mode, page-cache-hot input, and one
@@ -62,16 +65,16 @@ The comparison still has these caveats:
   end-to-end result.
 - FlashRaw maps the input lazily. Its decode time includes page faults as sensor
   data is touched.
-- The measurements are single-threaded. Multi-thread scaling is not part of
-  this report.
-- DWARF call graphs, normalized instruction/branch/fault counters, and final
-  wall times are recorded under
+- The headline measurements are single-threaded. A separate all-15-thread
+  scaling comparison is included below.
+- DWARF call graphs, normalized instruction/branch/fault counters, corrected
+  first-touch evidence, and multi-thread timings are recorded under
   [DNG gap profile artifacts](dng-gap-profiles/profiles.txt).
 
 ## Lossless JPEG
 
 Lossless JPEG remains the largest remaining gap, but the retained buffered-error
-path reduces it to 2.09x FlashRaw on 5D3, 2.18x on Pixel 8, and 1.84x on iPhone
+path reduces it to 2.10x FlashRaw on 5D3, 2.14x on Pixel 8, and 1.84x on iPhone
 SE. Fornax is faster than Rawler on the two re-measured cases for which Rawler
 supports the input.
 
@@ -114,6 +117,15 @@ Final counters execute 35.4% fewer instructions on 5D3 and 35.6% fewer on Pixel
 8. Branch-miss counts are essentially unchanged (about +3%), so the gain is
 instruction/control-flow reduction rather than a lower branch-miss rate.
 
+A fresh post-C DWARF profile now attributes 88.29% of 5D3 samples to the inlined
+predictor-1 row/sample closure and 4.10% to `parse_jpeg`. The final path executes
+about 100.62 instructions per output sample on 5D3. A benchmark-only fused
+one/two-component kernel reduced one-component instructions/sample from 149.45
+to 129.70, but its wall-time result did not remain stable. Two components
+regressed from 140.56 to 158.89 instructions/sample and from about 500 ms to
+530 ms on the 256-tile noisy scan. The prototype was removed. Details are in
+[the post-C LJPEG profile](dng-gap-profiles/ljpeg-post-c.txt).
+
 FlashRaw still fuses refill, Huffman lookup, difference reconstruction, and
 prediction into a smaller instruction stream. Fornax's remaining cost is spread
 across the row/sample loop and entropy refill; the isolated A, B, and D
@@ -125,45 +137,54 @@ The 12-bit uncompressed path is no longer a problem: Sigma fp is 5.75 ms versus
 FlashRaw's 10.53 ms and Rawler's 5.79 ms. The grouped 12/14-bit unpacking and
 native-endian U16 copy brought integer unpacking to Rawler parity.
 
-The remaining 5D3 U16 case is 52.0 ms versus FlashRaw's 18.6 ms, despite Fornax
-being slightly faster than Rawler. The codec's final U16 write is a typed row
-copy, so the missing 2.8x factor is not explained by SIMD bit unpacking.
+The earlier conclusion that huge pages did not help was based on an invalid
+probe. The allocation was not 2 MiB-aligned and had already been zero-filled
+before `MADV_HUGEPAGE`, so the huge-page and fresh variants both reported
+172,123 faults. A corrected probe advises a 2 MiB-aligned natural allocation
+before first write. It reports 43-45 MiB of `AnonHugePages` and changes the
+fault count, which validates the experiment.
 
-Two implementation differences are plausible contributors:
+The pre-change 5D3 stage split summed to 42.33 ms in the instrumented process:
 
-- Fornax allocates a zero-initialized ordinary `Vec<u16>` destination and then
-  copies each row into it.
-- FlashRaw allocates the destination with `alloc_zeroed`, applies Linux
-  `MADV_HUGEPAGE` to large allocations, and directly unpacks rows into the final
-  buffer. Its source notes that first-touch page faults dominate memory-bound
-  U16 unpacking and that 2 MiB pages reduce fault counts substantially.
+| Stage | Time |
+| --- | ---: |
+| TIFF parse and layout assembly | 1.81 ms |
+| Source mmap faults | 4.45 ms |
+| Output allocation and first touch | 27.52 ms |
+| Pre-touched row copy | 4.90 ms |
+| Residual | 3.65 ms |
 
-The current probe separates the in-memory path into these measurements:
+The earlier stage table omitted source mapping faults and included an
+out-of-band page-cache-hot `fs::read`. Most of its roughly 12 ms residual is
+therefore 4.45 ms of source faults plus 3.65 ms of process/probe residual. The
+rest is allocator and transparent-huge-page state varying between processes.
 
-| Stage | Measurement |
-| --- | --- |
-| Page-cache-hot `fs::read` into an owned buffer | 45-62 ms, including the source copy |
-| Open plus file mapping setup | about 0.05 ms; source faults remain lazy |
-| TIFF parse and metadata/layout assembly | about 1.9-2.1 ms |
-| Pre-touched row copy | 4.960 ms |
-| Allocation and output first touch | about 32.5 ms |
+For the 23.4-million-sample U16 output, isolated allocation results were:
 
-The 23.4-million-sample output was then decoded into three destinations:
+| Policy | Time after warmup | Five-round instruction total | Five-round faults |
+| --- | ---: | ---: | ---: |
+| Fresh `Vec<u16>` | 32-34 ms | 26,585,115 | 57,995 |
+| `Vec::with_capacity` + `MADV_HUGEPAGE` | 12-15 ms | 39,322,960 | 4,347 |
+| Natural `alloc_zeroed` + `MADV_HUGEPAGE` | 8.5-9.1 ms | 27,316,348 | 4,345 |
+| Unchanged code with glibc hugetlb tunable | 8.0-8.7 ms | 28,318,743 | 4,342 |
 
-- fresh `Vec<u16>`: 37.433 ms total;
-- pre-touched reused `Vec<u16>`: 4.960 ms;
-- page-aligned `alloc_zeroed` plus `MADV_HUGEPAGE`: 40.212 ms total.
+The natural `alloc_zeroed` policy avoids the second zero-fill performed by the
+safe `Vec::with_capacity` prototype and measured both materially faster and with
+fewer instructions. It is now used only on Linux and only for integer output
+buffers of at least 8 MiB. Floating-point outputs remain on their previous
+allocation path because a broadened policy measured neutral to negative there.
+The owned-`Vec` API is unchanged.
 
-The fresh path incurred 172,123 process minor faults in the probe. The reused
-path incurred 115,028, while the hugepage path still incurred 172,123. Hugepage
-allocation therefore did not remove first-touch faults and was 2.8 ms slower
-than a fresh vector. No allocation-policy change is retained.
+Single-thread 5D3 uncompressed improved from 48.3 ms to 18.5 ms; FlashRaw
+measured 18.6 ms. Final Fornax counters are about 6.55 million instructions and
+1,586 faults per decode, close to FlashRaw's 7.27 million and 1,527. The exact
+three-way dimensions, storage, bits, and pixel gate passed.
 
 The profile's 95.1% sample share for Fornax's native U16 tile-copy callback is
 consistent with write/first-touch cost, not scalar unpacking. The codec already
 uses a typed row copy. A reusable output buffer would remove most measured cost,
-but it cannot preserve the current owned-return API; recommending it would be an
-API redesign rather than a drop-in optimization.
+but it cannot preserve the current owned-return API and is no longer needed to
+close the 5D3 gap.
 
 ## Deflate
 
@@ -185,8 +206,28 @@ Replacing miniz with zlib-rs only improved the old Fornax FP32 result by about
 2%, so a backend swap is not a credible standalone fix for the remaining gap.
 Fornax executes fewer instructions than FlashRaw on FP32 Deflate (3.03B versus
 3.84B per decode) but incurs 13.3x its minor faults (23,787 versus 1,789).
-Allocation/first-touch was not independently varied for Deflate in this task;
-no Deflate implementation change is retained.
+The large-output huge-page policy was tested with floating-point outputs and
+reverted for this path: FP32 was neutral, while FP16 regressed about 1.5-2%
+before the policy was restricted to integer buffers. No Deflate implementation
+change is retained.
+
+## Multi-thread scaling
+
+Fornax and FlashRaw were both run with all 15 visible workers on the tiled
+lossless-JPEG and Deflate files. Values are medians from three fresh processes.
+
+| File | Fornax 1T | Fornax 15T | FlashRaw 1T | FlashRaw 15T | Fornax/FlashRaw 15T |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 5D3 LJPEG tiles | 203.0 ms | 41.6 ms | 96.9 ms | 21.1 ms | 1.97x |
+| Pixel 8 LJPEG tiles | 416.0 ms | 82.1 ms | 194.3 ms | 39.2 ms | 2.09x |
+| 5D3 FP16 Deflate | 242.4 ms | 56.9 ms | 195.8 ms | 56.1 ms | 1.01x |
+| 5D3 FP32 Deflate | 405.1 ms | 68.2 ms | 332.7 ms | 65.5 ms | 1.04x |
+
+Fornax scales 4.88x and 5.07x on the LJPEG files, and FlashRaw scales 4.59x and
+4.96x. On Deflate, Fornax scales 4.26x/5.94x versus FlashRaw's 3.49x/5.08x,
+which brings the all-thread results to near parity. These are host-specific
+observations. Full data are in
+[the thread-scaling measurements](dng-gap-profiles/thread-scaling.txt).
 
 ## SIMD and Compiler Features
 
@@ -202,15 +243,21 @@ SIMD is not the explanation for these benchmark gaps:
 
 ## Evidence Limits
 
-- The final LJPEG state has complete instruction/branch/fault counters but not
-  a fresh post-change flamegraph.
+- The final LJPEG state has a fresh post-C DWARF profile plus
+  instruction/branch/fault counters. The fused-kernel prototype was rejected
+  rather than retained.
 - Pentax K-5 could not be re-measured: its corpus file is pointer-only in this
   checkout and Fornax has no Pentax container decoder.
-- The Deflate profile is current, but its allocation/first-touch behavior was
-  not independently varied and no Deflate change is included.
-- No multi-threaded or cold-storage comparison was made.
-- All reported ratios are single-file, single-thread, page-cache-hot
-  measurements and should not be aggregated into a corpus-wide speed claim.
+- Deflate allocation/first-touch was varied; floating-point output was left
+  unchanged after the broad policy regressed FP16.
+- No cold-storage comparison was made.
+- All reported ratios are single-file, page-cache-hot measurements and should
+  not be aggregated into a corpus-wide speed claim. The scaling table uses all
+  15 available workers; the headline table uses one worker.
+- Corrected first-touch details are in
+  [first-touch-corrected.txt](dng-gap-profiles/first-touch-corrected.txt), and
+  the FlashRaw reference counters are in
+  [flashraw-counters.txt](dng-gap-profiles/flashraw-counters.txt).
 
 ## Encode
 

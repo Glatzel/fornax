@@ -1,0 +1,79 @@
+# Corrected DNG first-touch measurements
+
+Host and settings:
+
+- WSL2 Debian, kernel `6.6.87.1-microsoft-standard-WSL2`.
+- AMD Ryzen 7 5800H; 15 visible CPUs.
+- glibc `2.41-12+deb13u3`.
+- `/sys/kernel/mm/transparent_hugepage/enabled`:
+  `always [madvise] never`.
+- `/sys/kernel/mm/transparent_hugepage/defrag`:
+  `always defer defer+madvise [madvise] never`.
+- Release optimization with DWARF debug information.
+- Page-cache-hot in-memory input; `RAYON_NUM_THREADS=1`.
+
+## Why the old probe was invalid
+
+The old huge-page probe used an allocation with 4 KiB alignment, called
+`alloc_zeroed` first, and only then advised a rounded range. Rust's
+`alloc_zeroed` zeroed the over-aligned allocation in user space, so the pages
+were already touched. The reported fault count was exactly 172,123 for both
+the fresh and "hugepage" variants, which invalidates that comparison.
+
+## Corrected probe
+
+The corrected huge-page buffer is an anonymous mapping with a 2 MiB-aligned
+interior. `MADV_HUGEPAGE` is called before decode writes. A successful probe
+shows nonzero `AnonHugePages` in `/proc/self/smaps`:
+
+| Variant | AnonHugePages |
+| --- | ---: |
+| 2 MiB-aligned anonymous map | 43,008 KiB |
+| `Vec` from natural-align `alloc_zeroed` + `MADV_HUGEPAGE` | 43,008-45,056 KiB |
+| `Vec::with_capacity` + `MADV_HUGEPAGE` | 43,008-45,056 KiB |
+| Fresh `Vec` | 0 KiB |
+
+After warmup, 5D3 uncompressed allocations measured:
+
+| Variant | Per-round result | Counters over five isolated rounds |
+| --- | ---: | --- |
+| Fresh `Vec<u16>` | 32-34 ms decode/copy | 26,585,115 instructions; 57,995 faults |
+| `Vec::with_capacity` + `MADV_POPULATE_WRITE` | about 33 ms | 41,176,063 instructions; 919 faults |
+| `Vec::with_capacity` + `MADV_HUGEPAGE` | 12-15 ms | 39,322,960 instructions; 4,347 faults |
+| `Vec::with_capacity` + both advice calls | about 14-15 ms | 41,276,636 instructions; 921 faults |
+| Natural-align `alloc_zeroed` + `MADV_HUGEPAGE` | 8.5-9.1 ms | 27,316,348 instructions; 4,345 faults |
+| Unchanged code with `GLIBC_TUNABLES=glibc.malloc.hugetlb=1` | 8.0-8.7 ms | 28,318,743 instructions; 4,342 faults |
+
+Counters above use the counter-only probe, so verification, the production
+reference decode, and stage instrumentation are excluded. The raw
+calloc-equivalent path avoids the second zero-fill performed by the
+`Vec::with_capacity` prototype.
+
+## Uncompressed stage split
+
+The pre-change stage probe measured a 42.33 ms production decode in that
+process:
+
+| Stage | Time |
+| --- | ---: |
+| TIFF parse and layout assembly | 1.81 ms |
+| Source mmap faults | 4.45 ms |
+| Output allocation and first touch | 27.52 ms |
+| Pre-touched row copy | 4.90 ms |
+| Residual | 3.65 ms |
+| Total | 42.33 ms |
+
+The earlier 52 ms trace did not include source mmap faults as a stage. Those
+faults account for about 4.5 ms here. The remaining roughly 8.1 ms formerly
+folded into a "12 ms residual" is 4.5 ms source faulting plus 3.7 ms process
+and probe residual. The historical 52 ms versus the 42-48 ms current-process
+range also reflects allocator/THP state and run variance; the old stage table
+mixed an out-of-band `fs::read` with production phase timings.
+
+## Final production policy
+
+Large integer outputs use the Linux-only natural-align `alloc_zeroed` path,
+then advise the 2 MiB-aligned allocation interior before writes. The
+per-allocation threshold is 8 MiB and floating-point outputs are unchanged.
+Exact dimensions, storage type, bits, and pixel bits passed the three-way gate
+for 5D3 uncompressed, 5D3 LJPEG, Pixel 8 LJPEG, FP16 Deflate, and FP32 Deflate.

@@ -1,0 +1,17 @@
+# DNG multi-thread scaling
+
+Host: WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs, release build,
+page-cache-hot input. Fornax uses the global 15-worker Rayon pool; FlashRaw is
+configured with `threads = None` (global pool). Every row is the median of
+three fresh processes and three measured rounds after one warmup.
+
+| File | Fornax 1T | Fornax 15T | Fornax speedup | FlashRaw 1T | FlashRaw 15T | FlashRaw speedup | Fornax/FlashRaw 15T |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 5D3 LJPEG tiles | 203.0 ms | 41.6 ms | 4.88x | 96.9 ms | 21.1 ms | 4.59x | 1.97x |
+| Pixel 8 LJPEG tiles | 416.0 ms | 82.1 ms | 5.07x | 194.3 ms | 39.2 ms | 4.96x | 2.09x |
+| 5D3 FP16 Deflate | 242.4 ms | 56.9 ms | 4.26x | 195.8 ms | 56.1 ms | 3.49x | 1.01x |
+| 5D3 FP32 Deflate | 405.1 ms | 68.2 ms | 5.94x | 332.7 ms | 65.5 ms | 5.08x | 1.04x |
+
+Single-thread FlashRaw values are the report's interleaved measurements.
+Fornax single-thread values use the final binary from this task. Scaling is
+host-specific and is not a portable throughput claim.
