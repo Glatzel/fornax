@@ -120,7 +120,6 @@ clippy_flags=(
     -D clippy::ref_option_ref
     -D clippy::rest_pat_in_fully_bound_structs
     -D clippy::return_and_then
-    -D clippy::same_length_and_capacity
     -D clippy::search_is_some
     -D clippy::semicolon_if_nothing_returned
     -D clippy::semicolon_outside_block
