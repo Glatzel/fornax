@@ -3,6 +3,11 @@ name = "fornax-dng"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = []
+metadata-json = ["dep:serde", "dep:serde_json"]
+zstd = ["fornax-codec/zstd", "fornax-tiff/zstd"]
+
 [[bench]]
 harness = false
 name = "writer"
@@ -32,8 +37,3 @@ features = ["jpegxl", "raster"]
 [dev-dependencies]
 criterion.workspace = true
 fornax-devtool.workspace = true
-
-[features]
-default = []
-metadata-json = ["dep:serde", "dep:serde_json"]
-zstd = ["fornax-codec/zstd", "fornax-tiff/zstd"]

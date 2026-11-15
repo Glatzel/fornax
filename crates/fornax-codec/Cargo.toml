@@ -3,6 +3,16 @@ name = "fornax-codec"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = ["lzw", "packbits"]
+deflate = ["dep:flate2"]
+jpegxl = ["dep:jxl-oxide"]
+lossless-jpeg = []
+lossy-jpeg = ["dep:zune-jpeg"]
+lzw = ["dep:weezl"]
+packbits = []
+zstd = ["dep:zstd"]
+
 [[bench]]
 harness = false
 name = "ljpeg_gap_probe"
@@ -28,13 +38,3 @@ image = { workspace = true, features = ["jpeg"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc.workspace = true
-
-[features]
-default = ["lzw", "packbits"]
-deflate = ["dep:flate2"]
-jpegxl = ["dep:jxl-oxide"]
-lossless-jpeg = []
-lossy-jpeg = ["dep:zune-jpeg"]
-lzw = ["dep:weezl"]
-packbits = []
-zstd = ["dep:zstd"]

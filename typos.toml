@@ -1,25 +1,6 @@
 [files]
-extend-exclude = [
-  "changelog.md",
-  "**/bindings*.rs",
-  "**/*.csv",
-  "docs/**/*.md",
-  "**/*.svg"
-]
+extend-exclude = ["changelog.md", "**/bindings*.rs", "**/*.csv", "docs/**/*.md", "**/*.svg"]
 
 [default]
 # tombi: format.rules.array-values-order = "ascending"
-extend-ignore-identifiers-re = [
-  "AHD",
-  "Ahd",
-  "Flate",
-  "UNSUFFICIENT",
-  "UnsufficientMemory",
-  "_thr",
-  "ahd",
-  "ba",
-  "correc",
-  "flate",
-  "pn",
-  "trak"
-]
+extend-ignore-identifiers-re = ["AHD", "Ahd", "Flate", "UNSUFFICIENT", "UnsufficientMemory", "_thr", "ahd", "ba", "correc", "flate", "pn", "trak"]
