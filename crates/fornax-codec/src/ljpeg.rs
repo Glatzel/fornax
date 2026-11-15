@@ -7,7 +7,7 @@ use rayon::prelude::*;
 
 use crate::error::invalid;
 use crate::request::{DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
-use crate::samples::{Geometry, buffer_u8, buffer_u16, chunk};
+use crate::samples::{Geometry, buffer_u8, buffer_u16, chunk, zeroed_samples};
 use crate::{CodecError, Predictor, SampleBuffer};
 
 const MARKER_PREFIX: u8 = 0xff;
@@ -43,7 +43,7 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         .width
         .checked_mul(geometry.height)
         .ok_or_else(|| invalid("lossless JPEG sample count overflow"))?;
-    let mut output = vec![0_u16; sample_count];
+    let mut output = zeroed_samples(sample_count);
     let expected_samples = geometry
         .chunk_width
         .checked_mul(geometry.chunk_height)
@@ -629,7 +629,7 @@ fn decode_interleaved_impl(
     let sample_count = output_width
         .checked_mul(frame.height)
         .ok_or_else(|| "lossless JPEG sample count overflow".to_owned())?;
-    let mut output = vec![0_u16; sample_count];
+    let mut output = zeroed_samples(sample_count);
     let fast_path = decode_scan_into(
         parsed.entropy,
         &frame,

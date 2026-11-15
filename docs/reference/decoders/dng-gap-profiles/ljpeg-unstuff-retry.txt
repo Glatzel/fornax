@@ -1,0 +1,30 @@
+# LJPEG unstuff retry with reusable scratch
+
+Hypothesis: the prior noisy-scan regression from one-time unstuffing came from
+per-tile scratch allocation and first touch.
+
+The retry used a thread-local reusable `Vec<u8>`, unstuffed each scan once, and
+ran the bit reader over plain bytes. Exact decoded samples were verified before
+timing.
+
+| Scan | Tiles | C baseline | A+C reusable scratch | Change |
+| --- | ---: | ---: | ---: | ---: |
+| 1 component smooth | 64 | 31.01 ms | 25.08 ms | -19.1% |
+| 1 component smooth | 256 | 123.74 ms | 120.94 ms | -2.3% |
+| 1 component noisy | 64 | 62.84 ms | 64.51 ms | +2.7% |
+| 1 component noisy | 256 | 252.52 ms | 256.75 ms | +1.7% |
+| 2 components smooth | 64 | 60.13 ms | 59.61 ms | -0.9% |
+| 2 components smooth | 256 | 238.31 ms | 237.13 ms | -0.5% |
+| 2 components noisy | 64 | 105.51 ms | 109.82 ms | +4.1% |
+| 2 components noisy | 256 | 420.36 ms | 444.37 ms | +5.7% |
+
+Minor faults were effectively unchanged, confirming that scratch allocation was
+not the remaining noisy-scan cost:
+
+| Scan | C faults | A+C reusable faults |
+| --- | ---: | ---: |
+| 1 component noisy, 64 tiles | 2,483 | 2,521 |
+| 2 components noisy, 64 tiles | 16,923 | 16,996 |
+
+The experiment was reverted. The noisy-data copy and marker-free reader do not
+offset the added first pass.

@@ -1,0 +1,22 @@
+# FP32 Deflate minor-fault attribution
+
+Input: `Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-w-pred-deflate.dng`.
+
+Method:
+
+- WSL2 Debian, AMD Ryzen 7 5800H, kernel
+  `6.6.87.1-microsoft-standard-WSL2`, release build with DWARF data.
+- `RAYON_NUM_THREADS=1`, page-cache-hot input.
+- `perf record -e minor-faults:u -c 1 --call-graph dwarf,16384`.
+- 20,022 fault samples captured; 4,321 samples were lost due to event I/O
+  overload, so shares are approximate.
+
+| Fault site | Share |
+| --- | ---: |
+| First writes in `decode_float_row_into` (full FP32 output) | 93.02% |
+| `inflate_into` scratch growth | 1.13% |
+| Other libc/loader and unattributed paths | 5.85% |
+
+The output buffer dominates. Inflate scratch and per-strip temporary buffers do
+not justify a per-worker reuse prototype, so Deflate production code remains
+unchanged.

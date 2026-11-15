@@ -1,0 +1,41 @@
+# Predictor-1 instruction annotation follow-up
+
+Workload: 5D3 LJPEG, one Rayon worker, release build with DWARF data.
+
+FlashRaw executes 951,622,276 instructions for 23,384,000 output samples, or
+40.70 instructions/sample. Final Fornax executes about 100.67 instructions/
+sample.
+
+A direct `instructions:u` profile sampled the inlined predictor closure. Even
+with 91 instruction samples lost, the dominant annotated ranges were:
+
+| Region | Approximate share of annotated instruction samples |
+| --- | ---: |
+| First-level fast Huffman table and miss decision | 38.3% |
+| Bit refill and marker checks | 25.4% |
+| Slow Huffman/amplitude fallback and result masking | 20.0% |
+| Row/index loop setup | 9.6% |
+| Predictor/index arithmetic | 4.9% |
+
+The single `entry.full` miss branch held 25.2% of all instruction samples.
+Sign-extension, mask, and loop-carried prediction instructions were visible but
+were not the dominant independent site.
+
+## Candidate 1: widen the fast lookup from 13 to 16 bits
+
+This increased per-tile table construction enough to dominate:
+
+- 5D3 one thread: 170.5 ms to 289.1 ms median.
+- Strict equality passed.
+- Reverted.
+
+## Candidate 2: reuse the miss payload to cache the Huffman symbol
+
+This avoided the second 16-bit lookup on 13-bit aliases without increasing the
+table size:
+
+- 5D3 one thread: 170.5 ms to 216.8 ms median.
+- Strict equality passed.
+- Reverted.
+
+No predictor-kernel change is retained.

@@ -1,0 +1,32 @@
+# LJPEG large-output allocation follow-up
+
+Host: WSL2 Debian, AMD Ryzen 7 5800H, 15 visible CPUs, kernel
+`6.6.87.1-microsoft-standard-WSL2`, glibc `2.41-12+deb13u3`. Release build,
+page-cache-hot inputs. THP enabled: `[madvise]`; THP defrag:
+`[madvise]`.
+
+LJPEG previously allocated the full image directly with `vec![0_u16; ...]`,
+bypassing the shared large-integer allocation policy. Both DNG LJPEG outputs
+are above 8 MiB.
+
+Wall times are medians from three fresh processes with three measured rounds
+after one warmup.
+
+| File | Threads | Before | After | Change |
+| --- | ---: | ---: | ---: | ---: |
+| 5D3 LJPEG | 1 | 210.5 ms | 170.5 ms | -19.0% |
+| 5D3 LJPEG | 15 | 41.8 ms | 38.2 ms | -8.6% |
+| Pixel 8 LJPEG | 1 | 429.1 ms | 356.3 ms | -17.0% |
+| Pixel 8 LJPEG | 15 | 82.2 ms | 70.6 ms | -14.1% |
+
+Counters are one page-cache-hot decode per process:
+
+| File | Threads | Before minor faults | After minor faults | Before instructions | After instructions |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 5D3 LJPEG | 1 | 40,162 | 29,429 | 2,354,122,565 | 2,354,112,020 |
+| 5D3 LJPEG | 15 | 30,923 | 21,668 | 2,356,808,230 | 2,356,751,683 |
+| Pixel 8 LJPEG | 1 | 85,200 | 61,189 | 4,640,207,036 | 4,640,183,602 |
+| Pixel 8 LJPEG | 15 | 68,345 | 45,698 | 4,643,828,915 | 4,643,957,741 |
+
+The strict three-way gate passed with exact dimensions, U16 storage, source
+bit depth, and pixels for both files. The change is retained.
