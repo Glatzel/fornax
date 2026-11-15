@@ -410,3 +410,36 @@ still visible. Interleaving two independent tiles in one scalar loop is worth
 proposing as a separate design experiment because it can expose a second
 dependency chain to the core; it was outside this task's stop rule and was not
 implemented.
+
+### CodSpeed review regression
+
+CodSpeed reported regressions for the Canon 60D compressed DNG and Sony
+ILCE-9M3 lossless ARW while the Canon 5D3 DNG improved. The report also warned
+that all six significant changes ran on different hardware, so the inputs were
+re-measured locally against `985c704` with three fresh processes and five
+rounds per process.
+
+The 60D and Sony files use the general multi-component LJPEG route. The first
+compact-table implementation restored success semantics there with a bitwise
+canonical decoder and then a compact direct lookup. Assembly showed that the
+new `HuffmanTable::decode` helper remained out of line, adding call and
+register-shuffling overhead to every symbol:
+
+```text
+985c704: HuffmanTable::decode inlined into the scan loop
+initial #737: out-of-line HuffmanTable::decode call per symbol
+```
+
+The fix forces the fast lookup inline and moves only long-code/error handling
+to a cold noinline helper. This preserves the 2 KiB hot lookup rather than
+restoring the 128 KiB table. Same-host medians before and after the review fix:
+
+| Input | Baseline `985c704` | Initial #737 | Review fix | Initial/base | Fixed/base |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Canon 60D compressed DNG | 8.801 ms | 11.010 ms | 8.379 ms | 1.304x | 0.952x |
+| Canon 5D3 compressed DNG | 12.080 ms | 10.823 ms | 10.823 ms | 0.896x | 0.896x |
+| Sony ILCE-9M3 lossless ARW | 182.632 ms | 248.838 ms | 181.113 ms | 1.386x | 0.992x |
+
+After the fix, 60D instructions/cycles are 1.051x/1.012x baseline while L1D
+load misses are 0.247x. Sony is 1.016x/0.988x baseline with L1D misses at
+0.306x. The 5D3 fast route remains at 0.869x cycles and 0.084x L1D misses.

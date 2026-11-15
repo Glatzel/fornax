@@ -159,3 +159,9 @@ scripts/agent-validation.sh
   for `x86_64-pc-windows-msvc` and `aarch64-apple-darwin` passed.
 - Miri is unavailable because the nightly toolchain has no `cargo-miri`
   component installed. Big-endian Miri therefore remains unrun.
+- CodSpeed review feedback exposed a regression in the general LJPEG route
+  used by Canon 60D and Sony lossless ARW. The compact `decode` helper was not
+  inlined, so those four-component scans paid a call per symbol. The final fix
+  forces the compact lookup inline and leaves only the long-code/error fallback
+  cold. Local five-round medians moved 60D from 1.304x to 0.952x baseline and
+  Sony from 1.386x to 0.992x, while 5D3 stayed at 0.896x.

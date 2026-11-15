@@ -18,6 +18,7 @@ const MARKER_EOI: u8 = 0xd9;
 const MARKER_SOS: u8 = 0xda;
 const HUFFMAN_LOOKAHEAD_BITS: usize = 16;
 const FAST_HUFFMAN_LOOKAHEAD_BITS: usize = 10;
+const FAST_HUFFMAN_LOOKAHEAD_BITS_U8: u8 = 10;
 const FAST_HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << FAST_HUFFMAN_LOOKAHEAD_BITS;
 
 pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
@@ -305,7 +306,22 @@ impl HuffmanTable {
         })
     }
 
+    #[inline(always)]
     fn decode(&self, bits: &mut BitReader<'_>) -> Result<u8, String> {
+        // The general path handles multi-component Sony and DNG scans. Keep the
+        // hot symbol lookup inline so it does not pay a call for every sample.
+        let entry = self.fast_lookup[usize::from(bits.peek(FAST_HUFFMAN_LOOKAHEAD_BITS_U8))];
+        let length = entry.length();
+        if length != 0 && usize::from(length) <= FAST_HUFFMAN_LOOKAHEAD_BITS {
+            bits.skip(usize::from(length));
+            return Ok(entry.symbol());
+        }
+        self.decode_slow(bits)
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn decode_slow(&self, bits: &mut BitReader<'_>) -> Result<u8, String> {
         self.decode_symbol_slow(bits)
             .ok_or_else(|| "lossless JPEG contains an invalid Huffman code".to_owned())
     }
