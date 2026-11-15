@@ -1,0 +1,71 @@
+# LJPEG hypothesis measurements
+
+Method:
+
+- Release optimization, one Rayon worker, page-cache-hot inputs.
+- Real files: three fresh processes per variant with five timed rounds each
+  after one warmup. Fifteen observations per mean.
+- Synthetic matrix: one process with seven rounds per case after a mandatory
+  exact-sample verification pass.
+- All variants retained the exact decoded sample bits.
+
+## Real-file results
+
+Values are mean plus or minus sample standard deviation in milliseconds.
+
+| Variant | 5D3 LJPEG baseline | 5D3 LJPEG after | Delta | Pixel 8 baseline | Pixel 8 after | Delta |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baseline | 267.899 ± 1.883 | 267.899 | 0.0% | 559.753 ± 17.646 | 559.753 | 0.0% |
+| A: unstuff once | 267.899 ± 1.883 | 261.609 ± 3.277 | -2.35% | 559.753 ± 17.646 | 538.686 ± 9.016 | -3.77% |
+| B: const components | 267.899 ± 1.883 | 242.700 ± 2.853 | -9.40% | 559.753 ± 17.646 | 501.641 ± 8.951 | -10.38% |
+| C: buffered errors | 267.899 ± 1.883 | 203.723 ± 4.222 | -23.95% | 559.753 ± 17.646 | 418.696 ± 6.636 | -25.20% |
+| D: table reuse | 267.899 ± 1.883 | 271.881 ± 4.026 | +1.49% | 559.753 ± 17.646 | 558.268 ± 8.778 | -0.27% |
+| B + C | 267.899 ± 1.883 | 206.533 ± 1.586 | -22.91% | 559.753 ± 17.646 | 423.170 ± 7.582 | -24.40% |
+| Final C-only | 267.899 ± 1.883 | 202.619 ± 5.440 | -24.37% | 559.753 ± 17.646 | 423.734 ± 17.091 | -24.30% |
+
+The final interleaved all-case run measured FlashRaw at 96.864 ms for 5D3,
+194.305 ms for Pixel 8, and 41.023 ms for iPhone SE. Final Fornax/FlashRaw is
+2.09x on 5D3, 2.18x on Pixel 8, and 1.84x on iPhone SE.
+
+The iPhone SE final Fornax measurement is 75.435 ± 6.054 ms versus 107.3 ms in
+the pre-optimization report, a 29.7% reduction. Pentax K-5 remains unmeasured
+because its corpus file is a pointer in this checkout and Fornax has no Pentax
+container decoder.
+
+## Synthetic matrix
+
+Final C-only results relative to the unchecked baseline:
+
+| Components | Pattern | Tiles | Baseline ms | Final ms | Delta |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | noisy | 1 | 1.025 | 0.978 | -4.61% |
+| 1 | noisy | 64 | 68.045 | 62.089 | -8.75% |
+| 1 | noisy | 256 | 273.113 | 249.238 | -8.74% |
+| 1 | smooth | 1 | 0.527 | 0.365 | -30.78% |
+| 1 | smooth | 64 | 41.261 | 30.731 | -25.52% |
+| 1 | smooth | 256 | 165.038 | 119.868 | -27.37% |
+| 2 | noisy | 1 | 2.047 | 1.891 | -7.61% |
+| 2 | noisy | 64 | 116.926 | 106.686 | -8.76% |
+| 2 | noisy | 256 | 463.229 | 428.194 | -7.56% |
+| 2 | smooth | 1 | 1.188 | 0.867 | -27.07% |
+| 2 | smooth | 64 | 80.276 | 59.799 | -25.51% |
+| 2 | smooth | 256 | 322.226 | 238.011 | -26.14% |
+
+The synthetic benchmark's mandatory verification pass warms any candidate
+cache, so its one-tile measurements are not used alone to justify a production
+change.
+
+## Decisions
+
+- Kept C: `Result` construction/propagation is removed from every hot sample.
+  The lookup reports unusual codes through a buffered error flag and the scan
+  checks it once after the row loop. Invalid-code behavior is covered by a
+  direct regression test.
+- Reverted A: isolated real-file gains do not compose with C. A+B+C regressed
+  noisy synthetic scans by 12-16% versus baseline, and A+C regressed them by
+  14-25%.
+- Reverted B: it is independently fast, but B+C is 1.4% slower on 5D3 and 1.1%
+  slower on Pixel 8 than C alone, at or within the larger run spread. C alone is
+  simpler and has the strongest real-file result.
+- Reverted D: table reuse regressed 5D3 by 1.49%, beyond the 0.70% baseline
+  spread, without a distinguishable Pixel 8 gain.

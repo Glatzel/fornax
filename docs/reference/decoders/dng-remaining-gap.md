@@ -13,22 +13,34 @@ faster on lossless JPEG, on the 5D3 16-bit uncompressed case, and on the two
 floating-point Deflate cases. Fornax is faster than FlashRaw on the Sigma fp
 12-bit uncompressed case.
 
+A follow-up measurement retained one additional LJPEG optimization: the hot
+predictor-1 path now buffers error state instead of constructing and propagating
+a `Result` for every sample. It closes about one quarter of the remaining LJPEG
+time on the three measured DNGs. No uncompressed allocation-policy change was
+retained.
+
 Single-thread end-to-end results:
 
 | File | Variant | Fornax | Rawler | FlashRaw | Fastest | Fornax/FlashRaw | Fornax/Rawler |
 | --- | --- | ---: | ---: | ---: | --- | ---: | ---: |
 | 5D3 | U16 uncompressed strip | 52.0 ms | 53.5 ms | 18.6 ms | FlashRaw | 2.80x | 0.97x |
 | Sigma fp 4K | 12-bit uncompressed strip | 5.75 ms | 5.79 ms | 10.53 ms | Fornax | 0.55x | 0.99x |
-| 5D3 | U16 LJPEG tiles | 266.0 ms | 272.1 ms | 95.8 ms | FlashRaw | 2.78x | 0.98x |
-| Pentax K-5 | 14-bit LJPEG strip | 159.5 ms | 168.5 ms | 77.0 ms | FlashRaw | 2.07x | 0.95x |
-| iPhone SE | U16 LJPEG tiles | 107.3 ms | 80.8 ms | 40.8 ms | FlashRaw | 2.63x | 1.33x |
-| Pixel 8 Pro | U16 LJPEG tiles | 545.4 ms | 546.4 ms | 197.8 ms | FlashRaw | 2.76x | 1.00x |
+| 5D3 | U16 LJPEG tiles | 202.6 ms | 272.1 ms | 96.9 ms | FlashRaw | 2.09x | 0.74x |
+| Pentax K-5 | 14-bit LJPEG strip | not re-run | 168.5 ms | 77.0 ms | FlashRaw | n/m | n/m |
+| iPhone SE | U16 LJPEG tiles | 75.4 ms | 80.8 ms | 41.0 ms | FlashRaw | 1.84x | 0.93x |
+| Pixel 8 Pro | U16 LJPEG tiles | 423.7 ms | 546.4 ms | 194.3 ms | FlashRaw | 2.18x | 0.78x |
 | 5D3 HDR | FP16 predictor Deflate | 255.8 ms | 454.2 ms | 195.8 ms | Fornax | 1.31x | 0.56x |
 | 5D3 HDR | FP32 predictor Deflate | 410.8 ms | 766.1 ms | 332.7 ms | Fornax | 1.23x | 0.54x |
 
 The timings are host-specific observations from the investigation environment:
 WSL2 Debian, AMD Ryzen 7 5800H, release mode, page-cache-hot input, and one
 worker for all decoders. They are not portable performance guarantees.
+
+The final LJPEG numbers use three fresh processes per case and decoder with five
+interleaved rounds per process. The raw and FlashRaw values used for the old
+unchanged cases remain from the original report. Pentax K-5 is pointer-only in
+the current corpus checkout and Fornax has no Pentax container decoder, so it
+could not be re-run through the three-way gate.
 
 ## Comparison Scope
 
@@ -52,59 +64,60 @@ The comparison still has these caveats:
   data is touched.
 - The measurements are single-threaded. Multi-thread scaling is not part of
   this report.
-- No fresh post-optimization flamegraph was captured for every remaining case.
-  The stage attribution below combines earlier profiles, instruction counters,
-  final wall times, and source comparison.
+- DWARF call graphs, normalized instruction/branch/fault counters, and final
+  wall times are recorded under
+  [DNG gap profile artifacts](dng-gap-profiles/profiles.txt).
 
 ## Lossless JPEG
 
-Lossless JPEG is the largest remaining gap. Fornax is 2.07x to 2.78x slower than
-FlashRaw, although it is within 1.33x of Rawler and beats Rawler on three of the
-four files.
+Lossless JPEG remains the largest remaining gap, but the retained buffered-error
+path reduces it to 2.09x FlashRaw on 5D3, 2.18x on Pixel 8, and 1.84x on iPhone
+SE. Fornax is faster than Rawler on the two re-measured cases for which Rawler
+supports the input.
 
-The pre-optimization profile attributed about 95% of Fornax's 5D3 LJPEG samples
-to:
+Fresh DWARF profiles of the pre-change 5D3 workload attributed Fornax's own
+samples to:
 
-- `decode_scan_into`: 57.3%;
-- `add_prediction`: 32.3%;
-- `BitReader::peek`: 5.6%.
+- 38.3%: inlined row/sample sink closure;
+- 28.6%: `HuffmanTable::decode_difference_fast`;
+- 23.3%: `FastBitReader::fill_to`;
+- 6.2%: `parse_jpeg`;
+- 3.1%: fast row-decode closure.
 
-For the same workload, Fornax executed about 5.2x FlashRaw's instructions and
-incurred about 20x its branch misses. The fused predictor-1 decoder removed much
-of that cost, including full-tile staging and per-sample generic prediction, but
-the final timings show that instruction and branch efficiency are still the
-main explanatory family.
+FlashRaw's own samples were:
 
-The concrete remaining differences, in likely order of importance, are:
+- 91.8%: fused `decode_row_pred1`;
+- 3.2%: scan unstuffing;
+- 2.8%: Huffman-table construction;
+- 0.8%: DNG compressed-U16 row closure.
 
-1. **Entropy stream handling.** FlashRaw removes `0xff 00` byte stuffing from
-   the scan once, then decodes with a plain MSB bit pump. Fornax checks marker
-   bytes whenever its fast reader refills. The check is reduced to one 8-byte
-   test on the common path, but it remains in every refill and has a
-   byte-at-a-time fallback in
-   [`fornax-codec/src/ljpeg.rs`](../../../crates/fornax-codec/src/ljpeg.rs).
-2. **Component specialization.** FlashRaw has constant-specialized interleaved
-   loops for one, two, three, and four components. It keeps predictors in
-   registers and amortizes refills across samples. Fornax's fast path supports
-   one and two components but still enumerates components dynamically and
-   calculates an output index per sample.
-3. **Per-sample error flow.** FlashRaw's hot decoder consumes a buffered
-   Huffman entry without returning a `Result` for every sample and calls a cold
-   path only for unusual codes. Fornax propagates `Result` from
-   `decode_difference_fast` inside the sample loop.
-4. **Lookup strategy.** Both implementations now have a fused
-   code-plus-difference lookup. Fornax uses a 13-bit fast table; FlashRaw uses a
-   12-bit table with branchless sign extension and a buffered error flag. Table
-   width alone is not evidence of a large gap.
-5. **Tile-local setup.** Every tile carries JPEG headers and Huffman tables.
-   Fornax allocates and fills both a 16-bit symbol table and a 13-bit fused table
-   for each table definition. FlashRaw attributed 3.2% of its profile to Huffman
-   table construction. Reusing tile tables when definitions are identical is a
-   possible target for high-tile-count files, but was not isolated.
+Pixel 8 had the same shape within one percentage point. Full call graphs and
+folded stacks are under [DNG gap profile artifacts](dng-gap-profiles/profiles.txt).
 
-The exact current split among these items has not been measured. A fresh
-post-optimization profile of the 5D3 and Pixel 8 files is required before
-assigning numeric shares to them.
+The hypotheses were isolated against the same baseline:
+
+1. **A, unstuff once.** It improved 5D3 by 2.35% and Pixel 8 by 3.77% when
+   tested alone, but caused 12-16% noisy-scan regressions when combined with C.
+   It was reverted.
+2. **B, const-generic one/two-component loops.** It improved 5D3 by 9.40% and
+   Pixel 8 by 10.38% when tested alone. In combination with C it was 1.4% and
+   1.1% slower than C alone, at or within the larger spread, so it was reverted
+   in favor of the simpler C-only result.
+3. **C, buffered error flag.** It improved 5D3 by 24.37%, Pixel 8 by 24.30%,
+   and iPhone SE by 29.7%, with synthetic noisy scans improving 7.6-8.8% and
+   smooth scans improving 25-31%. It was retained.
+4. **D, Huffman-table reuse.** It regressed 5D3 by 1.49%, beyond the baseline
+   0.70% spread, without a distinguishable Pixel 8 gain. It was reverted.
+
+The retained path removes per-sample `Result` construction and propagation.
+Final counters execute 35.4% fewer instructions on 5D3 and 35.6% fewer on Pixel
+8. Branch-miss counts are essentially unchanged (about +3%), so the gain is
+instruction/control-flow reduction rather than a lower branch-miss rate.
+
+FlashRaw still fuses refill, Huffman lookup, difference reconstruction, and
+prediction into a smaller instruction stream. Fornax's remaining cost is spread
+across the row/sample loop and entropy refill; the isolated A, B, and D
+experiments did not compose with the retained C path.
 
 ## Uncompressed
 
@@ -125,27 +138,55 @@ Two implementation differences are plausible contributors:
   buffer. Its source notes that first-touch page faults dominate memory-bound
   U16 unpacking and that 2 MiB pages reduce fault counts substantially.
 
-This does not yet prove that page-fault or allocation policy explains the full
-33.4 ms difference. The next probe should collect a current profile and page
-fault counters for the 5D3 uncompressed case.
+The current probe separates the in-memory path into these measurements:
+
+| Stage | Measurement |
+| --- | --- |
+| Page-cache-hot `fs::read` into an owned buffer | 45-62 ms, including the source copy |
+| Open plus file mapping setup | about 0.05 ms; source faults remain lazy |
+| TIFF parse and metadata/layout assembly | about 1.9-2.1 ms |
+| Pre-touched row copy | 4.960 ms |
+| Allocation and output first touch | about 32.5 ms |
+
+The 23.4-million-sample output was then decoded into three destinations:
+
+- fresh `Vec<u16>`: 37.433 ms total;
+- pre-touched reused `Vec<u16>`: 4.960 ms;
+- page-aligned `alloc_zeroed` plus `MADV_HUGEPAGE`: 40.212 ms total.
+
+The fresh path incurred 172,123 process minor faults in the probe. The reused
+path incurred 115,028, while the hugepage path still incurred 172,123. Hugepage
+allocation therefore did not remove first-touch faults and was 2.8 ms slower
+than a fresh vector. No allocation-policy change is retained.
+
+The profile's 95.1% sample share for Fornax's native U16 tile-copy callback is
+consistent with write/first-touch cost, not scalar unpacking. The codec already
+uses a typed row copy. A reusable output buffer would remove most measured cost,
+but it cannot preserve the current owned-return API; recommending it would be an
+API redesign rather than a drop-in optimization.
 
 ## Deflate
 
 Fornax beats Rawler by about 1.8x on both floating-point Deflate files and is
 still 1.23x to 1.31x slower than FlashRaw.
 
-The earlier FP32 profile showed similar proportions:
+The current FP32 DWARF profile shows:
 
-- Fornax: miniz inflate 48.8%, predictor reversal 25.3%, Deflate match
-  application 3.4%, Huffman initialization 3.3%, float materialization 2.0%.
-- FlashRaw: zlib-rs inflate 45.6%, fused float-row decode 28.6%, Adler-32 8.1%.
+- Fornax: miniz fast inflate 58.8%, floating predictor reversal 23.2%, fused
+  float-row decode 5.3%, match application 3.6%, Huffman initialization 3.3%,
+  Adler-32 1.3%.
+- FlashRaw: zlib-rs fast inflate 47.8%, fused float-row decode 27.4%, Adler-32
+  8.7%, DNG float-row decode 4.8%, match copy 3.3%, Huffman initialization
+  2.0%.
 
 The fused predictor and float conversion work removed most of Fornax's separate
 post-inflate passes, but inflate and byte/word reconstruction still dominate.
 Replacing miniz with zlib-rs only improved the old Fornax FP32 result by about
 2%, so a backend swap is not a credible standalone fix for the remaining gap.
-Large-page allocation and first-touch behavior may also contribute, but that
-hypothesis has not been isolated for Deflate.
+Fornax executes fewer instructions than FlashRaw on FP32 Deflate (3.03B versus
+3.84B per decode) but incurs 13.3x its minor faults (23,787 versus 1,789).
+Allocation/first-touch was not independently varied for Deflate in this task;
+no Deflate implementation change is retained.
 
 ## SIMD and Compiler Features
 
@@ -161,29 +202,25 @@ SIMD is not the explanation for these benchmark gaps:
 
 ## Evidence Limits
 
-- There is no post-Task-2 flamegraph for the final LJPEG implementation.
-- The uncompressed 5D3 gap has not been separated into allocation, page fault,
-  copy, and TIFF assembly costs.
-- The Deflate gap has not been re-profiled after the fused predictor work.
+- The final LJPEG state has complete instruction/branch/fault counters but not
+  a fresh post-change flamegraph.
+- Pentax K-5 could not be re-measured: its corpus file is pointer-only in this
+  checkout and Fornax has no Pentax container decoder.
+- The Deflate profile is current, but its allocation/first-touch behavior was
+  not independently varied and no Deflate change is included.
 - No multi-threaded or cold-storage comparison was made.
 - All reported ratios are single-file, single-thread, page-cache-hot
   measurements and should not be aggregated into a corpus-wide speed claim.
 
 ## Next Probes
 
-If further optimization is requested, the highest-information probes are:
+If further work is requested, a post-C DWARF profile should first locate the
+remaining Fornax instruction stream. Reusable caller-owned output buffers would
+require an API design decision because the current owned-return contract cannot
+reuse the destination without changing ownership. Deflate allocation/first-touch
+would need a separate probe before any implementation change.
 
-1. Profile final Fornax and FlashRaw on 5D3 LJPEG, Pixel 8 LJPEG, 5D3
-   uncompressed, and FP32 Deflate with DWARF symbols.
-2. Measure an unstuffed-entropy LJPEG experiment independently from the
-   component-specialized loop experiment.
-3. Measure a predictor-1 kernel specialized for one and two components with
-   buffered error handling.
-4. Capture minor faults and page-fault time for the 5D3 uncompressed output
-   allocation before considering allocation or large-page changes.
-
-These are experiments, not approved implementation work. The current result
-already satisfies the Rawler-relative acceptance target.
+These are future experiments, not implied work in this report.
 
 ## Sources
 
@@ -195,8 +232,16 @@ already satisfies the Rawler-relative acceptance target.
   [source](https://docs.rs/crate/rawler/0.8.0/source/), LGPL-2.1.
 - Fornax measurements and profile notes:
   [DNG decode performance notes](dng-performance.md).
+- Counter, timing, synthetic-LJPEG, and DWARF call-graph artifacts:
+  [DNG gap profile artifacts](dng-gap-profiles/profiles.txt),
+  [LJPEG hypotheses](dng-gap-profiles/ljpeg.txt),
+  [uncompressed allocation probe](dng-gap-profiles/uncompressed.txt).
 - Benchmark adapter:
   [`flashraw_wrapper.rs`](../../../crates/fornax-raw-decoder/benches/flashraw_wrapper.rs).
+- Exact-input profile probe:
+  [`dng_gap_probe.rs`](../../../crates/fornax-raw-decoder/benches/dng_gap_probe.rs).
+- Synthetic LJPEG probe:
+  [`ljpeg_gap_probe.rs`](../../../crates/fornax-codec/benches/ljpeg_gap_probe.rs).
 - Fornax implementation:
   [`ljpeg.rs`](../../../crates/fornax-codec/src/ljpeg.rs),
   [`samples.rs`](../../../crates/fornax-codec/src/samples.rs),

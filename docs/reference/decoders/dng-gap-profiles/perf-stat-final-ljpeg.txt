@@ -1,0 +1,14 @@
+# Final LJPEG perf counters
+
+The final `C`-only path was measured with the same DWARF-enabled release probe,
+one warmup, and counters normalized per measured decode.
+
+| Case | Instructions/decode | Baseline instructions | Change | Branch misses/decode | Baseline branch misses | Change | Minor faults/decode |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 5D3 LJPEG | 2,352,611,208 | 3,644,274,778 | -35.44% | 4,910,143 | 4,732,119 | +3.76% | 16,635 |
+| Pixel 8 LJPEG | 4,633,292,960 | 7,198,107,800 | -35.63% | 12,208,112 | 11,886,112 | +2.71% | 41,229 |
+
+The buffered error path removes about 35% of executed instructions while
+leaving branch-miss counts essentially in the same range. The measured gain is
+therefore instruction/control-flow reduction from eliminating per-sample
+`Result` construction and propagation, not a reduction in branch-miss rate.

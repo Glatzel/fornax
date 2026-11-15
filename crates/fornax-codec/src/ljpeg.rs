@@ -355,22 +355,23 @@ impl HuffmanTable {
         Ok(entry.symbol)
     }
 
-    fn decode_fast(&self, bits: &mut FastBitReader<'_>) -> Result<u8, String> {
+    fn decode_fast(&self, bits: &mut FastBitReader<'_>) -> u8 {
         let entry = self.lookup[usize::from(bits.fill_to(16))];
         if entry.bits == 0 {
-            return Err("lossless JPEG contains an invalid Huffman code".to_owned());
+            bits.record_error("lossless JPEG contains an invalid Huffman code");
+            return 0;
         }
         bits.skip_no_fill(u32::from(entry.bits));
-        Ok(entry.symbol)
+        entry.symbol
     }
 
-    fn decode_difference_fast(&self, bits: &mut FastBitReader<'_>) -> Result<i32, String> {
+    fn decode_difference_fast(&self, bits: &mut FastBitReader<'_>) -> i32 {
         let entry = self.fast_lookup[usize::from(bits.fill_to(13))];
         if entry.full {
             bits.skip_no_fill(u32::from(entry.consumed));
-            return Ok(i32::from(entry.difference));
+            return i32::from(entry.difference);
         }
-        let symbol = self.decode_fast(bits)?;
+        let symbol = self.decode_fast(bits);
         decode_difference_fast(symbol, bits)
     }
 }
@@ -458,6 +459,7 @@ struct FastBitReader<'a> {
     cache: u64,
     buffered_bits: u32,
     ended: bool,
+    error: Option<&'static str>,
 }
 
 impl<'a> FastBitReader<'a> {
@@ -468,6 +470,7 @@ impl<'a> FastBitReader<'a> {
             cache: 0,
             buffered_bits: 0,
             ended: false,
+            error: None,
         }
     }
 
@@ -525,6 +528,21 @@ impl<'a> FastBitReader<'a> {
         }
         self.ended = true;
         0
+    }
+
+    const fn record_error(&mut self, error: &'static str) {
+        if self.error.is_none() {
+            self.error = Some(error);
+        }
+    }
+
+    #[cfg(test)]
+    const fn has_error(&self) -> bool { self.error.is_some() }
+
+    const fn take_error(&mut self) -> Option<&'static str> {
+        let error = self.error;
+        self.error = None;
+        error
     }
 }
 
@@ -1135,8 +1153,8 @@ fn decode_scan_rows_with_scratch(
     }
     let initial = 1_i32 << (frame.precision - point_transform - 1);
     let mask = (1_u32 << frame.precision) - 1;
-    let mut bits = FastBitReader::new(entropy);
     scratch.resize(output_width, point_transform != 0);
+    let mut bits = FastBitReader::new(entropy);
 
     for row in 0..frame.height {
         for column in 0..frame.width {
@@ -1150,7 +1168,7 @@ fn decode_scan_rows_with_scratch(
                     i32::from(scratch.current[index - components])
                 };
                 let value =
-                    apply_difference(prediction, table.decode_difference_fast(&mut bits)?, mask);
+                    apply_difference(prediction, table.decode_difference_fast(&mut bits), mask);
                 scratch.current[index] = value;
                 if point_transform != 0 {
                     scratch.shifted[index] = value.wrapping_shl(u32::from(point_transform));
@@ -1163,6 +1181,9 @@ fn decode_scan_rows_with_scratch(
             sink(row, &scratch.shifted)?;
         }
         std::mem::swap(&mut scratch.previous, &mut scratch.current);
+    }
+    if let Some(error) = bits.take_error() {
+        return Err(error.to_owned());
     }
     Ok(())
 }
@@ -1235,23 +1256,24 @@ fn decode_difference(symbol: u8, bits: &mut BitReader<'_>) -> Result<i32, String
     }
 }
 
-fn decode_difference_fast(symbol: u8, bits: &mut FastBitReader<'_>) -> Result<i32, String> {
+fn decode_difference_fast(symbol: u8, bits: &mut FastBitReader<'_>) -> i32 {
     match symbol {
-        0 => Ok(0),
-        16 => Ok(-32_768),
+        0 => 0,
+        16 => -32_768,
         1..=15 => {
             let raw = i32::from(bits.fill_to(symbol));
             bits.skip_no_fill(u32::from(symbol));
             let threshold = 1_i32 << (symbol - 1);
-            Ok(if raw < threshold {
+            if raw < threshold {
                 raw - ((1_i32 << symbol) - 1)
             } else {
                 raw
-            })
+            }
         }
-        _ => Err(format!(
-            "lossless JPEG difference class {symbol} is unsupported"
-        )),
+        _ => {
+            bits.record_error("lossless JPEG difference class is unsupported");
+            0
+        }
     }
 }
 
@@ -1527,6 +1549,46 @@ mod tests {
             fast.skip_no_fill(u32::from(count));
             reference.skip(usize::from(count));
         }
+    }
+
+    #[test]
+    fn buffered_fast_decode_records_invalid_huffman_codes() {
+        let mut counts = [0_u8; 16];
+        counts[0] = 1;
+        let mut lookup = vec![super::HuffmanEntry::INVALID; super::HUFFMAN_LOOKAHEAD_SIZE];
+        let table = super::HuffmanTable::parse(&counts, &[1], &mut lookup).unwrap();
+        let mut bits = FastBitReader::new(&[0x80, 0, 0, 0]);
+
+        let _ = table.decode_difference_fast(&mut bits);
+        assert!(bits.has_error());
+    }
+
+    #[test]
+    fn malformed_huffman_code_returns_scan_error() {
+        let encoded = super::encode_interleaved_for_test(&[8_192; 16], 4, 4, 1, 14);
+        let dht = encoded
+            .windows(2)
+            .position(|marker| marker == [0xff, 0xc4])
+            .unwrap();
+        let sos = encoded[dht + 2..]
+            .windows(2)
+            .position(|marker| marker == [0xff, 0xda])
+            .map(|offset| dht + 2 + offset)
+            .unwrap();
+
+        let mut malformed = encoded[..dht].to_vec();
+        malformed.extend_from_slice(&[0xff, 0xc4, 0x00, 20, 0]);
+        malformed.extend_from_slice(&[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        malformed.push(0);
+        let new_sos = malformed.len();
+        malformed.extend_from_slice(&encoded[sos..]);
+        let entropy_start = new_sos + 10;
+        malformed[entropy_start] |= 0x80;
+
+        let Err(error) = decode_interleaved_impl(&malformed, 14, true) else {
+            panic!("malformed stream decoded successfully");
+        };
+        assert!(error.contains("invalid Huffman code"), "{error}");
     }
 
     #[test]

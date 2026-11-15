@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="322">
+<rect width="100%" height="100%" fill="#f7f7f7"/>
+<text x="12" y="24" font-size="18">5d3-fp32-deflate / flashraw</text>
+<g font-family="monospace" fill="#111">
+<rect x="0.000" y="284" width="1150.046" height="17" fill="#ddb888"><title>dng_gap_probe[caddf35f81fafe4e]::decode_once: 2495987323</title></rect>
+<rect x="0.000" y="266" width="1150.046" height="17" fill="#dcb888"><title>&lt;dng_gap_probe[caddf35f81fafe4e]::flashraw_wrapper::FlashRawDecoder as fornax_raw_core[ea017d5d5156005]::protocol::IDecoder&gt;::decode: 2495987323</title></rect>
+<rect x="0.000" y="248" width="1150.046" height="17" fill="#f1b848"><title>&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode: 2495987323</title></rect>
+<rect x="0.000" y="230" width="1150.046" height="17" fill="#e0c886"><title>flashraw_core[f3c053ec45d8992]::par::sequential::&lt;core[62e902411887be45]::result::Result&lt;flashraw[d6724063b047886d]::frame::RawFrame, flashraw_core[f3c053ec45d8992]::error::Error&gt;, &lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode::{closure#0}&gt;: 2495987323</title></rect>
+<rect x="0.000" y="212" width="1150.046" height="17" fill="#d8b846"><title>&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode_inner: 2495987323</title></rect>
+<rect x="0.000" y="194" width="1150.046" height="17" fill="#dd7846"><title>flashraw_formats[ffcca61187c129c7]::dng::open::{closure#4}: 2495987323</title></rect>
+<rect x="0.000" y="176" width="1150.046" height="17" fill="#ef7848"><title>&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_region: 2495987323</title></rect>
+<rect x="0.000" y="158" width="1150.046" height="17" fill="#e1c846"><title>&lt;flashraw_core[f3c053ec45d8992]::profile::Profiler&gt;::time::&lt;core[62e902411887be45]::result::Result&lt;(), flashraw_core[f3c053ec45d8992]::error::Error&gt;, &lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_region::{closure#4}&gt;: 2495987323</title></rect>
+<rect x="0.000" y="140" width="1150.046" height="17" fill="#edb84c"><title>&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_unit_f32: 2495987323</title></rect>
+<rect x="0.000" y="122" width="1150.046" height="17" fill="#eab886"><title>&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_f32_rows: 2495987323</title></rect>
+<rect x="0.000" y="104" width="1150.046" height="17" fill="#dd8848"><title>flashraw_codecs[4febb61d4a9e3833]::deflate::inflate_zlib_into: 2495987323</title></rect>
+<rect x="0.000" y="86" width="1150.046" height="17" fill="#e4c888"><title>zlib_rs[7962352860222d8f]::inflate::decompress_slice: 2495987323</title></rect>
+<rect x="0.000" y="68" width="1150.046" height="17" fill="#e9888a"><title>zlib_rs[7962352860222d8f]::inflate::inflate: 2495987323</title></rect>
+<rect x="0.000" y="50" width="156.811" height="17" fill="#e1c88a"><title>zlib_rs[7962352860222d8f]::adler32::adler32: 340332251</title></rect>
+<rect x="156.811" y="50" width="920.028" height="17" fill="#eeb848"><title>zlib_rs[7962352860222d8f]::inflate::inflate_fast_help: 1996770765</title></rect>
+<rect x="156.811" y="32" width="59.916" height="17" fill="#d37848"><title>&lt;zlib_rs[7962352860222d8f]::inflate::writer::Writer&gt;::copy_match_runtime_dispatch: 130037495</title></rect>
+<rect x="1076.838" y="50" width="35.207" height="17" fill="#d4788c"><title>zlib_rs[7962352860222d8f]::inflate::inftrees::inflate_table: 76411637</title></rect>
+<rect x="1150.046" y="284" width="649.954" height="17" fill="#da7848"><title>dng_gap_probe[caddf35f81fafe4e]::main: 1410620849</title></rect>
+<rect x="1150.046" y="266" width="649.954" height="17" fill="#ddb888"><title>dng_gap_probe[caddf35f81fafe4e]::decode_once: 1410620849</title></rect>
+<rect x="1150.046" y="248" width="649.954" height="17" fill="#dcb888"><title>&lt;dng_gap_probe[caddf35f81fafe4e]::flashraw_wrapper::FlashRawDecoder as fornax_raw_core[ea017d5d5156005]::protocol::IDecoder&gt;::decode: 1410620849</title></rect>
+<rect x="1150.046" y="230" width="582.615" height="17" fill="#f1b848"><title>&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode: 1264471324</title></rect>
+<rect x="1150.046" y="212" width="582.615" height="17" fill="#e0c886"><title>flashraw_core[f3c053ec45d8992]::par::sequential::&lt;core[62e902411887be45]::result::Result&lt;flashraw[d6724063b047886d]::frame::RawFrame, flashraw_core[f3c053ec45d8992]::error::Error&gt;, &lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode::{closure#0}&gt;: 1264471324</title></rect>
+<rect x="1150.046" y="194" width="582.615" height="17" fill="#d8b846"><title>&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode_inner: 1264471324</title></rect>
+<rect x="1150.046" y="176" width="582.615" height="17" fill="#dd7846"><title>flashraw_formats[ffcca61187c129c7]::dng::open::{closure#4}: 1264471324</title></rect>
+<rect x="1150.046" y="158" width="582.615" height="17" fill="#ef7848"><title>&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_region: 1264471324</title></rect>
+<rect x="1150.046" y="140" width="582.615" height="17" fill="#e1c846"><title>&lt;flashraw_core[f3c053ec45d8992]::profile::Profiler&gt;::time::&lt;core[62e902411887be45]::result::Result&lt;(), flashraw_core[f3c053ec45d8992]::error::Error&gt;, &lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_region::{closure#4}&gt;: 1264471324</title></rect>
+<rect x="1150.046" y="122" width="580.788" height="17" fill="#edb84c"><title>&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_unit_f32: 1260506682</title></rect>
+<rect x="1150.046" y="104" width="580.788" height="17" fill="#eab886"><title>&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_f32_rows: 1260506682</title></rect>
+<rect x="1150.046" y="86" width="1.429" height="17" fill="#ddc84c"><title>cfree: 3100515</title></rect>
+<rect x="1151.474" y="86" width="493.682" height="17" fill="#e98888"><title>flashraw_codecs[4febb61d4a9e3833]::deflate::decode_float_row: 1071456997</title></rect>
+<text x="3.000" y="296" font-size="10">dng_gap_probe[caddf35f81fafe4e]::decode_once</text>
+<text x="3.000" y="278" font-size="10">&lt;dng_gap_probe[caddf35f81fafe4e]::flashraw_wrapper::FlashRawDecoder as fornax_raw_core[ea017d5d5156005]::protocol::IDecoder&gt;::decode</text>
+<text x="3.000" y="260" font-size="10">&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode</text>
+<text x="3.000" y="242" font-size="10">flashraw_core[f3c053ec45d8992]::par::sequential::&lt;core[62e902411887be45]::result::Result&lt;flashraw[d6724063b047886d]::frame::RawFrame, flashraw_core[f3c053ec45</text>
+<text x="3.000" y="224" font-size="10">&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode_inner</text>
+<text x="3.000" y="206" font-size="10">flashraw_formats[ffcca61187c129c7]::dng::open::{closure#4}</text>
+<text x="3.000" y="188" font-size="10">&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_region</text>
+<text x="3.000" y="170" font-size="10">&lt;flashraw_core[f3c053ec45d8992]::profile::Profiler&gt;::time::&lt;core[62e902411887be45]::result::Result&lt;(), flashraw_core[f3c053ec45d8992]::error::Error&gt;,</text>
+<text x="3.000" y="152" font-size="10">&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_unit_f32</text>
+<text x="3.000" y="134" font-size="10">&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_f32_rows</text>
+<text x="3.000" y="116" font-size="10">flashraw_codecs[4febb61d4a9e3833]::deflate::inflate_zlib_into</text>
+<text x="3.000" y="98" font-size="10">zlib_rs[7962352860222d8f]::inflate::decompress_slice</text>
+<text x="3.000" y="80" font-size="10">zlib_rs[7962352860222d8f]::inflate::inflate</text>
+<text x="3.000" y="62" font-size="10">zlib_rs[7962352860222d</text>
+<text x="159.811" y="62" font-size="10">zlib_rs[7962352860222d8f]::inflate::inflate_fast_help</text>
+<text x="159.811" y="44" font-size="10">&lt;zlib</text>
+<text x="1153.046" y="296" font-size="10">dng_gap_probe[caddf35f81fafe4e]::main</text>
+<text x="1153.046" y="278" font-size="10">dng_gap_probe[caddf35f81fafe4e]::decode_once</text>
+<text x="1153.046" y="260" font-size="10">&lt;dng_gap_probe[caddf35f81fafe4e]::flashraw_wrapper::FlashRawDecoder as fornax_raw_core[ea</text>
+<text x="1153.046" y="242" font-size="10">&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode</text>
+<text x="1153.046" y="224" font-size="10">flashraw_core[f3c053ec45d8992]::par::sequential::&lt;core[62e902411887be45]::result</text>
+<text x="1153.046" y="206" font-size="10">&lt;flashraw[d6724063b047886d]::FlashRaw&gt;::decode_inner</text>
+<text x="1153.046" y="188" font-size="10">flashraw_formats[ffcca61187c129c7]::dng::open::{closure#4}</text>
+<text x="1153.046" y="170" font-size="10">&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_region</text>
+<text x="1153.046" y="152" font-size="10">&lt;flashraw_core[f3c053ec45d8992]::profile::Profiler&gt;::time::&lt;core[62e902411</text>
+<text x="1153.046" y="134" font-size="10">&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_unit_f32</text>
+<text x="1153.046" y="116" font-size="10">&lt;flashraw_formats[ffcca61187c129c7]::dng::DngRaw&gt;::decode_f32_rows</text>
+<text x="1154.474" y="98" font-size="10">flashraw_codecs[4febb61d4a9e3833]::deflate::decode_float_row</text>
+</g>
+</svg>

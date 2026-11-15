@@ -1,0 +1,35 @@
+# DNG remaining-gap perf counters
+
+Host and method:
+
+- WSL2 Debian, AMD Ryzen 7 5800H.
+- Release optimization with DWARF debug info.
+- `RAYON_NUM_THREADS=1`, `OMP_NUM_THREADS=1`, and FlashRaw `threads = Some(1)`.
+- Page-cache-hot inputs.
+- Each process ran one warmup decode and then the listed measured decodes.
+- Counters are normalized per measured decode from the raw `perf stat` totals.
+
+| Case | Decoder | Rounds | Instructions/decode | Branch misses/decode | Minor faults/decode |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 5D3 uncompressed | Fornax | 5 | 6,465,035 | 23,888 | 12,275 |
+| 5D3 uncompressed | FlashRaw | 5 | 7,270,406 | 7,503 | 1,500 |
+| 5D3 LJPEG | Fornax | 5 | 3,644,274,778 | 4,732,119 | 16,635 |
+| 5D3 LJPEG | FlashRaw | 5 | 951,622,276 | 600,425 | 1,176 |
+| Pixel 8 LJPEG | Fornax | 3 | 7,198,107,800 | 11,886,112 | 41,228 |
+| Pixel 8 LJPEG | FlashRaw | 3 | 1,934,504,549 | 1,707,856 | 2,026 |
+| 5D3 FP32 Deflate | Fornax | 5 | 3,029,607,506 | 11,674,591 | 23,787 |
+| 5D3 FP32 Deflate | FlashRaw | 5 | 3,837,188,283 | 6,252,994 | 1,789 |
+
+Interpretation:
+
+- 5D3 LJPEG executes 3.83x FlashRaw's instructions and incurs 7.88x its
+  branch misses.
+- Pixel 8 LJPEG executes 3.72x FlashRaw's instructions and incurs 6.96x its
+  branch misses.
+- 5D3 uncompressed executes fewer instructions than FlashRaw but incurs 8.18x
+  its minor faults.
+- FP32 Deflate also executes fewer instructions than FlashRaw but incurs 13.30x
+  its minor faults.
+
+The raw `perf stat -x,` output is reproducible with the commands in
+[the implementation plan](../../../plans/chore-close-dng-flashraw-gap.md).

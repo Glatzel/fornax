@@ -957,6 +957,7 @@ dependencies = [
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
+ "libc",
  "memmap2",
  "rawler",
  "strum",
