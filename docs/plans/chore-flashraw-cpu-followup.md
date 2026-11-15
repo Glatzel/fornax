@@ -1,16 +1,19 @@
 # FlashRaw CPU Follow-up Plan
 
-> **For agentic workers:** Do not implement until the source-comparison step is
-> reviewed and a post-#737 baseline is selected.
+> **For agentic workers:** Do not implement until the source-comparison step and
+> post-#737/#738 baseline are reviewed.
 
-**Goal:** Use FlashRaw 0.2.0's scalar CPU design as evidence for at most three
-bounded Fornax experiments, without copying source or changing the public API.
+**Goal:** Establish the post-#737/#738 LJPEG baseline, then evaluate at most
+three bounded candidates in this order: fixed 12-bit packed-u32 Huffman table,
+component-pair refill, and restart-free single-scan parallelism after a written
+design.
 
 **Architecture:** Start from the exact PR #738 allocator branch, compare it with
-the pinned FlashRaw CPU paths, then rebase or synchronize with #737 before
-measuring hypotheses that touch LJPEG compute. Every candidate is one isolated
-change with exact equality, same-session FlashRaw, cycles/sample, wall time, and
-revert-on-noise.
+the pinned FlashRaw CPU paths, and use the branch after its merge with #737 as
+the measurement baseline. Every candidate is one isolated change with exact
+equality and same-session FlaskRaw. Cycles/sample and wall time decide keep or
+revert; instructions/sample and L1D misses/sample are always reported as
+supporting evidence.
 
 **Spec:** The user request in this thread and
 [FlashRaw CPU source comparison](../reference/decoders/flashraw-cpu-comparison.md).
@@ -28,8 +31,10 @@ revert-on-noise.
 - Change one production hypothesis at a time.
 - Every candidate must pass exact three-way dimensions, storage, bits, and
   pixel equality before timing.
-- Use three fresh processes x five interleaved rounds, same-session FlashRaw,
-  cycles/sample, wall median, and min-max spread.
+- Use three fresh processes x five interleaved rounds and same-session FlashRaw.
+- Judge every candidate primarily on cycles/sample and wall-time median with
+  min-max spread. Always report instructions/sample and L1D load
+  misses/sample alongside.
 - Revert anything within noise or with any repeatable regression.
 - Do not compare measurements across host sessions.
 
@@ -46,7 +51,7 @@ revert-on-noise.
 - [ ] Review
   [the source comparison](../reference/decoders/flashraw-cpu-comparison.md).
 
-## Baseline Reconciliation
+## Task 1: Post-#737/#738 Baseline
 
 PR #738 is now merged with `origin/main` at `b52df26`, including #737's compact
 Huffman path.
@@ -56,40 +61,85 @@ Huffman path.
 - [x] Mark compact 10-bit Huffman lookup as completed by #737 rather than
   re-running it.
 
-## Task 1: Component-Pair Refill
+- [ ] Materialize and record
+  `external/raw.pixls.us/Pentax/K-5/_MAR0543.DNG`; include its hash and whether
+  Rawler/FlashRaw pass the same strict equality gate as Fornax.
+- [ ] Record a clean same-session baseline for 5D3, Pixel 8, iPhone SE, and
+  Pentax K-5 LJPEG strips/tiles at 1T and 15T. Include 5D3 uncompressed and
+  FP16/FP32 Deflate as allocation-policy guards.
+- [ ] For every row, record wall median/min-max, cycles/sample,
+  instructions/sample, L1D load misses/sample, and same-session FlashRaw.
+- [ ] Save only the summary table under
+  `docs/reference/decoders/dng-gap-profiles/`; do not commit raw perf files.
+
+The Pentax K-5 case is mandatory because it is the motivating single-strip,
+restart-free LJPEG workload. If its corpus object, Fornax decoder, or reference
+decoder cannot run, stop before any optimization and report the exact missing
+precondition.
+
+## Task 2: Fixed 12-Bit Packed-u32 Full-Difference Table
+
+This must be tested before any adaptive width selection.
+
+- [ ] Add failing table tests for short full-difference hits, non-full boundary
+  codes, long codes beyond 12 bits, 16-bit differences, invalid codes, marker
+  stuffing, and truncation.
+- [ ] Add the fixed 12-bit lookup candidate: 4,096 packed-`u32` entries, exactly
+  16 KiB per table. Entries carry consumed bits, full/valid state, symbol, and
+  `i16` difference where the code plus magnitude fit. Use the compact canonical
+  counts/symbols slow path for everything else. Do not add or restore the
+  65,536-entry 16-bit fallback.
+- [ ] Compare the fixed 12-bit table directly with the post-#737 10-bit table
+  on every Task 1 case at 1T and 15T.
+- [ ] Record cycles/sample, instructions/sample, L1D misses/sample, wall
+  median/min-max, table-build cost, and same-session FlashRaw.
+- [ ] Keep the 12-bit table only if cycles/sample and wall time improve outside
+  noise with no repeatable regression; otherwise revert it. Do not proceed to
+  adaptive width selection in this plan.
+
+Expected: 2-5% LJPEG wall improvement if large-difference rejection dominates
+the 10-bit table; neutral or slower if its 16 KiB footprint increases L1D
+pressure.
+
+## Task 3: Component-Pair Refill
+
+Start only after the Task 2 table decision.
 
 - [ ] Add a failing test that counts refill boundaries for a two-component row.
 - [ ] Implement one refill per component pair while preserving every stuffing,
   marker, truncation, and 16-bit-code test.
-- [ ] Measure 5D3, Pixel 8, and one-component synthetic scans.
-- [ ] Keep only if cycles/sample and wall time improve outside noise.
+- [ ] Measure every Task 1 case at 1T and 15T plus one- and two-component
+  synthetic scans.
+- [ ] Record the complete metric set and keep only if cycles/sample and wall
+  time improve outside noise.
 
-Expected: 1-3% cycles/sample and 1-2% wall time on two-component scans; no
-change on one-component scans.
+Expected: 1-3% fewer cycles/sample and 1-2% wall time on two-component scans; no
+measurable change on one-component scans.
 
-## Task 2: Lookup-Width/Full-Difference Experiment
+## Task 4: Pentax/Single-Scan Parallelism Design Gate
 
-- [ ] Select the current fixed table and one adaptive 10/12-bit full-difference
-  variant; do not revive the old 16-bit fallback.
-- [ ] Measure table-build cost, L1 misses, cycles/sample, and wall time.
-- [ ] Keep only if the real-file result is outside noise with no noisy-scan
-  regression.
+No parallelism code starts here until a written design is reviewed and
+approved.
 
-Expected: 2-5% LJPEG wall improvement if full-hit mass justifies the wider
-table; otherwise neutral or worse.
+- [ ] Confirm from the Task 1 baseline that Pentax or another targeted
+  single-strip scan lacks enough tile-level parallelism.
+- [ ] Write the internal design before code. It must state the exact method for
+  finding safe work boundaries when no restart markers exist, including how
+  candidate bit positions are selected, how table/value phase and predictor
+  state are synchronized, how disagreements or corrupt speculation are
+  detected, how results fall back to the exact sequential decoder, and how
+  deterministic row ordering and output equality are preserved.
+- [ ] Document why the method cannot silently skip or duplicate symbols and why
+  truncated/malformed streams retain current error semantics.
+- [ ] Stop for design approval before implementation.
+- [ ] If approved, implement only the designed internal path, with no public
+  trait or caller-owned buffer API.
+- [ ] Judge by cycles/sample and wall time at 1T and 15T, reporting instructions
+  and L1D misses. Keep only if the target improves materially and no supported
+  case regresses outside noise.
 
-## Task 3: Single-Scan Parallelism
-
-- [ ] First run the existing probe on the target single-strip scan and confirm
-  that tile-level parallelism is insufficient.
-- [ ] Prototype internal predictor-1 entropy speculation only if the target
-  has enough work to amortize it.
-- [ ] Do not expose a new public trait or buffer API.
-- [ ] Keep only if 15T wall time improves materially and correctness falls back
-  exactly for every unsupported/corrupt stream.
-
-Expected: potentially 1.5-2x at 15T for a single large scan, no 1T gain, and
-little or no gain on tiled DNGs.
+Expected: potentially 1.5-2x at 15T on a single large scan, no 1T gain, and
+little or no gain on already-tiled DNGs.
 
 ## Proposed but Not Approved
 

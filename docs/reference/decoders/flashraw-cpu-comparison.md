@@ -37,38 +37,45 @@ ignored.
 
 These are proposals for measurement, not accepted changes.
 
-1. **Batch bit-reader refill across adjacent components.**
+1. **Test a fixed 12-bit packed-u32 full-difference table before any adaptive
+   variant.**
+   Testable claim: 4,096 packed `u32` entries (16 KiB) can precompute more
+   complete differences than the post-#737 10-bit table without the old
+   65,536-entry fallback. Keep the compact canonical counts/symbols slow path.
+   Compare directly with the 10-bit table using cycles/sample and wall time;
+   report instructions/sample and L1D misses/sample. Expected: 2-5% LJPEG wall
+   improvement if large-difference rejection dominates; neutral or slower if
+   the 16 KiB working set raises L1D pressure.
+
+2. **Batch bit-reader refill across adjacent components.**
    Testable claim: in two-component predictor-1 scans, one refill can cover two
-   decoded differences just as FlashRaw's paired `fill_to` sequence intends.
-   Change `bits.refill()` to a component-pair refill boundary and keep the
-   one-component path unchanged. Expected: 1-3% fewer cycles/sample and
-   1-2% wall time on real 5D3/Pixel LJPEG; no measurable change on
-   one-component scans. Risk is low and equality coverage already exists.
+   decoded differences just as FlashRaw's paired refill sequence intends.
+   Change the refill boundary without changing one-component scans. Judge by
+   cycles/sample and wall time, reporting instructions and L1D misses.
+   Expected: 1-3% fewer cycles/sample and 1-2% wall time on real
+   two-component LJPEG; no measurable change on one-component scans.
 
-2. **Compare the synchronized 10-bit Fornax table with an adaptive 10/12-bit
-   full-difference table.**
-   Testable claim: the best lookup width depends on measured full-hit mass;
-   widening FlashRaw-style full entries may remove fallback work without
-   rebuilding the old 16-bit map. Keep every candidate behind the existing
-   parser and compare cycles/sample, L1 misses, and per-tile setup. Expected:
-   2-5% LJPEG wall improvement if full-hit mass is high; otherwise neutral or
-   slower. This is a follow-up to #737, not a repeat of its compact-table work.
+3. **Parallelize predictor-1 entropy chains within one large scan only after a
+   written boundary design.**
+   Testable claim: a speculative difference decoder plus prefix reconstruction
+   can improve all-thread decoding when a DNG has one large scan rather than
+   many tiles. The design must explain how safe boundaries are found without
+   restart markers, including phase/table synchronization, predictor chaining,
+   disagreement detection, exact fallback, deterministic ordering, and error
+   semantics. Expected: potentially 1.5-2x at 15T on the Pentax K-5 strip, no
+   1T gain, and little or no gain on tiled 5D3/Pixel cases.
 
-3. **Parallelize predictor-1 entropy chains within one large scan.**
-   Testable claim: FlashRaw's speculative difference decode plus prefix
-   reconstruction can improve all-thread decoding when a DNG contains one
-   large lossless-JPEG scan rather than many independently tiled scans.
-   Expected: up to 1.5-2x at 15T on a single-strip file, no 1T gain, and little
-   or no gain on the tiled 5D3/Pixel cases. This is a larger internal
-   architecture change and should be attempted only if a measured target case
-   has insufficient tile-level parallelism.
-
-4. **Pre-unstuff each tile into reusable per-worker scratch.**
+4. **Deferred: pre-unstuff each tile into reusable per-worker scratch.**
    Testable claim: removing marker checks from every refill beats the extra
    scan copy, especially when scratch is reused across tiles. Expected:
    approximately 1-4% on smooth one-thread scans, with possible regressions on
-   noisy scans from added memory traffic. Prior evidence was mixed, so this
-   ranks below the first three.
+   noisy scans from added memory traffic. Prior evidence was mixed, so this is
+   not currently scheduled.
+
+Before any candidate, record the post-#737/#738 baseline for 5D3, Pixel 8,
+iPhone SE, and the Pentax K-5 strip. Every row must include same-session
+FlashRaw, cycles/sample, instructions/sample, L1D load misses/sample, and wall
+median/min-max.
 
 ## Public API Boundary
 
@@ -82,6 +89,6 @@ be made without explicit approval.
 
 PR #738 has been merged with `origin/main` at `b52df26`, so the tables above
 describe the synchronized #738 code including #737's compact Huffman table.
-Hypotheses 1-3 can be measured from this baseline after review, but each must
-retain a clean same-session comparison and must not reopen completed #737 work
-without new evidence.
+The next required artifact is the baseline table, not code. The fixed 12-bit
+table follows that baseline; component-pair refill follows the table decision;
+single-scan parallelism waits for its boundary design.
