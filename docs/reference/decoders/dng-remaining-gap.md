@@ -621,6 +621,18 @@ and the 1T cycle and wall ratios are 1.41x and 1.67x. Interleaving two tile
 chains in one scalar loop is a reasonable separate design proposal, but no
 such change was implemented here.
 
+The merged #737/#738 baseline adds the materialized Pentax K-5 single-strip
+case. At 1T it takes 93.2 ms and at 15T 92.4 ms, so tile-level parallelism
+cannot help it. A fixed 12-bit packed-`u32` Huffman table reduced instructions
+and improved tiled LJPEG, but raised Pentax to 106.9 ms and was reverted.
+Component-pair refill raised real LJPEG instructions/sample from about 79.6 to
+98.2 and wall time from 130.6 to 144.5 ms on 5D3 1T, so it was also reverted.
+The compact 10-bit table and existing 32-bit refill remain. Single-scan
+parallelism is stopped at a
+[written boundary-design gate](restart-free-single-scan-parallelism-design.md);
+the complete baseline and counter tables are in
+[the FlashRaw CPU follow-up evidence](dng-gap-profiles/flashraw-cpu-followup.txt).
+
 ## Sources
 
 - FlashRaw 0.2.0:

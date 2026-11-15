@@ -87,8 +87,19 @@ be made without explicit approval.
 
 ## Baseline Caveat
 
-PR #738 has been merged with `origin/main` at `b52df26`, so the tables above
-describe the synchronized #738 code including #737's compact Huffman table.
-The next required artifact is the baseline table, not code. The fixed 12-bit
-table follows that baseline; component-pair refill follows the table decision;
-single-scan parallelism waits for its boundary design.
+The post-#737/#738 baseline is merged `origin/main` commit `eaf7ec6`. Pentax
+K-5 is now materialized and passes the strict Fornax/Rawler/FlashRaw equality
+gate. Its 15T wall time is effectively the same as 1T, confirming the
+restart-free single-scan parallelism opportunity.
+
+The fixed 12-bit packed-`u32` table was tested first and reverted. It reduced
+instructions and helped the tiled LJPEG files, but Pentax regressed by 16-17%
+with higher cycles and L1D pressure. Component-pair refill was tested next and
+also reverted: it increased real LJPEG instructions and wall time. The compact
+10-bit table and current refill policy remain.
+
+Single-scan parallelism is stopped at the written design gate in
+[`restart-free-single-scan-parallelism-design.md`](restart-free-single-scan-parallelism-design.md).
+No parallel implementation was attempted. The complete baseline, ranges,
+same-session FlashRaw comparison, and rejected-candidate counters are in
+[`flashraw-cpu-followup.txt`](dng-gap-profiles/flashraw-cpu-followup.txt).
