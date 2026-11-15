@@ -179,7 +179,7 @@ jobs:
         with:
           path: .git/modules/external/raw.pixls.us/lfs/objects
           key: golden-corpus-${{ steps.corpus.outputs.sha }}
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
       - name: Build decoder-tracker
         run: cargo build --locked --release -p decoder-tracker
       - name: Check golden decode hashes
@@ -213,30 +213,30 @@ jobs:
     runs-on: ${{matrix.machine}}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         with:
           toolchain: nightly
-      - uses: Glatzel/template/.github/actions/rust/cargo-doc@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-doc@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         env:
           GH_TOKEN: ${{ github.token }}
         with:
           options: ${{ matrix.test-options }}
           working-directory: ${{matrix.pwd}}
-      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-clippy@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         if: ${{!cancelled()}}
         with:
           options: ${{ matrix.test-options }}
           working-directory: ${{matrix.pwd}}
         env:
           GH_TOKEN: ${{ github.token }}
-      - uses: Glatzel/template/.github/actions/rust/cargo-test@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         if: ${{!cancelled()}}
         with:
           global-options: ${{ matrix.test-options }}
           working-directory: ${{matrix.pwd}}
         env:
           GH_TOKEN: ${{ github.token }}
-      - uses: Glatzel/template/.github/actions/common/codecov@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/common/codecov@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         if: ${{ !cancelled() }}
 
   benchmark:
@@ -310,12 +310,12 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
       - name: Initialize RAW fixtures
         if: ${{ matrix.package == 'fornax-dng' && (github.event_name == 'workflow_dispatch' || matrix.changed == 'true') }}
         run: bash scripts/setup.sh
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
         with:
           options: -p ${{ matrix.package }} ${{ matrix['extra-options'] }} --all-features
@@ -346,7 +346,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
       - name: Initialize pointer-only corpus
         shell: bash
         env:
@@ -368,7 +368,7 @@ jobs:
           test -f "$FORNAX_BENCH_RAW"
           test "$(stat -c '%s' "$FORNAX_BENCH_RAW")" = "$FORNAX_BENCH_SIZE"
           test "$(sha256sum "$FORNAX_BENCH_RAW" | cut -d' ' -f1)" = "$FORNAX_BENCH_SHA256"
-      - uses: Glatzel/template/.github/actions/rust/cargo-bench@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/cargo-bench@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         with:
           options: -p fornax-raw-decoder --bench decoder ${{ matrix['cargo-options'] }}
         env:
@@ -401,7 +401,7 @@ jobs:
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
         with:
           run-install: false
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
       - name: Test, run, compare
         shell: bash
         run: |

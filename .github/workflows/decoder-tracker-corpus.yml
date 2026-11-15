@@ -37,7 +37,7 @@ jobs:
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
         with:
           run-install: false
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         if: ${{ inputs.run_duckdb_tests }}
       - name: Install tracker tools
         run: pixi install -e tracker
@@ -100,7 +100,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@7c77db8d35c45b3b88b01e0dafc5b5e931cf5a8a # v2026.11.2
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
       - name: Build decoder-tracker
         run: cargo build --locked --release -p decoder-tracker
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
