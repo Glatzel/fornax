@@ -333,7 +333,7 @@ Status: deferred until encode is measured.
 ### Suggested order (copy into the Task Checklist)
 
 - [ ] R4: move path and in-place color transforms (approved).
-- [ ] R1, R2, R9: extra measurements (round 1 split, hugetlb proxy, 15 workers,
+- [x] R1, R2, R9: extra measurements (round 1 split, hugetlb proxy, 15 workers,
       encode stage).
 - [ ] R6 and R7: shared `crop_and_cast` helper and DNG transforms through
       `zeroed_samples`.
