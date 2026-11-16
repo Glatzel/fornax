@@ -337,7 +337,7 @@ Status: deferred until encode is measured.
       encode stage).
 - [ ] R6 and R7: shared `crop_and_cast` helper and DNG transforms through
       `zeroed_samples`.
-- [ ] R5: decode to `f32` (after API approval).
+- [x] R5: decode to `f32` (after API approval).
 - [ ] Module-location decision, once the R4, R6 and R7 numbers are in.
 
 ### maintainer decision
