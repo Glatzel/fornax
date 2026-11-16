@@ -11,18 +11,19 @@ reverted experiment history is
 
 ## Linux large-page allocation
 
-The current codec restores the first-touch policy as one platform-specific
-module, [`large_alloc.rs`](../../../../crates/fornax-codec/src/large_alloc.rs).
+The independent `fornax-large-alloc` crate owns the first-touch policy in one
+platform-specific module,
+[`large_alloc.rs`](../../../../crates/fornax-large-alloc/src/large_alloc.rs).
 Linux with the default-on `large-page-hint` feature uses natural-alignment
 `alloc_zeroed` for final outputs at least 8 MiB, advises the 2 MiB-aligned live
 interior with `MADV_HUGEPAGE`, and adopts the block into the owned `Vec`.
 Windows, macOS, Miri, feature off, and smaller outputs use a plain zeroed `Vec`.
 The public decode API is unchanged.
 
-All platform code and unsafe operations are in that module. It is called from
+All platform code and unsafe operations are in that crate. It is called from
 `samples.rs` (integer, float, uncompressed, and the final image stage of the
 other payload codecs), `deflate.rs`, `ljpeg.rs`, `jpeg.rs`, and `jpegxl.rs`.
-LJPEG's <=8-bit final U8 conversion is routed through it as well. The module has
+LJPEG's <=8-bit final U8 conversion is routed through it as well. The crate has
 two production unsafe blocks: allocation plus Vec adoption, and `madvise`.
 Counting-allocator tests and their unsafe trait implementation stay in the same
 file.
