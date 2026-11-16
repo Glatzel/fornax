@@ -65,11 +65,11 @@
 - Consumes: tracker paths, sizes, SHA-256 values, format, compression, resolution, and bit-depth metadata.
 - Produces: a reviewed sample list used unchanged for both FlashRaw versions, plus explicit exclusions and coverage gaps.
 
-- [ ] **Step 1: Join the manifest and baseline to enumerate DNG/ARW/CR3/NEF samples**
-- [ ] **Step 2: Classify each candidate as uncompressed, lossless, or lossy and record dimensions and bit depth**
-- [ ] **Step 3: Remove out-of-scope lossy rows and record each exclusion**
-- [ ] **Step 4: Materialize a representative matrix with at least one uncompressed and one lossless sample per format where available**
-- [ ] **Step 5: Record checksums, file sizes, camera metadata, and explicit coverage gaps**
+- [x] **Step 1: Join the manifest and baseline to enumerate DNG/ARW/CR3/NEF samples**
+- [x] **Step 2: Classify each candidate as uncompressed, lossless, or lossy and record dimensions and bit depth**
+- [x] **Step 3: Remove out-of-scope lossy rows and record each exclusion**
+- [x] **Step 4: Materialize a representative matrix with at least one uncompressed and one lossless sample per format where available**
+- [x] **Step 5: Record checksums, file sizes, camera metadata, and explicit coverage gaps**
 
 ### Task 3: Establish FlashRaw 0.2.0 baseline
 
@@ -83,10 +83,10 @@
 - Consumes: the frozen Task 2 matrix and current `flashraw = "=0.2.0"` dependency.
 - Produces: repeated pre-upgrade measurements and output hashes.
 
-- [ ] **Step 1: Record host, toolchain, profile, thread configuration, and sample hashes**
-- [ ] **Step 2: Verify every matrix file decodes successfully in both Fornax and FlashRaw**
-- [ ] **Step 3: Measure repeated FlashRaw decode and the Fornax pipeline stages over the identical matrix**
-- [ ] **Step 4: Save raw-output hashes for bit-for-bit comparison**
+- [x] **Step 1: Record host, toolchain, profile, thread configuration, and sample hashes**
+- [x] **Step 2: Verify every matrix file decodes successfully in both Fornax and FlashRaw**
+- [x] **Step 3: Measure repeated FlashRaw decode and the Fornax pipeline stages over the identical matrix**
+- [x] **Step 4: Save raw-output hashes for bit-for-bit comparison**
 
 ### Task 4: Upgrade to FlashRaw 0.3.1 and re-measure
 
@@ -100,12 +100,12 @@
 - Consumes: Task 3 baseline and matrix.
 - Produces: upgraded dependency, output-equivalence evidence, and post-upgrade repeated measurements.
 
-- [ ] **Step 1: Read release notes and diff the dependency range for API, behavior, and performance changes**
-- [ ] **Step 2: Update the exact pin to 0.3.1 and resolve build breakage**
-- [ ] **Step 3: Run focused adapter and equivalence tests**
-- [ ] **Step 4: Re-run the unchanged matrix and verify baseline output hashes**
-- [ ] **Step 5: Compute per-sample deltas and variance, separating decode and end-to-end time**
-- [ ] **Step 6: Commit the dependency bump separately**
+- [x] **Step 1: Read release notes and diff the dependency range for API, behavior, and performance changes**
+- [x] **Step 2: Update the exact pin to 0.3.1 and resolve build breakage**
+- [x] **Step 3: Run focused adapter and equivalence tests**
+- [x] **Step 4: Re-run the unchanged matrix and verify baseline output hashes**
+- [x] **Step 5: Compute per-sample deltas and variance, separating decode and end-to-end time**
+- [x] **Step 6: Commit the dependency bump separately**
 
 ### Task 5: Investigate remaining opportunities and publish evidence
 
@@ -119,11 +119,11 @@
 - Consumes: Task 2 matrix, Task 3 baseline, Task 4 measurements and upstream diff.
 - Produces: reproducible methodology, sample matrix, deltas, path-stage profiling, and ranked proposals.
 
-- [ ] **Step 1: Profile end-to-end stage costs and compare uncompressed against lossless per brand**
-- [ ] **Step 2: Separate FlashRaw cost from adapter, crop/cast, preprocess, allocation, and memory effects**
-- [ ] **Step 3: Identify fastest applicable FlashRaw API/options and upstream-worthy issues**
-- [ ] **Step 4: Write the dated performance note with all methodology and raw evidence paths**
-- [ ] **Step 5: Run documentation/link validation and repository-required validation**
+- [x] **Step 1: Profile end-to-end stage costs and compare uncompressed against lossless per brand**
+- [x] **Step 2: Separate FlashRaw cost from adapter, crop/cast, preprocess, allocation, and memory effects**
+- [x] **Step 3: Identify fastest applicable FlashRaw API/options and upstream-worthy issues**
+- [x] **Step 4: Write the dated performance note with all methodology and raw evidence paths**
+- [x] **Step 5: Run documentation/link validation and repository-required validation**
 
 ## Validation
 
@@ -150,3 +150,10 @@ listed by the repository. Benchmark commands and results are recorded in the per
   performance evidence; its allocator design decisions are documented as mixed content.
 - FlashRaw remains benchmark-only and must not enter production decoder dependencies.
 - RAW payloads remain transient and are never committed.
+- FlashRaw 0.2.0 was removed from the live registry during the investigation; the
+  baseline used the exact cached published packages whose checksums matched the
+  committed lock, then reverted to registry resolution for 0.3.1.
+- The aggregate validation script's manifest step cannot run in the read-only
+  worktree because the external corpus has no independent submodule Git
+  directory. Direct selected-file size/SHA checks and the remaining Cargo,
+  documentation, formatting, and focused clippy checks were run instead.

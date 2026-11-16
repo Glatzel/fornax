@@ -32,6 +32,10 @@ name = "decoder"
 harness = false
 name = "dng_gap_probe"
 
+[[bench]]
+harness = false
+name = "flashraw_031_probe"
+
 [dependencies]
 clerk.workspace = true
 fornax-dng.workspace = true
@@ -49,12 +53,15 @@ memmap2 = { workspace = true, optional = true }
 [dev-dependencies]
 criterion.workspace = true
 csv.workspace = true
-flashraw = "=0.2.0"
+flashraw = "=0.3.1"
 fornax-codec.workspace = true
+fornax-raw-pipeline.workspace = true
 generic-num.workspace = true
 image.workspace = true
 libc.workspace = true
 rawler = "0.8.0"
+rayon.workspace = true
+sha2.workspace = true
 tempfile.workspace = true
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]

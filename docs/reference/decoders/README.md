@@ -16,6 +16,7 @@ performance report but also records allocator design decisions.
 
 ## Performance
 
+- [FlashRaw 0.3.1 re-measurement](perf/flashraw-0.3.1-remeasure-2026-11-16.md)
 - [Sony ARW remaining performance gap](perf/arw-remaining-gap.md)
 - [ARW gap evidence](perf/arw-gap-profiles/)
 - [DNG performance experiment log](perf/dng-experiments-log.md)

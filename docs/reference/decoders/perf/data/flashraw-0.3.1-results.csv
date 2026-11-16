@@ -1,0 +1,29 @@
+format,compression,path,stage,before_ms,after_ms,delta_pct,before_batch_spread_pct,after_batch_spread_pct,before_minor_faults,after_minor_faults
+ARW,sony-lossless-jpeg,Sony/ILCE-7RM5/7RM5-LosslessCompressedLarge.ARW,decode,421.948,297.23,-29.6,9.6,3.2,2089,2089
+ARW,sony-lossless-jpeg,Sony/ILCE-7RM5/7RM5-LosslessCompressedLarge.ARW,pipeline,821.154,632.324,-23.0,15.2,9.6,65322,65322
+ARW,sony-lossless-jpeg,Sony/ILCE-9M3/DSC00117.ARW,decode,86.462,60.722,-29.8,5.0,3.1,232,232
+ARW,sony-lossless-jpeg,Sony/ILCE-9M3/DSC00117.ARW,pipeline,135.732,113.385,-16.5,2.7,4.0,12521,12521
+ARW,uncompressed,Sony/ILCE-1/A1_full_uncompressed.ARW,decode,32.638,33.55,2.8,6.0,9.6,2011,2011
+ARW,uncompressed,Sony/ILCE-1/A1_full_uncompressed.ARW,pipeline,271.975,239.3,-12.0,20.6,16.1,50995,50995
+ARW,uncompressed,Sony/ILCE-7RM4/DSC00395.ARW,decode,39.205,41.073,4.8,5.8,4.5,2633,2633
+ARW,uncompressed,Sony/ILCE-7RM4/DSC00395.ARW,pipeline,285.412,347.936,21.9,2.8,16.7,62409,62409
+CR3,canon-lossless-crx,Canon/Canon EOS R5m2/RAW.CR3,decode,423.585,412.363,-2.6,0.8,5.3,24393,24393
+CR3,canon-lossless-crx,Canon/Canon EOS R5m2/RAW.CR3,pipeline,635.382,654.91,3.1,4.1,0.5,71183,71183
+CR3,canon-lossless-crx,Canon/EOS R6/Canon_EOS_R6_RAW_ISO_100_crop_nodual.CR3,decode,65.526,62.362,-4.8,2.4,2.1,113,113
+CR3,canon-lossless-crx,Canon/EOS R6/Canon_EOS_R6_RAW_ISO_100_crop_nodual.CR3,pipeline,98.611,98.839,0.2,5.2,1.9,8465,8465
+DNG,lossless-jpeg,Google/Pixel 8 Pro/PXL_20240415_103400204.RAW-02.ORIGINAL.dng,decode,186.656,209.243,12.1,6.6,2.8,1607,1607
+DNG,lossless-jpeg,Google/Pixel 8 Pro/PXL_20240415_103400204.RAW-02.ORIGINAL.dng,pipeline,416.16,453.211,8.9,12.8,1.4,50568,50568
+DNG,lossless-jpeg,Pentax/K-1/IMGP8555.DNG,decode,156.33,175.431,12.2,4.1,1.2,11625,11625
+DNG,lossless-jpeg,Pentax/K-1/IMGP8555.DNG,pipeline,310.495,327.721,5.5,3.0,2.8,47358,47358
+DNG,uncompressed,LEICA CAMERA AG/LEICA SL2/L1020010.DNG,decode,43.217,40.774,-5.7,6.0,2.4,1954,1954
+DNG,uncompressed,LEICA CAMERA AG/LEICA SL2/L1020010.DNG,pipeline,242.827,232.409,-4.3,10.5,16.2,48287,48287
+DNG,uncompressed,Sigma/fp/A002_651_20240229_000001_2k_12bit.DNG,decode,2.726,1.678,-38.4,3.9,4.3,50,50
+DNG,uncompressed,Sigma/fp/A002_651_20240229_000001_2k_12bit.DNG,pipeline,3.678,2.833,-23.0,3.0,20.0,50,50
+NEF,nikon-huffman,NIKON CORPORATION/NIKON Z5_2/Lossless_compression_DX.NEF,decode,47.278,33.822,-28.5,1.8,3.4,182,182
+NEF,nikon-huffman,NIKON CORPORATION/NIKON Z5_2/Lossless_compression_DX.NEF,pipeline,86.295,75.304,-12.7,2.3,2.9,10620,10620
+NEF,nikon-huffman,Nikon/Z 7/3-Nikon-Z7-RAW-14bit-lossless-compressed-L.NEF,decode,216.164,158.279,-26.8,2.7,0.3,1642,1642
+NEF,nikon-huffman,Nikon/Z 7/3-Nikon-Z7-RAW-14bit-lossless-compressed-L.NEF,pipeline,414.425,361.682,-12.7,24.4,14.8,46320,46320
+NEF,nikon-uncompressed-words,Nikon/D500/Nikon_D500_RAWL_14bit_Uncompressed.NEF,decode,14.647,14.989,2.3,11.4,2.9,1637,1637
+NEF,nikon-uncompressed-words,Nikon/D500/Nikon_D500_RAWL_14bit_Uncompressed.NEF,pipeline,90.009,93.647,4.0,4.8,1.5,22025,22025
+NEF,nikon-uncompressed-words,Nikon/D850/Nikon-D850-14bit-uncompressed.NEF,decode,32.825,32.769,-0.2,10.1,8.0,2278,2278
+NEF,nikon-uncompressed-words,Nikon/D850/Nikon-D850-14bit-uncompressed.NEF,pipeline,204.101,198.805,-2.6,4.5,5.6,46956,46956

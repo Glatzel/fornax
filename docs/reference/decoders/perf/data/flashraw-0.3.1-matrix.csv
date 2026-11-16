@@ -1,0 +1,15 @@
+brand,model,container,compression,mode,bits_per_sample,width,height,path,size,sha256
+Sony,ILCE-9M3,ARW,sony-lossless-jpeg,lossless,14,4096,3072,Sony/ILCE-9M3/DSC00117.ARW,17776640,4d6408879114f3bcc1ec4e944a76c384aa1289a5a39ed4ee6c9684092c7835f7
+Sony,ILCE-7RM5,ARW,sony-lossless-jpeg,lossless,14,9728,6656,Sony/ILCE-7RM5/7RM5-LosslessCompressedLarge.ARW,85950464,c294c388ad9bccbee169f87b9ceb661001515fb039d63f587dcabba76df5636d
+Sony,ILCE-1,ARW,uncompressed,uncompressed,14,8672,5784,Sony/ILCE-1/A1_full_uncompressed.ARW,113224192,ebc775fd757a853d018c18664fda4258be87a9597af3f7a260182ddbcbec985e
+Sony,ILCE-7RM4,ARW,uncompressed,uncompressed,12,9600,6376,Sony/ILCE-7RM4/DSC00395.ARW,123111424,04918dfe85dc1da51f875d22030f39776e99ffa2af3d210b83659933234688fa
+Canon,EOS R6,CR3,canon-lossless-crx,lossless,14,3584,2386,Canon/EOS R6/Canon_EOS_R6_RAW_ISO_100_crop_nodual.CR3,9815638,6156ee9cfd1a61e08719a8309095d05162891fd2adb8dd1505b31d4716dcee05
+Canon,EOS R5 Mark II,CR3,canon-lossless-crx,lossless,14,8480,5650,Canon/Canon EOS R5m2/RAW.CR3,54439072,d6e6aa3b493ea8936dff0efb0cc17c87471437e7317bce37c8c82ba08b9cab7b
+Pentax,K-1,DNG,lossless-jpeg,lossless,14,7392,4950,Pentax/K-1/IMGP8555.DNG,177464538,257f8a7b73cc9a1d2bea377511515ae6525326037825e7066302dba9f134d4ea
+Google,Pixel 8 Pro,DNG,lossless-jpeg,lossless,16,8160,6144,Google/Pixel 8 Pro/PXL_20240415_103400204.RAW-02.ORIGINAL.dng,45101750,45420c595401547cca950ae58d552bc82b32d31ce1d58c082df33004016197f5
+Sigma,fp,DNG,uncompressed,uncompressed,12,1936,1090,Sigma/fp/A002_651_20240229_000001_2k_12bit.DNG,3244544,99bcffd118630af5cf5712eeac6832045420311fe258094e3489b94c8d51236a
+Leica,SL2,DNG,uncompressed,uncompressed,14,8424,5632,LEICA CAMERA AG/LEICA SL2/L1020010.DNG,88964096,d00f05468793e4509b53230e90dcdc078e823b254eee95f1c68b29e217df99bf
+Nikon,Z5 II,NEF,nikon-huffman,lossless,14,4000,2672,NIKON CORPORATION/NIKON Z5_2/Lossless_compression_DX.NEF,13835273,ba6c66ece60b18eaf6a3461ecfbccd346af785a1db311b3e651ae0284232a1c8
+Nikon,D500,NEF,nikon-uncompressed-words,lossless,14,5600,3728,Nikon/D500/Nikon_D500_RAWL_14bit_Uncompressed.NEF,44490752,9498d65c876d3d548c2361191ec0b64bc999abd78cea67f28e2a7c7d01890676
+Nikon,D850,NEF,nikon-uncompressed-words,lossless,14,8288,5520,Nikon/D850/Nikon-D850-14bit-uncompressed.NEF,98180608,ce1fb927aca4f0ac3a1fa5caded0d7859560988e500f71177287310fd1a3d845
+Nikon,Z7,NEF,nikon-huffman,lossless,14,8288,5520,Nikon/Z 7/3-Nikon-Z7-RAW-14bit-lossless-compressed-L.NEF,58708188,f0e756dbfd00f3b71cb3d8aa5b9e2e1be32f1052a6c4380e09ebc7c5e7748114

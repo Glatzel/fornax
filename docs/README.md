@@ -77,6 +77,7 @@ reference, and active planning documentation.
 | Document | Summary |
 | --- | --- |
 | [Decoder references](reference/decoders/README.md) | Index of decoder performance, design, and format/API research. |
+| [FlashRaw 0.3.1 re-measurement](reference/decoders/perf/flashraw-0.3.1-remeasure-2026-11-16.md) | Lossless DNG/ARW/CR3/NEF comparison, pipeline profile, and ranked follow-ups. |
 | [Sony ARW remaining performance gap](reference/decoders/perf/arw-remaining-gap.md) | ARW encoding inventory, timings, and container/entropy costs. |
 | [Canon CRX reference notes](reference/decoders/reference/canon-crx.md) | Canon CRX sources, behavior, and implementation boundaries. |
 | [DNG compression references](reference/decoders/reference/dng-compression.md) | DNG compression sources and behavior. |
