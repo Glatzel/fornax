@@ -167,7 +167,7 @@ shared crate, but no location is approved yet.
 - [x] Estimate the fresh-allocation share with a no-code proxy.
 - [x] Remove the temporary probe.
 - [ ] Obtain approval for the Step 2.1 gate and the ownership candidate.
-- [ ] Implement and measure the owned-demosaic move path.
+- [x] Implement and measure the owned-demosaic move path.
 - [ ] Report cheap-waste results and the module-location decision.
 
 ## Validation
