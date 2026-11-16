@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #728 `chore/dng-followup-probes` on 2026-11-15.
+> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+
 # DNG Follow-up Performance Probes Implementation Plan
 
 > **For agentic workers:** This plan is executed inline in the current session.

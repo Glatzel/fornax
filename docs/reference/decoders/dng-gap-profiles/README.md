@@ -5,6 +5,10 @@ Host-specific evidence for PR #734 successors. Host: WSL2 Debian, AMD Ryzen 7
 `2.41-12+deb13u3`, THP `[madvise]`, THP defrag `[madvise]`. Do not compare
 numbers across host sessions; ratios below use same-session FlashRaw.
 
+For a compact restart point, use [RESUME.md](RESUME.md). The single kept and
+reverted experiment history is
+[the DNG performance experiment log](../dng-experiments-log.md).
+
 ## Linux large-page allocation
 
 The current codec restores the first-touch policy as one platform-specific
@@ -257,7 +261,7 @@ full-entry miss occurs on only 1.45% of 5D3 samples.
 
 The remaining removable chain cost is the cache stack spill/reload. Eliminating
 it requires a broader reader-state refactor, while the safer candidates tested
-during this branch are exhausted. Since the final branch is still 1.38-1.42x
+during that experiment are exhausted. Since the result is still 1.38-1.42x
 FlashRaw in instructions and 1.44-1.94x in 1T wall time, and cycles remain
 20-24 versus FlashRaw's 13-15, LJPEG is at the current scalar implementation's
 latency floor on this host. Further instruction-only trimming is not expected to

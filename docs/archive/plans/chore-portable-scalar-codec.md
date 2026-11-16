@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #734 `chore/portable-scalar-codec` on 2026-11-15.
+> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+
 # Portable Scalar DNG Codec Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use

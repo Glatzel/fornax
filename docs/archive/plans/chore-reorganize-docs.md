@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #715 on 2026-11-12.
+> Current guidance: [current documentation](../../README.md).
+
 # Documentation Reorganization Implementation Plan
 
 This plan records the approved documentation reorganization and its validation steps.

@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #722 `chore/full-corpus-metadata` on 2026-11-14.
+> Current guidance: [current documentation](../../decoder/corpus.md).
+
 # Full-Corpus Encoding Metadata and Golden Coverage Audit
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

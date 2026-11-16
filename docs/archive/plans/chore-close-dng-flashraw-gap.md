@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #724 `chore/close-dng-flashraw-gap` on 2026-11-15.
+> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+
 # DNG FlashRaw Gap Measurement and Targeted Closure Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use
@@ -23,7 +27,7 @@ is allowed only for the requested `alloc_zeroed` plus `MADV_HUGEPAGE`
 experiment.
 
 **Spec:** The 2026-11-15 task request reproduced by this plan and the current
-[DNG remaining performance gap report](../reference/decoders/dng-remaining-gap.md).
+[DNG remaining performance gap report](../../reference/decoders/dng-remaining-gap.md).
 
 ## Global Constraints
 

@@ -47,7 +47,7 @@ whose current replacement is `fornax-raw`. Its source still imports
 `fornax::dnc`, `fornax::fornax_dalim`, `fornax::libraw`, and
 `fornax::Fornax`, none of which the current facade exports. The intended
 Python API remains a
-[reserved decision](../_archive/workspace-refactor/steps-1-6-review.md#11-decisions-and-gaps).
+[reserved decision](../archive/workspace-refactor/steps-1-6-review.md#11-decisions-and-gaps).
 
 ## Decoder contract
 

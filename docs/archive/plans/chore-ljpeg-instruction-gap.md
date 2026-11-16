@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #736 `chore/ljpeg-instruction-gap` on 2026-11-15.
+> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+
 # LJPEG Instruction Gap Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use

@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #727 `chore/dng-first-touch-probe` on 2026-11-15.
+> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+
 # DNG First-Touch and LJPEG Follow-up
 
 ## Goal
