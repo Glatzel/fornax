@@ -25,11 +25,11 @@
 //! The Vec adoption is sound because `alloc_zeroed(Layout::array::<T>(len))`
 //! and `Vec<T>` use the same global allocator. The layout has exactly `T`'s
 //! natural alignment, `len` elements, and `Vec` is built with `capacity ==
-//! len`, so its eventual deallocation uses the same size and alignment. `T:
-//! Pod` guarantees that the all-zero bit pattern is valid. Layout overflow is
-//! reported before allocation, zero length returns `Vec::new()`, and a null
-//! allocation calls `handle_alloc_error`. The pointer is never read before
-//! ownership is transferred to the initialized zeroed `Vec`.
+//! len`, so its eventual deallocation uses the same size and alignment.
+//! `T: Zeroable` guarantees that the all-zero bit pattern is valid. Layout
+//! overflow is reported before allocation, zero length returns `Vec::new()`,
+//! and a null allocation calls `handle_alloc_error`. The pointer is never read
+//! before ownership is transferred to the initialized zeroed `Vec`.
 //!
 //! Natural alignment is essential. An over-aligned `alloc_zeroed` makes Rust
 //! zero the allocation before this module can issue `madvise`, silently
@@ -38,7 +38,7 @@
 
 use std::fmt;
 
-use bytemuck::Pod;
+use bytemuck::Zeroable;
 
 /// Failure to describe or allocate the requested sample buffer.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -67,7 +67,7 @@ const LARGE_ALLOCATION_THRESHOLD_BYTES: usize = 4 * HUGE_PAGE_BYTES;
 
 pub fn zeroed_samples<T>(len: usize) -> Result<Vec<T>, AllocError>
 where
-    T: Pod,
+    T: Zeroable,
 {
     let layout = std::alloc::Layout::array::<T>(len).map_err(|_| AllocError::LayoutOverflow)?;
     #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
@@ -85,23 +85,25 @@ where
 
 fn portable_zeroed_samples<T>(len: usize) -> Result<Vec<T>, AllocError>
 where
-    T: Pod,
+    T: Zeroable,
 {
     let layout = std::alloc::Layout::array::<T>(len).map_err(|_| AllocError::LayoutOverflow)?;
     if layout.size() == 0 {
         return Ok(Vec::new());
     }
-    Ok(vec![T::zeroed(); len])
+    let mut output = Vec::with_capacity(len);
+    output.resize_with(len, T::zeroed);
+    Ok(output)
 }
 
 #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
 fn linux_zeroed_samples<T>(len: usize, layout: std::alloc::Layout) -> Vec<T>
 where
-    T: Pod,
+    T: Zeroable,
 {
     // SAFETY: `Layout::array::<T>(len)` describes exactly `len` `T` values
     // with T's natural alignment. `alloc_zeroed` returns either null or a live
-    // block from the global allocator with that layout; `T: Pod` makes the
+    // block from the global allocator with that layout; `T: Zeroable` makes the
     // all-zero contents valid. `Vec::from_raw_parts` adopts that same pointer
     // with the same length and capacity, so its drop uses the same global
     // allocator and layout.
@@ -252,6 +254,7 @@ mod tests {
 
     #[test]
     fn zeroed_samples_support_every_decoded_scalar_with_exact_capacity() {
+        let _guard = TEST_LOCK.lock().unwrap();
         assert_zeroed_samples_are_fillable::<u16>(0);
         assert_zeroed_samples_are_fillable::<u16>(
             LARGE_ALLOCATION_THRESHOLD_BYTES / size_of::<u16>() - 1,
@@ -266,6 +269,7 @@ mod tests {
 
     #[test]
     fn zeroed_samples_reject_layout_overflow() {
+        let _guard = TEST_LOCK.lock().unwrap();
         assert!(zeroed_samples::<u16>(usize::MAX).is_err());
     }
 
