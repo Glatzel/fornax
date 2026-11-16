@@ -30,21 +30,21 @@ Out of scope:
 
 ## Task checklist
 
-- [ ] Replace the old multi-stage probe with one raw-decode stage and a
+- [x] Replace the old multi-stage probe with one raw-decode stage and a
   `fornax`/`flashraw` selector.
-- [ ] Record decoder, backend, threads, source metadata, timings, faults, raw
+- [x] Record decoder, backend, threads, source metadata, timings, faults, raw
   hash, and status; continue past unsupported or mismatching outputs.
-- [ ] Run three independent batches for each decoder at one and sixteen
+- [x] Run three independent batches for each decoder at one and sixteen
   threads with two warmups and five rounds.
-- [ ] Aggregate medians and batch spreads, excluding unsupported and
+- [x] Aggregate medians and batch spreads, excluding unsupported and
   mismatching samples from performance comparisons.
-- [ ] Investigate every mismatch and identify the likely incorrect decoder.
-- [ ] Profile clearly slower Fornax paths and compare source-level hot loops
+- [x] Investigate every mismatch and identify the likely incorrect decoder.
+- [x] Profile clearly slower Fornax paths and compare source-level hot loops
   with FlashRaw.
-- [ ] Add a dated results CSV and a short report under decoder performance
+- [x] Add a dated results CSV and a short report under decoder performance
   documentation.
-- [ ] Commit the probe separately from the report and data.
-- [ ] Run focused tests, formatting, clippy, link checks, and final review.
+- [x] Commit the probe separately from the report and data.
+- [x] Run focused tests, formatting, clippy, link checks, and final review.
 
 ## Files expected to change
 
@@ -73,3 +73,7 @@ Out of scope:
 - Unsupported and raw-mismatch samples remain in the CSV with status fields but
   are excluded from performance summaries.
 - RAW payloads are hard-linked from the main checkout and treated as read-only.
+- Fornax supported all 14 samples. Two had incorrect Fornax output (Sony
+  ILCE-7RM4 uncompressed and Pentax K-1 LJPEG); FlashRaw matched Rawler on both.
+- Leica SL2 was hash-correct but excluded from performance comparison because
+  Fornax applies `OpcodeList1` while the FlashRaw probe disables opcodes.
