@@ -4,10 +4,10 @@ use fornax_raw_core::error::DecodeError;
 
 pub fn from_raw_mosaic(mosaic: RawMosaic) -> SampleBuffer {
     match mosaic {
-        RawMosaic::U8(image) => SampleBuffer::U8(image.clone()),
-        RawMosaic::U16(image) => SampleBuffer::U16(image.clone()),
-        RawMosaic::U32(image) => SampleBuffer::U32(image.clone()),
-        RawMosaic::F32(image) => SampleBuffer::F32(image.clone()),
+        RawMosaic::U8(image) => SampleBuffer::U8(image),
+        RawMosaic::U16(image) => SampleBuffer::U16(image),
+        RawMosaic::U32(image) => SampleBuffer::U32(image),
+        RawMosaic::F32(image) => SampleBuffer::F32(image),
     }
 }
 

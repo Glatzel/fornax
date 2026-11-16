@@ -84,7 +84,7 @@ where
         });
 }
 
-pub(super) fn normalized_f32<'a, T>(image: &'a MonoImage<T>) -> Cow<'a, [f32]>
+pub(super) fn normalized_f32<T>(image: &MonoImage<T>) -> Cow<'_, [f32]>
 where
     T: Primitive,
 {
