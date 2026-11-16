@@ -2,7 +2,7 @@ use fornax_codec::SampleBuffer;
 use fornax_raw_core::RawMosaic;
 use fornax_raw_core::error::DecodeError;
 
-pub fn from_raw_mosaic(mosaic: &RawMosaic) -> SampleBuffer {
+pub fn from_raw_mosaic(mosaic: RawMosaic) -> SampleBuffer {
     match mosaic {
         RawMosaic::U8(image) => SampleBuffer::U8(image.clone()),
         RawMosaic::U16(image) => SampleBuffer::U16(image.clone()),
@@ -41,7 +41,7 @@ mod tests {
         ];
 
         for mosaic in cases {
-            let buffer = from_raw_mosaic(&mosaic);
+            let buffer = from_raw_mosaic(mosaic.clone());
             assert_eq!((buffer.width(), buffer.height()), mosaic.dimensions());
             match (buffer, mosaic) {
                 (SampleBuffer::U8(buffer), RawMosaic::U8(mosaic)) => assert_eq!(buffer, mosaic),

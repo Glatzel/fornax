@@ -4,7 +4,8 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-default = []
+default = ["large-page-hint"]
+large-page-hint = ["fornax-large-alloc/large-page-hint"]
 metadata-json = ["dep:serde", "dep:serde_json"]
 zstd = ["fornax-codec/zstd", "fornax-tiff/zstd"]
 
@@ -13,6 +14,8 @@ harness = false
 name = "writer"
 
 [dependencies]
+bytemuck.workspace = true
+fornax-large-alloc = { workspace = true, default-features = false }
 fornax-raw-core.workspace = true
 generic-num.workspace = true
 image.workspace = true

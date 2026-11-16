@@ -96,7 +96,7 @@ fn compressed_and_uncompressed_samples_round_trip_through_dng() {
         DngWriter::new(DngWriterCompression::Uncompressed)
             .write_dng_with(
                 &mut output,
-                &RawMosaic::U16(ours.clone()),
+                RawMosaic::U16(ours.clone()),
                 &decoder.dng_metadata().unwrap(),
             )
             .unwrap();

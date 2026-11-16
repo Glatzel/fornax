@@ -169,7 +169,7 @@ fn convert_raw_dng(
     let metadata = decoder.dng_metadata()?;
     DngWriter::new(config.dng_compression.writer(config.zstd_level)).write(
         &job.output,
-        &mosaic,
+        mosaic,
         &metadata,
     )?;
     if config.metadata_json {
@@ -201,7 +201,7 @@ where
         },
         _mark: PhantomData,
     };
-    let rgb = processor.process(normalized.image(), &metadata)?;
+    let rgb = processor.process(normalized.into_image(), &metadata)?;
     create_parent(&job.output)?;
     match config.format {
         OutputFormat::Tiff => write_tiff(&rgb, &job.output)?,

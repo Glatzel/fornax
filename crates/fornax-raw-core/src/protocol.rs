@@ -54,7 +54,7 @@ where
 {
     fn process(
         &self,
-        bayer_image: &MonoImage<T>,
+        bayer_image: MonoImage<T>,
         metadata: &M,
     ) -> Result<RgbImage<T>, PostProcessError>;
 }

@@ -25,21 +25,37 @@
 //! The Vec adoption is sound because `alloc_zeroed(Layout::array::<T>(len))`
 //! and `Vec<T>` use the same global allocator. The layout has exactly `T`'s
 //! natural alignment, `len` elements, and `Vec` is built with `capacity ==
-//! len`, so its eventual deallocation uses the same size and alignment. `T:
-//! Pod` guarantees that the all-zero bit pattern is valid. Layout overflow is
-//! reported before allocation, zero length returns `Vec::new()`, and a null
-//! allocation calls `handle_alloc_error`. The pointer is never read before
-//! ownership is transferred to the initialized zeroed `Vec`.
+//! len`, so its eventual deallocation uses the same size and alignment.
+//! `T: Zeroable` guarantees that the all-zero bit pattern is valid. Layout
+//! overflow is reported before allocation, zero length returns `Vec::new()`,
+//! and a null allocation calls `handle_alloc_error`. The pointer is never read
+//! before ownership is transferred to the initialized zeroed `Vec`.
 //!
 //! Natural alignment is essential. An over-aligned `alloc_zeroed` makes Rust
 //! zero the allocation before this module can issue `madvise`, silently
 //! disabling first-touch huge pages; that ordering was the bug in the first
 //! probe.
 
-use bytemuck::Pod;
+use std::fmt;
 
-use crate::CodecError;
-use crate::error::invalid;
+use bytemuck::Zeroable;
+
+/// Failure to describe or allocate the requested sample buffer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AllocError {
+    /// The element count and type do not fit in an allocator layout.
+    LayoutOverflow,
+}
+
+impl fmt::Display for AllocError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::LayoutOverflow => formatter.write_str("sample allocation layout overflow"),
+        }
+    }
+}
+
+impl std::error::Error for AllocError {}
 
 #[cfg(any(test, all(target_os = "linux", not(miri), feature = "large-page-hint")))]
 const HUGE_PAGE_BYTES: usize = 2 * 1024 * 1024;
@@ -49,12 +65,11 @@ const HUGE_PAGE_BYTES: usize = 2 * 1024 * 1024;
 #[cfg(any(test, all(target_os = "linux", not(miri), feature = "large-page-hint")))]
 const LARGE_ALLOCATION_THRESHOLD_BYTES: usize = 4 * HUGE_PAGE_BYTES;
 
-pub fn zeroed_samples<T>(len: usize) -> Result<Vec<T>, CodecError>
+pub fn zeroed_samples<T>(len: usize) -> Result<Vec<T>, AllocError>
 where
-    T: Pod,
+    T: Zeroable,
 {
-    let layout = std::alloc::Layout::array::<T>(len)
-        .map_err(|error| invalid(format!("sample allocation layout overflow: {error}")))?;
+    let layout = std::alloc::Layout::array::<T>(len).map_err(|_| AllocError::LayoutOverflow)?;
     #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
     if layout.size() >= LARGE_ALLOCATION_THRESHOLD_BYTES {
         #[cfg(test)]
@@ -68,26 +83,27 @@ where
     portable_zeroed_samples(len)
 }
 
-fn portable_zeroed_samples<T>(len: usize) -> Result<Vec<T>, CodecError>
+fn portable_zeroed_samples<T>(len: usize) -> Result<Vec<T>, AllocError>
 where
-    T: Pod,
+    T: Zeroable,
 {
-    let layout = std::alloc::Layout::array::<T>(len)
-        .map_err(|error| invalid(format!("sample allocation layout overflow: {error}")))?;
+    let layout = std::alloc::Layout::array::<T>(len).map_err(|_| AllocError::LayoutOverflow)?;
     if layout.size() == 0 {
         return Ok(Vec::new());
     }
-    Ok(vec![T::zeroed(); len])
+    let mut output = Vec::with_capacity(len);
+    output.resize_with(len, T::zeroed);
+    Ok(output)
 }
 
 #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
 fn linux_zeroed_samples<T>(len: usize, layout: std::alloc::Layout) -> Vec<T>
 where
-    T: Pod,
+    T: Zeroable,
 {
     // SAFETY: `Layout::array::<T>(len)` describes exactly `len` `T` values
     // with T's natural alignment. `alloc_zeroed` returns either null or a live
-    // block from the global allocator with that layout; `T: Pod` makes the
+    // block from the global allocator with that layout; `T: Zeroable` makes the
     // all-zero contents valid. `Vec::from_raw_parts` adopts that same pointer
     // with the same length and capacity, so its drop uses the same global
     // allocator and layout.
@@ -238,6 +254,7 @@ mod tests {
 
     #[test]
     fn zeroed_samples_support_every_decoded_scalar_with_exact_capacity() {
+        let _guard = TEST_LOCK.lock().unwrap();
         assert_zeroed_samples_are_fillable::<u16>(0);
         assert_zeroed_samples_are_fillable::<u16>(
             LARGE_ALLOCATION_THRESHOLD_BYTES / size_of::<u16>() - 1,
@@ -245,6 +262,7 @@ mod tests {
         assert_zeroed_samples_are_fillable::<u16>(
             LARGE_ALLOCATION_THRESHOLD_BYTES / size_of::<u16>() + 1,
         );
+        assert_zeroed_samples_are_fillable::<u8>(LARGE_ALLOCATION_THRESHOLD_BYTES + 1);
         assert_zeroed_samples_are_fillable::<u32>(1);
         assert_zeroed_samples_are_fillable::<f32>(1);
         assert_zeroed_samples_are_fillable::<f64>(1);
@@ -252,6 +270,7 @@ mod tests {
 
     #[test]
     fn zeroed_samples_reject_layout_overflow() {
+        let _guard = TEST_LOCK.lock().unwrap();
         assert!(zeroed_samples::<u16>(usize::MAX).is_err());
     }
 
@@ -311,6 +330,7 @@ mod tests {
         assert_tracked_allocations::<u16>(sample_count - 1, false);
         assert_tracked_allocations::<u16>(sample_count, true);
         assert_tracked_allocations::<u16>(sample_count + 1, true);
+        assert_tracked_allocations::<u8>(LARGE_ALLOCATION_THRESHOLD_BYTES + 1, true);
         assert_tracked_allocations::<u32>(LARGE_ALLOCATION_THRESHOLD_BYTES / 4 + 1, true);
         assert_tracked_allocations::<f32>(LARGE_ALLOCATION_THRESHOLD_BYTES / 4 + 1, true);
         assert_tracked_allocations::<f64>(LARGE_ALLOCATION_THRESHOLD_BYTES / 8 + 1, true);
@@ -337,270 +357,5 @@ mod tests {
         assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 1);
         assert_eq!(DEALLOCATION_LAYOUT_MISMATCHES.load(Ordering::SeqCst), 0);
         TRACKED_SIZE.store(0, Ordering::SeqCst);
-    }
-
-    #[test]
-    fn uncompressed_large_output_uses_the_shared_allocation_policy() {
-        let _guard = TEST_LOCK.lock().unwrap();
-        let len = LARGE_ALLOCATION_THRESHOLD_BYTES / size_of::<u16>() + 1;
-        let byte_count = len * size_of::<u16>();
-        let source = vec![0_u8; byte_count];
-        let chunks = [crate::Chunk {
-            offset: 0,
-            byte_count,
-        }];
-        let request = crate::DecodeRequest {
-            source: &source,
-            width: len,
-            height: 1,
-            chunk_width: len,
-            chunk_height: 1,
-            chunks: &chunks,
-            bits_per_sample: 16,
-            sample_format: crate::SampleFormat::Integer,
-            byte_order: crate::ByteOrder::Little,
-            predictor: crate::Predictor::None,
-        };
-        reset_tracking(byte_count, align_of::<u16>());
-
-        let image = crate::uncompressed::decode(&request).unwrap();
-        let samples = image.into_raw_u16().unwrap();
-        assert_eq!(samples.len(), len);
-
-        #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
-        {
-            assert_eq!(ALLOCATIONS.load(Ordering::SeqCst), 0);
-            assert_eq!(BYPASS_ZEROED_ALLOCATIONS.load(Ordering::SeqCst), 0);
-            assert_eq!(POLICY_ZEROED_ALLOCATIONS.load(Ordering::SeqCst), 1);
-        };
-        assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 0);
-
-        drop(samples);
-        assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 1);
-        assert_eq!(DEALLOCATION_LAYOUT_MISMATCHES.load(Ordering::SeqCst), 0);
-        TRACKED_SIZE.store(0, Ordering::SeqCst);
-    }
-
-    #[cfg(feature = "deflate")]
-    #[test]
-    fn fused_deflate_float_output_uses_the_shared_allocation_policy() {
-        use std::io::Write;
-
-        let _guard = TEST_LOCK.lock().unwrap();
-        let len = LARGE_ALLOCATION_THRESHOLD_BYTES / size_of::<f32>() + 1;
-        let byte_count = len * size_of::<f32>();
-        let mut encoder = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::fast());
-        encoder.write_all(&vec![0_u8; byte_count]).unwrap();
-        let source = encoder.finish().unwrap();
-        let chunks = [crate::Chunk {
-            offset: 0,
-            byte_count: source.len(),
-        }];
-        let request = crate::DecodeRequest {
-            source: &source,
-            width: len,
-            height: 1,
-            chunk_width: len,
-            chunk_height: 1,
-            chunks: &chunks,
-            bits_per_sample: 32,
-            sample_format: crate::SampleFormat::Float,
-            byte_order: crate::ByteOrder::Little,
-            predictor: crate::Predictor::None,
-        };
-        reset_tracking(byte_count, align_of::<f32>());
-
-        let image = crate::deflate::decode(&request).unwrap();
-        let samples = image.into_raw_f32().unwrap();
-        assert_eq!(samples.len(), len);
-
-        #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
-        {
-            assert_eq!(ALLOCATIONS.load(Ordering::SeqCst), 0);
-            assert_eq!(BYPASS_ZEROED_ALLOCATIONS.load(Ordering::SeqCst), 0);
-            assert_eq!(POLICY_ZEROED_ALLOCATIONS.load(Ordering::SeqCst), 1);
-        };
-        assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 0);
-
-        drop(samples);
-        assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 1);
-        assert_eq!(DEALLOCATION_LAYOUT_MISMATCHES.load(Ordering::SeqCst), 0);
-        TRACKED_SIZE.store(0, Ordering::SeqCst);
-    }
-
-    #[cfg(feature = "lossless-jpeg")]
-    #[test]
-    fn lossless_jpeg_full_image_output_uses_the_shared_allocation_policy() {
-        let _guard = TEST_LOCK.lock().unwrap();
-        let width = 4096;
-        let height = LARGE_ALLOCATION_THRESHOLD_BYTES / size_of::<u16>() / width + 1;
-        let len = width * height;
-        let byte_count = len * size_of::<u16>();
-        let samples = vec![1_u16 << 11; len];
-        let source =
-            crate::ljpeg::encode_interleaved_for_test(&samples, width as u16, height as u16, 1, 12);
-        let chunks = [crate::Chunk {
-            offset: 0,
-            byte_count: source.len(),
-        }];
-        let request = crate::DecodeRequest {
-            source: &source,
-            width,
-            height,
-            chunk_width: width,
-            chunk_height: height,
-            chunks: &chunks,
-            bits_per_sample: 12,
-            sample_format: crate::SampleFormat::Integer,
-            byte_order: crate::ByteOrder::Little,
-            predictor: crate::Predictor::None,
-        };
-        reset_tracking(byte_count, align_of::<u16>());
-
-        let image = crate::ljpeg::decode(&request).unwrap();
-        let samples = image.into_raw_u16().unwrap();
-        assert_eq!(samples.len(), len);
-
-        #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
-        {
-            assert_eq!(ALLOCATIONS.load(Ordering::SeqCst), 0);
-            assert_eq!(BYPASS_ZEROED_ALLOCATIONS.load(Ordering::SeqCst), 0);
-            assert_eq!(POLICY_ZEROED_ALLOCATIONS.load(Ordering::SeqCst), 1);
-        };
-        assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 0);
-
-        drop(samples);
-        assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 1);
-        assert_eq!(DEALLOCATION_LAYOUT_MISMATCHES.load(Ordering::SeqCst), 0);
-        TRACKED_SIZE.store(0, Ordering::SeqCst);
-    }
-
-    #[cfg(feature = "lossless-jpeg")]
-    #[test]
-    fn lossless_jpeg_interleaved_output_uses_the_shared_allocation_policy() {
-        let _guard = TEST_LOCK.lock().unwrap();
-        let width = 2048;
-        let height = LARGE_ALLOCATION_THRESHOLD_BYTES / (2 * size_of::<u16>()) / width + 1;
-        let input_samples = width * height * 2;
-        let samples = vec![1_u16 << 11; input_samples];
-        let source =
-            crate::ljpeg::encode_interleaved_for_test(&samples, width as u16, height as u16, 2, 12);
-        let output_samples = 2 * width * height;
-        let byte_count = output_samples * size_of::<u16>();
-        reset_tracking(byte_count, align_of::<u16>());
-
-        let image = crate::ljpeg::decode_interleaved(&source, 12).unwrap();
-        assert_eq!(image.width, 2 * width);
-        assert_eq!(image.height, height);
-        assert_eq!(image.samples.len(), output_samples);
-
-        #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
-        {
-            assert_eq!(ALLOCATIONS.load(Ordering::SeqCst), 0);
-            assert_eq!(BYPASS_ZEROED_ALLOCATIONS.load(Ordering::SeqCst), 0);
-            assert_eq!(POLICY_ZEROED_ALLOCATIONS.load(Ordering::SeqCst), 1);
-        };
-        assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 0);
-
-        drop(image);
-        assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 1);
-        assert_eq!(DEALLOCATION_LAYOUT_MISMATCHES.load(Ordering::SeqCst), 0);
-        TRACKED_SIZE.store(0, Ordering::SeqCst);
-    }
-
-    #[cfg(feature = "lossless-jpeg")]
-    #[test]
-    fn lossless_jpeg_u8_conversion_uses_the_shared_allocation_policy() {
-        let _guard = TEST_LOCK.lock().unwrap();
-        let width = 4096;
-        let height = LARGE_ALLOCATION_THRESHOLD_BYTES / width + 1;
-        let len = width * height;
-        let samples = vec![1_u16 << 7; len];
-        let source =
-            crate::ljpeg::encode_interleaved_for_test(&samples, width as u16, height as u16, 1, 8);
-        let chunks = [crate::Chunk {
-            offset: 0,
-            byte_count: source.len(),
-        }];
-        let request = crate::DecodeRequest {
-            source: &source,
-            width,
-            height,
-            chunk_width: width,
-            chunk_height: height,
-            chunks: &chunks,
-            bits_per_sample: 8,
-            sample_format: crate::SampleFormat::Integer,
-            byte_order: crate::ByteOrder::Little,
-            predictor: crate::Predictor::None,
-        };
-        reset_tracking(len, align_of::<u8>());
-
-        let image = crate::ljpeg::decode(&request).unwrap();
-        let samples = image.into_raw_u8().unwrap();
-        assert_eq!(samples.len(), len);
-        assert_eq!(samples.capacity(), len);
-
-        #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
-        {
-            assert_eq!(ALLOCATIONS.load(Ordering::SeqCst), 0);
-            assert_eq!(BYPASS_ZEROED_ALLOCATIONS.load(Ordering::SeqCst), 0);
-            assert_eq!(POLICY_ZEROED_ALLOCATIONS.load(Ordering::SeqCst), 1);
-        };
-        assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 0);
-
-        drop(samples);
-        assert_eq!(DEALLOCATIONS.load(Ordering::SeqCst), 1);
-        assert_eq!(DEALLOCATION_LAYOUT_MISMATCHES.load(Ordering::SeqCst), 0);
-        TRACKED_SIZE.store(0, Ordering::SeqCst);
-    }
-
-    #[test]
-    fn final_decode_outputs_do_not_reintroduce_direct_sample_vecs() {
-        let guarded_sources = [
-            (
-                "samples.rs",
-                include_str!("samples.rs"),
-                &[
-                    "let mut output = vec![0_u8; sample_count]",
-                    "let mut output = vec![0_u16; sample_count]",
-                    "let mut output = vec![0_u32; sample_count]",
-                    "let mut output = vec![0_f32; sample_count]",
-                    "let mut output = vec![0_f64; sample_count]",
-                ][..],
-            ),
-            (
-                "deflate.rs",
-                include_str!("deflate.rs"),
-                &["let mut output = vec![0.0_f32; sample_count]"][..],
-            ),
-            (
-                "ljpeg.rs",
-                include_str!("ljpeg.rs"),
-                &["let mut output = vec![0_u16; sample_count]"][..],
-            ),
-            (
-                "jpeg.rs",
-                include_str!("jpeg.rs"),
-                &["let mut output = vec![0_u8; sample_count]"][..],
-            ),
-            (
-                "jpegxl.rs",
-                include_str!("jpegxl.rs"),
-                &[
-                    "let mut output = vec![0_u8; sample_count]",
-                    "let mut output = vec![0_u16; sample_count]",
-                ][..],
-            ),
-        ];
-
-        for (file, source, forbidden_patterns) in guarded_sources {
-            for pattern in forbidden_patterns {
-                assert!(
-                    !source.contains(pattern),
-                    "{file} contains a final-output allocation outside large_alloc: {pattern}"
-                );
-            }
-        }
     }
 }

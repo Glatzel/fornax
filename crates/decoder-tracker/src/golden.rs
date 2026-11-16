@@ -624,6 +624,8 @@ pub(crate) fn raw_sha256(raw: &RawMosaic) -> String {
 }
 
 fn cropped_sha256(image: &MonoImage<f32>) -> String {
+    let sample_count = usize::try_from(u64::from(image.width()) * u64::from(image.height()))
+        .expect("u32 image dimensions fit usize");
     hash_samples(
         CROPPED_DOMAIN,
         "f32",
@@ -631,6 +633,7 @@ fn cropped_sha256(image: &MonoImage<f32>) -> String {
         image
             .as_raw()
             .iter()
+            .take(sample_count)
             .flat_map(|value| value.to_bits().to_le_bytes()),
     )
 }

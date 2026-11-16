@@ -201,7 +201,7 @@ fn corrected_samples_and_cfa_round_trip_through_dng() {
     let mut output = Cursor::new(Vec::new());
 
     DngWriter::new(DngWriterCompression::Uncompressed)
-        .write_dng_with(&mut output, &raw, &metadata)
+        .write_dng_with(&mut output, raw.clone(), &metadata)
         .unwrap();
 
     let decoded = DngImage::parse(output.get_ref()).unwrap();

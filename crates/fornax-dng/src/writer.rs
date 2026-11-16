@@ -145,7 +145,7 @@ impl DngWriter {
     pub fn write<P>(
         &self,
         path: P,
-        mosaic: &RawMosaic,
+        mosaic: RawMosaic,
         metadata: &Directory,
     ) -> Result<(), DngWriteError>
     where
@@ -160,7 +160,7 @@ impl DngWriter {
     pub fn write_dng_with<W>(
         &self,
         writer: W,
-        mosaic: &RawMosaic,
+        mosaic: RawMosaic,
         metadata: &Directory,
     ) -> Result<(), DngWriteError>
     where

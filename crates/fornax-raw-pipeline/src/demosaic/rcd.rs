@@ -4,11 +4,14 @@
 //! formulas by Luis Sanz Rodríguez. darktable 5.6.2 is used as the behavioral
 //! reference; no darktable source code is copied into this module.
 
+use std::sync::Mutex;
+
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage};
 use generic_num::num;
 
 use super::ppg::DemosaicPpg;
+use super::protocol::apply_post_in_place;
 use crate::LazyDemosaic;
 
 const TILE_SIZE: usize = 112;
@@ -17,50 +20,94 @@ const BORDER: usize = 10;
 const MARGIN: usize = 9;
 const HALF_RANGE: usize = TILE_SIZE / 2;
 
-pub struct RcdLazy<T: Primitive> {
-    image: RgbImage<T>,
+pub struct RcdLazy<'a, T: Primitive> {
+    bayer: &'a MonoImage<T>,
+    pattern: BayerPattern,
+    image: Mutex<Option<RgbImage<T>>>,
 }
 
-impl<T> LazyDemosaic<T> for RcdLazy<T>
+impl<T> LazyDemosaic<T> for RcdLazy<'_, T>
 where
     T: Primitive + Send + Sync,
 {
-    fn dimensions(&self) -> (u32, u32) { self.image.dimensions() }
+    fn dimensions(&self) -> (u32, u32) { self.bayer.dimensions() }
 
     fn fill_rows(&self, y0: usize, out: &mut [T]) {
-        let row_stride = self.image.width() as usize * 3;
+        let mut cache = self
+            .image
+            .lock()
+            .expect("RCD image cache mutex should not be poisoned");
+        let image = cache.get_or_insert_with(|| {
+            render(self.bayer, self.pattern)
+                .expect("RCD lazy construction already validated the input")
+        });
+        let row_stride = image.width() as usize * 3;
         let start = y0 * row_stride;
         let end = start + out.len();
-        out.copy_from_slice(&self.image.as_raw()[start..end]);
+        out.copy_from_slice(&image.as_raw()[start..end]);
     }
 
-    fn collect(&self) -> RgbImage<T> { self.image.clone() }
+    fn collect_with(&self, post: impl Fn(usize, &mut [T]) + Sync) -> RgbImage<T> {
+        let mut image = self
+            .image
+            .lock()
+            .expect("RCD image cache mutex should not be poisoned")
+            .take()
+            .unwrap_or_else(|| {
+                render(self.bayer, self.pattern)
+                    .expect("RCD lazy construction already validated the input")
+            });
+        apply_post_in_place(&mut image, post);
+        image
+    }
+}
+
+impl<T: Primitive> RcdLazy<'_, T> {
+    #[cfg(test)]
+    fn cached_image_is_absent(&self) -> bool {
+        self.image
+            .lock()
+            .expect("RCD image cache mutex should not be poisoned")
+            .is_none()
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DemosaicRcd;
 
 impl DemosaicRcd {
-    pub fn lazy<T>(
+    pub fn lazy<'a, T>(
         &self,
-        bayer: &MonoImage<T>,
+        bayer: &'a MonoImage<T>,
         pattern: BayerPattern,
-    ) -> Result<RcdLazy<T>, DemosaicError>
+    ) -> Result<RcdLazy<'a, T>, DemosaicError>
     where
         T: Primitive + Send + Sync,
     {
-        let mut image = DemosaicPpg.lazy(bayer, pattern)?.collect();
-        if image.width() >= (2 * BORDER) as u32 && image.height() >= (2 * BORDER) as u32 {
-            process_image(
-                bayer.as_raw(),
-                image.as_mut(),
-                bayer.width(),
-                bayer.height(),
-                pattern,
-            );
-        }
-        Ok(RcdLazy { image })
+        let image = render(bayer, pattern)?;
+        Ok(RcdLazy {
+            bayer,
+            pattern,
+            image: Mutex::new(Some(image)),
+        })
     }
+}
+
+fn render<T>(bayer: &MonoImage<T>, pattern: BayerPattern) -> Result<RgbImage<T>, DemosaicError>
+where
+    T: Primitive + Send + Sync,
+{
+    let mut image = DemosaicPpg.lazy(bayer, pattern)?.collect();
+    if image.width() >= (2 * BORDER) as u32 && image.height() >= (2 * BORDER) as u32 {
+        process_image(
+            bayer.as_raw(),
+            image.as_mut(),
+            bayer.width(),
+            bayer.height(),
+            pattern,
+        );
+    }
+    Ok(image)
 }
 
 fn process_image<T>(raw: &[T], output: &mut [T], width: u32, height: u32, pattern: BayerPattern)
@@ -548,6 +595,23 @@ mod tests {
         let mut rows = vec![0.0; 40 * 3 * 40];
         lazy.fill_rows(0, &mut rows);
         assert_eq!(whole.as_raw(), &rows);
+        Ok(())
+    }
+
+    #[test]
+    fn collect_with_consumes_the_cached_rgb_result() -> mischief::Result<()> {
+        let image = MonoImage::from_raw(40, 40, vec![0.25_f32; 40 * 40]).unwrap();
+        let lazy = DemosaicRcd.lazy(&image, BayerPattern::GRBG)?;
+
+        let output = lazy.collect_with(|_, _| {});
+
+        assert!(lazy.cached_image_is_absent());
+        assert!(
+            output
+                .as_raw()
+                .iter()
+                .all(|sample| (*sample - 0.25).abs() < 1.0e-5)
+        );
         Ok(())
     }
 

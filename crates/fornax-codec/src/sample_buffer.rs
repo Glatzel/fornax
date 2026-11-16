@@ -1,7 +1,10 @@
-use image::{ImageBuffer, Luma};
+use image::{ImageBuffer, Luma, LumaA};
 use thiserror::Error;
 
 type Mono<T> = ImageBuffer<Luma<T>, Vec<T>>;
+type _Uv<T> = ImageBuffer<LumaA<T>, Vec<T>>;
+type _Rgb<T> = ImageBuffer<image::Rgb<T>, Vec<T>>;
+type _Rgba<T> = ImageBuffer<image::Rgba<T>, Vec<T>>;
 
 /// A single-band buffer of raw codec samples.
 ///

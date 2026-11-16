@@ -53,6 +53,76 @@ original report because only the Fornax/FlashRaw ratios were re-run. Pentax K-5
 is pointer-only in the current corpus checkout and Fornax has no Pentax
 container decoder, so it could not be re-run through the three-way gate.
 
+## Cross-Format Lossless Decode Check (16T)
+
+The post-#737/#738 decode path was re-measured across DNG, Sony ARW, Nikon NEF,
+and Canon CR3. Only uncompressed and lossless compression were included; lossy
+compression was excluded. Each decoder ran in three fresh processes by five
+rounds after one warmup, alternating Fornax and FlashRaw in the same session.
+The current host has 16 visible CPUs, so the all-thread result is 16T.
+
+Values are milliseconds, median `[min-max]`. Ratios are Fornax/FlashRaw.
+
+| Case | Compression | 1T Fornax / FlashRaw | 16T Fornax / FlashRaw |
+| --- | --- | --- | --- |
+| Canon 5D3 DNG | uncompressed | 18.188 `[17.578-20.131]` / 18.294 `[17.958-18.659]`, 0.994x | 18.064 `[17.723-18.617]` / 11.242 `[10.941-12.024]`, 1.607x |
+| Canon 5D3 DNG | lossless JPEG | 136.124 `[135.292-153.344]` / 98.169 `[96.600-99.870]`, 1.387x | 27.932 `[24.287-29.964]` / 21.353 `[19.336-24.816]`, 1.308x |
+| Sony ILCE-7M4 | uncompressed | 167.046 `[164.907-222.513]` / 23.484 `[23.161-23.705]`, 7.113x | 168.330 `[165.331-234.914]` / 14.934 `[14.283-15.672]`, 11.272x |
+| Sony ILCE-7M4 | lossless compressed | 569.475 `[563.714-583.590]` / 238.572 `[236.059-254.464]`, 2.387x | 198.519 `[189.242-201.019]` / 39.587 `[36.393-45.510]`, 5.015x |
+| Nikon D850 | uncompressed | 295.088 `[290.219-360.655]` / 30.905 `[30.421-34.269]`, 9.548x | 291.817 `[289.507-341.975]` / 20.167 `[19.324-23.816]`, 14.470x |
+| Nikon Z5 II | lossless compressed | 143.467 `[142.393-188.311]` / 48.026 `[47.550-51.631]`, 2.987x | 143.263 `[142.151-186.515]` / 20.779 `[19.678-30.512]`, 6.895x |
+| Canon EOS R6 | lossless CRX | 281.806 `[256.285-302.431]` / 83.150 `[81.649-85.908]`, 3.389x | 76.346 `[75.774-110.484]` / 22.627 `[21.080-40.448]`, 3.374x |
+
+Canon CR3 has no uncompressed RAW-CRX mode in the selected corpus; `CRAW`
+variants were intentionally excluded as lossy. Sony and Nikon show large
+parallel-scaling gaps even though their one-thread gaps are already material.
+The DNG paths are much closer: 5D3 uncompressed is at FlashRaw parity at 1T,
+and LJPEG is 1.31x slower at 16T.
+
+### 16T Faults and RSS
+
+Minor faults are process totals for one warmup plus five measured rounds, not
+per-decode counts. Peak RSS is process peak. Values are Fornax / FlashRaw
+medians.
+
+| Case | Compression | Minor faults | Peak RSS KiB |
+| --- | --- | ---: | ---: |
+| Canon 5D3 DNG | uncompressed | 14443 / 12170 | 98092 / 98520 |
+| Canon 5D3 DNG | lossless JPEG | 13657 / 11078 | 73404 / 76476 |
+| Sony ILCE-7M4 | uncompressed | 152590 / 15211 | 149748 / 135832 |
+| Sony ILCE-7M4 | lossless compressed | 230020 / 16535 | 142080 / 125264 |
+| Nikon D850 | uncompressed | 349346 / 16916 | 197036 / 185732 |
+| Nikon Z5 II | lossless compressed | 65377 / 25027 | 53200 / 73056 |
+| Canon EOS R6 | lossless CRX | 43290 / 21170 | 70272 / 51368 |
+
+The Sony, Nikon, and Canon gaps coincide with substantially more first-touch
+work than FlashRaw even at 16T. They are not explained by thread scheduling
+alone.
+
+### Equality
+
+The three-way decoder gate passed for both DNG cases, both Sony cases, Nikon
+uncompressed, and Canon lossless CRX. Nikon Z5 II lossless matched FlashRaw
+exactly, but Rawler differs on that file; the Nikon lossless comparison is
+therefore Fornax against FlashRaw rather than three-way.
+
+### Inputs
+
+| Case | Corpus path | SHA-256 |
+| --- | --- | --- |
+| DNG uncompressed | `Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9394-uncompressed.DNG` | `95dc76a2f255e623acaa5149b320389f7da7c995da890c3e0d511c0ff681b2e1` |
+| DNG lossless | `Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9394-compressed-lossless.DNG` | `3118116735d4f6dd01fd9d6a80ee9aac52a2c2debdc6dcd112bd5e3059044a55` |
+| Sony uncompressed | `Sony/ILCE-7M4/ILCE-7M4_DSC06673_FullFrame-Raw-Uncompressed.ARW` | `626e1f3235e28f2c642814e0aefad404ea767c06943934db87d2b0072ba8e8b9` |
+| Sony lossless | `Sony/ILCE-7M4/ILCE-7M4_DSC06674_FullFrame-LossLess-Compressed-Large.ARW` | `851b43c2116c4139104a5036f83ac3b6a148789b2142214dd7192c13972b25b6` |
+| Nikon uncompressed | `Nikon/D850/Nikon-D850-14bit-uncompressed.NEF` | `ce1fb927aca4f0ac3a1fa5caded0d7859560988e500f71177287310fd1a3d845` |
+| Nikon lossless | `NIKON CORPORATION/NIKON Z5_2/Lossless_compression_DX.NEF` | `ba6c66ece60b18eaf6a3461ecfbccd346af785a1db311b3e651ae0284232a1c8` |
+| Canon lossless | `Canon/EOS R6/Canon_EOS_R6_RAW_ISO_100_crop_nodual.CR3` | `6156ee9cfd1a61e08719a8309095d05162891fd2adb8dd1505b31d4716dcee05` |
+
+These numbers are host-specific and unmeasured on Windows or macOS. The host
+again reports WSL2, Ryzen 7 5800H, 16 visible CPUs, kernel
+`6.6.87.1-microsoft-standard-WSL2`, glibc `2.41-12+deb13u3`, THP
+`[madvise]`, and THP defrag `[madvise]`.
+
 ## Linux Large-Page Allocation
 
 The allocation policy is platform-specific by design. Linux builds with the
@@ -64,9 +134,10 @@ off, and smaller outputs take the plain zeroed-`Vec` path. The only new target
 dependency is optional `libc` under
 `[target.'cfg(target_os = "linux")'.dependencies]`.
 
-The implementation and all unsafe code live in
-[`large_alloc.rs`](../../../crates/fornax-codec/src/large_alloc.rs). Final decode
-outputs are allocated through that module from
+The implementation and all unsafe code live in the independent
+`fornax-large-alloc` crate,
+[`large_alloc.rs`](../../../crates/fornax-large-alloc/src/large_alloc.rs). Final
+decode outputs are allocated through that crate from
 [`samples.rs`](../../../crates/fornax-codec/src/samples.rs),
 [`deflate.rs`](../../../crates/fornax-codec/src/deflate.rs),
 [`ljpeg.rs`](../../../crates/fornax-codec/src/ljpeg.rs),
@@ -669,7 +740,7 @@ the complete baseline and counter tables are in
 - Seeded synthetic fixture:
   [`synthetic.rs`](../../../crates/fornax-codec/tests/support/synthetic.rs).
 - Fornax implementation:
-  [`large_alloc.rs`](../../../crates/fornax-codec/src/large_alloc.rs),
+  [`large_alloc.rs`](../../../crates/fornax-large-alloc/src/large_alloc.rs),
   [`ljpeg.rs`](../../../crates/fornax-codec/src/ljpeg.rs),
   [`samples.rs`](../../../crates/fornax-codec/src/samples.rs),
   [`deflate.rs`](../../../crates/fornax-codec/src/deflate.rs).

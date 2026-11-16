@@ -8,9 +8,10 @@ use std::sync::LazyLock;
 
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage};
-use generic_num::num;
+use rayon::prelude::*;
 
 use super::linear::DemosaicLinear;
+use super::protocol::{dense_from_f32_owned, f32_codes_into, normalized_f32};
 use crate::LazyDemosaic;
 
 const TILE_SIZE: usize = 512;
@@ -70,28 +71,16 @@ impl DemosaicAhd {
         let linear = DemosaicLinear.lazy(bayer, pattern)?.collect();
         let width = bayer.width() as usize;
         let height = bayer.height() as usize;
-        let raw = bayer
-            .as_raw()
+        let raw = normalized_f32(bayer)
             .iter()
-            .map(|sample| sample.to_f32().unwrap_or_default() * 65_535.0)
+            .map(|sample| *sample * 65_535.0)
             .collect::<Vec<_>>();
-        let mut output = linear
-            .as_raw()
-            .iter()
-            .map(|sample| sample.to_f32().unwrap_or_default() * 65_535.0)
-            .collect::<Vec<_>>();
+        let mut output = f32_codes_into(linear);
 
         process_ahd(&raw, &mut output, width, height, pattern);
+        output.par_iter_mut().for_each(|code| *code /= 65_535.0);
 
-        let image = RgbImage::from_raw(
-            bayer.width(),
-            bayer.height(),
-            output
-                .into_iter()
-                .map(|code| num!((code / 65_535.0).clamp(0.0, 1.0)))
-                .collect(),
-        )
-        .expect("AHD output dimensions match the source image");
+        let image = dense_from_f32_owned(bayer.width(), bayer.height(), output);
         Ok(AhdLazy { image })
     }
 }

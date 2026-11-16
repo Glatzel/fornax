@@ -21,7 +21,7 @@ fn writer_emits_tiff_and_dng_owned_compression_ids() {
     for (compression, expected) in cases {
         let mut output = Cursor::new(Vec::new());
         DngWriter::new(compression)
-            .write_dng_with(&mut output, &mosaic, &Directory::default())
+            .write_dng_with(&mut output, mosaic.clone(), &Directory::default())
             .unwrap();
         let parsed = parse(output.get_ref()).unwrap();
         let actual =

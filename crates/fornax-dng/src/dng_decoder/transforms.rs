@@ -1,3 +1,4 @@
+use bytemuck::Pod;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::{MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
@@ -9,6 +10,14 @@ use super::{corrupt, unsigned_vec};
 use crate::metadata::DngTag;
 
 const MAX_EXACT_F32_INTEGER: u32 = 1 << 24;
+
+fn zeroed_samples<T>(len: usize) -> Result<Vec<T>, DecodeError>
+where
+    T: Pod,
+{
+    fornax_large_alloc::zeroed_samples(len)
+        .map_err(|error| corrupt(format!("DNG transform allocation failed: {error}")))
+}
 
 pub(super) fn apply<D>(pixels: RawMosaic, metadata: &D) -> Result<RawMosaic, DecodeError>
 where
@@ -45,7 +54,7 @@ where
 
 fn deinterleave_image<T>(image: MonoImage<T>) -> Result<MonoImage<T>, DecodeError>
 where
-    T: image::Primitive + Send + Sync,
+    T: image::Primitive + Send + Sync + Pod,
 {
     let (width_u32, height_u32) = image.dimensions();
     let width = usize::try_from(width_u32)
@@ -134,24 +143,22 @@ where
         }
         RawMosaic::F32(_) => SampleKind::F32,
     };
-    let mut samples = match &pixels {
-        RawMosaic::U8(image) => image
-            .as_raw()
-            .iter()
-            .map(|value| f32::from(*value))
-            .collect(),
-        RawMosaic::U16(image) => image
-            .as_raw()
-            .iter()
-            .map(|value| f32::from(*value))
-            .collect(),
-        RawMosaic::U32(image) => image
-            .as_raw()
-            .iter()
-            .map(|value| value.to_f32().expect("u32 converts to f32"))
-            .collect::<Vec<_>>(),
-        RawMosaic::F32(image) => image.as_raw().clone(),
-    };
+    let mut samples = zeroed_samples::<f32>(width * height)?;
+    match &pixels {
+        RawMosaic::U8(image) => samples
+            .par_iter_mut()
+            .zip(image.as_raw())
+            .for_each(|(output, value)| *output = f32::from(*value)),
+        RawMosaic::U16(image) => samples
+            .par_iter_mut()
+            .zip(image.as_raw())
+            .for_each(|(output, value)| *output = f32::from(*value)),
+        RawMosaic::U32(image) => samples
+            .par_iter_mut()
+            .zip(image.as_raw())
+            .for_each(|(output, value)| *output = value.to_f32().expect("u32 converts to f32")),
+        RawMosaic::F32(image) => samples.copy_from_slice(image.as_raw()),
+    }
     super::opcodes::apply(&bytes, &mut samples, width, height)?;
 
     match kind {
@@ -168,16 +175,14 @@ where
                 .ok_or_else(|| corrupt("opcode image dimensions are invalid"))
         }
         SampleKind::U32 => {
-            let samples = samples
-                .into_iter()
-                .map(|value| {
-                    value
-                        .round()
-                        .to_u32()
-                        .ok_or_else(|| corrupt("OpcodeList1 output exceeds u32"))
-                })
-                .collect::<Result<Vec<_>, _>>()?;
-            MonoImage::from_raw(width_u32, height_u32, samples)
+            let mut converted = zeroed_samples::<u32>(samples.len())?;
+            for (output, value) in converted.iter_mut().zip(samples) {
+                *output = value
+                    .round()
+                    .to_u32()
+                    .ok_or_else(|| corrupt("OpcodeList1 output exceeds u32"))?;
+            }
+            MonoImage::from_raw(width_u32, height_u32, converted)
                 .map(RawMosaic::U32)
                 .ok_or_else(|| corrupt("opcode image dimensions are invalid"))
         }
@@ -200,27 +205,28 @@ where
         + num_traits::Bounded
         + num_traits::FromPrimitive
         + num_traits::ToPrimitive
-        + num_traits::Zero,
+        + num_traits::Zero
+        + Pod,
 {
-    samples
-        .iter()
-        .map(|value| {
-            let rounded = value.round();
-            if !rounded.is_finite() {
-                return Err(corrupt("OpcodeList1 produced a non-finite sample"));
-            }
-            let zero = T::zero();
-            if rounded < zero.to_f32().expect("bounded sample types convert to f32")
-                || rounded
-                    > maximum
-                        .to_f32()
-                        .expect("bounded sample types convert to f32")
-            {
-                return Err(corrupt("OpcodeList1 output exceeds the stored sample type"));
-            }
-            T::from_f32(rounded).ok_or_else(|| corrupt("OpcodeList1 output is not representable"))
-        })
-        .collect()
+    let mut output = zeroed_samples::<T>(samples.len())?;
+    for (target, value) in output.iter_mut().zip(samples) {
+        let rounded = value.round();
+        if !rounded.is_finite() {
+            return Err(corrupt("OpcodeList1 produced a non-finite sample"));
+        }
+        let zero = T::zero();
+        if rounded < zero.to_f32().expect("bounded sample types convert to f32")
+            || rounded
+                > maximum
+                    .to_f32()
+                    .expect("bounded sample types convert to f32")
+        {
+            return Err(corrupt("OpcodeList1 output exceeds the stored sample type"));
+        }
+        *target = T::from_f32(rounded)
+            .ok_or_else(|| corrupt("OpcodeList1 output is not representable"))?;
+    }
+    Ok(output)
 }
 
 fn apply_linearization<D>(pixels: RawMosaic, metadata: &D) -> Result<RawMosaic, DecodeError>
@@ -250,17 +256,7 @@ where
             .map_err(|_| corrupt("LinearizationTable bit depth exceeds u32"))?;
             map_u16_linearization(image.as_raw(), width, &table, bits)?
         }
-        RawMosaic::U32(image) => {
-            let samples = image
-                .as_raw()
-                .iter()
-                .map(|value| {
-                    usize::try_from(*value)
-                        .map_err(|_| corrupt("linearization index exceeds the address space"))
-                })
-                .collect::<Result<Vec<_>, _>>()?;
-            lookup_linearization(&samples, &table)?
-        }
+        RawMosaic::U32(image) => map_linearization(image.as_raw(), &table)?,
         RawMosaic::F32(_) => {
             return Err(corrupt(
                 "LinearizationTable cannot index floating-point samples",
@@ -336,7 +332,8 @@ fn apply_u16_linearization(
         })
         .collect::<Result<Vec<_>, DecodeError>>()?;
 
-    let mut mapped = Vec::with_capacity(samples.len());
+    let mut mapped = zeroed_samples::<u16>(samples.len())?;
+    let mut mapped_index = 0;
     for row in samples.chunks(width) {
         let mut random = row.first().copied().map_or_default(u32::from);
         if let Some(second) = row.get(1) {
@@ -347,10 +344,9 @@ fn apply_u16_linearization(
                 .get(usize::from(sample))
                 .ok_or_else(|| corrupt(format!("LinearizationTable has no entry for {sample}")))?;
             let value = u32::from(base) + ((u32::from(delta) * (random & 2047) + 1024) >> 12);
-            mapped.push(
-                u16::try_from(value)
-                    .map_err(|_| corrupt("LinearizationTable output exceeds u16"))?,
-            );
+            mapped[mapped_index] = u16::try_from(value)
+                .map_err(|_| corrupt("LinearizationTable output exceeds u16"))?;
+            mapped_index += 1;
             random = 15_700 * (random & 65_535) + (random >> 16);
         }
     }
@@ -362,26 +358,16 @@ where
     T: Copy,
     usize: TryFrom<T>,
 {
-    let indexes = samples
-        .iter()
-        .map(|value| {
-            usize::try_from(*value)
-                .map_err(|_| corrupt("linearization index exceeds the address space"))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    lookup_linearization(&indexes, table)
-}
-
-fn lookup_linearization(indexes: &[usize], table: &[u16]) -> Result<Vec<u16>, DecodeError> {
-    indexes
-        .iter()
-        .map(|index| {
-            table
-                .get(*index)
-                .copied()
-                .ok_or_else(|| corrupt(format!("LinearizationTable has no entry for {index}")))
-        })
-        .collect()
+    let mut output = zeroed_samples::<u16>(samples.len())?;
+    for (target, value) in output.iter_mut().zip(samples) {
+        let index = usize::try_from(*value)
+            .map_err(|_| corrupt("linearization index exceeds the address space"))?;
+        *target = table
+            .get(index)
+            .copied()
+            .ok_or_else(|| corrupt(format!("LinearizationTable has no entry for {index}")))?;
+    }
+    Ok(output)
 }
 
 fn opcode_bytes(value: &Value) -> Result<Vec<u8>, DecodeError> {

@@ -285,7 +285,7 @@ fn xtrans_lossless_fixture_matches_rawler_and_round_trips_through_dng() {
 
     let mut output = Cursor::new(Vec::new());
     DngWriter::new(DngWriterCompression::Uncompressed)
-        .write_dng_with(&mut output, &RawMosaic::U16(ours.clone()), &metadata)
+        .write_dng_with(&mut output, RawMosaic::U16(ours.clone()), &metadata)
         .unwrap();
     let decoded = DngImage::parse(output.get_ref()).unwrap();
     let RawMosaic::U16(round_trip) = decoded.raw_mosaic().unwrap() else {

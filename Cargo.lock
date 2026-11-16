@@ -830,9 +830,9 @@ version = "0.0.17"
 dependencies = [
  "bytemuck",
  "flate2",
+ "fornax-large-alloc",
  "image 0.25.9",
  "jxl-oxide",
- "libc",
  "rayon",
  "thiserror",
  "weezl 0.2.1",
@@ -862,9 +862,11 @@ dependencies = [
 name = "fornax-dng"
 version = "0.0.17"
 dependencies = [
+ "bytemuck",
  "codspeed-criterion-compat",
  "fornax-codec",
  "fornax-devtool",
+ "fornax-large-alloc",
  "fornax-raw-core",
  "fornax-tiff",
  "generic-num",
@@ -876,6 +878,14 @@ dependencies = [
  "serde_json",
  "strum",
  "thiserror",
+]
+
+[[package]]
+name = "fornax-large-alloc"
+version = "0.0.17"
+dependencies = [
+ "bytemuck",
+ "libc",
 ]
 
 [[package]]
@@ -896,7 +906,6 @@ dependencies = [
  "fornax-dng",
  "fornax-raw-core",
  "fornax-tiff",
- "generic-num",
  "image 0.25.9",
  "rayon",
  "sha2",
@@ -928,11 +937,15 @@ dependencies = [
 name = "fornax-raw-core"
 version = "0.0.17"
 dependencies = [
+ "bytemuck",
+ "fornax-large-alloc",
+ "generic-num",
  "image 0.25.9",
  "libc",
  "num-traits",
  "num_enum",
  "raw-cpuid",
+ "rayon",
  "strum",
  "thiserror",
 ]
@@ -973,10 +986,8 @@ dependencies = [
  "fornax-dng",
  "fornax-raw-core",
  "fornax-tiff",
- "generic-num",
  "image 0.25.9",
  "rawler",
- "rayon",
 ]
 
 [[package]]
@@ -987,7 +998,6 @@ dependencies = [
  "fornax-dng",
  "fornax-raw-core",
  "fornax-tiff",
- "generic-num",
  "image 0.25.9",
  "rawler",
 ]
@@ -1000,9 +1010,6 @@ dependencies = [
  "fornax-dng",
  "fornax-raw-core",
  "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "rayon",
 ]
 
 [[package]]
@@ -1013,9 +1020,7 @@ dependencies = [
  "fornax-dng",
  "fornax-raw-core",
  "fornax-tiff",
- "generic-num",
  "image 0.25.9",
- "rayon",
  "sha2",
 ]
 
@@ -1056,8 +1061,6 @@ dependencies = [
  "fornax-dng",
  "fornax-raw-core",
  "fornax-tiff",
- "generic-num",
- "image 0.25.9",
  "rawler",
  "rayon",
  "sha2",

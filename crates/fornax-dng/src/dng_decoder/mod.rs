@@ -8,17 +8,14 @@ use fornax_codec::{ByteOrder, DecodeCompression, ICodecDecode, Predictor, Sample
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 use fornax_raw_core::protocol::IDecoderEncoding;
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_raw_core::{CroppedMosaic, Primitive, RawMosaic, crop_and_cast};
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
     Directory, DirectoryLookup, ParsedTiff, RasterRequest, Tag, TiffCompressionError, TiffSource,
     ValueAccessError, resolve_tiff_compression, unsigned_scalar,
     unsigned_vec_lookup as tiff_unsigned_vec,
 };
-use generic_num::num;
-use image::math::Rect;
 pub use process_metadata::process_metadata_from_dng_metadata;
-use rayon::prelude::*;
 
 use crate::constants::{DngCompressionMethod, DngPhotometricInterpretation};
 use crate::metadata::DngTag;
@@ -81,13 +78,12 @@ impl DngImage {
         let (width, height) = pixels.dimensions();
         let process_metadata = process_metadata::from_lookup(width, height, &metadata)?;
         let active_area = process_metadata.active_area;
-        let image = match pixels {
-            RawMosaic::U8(image) => crop_and_cast(image, active_area)?,
-            RawMosaic::U16(image) => crop_and_cast(image, active_area)?,
-            RawMosaic::U32(image) => crop_and_cast(image, active_area)?,
-            RawMosaic::F32(image) => crop_and_cast(image, active_area)?,
-        };
-        Ok(CroppedMosaic::new(image))
+        match pixels {
+            RawMosaic::U8(image) => crop_and_cast(image, active_area),
+            RawMosaic::U16(image) => crop_and_cast(image, active_area),
+            RawMosaic::U32(image) => crop_and_cast(image, active_area),
+            RawMosaic::F32(image) => crop_and_cast(image, active_area),
+        }
     }
 
     pub fn dng_metadata(&self) -> Result<Directory, DecodeError> {
@@ -167,22 +163,6 @@ fn raw_area(directory: &fornax_tiff::Directory) -> u64 {
     let width = unsigned_scalar(directory.get(&Tag::from(TiffTag::ImageWidth))).unwrap_or(0);
     let height = unsigned_scalar(directory.get(&Tag::from(TiffTag::ImageLength))).unwrap_or(0);
     width.saturating_mul(height)
-}
-
-fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
-where
-    S: image::Primitive + Send + Sync,
-    T: Primitive,
-{
-    image.crop_in_place(area);
-    let (width, height) = image.dimensions();
-    let samples = image
-        .into_raw()
-        .into_par_iter()
-        .map(|value| num!(value))
-        .collect();
-    MonoImage::from_raw(width, height, samples)
-        .ok_or_else(|| corrupt("cropped DNG dimensions are invalid"))
 }
 
 fn validate_dimensions<D>(pixels: &RawMosaic, metadata: &D) -> Result<(), DecodeError>
@@ -773,7 +753,7 @@ mod tests {
         let metadata = writable_metadata(4, 2);
         let mut output = Cursor::new(Vec::new());
         DngWriter::new(DngWriterCompression::Lossless)
-            .write_dng_with(&mut output, &mosaic, &metadata)
+            .write_dng_with(&mut output, mosaic, &metadata)
             .unwrap();
 
         let parsed = DngImage::parse(output.get_ref()).unwrap();
@@ -791,7 +771,7 @@ mod tests {
         let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
         let mut output = Cursor::new(Vec::new());
         DngWriter::new(DngWriterCompression::Zstd { level: 3 })
-            .write_dng_with(&mut output, &mosaic, &writable_metadata(4, 2))
+            .write_dng_with(&mut output, mosaic, &writable_metadata(4, 2))
             .unwrap();
 
         let parsed = DngImage::parse(output.get_ref()).unwrap();
@@ -823,7 +803,7 @@ mod tests {
         ] {
             let mut output = Cursor::new(Vec::new());
             DngWriter::new(DngWriterCompression::Zstd { level: 3 })
-                .write_dng_with(&mut output, &mosaic, &writable_metadata(4, 1))
+                .write_dng_with(&mut output, mosaic.clone(), &writable_metadata(4, 1))
                 .unwrap();
             let parsed = DngImage::parse(output.get_ref()).unwrap();
             match (mosaic, parsed.raw_mosaic().unwrap()) {
@@ -860,7 +840,7 @@ mod tests {
         let metadata = writable_metadata(4, 2);
         let mut output = Cursor::new(Vec::new());
         DngWriter::new(DngWriterCompression::Lossless)
-            .write_dng_with(&mut output, &mosaic, &metadata)
+            .write_dng_with(&mut output, mosaic, &metadata)
             .unwrap();
 
         let parsed = DngImage::parse(output.get_ref()).unwrap();
@@ -890,7 +870,7 @@ mod tests {
 
         let mut output = Cursor::new(Vec::new());
         DngWriter::new(DngWriterCompression::Lossless)
-            .write_dng_with(&mut output, &mosaic, &metadata)
+            .write_dng_with(&mut output, mosaic, &metadata)
             .unwrap();
         let parsed = DngImage::parse(output.get_ref()).unwrap();
         let generated = parsed.dng_metadata().unwrap();
@@ -911,7 +891,7 @@ mod tests {
         DngWriter::new(DngWriterCompression::Lossless)
             .write_dng_with(
                 &mut integer_output,
-                &integer_mosaic,
+                integer_mosaic,
                 &writable_metadata(3, 1),
             )
             .unwrap();
@@ -925,7 +905,7 @@ mod tests {
         let float_mosaic = RawMosaic::F32(MonoImage::from_raw(3, 1, floats.clone()).unwrap());
         let mut float_output = Cursor::new(Vec::new());
         DngWriter::new(DngWriterCompression::Lossless)
-            .write_dng_with(&mut float_output, &float_mosaic, &writable_metadata(3, 1))
+            .write_dng_with(&mut float_output, float_mosaic, &writable_metadata(3, 1))
             .unwrap();
         let float_parsed = DngImage::parse(float_output.get_ref()).unwrap();
         let RawMosaic::F32(decoded_floats) = float_parsed.raw_mosaic().unwrap() else {
@@ -954,7 +934,7 @@ mod tests {
         let mut output = Cursor::new(Vec::new());
 
         DngWriter::new(DngWriterCompression::Lossless)
-            .write_dng_with(&mut output, &mosaic, &metadata)
+            .write_dng_with(&mut output, mosaic, &metadata)
             .unwrap();
 
         assert_eq!(ifd_tag_count(output.get_ref(), TiffTag::SampleFormat), 1);
@@ -1003,6 +983,14 @@ mod tests {
             image.as_raw().as_slice(),
             &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
         );
+    }
+
+    #[test]
+    fn transforms_route_full_size_outputs_through_the_shared_allocator() {
+        let source = include_str!("transforms.rs");
+        assert!(source.contains("fornax_large_alloc::zeroed_samples"));
+        assert!(source.contains("let mut samples = zeroed_samples::<f32>"));
+        assert!(source.contains("let mut mapped = zeroed_samples::<u16>"));
     }
 
     #[test]
