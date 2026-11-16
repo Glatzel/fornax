@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #740 on 2026-11-16.
+> Current guidance: [current documentation](../../README.md).
+
 # Archive and Clean Stale Documentation
 
 This plan inventories the current `docs/` tree, protects the DNG performance
@@ -79,12 +83,12 @@ Action meanings:
 The following are created before any archive proposal and are never proposed
 for deletion:
 
-- [Current DNG report](../reference/decoders/dng-remaining-gap.md)
-- [Kept/reverted experiment log](../reference/decoders/dng-experiments-log.md)
-- [FlashRaw CPU comparison](../reference/decoders/flashraw-cpu-comparison.md)
-- [Restart-free parallelism no-go design](../reference/decoders/restart-free-single-scan-parallelism-design.md)
-- [Profile index and summary tables](../reference/decoders/dng-gap-profiles/README.md)
-- [Resume commands and open items](../reference/decoders/dng-gap-profiles/RESUME.md)
+- [Current DNG report](../../reference/decoders/dng-remaining-gap.md)
+- [Kept/reverted experiment log](../../reference/decoders/dng-experiments-log.md)
+- [FlashRaw CPU comparison](../../reference/decoders/flashraw-cpu-comparison.md)
+- [Restart-free parallelism no-go design](../../reference/decoders/restart-free-single-scan-parallelism-design.md)
+- [Profile index and summary tables](../../reference/decoders/dng-gap-profiles/README.md)
+- [Resume commands and open items](../../reference/decoders/dng-gap-profiles/RESUME.md)
 
 FlashRaw 0.2.0 is MIT OR Apache-2.0. The comparison note records ideas and
 source paths; no FlashRaw code was copied.
