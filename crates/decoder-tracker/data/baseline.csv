@@ -1571,7 +1571,7 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ❌,Pentax 645Z,PEF,Pentax/645Z/IMGP2837.PEF,0,0,,0,0,decode:unsupported,0,0,unknown,,unknown,,unknown,,,,,,
 ✅,Pentax K-01,DNG,Pentax/K-01/_IGP2068.DNG,1,1,a271535e9d9b91b407f28858a28cb269656b3af1bc1f673402f436e9c1131210,1,1,,4960,3300,RGGB,7,lossless-jpeg,1,strips,12,integer,1,3300,,
 ✅,Pentax K-1,DNG,Pentax/K-1/IMGP8551.DNG,1,1,8cc89439be5ae263266f0f0cb84c537afd6403cbc4f9c725e5cf50b3e9460603,1,1,,7392,4950,RGGB,7,lossless-jpeg,1,strips,14,integer,1,4950,,
-✅,Pentax K-1,DNG,Pentax/K-1/IMGP8555.DNG,1,1,8f6d46188f143d15d94f475265fecbe887a6459518c063fcd1aed906e673f325,1,1,,7392,4950,RGGB,7,lossless-jpeg,1,strips,14,integer,1,4950,,
+✅,Pentax K-1,DNG,Pentax/K-1/IMGP8555.DNG,1,1,fb04a11babb78e2a11d721c0a6ba77f05a065c8ab14dd8c386f48780c321191e,1,1,,7392,4950,RGGB,7,lossless-jpeg,1,strips,14,integer,1,4950,,
 ❌,Pentax K-1,PEF,Pentax/K-1/IMGP8550.PEF,0,0,,0,0,decode:unsupported,0,0,unknown,,unknown,,unknown,,,,,,
 ❌,Pentax K-1,PEF,Pentax/K-1/IMGP8552.PEF,0,0,,0,0,decode:unsupported,0,0,unknown,,unknown,,unknown,,,,,,
 ✅,Pentax K-1 Mark II,DNG,Pentax/K-1 Mark II/_IMG2387.DNG,1,1,dd274e90ab0a4af4ac6d194e821efa54e9fb1a2758f64b5e2ac5c7ca29fa2527,1,1,,7392,4950,RGGB,7,lossless-jpeg,1,strips,14,integer,1,4950,,
