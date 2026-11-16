@@ -201,7 +201,7 @@ where
         },
         _mark: PhantomData,
     };
-    let rgb = processor.process(normalized.image(), &metadata)?;
+    let rgb = processor.process(normalized.into_image(), &metadata)?;
     create_parent(&job.output)?;
     match config.format {
         OutputFormat::Tiff => write_tiff(&rgb, &job.output)?,
