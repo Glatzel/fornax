@@ -34,9 +34,8 @@ use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic, crop_and_cast};
 use fornax_tiff::Directory;
-use generic_num::num;
 
 /// A parsed Hasselblad 3FR image.
 ///
@@ -206,13 +205,12 @@ impl HasselbladImage {
     {
         let pixels = self.raw_mosaic()?;
         let active = self.process_metadata()?.active_area;
-        let image = match pixels {
-            RawMosaic::U8(image) => crop_and_cast(image, active)?,
-            RawMosaic::U16(image) => crop_and_cast(image, active)?,
-            RawMosaic::U32(image) => crop_and_cast(image, active)?,
-            RawMosaic::F32(image) => crop_and_cast(image, active)?,
-        };
-        Ok(CroppedMosaic::new(image))
+        match pixels {
+            RawMosaic::U8(image) => crop_and_cast(image, active),
+            RawMosaic::U16(image) => crop_and_cast(image, active),
+            RawMosaic::U32(image) => crop_and_cast(image, active),
+            RawMosaic::F32(image) => crop_and_cast(image, active),
+        }
     }
 }
 
@@ -263,25 +261,6 @@ const fn encoding_metadata_for_layout(layout: &container::RawLayout) -> Encoding
         tile_width: None,
         tile_height: None,
     }
-}
-
-fn crop_and_cast<S, T>(
-    mut image: MonoImage<S>,
-    area: image::math::Rect,
-) -> Result<MonoImage<T>, DecodeError>
-where
-    S: image::Primitive + Send + Sync,
-    T: Primitive,
-{
-    image.crop_in_place(area);
-    let (width, height) = image.dimensions();
-    let samples = image
-        .into_raw()
-        .into_iter()
-        .map(|value| num!(value))
-        .collect();
-    MonoImage::from_raw(width, height, samples)
-        .ok_or_else(|| invalid("cropped 3FR dimensions are invalid"))
 }
 
 fn codec_error(error: fornax_codec::CodecError) -> DecodeError {
