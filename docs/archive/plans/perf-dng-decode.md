@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #720 `task/perf-dng-decode` on 2026-11-14.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # DNG Decode Performance Implementation Plan
 
@@ -385,7 +385,7 @@ This is a correctness fix, not part of the performance target.
 - Modify: `crates/decoder-tracker/golden/selected-manifest.csv`
 - Modify: `crates/decoder-tracker/golden/decode-hashes.csv`
 - Modify: `docs/decoder/benchmark.md`
-- Modify: `docs/reference/decoders/dng-lossless-jpeg.md`
+- Modify: `docs/reference/decoders/reference/dng-lossless-jpeg.md`
 
 **Interfaces:**
 
@@ -496,7 +496,7 @@ without affecting performance work.
 - Modify: `crates/fornax-codec/tests/decode_contract.rs`
 - Modify: `crates/fornax-codec/tests/huffman.rs`
 - Modify: `crates/fornax-codec/README.md`
-- Modify: `docs/reference/decoders/dng-lossless-jpeg.md`
+- Modify: `docs/reference/decoders/reference/dng-lossless-jpeg.md`
 
 **Interfaces:**
 
@@ -614,7 +614,7 @@ scripts/agent-validation.sh
 ```
 
 ```bash
-git add crates/fornax-codec docs/reference/decoders/dng-lossless-jpeg.md
+git add crates/fornax-codec docs/reference/decoders/reference/dng-lossless-jpeg.md
 git commit -m "perf: fuse common lossless JPEG decoding"
 ```
 
@@ -1194,7 +1194,7 @@ fallback. Revert the PR independently.
 - `crates/fornax-dng/{src,tests}`.
 - ParsedTiff callers in vendor decoder crates.
 - `crates/decoder-tracker/golden/*`, benchmark workflow, and benchmark docs.
-- `docs/reference/decoders/dng-lossless-jpeg.md`.
+- `docs/reference/decoders/reference/dng-lossless-jpeg.md`.
 
 ## Validation
 
@@ -1254,7 +1254,7 @@ equality result, and rollback.
 
 - The post-optimization FlashRaw gap, evidence limits, and follow-up probes are
   recorded in
-  [DNG decode remaining performance gap](../../reference/decoders/dng-remaining-gap.md).
+  [DNG decode remaining performance gap](../../reference/decoders/perf/dng-remaining-gap.md).
 - The headline performance comparison is Fornax `decode + raw_mosaic` versus
   Rawler/FlashRaw `decode`. Parse-only and pixel-only items remain diagnostics.
 - Rawler and FlashRaw `raw_mosaic` timing items are intentionally omitted.

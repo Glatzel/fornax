@@ -144,5 +144,5 @@ output, and panics fail the matrix case.
 - `rawler` and `flashraw` are dev-dependencies of `fornax-decoder`. They must not
   appear in the normal dependency graph of any production decoder crate.
 
-See [FlashRaw reference notes](../reference/decoders/flashraw.md) for the pinned
+See [FlashRaw reference notes](../reference/decoders/reference/flashraw.md) for the pinned
 benchmark adapter contract and known API differences.

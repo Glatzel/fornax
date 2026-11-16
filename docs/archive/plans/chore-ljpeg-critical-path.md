@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #737 `chore/ljpeg-critical-path` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # LJPEG Critical-Path Plan
 
@@ -44,7 +44,7 @@ benchmark adapters.
 - Reuse the main checkout's `external/` fixtures through hard links and treat
   those files as read-only.
 - Keep only summary tables and concise analysis under
-  `docs/reference/decoders/dng-gap-profiles/`; do not commit raw perf,
+  `docs/reference/decoders/perf/dng-gap-profiles/`; do not commit raw perf,
   Callgrind, disassembly, or per-run logs.
 
 ## Scope
@@ -70,8 +70,8 @@ Out of scope:
 ## Files Expected to Change
 
 - `crates/fornax-codec/src/ljpeg.rs`
-- `docs/reference/decoders/dng-gap-profiles/README.md`
-- `docs/reference/decoders/dng-remaining-gap.md` if its LJPEG conclusion changes
+- `docs/reference/decoders/perf/dng-gap-profiles/README.md`
+- `docs/reference/decoders/perf/dng-remaining-gap.md` if its LJPEG conclusion changes
 - `docs/plans/chore-ljpeg-critical-path.md`
 
 ## Task Checklist

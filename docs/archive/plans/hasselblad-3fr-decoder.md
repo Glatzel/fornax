@@ -113,7 +113,7 @@ This archived plan documents the completed Hasselblad 3FR decoder work.
 - Modify: `docs/decoder/formats/hasselblad-3fr.md`
 - Modify: `docs/architecture/decoder.md`
 - Modify: `docs/architecture/overview.md`
-- Create: `docs/reference/decoders/hasselblad-3fr.md`
+- Create: `docs/reference/decoders/reference/hasselblad-3fr.md`
 - Modify: `TODO.md`
 - Generated only through required workflow: `crates/decoder-tracker/baseline.csv`, `crates/decoder-tracker/README.md`
 

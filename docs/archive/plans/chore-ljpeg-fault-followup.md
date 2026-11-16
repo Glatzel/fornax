@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #730 `chore/ljpeg-fault-followup` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # LJPEG Fault Follow-up Implementation Plan
 
@@ -24,7 +24,7 @@ and annotation, the existing DNG comparison adapters, and synthetic LJPEG
 fixtures where real inputs are not needed.
 
 **Spec:** The latest user request in this thread and
-`docs/reference/decoders/dng-remaining-gap.md`.
+`docs/reference/decoders/perf/dng-remaining-gap.md`.
 
 ## Global Constraints
 
@@ -52,8 +52,8 @@ fixtures where real inputs are not needed.
   scratch change
 - `crates/fornax-codec/tests/encode_contract.rs` or a focused codec test file
 - `crates/fornax-raw-decoder/benches/dng_gap_probe.rs`
-- `docs/reference/decoders/dng-remaining-gap.md`
-- `docs/reference/decoders/dng-gap-profiles/*`
+- `docs/reference/decoders/perf/dng-remaining-gap.md`
+- `docs/reference/decoders/perf/dng-gap-profiles/*`
 - This plan
 
 ## Task 1: Allocator Soundness
@@ -113,7 +113,7 @@ fixtures where real inputs are not needed.
 - [x] Update the report with host and THP settings, fault-attribution tables,
   float retry evidence, same-session ratios, and kept/reverted changes.
 - [x] Record exact commands and raw measurement artifacts under
-  `docs/reference/decoders/dng-gap-profiles/`.
+  `docs/reference/decoders/perf/dng-gap-profiles/`.
 - [x] Run `cargo test -p fornax-codec --all-features`, the synthetic LJPEG
   self-check, strict real-file equality, nightly formatting, focused clippy,
   and `git diff --check`.

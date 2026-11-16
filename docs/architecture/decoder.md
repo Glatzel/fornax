@@ -249,7 +249,7 @@ reference frame, and the V4 black offset is applied before DNG metadata
 conversion. Multi-shot markers, high-resolution composites, V7, unknown
 versions/compression, and unknown CFAs return typed unsupported errors before
 sample decoding. See the [RW2 format plan](../decoder/formats/panasonic-rw2.md) and
-[Panasonic reference note](../reference/decoders/panasonic-rw2.md).
+[Panasonic reference note](../reference/decoders/reference/panasonic-rw2.md).
 
 ## Metadata and validation
 

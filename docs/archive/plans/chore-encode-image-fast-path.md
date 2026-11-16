@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #725 `chore/encode-image-fast-path` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # Encode Image Fast Path
 
@@ -54,7 +54,7 @@ Out of scope:
 - `crates/fornax-codec/benches/encode_probe.rs`
 - `crates/fornax-codec/Cargo.toml`
 - `crates/fornax-raw-decoder/benches/decoder.rs`
-- `docs/reference/decoders/dng-remaining-gap.md`
+- `docs/reference/decoders/perf/dng-remaining-gap.md`
 - `docs/plans/chore-encode-image-fast-path.md`
 
 ## Validation

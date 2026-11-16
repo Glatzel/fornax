@@ -137,7 +137,7 @@ Out of scope:
 - `docs/decoder/corpus.md`
 - `docs/decoder/formats/*.md`
 - `docs/reference/algorithms/dcb.md`
-- `docs/reference/decoders/dng-lossless-jpeg.md`
+- `docs/reference/decoders/reference/dng-lossless-jpeg.md`
 - `docs/_archive/plans/dng-roundtrip.md`
 - `scripts/install-dnc.ps1` (delete)
 - `scripts/libraw-bindings.ps1` (delete)

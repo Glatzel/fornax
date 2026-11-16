@@ -90,7 +90,7 @@ impl IDecoder for FlashRawDecoder {
         };
         let frame = raw
             .decode(DecodeOptions {
-                backend: Backend::Cpu,
+                backend: decode_backend()?,
                 output,
                 threads: decode_threads()?,
                 crop: false,
@@ -134,6 +134,20 @@ impl IDecoder for FlashRawDecoder {
             "FlashRaw process metadata is not implemented".into(),
         ))
     }
+}
+
+fn decode_backend() -> Result<Backend, DecodeError> {
+    let Some(value) = std::env::var_os("FORNAX_FLASHRAW_BACKEND") else {
+        return Ok(Backend::Cpu);
+    };
+    let value = value
+        .to_str()
+        .ok_or_else(|| DecodeError::InvalidInput("FlashRaw backend is not UTF-8".into()))?;
+    Backend::parse(value).ok_or_else(|| {
+        DecodeError::InvalidInput(
+            format!("invalid FlashRaw backend {value:?}; expected cpu, simd, or auto").into(),
+        )
+    })
 }
 
 fn decode_threads() -> Result<Option<usize>, DecodeError> {

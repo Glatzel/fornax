@@ -205,10 +205,10 @@ Evidence: `crates/fornax-dng/src/sample_buffer.rs:5`, `crates/fornax-dng/src/lib
 
 | `[DONE]` Name/value | Current location | Origin evidence |
 | --- | --- | --- |
-| `[DONE]` `DngCompressionMethod::LossyJpeg = 34892` | `crates/fornax-dng/src/constants.rs:14` | DNG specification; `docs/reference/decoders/dng-compression.md:63` |
-| `[DONE]` `DngCompressionMethod::Zstd = 50000` | `crates/fornax-dng/src/constants.rs:16` | LibTIFF self-assignment; `docs/reference/decoders/dng-compression.md:64` |
-| `[DONE]` `DngCompressionMethod::JpegXlLegacy = 50002` | `crates/fornax-dng/src/constants.rs:18` | GDAL self-assignment, not DNG or LibTIFF; `docs/reference/decoders/dng-compression.md:65` |
-| `[DONE]` `DngCompressionMethod::JpegXl = 52546` | `crates/fornax-dng/src/constants.rs:20` | DNG 1.7 specification; `docs/reference/decoders/dng-compression.md:66` |
+| `[DONE]` `DngCompressionMethod::LossyJpeg = 34892` | `crates/fornax-dng/src/constants.rs:14` | DNG specification; `docs/reference/decoders/reference/dng-compression.md:63` |
+| `[DONE]` `DngCompressionMethod::Zstd = 50000` | `crates/fornax-dng/src/constants.rs:16` | LibTIFF self-assignment; `docs/reference/decoders/reference/dng-compression.md:64` |
+| `[DONE]` `DngCompressionMethod::JpegXlLegacy = 50002` | `crates/fornax-dng/src/constants.rs:18` | GDAL self-assignment, not DNG or LibTIFF; `docs/reference/decoders/reference/dng-compression.md:65` |
+| `[DONE]` `DngCompressionMethod::JpegXl = 52546` | `crates/fornax-dng/src/constants.rs:20` | DNG 1.7 specification; `docs/reference/decoders/reference/dng-compression.md:66` |
 | `[UNVERIFIED]` `DngPhotometricInterpretation::LinearRaw = 34892` | `crates/fornax-dng/src/constants.rs:31` | Origin is asserted only in code (`crates/fornax-dng/src/constants.rs:26`); no value-specific citation is retained. |
 | `[UNVERIFIED]` `DngPhotometricInterpretation::Depth = 51177` | `crates/fornax-dng/src/constants.rs:33` | Origin unknown in current repository evidence. |
 | `[UNVERIFIED]` `DngPhotometricInterpretation::PhotometricMask = 52527` | `crates/fornax-dng/src/constants.rs:35` | Origin unknown in current repository evidence. |

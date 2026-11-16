@@ -84,7 +84,7 @@ Out of scope:
 - `crates/fornax-raw-pipeline/src/lib.rs`
 - `crates/fornax-raw-pipeline/README.md`
 - `crates/fornax-decoder-rawler/src/lib.rs`
-- `docs/reference/decoders/dng-output-color.md`
+- `docs/reference/decoders/reference/dng-output-color.md`
 - `docs/architecture/overview.md`
 
 ## Validation

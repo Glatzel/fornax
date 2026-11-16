@@ -1,6 +1,6 @@
 > Status: archived superseded report.
 > Superseded: PR #720 and allocator restoration in PR #738; archived 2026-11-16.
-> Current guidance: [DNG remaining gap](../../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [DNG remaining gap](../../../reference/decoders/perf/dng-remaining-gap.md).
 
 # DNG Decode Performance Reference Notes
 
@@ -10,7 +10,7 @@ measurement method, fairness constraints, hot paths, and implementation
 differences that inform
 [the DNG performance plan](../../plans/perf-dng-decode.md).
 The post-optimization FlashRaw gap is analyzed separately in
-[DNG decode remaining performance gap](../../../reference/decoders/dng-remaining-gap.md).
+[DNG decode remaining performance gap](../../../reference/decoders/perf/dng-remaining-gap.md).
 
 Timing values in this note are host-specific observations. They are not a CI
 baseline and must not be treated as portable performance guarantees.
@@ -21,13 +21,13 @@ baseline and must not be treated as portable performance guarantees.
   License: LGPL-2.1. Rawler remains a development-only behavioral reference.
 - FlashRaw 0.2.0, package source and codec implementations.
   License: MIT OR Apache-2.0. See
-  [FlashRaw reference notes](../../../reference/decoders/flashraw.md).
+  [FlashRaw reference notes](../../../reference/decoders/reference/flashraw.md).
 - The checked-in decoder benchmark:
   [crates/fornax-raw-decoder/benches/decoder.rs](../../../../crates/fornax-raw-decoder/benches/decoder.rs).
 - The pinned raw.pixls.us corpus and golden manifests under
   `crates/decoder-tracker/golden/`.
 - Adobe DNG 1.7.1.0 and ITU-T T.81 for lossless JPEG behavior. See
-  [DNG and lossless JPEG-92 reference notes](../../../reference/decoders/dng-lossless-jpeg.md).
+  [DNG and lossless JPEG-92 reference notes](../../../reference/decoders/reference/dng-lossless-jpeg.md).
 
 ## Environment and method
 

@@ -99,7 +99,7 @@ also reverted: it increased real LJPEG instructions and wall time. The compact
 10-bit table and current refill policy remain.
 
 Single-scan parallelism is stopped at the written design gate in
-[`restart-free-single-scan-parallelism-design.md`](restart-free-single-scan-parallelism-design.md).
+[`restart-free-single-scan-parallelism-design.md`](../design/restart-free-single-scan-parallelism-design.md).
 No parallel implementation was attempted. The complete baseline, ranges,
 same-session FlashRaw comparison, and rejected-candidate counters are in
 [`flashraw-cpu-followup.txt`](dng-gap-profiles/flashraw-cpu-followup.txt).

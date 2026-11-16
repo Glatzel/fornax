@@ -732,9 +732,9 @@ checksum = "1c66915cc5391097de7a2b0b972e8505aa33c0df401fd3a6811dbdb32881ba48"
 
 [[package]]
 name = "flashraw"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c766c03652ad29b8ff7f955d8e460ef29de0c7732fe1283c19f2623cf32905f"
+checksum = "e681e196f6702c666b1e61eb9c7b7e44b29b0d4735c61465fae7c113f924b1a5"
 dependencies = [
  "flashraw-camera-db",
  "flashraw-codecs",
@@ -747,9 +747,9 @@ dependencies = [
 
 [[package]]
 name = "flashraw-camera-db"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3246b79f12927d4cdf6ee6b9a4c781f60ea234ca20ba91f99b218c85d7e264d7"
+checksum = "453dc8151a8e8ca08720c95c439d8129b940bb6e7f95d57dcc884300906a0f68"
 dependencies = [
  "serde",
  "serde_json",
@@ -757,9 +757,9 @@ dependencies = [
 
 [[package]]
 name = "flashraw-codecs"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f81b76e11112252998de80a53dc5e8493a80add2d94c5ffa3619e0ca31d91573"
+checksum = "f5b4620263e974353fe9aab34c31d9ca9c7723ce15939ec219200cd01c81218f"
 dependencies = [
  "flashraw-core",
  "rayon",
@@ -770,9 +770,9 @@ dependencies = [
 
 [[package]]
 name = "flashraw-core"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9208b6569d5284f0ef0f7b439e5d44fc8364ba8ce3aa2f909abe097497a541d1"
+checksum = "a0d5d8783f9164fc398faca7294fb1894143295da448a81a6670f6940102b70a"
 dependencies = [
  "libc",
  "rayon",
@@ -781,9 +781,9 @@ dependencies = [
 
 [[package]]
 name = "flashraw-formats"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6027c3ee38269743b24fcf90e459571a0d2082e98f3c017ef0029ab32fb4715c"
+checksum = "0ef788871f028f6643686b883e96fd5d7dce619b4cbbee7ac855ae05609aab06"
 dependencies = [
  "flashraw-camera-db",
  "flashraw-codecs",
@@ -967,6 +967,7 @@ dependencies = [
  "fornax-raw-nikon",
  "fornax-raw-panasonic",
  "fornax-raw-phase-one",
+ "fornax-raw-pipeline",
  "fornax-raw-sony",
  "fornax-tiff",
  "generic-num",
@@ -974,6 +975,8 @@ dependencies = [
  "libc",
  "memmap2",
  "rawler",
+ "rayon",
+ "sha2",
  "strum",
  "tempfile",
 ]

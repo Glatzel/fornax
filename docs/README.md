@@ -76,25 +76,27 @@ reference, and active planning documentation.
 
 | Document | Summary |
 | --- | --- |
-| [Sony ARW remaining performance gap](reference/decoders/arw-remaining-gap.md) | ARW encoding inventory, timings, and container/entropy costs. |
-| [Canon CRX reference notes](reference/decoders/canon-crx.md) | Canon CRX sources, behavior, and implementation boundaries. |
-| [DNG compression references](reference/decoders/dng-compression.md) | DNG compression sources and behavior. |
-| [DNG and lossless JPEG-92 reference notes](reference/decoders/dng-lossless-jpeg.md) | DNG and lossless JPEG-92 sources and implementation boundaries. |
-| [DNG opcode reference notes](reference/decoders/dng-opcodes.md) | DNG opcode sources and behavior. |
-| [DNG output color reference notes](reference/decoders/dng-output-color.md) | Source matrices, profile selection, and output color. |
-| [DNG performance experiment log](reference/decoders/dng-experiments-log.md) | Kept and reverted DNG experiments with evidence and decisions. |
-| [DNG decode remaining performance gap](reference/decoders/dng-remaining-gap.md) | Final DNG timings, remaining FlashRaw gap, and evidence limits. |
-| [DNG performance resume notes](reference/decoders/dng-gap-profiles/RESUME.md) | Commands, probes, input hashes, baseline commits, and open items. |
-| [DNG performance profile index](reference/decoders/dng-gap-profiles/README.md) | Reproduction commands, baseline setup, and current evidence tables. |
-| [FlashRaw CPU source comparison](reference/decoders/flashraw-cpu-comparison.md) | Scalar CPU design comparison and ranked hypotheses. |
-| [FlashRaw reference notes](reference/decoders/flashraw.md) | Pinned benchmark adapter, neutral settings, and decoder differences. |
-| [Fujifilm RAF references](reference/decoders/fuji-raf.md) | Pinned RAF sources and implementation boundaries. |
-| [Hasselblad 3FR references](reference/decoders/hasselblad-3fr.md) | Pinned 3FR sources and implementation boundaries. |
-| [Nikon NEF references](reference/decoders/nikon-nef.md) | Pinned NEF sources and implementation boundaries. |
-| [Panasonic RW2 references](reference/decoders/panasonic-rw2.md) | Pinned RW2 sources and implementation boundaries. |
-| [Phase One IIQ references](reference/decoders/phase-one-iiq.md) | Pinned IIQ sources and implementation boundaries. |
-| [Restart-free single-scan parallelism design](reference/decoders/restart-free-single-scan-parallelism-design.md) | Written no-go gate for restart-free LJPEG parallelism. |
-| [Sony ARW/NRW reference notes](reference/decoders/sony-arw.md) | Pinned ARW/NRW sources and implementation boundaries. |
+| [Decoder references](reference/decoders/README.md) | Index of decoder performance, design, and format/API research. |
+| [FlashRaw 0.3.1 re-measurement](reference/decoders/perf/flashraw-0.3.1-remeasure-2026-11-16.md) | Lossless DNG/ARW/CR3/NEF comparison, pipeline profile, and ranked follow-ups. |
+| [Sony ARW remaining performance gap](reference/decoders/perf/arw-remaining-gap.md) | ARW encoding inventory, timings, and container/entropy costs. |
+| [Canon CRX reference notes](reference/decoders/reference/canon-crx.md) | Canon CRX sources, behavior, and implementation boundaries. |
+| [DNG compression references](reference/decoders/reference/dng-compression.md) | DNG compression sources and behavior. |
+| [DNG and lossless JPEG-92 reference notes](reference/decoders/reference/dng-lossless-jpeg.md) | DNG and lossless JPEG-92 sources and implementation boundaries. |
+| [DNG opcode reference notes](reference/decoders/reference/dng-opcodes.md) | DNG opcode sources and behavior. |
+| [DNG output color reference notes](reference/decoders/reference/dng-output-color.md) | Source matrices, profile selection, and output color. |
+| [DNG performance experiment log](reference/decoders/perf/dng-experiments-log.md) | Kept and reverted DNG experiments with evidence and decisions. |
+| [DNG decode remaining performance gap](reference/decoders/perf/dng-remaining-gap.md) | Final DNG timings, remaining FlashRaw gap, and evidence limits. |
+| [DNG performance resume notes](reference/decoders/perf/dng-gap-profiles/RESUME.md) | Commands, probes, input hashes, baseline commits, and open items. |
+| [DNG performance profile index](reference/decoders/perf/dng-gap-profiles/README.md) | Reproduction commands, baseline setup, and current evidence tables. |
+| [FlashRaw CPU source comparison](reference/decoders/perf/flashraw-cpu-comparison.md) | Scalar CPU design comparison and ranked hypotheses. |
+| [FlashRaw reference notes](reference/decoders/reference/flashraw.md) | Pinned benchmark adapter, neutral settings, and decoder differences. |
+| [Fujifilm RAF references](reference/decoders/reference/fuji-raf.md) | Pinned RAF sources and implementation boundaries. |
+| [Hasselblad 3FR references](reference/decoders/reference/hasselblad-3fr.md) | Pinned 3FR sources and implementation boundaries. |
+| [Nikon NEF references](reference/decoders/reference/nikon-nef.md) | Pinned NEF sources and implementation boundaries. |
+| [Panasonic RW2 references](reference/decoders/reference/panasonic-rw2.md) | Pinned RW2 sources and implementation boundaries. |
+| [Phase One IIQ references](reference/decoders/reference/phase-one-iiq.md) | Pinned IIQ sources and implementation boundaries. |
+| [Restart-free single-scan parallelism design](reference/decoders/design/restart-free-single-scan-parallelism-design.md) | Written no-go gate for restart-free LJPEG parallelism. |
+| [Sony ARW/NRW reference notes](reference/decoders/reference/sony-arw.md) | Pinned ARW/NRW sources and implementation boundaries. |
 
 ## Documentation conventions
 

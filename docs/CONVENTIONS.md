@@ -45,7 +45,10 @@ Use relative Markdown links for repository documentation. Run
 | Decoder-independent benchmark or corpus process | `decoder/` |
 | Format-specific implementation scope | `decoder/formats/` |
 | Demosaic or other algorithm research | `reference/algorithms/` |
-| Decoder-specific source research | `reference/decoders/` |
+| Decoder reference index | `reference/decoders/README.md` |
+| Decoder format, API, and source research | `reference/decoders/reference/` |
+| Decoder performance measurements and investigations | `reference/decoders/perf/` |
+| Decoder architecture decisions and design gates | `reference/decoders/design/` |
 | Codec or compression research | `reference/codecs/` |
 | Active implementation plan | `plans/` |
 | Architecture decision record | `decisions/` |

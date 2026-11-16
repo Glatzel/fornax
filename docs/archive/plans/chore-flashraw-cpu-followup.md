@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #738 `chore/large-page-allocation` on 2026-11-16.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # FlashRaw CPU Follow-up Plan
 
@@ -21,7 +21,7 @@ revert; instructions/sample and L1D misses/sample are always reported as
 supporting evidence.
 
 **Spec:** The user request in this thread and
-[FlashRaw CPU source comparison](../../reference/decoders/flashraw-cpu-comparison.md).
+[FlashRaw CPU source comparison](../../reference/decoders/perf/flashraw-cpu-comparison.md).
 
 ## Global Constraints
 
@@ -54,7 +54,7 @@ supporting evidence.
 - [x] Rank testable hypotheses and identify the public sink/output API as a
   separate proposal.
 - [x] Review
-  [the source comparison](../../reference/decoders/flashraw-cpu-comparison.md).
+  [the source comparison](../../reference/decoders/perf/flashraw-cpu-comparison.md).
 
 ## Task 1: Post-#737/#738 Baseline
 
@@ -75,14 +75,14 @@ Huffman path.
 - [x] For every row, record wall median/min-max, cycles/sample,
   instructions/sample, L1D load misses/sample, and same-session FlashRaw.
 - [x] Save only the summary table under
-  `docs/reference/decoders/dng-gap-profiles/`; do not commit raw perf files.
+  `docs/reference/decoders/perf/dng-gap-profiles/`; do not commit raw perf files.
 
 The Pentax K-5 case is mandatory because it is the motivating single-strip,
 restart-free LJPEG workload. If its corpus object, Fornax decoder, or reference
 decoder cannot run, stop before any optimization and report the exact missing
 precondition. The file is materialized and all three decoders pass equality.
 The evidence is in
-[`flashraw-cpu-followup.txt`](../../reference/decoders/dng-gap-profiles/flashraw-cpu-followup.txt).
+[`flashraw-cpu-followup.txt`](../../reference/decoders/perf/dng-gap-profiles/flashraw-cpu-followup.txt).
 
 ## Task 2: Fixed 12-Bit Packed-u32 Full-Difference Table
 
@@ -174,8 +174,8 @@ requires it.
   evidence
 - `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs` only for
   measurement output
-- `docs/reference/decoders/flashraw-cpu-comparison.md`
-- `docs/reference/decoders/dng-gap-profiles/README.md`
+- `docs/reference/decoders/perf/flashraw-cpu-comparison.md`
+- `docs/reference/decoders/perf/dng-gap-profiles/README.md`
 - `docs/plans/chore-flashraw-cpu-followup.md`
 
 ## Validation

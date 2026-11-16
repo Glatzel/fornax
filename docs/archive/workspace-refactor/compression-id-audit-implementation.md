@@ -41,7 +41,7 @@ Out of scope:
 - [x] Create `docs/reference/codecs/compression-ids.md` with one row per requested ID.
 - [x] Apply the ambiguity gate. No contradictory or unestablished ownership was
   found.
-- [x] Update `docs/reference/decoders/dng-compression.md` to match the audit.
+- [x] Update `docs/reference/decoders/reference/dng-compression.md` to match the audit.
 - [x] Add failing TIFF resolver tests for supported, feature-disabled, and
   unknown IDs.
 - [x] Add all confirmed non-DNG IDs to TIFF vocabulary with conservative codec
@@ -61,7 +61,7 @@ Out of scope:
 ## Files Expected to Change
 
 - `docs/reference/codecs/compression-ids.md`
-- `docs/reference/decoders/dng-compression.md`
+- `docs/reference/decoders/reference/dng-compression.md`
 - `docs/_archive/workspace-refactor/compression-id-audit-implementation.md`
 - `crates/fornax-tiff/Cargo.toml`
 - `crates/fornax-tiff/README.md`

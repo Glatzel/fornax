@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #738 `chore/large-page-allocation` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # Linux Large-Page Sample Allocation
 
@@ -108,9 +108,9 @@ a useful interior while avoiding the policy on small outputs.
 - Modify: `crates/fornax-codec/src/jpegxl.rs`
 - Modify: `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs` only if
   the existing `--smaps` output needs a helper adjustment
-- Modify: `docs/reference/decoders/dng-remaining-gap.md`
-- Modify: `docs/reference/decoders/dng-gap-profiles/README.md`
-- Create or modify: `docs/reference/decoders/dng-gap-profiles/` with a concise
+- Modify: `docs/reference/decoders/perf/dng-remaining-gap.md`
+- Modify: `docs/reference/decoders/perf/dng-gap-profiles/README.md`
+- Create or modify: `docs/reference/decoders/perf/dng-gap-profiles/` with a concise
   large-page allocation summary
 - Modify: this plan
 

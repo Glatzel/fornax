@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #724 `chore/close-dng-flashraw-gap` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # DNG FlashRaw Gap Measurement and Targeted Closure Plan
 
@@ -27,7 +27,7 @@ is allowed only for the requested `alloc_zeroed` plus `MADV_HUGEPAGE`
 experiment.
 
 **Spec:** The 2026-11-15 task request reproduced by this plan and the current
-[DNG remaining performance gap report](../../reference/decoders/dng-remaining-gap.md).
+[DNG remaining performance gap report](../../reference/decoders/perf/dng-remaining-gap.md).
 
 ## Global Constraints
 
@@ -41,7 +41,7 @@ experiment.
 - Prefer safe Rust. A measured gain must justify any retained unsafe code.
 - Do not optimize Deflate in this task; profile it only if steps 1 through 3
   finish.
-- Stop after updating `docs/reference/decoders/dng-remaining-gap.md`.
+- Stop after updating `docs/reference/decoders/perf/dng-remaining-gap.md`.
 
 ## Scope
 
@@ -87,10 +87,10 @@ Out of scope:
 - Modify, only after measurement: `crates/fornax-codec/src/uncompressed.rs`
 - Modify, only after measurement: `crates/fornax-codec/src/samples.rs`
 - Modify, only after measurement: `crates/fornax-codec/src/ljpeg.rs`
-- Create: `docs/reference/decoders/dng-gap-profiles/*.svg`
-- Create: `docs/reference/decoders/dng-gap-profiles/perf-stat.txt`
-- Create: `docs/reference/decoders/dng-gap-profiles/timings.txt`
-- Modify: `docs/reference/decoders/dng-remaining-gap.md`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/*.svg`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/perf-stat.txt`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/timings.txt`
+- Modify: `docs/reference/decoders/perf/dng-remaining-gap.md`
 - Modify: `docs/plans/chore-close-dng-flashraw-gap.md`
 
 ## Task Checklist
@@ -191,9 +191,9 @@ the isolated worktree's raw.pixls.us submodule is pointer-only.
 
 **Files:**
 
-- Create: `docs/reference/decoders/dng-gap-profiles/perf-stat.txt`
-- Create: `docs/reference/decoders/dng-gap-profiles/timings.txt`
-- Create: `docs/reference/decoders/dng-gap-profiles/{case}-{decoder}.svg`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/perf-stat.txt`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/timings.txt`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/{case}-{decoder}.svg`
 
 **Interfaces:**
 
@@ -242,7 +242,7 @@ perf script -i <case>-<decoder>.data > <case>-<decoder>.perf-script
 ```
 
 Generate folded stacks and an SVG from the DWARF call stacks, save the SVG under
-`docs/reference/decoders/dng-gap-profiles/`, and remove raw `perf.data` files.
+`docs/reference/decoders/perf/dng-gap-profiles/`, and remove raw `perf.data` files.
 
 - [x] **Step 5: Capture interleaved timings**
 
@@ -423,7 +423,7 @@ case into a statistically distinguishable regression.
 
 **Files:**
 
-- Modify: `docs/reference/decoders/dng-remaining-gap.md`
+- Modify: `docs/reference/decoders/perf/dng-remaining-gap.md`
 - Modify: `docs/plans/chore-close-dng-flashraw-gap.md`
 
 - [x] **Step 1: Replace every remaining “not measured” statement**
@@ -472,7 +472,7 @@ request. Pull request:
 - `cargo bench -p fornax-raw-decoder --bench dng_gap_probe -- equality <input>`
   for all four inputs
 - Repeated release/perf measurements recorded under
-  `docs/reference/decoders/dng-gap-profiles/`
+  `docs/reference/decoders/perf/dng-gap-profiles/`
 - `scripts/agent-validation.sh`
 
 ## Decisions and Notes

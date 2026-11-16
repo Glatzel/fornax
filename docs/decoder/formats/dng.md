@@ -151,7 +151,7 @@ read for behavior only. Production code is implemented independently from the
 specifications.
 
 Implementation evidence and known lossless-JPEG differences are recorded in
-[`docs/reference/decoders/dng-lossless-jpeg.md`](../../reference/decoders/dng-lossless-jpeg.md).
+[`docs/reference/decoders/reference/dng-lossless-jpeg.md`](../../reference/decoders/reference/dng-lossless-jpeg.md).
 
 ## Definition of done for future DNG expansion
 

@@ -1,0 +1,13 @@
+format,compression,lossless,exclusion,status,error_kind,files
+ARW,sony-arw2,0,lossy,✅,,115
+ARW,sony-arw6,0,lossy,✅,,4
+ARW,unknown,,unclassified,❌,decode:invalid_input,1
+ARW,unknown,,unclassified,❌,decode:unsupported,19
+CR3,unknown,,c-raw,❌,decode:unsupported,38
+CR3,unknown,,unclassified,❌,decode:unsupported,44
+DNG,jpeg-xl,0,lossy,❌,raw_mosaic:unsupported,1
+DNG,lossy-jpeg,0,lossy,❌,raw_mosaic:unsupported,2
+DNG,unknown,,unclassified,❌,decode:invalid_input,3
+NEF,unknown,,high-efficiency,❌,decode:unsupported,20
+NEF,unknown,,unclassified,❌,decode:invalid_input,2
+NEF,unknown,,unclassified,❌,decode:unsupported,137

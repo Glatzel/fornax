@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #734 `chore/portable-scalar-codec` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # Portable Scalar DNG Codec Implementation Plan
 
@@ -24,7 +24,7 @@ tricks are out of scope.
 benches, Rayon, `perf stat`, `perf annotate`, existing FlashRaw 0.2.0 adapter.
 
 **Spec:** User request in the current task, plus
-`docs/reference/decoders/dng-remaining-gap.md` and PR #728.
+`docs/reference/decoders/perf/dng-remaining-gap.md` and PR #728.
 
 ## Global Constraints
 
@@ -76,8 +76,8 @@ Out of scope:
 - `Cargo.lock`
 - `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
 - `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs`
-- `docs/reference/decoders/dng-remaining-gap.md`
-- `docs/reference/decoders/dng-gap-profiles/*`
+- `docs/reference/decoders/perf/dng-remaining-gap.md`
+- `docs/reference/decoders/perf/dng-gap-profiles/*`
 - `docs/plans/chore-portable-scalar-codec.md`
 
 ## Review Focus
@@ -166,8 +166,8 @@ git commit -m "refactor: remove platform output allocation"
 **Files:**
 - Modify: `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs` only if a
   measurement helper is missing
-- Modify: `docs/reference/decoders/dng-remaining-gap.md`
-- Create: `docs/reference/decoders/dng-gap-profiles/portable-allocation-regression.txt`
+- Modify: `docs/reference/decoders/perf/dng-remaining-gap.md`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/portable-allocation-regression.txt`
 
 **Interfaces:**
 - Consumes: Task 1's portable allocator.
@@ -224,7 +224,7 @@ git commit -m "docs: report portable allocation regression"
 **Files:**
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
 - Modify: `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
-- Create: `docs/reference/decoders/dng-gap-profiles/ljpeg-table-experiments.txt`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/ljpeg-table-experiments.txt`
 
 **Interfaces:**
 - Consumes: Task 2's without-policy baseline.
@@ -266,7 +266,7 @@ git commit -m "perf: tune lossless JPEG lookup tables"
 **Files:**
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
 - Modify: `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
-- Modify: `docs/reference/decoders/dng-gap-profiles/ljpeg-table-experiments.txt`
+- Modify: `docs/reference/decoders/perf/dng-gap-profiles/ljpeg-table-experiments.txt`
 
 **Interfaces:**
 - Consumes: Task 3A's retained state.
@@ -309,7 +309,7 @@ git commit -m "perf: resolve long lossless JPEG codes canonically"
 **Files:**
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
 - Modify: `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
-- Modify: `docs/reference/decoders/dng-gap-profiles/ljpeg-table-experiments.txt`
+- Modify: `docs/reference/decoders/perf/dng-gap-profiles/ljpeg-table-experiments.txt`
 
 **Interfaces:**
 - Consumes: Task 3A/3B's retained state.
@@ -346,7 +346,7 @@ git commit -m "perf: share lossless JPEG Huffman tables"
 
 **Files:**
 - Modify: `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
-- Create: `docs/reference/decoders/dng-gap-profiles/ljpeg-reused-output.txt`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/ljpeg-reused-output.txt`
 
 **Interfaces:**
 - Consumes: retained LJPEG decoder internals.
@@ -378,7 +378,7 @@ for an API decision.
 - Branch: `chore/portable-ljpeg-fused-kernel`
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
 - Modify: `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
-- Create: `docs/reference/decoders/dng-gap-profiles/ljpeg-fused-scalar.txt`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/ljpeg-fused-scalar.txt`
 
 **Interfaces:**
 - Consumes: Task 2 baseline and Task 3 retained table representation.
@@ -416,7 +416,7 @@ record the negative result and revert it.
 **Files:**
 - Modify: `crates/fornax-codec/src/ljpeg.rs` only if assembly shows removable
   checks
-- Modify: `docs/reference/decoders/dng-gap-profiles/ljpeg-fused-scalar.txt`
+- Modify: `docs/reference/decoders/perf/dng-gap-profiles/ljpeg-fused-scalar.txt`
 
 **Interfaces:**
 - Consumes: current scalar hot loops.
@@ -442,7 +442,7 @@ line overrides. Do not change workspace profiles without approval.
 **Files:**
 - Modify: `crates/fornax-codec/src/ljpeg.rs` only if a measured scheduling
   change is justified
-- Modify: `docs/reference/decoders/dng-gap-profiles/portable-scalar.txt`
+- Modify: `docs/reference/decoders/perf/dng-gap-profiles/portable-scalar.txt`
 
 **Interfaces:**
 - Consumes: retained portable decoder.
@@ -464,7 +464,7 @@ Test one scheduling hypothesis, then keep or revert using the same gate.
 **Files:**
 - Modify: `crates/fornax-codec/src/deflate.rs` only if a portable hypothesis is
   supported
-- Modify: `docs/reference/decoders/dng-remaining-gap.md`
+- Modify: `docs/reference/decoders/perf/dng-remaining-gap.md`
 
 **Interfaces:**
 - Consumes: portable allocation regression.
@@ -482,8 +482,8 @@ the equality gate remains green.
 ### Task 9: Final report and validation
 
 **Files:**
-- Modify: `docs/reference/decoders/dng-remaining-gap.md`
-- Create: `docs/reference/decoders/dng-gap-profiles/portable-scalar.txt`
+- Modify: `docs/reference/decoders/perf/dng-remaining-gap.md`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/portable-scalar.txt`
 
 **Interfaces:**
 - Consumes: every measurement and decision above.

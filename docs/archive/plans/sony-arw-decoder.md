@@ -78,7 +78,7 @@ Out of scope:
 - `docs/architecture/overview.md`
 - `docs/architecture/decoder.md`
 - `docs/decoder/formats/sony-arw.md`
-- `docs/reference/decoders/sony-arw.md`
+- `docs/reference/decoders/reference/sony-arw.md`
 
 ## Validation
 

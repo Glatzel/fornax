@@ -204,21 +204,21 @@ docs/plans/workspace-refactor/step-06-dng-constants.md -> docs/_archive/workspac
 docs/proposal/steps-1-6-review-summary.md -> docs/_archive/workspace-refactor/steps-1-6-review.md
 docs/references/aahd.md -> docs/reference/algorithms/aahd.md
 docs/references/amaze.md -> docs/reference/algorithms/amaze.md
-docs/references/canon-crx.md -> docs/reference/decoders/canon-crx.md
+docs/references/canon-crx.md -> docs/reference/decoders/reference/canon-crx.md
 docs/references/compression-ids.md -> docs/reference/codecs/compression-ids.md
 docs/references/dcb.md -> docs/reference/algorithms/dcb.md
 docs/references/dht.md -> docs/reference/algorithms/dht.md
-docs/references/dng-compression.md -> docs/reference/decoders/dng-compression.md
-docs/references/dng-lossless-jpeg.md -> docs/reference/decoders/dng-lossless-jpeg.md
-docs/references/dng-opcodes.md -> docs/reference/decoders/dng-opcodes.md
-docs/references/dng-preview-color.md -> docs/reference/decoders/dng-output-color.md
-docs/references/fuji-raf.md -> docs/reference/decoders/fuji-raf.md
+docs/references/dng-compression.md -> docs/reference/decoders/reference/dng-compression.md
+docs/references/dng-lossless-jpeg.md -> docs/reference/decoders/reference/dng-lossless-jpeg.md
+docs/references/dng-opcodes.md -> docs/reference/decoders/reference/dng-opcodes.md
+docs/references/dng-preview-color.md -> docs/reference/decoders/reference/dng-output-color.md
+docs/references/fuji-raf.md -> docs/reference/decoders/reference/fuji-raf.md
 docs/references/lmmse.md -> docs/reference/algorithms/lmmse.md
-docs/references/nikon-nef.md -> docs/reference/decoders/nikon-nef.md
-docs/references/panasonic-rw2.md -> docs/reference/decoders/panasonic-rw2.md
-docs/references/phase-one-iiq.md -> docs/reference/decoders/phase-one-iiq.md
+docs/references/nikon-nef.md -> docs/reference/decoders/reference/nikon-nef.md
+docs/references/panasonic-rw2.md -> docs/reference/decoders/reference/panasonic-rw2.md
+docs/references/phase-one-iiq.md -> docs/reference/decoders/reference/phase-one-iiq.md
 docs/references/rawtherapee.md -> docs/reference/algorithms/rawtherapee.md
-docs/references/sony-arw.md -> docs/reference/decoders/sony-arw.md
+docs/references/sony-arw.md -> docs/reference/decoders/reference/sony-arw.md
 docs/references/vng.md -> docs/reference/algorithms/vng.md
 docs/references/workspace-refactor-baseline.md -> docs/_archive/workspace-refactor/baseline-findings.md
 docs/references/workspace-refactor-measurements.md -> docs/_archive/workspace-refactor/measurements.md
@@ -452,7 +452,7 @@ Pull request: <https://github.com/Glatzel/fornax/pull/715>.
   - `docs/plans/dec-3fr-hasselblad-3fr.md` to
     `docs/_archive/plans/hasselblad-3fr-decoder.md`.
   - `docs/references/hasselblad-3fr.md` to
-    `docs/reference/decoders/hasselblad-3fr.md`.
+    `docs/reference/decoders/reference/hasselblad-3fr.md`.
 - CI exposed a Cargo documentation output collision between the
   `fornax-raw-cli` binary target and the `fornax-raw` library target. Binary
   documentation is disabled because the CLI has no separate public API docs.
