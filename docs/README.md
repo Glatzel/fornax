@@ -54,7 +54,6 @@ reference, and active planning documentation.
 | Document | Summary |
 | --- | --- |
 | [Shareable Book PDF Build](plans/book-03-pdf-build.md) | Remaining work for a shareable book PDF build. |
-| [Documentation Archive Cleanup](plans/chore-archive-stale-docs.md) | Inventory, protected DNG resume pack, and approved archive migration. |
 | [Compare-Demosaic Reference Algorithms](plans/compare-demosaic-algorithms.md) | Completed and pending reference-algorithm port tasks. |
 
 ## Reference

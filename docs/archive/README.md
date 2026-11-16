@@ -11,6 +11,7 @@ Historical evidence only. Archived documents are not current task instructions.
 - [plans/book-bootstrap.md](plans/book-bootstrap.md)
 - [plans/book-figures.md](plans/book-figures.md)
 - [plans/canon-cr3-decoder.md](plans/canon-cr3-decoder.md)
+- [plans/chore-archive-stale-docs.md](plans/chore-archive-stale-docs.md)
 - [plans/chore-arw-gap-profiles.md](plans/chore-arw-gap-profiles.md)
 - [plans/chore-close-dng-flashraw-gap.md](plans/chore-close-dng-flashraw-gap.md)
 - [plans/chore-decoder-benchmark-golden-corpus.md](plans/chore-decoder-benchmark-golden-corpus.md)
