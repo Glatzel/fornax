@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #737 `chore/ljpeg-critical-path` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
+> Current guidance: [current documentation](../reference/decoders/perf/dng-remaining-gap.md).
 
 # LJPEG Critical-Path Plan
 

@@ -1,3 +1,7 @@
+> Status: archived historical resume notes.
+> Current documents: [raw-decode comparison](../../../../../reference/decoders/perf/flashraw-vs-fornax.md) and [large-page allocation design](../../../../../reference/decoders/design/large-page-allocation.md).
+> Archived 2026-11-16; commands remain useful only for reproducing archived evidence.
+
 # DNG Performance Resume Notes
 
 This page is the compact restart point for DNG and LJPEG performance work.
@@ -5,7 +9,7 @@ This page is the compact restart point for DNG and LJPEG performance work.
 Read [the current gap report](../dng-remaining-gap.md) first, then
 [the experiment log](../dng-experiments-log.md), the
 [FlashRaw CPU comparison](../flashraw-cpu-comparison.md), and the
-[restart-free parallelism design](../../design/restart-free-single-scan-parallelism-design.md).
+[restart-free parallelism design](../../../../../reference/decoders/design/restart-free-single-scan-parallelism-design.md).
 The signed-off rule is that FlashRaw 0.2.0 is MIT OR Apache-2.0 and is a source
 of ideas only unless copied code is separately identified and licensed.
 
@@ -13,11 +17,11 @@ of ideas only unless copied code is separately identified and licensed.
 
 | Probe | Purpose |
 | --- | --- |
-| [`ljpeg_gap_probe.rs`](../../../../../crates/fornax-codec/benches/ljpeg_gap_probe.rs) | Generates smooth/noisy one- and two-component LJPEG scans with configurable tile counts. |
-| [`dng_gap_probe.rs`](../../../../../crates/fornax-raw-decoder/benches/dng_gap_probe.rs) | Dispatches Linux equality, decode, allocator, huge-page, and fault probes. |
-| [`dng_gap_probe/linux.rs`](../../../../../crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs) | Implements exact three-way equality, decode timing, `AnonHugePages`, and allocator variants. |
-| [`flashraw_wrapper.rs`](../../../../../crates/fornax-raw-decoder/benches/flashraw_wrapper.rs) | Forces FlashRaw 0.2.0 through scalar `Backend::Cpu`. |
-| [`decoder.rs`](../../../../../crates/fornax-raw-decoder/benches/decoder.rs) | Runs the checked-in decoder benchmark matrix. |
+| [`ljpeg_gap_probe.rs`](../../../../../../crates/fornax-codec/benches/ljpeg_gap_probe.rs) | Generates smooth/noisy one- and two-component LJPEG scans with configurable tile counts. |
+| [`dng_gap_probe.rs`](../../../../../../crates/fornax-raw-decoder/benches/dng_gap_probe.rs) | Dispatches Linux equality, decode, allocator, huge-page, and fault probes. |
+| [`dng_gap_probe/linux.rs`](../../../../../../crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs) | Implements exact three-way equality, decode timing, `AnonHugePages`, and allocator variants. |
+| [`flashraw_wrapper.rs`](../../../../../../crates/fornax-raw-decoder/benches/flashraw_wrapper.rs) | Forces FlashRaw 0.2.0 through scalar `Backend::Cpu`. |
+| [`decoder.rs`](../../../../../../crates/fornax-raw-decoder/benches/decoder.rs) | Runs the checked-in decoder benchmark matrix. |
 
 ## Rebuild and rerun
 

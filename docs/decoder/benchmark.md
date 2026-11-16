@@ -74,6 +74,21 @@ FlashRaw is configured for the CPU, one worker thread, strict corruption
 handling, no default crop, and no DNG opcode application. CI also sets
 `RAYON_NUM_THREADS=1` and `OMP_NUM_THREADS=1`.
 
+The raw-only Fornax-versus-FlashRaw probe uses the same golden selected
+manifest by default:
+
+```bash
+FORNAX_PROBE_DECODERS=fornax \
+RAYON_NUM_THREADS=1 \
+cargo bench -p fornax-raw-decoder --bench flashraw_031_probe
+```
+
+Its current metadata matrix and report are
+`docs/reference/decoders/perf/data/golden-benchmark-matrix.csv` and
+`docs/reference/decoders/perf/flashraw-vs-fornax.md`. The probe may override the
+manifest for one-off diagnosis, but committed performance claims must use the
+golden set.
+
 Compile the benchmark without executing timings:
 
 ```bash

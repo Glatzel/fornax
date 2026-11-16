@@ -55,7 +55,7 @@ Out of scope:
   behavior changes
 - `crates/fornax-raw-decoder/` tests or benchmarks
 - `crates/decoder-tracker/data/baseline.csv` for corrected hashes only
-- `docs/reference/decoders/perf/fornax-vs-flashraw-raw-decode-2026-11-16.md`
+- `docs/reference/decoders/perf/flashraw-vs-fornax.md`
 - `docs/plans/chore-fornax-low-effort-fixes.md`
 
 ## Validation

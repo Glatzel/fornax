@@ -1,3 +1,7 @@
+> Status: archived superseded report.
+> Current document: [FlashRaw versus Fornax raw decode](../../../../reference/decoders/perf/flashraw-vs-fornax.md).
+> Archived 2026-11-16 after correctness fixes and uncompressed optimization.
+
 # Fornax vs FlashRaw raw decode
 
 This note compares native Fornax and FlashRaw 0.3.1 from file path to an owned

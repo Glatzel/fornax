@@ -19,7 +19,7 @@ use fornax_raw_decoder::Decoder;
 use sha2::{Digest, Sha256};
 
 const DEFAULT_BASELINE: &str = "crates/decoder-tracker/data/baseline.csv";
-const DEFAULT_MATRIX: &str = "docs/reference/decoders/perf/data/flashraw-0.3.1-matrix.csv";
+const DEFAULT_MATRIX: &str = "docs/reference/decoders/perf/data/golden-benchmark-matrix.csv";
 const DEFAULT_OUTPUT: &str = "target/flashraw-031/raw-decode.csv";
 const RAW_DOMAIN: &[u8] = b"fornax.raw_mosaic.v1";
 

@@ -1,32 +1,31 @@
 # Decoder References
 
-Decoder notes are grouped by their primary purpose:
+Current decoder documentation is grouped by primary purpose:
 
-- [perf](perf/) contains benchmarks, measurements, profiles, and optimization
-  investigations.
-- [design](design/) contains architecture decisions, trade-offs, and
-  implementation gates or plans.
+- [perf](perf/) contains the authoritative cross-decoder performance report and
+  its reproducible input/results data.
+- [design](design/) contains active allocation and concurrency design
+  boundaries.
 - [reference](reference/) contains format, decoder, API, field-table, and
   specification research.
 
-Files that mix concerns remain intact under their dominant category.
-`reference/flashraw.md` is primarily the benchmark-adapter contract but also
-records benchmark behavior. `perf/dng-remaining-gap.md` is primarily a
-performance report but also records allocator design decisions.
-
 ## Performance
 
-- [FlashRaw 0.3.1 re-measurement](perf/flashraw-0.3.1-remeasure-2026-11-16.md)
-- [Sony ARW remaining performance gap](perf/arw-remaining-gap.md)
-- [ARW gap evidence](perf/arw-gap-profiles/)
-- [DNG performance experiment log](perf/dng-experiments-log.md)
-- [DNG remaining performance gap](perf/dng-remaining-gap.md)
-- [DNG gap profile index](perf/dng-gap-profiles/README.md)
-- [DNG gap resume notes](perf/dng-gap-profiles/RESUME.md)
-- [FlashRaw 0.2.0 CPU source comparison](perf/flashraw-cpu-comparison.md)
+- [FlashRaw versus Fornax raw decode](perf/flashraw-vs-fornax.md) is the single
+  current comparison for the golden DNG, Sony ARW, Canon CR3, and Nikon NEF
+  decoder paths.
+- [Golden selected manifest](../../../crates/decoder-tracker/golden/selected-manifest.csv)
+- [Golden performance matrix](perf/data/golden-benchmark-matrix.csv)
+- [Canonical per-sample results](perf/data/golden-flashraw-vs-fornax-2026-11-16.csv)
+
+Historical FlashRaw 0.2.0/0.3.1 reports, DNG experiment logs, Sony ARW
+inventories, raw profile artifacts, and negative-result evidence are in the
+[decoder performance archive](../../archive/reference/decoders/perf/). These
+are provenance, not current instructions.
 
 ## Design
 
+- [Linux large-page output allocation](design/large-page-allocation.md)
 - [Restart-free single-scan LJPEG parallelism](design/restart-free-single-scan-parallelism-design.md)
 
 ## Reference
@@ -36,7 +35,7 @@ performance report but also records allocator design decisions.
 - [DNG and lossless JPEG-92](reference/dng-lossless-jpeg.md)
 - [DNG opcodes](reference/dng-opcodes.md)
 - [DNG output color](reference/dng-output-color.md)
-- [FlashRaw benchmark adapter](reference/flashraw.md)
+- [FlashRaw benchmark oracle](reference/flashraw.md)
 - [Fujifilm RAF](reference/fuji-raf.md)
 - [Hasselblad 3FR](reference/hasselblad-3fr.md)
 - [Nikon NEF](reference/nikon-nef.md)

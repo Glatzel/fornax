@@ -1,3 +1,7 @@
+> Status: archived historical benchmark report.
+> Current document: [FlashRaw versus Fornax raw decode](../../../../reference/decoders/perf/flashraw-vs-fornax.md).
+> Archived 2026-11-16; crop/cast and pipeline stages are no longer measured.
+
 # FlashRaw 0.3.1 Re-measurement
 
 This note records a lossless-only FlashRaw 0.2.0 to 0.3.1 comparison for DNG,

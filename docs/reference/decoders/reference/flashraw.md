@@ -1,24 +1,42 @@
 # FlashRaw reference notes
 
-This reference note records the pinned FlashRaw benchmark adapter, required neutral settings, and implementation differences.
+This note records the pinned FlashRaw version, benchmark adapter settings,
+version-relevant behavior, and known differences from Fornax.
 
 ## Sources
 
-- Crate `flashraw` 0.2.0:
-  [crates.io](https://crates.io/crates/flashraw/0.2.0) and
-  [API documentation](https://docs.rs/flashraw/0.2.0/flashraw/).
-- Repository `https://github.com/ybouane/flashraw`, release and package version
-  `0.2.0`.
+- Crate `flashraw` 0.3.1:
+  [crates.io](https://crates.io/crates/flashraw/0.3.1) and
+  [API documentation](https://docs.rs/flashraw/0.3.1/flashraw/).
+- Release tag
+  [`v0.3.1`](https://github.com/ybouane/flashraw/releases/tag/v0.3.1),
+  package commit `61c32fb1abbc9e819084e01e62703ceb4c4998db`, release commit
+  `2994e8c550bec70ab78a938ab28a74d7762124f4`.
 - License: MIT OR Apache-2.0.
 
-The exact package is pinned as a direct dev-dependency of `fornax-decoder`.
-Rawler 0.8.0 is pinned beside it as the other benchmark-only reference.
+The exact package is pinned as a direct dev-dependency of
+`fornax-raw-decoder`. Rawler 0.8.0 is pinned beside it as the other
+benchmark-only reference.
+
+## Version-relevant changes
+
+FlashRaw 0.3.1 preserves the Fornax-used `FlashRaw`, `DecodeOptions`,
+`RawFrame`, and `RawPixelData` surface. Compared with the former 0.2.0 pin,
+the 0.3.x rewrite adds 64-bit bit pumps, lookup-based Huffman decoding, SIMD
+packed unpacking, tile/strip/stripe parallelism, zeroed output allocation,
+speculative parallel entropy decoding, and parallel LJPEG byte unstuffing.
+
+On the lossless comparison, raw output remained bit-identical to 0.2.0.
+FlashRaw decode improved about 30% for Sony LJPEG and 27-29% for Nikon Huffman,
+while DNG LJPEG regressed about 12%. The current 18-file golden-corpus Fornax
+comparison and reproduction data are in
+[FlashRaw versus Fornax raw decode](../perf/flashraw-vs-fornax.md).
 
 ## Benchmark role
 
-FlashRaw is a reference decoder, not a production Fornax dependency. The adapter
-exposes the three measurements shared by all benchmark implementations:
-`decode`, `raw_mosaic`, and `cropped_mosaic`.
+FlashRaw is a reference decoder, not a production Fornax dependency. The
+general decoder adapter exposes `decode`, `raw_mosaic`, and `cropped_mosaic`.
+The current cross-decoder probe measures only raw decode.
 
 FlashRaw does not expose Fornax's normalized process metadata or a typed TIFF
 `Directory` equivalent. The adapter therefore returns unsupported for
@@ -27,8 +45,8 @@ FlashRaw does not expose Fornax's normalized process metadata or a typed TIFF
 
 ## Adapter behavior
 
-`FlashRaw::open_path` performs container parsing. The adapter then calls
-`FlashRaw::decode` with these benchmark-neutral settings:
+`FlashRaw::open_path` performs container parsing. The general adapter then
+calls `FlashRaw::decode` with these benchmark-neutral settings:
 
 - CPU backend;
 - one worker thread;
@@ -43,9 +61,10 @@ accepting the result. `raw_mosaic` clones the storage-native samples.
 `cropped_mosaic` converts to the requested benchmark primitive, crops to
 FlashRaw's active area, and shrinks the backing allocation to the cropped size.
 
-The outer CI matrix also pins `RAYON_NUM_THREADS=1` and `OMP_NUM_THREADS=1` so
-reference-library defaults do not turn the comparison into an all-core versus
-single-thread measurement.
+The raw comparison uses the same strict/raw settings with
+`FORNAX_FLASHRAW_BACKEND=cpu|simd|auto`, explicit worker counts, and
+`RAYON_NUM_THREADS` aligned to the Fornax run. Scalar `cpu` remains the
+headline baseline; `auto` is available for fastest-option checks.
 
 ## Relationship to the removed codec dependency
 
