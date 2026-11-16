@@ -88,17 +88,20 @@ pub(super) fn normalized_f32<T>(image: &MonoImage<T>) -> Cow<'_, [f32]>
 where
     T: Primitive,
 {
-    if let Some(samples) = (image.as_raw() as &dyn Any).downcast_ref::<Vec<f32>>() {
-        Cow::Borrowed(samples)
-    } else {
-        Cow::Owned(
-            image
-                .as_raw()
-                .iter()
-                .map(|sample| sample.to_f32().unwrap_or_default().clamp(0.0, 1.0))
-                .collect(),
+    (image.as_raw() as &dyn Any)
+        .downcast_ref::<Vec<f32>>()
+        .map_or_else(
+            || {
+                Cow::Owned(
+                    image
+                        .as_raw()
+                        .iter()
+                        .map(|sample| sample.to_f32().unwrap_or_default().clamp(0.0, 1.0))
+                        .collect(),
+                )
+            },
+            |samples| Cow::Borrowed(samples.as_slice()),
         )
-    }
 }
 
 pub(super) fn f32_codes_into<T>(image: RgbImage<T>) -> Vec<f32>
