@@ -12,6 +12,7 @@ fornax-bmff = { path = "./crates/fornax-bmff" }
 fornax-codec = { path = "./crates/fornax-codec" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
+fornax-large-alloc = { path = "./crates/fornax-large-alloc" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 
 fornax-raw = { path = "./crates/fornax-raw" }

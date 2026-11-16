@@ -3,8 +3,8 @@
 use jxl_oxide::JxlImage;
 use rayon::prelude::*;
 
+use crate::allocation::zeroed_samples;
 use crate::error::invalid;
-use crate::large_alloc::zeroed_samples;
 use crate::request::{DecodeRequest, SampleFormat};
 use crate::samples::{Geometry, buffer_u8, buffer_u16, chunk};
 use crate::{CodecError, Predictor, SampleBuffer};

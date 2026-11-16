@@ -1,0 +1,16 @@
+[package]
+name = "fornax-large-alloc"
+version.workspace = true
+edition.workspace = true
+publish = false
+description = "Linux huge-page hints for large owned scalar buffers"
+
+[features]
+default = ["large-page-hint"]
+large-page-hint = ["dep:libc"]
+
+[dependencies]
+bytemuck.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = { workspace = true, optional = true }

@@ -830,9 +830,9 @@ version = "0.0.17"
 dependencies = [
  "bytemuck",
  "flate2",
+ "fornax-large-alloc",
  "image 0.25.9",
  "jxl-oxide",
- "libc",
  "rayon",
  "thiserror",
  "weezl 0.2.1",
@@ -876,6 +876,14 @@ dependencies = [
  "serde_json",
  "strum",
  "thiserror",
+]
+
+[[package]]
+name = "fornax-large-alloc"
+version = "0.0.17"
+dependencies = [
+ "bytemuck",
+ "libc",
 ]
 
 [[package]]
