@@ -2,7 +2,12 @@
 
 use std::collections::BTreeMap;
 use std::fmt;
+#[cfg(not(feature = "mmap"))]
+use std::fs;
+#[cfg(feature = "mmap")]
+use std::fs::File;
 use std::ops::Deref;
+use std::path::Path;
 use std::sync::Arc;
 
 pub mod constants;
@@ -50,6 +55,26 @@ pub enum TiffSource {
 }
 
 impl TiffSource {
+    /// Opens a TIFF source, using a read-only memory map when available.
+    ///
+    /// # Errors
+    ///
+    /// Returns the file-open, mapping, or fallback read error.
+    pub fn from_path(path: &Path) -> std::io::Result<Self> {
+        #[cfg(feature = "mmap")]
+        {
+            let file = File::open(path)?;
+            // The mapping is read-only. Truncating the file while it is in use
+            // can make later accesses fault, as with any memory map.
+            let mmap = unsafe { memmap2::Mmap::map(&file)? };
+            Ok(Self::from_mmap(mmap))
+        }
+        #[cfg(not(feature = "mmap"))]
+        {
+            fs::read(path).map(Self::from_vec)
+        }
+    }
+
     /// Creates source storage from an owned vector without copying it.
     pub fn from_vec(bytes: Vec<u8>) -> Self { Self::Owned(Arc::new(bytes)) }
 
@@ -128,6 +153,29 @@ impl fmt::Display for TiffError {
 }
 
 impl std::error::Error for TiffError {}
+
+#[cfg(all(test, feature = "mmap", unix))]
+mod source_tests {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    use super::TiffSource;
+
+    #[test]
+    fn mapped_source_remains_readable_after_the_path_is_removed() {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let path =
+            std::env::temp_dir().join(format!("fornax-tiff-map-{}-{unique}", std::process::id()));
+        std::fs::write(&path, b"mapped source").unwrap();
+
+        let source = TiffSource::from_path(&path).unwrap();
+        std::fs::remove_file(&path).unwrap();
+
+        assert_eq!(&*source, b"mapped source");
+    }
+}
 
 /// Parses classic TIFF or BigTIFF directories.
 pub fn parse(source: &[u8]) -> Result<ParsedTiff, TiffError> {

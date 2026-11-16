@@ -1,0 +1,19 @@
+brand,model,container,compression,mode,bits_per_sample,width,height,path,size,sha256
+Canon,PowerShot S3IS,DNG,uncompressed,uncompressed,16,2888,2136,Canon/Canon PowerShot S3IS/CRW_8531.DNG,12511358,d6feb57d64d59f91dfaae9cd1e8999664977cd82d78cfa0465cf236822afd596
+Canon,EOS 5D Mark III,DNG,lossless-jpeg,lossless,16,1920,1080,Canon/EOS 5D Mark III/M24-1221_000202.dng,1831164,bc29ac8a37c800346749b9a5a1adc2722357f7f0e49df05a7104454881604b92
+Canon,EOS 5D Mark III,DNG,uncompressed,uncompressed,16,5920,3950,Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-uncompressed.dng,48846956,9bc7f4afefc1b9787d6c9ac01337cd9ac7250f9cc98aeb58ce854229a4d23e87
+Canon,EOS 5D Mark III,DNG,deflate,lossless,16,5920,3950,Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-w-pred-deflate.dng,20460092,6275226bfa2d86ba479130999d045ea0b8da6be4b011130c9eb91cd6a0eb2233
+Canon,EOS 5D Mark III,DNG,uncompressed,uncompressed,24,5920,3950,Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-uncompressed.dng,73613206,5632bb6229f25d6fbf472780466e4375a59321dd062af141c1be7fcccf6110b3
+Canon,EOS 5D Mark III,DNG,deflate,lossless,24,5920,3950,Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-w-pred-deflate.dng,35431526,664874abe16f79a224a713ed6d786a1d9614ec8a4231fae8dfd653c747d77641
+Canon,EOS 5D Mark III,DNG,uncompressed,uncompressed,32,5920,3950,Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-uncompressed.dng,98506430,b58cc64ecc3e1a3850fe0716b46984479548bd908fc7a050a810feedeb387157
+Canon,EOS 5D Mark III,DNG,deflate,lossless,32,5920,3950,Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-w-pred-deflate.dng,56793214,94993fefdac13a68a40f0c4f47479256ff53790d8af8ad01ecf6b78d7d2b553f
+Canon,EOS 60D,DNG,lossless-jpeg,lossless,14,960,540,Canon/EOS 60D/M14-1451_000085_cDNG_compressed.dng,471476,5d826ccdde8f31569c4f147f97610e423107cba3cbb26edcb89df86055824d97
+Canon,EOS R6,CR3,canon-lossless-crx,lossless,14,3584,2386,Canon/EOS R6/Canon_EOS_R6_RAW_ISO_100_crop_nodual.CR3,9815638,6156ee9cfd1a61e08719a8309095d05162891fd2adb8dd1505b31d4716dcee05
+Canon,PowerShot G1 X,DNG,uncompressed,uncompressed,14,4496,3366,Canon/PowerShot G1 X/CRW_0004.DNG,26522600,1803a147f3e1b7be9ed541f6e8df254d97f2691d16d7f9d130cee68e1c50897b
+Nikon,Z5 II,NEF,nikon-huffman,lossless,14,4000,2672,NIKON CORPORATION/NIKON Z5_2/Lossless_compression_DX.NEF,13835273,ba6c66ece60b18eaf6a3461ecfbccd346af785a1db311b3e651ae0284232a1c8
+Nikon,D6,NEF,nikon-mode-10-packed,lossless,14,5584,3728,Nikon/D6/D06_0312.NEF,37481216,8c8cf431f5807e2d216318f8a42e30a4d4f8561e325eb6495d9aa0e466ef53fe
+Sigma,fp,DNG,uncompressed,uncompressed,12,1936,1090,Sigma/fp/A002_651_20240229_000001_2k_12bit.DNG,3244544,99bcffd118630af5cf5712eeac6832045420311fe258094e3489b94c8d51236a
+Sigma,fp,DNG,uncompressed,uncompressed,10,1936,1090,Sigma/fp/A002_652_20240229_000001_2k_10bit.DNG,2716672,77d6e690f1b59312d80026dab605ac336f5a8d1619c9e653a23fb1271f39ebe4
+Sigma,fp,DNG,uncompressed,uncompressed,8,1936,1090,Sigma/fp/A002_653_20240229_000001_2k_8bit.DNG,2190336,80ae0b8fdce3f58286fc194513c6ec0080ab07caca753408b00ca72c90e5ad0c
+Sony,ILCE-9M3,ARW,uncompressed,uncompressed,14,3968,2648,Sony/ILCE-9M3/DSC00115.ARW,23969792,07ac73fb5a2a3aacf741f06678975f8fbe9c42a981db21449a7517ef812d1221
+Sony,ILCE-9M3,ARW,sony-lossless-jpeg,lossless,14,4096,3072,Sony/ILCE-9M3/DSC00117.ARW,17776640,4d6408879114f3bcc1ec4e944a76c384aa1289a5a39ed4ee6c9684092c7835f7

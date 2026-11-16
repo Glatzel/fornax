@@ -1,3 +1,7 @@
+> Status: archived historical experiment log.
+> Current documents: [raw-decode comparison](../../../../reference/decoders/perf/flashraw-vs-fornax.md) and [large-page allocation design](../../../../reference/decoders/design/large-page-allocation.md).
+> Archived 2026-11-16; negative results are retained as provenance.
+
 # DNG Performance Experiment Log
 
 This log preserves the kept and reverted DNG performance experiments behind

@@ -31,6 +31,10 @@ This reference note records pinned sources, decoder behavior, and implementation
 - ARW2 is recognized by a `32767` strip whose byte count is exactly
   `width * height`, even when the TIFF `BitsPerSample` tag contains a historical
   16-bit value.
+- Uncompressed ARW uses the strip byte count to distinguish two-byte words from
+  packed samples. A 12-bit modern file whose strip contains
+  `width * height * 2` bytes therefore stays on the U16 word path; genuinely
+  packed A850/A900-style strips remain packed.
 
 ## Sample behavior
 
@@ -71,6 +75,10 @@ This reference note records pinned sources, decoder behavior, and implementation
   `LinearRaw` with `cpp = 3`, black level `1024`, white level `15360`, and
   identity white balance. Fornax deliberately keeps them unsupported because
   the current mosaic interface cannot represent multi-component output.
+- The current ARW source mapping and uncompressed-word path are memory-mapped
+  and write directly into the final output. Current cross-decoder numbers and
+  remaining performance priorities are in
+  [FlashRaw versus Fornax raw decode](../perf/flashraw-vs-fornax.md).
 - Camera color matrices are not part of the ARW container. Fornax does not copy
   the LGPL Rawler camera database, so no matrix is synthesized when the source
   omits one.
@@ -112,3 +120,22 @@ The following corpus files are intentionally tracked as
 - SONY DSC-RX1RM3:
   - `SONY/DSC-RX1RM3/DSC00255.ARW`
   - `SONY/DSC-RX1RM3/DSC00256.ARW`
+- Sony ILCE-7RM5:
+  - `Sony/ILCE-7RM5/7RM5-LosslessCompressedMedium.ARW`
+  - `Sony/ILCE-7RM5/7RM5-LosslessCompressedSmall.ARW`
+  - `Sony/ILCE-7RM5/7RM5-S35-LosslessCompressedSmall.ARW`
+- SONY ILME-FX2:
+  - `SONY/ILME-FX2/Image_4_-_Lossless_Compression_(M)_-_Shade.ARW`
+  - `SONY/ILME-FX2/Image_5_-_Lossless_Compression_(S)_-_Shade.ARW`
+
+`Sony/DSLR-A100/_DSC0258.ARW` is a separate `decode:invalid_input` inventory
+item, not one of the intentional reduced-resolution YCbCr failures.
+
+## Performance implementation boundary
+
+Sony lossless JPEG currently expands four interleaved components through the
+generic LJPEG path, then reshapes the four-component result into two Bayer
+rows. A direct four-component row kernel should keep register-resident
+predictors and write those two output rows without the generic result buffer,
+the second tile buffer, or the reshape pass. This is portable scalar work;
+the archived ARW profile evidence does not justify requiring SIMD.

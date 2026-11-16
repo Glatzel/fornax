@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #735 `chore/arw-gap-profiles` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/perf/arw-remaining-gap.md).
+> Current guidance: [current documentation](../reference/decoders/perf/arw-remaining-gap.md).
 
 # Sony ARW Gap Profiles
 

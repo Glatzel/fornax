@@ -1,6 +1,4 @@
 use std::fs;
-#[cfg(feature = "mmap")]
-use std::fs::File;
 use std::path::Path;
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 mod dnc;
@@ -280,23 +278,9 @@ impl IDecoderDng for Decoder {
     }
 }
 
-#[cfg(feature = "mmap")]
 fn open_dng_source(path: &Path) -> Result<TiffSource, DecodeError> {
-    let file = File::open(path).map_err(|error| {
+    TiffSource::from_path(path).map_err(|error| {
         DecodeError::Other(format!("opening {} failed: {error}", path.display()).into())
-    })?;
-    // The mapping is read-only. As with any mmap, truncating the underlying
-    // file while the decoder is alive can make accesses fault with SIGBUS.
-    let mmap = unsafe { memmap2::Mmap::map(&file) }.map_err(|error| {
-        DecodeError::Other(format!("mapping {} failed: {error}", path.display()).into())
-    })?;
-    Ok(TiffSource::from_mmap(mmap))
-}
-
-#[cfg(not(feature = "mmap"))]
-fn open_dng_source(path: &Path) -> Result<TiffSource, DecodeError> {
-    fs::read(path).map(TiffSource::from_vec).map_err(|error| {
-        DecodeError::Other(format!("reading {} failed: {error}", path.display()).into())
     })
 }
 

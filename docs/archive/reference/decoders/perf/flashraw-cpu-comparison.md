@@ -1,3 +1,7 @@
+> Status: archived historical source comparison.
+> Current document: [FlashRaw versus Fornax raw decode](../../../../reference/decoders/perf/flashraw-vs-fornax.md).
+> Archived 2026-11-16; version-specific implementation details may be stale.
+
 # FlashRaw 0.2.0 CPU Source Comparison
 
 Source-only comparison for the PR #738 allocator baseline after its merge with
@@ -99,7 +103,7 @@ also reverted: it increased real LJPEG instructions and wall time. The compact
 10-bit table and current refill policy remain.
 
 Single-scan parallelism is stopped at the written design gate in
-[`restart-free-single-scan-parallelism-design.md`](../design/restart-free-single-scan-parallelism-design.md).
+[`restart-free-single-scan-parallelism-design.md`](../../../../reference/decoders/design/restart-free-single-scan-parallelism-design.md).
 No parallel implementation was attempted. The complete baseline, ranges,
 same-session FlashRaw comparison, and rejected-candidate counters are in
 [`flashraw-cpu-followup.txt`](dng-gap-profiles/flashraw-cpu-followup.txt).

@@ -1,3 +1,7 @@
+> Status: archived superseded report.
+> Current document: [FlashRaw versus Fornax raw decode](../../../../reference/decoders/perf/flashraw-vs-fornax.md).
+> Archived 2026-11-16 after correctness fixes and uncompressed optimization.
+
 # Fornax vs FlashRaw raw decode
 
 This note compares native Fornax and FlashRaw 0.3.1 from file path to an owned
@@ -198,3 +202,62 @@ ratios are not explained by per-sample codec speed alone.
 The first performance-only project should be item 2. It is the simplest
 high-impact change for a one-person maintainer and attacks both the largest
 single-thread ratios and the near-total lack of scaling.
+
+## 2026-11-16 low-effort follow-up
+
+This follow-up corrected both previously reported mismatches and implemented
+only the uncompressed-word part of improvement 2. It did not change Huffman,
+CRX Rice, four-component LJPEG, DNG packed data, allocator selection, or SIMD.
+
+- Sony ILCE-7RM4 DSC00395.ARW now hashes to
+  `9533fd9cea0d92272364dff9c4b32b865f07fa8095e7cd78a481f90fd14fe310`.
+  The declared 12 significant bits are stored in two-byte words; Fornax now
+  selects the word path from `StripByteCounts`, while genuinely packed 12-bit
+  strips retain the packed path.
+- Pentax K-1 IMGP8555.DNG now hashes to
+  `fb04a11babb78e2a11d721c0a6ba77f05a065c8ab14dd8c386f48780c321191e`.
+  The LJPEG stream was correct. The DNG contains four equal-sized,
+  full-resolution LJPEG IFDs; Fornax selected the last on a tie while FlashRaw
+  and Rawler select the first. The decoder now keeps the first equal-sized raw
+  IFD.
+- The other 12 manifest hashes are unchanged and match the accepted baseline.
+
+For uncompressed paths, the existing read-only mmap helper is now owned by
+`TiffSource` and reused by DNG, Sony, and Nikon without a full-file `fs::read`.
+A shared 16-bit-word unpack validates strip bounds once, writes directly into
+the final output buffer, processes rows serially for one thread or tiny
+images, and otherwise splits contiguous row bands across Rayon. Sony
+uncompressed and Nikon word layouts both use it; Nikon applies its existing
+12/14-bit mask and byte order. DNG 16-bit uncompressed reaches the same helper,
+but Leica timing remains dominated by Fornax's non-equivalent `OpcodeList1`
+work and is not compared to FlashRaw.
+
+Method for the new numbers: the same host and optimized bench profile, warm
+page cache, five requested files, three independent process batches, two
+warmups, five rounds per batch, median of round medians followed by median of
+batch medians. `F` is Fornax, `FR` is scalar-CPU FlashRaw, both in
+milliseconds. The complete batch values, throughput, faults, spread, and hashes
+are in
+[fornax-vs-flashraw-uncompressed-2026-11-16.csv](data/fornax-vs-flashraw-uncompressed-2026-11-16.csv).
+
+| Sample | T | F before | F after | F speedup | FR now | F/FR now | F GB/s | F faults after | spread |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Sony ILCE-1 | 1 | 222.60 | 29.44 | 7.56x | 28.63 | 1.03x | 3.41 | 2,521 | 4.3% |
+| Sony ILCE-1 | 16 | 216.15 | 31.16 | 6.94x | 14.02 | 2.22x | 3.22 | 2,537 | 8.4% |
+| Nikon D500 | 1 | 113.33 | 35.89 | 3.16x | 13.48 | 2.66x | 1.16 | 10,895 | 2.9% |
+| Nikon D500 | 16 | 108.95 | 6.27 | 17.38x | 6.55 | 0.96x | 6.66 | 10,896 | 6.4% |
+| Nikon D850 | 1 | 242.98 | 76.58 | 3.17x | 25.99 | 2.95x | 1.20 | 23,801 | 2.4% |
+| Nikon D850 | 16 | 238.91 | 11.91 | 20.06x | 13.19 | 0.90x | 7.68 | 23,802 | 2.0% |
+| Sigma fp | 1 | 0.94 | 0.98 | 0.96x | 1.18 | 0.83x | 4.31 | 50 | 19.5% |
+| Sigma fp | 16 | 0.92 | 1.09 | 0.84x | 0.91 | 1.20x | 3.85 | 50 | 14.1% |
+| Leica SL2 | 1 | 222.92 | 234.46 | 0.95x | 37.93 | n/c | 0.41 | 7,067 | 1.7% |
+| Leica SL2 | 16 | 263.29 | 273.77 | 0.96x | 15.39 | n/c | 0.35 | 6,109 | 1.8% |
+
+Sony at one thread is now within FlashRaw's batch spread. Nikon 16-thread
+throughput slightly exceeds FlashRaw on these two runs. Sony's 16-thread result
+is memory-bound and did not scale beyond its one-thread time; row-band
+parallelism did not recover that after the copy was removed. Sigma's packed
+12-bit path was intentionally untouched and its sub-millisecond deltas are
+within noisy to 19% spread. The remaining clear gap is Sony 16-thread
+throughput at 2.22x, not another copy or serial-strip defect in the measured
+word paths.

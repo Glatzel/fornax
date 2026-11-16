@@ -967,7 +967,6 @@ dependencies = [
  "fornax-raw-nikon",
  "fornax-raw-panasonic",
  "fornax-raw-phase-one",
- "fornax-raw-pipeline",
  "fornax-raw-sony",
  "fornax-tiff",
  "generic-num",

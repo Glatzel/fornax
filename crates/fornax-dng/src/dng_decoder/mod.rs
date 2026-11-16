@@ -130,13 +130,19 @@ impl IDecoderEncoding for DngImage {
 }
 
 fn select_raw_ifd(parsed: &ParsedTiff) -> Result<usize, DecodeError> {
-    parsed
+    let mut best = None;
+    for (index, directory) in parsed
         .directories
         .iter()
         .enumerate()
         .filter(|(_, directory)| is_raw_ifd(directory))
-        .max_by_key(|(_, directory)| raw_area(directory))
-        .map(|(index, _)| index)
+    {
+        let area = raw_area(directory);
+        if best.is_none_or(|(_, best_area)| area > best_area) {
+            best = Some((index, area));
+        }
+    }
+    best.map(|(index, _)| index)
         .ok_or_else(|| unsupported_variant("no full-resolution CFA image IFD was found"))
 }
 
@@ -448,6 +454,31 @@ mod tests {
 
             assert!(super::is_raw_ifd(&metadata), "photometric {photometric}");
         }
+    }
+
+    #[test]
+    fn equal_sized_raw_ifds_keep_the_first_directory() {
+        let raw_directory = || {
+            let mut directory = Directory::default();
+            directory.insert(Tag::from(TiffTag::ImageWidth), Value::Unsigned(100));
+            directory.insert(Tag::from(TiffTag::ImageLength), Value::Unsigned(50));
+            directory.insert(
+                Tag::from(TiffTag::PhotometricInterpretation),
+                Value::Short(32_803),
+            );
+            directory
+        };
+        let parsed = ParsedTiff {
+            directories: vec![
+                Directory::default(),
+                raw_directory(),
+                Directory::default(),
+                raw_directory(),
+            ],
+            source: TiffSource::from_vec(Vec::new()),
+        };
+
+        assert_eq!(select_raw_ifd(&parsed).unwrap(), 1);
     }
 
     #[test]

@@ -115,7 +115,19 @@ fn decode_integer(
         9..=16 => {
             let mut output = zeroed_samples(sample_count)?;
             if bits == 16 {
-                copy_samples(geometry, byte_order, payloads, &mut output)?;
+                if geometry.across == 1 && geometry.chunk_width == geometry.width {
+                    unpack_u16_word_rows(
+                        payloads,
+                        &mut output,
+                        geometry.width,
+                        geometry.height,
+                        geometry.chunk_height,
+                        byte_order,
+                        u16::MAX,
+                    )?;
+                } else {
+                    copy_samples(geometry, byte_order, payloads, &mut output)?;
+                }
             } else if matches!(bits, 12 | 14) {
                 decode_packed_u16(geometry, bits, byte_order, payloads, &mut output)?;
             } else {
@@ -547,6 +559,111 @@ where
     })
 }
 
+const PARALLEL_ROW_MIN_SAMPLES: usize = 1 << 18;
+
+/// Unpacks full-width strips of 16-bit words directly into `output`.
+///
+/// Strips are validated before decoding. Large images are parallelized by row,
+/// while small images stay on the calling thread to avoid scheduling overhead.
+///
+/// # Errors
+///
+/// Returns an error when the geometry is invalid, the strip count does not
+/// match the image height, `output` has the wrong length, or a strip is
+/// truncated.
+pub fn unpack_u16_word_rows(
+    payloads: &[&[u8]],
+    output: &mut [u16],
+    width: usize,
+    height: usize,
+    chunk_height: usize,
+    byte_order: ByteOrder,
+    mask: u16,
+) -> Result<(), CodecError> {
+    if width == 0 || height == 0 || chunk_height == 0 {
+        return Err(invalid("word-row dimensions must not be zero"));
+    }
+    let sample_count = width
+        .checked_mul(height)
+        .ok_or_else(|| invalid("word-row sample count overflow"))?;
+    if output.len() != sample_count {
+        return Err(invalid(format!(
+            "word-row output has {} samples, expected {sample_count}",
+            output.len()
+        )));
+    }
+    let expected_chunks = height.div_ceil(chunk_height);
+    if payloads.len() != expected_chunks {
+        return Err(invalid(format!(
+            "word-row image requires {expected_chunks} strips, found {}",
+            payloads.len()
+        )));
+    }
+    let row_bytes = width
+        .checked_mul(2)
+        .ok_or_else(|| invalid("word-row byte count overflow"))?;
+    for (index, payload) in payloads.iter().enumerate() {
+        let rows = chunk_height.min(height - index * chunk_height);
+        let required = rows
+            .checked_mul(row_bytes)
+            .ok_or_else(|| invalid("word-row strip size overflow"))?;
+        if payload.len() < required {
+            return Err(invalid(format!(
+                "word-row strip {index} is truncated: {} bytes available, {required} required",
+                payload.len()
+            )));
+        }
+    }
+
+    let unpack_row = |row: usize, target: &mut [u16]| {
+        let chunk = row / chunk_height;
+        let within_chunk = row % chunk_height;
+        let start = within_chunk * row_bytes;
+        let source = &payloads[chunk][start..start + row_bytes];
+        unpack_u16_word_row(source, target, byte_order, mask);
+    };
+    let threads = rayon::current_num_threads();
+    if output.len() >= PARALLEL_ROW_MIN_SAMPLES && threads > 1 {
+        let rows_per_item = height.div_ceil(threads * 4).max(1);
+        let samples_per_item = width
+            .checked_mul(rows_per_item)
+            .ok_or_else(|| invalid("word-row parallel band size overflow"))?;
+        output
+            .par_chunks_mut(samples_per_item)
+            .enumerate()
+            .for_each(|(band, rows)| {
+                let first_row = band * rows_per_item;
+                for (offset, target) in rows.chunks_exact_mut(width).enumerate() {
+                    unpack_row(first_row + offset, target);
+                }
+            });
+    } else {
+        for (row, target) in output.chunks_exact_mut(width).enumerate() {
+            unpack_row(row, target);
+        }
+    }
+    Ok(())
+}
+
+fn unpack_u16_word_row(source: &[u8], target: &mut [u16], byte_order: ByteOrder, mask: u16) {
+    if byte_order == native_order() && mask == u16::MAX {
+        bytemuck::cast_slice_mut(target).copy_from_slice(source);
+        return;
+    }
+    match byte_order {
+        ByteOrder::Little => {
+            for (target, bytes) in target.iter_mut().zip(source.as_chunks::<2>().0) {
+                *target = u16::from_le_bytes(*bytes) & mask;
+            }
+        }
+        ByteOrder::Big => {
+            for (target, bytes) in target.iter_mut().zip(source.as_chunks::<2>().0) {
+                *target = u16::from_be_bytes(*bytes) & mask;
+            }
+        }
+    }
+}
+
 const fn low_u8(value: u32) -> u8 { value.to_le_bytes()[0] }
 
 const fn low_u16(value: u32) -> u16 {
@@ -735,6 +852,126 @@ mod tests {
             unpack_row_u16(&bytes, &mut decoded, 16, byte_order);
             assert_eq!(decoded, samples);
         }
+    }
+
+    #[test]
+    fn row_word_unpack_handles_non_multiple_widths_and_partial_last_strips() {
+        let width = 5;
+        let height = 5;
+        let chunk_height = 2;
+        let payloads = [
+            little_payload(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+            little_payload(&[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]),
+            little_payload(&[21, 22, 23, 24, 25]),
+        ];
+        let payload_refs = payloads.iter().map(Vec::as_slice).collect::<Vec<_>>();
+        let mut output = [0_u16; 25];
+
+        super::unpack_u16_word_rows(
+            &payload_refs,
+            &mut output,
+            width,
+            height,
+            chunk_height,
+            ByteOrder::Little,
+            u16::MAX,
+        )
+        .unwrap();
+
+        assert_eq!(output, std::array::from_fn(|index| index as u16 + 1));
+    }
+
+    #[test]
+    fn row_word_unpack_handles_single_row_and_tiny_images() {
+        let single =
+            unpack_u16_word_rows_to_vec(&[&[1, 0, 2, 0, 3, 0]], 3, 1, 1, ByteOrder::Little);
+        assert_eq!(single, [1, 2, 3]);
+
+        let tiny = unpack_u16_word_rows_to_vec(&[&[0x34, 0x12]], 1, 1, 1, ByteOrder::Little);
+        assert_eq!(tiny, [0x1234]);
+    }
+
+    #[test]
+    fn row_word_unpack_honors_both_byte_orders_and_the_sample_mask() {
+        let samples = [0x0123_u16, 0x0abc, 0x0def];
+        for (byte_order, mask) in [
+            (ByteOrder::Little, u16::MAX),
+            (ByteOrder::Little, 0x0fff),
+            (ByteOrder::Big, u16::MAX),
+            (ByteOrder::Big, 0x0fff),
+        ] {
+            let bytes = samples
+                .iter()
+                .flat_map(|value| match byte_order {
+                    ByteOrder::Little => value.to_le_bytes(),
+                    ByteOrder::Big => value.to_be_bytes(),
+                })
+                .collect::<Vec<_>>();
+            let mut decoded = [0_u16; 3];
+            super::unpack_u16_word_rows(
+                &[&bytes],
+                &mut decoded,
+                samples.len(),
+                1,
+                1,
+                byte_order,
+                mask,
+            )
+            .unwrap();
+            assert_eq!(decoded, samples.map(|value| value & mask));
+        }
+    }
+
+    #[test]
+    fn row_word_unpack_parallel_bands_preserve_row_order() {
+        let width = 1025;
+        let height = 300;
+        let expected = (0..width * height)
+            .map(|index| (index as u16).wrapping_mul(29))
+            .collect::<Vec<_>>();
+        let payload = little_payload(&expected);
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .unwrap()
+            .install(|| {
+                let decoded = unpack_u16_word_rows_to_vec(
+                    &[&payload],
+                    width,
+                    height,
+                    height,
+                    ByteOrder::Little,
+                );
+                assert_eq!(decoded, expected);
+            });
+    }
+
+    fn unpack_u16_word_rows_to_vec(
+        payloads: &[&[u8]],
+        width: usize,
+        height: usize,
+        chunk_height: usize,
+        byte_order: ByteOrder,
+    ) -> Vec<u16> {
+        let mut output = vec![0_u16; width * height];
+        super::unpack_u16_word_rows(
+            payloads,
+            &mut output,
+            width,
+            height,
+            chunk_height,
+            byte_order,
+            u16::MAX,
+        )
+        .unwrap();
+        output
+    }
+
+    fn little_payload(samples: &[u16]) -> Vec<u8> {
+        samples
+            .iter()
+            .flat_map(|value| value.to_le_bytes())
+            .collect()
     }
 
     fn pack(samples: &[u16], bits: usize, lsb: bool) -> Vec<u8> {

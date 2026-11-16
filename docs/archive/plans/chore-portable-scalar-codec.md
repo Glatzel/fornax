@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #734 `chore/portable-scalar-codec` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
+> Current guidance: [current documentation](../reference/decoders/perf/dng-remaining-gap.md).
 
 # Portable Scalar DNG Codec Implementation Plan
 

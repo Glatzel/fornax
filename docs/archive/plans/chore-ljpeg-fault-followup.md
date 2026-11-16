@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #730 `chore/ljpeg-fault-followup` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
+> Current guidance: [current documentation](../reference/decoders/perf/dng-remaining-gap.md).
 
 # LJPEG Fault Follow-up Implementation Plan
 

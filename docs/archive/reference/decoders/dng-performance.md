@@ -1,6 +1,6 @@
 > Status: archived superseded report.
 > Superseded: PR #720 and allocator restoration in PR #738; archived 2026-11-16.
-> Current guidance: [DNG remaining gap](../../../reference/decoders/perf/dng-remaining-gap.md).
+> Current guidance: [DNG remaining gap](perf/dng-remaining-gap.md).
 
 # DNG Decode Performance Reference Notes
 
@@ -10,7 +10,7 @@ measurement method, fairness constraints, hot paths, and implementation
 differences that inform
 [the DNG performance plan](../../plans/perf-dng-decode.md).
 The post-optimization FlashRaw gap is analyzed separately in
-[DNG decode remaining performance gap](../../../reference/decoders/perf/dng-remaining-gap.md).
+[DNG decode remaining performance gap](perf/dng-remaining-gap.md).
 
 Timing values in this note are host-specific observations. They are not a CI
 baseline and must not be treated as portable performance guarantees.

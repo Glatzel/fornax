@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #720 `task/perf-dng-decode` on 2026-11-14.
-> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
+> Current guidance: [current documentation](../reference/decoders/perf/dng-remaining-gap.md).
 
 # DNG Decode Performance Implementation Plan
 
@@ -1254,7 +1254,7 @@ equality result, and rollback.
 
 - The post-optimization FlashRaw gap, evidence limits, and follow-up probes are
   recorded in
-  [DNG decode remaining performance gap](../../reference/decoders/perf/dng-remaining-gap.md).
+  [DNG decode remaining performance gap](../reference/decoders/perf/dng-remaining-gap.md).
 - The headline performance comparison is Fornax `decode + raw_mosaic` versus
   Rawler/FlashRaw `decode`. Parse-only and pixel-only items remain diagnostics.
 - Rawler and FlashRaw `raw_mosaic` timing items are intentionally omitted.

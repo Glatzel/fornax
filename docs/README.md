@@ -55,6 +55,7 @@ reference, and active planning documentation.
 | --- | --- |
 | [Shareable Book PDF Build](plans/book-03-pdf-build.md) | Remaining work for a shareable book PDF build. |
 | [Compare-Demosaic Reference Algorithms](plans/compare-demosaic-algorithms.md) | Completed and pending reference-algorithm port tasks. |
+| [Clean decoder performance docs](plans/chore-clean-decoder-performance-docs.md) | Consolidate the active decoder performance set and preserve historical evidence in the archive. |
 
 ## Reference
 
@@ -77,18 +78,13 @@ reference, and active planning documentation.
 | Document | Summary |
 | --- | --- |
 | [Decoder references](reference/decoders/README.md) | Index of decoder performance, design, and format/API research. |
-| [FlashRaw 0.3.1 re-measurement](reference/decoders/perf/flashraw-0.3.1-remeasure-2026-11-16.md) | Lossless DNG/ARW/CR3/NEF comparison, pipeline profile, and ranked follow-ups. |
-| [Sony ARW remaining performance gap](reference/decoders/perf/arw-remaining-gap.md) | ARW encoding inventory, timings, and container/entropy costs. |
+| [FlashRaw versus Fornax raw decode](reference/decoders/perf/flashraw-vs-fornax.md) | Canonical golden-corpus coverage, per-path timings, and ranked decoder improvements. |
+| [Linux large-page output allocation](reference/decoders/design/large-page-allocation.md) | Owned-output allocation policy, invariants, and rejected alternatives. |
 | [Canon CRX reference notes](reference/decoders/reference/canon-crx.md) | Canon CRX sources, behavior, and implementation boundaries. |
 | [DNG compression references](reference/decoders/reference/dng-compression.md) | DNG compression sources and behavior. |
 | [DNG and lossless JPEG-92 reference notes](reference/decoders/reference/dng-lossless-jpeg.md) | DNG and lossless JPEG-92 sources and implementation boundaries. |
 | [DNG opcode reference notes](reference/decoders/reference/dng-opcodes.md) | DNG opcode sources and behavior. |
 | [DNG output color reference notes](reference/decoders/reference/dng-output-color.md) | Source matrices, profile selection, and output color. |
-| [DNG performance experiment log](reference/decoders/perf/dng-experiments-log.md) | Kept and reverted DNG experiments with evidence and decisions. |
-| [DNG decode remaining performance gap](reference/decoders/perf/dng-remaining-gap.md) | Final DNG timings, remaining FlashRaw gap, and evidence limits. |
-| [DNG performance resume notes](reference/decoders/perf/dng-gap-profiles/RESUME.md) | Commands, probes, input hashes, baseline commits, and open items. |
-| [DNG performance profile index](reference/decoders/perf/dng-gap-profiles/README.md) | Reproduction commands, baseline setup, and current evidence tables. |
-| [FlashRaw CPU source comparison](reference/decoders/perf/flashraw-cpu-comparison.md) | Scalar CPU design comparison and ranked hypotheses. |
 | [FlashRaw reference notes](reference/decoders/reference/flashraw.md) | Pinned benchmark adapter, neutral settings, and decoder differences. |
 | [Fujifilm RAF references](reference/decoders/reference/fuji-raf.md) | Pinned RAF sources and implementation boundaries. |
 | [Hasselblad 3FR references](reference/decoders/reference/hasselblad-3fr.md) | Pinned 3FR sources and implementation boundaries. |

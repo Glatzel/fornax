@@ -1,3 +1,7 @@
+> Status: archived historical investigation.
+> Current documents: [raw-decode comparison](../../../../reference/decoders/perf/flashraw-vs-fornax.md) and [Sony format notes](../../../../reference/decoders/reference/sony-arw.md).
+> Archived 2026-11-16; the correctness defects and uncompressed bottlenecks described here were fixed.
+
 # Sony ARW Decode Remaining Performance Gap
 
 This report compares the portable-scalar Fornax decoder with Rawler 0.8.0 and
