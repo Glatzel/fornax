@@ -81,6 +81,6 @@ where
         P: IPostProcessor<T, M>,
         M: IPostProcessMetadata,
     {
-        processor.process(self.image(), metadata)
+        processor.process(self.0, metadata)
     }
 }
