@@ -938,11 +938,15 @@ dependencies = [
 name = "fornax-raw-core"
 version = "0.0.17"
 dependencies = [
+ "bytemuck",
+ "fornax-large-alloc",
+ "generic-num",
  "image 0.25.9",
  "libc",
  "num-traits",
  "num_enum",
  "raw-cpuid",
+ "rayon",
  "strum",
  "thiserror",
 ]

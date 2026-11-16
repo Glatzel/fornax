@@ -9,10 +9,7 @@ use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, MetadataSource, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
-use generic_num::num;
-use image::math::Rect;
-use rayon::prelude::*;
+use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic, crop_and_cast};
 
 mod codec;
 mod color_data;
@@ -129,13 +126,12 @@ impl Cr3Image {
     {
         let pixels = self.raw_mosaic()?;
         let metadata = self.process_metadata()?;
-        let image = match pixels {
-            RawMosaic::U8(image) => crop_and_cast(image, metadata.active_area)?,
-            RawMosaic::U16(image) => crop_and_cast(image, metadata.active_area)?,
-            RawMosaic::U32(image) => crop_and_cast(image, metadata.active_area)?,
-            RawMosaic::F32(image) => crop_and_cast(image, metadata.active_area)?,
-        };
-        Ok(CroppedMosaic::new(image))
+        match pixels {
+            RawMosaic::U8(image) => crop_and_cast(image, metadata.active_area),
+            RawMosaic::U16(image) => crop_and_cast(image, metadata.active_area),
+            RawMosaic::U32(image) => crop_and_cast(image, metadata.active_area),
+            RawMosaic::F32(image) => crop_and_cast(image, metadata.active_area),
+        }
     }
 
     /// Returns the DNG-compatible metadata directory.
@@ -215,22 +211,6 @@ impl IDecoderDng for Cr3Image {
 
 impl IDecoderEncoding for Cr3Image {
     fn encoding_metadata(&self) -> EncodingMetadata { Self::encoding_metadata(self) }
-}
-
-fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
-where
-    S: image::Primitive + Send + Sync,
-    T: Primitive,
-{
-    image.crop_in_place(area);
-    let (width, height) = image.dimensions();
-    let samples = image
-        .into_raw()
-        .into_par_iter()
-        .map(|value| num!(value))
-        .collect();
-    MonoImage::from_raw(width, height, samples)
-        .ok_or_else(|| invalid("cropped Canon CR3 dimensions are invalid"))
 }
 
 fn invalid(message: impl Into<Box<str>>) -> DecodeError {

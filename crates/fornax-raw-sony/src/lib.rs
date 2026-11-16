@@ -25,11 +25,8 @@ use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic, crop_and_cast};
 use fornax_tiff::{Directory, ParsedTiff};
-use generic_num::num;
-use image::math::Rect;
-use rayon::prelude::*;
 
 /// A parsed Sony ARW or NRW image.
 ///
@@ -110,13 +107,12 @@ impl ArwImage {
     {
         let pixels = self.raw_mosaic()?;
         let metadata = self.process_metadata()?;
-        let image = match pixels {
-            RawMosaic::U8(image) => crop_and_cast(image, metadata.active_area)?,
-            RawMosaic::U16(image) => crop_and_cast(image, metadata.active_area)?,
-            RawMosaic::U32(image) => crop_and_cast(image, metadata.active_area)?,
-            RawMosaic::F32(image) => crop_and_cast(image, metadata.active_area)?,
-        };
-        Ok(CroppedMosaic::new(image))
+        match pixels {
+            RawMosaic::U8(image) => crop_and_cast(image, metadata.active_area),
+            RawMosaic::U16(image) => crop_and_cast(image, metadata.active_area),
+            RawMosaic::U32(image) => crop_and_cast(image, metadata.active_area),
+            RawMosaic::F32(image) => crop_and_cast(image, metadata.active_area),
+        }
     }
 
     /// Returns the DNG-compatible metadata mapped from the Sony container.
@@ -207,20 +203,4 @@ fn encoding_metadata_for_layout(layout: &container::RawLayout) -> EncodingMetada
             .tile_height
             .and_then(|value| u32::try_from(value).ok()),
     }
-}
-
-fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
-where
-    S: image::Primitive + Send + Sync,
-    T: Primitive,
-{
-    image.crop_in_place(area);
-    let (width, height) = image.dimensions();
-    let samples = image
-        .into_raw()
-        .into_par_iter()
-        .map(|value| num!(value))
-        .collect();
-    MonoImage::from_raw(width, height, samples)
-        .ok_or_else(|| container::invalid("cropped ARW dimensions are invalid"))
 }
