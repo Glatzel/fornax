@@ -1,3 +1,6 @@
+use std::any::Any;
+use std::borrow::Cow;
+
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage};
 use rayon::prelude::*;
@@ -79,6 +82,73 @@ where
                 post(y0 + dy, row);
             }
         });
+}
+
+pub(super) fn normalized_f32<'a, T>(image: &'a MonoImage<T>) -> Cow<'a, [f32]>
+where
+    T: Primitive,
+{
+    if let Some(samples) = (image.as_raw() as &dyn Any).downcast_ref::<Vec<f32>>() {
+        Cow::Borrowed(samples)
+    } else {
+        Cow::Owned(
+            image
+                .as_raw()
+                .iter()
+                .map(|sample| sample.to_f32().unwrap_or_default().clamp(0.0, 1.0))
+                .collect(),
+        )
+    }
+}
+
+pub(super) fn f32_codes_into<T>(image: RgbImage<T>) -> Vec<f32>
+where
+    T: Primitive,
+{
+    let values: Box<dyn Any> = Box::new(image.into_raw());
+    if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f32>() {
+        let mut values = values
+            .downcast::<Vec<f32>>()
+            .expect("the image payload is f32");
+        values.par_iter_mut().for_each(|value| *value *= 65_535.0);
+        return *values;
+    }
+    let source = values
+        .downcast::<Vec<T>>()
+        .expect("the image payload retains its generic sample type");
+    source
+        .into_iter()
+        .map(|sample| sample.to_f32().unwrap_or_default() * 65_535.0)
+        .collect()
+}
+
+pub(super) fn dense_from_f32_owned<T>(width: u32, height: u32, mut values: Vec<f32>) -> RgbImage<T>
+where
+    T: Primitive,
+{
+    values
+        .par_iter_mut()
+        .for_each(|value| *value = value.clamp(0.0, 1.0));
+    let boxed: Box<dyn Any> = Box::new(values);
+    if std::any::TypeId::of::<T>() == std::any::TypeId::of::<f32>() {
+        let values = *boxed.downcast::<Vec<f32>>().expect("the workspace is f32");
+        let cast = Box::new(values) as Box<dyn Any>;
+        let values = *cast
+            .downcast::<Vec<T>>()
+            .expect("the f32 workspace matches the requested sample type");
+        return RgbImage::from_raw(width, height, values)
+            .expect("demosaic output dimensions match the source image");
+    }
+    let values = boxed.downcast::<Vec<f32>>().expect("the workspace is f32");
+    RgbImage::from_raw(
+        width,
+        height,
+        values
+            .into_iter()
+            .map(|value| generic_num::num!(value))
+            .collect(),
+    )
+    .expect("demosaic output dimensions match the source image")
 }
 
 /// Builds a lazy demosaic result from a normalized Bayer mosaic.
