@@ -63,6 +63,8 @@ Passed:
 - `cargo test -p fornax-large-alloc --no-default-features`
 - `cargo test -p fornax-codec --all-features` (108 passed, 2 ignored)
 - `cargo test -p fornax-codec --no-default-features` (60 passed)
+- `cargo test --workspace --all-features --exclude compare-demosaic`
+  (679 passed, 3 ignored)
 - `cargo check -p fornax-large-alloc` for Windows MSVC and macOS arm64, with
   `large-page-hint` on and off
 - `cargo check -p fornax-codec --no-default-features` for Windows MSVC and
