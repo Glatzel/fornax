@@ -16,10 +16,10 @@ decoded bytes are unchanged.
 
 Checked before creating the crate:
 
-| Namespace | Result |
-| --- | --- |
+| Namespace                            | Result                        |
+| ------------------------------------ | ----------------------------- |
 | Workspace manifests and `Cargo.lock` | No `fornax-large-alloc` match |
-| crates.io search | No package match |
+| crates.io search                     | No package match              |
 
 ## Safety Surface
 
@@ -43,14 +43,14 @@ This is a no-behavior-change sanity check, not a performance claim. Three fresh
 processes by five decode rounds at one Rayon worker. Values are median
 `[min-max]` over 15 fresh-process decode timings.
 
-| Input | Metric | Plan branch | New crate | Change |
-| --- | --- | ---: | ---: | ---: |
-| 5D3 uncompressed | decode ms | 17.714 `[16.938-39.882]` | 17.507 `[16.998-18.826]` | -1.2% |
-| 5D3 uncompressed | minor faults | 12272 `[12260-12999]` | 12233 `[12181-12284]` | -0.3% |
-| 5D3 uncompressed | peak RSS KiB | 97844 `[97840-97980]` | 97928 `[97820-97980]` | +0.1% |
-| 5D3 FP32 Deflate | decode ms | 352.303 `[348.184-383.983]` | 356.278 `[353.644-377.044]` | +1.1% |
-| 5D3 FP32 Deflate | minor faults | 79588 `[77756-80820]` | 79407 `[79213-79901]` | -0.2% |
-| 5D3 FP32 Deflate | peak RSS KiB | 151640 `[151396-151692]` | 151636 `[151536-151708]` | flat |
+| Input            | Metric       |                 Plan branch |                   New crate | Change |
+| ---------------- | ------------ | --------------------------: | --------------------------: | -----: |
+| 5D3 uncompressed | decode ms    |    17.714 `[16.938-39.882]` |    17.507 `[16.998-18.826]` |  -1.2% |
+| 5D3 uncompressed | minor faults |       12272 `[12260-12999]` |       12233 `[12181-12284]` |  -0.3% |
+| 5D3 uncompressed | peak RSS KiB |       97844 `[97840-97980]` |       97928 `[97820-97980]` |  +0.1% |
+| 5D3 FP32 Deflate | decode ms    | 352.303 `[348.184-383.983]` | 356.278 `[353.644-377.044]` |  +1.1% |
+| 5D3 FP32 Deflate | minor faults |       79588 `[77756-80820]` |       79407 `[79213-79901]` |  -0.2% |
+| 5D3 FP32 Deflate | peak RSS KiB |    151640 `[151396-151692]` |    151636 `[151536-151708]` |   flat |
 
 The FP32 difference is about one percent with overlapping process noise and no
 new work on the measured path; both variants remain in the same session.
