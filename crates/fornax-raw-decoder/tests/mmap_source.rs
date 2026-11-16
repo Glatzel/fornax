@@ -15,7 +15,7 @@ fn mapped_dng_remains_decodable_after_the_file_is_removed() {
     let samples = vec![0_u16, 1, 2, 3, 4, 5, 6, 7];
     let mosaic = RawMosaic::U16(MonoImage::from_raw(4, 2, samples.clone()).unwrap());
     DngWriter::new(DngWriterCompression::Uncompressed)
-        .write_dng_with(std::fs::File::create(&path).unwrap(), &mosaic, &metadata())
+        .write_dng_with(std::fs::File::create(&path).unwrap(), mosaic, &metadata())
         .unwrap();
 
     let decoder = Decoder::decode(&path).unwrap();
