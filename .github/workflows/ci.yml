@@ -47,6 +47,7 @@ jobs:
               - ./**
               - '!**/*.md'
             benchmark_all:
+              - ./crates/fornax-core/**
               - ./crates/fornax-codec/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
