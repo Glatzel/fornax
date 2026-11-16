@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #727 `chore/dng-first-touch-probe` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # DNG First-Touch and LJPEG Follow-up
 
@@ -64,8 +64,8 @@ Out of scope:
 - `crates/fornax-raw-decoder/benches/dng_gap_probe.rs`
 - `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
 - `crates/fornax-codec/src/samples.rs` only if the allocation hypothesis wins
-- `docs/reference/decoders/dng-remaining-gap.md`
-- `docs/reference/decoders/dng-gap-profiles/` measurement artifacts
+- `docs/reference/decoders/perf/dng-remaining-gap.md`
+- `docs/reference/decoders/perf/dng-gap-profiles/` measurement artifacts
 - `docs/plans/chore-dng-first-touch-probe.md`
 
 ## Validation

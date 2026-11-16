@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #736 `chore/ljpeg-instruction-gap` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # LJPEG Instruction Gap Implementation Plan
 
@@ -50,7 +50,7 @@ adapters.
 - Stop at approximately 1.3x FlashRaw instructions per sample, or after two
   consecutive attempted steps fail to improve beyond noise.
 - Save profiling and measurement artifacts under
-  `docs/reference/decoders/dng-gap-profiles/`, with the final human-readable
+  `docs/reference/decoders/perf/dng-gap-profiles/`, with the final human-readable
   report under `docs/reference/decoders/` (including updates to
   `dng-remaining-gap.md`).
 - Record host, kernel, THP mode, and THP defrag mode, and label all timing
@@ -89,8 +89,8 @@ Out of scope:
   is required
 - `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs` only if
   counter-only or exact-input measurement support is required
-- `docs/reference/decoders/dng-gap-profiles/*`
-- `docs/reference/decoders/dng-remaining-gap.md`
+- `docs/reference/decoders/perf/dng-gap-profiles/*`
+- `docs/reference/decoders/perf/dng-remaining-gap.md`
 - `docs/plans/chore-ljpeg-instruction-gap.md`
 
 ## Review Focus
@@ -254,9 +254,9 @@ They are not authoritative after the exact-count revision above.
 
 **Files:**
 
-- Create: `docs/reference/decoders/dng-gap-profiles/step0-profile.txt`
-- Create: `docs/reference/decoders/dng-gap-profiles/step0-annotate.txt`
-- Create: `docs/reference/decoders/dng-gap-profiles/step0-reader-counters.txt`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/step0-profile.txt`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/step0-annotate.txt`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/step0-reader-counters.txt`
 - Temporarily modify, then restore before commit:
   `crates/fornax-codec/src/ljpeg.rs`
 
@@ -342,7 +342,7 @@ git commit -m "docs: profile lossless JPEG instruction costs"
 **Files:**
 
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
-- Create/test: `docs/reference/decoders/dng-gap-profiles/step1-lookup.txt`
+- Create/test: `docs/reference/decoders/perf/dng-gap-profiles/step1-lookup.txt`
 
 **Interfaces:**
 
@@ -447,7 +447,7 @@ the measured miss rate and slow-path bytes per sample for this candidate.
 **Files:**
 
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
-- Create/test: `docs/reference/decoders/dng-gap-profiles/step2-loop-predictor.txt`
+- Create/test: `docs/reference/decoders/perf/dng-gap-profiles/step2-loop-predictor.txt`
 
 **Interfaces:**
 
@@ -492,7 +492,7 @@ all results in `step2-reader-registers.txt`.
 **Files:**
 
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
-- Create/test: `docs/reference/decoders/dng-gap-profiles/step3-refill.txt`
+- Create/test: `docs/reference/decoders/perf/dng-gap-profiles/step3-refill.txt`
 
 **Interfaces:**
 
@@ -546,7 +546,7 @@ decision in `step3-inner-loop.txt`.
 **Files:**
 
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
-- Create/test: `docs/reference/decoders/dng-gap-profiles/step4-reader-registers.txt`
+- Create/test: `docs/reference/decoders/perf/dng-gap-profiles/step4-reader-registers.txt`
 
 **Interfaces:**
 
@@ -592,7 +592,7 @@ FlashRaw ratios, and a keep/revert reason for every table candidate.
 **Files:**
 
 - Modify: `crates/fornax-codec/src/ljpeg.rs` only for a justified candidate
-- Create/test: `docs/reference/decoders/dng-gap-profiles/step5-conditional.txt`
+- Create/test: `docs/reference/decoders/perf/dng-gap-profiles/step5-conditional.txt`
 
 **Interfaces:**
 
@@ -624,9 +624,9 @@ one commit and each rejection is reverted in its own commit.
 
 **Files:**
 
-- Modify: `docs/reference/decoders/dng-remaining-gap.md`
-- Create: `docs/reference/decoders/dng-gap-profiles/ljpeg-instruction-hypotheses.txt`
-- Update: all `docs/reference/decoders/dng-gap-profiles/*` artifacts
+- Modify: `docs/reference/decoders/perf/dng-remaining-gap.md`
+- Create: `docs/reference/decoders/perf/dng-gap-profiles/ljpeg-instruction-hypotheses.txt`
+- Update: all `docs/reference/decoders/perf/dng-gap-profiles/*` artifacts
 
 **Interfaces:**
 
@@ -690,7 +690,7 @@ against `main`.
   row path may allocate those tables per tile. Step 4 must confirm current
   lifetime and footprint rather than assuming the historical cache behavior.
 - Measurement artifacts belong in
-  `docs/reference/decoders/dng-gap-profiles/`, beside the existing DNG
+  `docs/reference/decoders/perf/dng-gap-profiles/`, beside the existing DNG
   performance references.
 - A source-review claim remains a hypothesis until Step 0 or a candidate
   measurement confirms it.

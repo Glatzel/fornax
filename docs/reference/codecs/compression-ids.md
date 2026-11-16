@@ -55,7 +55,8 @@ unimplemented or disabled codec does not change who owns an identifier.
 - `8` and `32946` have distinct registration histories but the same Deflate
   payload meaning. They are not contradictory ownership claims.
 - Sony-private compression IDs remain owned by `fornax-raw-sony` and are outside the
-  generic TIFF resolver. See [sony-arw.md](../decoders/sony-arw.md).
+  generic TIFF resolver. See
+  [sony-arw.md](../decoders/reference/sony-arw.md).
 - The resolver must report undocumented IDs as unknown and documented IDs
   without available codecs as unsupported with the relevant feature name.
 - `fornax-codec` and `fornax-tiff` enable the standard TIFF LZW and PackBits

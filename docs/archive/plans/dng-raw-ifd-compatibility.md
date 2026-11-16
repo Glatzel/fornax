@@ -83,7 +83,7 @@ repository constraints in `AGENTS.md`, `docs/architecture/overview.md`, and
 - `crates/bench-decoder/benches/decoder.rs` if additional benchmark coverage
   is required
 - `docs/architecture/overview.md`, `docs/architecture/decoder.md`,
-  `docs/decoder/formats/dng.md`, `docs/reference/decoders/dng-lossless-jpeg.md`, and
+  `docs/decoder/formats/dng.md`, `docs/reference/decoders/reference/dng-lossless-jpeg.md`, and
   this plan
 
 ## Validation
@@ -289,7 +289,7 @@ Run the decoder benchmark with the colorchart fixture and compare
 - Modify: `docs/architecture/overview.md`
 - Modify: `docs/architecture/decoder.md`
 - Modify: `docs/decoder/formats/dng.md`
-- Modify: `docs/reference/decoders/dng-lossless-jpeg.md`
+- Modify: `docs/reference/decoders/reference/dng-lossless-jpeg.md`
 
 **Interfaces:**
 

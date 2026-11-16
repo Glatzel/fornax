@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #735 `chore/arw-gap-profiles` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/arw-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/arw-remaining-gap.md).
 
 # Sony ARW Gap Profiles
 
@@ -49,8 +49,8 @@ Out of scope:
 
 ## Files Expected to Change
 
-- `docs/reference/decoders/arw-remaining-gap.md`
-- `docs/reference/decoders/arw-gap-profiles/*.txt`
+- `docs/reference/decoders/perf/arw-remaining-gap.md`
+- `docs/reference/decoders/perf/arw-gap-profiles/*.txt`
 - Possibly `docs/README.md` if the documentation index requires the new report.
 - Transient benchmark harness code may be used under `crates/fornax-raw-decoder/`
   during measurement, but it is removed before the final diff unless the report

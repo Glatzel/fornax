@@ -19,4 +19,4 @@ Packed and block-lossless decoders and the Bayer/X-Trans CFA layout type live
 in this crate behind a private `ICodecDecode` codec value.
 
 Behavioral provenance and licensing constraints are recorded in
-[Fujifilm RAF references](../../docs/reference/decoders/fuji-raf.md).
+[Fujifilm RAF references](../../docs/reference/decoders/reference/fuji-raf.md).

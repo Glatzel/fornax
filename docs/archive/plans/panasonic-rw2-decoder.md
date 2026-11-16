@@ -154,7 +154,7 @@ Metadata decisions:
   needs regression coverage.
 - `docs/architecture/overview.md`
 - `docs/decoder/formats/panasonic-rw2.md`
-- `docs/reference/decoders/panasonic-rw2.md`
+- `docs/reference/decoders/reference/panasonic-rw2.md`
 - `README.md` and affected crate READMEs
 - `Cargo.toml`, `Cargo.lock`
 - `TODO.md`

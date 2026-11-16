@@ -95,7 +95,7 @@ Out of scope:
 - `crates/fornax-decoder/{Cargo.toml,README.md,src/lib.rs,tests/iiq*.rs}`
 - `crates/decoder-tracker/{golden/**,baseline.csv,README.md}`
 - `docs/{architecture.md,decoder/architecture.md,decoder/formats/phase-one-iiq.md}`
-- `docs/reference/decoders/phase-one-iiq.md`
+- `docs/reference/decoders/reference/phase-one-iiq.md`
 - `docs/_archive/plans/phase-one-iiq-decoder.md`
 
 ## Validation
@@ -201,7 +201,7 @@ payloads. The manual corpus filter is `**/*.[iI][iI][qQ]` with
 - Modify: `crates/fornax-codec/README.md`
 - Modify: `docs/{architecture.md,decoder/architecture.md}`
 - Modify: `docs/decoder/formats/phase-one-iiq.md`
-- Create: `docs/reference/decoders/phase-one-iiq.md`
+- Create: `docs/reference/decoders/reference/phase-one-iiq.md`
 
 **Interfaces:**
 

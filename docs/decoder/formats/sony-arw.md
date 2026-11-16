@@ -105,7 +105,7 @@ Both references are copyleft and remain behavior-only references. The
 production codecs are independently implemented in Fornax. The fixed Sony
 LLVC3 output table is format data checked against the permissively licensed
 pre-migration dependency, as documented in
-[the Sony ARW reference note](../../reference/decoders/sony-arw.md).
+[the Sony ARW reference note](../../reference/decoders/reference/sony-arw.md).
 
 ## Definition of done
 

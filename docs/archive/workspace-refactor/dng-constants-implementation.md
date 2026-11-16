@@ -143,7 +143,7 @@ by TIFF/EP. It is a generic TIFF extension, not a DNG-owned tag.
   <https://libtiff.gitlab.io/libtiff/releases/v4.0.10.html>.
 - GDAL JPEG XL identifier discussion:
   <https://www.mail-archive.com/gdal-dev@lists.osgeo.org/msg42055.html>.
-- Sony private references: `docs/reference/decoders/sony-arw.md`.
+- Sony private references: `docs/reference/decoders/reference/sony-arw.md`.
 
 ## Task Checklist
 
@@ -208,7 +208,7 @@ by TIFF/EP. It is a generic TIFF extension, not a DNG-owned tag.
   DNG value ownership boundary.
 - [x] Update `docs/architecture/decoder.md` where it states DNG value
   ownership.
-- [x] Update `docs/reference/decoders/dng-compression.md` only if the implementation
+- [x] Update `docs/reference/decoders/reference/dng-compression.md` only if the implementation
   changes an ownership statement; preserve its complete compression table.
 
 ### Task 6: Validate, inspect, commit, push, and open one PR
@@ -245,7 +245,7 @@ by TIFF/EP. It is a generic TIFF extension, not a DNG-owned tag.
 - `crates/decoder-tracker/tests/golden.rs`
 - `docs/architecture/overview.md`
 - `docs/architecture/decoder.md`
-- `docs/reference/decoders/dng-compression.md` if ownership prose changes
+- `docs/reference/decoders/reference/dng-compression.md` if ownership prose changes
 - `docs/_archive/workspace-refactor/dng-constants-implementation.md`
 
 ## Validation

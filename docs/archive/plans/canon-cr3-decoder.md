@@ -60,7 +60,7 @@ lossless value.
 **Files:**
 - Create: `crates/fornax-devtool/src/bin/canon-crx-audit.rs`
 - Modify: `crates/fornax-devtool/Cargo.toml`
-- Create: `docs/reference/decoders/canon-crx.md`
+- Create: `docs/reference/decoders/reference/canon-crx.md`
 
 **Interfaces:**
 - Consumes: raw file paths or manifest CSV rows.
@@ -185,7 +185,7 @@ lossless value.
 - Modify: `docs/architecture/overview.md`
 - Modify: `docs/architecture/decoder.md`
 - Modify: `docs/decoder/formats/canon-cr3.md`
-- Modify: `docs/reference/decoders/canon-crx.md`
+- Modify: `docs/reference/decoders/reference/canon-crx.md`
 - Modify: `TODO.md`
 
 **Interfaces:**

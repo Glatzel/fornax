@@ -93,7 +93,7 @@ synthesized when the source does not provide a validated DNG-compatible matrix.
   `src/decoders/decoders_libraw.cpp`, and
   `src/utils/phaseone_processing.cpp`.
 - Both are LGPL-2.1 and remain behavioral references only. See
-  [Phase One IIQ references](../../reference/decoders/phase-one-iiq.md).
+  [Phase One IIQ references](../../reference/decoders/reference/phase-one-iiq.md).
 
 ## Definition of done
 

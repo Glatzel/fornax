@@ -78,8 +78,8 @@ Out of scope:
 - `docs/architecture/decoder.md`
 - `docs/decoder/corpus.md`
 - `docs/decoder/formats/dng.md`
-- `docs/reference/decoders/dng-compression.md`
-- `docs/reference/decoders/dng-lossless-jpeg.md`
+- `docs/reference/decoders/reference/dng-compression.md`
+- `docs/reference/decoders/reference/dng-lossless-jpeg.md`
 - `docs/_archive/plans/dng-compression-coverage.md`
 
 ## Validation
@@ -150,8 +150,8 @@ Validation record:
 - Modify: `docs/architecture/decoder.md`
 - Modify: `docs/decoder/corpus.md`
 - Modify: `docs/decoder/formats/dng.md`
-- Modify: `docs/reference/decoders/dng-compression.md`
-- Modify: `docs/reference/decoders/dng-lossless-jpeg.md`
+- Modify: `docs/reference/decoders/reference/dng-compression.md`
+- Modify: `docs/reference/decoders/reference/dng-lossless-jpeg.md`
 
 Add the shared compression/identifier matrix, lossless-JPEG limitations,
 multi-sample `LinearRaw` limitation, and non-codec failure taxonomy described

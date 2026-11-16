@@ -77,7 +77,7 @@ Out of scope:
 - `crates/fornax-decoder/{Cargo.toml,README.md,src/lib.rs,tests/raf*.rs}`
 - `crates/decoder-tracker/{golden/**,baseline.csv,README.md}`
 - `docs/{architecture.md,decoder/architecture.md,decoder/formats/fuji-raf.md}`
-- `docs/reference/decoders/fuji-raf.md`
+- `docs/reference/decoders/reference/fuji-raf.md`
 - `docs/_archive/plans/fujifilm-raf-decoder.md`
 - `TODO.md`
 

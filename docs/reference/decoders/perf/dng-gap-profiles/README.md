@@ -13,7 +13,7 @@ reverted experiment history is
 
 The independent `fornax-large-alloc` crate owns the first-touch policy in one
 platform-specific module,
-[`large_alloc.rs`](../../../../crates/fornax-large-alloc/src/large_alloc.rs).
+[`large_alloc.rs`](../../../../../crates/fornax-large-alloc/src/large_alloc.rs).
 Linux with the default-on `large-page-hint` feature uses natural-alignment
 `alloc_zeroed` for final outputs at least 8 MiB, advises the 2 MiB-aligned live
 interior with `MADV_HUGEPAGE`, and adopts the block into the owned `Vec`.
@@ -75,7 +75,7 @@ and both measured CPU-only scalar candidates are in
 [the FlashRaw CPU follow-up evidence](flashraw-cpu-followup.txt). The fixed
 12-bit table and component-pair refill were both reverted after failing the
 no-regression gate. Restart-free single-scan parallelism is stopped at the
-[written design gate](../restart-free-single-scan-parallelism-design.md); no
+[written design gate](../../design/restart-free-single-scan-parallelism-design.md); no
 parallel code was added.
 
 ## Reproduction

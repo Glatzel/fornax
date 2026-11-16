@@ -144,7 +144,7 @@ Run `scripts/agent-validation.sh`.
 - `scripts/agent-validation.sh`, `scripts/agent-validation-test.sh`
 - `docs/architecture/overview.md`, `docs/architecture/decoder.md`,
   `docs/decoder/formats/dng.md`
-- `docs/reference/decoders/dng-compression.md`
+- `docs/reference/decoders/reference/dng-compression.md`
 
 ## Validation
 

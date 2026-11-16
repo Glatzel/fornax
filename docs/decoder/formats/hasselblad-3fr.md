@@ -88,4 +88,4 @@ this implementation. The accepted manifest files remain limited to `.3FR`.
 - The decoder-tracker baseline records all accepted 3FR rows as passing.
 
 Behavioral provenance and licensing constraints are recorded in
-[Hasselblad 3FR reference notes](../../reference/decoders/hasselblad-3fr.md).
+[Hasselblad 3FR reference notes](../../reference/decoders/reference/hasselblad-3fr.md).

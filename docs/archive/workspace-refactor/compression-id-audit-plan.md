@@ -39,7 +39,7 @@ This archived workspace-refactor record documents Compression ID Ownership Audit
 
 **Files:**
 - Create: `docs/reference/codecs/compression-ids.md`
-- Modify: `docs/reference/decoders/dng-compression.md`
+- Modify: `docs/reference/decoders/reference/dng-compression.md`
 
 **Interfaces:**
 - Consumes: the requested IDs `1`, `5`, `7`, `8`, `32773`, `32946`, `34892`, `34925`, `50000`, `50001`, `50002`, and `52546`.
@@ -80,7 +80,7 @@ the maintainer for a ruling.
 
 - [ ] **Step 4: Update the existing DNG compression reference**
 
-Revise `docs/reference/decoders/dng-compression.md` so its decisions and ownership
+Revise `docs/reference/decoders/reference/dng-compression.md` so its decisions and ownership
 table agree with the new audit. Preserve the rule that `50000` and `50002`
 must be described according to their actual external ownership, not as
 Adobe-defined DNG values.
@@ -88,7 +88,7 @@ Adobe-defined DNG values.
 - [ ] **Step 5: Commit the audit**
 
 ```bash
-git add docs/reference/codecs/compression-ids.md docs/reference/decoders/dng-compression.md
+git add docs/reference/codecs/compression-ids.md docs/reference/decoders/reference/dng-compression.md
 git commit -m "docs: audit TIFF compression id ownership"
 ```
 

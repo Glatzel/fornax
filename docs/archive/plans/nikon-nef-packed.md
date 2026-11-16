@@ -89,7 +89,7 @@ Out of scope:
   the new `ProcessMetadata` provenance fields
 - `crates/decoder-tracker/{golden/**,baseline.csv,README.md}`
 - `docs/architecture/overview.md`, `docs/architecture/decoder.md`
-- `docs/decoder/formats/nikon-nef.md`, `docs/reference/decoders/nikon-nef.md`
+- `docs/decoder/formats/nikon-nef.md`, `docs/reference/decoders/reference/nikon-nef.md`
 
 ## Validation
 
@@ -122,7 +122,7 @@ raw.pixls.us corpus root. The manual tracker workflow uses
   from golden process hashes and does not change the tracker CSV schema.
 - The Task 0 corpus survey runs through a test-only survey helper after the
   maker-note parser exists. It writes a summary to the SDD workspace and
-  commits only aggregate text to `docs/reference/decoders/nikon-nef.md`.
+  commits only aggregate text to `docs/reference/decoders/reference/nikon-nef.md`.
 - Rawler parity tests live in `crates/fornax-decoder/tests`, using the
   existing dev-dependency and the public `Decoder` facade.
 - Validation completed with `scripts/agent-validation.sh`. The selected D850

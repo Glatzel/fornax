@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #728 `chore/dng-followup-probes` on 2026-11-15.
-> Current guidance: [current documentation](../../reference/decoders/dng-remaining-gap.md).
+> Current guidance: [current documentation](../../reference/decoders/perf/dng-remaining-gap.md).
 
 # DNG Follow-up Performance Probes Implementation Plan
 
@@ -23,7 +23,7 @@ annotate-driven kernel changes.
 graphs and annotation, existing Synthetic LJPEG and DNG comparison adapters.
 
 **Spec:** User follow-up request in this thread plus
-`docs/reference/decoders/dng-remaining-gap.md`.
+`docs/reference/decoders/perf/dng-remaining-gap.md`.
 
 ## Global Constraints
 
@@ -140,7 +140,7 @@ failure.
 **Files:**
 
 - Create:
-  `docs/reference/decoders/dng-gap-profiles/5d3-fp32-deflate-minor-faults.txt`
+  `docs/reference/decoders/perf/dng-gap-profiles/5d3-fp32-deflate-minor-faults.txt`
 - No production file changes before attribution.
 
 **Interfaces:**
@@ -169,7 +169,7 @@ dominate. Measure FP16/FP32 at one and 15 threads and revert if within noise.
 **Files:**
 
 - Create:
-  `docs/reference/decoders/dng-gap-profiles/ljpeg-predictor-annotate.txt`
+  `docs/reference/decoders/perf/dng-gap-profiles/ljpeg-predictor-annotate.txt`
 - Modify only if supported by annotation:
   `crates/fornax-codec/src/ljpeg.rs`
 - Modify only if supported by annotation:
@@ -202,9 +202,9 @@ both.
 
 **Files:**
 
-- Modify: `docs/reference/decoders/dng-remaining-gap.md`
+- Modify: `docs/reference/decoders/perf/dng-remaining-gap.md`
 - Create or update measurement files under
-  `docs/reference/decoders/dng-gap-profiles/`
+  `docs/reference/decoders/perf/dng-gap-profiles/`
 
 - [x] **Step 1: Correct stale text**
 
@@ -227,8 +227,8 @@ and focused clippy. Do not run full workspace validation.
 
 - `crates/fornax-codec/src/samples.rs`
 - `crates/fornax-codec/src/ljpeg.rs`
-- `docs/reference/decoders/dng-remaining-gap.md`
-- `docs/reference/decoders/dng-gap-profiles/*`
+- `docs/reference/decoders/perf/dng-remaining-gap.md`
+- `docs/reference/decoders/perf/dng-gap-profiles/*`
 - `docs/plans/chore-dng-followup-probes.md`
 
 ## Validation

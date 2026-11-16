@@ -9,7 +9,7 @@ Implement only Step 6 of the approved Fornax refactor. Open one PR and stop.
 - Work from current `origin/main`.
 - Confirm Steps 3, 4, and 5 are merged.
 - Read `docs/_archive/workspace-refactor/baseline-findings.md` and
-  `docs/reference/decoders/dng-compression.md`.
+  `docs/reference/decoders/reference/dng-compression.md`.
 
 ## Goal
 

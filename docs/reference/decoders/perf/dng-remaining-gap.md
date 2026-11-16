@@ -1,7 +1,7 @@
 # DNG Decode Remaining Performance Gap
 
 This note records the remaining DNG decode performance gap after the
-[DNG decode performance work](../../archive/plans/perf-dng-decode.md). It is a report,
+[DNG decode performance work](../../../archive/plans/perf-dng-decode.md). It is a report,
 not an implementation plan. The acceptance target was to get the integer DNG
 paths close to Rawler 0.8.0; FlashRaw 0.2.0 remains an upper reference.
 
@@ -136,13 +136,13 @@ dependency is optional `libc` under
 
 The implementation and all unsafe code live in the independent
 `fornax-large-alloc` crate,
-[`large_alloc.rs`](../../../crates/fornax-large-alloc/src/large_alloc.rs). Final
+[`large_alloc.rs`](../../../../crates/fornax-large-alloc/src/large_alloc.rs). Final
 decode outputs are allocated through that crate from
-[`samples.rs`](../../../crates/fornax-codec/src/samples.rs),
-[`deflate.rs`](../../../crates/fornax-codec/src/deflate.rs),
-[`ljpeg.rs`](../../../crates/fornax-codec/src/ljpeg.rs),
-[`jpeg.rs`](../../../crates/fornax-codec/src/jpeg.rs), and
-[`jpegxl.rs`](../../../crates/fornax-codec/src/jpegxl.rs). LJPEG's <=8-bit final
+[`samples.rs`](../../../../crates/fornax-codec/src/samples.rs),
+[`deflate.rs`](../../../../crates/fornax-codec/src/deflate.rs),
+[`ljpeg.rs`](../../../../crates/fornax-codec/src/ljpeg.rs),
+[`jpeg.rs`](../../../../crates/fornax-codec/src/jpeg.rs), and
+[`jpegxl.rs`](../../../../crates/fornax-codec/src/jpegxl.rs). LJPEG's <=8-bit final
 U8 conversion is also routed through the module, closing a path missed by the
 earlier policy. The module has two production unsafe blocks: raw allocation plus
 Vec adoption, and `madvise`. Counting-allocator test code is confined to the same
@@ -254,7 +254,7 @@ Crop and sample-type conversion are excluded.
 
 FlashRaw is configured with `Backend::Cpu`, strict corruption handling,
 `apply_opcodes = false`, `crop = false`, and `threads = Some(1)` in the
-[benchmark adapter](../../../crates/fornax-raw-decoder/benches/flashraw_wrapper.rs).
+[benchmark adapter](../../../../crates/fornax-raw-decoder/benches/flashraw_wrapper.rs).
 The three-way equality gate checks exact dimensions, storage type, sample bits,
 and pixel values before the ratios are trusted.
 
@@ -705,7 +705,7 @@ Component-pair refill raised real LJPEG instructions/sample from about 79.6 to
 98.2 and wall time from 130.6 to 144.5 ms on 5D3 1T, so it was also reverted.
 The compact 10-bit table and existing 32-bit refill remain. Single-scan
 parallelism is stopped at a
-[written boundary-design gate](restart-free-single-scan-parallelism-design.md);
+[written boundary-design gate](../design/restart-free-single-scan-parallelism-design.md);
 the complete baseline and counter tables are in
 [the FlashRaw CPU follow-up evidence](dng-gap-profiles/flashraw-cpu-followup.txt).
 
@@ -718,7 +718,7 @@ the complete baseline and counter tables are in
   [crate](https://crates.io/crates/rawler/0.8.0),
   [source](https://docs.rs/crate/rawler/0.8.0/source/), LGPL-2.1.
 - Historical Fornax measurements and profile notes:
-  [DNG decode performance notes](../../archive/reference/decoders/dng-performance.md).
+  [DNG decode performance notes](../../../archive/reference/decoders/dng-performance.md).
 - Counter, timing, synthetic-LJPEG, and DWARF call-graph artifacts:
   [DNG gap profile artifacts](dng-gap-profiles/profiles.txt),
   [LJPEG hypotheses](dng-gap-profiles/ljpeg.txt),
@@ -730,17 +730,17 @@ the complete baseline and counter tables are in
   [current predictor instruction profile](dng-gap-profiles/ljpeg-instruction-followup.txt),
   [current large-page allocation](dng-gap-profiles/large-page-allocation.txt).
 - Benchmark adapter:
-  [`flashraw_wrapper.rs`](../../../crates/fornax-raw-decoder/benches/flashraw_wrapper.rs).
+  [`flashraw_wrapper.rs`](../../../../crates/fornax-raw-decoder/benches/flashraw_wrapper.rs).
 - Exact-input profile probe:
-  [`dng_gap_probe.rs`](../../../crates/fornax-raw-decoder/benches/dng_gap_probe.rs).
+  [`dng_gap_probe.rs`](../../../../crates/fornax-raw-decoder/benches/dng_gap_probe.rs).
 - Synthetic LJPEG probe:
-  [`ljpeg_gap_probe.rs`](../../../crates/fornax-codec/benches/ljpeg_gap_probe.rs).
+  [`ljpeg_gap_probe.rs`](../../../../crates/fornax-codec/benches/ljpeg_gap_probe.rs).
 - Uncompressed encode probe:
-  [`encode_probe.rs`](../../../crates/fornax-codec/benches/encode_probe.rs).
+  [`encode_probe.rs`](../../../../crates/fornax-codec/benches/encode_probe.rs).
 - Seeded synthetic fixture:
-  [`synthetic.rs`](../../../crates/fornax-codec/tests/support/synthetic.rs).
+  [`synthetic.rs`](../../../../crates/fornax-codec/tests/support/synthetic.rs).
 - Fornax implementation:
-  [`large_alloc.rs`](../../../crates/fornax-large-alloc/src/large_alloc.rs),
-  [`ljpeg.rs`](../../../crates/fornax-codec/src/ljpeg.rs),
-  [`samples.rs`](../../../crates/fornax-codec/src/samples.rs),
-  [`deflate.rs`](../../../crates/fornax-codec/src/deflate.rs).
+  [`large_alloc.rs`](../../../../crates/fornax-large-alloc/src/large_alloc.rs),
+  [`ljpeg.rs`](../../../../crates/fornax-codec/src/ljpeg.rs),
+  [`samples.rs`](../../../../crates/fornax-codec/src/samples.rs),
+  [`deflate.rs`](../../../../crates/fornax-codec/src/deflate.rs).
