@@ -74,18 +74,6 @@ Action meanings:
 - `scripts/agent-validation.sh --docs-only` passes.
 - The requested binary-extension scan returns no files.
 
-## Protected DNG Resume Pack
-
-The following are created before any archive proposal and are never proposed
-for deletion:
-
-- [Current DNG report](../reference/decoders/dng-remaining-gap.md)
-- [Kept/reverted experiment log](../reference/decoders/dng-experiments-log.md)
-- [FlashRaw CPU comparison](../reference/decoders/flashraw-cpu-comparison.md)
-- [Restart-free parallelism no-go design](../reference/decoders/restart-free-single-scan-parallelism-design.md)
-- [Profile index and summary tables](../reference/decoders/dng-gap-profiles/README.md)
-- [Resume commands and open items](../reference/decoders/dng-gap-profiles/RESUME.md)
-
 FlashRaw 0.2.0 is MIT OR Apache-2.0. The comparison note records ideas and
 source paths; no FlashRaw code was copied.
 
