@@ -862,9 +862,11 @@ dependencies = [
 name = "fornax-dng"
 version = "0.0.17"
 dependencies = [
+ "bytemuck",
  "codspeed-criterion-compat",
  "fornax-codec",
  "fornax-devtool",
+ "fornax-large-alloc",
  "fornax-raw-core",
  "fornax-tiff",
  "generic-num",

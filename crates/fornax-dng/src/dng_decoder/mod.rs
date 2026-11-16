@@ -1006,6 +1006,14 @@ mod tests {
     }
 
     #[test]
+    fn transforms_route_full_size_outputs_through_the_shared_allocator() {
+        let source = include_str!("transforms.rs");
+        assert!(source.contains("fornax_large_alloc::zeroed_samples"));
+        assert!(source.contains("let mut samples = zeroed_samples::<f32>"));
+        assert!(source.contains("let mut mapped = zeroed_samples::<u16>"));
+    }
+
+    #[test]
     fn opcode_list_one_maps_stored_sample_values() {
         let pixels = RawMosaic::U16(MonoImage::from_raw(4, 1, vec![0, 1, 2, 3]).unwrap());
         let mut metadata = Directory::default();
