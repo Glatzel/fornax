@@ -64,9 +64,10 @@ off, and smaller outputs take the plain zeroed-`Vec` path. The only new target
 dependency is optional `libc` under
 `[target.'cfg(target_os = "linux")'.dependencies]`.
 
-The implementation and all unsafe code live in
-[`large_alloc.rs`](../../../crates/fornax-codec/src/large_alloc.rs). Final decode
-outputs are allocated through that module from
+The implementation and all unsafe code live in the independent
+`fornax-large-alloc` crate,
+[`large_alloc.rs`](../../../crates/fornax-large-alloc/src/large_alloc.rs). Final
+decode outputs are allocated through that crate from
 [`samples.rs`](../../../crates/fornax-codec/src/samples.rs),
 [`deflate.rs`](../../../crates/fornax-codec/src/deflate.rs),
 [`ljpeg.rs`](../../../crates/fornax-codec/src/ljpeg.rs),
@@ -669,7 +670,7 @@ the complete baseline and counter tables are in
 - Seeded synthetic fixture:
   [`synthetic.rs`](../../../crates/fornax-codec/tests/support/synthetic.rs).
 - Fornax implementation:
-  [`large_alloc.rs`](../../../crates/fornax-codec/src/large_alloc.rs),
+  [`large_alloc.rs`](../../../crates/fornax-large-alloc/src/large_alloc.rs),
   [`ljpeg.rs`](../../../crates/fornax-codec/src/ljpeg.rs),
   [`samples.rs`](../../../crates/fornax-codec/src/samples.rs),
   [`deflate.rs`](../../../crates/fornax-codec/src/deflate.rs).
