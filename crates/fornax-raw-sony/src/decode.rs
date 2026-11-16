@@ -66,9 +66,15 @@ pub fn samples(
 fn codec_error(error: impl std::fmt::Display) -> DecodeError { invalid(error.to_string()) }
 
 fn codec_bits(layout: &RawLayout) -> u16 {
+    let stored_bytes = layout.byte_counts.iter().copied().sum::<usize>();
+    let two_byte_words = stored_bytes
+        == layout
+            .width
+            .saturating_mul(layout.stored_height)
+            .saturating_mul(2);
     if layout.compression == CompressionFamily::SonyLosslessJpeg
         || (layout.compression == CompressionFamily::Uncompressed
-            && matches!(layout.bits_per_sample, 14 | 16))
+            && (matches!(layout.bits_per_sample, 14 | 16) || two_byte_words))
     {
         16
     } else {
@@ -106,5 +112,16 @@ mod tests {
     fn uncompressed_14_and_16_bit_paths_use_u16_word_precision() {
         assert_eq!(codec_bits(&layout(CompressionFamily::Uncompressed, 14)), 16);
         assert_eq!(codec_bits(&layout(CompressionFamily::Uncompressed, 16)), 16);
+    }
+
+    #[test]
+    fn uncompressed_12_bit_storage_width_follows_the_strip_size() {
+        let mut words = layout(CompressionFamily::Uncompressed, 12);
+        words.byte_counts = vec![words.width * words.stored_height * 2];
+        assert_eq!(codec_bits(&words), 16);
+
+        let mut packed = layout(CompressionFamily::Uncompressed, 12);
+        packed.byte_counts = vec![packed.width * packed.stored_height * 3 / 2];
+        assert_eq!(codec_bits(&packed), 12);
     }
 }

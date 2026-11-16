@@ -1934,7 +1934,7 @@ status,camera,format,path,decode_pass,raw_mosaic_pass,raw_sha256,process_metadat
 ✅,Sony ILCE-7RM3,ARW,Sony/ILCE-7RM3/Sony_-_ILCE-7RM3_-_14bit_uncompressed_(3:2).ARW,1,1,52811ec5217bec14480c1673dae6a80cd8caded8cca894a2c6e991634b76d60f,1,1,,8000,5320,RGGB,1,uncompressed,1,strips,14,integer,,,,
 ✅,Sony ILCE-7RM3A,ARW,Sony/ILCE-7RM3A/_DSC0360.ARW,1,1,06faf7aa79636032a24da5000e0ca98ea58ccc409af767d4beabad2abd656d24,1,1,,8000,5320,RGGB,1,uncompressed,1,strips,14,integer,,,,
 ✅,Sony ILCE-7RM3A,ARW,Sony/ILCE-7RM3A/_DSC0361.ARW,1,1,60fdeaa6572c1f2b6f48ee2659fa2364f2971144bb0f9e664811fd155a6bfe45,1,1,,8000,5320,RGGB,32767,sony-arw2,0,strips,14,integer,,,,
-✅,Sony ILCE-7RM4,ARW,Sony/ILCE-7RM4/DSC00395.ARW,1,1,434b92fd80a152e54dfb9d1592d4afe55f05d511cfe27c6ef9dded1a6c7635c1,1,1,,9600,6376,RGGB,1,uncompressed,1,strips,12,integer,,,,
+✅,Sony ILCE-7RM4,ARW,Sony/ILCE-7RM4/DSC00395.ARW,1,1,9533fd9cea0d92272364dff9c4b32b865f07fa8095e7cd78a481f90fd14fe310,1,1,,9600,6376,RGGB,1,uncompressed,1,strips,12,integer,,,,
 ✅,Sony ILCE-7RM4,ARW,Sony/ILCE-7RM4/DSC00396.ARW,1,1,7bb3776b40ab50d81b51e7b5096fbbe93e4dea18b38c7bff030f0197a14714e9,1,1,,9600,6376,RGGB,32767,sony-arw2,0,strips,12,integer,,,,
 ✅,Sony ILCE-7RM4,ARW,Sony/ILCE-7RM4/DSC00397.ARW,1,1,22494621040e10989354355dbc0ca9be9de1795fb8fba62d2e5944ee93c6a4b3,1,1,,9600,6376,RGGB,32767,sony-arw2,0,strips,14,integer,,,,
 ✅,Sony ILCE-7RM4,ARW,Sony/ILCE-7RM4/DSC00398.ARW,1,1,b3bf7cf19fa62dcb83c43ad2da81d4d0ac7e30bf0069dd48f909530b11297922,1,1,,9600,6376,RGGB,1,uncompressed,1,strips,14,integer,,,,

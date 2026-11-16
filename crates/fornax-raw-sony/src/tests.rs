@@ -84,6 +84,17 @@ fn sony_private_compression_ids_remain_vendor_owned() {
 }
 
 #[test]
+fn uncompressed_arw_32767_twelve_bit_words_are_not_arw1() {
+    let source = synthetic_tiff(32_767, u16::from(PhotometricInterpretation::Cfa), 12, 1, 2);
+    let parsed = fornax_tiff::parse(&source).unwrap();
+    let (_, layout) = RawLayout::parse(&parsed).unwrap();
+
+    assert_eq!(layout.compression, CompressionFamily::Uncompressed);
+    assert_eq!(layout.bits_per_sample, 12);
+    assert_eq!(layout.byte_counts, vec![2]);
+}
+
+#[test]
 fn encoding_metadata_distinguishes_sony_compression_families() {
     for (compression, expected_id, expected_name, lossless) in [
         (CompressionFamily::Uncompressed, 1, "uncompressed", true),

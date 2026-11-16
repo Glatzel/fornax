@@ -113,6 +113,9 @@ impl RawLayout {
             32_767 if total_bytes == width.saturating_mul(height) => {
                 (CompressionFamily::Arw2, height)
             }
+            32_767 if total_bytes == width.saturating_mul(height).saturating_mul(2) => {
+                (CompressionFamily::Uncompressed, height)
+            }
             32_767 if bits_per_sample == 12 && expected_bits == stored_bytes => {
                 (CompressionFamily::Uncompressed, height)
             }
