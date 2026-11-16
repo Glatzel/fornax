@@ -7,7 +7,7 @@ edition.workspace = true
 fornax-codec = { workspace = true, features = ["lossless-jpeg"] }
 fornax-dng.workspace = true
 fornax-raw-core.workspace = true
-fornax-tiff = { workspace = true, default-features = false }
+fornax-tiff = { workspace = true, default-features = false, features = ["mmap"] }
 rayon.workspace = true
 
 [dev-dependencies]

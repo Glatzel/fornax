@@ -18,7 +18,6 @@ mod codec_contract_tests;
 #[cfg(test)]
 mod tests;
 
-use std::fs;
 use std::path::Path;
 
 use fornax_dng::metadata::IDecoderDng;
@@ -26,7 +25,7 @@ use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic, crop_and_cast};
-use fornax_tiff::{Directory, ParsedTiff};
+use fornax_tiff::{Directory, ParsedTiff, TiffSource};
 
 /// A parsed Sony ARW or NRW image.
 ///
@@ -61,7 +60,12 @@ impl ArwImage {
     /// and [`DecodeError::Unsupported`] for a recognized but unsupported Sony
     /// layout such as ARQ or reduced-resolution YCbCr.
     pub fn parse(source: &[u8]) -> Result<Self, DecodeError> {
-        let parsed = fornax_tiff::parse(source)
+        Self::parse_source(TiffSource::from_vec(source.to_vec()))
+    }
+
+    /// Parses and validates an owned or mapped Sony TIFF source.
+    pub fn parse_source(source: TiffSource) -> Result<Self, DecodeError> {
+        let parsed = fornax_tiff::parse_source(source)
             .map_err(|error| container::invalid(format!("parsing ARW TIFF failed: {error}")))?;
         let (raw_ifd, layout) = container::RawLayout::parse(&parsed)?;
         let metadata = metadata::map(&parsed, raw_ifd, &layout)?;
@@ -142,10 +146,10 @@ impl ArwImage {
 
 impl IDecoder for ArwImage {
     fn decode(input: &Path) -> Result<Self, DecodeError> {
-        let source = fs::read(input).map_err(|error| {
-            DecodeError::Other(format!("reading {} failed: {error}", input.display()).into())
+        let source = TiffSource::from_path(input).map_err(|error| {
+            DecodeError::Other(format!("opening {} failed: {error}", input.display()).into())
         })?;
-        Self::parse(&source)
+        Self::parse_source(source)
     }
 
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> { Self::raw_mosaic(self) }

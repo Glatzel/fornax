@@ -1,6 +1,5 @@
 //! Nikon NEF container, metadata, and CFA sample decoding.
 
-use std::fs;
 use std::path::Path;
 
 use fornax_dng::metadata::IDecoderDng;
@@ -8,7 +7,7 @@ use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
 use fornax_raw_core::{CroppedMosaic, Primitive, RawMosaic, crop_and_cast};
-use fornax_tiff::{Directory, ParsedTiff};
+use fornax_tiff::{Directory, ParsedTiff, TiffSource};
 
 mod codec;
 mod container;
@@ -43,7 +42,12 @@ pub struct NefImage {
 impl NefImage {
     /// Parses a Nikon NEF TIFF container from memory.
     pub fn parse(source: &[u8]) -> Result<Self, DecodeError> {
-        let parsed = fornax_tiff::parse(source)
+        Self::parse_source(TiffSource::from_vec(source.to_vec()))
+    }
+
+    /// Parses a Nikon NEF container from owned or mapped source storage.
+    pub fn parse_source(source: TiffSource) -> Result<Self, DecodeError> {
+        let parsed = fornax_tiff::parse_source(source)
             .map_err(|error| DecodeError::InvalidInput(error.to_string().into()))?;
         container::validate_make(&parsed)?;
         let maker = MakerNote::parse(&parsed)?;
@@ -102,10 +106,10 @@ impl NefImage {
 
 impl IDecoder for NefImage {
     fn decode(input: &Path) -> Result<Self, DecodeError> {
-        let source = fs::read(input).map_err(|error| {
-            DecodeError::Other(format!("reading {} failed: {error}", input.display()).into())
+        let source = TiffSource::from_path(input).map_err(|error| {
+            DecodeError::Other(format!("opening {} failed: {error}", input.display()).into())
         })?;
-        Self::parse(&source)
+        Self::parse_source(source)
     }
 
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError> { Self::raw_mosaic(self) }
