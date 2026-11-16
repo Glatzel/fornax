@@ -1,8 +1,8 @@
 use rayon::prelude::*;
 
 use crate::CodecError;
+use crate::allocation::zeroed_samples;
 use crate::error::invalid;
-use crate::large_alloc::zeroed_samples;
 use crate::request::{ByteOrder, Chunk, SampleFormat};
 use crate::sample_buffer::SampleBuffer;
 

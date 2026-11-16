@@ -6,8 +6,8 @@ use zune_jpeg::zune_core::bytestream::ZCursor;
 use zune_jpeg::zune_core::colorspace::ColorSpace;
 use zune_jpeg::zune_core::options::DecoderOptions;
 
+use crate::allocation::zeroed_samples;
 use crate::error::invalid;
-use crate::large_alloc::zeroed_samples;
 use crate::request::{DecodeRequest, SampleFormat};
 use crate::samples::{Geometry, buffer_u8, chunk};
 use crate::{CodecError, Predictor, SampleBuffer};

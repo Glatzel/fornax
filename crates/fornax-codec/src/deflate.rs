@@ -7,9 +7,9 @@ use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;
 use rayon::prelude::*;
 
+use crate::allocation::zeroed_samples;
 use crate::encode::encode_image;
 use crate::error::invalid;
-use crate::large_alloc::zeroed_samples;
 use crate::request::{ByteOrder, DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
 use crate::samples::{
     Geometry, chunk, decode_payloads, extend_float, read_u16, read_u24, read_u32,

@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+
 //! Raw sample codecs shared by Fornax decoder implementations.
 //!
 //! [`ICodecDecode`] converts encoded chunks into [`SampleBuffer`] values.
@@ -32,6 +34,7 @@
 //! let decoded = DecodeCompression::Uncompressed.decode(&request).unwrap();
 //! assert_eq!((decoded.width(), decoded.height()), (2, 2));
 //! ```
+mod allocation;
 #[allow(
     dead_code,
     reason = "encoding helpers are used only by feature-gated codecs"
@@ -39,7 +42,6 @@
 mod encode;
 mod error;
 pub mod huffman;
-mod large_alloc;
 #[allow(
     dead_code,
     reason = "predictor helpers are used only by feature-gated codecs"
