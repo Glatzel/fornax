@@ -262,6 +262,7 @@ mod tests {
         assert_zeroed_samples_are_fillable::<u16>(
             LARGE_ALLOCATION_THRESHOLD_BYTES / size_of::<u16>() + 1,
         );
+        assert_zeroed_samples_are_fillable::<u8>(LARGE_ALLOCATION_THRESHOLD_BYTES + 1);
         assert_zeroed_samples_are_fillable::<u32>(1);
         assert_zeroed_samples_are_fillable::<f32>(1);
         assert_zeroed_samples_are_fillable::<f64>(1);
@@ -329,6 +330,7 @@ mod tests {
         assert_tracked_allocations::<u16>(sample_count - 1, false);
         assert_tracked_allocations::<u16>(sample_count, true);
         assert_tracked_allocations::<u16>(sample_count + 1, true);
+        assert_tracked_allocations::<u8>(LARGE_ALLOCATION_THRESHOLD_BYTES + 1, true);
         assert_tracked_allocations::<u32>(LARGE_ALLOCATION_THRESHOLD_BYTES / 4 + 1, true);
         assert_tracked_allocations::<f32>(LARGE_ALLOCATION_THRESHOLD_BYTES / 4 + 1, true);
         assert_tracked_allocations::<f64>(LARGE_ALLOCATION_THRESHOLD_BYTES / 8 + 1, true);
