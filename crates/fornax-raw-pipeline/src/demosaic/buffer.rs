@@ -27,17 +27,6 @@ where
     fn collect(&self) -> RgbImage<T> { self.image.clone() }
 }
 
-pub(super) fn normalized<T>(image: &MonoImage<T>) -> Vec<f32>
-where
-    T: Primitive,
-{
-    image
-        .as_raw()
-        .iter()
-        .map(|sample| sample.to_f32().unwrap_or_default().clamp(0.0, 1.0))
-        .collect()
-}
-
 pub(super) fn codes<T>(image: &MonoImage<T>) -> Vec<u16>
 where
     T: Primitive,
@@ -62,21 +51,6 @@ where
         values
             .into_iter()
             .map(|value| num!(f64::from(value) / f64::from(u16::MAX)))
-            .collect(),
-    )
-    .expect("demosaic output dimensions match the source image")
-}
-
-pub(super) fn dense_from_f32<T>(width: u32, height: u32, values: Vec<f32>) -> RgbImage<T>
-where
-    T: Primitive,
-{
-    RgbImage::from_raw(
-        width,
-        height,
-        values
-            .into_iter()
-            .map(|value| num!(value.clamp(0.0, 1.0)))
             .collect(),
     )
     .expect("demosaic output dimensions match the source image")
