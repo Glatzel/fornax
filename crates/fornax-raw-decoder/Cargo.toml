@@ -55,7 +55,6 @@ criterion.workspace = true
 csv.workspace = true
 flashraw = "=0.3.1"
 fornax-codec.workspace = true
-fornax-raw-pipeline.workspace = true
 generic-num.workspace = true
 image.workspace = true
 libc.workspace = true
