@@ -154,7 +154,7 @@ pub enum AnyLazy<'a, T: Primitive> {
     Linear(LinearLazy<'a, T>),
     Lmmse(buffer::DenseLazy<T>),
     Ppg(PpgLazy<'a, T>),
-    Rcd(RcdLazy<T>),
+    Rcd(RcdLazy<'a, T>),
     Vng(buffer::DenseLazy<T>),
     Vng4(buffer::DenseLazy<T>),
 }
@@ -190,6 +190,23 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             | Self::Lmmse(d)
             | Self::Vng(d)
             | Self::Vng4(d) => d.fill_rows(y0, out),
+        }
+    }
+
+    fn collect_with(&self, post: impl Fn(usize, &mut [T]) + Sync) -> fornax_raw_core::RgbImage<T> {
+        match self {
+            Self::Ahd(a) => a.collect_with(post),
+            Self::Linear(l) => l.collect_with(post),
+            Self::Ppg(p) => p.collect_with(post),
+            Self::Rcd(r) => r.collect_with(post),
+
+            Self::Aahd(d)
+            | Self::Amaze(d)
+            | Self::Dcb(d)
+            | Self::Dht(d)
+            | Self::Lmmse(d)
+            | Self::Vng(d)
+            | Self::Vng4(d) => d.collect_with(post),
         }
     }
 }

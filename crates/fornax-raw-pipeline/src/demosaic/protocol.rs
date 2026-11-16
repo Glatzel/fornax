@@ -59,6 +59,28 @@ pub trait LazyDemosaic<T: Primitive + Send + Sync>: Sync {
     }
 }
 
+pub(super) fn apply_post_in_place<T>(image: &mut RgbImage<T>, post: impl Fn(usize, &mut [T]) + Sync)
+where
+    T: Primitive + Send + Sync,
+{
+    let width = image.width() as usize;
+    let height = image.height() as usize;
+    let threads = rayon::current_num_threads();
+    let rows_per_task = (height / (threads * 4)).clamp(8, 128);
+    let row_stride = width * 3;
+
+    image
+        .as_mut()
+        .par_chunks_mut(row_stride * rows_per_task)
+        .enumerate()
+        .for_each(|(i, chunk)| {
+            let y0 = i * rows_per_task;
+            for (dy, row) in chunk.chunks_exact_mut(row_stride).enumerate() {
+                post(y0 + dy, row);
+            }
+        });
+}
+
 /// Builds a lazy demosaic result from a normalized Bayer mosaic.
 ///
 /// # Errors
