@@ -14,9 +14,13 @@ use fornax_dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw_core::{MonoImage, RawFormat, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 
+#[derive(Debug, Clone)]
 struct BenchmarkMosaic {
     label: String,
     mosaic: RawMosaic,
+}
+impl BenchmarkMosaic {
+    pub fn mosaic(&self) -> RawMosaic { self.mosaic.clone() }
 }
 
 fn metadata(width: u32, height: u32) -> Directory {
@@ -181,7 +185,7 @@ fn bench_writer(c: &mut Criterion) {
         for (name, compression) in &compressions {
             let mut output = Cursor::new(Vec::new());
             DngWriter::new(*compression)
-                .write_dng_with(&mut output, &benchmark.mosaic, &metadata)
+                .write_dng_with(&mut output, benchmark.clone().mosaic, &metadata)
                 .unwrap();
             let bytes = output.into_inner().len();
             group.throughput(Throughput::Bytes(u64::try_from(bytes).unwrap()));
@@ -190,18 +194,27 @@ fn bench_writer(c: &mut Criterion) {
                 benchmark.label,
                 bytes as f64 / raw as f64
             );
+
             group.bench_function(name, |b| {
-                b.iter(|| {
-                    let mut output = Cursor::new(Vec::new());
-                    DngWriter::new(*compression)
-                        .write_dng_with(
-                            black_box(&mut output),
-                            black_box(&benchmark.mosaic),
-                            black_box(&metadata),
-                        )
-                        .unwrap();
-                    black_box(output.into_inner())
-                });
+                let mosaic = benchmark.mosaic();
+
+                b.iter_batched(
+                    || mosaic.clone(),
+                    |mosaic| {
+                        let mut output = Cursor::new(Vec::new());
+
+                        DngWriter::new(*compression)
+                            .write_dng_with(
+                                black_box(&mut output),
+                                black_box(mosaic),
+                                black_box(&metadata),
+                            )
+                            .unwrap();
+
+                        black_box(output.into_inner())
+                    },
+                    criterion::BatchSize::LargeInput,
+                );
             });
         }
         group.finish();

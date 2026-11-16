@@ -76,7 +76,7 @@ fn synthetic_dng(path: &std::path::Path) {
     let samples = (0_u16..64).collect();
     let mosaic = RawMosaic::U16(MonoImage::from_raw(8, 8, samples).unwrap());
     DngWriter::new(DngWriterCompression::Uncompressed)
-        .write(path, &mosaic, &metadata(8, 8))
+        .write(path, mosaic, &metadata(8, 8))
         .unwrap();
 }
 

@@ -61,12 +61,12 @@ where
 {
     fn process(
         &self,
-        bayer_image: &fornax_raw_core::MonoImage<T>,
+        bayer_image: fornax_raw_core::MonoImage<T>,
         metadata: &M,
     ) -> Result<fornax_raw_core::RgbImage<T>, PostProcessError> {
         let result = self
             .demosaic
-            .demosaic(bayer_image, metadata.bayer_pattern())?;
+            .demosaic(&bayer_image, metadata.bayer_pattern())?;
 
         // Everything white-point dependent comes from the normalized
         // calibration: gains, and camera -> XYZ D50 on raw values.
@@ -349,7 +349,7 @@ mod tests {
             ..Default::default()
         }));
 
-        let output = processor(OutputColorSpace::Raw).process(&gray(), &metadata)?;
+        let output = processor(OutputColorSpace::Raw).process(gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         assert!((pixel[0] - 0.1).abs() < 1.0e-6, "{pixel:?}");
@@ -386,7 +386,7 @@ mod tests {
         ];
 
         for (output_color, expected) in cases {
-            let output = processor(output_color).process(&gray(), &metadata)?;
+            let output = processor(output_color).process(gray(), &metadata)?;
             let pixel = output.get_pixel(4, 4);
 
             for (actual, expected) in pixel.0.into_iter().zip(expected) {
@@ -409,7 +409,7 @@ mod tests {
             ..Default::default()
         }));
 
-        let output = processor(OutputColorSpace::Xyz).process(&gray(), &metadata)?;
+        let output = processor(OutputColorSpace::Xyz).process(gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         for (actual, expected) in pixel.0.into_iter().zip(D50) {
@@ -429,7 +429,7 @@ mod tests {
             ..Default::default()
         }));
 
-        let output = processor(OutputColorSpace::Xyz).process(&gray(), &metadata)?;
+        let output = processor(OutputColorSpace::Xyz).process(gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");
@@ -447,7 +447,7 @@ mod tests {
             ..Default::default()
         });
 
-        let output = processor(OutputColorSpace::Raw).process(&gray(), &metadata)?;
+        let output = processor(OutputColorSpace::Raw).process(gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");
@@ -464,7 +464,7 @@ mod tests {
         color.as_shot_neutral = Some([0.5, 1.0, 0.5]);
         let metadata = metadata(color);
 
-        let output = processor(OutputColorSpace::Xyz).process(&gray(), &metadata)?;
+        let output = processor(OutputColorSpace::Xyz).process(gray(), &metadata)?;
         let pixel = output.get_pixel(4, 4);
 
         assert!((pixel[0] - 0.2).abs() < 1.0e-6, "{pixel:?}");

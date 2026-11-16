@@ -227,7 +227,7 @@ fn dng_round_trip_preserves_samples_geometry_cfa_levels_neutral_and_orientation(
     let metadata = image.dng_metadata().unwrap();
     let mut output = Cursor::new(Vec::new());
     DngWriter::new(DngWriterCompression::Uncompressed)
-        .write_dng_with(&mut output, &mosaic, &metadata)
+        .write_dng_with(&mut output, mosaic, &metadata)
         .unwrap();
 
     let dng = fornax_dng::dng_decoder::DngImage::parse(output.get_ref()).unwrap();
