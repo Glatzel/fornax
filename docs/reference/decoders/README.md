@@ -2,12 +2,18 @@
 
 Current decoder documentation is grouped by primary purpose:
 
+- [operations](operations/) contains benchmark and corpus regression workflows.
 - [perf](perf/) contains the authoritative cross-decoder performance report and
   its reproducible input/results data.
 - [design](design/) contains active allocation and concurrency design
   boundaries.
 - [reference](reference/) contains format, decoder, API, field-table, and
-  specification research.
+  specification research, including each format's support and acceptance gate.
+
+## Operations
+
+- [Decoder benchmarks](operations/benchmark.md)
+- [RAW corpus and regression tracking](operations/corpus.md)
 
 ## Performance
 
@@ -40,6 +46,7 @@ are provenance, not current instructions.
 - [Fujifilm RAF](reference/fuji-raf.md)
 - [Hasselblad 3FR](reference/hasselblad-3fr.md)
 - [Nikon NEF](reference/nikon-nef.md)
+- [Other RAW format policy](reference/other-formats.md)
 - [Panasonic RW2](reference/panasonic-rw2.md)
 - [Phase One IIQ](reference/phase-one-iiq.md)
 - [Sony ARW/NRW](reference/sony-arw.md)

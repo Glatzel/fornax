@@ -2,6 +2,34 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Nikon NEF.
 
+## Support summary
+
+Tier 1 supports standard uncompressed/packed modes and 12/14-bit mode-3
+lossless Huffman.
+
+| Mode | Meaning | State |
+| ---: | --- | --- |
+| `1` | Lossy type-1 Huffman | Unsupported by policy |
+| `2` | Uncompressed | Supported |
+| `3` | Lossless Huffman, 12/14-bit, single strip | Supported |
+| `4` | Lossy type-2 Huffman | Unsupported by policy |
+| `5` | Striped packed 12-bit | Supported |
+| `6` | Uncompressed reduced 12-bit | Supported |
+| `7` | Unpacked 12-bit | Supported |
+| `8` | Small/reduced RAW | Unsupported |
+| `9` | Packed 12-bit | Supported |
+| `10` | Packed/word 14-bit | Supported |
+| `13`, `14` | High Efficiency / HE* | Unsupported |
+
+Mode 3 uses the `0x4630` identity curve, vertical then horizontal predictors,
+and exact lossless output. Rawler's one-code identity-curve dither is
+reference-only.
+
+Acceptance requires passing corpus or synthetic coverage for every supported
+mode, exact reference parity after crop/CFA/endianness normalization, typed
+unsupported results, and packing, row-padding, Huffman, curve, maker-note,
+malformed-stream, dispatch, and Bayer-handoff tests.
+
 ## Sources
 
 - dnglab/Rawler at

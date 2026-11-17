@@ -2,6 +2,16 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Fujifilm RAF.
 
+## Support summary
+
+Tier 2 supports uncompressed 12-bit packed samples, uncompressed 14/16-bit
+words, and `IS`-signed block-lossless 12/14/16-bit data. Explicit GFX 2x2
+profiles cross the Bayer handoff; X-Trans remains available through raw decode
+and DNG export but stops before preprocessing.
+
+Lossy RAF, SuperCCD rotation/staggering, FinePix DBP, unknown Bayer profiles,
+and non-2x2 pipeline input are typed unsupported.
+
 ## Sources
 
 - Rawler `0.8.0`, LGPL-2.1:

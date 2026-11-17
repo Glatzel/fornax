@@ -2,6 +2,16 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Canon CRX.
 
+## Support summary
+
+Tier 1 supports the audited lossless CRX slice in CR3/CRM containers. Accepted
+CMP1 data is version `0x0100`, four planes, encoding type zero, zero wavelet
+levels, MDAT header size `0x70`, CFA layout `0..=3`, and 8-16 declared bits.
+
+C-RAW/lossy CRX, nonzero transform levels, ambiguous CMP1 tuples, preview/HEIF
+and auxiliary dual-pixel images, CRM movie payloads as raw, non-2x2 pipeline
+input, and lossy reconstruction return typed unsupported errors.
+
 ## Pinned behavior
 
 - Canon CR3/CRM container notes:

@@ -63,6 +63,7 @@ scripts/agent-validation.sh --docs-only
   README tables, Cargo output, or diffs.
 
 For task procedures, read `docs/agent-workflow.md`; for decoder benchmarks and
-corpus work, read `docs/architecture/decoder.md`, `docs/decoder/benchmark.md`,
-and `docs/decoder/corpus.md`; for the human-facing book, read `book/AGENTS.md`
-only when asked to edit it.
+corpus work, read `docs/architecture/decoder.md`,
+`docs/reference/decoders/operations/benchmark.md`, and
+`docs/reference/decoders/operations/corpus.md`; for the human-facing book, read
+`book/AGENTS.md` only when asked to edit it.

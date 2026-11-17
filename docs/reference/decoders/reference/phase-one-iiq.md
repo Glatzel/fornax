@@ -2,6 +2,13 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Phase One/Leaf IIQ.
 
+## Support summary
+
+Tier 2 supports Phase One/Leaf `.IIQ` modes 0, 3, 5, 6, and 8. Legacy
+Raw1/Raw2 modes 1/2, Leaf `.MOS`, Phase One `.TIF`, preview extraction, unknown
+camera profiles, unsupported correction-table variants, and non-2x2 pipeline
+input are typed unsupported.
+
 ## Sources
 
 - Rawler `0.8.0`, LGPL-2.1: `src/decoders/iiq.rs`,

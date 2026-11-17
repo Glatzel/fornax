@@ -26,5 +26,4 @@ assert!(decoder.layout_dimensions().0 > 0);
 ```
 
 Implementation details are recorded in the
-[RW2 format plan](../../docs/decoder/formats/panasonic-rw2.md) and
 [Panasonic reference note](../../docs/reference/decoders/reference/panasonic-rw2.md).

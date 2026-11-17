@@ -7,7 +7,7 @@ description: Use when generating or verifying the raw.pixls.us corpus manifest, 
 
 Read [crates/decoder-tracker/AGENTS.md](../../../crates/decoder-tracker/AGENTS.md)
 before acting. Follow its setup, command, baseline, and README rules. Read
-[docs/decoder/corpus.md](../../../docs/decoder/corpus.md) for schemas, stage
+[docs/reference/decoders/operations/corpus.md](../../../docs/reference/decoders/operations/corpus.md) for schemas, stage
 semantics, and CI internals.
 
 Choose one route:

@@ -3,6 +3,18 @@
 This note is the canonical detailed reference for Fornax's DNG decoder scope,
 storage behavior, metadata mapping, and acceptance boundary.
 
+## Support summary
+
+Tier 0 accepts classic TIFF, BigTIFF, strips/tiles, single-channel CFA or
+`LinearRaw` image selection, uncompressed integer/float samples, lossless
+JPEG-92 predictors 1-7, Deflate, single-component lossy JPEG, JPEG XL, and
+feature-gated Zstandard. Conventional 2x2 RGB Bayer data crosses the
+preprocessing boundary.
+
+Multi-channel `LinearRaw`, non-2x2 interleave, unsupported lossless-JPEG tile
+variants, downstream opcodes, and auxiliary-directory regeneration remain
+outside this slice. Export is regenerated rather than byte-identical.
+
 ## Sources
 
 - Adobe Digital Negative Specification 1.7.1.0, September 2023.

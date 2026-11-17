@@ -46,7 +46,7 @@ Out of scope:
 - `docs/archive/reference/decoders/perf`
 - `docs/archive/README.md`
 - `docs/README.md`
-- `docs/decoder/benchmark.md`
+- `docs/reference/decoders/operations/benchmark.md`
 - `crates/fornax-raw-decoder/benches/flashraw_031_probe.rs`
 
 ## Validation

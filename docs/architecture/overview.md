@@ -329,5 +329,7 @@ baseline, waiver, artifact, and regeneration rules.
 ## References
 
 - Decoder details: [docs/architecture/decoder.md](decoder.md)
-- Decoder benchmark plan: [docs/decoder/benchmark.md](../decoder/benchmark.md)
-- Decoder corpus plan: [docs/decoder/corpus.md](../decoder/corpus.md)
+- Decoder benchmark plan:
+  [docs/reference/decoders/operations/benchmark.md](../reference/decoders/operations/benchmark.md)
+- Decoder corpus plan:
+  [docs/reference/decoders/operations/corpus.md](../reference/decoders/operations/corpus.md)

@@ -95,13 +95,15 @@ the conditional files are not all loaded together.
       detail in the on-demand workflow doc.
 - [x] Commit tooling separately or report why no safe change was made.
 
-### Task 2b: Consolidate duplicated decoder documentation
+### Task 2b: Consolidate the decoder documentation tree
 
-- [x] Compare `docs/decoder/formats/` with
-      `docs/reference/decoders/reference/`.
-- [x] Make format pages compact support/acceptance summaries with stable URLs.
-- [x] Make decoder reference notes the canonical detailed source/behavior
-      authority, adding a canonical DNG decoder note.
+- [x] Compare the former `docs/decoder/` tree with
+      `docs/reference/decoders/`.
+- [x] Move benchmark/corpus operations under
+      `docs/reference/decoders/operations/`.
+- [x] Fold format support/acceptance summaries into canonical decoder reference
+      notes, including the new DNG decoder note.
+- [x] Delete the remaining `docs/decoder/` subtree.
 - [x] Update conventions and documentation indexes without changing production
       code.
 
@@ -130,8 +132,8 @@ the conditional files are not all loaded together.
 - `docs/agent-workflow.md`
 - `docs/plans/chore-agent-context-audit.md`
 - `docs/plans/chore-shorten-agent-context-and-xerj-trial.md`
-- `docs/decoder/formats/` support summaries and
-  `docs/reference/decoders/reference/` canonical notes
+- `docs/reference/decoders/operations/` runbooks
+- `docs/reference/decoders/reference/` canonical notes
 - `scripts/agent-run.sh` and a focused test script, if the helper is adopted
 - `docs/plans/xerj-trial-2026-11.md`
 
@@ -160,6 +162,6 @@ expected to change.
 - Task A result after the quiet-tooling line: root `AGENTS.md` is 3,373 bytes;
   the unconditional bundle is 4,463 bytes (36.9% of the 12,086-byte baseline,
   about 1,116 estimated tokens).
-- Decoder format/reference consolidation reduces the two active trees from
-  89,837 to 71,767 bytes by keeping detailed behavior in one place and retaining
-  stable support-page URLs.
+- Decoder documentation now lives entirely under `docs/reference/decoders/`;
+  the former format summaries are merged into canonical notes and the two
+  operational runbooks live in `operations/`.

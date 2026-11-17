@@ -1,13 +1,14 @@
 # decoder-tracker: maintainer guide
 
 Tracks Fornax decoder results over the pinned
-[raw.pixls.us corpus](../../docs/decoder/corpus.md). The manifest and baseline
+[raw.pixls.us corpus](../../docs/reference/decoders/operations/corpus.md). The manifest and baseline
 are canonical text data. RAW payloads are transient. Repository-wide workflow
 lives in the [root agent guide](../../AGENTS.md); this file covers only corpus
 tracking.
 
 Use the [decoder-corpus-tracker skill](../../.agents/skills/decoder-corpus-tracker/SKILL.md)
-for task procedures. Read [docs/decoder/corpus.md](../../docs/decoder/corpus.md)
+for task procedures. Read
+[docs/reference/decoders/operations/corpus.md](../../docs/reference/decoders/operations/corpus.md)
 for the CSV schemas, stage semantics, sharding rules, and workflow internals.
 
 ## Commands
@@ -166,7 +167,7 @@ the same review as stage or output changes.
 5. Rerun the workflow and require an unchanged outcome.
 
 Follow the deliberately bounded procedure in
-[docs/decoder/corpus.md](../../docs/decoder/corpus.md#corpus-updates).
+[docs/reference/decoders/operations/corpus.md](../../docs/reference/decoders/operations/corpus.md#corpus-updates).
 
 ## Files and invariants
 

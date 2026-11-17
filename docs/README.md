@@ -7,10 +7,8 @@ reference, and active planning documentation.
 
 - Read [architecture/overview.md](architecture/overview.md) first for crate
   boundaries and the end-to-end image pipeline.
-- Use `decoder/` for decoder dispatch, compact format support summaries,
-  benchmarks, and corpus regression operations.
-- Use `reference/` as the canonical home for pinned sources, algorithm and
-  codec behavior, and detailed format implementation notes.
+- Use `reference/` as the canonical home for decoder operations, format support,
+  pinned sources, algorithm/codec behavior, and implementation notes.
 - Use `plans/` for work that is still active.
 - Use [archive/README.md](archive/README.md) for completed plans and historical
   evidence. Archived documents are not current task instructions.
@@ -21,8 +19,7 @@ reference, and active planning documentation.
 | Folder | Contents |
 | --- | --- |
 | `architecture/` | Current architecture and data-flow guidance. |
-| `decoder/` | Decoder operations plus format support summaries and acceptance gates. |
-| `reference/` | Canonical source research grouped by algorithm, codec, and decoder. |
+| `reference/` | Canonical decoder operations and source research grouped by topic. |
 | `plans/` | Active implementation plans for open work. |
 | `archive/` | Completed plans, superseded reports, and reproducibility evidence. |
 
@@ -33,22 +30,12 @@ reference, and active planning documentation.
 | [Decoder Architecture](architecture/decoder.md) | Decoder dispatch, shared interfaces, and per-format data flow. |
 | [Architecture Overview](architecture/overview.md) | Crate boundaries, stage contracts, and end-to-end image processing. |
 
-## Decoder guides
+## Decoder operations
 
 | Document | Summary |
 | --- | --- |
-| [Decoder Benchmarks](decoder/benchmark.md) | Benchmark targets, environment controls, and comparison criteria. |
-| [RAW Corpus and Regression Tracking](decoder/corpus.md) | Pinned corpus, golden regression workflow, schemas, and manual CI operation. |
-| [RAW Format Support](decoder/formats/README.md) | Supported layouts, rejection boundaries, and per-format acceptance gates. |
-| [Canon CR3 Format](decoder/formats/canon-cr3.md) | Lossless CRX support boundary and acceptance gate. |
-| [DNG Format](decoder/formats/dng.md) | Tier-0 DNG support summary and remaining limits. |
-| [Fujifilm RAF Format](decoder/formats/fuji-raf.md) | Lossless RAF support and Bayer/X-Trans boundary. |
-| [Hasselblad 3FR Format](decoder/formats/hasselblad-3fr.md) | Accepted 3FR profiles and codec boundary. |
-| [Nikon NEF Format](decoder/formats/nikon-nef.md) | Nikon compression-mode support matrix. |
-| [Other RAW Formats Policy](decoder/formats/other-formats.md) | Unsupported-format boundary and requirements for adding a format. |
-| [Panasonic RW2 Format](decoder/formats/panasonic-rw2.md) | Accepted single-shot RW2 versions and codec boundary. |
-| [Phase One IIQ Format](decoder/formats/phase-one-iiq.md) | Accepted IIQ modes and correction/acceptance boundary. |
-| [Sony ARW Format](decoder/formats/sony-arw.md) | Accepted ARW/NRW families and rejection boundary. |
+| [Decoder Benchmarks](reference/decoders/operations/benchmark.md) | Benchmark targets, environment controls, and comparison criteria. |
+| [RAW Corpus and Regression Tracking](reference/decoders/operations/corpus.md) | Pinned corpus, golden regression workflow, schemas, and manual CI operation. |
 
 ## Active plans
 
@@ -91,6 +78,7 @@ reference, and active planning documentation.
 | [Fujifilm RAF references](reference/decoders/reference/fuji-raf.md) | Pinned RAF sources and implementation boundaries. |
 | [Hasselblad 3FR references](reference/decoders/reference/hasselblad-3fr.md) | Pinned 3FR sources and implementation boundaries. |
 | [Nikon NEF references](reference/decoders/reference/nikon-nef.md) | Pinned NEF sources and implementation boundaries. |
+| [Other RAW format policy](reference/decoders/reference/other-formats.md) | Unsupported-format boundary and requirements for adding a format. |
 | [Panasonic RW2 references](reference/decoders/reference/panasonic-rw2.md) | Pinned RW2 sources and implementation boundaries. |
 | [Phase One IIQ references](reference/decoders/reference/phase-one-iiq.md) | Pinned IIQ sources and implementation boundaries. |
 | [Restart-free single-scan parallelism design](reference/decoders/design/restart-free-single-scan-parallelism-design.md) | Written no-go gate for restart-free LJPEG parallelism. |

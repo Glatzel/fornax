@@ -2,6 +2,16 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Hasselblad 3FR.
 
+## Support summary
+
+Tier 2 supports classic little-endian 3FR TIFF, compression 1 exact 16-bit
+words, and compression 7 single-component predictor-8 lossless JPEG. Accepted
+tagless models use explicit RGGB profiles; source CFA tags take precedence.
+
+FFF, merged/multi-shot variants, tiled storage, multi-sample or non-16-bit
+payloads, restart/point transforms, unknown profiles/compression, and non-2x2
+pipeline input are typed unsupported.
+
 ## Sources
 
 - dnglab/Rawler commit

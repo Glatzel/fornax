@@ -2,6 +2,27 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Panasonic RW2.
 
+## Support summary
+
+Tier 2 supports conventional 2x2 Bayer single-shot RW2 files:
+
+| Raw version | Compression | State |
+| ---: | --- | --- |
+| `4`, `5`, `6` | `34316` | Supported |
+| `7` | any | Typed unsupported pending a real single-shot fixture |
+| `8` | absent or `34316` | Supported |
+| other | any | Typed unsupported |
+
+Supported payloads include V4/V5/V6/V8, V8 identity/nonlinear tables, stamped
+12-bit unpacked and packed-control layouts, multi-strip placement, and
+12/14/16-bit corpus fixtures. Legacy `.RAW`, versions 1-3, multi-exposure,
+pixel-shift/composite layouts, unknown CFA, and non-2x2 pipeline input are
+unsupported.
+
+Acceptance requires synthetic coverage for every codec and malformed stream,
+Rawler parity for golden fixtures, DNG round-trip of active area/crop/CFA/
+levels/neutral/orientation, and a reviewed `**/*.[rR][wW]2` corpus selection.
+
 ## Behavior References
 
 ### Rawler 0.8.0

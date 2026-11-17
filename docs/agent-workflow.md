@@ -111,8 +111,8 @@ Report the PR URL. Only the user merges, watches, closes, or abandons it.
 
 - Architecture and pipeline boundaries: `docs/architecture/overview.md`
 - Decoder ownership and validation: `docs/architecture/decoder.md`
-- Decoder benchmarks: `docs/decoder/benchmark.md`
-- Corpus rules: `docs/decoder/corpus.md`
+- Decoder benchmarks: `docs/reference/decoders/operations/benchmark.md`
+- Corpus rules: `docs/reference/decoders/operations/corpus.md`
 - Manual tracker: `crates/decoder-tracker/AGENTS.md`
 - Demosaic comparison: `crates/compare-demosaic/AGENTS.md`
 - Book: `book/README.md` and `book/AGENTS.md`

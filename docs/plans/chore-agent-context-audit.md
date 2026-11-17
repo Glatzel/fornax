@@ -42,9 +42,11 @@ descriptions remain unchanged.
 - Complete crate dependency/ownership map and decoder contract:
   `docs/architecture/overview.md`.
 - Decoder/codec invariants and benchmark matrix:
-  `docs/architecture/decoder.md`, `docs/decoder/benchmark.md`.
+  `docs/architecture/decoder.md`,
+  `docs/reference/decoders/operations/benchmark.md`.
 - Corpus lifecycle, tracker commands, baseline rules:
-  `crates/decoder-tracker/AGENTS.md`, `docs/decoder/corpus.md`.
+  `crates/decoder-tracker/AGENTS.md`,
+  `docs/reference/decoders/operations/corpus.md`.
 - Demosaic comparison commands, baselines, waivers:
   `crates/compare-demosaic/AGENTS.md`, its project skill.
 - Book writing and binary-asset rules: `book/AGENTS.md`.
@@ -81,23 +83,21 @@ authority or retained in shorter form.
 
 ## Decoder documentation consolidation
 
-`docs/decoder/formats/` and `docs/reference/decoders/reference/` overlapped
+The former `docs/decoder/` tree and `docs/reference/decoders/` overlapped
 without being byte-identical. Format pages repeated container, codec, metadata,
 and acceptance material while reference notes owned source provenance and
 detailed behavior.
 
-The split is now explicit:
+The documentation now has one decoder tree:
 
-- `docs/decoder/formats/` answers what layout is supported, rejected, and
-  required to pass. Stable paths remain valid.
-- `docs/reference/decoders/reference/` is the canonical detailed source and
-  implementation-behavior reference.
-- The new `dng-decoder.md` consolidates the former broad DNG format detail; the
-  format page now summarizes support and remaining limits.
+- `docs/reference/decoders/operations/` contains benchmark and corpus runbooks.
+- `docs/reference/decoders/reference/` contains support summaries, acceptance
+  gates, pinned provenance, and detailed implementation behavior.
+- `docs/reference/decoders/reference/dng-decoder.md` consolidates the former
+  broad DNG format detail.
 
-The combined format/reference trees shrank from 89,837 to 71,767 bytes (20.1%).
-Exact headings were not preserved, so links into removed subsections were
-updated through the top-level stable pages or canonical reference notes.
+`docs/decoder/` is deleted. All inbound links now target the canonical notes or
+operations runbooks.
 
 ## Old rule -> new location
 
@@ -116,7 +116,7 @@ updated through the top-level stable pages or canonical reference notes.
 | Rawler/DNC scope | `docs/architecture/overview.md`, crate map |
 | Decoder returns mosaic/metadata behind typed interface | `docs/architecture/overview.md`, decoder contract |
 | Pipeline owns normalization/demosaic/RGB/postprocessing | Root layout bullet; full detail in architecture pipeline flow |
-| Decoder vs pipeline benchmark ownership | `docs/decoder/benchmark.md` and architecture crate map |
+| Decoder vs pipeline benchmark ownership | `docs/reference/decoders/operations/benchmark.md` and architecture crate map |
 | Benchmark matrix uses `--no-default-features` and required feature only | `docs/agent-workflow.md`, Benchmark matrix and validation |
 | Tracker ownership and manual-only/full-run rules | `crates/decoder-tracker/AGENTS.md`; dispatch details in `docs/agent-workflow.md` |
 | LibRaw/darktable/RawTherapee are dev-only comparison references | Root reference-boundary bullet; usage in `crates/compare-demosaic/AGENTS.md` |

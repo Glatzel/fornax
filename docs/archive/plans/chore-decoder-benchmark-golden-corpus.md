@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #717 on 2026-11-12.
-> Current guidance: [current documentation](../../decoder/corpus.md).
+> Current guidance: [current documentation](../../reference/decoders/operations/corpus.md).
 
 # Decoder Golden-Corpus and Vendor Codec Ownership Plan
 

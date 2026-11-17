@@ -1,6 +1,6 @@
 > Status: archived completed plan.
 > Merged: #722 `chore/full-corpus-metadata` on 2026-11-14.
-> Current guidance: [current documentation](../../decoder/corpus.md).
+> Current guidance: [current documentation](../../reference/decoders/operations/corpus.md).
 
 # Full-Corpus Encoding Metadata and Golden Coverage Audit
 
