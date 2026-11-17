@@ -172,9 +172,10 @@ mod tests {
     thread_local! {
         static IN_POLICY: Cell<bool> = const { Cell::new(false) };
     }
-
+    #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
     pub(super) fn enter_policy() -> bool { IN_POLICY.replace(true) }
 
+    #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
     pub(super) fn leave_policy(previous: bool) { IN_POLICY.set(previous); }
 
     struct CountingAllocator;
