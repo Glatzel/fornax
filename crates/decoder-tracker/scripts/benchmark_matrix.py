@@ -8,7 +8,7 @@ from pathlib import Path
 
 HEADER = ["path", "size", "sha256"]
 EXTENDED_HEADER = ["path", "size", "sha256", "decoder_path", "reason", "overhead_only"]
-GROUP_HEADER = EXTENDED_HEADER + ["group"]
+GROUP_HEADER = [*EXTENDED_HEADER, "group"]
 GROUPS = frozenset({"core", "full", "overhead", "hdr"})
 FEATURES = {
     "3FR": "hasselblad",
@@ -52,7 +52,7 @@ class GoldenManifestError(ValueError):
 def load_manifest(stream):
     reader = csv.DictReader(stream)
     if reader.fieldnames not in (HEADER, EXTENDED_HEADER, GROUP_HEADER):
-        msg = "golden manifest header must be path,size,sha256 or include decoder_path,reason,overhead_only and optional group"
+        msg = "golden manifest header must be path,size,sha256 or include decoder_path,reason,overhead_only and optional group"  # noqa: E501
         raise GoldenManifestError(msg)
 
     rows = []
