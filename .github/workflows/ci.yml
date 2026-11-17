@@ -145,8 +145,9 @@ jobs:
         shell: bash
         run: |
           python3 crates/decoder-tracker/scripts/benchmark_matrix.py \
-            --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+            --manifest crates/decoder-tracker/golden/perf-manifest.csv \
             --formats "${{ github.event_name == 'workflow_dispatch' && 'all' || needs.changed.outputs.benchmark_formats }}" \
+            --group "${{ github.event_name == 'workflow_dispatch' && 'all' || 'core' }}" \
             --github-output "$GITHUB_OUTPUT"
 
   lefthook:
@@ -163,10 +164,12 @@ jobs:
       ${{
         always() &&
         !cancelled() &&
-        (github.event_name == 'push' ||
+        (github.event_name == 'workflow_dispatch' ||
+         github.event_name == 'push' ||
          github.event_name == 'schedule' ||
          (github.event_name == 'pull_request' &&
-          needs.changed.outputs.golden == 'true'))
+          (needs.changed.outputs.golden == 'true' ||
+           needs.changed.outputs.benchmark_formats != '')))
       }}
     runs-on: ubuntu-latest
     permissions:
@@ -192,14 +195,19 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .git/modules/external/raw.pixls.us/lfs/objects
-          key: golden-corpus-${{ steps.corpus.outputs.sha }}
+          key: golden-test-perf-corpus-v1-${{ steps.corpus.outputs.sha }}
+      - name: Fetch test and perf LFS objects into shared cache
+        shell: bash
+        run: |
+          include="$(python3 crates/decoder-tracker/scripts/golden_cache_include.py)"
+          git -C external/raw.pixls.us lfs fetch origin --include="$include"
       - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
       - name: Build decoder-tracker
         run: cargo build --locked --release -p decoder-tracker
       - name: Check golden decode hashes
         run: |
           target/release/decoder-tracker hash \
-            --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+            --manifest crates/decoder-tracker/golden/test-manifest.csv \
             --check crates/decoder-tracker/golden/decode-hashes.csv
 
   main:
@@ -343,12 +351,13 @@ jobs:
 
   decoder-benchmark:
     name: decoder benchmark (${{ matrix.label }})
-    needs: [changed, decoder-benchmark-plan]
+    needs: [changed, decoder-benchmark-plan, golden]
     if: >-
       ${{
         always() &&
         !cancelled() &&
-        needs.decoder-benchmark-plan.result == 'success'
+        needs.decoder-benchmark-plan.result == 'success' &&
+        needs.golden.result == 'success'
       }}
     runs-on: ubuntu-latest
     permissions:
@@ -369,6 +378,16 @@ jobs:
           git -c filter.lfs.required=false \
             -c submodule.external/raw.pixls.us.branch=master \
             submodule update --init --remote external/raw.pixls.us
+      - name: Resolve pinned corpus commit
+        id: corpus
+        shell: bash
+        run: |
+          echo "sha=$(git rev-parse HEAD:external/raw.pixls.us)" >>"$GITHUB_OUTPUT"
+      - name: Restore shared test and perf LFS objects
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .git/modules/external/raw.pixls.us/lfs/objects
+          key: golden-test-perf-corpus-v1-${{ steps.corpus.outputs.sha }}
       - name: Materialize the matrix input
         shell: bash
         env:

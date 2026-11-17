@@ -1,6 +1,7 @@
 use decoder_tracker::golden::{
-    GoldenCsv, GoldenRow, build_golden_coverage, check_golden_csv, decode_golden, read_golden_csv,
-    write_golden_coverage_csv, write_golden_csv, write_golden_selection_csv,
+    GoldenCsv, GoldenRow, build_golden_coverage, check_golden_csv, check_golden_csv_subset,
+    decode_golden, read_golden_csv, write_golden_coverage_csv, write_golden_csv,
+    write_golden_selection_csv,
 };
 use decoder_tracker::manifest::derive_identity;
 use decoder_tracker::model::{BaselineRow, ManifestRow, status_for_stages};
@@ -247,6 +248,22 @@ fn golden_check_rejects_duplicate_expected_rows() {
 }
 
 #[test]
+fn golden_subset_check_allows_expected_union_rows() {
+    let actual = row(BayerPattern::RGGB);
+    let mut extra = actual.clone();
+    extra.path = "Canon/Camera/perf-only.dng".into();
+    let expected = GoldenCsv {
+        rows: vec![actual.clone(), extra],
+    };
+
+    check_golden_csv_subset(std::slice::from_ref(&actual), &expected).unwrap();
+
+    let mut changed = actual;
+    changed.raw_sha256 = "11".repeat(32);
+    assert!(check_golden_csv_subset(&[changed], &expected).is_err());
+}
+
+#[test]
 fn golden_coverage_groups_encoding_paths_and_chooses_smallest_representative() {
     let small = manifest_row("Canon/Cam/small.DNG", 10, 'a');
     let large = manifest_row("Canon/Cam/large.DNG", 20, 'b');
@@ -256,7 +273,7 @@ fn golden_coverage_groups_encoding_paths_and_chooses_smallest_representative() {
         baseline_row(&small, "lossless-jpeg", 14, true),
         baseline_row(&missing, "sony-lossless-jpeg", 14, true),
     ];
-    let manifest = vec![large, small, missing.clone()];
+    let manifest = vec![large, small, missing];
     let golden = vec![
         manifest[1].clone(),
         manifest[0].clone(),
@@ -563,9 +580,10 @@ fn golden_coverage_only_includes_tier_zero_and_one_formats_and_excludes_arw1() {
             ("CR3", "canon-lossless-crx"),
             ("DNG", "lossless-jpeg"),
             ("NEF", "nikon-huffman"),
+            ("NEF", "nikon-uncompressed-words"),
         ]
     );
-    assert_eq!(report.summary.missing, 4);
+    assert_eq!(report.summary.missing, 5);
 }
 
 #[test]
@@ -722,12 +740,7 @@ fn golden_selection_manifest_writes_one_lowest_pixel_representative_per_encoding
     second_row.width = 1000;
     second_row.height = 500;
     second_row.cfa = "BGGR".into();
-    let report = build_golden_coverage(
-        &[first_row, second_row],
-        &[first.clone(), second.clone()],
-        &[],
-    )
-    .unwrap();
+    let report = build_golden_coverage(&[first_row, second_row], &[first, second], &[]).unwrap();
 
     let bytes = write_golden_selection_csv(&report.rows).unwrap();
 

@@ -1010,8 +1010,10 @@ version = "0.0.17"
 dependencies = [
  "fornax-codec",
  "fornax-dng",
+ "fornax-large-alloc",
  "fornax-raw-core",
  "fornax-tiff",
+ "rayon",
 ]
 
 [[package]]

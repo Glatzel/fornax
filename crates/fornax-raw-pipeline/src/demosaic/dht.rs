@@ -772,16 +772,14 @@ mod tests {
             for x in 0..width {
                 let index = dht.offset(x, y);
                 let measured = cfa_channel(pattern, x as isize, y as isize);
-                for channel in 0..3 {
+                for (channel, &actual) in dht.nraw[index].iter().enumerate() {
                     let expected = if channel == measured {
                         f32::from(input[y * width + x])
                     } else {
                         0.5
                     };
-                    assert_eq!(
-                        dht.nraw[index][channel], expected,
-                        "({x}, {y}) ch {channel}"
-                    );
+
+                    assert_eq!(actual, expected, "({x}, {y}) ch {channel}");
                 }
             }
         }

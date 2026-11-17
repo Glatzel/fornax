@@ -498,7 +498,10 @@ fn synthetic_uncompressed_fixtures_round_trip_every_sample_type() {
     }
 }
 
-fn assert_uncompressed_fixture<S: FixtureSample>(byte_order: ByteOrder) {
+fn assert_uncompressed_fixture<S>(byte_order: ByteOrder)
+where
+    S: FixtureSample,
+{
     let fixture = uncompressed_fixture::<S>(
         23,
         19,

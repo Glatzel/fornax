@@ -225,7 +225,12 @@ pub fn decode_unpacked_words(
             .ok_or_else(|| invalid("Nikon unpacked-word strip size overflow"))
     })?;
     let sample_count = checked_sample_count(request.width, request.height)?;
-    let mut output = vec![0_u16; sample_count];
+    let mut output = if rayon::current_num_threads() == 1 {
+        fornax_large_alloc::zeroed_samples(sample_count)
+            .map_err(|error| invalid(format!("Nikon unpacked-word allocation failed: {error}")))?
+    } else {
+        vec![0_u16; sample_count]
+    };
     let mask = (1_u16 << bits) - 1;
     let payloads = request
         .chunks

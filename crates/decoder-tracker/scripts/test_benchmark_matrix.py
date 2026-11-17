@@ -61,6 +61,31 @@ def test_filters_to_requested_formats_and_maps_dng_to_no_feature():
     assert benchmark_matrix.FEATURES["DNG"] == ""
 
 
+def test_accepts_extended_golden_metadata_columns():
+    rows = benchmark_matrix.load_manifest(
+        io.StringIO(
+            f"path,size,sha256,decoder_path,reason,overhead_only\n"
+            f"Canon/EOS R5/photo.CR3,10,{SHA_A},CR3.crx,large CRX,0\n"
+        )
+    )
+
+    assert rows == [{"path": "Canon/EOS R5/photo.CR3", "size": 10, "sha256": SHA_A}]
+
+
+def test_filters_performance_groups():
+    rows = benchmark_matrix.load_manifest(
+        io.StringIO(
+            f"path,size,sha256,decoder_path,reason,overhead_only,group\n"
+            f"Canon/EOS R5/core.CR3,10,{SHA_A},CR3.crx,core,0,core\n"
+            f"Canon/EOS R6/extra.CR3,20,{SHA_B},CR3.crx,extra,0,full\n"
+        )
+    )
+
+    matrix = benchmark_matrix.build_matrix(rows, groups=benchmark_matrix.parse_groups("full"))
+
+    assert [item["path"] for item in matrix["include"]] == ["Canon/EOS R6/extra.CR3"]
+
+
 def test_rejects_duplicate_paths():
     with pytest.raises(ValueError, match="duplicate path"):
         benchmark_matrix.load_manifest(

@@ -12,9 +12,10 @@ use decoder_tracker::csvio::{
 };
 use decoder_tracker::duckdb::{diff as duckdb_diff, merge as duckdb_merge};
 use decoder_tracker::golden::{
-    build_golden_coverage, check_golden_csv, decode_golden, read_golden_csv,
+    build_golden_coverage, check_golden_csv_subset, decode_golden, read_golden_csv,
     write_golden_coverage_csv, write_golden_csv, write_golden_selection_csv,
 };
+use decoder_tracker::golden_set::{GoldenCheckOptions, check_golden_sets, read_golden_inputs};
 use decoder_tracker::manifest::{
     ManifestCheck, corpus_path, generate_manifest, normalize_repo_path,
 };
@@ -27,8 +28,12 @@ const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
 const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/data/manifest.csv";
 const DEFAULT_OUTPUT: &str = "target/decoder-tracker/corpus.csv";
 const DEFAULT_BASELINE: &str = "crates/decoder-tracker/data/baseline.csv";
-const DEFAULT_GOLDEN: &str = "crates/decoder-tracker/golden/selected-manifest.csv";
+const DEFAULT_GOLDEN: &str = "crates/decoder-tracker/golden/test-manifest.csv";
 const DEFAULT_GOLDEN_COVERAGE: &str = "target/decoder-tracker/golden-coverage.csv";
+const DEFAULT_CORPUS_MANIFEST: &str = "crates/decoder-tracker/data/manifest.csv";
+const DEFAULT_TEST_MANIFEST: &str = "crates/decoder-tracker/golden/test-manifest.csv";
+const DEFAULT_PERF_MANIFEST: &str = "crates/decoder-tracker/golden/perf-manifest.csv";
+const DEFAULT_GOLDEN_HASHES: &str = "crates/decoder-tracker/golden/decode-hashes.csv";
 
 #[derive(Debug, Parser)]
 #[command(
@@ -60,6 +65,8 @@ enum Command {
     Hash(HashArgs),
     /// Report golden corpus coverage by source encoding.
     GoldenCoverage(GoldenCoverageArgs),
+    /// Validate the test/perf golden split and shared hashes.
+    GoldenCheck(GoldenCheckArgs),
     /// Evaluate one materialized file for the run parent process.
     #[command(hide = true)]
     RunOne(RunOneArgs),
@@ -158,10 +165,7 @@ struct UpdateArgs {
 struct HashArgs {
     #[arg(long, default_value = DEFAULT_CORPUS)]
     corpus: PathBuf,
-    #[arg(
-        long,
-        default_value = "crates/decoder-tracker/golden/selected-manifest.csv"
-    )]
+    #[arg(long, default_value = DEFAULT_GOLDEN)]
     manifest: PathBuf,
     #[arg(long, conflicts_with = "check")]
     out: Option<PathBuf>,
@@ -181,6 +185,24 @@ struct GoldenCoverageArgs {
     out: PathBuf,
     #[arg(long)]
     selected_out: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+struct GoldenCheckArgs {
+    #[arg(long, default_value = DEFAULT_BASELINE)]
+    baseline: PathBuf,
+    #[arg(long, default_value = DEFAULT_CORPUS)]
+    corpus: PathBuf,
+    #[arg(long, default_value = DEFAULT_CORPUS_MANIFEST)]
+    corpus_manifest: PathBuf,
+    #[arg(long, default_value = DEFAULT_TEST_MANIFEST)]
+    test_manifest: PathBuf,
+    #[arg(long, default_value = DEFAULT_PERF_MANIFEST)]
+    perf_manifest: PathBuf,
+    #[arg(long, default_value = DEFAULT_GOLDEN_HASHES)]
+    hashes: PathBuf,
+    #[arg(long)]
+    allow_uncovered: bool,
 }
 
 #[derive(Debug, Args)]
@@ -230,6 +252,7 @@ fn execute(cli: Cli) -> Result<ExitCode> {
         Command::Update(args) => update(args),
         Command::Hash(args) => hash(args),
         Command::GoldenCoverage(args) => golden_coverage(args),
+        Command::GoldenCheck(args) => golden_check(args),
         Command::RunOne(args) => {
             println!("{}", serde_json::to_string(&evaluate_one(&args.input))?);
             Ok(ExitCode::SUCCESS)
@@ -386,7 +409,7 @@ fn hash(args: HashArgs) -> Result<ExitCode> {
 
     if let Some(expected) = args.check {
         let expected = read_golden_csv(read_file(&expected)?)?;
-        check_golden_csv(&rows, &expected)?;
+        check_golden_csv_subset(&rows, &expected)?;
         clerk::info!("decoder golden hashes are unchanged");
         println!("golden: unchanged ({} rows)", rows.len());
     } else if let Some(output) = args.out {
@@ -427,6 +450,45 @@ fn golden_coverage(args: GoldenCoverageArgs) -> Result<ExitCode> {
         report.summary.missing,
         report.summary.redundant,
         args.out.display()
+    );
+    Ok(ExitCode::SUCCESS)
+}
+
+fn golden_check(args: GoldenCheckArgs) -> Result<ExitCode> {
+    let inputs = read_golden_inputs(
+        &args.baseline,
+        &args.corpus_manifest,
+        &args.test_manifest,
+        &args.perf_manifest,
+        &args.hashes,
+    )?;
+    let report = check_golden_sets(
+        &args.corpus,
+        &inputs.baseline,
+        &inputs.corpus_manifest,
+        &inputs.test,
+        &inputs.perf,
+        &inputs.hashes,
+        GoldenCheckOptions {
+            allow_uncovered: args.allow_uncovered,
+        },
+    )?;
+    for warning in &report.warnings {
+        clerk::warn!("{warning}");
+    }
+    println!(
+        "golden-check: test={} perf={} union={} paths={} core={} core-size={} bytes \
+         core-probe-estimate={} seconds overhead-only={} large-perf={} largest-perf={} bytes",
+        report.test_count,
+        report.perf_count,
+        report.union_count,
+        report.path_count,
+        report.core_count,
+        report.core_bytes,
+        report.core_estimated_probe_seconds,
+        report.perf_overhead_count,
+        report.large_perf_count,
+        report.largest_perf_bytes
     );
     Ok(ExitCode::SUCCESS)
 }

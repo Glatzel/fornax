@@ -172,9 +172,10 @@ mod tests {
     thread_local! {
         static IN_POLICY: Cell<bool> = const { Cell::new(false) };
     }
-
+    #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
     pub(super) fn enter_policy() -> bool { IN_POLICY.replace(true) }
 
+    #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
     pub(super) fn leave_policy(previous: bool) { IN_POLICY.set(previous); }
 
     struct CountingAllocator;
@@ -274,7 +275,7 @@ mod tests {
         assert!(zeroed_samples::<u16>(usize::MAX).is_err());
     }
 
-    fn assert_tracked_allocations<T>(len: usize, expect_large_page_policy: bool)
+    fn assert_tracked_allocations<T>(len: usize, _expect_large_page_policy: bool)
     where
         T: PartialEq + Pod + Debug,
     {
@@ -300,7 +301,7 @@ mod tests {
             );
         }
         #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
-        if expect_large_page_policy {
+        if _expect_large_page_policy {
             assert_eq!(allocations, 0);
             assert_eq!(bypass_zeroed_allocations, 0);
             assert_eq!(policy_zeroed_allocations, 1);

@@ -20,7 +20,8 @@ Current decoder documentation is grouped by primary purpose:
 - [FlashRaw versus Fornax raw decode](perf/flashraw-vs-fornax.md) is the single
   current comparison for the golden DNG, Sony ARW, Canon CR3, and Nikon NEF
   decoder paths.
-- [Golden selected manifest](../../../crates/decoder-tracker/golden/selected-manifest.csv)
+- [Golden test manifest](../../../crates/decoder-tracker/golden/test-manifest.csv)
+- [Golden perf manifest](../../../crates/decoder-tracker/golden/perf-manifest.csv)
 - [Golden performance matrix](perf/data/golden-benchmark-matrix.csv)
 - [Canonical per-sample results](perf/data/golden-flashraw-vs-fornax-2026-11-16.csv)
 

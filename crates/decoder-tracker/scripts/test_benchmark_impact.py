@@ -21,7 +21,8 @@ def test_shared_benchmark_and_manifest_changes_select_everything():
         "crates/fornax-raw-decoder/benches/decoder.rs",
         "crates/fornax-tiff/src/raster.rs",
         "Cargo.toml",
-        "crates/decoder-tracker/golden/selected-manifest.csv",
+        "crates/decoder-tracker/golden/test-manifest.csv",
+        "crates/decoder-tracker/golden/perf-manifest.csv",
         ".github/workflows/ci.yml",
     ):
         assert benchmark_matrix.impacted_formats([path]) == benchmark_matrix.ALL_FORMATS

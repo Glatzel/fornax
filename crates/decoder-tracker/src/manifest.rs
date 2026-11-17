@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
+use std::fs::{self, File};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -7,6 +8,7 @@ use crate::csvio::{read_manifest_csv, write_manifest_csv};
 use crate::model::{ManifestRow, Result, TrackerError};
 
 pub const VERSION: &str = "version https://git-lfs.github.com/spec/v1";
+const MAX_LFS_POINTER_BYTES: usize = 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ManifestCheck {
@@ -32,9 +34,6 @@ impl ManifestCheck {
             return Err(TrackerError::new(format!(
                 "manifest snapshot drift: {missing} committed entries are gone, {added} entries are new; regenerate and review the manifest"
             )));
-        }
-        for row in &generated {
-            validate_pointer(corpus, row)?;
         }
         Ok(Self::Current)
     }
@@ -71,6 +70,7 @@ pub fn derive_identity(path: &str) -> Result<(String, String, String, String)> {
 
 pub fn generate_manifest(corpus: &Path) -> Result<Vec<ManifestRow>> {
     let filelist = fs::read_to_string(corpus.join("filelist.sha256"))?;
+    let lfs_listing = lfs_listing(corpus)?;
     let mut rows = Vec::new();
     for (line_number, line) in filelist.lines().enumerate() {
         if line.trim().is_empty() {
@@ -95,11 +95,25 @@ pub fn generate_manifest(corpus: &Path) -> Result<Vec<ManifestRow>> {
             format,
             filename,
         };
-        validate_pointer(corpus, &row)?;
-        rows.push(ManifestRow {
-            size: pointer_size(corpus, &row)?,
-            ..row
-        });
+        let size = if let Some(listing) = &lfs_listing {
+            let Some((oid, size)) = listing.get(&row.path) else {
+                return Err(TrackerError::new(format!(
+                    "{} is absent from git lfs ls-files",
+                    row.path
+                )));
+            };
+            if oid != &row.sha256 {
+                return Err(TrackerError::new(format!(
+                    "{} pointer oid {oid} does not match the listed SHA-256 {}",
+                    row.path, row.sha256
+                )));
+            }
+            *size
+        } else {
+            validate_pointer(corpus, &row)?;
+            pointer_size(corpus, &row)?
+        };
+        rows.push(ManifestRow { size, ..row });
     }
     validate_manifest_keys(&rows)?;
     rows.sort_by(|left, right| {
@@ -108,6 +122,48 @@ pub fn generate_manifest(corpus: &Path) -> Result<Vec<ManifestRow>> {
             .then_with(|| left.path.cmp(&right.path))
     });
     Ok(rows)
+}
+
+#[derive(serde::Deserialize)]
+struct LfsListing {
+    files: Vec<LfsFile>,
+}
+
+#[derive(serde::Deserialize)]
+struct LfsFile {
+    name: String,
+    size: u64,
+    oid_type: String,
+    oid: String,
+    version: String,
+}
+
+fn lfs_listing(corpus: &Path) -> Result<Option<BTreeMap<String, (String, u64)>>> {
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(corpus)
+        .args(["lfs", "ls-files", "--json"])
+        .output()?;
+    if !output.status.success() {
+        return Ok(None);
+    }
+    let listing: LfsListing = serde_json::from_slice(&output.stdout)?;
+    let mut files = BTreeMap::new();
+    for file in listing.files {
+        if file.oid_type != "sha256" || file.version != VERSION.trim_start_matches("version ") {
+            return Err(TrackerError::new(format!(
+                "unsupported LFS pointer metadata for {}",
+                file.name
+            )));
+        }
+        let name = normalize_repo_path(&file.name);
+        if files.insert(name.clone(), (file.oid, file.size)).is_some() {
+            return Err(TrackerError::new(format!(
+                "git lfs ls-files contains duplicate path {name}"
+            )));
+        }
+    }
+    Ok(Some(files))
 }
 
 fn parse_filelist_line(line: &str) -> Option<(&str, &str)> {
@@ -158,9 +214,7 @@ fn pointer_size(corpus: &Path, row: &ManifestRow) -> Result<u64> {
 
 fn read_pointer(corpus: &Path, repo_path: &str) -> Result<Pointer> {
     let working_path = corpus_path(corpus, repo_path);
-    if let Ok(text) = fs::read_to_string(&working_path)
-        && let Some(pointer) = parse_pointer(&text)
-    {
+    if let Some(pointer) = read_working_pointer(&working_path) {
         return Ok(pointer);
     }
     let output = Command::new("git")
@@ -186,8 +240,22 @@ fn read_pointer(corpus: &Path, repo_path: &str) -> Result<Pointer> {
     })
 }
 
+pub(crate) fn read_working_pointer(path: &Path) -> Option<Pointer> {
+    let mut bytes = Vec::with_capacity(MAX_LFS_POINTER_BYTES);
+    File::open(path)
+        .and_then(|file| {
+            file.take((MAX_LFS_POINTER_BYTES + 1) as u64)
+                .read_to_end(&mut bytes)
+        })
+        .ok()?;
+    if bytes.len() > MAX_LFS_POINTER_BYTES {
+        return None;
+    }
+    parse_pointer(std::str::from_utf8(&bytes).ok()?)
+}
+
 #[derive(Debug)]
-struct Pointer {
+pub(crate) struct Pointer {
     oid: String,
     size: u64,
 }

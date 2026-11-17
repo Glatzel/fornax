@@ -34,7 +34,7 @@ impl FixtureSample for u8 {
 }
 
 impl FixtureSample for u16 {
-    const BITS: u16 = 16;
+    const BITS: Self = 16;
     const FORMAT: SampleFormat = SampleFormat::Integer;
 
     fn sample(word: u64) -> Self { word as Self }
@@ -83,11 +83,10 @@ pub struct SyntheticFixture {
     pub chunks: Vec<Chunk>,
 }
 
-pub fn synthetic_image<S: FixtureSample>(
-    width: u32,
-    height: u32,
-    pattern: SyntheticPattern,
-) -> SampleBuffer {
+pub fn synthetic_image<S>(width: u32, height: u32, pattern: SyntheticPattern) -> SampleBuffer
+where
+    S: FixtureSample,
+{
     let count = usize::try_from(width)
         .unwrap()
         .checked_mul(usize::try_from(height).unwrap())
@@ -104,14 +103,17 @@ pub fn synthetic_image<S: FixtureSample>(
     S::buffer(width, height, samples)
 }
 
-pub fn uncompressed_fixture<S: FixtureSample>(
+pub fn uncompressed_fixture<S>(
     width: u32,
     height: u32,
     chunk_width: usize,
     chunk_height: usize,
     byte_order: ByteOrder,
     pattern: SyntheticPattern,
-) -> SyntheticFixture {
+) -> SyntheticFixture
+where
+    S: FixtureSample,
+{
     let image = synthetic_image::<S>(width, height, pattern);
     let encoded = EncodeCompression::Uncompressed
         .encode(&EncodeRequest {
@@ -139,7 +141,7 @@ pub fn uncompressed_fixture<S: FixtureSample>(
     }
 }
 
-fn pattern_word(pattern: SyntheticPattern, index: usize, width: usize) -> u64 {
+const fn pattern_word(pattern: SyntheticPattern, index: usize, width: usize) -> u64 {
     match pattern {
         SyntheticPattern::Smooth => {
             let x = index % width;

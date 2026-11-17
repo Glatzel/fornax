@@ -10,7 +10,8 @@ const LFS_POINTER_PREFIX: &str = "version https://git-lfs.github.com/spec/v1";
     dead_code,
     reason = "used by the decoder benchmark and equality targets but not parser unit tests"
 )]
-const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/golden/selected-manifest.csv";
+const DEFAULT_TEST_MANIFEST: &str = "crates/decoder-tracker/golden/test-manifest.csv";
+const DEFAULT_PERF_MANIFEST: &str = "crates/decoder-tracker/golden/perf-manifest.csv";
 #[allow(
     dead_code,
     reason = "used by the decoder benchmark and equality targets but not parser unit tests"
@@ -22,6 +23,29 @@ pub struct GoldenInput {
     pub path: String,
     pub size: u64,
     pub sha256: String,
+    pub group: Option<BenchmarkGroup>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum BenchmarkGroup {
+    Core,
+    Full,
+    Overhead,
+    Hdr,
+}
+
+impl BenchmarkGroup {
+    fn parse(value: &str) -> Result<Self, String> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "core" => Ok(Self::Core),
+            "full" => Ok(Self::Full),
+            "overhead" => Ok(Self::Overhead),
+            "hdr" => Ok(Self::Hdr),
+            _ => Err(format!(
+                "invalid benchmark group {value:?}; expected core, full, overhead, hdr, or all"
+            )),
+        }
+    }
 }
 
 impl GoldenInput {
@@ -55,8 +79,38 @@ pub fn parse_golden_manifest(bytes: &[u8]) -> Result<Vec<GoldenInput>, String> {
     let headers = reader
         .headers()
         .map_err(|error| format!("reading golden manifest header failed: {error}"))?;
-    if headers.iter().collect::<Vec<_>>() != ["path", "size", "sha256"] {
-        return Err("golden manifest header must be exactly path,size,sha256".to_owned());
+    let header = headers.iter().collect::<Vec<_>>();
+    let has_group = matches!(
+        header.as_slice(),
+        [
+            "path",
+            "size",
+            "sha256",
+            "decoder_path",
+            "reason",
+            "overhead_only",
+            "group",
+        ]
+    );
+    let extended = has_group
+        || matches!(
+            header.as_slice(),
+            [
+                "path",
+                "size",
+                "sha256",
+                "decoder_path",
+                "reason",
+                "overhead_only",
+            ]
+        );
+    let basic = matches!(header.as_slice(), ["path", "size", "sha256"]);
+    if !basic && !extended {
+        return Err(
+            "golden manifest header must be path,size,sha256 or include \
+             decoder_path,reason,overhead_only and optional group"
+                .to_owned(),
+        );
     }
 
     let mut paths = BTreeSet::new();
@@ -81,7 +135,20 @@ pub fn parse_golden_manifest(bytes: &[u8]) -> Result<Vec<GoldenInput>, String> {
                 "golden manifest line {line} has invalid SHA-256 {sha256:?}"
             ));
         }
-        rows.push(GoldenInput { path, size, sha256 });
+        let group = if has_group {
+            Some(
+                BenchmarkGroup::parse(record.get(6).unwrap_or_default())
+                    .map_err(|error| format!("golden manifest line {line}: {error}"))?,
+            )
+        } else {
+            None
+        };
+        rows.push(GoldenInput {
+            path,
+            size,
+            sha256,
+            group,
+        });
     }
     if rows.is_empty() {
         return Err("golden manifest contains no inputs".to_owned());
@@ -144,9 +211,19 @@ pub fn select_golden_inputs(
     reason = "shared by the decoder benchmark and equivalence test; parser unit tests include only lower-level helpers"
 )]
 pub fn benchmark_inputs() -> Vec<(GoldenInput, PathBuf)> {
+    golden_inputs(DEFAULT_PERF_MANIFEST, true)
+}
+
+#[allow(
+    dead_code,
+    reason = "used by decoder equivalence tests, not the benchmark binary"
+)]
+pub fn test_inputs() -> Vec<(GoldenInput, PathBuf)> { golden_inputs(DEFAULT_TEST_MANIFEST, false) }
+
+fn golden_inputs(default_manifest: &str, grouped: bool) -> Vec<(GoldenInput, PathBuf)> {
     let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let manifest = std::env::var_os("FORNAX_BENCH_MANIFEST")
-        .map_or_else(|| PathBuf::from(DEFAULT_MANIFEST), PathBuf::from);
+        .map_or_else(|| PathBuf::from(default_manifest), PathBuf::from);
     let corpus = std::env::var_os("FORNAX_BENCH_CORPUS")
         .map_or_else(|| PathBuf::from(DEFAULT_CORPUS), PathBuf::from);
     let manifest = resolve_repo_relative(&repo_root, &manifest);
@@ -157,12 +234,16 @@ pub fn benchmark_inputs() -> Vec<(GoldenInput, PathBuf)> {
             manifest.display()
         )
     });
-    let rows = parse_golden_manifest(&bytes).unwrap_or_else(|error| {
+    let mut rows = parse_golden_manifest(&bytes).unwrap_or_else(|error| {
         panic!(
             "parsing decoder benchmark golden manifest {} failed: {error}",
             manifest.display()
         )
     });
+    if grouped {
+        rows = select_benchmark_group(rows)
+            .unwrap_or_else(|error| panic!("selecting decoder benchmark group failed: {error}"));
+    }
     let explicit = std::env::var_os("FORNAX_BENCH_RAW")
         .map(PathBuf::from)
         .map(|path| resolve_repo_relative(&repo_root, &path));
@@ -171,6 +252,30 @@ pub fn benchmark_inputs() -> Vec<(GoldenInput, PathBuf)> {
     ensure_materialized(&inputs)
         .unwrap_or_else(|error| panic!("decoder benchmark input check failed: {error}"));
     inputs
+}
+
+fn select_benchmark_group(rows: Vec<GoldenInput>) -> Result<Vec<GoldenInput>, String> {
+    let value = std::env::var("FORNAX_BENCH_GROUP").unwrap_or_else(|_| "core".to_owned());
+    if value.trim().eq_ignore_ascii_case("all") {
+        return Ok(rows);
+    }
+    let groups = value
+        .split(',')
+        .map(BenchmarkGroup::parse)
+        .collect::<Result<BTreeSet<_>, _>>()?;
+    if groups.is_empty() {
+        return Err("benchmark group selection is empty".to_owned());
+    }
+    let selected = rows
+        .into_iter()
+        .filter(|row| row.group.is_some_and(|group| groups.contains(&group)))
+        .collect::<Vec<_>>();
+    if selected.is_empty() {
+        return Err(format!(
+            "benchmark group {value:?} selected no golden inputs"
+        ));
+    }
+    Ok(selected)
 }
 
 pub fn ensure_materialized(inputs: &[(GoldenInput, PathBuf)]) -> Result<(), String> {

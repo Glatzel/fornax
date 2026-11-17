@@ -1,6 +1,6 @@
 use fornax_raw_core::RawMosaic;
 
-pub(crate) enum CanonicalMosaic {
+pub enum CanonicalMosaic {
     U8 {
         width: u32,
         height: u32,
@@ -24,7 +24,7 @@ pub(crate) enum CanonicalMosaic {
 }
 
 impl CanonicalMosaic {
-    fn storage(&self) -> &'static str {
+    const fn storage(&self) -> &'static str {
         match self {
             Self::U8 { .. } => "U8",
             Self::U16 { .. } => "U16",
@@ -33,7 +33,7 @@ impl CanonicalMosaic {
         }
     }
 
-    fn dimensions(&self) -> (u32, u32) {
+    const fn dimensions(&self) -> (u32, u32) {
         match self {
             Self::U8 { width, height, .. }
             | Self::U16 { width, height, .. }
@@ -42,7 +42,7 @@ impl CanonicalMosaic {
         }
     }
 
-    fn sample_count(&self) -> usize {
+    const fn sample_count(&self) -> usize {
         match self {
             Self::U8 { samples, .. } => samples.len(),
             Self::U16 { samples, .. } => samples.len(),
@@ -51,7 +51,7 @@ impl CanonicalMosaic {
     }
 }
 
-pub(crate) fn canonical_mosaic(mosaic: &RawMosaic) -> CanonicalMosaic {
+pub fn canonical_mosaic(mosaic: &RawMosaic) -> CanonicalMosaic {
     let (width, height) = mosaic.dimensions();
     match mosaic {
         RawMosaic::U8(image) => CanonicalMosaic::U8 {
@@ -77,7 +77,7 @@ pub(crate) fn canonical_mosaic(mosaic: &RawMosaic) -> CanonicalMosaic {
     }
 }
 
-pub(crate) fn assert_mosaic_eq(
+pub fn assert_mosaic_eq(
     case: &str,
     reference_name: &str,
     expected: &CanonicalMosaic,
@@ -123,8 +123,8 @@ pub(crate) fn assert_mosaic_eq(
             CanonicalMosaic::U32 {
                 samples: actual, ..
             },
-        ) => assert_samples(case, reference_name, expected, actual),
-        (
+        )
+        | (
             CanonicalMosaic::F32 {
                 samples: expected, ..
             },

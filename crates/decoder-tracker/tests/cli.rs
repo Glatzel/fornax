@@ -4,6 +4,7 @@ use assert_cmd::Command;
 use decoder_tracker::csvio::{read_manifest_csv, write_baseline_csv, write_manifest_csv};
 use decoder_tracker::manifest::{derive_identity, generate_manifest};
 use decoder_tracker::model::{BASELINE_HEADER, BaselineRow, ManifestRow, status_for_stages};
+use predicates::prelude::PredicateBooleanExt;
 use tempfile::tempdir;
 
 fn manifest_row(sha: &str, path: &str) -> ManifestRow {
@@ -69,6 +70,16 @@ fn golden_coverage_command_is_exposed() {
         .stdout(predicates::str::contains("--golden"))
         .stdout(predicates::str::contains("--selected-out"))
         .stdout(predicates::str::contains("--out"));
+}
+
+#[test]
+fn golden_check_command_is_exposed() {
+    let mut command = Command::cargo_bin("decoder-tracker").unwrap();
+    command.args(["golden-check", "--help"]);
+    command.assert().success().stdout(
+        predicates::str::contains("test-manifest.csv")
+            .and(predicates::str::contains("perf-manifest.csv")),
+    );
 }
 
 #[test]

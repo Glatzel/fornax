@@ -105,7 +105,11 @@ fn decode_integer(
         1..=8 => {
             let mut output = zeroed_samples(sample_count)?;
             if bits == 8 {
-                copy_samples(geometry, byte_order, payloads, &mut output)?;
+                if geometry.across == 1 && geometry.chunk_width == geometry.width {
+                    copy_u8_full_strips(geometry, payloads, &mut output)?;
+                } else {
+                    copy_samples(geometry, byte_order, payloads, &mut output)?;
+                }
             } else {
                 // `bits <= 8`, so the unpacked value always fits.
                 decode_packed(geometry, bits, payloads, low_u8, &mut output)?;
@@ -128,6 +132,13 @@ fn decode_integer(
                 } else {
                     copy_samples(geometry, byte_order, payloads, &mut output)?;
                 }
+            } else if matches!(bits, 10 | 14)
+                && geometry.across == 1
+                && geometry.chunk_width == geometry.width
+            {
+                unpack_packed_rows(geometry, bits, payloads, &mut output, |source, target| {
+                    unpack_row_u16(source, target, bits, byte_order);
+                })?;
             } else if matches!(bits, 12 | 14) {
                 decode_packed_u16(geometry, bits, byte_order, payloads, &mut output)?;
             } else {
@@ -312,6 +323,120 @@ where
         })
 }
 
+fn copy_u8_full_strips(
+    geometry: &Geometry,
+    payloads: &[&[u8]],
+    output: &mut [u8],
+) -> Result<(), CodecError> {
+    let sample_count = geometry.sample_count()?;
+    if output.len() != sample_count {
+        return Err(invalid(format!(
+            "8-bit strip output has {} samples, expected {sample_count}",
+            output.len()
+        )));
+    }
+    let expected_chunks = geometry.height.div_ceil(geometry.chunk_height);
+    if payloads.len() != expected_chunks {
+        return Err(invalid(format!(
+            "8-bit image requires {expected_chunks} strips, found {}",
+            payloads.len()
+        )));
+    }
+    for (index, payload) in payloads.iter().enumerate() {
+        let first_row = index * geometry.chunk_height;
+        let rows = geometry.chunk_height.min(geometry.height - first_row);
+        let samples = rows
+            .checked_mul(geometry.width)
+            .ok_or_else(|| invalid("8-bit strip size overflow"))?;
+        let source = payload
+            .get(..samples)
+            .ok_or_else(|| invalid(format!("uncompressed chunk {index} is truncated")))?;
+        let destination = output
+            .get_mut(first_row * geometry.width..first_row * geometry.width + samples)
+            .ok_or_else(|| invalid("8-bit strip output range overflow"))?;
+        destination.copy_from_slice(source);
+    }
+    Ok(())
+}
+
+fn unpack_packed_rows<T>(
+    geometry: &Geometry,
+    bits: u16,
+    payloads: &[&[u8]],
+    output: &mut [T],
+    unpack_row: impl Fn(&[u8], &mut [T]) + Sync,
+) -> Result<(), CodecError>
+where
+    T: Send,
+{
+    let bits = usize::from(bits);
+    if bits == 0 || bits > 32 {
+        return Err(invalid("packed sample depth must be between 1 and 32"));
+    }
+    let sample_count = geometry.sample_count()?;
+    if output.len() != sample_count {
+        return Err(invalid(format!(
+            "packed-row output has {} samples, expected {sample_count}",
+            output.len()
+        )));
+    }
+    let expected_chunks = geometry.height.div_ceil(geometry.chunk_height);
+    if payloads.len() != expected_chunks {
+        return Err(invalid(format!(
+            "packed-row image requires {expected_chunks} strips, found {}",
+            payloads.len()
+        )));
+    }
+    let row_bytes = geometry
+        .width
+        .checked_mul(bits)
+        .ok_or_else(|| invalid("packed-row bit count overflow"))?
+        .div_ceil(8);
+    for (index, payload) in payloads.iter().enumerate() {
+        let rows = geometry
+            .chunk_height
+            .min(geometry.height - index * geometry.chunk_height);
+        let required = rows
+            .checked_mul(row_bytes)
+            .ok_or_else(|| invalid("packed-row strip size overflow"))?;
+        if payload.len() < required {
+            return Err(invalid(format!(
+                "uncompressed chunk {index} is truncated: {} bytes available, {required} required",
+                payload.len()
+            )));
+        }
+    }
+
+    let unpack = |row: usize, target: &mut [T]| {
+        let chunk = row / geometry.chunk_height;
+        let within_chunk = row % geometry.chunk_height;
+        let start = within_chunk * row_bytes;
+        unpack_row(&payloads[chunk][start..start + row_bytes], target);
+    };
+    let threads = rayon::current_num_threads();
+    if should_parallelize_word_rows(output.len(), threads) {
+        let rows_per_item = geometry.height.div_ceil(threads * 4).max(1);
+        let samples_per_item = geometry
+            .width
+            .checked_mul(rows_per_item)
+            .ok_or_else(|| invalid("packed-row parallel band size overflow"))?;
+        output
+            .par_chunks_mut(samples_per_item)
+            .enumerate()
+            .for_each(|(band, rows)| {
+                let first_row = band * rows_per_item;
+                for (offset, target) in rows.chunks_exact_mut(geometry.width).enumerate() {
+                    unpack(first_row + offset, target);
+                }
+            });
+    } else {
+        for (row, target) in output.chunks_exact_mut(geometry.width).enumerate() {
+            unpack(row, target);
+        }
+    }
+    Ok(())
+}
+
 fn unpack_bits(source: &[u8], output: &mut [u32], bits: usize) -> Result<(), CodecError> {
     if !(1..=32).contains(&bits) {
         return Err(invalid("packed sample depth must be between 1 and 32"));
@@ -392,6 +517,7 @@ fn decode_packed_u16(
 
 fn unpack_row_u16(source: &[u8], target: &mut [u16], bits: u16, byte_order: ByteOrder) {
     match bits {
+        10 => unpack_10_msb(source, target),
         12 => unpack_12_msb(source, target),
         14 => unpack_14_msb(source, target),
         16 if byte_order == native_order() => {
@@ -405,6 +531,18 @@ fn unpack_row_u16(source: &[u8], target: &mut [u16], bits: u16, byte_order: Byte
         }
         _ => unpack_scalar(source, target, usize::from(bits), false),
     }
+}
+
+fn unpack_10_msb(source: &[u8], target: &mut [u16]) {
+    let groups = (target.len() / 4).min(source.len() / 5);
+    for group in 0..groups {
+        let bytes = &source[group * 5..][..5];
+        target[group * 4] = (u16::from(bytes[0]) << 2) | (u16::from(bytes[1]) >> 6);
+        target[group * 4 + 1] = (u16::from(bytes[1] & 0x3f) << 4) | (u16::from(bytes[2]) >> 4);
+        target[group * 4 + 2] = (u16::from(bytes[2] & 0x0f) << 6) | (u16::from(bytes[3]) >> 2);
+        target[group * 4 + 3] = (u16::from(bytes[3] & 0x03) << 8) | u16::from(bytes[4]);
+    }
+    unpack_scalar(&source[groups * 5..], &mut target[groups * 4..], 10, false);
 }
 
 fn unpack_12_msb(source: &[u8], target: &mut [u16]) {
@@ -428,18 +566,40 @@ fn unpack_12_lsb(source: &[u8], target: &mut [u16]) {
     unpack_scalar(&source[groups * 3..], &mut target[groups * 2..], 12, true);
 }
 
-fn unpack_14_msb(source: &[u8], target: &mut [u16]) {
-    let groups = (target.len() / 4).min(source.len() / 7);
+fn unpack_14_msb(source: &[u8], target: &mut [u16]) { unpack_14_msb_kernel(source, target); }
+
+fn unpack_14_msb_kernel(source: &[u8], target: &mut [u16]) {
+    const GROUP_BYTES: usize = 14;
+    const GROUP_SAMPLES: usize = 8;
+    const MASK: u64 = 0x3fff;
+
+    let groups = (target.len() / GROUP_SAMPLES).min(source.len() / GROUP_BYTES);
     for group in 0..groups {
-        let bytes = &source[group * 7..][..7];
-        let word = u64::from_be_bytes([
-            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], 0,
-        ]) >> 8;
-        for index in 0..4 {
-            target[group * 4 + index] = ((word >> (56 - 14 * (index + 1))) & 0x3fff) as u16;
-        }
+        let bytes = &source[group * GROUP_BYTES..][..GROUP_BYTES];
+        let high = u64::from_be_bytes(
+            bytes[..8]
+                .try_into()
+                .expect("the first half of a 14-bit group is eight bytes"),
+        );
+        let low = u64::from_be_bytes([
+            0, 0, bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13],
+        ]);
+        let target = &mut target[group * GROUP_SAMPLES..][..GROUP_SAMPLES];
+        target[0] = ((high >> 50) & MASK) as u16;
+        target[1] = ((high >> 36) & MASK) as u16;
+        target[2] = ((high >> 22) & MASK) as u16;
+        target[3] = ((high >> 8) & MASK) as u16;
+        target[4] = (((high & 0xff) << 6) | (low >> 42)) as u16;
+        target[5] = ((low >> 28) & MASK) as u16;
+        target[6] = ((low >> 14) & MASK) as u16;
+        target[7] = (low & MASK) as u16;
     }
-    unpack_scalar(&source[groups * 7..], &mut target[groups * 4..], 14, false);
+    unpack_scalar(
+        &source[groups * GROUP_BYTES..],
+        &mut target[groups * GROUP_SAMPLES..],
+        14,
+        false,
+    );
 }
 
 #[cfg(test)]
@@ -559,7 +719,10 @@ where
     })
 }
 
-const PARALLEL_ROW_MIN_SAMPLES: usize = 1 << 18;
+// Keep small 8 MiB-or-less mosaics on the calling thread. This avoids Rayon
+// setup for low-millisecond fixed-cost decodes while still parallelizing every
+// current large uncompressed camera path.
+const PARALLEL_ROW_MIN_SAMPLES: usize = 1 << 22;
 
 /// Unpacks full-width strips of 16-bit words directly into `output`.
 ///
@@ -643,6 +806,10 @@ pub fn unpack_u16_word_rows(
         }
     }
     Ok(())
+}
+
+const fn should_parallelize_word_rows(sample_count: usize, threads: usize) -> bool {
+    sample_count >= PARALLEL_ROW_MIN_SAMPLES && threads > 1
 }
 
 fn unpack_u16_word_row(source: &[u8], target: &mut [u16], byte_order: ByteOrder, mask: u16) {
@@ -800,6 +967,75 @@ mod tests {
     use super::*;
 
     #[test]
+    fn direct_packed_row_kernels_preserve_msb_order_at_unaligned_row_ends() {
+        let mut eight = [0_u8; 3];
+        let geometry = Geometry::new(3, 1, 3, 1, 1).unwrap();
+        copy_u8_full_strips(&geometry, &[&[0x00, 0xff, 0x7f]], &mut eight).unwrap();
+        assert_eq!(eight, [0x00, 0xff, 0x7f]);
+
+        let mut ten = [0_u16; 3];
+        unpack_10_msb(&[0xff, 0xc0, 0x1a, 0xa8], &mut ten);
+        assert_eq!(ten, [0x3ff, 0x001, 0x2aa]);
+
+        let mut fourteen = [0_u16; 3];
+        unpack_14_msb(&[0xff, 0xfc, 0x00, 0x1a, 0xaa, 0x80], &mut fourteen);
+        assert_eq!(fourteen, [0x3fff, 0x0001, 0x2aaa]);
+    }
+
+    #[test]
+    fn direct_fourteen_bit_kernel_handles_full_groups_and_row_tail() {
+        for len in [8, 11, 31] {
+            let expected = (0..len)
+                .map(|index| ((index * 2_411 + 97) & 0x3fff) as u16)
+                .collect::<Vec<_>>();
+            let encoded = pack(&expected, 14, false);
+            let mut decoded = vec![0_u16; len];
+            unpack_14_msb_kernel(&encoded, &mut decoded);
+            assert_eq!(decoded, expected, "14-bit kernel length {len}");
+        }
+    }
+
+    #[test]
+    fn direct_packed_rows_match_the_generic_path_for_short_widths() {
+        for bits in [8_u16, 10, 14] {
+            for width in [1_usize, 2, 3, 5, 7, 9, 17] {
+                let mask = (1_u32 << bits) - 1;
+                let expected = (0..width)
+                    .map(|index| ((index as u32 * 2_411 + 97) & mask) as u16)
+                    .collect::<Vec<_>>();
+                let encoded = pack(&expected, usize::from(bits), false);
+                let geometry = Geometry::new(width, 1, width, 1, 1).unwrap();
+                let decoded = decode_payloads(
+                    &geometry,
+                    bits,
+                    SampleFormat::Integer,
+                    ByteOrder::Little,
+                    &[&encoded],
+                )
+                .unwrap();
+
+                let generic_expected = expected
+                    .iter()
+                    .map(|value| u32::from(*value))
+                    .collect::<Vec<_>>();
+                let mut generic = vec![0_u32; width];
+                unpack_bits(&encoded, &mut generic, usize::from(bits)).unwrap();
+                assert_eq!(generic, generic_expected, "{bits}-bit oracle width {width}");
+                match bits {
+                    8 => assert_eq!(
+                        decoded.into_raw_u8().unwrap(),
+                        expected
+                            .iter()
+                            .map(|value| *value as u8)
+                            .collect::<Vec<_>>()
+                    ),
+                    _ => assert_eq!(decoded.into_raw_u16().unwrap(), expected),
+                }
+            }
+        }
+    }
+
+    #[test]
     fn grouped_unpack_12_kernels_match_the_scalar_oracle() {
         for len in [1, 2, 3, 4, 5, 7, 8, 9, 17, 31] {
             let samples = (0..len)
@@ -889,6 +1125,29 @@ mod tests {
 
         let tiny = unpack_u16_word_rows_to_vec(&[&[0x34, 0x12]], 1, 1, 1, ByteOrder::Little);
         assert_eq!(tiny, [0x1234]);
+    }
+
+    #[test]
+    fn word_row_parallelism_keeps_small_two_k_mosaics_serial() {
+        assert!(!super::should_parallelize_word_rows(1_936 * 1_090, 16));
+        assert!(super::should_parallelize_word_rows(3_968 * 2_648, 16));
+        assert!(!super::should_parallelize_word_rows(3_968 * 2_648, 1));
+    }
+
+    #[test]
+    fn row_word_unpack_rejects_truncated_chunks() {
+        let mut output = [0_u16; 6];
+        let error = super::unpack_u16_word_rows(
+            &[&[1, 0, 2, 0]],
+            &mut output,
+            3,
+            2,
+            2,
+            ByteOrder::Little,
+            u16::MAX,
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("truncated"), "{error}");
     }
 
     #[test]

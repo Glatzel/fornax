@@ -6,13 +6,12 @@ This guide defines the golden-corpus decoder benchmark, its comparison scope, an
 
 `fornax-decoder` owns the `decoder` benchmark target. It compares the default
 pure-Rust decoder with benchmark-only Rawler and FlashRaw adapters on every row
-of `crates/decoder-tracker/golden/selected-manifest.csv`.
+of `crates/decoder-tracker/golden/perf-manifest.csv`.
 
-The golden set contains 18 known-lossless conventional 2x2 RGB Bayer files from
-tier 0 and tier 1 only: DNG, Canon CR3, Sony ARW, and Nikon NEF. It contains one
-lowest-pixel representative per known-lossless encoding group. Sony ARW and
-Nikon NEF use their highest available bit depth. Legacy Sony
-ARW1, Nikon mode-2 packed, mode-6 packed, uncompressed words, lossy Sony
+The performance set contains stable representatives for every tier-0/1
+known-lossless conventional 2x2 RGB Bayer decoder path from DNG, Canon CR3,
+Sony ARW, and Nikon NEF. Sony ARW and Nikon NEF group bit depths for path
+coverage. Legacy Sony ARW1, Nikon mode-2 packed, mode-6 packed, lossy Sony
 ARW2/ARW6, and tier-2/3 formats are excluded.
 
 For every input, the benchmark creates one Criterion group containing:
@@ -38,7 +37,7 @@ process metadata, so those accessors are not compared across implementations.
 The benchmark defaults to:
 
 ```text
-crates/decoder-tracker/golden/selected-manifest.csv
+crates/decoder-tracker/golden/perf-manifest.csv
 external/raw.pixls.us
 ```
 
@@ -49,15 +48,19 @@ With no `FORNAX_BENCH_RAW`, every golden row must be materialized and is
 benchmarked. `FORNAX_BENCH_RAW` selects exactly one input, but that canonical
 path must belong to the selected golden manifest.
 
+`FORNAX_BENCH_GROUP` defaults to `core`. It also accepts `full`, `overhead`,
+`hdr`, a comma-separated combination, or `all`. The group filter is applied
+before `FORNAX_BENCH_RAW`.
+
 The benchmark rejects missing files, LFS pointer metadata, incorrect file sizes,
 malformed manifests, duplicate paths, and paths outside the manifest before
 timing starts. The old arbitrary single-fixture default is removed.
 
-Materialize and verify the golden set before a local run:
+Materialize and verify the test correctness set before a local run:
 
 ```bash
 pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
-  --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+  --manifest crates/decoder-tracker/golden/test-manifest.csv \
   --check crates/decoder-tracker/golden/decode-hashes.csv
 ```
 
@@ -74,7 +77,7 @@ FlashRaw is configured for the CPU, one worker thread, strict corruption
 handling, no default crop, and no DNG opcode application. CI also sets
 `RAYON_NUM_THREADS=1` and `OMP_NUM_THREADS=1`.
 
-The raw-only Fornax-versus-FlashRaw probe uses the same golden selected
+The raw-only Fornax-versus-FlashRaw probe uses the same performance
 manifest by default:
 
 ```bash
@@ -87,7 +90,7 @@ Its current metadata matrix and report are
 `docs/reference/decoders/perf/data/golden-benchmark-matrix.csv` and
 `docs/reference/decoders/perf/flashraw-vs-fornax.md`. The probe may override the
 manifest for one-off diagnosis, but committed performance claims must use the
-golden set.
+performance set.
 
 Compile the benchmark without executing timings:
 
@@ -102,7 +105,7 @@ from Fornax, Rawler, and FlashRaw. The equality check uses exact dimensions,
 storage type, and sample bits. It fails rather than skipping when a selected
 reference cannot expose a DNG raw mosaic.
 
-With the full golden set materialized:
+With the full performance set materialized:
 
 ```bash
 RAYON_NUM_THREADS=1 OMP_NUM_THREADS=1 \
@@ -117,16 +120,19 @@ standalone ignored test a second time.
 
 ## CI matrix
 
-The `decoder-benchmark-plan` CI job reads the golden CSV and emits one matrix
-item per file. Each `decoder-benchmark` job:
+The `decoder-benchmark-plan` CI job reads the perf manifest and emits one
+matrix item per file. Each `decoder-benchmark` job:
 
 1. initializes the pointer-only raw.pixls.us submodule;
-2. fetches only that matrix item's Git LFS object;
-3. verifies its recorded size and SHA-256;
-4. builds `fornax-decoder` with `--no-default-features` and only that input's
+2. restores the shared golden test/perf LFS-object cache produced by the
+   `golden` job;
+3. fetches only a missing matrix item's Git LFS object;
+4. verifies its recorded size and SHA-256;
+5. builds `fornax-decoder` with `--no-default-features` and only that input's
    vendor feature, except DNG which needs no format feature;
-5. verifies exact native pixel equality across Fornax, Rawler, and FlashRaw;
-6. runs Fornax, Rawler, and FlashRaw on that one input.
+6. verifies the Fornax raw hash before timing and native equality across Fornax,
+   Rawler, and FlashRaw;
+7. runs Fornax, Rawler, and FlashRaw on that one input.
 
 Changed-path impact selection is proportional. A direct vendor crate change
 runs only that vendor's golden cases; `fornax-bmff` runs Canon cases; every

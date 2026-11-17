@@ -505,6 +505,20 @@ fn manifest_check_validates_pointer_against_filelist_sha() {
 }
 
 #[test]
+fn materialized_payload_is_not_parsed_as_an_unbounded_lfs_pointer() {
+    let temp = tempdir().unwrap();
+    let path = temp.path().join("payload.RAW");
+    let mut bytes = format!(
+        "version https://git-lfs.github.com/spec/v1\noid sha256:{}\nsize 42\n",
+        "aa".repeat(32)
+    )
+    .into_bytes();
+    bytes.resize(2048, 0);
+    fs::write(&path, bytes).unwrap();
+    assert!(crate::manifest::read_working_pointer(&path).is_none());
+}
+
+#[test]
 fn manifest_includes_formats_without_decoder_support() {
     let temp = tempdir().unwrap();
     let corpus = temp.path();

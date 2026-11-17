@@ -174,10 +174,8 @@ Follow the deliberately bounded procedure in
 - `data/manifest.csv` identifies every corpus path, size, and LFS SHA-256.
 - `data/baseline.csv` is the accepted full result set, including source
   encoding metadata for every successfully decoded row. Do not hand-edit it.
-- `golden/selected-manifest.csv` is the pointer-only 18-file tier-0/1 lossless
-  decoder-path coverage set for deterministic decode-output checks and decoder
-  benchmarks. Deprecated/lossy ARW1/ARW6/Nikon modes and tier-2/3 formats are
-  excluded.
+- Current golden test/perf manifests, manual selection rules, and hash policy
+  are documented in `golden/README.md`.
 - `golden/decode-hashes.csv` contains SHA-256 values for raw samples, cropped
   samples, process metadata, and DNG metadata. Generate it with `hash --out`;
   never hand-edit it.

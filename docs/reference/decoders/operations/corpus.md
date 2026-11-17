@@ -180,12 +180,13 @@ specific decoder path. Join `data/manifest.csv` by `path` for file size.
 
 ## Golden decode outputs
 
-`golden/selected-manifest.csv` is a pointer-only tier-0/1 lossless set
-containing one lowest-pixel known-passing representative per decoder path. It
-covers DNG, ARW, CR3, and NEF only; tier-2/3 formats and deprecated
-Sony ARW1/ARW6 and Nikon modes are excluded. `golden/decode-hashes.csv` is the canonical
-output gate for
-refactors that must not change decoder results.
+`golden/test-manifest.csv` is the manual, fast correctness gate;
+`golden/perf-manifest.csv` is the manual stable-performance gate. Both use
+pointer-only tier-0/1 lossless files and cover DNG, ARW, CR3, and NEF. The
+shared `golden/decode-hashes.csv` covers their union. The legacy
+`golden/selected-manifest.csv` is a three-column alias of the test set for one
+release. Performance rows carry `core`, `full`, `overhead`, or `hdr` in their
+group column; benchmark tools select `core` by default.
 
 Each row records the path, raw sample type and dimensions, cropped `f32`
 dimensions, and four SHA-256 digests:
@@ -199,10 +200,10 @@ Write or verify the golden set with:
 
 ```bash
 pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
-  --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+  --manifest crates/decoder-tracker/golden/test-manifest.csv \
   --out crates/decoder-tracker/golden/decode-hashes.csv
 pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
-  --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+  --manifest crates/decoder-tracker/golden/test-manifest.csv \
   --check crates/decoder-tracker/golden/decode-hashes.csv
 ```
 
@@ -217,7 +218,7 @@ Audit golden coverage without changing the golden set:
 pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --baseline crates/decoder-tracker/data/baseline.csv \
   --corpus-manifest crates/decoder-tracker/data/manifest.csv \
-  --golden crates/decoder-tracker/golden/selected-manifest.csv \
+  --golden crates/decoder-tracker/golden/test-manifest.csv \
   --out target/decoder-tracker/golden-coverage.csv
 ```
 
@@ -234,17 +235,18 @@ and the lowest-pixel passing representative, breaking ties by file size and
 path. `coverage` is `covered`, `missing`, or `redundant`; the command reports
 those counts in CI but fails if a golden path is absent or is not fully passing.
 
-Generate a golden manifest with one representative per decoder path:
+Generate a draft selection with one representative per decoder path:
 
 ```bash
 pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --selected-out crates/decoder-tracker/golden/selected-manifest.csv
 ```
 
-The current generated set contains 18 decoder paths: 13 DNG, 2 ARW, 1 CR3, and
-2 NEF. Sony ARW and Nikon NEF groups choose the highest available bit depth (for
-example, 14 over 12). Lossy Sony ARW2/ARW6 and IIQ nonlinear/Sv2 paths are
-excluded.
+The test/perf manifests are maintainer-edited drafts checked by
+`decoder-tracker golden-check`, not silently regenerated. The current coverage
+contains 18 decoder paths: 13 DNG, 2 ARW, 1 CR3, and 2 NEF. Sony ARW and Nikon
+NEF groups choose the highest available bit depth (for example, 14 over 12).
+Lossy Sony ARW2/ARW6 and IIQ nonlinear/Sv2 paths are excluded.
 Codec identifiers that can carry
 either lossy or lossless streams, currently DNG JPEG XL and WebP, are treated as
 not proven lossless and therefore remain ineligible until stream-level mode

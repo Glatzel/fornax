@@ -324,14 +324,14 @@ pub fn write_golden_selection_csv(rows: &[GoldenCoverageRow]) -> Result<Vec<u8>>
     write_manifest_csv(&rows)
 }
 
-const fn fully_passing(row: &BaselineRow) -> bool {
+pub(crate) const fn fully_passing(row: &BaselineRow) -> bool {
     row.decode_pass == 1
         && row.raw_mosaic_pass == 1
         && row.process_metadata_pass == 1
         && row.handoff_pass == 1
 }
 
-fn golden_encoding(row: &BaselineRow) -> bool {
+pub(crate) fn golden_encoding(row: &BaselineRow) -> bool {
     fully_passing(row)
         && row.compression_lossless == Some(1)
         && matches!(row.format.as_str(), "DNG" | "ARW" | "CR3" | "NEF")
@@ -342,7 +342,7 @@ fn uses_highest_bit_depth(format: &str, _compression_name: &str) -> bool {
     matches!(format, "ARW" | "NEF")
 }
 
-fn decode_path(row: &BaselineRow) -> String {
+pub(crate) fn decode_path(row: &BaselineRow) -> String {
     if row.format == "DNG" {
         return dng_decode_path(row);
     }
@@ -410,7 +410,7 @@ fn deprecated_golden_encoding(row: &BaselineRow) -> bool {
         || (row.format == "NEF"
             && matches!(
                 row.compression_name.as_str(),
-                "nikon-mode-2-packed" | "nikon-mode-6-packed" | "nikon-uncompressed-words"
+                "nikon-mode-2-packed" | "nikon-mode-6-packed"
             ))
 }
 
@@ -549,6 +549,35 @@ pub fn check_golden_csv(actual: &[GoldenRow], expected: &GoldenCsv) -> Result<()
         extra.len(),
         changed.len(),
         missing.join(","),
+        extra.join(","),
+        changed.join(",")
+    )))
+}
+
+pub fn check_golden_csv_subset(actual: &[GoldenRow], expected: &GoldenCsv) -> Result<()> {
+    let actual = index_rows(actual)?;
+    let expected = index_rows(&expected.rows)?;
+    let extra = actual
+        .keys()
+        .filter(|path| !expected.contains_key(*path))
+        .cloned()
+        .collect::<Vec<_>>();
+    let changed = actual
+        .iter()
+        .filter(|(path, actual)| {
+            expected
+                .get(*path)
+                .is_some_and(|expected| actual != &expected)
+        })
+        .map(|(path, _)| path.clone())
+        .collect::<Vec<_>>();
+    if extra.is_empty() && changed.is_empty() {
+        return Ok(());
+    }
+    Err(TrackerError::new(format!(
+        "golden subset differs: {} extra, {} changed; extra={}; changed={}",
+        extra.len(),
+        changed.len(),
         extra.join(","),
         changed.join(",")
     )))
