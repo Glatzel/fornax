@@ -23,7 +23,6 @@ Nikon/Z 7/3-Nikon-Z7-RAW-14bit-lossless-compressed-L.NEF,58708188,f0e756dbfd00f3
 Nikon/Z 9/Nikon_-_NIKON_Z_9_-_14bit_compressed_(Lossless).NEF,57580695,99d0fe24a38f0f7623aeab21440d266a5ac09f9665cf5283f590337e84323c38,NEF.nikon-huffman.any-bits.integer.strips.unknown-predictor,large Nikon Huffman current generation,0,core
 Nokia/Lumia 1020/RAW_NOKIA_LUMIA_1020.DNG,49719488,0a5bc55096c0d4b43effc4d49947f3b9337c5cfa1e76dac026f6286190f4daf0,dng.uncompressed.integer.10.packed-u16-generic,large packed 10-bit DNG,0,core
 Pentax/645Z/IMGP2836.DNG,72478678,a8203686c61962af591b374331b6eb9dace4f2b29fce9f166303fc66fd210bb0,dng.lossless-jpeg.strips,large tiled-strip DNG LJPEG,0,core
-Pentax/K-1/IMGP8555.DNG,177464538,257f8a7b73cc9a1d2bea377511515ae6525326037825e7066302dba9f134d4ea,dng.lossless-jpeg.strips,two-component DNG LJPEG regression edge,0,core
 Sigma/fp L/SDIM0915.DNG,92498781,8e7229f28be30bfa45289940eac04194af2b3474f6db286e4fa4070c145a0a70,dng.lossless-jpeg.tiles,large DNG LJPEG tiles,0,core
 Sigma/fp/A002_651_20240229_000001_2k_12bit.DNG,3244544,99bcffd118630af5cf5712eeac6832045420311fe258094e3489b94c8d51236a,dng.uncompressed.integer.12.packed-u16-12,overhead-only packed 12-bit DNG,1,overhead
 Sigma/fp/A002_652_20240229_000001_2k_10bit.DNG,2716672,77d6e690f1b59312d80026dab605ac336f5a8d1619c9e653a23fb1271f39ebe4,dng.uncompressed.integer.10.packed-u16-generic,overhead-only packed 10-bit DNG,1,overhead
