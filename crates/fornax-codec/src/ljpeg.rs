@@ -690,13 +690,16 @@ fn decode_interleaved_impl(
 /// Returns an error when the JPEG stream, scan geometry, or Huffman data is
 /// invalid.
 #[doc(hidden)]
-pub fn decode_interleaved_rows(
+pub fn decode_interleaved_rows<F>(
     source: &[u8],
     expected_precision: u8,
     expected_width: usize,
     expected_height: usize,
-    mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
-) -> Result<bool, String> {
+    mut sink: F,
+) -> Result<bool, String>
+where
+    F: FnMut(usize, &[u16]) -> Result<(), String>,
+{
     let parsed = parse_jpeg(source, expected_precision)?;
     let components = parsed.frame.components.len();
     if parsed.predictor != 1 || components != 4 {

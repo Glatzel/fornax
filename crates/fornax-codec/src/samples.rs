@@ -137,7 +137,7 @@ fn decode_integer(
                 && geometry.chunk_width == geometry.width
             {
                 unpack_packed_rows(geometry, bits, payloads, &mut output, |source, target| {
-                    unpack_row_u16(source, target, bits, byte_order)
+                    unpack_row_u16(source, target, bits, byte_order);
                 })?;
             } else if matches!(bits, 12 | 14) {
                 decode_packed_u16(geometry, bits, byte_order, payloads, &mut output)?;
