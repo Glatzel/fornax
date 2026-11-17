@@ -132,7 +132,10 @@ fn decode_integer(
                 } else {
                     copy_samples(geometry, byte_order, payloads, &mut output)?;
                 }
-            } else if bits == 10 && geometry.across == 1 && geometry.chunk_width == geometry.width {
+            } else if matches!(bits, 10 | 14)
+                && geometry.across == 1
+                && geometry.chunk_width == geometry.width
+            {
                 unpack_packed_rows(geometry, bits, payloads, &mut output, |source, target| {
                     unpack_row_u16(source, target, bits, byte_order)
                 })?;
@@ -563,18 +566,40 @@ fn unpack_12_lsb(source: &[u8], target: &mut [u16]) {
     unpack_scalar(&source[groups * 3..], &mut target[groups * 2..], 12, true);
 }
 
-fn unpack_14_msb(source: &[u8], target: &mut [u16]) {
-    let groups = (target.len() / 4).min(source.len() / 7);
+fn unpack_14_msb(source: &[u8], target: &mut [u16]) { unpack_14_msb_kernel(source, target); }
+
+fn unpack_14_msb_kernel(source: &[u8], target: &mut [u16]) {
+    const GROUP_BYTES: usize = 14;
+    const GROUP_SAMPLES: usize = 8;
+    const MASK: u64 = 0x3fff;
+
+    let groups = (target.len() / GROUP_SAMPLES).min(source.len() / GROUP_BYTES);
     for group in 0..groups {
-        let bytes = &source[group * 7..][..7];
-        let word = u64::from_be_bytes([
-            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], 0,
-        ]) >> 8;
-        for index in 0..4 {
-            target[group * 4 + index] = ((word >> (56 - 14 * (index + 1))) & 0x3fff) as u16;
-        }
+        let bytes = &source[group * GROUP_BYTES..][..GROUP_BYTES];
+        let high = u64::from_be_bytes(
+            bytes[..8]
+                .try_into()
+                .expect("the first half of a 14-bit group is eight bytes"),
+        );
+        let low = u64::from_be_bytes([
+            0, 0, bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13],
+        ]);
+        let target = &mut target[group * GROUP_SAMPLES..][..GROUP_SAMPLES];
+        target[0] = ((high >> 50) & MASK) as u16;
+        target[1] = ((high >> 36) & MASK) as u16;
+        target[2] = ((high >> 22) & MASK) as u16;
+        target[3] = ((high >> 8) & MASK) as u16;
+        target[4] = (((high & 0xff) << 6) | (low >> 42)) as u16;
+        target[5] = ((low >> 28) & MASK) as u16;
+        target[6] = ((low >> 14) & MASK) as u16;
+        target[7] = (low & MASK) as u16;
     }
-    unpack_scalar(&source[groups * 7..], &mut target[groups * 4..], 14, false);
+    unpack_scalar(
+        &source[groups * GROUP_BYTES..],
+        &mut target[groups * GROUP_SAMPLES..],
+        14,
+        false,
+    );
 }
 
 #[cfg(test)]
@@ -948,6 +973,19 @@ mod tests {
         let mut fourteen = [0_u16; 3];
         unpack_14_msb(&[0xff, 0xfc, 0x00, 0x1a, 0xaa, 0x80], &mut fourteen);
         assert_eq!(fourteen, [0x3fff, 0x0001, 0x2aaa]);
+    }
+
+    #[test]
+    fn direct_fourteen_bit_kernel_handles_full_groups_and_row_tail() {
+        for len in [8, 11, 31] {
+            let expected = (0..len)
+                .map(|index| ((index * 2_411 + 97) & 0x3fff) as u16)
+                .collect::<Vec<_>>();
+            let encoded = pack(&expected, 14, false);
+            let mut decoded = vec![0_u16; len];
+            unpack_14_msb_kernel(&encoded, &mut decoded);
+            assert_eq!(decoded, expected, "14-bit kernel length {len}");
+        }
     }
 
     #[test]
