@@ -123,8 +123,8 @@ pub fn assert_mosaic_eq(
             CanonicalMosaic::U32 {
                 samples: actual, ..
             },
-        ) => assert_samples(case, reference_name, expected, actual),
-        (
+        )
+        | (
             CanonicalMosaic::F32 {
                 samples: expected, ..
             },
