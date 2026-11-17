@@ -256,7 +256,7 @@ fn golden_coverage_groups_encoding_paths_and_chooses_smallest_representative() {
         baseline_row(&small, "lossless-jpeg", 14, true),
         baseline_row(&missing, "sony-lossless-jpeg", 14, true),
     ];
-    let manifest = vec![large, small, missing.clone()];
+    let manifest = vec![large, small, missing];
     let golden = vec![
         manifest[1].clone(),
         manifest[0].clone(),
@@ -724,7 +724,7 @@ fn golden_selection_manifest_writes_one_lowest_pixel_representative_per_encoding
     second_row.cfa = "BGGR".into();
     let report = build_golden_coverage(
         &[first_row, second_row],
-        &[first.clone(), second.clone()],
+        &[first, second],
         &[],
     )
     .unwrap();

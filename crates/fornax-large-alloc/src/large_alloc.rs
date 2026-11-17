@@ -274,7 +274,7 @@ mod tests {
         assert!(zeroed_samples::<u16>(usize::MAX).is_err());
     }
 
-    fn assert_tracked_allocations<T>(len: usize, expect_large_page_policy: bool)
+    fn assert_tracked_allocations<T>(len: usize, _expect_large_page_policy: bool)
     where
         T: PartialEq + Pod + Debug,
     {

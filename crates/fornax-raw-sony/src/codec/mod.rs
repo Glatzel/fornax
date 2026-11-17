@@ -621,7 +621,7 @@ mod tests {
     ) {
         let decoded = decode_interleaved(stream, 16).unwrap();
         let expected = if decoded.components == 1 {
-            decoded.samples.clone()
+            decoded.samples
         } else {
             bayer_rows(
                 &decoded.samples,

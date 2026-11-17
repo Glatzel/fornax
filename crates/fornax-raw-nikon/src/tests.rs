@@ -557,8 +557,7 @@ fn raw_fixture_inner(
     with_cfa: bool,
 ) -> Vec<u8> {
     let maker_entries = mode
-        .map(|mode| vec![(0x0093, Value::Short(mode))])
-        .unwrap_or_default();
+        .map_or_default(|mode| vec![(0x0093, Value::Short(mode))]);
     raw_fixture_with_entries_inner(
         maker_entries,
         compression,
@@ -580,8 +579,7 @@ fn raw_fixture_with_maker_entries(
     extra: &[(u16, Value)],
 ) -> Vec<u8> {
     let mut maker_entries = mode
-        .map(|mode| vec![(0x0093, Value::Short(mode))])
-        .unwrap_or_default();
+        .map_or_default(|mode| vec![(0x0093, Value::Short(mode))]);
     maker_entries.extend_from_slice(extra);
     raw_fixture_with_entries_inner(
         maker_entries,
