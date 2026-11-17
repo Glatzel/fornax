@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use fornax_codec::{ICodecDecode, unpack_u16_word_rows};
+use fornax_codec::{ICodecDecode, unpack_packed_u16_rows, unpack_u16_word_rows};
 
 use crate::error::{invalid, unsupported};
 use crate::huffman::{BitReader, HuffmanTable};
@@ -469,19 +469,22 @@ pub fn decode_packed(
     })?;
     let sample_count = checked_sample_count(request.width, request.height)?;
     let mut output = vec![0_u16; sample_count];
-
-    for (tile, strip) in request.chunks.iter().copied().enumerate() {
-        let start_row = tile
-            .checked_mul(request.chunk_height)
-            .ok_or_else(|| invalid("Nikon packed row offset overflow"))?;
-        let rows = rows[tile];
-        let payload = chunk(request.source, strip)?;
-        for row in 0..rows {
-            let source = &payload[row * row_stride..][..row_bytes];
-            let target = &mut output[(start_row + row) * request.width..][..request.width];
-            unpack_row(source, target, bits, byte_order)?;
-        }
-    }
+    let payloads = request
+        .chunks
+        .iter()
+        .copied()
+        .map(|strip| chunk(request.source, strip))
+        .collect::<Result<Vec<_>, _>>()?;
+    unpack_packed_u16_rows(
+        &payloads,
+        &mut output,
+        request.width,
+        request.height,
+        request.chunk_height,
+        row_stride,
+        u16::from(bits),
+        |source, target| unpack_row(source, target, bits, byte_order),
+    )?;
     buffer_u16(request.width, request.height, output)
 }
 
