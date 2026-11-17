@@ -15,6 +15,138 @@ const LOSSLESS_12_COUNTS: [u8; 16] = [0, 1, 4, 2, 3, 1, 2, 0, 0, 0, 0, 0, 0, 0, 
 const LOSSLESS_12_SYMBOLS: [u8; 13] = [5, 4, 6, 3, 7, 2, 8, 1, 9, 0, 10, 11, 12];
 const LOSSLESS_14_COUNTS: [u8; 16] = [0, 1, 4, 2, 2, 3, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0];
 const LOSSLESS_14_SYMBOLS: [u8; 15] = [7, 6, 8, 5, 9, 4, 10, 3, 11, 12, 2, 0, 1, 13, 14];
+const FUSED_BITS: u8 = 13;
+const FUSED_SIZE: usize = 1 << FUSED_BITS;
+const FAST_GROUP: usize = 4;
+
+#[derive(Clone, Copy, Debug)]
+struct FusedEntry {
+    consumed: u8,
+    difference: i16,
+}
+
+impl FusedEntry {
+    const ESCAPE: Self = Self {
+        consumed: 0,
+        difference: 0,
+    };
+}
+
+struct FusedTable {
+    entries: Box<[FusedEntry; FUSED_SIZE]>,
+}
+
+impl FusedTable {
+    fn build(counts: &[u8; 16], symbols: &[u8], bits: u8) -> Result<Self, CodecError> {
+        let mut entries = Box::new([FusedEntry::ESCAPE; FUSED_SIZE]);
+        let mut code = 0_u32;
+        let mut offset = 0_usize;
+        for (index, count) in counts.iter().copied().enumerate() {
+            let code_length = u8::try_from(index + 1).expect("Huffman lengths fit u8");
+            code <<= 1;
+            for symbol_index in 0..usize::from(count) {
+                let difference_bits = symbols[offset + symbol_index];
+                if difference_bits > bits {
+                    return Err(invalid(format!(
+                        "Nikon Huffman difference length {difference_bits} exceeds {bits} bits"
+                    )));
+                }
+                let consumed = code_length + difference_bits;
+                if code_length <= FUSED_BITS && consumed <= FUSED_BITS {
+                    let suffix_bits = FUSED_BITS - code_length;
+                    let first = (code
+                        + u32::try_from(symbol_index).expect("symbol index fits u32"))
+                        << suffix_bits;
+                    let suffix_count = 1_usize << suffix_bits;
+                    let difference_shift = FUSED_BITS - consumed;
+                    for suffix in 0..suffix_count {
+                        let difference_bits = (suffix >> difference_shift) as u32;
+                        let difference = decode_difference_value(
+                            difference_bits,
+                            symbols[offset + symbol_index],
+                        )? as i16;
+                        entries[first as usize + suffix] = FusedEntry {
+                            consumed,
+                            difference,
+                        };
+                    }
+                }
+            }
+            code += u32::from(count);
+            offset += usize::from(count);
+        }
+        Ok(Self { entries })
+    }
+}
+
+#[allow(dead_code, reason = "the reference kernel remains the test oracle")]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum HuffmanKernel {
+    Fused,
+    Reference,
+}
+
+struct WindowReader<'a> {
+    source: &'a [u8],
+    bit_position: usize,
+    total_bits: usize,
+}
+
+impl<'a> WindowReader<'a> {
+    fn new(source: &'a [u8]) -> Result<Self, CodecError> {
+        let total_bits = source
+            .len()
+            .checked_mul(8)
+            .ok_or_else(|| invalid("Nikon Huffman bit count overflow"))?;
+        Ok(Self {
+            source,
+            bit_position: 0,
+            total_bits,
+        })
+    }
+
+    fn window(&self) -> Option<u64> {
+        let byte = self.bit_position / 8;
+        let offset = self.bit_position % 8;
+        self.source.get(byte..byte + 8).map(|bytes| {
+            u64::from_be_bytes(bytes.try_into().expect("a byte window has eight bytes")) << offset
+        })
+    }
+
+    fn advance(&mut self, count: u8) -> Result<(), CodecError> {
+        let count = usize::from(count);
+        let remaining = self
+            .total_bits
+            .checked_sub(self.bit_position)
+            .ok_or_else(|| invalid("Nikon Huffman bit position overflow"))?;
+        if count > remaining {
+            return Err(invalid("Huffman bitstream is exhausted"));
+        }
+        self.bit_position += count;
+        Ok(())
+    }
+
+    fn decode_reference_difference(
+        &mut self,
+        table: &HuffmanTable,
+        bits: u8,
+    ) -> Result<i32, CodecError> {
+        let byte = self.bit_position / 8;
+        let offset = u8::try_from(self.bit_position % 8).expect("bit offset fits u8");
+        let mut reader = BitReader::new(&self.source[byte..]);
+        if offset != 0 {
+            reader.read_bits(offset)?;
+        }
+        let before = reader.remaining_bits();
+        let difference = decode_difference(table, &mut reader, bits)?;
+        let consumed = before - reader.remaining_bits();
+        self.bit_position = self
+            .bit_position
+            .checked_add(consumed)
+            .ok_or_else(|| invalid("Nikon Huffman bit position overflow"))?;
+        Ok(difference)
+    }
+}
 
 #[derive(Clone, Debug)]
 pub enum NikonCodec {
@@ -65,6 +197,17 @@ pub fn decode_huffman(
     init: [[u16; 2]; 2],
     curve: &[u16],
 ) -> Result<SampleBuffer, CodecError> {
+    decode_huffman_with_kernel(request, bits, tree, init, curve, HuffmanKernel::Fused)
+}
+
+fn decode_huffman_with_kernel(
+    request: &DecodeRequest<'_>,
+    bits: u8,
+    tree: NikonTreeId,
+    init: [[u16; 2]; 2],
+    curve: &[u16],
+    kernel: HuffmanKernel,
+) -> Result<SampleBuffer, CodecError> {
     if request.sample_format != SampleFormat::Integer {
         return Err(invalid("Nikon Huffman decoding requires integer samples"));
     }
@@ -103,41 +246,159 @@ pub fn decode_huffman(
     let payload = chunk(request.source, request.chunks[0])?;
     let (counts, symbols) = tree_tables(tree);
     let table = HuffmanTable::from_counts(counts, symbols)?;
-    let mut reader = BitReader::new(payload);
     let mut output = vec![0_u16; sample_count];
-    let mut vertical = init.map(|values| values.map(i32::from));
-
-    for row in 0..request.height {
-        let parity = row & 1;
-        let mut horizontal = vertical[parity];
-        for column in 0..request.width {
-            let difference = decode_difference(&table, &mut reader, bits)?;
-            let phase = column & 1;
-            let predictor = {
-                let base = if column < 2 {
-                    &mut vertical[parity][column]
-                } else {
-                    &mut horizontal[phase]
-                };
-                *base = base
-                    .checked_add(difference)
-                    .ok_or_else(|| invalid("Nikon Huffman predictor overflow"))?;
-                *base
-            };
-            horizontal[phase] = predictor;
-            let index = usize::try_from(predictor)
-                .map_err(|_| invalid("Nikon Huffman curve index is negative"))?;
-            let mapped = curve.get(index).ok_or_else(|| {
-                invalid(format!(
-                    "Nikon Huffman curve index {index} exceeds {} entries",
-                    curve.len()
-                ))
-            })?;
-            output[row * request.width + column] = *mapped;
+    match kernel {
+        HuffmanKernel::Fused if payload.len() >= 8 => {
+            let fused = FusedTable::build(counts, symbols, bits)?;
+            decode_huffman_fused(
+                payload,
+                request.width,
+                request.height,
+                bits,
+                &table,
+                &fused,
+                init,
+                curve,
+                &mut output,
+            )?;
         }
+        HuffmanKernel::Fused | HuffmanKernel::Reference => decode_huffman_reference(
+            payload,
+            request.width,
+            request.height,
+            bits,
+            &table,
+            init,
+            curve,
+            &mut output,
+        )?,
     }
 
     buffer_u16(request.width, request.height, output)
+}
+
+fn decode_huffman_reference(
+    payload: &[u8],
+    width: usize,
+    height: usize,
+    bits: u8,
+    table: &HuffmanTable,
+    init: [[u16; 2]; 2],
+    curve: &[u16],
+    output: &mut [u16],
+) -> Result<(), CodecError> {
+    let mut reader = BitReader::new(payload);
+    let mut vertical = init.map(|values| values.map(i32::from));
+
+    for row in 0..height {
+        let parity = row & 1;
+        let mut horizontal = vertical[parity];
+        for column in 0..width {
+            let difference = decode_difference(table, &mut reader, bits)?;
+            let predictor =
+                update_predictor(column, difference, &mut vertical[parity], &mut horizontal)?;
+            output[row * width + column] = curve_value(curve, predictor)?;
+        }
+    }
+    Ok(())
+}
+
+fn decode_huffman_fused(
+    payload: &[u8],
+    width: usize,
+    height: usize,
+    bits: u8,
+    table: &HuffmanTable,
+    fused: &FusedTable,
+    init: [[u16; 2]; 2],
+    curve: &[u16],
+    output: &mut [u16],
+) -> Result<(), CodecError> {
+    let mut reader = WindowReader::new(payload)?;
+    let mut vertical = init.map(|values| values.map(i32::from));
+
+    for row in 0..height {
+        let parity = row & 1;
+        let mut vertical_row = vertical[parity];
+        let mut left = vertical_row;
+        let mut column = 0_usize;
+        let row_output = &mut output[row * width..][..width];
+
+        while column + FAST_GROUP <= width {
+            let Some(mut window) = reader.window() else {
+                break;
+            };
+            let mut consumed = 0_u8;
+            let mut decoded = 0_usize;
+            while decoded < FAST_GROUP {
+                let entry = fused.entries[(window >> (64 - FUSED_BITS)) as usize];
+                if entry.consumed == 0 {
+                    break;
+                }
+                let predictor = update_predictor(
+                    column + decoded,
+                    i32::from(entry.difference),
+                    &mut vertical_row,
+                    &mut left,
+                )?;
+                row_output[column + decoded] = curve_value(curve, predictor)?;
+                window <<= entry.consumed;
+                consumed = consumed
+                    .checked_add(entry.consumed)
+                    .ok_or_else(|| invalid("Nikon Huffman fused bit count overflow"))?;
+                decoded += 1;
+            }
+            reader.advance(consumed)?;
+            column += decoded;
+            if decoded != FAST_GROUP {
+                let difference = reader.decode_reference_difference(table, bits)?;
+                let predictor = update_predictor(column, difference, &mut vertical_row, &mut left)?;
+                row_output[column] = curve_value(curve, predictor)?;
+                column += 1;
+            }
+        }
+        while column < width {
+            let difference = reader.decode_reference_difference(table, bits)?;
+            let predictor = update_predictor(column, difference, &mut vertical_row, &mut left)?;
+            row_output[column] = curve_value(curve, predictor)?;
+            column += 1;
+        }
+        vertical[parity] = vertical_row;
+    }
+    Ok(())
+}
+
+#[inline(always)]
+fn update_predictor(
+    column: usize,
+    difference: i32,
+    vertical: &mut [i32; 2],
+    horizontal: &mut [i32; 2],
+) -> Result<i32, CodecError> {
+    let phase = column & 1;
+    let base = if column < 2 {
+        &mut vertical[column]
+    } else {
+        &mut horizontal[phase]
+    };
+    *base = base
+        .checked_add(difference)
+        .ok_or_else(|| invalid("Nikon Huffman predictor overflow"))?;
+    let predictor = *base;
+    horizontal[phase] = predictor;
+    Ok(predictor)
+}
+
+#[inline(always)]
+fn curve_value(curve: &[u16], predictor: i32) -> Result<u16, CodecError> {
+    let index =
+        usize::try_from(predictor).map_err(|_| invalid("Nikon Huffman curve index is negative"))?;
+    curve.get(index).copied().ok_or_else(|| {
+        invalid(format!(
+            "Nikon Huffman curve index {index} exceeds {} entries",
+            curve.len()
+        ))
+    })
 }
 
 fn decode_difference(
@@ -155,6 +416,19 @@ fn decode_difference(
         )));
     }
     let value = reader.read_bits(length)? as i32;
+    decode_difference_value(value as u32, length)
+}
+
+fn decode_difference_value(value: u32, length: u8) -> Result<i32, CodecError> {
+    if length == 0 {
+        return Ok(0);
+    }
+    if length > 14 {
+        return Err(invalid(format!(
+            "Nikon Huffman difference length {length} is invalid"
+        )));
+    }
+    let value = i32::try_from(value).expect("a Nikon difference bit field fits i32");
     if value & (1 << (length - 1)) == 0 {
         Ok(value - ((1 << length) - 1))
     } else {
@@ -425,7 +699,7 @@ mod lossless_tests {
         SampleFormat,
     };
 
-    use super::tree_tables;
+    use super::{HuffmanKernel, tree_tables};
     use crate::NikonTreeId;
     use crate::codec::NikonCodec;
     use crate::huffman::HuffmanTable;
@@ -659,6 +933,187 @@ mod lossless_tests {
         }
     }
 
+    #[test]
+    fn fused_kernel_matches_reference_across_table_types_and_geometry() {
+        for (tree, bits) in [
+            (NikonTreeId::Lossless12, 12_u8),
+            (NikonTreeId::Lossless14, 14),
+        ] {
+            let mask = (1_u16 << bits) - 1;
+            for (width, height) in [(1, 1), (1, 4), (2, 1), (3, 2), (5, 3), (17, 2)] {
+                let init = [[mask / 5, mask / 7], [mask / 3, mask / 2]];
+                let mut state = 0x9e37_79b9_u32 ^ ((width as u32) << 8) ^ u32::from(bits);
+                let samples = (0..width * height)
+                    .map(|_| {
+                        state ^= state << 13;
+                        state ^= state >> 17;
+                        state ^= state << 5;
+                        (state as u16) & mask
+                    })
+                    .collect::<Vec<_>>();
+                let source = encode_image(&samples, tree, init, width, height);
+
+                let fast = decode_identity_with_kernel(
+                    &source,
+                    tree,
+                    init,
+                    width,
+                    height,
+                    HuffmanKernel::Fused,
+                )
+                .unwrap();
+                let reference = decode_identity_with_kernel(
+                    &source,
+                    tree,
+                    init,
+                    width,
+                    height,
+                    HuffmanKernel::Reference,
+                )
+                .unwrap();
+
+                assert_eq!(
+                    fast, reference,
+                    "bits={bits}, width={width}, height={height}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn fused_kernel_preserves_large_difference_fallbacks() {
+        for (tree, bits, init) in [
+            (NikonTreeId::Lossless12, 12_u8, [[0, 4095], [4095, 0]]),
+            (NikonTreeId::Lossless14, 14_u8, [[0, 16383], [16383, 0]]),
+        ] {
+            let mask = (1_u16 << bits) - 1;
+            let samples = [mask, 0, mask, mask - 1, 0, mask, 1, 2, 3, 4, 5];
+            let source = encode_image(&samples, tree, init, 11, 1);
+            let fast =
+                decode_identity_with_kernel(&source, tree, init, 11, 1, HuffmanKernel::Fused)
+                    .unwrap();
+            let reference =
+                decode_identity_with_kernel(&source, tree, init, 11, 1, HuffmanKernel::Reference)
+                    .unwrap();
+
+            assert_eq!(fast, samples, "bits={bits}");
+            assert_eq!(fast, reference, "bits={bits}");
+        }
+    }
+
+    #[test]
+    fn fused_and_reference_kernels_reject_exact_end_edges_identically() {
+        for (tree, bits) in [
+            (NikonTreeId::Lossless12, 12_u8),
+            (NikonTreeId::Lossless14, 14),
+        ] {
+            let mask = (1_u16 << bits) - 1;
+            let init = [[mask / 11, mask / 13], [mask / 17, mask / 19]];
+            let mut samples = (0..40)
+                .map(|index| ((index * 977) as u16).wrapping_mul(37) & mask)
+                .collect::<Vec<_>>();
+            samples[39] = mask;
+            samples[37] = 0;
+            let encoded_bits = encode_image_bits(&samples, tree, init, 8, 5);
+            let exact = pack_bits(encoded_bits.clone());
+            let before = pack_bits(encoded_bits[..encoded_bits.len() - 16].to_vec());
+            let mid_code = pack_bits(encoded_bits[..encoded_bits.len() - 8].to_vec());
+
+            for kernel in [HuffmanKernel::Fused, HuffmanKernel::Reference] {
+                assert!(
+                    decode_identity_with_kernel(&exact, tree, init, 8, 5, kernel).is_ok(),
+                    "exact end failed for {kernel:?}"
+                );
+                assert!(
+                    decode_identity_with_kernel(&before, tree, init, 8, 5, kernel).is_err(),
+                    "before-end truncation passed for {kernel:?}"
+                );
+                assert!(
+                    decode_identity_with_kernel(&mid_code, tree, init, 8, 5, kernel).is_err(),
+                    "mid-code truncation passed for {kernel:?}"
+                );
+            }
+
+            for cut in 0..exact.len() {
+                let truncated = &exact[..cut];
+                let fast =
+                    decode_identity_with_kernel(truncated, tree, init, 8, 5, HuffmanKernel::Fused);
+                let reference = decode_identity_with_kernel(
+                    truncated,
+                    tree,
+                    init,
+                    8,
+                    5,
+                    HuffmanKernel::Reference,
+                );
+                match (fast, reference) {
+                    (Ok(fast), Ok(reference)) => assert_eq!(fast, reference),
+                    (Err(_), Err(_)) => {}
+                    (fast, reference) => panic!(
+                        "kernels disagreed at {cut} retained bytes: fast={fast:?}, reference={reference:?}"
+                    ),
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn fused_kernel_reports_predictor_overflow_like_the_reference() {
+        for (tree, bits) in [
+            (NikonTreeId::Lossless12, 12_u8),
+            (NikonTreeId::Lossless14, 14),
+        ] {
+            let source = encode_differences(&[1], tree);
+            for kernel in [HuffmanKernel::Fused, HuffmanKernel::Reference] {
+                let error = decode_identity_with_kernel(
+                    &source,
+                    tree,
+                    [[u16::MAX, 0], [0, 0]],
+                    1,
+                    1,
+                    kernel,
+                )
+                .unwrap_err();
+                assert!(
+                    matches!(error, CodecError::InvalidInput(_)),
+                    "bits={bits}, kernel={kernel:?}: {error}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn fused_and_reference_kernels_handle_bit_flips_without_diverging() {
+        for (tree, bits) in [
+            (NikonTreeId::Lossless12, 12_u8),
+            (NikonTreeId::Lossless14, 14),
+        ] {
+            let mask = (1_u16 << bits) - 1;
+            let init = [[mask / 7, mask / 9], [mask / 11, mask / 13]];
+            let samples = (0..29)
+                .map(|index| ((index * 313) as u16).wrapping_mul(19) & mask)
+                .collect::<Vec<_>>();
+            let source = encode_image(&samples, tree, init, 29, 1);
+            for bit in (0..source.len() * 8).step_by(11) {
+                let mut corrupt = source.clone();
+                corrupt[bit / 8] ^= 1 << (7 - bit % 8);
+                let fast =
+                    decode_identity_with_kernel(&corrupt, tree, init, 29, 1, HuffmanKernel::Fused)
+                        .map_err(|_| ());
+                let reference = decode_identity_with_kernel(
+                    &corrupt,
+                    tree,
+                    init,
+                    29,
+                    1,
+                    HuffmanKernel::Reference,
+                )
+                .map_err(|_| ());
+                assert_eq!(fast, reference, "bits={bits}, flipped bit={bit}");
+            }
+        }
+    }
+
     fn decode_identity(
         source: &[u8],
         tree: NikonTreeId,
@@ -688,6 +1143,49 @@ mod lossless_tests {
         height: usize,
         curve: Arc<[u16]>,
     ) -> Result<Vec<u16>, CodecError> {
+        decode_with_curve_kernel(
+            source,
+            tree,
+            init,
+            width,
+            height,
+            curve,
+            HuffmanKernel::Fused,
+        )
+    }
+
+    fn decode_identity_with_kernel(
+        source: &[u8],
+        tree: NikonTreeId,
+        init: [[u16; 2]; 2],
+        width: usize,
+        height: usize,
+        kernel: HuffmanKernel,
+    ) -> Result<Vec<u16>, CodecError> {
+        let bits = match tree {
+            NikonTreeId::Lossless12 => 12,
+            NikonTreeId::Lossless14 => 14,
+        };
+        decode_with_curve_kernel(
+            source,
+            tree,
+            init,
+            width,
+            height,
+            Arc::from(identity_curve(bits)),
+            kernel,
+        )
+    }
+
+    fn decode_with_curve_kernel(
+        source: &[u8],
+        tree: NikonTreeId,
+        init: [[u16; 2]; 2],
+        width: usize,
+        height: usize,
+        curve: Arc<[u16]>,
+        kernel: HuffmanKernel,
+    ) -> Result<Vec<u16>, CodecError> {
         let bits = match tree {
             NikonTreeId::Lossless12 => 12,
             NikonTreeId::Lossless14 => 14,
@@ -714,10 +1212,29 @@ mod lossless_tests {
             byte_order: ByteOrder::Little,
             predictor: Predictor::None,
         };
-        let SampleBuffer::U16(image) = codec.decode(&request)? else {
+        let decoded = if matches!(&codec, NikonCodec::Huffman { .. }) {
+            super::decode_huffman_with_kernel(
+                &request,
+                bits,
+                tree,
+                init,
+                &request_curve(&codec),
+                kernel,
+            )?
+        } else {
+            codec.decode(&request)?
+        };
+        let SampleBuffer::U16(image) = decoded else {
             panic!("Nikon Huffman returned non-u16 samples");
         };
         Ok(image.into_raw())
+    }
+
+    fn request_curve(codec: &NikonCodec) -> Arc<[u16]> {
+        match codec {
+            NikonCodec::Huffman { curve, .. } => curve.clone(),
+            _ => panic!("test helper requires a Huffman codec"),
+        }
     }
 
     fn identity_curve(bits: u8) -> Vec<u16> {
@@ -731,6 +1248,16 @@ mod lossless_tests {
         width: usize,
         height: usize,
     ) -> Vec<u8> {
+        pack_bits(encode_image_bits(samples, tree, init, width, height))
+    }
+
+    fn encode_image_bits(
+        samples: &[u16],
+        tree: NikonTreeId,
+        init: [[u16; 2]; 2],
+        width: usize,
+        height: usize,
+    ) -> Vec<bool> {
         let codes = codes(tree);
         let mut output = Vec::new();
         let mut predictors = init;
@@ -746,6 +1273,15 @@ mod lossless_tests {
                     predictors[row & 1][column] = expected;
                 }
             }
+        }
+        output
+    }
+
+    fn encode_differences(differences: &[i32], tree: NikonTreeId) -> Vec<u8> {
+        let codes = codes(tree);
+        let mut output = Vec::new();
+        for &difference in differences {
+            write_difference(&mut output, difference, &codes);
         }
         pack_bits(output)
     }
