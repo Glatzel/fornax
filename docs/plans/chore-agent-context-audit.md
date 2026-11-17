@@ -64,6 +64,21 @@ descriptions remain unchanged.
 No rule was intentionally deleted. Content was moved to a more specific
 authority or retained in shorter form.
 
+## Quiet tooling findings
+
+- Criterion benchmark probes are the clearest high-volume case.
+  `scripts/agent-run.sh` now provides the summary-by-default wrapper and keeps
+  the complete log.
+- A full `compare-demosaic run` can print one row per case. It already writes
+  canonical JSON, so the generic wrapper is enough; changing its established
+  text/JSON interface would be a larger compatibility change.
+- `decoder-tracker run` already defaults to at most two selected files. Full
+  shard runs are manual, and the generic wrapper covers them.
+- `scripts/agent-validation.sh` already uses quiet Cargo modes and must preserve
+  diagnostics on failure. No command-specific formatter is justified.
+- CI helpers keep raw streaming output because workflows consume it and upload
+  artifacts; wrapping them would obscure the CI contract.
+
 ## Old rule -> new location
 
 | Old rule | Where it lives now |
@@ -105,6 +120,7 @@ authority or retained in shorter form.
 | Semantic PR title; follow-up on same PR; user owns merge/watch/close | Root handoff |
 | No binary files, enforced for the book by `check_assets.py` | Root hard boundaries |
 | Project skills stay in `.agents/skills`; pixi-managed skills untouched | Root hard boundaries |
+| Noisy probes capture full output and print a bounded summary | Root validation bullet and `docs/agent-workflow.md`, Quiet tooling |
 | Do not add TODO items; propose them in report/PR | Root Work |
 | Root contains only `AGENTS.md` and `TODO.md` as agent files; no tool-specific files | Root hard boundaries |
 | Preserve reusable research under `docs/reference/`, not chat/scratch/PR | Root hard boundaries; workflow detail |

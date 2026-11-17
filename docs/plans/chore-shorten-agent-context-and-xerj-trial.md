@@ -83,17 +83,17 @@ the conditional files are not all loaded together.
 - [x] Keep root `AGENTS.md` at or below 3,744 bytes so the total remains at or
       below 40%.
 - [x] Run `scripts/agent-validation.sh --docs-only`.
-- [ ] Commit the context rewrite and moves as one docs commit.
+- [x] Commit the context rewrite and moves as one docs commit.
 
 ### Task 2: Quiet noisy agent tooling
 
-- [ ] Inspect validation, tracker, comparison, benchmark, and CI helpers.
-- [ ] Add a small generic output-capture helper only if it preserves exit status,
+- [x] Inspect validation, tracker, comparison, benchmark, and CI helpers.
+- [x] Add a small generic output-capture helper only if it preserves exit status,
       full logs, and useful diagnostics.
-- [ ] Test success, failure, and log-location behavior.
-- [ ] Document only the command line needed in always-loaded context; put usage
+- [x] Test success, failure, and log-location behavior.
+- [x] Document only the command line needed in always-loaded context; put usage
       detail in the on-demand workflow doc.
-- [ ] Commit tooling separately or report why no safe change was made.
+- [x] Commit tooling separately or report why no safe change was made.
 
 ### Task 3: XERJ setup and measurements
 
@@ -145,3 +145,6 @@ expected to change.
 - The existing XERJ note in `AGENTS.md` is already a local pointer rule; the
   trial may replace it with one equally short adoption line only if evidence
   supports adoption.
+- Task A result after the quiet-tooling line: root `AGENTS.md` is 3,373 bytes;
+  the unconditional bundle is 4,463 bytes (36.9% of the 12,086-byte baseline,
+  about 1,116 estimated tokens).

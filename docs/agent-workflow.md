@@ -61,6 +61,28 @@ Exclude `.git`, do not edit shared hard-linked input, and never download the
 RAW corpus again merely because a worktree is new. `compare-demosaic` baseline
 and generated README rules live in `crates/compare-demosaic/AGENTS.md`.
 
+## Quiet tooling
+
+Use the generic wrapper for commands whose successful output is much larger
+than the decision it supports:
+
+```bash
+scripts/agent-run.sh --label bench -- cargo bench -p fornax-codec
+scripts/agent-run.sh --label compare -- \
+  cargo run --release -p compare-demosaic -- run
+```
+
+It captures stdout and stderr to `target/agent-logs/`, prints the log path,
+exit status, duration, and the last 80 lines. `--tail N` changes the tail and
+`FORNAX_AGENT_LOG_DIR` changes the directory. The wrapper preserves the child
+exit code and full log, so use the log when the tail lacks the failure.
+
+Keep raw commands where the output is an interface: CI artifact generation,
+JSON/text consumed by another command, or short tracker operations whose
+defaults are already bounded. Criterion has no stable machine summary here, so
+the wrapper is the safe common mechanism; command-specific output modes would
+add maintenance for little benefit.
+
 ## Pull request handoff
 
 ```bash

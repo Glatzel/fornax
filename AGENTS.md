@@ -39,6 +39,8 @@ scripts/agent-validation.sh --docs-only
 
 - Use `--docs-only` for docs/context-only changes. Never run Markdown lint
   locally. Also run task-specific checks and record commands and outcomes.
+- For noisy probes, use `scripts/agent-run.sh -- <command>`; it preserves the
+  status and writes full output under `target/agent-logs/`.
 - In a linked worktree, hard-link the main checkout's `external/` data with
   `rsync --link-dest`; treat those files as read-only.
 - Commit, push, and open one semantic PR using a title such as
