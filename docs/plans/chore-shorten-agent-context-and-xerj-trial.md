@@ -107,22 +107,22 @@ the conditional files are not all loaded together.
 
 ### Task 3: XERJ setup and measurements
 
-- [ ] Confirm the node is local and running without changing configuration.
-- [ ] Index only the requested Fornax codec/vendor crates, FlashRaw, and LibRaw
+- [x] Confirm the node is local and running without changing configuration.
+- [x] Index only the requested Fornax codec/vendor crates, FlashRaw, and LibRaw
       when present.
-- [ ] Record file counts, record counts, elapsed time, paths, commits, and
+- [x] Record file counts, record counts, elapsed time, paths, commits, and
       licences.
-- [ ] Execute Run 1 with normal file tools only.
-- [ ] Execute Run 2 in a separate context using XERJ retrieval.
-- [ ] Run `xerj gain` after Run 2.
+- [x] Execute Run 1 with normal file tools only.
+- [x] Execute Run 2 sequentially without opening Run 1 notes.
+- [x] Run `xerj gain` after Run 2.
 
 ### Task 4: Design comparison and verdict
 
-- [ ] Write the short NEF Huffman design note from each run.
-- [ ] Verify at least three claims from each note against source `file:line`.
-- [ ] Compare coverage and correctness, then calculate measured deltas.
-- [ ] Write `docs/plans/xerj-trial-2026-11.md` under 100 lines.
-- [ ] Run documentation validation and commit the report.
+- [x] Write the short NEF Huffman design note from each run.
+- [x] Verify at least three claims from each note against source `file:line`.
+- [x] Compare coverage and correctness, then calculate measured deltas.
+- [x] Write `docs/plans/xerj-trial-2026-11.md` under 100 lines.
+- [x] Run documentation validation and commit the report.
 
 ## Files Expected to Change
 
