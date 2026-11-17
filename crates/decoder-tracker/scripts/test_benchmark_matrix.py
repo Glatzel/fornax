@@ -69,9 +69,7 @@ def test_accepts_extended_golden_metadata_columns():
         )
     )
 
-    assert rows == [
-        {"path": "Canon/EOS R5/photo.CR3", "size": 10, "sha256": SHA_A}
-    ]
+    assert rows == [{"path": "Canon/EOS R5/photo.CR3", "size": 10, "sha256": SHA_A}]
 
 
 def test_filters_performance_groups():
@@ -83,13 +81,9 @@ def test_filters_performance_groups():
         )
     )
 
-    matrix = benchmark_matrix.build_matrix(
-        rows, groups=benchmark_matrix.parse_groups("full")
-    )
+    matrix = benchmark_matrix.build_matrix(rows, groups=benchmark_matrix.parse_groups("full"))
 
-    assert [item["path"] for item in matrix["include"]] == [
-        "Canon/EOS R6/extra.CR3"
-    ]
+    assert [item["path"] for item in matrix["include"]] == ["Canon/EOS R6/extra.CR3"]
 
 
 def test_rejects_duplicate_paths():

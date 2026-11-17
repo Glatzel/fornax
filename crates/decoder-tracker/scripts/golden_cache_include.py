@@ -21,9 +21,7 @@ def main():
     root = Path(__file__).resolve().parents[3]
     paths = set()
     for name in ("test-manifest.csv", "perf-manifest.csv"):
-        with (root / "crates/decoder-tracker/golden" / name).open(
-            encoding="utf-8", newline=""
-        ) as stream:
+        with (root / "crates/decoder-tracker/golden" / name).open(encoding="utf-8", newline="") as stream:
             for row in csv.DictReader(stream):
                 paths.add(row["path"].replace("\\", "/"))
     print(",".join(escape(path) for path in sorted(paths)))
