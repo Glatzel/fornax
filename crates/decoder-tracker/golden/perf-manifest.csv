@@ -7,8 +7,7 @@ Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-uncompressed.dng,73613206,5632bb6229f2
 Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-w-pred-deflate.dng,35431526,664874abe16f79a224a713ed6d786a1d9614ec8a4231fae8dfd653c747d77641,dng.deflate.float.24.float,large DNG Deflate FP24,0,hdr
 Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-uncompressed.dng,98506430,b58cc64ecc3e1a3850fe0716b46984479548bd908fc7a050a810feedeb387157,dng.uncompressed.float.32.float,DNG uncompressed FP32,0,hdr
 Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-w-pred-deflate.dng,56793214,94993fefdac13a68a40f0c4f47479256ff53790d8af8ad01ecf6b78d7d2b553f,dng.deflate.float.32.float,large DNG Deflate FP32,0,hdr
-Canon/EOS R5/Canon_EOS_R5_RAW_ISO_100_nocrop_dual.CR3,73484232,d52fca2f9233211d7912632f0f27b7284807ed3262627bfce7e4f12cf343820e,CR3.canon-lossless-crx.14.integer.bmff-sample.unknown-predictor,large Canon CRX,0,core
-Canon/EOS R6/Canon_EOS_R6_RAW_ISO_100_crop_nodual.CR3,9815638,6156ee9cfd1a61e08719a8309095d05162891fd2adb8dd1505b31d4716dcee05,CR3.canon-lossless-crx.14.integer.bmff-sample.unknown-predictor,existing Canon CRX performance target,0,full
+Canon/EOS R6/Canon_EOS_R6_RAW_ISO_100_crop_nodual.CR3,9815638,6156ee9cfd1a61e08719a8309095d05162891fd2adb8dd1505b31d4716dcee05,CR3.canon-lossless-crx.14.integer.bmff-sample.unknown-predictor,non-dual-pixel Canon CRX performance target,0,core
 Canon/EOS R7/443A0163.CR3,59550416,b87079049afda620c88717e4b895bc80646428b41795f43f10ac0cc06ad0d496,CR3.canon-lossless-crx.14.integer.bmff-sample.unknown-predictor,Canon CRX APS-C generation coverage,0,full
 Canon/PowerShot G1 X/CRW_0004.DNG,26522600,1803a147f3e1b7be9ed541f6e8df254d97f2691d16d7f9d130cee68e1c50897b,dng.uncompressed.integer.14.packed-u16-14,14-bit DNG kernel and opcode target,0,core
 Google/Pixel 8 Pro/PXL_20240415_103400204.RAW-02.ORIGINAL.dng,45101750,45420c595401547cca950ae58d552bc82b32d31ce1d58c082df33004016197f5,dng.lossless-jpeg.tiles,large mobile DNG LJPEG tiles,0,full
