@@ -17,6 +17,7 @@ const MARKER_DHT: u8 = 0xc4;
 const MARKER_SOI: u8 = 0xd8;
 const MARKER_EOI: u8 = 0xd9;
 const MARKER_SOS: u8 = 0xda;
+const MARKER_DRI: u8 = 0xdd;
 const HUFFMAN_LOOKAHEAD_BITS: usize = 16;
 const FAST_HUFFMAN_LOOKAHEAD_BITS: usize = 10;
 const FAST_HUFFMAN_LOOKAHEAD_BITS_U8: u8 = 10;
@@ -408,6 +409,8 @@ struct BitReader<'a> {
     position: usize,
     buffer: u64,
     buffered_bits: u8,
+    real_bits_loaded: u64,
+    synthetic_bits_loaded: u64,
     ended: bool,
 }
 
@@ -418,6 +421,8 @@ impl<'a> BitReader<'a> {
             position: 0,
             buffer: 0,
             buffered_bits: 0,
+            real_bits_loaded: 0,
+            synthetic_bits_loaded: 0,
             ended: false,
         }
     }
@@ -433,10 +438,16 @@ impl<'a> BitReader<'a> {
                 self.buffer = (self.buffer << 32) | u64::from(word);
                 self.position += 4;
                 self.buffered_bits += 32;
+                self.real_bits_loaded += 32;
             } else {
-                let byte = self.next_byte();
+                let (byte, valid) = self.next_byte();
                 self.buffer = (self.buffer << 8) | u64::from(byte);
                 self.buffered_bits += 8;
+                if valid {
+                    self.real_bits_loaded += 8;
+                } else {
+                    self.synthetic_bits_loaded += 8;
+                }
             }
         }
         let shift = self.buffered_bits - count;
@@ -451,25 +462,35 @@ impl<'a> BitReader<'a> {
         self.buffer &= (1_u64 << self.buffered_bits) - 1;
     }
 
-    fn next_byte(&mut self) -> u8 {
+    fn next_byte(&mut self) -> (u8, bool) {
         if self.ended || self.position >= self.bytes.len() {
             self.ended = true;
-            return 0;
+            return (0, false);
         }
 
         let byte = self.bytes[self.position];
         if byte != MARKER_PREFIX {
             self.position += 1;
-            return byte;
+            return (byte, true);
         }
 
         if self.bytes.get(self.position + 1) == Some(&0) {
             self.position += 2;
-            return byte;
+            return (byte, true);
         }
 
         self.ended = true;
-        0
+        (0, false)
+    }
+
+    fn take_error(&mut self) -> Option<&'static str> {
+        let consumed =
+            self.real_bits_loaded + self.synthetic_bits_loaded - u64::from(self.buffered_bits);
+        if consumed > self.real_bits_loaded {
+            Some("lossless JPEG bitstream is exhausted")
+        } else {
+            None
+        }
     }
 }
 
@@ -478,6 +499,8 @@ struct FastBitReader<'a> {
     position: usize,
     cache: u64,
     buffered_bits: usize,
+    real_bits_loaded: usize,
+    synthetic_bits_loaded: usize,
     ended: bool,
     error: Option<&'static str>,
 }
@@ -489,6 +512,8 @@ impl<'a> FastBitReader<'a> {
             position: 0,
             cache: 0,
             buffered_bits: 0,
+            real_bits_loaded: 0,
+            synthetic_bits_loaded: 0,
             ended: false,
             error: None,
         }
@@ -509,6 +534,7 @@ impl<'a> FastBitReader<'a> {
                 let taken = (63 - self.buffered_bits) >> 3;
                 self.position += taken;
                 self.buffered_bits += taken * 8;
+                self.real_bits_loaded += taken * 8;
                 return;
             }
         }
@@ -519,10 +545,15 @@ impl<'a> FastBitReader<'a> {
     #[inline(never)]
     fn refill_slow(&mut self) {
         while self.buffered_bits < 32 {
-            let byte = self.next_byte();
+            let (byte, valid) = self.next_byte();
             let shift = 64 - self.buffered_bits - 8;
             self.cache |= u64::from(byte) << shift;
             self.buffered_bits += 8;
+            if valid {
+                self.real_bits_loaded += 8;
+            } else {
+                self.synthetic_bits_loaded += 8;
+            }
         }
     }
 
@@ -537,22 +568,22 @@ impl<'a> FastBitReader<'a> {
         self.buffered_bits -= count;
     }
 
-    fn next_byte(&mut self) -> u8 {
+    fn next_byte(&mut self) -> (u8, bool) {
         if self.ended || self.position >= self.bytes.len() {
             self.ended = true;
-            return 0;
+            return (0, false);
         }
         let byte = self.bytes[self.position];
         if byte != MARKER_PREFIX {
             self.position += 1;
-            return byte;
+            return (byte, true);
         }
         if self.bytes.get(self.position + 1) == Some(&0) {
             self.position += 2;
-            return byte;
+            return (byte, true);
         }
         self.ended = true;
-        0
+        (0, false)
     }
 
     const fn record_error(&mut self, error: &'static str) {
@@ -564,8 +595,13 @@ impl<'a> FastBitReader<'a> {
     #[cfg(test)]
     const fn has_error(&self) -> bool { self.error.is_some() }
 
-    const fn take_error(&mut self) -> Option<&'static str> {
-        let error = self.error;
+    fn take_error(&mut self) -> Option<&'static str> {
+        let consumed = self.real_bits_loaded + self.synthetic_bits_loaded - self.buffered_bits;
+        let error = if consumed > self.real_bits_loaded {
+            Some("lossless JPEG bitstream is exhausted")
+        } else {
+            self.error
+        };
         self.error = None;
         error
     }
@@ -702,7 +738,7 @@ where
 {
     let parsed = parse_jpeg(source, expected_precision)?;
     let components = parsed.frame.components.len();
-    if parsed.predictor != 1 || components != 4 {
+    if parsed.predictor != 1 || components != 4 || parsed.point_transform != 0 {
         return Ok(false);
     }
     let decoded_width = parsed
@@ -839,6 +875,9 @@ fn parse_jpeg(source: &[u8], expected_precision: u8) -> Result<ParsedJpeg<'_>, S
         match marker {
             MARKER_SOF3 => frame = Some(parse_frame(&mut header)?),
             MARKER_DHT => parse_huffman_tables(&mut header, &mut tables)?,
+            MARKER_DRI => {
+                return Err("lossless JPEG restart intervals are unsupported".to_owned());
+            }
             MARKER_SOS => {
                 let frame = frame
                     .as_mut()
@@ -1235,6 +1274,9 @@ fn decode_scan_into(
         }
     }
 
+    if let Some(error) = bits.take_error() {
+        return Err(error.to_owned());
+    }
     Ok(false)
 }
 

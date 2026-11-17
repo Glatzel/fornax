@@ -231,7 +231,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "known gap: nonzero point transforms use the four-component fast path"]
     fn sony_ljpeg_point_transforms_take_the_generic_path() {
         let (_, stream) = synthetic_four_component(7, 2, 1, 1);
         let handled = decode_interleaved_rows(&stream, 16, 14, 4, |_, _| Ok(())).unwrap();
@@ -267,13 +266,23 @@ mod tests {
     #[test]
     fn sony_ljpeg_restart_markers_are_rejected_consistently() {
         let (_, stream) = synthetic_four_component_with_restart(4, 3, 2);
-        assert!(decode_interleaved(&stream, 16).is_err());
+        let Err(generic) = decode_interleaved(&stream, 16) else {
+            panic!("generic decoder accepted a restart-interval stream");
+        };
+        assert!(
+            generic.contains("restart intervals are unsupported"),
+            "{generic}"
+        );
         let chunks = [Chunk {
             offset: 0,
             byte_count: stream.len(),
         }];
         let request = request(&stream, &chunks, 8, 6);
-        assert!(decode_ljpeg(&request).is_err());
+        assert!(matches!(
+            decode_ljpeg(&request),
+            Err(fornax_codec::CodecError::Unsupported(message))
+                if message.contains("restart intervals are unsupported")
+        ));
     }
 
     #[test]
@@ -302,7 +311,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "known gap: truncated entropy can decode as zero-padded samples"]
     fn sony_ljpeg_truncated_entropy_returns_an_error() {
         let (_, stream) = synthetic_four_component(5, 3, 1, 0);
         let truncated = &stream[..stream.len() / 2];
@@ -312,18 +320,21 @@ mod tests {
         }];
         let request = request(truncated, &chunks, 10, 6);
         assert!(decode_ljpeg(&request).is_err());
+        assert!(decode_interleaved(truncated, 16).is_err());
     }
 
     #[test]
-    #[ignore = "known gap: four-component restart intervals are unsupported"]
-    fn sony_ljpeg_restart_intervals_match_generic_decode() {
-        let (_, stream) = synthetic_four_component_with_restart(4, 3, 2);
+    fn sony_ljpeg_stream_ending_at_last_mcu_is_valid() {
+        let (samples, stream) = synthetic_four_component(5, 3, 1, 0);
         let chunks = [Chunk {
             offset: 0,
             byte_count: stream.len(),
         }];
-        let request = request(&stream, &chunks, 8, 6);
-        assert!(decode_ljpeg(&request).is_ok());
+        let request = request(&stream, &chunks, 10, 6);
+        let SampleBuffer::U16(image) = decode_ljpeg(&request).unwrap() else {
+            panic!("Sony LJPEG samples must be u16");
+        };
+        assert_eq!(image.as_raw().as_slice(), bayer_rows(&samples, 20, 3, 10));
     }
 
     #[test]

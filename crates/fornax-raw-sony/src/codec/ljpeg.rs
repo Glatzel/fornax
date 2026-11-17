@@ -77,14 +77,13 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
                         Ok(())
                     },
                 )
-                .map_err(|detail| invalid(format!("Sony lossless JPEG tile {index}: {detail}")))?;
+                .map_err(|detail| ljpeg_error(index, detail))?;
                 if decoded_directly {
                     continue;
                 }
 
-                let decoded = decode_interleaved(encoded, precision).map_err(|detail| {
-                    invalid(format!("Sony lossless JPEG tile {index}: {detail}"))
-                })?;
+                let decoded = decode_interleaved(encoded, precision)
+                    .map_err(|detail| ljpeg_error(index, detail))?;
                 let components = decoded.components;
                 let (tile_width, tile_height) = match components {
                     1 => (decoded.width, decoded.height),
@@ -140,6 +139,15 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         })?;
 
     buffer_u16(geometry.width, geometry.height, output)
+}
+
+fn ljpeg_error(index: usize, detail: String) -> CodecError {
+    let message = format!("Sony lossless JPEG tile {index}: {detail}");
+    if detail.contains("restart intervals are unsupported") {
+        unsupported(message)
+    } else {
+        invalid(message)
+    }
 }
 
 fn unpack_four_components(
