@@ -31,33 +31,33 @@ Out of scope:
 
 ## Task checklist
 
-- [ ] **Step 1: direct packed DNG rows**
+- [x] **Step 1: direct packed DNG rows**
   - Add failing contract tests for 8/10/14-bit MSB ordering with row widths
     whose packed ends are not byte-aligned.
   - Route 8-bit and 10-bit rows directly into typed output; keep 12-bit on its
     current path. Validate every strip before row-parallel decoding.
   - Benchmark all uncompressed DNG rows at 1T/16T. Commit only if the Sigma
     8/10-bit targets win without a beyond-spread regression.
-- [ ] **Step 2: 14-bit kernel**
+- [x] **Step 2: 14-bit kernel**
   - Add a kernel test with hand-built 14-bit groups and tails.
   - Specialize the 14-bit four-sample group kernel separately from generic
     U16 rows. Keep one shared row dispatcher rather than duplicate the path.
   - Benchmark the G1 X row and all DNG rows; stop if 1T/16T are not wins.
-- [ ] **Step 3: four-component Sony LJPEG**
+- [x] **Step 3: four-component Sony LJPEG**
   - Add a 512-wide two-Bayer-row synthetic test.
   - Expose only the doc-hidden cross-crate LJPEG row decoder needed by Sony;
     decoder predictions stay in a fixed register array. The Sony sink writes
     the transformed rows directly into the final mosaic.
   - Fall back to the existing generic path for any scan that is not exactly
     four components. Benchmark Sony LJPEG and both Canon DNG LJPEG rows.
-- [ ] **Step 4: Canon CRX Rice**
+- [x] **Step 4: Canon CRX Rice**
   - Add prefix tests for zero length, the escape boundary and beyond, a
     refill boundary, and exhausted/corrupt input.
   - Replace the per-bit unary loop with a local 64-bit cached reader that uses
     `leading_zeros`, preserving the current consumption rule after the escape
     limit.
   - Benchmark Canon CRX; inspect all other rows for regressions.
-- [ ] Run final full validation, refresh the report and dated CSV, inspect all
+- [x] Run final full validation, refresh the report and dated CSV, inspect all
   four commits, and leave the branch unpushed.
 
 ## Files expected to change
@@ -109,3 +109,7 @@ scripts/agent-validation.sh
 - Benchmark acceptance uses per-row medians and batch spread. A slower row is
   reported even when it is within spread; a regression beyond spread rejects
   the step.
+- G1 X remains dominated by `OpcodeList1` conversion after the packed kernel.
+  That work stayed out of scope and is now the next DNG-specific priority.
+- The final unrelated `fornax-raw-pipeline` workspace-clippy warning remains
+  pre-existing; changed packages are clean under strict clippy.

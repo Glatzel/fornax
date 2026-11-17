@@ -4,7 +4,6 @@ use fornax_codec::ICodecDecode;
 use rayon::prelude::*;
 
 use crate::error::{CodecError, invalid};
-use crate::huffman::BitReader;
 use crate::{CanonCrxHeader, DecodeRequest, SampleBuffer};
 
 const TILE_MARKER: u16 = 0xff01;
@@ -467,7 +466,7 @@ struct PlaneDecoder<'a> {
     line_pos: usize,
     s_param: usize,
     k: u32,
-    bits: BitReader<'a>,
+    bits: CrxBitReader<'a>,
 }
 
 impl<'a> PlaneDecoder<'a> {
@@ -481,7 +480,7 @@ impl<'a> PlaneDecoder<'a> {
             line_pos: 1,
             s_param: 0,
             k: 0,
-            bits: BitReader::new(encoded),
+            bits: CrxBitReader::new(encoded),
         }
     }
 
@@ -618,15 +617,7 @@ impl<'a> PlaneDecoder<'a> {
     }
 
     fn rice(&mut self, adapt: bool, k_max: u32) -> Result<u32, CodecError> {
-        let mut prefix = 0_u32;
-        while self.bits.read_bits(1)? == 0 {
-            prefix = prefix
-                .checked_add(1)
-                .ok_or_else(|| invalid("Canon CRX Rice prefix overflow"))?;
-            if prefix > PREDICT_K_ESCAPE {
-                break;
-            }
-        }
+        let prefix = self.bits.read_zero_prefix(PREDICT_K_ESCAPE)?;
         let value = if prefix >= PREDICT_K_ESCAPE {
             self.bits.read_bits(PREDICT_K_ESCAPE_BITS)?
         } else if self.k > 0 {
@@ -695,6 +686,87 @@ impl<'a> PlaneDecoder<'a> {
     fn b(&self) -> i32 { self.lines[0][self.line_pos] }
     fn c(&self) -> i32 { self.lines[0][self.line_pos - 1] }
     fn d(&self) -> i32 { self.lines[0][self.line_pos + 1] }
+}
+
+struct CrxBitReader<'a> {
+    source: &'a [u8],
+    next_byte: usize,
+    buffer: u64,
+    buffered: u8,
+}
+
+impl<'a> CrxBitReader<'a> {
+    const fn new(source: &'a [u8]) -> Self {
+        Self {
+            source,
+            next_byte: 0,
+            buffer: 0,
+            buffered: 0,
+        }
+    }
+
+    fn read_bits(&mut self, count: u8) -> Result<u32, CodecError> {
+        if count > 32 {
+            return Err(invalid("bit read exceeds 32 bits"));
+        }
+        if count == 0 {
+            return Ok(0);
+        }
+        self.fill();
+        if self.buffered < count {
+            return Err(invalid("Huffman bitstream is exhausted"));
+        }
+        let value = self.buffer >> (64 - count);
+        self.skip(u32::from(count));
+        Ok(value as u32)
+    }
+
+    fn read_zero_prefix(&mut self, limit: u32) -> Result<u32, CodecError> {
+        let mut zeros = 0_u32;
+        loop {
+            self.fill();
+            if self.buffered == 0 {
+                return Err(invalid("Huffman bitstream is exhausted"));
+            }
+            let available = u32::from(self.buffered);
+            let leading = self.buffer.leading_zeros();
+            if leading < available {
+                if zeros.checked_add(leading).is_none_or(|count| count > limit) {
+                    self.skip(limit + 1 - zeros);
+                    return Ok(limit + 1);
+                }
+                self.skip(leading + 1);
+                return Ok(zeros + leading);
+            }
+            if zeros
+                .checked_add(available)
+                .is_none_or(|count| count > limit)
+            {
+                self.skip(limit + 1 - zeros);
+                return Ok(limit + 1);
+            }
+            zeros += available;
+            self.skip(available);
+        }
+    }
+
+    fn fill(&mut self) {
+        while self.buffered <= 56 && self.next_byte < self.source.len() {
+            self.buffer |= u64::from(self.source[self.next_byte]) << (56 - self.buffered);
+            self.next_byte += 1;
+            self.buffered += 8;
+        }
+    }
+
+    fn skip(&mut self, count: u32) {
+        debug_assert!(count > 0 && count <= u32::from(self.buffered));
+        if count == 64 {
+            self.buffer = 0;
+        } else {
+            self.buffer <<= u8::try_from(count).expect("bit skip is at most sixty-four");
+        }
+        self.buffered -= u8::try_from(count).expect("bit skip is at most sixty-four");
+    }
 }
 
 fn signed(code: u32) -> Result<i32, CodecError> {
@@ -767,6 +839,44 @@ mod tests {
     use super::*;
 
     #[test]
+    fn crx_cached_prefix_reader_preserves_rice_boundaries() {
+        let mut zero = vec![true, false, true, true];
+        let bytes = bit_bytes(&zero);
+        let mut reader = CrxBitReader::new(&bytes);
+        assert_eq!(reader.read_zero_prefix(PREDICT_K_ESCAPE).unwrap(), 0);
+        assert_eq!(reader.read_bits(1).unwrap(), 0);
+
+        zero = vec![false; 41];
+        zero.push(true);
+        let bytes = bit_bytes(&zero);
+        let mut reader = CrxBitReader::new(&bytes);
+        assert_eq!(reader.read_zero_prefix(PREDICT_K_ESCAPE).unwrap(), 41);
+
+        let bytes = bit_bytes(&[false; 42]);
+        let mut reader = CrxBitReader::new(&bytes);
+        assert_eq!(reader.read_zero_prefix(PREDICT_K_ESCAPE).unwrap(), 42);
+    }
+
+    #[test]
+    fn crx_cached_prefix_reader_refills_across_64_bits() {
+        let mut bits = vec![false; 64];
+        bits.push(true);
+        bits.extend([true, false, true]);
+        let bytes = bit_bytes(&bits);
+        let mut reader = CrxBitReader::new(&bytes);
+
+        assert_eq!(reader.read_zero_prefix(100).unwrap(), 64);
+        assert_eq!(reader.read_bits(3).unwrap(), 0b101);
+    }
+
+    #[test]
+    fn crx_cached_prefix_reader_rejects_an_exhausted_all_zero_stream() {
+        let mut reader = CrxBitReader::new(&[0; 8]);
+        let error = reader.read_zero_prefix(100).unwrap_err();
+        assert!(error.to_string().contains("exhausted"), "{error}");
+    }
+
+    #[test]
     fn rice_escape_and_k_adaptation_are_bounded() {
         let mut bits = vec![false; 63];
         bits[41] = true;
@@ -811,5 +921,15 @@ mod tests {
     fn lossless_q_step_must_be_identity() {
         assert!(validate_qp(4).is_ok());
         assert!(validate_qp(0).is_err());
+    }
+
+    fn bit_bytes(bits: &[bool]) -> Vec<u8> {
+        let mut bytes = vec![0_u8; bits.len().div_ceil(8)];
+        for (index, bit) in bits.iter().copied().enumerate() {
+            if bit {
+                bytes[index / 8] |= 0x80 >> (index % 8);
+            }
+        }
+        bytes
     }
 }

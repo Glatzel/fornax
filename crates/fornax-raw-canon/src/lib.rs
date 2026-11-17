@@ -15,7 +15,6 @@ mod codec;
 mod color_data;
 mod container;
 mod error;
-mod huffman;
 mod metadata;
 mod request;
 
