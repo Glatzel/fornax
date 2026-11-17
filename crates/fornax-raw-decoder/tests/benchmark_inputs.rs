@@ -77,6 +77,19 @@ fn parses_canonical_manifest_and_derives_case_labels() {
 }
 
 #[test]
+fn parses_extended_golden_manifest_metadata() {
+    let csv = format!(
+        "path,size,sha256,decoder_path,reason,overhead_only\n\
+         Canon/EOS R5/photo.CR3,10,{SHA_A},CR3.crx,large CRX,0\n"
+    );
+    let rows = parse_golden_manifest(csv.as_bytes()).unwrap();
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].path, "Canon/EOS R5/photo.CR3");
+    assert_eq!(rows[0].size, 10);
+    assert_eq!(rows[0].sha256, SHA_A);
+}
+
+#[test]
 fn rejects_duplicate_golden_paths() {
     let csv = format!(
         "path,size,sha256\n\

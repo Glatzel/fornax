@@ -6,7 +6,9 @@ mod mosaic_compare;
 mod rawler_wrapper;
 mod reference_preflight;
 
+use std::collections::HashMap;
 use std::env;
+use std::fs::File;
 use std::path::Path;
 
 use criterion::measurement::WallTime;
@@ -15,11 +17,15 @@ use decoder_inputs::{GoldenInput, benchmark_inputs};
 use decoder_selection::{DecoderKind, select_decoders};
 use flashraw_wrapper::FlashRawDecoder;
 use fornax_dng::metadata::IDecoderDng;
+use fornax_raw_core::RawMosaic;
 use fornax_raw_core::protocol::IDecoder;
 use fornax_raw_decoder::Decoder;
 use mosaic_compare::{assert_mosaic_eq, canonical_mosaic};
 use rawler_wrapper::RawlerDecoder;
 use reference_preflight::{ReferencePreflight, preflight_reference};
+use sha2::{Digest, Sha256};
+
+const RAW_DOMAIN: &[u8] = b"fornax.raw_mosaic.v1";
 
 fn selected_decoders() -> Vec<DecoderKind> {
     let explicit = env::var("FORNAX_BENCH_DECODER").ok();
@@ -83,6 +89,104 @@ fn verify_three_way_equality(case: &str, path: &Path) {
     assert_mosaic_eq(case, "flashraw", &canonical_mosaic(&flashraw), &fornax);
 }
 
+fn verify_golden_hash(case: &str, path: &Path, expected: &str) {
+    let raw = Decoder::decode(path)
+        .and_then(|decoder| decoder.raw_mosaic())
+        .unwrap_or_else(|error| decoder_error(case, "fornax", "raw_mosaic hash preflight", error));
+    let actual = raw_hash(&raw);
+    assert_eq!(
+        actual, expected,
+        "decoder benchmark hash mismatch for {case}: decoded {actual}, expected {expected}"
+    );
+}
+
+fn raw_hash(raw: &RawMosaic) -> String {
+    let (width, height) = raw.dimensions();
+    let mut hash = Sha256::new();
+    update_bytes(&mut hash, RAW_DOMAIN);
+    match raw {
+        RawMosaic::U8(image) => update_samples(
+            &mut hash,
+            "u8",
+            width,
+            height,
+            image.as_raw().iter().copied(),
+        ),
+        RawMosaic::U16(image) => update_samples(
+            &mut hash,
+            "u16",
+            width,
+            height,
+            image
+                .as_raw()
+                .iter()
+                .flat_map(|sample| sample.to_le_bytes()),
+        ),
+        RawMosaic::U32(image) => update_samples(
+            &mut hash,
+            "u32",
+            width,
+            height,
+            image
+                .as_raw()
+                .iter()
+                .flat_map(|sample| sample.to_le_bytes()),
+        ),
+        RawMosaic::F32(image) => update_samples(
+            &mut hash,
+            "f32",
+            width,
+            height,
+            image
+                .as_raw()
+                .iter()
+                .flat_map(|sample| sample.to_bits().to_le_bytes()),
+        ),
+    }
+    hash.finalize()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
+}
+
+fn update_samples(
+    hash: &mut Sha256,
+    sample_type: &str,
+    width: u32,
+    height: u32,
+    samples: impl IntoIterator<Item = u8>,
+) {
+    update_bytes(hash, sample_type.as_bytes());
+    hash.update(width.to_le_bytes());
+    hash.update(height.to_le_bytes());
+    for byte in samples {
+        hash.update([byte]);
+    }
+}
+
+fn update_bytes(hash: &mut Sha256, bytes: &[u8]) {
+    hash.update((bytes.len() as u64).to_le_bytes());
+    hash.update(bytes);
+}
+
+fn golden_hashes() -> HashMap<String, String> {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../crates/decoder-tracker/golden/decode-hashes.csv");
+    let file = File::open(&path)
+        .unwrap_or_else(|error| panic!("opening golden hashes {} failed: {error}", path.display()));
+    let mut reader = csv::Reader::from_reader(file);
+    reader
+        .records()
+        .map(|record| {
+            let record = record.expect("reading golden hash row");
+            (
+                record.get(0).expect("golden hash path").to_owned(),
+                record.get(4).expect("golden raw hash").to_owned(),
+            )
+        })
+        .collect()
+}
+
 fn bench_reference<D>(
     group: &mut BenchmarkGroup<'_, WallTime>,
     case: &str,
@@ -136,8 +240,20 @@ where
     });
 }
 
-fn bench_input(c: &mut Criterion, decoders: &[DecoderKind], row: &GoldenInput, path: &Path) {
+fn bench_input(
+    c: &mut Criterion,
+    decoders: &[DecoderKind],
+    hashes: &HashMap<String, String>,
+    row: &GoldenInput,
+    path: &Path,
+) {
     eprintln!("decoder benchmark input: {} ({} bytes)", row.path, row.size);
+    if decoders.contains(&DecoderKind::Fornax) {
+        let expected = hashes
+            .get(&row.path)
+            .unwrap_or_else(|| panic!("golden perf input {} has no raw hash", row.path));
+        verify_golden_hash(&row.path, path, expected);
+    }
     if row.format() == "DNG"
         && decoders.len() == 3
         && decoders.contains(&DecoderKind::Fornax)
@@ -162,8 +278,9 @@ fn bench_input(c: &mut Criterion, decoders: &[DecoderKind], row: &GoldenInput, p
 
 fn benches(c: &mut Criterion) {
     let decoders = selected_decoders();
+    let hashes = golden_hashes();
     for (row, path) in benchmark_inputs() {
-        bench_input(c, &decoders, &row, &path);
+        bench_input(c, &decoders, &hashes, &row, &path);
     }
 }
 

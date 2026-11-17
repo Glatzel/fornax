@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 HEADER = ["path", "size", "sha256"]
+EXTENDED_HEADER = ["path", "size", "sha256", "decoder_path", "reason", "overhead_only"]
 FEATURES = {
     "3FR": "hasselblad",
     "ARW": "sony",
@@ -48,8 +49,8 @@ class GoldenManifestError(ValueError):
 
 def load_manifest(stream):
     reader = csv.DictReader(stream)
-    if reader.fieldnames != HEADER:
-        msg = "golden manifest header must be exactly path,size,sha256"
+    if reader.fieldnames not in (HEADER, EXTENDED_HEADER):
+        msg = "golden manifest header must be path,size,sha256 or include decoder_path,reason,overhead_only"
         raise GoldenManifestError(msg)
 
     rows = []

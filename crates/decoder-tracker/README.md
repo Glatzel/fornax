@@ -167,15 +167,15 @@ schema, stage semantics, glob/sharding rules, workflow, and update procedure
 are documented in
 [docs/reference/decoders/operations/corpus.md](../../docs/reference/decoders/operations/corpus.md).
 
-`golden/selected-manifest.csv` and `golden/decode-hashes.csv` form an 18-file
-tier-0/1 lossless deterministic decode-output gate shared by decoder benchmarks.
-The set contains one lowest-pixel representative per known-lossless encoding
-group across DNG, ARW, CR3, and NEF. `golden-coverage` reports missing and
-redundant lossless encoding groups and names the lowest-pixel passing
-representative for each decoder path.
-`--selected-out` can emit one representative per group without changing the
-committed golden set implicitly. Run `hash --check` in release mode so full RAW decodes
-complete in bounded CI time. It materializes only those selected payloads and
-verifies raw samples, cropped samples, process metadata, and DNG metadata
-against the committed hashes. These files are generated and must not be
-hand-edited.
+`golden/test-manifest.csv` is the fast correctness gate and
+`golden/perf-manifest.csv` is the stable performance gate. They are manually
+curated drafts maintained by the maintainer; see
+[`golden/README.md`](golden/README.md). `golden/decode-hashes.csv` is shared by
+their union. `golden/selected-manifest.csv` remains a legacy three-column alias
+of the test set for one release.
+
+`golden-coverage` reports missing and redundant lossless encoding groups and
+names the lowest-pixel passing representative for each decoder path.
+`golden-check` validates pointer metadata, baseline pass/lossless status,
+shared hashes, duplicates, path coverage, and overhead-only perf coverage. Run
+`hash --check` in release mode so full RAW decodes complete in bounded CI time.

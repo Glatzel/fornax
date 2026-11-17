@@ -28,7 +28,7 @@ speculative parallel entropy decoding, and parallel LJPEG byte unstuffing.
 
 On the lossless comparison, raw output remained bit-identical to 0.2.0.
 FlashRaw decode improved about 30% for Sony LJPEG and 27-29% for Nikon Huffman,
-while DNG LJPEG regressed about 12%. The current 18-file golden-corpus Fornax
+while DNG LJPEG regressed about 12%. The current golden performance-set Fornax
 comparison and reproduction data are in
 [FlashRaw versus Fornax raw decode](../perf/flashraw-vs-fornax.md).
 

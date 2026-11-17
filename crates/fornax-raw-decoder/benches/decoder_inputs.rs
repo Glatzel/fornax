@@ -10,7 +10,8 @@ const LFS_POINTER_PREFIX: &str = "version https://git-lfs.github.com/spec/v1";
     dead_code,
     reason = "used by the decoder benchmark and equality targets but not parser unit tests"
 )]
-const DEFAULT_MANIFEST: &str = "crates/decoder-tracker/golden/selected-manifest.csv";
+const DEFAULT_TEST_MANIFEST: &str = "crates/decoder-tracker/golden/test-manifest.csv";
+const DEFAULT_PERF_MANIFEST: &str = "crates/decoder-tracker/golden/perf-manifest.csv";
 #[allow(
     dead_code,
     reason = "used by the decoder benchmark and equality targets but not parser unit tests"
@@ -55,8 +56,23 @@ pub fn parse_golden_manifest(bytes: &[u8]) -> Result<Vec<GoldenInput>, String> {
     let headers = reader
         .headers()
         .map_err(|error| format!("reading golden manifest header failed: {error}"))?;
-    if headers.iter().collect::<Vec<_>>() != ["path", "size", "sha256"] {
-        return Err("golden manifest header must be exactly path,size,sha256".to_owned());
+    let header = headers.iter().collect::<Vec<_>>();
+    if !matches!(
+        header.as_slice(),
+        ["path", "size", "sha256"]
+            | [
+                "path",
+                "size",
+                "sha256",
+                "decoder_path",
+                "reason",
+                "overhead_only",
+            ]
+    ) {
+        return Err(
+            "golden manifest header must be path,size,sha256 or include decoder_path,reason,overhead_only"
+                .to_owned(),
+        );
     }
 
     let mut paths = BTreeSet::new();
@@ -143,10 +159,18 @@ pub fn select_golden_inputs(
     dead_code,
     reason = "shared by the decoder benchmark and equivalence test; parser unit tests include only lower-level helpers"
 )]
-pub fn benchmark_inputs() -> Vec<(GoldenInput, PathBuf)> {
+pub fn benchmark_inputs() -> Vec<(GoldenInput, PathBuf)> { golden_inputs(DEFAULT_PERF_MANIFEST) }
+
+#[allow(
+    dead_code,
+    reason = "used by decoder equivalence tests, not the benchmark binary"
+)]
+pub fn test_inputs() -> Vec<(GoldenInput, PathBuf)> { golden_inputs(DEFAULT_TEST_MANIFEST) }
+
+fn golden_inputs(default_manifest: &str) -> Vec<(GoldenInput, PathBuf)> {
     let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let manifest = std::env::var_os("FORNAX_BENCH_MANIFEST")
-        .map_or_else(|| PathBuf::from(DEFAULT_MANIFEST), PathBuf::from);
+        .map_or_else(|| PathBuf::from(default_manifest), PathBuf::from);
     let corpus = std::env::var_os("FORNAX_BENCH_CORPUS")
         .map_or_else(|| PathBuf::from(DEFAULT_CORPUS), PathBuf::from);
     let manifest = resolve_repo_relative(&repo_root, &manifest);

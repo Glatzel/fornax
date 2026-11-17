@@ -20,7 +20,6 @@ use fornax_raw_decoder::Decoder;
 use sha2::{Digest, Sha256};
 
 const DEFAULT_BASELINE: &str = "crates/decoder-tracker/data/baseline.csv";
-const DEFAULT_MATRIX: &str = "docs/reference/decoders/perf/data/golden-benchmark-matrix.csv";
 const DEFAULT_OUTPUT: &str = "target/flashraw-031/raw-decode.csv";
 const RAW_DOMAIN: &[u8] = b"fornax.raw_mosaic.v1";
 
@@ -133,13 +132,12 @@ struct RoundResult {
     major_faults: i64,
 }
 
-fn main() {
+pub(super) fn main() {
     let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let baseline = env::var_os("FORNAX_PROBE_BASELINE").map_or_else(
         || repo_root.join(DEFAULT_BASELINE),
         |path| resolve_repo_path(&repo_root, PathBuf::from(path)),
     );
-    let matrix = repo_root.join(DEFAULT_MATRIX);
     let output = env::var_os("FORNAX_PROBE_OUT").map_or_else(
         || repo_root.join(DEFAULT_OUTPUT),
         |path| resolve_repo_path(&repo_root, PathBuf::from(path)),
@@ -170,7 +168,7 @@ fn main() {
         rayon::current_num_threads()
     );
 
-    let metadata = read_metadata(&baseline, &matrix)
+    let metadata = read_metadata(&baseline)
         .unwrap_or_else(|error| panic!("reading benchmark metadata failed: {error}"));
     if let Some(parent) = output.parent() {
         fs::create_dir_all(parent).unwrap_or_else(|error| {
@@ -317,41 +315,42 @@ fn backend_name(backend: Backend) -> &'static str {
     }
 }
 
-fn read_metadata(
-    baseline_path: &Path,
-    matrix_path: &Path,
-) -> Result<HashMap<String, SourceMetadata>, String> {
-    let mut matrix = HashMap::new();
-    let mut reader = ReaderBuilder::new()
-        .from_path(matrix_path)
-        .map_err(|error| error.to_string())?;
-    for record in reader.records() {
-        let record = record.map_err(|error| error.to_string())?;
-        matrix.insert(
-            record.get(8).unwrap_or_default().to_owned(),
-            SourceMetadata {
-                brand: record.get(0).unwrap_or_default().to_owned(),
-                model: record.get(1).unwrap_or_default().to_owned(),
-                format: record.get(2).unwrap_or_default().to_owned(),
-                compression: record.get(3).unwrap_or_default().to_owned(),
-                mode: record.get(4).unwrap_or_default().to_owned(),
-                bits_per_sample: record.get(5).unwrap_or_default().to_owned(),
-                reference_sha256: String::new(),
-            },
-        );
-    }
-
+fn read_metadata(baseline_path: &Path) -> Result<HashMap<String, SourceMetadata>, String> {
     let mut reader = ReaderBuilder::new()
         .from_path(baseline_path)
         .map_err(|error| error.to_string())?;
+    let headers = reader.headers().map_err(|error| error.to_string())?.clone();
+    let index = |name: &str| {
+        headers
+            .iter()
+            .position(|header| header == name)
+            .ok_or_else(|| format!("baseline is missing {name}"))
+    };
+    let path_index = index("path")?;
+    let camera_index = index("camera")?;
+    let format_index = index("format")?;
+    let compression_index = index("compression_name")?;
+    let bits_index = index("bits_per_sample")?;
+    let hash_index = index("raw_sha256")?;
+    let mut metadata = HashMap::new();
     for record in reader.records() {
         let record = record.map_err(|error| error.to_string())?;
-        let path = record.get(3).unwrap_or_default();
-        if let Some(source) = matrix.get_mut(path) {
-            source.reference_sha256 = record.get(6).unwrap_or_default().to_owned();
-        }
+        let path = record.get(path_index).unwrap_or_default();
+        let compression = record.get(compression_index).unwrap_or_default().to_owned();
+        metadata.insert(
+            path.to_owned(),
+            SourceMetadata {
+                brand: path.split('/').next().unwrap_or_default().to_owned(),
+                model: record.get(camera_index).unwrap_or_default().to_owned(),
+                format: record.get(format_index).unwrap_or_default().to_owned(),
+                mode: compression.clone(),
+                compression,
+                bits_per_sample: record.get(bits_index).unwrap_or_default().to_owned(),
+                reference_sha256: record.get(hash_index).unwrap_or_default().to_owned(),
+            },
+        );
     }
-    Ok(matrix)
+    Ok(metadata)
 }
 
 fn probe_sample(
@@ -366,6 +365,51 @@ fn probe_sample(
     rounds: u32,
     writer: &mut csv::Writer<File>,
 ) {
+    let verification = match measure_raw_decode(decoder, path, config) {
+        Ok(verification) => verification,
+        Err(error) => {
+            write_failure(
+                writer, decoder, sample, source, batch, backend, config, &error, None,
+            );
+            return;
+        }
+    };
+    let (raw_sha256, sample_type, width, height) = match hash_raw(&verification.raw) {
+        Ok(result) => result,
+        Err(error) => {
+            write_failure(
+                writer,
+                decoder,
+                sample,
+                source,
+                batch,
+                backend,
+                config,
+                &ProbeFailure::Error(error),
+                None,
+            );
+            return;
+        }
+    };
+    if raw_sha256 != source.reference_sha256 {
+        write_failure(
+            writer,
+            decoder,
+            sample,
+            source,
+            batch,
+            backend,
+            config,
+            &ProbeFailure::Error(format!(
+                "raw hash mismatch before timing: decoded {raw_sha256}, expected {}",
+                source.reference_sha256
+            )),
+            None,
+        );
+        return;
+    }
+    drop(verification);
+
     for _ in 0..warmups {
         match measure_raw_decode(decoder, path, config) {
             Ok(timed) => drop(timed.raw),
@@ -408,35 +452,6 @@ fn probe_sample(
         }
     }
 
-    let verification = match measure_raw_decode(decoder, path, config) {
-        Ok(verification) => verification,
-        Err(error) => {
-            write_failure(
-                writer, decoder, sample, source, batch, backend, config, &error, None,
-            );
-            return;
-        }
-    };
-    let (raw_sha256, sample_type, width, height) = match hash_raw(&verification.raw) {
-        Ok(result) => result,
-        Err(error) => {
-            write_failure(
-                writer,
-                decoder,
-                sample,
-                source,
-                batch,
-                backend,
-                config,
-                &ProbeFailure::Error(error),
-                None,
-            );
-            return;
-        }
-    };
-    let matches_reference = raw_sha256 == source.reference_sha256;
-    drop(verification);
-
     for (round, result) in results.into_iter().enumerate() {
         writer
             .write_record([
@@ -461,7 +476,7 @@ fn probe_sample(
                 &result.major_faults.to_string(),
                 raw_sha256.as_str(),
                 source.reference_sha256.as_str(),
-                if matches_reference { "1" } else { "0" },
+                "1",
                 sample_type,
                 &width.to_string(),
                 &height.to_string(),

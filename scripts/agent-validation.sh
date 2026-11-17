@@ -78,7 +78,7 @@ if [[ "$docs_only" == false ]]; then
 
     run_stage corpus-manifest cargo -q run -p decoder-tracker -- manifest --check
     run_stage golden-hashes cargo -q run --release -p decoder-tracker -- hash \
-        --manifest crates/decoder-tracker/golden/selected-manifest.csv \
+        --manifest crates/decoder-tracker/golden/test-manifest.csv \
         --check crates/decoder-tracker/golden/decode-hashes.csv
     run_stage tracker-duckdb pixi run -e tracker cargo -q test -p decoder-tracker --lib duckdb_
     run_stage workspace-tests cargo -q test --workspace --all-features --exclude compare-demosaic
@@ -97,7 +97,7 @@ if [[ "$docs_only" == false ]]; then
         run_stage rustdoc cargo -q doc --workspace --all-features --exclude compare-demosaic --no-deps
     run_stage workspace-clippy cargo -q clippy --workspace --all-features --all-targets \
         --exclude compare-demosaic -- "${clippy_flags[@]}"
-    run_stage decoder-bench-compile cargo -q bench -p fornax-decoder --no-run
+    run_stage decoder-bench-compile cargo -q bench -p fornax-raw-decoder --no-run
 fi
 
 if grep -Eq '^crates/compare-demosaic/' <<<"$changed_files"; then

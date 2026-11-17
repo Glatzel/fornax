@@ -33,8 +33,9 @@ assert_eq!(mosaic.dimensions(), (2, 2));
 ## benchmark
 
 Compares the default pure-Rust decoder with benchmark-only Rawler and FlashRaw
-adapters over `decoder-tracker`'s golden corpus. The default set contains 18
-passing conventional 2x2 RGB Bayer files across DNG, ARW, CR3, and NEF.
+adapters over `decoder-tracker`'s manual performance set. The default manifest
+contains stable perf representatives for every tier-0/1 lossless decoder path;
+small rows explicitly marked `overhead_only` measure fixed-cost behavior.
 
 Every input is a separate Criterion group. Fornax measures `end_to_end`,
 parse-only `decode`, `raw_mosaic`, and `f32` `cropped_mosaic` items and
@@ -49,13 +50,13 @@ RAYON_NUM_THREADS=1 cargo bench -p fornax-raw-decoder
 ```
 
 The benchmark reads
-`crates/decoder-tracker/golden/selected-manifest.csv` and expects its files to
+`crates/decoder-tracker/golden/perf-manifest.csv` and expects its files to
 be materialized under `external/raw.pixls.us`. Override the manifest or corpus
 root with `FORNAX_BENCH_MANIFEST` or `FORNAX_BENCH_CORPUS`. Select exactly one
 golden member with:
 
 ```bash
-FORNAX_BENCH_RAW=external/raw.pixls.us/path/from/selected-manifest.dng \
+FORNAX_BENCH_RAW=external/raw.pixls.us/path/from/perf-manifest.csv \
   cargo bench -p fornax-raw-decoder
 ```
 
@@ -67,11 +68,12 @@ FORNAX_BENCH_DECODER=fornax \
   cargo bench -p fornax-raw-decoder
 ```
 
-CI creates one benchmark job per golden file, fetches only that file's
-transient LFS object, verifies its SHA-256, and builds only the decoder feature
-required by that file. A reference that reports typed unsupported decode or
-raw-mosaic support is skipped with a visible warning; backend errors and
-invalid output fail the job.
+Before timing, the benchmark verifies the Fornax raw hash against the shared
+golden hash file. CI creates one benchmark job per perf file, restores the
+shared test/perf LFS cache, verifies the object SHA-256, and builds only the
+decoder feature required by that file. A reference that reports typed
+unsupported decode or raw-mosaic support is skipped with a visible warning;
+backend errors, hash mismatches, and invalid output fail the job.
 
 Compile the benchmark without running timings:
 
