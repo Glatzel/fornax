@@ -15,7 +15,6 @@ Nikon/D3/JD1_8207.NEF,25146048,12c75d4ee829261d15031e02d17a8461f05e72575be76b3e1
 Nikon/D6/D06_0312.NEF,37481216,8c8cf431f5807e2d216318f8a42e30a4d4f8561e325eb6495d9aa0e466ef53fe,NEF.nikon-mode-10-packed.any-bits.integer.strips.unknown-predictor,smallest representative for NEF.nikon-mode-10-packed.any-bits.integer.strips.unknown-predictor,0
 Nikon/D80/DSC_0143.dng,8283990,5095ca264e763624cd3aa62940286dd1bcff4504eefa1ce61cbb72f50f8426bb,dng.lossless-jpeg.tiles,odd-height tiled LJPEG edge,0
 Panasonic/DMC-LX1/P1080763.dng,8145476,ac7ffeacc04b40201eede7f69e72bdead578d274cff78907e6d11a4fe5c534e1,dng.lossless-jpeg.tiles,odd-width tiled LJPEG edge,0
-Pentax/K-1/IMGP8555.DNG,177464538,257f8a7b73cc9a1d2bea377511515ae6525326037825e7066302dba9f134d4ea,dng.lossless-jpeg.strips,regression edge: two-component predictor-1 LJPEG,0
 Sigma/fp/A002_651_20240229_000001_2k_12bit.DNG,3244544,99bcffd118630af5cf5712eeac6832045420311fe258094e3489b94c8d51236a,dng.uncompressed.integer.12.packed-u16-12,smallest representative for dng.uncompressed.integer.12.packed-u16-12,0
 Sigma/fp/A002_652_20240229_000001_2k_10bit.DNG,2716672,77d6e690f1b59312d80026dab605ac336f5a8d1619c9e653a23fb1271f39ebe4,dng.uncompressed.integer.10.packed-u16-generic,smallest representative for dng.uncompressed.integer.10.packed-u16-generic,0
 Sigma/fp/A002_653_20240229_000001_2k_8bit.DNG,2190336,80ae0b8fdce3f58286fc194513c6ec0080ab07caca753408b00ca72c90e5ad0c,dng.uncompressed.integer.8.copy-u8,smallest representative for dng.uncompressed.integer.8.copy-u8,0

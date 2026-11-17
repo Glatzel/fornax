@@ -37,9 +37,8 @@ This includes 16-bit and floating-point DNG, Sony uncompressed and lossless
 JPEG, Canon CRX and DNG, Nikon Huffman and packed words, and the Sigma fp
 8/10/12-bit samples.
 
-The former Sony 12-bit word-width and Pentax DNG IFD-selection defects are
-fixed in the current tree. Historical mismatch investigation and the exact
-pre-fix hashes are retained in the
+The former Sony 12-bit word-width defect is fixed in the current tree.
+Historical mismatch investigation and exact pre-fix hashes are retained in the
 [decoder performance archive](../../../archive/reference/decoders/perf/).
 
 ## Results
@@ -73,21 +72,6 @@ FlashRaw's 16-thread wall time is slower than its own one-thread result on this
 host. Read those ratios as single-file observations rather than portable
 scaling claims. The small Sigma and S3IS rows also have larger relative spread;
 their absolute differences are sub-millisecond to low-millisecond.
-
-### Uncompressed ARW and NEF
-
-These paths use the mapped TIFF source, direct 16-bit-word row output, and a
-4-million-sample row-parallel threshold. Smaller mosaics remain serial.
-
-| Row | F 1T | FR 1T | F/FR | F 16T | FR 16T | F/FR | minor faults 1T |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Sony ILCE-1 | 26.48 ms | 26.73 ms | 0.99x | 31.29 ms | 13.98 ms | 2.24x | 2.5k |
-| Sony ILCE-7RM5 | 31.20 ms | 31.20 ms | 1.00x | 35.93 ms | 17.44 ms | 2.06x | 2.6k |
-| Sony ILCE-9M3 | 5.55 ms | 5.07 ms | 1.09x | 5.17 ms | 4.30 ms | 1.20x | 325 |
-| Nikon D850 | 23.72 ms | 23.51 ms | 1.01x | 11.62 ms | 13.02 ms | 0.89x | 2.3k |
-
-Sixteen-thread Sony remains limited by mapped-page residency, memory bandwidth,
-and parallel scheduling rather than extra scalar arithmetic.
 
 ## Format findings
 
