@@ -9,8 +9,8 @@ Documentation is organized by purpose:
 | Folder | Use for |
 | --- | --- |
 | `architecture/` | Current system boundaries, interfaces, and data flow. |
-| `decoder/` | Decoder operations, corpus work, benchmarks, and format support plans. |
-| `reference/` | Durable pinned-source and implementation-behavior research. |
+| `decoder/` | Decoder operations, corpus work, benchmarks, and compact format support summaries. |
+| `reference/` | Canonical pinned-source and implementation-behavior research. |
 | `plans/` | Active per-work implementation plans. |
 | `archive/` | Completed plans, historical records, and design provenance. |
 | `decisions/` | Architecture decision records, if the project starts using them. |
@@ -43,10 +43,10 @@ Use relative Markdown links for repository documentation. Run
 | --- | --- |
 | Crate boundaries, interfaces, or pipeline flow | `architecture/` |
 | Decoder-independent benchmark or corpus process | `decoder/` |
-| Format-specific implementation scope | `decoder/formats/` |
+| Format support summary and acceptance gate | `decoder/formats/` |
 | Demosaic or other algorithm research | `reference/algorithms/` |
 | Decoder reference index | `reference/decoders/README.md` |
-| Decoder format, API, and source research | `reference/decoders/reference/` |
+| Canonical decoder format, API, codec, and source research | `reference/decoders/reference/` |
 | Decoder performance measurements and investigations | `reference/decoders/perf/` |
 | Decoder architecture decisions and design gates | `reference/decoders/design/` |
 | Codec or compression research | `reference/codecs/` |

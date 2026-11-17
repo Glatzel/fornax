@@ -95,6 +95,16 @@ the conditional files are not all loaded together.
       detail in the on-demand workflow doc.
 - [x] Commit tooling separately or report why no safe change was made.
 
+### Task 2b: Consolidate duplicated decoder documentation
+
+- [x] Compare `docs/decoder/formats/` with
+      `docs/reference/decoders/reference/`.
+- [x] Make format pages compact support/acceptance summaries with stable URLs.
+- [x] Make decoder reference notes the canonical detailed source/behavior
+      authority, adding a canonical DNG decoder note.
+- [x] Update conventions and documentation indexes without changing production
+      code.
+
 ### Task 3: XERJ setup and measurements
 
 - [ ] Confirm the node is local and running without changing configuration.
@@ -120,6 +130,8 @@ the conditional files are not all loaded together.
 - `docs/agent-workflow.md`
 - `docs/plans/chore-agent-context-audit.md`
 - `docs/plans/chore-shorten-agent-context-and-xerj-trial.md`
+- `docs/decoder/formats/` support summaries and
+  `docs/reference/decoders/reference/` canonical notes
 - `scripts/agent-run.sh` and a focused test script, if the helper is adopted
 - `docs/plans/xerj-trial-2026-11.md`
 
@@ -148,3 +160,6 @@ expected to change.
 - Task A result after the quiet-tooling line: root `AGENTS.md` is 3,373 bytes;
   the unconditional bundle is 4,463 bytes (36.9% of the 12,086-byte baseline,
   about 1,116 estimated tokens).
+- Decoder format/reference consolidation reduces the two active trees from
+  89,837 to 71,767 bytes by keeping detailed behavior in one place and retaining
+  stable support-page URLs.

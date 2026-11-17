@@ -62,6 +62,29 @@ White-balance tags in the four fixtures come from `0x0024`-`0x0026`. The
 camera IFD is not required for basic decoding; malformed optional CameraIFDs
 are ignored. Valid CameraIFDs are checked for the `0x1001` multi-shot fallback.
 
+## Decoder mapping and safety
+
+The selected IFD is the first primary IFD with `RawDataOffset` (`0x0118`);
+otherwise the first with `StripOffsets` (`0x0111`). Raw-format version is
+`0x002d` and Panasonic compression is `0x000b`. Version 8 accepts absent or
+`34316` compression; other versions require `34316`. A 12-bit strip payload is
+classified as unpacked or packed-control from its size; packed-control groups
+contain ten pixels and one control byte.
+
+Border tags `0x0004`-`0x0007` are top/left/bottom/right with exclusive
+right/bottom. CFA `0x0009` values 1-4 map to RGGB/GRBG/GBRG/BGGR before shifting
+to active-area origin. Crop tags `0x002f`-`0x0032` use exclusive coordinates;
+all-zero placeholders mean the full active area. Black level comes from
+`0x001c`-`0x001e` plus the V4 offset 15. White level is the largest nonzero of
+`0x000e`-`0x0010`, otherwise bit-depth full scale. White balance comes from
+`0x0011`/`0x0012` or `0x0024`-`0x0026`, green-normalized. Orientation and
+serial/lens values come from TIFF/Exif tags.
+
+Dimensions, sample counts, offsets, tables, output ranges, V8 placement, and
+full image coverage are checked before allocation or accepted output. Codec
+tests sweep truncation prefixes and byte mutations. DNG write/read tests cover
+samples, active area, crop, CFA, levels, neutral, and orientation.
+
 ## Unsupported Evidence
 
 - DC-G9 `P1000475.RW2` and DC-S5 `dc-s5_hr_96MP.RW2` carry nonzero multishot

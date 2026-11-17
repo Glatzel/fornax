@@ -24,6 +24,25 @@ The source revisions support the following observed behavior:
 - Modern GFX 50/100 cameras require explicit 2x2 RGGB and active-area
   profiles; the RAF crop tags provide the default crop.
 
+## Implemented and rejected layouts
+
+Fornax accepts uncompressed 12-bit little-endian packed samples, uncompressed
+14/16-bit words, and the `IS`-signed block-lossless 12/14/16-bit codec. The
+mapper preserves identity, dimensions/crop, CFA fields, black/white levels,
+white balance, and safe EXIF tags. X-Trans retains its 6x6 CFA through raw
+mosaic and DNG export.
+
+Lossy block compression, SuperCCD rotation/staggering, FinePix DBP, and
+unknown Bayer profiles return typed unsupported errors. A 45-degree or
+staggered layout must preserve `CFALayout`; it is never flattened to 2x2.
+Missing strip byte counts may be bounded by EOF only when dimensions prove the
+required payload length. RAF private blocks require strict entry-count limits,
+and the embedded JPEG is never a raw fallback.
+
+Acceptance requires supported Bayer files and expected X-Trans/lossy/legacy
+rows in the corpus, X-Trans raw and DNG round-trip tests, typed rejection before
+preprocessing for non-2x2 handoff, and successful 2x2 GFX handoff.
+
 ## Implementation boundary
 
 Fornax's codec and container implementation is independently written from

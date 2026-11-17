@@ -79,6 +79,26 @@ authority or retained in shorter form.
 - CI helpers keep raw streaming output because workflows consume it and upload
   artifacts; wrapping them would obscure the CI contract.
 
+## Decoder documentation consolidation
+
+`docs/decoder/formats/` and `docs/reference/decoders/reference/` overlapped
+without being byte-identical. Format pages repeated container, codec, metadata,
+and acceptance material while reference notes owned source provenance and
+detailed behavior.
+
+The split is now explicit:
+
+- `docs/decoder/formats/` answers what layout is supported, rejected, and
+  required to pass. Stable paths remain valid.
+- `docs/reference/decoders/reference/` is the canonical detailed source and
+  implementation-behavior reference.
+- The new `dng-decoder.md` consolidates the former broad DNG format detail; the
+  format page now summarizes support and remaining limits.
+
+The combined format/reference trees shrank from 89,837 to 71,767 bytes (20.1%).
+Exact headings were not preserved, so links into removed subsections were
+updated through the top-level stable pages or canonical reference notes.
+
 ## Old rule -> new location
 
 | Old rule | Where it lives now |

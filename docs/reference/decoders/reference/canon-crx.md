@@ -40,6 +40,30 @@ The full 110-file classification must be produced by the remote decoder
 corpus workflow. RAW payloads are transient and are never committed or
 uploaded.
 
+## Container and metadata boundary
+
+CR3 and CRM are ISO-BMFF containers with `crx` compatibility. The raw `CRAW`
+track and sample are selected from `moov`/sample tables; preview, JPEG, HEIF,
+dual-pixel auxiliary, and CRM movie tracks are never selected. CMP1/IAD1
+provide geometry and CFA, and CMT/CTMD provide metadata.
+
+The mapper preserves identity, active area and crop, CFA tags, black/white
+levels, white balance, orientation, exposure/lens fields, and safe maker/XMP
+metadata. IAD1 inclusive right/bottom endpoints become half-open rectangles
+once during parsing. Four compressed planes are a CRX storage layout, not a
+four-color CFA.
+
+## Acceptance gates
+
+- Targeted R5 and R6 Mark II lossless mosaics match Rawler digests exactly.
+- C-RAW/lossy files return typed unsupported errors.
+- CRAW track/sample selection, CMP1 geometry, IAD1 crop, levels, and WB have
+  synthetic or targeted coverage.
+- U16 cropped `f32` and DNG output pass for a 2x2 CR3; other CFA layouts stop
+  before preprocessing.
+- The 110-file remote audit classifies every row without local RAW commits or
+  uploads.
+
 ## Full corpus audit
 
 The remote `CRX header audit` job classified all 110 Canon CR3 rows:

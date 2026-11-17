@@ -79,4 +79,5 @@ size in `throughput.Bytes`.
 
 ## References
 
+- [DNG decoder reference notes](../../docs/reference/decoders/reference/dng-decoder.md)
 - [Digital Negative (DNG) Specification](https://helpx.adobe.com/camera-raw/digital-negative.html) — Adobe DNG format specification.

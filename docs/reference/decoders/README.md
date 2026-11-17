@@ -31,6 +31,7 @@ are provenance, not current instructions.
 ## Reference
 
 - [Canon CRX and CR3](reference/canon-crx.md)
+- [DNG decoder](reference/dng-decoder.md)
 - [DNG compression](reference/dng-compression.md)
 - [DNG and lossless JPEG-92](reference/dng-lossless-jpeg.md)
 - [DNG opcodes](reference/dng-opcodes.md)
