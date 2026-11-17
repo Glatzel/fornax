@@ -31,14 +31,14 @@ Out of scope:
 - [x] Classify D500/D850 uncompressed NEF layout and add stable perf coverage
   only if it is not already represented.
 - [x] Add perf-manifest groups and grouped benchmark/checker selection.
-- [ ] Confirm current Sony/Nikon read, copy, allocation, and parallelism paths.
-- [ ] Capture interleaved before measurements, including faults and RSS.
-- [ ] Complete mapped, strict, row-parallel direct unpacking and focused tests.
-- [ ] Verify all uncompressed ARW/NEF hashes and the full golden set.
-- [ ] Run full repository validation.
-- [ ] Capture interleaved after measurements and profile any remaining gap.
-- [ ] Update the existing FlashRaw comparison report only with the final concise
-  before/after summary.
+- [x] Confirm current Sony/Nikon read, copy, allocation, and parallelism paths.
+- [x] Capture interleaved before measurements, including faults and RSS.
+- [x] Complete mapped, strict, row-parallel direct unpacking and focused tests.
+- [x] Verify all uncompressed ARW/NEF hashes and the full golden set.
+- [x] Run full repository validation.
+- [x] Capture interleaved after measurements and profile any remaining gap.
+- [x] Update the existing FlashRaw comparison report only with the current
+  final result summary.
 
 ## Files expected to change
 
@@ -69,6 +69,14 @@ Out of scope:
   `TiffSource::from_path` and has a row-band `unpack_u16_word_rows` helper.
   Work starts by proving whether additional changes are needed, not by
   duplicating those facilities.
+- The retained changes raise the row-parallel threshold to four million samples
+  and use the existing large-allocation helper for the Nikon one-thread words
+  path. At 16 threads Nikon keeps a plain zeroed Vec because huge-page advisory
+  and first-touch contention measured substantially slower there.
+- `perf stat` on ILCE-1 at 16 threads reports 19.14% cache misses and only 5.4
+  CPUs utilized. `perf record` attributes most post-hash samples to libc memory
+  movement; the remaining gap is page residency, memory bandwidth, and
+  scheduling rather than arithmetic.
 - `external/raw.pixls.us` is locally modified by LFS materialization and is
   excluded from every commit.
 - RAW payloads remain transient and uncommitted.

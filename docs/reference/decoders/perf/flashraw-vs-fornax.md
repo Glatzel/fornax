@@ -74,6 +74,21 @@ host. Read those ratios as single-file observations rather than portable
 scaling claims. The small Sigma and S3IS rows also have larger relative spread;
 their absolute differences are sub-millisecond to low-millisecond.
 
+### Uncompressed ARW and NEF
+
+These paths use the mapped TIFF source, direct 16-bit-word row output, and a
+4-million-sample row-parallel threshold. Smaller mosaics remain serial.
+
+| Row | F 1T | FR 1T | F/FR | F 16T | FR 16T | F/FR | minor faults 1T |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Sony ILCE-1 | 26.48 ms | 26.73 ms | 0.99x | 31.29 ms | 13.98 ms | 2.24x | 2.5k |
+| Sony ILCE-7RM5 | 31.20 ms | 31.20 ms | 1.00x | 35.93 ms | 17.44 ms | 2.06x | 2.6k |
+| Sony ILCE-9M3 | 5.55 ms | 5.07 ms | 1.09x | 5.17 ms | 4.30 ms | 1.20x | 325 |
+| Nikon D850 | 23.72 ms | 23.51 ms | 1.01x | 11.62 ms | 13.02 ms | 0.89x | 2.3k |
+
+Sixteen-thread Sony remains limited by mapped-page residency, memory bandwidth,
+and parallel scheduling rather than extra scalar arithmetic.
+
 ## Format findings
 
 - **DNG uncompressed** is not one performance class. Direct 8/10/14-bit rows
@@ -89,16 +104,15 @@ their absolute differences are sub-millisecond to low-millisecond.
 - **DNG Deflate FP16/24/32** is 1.27-1.41x slower at one thread. At edge
   completion Fornax is slightly faster for FP16 and 1.17-1.22x slower for
   FP24/FP32.
-- **Canon CR3 CRX** improves from 4.10x/3.82x to 2.80x/2.78x with the cached
-  leading-zero Rice reader. Coefficient prediction and plane placement now
-  dominate the remaining gap.
+- **Canon CR3 CRX** is 2.80x/2.78x slower. The cached leading-zero Rice reader
+  leaves coefficient prediction and plane placement as the dominant gap.
 - **Nikon Huffman** is 4.21x slower at one thread and 12.00x at edge
   completion; **Nikon D6 packed 14-bit** is 4.94x/11.26x. Both retain poor
   scaling relative to FlashRaw.
-- **Sony uncompressed** is at one-thread parity and 1.19x slower at edge
-  completion. **Sony LJPEG** improves from 2.39x/2.89x to 1.40x/1.77x by
-  streaming four-component rows into the two Bayer rows without a complete
-  result image, second tile, or reshape.
+- **Sony uncompressed** varies from parity at one thread to 1.2-2.2x slower at
+  edge completion on the larger samples. **Sony LJPEG** is 1.40x/1.77x slower;
+  four-component rows stream directly into the two Bayer rows without a
+  complete result image, second tile, or reshape.
 - **Sigma 12-bit uncompressed** is effectively at parity. The 10-bit sample is
   now near parity and the 8-bit sample is bounded by fixed decode overhead.
 
