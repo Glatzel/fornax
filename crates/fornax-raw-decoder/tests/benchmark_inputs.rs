@@ -5,7 +5,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use decoder_inputs::{
-    GoldenInput, ensure_materialized, parse_golden_manifest, resolve_repo_relative,
+    BenchmarkGroup, GoldenInput, ensure_materialized, parse_golden_manifest, resolve_repo_relative,
     select_golden_inputs,
 };
 
@@ -60,11 +60,13 @@ fn parses_canonical_manifest_and_derives_case_labels() {
                 path: "Canon/EOS R5/photo.CR3".to_owned(),
                 size: 10,
                 sha256: SHA_A.to_owned(),
+                group: None,
             },
             GoldenInput {
                 path: "Nikon/D850/photo.NEF".to_owned(),
                 size: 20,
                 sha256: SHA_B.to_owned(),
+                group: None,
             },
         ]
     );
@@ -87,6 +89,16 @@ fn parses_extended_golden_manifest_metadata() {
     assert_eq!(rows[0].path, "Canon/EOS R5/photo.CR3");
     assert_eq!(rows[0].size, 10);
     assert_eq!(rows[0].sha256, SHA_A);
+}
+
+#[test]
+fn parses_performance_groups() {
+    let csv = format!(
+        "path,size,sha256,decoder_path,reason,overhead_only,group\n\
+         Canon/EOS R5/photo.CR3,10,{SHA_A},CR3.crx,large CRX,0,core\n"
+    );
+    let rows = parse_golden_manifest(csv.as_bytes()).unwrap();
+    assert_eq!(rows[0].group, Some(BenchmarkGroup::Core));
 }
 
 #[test]

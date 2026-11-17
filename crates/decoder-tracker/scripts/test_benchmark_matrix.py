@@ -74,6 +74,24 @@ def test_accepts_extended_golden_metadata_columns():
     ]
 
 
+def test_filters_performance_groups():
+    rows = benchmark_matrix.load_manifest(
+        io.StringIO(
+            f"path,size,sha256,decoder_path,reason,overhead_only,group\n"
+            f"Canon/EOS R5/core.CR3,10,{SHA_A},CR3.crx,core,0,core\n"
+            f"Canon/EOS R6/extra.CR3,20,{SHA_B},CR3.crx,extra,0,full\n"
+        )
+    )
+
+    matrix = benchmark_matrix.build_matrix(
+        rows, groups=benchmark_matrix.parse_groups("full")
+    )
+
+    assert [item["path"] for item in matrix["include"]] == [
+        "Canon/EOS R6/extra.CR3"
+    ]
+
+
 def test_rejects_duplicate_paths():
     with pytest.raises(ValueError, match="duplicate path"):
         benchmark_matrix.load_manifest(

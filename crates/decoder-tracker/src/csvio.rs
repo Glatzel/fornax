@@ -55,16 +55,25 @@ where
                 Ok::<_, TrackerError>((row.path, row.size, row.sha256))
             })
             .collect::<std::result::Result<Vec<_>, _>>()?
-    } else if headers.iter().collect::<Vec<_>>()
-        == [
+    } else if matches!(
+        headers.iter().collect::<Vec<_>>().as_slice(),
+        [
             "path",
             "size",
             "sha256",
             "decoder_path",
             "reason",
             "overhead_only",
+        ] | [
+            "path",
+            "size",
+            "sha256",
+            "decoder_path",
+            "reason",
+            "overhead_only",
+            "group",
         ]
-    {
+    ) {
         #[derive(Deserialize)]
         struct ExtendedManifestCsvRecord {
             path: String,
@@ -73,6 +82,8 @@ where
             decoder_path: String,
             reason: String,
             overhead_only: String,
+            #[serde(default)]
+            group: String,
         }
         reader
             .deserialize::<ExtendedManifestCsvRecord>()
@@ -90,6 +101,15 @@ where
                     return Err(TrackerError::new(format!(
                         "invalid overhead_only value {:?}",
                         row.overhead_only
+                    )));
+                }
+                if !matches!(
+                    row.group.to_ascii_lowercase().as_str(),
+                    "" | "core" | "full" | "overhead" | "hdr"
+                ) {
+                    return Err(TrackerError::new(format!(
+                        "invalid golden manifest group {:?}",
+                        row.group
                     )));
                 }
                 Ok((row.path, row.size, row.sha256))

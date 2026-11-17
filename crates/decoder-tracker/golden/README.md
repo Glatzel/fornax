@@ -7,7 +7,8 @@ long as every decoder path remains covered.
   representative per tier-0/1 lossless decoder path plus regression and layout
   edge cases.
 - `perf-manifest.csv` is the performance gate. It selects 1-3 stable files per
-  path, with `overhead_only=1` marking small fixed-cost probes.
+  path, with `overhead_only=1` marking small fixed-cost probes. Its `group`
+  column is `core`, `full`, `overhead`, or `hdr`; benches default to `core`.
 - `decode-hashes.csv` is shared by the union of both manifests. Existing rows
   are preserved when files are added.
 - `selected-manifest.csv` is a legacy three-column alias of the test set for
@@ -28,6 +29,12 @@ storage, predictor, and compression ID where applicable.
 4. Cross-check the raw mosaic against Rawler and FlashRaw. Do not record a
    Fornax-only hash unless no second decoder supports the input.
 5. Run `cargo run -p decoder-tracker -- golden-check`.
+
+Select a benchmark group with `FORNAX_BENCH_GROUP=core` (the default),
+`full`, `overhead`, `hdr`, or `all`. A comma-separated list is accepted when
+more than one group is needed. `golden-check` prints the core byte count and a
+rough probe-time estimate; the estimate assumes 21 decodes per file at
+64 MiB/s.
 
 All payloads remain Git LFS pointers in committed files. RAW data is
 transient and must never be committed, cached as an artifact, or uploaded.

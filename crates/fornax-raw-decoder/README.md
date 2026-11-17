@@ -60,6 +60,10 @@ FORNAX_BENCH_RAW=external/raw.pixls.us/path/from/perf-manifest.csv \
   cargo bench -p fornax-raw-decoder
 ```
 
+The default `FORNAX_BENCH_GROUP=core` selects the short performance set.
+Use `full`, `overhead`, `hdr`, a comma-separated combination, or `all` to
+select other members before applying `FORNAX_BENCH_RAW`.
+
 `FORNAX_BENCH_DECODER` selects `fornax`, `rawler`, `flashraw`, or a
 comma-separated list. An unset or empty value benchmarks all three:
 

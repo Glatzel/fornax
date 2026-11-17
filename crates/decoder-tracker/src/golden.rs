@@ -410,7 +410,7 @@ fn deprecated_golden_encoding(row: &BaselineRow) -> bool {
         || (row.format == "NEF"
             && matches!(
                 row.compression_name.as_str(),
-                "nikon-mode-2-packed" | "nikon-mode-6-packed" | "nikon-uncompressed-words"
+                "nikon-mode-2-packed" | "nikon-mode-6-packed"
             ))
 }
 

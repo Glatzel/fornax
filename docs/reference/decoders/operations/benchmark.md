@@ -9,11 +9,9 @@ pure-Rust decoder with benchmark-only Rawler and FlashRaw adapters on every row
 of `crates/decoder-tracker/golden/perf-manifest.csv`.
 
 The performance set contains stable representatives for every tier-0/1
-known-lossless conventional 2x2 RGB Bayer decoder path from
-tier 0 and tier 1 only: DNG, Canon CR3, Sony ARW, and Nikon NEF. It contains one
-lowest-pixel representative per known-lossless encoding group. Sony ARW and
-Nikon NEF use their highest available bit depth. Legacy Sony
-ARW1, Nikon mode-2 packed, mode-6 packed, uncompressed words, lossy Sony
+known-lossless conventional 2x2 RGB Bayer decoder path from DNG, Canon CR3,
+Sony ARW, and Nikon NEF. Sony ARW and Nikon NEF group bit depths for path
+coverage. Legacy Sony ARW1, Nikon mode-2 packed, mode-6 packed, lossy Sony
 ARW2/ARW6, and tier-2/3 formats are excluded.
 
 For every input, the benchmark creates one Criterion group containing:
@@ -49,6 +47,10 @@ root, including when the benchmark process runs from another working directory.
 With no `FORNAX_BENCH_RAW`, every golden row must be materialized and is
 benchmarked. `FORNAX_BENCH_RAW` selects exactly one input, but that canonical
 path must belong to the selected golden manifest.
+
+`FORNAX_BENCH_GROUP` defaults to `core`. It also accepts `full`, `overhead`,
+`hdr`, a comma-separated combination, or `all`. The group filter is applied
+before `FORNAX_BENCH_RAW`.
 
 The benchmark rejects missing files, LFS pointer metadata, incorrect file sizes,
 malformed manifests, duplicate paths, and paths outside the manifest before

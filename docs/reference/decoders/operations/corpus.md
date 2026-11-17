@@ -185,7 +185,8 @@ specific decoder path. Join `data/manifest.csv` by `path` for file size.
 pointer-only tier-0/1 lossless files and cover DNG, ARW, CR3, and NEF. The
 shared `golden/decode-hashes.csv` covers their union. The legacy
 `golden/selected-manifest.csv` is a three-column alias of the test set for one
-release.
+release. Performance rows carry `core`, `full`, `overhead`, or `hdr` in their
+group column; benchmark tools select `core` by default.
 
 Each row records the path, raw sample type and dimensions, cropped `f32`
 dimensions, and four SHA-256 digests:

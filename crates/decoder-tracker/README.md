@@ -177,5 +177,6 @@ of the test set for one release.
 `golden-coverage` reports missing and redundant lossless encoding groups and
 names the lowest-pixel passing representative for each decoder path.
 `golden-check` validates pointer metadata, baseline pass/lossless status,
-shared hashes, duplicates, path coverage, and overhead-only perf coverage. Run
-`hash --check` in release mode so full RAW decodes complete in bounded CI time.
+shared hashes, duplicates, grouped performance coverage, and overhead-only perf
+coverage. The benchmark default is the `core` group. Run `hash --check` in
+release mode so full RAW decodes complete in bounded CI time.

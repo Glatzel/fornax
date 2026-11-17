@@ -17,6 +17,46 @@ pub const GOLDEN_MANIFEST_HEADER: [&str; 6] = [
     "reason",
     "overhead_only",
 ];
+pub const GOLDEN_PERF_MANIFEST_HEADER: [&str; 7] = [
+    "path",
+    "size",
+    "sha256",
+    "decoder_path",
+    "reason",
+    "overhead_only",
+    "group",
+];
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum GoldenGroup {
+    Core,
+    Full,
+    Overhead,
+    Hdr,
+}
+
+impl GoldenGroup {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Core => "core",
+            Self::Full => "full",
+            Self::Overhead => "overhead",
+            Self::Hdr => "hdr",
+        }
+    }
+
+    fn parse(value: &str) -> Result<Self> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "core" => Ok(Self::Core),
+            "full" => Ok(Self::Full),
+            "overhead" => Ok(Self::Overhead),
+            "hdr" => Ok(Self::Hdr),
+            _ => Err(TrackerError::new(format!(
+                "invalid golden manifest group {value:?}; expected core, full, overhead, or hdr"
+            ))),
+        }
+    }
+}
 
 #[derive(Debug, Deserialize)]
 struct GoldenManifestCsvRow {
@@ -26,6 +66,7 @@ struct GoldenManifestCsvRow {
     decoder_path: String,
     reason: String,
     overhead_only: String,
+    group: Option<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -34,6 +75,7 @@ pub struct GoldenManifestEntry {
     pub decoder_path: String,
     pub reason: String,
     pub overhead_only: bool,
+    pub group: Option<GoldenGroup>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -50,6 +92,9 @@ pub struct GoldenCheckReport {
     pub perf_overhead_count: usize,
     pub large_perf_count: usize,
     pub largest_perf_bytes: u64,
+    pub core_count: usize,
+    pub core_bytes: u64,
+    pub core_estimated_probe_seconds: u64,
     pub warnings: Vec<String>,
 }
 
@@ -66,7 +111,7 @@ pub fn read_golden_manifest_csv(input: &[u8]) -> Result<Vec<GoldenManifestEntry>
         .has_headers(true)
         .flexible(false)
         .from_reader(input);
-    validate_header(reader.headers()?)?;
+    let has_group = validate_header(reader.headers()?)?;
     let rows = reader
         .deserialize::<GoldenManifestCsvRow>()
         .collect::<std::result::Result<Vec<_>, _>>()?;
@@ -85,6 +130,13 @@ pub fn read_golden_manifest_csv(input: &[u8]) -> Result<Vec<GoldenManifestEntry>
                     row.path
                 )));
             }
+            let group = if has_group {
+                Some(GoldenGroup::parse(row.group.as_deref().ok_or_else(
+                    || TrackerError::new("golden group is missing"),
+                )?)?)
+            } else {
+                None
+            };
             let (vendor, camera, model, filename) = derive_identity(&row.path)?;
             let format = row
                 .path
@@ -104,6 +156,7 @@ pub fn read_golden_manifest_csv(input: &[u8]) -> Result<Vec<GoldenManifestEntry>
                 decoder_path: row.decoder_path,
                 reason: row.reason,
                 overhead_only: parse_bool(&row.overhead_only)?,
+                group,
             })
         })
         .collect()
@@ -135,7 +188,7 @@ pub fn check_golden_sets(
     let mut failures = Vec::new();
     let mut union = BTreeSet::new();
 
-    for entries in [test, perf] {
+    for (entries, is_perf) in [(test, false), (perf, true)] {
         for entry in entries {
             let path = entry.manifest.path.as_str();
             union.insert(path);
@@ -164,6 +217,19 @@ pub fn check_golden_sets(
             if !hash_paths.contains(path) {
                 failures.push(format!("{path} has no decode hash"));
             }
+            if is_perf {
+                let Some(group) = entry.group else {
+                    failures.push(format!("{path} has no performance group"));
+                    continue;
+                };
+                if entry.overhead_only != (group == GoldenGroup::Overhead) {
+                    failures.push(format!(
+                        "{path} overhead_only={} disagrees with group {}",
+                        entry.overhead_only,
+                        group.as_str()
+                    ));
+                }
+            }
             if let Err(error) = validate_pointer(corpus, &entry.manifest) {
                 failures.push(format!("{path}: {error}"));
             }
@@ -183,6 +249,19 @@ pub fn check_golden_sets(
         .filter(|entry| !entry.overhead_only)
         .map(|entry| entry.decoder_path.as_str())
         .collect::<BTreeSet<_>>();
+    let core_paths = perf
+        .iter()
+        .filter(|entry| entry.group == Some(GoldenGroup::Core))
+        .map(|entry| entry.decoder_path.as_str())
+        .collect::<BTreeSet<_>>();
+    let special_paths = perf
+        .iter()
+        .filter(|entry| {
+            entry.overhead_only
+                || matches!(entry.group, Some(GoldenGroup::Overhead | GoldenGroup::Hdr))
+        })
+        .map(|entry| entry.decoder_path.as_str())
+        .collect::<BTreeSet<_>>();
     let mut warnings = Vec::new();
     for path in path_counts.keys() {
         if !test_paths.contains(path.as_str()) {
@@ -191,6 +270,10 @@ pub fn check_golden_sets(
         if !perf_paths.contains(path.as_str()) {
             warnings.push(format!(
                 "perf manifest has no non-overhead file for decoder path {path}"
+            ));
+        } else if !core_paths.contains(path.as_str()) && !special_paths.contains(path.as_str()) {
+            warnings.push(format!(
+                "perf manifest has no core, hdr, or overhead file for decoder path {path}"
             ));
         }
     }
@@ -213,6 +296,19 @@ pub fn check_golden_sets(
         .map(|entry| entry.manifest.size)
         .max()
         .unwrap_or(0);
+    let core_count = perf
+        .iter()
+        .filter(|entry| entry.group == Some(GoldenGroup::Core))
+        .count();
+    let core_bytes: u64 = perf
+        .iter()
+        .filter(|entry| entry.group == Some(GoldenGroup::Core))
+        .map(|entry| entry.manifest.size)
+        .sum();
+    const ESTIMATED_PROBE_BYTES_PER_SECOND: u64 = 64 * 1024 * 1024;
+    const PROBE_DECODES_PER_FILE: u64 = 21;
+    let core_estimated_probe_seconds =
+        core_bytes.saturating_mul(PROBE_DECODES_PER_FILE) / ESTIMATED_PROBE_BYTES_PER_SECOND;
     Ok(GoldenCheckReport {
         test_count: test.len(),
         perf_count: perf.len(),
@@ -224,6 +320,9 @@ pub fn check_golden_sets(
             .filter(|entry| !entry.overhead_only && entry.manifest.size >= 20_000_000)
             .count(),
         largest_perf_bytes,
+        core_count,
+        core_bytes,
+        core_estimated_probe_seconds,
         warnings: if options.allow_uncovered {
             warnings
         } else {
@@ -258,18 +357,24 @@ fn parse_bool(value: &str) -> Result<bool> {
     }
 }
 
-fn validate_header(actual: &StringRecord) -> Result<()> {
-    if actual.len() != GOLDEN_MANIFEST_HEADER.len()
-        || !actual
-            .iter()
-            .zip(GOLDEN_MANIFEST_HEADER)
-            .all(|(actual, expected)| actual == expected)
-    {
-        return Err(TrackerError::new(
-            "golden manifest header does not match path,size,sha256,decoder_path,reason,overhead_only",
-        ));
+fn validate_header(actual: &StringRecord) -> Result<bool> {
+    let matches = |expected: &[&str]| {
+        actual.len() == expected.len()
+            && actual
+                .iter()
+                .zip(expected)
+                .all(|(actual, expected)| actual == *expected)
+    };
+    if matches(&GOLDEN_MANIFEST_HEADER) {
+        return Ok(false);
     }
-    Ok(())
+    if matches(&GOLDEN_PERF_MANIFEST_HEADER) {
+        return Ok(true);
+    }
+    Err(TrackerError::new(
+        "golden manifest header must be path,size,sha256,decoder_path,reason,overhead_only \
+         or append group",
+    ))
 }
 
 #[cfg(test)]
@@ -284,6 +389,15 @@ Canon/Cam/a.dng,42,aa,dng.test,representative,0\n";
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].decoder_path, "dng.test");
         assert!(!rows[0].overhead_only);
+        assert_eq!(rows[0].group, None);
+    }
+
+    #[test]
+    fn parses_performance_group() {
+        let csv = b"path,size,sha256,decoder_path,reason,overhead_only,group\n\
+Canon/Cam/a.dng,42,aa,dng.test,representative,0,core\n";
+        let rows = read_golden_manifest_csv(csv).unwrap();
+        assert_eq!(rows[0].group, Some(GoldenGroup::Core));
     }
 
     #[test]

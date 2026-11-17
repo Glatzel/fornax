@@ -147,6 +147,7 @@ jobs:
           python3 crates/decoder-tracker/scripts/benchmark_matrix.py \
             --manifest crates/decoder-tracker/golden/perf-manifest.csv \
             --formats "${{ github.event_name == 'workflow_dispatch' && 'all' || needs.changed.outputs.benchmark_formats }}" \
+            --group "${{ github.event_name == 'workflow_dispatch' && 'all' || 'core' }}" \
             --github-output "$GITHUB_OUTPUT"
 
   lefthook:

@@ -477,11 +477,15 @@ fn golden_check(args: GoldenCheckArgs) -> Result<ExitCode> {
         clerk::warn!("{warning}");
     }
     println!(
-        "golden-check: test={} perf={} union={} paths={} overhead-only={} large-perf={} largest-perf={} bytes",
+        "golden-check: test={} perf={} union={} paths={} core={} core-size={} bytes \
+         core-probe-estimate={} seconds overhead-only={} large-perf={} largest-perf={} bytes",
         report.test_count,
         report.perf_count,
         report.union_count,
         report.path_count,
+        report.core_count,
+        report.core_bytes,
+        report.core_estimated_probe_seconds,
         report.perf_overhead_count,
         report.large_perf_count,
         report.largest_perf_bytes

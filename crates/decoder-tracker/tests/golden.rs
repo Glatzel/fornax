@@ -580,9 +580,10 @@ fn golden_coverage_only_includes_tier_zero_and_one_formats_and_excludes_arw1() {
             ("CR3", "canon-lossless-crx"),
             ("DNG", "lossless-jpeg"),
             ("NEF", "nikon-huffman"),
+            ("NEF", "nikon-uncompressed-words"),
         ]
     );
-    assert_eq!(report.summary.missing, 4);
+    assert_eq!(report.summary.missing, 5);
 }
 
 #[test]
