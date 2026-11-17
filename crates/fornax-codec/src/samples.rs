@@ -989,6 +989,46 @@ mod tests {
     }
 
     #[test]
+    fn direct_packed_rows_match_the_generic_path_for_short_widths() {
+        for bits in [8_u16, 10, 14] {
+            for width in [1_usize, 2, 3, 5, 7, 9, 17] {
+                let mask = (1_u32 << bits) - 1;
+                let expected = (0..width)
+                    .map(|index| ((index as u32 * 2_411 + 97) & mask) as u16)
+                    .collect::<Vec<_>>();
+                let encoded = pack(&expected, usize::from(bits), false);
+                let geometry = Geometry::new(width, 1, width, 1, 1).unwrap();
+                let decoded = decode_payloads(
+                    &geometry,
+                    bits,
+                    SampleFormat::Integer,
+                    ByteOrder::Little,
+                    &[&encoded],
+                )
+                .unwrap();
+
+                let generic_expected = expected
+                    .iter()
+                    .map(|value| u32::from(*value))
+                    .collect::<Vec<_>>();
+                let mut generic = vec![0_u32; width];
+                unpack_bits(&encoded, &mut generic, usize::from(bits)).unwrap();
+                assert_eq!(generic, generic_expected, "{bits}-bit oracle width {width}");
+                match bits {
+                    8 => assert_eq!(
+                        decoded.into_raw_u8().unwrap(),
+                        expected
+                            .iter()
+                            .map(|value| *value as u8)
+                            .collect::<Vec<_>>()
+                    ),
+                    _ => assert_eq!(decoded.into_raw_u16().unwrap(), expected),
+                }
+            }
+        }
+    }
+
+    #[test]
     fn grouped_unpack_12_kernels_match_the_scalar_oracle() {
         for len in [1, 2, 3, 4, 5, 7, 8, 9, 17, 31] {
             let samples = (0..len)

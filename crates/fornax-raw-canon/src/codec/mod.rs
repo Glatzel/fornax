@@ -836,6 +836,8 @@ impl<'a> HeaderReader<'a> {
 
 #[cfg(test)]
 mod tests {
+    use fornax_codec::huffman::BitReader as LegacyBitReader;
+
     use super::*;
 
     #[test]
@@ -874,6 +876,112 @@ mod tests {
         let mut reader = CrxBitReader::new(&[0; 8]);
         let error = reader.read_zero_prefix(100).unwrap_err();
         assert!(error.to_string().contains("exhausted"), "{error}");
+    }
+
+    #[test]
+    fn crx_cached_rice_matches_the_legacy_bit_at_a_time_reader() {
+        let mut state = 0x5eed_cafe_u32;
+        let mut bits = Vec::new();
+        let mut expected = Vec::new();
+        for _ in 0..256 {
+            next_random(&mut state);
+            let k = state % 16;
+            next_random(&mut state);
+            let prefix = if state.is_multiple_of(19) {
+                41 + state % 3
+            } else {
+                state % 42
+            };
+            if prefix >= PREDICT_K_ESCAPE {
+                bits.extend(std::iter::repeat_n(false, 42));
+                next_random(&mut state);
+                let value = state & ((1 << PREDICT_K_ESCAPE_BITS) - 1);
+                push_bits(&mut bits, value, u32::from(PREDICT_K_ESCAPE_BITS));
+                expected.push((value, 0));
+            } else {
+                bits.extend(std::iter::repeat_n(false, prefix as usize));
+                bits.push(true);
+                let remainder = if k == 0 {
+                    0
+                } else {
+                    next_random(&mut state);
+                    state & ((1 << k) - 1)
+                };
+                push_bits(&mut bits, remainder, k);
+                expected.push(((prefix << k) | remainder, k));
+            }
+        }
+        let encoded = bit_bytes(&bits);
+        let mut cached = CrxBitReader::new(&encoded);
+        let mut legacy = LegacyBitReader::new(&encoded);
+        for (index, (expected, k)) in expected.into_iter().enumerate() {
+            let cached_value = cached_rice_raw(&mut cached, k);
+            let legacy_value = legacy_rice_raw(&mut legacy, k);
+            assert_eq!(cached_value, Ok(expected), "cached Rice code {index}");
+            assert_eq!(legacy_value, Ok(expected), "legacy Rice code {index}");
+        }
+    }
+
+    #[test]
+    fn crx_cached_reader_rejects_exhaustion_at_boundary_and_mid_code() {
+        let mut boundary_bits = vec![false; 7];
+        boundary_bits.push(true);
+        let boundary_bytes = bit_bytes(&boundary_bits);
+        let mut boundary = CrxBitReader::new(&boundary_bytes);
+        assert_eq!(boundary.read_zero_prefix(PREDICT_K_ESCAPE).unwrap(), 7);
+        assert!(boundary.read_bits(1).is_err());
+
+        let mid_code_bytes = bit_bytes(&[true, false, false]);
+        let mut mid_code = CrxBitReader::new(&mid_code_bytes);
+        assert_eq!(mid_code.read_zero_prefix(PREDICT_K_ESCAPE).unwrap(), 0);
+        assert!(mid_code.read_bits(8).is_err());
+    }
+
+    #[test]
+    fn crx_prefix_escape_bounds_work_on_long_materialized_inputs() {
+        let bytes = vec![0_u8; 1 << 16];
+        let mut reader = CrxBitReader::new(&bytes);
+        assert_eq!(
+            reader.read_zero_prefix(PREDICT_K_ESCAPE).unwrap(),
+            PREDICT_K_ESCAPE + 1
+        );
+    }
+
+    #[test]
+    fn truncated_and_bit_flipped_crx_data_returns_errors_when_available() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(
+            "../../external/raw.pixls.us/Canon/EOS R6/\
+             Canon_EOS_R6_RAW_ISO_100_crop_nodual.CR3",
+        );
+        let Ok(source) = std::fs::read(path) else {
+            return;
+        };
+        let image = crate::Cr3Image::parse(&source).unwrap();
+        let start = image.sample.offset;
+        let end = start + image.sample.size;
+
+        let truncated = &source[..start + image.sample.size / 2];
+        assert!(
+            crate::Cr3Image::parse(truncated)
+                .and_then(|decoder| decoder.raw_mosaic())
+                .is_err()
+        );
+
+        let mut found_bit_flip_error = false;
+        for numerator in [5, 13, 29, 47, 61] {
+            let mut corrupt = source.clone();
+            let offset = start + image.sample.size * numerator / 64;
+            corrupt[offset] ^= 0x80;
+            if crate::Cr3Image::parse(&corrupt)
+                .and_then(|decoder| decoder.raw_mosaic())
+                .is_err()
+            {
+                found_bit_flip_error = true;
+                break;
+            }
+        }
+        assert!(found_bit_flip_error, "every sampled bit flip decoded");
+        assert!(end <= source.len());
     }
 
     #[test]
@@ -921,6 +1029,46 @@ mod tests {
     fn lossless_q_step_must_be_identity() {
         assert!(validate_qp(4).is_ok());
         assert!(validate_qp(0).is_err());
+    }
+
+    fn cached_rice_raw(reader: &mut CrxBitReader<'_>, k: u32) -> Result<u32, CodecError> {
+        let prefix = reader.read_zero_prefix(PREDICT_K_ESCAPE)?;
+        if prefix >= PREDICT_K_ESCAPE {
+            reader.read_bits(PREDICT_K_ESCAPE_BITS)
+        } else if k > 0 {
+            let remainder = reader.read_bits(u8::try_from(k).unwrap())?;
+            Ok((prefix << k) | remainder)
+        } else {
+            Ok(prefix)
+        }
+    }
+
+    fn legacy_rice_raw(reader: &mut LegacyBitReader<'_>, k: u32) -> Result<u32, CodecError> {
+        let mut prefix = 0_u32;
+        while reader.read_bits(1)? == 0 {
+            prefix += 1;
+            if prefix > PREDICT_K_ESCAPE {
+                break;
+            }
+        }
+        if prefix >= PREDICT_K_ESCAPE {
+            reader.read_bits(PREDICT_K_ESCAPE_BITS)
+        } else if k > 0 {
+            let remainder = reader.read_bits(u8::try_from(k).unwrap())?;
+            Ok((prefix << k) | remainder)
+        } else {
+            Ok(prefix)
+        }
+    }
+
+    fn next_random(state: &mut u32) {
+        *state = state.wrapping_mul(1_664_525).wrapping_add(1_013_904_223);
+    }
+
+    fn push_bits(bits: &mut Vec<bool>, value: u32, count: u32) {
+        for shift in (0..count).rev() {
+            bits.push(value & (1 << shift) != 0);
+        }
     }
 
     fn bit_bytes(bits: &[bool]) -> Vec<u8> {
