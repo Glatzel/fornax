@@ -1,4 +1,5 @@
 #[allow(dead_code, reason = "shared with the Criterion decoder benchmark")]
+#[path = "../decoder_inputs.rs"]
 mod decoder_inputs;
 
 use std::collections::HashMap;
