@@ -258,7 +258,7 @@ fn golden_subset_check_allows_expected_union_rows() {
 
     check_golden_csv_subset(std::slice::from_ref(&actual), &expected).unwrap();
 
-    let mut changed = actual.clone();
+    let mut changed = actual;
     changed.raw_sha256 = "11".repeat(32);
     assert!(check_golden_csv_subset(&[changed], &expected).is_err());
 }

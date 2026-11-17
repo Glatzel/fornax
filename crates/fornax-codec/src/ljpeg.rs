@@ -486,11 +486,7 @@ impl<'a> BitReader<'a> {
     fn take_error(&mut self) -> Option<&'static str> {
         let consumed =
             self.real_bits_loaded + self.synthetic_bits_loaded - u64::from(self.buffered_bits);
-        if consumed > self.real_bits_loaded {
-            Some("lossless JPEG bitstream is exhausted")
-        } else {
-            None
-        }
+        (consumed > self.real_bits_loaded).then_some("lossless JPEG bitstream is exhausted")
     }
 }
 
@@ -595,7 +591,7 @@ impl<'a> FastBitReader<'a> {
     #[cfg(test)]
     const fn has_error(&self) -> bool { self.error.is_some() }
 
-    fn take_error(&mut self) -> Option<&'static str> {
+    const fn take_error(&mut self) -> Option<&'static str> {
         let consumed = self.real_bits_loaded + self.synthetic_bits_loaded - self.buffered_bits;
         let error = if consumed > self.real_bits_loaded {
             Some("lossless JPEG bitstream is exhausted")

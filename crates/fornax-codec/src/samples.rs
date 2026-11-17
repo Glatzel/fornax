@@ -808,7 +808,7 @@ pub fn unpack_u16_word_rows(
     Ok(())
 }
 
-fn should_parallelize_word_rows(sample_count: usize, threads: usize) -> bool {
+const fn should_parallelize_word_rows(sample_count: usize, threads: usize) -> bool {
     sample_count >= PARALLEL_ROW_MIN_SAMPLES && threads > 1
 }
 
