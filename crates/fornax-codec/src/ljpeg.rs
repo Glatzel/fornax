@@ -679,6 +679,150 @@ fn decode_interleaved_impl(
     })
 }
 
+/// Streams four-component predictor-one scan rows without retaining a decoded
+/// image.
+///
+/// The callback receives each interleaved JPEG row. Returns `Ok(false)` when
+/// the scan does not meet the four-component fast-path contract.
+///
+/// # Errors
+///
+/// Returns an error when the JPEG stream, scan geometry, or Huffman data is
+/// invalid.
+#[doc(hidden)]
+pub fn decode_interleaved_rows(
+    source: &[u8],
+    expected_precision: u8,
+    expected_width: usize,
+    expected_height: usize,
+    mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
+) -> Result<bool, String> {
+    let parsed = parse_jpeg(source, expected_precision)?;
+    let components = parsed.frame.components.len();
+    if parsed.predictor != 1 || components != 4 {
+        return Ok(false);
+    }
+    let decoded_width = parsed
+        .frame
+        .width
+        .checked_mul(components)
+        .ok_or_else(|| "lossless JPEG output width overflow".to_owned())?;
+    let decoded_samples = decoded_width
+        .checked_mul(parsed.frame.height)
+        .ok_or_else(|| "lossless JPEG decoded sample count overflow".to_owned())?;
+    let expected_samples = expected_width
+        .checked_mul(expected_height)
+        .ok_or_else(|| "lossless JPEG expected sample count overflow".to_owned())?;
+    let tile_width = parsed
+        .frame
+        .width
+        .checked_mul(2)
+        .ok_or_else(|| "lossless JPEG Bayer width overflow".to_owned())?;
+    let tile_height = parsed
+        .frame
+        .height
+        .checked_mul(2)
+        .ok_or_else(|| "lossless JPEG Bayer height overflow".to_owned())?;
+    if decoded_samples != expected_samples
+        || (tile_width, tile_height) != (expected_width, expected_height)
+    {
+        return Err(format!(
+            "lossless JPEG frame is {}x{} with four components, expected \
+             {expected_width}x{expected_height}",
+            parsed.frame.width, parsed.frame.height
+        ));
+    }
+    let tables = parsed
+        .frame
+        .components
+        .iter()
+        .map(|component| {
+            parsed.tables[component.huffman_table]
+                .as_ref()
+                .ok_or_else(|| "lossless JPEG references a missing Huffman table".to_owned())
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let mut scratch = FastRowScratch::default();
+    decode_scan_four_rows_with_scratch(
+        parsed.entropy,
+        &parsed.frame,
+        &tables,
+        parsed.predictor,
+        parsed.point_transform,
+        decoded_width,
+        &mut scratch,
+        &mut sink,
+    )?;
+    Ok(true)
+}
+
+fn decode_scan_four_rows_with_scratch(
+    entropy: &[u8],
+    frame: &Frame,
+    tables: &[&HuffmanTable],
+    predictor: u8,
+    point_transform: u8,
+    output_width: usize,
+    scratch: &mut FastRowScratch,
+    mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
+) -> Result<(), String> {
+    if predictor != 1 || frame.components.len() != 4 || tables.len() != 4 {
+        return Err("fast lossless JPEG four-component scan is invalid".to_owned());
+    }
+    let expected_width = frame
+        .width
+        .checked_mul(4)
+        .ok_or_else(|| "lossless JPEG output width overflow".to_owned())?;
+    if output_width != expected_width {
+        return Err("lossless JPEG row width does not match the frame".to_owned());
+    }
+    let initial = 1_i32 << (frame.precision - point_transform - 1);
+    let mask = (1_u32 << frame.precision) - 1;
+    scratch.resize(output_width, point_transform != 0);
+    let mut bits = FastBitReader::new(entropy);
+
+    for row in 0..frame.height {
+        let mut predictions = [initial; 4];
+        if row != 0 {
+            for (prediction, &previous) in predictions.iter_mut().zip(&scratch.previous) {
+                *prediction = i32::from(previous);
+            }
+        }
+        for (column, chunk) in scratch
+            .current
+            .as_chunks_mut::<4>()
+            .0
+            .iter_mut()
+            .enumerate()
+        {
+            for component in 0..4 {
+                bits.refill();
+                let value = apply_difference(
+                    predictions[component],
+                    tables[component].decode_difference_fast(&mut bits),
+                    mask,
+                );
+                chunk[component] = value;
+                predictions[component] = i32::from(value);
+                if point_transform != 0 {
+                    scratch.shifted[column * 4 + component] =
+                        value.wrapping_shl(u32::from(point_transform));
+                }
+            }
+        }
+        if point_transform == 0 {
+            sink(row, &scratch.current)?;
+        } else {
+            sink(row, &scratch.shifted)?;
+        }
+        std::mem::swap(&mut scratch.previous, &mut scratch.current);
+    }
+    if let Some(error) = bits.take_error() {
+        return Err(error.to_owned());
+    }
+    Ok(())
+}
+
 fn parse_jpeg(source: &[u8], expected_precision: u8) -> Result<ParsedJpeg<'_>, String> {
     let mut header = HeaderReader::new(source);
     if header.marker()? != MARKER_SOI {
@@ -1506,7 +1650,8 @@ mod tests {
     use super::{
         BitReader, BitWriter, FastBitReader, FastRowScratch, Geometry, MARKER_EOI, MARKER_PREFIX,
         add_prediction, apply_difference, copy_tile_into, decode_difference,
-        decode_interleaved_impl, decode_into_rows, decode_into_rows_with_scratch, low_u16, predict,
+        decode_interleaved_impl, decode_interleaved_rows, decode_into_rows,
+        decode_into_rows_with_scratch, low_u16, predict,
     };
     use crate::{ByteOrder, Chunk, DecodeRequest, Predictor, SampleBuffer, SampleFormat};
 
@@ -1596,6 +1741,26 @@ mod tests {
                 let general = decode_interleaved_impl(&encoded, 14, false).unwrap();
                 assert_eq!(fast.samples, general.samples);
             }
+        }
+    }
+
+    #[test]
+    fn four_component_row_decoder_matches_the_interleaved_scan() {
+        let samples = (0_u16..48)
+            .map(|index| 8_000 + (index * 73) % 1_000)
+            .collect::<Vec<_>>();
+        let encoded = super::encode_interleaved_for_test(&samples, 4, 3, 4, 14);
+        let mut rows = Vec::new();
+        let handled = decode_interleaved_rows(&encoded, 14, 8, 6, |row, samples| {
+            rows.push((row, samples.to_vec()));
+            Ok(())
+        })
+        .unwrap();
+
+        assert!(handled);
+        assert_eq!(rows.len(), 3);
+        for (row, decoded) in rows {
+            assert_eq!(decoded, samples[row * 16..(row + 1) * 16]);
         }
     }
 

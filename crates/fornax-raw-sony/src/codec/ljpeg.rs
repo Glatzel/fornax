@@ -2,7 +2,7 @@ use fornax_codec::SampleFormat;
 use rayon::prelude::*;
 
 use crate::error::{invalid, unsupported};
-use crate::ljpeg::decode_interleaved;
+use crate::ljpeg::{decode_interleaved, decode_interleaved_rows};
 use crate::samples::{Geometry, buffer_u16, chunk};
 use crate::{CodecError, DecodeRequest, Predictor, SampleBuffer};
 
@@ -44,6 +44,44 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
             for tile_x_index in 0..geometry.across {
                 let index = tile_y_index * geometry.across + tile_x_index;
                 let encoded = chunk(request.source, request.chunks[index])?;
+                let destination_x = tile_x_index * geometry.chunk_width;
+                let copy_width = geometry.chunk_width.min(geometry.width - destination_x);
+                let decoded_directly = decode_interleaved_rows(
+                    encoded,
+                    precision,
+                    geometry.chunk_width,
+                    geometry.chunk_height,
+                    |row, samples| {
+                        if samples.len() != geometry.chunk_width * 2 {
+                            return Err("Sony four-component LJPEG row has the wrong width".into());
+                        }
+                        for (output_row, components) in [0, 2].into_iter().enumerate() {
+                            let output_row = row * 2 + output_row;
+                            let start = output_row
+                                .checked_mul(geometry.width)
+                                .and_then(|offset| offset.checked_add(destination_x))
+                                .ok_or_else(|| "Sony LJPEG output offset overflow".to_owned())?;
+                            let target = band
+                                .get_mut(start..start + copy_width)
+                                .ok_or_else(|| "Sony LJPEG output range is invalid".to_owned())?;
+                            for (column, pixel) in samples.as_chunks::<4>().0.iter().enumerate() {
+                                let first = column * 2;
+                                if first < target.len() {
+                                    target[first] = pixel[components];
+                                }
+                                if first + 1 < target.len() {
+                                    target[first + 1] = pixel[components + 1];
+                                }
+                            }
+                        }
+                        Ok(())
+                    },
+                )
+                .map_err(|detail| invalid(format!("Sony lossless JPEG tile {index}: {detail}")))?;
+                if decoded_directly {
+                    continue;
+                }
+
                 let decoded = decode_interleaved(encoded, precision).map_err(|detail| {
                     invalid(format!("Sony lossless JPEG tile {index}: {detail}"))
                 })?;
@@ -91,8 +129,6 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
                     _ => unreachable!("component count was validated above"),
                 }
 
-                let destination_x = tile_x_index * geometry.chunk_width;
-                let copy_width = geometry.chunk_width.min(geometry.width - destination_x);
                 for row in 0..copy_height {
                     let source = row * tile_width;
                     let destination = row * geometry.width + destination_x;

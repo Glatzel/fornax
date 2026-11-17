@@ -167,6 +167,29 @@ mod tests {
     }
 
     #[test]
+    fn sony_ljpeg_four_component_fast_path_writes_two_512_wide_bayer_rows() {
+        let samples = (0_u16..(256 * 4))
+            .map(|index| 8_000 + index * 3)
+            .collect::<Vec<_>>();
+        let stream = crate::ljpeg::encode_interleaved_for_test(&samples, 256, 1, 4, 14);
+        let chunks = [Chunk {
+            offset: 0,
+            byte_count: stream.len(),
+        }];
+        let request = request(&stream, &chunks, 512, 2);
+
+        let SampleBuffer::U16(image) = decode_ljpeg(&request).unwrap() else {
+            panic!("Sony LJPEG samples must be u16");
+        };
+
+        let expected = (0..256)
+            .flat_map(|column| [samples[column * 4], samples[column * 4 + 1]])
+            .chain((0..256).flat_map(|column| [samples[column * 4 + 2], samples[column * 4 + 3]]))
+            .collect::<Vec<_>>();
+        assert_eq!(image.as_raw().as_slice(), expected);
+    }
+
+    #[test]
     fn sony_ljpeg_copies_partial_edge_tiles() {
         let samples = (0_u16..16).collect::<Vec<_>>();
         let stream = crate::ljpeg::encode_interleaved_for_test(&samples, 4, 4, 1, 12);
