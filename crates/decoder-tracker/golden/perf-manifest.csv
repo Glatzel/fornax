@@ -33,4 +33,5 @@ Sony/ILCE-1/A1_full_uncompressed.ARW,113224192,ebc775fd757a853d018c18664fda4258b
 Sony/ILCE-7RM4/DSC00395.ARW,123111424,04918dfe85dc1da51f875d22030f39776e99ffa2af3d210b83659933234688fa,ARW.uncompressed.any-bits.integer.strips.unknown-predictor,large 12-declared-bit words uncompressed edge,0,core
 Sony/ILCE-7RM5/7RM5-LosslessCompressedLarge.ARW,85950464,c294c388ad9bccbee169f87b9ceb661001515fb039d63f587dcabba76df5636d,ARW.sony-lossless-jpeg.any-bits.integer.tiles.unknown-predictor,large current-generation Sony LJPEG,0,core
 Sony/ILCE-7RM5/7RM5-LosslessUncompressed.ARW,134701056,8918ba274f0919be4f9902f9eebcab4663445ebe441d22fb48f3f328198ac2ee,ARW.uncompressed.any-bits.integer.strips.unknown-predictor,large Sony uncompressed words,0,core
+Sony/ILCE-9M3/DSC00115.ARW,23969792,07ac73fb5a2a3aacf741f06678975f8fbe9c42a981db21449a7517ef812d1221,ARW.uncompressed.any-bits.integer.strips.unknown-predictor,Sony ILCE-9M3 uncompressed coverage,0,full
 Sony/ILCE-9M3/DSC00117.ARW,17776640,4d6408879114f3bcc1ec4e944a76c384aa1289a5a39ed4ee6c9684092c7835f7,ARW.sony-lossless-jpeg.any-bits.integer.tiles.unknown-predictor,existing Sony LJPEG performance target,0,full

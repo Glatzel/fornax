@@ -414,7 +414,7 @@ where
         unpack_row(&payloads[chunk][start..start + row_bytes], target);
     };
     let threads = rayon::current_num_threads();
-    if output.len() >= PARALLEL_ROW_MIN_SAMPLES && threads > 1 {
+    if should_parallelize_word_rows(output.len(), threads) {
         let rows_per_item = geometry.height.div_ceil(threads * 4).max(1);
         let samples_per_item = geometry
             .width
@@ -719,7 +719,10 @@ where
     })
 }
 
-const PARALLEL_ROW_MIN_SAMPLES: usize = 1 << 18;
+// Keep small 8 MiB-or-less mosaics on the calling thread. This avoids Rayon
+// setup for low-millisecond fixed-cost decodes while still parallelizing every
+// current large uncompressed camera path.
+const PARALLEL_ROW_MIN_SAMPLES: usize = 1 << 22;
 
 /// Unpacks full-width strips of 16-bit words directly into `output`.
 ///
@@ -803,6 +806,10 @@ pub fn unpack_u16_word_rows(
         }
     }
     Ok(())
+}
+
+fn should_parallelize_word_rows(sample_count: usize, threads: usize) -> bool {
+    sample_count >= PARALLEL_ROW_MIN_SAMPLES && threads > 1
 }
 
 fn unpack_u16_word_row(source: &[u8], target: &mut [u16], byte_order: ByteOrder, mask: u16) {
@@ -1118,6 +1125,29 @@ mod tests {
 
         let tiny = unpack_u16_word_rows_to_vec(&[&[0x34, 0x12]], 1, 1, 1, ByteOrder::Little);
         assert_eq!(tiny, [0x1234]);
+    }
+
+    #[test]
+    fn word_row_parallelism_keeps_small_two_k_mosaics_serial() {
+        assert!(!super::should_parallelize_word_rows(1_936 * 1_090, 16));
+        assert!(super::should_parallelize_word_rows(3_968 * 2_648, 16));
+        assert!(!super::should_parallelize_word_rows(3_968 * 2_648, 1));
+    }
+
+    #[test]
+    fn row_word_unpack_rejects_truncated_chunks() {
+        let mut output = [0_u16; 6];
+        let error = super::unpack_u16_word_rows(
+            &[&[1, 0, 2, 0]],
+            &mut output,
+            3,
+            2,
+            2,
+            ByteOrder::Little,
+            u16::MAX,
+        )
+        .unwrap_err();
+        assert!(error.to_string().contains("truncated"), "{error}");
     }
 
     #[test]

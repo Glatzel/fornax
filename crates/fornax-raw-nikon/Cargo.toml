@@ -6,5 +6,7 @@ edition.workspace = true
 [dependencies]
 fornax-codec.workspace = true
 fornax-dng.workspace = true
+fornax-large-alloc.workspace = true
 fornax-raw-core.workspace = true
 fornax-tiff.workspace = true
+rayon.workspace = true

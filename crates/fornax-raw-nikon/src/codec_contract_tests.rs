@@ -132,6 +132,24 @@ fn unpacked_words_mask_to_sample_depth() {
 }
 
 #[test]
+fn unpacked_words_reject_truncated_strips() {
+    let error = decode(
+        &[0x23, 0x01, 0x56],
+        NikonCodec::UnpackedWords {
+            bits: 12,
+            byte_order: ByteOrder::Little,
+        },
+        2,
+        1,
+        1,
+        12,
+        ByteOrder::Little,
+    )
+    .unwrap_err();
+    assert!(matches!(error, CodecError::InvalidInput(_)), "{error}");
+}
+
+#[test]
 fn striped_mode_five_extracts_msb_first_from_little_endian_words() {
     let source = [
         0x21, 0x43, 0x65, 0x87, 0xba, 0xdc, 0xfe, 0x10, 0x32, 0x54, 0x76, 0x98,
