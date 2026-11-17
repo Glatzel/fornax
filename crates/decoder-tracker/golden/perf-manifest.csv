@@ -1,0 +1,35 @@
+path,size,sha256,decoder_path,reason,overhead_only
+Adobe DNG Converter/Canon EOS 5D Mark III/5G4A9394-uncompressed.DNG,48382640,95dc76a2f255e623acaa5149b320389f7da7c995da890c3e0d511c0ff681b2e1,dng.uncompressed.integer.16.copy-u16,large Canon uncompressed U16 generation coverage,0
+Blackmagic Design/Pocket Cinema Camera 6k Pro/A010_04101355_S068.dng,31860736,28b6a26662fea4723afa2fdd7148bf9fa2691c00c8cacf771469e90eaeb90736,dng.uncompressed.integer.12.packed-u16-12,large packed 12-bit DNG,0
+Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-uncompressed.dng,48846956,9bc7f4afefc1b9787d6c9ac01337cd9ac7250f9cc98aeb58ce854229a4d23e87,dng.uncompressed.float.16.float,DNG uncompressed FP16 alignment target,0
+Canon/EOS 5D Mark III/hdrmerge-bayer-fp16-w-pred-deflate.dng,20460092,6275226bfa2d86ba479130999d045ea0b8da6be4b011130c9eb91cd6a0eb2233,dng.deflate.float.16.float,large DNG Deflate FP16,0
+Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-uncompressed.dng,73613206,5632bb6229f25d6fbf472780466e4375a59321dd062af141c1be7fcccf6110b3,dng.uncompressed.float.24.float,DNG uncompressed FP24,0
+Canon/EOS 5D Mark III/hdrmerge-bayer-fp24-w-pred-deflate.dng,35431526,664874abe16f79a224a713ed6d786a1d9614ec8a4231fae8dfd653c747d77641,dng.deflate.float.24.float,large DNG Deflate FP24,0
+Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-uncompressed.dng,98506430,b58cc64ecc3e1a3850fe0716b46984479548bd908fc7a050a810feedeb387157,dng.uncompressed.float.32.float,DNG uncompressed FP32,0
+Canon/EOS 5D Mark III/hdrmerge-bayer-fp32-w-pred-deflate.dng,56793214,94993fefdac13a68a40f0c4f47479256ff53790d8af8ad01ecf6b78d7d2b553f,dng.deflate.float.32.float,large DNG Deflate FP32,0
+Canon/EOS R5/Canon_EOS_R5_RAW_ISO_100_nocrop_dual.CR3,73484232,d52fca2f9233211d7912632f0f27b7284807ed3262627bfce7e4f12cf343820e,CR3.canon-lossless-crx.14.integer.bmff-sample.unknown-predictor,large Canon CRX,0
+Canon/EOS R6/Canon_EOS_R6_RAW_ISO_100_crop_nodual.CR3,9815638,6156ee9cfd1a61e08719a8309095d05162891fd2adb8dd1505b31d4716dcee05,CR3.canon-lossless-crx.14.integer.bmff-sample.unknown-predictor,existing Canon CRX performance target,0
+Canon/EOS R7/443A0163.CR3,59550416,b87079049afda620c88717e4b895bc80646428b41795f43f10ac0cc06ad0d496,CR3.canon-lossless-crx.14.integer.bmff-sample.unknown-predictor,Canon CRX APS-C generation coverage,0
+Canon/PowerShot G1 X/CRW_0004.DNG,26522600,1803a147f3e1b7be9ed541f6e8df254d97f2691d16d7f9d130cee68e1c50897b,dng.uncompressed.integer.14.packed-u16-14,14-bit DNG kernel and opcode target,0
+Google/Pixel 8 Pro/PXL_20240415_103400204.RAW-02.ORIGINAL.dng,45101750,45420c595401547cca950ae58d552bc82b32d31ce1d58c082df33004016197f5,dng.lossless-jpeg.tiles,large mobile DNG LJPEG tiles,0
+HUAWEI/CLT-L09/IMG_20191010_085409.dng,79893204,c5bef544d53e435987b158c0fb91aa6e6948d4b2000ef398a08ff0a2d9e2b0b4,dng.uncompressed.integer.16.copy-u16,large uncompressed 16-bit DNG,0
+LEICA CAMERA AG/LEICA SL2/L1020010.DNG,88964096,d00f05468793e4509b53230e90dcdc078e823b254eee95f1c68b29e217df99bf,dng.uncompressed.integer.14.packed-u16-14,large packed 14-bit DNG,0
+Leica/M9/L1049390.DNG,18324480,d1d162fce62210b8951c862189a6098329b5163b7f7492dc397c6e53bba04239,dng.uncompressed.integer.8.copy-u8,large 8-bit DNG,0
+Nikon/D6/D06_0312.NEF,37481216,8c8cf431f5807e2d216318f8a42e30a4d4f8561e325eb6495d9aa0e466ef53fe,NEF.nikon-mode-10-packed.any-bits.integer.strips.unknown-predictor,existing Nikon mode-10 performance target,0
+Nikon/D850/Nikon-D850-14bit-lossless-compressed.NEF,55196715,0c9438258ddae5260b9f5a1aace6658a723f1cb1acace3a6cb507116dc6da4f2,NEF.nikon-huffman.any-bits.integer.strips.unknown-predictor,large Nikon Huffman generation coverage,0
+Nikon/Z 7/1-Nikon-Z7-RAW-14bit-uncompressed-L.NEF,89101056,ef046d37ffb11807648dd0b55589c02825f98c2c99416f4a7a74ae965a8eeb72,NEF.nikon-mode-10-packed.any-bits.integer.strips.unknown-predictor,large Nikon mode-10 packed,0
+Nikon/Z 7/3-Nikon-Z7-RAW-14bit-lossless-compressed-L.NEF,58708188,f0e756dbfd00f3b71cb3d8aa5b9e2e1be32f1052a6c4380e09ebc7c5e7748114,NEF.nikon-huffman.any-bits.integer.strips.unknown-predictor,large Nikon Huffman 14-bit,0
+Nikon/Z 9/Nikon_-_NIKON_Z_9_-_14bit_compressed_(Lossless).NEF,57580695,99d0fe24a38f0f7623aeab21440d266a5ac09f9665cf5283f590337e84323c38,NEF.nikon-huffman.any-bits.integer.strips.unknown-predictor,large Nikon Huffman current generation,0
+Nokia/Lumia 1020/RAW_NOKIA_LUMIA_1020.DNG,49719488,0a5bc55096c0d4b43effc4d49947f3b9337c5cfa1e76dac026f6286190f4daf0,dng.uncompressed.integer.10.packed-u16-generic,large packed 10-bit DNG,0
+Pentax/645Z/IMGP2836.DNG,72478678,a8203686c61962af591b374331b6eb9dace4f2b29fce9f166303fc66fd210bb0,dng.lossless-jpeg.strips,large tiled-strip DNG LJPEG,0
+Pentax/K-1/IMGP8555.DNG,177464538,257f8a7b73cc9a1d2bea377511515ae6525326037825e7066302dba9f134d4ea,dng.lossless-jpeg.strips,two-component DNG LJPEG regression edge,0
+Sigma/fp L/SDIM0915.DNG,92498781,8e7229f28be30bfa45289940eac04194af2b3474f6db286e4fa4070c145a0a70,dng.lossless-jpeg.tiles,large DNG LJPEG tiles,0
+Sigma/fp/A002_651_20240229_000001_2k_12bit.DNG,3244544,99bcffd118630af5cf5712eeac6832045420311fe258094e3489b94c8d51236a,dng.uncompressed.integer.12.packed-u16-12,overhead-only packed 12-bit DNG,1
+Sigma/fp/A002_652_20240229_000001_2k_10bit.DNG,2716672,77d6e690f1b59312d80026dab605ac336f5a8d1619c9e653a23fb1271f39ebe4,dng.uncompressed.integer.10.packed-u16-generic,overhead-only packed 10-bit DNG,1
+Sigma/fp/A002_653_20240229_000001_2k_8bit.DNG,2190336,80ae0b8fdce3f58286fc194513c6ec0080ab07caca753408b00ca72c90e5ad0c,dng.uncompressed.integer.8.copy-u8,overhead-only 8-bit DNG,1
+Sony/ILCE-1/A1_full_lossless_compressed.ARW,81575280,4012536ee0f938d8c5c5e932bb7953a03134abbd9f3f4c664cb2526c1903d492,ARW.sony-lossless-jpeg.any-bits.integer.tiles.unknown-predictor,large Sony LJPEG generation coverage,0
+Sony/ILCE-1/A1_full_uncompressed.ARW,113224192,ebc775fd757a853d018c18664fda4258be87a9597af3f7a260182ddbcbec985e,ARW.uncompressed.any-bits.integer.strips.unknown-predictor,large Sony uncompressed generation coverage,0
+Sony/ILCE-7RM4/DSC00395.ARW,123111424,04918dfe85dc1da51f875d22030f39776e99ffa2af3d210b83659933234688fa,ARW.uncompressed.any-bits.integer.strips.unknown-predictor,large 12-declared-bit words uncompressed edge,0
+Sony/ILCE-7RM5/7RM5-LosslessCompressedLarge.ARW,85950464,c294c388ad9bccbee169f87b9ceb661001515fb039d63f587dcabba76df5636d,ARW.sony-lossless-jpeg.any-bits.integer.tiles.unknown-predictor,large current-generation Sony LJPEG,0
+Sony/ILCE-7RM5/7RM5-LosslessUncompressed.ARW,134701056,8918ba274f0919be4f9902f9eebcab4663445ebe441d22fb48f3f328198ac2ee,ARW.uncompressed.any-bits.integer.strips.unknown-predictor,large Sony uncompressed words,0
+Sony/ILCE-9M3/DSC00117.ARW,17776640,4d6408879114f3bcc1ec4e944a76c384aa1289a5a39ed4ee6c9684092c7835f7,ARW.sony-lossless-jpeg.any-bits.integer.tiles.unknown-predictor,existing Sony LJPEG performance target,0

@@ -1,6 +1,7 @@
 use decoder_tracker::golden::{
-    GoldenCsv, GoldenRow, build_golden_coverage, check_golden_csv, decode_golden, read_golden_csv,
-    write_golden_coverage_csv, write_golden_csv, write_golden_selection_csv,
+    GoldenCsv, GoldenRow, build_golden_coverage, check_golden_csv, check_golden_csv_subset,
+    decode_golden, read_golden_csv, write_golden_coverage_csv, write_golden_csv,
+    write_golden_selection_csv,
 };
 use decoder_tracker::manifest::derive_identity;
 use decoder_tracker::model::{BaselineRow, ManifestRow, status_for_stages};
@@ -244,6 +245,22 @@ fn golden_check_rejects_duplicate_expected_rows() {
 
     let error = check_golden_csv(&[actual_row], &expected).unwrap_err();
     assert!(error.to_string().contains("duplicate path"));
+}
+
+#[test]
+fn golden_subset_check_allows_expected_union_rows() {
+    let actual = row(BayerPattern::RGGB);
+    let mut extra = actual.clone();
+    extra.path = "Canon/Camera/perf-only.dng".into();
+    let expected = GoldenCsv {
+        rows: vec![actual.clone(), extra],
+    };
+
+    check_golden_csv_subset(std::slice::from_ref(&actual), &expected).unwrap();
+
+    let mut changed = actual.clone();
+    changed.raw_sha256 = "11".repeat(32);
+    assert!(check_golden_csv_subset(&[changed], &expected).is_err());
 }
 
 #[test]

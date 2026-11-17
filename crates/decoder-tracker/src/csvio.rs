@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use csv::{ReaderBuilder, StringRecord, Terminator, WriterBuilder};
+use serde::Deserialize;
 
 use crate::model::{
     BASELINE_HEADER, BaselineKey, BaselineRow, MANIFEST_HEADER, ManifestCsvRecord, ManifestRow,
@@ -45,22 +46,72 @@ where
         .has_headers(true)
         .flexible(false)
         .from_reader(input.as_ref());
-    validate_header(reader.headers()?, &MANIFEST_HEADER, "manifest")?;
-    let rows = reader
-        .deserialize::<ManifestCsvRecord>()
-        .collect::<std::result::Result<Vec<_>, _>>()?;
+    let headers = reader.headers()?.clone();
+    let rows = if headers.iter().collect::<Vec<_>>() == MANIFEST_HEADER.as_slice() {
+        reader
+            .deserialize::<ManifestCsvRecord>()
+            .map(|row| {
+                let row = row?;
+                Ok::<_, TrackerError>((row.path, row.size, row.sha256))
+            })
+            .collect::<std::result::Result<Vec<_>, _>>()?
+    } else if headers.iter().collect::<Vec<_>>()
+        == [
+            "path",
+            "size",
+            "sha256",
+            "decoder_path",
+            "reason",
+            "overhead_only",
+        ]
+    {
+        #[derive(Deserialize)]
+        struct ExtendedManifestCsvRecord {
+            path: String,
+            size: u64,
+            sha256: String,
+            decoder_path: String,
+            reason: String,
+            overhead_only: String,
+        }
+        reader
+            .deserialize::<ExtendedManifestCsvRecord>()
+            .map(|row| {
+                let row = row?;
+                if row.decoder_path.is_empty() || row.reason.is_empty() {
+                    return Err(TrackerError::new(
+                        "golden manifest decoder_path and reason must not be empty",
+                    ));
+                }
+                if !matches!(
+                    row.overhead_only.to_ascii_lowercase().as_str(),
+                    "" | "0" | "1" | "false" | "true" | "no" | "yes"
+                ) {
+                    return Err(TrackerError::new(format!(
+                        "invalid overhead_only value {:?}",
+                        row.overhead_only
+                    )));
+                }
+                Ok((row.path, row.size, row.sha256))
+            })
+            .collect::<Result<Vec<_>>>()?
+    } else {
+        return Err(TrackerError::new(
+            "manifest CSV header does not match the canonical or golden schema",
+        ));
+    };
     let rows = rows
         .into_iter()
         .map(|row| {
-            let (vendor, camera, model, filename) = crate::manifest::derive_identity(&row.path)?;
-            let format = row
-                .path
+            let (path, size, sha256) = row;
+            let (vendor, camera, model, filename) = crate::manifest::derive_identity(&path)?;
+            let format = path
                 .rsplit_once('.')
                 .map_or_else(String::new, |(_, extension)| extension.to_ascii_uppercase());
             Ok(ManifestRow {
-                sha256: row.sha256,
-                size: row.size,
-                path: row.path,
+                sha256,
+                size,
+                path,
                 vendor,
                 camera,
                 model,
