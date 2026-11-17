@@ -113,3 +113,18 @@ scripts/agent-validation.sh
   That work stayed out of scope and is now the next DNG-specific priority.
 - The final unrelated `fornax-raw-pipeline` workspace-clippy warning remains
   pre-existing; changed packages are clean under strict clippy.
+
+## Hardening review
+
+- [x] Build distinct base/commit probe binaries and run ten interleaved
+  base/HEAD process pairs for each target and control row.
+- [x] Bisect the real Canon 5D3 FP16 regression to `d2e87aa`; preserve the
+  four perf commits unchanged and report a follow-up layout fix or drop.
+- [x] Add DNG, Sony LJPEG, and Canon CRX regression/robustness tests.
+- [x] Fix the validation hang by replacing per-file full RAW reads with a
+  bounded LFS-pointer probe and one `git lfs ls-files --json` query, then add
+  per-stage validation timeouts.
+- [x] Confirm the Sony 7RM4 and Pentax K-1 correctness hashes against Rawler
+  and FlashRaw.
+- [ ] Reserve the four-component point-transform fallback, restart interval
+  support, and truncated-entropy detection for a behavior-change task.

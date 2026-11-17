@@ -31,6 +31,18 @@ clippy_flags=(
     -A clippy::too_many_arguments
     -D warnings
 )
+stage_timeout="${FORNAX_VALIDATION_STAGE_TIMEOUT_SECS:-1800}"
+
+run_stage() {
+    local name="$1"
+    shift
+    printf 'validation stage: %s\n' "$name" >&2
+    if command -v timeout >/dev/null 2>&1; then
+        timeout --foreground "${stage_timeout}s" "$@"
+    else
+        "$@"
+    fi
+}
 
 if git_base="$(git merge-base HEAD origin/main 2>/dev/null)"; then
     base="$git_base"
@@ -38,8 +50,8 @@ else
     base=HEAD
 fi
 
-git diff --check "$base" --
-python3 scripts/check-doc-links.py
+run_stage git-diff git diff --check "$base" --
+run_stage documentation-links python3 scripts/check-doc-links.py
 
 changed_files="$(
     git diff --name-only --diff-filter=ACMRTUXB "$base" --
@@ -58,21 +70,21 @@ if [[ "$docs_only" == false ]]; then
     fi
 
     if [[ "$fix" == true ]]; then
-        cargo -q clippy --workspace --all-features --all-targets --fix \
+        run_stage clippy-fix cargo -q clippy --workspace --all-features --all-targets --fix \
             --allow-dirty --allow-staged --exclude compare-demosaic \
             -- "${clippy_flags[@]}"
-        cargo +nightly fmt -q
+        run_stage rustfmt cargo +nightly fmt -q
     fi
 
-    cargo -q run -p decoder-tracker -- manifest --check
-    cargo -q run --release -p decoder-tracker -- hash \
+    run_stage corpus-manifest cargo -q run -p decoder-tracker -- manifest --check
+    run_stage golden-hashes cargo -q run --release -p decoder-tracker -- hash \
         --manifest crates/decoder-tracker/golden/selected-manifest.csv \
         --check crates/decoder-tracker/golden/decode-hashes.csv
-    pixi run -e tracker cargo -q test -p decoder-tracker --lib duckdb_
-    cargo -q test --workspace --all-features --exclude compare-demosaic
-    cargo -q check -p fornax-codec --no-default-features
-    cargo -q test -p fornax-codec --features lossless-jpeg
-    cargo -q test \
+    run_stage tracker-duckdb pixi run -e tracker cargo -q test -p decoder-tracker --lib duckdb_
+    run_stage workspace-tests cargo -q test --workspace --all-features --exclude compare-demosaic
+    run_stage codec-feature-check cargo -q check -p fornax-codec --no-default-features
+    run_stage codec-ljpeg-tests cargo -q test -p fornax-codec --features lossless-jpeg
+    run_stage vendor-tests cargo -q test \
         -p fornax-raw-sony \
         -p fornax-raw-canon \
         -p fornax-raw-nikon \
@@ -80,12 +92,12 @@ if [[ "$docs_only" == false ]]; then
         -p fornax-raw-hasselblad \
         -p fornax-raw-panasonic \
         -p fornax-raw-phase-one
-    cargo +nightly fmt --check -q
+    run_stage rustfmt-check cargo +nightly fmt --check -q
     RUSTDOCFLAGS="-D warnings" \
-        cargo -q doc --workspace --all-features --exclude compare-demosaic --no-deps
-    cargo -q clippy --workspace --all-features --all-targets \
+        run_stage rustdoc cargo -q doc --workspace --all-features --exclude compare-demosaic --no-deps
+    run_stage workspace-clippy cargo -q clippy --workspace --all-features --all-targets \
         --exclude compare-demosaic -- "${clippy_flags[@]}"
-    cargo -q bench -p fornax-decoder --no-run
+    run_stage decoder-bench-compile cargo -q bench -p fornax-decoder --no-run
 fi
 
 if grep -Eq '^crates/compare-demosaic/' <<<"$changed_files"; then
@@ -95,15 +107,16 @@ if grep -Eq '^crates/compare-demosaic/' <<<"$changed_files"; then
         cd crates/compare-demosaic
 
         if [[ "$fix" == true ]]; then
-            cargo -q clippy --all-features --all-targets --fix \
+            run_stage compare-clippy-fix cargo -q clippy --all-features --all-targets --fix \
                 --allow-dirty --allow-staged -p compare-demosaic \
                 -- "${clippy_flags[@]}"
-            cargo +nightly fmt -q
+            run_stage compare-rustfmt cargo +nightly fmt -q
         fi
 
-        RUSTDOCFLAGS="-D warnings" cargo -q doc --all-features -p compare-demosaic --no-deps
-        cargo -q clippy --all-features --all-targets -p compare-demosaic \
+        RUSTDOCFLAGS="-D warnings" run_stage compare-rustdoc \
+            cargo -q doc --all-features -p compare-demosaic --no-deps
+        run_stage compare-clippy cargo -q clippy --all-features --all-targets -p compare-demosaic \
             -- "${clippy_flags[@]}"
-        cargo -q test --all-features -p compare-demosaic
+        run_stage compare-tests cargo -q test --all-features -p compare-demosaic
     )
 fi

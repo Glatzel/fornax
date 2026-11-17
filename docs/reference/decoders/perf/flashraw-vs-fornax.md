@@ -159,3 +159,59 @@ Ranked by measured impact and implementation leverage:
   crop/cast-era reports, and rejected experiment tables are under the
   [decoder performance archive](../../../archive/reference/decoders/perf/).
   Do not repeat a listed neutral/regressed experiment without new evidence.
+
+## Interleaved review, 2026-11-17
+
+The final full-run slowdown reported for Canon 5D3 FP16 uncompressed was
+rechecked with separately built probe binaries in `base/HEAD` alternation,
+ten process pairs per row, two warmups and five rounds per process. Each value
+below is one process median. Paired delta is `(HEAD / base - 1) * 100`.
+
+| Row | Base ms | HEAD ms | Paired delta | Delta range | Range width |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Canon 5D3 FP16 uncompressed | 49.023 | 51.221 | +5.00% | +0.57..+10.92% | 10.34 pp |
+| Canon 5D3 FP24 uncompressed | 52.716 | 52.907 | -0.04% | -2.52..+1.95% | 4.47 pp |
+| Canon 5D3 FP32 uncompressed | 33.515 | 33.574 | +0.39% | -3.78..+2.01% | 5.79 pp |
+| Sony ILCE-9M3 uncompressed | 6.223 | 5.740 | -8.69% | -15.87..+18.57% | 34.44 pp |
+| Nikon D6 packed control | 80.501 | 80.447 | +0.22% | -3.30..+1.49% | 4.79 pp |
+| Nikon Z5 II Huffman control | 136.877 | 134.818 | -1.09% | -3.94..+1.68% | 5.62 pp |
+
+FP16 is a real binary-layout regression. FP24/FP32 are unchanged. Sony
+uncompressed varies far beyond both controls and has no reliable improvement.
+
+| FP16 comparison | Base ms | Candidate ms | Paired delta | Range width |
+| --- | ---: | ---: | ---: | ---: |
+| base vs d03ef88 | 48.710 | 48.882 | +0.40% | 5.68 pp |
+| base vs 80d616e | 48.775 | 48.768 | -0.01% | 5.28 pp |
+| base vs d2e87aa | 48.685 | 50.869 | +4.59% | 2.25 pp |
+| base vs c149843 | 49.023 | 51.221 | +5.00% | 10.34 pp |
+
+The regression begins at `d2e87aa`. Its hot FP16 float-conversion function is
+the same 1278-byte function before and after the commit, but moves from a
+64-byte-aligned address (`0x381b40`) to a 32-byte-aligned address (`0x3838e0`).
+Only sparse relative-address bytes differ in the function body. This is a code
+placement effect, not a changed decode path. The smallest follow-up should
+relocate or isolate the four-component LJPEG code to restore the hot-loop
+placement; if that cannot be done without another optimization, drop
+`d2e87aa`.
+
+| G1 X comparison | Threads | Base ms | 80d616e ms | Paired delta | Range width |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| G1 X vs 80d616e | 1T | 89.311 | 81.405 | -9.13% | 2.61 pp |
+| G1 X vs 80d616e | 16T | 107.985 | 101.471 | -5.08% | 6.21 pp |
+| D6 control vs 80d616e | 1T | 79.414 | 79.763 | +0.22% | 3.79 pp |
+| Z5 II control vs 80d616e | 1T | 134.811 | 138.266 | +2.38% | 3.55 pp |
+| D6 control vs 80d616e | 16T | 79.879 | 79.858 | -0.00% | 4.14 pp |
+| Z5 II control vs 80d616e | 16T | 136.044 | 139.235 | +2.28% | 5.52 pp |
+
+The 14-bit kernel is worth keeping: it improves G1 X at both thread counts by
+more than the control drift.
+
+Merge recommendations:
+
+- `d03ef88`: merge. Direct packed rows are not implicated in these regressions.
+- `80d616e`: merge. G1 X improves 9.13% at 1T and 5.08% at 16T.
+- `d2e87aa`: merge after a layout fix, otherwise drop. It causes a repeatable
+  ~5% FP16 uncompressed regression despite the large Sony LJPEG gain.
+- `c149843`: merge after the d2 layout issue is resolved. The CRX work adds no
+  regression in this review.
