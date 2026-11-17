@@ -466,7 +466,6 @@ mod tests {
         encoded
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn synthetic_prediction(
         samples: &[u16],
         row: usize,

@@ -353,7 +353,6 @@ fn read_metadata(
     Ok(matrix)
 }
 
-#[allow(clippy::too_many_arguments)]
 fn probe_sample(
     decoder: ProbeDecoder,
     path: &Path,
@@ -566,7 +565,6 @@ fn subtract_usage(after: Usage, before: Usage) -> Usage {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 fn write_failure(
     writer: &mut csv::Writer<File>,
     decoder: ProbeDecoder,
