@@ -300,7 +300,7 @@ mod tests {
             );
         }
         #[cfg(all(target_os = "linux", not(miri), feature = "large-page-hint"))]
-        if expect_large_page_policy {
+        if _expect_large_page_policy {
             assert_eq!(allocations, 0);
             assert_eq!(bypass_zeroed_allocations, 0);
             assert_eq!(policy_zeroed_allocations, 1);
