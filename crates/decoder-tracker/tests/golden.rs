@@ -722,12 +722,7 @@ fn golden_selection_manifest_writes_one_lowest_pixel_representative_per_encoding
     second_row.width = 1000;
     second_row.height = 500;
     second_row.cfa = "BGGR".into();
-    let report = build_golden_coverage(
-        &[first_row, second_row],
-        &[first, second],
-        &[],
-    )
-    .unwrap();
+    let report = build_golden_coverage(&[first_row, second_row], &[first, second], &[]).unwrap();
 
     let bytes = write_golden_selection_csv(&report.rows).unwrap();
 

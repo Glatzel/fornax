@@ -83,11 +83,10 @@ pub struct SyntheticFixture {
     pub chunks: Vec<Chunk>,
 }
 
-pub fn synthetic_image<S>(
-    width: u32,
-    height: u32,
-    pattern: SyntheticPattern,
-) -> SampleBuffer where S: FixtureSample {
+pub fn synthetic_image<S>(width: u32, height: u32, pattern: SyntheticPattern) -> SampleBuffer
+where
+    S: FixtureSample,
+{
     let count = usize::try_from(width)
         .unwrap()
         .checked_mul(usize::try_from(height).unwrap())
@@ -111,7 +110,10 @@ pub fn uncompressed_fixture<S>(
     chunk_height: usize,
     byte_order: ByteOrder,
     pattern: SyntheticPattern,
-) -> SyntheticFixture where S: FixtureSample {
+) -> SyntheticFixture
+where
+    S: FixtureSample,
+{
     let image = synthetic_image::<S>(width, height, pattern);
     let encoded = EncodeCompression::Uncompressed
         .encode(&EncodeRequest {
