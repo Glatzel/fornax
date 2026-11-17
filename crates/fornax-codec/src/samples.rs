@@ -469,7 +469,6 @@ where
 ///
 /// Returns an error when the geometry is inconsistent, the stride is too short,
 /// a strip is truncated, or the output length does not match the image.
-#[allow(clippy::too_many_arguments)]
 pub fn unpack_packed_u16_rows<F>(
     payloads: &[&[u8]],
     output: &mut [u16],
