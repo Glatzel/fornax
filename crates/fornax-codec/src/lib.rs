@@ -75,7 +75,7 @@ pub use request::{
     EncodedChunks, SampleFormat,
 };
 pub use sample_buffer::{SampleBuffer, SampleBufferError};
-pub use samples::unpack_u16_word_rows;
+pub use samples::{unpack_packed_u16_rows, unpack_u16_word_rows};
 
 /// Decodes one raw image using the codec value's algorithm and parameters.
 ///

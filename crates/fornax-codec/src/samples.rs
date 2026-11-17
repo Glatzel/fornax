@@ -136,9 +136,21 @@ fn decode_integer(
                 && geometry.across == 1
                 && geometry.chunk_width == geometry.width
             {
-                unpack_packed_rows(geometry, bits, payloads, &mut output, |source, target| {
-                    unpack_row_u16(source, target, bits, byte_order);
-                })?;
+                unpack_packed_rows(
+                    geometry,
+                    bits,
+                    geometry
+                        .width
+                        .checked_mul(usize::from(bits))
+                        .ok_or_else(|| invalid("packed-row bit count overflow"))?
+                        .div_ceil(8),
+                    payloads,
+                    &mut output,
+                    |source, target| {
+                        unpack_row_u16(source, target, bits, byte_order);
+                        Ok(())
+                    },
+                )?;
             } else if matches!(bits, 12 | 14) {
                 decode_packed_u16(geometry, bits, byte_order, payloads, &mut output)?;
             } else {
@@ -359,15 +371,17 @@ fn copy_u8_full_strips(
     Ok(())
 }
 
-fn unpack_packed_rows<T>(
+fn unpack_packed_rows<T, F>(
     geometry: &Geometry,
     bits: u16,
+    row_stride: usize,
     payloads: &[&[u8]],
     output: &mut [T],
-    unpack_row: impl Fn(&[u8], &mut [T]) + Sync,
+    unpack_row: F,
 ) -> Result<(), CodecError>
 where
     T: Send,
+    F: Fn(&[u8], &mut [T]) -> Result<(), CodecError> + Sync,
 {
     let bits = usize::from(bits);
     if bits == 0 || bits > 32 {
@@ -392,12 +406,17 @@ where
         .checked_mul(bits)
         .ok_or_else(|| invalid("packed-row bit count overflow"))?
         .div_ceil(8);
+    if row_stride < row_bytes {
+        return Err(invalid(format!(
+            "packed-row stride {row_stride} is shorter than required {row_bytes}"
+        )));
+    }
     for (index, payload) in payloads.iter().enumerate() {
         let rows = geometry
             .chunk_height
             .min(geometry.height - index * geometry.chunk_height);
         let required = rows
-            .checked_mul(row_bytes)
+            .checked_mul(row_stride)
             .ok_or_else(|| invalid("packed-row strip size overflow"))?;
         if payload.len() < required {
             return Err(invalid(format!(
@@ -407,11 +426,13 @@ where
         }
     }
 
-    let unpack = |row: usize, target: &mut [T]| {
+    let unpack = |row: usize, target: &mut [T]| -> Result<(), CodecError> {
         let chunk = row / geometry.chunk_height;
         let within_chunk = row % geometry.chunk_height;
-        let start = within_chunk * row_bytes;
-        unpack_row(&payloads[chunk][start..start + row_bytes], target);
+        let start = within_chunk
+            .checked_mul(row_stride)
+            .ok_or_else(|| invalid("packed-row source offset overflow"))?;
+        unpack_row(&payloads[chunk][start..start + row_bytes], target)
     };
     let threads = rayon::current_num_threads();
     if should_parallelize_word_rows(output.len(), threads) {
@@ -423,18 +444,46 @@ where
         output
             .par_chunks_mut(samples_per_item)
             .enumerate()
-            .for_each(|(band, rows)| {
+            .try_for_each(|(band, rows)| {
                 let first_row = band * rows_per_item;
                 for (offset, target) in rows.chunks_exact_mut(geometry.width).enumerate() {
-                    unpack(first_row + offset, target);
+                    unpack(first_row + offset, target)?;
                 }
-            });
+                Ok::<(), CodecError>(())
+            })?;
     } else {
         for (row, target) in output.chunks_exact_mut(geometry.width).enumerate() {
-            unpack(row, target);
+            unpack(row, target)?;
         }
     }
     Ok(())
+}
+
+/// Unpacks full-width packed 16-bit rows directly into the final sample buffer.
+///
+/// `row_stride` may include alignment padding after each packed row. The helper
+/// validates all strips before writing, uses the shared four-million-sample
+/// parallel cutoff, and invokes `unpack_row` once per output row.
+///
+/// # Errors
+///
+/// Returns an error when the geometry is inconsistent, the stride is too short,
+/// a strip is truncated, or the output length does not match the image.
+pub fn unpack_packed_u16_rows<F>(
+    payloads: &[&[u8]],
+    output: &mut [u16],
+    width: usize,
+    height: usize,
+    chunk_height: usize,
+    row_stride: usize,
+    bits: u16,
+    unpack_row: F,
+) -> Result<(), CodecError>
+where
+    F: Fn(&[u8], &mut [u16]) -> Result<(), CodecError> + Sync,
+{
+    let geometry = Geometry::new(width, height, width, chunk_height, payloads.len())?;
+    unpack_packed_rows(&geometry, bits, row_stride, payloads, output, unpack_row)
 }
 
 fn unpack_bits(source: &[u8], output: &mut [u32], bits: usize) -> Result<(), CodecError> {
