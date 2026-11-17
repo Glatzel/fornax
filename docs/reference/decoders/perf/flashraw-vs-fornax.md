@@ -4,11 +4,12 @@ This is the current decoder performance comparison. It measures only file path
 to a storage-native raw mosaic: no active-area crop, `f32` conversion,
 preprocessing, hashing, or CSV work is inside the timed region.
 
-The sample set is the generated
-[golden performance manifest](../../../../crates/decoder-tracker/golden/perf-manifest.csv),
-not a hand-picked benchmark list. It contains one lowest-pixel representative
-per known-lossless decoder path across DNG, ARW, CR3, and NEF. Lossy modes are
-not present in the golden set and are not measured.
+The sample set is the manually curated
+[golden performance manifest](../../../../crates/decoder-tracker/golden/perf-manifest.csv).
+It selects stable representatives for known-lossless decoder paths across DNG,
+ARW, CR3, and NEF, with large inputs where practical and explicitly marked
+overhead-only probes for small fixed-cost paths. Lossy modes are not present in
+the golden set and are not measured.
 
 ## Method
 
