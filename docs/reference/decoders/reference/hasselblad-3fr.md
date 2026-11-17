@@ -2,6 +2,16 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Hasselblad 3FR.
 
+## Support summary
+
+Tier 2 supports classic little-endian 3FR TIFF, compression 1 exact 16-bit
+words, and compression 7 single-component predictor-8 lossless JPEG. Accepted
+tagless models use explicit RGGB profiles; source CFA tags take precedence.
+
+FFF, merged/multi-shot variants, tiled storage, multi-sample or non-16-bit
+payloads, restart/point transforms, unknown profiles/compression, and non-2x2
+pipeline input are typed unsupported.
+
 ## Sources
 
 - dnglab/Rawler commit
@@ -29,6 +39,21 @@ The pinned sources support these observed behaviors:
   consumes 16 stored bits and represents `-32768`.
 - Rawler's camera profiles provide RGGB and X1D-family active borders because
   the accepted raw IFDs do not contain CFA tags.
+
+## Accepted profiles and metadata
+
+Accepted tagless 2x2 RGGB profiles cover H3D, H4D, CFV, Hasselblad96, ixpress
+CF132, X2D 100C, and CFV 100C/Electronic Shutter. X1D and X1D II remove the
+inactive borders `[left 46, top 96, right 58, bottom 0]`; the CFV 50C II corpus
+file reports the X1D II model and uses the same border.
+
+Source CFA tags take precedence. Non-2x2 data may remain a general mosaic and
+export as DNG, but `process_metadata` and `cropped_mosaic` reject it before
+preprocessing. The mapper preserves identity, dimensions, active area/crop,
+CFA, levels, orientation, available color calibration, and allowlisted EXIF.
+
+Acceptance requires all 11 corpus cameras in the manifest, exact uncompressed
+and predictor-8 sample parity, exact DNG readback, and passing tracker rows.
 
 ## Implementation boundary
 

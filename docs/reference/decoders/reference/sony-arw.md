@@ -2,6 +2,22 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Sony ARW/NRW.
 
+## Support summary
+
+Tier 1 supports uncompressed 12-bit packed and 14/16-bit word samples, ARW1,
+ARW2, ARW6, single-component and Sony four-component tiled lossless JPEG, and
+conventional 2x2 Bayer handoff.
+
+ARQ pixel-shift/multi-sample files, reduced-resolution or YCbCr `LinearRaw`
+medium/small modes, unknown compression, non-Bayer layouts, and ambiguous
+primary mosaic selection return typed unsupported errors. Preview and
+auxiliary images are never raw sources.
+
+Acceptance requires fixture-backed tests and passing tracker rows for every
+accepted family, reference parity after curve/levels/crop/CFA/endianness
+alignment, typed unsupported results, and synthetic coverage for private
+offsets, packed rows, tile geometry, LJPEG row expansion, and Bayer handoff.
+
 ## Sources
 
 - In-tree implementations:

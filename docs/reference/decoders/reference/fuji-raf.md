@@ -2,6 +2,16 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Fujifilm RAF.
 
+## Support summary
+
+Tier 2 supports uncompressed 12-bit packed samples, uncompressed 14/16-bit
+words, and `IS`-signed block-lossless 12/14/16-bit data. Explicit GFX 2x2
+profiles cross the Bayer handoff; X-Trans remains available through raw decode
+and DNG export but stops before preprocessing.
+
+Lossy RAF, SuperCCD rotation/staggering, FinePix DBP, unknown Bayer profiles,
+and non-2x2 pipeline input are typed unsupported.
+
 ## Sources
 
 - Rawler `0.8.0`, LGPL-2.1:
@@ -23,6 +33,25 @@ The source revisions support the following observed behavior:
 - X-Trans layout tag `0x0131` stores 36 CFA planes in reverse DNG order.
 - Modern GFX 50/100 cameras require explicit 2x2 RGGB and active-area
   profiles; the RAF crop tags provide the default crop.
+
+## Implemented and rejected layouts
+
+Fornax accepts uncompressed 12-bit little-endian packed samples, uncompressed
+14/16-bit words, and the `IS`-signed block-lossless 12/14/16-bit codec. The
+mapper preserves identity, dimensions/crop, CFA fields, black/white levels,
+white balance, and safe EXIF tags. X-Trans retains its 6x6 CFA through raw
+mosaic and DNG export.
+
+Lossy block compression, SuperCCD rotation/staggering, FinePix DBP, and
+unknown Bayer profiles return typed unsupported errors. A 45-degree or
+staggered layout must preserve `CFALayout`; it is never flattened to 2x2.
+Missing strip byte counts may be bounded by EOF only when dimensions prove the
+required payload length. RAF private blocks require strict entry-count limits,
+and the embedded JPEG is never a raw fallback.
+
+Acceptance requires supported Bayer files and expected X-Trans/lossy/legacy
+rows in the corpus, X-Trans raw and DNG round-trip tests, typed rejection before
+preprocessing for non-2x2 handoff, and successful 2x2 GFX handoff.
 
 ## Implementation boundary
 

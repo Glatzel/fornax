@@ -255,7 +255,7 @@ are excluded because they are only used by legacy models. Tier-2 formats (RAF,
 3FR, RW2, IIQ) and tier-3 unsupported formats never enter the golden selection.
 
 The classification evidence and conservative boundaries are recorded in
-[lossless-classification.md](../reference/codecs/lossless-classification.md).
+[lossless-classification.md](../../codecs/lossless-classification.md).
 
 ## Reading failures
 

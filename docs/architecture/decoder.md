@@ -29,15 +29,15 @@ pipeline input.
 
 | Tier | Order | Format plan | Current state |
 | --- | ---: | --- | --- |
-| 0 | 1 | [DNG](../decoder/formats/dng.md) | Default decoder implemented |
-| 1 | 2 | [Canon CR3](../decoder/formats/canon-cr3.md) | Implemented for audited lossless CRX; C-RAW rejected |
-| 1 | 3 | [Sony ARW](../decoder/formats/sony-arw.md) | Implemented for uncompressed, ARW1, ARW2, ARW6, and tiled LJPEG |
-| 1 | 4 | [Nikon NEF](../decoder/formats/nikon-nef.md) | Partially implemented for standard uncompressed/packed modes |
-| 2 | 5 | [Fujifilm RAF](../decoder/formats/fuji-raf.md) | Implemented for uncompressed and block-lossless Bayer/X-Trans |
-| 2 | 6 | [Hasselblad 3FR](../decoder/formats/hasselblad-3fr.md) | Implemented for accepted uncompressed and predictor-8 samples |
-| 2 | 7 | [Panasonic RW2](../decoder/formats/panasonic-rw2.md) | Implemented for single-shot V4/V5/V6/V8 and stamped 12-bit Bayer |
-| 2 | 8 | [Phase One IIQ](../decoder/formats/phase-one-iiq.md) | Implemented for modes 0, 3, 5, 6, and 8 |
-| 3 | 9 | [Other formats](../decoder/formats/other-formats.md) | Planned |
+| 0 | 1 | [DNG](../reference/decoders/reference/dng-decoder.md) | Default decoder implemented |
+| 1 | 2 | [Canon CR3](../reference/decoders/reference/canon-crx.md) | Implemented for audited lossless CRX; C-RAW rejected |
+| 1 | 3 | [Sony ARW](../reference/decoders/reference/sony-arw.md) | Implemented for uncompressed, ARW1, ARW2, ARW6, and tiled LJPEG |
+| 1 | 4 | [Nikon NEF](../reference/decoders/reference/nikon-nef.md) | Implemented for standard uncompressed/packed and mode-3 Huffman |
+| 2 | 5 | [Fujifilm RAF](../reference/decoders/reference/fuji-raf.md) | Implemented for uncompressed and block-lossless Bayer/X-Trans |
+| 2 | 6 | [Hasselblad 3FR](../reference/decoders/reference/hasselblad-3fr.md) | Implemented for accepted uncompressed and predictor-8 samples |
+| 2 | 7 | [Panasonic RW2](../reference/decoders/reference/panasonic-rw2.md) | Implemented for single-shot V4/V5/V6/V8 and stamped 12-bit Bayer |
+| 2 | 8 | [Phase One IIQ](../reference/decoders/reference/phase-one-iiq.md) | Implemented for modes 0, 3, 5, 6, and 8 |
+| 3 | 9 | [Other formats](../reference/decoders/reference/other-formats.md) | Planned |
 
 Rawler may decode some of these formats as an alternate development or
 application decoder. That does not make the format a committed native decoder
@@ -248,7 +248,7 @@ crop coordinates are exclusive at right/bottom, CFA is shifted into the active
 reference frame, and the V4 black offset is applied before DNG metadata
 conversion. Multi-shot markers, high-resolution composites, V7, unknown
 versions/compression, and unknown CFAs return typed unsupported errors before
-sample decoding. See the [RW2 format plan](../decoder/formats/panasonic-rw2.md) and
+sample decoding. See the
 [Panasonic reference note](../reference/decoders/reference/panasonic-rw2.md).
 
 ## Metadata and validation

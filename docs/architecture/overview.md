@@ -177,6 +177,9 @@ or Rec. 2020. The default remains camera-native RGB.
 
 ## DNG support
 
+Detailed storage, metadata, and acceptance behavior lives in the
+[DNG decoder reference notes](../reference/decoders/reference/dng-decoder.md).
+
 The default decoder reads classic TIFF and BigTIFF directories, selects the
 full-resolution CFA or LinearRaw image, preserves typed root and raw-IFD
 metadata, and decodes uncompressed, lossless JPEG-92, Deflate, lossy JPEG, and
@@ -326,5 +329,7 @@ baseline, waiver, artifact, and regeneration rules.
 ## References
 
 - Decoder details: [docs/architecture/decoder.md](decoder.md)
-- Decoder benchmark plan: [docs/decoder/benchmark.md](../decoder/benchmark.md)
-- Decoder corpus plan: [docs/decoder/corpus.md](../decoder/corpus.md)
+- Decoder benchmark plan:
+  [docs/reference/decoders/operations/benchmark.md](../reference/decoders/operations/benchmark.md)
+- Decoder corpus plan:
+  [docs/reference/decoders/operations/corpus.md](../reference/decoders/operations/corpus.md)

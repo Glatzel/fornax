@@ -2,6 +2,27 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Panasonic RW2.
 
+## Support summary
+
+Tier 2 supports conventional 2x2 Bayer single-shot RW2 files:
+
+| Raw version | Compression | State |
+| ---: | --- | --- |
+| `4`, `5`, `6` | `34316` | Supported |
+| `7` | any | Typed unsupported pending a real single-shot fixture |
+| `8` | absent or `34316` | Supported |
+| other | any | Typed unsupported |
+
+Supported payloads include V4/V5/V6/V8, V8 identity/nonlinear tables, stamped
+12-bit unpacked and packed-control layouts, multi-strip placement, and
+12/14/16-bit corpus fixtures. Legacy `.RAW`, versions 1-3, multi-exposure,
+pixel-shift/composite layouts, unknown CFA, and non-2x2 pipeline input are
+unsupported.
+
+Acceptance requires synthetic coverage for every codec and malformed stream,
+Rawler parity for golden fixtures, DNG round-trip of active area/crop/CFA/
+levels/neutral/orientation, and a reviewed `**/*.[rR][wW]2` corpus selection.
+
 ## Behavior References
 
 ### Rawler 0.8.0
@@ -61,6 +82,29 @@ treated as the full active area.
 White-balance tags in the four fixtures come from `0x0024`-`0x0026`. The
 camera IFD is not required for basic decoding; malformed optional CameraIFDs
 are ignored. Valid CameraIFDs are checked for the `0x1001` multi-shot fallback.
+
+## Decoder mapping and safety
+
+The selected IFD is the first primary IFD with `RawDataOffset` (`0x0118`);
+otherwise the first with `StripOffsets` (`0x0111`). Raw-format version is
+`0x002d` and Panasonic compression is `0x000b`. Version 8 accepts absent or
+`34316` compression; other versions require `34316`. A 12-bit strip payload is
+classified as unpacked or packed-control from its size; packed-control groups
+contain ten pixels and one control byte.
+
+Border tags `0x0004`-`0x0007` are top/left/bottom/right with exclusive
+right/bottom. CFA `0x0009` values 1-4 map to RGGB/GRBG/GBRG/BGGR before shifting
+to active-area origin. Crop tags `0x002f`-`0x0032` use exclusive coordinates;
+all-zero placeholders mean the full active area. Black level comes from
+`0x001c`-`0x001e` plus the V4 offset 15. White level is the largest nonzero of
+`0x000e`-`0x0010`, otherwise bit-depth full scale. White balance comes from
+`0x0011`/`0x0012` or `0x0024`-`0x0026`, green-normalized. Orientation and
+serial/lens values come from TIFF/Exif tags.
+
+Dimensions, sample counts, offsets, tables, output ranges, V8 placement, and
+full image coverage are checked before allocation or accepted output. Codec
+tests sweep truncation prefixes and byte mutations. DNG write/read tests cover
+samples, active area, crop, CFA, levels, neutral, and orientation.
 
 ## Unsupported Evidence
 

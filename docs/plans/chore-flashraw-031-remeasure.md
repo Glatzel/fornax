@@ -8,7 +8,9 @@
 
 **Tech Stack:** Rust workspace, Cargo/Criterion benchmarks, Pixi environments, decoder-tracker corpus tooling, Git LFS, Markdown documentation.
 
-**Spec:** User request in this session, plus `AGENTS.md`, `.agents/skills/decoder-corpus-tracker/SKILL.md`, and `docs/decoder/benchmark.md`.
+**Spec:** User request in this session, plus `AGENTS.md`,
+`.agents/skills/decoder-corpus-tracker/SKILL.md`, and
+`docs/reference/decoders/operations/benchmark.md`.
 
 ## Global Constraints
 

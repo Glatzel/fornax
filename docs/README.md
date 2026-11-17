@@ -7,10 +7,8 @@ reference, and active planning documentation.
 
 - Read [architecture/overview.md](architecture/overview.md) first for crate
   boundaries and the end-to-end image pipeline.
-- Use `decoder/` for decoder dispatch, format support, benchmarks, and corpus
-  regression operations.
-- Use `reference/` for pinned sources, algorithm behavior, codec ownership,
-  performance evidence, and format-specific implementation notes.
+- Use `reference/` as the canonical home for decoder operations, format support,
+  pinned sources, algorithm/codec behavior, and implementation notes.
 - Use `plans/` for work that is still active.
 - Use [archive/README.md](archive/README.md) for completed plans and historical
   evidence. Archived documents are not current task instructions.
@@ -21,8 +19,7 @@ reference, and active planning documentation.
 | Folder | Contents |
 | --- | --- |
 | `architecture/` | Current architecture and data-flow guidance. |
-| `decoder/` | Decoder operations plus format-level implementation and support plans. |
-| `reference/` | Durable source research grouped by algorithm, codec, and decoder. |
+| `reference/` | Canonical decoder operations and source research grouped by topic. |
 | `plans/` | Active implementation plans for open work. |
 | `archive/` | Completed plans, superseded reports, and reproducibility evidence. |
 
@@ -33,21 +30,12 @@ reference, and active planning documentation.
 | [Decoder Architecture](architecture/decoder.md) | Decoder dispatch, shared interfaces, and per-format data flow. |
 | [Architecture Overview](architecture/overview.md) | Crate boundaries, stage contracts, and end-to-end image processing. |
 
-## Decoder guides
+## Decoder operations
 
 | Document | Summary |
 | --- | --- |
-| [Decoder Benchmarks](decoder/benchmark.md) | Benchmark targets, environment controls, and comparison criteria. |
-| [RAW Corpus and Regression Tracking](decoder/corpus.md) | Pinned corpus, golden regression workflow, schemas, and manual CI operation. |
-| [Canon CR3 Format](decoder/formats/canon-cr3.md) | Canon CR3/CRM container, compression, metadata, and completion requirements. |
-| [DNG Format](decoder/formats/dng.md) | DNG container, compression, metadata, and completion requirements. |
-| [Fujifilm RAF Format](decoder/formats/fuji-raf.md) | RAF container, compression, metadata, and completion requirements. |
-| [Hasselblad 3FR Format](decoder/formats/hasselblad-3fr.md) | 3FR container, compression, metadata, and completion requirements. |
-| [Nikon NEF Format](decoder/formats/nikon-nef.md) | NEF container, compression, metadata, and completion requirements. |
-| [Other RAW Formats Policy](decoder/formats/other-formats.md) | Unsupported-format boundary and requirements for adding a format. |
-| [Panasonic RW2 Format](decoder/formats/panasonic-rw2.md) | RW2 container, compression, metadata, and completion requirements. |
-| [Phase One IIQ Format](decoder/formats/phase-one-iiq.md) | IIQ container, compression, metadata, and completion requirements. |
-| [Sony ARW Format](decoder/formats/sony-arw.md) | ARW/NRW container, compression, metadata, and completion requirements. |
+| [Decoder Benchmarks](reference/decoders/operations/benchmark.md) | Benchmark targets, environment controls, and comparison criteria. |
+| [RAW Corpus and Regression Tracking](reference/decoders/operations/corpus.md) | Pinned corpus, golden regression workflow, schemas, and manual CI operation. |
 
 ## Active plans
 
@@ -81,6 +69,7 @@ reference, and active planning documentation.
 | [FlashRaw versus Fornax raw decode](reference/decoders/perf/flashraw-vs-fornax.md) | Canonical golden-corpus coverage, per-path timings, and ranked decoder improvements. |
 | [Linux large-page output allocation](reference/decoders/design/large-page-allocation.md) | Owned-output allocation policy, invariants, and rejected alternatives. |
 | [Canon CRX reference notes](reference/decoders/reference/canon-crx.md) | Canon CRX sources, behavior, and implementation boundaries. |
+| [DNG decoder reference notes](reference/decoders/reference/dng-decoder.md) | Canonical DNG storage, metadata, CFA, and acceptance behavior. |
 | [DNG compression references](reference/decoders/reference/dng-compression.md) | DNG compression sources and behavior. |
 | [DNG and lossless JPEG-92 reference notes](reference/decoders/reference/dng-lossless-jpeg.md) | DNG and lossless JPEG-92 sources and implementation boundaries. |
 | [DNG opcode reference notes](reference/decoders/reference/dng-opcodes.md) | DNG opcode sources and behavior. |
@@ -89,6 +78,7 @@ reference, and active planning documentation.
 | [Fujifilm RAF references](reference/decoders/reference/fuji-raf.md) | Pinned RAF sources and implementation boundaries. |
 | [Hasselblad 3FR references](reference/decoders/reference/hasselblad-3fr.md) | Pinned 3FR sources and implementation boundaries. |
 | [Nikon NEF references](reference/decoders/reference/nikon-nef.md) | Pinned NEF sources and implementation boundaries. |
+| [Other RAW format policy](reference/decoders/reference/other-formats.md) | Unsupported-format boundary and requirements for adding a format. |
 | [Panasonic RW2 references](reference/decoders/reference/panasonic-rw2.md) | Pinned RW2 sources and implementation boundaries. |
 | [Phase One IIQ references](reference/decoders/reference/phase-one-iiq.md) | Pinned IIQ sources and implementation boundaries. |
 | [Restart-free single-scan parallelism design](reference/decoders/design/restart-free-single-scan-parallelism-design.md) | Written no-go gate for restart-free LJPEG parallelism. |

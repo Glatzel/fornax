@@ -1,214 +1,69 @@
-# Agent instructions — fornax
+# Fornax agent rules
 
-## Overview
+User request wins, then the closest `AGENTS.md`, then this file. Fornax is a
+Rust RAW pipeline; keep decode, preprocess, demosaic, and postprocess separate.
+Support conventional 2x2 RGB Bayer only; do not claim X-Trans or other CFAs.
 
-Fornax is a Rust workspace for decoding RAW images, normalizing Bayer mosaics,
-and reconstructing RGB output through separate pipeline stages. When
-instructions conflict, the user's explicit request wins. Otherwise, the
-`AGENTS.md` closest to the files being changed wins over this root file.
+- Core layout: `fornax-raw-core` owns shared image/stage contracts;
+  `fornax-tiff` generic TIFF; `fornax-codec` format-neutral codecs;
+  `fornax-dng` DNG; `fornax-raw-*` private vendor parsing/codecs;
+  `fornax-decoder` facade; `fornax-raw-pipeline` processing; `fornax-raw`
+  public facade. Vendor stream behavior never moves behind a codec feature.
+- `fornax-decoder::Decoder` is the default pure-Rust facade. DNG is
+  unconditional; seven vendor features are enabled by default. Read
+  `docs/architecture/overview.md` before changing crate boundaries or codec
+  contracts.
+- LibRaw, darktable, and RawTherapee are development-only references for
+  `compare-demosaic`, never production decoder dependencies.
 
-## Project map
+## Work
 
-Read [docs/architecture/overview.md](docs/architecture/overview.md) for crate roles, interfaces,
-and pipeline data flow. These invariants always apply:
+- `TODO.md` is human-owned. Read it only before selecting a bracketed ID; never
+  add items—propose them in the report/PR. Remove a selected item only when its
+  task is complete.
+- Start from current `origin/main`, one request per branch/worktree/PR:
+  `task/<id>-<slug>`, `fix/<issue>-<slug>`, or `chore/<slug>`. Use a short
+  kebab-case slug. Keep follow-up changes on the same PR.
+- Read `docs/agent-workflow.md` before branching, writing a plan, changing
+  validation, or preparing a PR. Nontrivial work needs a `docs/plans/` note.
+- Implement only the request and its required tests/docs. Inspect the diff;
+  report failed or skipped checks exactly.
 
-- Keep decoding, preprocessing, and demosaicing as separate stages.
-- `fornax-raw-core` owns shared image wrappers, process metadata, errors, and stage
-  traits. It does not own TIFF/DNG parsing, decoded directory metadata, DNG
-  writing, or a decoder implementation.
-- `fornax-tiff` owns generic TIFF tags (`Tag` and `TiffTag`), typed TIFF field
-  constants, `Directory` values, parsing, and the reusable directory writer.
-- `fornax-codec` owns format-neutral requests and sample buffers, chunk
-  assembly, predictors, byte order and error types, Huffman support, generic
-  codecs, and supported codec encoding. `ICodecDecode` is the decode contract.
-- Vendor format crates own their private codec enums, parameters, and stream
-  implementations: `fornax-raw-sony`, `fornax-raw-canon`,
-  `fornax-raw-nikon`, `fornax-raw-fujifilm`, `fornax-raw-hasselblad`,
-  `fornax-raw-panasonic`, and `fornax-raw-phase-one`. Do not put vendor stream
-  behavior behind generic `fornax-codec` feature flags.
-- `fornax-dng` owns DNG-only tags (`DngTag`), a `Directory` keyed by `Tag`,
-  DNG-specific transforms, and DNG writing.
-- `fornax-decoder::Decoder` is the default pure-Rust decoder facade. DNG is
-  unconditional; the `sony`, `canon`, `nikon`, `fujifilm`, `hasselblad`,
-  `panasonic`, and `phase-one` features gate optional vendor crates and are all
-  enabled by default. The `fornax-raw` facade re-exports the full-feature
-  decoder as `fornax_raw::decoder::Decoder` and the DNG format layer as
-  `fornax_raw::dng`; it does not duplicate the decoder feature surface.
-- `fornax-decoder-rawler` is an alternate Rawler-backed decoder for supported
-  conventional 2x2 RGB Bayer files. `fornax-decoder-dnc` converts with Adobe
-  DNG Converter before decoding with Rawler; its facade export is limited to
-  Windows and macOS and it also requires that external converter.
-- Decoder implementations return a decoder value from `IDecoder::decode`; the
-  returned value exposes `raw_mosaic`, `cropped_mosaic`, `dng_metadata`, and
-  `process_metadata`. `dng_metadata` returns a `fornax_tiff::Directory`;
-  decoder-specific parsing state must stay behind that interface.
-- `fornax-raw-pipeline` owns black/white normalization, demosaic protocols and
-  algorithms, RGB reconstruction, and postprocessing.
-- `fornax-decoder` owns decoder benchmarks. Demosaic and preprocessor
-  benchmarks live in `fornax-raw-pipeline`.
-- Decoder benchmark matrix items compile with `--no-default-features` and only
-  the feature required by their golden input. DNG needs no format feature.
-- `decoder-tracker` owns the manual raw.pixls.us decoder regression tracker,
-  pointer-only corpus manifest, sharded CI workflow, and text baseline.
-- LibRaw, darktable, and RawTherapee remain development-only references for
-  `compare-demosaic`; do not add them to production decoder dependencies.
-- The active demosaic target is conventional 2x2 RGB Bayer input. Do not claim
-  support for X-Trans, four-color, monochrome, or other CFA layouts.
-
-## Choosing work
-
-Read `TODO.md`, the human-owned backlog and completion record, before selecting
-a bracketed task ID. Start new requests from the current `origin/main`; keep
-requested changes to an open pull request on that pull request's branch and
-worktree. One new request maps to one branch, one worktree, and one pull
-request.
-
-| Request                                  | Branch                       | Worktree                           | Pull request requirements                                                                                                        |
-| ---------------------------------------- | ---------------------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `TODO.md` item selected by bracketed ID  | `task/<lowercase-id>-<slug>` | `.worktrees/<lowercase-id>-<slug>` | Include the task ID and remove the item from `TODO.md` in the same pull request. Keep the item if work is incomplete or blocked. |
-| GitHub issue number supplied by the user | `fix/<number>-<slug>`        | `.worktrees/fix-<number>-<slug>`   | Read only that issue with `gh issue view <number>`, add regression coverage, and include `Fixes #<number>` in the body.          |
-| Explicit request not in `TODO.md`        | `chore/<slug>`               | `.worktrees/chore-<slug>`          | Leave `TODO.md` untouched unless the request names an item.                                                                      |
-
-Use a short lowercase kebab-case slug.
-Modify `TODO.md` only for a completed selected task, or when the request names an item.
-
-## Workflow
-
-Fetch and create the worktree from `origin/main`:
-
-```bash
-git fetch origin
-git worktree add -b "<branch>" ".worktrees/<worktree>" origin/main
-```
-
-Implement only the requested change and its required tests or documentation.
-Run validation, then inspect the diff before committing:
-
-```bash
-git add <paths>
-git commit -m "<type>: <summary>"
-git push -u origin HEAD
-gh pr create --base main --title "<type>: <summary>" --body "<body>"
-```
-
-Open one semantic pull request and report its URL. Put the task ID, issue
-reference, or maintenance summary in the body as applicable.
-
-## Plans
-
-Write a plan only for non-trivial work: several files or crates, a design
-decision, or more than a short session. Small items go straight to
-implementation.
-
-Store plans under `docs/plans/` using the branch ID and slug:
-
-- Task: `docs/plans/<lowercase-id>-<slug>.md`
-- Issue: `docs/plans/fix-<number>-<slug>.md`
-- Chore: `docs/plans/chore-<slug>.md`
-
-Commit the plan in the same pull request. Update its progress and record
-decisions while the work proceeds; stop treating it as authoritative once the
-pull request merges.
-
-Every plan must contain Goal, Scope (in and out), Task checklist, Files
-expected to change, Validation, and Decisions and notes. Derive the detailed
-checklist from the selected `TODO.md` item and the code without expanding
-`TODO.md`. Make the plan self-contained: a reader with only the working tree
-and that file must be able to carry out the work.
-
-## Validation
-
-Reuse data already populated under the main checkout's `external/` directory.
-In linked worktrees, hard-link those files into the worktree with `rsync
---link-dest` (excluding `.git`) instead of cloning or downloading submodules
-again. This avoids consuming LFS bandwidth and duplicating the RAW corpus.
-Treat the hard-linked fixture and RAW files as read-only: an in-place edit is
-visible from every linked worktree sharing that inode.
-
-For Rust changes, run workspace validation from the repository root:
+## Validate and hand off
 
 ```bash
 scripts/agent-validation.sh
-```
-
-The script initializes `external/raw-images` with `scripts/setup.sh` when its
-test fixture is missing, initializes the pointer-only raw.pixls.us submodule
-when needed, verifies the corpus manifest, then runs workspace tests, nightly
-formatting, documentation, clippy, decoder benchmark compilation, and diff
-checks. It also runs `compare-demosaic` package checks when that crate changed.
-Its baseline and generated README data have separate rules in
-[crates/compare-demosaic/AGENTS.md](crates/compare-demosaic/AGENTS.md).
-
-Pass `--fix` to apply nightly rustfmt and machine-applicable clippy fixes before
-running the normal checks:
-
-```bash
 scripts/agent-validation.sh --fix
-```
-
-For documentation-only changes, run:
-
-```bash
 scripts/agent-validation.sh --docs-only
 ```
 
-Markdown lint runs in CI and must not be run locally by agents.
+- Use `--docs-only` for docs/context-only changes. Never run Markdown lint
+  locally. Also run task-specific checks and record commands and outcomes.
+- For noisy probes, use `scripts/agent-run.sh -- <command>`; it preserves the
+  status and writes full output under `target/agent-logs/`.
+- In a linked worktree, hard-link the main checkout's `external/` data with
+  `rsync --link-dest`; treat those files as read-only.
+- Commit, push, and open one semantic PR using a title such as
+  `docs: rewrite agent guidance`. Only the user merges or abandons a PR; do not
+  poll, watch, or close it or a linked issue.
 
-Also run task-specific tests, benchmarks, or examples. Record commands and
-outcomes in the pull request. Report failures and skipped checks explicitly;
-never describe an unrun check as passing.
+## Hard boundaries
 
-## Pull request handoff
-
-Titles must satisfy `.github/semantic.yml`; for example, use
-`docs: rewrite agent guidance`. Put requested changes on the same branch and
-pull request. Do not watch, poll, merge, or manually close a pull request or
-linked issue. Only the user merges or abandons a pull request.
-
-## Boundaries
-
-- Do not commit binary files to the book; CI enforces this through
+- Commit no binary files. In `book/`, CI enforces this with
   `book/scripts/check_assets.py`.
-- Project skills live in `.agents/skills/`. Add or improve them by pull
-  request. Skills installed by pixi are managed by pixi; never edit them by
-  hand.
-- Do not add items to `TODO.md`; propose them in the report or pull request
-  description.
-- Keep the repository root clean: the only agent-related root files are
-  `AGENTS.md` and `TODO.md`. Do not add tool-specific instruction files for a
-  particular coding agent.
-
-## Reference knowledge
-
-- Preserve reusable algorithm and implementation research in
-  `docs/reference/<category>/<topic>.md` and commit it with the code it
-  informs. Do not leave important findings only in chat, scratch files, or
-  pull request comments.
-- Record authoritative source links with pinned versions or commits, the
-  behavior or decision they support, known implementation differences, and
-  license constraints that affect reuse.
-- Link implementation modules or generated documentation to the relevant
-  reference note when the source material clarifies invariants that are easy
-  to regress.
-
-## Where to look next
-
-- Architecture and pipeline boundaries: [docs/architecture/overview.md](docs/architecture/overview.md)
-- Decoder ownership and validation: [docs/architecture/decoder.md](docs/architecture/decoder.md)
-- Decoder benchmarks and corpus plans: [docs/decoder/benchmark.md](docs/decoder/benchmark.md),
-  [docs/decoder/corpus.md](docs/decoder/corpus.md)
-- Manual corpus tracker: `cargo run -p decoder-tracker -- --help`; full runs are
-  manual-only and RAW payloads are never committed or uploaded.
-- When dispatching the `Decoder corpus` workflow, leave
-  `run_duckdb_tests` disabled at its default unless explicitly requested, and
-  set `filter` to the requested path glob.
-- Per-work plans: [docs/plans/](docs/plans/)
-- Algorithm and reference notes: [docs/reference/](docs/reference)
-- Comparison-crate rules:
-  [crates/compare-demosaic/AGENTS.md](crates/compare-demosaic/AGENTS.md)
-- Human-facing book: [book/](book/README.md); agents edit it only when asked
-  and follow [book/AGENTS.md](book/AGENTS.md).
-- Project procedures: [.agents/skills/](.agents/skills/)
-- Use XERJ only to locate unfamiliar external reference code; verify hits at
-  `file:line`. Never substitute it for reading `TODO.md`, `AGENTS.md`, generated
+- Project procedures live in `.agents/skills/`; change them by PR. Do not add
+  `CLAUDE.md` or other tool-specific root instruction files. The only agent
+  files at root are `AGENTS.md` and `TODO.md`. Never hand-edit pixi-managed
+  skills.
+- Preserve reusable algorithm/source research under `docs/reference/`, with
+  pinned provenance and licence constraints. Do not leave findings only in
+  chat or PR comments.
+- Use XERJ only for unfamiliar external reference code. Verify every hit at
+  `file:line`; it never replaces reading `TODO.md`, `AGENTS.md`, generated
   README tables, Cargo output, or diffs.
+
+For task procedures, read `docs/agent-workflow.md`; for decoder benchmarks and
+corpus work, read `docs/architecture/decoder.md`,
+`docs/reference/decoders/operations/benchmark.md`, and
+`docs/reference/decoders/operations/corpus.md`; for the human-facing book, read
+`book/AGENTS.md` only when asked to edit it.

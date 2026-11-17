@@ -165,7 +165,7 @@ per-vendor-format `passed/total` table between the README markers;
 vendor-format pairs without baseline rows report `0/total`. The complete
 schema, stage semantics, glob/sharding rules, workflow, and update procedure
 are documented in
-[docs/decoder/corpus.md](../../docs/decoder/corpus.md).
+[docs/reference/decoders/operations/corpus.md](../../docs/reference/decoders/operations/corpus.md).
 
 `golden/selected-manifest.csv` and `golden/decode-hashes.csv` form an 18-file
 tier-0/1 lossless deterministic decode-output gate shared by decoder benchmarks.

@@ -2,6 +2,13 @@
 
 This reference note records pinned sources, decoder behavior, and implementation boundaries for Phase One/Leaf IIQ.
 
+## Support summary
+
+Tier 2 supports Phase One/Leaf `.IIQ` modes 0, 3, 5, 6, and 8. Legacy
+Raw1/Raw2 modes 1/2, Leaf `.MOS`, Phase One `.TIF`, preview extraction, unknown
+camera profiles, unsupported correction-table variants, and non-2x2 pipeline
+input are typed unsupported.
+
 ## Sources
 
 - Rawler `0.8.0`, LGPL-2.1: `src/decoders/iiq.rs`,
@@ -23,6 +30,24 @@ This reference note records pinned sources, decoder behavior, and implementation
   offsets are relative to the private header base.
 - Maker dimension tags describe the stored raster; margin and image-width tags
   define the active image.
+
+## Implemented modes
+
+| Mode | Meaning | State |
+| --- | --- | --- |
+| `0` | Uncompressed 14-bit little-endian words scaled to U16 | Implemented |
+| `3` | IIQ-L 14-bit row-difference coding | Implemented |
+| `5` | IIQ-S nonlinear low-value coding | Implemented |
+| `6` | IIQ-Sv2 eight-pixel cluster coding | Implemented |
+| `8` | IIQ-L16 16-bit row-difference coding | Implemented |
+| `1`, `2` | Legacy Raw1/Raw2 | Typed unsupported |
+
+Compressed modes use a per-row offset table relative to the raw payload.
+Fornax sorts offsets by file position, rejects duplicate or empty ranges, and
+gives one validated chunk per output row. IIQ-L/L16 uses alternating even/odd
+predictors with per-eight-pixel length selectors. IIQ-S applies
+`round(i*i / 3.969)` below 256 and shifts those values from 14 to 16 bits.
+IIQ-Sv2 reconstructs eight-pixel clusters with bounded recovery.
 
 ## Sample behavior
 
@@ -50,6 +75,10 @@ This reference note records pinned sources, decoder behavior, and implementation
   the 2x2 color plane.
 - The Rawler spline used for quadrant curves reduces to piecewise linear
   interpolation in the target behavior.
+- Supported correction tags are `0x0400`, `0x0401`, `0x040b`, `0x0410`,
+  `0x0416`, `0x0419`, `0x041a`, `0x041e`, `0x041f`, and `0x0431`. Unrelated
+  correction tags in valid files are ignored; malformed supported payloads are
+  typed input errors.
 - The P65+ corpus uses a short quadrant-linearization payload that is not the
   1028-byte table consumed by the supported correction path; Fornax leaves
   this variant typed unsupported.
@@ -63,6 +92,11 @@ This reference note records pinned sources, decoder behavior, and implementation
 - Canonical DNG metadata carries source Make/Model, orientation, active area,
   default crop, and explicit 2x2 CFA profile data.
 - No camera color matrix is synthesized from the LGPL camera database.
+
+Acceptance requires synthetic or corpus coverage for modes 0/3/5/6/8, exact
+Rawler parity after correction, typed errors for legacy/unknown profiles,
+corrected-sample and 2x2-CFA DNG round-trip, default facade routing, reviewed
+baseline, and golden hashes.
 
 ## Implementation boundary
 
