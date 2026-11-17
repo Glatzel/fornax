@@ -24,7 +24,7 @@ the golden set and are not measured.
 - Warm page cache on the AMD Ryzen 7 5800H WSL2 host: 8 cores/16 threads,
   16 visible CPUs, 12 GiB RAM, Rust 1.100.0, optimized bench profile.
 
-The 18-row metadata matrix is
+The 21-row metadata matrix is
 [golden-benchmark-matrix.csv](data/golden-benchmark-matrix.csv). Per-batch
 timings, spread, faults, sample types, hashes, and throughput are in
 [golden-flashraw-vs-fornax-2026-11-17.csv](data/golden-flashraw-vs-fornax-2026-11-17.csv).
@@ -32,7 +32,7 @@ The 2026-11-16 file remains as the previous measurement.
 
 ## Correctness
 
-All 18 golden raw mosaics match the accepted Fornax baseline for both decoders.
+All 21 golden raw mosaics match the accepted Fornax baseline for both decoders.
 This includes 16-bit and floating-point DNG, Sony uncompressed and lossless
 JPEG, Canon CRX and DNG, Nikon Huffman and packed words, and the Sigma fp
 8/10/12-bit samples.
@@ -61,10 +61,13 @@ is the Fornax one-thread batch spread.
 | Canon PowerShot G1 X | DNG uncompressed 14-bit | 88.90 | 10.52 | 8.45x | 110.23 | 6.60 | 16.71x | 1.5% |
 | Nikon Z5 II | NEF Huffman | 137.75 | 32.74 | 4.21x | 135.16 | 11.26 | 12.00x | 2.7% |
 | Nikon D6 | NEF packed 14-bit | 80.01 | 16.20 | 4.94x | 79.02 | 7.02 | 11.26x | 3.4% |
+| Nikon D850 | NEF uncompressed 14-bit | 25.76 | 25.27 | 1.02x | 12.07 | 14.39 | 0.84x | 3.7% |
 | Sigma fp | DNG uncompressed 12-bit | 1.01 | 1.28 | 0.79x | 0.99 | 0.87 | 1.14x | 6.3% |
 | Sigma fp | DNG uncompressed 10-bit | 1.02 | 1.17 | 0.87x | 1.06 | 0.86 | 1.24x | 6.9% |
 | Sigma fp | DNG uncompressed 8-bit | 2.27 | 0.91 | 2.51x | 2.29 | 0.76 | 2.99x | 5.4% |
-| Sony ILCE-9M3 | ARW uncompressed 14-bit | 6.27 | 6.32 | 0.99x | 4.86 | 4.10 | 1.19x | 16.7% |
+| Sony ILCE-1 | ARW uncompressed 14-bit | 28.53 | 28.55 | 1.00x | 32.78 | 15.76 | 2.08x | 4.9% |
+| Sony ILCE-7RM5 | ARW uncompressed 14-bit | 34.16 | 34.34 | 0.99x | 37.18 | 21.26 | 1.75x | 2.7% |
+| Sony ILCE-9M3 | ARW uncompressed 14-bit | 6.27 | 5.95 | 1.05x | 5.21 | 4.34 | 1.20x | 4.7% |
 | Sony ILCE-9M3 | ARW LJPEG 14-bit | 82.85 | 59.02 | 1.40x | 17.32 | 9.78 | 1.77x | 3.2% |
 
 The 5D3 uncompressed rows show Fornax faster than FlashRaw at 16 threads, but
