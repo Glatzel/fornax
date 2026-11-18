@@ -1,4 +1,4 @@
-use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage};
+use fornax_raw_core::{BayerChannel, BayerPattern, Primitive, RgbImage};
 
 use crate::LazyDemosaic;
 

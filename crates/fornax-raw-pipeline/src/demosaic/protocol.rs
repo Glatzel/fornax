@@ -1,6 +1,5 @@
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage};
-use num_traits::cast;
 use rayon::prelude::*;
 
 /// Exposes demosaiced RGB rows without requiring a full output allocation.
@@ -82,36 +81,6 @@ where
         });
 }
 
-pub(super) fn linear_f32<T>(image: &MonoImage<T>) -> Result<Vec<f32>, DemosaicError>
-where
-    T: Primitive,
-{
-    image
-        .as_raw()
-        .iter()
-        .enumerate()
-        .map(|(index, sample)| {
-            cast::<T, f32>(*sample).ok_or_else(|| {
-                DemosaicError::InvalidInput(
-                    format!("demosaic sample {index} does not fit the f32 kernel").into(),
-                )
-            })
-        })
-        .collect()
-}
-
-pub(super) fn dense_from_f32_workspace<T>(width: u32, height: u32, values: Vec<f32>) -> RgbImage<T>
-where
-    T: Primitive,
-{
-    let values = values
-        .into_iter()
-        .map(|value| cast::<f32, T>(value).expect("f32 fits every supported Primitive"))
-        .collect();
-    RgbImage::from_raw(width, height, values)
-        .expect("demosaic output dimensions match the source image")
-}
-
 /// Builds a lazy demosaic result from a normalized Bayer mosaic.
 ///
 /// # Errors
@@ -138,32 +107,4 @@ pub trait IDemosaic<T: Primitive + Send + Sync> {
         bayer: &'a MonoImage<T>,
         pattern: BayerPattern,
     ) -> Result<impl LazyDemosaic<T> + 'a, DemosaicError>;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn linear_f32_preserves_signed_hdr_values() {
-        let input = vec![-2.0_f64, -0.25, 0.0, 1.0, 4.0, 1.0e6];
-        let image = MonoImage::from_raw(6, 1, input.clone()).unwrap();
-        let output = linear_f32(&image).unwrap();
-        assert_eq!(output.len(), input.len());
-        for (actual, expected) in output.iter().zip(input) {
-            assert!((f64::from(*actual) - expected).abs() <= expected.abs().max(1.0) * 1.0e-7);
-        }
-    }
-
-    #[test]
-    fn dense_f32_workspace_preserves_signed_hdr_values() {
-        let values = vec![
-            -2.0_f32, 0.25, 4.0, 1.0e6, 1.0, -0.5, 2.0, 8.0, 16.0, 32.0, 64.0, 128.0,
-        ];
-        let image = dense_from_f32_workspace::<f64>(4, 1, values.clone());
-        assert_eq!(
-            image.into_raw(),
-            values.into_iter().map(f64::from).collect::<Vec<_>>()
-        );
-    }
 }

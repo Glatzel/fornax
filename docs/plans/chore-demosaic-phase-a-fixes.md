@@ -256,3 +256,9 @@ flooring and quantization in its measured-sample reconstruction. That scoring
 model is not a removable numerical detail, and AHD ranked below the retained
 directional methods. The public variant, implementation, tests, both comparison
 cases, adapters, snapshots, and build/setup dependencies are removed.
+
+### Shared transport cleanup
+
+With AHD removed, no retained kernel needs the temporary f32-only input or
+output adapters introduced during Phase B. The dead helpers and their focused
+tests are removed; dense output construction now stays generic over `T`.
