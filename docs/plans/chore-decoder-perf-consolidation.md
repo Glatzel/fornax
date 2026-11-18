@@ -42,31 +42,32 @@ Out of scope:
 
 ### Task 1: Clean the active performance report
 
-- [ ] Rewrite the report around current state and fold final Nikon numbers into
+- [x] Rewrite the report around current state and fold final Nikon numbers into
   the main Results table.
-- [ ] Remove dated sections, base/new tables, per-run faults, and RSS tables;
+- [x] Remove dated sections, base/new tables, per-run faults, and RSS tables;
   retain the one durable FlashRaw 16T Huffman RSS sentence.
-- [ ] Replace improvement priorities with ranked open work only.
-- [ ] Add durable Notes for future work, including Nikon strip/parity
+- [x] Replace improvement priorities with ranked open work only.
+- [x] Add durable Notes for future work, including Nikon strip/parity
   parallelism, fused-table geometry, mode-10 threshold, and FlashRaw wins.
-- [ ] Correct stale manifest/matrix counts and remove the D850 uncompressed
+- [x] Correct stale manifest/matrix counts and remove the D850 uncompressed
   narrative; leave dated CSVs unchanged.
-- [ ] Run the documentation link checker and commit docs plus this plan.
+- [x] Run the documentation link checker and commit docs plus this plan.
 
 ### Task 2: Nikon
 
-- [ ] Add failing grouped-kernel oracle tests for widths 1/5/8/9/17, one row,
+- [x] Add failing grouped-kernel oracle tests for widths 1/5/8/9/17, one row,
   padded and non-byte-aligned rows, partial strips, and truncation.
-- [ ] Implement safe grouped 12/14-bit little-endian extraction and preserve
+- [x] Implement safe grouped 12/14-bit little-endian extraction and preserve
   strict truncation errors; measure the mode-10 kernel alone.
-- [ ] Add failing Huffman reader/path tests over both trees, identity and
+- [x] Add failing Huffman reader/path tests over both trees, identity and
   non-identity curves, exact/early/mid-code ends, long codes, large
   differences, truncation, and bit flips.
-- [ ] Measure the checked word reader, identity fast path, and compact curve
-  lookup separately; retain only changes above control drift.
-- [ ] Keep the 13-bit/32 KiB fused table and the shared 4,194,304-sample
+- [x] Measure the checked word reader and identity fast path separately; both
+  regressed or were neutral and were dropped. The compact non-identity lookup
+  is not supported by the production identity-curve profile.
+- [x] Keep the 13-bit/32 KiB fused table and the shared 4,194,304-sample
   row-parallel threshold unless profile evidence says otherwise.
-- [ ] Run Nikon/codec/decoder tests and all Nikon golden hashes; commit accepted
+- [x] Run Nikon/codec/decoder tests and all Nikon golden hashes; commit accepted
   Nikon changes as commit 2.
 
 ### Task 3: Canon CRX
