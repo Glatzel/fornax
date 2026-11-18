@@ -180,7 +180,10 @@ fn vng_and_vng4_f64_are_scale_homogeneous_and_preserve_range() {
         for factor in [1.0e-3, 1.0, 1.0e3, 1.0e6] {
             let scaled = mosaic.iter().map(|value| *value * factor).collect();
             let actual = run(algorithm, scaled).unwrap();
-            let expected = baseline.iter().map(|value| *value * factor).collect::<Vec<_>>();
+            let expected = baseline
+                .iter()
+                .map(|value| *value * factor)
+                .collect::<Vec<_>>();
             assert_close(
                 &actual,
                 &expected,
@@ -199,6 +202,33 @@ fn vng_and_vng4_f64_are_scale_homogeneous_and_preserve_range() {
                 &format!("{algorithm:?} f64 constant {value}"),
             );
         }
+    }
+}
+
+#[test]
+fn lmmse_f64_is_scale_homogeneous_and_preserves_range() {
+    let mosaic = seeded_mosaic::<f64>(0.05, 1.5);
+    let baseline = run(Demosaic::lmmse(), mosaic.clone()).unwrap();
+    for factor in [1.0e-3, 1.0, 1.0e3, 1.0e6] {
+        let scaled = mosaic.iter().map(|value| *value * factor).collect();
+        let actual = run(Demosaic::lmmse(), scaled).unwrap();
+        let expected = baseline
+            .iter()
+            .map(|value| *value * factor)
+            .collect::<Vec<_>>();
+        assert_close(&actual, &expected, &format!("LMMSE f64 scale {factor:e}"));
+    }
+    for value in [-0.25, 2.0, 1.0e4] {
+        let output = run(
+            Demosaic::lmmse(),
+            vec![sample::<f64>(value); (WIDTH * HEIGHT) as usize],
+        )
+        .unwrap();
+        assert_close(
+            &output,
+            &vec![value; output.len()],
+            &format!("LMMSE f64 constant {value}"),
+        );
     }
 }
 

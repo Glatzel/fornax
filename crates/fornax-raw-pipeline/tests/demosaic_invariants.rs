@@ -91,7 +91,7 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         Invariant::Scale
             if !matches!(
                 algorithm,
-                "Linear" | "PPG" | "RCD" | "AMaZE" | "VNG" | "VNG4"
+                "Linear" | "PPG" | "RCD" | "AMaZE" | "VNG" | "VNG4" | "LMMSE"
             ) =>
         {
             Expected::Fail("fixed-range conversion, epsilon, or quantization breaks scaling")
@@ -99,23 +99,16 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         Invariant::PatternFlip if matches!(algorithm, "AAHD" | "AMaZE" | "DCB" | "RCD") => {
             Expected::Fail("direction or border decisions differ after a horizontal flip")
         }
-        Invariant::Constant if algorithm == "LMMSE" => {
-            Expected::Fail("tile halo correction is blocked by the reference and evidence gates")
-        }
         Invariant::Ramp if !matches!(algorithm, "Linear" | "VNG") => {
             Expected::NotApplicable("the algorithm does not claim exact linear-ramp recovery")
         }
-        Invariant::Finite if matches!(algorithm, "AAHD" | "DCB" | "LMMSE") => {
+        Invariant::Finite if matches!(algorithm, "AAHD" | "DCB") => {
             Expected::Fail("the explicit reference-precision adapter rejects out-of-range samples")
         }
-        Invariant::NegativePreservation
-            if matches!(algorithm, "AAHD" | "AHD" | "DCB" | "LMMSE") =>
-        {
+        Invariant::NegativePreservation if matches!(algorithm, "AAHD" | "AHD" | "DCB") => {
             Expected::Fail("fixed-range conversion or a zero floor removes negative values")
         }
-        Invariant::HdrPreservation
-            if matches!(algorithm, "AAHD" | "AHD" | "DCB" | "LMMSE") =>
-        {
+        Invariant::HdrPreservation if matches!(algorithm, "AAHD" | "AHD" | "DCB") => {
             Expected::Fail("the shared or algorithm-local conversion clamps fixed range")
         }
         _ => Expected::Pass,
@@ -657,7 +650,6 @@ fn size_sweep_never_panics_or_returns_invalid_images() {
 }
 
 #[test]
-#[ignore = "tracked Phase A blocker: the halo fix regresses darktable beyond ground-truth evidence"]
 fn lmmse_constant_field_is_preserved_across_tile_boundaries() {
     let failures = BayerPattern::ALL
         .into_iter()
