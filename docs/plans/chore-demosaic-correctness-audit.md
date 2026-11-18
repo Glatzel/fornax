@@ -37,7 +37,7 @@ Out of scope:
 ## Task checklist
 
 - [x] Phase 0: audit range assumptions, CFA assumptions, and invariance classes.
-- [ ] Phase 1: add fast seeded invariant tests and record expected failures.
+- [x] Phase 1: add fast seeded invariant tests and record expected failures.
 - [ ] Phase 2: add deterministic synthetic and optional corpus-binned ground
   truth, HDR-safe metrics, ranking, schema versioning, and README output.
 - [ ] Phase 3: make reference comparison valid-range aware, mask borders, report
@@ -48,7 +48,7 @@ Out of scope:
 ## Files expected to change
 
 - This plan, updated after each phase with its short report.
-- Phase 1: `fornax-raw-pipeline` demosaic test modules only.
+- Phase 1: `crates/fornax-raw-pipeline/tests/demosaic_invariants.rs` only.
 - Phase 2: `compare-demosaic` run/report/metrics/readme code,
   `baseline/canonical.json`, and generated README regions.
 - Phase 3: `compare-demosaic` run/report/status/readme code, baseline, and
@@ -59,8 +59,8 @@ Out of scope:
 
 - Phase 0: `scripts/agent-validation.sh --docs-only`; run the existing
   `compare-demosaic` README/schema tests and the existing fast demosaic tests.
-- Phase 1: targeted `cargo test -p fornax-raw-pipeline`, then normal workspace
-  validation for the changed crate.
+- Phase 1: targeted `cargo test -p fornax-raw-pipeline`, formatting, clippy, and
+  normal workspace validation for the changed crate.
 - Phase 2 and 3: crate tests, `compare-demosaic` schema/readme checks, a full
   baseline run where required, and repository validation.
 - Phase 4: documentation-only validation.
@@ -206,3 +206,64 @@ equivariance but fail shift invariance and negative preservation.
   passed, including strict canonical parsing and committed README checks.
 - `scripts/agent-validation.sh --docs-only`: passed `git-diff` and
   `documentation-links`.
+
+## Phase 1 invariant tests
+
+`crates/fornax-raw-pipeline/tests/demosaic_invariants.rs` contains seven
+table-driven tests over all eleven algorithms. They use a fixed seeded LCG, a
+64x64 mosaic, GBRG for the general checks, and all four Bayer patterns for
+constant fields, shift behavior, and horizontal-flip symmetry.
+
+Floating-point comparisons use relative tolerance `2e-4` plus absolute floor
+`1e-7`. This allows accumulated `f32` roundoff while retaining large failures:
+for comparison, the scale failures in the matrix are mostly caused by code
+quantization or fixed epsilons and differ by much more than this tolerance.
+
+The matrix is executable. A `Fail` entry means the test requires that failure to
+continue so a later behavior change cannot silently erase the finding. If an
+algorithm starts passing, the test fails and the matrix must be reviewed.
+
+| Algorithm | Scale | Shift | Flip | Constant | Ramp | Tiling | Finite | Negative | HDR |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| AAHD | Fail | N/A | Fail | Fail | N/A | Pass | Pass | Fail | Fail |
+| AHD | Fail | N/A | Pass | Pass | N/A | Pass | Pass | Fail | Fail |
+| AMaZE | Fail | N/A | Fail | Pass | N/A | Pass | Pass | Fail | Fail |
+| DCB | Fail | N/A | Fail | Pass | N/A | Pass | Pass | Fail | Fail |
+| DHT | Fail | N/A | Fail | Pass | N/A | Pass | Pass | Fail | Fail |
+| Linear | Pass | Pass | Pass | Pass | Pass | Pass | Pass | Pass | Pass |
+| LMMSE | Fail | N/A | Pass | Fail | N/A | Pass | Pass | Fail | Fail |
+| PPG | Pass | N/A | Pass | Pass | N/A | Pass | Pass | Fail | Pass |
+| RCD | Fail | N/A | Fail | Pass | N/A | Pass | Pass | Fail | Pass |
+| VNG | Fail | N/A | Pass | Pass | Pass | Pass | Pass | Fail | Fail |
+| VNG4 | Fail | N/A | Pass | Pass | Pass | Pass | Pass | Fail | Fail |
+
+Notable observations:
+
+- All algorithms produce finite output for negative, all-zero, `1e4`-scale, and
+  `1e6`-scale deterministic mosaics at 64x64.
+- AAHD fails whole-image constant preservation at the border. LMMSE fails it in
+  the interior as well as at tile boundaries.
+- Horizontal flip symmetry passes for AHD, LMMSE, Linear, PPG, VNG, and VNG4 at
+  the stated tolerance. AAHD, AMaZE, DCB, DHT, and RCD have direction or border
+  differences.
+- PPG and RCD preserve negative measured CFA samples but floor reconstructed
+  samples at zero, so a constant negative field becomes a mix of `-0.25` and
+  zero rather than a negative image.
+- A preliminary 32x32 run exposed an AMaZE index-out-of-bounds panic before the
+  invariant matrix could continue. The general property size was moved to 64x64
+  so that all algorithms are measured; the size-boundary panic remains a
+  separate Phase 4 finding.
+
+### Phase 1 validation
+
+- `cargo test -p fornax-raw-pipeline`: 89 unit tests, 7 invariant tests, 1
+  public-API test, and 6 doctests passed.
+- `cargo +nightly fmt -p fornax-raw-pipeline -- --check`: passed.
+- `cargo clippy -p fornax-raw-pipeline --test demosaic_invariants -- -D warnings
+  -A clippy::too_many_arguments`: passed.
+- `scripts/agent-validation.sh`: passed when run outside the sandbox. The
+  sandboxed attempt stopped at `tracker-duckdb` because Pixi could not acquire
+  its global cache lock; the unrestricted rerun passed that stage.
+- A stricter ad hoc clippy command without the legacy `too_many_arguments`
+  exception failed on eight existing AMaZE/LMMSE function signatures. The
+  repository-configured clippy stage passed.
