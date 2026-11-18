@@ -292,6 +292,8 @@ mathematical direction or scoring models depended on bounded code values,
 integer quantization, or gamma-domain decisions rather than a removable output
 clamp. Their source notes remain under `docs/reference/algorithms/` as
 provenance for possible future formulations.
+The public CLI now rejects the four removed names and accepts only registered
+variant IDs.
 
 AMaZE's exponent bit manipulation was replaced by floating-point powers of two,
 so it is generic rather than `f32`-only. LMMSE uses the shared analytic transfer
