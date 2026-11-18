@@ -215,3 +215,16 @@ Affected-kernel performance at `1000x1500`, one thread:
 
 Incremental release compilation remained effectively flat: 2064.6 ms before,
 2057.1 ms after.
+
+## Phase C conversion log
+
+### DHT: removed
+
+The positive-domain ratio reconstruction could not preserve a negative
+constant field after integer quantization and clipping were removed; missing
+channels shifted by about 1.9% at `-0.25`. Its mid-gray padding and channel
+bounds are part of the retained LibRaw mathematical model, so retaining DHT
+would require a different, sign-correct algorithm rather than a numerical
+conversion. The public variant, tests, comparison cases, adapters, snapshots,
+and build dependencies are removed. The reference note remains as provenance
+for a possible future formulation.

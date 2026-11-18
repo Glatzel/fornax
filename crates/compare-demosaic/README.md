@@ -128,8 +128,7 @@ cargo run --release -p compare-demosaic -- diff \
 cargo run --release -p compare-demosaic -- readme --check
 ```
 
-Pin `OMP_NUM_THREADS=1` for canonical runs. LibRaw DHT uses OpenMP and can
-change small numeric statistics with the thread count.
+Pin `OMP_NUM_THREADS=1` for deterministic canonical runs.
 
 Partial runs are diagnostic inputs. They record their filters in
 `meta.selection`, so `diff` can compare the selected rows and `readme` refuses
@@ -427,33 +426,6 @@ differences.
 zero-iteration enhanced path and omits its preprocessing and output stages.
 Fornax targets LibRaw's fixed DCB variant, so RawTherapee records its distinct
 directional decisions rather than serving as the acceptance reference.
-
-## DHT
-
-<!-- compare-demosaic:begin algo:dht -->
-| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | Within 64 | >64 B/E/F | >1024 (border) | Floor | GT evidence |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | BGGR | [1, 1] | no | ⚠️ | 0.008842 | 0.691677 | 210 | -0.006228 | 0 | 0 | 0.999914 | 11596/0/1785 | 2 (2) | no | none |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GBRG | [0, 1] | no | ⚠️ | 0.008780 | 0.691039 | 210 | -0.006216 | 0 | 0 | 0.999915 | 11676/0/1779 | 2 (2) | no | none |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | GRBG | [1, 0] | no | ⚠️ | 0.008779 | 0.691008 | 210 | -0.006215 | 0 | 0 | 0.999915 | 11809/0/1779 | 2 (2) | no | none |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp#L1012) | RGGB | [0, 0] | yes | ⚠️ | 0.008836 | 0.691518 | 210 | -0.006219 | 0 | 0 | 0.999914 | 11699/0/1785 | 2 (2) | no | none |
-<!-- compare-demosaic:end algo:dht -->
-
-### LibRaw `dht_interpolate`
-
-**Why this reference:** it is the maintained directional homogeneity transform
-implementation targeted by Fornax.
-
-**Why we match:** Fornax ports LibRaw's four-pixel neutral working margin,
-hot/dead-sample handling, one-stop luminance distance, horizontal/vertical and
-diagonal direction discovery, two parity refinement passes, directional green
-interpolation, diagonal and HV color reconstruction, channel bounds, and
-truncating 16-bit output in the same order. Measured Bayer values remain exact.
-
-**Known differences:** The comparison bridge supplies an identity
-camera-to-RGB matrix without white balance, while Fornax supports only the four
-conventional 2x2 RGB Bayer patterns. No output differences are observed on the
-canonical comparison fixture.
 
 ## Linear
 

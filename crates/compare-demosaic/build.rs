@@ -39,7 +39,6 @@ const SHIM_SOURCES: &[&str] = &[
     "cpp/algos/libraw_aahd.cpp",
     "cpp/algos/libraw_ahd.cpp",
     "cpp/algos/libraw_dcb.cpp",
-    "cpp/algos/libraw_dht.cpp",
     "cpp/algos/libraw_linear.cpp",
     "cpp/algos/libraw_ppg.cpp",
     "cpp/algos/libraw_vng.cpp",

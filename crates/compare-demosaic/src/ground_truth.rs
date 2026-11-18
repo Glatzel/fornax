@@ -1216,14 +1216,14 @@ mod tests {
         let second = evaluate_algorithms(&algorithms, false)?;
         first.validate()?;
         assert_eq!(first, second);
-        assert_eq!(first.algorithms.len(), 11);
+        assert_eq!(first.algorithms.len(), 10);
         let mut ranks = first
             .algorithms
             .iter()
             .map(|row| row.rank)
             .collect::<Vec<_>>();
         ranks.sort_unstable();
-        assert_eq!(ranks, (1..=11).collect::<Vec<_>>());
+        assert_eq!(ranks, (1..=10).collect::<Vec<_>>());
         assert!(
             first
                 .algorithms

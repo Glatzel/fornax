@@ -14,7 +14,7 @@ struct Algorithm {
     demosaic: Demosaic,
 }
 
-const ALGORITHMS: [Algorithm; 11] = [
+const ALGORITHMS: [Algorithm; 10] = [
     Algorithm {
         name: "AAHD",
         demosaic: Demosaic::Aahd,
@@ -33,10 +33,6 @@ const ALGORITHMS: [Algorithm; 11] = [
             iterations: 0,
             enhance: true,
         },
-    },
-    Algorithm {
-        name: "DHT",
-        demosaic: Demosaic::Dht,
     },
     Algorithm {
         name: "Linear",
@@ -95,7 +91,7 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         Invariant::Scale if !matches!(algorithm, "Linear" | "PPG" | "RCD" | "AMaZE") => {
             Expected::Fail("fixed-range conversion, epsilon, or quantization breaks scaling")
         }
-        Invariant::PatternFlip if matches!(algorithm, "AAHD" | "AMaZE" | "DCB" | "DHT" | "RCD") => {
+        Invariant::PatternFlip if matches!(algorithm, "AAHD" | "AMaZE" | "DCB" | "RCD") => {
             Expected::Fail("direction or border decisions differ after a horizontal flip")
         }
         Invariant::Constant if algorithm == "LMMSE" => {
@@ -104,24 +100,16 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         Invariant::Ramp if !matches!(algorithm, "Linear" | "VNG") => {
             Expected::NotApplicable("the algorithm does not claim exact linear-ramp recovery")
         }
-        Invariant::Finite
-            if matches!(algorithm, "AAHD" | "DCB" | "DHT" | "LMMSE" | "VNG" | "VNG4") =>
-        {
+        Invariant::Finite if matches!(algorithm, "AAHD" | "DCB" | "LMMSE" | "VNG" | "VNG4") => {
             Expected::Fail("the explicit reference-precision adapter rejects out-of-range samples")
         }
         Invariant::NegativePreservation
-            if matches!(
-                algorithm,
-                "AAHD" | "AHD" | "DCB" | "DHT" | "LMMSE" | "VNG" | "VNG4"
-            ) =>
+            if matches!(algorithm, "AAHD" | "AHD" | "DCB" | "LMMSE" | "VNG" | "VNG4") =>
         {
             Expected::Fail("fixed-range conversion or a zero floor removes negative values")
         }
         Invariant::HdrPreservation
-            if matches!(
-                algorithm,
-                "AAHD" | "AHD" | "DCB" | "DHT" | "LMMSE" | "VNG" | "VNG4"
-            ) =>
+            if matches!(algorithm, "AAHD" | "AHD" | "DCB" | "LMMSE" | "VNG" | "VNG4") =>
         {
             Expected::Fail("the shared or algorithm-local conversion clamps fixed range")
         }

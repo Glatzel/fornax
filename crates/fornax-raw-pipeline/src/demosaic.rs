@@ -3,7 +3,6 @@ mod ahd;
 mod amaze;
 mod buffer;
 mod dcb;
-mod dht;
 mod linear;
 mod lmmse;
 mod numerics;
@@ -18,7 +17,6 @@ use aahd::DemosaicAahd;
 use ahd::{AhdLazy, DemosaicAhd};
 use amaze::DemosaicAmaze;
 use dcb::DemosaicDcb;
-use dht::DemosaicDht;
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 use linear::{DemosaicLinear, LinearLazy};
@@ -60,8 +58,6 @@ pub enum Demosaic {
         /// Whether to run final refinement and full-color reconstruction.
         enhance: bool,
     },
-    /// Directional homogeneity transform.
-    Dht,
     /// Bilinear interpolation.
     Linear,
     /// Linear minimum mean-square-error demosaicing.
@@ -151,7 +147,6 @@ pub enum AnyLazy<'a, T: Primitive> {
     Ahd(AhdLazy<T>),
     Amaze(buffer::DenseLazy<T>),
     Dcb(buffer::DenseLazy<T>),
-    Dht(buffer::DenseLazy<T>),
     Linear(LinearLazy<'a, T>),
     Lmmse(buffer::DenseLazy<T>),
     Ppg(PpgLazy<'a, T>),
@@ -171,7 +166,6 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             | Self::Aahd(d)
             | Self::Amaze(d)
             | Self::Dcb(d)
-            | Self::Dht(d)
             | Self::Lmmse(d)
             | Self::Vng4(d) => d.dimensions(),
         }
@@ -187,7 +181,6 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Aahd(d)
             | Self::Amaze(d)
             | Self::Dcb(d)
-            | Self::Dht(d)
             | Self::Lmmse(d)
             | Self::Vng(d)
             | Self::Vng4(d) => d.fill_rows(y0, out),
@@ -204,7 +197,6 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Aahd(d)
             | Self::Amaze(d)
             | Self::Dcb(d)
-            | Self::Dht(d)
             | Self::Lmmse(d)
             | Self::Vng(d)
             | Self::Vng4(d) => d.collect_with(post),
@@ -235,7 +227,6 @@ impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
                 *iterations,
                 *enhance,
             )?),
-            Self::Dht => AnyLazy::Dht(DemosaicDht.lazy(bayer, pattern)?),
             Self::Linear => AnyLazy::Linear(DemosaicLinear.lazy(bayer, pattern)?),
             Self::Lmmse { mode } => {
                 AnyLazy::Lmmse(DemosaicLmmse.lazy_with_mode(bayer, pattern, *mode)?)
@@ -257,14 +248,13 @@ mod rust_algorithm_tests {
 
     use super::*;
 
-    const RUST_ALGORITHMS: [Demosaic; 7] = [
+    const RUST_ALGORITHMS: [Demosaic; 6] = [
         Demosaic::Vng,
         Demosaic::Vng4,
         Demosaic::Dcb {
             iterations: 0,
             enhance: true,
         },
-        Demosaic::Dht,
         Demosaic::Aahd,
         Demosaic::Amaze,
         Demosaic::Lmmse {
@@ -287,7 +277,6 @@ mod rust_algorithm_tests {
                     iterations: 0,
                     enhance: true,
                 },
-                Demosaic::Dht,
                 Demosaic::Linear,
                 Demosaic::Lmmse {
                     mode: LmmseMode::Median,

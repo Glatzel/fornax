@@ -162,9 +162,6 @@ extern "C" std::int32_t compare_demosaic_reference(
             case 4:
                 status = reference.run_dcb();
                 break;
-            case 5:
-                status = reference.run_dht();
-                break;
             case 6:
                 status = reference.run_aahd();
                 break;

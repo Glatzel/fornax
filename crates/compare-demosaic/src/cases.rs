@@ -115,11 +115,6 @@ const LIBRAW_DCB_URL: &str = concat!(
     env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
     "/src/demosaic/dcb_demosaic.cpp#L849"
 );
-const LIBRAW_DHT_URL: &str = concat!(
-    "https://github.com/LibRaw/LibRaw/blob/",
-    env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
-    "/src/demosaic/dht_demosaic.cpp#L1012"
-);
 const RAWTHERAPEE_AHD_URL: &str = concat!(
     "https://github.com/RawTherapee/RawTherapee/blob/",
     env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
@@ -182,14 +177,6 @@ const DCB: Case = Case {
     algorithm: 4,
     tolerance: ROBUST,
     run_fornax: run_dcb,
-};
-const DHT: Case = Case {
-    name: "DHT",
-    source_url: LIBRAW_DHT_URL,
-    reference_backend: ReferenceBackend::LibRaw,
-    algorithm: 5,
-    tolerance: ROBUST,
-    run_fornax: run_dht,
 };
 const LINEAR: Case = Case {
     name: "Linear",
@@ -309,7 +296,6 @@ pub const CASES: &[Case] = &[
     AMAZE,
     AAHD,
     DCB,
-    DHT,
     LINEAR,
     LMMSE,
     PPG_LIBRAW,
@@ -400,8 +386,6 @@ pub(crate) fn demosaic_for(algorithm: &str) -> Option<Demosaic> {
         Some(Demosaic::Amaze)
     } else if algorithm.eq_ignore_ascii_case("DCB") {
         Some(Demosaic::dcb())
-    } else if algorithm.eq_ignore_ascii_case("DHT") {
-        Some(Demosaic::Dht)
     } else if algorithm.eq_ignore_ascii_case("Linear") {
         Some(Demosaic::Linear)
     } else if algorithm.eq_ignore_ascii_case("LMMSE") {
@@ -505,7 +489,6 @@ runner!(run_ahd, Demosaic::Ahd);
 runner!(run_amaze, Demosaic::Amaze);
 runner!(run_aahd, Demosaic::Aahd);
 runner!(run_dcb, Demosaic::dcb());
-runner!(run_dht, Demosaic::Dht);
 runner!(run_linear, Demosaic::Linear);
 runner!(run_lmmse, Demosaic::lmmse());
 runner!(run_ppg, Demosaic::Ppg);

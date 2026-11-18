@@ -19,7 +19,7 @@ let rgb = processor.process(normalized.image(), &metadata)?;
 ## Demosaicing
 
 The `Demosaic` selector supports linear, PPG, RCD, AHD, VNG, four-color VNG4,
-DCB, DHT, AAHD, AMaZE, and LMMSE reconstruction for conventional 2x2 Bayer
+DCB, AAHD, AMaZE, and LMMSE reconstruction for conventional 2x2 Bayer
 images. `IDemosaic`, `LazyDemosaic`, and `DemosaicError` remain available
 through the same public names used by the former stage crates.
 
