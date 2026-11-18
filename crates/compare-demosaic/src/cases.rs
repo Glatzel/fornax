@@ -391,6 +391,34 @@ pub fn source_url(algorithm: &str, reference: &str) -> Option<&'static str> {
     case_for(algorithm, reference).map(|case| case.source_url)
 }
 
+pub(crate) fn demosaic_for(algorithm: &str) -> Option<Demosaic> {
+    if algorithm.eq_ignore_ascii_case("AAHD") {
+        Some(Demosaic::Aahd)
+    } else if algorithm.eq_ignore_ascii_case("AHD") {
+        Some(Demosaic::Ahd)
+    } else if algorithm.eq_ignore_ascii_case("AMaZE") {
+        Some(Demosaic::Amaze)
+    } else if algorithm.eq_ignore_ascii_case("DCB") {
+        Some(Demosaic::dcb())
+    } else if algorithm.eq_ignore_ascii_case("DHT") {
+        Some(Demosaic::Dht)
+    } else if algorithm.eq_ignore_ascii_case("Linear") {
+        Some(Demosaic::Linear)
+    } else if algorithm.eq_ignore_ascii_case("LMMSE") {
+        Some(Demosaic::lmmse())
+    } else if algorithm.eq_ignore_ascii_case("PPG") {
+        Some(Demosaic::Ppg)
+    } else if algorithm.eq_ignore_ascii_case("RCD") {
+        Some(Demosaic::Rcd)
+    } else if algorithm.eq_ignore_ascii_case("VNG") {
+        Some(Demosaic::Vng)
+    } else if algorithm.eq_ignore_ascii_case("VNG4") {
+        Some(Demosaic::Vng4)
+    } else {
+        None
+    }
+}
+
 fn lowercase(values: &[String]) -> Vec<String> {
     values
         .iter()

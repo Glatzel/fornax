@@ -25,6 +25,7 @@ pub struct ActiveArea {
     pub black_height: u32,
     pub white: f64,
     pub native_pattern: BayerPattern,
+    pub reference_scale: f64,
 }
 
 /// Returns the smallest non-negative crop offset that turns `native` into
@@ -84,6 +85,7 @@ pub fn shifted_to_pattern(
         black_height: input.black_height,
         white: input.white,
         native_pattern: target,
+        reference_scale: input.reference_scale,
     })
 }
 
@@ -119,6 +121,7 @@ pub fn active_area_from(path: &Path) -> mischief::Result<ActiveArea> {
         black_height,
         white: metadata.levels.white,
         native_pattern: metadata.bayer_pattern,
+        reference_scale: 1.0,
     })
 }
 
@@ -386,6 +389,7 @@ mod tests {
             black_height: 2,
             white: 65_535.0,
             native_pattern: BayerPattern::GBRG,
+            reference_scale: 1.0,
         };
         let shifted = shifted_to_pattern(&input, BayerPattern::RGGB)?;
         assert_eq!(shifted.width, 4);

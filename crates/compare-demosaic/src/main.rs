@@ -74,6 +74,9 @@ struct RunArgs {
     /// Border width excluded from interior statistics.
     #[arg(long, default_value_t = report::BORDER_PX)]
     border_px: u32,
+    /// Disable scaling inputs below the integer-reference saturation range.
+    #[arg(long)]
+    no_valid_range: bool,
     /// Number of rows computed in parallel.
     #[arg(long, default_value_t = run::default_jobs())]
     jobs: usize,
@@ -149,6 +152,7 @@ fn run_command(arguments: RunArgs) -> mischief::Result<i32> {
         shard: arguments.shard,
         artifacts: arguments.artifacts,
         border_px: arguments.border_px,
+        valid_range: !arguments.no_valid_range,
         jobs: arguments.jobs,
     };
     let output = run::execute(&request)?;
@@ -232,6 +236,7 @@ mod tests {
             "two.raw",
             "--jobs",
             "2",
+            "--no-valid-range",
         ])
         .expect("valid run");
         let Command::Run(run) = args.command else {
@@ -241,6 +246,7 @@ mod tests {
         assert_eq!(run.reference, ["LibRaw"]);
         assert_eq!(run.input.len(), 2);
         assert_eq!(run.jobs, 2);
+        assert!(run.no_valid_range);
     }
 
     #[test]

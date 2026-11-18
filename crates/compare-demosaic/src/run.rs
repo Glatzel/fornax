@@ -7,8 +7,8 @@ use rayon::prelude::*;
 use crate::cases::{self, Case, SampleType, Tolerance};
 use crate::metrics::{self, Evaluation, FailedLimit, Verdict as DetailedVerdict};
 use crate::report::{
-    self, Channels, InputMeta, Kind, Meta, PatternSource, References, Report, Row, Selection,
-    Sites, Verdict, WorstSample,
+    self, Channels, InputMeta, Kind, Meta, PatternSource, RangeScaling, ReferenceFloorReport,
+    ReferenceFloorRow, References, Report, Row, Selection, Sites, Verdict, WorstSample,
 };
 use crate::status;
 use crate::waivers::WAIVERS;
@@ -19,6 +19,7 @@ pub const DARKTABLE_COMMIT: &str = env!("COMPARE_DEMOSAIC_DARKTABLE_COMMIT");
 pub const RAWTHERAPEE_RELEASE: &str = env!("COMPARE_DEMOSAIC_RAWTHERAPEE_RELEASE");
 pub const RAWTHERAPEE_COMMIT: &str = env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT");
 pub const LIBRAW_VERSION: &str = env!("COMPARE_DEMOSAIC_LIBRAW_VERSION");
+pub const REFERENCE_RANGE_CEILING: u16 = 60_000;
 
 #[derive(Clone, Debug)]
 pub struct RunRequest {
@@ -30,6 +31,7 @@ pub struct RunRequest {
     pub shard: Option<String>,
     pub artifacts: bool,
     pub border_px: u32,
+    pub valid_range: bool,
     pub jobs: usize,
 }
 
@@ -57,6 +59,7 @@ struct CaseComputation {
     evaluation: Evaluation,
     verdict: DetailedVerdict,
     _failed_limits: Vec<FailedLimit>,
+    evidence: crate::ground_truth::OutlierEvidence,
 }
 
 #[derive(Clone, Copy)]
@@ -83,6 +86,11 @@ pub(crate) fn execute_with_inputs(
     request: &RunRequest,
     mut inputs: Vec<crate::reference::ActiveArea>,
 ) -> mischief::Result<RunOutput> {
+    if request.valid_range {
+        for input in &mut inputs {
+            scale_to_reference_range(input);
+        }
+    }
     let patterns = if request.patterns.is_empty() {
         BayerPattern::ALL.to_vec()
     } else {
@@ -126,6 +134,8 @@ pub(crate) fn execute_with_inputs(
         .num_threads(request.jobs)
         .build()
         .map_err(|error| mischief::mischief!("cannot create worker pool: {error}"))?;
+    let reference_floor =
+        compute_reference_floor(&inputs, &algorithms, &patterns, request.border_px, &pool)?;
     let computed = pool.install(|| {
         jobs.par_iter()
             .map(|job| {
@@ -151,7 +161,27 @@ pub(crate) fn execute_with_inputs(
             })
             .collect::<Vec<mischief::Result<Row>>>()
     });
-    let rows = computed.into_iter().collect::<mischief::Result<Vec<_>>>()?;
+    let mut rows = computed.into_iter().collect::<mischief::Result<Vec<_>>>()?;
+    for row in &mut rows {
+        if let Some(floor) = reference_floor.rows.iter().find(|floor| {
+            floor.input == row.input
+                && floor.algorithm == row.algorithm
+                && floor.pattern == row.pattern
+        }) {
+            row.reference_floor_match = row.interior.mae <= floor.metrics.mae + 1.0
+                && row.interior.p99 <= floor.metrics.p99.saturating_add(1)
+                && row.interior.p999 <= floor.metrics.p999.saturating_add(1);
+        }
+    }
+    let ground_truth_algorithms = if algorithms.is_empty() {
+        cases::algorithm_names()
+            .into_iter()
+            .map(ToOwned::to_owned)
+            .collect::<Vec<_>>()
+    } else {
+        algorithms.clone()
+    };
+    let ground_truth = crate::ground_truth::evaluate(&ground_truth_algorithms)?;
     let selection = Selection {
         algorithm: algorithms,
         reference: references,
@@ -177,8 +207,14 @@ pub(crate) fn execute_with_inputs(
             limits: report::LIMITS,
             border_px: request.border_px,
             pattern_source: PatternSource::ShiftedCrops,
+            range_scaling: RangeScaling {
+                enabled: request.valid_range,
+                ceiling_codes: REFERENCE_RANGE_CEILING,
+            },
             selection,
         },
+        ground_truth,
+        reference_floor,
         rows,
     );
     let path = output_path(request)?;
@@ -248,7 +284,8 @@ fn compute_case(
         border_px,
         pattern,
     )?;
-    let (verdict, failed_limits) = metrics::verdict(&evaluation.metrics, case.tolerance);
+    let (verdict, failed_limits) = metrics::verdict(&evaluation.metrics_interior, case.tolerance);
+    let evidence = crate::ground_truth::evaluate_reference_evidence(case, pattern)?;
     Ok(CaseComputation {
         case,
         pattern,
@@ -257,6 +294,7 @@ fn compute_case(
         evaluation,
         verdict,
         _failed_limits: failed_limits,
+        evidence,
     })
 }
 
@@ -265,11 +303,12 @@ fn row_from_computation(
     evaluation: &CaseComputation,
 ) -> mischief::Result<Row> {
     let metrics = &evaluation.evaluation.metrics;
+    let interior = &evaluation.evaluation.metrics_interior;
     let kind = kind(evaluation.case.tolerance);
     let (verdict, failed_limits) = report::verdict(
         kind,
-        &report_metrics(metrics),
-        metrics.total_samples,
+        &report_metrics(interior),
+        interior.total_samples,
         report::LIMITS,
     );
     debug_assert_eq!(
@@ -316,6 +355,10 @@ fn row_from_computation(
                 reference: sample.reference,
             })
             .collect(),
+        within_tolerance: evaluation.evaluation.within_tolerance_interior,
+        outlier_locations: evaluation.evaluation.outlier_locations,
+        reference_floor_match: false,
+        outlier_evidence: evaluation.evidence.clone(),
     })
 }
 
@@ -355,7 +398,115 @@ fn input_meta(input: &crate::reference::ActiveArea) -> InputMeta {
         black_height: input.black_height,
         white: input.white,
         native_pattern: input.native_pattern.to_string(),
+        reference_scale: report::round6(input.reference_scale),
     }
+}
+
+fn compute_reference_floor(
+    inputs: &[crate::reference::ActiveArea],
+    algorithms: &[String],
+    patterns: &[BayerPattern],
+    border_px: u32,
+    pool: &rayon::ThreadPool,
+) -> mischief::Result<ReferenceFloorReport> {
+    let names = if algorithms.is_empty() {
+        cases::algorithm_names()
+            .into_iter()
+            .map(ToOwned::to_owned)
+            .collect::<Vec<_>>()
+    } else {
+        algorithms.to_vec()
+    };
+    let shared = names
+        .into_iter()
+        .filter(|algorithm| {
+            cases::case_for(algorithm, "libraw").is_some()
+                && cases::case_for(algorithm, "darktable").is_some()
+        })
+        .collect::<Vec<_>>();
+    let jobs = inputs
+        .iter()
+        .enumerate()
+        .flat_map(|(input_index, _)| {
+            shared.iter().flat_map(move |algorithm| {
+                patterns
+                    .iter()
+                    .copied()
+                    .map(move |pattern| (input_index, algorithm.as_str(), pattern))
+            })
+        })
+        .collect::<Vec<_>>();
+    let mut rows = pool.install(|| {
+        jobs.par_iter()
+            .map(|(input_index, algorithm, pattern)| {
+                let input = crate::reference::shifted_to_pattern(&inputs[*input_index], *pattern)?;
+                let libraw = cases::case_for(algorithm, "libraw").expect("filtered shared case");
+                let darktable =
+                    cases::case_for(algorithm, "darktable").expect("filtered shared case");
+                let filters = crate::reference::libraw_filters(*pattern);
+                let left = crate::reference::run(
+                    libraw.reference_backend,
+                    libraw.algorithm,
+                    &input.codes,
+                    input.width,
+                    input.height,
+                    filters,
+                )?;
+                let right = crate::reference::run(
+                    darktable.reference_backend,
+                    darktable.algorithm,
+                    &input.codes,
+                    input.width,
+                    input.height,
+                    filters,
+                )?;
+                let evaluation = metrics::calculate(
+                    &left,
+                    &right,
+                    input.width,
+                    input.height,
+                    border_px,
+                    *pattern,
+                )?;
+                Ok(ReferenceFloorRow {
+                    input: inputs[*input_index].source.clone(),
+                    algorithm: cases::display_name(algorithm).to_ascii_lowercase(),
+                    pattern: pattern.to_string(),
+                    samples: evaluation.metrics_interior.total_samples,
+                    metrics: report_metrics(&evaluation.metrics_interior),
+                    within_tolerance: evaluation.within_tolerance_interior,
+                    outlier_locations: evaluation.outlier_locations,
+                })
+            })
+            .collect::<Vec<mischief::Result<ReferenceFloorRow>>>()
+    });
+    let rows = rows.drain(..).collect::<mischief::Result<Vec<_>>>()?;
+    let mut rows = rows;
+    rows.sort_unstable_by(|left, right| {
+        (&left.input, &left.algorithm, &left.pattern).cmp(&(
+            &right.input,
+            &right.algorithm,
+            &right.pattern,
+        ))
+    });
+    Ok(ReferenceFloorReport {
+        version: report::REFERENCE_FLOOR_VERSION,
+        border_px,
+        tolerance_codes: metrics::TOLERANCE_CODES,
+        rows,
+    })
+}
+
+fn scale_to_reference_range(input: &mut crate::reference::ActiveArea) {
+    let maximum = input.codes.iter().copied().max().unwrap_or(0);
+    if maximum <= REFERENCE_RANGE_CEILING {
+        return;
+    }
+    let scale = f64::from(REFERENCE_RANGE_CEILING) / f64::from(maximum);
+    for code in &mut input.codes {
+        *code = (f64::from(*code) * scale).round() as u16;
+    }
+    input.reference_scale = report::round6(input.reference_scale * scale);
 }
 
 fn validate_algorithms(algorithms: &[String]) -> mischief::Result<()> {
@@ -494,6 +645,7 @@ mod tests {
             black_height: 2,
             white: 65_535.0,
             native_pattern: BayerPattern::RGGB,
+            reference_scale: 1.0,
         }
     }
 
@@ -507,8 +659,34 @@ mod tests {
             shard: None,
             artifacts: false,
             border_px: 16,
+            valid_range: true,
             jobs,
         }
+    }
+
+    #[test]
+    fn valid_range_scaling_caps_codes_without_clipping_ratio() {
+        let mut input = input();
+        input.codes[0] = 65_535;
+        input.codes[1] = 32_768;
+        scale_to_reference_range(&mut input);
+        assert_eq!(input.codes[0], REFERENCE_RANGE_CEILING);
+        assert_eq!(input.codes[1], 30_000);
+        assert_eq!(input.reference_scale, report::round6(60_000.0 / 65_535.0));
+    }
+
+    #[test]
+    fn shared_algorithm_reference_floor_is_recorded() -> mischief::Result<()> {
+        let directory = tempfile::tempdir().expect("temporary directory");
+        let mut request = request(directory.path(), 1);
+        request.algorithms = vec!["ppg".to_owned()];
+        let output = execute_with_inputs(&request, vec![input()])?;
+        assert_eq!(output.report.reference_floor.rows.len(), 1);
+        let floor = &output.report.reference_floor.rows[0];
+        assert_eq!(floor.algorithm, "ppg");
+        assert_eq!(floor.samples, 96 * 96 * 3);
+        assert!(floor.within_tolerance <= 1.0);
+        Ok(())
     }
 
     #[test]

@@ -1,13 +1,20 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+use crate::ground_truth::{CorpusStatus, GroundTruthReport, PixelClass};
 use crate::report::{InputMeta, Report, Row};
 use crate::status::{self, Status};
 use crate::waivers::{WAIVERS, Waiver};
 
 pub const README_FILE: &str = "crates/compare-demosaic/README.md";
 
-const REQUIRED_REGIONS: &[&str] = &["usage", "legend", "summary"];
+const REQUIRED_REGIONS: &[&str] = &[
+    "usage",
+    "legend",
+    "summary",
+    "ground-truth",
+    "reference-floor",
+];
 const NOTE_FIELDS: &[&str] = &["Why this reference", "Why we match", "Known differences"];
 
 #[derive(Clone, Debug, Default)]
@@ -135,6 +142,11 @@ fn generated_regions_with_waivers(
     regions.insert("usage".to_owned(), render_usage(usage));
     regions.insert("legend".to_owned(), render_legend(report));
     regions.insert("summary".to_owned(), render_summary(report, waivers));
+    regions.insert(
+        "ground-truth".to_owned(),
+        render_ground_truth(&report.ground_truth),
+    );
+    regions.insert("reference-floor".to_owned(), render_reference_floor(report));
     for (algorithm, rows) in algorithms(report) {
         regions.insert(
             format!("algo:{}", algorithm_id(algorithm)),
@@ -174,18 +186,27 @@ fn render_legend(report: &Report) -> String {
 | --- | --- |\n\
 | `✅` | Exact or passing without high-error outliers. |\n\
 | `🟢` | Rounding-only differences. |\n\
-| `⚖️` | Every limit passes; high-error outliers remain and were reviewed and accepted for the stated bounds and reason. |\n\
+| `⚖️` | Reference-floor or ground-truth evidence accepts the divergence, or a person reviewed explicit outlier bounds. |\n\
 | `⚠️` | Every limit passes; high-error outliers remain and are not yet explained. |\n\
 | `❌` | At least one limit failed. |\n\n\
 - Limits: MAE <= {:.6}, P99 <= {}, high-error fraction <= {:.6} above {} codes.\n\
 - Kinds: `exact` requires equality; `rounding` permits one-code upward rounding differences; `robust` applies the numeric limits.\n\
 - A row is `native` only when it uses the input's original CFA layout and crop `[0, 0]`. Other patterns use the smallest valid one-pixel shift and are consistency checks, not independent tests.\n\
-- Interior statistics exclude a {} px border.\n",
+- Verdicts and distribution metrics use the interior after excluding a {} px border. Worst pixels still scan the full frame.\n\
+- Valid-range scaling is {}; active mosaics are scaled below {} codes before comparison.\n\
+- Fornax output is quantized once to the comparison adapter's 16-bit convention before differences are measured; Linear retains its one-code rounding classification.\n\
+- Border policy: LibRaw runs `pre_interpolate` before the selected algorithm; darktable and RawTherapee use algorithm-specific tile and edge handling. The common masked border keeps those conventions out of acceptance.\n",
         report.meta.limits.mae,
         report.meta.limits.p99,
         report.meta.limits.high_err_frac,
         report.meta.limits.high_err,
         report.meta.border_px,
+        if report.meta.range_scaling.enabled {
+            "enabled"
+        } else {
+            "disabled"
+        },
+        report.meta.range_scaling.ceiling_codes,
     );
     output.push_str(&format!(
         "- References: LibRaw {}; darktable {}.\n",
@@ -199,8 +220,13 @@ fn render_inputs(inputs: &[InputMeta]) -> String {
     let mut output = String::from("- Inputs:\n");
     for input in inputs {
         output.push_str(&format!(
-            "  - `{}`: {}x{}, native `{}`, sha256 `{}`.\n",
-            input.name, input.width, input.height, input.native_pattern, input.sha256
+            "  - `{}`: {}x{}, native `{}`, reference scale `{:.6}`, sha256 `{}`.\n",
+            input.name,
+            input.width,
+            input.height,
+            input.native_pattern,
+            input.reference_scale,
+            input.sha256
         ));
     }
     output
@@ -252,10 +278,99 @@ fn render_summary(report: &Report, waivers: &[Waiver]) -> String {
     output.trim_end().to_owned()
 }
 
+fn render_ground_truth(report: &GroundTruthReport) -> String {
+    let mut output = String::from(
+        "| Rank | Algorithm | Relative mean | Relative p99 | Relative p99.9 | Log2 mean | Zipper mean | False-color mean | Vs Linear | Worst |\n\
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |\n",
+    );
+    for row in &report.algorithms {
+        let location = match row.worst.location {
+            PixelClass::Edge => "edge",
+            PixelClass::Flat => "flat",
+            PixelClass::Border => "border",
+        };
+        output.push_str(&format!(
+            "| {} | {} | {:.6} | {:.6} | {:.6} | {:.6} | {:.6} | {:.6} | {:.3}x | {} ({}, {}, c{}) {} |\n",
+            row.rank,
+            crate::cases::display_name(&row.algorithm),
+            row.relative.mean,
+            row.relative.p99,
+            row.relative.p999,
+            row.log2.mean,
+            row.zipper.mean,
+            row.false_color.mean,
+            row.vs_linear.relative_mean_ratio,
+            row.worst.source,
+            row.worst.x,
+            row.worst.y,
+            row.worst.channel,
+            location,
+        ));
+    }
+    output.push_str(&format!(
+        "\n- Relative error uses denominator `max(|truth|, |output|, {:.6})`; log2 error floors both values at `{:.6}`. Lower is better.\n\
+- Relative, log2, zipper, and false-color summaries exclude the {} px border. Worst pixels are selected over the full frame and report their location.\n\
+- Zipper is relative luma error on interior edge pixels. False color is the magnitude of output-minus-truth `R-G`/`B-G` chroma relative to luma.\n\
+- Linear is the required floor. An algorithm is suspicious when its per-scene relative mean is over {:.1}% worse than Linear on a zone-plate or edge scene.\n\
+- Pattern `{}`; synthetic and half-resolution corpus sources are evaluated at {}x{}.\n",
+        report.relative_noise_floor,
+        report.log_noise_floor,
+        report.border_px,
+        report.suspicious_margin * 100.0,
+        report.pattern,
+        report.width,
+        report.height,
+    ));
+    let suspicious = report
+        .algorithms
+        .iter()
+        .filter(|row| !row.suspicious_sources.is_empty())
+        .map(|row| {
+            format!(
+                "{}: {}",
+                crate::cases::display_name(&row.algorithm),
+                row.suspicious_sources.join(", ")
+            )
+        })
+        .collect::<Vec<_>>();
+    output.push_str(&format!(
+        "- Suspicious versus Linear: {}.\n",
+        if suspicious.is_empty() {
+            "none".to_owned()
+        } else {
+            suspicious.join("; ")
+        }
+    ));
+    let corpus = report
+        .corpus_sources
+        .iter()
+        .map(|source| {
+            let status = match source.status {
+                CorpusStatus::Evaluated => "evaluated",
+                CorpusStatus::Missing => "missing",
+                CorpusStatus::TooSmall => "too small",
+            };
+            format!("{} ({status})", source.path)
+        })
+        .collect::<Vec<_>>();
+    output.push_str(&format!(
+        "- Corpus sources: {}.\n",
+        if corpus.is_empty() {
+            "none".to_owned()
+        } else {
+            corpus.join("; ")
+        }
+    ));
+    output.push_str(
+        "- Literature expectation: advanced directional or MMSE methods (AMaZE, DCB, DHT, LMMSE, RCD) should generally beat the bilinear floor; AHD, AAHD, and VNG are the next comparison tier, followed by PPG. Surprises are retained in the ranking rather than waived.\n",
+    );
+    output.trim_end().to_owned()
+}
+
 fn render_algorithm(rows: &[&Row], waivers: &[Waiver]) -> String {
     let mut output = String::from(
-        "| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | >1024 (border) | Changed share |\n\
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |\n",
+        "| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | Within 64 | >64 B/E/F | >1024 (border) | Floor | GT evidence |\n\
+| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |\n",
     );
     for row in rows {
         let reference = crate::cases::source_url(&row.algorithm, &row.reference).map_or_else(
@@ -267,24 +382,83 @@ fn render_algorithm(rows: &[&Row], waivers: &[Waiver]) -> String {
             .count_gt1024
             .saturating_sub(row.interior.count_gt1024);
         output.push_str(&format!(
-            "| {} | {} | [{}, {}] | {} | {} | {:.6} | {:.6} | {} | {:.6} | {} | {} | {} ({}) | {:.6} |\n",
+            "| {} | {} | [{}, {}] | {} | {} | {:.6} | {:.6} | {} | {:.6} | {} | {} | {:.6} | {}/{}/{} | {} ({}) | {} | {} |\n",
             reference,
             row.pattern,
             row.crop[0],
             row.crop[1],
             if row.native { "yes" } else { "no" },
             status::evaluate(row, waivers).symbol(),
-            row.all.mae,
-            row.all.rmse,
-            row.all.max,
-            row.all.mean_signed,
-            row.all.p99,
-            row.all.p999,
+            row.interior.mae,
+            row.interior.rmse,
+            row.interior.max,
+            row.interior.mean_signed,
+            row.interior.p99,
+            row.interior.p999,
+            row.within_tolerance,
+            row.outlier_locations.border,
+            row.outlier_locations.edge,
+            row.outlier_locations.flat,
             row.all.count_gt1024,
             border,
-            row.all.changed_frac,
+            if row.reference_floor_match { "yes" } else { "no" },
+            if row.outlier_evidence.divergent_samples == 0 {
+                "none"
+            } else if row.outlier_evidence.fornax_not_worse {
+                "not worse"
+            } else {
+                "worse"
+            },
         ));
     }
+    for row in rows {
+        let automatically_accepted = status::automatically_accepted(row);
+        if automatically_accepted
+            && (row.verdict == crate::report::Verdict::Fail || row.all.count_gt1024 > 0)
+        {
+            let evidence = &row.outlier_evidence;
+            output.push_str(&format!(
+                "\n**Automatic ⚖️ evidence:** {} {}: {} divergent synthetic samples; Fornax MAE/P99 {:.6}/{:.6} codes versus reference {:.6}/{:.6}; reference-floor match: {}.",
+                row.reference,
+                row.pattern,
+                evidence.divergent_samples,
+                evidence.fornax_mae,
+                evidence.fornax_p99,
+                evidence.reference_mae,
+                evidence.reference_p99,
+                if row.reference_floor_match { "yes" } else { "no" },
+            ));
+        }
+    }
+    output.trim_end().to_owned()
+}
+
+fn render_reference_floor(report: &Report) -> String {
+    let mut output = String::from(
+        "| Input | Algorithm | Pattern | MAE | P99 | P99.9 | Max | Within 64 | >64 B/E/F |\n\
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |\n",
+    );
+    for row in &report.reference_floor.rows {
+        output.push_str(&format!(
+            "| {} | {} | {} | {:.6} | {} | {} | {} | {:.6} | {}/{}/{} |\n",
+            row.input,
+            crate::cases::display_name(&row.algorithm),
+            row.pattern,
+            row.metrics.mae,
+            row.metrics.p99,
+            row.metrics.p999,
+            row.metrics.max,
+            row.within_tolerance,
+            row.outlier_locations.border,
+            row.outlier_locations.edge,
+            row.outlier_locations.flat,
+        ));
+    }
+    output.push_str(&format!(
+        "\n- Achievable floor is LibRaw versus darktable on the same scaled active mosaic, pattern, and border mask ({} px).\n\
+- A Fornax row is a floor match when interior MAE, P99, and P99.9 are each no more than one code above this floor for the same algorithm, input, and pattern.\n",
+        report.reference_floor.border_px,
+    ));
     output.trim_end().to_owned()
 }
 
@@ -634,6 +808,10 @@ mod tests {
                 fornax: 2,
                 reference: 0,
             }],
+            within_tolerance: 1.0,
+            outlier_locations: crate::metrics::OutlierLocations::default(),
+            reference_floor_match: false,
+            outlier_evidence: crate::ground_truth::OutlierEvidence::test_fixture(),
         };
         Report::new(
             Meta {
@@ -647,6 +825,7 @@ mod tests {
                     black_height: 2,
                     white: 65_535.0,
                     native_pattern: "RGGB".to_owned(),
+                    reference_scale: 1.0,
                 }],
                 references: References {
                     libraw: "0.22.3".to_owned(),
@@ -661,21 +840,31 @@ mod tests {
                 },
                 border_px: 0,
                 pattern_source: crate::report::PatternSource::ShiftedCrops,
+                range_scaling: crate::report::RangeScaling {
+                    enabled: true,
+                    ceiling_codes: 60_000,
+                },
                 selection: Selection::default(),
             },
+            GroundTruthReport::test_fixture(),
+            crate::report::ReferenceFloorReport::test_fixture(),
             vec![row],
         )
     }
 
     fn shell() -> String {
         format!(
-            "# test\n\n{}rust\nusage\n{}\n{}legend\n{}\n{}summary\n{}\n",
+            "# test\n\n{}rust\nusage\n{}\n{}legend\n{}\n{}summary\n{}\n{}ground-truth\n{}\n{}reference-floor\n{}\n",
             begin_marker("usage"),
             end_marker("usage"),
             begin_marker("legend"),
             end_marker("legend"),
             begin_marker("summary"),
             end_marker("summary"),
+            begin_marker("ground-truth"),
+            end_marker("ground-truth"),
+            begin_marker("reference-floor"),
+            end_marker("reference-floor"),
         )
     }
 
@@ -718,7 +907,12 @@ mod tests {
         rawtherapee.pattern = "GBRG".to_owned();
         rawtherapee.native = false;
         report.rows.push(rawtherapee);
-        report = Report::new(report.meta.clone(), report.rows);
+        report = Report::new(
+            report.meta.clone(),
+            report.ground_truth.clone(),
+            report.reference_floor.clone(),
+            report.rows,
+        );
 
         write(&report, "usage", Some(&path))?;
         let document = std::fs::read_to_string(&path)?;
@@ -741,6 +935,7 @@ mod tests {
         let first_result = write_with_waivers(&report, "usage", &waivers, Some(&path))?;
         assert!(first_result.issues.is_empty(), "{}", first_result.render());
         let first = std::fs::read_to_string(&path)?;
+        assert!(first.contains("| Rank | Algorithm | Relative mean |"));
         let table = region_body(&first, "algo:ahd").expect("generated algorithm table");
         write_with_waivers(&report, "usage", &waivers, Some(&path))?;
         assert_eq!(std::fs::read_to_string(&path)?, first);

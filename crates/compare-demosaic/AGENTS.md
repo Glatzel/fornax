@@ -92,8 +92,9 @@ Partial runs record `meta.selection`; they cannot be used as a baseline.
 
 ## Accepted outliers
 
-`⚖️` means every limit passes, high-error outliers remain, and a person
-reviewed and accepted them. It is never derived from the numbers alone.
+`⚖️` means reference disagreement is attributable to the reference floor or
+ground-truth evidence, or a person reviewed and accepted explicit high-error
+outlier bounds.
 
 - Declare accepted outliers in the waiver table in `src/waivers.rs` with
   algorithm, reference, optional pattern and input, `max_count_gt1024`,

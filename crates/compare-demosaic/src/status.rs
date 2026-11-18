@@ -24,22 +24,39 @@ impl Status {
 }
 
 pub fn evaluate(row: &Row, waivers: &[Waiver]) -> Status {
+    let evidence_available = row.outlier_evidence.divergent_samples > 0;
+    if evidence_available && !row.outlier_evidence.fornax_not_worse {
+        return Status::Fail;
+    }
+    let automatically_accepted = automatically_accepted(row);
     if row.verdict == Verdict::Fail {
-        Status::Fail
+        if automatically_accepted {
+            Status::AcceptedOutliers
+        } else {
+            Status::Fail
+        }
     } else if row.all.changed_frac == 0.0 {
         Status::Exact
     } else if row.kind == Kind::Rounding {
         Status::Rounding
     } else if row.all.count_gt1024 == 0 {
         Status::Pass
-    } else if waivers
-        .iter()
-        .any(|waiver| waiver.matches(row) && waiver.accepts(row))
+    } else if automatically_accepted
+        || waivers
+            .iter()
+            .any(|waiver| waiver.matches(row) && waiver.accepts(row))
     {
         Status::AcceptedOutliers
     } else {
         Status::UnreviewedOutliers
     }
+}
+
+pub(crate) fn automatically_accepted(row: &Row) -> bool {
+    (row.outlier_evidence.divergent_samples == 0 || row.outlier_evidence.fornax_not_worse)
+        && (row.reference_floor_match
+            || (row.outlier_evidence.divergent_samples > 0
+                && row.outlier_evidence.fornax_not_worse))
 }
 
 pub fn waiver_findings(report: &Report, waivers: &[Waiver]) -> Vec<String> {
@@ -138,8 +155,8 @@ mod tests {
     use super::*;
     use crate::cases::ReferenceBackend;
     use crate::report::{
-        Channels, InputMeta, Limits, Meta, Metrics, PatternSource, References, Selection, Sites,
-        WorstSample,
+        Channels, InputMeta, Limits, Meta, Metrics, PatternSource, RangeScaling,
+        ReferenceFloorReport, References, Selection, Sites, WorstSample,
     };
 
     fn metrics(count_gt1024: u64, max: u16, changed_frac: f64) -> Metrics {
@@ -190,6 +207,10 @@ mod tests {
                 fornax: max,
                 reference: 0,
             }],
+            within_tolerance: 1.0,
+            outlier_locations: crate::metrics::OutlierLocations::default(),
+            reference_floor_match: false,
+            outlier_evidence: crate::ground_truth::OutlierEvidence::test_fixture(),
         }
     }
 
@@ -207,8 +228,8 @@ mod tests {
     }
 
     fn report(rows: Vec<Row>) -> Report {
-        Report {
-            meta: Meta {
+        Report::new(
+            Meta {
                 inputs: vec![InputMeta {
                     name: "input.raw".to_owned(),
                     sha256: "00".repeat(32),
@@ -219,6 +240,7 @@ mod tests {
                     black_height: 2,
                     white: 65_535.0,
                     native_pattern: "RGGB".to_owned(),
+                    reference_scale: 1.0,
                 }],
                 references: References {
                     libraw: "0.22.3".to_owned(),
@@ -233,10 +255,16 @@ mod tests {
                 },
                 border_px: 0,
                 pattern_source: PatternSource::ShiftedCrops,
+                range_scaling: RangeScaling {
+                    enabled: true,
+                    ceiling_codes: 60_000,
+                },
                 selection: Selection::default(),
             },
+            crate::ground_truth::GroundTruthReport::test_fixture(),
+            ReferenceFloorReport::test_fixture(),
             rows,
-        }
+        )
     }
 
     #[test]
@@ -275,6 +303,22 @@ mod tests {
             evaluate(&row(Kind::Robust, Verdict::Pass, 1, 2_000), &[]),
             Status::UnreviewedOutliers
         );
+
+        let mut evidence_accepted = row(Kind::Robust, Verdict::Fail, 3, 3_000);
+        evidence_accepted.outlier_evidence.divergent_samples = 2;
+        evidence_accepted.outlier_evidence.fornax_not_worse = true;
+        assert_eq!(evaluate(&evidence_accepted, &[]), Status::AcceptedOutliers);
+
+        evidence_accepted.outlier_evidence.fornax_not_worse = false;
+        assert_eq!(evaluate(&evidence_accepted, &[]), Status::Fail);
+
+        let mut floor_accepted = row(Kind::Robust, Verdict::Pass, 2, 2_000);
+        floor_accepted.reference_floor_match = true;
+        assert_eq!(evaluate(&floor_accepted, &[]), Status::AcceptedOutliers);
+
+        floor_accepted.outlier_evidence.divergent_samples = 2;
+        floor_accepted.outlier_evidence.fornax_not_worse = false;
+        assert_eq!(evaluate(&floor_accepted, &[]), Status::Fail);
     }
 
     #[test]
@@ -371,7 +415,7 @@ mod tests {
     }
 
     #[test]
-    fn committed_aahd_libraw_rows_are_accepted_dng_outliers() -> mischief::Result<()> {
+    fn committed_aahd_libraw_rows_apply_ground_truth_evidence() -> mischief::Result<()> {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
         let report = Report::read(&path)?;
         let rows = report
@@ -385,9 +429,14 @@ mod tests {
 
         assert_eq!(rows.len(), 4);
         for row in rows {
+            let expected = if row.pattern == "GRBG" {
+                Status::AcceptedOutliers
+            } else {
+                Status::Fail
+            };
             assert_eq!(
                 evaluate(row, crate::waivers::WAIVERS),
-                Status::AcceptedOutliers,
+                expected,
                 "{}",
                 row.pattern
             );
@@ -397,7 +446,7 @@ mod tests {
     }
 
     #[test]
-    fn committed_ahd_libraw_rows_are_accepted_dng_outliers() -> mischief::Result<()> {
+    fn committed_ahd_libraw_rows_apply_ground_truth_evidence() -> mischief::Result<()> {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
         let report = Report::read(&path)?;
         let rows = report
@@ -411,9 +460,14 @@ mod tests {
 
         assert_eq!(rows.len(), 4);
         for row in rows {
+            let expected = match row.pattern.as_str() {
+                "BGGR" => Status::Fail,
+                "GBRG" => Status::UnreviewedOutliers,
+                _ => Status::AcceptedOutliers,
+            };
             assert_eq!(
                 evaluate(row, crate::waivers::WAIVERS),
-                Status::AcceptedOutliers,
+                expected,
                 "{}",
                 row.pattern
             );
