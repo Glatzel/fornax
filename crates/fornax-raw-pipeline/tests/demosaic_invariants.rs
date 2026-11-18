@@ -112,7 +112,7 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         Invariant::NegativePreservation
             if matches!(
                 algorithm,
-                "AAHD" | "AHD" | "AMaZE" | "DCB" | "DHT" | "LMMSE" | "PPG" | "RCD" | "VNG" | "VNG4"
+                "AAHD" | "AHD" | "AMaZE" | "DCB" | "DHT" | "LMMSE" | "RCD" | "VNG" | "VNG4"
             ) =>
         {
             Expected::Fail("fixed-range conversion or a zero floor removes negative values")

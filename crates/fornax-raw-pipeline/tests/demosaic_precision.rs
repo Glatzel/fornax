@@ -94,6 +94,17 @@ fn ppg_f64_retains_scale_equivariance_above_one() {
 }
 
 #[test]
+fn ppg_f64_preserves_negative_constant_fields() {
+    let expected = -0.25_f64;
+    let output = run(Demosaic::Ppg, vec![sample::<f64>(expected); 32 * 32]).unwrap();
+    assert_close(
+        &output,
+        &vec![expected; output.len()],
+        "PPG f64 negative constant",
+    );
+}
+
+#[test]
 #[ignore = "tracked Phase C blocker: RCD fixed epsilons break exact f64 constants"]
 fn rcd_f64_preserves_constant_precision_and_hdr_magnitude() {
     let sub_f32 = 1.0 + 2.0_f64.powi(-40);
