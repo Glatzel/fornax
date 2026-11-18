@@ -386,3 +386,66 @@ Hyperfine process runs after one warmup. Peak RSS is the benchmark process.
 No slowdown exceeds the 25% review threshold and no memory growth approaches
 2x. Five touched incremental release builds averaged `0.868 s` on this branch
 versus `1.860 s` on main, so retained-code compile time did not regress.
+
+## Phase D final assessment
+
+### Task checklist
+
+- [x] Expand AMaZE synthetic evidence across seeds, scene variants, and sizes.
+- [x] Run f64 scale and constant-range checks across every retained algorithm,
+  Bayer pattern, two additional dimensions, and two seeds.
+- [x] Re-triage all eleven algorithms with invariants, ground truth, and
+  reference status.
+- [x] Regenerate canonical, snapshots, and README from the full comparison run.
+- [x] Update `TODO.md` with remaining demosaic work only.
+
+### AMaZE evidence expansion
+
+AMaZE reference evidence now uses 24 deterministic sources. The original six
+ground-truth scenes remain first, followed by three variants of each scene at
+`96x80`, `126x94`, and `160x128`, with distinct seeds and altered geometry or
+texture. Other algorithms keep the original six-source evidence set so the full
+canonical run does not multiply every reference row.
+
+| Pattern | Reference | Divergent samples | Fornax MAE / P99 | Reference MAE / P99 | Status |
+| --- | --- | ---: | ---: | ---: | --- |
+| BGGR | darktable / RawTherapee | 68,324 | 14,900.19 / 52,178 | 14,934.32 / 52,561 | ⚖️ |
+| GBRG | darktable / RawTherapee | 67,553 | 15,160.93 / 52,178 | 15,183.72 / 52,561 | ⚖️ |
+| GRBG | darktable / RawTherapee | 66,600 | 14,812.04 / 52,179 | 14,865.81 / 52,562 | ⚖️ |
+| RGGB | darktable / RawTherapee | 68,193 | 14,850.46 / 52,178 | 14,916.98 / 52,561 | ⚖️ |
+
+All eight AMaZE rows remain accepted, with the same result from both references.
+The earlier sparse three-pattern result was fixture-limited; the current
+linear-light AMaZE has a stable evidence advantage rather than a narrow
+geometry-specific pass.
+
+### Combined triage
+
+`Pass` means every applicable f32 invariant passes. Converted kernels also pass
+the expanded f64 scale and signed/HDR constant checks.
+
+| Algorithm | Invariants | GT rank / vs Linear | Reference status | Classification / disposition |
+| --- | --- | --- | --- | --- |
+| RCD | Flip fail; other applicable checks pass | 1 / 0.889x | darktable ❌; RawTherapee ❌ | Direction-tie asymmetry plus marginal evidence-worse tails. Retained because it is the best ground-truth method. |
+| PPG | All applicable checks pass | 2 / 0.922x | darktable ✅; LibRaw ✅ | Retained, linear-light floor above Linear. |
+| LMMSE | All applicable checks pass | 3 / 0.935x | darktable ❌; RawTherapee ❌ | Analytic linear-light formulation differs from bounded gamma references and is evidence-worse on divergent samples. Retained on invariant and GT quality. |
+| AMaZE | Flip fail; other applicable checks pass | 4 / 0.938x | both references ⚖️ | Direction-tie asymmetry remains. Broad evidence supports retained linear-light behavior. |
+| VNG | All applicable checks pass | 5 / 0.996x | darktable ❌; LibRaw ❌ | Evidence-worse against both references despite passing the LibRaw disagreement floor. Retained but open. |
+| VNG4 | All applicable checks pass | 6 / 0.996x | LibRaw ❌; RawTherapee ⚖️ | Shares VNG evidence and performance limitations. Retained but open. |
+| Linear | All applicable checks pass | 7 / 1.000x | LibRaw 🟢 | Retained correctness floor. |
+| AHD | Removed: HDR/negative/scale failures | Removed | Removed | Bounded gamma/Lab homogeneity scoring and quantization are central to the retained formulation. |
+| AAHD | Removed: constant/HDR/negative/scale failures | Removed | Removed | Gamma/LUT scoring and discrete direction choices were not convertible without changing the algorithm. |
+| DCB | Removed: HDR/negative/scale failures | Removed | Removed | Byte-scale candidate/refinement decisions and truncating ratios are pervasive. |
+| DHT | Removed: HDR/negative/scale failures | Removed | Removed | Mid-gray padding, code thresholds, and bounded reconstruction are part of the retained model. |
+
+### Remaining work
+
+| Priority | Open item | Evidence | Likely cause | Effort | Gain |
+| ---: | --- | --- | --- | --- | --- |
+| 1 | AMaZE/RCD flip symmetry | AMaZE differs at `(1,0)` by `0.006788`; RCD at `(9,9)` by `0.028822` | AMaZE tile/halo and tie selection (`amaze.rs:376`, `amaze.rs:815`, `amaze.rs:1618`); RCD tile-relative direction weights (`rcd.rs:141`, `rcd.rs:301`, `rcd.rs:380`) | Medium | Two invariant failures become Pass; improves orientation reliability. |
+| 2 | LMMSE reference evidence | darktable evidence MAE `3711` vs `3619`; RawTherapee `3593` vs `3506` | Analytic transfer and corrected signed/HDR branch (`lmmse.rs:36-92`) intentionally differs from bounded reference tables | Medium-high | Could turn both reference rows from ❌ to evidence-supported status without reintroducing clamps. |
+| 3 | VNG/VNG4 reference evidence and GT quality | Both rank `0.996x` vs Linear; evidence MAE/P99 worse than reference | Float gradient selection and corrected interpolation replace truncating integer decisions (`vng.rs:136`, `vng.rs:160`, `vng.rs:254`) | High | Largest remaining quality gain among retained methods. |
+| 4 | AMaZE/VNG supported-scene regression | AMaZE `0.075552` to `0.075941`; VNG/VNG4 `0.078106` to `0.078452` | AMaZE highlight/local limits and VNG direction changes after bounded arithmetic removal | Medium | Restores a strict no-regression gate while retaining invariants. |
+| 5 | VNG/VNG4 speed | About 18-22% slower than main f32 benchmarks | Generic phase samples and repeated `powi` gradient weights (`vng.rs:97`, `vng.rs:160`) | Medium | Removes the only retained-kernel slowdown above 15%. |
+| 6 | RCD reference evidence tail | DNG MAE improved to `0.0575`/`0.2242`, but evidence P99 remains worse than references | Sub-code ratio/tie interpretation propagates through discrimination weights (`rcd.rs:222`, `rcd.rs:301`, `rcd.rs:380`) | Medium | Could clear reference ❌ without changing the best aggregate GT result. |
+| 7 | Future linear reformulations of removed algorithms | AHD/AAHD/DCB/DHT cannot meet the current linear-light architecture | Their mathematical direction models depend on bounded, gamma, or integer code behavior | High | Only justified as new algorithms, not compatibility wrappers. |
