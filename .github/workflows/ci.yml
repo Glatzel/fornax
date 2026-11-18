@@ -51,14 +51,7 @@ jobs:
               - ./crates/fornax-codec/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
-              - ./crates/fornax-raw-decoder/Cargo.toml
-              - ./crates/fornax-raw-decoder/README.md
               - ./crates/fornax-raw-decoder/benches/**
-              - ./crates/fornax-raw-decoder/src/decoders/mod.rs
-              - ./crates/fornax-raw-decoder/src/dnc.rs
-              - ./crates/fornax-raw-decoder/src/lib.rs
-              - ./crates/fornax-raw-decoder/tests/**
-              - ./crates/decoder-tracker/golden/**
               - '!**/*.md'
             benchmark_sony:
               - ./crates/fornax-raw-decoder/src/decoders/sony/**
