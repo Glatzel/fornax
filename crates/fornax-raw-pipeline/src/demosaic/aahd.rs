@@ -108,6 +108,19 @@ impl Aahd {
                 }
             }
         }
+        for y in 0..plane_height {
+            let source_y = reflect_index(y as isize - MARGIN as isize, height);
+            for x in 0..stride {
+                let source_x = reflect_index(x as isize - MARGIN as isize, width);
+                if y >= MARGIN && y < height + MARGIN && x >= MARGIN && x < width + MARGIN {
+                    continue;
+                }
+                let value = input[source_y * width + source_x];
+                let index = y * stride + x;
+                rgb[0][index] = [value; 3];
+                rgb[1][index] = [value; 3];
+            }
+        }
 
         Self {
             width,
@@ -635,6 +648,20 @@ const fn clip(value: i32, minimum: u16, maximum: u16) -> u16 {
 }
 
 const fn add(index: usize, offset: isize) -> usize { (index as isize + offset) as usize }
+
+#[inline]
+fn reflect_index(index: isize, length: usize) -> usize {
+    if length <= 1 {
+        return 0;
+    }
+    let period = 2 * (length as isize - 1);
+    let reflected = index.rem_euclid(period);
+    if reflected < length as isize {
+        reflected as usize
+    } else {
+        (period - reflected) as usize
+    }
+}
 
 const fn color_index(channel: BayerChannel) -> usize {
     match channel {
