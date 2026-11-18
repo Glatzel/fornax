@@ -1,4 +1,4 @@
-# Demosaic Phase A fixes
+# Demosaic correctness and research-grade refactor
 
 ## Goal
 
@@ -36,9 +36,15 @@ Out of scope:
 - [x] Extend the AAHD working margin and require the outermost constant pixel.
 - [x] Diagnose and fix border-construction flip failures; record direction-tie
   asymmetry for Phase C when appropriate.
-- [ ] Run algorithm reference/ground-truth gates, speed and memory measurements,
+- [x] Run algorithm reference/ground-truth gates, speed and memory measurements,
   and repository validation.
-- [ ] Record Phase A results and stop before Phase B.
+- [x] Record Phase A results and stop before Phase B.
+- [x] Add the generic f64 invariant harness.
+- [x] Replace dynamic f32 transport with explicit static conversions.
+- [x] Remove shared `[0,1]` output clamps.
+- [x] Isolate bounded integer conversion behind a fallible reference adapter.
+- [x] Add scale-normalization and analytic transfer-function helpers.
+- [x] Make ground-truth scene exclusion explicit and deterministic.
 
 ## Files expected to change
 
@@ -128,3 +134,84 @@ Peak resident memory includes the benchmark process.
 Incremental release compilation of `fornax-raw-pipeline` averaged 1855.8 ms
 before and 1873.9 ms after over five touched rebuilds, a 0.98% increase. No
 meaningful speed or memory regression was observed.
+
+## Phase B design note
+
+Linear-light contract:
+
+- `T` is the working type from input to output. No shared helper may round-trip
+  through integer storage or silently narrow a higher-precision input.
+- Demosaicing never normalizes to `[0,1]`, clamps output, or applies gamma as a
+  default transform. Reference quantization remains a separate comparison
+  operation.
+- Algorithms whose mathematical formulation requires a scoring transform use
+  an explicit, reversible scale-normalization wrapper around their kernel.
+  The scale is a robust high percentile of `abs(sample)`, homogeneous of degree
+  one, with `1` as the safe fallback for an all-zero field.
+
+Precision abstraction:
+
+- Phase B retains `Primitive: Float` as the shared bound. It already provides
+  static, monomorphized arithmetic, comparisons, absolute value, square root,
+  powers, and constants; its image bounds are required by pipeline storage.
+- A smaller custom trait is deferred until per-kernel conversions show a
+  concrete operation gap. Dynamic dispatch, `TypeId`, and `Any` downcasts are
+  removed from demosaic conversion plumbing.
+- Production kernels instantiate `f32`. Correctness tests instantiate both
+  `f32` and `f64`; `f64` tests start at `2e-10` relative and `1e-12` absolute
+  tolerance. Named constants remain `f64` and are converted once per kernel.
+
+Working buffers:
+
+- Shared output construction becomes generic over `Vec<T>` and preserves signs
+  and magnitudes.
+- The shared u16 `codes` path is removed from the final architecture. Until
+  Phase C converts its consumers, bounded integer conversion is isolated as an
+  explicit, fallible reference-precision adapter. It rejects out-of-range input
+  rather than clipping it.
+- AHD and AMaZE remain f32 kernels after Phase B. Their generic facade is tracked
+  as a Phase C blocker, not presented as generic arithmetic.
+
+Transfer functions:
+
+- Shared analytic sRGB encode/decode helpers use the canonical piecewise
+  curve in `[0,1]`, odd extension for negative values, and power-law
+  continuation above one. They are not yet used by any default kernel.
+- No LUT may be used to extend a transfer function outside its table domain.
+
+Phase B stops before AHD, AMaZE, AAHD, DCB, DHT, LMMSE, VNG, or VNG4 kernel
+conversion. Their u16/f32 internals remain visible Phase C blockers.
+
+## Phase B results
+
+- All `Any`, `TypeId`, and downcast-based demosaic transport is removed.
+- `linear_f32` and `dense_from_f32_workspace` are explicit temporary adapters
+  for AHD/AMaZE. They preserve signed HDR values and no longer clamp.
+- The formerly shared clamped u16 path is now the explicit, fallible
+  `reference_codes` adapter. It rejects non-finite or out-of-range samples.
+  AAHD, DCB, DHT, LMMSE, VNG, and VNG4 therefore fail closed until Phase C.
+- The `Finite` invariant expectation is now `Fail` for those six adapters:
+  out-of-range input returns a clean error instead of silently clipping.
+- Generic f64 tests pass for Linear and PPG over sub-f32, negative, and HDR
+  values and scaling from `1e-6` through `1e6`. RCD's exact f64 constant test
+  remains an ignored Phase C failure (`1.25e-6` error from fixed epsilon).
+- Ground truth excludes `hdr_blocks` consistently for all algorithms because
+  not every current kernel accepts it. This transforms the old HDR-biased
+  ranking into: DHT, RCD, PPG, LMMSE, AMaZE, AHD, AAHD, DCB, VNG/VNG4, Linear.
+- Every advanced algorithm now beats Linear on the common supported scene set.
+
+Affected-kernel performance at `1000x1500`, one thread:
+
+| Algorithm | Time before | Time after | Change | RSS after |
+| --- | ---: | ---: | ---: | ---: |
+| AAHD | 511.7 ms | 513.9 ms | +0.4% | 86.9 MiB |
+| AHD | 386.0 ms | 389.8 ms | +1.0% | 51.6 MiB |
+| AMaZE | 475.9 ms | 479.8 ms | +0.8% | 50.0 MiB |
+| DCB | 502.5 ms | 505.9 ms | +0.7% | 75.7 MiB |
+| DHT | 329.2 ms | 334.4 ms | +1.6% | 49.8 MiB |
+| LMMSE | 622.1 ms | 625.1 ms | +0.5% | 67.8 MiB |
+| VNG | 480.4 ms | 487.2 ms | +1.4% | 49.9 MiB |
+| VNG4 | 479.1 ms | 482.0 ms | +0.6% | 50.0 MiB |
+
+Incremental release compilation remained effectively flat: 2064.6 ms before,
+2057.1 ms after.
