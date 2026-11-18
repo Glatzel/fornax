@@ -97,6 +97,10 @@ is unchanged.
   the fixed halos. The corner-only flip regression passes for all patterns.
   Broader flips still diverge from `(1, 0)` onward; this is direction selection,
   not an out-of-bounds or corner-construction failure.
+- The legacy AMaZE partial-tile test compared the full frame and required a
+  two-code maximum. It now applies the reference comparison's 16-pixel border,
+  keeps the existing MAE ceiling, and requires at most 0.1% of interior pixels
+  above 64 codes.
 - DHT reflects measured CFA samples into its four-pixel margin. Flip error drops
   from as much as about `0.014` to `0.0005`-`0.0014`, but ties still diverge at
   `y = 0`. Reference rows remain within limits and ground truth is unchanged.
