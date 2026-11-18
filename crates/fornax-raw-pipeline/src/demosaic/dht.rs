@@ -43,6 +43,20 @@ const fn cfa_channel(pattern: BayerPattern, x: isize, y: isize) -> usize {
     }
 }
 
+#[inline]
+fn reflect_index(index: isize, length: usize) -> usize {
+    if length <= 1 {
+        return 0;
+    }
+    let period = 2 * (length as isize - 1);
+    let reflected = index.rem_euclid(period);
+    if reflected < length as isize {
+        reflected as usize
+    } else {
+        (period - reflected) as usize
+    }
+}
+
 struct Dht {
     width: usize,
     height: usize,
@@ -74,6 +88,14 @@ impl Dht {
                     let index = (y + MARGIN) * stride + x + MARGIN;
                     nraw[index][channel] = f32::from(value);
                 }
+            }
+        }
+        for y in 0..height + 2 * MARGIN {
+            let source_y = reflect_index(y as isize - MARGIN as isize, height);
+            for x in 0..width + 2 * MARGIN {
+                let source_x = reflect_index(x as isize - MARGIN as isize, width);
+                let channel = cfa_channel(pattern, source_x as isize, source_y as isize);
+                nraw[y * stride + x][channel] = f32::from(input[source_y * width + source_x]);
             }
         }
         for minimum in &mut channel_minimum {
@@ -781,6 +803,30 @@ mod tests {
 
                     assert_eq!(actual, expected, "({x}, {y}) ch {channel}");
                 }
+            }
+        }
+    }
+
+    #[test]
+    fn new_reflects_measured_samples_into_the_working_margin() {
+        let pattern = BayerPattern::GBRG;
+        let width = 9;
+        let height = 7;
+        let input = (0..width * height)
+            .map(|index| 1_000 + index as u16)
+            .collect::<Vec<_>>();
+        let dht = Dht::new(&input, width, height, pattern);
+
+        for y in 0..height + 2 * MARGIN {
+            let source_y = reflect_index(y as isize - MARGIN as isize, height);
+            for x in 0..width + 2 * MARGIN {
+                let source_x = reflect_index(x as isize - MARGIN as isize, width);
+                let channel = cfa_channel(pattern, source_x as isize, source_y as isize);
+                assert_eq!(
+                    dht.nraw[y * dht.stride + x][channel],
+                    f32::from(input[source_y * width + source_x]),
+                    "({x}, {y}) ch {channel}"
+                );
             }
         }
     }
