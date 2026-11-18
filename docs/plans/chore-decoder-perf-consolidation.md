@@ -72,14 +72,15 @@ Out of scope:
 
 ### Task 3: Canon CRX
 
-- [ ] Profile R5/R6/R7 with `perf record` and `perf stat` at 1T and 16T; report
+- [x] Profile R5/R6/R7 with `perf record` and `perf stat` at 1T and 16T; report
   the requested cycle split, instructions, branch misses, and minor faults.
-- [ ] Read FlashRaw 0.3.1's CRX line-context and plane-placement structure; its
+- [x] Read FlashRaw 0.3.1's CRX line-context and plane-placement structure; its
   code is MIT OR Apache-2.0 but remains approach-only reference material.
-- [ ] Add failing synthetic CRX oracle, truncation, and bit-flip tests.
-- [ ] Measure direct placement, compact line context/scratch reuse, slice-based
-  bounds-check removal, and per-band scratch reuse separately.
-- [ ] Stop after two accepted profile-driven changes if R6 1T gain is below
+- [x] Add failing synthetic CRX oracle, truncation, and bit-flip tests.
+- [x] Measure fused Rice extraction and direct one-thread placement separately;
+  both exceeded their paired variation. Stop at the two-change time box rather
+  than stack compact-context or bounds-check changes without profile support.
+- [x] Stop after two accepted profile-driven changes if R6 1T gain is below
   10%; record neutral/regressed attempts as rejected experiments.
 - [ ] Run Canon/decoder tests and all Canon golden hashes; commit accepted CRX
   changes as commit 3.

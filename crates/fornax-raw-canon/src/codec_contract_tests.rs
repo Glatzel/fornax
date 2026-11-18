@@ -101,6 +101,28 @@ fn decodes_lossless_planes_into_one_mosaic() {
 }
 
 #[test]
+fn direct_one_thread_decode_matches_the_parallel_reference() {
+    let sample = synthetic_sample();
+    let header = header(0x0100, 0);
+    let one = rayon::ThreadPoolBuilder::new()
+        .num_threads(1)
+        .build()
+        .unwrap()
+        .install(|| {
+            decode_sample(header.clone(), &sample)
+                .into_raw_u16()
+                .unwrap()
+        });
+    let many = rayon::ThreadPoolBuilder::new()
+        .num_threads(4)
+        .build()
+        .unwrap()
+        .install(|| decode_sample(header, &sample).into_raw_u16().unwrap());
+
+    assert_eq!(one, many);
+}
+
+#[test]
 fn all_bayer_placements_have_distinct_metadata_patterns() {
     assert_eq!(CanonCrxCfa::Rggb.pattern(), [0, 1, 1, 2]);
     assert_eq!(CanonCrxCfa::Grbg.pattern(), [1, 0, 2, 1]);

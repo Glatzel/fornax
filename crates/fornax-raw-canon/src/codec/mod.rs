@@ -138,29 +138,39 @@ fn decode(
             tasks.push((tile_index, plane_index, *plane));
         }
     }
-    let decoded: Result<Vec<(usize, usize, Vec<u16>)>, CodecError> = tasks
-        .par_iter()
-        .map(|(tile_index, plane_index, plane)| {
+    let pixel_count =
+        usize::try_from(u64::from(header.mosaic_width()) * u64::from(header.mosaic_height()))
+            .map_err(|_| invalid("Canon CRX mosaic dimensions exceed usize"))?;
+    let mut mosaic = vec![0_u16; pixel_count];
+    if rayon::current_num_threads() == 1 {
+        for (tile_index, plane_index, plane) in tasks {
             let band = plane
                 .band
                 .data_offset
                 .checked_add(plane.band.data_size)
                 .and_then(|end| data.get(plane.band.data_offset..end))
                 .ok_or_else(|| invalid("Canon CRX band exceeds the sample"))?;
-            let tile = &tiles[*tile_index];
-            decode_plane(tile.width / 2, tile.height / 2, band, header)
-                .map(|samples| (*tile_index, *plane_index, samples))
-        })
-        .collect();
-    let decoded = decoded?;
-
-    let pixel_count =
-        usize::try_from(u64::from(header.mosaic_width()) * u64::from(header.mosaic_height()))
-            .map_err(|_| invalid("Canon CRX mosaic dimensions exceed usize"))?;
-    let mut mosaic = vec![0_u16; pixel_count];
-    for (tile_index, plane_index, plane) in decoded {
-        let tile = &tiles[tile_index];
-        integrate_plane(&mut mosaic, tile, plane_index, &plane, header)?;
+            decode_plane_direct(&mut mosaic, &tiles[tile_index], plane_index, band, header)?;
+        }
+    } else {
+        let decoded: Result<Vec<(usize, usize, Vec<u16>)>, CodecError> = tasks
+            .par_iter()
+            .map(|(tile_index, plane_index, plane)| {
+                let band = plane
+                    .band
+                    .data_offset
+                    .checked_add(plane.band.data_size)
+                    .and_then(|end| data.get(plane.band.data_offset..end))
+                    .ok_or_else(|| invalid("Canon CRX band exceeds the sample"))?;
+                let tile = &tiles[*tile_index];
+                decode_plane(tile.width / 2, tile.height / 2, band, header)
+                    .map(|samples| (*tile_index, *plane_index, samples))
+            })
+            .collect();
+        for (tile_index, plane_index, plane) in decoded? {
+            let tile = &tiles[tile_index];
+            integrate_plane(&mut mosaic, tile, plane_index, &plane, header)?;
+        }
     }
     SampleBuffer::from_u16(header.mosaic_width(), header.mosaic_height(), mosaic)
         .map_err(Into::into)
@@ -380,7 +390,6 @@ fn decode_plane(
     encoded: &[u8],
     header: &CanonCrxHeader,
 ) -> Result<Vec<u16>, CodecError> {
-    let mut decoder = PlaneDecoder::new(width, height, encoded);
     let median = 1_i32
         .checked_shl(u32::from(header.median_precision()) - 1)
         .ok_or_else(|| invalid("Canon CRX median precision is invalid"))?;
@@ -389,21 +398,73 @@ fn decode_plane(
         .and_then(|value| value.checked_sub(1))
         .ok_or_else(|| invalid("Canon CRX sample precision is invalid"))?;
     let mut output = vec![0_u16; width * height];
-    for row in 0..height {
-        decoder.decode_line()?;
-        let line = decoder.current();
+    decode_plane_rows(width, height, encoded, |row, line| {
         let start = row * width;
         for (target, value) in output[start..start + width].iter_mut().zip(line) {
-            *target = u16::try_from(
-                value
-                    .checked_add(median)
-                    .ok_or_else(|| invalid("Canon CRX sample prediction overflow"))?
-                    .clamp(0, max_val),
-            )
-            .map_err(|_| invalid("Canon CRX sample exceeds u16"))?;
+            *target = crx_sample(*value, median, max_val)?;
         }
-    }
+        Ok(())
+    })?;
     Ok(output)
+}
+
+fn decode_plane_direct(
+    mosaic: &mut [u16],
+    tile: &Tile,
+    plane_index: usize,
+    encoded: &[u8],
+    header: &CanonCrxHeader,
+) -> Result<(), CodecError> {
+    let placement = PlanePlacement::new(tile, plane_index, header)?;
+    let median = 1_i32
+        .checked_shl(u32::from(header.median_precision()) - 1)
+        .ok_or_else(|| invalid("Canon CRX median precision is invalid"))?;
+    let max_val = 1_i32
+        .checked_shl(u32::from(header.median_precision()))
+        .and_then(|value| value.checked_sub(1))
+        .ok_or_else(|| invalid("Canon CRX sample precision is invalid"))?;
+    decode_plane_rows(placement.width, placement.height, encoded, |row, line| {
+        let y = placement.tile_y + row * 2 + placement.row_shift;
+        let start = y
+            .checked_mul(placement.mosaic_width)
+            .and_then(|offset| offset.checked_add(placement.tile_x + placement.col_shift))
+            .ok_or_else(|| invalid("Canon CRX output offset overflow"))?;
+        let row_end = y
+            .checked_add(1)
+            .and_then(|row| row.checked_mul(placement.mosaic_width))
+            .ok_or_else(|| invalid("Canon CRX output row end overflow"))?;
+        let target_row = mosaic
+            .get_mut(start..row_end)
+            .ok_or_else(|| invalid("Canon CRX output row exceeds mosaic"))?;
+        for (target, value) in target_row.chunks_mut(2).take(placement.width).zip(line) {
+            target[0] = crx_sample(*value, median, max_val)?;
+        }
+        Ok(())
+    })
+}
+
+fn decode_plane_rows(
+    width: usize,
+    height: usize,
+    encoded: &[u8],
+    mut emit: impl FnMut(usize, &[i32]) -> Result<(), CodecError>,
+) -> Result<(), CodecError> {
+    let mut decoder = PlaneDecoder::new(width, height, encoded);
+    for row in 0..height {
+        decoder.decode_line()?;
+        emit(row, decoder.current())?;
+    }
+    Ok(())
+}
+
+fn crx_sample(value: i32, median: i32, max_val: i32) -> Result<u16, CodecError> {
+    u16::try_from(
+        value
+            .checked_add(median)
+            .ok_or_else(|| invalid("Canon CRX sample prediction overflow"))?
+            .clamp(0, max_val),
+    )
+    .map_err(|_| invalid("Canon CRX sample exceeds u16"))
 }
 
 fn integrate_plane(
@@ -413,49 +474,88 @@ fn integrate_plane(
     plane: &[u16],
     header: &CanonCrxHeader,
 ) -> Result<(), CodecError> {
-    let tile_x = tile
-        .col
-        .checked_mul(usize::try_from(header.tile_width()).unwrap_or(usize::MAX))
-        .ok_or_else(|| invalid("Canon CRX tile X offset overflow"))?;
-    let tile_y = tile
-        .row
-        .checked_mul(usize::try_from(header.tile_height()).unwrap_or(usize::MAX))
-        .ok_or_else(|| invalid("Canon CRX tile Y offset overflow"))?;
-    let plane_width = tile.width / 2;
-    let plane_height = tile.height / 2;
-    if plane.len() != plane_width * plane_height {
+    let placement = PlanePlacement::new(tile, plane_index, header)?;
+    if plane.len() != placement.width * placement.height {
         return Err(invalid(
             "Canon CRX decoded plane dimensions are inconsistent",
         ));
     }
-    let row_shift = plane_index / 2;
-    let col_shift = plane_index % 2;
-    let mosaic_width = usize::try_from(header.mosaic_width())
-        .map_err(|_| invalid("Canon CRX mosaic width exceeds usize"))?;
-    let mosaic_height = usize::try_from(header.mosaic_height())
-        .map_err(|_| invalid("Canon CRX mosaic height exceeds usize"))?;
-    for row in 0..plane_height {
-        let y = tile_y
-            .checked_add(row * 2 + row_shift)
-            .ok_or_else(|| invalid("Canon CRX output row overflow"))?;
-        if y >= mosaic_height {
-            return Err(invalid("Canon CRX output row exceeds mosaic"));
-        }
-        for col in 0..plane_width {
-            let x = tile_x
-                .checked_add(col * 2 + col_shift)
-                .ok_or_else(|| invalid("Canon CRX output column overflow"))?;
-            if x >= mosaic_width {
-                return Err(invalid("Canon CRX output column exceeds mosaic"));
-            }
-            let target = y
-                .checked_mul(mosaic_width)
-                .and_then(|offset| offset.checked_add(x))
-                .ok_or_else(|| invalid("Canon CRX output offset overflow"))?;
-            mosaic[target] = plane[row * plane_width + col];
+    for row in 0..placement.height {
+        let y = placement.tile_y + row * 2 + placement.row_shift;
+        let start = y * placement.mosaic_width + placement.tile_x + placement.col_shift;
+        for (col, value) in plane[row * placement.width..][..placement.width]
+            .iter()
+            .copied()
+            .enumerate()
+        {
+            mosaic[start + col * 2] = value;
         }
     }
     Ok(())
+}
+
+struct PlanePlacement {
+    tile_x: usize,
+    tile_y: usize,
+    row_shift: usize,
+    col_shift: usize,
+    mosaic_width: usize,
+    width: usize,
+    height: usize,
+}
+
+impl PlanePlacement {
+    fn new(tile: &Tile, plane_index: usize, header: &CanonCrxHeader) -> Result<Self, CodecError> {
+        let tile_x = tile
+            .col
+            .checked_mul(usize::try_from(header.tile_width()).unwrap_or(usize::MAX))
+            .ok_or_else(|| invalid("Canon CRX tile X offset overflow"))?;
+        let tile_y = tile
+            .row
+            .checked_mul(usize::try_from(header.tile_height()).unwrap_or(usize::MAX))
+            .ok_or_else(|| invalid("Canon CRX tile Y offset overflow"))?;
+        let width = tile.width / 2;
+        let height = tile.height / 2;
+        let row_shift = plane_index / 2;
+        let col_shift = plane_index % 2;
+        let mosaic_width = usize::try_from(header.mosaic_width())
+            .map_err(|_| invalid("Canon CRX mosaic width exceeds usize"))?;
+        let mosaic_height = usize::try_from(header.mosaic_height())
+            .map_err(|_| invalid("Canon CRX mosaic height exceeds usize"))?;
+        let last_y = tile_y
+            .checked_add(
+                height
+                    .checked_sub(1)
+                    .and_then(|value| value.checked_mul(2))
+                    .and_then(|value| value.checked_add(row_shift))
+                    .ok_or_else(|| invalid("Canon CRX output row overflow"))?,
+            )
+            .ok_or_else(|| invalid("Canon CRX output row overflow"))?;
+        let last_x = tile_x
+            .checked_add(
+                width
+                    .checked_sub(1)
+                    .and_then(|value| value.checked_mul(2))
+                    .and_then(|value| value.checked_add(col_shift))
+                    .ok_or_else(|| invalid("Canon CRX output column overflow"))?,
+            )
+            .ok_or_else(|| invalid("Canon CRX output column overflow"))?;
+        if last_y >= mosaic_height {
+            return Err(invalid("Canon CRX output row exceeds mosaic"));
+        }
+        if last_x >= mosaic_width {
+            return Err(invalid("Canon CRX output column exceeds mosaic"));
+        }
+        Ok(Self {
+            tile_x,
+            tile_y,
+            row_shift,
+            col_shift,
+            mosaic_width,
+            width,
+            height,
+        })
+    }
 }
 
 struct PlaneDecoder<'a> {
@@ -617,20 +717,7 @@ impl<'a> PlaneDecoder<'a> {
     }
 
     fn rice(&mut self, adapt: bool, k_max: u32) -> Result<u32, CodecError> {
-        let prefix = self.bits.read_zero_prefix(PREDICT_K_ESCAPE)?;
-        let value = if prefix >= PREDICT_K_ESCAPE {
-            self.bits.read_bits(PREDICT_K_ESCAPE_BITS)?
-        } else if self.k > 0 {
-            let remainder = self
-                .bits
-                .read_bits(u8::try_from(self.k).map_err(|_| invalid("Canon CRX K exceeds u8"))?)?;
-            prefix
-                .checked_shl(self.k)
-                .and_then(|value| value.checked_add(remainder))
-                .ok_or_else(|| invalid("Canon CRX Rice value overflow"))?
-        } else {
-            prefix
-        };
+        let value = self.bits.rice_code(self.k)?;
         if adapt {
             self.predict_k(value, k_max);
         }
@@ -747,6 +834,46 @@ impl<'a> CrxBitReader<'a> {
             }
             zeros += available;
             self.skip(available);
+        }
+    }
+
+    #[inline(always)]
+    fn rice_code(&mut self, k: u32) -> Result<u32, CodecError> {
+        self.fill();
+        if self.buffered == 0 {
+            return Err(invalid("Huffman bitstream is exhausted"));
+        }
+        let available = u32::from(self.buffered);
+        let leading = self.buffer.leading_zeros();
+        if leading < available {
+            if leading >= PREDICT_K_ESCAPE {
+                self.skip(PREDICT_K_ESCAPE + 1);
+                return self.read_bits(PREDICT_K_ESCAPE_BITS);
+            }
+            let consumed = leading + 1 + k;
+            if consumed <= available {
+                let remainder = if k == 0 {
+                    0
+                } else {
+                    ((self.buffer << (leading + 1)) >> (64 - k)) as u32
+                };
+                self.skip(consumed);
+                return Ok((leading << k) | remainder);
+            }
+        }
+
+        let prefix = self.read_zero_prefix(PREDICT_K_ESCAPE)?;
+        if prefix >= PREDICT_K_ESCAPE {
+            self.read_bits(PREDICT_K_ESCAPE_BITS)
+        } else if k > 0 {
+            let remainder =
+                self.read_bits(u8::try_from(k).map_err(|_| invalid("Canon CRX K exceeds u8"))?)?;
+            prefix
+                .checked_shl(k)
+                .and_then(|value| value.checked_add(remainder))
+                .ok_or_else(|| invalid("Canon CRX Rice value overflow"))
+        } else {
+            Ok(prefix)
         }
     }
 
@@ -920,6 +1047,70 @@ mod tests {
             assert_eq!(cached_value, Ok(expected), "cached Rice code {index}");
             assert_eq!(legacy_value, Ok(expected), "legacy Rice code {index}");
         }
+    }
+
+    #[test]
+    fn crx_fused_rice_matches_the_legacy_bit_at_a_time_reader() {
+        let mut state = 0x7f4a_7c15_u32;
+        let mut bits = Vec::new();
+        let mut expected = Vec::new();
+        for _ in 0..512 {
+            next_random(&mut state);
+            let k = state % 16;
+            next_random(&mut state);
+            let prefix = if state.is_multiple_of(23) {
+                PREDICT_K_ESCAPE + state % 5
+            } else {
+                state % 42
+            };
+            if prefix >= PREDICT_K_ESCAPE {
+                bits.extend(std::iter::repeat_n(false, 42));
+                next_random(&mut state);
+                let value = state & ((1 << PREDICT_K_ESCAPE_BITS) - 1);
+                push_bits(&mut bits, value, u32::from(PREDICT_K_ESCAPE_BITS));
+                expected.push((value, 0));
+            } else {
+                bits.extend(std::iter::repeat_n(false, prefix as usize));
+                bits.push(true);
+                let remainder = if k == 0 {
+                    0
+                } else {
+                    next_random(&mut state);
+                    state & ((1 << k) - 1)
+                };
+                push_bits(&mut bits, remainder, k);
+                expected.push(((prefix << k) | remainder, k));
+            }
+        }
+        let encoded = bit_bytes(&bits);
+        let mut fused = CrxBitReader::new(&encoded);
+        let mut legacy = LegacyBitReader::new(&encoded);
+        for (index, (expected, k)) in expected.into_iter().enumerate() {
+            assert_eq!(fused.rice_code(k), Ok(expected), "fused Rice code {index}");
+            assert_eq!(
+                legacy_rice_raw(&mut legacy, k),
+                Ok(expected),
+                "legacy Rice code {index}"
+            );
+        }
+    }
+
+    #[test]
+    fn crx_fused_rice_preserves_exhaustion_boundaries() {
+        let boundary = bit_bytes(&[false, false, false, false, false, false, false, true]);
+        let mut reader = CrxBitReader::new(&boundary);
+        assert_eq!(reader.rice_code(0).unwrap(), 7);
+        assert!(reader.rice_code(0).is_err());
+
+        let mid_code = bit_bytes(&[false, false, false, false, false, false, false, true]);
+        let mut reader = CrxBitReader::new(&mid_code);
+        assert!(reader.rice_code(3).is_err());
+
+        let mut escape = vec![false; 42];
+        escape.extend([false; 10]);
+        let bytes = bit_bytes(&escape);
+        let mut reader = CrxBitReader::new(&bytes);
+        assert!(reader.rice_code(0).is_err());
     }
 
     #[test]
