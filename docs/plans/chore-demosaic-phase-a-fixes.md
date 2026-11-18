@@ -128,4 +128,3 @@ Peak resident memory includes the benchmark process.
 Incremental release compilation of `fornax-raw-pipeline` averaged 1855.8 ms
 before and 1873.9 ms after over five touched rebuilds, a 0.98% increase. No
 meaningful speed or memory regression was observed.
-
