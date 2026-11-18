@@ -9,8 +9,9 @@
 
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use generic_num::num;
 
-use super::buffer::{DenseLazy, dense_from_reference_codes, reference_codes};
+use super::buffer::{DenseLazy, dense_from_vec};
 
 const TERMS: [[i16; 6]; 64] = [
     [-2, -2, 0, -1, 1, 1],
@@ -123,9 +124,8 @@ impl DemosaicVng {
         }
         let width = bayer.width() as usize;
         let height = bayer.height() as usize;
-        let input = reference_codes(bayer)?;
-        let output = interpolate(&input, width, height, pattern);
-        Ok(DenseLazy::new(dense_from_reference_codes(
+        let output = interpolate(bayer.as_raw(), width, height, pattern);
+        Ok(DenseLazy::new(dense_from_vec(
             bayer.width(),
             bayer.height(),
             output,
@@ -133,13 +133,18 @@ impl DemosaicVng {
     }
 }
 
-fn interpolate(input: &[u16], width: usize, height: usize, pattern: BayerPattern) -> Vec<u16> {
+fn interpolate<T: Primitive>(
+    input: &[T],
+    width: usize,
+    height: usize,
+    pattern: BayerPattern,
+) -> Vec<T> {
     let mut pixels = linear_interpolate(input, width, height, pattern);
     let phases = build_phases(width, pattern);
     let mut rows = [
-        vec![[0_u16; 4]; width],
-        vec![[0_u16; 4]; width],
-        vec![[0_u16; 4]; width],
+        vec![[T::zero(); 4]; width],
+        vec![[T::zero(); 4]; width],
+        vec![[T::zero(); 4]; width],
     ];
 
     let mut row = 2;
@@ -147,47 +152,59 @@ fn interpolate(input: &[u16], width: usize, height: usize, pattern: BayerPattern
         for col in 2..width - 2 {
             let pixel = row * width + col;
             let phase = &phases[row % 8][col % 2];
-            let mut gradients = [0_i64; 8];
+            let mut gradients = [T::zero(); 8];
             for term in &phase.terms {
-                let first = sample(&pixels, pixel, term.first) as i64;
-                let second = sample(&pixels, pixel, term.second) as i64;
-                let difference = (first - second).abs() << term.weight;
+                let first = sample(&pixels, pixel, term.first);
+                let second = sample(&pixels, pixel, term.second);
+                let difference = (first - second).abs()
+                    * num!(2.0).powi(i32::try_from(term.weight).expect("VNG weight fits i32"));
                 for &gradient in &term.gradients {
-                    gradients[gradient] += difference;
+                    gradients[gradient] = gradients[gradient] + difference;
                 }
             }
-            let minimum = gradients.iter().copied().min().unwrap_or(0);
-            let maximum = gradients.iter().copied().max().unwrap_or(0);
-            if maximum == 0 {
+            let minimum = gradients
+                .iter()
+                .copied()
+                .min_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal))
+                .unwrap_or(T::zero());
+            let maximum = gradients
+                .iter()
+                .copied()
+                .max_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal))
+                .unwrap_or(T::zero());
+            if maximum == T::zero() {
                 rows[2][col] = pixels[pixel];
                 continue;
             }
-            let threshold = minimum + (maximum >> 1);
-            let mut sums = [0_i64; 4];
+            let threshold = minimum + (maximum - minimum) / num!(2.0);
+            let mut sums = [T::zero(); 4];
             let color = color_at(pattern, col as i32, row as i32);
-            let mut count = 0_i64;
+            let mut count = 0_usize;
             for (index, (y, x, alternate)) in phase.neighbors.iter().copied().enumerate() {
                 if gradients[index] <= threshold {
                     for channel in 0..4 {
-                        sums[channel] += if channel == color && alternate != 0 {
-                            (pixels[pixel][channel] as i64
-                                + sample(&pixels, pixel, alternate) as i64)
-                                >> 1
-                        } else {
-                            sample(&pixels, pixel, (y * width as i32 + x) * 4 + channel as i32)
-                                as i64
-                        };
+                        sums[channel] = sums[channel]
+                            + if channel == color && alternate != 0 {
+                                (pixels[pixel][channel] + sample(&pixels, pixel, alternate))
+                                    / num!(2.0)
+                            } else {
+                                sample(
+                                    &pixels,
+                                    pixel,
+                                    (y * width as i32 + x) * 4 + channel as i32,
+                                )
+                            };
                     }
                     count += 1;
                 }
             }
-            let own = pixels[pixel][color] as i64;
+            let own = pixels[pixel][color];
             for channel in 0..4 {
-                rows[2][col][channel] = clip(if channel == color {
+                rows[2][col][channel] = if channel == color {
                     own
                 } else {
-                    own + (sums[channel] - sums[color]) / count
-                });
+                    own + (sums[channel] - sums[color]) / num!(count)
+                };
             }
         }
         if row > 3 {
@@ -200,23 +217,23 @@ fn interpolate(input: &[u16], width: usize, height: usize, pattern: BayerPattern
     pixels[(row - 2) * width + 2..(row - 1) * width - 2].copy_from_slice(&rows[0][2..width - 2]);
     pixels[(row - 1) * width + 2..row * width - 2].copy_from_slice(&rows[1][2..width - 2]);
 
-    let mut rgb = vec![0_u16; width * height * 3];
+    let mut rgb = vec![T::zero(); width * height * 3];
     for pixel in 0..width * height {
         rgb[pixel * 3] = pixels[pixel][0];
         // darktable keeps G1/G2 separate through VNG and mixes them only here.
-        rgb[pixel * 3 + 1] = u32::midpoint(pixels[pixel][1].into(), pixels[pixel][3].into()) as u16;
+        rgb[pixel * 3 + 1] = (pixels[pixel][1] + pixels[pixel][3]) / num!(2.0);
         rgb[pixel * 3 + 2] = pixels[pixel][2];
     }
     rgb
 }
 
-fn linear_interpolate(
-    input: &[u16],
+fn linear_interpolate<T: Primitive>(
+    input: &[T],
     width: usize,
     height: usize,
     pattern: BayerPattern,
-) -> Vec<[u16; 4]> {
-    let mut pixels = vec![[0_u16; 4]; width * height];
+) -> Vec<[T; 4]> {
+    let mut pixels = vec![[T::zero(); 4]; width * height];
     for row in 0..height {
         for col in 0..width {
             let pixel = row * width + col;
@@ -226,8 +243,8 @@ fn linear_interpolate(
                 if channel == own {
                     continue;
                 }
-                let mut sum = 0_u32;
-                let mut weight = 0_u32;
+                let mut sum = T::zero();
+                let mut weight = T::zero();
                 for y in -1_i32..=1 {
                     for x in -1_i32..=1 {
                         let ny = row as i32 + y;
@@ -238,13 +255,17 @@ fn linear_interpolate(
                         let ny = ny as usize;
                         let nx = nx as usize;
                         if color_at(pattern, nx as i32, ny as i32) == channel {
-                            let neighbor_weight = 1_u32 << (u32::from(y == 0) + u32::from(x == 0));
-                            sum += u32::from(input[ny * width + nx]) * neighbor_weight;
-                            weight += neighbor_weight;
+                            let neighbor_weight = match (y == 0, x == 0) {
+                                (true, true) => num!(4.0),
+                                (true, false) | (false, true) => num!(2.0),
+                                (false, false) => num!(1.0),
+                            };
+                            sum = sum + input[ny * width + nx] * neighbor_weight;
+                            weight = weight + neighbor_weight;
                         }
                     }
                 }
-                *value = (sum / weight.max(1)) as u16;
+                *value = sum / weight.max(T::one());
             }
         }
     }
@@ -300,7 +321,7 @@ fn build_phases(width: usize, pattern: BayerPattern) -> Vec<[PhaseCode; 2]> {
         .collect()
 }
 
-fn sample(pixels: &[[u16; 4]], pixel: usize, offset: i32) -> u16 {
+fn sample<T: Primitive>(pixels: &[[T; 4]], pixel: usize, offset: i32) -> T {
     let flat = pixel as i64 * 4 + i64::from(offset);
     pixels[(flat / 4) as usize][(flat % 4) as usize]
 }
@@ -313,8 +334,6 @@ const fn color_at(pattern: BayerPattern, col: i32, row: i32) -> usize {
         BayerChannel::B => 2,
     }
 }
-
-fn clip(value: i64) -> u16 { value.clamp(0, i64::from(u16::MAX)) as u16 }
 
 #[cfg(test)]
 mod tests {
@@ -388,26 +407,26 @@ mod tests {
     fn edge_green_interpolation_ignores_clamped_neighbors() {
         let width = 9_usize;
         let height = 9;
-        let mut input = vec![0_u16; width * height];
-        input[1] = 10_000;
-        input[3] = 30_000;
-        input[width + 2] = 50_000;
-        input[8 * width + 1] = 20_000;
-        input[8 * width + 3] = 40_000;
-        input[7 * width + 2] = 60_000;
-        input[width] = 30_000;
-        input[3 * width] = 50_000;
-        input[2 * width + 1] = 40_000;
-        input[width + 8] = 20_000;
-        input[3 * width + 8] = 40_000;
-        input[2 * width + 7] = 60_000;
+        let mut input = vec![0.0_f32; width * height];
+        input[1] = 10_000.0;
+        input[3] = 30_000.0;
+        input[width + 2] = 50_000.0;
+        input[8 * width + 1] = 20_000.0;
+        input[8 * width + 3] = 40_000.0;
+        input[7 * width + 2] = 60_000.0;
+        input[width] = 30_000.0;
+        input[3 * width] = 50_000.0;
+        input[2 * width + 1] = 40_000.0;
+        input[width + 8] = 20_000.0;
+        input[3 * width + 8] = 40_000.0;
+        input[2 * width + 7] = 60_000.0;
 
         let pixels = linear_interpolate(&input, width, height, BayerPattern::RGGB);
 
-        assert_eq!(pixels[2][1], 20_000);
-        assert_eq!(pixels[8 * width + 2][1], 30_000);
-        assert_eq!(pixels[2 * width][1], 40_000);
-        assert_eq!(pixels[2 * width + 8][1], 60_000);
+        assert_eq!(pixels[2][1], 20_000.0);
+        assert_eq!(pixels[8 * width + 2][1], 30_000.0);
+        assert_eq!(pixels[2 * width][1], 40_000.0);
+        assert_eq!(pixels[2 * width + 8][1], 60_000.0);
     }
 
     #[test]
@@ -420,18 +439,18 @@ mod tests {
                 let x = (pixel % width) as u32;
                 let y = (pixel / width) as u32;
                 match pattern.channel_at(x, y) {
-                    BayerChannel::R => 1_000,
-                    BayerChannel::GRedRow => 10_000,
-                    BayerChannel::B => 2_000,
-                    BayerChannel::GBlueRow => 30_000,
+                    BayerChannel::R => 1_000.0,
+                    BayerChannel::GRedRow => 10_000.0,
+                    BayerChannel::B => 2_000.0,
+                    BayerChannel::GBlueRow => 30_000.0,
                 }
             })
-            .collect::<Vec<_>>();
+            .collect::<Vec<f32>>();
 
         let output = interpolate(&input, width, height, pattern);
 
         for pixel in output.as_chunks::<3>().0 {
-            assert_eq!(pixel, &[1_000, 20_000, 2_000]);
+            assert_eq!(pixel, &[1_000.0, 20_000.0, 2_000.0]);
         }
     }
 
@@ -441,8 +460,8 @@ mod tests {
         let height = 12;
         let pattern = BayerPattern::GBRG;
         let input = (0..width * height)
-            .map(|pixel| 1_000 + (pixel as u16).wrapping_mul(97))
-            .collect::<Vec<_>>();
+            .map(|pixel| 1_000.0 + pixel as f32 * 97.0)
+            .collect::<Vec<f32>>();
 
         let pixels = linear_interpolate(&input, width, height, pattern);
 
@@ -460,13 +479,13 @@ mod tests {
         let height = 16;
         let pattern = BayerPattern::GBRG;
         let input = (0..width * height)
-            .map(|pixel| 2_000 + (pixel / width) as u16 * 64)
-            .collect::<Vec<_>>();
+            .map(|pixel| 2_000.0 + (pixel / width) as f32 * 64.0)
+            .collect::<Vec<f32>>();
 
         let output = interpolate(&input, width, height, pattern);
 
         for y in 2..height - 2 {
-            let expected = 2_000 + y as u16 * 64;
+            let expected = 2_000.0 + y as f32 * 64.0;
             for x in 2..width - 2 {
                 let offset = (y * width + x) * 3;
                 assert_eq!(
@@ -483,10 +502,10 @@ mod tests {
         let width = 16;
         let height = 16;
         let pattern = BayerPattern::GBRG;
-        let value = |x: usize, y: usize| 3_000 + x as u16 * 64 + y as u16 * 32;
+        let value = |x: usize, y: usize| 3_000.0 + x as f32 * 64.0 + y as f32 * 32.0;
         let input = (0..width * height)
             .map(|pixel| value(pixel % width, pixel / width))
-            .collect::<Vec<_>>();
+            .collect::<Vec<f32>>();
 
         let output = interpolate(&input, width, height, pattern);
 
@@ -528,18 +547,18 @@ mod tests {
                 let x = (pixel % width) as i32;
                 let y = (pixel / width) as i32;
                 match color_at(pattern, x, y) {
-                    0 => 10_000,
-                    1 | 3 => 20_000,
-                    2 => 30_000,
+                    0 => 10_000.0,
+                    1 | 3 => 20_000.0,
+                    2 => 30_000.0,
                     _ => unreachable!(),
                 }
             })
-            .collect::<Vec<_>>();
+            .collect::<Vec<f32>>();
 
         let output = interpolate(&input, width, height, pattern);
 
         for pixel in output.as_chunks::<3>().0 {
-            assert_eq!(pixel, &[10_000, 20_000, 30_000]);
+            assert_eq!(pixel, &[10_000.0, 20_000.0, 30_000.0]);
         }
     }
 }

@@ -173,6 +173,36 @@ fn amaze_f64_is_scale_homogeneous_and_preserves_range() {
 }
 
 #[test]
+fn vng_and_vng4_f64_are_scale_homogeneous_and_preserve_range() {
+    let mosaic = seeded_mosaic::<f64>(0.05, 1.5);
+    for algorithm in [Demosaic::Vng, Demosaic::Vng4] {
+        let baseline = run(algorithm, mosaic.clone()).unwrap();
+        for factor in [1.0e-3, 1.0, 1.0e3, 1.0e6] {
+            let scaled = mosaic.iter().map(|value| *value * factor).collect();
+            let actual = run(algorithm, scaled).unwrap();
+            let expected = baseline.iter().map(|value| *value * factor).collect::<Vec<_>>();
+            assert_close(
+                &actual,
+                &expected,
+                &format!("{algorithm:?} f64 scale {factor:e}"),
+            );
+        }
+        for value in [-0.25, 2.0, 1.0e4] {
+            let output = run(
+                algorithm,
+                vec![sample::<f64>(value); (WIDTH * HEIGHT) as usize],
+            )
+            .unwrap();
+            assert_close(
+                &output,
+                &vec![value; output.len()],
+                &format!("{algorithm:?} f64 constant {value}"),
+            );
+        }
+    }
+}
+
+#[test]
 fn f32_and_f64_generic_kernels_are_consistent_at_f32_precision() {
     let mosaic = seeded_mosaic::<f64>(0.1, 0.9);
     let f64 = run(Demosaic::Linear, mosaic.clone()).unwrap();
