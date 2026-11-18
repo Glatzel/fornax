@@ -92,7 +92,7 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
             Expected::NotApplicable("Phase 0 classifies only Linear as shift-invariant.")
         }
         Invariant::Shift => Expected::Pass,
-        Invariant::Scale if !matches!(algorithm, "Linear" | "PPG") => {
+        Invariant::Scale if !matches!(algorithm, "Linear" | "PPG" | "RCD") => {
             Expected::Fail("fixed-range conversion, epsilon, or quantization breaks scaling")
         }
         Invariant::PatternFlip if matches!(algorithm, "AAHD" | "AMaZE" | "DCB" | "DHT" | "RCD") => {
@@ -112,7 +112,7 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         Invariant::NegativePreservation
             if matches!(
                 algorithm,
-                "AAHD" | "AHD" | "AMaZE" | "DCB" | "DHT" | "LMMSE" | "RCD" | "VNG" | "VNG4"
+                "AAHD" | "AHD" | "AMaZE" | "DCB" | "DHT" | "LMMSE" | "VNG" | "VNG4"
             ) =>
         {
             Expected::Fail("fixed-range conversion or a zero floor removes negative values")

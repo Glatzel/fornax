@@ -105,13 +105,27 @@ fn ppg_f64_preserves_negative_constant_fields() {
 }
 
 #[test]
-#[ignore = "tracked Phase C blocker: RCD fixed epsilons break exact f64 constants"]
 fn rcd_f64_preserves_constant_precision_and_hdr_magnitude() {
     let sub_f32 = 1.0 + 2.0_f64.powi(-40);
     for value in [0.5, sub_f32, 4.0] {
         let output = run(Demosaic::Rcd, vec![sample::<f64>(value); 32 * 32]).unwrap();
         let expected = vec![value; output.len()];
         assert_close(&output, &expected, &format!("RCD f64 constant {value:?}"));
+    }
+}
+
+#[test]
+fn rcd_f64_is_scale_homogeneous() {
+    let mosaic = seeded_mosaic::<f64>(0.05, 1.5);
+    let baseline = run(Demosaic::Rcd, mosaic.clone()).unwrap();
+    for factor in [1.0e-3, 1.0, 1.0e3, 1.0e6] {
+        let scaled = mosaic.iter().map(|value| *value * factor).collect();
+        let actual = run(Demosaic::Rcd, scaled).unwrap();
+        let expected = baseline
+            .iter()
+            .map(|value| *value * factor)
+            .collect::<Vec<_>>();
+        assert_close(&actual, &expected, &format!("RCD f64 scale {factor:e}"));
     }
 }
 
