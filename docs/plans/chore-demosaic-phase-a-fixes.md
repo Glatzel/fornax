@@ -262,3 +262,125 @@ cases, adapters, snapshots, and build/setup dependencies are removed.
 With AHD removed, no retained kernel needs the temporary f32-only input or
 output adapters introduced during Phase B. The dead helpers and their focused
 tests are removed; dense output construction now stays generic over `T`.
+
+### Comparison test policy
+
+The native VNG, VNG4, and LMMSE tests that required pass limits against the
+bounded integer references are removed. Reference agreement is now judged by
+the canonical status rule, which combines the disagreement floor with
+ground-truth evidence; a kernel is not rejected merely for differing from a
+quantized reference. The RawTherapee adapter test now enumerates the IDs that
+remain registered after AHD removal instead of probing the removed ID.
+
+### Preprocessor sub-black preservation
+
+Black subtraction previously floored both fast and per-row black-delta paths at
+zero. The normalization now preserves signed sub-black samples in both paths
+while retaining zero output for a non-positive black/white range, where
+division is undefined. A focused f64 regression covers both paths. All pipeline
+tests pass; no consumer test or public handoff depended on the former floor.
+
+## Phase C results
+
+### Retained implementation
+
+The retained variants are Linear, PPG, RCD, AMaZE, VNG, VNG4, and LMMSE.
+Each kernel is generic over the shared `Primitive: Float` bound and production
+instantiates `f32`. The trait implementations are only `f32` and `f64`; integer
+types do not satisfy it. DHT, AAHD, DCB, and AHD were removed because their
+mathematical direction or scoring models depended on bounded code values,
+integer quantization, or gamma-domain decisions rather than a removable output
+clamp. Their source notes remain under `docs/reference/algorithms/` as
+provenance for possible future formulations.
+
+AMaZE's exponent bit manipulation was replaced by floating-point powers of two,
+so it is generic rather than `f32`-only. LMMSE uses the shared analytic transfer
+function with odd extension for negatives and power-law continuation above one.
+No retained production path contains a u16 working buffer, output clamp, gamma
+lookup table, or implicit conversion to a narrower working type.
+
+### Invariant matrix
+
+`Pass` means all four Bayer patterns pass at the executable f32 tolerance.
+Converted kernels also have focused f64 scale, signed-range, and constant-field
+tests at `2e-10` relative and `1e-12` absolute tolerance.
+
+| Algorithm | Scale | Shift | Flip | Constant | Ramp | Tiling | Finite | Negative | HDR |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Linear | Pass | Pass | Pass | Pass | Pass | Pass | Pass | Pass | Pass |
+| PPG | Pass | N/A | Pass | Pass | N/A | Pass | Pass | Pass | Pass |
+| RCD | Pass | N/A | Fail | Pass | N/A | Pass | Pass | Pass | Pass |
+| AMaZE | Pass | N/A | Fail | Pass | N/A | Pass | Pass | Pass | Pass |
+| VNG | Pass | N/A | Pass | Pass | Pass | Pass | Pass | Pass | Pass |
+| VNG4 | Pass | N/A | Pass | Pass | N/A | Pass | Pass | Pass | Pass |
+| LMMSE | Pass | N/A | Pass | Pass | N/A | Pass | Pass | Pass | Pass |
+
+Shift is not applicable to non-additive methods. Ramp claims are limited to the
+exact Linear and VNG cases. The remaining flip failures are deterministic:
+AMaZE first differs at `(1, 0)` by `0.006788` for RGGB to GRBG; RCD first
+differs at `(9, 9)` by `0.028822`. They are direction/tie asymmetry, not the
+Phase A crash or corner-reflection defects.
+
+### Ground-truth ranking
+
+With all retained kernels now accepting HDR input, `hdr_blocks` is included and
+the excluded-source list is empty. On the full deterministic synthetic and
+corpus set:
+
+| Rank | Algorithm | Relative mean | vs Linear | Suspicious scenes |
+| ---: | --- | ---: | ---: | --- |
+| 1 | RCD | 0.065768 | 0.889x | none |
+| 2 | PPG | 0.068210 | 0.922x | colored_edges |
+| 3 | LMMSE | 0.069145 | 0.935x | colored_edges |
+| 4 | AMaZE | 0.069376 | 0.938x | colored_edges |
+| 5 | VNG | 0.073676 | 0.996x | slanted_edge, colored_edges |
+| 6 | VNG4 | 0.073676 | 0.996x | slanted_edge, colored_edges |
+| 7 | Linear | 0.073991 | 1.000x | none |
+
+This ordering is consistent with the literature expectation used by the
+harness. The scene sets are not directly comparable to Phase B because HDR is
+now admitted. The recorded supported-scene comparisons show AMaZE moving from
+`0.075552` to `0.075941` and VNG/VNG4 from `0.078106` to `0.078452`, increases
+of 0.52% and 0.44%. These exceed a strict zero-regression gate even though they
+remain below the 1% suspicious-source margin and the mathematical invariants
+improve.
+
+### Reference verdicts
+
+The native RGGB rows below report code-domain MAE/P99/max. `⚖️` uses synthetic
+ground-truth error over pixels beyond the reference tolerance; it is accepted
+only when Fornax MAE and P99 are no more than one code worse than the reference.
+
+| Algorithm/reference | Before | After | Current evidence |
+| --- | --- | --- | --- |
+| AMaZE / darktable and RawTherapee | ❌, MAE `0.003868`, P99 `0`, max `321` | ⚖️, MAE `0.678612`, P99 `13`, max `2252` | Fornax MAE/P99 `1150/6430`; reference `1352/6803` |
+| LMMSE / darktable | ✅, MAE `0.000189`, P99 `0`, max `1` | ❌, MAE `0.811433`, P99 `17`, max `516` | Fornax `3711/44276`; reference `3619/44473` |
+| LMMSE / RawTherapee | ❌, MAE `4.621489`, P99 `40`, max `3028` | ❌, MAE `4.395130`, P99 `37`, max `3028` | Fornax `3593/46322`; reference `3506/45991` |
+| RCD / darktable | ✅, MAE `0.176026`, P99 `4`, max `277` | ❌, MAE `0.057511`, P99 `1`, max `6` | Fornax `2006/4916`; reference `1951/4699` |
+| RCD / RawTherapee | ❌, MAE `0.342880`, P99 `6`, max `1902` | ❌, MAE `0.224195`, P99 `1`, max `1902` | Fornax MAE `4115` is better than `7788`, but P99 `50110` is worse than `27275` |
+| VNG / darktable | ❌, MAE `0.380463`, P99 `1`, max `894` | ❌, MAE `9.545903`, P99 `63`, max `3239` | Fornax `1421/11227`; reference `1310/9691` |
+| VNG / LibRaw | ❌, MAE `17.639879`, P99 `117`, max `2958` | ❌, MAE `21.958831`, P99 `138`, max `3234` | Fornax `1986/17726`; reference `1261/11891` |
+| VNG4 / LibRaw | ✅, MAE `0`, P99 `0`, max `0` | ❌, MAE `9.614591`, P99 `63`, max `3240` | Fornax `1424/11227`; reference `1311/9692` |
+| VNG4 / RawTherapee | ⚖️, MAE `9.561479`, P99 `75`, max `3233` | ⚖️, MAE `15.916777`, P99 `103`, max `3739` | Fornax MAE/P99 `2232/27272`; reference `2812/35729` |
+
+PPG and Linear verdicts are unchanged. Generated README notes now describe the
+linear-light implementations instead of the former clamps and integer paths.
+
+### Performance and memory
+
+Measured on the existing Criterion `1000x1500`, f32, one-thread case with three
+Hyperfine process runs after one warmup. Peak RSS is the benchmark process.
+
+| Algorithm | Main time | Current time | Time change | Main RSS | Current RSS | RSS change |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Linear | 171.3 ms | 162.6 ms | -5.1% | 33.1 MiB | 32.9 MiB | -0.6% |
+| PPG | 272.0 ms | 262.1 ms | -3.6% | 32.9 MiB | 32.9 MiB | 0.0% |
+| RCD | 311.0 ms | 312.9 ms | +0.6% | 33.5 MiB | 39.5 MiB | +17.9% |
+| AMaZE | 487.6 ms | 481.8 ms | -1.2% | 52.5 MiB | 52.4 MiB | -0.2% |
+| VNG | 495.0 ms | 582.5 ms | +17.7% | 53.2 MiB | 56.0 MiB | +5.3% |
+| VNG4 | 481.9 ms | 587.1 ms | +21.8% | 53.3 MiB | 55.9 MiB | +4.9% |
+| LMMSE | 635.5 ms | 668.8 ms | +5.2% | 68.4 MiB | 56.5 MiB | -17.4% |
+
+No slowdown exceeds the 25% review threshold and no memory growth approaches
+2x. Five touched incremental release builds averaged `0.868 s` on this branch
+versus `1.860 s` on main, so retained-code compile time did not regress.

@@ -1191,9 +1191,8 @@ mod tests {
         let report = evaluate_algorithms(&["Linear".to_owned()], false)?;
         assert_eq!(report.version, 2);
         assert_eq!(report.pattern, "GBRG");
-        assert_eq!(report.synthetic_sources.len(), 5);
-        assert_eq!(report.excluded_sources.len(), 1);
-        assert_eq!(report.excluded_sources[0].name, "hdr_blocks");
+        assert_eq!(report.synthetic_sources.len(), 6);
+        assert!(report.excluded_sources.is_empty());
         assert_eq!(report.algorithms.len(), 1);
         let linear = &report.algorithms[0];
         assert_eq!(linear.algorithm, "Linear");
