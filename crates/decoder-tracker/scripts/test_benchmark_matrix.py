@@ -21,8 +21,7 @@ def test_builds_one_item_per_golden_row():
             {
                 "path": "Canon/EOS R5/photo.CR3",
                 "format": "CR3",
-                "feature": "canon",
-                "cargo-options": "--no-default-features --features canon",
+                "cargo-options": "--no-default-features",
                 "label": "CR3: Canon/EOS R5/photo.CR3",
                 "size": 10,
                 "sha256": SHA_A,
@@ -30,8 +29,7 @@ def test_builds_one_item_per_golden_row():
             {
                 "path": "Nikon/D850/photo.NEF",
                 "format": "NEF",
-                "feature": "nikon",
-                "cargo-options": "--no-default-features --features nikon",
+                "cargo-options": "--no-default-features",
                 "label": "NEF: Nikon/D850/photo.NEF",
                 "size": 20,
                 "sha256": SHA_B,
@@ -40,7 +38,7 @@ def test_builds_one_item_per_golden_row():
     }
 
 
-def test_filters_to_requested_formats_and_maps_dng_to_no_feature():
+def test_filters_to_requested_formats_without_format_features():
     rows = benchmark_matrix.load_manifest(
         io.StringIO(f"path,size,sha256\nAdobe/photo.DNG,10,{SHA_A}\nSony/photo.ARW,20,{SHA_B}\n")
     )
@@ -51,14 +49,12 @@ def test_filters_to_requested_formats_and_maps_dng_to_no_feature():
         {
             "path": "Sony/photo.ARW",
             "format": "ARW",
-            "feature": "sony",
-            "cargo-options": "--no-default-features --features sony",
+            "cargo-options": "--no-default-features",
             "label": "ARW: Sony/photo.ARW",
             "size": 20,
             "sha256": SHA_B,
         }
     ]
-    assert benchmark_matrix.FEATURES["DNG"] == ""
 
 
 def test_accepts_extended_golden_metadata_columns():

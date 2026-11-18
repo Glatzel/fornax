@@ -191,9 +191,9 @@ evidence required before work starts.
 
 ## Rejected experiments
 
-- `crates/fornax-raw-nikon/src/codec.rs` checked 64-bit Huffman refill: D850 and
+- `crates/fornax-raw-decoder/src/decoders/nikon/codec.rs` checked 64-bit Huffman refill: D850 and
   Z7 regressed 1.7-2.9% at both thread counts; dropped.
-- `crates/fornax-raw-nikon/src/codec.rs` identity-curve fast path: D850 was
+- `crates/fornax-raw-decoder/src/decoders/nikon/codec.rs` identity-curve fast path: D850 was
   neutral at 1T and slightly slower at 16T; dropped.
 - Historical neutral and regressed decoder experiments are indexed in the
   [decoder performance archive](../../../archive/reference/decoders/perf/);

@@ -23,20 +23,13 @@ part of the current preprocessor/demosaic handoff.
 | `fornax-tiff` | Generic TIFF tags, typed TIFF constants, values, directories, raster strip/tile planning, classic/BigTIFF parsing, and classic-TIFF writing. | `fornax-codec` |
 | `fornax-codec` | Format-neutral decode and encode requests, sample buffers, chunk assembly, predictors, Huffman and byte-order support, `ICodecDecode`/`ICodecEncode`, and generic codecs. | None |
 | `fornax-dng` | DNG-only tags, raw transforms, process-metadata conversion, and DNG writing over `fornax_tiff::Directory`. | `fornax-raw-core`, `fornax-tiff`, `fornax-codec` |
-| `fornax-raw-sony` | Native Sony ARW/NRW TIFF, private metadata, CFA layout mapping, and DNG-compatible metadata mapping. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-raw-canon` | Canon CR3/CRM BMFF, CMT/CTMD metadata, CRAW/CMP1/IAD1 parsing, and lossless CRX handoff. | `fornax-raw-core`, `fornax-bmff`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-raw-nikon` | Native Nikon NEF TIFF/maker-note parsing, standard packed CFA layouts, metadata mapping, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-raw-fujifilm` | Native Fujifilm RAF parsing, lossless Bayer/X-Trans decoding, metadata mapping, and DNG preservation. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-raw-hasselblad` | Native Hasselblad 3FR TIFF/SubIFD parsing, camera profiles, uncompressed and predictor-8 decoding, metadata mapping, and DNG preservation. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-raw-phase-one` | Native Phase One/Leaf IIQ TIFF/private maker-note parsing, sensor correction, metadata mapping, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-raw-panasonic` | Native Panasonic RW2 TIFF layout, metadata, V4/V5/V6/V8 codecs, and Bayer handoff. | `fornax-raw-core`, `fornax-tiff`, `fornax-dng`, `fornax-codec` |
-| `fornax-decoder` | Default pure-Rust decoder facade. DNG is unconditional; seven default-enabled vendor features select Canon CR3/CRM, Sony ARW/NRW, Nikon NEF, Fujifilm RAF, Hasselblad 3FR, Phase One/Leaf IIQ, and Panasonic RW2 support. | `fornax-raw-core`, `fornax-dng`, optional vendor crates |
+| `fornax-raw-decoder` | Default pure-Rust decoder. DNG plus unconditional Sony ARW/NRW, Canon CR3/CRM, Nikon NEF, Fujifilm RAF, Hasselblad 3FR, Panasonic RW2, and Phase One/Leaf IIQ modules. | `fornax-raw-core`, `fornax-bmff`, `fornax-codec`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-rawler` | Alternative Rawler-backed decoder for supported 2x2 RGB Bayer RAW files. | `fornax-raw-core`, `fornax-dng`, `fornax-tiff` |
 | `fornax-decoder-dnc` | Windows/macOS adapter that converts with Adobe DNG Converter, then decodes through the Rawler adapter. | `fornax-raw-core`, `fornax-decoder-rawler` |
 | `fornax-raw-pipeline` | Black/white normalization, demosaic protocol and algorithms, RGB reconstruction, and color processing. | `fornax-raw-core` |
 | `fornax-raw` | Public facade over decoders and pipeline stages. | Raw core, decoder crates, raw pipeline |
 | `fornax-cli` | Standalone batch converter for raw DNG, rendered TIFF/JPEG, and metadata JSON output. | `fornax-raw` facade |
-| `fornax-decoder` benches | Decoder comparison benchmarks. | Core, decoder, Rawler and FlashRaw dev adapters |
+| `fornax-raw-decoder` benches | Decoder comparison benchmarks. | Core, decoder, Rawler and FlashRaw dev adapters |
 | `decoder-tracker` | Manual sharded raw.pixls.us decoder regression tracker and baseline generator. | Core, decoder, TIFF/DNG metadata |
 | `fornax-devtool` | Pinned fixture paths, synthetic data, and benchmark configuration. | `fornax-raw-core` |
 | `compare-demosaic` | Reference-versus-Fornax demosaic comparison harness. | Core, decoder, processors, devtool, pinned C/C++ references |
@@ -74,13 +67,11 @@ returns a `CroppedMosaic<T>`. `process_metadata` returns geometry, levels, the
 active-area-relative Bayer pattern, and optional green-normalized white-balance
 coefficients.
 
-The default implementation is `fornax_decoder::Decoder`. The facade exports it
-as `fornax_raw::Decoder`; it dispatches DNG containers to `fornax-dng`, Canon
-CR3/CRM containers to `fornax-raw-canon`, Sony ARW/NRW containers to `fornax-raw-sony`,
-Nikon NEF containers to `fornax-raw-nikon`, Fujifilm RAF containers to `fornax-raw-fujifilm`,
-Hasselblad 3FR containers to `fornax-raw-hasselblad`, Panasonic RW2 containers to
-`fornax-raw-panasonic`, and Phase One/Leaf IIQ containers to `fornax-raw-phase-one`.
-`fornax_raw_core` contains no decoder implementation.
+The default implementation is `fornax_raw_decoder::Decoder`. The raw facade
+exports it as `fornax_raw::Decoder`; it dispatches DNG containers to
+`fornax-dng` and vendor containers to the unconditional
+`fornax_raw_decoder::{canon, sony, nikon, fujifilm, hasselblad, panasonic,
+phase_one}` modules. `fornax_raw_core` contains no decoder implementation.
 
 ## Codec API
 
@@ -99,7 +90,7 @@ interface. Generic codec features still control optional dependencies.
 Zstandard decoding has no level because the level is stored in the stream;
 `EncodeCompression::Zstd { level }` configures encoding.
 
-Each vendor crate owns a private codec enum implementing `ICodecDecode` and
+Each vendor submodule owns a private codec enum implementing `ICodecDecode` and
 keeps its stream parser, parameter types, and codec tests with that format.
 Sony owns ARW1, ARW2, ARW6, Sony LJPEG, curve-derived white levels, and LLVC3
 data; Canon owns CRX and its CMP1/CFA types; Nikon owns packed, word, striped,
@@ -128,11 +119,9 @@ The TIFF `raster` feature provides uncompressed, lossless JPEG-92, and Deflate
 support; `jpegxl` and `zstd` forward their optional codecs. `fornax-dng` enables
 TIFF JPEG XL and forwards its `zstd` feature to both TIFF and codec layers. A
 known generic compression ID whose feature is disabled produces a typed
-unsupported error rather than an unknown-ID error. `fornax-decoder` maps a
-known vendor extension whose decoder feature is disabled to
-`DecodeError::Unsupported` naming that feature, before any Adobe DNG Converter
-fallback. The `fornax-raw` facade retains its full feature set and `zstd`
-forwarding path.
+unsupported error rather than an unknown-ID error. `fornax-raw-decoder` always
+maps a known vendor extension to its native submodule before any Adobe DNG
+Converter fallback. The `fornax-raw` facade retains its `zstd` forwarding path.
 
 ## Pipeline flow
 
@@ -205,7 +194,7 @@ not retain the original container or auxiliary directories.
 
 ## Sony ARW/NRW support
 
-`fornax-raw-sony` selects the full-resolution CFA IFD from classic TIFF or BigTIFF,
+`fornax_raw_decoder::sony` selects the full-resolution CFA IFD from classic TIFF or BigTIFF,
 parses and decrypts Sony `DNGPrivateData`, maps geometry, CFA, black/white
 levels, white balance, and crop data into the shared DNG metadata model, and
 adapts strips or tiles to `fornax-codec`. It supports uncompressed 12-bit
@@ -220,7 +209,7 @@ does not provide them.
 
 ## Fujifilm RAF support
 
-`fornax-raw-fujifilm` parses the RAF preview, proprietary tag, and Fuji TIFF pointers;
+`fornax_raw_decoder::fujifilm` parses the RAF preview, proprietary tag, and Fuji TIFF pointers;
 the type-less RAF tag table; and the embedded Fuji IFD. It supports
 uncompressed 12-bit packed and 14/16-bit word samples plus Fujifilm 12/14/16-bit
 block-lossless compression.
@@ -235,7 +224,7 @@ unknown compression families are also rejected with typed unsupported errors.
 
 ## Hasselblad 3FR support
 
-`fornax-raw-hasselblad` selects the full-resolution CFA SubIFD from a classic
+`fornax_raw_decoder::hasselblad` selects the full-resolution CFA SubIFD from a classic
 little-endian TIFF container, fills absent CFA tags from explicit RGGB camera
 profiles, and decodes either exact 16-bit little-endian words or predictor-8
 lossless JPEG. The latter applies two leading Huffman lengths per pixel pair,
@@ -251,7 +240,7 @@ families return typed unsupported errors.
 
 ## Canon CR3/CRM support
 
-`fornax-raw-canon` parses CR3 and CRM BMFF containers, selects CRAW image type zero
+`fornax_raw_decoder::canon` parses CR3 and CRM BMFF containers, selects CRAW image type zero
 from CCTP or a unique CRAW track, parses CMT1-CMT4 through `fornax-tiff`, and
 reads ColorData from the CTMD sample. Lossless CRX samples decode to a storage-
 native U16 mosaic with IAD1 active area and crop, Bayer placement, black/white
@@ -264,7 +253,7 @@ filename extension selects `RawFormat::Cr3` or `RawFormat::Crm`.
 
 ## Phase One/Leaf IIQ support
 
-`fornax-raw-phase-one` parses the TIFF container followed by the Phase One private header
+`fornax_raw_decoder::phase_one` parses the TIFF container followed by the Phase One private header
 at file offset 8. Private maker-note and raw-data offsets are relative to that
 base. The decoder supports compression modes `0`, `3`, `5`, `6`, and `8`;
 legacy Raw1/Raw2 modes return typed unsupported errors.
@@ -284,7 +273,7 @@ implemented boundary.
 
 ## Panasonic RW2 support
 
-`fornax-raw-panasonic` parses classic-TIFF files with magic 85, selects the
+`fornax_raw_decoder::panasonic` parses classic-TIFF files with magic 85, selects the
 first primary IFD with Panasonic `RawDataOffset` and falls back to
 `StripOffsets`, then dispatches raw-format V4, V5, V6, and V8 through its local
 codec. Stamped 12-bit stripped layouts are selected by payload size.
@@ -303,7 +292,7 @@ file can validate the codec.
 
 ## Benchmarks and comparisons
 
-Decoder benchmarks live in `crates/fornax-decoder/benches/decoder.rs`. The
+Decoder benchmarks live in `crates/fornax-raw-decoder/benches/decoder.rs`. The
 benchmark compares Fornax, Rawler, and FlashRaw over the decoder-tracker golden
 corpus with one Criterion group per input. The shared measurements are
 `decode`, `raw_mosaic`, and `cropped_mosaic`; Fornax metadata remains

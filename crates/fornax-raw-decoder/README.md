@@ -1,25 +1,21 @@
-# fornax-decoder
+# fornax-raw-decoder
 
-Thin default decoder facade. DNG handling is implemented by `fornax-dng` and is
-always enabled. The default feature set adds supported native handling from
-`fornax-raw-sony`, `fornax-raw-canon`, `fornax-raw-nikon`,
-`fornax-raw-fujifilm`, `fornax-raw-hasselblad`, `fornax-raw-panasonic`, and
-`fornax-raw-phase-one`. Generic BMFF/TIFF parsing and generic codecs remain in
-their container-neutral crates; vendor stream implementations live with their
-vendor decoders.
+The default native decoder. DNG handling is implemented by `fornax-dng`.
+Supported Sony, Canon, Nikon, Fujifilm, Hasselblad, Panasonic, and Phase One
+implementations are unconditional submodules and are exposed as
+`fornax_raw_decoder::{sony, canon, nikon, fujifilm, hasselblad, panasonic,
+phase_one}`. Generic BMFF/TIFF parsing and generic codecs remain in their
+container-neutral crates.
 
-Format features are `sony`, `canon`, `nikon`, `fujifilm`, `hasselblad`,
-`panasonic`, and `phase-one`. Disable defaults and enable only the formats a
-consumer needs:
+There are no per-format features. `--no-default-features` still includes every
+supported native format:
 
 ```bash
 cargo build -p fornax-raw-decoder --no-default-features
-cargo build -p fornax-raw-decoder --no-default-features --features canon
 ```
 
-A known format whose feature is disabled returns `DecodeError::Unsupported`
-naming that feature. It does not fall through to Adobe DNG Converter. The
-`fornax-raw` facade remains full-featured and does not duplicate these features.
+The independent `mmap` and `zstd` features select infrastructure support; they
+do not gate a vendor decoder.
 
 ```rust
 use fornax_raw_core::{BayerPattern, MonoImage};
@@ -74,10 +70,11 @@ FORNAX_BENCH_DECODER=fornax \
 
 Before timing, the benchmark verifies the Fornax raw hash against the shared
 golden hash file. CI creates one benchmark job per perf file, restores the
-shared test/perf LFS cache, verifies the object SHA-256, and builds only the
-decoder feature required by that file. A reference that reports typed
-unsupported decode or raw-mosaic support is skipped with a visible warning;
-backend errors, hash mismatches, and invalid output fail the job.
+shared test/perf LFS cache, verifies the object SHA-256, and builds the decoder
+without default infrastructure features. Vendor formats are always available.
+A reference that reports typed unsupported decode or raw-mosaic support is
+skipped with a visible warning; backend errors, hash mismatches, and invalid
+output fail the job.
 
 Compile the benchmark without running timings:
 
