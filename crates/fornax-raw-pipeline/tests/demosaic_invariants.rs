@@ -14,11 +14,7 @@ struct Algorithm {
     demosaic: Demosaic,
 }
 
-const ALGORITHMS: [Algorithm; 10] = [
-    Algorithm {
-        name: "AAHD",
-        demosaic: Demosaic::Aahd,
-    },
+const ALGORITHMS: [Algorithm; 9] = [
     Algorithm {
         name: "AHD",
         demosaic: Demosaic::Ahd,
@@ -96,19 +92,19 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         {
             Expected::Fail("fixed-range conversion, epsilon, or quantization breaks scaling")
         }
-        Invariant::PatternFlip if matches!(algorithm, "AAHD" | "AMaZE" | "DCB" | "RCD") => {
+        Invariant::PatternFlip if matches!(algorithm, "AMaZE" | "DCB" | "RCD") => {
             Expected::Fail("direction or border decisions differ after a horizontal flip")
         }
         Invariant::Ramp if !matches!(algorithm, "Linear" | "VNG") => {
             Expected::NotApplicable("the algorithm does not claim exact linear-ramp recovery")
         }
-        Invariant::Finite if matches!(algorithm, "AAHD" | "DCB") => {
+        Invariant::Finite if matches!(algorithm, "DCB") => {
             Expected::Fail("the explicit reference-precision adapter rejects out-of-range samples")
         }
-        Invariant::NegativePreservation if matches!(algorithm, "AAHD" | "AHD" | "DCB") => {
+        Invariant::NegativePreservation if matches!(algorithm, "AHD" | "DCB") => {
             Expected::Fail("fixed-range conversion or a zero floor removes negative values")
         }
-        Invariant::HdrPreservation if matches!(algorithm, "AAHD" | "AHD" | "DCB") => {
+        Invariant::HdrPreservation if matches!(algorithm, "AHD" | "DCB") => {
             Expected::Fail("the shared or algorithm-local conversion clamps fixed range")
         }
         _ => Expected::Pass,
@@ -446,20 +442,6 @@ fn tiled_constant_image(algorithm: Demosaic, pattern: BayerPattern) -> Result<()
     )
 }
 
-fn outermost_constant_image(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), String> {
-    let value = 0.25;
-    let actual = run(algorithm, &vec![value; (SIZE * SIZE) as usize], pattern)?;
-    for (x, y) in [(0, 0), (SIZE - 1, 0), (0, SIZE - 1), (SIZE - 1, SIZE - 1)] {
-        let start = ((y * SIZE + x) * 3) as usize;
-        assert_close(
-            &actual[start..start + 3],
-            &[value; 3],
-            &format!("{pattern} outermost constant pixel at ({x}, {y})"),
-        )?;
-    }
-    Ok(())
-}
-
 fn constant_range_preservation(
     algorithm: Demosaic,
     pattern: BayerPattern,
@@ -666,19 +648,6 @@ fn lmmse_constant_field_is_preserved_across_tile_boundaries() {
     assert!(
         failures.is_empty(),
         "LMMSE failed the {TILE_BOUNDARY_SIZE}x{TILE_BOUNDARY_SIZE} tile-boundary constant test:\n{}",
-        failures.join("\n")
-    );
-}
-
-#[test]
-fn aahd_constant_field_is_preserved_at_outermost_pixels() {
-    let failures = BayerPattern::ALL
-        .into_iter()
-        .filter_map(|pattern| outermost_constant_image(Demosaic::Aahd, pattern).err())
-        .collect::<Vec<_>>();
-    assert!(
-        failures.is_empty(),
-        "AAHD failed the outermost-pixel constant test:\n{}",
         failures.join("\n")
     );
 }

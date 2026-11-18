@@ -17,7 +17,6 @@ class ReferenceDemosaicer final : public LibRaw {
     std::int32_t run_vng();
     std::int32_t run_vng4();
     std::int32_t run_dcb();
-    std::int32_t run_aahd();
     void         copy_rgb(std::uint16_t* output) const;
 };
 

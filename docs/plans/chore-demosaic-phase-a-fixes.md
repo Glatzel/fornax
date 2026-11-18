@@ -228,3 +228,13 @@ would require a different, sign-correct algorithm rather than a numerical
 conversion. The public variant, tests, comparison cases, adapters, snapshots,
 and build dependencies are removed. The reference note remains as provenance
 for a possible future formulation.
+
+### AAHD: removed
+
+After replacing integer storage, gamma LUTs, and extrema clamps, AAHD still
+failed f32 scale equivariance because its discrete homogeneity decision changed
+under equivalent signal scaling. The direction choice is part of the retained
+AAHD scoring model, so a stable generic version would require a new
+scale-stable decision rule rather than a numerical conversion. The public
+variant, implementation, tests, comparison case, adapter, snapshots, and build
+dependency are removed. Its reference note remains as provenance.

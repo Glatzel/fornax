@@ -415,37 +415,6 @@ mod tests {
     }
 
     #[test]
-    fn committed_aahd_libraw_rows_apply_ground_truth_evidence() -> mischief::Result<()> {
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
-        let report = Report::read(&path)?;
-        let rows = report
-            .rows
-            .iter()
-            .filter(|row| {
-                row.algorithm.eq_ignore_ascii_case("aahd")
-                    && row.reference.eq_ignore_ascii_case("libraw")
-            })
-            .collect::<Vec<_>>();
-
-        assert_eq!(rows.len(), 4);
-        for row in rows {
-            let expected = if row.pattern == "GRBG" {
-                Status::AcceptedOutliers
-            } else {
-                Status::Fail
-            };
-            assert_eq!(
-                evaluate(row, crate::waivers::WAIVERS),
-                expected,
-                "{}",
-                row.pattern
-            );
-        }
-        assert!(waiver_findings(&report, crate::waivers::WAIVERS).is_empty());
-        Ok(())
-    }
-
-    #[test]
     fn committed_ahd_libraw_rows_apply_ground_truth_evidence() -> mischief::Result<()> {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
         let report = Report::read(&path)?;

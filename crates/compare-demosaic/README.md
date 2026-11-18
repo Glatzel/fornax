@@ -254,38 +254,6 @@ difference is a practical floor for meaningful reference agreement.
   - `colorchart-5D2-6000K.dng`: 5634x3753, native `RGGB`, reference scale `1.000000`, sha256 `fcf04ee83ae2c6bdee5b2e324e0ee7c51284cff1671c1f0dbbbbbbc6377fd660`.
 <!-- compare-demosaic:end legend -->
 
-## AAHD
-
-<!-- compare-demosaic:begin algo:aahd -->
-| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | Within 64 | >64 B/E/F | >1024 (border) | Floor | GT evidence |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | BGGR | [1, 1] | no | ❌ | 0.103537 | 3.714070 | 1246 | 0.000043 | 0 | 30 | 0.998955 | 6764/3984/17780 | 6 (2) | no | worse |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GBRG | [0, 1] | no | ❌ | 0.105366 | 3.729217 | 1073 | -0.006383 | 0 | 31 | 0.998941 | 7042/4094/17981 | 3 (2) | no | worse |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | GRBG | [1, 0] | no | ⚖️ | 0.105742 | 3.733447 | 1231 | 0.000114 | 0 | 31 | 0.998940 | 6859/4092/18004 | 5 (4) | no | not worse |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/aahd_demosaic.cpp#L771) | RGGB | [0, 0] | yes | ❌ | 0.104115 | 3.722094 | 1246 | -0.006463 | 0 | 30 | 0.998952 | 7147/4189/17660 | 8 (4) | no | worse |
-
-**Automatic ⚖️ evidence:** libraw GRBG: 196 divergent synthetic samples; Fornax MAE/P99 172.780612/467.000000 codes versus reference 173.107143/467.000000; reference-floor match: no.
-<!-- compare-demosaic:end algo:aahd -->
-
-### LibRaw `aahd_interpolate`
-
-**Why this reference:** it is a widely used advanced AHD implementation
-with an independently maintained interpolation pipeline.
-
-**Why we match:** Fornax ports AAHD's four-pixel padded working planes,
-hot-pixel masking, horizontal and vertical green candidates, directional
-red/blue reconstruction, 16-bit gamma and YUV homogeneity scoring, direction
-refinement, and per-pixel candidate selection. Both use LibRaw's channel
-extrema, integer clamps, and truncating `ushort` output.
-
-**Known differences:** the comparison bridge supplies an identity
-camera-to-RGB matrix and no white balance, so only the demosaic stage is
-compared. Fornax accepts conventional 2x2 RGB Bayer input only and does not
-reproduce LibRaw's camera metadata or output-color pipeline. Sparse
-high-frequency and clipped-chart decisions can remain different when an
-independent floating-point evaluation lands on the other side of a
-homogeneity or gradient comparison.
-
 ## AHD
 
 <!-- compare-demosaic:begin algo:ahd -->

@@ -105,11 +105,6 @@ const DARKTABLE_VNG_URL: &str = concat!(
     env!("COMPARE_DEMOSAIC_DARKTABLE_COMMIT"),
     "/src/iop/demosaicing/vng.c#L171"
 );
-const LIBRAW_AAHD_URL: &str = concat!(
-    "https://github.com/LibRaw/LibRaw/blob/",
-    env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
-    "/src/demosaic/aahd_demosaic.cpp#L771"
-);
 const LIBRAW_DCB_URL: &str = concat!(
     "https://github.com/LibRaw/LibRaw/blob/",
     env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
@@ -161,14 +156,6 @@ const AMAZE: Case = Case {
     algorithm: 3,
     tolerance: ROBUST,
     run_fornax: run_amaze,
-};
-const AAHD: Case = Case {
-    name: "AAHD",
-    source_url: LIBRAW_AAHD_URL,
-    reference_backend: ReferenceBackend::LibRaw,
-    algorithm: 6,
-    tolerance: ROBUST,
-    run_fornax: run_aahd,
 };
 const DCB: Case = Case {
     name: "DCB",
@@ -294,7 +281,6 @@ const VNG4_RAWTHERAPEE: Case = Case {
 pub const CASES: &[Case] = &[
     AHD,
     AMAZE,
-    AAHD,
     DCB,
     LINEAR,
     LMMSE,
@@ -378,9 +364,7 @@ pub fn source_url(algorithm: &str, reference: &str) -> Option<&'static str> {
 }
 
 pub(crate) fn demosaic_for(algorithm: &str) -> Option<Demosaic> {
-    if algorithm.eq_ignore_ascii_case("AAHD") {
-        Some(Demosaic::Aahd)
-    } else if algorithm.eq_ignore_ascii_case("AHD") {
+    if algorithm.eq_ignore_ascii_case("AHD") {
         Some(Demosaic::Ahd)
     } else if algorithm.eq_ignore_ascii_case("AMaZE") {
         Some(Demosaic::Amaze)
@@ -487,7 +471,6 @@ macro_rules! runner {
 
 runner!(run_ahd, Demosaic::Ahd);
 runner!(run_amaze, Demosaic::Amaze);
-runner!(run_aahd, Demosaic::Aahd);
 runner!(run_dcb, Demosaic::dcb());
 runner!(run_linear, Demosaic::Linear);
 runner!(run_lmmse, Demosaic::lmmse());

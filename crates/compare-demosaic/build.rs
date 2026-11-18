@@ -36,7 +36,6 @@ const RAWTHERAPEE_SHIM_SOURCES: &[&str] = &[
 ];
 const SHIM_SOURCES: &[&str] = &[
     "cpp/algos/darktable_ppg.cpp",
-    "cpp/algos/libraw_aahd.cpp",
     "cpp/algos/libraw_ahd.cpp",
     "cpp/algos/libraw_dcb.cpp",
     "cpp/algos/libraw_linear.cpp",

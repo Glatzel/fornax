@@ -84,7 +84,7 @@ mod tests {
     #[rstest]
     fn every_algorithm_accepts_synthetic_128(
         synthetic_128: &crate::reference::ActiveArea,
-        #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)] case_index: usize,
+        #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)] case_index: usize,
     ) -> mischief::Result<()> {
         crate::run::evaluate_case(
             &crate::cases::CASES[case_index],
@@ -151,24 +151,6 @@ mod tests {
                 crate::metrics::Verdict::Exact | crate::metrics::Verdict::Pass
             ),
             "VNG4 versus LibRaw failed limits: {:?}",
-            evaluation.failed_limits
-        );
-        Ok(())
-    }
-
-    #[rstest]
-    fn native_aahd_meets_reference_limits(
-        cropped_real_128: &crate::reference::ActiveArea,
-    ) -> mischief::Result<()> {
-        let case = crate::cases::case_for("aahd", "libraw")
-            .expect("the LibRaw AAHD reference case must be registered");
-        let evaluation = crate::run::evaluate_case(case, cropped_real_128, BayerPattern::GBRG, 16)?;
-        assert!(
-            matches!(
-                evaluation.verdict,
-                crate::metrics::Verdict::Exact | crate::metrics::Verdict::Pass
-            ),
-            "AAHD versus LibRaw failed limits: {:?}",
             evaluation.failed_limits
         );
         Ok(())
@@ -409,7 +391,7 @@ mod tests {
             BayerPattern::GBRG
         )]
         pattern: BayerPattern,
-        #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)] case_index: usize,
+        #[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)] case_index: usize,
     ) -> mischief::Result<()> {
         let evaluation = crate::run::evaluate_case(
             &crate::cases::CASES[case_index],

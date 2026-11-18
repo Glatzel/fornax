@@ -19,15 +19,14 @@ let rgb = processor.process(normalized.image(), &metadata)?;
 ## Demosaicing
 
 The `Demosaic` selector supports linear, PPG, RCD, AHD, VNG, four-color VNG4,
-DCB, AAHD, AMaZE, and LMMSE reconstruction for conventional 2x2 Bayer
+DCB, AMaZE, and LMMSE reconstruction for conventional 2x2 Bayer
 images. `IDemosaic`, `LazyDemosaic`, and `DemosaicError` remain available
 through the same public names used by the former stage crates.
 
-All eleven demosaic variants are implemented in Rust. LibRaw and darktable are
+All nine demosaic variants are implemented in Rust. LibRaw and darktable are
 used only by the separate comparison crate as behavioral references. Every
-demosaic accepts and returns normalized scene-linear data. AAHD gamma-encodes
-samples only for homogeneity scoring, while LMMSE performs interpolation in a
-gamma-encoded workspace and decodes the result before returning.
+demosaic accepts and returns scene-linear data. LMMSE performs interpolation in
+an analytic gamma-encoded workspace and decodes the result before returning.
 
 DCB and LMMSE parameters are carried directly by the `Demosaic` enum:
 

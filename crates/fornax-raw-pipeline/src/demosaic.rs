@@ -1,4 +1,3 @@
-mod aahd;
 mod ahd;
 mod amaze;
 mod buffer;
@@ -13,7 +12,6 @@ mod vng;
 
 use std::num::NonZeroU8;
 
-use aahd::DemosaicAahd;
 use ahd::{AhdLazy, DemosaicAhd};
 use amaze::DemosaicAmaze;
 use dcb::DemosaicDcb;
@@ -29,8 +27,8 @@ use vng::DemosaicVng;
 /// Selects a Bayer demosaic implementation and its behavioral parameters.
 ///
 /// Every implementation accepts normalized scene-linear samples and returns
-/// normalized linear RGB. AAHD gamma-encodes samples only for scoring; LMMSE
-/// interpolates in a gamma-encoded workspace and decodes its output.
+/// normalized linear RGB. LMMSE interpolates in an analytic gamma-encoded
+/// workspace and decodes its output.
 ///
 /// # Examples
 ///
@@ -45,8 +43,6 @@ use vng::DemosaicVng;
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Demosaic {
-    /// Adaptive homogeneity-directed demosaicing using LibRaw's integer path.
-    Aahd,
     /// Adaptive homogeneity-directed demosaicing.
     Ahd,
     /// Aliasing minimization and zipper elimination.
@@ -143,7 +139,6 @@ impl Demosaic {
 }
 
 pub enum AnyLazy<'a, T: Primitive> {
-    Aahd(buffer::DenseLazy<T>),
     Ahd(AhdLazy<T>),
     Amaze(buffer::DenseLazy<T>),
     Dcb(buffer::DenseLazy<T>),
@@ -162,12 +157,9 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Linear(l) => l.dimensions(),
             Self::Ppg(p) => p.dimensions(),
             Self::Rcd(r) => r.dimensions(),
-            Self::Vng(d)
-            | Self::Aahd(d)
-            | Self::Amaze(d)
-            | Self::Dcb(d)
-            | Self::Lmmse(d)
-            | Self::Vng4(d) => d.dimensions(),
+            Self::Vng(d) | Self::Amaze(d) | Self::Dcb(d) | Self::Lmmse(d) | Self::Vng4(d) => {
+                d.dimensions()
+            }
         }
     }
 
@@ -178,12 +170,9 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Ppg(p) => p.fill_rows(y0, out),
             Self::Rcd(r) => r.fill_rows(y0, out),
 
-            Self::Aahd(d)
-            | Self::Amaze(d)
-            | Self::Dcb(d)
-            | Self::Lmmse(d)
-            | Self::Vng(d)
-            | Self::Vng4(d) => d.fill_rows(y0, out),
+            Self::Amaze(d) | Self::Dcb(d) | Self::Lmmse(d) | Self::Vng(d) | Self::Vng4(d) => {
+                d.fill_rows(y0, out)
+            }
         }
     }
 
@@ -194,12 +183,9 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Ppg(p) => p.collect_with(post),
             Self::Rcd(r) => r.collect_with(post),
 
-            Self::Aahd(d)
-            | Self::Amaze(d)
-            | Self::Dcb(d)
-            | Self::Lmmse(d)
-            | Self::Vng(d)
-            | Self::Vng4(d) => d.collect_with(post),
+            Self::Amaze(d) | Self::Dcb(d) | Self::Lmmse(d) | Self::Vng(d) | Self::Vng4(d) => {
+                d.collect_with(post)
+            }
         }
     }
 }
@@ -215,7 +201,6 @@ impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
         pattern: BayerPattern,
     ) -> Result<AnyLazy<'a, T>, DemosaicError> {
         Ok(match self {
-            Self::Aahd => AnyLazy::Aahd(DemosaicAahd.lazy(bayer, pattern)?),
             Self::Ahd => AnyLazy::Ahd(DemosaicAhd.lazy(bayer, pattern)?),
             Self::Amaze => AnyLazy::Amaze(DemosaicAmaze.lazy(bayer, pattern)?),
             Self::Dcb {
@@ -248,14 +233,13 @@ mod rust_algorithm_tests {
 
     use super::*;
 
-    const RUST_ALGORITHMS: [Demosaic; 6] = [
+    const RUST_ALGORITHMS: [Demosaic; 5] = [
         Demosaic::Vng,
         Demosaic::Vng4,
         Demosaic::Dcb {
             iterations: 0,
             enhance: true,
         },
-        Demosaic::Aahd,
         Demosaic::Amaze,
         Demosaic::Lmmse {
             mode: LmmseMode::Median,
@@ -270,7 +254,6 @@ mod rust_algorithm_tests {
         {
             let image = MonoImage::from_raw(64, 64, vec![value; 64 * 64]).unwrap();
             let algorithms = [
-                Demosaic::Aahd,
                 Demosaic::Ahd,
                 Demosaic::Amaze,
                 Demosaic::Dcb {
