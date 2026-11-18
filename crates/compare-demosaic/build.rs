@@ -26,7 +26,6 @@ const RAWTHERAPEE_SOURCE_FILES: &[&str] = &[
 const RAWTHERAPEE_SHIM_SOURCES: &[&str] = &[
     "cpp/algos/rawtherapee_ahd.cpp",
     "cpp/algos/rawtherapee_amaze.cpp",
-    "cpp/algos/rawtherapee_dcb.cpp",
     "cpp/algos/rawtherapee_eahd.cpp",
     "cpp/algos/rawtherapee_hphd.cpp",
     "cpp/algos/rawtherapee_igv.cpp",
@@ -37,7 +36,6 @@ const RAWTHERAPEE_SHIM_SOURCES: &[&str] = &[
 const SHIM_SOURCES: &[&str] = &[
     "cpp/algos/darktable_ppg.cpp",
     "cpp/algos/libraw_ahd.cpp",
-    "cpp/algos/libraw_dcb.cpp",
     "cpp/algos/libraw_linear.cpp",
     "cpp/algos/libraw_ppg.cpp",
     "cpp/algos/libraw_vng.cpp",

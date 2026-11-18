@@ -375,7 +375,7 @@ fn render_ground_truth(report: &GroundTruthReport) -> String {
         }
     ));
     output.push_str(
-        "- Literature expectation: advanced directional or MMSE methods (AMaZE, DCB, LMMSE, RCD) should generally beat the bilinear floor; AHD and VNG are the next comparison tier, followed by PPG. Surprises are retained in the ranking rather than waived.\n",
+        "- Literature expectation: advanced directional or MMSE methods (AMaZE, LMMSE, RCD) should generally beat the bilinear floor; AHD and VNG are the next comparison tier, followed by PPG. Surprises are retained in the ranking rather than waived.\n",
     );
     output.trim_end().to_owned()
 }

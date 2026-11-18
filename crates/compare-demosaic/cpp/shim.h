@@ -16,7 +16,6 @@ class ReferenceDemosaicer final : public LibRaw {
     std::int32_t run_ahd();
     std::int32_t run_vng();
     std::int32_t run_vng4();
-    std::int32_t run_dcb();
     void         copy_rgb(std::uint16_t* output) const;
 };
 
@@ -77,14 +76,6 @@ std::int32_t run_rawtherapee_ahd(
 );
 
 std::int32_t run_rawtherapee_amaze(
-    const std::uint16_t* mosaic,
-    std::uint32_t        width,
-    std::uint32_t        height,
-    std::uint32_t        filters,
-    std::uint16_t*       output
-);
-
-std::int32_t run_rawtherapee_dcb(
     const std::uint16_t* mosaic,
     std::uint32_t        width,
     std::uint32_t        height,

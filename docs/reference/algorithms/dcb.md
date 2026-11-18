@@ -1,8 +1,13 @@
 # DCB reference notes
 
+> **Removed from Fornax.** The retained DCB model depends on byte-scale integer
+> candidate weights, truncated color ratios, and clamps through its
+> direction/correction/refinement stages. Replacing those with floats changes
+> the decision algorithm rather than merely increasing precision.
+
 This reference note records pinned sources, numerical behavior, and implementation boundaries for DCB.
 
-This note records the authoritative material used to implement Fornax's
+This note records the authoritative material used by Fornax's former
 conventional 2x2 RGB Bayer DCB path and the license obligations attached to
 that work.
 
@@ -12,10 +17,7 @@ that work.
   [`src/demosaic/dcb_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849).
 - LibRaw 0.22.3, CFA border interpolation and `pre_interpolate`:
   [`src/demosaic/misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L21).
-- LibRaw 0.22.3, comparison adapter entry point:
-  [`crates/compare-demosaic/cpp/algos/libraw_dcb.cpp`](../../../crates/compare-demosaic/cpp/algos/libraw_dcb.cpp).
-
-The comparison calls `pre_interpolate()` followed by the default
+The former comparison called `pre_interpolate()` followed by the default
 `dcb(0, 1)`. Fornax exposes both behavioral arguments as
 `Demosaic::Dcb { iterations, enhance }`.
 

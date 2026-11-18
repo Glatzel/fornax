@@ -4,7 +4,7 @@ use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 use fornax_raw_pipeline::{Demosaic, IDemosaic, LazyDemosaic};
 fn selected_algorithm() -> Vec<(String, Demosaic)> {
     const ALL: &[&str] = &[
-        "ahd", "amaze", "dcb", "linear", "lmmse", "ppg", "rcd", "vng", "vng4",
+        "ahd", "amaze", "linear", "lmmse", "ppg", "rcd", "vng", "vng4",
     ];
 
     let algorithms = std::env::var("FORNAX_BENCH_ALGORITHM").unwrap_or_else(|_| ALL.join(","));
@@ -17,7 +17,6 @@ fn selected_algorithm() -> Vec<(String, Demosaic)> {
             let algorithm = match name {
                 "ahd" => Demosaic::Ahd,
                 "amaze" => Demosaic::Amaze,
-                "dcb" => Demosaic::dcb(),
                 "linear" => Demosaic::Linear,
                 "lmmse" => Demosaic::lmmse(),
                 "ppg" => Demosaic::Ppg,

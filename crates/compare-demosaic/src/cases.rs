@@ -105,11 +105,6 @@ const DARKTABLE_VNG_URL: &str = concat!(
     env!("COMPARE_DEMOSAIC_DARKTABLE_COMMIT"),
     "/src/iop/demosaicing/vng.c#L171"
 );
-const LIBRAW_DCB_URL: &str = concat!(
-    "https://github.com/LibRaw/LibRaw/blob/",
-    env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
-    "/src/demosaic/dcb_demosaic.cpp#L849"
-);
 const RAWTHERAPEE_AHD_URL: &str = concat!(
     "https://github.com/RawTherapee/RawTherapee/blob/",
     env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
@@ -119,11 +114,6 @@ const RAWTHERAPEE_AMAZE_URL: &str = concat!(
     "https://github.com/RawTherapee/RawTherapee/blob/",
     env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
     "/rtengine/amaze_demosaic_RT.cc#L48"
-);
-const RAWTHERAPEE_DCB_URL: &str = concat!(
-    "https://github.com/RawTherapee/RawTherapee/blob/",
-    env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
-    "/rtengine/demosaic_algos.cc#L1406"
 );
 const RAWTHERAPEE_LMMSE_URL: &str = concat!(
     "https://github.com/RawTherapee/RawTherapee/blob/",
@@ -156,14 +146,6 @@ const AMAZE: Case = Case {
     algorithm: 3,
     tolerance: ROBUST,
     run_fornax: run_amaze,
-};
-const DCB: Case = Case {
-    name: "DCB",
-    source_url: LIBRAW_DCB_URL,
-    reference_backend: ReferenceBackend::LibRaw,
-    algorithm: 4,
-    tolerance: ROBUST,
-    run_fornax: run_dcb,
 };
 const LINEAR: Case = Case {
     name: "Linear",
@@ -245,14 +227,6 @@ const AMAZE_RAWTHERAPEE: Case = Case {
     tolerance: ROBUST,
     run_fornax: run_amaze,
 };
-const DCB_RAWTHERAPEE: Case = Case {
-    name: "DCB",
-    source_url: RAWTHERAPEE_DCB_URL,
-    reference_backend: ReferenceBackend::RawTherapee,
-    algorithm: 2,
-    tolerance: ROBUST,
-    run_fornax: run_dcb,
-};
 const LMMSE_RAWTHERAPEE: Case = Case {
     name: "LMMSE",
     source_url: RAWTHERAPEE_LMMSE_URL,
@@ -281,7 +255,6 @@ const VNG4_RAWTHERAPEE: Case = Case {
 pub const CASES: &[Case] = &[
     AHD,
     AMAZE,
-    DCB,
     LINEAR,
     LMMSE,
     PPG_LIBRAW,
@@ -292,7 +265,6 @@ pub const CASES: &[Case] = &[
     VNG4_LIBRAW,
     AHD_RAWTHERAPEE,
     AMAZE_RAWTHERAPEE,
-    DCB_RAWTHERAPEE,
     LMMSE_RAWTHERAPEE,
     RCD_RAWTHERAPEE,
     VNG4_RAWTHERAPEE,
@@ -368,8 +340,6 @@ pub(crate) fn demosaic_for(algorithm: &str) -> Option<Demosaic> {
         Some(Demosaic::Ahd)
     } else if algorithm.eq_ignore_ascii_case("AMaZE") {
         Some(Demosaic::Amaze)
-    } else if algorithm.eq_ignore_ascii_case("DCB") {
-        Some(Demosaic::dcb())
     } else if algorithm.eq_ignore_ascii_case("Linear") {
         Some(Demosaic::Linear)
     } else if algorithm.eq_ignore_ascii_case("LMMSE") {
@@ -471,7 +441,6 @@ macro_rules! runner {
 
 runner!(run_ahd, Demosaic::Ahd);
 runner!(run_amaze, Demosaic::Amaze);
-runner!(run_dcb, Demosaic::dcb());
 runner!(run_linear, Demosaic::Linear);
 runner!(run_lmmse, Demosaic::lmmse());
 runner!(run_ppg, Demosaic::Ppg);
@@ -497,7 +466,7 @@ mod tests {
 
     #[test]
     fn rawtherapee_covers_shared_algorithms_without_dual() {
-        for algorithm in ["ahd", "amaze", "dcb", "lmmse", "rcd", "vng4"] {
+        for algorithm in ["ahd", "amaze", "lmmse", "rcd", "vng4"] {
             assert!(
                 case_for(algorithm, "rawtherapee").is_some(),
                 "missing RawTherapee comparison for {algorithm}"

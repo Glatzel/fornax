@@ -1,7 +1,6 @@
 mod ahd;
 mod amaze;
 mod buffer;
-mod dcb;
 mod linear;
 mod lmmse;
 mod numerics;
@@ -14,7 +13,6 @@ use std::num::NonZeroU8;
 
 use ahd::{AhdLazy, DemosaicAhd};
 use amaze::DemosaicAmaze;
-use dcb::DemosaicDcb;
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 use linear::{DemosaicLinear, LinearLazy};
@@ -35,11 +33,7 @@ use vng::DemosaicVng;
 /// ```
 /// use fornax_raw_pipeline::Demosaic;
 ///
-/// let demosaic = Demosaic::Dcb {
-///     iterations: 1,
-///     enhance: false,
-/// };
-/// assert!(matches!(demosaic, Demosaic::Dcb { iterations: 1, .. }));
+/// assert_eq!(Demosaic::default(), Demosaic::Rcd);
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Demosaic {
@@ -47,13 +41,6 @@ pub enum Demosaic {
     Ahd,
     /// Aliasing minimization and zipper elimination.
     Amaze,
-    /// Directional color balance.
-    Dcb {
-        /// Number of Nyquist correction rounds; zero disables them.
-        iterations: u8,
-        /// Whether to run final refinement and full-color reconstruction.
-        enhance: bool,
-    },
     /// Bilinear interpolation.
     Linear,
     /// Linear minimum mean-square-error demosaicing.
@@ -95,28 +82,6 @@ pub enum LmmseMode {
 }
 
 impl Demosaic {
-    /// Returns DCB with the default `(iterations, enhance)` values `(0, true)`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use fornax_raw_pipeline::Demosaic;
-    ///
-    /// assert_eq!(
-    ///     Demosaic::dcb(),
-    ///     Demosaic::Dcb {
-    ///         iterations: 0,
-    ///         enhance: true,
-    ///     }
-    /// );
-    /// ```
-    pub const fn dcb() -> Self {
-        Self::Dcb {
-            iterations: 0,
-            enhance: true,
-        }
-    }
-
     /// Returns LMMSE with its default one-median-pass mode.
     ///
     /// # Examples
@@ -141,7 +106,6 @@ impl Demosaic {
 pub enum AnyLazy<'a, T: Primitive> {
     Ahd(AhdLazy<T>),
     Amaze(buffer::DenseLazy<T>),
-    Dcb(buffer::DenseLazy<T>),
     Linear(LinearLazy<'a, T>),
     Lmmse(buffer::DenseLazy<T>),
     Ppg(PpgLazy<'a, T>),
@@ -157,9 +121,7 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Linear(l) => l.dimensions(),
             Self::Ppg(p) => p.dimensions(),
             Self::Rcd(r) => r.dimensions(),
-            Self::Vng(d) | Self::Amaze(d) | Self::Dcb(d) | Self::Lmmse(d) | Self::Vng4(d) => {
-                d.dimensions()
-            }
+            Self::Vng(d) | Self::Amaze(d) | Self::Lmmse(d) | Self::Vng4(d) => d.dimensions(),
         }
     }
 
@@ -170,9 +132,7 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Ppg(p) => p.fill_rows(y0, out),
             Self::Rcd(r) => r.fill_rows(y0, out),
 
-            Self::Amaze(d) | Self::Dcb(d) | Self::Lmmse(d) | Self::Vng(d) | Self::Vng4(d) => {
-                d.fill_rows(y0, out)
-            }
+            Self::Amaze(d) | Self::Lmmse(d) | Self::Vng(d) | Self::Vng4(d) => d.fill_rows(y0, out),
         }
     }
 
@@ -183,9 +143,7 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Ppg(p) => p.collect_with(post),
             Self::Rcd(r) => r.collect_with(post),
 
-            Self::Amaze(d) | Self::Dcb(d) | Self::Lmmse(d) | Self::Vng(d) | Self::Vng4(d) => {
-                d.collect_with(post)
-            }
+            Self::Amaze(d) | Self::Lmmse(d) | Self::Vng(d) | Self::Vng4(d) => d.collect_with(post),
         }
     }
 }
@@ -203,15 +161,6 @@ impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
         Ok(match self {
             Self::Ahd => AnyLazy::Ahd(DemosaicAhd.lazy(bayer, pattern)?),
             Self::Amaze => AnyLazy::Amaze(DemosaicAmaze.lazy(bayer, pattern)?),
-            Self::Dcb {
-                iterations,
-                enhance,
-            } => AnyLazy::Dcb(DemosaicDcb.lazy_with_options(
-                bayer,
-                pattern,
-                *iterations,
-                *enhance,
-            )?),
             Self::Linear => AnyLazy::Linear(DemosaicLinear.lazy(bayer, pattern)?),
             Self::Lmmse { mode } => {
                 AnyLazy::Lmmse(DemosaicLmmse.lazy_with_mode(bayer, pattern, *mode)?)
@@ -233,13 +182,9 @@ mod rust_algorithm_tests {
 
     use super::*;
 
-    const RUST_ALGORITHMS: [Demosaic; 5] = [
+    const RUST_ALGORITHMS: [Demosaic; 4] = [
         Demosaic::Vng,
         Demosaic::Vng4,
-        Demosaic::Dcb {
-            iterations: 0,
-            enhance: true,
-        },
         Demosaic::Amaze,
         Demosaic::Lmmse {
             mode: LmmseMode::Median,
@@ -256,10 +201,6 @@ mod rust_algorithm_tests {
             let algorithms = [
                 Demosaic::Ahd,
                 Demosaic::Amaze,
-                Demosaic::Dcb {
-                    iterations: 0,
-                    enhance: true,
-                },
                 Demosaic::Linear,
                 Demosaic::Lmmse {
                     mode: LmmseMode::Median,
@@ -291,13 +232,6 @@ mod rust_algorithm_tests {
         assert_ne!(
             LmmseMode::Basic,
             LmmseMode::Refine(NonZeroU8::new(1).unwrap())
-        );
-        assert_eq!(
-            Demosaic::dcb(),
-            Demosaic::Dcb {
-                iterations: 0,
-                enhance: true
-            }
         );
         assert_eq!(
             Demosaic::lmmse(),

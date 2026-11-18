@@ -14,7 +14,7 @@ struct Algorithm {
     demosaic: Demosaic,
 }
 
-const ALGORITHMS: [Algorithm; 9] = [
+const ALGORITHMS: [Algorithm; 8] = [
     Algorithm {
         name: "AHD",
         demosaic: Demosaic::Ahd,
@@ -22,13 +22,6 @@ const ALGORITHMS: [Algorithm; 9] = [
     Algorithm {
         name: "AMaZE",
         demosaic: Demosaic::Amaze,
-    },
-    Algorithm {
-        name: "DCB",
-        demosaic: Demosaic::Dcb {
-            iterations: 0,
-            enhance: true,
-        },
     },
     Algorithm {
         name: "Linear",
@@ -92,19 +85,16 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         {
             Expected::Fail("fixed-range conversion, epsilon, or quantization breaks scaling")
         }
-        Invariant::PatternFlip if matches!(algorithm, "AMaZE" | "DCB" | "RCD") => {
+        Invariant::PatternFlip if matches!(algorithm, "AMaZE" | "RCD") => {
             Expected::Fail("direction or border decisions differ after a horizontal flip")
         }
         Invariant::Ramp if !matches!(algorithm, "Linear" | "VNG") => {
             Expected::NotApplicable("the algorithm does not claim exact linear-ramp recovery")
         }
-        Invariant::Finite if matches!(algorithm, "DCB") => {
-            Expected::Fail("the explicit reference-precision adapter rejects out-of-range samples")
-        }
-        Invariant::NegativePreservation if matches!(algorithm, "AHD" | "DCB") => {
+        Invariant::NegativePreservation if matches!(algorithm, "AHD") => {
             Expected::Fail("fixed-range conversion or a zero floor removes negative values")
         }
-        Invariant::HdrPreservation if matches!(algorithm, "AHD" | "DCB") => {
+        Invariant::HdrPreservation if matches!(algorithm, "AHD") => {
             Expected::Fail("the shared or algorithm-local conversion clamps fixed range")
         }
         _ => Expected::Pass,

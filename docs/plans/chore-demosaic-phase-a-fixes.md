@@ -238,3 +238,13 @@ AAHD scoring model, so a stable generic version would require a new
 scale-stable decision rule rather than a numerical conversion. The public
 variant, implementation, tests, comparison case, adapter, snapshots, and build
 dependency are removed. Its reference note remains as provenance.
+
+### DCB: removed
+
+DCB is not a localized integer implementation. Candidate orientation,
+correction, Nyquist, and refinement stages exchange byte-scale integer weights
+and truncated color ratios throughout the retained LibRaw model. Converting
+those values changes the decision algorithm rather than porting it, and the
+algorithm ranked below Linear before Phase C. The public variant, implementation,
+tests, both comparison cases, adapters, snapshots, and build dependencies are
+removed. Its reference and licence notes remain.

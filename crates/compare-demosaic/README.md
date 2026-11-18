@@ -349,52 +349,6 @@ Fornax clamps in normalized space and quantizes to nearest. Floating-point
 operation ordering and that final conversion account for the remaining
 one-code differences.
 
-## DCB
-
-<!-- compare-demosaic:begin algo:dcb -->
-| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | Within 64 | >64 B/E/F | >1024 (border) | Floor | GT evidence |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | BGGR | [1, 1] | no | ✅ | 0.000138 | 0.011763 | 2 | -0.000001 | 0 | 0 | 1.000000 | 0/0/0 | 0 (0) | no | none |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GBRG | [0, 1] | no | ✅ | 0.000138 | 0.011763 | 2 | -0.000001 | 0 | 0 | 1.000000 | 0/0/0 | 0 (0) | no | none |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | GRBG | [1, 0] | no | ✅ | 0.000138 | 0.011764 | 2 | -0.000001 | 0 | 0 | 1.000000 | 0/0/0 | 0 (0) | no | none |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dcb_demosaic.cpp#L849) | RGGB | [0, 0] | yes | ✅ | 0.000138 | 0.011764 | 2 | -0.000001 | 0 | 0 | 1.000000 | 0/0/0 | 0 (0) | no | none |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | BGGR | [1, 1] | no | ⚖️ | 14.895555 | 33.874445 | 3756 | -0.707929 | 146 | 300 | 0.884342 | 26303/719837/1689977 | 219 (6) | no | not worse |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | GBRG | [0, 1] | no | ❌ | 14.895137 | 33.872758 | 3756 | -0.707989 | 146 | 300 | 0.884348 | 26446/719945/1690179 | 219 (6) | no | worse |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | GRBG | [1, 0] | no | ❌ | 14.894948 | 33.873017 | 3756 | -0.707923 | 146 | 300 | 0.884348 | 26112/719923/1690426 | 219 (6) | no | worse |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/demosaic_algos.cc#L1406) | RGGB | [0, 0] | yes | ❌ | 14.894521 | 33.871377 | 3756 | -0.707987 | 146 | 300 | 0.884353 | 26256/720029/1690634 | 219 (6) | no | worse |
-
-**Automatic ⚖️ evidence:** rawtherapee BGGR: 26812 divergent synthetic samples; Fornax MAE/P99 2410.545800/47979.000000 codes versus reference 2487.873825/48061.000000; reference-floor match: no.
-<!-- compare-demosaic:end algo:dcb -->
-
-### LibRaw `dcb`
-
-**Why this reference:** it is the maintained implementation of directional
-color balance demosaicing and exposes the complete LibRaw pipeline.
-
-**Why we match:** Fornax follows LibRaw's `pre_interpolate()` plus
-`dcb(0, 1)` sequence: six-pixel CFA border interpolation, horizontal and
-vertical candidate reconstruction, direction selection, green corrections,
-refinement, and full-color chroma interpolation.
-
-**Known differences:** Fornax omits camera metadata handling, callbacks, and
-LibRaw's surrounding processing pipeline. The comparison starts from the same
-normalized active Bayer mosaic and copies the resulting RGB channels
-directly.
-
-### RawTherapee `dcb_demosaic`
-
-**Why this reference:** it provides a second maintained DCB implementation
-with independent border and color-difference handling.
-
-**Why we match:** both interpolate directional green candidates, build a
-correction map, and reconstruct red and blue from green-referenced color
-differences.
-
-**Known differences:** The comparison bridge pins RawTherapee's compatible
-zero-iteration enhanced path and omits its preprocessing and output stages.
-Fornax targets LibRaw's fixed DCB variant, so RawTherapee records its distinct
-directional decisions rather than serving as the acceptance reference.
-
 ## Linear
 
 <!-- compare-demosaic:begin algo:linear -->
