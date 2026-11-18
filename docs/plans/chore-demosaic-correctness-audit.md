@@ -40,7 +40,7 @@ Out of scope:
 - [x] Phase 1: add fast seeded invariant tests and record expected failures.
 - [x] Phase 2: add deterministic synthetic and optional corpus-binned ground
   truth, HDR-safe metrics, ranking, schema versioning, and README output.
-- [ ] Phase 3: make reference comparison valid-range aware, mask borders, report
+- [x] Phase 3: make reference comparison valid-range aware, mask borders, report
   disagreement floors and distributions, and derive evidenced `⚖️`.
 - [ ] Phase 4: re-triage AAHD, AMaZE, DCB, DHT, LMMSE, and VNG; report root
   causes and propose fixes without implementing them.
@@ -51,8 +51,8 @@ Out of scope:
 - Phase 1: `crates/fornax-raw-pipeline/tests/demosaic_invariants.rs` only.
 - Phase 2: `compare-demosaic` ground-truth/report/diff/readme/run code,
   setup scripts, `baseline/canonical.json`, and generated README regions.
-- Phase 3: `compare-demosaic` run/report/status/readme code, baseline, and
-  generated README regions.
+- Phase 3: `compare-demosaic` run/metrics/report/diff/status/readme code,
+  snapshots, baseline, and generated README regions.
 - Phase 4: this plan only.
 
 ## Validation
@@ -354,3 +354,102 @@ normal fast suite.
   was no longer available upstream; the setup path now reuses an existing
   checkout or initializes current `master` and fetches only the three required
   LFS files.
+
+## Phase 3 reference comparison
+
+Canonical schema version 3 adds per-input reference scaling, per-row
+distribution evidence, and a top-level `reference_floor` section.
+
+### Valid range and border
+
+- Valid-range scaling is on by default and caps active mosaic codes at 60000.
+  `--no-valid-range` restores the old input range. The selected factor is
+  recorded per input in canonical JSON.
+- The current canonical fixture is already below the ceiling, so its recorded
+  reference scale is `1.000000`.
+- Acceptance uses interior metrics after the existing `--border-px` mask
+  (default 16). Worst pixels still scan the full frame.
+- Border behavior is documented in the generated legend: LibRaw runs
+  `pre_interpolate`; darktable and RawTherapee use algorithm-specific tile and
+  edge handling; their common border is masked from acceptance.
+- RCD and LMMSE RawTherapee snapshots changed only because verdicts now use the
+  interior instead of the full frame. The eight intended checksum snapshots
+  were regenerated.
+
+### Distributions
+
+Every comparison row now records:
+
+- Fraction of interior pixels whose three channels are all within 64 codes.
+- Counts of pixels with any channel beyond 64 codes at border, edge, and flat
+  locations.
+- Full-frame interior metrics in the primary algorithm table.
+
+Reference-floor rows use the same distribution fields over the masked interior.
+
+### Reference disagreement floor
+
+The floor report contains eight rows: PPG and VNG, each over all four patterns.
+
+| Algorithm | MAE range | P99 | Max | Within 64 | Interpretation |
+| --- | ---: | ---: | ---: | ---: | --- |
+| PPG | 0.180034-0.180037 | 1 | 618 | 0.999696-0.999697 | LibRaw and darktable are effectively equivalent for this fixture. |
+| VNG | 17.789-17.791 | 118 | 2958 | 0.931635-0.931652 | The split-green and LibRaw green conventions create a large practical floor. |
+
+A row matches the floor when interior MAE, P99, and P99.9 are each no more than
+one code above LibRaw-vs-darktable for the same algorithm, input, and pattern.
+Floor matching counts as agreement, but does not override ground-truth evidence.
+
+### Evidence-based verdicts
+
+For each registered case and matching Bayer pattern, six scaled synthetic
+scenes are evaluated with both Fornax and its reference adapter. Pixels whose
+reference difference exceeds 64 codes are compared against the synthetic truth.
+
+The automatic rule is:
+
+1. If Fornax MAE and P99 are each no more than one code worse than the reference
+   on those divergent samples, `⚖️` is automatic.
+2. If either is worse, the row is `❌`, even when it matches the reference
+   disagreement floor or a manual waiver.
+3. If no samples diverge, evidence is neutral.
+
+This automatically classifies:
+
+- AAHD/LibRaw GRBG.
+- AHD/LibRaw GRBG and RGGB. GBRG has no divergent synthetic samples, so its
+  old manual waiver is gone and the DNG outlier remains `⚠️`.
+- AHD/RawTherapee BGGR, GBRG, and GRBG.
+- DCB/RawTherapee BGGR.
+- VNG4/RawTherapee all four patterns.
+
+VNG/LibRaw matches the large disagreement floor, but its error against synthetic
+truth is worse than LibRaw's, so it remains `❌`. AMaZE's tiny DNG disagreement
+also exceeds the reference's synthetic error on most patterns and therefore
+does not receive automatic acceptance.
+
+The generated README shows the floor table, per-row tolerance/location
+distributions, floor-match flag, ground-truth evidence classification, and the
+MAE/P99 numbers behind every automatic `⚖️`.
+
+The two prior hand-written AAHD/AHD DNG waivers were removed. They applied to
+all patterns, including patterns that the new ground-truth evidence rejects;
+keeping them would mask evidence-worse rows. The waiver mechanism remains
+available for future rows, while current `⚖️` decisions come from floor or
+ground-truth evidence.
+
+### Phase 3 validation
+
+- `cargo test -p compare-demosaic`: 156 library tests and 3 binary tests passed;
+  the two heavy ground-truth tests remain ignored by default.
+- Full schema-v3 run completed with 76 reference rows, 11 ground-truth rows,
+  and 8 reference-floor rows.
+- Full canonical diff reports no differences.
+- A partial `--algorithm linear --reference libraw --pattern GBRG` run diffs
+  cleanly against the full baseline.
+- `compare-demosaic readme --check` reports the README is up to date.
+- Eight intended checksum snapshots changed for interior-only RCD/LMMSE
+  verdicts and were reviewed before acceptance.
+- `scripts/agent-validation.sh` passed, including workspace tests, rustdoc,
+  workspace/compare clippy, benchmark compilation, compare setup, and all 156
+  non-ignored compare tests.

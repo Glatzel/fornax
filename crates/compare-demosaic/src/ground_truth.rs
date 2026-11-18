@@ -99,6 +99,33 @@ pub struct LinearComparison {
     pub log2_mean_delta: f64,
 }
 
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct OutlierEvidence {
+    pub synthetic_sources: u32,
+    pub divergent_samples: u64,
+    pub fornax_mae: f64,
+    pub reference_mae: f64,
+    pub fornax_p99: f64,
+    pub reference_p99: f64,
+    pub fornax_not_worse: bool,
+}
+
+impl OutlierEvidence {
+    #[cfg(test)]
+    pub(crate) const fn test_fixture() -> Self {
+        Self {
+            synthetic_sources: 1,
+            divergent_samples: 0,
+            fornax_mae: 0.0,
+            reference_mae: 0.0,
+            fornax_p99: 0.0,
+            reference_p99: 0.0,
+            fornax_not_worse: true,
+        }
+    }
+}
+
 impl GroundTruthReport {
     pub fn validate(&self) -> mischief::Result<()> {
         if self.version != VERSION {
@@ -545,6 +572,89 @@ fn re_mosaic(truth: &[[f32; 3]], pattern: BayerPattern) -> Vec<f32> {
 
 pub(crate) fn evaluate(algorithms: &[String]) -> mischief::Result<GroundTruthReport> {
     evaluate_algorithms(algorithms, true)
+}
+
+pub(crate) fn evaluate_reference_evidence(
+    case: &crate::cases::Case,
+    pattern: BayerPattern,
+) -> mischief::Result<OutlierEvidence> {
+    let mut fornax_errors = Vec::new();
+    let mut reference_errors = Vec::new();
+    let sources = synthetic_sources();
+    for source in &sources {
+        let maximum = source
+            .truth
+            .iter()
+            .flat_map(|pixel| pixel.iter().copied())
+            .fold(0.0_f32, f32::max);
+        let scale = (60_000.0_f32 / f32::from(u16::MAX)) / maximum.max(f32::EPSILON);
+        let scaled_truth = source
+            .truth
+            .iter()
+            .map(|pixel| pixel.map(|sample| sample * scale))
+            .collect::<Vec<_>>();
+        let mosaic = re_mosaic(&scaled_truth, pattern);
+        let codes = mosaic
+            .iter()
+            .map(|sample| (sample * f32::from(u16::MAX)).round() as u16)
+            .collect::<Vec<_>>();
+        let truth_codes = scaled_truth
+            .iter()
+            .flat_map(|pixel| pixel.map(|sample| (sample * f32::from(u16::MAX)).round() as u16))
+            .collect::<Vec<_>>();
+        let reference = crate::reference::run(
+            case.reference_backend,
+            case.algorithm,
+            &codes,
+            WIDTH,
+            HEIGHT,
+            crate::reference::libraw_filters(pattern),
+        )?;
+        let fornax = (case.run_fornax)(
+            &codes,
+            WIDTH,
+            HEIGHT,
+            pattern,
+            crate::cases::SampleType::F32,
+        )?;
+        for y in BORDER_PX..HEIGHT - BORDER_PX {
+            for x in BORDER_PX..WIDTH - BORDER_PX {
+                let pixel = y as usize * WIDTH as usize + x as usize;
+                for channel in 0..3 {
+                    let index = pixel * 3 + channel;
+                    if fornax[index].abs_diff(reference[index]) > crate::metrics::TOLERANCE_CODES {
+                        let truth = truth_codes[pixel * 3 + channel];
+                        fornax_errors.push(u64::from(fornax[index].abs_diff(truth)));
+                        reference_errors.push(u64::from(reference[index].abs_diff(truth)));
+                    }
+                }
+            }
+        }
+    }
+    let divergent_samples = u64::try_from(fornax_errors.len())
+        .map_err(|_| mischief::mischief!("outlier evidence sample count exceeds u64"))?;
+    let summary = |mut values: Vec<u64>| {
+        if values.is_empty() {
+            return (0.0, 0.0);
+        }
+        let mean = values.iter().sum::<u64>() as f64 / values.len() as f64;
+        values.sort_unstable();
+        let rank = ((values.len() as f64 * 0.99).ceil() as usize)
+            .saturating_sub(1)
+            .min(values.len() - 1);
+        (round6(mean), round6(values[rank] as f64))
+    };
+    let (fornax_mae, fornax_p99) = summary(fornax_errors);
+    let (reference_mae, reference_p99) = summary(reference_errors);
+    Ok(OutlierEvidence {
+        synthetic_sources: sources.len() as u32,
+        divergent_samples,
+        fornax_mae,
+        reference_mae,
+        fornax_p99,
+        reference_p99,
+        fornax_not_worse: fornax_mae <= reference_mae + 1.0 && fornax_p99 <= reference_p99 + 1.0,
+    })
 }
 
 fn evaluate_algorithms(
@@ -1073,6 +1183,18 @@ mod tests {
         partial.algorithms[0].relative.mean = 0.5;
         assert!(!baseline.matches_selection(&partial, &["linear".to_owned()]));
         assert!(!baseline.matches_selection(&partial, &[]));
+    }
+
+    #[test]
+    fn reference_evidence_uses_ground_truth_on_divergent_samples() -> mischief::Result<()> {
+        let case = crate::cases::case_for("linear", "libraw").expect("Linear/LibRaw case");
+        let evidence = evaluate_reference_evidence(case, BayerPattern::GBRG)?;
+        assert_eq!(evidence.synthetic_sources, 6);
+        assert_eq!(evidence.divergent_samples, 0);
+        assert!(evidence.fornax_not_worse);
+        assert_eq!(evidence.fornax_mae, 0.0);
+        assert_eq!(evidence.reference_mae, 0.0);
+        Ok(())
     }
 
     #[test]

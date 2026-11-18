@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use crate::cases::Tolerance;
 
 pub const MAX_ERROR: usize = u16::MAX as usize + 1;
+pub const TOLERANCE_CODES: u16 = 64;
+const EDGE_THRESHOLD_CODES: f64 = 256.0;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -66,6 +68,14 @@ pub struct TileSummary {
     pub total_samples: u64,
 }
 
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct OutlierLocations {
+    pub border: u64,
+    pub edge: u64,
+    pub flat: u64,
+}
+
 #[derive(Clone, Debug)]
 pub struct Evaluation {
     pub metrics: Metrics,
@@ -74,6 +84,9 @@ pub struct Evaluation {
     pub per_site: [Metrics; 2],
     pub worst_pixels: Vec<WorstPixel>,
     pub tiles: Vec<TileSummary>,
+    pub within_tolerance: f64,
+    pub within_tolerance_interior: f64,
+    pub outlier_locations: OutlierLocations,
 }
 
 #[derive(Clone, Debug)]
@@ -230,6 +243,7 @@ pub fn calculate(
     let expected = pixels
         .checked_mul(3)
         .ok_or_else(|| mischief::mischief!("metric sample count overflow"))?;
+    let interior_pixels = u64::from(width - 2 * border) * u64::from(height - 2 * border);
     if actual.len() != expected || reference.len() != expected {
         return Err(mischief::mischief!(
             "comparison buffers have inconsistent lengths"
@@ -250,6 +264,10 @@ pub fn calculate(
     ];
     let mut per_site = [ErrorAccumulator::new(), ErrorAccumulator::new()];
     let mut worst = BinaryHeap::<Reverse<WorstCandidate>>::new();
+    let edge = reference_edge_map(reference, width, height);
+    let mut within_tolerance = 0_u64;
+    let mut within_tolerance_interior = 0_u64;
+    let mut outlier_locations = OutlierLocations::default();
     let tile_columns = width.div_ceil(64) as usize;
     let tile_rows = height.div_ceil(64) as usize;
     let mut tiles = vec![(0_u64, 0_u64); tile_columns * tile_rows];
@@ -265,10 +283,14 @@ pub fn calculate(
                 BayerChannel::B => 2,
             };
             let tile = y as usize / 64 * tile_columns + x as usize / 64;
+            let mut pixel_within_tolerance = true;
             for channel in 0..3 {
                 let actual = actual[offset + channel];
                 let reference = reference[offset + channel];
                 let error = actual.abs_diff(reference);
+                if error > TOLERANCE_CODES {
+                    pixel_within_tolerance = false;
+                }
                 whole.push(actual, reference);
                 per_channel[channel].push(actual, reference);
                 per_site[usize::from(channel != sampled_channel)].push(actual, reference);
@@ -296,6 +318,18 @@ pub fn calculate(
                         worst.push(Reverse(candidate));
                     }
                 }
+            }
+            if pixel_within_tolerance {
+                within_tolerance += 1;
+                if is_interior {
+                    within_tolerance_interior += 1;
+                }
+            } else if !is_interior {
+                outlier_locations.border += 1;
+            } else if edge[y as usize * width as usize + x as usize] {
+                outlier_locations.edge += 1;
+            } else {
+                outlier_locations.flat += 1;
             }
         }
     }
@@ -346,7 +380,42 @@ pub fn calculate(
         per_site: [sampled.finish(), interpolated.finish()],
         worst_pixels,
         tiles,
+        within_tolerance: round6(within_tolerance as f64 / pixels.max(1) as f64),
+        within_tolerance_interior: round6(
+            within_tolerance_interior as f64 / interior_pixels.max(1) as f64,
+        ),
+        outlier_locations,
     })
+}
+
+fn reference_edge_map(reference: &[u16], width: u32, height: u32) -> Vec<bool> {
+    let mut edges = vec![false; (width * height) as usize];
+    let luma = |x: u32, y: u32| {
+        let offset = (y as usize * width as usize + x as usize) * 3;
+        0.2126 * f64::from(reference[offset])
+            + 0.7152 * f64::from(reference[offset + 1])
+            + 0.0722 * f64::from(reference[offset + 2])
+    };
+    for y in 0..height {
+        for x in 0..width {
+            let center = luma(x, y);
+            let mut gradient = 0.0_f64;
+            if x > 0 {
+                gradient = gradient.max((center - luma(x - 1, y)).abs());
+            }
+            if x + 1 < width {
+                gradient = gradient.max((center - luma(x + 1, y)).abs());
+            }
+            if y > 0 {
+                gradient = gradient.max((center - luma(x, y - 1)).abs());
+            }
+            if y + 1 < height {
+                gradient = gradient.max((center - luma(x, y + 1)).abs());
+            }
+            edges[y as usize * width as usize + x as usize] = gradient > EDGE_THRESHOLD_CODES;
+        }
+    }
+    edges
 }
 
 fn round6(value: f64) -> f64 { (value * 1_000_000.0).round() / 1_000_000.0 }
@@ -461,6 +530,9 @@ mod tests {
         );
         assert_eq!(evaluation.per_site, [one_error_of_two(16), unchanged(32)]);
         assert_eq!(evaluation.worst_pixels.len(), 1);
+        assert_eq!(evaluation.within_tolerance, 1.0);
+        assert_eq!(evaluation.within_tolerance_interior, 1.0);
+        assert_eq!(evaluation.outlier_locations, OutlierLocations::default());
         assert_eq!(
             evaluation.worst_pixels[0],
             WorstPixel {
@@ -494,6 +566,10 @@ mod tests {
         .expect("valid metrics");
         assert_eq!(evaluation.metrics.count_gt1024, 3);
         assert_eq!(evaluation.metrics.p9999, 1025);
+        assert_eq!(evaluation.outlier_locations.border, 1);
+        assert_eq!(evaluation.within_tolerance_interior, 1.0);
+        assert_eq!(evaluation.outlier_locations.edge, 0);
+        assert_eq!(evaluation.outlier_locations.flat, 0);
         assert_eq!(evaluation.tiles.len(), 1);
         assert_eq!(evaluation.tiles[0].count_gt1024, 3);
         assert_eq!(evaluation.tiles[0].total_samples, 64 * 64 * 3);

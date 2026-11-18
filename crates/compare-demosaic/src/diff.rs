@@ -59,6 +59,7 @@ pub struct DiffReport {
     pub regressions: usize,
     pub improvements: usize,
     pub ground_truth_changed: bool,
+    pub reference_floor_changed: bool,
     pub changes: Vec<Change>,
 }
 
@@ -83,8 +84,13 @@ impl DiffReport {
     pub fn render_text(&self) -> String {
         let mut output = String::new();
         if self.changes.is_empty() {
-            if self.ground_truth_changed {
-                output.push_str("ground truth changed\n");
+            if self.ground_truth_changed || self.reference_floor_changed {
+                if self.ground_truth_changed {
+                    output.push_str("ground truth changed\n");
+                }
+                if self.reference_floor_changed {
+                    output.push_str("reference floor changed\n");
+                }
             } else {
                 output.push_str("no differences\n");
             }
@@ -121,6 +127,9 @@ impl DiffReport {
         ));
         if self.ground_truth_changed {
             output.push_str("ground truth changed\n");
+        }
+        if self.reference_floor_changed {
+            output.push_str("reference floor changed\n");
         }
         output
     }
@@ -234,12 +243,18 @@ pub fn compare(
     let ground_truth_changed = !baseline
         .ground_truth
         .matches_selection(&new.ground_truth, &new.meta.selection.algorithm);
+    let reference_floor_changed = !baseline
+        .reference_floor
+        .matches_selection(&new.reference_floor, &new.meta.selection.algorithm);
     Ok(DiffReport {
         verdict_only,
-        differences: changes.len() + usize::from(ground_truth_changed),
+        differences: changes.len()
+            + usize::from(ground_truth_changed)
+            + usize::from(reference_floor_changed),
         regressions,
         improvements,
         ground_truth_changed,
+        reference_floor_changed,
         changes,
     })
 }
@@ -410,10 +425,11 @@ const fn kind_name(kind: ChangeKind) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ground_truth::GroundTruthReport;
+    use crate::ground_truth::{GroundTruthReport, OutlierEvidence};
+    use crate::metrics::OutlierLocations;
     use crate::report::{
-        Channels, InputMeta, Kind, Limits, Meta, PatternSource, References, Selection, Sites,
-        WorstSample,
+        Channels, InputMeta, Kind, Limits, Meta, PatternSource, RangeScaling, ReferenceFloorReport,
+        References, Selection, Sites, WorstSample,
     };
 
     fn metrics(mae: f64) -> Metrics {
@@ -467,6 +483,10 @@ mod tests {
                 fornax: 2,
                 reference: 0,
             }],
+            within_tolerance: 1.0,
+            outlier_locations: OutlierLocations::default(),
+            reference_floor_match: false,
+            outlier_evidence: OutlierEvidence::test_fixture(),
         }
     }
 
@@ -483,6 +503,7 @@ mod tests {
                     black_height: 2,
                     white: 65_535.0,
                     native_pattern: "RGGB".to_owned(),
+                    reference_scale: 1.0,
                 }],
                 references: References {
                     libraw: "0.22.3".to_owned(),
@@ -497,9 +518,14 @@ mod tests {
                 },
                 border_px: 0,
                 pattern_source: PatternSource::ShiftedCrops,
+                range_scaling: RangeScaling {
+                    enabled: true,
+                    ceiling_codes: 60_000,
+                },
                 selection: Selection::default(),
             },
             GroundTruthReport::test_fixture(),
+            ReferenceFloorReport::test_fixture(),
             rows,
         )
     }

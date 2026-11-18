@@ -4,9 +4,11 @@ use std::path::{Path, PathBuf};
 use fornax_raw_core::BayerPattern;
 use serde::{Deserialize, Serialize};
 
-use crate::ground_truth::GroundTruthReport;
+use crate::ground_truth::{GroundTruthReport, OutlierEvidence};
+use crate::metrics::OutlierLocations;
 
-pub const SCHEMA_VERSION: u32 = 2;
+pub const SCHEMA_VERSION: u32 = 3;
+pub const REFERENCE_FLOOR_VERSION: u32 = 1;
 pub const CANONICAL_FILE: &str = "target/compare-demosaic/canonical.json";
 pub const BASELINE_FILE: &str = "crates/compare-demosaic/baseline/canonical.json";
 pub const BORDER_PX: u32 = 16;
@@ -24,6 +26,7 @@ pub struct Report {
     pub schema_version: u32,
     pub meta: Meta,
     pub ground_truth: GroundTruthReport,
+    pub reference_floor: ReferenceFloorReport,
     pub rows: Vec<Row>,
 }
 
@@ -36,7 +39,15 @@ pub struct Meta {
     pub limits: Limits,
     pub border_px: u32,
     pub pattern_source: PatternSource,
+    pub range_scaling: RangeScaling,
     pub selection: Selection,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RangeScaling {
+    pub enabled: bool,
+    pub ceiling_codes: u16,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -51,6 +62,7 @@ pub struct InputMeta {
     pub black_height: u32,
     pub white: f64,
     pub native_pattern: String,
+    pub reference_scale: f64,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -83,6 +95,85 @@ pub struct Selection {
     pub reference: Vec<String>,
     pub pattern: Vec<String>,
     pub input: Vec<String>,
+}
+
+impl ReferenceFloorReport {
+    pub fn validate(&self) -> mischief::Result<()> {
+        if self.version != REFERENCE_FLOOR_VERSION {
+            return Err(mischief::mischief!(
+                "unsupported reference-floor version {}",
+                self.version
+            ));
+        }
+        if self.tolerance_codes != crate::metrics::TOLERANCE_CODES {
+            return Err(mischief::mischief!(
+                "reference-floor tolerance must be {}",
+                crate::metrics::TOLERANCE_CODES
+            ));
+        }
+        for row in &self.rows {
+            if row.samples == 0 {
+                return Err(mischief::mischief!(
+                    "reference floor {} {} {} has no samples",
+                    row.input,
+                    row.algorithm,
+                    row.pattern
+                ));
+            }
+            if row
+                .outlier_locations
+                .border
+                .saturating_add(row.outlier_locations.edge)
+                .saturating_add(row.outlier_locations.flat)
+                > row.samples
+            {
+                return Err(mischief::mischief!(
+                    "reference floor {} {} {} has inconsistent counts",
+                    row.input,
+                    row.algorithm,
+                    row.pattern
+                ));
+            }
+            validate_metrics("reference-floor", &row.metrics, row.samples)?;
+            if !row.within_tolerance.is_finite()
+                || !(0.0..=1.0).contains(&row.within_tolerance)
+                || round6(row.within_tolerance) != row.within_tolerance
+            {
+                return Err(mischief::mischief!(
+                    "reference floor has an invalid tolerance fraction"
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn matches_selection(&self, other: &Self, algorithms: &[String]) -> bool {
+        algorithms.is_empty()
+            || (self.version == other.version
+                && self.border_px == other.border_px
+                && self.tolerance_codes == other.tolerance_codes
+                && other.rows.iter().all(|candidate| {
+                    self.rows.iter().any(|baseline| {
+                        baseline.input == candidate.input
+                            && baseline.algorithm == candidate.algorithm
+                            && baseline.pattern == candidate.pattern
+                            && baseline.samples == candidate.samples
+                            && baseline.metrics == candidate.metrics
+                            && baseline.within_tolerance == candidate.within_tolerance
+                            && baseline.outlier_locations == candidate.outlier_locations
+                    })
+                }))
+    }
+
+    #[cfg(test)]
+    pub(crate) fn test_fixture() -> Self {
+        Self {
+            version: REFERENCE_FLOOR_VERSION,
+            border_px: BORDER_PX,
+            tolerance_codes: crate::metrics::TOLERANCE_CODES,
+            rows: Vec::new(),
+        }
+    }
 }
 
 impl Selection {
@@ -138,6 +229,31 @@ pub struct Row {
     pub channels: Channels,
     pub sites: Sites,
     pub worst: Vec<WorstSample>,
+    pub within_tolerance: f64,
+    pub outlier_locations: OutlierLocations,
+    pub reference_floor_match: bool,
+    pub outlier_evidence: OutlierEvidence,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReferenceFloorReport {
+    pub version: u32,
+    pub border_px: u32,
+    pub tolerance_codes: u16,
+    pub rows: Vec<ReferenceFloorRow>,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReferenceFloorRow {
+    pub input: String,
+    pub algorithm: String,
+    pub pattern: String,
+    pub samples: u64,
+    pub metrics: Metrics,
+    pub within_tolerance: f64,
+    pub outlier_locations: OutlierLocations,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -183,12 +299,18 @@ pub struct WorstSample {
 }
 
 impl Report {
-    pub fn new(meta: Meta, ground_truth: GroundTruthReport, mut rows: Vec<Row>) -> Self {
+    pub fn new(
+        meta: Meta,
+        ground_truth: GroundTruthReport,
+        reference_floor: ReferenceFloorReport,
+        mut rows: Vec<Row>,
+    ) -> Self {
         rows.sort_unstable_by(row_order);
         Self {
             schema_version: SCHEMA_VERSION,
             meta,
             ground_truth,
+            reference_floor,
             rows,
         }
     }
@@ -215,10 +337,13 @@ impl Report {
             .map_err(|error| mischief::mischief!("cannot serialize metadata: {error}"))?;
         let ground_truth = serde_json::to_string(&self.ground_truth)
             .map_err(|error| mischief::mischief!("cannot serialize ground truth: {error}"))?;
+        let reference_floor = serde_json::to_string(&self.reference_floor)
+            .map_err(|error| mischief::mischief!("cannot serialize reference floor: {error}"))?;
         writeln!(writer, "{{")?;
         writeln!(writer, "  \"schema_version\": {},", self.schema_version)?;
         writeln!(writer, "  \"meta\": {meta},")?;
         writeln!(writer, "  \"ground_truth\": {ground_truth},")?;
+        writeln!(writer, "  \"reference_floor\": {reference_floor},")?;
         writeln!(writer, "  \"rows\": [")?;
         for (index, row) in self.rows.iter().enumerate() {
             let row = serde_json::to_string(row)
@@ -258,6 +383,7 @@ impl Report {
             return Err(mischief::mischief!("report has no rows"));
         }
         self.ground_truth.validate()?;
+        self.reference_floor.validate()?;
         if self.meta.inputs.is_empty() {
             return Err(mischief::mischief!("report has no inputs"));
         }
@@ -265,6 +391,11 @@ impl Report {
         validate_selection_sorted("reference", &self.meta.selection.reference)?;
         validate_selection_sorted("pattern", &self.meta.selection.pattern)?;
         validate_selection_sorted("input", &self.meta.selection.input)?;
+        if self.meta.range_scaling.enabled && self.meta.range_scaling.ceiling_codes == 0 {
+            return Err(mischief::mischief!(
+                "reference range ceiling must be positive"
+            ));
+        }
 
         let mut input_names = self
             .meta
@@ -284,6 +415,15 @@ impl Report {
             if input.width == 0 || input.height == 0 {
                 return Err(mischief::mischief!(
                     "input {} has zero dimensions",
+                    input.name
+                ));
+            }
+            if !input.reference_scale.is_finite()
+                || !(0.0..=1.0).contains(&input.reference_scale)
+                || round6(input.reference_scale) != input.reference_scale
+            {
+                return Err(mischief::mischief!(
+                    "input {} has an invalid reference scale",
                     input.name
                 ));
             }
@@ -434,7 +574,51 @@ impl Row {
         }) {
             return Err(mischief::mischief!("worst sample is outside the input"));
         }
-        let (verdict, failed_limits) = verdict(self.kind, &self.all, self.samples, meta.limits);
+        if !self.within_tolerance.is_finite()
+            || !(0.0..=1.0).contains(&self.within_tolerance)
+            || round6(self.within_tolerance) != self.within_tolerance
+        {
+            return Err(mischief::mischief!(
+                "row {} {} {} has an invalid tolerance fraction",
+                self.input,
+                self.algorithm,
+                self.pattern
+            ));
+        }
+        let located = self
+            .outlier_locations
+            .border
+            .saturating_add(self.outlier_locations.edge)
+            .saturating_add(self.outlier_locations.flat);
+        if located > self.samples {
+            return Err(mischief::mischief!(
+                "row {} {} {} has more located outliers than samples",
+                self.input,
+                self.algorithm,
+                self.pattern
+            ));
+        }
+        let evidence = &self.outlier_evidence;
+        if evidence.synthetic_sources == 0
+            || [
+                evidence.fornax_mae,
+                evidence.reference_mae,
+                evidence.fornax_p99,
+                evidence.reference_p99,
+            ]
+            .into_iter()
+            .any(|value| !value.is_finite() || value < 0.0 || round6(value) != value)
+        {
+            return Err(mischief::mischief!(
+                "row {} {} {} has invalid outlier evidence",
+                self.input,
+                self.algorithm,
+                self.pattern
+            ));
+        }
+        let interior_samples = interior_pixels * 3;
+        let (verdict, failed_limits) =
+            verdict(self.kind, &self.interior, interior_samples, meta.limits);
         if self.verdict != verdict || self.failed_limits != failed_limits {
             return Err(mischief::mischief!(
                 "row {} {} {} has a stale verdict",
@@ -603,6 +787,10 @@ mod tests {
                 fornax: 2,
                 reference: 0,
             }],
+            within_tolerance: 1.0,
+            outlier_locations: OutlierLocations::default(),
+            reference_floor_match: false,
+            outlier_evidence: OutlierEvidence::test_fixture(),
         };
         Report::new(
             Meta {
@@ -616,6 +804,7 @@ mod tests {
                     black_height: 2,
                     white: 65_535.0,
                     native_pattern: "RGGB".to_owned(),
+                    reference_scale: 1.0,
                 }],
                 references: References {
                     libraw: "0.22.3".to_owned(),
@@ -625,9 +814,14 @@ mod tests {
                 limits: LIMITS,
                 border_px: 0,
                 pattern_source: PatternSource::ShiftedCrops,
+                range_scaling: RangeScaling {
+                    enabled: true,
+                    ceiling_codes: 60_000,
+                },
                 selection: Selection::default(),
             },
             GroundTruthReport::test_fixture(),
+            ReferenceFloorReport::test_fixture(),
             vec![row],
         )
     }
@@ -659,8 +853,8 @@ mod tests {
         let report = report(Verdict::Pass, 0.5);
         report.write(&path)?;
         let text = std::fs::read_to_string(&path)?;
-        assert_eq!(text.lines().count(), 8);
-        assert!(text.contains("\"schema_version\": 2"));
+        assert_eq!(text.lines().count(), 9);
+        assert!(text.contains("\"schema_version\": 3"));
         assert!(text.contains("\"ground_truth\":"));
         assert_eq!(Report::read(&path)?, report);
 
@@ -668,13 +862,21 @@ mod tests {
         std::fs::write(&path, tampered)?;
         assert!(Report::read(&path).is_err());
 
-        let missing_schema = text.replacen("  \"schema_version\": 2,\n", "", 1);
+        let missing_schema = text.replacen("  \"schema_version\": 3,\n", "", 1);
         std::fs::write(&path, missing_schema)?;
         assert!(Report::read(&path).is_err());
 
         let missing_ground_truth =
             text.replacen("  \"ground_truth\": {", "  \"unused_ground_truth\": {", 1);
         std::fs::write(&path, missing_ground_truth)?;
+        assert!(Report::read(&path).is_err());
+
+        let missing_reference_floor = text.replacen(
+            "  \"reference_floor\": {",
+            "  \"unused_reference_floor\": {",
+            1,
+        );
+        std::fs::write(&path, missing_reference_floor)?;
         assert!(Report::read(&path).is_err());
         Ok(())
     }

@@ -40,6 +40,7 @@ mod tests {
             black_height: 2,
             white: 65_535.0,
             native_pattern: BayerPattern::GBRG,
+            reference_scale: 1.0,
         }
     }
 
@@ -76,6 +77,7 @@ mod tests {
             black_height: input.black_height,
             white: input.white,
             native_pattern: input.native_pattern,
+            reference_scale: input.reference_scale,
         }
     }
 
