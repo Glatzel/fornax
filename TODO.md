@@ -5,6 +5,7 @@
   - [AMAZE-RCD-FLIP] Resolve the remaining AMaZE and RCD horizontal-flip direction/tie asymmetry without weakening the border regression.
   - [GT-REGRESSION] Recover the small AMaZE and VNG/VNG4 supported-scene ground-truth regressions introduced by removing bounded decision arithmetic.
   - [REF-EVIDENCE] Improve LMMSE and VNG ground-truth error on samples that diverge from their integer references, or record why the reference divergence is mathematically unavoidable.
+  - [RCD-REF-TAIL] Reduce the RCD divergent-sample evidence tail that keeps otherwise improved darktable and RawTherapee rows at `❌`.
   - [VNG-SPEED] Reduce the VNG/VNG4 f32 overhead, currently about 18-22% slower than the former integer kernels without exceeding the 25% review threshold.
   - [IGV] Make IGV reproduce RawTherapee 5.13 IGV and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
   - [EAHD] Make EAHD reproduce RawTherapee 5.13 EAHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
